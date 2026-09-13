@@ -1,0 +1,1664 @@
+                                         Towards a Theory of Parameterized Streaming
+                                         Algorithms ∗
+                                         Rajesh Chitnis1
+                                         School of Computer Science, University of Birmingham, UK.
+                                         rajeshchitnis@gmail.com
+
+                                         Graham Cormode
+                                         University of Warwick, UK.
+                                         g.cormode@warwick.ac.uk
+
+                                               Abstract
+                                         Parameterized complexity attempts to give a more fine-grained analysis of the complexity of problems:
+arXiv:1911.09650v1 [cs.DS] 20 Nov 2019
+
+
+
+
+                                         instead of measuring the running time as a function of only the input size, we analyze the running time
+                                         with respect to additional parameters. This approach has proven to be highly successful in delineating
+                                         our understanding of NP-hard problems. Given this success with the TIME resource, it seems but
+                                         natural to use this approach for dealing with the SPACE resource. First attempts in this direction
+                                         have considered a few individual problems, with some success: Fafianie and Kratsch [MFCS’14] and
+                                         Chitnis et al. [SODA’15] introduced the notions of streaming kernels and parameterized streaming
+                                         algorithms respectively. For example, the latter shows how to refine the Ω(n2 ) bit lower bound for
+                                         finding a minimum Vertex Cover (VC) in the streaming setting by designing an algorithm for the
+                                         parameterized k-VC problem which uses O(k2 log n) bits.
+                                             In this paper, we initiate a systematic study of graph problems from the paradigm of parameterized
+                                         streaming algorithms. We first define a natural hierarchy of space complexity classes of FPS, SubPS,
+                                         SemiPS, SupPS and BrutePS, and then obtain tight classifications for several well-studied graph
+                                         problems such as Longest Path, Feedback Vertex Set, Dominating Set, Girth, Treewidth, etc. into
+                                         this hierarchy (see Figure 1 and Figure 2). On the algorithmic side, our parameterized streaming
+                                         algorithms use techniques from the FPT world such as bidimensionality, iterative compression and
+                                         bounded-depth search trees. On the hardness side, we obtain lower bounds for the parameterized
+                                         streaming complexity of various problems via novel reductions from problems in communication
+                                         complexity. We also show a general (unconditional) lower bound for space complexity of parameterized
+                                         streaming algorithms for a large class of problems inspired by the recently developed frameworks for
+                                         showing (conditional) kernelization lower bounds.
+                                             Parameterized algorithms and streaming algorithms are approaches to cope with TIME and
+                                         SPACE intractability respectively. It is our hope that this work on parameterized streaming
+                                         algorithms leads to two-way flow of ideas between these two previously separated areas of theoretical
+                                         computer science.
+
+                                         2012 ACM Subject Classification Theory of Computation → Design and analysis of algorithms
+
+                                         Keywords and phrases Parameterized Algorithms, Streaming Algorithms, Kernels
+
+                                         Digital Object Identifier 10.4230/LIPIcs...
+
+                                         Acknowledgements We thank MohammadTaghi Hajiaghayi, Robert Krauthgamer and Morteza
+                                         Monemizadeh for helpful discussions. Algorithm 1 was suggested to us by Arnold Filtser.
+
+
+
+
+                                         ∗
+                                           A preliminary version of this paper will appear in IPEC 2019. Supported by ERC grant 2014-CoG
+                                           647557.
+                                         1
+                                           Work done while at University of Warwick, UK
+                                                    © Rajesh Chitnis and Graham Cormode;
+                                                                                                                                             EA
+
+
+
+
+                                                    licensed under Creative Commons License CC-BY
+                                                                                                                                              TC S
+
+
+
+
+                                                           Leibniz International Proceedings in Informatics
+                                                           Schloss Dagstuhl – Leibniz-Zentrum für Informatik, Dagstuhl Publishing, Germany
+XX:2   Towards a Theory of Parameterized Streaming Algorithms
+
+
+           1    Introduction
+
+       Designing and implementing efficient algorithms is at the heart of computer science. Tra-
+       ditionally, efficiency of algorithms has been measured with respect to running time as a
+       function of instance size. From this perspective, algorithms are said to be efficient if they can
+       be solved in time which is bounded by some polynomial function of the input size. However,
+       very many interesting problems are NP-complete, and so are grouped together as “not known
+       to be efficient”. This fails to discriminate within a large heterogenous group of problems,
+       and in response the theory of parameterized (time) algorithms was developed in late 90’s by
+       Downey and Fellows [23]. Parameterized complexity attempts to delineate the complexity of
+       problems by expressing the costs in terms of additional parameters. Formally, we say that a
+       problem is fixed-parameter tractable (FPT) with respect to parameter k if the problem can
+       be solved in time f (k) · nO(1) where f is a computable function and n is the input size. For
+       example, the problem of checking if a graph on n vertices has a vertex cover of size at most
+       k can be solved in 2k · nO(1) time. The study of various parameters helps to understand
+       which parameters make the problem easier (FPT) and which ones cause it to be hard. The
+       parameterized approach towards NP-complete problems has led to development of various
+       algorithmic tools such as kernelization, iterative compression, color coding, and more [24, 17].
+       Kernelization: A key concept in fixed parameter tractability is that of kernelization which
+       is an efficient preprocessing algorithm to produce a smaller, equivalent output called the
+       “kernel”. Formally, a kernelization algorithm for a parameterized problem Q is an algorithm
+       which takes as an instance hx, ki and outputs in time polynomial in (|x| + k) an equivalent2
+       instance hx0 , k 0 i such that max{|x0 |, k 0 } ≤ f (k) for some computable function f . The output
+       instance hx0 , k 0 i is called the kernel, while the function f determines the size of the kernel.
+       Kernelizability is equivalent to fixed-parameter tractability, and designing compact kernels
+       is an important question. In recent years, (conditional) lower bounds on kernels have
+       emerged [4, 19, 20, 25, 31].
+       Streaming Algorithms: A very different paradigm for handling large problem instances
+       arises in the form of streaming algorithms. The model is motivated by sources of data
+       arising in communication networks and activity streams that are considered to be too big to
+       store conveniently. This places a greater emphasis on the space complexity of algorithms.
+       A streaming algorithm processes the input in one or a few read-only passes, with primary
+       focus on the storage space needed. In this paper we consider streaming algorithms for graph
+       problems over fixed vertex sets, where information about the edges arrives edge by edge [33].
+       We consider variants where edges can be both inserted and deleted, or only insertions are
+       allowed. We primarily consider single pass streams, but also give some multi-pass results.
+
+
+       1.1      Parameterized Streaming Algorithms and Kernels
+       Given that parameterized algorithms have been extremely successful for the TIME resource,
+       it seems natural to also use it attack the SPACE resource. In this paper, we advance the
+       model of parameterized streaming algorithms, and start to flesh out a hierarchy of complexity
+       classes. We focus our attention on graph problems, by analogy with FPT, where the majority
+       of results have addressed graphs. From a space perspective, there is perhaps less headroom
+       than when considering the time cost: for graphs on n vertices, the entire graph can be stored
+
+
+       2
+           By equivalent we mean that hx, ki ∈ Q ⇔ hx0 , k0 i ∈ Q
+Rajesh Chitnis and Graham Cormode                                                                   XX:3
+
+
+using O(n2 ) space3 . Nevertheless, given that storing the full graph can be prohibitive, there
+are natural space complexity classes to consider. We formalize these below, but informally,
+the classes partition the dependence on n as: (i) (virtually) independent of n; (ii) sublinear
+in n; (iii) (quasi)linear in n; (iv) superlinear but subquadratic in n; and (v) quadratic in n.
+    Naively, several graph problems have strong lower bounds: for example, the problem
+of finding a minimum vertex cover on graphs of n vertices has a lower bound of Ω(n2 )
+bits. However, when we adopt the parameterized view, we seek streaming algorithms for
+(parameterized) graph problems whose space can be expressed as a function of both the
+number of vertices n and the parameter k. With this relaxation, we can separate out the
+problem space and start to populate our hierarchy. We next spell out our results, which derive
+from a variety of upper and lower bounds building on the streaming and FPT literature.
+
+1.2    Our Results & Organization of the paper
+For a graph problem with parameter k, there can be several possible choices for the space
+complexity needed to solve it in the streaming setting. In this paper, we first define some
+natural space complexity classes below:
+1. O(f
+    e (k)) space: Due to the connection to running time of FPT algorithms, we call the
+   class of parameterized problems solvable using O(f
+                                                  e (k)) bits as FPS (fixed-parameterized
+   streaming)4 .
+2. Sublinear space: When the dependence on n is sublinear, we call the class of parameterized
+   problems solvable using O(fe (k) · n1− ) bits as SubPS (sublinear parameterized streaming)
+3. Quasi-linear space: Due to the connection to the semi-streaming model [29, 37], we call the
+                                    e (k) · n) bits as SemiPS (parameterized semi-streaming).
+   set of problems solvable using O(f
+4. Superlinear, subquadratic space: When the dependence on n is superlinear (but subquad-
+                                                                        e (k) · n1+ ) bits (for
+   ratic), we call the class of parameterized problems solvable using O(f
+   some 1 >  > 0) as SupPS (superlinear parameterized streaming).
+5. Quadratic space: We call the set of graph problems solvable using O(n2 ) bits as BrutePS
+   (brute-force parameterized streaming). Note that every graph problem is in BrutePS
+   since we can just store the entire adjacency matrix using O(n2 ) bits (see Remark 2).
+
+I Remark 1. Formally, we need to consider the following 7-tuple when we attempt to find its
+correct position in the aforementioned hierarchy of complexity classes:
+
+[Problem, Parameter, Space,# of Passes, Type of Algorithm, Approx. Ratio, Type of Stream]
+
+By type of algorithm, we mean that the algorithm could be deterministic or randomized.
+For the type of stream, the standard alternatives are (adversarial) insertion, (adversarial)
+insertion-deletion, random order, etc. Figure 3 gives a list of results for the k-VC problem
+(as a case study) in various different settings. Unless stated otherwise, throughout this paper,
+we consider the space requirement for 1-pass exact deterministic algorithms for problems
+with the standard parameter (size of the solution) in insertion-only streams.
+I Remark 2. There are various different models for streaming algorithms depending on how
+much computation is allowed on the stored data. In this paper, we consider the most general
+
+
+3
+  Throughout the paper, by space we mean words/edges/vertices. Each word can be represented using
+  O(log n) bits
+4
+  Throughout this paper, we use the Õ notation to hide logO(1) n factors
+XX:4   Towards a Theory of Parameterized Streaming Algorithms
+
+
+       model by allowing unbounded computation at each edge update, and also at the end of the
+       stream.
+           Our goal is to provide a tight classification of graph problems into the aforementioned
+       complexity classes. We make progress towards this goal as follows: Section 2 shows how various
+       techniques from the FPT world such as iterative compression, branching, bidimensionality,
+       etc. can also be used to design parameterized streaming algorithms. First we investigate
+       whether one can further improve upon the FPS algorithm of Chitnis et al. [12] for k-VC
+       which uses O(k 2 · log n) bits and one pass. We design two algorithms for k-VC which use
+       O(k · log n) bits5 : an 2k -pass algorithm using bounded-depth search trees (Section 2.1) and
+       an (k · 22k )-pass algorithm using iterative compression (Section 2.2). Finally, Section 2.3
+       shows that any minor-bidimensional problem belongs to the class SemiPS.
+           Section 3 deals with lower bounds for parameterized streaming algorithms. First, in
+       Section 3.1 we show that some parameterized problems are tight for the classes SemiPS
+       and BrutePS. In particular, we show that k-Treewidth, k-Path and k-Feedback-Vertex-Set
+       are tight for the class SemiPS, i.e., they belong to SemiPS but do not belong to the sub-
+       class SubPS. Our SemiPS algorithms are based on problem-specific structural insights. Via
+       reductions from the Perm problem [42], we rule out algorithms which use O(f        e (k) · n1− )
+       bits (for any function f and any  ∈ (0, 1)) for these problems by proving Ω(n log n) bits
+       lower bounds for constant values of k. Then we show that some parameterized problems
+       such as k-Girth and k-Dominating-Set are tight for the class BrutePS, i.e, they belong to
+       BrutePS but do not belong to the sub-class SupPS. Every graph problem belongs to BrutePS
+       since we can store the entire adjacency matrix of the graph using O(n2 ) bits. Via reductions
+       from the Index problem [34], we rule out algorithms which use O(f    e (k) · n1+ ) bits (for any
+       function f and any  ∈ (0, 1)) for these problems by proving Ω(n2 ) bits lower bounds for
+       constant values of k.
+           Section 3.2 shows a lower bound of Ω(n) bits for any algorithm that approximates (within
+                 β
+       a factor 32  ) the size of min dominating set on graphs of arboricity (β + 2), i.e., this problem
+                e (β) · n1− ) bits algorithm (since β is a constant), and hence does not belong to
+       has no O(f
+       the class SubPS when parameterized by β. In Section 3.3 we obtain unconditional lower
+       bounds on the space complexity of 1-pass parameterized streaming algorithms for a large
+       class of graph problems inspired by some of the recent frameworks to show conditional lower
+       bounds for kernels [4, 19, 20, 25, 31]. Finally, in Section 3.4 we show that any parameterized
+       streaming algorithm for the d-SAT problem (for any d ≥ 2) must (essentially) follow the
+       naive algorithm of storing all the clauses.
+           Figure 1 provides a pictorial representation of the complexity classes, and the known
+       classification of several graph problems (from this paper and some previous work) into these
+       classes. Figure 2 summarizes our results, and clarifies the stream arrival model(s) under
+       which they hold. Figure 3 summarizes known results for the k-VC problem in the different
+       settings outlined in Remark 1.
+
+
+       1.3      Prior work on Parametrized Streaming Algorithms
+       Prior work began by considering how to implement kernels in the streaming model. Formally,
+       a streaming kernel [28] for a parameterized problem (I, k) is a streaming algorithm that
+       receives the input I as a stream of elements, stores f (k) · logO(1) |I| bits and returns an
+
+
+       5
+           Which is essentially optimal since the algorithm also returns a VC of size k (if one exists)
+Rajesh Chitnis and Graham Cormode                                                                            XX:5
+
+
+
+                                                 BrutePS
+
+
+                                                   SupPS
+
+
+                                                  SemiPS
+                                           β
+                                           32 -approx for estimating
+                                    DomSet in graphs of arboricity (β + 2)
+
+                                                   SubPS
+
+
+                                                    FPS
+
+                          Minor-Bidimensional-problems
+                                                    k-VC
+
+                                     O(d)-approx. for est. max matching
+                                         on graphs of arboricity d in
+                                            dynamic streams [10]
+
+
+
+                                     k-Path, k-FVS, k-Treewidth
+
+                                O( logδ n )-approx. for DomSet in O(n
+                                                                  e 1+δ ) space
+                                            and O(1/δ) passes [32]
+
+
+
+
+                                      k-Girth, k-Dominating Set
+
+
+    Figure 1 Pictorial representation of classification of some graph problems into complexity classes:
+our results are in black and previous work is referenced in blue. All results are for 1-pass deterministic
+algorithms on insertion-only streams unless otherwise specified. It was already known that k-VC ∈
+FPS [12, 10] using only 1-pass, but here we design an algorithm with optimal space storage at the
+expense of multiple passes.
+
+
+equivalent instance6 . This is especially important from the practical point of view since
+several real-world situations can be modeled by the streaming setting, and streaming kernels
+would help to efficiently preprocess these instances. Fafianie and Kratsch [28] showed that
+the kernels for some problems like Hitting Set and Set Matching can be implemented in the
+streaming setting, but other problems such as Edge Dominating Set, Feedback Vertex Set,
+etc. do not admit (1-pass) streaming kernels.
+    Chitnis et al. [12] studied how to circumvent the worst case bound of Ω(n2 ) bits for Vertex
+Cover by designing a streaming algorithm for the parameterized k-Vertex-Cover (k-VC)7 .
+
+
+6
+    [28] required f (k) = kO(1) , but we choose to relax this requirement
+7
+    That is, determine whether there is a vertex cover of size at most k?
+XX:6   Towards a Theory of Parameterized Streaming Algorithms
+
+
+                                           Number
+                                              of        Type of       Space                    Space
+                  Problem                   Passes      Stream     Upper Bound              Lower Bound
+         g(r)-minor-bidimensional                                  e −1 (k + 1))10 n)
+                                                                   O((g
+             problems [Sec. 2.3]                 1      Ins-Del.       words                        —
+                                                2k
+               k-VC [Sec. 2.2]              2     ·k    Ins-only     O(k) words               Ω(k) words
+               k-VC [Sec. 2.1]                  2k      Ins-only     O(k) words               Ω(k) words
+               k-FVS, k-Path                                                            No f (k) · n1− logO(1) n
+            k-Treewidth [Sec. 3.1]               1      Ins-only    O(k · n) words          bits algorithm
+               k-FVS, k-Path                                                            No f (k) · n1− logO(1) n
+            k-Treewidth [Sec. 3.1]               1      Ins-Del.    e · n) words
+                                                                    O(k                     bits algorithm
+             k-Girth, k-DomSet,                                                         No f (k) · n2− logO(1) n
+                  [Sec. 3.1]                     1      Ins-Del.      O(n2 ) bits           bits algorithm
+        β
+        32
+           -approximation   for size of
+         min DomSet on graphs of                                                            No f (β) · n1−
+            arboricity β [Sec. 3.2]              1      Ins-only      O(nβ)
+                                                                      e     bits            bits algorithm
+        AND-compatible problems
+             and OR-compatible                                                               e (k) · n1− )
+                                                                                          No O(f
+                                                                          2
+             problems [Sec. 3.3]                 1      Ins-only      O(n ) bits           bits algorithm
+                 d-SAT with                              Clause
+            N variables [Sec. 3.4]               1       Arrival    e · N d ) bits
+                                                                    O(d                     Ω((N/d)d ) bits
+
+
+           Figure 2 Table summarizing our results (in the order in which they appear in the paper). All our
+       algorithms are deterministic. All the lower bounds are unconditional, and hold even for randomized
+       algorithms in insertion-only streams.
+
+                           # of           Type of       Type of     Approx.                   Space
+         Problem          Passes          Stream       Algorithm     Ratio                   Bound
+            k-VC             1            Ins-only        Det.        1                O(k2 log n) bits [12]
+            k-VC             1            Ins-only       Rand.        1                  Ω(k2 ) bits [12]
+            k-VC             1            Ins-Del.       Rand.        1             O(k2 logO(1) n) bits [10]
+            k-VC            2k            Ins-only        Det.        1           O(k log n) bits [Algorithm 1]
+            k-VC           k · 2k         Ins-only.       Det.        1           O(k log n) bits [Algorithm 2]
+        Estim. k-VC      Ω(k/ log n)      Ins-only.      Rand.        1          O(k log n) bits [1, Theorem 16]
+        Estim. k-VC                                       Det.                    Ω(n) bits [27, Theorem 6.1]
+                                                                                   √
+          on Trees            1           Ins-only.      Rand.      (3/2 − )    Ω( n) bits [27, Theorem 6.1]
+
+
+          Figure 3 Table summarizing some of the results for the k-VC problem in the different settings
+       outlined in Remark 1.
+
+
+       They showed that the k-VC problem can be solved in insertion-only streams using storage
+       of O(k 2 ) space. They also showed an almost matching lower bound of Ω(k 2 ) bits for any
+       streaming algorithm for k-VC. A sequence of papers showed how to solve the k-VC problem
+       in more general streaming models: Chitnis et al. [12, 11] gave an O(k   e 2 ) space algorithm
+       under a particular promise, which was subsequently removed in [10].
+           Recently, there have been several papers considering the problem of estimating the size
+       of a maximum matching using o(n) space in graphs of bounded arboricity. If the space is
+       required to be sublinear in n, then versions of the problem that involve estimating the size of a
+       maximum matching (rather than demonstrating such a matching) become the focus. Since the
+Rajesh Chitnis and Graham Cormode                                                                             XX:7
+
+
+work of Esfandiari et al. [27], there have been several sublinear space algorithms [35, 36, 15, 10]
+which obtain O(α)-approximate estimations of the size of maximum matching in graphs
+of arboricity α. The current best bounds [5, 15] for insertion-only streams is O(logO(1) n)
+space and for insertion-deletion streams is O(αe · n4/5 ). All of these results can be viewed as
+parameterized streaming algorithms (FPS or SubPS) for approximately estimating the size of
+maximum matching in graphs parameterized by the arboricity.
+
+
+    2    Parameterized Streaming Algorithms Inspired by FPT techniques
+
+In this section we design parameterized streaming algorithms using three techniques from the
+world of parameterized algorithms, viz. branching, iterative compression and bidimensionality.
+
+
+2.1      Multipass FPS algorithm for k-VC using Branching
+The streaming algorithm (Algorithm 2) from Section 2.2 already uses optimal storage of
+O(k log n) bits but requires O(2k · (n − k)) passes. In this section, we show how to reduce
+the number of passes to 2k (while still maintaining the same storage) using the technique
+of bounded-depth search trees (also known as branching). The method of bounded-depth
+search trees gives a folklore FPT algorithm for k-VC which runs in 2O(k) · nO(1) time. The
+idea is simple: any vertex cover must contain at least one end-point of each edge. We now
+build a search tree as follows: choose an arbitrary edge, say e = u − v in the graph. Start
+with the graph G at the root node of the search tree. Branch into two options, viz. choosing
+either u or v into the vertex cover8 . The resulting graphs at the two children of the root node
+are G − u and G − v. Continue the branching process. Note that at each step, we branch
+into two options and we only need to build the search tree to height k for the k-VC problem.
+Hence, the binary search tree has 2O(k) leaf nodes. If the resulting graph at any leaf node
+is empty (i.e., has no edges) then G has a vertex cover of size ≤ k which can be obtained
+by following the path from the root node to the leaf node in the search tree. Conversely, if
+the resulting graphs at none of the leaf nodes of the search tree are empty then G does not
+have a vertex cover of size ≤ k: this is because at each step we branched on all the (two)
+possibilities at each node of the search tree.
+    Simulating branching-based FPT algorithm using multiple passes: We now
+simulate the branching-based FPT algorithm described in the previous section using 2k
+passes and O(k log n) bits of storage in the streaming model.
+
+I Definition 3. Let V (G) = {v1 , v2 , . . . , vn }. Fix some ordering φ on V (G) as follows:
+v1 < v2 < v3 < . . . < vn . Let Dictk be the dictionary ordering on the 2k binary strings
+of {0, 1}k . Given a string X ⊆ {0, 1}k , let Dictk (Next(X)) denote the string that comes
+immediately after X in the ordering Dictk . We set Dictk (Next(1k )) = ♠
+
+   We formally describe our multipass algorithm in Algorithm 1. This algorithm crucially
+uses the fact that in each pass we see the edges of the stream in the same order.
+
+I Theorem 4. Algorithm 1 correctly solves the k-VC problem using 2k passes and O(k log n)
+bits of storage.
+
+
+8
+    Note that if we choose u in the first branch then that does not imply that we cannot or will not choose
+    v later on in the search tree
+XX:8   Towards a Theory of Parameterized Streaming Algorithms
+
+
+       Algorithm 1 2k -pass Streaming Algorithm for k-VC using O(k log n) bits via Branching
+       Input: An undirected graph G = (V, E) and an integer k.
+       Output: A vertex cover S of G of size ≤ k (if one exists), and NO otherwise
+       Storage: i, j, S, X
+        1: Let X = 0k , and suppose the edges of the graph are seen in the order e1 , e2 , . . . , em
+        2: while X 6= ♠ do
+               S = ∅, i = 1, j = 1
+        3:    while i 6= k + 1 do
+        4:       Let ej = u − v such that u < v under the ordering φ
+        5:       if Both u ∈ / S and v ∈
+                                       / S then
+        6:           if X[i] = 0 then S ← S ∪ {u}
+        7:           else S ← S ∪ {v}
+        8:           i←i+1
+        9:        j ←j+1
+       10:    if j = m + 1 then Return S and abort
+       11:    else X ← Dictk (Next(X))
+       12: if X = ♠ then Return NO
+
+
+
+       Proof. First we argue the correctness of Algorithm 1. Suppose that there is a string
+       X ∈ {0, 1}k such that j = m + 1 and we return the set S. Note that initially we have S = ∅,
+       and the counter i increases each time we add a vertex to S. Hence, size of S never exceeds k.
+       Moreover, if an edge was not covered already (i.e., neither endpoint was in S) then we add at
+       least one of those end-points in S (depending on whether X[i] is 0 or 1) and increase i by one.
+       Hence, if j = m + 1 then this means that we have seen (and covered) all the edges and the
+       current set S is indeed a vertex cover of size ≤ k. Now suppose that the algorithm returns
+       NO. We claim that indeed G cannot have a vertex cover of size k. Suppose to the contrary
+       that G has a vertex cover S ∗ of size ≤ k, but Algorithm 1 returned NO. We construct a
+       string X ∗ ∈ {0, 1}k for which Algorithm 1 would return the set S ∗ : we start with i=1 and
+       the edge e1 . Since S ∗ is a vertex cover of G it must cover the edge e1 . Set X ∗ [1] to be 0 or 1
+       depending on which of the two endpoints of e1 is in S ∗ (if both endpoints are in S ∗ , then it
+       does not matter what we set X ∗ [1] to be). Continuing this way suppose we have filled the
+       entries till X ∗ [i] and the current edge under consideration is ej . If ej is not covered then
+       i 6= k since S ∗ is a vertex cover of G of size ≤ k. In this case, we set X ∗ [i + 1] to be 0 or 1
+       depending on which of the two endpoints of e1 is in S ∗ .
+           We now analyze the storage and number of passes required. The number of passes is at
+       most 2k since we have one pass for each string from {0, 1}k . During each pass, we store four
+       quantities:
+        • The string X ∈ {0, 1}k under consideration in this pass. This needs k bits.
+        • The index i of current bit of the k-bit binary string X under consideration in this pass.
+           This needs log k bits.
+        • The index j of the current edge under consideration in this pass. This needs log n bits.
+        • The set S. Since size of S never exceeds k throughout the algorithm, this can be done
+           using k log n bits.
+                                                                                                        J
+
+           Note that the total storage of Algorithm 1 is O(k log n) bits which is essentially optimal
+       since the algorithm also outputs a vertex cover of size at most k (if one exists). The next
+Rajesh Chitnis and Graham Cormode                                                                    XX:9
+
+
+natural question is whether one need exponential (in k) number of passes when we want
+to solve the k-VC problem using only O(k log n) bits. A lower bound of (k/ log n) passes
+follows for such algorithms from the following result of Abboud et al.
+
+I Theorem 5. (rewording of [1, Thm 16]) Any algorithm for the k-VC problem which uses
+S bits of space and R passes must satisfy RS ≥ n2
+
+2.2      Multipass FPS algorithm for k-VC using Iterative Compression
+The technique of iterative compression was introduced by Reed et al. [39] to design the first
+FPT algorithm for the k-OCT problem9 . Since then, iterative compression has been an
+important tool in the design of faster parameterized algorithms [9, 13, 8] and kernels [18]. In
+this section, using the technique of iterative compression, we design an algorithm (Algorithm 2)
+for k-VC which uses O(k log n) bits but requires O(k · 22k ) passes. Although this algorithm
+is strictly worse (same storage, but higher number of passes) compared to Algorithm 1, we
+include it here to illustrate that the technique of iterative compression can be used in the
+streaming setting.
+
+2.2.1       FPT algorithm for k-VC using iterative compression
+We first define a variant problem where we are given some additional information in the
+input in the form of a vertex cover of size of size k + 1 (just more than the budget).
+
+      Compression-VC
+      Input: A graph G, a positive integer k and a vertex cover T of size k + 1
+      Parameter: k
+      Question: Does there exist a set X ⊆ V (G) with |X| ≤ k such that G \ X has no
+      edges?
+
+I Lemma 6 (power of iterative compression). k-VC can be solved by k calls to an algorithm
+for the Compression-VC problem.
+
+Proof. Let e1 , e2 , . . . , et be the edges of a maximal matching M in G, and let VM be the set
+of vertices which are matched in M . If t > k then there is no vertex cover of size k since
+any vertex cover needs to pick at least one vertex from every edge of the maximal matching.
+Hence, we have t ≤ k. By maximality of M , it follows that the set VM forms a vertex cover
+of size 2t ≤ 2k. For each 2k ≥ r ≥ k + 1 we now run the Compression-VC problem to see
+whether there exists a vertex cover of size r − 1. If the answer is YES, then we continue with
+the compression. On the other hand, if the the Compression-VC problem answers NO for
+some 2k ≥ r ≥ k + 1 then clearly there is no vertex cover of G which has size ≤ k.            J
+
+    Now we solve the Compression-VC problem via the following problem whose only
+difference is that the vertex cover in the output must be disjoint from the one in the input:
+
+      Disjoint-VC
+      Input: A graph G, a positive integer k and a vertex cover T of size k + 1
+      Parameter: k
+      Question: Does there exist a set X ⊆ V (G) with |X| ≤ k such that X ∩ T = ∅ and
+      G \ X has no edges?
+
+9
+    Is there a set of size at most k whose deletion makes the graph odd cycle free, i.e. bipartite
+XX:10   Towards a Theory of Parameterized Streaming Algorithms
+
+
+        I Lemma 7 (adding disjointness). Compression-VC can be solved by O(2|T | ) calls to an
+        algorithm for the Disjoint-VC problem.
+
+        Proof. Given an instance I = (G, T, k) of Compression-VC we guess the intersection Y
+        of the given vertex T of size k + 1 and the desired vertex cover X of size k in the output.
+        We have at most 2|T | − 1 choices for Y since we can have all possible subsets of T except
+        T itself. Then for each guess for Y , we solve the Disjoint-VC problem for the instance
+        IY = (G \ Y, T \ Y, k − |Y |). It is easy to see that if X is a solution for instance I of
+        Compression-VC, then X \ Y is a solution of instance IY of Disjoint-VC for Y = T ∩ X.
+        Conversely, if Z is a solution to some instance IY = (G \ Y, T \ Y, k − |Y |) of Disjoint-VC,
+        then Z ∪ Y is a solution for the instance I = (G, T, k) of Compression-VC.                 J
+
+            Using a maximal matching, we either start with a vertex cover of size ≤ 2k or we can
+        answer that G has no vertex cover of size ≤ k. Hence, any algorithm for Disjoint-VC
+        gives an algorithm for the k-VC problem, with an additional blowup of O(22k · k). Since
+        our objective is to show that the k−VC problem is FPT, then it is enough to give an FPT
+        algorithm for the Disjoint-VC problem (which has additional structure that we can exploit!).
+        In fact we show that the Disjoint-VC problem can be solved in polynomial time.
+
+        I Lemma 8. The Disjoint-VC problem can be solved in polynomial time.
+
+        Proof. Let (G, T, k) be an instance of Disjoint-VC. Note that G \ T has no edges since
+        T is a vertex cover. Meanwhile, if G[T ] has even a single edge, then answer is NO since
+        we cannot pick any vertices from T in the vertex cover. So the only edges are between
+        T and G \ T . Since we cannot pick any vertex from T in vertex cover, we are forced to
+        pick all vertices in G \ T which have neighbors in T . Formally, we have to pick the set
+        X = {x ∈  / T : ∃y ∈ T such that x − y ∈ E(G)}. Note that picking X is both necessary and
+        sufficient. So it simply remains to compare |X| with k and answer accordingly.          J
+
+           Consequently, we obtain a O(22k · k · nO(1) ) time algorithm for k-VC by composing these
+        two reductions.
+
+        2.2.2     Simulating the FPT algorithm in streaming using multiple passes
+        In this section, we show how to simulate the FPT algorithm of the previous section in the
+        multi-pass streaming model. First, let us fix some order on all subsets of [n].
+                                                                                               Pk
+        I Definition 9. Let U = {u1 , u2 , . . . , un } and k ≤ n. Let Uk denote the set of all i=0 |Ui |
+                                                                                                         
+
+        subsets of U which have at most k elements, and DictUk be the dictionary ordering on Uk .
+        Given a subset X ∈ Uk , let DictUk (Next(X)) denote the subset that comes immediately after
+        X in the ordering DictU . We denote the last subset in the dictionary order of Uk by Last(Uk )
+        and use the notation that DictUk (Last(Uk )) = ♠.
+
+            We give our multipass algorithm as Algorithm 2, whose correctness follows from Sec-
+        tion 2.2.1. We now analyze the storage and number of passes required.
+            We first use one pass to store a maximal matching M (upto k edges). The remaining
+        number of passes used by the algorithm is at most 22k · k = O(22k · k) since we have (k)
+        iterations over the index i, we have 22k choices for the set Y ∈ Sk (since |S| ≤ 2k) and we
+        need one pass for each execution of Step 7 and Step 8. Throughout the algorithm, we store
+        three quantities:
+         • We store the vertices VM saturated by a maximal matching M (but only until the size of
+            M exceeds k in which case we output NO). This needs at most 2k log n bits
+Rajesh Chitnis and Graham Cormode                                                                   XX:11
+
+
+Algorithm 2 Multipass Streaming Algorithm for k-VC using Iterative Compression
+Input: An undirected graph G = (V, E), integer k.
+Output: A vertex cover S of G of size at most k (if one exists), and NO otherwise
+Storage: i, S, Y , VM
+ 1: Find a maximal matching M (upto size k) in 1 pass which saturates the vertices VM
+ 2: If |M | exceeds k, then return NO and abort
+ 3: Let S = VM
+ 4: for i = |VM | to k + 1 do
+ 5:    Y =∅
+ 6:    while Y ∈ Sk , Y 6= ♠ do
+ 7:       if |{x ∈ V \ S : ∃y ∈ S \ Y s.t. {x, y} ∈ E(G)}| ≤ k − |Y | then
+ 8:           S ← Y ∪ {x ∈ V \ S : ∃y ∈ S \ Y s.t. x − y ∈ E(G)}         . Requires a pass
+    through the data
+ 9:           Break                         . Found a solution, and reduce value of i by 1
+10:       else
+11:           Y ← DictSk (Next(Y ))                                  . Try the next subset
+12:     if Y = ♠ then
+13:         Return NO and abort
+14: if i = k then
+15:     Return S
+
+
+• The index i of current iteration. This needs log n bits.
+• The set S. Since size of S never exceeds 2k throughout the algorithm, this can be done
+  using 2k log n bits.
+• The current subset Y ⊆ Sk under consideration for being the intersection of S and new
+  potential VC of size ≤ k. Since |S| ≤ 2k and we store S explicitly, it follows that we can
+  store Y and find Next(Y ) using O(k log n) bits.
+    Hence, the total storage of the algorithm is O(k log n) bits which is essentially optimal
+since the algorithm also outputs a vertex cover of size at most k (if one exists).
+
+2.3    Minor-Bidimensional problems belong to SemiPS
+The theory of bidimensionality [21, 22] provides a general technique for designing (subexpo-
+nential) FPT for NP-hard graph problems on various graph classes. First, we introduce some
+graph theoretic concepts.
+I Definition 10 (treewidth). Let G be a given undirected graph. Let T be a tree and
+B : V (T ) → 2V (G) . The pair (T, B) is a tree decomposition of an undirected graph G if
+every vertex x ∈ V (T ) of the tree T has an assigned set of vertices Bx ⊆ V (G) (called a bag)
+such that the following properties are satisfied:
+           S
+ • (P1): x∈V (T ) Bx = V (G).
+ • (P2): For each {u, v} ∈ E(G), there exists an x ∈ V (T ) such that u, v ∈ Bx .
+ • (P3): For each v ∈ V (G), the set of vertices of T whose bags contain v induce a connected
+   subtree of T .
+The width of a tree decomposition (T, B) is maxx∈V (T ) |Bx | − 1. The treewidth of a graph G,
+usually denoted by tw(G), is the minimum width over all tree decompositions of G.
+    Intuitively, the treewidth of a graph captures how tree-like it is. Trees (and more generally
+forests) have treewidth 1.
+XX:12   Towards a Theory of Parameterized Streaming Algorithms
+
+
+        I Definition 11 (minor). Let H, G be two undirected graphs. We say that H is a minor
+        of G if H can be obtained from G by a sequence of edge deletions, vertex deletions or edge
+        contractions.
+          One of the foundational results of graph theory is the Excluded Grid Minor Theorem of
+        Robertson and Seymour [40] which states that large treewidth forces large grid minors:
+        I Theorem 12. [40] There is a function f : N → N such that for r ≥ 1 any graph of
+        treewidth ≥ f (r) contains the r × r grid as a minor.
+            Robertson and Seymour [40] did not provide an explicit bound on f , but proved it was
+        bounded by a tower of exponentials. The first explicit bounds on f were given by Robertson,
+                                                                    5
+        Seymour and Thomas [41] who showed that f (r) = 2O(r ) suffices and there are graphs
+        which force f (r) = Ω(r2 · log r). The question whether f (r) can be shown to be bounded
+        by a polynomial in r was open for a long time until Chekuri and Chuzhoy [7] showed that
+        f (r) = O(r98 · logO(1) r) suffices. The current best bound is f (r) = O(r9 · logO(1) r) due to
+        Chuzhoy and Tan [14]. Henceforth, for ease of presentation, we will use the weaker bound
+        f (r) = O(r10 ).
+            The theory of bidimensionality [21, 22] exploits the idea that many problems can be
+        solved efficiently via dynamic programming on graphs of bounded treewidth, and have large
+        values on grid-like graphs.
+        I Definition 13 (minor-bidimensional). A graph problem Π is said to be g(r)-minor-
+        bidimensional if
+         • The value of Π on the r × r grid is ≥ g(r)
+         • Π is closed under taking minors, i.e., the value of Π does not increase under the operations
+            of vertex deletions, edge deletions, edge contractions.
+            Hence, we obtain a “win-win” approach for designing FPT algorithms for bidimensional
+        problems as follows:
+        • Either the graph has small treewidth and we can then use dynamic programming al-
+            gorithms for bounded treewidth graphs; or
+        • The treewidth is large which implies that the graph contains a large grid as a minor. This
+            implies that the solution size is large, since the parameter is minor-bidimensional.
+        Several natural graph parameters are known to be minor-bidimensional. For example,
+        treewidth is Ω(r)-minor-dimensional and Feedback Vertex Set, Vertex Cover, Minimum
+        Maximal Matching, Long Path, etc are Ω(r2 )-minor-bidimensional. To design parameterized
+        streaming algorithms, we will replace the dynamic programming step for bounded treewidth
+        graphs by simply storing all the edges of such graphs.
+            The following (folklore) lemma shows that bounded treewidth graphs cannot have too
+        many edges.
+        I Lemma 14. Let G = (V, E) be a graph on n vertices. Then |E(G)| ≤ tw(G) · |V (G)|
+        Proof. Let tw(G) = k. We first show that there is a vertex v ∈ G whose degree in G is at
+        most k. Among all tree-decompositions of G of width k, let (T, B) be one which minimizes
+        |T |. Since T is a tree, it has a leaf say t. Let t0 be the unique neighbor of t in T . Minimality
+        of |T | implies that Bt * Bt0 , since otherwise deleting t (and the bag Bt ) would still give a
+        tree-decomposition of G. Hence, there is a vertex v ∈ Bt and v ∈      / Bt0 . This implies that all
+        neighbors of v in G must be in the bag Bt , i.e., v has degree at most |Bt | − 1 = k. Now,
+        delete the vertex v. It follows from the definition of treewidth that tw(G − v) ≤ tw(G) = k,
+        and hence we can conclude that G − v also has a vertex of degree at most k. Continuing this
+        way, we obtain |E(G)| ≤ tw(G) · |V (G)|.                                                         J
+Rajesh Chitnis and Graham Cormode                                                                       XX:13
+
+
+      Note that cliques are a tight example (up to factor 2) for the bound in Lemma 14.
+I Lemma 15. Let Π be a g(r)-minor-dimensional problem. Any graph G having more than
+O((g −1 (k + 1))10 · |V (G)|) edges is a NO (resp. YES) instance of k-Π if Π is a minimization
+(resp. maximization) problem.
+Proof. Suppose G has more than τ (g −1 (k + 1))10 · n edges. By Lemma 14, it follows that
+tw(G) ≥ τ (g −1 (k + 1))10 . This implies G has the g −1 (k + 1) × g −1 (k + 1) grid as a minor [14].
+Since Π is minor-dimensional, this implies that the value of Π is at least g(g −1 (k + 1)) = k + 1,
+i.e., G is a NO (resp. YES) instance of k-Π if Π is a minimization (resp. maximization)
+problem.                                                                                          J
+
+    Lemma 15 implies streaming algorithms for Π in both insertion-only and insertion-deletion
+streams. First, we define a data structure that we need.
+I Definition 16 (k-sparse recovery algorithm). A k-sparse recovery algorithm is a data
+structure which accepts insertions and deletions of elements from [n] so that, if the current
+number of elements stored in it is at most k, then these can be recovered in full.
+    Barkay et al. [3] showed that a k-sparse recovery algorithm can be constructed determin-
+istically using O(k)
+                e     space.
+I Theorem 17. Let M ≥ 1. Then we can check if a graph stream contains at most M edges
+(and also store all these edges) using
+ • O(M ) space in insertion-only streams
+ • O(M
+    e    ) space in insertion-deletion streams
+Proof. The algorithm in insertion-only streams simply stores all the edges. It also maintains
+a counter (using O(log n) bits) to count how many edges have been seen so far. If the counter
+exceeds M then the graph has more than M edges. Otherwise, we have stored the entire
+graph which uses O(M ) space since the number of edges is ≤ M .
+    In insertion-deletion streams we also keep a counter (to count how many edges are
+currently present) and also maintain an M -sparse recovery algorithm X . At the end of the
+stream, if the counter exceeds M then the graph stream has more than M edges. Otherwise
+we recover the whole graph by extracting the ≤ M edges from X . The counter can be
+implemented in O(log n) bits, and X can be implemented in O(M e    ) space [3].            J
+
+   Now we are ready to show the main theorem of this section: minor-bidimensional problems
+belong to the class SemiPS.
+I Theorem 18. (minor-bidimensional problems are in SemiPS) Let Π be a g(r)-minor-
+dimensional problem. Then the k-Π problem on graphs with n vertices can be solved using
+• O((g −1 (k + 1))10 · n) space in insertion-only streams
+   e −1 (k + 1))10 · n) space in insertion-deletion streams
+• O((g
+Proof. We invoke Theorem 17 with M = O((g −1 (k + 1))10 · n). By Lemma 15, we know
+that if G has more than O(g −1 (k + 1))10 · n edges then G is a NO (resp. YES) instance of
+k-Π if Π is a minimization (resp. maximization) problem. Hence, we use the algorithms from
+Theorem 17 to check if G has at most M edges: if it has more edges then we say NO (resp.
+YES) if Π is a minimization (resp. maximization) problem, and otherwise we store the entire
+graph.                                                                                   J
+
+      Theorem 18 implies the following results for specific graph problems10 :
+
+10
+     We omit the simple proofs of why these problems satisfy the conditions of Definition 13
+XX:14   Towards a Theory of Parameterized Streaming Algorithms
+
+
+        • Since Treewidth is Ω(r)-minor-bidimensional, it follows that k-Treewidth has an O(k 10 · n)
+          space algorithm in insertion-only streams and O(k  e 10 · n) space algorithm in insertion-
+          deletion streams.
+        • Since problems such as Long Path, Vertex Cover, Feedback Vertex Set, Minimum Maximal
+          Matching, etc. are Ω(r2 )-minor-bidimensional, it follows that their parameterized versions
+          have O(k 5 · n) space algorithm in insertion-only streams and O(k
+                                                                         e 5 · n) space algorithm in
+          insertion-deletion streams.
+
+            In Section 3.1, we design algorithms for some of the aforementioned problems with smaller
+        storage. In particular, we design problem-specific structural lemmas (for example, Lemma 21
+        and Lemma 26) to reduce the dependency of k on the storage from k O(1) to k.
+        I Remark 19. It is tempting to conjecture a lower bound complementing Theorem 18: for
+        example, can we show that the bounds for minor-bidimensional problems are tight for SemiPS,
+        i.e., they do not belong to SubPS or even FPS? Unfortunately, we can rule out such a converse
+        to Theorem 18 via the two examples of Vertex Cover (VC) and Feedback Vertex Set (FVS)
+        which are both Ω(r2 )-minor-bidimensional. Chitnis et al. [12] showed that k-VC can be
+        solved in O(k 2 ) space and hence belongs to the class FPS. However, we show (Theorem 25)
+        that k-FVS cannot belong to SubPS since it has a Ω(n log n) bits lower bound for k = 0.
+
+         3      Lower Bounds for Parameterized Streaming Algorithms
+
+        3.1     Tight Problems for the classes SemiPS and BrutePS
+        In this section we show that certain problems are tight for the classes SemiPS and BrutePS.
+        All of the results hold for 1-pass in the insertion-only model. Our algorithms are deterministic,
+        while the lower bounds also hold for randomized algorithms.
+
+        3.1.1      Tight Problems for the class SemiPS
+        We now show that some parameterized problems are tight for the class SemiPS, i.e.,
+        • They belong to SemiPS, i.e., can be solved using O(g(k)
+                                                               e      · n) bits for some function g.
+        • They do not belong to SubPS, i.e., there is no algorithm which uses O(f    e (k) · n1− ) bits
+           for any function f and any constant 1 >  > 0. We do this by showing Ω(n · log n) bits
+           lower bounds for these problems for constant values of k.
+        For each of the problems considered in this section, a lower bound of Ω(n) bits (for constant
+        values of k) was shown by Chitnis et al. [10]. To obtain the improved lower bound of
+        Ω(n · log n) bits for constant k, we will reduce from the Perm problem defined by Sun and
+        Woodruff [42].
+
+              Perm
+              Input: Alice has a permutation δ : [N ] → [N ] which is represented as a bit string
+              Bδ of length N log N by concatenating the images of 1, 2, . . . , N under δ. Bob has
+              an index I ∈ [N log N ].
+              Goal: Bob wants to find the I-th bit of Bδ
+
+        Sun and Woodruff [42] showed that the one-way (randomized) communication complexity of
+        Perm is Ω(N · log N ). Using the Perm problem, we show Ω(n · log n) bit lower bounds for
+        constant values of k for various problem such as k-Path, k-Treewidth, k-Feedback-Vertex-Set,
+        etc. We also show a matching upper bound for these problems: for each k, these problems
+        can be solved using O(kn · log n) words in insertion-only streams and O(kn
+                                                                               e    · log n) words in
+Rajesh Chitnis and Graham Cormode                                                                     XX:15
+
+
+insertion-deletion streams. To the best of our knowledge, the only problems known previously
+to be tight for SemiPS were k-vertex-connectivity and k-edge-connectivity [16, 42, 26].
+
+    k-Path
+    Input: An undirected graph G on n nodes
+    Parameter: k
+    Question: Does G have a path of length at least k? (or alternatively, a path on at
+    least k + 1 vertices)
+
+I Theorem 20. The k-Path problem has a lower bound of Ω(n · log n) bits even for k = 5.
+
+Proof. Let n = 2N + 2. We start with an instance of Perm of size N . Alice has a
+permutation δ which she uses to build a perfect matching from [N ] to [N ] as follows: let
+W = {w1 , w2 , . . . , wN } and X = {x1 , x2 , . . . , xN } denote two sets of size N each. Alice’s
+edge set consists of a perfect matching built as follows: for each i ∈ [N ] there is an edge
+between wi and xδ(i) . Suppose Bob has the index I ∈ [N ]. This corresponds to the `-th bit
+of δ(j) for some j ∈ [N ] and ` ∈ [log N ]. Bob adds two new vertices v, y and adds edges
+using the index I as follows:
+• Bob adds an edge between v and wj
+• Let S` ⊆ X where S` = {xr : `-th bit of r is 0}. Bob adds edges from y to each vertex
+    of S` .
+Let the graph constructed this way be G0 . It is easy to see that G0 has a path of length 5 if
+and only xj ∈ S` , i.e., the `-th bit of δ(j) is zero. Hence, the lower bound of Ω(N log N ) of
+Perm translates to an Ω(n log n) lower bound for 5-Path.                                         J
+
+I Lemma 21. Any graph on n vertices with at least nk edges has a path on k + 1 vertices
+
+Proof. Preprocess the graph to enforce that the minimum degree ≥ k by iteratively deleting
+vertices of degree < k. Then we have a graph G0 which has n0 vertices and ≥ n0 k edges whose
+min degree is ≥ k. Now consider an arbitrary path P in this graph G0 , say v1 −v2 −v3 −. . .−vr .
+At each intermediate vertex vj , at most j − 1 neighbors have been visited, and so at least
+k − j + 1 possibilities are open. Hence, there is always a possible next step up to node k + 1,
+i.e. there is a path of length k.                                                            J
+
+I Theorem 22. The k-Path problem can be solved using
+• O(k · n) space in insertion-only streams
+• O(k
+   e · n) space in insertion-deletion streams
+
+Proof. We invoke Theorem 17 with M = nk. By Lemma 21, we know that if G has more
+than M edges then it has a k-Path. Hence, we use the algorithms from Theorem 17 to check
+if G has at most M edges: if it has more edges then we say YES, and otherwise we store the
+entire graph.                                                                           J
+
+    k-Treewidth
+    Input: An undirected graph G
+    Parameter: k
+    Question: Is the treewidth of G at most k?
+
+I Theorem 23. [42, Theorem 7] The k-Treewidth problem has a lower bound of Ω(n · log n)
+bits even for k = 1.
+XX:16   Towards a Theory of Parameterized Streaming Algorithms
+
+
+        Proof. Let n = 2N + 1. We start with an instance of Perm of size N . Alice has a
+        permutation δ which she uses to build a perfect matching from [N ] to [N ] as follows: let
+        W = {w1 , w2 , . . . , wN } and X = {x1 , x2 , . . . , xN } denote two sets of size N each. Alice’s
+        edge set consists of a perfect matching built as follows: for each i ∈ [N ] there is an edge
+        between wi and xδ(i) . Suppose Bob has the index I ∈ [N ]. This corresponds to the `-th bit
+        of δ(j) for some j ∈ [N ] and ` ∈ [log N ]. Bob adds a new vertex v and adds edges using the
+        index I as follows:
+         • Bob adds an edge between v and wj
+         • Let S` ⊆ X where S` = {xr : `-th bit of r is 0}. Bob adds edges from v to each vertex
+            of S` .
+        Let the graph constructed this way be G0 . It is easy to see that G0 has no cycles if and only
+        xj ∈/ S` , i.e., the `-th bit of δ(j) is 1. Recall that a graph has treewidth 1 if and only if it has
+        no cycles. Hence, the lower bound of Ω(N log N ) of Perm translates to a O(n log n) lower
+        bound for k-Treewidth with k = 1.                                                                  J
+
+        I Theorem 24. The k-Treewidth problem can be solved using
+        • O(k · n) space in insertion-only streams
+        • O(k
+           e · n) space in insertion-deletion streams
+
+        Proof. We invoke Theorem 17 with M = nk. By Lemma 14, we know that if G has more
+        than M edges then tw(G) > k. Hence, we use the algorithms from Theorem 17 to check if
+        G has at most M edges: if it has more edges then we say NO, and otherwise we store the
+        entire graph.                                                                       J
+
+            k-FVS
+            Input: An undirected graph G = (V, E)
+            Parameter: k
+            Question: Does there exist a set X ⊆ V such that |X| ≤ k and G \ X has no cycles?
+
+        I Theorem 25. [42, Theorem 7] The k-FVS problem has a lower bound of Ω(n · log n) bits
+        even for k = 0.
+
+        Proof. We use exactly the same reduction as in Theorem 23. Recall that graph has a FVS
+        of size 0 if and only if it has no cycles. Also a graph has treewidth 1 if and only if it has
+        no cycles. The proof of Theorem 23 argues that G0 has no cycles if and only xj ∈    / S` , i.e.,
+        the `-th bit of δ(j) is 1. Since G0 has n = 2n + 1 vertices, the lower bound of Ω(N log N ) of
+        Perm translates to a O(n log n) lower bound for k-FVS with k = 0.                            J
+
+        I Lemma 26. If G has a feedback vertex set of size k then |E(G)| ≤ n(k + 1)
+
+        Proof. Let X be a feedback vertex of G of size k. Then G \ X is a forest and has at most
+        n − k − 1 edges. Each vertex of X can have degree ≤ n − 1 in G. Hence, we have that
+        |E(G)| ≤ (n − k − 1) + k(n − 1) ≤ n + kn = n(k + 1)                                   J
+
+        I Theorem 27. The k-FVS problem can be solved using
+        • O(k · n) space in insertion-only streams
+        • O(k
+           e · n) space in insertion-deletion streams
+
+        Proof. We invoke Theorem 17 with M = n(k + 1). By Lemma 26, we know that if G has
+        more than M edges then G cannot have a feedback vertex set of size k. Hence, we use the
+        algorithms from Theorem 17 to check if G has at most M edges: if it has more edges then
+        we say NO, and otherwise we store the entire graph.                                   J
+Rajesh Chitnis and Graham Cormode                                                                           XX:17
+
+
+3.1.2     Tight Problems for the class BrutePS
+We now show that some parameterized problems are tight for the class BrutePS, i.e.,
+• They belong to BrutePS, i.e., can be solved using O(n2 ) bits. Indeed any graph problem
+  can be solved by storing the entire adjacency matrix which requires O(n2 ) bits.
+                                                                        e (k) · n1+ ) bits
+• They do not belong to SubPS, i.e., there is no algorithm which uses O(f
+                                                                   2
+  for any function f and any  ∈ (0, 1). We do this by showing Ω(n ) bits lower bounds for
+  these problems for constant values of k via reductions from the Index problem.
+
+    Index
+    Input: Alice has a string B = b1 b2 . . . bN ∈ {0, 1}N . Bob has an index I ∈ [N ]
+    Goal: Bob wants to find the value bI
+
+    There is a Ω(N ) lower bound on the (randomized) one-way communication complexity
+of Index [34]. Via reduction from the Index problem, we are able to show Ω(n2 ) bits for
+constant values of k for several problems such as k-Dominating-Set and k-Girth.
+
+    k-Dominating Set
+    Input: An undirected graph G = (V, E)
+    Parameter: k
+    Question: Is there a set S ⊆ V (G) of size ≤ k such that each v ∈ V \ S has at least
+    one neighbor in S?
+
+I Theorem 28. The k-Dominating Set problem has a lower bound of Ω(n2 ) bits for 1-pass
+algorithms, even when k = 3.
+                    √
+Proof. Let r = N . We start with an instance of Index where Alice has a bit string
+B ∈ {0, 1}N . Fix a canonical bijection φ : [N ] → [r] × [r]. We now construct a graph with
+vertex set Y = y1 , y2 , . . . , yr and W = w1 , w2 , . . . , wr . For each I ∈ [N ] we do the following:
+• If B[I] = 1 then add the edge yi0 − wi00 where φI = (i0 , i00 )
+• If B[I] = 0 then do not add any edge
+Suppose Bob has the index I ∗ ∈ [N ]. Let φ(I ∗ ) = (α, β) where α, β ∈ [r]. Bob adds four
+new vertices x1 , x2 , z1 and z2 . He also adds the following edges:
+• The edge x1 − x2
+• The edge z1 − z2
+• An edge from x1 to each vertex of Y \ yα
+• An edge from z1 to each vertex of W \ wβ
+Let the final constructed graph be G. A simple observation is that if a vertex has degree
+exactly 1, then its unique neighbor can be assumed to be part of a minimum dominating set.
+We now show that G has a dominating set of size 3 if and only B[I ∗ ] = 1.
+    First suppose that B[I ∗ ] = 1, i.e., yα − wβ forms an edge in G. Then we claim that
+{x1 , z1 , yα } form a dominating set of size 3. This is because x1 dominates x2 ∪ (Y \ yα ), z1
+dominates z2 ∪ (W \ wβ ) and finally yα dominates wβ .
+    Now suppose that G has a dominating set S of size 3 but yα − wβ ∈               / E(G). Since x2 , z2
+have degree 1 we can assume that {x1 , z1 } ⊆ S. Let S \ {x1 , z1 } = u. We now consider
+different possibilities for u and obtain a contradiction in each case:
+• u = x2 or u = z2 : In this case the vertex yα is not dominated by S
+• u ∈ (Y \ yα ): In this case the vertex yα is not dominated by S
+• u ∈ (W \ wβ ): In this case the vertex wβ is not dominated by S
+• u = yα : In this case the vertex wβ is not dominated by S since yα − wβ ∈              / E(G)
+XX:18   Towards a Theory of Parameterized Streaming Algorithms
+
+
+         • u = wβ : In this case the vertex yα is not dominated by S since√yα − wβ ∈/ E(G)
+        Hence, the 3-Dominating Set problem on graphs with 2r + 4 = O( N ) vertices can be used
+        to solve instances of the Index problem of size N . Since Index has a lower bound of Ω(N ),
+        it follows that the 3-Dominating Set problem on graphs of n vertices has a lower bound of
+        Ω(n2 ) bits.                                                                            J
+
+               k-Girth
+               Input: An undirected graph G
+               Parameter: k
+               Question: Is the length of smallest cycle of G equal to k?
+
+        I Theorem 29. The k-Girth problem has a lower bound of Ω(n2 ) bits for 1-pass algorithms,
+        even when k = 3.
+                          √
+        Proof. Let r = N . We start with an instance of Index where Alice has a bit string
+        B ∈ {0, 1}N . Fix a canonical bijection φ : [N ] → [r] × [r]. We now construct a graph with
+        vertex set Y = y1 , y2 , . . . , yr and W = w1 , w2 , . . . , wr . For each I ∈ [N ] we do the following:
+         • If B[I] = 1 then add the edge yi0 − wi00 where φI = (i0 , i00 )
+         • If B[I] = 0 then do not add any edge
+        Suppose Bob has the index I ∗ ∈ [N ]. Let φ(I ∗ ) = (α, β) where α, β ∈ [r]. Bob adds a new
+        vertex z and adds the edges z − yα and z − wβ . Let the final constructed graph be G. It
+        is easy to see that G \ z is bipartite, and hence has girth ≥ 4 (we say the girth is ∞ if the
+        graph has no cycle). The only edges incident on z are to yα and wβ . Hence, G has a cycle of
+        length 3 if and only if the edge yα −√wβ is present in G, i.e., B[I ∗ ] = 1. Hence, the 3-Girth
+        problem on graphs with 2r + 1 = O( N ) vertices can be used to solve instances of the Index
+        problem of size N . Since Index has a lower bound of Ω(N ), it follows that the 3-Girth
+        problem on graphs of n vertices has a lower bound of Ω(n2 ) bits.                                      J
+
+            Super-linear lower bounds for multi-pass algorithms for k-Girth were shown in Feigenbaum
+        et al. [30].
+        I Remark 30. We usually only design FPT algorithms for NP-hard problems. However,
+        parameterized streaming algorithms make sense for all graph problems since we are only
+        comparing ourselves against the naive choice of storing all the O(n2 ) edges. Hence, here we
+        consider the k-Girth problem as an example of a polynomial time solvable problem.
+
+        3.2       Lower bound for approximating size of minimum Dominating Set
+                  on graphs of bounded arboricity
+                                                                                               β
+        I Theorem 31. Let β ≥ 1 be any constant. Then any streaming algorithm which 32           -
+        approximates the size of a min dominating set on graphs of arboricity β + 2 requires Ω(n)
+        space.
+            Note that Theorem 31 shows that the naive algorithm which stores all the O(nβ) edges
+        of an β-arboriticy graph is essentially optimal. Our lower bound holds even for randomized
+        algorithms (required to have success probability ≥ 3/4) and also under the vertex arrival
+        model, i.e., we see at once all edges incident on a vertex. We (very) closely follow the
+        outline from [2, Theorem 4] who used this approach for showing that any α-approximation
+                                                                                          n2
+        for estimating size of a minimum dominating set in general graphs11 requires Ω̃( α 2 ) space.
+
+
+
+
+        11
+             They actually talk about Set Cover
+Rajesh Chitnis and Graham Cormode                                                                                  XX:19
+
+
+Because we are restricted to bounded arboriticy graphs, we cannot just use their reduction
+as a black-box but need to adapt it carefully for our purposes.
+    Let V (G) = [n + 1], and Fβ be the collection of all subsets of [n] with cardinality β. Let
+                              β
+DomSetest be the problem of 32  -approximately estimating the size of a minimum dominating
+set on graphs of arboricity β + 2. Consider the following distribution Dest for DomSetest .
+
+ Distribution Dest : A hard input distribution for DomSetest .
+  • Alice. The input of Alice is a collection of n sets S 0 = {S10 , S20 , . . . , Sn0 } where for
+    each i ∈ [n] we have that Si0 = {i} ∪ Si with Si being a set chosen independently and
+    uniformly at random from Fβ .
+  • Bob. Pick θ ∈ {0, 1} and i∗ ∈ [n] independently and uniformly at random; the input
+    of Bob is a single set T defined as follows.
+    − If θ = 0, then T = [n] \ T is a set of size β/8 chosen uniformly at random from Si∗ .
+    − If θ = 1, then T = [n] \ T is a set of size β/8 chosen uniformly at random from
+       [n] \ Si∗ .
+
+
+    Recall that OPT(S 0 , T ) denotes the size of the minimum dominating set of the graph G
+whose edge set is given by N [i] = {i}∪Si for each i ∈ [n] and N [n+1] = {n+1}∪T . It is easy
+to see that G has arboricity ≤ (β + 2) since it has (n + 1) vertices and ≤ (β + 1)n + (1 + n − β8 )
+edges. We first establish the following lemma regarding the parameter θ and OPT(S 0 , T ) in
+the distribution Dest .
+                         β
+I Lemma 32. Let α = 32      . Then, for (S 0 , T ) ∼ Dest we have
+             0
+1. Pr (OPT(S , T ) = 2 | θ = 0) = 1.
+2. Pr (OPT(S 0 , T ) > 2α | θ = 1) = 1 − o(1).
+
+Proof. The first claim is immediate since by construction, when θ = 0 we have that
+T ∪ Si0∗ = [n + 1] and hence {n + 1, i∗ } forms a dominating set of size 2.
+    We now prove the second claim, i.e., when θ = 1. The vertex (n + 1) dominates all
+vertices in the set T ∪ {n + 1}. It remains to dominate vertices of T = [n] \ T . Since i ∈ Si0
+for each i ∈ [n] it follows that the set {j : j ∈ T } ∪ {n + 1} forms a dominating set of size
+1 + β8 for G. Fix a collection Sb0 of 2α sets in S 0 \ {Si0∗ }, and let Sb0 = {Sµ0 1 , Sµ0 2 , . . . , Sµ0 2α }.
+                                                                       β      β
+Let T0 = T \ {µ1 , µ2 , . . . , µ2α }, and note that |T0 | = |T | − 2( 32 ) = 16 . Hence, we have that
+                                                                  0
+S = {Sµ1 , Sµ2 , . . . , Sµ2α } has to cover T0 , where Sµj = Sµj for each 1 ≤ j ≤ 2α and the sets
+ b
+{Sµ1 , Sµ2 , . . . , Sµ2α } are chosen independent of T0 (according to the distribution Dest ). We
+first analyze the probability that Sb covers T0 and then take union bound over all choices of
+2α sets from S 0 \ {Si0∗ }.
+    Fix any choice of T0 ; for each element k ∈ T0 , and for each set Sj ∈ S,      b define an indicator
+random variable Xk ∈ {0, 1}, where Xk = 1 iff k ∈ Sj . Let X := j k Xkj and notice
+                           j                   j                                P P
+
+that:
+
+
+              XX                             β     β   αβ 2
+    E[X] =              E[Xkj ] = (2α) · (      )·( )=
+               j
+                                             16    n   8n
+                    k
+
+We have,
+                                                  
+                           β              n
+    Pr Sb covers T0 ≤ Pr X ≥      = Pr X ≥     · E[X]
+                             16            2αβ
+XX:20   Towards a Theory of Parameterized Streaming Algorithms
+
+
+        It is easy to verify that the Xkj variables are negatively correlated. Hence, applying the
+        extended Chernoff bound12 due to Panconesi and Srinivasan [38] we get
+                                          2         
+                       n                     − E[X]                      n
+            Pr X ≥          · E[X] ≤ 3 exp                where 1 +  =
+                      2αβ                         3                      2αβ
+              Finally, by union bound,
+                                                          n              2      
+                                                                           − E[X]
+           Pr(OPT(S 0 , T ) ≤ 2α) ≤ Pr ∃ Sb covers T0 ≤            · 3 exp
+                                                               2α               3
+                                                              2         
+                                                              − E[X]
+                                  ≤ exp (2α · log n) · 3 exp
+                                                                  3
+                                                           2      
+                     β
+           Since α = 32 , one can easily check that exp − 3E[X] ≤ exp (−3α · log n) and hence we
+        have
+                                                         n              2       
+                     0
+                                                                           − E[X]
+           Pr(OPT(S , T ) ≤ 2α) ≤ Pr ∃ S covers T ≤
+                                           b                      · 3 exp
+                                                              2α               3
+                                                              2         
+                                                              − E[X]
+                                  ≤ exp (2α · log n) · 3 exp
+                                                                  3
+                                       ≤ exp (2α · log n) · 3 exp (−3α · log n)
+                                       = o(1)
+
+                                                                                                               J
+
+             Observe that distribution Dest is not a product distribution due to the correlation between
+        the input given to Alice and Bob. However, we can express the distribution as a convex
+        combination of a relatively small set of product distributions. To do so, we need the following
+        definition. For integers k, t and n, a collection P of t subsets of [n] is called a random
+        (k, t)-partition if the t sets in P are constructed as follows: Pick k elements from [n], denoted
+        by S, uniformly at random, and partition S randomly into t sets of equal size. We refer to
+        each set in P as a block.
+
+         An alternative definition of the distribution Dest .
+            Parameters:             k = 2β                p = β8         t = 16
+         1. For any i ∈ [n], let Pi be a random (k, t)-partition in [n] (chosen independently).
+         2. The input to Alice is S 0 = (S10 , . . . , Sn0 ), where for each i we have Si0 = {i} ∪ Si and Si
+            is created by picking t/2 blocks from Pi uniformly at random.
+         3. The input to Bob is a set T where T is created by first picking an i∗ ∈ [n] uniformly at
+            random, and then picking a block from Pi∗ uniformly at random.
+
+            To see that the two formulations of the distribution Dest are indeed equivalent, notice
+        that (i) the input given to Alice in the new formulation is a collection of sets of size β
+        chosen independently and uniformly at random (by the independence of Pi ’s), and (ii) the
+        complement of the set given to Bob is a set of size β8 which, for i∗ ∈R [n], with probability
+        half, is chosen uniformly at random from Si∗ , and with probability half, is chosen from
+        [n] \ Si∗ (by the randomness in the choice of each block in Pi∗ ).
+
+
+        12
+             Let X1 , X2 , . . . , Xr be a sequence of negatively correlated Boolean random variables, and let X =
+             Pr                                                          2
+
+               i=1
+                   Xi . Then Pr(|X − E[X]| ≥  · E[X]) ≤ 3 · exp( − 3E[X] )
+Rajesh Chitnis and Graham Cormode                                                                                XX:21
+
+
+3.2.1      The Lower Bound for the Distribution Dest
+Notation: First we set up some notation to be used throughout this section: we use bold
+face letters to represent random variables. For any random variable X, supp(X) denotes its
+support set. We define |X| := log |supp(X)|. For any k-dimensional tuple X = (X1 , . . . , Xk )
+and any i ∈ [k], we define X <i := (X1 , . . . , Xi−1 ), and X −i := (X1 , . . . , Xi−1 , Xi+1 , . . . , Xk ).
+The notation “X ∈R U ” indicates that X is chosen uniformly at random from a set U . We
+denote the Shannon Entropy of a random variable A by H(A) and the mutual information
+of two random variables A and B by I(A; B) = H(A) − H(A | B) = H(B) − H(B | A). If
+the distribution D of the random variables is not clear from the context, we use HD (A) (resp.
+ID (A; B)). We use H2 to denote the binary entropy function where for any real number
+0 < δ < 1, H2 (δ) = δ log 1δ + (1 − δ) log 1−δ1
+                                                 .
+    We are now ready to show our desired lower bound: fix any δ-error protocol ΠDS (set
+δ = 1/4) for DomSetest on the distribution Dest . Recall that ΠDS denotes the random variable
+for the concatenation of the message of Alice with the public randomness used in the protocol
+ΠDS . We further use P := (P1 , . . . , Pt ) to denote the random partitions (P1 , . . . , Pt ), I for
+the choice of the special index i∗ , and θ for the parameter θ ∈ {0, 1}, whereby θ = 0 if and
+only if T ⊆ Si∗ .
+    We make the following simple observations about the distribution Dest . The proofs are
+straightforward.
+I Remark 33. In the distribution Dest ,
+1. The random variables S, P, and ΠDS (S) are all independent of the random variable I.
+2. For any i ∈ [m], conditioned on Pi = P , and I = i, the random variables Si and T are
+   independent of each other. Moreover, supp(Si ) and supp(T) contain, respectively, tt
+                                                                                                          2
+   and t elements and both Si and T are uniform over their support.
+3. For any i ∈ [m], the random variable Si is independent of both S −i and P −i .
+
+    We will show our claimed lower bound on the space complexity of any streaming algorithm
+for DomSetest through the well-known connection to one-way communication complexity [34].
+
+I Definition 34. The communication cost of a protocol Π for a problem P on an input
+distribution D, denoted by kΠk, is the worst-case size of the message sent from Alice to Bob
+in the protocol Π, when the inputs are chosen from the distribution D.
+The communication complexity CCδD (P ) of a problem P with respect to a distribution D is
+the minimum communication cost of a δ-error protocol Π over D.
+
+   However, since the information complexity is a lower bound on the communication
+complexity [6], we will instead bound the information complexity of ΠDS (set δ = 1/4) for
+DomSetest on the distribution Dest .
+
+I Definition 35. Consider an input distribution D and a protocol Π (for some problem P ).
+Let X be the random variable for the input of Alice drawn from D, and let Π := Π(X) be
+the random variable denoting the message sent from Alice to Bob concatenated with the
+public randomness R used by Π. The information cost ICostD (Π) of a one-way protocol Π
+with respect to D is ID (Π; X).
+The information complexity ICδD (P ) of P with respect to a distribution D is the minimum
+ICostD (Π) taken over all one-way δ-error protocols Π for P over D.
+
+   Our goal now is to lower bound ICostDest (ΠDS ), which then also gives a desired lower
+bound on kΠDS k. We start by simplifying the expression for ICostDest (ΠDS ).
+XX:22   Towards a Theory of Parameterized Streaming Algorithms
+
+                                                 Pn
+        I Lemma 36. ICostDest (ΠDS ) ≥             i=1 I(ΠDS ; Si | Pi )
+
+        Proof. We have,
+
+           ICostDest (ΠDS ) = I(ΠDS ; S) ≥ I(ΠDS ; S | P)
+
+        where the inequality holds since (i) H(ΠDS ) ≥ H(ΠDS | P) and (ii) H(ΠDS | S) = H(ΠDS |
+        S, P) as ΠDS is independent of P conditioned on S. We now bound the conditional mutual
+        information term in the above equation.
+                                 m
+                                 X
+           I(ΠDS ; S | P) =            I(Si ; ΠDS | P, S <i )          (the chain rule for the mutual information)
+                                 i=1
+                                 Xm
+                            =          H(Si | P, S <i ) − H(Si | ΠDS , P, S <i )
+                                 i=1
+                                 m
+                                 X
+                            ≥          H(Si | Pi ) − H(Si | ΠDS , Pi )
+                                 i=1
+                                 Xm
+                            =          I(Si ; ΠDS | Pi )
+                                 i=1
+
+        The inequality holds since:
+          (i) H(Si | Pi ) = H(Si | Pi , P −i , S <i ) = H(Si | P, S <i ) because conditioned on Pi , Si is
+              independent of P −i and S <i (Remark 33-(3)), hence the equality since conditioning
+              reduces the entropy.
+         (ii) H(Si | ΠDS , Pi ) ≥ H(Si | ΠDS , Pi , P −i , S <i ) = H(Si | ΠDS , P, S <i ) since condition-
+              ing reduces the entropy.
+                                                                                                         J
+                                                                                   P
+           Equipped with Lemma 36, we only need to bound                            i∈[n] I(ΠDS ; Si | Pi ). Note that,
+
+           n
+           X                            n
+                                        X                      n
+                                                               X
+                 I(ΠDS ; Si | Pi ) =          H(Si | Pi ) −          H(Si | ΠDS , Pi )                                (1)
+           i=1                          i=1                    i=1
+
+                                                                           t
+                                                                               
+        Furthermore, for each i ∈ [n], |supp(Si | Pi )| =                  t       and Si is uniform over its support
+                                                                           2
+        (Remark 33-(2)); hence we have
+           n                     n                    n                                n            
+           X                     X                    X                                X            t
+                 H(Si | Pi ) =         |Si | Pi | =         log |supp(Si | Pi )| =           log    t    = 13.64n     (2)
+           i=1                   i=1                  i=1                              i=1          2
+
+                                                          Pn
+        since t = 16. Consequently, we only need to bound i=1 H(Si | ΠDS , Pi ). In order to do so,
+        we show that ΠDS can be used to estimate the value of the parameter θ, and hence we only
+        need to establish a lower bound for the problem of estimating θ.
+
+        I Lemma 37. Any δ-error protocol ΠDS over the distribution Dest can be used to determine
+        the value of θ with error probability δ + o(1).
+
+        Proof. Alice sends the message ΠDS (S) as before. Using this message, Bob can compute an
+        α-estimation of the dominating set problem using ΠDS (S) and his input. If the estimation
+        is less than 2α, we output θ = 0 and otherwise we output θ = 1. The bound on the error
+        probability follows from Lemma 32.                                                      J
+Rajesh Chitnis and Graham Cormode                                                                          XX:23
+
+
+I Remark 38. We assume that in DomSetest over the distribution Dest , Bob is additionally
+provided with the special index i∗ .
+Note that this assumption can only make our lower bound stronger since Bob can always
+ignore this information and solve the original DomSetest .
+   Let γ be the function that estimates θ used in Lemma 37; the input to γ is the message
+given from Alice, the public coins used by the players, the set T , and (by Remark 38) the
+special index i∗ . We have,
+
+      Pr(γ(ΠDS , T, I) 6= θ) ≤ δ + o(1)
+
+      Hence, by Fano’s inequality13
+
+      H2 (δ + o(1)) ≥ H(θ | ΠDS , T, I)
+                        h                    i
+                    = E H(θ | ΠDS , T, I = i)
+                         i∼I
+                               m
+                         1X
+                     =         H(θ | ΠDS , T, I = i)                                                 (3)
+                         n i=1
+
+   We now show that each term above is lower bounded by H(Si | ΠDS , Pi )/t and hence we
+obtain the desired upper bound on H(Si | ΠDS , Pi ) in Equation (1).
+
+I Lemma 39. For any i ∈ [n], H(θ | ΠDS , T, I = i) ≥ H(Si | ΠDS , Pi )/t.
+
+Proof. We have,
+
+      H(θ | ΠDS , T, I = i) ≥ H(θ | ΠDS , T, Pi , I = i)
+                                                      (conditioning on random variables reduces entropy)
+                                                    h                             i
+                                   =       E         H(θ | ΠDS , T, Pi = P, I = i)
+                                       P ∼Pi |I=i
+
+
+For brevity, let E denote the event (Pi = P, I = i). We can write the above equation as,
+                                              h                       i
+   H(θ | ΠDS , T, Pi , I = i) =   E      E     H(θ | ΠDS , T = T , E)
+                                           P ∼Pi |I=i T ∼T|E
+
+
+Note that by Remark 33-(2), conditioned on the event E, T is chosen to be one of the blocks
+of P = (B1 , . . . , Bt ) uniformly at random. Hence,
+                                                         t
+                                                        hX H(θ | Π   DS , T = Bj , E)
+                                                                                        i
+      H(θ | ΠDS , T, Pi , I = i) =             E
+                                           P ∼Pi |I=i
+                                                         j=1
+                                                                        t
+
+    Define a random variable X := (X1 , . . . , Xt ), where each Xj ∈ {0, 1} and Xj = 1 if and
+only if Si contains the block Bj . Note that conditioned on E, X uniquely determines the set
+Si . Moreover, notice that conditioned on T = Bj and E, θ = 0 if and only if Xj = 1. Hence,
+                                                         t
+                                                        hX H(X | Π
+                                                                 j    DS , T = Bj , E)
+                                                                                            i
+      H(θ | ΠDS , T, Pi , I = i) =             E
+                                           P ∼Pi |I=i
+                                                         j=1
+                                                                            t
+
+
+13
+     For any binary random variable B and any (possibly randomized) function f that predicts B based on
+     A, if Pr(f(A)6= B) = δ, then H(B | A) ≤ H2 (δ).
+XX:24   Towards a Theory of Parameterized Streaming Algorithms
+
+
+        Now notice that Xj is independent of the event T = Bj since Si is chosen independent
+        of T conditioned on E (Remark 33-(2)). Similarly, since ΠDS is only a function of S and
+        S is independent of T conditioned on E, ΠDS is also independent of the event T = Bj .
+        Consequently, we can “drop” the conditioning on T = Bj ,
+                                                          t
+                                                         hX H(X | Π
+                                                                 j       DS , E)
+                                                                                   i
+           H(θ | ΠDS , T, Pi , I = i) =         E
+                                            P ∼Pi |I=i
+                                                          j=1
+                                                                     t
+                                                         h H(X | Π
+                                                                 DS , E)
+                                                                           i
+                                        ≥       E                      (sub-additivity of the entropy)
+                                            P ∼Pi |I=i       t
+                                                     h H(S | Π , E) i
+                                                          i    DS
+                                        =    E
+                                          P ∼Pi |I=i         t
+                                              (Si and X uniquely define each other conditioned on E)
+                                                     h H(S | Π , P = P, I = i) i
+                                                          i    DS   i
+                                        =    E
+                                          P ∼Pi |I=i              t
+                                                                      (E is defined as (Pi = P, I = i))
+                                             H(Si | ΠDS , Pi , I = i)
+                                        =
+                                                      t
+        Finally, by Remark 33-(1), Si , ΠDS , and Pi are all independent of the event I = i, and hence
+        we have that H(Si | ΠDS , Pi , I = i) = H(Si | ΠDS , Pi ), which concludes the proof.       J
+
+           By plugging in the bound from Lemma 39 in Equation (3) we have,
+           n
+           X
+                 H(Si | ΠDS , Pi ) ≤ H2 (δ + o(1)) · (nt) = 0.812 × (16n) = 12.992n
+           i=1
+
+        since δ = 1/4 and t = 16. Finally, by plugging in this bound together with the bound from
+        Equation (2) in Equation (1), we get,
+           n
+           X
+                 I(ΠDS ; Si | Pi ) ≥ 0.64n
+           i=1
+
+           By Lemma 36,
+
+                                                    
+             1/4
+           ICDest (DomSetest ) = min ICostDest (ΠDS ) = Ω(n)
+                                  ΠDS
+
+        To conclude, since the information complexity is a lower bound on the communication
+        complexity [6], we obtain a lower bound of Ω(n) for DomSetest over the distribution Dest .
+        This completes the proof of Theorem 31.
+
+        3.3      Streaming Lower Bounds Inspired by Kernelization Lower Bounds
+        Streaming algorithms and kernelization are two (somewhat related) compression models. In
+        kernelization, we have access to the whole input but our computation power is limited to
+        polynomial time whereas in streaming algorithms we don’t have access to the whole graph
+        (have to pay for whatever we store) but have unbounded computation power on whatever
+        part of the input we have stored.
+           A folklore result states that a (decidable) problem is FPT if and only if it has a kernel.
+        Once the fixed-parameter tractability for a problem is established, the next natural goals
+Rajesh Chitnis and Graham Cormode                                                                     XX:25
+
+
+are to reduce the running time of the FPT algorithm and reduce the size of the kernel. In
+the last decade, several frameworks have been developed to show (conditional) lower bounds
+on the size of kernels [4, 19, 20, 25, 31]. Inspired by these frameworks, we define a class of
+problems, which we call as AND-compatible and OR-compatible, and show (unconditionally)
+that none of these problems belong to the class SubPS.
+
+I Definition 40. We say that a graph problem Π is AND-compatible if there exists a constant
+k such that
+• for every n ∈ N there exists a graph GYES of size n such Π(GYES , k) is a YES instance
+• for every n ∈ N there exists a graph
+                                      GNO of size n such Π(GNO , k) is a NO instance
+• for every t ∈ N we have that Π ]ti=1 Gi , k = ∧ti=1 Π(Gi , k) where G = ]ti=1 Gi denotes
+  the union of the vertex-disjoint graphs G1 , G2 , . . . , Gt
+
+   Examples of AND-compatible graph problems are k-Treewidth, k-Girth, k-Pathwidth,
+k-Coloring, etc.
+
+I Definition 41. We say that a graph problem Π is OR-compatible if there exists a constant
+k such that
+• for every n ∈ N there exists a graph GYES of size n such Π(GYES , k) is a YES instance
+• for every n ∈ N there exists a graph GNO of size n such Π(GNO , k) is a NO instance
+• for every t ∈ N we have that Π(]ti=1 Gi , k) = ∨ti=1 Π(Gi , k) where G = ]ti=1 Gi denotes
+   the union of the vertex-disjoint graphs G1 , G2 , . . . , Gt
+
+   A general example of an OR-compatible graph problem is the subgraph isomorphism
+problem parameterized by size of smaller graph: given a graph G of size n and a smaller
+graph H of size k, does G have a subgraph isomorphic to H? Special cases of this problem
+are k-Path, k-Clique, k-Cycle, etc.
+
+I Theorem 42. If Π is an AND-compatible or an OR-compatible graph problem then
+Π∈/ SubPS
+
+Proof. Let Π be an AND-compatible graph problem, and G = ]ti=1 Gi for some t ∈ N. We
+claim that any streaming algorithm ALG for Π must use t bits. Intuitively, we need at least
+one bit to check that each of the instances (Gi , k) is a YES instance of Π (for all 1 ≤ i ≤ t).
+Consider a set of t graphs G = {G1 , G2 , . . . , Gt }: note that we don’t fix any of these graphs
+yet. For every subset X ⊆ [t] we define the instance (GX , k) of Π where GX = ]j∈J Gj .
+Suppose that ALG uses less than t bits. Then by pigeonhole principle, there are two subsets
+I, I 0 of [t] such that ALG has the same answer on (GI , k) and (GI 0 , k). Since I 6= I 0 (without
+loss of generality) there exists i∗ such that i∗ ∈ I \ I 0 . This is where we now fix each of
+the graphs in G to arrive at a contradiction: consider the input where Gi = GYES for all
+(I ∪ I 0 ) \ i∗ and Gi∗ = GNO . Then, it follows that (GI , k) is a NO instance but (GI 0 , k) is a
+YES instance.
+     Suppose that Π ∈ SubPS, i.e., there is an algorithm for Π which uses f (k)·N 1− ·logO(1) N
+bits (for some 1 >  > 0) on a graph G of size N to decide whether (G, k) is a YES or NO
+instance. Let G = ]ti=1 Gi where |Gi | = n for each i ∈ [t]. Then |G| = N = nt. By the
+previous paragraph, we have that
+
+                f (k) · (nt)1− · logO(1) (nt) ≥ t ⇒ f (k) · n1− · logO(1) (nt) ≥ t
+                    2−                                     2−
+    Choosing t = n  we have that f (k) · logO(1) n1+(  ) ≥ n, which is a contradiction for
+large enough n (since k and  are constants).
+XX:26   Towards a Theory of Parameterized Streaming Algorithms
+
+
+            We now prove the lower bound for AND-compatible problems. Recall that De Morgan’s
+        law states that ¬(∨i Pi ) = ∧i (¬Pi ). Hence, if Π is an OR-compatible graph problem then the
+        complement14 problem Π is an AND-compatible graph problem, and hence the lower bound
+        follows from the previous paragraph.                                                       J
+
+        I Remark 43. Note that throughout this paper we have considered the model where we allow
+        unbounded computation at each edge update, and also at the end of the stream. However, if
+        we consider a restricted model of allowing only polynomial (in input size n) computation at
+        each edge update and also at end of the stream, then it is easy to see that existing (conditional)
+        lower bounds from the parameterized algorithms and kernelization setting translate easily
+        to this restricted model. For example, the following two lower bounds for parameterized
+        streaming algorithms follow immediately in the restricted (polytime computation) model:
+         • Let X be a graph problem that is W [i]-hard parameterized by k (for some i ≥ 1). Then
+           (in the polytime computation model) X ∈    / FPS unless FPT = W [i].
+         • Let X be a graph problem that is known to not have a polynomial kernel unless NP ⊆
+            coNP/poly. Then (in the polytime computation model) X does not have a parameterized
+            streaming algorithm which uses k O(1) · logO(1) n bits, unless NP ⊆ coNP/poly.
+
+        3.4       Ω((N/d)d ) bits lower bound for d-SAT
+        Finally, in this section, we show that for any d ≥ 2, any streaming algorithm for d-SAT
+        (in the clause arrival model) must essentially store all the clauses (and hence fits into the
+        “brute-force” streaming setting). This is the only non-graph-theoretic result in this paper,
+        and may be viewed as a “streaming analogue” of the Exponential Time Hypothesis. We fix
+        the notation as follows: there are N variables and M clauses. The variable set is fixed, and
+        the clauses arrive one-by-one.
+
+        I Theorem 44. Any streaming algorithm for d-SAT requires storage of Ω((N/d)d ) bits,
+        where N is the number of variables
+
+        Proof. For simplicity, we show the result for 2-SAT; the generalization to d-SAT for other
+        d > 2 is simple. Let n = (N/2)2 . We reduce from the Index problem. Let Alice have a
+        string B = b1 b2 . . . bn ∈ {0, 1}n . We now map B to an instance φB of 2-SAT defined over
+        N variables. The N variables are partitioned into d = 2 sets X, Y of N/2 variables each.
+        Fix a canonical mapping ψ : [(N/2)2 ] → [N/2]2 . For each index L ∈ [(N/2)2 ], we add the
+        following clauses depending on the value of bL :
+         • If bL = 0, then add the clause (xi ∨ yj ) where ψ(L) = (i, j).
+         • If bL = 1, then add the clause (xi ∨ yj ) where ψ(L) = (i, j).
+        Observe that the sub-instance constructed so far is trivially satisfiable, by setting all y ∈ Y
+        to true. Suppose Bob has the index L∗ ∈ [n]. To solve the instance of Index, we need to
+        retrieve the value of the bit bL∗ . Let ψ(L∗ ) = (i∗ , j ∗ ). We add two new clauses as follows:
+         • Add the clause (y j ∗ ) 15
+         • Add the clause (xi∗ ∨ yj ∗ )
+        This completes the construction of the 2-SAT instance φB . Now we claim that φB is satisfiable
+        if and only if bL∗ = 0. Consider a clause of the form (x ∨ y) of φB :
+         • If y 6= yj ∗ , we can set y to be true and satisfy this clause.
+
+
+        14
+             By complement, we mean that Π(G, k) is YES if and only if Π(G, k) is NO
+        15
+             If we insist that all clauses should have cardinality exactly 2, then we can simply create a new “dummy”
+             variable z, and add the clauses (yj ∗ ∨ z), (yj ∗ ∨ z) to achieve the same effect.
+Rajesh Chitnis and Graham Cormode                                                                            XX:27
+
+
+ • If y = yj ∗ but x 6= xi∗ , then we can satisfy this clause by setting x = 1 (or 0, if x appears
+    in complemented form). This is the only time we need to set x, and each such x appears
+    in at most one such clause, so there is no clash16 .
+This only leaves the clause on the variables xi∗ and yj ∗ . We must set yj ∗ = 0 to satisfy
+the clause y j ∗ . If bL∗ = 1 then we have both the clauses (xi∗ ∨ yj ∗ ) and (xi∗ ∨ yj ∗ ), and
+hence the instance φB is not satisfiable. However, if bL∗ = 0 then we only have the clause
+(xi∗ ∨ yj ∗ ), and hence the instance φB is satisfiable by setting xi∗ = 1. Hence, the lower
+bound of Ω(n) = Ω((N/2)2 ) translates from Index to 2-SAT.                                      J
+
+   Note
+       that the naive   algorithm for d-SAT which stores all the clauses in memory requires
+ e N ) = O(d
+O(         e · N d ) bits, and therefore Theorem 44 shows that d-SAT is hard from a space
+    d
+perspective (essentially have to store all the clauses) for all d ≥ 2, whereas there is a transition
+from P to NP-complete for the time cost when going from 2-SAT to 3-SAT.
+
+
+ 4        Conclusions and Open Problems
+In this paper, we initiate a systematic study of graph problems from the paradigm of
+parameterized streaming algorithms. We define space complexity classes of FPS, SubPS,
+SemiPS, SupPS and BrutePS, and then obtain tight classifications for several well-studied
+graph problems such as Longest Path, Feedback Vertex Set, Girth, Treewidth, etc. into these
+classes. Our parameterized streaming algorithms use techniques of bidimensionality, iterative
+compression and branching from the FPT world. In addition to showing lower bounds for
+some parameterized streaming problems via communication complexity, we also show how
+(conditional) lower bounds for kernels and W-hard problems translate to lower bounds for
+parameterized streaming algorithms.
+    Our work leaves open several concrete questions. We list some of them below:
+ • The streaming algorithm (Algorithm 1) for k-VC (on insertion-only streams) from
+    Section 2.1 has an optimal storage of O(k log n) bits but requires 2k passes. Can we
+    reduce the number of passes to poly(k), or instead show that we need passes which are
+    superpolynomial in k if we restrict space usage to O(k log n) bits? The only known lower
+    bound for such algorithms is (k/ log n) passes (see Theorem 5).
+ • As in the FPT setting, a natural problem to attack using iterative compression in the
+    streaming setting would be the k-OCT problem. It is known that 0-OCT, i..e, checking if
+    a given graph is bipartite, in the 1-pass model has an upper bound of O(n log n) bits [29]
+    and a lower bound of Ω(n log n) bits [42]. For k ≥ 1, can we design a g(k)-pass algorithm
+    for k-OCT which uses O(fe (k) · n) bits for some functions f and g, maybe using iterative
+    compression? To the best of our knowledge, such an algorithm is not known even for
+    1-OCT.
+
+
+         References
+ 1       Amir Abboud, Keren Censor-Hillel, Seri Khoury, and Ami Paz. Smaller Cuts, Higher Lower
+         Bounds. CoRR, abs/1901.01630, 2019. URL: http://arxiv.org/abs/1901.01630, arXiv:
+         1901.01630.
+ 2       Sepehr Assadi, Sanjeev Khanna, and Yang Li. Tight bounds for single-pass streaming
+         complexity of the set cover problem. In STOC, pages 698–711, 2016.
+
+
+16
+     Note that we do not have to know in what form x appears in the input, as our question is just whether
+     the instance is satisfiable, not to provide a satisfying assignment.
+XX:28   Towards a Theory of Parameterized Streaming Algorithms
+
+
+         3   Neta Barkay, Ely Porat, and Bar Shalem. Efficient Sampling of Non-strict Turnstile Data
+             Streams. In FCT, pages 48–59, 2013.
+         4   Hans L. Bodlaender, Rodney G. Downey, Michael R. Fellows, and Danny Hermelin. On
+             Problems Without Polynomial Kernels. J. Comput. Syst. Sci., 75(8):423–434, 2009.
+         5   Marc Bury, Elena Grigorescu, Andrew McGregor, Morteza Monemizadeh, Chris Schwiegel-
+             shohn, Sofya Vorotnikova, and Samson Zhou. Structural Results on Matching Estimation with
+             Applications to Streaming. Algorithmica, 81(1):367–392, 2019.
+         6   Amit Chakrabarti, Yaoyun Shi, Anthony Wirth, and Andrew Chi-Chih Yao. Informational
+             Complexity and the Direct Sum Problem for Simultaneous Message Complexity. In FOCS,
+             pages 270–278, 2001.
+         7   Chandra Chekuri and Julia Chuzhoy. Polynomial Bounds for the Grid-Minor Theorem. J.
+             ACM, 63(5):40:1–40:65, 2016.
+         8   Jianer Chen, Fedor V. Fomin, Yang Liu, Songjian Lu, and Yngve Villanger. Improved
+             algorithms for feedback vertex set problems. J. Comput. Syst. Sci., 74(7):1188–1198, 2008.
+         9   Jianer Chen, Yang Liu, Songjian Lu, Barry O’Sullivan, and Igor Razgon. A fixed-parameter
+             algorithm for the directed feedback vertex set problem. J. ACM, 55(5):21:1–21:19, 2008.
+        10   Rajesh Chitnis, Graham Cormode, Hossein Esfandiari, MohammadTaghi Hajiaghayi, Andrew
+             McGregor, Morteza Monemizadeh, and Sofya Vorotnikova. Kernelization via sampling with
+             applications to finding matchings and related problems in dynamic graph streams. In SODA,
+             pages 1326–1344, 2016.
+        11   Rajesh Hemant Chitnis, Graham Cormode, Hossein Esfandiari, MohammadTaghi Hajiaghayi,
+             and Morteza Monemizadeh. Brief announcement: New streaming algorithms for parameterized
+             maximal matching & beyond. In SPAA, pages 56–58, 2015.
+        12   Rajesh Hemant Chitnis, Graham Cormode, Mohammad Taghi Hajiaghayi, and Morteza
+             Monemizadeh. Parameterized streaming: Maximal matching and vertex cover. In SODA,
+             pages 1234–1251, 2015.
+        13   Rajesh Hemant Chitnis, Marek Cygan, Mohammad Taghi Hajiaghayi, and Dániel Marx.
+             Directed Subset Feedback Vertex Set Is Fixed-Parameter Tractable. ACM Trans. Algorithms,
+             11(4):28:1–28:28, 2015.
+        14   Julia Chuzhoy and Zihan Tan. Towards Tight(er) Bounds for the Excluded Grid Theorem. In
+             SODA, pages 1445–1464, 2019.
+        15   Graham Cormode, Hossein Jowhari, Morteza Monemizadeh, and S. Muthukrishnan. The
+             Sparse Awakens: Streaming Algorithms for Matching Size Estimation in Sparse Graphs. In
+             ESA, pages 29:1–29:15, 2017.
+        16   Michael S. Crouch, Andrew McGregor, and Daniel Stubbs. Dynamic Graphs in the Sliding-
+             Window Model. In ESA, pages 337–348, 2013.
+        17   Marek Cygan, Fedor V. Fomin, Lukasz Kowalik, Daniel Lokshtanov, Dániel Marx, Marcin
+             Pilipczuk, Michal Pilipczuk, and Saket Saurabh. Parameterized Algorithms. Springer, 2015.
+        18   Frank K. H. A. Dehne, Michael R. Fellows, Frances A. Rosamond, and Peter Shaw. Greedy
+             Localization, Iterative Compression, Modeled Crown Reductions: New FPT Techniques, an
+             Improved Algorithm for Set Splitting, and a Novel 2k Kernelization for Vertex Cover. In
+             IWPEC, pages 271–280, 2004.
+        19   Holger Dell. AND-Compression of NP-Complete Problems: Streamlined Proof and Minor
+             Observations. Algorithmica, 75(2):403–423, 2016.
+        20   Holger Dell and Dieter van Melkebeek. Satisfiability Allows no Nontrivial Sparsification Unless
+             the Polynomial-Time Hierarchy Collapses. In STOC, pages 251–260, 2010.
+        21   Erik D. Demaine, Fedor V. Fomin, Mohammad Taghi Hajiaghayi, and Dimitrios M. Thilikos.
+             Subexponential parameterized algorithms on bounded-genus graphs and H -minor-free graphs.
+             J. ACM, 52(6):866–893, 2005.
+        22   Erik D. Demaine and MohammadTaghi Hajiaghayi. The bidimensionality theory and its
+             algorithmic applications. Comput. J., 51(3):292–302, 2008.
+Rajesh Chitnis and Graham Cormode                                                                 XX:29
+
+
+23   Rodney G. Downey and Michael R. Fellows. Parameterized Complexity. Monographs in
+     Computer Science. Springer, 1999.
+24   Rodney G. Downey and Michael R. Fellows. Fundamentals of Parameterized Complexity.
+     Texts in Computer Science. Springer, 2013.
+25   Andrew Drucker. New Limits to Classical and Quantum Instance Compression. In FOCS,
+     pages 609–618, 2012.
+26   David Eppstein, Zvi Galil, Giuseppe F. Italiano, and Amnon Nissenzweig. Sparsification - a
+     technique for speeding up dynamic graph algorithms. J. ACM, 44(5):669–696, 1997.
+27   Hossein Esfandiari, Mohammad Taghi Hajiaghayi, Vahid Liaghat, Morteza Monemizadeh, and
+     Krzysztof Onak. Streaming Algorithms for Estimating the Matching Size in Planar Graphs
+     and Beyond. In SODA, pages 1217–1233, 2015.
+28   Stefan Fafianie and Stefan Kratsch. Streaming kernelization. In MFCS, pages 275–286, 2014.
+29   Joan Feigenbaum, Sampath Kannan, Andrew McGregor, Siddharth Suri, and Jian Zhang. On
+     graph problems in a semi-streaming model. Theor. Comput. Sci., 348(2-3):207–216, 2005.
+30   Joan Feigenbaum, Sampath Kannan, Andrew McGregor, Siddharth Suri, and Jian Zhang.
+     Graph Distances in the Data-Stream Model. SIAM J. Comput., 38(5):1709–1727, 2008.
+31   Lance Fortnow and Rahul Santhanam. Infeasibility of Instance Compression and Succinct
+     PCPs for NP. J. Comput. Syst. Sci., 77(1):91–106, 2011.
+32   Sariel Har-Peled, Piotr Indyk, Sepideh Mahabadi, and Ali Vakilian. Towards Tight Bounds
+     for the Streaming Set Cover Problem. In PODS, pages 371–383, 2016.
+33   Monika Rauch Henzinger, Prabhakar Raghavan, and Sridhar Rajagopalan. Computing on
+     data streams. External memory algorithms, 50:107–118, 1998.
+34   Eyal Kushilevitz and Noam Nisan. Communication Complexity. Cambridge University Press,
+     1997.
+35   Andrew McGregor and Sofya Vorotnikova. Planar Matching in Streams Revisited. In AP-
+     PROX/RANDOM, pages 17:1–17:12, 2016.
+36   Andrew McGregor and Sofya Vorotnikova. A Simple, Space-Efficient, Streaming Algorithm
+     for Matchings in Low Arboricity Graphs. In SOSA, pages 14:1–14:4, 2018.
+37   S. Muthukrishnan. Data Streams: Algorithms and Applications. Foundations and Trends in
+     Theoretical Computer Science, 1(2), 2005.
+38   Alessandro Panconesi and Aravind Srinivasan. Randomized Distributed Edge Coloring via an
+     Extension of the Chernoff-Hoeffding Bounds. SIAM J. Comput., 26(2):350–368, 1997.
+39   Bruce A. Reed, Kaleigh Smith, and Adrian Vetta. Finding odd cycle transversals. Oper. Res.
+     Lett., 32(4):299–301, 2004.
+40   Neil Robertson and Paul D. Seymour. Graph minors. V. Excluding a planar graph. J. Comb.
+     Theory, Ser. B, 41(1):92–114, 1986.
+41   Neil Robertson, Paul D. Seymour, and Robin Thomas. Quickly Excluding a Planar Graph. J.
+     Comb. Theory, Ser. B, 62(2):323–348, 1994.
+42   Xiaoming Sun and David P. Woodruff. Tight Bounds for Graph Problems in Insertion Streams.
+     In APPROX-RANDOM, pages 435–448, 2015.
+

@@ -1,0 +1,1071 @@
+                                                               Approximate Hierarchical Clustering via
+                                                                Sparsest Cut and Spreading Metrics
+                                                                Moses Charikar∗                      Vaggos Chatziafratis∗
+arXiv:1609.09548v1 [cs.DS] 29 Sep 2016
+
+
+
+
+                                                                                      October 3, 2016
+
+
+
+                                                                                           Abstract
+                                                   Dasgupta recently introduced a cost function for the hierarchical clustering of a set of points
+                                               given pairwise similarities between them. He showed that this function is N P -hard to optimize,
+                                               but a top-down recursive partitioning heuristic based on an αn -approximation algorithm for
+                                               uniform sparsest
+                                                          √         cut gives an approximation of O(αn log n) (the current best algorithm has
+                                               αn = O( log n)). We show that the aforementioned sparsest cut heuristic in fact obtains
+                                               an O(αn )-approximation. The algorithm also applies to a generalized cost function studied by
+                                               Dasgupta. Moreover, we obtain a strong inapproximability result, showing that the Hierarchical
+                                               Clustering objective is hard to approximate to within any constant factor assuming the Small-
+                                               Set Expansion (SSE) Hypothesis. Finally, we discuss approximation algorithms based on convex
+                                               relaxations. We present a spreading
+                                                                                 √       metric SDP relaxation for the problem and show that it
+                                               has integrality gap at most O( log n). The advantage of the SDP relative to the sparsest cut
+                                               heuristic is that it provides an explicit lower bound on the optimal solution and could potentially
+                                               yield an even better approximation for hierarchical clustering. In fact our analysis of this SDP
+                                               served as the inspiration for our improved analysis of the sparsest cut heuristic. We also show
+                                               that a spreading metric LP relaxation gives an O(log n)-approximation.
+
+
+
+
+                                         ∗
+                                             Computer Science Department, Stanford University, moses@cs.stanford.edu, vaggos@stanford.edu
+
+
+                                                                                               1
+1    Introduction
+Hierarchical Clustering (HC) of a data set is a recursive partitioning of the data into clusters. Such
+methods are widely used in data analysis. To be more formal, in the Hierarchical Clustering (HC)
+problem, the input is a weighted undirected graph G = (V, E, w). Each data point corresponds to
+a node in the graph and edges connect similar points. The heavier the edge weight the stronger
+the similarity between the data points. The goal is to produce a partitioning of the data into
+successively smaller clusters, starting from the original graph G as the initial cluster and ending
+with n singleton clusters. The HC is represented as a tree with leaves corresponding to data points
+and internal nodes corresponding to clusters in the hierarchy.
+    Such a hierarchical decomposition of data has several advantages over flat clustering (k-means,
+k-center etc): firstly, there is no need to fix the number k of clusters we want to create; secondly,
+large datasets are understood simultaneously at many levels of granularity and thirdly, many greedy
+heuristics with provable approximation guarantees ([Das16]) can be used to construct it.
+    Despite its important applications for many scientific areas such as biology (e.g. gene expres-
+sion), data analysis, phylogenetics, social sciences and statistics, HC and the algorithms we use
+to solve it in practice are not yet well-understood. Many heuristics have been proposed, some of
+which are based on a natural “bottom-up” approach by recursively merging data that are similar:
+at the beginning each data point is a separate cluster and we start merging them based on their
+similarity as we go up the hierarchy. These are the so-called agglomerative methods that are pro-
+vided by standard Data Analysis packages and include for example single-linkage, average linkage
+etc. ([JD88, JMF99, BLG14, HTF09]). These methods are specified procedurally rather than in
+terms of an objective function for HC; this lack of objective functions for the problem of HC was
+addressed by the recent work of Dasgupta ([Das16]). He introduced a simple cost function that,
+given pairwise similarities between data points, assigns a score to any possible tree on those points.
+The tree corresponds to the hierarchical decomposition of the data and its score reflects the quality
+of the solution.
+    Let T be any rooted (not necessarily binary) tree that has a leaf for each point in our dataset.
+For a node u in T , we denote with T [u] the subtree rooted at u, and with leaves(T [u]) ⊆ V we
+denote the leaves of this subtree. For leaves i, j ∈ V , the expression i ∨ j denotes their lowest
+common ancestor in T , i.e. T [i ∨ j] is the smallest subtree whose leaves include both i and j. The
+following cost function is the HC cost function:
+                                               X
+                                  costG (T ) =    wij |leaves(T [i ∨ j])|.                         (1)
+                                            ij∈E
+
+    We observe that a heavy edge should not be cut at the top of the tree because it would cause
+a high cost due to the term |leaves(T [i ∨ j])| that would be large. For example, if an edge {i, j}
+of unit weight is cut at the first split of the data, then we pay n. If it is cut further down, in a
+subtree that contains a δ fraction of the data, then we pay δn. We would like to find a tree T ∗
+that minimizes the above cost. It is not difficult to see that there must always exist an optimal
+tree that is binary, since by converting any split that creates more than two subtrees to a sequence
+of binary splits, we can never increase the cost. A generalized version for the cost function is also
+considered in [Das16]:
+                                            X
+                               costG (T ) =     wij f (|leaves(T [i ∨ j])|).                      (2)
+                                          ij∈E
+
+
+
+
+                                                   2
+1.1   Related Work
+Dasgupta introduced the cost function (1) and explained why it is a good objective function for
+hierarchical clustering. He presented some interesting special cases (e.g. planted partitions) for
+which optimizing (1) actually finds the correct underlying HC. He showed that optimizing it is an
+NP-hard problem and showed that a simple heuristic based on an αn approximation for Sparsest
+      √ achieve a factor O(αn · log n) approximation. The current best αn ratio for Sparsest Cut
+Cut will
+is O( log n) from a breakthrough result of [ARV09]. The heuristic starts by taking Sparsest Cut
+for the input graph G, splitting it into (G1 , G2 ) and then applying Sparsest Cut recursively to the
+pieces G1 , G2 . Dasgupta also proved that a slightly modified heuristic yields basically the same
+approximation guarantee for optimizing (2).
+    Another natural approach for dealing with HC is to try to optimize standard popular cost
+functions for flat clustering, such as the k-means, k-median or k-center([DL05, Pla03, LNRW10]).
+However, with this approach, it is necessary to cut at some level the hierarchy so that we get k
+clusters at the end or use many different values of k to achieve a satisfying depth of decomposition.
+    People have also studied methods of HC in terms of statistical consistency ([Har85, CDKL14,
+EBW15]), where data points are sampled from a fixed underlying distribution and we are interested
+in the convergence of the tree structure obtained from the data as the sample size goes to infinity.
+Only a few methods are known to be consistent ([CDKL14, EBW15]). Furthermore, the authors
+of [BLG14] study the performance of agglomerative clustering techniques in the presence of noise
+and they propose a new algorithm that is more robust and performs better in cases with noisy data
+where traditional agglomerative algorithms fail.
+    Recently we were informed that independently of our work, Roy and Pokutta [RP16] got a
+similar result for Hierarchical Clustering via spreading metrics. In particular, they used an LP
+relaxation based on ultrametrics to prove an O(log n) approximation. The LP relaxation they for-
+mulated was similar
+                 √ to ours but we viewed it as a vector programming relaxation and we managed
+to obtain an O( log n) approximation. As far as their analysis is concerned they used the exten-
+sively studied (in the context of graph partitioning) idea of sphere growing (see [LR88, GVY93,
+ENRS99, CGW03, ENRS00]). On the other hand, we got our initial O(log n) approximation by
+proving that the hierarchical clustering objective function falls into the divide and conquer approx-
+imation algorithms via spreading metrics paradigm of [ENRS00] and combining it with a result of
+Bartal ([Bar04]). Finally, they also gave the same constant factor inapproximability result as we
+did, based on the small set expansion hypothesis.
+
+1.2   Our results and structure of the paper
+We show (Section 2) that the recursive sparsest cut (RSC) algorithm that uses any αn -approximation
+algorithm for uniform sparsest cut achieves an O(αn ) approximation for hierarchical clustering,
+shaving a log n factor from Dasgupta’s analysis. The analysis can be modified to prove that the
+same guarantee holds even for the generalized cost function (2). We also present (Section 3) a
+strong inapproximability result for HC, in particular, that it is hard to approximate HC to within
+any constant factor assuming the Small Set Expansion (SSE) Hypothesis. In Section  √ 4, we present
+an SDP relaxation based on spreading metrics with integrality gap at most O( log n) for HC.
+The advantage of the SDP relative to the sparsest cut heuristic is that it provides an explicit
+lower bound on the optimal solution and could potentially yield an even better approximation
+for hierarchical clustering. In fact, we first developed a rounding algorithm for this SDP and our
+analysis later served as the inspiration for our improved analysis of the sparsest cut heuristic for
+both cost functions (1) and (2). Finally, we show how the spreading metrics paradigm of [ENRS00]
+
+
+                                                 3
+in combination with a result of Bartal [Bar04] (Appendix B) can be exploited in order to get an
+O(log n) approximation for hierarchical clustering via a linear program (Appendix C). We conclude
+in Section 5 with questions for further research. Some preliminaries are deferred to the Appendix A
+and omitted proofs are given in Appendix D.
+    A key idea behind our analysis of the recursive sparsest cut algorithm as well as the formulation
+of the SDP relaxation is to view a hierarchical clustering of n data points as a collection of partitions
+of the data, one for each level t = n − 1, . . . , 1. Here the partition for a particular level t consists
+of maximal clusters in the hierarchical clustering of size at most t. When we partition a cluster
+of size r, we charge this to levels t ∈ [r/4, r/2] of this collection of partitions. This is crucial for
+eliminating the log n term in the approximation guarantee.
+
+
+2     Better Analysis for Recursive Sparsest Cut (RSC)
+As discussed previously, Dasgupta [Das16] showed that a simple top-down Recursive Sparsest Cuts
+(RSC) heuristic that uses an αn -approximation algorithm for uniform sparsest cut gives an approx-
+imation of O(αn log n) for hierarchical clustering. More precisely, the RSC heuristic starts from
+the given graph G = (V, E), uses any αn -approximation algorithm for sparsest cut, thus splitting
+G into (G1 , G2 ) and then recurses on G1 and G2 . The output is a binary tree of the sequence of
+cuts performed by the algorithm.
+    In this section, by drawing inspiration from our SDP construction and analysis presented later
+in Section 4, we present an improved analysis for this simple heuristic, dropping the log n factor and
+showing that it actually yields an O(αn ) approximation. This is satisfying since any improvement
+for Sparsest Cut would immediately yield a better approximation result for hierarchical clustering.
+Additionally, fast algorithms (i.e. nearly linear time algorithms) for Sparsest Cut ([She09]) render
+the heuristic useful in practice.
+
+2.1   Analysis of RSC heuristic
+Let the given graph be G = (V, E). We suppose for clarity of presentation that it is unweighted; the
+analysis applies directly to weighted graphs and later, we see how to generalize it for more general
+cost functions. Let OPT be the optimal solution for hierarchical clustering (we abuse notation
+slightly by using OPT to denote both the solution as well as its objective function value). Let
+OP T (t) be the maximal clusters in OPT of size at most t. Note that OP T (t) is a partition of
+V . We denote EOP T (t) the edges that are cut in OP T (t), i.e. edges with end points in different
+clusters in OP T (t). For convenience, we also define EOP T (0) , E.
+                       Pn−1
+Claim 2.1. OP T = t=0        |EOP T (t)|.
+
+Proof. Consider any edge (u, v) ∈ E. Suppose that the size of the minimal cluster in OPT that
+contains both u and v is r. Then the contribution of (u, v) to the LHS is r. On the other hand,
+(u, v) ∈ EOP T (t) for all t ∈ {0, . . . , r − 1}. Hence the contribution to the RHS is also r.
+
+    It will be convenient to use the following bound that is directly implied by the above claim:
+                                          n−1
+                                          X                     n
+                                                                X
+                            2OP T = 2 ·         |EOP T (t)| ≥         EOP T (⌊t/2⌋)                   (3)
+                                          t=0                   t=0
+
+   Let’s look at a cluster A with size |A| = r in the solution produced by RSC. Using a sparsest
+cut approximation algorithm, we create two clusters B1 , B2 with sizes s, (r − s) respectively, with
+
+                                                      4
+B1 being the smaller, i.e. s ≤ ⌊r/2⌋. The contribution of this cut to the hierarchical clustering
+objective function is: |E(B1 , B2 )| · r. We basically want to charge this cost to OP T (⌊r/2⌋) and
+for that we first observe that the edges cut in OP T (⌊r/2⌋), when restricted to the cluster A (i.e.
+having both endpoints in A), satisfy the following:
+                                                            r
+                                                            X
+                         s · |EOP T (⌊r/2⌋) ∩ A| ≤               |EOP T (⌊t/2⌋) ∩ A|.                 (4)
+                                                       t=r−s+1
+
+   This follows easily from the fact that |EOP T (t) ∩ A| ≤ |EOP T (t − 1) ∩ A|. Now in order to
+explain our charging scheme, let’s look at the partition A1 , ..., Ak induced inside the cluster A by
+OP T (⌊r/2⌋) ∩ A, where by design the size of each |Ai | = γi |A|, γi ≤ 1/2. We have:
+                              |E(Ai , A \ Ai )|   |E(Ai , A \ Ai )|
+                                                =                   , ∀i ∈ 1, ..., k
+                                |Ai ||A \ Ai |     γi (1 − γi )r 2
+   We take the minimum over all i (an upper bound on the sparsest cut in A) and we have:
+                          P
+       |E(Ai , A \ Ai )|    i |E(Ai , A \ Ai )|      |EOP T (⌊r/2⌋) ∩ A|     |EOP T (⌊r/2⌋) ∩ A|
+   min                2
+                         ≤ P                   2
+                                                 ≤2·          2
+                                                                         =4·
+    i   γi (1 − γi )r          i γi (1 − γi )r               r /2                     r2
+   The first inequalityPabove, trivially
+                                    Pk follows by definition for the minimum and the second in-
+                         k                2
+equality holds because i=1 γi = 1, i=1 γi ≤ 1/2 and the factor of 2 is introduced since we double
+counted every edge. We partition A using an αn -approximation for sparsest cut and so:
+                                |E(B1 , B2 )|        4
+                                              ≤ αn · 2 · |EOP T (⌊r/2⌋) ∩ A|
+                                  s(r − s)          r
+since the RHS (without the αn factor) is an upper bound of the optimal sparsest cut value. The
+contribution of this step to the hierarchical clustering objective function is:
+                         4αn s(r − s)
+           r|E(B1 , B2 )| ≤           · |EOP T (⌊r/2⌋) ∩ A| ≤ 4αn s · |EOP T (⌊r/2⌋) ∩ A|.            (5)
+                              r
+   We claim the following:
+Claim 2.2. Let A be a cluster of size rA in our hierarchical clustering solution, that we split into 2
+pieces (B1 , B2 ) of size sA , rA − sA respectively with |B1 | ≤ |B2 |. Then, summing over all clusters A:
+
+                       X          rA
+                                  X                                 n
+                                                                    X
+                                            |EOP T (⌊t/2⌋) ∩ A| ≤         |EOP T (⌊t/2⌋)|             (6)
+                         A    t=rA −sA +1                           t=1
+
+Proof. For a fixed value of t and A, the LHS is: |EOP T (⌊t/2⌋) ∩ A|. Consider which clusters A
+contribute such a term to the LHS. From the fact that rA − sA + 1 ≤ t ≤ rA , we need to have that
+|B2 | < t and since B2 is the larger piece that was created when A was split, we deduce that A is
+a minimal cluster of size |A| ≥ t > |B2 | ≥ |B1 |, i.e. if both A’s children are of size less than t,
+then this cluster A contributes such a term. The set of all such A form a disjoint partition of V
+because of the definition for minimality (in order for them to overlap in the hierarchical clustering,
+one of them needs to be ancestor of the other and this cannot happen because of minimality).
+Since EOP T (⌊t/2⌋) ∩ A for all such A forms a disjoint partition of EOP T (⌊t/2⌋), the claim follows
+by summing up over all t.
+Theorem 2.3. Given an unweighted graph G, the Recursive Sparsest Cut algorithm achieves an
+O(αn ) approximation for the hierarchical clustering problem.
+Proof. The proof follows easily by combining (3), (4), (5), (6) and summing over all clusters A
+created by RSC. See Appendix D.
+
+                                                        5
+2.2    Generalized Cost Function and RSC
+In the original [Das16] paper introducing the objective function   P of hierarchical clustering, Dasgupta
+also considered the more general cost function: costG (T ) = ij∈E wij f (|leaves(T [i ∨ j])|), where
+f is defined on the non-negative reals, is strictly increasing, and has f (0) = 0 (e.g. f (x) = ln(1 + x)
+or f (x) = x2 ). For this more general cost function, he proved that a slightly modified greedy top-
+                               w(S, V \ S)                1              2
+down heuristic (using                               with |V | ≤ |S| ≤ |V |, instead of Sparsest Cuts)
+                         min((f |S|), f (|V \ S|))        3              3
+                                                                                        f (n′ )
+continues to yield an O(αn · log n · cf ) approximation1 , where cf , max1≤n′ ≤n                 ). Now, we
+                                                                                       f (n′ /3)
+analyze the previous RSC algorithm (with no modifications), but in the case of a weighted graph
+G and when we are trying to optimize the generalized cost function.
+    We again make the natural assumptions that the function f acting on the number of leaves in
+subtrees, is defined on the nonnegative reals, is strictly increasing and f (0) = 0 (also see Remark 1).
+                                                 f (n′ )
+We also define: cf , max1≤n′ ≤n                                  . For what follows, we abuse notation
+                                       f (⌊n′ /2⌋) − f (⌊n′ /4⌋)
+slightly for ease of presentation and write r/2, r/4 etc. instead of ⌊r/2⌋, ⌊r/4⌋ etc. As in the simple
+unweighted case, we use here the same definitions for OP T and EOP T (t). Let w(EOP T (t)) denote
+the total weight of the edges EOP T (t), i.e. the edges cut by OP       PTr−1at level t, where we define
+w(∅) = 0 and we also define g(t) , f (t + 1) − f (t). We note that t=0        g(t) = f (r) − f (0) = f (r).
+              Pn−1
+Claim 2.4.       t=0 w(EOP T (t)) · g(t) = OP T
+Proof. We will prove that the contributions of an edge e = (u, v) to the LHS and RHS are equal. Let
+A (|A| = re ) be the minimal cluster in the optimal solution that contains both u, v. The contribution
+of e to the RHS is: we · f (re ). As for the contribution to the LHS, since A is minimal and |A| = re ,
+we deduce that e ∈ OP T (t), ∀t < re . Also for levels t ≥ re we have
+                                                                    Pr−1 e ∈ A or some superset of A
+and thus e 6∈ OP T (t) Hence the contribution to the LHS is: we · t=0      g(t) = we · f (r).
+   Focus on a cluster A (|A| = r) in the solution produced by the algorithm. Let cut(A) denote the
+edges in A cut by partitioning A. This contributes w(cut(A)) · f (r) to the objective. We will charge
+                                                                             Pr/2−1
+our cost using the following quantity related to the optimum solution: t=r/4 w(EOP T (t)∩A)·g(t).
+   For that, we look at OP T (r/2) ∩ A and let’s say that clusters A1 , A2 , ..., Ak are induced by this
+partition, each being of size |Ai | = γi |A| ≤ |A|/2 = r/2 (γi ≤ 1/2). Then,
+                                    P
+                                       w(Ai , A \ Ai )      2 · w(EOP T (r/2) ∩ A)
+                        SC(A) ≤ 2i P                      ≤
+                                     r     i γi (1 − γi )          r 2 · 1/2
+where SC(A) is the optimum sparsest cut (value) for A. Since we used an αn -approximation,
+                    w(cut(A))                   4αn · (w(EOP T (r/2) ∩ A)
+                              ≤ αn · SC(A) ≤                               =⇒
+                     s(r − s)                              r2
+                                                   s
+                          w(cut(A)) · f (r) ≤ 4αn · · w(EOP T (r/2) ∩ A) · f (r)                                 (7)
+                                                   r
+Since w(EOP T (t) ∩ A) ≥ w(EOP T (t + 1) ∩ A), we have:
+                     r/2−1                                                       r/2−1
+                      X                                                           X
+                             w(EOP T (t) ∩ A) · g(t) ≥ w(EOP T (r/2) ∩ A) ·              g(t) =
+                     t=r/4                                                       t=r/4
+
+                                               = (f (r/2) − f (r/4)) · w(EOP T (r/2) ∩ A)                        (8)
+   1
+   There isn’t a direct polynomial time implementation of this heuristic for arbitrary functions f to the best of our
+knowledge; however, a heuristic based on balanced cut will achieve similar guarantees.
+
+
+                                                         6
+Using equations (7), (8), we get that:
+                                                               r/2−1
+                                         s       f (r)         X
+             w(cut(A)) · f (r) ≤ 4αn ·     ·                 ·   w(EOP T (t) ∩ A) · g(t)                  (9)
+                                         r f (r/2) − f (r/4)
+                                                               t=r/4
+
+We now sum up the cost contributions of all clusters created in our hierarchical clustering solution.
+Let s(A) be the size of the smaller piece produced in partitioning A.
+
+                     X                                    X s(A) |A|/2−1
+                                                                   X
+         costRSC =       w(cut(A)) · f (|A|) ≤ 4αn · cf                       w(EOP T (t) ∩ A) · g(t)    (10)
+                                                              |A|
+                     A                                    A         t=|A|/4
+
+                                                                                            Pn−1
+To complete our argument we need to make the comparison between OPT which is:                  t=0 w(EOP T (t))·
+g(t) and the sum
+                            X s(A) |A|/2−1
+                                      X
+                                            w(EOP T (t) ∩ A) · g(t),                                     (11)
+                                 |A|
+                                 A        t=|A|/4
+
+where the first summation goes over all clusters A in the solution we produce.
+             P s(A) P|A|/2−1                              Pn−1
+Claim 2.5.    A      t=|A|/4 w(EOP T (t) ∩ A) · g(t) ≤ 2 · t=0 w(EOP T (t)) · g(t)
+                |A|
+Proof. Consider some edge e = (u, v) ∈ EOP T (t). Focus on sets A in the solution produced such
+                                                              P|A|/2−1
+that e ∈ EOP T (t) ∩ A so that e contributes to the term t=|A|/4 w(EOP T (t) ∩ A) · g(t) in the LHS.
+For all such clusters A, we need to have: |A|/4 ≤ t < |A|/2 =⇒ 2t < |A| ≤ 4t.
+    Let A1 , A2 , ..., Ak−1 be the sets for which the term w(EOP T (t) ∩ A) appears: A1 is the largest
+cluster (satisfying 2t < |A1 | ≤ 4t) that contains the edge e = (u, v) and when split we call its larger
+piece A2 (again this set contains e) etc., Ak−1 is the last set for which the term appears and (u, v)
+does not appear in Ak (Ak is the larger piece of the two that we got when we partitioned Ak−1 ).
+We have:
+   k−1                                                                 Pk−1
+   X   s(Ai )     |A1 | − |A2 | |A2 | − |A3 |         |Ak−1 | − |Ak |       |Ai | − |Ai+1 |   |A1 |
+              =                +              + ... +                 ≤ i=1                 ≤       ≤ 2.
+        |Ai |          |A1 |         |A2 |               |Ak−1 |           mini |Ai |          2t
+  i=1
+                                                                                                         (12)
+
+(the constant can be optimized, but it does not change the asymptotic bound).
+    Thus the contribution of every edge e ∈ EOP T (t) to the LHS is at most 2we g(t). Note that this
+is exactly the contribution to the RHS. This establishes the claim.
+
+
+Theorem 2.6. RSC achieves an O(cf · αn ) approximation of the generalized objective function for
+Hierarchical Clustering.
+Proof. The proof follows from (10), Claim 2.4, (7), (8), (9), (11), and (12). See Appendix D.
+
+Remark 1. In order for our guarantee to be useful, we need cf to be a constant (or a slowly growing
+quantity). This would mean that f is polynomially growing. We observe that in the case where the
+function f is exponentially growing then our guarantee is not interesting (and in fact we may need
+to use a different strategy than RSC) and in the case f is logarithmic, then we would get a factor
+≈ O(αn log n) approximation, which is the same guarantee as [Das16].
+
+                                                    7
+3     Hierarchical Clustering Hardness and the Small Set Expansion
+      Hypothesis
+In this section, we prove a strong inapproximability result, showing that, even in unweighted graphs
+(i.e. unit cost edges), the Hierarchical Clustering objective is hard to approximate to within any
+constant factor, assuming the Small Set Expansion hypothesis.
+
+3.1   SSE and hardness amplification
+Given a graph G(V, E), define the following quantities for non-empty subsets S ⊂ V : normalized
+                                                         |E(S, V \ S)|
+set size µ(S) , |S|/|V |, and edge expansion ΦG (S) ,      P           (here di is the degree of i). The
+                                                             i∈S di
+Small Set Expansion hypothesis was introduced by Raghavendra and Steurer [RS10].
+
+Problem 3.1 (Small-Set Expansion(η, δ)). Given a regular graph G(V, E), distinguish between
+the following two cases:
+Yes: There exists a non-expanding set S ⊆ V with µ(S) = δ and ΦG (S) ≤ η.
+No: All sets S ⊆ V with µ(S) = δ are highly expanding with ΦG (S) ≥ 1 − η.
+
+Hypothesis 3.2 (Hardness of approximating Small-Set Expansion). For all η > 0, there exists
+δ > 0 such that the promise problem Small-Set Expansion(η, δ) is NP-hard.
+
+    [RS10] showed that the Small Set Expansion Hypothesis implies the Unique Games Conjecture
+of Khot [Kho02]. A decision problem is said to be SSE-hard if Small-Set Expansion(η, δ) reduces
+to it by a polynomial time reduction for some constant η and all δ > 0. Raghavendra, Steurer
+and Tulsiani [RST10] showed the following hardness amplification result for graph expansion (see
+Preliminaries for Gaussian Graphs definitions):
+
+Theorem 3.3. For all q ∈ N and ǫ, γ > 0, it is SSE-hard to distinguish between the following two
+cases for a given graph H = (VH , EH ):
+Yes: There exist q disjoint sets S1 , ..., Sq ⊆ VH satisfying for all l ∈ [q]: µ(Sl ) = 1/q and ΦH (Sl ) ≤
+ǫ + o(ǫ).
+No: For all sets S ⊆ VH : ΦH (S) ≥ ΦG(1−ǫ/2) (µ(S)) − γ/µ(S), where ΦG(1−ǫ/2) (µ(S)) is the
+expansion of sets of volume µ(S) in the infinite Gaussian graph G(1 − ǫ/2).
+
+3.2   Hierarchical Clustering Hardness
+Now we are ready to prove our main hardness result. Our proof follows the argument of [RST10]
+for establishing the hardness of Minimum Linear Arrangement. We prove the following:
+
+Theorem 3.4. (Hardness of Hierarchical Clustering). For every ǫ > 0, it is SSE-hard to
+distinguish between the following two cases for a given graph G = (V, E), with |V | = n:
+Yes: There exists a decomposition tree T of the graph such that costG (T ) ≤ ǫn|E|
+                                                              √
+No: For any decomposition tree T of the graph costG (T ) ≥ c ǫn|E|.
+
+Proof. We apply Theorem 3.3 for the following values: q = ⌈2/ǫ⌉, ǫ′ = ǫ/3 and γ = ǫ. We need
+to first handle the Yes case. We get that the vertices can be divided into sets S1 , S2 , ..., Sq , each
+having size n/q = nǫ/2, such that at most ǫ′ + o(ǫ′ ) fraction of edges leave the sets (i.e. go across
+sets). Now consider the hierarchical clustering solution that first partitions the vertices into the
+sets S1 , S2 , ..., Sq and then partitions each Si arbitrarily. Edges inside the set Si contribute at most
+|Si | to the objective function and this is |Si | = n/q = ǫn/2. Moreover, edges whose endpoints are
+
+                                                    8
+in different sets will have contribution at most n; but there are at most ǫ/2 fraction of such edges
+and so the overall objective for this hierarchical clustering solution is at most ǫn|E|.
+    Now, we handle the No case by using the argument of [RST10] for Minimum Linear Ar-
+rangement that follows from an observation of [DKSV06] and the fact that the objective function
+of Minimum Linear Arrangement is always less than the cost of Hierarchical Clustering. To see
+the latter, observe that if we have a hierarchical clustering tree T then consider the ordering of the
+vertices induced by the order that they appear as leaves in T (like projecting the leaves to a line).
+Then, the stretch of an edge (u, v) that is cut, can be at most the size of the subtree that corresponds
+to that edge and this is exactly the quantity: |leaves(T [u∨v])|. Since we know ([RST10, DKSV06])
+                                                                                    √
+that in the No case, for all orderings π : V → [n], E(u,v)∼E [|π(u) − π(v)|] ≥ c ǫn, it immediately
+                            √
+follows that: costG (T ) ≥ c ǫn|E|.
+
+
+
+4     Approximation for HC using SDP
+In this section, we present our SDP relaxation for HC based on spreading metrics, we point out its
+relation
+   √     with the SDP relaxation of k-balanced partitioning in [KNS09] and we prove that it is an
+O( log n) approximation for both the simple and the generalized cost function.
+
+4.1     Writing the SDP
+We view a hierarchical clustering of n data points as a collection of partitions of the data, one for
+each level t = n − 1, . . . , 1. The partition for a particular level t satisfies the property that every
+cluster has size at most t; additionally, for every vertex i, the cluster containing vertex i at level
+t is the maximal cluster in the hierarchy with size at most t. The partition at level (t − 1) is a
+refinement of the partition at level t. Note that the partition corresponding to t = 1 must consist
+of n singleton clusters. We represent the partition at level t by the set of variables xtij , i, j ∈ V ,
+where xtij = 1 if i and j are in different clusters in the partition at level t and xtij = 0 if i and j
+are in the same cluster. We point out some properties of these variables xtij satisfied by an integer
+solution corresponding to an actual hierarchical clustering:
+
+    1. refinement: xtij ≤ xt−1
+                           ij . If i and j are separated at level t, then they continue to be separated
+       at level t − 1.
+
+    2. triangle inequality: xtij + xtjk ≥ xtik . In the clustering at level t, if i and j are the same
+       cluster, j and k are in the same cluster, then i and k are in the same cluster.
+
+    3. ℓ22 metric: The triangle inequality condition implies that xtij is a metric. Further, we can
+       associate unit vectors vit with vertices i at level t such that xtij = 21 ||vit − vjt ||22 . In order to do
+       this, all vertices in the same cluster at level t are assigned the same vector, and vertices in
+       different clusters are assigned orthogonal vectors.
+                      P t
+    4. spreading:       j xij ≥ n − t. For the clustering at level t, there are at most t vertices in the
+       same cluster as i. Hence there are at least n − t vertices in different clusters. For each such
+       vertex j, xtij = 1 implying the inequality.
+
+    5. cluster size: The Psize  of the smallest cluster in the hierarchy containing both vertices i and
+                            n−1 t
+       j is given by 1 + t=1    xij . Suppose C is the smallest cluster containing both i and j. Then
+       for t ≥ |C|, the partition at level t must contain C or some superset of C. Hence xtij = 0 for
+
+
+                                                        9
+      t ≥ |C|. For t <P
+                      |C|, the clustering at level t must have i and j in different clusters, hence
+        t               n−1 t
+      xij = 1. Hence t=1    xij = |C| − 1. Finally, we can write the SDP relaxation SDP-HC as
+      follows:
+                               n−1                          n−1
+                               XX                           XX         1 t
+                         min              xtij wij = min                kv − vjt k22 wij    (SDP-HC)
+                                                                       2 i
+                               t=1 ij∈E                     t=1 ij∈E
+
+                           such that:       xtij ≤ xt−1
+                                                    ij ,      t = n − 1, n − 2, ...1
+                                 x0ij = 1, ∀i, j ∈ V and xtij ≤ 1, ∀i, j, t
+                                     1
+                             xtij = kvit − vjt k22 and kvit k22 = 1, ∀i ∈ V
+                                     2
+                                                               X
+                      t     t      t
+                     xij ≤ xjk + xik , ∀i, j, k ∈ V, ∀t and        xtij ≥ n − t, ∀i, t
+                                                                       j
+
+   It is easy to see that an optimal solution to SDP-HC can be computed in polynomial time. By
+the preceding discussion, we have shown that SDP-HC is a valid relaxation for HC:
+
+Lemma 4.1. The value of an optimal solution to SDP-HC can be computed in polynomial time,
+and gives a lower bound on the cost of an optimal solution to the hierarchical clustering problem.
+
+4.2   Connections of SDP-HC with Balanced Partitioning
+The authors of [KNS09] write an SDP relaxation for the problem of k-Balanced Partitioning (k-BP)
+which was the following (SDP-k-BP):
+                                              X          1
+                                       min          wij · kvi − vj k22                     (SDP-k-BP)
+                                                         2
+                                             ij∈E
+
+                   such that: kvi − vj k22 + kvj − vk k22 ≥ kvi − vk k22 , ∀i, j, k ∈ V
+                            X1                         n
+                                  kvi − vj k22 ≥ |S| − , ∀S ⊆ V, i ∈ S
+                                2                      k
+                               j∈S
+                                                      √
+Their result was that the above relaxation is an O( log k log n) approximation (bi-criteria ν = 2)
+algorithm for k-BP, that will create pieces of size at most 2n/k.
+
+Claim 4.2. Let A be a cluster of size r. SDP-HC solution restricted to set A, at level t = r/4 is a
+valid solution for k-balanced partitioning based on the SDP-k-BP relaxation, where k = 4.
+
+Proof. See Appendix D.
+
+    In order to produce a hierarchical clustering from the SDP solution, we recursively partition V
+in a top down fashion: while partitioning a cluster A, we use the SDP-HC solution restricted to
+set A at level t = |A|/4 as a valid solution for 4-balanced partitioning and invoke the algorithm of
+[KNS09] as a black box. Let EA be the edges cut by the algorithm when splitting cluster A. From
+the analysis of [KNS09] , we get that (for us k = 4, so log k is constant):
+                                               p
+                                  w(EA ) ≤ O( log n) · SDPA (r/4)                               (13)
+
+and we partition A into pieces of size at most ≤ 2 · r/4 = r/2 (bi-criteria). In the analysis that
+follows we will use this result as a black box.
+
+                                                       10
+        √
+4.3   O( log n) approximation for Hierarchical Clustering
+                                                                    √
+Now we go on to see that the integrality gap of our SDP-HC is O( log n). Let r be the size of
+a cluster A in the solution produced. For our charging argument, we observe that the we pay
+r · w(EA ) where EA are the edges cut by the [KNS09] algorithm when partitioning A. We will
+                    Pr/4                   r
+charge this cost to t=r/8+1 SDPA (t) ≥ SDPA (r/4) (note that as t decreases more edges are
+                                           8
+cut). Thus, using [KNS09], the total cost of the solution produced (where r depends on A):
+                                                             r/4
+                               X                   p       X X
+                    costHC =        r · w(EA ) ≤ O( log n)       SDPA (t).                      (14)
+                                A                           A t=r/8+1
+
+             P P|A|/4
+Claim 4.3.     A    t=|A|/8+1 SDPA (t) ≤ O(SDP-HC).
+
+Proof. See Appendix D.
+
+Theorem 4.4.√ The cost of the solution produced by the SDP-HC rounding algorithm is within a
+factor of O( log n) from the SDP value.
+                                                         √
+Proof. Using Claim D.4 and (14) we get that costOP T ≤ O( log n)·SDP-HC.
+
+4.4   The case of the generalized cost function
+Now, we consider the performance of SDP-HC-gen (where SDP-HC-gen is essentially the same as
+SDP-HC where actually we multiply each term in the objective function by g(t) = f (t + 1) − f (t))
+for the generalized cost function and we show essentially the same guarantee (for the proof, see
+Appendix D):
+
+Theorem 4.5. The cost of the solution produced by the SDP-HC-gen rounding algorithm is within
+              √                                                                f (r)
+a factor of O( log n · cf ) from the SDP value where cf , maxr∈{1,...,n}                   .
+                                                                         f (r/4) − f (r/8)
+
+5     Conclusion and Further Research
+We proved that the recently introduced objective function for hierarchical clustering in [Das16], can
+be approximated within√ a factor of O(αn ) by repeatedly taking (αn approximations to) Sparsest
+Cuts and within O( log n) using a spreading metric SDP relaxation. We also proved that it is
+hard to approximate the HC objective function within any constant factor assuming the Small Set
+Expansion Hypothsesis, which was the first strong inapproximability for the problem to the best
+of our knowledge. We finally presented an LP based O(log n) approximation by showing that HC
+falls into the spreading metrics paradigm of [ENRS00].
+     We would like to conclude the paper asking if we can do even better for this particular problem.
+The reason why we might face difficulties in improving the approximation guarantee may have to
+do with the much more basic problem of Minimum Balanced Bisection. It seems implausible that
+we would get a better approximation for hierarchical clustering before getting an improvement in
+the current best approximation guarantee for Balanced Bisection. It is also interesting to try to
+come up with other suitable cost functions for HC, apart from those considered here.
+     Another direction for research is that of beyond worst case analysis. What can we say about
+exact recovery on γ-stable instances under Bilu-Linial [BL12b] notion of stability? For example,
+in [MMV14] they show that the standard SDP relaxation for Max-Cut is integral if the instance is
+
+
+                                                 11
+                          √
+sufficiently stable (γ ≥ c log n log n for some absolute constant c > 0). It would be nice to formalize
+and say something similar for our problem, since this would not only explain the success of certain
+heuristics for HC based on finding sparsest cuts, but also justify their use in practice, assuming
+that in real applications most instances are stable (such an assumption for clustering problem is
+widely accepted; for more see [BL12a, BL12b, MMV14] and references therein). Finally, we also
+find interesting the scenario where the input graph is drawn from a probability distribution for
+which there is a truly hierarchical structure. Can we then prove that a suitable SDP relaxation will
+indeed find a hierarchical structure close to the actual underlying hierarchy with high probability?
+
+
+
+
+                                                  12
+References
+[AMS11]    Christoph Ambühl, Monaldo Mastrolilli, and Ola Svensson. Inapproximability results
+           for maximum edge biclique, minimum linear arrangement, and sparsest cut. SIAM
+           Journal on Computing, 40(2):567–596, 2011.
+
+[ARV09]    Sanjeev Arora, Satish Rao, and Umesh Vazirani. Expander flows, geometric embeddings
+           and graph partitioning. Journal of the ACM (JACM), 56(2):5, 2009.
+
+[Bar04]    Yair Bartal. Graph decomposition lemmas and their role in metric embedding methods.
+           In European Symposium on Algorithms, pages 89–97. Springer, 2004.
+
+[BL12a]    Maria Florina Balcan and Yingyu Liang. Clustering under perturbation resilience. In
+           International Colloquium on Automata, Languages, and Programming, pages 63–74.
+           Springer, 2012.
+
+[BL12b]    Yonatan Bilu and Nathan Linial. Are stable instances easy? Combinatorics, Probability
+           and Computing, 21(05):643–660, 2012.
+
+[BLG14]    Maria-Florina Balcan, Yingyu Liang, and Pramod Gupta. Robust hierarchical cluster-
+           ing. Journal of Machine Learning Research, 15:3831, 2014.
+
+[CDKL14] Kamalika Chaudhuri, Sanjoy Dasgupta, Samory Kpotufe, and Ulrike Luxburg. Consis-
+         tent procedures for cluster tree estimation and pruning. IEEE Transactions on Infor-
+         mation Theory, 60(12):7900–7912, 2014.
+
+[CGW03]    Moses Charikar, Venkatesan Guruswami, and Anthony Wirth. Clustering with qualita-
+           tive information. In Foundations of Computer Science, 2003. Proceedings. 44th Annual
+           IEEE Symposium on, pages 524–533. IEEE, 2003.
+
+[CHKR06] Moses Charikar, Mohammad Taghi Hajiaghayi, Howard Karloff, and Satish Rao. l22
+         spreading metrics for vertex ordering problems. In Proceedings of the seventeenth annual
+         ACM-SIAM symposium on Discrete algorithm, pages 1018–1027. Society for Industrial
+         and Applied Mathematics, 2006.
+
+[Das16]    Sanjoy Dasgupta. A cost function for similarity-based hierarchical clustering. In Pro-
+           ceedings of the 48th Annual ACM SIGACT Symposium on Theory of Computing, STOC
+           2016, pages 118–127, New York, NY, USA, 2016. ACM.
+
+[DKSV06] Nikhil R Devanur, Subhash A Khot, Rishi Saket, and Nisheeth K Vishnoi. Integrality
+         gaps for sparsest cut and minimum linear arrangement problems. In Proceedings of the
+         thirty-eighth annual ACM symposium on Theory of computing, pages 537–546. ACM,
+         2006.
+
+[DL05]     Sanjoy Dasgupta and Philip M Long. Performance guarantees for hierarchical clustering.
+           Journal of Computer and System Sciences, 70(4):555–569, 2005.
+
+[EBW15]    Justin Eldridge, Mikhail Belkin, and Yusu Wang. Beyond hartigan consistency: merge
+           distortion metric for hierarchical clustering. 2015.
+
+[ENRS99] Guy Even, Joseph Naor, Satish Rao, and Baruch Schieber. Fast approximate graph
+         partitioning algorithms. SIAM Journal on Computing, 28(6):2187–2214, 1999.
+
+
+                                               13
+[ENRS00] Guy Even, Joseph Seffi Naor, Satish Rao, and Baruch Schieber. Divide-and-conquer ap-
+         proximation algorithms via spreading metrics. Journal of the ACM (JACM), 47(4):585–
+         616, 2000.
+
+[FL07]     Uriel Feige and James R Lee. An improved approximation ratio for the minimum linear
+           arrangement problem. Information Processing Letters, 101(1):26–29, 2007.
+
+[GVY93]    Naveen Garg, Vijay V Vazirani, and Mihalis Yannakakis. Approximate max-flow min-
+           (multi) cut theorems and their applications. In Proceedings of the twenty-fifth annual
+           ACM symposium on Theory of computing, pages 698–707. ACM, 1993.
+
+[Har85]    J. A. Hartigan. Statistical theory in clustering. Journal of Classification, 2(1):63–76,
+           1985.
+
+[HTF09]    Trevor Hastie, Robert Tibshirani, and Jerome Friedman. The Elements of Statistical
+           Learning. Springer, 2nd edition, 2009.
+
+[JD88]     Anil K Jain and Richard C Dubes. Algorithms for clustering data. Prentice-Hall, Inc.,
+           1988.
+
+[JMF99]    Anil K Jain, M Narasimha Murty, and Patrick J Flynn. Data clustering: a review.
+           ACM computing surveys (CSUR), 31(3):264–323, 1999.
+
+[Kho02]    Subhash Khot. On the power of unique 2-prover 1-round games. In Proceedings of the
+           thiry-fourth annual ACM symposium on Theory of computing, pages 767–775. ACM,
+           2002.
+
+[KNS09]    Robert Krauthgamer, Joseph Seffi Naor, and Roy Schwartz. Partitioning graphs into
+           balanced components. In Proceedings of the twentieth Annual ACM-SIAM Symposium
+           on Discrete Algorithms, pages 942–949. Society for Industrial and Applied Mathematics,
+           2009.
+
+[LNRW10] Guolong Lin, Chandrashekhar Nagarajan, Rajmohan Rajaraman, and David P
+         Williamson. A general approach for incremental approximation and hierarchical clus-
+         tering. SIAM Journal on Computing, 39(8):3633–3669, 2010.
+
+[LR88]     Tom Leighton and Satish Rao. An approximate max-flow min-cut theorem for uni-
+           form multicommodity flow problems with applications to approximation algorithms. In
+           Foundations of Computer Science, 1988., 29th Annual Symposium on, pages 422–431.
+           IEEE, 1988.
+
+[LR99]     Tom Leighton and Satish Rao. Multicommodity max-flow min-cut theorems and their
+           use in designing approximation algorithms. Journal of the ACM (JACM), 46(6):787–
+           832, 1999.
+
+[MMV14] Konstantin Makarychev, Yury Makarychev, and Aravindan Vijayaraghavan. Bilu-linial
+        stable instances of max cut and minimum multiway cut. In Proceedings of the Twenty-
+        Fifth Annual ACM-SIAM Symposium on Discrete Algorithms, SODA ’14, pages 890–
+        906, Philadelphia, PA, USA, 2014. Society for Industrial and Applied Mathematics.
+
+[Pla03]    C Greg Plaxton. Approximation algorithms for hierarchical location problems. In
+           Proceedings of the thirty-fifth annual ACM symposium on Theory of computing, pages
+           40–49. ACM, 2003.
+
+                                               14
+[RP16]    Aurko Roy and Sebastian Pokutta. Hierarchical clustering via spreading metrics. 2016.
+
+[RS10]    Prasad Raghavendra and David Steurer. Graph expansion and the unique games con-
+          jecture. In Proceedings of the forty-second ACM symposium on Theory of computing,
+          pages 755–764. ACM, 2010.
+
+[RST10]   Prasad Raghavendra, David Steurer, and Madhur Tulsiani. Reductions between expan-
+          sion problems. In Computational Complexity (CCC), 2012 IEEE 27th Annual Confer-
+          ence on, pages 64–73. IEEE, 2010.
+
+[She09]   Jonah Sherman.      Breaking the multicommodity flow barrier for o (vlog n)-
+          approximations to sparsest cut. In Foundations of Computer Science, 2009. FOCS’09.
+          50th Annual IEEE Symposium on, pages 363–372. IEEE, 2009.
+
+
+
+
+                                             15
+A     Preliminaries
+Here, we would like to briefly discuss some important problems and definitions that will frequently
+come up in the rest of the paper. Some additional definitions and facts may be presented in the
+sections for which they are relevant.
+    Sparsest Cut. Given a weighted, undirected graph G = (V, E, w) (|V | = n) we want to find
+a set S 6= ∅, V that minimizes the ratio:
+
+                                               w(S, V \ S)
+                                               |S| · |V \ S|
+
+It is an NP-hard problem for which many important results are known including the LP relaxation
+of Leighton-Rao [LR99] with approximation ratio O(log n) and the SDP       √ relaxation with triangle
+inequality of Arora, Rao, Vazirani [ARV09] with approximation ratio O( log n); it is a major open
+question if we can improve this approximation ratio.
+     Small-Set Expansion. SSE is a hardness assumption that informally tells us the following:
+Given a graph G, it should be hard to distinguish between the case where there exists a small set
+S that has only a few edges leaving it versus the case where for all small sets S there are many
+edges leaving the sets. For a formal statement see Section 3. This hardness assumption is closely
+connected to the Unique Games Conjecture (UGC) of [Kho02] and its variants. In particular, the
+SSE Hypothesis implies UGC([RS10]) and it has been used to prove many inapproximability results
+for problems like balanced separator and minimum linear arrangement ([RST10]).
+     k-Balanced Partitioning. Given a weighted undirected graph G on n vertices, the goal is to
+partition the vertices into k equally sized components of size roughly n/k so that the total weight
+of the edges connecting different components is small. It is an important generalization of well-
+known graph partitioning problems, including minimum bisection (k=2) and minimum balanced
+cut and it has applications in VLSI design, data mining (clustering), social network analysis etc.
+It is an NP-hard problem and the authors of [KNS09] present a bi-criteria (which means that
+pieces√may have size 2n/k rather than n/k) approximation algorithm achieving an approximation
+of O( log n log k). Their result will be useful in our analysis for our spreading metrics SDP in
+Section 4. However, for us the dependence on k will be unimportant since in our analysis we only
+need k to be a small constant (e.g. k=4).
+     Minimum Linear Arrangement. Given a weighted undirected multigraph G(V, E, w) (|V | =
+n) we want to find a permutation π : V → {1, 2, . . . , |V |} that minimizes:
+                                      X
+                                              w(x, y) · |σ(y) − σ(x)|
+                                 (x,y)∈E,x<y
+            √
+A factor O( log n log log n) approximation for MLA was shown in [CHKR06, FL07]. In addition,
+some recent hardness results are also known: in [RST10] it is shown that it is SSE-hard to approxi-
+mate MLA to within any fixed constant factor and in [AMS11] the authors prove that MLA has no
+polynomial time approximation scheme, unless NP-complete problems can be solved in randomized
+subexponential time.
+   Gaussian Graphs. For a constant ρ ∈ (−1, 1), let G(ρ) denote the infinite graph over R where
+the weight of an edge (x, y) is the probability that two standard Gaussian random variables X, Y
+with correlation ρ equal x and y respectively. The expansion profile of Gaussian graphs is given by
+ΦG(ρ) (µ) = 1 − Γρ (µ)/µ where the quantity Γρ (µ) defined as
+
+                                  Γρ (µ) , P(x,y)∼Gρ (x ≥ t, y ≥ t),
+
+                                                    16
+where Gρ is the 2-dimensional Gaussian distribution with covariance matrix:
+                                                  
+                                               1 ρ
+                                              ρ 1
+
+and t ≥ 0 is such that P(x,y)∼Gρ {x ≥ t} = µ.
+
+
+B     Spreading Metrics and Bartal’s Decomposition
+Bartal ([Bar04]) presented a graph decomposition lemma and used it as a key ingredient in order
+to prove an O(log n) approximation guarantee for the spreading metrics paradigm in undirected
+graphs, thus improving the results for many problems considered in [ENRS00]. At a high level, the
+decomposition finds a cluster in the graph that has a low diameter, such that the weight of the cut
+created is small with respect to the weight of the cluster. The decomposition is essentially based
+on the decomposition of [GVY93] performed in a careful manner so as to achieve a more refined
+bound on the ratio between the cut and the cluster’s weight.
+    Let G = (V, E) be an undirected graph with two weight functions w, l : E → R+ . We interpret
+l(e) to be the length of the edge e, and the distance d(u, v) between pairs of vertices u, v in the graph,
+is determined by the length of the shortest path between them. Given a subgraph H = (VH , EH )
+of G, let dH denote the distance in H,  P let ∆(H) denote the diameter of H, and ∆ = ∆(G). We
+also define the volume of H, φ(H) = e∈EH w(e)l(e).
+    Given a subset S ⊆ V , G(S) denotes the subgraph     Pof G induced by S. Given partition (S, S̄),
+let Γ(S) = {(u, v) ∈ E; u ∈ S, v ∈ S̄} and cut(S) = e∈Γ(S) w(e). For a vertex v and r ≥ 0, the
+ball at radius r around v is defined as B(v, r) = {u ∈ V |d(u, v) ≤ r}. Let S = B(v, r). Define
+
+                                        X                            X
+               φ̄(S) = φ̄(v, r) =                   w(e)l(e) +                  w(e)(r − d(v, u)).
+                                    e=(u,w):u,w∈S                e=(u,w)∈Γ(S)
+
+
+   Given a subgraph H, we can similarly define φ̄H with respect to the subgraph H. Define the
+spherical-volume of H,
+
+                                                                 ∆(H)
+                                       φ∗ (H) = max φ̄H (v,           ).
+                                                    v∈H           4
+    In the following, we state three basic lemmas, which are based on a standard argument similar
+to that of [GVY93], before stating the main result in B.4. For the proofs, we refer the reader to
+[Bar04].
+
+Lemma B.1. Given a graph G, there exists a partition (S, S̄) of G, where S is a ball and
+
+                                            8 ln(φ∗ (G)/φ∗ (G(S)))    ¯
+                                cut(S) ≤                           · φ(S).
+                                                     ∆(G)
+
+    The decomposition will become useful when it is applied recursively. This is particularly impor-
+tant for our main application which is hierarchical clustering and we can have a recursive approach
+where we find a good cut, creating two subgraphs and then we continue with the two new com-
+ponents. More generally, for the second lemma of [Bar04], we will be interested in applications
+which are associated with a cost function cost over subgraphs Ĝ of G which is nonnegative, 0 on
+singletons and obeys the following natural recursion rule:
+
+                                                       17
+                       cost(Ĝ) ≤ cost(Ĝ(S)) + cost(Ĝ(S̄)) + ∆(Ĝ) · cut(S).                  (15)
+
+    Now we state the second basic lemma:
+
+Lemma B.2. Any cost function defined by (15) obeys cost(G) ≤ O(log(φ/φ0 )) · φ(G), where
+φ = φ(G) and φ0 is the minimum value of φ(Ĝ) on non-singleton subgraphs Ĝ.
+   Finally, we have the third lemma which will give us the O(log n) approximation. We can obtain
+a bound depending only on n, by modifying the process slightly by associating a volume φ(G)/n
+with the nodes, like in [GVY93]. This will ensure that φ0 ≥ φ(G)/n and by substituting we get
+what we want:
+
+Lemma B.3. The function defined by (15) using the modified procedure obeys cost(G) ≤ O(log n) ·
+φ(G).
+
+    Now we turn our attention to the connection with the spreading metrics paradigm. Having the
+definition of a spreading metric in mind (see Section C) and the previous three recursive graph
+decomposition lemmas we can easily obtain the following theorem, as proved in [Bar04]:
+
+Theorem B.4. There exists an O(log n) approximation for problems in the spreading metrics
+paradigm.
+
+
+C     LP Spreading Metrics and O(log n) approximation
+We prove here that the hierarchical clustering objective function defined above falls into the divide
+and conquer approximation algorithms via spreading metrics paradigm of [ENRS00].
+    The spreading metric paradigm applies to minimization problems on undirected graphs G =
+(V, E) with edge weights w(e) ≥ 1. We also have an auxiliary graph H and a scaler function on
+subgraphs of H (e.g. size of the components of H). A decomposition tree T is a tree with nodes
+corresponding to non-overlapping subsets of V , forming a recursive partition of the nodes V . For
+a node t of T , we denote by Vt the subset at t. Associated are the subgraphs Gt , Ht induced by
+Vt . Let P
+         Ft be the set of edges that connect vertices
+                                                 P      that belong to different children of t, and
+w(Ft ) = e∈Ft w(e). The cost of T is cost(T ) = t∈T scaler(Ht ) · w(Ft ).
+Definition C.1. A spreading metric is a function on the edges of the graph l : E → R+ satisfying
+the following two properties:
+                                                   P
+   1. Lower bound property: The volume of the graph e∈E w(e)l(e) is a lower bound on the optimal
+      cost.
+    2. Diameter property: For any U ⊆ V and HU the subgraph of H induced by U , has diameter
+       ∆(U ) ≥ scaler(HU ).
+
+    We closely follow their formulation for the Linear Arrangement problem, which also falls into
+the spreading metrics paradigm, but we make the necessary semantic changes. We need to show
+the divide and conquer applicability and the spreading metrics applicability of their result for our
+problem.
+    Firstly, to establish the divide and conquer applicability we consider any binary decomposition
+tree T that fully decomposes the problem.(we normalize the edge weights by dividing with the
+minimum edge weight). Note that there is a 1 − 1 correspondence between the leaves of T and the
+
+                                                 18
+vertices of G. The solution to the hierarchical clustering problem that is represented by T is easily
+given by the cuts, in G, induced by the internal nodes of T . The cost of the tree T is:
+                                                  X
+                                     costG (T ) =     |Vt |w(Ft ).                              (16)
+                                                     t∈T
+
+where Vt and Ft are the set of vertices and cut corresponding to the tree node t and w(Ft ) is the
+total weight of the edges cut at this internal node t. We need to show that this cost bounds the cost
+of solutions built up from T . For this we prove that for every tree node t the cost of the subtree
+rooted at t, denoted Tt , bounds the cost of solutions built up from Tt to the hierarchical clustering
+problem for the subgraph of G induced by the set of vertices Vt . We prove the claim by induction
+on the level of the tree nodes. The claim clearly holds for all leaves of T . Consider an internal tree
+node t ∈ T and denote its two children by tL and tR . By induction the claim holds for both tL and
+tR . The solution represented by Tt is given by concatenating the solutions represented by TtL and
+TtR . Note that the additional cost is at most |Vt | times the capacity of the cut Ft that separates
+VtL from VtR . We get
+
+                          costG (Tt ) ≤ costG (TtL ) + costG (TtR ) + |Vt |w(Ft ).                 (17)
+
+The inductive claim follows.
+    We now show how to compute the spreading metric that assigns length l(e) to an edge e ∈ E
+of the graph. Consider the following linear program (LP1):
+
+                                                                      X
+                                                                min         w(e) · l(e)            (18)
+                                                                      e∈E
+                                                    X                     1
+                       s.t.    ∀U ⊆ V, ∀v ∈ V :          distl (u, v) ≥     (|U |2 − 1)            (19)
+                                                                          4
+                                                   u∈U
+                                                                 ∀e ∈ E : l(e) ≥ 0                 (20)
+
+In the linear program, we follow the notation that regards l(e) as edge lengths, and distl (u, v) is the
+length of the shortest path from u to v. We will refer to constraint (6) as the spreading constraint.
+The linear program can be solved in polynomial time since we can construct a separation oracle. In
+order to verify that the spreading constraint (19) is satisfied, for each vertex v, we sort the vertices
+in V in increasing order of distance distl (u, v) and verify the spreading constraint for all prefixes
+U of this sorted order.
+Lemma. Let l(e) denote a feasible solution of the linear program. For every U ⊆ V with (|U | > 1),
+                                                                              1
+and for every vertex v ∈ U there is a vertex u ∈ U for which distl (u, v) ≥      |U |.
+                                                                              10
+                                                                            1
+Proof. The average distance of a node u ∈ U − {v} from v is greater than (|U | − 1), because of the
+                                                                            4
+constraint corresponding to U and v. Therefore, there exists a vertex u ∈ U whose distance from v is
+                                                                                   1           1
+at least the average distance from v, and the lemma follows, since distl (u, v) ≥ (|U | − 1) ≥ |U |.
+                                                                                   4          10
+(|U | > 1)
+
+    Note that the previous lemma comes short of the diameter guarantee by a factor of 10: while
+the diameter guarantee requires that the diameter of a subset U be greater than |U |, the proven
+bound is only |U |/10. However, it is known that this only affects the constant in the approximation
+factor.
+
+                                                    19
+    In the next lemma, we prove that the volume of an optimal solution of the linear program
+satisfies the lower bound property.
+Lemma. The cost of an optimal solution of the linear program is a lower bound on the cost of an
+optimal hierarchical clustering of G.
+Proof. Consider any binary hierarchical clustering given by the sequence of cuts in the decomposi-
+tion tree T and define l(e) = |leaves(T [i ∨ j])| for edge e = (i, j) ∈ E. It is easy to see that this
+is indeed a metric and it is actually
+                               P        an ultrametric. We show that l(e) is a feasible solution for
+the linear program. The cost e∈E w(e) · l(e) equals the cost of the hierarchical clustering induced
+by the tree T . The feasibility of l(e) is proved as follows: Consider a subset U ⊆ V and a vertex
+v ∈ U . We observe that the average distance from v of the vertices in U will be minimized when U
+is “packed around” v, meaning that with each cut we peel off only one vertex at a time. We have
+that:
+                  X                                       1             1
+                      distl (u, v) = 2 + 3 + ... + |U | ≥ (|U |2 − 1) ≥ (|U |2 − 1)
+                                                          2             4
+                    u∈U
+
+    Hence, l(·) is a feasible solution and the lemma follows.
+
+     With the above two lemmas we have proved that our hierarchical clustering objective function
+falls into the spreading metrics paradigm, because it satisfies the lower bound property and the
+diameter property. Using Bartal’s decomposition and specifically Theorem B.4 from Section B we
+get an approximation guarantee of O(log n):
+Theorem C.1. There exists an O(log n) approximation for the hierarchical clustering objective
+function defined by (1).
+
+
+D     Omitted Proofs
+Theorem D.1. Given an unweighted graph G, the Recursive Sparsest Cut algorithm achieves an
+O(αn ) approximation for the hierarchical clustering problem.
+Proof. By combining (3), (4), (5), (6) and summing over all clusters A created by RSC, we get the
+following result for the overall performance guarantee:
+                                X                               X
+                    costRSC =           r · |E(B1 , B2 )| ≤         4αn s|EOP T (⌊r/2⌋) ∩ A| ≤
+                                    A                           A
+
+
+                   X       r
+                           X                                          n
+                                                                      X
+           ≤ 4αn                    |EOP T (⌊t/2⌋) ∩ A| ≤ 4αn               |EOP T (⌊t/2⌋)| ≤ 8αn · OP T
+                    A     t=r−s+1                                     t=1
+
+
+
+Theorem D.2. RSC achieves a O(cf · αn ) approximation of the generalized objective function for
+Hierarchical Clustering.
+Proof. From (10),
+
+                                               X s(A) |A|/2−1
+                                                        X
+                        costRSC ≤ 4αn · cf                            w(EOP T (t) ∩ A) · g(t)
+                                                     |A|
+                                                A           t=|A|/4
+
+
+                                                           20
+Combining the above with Claim 2.4, (7), (8), (9), (11), (12), we get that the total cost of the RSC
+is at most costRSC ≤ (8cf αn ) · OP T = O(cf · αn ).
+
+Claim D.3. Let A be a cluster of size r. SDP-HC solution restricted to set A, at level t = r/4 is
+a valid solution for k-balanced partitioning based on the SDP-k-BP relaxation, where k = 4.
+Proof. To see this we need to compare the set of constraints imposed by SDP-HC and SDP-k-BP.
+In SDP-HC, we have some additional constraints: xtij ≤ 1 and vit ≤ 1, but that is fine since imposing
+extra constraints P
+                  just makes a stricterPrelaxation. Now let’s look at the spreading constraints: In
+SDP-HC we have j xtij ≥ n−t =⇒                t
+                                         j∈S xij ≥ |S|−t which is basically the SDP-k-BP spreading
+constraints. Thus, by looking at the SDP-HC solution restricted to set A (|A| = r), at level t = r/4,
+we can get a valid 4-balanced partitioning solution of A.
+              P P|A|/4
+Claim D.4.      A    t=|A|/8+1 SDPA (t) ≤ O(SDP-HC).
+
+Proof. The flavor of this analysis is similar to our RSC result from Section 2. Let’s look at an edge
+e = (u, v) at a fixed level t. For which sets A do we get the term SDPA (t) where both endpoints
+u, v ∈ A? In order for u, v to belong to A: t ∈ |A|/8, |A|/4 =⇒ 4t ≤ |A| < 8t. There can be
+at most one such |A|, so LHS is charged only once. To see why A is unique, suppose we had two
+such clusters |A1 |, |A2 | that both contained u, v with their sizes |A1 |, |A2 | ∈ [4t, 8t). Since we have
+a hierarchical decomposition, one of A1 , A2 is ancestor of the other. Let’s say, wlog, A1 is ancestor
+of A2 . But then, all of its descendants are of size below the range [4t, 8t) due to the 4-partition,
+which is a contradiction.
+
+Remark 2. In the above analysis, whenever we write |A|/4 we mean ⌊|A|/4⌋. However this will not
+affect the result. Plus, we used O(SDP-HC), because some additional constants might be introduced
+whenever the set A is small (|A| < 8).
+Theorem D.5. The cost of the solution produced by the SDP-HC-gen rounding algorithm is within
+              √                                                                f (r)
+a factor of O( log n · cf ) from the SDP value where cf , maxr∈{1,...,n}                   .
+                                                                         f (r/4) − f (r/8)
+Proof. Let A be a cluster of size |A| = r and let g(t) = f (t + 1) − f (t). We want to compare the
+cost of OPT for splitting A with our solution SDPA (t) for levels t = r/8 + 1, ..., r/4. Using (13):
+                                                    p
+                  costOP T (A) = f (r) · w(EA ) ≤ O( log n)f (r) · SDPA (r/4) ≤
+                                                            r/4
+                            p               f (r)           X
+                        ≤ O( log n)                                 SDPA (t) · g(t) ≤
+                                      f (r/4) − f (r/8)
+                                                          t=r/8+1
+
+                                                    r/4
+                                   p                X
+                               ≤ O( log n) · cf             SDPA (t) · g(t).
+                                                  t=r/8+1
+
+   Using now Claim D.4 and summing over all clusters A in the hierarchical clustering we get:
+                                            p
+                                   OP T ≤ O( log n) · cf · SDP-HC.
+           P Pr/4
+   where     A    t=r/8+1 SDPA (t) · g(t) ≤ O(SDP-HC) holds from Claim 2.5 (slightly modified).
+
+
+Remark 3. As in Remark 1, here f should be polynomially growing.
+
+
+                                                    21
+

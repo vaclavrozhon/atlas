@@ -1,0 +1,1217 @@
+Journal of Applied and Computational Topology (2024) 8:531–555
+https://doi.org/10.1007/s41468-023-00139-4
+
+
+
+
+Random simple-homotopy theory
+
+Bruno Benedetti1 · Crystal Lai2 · Davide Lofano2 · Frank H. Lutz2
+
+Received: 5 October 2022 / Revised: 3 May 2023 / Accepted: 22 August 2023 /
+Published online: 28 October 2023
+© The Author(s) 2023
+
+
+Abstract
+We implement an algorithm RSHT (random simple-homotopy) to study the simple-
+homotopy types of simplicial complexes, with a particular focus on contractible
+spaces and on finding substructures in higher-dimensional complexes. The algorithm
+combines elementary simplicial collapses with pure elementary expansions. For tri-
+angulated d-manifolds with d ≤ 6, we show that RSHT reduces to (random) bistellar
+flips. Among the many examples on which we test RSHT, we describe an explicit
+15-vertex triangulation of the Abalone, and more generally, (14k + 1)-vertex trian-
+gulations of a new series of Bing’s houses with k rooms, k ≥ 3, which all can be
+deformed to a point using only six pure elementary expansions.
+
+Keywords Simple-homotopy theory · Simplicial collapse and anticollapse · Pure
+elementary expansion · Bistellar flip
+
+Mathematics Subject Classification 57Q10 · 57Q15 · 57-04 · 57Q35 · 57M05
+
+1 Introduction
+
+A standard task in topology is to simplify a given presentation of a topological space. In
+general, this task cannot be performed algorithmically: Even the simplest homotopic
+property, contractibility, is undecidable in dimensions d ≥ 4 (while open for d = 2, 3);
+cf. (Tancer 2016, Appendix). Nevertheless, here we propose a simple randomized
+algorithm to modify triangulations while keeping the simple-homotopy type of a space.
+The algorithm can be used as a heuristic to study simply-connected complexes, or,
+more generally, complexes whose fundamental groups have no Whitehead torsion.
+
+
+
+B Frank H. Lutz
+    lutz@math.tu-berlin.de
+    Bruno Benedetti
+    bruno@math.miami.edu
+
+1   Department of Mathematics, U Miami, Coral Gables, FL 33146, USA
+2   Institut für Mathematik, TU Berlin, Straße des 17. Juni 136, 10623 Berlin, Germany
+
+
+                                                                                         123
+532                                                                         B. Benedetti et al.
+
+
+We shall see that in several contractible examples the heuristics works very well.
+The algorithm is also of interest when applied to manifolds or complexes of arbitrary
+topology, as we discuss below.
+   Our work builds on that of Whitehead, who in 1939 introduced a discrete version of
+homotopy theory, called simple-homotopy theory (Whitehead 1939). An elementary
+collapse is a deletion from a simplicial complex of a free face, i.e., of a non-empty face
+that is properly contained in only one other face, along with that face it is contained in.
+Elementary collapses are deformation retracts, and thus maintain the homotopy type;
+the same is true for their inverse moves, elementary anticollapses. Two simplicial
+complexes are of the same simple-homotopy type if they can be transformed into one
+another via some sequence of collapses and anticollapses, called a formal deformation
+(Whitehead 1939).
+   Equivalently, two simplicial complexes are of the same simple-homotopy type if
+there exists a third complex that can be reduced to both the original ones via suitable
+sequences of elementary collapses (Hog-Angeloni and Metzler 1993, p. 13). The
+size of the third complex (or, using the former definition, the length of the formal
+deformation) cannot be bounded a priori, because the simple-homotopy type cannot
+be decided algorithmically. In fact, by a famous result of Whitehead, having the simple-
+homotopy type of a point is equivalent to being contractible (Whitehead 1939) and
+thus undecidable.
+   In contrast, it is possible to decide algorithmically whether a given complex is
+collapsible, i.e., whether it can be reduced via collapses onto a single vertex. This
+decision problem was recently proved to be NP-complete by Tancer (2016). The
+advantage of the collapsibility notion is that all intermediate steps in the reduction
+are simplicial complexes of smaller and smaller size, hence very easy to encode and
+work with. The drawback is that collapsibility is strictly stronger than contractibility:
+Many “elementary” contractible complexes, like the dunce hat (Zeeman 1964) or
+Bing’s house with two rooms (Bing 1964), are not collapsible.
+   In 1998, Forman introduced a second way to study contractibility combinatorially.
+His discrete Morse theory (Forman 1998, 2002) is a tool to reduce simplicial com-
+plexes using a mix of collapses and facet deletions. The advantage is that all simplicial
+complexes (contractible or not) can now be reduced to a vertex, possibly by using a
+relatively large number of facet deletions. The drawback is that even if one starts with a
+simplicial complex, the intermediate steps in the reduction sequence are typically non-
+regular CW complexes, and thus harder to handle. By only focusing on the count of
+facet deletions (the so-called “discrete Morse vector”) it is possible to use randomness
+to produce fast implementations (Benedetti and Lutz 2014), but at the cost of failing
+to recognize many contractible complexes. See Joswig et al. (2022), Adiprasito et al.
+(2017), Lofano and Newman (2021), for computational and theoretical obstructions.
+   In this paper, we go back to Whitehead’s original idea, and propose a third sim-
+plification method based on collapses in combination with certain expansions (see
+below and Remark 3.1). Our randomized heuristic random simple-homotopy (RSHT ;
+see Sect. 3) has two advantages: First, all intermediate steps are indeed simplicial com-
+plexes; and second, at the moment we do not know of a single contractible complex
+for which our heuristics has probability zero to succeed in recognizing contractibility;
+cf. Remark 3.2.
+
+123
+Random simple-homotopy theory                                                         533
+
+
+    Here is the idea. We perform elementary collapses until we get stuck. Then we
+select a top dimensional face  uniformly at random, and for all d-faces  adjacent
+to  via a (d − 1)-dimensional face (a ridge), we check if the subcomplex induced on
+the d + 2 vertices of  ∪  is a pure d-dimensional ball. This test is very fast. If for
+some  the answer is positive, we glue onto our complex the full (d + 1)-simplex σ
+on the vertices of  ∪  . If for several  s the answer is positive, we simply choose
+one uniformly at random.
+    This gluing step is called a pure elementary (d + 1)-expansion, and it is also
+classical from the topological perspective, compare (Hog-Angeloni and Metzler 1993,
+Chapter I). After this step, we may collapse away the newly introduced (d +1)-simplex
+σ together with any d-face τ of it. To avoid undoing the pure elementary expansion,
+we must select a τ that was already present in the complex we got stuck at before the
+pure elementary expansion. This first elementary collapse after the pure elementary
+expansion is called “(CC) step” below (see Sect. 3). The combination “pure elementary
+expansion + (CC) step”, known in the topological literature as “transient move” (Hog-
+Angeloni and Metzler 1993), maintains both the dimension and the simple-homotopy
+type: In fact, any pure elementary expansion can be viewed as a composition of back-
+to-back elementary anticollapses.
+    Whitehead proved that for every contractible complex there is a formal deformation
+that reduces it to a single point (Whitehead 1939). It is not known if there is also a
+formal deformation to a point in which one performs anticollapses (or specific types of
+expansions) “only when stuck”, i.e., only to intermediate complexes without free faces.
+If this is true, then indeed any contractible complex would have a positive probability to
+be recognized by our heuristics. Of course, we cannot in any case expect any universal
+upper bound on the number of elementary anticollapses needed, or else we would have
+found an algorithm that recognizes contractibility.
+    However, we shall see in Sects. 5 and 6 that in many key examples the number of
+pure elementary expansions needed is relatively low. As a benchmark series, we build
+Bing’s house with k rooms, a one-parameter generalization of the aforementioned
+Bing’s house with two rooms. For all k ≥ 3, we prove that Bing’s house with k rooms
+can be collapsed by adding only six further tetrahedra, cleverly chosen (Theorem 5.2).
+Of course, since our algorithm is randomized, there is no guarantee that precisely those
+tetrahedra will be selected as (successive) pure elementary expansions. But even with
+a quick attempt consisting of 104 runs, our algorithm is able to reduce Bing’s house
+with seven rooms (which is a 2-complex on 99 vertices) to a point by adding only 41
+tetrahedra; see Table 1.
+    Random simple-homotopy (RSHT) works with simplicial complexes of arbitrary
+dimension, but it is of particular interest when applied to triangulations of low-
+dimensional manifolds. When d ≤ 6, we show (in Theorem 4.4) that on any (closed)
+d-manifold RSHT has basically the same effect of performing bistellar flips, also
+known as Pachner moves, which are the standard ergodic moves that allow to trans-
+form into one another any two PL homeomorphic triangulations of the same manifold
+(Pachner 1987).
+    In Sect. 6, we discuss how RSHT can be used to reach interesting small (or even
+vertex-minimal) triangulations and subcomplexes “hidden” inside triangulated mani-
+folds. For the sake of applications, one should declare right away that RSHT is designed
+
+                                                                               123
+534                                                                           B. Benedetti et al.
+
+
+to focus on the (simple-)homotopy, and not the homeomorphism type. So in case we
+start with a collection of points in 10-space, say, which all lie “approximately” on a
+Möbius strip, the effect of performing RSHT on the Čech complex of the point set
+would be to detect an S 1 , and not a Möbius strip. Yet, RSHT is capable of detecting,
+for example, closed surfaces or higher-dimensional closed manifolds in data, beyond
+just determining their homologies.
+    It takes considerable effort to build examples of contractible complexes for which
+RSHT does not practically succeed in revealing contractibility, if interrupted after a
+million steps, say. Respective examples, showcased in the last Sect. 6.4 of our paper,
+are based on the Akbulut–Kirby 4-spheres (Akbulut and Kirby 1985) and triangula-
+tions thereof (Tsuruga and Lutz 2013). The homeomorphism type of these “tangled”
+triangulations of S 4 is notoriously difficult to recognize.
+
+
+2 Pure elementary expansions
+
+Any two simple-homotopy equivalent complexes are homotopy equivalent. The con-
+verse is true for complexes whose fundamental group has trivial Whitehead group (see
+Cohen (1973) or Mnev (2014) for the definition), but false in general: Counterexam-
+ples in dimension two can be obtained by triangulating the cell complexes in Lustig
+(1991), while counterexamples in dimension three or higher had been known to exist
+long before (Milnor 1966).
+   It is an easy consequence of the theory of Gaussian elimination for integer matrices
+that the Whitehead group of the trivial group is trivial. Therefore, any two homotopy-
+equivalent simply-connected complexes are also simple-homotopy equivalent.
+   More generally, it is known that the Whitehead group of a group G is trivial if G is
+
+ • Z (Higman 1940), Z ⊕ Z (Bass et al. 1964), and more generally, any free Abelian
+   group (Bass et al. 1964),
+ • any of the cyclic groups Z2 , Z3 , Z4 , Z6 (Cohen 1973),
+ • any subgroup of the braid group Bn (Farrell and Roushon 2000), or of any Artin
+   group of type An , Dn , F4 , G 2 , I2 ( p), Ãn , B̃n , C̃n , or G(de, e, r ) for d, r ≥ 2
+   (Roushon 2020),
+ • any free product of groups listed above, so in particular Z ∗ Z or any free group
+   (Stallings 1965),
+ • and further cases (Grenier-Boley 2007); in fact, the Farrell–Jones conjecture
+   implies that any torsion-free group should appear in the present list (Lück et al.
+   2017).
+
+Any two homotopy-equivalent complexes whose fundamental group appears in the
+list above are of the same simple-homotopy type.
+    Whitehead’s work allows us to be more specific on the dimension (although not
+on the number) of the intermediate complexes involved in the definition of simple-
+homotopy equivalence, as follows. An elementary collapse is called an i-collapse if the
+dimension of the two faces removed are i − 1 and i. Similarly, an i-anticollapse is one
+that adds a pair of faces of dimension i − 1 and i. The order of a formal deformation
+
+123
+Random simple-homotopy theory                                                         535
+
+
+will be the maximum i for which i-collapses or i-anticollapses are involved in the
+sequence.
+Theorem 2.1 (Whitehead 1939, Theorems 20 & 21). Let K and L be two homotopy-
+equivalent simplicial complexes. If the Whitehead group of their fundamental group
+is trivial, then there is a formal deformation from K to L whose order does not
+exceed max{dim K , dim L} + 2. If, in addition, L is a deformation retract of K , and
+dim K > 2, then there is a formal deformation from K to L whose order does not
+exceed dim K + 1.
+   The conjecture that the last statement of the previous theorem might hold also for
+the case dim K = 2 goes under the name of “Generalized Andrews–Curtis conjec-
+ture”, and represents a major open problem in combinatorial topology. It is, however,
+generally believed to be false (Hog-Angeloni and Metzler 1993).
+   Based on Whitehead’s work, we would now like to perform “random anticollapses”.
+Yet, if we wish to add a (d +1)-dimensional face σ to K in an elementary anticollapse,
+then all d-faces of σ need to be present in K already, except for a single d-face τ .
+However, it is not difficult to construct contractible d-complexes K that do not allow
+any (d + 1)-anticollapses; cf. (Lofano and Newman 2021). In these cases, lower-
+dimensional faces need to be added first. Computationally, this brings an extra difficulty
+to the introduction of a random model. To bypass this difficulty, we adopt a different
+set of moves.
+Definition 2.2 Let K be a d-dimensional complex. A pure elementary (d + 1)-
+expansion is the gluing of a (d + 1)-dimensional simplex σ to K in case σ intersects
+K in a d-ball.
+    A pure elementary (d +1)-expansion combines together in a single move one (d+1)-
+anticollapse plus all the lower-dimensional anticollapses that have to be performed
+first. Hence a sequence of pure elementary expansions and elementary collapses can
+be rewritten as a formal deformation. Whenever we run out of collapsing steps, we
+perform exactly one pure elementary (d + 1)-expansion, and then switch back to
+elementary collapses. When the complex is reduced to a point, we stop—or else
+after max_step number of steps we output the (simplified) simplicial complex that is
+reached.
+
+
+3 Implementation of random simple-homotopy
+
+Algorithm RSHT provides a description of the random simple-homotopy procedure in
+pseudocode. The actual implementation can be found on GitHub at (Lofano 2021) as
+a polymake (Gawrilow et al. 1997) extension. It is based on the two different types
+of basic operations: random collapses (C) and random pure elementary expansions
+(E) plus collapsing steps (CC) that ensure that a pure elementary expansion is not
+undone immediately by the next regular collapsing step (C). The step (S) allows facet
+subdivisions in case no other pure elementary expansions are available.
+   Random collapses (C) are discussed as part of random discrete morse theory in
+Benedetti and Lutz (2014). A fast implementation of random collapses in polymake
+
+                                                                               123
+536                                                                                          B. Benedetti et al.
+
+
+ Algorithm RSHT: Random Simple-Homotopy
+      Input: connected simplicial complex K ; let K  be a copy of K to be modified
+      Output: simplified simplicial complex K 
+      while dim(K  )  = 0 and i <max_step do
+          while K  has free faces do
+               (C): perform a random elementary collapse
+          if dim(K  ) = d  = 0 and there are induced pure d-balls on d + 2 vertices then
+               (E): perform a random pure elementary (d + 1)-expansion
+               (CC): perform an elementary collapse deleting the newly added
+                          (d + 1)-face and one of its d-faces that was already in K 
+          else
+               (S): perform (E) + (CC) on a d-facet with d + 1 vertices
+               i++
+
+      return K 
+
+
+
+
+is described in Joswig et al. (2022). Hence, it remains to implement random pure
+elementary expansions (E).
+   While collapses in polymake can be carried out fast in the Hasse diagram of K ,
+there is no explicit implementation in polymake to expand the Hasse diagram of K to
+include the faces of a (d + 1)-simplex σ that is added in a pure elementary expansion.
+Thus, for every pure elementary expansion we recompute the Hasse diagram for K +σ
+and then proceed with random collapses in the new Hasse diagram of K + σ . For var-
+ious input examples of non-collapsible, contractible complexes, relatively few pure
+elementary expansions are needed (see Sects. 5 and 6); thus the extra cost for recom-
+puting Hasse diagrams stays low.
+
+Remark 3.1 Pure elementary expansions are not the only operations to modify a given
+complex K by expanding it. Another more general possibility would be to glue addi-
+tional (d + 1)-simplices to K along induced contractible subcomplexes (of mixed
+dimension). This provides more options to modify K , but at the price of having to
+check subcomplexes for contractibility. As we experienced after running various exper-
+iments, this seems expensive without any advantage. We therefore decided to stick to
+pure elementary expansions. In fact, checking whether an induced subcomplex on
+d + 2 vertices is a pure d-ball is very fast: It can be achieved by a lookup in the Hasse
+diagram.
+
+Remark 3.2 By Whitehead’s Theorem 2.1, we might be forced to first go up by two
+dimensions (and not just by one as we do in Algorithm RSHT) to find a formal
+deformation from a complex K to some homotopy equivalent complex L. This could
+be incorporated in the algorithm by performing not only single pure elementary (d+1)-
+expansions followed immediately by collapses, but by allowing sequences of pure
+elementary (d +1)-expansions followed by pure elementary (d +2)-expansions before
+switching back to collapses. In principle, this procedure could be set up in a simulated
+annealing fashion (Björner and Lutz 2000; Kirkpatrick et al. 1983) as a generalized
+way to what we do here; but for the examples we study in the subsequent Sects. 5 and
+6, we shall restrict ourselves to the basic algorithm RSHT, as this already works well.
+
+123
+Random simple-homotopy theory                                                            537
+
+
+
+
+Fig. 1 Pure elementary expansions as bistellar flips
+
+
+
+
+Fig. 2 Reduction of the degree of the edge r
+
+
+4 Bistellar flips and artifacts
+
+Pure elementary (d + 1)-expansions have (at least for d-manifolds of low dimension
+d ≤ 6) a clear interpretation in terms of bistellar flips. In fact, let K be a d-complex.
+In a pure elementary (d + 1)-expansion, some (d + 1)-simplex σ is glued to K along a
+d-ball consisting of 1 ≤ k ≤ d + 1 of the d-faces of σ ; let r be the intersection of these
+k faces. If r is contained in no further d-face of K , then after adding σ , collapsing it
+away with one of the k d-faces, and collapsing further lower-dimensional faces, we
+are left with a complex K  that is obtained from K via a bistellar move; cf. (Björner
+and Lutz 2000). If instead r is contained in more than k d-faces of K , then in passing
+from K to K  the facet degree of r is decreased by one.
+Example 4.1 If we glue a tetrahedron σ to a 2-complex K along a 2-disk in ∂σ , the
+disk can either consist of 1, 2, or 3 triangles. In the first case, the complex K  resulting
+after the collapses is a subdivision of K . (The triangle τ of K is subdivided using
+the unique vertex of σ not in K ; see Fig. 1, left.) In the second case, if r is the edge
+common to the two triangles of ∂σ in which σ intersects K and r is contained in
+exactly these two triangles of K , then r is flipped to yield K  ; see Fig. 1, right. In the
+third case, the transition from K to K  “undoes” a subdivision.
+
+Example 4.2 Let K be 2-dimensional and let σ be a tetrahedron glued to K along two
+triangles whose intersection is r , and suppose that this r is contained in exactly three
+triangles of K . Then after the addition of σ and its removal, r will be contained in two
+of the triangles of K  .
+    In Fig. 2, the tetrahedron 1234 is glued from below to the three triangles 123,
+124, and 125 (as part of K ). Then the free triangle 124 is used to collapse away the
+tetrahedron 1234, yielding the four triangles 123, 125, 134, and 234. This can be
+interpreted as a generalized bistellar flip on the triangles 123 and 124 (of K ), yielding
+the triangles 134 and 234—in the presence of the triangle 125 and by keeping the
+triangle 123.
+
+                                                                                  123
+538                                                                           B. Benedetti et al.
+
+
+    If, in a pure elementary 3-expansion, some tetrahedron is glued on top of two
+adjacent triangles 1 , 2 of a triangulated 2-manifold, then, after collapsing away the
+tetrahedron together with 1 , the resulting triangulation will still contain 2 and (as a
+free face) the edge e = 1 ∩ 2 . This edge e is thus the only free (1-)face; hence, it
+will be selected in the incoming (C) step of RSHT. As a result, the combination (E) +
+(CC) + (C) is a proper bistellar flip—and the diagonal of the two initial triangles gets
+flipped. In the case of a subdivision, the combination (E) + (CC) is a proper bistellar
+flip as well. Thus, it remains to inspect the case when a subdivision is undone. After
+the addition of a tetrahedron (E) and the deletion of one of the initial three triangles
+along with the tetrahedron in the (CC) step, the other two initial triangles remain, and
+we have (two) free edges for two further (C) steps. In contrast to the previous cases,
+after the two (C) steps, the resulting triangulation is not a surface yet—as we still have
+the intersection vertex of the three initial triangles as a free vertex that is connected to
+the modified triangulated surface by an edge. That is, the result of (E) + (CC) + (C)
++ (C) is a triangulated surface with an additional edge sticking out. This edge is then
+collapsed away in another (C) step.
+    This situation generalizes as follows:
+
+Lemma 4.3 Let K be a triangulation (without free faces) of a d-manifold M and
+suppose that the (d + 1)-simplex σ = [0, 1, . . . , d + 1] intersects K in a pure d-ball
+B with 1 ≤ k ≤ d + 1 d-facets on the d + 2 vertices 0, 1, . . . , d + 1 of σ so that
+(w.l.o.g.) B = [0, 1, . . . , d − k + 1] ∗ ∂[d − k + 2, d − k + 1, . . . , d + 1]. We add
+σ (and its faces) to K and, by step (CC) of RSHT, ban those facets of σ as free faces
+that do not contain [0, 1, . . . , d − k + 1].
+
+ • If k ≤ 7, then running RSHT on K ∪ σ until no further free faces are available
+   yields a triangulation K  = K − B + B  of M with
+
+          B  = ∂[0, 1, . . . , d − k + 1] ∗ [d − k + 2, d − k + 1, . . . , d + 1],
+
+   i.e., K  is obtained from K by a bistellar flip.
+ • If k > 7 (which can occur for d > 6 only), then running RSHT on K ∪ σ until no
+   further free faces are available might terminate in a non-pure simplicial complex
+   K  that is the union of a triangulation of M with a contractible, but non-collapsible
+   lower-dimensional complex on the vertices d − k + 2, d − k + 1, . . . , d + 1.
+
+Proof Step (CC) of RSHT implies that our first collapsing move will remove a facet
+of B along with the added (d + 1)-simplex σ . At any consecutive collapsing step (C),
+the faces involved in the collapses will be of the form [0, 1, . . . , d − k + 1] ∗ τ , where
+τ ∈ ∂[d − k + 2, d − k + 1, . . . , d + 1] (because our starting complex K had no free
+faces). The restriction of the collapsing sequence to ∂[d − k + 2, d − k + 1, . . . , d + 1]
+gives us a valid collapsing sequence of the simplex [d − k + 2, d − k + 1, . . . , d + 1],
+where the first collapsing move is induced by the initial step (CC). Now:
+
+ • If k ≤ 7, the simplex [d − k + 2, d − k + 1, . . . , d + 1] has at most seven
+   vertices; and by (Bagchi and Datta 2005) every contractible simplicial complex
+   with k ≤ 7 vertices is collapsible, i.e., the collapsing sequence induced by RSHT
+
+123
+Random simple-homotopy theory                                                          539
+
+
+   on [d − k + 2, d − k + 1, . . . , d + 1] will terminate at a single point. It follows
+   that K  = K − B + B  .
+ • If k > 7, then the collapsing sequence on [d − k + 2, d − k + 1, . . . , d + 1]
+   might get stuck on a contractible, but non-collapsible subcomplex of dimension at
+   least two (Crowley et al. 2003; Lofano and Newman 2021), and thus the resulting
+   complex K  need not be pure.
+
+    In the special case when d = 7 and k = 8 we might get stuck on a modified
+manifold triangulation union, say, a complex [0] ∗ D ⊆ [0] ∗ ∂[1, . . . , 8], with D an
+8-vertex triangulation of the dunce hat; cf. (Benedetti and Lutz 2013). The resulting
+complex K  = K − B + B  +[0]∗ D then deviates from the modification via a bistellar
+flip, K − B + B  , by the additional cone [0] ∗ D with apex [0] over the (contractible)
+dunce hat D in the 2-skeleton of ∂[1, . . . , 8]. The complex K  = K − B + B  + [0] ∗ D
+deformation retracts to K − B + B  , but has no free faces. We regard the contractible
+complex [0] ∗ D as an artifact of the modification.
+
+Theorem 4.4 (Reduction of pure elementary (d + 1)-expansions to bistellar flips). Let
+K be a triangulation of a d-manifold M with d ≤ 6. Any pure elementary (d + 1)-
+expansion followed by collapses (as long as free faces are available) induces a bistellar
+flip on K .
+
+Proof The statement follows from Lemma 4.3 and the fact that the maximum number
+of facets of a pure d-ball on d + 2 vertices is d + 1.
+
+Corollary 4.5 (Manifold stability). Let K be a (not necessarily pure) simplicial com-
+plex. If we run RSHT on K and at some point reach a simplicial complex K  that
+triangulates a d-manifold with d ≤ 6, then from then on, whenever there are no free
+faces in the further run of RSHT, the respective temporary complex K̃ is a d-manifold
+as well, and K̃ is bistellarly equivalent to K  .
+
+    To avoid lower-dimensional artifacts [0, 1, . . . , d−k+1]∗N ⊆ [0, 1, . . . , d−k+1]∗
+∂[d −k +2, d −k +1, . . . , d +1] in the modification K  = K − B + B  +[0, 1, . . . , d −
+k +1]∗ N of a triangulated manifold K , involving a contractible, non-collapsible com-
+plex N for d ≥ 7 and k ≥ 8, we should switch to bistellar flips K  = K − B + B  once
+we know that K is a manifold. Quite often, this is not clear a priori—in fact, testing
+whether K is a manifold is an undecidable problem for d ≥ 6; cf. (Joswig et al. 2022).
+    In practice (Joswig et al. 2022), on a 7-simplex it is nearly impossible to get stuck
+with random collapses. On the 8-simplex, only about 0.0000012% of the runs of
+random collapses get stuck. But in higher dimensions, the situation changes dramati-
+cally: For example, for the 25-simplex, contractible but non-collapsible substructures
+are encountered in 92% of the runs.
+    Another option to deal with the artifacts would be to run RSHT on lower-
+dimensional parts to “melt away” the artifacts. However, in our experiments in Sects. 5
+and 6 we only focus on top-dimensional pure elementary expansions, since the terminal
+triangulations of the examples we consider are all of dimension d ≤ 6.
+    In case a general complex K has no free faces and is not a manifold, then a sequence
+(E) + (CC) + (C) + …+ (C) until no further collapses are possible might reduce K in
+
+                                                                               123
+540                                                                           B. Benedetti et al.
+
+
+dimension or can reduce (or increase) the degree of a face in K , as we have seen in
+Example 4.2 and Fig. 2. In the latter case, we can regard the sequence as a generalized
+bistellar flip. These generalized operations give flexibility in the modification of a
+given complex K .
+
+4.1 Selection of expansions and simplification of complexes
+
+We next discuss in more detail how the pure elementary expansions are selected and
+why Algorithm RSHT has a tendency to simplify simplicial complexes to yield small or
+even vertex-minimal triangulations. First, we note that RSHT, apart from temporarily
+adding (d+1)-faces in the pure elementary expansion steps (E), never increases the
+dimension of the complex.
+    As outlined in the introduction, for any d-facet of a d-dimensional complex K ,
+chosen uniformly at random, we can check for all neighboring d-facets whether the
+induced subcomplexes on the combined d + 2 vertices are pure d-dimensional. From
+the collection of all available such pure induced d-balls on d + 2 vertices, we pick one
+uniformly at random for a pure elementary d-expansion step (E). However, in general,
+such pure induced d-balls on d + 2 vertices need not exist. For example, in the case of
+neighborly triangulations of surfaces, the induced subcomplexes on the four vertices
+of two adjacent triangles are the two triangles plus the opposite diagonal edge; such
+subcomplexes are not contractible. In such a case, the only possible pure elementary
+expansion is by picking a facet (uniformly at random) as a pure d-ball and initiating
+a subdivision (S). An example of a triangulated 3-sphere on 16 vertices that allows
+no bistellar flips (apart from subdivisions of tetrahedra) is given in (Dougherty et al.
+2004).
+    Let K be a triangulated circle S 1 with n > 3 vertices. Then K is reduced by
+Algorithm RSHT to the boundary of a triangle in n − 3 pure elementary expansion
+steps (E), each followed by two collapsing steps (CC) + (C).
+    In the case of triangulations of S 2 with n > 4 vertices, there always are admissible
+edge flips, and thus Algorithm RSHT never adds a vertex in a subdivision step (S).
+A vertex can get removed in the reversal of a subdivision once the current triangulation
+has a vertex of degree 3. However, the boundary of the octahedron has all of its vertices
+of degree 4; in fact, there are infinitely many triangulations of S 2 with all vertex degrees
+at least four. In any such example, the removal of a vertex is not immediately possible.
+But after a suitably long sequence of random edge flips, eventually vertices of degree 3
+show up, and the three incident triangles to such a vertex have the chance to get chosen
+for an induced pure 2-ball to remove the vertex of degree 3.
+    Similarly, general complexes K are simplified and reduced in size by collapsing
+away collapsible parts and by reversing subdivisions to reduce the number of vertices—
+but without a universal guarantee for success (as contractibility is undecidable).
+
+
+
+
+123
+Random simple-homotopy theory                                                                 541
+
+
+
+
+(a) An 8-vertex triangulation      (b) Anticollapsing the tetra-   (c) Collapsing away the tetra-
+of the Dunce Hat                   hedron 1367                     hedron 1367
+Fig. 3 A formal deformation of the dunce hat
+
+
+
+5 Classical examples
+
+In this section, we test how the Algorithm RSHT performs on the Dunce Hat, on Bing’s
+house with two rooms, and on similar, “classical” examples of contractible complexes.
+It turns out that the number of pure elementary expansions needed to reduce these com-
+plexes to a single vertex is conveniently low: one pure elementary expansion suffices
+for an 8-vertex triangulation of the dunce hat; five pure elementary expansions suffice
+for a simplicial version of Bing’s house with two rooms; and in general, six tetrahedra
+are sufficient to collapse Bing’s house with k rooms (Theorem 5.2). Triangulations
+of these examples can be found online at the “Library of Triangulations” (Benedetti
+and Lutz 2013).
+
+5.1 The dunce hat
+
+The dunce hat (Zeeman 1964) is the most famous example of a contractible, but non-
+collapsible complex; cf. (Benedetti and Lutz 2013). It is obtained by gluing together the
+three edges of a single triangle in a non-coherent way. The dunce hat can be triangulated
+as a simplicial complex with eight vertices (see Fig. 3a); and eight vertices is fewest
+possible, as every contractible simplicial complex on seven vertices is collapsible
+(Bagchi and Datta 2005). No triangulation of the dunce hat is collapsible, since there
+are no free edges to start with.
+   The dunce hat of Fig. 3a admits two (proper) anticollapsing moves, the addition of
+the tetrahedron 1245 or alternatively the addition of the tetrahedron 1367. In Fig. 3b
+we added 1367. All of the triangles in 1367 are free, since this is now the only tetrahe-
+dron present. If we collapse away the triangle 367, we recover the initial complex of
+Fig. 3a. If instead we choose to delete the free triangle 136, we obtain the triangulation
+displayed in Fig. 3c. This triangulation has a free edge, 16, that allows us to get rid of
+the triangle 167. After this elementary collapse, the edge 17 becomes free, allowing
+us to remove the triangle 137. But now the edge 13 is free, and it can easily be seen
+that the deletion of the triangle 138 paves the way to a full collapse down to a single
+vertex.
+
+
+
+                                                                                      123
+542                                                                                  B. Benedetti et al.
+
+
+
+
+Fig. 4 Triangulations Abalone of the Abalone (left) and BH of Bing’s house with two rooms (right)
+
+
+Lemma 5.1 One pure elementary 3-expansion suffices to reduce to a vertex the 8-vertex
+triangulation of the dunce hat from Fig. 3b(a).
+   In 104 runs, RSHT used on average 2.4145 pure elementary 3-expansions to reduce
+the 8-vertex dunce hat to a point; see Sect. 6.1 and Table 1.
+
+5.2 The Abalone
+
+The Abalone (Hog-Angeloni and Metzler 1993), sometimes called Bing’s house with
+one room, is another example of a contractible but non-collapsible complex. We are not
+aware of any triangulation of this space in the literature, so we present one, Abalone,
+with 15 vertices:
+
+
+127           129           138           139           147          148         149            237
+2 3 15        2 9 15        378           3 9 14        3 14 15      457         458            467
+469           569           5 6 10        5 7 10        589          6 7 11      6 10 11        7 8 10
+7 8 11        8 9 12        8 9 13        8 10 12       8 11 13      8 12 13     9 12 14        9 13 15
+10 11 12      11 12 13      12 13 14      13 14 15
+
+
+
+
+   Figure 4 displays this triangulation, although some diagonals have been omitted for
+reasons of pictorial clarity. Essentially, the triangulation consists of a membrane (in
+dark) from which two prismatic tunnels (in light) originate at the two empty triangles
+1 2 3 and 4 5 6; and the tunnels are separated by the highlighted triangle 8 12 13. The
+Abalone is contractible as can be seen by filling in the two tunnels.
+   RSHT can reduce the Abalone to a point using only three pure elementary expan-
+sions. One way to do so is to free the edge 8 9 of Fig. 4 by first adding the three
+tetrahedra 8 9 12 13, 9 12 13 14, and 9 13 14 15, in this order, as anticollapsing moves.
+The resulting complex is then collapsible. This can either be verified by hand, or via the
+
+123
+Random simple-homotopy theory                                                          543
+
+
+random_discrete_morse algorithm (Benedetti and Lutz 2014) implemented in
+polymake (Joswig et al. 2022): The three tetrahedra fill in the prism between the
+triangle 8 12 13 and the (formerly empty) triangle 9 14 15. By collapsing away this
+prism, the edge 8 9 becomes free so that the (dark) membrane around the empty tri-
+angle 4 5 6 can be collapsed away, which frees the tunnel originating at this empty
+triangle. Its removal then allows to collapse the remaining disk.
+    We can interpret the anticollapsing moves followed by collapses as operations that
+move the walls of the tunnel so that eventually the obstruction to collapsibility vanishes.
+
+5.3 Bing’s house with two rooms
+
+Bing’s house with two rooms (Bing 1964) is an early example of a contractible space
+no triangulation of which is collapsible. For our purposes, we triangulate Bing’s house
+as a triangular prism with two floors, two tunnels to reach the floors, and all rectangu-
+lar walls subdivided into two triangles each. Figure 4 displays the following (small)
+triangulation B H with f = (19, 65, 47) (with the list of facets also available online
+as example BH at (Benedetti and Lutz 2013)):
+
+
+125         127         134        139         145         179         236         238
+256         278         346        3 4 13      389         3 9 13      4 5 10      4 6 13
+4 10 13     4 12 13     5 6 10     6 10 12     6 12 13     7 8 11      7 8 15      7 9 13
+7 9 14      7 10 11     7 10 13    7 14 15     8 9 12      8 9 16      8 11 12     8 11 15
+8 15 16     9 12 13     9 14 16    10 11 17    10 12 17    11 12 18    11 15 18    11 17 18
+12 17 19    12 18 19    14 15 17   14 16 19    14 17 19    15 16 18    15 17 18    16 18 19
+
+
+
+
+    RSHT is able to reduce Bing’s house to a point by means of five (successive) pure
+elementary expansions (in the upper room, each followed by collapses so that the
+outer walls of Bing’s house are moved towards the upper tunnel). Here is a possible
+strategy. By successively adding five tetrahedra in the upper room of our Bing’s house
+triangulation, we fill in a cubical prism between the horizontal square 7–8–11–10 of
+the medium floor and the square 14–15–18–17 of the ceiling. The first two tetrahedra
+7 8 11 15 and 11 15 17 18 can be added independently, and their addition are proper
+anticollapsing steps. The third tetrahedron 7 11 15 17 is a pure elementary expansion,
+and the addition of the two final tetrahedra 7 10 11 17 and 7 14 15 17 are again anticol-
+lapsing steps. The newly introduced cubical prism connects the outer vertical square
+7–8–15–14 with the vertical square 10–11–18–17 of the upper tunnel. The resulting
+complex is collapsible; an explicit collapsing sequence proving this claim is detailed
+below.
+    We start from the outside, by perforating the back square 7–8–15–14. Then we
+entirely remove the interior of the cubical prism along with the two triangles 7 8 15
+and 7 14 15 of the back square and the two triangles 14 15 17 and 15 17 18 of the
+top square. The result is an indented Bing’s house triangulation with two new side
+triangles 7 10 17 and 7 14 17. But now the edge 1 7 18 has been freed, and we can use
+it to collapse away the subdivided squares of the triangulation one by one. First the
+
+                                                                                  123
+544                                                                                       B. Benedetti et al.
+
+
+
+
+Fig. 5 Ground floor (left) and room R2 (right) of Bing’s house B H (3) with three rooms
+
+
+square 10–11–18–17 is collapsed away, which frees the edge 10 11. This edge in turn
+can be used to remove the horizontal square 7–8–11–10, thus freeing the edge 78. Next,
+we remove the squares 1–2–8–7, 2–3–9–8, 1–3–9–7, the vertical wall 3–4–13–9, then
+all triangles of the lower floor, then the lower tunnel, to end up with the indented upper
+room with empty triangle 10 12 13. This remaining complex is a triangulated disc and
+thus collapsible.
+
+5.4 Bing’s house with k rooms
+
+A recent example of a non-collapsible, contractible complex is Bing’s house with three
+rooms (and thin walls) by Tancer (2016). He introduced the example as a gadget to
+prove that the problem of recognizing collapsible complexes is NP-complete. The
+basic layout of the example can be found in (Tancer 2016). Here, we give an explicit
+triangulation B H (3); and extend this construction to k rooms, B H (k), k ≥ 3.
+    The starting point for the construction of B H (3) is to have a ground floor with three
+triangular holes as depicted in Fig. 5. The floor has the following triangles:
+
+
+125           1 2 15        146           1 4 10        157            167            1 9 11          1 9 14
+1 10 12       1 11 12       1 14 16       1 15 16       235            2 13 15        346             356
+4 8 10        8 9 11        8 10 11       9 13 14       13 14 15
+
+
+
+   Onto the ground floor, we glue three rooms in a coherent way. Room R1 is glued
+onto the two regions A and B and uses nine additional vertices, from 17 to 25. Room
+R2 , depicted in Fig. 5, is glued onto the regions B and C and uses the nine vertices
+from 26 to 34. Finally, room R3 is glued onto the regions C and A with further nine
+vertices ranging from 35 to 43. The rooms R2 and R3 are cyclic copies of the room
+R1 , where 9 and 18 are added to the vertex-labels 17 to 25 of room R1 , respectively.
+
+
+
+
+123
+Random simple-homotopy theory                                                            545
+
+
+Concretely, the triangles of room R1 are
+
+
+1 2 17      1 9 17      2 3 18         2 5 18     2 17 18     3 4 19     3 18 19     4 8 20
+4 19 20     5 6 21      5 7 21         5 18 21    6 7 22      6 21 22    7 21 23     7 22 23
+8 9 24      8 20 24     9 17 25        9 24 25    17 18 21    17 20 22   17 20 24    17 21 23
+17 21 23    17 24 25    18 19 21       19 20 22   19 21 22
+
+
+
+Those of room R2 are
+
+
+1 2 26      1 4 26      2 13 33        2 26 34    2 33 34     4 8 27     4 10 27     4 26 27
+8 9 28      8 27 28     9 13 29        9 28 29    10 11 30    10 12 30   10 27 30    11 12 31
+11 30 31    12 30 32    12 31 32       13 29 33   26 27 30    26 29 31   26 29 33    26 30 32
+26 31 32    26 33 34    27 28 30       28 29 31   28 30 31
+
+
+
+and those of room R3 are
+
+
+1 4 35      1 9 35      2 3 38         2 13 37    2 37 38     3 4 42     3 38 42     4 35 43
+4 42 43     9 13 36     9 14 36        9 35 36    13 36 37    14 15 39   14 16 39    14 36 39
+15 16 40    15 39 40    16 39 41       16 40 41   35 36 39    35 38 40   35 38 42    35 39 41
+35 40 41    35 42 43    36 37 39       37 38 40   37 39 40
+
+
+
+The three rooms R1 , R2 , and R3 are then all glued to the upper side of the ground
+floor. Since the vertices of the upper layer of a room are distinct from the vertices of
+the upper layers of the other two rooms, there is no conflict for the chosen gluing to
+the same side. To enter the interior of a room, one has to first pass through the tunnel
+from above of the room to the left, before the room itself can be entered from below
+through the lower left empty triangle.
+   The previous triangulation B H (3) of Tancer’s Bing’s house with three rooms can be
+generalized to create a new series of triangulated Bing’s houses B H (k) with k rooms
+for all k ≥ 3. Instead of just three regions, start with k regions that have a triangular
+hole each, cyclically arranged around a central vertex 1 on the ground floor, and attach
+to it k rooms, R1 , . . . , Rk , in a coherent way, as before. The resulting triangulation
+has face vector
+
+                                   f = (14k + 1, 50k, 36k).
+
+A C++-implementation BH_k.cc by Lofano to generate the examples B H (k) along
+with explicit triangulations BH_3, BH_4, and BH_5 can be found online at (Benedetti
+and Lutz 2013).
+   Our next result highlights that in terms of simple-homotopy theory, B H (k) is easy
+to understand.
+
+                                                                                    123
+546                                                                         B. Benedetti et al.
+
+
+Theorem 5.2 For any k ≥ 3, Bing’s house with k rooms, B H (k), can be formally
+deformed to a point using only six pure elementary expansions.
+Proof Since the rooms R1 , . . . , Rk are all identical, we extend to B H (k) the labelling
+scheme that we used for the ground floor and the rooms of B H (3). First we do all the
+expansions in room R1 . By adding the following six tetrahedra
+
+          2 3 5 18, 3 5 18 19, 5 18 19 21, 3 5 6 19, 5 6 19 21, 6 19 21 22
+
+we fill in the cubical prism between the horizontal square on the vertices 2–3–6–5 of
+the main floor and the horizontal square on the vertices 18–19–22–21 of room R1 ’s
+ceiling. We may now start the collapsing sequence from the outside. We perforate the
+back square 2–3–19–18 and then remove the whole interior of the prism, along with
+the back square 2–3–19–18 and the horizontal square 18–19–22–21 of the ceiling.
+Now the edge 21 22 is free. Thus, we can proceed exactly as for Bing’s house with
+two rooms: We collapse away the squares 5–6–22–21 and 2–3–5–6, in this order. But
+now the edge 23 is free; so we can use it to collapse away room Rk . By induction, we
+can thus collapse all the rooms one by one.
+   How does this compare with the experimental results? In 104 runs, RSHT was
+always able to reduce Bing’s house with three rooms, B H (3), to a point, using on
+average about 148 additional tetrahedra. In the “best run”, only 12 additional tetrahedra
+were used. For Bing’s house with k rooms, B H (k), 4 ≤ k ≤ 7, in 104 runs, even in the
+best case, RSHT tends to perform a growing number of expansions; see Table 1. This
+growing number of used tetrahedra is not surprising, due to the probabilistic model
+that we used: When selecting from more rooms, the number of options for possible
+expansions gets larger. So if we keep the number of rounds fixed, the chances to pick
+the cleverest sequence of pure elementary expansions will get thinner.
+
+
+6 Experiments on various topologies and substructures
+
+In this section, we explore how our algorithm RSHT performs for further interest-
+ing simplicial complexes, whether contractible or not. All timings were taken on an
+Intel(R) Core(TM) i7-4720HQ CPU with 2.60 GHz and 16 GB RAM.
+
+6.1 Contractible, non-collapsible complexes
+
+Table 1 lists the number of pure elementary expansions used for the dunce hat and
+Bing’s houses described in the previous section, as well as for the contractible complex
+two_optima of (Adiprasito 2017) and for some knotted balls (Lutz 2004; Benedetti
+and Lutz 2013). Furch’s knotted 3-ball is the only example in this set for which the
+runtime is not negligible. In fact, due to the large number of expansions required (to
+overcome the knottedness), it took an average of 85 s to complete one round of the
+algorithm for this 3-ball.
+   The explanation of Table 2 is as follows. If one starts with a single d-simplex,
+with 8 ≤ d ≤ 15, and one tries to collapse it down to a point, sometimes one gets
+
+123
+      Table 1 RSHT run for a selection of contractible, non-collapsible complexes from (Benedetti and Lutz 2013)
+
+      Complex                                                f -vector                               Rounds        # Expansions       # Expansions
+                                                                                                                   (smallest found)   (mean)
+                                                                                                                                                     Random simple-homotopy theory
+
+
+
+
+      Dunce hat                                              (8, 24, 17)                             104           1                  2.4145
+      Abalone                                                (15, 50, 36)                            104           3                  32.4156
+      Bing’s house                                           (19, 65, 47)                            104           5                  58.0964
+      Bing’s house with three rooms, B H (3)                 (43, 150, 108)                          104           12                 147.9727
+      B H (4)                                                (57, 200, 144)                          104           15                 167.7727
+      B H (5)                                                (71, 250, 180)                          104           27                 195.8890
+      B H (6)                                                (85, 300, 216)                          104           34                 221.2596
+      B H (7)                                                (99, 350, 252)                          104           41                 244.5763
+      two_optima                                             (106, 596, 1064, 573)                   103           1                  7.050
+      Knotted balls
+      Furch’s knotted ball                                   (380, 1929, 2722, 1172)                 103           1459               1949.950
+      double_trefoil_ball                                    (15, 93, 145, 66)                       103           1                  29.600
+      triple_trefoil_arc                                     (17, 127, 208, 97)                      103           6                  94.678
+
+
+
+
+123
+                                                                                                                                                     547
+548                                                                                     B. Benedetti et al.
+
+
+Table 2 RSHT run for contractible, non-collapsible complexes obtained when trying to collapse a d-simplex
+
+d                 # Examples × # Rounds                    # Expansions                    # Expansions
+                                                           (smallest found)                (mean)
+
+8                 10 × 103                                 1.0                             1.9310
+9                 10 × 103                                 1.0                             3.6845
+10                10 × 103                                 1.0                             8.4502
+11                10 × 103                                 1.1                             7.6552
+12                10 × 103                                 2.5                             29.4564
+13                10 × 103                                 1.2                             38.3988
+14                10 × 103                                 7.9                             174.7835
+15                10 × 103                                 36.3                            205.1362
+
+
+
+
+stuck in contractible, non-collapsible complexes of intermediate dimension (Lofano
+and Newman 2021). For each initial d-simplex we recorded 10 such examples, and on
+each one of these 10 examples we let RSHT run for 103 rounds. In each of the rounds,
+RSHT was able to reduce the respective examples to a point: In columns three and four
+of Table 2, we recorded the smallest found and average numbers of pure elementary
+expansions used. With the increase of the dimension, the runtime started to become
+an issue. For the largest examples, with d = 15, it took on average around 25 s to
+complete one round.
+
+6.2 Submanifolds and non-manifold substructures in manifolds
+
+If we remove a facet from a triangulation of the d-dimensional sphere S d , the resulting
+simplicial complex is a triangulated d-ball, and thus has the simple-homotopy type
+of a point by Whitehead’s Theorem 2.1. In case the initial d-manifold M d is not a
+sphere, the removal of a simplex from a triangulation yields a simplicial complex that,
+depending on M d , may deform to a submanifold or to a non-manifold substructure
+in M d . Table 3 provides results for some classical examples:
+   Starting with the vertex-minimal triangulation of RP 3 with 11 vertices, and remov-
+ing a facet, in 104 runs of RSHT it took on average 25.2510 expansions to reach the
+6-vertex triangulation of RP 2 . From RP 4 to RP 3 it took 885.5957 expansions. From
+CP 2 to S 2 no expansions were used around half of the times; the average number
+of expansions needed was 2.3543. Finally, it took 30.0784 expansions to reach S 4
+from HP 2 . For the Poincaré homology 3-sphere (Björner and Lutz 2000), the RSHT
+algorithm found a 2-dimensional Z-acyclic 2-complex on 10 vertices (the boundary
+of the identified dodecahedron) using 2031.732 expansions in less than two minutes
+per run.
+   The 3-dimensional lens spaces L( p, q), introduced by (Tietze 1908), are well-
+known topological spaces with torsion in first homology. Starting from triangulations
+of the 3-manifolds L( p, 1) (Brehm and Świa̧tkowski 1993; Lutz 2003) for p ≥ 3,
+we aimed for small triangulations of 2-dimensional simplicial complexes that still
+
+123
+Random simple-homotopy theory                                                                   549
+
+
+Table 3 RSHT run for manifold triangulations minus a facet
+
+Initial complex          Initial f -vector              Resulting complex       Resulting f -vector
+
+RP 3 (Walkup             (11, 51, 80, 40)               RP 2                    (6, 15, 10)
+ 1970)
+RP 4 (Lutz 1999,         (16, 120, 330, 375, 150)       RP 3                    (11, 51, 80, 40)
+ Ch. 3)
+CP 2 (Kühnel and         (9, 36, 84, 90, 36)            S2                      (4, 6, 4)
+ Banchoff 1983)
+HP 2 (Brehm and          (15, 105, 455, 1365, 3003,     S4                      (6, 15, 20, 15, 6)
+ Kühnel 1992)            4515, 4230, 2205, 490)
+Poincaré 3-sphere        (16, 106, 180, 90)             Z-acyclic 2-complex     (10, 40, 31)
+ (Björner and
+ Lutz 2000)
+
+
+Table 4 Face vectors of small
+                                     Torsion                     f -vector
+substructures with p-torsion of
+the lens spaces L( p, 1)             Z3                          (8, 24, 17)
+                                     Z4                          (8, 26, 19)
+                                     Z5                          (9, 32, 24)
+                                     Z6                          (9, 33, 25)
+                                     Z7                          (9, 34, 26)
+                                     Z8                          (9, 35, 27)
+                                     Z9                          (9, 36, 28)
+                                     Z10                         (9, 36, 28)
+                                     Z11                         (10, 42, 33)
+                                     Z12                         (10, 42, 33)
+                                     Z13                         (10, 43, 34)
+                                     Z14                         (11, 50, 40)
+                                     Z15                         (11, 50, 40)
+
+
+
+have p-torsion. (The case p = 2 has been already considered, since L(2, 1) = RP 3 .)
+Table 4 gives the f -vectors of these smaller complexes; Fig. 6a–c shows resulting small
+triangulations d2_n8_3torsion, d2_n8_4torsion, and d2_n8_5torsion
+(with facets lists available at (Benedetti and Lutz 2013)) with torsion Z3 , Z4 , and
+Z5 , respectively. The example d2_n8_3torsion has the combinatorial symmetry
+(2, 3)(4, 8)(6, 7); the example d2_n8_4torsion has symmetry (1, 2)(4, 6)(7, 8).
+In (b), the obtained complex is the union of an 8-vertex triangulation of the projective
+plane and a Möbius band. The complex d2_n8_5torsion origins from a triangu-
+lated disk with identifications highlighted in blue (the “path” 6–5–3–6–5–3–6–5–3–6)
+and red (the “path” 6–2–4–7–1–6–2–4–7–1–6).
+    The following natural problem is open for p ≥ 3:
+Question 1 What is the minimal number of vertices n min ( p) for a simplicial 2-complex
+with p-torsion?
+
+                                                                                       123
+550                                                                                 B. Benedetti et al.
+
+
+
+
+      (a) Complex d2 n8 3torsion with 3-torsion.
+
+
+
+
+(b) Complex d2 n8 4torsion with 4-torsion.              (c) Complex d2 n8 5torsion with 5-torsion.
+Fig. 6 Small substructures with p-torsion of the lens spaces L( p, 1)
+
+
+  An earlier construction of a 2-dimensional simplicial complex with 3-torsion as a
+sum complex on eight vertices is by Linial, Meshulam, and Rosenthal (2010). Their
+example is based on the following collection of subsets of Z8 :
+                                                       
+               X {0,1,3} = { σ ⊂ Z8 : |σ | = 3,              x ≡ 0, 1 or 3 (mod 8) }.
+                                                       x∈σ
+
+This complex has complete 1-skeleton and face vector f = (8, 28, 21). Three edges
+of the complex are free, and after collapsing the respective triangles we reach a 2-
+complex with f = (8, 25, 18), which still has one triangle and one edge more than the
+example d2_n8_3torsion. By runninng RSHT on the triangulation with 18 trian-
+gles repeatedly, we again reach d2_n8_3torsion—or a second non-isomorphic
+triangulation with the same f -vector that is obtained from d2_n8_3torsion by
+flipping the edge 1–5.
+
+Conjecture 1 The examples d2_n8_3torsion and d2_n8_4torsion have
+component-wise minimal f -vectors for complexes with 3- and 4-torsion, respectively.
+
+    In the description of the torus S 1 × S 1 as a square with opposite edges identified,
+the removal of the interior of the identified square yields the wedge product S 1 ∨ S 1 of
+two circles S 1 that are glued together at a point. In general, if we remove a facet from a
+triangulation of a sphere product, the resulting complex is (simple-)homotopy equiva-
+lent to the wedge product of the constituting spheres. In the case of S 2 × S 1 , the wedge
+product S 2 ∨ S 1 is of mixed dimension. Since in the implementation of RSHT our
+
+123
+Random simple-homotopy theory                                                                   551
+
+
+Table 5 RSHT run for triangulations of sphere products minus a facet
+
+Initial complex   Initial f -vector                Resulting complex   Size of the resulting complex
+
+S2 × S1           (12, 48, 72, 36)                 S2 ∨ S1             ∂3 ∪ K 1 (3.5382)
+S3 × S1           (15, 75, 150, 150, 60)           S3 ∨ S1             ∂4 ∪ K 1 (7.7617)
+S2 × S2           (16, 84, 216, 240, 96)           S2 ∨ S2             ∂3 ∪ ∂3
+S3 × S2           (20, 130, 420, 710, 600, 200)    S3 ∨ S2             ∂4 ∪ K 2 (11.5460)
+
+
+
+
+focus is on the top-dimensional faces, RSHT is not further touching lower-dimensional
+parts once these are reached via collapses. Thus, the resulting triangulations of S 2 ∨ S 1
+are of the form ∂3 ∪ K 1 , consisting of the vertex-minimal triangulation of S 2 as the
+boundary complex ∂3 of a 3-simplex 3 union a 1-dimensional complex K 1 .
+   Depending on the intersection of K 1 with ∂3 , K 1 either is a path (a 1-dimensional
+ball) or a loop (a 1-sphere S 1 ). For a unified description in Table 5, we write K 1 (4.5382)
+to point out that K 1 has (in 104 runs of RSHT) on average 4.5382 edges. Table 5 gives
+results for further sphere products, where for the lower-dimensional parts the average
+number of facets are listed. The initial triangulations of the sphere products in Table 5
+are produced via product triangulations of boundaries of simplices (Lutz 2003).
+   In a separate experiment, we started with a triangulation of S 1 with 10 vertices and
+with a triangulation of S 2 with 100 vertices as the boundary complex of a random
+simplicial 3-polytope, for which 100 points on the round 2-dimensional sphere were
+chosen randomly via the rand_sphere client of the software system polymake
+(Gawrilow et al. 1997)). The initial triangulation of S 2 × S 1 has face-vector f =
+(1000, 6880, 11760, 5880). It took RSHT an average of 1108.23 expansions, in 102
+runs, to reduce the triangulation (minus a facet) to a triangulation ∂3 ∪ K 1 (21.76) of
+the wedge product S 2 ∨ S 1 . We repeated the same experiment, but this time applying
+200, 000 preliminary random bistellar edge flips to the 100-vertex triangulation of S 2 ,
+before taking the sphere product. The results of this experiment are similar to the one
+before (though with a slightly higher average number of expansions). This suggests
+that RSHT may be reliable even for larger complexes.
+
+6.3 Dimensionality reduction
+
+“Finding meaningful low-dimensional structures hidden in their high-dimensional
+observations” (Tenenbaum et al. 2000) is a major theme in analyzing higher-
+dimensional data of various origins. Usually, the data is given as a finite set of points in
+some Euclidean or metric space and is then often transformed to (higher-dimensional)
+simplicial complexes via taking Čech complexes or Vietoris–Rips complexes. Here,
+we did not start with explicit data sets, but instead “hid” a (closed) surface in a higher-
+dimensional product as another model to test RSHT on.
+   Starting with the standard 7-vertex triangulation T of the torus, we first took con-
+nected sums of T to create surfaces of higher genus gk , k ≥ 2. Then we took the cross
+product gk × I of gk with an interval (subdivided into 10 edges on 11 vertices), and
+reduced the resulting triangulation of the cross product with RSHT. In every single
+
+                                                                                       123
+552                                                                                      B. Benedetti et al.
+
+
+Table 6 RSHT run for triangulations of products of surfaces with subdivided intervals
+
+Initial complex       Initial f -vector                    Resulting complex            Resulting smallest
+                                                                                        f -vector
+
+T×I                   (77, 511, 854, 420)                  T                            (7, 21, 14)
+g2 × I                (121, 929, 1586, 780)                g2                           (10, 36, 24)
+g5 × I                (253, 2183, 3782, 1860)              g5                           (12, 60, 40)
+g6 × I                (297, 2601, 4514, 2220)              g6                           (13, 69, 46)
+g10 × I               (473, 4273, 7442, 3660)              g10                          (18, 108, 72)
+g50 × I               (2233, 20993, 36722, 18060)          g50                          (51, 683, 534)
+
+
+
+one out of 102 runs, the product gk × I gets reduced back to a small or even vertex-
+minimal triangulation of the original surface of genus gk , as displayed in Table 6. In
+a second experiment, we performed 200, 000 random edge flips to “randomize” the
+surfaces gk ; then, we took cross products with the 10-edge interval I . Again, in 102
+runs of RSHT, we always achieved the respective f -vectors of Table 6. While at least
+10 vertices are needed to triangulate g2 , Borghini and Minian describe in (Borghini
+and Minian 2019) a 2-complex with only 9 vertices that is homotopy equivalent to g2
+(we are grateful to Dejan Govc and Petar Pavešić for pointing this example out to us);
+but in our runs we never found this 9-vertex example.
+   In a final experiment, we started with the triangulation of the surface g50 from
+before, but this time we added 100 vertices in subdivision steps before performing the
+200, 000 random edge flips. We then took again the cross product with the interval I
+to get a randomized triangulation of g50 × I with f = (2728, 24278, 42212, 20760).
+We then took another cross product of this 3-manifold with boundary with the 4-
+simplex 4 . The resulting complex is 7-dimensional with around 34 million faces and
+face vector
+
+f = (13420, 386630, 2446620, 6910210, 10432052, 8786210, 3909060, 718200).
+
+In less than an hour and by using a few thousand expansions, in each out of 102
+runs of RSHT, we were able to reduce this complex back to a triangulation of the
+2-dimensional orientable surface of genus 50 with fewer than 60 vertices. In some
+cases we were even able to reach the same f -vector with 51 vertices as in Table 6.
+Due to memory constraints that come from the computation of the Hasse diagram of
+the starting complex (requiring around 10 GB of RAM for this example), this was the
+largest complex that we were able to study.
+
+
+
+
+123
+Random simple-homotopy theory                                                                           553
+
+
+6.4 Akbulut–Kirby 4-spheres
+
+As stated early on, contractibility is, in general, undecidable. However, it takes con-
+siderable effort to pose challenges to RSHT. A notoriously hard series of complexes is
+given by the triangulations of the Akbulut–Kirby 4-dimensional spheres (Tsuruga and
+Lutz 2013). These PL-triangulated standard 4-dimensional spheres (Akbulut and Kirby
+1985; Akbulut 2010) are built in an intricate way via non-trivial presentations of the
+trivial group as their fundamental group (Akbulut and Kirby 1985). By Pachner’s the-
+orem, these examples are bistellarly equivalent to the boundary of the 5-simplex, and
+by Whitehead’s theorem, the examples minus a facet are simple-homotopy equivalent
+to a single vertex. However, establishing connecting sequences of bistellar flips failed
+in (Tsuruga and Lutz 2013), beyond the first easy examples of the series. Indeed, here
+RSHT made no progress either, even when we set max_ step = 1,000,000 and waited
+for a total runtime of 60 h. On the level of 2-complexes involved here, their reduction
+to a single vertex would prove Andrews–Curtis conjecture (cf. (Hog-Angeloni and
+Metzler 1993, Ch. XII)) for these complexes, which is open.
+Acknowledgements We are very grateful to the anonymous reviewers for their valuable comments. Many
+thanks also to Dejan Govc and Petar Pavešić for pointing out to us an erroneous table entry in an ear-
+lier version of this article at the 2023 Bȩdlewo workshop “Some problems of Applied & Computational
+Topology”. The first author acknowledges support by NSF Grant 1855165, “Geometric combinatorics and
+discrete Morse theory”. The third author is grateful for support by the DFG Graduate Program “Facets of
+Complexity” (GRK 2434).
+
+Funding Open Access funding enabled and organized by Projekt DEAL.
+
+
+Declarations
+Conflict of interest On behalf of all authors, the corresponding author states that there is no conflict of
+interest.
+
+Open Access This article is licensed under a Creative Commons Attribution 4.0 International License, which
+permits use, sharing, adaptation, distribution and reproduction in any medium or format, as long as you give
+appropriate credit to the original author(s) and the source, provide a link to the Creative Commons licence,
+and indicate if changes were made. The images or other third party material in this article are included
+in the article’s Creative Commons licence, unless indicated otherwise in a credit line to the material. If
+material is not included in the article’s Creative Commons licence and your intended use is not permitted
+by statutory regulation or exceeds the permitted use, you will need to obtain permission directly from the
+copyright holder. To view a copy of this licence, visit http://creativecommons.org/licenses/by/4.0/.
+
+
+
+References
+Adiprasito, K.A., Benedetti, B., Lutz, F.H.: Extremal examples of collapsible complexes and random discrete
+     Morse theory. Discret. Comput. Geom. 57(4), 824–853 (2017)
+Akbulut, S., Kirby, R.: A potential smooth counterexample in dimension 4 to the Poincaré conjecture, the
+     Schoenflies conjecture, and the Andrews-Curtis conjecture. Topology 24(4), 375–390 (1985)
+Akbulut, S.: Cappell-Shaneson homotopy spheres are standard. Ann. Math. 171(3), 2171–2175 (2010)
+Bagchi, B., Datta, B.: Combinatorial triangulations of homology spheres. Discret. Math. 305(1–3), 1–17
+     (2005)
+Bass, H., Heller, A., Swan, R.G.: The Whitehead group of a polynomial extension. Publications Mathéma-
+     tiques de l’Institut des Hautes Études Scientifiques 22(1), 61–79 (1964)
+
+
+                                                                                               123
+554                                                                                         B. Benedetti et al.
+
+
+Bing, R.H.: Some aspects of the topology of 3-manifolds related to the Poincaré conjecture. In: Lectures
+     on Modern Mathematics, vol. II, pp. 93–128. Wiley, New York (1964)
+Brehm, U., Kühnel, W.: 15-vertex triangulations of an 8-manifold. Math. Ann. 294(1), 167–193 (1992)
+Björner, A., Lutz, F.H.: Simplicial manifolds, bistellar flips and a 16-vertex triangulation of the Poincaré
+     homology 3-sphere. Exp. Math. 9(2), 275–289 (2000)
+Benedetti, B., Lutz, F.H.: The dunce hat in a minimal non-extendably collapsible 3-ball, Electronic Geometry
+     Model No. 2013.10.001 (2013)
+Benedetti, B., Lutz, F.H.: Knots in collapsible and non-collapsible balls. Electron. J. Comb. 20(3), 31 (2013)
+Benedetti, B., Lutz, F.H.: Random discrete Morse theory and a new library of triangulations. Exp. Math.
+     23(1), 66–94 (2014)
+Benedetti, B., Lutz, F.H.: Library of triangulations, http://page.math.tu-berlin.de/~lutz/stellar/library_of_
+     triangulations. 2013–2023
+Borghini, E., Minian, E.G.: The covering type of closed surfaces and minimal triangulations. J. Comb.
+     Theory Ser. A 166, 1–10 (2019)
+Brehm, U., Świa̧tkowski, J.: Triangulations of lens spaces with few simplices, SFB 288 Preprint NO. 59,
+     TU Berlin, p. 26 (1993)
+Crowley, K.D., Ebin, A., Kahn, H., Reyfman, P., White, J., Xue, M.: Collapsing a simplex to a noncollapsible
+     simplicial complex, Preprint, p. 7 (2003)
+Cohen, M.M.: A Course in Simple-Homotopy Theory. Graduate Texts in Mathematics, vol. 10. Springer-
+     Verlag, New York-Berlin (1973)
+Dougherty, R., Faber, V., Murphy, M.: Unflippable tetrahedral complexes. Discret. Comput. Geome. 32(3),
+     309–315 (2004)
+Forman, R.: Morse theory for cell complexes. Adv. Math. 134(1), 90–145 (1998)
+Forman, R.: A user’s guide to discrete Morse theory. Sémin. Lothar. Comb. 48, Art. B48c, 35 (2002)
+Farrell, F.T., Roushon, S.K.: The Whitehead groups of braid groups vanish. Int. Math. Res. Not. 2000(10),
+     515–526 (2000)
+Grenier-Boley, N.: On the triviality of certain Whitehead groups. In: Mathematical Proceedings of the Royal
+     Irish Academy, JSTOR, pp. 183–193 (2007)
+Gawrilow, E., Joswig, M.: polymake: a framework for analyzing convex polytopes, Polytopes–
+     combinatorics and computation (Oberwolfach, 1997), DMV Sem., vol. 29, pp. 43–73. Birkhäuser,
+     Basel (2000)
+Hog-Angeloni, C., Metzler, W. (eds.): Two-Dimensional Homotopy and Combinatorial Group Theory,
+     London Mathematical Society Lecture Note Series, vol. 197. Cambridge University Press, Cambridge
+     (1993)
+Higman, G.: The units of group-rings. Proc. Lond. Math. Soc. 2(1), 231–248 (1940)
+Joswig, M., Lofano, D., Lutz, F.H., Tsuruga, M.: Frontiers of sphere recognition in practice. J. Appl. Comput.
+     Topol. 6(4), 503–527 (2022)
+Kühnel, W., Banchoff, T.F.: The 9-vertex complex projective plane. Math. Intell. 5(3), 11–22 (1983)
+Kirkpatrick, S., Gelatt, C.D., Jr., Vecchi, M.P.: Optimiziation by simulated annealing. Science 220, 671–680
+     (1983)
+Linial, N., Meshulam, R., Rosenthal, M.: Sum complexes–a new family of hypertrees. Discret. Comput.
+     Geom. 44(3), 622–636 (2010)
+Lofano, D., Newman, A.: The worst way to collapse a simplex. Isr. J. Math. 244(2), 625–647 (2021)
+Lofano, D.: Random homotopy extension, https://github.com/davelofa/RandomHomotopyExt (2021)
+Lück, W., Reich, H., Rognes, J., Varisco, M.: Algebraic K-theory of group rings and the cyclotomic trace
+     map. Adv. Math. 304, 930–1020 (2017)
+Lustig, M.: Nielsen equivalence and simple-homotopy type. Proc. Lond. Math. Soc. 3(3), 537–562 (1991)
+Lutz, F.H.: Triangulated Manifolds with Few Vertices and Vertex-Transitive Group Actions, Ph.D. thesis
+     (1999)
+Lutz, F.H.: Seifert. https://page.math.tu-berlin.de/~lutz/stellar/SEIFERT.txt (2003)
+Lutz, F.H.: Triangulated manifolds with few vertices: geometric 3-manifolds. arXiv: math/0311116 (2003)
+Lutz, F.H.: Small examples of nonconstructible simplicial balls and spheres. SIAM J. Discret. Math. 18(1),
+     103–109 (2004)
+Milnor, J.: Whitehead torsion. Bull. Am. Math. Soc. 72(3), 358–426 (1966)
+Mnev, P.: Lecture notes on torsions. arXiv:1406.3705 (2014)
+Pachner, U.: Konstruktionsmethoden und das kombinatorische Homöomorphieproblem für Triangulationen
+     kompakter semilinearer Mannigfaltigkeiten. Abh. Math. Semin. Hambg. 57, 69–86 (1987)
+
+
+
+123
+Random simple-homotopy theory                                                                       555
+
+
+Roushon, S.K.: A certain structure of Artin groups and the isomorphism conjecture. Can. J. Math. 1–18
+      (2020)
+Stallings, J.: Whitehead torsion of free products. Ann. Math. 354–363 (1965)
+Tancer, M.: Recognition of collapsible complexes is NP-complete. Discret. Comput. Geom. 55(1), 21–38
+      (2016)
+Tenenbaum, J.B., De Silva, V., Langford, J.C.: A global geometric framework for nonlinear dimensionality
+      reduction. Science 290(5500), 2319–2323 (2000)
+Tietze, H.: Über die topologischen Invarianten mehrdimensionaler Mannigfaltigkeiten. Monatshefte für
+      Mathematik und Physik 19(1), 1–118 (1908)
+Tsuruga, M., Lutz, F.H.: Constructing complicated spheres. EuroCG 2013, 29–32 (2013)
+Walkup, D.W.: The lower bound conjecture for 3-and 4-manifolds. Acta Math. 125, 75–107 (1970)
+Whitehead, J.H.C.: Simplicial spaces, nuclei and m-groups. Proc. Lond. Math. Soc. (2) 45(4), 243–327
+      (1939)
+Zeeman, E.C.: On the dunce hat. Topology 2, 341–358 (1964)
+
+
+Publisher’s Note Springer Nature remains neutral with regard to jurisdictional claims in published maps
+and institutional affiliations.
+
+
+
+
+                                                                                           123
+

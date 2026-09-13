@@ -1,0 +1,2771 @@
+                                                   Accelerated Minimax Algorithms Flock Together∗
+                                                                         TaeHo Yoon†                      Ernest K. Ryu‡
+                                                                       tyoon7@jhu.edu                  eryu@math.ucla.edu
+                                                     †
+                                                         Department of Applied Mathematics & Statistics, Johns Hopkins University
+                                                            ‡
+                                                              Department of Mathematics, University of California, Los Angeles
+arXiv:2205.11093v2 [math.OC] 18 Mar 2025
+
+
+
+
+                                                                                                Abstract
+
+                                                         Several new accelerated methods in minimax optimization and fixed-point iterations
+                                                     have recently been discovered, and, interestingly, they rely on a mechanism distinct from
+                                                     Nesterov’s momentum-based acceleration. In this work, we show that these accelerated
+                                                     algorithms exhibit what we call the merging path (MP) property; the trajectories of these
+                                                     algorithms merge quickly. Using this novel MP property, we establish point convergence of
+                                                     existing accelerated minimax algorithms and derive new state-of-the-art algorithms for the
+                                                     strongly-convex-strongly-concave setup and for the prox-grad setup.
+
+
+                                           1        Introduction
+                                           Minimax optimization problems of the form
+
+                                                                                   minimize maximize L(x, y)                                      (1)
+                                                                                      x∈X          y∈Y
+
+
+                                           have recently received increased attention in many machine learning applications including
+                                           robust optimization [91], adversarial training [58], fair machine learning [30], and GANs [33].
+                                           Consequently, there has been a large body of research on efficient algorithms for solving minimax
+                                           optimization. For deterministic smooth convex-concave objectives with Lipschitz continuous
+                                           gradient, the classical extragradient (EG) [49] and the optimistic gradient (OG) descent [83, 85,
+                                           22] methods converge with O(1/k) rate on the squared gradient norm [90, 34]. On the other
+                                           hand, several recently discovered accelerated algorithms [108, 51, 98] based on the anchoring
+                                           mechanism exhibits the faster (and optimal) O(1/k 2 ) convergence under the same setup.
+                                               In a different line of work on the fixed-point problem
+
+                                                                                            find   z = 𝕋(z),                                      (2)
+                                                                                          z∈Rd
+
+
+                                           the Halpern iteration [36], which averages the iterates with the initial point, was shown to
+                                           achieve an accelerated O(1/k 2 ) rate on the squared fixed-point residual norm when executed
+                                           with optimal parameters [53, 44]. Interestingly, both the Halpern iteration and the accelerated
+                                           minimax algorithms rely on the anchoring mechanism, but a precise theoretical explanation of
+                                           such apparent similarity was, to the best of our knowledge, yet missing.
+                                               ∗
+                                                   Published in SIAM Journal on Optimization.
+
+
+                                                                                                   1
+      3.5                                                    3.25
+                   AGM, a=2                                                FEG                   iteration 10
+                   AGM, a=4                                                OHM                                  iteration 20
+      3.4                                                    3.20
+                   AGM, a=6                                                APS
+                   AGM, a=8                                                EAG
+                                                             3.15
+      3.3
+                                                                                                       iteration 50
+                                                             3.10
+      3.2                                                                                              iteration 100
+
+                                                             3.05
+      3.1                                                                                               iteration 1000
+                                                             3.00      initial point
+      3.0      initial point
+                                                             2.95
+            −2.0          −1.5   −1.0   −0.5   0.0                  −2.0           −1.5   −1.0            −0.5             0.0
+
+
+
+              (a) Divergent paths of AGM                    (b) Merging paths of anchored methods
+
+Figure 1: Trajectories of (left) Nesterov’s accelerated algorithms (AGM [72, 9, 12]; described
+in Appendix A.2) with α = 0.025 and distinct momentum parameters and (right) anchoring-
+based algorithms with α = 0.1. Here, α denotes the step-size. On the right, paths quickly merge
+and become indistinguishable in 50 iterations. All algorithms are executed on the minimization
+                            4x2
+problem with f (x1 , x2 ) = x21 (which is convex and smooth on, e.g., |x1 | ≤ 2, x2 ≥ 3, where all
+iterates stay within), starting at (x1 , x2 ) = (−2, 3).
+
+
+1.1    Organization and contribution
+In this work, we identify the merging path (MP) property among anchoring-based algorithms,
+which states that the trajectories of these algorithms quickly merge, and use this novel property
+to develop new accelerated algorithms. First, we show that known accelerated minimax algo-
+rithms [108, 51, 98] have O(1/k 2 )-merging paths with the optimized Halpern iteration [36, 53]
+and thereby establish their point convergence1 . Second, we present a new accelerated minimax
+algorithm for smooth strongly-convex-strongly-concave setup designed to approximate, in the
+MP sense, the OC-Halpern method, which has an optimal accelerated rate. Third, we present
+a near-optimal accelerated proximal gradient type algorithm, designed to approximate, in the
+MP sense, the Halpern-accelerated Douglas-Rachford splitting [28, 56].
+
+
+1.2    The MP property
+Let A be a deterministic algorithm. Write A(x0 ; P) = (x0 , x1 , x2 , . . . ) to denote that A applied
+to problem P with starting point x0 produces iterates x1 , x2 , . . . . We say two algorithms A1
+and A2 have O(r(k))-merging paths if for any problem P and x0 ∈ Rd , the iterates Aℓ (x0 ; P) =
+       (ℓ) (ℓ)                             (1)  (2) 2
+ x0 , x1 , x2 , . . . for ℓ = 1, 2 satisfy xk − xk     = O(r(k)). More concisely, we say A1 and
+A2 are O(r(k))-MP if they have O(r(k))-merging paths.
+     The MP property precisely formalizes a notion of near-equivalence of algorithms. In par-
+ticular, it is a stronger notion of approximation compared to the conceptual ones of prior work
+[66, 1]. Classical first-order algorithms for smooth convex minimization are not O(r(k))-MP
+with r(k) → 0. Fig. 1 shows that accelerated gradient methods with different momentum co-
+efficients have divergent paths, even though their function values (of course) converge to the
+same optimal value. In this paper, we show that the accelerated minimax algorithms for smooth
+convex-concave minimax optimization are O(1/k 2 )-MP (which is faster than the o(1)-point con-
+vergence). Fig. 1b shows that the algorithms’ paths indeed merge far before they converge to
+the limit.
+  1
+     By point convergence, we mean the iterates converge to a solution. For example, the zk iterates of EAG
+satisfy zk → z⋆ , where z⋆ is a solution to Eq. (1).
+
+
+                                                     2
+1.3   Related work
+
+
+The extragradient (EG) [49] and Popov’s algorithm [83], also known as optimistic gradient
+(OG) descent [85, 22], have initiated the long stream of research in the optimization literature
+on the closely interconnected topics of minimax optimization [71, 39, 47, 64, 66, 67, 5, 37, 99],
+variational inequalities [77, 73, 74, 43, 10, 11, 62, 61, 17, 40, 59], and monotone inclusion
+problems [92, 100, 68, 69, 57]. A number of advances in minimax optimization have been
+made in the context of practical machine learning applications, including the multi-player game
+dynamics [21, 93, 32, 41] and GANs [104, 31, 15, 52, 64, 90, 82]. A recent trend of the field
+focuses on achieving near-optimal efficiency with respect to primal-dual gap or distance to the
+optimum for convex-concave minimax problems with distinct strong convexity, strong concavity
+or smoothness parameters for each variable [95, 55, 102, 2, 106, 97, 42], closely matching the
+lower bound results [79, 109]. Another line of works focuses on finding approximate stationary
+points of nonconvex-strongly-concave (or Polyak-Lojasiewicz) minimax problems, which can be
+viewed as reducing generalized versions of the objective’s gradient magnitude [7, 54, 48, 78, 107].
+
+    The proximal point method (PPM) [70, 63, 88] is an implicit algorithm for solving con-
+vex minimization, minimax optimization, and, more generally, monotone inclusion problems.
+Although PPM is not always directly applicable, it has been used as the conceptual basis for
+developing many algorithms with approximate proximal evaluations [87, 35, 92, 71, 38, 14, 29,
+24, 48, 78, 84]. Several prior works [66, 1] interpreted prominent forward algorithms such as
+Nesterov’s accelerated gradient method (AGM), EG, and OG as conceptual approximations of
+PPM.
+
+    Since the seminal work of Nesterov [72], acceleration of first-order algorithms has been
+extensively studied for convex minimization problems [76, 9, 45, 6, 80, 94]. Lately, there has
+been a rapid progress in the discovery of accelerated algorithms with respect to the gradient
+magnitude of the objective for smooth convex problems [46, 75, 26, 50, 110] and smooth convex-
+concave minimax problems [25, 108, 51, 98]. Acceleration of PPM has been achieved for convex
+minimization [35] and more recently for monotone inclusions in terms of the fixed-point residual
+[44, 81]. Notably, the latter has been shown [81, 89] to be an instance of the Halpern iteration
+[36] with optimal parameters [53]. While the accelerated minimax algorithms bear an apparent
+resemblance to the Halpern iteration [25, 98], the latest results with optimal rates [108, 51, 98]
+were not formally understood through this connection.
+
+    The particular case of bilinearly-coupled minimax problems, L(x, y) = f (x) + ⟨x, Ay⟩ − g(y)
+for some convex functions f and g and a linear operator A, have been studied by many re-
+searchers. A line of works [76, 103, 96] considered the setups where f and g are smooth and one
+can only access their gradients. Another line of works, more closely connected to the setup we
+study in Section 5, considered the cases when f or g is proximable, and used primal-dual splitting
+algorithms to solve those problems [13, 19, 101, 16, 39, 47, 105, 89]. Primal-dual problem setups
+can often be reformulated into a more flexible format of composite monotone inclusion problems
+and addressed via forward-backward splitting algorithms [100, 18, 19, 61, 20, 60], which also
+extend the prox-grad-type methods including the iterative shrinkage-thresholding algorithms
+(ISTA) [23, 9]. Our result of Section 5 can be understood as acceleration of forward-backward
+algorithms with respect to the forward-backward residual, which generalizes the gradient mag-
+nitude. For the special case of the projected-gradient setup, a near-optimal acceleration has
+been achieved in prior work [25].
+
+                                                3
+2    Background and preliminaries
+A function L(·, ·) : X × Y → R is convex-concave if X and Y are convex sets, L(x, y) is
+convex as a function of x for all y, and L(x, y) is concave as a function of y for all x. A point
+(x⋆ , y⋆ ) ∈ X ×Y is a saddle point, or (minimax) solution of (1) if L(x⋆ , y) ≤ L(x⋆ , y⋆ ) ≤ L(x, y⋆ )
+for all (x, y) ∈ X × Y.
+     An operator 𝔸 on Rd , denoted 𝔸 : Rd ⇒ Rd , is a set-valued function, i.e., 𝔸(z) ⊆ Rd for all
+z ∈ Rd . For simplicity, we often write 𝔸z = 𝔸(z). If 𝔸z contains exactly one element for all
+z ∈ Rd , then we say 𝔸 is single-valued and view it as a function. An operator 𝔸 : Rd ⇒ Rd is
+monotone if
+                              ⟨𝔸z − 𝔸z ′ , z − z ′ ⟩ ≥ 0,          ∀ z, z ′ ∈ Rd ,
+where the notation means that ⟨u − v, z − z ′ ⟩ ≥ 0 for any u ∈ 𝔸z and v ∈ 𝔸z ′ . For µ > 0, an
+operator 𝔸 is µ-strongly monotone if
+                         ⟨𝔸z − 𝔸z ′ , z − z ′ ⟩ ≥ µ∥z − z ′ ∥2 ,        ∀ z, z ′ ∈ Rd .
+The graph of 𝔸 is denoted Gra 𝔸 = {(z, u) | u ∈ 𝔸z}. A monotone operator 𝔸 is maximally
+monotone if there is no monotone operator 𝔸′ such that Gra 𝔸 ⊂ Gra 𝔸′ strictly. In particular,
+if 𝔸 is monotone, single-valued, and continuous as a function, then it is maximally monotone
+[8, Corollary 20.28]. Define
+         (𝔸 + 𝔹)(z) = {u + v ∈ Rd | u ∈ 𝔸z, v ∈ 𝔹z},               (α𝔸)(z) = {αu ∈ Rd | u ∈ 𝔸z}
+for operators 𝔸 and 𝔹 and scalar α ∈ R. The inverse of an operator 𝔸 is the operator
+𝔸−1 : Rd ⇒ Rd defined by 𝔸−1 (u) = {z ∈ Rd | u ∈ 𝔸z}.
+    In a monotone inclusion problem,
+                                             find   0 ∈ 𝔸(z),                                       (3)
+                                             z∈Rd
+
+where 𝔸 : Rd ⇒ Rd is monotone, one finds zeros of an operator 𝔸. For any α > 0, we have
+0 ∈ 𝔸(z) ⇐⇒ z ∈ (𝕀 + α𝔸)(z) ⇐⇒ z ∈ (𝕀 + α𝔸)−1 (z). Therefore, (3) is equivalent to the
+fixed-point problem (2) with 𝕋 = (𝕀 + α𝔸)−1 = 𝕁α𝔸 . We call 𝕁α𝔸 the resolvent of α𝔸.
+    We say 𝕋 : Rd → Rd is nonexpansive if it is 1-Lipschitz continuous and contractive if it is
+ρ-Lipschitz with ρ < 1. If 𝔸 is maximally monotone, then 𝕁α𝔸 has full domain [65] and is
+nonexpansive [88] for any α > 0. Denoting Zer 𝔸 = {z ∈ Rd | 0 ∈ 𝔸(z)} and Fix 𝕋 = {z ∈
+Rd | z = 𝕋(z)}, we have Zer 𝔸 = Fix 𝕁α𝔸 . We call the algorithm zk+1 = 𝕁α𝔸 (zk ) the proximal
+point method (PPM) for 𝔸.
+    For differentiable and convex-concave L : Rn × Rm → R, we define
+                               ∇± L(x, y) = (∇x L(x, y), −∇y L(x, y))
+and call it the saddle operator of L. Then ∇± L is monotone [87], and z⋆ = (x⋆ , y⋆ ) is a
+solution of (1) if and only if ∇± L(z⋆ ) = 0. Therefore, a convex-concave minimax optimization
+problem (1) can be reformulated as a monotone inclusion problem (3) with 𝔸 = ∇± L and as a
+fixed-point problem (2) with 𝕋 = 𝕁∇± L .
+    The fixed-point residual norm ∥z − 𝕋z∥ quantifies the rate of convergence of an algorithm
+for finding fixed points. When 𝕋 = 𝕁α𝔹 , we have z − 𝕋z = z − 𝕁α𝔹 (z) ∈ α𝔹(𝕁α𝔹 (z)), because
+                 u = 𝕁α𝔹 (z) = (𝕀 + α𝔹)−1 (z) ⇐⇒ z ∈ (𝕀 + α𝔹)(u) = u + α𝔹u.
+Thus, when 𝕋 = 𝕁α𝔹 and 𝔹 is single-valued, a convergence rate on ∥z − 𝕋z∥ is equivalent to a
+convergence rate on ∥𝔹(·)∥.
+
+                                                     4
+3     Accelerated smooth minimax algorithms are O(1/k 2 )-MP
+In this section, we prove the O(1/k 2 )-MP property among accelerated minimax algorithms and
+the optimized Halpern iteration. The problem setup is unconstrained minimax problems (so
+X = Rn and Y = Rm ) with convex-concave L such that ∇± L is L-Lipschitz. For notational
+convenience, write 𝔹 = ∇± L : Rd → Rd , with d = n + m. Our MP result provides new
+insight into these acceleration mechanisms and allows us to establish their point convergence
+zk → z⋆ ∈ Zer 𝔹.
+
+3.1   Preliminaries: Accelerated minimax and proximal algorithms
+Recently, several accelerated minimax algorithms with rate ∥𝔹zk ∥2 = O(1/k 2 ) have been pro-
+posed. The list includes the extra anchored gradient (EAG) algorithm [108]
+
+                           zk+1/2 = βk z0 + (1 − βk )zk − α𝔹zk
+                             zk+1 = βk z0 + (1 − βk )zk − α𝔹zk+1/2 ,
+
+the fast extragradient (FEG) algorithm [51]
+
+                           zk+1/2 = βk z0 + (1 − βk ) (zk − α𝔹zk )
+                             zk+1 = βk z0 + (1 − βk )zk − α𝔹zk+1/2 ,
+
+and the anchored Popov’s scheme (APS) [98], with v0 = z0 ,
+
+                             vk+1 = βk z0 + (1 − βk )zk − α𝔹vk
+                             zk+1 = βk z0 + (1 − βk )zk − α𝔹vk+1 .
+
+Prior to the development of these minimax algorithms, the optimized Halpern’s method (OHM)
+[53, 44] was presented for solving the fixed-point problem (2) with nonexpansive operator
+𝕋 : Rd → Rd :
+
+                                 wk+1/2 = βk w0 + (1 − βk )wk
+                                                                                            (4)
+                                   wk+1 = 𝕋(wk+1/2 ),
+               1
+where βk = k+1   . OHM converges with rate ∥wk+1/2 − 𝕋wk+1/2 ∥2 ≤ 4∥w0 − w⋆ ∥2 /(k + 1)2 , if a
+fixed point w⋆ exists.
+    To clarify, the prior works [108, 98] study further general forms of EAG and APS with
+iteration-dependent step-sizes. For the sake of simplicity, we consider the case of constant
+step-sizes in this paper.
+
+3.2   MP property among accelerated algorithms
+The accelerated forward algorithms, EAG, FEG, and APS, do not merely resemble OHM in
+their form. The algorithms are, in fact, near-equivalent in the sense that they have quickly
+merging paths.
+
+Theorem 3.1 (EAG≈FEG≈APS≈OHM). Let 𝔹 : Rd → Rd be monotone and L-Lipschitz
+                                                                1
+and assume z⋆ ∈ Zer 𝔹 = Fix 𝕁α𝔹 exists. Let 𝕋 = 𝕁α𝔹 and βk = k+1  . Then FEG and OHM
+                2  2                1
+                                      
+are O(∥z0 − z⋆ ∥ /k )-MP for α ∈ 0, L , and there exists η > 0 (not depending on L) such
+                                          2  2                 η
+that EAG, APS, and OHM are O(∥z0 − z⋆ ∥ /k )-MP for α ∈ 0, L .
+
+
+                                               5
+Proof. Here we provide the proof for the FEG case and defer the proofs for EAG and APS to
+Appendix B.2. Let {wk }k=0,1,... be the OHM iterates and {zk }k=0,1,... the FEG iterates, and
+assume z0 = w0 . Then
+                                                   
+       zk+1 − wk+1 = βk z0 + (1 − βk )zk − α𝔹zk+1/2 − (βk w0 + (1 − βk )wk − α𝔹wk+1 )
+                                                             
+                   = (1 − βk )(zk − wk ) + α 𝔹wk+1 − 𝔹zk+1/2
+
+where we used (𝕀 + α𝔹)(wk+1 ) = wk+1/2 in the first equality and z0 = w0 in the second. Thus,
+
+     ∥zk+1 − wk+1 ∥2 = (1 − βk )2 ∥zk − wk ∥2 + 2 α(1 − βk )(zk − wk ), 𝔹wk+1 − 𝔹zk+1/2
+                                                         2                                    (5)
+                             + α2 𝔹wk+1 − 𝔹zk+1/2            .
+
+Now use the similar identity
+
+                zk+1/2 − wk+1 = (1 − βk )(zk − wk ) − α(1 − βk )𝔹zk + α𝔹wk+1
+
+to rewrite the inner product term in (5) as
+
+           2 α(1 − βk )(zk − wk ), 𝔹wk+1 − 𝔹zk+1/2
+            = 2 α(zk+1/2 − wk+1 ) + α2 (1 − βk )𝔹zk − α2 𝔹wk+1 , 𝔹wk+1 − 𝔹zk+1/2
+            ≤ 2α2 (1 − βk )𝔹zk − 𝔹wk+1 , 𝔹wk+1 − 𝔹zk+1/2 ,
+
+where the last inequality follows from monotonicity of 𝔹. Combining this with (5), we obtain
+
+   ∥zk+1 − wk+1 ∥2 ≤ (1 − βk )2 ∥zk − wk ∥2 + 2α2 (1 − βk )𝔹zk − 𝔹wk+1 , 𝔹wk+1 − 𝔹zk+1/2
+                                                   2
+                        + α2 𝔹wk+1 − 𝔹zk+1/2
+                      = (1 − βk )2 ∥zk − wk ∥2 − α2 ∥𝔹wk+1 ∥2 + 2α2 (1 − βk )⟨𝔹zk , 𝔹wk+1 ⟩
+                                               |                  {z                     }
+                                                                 ≤α2 (1−βk )2 ∥𝔹zk ∥2
+
+                        − 2α2 (1 − βk )⟨𝔹zk , 𝔹zk+1/2 ⟩ + α2 ∥𝔹zk+1/2 ∥2 .
+                  1
+Plugging in βk = k+1 and multiplying both sides by (k + 1)2 , we obtain
+
+           (k + 1)2 ∥zk+1 − wk+1 ∥2 ≤ k 2 ∥zk − wk ∥2 + α2 ∥k𝔹zk − (k + 1)𝔹zk+1/2 ∥2 .
+
+The conclusion then follows from the following Lemma 3.2, whose proof is deferred to Ap-
+pendix B.1.
+
+
+Lemma 3.2. Let 𝔹 : Rd → Rd be monotone and L-Lipschitz and assume        z⋆ ∈ Zer 𝔹 exists.
+                                                     1               1
+                                                                       
+Let {zk }k=0,1,... be the iterates of FEG with βk = k+1 . For α ∈ 0, L ,
+               ∞
+               X                                              1
+                      ∥k𝔹zk − (k + 1)𝔹zk+1/2 ∥2 ≤                      ∥z0 − z⋆ ∥2 < ∞.
+                                                       α2 (1 − α2 L2 )
+                k=0
+
+
+   As it is well known [8, Theorem 30.1] that OHM converges to
+
+                                    ΠFix𝕋 (z0 ) = argmin∥z − z0 ∥,
+                                                  z∈Fix 𝕋
+
+Theorem 3.1 immediately implies the point convergence of EAG, FEG, and APS.
+
+
+                                                   6
+Corollary 3.3. In the setup of Theorem 3.1, iterates of EAG, FEG, and APS converge to
+ΠZer 𝔹 (z0 ).
+
+
+4       Fastest rate for unconstrained smooth strongly-convex-strongly-
+        concave minimax optimization with respect to gradient norm
+In Section 3, we identified that prior accelerated minimax algorithms approximate, in the
+MP sense, the optimal proximal algorithm OHM. In this section, we design a novel algo-
+rithm to approximate, in the MP sense, the optimal proximal algorithm OC-Halpern [81] and
+thereby achieve the state-of-the-art rate2 for minimax problems with unconstrained L-smooth
+µ-strongly-convex-strongly-concave L (so ∇± L : Rd → Rd is L-Lipschitz and µ-strongly mono-
+tone). Later in Section 5, we repeat the strategy of designing an algorithm to approximate, in
+the MP sense, a known accelerated proximal algorithm.
+    We design the novel algorithm Strongly Monotone Extra Anchored Gradient+ 3
+
+                              zk+1/2 = βk z0 + (1 − βk )zk − ηk α𝔹zk
+                                                                                          (SM-EAG+)
+                                zk+1 = βk z0 + (1 − βk )zk − α𝔹zk+1/2 ,
+                                                                     √
+                                           1−βk                          L2 +µ2 +µ
+where 𝔹 = ∇± L, βk = Pk 1        j
+                                   , ηk = 1+2αµ , and 0 < α ≤              L2
+                                                                                   , to approximate OC-
+                      j=0 (1+2αµ)
+Halpern in the MP sense. SM-EAG+ inherits the accelerated rate of OC-Halpern and achieves
+the fastest known rate in the setup with respect to the gradient norm, improving upon the prior
+rates of EG and OG by factors of 8 and 4, respectively. (OC-Halpern is not a forward algorithm
+as it uses the proximal operator 𝕁α𝔹 , while SM-EAG+ is a forward algorithm using evaluations
+of 𝔹.)
+
+
+4.1     Preliminaries: Proximal algorithm with exact optimal complexity
+For the fixed-point problem (2) with a γ −1 -contractive 𝕋, the recently presented OC-Halpern [81,
+                                                                                    P           −1
+                                                                                       k      2j
+Corollary 3.3, Theorem 4.1], which has the same form (4) as OHM but with βk =          j=0 γ         ,
+                                                                                   
+                                                                                 2 Pk         −2
+achieves the exact optimal accelerated rate of ∥wk+1/2 −𝕋wk+1/2 ∥2 ≤ 1 + γ −1         j=0 γ
+                                                                                            j      ∥w0 −
+w⋆ ∥2 , where w⋆ ∈ Fix 𝔹. We consider OC-Halpern with 𝕋 = 𝕁α𝔹 , which is contractive if 𝔹 is
+maximally monotone and µ-strongly monotone [8, Proposition 23.8, 23.13].
+
+
+4.2     MP property and convergence analyses of SM-EAG+
+SM-EAG+ approximates OC-Halpern in the MP sense.
+
+Theorem 4.1 (SM-EAG+≈OC-Halpern). Let 𝔹 : Rd → Rd be √        µ-strongly monotone and L-
+                                                               L2 +µ2 +µ 
+Lipschitz with 0 < µ ≤ L. Let z⋆ be the zero of 𝔹. If α ∈ 0,     L2
+                                                                           , then for any ϵ ∈
+                                                                                             
+                                                             1                     ∥z0 −z⋆ ∥2
+(0, 1), SM-EAG+ and OC-Halpern with 𝕋 = 𝕁α𝔹 and βk = Pk            j
+                                                                     are  O     (1+2αµ(1−ϵ))k
+                                                                                                -
+                                                                  j=0 (1+2αµ)
+MP.
+
+    2
+    This word “fastest” in the section title means “fastest known”, and does not mean the rate cannot be
+improved further.
+  3
+    The “+” follows the nomenclature of [27], where the two-time-scale EG was named EG+.
+
+
+                                                   7
+   To clarify, in Theorem 4.1, we view 𝕁α𝔹 as a γ −1 -contractive operator with γ −1 = √1+2αµ
+                                                                                         1
+                                                                                              >
+  1            1
+1+αµ , where 1+αµ is the tight contraction factor for 𝕁α𝔹 [8, Proposition 23.13], and then apply
+OC-Halpern. This slack, which is negligible in the regime L ≫ µ, is necessary for proving the
+MP result.
+   SM-EAG+ inherits the convergence
+                                         rate of
+                                                 OC-Halpern, since the paths of OC-Halpern
+                                   ∥z0 −z⋆ ∥2
+and SM-EAG+ merge at rate O (1+2αµ(1−ϵ))      k   for any ϵ > 0, arbitrarily close to the order of
+                                      2
+                                         
+convergence ∥α𝔹wk+1 ∥2 = O ∥w  0 −w⋆ ∥
+                             (1+2αµ)k
+                                           of OC-Halpern [81]. On the other hand, EG and OG
+can be viewed as approximations of the proximal point method (PPM) [66], which is slower
+than OC-Halpern. Additionally, it is unclear whether EG and OG exhibit an MP property to
+PPM fast enough to preserve PPM’s convergence rate since EG and OG have no anchoring
+mechanism inducing the MP property.
+
+Theorem 4.2 (Fast rate of SM-EAG+). Let 𝔹 : Rd → Rd be        √ µ-strongly    monotone and L-
+                                                               L2 +µ2 +µ 
+Lipschitz with 0 < µ ≤ L. Let z⋆ be the zero of 𝔹. For α ∈ 0,    L2
+                                                                           , SM-EAG+ exhibits
+the rate
+                             √             2
+                    2          1 + 2αµ + 1                 2
+              ∥𝔹zk ∥ ≤      P                  ∥z0 − z⋆ ∥ ,
+                                             j 2
+                                                               for k = 1, 2, . . . .
+                          2    k−1
+                        α      j=0 (1 + 2αµ)
+                                             2
+
+
+                          √
+                              L2 +µ2 +µ
+   With the choice α =          L2
+                                        , Theorem 4.2 implies
+                                                 µ
+                                                                   
+                                 ∥𝔹zk ∥2 = O e−2k L L2 ∥z0 − z⋆ ∥2
+
+when L ≫ µ. Therefore, SM-EAG+ requires roughly Lµ log L∥z0ϵ−z⋆ ∥ iterations to achieve
+∥𝔹zk ∥ ≤ ϵ. On the other hand, simultaneous gradient descent-ascent has the rate [8, Proposi-
+tion 26.16]
+                                                      2
+                                                                      
+                           2     2        2        −k µ 2 2         2
+                     ∥𝔹zk ∥ ≤ L ∥zk − z⋆ ∥ = O e L L ∥z0 − z⋆ ∥
+
+                                          log L∥z0ϵ−z⋆ ∥ ≫ Lµ log L∥z0ϵ−z⋆ ∥ iterations to achieve
+                                             2
+when L ≫ µ, and therefore requires 2L µ2
+∥𝔹zk ∥ ≤ ϵ. EG and OG has the rate [66, 5]:
+                                                        µ
+                                                                        
+                    ∥𝔹zk ∥2 ≤ L2 ∥zk − z⋆ ∥2 = O e−k 4L L2 ∥z0 − z⋆ ∥2 ,
+
+                                               L∥z0 −z⋆ ∥
+when L ≫ µ, and therefore requires 8L    µ log     ϵ      iterations to achieve ∥𝔹zk ∥ ≤ ϵ. Thus,
+SM-EAG+ is 8× faster than EG and 4× faster than OG (since OG makes a single call to the
+gradient oracle at each iteration).
+    Notably, when µ = 0, SM-EAG+ coincides with FEG [51], which has the fastest known
+                    2          2
+rate of ∥𝔹zk ∥2 ≤ 4L ∥zk02−z⋆ ∥ when 𝔹 is (non-strongly) monotone and L-Lipschitz. This rate is
+precisely recovered by Theorem 4.2 when µ = 0, with α = L1 .
+    Although OC-Halpern is an algorithm designed for exact optimal convergence with respect
+to the fixed-point residual norm ∥wk+1/2 − 𝕋wk+1/2 ∥2 , its iterates also converge linearly at a
+fast rate comparable to PPM: ∥wk − w⋆ ∥2 = O γ −2k ∥w0 − w⋆ ∥2 . The proof of this fact is
+                                                                       
+
+simple but new; we provide it in Section 4.5. Together with Theorem 4.1, this    implies   that the
+                                                                                      µ
+                                                                          2       −2k L
+point convergence of SM-EAG+ also occurs at a fast rate of ∥zk − z⋆ ∥ = O e             ∥z0 − z⋆ ∥2
+when L ≫ µ and α is chosen appropriately.
+
+                                                  8
+Theorem 4.3. Let 𝔹 : Rd → Rd be√µ-strongly monotone and L-Lipschitz with 0 < µ ≤ L.
+                                    L2 +µ2 +µ 
+Let z⋆ be the zero of 𝔹. For α ∈ 0,   L2
+                                                , SM-EAG+ converges with the rate
+                    "    √      2                −1 − 1
+                                                                        !#
+                    (1 +   2αµ)        1 + 2αµ  ϵ             1 + 2αµ
+   ∥zk − z⋆ ∥2 ≤ 2                 +                                         ∥z0 − z⋆ ∥2     (6)
+                    (1 + 2αµ)k+1      (1 + 2αµ(1 − ϵ))k+1 1 + 2αµ − α2 L2
+                         ∥z0 − z⋆ ∥2
+                                      
+               =O
+                     (1 + 2αµ(1 − ϵ))k
+
+where ϵ ∈ (0, 1) can be chosen arbitrarily.
+
+4.3    Proof of Theorem 4.1
+Denote the iterates of OC-Halpern by {wk }k=0,1,... and SM-EAG+ iterates by {zk }k=0,1,... . Sim-
+ilarly as in Section 3, we have
+
+      ∥zk+1 − wk+1 ∥2 = (1 − βk )2 ∥zk − wk ∥2 + 2 α(1 − βk )(zk − wk ), 𝔹wk+1 − 𝔹zk+1/2
+                                                      2
+                        + α2 𝔹wk+1 − 𝔹zk+1/2              .
+
+Using zk+1/2 − wk+1 = (1 − βk )(zk − wk ) − ηk α𝔹zk + α𝔹wk+1 , we get
+
+             2 α(1 − βk )(zk − wk ), 𝔹wk+1 − 𝔹zk+1/2
+             = 2 α(zk+1/2 − wk+1 ) + α2 (ηk 𝔹zk − 𝔹wk+1 ), 𝔹wk+1 − 𝔹zk+1/2
+             ≤ −2αµ∥zk+1/2 − wk+1 ∥2 + 2α2 ηk 𝔹zk − 𝔹wk+1 , 𝔹wk+1 − 𝔹zk+1/2                   (7)
+
+where the last line uses µ-strong monotonicity of 𝔹. Note that for any ϵ ∈ (0, 1) and x, y ∈ Rd ,
+we have
+                                                                           
+                  2  1    2                       2             2     1
+            ϵ∥x∥ + ∥y∥ ≥ 2⟨x, y⟩ =⇒ ∥x − y∥ ≥ (1 − ϵ)∥x∥ −              − 1 ∥y∥2 .
+                      ϵ                                               ϵ
+
+Using the last inequality with x = zk+1 − wk+1 and y = zk+1 − zk+1/2 = α(ηk 𝔹zk − 𝔹zk+1/2 ),
+we can upper-bound (7), so that
+
+  ∥zk+1 − wk+1 ∥2
+                                                                                   
+             2          2                           2    1      2                   2
+  ≤ (1 − βk ) ∥zk − wk ∥ − 2αµ (1 − ϵ)∥zk+1 − wk+1 ∥ −     − 1 α ∥ηk 𝔹zk − 𝔹zk+1/2 ∥
+                                                         ϵ
+                                                                            2
+      + 2α2 ηk 𝔹zk − 𝔹wk+1 , 𝔹wk+1 − 𝔹zk+1/2 + α2 𝔹wk+1 − 𝔹zk+1/2               .
+
+Rearranging the last inequality, we obtain
+
+        (1 + 2αµ(1 − ϵ))∥zk+1 − wk+1 ∥2
+                                              
+                                          1
+         ≤ (1 − βk )2 ∥zk − wk ∥2 + 2αµ     − 1 α2 ∥ηk 𝔹zk − 𝔹zk+1/2 ∥2
+                                          ϵ
+           −α2 ∥𝔹wk+1 ∥2 + 2ηk α2 ⟨𝔹wk+1 , 𝔹zk ⟩ −2ηk α2 ⟨𝔹zk , 𝔹zk+1/2 ⟩ + α2 ∥𝔹zk+1/2 ∥2
+           |               {z                 }
+                        ≤ηk2 α2 ∥𝔹zk ∥2
+                                                    
+                    2            2                1
+         ≤ (1 − βk ) ∥zk − wk ∥ + 1 + 2αµ           −1   α2 ∥ηk 𝔹zk − 𝔹zk+1/2 ∥2 .
+                                                  ϵ
+
+
+                                                  9
+Multiplying (1 + 2αµ(1 − ϵ))k throughout the above equation and upper-bounding (1 − βk )2 by
+1 we get
+(1 + 2αµ(1 − ϵ))k+1 ∥zk+1 − wk+1 ∥2
+                                                                 
+                              k       2               k       1
+      ≤ (1 + 2αµ(1 − ϵ)) ∥zk − wk ∥ + (1 + 2αµ) 1 + 2αµ         −1      α2 ∥ηk 𝔹zk − 𝔹zk+1/2 ∥2
+                                                              ϵ
+                             X   k
+                          1
+      ≤ · · · ≤ 1 + 2αµ     −1    α2    (1 + 2αµ)j ∥ηj 𝔹zj − 𝔹zj+1/2 ∥2 .
+                          ϵ
+                                          j=0
+
+Thus, provided that the following Lemma 4.4 (in particular (8)) holds, we conclude
+                                                           
+                      k+1               2               1             1 + 2αµ
+      (1 + 2αµ(1 − ϵ)) ∥zk+1 − wk+1 ∥ ≤ 1 + 2αµ           −1                      ∥z0 − z⋆ ∥2 ,
+                                                        ϵ         1 + 2αµ − α2 L2
+                                              
+                                  ∥z0 −z⋆ ∥2
+                                                 = O e−2kαµ(1−ϵ) ∥z0 − z⋆ ∥2 -MP.
+                                                                            
+i.e., the two algorithms are O (1+2αµ(1−ϵ))  k
+
+
+
+Lemma 4.4. Let 𝔹 : Rd → Rd be a µ-strongly monotone, L-Lipschitz operator (0 < µ ≤ L),
+and let {zk }k=0,1,... be the iterates of SM-EAG+ with βk = Pk 1 j
+                                                                   . Then, the quantities
+                                                                  j=0 (1+2αµ)
+
+                                                                           
+                                  2                                    1
+            Vk = pk ∥𝔹zk ∥ + qk ⟨𝔹zk − µ(zk − z0 ), zk − z0 ⟩ +          + µ ∥z0 − z⋆ ∥2
+                                                                      2α
+                              1
+with p0 = q0 = 0 and qk = (1+2αµ)k−1 β
+                                        1
+                                       k−1
+                                           , pk = ηk2βαqk k for k = 1, 2, . . . satisfy Vk ≥ 0,
+                      2   2
+V0 − V1 ≥ α(1+2αµ−α
+                2
+                    L )
+                        ∥𝔹z0 ∥2 , and
+
+                                    α(1 + 2αµ − α2 L2 )qk
+                    Vk − Vk+1 ≥                             ∥ηk 𝔹zk − 𝔹zk+1/2 ∥2
+                                          2βk (1 − βk )
+                                                  √
+                                                    L2 +µ2 +µ 
+for k = 1, 2, . . . . In particular, if α ∈ 0,                  , Vk is a Lyapunov function for the
+                            √                           L2
+                               2   2
+                              L +µ +µ  
+algorithm, and if α ∈ 0,        L2
+                                         , we additionally have the summability result
+          ∞
+          X                                               1 + 2αµ
+            (1 + 2αµ)k ∥ηk 𝔹zk − 𝔹zk+1/2 ∥2 ≤                              ∥z0 − z⋆ ∥2 < ∞.       (8)
+                                                   α2 (1 + 2αµ − α2 L2 )
+          k=0
+
+   We defer the proof of Lemma 4.4 to Appendix C.
+
+4.4   Proof of Theorem 4.2
+                    1
+                      + µ ∥z0 − z⋆ ∥2 subtracted from Vk to obtain Wk does not depend on k,
+                          
+Because the term 2α
+clearly Wk inherits nonincreasingness from Vk , i.e., Wk ≤ · · · ≤ W0 = 0. Therefore, given that
+qk < λ < qk + 4µpk , we have
+                                                                     λ − qk
+                                                                           
+              qk λµ           2         qk λµ           2
+                    ∥z0 − z⋆ ∥ ≥ Wk +         ∥z0 − z⋆ ∥ ≥ pk −               ∥𝔹zk ∥2
+             λ − qk                    λ − qk                          4µ
+                                    λ − qk −1 qk λµ
+                                           
+                         2
+              =⇒ ∥𝔹zk ∥ ≤ pk −                         ∥z0 − z⋆ ∥2 .                         (9)
+                                      4µ        λ − qk
+One can straightforwardly verify that
+                                      λ⋆ = (qk (qk + 4µpk ))1/2                                   (10)
+
+
+                                                 10
+                                                                   −1
+lies between qk and qk + 4µpk , and minimizes the factor pk − λ−q
+                                                               4µ
+                                                                  k     qk λµ
+                                                                        λ−qk in the right hand
+                                                        (1+2αµ) −1            k
+                                                                              α          k−1 q 2 =
+side of (9). Plugging in the explicit expressions qk = 2αµ(1+2αµ)k−1 and pk = 2 (1 + 2αµ)     k
+ ((1+2αµ)k −1)2                                                       k
+8αµ2 (1+2αµ)k−1
+                (which uses (25)) into (10), we obtain λ⋆ = (1 + 2αµ) 2 qk and
+                                                                                   √
+               λ⋆ − qk −1 qk λ⋆ µ          4µ2                                    ( 1 + 2αµ + 1)2
+                     
+          pk −                    =            k       =                                              .
+                                                                                                   j 2
+                 4µ       λ⋆ − qk
+                                                                                  P
+                                    ((1 + 2αµ) 2 − 1)2                        α 2    k−1
+                                                                                     j=0 (1 + 2αµ)
+                                                                                                   2
+
+
+
+Therefore, (9) with λ = λ⋆ concludes the proof.
+
+4.5   Linear convergence of OC-Halpern
+
+Lemma 4.5. Let 𝕋 : Rn → Rn be a γ −1 -contractive operator, and let wk , wk+1/2 (k =
+0, 1, . . . ) be the OC-Halpern iterates, defined by
+
+                                         wk+1/2 = βk w0 + (1 − βk )wk
+                                           wk+1 = 𝕋(wk+1/2 ),
+             P             −1
+                 k     2j
+where βk =       j=0 γ            . Then, for k = 0, 1, . . . ,
+
+                                                        Pk             !2
+                                                                   j
+                                                             j=0 γ
+                             ∥wk+1/2 − w⋆ ∥2 ≤          Pk                  ∥w0 − w⋆ ∥2                    (11)
+                                                                 2j
+                                                           j=0 γ
+
+and
+                                                         Pk            !2
+                                                                j
+                                            1             j=0 γ
+                            ∥wk+1 − w⋆ ∥2 ≤ 2           Pk                  ∥w0 − w⋆ ∥2 .                  (12)
+                                           γ             j=0 γ
+                                                               2j
+
+
+   We present the (simple but new) proof of this result in Appendix C. For now, observe that
+              Pk         !2  γ k+1 −1 2                          2
+                     γ j                               k+1
+                 j=0             γ−1               2    γ    −1        (1 + γ)2
+              Pk           = γ 2k+2 −1
+                                         = (1 + γ)                   <          ,
+                j=0 γ
+                      2j
+                                  2
+                                                        γ 2k+2 − 1       γ 2k+2
+                                          γ −1
+
+so Lemma 4.5 implies the asymptotic rates ∥wk+1/2 − w⋆ ∥2 = O γ −2k ∥w0 − w⋆ ∥2 and ∥wk+1 −
+                                                                               
+
+w⋆ ∥2 = O γ −2k ∥w0 − w⋆ ∥2 .
+                           
+
+
+4.6   Proof of Theorem 4.3
+Let {wk }k=0,1,... be the iterates of OC-Halpern with respect to the resolvent operator 𝕁α𝔹 with
+βk = Pk 1          j
+                     (viewing 𝕁α𝔹 as a (1 + 2αµ)−1/2 -contractive operator) and w0 = z0 . Then
+       j=0 (1+2αµ)
+
+
+             ∥zk − z⋆ ∥2 = ∥(wk − z⋆ ) + (zk − wk )∥2 ≤ 2∥wk − z⋆ ∥2 + 2∥zk − wk ∥2 .
+The first term and the second term can be respectively bounded using Lemma 4.5 and Theo-
+rem 4.1. Applying Lemma 4.5 with γ = (1 + 2αµ)1/2 yields the bound
+                                 Pk−1 j !2
+                             1      j=0 γ                  (1 + γ)2
+               ∥wk − z⋆ ∥2 ≤ 2 Pk−1          ∥z0 − z⋆ ∥2 ≤    2k+2
+                                                                    ∥z0 − z⋆ ∥2 .
+                            γ      j=0 γ 2j                 γ
+
+
+                                                        11
+Substituting γ = (1 + 2αµ)1/2 into the above bound gives the first term of (6). Applying the
+bound on ∥zk − wk ∥2 from Theorem 4.1 gives the second term of (6). Combining these, the
+proof is complete.
+
+
+5     Near-optimal prox-grad-type accelerated minimax algorithm
+Consider the setup with minimax objective of the form L(x, y) = Lp (x, y) + Ls (x, y), where Ls
+is L-smooth. Informally assume that Lp is nonsmooth and proximable (we clarify this notion
+below). We reformulate the minimax optimization problem into the monotone inclusion problem
+
+                                   find   0 ∈ (∂± Lp + ∇± Ls )(z),                                (13)
+                                   z∈Rd
+
+where ∂± is the analog of ∇± for nonsmooth convex-concave functions (precisely defined in
+Section 5.1). We design the Anchored Proximal Gradient* (APG* ):
+
+                          zk = SM-EAG+ (𝕀 + α𝔹 − ξk , ξk , ϵk )
+                                                                                              (APG* )
+                        ξk+1 = βk z0 + (1 − βk ) (𝕁α𝔸 (zk − α𝔹zk ) + α𝔹zk ) ,
+
+where 𝔸 = ∂± Lp , 𝔹 = ∇± Ls , ξ0 ∈ Rd is the initial point, and SM-EAG+ (𝕀 + α𝔹 − ξk , ξk , ϵk )
+denotes the execution of SM-EAG+ with the 1-strongly monotone√(1 + αL)-smooth operator
+                                                                          (1+αL)2 +1+1
+z 7→ (𝕀 + α𝔹)(z) − ξk with ξk as the initial point using the step-size (1+αL)2
+                                                                               until reaching
+the tolerance ∥(𝕀 + α𝔹)(·) − ξk ∥ ≤ ϵk .
+    APG* is a proximal-gradient-type algorithm; each iteration, APG* uses a single proximal
+operation 𝕁α∂± Lp and multiple (logarithmically many) gradient operations ∇± Ls . (The super-
+script * in the name APG* indicates the multiple gradient evaluations per iteration.) Thus,
+APG* is useful when Lp is proximable in the sense that 𝕁α∂± Lp can be computed efficiently.
+APG* is designed to approximate the accelerated proximal algorithm OHM-DRS, described
+soon, in the MP sense and thereby achieves a near-optimal accelerated rate.
+
+5.1   Preliminaries: Subdifferential operators and forward-backward residual
+If Lp : Rn × Rm → R is a finite-valued, not necessarily differentiable convex-concave function,
+then its (saddle) subdifferential operator ∂± Lp : Rn × Rm ⇒ Rn × Rm defined by
+
+              ∂± Lp (x, y) = {(v, w) ∈ Rn × Rm | v ∈ ∂x Lp (x, y), w ∈ ∂y (−Lp )(x, y)}
+
+is maximal monotone [86, Corollary 37.5.2], where ∂x and ∂y respectively denote the convex
+subdifferential with respect to the x- and y-variables. However, in order to encompass a broader
+range of problems, such as constrained minimax optimization problems, it is necessary to con-
+sider Lp taking values in R ∪ {±∞}. In this case, ∂Lp is maximal monotone if Lp is closed and
+proper [86, Corollary 37.5.2], and if that holds, z⋆ is a solution of (1) if and only if 0 ∈ ∂± L(z⋆ ).
+(We refer the readers to Appendix F for a more detailed discussion on properness.) In our setup
+with L = Lp + Ls , we assume closedness and properness of Lp and rewrite (1) into (13), using
+the fact that ∂± = ∇± for differentiable convex-concave functions.
+    Of particular interest are problems with L(x, y) = f (x) + ⟨Ax, y⟩ − g(y), with some A ∈
+R m×n  , or, more generally, L(x, y) = f (x) + Ls (x, y) − g(y), with some L-smooth convex-concave
+Ls . In this case, ∂± Lp (x, y) = (∂f (x), ∂g(y)), and 𝕁α∂± Lp (x, y) = (Proxαf (x), Proxαg (y)), where
+                                                                                                
+                                      1                                                 1
+   Proxαf (x) = argmin αf (x′ ) + ∥x′ − x∥2 , Proxαg (y) = argmin αg(y ′ ) + ∥y ′ − y∥2
+                   x′ ∈Rn             2                               y ′ ∈Rm           2
+
+
+                                                  12
+                                                       (
+                                                         0     x∈X
+are the proximal operators. When f (x) = δX (x) =                    , the proximal operator be-
+                                                         +∞ x ∈  /X
+comes the projection operator: ProxαδX (x) = ΠX (x) for any α > 0. Therefore, the constrained
+problem (1) with X ⊂ Rn , Y ⊂ Rm is recovered with Lp (x, y) = δX (x) − δY (y).
+    Note that z⋆ is a solution of (13) if and only if z⋆ = 𝕁α𝔸 (z⋆ − α𝔹z⋆ ). Therefore, the norm
+of the forward-backward residual 𝔾α (z) = α1 (z − 𝕁α𝔸 (z − α𝔹z)) serves as a measure for the
+convergence of algorithms solving (13), and it generalizes the operator norm and the fixed-point
+residual norm.
+
+5.2   Preliminaries: Accelerated proximal splitting algorithm
+Consider
+                  wk = 𝕁α𝔹 (uk )
+                                                                                    (OHM-DRS)
+                uk+1 = βk u0 + (1 − βk )(𝕁α𝔸 (wk − α𝔹wk ) + α𝔹wk )
+            1
+with βk = k+2  . As we explain below, this is the application of OHM to the Douglas–Rachford
+splitting (DRS) operator [28, 56] defined by 𝕋DRS = 𝕀 − 𝕁α𝔹 + 𝕁α𝔸 ◦ (2𝕁α𝔹 − 𝕀). Here we use
+                                                                                     1
+the alternative representation of OHM uk+1 = βk u0 + (1 − βk )𝕋uk with βk = k+2         , which is
+equivalent to (4) under the identification uk = wk+1/2 . Given uk , letting wk = 𝕁α𝔹 (uk ) and
+vk = 𝕁α𝔸 ◦ (2𝕁α𝔹 − 𝕀)(uk ) = 𝕁α𝔸 (2wk − uk ), we have 𝕋DRS (uk ) = uk − wk + vk . Therefore, OHM
+with 𝕋 = 𝕋DRS is written as
+
+                                 wk = 𝕁α𝔹 (uk )
+                                 vk = 𝕁α𝔸 (2wk − uk )                                        (14)
+                             uk+1 = βk u0 + (1 − βk )(uk + vk − wk )
+              1
+where βk = k+2   . But 2wk − uk = 2wk − (wk + α𝔹wk ) = wk − α𝔹wk , so vk = 𝕁α𝔸 (wk − α𝔹wk ).
+By eliminating the second line and replacing uk by wk + α𝔹wk in the third line of (14), we
+obtain OHM-DRS.
+   Since 𝕋DRS is nonexpansive [56], OHM-DRS exhibits the accelerated rate
+∥uk − 𝕋DRS (uk )∥2 ≤ 4∥u0 − u⋆ ∥2 /(k + 1)2 if u⋆ ∈ Fix 𝕋DRS . Additionally, this rate directly
+translates into the accelerated rate with respect to 𝔾α (wk ), as
+
+                uk − 𝕋DRS (uk ) = wk − vk = wk − 𝕁α𝔸 (wk − α𝔹wk ) = α𝔾α (wk ).
+
+OHM-DRS will serve as a conceptual algorithm (not implemented) that our APG* (imple-
+mentable) is designed to O(1/k 2 )-MP approximate, so that APG* inherits the accelerated rate
+of OHM-DRS. (OHM-DRS is not prox-grad-type, while APG* is.)
+
+5.3   MP property and convergence of APG*
+We now describe the design of APG* . The forms of APG* and OHM-DRS bear a clear re-
+semblance. The second lines are identical. In the first lines, the resolvent computation 𝕁α𝔹 of
+OHM-DRS is replaced in APG* by an inner loop with SM-EAG+. Note, z = 𝕁α𝔹 (ξk ) if and
+only if it solves
+
+                          find     0 = z + α𝔹z − ξk = (𝕀 + α𝔹 − ξk )(z),                     (15)
+                          z∈Rd
+
+and 𝕀 + α𝔹 − ξk is a 1-strongly monotone, (1 + αL)-Lipschitz operator. Therefore, (15) is an
+instance of the problem class of Section 4, and SM-EAG+ can efficiently solve it to accuracy ∥(𝕀+
+
+                                                  13
+α𝔹)(z) − ξk ∥ ≤ ϵk in O(log(1/ϵk )) iterations. Therefore the zk -iterate of APG* approximates
+the wk = 𝕁α𝔹 (uk )-iterate of OHM-DRS.
+   Throughout the following theorems, we assume that Zer (𝔸 + 𝔹) ̸= ∅. As z⋆ ∈ Zer (𝔸 + 𝔹) if
+and only if there exists u⋆ ∈ Fix (𝕋DRS ) such that z⋆ = 𝕁α𝔹 (u⋆ ) [56], this implies Fix (𝕋DRS ) ̸= ∅.
+We defer the proofs to Appendix D.
+                                                                     −1 ∥𝔹ξ ∥
+Theorem 5.1 (APG* ≈OHM-DRS). With α ∈ 0, L1 , βk = k+2
+                                                    1
+                                                       , and ϵk = 1+L          , APG*
+                                                                           0
+                                                                  (k+1)2 (k+2)
+is O(1/k 2 )-MP to OHM-DRS; specifically, if ξk , zk are the APG* iterates and uk , wk are the
+iterates of OHM-DRS, and if ξ0 = u0 , then
+
+                                                      C(ξ0 )2
+               max ∥ξk − uk ∥2 , ∥zk − wk ∥2 ≤
+                  
+                                                                 ,      for k = 0, 1, . . . ,
+                                                     L2 (k + 1)2
+
+where C(ξ0 ) = L(∥ξ0 − ξ⋆ ∥ + 1) + ∥𝔹ξ⋆ ∥ and ξ⋆ = ΠFix (𝕋DRS ) (ξ0 ).
+
+
+Corollary 5.2 (Fast rate of APG* ). With the conditions and notations of Theorem 5.1,
+ξk → ξ⋆ and zk → 𝕁α𝔹 (ξ⋆ ) ∈ Zer (𝔸 + 𝔹) as k → ∞. Additionally,
+
+                                       (3 + αL)2 C(ξ0 )2
+                       ∥𝔾α (zk )∥2 ≤                     ,     for k = 0, 1, . . . .
+                                         α2 L2 (k + 1)2
+
+
+Corollary 5.3 (Oracle complexity of APG* ). With the conditions and notations of Theo-
+rem 5.1, the k-th inner loop of SM-EAG+ in APG* requires O (log (k (∥ξ0 − ξ⋆ ∥ + 1))) oracle
+calls of 𝔹 for k = 0, 1, . . . . This implies that the total computational cost needed to achieve
+∥𝔾α (zk )∥ ≤ ϵ is
+                                                                
+                                      C(ξ0 )               C(ξ0 )
+                                  O           C𝔸 + C𝔹 log            ,
+                                        ϵ                     ϵ
+
+where C𝔸 , C𝔹 are upper bounds on the respective costs of evaluating 𝕁α𝔸 and 𝔹.
+
+      We clarify some key differences between APG* and the prior work of Diakonikolas [25,
+Algorithm 3]. First, APG* is a more general proximal-gradient-type algorithm, while the prior
+algorithm of Diakonikolas is a projected-gradient-type algorithm. Second, APG* is an anytime
+algorithm, as it requires no a priori specification of the terminal accuracy or the total iteration
+count, while the prior algorithm is not an anytime
+                                                    algorithm, as it requires the terminal accuracy
+                                                C𝔸
+ϵ to be pre-specified. Third, APG has O ϵ + Cϵ𝔹 log 1ϵ total cost (hiding dependency on
+                                       *
+                                                              
+                                                  C𝔸 +C𝔹     1
+ξ0 , ξ⋆ and L), while the prior algorithm has O      ϵ   log ϵ total cost, as its inner loops require
+projections (corresponding to 𝕁α𝔸 ). Therefore, APG* offers a speedup for constrained minimax
+problems when the projection represents the dominant cost, i.e., when C𝔸 ≫ C𝔹 .
+    The initial point ξk for the inner loop SM-EAG+ (𝕀 + α𝔹 − ξk , ξk , ϵk ) of APG* is a crude
+choice. However, while a more careful warm starting may improve the iteration complexity
+by a constant factor, we do not believe it alone can eliminate the O(log(1/ϵ))-factor. In our
+subsequent analysis of APG    *
+                           P∞, we induce the MP property by solving the k-th inner loop up
+to accuracy ϵk satisfying k=0 kϵk < ∞. Therefore, unless a mechanism for finding a warm-
+starting point z satisfying ∥(𝕀 + α𝔹)(z) − ξk ∥ = O(ϵk ) = o(1/k) is proposed (which seems
+nontrivial), the O(log(1/ϵ))-factor will persist. Eliminating the logarithmic factor probably
+requires a new additional insight, and we leave it as a future work.
+
+                                                   14
+6    Numerical experiments
+In this section, we provide numerical experiments. First, we compare SM-EAG+ with EG and
+OG on the following bilinearly coupled minimax optimization problem:
+                                                                                                                         µ               µ
+                                         minimize maximize L(x, y) =                                                       ∥x∥2 + x⊺ Ay − ∥y∥2 .                                                                        (16)
+                                           x∈Rd                                    y∈Rd                                  2               2
+
+For completeness, we provide the precise forms of EG and OG in Appendix A. We generate A
+as a random matrix whose entries are i.i.d. Gaussians N (0, σ 2 ). We choose d = 50, σ = 103 ,
+and choose µ so that the condition number Lµ becomes 105 . EG and OG converge slowly with
+respect to both measures of convergence: ∥∇± L(xk , yk )∥2 and ∥(xk , yk ) − (x⋆ , y⋆ )∥2 (Fig. 2),
+while SM-EAG+ quickly reduces the both measures, despite the problem being ill-behaved with
+a large condition number.
+
+                                                                                              EG                                                             100                                             EG
+                    108                                                                       OG                                                                                                             OG
+                                                                                              SM-EAG+                                              10−1                                                      SM-EAG+
+
+
+
+
+                                                                                                                              ||(xk , yk ) − (x⋆ , y⋆ )||2
+                                                                                              Theory
+                    106                                                                                                                            10−2
+      ||∇± L(xk , yk )||2
+
+
+
+
+                                                                                                                                                   10−3
+                    104
+                                                                                                                                                   10−4
+                    102
+                                                                                                                                                   10−5
+
+                    100                                                                                                                            10−6
+                                                                                                                                                   10−7
+                            0    10000   20000     30000                        40000             50000                                                            0       10000    20000    30000   40000      50000
+                                         Iteration count                                                                                                                           Iteration count
+
+
+                            (a) Plot of ∥∇± L(xk , yk )∥2                                                                                                    (b) Plot of ∥(xk , yk ) − (x⋆ , y⋆ )∥2
+
+Figure 2: Comparison of EG, OG and SM-EAG+ on the problem (16). The condition number Lµ
+of the problem is 105 . We use the largest possible step-size for SM-EAG+, and tuned step-sizes
+for EG and OG (for best performance with respect to the gradient norm). In the left figure, the
+dashed black line labeled as “Theory” indicates the theoretical upper bound on ∥𝔹zk ∥2 from
+Theorem 4.2.
+
+
+                                                                                        105                                                      Mirror-prox
+                                                                                                                                                 Dual extrapolation
+                                                           ||1/α(JαA (zk − αBzk ))||2
+
+
+
+
+                                                                                                                                                 APG*
+                                                                                        103
+
+
+                                                                                        101
+
+
+                                                                               10−1
+
+
+                                                                               10−3
+
+                                                                                              0            10          100      1000                                   10000
+                                                                                                                Iteration count
+
+
+
+Figure 3: Comparison of mirror-prox, dual extrapolation and APG* on the problem Eq. (17),
+in terms of the squared forward-backward residual norm.
+
+   Next, we compare APG* with mirror-prox [71] and dual extrapolation (DE) [73] algorithms
+(designed for constrained smooth variational inequalities) on the following bilinearly coupled
+minimax optimization problem (matrix game), constrained on probability simplices:
+
+                                                       minimize
+                                                            n
+                                                                maximize
+                                                                    m
+                                                                         L(x, y) = x⊺ Ay.                                                                                                                               (17)
+                                                                        x∈∆                               y∈∆
+
+
+
+                                                                                                                 15
+For completeness, we provide the precise forms of mirror-prox and DE in Appendix A. We
+generate A ∈ Rn×m as a random matrix whose entries are i.i.d. Gaussians N (0, 1). We choose
+n = 2 × 103 and m = 103 , and we have L ≈ 75. For mirror-prox and APG* , the initial point
+is chosen randomly with i.i.d. Gaussian N (0, σ 2 ) entries with σ = 0.05. We use the step-size
+α = L1 for APG* and dual extrapolation, and α = √12L for mirror-prox (as recommended by
+the original papers). We observe fast O(1/k 2 ) convergence of APG* , and dual extrapolation is
+the slowest. For DE, there is an initial scale difference because, unlike the other two algorithms
+that use randomly initialized (x0 , y0 ), DE is initialized with s−1 = 0 in the dual space (so there
+is no explicit primal initial point), and the primal iterates (xk , yk ) are generated based on the
+dual iterates sk . The initial forward-backward residual norms from APG* and mirror-prox are
+different as the values of α are different (although (x0 , y0 ) is the same).
+
+
+7    Conclusion
+In this paper, we identified the novel merging path (MP) property among accelerated minimax
+algorithms, EAG [108], FEG [51], and APS [98], and the accelerated proximal algorithm OHM
+[36, 53, 44]. We then used this MP property to design new state-of-the-art algorithms.
+     We quickly mention that our results straightforwardly extend to the setup where the under-
+lying space Rd is replaced with an infinite-dimensional Hilbert space, since our proofs do not rely
+on the finite-dimensionality of Rd . In particular, the point convergence results of Corollary 3.3
+and Corollary 5.2 hold as strong convergence.
+     The MP property provides the insight that the four different accelerated algorithms, EAG,
+FEG, APS, and OHM, actually reduce to one single acceleration mechanism. However, elu-
+cidating the fundamental principle behind this single anchoring-based acceleration mechanism
+still remains an open problem, and further investigating the phenomenon from multiple different
+viewpoints, as was done for Nesterov’s acceleration, would be an interesting direction of future
+work.
+     The presence or applicability of the MP property in other setups is another interesting
+direction of future work. One question is whether other prior optimization algorithms exhibit the
+MP property. In our analysis, we found that anchoring induces the MP property, so algorithms
+using similar regularizations, such as the recursive regularization [4] or the Katyusha momentum
+[3], may be approximating some other conceptual algorithm. Another question is whether the
+MP property can be used to design new algorithms in other setups. The strategy of designing
+efficient algorithms by approximating a conceptual algorithm, in the MP sense, may be widely
+applicable in setups beyond non-stochastic minimax optimization.
+
+
+Acknowledgments
+This work was supported by the Samsung Science and Technology Foundation (project SSTF-
+BA2101-02), the National Research Foundation of Korea (NRF) grant funded by the Korean
+Government (RS-2024-00421203, RS-2024-00406127). We thank Jongmin Lee and Soheun Yi
+for providing valuable feedback.
+
+
+
+
+                                                16
+References
+ [1] K. Ahn and S. Sra. Understanding Nesterov’s acceleration via proximal point method.
+     Symposium on Simplicity in Algorithms, 2022.
+
+ [2] M. S. Alkousa, A. V. Gasnikov, D. M. Dvinskikh, D. A. Kovalev, and F. S. Stonyakin.
+     Accelerated methods for saddle-point problem. Computational Mathematics and Mathe-
+     matical Physics, 60(11):1787–1809, 2020.
+
+ [3] Z. Allen-Zhu. Katyusha: The first direct acceleration of stochastic gradient methods.
+     Journal of Machine Learning Research, 18(1):8194–8244, 2017.
+
+ [4] Z. Allen-Zhu. How to make the gradients small stochastically: Even faster convex and
+     nonconvex SGD. Neural Information Processing Systems, 2018.
+
+ [5] W. Azizian, I. Mitliagkas, S. Lacoste-Julien, and G. Gidel. A tight and unified analysis
+     of gradient-based methods for a whole spectrum of differentiable games. International
+     Conference on Artificial Intelligence and Statistics, 2020.
+
+ [6] B. Van Scoy, R. A. Freeman, and K. M. Lynch. The fastest known globally convergent first-
+     order method for minimizing strongly convex functions. IEEE Control Systems Letters, 2
+     (1):49–54, 2018.
+
+ [7] B. Barazandeh and M. Razaviyayn. Solving non-convex non-differentiable min-max games
+     using proximal gradient method. IEEE international Conference on Acoustics, Speech and
+     Signal Processing, 2020.
+
+ [8] H. H. Bauschke and P. L. Combettes. Convex Analysis and Monotone Operator Theory
+     in Hilbert Spaces. Springer International Publishing, 2 edition, 2017.
+
+ [9] A. Beck and M. Teboulle. A fast iterative shrinkage-thresholding algorithm for linear
+     inverse problems. SIAM Journal on Imaging Sciences, 2(1):183–202, 2009.
+
+[10] Y. Censor, A. Gibali, and S. Reich. Strong convergence of subgradient extragradient
+     methods for the variational inequality problem in Hilbert space. Optimization Methods
+     and Software, 26(4-5):827–845, 2011.
+
+[11] Y. Censor, A. Gibali, and S. Reich. The subgradient extragradient method for solving
+     variational inequalities in Hilbert space. Journal of Optimization Theory and Applications,
+     148(2):318–335, 2011.
+
+[12] A. Chambolle and Ch. Dossal. On the convergence of the iterates of the “fast iterative
+     shrinkage/thresholding algorithm”. Journal of Optimization Theory and Applications, 166
+     (3):968–982, 2015.
+
+[13] A. Chambolle and T. Pock. A first-order primal-dual algorithm for convex problems with
+     applications to imaging. Journal of Mathematical Imaging and Vision, 40(1):120–145,
+     2011.
+
+[14] A. Chambolle and T. Pock. On the ergodic convergence rates of a first-order primal-dual
+     algorithm. Mathematical Programming, 159(1):253–287, 2016.
+
+[15] T. Chavdarova, G. Gidel, F. Fleuret, and S. Lacoste-Julien. Reducing noise in GAN
+     training with variance reduced extragradient. Neural Information Processing Systems,
+     2019.
+
+                                              17
+[16] Y. Chen, G. Lan, and Y. Ouyang. Optimal primal-dual methods for a class of saddle
+     point problems. SIAM Journal on Optimization, 24(4):1779–1814, 2014.
+
+[17] Y. Chen, G. Lan, and Y. Ouyang. Accelerated schemes for a class of variational inequal-
+     ities. Mathematical Programming, 165(1):113–149, 2017.
+
+[18] P. L. Combettes and J.-C. Pesquet. Proximal splitting methods in signal processing. In
+     H. H. Bauschke, R. S. Burachik, P. L. Combettes, V. Elser, D. R. Luke, and H. Wolkowicz,
+     editors, Fixed-Point Algorithms for Inverse Problems in Science and Engineering, pages
+     185–212. Springer, 2011.
+
+[19] L. Condat. A primal-dual splitting method for convex optimization involving Lipschitzian,
+     proximable and linear composite terms. Journal of Optimization Theory and Applications,
+     158(2):460–479, 2013.
+
+[20] E. R. Csetnek, Y. Malitsky, and M. K. Tam. Shadow Douglas–Rachford splitting for
+     monotone inclusions. Applied Mathematics & Optimization, 80(3):665–678, 2019.
+
+[21] C. Daskalakis, A. Deckelbaum, and A. Kim. Near-optimal no-regret algorithms for zero-
+     sum games. Games and Economic Behavior, 92:327–348, 2015.
+
+[22] C. Daskalakis, A. Ilyas, V. Syrgkanis, and H. Zeng. Training GANs with optimism.
+     International Conference on Learning Representations, 2018.
+
+[23] I. Daubechies, M. Defrise, and C. De Mol. An iterative thresholding algorithm for lin-
+     ear inverse problems with a sparsity constraint. Communications on Pure and Applied
+     Mathematics, 57(11):1413–1457, 2004.
+
+[24] D. Davis and B. Grimmer. Proximally guided stochastic subgradient method for nons-
+     mooth, nonconvex problems. SIAM Journal on Optimization, 29(3):1908–1930, 2019.
+
+[25] J. Diakonikolas. Halpern iteration for near-optimal and parameter-free monotone inclusion
+     and strong solutions to variational inequalities. Conference on Learning Theory, 2020.
+
+[26] J. Diakonikolas and P. Wang. Potential function-based framework for making the gradients
+     small in convex and min-max optimization. SIAM Journal on Optimization, 2022.
+
+[27] J. Diakonikolas, C. Daskalakis, and M. Jordan. Efficient methods for structured
+     nonconvex-nonconcave min-max optimization. International Conference on Artificial In-
+     telligence and Statistics, 2021.
+
+[28] J. Douglas and H. H. Rachford. On the numerical solution of heat conduction problems
+     in two and three space variables. Transactions of the American Mathematical Society, 82
+     (2):421–439, 1956.
+
+[29] D. Drusvyatskiy. The proximal point method revisited. arXiv:1712.06038, 2017.
+
+[30] H. Edwards and A. J. Storkey. Censoring representations with an adversary. International
+     Conference on Learning Representations, 2016.
+
+[31] G. Gidel, H. Berard, G. Vignoud, P. Vincent, and S. Lacoste-Julien. A variational inequal-
+     ity perspective on generative adversarial networks. International Conference on Learning
+     Representations, 2019.
+
+                                             18
+[32] G. Gidel, R. A. Hemmat, M. Pezeshki, R. L. Priol, G. Huang, S. Lacoste-Julien, and
+     I. Mitliagkas. Negative momentum for improved game dynamics. International Conference
+     on Artificial Intelligence and Statistics, 2019.
+
+[33] I. Goodfellow, J. Pouget-Abadie, M. Mirza, B. Xu, D. Warde-Farley, S. Ozair,
+     A. Courville, and Y. Bengio. Generative adversarial nets. Neural Information Processing
+     Systems, 2014.
+
+[34] E. Gorbunov, N. Loizou, and G. Gidel. Extragradient method: O(1/K) last-iterate con-
+     vergence for monotone variational inequalities and connections with cocoercivity. Inter-
+     national Conference on Artificial Intelligence and Statistics, 2022.
+
+[35] O. Güler. New proximal point algorithms for convex minimization. SIAM Journal on
+     Optimization, 2(4):649–664, 1992.
+
+[36] B. Halpern. Fixed points of nonexpanding maps. Bulletin of the American Mathematical
+     Society, 73(6):957–961, 1967.
+
+[37] E. Y. Hamedani and N. S. Aybat. A primal-dual algorithm with line search for general
+     convex-concave saddle point problems. SIAM Journal on Optimization, 31(2):1299–1329,
+     2021.
+
+[38] B. He and X. Yuan. Convergence analysis of primal-dual algorithms for a saddle-point
+     problem: From contraction perspective. SIAM Journal on Imaging Sciences, 5(1):119–
+     149, 2012.
+
+[39] Y. He and R. D. C. Monteiro. An accelerated HPE-Type algorithm for a class of composite
+     convex-concave saddle-point problems. SIAM Journal on Optimization, 26(1):29–56, 2016.
+
+[40] Y.-G. Hsieh, F. Iutzeler, J. Malick, and P. Mertikopoulos. On the convergence of single-call
+     stochastic extra-gradient methods. Neural Information Processing Systems, 2019.
+
+[41] Y.-G. Hsieh, K. Antonakopoulos, and P. Mertikopoulos. Adaptive learning in continuous
+     games: Optimal regret bounds and convergence to Nash equilibrium. Conference on
+     Learning Theory, 2021.
+
+[42] Y. Jin, A. Sidford, and K. Tian. Sharper rates for separable minimax and finite sum
+     optimization via primal-dual extragradient methods. Conference on Learning Theory,
+     2022.
+
+[43] A. Juditsky, A. Nemirovski, and C. Tauvel. Solving variational inequalities with stochastic
+     mirror-prox algorithm. Stochastic Systems, 1(1):17–58, 2011.
+
+[44] D. Kim. Accelerated proximal point method for maximally monotone operators. Mathe-
+     matical Programming, 190(1–2):57–87, 2021.
+
+[45] D. Kim and J. A. Fessler. Optimized first-order methods for smooth convex minimization.
+     Mathematical Programming, 159(1-2):81–107, 2016.
+
+[46] D. Kim and J. A. Fessler. Optimizing the efficiency of first-order methods for decreasing
+     the gradient of smooth convex functions. Journal of Optimization Theory and Applica-
+     tions, 188(1):192–219, 2021.
+
+                                              19
+[47] O. Kolossoski and R. Monteiro.       An accelerated non-Euclidean hybrid proximal
+     extragradient-type algorithm for convex–concave saddle-point problems. Optimization
+     Methods and Software, 32(6):1244–1272, 2017.
+[48] W. Kong and R. D. C. Monteiro. An accelerated inexact proximal point method for
+     solving nonconvex-concave min-max problems. SIAM Journal on Optimization, 31(4):
+     2558–2585, 2021.
+[49] G. M. Korpelevich. The extragradient method for finding saddle points and other prob-
+     lems. Ekonomika i Matematicheskie Metody, 12(4):747–756, 1976.
+[50] J. Lee, C. Park, and E. K. Ryu. A geometric structure of acceleration and its role in
+     making gradients small fast. Neural Information Processing Systems, 2021.
+[51] S. Lee and D. Kim. Fast extra gradient methods for smooth structured nonconvex-
+     nonconcave minimax problems. Neural Information Processing Systems, 2021.
+[52] T. Liang and J. Stokes. Interaction matters: A note on non-asymptotic local convergence
+     of generative adversarial networks. International Conference on Artificial Intelligence and
+     Statistics, 2019.
+[53] F. Lieder. On the convergence rate of the Halpern-iteration. Optimization Letters, 15(2):
+     405–418, 2021.
+[54] T. Lin, C. Jin, and M. Jordan. On gradient descent ascent for nonconvex-concave minimax
+     problems. International Conference on Machine Learning, 2020.
+[55] T. Lin, C. Jin, and M. I. Jordan. Near-optimal algorithms for minimax optimization.
+     Conference on Learning Theory, 125, 2020.
+[56] P. L. Lions and B. Mercier. Splitting algorithms for the sum of two nonlinear operators.
+     SIAM Journal on Numerical Analysis, 16(6):964–979, 1979.
+[57] S. I. Lyashko, V. V. Semenov, and T. A. Voitova. Low-cost modification of Korpelevich’s
+     methods for monotone equilibrium problems. Cybernetics and Systems Analysis, 47(4):
+     631, 2011.
+[58] A. Madry, A. Makelov, L. Schmidt, D. Tsipras, and A. Vladu. Towards deep learning
+     models resistant to adversarial attacks. International Conference on Learning Represen-
+     tations, 2018.
+[59] Y. Malitsky. Golden ratio algorithms for variational inequalities. Mathematical Program-
+     ming, 184(1):383–410, 2020.
+[60] Y. Malitsky and M. K. Tam. A forward-backward splitting method for monotone inclu-
+     sions without cocoercivity. SIAM Journal on Optimization, 30(2):1451–1472, 2020.
+[61] Yu. Malitsky. Projected reflected gradient methods for monotone variational inequalities.
+     SIAM Journal on Optimization, 25(1):502–520, 2015.
+[62] Yu. V. Malitsky and V. V. Semenov. An extragradient algorithm for monotone variational
+     inequalities. Cybernetics and Systems Analysis, 50(2):271–277, 2014.
+[63] B. Martinet. Régularisation d’inéquations variationnelles par approximations successives.
+     Revue Française d’Informatique et de Recherche Opérationnelle, Série Rouge, 4(3):154–
+     158, 1970.
+
+                                              20
+[64] P. Mertikopoulos, B. Lecouat, H. Zenati, C.-S. Foo, V. Chandrasekhar, and G. Piliouras.
+     Optimistic mirror descent in saddle-point problems: Going the extra (gradient) mile.
+     International Conference on Learning Representations, 2019.
+
+[65] G. J. Minty. Monotone (nonlinear) operators in Hilbert space. Duke Mathematical Journal,
+     29(3):341–346, 1962.
+
+[66] A. Mokhtari, A. Ozdaglar, and S. Pattathil. A unified analysis of extra-gradient and
+     optimistic gradient methods for saddle point problems: Proximal point approach. Inter-
+     national Conference on Artificial Intelligence and Statistics, 2020.
+
+[67] A. Mokhtari, A. E. Ozdaglar, and S. Pattathil. Convergence rate of O(1/k) for optimistic
+     gradient and extragradient methods in smooth convex-concave saddle point problems.
+     SIAM Journal on Optimization, 30(4):3230–3251, 2020.
+
+[68] R. D. C. Monteiro and B. F. Svaiter. On the complexity of the hybrid proximal extragra-
+     dient method for the iterates and the ergodic mean. SIAM Journal on Optimization, 20
+     (6):2755–2787, 2010.
+
+[69] R. D. C. Monteiro and B. F. Svaiter. Complexity of variants of Tseng’s modified F-B
+     splitting and Korpelevich’s methods for hemivariational inequalities with applications to
+     saddle-point and convex optimization problems. SIAM Journal on Optimization, 21(4):
+     1688–1720, 2011.
+
+[70] J. Moreau. Proximité et dualité dans un espace hilbertien.      Bulletin de la Société
+     Mathématique de France, 93:273–299, 1965.
+
+[71] A. Nemirovski. Prox-method with rate of convergence O(1/t) for variational inequalities
+     with Lipschitz continuous monotone operators and smooth convex-concave saddle point
+     problems. SIAM Journal on Optimization, 15(1):229–251, 2004.
+
+[72] Y. Nesterov. A method of solving a convex programming problem with convergence rate
+     O(1/k 2 ). Doklady Akademii Nauk SSSR, 269(3):543–547, 1983.
+
+[73] Y. Nesterov. Dual extrapolation and its applications to solving variational inequalities
+     and related problems. Mathematical Programming, 109(2):319–344, 2007.
+
+[74] Y. Nesterov and L. Scrimali. Solving strongly monotone variational and quasi-variational
+     inequalities. Discrete & Continuous Dynamical Systems, 31(4):1383–1396, 2011.
+
+[75] Y. Nesterov, A. Gasnikov, S. Guminov, and P. Dvurechensky. Primal–dual accelerated
+     gradient methods with small-dimensional relaxation oracle. Optimization Methods and
+     Software, pages 1–38, 2020.
+
+[76] Yu. Nesterov. Smooth minimization of non-smooth functions. Mathematical Programming,
+     103(1):127–152, 2005.
+
+[77] M. A. Noor. New extragradient-type methods for general variational inequalities. Journal
+     of Mathematical Analysis and Applications, 277(2):379–394, 2003.
+
+[78] D. M. Ostrovskii, A. Lowy, and M. Razaviyayn. Efficient search of first-order Nash equi-
+     libria in nonconvex-concave smooth min-max problems. SIAM Journal on Optimization,
+     31(4):2508–2538, 2021.
+
+                                             21
+[79] Y. Ouyang and Y. Xu. Lower complexity bounds of first-order methods for convex-concave
+     bilinear saddle-point problems. Mathematical Programming, 185(1):1–35, 2021.
+
+[80] C. Park, J. Park, and E. K. Ryu. Factor-$$\sqrt{2}$$Acceleration of Accelerated Gradient
+     Methods. Applied Mathematics & Optimization, 88(3):77, 2023.
+
+[81] J. Park and E. K. Ryu. Exact optimal accelerated complexity for fixed-point iterations.
+     International Conference on Machine Learning, 2022.
+
+[82] W. Peng, Y.-H. Dai, H. Zhang, and L. Cheng. Training GANs with centripetal accelera-
+     tion. Optimization Methods and Software, 35(5):955–973, 2020.
+
+[83] L. D. Popov. A modification of the Arrow–Hurwicz method for search of saddle points.
+     Mathematical Notes of the Academy of Sciences of the USSR, 28(5):845–848, 1980.
+
+[84] H. Rafique, M. Liu, Q. Lin, and T. Yang. Weakly-convex–concave min–max optimization:
+     Provable algorithms and applications in machine learning. Optimization Methods and
+     Software, pages 1–35, 2021.
+
+[85] A. Rakhlin and K. Sridharan. Online learning with predictable sequences. Conference on
+     Learning Theory, 2013.
+
+[86] R. T. Rockafellar. Convex Analysis. Princeton University Press, 1970.
+
+[87] R. T. Rockafellar. Monotone operators associated with saddle-functions and minimax
+     problems. In F. E. Browder, editor, Nonlinear Functional Analysis, Part 1, volume 18 of
+     Proceedings of Symposia in Pure Mathematics, pages 241–250. American Mathematical
+     Society, 1970.
+
+[88] R. T. Rockafellar. Monotone operators and the proximal point algorithm. SIAM Journal
+     on Control and Optimization, 14(5):877–898, 1976.
+
+[89] E. K. Ryu and W. Yin. Large-Scale Convex Optimization via Monotone Operators. Cam-
+     bridge University Press, 2022.
+
+[90] E. K. Ryu, K. Yuan, and W. Yin. ODE analysis of stochastic gradient methods with
+     optimism and anchoring for minimax problems and GANs. arXiv:1905.10899, 2019.
+
+[91] A. Sinha, H. Namkoong, and J. C. Duchi. Certifying some distributional robustness with
+     principled adversarial training. International Conference on Learning Representations,
+     2018.
+
+[92] M. V. Solodov and B. F. Svaiter. A hybrid approximate extragradient – proximal point
+     algorithm using the enlargement of a maximal monotone operator. Set-Valued Analysis,
+     7(4):323–345, 1999.
+
+[93] V. Syrgkanis, A. Agarwal, H. Luo, and R. E. Schapire. Fast convergence of regularized
+     learning in games. Neural Information Processing Systems, 2015.
+
+[94] A. Taylor and Y. Drori. An optimal gradient method for smooth strongly convex mini-
+     mization. Mathematical Programming, 199(1):557–594, 2023.
+
+[95] K. K. Thekumparampil, P. Jain, P. Netrapalli, and S. Oh. Efficient algorithms for smooth
+     minimax optimization. Neural Information Processing Systems, 2019.
+
+                                            22
+ [96] K. K. Thekumparampil, N. He, and S. Oh. Lifted primal-dual method for bilinearly
+      coupled smooth minimax optimization. International Conference on Artificial Intelligence
+      and Statistics, 2022.
+
+ [97] V. Tominin, Y. Tominin, E. Borodich, D. Kovalev, A. Gasnikov, and P. Dvurechensky.
+      On accelerated methods for saddle-point problems with composite structure. Computer
+      Research and Modeling, 15(2):433–467, 2023.
+
+ [98] Q. Tran-Dinh and Y. Luo. Halpern-type accelerated and splitting algorithms for monotone
+      inclusions. arXiv:2110.08150, 2021.
+
+ [99] I. Tsaknakis, M. Hong, and S. Zhang. Minimax problems with coupled linear constraints:
+      Computational complexity and duality. SIAM Journal on Optimization, 33(4):2675–2702,
+      2023.
+
+[100] P. Tseng. A modified forward-backward splitting method for maximal monotone map-
+      pings. SIAM Journal on Control and Optimization, 38(2):431–446, 2000.
+
+[101] B. C. Vũ. A splitting algorithm for dual monotone inclusions involving cocoercive opera-
+      tors. Advances in Computational Mathematics, 38(3):667–681, 2013.
+
+[102] Y. Wang and J. Li. Improved algorithms for convex-concave minimax optimization. Neural
+      Information Processing Systems, 2020.
+
+[103] G. Xie, Y. Han, and Z. Zhang. DIPPA: An improved method for bilinear saddle point
+      problems. arXiv:2103.08270, 2021.
+
+[104] A. K. Yadav, S. Shah, Z. Xu, D. W. Jacobs, and T. Goldstein. Stabilizing adversarial nets
+      with prediction methods. International Conference on Learning Representations, 2018.
+
+[105] M. Yan. A new primal-dual algorithm for minimizing the sum of three functions with a
+      linear operator. Journal of Scientific Computing, 76(3):1698–1717, 2018.
+
+[106] J. Yang, S. Zhang, N. Kiyavash, and N. He. A catalyst framework for minimax optimiza-
+      tion. Neural Information Processing Systems, 2020.
+
+[107] J. Yang, A. Orvieto, A. Lucchi, and N. He. Faster single-loop algorithms for minimax
+      optimization without strong concavity. International Conference on Artificial Intelligence
+      and Statistics, 2022.
+
+[108] T. Yoon and E. K. Ryu. Accelerated algorithms for smooth convex-concave minimax
+      problems with O(1/k 2 ) rate on squared gradient norm. International Conference on
+      Machine Learning, 2021.
+
+[109] J. Zhang, M. Hong, and S. Zhang. On lower iteration complexity bounds for the convex
+      concave saddle point problems. Mathematical Programming, 194(1-2):901–935, 2022.
+
+[110] K. Zhou, L. Tian, A. M.-C. So, and J. Cheng. Practical schemes for finding near-stationary
+      points of convex finite-sums. International Conference on Artificial Intelligence and Statis-
+      tics, 2022.
+
+
+
+
+                                                23
+A     Algorithm specifications
+A.1    Classical minimax optimization algorithms
+Simultaneous gradient descent-ascent for smooth minimax optimization is defined by
+                                     xk+1 = xk − α∇x L(xk , yk )
+                                     yk+1 = yk + α∇y L(xk , yk )
+where α > 0 is the step-size. Writing zk = (xk , yk ) and using the ∇± notation, we can more
+concisely rewrite this as
+                                      zk+1 = zk − α∇± L(zk ).
+The extragradient (EG) algorithm is defined by
+                                   zk+1/2 = zk − α∇± L(zk ),
+                                     zk+1 = zk − α∇± L(zk+1/2 ).
+The optimistic gradient descent (OG) algorithm is defined by
+                      zk+1 = zk − α∇± L(zk ) − α (∇± L(zk ) − ∇± L(zk−1 )) ,
+where z0 = z−1 are the starting points.
+
+A.2    Nesterov’s AGM and its momentum parameters
+We specify the versions of Nesterov’s AGM used in Fig. 1a. Given f : Rn → R which is convex
+and L-smooth, AGM takes the form
+                                 xk+1 = yk − α∇f (yk )
+                                               tk − 1
+                                 yk+1 = xk+1 +         (xk+1 − xk )
+                                                tk+1
+for k = 0, 1, . . . . It converges at the accelerated rate f (xk ) − f⋆ ≤ O(∥x0 − x⋆ ∥2 /k 2 ) provided
+that α ≤ L1 and t2k+1 − tk+1 − t2k ≤ 0 [72, 12]. In particular, we take tk = k+a−1   a     (which was
+used in [12]) and refer to a as the momentum parameter in Fig. 1a.
+
+A.3    Algorithms for constrained minimax problems
+We specify the algorithms compared with APG* in Section 6. We denote by Z = X × Y the
+constraint set in Eq. (1). The mirror-prox [71] algorithm is defined by:
+                                zk+1/2 = ΠZ (zk − α∇± L(zk ))
+                                                                     
+                                  zk+1 = ΠZ zk − α∇± L(zk+1/2 )
+            1 Pk
+and z k := k+1  j=0 zj . The final output of the algorithm is the averaged iterate z k . The dual
+extrapolation (DE) [73] algorithm is defined by:
+                                     uk = ΠZ (zc + αsk−1 )
+                                     zk = ΠZ (uk − α∇± L(uk ))
+                                     sk = sk−1 − ∇± L(zk )
+             1 Pk
+and z k := k+1    j=0 zj , where s−1 = 0 and zc ∈ Z is a center point, fixed throughout the
+algorithm iterations. The final output of the algorithm is the averaged iterate z k .
+
+                                                  24
+B     Omitted proofs for Section 3
+B.1    Proof of Lemma 3.2
+             2                                                             2
+Let Vk = αk2 ∥𝔹zk ∥2 + k⟨𝔹zk , zk − z0 ⟩ + 2α 1
+                                                ∥z0 − z⋆ ∥2 . Then Vk ≥ αk2 ∥𝔹zk ∥2 + k⟨𝔹zk , z⋆ − z0 ⟩ +
+ 1           2
+2α ∥z0 − z⋆ ∥ ≥ 0 for k = 0, 1, . . . , where the first inequality follows from monotonicity of 𝔹 and
+the second one is Young’s inequality. Next, we show
+                             α(1 − α2 L2 )
+           Vk − Vk+1 ≥                     ∥k𝔹zk − (k + 1)𝔹zk+1/2 ∥2 ,         for k = 0, 1, . . . .   (18)
+                                  2
+Once this is established, the conclusion follows by taking N → ∞ in
+                         N
+         α(1 − α2 L2 ) X                                                1
+                         ∥k𝔹zk − (k + 1)𝔹zk+1/2 ∥2 ≤ V0 − VN +1 ≤ V0 =    ∥z0 − z⋆ ∥2 .
+              2                                                        2α
+                        k=0
+
+   First, consider the case k = 0, where z1/2 = z0 and z1 = z0 − α𝔹z1/2 = z0 − α𝔹z0 ,
+      1
+V0 = 2α ∥z0 − z⋆ ∥2 , and
+                                 α                                1
+                             V1 =  ∥𝔹z1 ∥2 + ⟨𝔹z1 , z1 − z0 ⟩ +     ∥z0 − z⋆ ∥2
+                                 2                               2α
+                                 α                              1
+                                = ∥𝔹z1 ∥2 − α⟨𝔹z1 , 𝔹z0 ⟩ +       ∥z0 − z⋆ ∥2 .
+                                 2                             2α
+Because 𝔹 is L-Lipschitz,
+
+                              ∥𝔹z1 − 𝔹z0 ∥2 ≤ L2 ∥z1 − z0 ∥2 = α2 L2 ∥𝔹z0 ∥2
+
+and by multiplying α2 on both sides and rearranging terms, we get
+          α                            α                       α
+            ∥𝔹z1 ∥2 − α⟨𝔹z1 , 𝔹z0 ⟩ ≤ − (1 − α2 L2 )∥𝔹z0 ∥2 = − (1 − α2 L2 )∥𝔹z1/2 ∥2 .
+          2                            2                       2
+        1
+Adding 2α ∥z0 − z⋆ ∥2 to both sides, we obtain (18) for k = 0.
+  Now suppose k ≥ 1. For FEG, we have the identities
+
+                                    zk+1 − z0 = (1 − βk )(zk − z0 ) − α𝔹zk+1/2
+                                 zk − zk+1 = βk (zk − z0 ) + α𝔹zk+1/2
+                              zk+1/2 − zk+1 = α𝔹zk+1/2 − α(1 − βk )𝔹zk
+           1
+with βk = k+1 . Therefore, using monotonicity of 𝔹, we obtain
+
+            Vk − Vk+1
+             ≥ Vk − Vk+1 − k(k + 1)⟨zk − zk+1 , 𝔹zk − 𝔹zk+1 ⟩
+                 αk 2
+             =        ∥𝔹zk ∥2 + k⟨𝔹zk , zk − z0 ⟩
+                   2
+                    α(k + 1)2
+                 −            ∥𝔹zk+1 ∥2 − (k + 1)⟨𝔹zk+1 , (1 − βk )(zk − z0 ) − α𝔹zk+1/2 ⟩
+                        2
+                 − k(k + 1)⟨βk (zk − z0 ) + α𝔹zk+1/2 , 𝔹zk − 𝔹zk+1 ⟩
+                 αk 2
+             =        ∥𝔹zk ∥2 − αk(k + 1)⟨𝔹zk , 𝔹zk+1/2 ⟩
+                  2                                                                                    (19)
+                                                  α(k + 1)2
+                 + α(k + 1)2 ⟨𝔹zk+1/2 , 𝔹zk+1 ⟩ −           ∥𝔹zk+1 ∥2 .
+                                                      2
+
+                                                     25
+                                    2
+Now multiplying the factor α(k+1)
+                              2   to the inequality
+                    0 ≤ L2 ∥zk+1/2 − zk+1 ∥2 − ∥𝔹zk+1/2 − 𝔹zk+1 ∥2
+                                                   2
+                                             k
+                        = α2 L2 𝔹zk+1/2 −       𝔹zk − ∥𝔹zk+1/2 − 𝔹zk+1 ∥2 .
+                                            k+1
+and subtracting from (19) gives
+Vk − Vk+1
+     αk 2                                                                      α(k + 1)2
+ ≥        ∥𝔹zk ∥2 − αk(k + 1)⟨𝔹zk , 𝔹zk+1/2 ⟩ + α(k + 1)2 ⟨𝔹zk+1/2 , 𝔹zk+1 ⟩ −           ∥𝔹zk+1 ∥2
+       2                                                                  !        2
+                                                 2
+        α(k + 1)2                      k
+     −              α2 L2 𝔹zk+1/2 −        𝔹zk − ∥𝔹zk+1/2 − 𝔹zk+1 ∥2
+            2                        k+1
+    α(1 − α2 L2 )
+ =                ∥k𝔹zk − (k + 1)𝔹zk+1/2 ∥2 ,
+          2
+which is the desired result.
+
+B.2      Remaining proof of Theorem 3.1
+We first consider the case of EAG. As before, denote the Halpern iterates by {wk }k=0,1,... and
+the EAG iterates by {zk }k=0,1,... . Then in the exact same way as before, we have
+                                                       
+       zk+1 − wk+1 = βk z0 + (1 − βk )zk − α𝔹zk+1/2 − (βk w0 + (1 − βk )wk − α𝔹wk+1 )
+                                                                
+                    = (1 − βk )(zk − wk ) + α 𝔹wk+1 − 𝔹zk+1/2 ,
+and
+      ∥zk+1 − wk+1 ∥2 = (1 − βk )2 ∥zk − wk ∥2 + 2 α(1 − βk )(zk − wk ), 𝔹wk+1 − 𝔹zk+1/2
+                                                           2                                  (20)
+                           + α2 𝔹wk+1 − 𝔹zk+1/2                .
+The different part is
+                        zk+1/2 − wk+1 = (1 − βk )(zk − wk ) − α𝔹zk + α𝔹wk+1
+so that inner product term in (20) is rewritten as
+                 2 α(1 − βk )(zk − wk ), 𝔹wk+1 − 𝔹zk+1/2
+                  = 2 α(zk+1/2 − wk+1 ) + α2 (𝔹zk − 𝔹wk+1 ) , 𝔹wk+1 − 𝔹zk+1/2
+                  ≤ 2α2 𝔹zk − 𝔹wk+1 , 𝔹wk+1 − 𝔹zk+1/2 .
+Combining this with (20), we obtain
+∥zk+1 − wk+1 ∥2
+                                                                                              2
+≤ (1 − βk )2 ∥zk − wk ∥2 + 2α2 𝔹zk − 𝔹wk+1 , 𝔹wk+1 − 𝔹zk+1/2 + α2 𝔹wk+1 − 𝔹zk+1/2
+= (1 − βk )2 ∥zk − wk ∥2 − α2 ∥𝔹wk+1 ∥2 + 2α2 ⟨𝔹zk , 𝔹wk+1 ⟩ −2α2 ⟨𝔹zk , 𝔹zk+1/2 ⟩ + α2 ∥𝔹zk+1/2 ∥2
+                         |              {z                }
+                                        ≤α2 ∥𝔹zk ∥2
+
+                  1
+Plugging in βk = k+1 and multiplying both sides by (k + 1)2 gives
+
+             (k + 1)2 ∥zk+1 − wk+1 ∥2 ≤ k 2 ∥zk − wk ∥2 + α2 (k + 1)2 ∥𝔹zk − 𝔹zk+1/2 ∥2 .
+Now, with the following Lemma B.1, the proof for EAG is done.
+
+
+                                                      26
+Lemma B.1. Let 𝔹 : Rd → Rd be monotone and L-Lipschitz and assume z⋆ ∈ Zer 𝔹 exists.
+                                                     1
+Let {zk }k=0,1,... be the iterates of EAG with βk = k+1 . Then there exist constants η ∈ (0, 1)
+and C > 0, not depending on L, such that for α ∈ 0, Lη ,
+                                                          
+
+                      ∞
+                      X                              C
+                        (k + 1)2 ∥𝔹zk − 𝔹zk+1/2 ∥2 ≤ 2 ∥z0 − z⋆ ∥2 < ∞.
+                                                    α
+                      k=0
+
+
+   For the case of APS, proceeding with 𝔹zk , 𝔹zk+1/2 replaced by 𝔹vk , 𝔹vk+1 respectively, we
+obtain
+
+             (k + 1)2 ∥zk+1 − wk+1 ∥2 ≤ k 2 ∥zk − wk ∥2 + α2 (k + 1)2 ∥𝔹vk − 𝔹vk+1 ∥2
+
+and the proof is complete once we show:
+
+Lemma B.2. Let 𝔹 : Rd → Rd be monotone and L-Lipschitz and assume z⋆ ∈ Zer 𝔹 exists.
+                                                     1
+Let {zk }k=0,1,... be the iterates of APS with βk = k+1 . Then there exist constants η ∈ (0, 1)
+and C > 0, not depending on L, such that for α ∈ 0, Lη ,
+                                                          
+
+                       ∞
+                       X                                  C
+                             (k + 1)2 ∥𝔹vk − 𝔹vk+1 ∥2 ≤      ∥z0 − z⋆ ∥2 < ∞.
+                                                          α2
+                       k=0
+
+
+  The proofs of Lemmas B.1 and B.2 follow from arguments similar to that of Lemma 3.2.
+However, they turn out to be more lengthy, so we defer their proofs to Appendix E.
+
+
+C     Omitted proofs for Section 4
+C.1    Proof of Lemma 4.4
+                                                             1
+                                                                         ∥z0 − z⋆ ∥2 , and
+                                                                     
+When k = 0, we have z1/2 = z0 , z1 = z0 − α𝔹z0 , V0 =       2α + µ
+                                                                   
+                  α      2                                     1
+              V1 = ∥𝔹z1 ∥ + ⟨𝔹z1 − µ(z1 − z0 ), z1 − z0 ⟩ +      + µ ∥z0 − z⋆ ∥2
+                  2                                           2α
+                                                                   
+                  α      2                   2        2       1
+                 = ∥𝔹z1 ∥ − α⟨𝔹z1 , 𝔹z0 ⟩ − α µ∥𝔹z0 ∥ +          + µ ∥z0 − z⋆ ∥2 .
+                  2                                          2α
+
+Because 𝔹 is L-Lipschitz,
+
+       0 ≤ L2 ∥z1 − z0 ∥2 − ∥𝔹z1 − 𝔹z0 ∥2 = (α2 L2 − 1)∥𝔹z0 ∥2 + 2⟨𝔹z0 , 𝔹z1 ⟩ − ∥𝔹z1 ∥2 .
+
+Therefore,
+                                           α
+    V0 − V1 = α2 µ∥𝔹z0 ∥2 + α⟨𝔹z0 , 𝔹z1 ⟩ − ∥𝔹z1 ∥2
+                                           2
+              α              2 2         2  α
+                                              (α2 L2 − 1)∥𝔹z0 ∥2 + 2⟨𝔹z0 , 𝔹z1 ⟩ − ∥𝔹z1 ∥2
+                                                                                           
+            = (1 + 2αµ − α L )∥𝔹z0 ∥ +
+              2                             2
+              α              2 2         2
+            ≥ (1 + 2αµ − α L )∥𝔹z0 ∥
+              2
+              α
+            = (1 + 2αµ − α2 L2 )∥η0 𝔹z0 − 𝔹z1/2 ∥2
+              2
+where the last equality holds because η0 = 0 and z1/2 = z0 .
+
+                                                27
+   Now suppose k ≥ 1. For SM-EAG+, we have the identities
+                                   zk+1 − z0 = (1 − βk )(zk − z0 ) − α𝔹zk+1/2                 (21)
+                                   zk − zk+1 = βk (zk − z0 ) + α𝔹zk+1/2                       (22)
+                             zk+1/2 − zk+1 = α𝔹zk+1/2 − ηk α𝔹zk .                             (23)
+                        1
+Note that βk = Pk              j
+                                   satisfies
+                    j=0 (1+2αµ)
+
+                       k                                  k−1
+                1    X                            X                  1 + 2αµ
+                   =   (1 + 2αµ)j = 1 + (1 + 2αµ)   (1 + 2αµ)j = 1 +
+                βk                                                     βk−1
+                      j=0                                 j=0
+                                  1        1
+for k = 1, 2, . . . , so qk = (1+2αµ)k−1 β
+                                          k−1
+                                              satisfies the recurrence relation
+                                       qk βk−1        qk 1          qk
+                              qk+1 =                =           =                             (24)
+                                       βk (1 + 2αµ)   βk β1 − 1   1 − βk
+                                                             k
+
+                                                  1−βk
+for k = 1, 2, . . . . Additionally, because ηk = 1+2αµ and pk = ηk2βαqk k ,
+                     α(1 − βk )qk
+                                              
+                                     α 1            qk      α 1             α
+          pk =                    =         −1           =          qk = (1 + 2αµ)k−1 qk2     (25)
+                   2βk (1 + 2αµ)     2 βk        1 + 2αµ    2 βk−1          2
+and
+                        ηk+1 αqk+1      αqk+1 1 − βk+1      αqk        1 − βk+1
+                pk+1 =               =                 =
+                          2βk+1         2βk+1 1 + 2αµ    2(1 − βk ) (1 + 2αµ)βk+1
+                                                      
+                           αqk         1        1               αqk
+                      =                            −1 =                  .                    (26)
+                        2(1 − βk ) 1 + 2αµ βk+1            2βk (1 − βk )
+The identities (24) through (26) will be useful for the subsequent arguments.
+   Using µ-strong monotonicity of 𝔹 and the identities (21), (22) and (24), we have
+                                    qk
+         Vk − Vk+1 ≥ Vk − Vk+1 − ⟨zk − zk+1 , 𝔹zk − 𝔹zk+1 − µ(zk − zk+1 )⟩
+                                    βk
+                     = pk ∥𝔹zk ∥ + qk ⟨𝔹zk , zk − z0 ⟩ − qk µ∥zk − z0 ∥2
+                                2
+
+                         − pk+1 ∥𝔹zk+1 ∥2 − qk+1 ⟨𝔹zk+1 , (1 − βk )(zk − z0 ) − α𝔹zk+1/2 ⟩
+                                                                      2
+                        + qk+1 µ (1 − βk )(zk − z0 ) − α𝔹zk+1/2
+                           qk
+                        − ⟨βk (zk − z0 ) + α𝔹zk+1/2 , 𝔹zk − 𝔹zk+1 ⟩
+                           βk
+                           qk µ                              2
+                        +         βk (zk − z0 ) + α𝔹zk+1/2
+                            βk
+                                                                              
+                                   2    αqk                       2   qk
+                      = pk ∥𝔹zk ∥ −         ⟨𝔹zk , 𝔹zk+1/2 ⟩ + µα        + qk+1 ∥𝔹zk+1/2 ∥2
+                                        βk                            βk
+                                          
+                                qk
+                        +α          + qk+1 ⟨𝔹zk+1/2 , 𝔹zk+1 ⟩ − pk+1 ∥𝔹zk+1 ∥2
+                                βk
+                        + 2µα (qk − (1 − βk )qk+1 ) ⟨𝔹zk+1/2 , zk − z0 ⟩
+                         + (qk − (1 − βk )qk+1 )⟨𝔹zk+1 , zk − z0 ⟩
+                         + µ(1 − βk )((1 − βk )qk+1 − qk )∥zk − z0 ∥2
+                                         αqk                      µα2 qk
+                      = pk ∥𝔹zk ∥2 −         ⟨𝔹zk , 𝔹zk+1/2 ⟩ +              ∥𝔹zk+1/2 ∥2
+                                         βk                     βk (1 − βk )                  (27)
+                                 αqk
+                         +                ⟨𝔹zk+1/2 , 𝔹zk+1 ⟩ − pk+1 ∥𝔹zk+1 ∥2 .
+                             βk (1 − βk )
+
+                                                     28
+Now because 𝔹 is L-Lipschitz,
+
+              ∥𝔹zk+1/2 − 𝔹zk+1 ∥2 ≤ L2 ∥zk+1/2 − zk+1 ∥2 = L2 ∥α𝔹zk+1/2 − ηk α𝔹zk ∥2             (28)
+
+where we applied the identity (23) for the last equality. Multiplying pk+1 to (28) and then
+subtracting it from (27), we obtain
+                                                                          
+                                 2 2 2          2     αqk              2 2
+       Vk − Vk+1 ≥ (pk − pk+1 ηk α L )∥𝔹zk ∥ −             − 2pk+1 ηk α L ⟨𝔹zk , 𝔹zk+1/2 ⟩
+                                                      βk
+                           µα2 qk
+                                                        
+                    +                 + pk+1 (1 − α2 L2 ) ∥𝔹zk+1/2 ∥2
+                         βk (1 − βk )
+                                             
+                             αqk
+                    +                 − 2pk+1 ⟨𝔹zk+1/2 , 𝔹zk+1 ⟩
+                         βk (1 − βk )
+                     α(1 + 2αµ − α2 L2 )qk
+                  =                         ∥ηk 𝔹zk − 𝔹zk+1/2 ∥2                           (29)
+                          2βk (1 − βk )
+                                                               1−βk
+where the last equality follows from the identities ηk = 1+2αµ      , pk = ηk2βαqk k and (26). As
+                               √
+                                 L2 +µ2 +µ
+1 + 2αµ − α2 L2 ≥ 0 if 0 < α ≤     L2
+                                           , for this range of α,
+
+                             α(1 + 2αµ − α2 L2 )
+               Vk − Vk+1 ≥                       (1 + 2αµ)k ∥ηk 𝔹zk − 𝔹zk+1/2 ∥2 ≥ 0,
+                                     2
+                   qk         q           k
+where we used βk (1−β k)    βk > (1 + 2αµ) . Now it only remains to show that VN ≥ 0 holds
+                         = k+1
+for any N ∈ N; if that is the case, then
+       N
+       X                                                  2
+             (1 + 2αµ)k ∥ηk 𝔹zk − 𝔹zk+1/2 ∥2 ≤                        (V0 − VN +1 )
+                                                  α(1 + 2αµ − α2 L2 )
+       k=0
+                                             
+                    2                    1                        1 + 2αµ
+          ≤                                + µ ∥z0 − z⋆ ∥2 = 2                   ∥z0 − z⋆ ∥2 ,
+            α(1 + 2αµ − α2 L2 )         2α                  α (1 + 2αµ − α2 L2 )
+
+and taking N → ∞, we obtain (8).
+   Consider the following shifted version of Vk :
+                           
+                       1
+        Wk = V k −       + µ ∥z0 − z⋆ ∥2 = pk ∥𝔹zk ∥2 + qk ⟨𝔹zk − µ(zk − z0 ), zk − z0 ⟩.
+                      2α
+
+Because 𝔹 is µ-strongly monotone, if λ ≥ 0 and λ ̸= qk ,
+
+        Wk ≥ pk ∥𝔹zk ∥2 + qk ⟨𝔹zk − µ(zk − z0 ), zk − z0 ⟩ − λ⟨𝔹zk − µ(zk − z⋆ ), zk − z⋆ ⟩
+              = pk ∥𝔹zk ∥2 + ⟨𝔹zk , (qk − λ)zk − qk z0 + λz⋆ ⟩
+                + µ(λ − qk )∥zk ∥2 + 2µ⟨zk , qk z0 − λz⋆ ⟩ − qk µ∥z0 ∥2 + λµ∥z⋆ ∥2
+              = pk ∥𝔹zk ∥2 + ⟨𝔹zk , (qk − λ)zk − qk z0 + λz⋆ ⟩
+                      µ                                     qk λµ
+                +         ∥(λ − qk )zk + qk z0 − λz⋆ ∥2 −         ∥z0 − z⋆ ∥2 .
+                   λ − qk                                  λ − qk
+                                                                                             2
+                        λ − qk                       λ − qk
+                              
+                                               µ
+              = pk −             ∥𝔹zk ∥2 +                   𝔹zk − (λ − qk )zk − qk z0 + λz⋆
+                          4µ                λ − qk      2µ
+                    qk λµ
+                −         ∥z0 − z⋆ ∥2 .
+                   λ − qk
+
+                                                    29
+       qk λµ
+Adding λ−q k
+             ∥z0 − z⋆ ∥2 to the both sides and taking λ = qk + 4µpk , we obtain
+
+                                            qk2
+                                                    
+                            0 ≤ Wk +            + µqk ∥z0 − z⋆ ∥2 = Vk ,
+                                           4pk
+where the last equality follows by applying (25) and then plugging in the expression qk =
+    1        1        1      (1+2αµ)k −1
+(1+2αµ)k−1 βk−1
+                = (1+2αµ)k−1     2αµ     .
+
+C.2    Proof of Lemma 4.5
+Note that (12) is an immediate consequence of Eq. (11) because
+                                                             1
+                   ∥wk+1 − w⋆ ∥2 = ∥𝕋(wk+1/2 ) − w⋆ ∥2 ≤        ∥w     − w⋆ ∥ 2 .
+                                                             γ 2 k+1/2
+When k = 0, we have w1/2 = w0 , so both (11) and (12) hold trivially. Now assume that (11)
+                                                                  Pk        2
+                                                                           j
+                                                                     j=0 γ
+and (12) holds for some k ≥ 0. To simplify the notation, we write Pk 2j         = ρk . Then
+                                                                           j=0 γ
+
+
+      ∥wk+3/2 − w⋆ ∥2 = ∥βk+1 w0 + (1 − βk+1 )wk+1 − w⋆ ∥2
+                       = ∥βk+1 (w0 − w⋆ ) + (1 − βk+1 )(wk+1 − w⋆ )∥2
+                                      
+                                    1
+                           2
+                       ≤ βk+1 1 +        ∥w0 − w⋆ ∥2 + (1 − βk+1 )2 (1 + φk ) ∥wk+1 − w⋆ ∥2
+                                    φk
+                                                                    
+                                      1       1
+                       ≤ βk+12
+                                 1+        + 2 (1 − βk+1 )2 (1 + φk )ρk ∥w0 − w⋆ ∥2           (30)
+                                     φk      γ
+where the third line uses Young’s inequality and φk > 0 can be chosen arbitrarily, and the last
+line uses the induction hypothesis. Now we minimize the coefficient of ∥w0 − w⋆ ∥2 from Eq. (30)
+                      β   γ
+by choosing φk = (1−βk+1k+1 )ρk
+                                , which gives
+                                               √            2
+                                  2 (1 − βk+1 ) ρk + βk+1 γ
+                   ∥wk+3/2 − w⋆ ∥ ≤                            ∥w0 − w⋆ ∥2 .                  (31)
+                                               γ2
+Finally, we substitute the following into Eq. (31):
+
+                                            γ 2 kj=0 γ 2j
+                                                P          Pk      j
+                            √                                j=0 γ         γ
+                 (1 − βk+1 ) ρk + βk+1 γ = Pk+1           Pk          + Pk+1
+                                                       2j         2j           2j
+                                                 j=0 γ      j=0 γ        j=0 γ
+
+                                            γ 2 kj=0 γ j
+                                                P
+                                                                γ
+                                          = Pk+1          + Pk+1
+                                                      2j             2j
+                                                j=0 γ         j=0 γ
+                                               Pk+1 j
+                                                  j=0 γ
+                                          = γ Pk+1
+                                                       2j
+                                                 j=0 γ
+
+to complete the induction and conclude the proof.
+
+
+D     Omitted proofs for Section 5
+D.1    Proof of Theorem 5.1
+We first provide some preliminary results.
+
+
+                                                  30
+Lemma D.1 ([98, Lemma 3]). Suppose that 𝔸, 𝔹 are maximal monotone operators on Rd ,
+and 𝔹 is single-valued. For α > 0, let 𝔾α (v) = α1 (v − 𝕁α𝔸 (v − α𝔹v)). Then for any v, w ∈ Rd ,
+
+              ⟨𝔾α (v) − 𝔾α (w), (𝕀 + α𝔹)(v) − (𝕀 + α𝔹)(w)⟩ ≥ α∥𝔾α (v) − 𝔾α (w)∥2 .
+
+
+Lemma D.2. Let {(uk , wk )}k=0,1,..., be the iterates of OHM-DRS and {(ξk , zk )}k=0,1,..., be
+the iterates of APG* . If u0 = ξ0 , then for k = 1, 2, . . . , we have
+
+                                 (k + 1)∥ξk − uk ∥ ≤ k∥zk−1 + α𝔹zk−1 − uk−1 ∥                        (32)
+
+and
+
+                  (k + 1)∥zk + α𝔹zk − uk ∥ ≤ k∥zk−1 + α𝔹zk−1 − uk−1 ∥ + (k + 1)ϵk .                  (33)
+
+where each ϵk is an upper bound on ∥zk + α𝔹zk − ξk ∥.
+
+Proof. Observe that 𝕁α𝔸 (z − α𝔹z) + α𝔹z = z + α𝔹z − α𝔾α (z) for any z ∈ Rd , so
+                                    1        k
+                         ξk =          ξ0 +     (zk−1 + α𝔹zk−1 − α𝔾α (zk−1 )).
+                                   k+1      k+1
+Similarly, we have
+                                   1        k
+                        uk =          u0 +     (wk−1 + α𝔹wk−1 − α𝔾α (wk−1 )).
+                                  k+1      k+1
+Therefore, provided that u0 = ξ0 ,
+                       k
+       ξk − uk =          ((𝕀 + α𝔹)(zk−1 ) − (𝕀 + α𝔹)(wk−1 ) − α(𝔾α (zk−1 ) − 𝔾α (wk−1 ))) ,
+                      k+1
+which gives
+                           2
+                       k
+∥ξk − uk ∥2 =                    ∥(𝕀 + α𝔹)(zk−1 ) − (𝕀 + α𝔹)(wk−1 ) − α(𝔾α (zk−1 ) − 𝔾α (wk−1 ))∥2
+                      k+1
+                           2
+                       k
+              =                   ∥(𝕀 + α𝔹)(zk−1 ) − (𝕀 + α𝔹)(wk−1 )∥2 + α2 ∥𝔾α (zk−1 ) − 𝔾α (wk−1 )∥2
+                      k+1
+                                                                                                      
+                                    − 2α ⟨(𝕀 + α𝔹)(zk−1 ) − (𝕀 + α𝔹)(wk−1 ), 𝔾α (zk−1 ) − 𝔾α (wk−1 )⟩
+                           2
+                       k
+                                  ∥(𝕀 + α𝔹)(zk−1 ) − (𝕀 + α𝔹)(wk−1 )∥2 − α2 ∥𝔾α (zk−1 ) − 𝔾α (wk−1 )∥2
+                                                                                                          
+              ≤
+                      k+1
+                           2
+                       k
+              ≤                  ∥(𝕀 + α𝔹)(zk−1 ) − (𝕀 + α𝔹)(wk−1 )∥2
+                      k+1
+                           2
+                       k
+              =                  ∥(𝕀 + α𝔹)(zk−1 ) − uk−1 ∥2
+                      k+1
+where the first inequality follows from Lemma D.1 and the last equality from wk−1 = 𝕁α𝔹 (uk−1 ).
+This proves (32). Then (33) follows from
+                      ∥zk + α𝔹zk − uk ∥ ≤ ∥zk + α𝔹zk − ξk ∥ + ∥ξk − uk ∥
+                                                 k
+                                        ≤ ϵk +     ∥(zk−1 + α𝔹zk−1 ) − uk−1 ∥.
+                                               k+1
+
+
+
+                                                      31
+   We now prove Theorem 5.1.
+
+
+Proof of Theorem 5.1. Let M = 1 + L1 ∥𝔹ξ0 ∥, so that ϵj = (j+1)M
+                                                               2 (j+2) and
+
+
+
+                                                              ∞
+                                                              X
+                                                        M=          (j + 1)ϵj .
+                                                              j=0
+
+
+Then by Lemma D.2, for each k = 1, 2, . . . ,
+
+                     (k + 1)∥ξk − uk ∥ ≤ k∥zk−1 + α𝔹zk−1 − uk−1 ∥
+                                                   ≤ (k − 1)∥zk−2 + α𝔹zk−2 − uk−2 ∥ + kϵk
+                                                                                   k
+                                                                                   X
+                                                   ≤ · · · ≤ ∥z0 + α𝔹z0 − u0 ∥ +     (j + 1)ϵj
+                                                                                   j=1
+                                                        k
+                                                        X
+                                                   ≤      (j + 1)ϵj ≤ M.
+                                                        j=0
+
+                                                  2
+                                              M
+This shows that ∥ξk − uk ∥2 ≤                k+1        for k = 0, 1, . . . (note that ∥ξ0 − u0 ∥ = 0). Additionally,
+for each k = 0, 1, . . . we have (k + 1)∥zk + α𝔹zk − uk ∥ ≤ M , and because 𝕁α𝔹 = (𝕀 + α𝔹)−1 is
+nonexpansive, we have
+
+                     (k + 1)∥zk − wk ∥ = (k + 1)∥𝕁α𝔹 ◦ (𝕀 + α𝔹)(zk ) − 𝕁α𝔹 (uk )∥
+                                                   ≤ (k + 1)∥zk + α𝔹zk − uk ∥ ≤ M,
+
+                              2
+                          M
+i.e., ∥zk − wk ∥ ≤       k+1        . Finally, the proof is complete by using
+
+                           1                              1                      C(ξ0 )
+            M ≤1+            (∥𝔹ξ⋆ ∥ + ∥𝔹ξ0 − 𝔹ξ⋆ ∥) ≤ 1 + ∥𝔹ξ⋆ ∥ + ∥ξ0 − ξ⋆ ∥ =        .
+                           L                              L                       L
+
+
+
+
+D.2    Proof of Corollary 5.2
+
+As 𝕋DRS is nonexpansive [56] and the iterates of OHM converge to the nearest fixed point to the
+initial point [8, Theorem 30.1], we have uk → ΠFix(𝕋DRS ) (u0 ) = ΠFix(𝕋DRS ) (ξ0 ) = ξ⋆ . Because
+𝕁α𝔹 is nonexpansive, this implies wk = 𝕁α𝔹 (uk ) → 𝕁α𝔹 (ξ⋆ ) ∈ Zer (𝔸 + 𝔹). Due to the MP
+property proved in Theorem 5.1, we immediately obtain ξk → ξ⋆ and zk → 𝕁α𝔹 (ξ⋆ ).
+    Next, note that Lemma D.1 implies that 𝔾α is 1+αL
+                                                        
+                                                     α     -Lipschitz, because
+
+             α∥𝔾α (v) − 𝔾α (w)∥2 ≤ ⟨𝔾α (v) − 𝔾α (w), (𝕀 + α𝔹)(v) − (𝕀 + α𝔹)(w)⟩
+                                             ≤ ∥𝔾α (v) − 𝔾α (w)∥ ∥(𝕀 + α𝔹)(v) − (𝕀 + α𝔹)(w)∥
+                                             ≤ ∥𝔾α (v) − 𝔾α (w)∥ (1 + αL)∥v − w∥
+
+
+                                                                32
+for any v, w ∈ Rd . Therefore, we have
+
+             ∥𝔾α (zk )∥2 = ∥𝔾α (wk ) + (𝔾α (zk ) − 𝔾α (wk )) ∥2
+                                                        
+                                             2         1
+                         ≤ (1 + ν)∥𝔾α (wk )∥ + 1 +          ∥𝔾α (zk ) − 𝔾α (wk )∥2                (34)
+                                                       ν
+                                  4∥ξ0 − ξ⋆ ∥2                  1 + αL 2
+                                                                    
+                                                         1
+                         ≤ (1 + ν) 2            + 1+                      ∥zk − wk ∥2             (35)
+                                   α (k + 1)2            ν         α
+                                      4C(ξ0 )2                    1 + αL 2 C(ξ0 )2
+                                                                      
+                                                           1
+                         ≤ (1 + ν) 2 2            + 1+                                            (36)
+                                  α L (k + 1)2             ν         α       L2 (k + 1)2
+                               C(ξ0 )2
+                                                                           
+                                                               1            2
+                         = 2 2             4(1 + ν) + 1 +          (1 + αL)                       (37)
+                           α L (k + 1)2                        ν
+
+where ν > 0 is arbitrary, (34) uses Young’s inequality, (35) uses the convergence rate of OHM
+and Lipschitzness of 𝔾α , and (36) uses L∥ξ0 − ξ⋆ ∥ ≤ C(ξ0 ) and Theorem 5.1. Now choosing
+ν = 1+αL
+      2 , which minimizes the quantity (37), we obtain
+
+                            C(ξ0 )2                                 (3 + αL)2 C(ξ0 )2
+         ∥𝔾α (zk )∥2 ≤                  4 + (1 + αL) 2
+                                                       + 4(1 + αL)  =                  ,
+                         α2 L2 (k + 1)2                                α2 L2 (k + 1)2
+
+which completes the proof.
+
+
+D.3    Proof of Corollary 5.3
+We first state and prove some lemmas, which will be useful for the main proof.
+
+Lemma D.3. Let 𝔹 : Rd → Rd be a monotone, L-Lipschitz operator, and let α ∈ 0, L1 .
+                                                                                 
+
+Then for any u ∈ Rd ,
+                                                         α
+                                  ∥u − 𝕁α𝔹 (u)∥ ≤            ∥𝔹u∥.
+                                                      1 − αL
+
+Proof. Let v = 𝕁α𝔹 (u). Then u = v + α𝔹v, so
+
+                                                                                  1
+       ∥𝔹v∥ − ∥𝔹u∥ ≤ ∥𝔹v − 𝔹u∥ ≤ L∥v − u∥ = αL∥𝔹v∥ =⇒ ∥𝔹v∥ ≤                          ∥𝔹u∥.
+                                                                               1 − αL
+
+Therefore,
+                                                                  α
+                         ∥u − 𝕁α𝔹 (u)∥ = ∥u − v∥ = α∥𝔹v∥ ≤            ∥𝔹u∥.
+                                                               1 − αL
+
+
+
+
+Lemma D.4. Let ξ⋆ ∈ Fix 𝕋DRS and z⋆ = 𝕁α𝔹 (ξ⋆ ). Let ϵk > 0 (k = 0, 1, . . . ) satisfy
+                                     ∞
+                                     X
+                                       (k + 1)ϵk = M < ∞.
+                                     k=0
+
+Then APG* iterates ξk , zk satisfy max {∥ξk − ξ⋆ ∥, ∥zk − z⋆ ∥} ≤ ∥ξ0 − ξ⋆ ∥ + M for k = 0, 1, . . . .
+
+                                                 33
+Proof. Let uk , wk be the iterates of OHM-DRS with u0 = ξ0 . Because ξ⋆ ∈ Fix(𝕋DRS ) and
+𝕋DRS is nonexpansive, we have
+                         ∥uk+1 − ξ⋆ ∥ = ∥βk u0 + (1 − βk )𝕋DRS (uk ) − ξ⋆ ∥
+                                          ≤ βk ∥u0 − ξ⋆ ∥ + (1 − βk )∥𝕋DRS (uk ) − ξ⋆ ∥
+                                          ≤ βk ∥ξ0 − ξ⋆ ∥ + (1 − βk )∥uk − ξ⋆ ∥
+for k = 0, 1, . . . . Therefore, by induction on k, ∥uk − ξ⋆ ∥ ≤ ∥ξ0 − ξ⋆ ∥ for all k = 0, 1, . . . . Then
+by Theorem 5.1,
+                                                              M
+               ∥ξk − ξ⋆ ∥ ≤ ∥ξk − uk ∥ + ∥uk − ξ⋆ ∥ ≤            + ∥ξ0 − ξ⋆ ∥ ≤ ∥ξ0 − ξ⋆ ∥ + M
+                                                             k+1
+and
+                                                                 M
+                  ∥zk − z⋆ ∥ ≤ ∥zk − wk ∥ + ∥wk − z⋆ ∥ ≤            + ∥𝕁α𝔹 (uk ) − 𝕁α𝔹 (ξ⋆ )∥
+                                                                k+1
+                                    M
+                               ≤       + ∥uk − ξ⋆ ∥ ≤ ∥ξ0 − ξ⋆ ∥ + M
+                                   k+1
+for k = 0, 1, . . . .
+
+    We now prove Corollary 5.3.
+
+Proof of Corollary 5.3. Recall that each outer loop of APG* performs a single evaluation of
+                                                                       (0)
+𝕁α𝔸 , a forward evaluation 𝔹zk , and an inner loop, which starts with zk = ξk and solves
+
+                                             find   0 = z + α𝔹z − ξk                                 (38)
+                                            z∈Rd
+
+                                                                  (0)
+using SM-EAG+. The distance from the initial point zk to the true solution 𝕁α𝔹 (ξk ) of (38) is
+                         (0)        (0)                                      α
+                        dk := ∥zk − 𝕁α𝔹 (ξk )∥ = ∥ξk − 𝕁α𝔹 (ξk )∥ ≤              ∥𝔹ξk ∥
+                                                                          1 − αL
+where the inequality holds due to Lemma D.3. Observe that by L-Lipschitzness of 𝔹 and
+Lemma D.4, we have
+        ∥𝔹ξk ∥ ≤ ∥𝔹ξ⋆ ∥ + ∥𝔹ξk − 𝔹ξ⋆ ∥ ≤ ∥𝔹ξ⋆ ∥ + L∥ξk − ξ⋆ ∥ ≤ ∥𝔹ξ⋆ ∥ + L∥ξ0 − ξ⋆ ∥ + LM,
+      (0)  α
+so dk ≤ 1−αL  (∥𝔹ξ⋆ ∥ + L∥ξ0 − ξ⋆ ∥ + LM ). Because the inner loop objective (38) is 1-strongly
+monotone and (αL + 1)-Lipschitz, by Theorem 4.2, the total number of inner loop iterations
+needed to achieve the error ∥z + α𝔹z − ξk ∥ ≤ ϵk is
+                          (0)
+                              !
+                                                      α
+                         dk                         1−αL (∥𝔹ξ⋆ ∥ + L∥ξ0 − ξ⋆ ∥ + LM )
+                                                                                     
+        O (αL + 1) log          = O (αL + 1) log
+                          ϵk                              M (k + 1)−2 (k + 2)−1
+                                        k(∥𝔹ξ0 ∥ + 2L∥ξ0 − ξ⋆ ∥ + LM )
+                                                                         
+                                = O log
+                                                        LM
+where the last O expression holds because αL ∈ (0, 1) is a constant. Now recalling that M =
+1 + L1 ∥𝔹ξ0 ∥, we obtain
+                k(∥𝔹ξ0 ∥ + 2L∥ξ0 − ξ⋆ ∥ + LM )             ∥𝔹ξ0 ∥ 2∥ξ0 − ξ⋆ ∥
+                                                                                
+            log                                ≤ log k            +            +1
+                             LM                             LM           M
+                                               ≤ log (k (1 + 2∥ξ0 − ξ⋆ ∥ + 1))
+                                                        = O(log(k(∥ξ0 − ξ⋆ ∥ + 1))).
+
+
+                                                        34
+                                                                       
+By Corollary 5.2, it requires at most O C(ξϵ 0 ) = O L(∥ξ0 −ξ⋆ ∥+1)+∥𝔹ξ
+                                                                ϵ
+                                                                       ⋆∥
+                                                                            to achieve ∥𝔾α (zk )∥ ≤
+ϵ. Up to this range of k, each inner loop performs
+
+                                           L(∥ξ0 − ξ⋆ ∥ + 1) + ∥𝔹ξ⋆ ∥
+                                                                                        
+                                                                                    C(ξ0 )
+       O(log(k(∥ξ0 − ξ⋆ ∥ + 1))) = O log                                = O log
+                                                        ϵ                             ϵ
+
+evaluations of 𝔹. Therefore, the total computational cost of APG* is
+                                                           
+                                  C(ξ0 )              C(ξ0 )
+                              O           C𝔸 + C𝔹 log           .
+                                    ϵ                    ϵ
+
+
+
+
+E     Proof of the remaining summability lemmas
+We first provide a handy lemma, which will be used in the proofs of Lemmas B.1 and B.2 for
+arguing the positivity of certain expressions.
+
+Lemma E.1. Let N be a fixed positive integer. Suppose H (ℓ) (r), ℓ = 0, . . . , N , are continuous
+functions in r ∈ R, and consider the expression
+
+                            H(r, k) = H (N ) (r)k N + · · · + H (1) (r)k + H (0) .
+
+If H (N ) (0) > 0 and H (ℓ) (0) ≥ 0 for all ℓ = 0, . . . , N − 1, then there exists η > 0 such that
+H(r, k) > 0 for all r ∈ (0, η) and k = 1, 2, . . . .
+
+Proof. Let J = ℓ ∈ {0, . . . , N − 1} | H (ℓ) (0) = 0 (so H (ℓ) (r) > 0 for ℓ ∈ {0, . . . , N − 1} \ J).
+                  
+
+As H (ℓ) (r) are continuous, one can choose η > 0 small enough so that |r| < η implies
+
+                                        X                         H (N ) (0)
+                                               H (ℓ) (r) <
+                                                                     2
+                                         ℓ∈J
+
+
+and H (ℓ) (r) > 0 for all ℓ ∈ {0, . . . , N − 1} \ J. Then for k = 1, 2, . . . , we have
+
+                                                                  N −1
+                                                                                             !
+                                                                  X
+                            H(r, k) = k N      H (N ) (0) +              H (ℓ) (r)k ℓ−N
+                                                                  ℓ=0
+                                                                                             !
+                                                                  X
+                                     > kN      H (N ) (0) +             H (ℓ) (r)k ℓ−N
+                                                                  ℓ∈J
+                                                                                                 !
+                                                                  X
+                                     ≥ kN      H (N ) (0) −              H (ℓ) (r) k ℓ−N
+                                                                  ℓ∈J
+                                                                                         !
+                                                                  X
+                                          N        (N )                      (ℓ)
+                                     ≥k        H          (0) −          H         (r)
+                                                                  ℓ∈J
+                                       H (N ) (0)k N
+                                     >               >0
+                                             2
+provided that r ∈ (0, η).
+
+                                                           35
+Proof of Lemma B.1. We show the given statement by establishing the following result: by
+defining the sequences pk , qk by qk = k (k = 0, 1, . . . ) and
+
+
+                               α(1 − 3αL + 6α2 L2 − 2α4 L4 )
+                          p0 =
+                               2(1 − αL)2 (1 + αL)(2 + αL)
+                               α(k + 1)(k + αL(k − 1))
+                          pk =                         , k = 1, 2, . . . ,
+                                      2(1 + αL)
+
+
+we have p0 > 0,
+
+
+                                                                1
+                     Vk = pk ∥𝔹zk ∥2 + qk ⟨𝔹zk , zk − z0 ⟩ +      ∥z0 − z⋆ ∥2 ≥ 0,
+                                                               2α
+
+
+and
+
+
+                               Vk − Vk+1 ≥ ϵ(k + 1)2 ∥𝔹zk − 𝔹zk+1/2 ∥2
+
+
+                     2      2 L2 )
+for α ∈ 0, Lη , ϵ = α L(1−α
+             
+                         2         with η ∈ (0, 1) sufficiently small. Once this is shown, we can
+conclude that for any positive integer N ,
+
+
+                          N
+          α2 L(1 − α2 L2 ) X
+                             (k + 1)2 ∥𝔹zk − 𝔹zk+1/2 ∥2 ≤ V0 − VN +1
+                 2
+                         k=0
+                                                                               1
+                                                          ≤ V0 = p0 ∥𝔹z0 ∥2 +    ∥z0 − z⋆ ∥2
+                                                                            2α
+                                                                 2    1
+                                                          ≤ p0 L +         ∥z0 − z⋆ ∥2
+                                                                     2α
+
+
+holds, which gives
+
+
+   ∞                                                                 
+   X
+               2                  2      2                     2  1                       C
+         (k + 1) ∥𝔹zk − 𝔹zk+1/2 ∥ ≤ 2                     p0 L +          ∥z0 − z⋆ ∥2 =      ∥z0 − z⋆ ∥2
+                                   α L(1 − α2 L2 )               2α                       α2
+   k=0
+
+
+
+where
+
+
+                                 2 − r − 2r2 − 2r3 + 7r4 − 2r6
+                          C=                                       (r = αL)
+                                    r(1 − r)3 (1 + r)2 (2 + r)
+
+
+is a positive constant provided that r < η for η small enough.
+
+                                                 36
+Case k = 0. We have z1/2 = z0 − α𝔹z0 and z1 = z0 − α𝔹z1/2 . By monotonicity and
+Lipschitzness of 𝔹, we have
+        α2 L(1 − α2 L2 )
+   V1 +                  ∥𝔹z0 − 𝔹z1/2 ∥2
+               2
+         α                                 1                α2 L(1 − α2 L2 )
+    =        ∥𝔹z1 ∥2 + ⟨𝔹z1 , z1 − z0 ⟩ +     ∥z0 − z⋆ ∥2 +                  ∥𝔹z0 − 𝔹z1/2 ∥2   (39)
+      1 + αL                              2α                       2
+         α                                 1                α2 L(1 − α2 L2 )
+    ≤        ∥𝔹z1 ∥2 + ⟨𝔹z1 , z1 − z0 ⟩ +     ∥z0 − z⋆ ∥2 +                  ∥𝔹z0 − 𝔹z1/2 ∥2
+      1 + αL                              2α                       2
+           α                                          1 − αL
+      +          L2 ∥z1/2 − z1 ∥2 − ∥𝔹z1/2 − 𝔹z1 ∥2 +            ⟨z0 − z1 , 𝔹z0 − 𝔹z1 ⟩
+        1 + αL                                            1 + αL
+         α                                    1               α2 L(1 − α2 L2 )
+    =        ∥𝔹z1 ∥2 + ⟨𝔹z1 , −α𝔹z1/2 ⟩ +       ∥z0 − z⋆ ∥2 +                  ∥𝔹z0 − 𝔹z1/2 ∥2
+      1 + αL                                 2α                      2
+           α                                                 1 − αL
+      +          α2 L2 ∥𝔹z0 − 𝔹z1/2 ∥2 − ∥𝔹z1/2 − 𝔹z1 ∥2 +               ⟨α𝔹z1/2 , 𝔹z0 − 𝔹z1 ⟩
+        1 + αL                                                  1 + αL
+         α
+    =          r(1 + 3r − r2 − r3 )∥𝔹z0 ∥2 − (1 − r)2 (1 + r)(2 + r)∥𝔹z1/2 ∥2
+      2(1 + r)
+                                                                                               (40)
+                                      3
+                                                          1            2
+               + 2(1 + r)(1 − 3r + r )⟨𝔹z0 , 𝔹z1/2 ⟩ +       ∥z0 − z⋆ ∥
+                                                          2α
+where r = αL. Next, using Young’s inequality, we can bound the inner product term in (40) as
+
+                2(1 + r)(1 − 3r + r3 )⟨𝔹z0 , 𝔹z1/2 ⟩
+                                                           (1 + r)(1 − 3r + r3 )2
+                ≤ (1 − r)2 (1 + r)(2 + r)∥𝔹z1/2 ∥2 +                              ∥𝔹z0 ∥2 .
+                                                              (1 − r)2 (2 + r)
+Plugging this back into (40) and rearranging, we obtain
+        α2 L(1 − α2 L2 )                   α(1 − 3r + 6r2 − 2r4 )             1
+ V1 +                    ∥𝔹z0 − 𝔹z1/2 ∥2 ≤         2
+                                                                   ∥𝔹z0 ∥2 +    ∥z0 − z⋆ ∥2 = V0 .
+               2                           2(1 − r) (1 + r)(2 + r)           2α
+                                               2
+                                    α(1−3r+6r −2r )    4
+Clearly, if r is small enough, p0 = 2(1−r) 2 (1+r)(2+r) > 0.
+
+
+
+Case k ≥ 1.     From the definition of the EAG iterates, we have
+
+                               zk+1 − z0 = (1 − βk )(zk − z0 ) − α𝔹zk+1/2
+                               zk − zk+1 = βk (zk − z0 ) + α𝔹zk+1/2
+                          zk+1/2 − zk+1 = α𝔹zk+1/2 − α𝔹zk .
+
+Therefore, as in previous sections, we can lower-bound Vk − Vk+1 as
+                             qk
+   Vk − Vk+1 ≥ Vk − Vk+1 −       ⟨zk − zk+1 , 𝔹zk − 𝔹zk+1 ⟩
+                             βk
+                     αqk                         αqk
+      = pk ∥𝔹zk ∥2 −     ⟨𝔹zk , 𝔹zk+1/2 ⟩ +               ⟨𝔹zk+1/2 , 𝔹zk+1 ⟩ − pk+1 ∥𝔹zk+1 ∥2
+                      βk                     βk (1 − βk )
+      = pk ∥𝔹zk ∥2 − αk(k + 1)⟨𝔹zk , 𝔹zk+1/2 ⟩ + α(k + 1)2 ⟨𝔹zk+1/2 , 𝔹zk+1 ⟩ − pk+1 ∥𝔹zk+1 ∥2 .
+                                                                                              (41)
+As 𝔹 is L-Lipschitz,
+
+                       0 ≤ L2 ∥zk+1/2 − zk+1 ∥2 − ∥𝔹zk+1/2 − 𝔹zk+1 ∥2
+                         = α2 L2 ∥𝔹zk+1/2 − 𝔹zk ∥2 − ∥𝔹zk+1/2 − 𝔹zk+1 ∥2 .
+
+
+                                                   37
+Combining this with (41), we obtain
+
+Vk − Vk+1 − ϵ(k + 1)2 ∥𝔹zk − 𝔹zk+1/2 ∥2
+≥ pk ∥𝔹zk ∥2 − αk(k + 1)⟨𝔹zk , 𝔹zk+1/2 ⟩ + α(k + 1)2 ⟨𝔹zk+1/2 , 𝔹zk+1 ⟩ − pk+1 ∥𝔹zk+1 ∥2
+  − ϵ(k + 1)2 ∥𝔹zk − 𝔹zk+1/2 ∥2 − τ α2 L2 ∥𝔹zk+1/2 − 𝔹zk ∥2 − ∥𝔹zk+1/2 − 𝔹zk+1 ∥2
+                                                                                      
+
+                                                                                      2
+= (pk − α2 L2 τ − ϵ(k + 1)2 ) ∥𝔹zk ∥2 + (τ (1 − α2 L2 ) − ϵ(k + 1)2 ) 𝔹zk+1/2 + (τ − pk+1 ) ∥𝔹zk+1 ∥2
+  + 2α2 L2 τ + 2ϵ(k + 1)2 − αk(k + 1) 𝔹zk , 𝔹zk+1/2 + α(k + 1)2 − 2τ 𝔹zk+1/2 , 𝔹zk+1
+                                                                            
+
+= Tr Mk Sk M⊺k ,
+                
+
+                                              
+where τ > 0, Mk := 𝔹zk 𝔹zk+1/2 𝔹zk+1 and
+
+            pk − α2 L2 τ − ϵ(k + 1)2       α2 L2 τ + ϵ(k + 1)2 − α2 k(k + 1)
+                                                                                                        
+                                                                                                 0
+  Sk = α2 L2 τ + ϵ(k + 1)2 − α2 k(k + 1)      τ (1 − α2 L2 ) − ϵ(k + 1)2                 1         2
+                                                                                          2 α(k + 1) − τ
+                                                                                                         
+                                                    1          2
+                        0                           2 α(k + 1) − τ                           τ − pk+1
+                                                       
+                                          s11 s12 0
+                                      = s12 s22 s23  .
+                                           0 s23 s33
+
+Now, we choose τ as
+
+                   (k + 1) k(1 − αL + α2 L2 + α3 L3 ) − αL(2 − αL − α2 L2 )
+                                                                           
+                τ=                                                           .
+                                            4αL2
+For notational simplicity, let αL = r. Then by direct computation we obtain
+                         α
+                               (1 − r2 )2 k 2 + (1 − 2r − 3r2 + 2r4 )k − r(2 + r − r3 )
+                                                                                        
+              s11 =
+                      4(1 + r)
+                                     α(1 − r)(k + 1) (1 − r2 )k − r2
+                                                                       
+                             s12 = −                                     .
+                                                       4
+By Lemma E.1, s11 > 0 for sufficiently small r, and in that case, Young’s inequality gives
+
+                                                              s212
+                      s11 ∥𝔹zk ∥2 + 2s12 ⟨𝔹zk , 𝔹zk+1/2 ⟩ +        ∥𝔹zk+1/2 ∥2 ≥ 0.
+                                                              s11
+Continuing on, we compute
+
+                               s212
+                  t22 = s22 −
+                               s11
+                                                                               
+                                      (3)        (2)          (1)        (0)
+                         (1 − r2 ) T22 (r)k 3 + T22 (r)k 2 + T22 (r)k + T22 (r)
+                       =                                            
+                                               2 2                 3
+                                     4Lr (1 − r ) k − r (2 + r − r )
+
+        (ℓ)
+where T22 (r), ℓ = 0, 1, 2, 3, are polynomials in r defined by
+                                (0)
+                              T22 (r) = r2 (4 + r2 − r3 )
+                                (1)
+                              T22 (r) = −r 4 − 6r − 2r2 − 3r3 + 3r4
+                                                                         
+
+                                (2)
+                              T22 (r) = 1 − 5r + 4r3 + 3r4 − 3r5
+                                (3)
+                              T22 (r) = (1 + r)2 (1 − r)3 ,
+
+
+                                                  38
+and
+                                          (1 + r)(k + 1) (1 − r)2 k − r(2 − r)
+                                                                              
+                                  s23 = −
+                                                          4Lr
+By Lemma E.1 again, t22 > 0 for sufficiently small r and then Young’s inequality implies that
+
+                                                                    s223
+                      t22 ∥𝔹zk+1/2 ∥2 + 2s23 ⟨𝔹zk+1/2 , 𝔹zk+1 ⟩ +        ∥𝔹zk+1 ∥2 ≥ 0.
+                                                                    t22
+Finally, we have
+
+      Tr Mk Sk M⊺k
+                   
+
+                                             s2
+                                                            
+      = s11 ∥𝔹zk ∥2 + 2s12 ⟨𝔹zk , 𝔹zk+1/2 ⟩ + 12 ∥𝔹zk+1/2 ∥2
+                                             s11
+                                                     s223                  s223
+                                                                             
+                        2                                         2
+        + t22 ∥𝔹zk+1/2 ∥ + 2s23 ⟨𝔹zk+1/2 , 𝔹zk+1 ⟩ +      ∥𝔹zk+1 ∥ + s33 −        ∥𝔹zk+1 ∥2
+                                                     t22                   t22
+      ≥ 0,
+
+                                                                         s2
+as the following computation and Lemma E.1 shows that s33 − t22
+                                                             23
+                                                                > 0 for sufficiently small r:
+
+                                     αr (1 − 4r − 2r2 + r4 )k − r(6 − r − r3 )
+                                                                                
+                             s223
+                       s33 −      =                                                 .
+                             t22    2(1 − r2 ) ((1 + r)2 (1 − r)k − r(2 + r + r2 ))
+Therefore, we have established Vk − Vk+1 ≥ 0 for small r.
+
+Nonnegativity.         Observe that
+
+                     αk 2   α(k + 1)(k + αL(k − 1)) − α(1 + αL)k 2   α(k − αL)
+              pk −        =                                        =           >0
+                      2                   2(1 + αL)                  2(1 + αL)
+
+provided that k ≥ 1 and α < L1 . Thus,
+
+                               αk 2                                1
+                           Vk ≥     ∥𝔹zk ∥2 + k⟨𝔹zk , zk − z0 ⟩ +    ∥z0 − z⋆ ∥2
+                                2                                 2α
+                               αk 2                                1
+                             ≥      ∥𝔹zk ∥2 + k⟨𝔹zk , z⋆ − z0 ⟩ +    ∥z0 − z⋆ ∥2 ≥ 0
+                                2                                 2α
+by monotonicity and Young’s inequality.
+
+
+Proof of Lemma B.2. We establish the following Lyapunov analysis: with same pk , qk as in
+Lemma B.1,
+                                                                               1
+               Vk = pk ∥𝔹zk ∥2 + qk ⟨𝔹zk , zk − z0 ⟩ + pk L2 ∥zk − vk ∥2 +       ∥z0 − z⋆ ∥2
+                                                                              2α
+satisfies Vk ≥ 0 and Vk − Vk+1 ≥ ϵ(k + 1)2 ∥𝔹vk − 𝔹vk+1 ∥2 for k = 0, 1, . . . , α ∈ 0, Lη , and
+                                                                                          
+     α2 L(1−αL−α2 L2 −α3 L3 )
+ϵ=          2(1+αL)           with η ∈ (0, 1) sufficiently small. This will imply
+
+                     N                                              
+                     X
+                                   2                  2        2   1
+                 ϵ         (k + 1) ∥𝔹zk − 𝔹zk+1/2 ∥ ≤ V0 ≤ p0 L +      ∥z0 − z⋆ ∥2 ,
+                                                                  2α
+                     k=0
+
+
+                                                          39
+so that
+            ∞                                             
+            X
+                        2                 21         2   1                 C
+                  (k + 1) ∥𝔹vk − 𝔹vk+1 ∥ ≤       p0 L +      ∥z0 − z⋆ ∥2 = 2 ∥z0 − z⋆ ∥2
+                                           ϵ            2α                α
+            k=0
+
+with
+                                      2 − r − 2r2 − 2r3 + 7r4 − 2r6
+                              C=                                        >0
+                                    r(1 − r)2 (2 + r)(1 − r − r2 − r3 )
+
+provided that r = αL ∈ (0, η) for η small enough.
+
+Nonnegativity. Proved in the exact same way as in Lemma B.1, except that we have an
+additional nonnegative term pk L2 ∥zk − vk ∥2 .
+
+Case k = 0.       We have v1 = z0 − α𝔹v0 = z0 − α𝔹z0 and z1 = z0 − α𝔹v1 . Observe that
+
+ V1 + ϵ∥𝔹v0 − 𝔹v1 ∥2
+       α                                                     1
+ =         ∥𝔹z1 ∥2 + ⟨𝔹z1 , z1 − z0 ⟩ + p1 L2 ∥z1 − v1 ∥2 +    ∥z0 − z⋆ ∥2 + ϵ∥𝔹z0 − 𝔹v1 ∥2
+    1 + αL                                                  2α
+       α                                                            1
+ =         ∥𝔹z1 ∥2 + ⟨𝔹z1 , −α𝔹v1 ⟩ + p1 L2 ∥α(𝔹z0 − 𝔹v1 )∥2 +        ∥z0 − z⋆ ∥2 + ϵ∥𝔹z0 − 𝔹v1 ∥2
+    1 + αL                                                         2α
+       α                                 1
+           ∥𝔹z1 ∥2 + ⟨𝔹z1 , −α𝔹v1 ⟩ +       ∥z0 − z⋆ ∥2 + α2 L2 p1 + ϵ ∥𝔹z0 − 𝔹v1 ∥2 .
+                                                                      
+ =                                                                                            (42)
+    1 + αL                              2α
+Because
+                                    α2 L 1 − αL − α2 L2 − α3 L3
+                                                                
+           2 2                α
+                            2 2                                     α2 L(1 − α2 L2 )
+          α L p1 + ϵ = α L        +                               =                  ,
+                           1 + αL            2(1 + αL)                     2
+
+we see that the expression (42) coincides with (39), except that 𝔹z1/2 is replaced with 𝔹v1 .
+Therefore, the rest of the proof is exactly the same as in Lemma B.1 (add the same set of
+inequalities to (42) with v1 and 𝔹v1 in places of z1/2 and 𝔹z1/2 , respectively).
+
+Case k ≥ 1.       Using the identities
+
+                                  zk+1 − z0 = (1 − βk )(zk − z0 ) − α𝔹vk+1
+                                  zk − zk+1 = βk (zk − z0 ) + α𝔹vk+1
+                                    vk − zk = α𝔹vk − α𝔹vk−1
+                              vk+1 − zk+1 = α𝔹vk+1 − α𝔹vk ,
+
+we begin with
+                              qk
+   Vk − Vk+1 ≥ Vk − Vk+1 −        ⟨zk − zk+1 , 𝔹zk − 𝔹zk+1 ⟩
+                              βk
+                      αqk                       αqk
+       = pk ∥𝔹zk ∥2 −     ⟨𝔹zk , 𝔹vk+1 ⟩ +              ⟨𝔹vk+1 , 𝔹zk+1 ⟩ − pk+1 ∥𝔹zk+1 ∥2
+                       βk                  βk (1 − βk )
+         + α2 pk L2 ∥𝔹vk−1 − 𝔹vk ∥2 − α2 pk+1 L2 ∥𝔹vk − 𝔹vk+1 ∥2
+       = pk ∥𝔹zk ∥2 − αk(k + 1)⟨𝔹zk , 𝔹vk+1 ⟩ + α(k + 1)2 ⟨𝔹vk+1 , 𝔹zk+1 ⟩ − pk+1 ∥𝔹zk+1 ∥2
+                                                                                              (43)
+          + α2 pk L2 ∥𝔹vk−1 − 𝔹vk ∥2 − α2 pk+1 L2 ∥𝔹vk − 𝔹vk+1 ∥2 .
+
+
+                                                   40
+Following the idea in the prior work [98] which introduced the anchored Popov’s scheme, we
+use the following inequality:
+
+                 ∥𝔹vk − 𝔹vk+1 ∥2 = ∥(𝔹vk − 𝔹zk ) + (𝔹zk − 𝔹vk+1 )∥2
+                                   ≤ 2∥𝔹vk − 𝔹zk ∥2 + 2∥𝔹zk − 𝔹vk+1 ∥2
+                                   ≤ 2L2 ∥vk − zk ∥2 + 2∥𝔹zk − 𝔹vk+1 ∥2
+                                   = 2α2 L2 ∥𝔹vk − 𝔹vk−1 ∥2 + 2∥𝔹zk − 𝔹vk+1 ∥2 ,
+
+which implies
+
+                2α2 L2 ∥𝔹vk − 𝔹vk−1 ∥2 + 2∥𝔹zk − 𝔹vk+1 ∥2 − ∥𝔹vk − 𝔹vk+1 ∥2 ≥ 0.                       (44)
+
+Additionally, note the simple Lipschitzness inequality
+
+                          0 ≤ L2 ∥zk+1 − vk+1 ∥2 − ∥𝔹zk+1 − 𝔹vk+1 ∥2
+                            = α2 L2 ∥𝔹vk − 𝔹vk+1 ∥2 − ∥𝔹zk+1 − 𝔹vk+1 ∥2 .                              (45)
+
+Then, given positive constants τ1 , τ2 , we can lower-bound Vk − Vk+1 − ϵ(k + 1)2 ∥𝔹vk − 𝔹vk+1 ∥2
+by using (43) and subtracting τ21 × (44) and τ2 × (45) as
+
+   Vk − Vk+1 − ϵ(k + 1)2 ∥𝔹vk − 𝔹vk+1 ∥2
+      ≥ pk ∥𝔹zk ∥2 − αk(k + 1)⟨𝔹zk , 𝔹vk+1 ⟩ + α(k + 1)2 ⟨𝔹vk+1 , 𝔹zk+1 ⟩ − pk+1 ∥𝔹zk+1 ∥2
+          + α2 pk L2 ∥𝔹vk−1 − 𝔹vk ∥2 − α2 pk+1 L2 ∥𝔹vk − 𝔹vk+1 ∥2 − ϵ(k + 1)2 ∥𝔹vk − 𝔹vk+1 ∥2
+            τ1
+                2α2 L2 ∥𝔹vk − 𝔹vk−1 ∥2 + 2∥𝔹zk − 𝔹vk+1 ∥2 − ∥𝔹vk − 𝔹vk+1 ∥2
+                                                                               
+          −
+             2
+          − τ2 α2 L2 ∥𝔹vk − 𝔹vk+1 ∥2 − ∥𝔹zk+1 − 𝔹vk+1 ∥2
+                                                          
+
+      = α2 L2 (pk − τ1 )∥𝔹vk−1 − 𝔹vk ∥2
+          τ                                      
+             1
+        +      − α2 L2 τ2 − α2 L2 pk+1 − ϵ(k + 1)2 ∥𝔹vk − 𝔹vk+1 ∥2
+            2                                                                                          (46)
+        + (pk − τ1 )∥𝔹zk ∥2 + (2τ1 − αk(k + 1)) ⟨𝔹zk , 𝔹vk+1 ⟩ + (τ2 − τ1 )∥𝔹vk+1 ∥2
+        + α(k + 1)2 − 2τ2 ⟨𝔹vk+1 , 𝔹zk+1 ⟩ + (τ2 − pk+1 )∥𝔹zk+1 ∥2 .
+                            
+
+We take
+                       α(k + 1) (1 + 2α2 L2 )k − αL(1 − 2αL)
+                                                             
+                                                                                   τ1
+                  τ1 =                                         ,          τ2 =          ,
+                                          3                                      4α2 L2
+                                                                                     α2 L(1−αL−α2 L2 −α3 L3 )
+which are positive for αL sufficiently small (by Lemma E.1), and plug in ϵ =                2(1+αL)
+and
+                        α(k + 1)(k + αL(k − 1))                   α(k + 2)(k + 1 + αLk)
+                 pk =                           ,        pk+1 =
+                               2(1 + αL)                                2(1 + αL)
+to obtain
+                             α(k + 1) (1 + r − 4r2 − 4r3 )k − r(1 + 2r + 4r2 )
+                                                                                      
+                   pk − τ1 =                                                                           (47)
+                                                 6(1 + r)
+and
+                                                α T (2) (r)k 2 + T (1) (r)k + T (0) (r)
+                                                                                       
+            τ1    2 2      2 2               2
+               − α L τ2 − α L pk+1 − ϵ(k + 1) =
+            2                                                  12(1 + r)
+
+                                                    41
+where r = αL and T (ℓ) (r), ℓ = 0, 1, 2, are polynomials in r defined by
+
+                              T (0) (r) = −r(7 + 5r − 8r2 − 6r3 )
+                              T (1) (r) = 1 − 12r − 3r2 + 4r3 + 12r4
+                              T (2) (r) = 1 − 5r + 2r2 + 2r3 + 6r4 .
+
+Therefore, by Lemma E.1, τ1 , τ2 and the coefficients of the first two norm sqaure terms in (46)
+are positive provided that r is sufficiently small, and thus we obtain
+
+         Vk − Vk+1 − ϵ(k + 1)2 ∥𝔹vk − 𝔹vk+1 ∥2
+           ≥ (pk − τ1 )∥𝔹zk ∥2 + (2τ1 − αk(k + 1)) ⟨𝔹zk , 𝔹vk+1 ⟩ + (τ2 − τ1 )∥𝔹vk+1 ∥2
+             + α(k + 1)2 − 2τ2 ⟨𝔹vk+1 , 𝔹zk+1 ⟩ + (τ2 − pk+1 )∥𝔹zk+1 ∥2
+                                
+
+           = Tr Mk Sk M⊺k ,
+                           
+
+                                   
+where Mk := 𝔹zk 𝔹vk+1 𝔹zk+1 and
+
+                                τ1 − α2 k(k + 1)
+                                                                                  
+                  pk − τ1                               0              s11 s12 0
+       Sk = τ1 − α2 k(k + 1)         τ2 − τ1    α         2
+                                                 2 (k + 1) − τ2 = s12 s22 s23 .
+                                                                                   
+                                α          2
+                      0          2 (k + 1) − τ2     τ2 − pk+1           0 s23 s33
+We have seen in (47) that s11 = pk − τ1 > 0 if r is small. Next, we have
+                     s212
+          t22 = s22 −
+                     s11
+               (1 − 2r)(k + 1) (1 + 3r + 2r2 )k − r(1 − 2r) (1 − 4r2 )k − r(1 + 4r)
+                                                                                   
+             =
+                           12Lr ((1 + r − 4r2 − 4r3 )k − r(1 + 2r + 4r2 ))
+and
+                                  αr (1 − 8r − 4r2 − 4r3 )k − 2r(5 − 2r + 2r2 )
+                                                                                
+                           s223
+               t33 = s33 −      =                                                 ,
+                           t22    2(1 + r)(1 − 2r) ((1 + 3r + 2r2 )k − r(1 − 2r))
+and as Lemma E.1 shows that these quantities are positive for small r, we conclude that
+
+         Vk − Vk+1 − ϵ(k + 1)2 ∥𝔹vk − 𝔹vk+1 ∥2
+            ≥ Tr Mk Sk M⊺k
+                           
+
+                                                 s2
+                                                              
+            = s11 ∥𝔹zk ∥2 + 2s12 ⟨𝔹zk , 𝔹vk+1 ⟩ + 12 ∥𝔹vk+1 ∥2
+                                                 s11
+                                                       s223
+                                                                     
+                             2
+              + t22 ∥𝔹vk+1 ∥ + 2s23 ⟨𝔹vk+1 , 𝔹zk+1 ⟩ +      ∥𝔹zk+1 ∥ + t33 ∥𝔹zk+1 ∥2
+                                                                    2
+                                                       t22
+            ≥ 0.
+
+
+
+
+F     Regularity of convex and convex-concave functions
+Consider an extended real-valued convex function f : Rn → R ∪ {±∞}. We say f is proper if
+f (x) > −∞ for all x ∈ Rn and f (x) < +∞ for at least one x ∈ Rn . The closure f , written as
+cl f , is defined as the constant function cl f ≡ −∞ if f (x) = −∞ for some x ∈ Rn and otherwise
+
+                                     cl f (x) := lim
+                                                   ′
+                                                     inf f (x′ ).
+                                                  x →x
+
+
+                                                 42
+We say f is closed if cl f = f (when f is proper, this is equivalent to lower semicontinuity). If f
+is closed, convex, and proper (CCP), its convex subdifferential operator ∂f : Rn ⇒ Rn defined
+by
+
+                    ∂f (x) = {v ∈ Rn | f (x′ ) ≥ f (x) + ⟨v, x′ − x⟩, ∀ x′ ∈ Rn }
+
+is maximal monotone [86, Corollary 31.5.2]. For an extended real-valued concave function g,
+we define cl g = −cl (−g) and say it is proper (resp. closed) if −g is proper (resp. closed) as a
+convex function.
+    Let K : Rn × Rm → R ∪ {±∞} be an extended real-valued convex-concave function. Define
+
+                         domx K = {x ∈ Rn | K(x, y) < +∞, ∀ y ∈ Rm }
+                         domy K = {y ∈ Rn | K(x, y) > −∞, ∀ x ∈ Rn }
+                                  dom K = domx K × domy K.
+
+We say K is proper if dom K ̸= ∅. Define clx K(x, y) as the function obtained by taking the
+convex closure of K(x, y) with respect to x for each fixed y, and define cly K(x, y) analogously.
+Then both clx K and cly K are convex-concave [86, Corollary 33.1.1]. Respectively define the
+lower and upper closures of K by
+
+                                  K = clx cly K,        K = cly clx K,
+
+which satisfy K ≤ K. We say K is closed if clx K = clx cly K and cly K = cly clx K.
+   The saddle subdifferential operator ∂± K : Rn × Rm ⇒ Rn × Rm is defined by
+
+              ∂± K(x, y) = {(v, w) ∈ Rn × Rm | v ∈ ∂x K(x, y), w ∈ ∂y (−K)(x, y)},
+
+where ∂x K(x, y) denotes the convex subdifferential of K(x, y) as a convex function of x (for
+each fixed y), and ∂y (−K)(x, y) denotes the convex subdifferential of −K(x, y) as a convex
+function of y (for each fixed x). If K is closed, convex-concave, and proper (CCCP), then ∂± K
+is maximal monotone [86, Corollary 37.5.2] and (x⋆ , y⋆ ) is a minimax solution to
+
+                                   minimize
+                                        n
+                                            maximize
+                                                m
+                                                     K(x, y)
+                                     x∈R        y∈R
+
+if and only if 0 ∈ ∂± K(x⋆ , y⋆ ). Given z ∈ Rn ×Rm , K is differentiable at z if and only if ∂± K(z)
+is singleton, and if that is the case, ∂± K(z) = ∇± K(z) [86, Theorem 35.8].
+     We say two convex-concave functions K, L are equivalent if clx K = clx L and cly K = cly L.
+If K, L are equivalent, then they share the set of minimax solutions, the function values at the
+solutions (if any) are equal, and ∂± K = ∂± L [86, Theorem 36.4, Corollary 37.4.1]. If K is a
+closed convex-concave function, then the equivalence class of closed convex-concave functions
+containing K is precisely characterized [86, Theorem 34.2] by
+
+           L : Rn × Rm → R ∪ {±∞} | L is closed, convex-concave, and K ≤ L ≤ K .
+          
+
+When f and g are respectively CCP functions on Rn and Rm , we define
+                                  
+                                  f (x) − g(y) x ∈ dom f, y ∈ dom g
+                                  
+                    f (x) − g(y) = +∞           x∈/ dom f, y ∈ dom g                            (48)
+                                  
+                                   −∞           x ∈ dom f, y ∈
+                                                             / dom g
+                                  
+
+but when x ∈ / dom f, y ∈/ dom g, it seems unclear how to define f (x) − g(y) = +∞ − ∞.
+However, it turns out that one can extend (48) to a CCCP function on Rn × Rm , and any such
+
+                                                   43
+extensions are equivalent to one another [86, Theorem 34.4]. In particular, using the convention
++∞−∞ = −∞, one gets the lower closure (minimal element) of the equivalence class containing
+the equivalent CCCP extensions of (48). Alternatively, using the convention +∞ − ∞ = +∞,
+one gets the upper closure (maximal element) of the equivalence class. In this regard, we can
+safely deal with the case Lp (x, y) = f (x) − g(y) (where the equality in fact means Lp belongs
+to the equivalence class of CCCP extensions of (48)) without pathology or ambiguities.
+
+
+
+
+                                              44
+

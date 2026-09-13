@@ -1,0 +1,2467 @@
+                                         Overcomplete Tensor Decomposition via Koszul–Young Flattenings
+                                                        Pravesh K. Kothari∗1 , Ankur Moitra†2,3 , and Alexander S. Wein‡4
+                                                                     1
+                                                                    Computer Science Department, Princeton
+                                                                        2
+                                                                          Department of Mathematics, MIT
+                                                              3
+                                                                Computer Science and Artificial Intelligence Lab, MIT
+                                                                     4
+                                                                       Department of Mathematics, UC Davis
+arXiv:2411.14344v2 [cs.DS] 23 Oct 2025
+
+
+
+
+                                                                                          Abstract
+                                                   Motivated by connections between algebraic complexity lower bounds and tensor decompo-
+                                               sitions, we investigate Koszul–Young flattenings, which are the main ingredient in recent lower
+                                               bounds for matrix multiplication. Based on this tool we give a new algorithm for decompos-
+                                               ing an n1 × n2 × n3 tensor as the sum of a minimal number of rank-1 terms, and certifying
+                                               uniqueness of this decomposition. For n1 ≤ n2 ≤ n3 with n1 → ∞ and n3 /n2 = O(1), our
+                                               algorithm is guaranteed to succeed when the tensor rank is bounded by r ≤ (1 − ϵ)(n2 + n3 ) for
+                                               an arbitrary ϵ > 0, provided the tensor components are generically chosen. For any fixed ϵ, the
+                                               runtime is polynomial in n3 . When n2 = n3 = n, our condition on the rank gives a factor-of-2
+                                               improvement over the classical simultaneous diagonalization algorithm, which requires r ≤ n,
+                                               and also improves on the recent algorithm of Koiran (2024) which requires r ≤ 4n/3. It also
+                                               improves on the PhD thesis of Persu (2018) which solves rank detection for r ≤ 3n/2.
+                                                   We complement our upper bounds by showing limitations, in particular that no flattening
+                                               of the style we consider can surpass rank n2 + n3 . Furthermore, for n × n × n tensors, we
+                                               show that an even more general class of degree-d polynomial flattenings cannot surpass rank
+                                               Cn for a constant C = C(d). This suggests that for tensor decompositions, the case of generic
+                                               components may be fundamentally harder than that of random components, where efficient
+                                               decomposition is possible even in highly overcomplete settings.
+
+
+
+
+                                            ∗
+                                              Email: kothari@cs.princeton.edu. Partially supported by NSF CAREER Award #2047933, Alfred P. Sloan
+                                         Fellowship and a Google Research Scholar Award.
+                                            †
+                                              Email: moitra@mit.edu. Partially supported by a Microsoft Trustworthy AI Grant, an ONR grant and a David
+                                         and Lucile Packard Fellowship.
+                                            ‡
+                                              Email: aswein@ucdavis.edu. Partially supported by an Alfred P. Sloan Research Fellowship and NSF CAREER
+                                         Award CCF-2338091.
+
+
+                                                                                              1
+Contents
+1 Introduction                                                                                         3
+  1.1 Prior Work . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     4
+  1.2 Our Contributions: Upper and Lower Bounds. . . . . . . . . . . . . . . . . . . . . .             5
+  1.3 Further Discussion . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     7
+
+2 Main Results                                                                                         8
+  2.1 Preliminaries . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    8
+      2.1.1 Tensor Decomposition and Rank . . . . . . . . . . . . . . . . . . . . . . . . .            8
+      2.1.2 Genericity and Symbolic Rank . . . . . . . . . . . . . . . . . . . . . . . . . .           8
+  2.2 Upper Bounds . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .       8
+      2.2.1 Trivial Flattenings . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      8
+      2.2.2 Koszul–Young Flattenings . . . . . . . . . . . . . . . . . . . . . . . . . . . . .         9
+      2.2.3 Rank Detection . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      11
+      2.2.4 Decomposition Algorithm . . . . . . . . . . . . . . . . . . . . . . . . . . . . .         12
+      2.2.5 Uniqueness Theorem and Algorithmic Guarantees . . . . . . . . . . . . . . .               14
+  2.3 Lower Bounds . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    16
+      2.3.1 Flattenings of Koszul–Young Type . . . . . . . . . . . . . . . . . . . . . . . .          17
+      2.3.2 Linear Flattenings . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      17
+      2.3.3 Low-Degree Flattenings . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .        18
+  2.4 Open Problems . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     19
+
+3 Proofs for Upper Bounds                                                                             20
+  3.1 Proof of Proposition 2.3 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    20
+  3.2 Proof of Theorem 2.4 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    20
+  3.3 Proof of Theorem 2.7 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    22
+  3.4 Proof of Lemma 3.2 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      25
+  3.5 Proof of Lemma 3.3 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      25
+  3.6 Proof of Theorem 2.8 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    27
+  3.7 Proof of Lemma 3.6 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      29
+
+4 Proofs for Lower Bounds                                                                             31
+  4.1 Matrix Decomposition Lemma . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .          31
+  4.2 Proof of Theorem 2.9 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    32
+  4.3 Proof of Theorem 2.10 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     32
+  4.4 Proof of Theorem 2.12 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     33
+
+A Trivial Flattenings                                                                                 35
+
+B Commuting Extensions                                                                                36
+
+Acknowledgments                                                                                       39
+
+References                                                                                            39
+
+
+
+
+                                                   2
+1    Introduction
+A tensor is a multi-way array T ∈ Rn1 ×n2 ×···×nk with entries denoted Ti1 ,i2 ,...,ik for ij ∈ [nj ] :=
+{1, . . . , nj }, where k is called the order of the tensor. For vectors a(1) ∈ Rn1 , a(2) ∈ Rn2 , . . . , a(k) ∈
+Rnk , the associated rank-1 tensor is denoted T = a(1) ⊗ a(2) ⊗ · · · ⊗ a(k) and has entries Ti1 ,i2 ,...,ik =
+  (1) (2)         (k)
+ai1 ai2 · · · aik . Also, a⊗k is shorthand for a ⊗ a ⊗ · · · ⊗ a (k times). While various notions of tensor
+rank exist, we consider the CP (canonical polyadic) decomposition, that is, the rank of a tensor T
+is the minimum r such that T can be expressed as the sum of r rank-1 tensors. In the matrix case
+k = 2, this coincides with the usual notion of matrix rank.
+     Tensor decomposition is the algorithmic task of breaking down a given rank-r tensor into its
+r constituent rank-1 summands. For matrices, this is ill-posed due to the “rotation problem”
+(see [Moi18]). In contrast, minimum-rank tensor decompositions for k ≥ 3 tend to be unique,
+provided the rank is small enough. This uniqueness is key to the usefulness of tensor methods
+in various applications throughout statistics, data science, and machine learning. For instance,
+minimum rank decompositions of the third/fourth moment tensor can be used to learn the param-
+eters of expressive statistical models, particularly ones with latent variables. We refer the reader
+to [KB09, Moi18, RSG17, Vij20] for more background and applications of tensor decompositions.
+     In this work, we study tensor decompositions for an n1 × · · · × nk tensor T of rank r. Any such
+tensor can be written as
+                                               Xr
+                                          T =      a(1,ℓ) ⊗ · · · ⊗ a(k,ℓ) .                                  (1)
+                                              ℓ=1
+
+The vectors a(i,ℓ) ∈ Rni are called the components of the tensor T . In this work, we focus on the
+well-studied setting of “large” dimensional tensors of a fixed order; that is, we imagine a sequence
+of problem sizes where k remains fixed but some or all of the dimensions n1 , . . . , nk tend to infinity.
+    Three natural and interrelated questions of interest arise when studying decompositions for T :
+
+    • Uniqueness Theorem: A uniqueness theorem specifies an explicit list of conditions (ideally,
+      efficiently checkable) on the collection of components {a(i,ℓ) : i ∈ [k], ℓ ∈ [r]} that guarantees
+      the uniqueness of the decomposition (1) up to natural ambiguities in ordering and scaling
+      (see Definition 2.2). E.g., note that we cannot hope to resolve the norm of each component
+      a(i,ℓ) , since a ⊗ b ⊗ c = (2a) ⊗ (b/2) ⊗ c.
+
+    • Rank Detection: Given a tensor T of the form (1) generated according to some model,
+      the goal is to output r. Our lower bounds (i.e., impossibility results) will apply to this goal,
+      which is, in general, easier than computing a minimum rank decomposition for T .
+
+    • Decomposition: Given a tensor T of the form (1) generated according to some model, the
+      goal is to recover the components a(i,ℓ) , again up to ordering and scaling.
+
+Tensors pose a number of computational challenges because basic operations such as comput-
+ing the rank or finding the best rank-1 approximation are NP-hard for tensors of order 3 and
+up [Hås90, HL13, Swe18]. As a result, we do not hope for an efficient (i.e., polynomial-time) tensor
+decomposition algorithm that works on all possible inputs, and it will be important to impose some
+non-degeneracy assumptions on the input tensor. Some common assumptions include:
+
+    • Generic components: Here, the components are assumed to be chosen “generically” in
+      the sense of algebraic geometry (see Section 2.1.2). This amounts to asking the algorithm to
+      succeed for “almost all” choices of components (all but a measure-zero set).
+
+
+                                                       3
+   • Smoothed analysis model: Here, the components are obtained by starting with an arbi-
+     trary collection of components and then perturbing them by a small amount of random noise.
+     Additional noise may also be added to the observed tensor. While results in the generic setting
+     tend to assume exact access to the input tensor and exact computation of linear-algebraic
+     primitives, results in the smoothed setting also need to address the algorithm’s numerical
+     stability and robustness to noise.
+
+   • Random components: Here, the components are assumed to be drawn independently from
+     a particular prior, such as i.i.d. Gaussian or uniform on the unit sphere. As compared to
+     generic components, this induces rather strong assumptions on the components (e.g., near-
+     orthogonality).
+Additionally, some prior work assumes the rank-1 terms in the decomposition are symmetric tensors
+(a(ℓ) )⊗k , in place of the non-symmetric setup we have presented above. We will be interested in
+the overcomplete setting, which in the “square” case n1 = n2 = · · · = nk = n means r > n. While
+much is known about overcomplete third-order tensor decomposition in the random model, there
+are wide gaps in our understanding in the smoothed and generic settings. This will be our main
+focus in this paper.
+
+1.1   Prior Work
+Generic Case. First we give an overview of prior work on third-order tensor decomposition,
+focusing on square tensors, i.e. those of format n × n × n, with n large. A first question is that
+of identifiability: when are minimum-rank tensor decompositions unique? A tensor of format
+n × n × n cannot have rank larger than n2 , because it is comprised of n matrix “slices” and each
+is n × n with rank ≤ n. This means if T is generated according to (1) with r > n2 , the planted
+decomposition will not be the minimum-rank one, so we do not hope to find it. On the other hand,
+if r ≤ cn2 for a particular constant c ∈ (0, 1) and the components are generically chosen, then the
+planted decomposition will be the unique rank-r decomposition [BCO14]. See also [COV14] for
+identifiability results for tensors of specific sizes.
+     But what about computationally efficient algorithms? Known polynomial-time algorithms re-
+quire r to be significantly below the identifiability threshold. For order-3 tensors, a classical method
+called simultaneous diagonalization or Jennrich’s algorithm can decompose generic tensors of rank
+r ≤ n (the “undercomplete” case) [Har70,
+                                       Pr      LRA93] (see [Moi18]). Furthermore, the analysis comes
+with a uniqueness theorem: if T = ℓ=1 a(ℓ) ⊗ b(ℓ) ⊗ c(ℓ) where {a(ℓ) } and {b(ℓ) } are each linearly
+independent and {c(ℓ) } are pairwise linearly independent, then the decomposition is unique and
+the algorithm will find it. Another well-known uniqueness theorem due to Kruskal [Kru77] has
+the advantage of being applicable even for rank up to r ≤ 3n/2 but the disadvantage that the
+conditions on the components are not efficiently checkable and no algorithm is known for finding
+the decomposition in polynomial time; see also [LP23, Gub24] and references within for various
+extensions of Kruskal’s theorem.
+
+Random Case. If the components are taken to be random rather than generic, there are efficient
+algorithms that succeed for much larger values of r. Known algorithms reach r ≈ n3/2 (up to
+logarithmic factors in n) [GM15, MSS16, HSSS16, KP20, DdL+ 22]. However these algorithms
+exploit the randomness of the components in an essential way: They rely on the observation that the
+maxima of ⟨T, x⊗y⊗z⟩ over unit vectors x, y and z occur near the unknown components. Thus many
+algorithms for decomposing random third-order tensors start from a semidefinite programming
+relaxation for the above polynomial optimization problem and show how to round its solutions to
+
+                                                   4
+recover the components. However this strategy quickly breaks down even in the smoothed model
+because the magnitude of the perturbations can be smaller than the magnitude of the components
+in the base tensor by a large polynomial factor.
+    It appears likely that this threshold — and more generally, nk/2 for order-k tensors — is the
+fundamental limit for efficient algorithms in the random model, as evidenced by lower bounds
+against low-degree polynomials [Wei23]. We remark that for fourth-order tensors (discussed in
+Section 1.3), the algorithms for the generic model match the lower bounds for the (easier) random
+model, meaning we (likely) cannot expect further improvements in the generic setting, and the
+generic setting is no harder than the random setting. In contrast, known algorithms for third-order
+tensors have a gap between the generic (r ≈ n) and random (r ≈ n3/2 ) settings.
+
+Generic third-order overcomplete tensor decomposition. Our main focus will be on algo-
+rithms for decomposing overcomplete third-order tensors in the generic case. We remark that even
+a modest improvement on the value of r has potential consequences for downstream applications
+in learning, since it often imposes an upper bound on the complexity of models we can work with
+(e.g., the number of components in a mixture model). And the assumption that the components
+are random often leads to much more stringent assumptions on the model as well, at least compared
+to the generic case.
+    For some time, the question of finding any algorithm (or an efficient uniqueness theorem)
+in the “overcomplete” regime r > n remained a notable open problem (highlighted at COLT
+2014 [BCMV14a] and also mentioned in [MSS16, Moi18]), and recently some progress has been
+made. The work of [CR22] gave an algorithm for decomposing slightly overcomplete tensors,
+namely r = n + ℓ where the runtime is polynomial in n but exponential in ℓ. More recently,
+Koiran [Koi24a] gave both a decomposition algorithm and an efficient uniqueness theorem for
+r ≤ 4n/3; this algorithm only uses 4 “slices” of the tensor, and works for tensors of format n × n × p
+for p ≥ 4. Our work aims to push these approaches to the limit, improving the condition on r
+as much as possible and also investigating whether there are fundamental limitations for efficient
+algorithms.
+
+1.2   Our Contributions: Upper and Lower Bounds.
+Our starting point is the work of Garg, Kayal and Saha [GKS20] who showed a surprising connection
+between algebraic complexity theory and learning. In particular they showed how a powerful lower
+bound method, called the method of shifted partial derivatives [CKW11], could be leveraged to
+give algorithms for decomposing polynomials into power sums, which is a close relative of tensor
+decomposition. We will similarly build our algorithms out of certain algebraic gadgets, which we
+formalize below:
+Definition 1.1. A rank detection gadget (a.k.a. “flattening”) M is an efficiently computable func-
+tion that maps third-order tensors T ∈ Rn×n×n to matrices M (T ). We say that M solves the
+generic rank detection problem up to rank r if there is some function f such that:
+  1. For all third-order tensors T , f (rank(M (T )) ≤ rank(T ).
+
+  2. Moreover for generic tensors T up to rank r, f (rank(M (T )) = rank(T ).
+This definition is inspired by the definition of what it means to refute a random CSP. In particular
+we want that f (rank(M (T )) should always yield a valid lower bound on the rank of T , but we
+only require this lower bound to be accurate on generic tensors up to some given rank. The main
+question is: How can we design rank detection gadgets that work for the largest range of ranks?
+
+                                                  5
+    A simple rank detection gadget is to just take the first “slice” through the tensor. It is easy to
+check that its rank is always a lower bound on the rank of T . But since M (T ) is an n × n matrix,
+this gadget can only plausibly work for generic tensors up to rank n. Devising rank detection
+gadgets that work beyond n, i.e. in the overcomplete regime, turns out to be rather non-trivial.
+The first rank detection gadget that plausibly works beyond n was given by Strassen [Str83]. The
+key property is that if T is n × n × n then M (T ) is a 3n × 3n matrix and moreover the mapping is
+linear and sends a rank-one tensor T to a rank-two matrix M (T ). Thus Strassen’s gadget plausibly
+works up to rank r ≤ 3n/2. But proving this requires showing that the rank two matrices that arise
+from each component do not generically interfere with each other. Strassen’s gadget was analyzed in
+the PhD thesis of Persu [Per18] who showed it solves rank detection (but not decomposition) when
+r ≤ 3n/2. It turns out this is an example of an even more general strategy called Koszul–Young
+flattenings [LO13] (see also [Lan11]), which are the best known rank detectiongadgets. These are
+parameterized by a positive integer p and map an n × n × n tensor T to a 2p+1   p n × 2p+1
+                                                                                         p   n matrix
+                                                                           2p
+                                                                              
+M (T ). They are again linear, and map a rank-one tensor T to a rank- p matrix M (T ), so they
+plausibly work up to r = (2 − ϵ)n for any ϵ > 0.
+    Our main algorithmic results are tensor decomposition and efficient uniqueness theorems that
+reach the same limit as the Koszul–Young flattenings. Below we give an informal and simpli-
+fied statement of the main algorithm results (“upper bounds”), with the full details presented in
+Section 2.2.5.
+Theorem (Upper Bounds, Informal). Consider tensors of format n1 × n2 × n3 where (without
+loss of generality) n1 ≤ n2 ≤ n3 , and further assume an asymptotic regime where n1 → ∞ and
+n3 /n2 =: α = O(1). In the setting of generic components, we give algorithms for both the rank
+detection and decomposition tasks, as well as an efficient uniqueness theorem. These results tolerate
+rank as large as r ≤ (1 − ϵ)(n2 + n3 ) for an arbitrary constant ϵ > 0. For any fixed ϵ, the runtime
+is polynomial in n3 . More precisely, the runtime is polynomial in n3 · 2α/ϵ .
+For comparison, the previous state-of-the-art results for rank detection [Per18] and decomposi-
+tion [Koi24a] assume n2 = n3 = n and require r ≤ 3n/2 and r ≤ 4n/3 respectively. Also, our
+efficient uniqueness theorem is the first uniqueness theorem (efficient or not) to surpass Kruskal’s
+classical bound r ≤ 3n/2 [Kru77].
+     In addition to the Koszul–Young flattenings, a key ingredient in our approach will be the
+algorithm of [JLV23] (see also the precursors [Car91, DL06, DLCC07, BVD+ 18]) for finding rank-
+1 matrices in a linear subspace. In contrast to our approach based on rank detection gadgets,
+the decomposition algorithm of [Koi24a] takes a different approach, based on connections with the
+problem of computing a commuting extension. We can exploit this connection in the other direction:
+Appendix B shows how our decomposition algorithm implies an algorithm for commuting extensions
+that is (in some sense) nearly optimal.
+     We also investigate limitations of our approach (“lower bounds”) by showing that certain natural
+strategies cannot even solve the easier rank detection problem. We give a few different results
+for successively broader classes of flattenings. First we consider linear flattenings of the form
+M (a ⊗ b ⊗ c) = A(a) ⊗ (bc⊤ ) for a matrix A(a) whose entries are homogeneous degree-1 polynomials
+in the entries of a. We designate such flattenings as Koszul–Young type because the Koszul–Young
+flattenings take this form. We also consider the substantially more general degree-d polynomial
+flattenings where each entry of M (T ) is a homogeneous degree-d polynomial in the entries of T . In
+both cases, we do not quite rule out rank detection in the sense of Definition 1.1, but we rule out a
+natural sufficient condition called rank additivity. In the case of linear flattenings, rank additivity
+corresponds to Definition 1.1 with f (x) = mx for some m ∈ Z≥1 . Below we give an informal and
+simplified statement of our lower bounds, with the full details presented in Section 2.3.
+
+                                                  6
+Theorem (Lower Bounds, Informal). Consider tensors of format n1 × n2 × n3 where n1 ≤ n2 ≤ n3 .
+
+   • Flattenings of Koszul–Young type can only exhibit rank additivity when r ≤ n2 + n3 .
+
+   • Degree-d homogeneous polynomial flattenings can only exhibit rank additivity when r ≤ Cn3
+     for a constant C = C(d).
+
+The bound n2 + n3 in the first result is precisely the threshold achieved by our algorithm, so the
+Koszul–Young flattenings are optimal among flattenings of this style. The proofs extend [EGOW18],
+which covers the case d = 1 of the second result. We note that this style of lower bound is distinct
+from the low-degree polynomial framework used by [Wei23] for the case of random components, as
+that approach only applies to fully-Bayesian random models.
+    Our lower bounds formalize the sense in which reaching r ≫ n would require a rather different
+approach, and might be fundamentally out of reach for efficient algorithms. Of course, there are
+other potential approaches that are not ruled out by our lower bounds. For instance, we have not
+ruled out a flattening whose rank tracks that of the original tensor in a non-additive way. Beyond
+flattenings, there is the commuting extension approach of [Koi24a], but curiously this appears to
+have a natural breaking point at r = 2n (see Section 2 of [Koi24b]), matching our algorithm. We
+note that there is an explicit tensor with a rank lower bound of roughly 3n [AFT11], but this does
+not appear to suggest a decomposition algorithm.
+
+Model of computation. Our algorithm only uses standard linear algebra primitives such as
+solving linear equations, computing eigenvalues, and intersecting linear subspaces (all applied to
+polynomial-sized inputs). The eigenvalue computation is used within simultaneous diagonalization,
+which is a subroutine of [JLV23]. Following [Koi24a, Section 1.4] (and numerous prior works in
+the tensor decomposition literature), we treat these as atomic operations and assume they can be
+implemented exactly. Our algorithm can be implemented to give guarantees in the computational
+model that allows rational arithmetic with polynomial bits of precision.
+    We leave for future work the question of obtaining a detailed analysis of the stability and
+robustness of our algorithm, e.g., in the style of [BCMV14b, GVX14]. Certainly our description
+and analysis of the algorithm in exact terms is a necessary step toward this goal. Another seemingly
+necessary step would be to obtain a robust analysis of the [JLV23] algorithm (which we use as a
+subroutine), but currently this only exists for the “non-planted” variant of the problem [BESV24]
+(where the goal is to refute the existence of a rank-1 matrix in the given subspace).
+
+1.3   Further Discussion
+We remark that there are fourth-order tensor decomposition algorithms that work in the generic
+and highly overcomplete setting. In particular the FOOBI algorithm and its variants [Car91, DL06,
+DLCC07, MSS16, HSS19, JLV23] can decompose generic tensors of rank r ≤ cn2 for a constant
+c > 0. See [JLV23] for a recent account, which generalizes the setting and corrects an error in
+the original analysis of [DL06]; this result also certifies uniqueness of the decomposition, providing
+an efficiently-checkable uniqueness theorem. However from the vantage point of Definition 1.1 an
+associated rank detection gadget for fourth-order tensors is easy to construct: We can rearrange
+the n × n × n × n tensor into an n2 × n2 matrix. This works as a rank detecting gadget for rank
+r ≤ n2 . Also noise-robustness and numerical precision of (variants of) the above algorithms have
+been studied (for instance, in the smoothed analysis model) for order-3 [BCMV14b, GVX14, KS23]
+and order-4 [MSS16, HSS19] tensors.
+
+
+
+                                                  7
+2     Main Results
+2.1     Preliminaries
+2.1.1    Tensor Decomposition and Rank
+Definition 2.1 (Tensor Rank). For vectors a(1) ∈ Rn1 , a(2) ∈ Rn2 , . . . , a(k) ∈ Rnk , the rank-1
+tensor a(1) ⊗a(2) ⊗· · ·⊗a(k) has order k and format n1 ×· · ·×nk , with entries (a(1) ⊗· · ·⊗a(k) )i1 ,...,ik =
+ (1) (2)       (k)
+ai1 ai2 · · · aik . In general, the rank of an n1 × · · · × nk tensor T is the minimum r for which T
+can be expressed as the sum of r rank-1 tensors: T = rℓ=1 a(1,ℓ) ⊗ · · · ⊗ a(k,ℓ) where a(i,ℓ) ∈ Rni .
+                                                           P
+
+Definition 2.2 (Unique Decomposition).         Pr For            an n1 × · · · × nk tensor T and a positive integer
+r, we say that a decomposition          T = ℓ=1 a        (1,ℓ)   ⊗ · · · ⊗ a(k,ℓ) into r rank-1 terms is unique if for
+                               Pr      (1,ℓ)               (k,ℓ)
+any decomposition T = ℓ=1 ã                  ⊗ · · · ⊗ ã        there exists a permutation π : [r] → [r] such that
+ã(1,ℓ) ⊗ · · · ⊗ ã(k,ℓ) = a(1,π(ℓ)) ⊗ · · · ⊗ a(k,π(ℓ)) for all ℓ ∈ [r]. When we speak of recovering such a
+decomposition, we mean the task of finding the r rank-1 tensors (which can be listed in any order),
+given T as input.
+Note that if T has a unique decomposition into r rank-1 terms then none of these terms can be
+zero, and the rank of T must be exactly r.
+
+2.1.2    Genericity and Symbolic Rank
+Throughout, we use the standard meaning of the term “generic” from algebraic geometry. Namely,
+for symbolic variables x = (x1 , . . . , xp ), we say that a property holds true “generically” (or holds for
+“generically chosen x”) if there exists a nonidentically-zero polynomial P (x1 , . . . , xp ) ∈ R[x] such
+that the property holds true for all x ∈ Rn such that P (x) ̸= 0. If a property holds true generically,
+it holds for “almost all” x in the sense that the set of x for which the property fails is measure zero.
+If a finite collection of properties each holds true generically, then it is also generically true that
+all the properties hold simultaneously; this can be seen by multiplying together all the associated
+polynomials P (x).
+Pr For (1,ℓ)
+         us, a common use case for genericity will be in reference to a tensor decomposition T =
+   ℓ=1 a     ⊗ · · · ⊗ a(k,ℓ) where a(i,ℓ) ∈ Rni . When we say a property holds true for “generically
+chosen components,” we mean the P         notion of generic from above, where the variables x are all the
+entries of all the vectors a(i,ℓ) (so r ki=1 ni variables in total).
+    Suppose M = M (x) is a matrix whose entries are polynomials in the variables x = (x1 , . . . , xp ),
+that is, M ∈ R[x]m×n . Every minor of M (determinant of a square submatrix) is a polynomial in
+the variables x. The symbolic rank of M is the largest integer r for which M has an r × r minor
+that is not identically zero. Equivalently, this is the rank of M over the fraction field R(x). Note
+that if M has symbolic rank r then M (x) has rank r for generically chosen x; this follows from the
+characterization of rank as the size of the largest nonzero minor. This allows us to speak of the
+“generic rank” of a matrix (which equals the symbolic rank). For specific values of x, the rank of
+M (x) may be lower than the generic rank of M , but never higher (since all minors larger than the
+generic rank are identically zero).
+
+2.2     Upper Bounds
+2.2.1    Trivial Flattenings
+As a benchmark, we first discuss the “trivial” flattenings of tensors to matrices. Suppose T is a
+tensor of format n1 ×· · ·×nk . Choose a subset S ⊆ [k] and let S̄ := [k]\S denote its complement. We
+
+                                                          8
+can flatten T to a matrix M triv = M triv (T ; S) of format ( i∈S ni ) × ( i∈S̄ ni ) in a straightforward
+                                                                   Q          Q
+way:
+                         M(itriv
+                              j : j∈S), (ij : j∈S̄)
+                                                    := Ti1 ,...,ik where ij ∈ [nj ].                  (2)
+
+A rank-1 tensor a(1) ⊗ · · · ⊗ a(k) flattens to a rank-1 matrix
+                                                                           !       ⊤
+                                                                 O           O
+                        M triv (a(1) ⊗ · · · ⊗ a(k) ; S) =             a(i)   a(i)  .
+                                                                 i∈S           i∈S̄
+                      Pr         (1,ℓ) ⊗ · · · ⊗ a(k,ℓ) flattens to the matrix
+A rank-r tensor T =      ℓ=1 a
+
+                                      r
+                                      X
+                                            M triv (a(1,ℓ) ⊗ · · · ⊗ a(k,ℓ) ; S),
+                                      ℓ=1
+
+which has rank at most r. For rank detection, it would be useful if the rank were exactly r, i.e.,
+if the rank of the flattening were additive across the rank-1 terms of the tensor, so that we could
+read off the rank of T from the rank of M triv . The rank of M triv (T ; S) certainly cannot exceed the
+minimum of its two dimensions, namely
+                                                             
+                                                 Y       Y 
+                                    RS := min        ni ,   ni .
+                                                             
+                                                          i∈S        i∈S̄
+
+Conceivably, additivity could hold as long as r ≤ RS . Indeed, this is the case as long as the
+components a(i,ℓ) are generically chosen in the sense of Section 2.1.2; we include the proof in
+Appendix A for completeness. This gives a solution to the rank detection problem for tensors of
+rank up to RS (with generic components). Taking the best choice of S, the trivial flattening can
+solve rank detection up to rank
+                                                            
+                                               Y        Y 
+                                n∗ := max min       ni ,  ni .
+                                      S⊆[k]                 
+                                                               i∈S      i∈S̄
+
+
+For order-k tensors of format n × · · · × n, this gives rank detection up to rank n⌊k/2⌋ .
+    Section 6 of [JLV23] uses the trivial flattening to give an algorithm for recovering the minimum-
+rank decomposition (and certifying its uniqueness), under slightly stronger assumptions. The idea
+is to search the column span of the flattening for vectors that have rank-1 structure. For instance,
+Corollary 27 of [JLV23] can decompose an n1 × n2 × n3 tensor with n1 ≤ n2 ≤ n3 and generically
+chosen components, of rank r up to
+                                                                   
+                                              1
+                                 r ≤ min        (n1 − 1)(n2 − 1), n3 .                             (3)
+                                              4
+
+For comparison, n∗ takes the value min{n1 n2 , n3 } in this setting.
+
+2.2.2   Koszul–Young Flattenings
+Our new algorithm is inspired by an idea first introduced by [LO13] as “Young flattenings” [LO13,
+Lan11, Lan15] and later referred to as “Koszul flattenings” [OO13, LM17, HOOS19] or “Koszul–
+Young flattenings” [Far16, Gua17]. (We thank J.M. Landsberg for clarifying that Koszul flattenings
+
+                                                           9
+are a special case of Young flattenings, with the optimal choice of parameters.) Essentially, Koszul–
+Young flattenings provide a non-trivial linear map from tensors to matrices. These ideas have
+already appeared in tensor decomposition algorithms [OO13], but for n×n×n tensors, these results
+only handle the undercomplete case r ≤ n. More recently, [Per18] used Koszul–Young flattenings
+to solve rank detection for overcomplete tensors with generic components, namely n × n × n tensors
+of rank up to 3n/2. Furthermore, [Per18] proposed a hierarchy of poly-time approaches for rank
+detection that conjecturally approaches rank 2n, as well as an approach for decomposition that
+conjecturally tolerates rank (1 + ϵ)n for a small constant ϵ > 0. We will resolve and extend these
+conjectures: for sufficiently large n × n × n tensors with generic components, we solve both rank
+detection and decomposition in polynomial time, up to rank (2 − ϵ)n for an arbitrary constant
+ϵ > 0. We will also handle non-square tensors.
+    The Koszul–Young flattenings are typically described in abstract algebraic terms, namely as a
+map B ∗ ⊗ ∧p (A) → ∧p+1 A ⊗ C. We will give instead a very explicit combinatorial description of
+a matrix based on these ideas. Our construction has two parameters p, q instead of only p, and
+specializes to (the transpose of) the usual Koszul–Young flattenings when q = 2p + 1. Suppose T
+is n1 × n2 × n3 and fix integers p, q with 0 ≤ p < p + 1 ≤ q ≤ n1 . Define a matrix M = M (T ; p, q)
+with rows indexed by
+                                  {(S, j) : S ⊆ [q], |S| = p, j ∈ [n2 ]},
+columns indexed by
+                              {(U, k) : U ⊆ [q], |U | = p + 1, k ∈ [n3 ]},
+and entries
+                                            q
+                                                  1U =S⊔{i} · σ(U, i) · Tijk .
+                                            X
+                               MSj,U k :=                                                         (4)
+                                            i=1
+
+Here, 1A denotes the {0, 1}-valued indicator for an event A, and σ(U, i) ∈ {±1} is the parity of i’s
+position in U , that is,
+                                    σ(U, i) := (−1)|{j∈U : j<i}| .                              (5)
+While we have written (4) as a sum over i ∈ [q], at most one term in this sum can be nonzero.
+Note that only q slices of T (along the first mode) are used.
+    The dimensions of M are pq n2 × p+1      q
+                                                n3 . We will leave p, q as free variables for now, but
+eventually it will be advantageous to take q to be a (large) constant so that M has polynomial size,
+and p ≈ q n2n+n
+              3
+                3
+                  which makes M as square as possible. One special case of interest is n2 = n3 , in
+which case we can take q odd with q = 2p + 1 so that M is exactly square, since 2p+1          = 2p+1
+                                                                                                    
+                                                                                         p       p+1 ;
+the prior work [Per18] considers only this square case and mainly focuses on p = 1. We remark that
+the extreme cases p = 0 and p = q − 1 essentially reduce to “trivial” flattenings from the previous
+section (but with additional signs in the case p = q − 1).
+    The flattening (4) bears resemblance to a signed variant of the Kikuchi matrices that were
+introduced by [WEM19] (with a variation independently discovered by [Has20]) and have subse-
+quently appeared in results on constraint satisfaction [GKM22], error-correcting codes [AGKM23,
+KM24a, KM24b], and extremal combinatorics [GKM22, HKM23]. In particular, the related matrix
+A defined in (6) below resembles a Kikuchi matrix in the sense that its rows and columns are
+indexed by subsets and it only contains a nonzero entry when the two subsets have their symmetric
+difference of a particular size (in this case, 1).
+
+
+
+
+                                                     10
+2.2.3   Rank Detection
+If T is a rank-1 tensor T = a ⊗ b ⊗ c then the flattening M= M
+                                                               (T ; p, q) from (4) is the Kronecker
+                      ⊤                                q    q
+product M = A ⊗ (bc ) where A = A(a; p, q) is the p × p+1 matrix
+                                           q
+                                                 1U =S⊔{i} · σ(U, i) · ai .
+                                           X
+                                   ASU =                                                              (6)
+                                           i=1
+
+Therefore, as long as neither b nor c is the zero vector, M has the same rank as A. We will see
+that the matrix A is rank-deficient, with generic rank q−1p . If, for instance, q = 2p + 1 then A is
+              2p+1
+                     = p+1 , but crucially, its generic rank 2p
+                        2p+1
+                            
+square since    p                                             p is roughly half its dimension (for
+large p). This is a known fact, and we provide a proof in Section 3.1.
+Proposition 2.3 ([LO13]). For a rank-1 tensor T = a ⊗ b ⊗ c with a, b, c generically chosen, the
+matrix M (T ; p, q) defined in (4) has rank exactly q−1p .
+
+The transformation T 7→ M (T ; p, q) is linear, so a rank-r tensor T = rℓ=1 a(ℓ) ⊗ b(ℓ) ⊗ c(ℓ) flattens
+                                                                            P
+to the matrix
+                                             r
+                                             X
+                              M (T ; p, q) =   M (a(ℓ) ⊗ b(ℓ) ⊗ c(ℓ) ; p, q).
+                                             ℓ=1
+
+If the rank were additive across these r terms then M (T ; p, q) would need to have rank r q−1
+                                                                                                    
+                                                                                                  p   , in
+                                                                                q−1
+                                                                                   
+light of Proposition 2.3. Conceivably, additivity could hold as long as r p does not exceed the
+minimum dimension of M (T ; p, q), which is min{ pq n2 , p+1   q
+                                                                   n3 }. Dividing through by q−1
+                                                                                                
+                                                                                                p , this
+                                 q        q
+condition becomes r ≤ min{ q−p      n2 , p+1 n3 }. Choosing q large and p ≈ q n2n+n
+                                                                                  3
+                                                                                    3
+                                                                                      to balance the two
+terms in min{· · · }, this heuristic suggests that rank detection might be possible for r as large as,
+roughly, n2 + n3 . We show that indeed this pans out.
+Theorem 2.4 (Rank detection). Let 1 ≤ q ≤ n1 and
+                                                          
+                                                     n3
+                                          p= q·              .
+                                                  n2 + n 3
+If T = rℓ=1 a(ℓ) ⊗ b(ℓ) ⊗ c(ℓ) is n1 × n2 × n3 with generically chosen components, and
+       P
+                                                                            
+                                       1+α                               n2 n3
+                 r ≤ (n2 + n3 ) 1 −            −q       where α := max     ,     ,
+                                         q                               n3 n2
+then the matrix M (T ; p, q) defined in (4) has rank exactly r q−1
+                                                                  
+                                                                p .
+
+The proof can be found in Section 3.2. Of course, one has the option to permute the 3 modes
+of the tensor before applying Theorem 2.4, and it is advantageous to make n1 the smallest mode.
+Suppose n1 ≤ n2 ≤ n3 and consider the regime n1 → ∞ with α of constant order. For any constant
+ϵ > 0 we can handle r as large as (1 − ϵ)(n2 + n3 ) by taking q to be a sufficiently large constant
+(depending on α, ϵ). For comparison, the trivial flattening of Section 2.2.1 works up to rank n3 in
+this regime. Our advantage over the trivial flattening diminishes as the ratio α = n3 /n2 increases.
+As long as q is a constant, the size of M and the complexity of computing its entries are polynomial
+in the largest dimension n3 .
+    How does the runtime scale with ϵ? Since q is a constant, it suffices to have (1 + α)/q ≤ ϵ/2,
+meaning we should choose q ≥ 2(1 + α)/ϵ. Now each dimension of M is bounded by n3 · 2q =
+n3 · 2O(α/ϵ) . The runtime is therefore polynomial in n3 · 2α/ϵ . It might be possible to remove the
+dependence on α with a more careful analysis.
+
+                                                     11
+Remark 2.5 (Certifying lower    bounds on tensor rank). For an arbitrary tensor T , we always
+                            q−1
+have rank(M (T ; p, q)) ≤ p · rank(T ). This follows from the fact that the rank of A from (6)
+never exceeds its generic rank q−1
+                                     
+                                   p ; see Lemma 3.1. As a result, M provides a certificate that
+                                q−1
+rank(T ) ≥ ⌈rank(M (T ; p, q))/ p ⌉ for any given tensor T .
+
+2.2.4    Decomposition Algorithm
+We now outline our strategy for how to use the flattening (4) to extract the components of the
+tensor. The aim of this section is to describe the algorithm and the intuition behind it, while
+Section 2.2.5 below will contain the main theorems that guarantee this algorithm’s success when
+the tensor components are generically chosen.
+    Consider an n1 × n2 × n3 tensor T = rℓ=1 a(ℓ) ⊗ b(ℓ) ⊗ c(ℓ) . Build the matrix M = M (T ; p, q)
+                                                P
+defined in (4) and compute its column span. Recall that each rank-1 term a(ℓ) ⊗ b(ℓ) ⊗ c(ℓ) flattens
+to A(a(ℓ) ; p, q) ⊗ (b(ℓ) c(ℓ)⊤ ), where A(a; p, q) is defined in (6). Generically, we have the additivity
+property of Theorem 2.4, implying that the column span of M is equal to the span of all columns
+of these individual flattenings, that is,
+
+                colspan(M ) = span{z (U ) (a(ℓ) ; p, q) ⊗ b(ℓ) : U ⊆ [q], |U | = p + 1, ℓ ∈ [r]}                 (7)
+                           q
+where z (U ) (a; p, q) ∈ R(p) denotes column U of A(a; p, q).
+   Fix one particular column of A, namely V := [p + 1]. The column z (V ) has a particular sparsity
+                                                                                     q
+pattern, with nonzeros only allowed in the p + 1 rows S where S ⊆ V . Let Z ⊆ R(p) denote thep,q
+(p + 1)-dimensional subspace comprised of all vectors with this sparsity pattern, that is,
+                                                                                         q
+                        Zp,q := span{e(S) : S ⊆ [q], |S| = p, S ⊆ [p + 1]} ⊆ R(p) ,
+
+where e(S) denotes the standard unit basis vector. We will compute the intersection of the two
+subspaces colspan(M ) and Zp,q ⊗ Rn2 . By design, the r vectors z (V ) (a(ℓ) ; p, q) ⊗ b(ℓ) for ℓ ∈ [r] lie in
+the intersection, and we will show that, generically, the intersection does not contain any additional
+“spurious” elements, that is,
+
+                   colspan(M ) ∩ (Zp,q ⊗ Rn2 ) = span{z (V ) (a(ℓ) ; p, q) ⊗ b(ℓ) : ℓ ∈ [r]}.                    (8)
+
+It will be convenient to change basis so as to remove the zero entries of z (V ) . To this end, we
+will define a specific isomorphism φp,q : Zp,q → Rp+1 , namely the linear map defined on unit basis
+vectors as follows:
+                           φp,q (e([p+1]\{i}) ) = (−1)i−1 e(i) for i ∈ [p + 1].                 (9)
+This is designed so that φp,q (z (V ) (a; p, q)) = (a1 , . . . , ap+1 )⊤ , since entry V \ {i} of z (V ) (a; p, q) is
+equal to σ(V, i)ai = (−1)i−1 ai . Defining d(ℓ) as the first p + 1 entries of a(ℓ) ,
+                                                       (ℓ)        (ℓ)
+                                            d(ℓ) := (a1 , . . . , ap+1 )⊤ ,
+
+this allows us to write (8) as
+
+                  (φp,q ⊗ I)(colspan(M ) ∩ (Zp,q ⊗ Rn2 )) = span{d(ℓ) ⊗ b(ℓ) : ℓ ∈ [r]},                        (10)
+
+where I is the identity map Rn2 → Rn2 .
+    To recap, we can compute the left-hand side of (10) from the flattening M , which gives us access
+to the right-hand side. This means we know the span of r different rank-1 tensors d(ℓ) ⊗ b(ℓ) (which
+
+                                                          12
+can also be viewed as rank-1 matrices of dimension (p + 1) × n2 ) and our next objective will be to
+extract the individual rank-1 elements d(ℓ) ⊗ b(ℓ) . Since our rank-1 tensors are generic, the work
+of [JLV23] provides an algorithm for precisely this task, under the condition r ≤ p(n2 − 1)/4; see
+Corollary 3 of [JLV23], which considers a generalization of this task (in their notation, we only need
+the case s = R). This allows us to recover vectors dˆ(ℓ) and b̂(ℓ) for ℓ ∈ [r], such that dˆ(ℓ) = αℓ · d(π(ℓ))
+and b̂(ℓ) = βℓ · b(π(ℓ)) where αℓ , βℓ ∈ R are nonzero scalars and π is a permutation [r] → [r].
+    At this point, we repeat the entire algorithm so far with the “b” and “c” modes switched. We
+use the same value for q, but use q − p − 1 in place of p so that the new flattening remains as square
+as possible. This allows us to obtain vectors ĉ(ℓ) and fˆ(ℓ) which serve as estimates for c(ℓ) and
+                                                       (ℓ)       (ℓ)
+                                         f (ℓ) := (a1 , . . . , aq−p )⊤ ,
+
+respectively (again, up to re-ordering and scalar multiple). By comparing the dˆ(ℓ) and fˆ(ℓ) vectors
+we can identify the correct pairing between b̂(ℓ) and ĉ(ℓ) , and re-index the ĉ(ℓ) so that b̂(1) is paired
+with ĉ(1) , etc. Now we know the decomposition takes the form
+                                               r
+                                               X
+                                         T =         w(ℓ) ⊗ b̂(ℓ) ⊗ ĉ(ℓ)
+                                               ℓ=1
+
+for unknown vectors w(ℓ) , which can be recovered by solving a linear system of equations; we will
+show that, generically, this linear system has a unique solution, namely the desired decomposition.
+    The full algorithm is presented as Algorithm 1 below. The second phase of the algorithm
+involves a flattening M ′ = M ′ (T ; p, q) that is identical to M but with the “b” and “c” modes
+switched, and with q − p − 1 in place of p. Formally, M ′ (T ; p, q) is indexed by
+
+       {(S, k) : S ⊆ [q], |S| = q − p − 1, k ∈ [n3 ]} × {(U, j) : U ⊆ [q], |U | = q − p, j ∈ [n2 ]}
+
+with entries
+                                               q
+                                                     1U =S⊔{i} · σ(U, i) · Tijk .
+                                               X
+                                  ′
+                                 MSk,U j :=                                                              (11)
+                                               i=1
+
+Algorithm 1 (Overcomplete third-order tensor decomposition).
+   • Input: A tensor T ∈ Rn1 ×n2 ×n3 .
+
+   • Input: Parameters p, q ∈ Z with q ≤ n1 and p̄ := min{p + 1, q − p} ≥ 2.
+
+   • Input: A parameter r (or learn r from rank(M ) using Theorem 2.4).
+
+   1. Build the matrix M = M (T ; p, q) as in (4).
+
+   2. Construct the subspace B := (φp,q ⊗ I)(colspan(M ) ∩ (Zp,q ⊗ Rn2 )) ⊆ Rp+1 ⊗ Rn2 .
+
+   3. Run the algorithm of [JLV23, Corollary 3] to find rank-1 tensors in B, call them dˆ(1) ⊗
+      b̂(1) , . . . , dˆ(r) ⊗ b̂(r) . If the number of rank-1 tensors found is not r, output “fail.”
+
+   4. Build the matrix M ′ = M ′ (T ; p, q) as in (11).
+
+   5. Construct the subspace C := (φq−p−1,q ⊗ I)(colspan(M ′ ) ∩ (Zq−p−1,q ⊗ Rn3 )) ⊆ Rq−p ⊗ Rn3 .
+
+   6. Run the algorithm of [JLV23, Corollary 3] to find rank-1 tensors in C, call them fˆ(1) ⊗
+      ĉ(1) , . . . , fˆ(r) ⊗ ĉ(r) . If the number of rank-1 tensors found is not r, output “fail.”
+
+                                                         13
+  7. Define a permutation τ : [r] → [r] so that the first p̄ entries of fˆ(τ (ℓ)) form a scalar multiple
+     of the first p̄ entries of dˆ(ℓ) for each ℓ ∈ [r]. If this is not possible, output “fail.”
+
+  8. Solve the following linear system of equations in variables w(ℓ) ∈ Rn1 for ℓ ∈ [r]:
+                                           r
+                                           X
+                                                  w(ℓ) ⊗ b̂(ℓ) ⊗ ĉ(τ (ℓ)) = T,                    (12)
+                                            ℓ=1
+
+        and output the resulting rank-r decomposition of T . If there is no solution, output “fail.”
+
+    We have assumed p̄ ≥ 2, since otherwise Step 7 will not have a unique solution. If p̄ = 1, this
+means either p = 0 or p = q − 1, which are the extreme cases where M (T ; p, q) essentially reduces
+to a trivial flattening. In these cases, one should use a simpler decomposition algorithm of [JLV23]
+based on the trivial flattening, as we mentioned in Section 2.2.1; this algorithm works under the
+condition (3).
+
+2.2.5     Uniqueness Theorem and Algorithmic Guarantees
+We will see that the discussion above gives not only a decomposition algorithm that works for generic
+rank-r tensors but also an explicit list of efficiently-checkable conditions on the components that
+guarantees uniqueness of the decomposition. We first present these conditions (Theorem 2.7) and
+then show that generic components satisfy these conditions when r is small enough (Theorem 2.8).
+    Some of the conditions below may appear rather opaque, so we first briefly motivate what
+role they play. It is natural for the matrix M to appear (condition (vi)), given its use as a rank
+detection device (Theorem 2.4) and its role in the decomposition algorithm, but we will also define
+two additional matrices N and P . The condition (viii) on N is used to ensure that (8) holds (no
+spurious elements in the subspace intersection), while the condition (x) on P is used to ensure that
+the [JLV23] algorithm succeeds. The matrices M ′ , N ′ , P ′ are identical to M, N, P but with the “b”
+and “c” modes of the tensor switched and with p replaced by q − p − 1.
+
+Definition 2.6. Consider an n1 × n2 × n3 tensor T with decomposition
+                                                  r
+                                                  X
+                                          T =           a(ℓ) ⊗ b(ℓ) ⊗ c(ℓ)                         (13)
+                                                  ℓ=1
+
+and parameters p, q ∈ Z with q ≤ n1 and p̄ := min{p + 1, q − p} ≥ 2.
+
+   • The matrix N has rows indexed by
+
+                               {(S, j) : S ⊆ [q], |S| = p, S ̸⊆ [p + 1], j ∈ [n2 ]}
+
+        and columns indexed by
+
+                         {(U, ℓ) : U ⊆ [q], |U | = p + 1, 1 ∈ U, U ̸= [p + 1], ℓ ∈ [r]},
+
+        with entries
+                                                        q
+                                                (ℓ)
+                                                              1U =S⊔{i} · σ(U, i) · a(ℓ)
+                                                        X
+                                     NSj,U ℓ = bj ·                                  i ,           (14)
+                                                        i=1
+
+        where σ is defined in (5).
+
+
+                                                          14
+    • The matrix N ′ has rows indexed by
+
+                              {(S, k) : S ⊆ [q], |S| = q − p − 1, S ̸⊆ [q − p], k ∈ [n3 ]}
+
+      and columns indexed by
+
+                            {(U, ℓ) : U ⊆ [q], |U | = q − p, 1 ∈ U, U ̸= [q − p], ℓ ∈ [r]},
+
+      with entries
+                                                          q
+                                                  (ℓ)
+                                                                1U =S⊔{i} · σ(U, i) · a(ℓ)
+                                                          X
+                                        ′
+                                       NSk,U ℓ = ck ·                                  i .
+                                                          i=1
+
+    • The matrix P is indexed by
+
+              {(i1 , i2 , j1 , j2 ) : 1 ≤ i1 < i2 ≤ p + 1, 1 ≤ j1 < j2 ≤ n2 } × {(ℓ1 , ℓ2 ) : 1 ≤ ℓ1 < ℓ2 ≤ r}
+
+      with entries
+                            (ℓ ) (ℓ ) (ℓ ) (ℓ )     (ℓ ) (ℓ ) (ℓ ) (ℓ )        (ℓ ) (ℓ ) (ℓ ) (ℓ )   (ℓ ) (ℓ ) (ℓ ) (ℓ )
+       Pi1 i2 j1 j2 ,ℓ1 ℓ2 = ai11 bj11 ai22 bj22 + ai12 bj12 ai21 bj21 − ai11 bj21 ai22 bj12 − ai12 bj22 ai21 bj11 .
+                                                                                                                (15)
+
+    • The matrix P ′ is indexed by
+
+              {(i1 , i2 , j1 , j2 ) : 1 ≤ i1 < i2 ≤ q − p, 1 ≤ j1 < j2 ≤ n3 } × {(ℓ1 , ℓ2 ) : 1 ≤ ℓ1 < ℓ2 ≤ r}
+
+      with entries
+                            (ℓ ) (ℓ ) (ℓ ) (ℓ )     (ℓ ) (ℓ ) (ℓ ) (ℓ )        (ℓ ) (ℓ ) (ℓ ) (ℓ )   (ℓ ) (ℓ ) (ℓ ) (ℓ )
+       Pi′1 i2 j1 j2 ,ℓ1 ℓ2 = ai11 cj11 ai22 cj22 + ai12 cj12 ai21 cj21 − ai11 cj21 ai22 cj12 − ai12 cj22 ai21 cj11 .
+
+Theorem 2.7 (Uniqueness theorem). Consider an n1 × n2 × n3 tensor T with decomposition
+                                                    r
+                                                    X
+                                              T =         a(ℓ) ⊗ b(ℓ) ⊗ c(ℓ)                                           (16)
+                                                    ℓ=1
+
+and parameters p, q ∈ Z with q ≤ n1 and p̄ := min{p + 1, q − p} ≥ 2. Suppose the components
+satisfy the following conditions:
+        (ℓ)
+  (i) a1 ̸= 0 for all ℓ ∈ [r].
+                            (ℓ)       (ℓ)
+ (ii) The r vectors (a1 , . . . , ap̄ )⊤ for ℓ ∈ [r] are pairwise linearly independent, i.e., no one of
+      these vectors is a scalar multiple of another.
+                                                                                                      (ℓ)        (ℓ)
+ (iii) The r vectors {d(ℓ) ⊗ b(ℓ) : ℓ ∈ [r]} are linearly independent, where d(ℓ) := (a1 , . . . , ap+1 )⊤ .
+                                                                                                       (ℓ)       (ℓ)
+ (iv) The r vectors {f (ℓ) ⊗ c(ℓ) : ℓ ∈ [r]} are linearly independent, where f (ℓ) := (a1 , . . . , aq−p )⊤ .
+
+  (v) The r vectors {b(ℓ) ⊗ c(ℓ) : ℓ ∈ [r]} are linearly independent.
+
+ (vi) The matrix M = M (T ; p, q) from (4) has rank exactly r q−1
+                                                                 
+                                                               p .
+
+(vii) The matrix M ′ = M ′ (T ; p, q) from (11) has rank exactly r q−1
+                                                                      
+                                                                    p .
+
+(viii) The matrix N from Definition 2.6 has full column rank.
+
+                                                            15
+ (ix) The matrix N ′ from Definition 2.6 has full column rank.
+
+ (x) The matrix P from Definition 2.6 has full column rank.
+
+ (xi) The matrix P ′ from Definition 2.6 has full column rank.
+
+Then (16) is the unique rank-r decomposition of T (in the sense of Definition 2.2), and this de-
+composition is recovered by Algorithm 1 (with input T, p, q, r).
+
+The proof of Theorem 2.7 can be found in Section 3.3. It may be possible to simplify the above
+conditions or to find conditions that are “minimal” in some sense, but we have not attempted this
+here. If the above conditions fail to hold for a particular decomposition, one can potentially remedy
+this by permuting the modes of the tensor or by applying an invertible change of basis on one or
+more of the modes. Next we show that the above conditions hold for “almost all” tensors of low
+enough rank.
+
+Theorem 2.8 (Success for generic tensors). Consider the setting of Theorem 2.7 with parameters
+q ≤ n1 and                                           
+                                                n3
+                                     p= q·              .
+                                             n2 + n 3
+Suppose                                                                            
+                                        1                                     n2 n3
+                       q ≥ (4 + 5α) 1 +              where α := max             ,         .
+                                        α                                     n3 n2
+If the components a(ℓ) , b(ℓ) , c(ℓ) are generically chosen with
+
+                                                                     q3
+                                                                
+                                                           3+α
+                                       r ≤ (n2 + n3 ) 1 −          −                            (17)
+                                                            q        4
+
+then p̄ ≥ 2 and conditions (i)–(xi) are satisfied.
+
+The proof can be found in Section 3.6. This is qualitatively the same behavior as our rank detection
+result. Suppose n1 ≤ n2 ≤ n3 and consider the regime n1 → ∞ with α of constant order. For any
+constant ϵ > 0 we can handle r as large as (1 − ϵ)(n2 + n3 ) by taking q to be a sufficiently large
+constant (depending on α, ϵ). As long as q is a constant, the runtime of Algorithm 1 is polynomial
+in the largest dimension n3 (more precisely, polynomial in n3 · 2α/ϵ ).
+
+2.3    Lower Bounds
+We have given an algorithm for tensor decomposition based on flattening the tensor to a matrix
+in a non-trivial manner: M = M (T ). We now explore the inherent limitations of this style of
+approach. A seemingly necessary prerequisite to finding a better decomposition algorithm is to find
+a better algorithm for the easier task of rank detection. We therefore focus on rank detection, and
+specifically we will show that certain types of flattenings cannot have “additivity of rank” when
+the tensor rank is too large. This additivity property was key to our rank detection algorithm
+(Theorem 2.4) and P   was also crucial for our decomposition algorithm because it ensures that the
+column span of M ( ℓ a(ℓ) ⊗ b(ℓ) ⊗ c(ℓ) ) retains all vectors from the individual column spans of the
+terms M (a(ℓ) ⊗ b(ℓ) ⊗ c(ℓ) ). We will give three different lower bounds that apply to increasingly
+general families of flattenings.
+
+
+
+
+                                                     16
+2.3.1   Flattenings of Koszul–Young Type
+The flattenings used in our algorithm have the property that two modes are flattened in the trivial
+manner while the third is flattened according to a non-trivial linear map. Formally, we have a linear
+map M : Rn1 ×n2 ×n3 → RN1 ×N2 (or in other words, the entries of M are degree-1 homogeneous
+polynomials in the variables Tijk ) with the property
+
+                                   M (a ⊗ b ⊗ c) = A(a) ⊗ (bc⊤ )                                (18)
+
+for a matrix A(a) whose entries are degree-1 homogeneous polynomials in the entries of a. On the
+right-hand side above, the symbol ⊗ denotes the Kronecker product of matrices. We will first see
+that any flattening of this form cannot surpass rank n2 + n3 , making our algorithm optimal up to a
+factor 1 − ϵ among such flattenings (in the regime n1 ≤ n2 ≤ n3 with n1 → ∞ and n3 /n2 = O(1)).
+Theorem 2.9. Suppose M : Rn1 ×n2 ×n3 → RN1 ×N2 is a linear map with the property (18). Sup-
+pose further that for generically chosen components a(ℓ) , b(ℓ) , c(ℓ) and some r ≥ 1, we have rank-r
+additivity, that is,
+                           r
+                                                 !!
+                          X                                                       
+               rank M         a(ℓ) ⊗ b(ℓ) ⊗ c(ℓ)    = r · rank M a(1) ⊗ b(1) ⊗ c(1) .            (19)
+                          ℓ=1
+
+Then
+                                             r ≤ n2 + n3 .
+The proof can be found in Section 4.2. We thank an anonymous reviewer for pointing out that
+the case n2 = n3 of this result appears in a remark after Theorem 6.1 of [DM18]. Recall from
+Section 2.1.2 that symbolic matrices have a well-defined notion of generic rank, so the expressions
+on the left- and right-hand sides of (19) must each take one specific value when the components are
+chosen generically. (We cannot have a situation where some positive-measure set of components
+leads to rank r1 while some other positive-measure set of components leads to a different rank r2 .)
+The right-hand side of (19) could equivalently be written as
+                                 r
+                                 X                            
+                                       rank M a(ℓ) ⊗ b(ℓ) ⊗ c(ℓ) ,
+                                 ℓ=1
+
+since for generic components, the r terms in this sum are all equal.
+
+2.3.2   Linear Flattenings
+We now consider a more general class of flattenings, namely all linear flattenings (without the
+requirement (18)). Our bound on the rank will be weaker than above.
+Theorem 2.10. Suppose M : Rn1 ×n2 ×n3 → RN1 ×N2 is a linear map. Suppose further that for
+generically chosen components and some r ≥ 1, we have rank-r additivity as defined in (19). Then
+
+                                       r ≤ 2(n1 + n2 + n3 + 1).
+
+The proof can be found in Section 4.3. This result is similar to Theorem 4.4 of [EGOW18], where
+the bound r ≤ 8n is proven for “square” tensors, i.e., tensors of format n×n×n. For square tensors,
+our result gives an improvement from 8n to 6n + 2. Our argument is similar to that of [EGOW18]
+and we describe the difference in Remark 4.2. We thank an anonymous reviewer for pointing out
+that the improvement to 6n + 2 was previously observed by Visu Makam in the talk [Mak22].
+
+                                                  17
+2.3.3   Low-Degree Flattenings
+In the introduction, we argued why it might seem plausible to expect decomposition algorithms
+that reach rank r ≈ n3/2 for n × n × n tensors with generic components. In the previous section
+we saw that linear flattenings cannot surpass rank O(n) (and this was known already by the work
+of [EGOW18]). One can imagine a much broader class of flattenings where the entries of M (T ) are
+higher-degree polynomials in the variables Tijk , and this is stated as an open problem in Section 6
+of [EGOW18]. We will define such a class of strategies and show that even these will not surpass
+rank O(n), where O(·) hides a constant depending on the polynomial degree.
+    For motivation, a common strategy for handling a third-order n × n × n tensor is to apply
+a particular degree-2 polynomial map to produce a fourth-order n × n × n × n tensor, and then
+flatten this to an n2 × n2 matrix. This trick is used, for instance, in work on refuting random
+constraint satisfaction problems [CGL07, AOW15], and within the sum-of-squares proof system it
+can be viewed as an application of the Cauchy–Schwarz inequality.
+    Inspired by this, here is a seemingly plausible approach for rank detection of third-order tensors.
+First, build some matrix M (T ) whose entries are degree-2 homogeneous polynomials in the variables
+Tijk . Now we would likeP to ask for some version of “rank additivity” to hold, but since T 7→ M (T )
+is no longer linear, M ( ℓ a(ℓ) ⊗ b(ℓ) ⊗ c(ℓ)P
+                                             ) no longer breaks down as the sum of the individual terms
+M (a ⊗b ⊗c ). Instead, write T = rℓ=1 T (ℓ) where T (ℓ) = a(ℓ) ⊗b(ℓ) ⊗c(ℓ) , and view the entries
+      (ℓ)  (ℓ)   (ℓ)
+                                                                        (ℓ)
+of M (T ) as (homogeneous degree-2) polynomials in the variables Tijk . Decompose M = M (T ) as
+                      X                         X
+               M=            M̂ (T (ℓ) ) +                 M̃ (T (ℓ1 ) , T (ℓ2 ) ) =: Mrepeat + Mdistinct ,
+                     1≤ℓ≤r                   1≤ℓ1 <ℓ2 ≤r
+
+
+where M̂ has entries that are homogeneous of degree 2 in its input tensor while M̃ has entries that
+are homogeneous with degree 1 in each of its two input
+                                                     tensors (so degree 2 in total). We have now
+written M as the sum of r “repeat” terms and 2r “distinct” terms, and we might hope for the
+rank to be additive across these Θ(r2 ) terms. It is tantalizing to imagine a scenario where M has
+dimensions N × N with N = Θ(n3 ), and each of the individual terms M̂ (T (ℓ) ) or M̃ (T (ℓ1 ) , T (ℓ2 ) )
+has generic rank Θ(1), as this would potentially allow additive rank (and therefore successful rank
+detection) up to r = Θ(n3/2 ). Unfortunately we will see that this cannot pan out, and to prove
+a lower bound we will focus on only the “distinct” terms (which make up most of the terms) and
+show that even these alone cannot have additive rank.
+    We now define our setting more formally, and we will consider a generalization of the above
+discussion to any degree d ≥ 1 and any tensor format n1 × · · · × nk . We think of d as a constant,
+so that the entries of M can be computed in polynomial time.
+
+Definition 2.11 (Decomposition of M ). For T ∈ Rn1 ×···×nk , suppose M = M (T ) is an N1 × N2
+matrix
+Pr           whose entries are homogeneous degree-d polynomials in the variables Ti1 ,...,ik . Set T =
+             (ℓ)
+   ℓ=1 T         and, viewing the entries of M (T ) as (homogeneous degree-d) polynomials in the variables
+  (ℓ)
+Ti1 ,...,ik , consider the unique decomposition of M = M (T ) as
+                                                       X
+                           M = Mrepeat +                            M̃ (T (ℓ1 ) , . . . , T (ℓd ) ),
+                                                  1≤ℓ1 <···<ℓd ≤r
+
+
+where M̃ has entries that are homogeneous with degree 1 in each of its d input tensors (so degree
+d in total), and Mrepeat consists of those monomials in M that involve fewer than d of the tensors
+T (1) , . . . , T (r) .
+
+
+                                                             18
+Theorem 2.12. Suppose M is a matrix whose         Prentries      are homogeneous degree-d polynomials in the
+                                                             (ℓ)
+entries of an n1 ×· · ·×nk tensor T . Set T = ℓ=1 T , and decompose M (T ) as in Definition 2.11.
+Suppose that for T (ℓ) = a(1,ℓ) ⊗ · · · ⊗ a(k,ℓ) with generically chosen components {a(i,ℓ) : i ∈ [k], ℓ ∈
+[r]}, we have rank-r additivity in the sense that
+                                                          
+                                                                  
+                        X
+                                        (ℓ   )      (ℓ  )          r                                   
+            rank                M̃ (T , . . . , T
+                                           1          d
+                                                          ) =        · rank M̃ (T (1) , . . . , T (d) ) .
+                                                                   d
+                       1≤ℓ1 <···<ℓd ≤r
+
+Then
+                                                        r ≤ 4k d2 n∗
+where                                                                                  
+                                                             Y             Y           
+                                         n∗ := max min               ni ,          ni       .
+                                                S⊆[k]                                  
+                                                               i∈S          i∈S̄
+The proof can be found in Section 4.4. Recall from Section 2.2.1 that the trivial flattening achieves
+rank detection up to rank n∗ , so Theorem 2.12 shows that for any fixed k, d, a general class of
+higher-degree approaches cannot beat the trivial flattening by more than a constant factor 4k d2 .
+Remark 2.13. We discuss a few sanity checks on the definition of rank-r additivity used in Theo-
+rem 2.12. First note that for d = 1, this definition reduces to the one from (19), since Mrepeat = 0.
+Next, let us give an example of a flattening that satisfies rank-r additivity for arbitrary d. Start with
+any linear (homogeneous degree-1) flattening T 7→ L(T ) and consider the flattening M (T ) = L(T )⊗d
+(the d-fold Kronecker product), which is homogeneous of degree d. Suppose that (for generic com-
+ponents), L has rank-r additivity in the sense of (19). We claim that M has rank-r additivity in
+the sense of Theorem 2.12 (again, for generic components). We sketch the proof in the special case
+k = 3, d = 2, but the proof can be extended to all k and d.               PFirst,   a basic
+                                                                                          Pr property    of the Kronecker
+                                                                            r     (ℓ) =           (ℓ) ⊗ b(ℓ) ⊗ c(ℓ) , we can
+product is rank(A ⊗ B)          = rank(A)     · rank(B).    When  T  =      ℓ=1 T            ℓ=1 a
+decompose M (T ) = ℓ1 ,ℓ2 ∈[r] L(T (ℓ1 ) ) ⊗ L(T (ℓ2 ) ). Using the additivity for L, the r2 terms in this
+                          P
+
+sum must have additive rank. This implies additivity for the 2r “distinct” terms, which in this
+                                                                                   
+
+case are M̃ (T (ℓ1 ) , T (ℓ2 ) ) = L(T (ℓ1 ) ) ⊗ L(T (ℓ2 ) ) + L(T (ℓ2 ) ) ⊗ L(T (ℓ1 ) ) for 1 ≤ ℓ1 < ℓ2 ≤ r.
+
+2.4     Open Problems
+We suggest the following questions as interesting directions for future work.
+    • For an n × n × n tensor with generic components, what is the maximum rank for which a
+      linear flattening can have additivity? We have shown the answer is asymptotically cn for a
+      constant c ∈ [2, 6]. This improved the previous range of [3/2, 8] by [Per18] and [EGOW18],
+      but the exact value of c remains unknown.
+    • Can rank detection improve with the degree of flattening? Our lower bounds do not rule out
+      this possibility, but it is possible the Koszul–Young flattening is already optimal.
+    • For order-4 tensors of format n × n × n × n (with generic components), the trivial flattening
+      gives rank detection up to rank n2 , but existing decomposition results stop at cn2 for a
+      constant c < 1 [DLCC07, MSS16, HSS19, JLV23]. Can we improve the decomposition results
+      to rank (1 − ϵ)n2 ? This might require improving the constant 1/4 in [JLV23], which may be
+      sub-optimal (but curiously was not a bottleneck in the order-3 case). We remark that the
+      constant has been improved from 1/4 to 1−ϵ for a non-planted variant of the problem [DJL24].
+    • Can our algorithmic guarantees be extended to symmetric tensors of format n × n × n?
+
+                                                            19
+3     Proofs for Upper Bounds
+3.1   Proof of Proposition 2.3
+The genericity assumptions we will need on the components are that neither b nor c is the zero
+vector and that a1 , a2 , . . . , aq are not all zero. Recall M = A ⊗ (bc⊤ ), so rank(M ) = rank(A). Now
+Proposition 2.3 follows immediately from Lemma 3.1 below, which shows that A generically has
+        q−1
+rank p . (Lemma 3.1 also includes additional facts about the structure of A that will be needed
+later.)
+
+Lemma 3.1. Consider the matrix A = A(a; p, q) defined      in (6). If a1 , . . . , aq are all zero then
+A = 0 and so rank(A) = 0. Otherwise, rank(A) = q−1      p . Furthermore, if ai ̸= 0 for some i ∈ [q]
+then the columns of A indexed by {U : i ∈ U } form a basis for the column span of A, and similarly
+the rows {S : i ∈/ S} form a basis for the row span.
+
+Proof. Fix i ∈ [q] such that ai ̸= 0. We first show rank(A) ≥ q−1    by demonstrating a q−1
+                                                                                                q−1
+                                                                 p                            p × p
+submatrix with full rank. Specifically, consider the submatrix indexed by {S : i ∈   / S}×{U : i ∈ U }.
+Note that this submatrix has exactly one nonzero entry per row and exactly one nonzero         entry per
+                                                                                    q−1
+                                                                                       
+column, and all the nonzero entries are equal to ±ai . This shows rank(A) ≥ p .
+    The full-rank submatrix demonstrated above implies that the columns {U : i ∈ U } are linearly
+                                                    / S}. It remains to show rank(A) ≤ q−1
+                                                                                                   
+independent, and same for the columns {S : i ∈                                                   p   . To
+                                                                          q−1
+                                                                             
+do this, we will show that every column of A lies in the span of the p columns {U : i ∈ U }.
+Fix a column W with i ∈    / W , and let Y = W ⊔ {i}. We claim that the columns indexed by
+{Y \ {j} : j ∈ Y } are linearly dependent, where the coefficients are σ(Y, j) aj . To see this,
+consider entry S of this linear combination. If S ̸⊆ Y then entry S is equal to zero, and otherwise
+S = Y \ {j, k} for some j, k ∈ Y so entry S is equal to
+
+ σ(Y, j) aj AS,Y \{j} + σ(Y, k) ak AS,Y \{k} = σ(Y, j) aj σ(Y \ {j}, k) ak + σ(Y, k) ak σ(Y \ {k}, j) aj ,
+
+which is zero because σ(Y, j) σ(Y \ {j}, k) and σ(Y, k) σ(Y \ {k}, j) have opposite signs. Now take
+the linear dependence from above and solve for column W (which has nonzero coefficient σ(Y, i) ai );
+this allows column W to be expressed as a linear combination of the columns {U : i ∈ U }.
+
+3.2   Proof of Theorem 2.4
+Provided ai ̸= 0 for all i ∈ [q] (which is true for generic a),P
+                                                               the matrix A = A(a; p, q) defined
+                                                                                             Q in (6)
+can be factored as A = diag(v) · Ã · diag(w) where ÃSU = i∈[q] 1U =S⊔{i} · σ(U, i), vS = i∈S a−1 i ,
+and wU = i∈U ai . Note that Ã = A(1; p, q) where 1 := (1, . . . , 1) , so by Lemma 3.1 we have
+                                                                        ⊤
+            Q
+
+rank(Ã) = q−1                                        ⊤                  q    q−1          q
+                                                                                               × q−1
+                                                                                                
+              p . We can therefore factor Ã = Q̃R̃ where Q̃, R̃ are p ×       p   and p+1        p ,
+respectively. Now write A = QR⊤ where Q = diag(v) · Q̃ and R = diag(w) · R̃. We use the
+superscript (ℓ) to mark that a matrix is built from the tensor component a(ℓ) , so for instance,
+A(ℓ) := A(a(ℓ) ; p, q). Factor M as
+                                                                                        ⊤
+                                             Q(1)           Q(r)
+                                                                   (1)
+                                                                                   R(r)
+                                             
+                    r
+                    X                                                R
+              M=     A(ℓ) ⊗ (b(ℓ) c(ℓ)⊤ ) =  ⊗ · · ·        ⊗      ⊗ ···         ⊗                (20)
+                 ℓ=1                          b(1)          b(r)     c(1)          c(r)
+
+where, e.g., Q(1) ⊗ b(1) denotes the pq n2 × q−1
+                                               
+                                              p   Kronecker product. This gives a factorization of
+M as the product of two matrices with inner dimension r q−1
+                                                             
+                                                           p , so it suffices to show that the two
+
+
+                                                    20
+factors on the right-hand side of (20) have full column rank and full row rank, respectively. We
+will show this for the first factor and then explain the (minor) changes needed to adapt the proof
+for the second factor.
+     Let m be the smallest integer for which r ≤ mq. It suffices to verify the extreme case r = mq,
+i.e., we will show that even when r is increased to add additional columns,          all the columns are
+linearly independent. Focusing on the first factor in (20), the first r q−1
+                                                                                
+                                                                              p   rows — call this square
+submatrix     ′                an m × m grid of square blocks, where each square block has dimension
+           Q — constitute
+(q − p) pq = q q−1
+                     
+                   p   consisting of (scaled) copies of Q arranged in a (q − p) × q grid. We require
+n2 ≥ m(q − p) so that there are enough rows available to form the submatrix Q′ .
+     Our goal is to show that det(Q′ ) is generically nonzero, and it suffices to show this after plugging
+in values for some of the b variables. Namely, by setting the appropriate b variables to zero, we can
+keep only the m square blocks on the diagonal of Q′ , and thus it suffices to show invertibility for a
+single square block of the form
+                                  
+                                      b11 Q(1)    b12 Q(2) · · ·  b1,q Q(q)
+                                                                              
+                                                                       ..
+                                   b21 Q(1)      b22 Q(2)
+                                                                             
+                              ′′                                        .     
+                           Q =   
+                                          ..                ..
+                                                                              ,
+                                                                              
+                                          .                   .              
+                                     bq−p,1 Q(1)    ···          bq−p,q Q (q)
+
+
+                  (ℓ)                                    (ℓ)
+where bjℓ := bj , and we will similarly write aiℓ := ai . Partition Q′′ into “cells” of size 1 × q−1
+                                                                                                          
+                                                                                                        p :
+a cell is indexed byQ(S, j, ℓ) where S ⊆ [q], |S| = p, j ∈ [q − p], and ℓ ∈ [q], and the content of the
+(S, j, ℓ) cell is (bjℓ i∈S a−1
+                            iℓ )Q̃S where Q̃S denotes row S of Q̃.
+    We aim to show det(Q′′ ) is nonzero as a polynomial in the variables bjℓ , a−1      iℓ . In the usual
+expansion of det(Q′′ ) as a sum over permutations, each term chooses exactly 1 entry per row and
+column of Q′′ . This choice can be broken     down as first choosing a set of cells (S, j, ℓ) with exactly
+1 cell per row (S, j) and exactly q−1
+                                        
+                                      p   cells per “pillar” ℓ (where “pillar” describes a vertical stack
+of cells that are all indexed by the same ℓ value), and then choosing one entry per cell in a way
+that each column appears once. Let H denote a subset of tuples (S, j, ℓ) representing         the choice at
+the first stage. For a given H, define matrices F1H , . . . , FqH , each of size q−1      q−1             H
+                                                                                    
+                                                                                  p   ×    p , where Fℓ
+is formed by collecting the rows Q̃S for each (S, j, ℓ) ∈ H (i.e., the cells selected in pillar ℓ). Now
+                                              X                    q
+                                                                   Y
+                                det(Q′′ ) =       τH · (a, b)H ·         det(FℓH ),                    (21)
+                                              H                    ℓ=1
+
+where (a, b)H denotes the monomial (S,j,ℓ)∈H bjℓ i∈S a−1
+                                        Q               Q
+                                                              iℓ , and τH ∈ {±1} are signs whose values
+                                H
+will not matter to us. If Fℓ has a repeated row Q̃S then its determinant is 0, so we need only
+consider H for which the cells in each pillar have distinct S values.
+    To complete the proof, we will identify a particular monomial that has nonzero coefficient in
+det(Q′′ ). To this
+                end, define a “good” set of cells G as follows, which (like H) will have 1 cell per
+            q−1
+row and p cells per pillar. Within each pillar ℓ ∈ [q], for each S with ℓ ∈        / S, include the cell
+(S, j, ℓ) where j is the first available index (i.e., the minimum j ∈ [q − p] such that (S, j, ℓ′ ) has not
+already been declared a good cell for some ℓ′ < ℓ). Each S is used q − p times in total (across all
+pillars), so the j values will not “run out.” We claim that the only term in (21) that produces the
+monomial (a, b)G (with nonzero coefficient) is H = G: within each pillar ℓ = 1, 2, . . ., the powers of
+a (particularly the absence of a−1  ℓℓ ) determine the collection of S values that H must use (namely
+one copy of each S for which ℓ ∈   / S), and the powers of b determine the multiset of j values to use.
+The choice of “first available j” used in G constrains a unique pairing between S and j values.
+
+                                                      21
+    We conclude that the coefficient of (a, b)G in det(Q′′ ) is ± qℓ=1 det(FℓG ) and it remains to show
+                                                                 Q
+
+that each det(FℓG ) is nonzero. This follows because FℓG has rows Q̃S for all S with ℓ ∈   / S, and the
+corresponding rows of Ã = A(1) = Q̃R̃⊤ are linearly independent by Lemma 3.1.
+    To handle the second factor in (20), we also need to show invertibility of the analogous square
+block                           
+                                    c11 R(1)    c12 R(2) · · ·   c1,q R(q)
+                                                                             
+                                                                      ..
+                                 c21 R(1)            (2)
+                                                                            
+                            ′′                  c22 R                  .     
+                          R =         ..                ..
+                                                                             ,
+                                                                             
+                                        .                   .               
+                                  cp+1,1 R (1)    ···           cp+1,q R (q)
+
+                                                                      (ℓ)                   (ℓ)
+whose entries are polynomials in the variables aiℓ := ai and cjℓ := cj . We again partition R′′ into
+cells of size 1 × q−1
+                     
+                   p    indexed by (U, j, ℓ) where U ⊆ [q], |U | = p + 1, j ∈ [p + 1], and ℓ ∈ [q], and
+                                         Q
+the content of the (U, j, ℓ) cell is (cjℓ i∈U aiℓ )R̃U where R̃U denotes row U of R̃. The remainder
+of the argument is essentially identical to above, with one minor change: in the construction of G,
+each pillar ℓ includes the U values for which ℓ ∈ U (in place of the previous condition ℓ ∈  / S).
+    Finally, the above constructions required an integer m such that r ≤ mq, n2 ≥ m(q − p), and
+n3 ≥ m(p + 1), or equivalently,
+                                                                
+                                     r                 n2    n3
+                                        ≤ m ≤ min         ,        .
+                                     q                q−p p+1
+
+For this, it suffices to have                                                      
+                                                            n2   n3
+                                       r ≤ q min               ,                −1 .                                     (22)
+                                                           q−p p+1
+Now using the choice of p = ⌊q · n3 /(n2 + n3 )⌋, we can bound
+                                                                                        
+           qn2          qn2                       n2 + n 3                       1     n3
+               ≥                          =                 ≥ (n2 + n3 ) 1 −    1+                                   (23)
+           q−p   q − q · n3            − 1    1 + 1
+                                                      1 +  n3                    q     n2
+                                n2 +n3            q        n2
+
+and                                                                         
+              qn3         qn3           n2 + n 3                     1     n2
+                  ≥                =               ≥ (n2 + n3 ) 1 −    1+       .                                       (24)
+                    q · n2n+n
+                                          
+              p+1           3
+                              3
+                                +1   1 + 1 1 + n2                    q     n3
+                                                   q          n3
+
+Therefore it suffices to have
+                                                                         
+                                             1                        n2 n3
+                          r ≤ (n2 + n3 ) 1 −                1 + max     ,       − q.
+                                             q                        n3 n2
+
+3.3    Proof of Theorem 2.7
+                                                                   Pr        (ℓ) ⊗ b̃(ℓ) ⊗ c̃(ℓ) .
+Suppose T has an alternative decomposition T =                         ℓ=1 ã                          Recalling the setup in
+Section 2.2.3,
+                                r
+                                X                                           r
+                                                                            X
+                                         (ℓ)               (ℓ) (ℓ)⊤
+              M (T ; p, q) =          A(a ; p, q) ⊗ (b c              )=          A(ã(ℓ) ; p, q) ⊗ (b̃(ℓ) c̃(ℓ)⊤ ).
+                                ℓ=1                                         ℓ=1
+
+By assumption (vi), this matrix has rank exactly r q−1
+                                                      
+                                                    p . By Lemma 3.1, the matrix A(a; p, q)
+                         q−1
+always has rank at most p , which means each term A(a(ℓ) ; p, q) ⊗ (b(ℓ) c(ℓ)⊤ ) must have rank
+                            
+
+
+                                                             22
+exactly q−1                        (ℓ) ̸= 0 and c(ℓ) ̸= 0 (i.e., for each ℓ, neither b(ℓ) nor c(ℓ) is the
+             
+          p , and in particular, b
+zero vector). Furthermore, every column of A(a(ℓ) ; p, q) ⊗ (b(ℓ) c(ℓ)⊤ ) must lie in the column span of
+M , and so
+
+               colspan(M ) = span{z (U ) (a(ℓ) ; p, q) ⊗ b(ℓ) : U ⊆ [q], |U | = p + 1, ℓ ∈ [r]},                             (25)
+
+where, recall, z (U ) (a; p, q) denotes column U of A(a; p, q). Similarly, we have the same conclusion
+for the alternative decomposition: b̃(ℓ) ̸= 0 and c̃(ℓ) ̸= 0 for each ℓ ∈ [r], and
+
+               colspan(M ) = span{z (U ) (ã(ℓ) ; p, q) ⊗ b̃(ℓ) : U ⊆ [q], |U | = p + 1, ℓ ∈ [r]}.                           (26)
+                                                                 q
+Now recall that we define V := [p + 1] and denote by Zp,q ⊆ R(p) the subspace consisting of vectors
+with the same sparsity pattern as z (V ) , that is, nonzeros are only allowed in the p + 1 entries S
+where S ⊆ V .
+
+Lemma 3.2. Under the assumptions of Theorem 2.7,
+
+                   colspan(M ) ∩ (Zp,q ⊗ Rn2 ) = span{z (V ) (a(ℓ) ; p, q) ⊗ b(ℓ) : ℓ ∈ [r]}.
+
+The proof of Lemma 3.2 is deferred to Section 3.4. The proof relies on assumption (viii).
+     Recall that φp,q , defined in (9), is an isomorphism Zp,q → Rp+1 designed so that φp,q (z (V ) (a; p, q)) =
+(a1 , . . . , ap+1 )⊤ . From Lemma 3.2 we now conclude
+
+                   (φp,q ⊗ I)(colspan(M ) ∩ (Zp,q ⊗ Rn2 )) = span{d(ℓ) ⊗ b(ℓ) : ℓ ∈ [r]},                                    (27)
+                               (ℓ)       (ℓ)
+where, recall, d(ℓ) := (a1 , . . . , ap+1 )⊤ .
+
+Lemma 3.3. Under the assumptions of Theorem 2.7, the vectors {d(ℓ) ⊗ b(ℓ) : ℓ ∈ [r]} are the only
+rank-1 tensors, up to scalar multiple, in their span, span{d(ℓ) ⊗ b(ℓ) : ℓ ∈ [r]}. Furthermore, the
+algorithm of [JLV23, Corollary 3] recovers (scalar multiples of ) these r rank-1 tensors given their
+span.
+
+The proof of Lemma 3.3 is based on [JLV23] and can be found in Section 3.5. The proof relies on
+assumptions (iii) and (x).
+                        (ℓ)           (ℓ)
+     Define d˜(ℓ) := (ã1 , . . . , ãp+1 )⊤ . From (26) we have z (V ) (ã(ℓ) ; p, q) ⊗ b̃(ℓ) ∈ colspan(M ) ∩ (Zp,q ⊗
+Rn2 ) for all ℓ ∈ [r], and so d˜(ℓ) ⊗ b̃(ℓ) ∈ (φp,q ⊗ I)(colspan(M ) ∩ (Zp,q ⊗ Rn2 )). But by (27) and
+Lemma 3.3, the only rank-1 tensors in this subspace are scalar multiples of d(ℓ) ⊗ b(ℓ) . We therefore
+conclude that for every ℓ ∈ [r] there exists ℓ′ ∈ [r] such that d˜(ℓ) ⊗ b̃(ℓ) is a scalar multiple of
+   ′       ′
+d(ℓ ) ⊗ b(ℓ ) .
+     Next we need to repeat the argument with the “b” and “c” modes switched and with p replaced
+by q − p − 1, which will use the assumptions (iv), (vii), (ix), (xi). Due to symmetry, the argument
+is identical to before, and we only state the main claims. First, the flattening M ′ takes the form
+                         r
+                         X                                                r
+                                                                          X
+      M ′ (T ; p, q) =         A(a(ℓ) ; q − p − 1, q) ⊗ (c(ℓ) b(ℓ)⊤ ) =         A(ã(ℓ) ; q − p − 1, q) ⊗ (c̃(ℓ) b̃(ℓ)⊤ ),
+                         ℓ=1                                              ℓ=1
+
+                                                                                              q−1           q−1
+                                                                                                              
+and by Lemma 3.1, the maximum possible rank of A(a; q − p − 1, q) is                         q−p−1      =    p . Analogous
+to (25) and (26), we have
+
+           colspan(M ′ ) = span{z (U ) (a(ℓ) ; q − p − 1, q) ⊗ c(ℓ) : U ⊆ [q], |U | = q − p, ℓ ∈ [r]}
+
+                                                            23
+and
+          colspan(M ′ ) = span{z (U ) (ã(ℓ) ; q − p − 1, q) ⊗ c̃(ℓ) : U ⊆ [q], |U | = q − p, ℓ ∈ [r]}.
+Analogous to Lemma 3.2 and (27), we have, with V ′ := [q − p],
+                                                                  ′
+              colspan(M ′ ) ∩ (Zq−p−1,q ⊗ Rn3 ) = span{z (V ) (a(ℓ) ; q − p − 1, q) ⊗ c(ℓ) : ℓ ∈ [r]}.
+
+and
+               (φq−p−1,q ⊗ I)(colspan(M ′ ) ∩ (Zq−p−1,q ⊗ Rn3 )) = span{f (ℓ) ⊗ c(ℓ) : ℓ ∈ [r]},
+                             (ℓ)         (ℓ)
+where, recall, f (ℓ) := (a1 , . . . , aq−p )⊤ . Analogous to Lemma 3.3, the vectors {f (ℓ) ⊗ c(ℓ) : ℓ ∈ [r]}
+are the only rank-1 tensors in their span, up to scalar multiple, and the algorithm of [JLV23]
+                                                                                (ℓ)    (ℓ)
+recovers them from their span. Finally, defining f˜(ℓ) := (ã1 , . . . , ãq−p )⊤ , we have f˜(ℓ) ⊗ c̃(ℓ) ∈
+(φq−p−1,q ⊗ I)(colspan(M ′ ) ∩ (Zq−p−1,q ⊗ Rn3 )) and so every f˜(ℓ) ⊗ c̃(ℓ) is a scalar multiple of some
+     ′′       ′′
+f (ℓ ) ⊗ c(ℓ ) .
+                                                                 (ℓ)
+       Let R ⊆ [r] be the set of ℓ for which ã1 ̸= 0. For each ℓ ∈ [r] we have d˜(ℓ) ̸= 0 and
+                                                                                                            (ℓ)
+f˜(ℓ) ̸= 0. Recall that b(ℓ) , b̃(ℓ) , c(ℓ) , c̃(ℓ) , d(ℓ) , f (ℓ) are all nonzero (where d(ℓ) ̸= 0 since a1 ̸= 0 by
+assumption (i), and similarly for f ). For each ℓ ∈ R we have established that d˜ ⊗ b̃(ℓ) is a
+                                               (ℓ)                                                      (ℓ)
+                                                ′         ′
+nonzero scalar multiple of some d(ℓ ) ⊗ b(ℓ ) , and f˜(ℓ) ⊗ c̃(ℓ) is a nonzero scalar multiple of some
+     ′′       ′′                                                                     ′
+f (ℓ ) ⊗ c(ℓ ) . In particular, d˜(ℓ) is a nonzero scalar multiple of d(ℓ ) , and f˜(ℓ) is a nonzero scalar
+                   ′′
+multiple of f (ℓ ) . Since d˜(ℓ) and f˜(ℓ) agree on the first p̄ coordinates (and similarly for d(ℓ) , f (ℓ) ),
+Assumption (ii) implies that ℓ′ = ℓ′′ . This means we can define a function π : R → [r] such that
+b̃(ℓ) ⊗ c̃(ℓ) = ηℓ · b(π(ℓ)) ⊗ c(π(ℓ)) for a scalar ηℓ ̸= 0, for each ℓ ∈ R.
+       Let T1 := (T1jk : j ∈ [n2 ], k ∈ [n3 ]) denote the first n2 × n3 matrix slice of T , namely
+                                                      r
+                                                         (ℓ)
+                                                      X
+                                               T1 =     a1 · b(ℓ) ⊗ c(ℓ) .
+                                                      ℓ=1
+
+Similarly for the alternative decomposition,
+                                 r
+                                     (ℓ)
+                                 X                       X (ℓ)
+                            T1 =   ã1 · b̃(ℓ) ⊗ c̃(ℓ) =  ã1 · ηℓ · b(π(ℓ)) ⊗ c(π(ℓ)) ,
+                                   ℓ=1                      ℓ∈R
+
+        (ℓ)                                                            (ℓ)
+since ã1 = 0 for ℓ ∈   / R. By assumptions (i) and (v), a1 ̸= 0 for all ℓ ∈ [r], and the vectors
+  (ℓ)
+{b ⊗ c    (ℓ) : ℓ ∈ [r]} are linearly independent. Comparing the previous expressions for T1 , this
+                                                   (ℓ)      (π(ℓ))
+means R = [r], π is a permutation of [r], and ã1 = ηℓ−1 · a1      . Now for each slice Ti := (Tijk :
+j ∈ [n2 ], k ∈ [n3 ]} with i ∈ [n1 ], we can write
+                                   r                    r
+                                      (ℓ)                   (ℓ)
+                                   X                    X
+                            Ti =     ai · b(ℓ) ⊗ c(ℓ) =   ãi · ηℓ · b(π(ℓ)) ⊗ c(π(ℓ)) ,
+                                   ℓ=1                      ℓ=1
+
+                                                                                               (ℓ)           (π(ℓ))
+and again using the linear independence of {b(ℓ) ⊗ c(ℓ) : ℓ ∈ [r]} we must have ãi = ηℓ−1 · ai               .
+This means ã(ℓ) = ηℓ−1 · a(π(ℓ)) and so the alternative decomposition has the same rank-1 terms as
+the original: ã(ℓ) ⊗ b̃(ℓ) ⊗ c̃(ℓ) = a(π(ℓ)) ⊗ b(π(ℓ)) ⊗ c(π(ℓ)) , with π a permutation of [r]. This completes
+the proof of uniqueness.
+    The above argument also implies success of Algorithm 1. From (27) we know the subspace B
+constructed by the algorithm is equal to span{d(ℓ) ⊗ b(ℓ) : ℓ ∈ [r]}, and similarly, C = span{f (ℓ) ⊗
+c(ℓ) : ℓ ∈ [r]}. By Lemma 3.3, the rank-1 tensors dˆ(ℓ) ⊗ b̂(ℓ) recovered by the [JLV23] algorithm
+
+                                                            24
+satisfy dˆ(ℓ) = αℓ · d(π1 (ℓ)) and b̂(ℓ) = βℓ · b(π1 (ℓ)) for scalars αℓ ̸= 0, βℓ ̸= 0 and a permutation π1 of
+[r]. Similarly, fˆ(ℓ) = γℓ · f (π2 (ℓ)) and ĉ(ℓ) = δℓ · c(π2 (ℓ)) for scalars γℓ ̸= 0, δℓ ̸= 0 and a permutation
+π2 of [r]. Using Assumption (ii), the (unique) permutation τ found by Algorithm 1 is τ = π2−1 ◦ π1 .
+The final step is to solve the linear system of equations (12) for w(ℓ) , which reduces to
+                        r
+                                (ℓ)
+                        X
+                              wi · (βℓ · b(π1 (ℓ)) ) ⊗ (δτ (ℓ) · c(π1 (ℓ)) ) = Ti   for i ∈ [n1 ].
+                        ℓ=1
+
+One solution is w(ℓ) = βℓ−1 · δτ−1
+                                 (ℓ) · a
+                                        (π1 (ℓ)) , which recovers the desired decomposition. This solution
+
+is unique because {b(ℓ) ⊗ c(ℓ) : ℓ ∈ [r]} are linearly independent by assumption (v).
+
+3.4    Proof of Lemma 3.2
+Using (25), the vectors z (V ) (a(ℓ) ; p, q) ⊗ b(ℓ) for ℓ ∈ [r] lie in colspan(M ) ∩ (Zp,q ⊗ Rn2 ), so the
+inclusion “⊇” in Lemma 3.2 holds. For the reverse inclusion, assume on the contrary that “⊆”
+                                        (ℓ)
+fails. By assumption (i) we have a1 ̸= 0 for all ℓ ∈ [r], so using (25) and Lemma 3.1, the vectors
+{z (U ) (a(ℓ) ; p, q) ⊗ b(ℓ) : U ⊆ [q], |U | = p + 1, 1 ∈ U, ℓ ∈ [r]} span colspan(M ); in fact, since
+the number of these vectors matches rank(M ), they must form a basis for colspan(M ). Define
+U1 := {U ⊆ [q] : |U | = p + 1, 1 ∈ U, U ̸= V }. Now, failure of “⊆” is equivalent to the existence of
+coefficients {γU,ℓ ∈ R : U ∈ U1 , ℓ ∈ [r]}, not all zero, such that
+                                 X
+                                       γU,ℓ · (z (U ) (a(ℓ) ; p, q) ⊗ b(ℓ) ) ∈ Zp,q ⊗ Rn2 .           (28)
+                               U ∈U1 , ℓ∈[r]
+
+Membership in Zp,q ⊗Rn2 amounts to having a particular sparsity pattern, namely the entries (S, j)
+with S ̸⊆ V = [p + 1] must be zero. This means we can write (28) in matrix form as N γ = 0 where
+N is defined in (14). But N has full column rank by assumption (viii), a contradiction.
+
+3.5    Proof of Lemma 3.3
+The following arguments are based on [JLV23]. We will unpack some details of [JLV23] in order to
+extract an explicit condition under which their algorithm succeeds.
+   Define the set of rank-1 tensors,
+
+                                          X := {d ⊗ b : d ∈ Rp+1 , b ∈ Rn2 },
+
+and the subspace
+                                               Y := span{d(ℓ) ⊗ b(ℓ) : ℓ ∈ [r]}.
+For any z ∈ X ∩ Y, the vector w := z ⊗ z must belong to the subspace span{y ⊗ y : y ∈ Y}. Since
+a basis for Y is given by y (1) , . . . , y (r) with y (ℓ) := d(ℓ) ⊗ b(ℓ) (which are linearly independent by
+assumption (iii)), a basis for the subspace span{y⊗y : y ∈ Y} is given by {y (ℓ1 ) ⊗y (ℓ2 ) +y (ℓ2 ) ⊗y (ℓ1 ) :
+1 ≤ ℓ1 ≤ ℓ2 ≤ r}, so we can write
+                     X
+            w=               δℓ1 ,ℓ2 (d(ℓ1 ) ⊗ b(ℓ1 ) ⊗ d(ℓ2 ) ⊗ b(ℓ2 ) + d(ℓ2 ) ⊗ b(ℓ2 ) ⊗ d(ℓ1 ) ⊗ b(ℓ1 ) ), (29)
+                    1≤ℓ1 ≤ℓ2 ≤r
+
+for some coefficients δℓ1 ,ℓ2 ∈ R. Also, viewing z as a (p + 1) × n2 matrix, since z has rank 1 we
+know every 2-by-2 minor must vanish:
+
+             zi1 ,j1 zi2 ,j2 − zi1 ,j2 zi2 ,j1 = 0     for 1 ≤ i1 < i2 ≤ p + 1 and 1 ≤ j1 < j2 ≤ n2 .
+
+                                                              25
+Equivalently,
+
+                  ⟨w, Ei1 ,i2 ;j1 ,j2 ⟩ = 0        for 1 ≤ i1 < i2 ≤ p + 1 and 1 ≤ j1 < j2 ≤ n2 ,                              (30)
+
+where
+                             Ei1 ,i2 ;j1 ,j2 = ei1 ⊗ ej1 ⊗ ei2 ⊗ ej2 − ei1 ⊗ ej2 ⊗ ei2 ⊗ ej1 .
+Now w belongs to the intersection of two subspaces A ∩ B where A is the set of vectors expressible
+in the form (29) and B is the set of solutions to (30). A key step in the algorithm of [JLV23] is to
+compute this intersection of subspaces (which in their notation is S 2 (Y) ∩ I2⊥ ). The hope is to have
+no “spurious” vectors in this subspace, that is,
+
+                                 A ∩ B = span{d(ℓ) ⊗ b(ℓ) ⊗ d(ℓ) ⊗ b(ℓ) : ℓ ∈ [r]}.                                            (31)
+
+The containment “⊇” in (31) always holds, so failure of (31) is equivalent to the existence of
+coefficients δℓ1 ,ℓ2 , not all zero, but with δℓ,ℓ = 0, such that the vector (29) satisfies (30):
+              X
+                      δℓ1 ,ℓ2 ⟨d(ℓ1 ) ⊗ b(ℓ1 ) ⊗ d(ℓ2 ) ⊗ b(ℓ2 ) + d(ℓ2 ) ⊗ b(ℓ2 ) ⊗ d(ℓ1 ) ⊗ b(ℓ1 ) , Ei1 ,i2 ;j1 ,j2 ⟩ = 0
+        1≤ℓ1 <ℓ2 ≤r
+
+for 1 ≤ i1 < i2 ≤ p + 1 and 1 ≤ j1 < j2 ≤ n2 . This reduces to
+                                                                                                         
+                    (ℓ ) (ℓ ) (ℓ ) (ℓ )   (ℓ ) (ℓ ) (ℓ ) (ℓ )   (ℓ ) (ℓ ) (ℓ ) (ℓ )   (ℓ ) (ℓ ) (ℓ ) (ℓ )
+    X
+           δℓ1 ,ℓ2 di11 bj11 di22 bj22 + di12 bj12 di21 bj21 − di11 bj21 di22 bj12 − di12 bj22 di21 bj11 = 0,
+1≤ℓ1 <ℓ2 ≤r
+
+which can be written in matrix form as P δ = 0 with P defined in (15). Since P has full column
+rank by assumption (x), there is no nonzero solution to P δ = 0, so (31) holds.
+    We have now shown that for any z ∈ X ∩Y, the corresponding w := z⊗z lies in the subspace (31).
+Our goal is to show that z is a scalar multiple of some d(ℓ) ⊗ b(ℓ) . Since the vectors d(ℓ) ⊗ b(ℓ) are
+linearly independent by assumption (iii), Lemma 3.4 below implies that the vectors d(ℓ) ⊗ b(ℓ) ⊗
+d(ℓ) ⊗ b(ℓ) are the only vectors of the form y ⊗ y in their span, up to scalar multiple. This means w
+is a scalar multiple of some d(ℓ) ⊗ b(ℓ) ⊗ d(ℓ) ⊗ b(ℓ) , and thus z is a scalar multiple of some d(ℓ) ⊗ b(ℓ) ,
+as desired.
+
+Lemma 3.4. If z (1) , . . . , z (r) ∈ RN are linearly independent vectors then z (1) ⊗ z (1) , . . . , z (r) ⊗ r(r)
+are the only rank-1 tensors in their span, span{z (ℓ) ⊗ z (ℓ) : ℓ ∈ [r]}, up to scalar multiple, and
+furthermore there is an algorithm based on simultaneous diagonalization to recover (scalar multiples
+of ) the vectors z (ℓ) ⊗ z (ℓ) given their span.
+
+Proof. First we give a simple self-contained proof of the uniqueness claim. View each z (ℓ) ⊗ z (ℓ)
+as a rank-1 matrix, and apply a change of basis (to both rows and columns) so that z (1) , . . . , z (r)
+become standard basis vectors e(1) , . . . , e(r) . Now each z (ℓ) ⊗ z (ℓ)Pbecomes a diagonal matrix with a
+single nonzero entry at position (ℓ, ℓ). Any linear combination rℓ=1 αℓ · z (ℓ) ⊗ z (ℓ) is diagonal and
+has rank equal to the number of nonzero coefficients αℓ (and in particular, the vectors z (ℓ) ⊗ z (ℓ)
+are linearly independent). Therefore the only rank-1 matrices in this span are scalar multiples of a
+single z (ℓ) ⊗ z (ℓ) .
+    There is also an algorithmic proof using simultaneous diagonalization, which appears in [JLV23].
+GivenP an arbitrary basis p(1) , . . . , p(r) for span{z (ℓ) ⊗ z (ℓ) : ℓ ∈ [r]}, construct the third-order tensor
+R := rℓ=1 e(ℓ) ⊗ p(ℓ) ∈ Rr ⊗ RN ⊗ RN where e(ℓ) denotes the ℓth standard basis vector. There are
+
+
+
+                                                                26
+coefficients βℓm such that p(ℓ) = rm=1 βℓm ·z (m) ⊗z (m) for each ℓ ∈ [r], where β = (βℓm : ℓ, m ∈ [r])
+                                 P
+is an invertible matrix. This means R admits the decomposition
+                  r            r                         r     r
+                                                    !                         !
+                 X           X                          X     X
+                     (ℓ)                 (m)    (m)                       (ℓ)
+            R=      e ⊗          βℓm · z     ⊗z       =           βℓm · e       ⊗ z (m) ⊗ z (m) . (32)
+                  ℓ=1          m=1                           m=1    ℓ=1
+
+The vectors {z (m) : m ∈ [r]} are linearly independent by assumption, and the vectors { rℓ=1 βℓm ·
+                                                                                            P
+e(ℓ) : m ∈ [r]} are linearly independent because they are the columns of the invertible matrix
+β. This verifies the conditions for simultaneous diagonalization (see [Moi18, Theorem 3.1.3]) so
+the decomposition on the right-hand side of (32) is unique and can be recovered by an efficient
+algorithm. This allows recovery of the vectors z (ℓ) ⊗z (ℓ) (up to re-ordering and scalar multiple).
+
+    Finally, the algorithmic claim of Lemma 3.3 also follows from the above, since the [JLV23]
+algorithm first computes the intersection of subspaces A ∩ B, which is equal to (31), and then
+applies simultaneous diagonalization as in Lemma 3.4 to recover the vectors d(ℓ) ⊗ b(ℓ) from this
+subspace.
+
+3.6    Proof of Theorem 2.8
+First we verify the claim p̄ ≥ 2. To show p ≥ 1, it suffices by the choice of p to have qn3 /(n2 +n3 ) ≥ 1.
+This follows by combining two facts: q > 1 + α, which is a consequence of the assumption on q,
+and n3 /(n2 + n3 ) ≥ 1/(1 + α), which is a consequence of the definition of α. Similarly, to show
+q − p ≥ 2, it suffices by the choice of p to have qn3 /(n2 + n3 ) < q − 1, i.e., qn2 /(n2 + n3 ) > 1, which
+again follows from q > 1 + α and n2 /(n2 + n3 ) ≥ 1/(1 + α).
+    Now conditions (i) and (ii) are clearly met for generic components, since p̄ ≥ 2. The following
+lemma establishes (iii)–(v), provided r ≤ min{(p + 1)n2 , (q − p)n3 , n2 n3 }.
+Lemma 3.5. Suppose x(1) ⊗y (1) , . . . , x(r) ⊗y (r) ∈ Rm ⊗Rn with the components x(ℓ) , y (ℓ) generically
+chosen. If r ≤ mn then {x(ℓ) ⊗ y (ℓ) : ℓ ∈ [r]} are linearly independent.
+Proof. Form the mn × r matrix whose columns are x(ℓ) ⊗ y (ℓ) . It suffices to identify a square
+submatrix using all the columns whose determinant is a nonzero polynomial in the entries of
+x(ℓ) , y (ℓ) . For this, it suffices to demonstrate a choice of the vectors x(ℓ) , y (ℓ) for which {x(ℓ) ⊗ y (ℓ) :
+ℓ ∈ [r]} are linearly independent. Fix an injection [r] → [m] × [n]. For each ℓ ∈ [r], if ℓ 7→ (i, j)
+then set x(ℓ) = e(i) and y (ℓ) = e(j) where e(i) is the ith standard unit basis vector.
+
+    Condition (vi) on M follows from the proof of Theorem 2.4, namely (22), provided
+                                                           
+                                              n2    n3
+                               r ≤ q min          ,       −1 .
+                                            q−p p+1
+This condition is unchanged under the operation that swaps n2 with n3 and replaces p with q −p−1.
+Therefore, condition (vii) on M ′ also holds under the same condition.
+   The following lemma establishes condition (viii) on N .
+Lemma 3.6. In the setting of Theorem 2.7 with parameters q ≤ n1 and p̄ := min{p + 1, q − p} ≥ 2,
+if the components a(ℓ) , b(ℓ) , c(ℓ) are generically chosen and
+                                                                q3
+                                                            
+                                                qn2        2
+                                           r≤          1−      − ,
+                                               q−p         q    4
+then N has full column rank.
+
+                                                       27
+The proof is deferred to Section 3.7. By symmetry, condition (ix) on N ′ also holds under the
+analogous condition
+                                                      q3
+                                                 
+                                       qn3      2
+                                   r≤        1−     − .
+                                       p+1      q      4
+   For condition (x) on P we appeal to the results of [JLV23]. As explained in Section 3.5,
+condition (x) is equivalent to (31), which is established by [JLV23, Corollary 3] for generic com-
+ponents under the condition r ≤ p(n2 − 1)/4. Similarly, condition (xi) on P ′ holds provided
+r ≤ (q − p − 1)(n3 − 1)/4.
+   To summarize, we have the conditions
+ (a) r ≤ min{(p + 1)n2 , (q − p)n3 },
+
+ (b) r ≤ n2 n3 ,
+              n          o
+                 qn2 qn3
+ (c) r ≤ min q−p    , p+1 − q,
+                 n               o         3
+                     qn2 qn3
+ (d) r ≤ min         q−p , p+1     1 − 2q − q4 ,
+
+ (e) r ≤ 41 min{p(n2 − 1), (q − p − 1)(n3 − 1)}.
+Condition (a) is subsumed by (e) because, e.g., p(n2 − 1)/4 ≤ pn2 ≤ (p + 1)n2 . The assumption
+p̄ ≥ 2 implies p ≥ 1 and q ≥ p + 2 ≥ 3, so q 3 /4 > q. This means condition (c) is subsumed by (d).
+Also, (e) implies n2 , n3 ≥ 2 (or else r ≤ 0), so (d) implies
+                                                        
+                  qn2 qn3                         n2    n3
+       r ≤ min          ,       ≤ max min             ,      = n2 + n3 ≤ 2 max{n2 , n3 } ≤ n2 n3 ,
+                  q−p p            x∈(0,1)      1−x x
+
+so (b) is also subsumed. This leaves only (d) and (e).
+    Now using the choice of p = ⌊q · n3 /(n2 + n3 )⌋ and the bounds (23),(24) we have
+                                                                                  
+           qn2    qn3         2                       1+α         2                    3+α
+   min          ,        1−       ≥ (n2 + n3 ) 1 −            1−      ≥ (n2 + n3 ) 1 −       ,
+          q−p p+1             q                        q          q                     q
+so condition (d) can be replaced with the sufficient condition
+
+                                                               q3
+                                                          
+                                                     3+α
+                                r ≤ (n2 + n3 ) 1 −           − .                                     (33)
+                                                       q       4
+   Finally, we will show that the previous condition subsumes (e), given the assumption on q.
+Using the choice of p,
+                                  
+  1             1         n3                   (q − 1)n3 − n2            (q − 1 − α)n3
+    p(n2 − 1) ≥     q·          − 1 (n2 − 1) =                (n2 − 1) ≥               (n2 − 1)
+  4             4      n2 + n 3                  4(n2 + n3 )               4(n2 + n3 )
+and similarly,
+                                                              
+        1                       1                     n3                   (q − 1 − α)n2
+          (q − p − 1)(n3 − 1) ≥            q−q·             − 1 (n3 − 1) ≥               (n3 − 1).
+        4                       4                  n2 + n 3                  4(n2 + n3 )
+Therefore, the right-hand side of condition (e) can be replaced by
+                                                                                           
+  q−1−α                          q−1−α         n2 n3          q−1−α      α
+              (n2 − 1)(n3 − 1) ≥                      −1 =                     (n2 + n3 ) − 1
+  4(n2 + n3 )                        4       n2 + n 3             4   (1 + α)2
+
+
+                                                        28
+where the last step follows by checking the cases n3 = αn2 and n2 = αn3
+
+                                      (q − 1 − α)α             q            q
+                                  ≥              2
+                                                   (n2 + n3 ) − ≥ n2 + n3 −
+                                        4(1 + α)               4            4
+using the assumption q ≥ (4 + 5α)(1 + 1/α), so condition (e) is subsumed by (33).
+
+3.7    Proof of Lemma 3.6
+It will be convenient to work not with N but with an equivalent matrix, L. Recall the derivation
+of N from Section 3.4. There, we used the columns {U : 1 ∈ U } as a basis for the column span of
+                                            (ℓ)
+A(a(ℓ) ). By Lemma 3.1, and assuming ai ̸= 0 due to generic components, we can just as easily use
+the basis of columns {U : i ∈ U } for any i ∈ V := [p + 1]. To define L, we will use a different choice
+of i ∈ [p+1] for each ℓ. The purpose of this is to create symmetry among the elements i ∈ [p+ 1], so
+that element 1 no longer plays a distinguished role. (However, there remains a distinction between
+i ∈ [p + 1] versus i ∈ [q] \ [p + 1], since we have fixed V = [p + 1].)
+    Formally, choose the smallest integer r̄ for which r ≤ r̄q(p + 1)(q − p − 1). It suffices to verify
+the extreme case r = r̄q(p + 1)(q − p − 1) (i.e., we will show that even when r is increased to add
+additional columns, all the columns are linearly independent). We will index [r] by tuples (i, j, ℓ)
+with i ∈ [p + 1], j ∈ [q] \ [p + 1], and ℓ ∈ [r̄q]; this way, each element of [r] has an assigned (i, j)
+pair, where i plays a role in choosing the basis described above, and the role of j will appear later.
+Define the matrix L with rows indexed by
+
+                           {(m, S) : m ∈ [n2 ], S ⊆ [q], |S| = p, S ̸⊆ [p + 1]}
+
+and columns indexed by
+
+  {(i, j, ℓ, U ) : i ∈ [p + 1], j ∈ [q] \ [p + 1], ℓ ∈ [r̄q], U ⊆ [q], |U | = p + 1, i ∈ U, U ̸= [p + 1]}, (34)
+
+with entries
+                                                    q
+                                                          1U =S⊔{k} · σ(U, k) · a(i,j,ℓ)
+                                                    X
+                            LmS,ijℓU = b(i,j,ℓ)
+                                        m       ·                                k       ,
+                                                    k=1
+
+where we have indexed [r] by tuples (i, j, ℓ) as described above. Our goal is to show that L has full
+column rank, which implies the same for N , since both these conditions are equivalent to (8) via
+the argument in Section 3.4 (along with the discussion above).
+    It suffices to identify a nonzero minor of L that uses all the columns. To this end, we will
+describe a pairing that assigns every column (i, j, ℓ, U ) to some row (m, S) in such a way that each
+row is used 0 or 1 times. Imagine the columns grouped into r̄q “epochs,” one for each ℓ value,
+and each epoch is further subdivided into (p + 1)(q − p − 1) “pillars,” one for each (i, j) pair. The
+ordering of the epochs is unimportant, but let’s fix one arbitrary ordering, and similarly for the
+ordering of pillars within an epoch and the ordering of columns within a pillar. Call the first r̄(p+1)
+epochs “type 1” and the remaining r̄(q − p − 1) epochs “type 2.” We first describe which S value
+gets assigned to a given column (i, j, ℓ, U ):
+   • For a type 1 epoch (i.e., 1 ≤ ℓ ≤ r̄(p + 1)), remove i from U to produce S: let S = U \ {i}.
+     Note that i ∈ U is guaranteed by (34).
+
+   • For a type 2 epoch (i.e., r̄(p + 1) < ℓ ≤ r̄q), remove j if possible, and otherwise remove i.
+     That is, if j ∈ U and |U ∩ [p + 1]| < p then let S = U \ {j}, and otherwise let S = U \ {i}.
+     (Recall that S ⊆ [p + 1] is forbidden, so j cannot be removed if |U ∩ [p + 1]| = p.)
+
+                                                          29
+Now that the S values are assigned, the m values are assigned based on the “first available” rule.
+That is, column (i, j, ℓ, U ) gets assigned to row (m, S) where S is specified above and m is the
+minimum m′ for which (m′ , S) has not already been assigned to some previous column. Consider
+the submatrix L′ of L formed by all columns of L and only those rows that were assigned to some
+column by the above procedure. Our goal is to show that det(L′ ) is a nonzero polynomial in the
+            (i,j,ℓ)         (i,j,ℓ)
+variables bm        and ak          .
+    Expand the determinant det(L′ ) as a sum over permutations. Each term in the sum gives a
+single monomial (multiplied by a coefficient ±1 or 0). Consider the term in the sum corresponding
+to the pairing of rows and columns described above. We claim that this term produces a nonzero
+monomial that is unique in the sense that no other term produces a (nonzero) scalar multiple
+of this monomial. Once we establish this claim, we are done. To prove the claim we need to
+argue that, given our monomial of interest, it is possible to deduce the unique pairing of rows and
+                                                                           (i,j,ℓ)
+columns that produced it. Within a fixed pillar (i, j, ℓ), the powers of ak        in the monomial reveal
+which multiset of k values are removed from the U ’s in this pillar to form the associated S’s. By
+design, there are only 1 or 2 distinct k values, namely {i} or {i, j} (for a type 1 or type 2 epoch,
+respectively). In either case, the specific pairing between U ’s and S’s can be deduced (using the
+fact that a type 2 epoch removes j whenever possible). The S’s appearing within a pillar are all
+distinct (when j is removed, the resulting S contains i, but when i is removed, it does not). Now
+                    (i,j,ℓ)
+the powers of bm            in the monomial reveal which multiset of m values are used in each pillar.
+Recalling the “first available” rule, this allows the m value for each column to be deduced. This
+completes the proof that det(L′ ) is a nonzero polynomial.
+    Finally we need to determine what value of n2 is required for the above construction. The
+minimum allowable value for n2 is the largest m value used in the construction. For each S, we
+need to count how many columns (i, j, ℓ, U ) get assigned to S.
+    We first consider the special case where |S ∩ [p + 1]| takes its maximum possible value, p − 1.
+This case needs separate consideration due to the special rule for type 2 epochs: if |U ∩ [p + 1]| = p
+then j cannot be removed. Fix S with |S ∩ [p + 1]| = p − 1. In a type 1 epoch ℓ, the number of
+tuples (i, j, U ) assigned to S is 2(q − p − 1) because there are 2 choices for i ∈    / S, then q − p − 1
+choices for j, and then U = S ⊔ {i}. In a type 2 epoch, we have two different contributions to
+count. First consider U with |U ∩ [p + 1]| = p, and recall that these are never allowed to remove
+j. This gives 2(q − p − 1) tuples (i, j, U ), since there are again 2 choices for i ∈  / S, then q − p − 1
+choices for j, and U = S ⊔ {i}. We also need to consider U with |U ∩ [p + 1]| = p − 1 (i.e., cases
+where j is removed). This gives (p − 1)(q − p − 2) tuples (i, j, U ), since there are p − 1 choices for
+i ∈ S, then q − p − 2 choices for j ∈  / S, and U = S ⊔ {j} (we need i ∈ S so that i ∈ U , as required
+by (34)). In total, the number of times that S is used is
+
+              r̄(p + 1) · 2(q − p − 1) + r̄(q − p − 1) · [2(q − p − 1) + (p − 1)(q − p − 2)]
+                    = r̄(q − p − 1)[2q + (p − 1)(q − p − 2)]
+                                                         
+                                                       2
+                    = r̄(p + 1)(q − p − 1) q − p +           .
+                                                    p+1
+
+    Now consider the remaining case: fix S with h := |S ∩ [p + 1]| < p − 1. In a type 1 epoch ℓ,
+the number of tuples (i, j, U ) assigned to S is (p + 1 − h)(q − p − 1) because there are p + 1 − h
+choices for i ∈
+              / S, then q − p − 1 choices for j, and U = S ⊔ {i}. In a type 2 epoch, we again have
+two contributions to count. First consider U with |U ∩ [p + 1]| = h + 1 (i.e., i is removed). This
+gives (p + 1 − h)(q − 2p + h − 1) tuples (i, j, U ), since there are p + 1 − h choices for i ∈
+                                                                                             / S, then
+q − 2p + h − 1 choices for j ∈/ S, and U = S ⊔ {i}. Now consider U with |U ∩ [p + 1]| = h (i.e., j
+
+
+                                                   30
+is removed). This gives h(q − 2p + h − 1) tuples (i, j, U ), since there are h choices for i ∈ S, then
+q − 2p + h − 1 choices for j ∈
+                             / S, and U = S ⊔ {j}. In total, the number of times that S is used is
+
+ r̄(p + 1) · (p + 1 − h)(q − p − 1) + r̄(q − p − 1) · [(p + 1 − h)(q − 2p + h − 1) + h(q − 2p + h − 1)]
+      = r̄(q − p − 1)[(p + 1)(p + 1 − h) + (p + 1)(q − 2p + h − 1)]
+      = r̄(p + 1)(q − p − 1)(q − p),
+
+which is dominated by the first case.
+    To recap, we need an integer r̄ such that r ≤ r̄q(p + 1)(q − p − 1) and n2 ≥ r̄(p + 1)(q − p −
+1)(q − p + 2/(p + 1)), or equivalently,
+                           r                                  n2
+                                      ≤ r̄ ≤                                       .
+                  q(p + 1)(q − p − 1)        (p + 1)(q − p − 1)(q − p + 2/(p + 1))
+
+It suffices to have
+                           r                             n2
+                                      ≤                                       − 1,
+                  q(p + 1)(q − p − 1)   (p + 1)(q − p − 1)(q − p + 2/(p + 1))
+
+that is,
+                                         qn2
+                             r≤                     − q(p + 1)(q − p − 1).
+                                  q − p + 2/(p + 1)
+We have the bounds (p + 1)(q − p − 1) ≤ maxx∈R x(q − x) = q 2 /4, and
+                                                                          
+                     qn2           qn2             2               qn2     2
+                                ≥         1−                   ≥        1−     .
+              q − p + 2/(p + 1)   q−p        (p + 1)(q − p)       q−p      q
+
+Thus it suffices to have
+                                                                        q3
+                                                               
+                                          qn2               2
+                                       r≤                1−         −
+                                          q−p               q           4
+as claimed.
+
+
+4     Proofs for Lower Bounds
+4.1    Matrix Decomposition Lemma
+The following result of [EGOW18] is a core component of our lower bounds. (In [EGOW18], only
+square matrices are considered, but the same proof applies for rectangular matrices.) Recall the
+notion of symbolic rank from Section 2.1.2.
+
+Lemma 4.1 ([EGOW18], Lemma 3.2). Let M (x) ∈ R[x]m1 ×m2 be an m1 ×m2 matrix whose entries
+are homogeneous degree-d polynomials in the variables x1 , . . . , xp . If M (x) has symbolic rank r then
+there are vectors f1 (x), . . . , fr (x) ∈ R[x]m1 and g1 (x), . . . , gr (x) ∈ R[x]m2 such that
+                                               r
+                                               X
+                                     M (x) =         Hd [ft (x)gt (x)⊤ ],
+                                               t=1
+
+where Hd (·) denotes the degree-d homogeneous part (applied entry-wise).
+
+
+
+
+                                                     31
+4.2     Proof of Theorem 2.9
+Let s be the symbolic rank of A(a), which is also the generic rank of M (a(1) ⊗ b(1) ⊗ c(1) ). The
+entries of A(a) are degree-1 homogeneous polynomials in a, so by Lemma 4.1 there are vectors of
+polynomials f1 (a), . . . , fs (a) and g1 (a), . . . , gs (a) such that
+                                                        s
+                                                        X
+                                              A(a) =          H1 [ft (a)gt (a)⊤ ].
+                                                        t=1
+
+Note that
+                          H1 [ft (a)gt (a)⊤ ] = H0 [ft ]H1 [gt (a)]⊤ + H1 [ft (a)]H0 [gt ]⊤ ,
+where we write, e.g., H0 [ft ] instead of H0 [ft (a)] to emphasize that this is a constant (degree-0)
+vector. Now we can write
+                                s
+                                X
+                                    ⊤
+ M (a ⊗ b ⊗ c) = A(a) ⊗ (bc ) =   {(H0 [ft ] ⊗ b)(H1 [gt (a)] ⊗ c)⊤ + (H1 [ft (a)] ⊗ b)(H0 [gt ] ⊗ c)⊤ }
+                                            t=1
+
+and so, since T 7→ M (T ) is linear,
+                                             r
+                                                                        !
+                                             X
+                                        M          a(ℓ) ⊗ b(ℓ) ⊗ c(ℓ)       = M0 + M1
+                                             ℓ=1
+
+where
+                                        s X
+                                        X r
+                              M0 :=                (H0 [ft ] ⊗ b(ℓ) )(H1 [gt (a(ℓ) )] ⊗ c(ℓ) )⊤
+                                        t=1 ℓ=1
+and
+                                    s X
+                                    X r
+                              M1 :=     (H1 [ft (a(ℓ) )] ⊗ b(ℓ) )(H0 [gt ] ⊗ c(ℓ) )⊤ .
+                                        t=1 ℓ=1
+Note that
+                                 colspan(M0 ) ⊆ span{H0 [ft ] ⊗ Rn2 : t ∈ [s]}
+and
+                                rowspan(M1 ) ⊆ span{H0 [gt ] ⊗ Rn3 : t ∈ [s]},
+so for any setting of the variables a(ℓ) , b(ℓ) , c(ℓ) we have
+                           r
+                                                   !!
+                         X
+             rank M          a(ℓ) ⊗ b(ℓ) ⊗ c(ℓ)         ≤ rank(M0 ) + rank(M1 ) ≤ sn2 + sn3 .
+                              ℓ=1
+
+Additivity would imply that this rank must also equal rs, from which we conclude r ≤ n2 + n3 .
+
+4.3     Proof of Theorem 2.10
+Let s be the generic rank of M (a(1) ⊗b(1) ⊗c(1) ), which is also the symbolic rank of the matrix M (a⊗
+b ⊗ c), viewed as a matrix of polynomials in the variables x = (a1 , . . . , an1 , b1 , . . . , bn2 , c1 , . . . , cn3 ).
+The entries of M (a ⊗ b ⊗ c) are degree-3 homogeneous polynomials, so by Lemma 4.1 there are
+vectors of polynomials f1 (x), . . . , fs (x) and g1 (x), . . . , gs (x) such that
+                                                              s
+                                                              X
+                                        M (a ⊗ b ⊗ c) =             H3 [ft (x)gt (x)⊤ ].
+                                                              t=1
+
+
+                                                               32
+The variables x are naturally partitioned into X1 := {ai : i ∈ [n1 ]}, X2 := {bi : i ∈ [n2 ]}, and
+X3 := {ci : i ∈ [n3 ]}. For S ⊆ [3], let HS (·) denote the terms that are degree 1 in Xi for each
+i ∈ S and degree 0 in Xi for each i ∈  / S. Note that all terms in M (a ⊗ b ⊗ c) are degree 1 in each
+of X1 , X2 , X3 , so we can rewrite the above as
+                                                            s
+                                                            X
+                                   M (a ⊗ b ⊗ c) =                  H{1,2,3} [ft (x)gt (x)⊤ ].
+                                                            t=1
+
+We can write                                                   X
+                           H{1,2,3} [ft (x)gt (x)⊤ ] =                 HS [ft (x)]H[3]\S [gt (x)]⊤ ,
+                                                              S⊆[3]
+
+and so
+                                            r
+                                                                               !
+                                            X                                          X
+                                                   (ℓ)        (ℓ)        (ℓ)
+                                     M            a      ⊗b         ⊗c             =           MS
+                                            ℓ=1                                        S⊆[3]
+
+where
+                                           s X
+                                           X r
+                                 MS :=                   HS [ft (x(ℓ) )]H[3]\S [gt (x(ℓ) )]⊤ .
+                                           t=1 ℓ=1
+
+Now, for any setting of the variables x(ℓ) , we bound the rank of each MS . First, rank(M∅ ) ≤ s
+because colspan(M∅ ) ⊆ span{H∅ [ft ] : t ∈ [s]}, noting that H∅ [ft (x)] is a constant (degree-0)
+vector, which we denote H∅ [ft ]. Next, note that H{1} [ft (x)] has only “a” variables (not “b” or
+“c”), which we denote by H{1} [ft (x(ℓ) )] = H{1} [ft (a = a(ℓ) )]. Each H{1} [ft (a = a(ℓ) )] lies in
+span{H{1} [ft (a = e(j) )] : j ∈ [n1 ]} where e(j) are unit basis vectors. This means rank(M{1} ) ≤ sn1
+because colspan(M{1} ) ⊆ span{H{1} [ft (a = e(j) )] : t ∈ [s], j ∈ [n1 ]}. Similarly, rank(M{2} ) ≤ sn2
+and rank(M{3} ) ≤ sn3 . Applying the same argument to the row span, we also have rank(M{1,2,3} ) ≤
+s, rank(M{2,3} ) ≤ sn1 , rank(M{1,3} ) ≤ sn2 , and rank(M{1,2} ) ≤ sn3 . Putting it together,
+                           r
+                                                 !!
+                         X                            X
+           rank M             a(ℓ) ⊗ b(ℓ) ⊗ c(ℓ)    ≤      rank(MS ) ≤ 2s(n1 + n2 + n3 + 1).
+                          ℓ=1                                     S⊆[3]
+
+Additivity would imply that this rank is rs, from which we conclude r ≤ 2(n1 + n2 + n3 + 1).
+Remark 4.2. The proof above is similar to that of Theorem 4.4 of [EGOW18], where they give a
+bound of r ≤ 8n for n × n × n tensors. We now explain the source of our improvement from 8n
+to 6n + 2. When decomposing M into 8 terms MS for S ⊆ [3], the original proof of [EGOW18]
+bounds the rank of each term by sn. We instead keep track of the specific structure of each term
+and see that two of them, namely M∅ and M{1,2,3} , admit a better bound of s.
+
+4.4     Proof of Theorem 2.12
+Let s be the symbolic rank of
+
+                                M̃ (b(1,1) ⊗ · · · ⊗ b(k,1) , . . . , b(1,d) ⊗ · · · ⊗ b(k,d) )               (35)
+
+in the variables b = {b(i,j) : i ∈ [k], j ∈ [d]}; this is also the generic rank of M̃ (T (1) , . . . , T (d) ). The
+entries of (35) are degree-kd homogeneous polynomials in the b variables, so by Lemma 4.1, (35)
+admits the decomposition
+                                           X s
+                                                Hkd [ft (b)gt (b)⊤ ].
+                                                  t=1
+
+
+                                                                33
+                                                 F                             (i,j)
+The variables b are naturally partitioned into i∈[k],j∈[d] Bij where Bij := {bm : m ∈ [ni ]}. For
+S ⊆ [k] × [d], let HS (·) denote the terms that are degree 1 in Bij for each (i, j) ∈ S and degree 0
+in Bij for each (i, j) ∈
+                       / S. Note that all terms in (35) are degree 1 in every Bij , so we can rewrite
+the above decomposition as
+                                       Xs
+                                           H[k]×[d] [ft (b)gt (b)⊤ ].
+                                             t=1
+
+With S̄ := ([k] × [d]) \ S, we can write
+                                                               X
+                           H[k]×[d] [ft (b)gt (b)⊤ ] =                   HS [ft (b)]HS̄ [gt (b)]⊤ ,
+                                                           S⊆[k]×[d]
+
+and so                              X                                                 X
+                                                M̃ (T (ℓ1 ) , . . . , T (ℓd ) ) =               MS
+                             1≤ℓ1 <···<ℓd ≤r                                        S⊆[k]×[d]
+
+where
+                         s
+                         X          X
+                 MS :=                          HS [ft (b(i,j) = a(i,ℓj ) )]HS̄ [gt (b(i,j) = a(i,ℓj ) )]⊤ .
+                          t=1 1≤ℓ1 <···<ℓd ≤r
+
+Here, HS [ft (b(i,j) = a(i,ℓj ) )] is obtained from HS [ft (b)] by making the substitution b(i,j) = a(i,ℓj ) for
+each (i, j) ∈ S; note that the variables b(i,j) with (i, j) ∈   / S do not appear. Similarly, HS̄ [gt (b(i,j) =
+a (i,ℓ j ) )] is obtained from HS̄ [gt (b)] by making the substitution bN (i,j) = a(i,ℓj ) for each (i, j) ∈
+                                                                                                           / S.
+Note that HS [ft (b)] is a multilinear function of the d tensors { i : (i,j)∈S b(i,j) : j ∈ [d]}. After
+making the substitution b(i,j) = a(i,ℓj ) , we have
+                                              O               O
+                                                   b(i,j) ⊆         Rni ,
+                                           i : (i,j)∈S              i : (i,j)∈S
+                                                                        Q
+where the right-hand side is a subspace of dimension                        i : (i,j)∈S ni . We also have
+                                                                                           
+                            O                    O                                         
+                                  b(i,j) ⊆ span                             a(i,ℓ) : ℓ ∈ [r] ,
+                                                                                           
+                             i : (i,j)∈S                      i : (i,j)∈S
+
+where the right-hand side is a subspace of dimension ≤ r. For each S, j we will choose the better
+of these two bounds. We conclude, for any setting of the variables a(i,ℓ) ,
+                                                                      
+                                              Y        Y              
+                        dim colspan(MS ) ≤ s      min           ni , r .
+                                                                      
+                                                            j∈[d]            i : (i,j)∈S
+
+By the same argument applied to the row span,
+                                                                                                     
+                                                             Y               Y                       
+                            dim rowspan(MS ) ≤ s                     min                     ni , r       .
+                                                                                                     
+                                                             j∈[d]            i : (i,j)∈S̄
+
+For each S we are free to choose the better of these two bounds to bound rank(MS ). For each S,
+call an index j ∈ [d] “good” if
+                                                                    
+                           Y                         Y        Y     
+                                ni ≤ n∗ := max min        ni ,     ni .
+                                           U ⊆[k]                   
+                           i : (i,j)∈S                                     i∈U        i∈[k]\U
+
+
+                                                              34
+Each j ∈ [d] must be good for either S or S̄. Therefore, either S or S̄ has the property that at
+least d/2 indices j are good. If it’s S then use the colspan bound for rank(MS ), and otherwise use
+the rowspan bound. For “bad” indices, use the bound of r in the second term in min{· · · }. We
+conclude
+                                       rank(MS ) ≤ s(n∗ )d/2 rd/2
+and so
+                                                             
+                     X                                                       X
+         rank                    M̃ (T (ℓ1 ) , . . . , T (ℓd ) ) ≤                rank(MS ) ≤ 2kd · s(n∗ )d/2 rd/2 .
+                1≤ℓ1 <···<ℓd ≤r                                        S⊆[k]×[d]
+                                                                       r
+                                                                        
+Additivity would imply that this rank must equal                       d s, so we have
+                                                                     
+                                            kd        d/2 d/2      r   r d
+                                          2 (n∗ )         r     ≥    ≥     ,
+                                                                   d   d
+which gives r ≤ 4k d2 n∗ as claimed.
+
+
+A       Trivial Flattenings
+The following result shows that trivial flattenings achieve rank detection up to a particular rank,
+as claimed in Section 2.2.1.
+Theorem A.1. If T = rℓ=1 a(1,ℓ) ⊗ · · · ⊗ a(k,ℓ) is n1 × · · · × nk with the components generically
+                         P
+chosen, and                                                        
+                                                  Y        Y       
+                             r ≤ n∗ := max min         ni ,       ni ,                         (36)
+                                        S⊆[k]                      
+                                                                       i∈S       i∈[k]\S
+
+then the matrix M triv (T ; S) defined in (2), with S taken to be any maximizer of                             (36), has rank
+exactly r.
+Proof. The trivial flattening takes the form
+                                                                     r
+                                                                     X
+                                               M triv (T ; S) =              b(ℓ) c(ℓ)⊤
+                                                                     ℓ=1
+
+where                                    O                                                O
+                             b(ℓ) :=             a(i,ℓ)       and            c(ℓ) :=             a(i,ℓ) .
+                                         i∈S                                           i∈[k]\S
+
+To show rank(M triv ) = r, it suffices to show the following: {b(ℓ) : ℓ ∈ [r]} are linearly independent
+and {c(ℓ) : ℓ ∈ [r]} are linearly independent. To see this: linear independence implies that the
+matrix B with columns b(ℓ) has an r × r nonsingular submatrix, and similarly for C with rows c(ℓ) ,
+and the product of these two submatrices appears as an r × r nonsingular submatrix of M triv . We
+focus on the b(ℓ) vectors, as the proof for the c(ℓ) vectors is identical.
+     Since rank (of the B matrix) cannot exceed generic rank (see Section 2.1.2), it suffices to
+exhibit a single                               (i,ℓ) such that the b(ℓ) vectors are linearly independent.
+                 Q choice of the variables a               (i,ℓ) so that the b(ℓ) are distinct standard unit
+Provided r ≤ i∈S ni , we can choose the variables       Qa
+basis vectors. Formally, fix an injection [r] → i∈S [ni ] and write ℓ 7→ (ϕi (ℓ) : i ∈ S) where
+ϕi (ℓ) ∈N[ni ]. Then for i ∈ S, set a(i,ℓ) equal to the standard unit basis vector e(ϕi (ℓ)) ∈ Rni , so that
+ (ℓ)
+b =             (ϕi (ℓ)) . Applying the same argument to the c(ℓ) vectors, we also incur the requirement
+     Q i∈S e
+r ≤ i∈[k]\S ni .
+
+                                                                35
+B      Commuting Extensions
+For r ≥ n, a tuple of matrices (Z1 , . . . , Zm ) in Rr×r is called a commuting extension of a tuple of
+matrices (A1 , . . . , Am ) in Rn×n if the Zi pairwise commute and the upper-left n × n submatrix of
+each Zi is equal to Ai . The algorithmic task of finding a commuting extension is studied in [Koi24b],
+where the following planted model is proposed in Section 5: For i ∈ [m], let Zi = R−1 Di R where
+R is a generically chosen r × r matrix, and each Di is a generically chosen r × r diagonal matrix.
+For some n ≤ r, let Ai be the upper-left n × n submatrix of Zi . Given (A1 , . . . , Am ) and r, the
+goal is to construct a commuting extension (Z̃1 , . . . , Z̃m ) of dimension r × r. The Zi make up one
+“planted” solution, but it is not unique: see Eq. (2) of [Koi24b].
+    The algorithm of [Koi24b] solves the above task provided m ≥ 3 and r ≤ 4n/3. Building on
+the connection between commuting extensions and tensor decomposition described in [Koi24a], we
+will give an algorithm for finding commuting extensions using our tensor decomposition algorithm.
+The algorithm will succeed for r ≤ (2 − ϵ)n for an arbitrary ϵ > 0, provided m is a large enough
+constant (depending on ϵ) and n is large. The threshold r = 2n is fundamental: as pointed out
+in [Koi20], any tuple (A1 , . . . , Am ) of n × n matrices admits the commuting extension
+                                                               
+                                                     Ai −Ai
+                                              Zi =
+                                                     Ai −Ai
+
+of dimension r = 2n.
+    The following lemma from [Koi24a] will be a subroutine in the algorithm.
+Lemma B.1 ([Koi24a], Lemma 13). Let U ∈ Rn×r and V ∈ Rr×n with U V = In . Then r ≥ n, and
+it is possible to “extend” U, V to two r×r matrices that are inverses. More precisely, Ũ = (U ⊤ | A)⊤
+and Ṽ = (V | B) where A, B ∈ Rr×(r−n) and Ũ Ṽ = Ir . Specifically, B can be any matrix for which
+Im(B) = ker(U ), and A is the unique matrix such that A⊤ B = Ir−n and A⊤ V = 0.
+Algorithm 2 (Finding a commuting extension).
+    • Input: A tuple of n × n matrices (A1 , . . . , Am ).
+
+    • Input: A parameter r ≥ n.
+
+    • Input: A generic n × n matrix M (say, chosen at random).
+
+    1. Let Ti = M Ai for i ∈ [m], and let T be the m × n × n tensor with slices Ti .
+
+    2. Let q be the largest odd integer with q ≤ m, and let p = (q − 1)/2.
+
+    3. Run the tensor decomposition algorithm (Algorithm 1) on T with parameters p, q, r to produce
+       a decomposition T = rℓ=1 a(ℓ) ⊗ b(ℓ) ⊗ c(ℓ) .
+                           P
+
+    4. Let B be n × r with columns b(ℓ) , let C be r × n with rows c(ℓ)⊤ , and for i ∈ [m] let D̃i =
+             (ℓ)
+       diag(ai : ℓ = 1, . . . , r).
+
+    5. Solve for an r × r diagonal matrix D̂ satisfying the linear equations M −1 B D̂C = In .
+
+    6. Invoke Lemma B.1 to extend M −1 B D̂ and C to r × r matrices Ũ and Ṽ respectively.
+
+    7. Output (Z̃1 , . . . , Z̃m ) where Z̃i = Ũ D̂−1 D̃i Ṽ .
+
+The matrix M might be unnecessary, but it will help with the genericity analysis below.
+
+                                                            36
+Theorem B.2. Let r ≥ n ≥ 3 and m ≥ 19. The following holds for a generic choice of an r × r
+matrix R, an n × n matrix M , and m diagonal r × r matrices D1 , . . . , Dm (that is, the r2 + n2 + mr
+                                                            2  2
+variables Rij , Mij , (Di )jj are chosen generically from Rr +n +mr ). For i ∈ [m], let Zi = R−1 Di R
+and let Ai be the upper-left n × n submatrix of Zi . If
+
+                                                              m3
+                                                         
+                                                        4
+                                       r ≤ 2n 1 −           −
+                                                     m−1       4
+
+then Algorithm 2 with input (A1 , . . . , Am ), r, M outputs a valid commuting extension (Z̃1 , . . . , Z̃m ),
+that is, the Z̃i pairwise commute and for i ∈ [m], the upper-left n × n submatrix of Z̃i is Ai .
+
+Proof. By construction, we know Ai = U Di V where U is n × r consisting of the first n rows of
+R−1 , and V is r × n consisting    Pof the first n columns of R. This means Ti = M U Di V , which gives
+a tensor decomposition T = rℓ=1 w(ℓ) ⊗ u(ℓ) ⊗ v (ℓ) where u(ℓ) are the columns of M U , v (ℓ)⊤ are
+                                      (1)       (r)
+the rows of V , and Di = diag(wi , . . . , wi ). We will verify that this decomposition of T satisfies
+the conditions of our uniqueness theorem (Theorem 2.7), applied with the parameters p, q specified
+in Algorithm 2. The components w(ℓ) , u(ℓ) , v (ℓ) are not generic in the usual sense, so we cannot
+apply Theorem 2.8 directly. Instead, since R−1 = adj(R)/ det(R), the entries of the components
+w(ℓ) , u(ℓ) , v (ℓ) can be expressed as rational functions in the underlying variables
+
+                x = {Rij : i, j ∈ [r]} ⊔ {(Di )jj : i ∈ [m], j ∈ [r]} ⊔ {Mij : i, j ∈ [n]}.
+
+For generic x, our goal is to verify conditions (i)-(xi) from Theorem 2.7 for the components
+w(ℓ) , u(ℓ) , v (ℓ) . Inspecting each of these conditions and recalling that the components are rational
+functions, it suffices to exhibit a single choice of the underlying variables x (with R, M invertible)
+for which conditions (i)-(xi) hold; it then follows that they hold for generic x. From Theorem 2.8
+we know that a generic choice of components will satisfy the conditions (we will verify the require-
+ment of the theorem later); fix such a generic choice w̃(ℓ) , ũ(ℓ) , ṽ (ℓ) . We will exhibit values for the
+variables x = (R, Di , M ) such that w(ℓ) (x) = w̃(ℓ) , u(ℓ) (x) = ũ(ℓ) , and v (ℓ) (x) = ṽ (ℓ) , implying that
+w(ℓ) , u(ℓ) , v (ℓ) satisfy the conditions as desired.
+                                  (1)      (r)
+     First, set Di = diag(w̃i , . . . , w̃i ), which ensures w(ℓ) (x) = w̃(ℓ) . To ensure u(ℓ) (x) = ũ(ℓ) ,
+we need to arrange M U = Ũ where Ũ has columns ũ(1) , . . . , ũ(r) and where U consists of the
+first n rows of R−1 . Equivalently, U = M −1 Ũ . Similarly, to ensure v (ℓ) (x) = ṽ (ℓ) , we need to
+arrange V = Ṽ where Ṽ has rows ṽ (1)⊤ , . . . , ṽ (r)⊤ and where V consists of the first n columns of
+R. Set M = Ũ Ṽ , which is invertible due to the generic choice of ũ(ℓ) , ṽ (ℓ) . For our desired values
+of U = M −1 Ũ and V = Ṽ , we have U V = M −1 Ũ Ṽ = In . Therefore by Lemma B.1 there exists
+an r × r matrix R such that the first n rows of R−1 are U = M −1 Ũ and the first n columns of R
+are V = Ṽ . This completes the construction of x = (R, Di , M ) and therefore completes the proof
+that the components w(ℓ) , u(ℓ) , v (ℓ) satisfy the conditions of Theorem 2.7 when R, Di , M are chosen
+generically.
+     Now by Theorem 2.7 we know T has a unique (in the sense of Definition 2.2) rank-r decomposi-
+tion, and that the components a(ℓ) , b(ℓ) , c(ℓ) recovered by our algorithm are related to w(ℓ) , u(ℓ) , v (ℓ)
+as follows: there exists a permutation π : [r] → [r] such that a(ℓ) ⊗b(ℓ) ⊗c(ℓ) = w(π(ℓ)) ⊗u(π(ℓ)) ⊗v (π(ℓ))
+for all ℓ ∈ [r]. This means b(ℓ) = βℓ · u(π(ℓ)) for a scalar βℓ ̸= 0, which we can write in matrix form
+as B = M U Π · diag(β) where Π is the permutation matrix associated with π and B is defined in
+Algorithm 2. Similarly, c(ℓ) = γℓ ·v (π(ℓ)) for a scalar γℓ ̸= 0, and C = diag(γ)·Π⊤ V . The algorithm’s
+next step is to solve for a diagonal matrix D̂ such that M −1 B D̂C = In . One solution to this linear
+system is D̂ = diag(βℓ−1 γℓ−1 : ℓ = 1, . . . , r); to see this, note that U V = In (since U, V are defined
+as particular submatrices of R−1 , R) and Π · diag(β) · D̂ · diag(γ) · Π⊤ = diag(βπ−1 (ℓ) D̂π−1 (ℓ) γπ−1 (ℓ) :
+
+                                                       37
+ℓ = 1, . . . , r). Later, we will show that generically, this is the only solution. Therefore the algorithm
+recovers D̂ = diag(βℓ−1 γℓ−1 : ℓ = 1, . . . , r). The algorithm’s next step is to extend M −1 B D̂ and C
+to r × r matrices Ũ , Ṽ with Ũ Ṽ = Ir , where M −1 B D̂ makes up the first n rows of Ũ and C makes
+up the first n columns of Ṽ ; this uses Lemma B.1 along with the previous claim M −1 B D̂C = In .
+    Recall that the algorithm has access to
+                               (ℓ)                                             (π(ℓ))
+                 D̃i = diag(ai       : ℓ = 1, . . . , r) = diag(βℓ−1 γℓ−1 wi            : ℓ = 1, . . . , r)
+and outputs Z̃i = Ũ D̂−1 D̃i Ṽ for i ∈ [m]. We need to show this is a valid commuting extension. Since
+Ũ , Ṽ are inverses and D̂−1 D̃i is diagonal, the Zi pairwise commute. To verify that Zi “extends”
+Ai : the upper-left n × n block of Zi is
+                   M −1 B D̂ · D̂−1 D̃i · C = M −1 (M U Π · diag(β))D̃i (diag(γ) · Π⊤ V )
+                                             = U Π · diag(β) · D̃i · diag(γ) · Π⊤ V
+                                                                (π(ℓ))
+                                             = U Π · diag(wi             : ℓ = 1, . . . , r) · Π⊤ V
+                                                              (ℓ)
+                                             = U · diag(wi          : ℓ = 1, . . . , r) · V
+                                             = U Di V
+                                             = Ai
+as desired.
+      Next we will prove the claim, made above, that the linear system of equations for D̂ has a
+unique solution. The equations are M −1 B D̂C = In where D̂ is diagonal, so it suffices to show that
+the matrices M −1 b(ℓ) c(ℓ)⊤ for ℓ ∈ [r] are linearly independent. Since M −1 is invertible, it suffices to
+show that the matrices b(ℓ) c(ℓ)⊤ for ℓ ∈ [r] are linearly independent. Since b(ℓ) and c(ℓ) are nonzero
+scalar multiples of u(π(ℓ)) and v (π(ℓ)) respectively, it suffices to show that u(ℓ) v (ℓ)⊤ for ℓ ∈ [r] are
+linearly independent. Recalling that u(ℓ) are the columns of M U and M is invertible, it suffices to
+show that û(ℓ) v (ℓ)⊤ for ℓ ∈ [r] are linearly independent, where û(ℓ) are the columns of U . Recalling
+that the entries of R−1 are rational functions in the entries of R, it suffices to exhibit a single
+(invertible) value of R for which û(ℓ) v (ℓ)⊤ are linearly independent, where û(ℓ) and v (ℓ) are viewed
+as functions of R: namely, the first n rows of R−1 have columns û(ℓ) and the first n columns of R
+have rows v (ℓ)⊤ . Constructing such a value for R amounts to finding linearly independent matrices
+û(ℓ) v (ℓ)⊤ for ℓ ∈ [r] that sum to In , since the rest of R−1 , R can be filled in by Lemma B.1. This in
+turn is guaranteed by Lemma B.3 below, noting that our assumption n ≥ 3 implies n2 − n + 1 ≥ 2n.
+      Finally, we need to check that our parameters p, q, r verify the requirements for Theorem 2.8.
+Note we are in the case α = 1 so we need q ≥ 18 and r ≤ 2n(1 − 4/q) − q 3 /4. These follow from
+our assumptions, and our choice m − 1 ≤ q ≤ m.
+
+Lemma B.3. For n ≥ 1 and n ≤ r ≤ n2 − n + 1, there exist r linearly independent rank-1 n × n
+matrices that sum to In .
+Proof. The rank-1 matrices used in our construction will each be supported on a rectangle, either
+with all nonzero values equal to 1 or all nonzero values equal to −1. One possible construction
+is to take the rectangle [n] × [n] and subtract off a collection of rectangles that partition ([n] ×
+[n]) \ {(1, 1), (2, 2), . . . , (n, n)}. The number of rectangles in the partition can range from 2(n − 1)
+to n2 − n, so this covers all the r values ranging from 2(n − 1) + 1 to n2 − n + 1. An alternative
+construction is to, for some k ∈ [n], take the rectangle [k]×[k] and subtract off a collection of 2(k−1)
+rectangles that partition ([k] × [k]) \ {(1, 1), (2, 2), . . . , (k, k)}, and then add n − k additional 1 × 1
+rectangles on the diagonal. This uses 1 + 2(k − 1) + (n − k) = n + k − 1 rectangles in total, so by
+varying k this covers all the r values ranging from n to 2n − 1.
+
+                                                         38
+Acknowledgments
+We thank Aravindan Vijayaraghavan for helpful discussions.
+
+
+References
+[AFT11]     Boris Alexeev, Michael A Forbes, and Jacob Tsimerman. Tensor rank: Some lower
+            and upper bounds. In 26th Annual Conference on Computational Complexity, pages
+            283–291. IEEE, 2011.
+
+[AGKM23] Omar Alrabiah, Venkatesan Guruswami, Pravesh K Kothari, and Peter Manohar. A
+         near-cubic lower bound for 3-query locally decodable codes from semirandom CSP
+         refutation. In Proceedings of the 55th Annual ACM Symposium on Theory of Com-
+         puting, pages 1438–1448, 2023.
+
+[AOW15]     Sarah R Allen, Ryan O’Donnell, and David Witmer. How to refute a random CSP. In
+            56th Annual Symposium on Foundations of Computer Science, pages 689–708. IEEE,
+            2015.
+
+[BCMV14a] Aditya Bhaskara, Moses Charikar, Ankur Moitra, and Aravindan Vijayaraghavan.
+          Open problem: Tensor decompositions: Algorithms up to the uniqueness threshold?
+          In Conference on Learning Theory, pages 1280–1282. PMLR, 2014.
+
+[BCMV14b] Aditya Bhaskara, Moses Charikar, Ankur Moitra, and Aravindan Vijayaraghavan.
+          Smoothed analysis of tensor decompositions. In Proceedings of the forty-sixth annual
+          ACM symposium on Theory of computing, pages 594–603, 2014.
+
+[BCO14]     Cristiano Bocci, Luca Chiantini, and Giorgio Ottaviani. Refined methods for the
+            identifiability of tensors. Annali di Matematica Pura ed Applicata (1923-), 193:1691–
+            1702, 2014.
+
+[BESV24]    Aditya Bhaskara, Eric Evert, Vaidehi Srinivas, and Aravindan Vijayaraghavan. New
+            tools for smoothed analysis: Least singular value bounds for random matrices with
+            dependent entries. In Proceedings of the 56th Annual ACM Symposium on Theory of
+            Computing, pages 375–386, 2024.
+
+[BVD+ 18]   Martijn Boussé, Nico Vervliet, Ignat Domanov, Otto Debals, and Lieven De Lath-
+            auwer. Linear systems with a canonical polyadic decomposition constrained solu-
+            tion: Algorithms and applications. Numerical Linear Algebra with Applications,
+            25(6):e2190, 2018.
+
+[Car91]     Jean-François Cardoso. Super-symmetric decomposition of the fourth-order cumulant
+            tensor. Blind identification of more sources than sensors. In ICASSP, volume 91, pages
+            3109–3112, 1991.
+
+[CGL07]     Amin Coja-Oghlan, Andreas Goerdt, and André Lanka. Strong refutation heuristics
+            for random k-SAT. Combinatorics, Probability and Computing, 16(1):5–28, 2007.
+
+[CKW11]     Xi Chen, Neeraj Kayal, and Avi Wigderson. Partial derivatives in arithmetic com-
+            plexity and beyond. Foundations and Trends® in Theoretical Computer Science,
+            6(1–2):1–138, 2011.
+
+
+                                               39
+[COV14]     Luca Chiantini, Giorgio Ottaviani, and Nick Vannieuwenhoven. An algorithm for
+            generic and low-rank specific identifiability of complex tensors. SIAM Journal on
+            Matrix Analysis and Applications, 35(4):1265–1287, 2014.
+
+[CR22]      Haolin Chen and Luis Rademacher. Overcomplete order-3 tensor decomposition, blind
+            deconvolution, and gaussian mixture models. SIAM Journal on Mathematics of Data
+            Science, 4(1):336–361, 2022.
+
+[DdL+ 22]   Jingqiu Ding, Tommaso d’Orsi, Chih-Hung Liu, David Steurer, and Stefan Tiegel. Fast
+            algorithm for overcomplete order-3 tensor decomposition. In Conference on Learning
+            Theory, pages 3741–3799. PMLR, 2022.
+
+[DJL24]     Harm Derksen, Nathaniel Johnston, and Benjamin Lovitz. X -arability of mixed quan-
+            tum states. arXiv preprint arXiv:2409.18948, 2024.
+
+[DL06]      Lieven De Lathauwer. A link between the canonical decomposition in multilinear
+            algebra and simultaneous matrix diagonalization. SIAM journal on Matrix Analysis
+            and Applications, 28(3):642–666, 2006.
+
+[DLCC07]    Lieven De Lathauwer, Josphine Castaing, and Jean-Franois Cardoso. Fourth-order
+            cumulant-based blind identification of underdetermined mixtures. IEEE Transactions
+            on Signal Processing, 55(6):2965–2973, 2007.
+
+[DM18]      Harm Derksen and Visu Makam. On non-commutative rank and tensor rank. Linear
+            and Multilinear Algebra, 66(6):1069–1084, 2018.
+
+[EGOW18] Klim Efremenko, Ankit Garg, Rafael Oliveira, and Avi Wigderson. Barriers for rank
+         methods in arithmetic complexity. In 9th Innovations in Theoretical Computer Science
+         Conference (ITCS 2018). Schloss Dagstuhl-Leibniz-Zentrum fuer Informatik, 2018.
+
+[Far16]     Cameron Farnsworth. Koszul–Young flattenings and symmetric border rank of the
+            determinant. Journal of Algebra, 447:664–676, 2016.
+
+[GKM22]     Venkatesan Guruswami, Pravesh K Kothari, and Peter Manohar. Algorithms and
+            certificates for Boolean CSP refutation: smoothed is no harder than random. In
+            Proceedings of the 54th Annual ACM SIGACT Symposium on Theory of Computing,
+            pages 678–689, 2022.
+
+[GKS20]     Ankit Garg, Neeraj Kayal, and Chandan Saha. Learning sums of powers of low-degree
+            polynomials in the non-degenerate case. In 2020 IEEE 61st Annual Symposium on
+            Foundations of Computer Science (FOCS), pages 889–899. IEEE, 2020.
+
+[GM15]      Rong Ge and Tengyu Ma. Decomposing overcomplete 3rd order tensors using sum-
+            of-squares algorithms. In Approximation, Randomization, and Combinatorial Opti-
+            mization. Algorithms and Techniques (APPROX/RANDOM 2015). Schloss-Dagstuhl-
+            Leibniz Zentrum für Informatik, 2015.
+
+[Gua17]     Yonghui Guan. Flattenings and Koszul Young flattenings arising in complexity theory.
+            Communications in Algebra, 45(9):4002–4017, 2017.
+
+[Gub24]     Pavel Gubkin. On unique tensor rank decomposition of 3-tensors. Linear and Multi-
+            linear Algebra, 72(11):1860–1866, 2024.
+
+
+                                              40
+[GVX14]    Navin Goyal, Santosh Vempala, and Ying Xiao. Fourier PCA and robust tensor
+           decomposition. In Proceedings of the forty-sixth annual ACM symposium on Theory
+           of computing, pages 584–593, 2014.
+
+[Har70]    Richard A Harshman. Foundations of the PARAFAC procedure: Models and con-
+           ditions for an “explanatory” multi-modal factor analysis. UCLA working papers in
+           phonetics, 16(1):84, 1970.
+
+[Hås90]   Johan Håstad. Tensor rank is NP-complete. Journal of algorithms, 11(4):644–654,
+           1990.
+
+[Has20]    Matthew B Hastings. Classical and quantum algorithms for tensor principal compo-
+           nent analysis. Quantum, 4:237, 2020.
+
+[HKM23]    Jun-Ting Hsieh, Pravesh K Kothari, and Sidhanth Mohanty. A simple and sharper
+           proof of the hypergraph Moore bound. In Proceedings of the 2023 Annual ACM-SIAM
+           Symposium on Discrete Algorithms (SODA), pages 2324–2344. SIAM, 2023.
+
+[HL13]     Christopher J Hillar and Lek-Heng Lim. Most tensor problems are NP-hard. Journal
+           of the ACM (JACM), 60(6):1–39, 2013.
+
+[HOOS19]   Jonathan D Hauenstein, Luke Oeding, Giorgio Ottaviani, and Andrew J Sommese.
+           Homotopy techniques for tensor decomposition and perfect identifiability. Journal für
+           die reine und angewandte Mathematik (Crelles Journal), 2019(753):1–22, 2019.
+
+[HSS19]    Samuel B Hopkins, Tselil Schramm, and Jonathan Shi. A robust spectral algorithm
+           for overcomplete tensor decomposition. In Conference on Learning Theory, pages
+           1683–1722. PMLR, 2019.
+
+[HSSS16]   Samuel B Hopkins, Tselil Schramm, Jonathan Shi, and David Steurer. Fast spec-
+           tral algorithms from sum-of-squares proofs: tensor decomposition and planted sparse
+           vectors. In Proceedings of the forty-eighth annual ACM symposium on Theory of
+           Computing, pages 178–191, 2016.
+
+[JLV23]    Nathaniel Johnston, Benjamin Lovitz, and Aravindan Vijayaraghavan. Computing
+           linear sections of varieties: quantum entanglement, tensor decompositions and beyond.
+           In 64th Annual Symposium on Foundations of Computer Science (FOCS), pages 1316–
+           1336. IEEE, 2023.
+
+[KB09]     Tamara G Kolda and Brett W Bader. Tensor decompositions and applications. SIAM
+           review, 51(3):455–500, 2009.
+
+[KM24a]    Pravesh K Kothari and Peter Manohar. An exponential lower bound for linear 3-
+           query locally correctable codes. In Proceedings of the 56th Annual ACM Symposium
+           on Theory of Computing, pages 776–787, 2024.
+
+[KM24b]    Pravesh K Kothari and Peter Manohar. Superpolynomial lower bounds for smooth
+           3-LCCs and sharp bounds for designs. arXiv preprint arXiv:2404.06513, 2024.
+
+[Koi20]    Pascal Koiran.     On tensor rank and commuting matrices.             arXiv preprint
+           arXiv:2006.02374, 2020.
+
+
+
+                                              41
+[Koi24a]   Pascal Koiran. An efficient uniqueness theorem for overcomplete tensor decomposition.
+           arXiv preprint arXiv:2404.07801, 2024.
+[Koi24b]   Pascal Koiran. On the uniqueness and computation of commuting extensions. arXiv
+           preprint arXiv:2401.01302, 2024.
+[KP20]     Bohdan Kivva and Aaron Potechin. Exact nuclear norm, completion and de-
+           composition for random overcomplete tensors via degree-4 SOS. arXiv preprint
+           arXiv:2011.09416, 2020.
+[Kru77]    Joseph B Kruskal. Three-way arrays: rank and uniqueness of trilinear decomposi-
+           tions, with application to arithmetic complexity and statistics. Linear algebra and its
+           applications, 18(2):95–138, 1977.
+[KS23]     Pascal Koiran and Subhayan Saha. Complete decomposition of symmetric tensors in
+           linear time and polylogarithmic precision. In International Conference on Algorithms
+           and Complexity, pages 308–322. Springer, 2023.
+[Lan11]    Joseph M Landsberg. Tensors: geometry and applications, volume 128. American
+           Mathematical Soc., 2011.
+[Lan15]    JM Landsberg. Nontriviality of equations and explicit tensors in Cm ⊗ Cm ⊗ Cm of
+           border rank at least 2m − 2. Journal of Pure and Applied Algebra, 219(8):3677–3684,
+           2015.
+[LM17]     Joseph M Landsberg and Mateusz Michalek. A 2n2 − log2 n − 1 lower bound for the
+           border rank of matrix multiplication. International Mathematics Research Notices,
+           2018(15), 2017.
+[LO13]     Joseph M Landsberg and Giorgio Ottaviani. Equations for secant varieties of veronese
+           and other varieties. Annali di Matematica Pura ed Applicata, 192(4):569–606, 2013.
+[LP23]     Benjamin Lovitz and Fedor Petrov. A generalization of Kruskal’s theorem on tensor
+           decomposition. In Forum of Mathematics, Sigma, volume 11, page e27. Cambridge
+           University Press, 2023.
+[LRA93]    Sue E Leurgans, Robert T Ross, and Rebecca B Abel. A decomposition for three-way
+           arrays. SIAM Journal on Matrix Analysis and Applications, 14(4):1064–1083, 1993.
+[Mak22]    Visu Makam. Finding barriers for lower bounds on tensor rank. Talk available at
+           https: // youtu. be/ XCpngEHjaiY? si= 4Utr_ I5OxL6el9oA , 2022.
+[Moi18]    Ankur Moitra. Algorithmic aspects of machine learning. Cambridge University Press,
+           2018.
+[MSS16]    Tengyu Ma, Jonathan Shi, and David Steurer. Polynomial-time tensor decompositions
+           with sum-of-squares. In 57th Annual Symposium on Foundations of Computer Science
+           (FOCS), pages 438–446. IEEE, 2016.
+[OO13]     Luke Oeding and Giorgio Ottaviani. Eigenvectors of tensors and algorithms for Waring
+           decomposition. Journal of Symbolic Computation, 54:9–35, 2013.
+[Per18]    Elena-Mădălina Persu. Tensors, sparse problems and conditional hardness. PhD thesis,
+           Massachusetts Institute of Technology, 2018.
+
+                                              42
+[RSG17]   Stephan Rabanser, Oleksandr Shchur, and Stephan Günnemann. Introduction to
+          tensor decompositions and their applications in machine learning. arXiv preprint
+          arXiv:1711.10781, 2017.
+
+[Str83]   Volker Strassen. Rank and optimal computation of generic tensors. Linear algebra
+          and its applications, 52:645–685, 1983.
+
+[Swe18]   Joseph Swernofsky. Tensor rank is hard to approximate. In Approximation,
+          Randomization, and Combinatorial Optimization. Algorithms and Techniques (AP-
+          PROX/RANDOM 2018). Schloss Dagstuhl-Leibniz-Zentrum fuer Informatik, 2018.
+
+[Vij20]   Aravindan Vijayaraghavan.     Efficient tensor decomposition.    arXiv preprint
+          arXiv:2007.15589, 2020.
+
+[Wei23]   Alexander S Wein. Average-case complexity of tensor decomposition for low-degree
+          polynomials. In Proceedings of the 55th Annual ACM Symposium on Theory of Com-
+          puting, pages 1685–1698, 2023.
+
+[WEM19]   Alexander S Wein, Ahmed El Alaoui, and Cristopher Moore. The Kikuchi hierarchy
+          and tensor PCA. In 60th Annual Symposium on Foundations of Computer Science
+          (FOCS), pages 1446–1468. IEEE, 2019.
+
+
+
+
+                                          43
+

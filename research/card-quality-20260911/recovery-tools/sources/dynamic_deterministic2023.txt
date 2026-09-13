@@ -1,0 +1,2505 @@
+                                                          Deterministic Fully Dynamic SSSP and More
+                                                                    Jan van den Brand∗               Adam Karczmarz†
+
+
+                                                                                          Abstract
+arXiv:2309.16594v1 [cs.DS] 28 Sep 2023
+
+
+
+
+                                                   We present the first non-trivial fully dynamic algorithm maintaining exact single-source
+                                               distances in unweighted graphs. This resolves an open problem stated in [San05, BN19]. Pre-
+                                               vious fully dynamic single-source distances data structures were all approximate, but so far,
+                                               non-trivial dynamic algorithms for the exact setting could only be ruled out for polynomially
+                                               weighted graphs [AW14]. The exact unweighted case remained the main case for which neither
+                                               a subquadratic dynamic algorithm nor a quadratic lower bound was known.
+                                                   Our dynamic algorithm works on directed graphs and is deterministic, and can report a
+                                               single-source shortest paths tree in subquadratic time as well. Thus we also obtain the first
+                                               deterministic fully dynamic data structure for reachability (transitive closure) with subquadratic
+                                               update and query time. This answers an open problem from [BNS19].
+                                                   Finally, using the same framework we obtain the first fully dynamic data structure main-
+                                               taining all-pairs (1 + ǫ)-approximate distances within non-trivial sub-nω worst-case update time
+                                               while supporting optimal-time approximate shortest path reporting at the same time. This
+                                               data structure is also deterministic and therefore implies the first known non-trivial determin-
+                                               istic worst-case bound for recomputing the transitive closure of a digraph.
+
+
+
+
+                                           ∗
+                                            School of Computer Science, Georgia Institute of Technology, USA. vdbrand@gatech.edu.
+                                           †
+                                            University of Warsaw and IDEAS NCBR, Poland. a.karczmarz@mimuw.edu.pl. Partially supported by the ERC
+                                         CoG grant TUgbOAT no 772346 and the National Science Centre (NCN) grant no. 2022/47/D/ST6/02184.
+
+
+                                                                                               i
+Contents
+1 Introduction                                                                                         1
+  1.1 Our results . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    2
+  1.2 Further related work . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     4
+  1.3 Technical ideas . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    4
+  1.4 Organization . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     5
+
+2 Preliminaries                                                                                        5
+
+3 Technical outline                                                                                    5
+  3.1 Algebraic toolbox and previous approaches . . . . . . . . . . . . . . . . . . . . . . .          6
+  3.2 Combinatorial plug-ins to the algebraic data structure . . . . . . . . . . . . . . . . .         7
+  3.3 Maintaining most h-bounded shortest paths under deletions . . . . . . . . . . . . . .            8
+  3.4 Maintaining h-bounded distances beyond the preprocessed pairs . . . . . . . . . . . .            9
+  3.5 Speeding up queries by hitting set-based sparsification . . . . . . . . . . . . . . . . .       10
+  3.6 Fully dynamic (1 + ǫ)-approximate APSP with non-trivial worst-case update bound
+      and optimal path-reporting . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      10
+  3.7 Deterministic fully-dynamic transitive closure with an unconditional sub-nω update
+      bound . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   11
+  3.8 Randomized improvements . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .         12
+
+4 Reporting paths via grouping into blocks                                                            12
+
+5 Maintaining most h-bounded shortest paths under deletions                                           13
+
+6 Fully dynamic single-source shortest paths                                                          15
+
+7 Fully dynamic path-reporting transitive closure and approximate APSP                                20
+
+8 Deterministic fully dynamic transitive closure faster than O(nω ) for all ω > 2                     27
+
+9 Randomized improvements                                                                            30
+  9.1 Path-reporting transitive closure . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 30
+  9.2 SSSP . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 30
+
+A Algebraic data structure (Theorem 3.1)                                                              39
+
+B Omitted proofs                                                                                      42
+
+
+
+
+                                                   ii
+1    Introduction
+The dynamic shortest path problem is a classic problem in graph algorithms that seeks to main-
+tain the shortest path distances between pairs of vertices in a graph as the graph is subject to
+updates such as edge insertions, deletions, or weight changes. This problem and its variants have
+been extensively studied in the theoretical computer science literature, and different algorithmic
+approaches have been proposed and analyzed depending on the nature of the updates (incremen-
+tal [AIMN91, GWW20, HKN13, KMS22, KMG22, CZ21], decremental [BHS07, EFGW21, ES81,
+BC16, BGS20, BGW20, BR11, Ber16, CS21] or fully dynamic [Kin99, DI01, Tho04, Tho05, HK95,
+BFN22, BHG+ 21, San05, AvdB23, ACG12]) and the type of queries (st [BNS19, HKNS15, AW14],
+single-source [BN19, BC17, Ber17, CK19, Chu21, HKN14, GW20a, BGS21] or all-pairs [DI04,
+ACK17, GW20b, CZ23, Mao23, DI02, HKN16, Ber09, RZ12, ACT14]). Here, “incremental” refers
+to the setting with only edge insertions, “decremental” to only edge deletions, and “fully dynamic”
+to the general setting where a graph undergoes both insertions and deletions.
+     Among these different variants, single-source is one of the most well-studied. It offers a good
+trade-off between generality and speed, as it maintains several distances at once while allowing
+much faster update times than the all-pairs variant. It also has a simple trivial solution by recom-
+puting the shortest paths tree in O(m) time (O(n2 ) time for dense graphs) via Dijkstra’s algorithm
+after each update, which serves as a natural benchmark for all improvements. As a result, dynamic
+single-source shortest paths is one of the most prolific problems in the dynamic graphs area with
+major results for different variants such as incremental [GWW20, CZ21, HKN13, KMG22], decre-
+mental [HKN14, GW20a, ES81, BC16, BC17, Ber17, BGS20, BGW20, BGS21, BR11, CK19], and
+fully dynamic [RZ11, BN19, BFN22, BHG+ 21, AvdB23]. Yet, despite being one of the most studied
+variants of dynamic shortest paths, the case of exact fully dynamic single source shortest paths –
+even in dense graphs with Θ(n2 ) edges – has still remained open and withstood all attempts to con-
+struct efficient data structures. Even in the weakest graph model, i.e. undirected and unweighted
+graphs, no exact fully dynamic dynamic algorithm is known other than trivial recomputation of
+the shortest paths after each update via Dijkstra’s algorithm. Previously, progress has only been
+made for the st-case [San05, BNS19, BFN22, KS23] where an exact fully dynamic distance can
+be maintained on unweighted graphs in O(n1.673 ) time (i.e., subquadratic in n and sublinear in
+the number of edges for a sufficiently large density), but that approach does not extend to the
+single-source case. It has been asked repeatedly to find a dynamic algorithm for dynamic single
+source shortest paths since almost two decades ago; see, e.g., [DI04, Tho04]. One reason why an
+efficient data structure has been elusive is that on weighted graphs (with sufficiently large positive
+integer weights allowed), it is impossible to obtain a dynamic algorithm with subquadratic update
+time unless the APSP conjecture is false [RZ11, AW14]. So a natural research direction is to find
+an exact algorithm for the unweighted case (and any density) which was also explicitly stated as
+an open problem in [San04, BN19].
+
+Open Problem 1 ([DI04, Tho04, San04, BN19]). Can one maintain fully dynamic exact shortest
+paths in subquadratic time (in the number of vertices n) on unweighted graphs?
+
+   It was shown by Abboud and Vassilevska Williams [AW14] that dynamic st-reachability and st-
+shortest path require algebraic techniques (i.e., fast matrix multiplication) if one hopes to beat the
+naive O(n2 ) update time algorithm of running BFS/Dijkstra after each update. So, an affirmative
+answer to open problem 1 is only possible if we rely on algebraic techniques. In previous work,
+the algebraic perspective requires dynamic algorithms to perform calculations involving very large
+numbers, and to reduce the bit-length of the numbers involved, past work relied on the randomized
+Schwartz-Zippel lemma (i.e., randomized polynomial identity testing) [San04, BNS19, BS19] or
+
+                                                  1
+performing all arithmetic modulo a random prime [KS02, DI05]. As a result, the vast majority of
+algebraic data structures for dynamic graph problems is randomized [San04, San05, San07, SM10,
+BHG+ 21, BNS19, BN19, BS19, GR21].
+    Deterministic algorithms would be preferable because they allow for greater confidence in their
+correctness and efficiency, as opposed to randomized algorithms which may only offer probabilistic
+guarantees on correctness or running time that do not hold in all cases. Moreover, randomized
+algorithms may restrict the “adversary” creating the sequence of updates from being adaptive. In
+contrast, deterministic algorithms avoid these issues and allow for more predictable behavior.
+    For algebraic data structures, only in the case of shortest paths in the incremental setting
+[KMS22] or on undirected graphs in the approximate setting [BFN22] has derandomization been
+possible, which naturally excludes fully dynamic reachability or fully dynamic shortest paths on
+directed graphs. Finding a way to derandomize fully dynamic reachability has been asked in
+[BNS19].
+Open Problem 2 ([BNS19]). Can fully dynamic st-reachability be solved deterministically in
+subquadratic time?
+   In other dynamic graph settings, derandomization has received a lot of attention [CZ23, BFN22,
+Lac11, BGS21, BGS20, Ber17, BC17, BC16, Chu21, ACK17, CS21, HKN16, KMS22], but for fully
+dynamic reachability with subquadratic update time the question has remained open.
+   In this work, we answer both open problems 1 and 2. We construct a fully dynamic algorithm
+that maintains exact single-source shortest paths in subquadratic update time, thus providing an
+answer to open problem 1. This dynamic algorithm is deterministic and works on directed graphs,
+and can thus solve fully dynamic st-reachability deterministically, solving open problem 2.
+   Finally, the framework that we use is powerful and flexible enough to also yield new worst-case
+update bounds for fully dynamic (1 + ǫ)-approximate all-pairs shortest paths.
+
+1.1      Our results
+SSSP We present the first fully dynamic algorithm that can maintain exact single source dis-
+tances, answering open problem 1.
+Theorem 1.1. Let G = (V, E) be unweighted digraph. There exist the following data structures
+supporting fully dynamic single-edge updates to G and answering queries about exact distances from
+an arbitrary query source vertex s ∈ V to all other vertices in G.
+      • A deterministic data structure with O(n1.969 ) worst-case update and query time. (Cf. Theo-
+        rem 6.3)
+      • A Monte Carlo randomized data structure with O(n1.933 ) worst-case update and query time.
+        (Cf. Theorem 9.3)
+    The algorithm works on unweighted directed graphs but could also be easily generalized to
+handle small (e.g., sufficiently low-polynomial) integer weights [1, W ] at the cost of a poly(W )
+multiplicative time overhead.1 Recall that an exact algorithm with subquadratic update time for
+graphs with integer weights in [1, nc ], where c > 0 is a sufficiently large constant, is impossible
+under the APSP conjecture [AW14].
+    Previous results could maintain single-source shortest paths (or single-source distances) only
+in the approximate setting [BN19, BHG+ 21, BFN22], or in the partially dynamic setting [HKN14,
+GWW20, GW20a, HK95, HKN13, ES81, BC16, BC17, Ber17, BGS20, BGW20, BGS21, BR11].
+  1
+      Just like other algebraic data structures for exact distances [BFN22, San05, KS23]. See e.g. [KS23].
+
+
+                                                           2
+    The data structures behind Theorem 1.1 are algebraic, i.e., make use of fast matrix multiplica-
+tion. Algebraic techniques are inevitable to obtain a non-trivial update time [AW14]. That being
+said, using any subcubic matrix multiplication algorithm (e.g., Strassen’s) would yield subquadratic
+bounds in Theorem 1.1. If ω = 2 (here nω is the number of operations required to multiply two
+n × n matrices; currently it is known that ω ≤ 2.372 [DWZ22, WXXZ23]), the deterministic update
+bound becomes O(ne 2−1/30 ) and the randomized one becomes O(n  e 2−1/14 ).
+    Both variants can be extended, deterministically in a black-box way, to support SSSP tree
+reporting queries within slightly larger, albeit still subquadaratic time (the latter one against an
+                                                                          e 2−1/60 ) and O(n
+adaptive adversary). Concretely, if ω = 2, the tree-reporting bounds are O(n              e 2−1/28 ),
+respectively, while for current bounds on ω [AW21, GU18, DWZ22] they are O(n1.985 ) and O(n1.967 ),
+respectively. Note our dynamic algorithms work on directed graphs, so they can be also used to solve
+fully dynamic st-reachability deterministically. This answers open problem 2, asked in [BNS19].
+
+All-pairs problems By reusing and extending the framework used for fully dynamic single-
+source data structures, we also obtain a new data structure for fully dynamic approximate all-pairs
+shortest paths, captured by the following Theorem 1.2.
+Theorem 1.2. Let G = (V, E) be an unweighted directed graph. Let ǫ ∈ (0, 1). There exists
+a deterministic data structure explicitly maintaining all-pairs (1 + ǫ)-approximate distances in G
+under vertex updates in O(n2.293 /ǫ) worst-case time per update.
+   The data structure can be extended to:
+      • enable reporting a (1 + ǫ)-approximately shortest path P = s → t in G for query vertices
+        s, t ∈ V in optimal O(|P |) time.
+
+      • explicitly maintain reachability trees from all the sources s ∈ V within the same update bound.
+    As is typically the case for fully dynamic data structures maintaining all-pairs information
+explicitly (e.g., [San04, DI04, Tho04, ACK17, GW20b, CZ23, Mao23]), the data structure supports
+more general vertex updates that can insert/delete any number of edges incident to a single vertex.
+    To the best of our knowledge, ours is the first fully dynamic APSP data structure for di-
+rected graphs allowing optimal path reporting whose worst-case update time breaks through the
+ e ω /ǫ) ≈ O(n
+O(n           e 2.372 ) static (1 + ǫ)-approximate APSP bound of [Zwi02]. In fact, this is the case
+regardless of whether randomization is used. Previous results breaking the O(n  e ω )-barrier [BN19]
+could not report the path. Optimal path reporting is supported by the purely-combinatorial data
+structures [DI04, Tho04, ACK17, GW20b, CZ23, Mao23] but their worst-case update time is at least
+Ω(n2.5 ). Better worst-case update bounds for path-reporting APSP have been obtained using alge-
+braic techniques [BHG+ 21, AvdB23] but with superlinear (in n, let alone in the distance between
+the queried vertices) query time and necessarily under less general single-edge updates.2 Thus,
+prior to our work, no non-trivial worst-case bound for fully dynamic APSP (in directed graphs)
+with optimal-time path reporting has been known and recompute-from-scratch [Zwi02] could be
+considered the state-of-the-art solution (indeed, the static (1 + ǫ)-approximate APSP algorithm
+of [Zwi02] can efficiently reconstruct paths).
+    The data structure of Theorem 1.2 is deterministic. Consequently, it also constitutes the first de-
+terministic APSP data structure for directed graphs with sub-nω worst-case update time maintain-
+ing all-pairs distance estimates explicitly. The fully dynamic APSP data structure of [DI04, Tho04]
+is deterministic and has near-optimal O(n e 2 ) amortized update bound, but the worst-case update
+bound is cubic. Using randomization, a matrix of (1 + ǫ)-approximate distances can be maintained
+  2
+      This is also achieved by our SSSP data structures.
+
+
+                                                           3
+in O(n2.045 /ǫ2 ) worst-case time per update [BN19]. As deterministic variants of [ACK17, GW20b]
+have Ω(n2.5 ) update bound, again, recompute-from-scratch [Zwi02] has been the state-of-the-art in
+the deterministic regime.
+    The above remains true even for the easier problem of explicitly maintaining the transitive clo-
+sure under fully dynamic updates. Whereas an optimal O(n2 ) randomized worst-case update bound
+has been known [San04], no deterministic data structure with worst-case update time beyond the
+O(nω )-time recompute-from-scratch [Mun71] has been found. Only amortized deterministic O(n2 )
+update bounds have been known [DI08, Kin99, Rod08]. Theorem 1.2 implies that the transitive
+closure can be recomputed deterministically in O(n2.293 ) time (worst-case) after a vertex update.
+Additionally, within that bound, all-pairs reachability trees – providing an explicit representation
+of paths between all pairs of vertices – can also be constructed.
+    Perhaps surprisingly, for a sufficiently large improvement to ω (concretely, if ω ≤ 2.12), the
+update time of the data structure of Theorem 1.2 (depending on the value of ω) may become
+polynomially smaller than O(nω ), i.e., slower than recomputing from scratch. It is interesting
+to ask whether it is possible to reproduce any of the accomplishments of that data structure
+unconditionally, that is, within sub-nω time as long as ω > 2.3 Using an entirely different approach,
+we show this is indeed possible for deterministic fully dynamic transitive closure.
+
+Theorem 1.3. Let G = (V, E). Unless ω = 2, there exists a constant ǫω , 0 < ǫω < ω −2, dependent
+on ω, such that one can deterministically and explicitly maintain the transitive closure of G under
+fully dynamic vertex updates in O(nω−ǫω ) worst-case time per update.
+
+    The drawback of the above data structure is that it cannot report paths in optimal time (in
+their length) but merely in O(n) time per query.
+
+1.2    Further related work
+All-pairs shortest paths (in directed graphs) and transitive closure have also been studied extensively
+in partially dynamic settings [BHS07, Ber16, EFGW21, FMNZ01, Ita86, KL19, KL20, DFNV22].
+Other variants related to distances are dynamic diameter and extreme distances [AHR+ 19, BN19].
+There also exists work with much larger approximation ratio, e.g. [FGNS23, ACT14, FGH21]. In
+addition to upper bounds, dynamic distance problems have also been studied from a (conditional)
+lower bound perspective, see e.g. [AW14, HKNS15, ABF23, ABKZ22, AHR+ 19, BNS19, GWW20,
+JX22, RZ11].
+
+1.3    Technical ideas
+Our results are obtained via a combination of (inevitable) algebraic methods and a wide range of
+purely combinatorial techniques. The fully dynamic single-source shortest distances data structures
+follow the high-level approach of the data structures for obtaining worst-case update bounds for
+exact fully dynamic all-pairs shortest paths [ACK17, GW20b, Tho05, CZ23, Mao23]. These purely
+combinatorial data structures are, however, super-quadratic in many different aspects and in fact
+seem to not be able to break through the Ω(n2.5 ) barrier for the problem they solve.
+    We observe that a majority of computational bottlenecks therein can be delegated to the alge-
+braic data structures based on dynamic matrix inverse [BNS19, San04] – again, with a few purely
+combinatorial extensions applied on top, such as the recent path-reporting techniques [KMS22]. The
+power of algebraic data structures is also exploited to a greater extent than before. Previous work
+   3
+     Note that if ω = 2, then all-pairs reachability can be recomputed from scratch in O(n2 ) time [Mun71] which is
+already the output size, so in that case no non-trivial dynamic algorithm can exist.
+
+
+                                                        4
+relied on maintaining either the entire matrix inverse (e.g. [San04]), querying single cells or rows
+([BN19, BNS19, San04]) or maintaining well-structured (e.g., square) submatrices [San05, BFN22].
+On the other hand, we crucially need maintaining unstructured and dynamic subsets of cells of the
+inverse of subquadratic size and adapt the algebraic tools to this scenario.
+    Finally, a common theme of all our deterministic algorithms is using weaker notions of hitting
+sets of “long” shortest paths between pairs of vertices whose distance exceeds some threshold h. In
+                                                     e
+previous dynamic shortest paths data structures, O(n/h)-sized       hitting sets are typically randomly
+sampled (once) or deterministically recomputed (after an update) to hit paths in the current graph.
+    Our single-source distances data structure, on the other hand, only employs a (deterministically
+computed) hitting set to sparsify an explicit static collection of Θ(n2 ) paths that is reinitialized
+not very often. As a result, we completely avoid the bottleneck of all previous dynamic algebraic
+distance data structures for directed graphs: maintaining the current exact h-bounded distances
+between all pairs of vertices from the hitting set. For example, it is not clear how this component
+can be derandomized while keeping the update time subquadratic.
+    In the data structure of Theorem 1.3, a different relaxation of hitting sets (specific to reacha-
+bility, where hitting shortest paths is not required for vertices far apart) is exploited. In particular,
+we describe a deterministic trade-off between the size of such a relaxed hitting set and the time
+needed to compute it, which we believe may be of independent interest.
+
+1.4    Organization
+We start by giving preliminaries in Section 2 and then give a more detailed technical outline of
+our algorithms in Section 3. Our algorithms rely on constructing hitting sets that require low-hop
+shortest paths. We describe in Section 4 how to extract these required paths from a dynamic
+bounded-distances algorithm. Next, in Section 5 we describe a subcubic preprocessing step that,
+using the algebraic path-reporting data structures, finds a collection of paths that is robust (in a
+sense) in the decremental setting. Finally, we employ that preprocessing of Section 6 to obtain our
+fully dynamic SSSP data structure (Theorem 1.1). The extension to fully-dynamic path-reporting
+APSP (Theorem 1.2) is described in Section 7. The deterministic fully dynamic transitive closure
+data structure beating the nω -barrier for all ω > 2 (Theorem 1.3) is given in Section 8.
+
+
+2     Preliminaries
+Let G = (V, E) be a directed graph. For D ⊆ V , we denote by G − D the graph G with all edges
+incident to the vertices D removed.
+                                 k (s, t) is the minimum length of an s → t path in G with at most
+    For any s, t ∈ V and k ≥ 0, δG
+k edges (hops). If no such path exists, δG  k (s, t) = ∞. A shortest k-bounded s → t path in G is an
+
+s → t path with at most k hops and length δG    k (s, t). The s, t-distance δ (s, t) is defined as δ n (s, t).
+                                                                             G                      G
+
+
+3     Technical outline
+This section focuses, in the first place, on giving a technical overview of the deterministic fully
+dynamic SSSP data structure. We then briefly describe the changes needed for path-reporting
+(1 + ǫ)-approximate APSP, and the possible improvements using randomization.
+
+
+
+
+                                                      5
+3.1    Algebraic toolbox and previous approaches
+Recall that by the conditional lower bound of [AW14], using algebraic fast matrix multiplication-
+based techniques is inevitable even for fully dynamic st-reachability. In the following we review
+how the state-of-the art randomized data structures for st-distances and reachability use algebraic
+techniques, explain the limitations of their approaches, and introduce the algebraic data structure
+that we use.
+    Let h ∈ [1, n] be a threshold parameter setting the boundary between “short” shortest paths
+with at most h edges, and “long” shortest paths with more than h edges. Just like all previously
+described algebraic data structures maintaining shortest paths, we leverage dynamic matrix inverse
+data structures for maintaining the h-bounded distances between certain pairs of vertices.
+
+Path counting The main idea behind algebraic h-bounded distances data structures is counting
+(possibly implicitly) paths of given lengths 0, . . . , h for all source-target pairs. Note that the number
+of length-k paths between a given pair of vertices of an unweighted graph is no more than nk , i.e.,
+            e
+could take O(k)    bits to be represented. As a result, storing the required path counts for a given
+pair might require up to O(he 2 ) bits. It is the most convenient to represent the counts as a degree-
+h-polynomial matrix, where the coefficient of xk of the polynomial in the cell (s, t) equals the count
+of s → t paths of length k. As originally observed by [San05], such a matrix equals the inverse of
+the matrix I − x · A modulo xh+1 , where A is the adjacency matrix of G. Since the single-edge
+updates to G correspond to single-element updates to I − x · A, maintaining the required path
+counts reduces to maintaining matrix inverse under single-element updates. This enables using
+dynamic matrix inverse data structures [San04, BNS19, BFN22] with O(h            e 2 ) arithmetic operation
+                                                                    e
+cost incurred by working with h-degree polynomials with O(h)-bit coefficients.
+    For deciding whether a path of a given length exists, it is enough to be able to test whether a
+path count is non-zero. By operating modulo a random Θ(log n)-bit prime number, whether the
+individual counts are non-zero can be maintained by operating on O(1)-bit   e         polynomial coefficients
+instead (see, e.g., [KS02, DI05]). This saves a factor of h in the time cost, but inevitably leads to
+a Monte Carlo randomized algorithm correct with high probability. The previous fully dynamic
+reachability data structures in DAGs [KS02, DI05] and exact st-distances [San05, BFN22] crucially
+relied on this idea. In particular, the data structures tailored to reachability [KS02, DI05] do not
+keep track of path lengths and do not differentiate between short and long paths; they do apply
+path counting though (with counts of order nn ) and thus this trick saves a factor n there.
+
+Previous dynamic distances data structures The fully dynamic st-distances data struc-
+tures [San05, BFN22] apply path counting in combination with the well-known hitting set trick [UY91].
+If one samples a subset H ⊆ V of size Θ((n/h) log n), then for all u, v ∈ V with δG (u, v) ≥ h, some
+shortest u → v path contains a vertex of H w.h.p. Another view on this property is that for any
+s, t ∈ V , some shortest s → t path in G can be decomposed into subpaths of length at most h with
+both endpoints in H ∪{s, t}. Therefore, given δG h (u, v) for all u, v ∈ H ∪{s, t}, we can find a shortest
+
+s → t path in G using Dijkstra’s algorithm on a digraph on H ∪ {s, t} with O(|H|2 ) = O((n/h)   e       2)
+                           e
+edges. Maintaining the O((n/h)    2 ) pairwise h-bounded distances between the vertices H ∪ {s, t}
+                  e        2       e 2 /h) bits when using path counting modulo a prime.
+requires at least O((n/h) · h) = O(n
+     This simple approach seems hopeless if we either wanted to make it work for the more general
+single-source distances maintenance, or to have a deterministic dynamic st-distance data struc-
+ture. In the former case, we would need to maintain h-bounded distances between O(n2 /h) pairs
+(H ∪ {s}) × V . But the current path counting techniques assume at least Θ(h) “arithmetic” over-
+head for maintaining one value δG h (u, v) even when counting modulo a random prime. This makes
+
+
+
+                                                     6
+the single-source case inherently quadratic using this approach. Similarly, deterministic main-
+                                        e 2 ) “arithmetic” overhead, which makes the approach
+                           h (u, v) has Θ(h
+tenance of a single value δG
+of [San05, BFN22] inapplicable not only for maintaining st-distance deterministically, but also for
+fully dynamic deterministic st-reachability which is likely an easier problem.
+
+Our h-bounded distances data structure At the end of the day, we do not overcome the afore-
+mentioned inherent arithmetic overheads of either Θ(h)   e                       e 2 ) (deterministic).
+                                                              (randomized) and Θ(h
+Instead, we rely, in a crucial way, on the ability of the dynamic matrix inverse data structure [San04]
+to maintain an arbitrary dynamic k-cell submatrix of interest of the inverse, possibly with no struc-
+ture whatsoever, using a subquadratic number of field operations, unless k = n2−o(1) or significantly
+more than Θ(n) cells of interest are added per element update. Specifically, we show the following:
+
+Theorem 3.1 (Modification to [San05], proof in Appendix A). Let G = (V, E) be a fully dynamic
+unweighted digraph. Let h ∈ [1, n]. Let Y ⊆ V × V be a dynamic set. For any µ, δ ∈ [0, 1], there
+                                                              h (s, t) for all (s, t) ∈ Y and supporting:
+exists a deterministic data structure maintaining the values δG
+                                 e 2 · (nω(1,µ,1)−µ + n1+µ + |Y |)) worst-case time,
+   • single-edge updates to G in O(h
+                                                  e 2 nω(1,δ,1) ) worst-case time,
+   • batches of at most nδ vertex updates to G in O(h
+                                       e 2 nµ ) time,
+   • single-element insertions to Y in O(h
+
+   • removing elements from Y in O(1) time.
+
+    Crucially, for small-polynomial values of h, sets Y of size n2−O(1) /h2 , and appropriately chosen µ,
+say µ = 1/2, the single-edge update time bound of this data structure is subquadratic in n.
+    To the best of our knowledge, previous algebraic dynamic graph data structures required only
+very structured submatrices Y of the inverse to operate. For example, the aforementioned st-
+distance data structures [San05, BFN22] use a square submatrix with rows and columns H ∪ {s, t}.
+In fact, [BFN22] show a more efficient (than Theorem 3.1) data structure for square inverse sub-
+matrix maintenance: the dependence on n in the single-edge update bound of Theorem 3.1 is at
+least n1.529 (n1.5 if ω = 2), whereas [BFN22] achieve the dependence of n1.406 (n1.25 if ω = 2).
+
+3.2   Combinatorial plug-ins to the algebraic data structure
+On top of the data structure Theorem 3.1, we apply two crucial black-box enhancements.
+
+Induced subgraph operations or vertex switching First, we will need to maintain
+h-bounded distances not only in the graph G, but also in an induced subgraph G[W ], where the set
+W ⊆ V is also subject to updates. This functionality models temporarily switching some vertices
+off, or, equivalently, removing all their incident edges.
+     A very simple but powerful observation is that in directed graphs, switching vertices can be
+modeled using single-edge updates. This follows by applying a standard reduction of splitting a
+vertex v into an in-copy v + and an out-copy v − , connected by an edge v + v − switched on iff v ∈ W .
+As a result, even though switching a vertex off forbids using up to n edges, modeling it costs
+no more than a single-edge update to the data structure maintaining the graph. Recall that the
+single-edge update cost in Theorem 3.1 is subquadratic if the parameters are appropriately set.
+
+
+
+
+                                                   7
+Path reporting via grouping into blocks A well-known shortcoming of path-counting
+h-bounded distances data structures is that they do not allow, out-of-the-box, reporting the shortest
+h-bounded paths. The data structures we develop internally require the path-reporting function-
+ality (against an adaptive adversary) even for maintaining the single-source distances only.
+    To this end, we make use of a recent technique of [KMS22] used therein for DAGs to convert a
+fully dynamic single-source reachability data structure into a fully dynamic single-source reachability
+tree reporting data structure. We apply this technique in the case of h-bounded distances.
+    The overall idea is as follows. Having fixed a parameter b ∈ [1, n], the block size, the vertex
+set V is split into ℓ ≤ ⌈n/b⌉ blocks V1 , . . . , Vℓ of no more than b vertices. Via vertex-splitting,
+we can construct ℓ related graphs G1 , . . . , Gℓ such that a shortest h-bounded s → t path in G is
+preserved in Gi iff the penultimate vertex is in the blocks V1 through Vi .
+    Suppose we maintain the h-bounded distances data structures (of Theorem 3.1) on the graphs
+                                                                                    h (s, ·) for all i, we
+G1 , . . . , Gℓ . Then, given a source s ∈ V and single-source h-bounded distances δG i
+can identify, for each t ∈ T , at most b potential predecessors p for which some shortest h-bounded
+s → t path has a penultimate vertex p. Given those, the single-source shortest h-bounded paths
+tree can be constructed in O(nb) time by simply running BFS on an O(nb)-sized subgraph of G.
+    Overall, if the dynamic h-bounded distances data structure has update time U (n, h) and can
+compute single-source h-bounded distances in Q(n, h) time, then grouping into blocks yields a data
+structure with update time O nb · U (n, h) reporting single-source h-bounded shortest paths in
+O ((n/b)Q(n, h) + nb) time. In Section 4 we also describe a refinement of this reduction that can
+produce better running times; see Lemma 4.2.
+    Although we need path reporting even internally for the sole purpose of maintaining single-
+source distances, note that grouping into blocks allows for converting – in a deterministic and
+black-box way – any truly subquadratic single-source distances data structure into a SSSP-tree
+reporting data structure. For example, if the single-source distances data structure (i.e., h = n)
+has U (n, h), Q(n, h) ∈ O(n1.98 ), it is enough to set h = n and b = n0.99 to get O(n1.99 )-time
+SSSP tree reporting. Therefore, in the remaining part of this outline we only discuss maintaining
+single-source distances deterministically.
+
+3.3   Maintaining most h-bounded shortest paths under deletions
+Overall, our fully dynamic single-source distances data structure follows the high-level idea of the
+known combinatorial fully dynamic APSP data structures with subcubic worst-case update time,
+first shown by [Tho05] and subsequently developed in [ACK17, CZ23, GW20b, Mao23].
+     The data structure operates in phases of ∆ = nδ updates, where δ ∈ (0, 1). At any moment
+of time, let G denote the current graph (with all updates issued so far applied), and let G0 reflect
+how G looked like when the current phase started. While the phase proceeds, let D denote the set
+of ≤ 2∆ affected vertices, i.e., those constituting the endpoints of all the edges inserted or deleted
+in the current phase. Note that we have G − D = G0 − D ⊆ G at any time.
+     Each phase starts with a relatively costly preprocessing step whose purpose is to find a certain
+collection of O(n2 ) paths Π in G0 accomplishing the following informal goals:
+ (a) Π contains all-pairs h-bounded shortest paths in a large subgraph of G0 − D.
+
+ (b) removing D from G keeps most of the paths in Π intact.
+More precisely, we use the following lemma inspired by the preprocessing in [GW20b].
+Lemma 3.2. Let G = (V, E) be a directed graph. Let h, τ ∈ [1, n]. Assume one has constructed a
+deterministic data structure storing G and a subset W ⊆ V initially equal to V , and supporting:
+
+                                                    8
+ (1) updates removing a vertex from W ,
+ (2) queries computing shortest h-bounded paths in G[W ] from a query vertex s to all v ∈ V .
+Suppose one can perform updates in U (n, h) worst-case time, and queries in Q(n, h) time.
+   In O(n2 h + (n/τ ) · U (n, h) + n · Q(n, h)) time one can compute a set C ⊆ V of size O(n/τ ),
+and a collection of paths Π in G, containing at most one path πs,t for all s, t ∈ V , such that:
+                            h
+ (a) For any s, t ∈ V , if δG−C (s, t) 6= ∞, then πs,t ∈ Π exists and is an s → t path in G of length
+              h
+     at most δG−C (s, t).
+ (b) For any u ∈ V , there exist at most O(hn · τ ) paths πs,t ∈ Π with u ∈ V (πs,t ).
+After the algorithm completes, the assumed data structure is reverted back to the state when W = V .
+    We call τ and C in Lemma 3.2 the congestion threshold and the congested subset, respectively.
+The preprocessing of Lemma 3.2, applied to G0 with a small-polynomial τ and h, achieves the
+goal (a) since the obtained collection Π contains paths at least as short as shortest h-bounded
+paths in G0 − (C ∪ D). Note that G0 − (C ∪ D) forms a large subgraph of G0 − D because the
+obtained set of congested vertices C has sublinear size. It also achieves the goal (b) since the
+O(hn · τ · ∆) paths in Π containing a vertex from D (let us denote them by ΠD ) constitute a
+relatively small portion of the entire collection Π containing typically Θ(n2 ) paths.
+    Using purely combinatorial data structures, the preprocessing of Lemma 3.2 takes Θ(n3 ) time
+for dense graphs, which is prohibitive in our case since it is meant to be applied once per ∆ updates.
+However, by plugging in the data structure T of Theorem 3.1, extended with induced subgraph
+operations and path-reporting capabilities (with an appropriately chosen block size b ∈ [1, n], as
+explained in Section 3.2), we can manage to compute the pair (Π, C) in subcubic time upon the
+start of the phase. For large enough ∆, this incurs a subquadratic amortized update cost. However,
+we remark that the heavy super-quadratic preprocessing (which constitutes the only source of
+amortization here) is scheduled precisely every ∆ updates and consequently the data structure can
+be deamortized using a standard technique; see, e.g., [ACK17, BNS19, Tho05].
+
+3.4   Maintaining h-bounded distances beyond the preprocessed pairs
+The preprocessing of Lemma 3.2 applied at the beginning of a phase guarantees that h-bounded
+distances in G0 −(C ∪D) = G−(C ∪D) are maintained for all (s, t) such that either δG0 −C (s, t) = ∞
+                                            h
+holds, or πs,t ∈ Π \ ΠD , that is, we have δG          (s, t) = |πs,t |.
+                                              0 −(C∪D)
+    We delegate maintaining h-bounded distances (in G) either corresponding to paths going through
+C ∪ D and/or for the affected pairs (s, t) such that πs,t ∈ ΠD to a separate data structure A of
+Theorem 3.1 maintaining the current graph G. More specifically, we define the set Y ⊆ V × V
+(identified with the submatrix Y of interest in A, see Theorem 3.1) to contain, at any time:
+   • all pairs ((C ∪ D) × V ) ∪ (V × (C ∪ D)),
+   • all pairs (s, t) such that πs,t ∈ ΠD .
+Note that the size of Y is bounded by O(n2 /τ + n∆ + ∆hnτ ) at all times, which incurs a per-
+update cost of O(h2 n2 /τ +∆h3 nτ ) for maintaining δG
+                                                     h (s, t) for all (s, t) ∈ Y in the data structure A.
+
+Moreover, we crucially rely on the low-recourse property of the set Y : it grows by at most O(hnτ )
+elements (worst-case) per update, as D grows by at most two elements per update. This allows to
+augment the submatrix of interest in A in O(h3 n1+µ τ ) time per update. We point out that it is
+the affected pairs that cause the submatrix of interest Y to be of a rather arbitrary shape beyond
+our control; the remaining part of Y is composed of some O(n/τ + ∆) full rows and columns.
+
+                                                   9
+3.5   Speeding up queries by hitting set-based sparsification
+Let s ∈ V be some query vertex. Suppose we want to compute single-source distances from s in G.
+First of all, using the data structure A we can temporarily add all pairs (s, t), t ∈ V , to the set Y
+so that we can also access single-source h-bounded distances from s. This costs O(h e 3 n1+µ ) time.
+    With such an augmented set Y , one can prove (see Lemma 6.2) that for each t, there exists a
+shortest path P = s → t in G obtained by stitching paths of one of the following kinds:
+  (i) a shortest h-bounded path u → v, where (u, v) ∈ Y ,
+
+ (ii) a path πu,v ∈ Π \ ΠD such that |πu,v | ≥ h/2.
+Consequently, we could build a graph X with edges (u, v) ∈ Y of weight δG          h (u, v) (maintained
+
+by A) and edges (u, v) for all non-affected pairs with πu,v ∈ Π \ ΠD , and run Dijkstra’s algorithm
+on X to obtain single-source distances from s in G. The number of edges of the former kind is
+O(n2 /τ + hn∆τ ), i.e., subquadratic. However, the number of edges of the latter kind can be still
+Θ(n2 ). Fortunately, these edges represent relatively long Θ(h)-hop paths, and this can be exploited
+as follows. During the preprocessing at the beginning of a phase, after computing the collection Π,
+                 e
+we compute an O(n/h)-sized       hitting set H of the paths in Π composed of at least h/2 edges. This
+can be done deterministically in O(n e 2 h) time using a folklore greedy algorithm. For each of these
+paths πu,v , we pick one zu,v ∈ H ∩ V (πu,v ) as a representative of the hitting set for that path.
+     To be able to efficiently compute single-source distances upon query, we sparsify the lengths of
+the O(n2 ) paths of type (ii) using only O(n e 2 /h) edges. For each (z, v) ∈ H × V , we use an edge
+zv of weight equal to the minimum length of the z → v suffix of a path πu,v ∈ Π \ ΠD such that
+zu,v = z. Similarly, for each (u, z) ∈ V × H, we use an edge uz of weight equal to the minimum
+length of the u → z prefix of a path πu,v ∈ Π \ ΠD with zu,v = z. These auxiliary edges can be
+efficiently maintained subject to insertions to D (equivalently, deletions from Π \ ΠD ). Using the
+auxiliary edges in place of explicit edges for all the non-affected paths decreases the size of the
+graph X to O(n2 /τ + hn∆τ + n2 /h) which is subquadratic for a proper choice of parameters.
+     We remark that our usage of hitting sets is conceptually different compared to previous dynamic
+shortest paths algorithms. There, hitting sets are typically used to hit long-hop paths in the current
+graph, most commonly by using randomization to ensure a once-sampled hitting set is valid for
+poly(n) (future) versions of the graph (e.g., in [ACK17, San05, BFN22]). In our case, we use it
+merely for the sake of sparsification of some statically precomputed set of paths and do not require
+maintaining the current all-pairs h-bounded distances between the vertices of the hitting set.
+
+3.6   Fully dynamic (1+ǫ)-approximate APSP with non-trivial worst-case update
+      bound and optimal path-reporting
+In order to obtain the deterministic all-pairs data structures supporting optimal-time path report-
+ing, we build upon the framework that we have used for single-source distances. First of all, to be
+competitive with the known all-pairs reachability and APSP data structures, we need to support
+more complex vertex updates. Fortunately, the SSSP framework can be seen to allow decremental
+vertex updates within a phase, and only relies on the single-edge updates assumption (i.e., that ev-
+ery updated edge has both endpoints in D) in the query procedure. Moreover, the data structure of
+Theorem 3.1 supports batch-vertex updates, which we leverage when advancing to the next phase.
+    In our all-pairs data structures, the single-source query procedure is replaced by explicitly re-
+building a collection Π′ (containing, in particular, the unaffected paths Π \ ΠD ) of h-bounded paths
+  ′
+πu,v for the O(hn∆τ ) affected pairs (u, v) (with πu,v ∈ ΠD ) satisfying similar guarantees wrt. the
+h-bounded distances in G − (C ∪ D). This is achieved via another application of the data structure
+
+                                                  10
+of Theorem 3.1, enhanced as described in Section 3.2. Importantly, this allows for optimal-time
+reporting of h-bounded paths in G that are at least as short as those appearing in G − (C ∪ D).
+     With the shortest h-bounded paths Π′ improving upon those in G−(C ∪D) rebuilt, we determin-
+                         e
+istically compute an O(n/h)-sized     hitting set H of the Θ(h)-hop paths in Π′ . One can show that for
+                            ′ ∈ Π′ is a shortest s → t path in G, or there is a shortest path P = s → t
+every pair (s, t), either πs,t
+in G with a vertex in C ∪ D ∪ H appearing on each h-hop segment of P . If |C ∪ D ∪ H| ≤ nα , for
+some α < 1, then this allows computing all-pairs shortest paths of the latter kind using O(log n)
+min-plus products of matrices whose at least one dimension is bounded by O(nα ). Such products
+can be computed polynomially faster than products of full n × n matrices, even without resorting
+to non-trivial rectangular matrix multiplication algorithms [GU18, HP98]. Sadly, in our case, using
+exact min-plus product for this task does not yield an improved worst-case update bound over the
+known exact APSP data structures [ACK17, GW20b] with subcubic worst-case update bounds.
+     However, if we use the (1 + ǫ)-approximate min-plus product [Zwi02] (where ǫ ∈ (0, 1]) we can
+perform this computation approximately in sub-nω time O(n    e ω(1,α,1) /ǫ). The approximate min-plus
+product can also produce matrix multiplication witnesses within the same bound deterministically.
+Those, in turn, can be used to recover, for any query pair (s, t), some s → t path of length at most
+(1 + ǫ) · δG (s, t) in optimal O(δG (s, t)) time.
+    For the special case of all-pairs reachability (i.e., any finite approximation of shortest paths),
+another application of matrix multiplication witnesses can yield a stronger path-reporting interface.
+Namely, within O(nω(1,α,1) ) time we can also explicitly recompute all-pairs reachability trees.
+    Finally, we remark that, at the end of the day, due to the overheads of the preprocessing and
+rebuilding short-hop paths, the worst-case update time of this data structure is faster than the
+recompute-from-scratch bound O(n   e ω /ǫ) only conditionally, if ω ≥ 2.12.
+
+3.7   Deterministic fully-dynamic transitive closure with an unconditional sub-nω
+      update bound
+For the fully dynamic transitive closure problem, we show that the deterministic sub-nω worst-case
+update time can be attained unless ω = 2. We achieve that using a different and simpler approach.
+     Recall that a randomly sampled hitting set of size O(n/h)e        hits some polynomial number of
+fixed ≥ h-hop shortest paths with high probability. Roughly speaking, given any such hitting set
+H of size at most nα , α < 1, we can separately compute reachability through H using rectangular
+matrix multiplication in O(nω(1,α,1) ) time, and delegate maintaining all-pairs h-bounded distances
+to the deterministic data structure of Theorem 3.1 with O(h  e 2 n2 ) worst-case update time per vertex
+update. However, whereas such a hitting set H is trivial to obtain using randomization, it is not
+clear whether it can be computed deterministically even in O(nω ) time.
+     Our main idea is to use a weaker – both qualitatively and quantitatively – notion of a hitting
+set of ≥ h-hop paths. First of all, for the purposes of reachability, it is enough that for any s, t ∈ V
+with δG (s, t) ≥ h, the hitting set H hits an h-edge prefix of some (not necessarily shortest) s → t
+                                                           e
+path. Such a qualitatively weaker hitting set of size O(n/h)       can be computed based on all-pairs
+                                      e  ω
+reachability trees, computable in O(n ) deterministic time [AGMN92].
+     Second, a larger (but still sublinear) hitting set with the same guarantee can be computed more
+                                                                                          e
+efficiently. Specifically, we show that if we are willing to accept a hitting set of size O((n/d)·(n/h)),
+for a parameter d ∈ [1, n], where d · h = Ω(n), then it can be constructed deterministically in
+ e 2 + ndω−1 ) time. We show that for any value of ω > 2, the parameters h and d can be set so
+O(n
+that the worst-case update time of the data structure is polynomially smaller than nω .
+     A drawback of this data structure is that it cannot report s → t paths in time linear in the
+length of the reported path, let alone in optimal O(δG (s, t)) time. That being said, paths can still
+
+
+                                                   11
+be reported in O(n) time using a path reporting procedure of [KMS22].
+
+3.8   Randomized improvements
+Using randomization, we can slightly improve the update bounds of both the SSSP data structure
+and the (1 + ǫ)-approximate APSP data structure. First of all, in both cases, using path counting
+modulo a prime shaves an h-factor from most of the terms in the update bounds. Then, the
+obtained data structures become Monte Carlo randomized (correct with high probability) but can
+still work against an adaptive adversary since the path counts are never revealed.
+     With randomization, the update/query bound of the fully dynamic SSSP data structure can
+                                              e
+be improved even further. Using standard O(n/h)-sized      randomly sampled hitting sets, one can
+replace the O(n )-sized path collection of Lemma 3.2 with a different O(n2 /h)-sized collection
+                 2
+
+as used in the fully dynamic APSP data structure of [ACK17] (see Lemma 9.1). Overall, the
+powerful sampled hitting set makes it possible to avoid two components crucial in the deterministic
+data structure: (a) the explicit sublinear congested subset, and (b) sparsifying the surviving paths
+from the collection (since the collection has subquadratic size). It is worth noting that since the
+distances output by the data structure are exact (and thus uniquely determined by the graph), the
+data structure still works against an adaptive adversary. See Section 9 for details.
+
+
+4     Reporting paths via grouping into blocks
+In this section we state a reduction, based on a technique of [KMS22] (with some adjustments
+and refinements of ours), for converting data structures maintaining distances into path-reporting
+algorithms. The reduction is based on grouping vertices into blocks of size b, where b is a param-
+eter in [1, n]. [KMS22] used this technique for converting a subquadratic dynamic single-source
+reachability data structure [San04] into a subquadratic (albeit polynomially slower) fully-dynamic
+single-source reachability tree reporting data structure against an adaptive adversary. We apply
+the technique to h-bounded shortest paths instead. Moreover, by using vertex blocks in a slightly
+different way, we obtain a generalization (Lemma 4.2) that is tailored to our use cases. The proofs
+from this section can be found in Appendix B.
+    Let G = (V, E) be a directed graph. Let h ∈ [1, n]. Suppose in Isource (n, h) time one can
+construct a data structure D(G) maintaining a graph G under some type of updates (say, single-edge
+or vertex updates) and supporting single-source queries computing δG    h (s, t) for a given query source s
+
+and all t ∈ V . Suppose D(G) has Usource (n, h) worst-case update time and Qsource (n, h) = Ω(n)
+query time, for some non-decreasing functions Isource , Usource , Qsource ∈ O(poly(n, h)).
+    Our goal is to have a data structure capable of handling the following submatrix predecessor
+queries. Given query sets S ⊆ V and Y ⊆ S × V , compute for each (s, t) ∈ Y the predecessor
+vertex on some shortest h-bounded s → t path (if one exists).
+    Observe that an immediate application of a submatrix predecessor query (S, S ×V ) is computing
+single-source h-bounded shortest paths from s to v for all s ∈ S and v ∈ V such that δG (s, v) ≤ h.
+
+Lemma 4.1. For any b ∈ [1, n], there exists a dynamic data structure maintaining G and supporting
+submatrix predecessor queries (S, Y ) in
+                                   n                                    
+                                O      · |S| · Qsource (n, h) + |Y | · b
+                                     b
+                                                                                            
+time. The update and initialization times are O nb · Usource (n, h) and O nb · Isource (n, h) resp.
+
+
+
+                                                    12
+    Now suppose that in addition to D(G), there is a data structure D ′ (G) supporting queries
+about δG  h (s, t) for arbitrary pairs s, t ∈ V in Q
+                                                     pair (n, h) time and maintaining a graph G subject to
+the same type of updates as D(G) with worst-case update time Upair (n, h) and initialization time
+Ipair (n, h). We can then improve the bound of Lemma 4.1.
+Lemma 4.2. For any b ∈ [1, n], there exists a dynamic data structure maintaining G and supporting
+submatrix predecessor queries (S, Y ) in
+
+                         O (|S| · Qsource (n, h) + |Y | · Qpair (n, h) · log n + |Y | · b)
+                                                                                                          
+time.      The update and  initialization            times    are    O Usource (n, h) + nb · Upair (n, h)    and
+O Isource (n, h) + nb · Ipair (n, h) respectively.
+Remark 4.3. The data structures of Lemmas 4.1 and 4.2 are deterministic if the assumed data
+structures D(G) and D ′ (G) are deterministic. More generally, if the data structures D(G) and
+D ′ (G) produce correct answers within the assumed bounds against an adaptive adversary, so do the
+obtained submatrix predecessor data structures.
+
+Supporting induced subgraph queries. Later on we will also require reporting shortest
+h-bounded paths in an induced subgraph G[W ] of a fully dynamic G, where W ⊆ V is also
+dynamic. This can be achieved via a simple yet powerful reduction described in the following.
+Lemma 4.4. Let h ∈ [1, n]. Let D(G) be a data structure maintaining a fully dynamic unweighted
+digraph G = (V, E) subject to single-edge updates in U (n, h) time per update, and possibly also
+vertex updates, and supporting submatrix predecessor queries (S, Y ) in Q(|S|, |Y |) time.
+    Let W ⊆ V be a dynamic subset. Then there exists a data structure D ′ supporting the same
+set of updates to G and supporting submatrix predecessor queries (S, Y ) in the induced subgraph
+G[W ] in O(Q(|S|, |Y |)) time. D ′ (G) processes updates to G within asymptotically the same time
+that D(G) needs for processing the respective updates to G. Moreover, a single-element update to W
+can be performed in O(U (n, h)) time.
+    The details of the reduction can be found in Appendix B.
+
+
+5    Maintaining most h-bounded shortest paths under deletions
+In this section we show that with the help of algebraic fully dynamic distance data structures
+storing G, one can preprocess G in subcubic time so that most of the h-bounded shortest paths in
+a very large subgraph of G are intact by any sufficiently small adversarially chosen set of deleted
+vertices.
+    We start with the following lemma inspired by the construction of the fully dynamic APSP
+algorithms of [GW20b].
+Lemma 3.2. Let G = (V, E) be a directed graph. Let h, τ ∈ [1, n]. Assume one has constructed a
+deterministic data structure storing G and a subset W ⊆ V initially equal to V , and supporting:
+ (1) updates removing a vertex from W ,
+
+ (2) queries computing shortest h-bounded paths in G[W ] from a query vertex s to all v ∈ V .
+Suppose one can perform updates in U (n, h) worst-case time, and queries in Q(n, h) time.
+   In O(n2 h + (n/τ ) · U (n, h) + n · Q(n, h)) time one can compute a set C ⊆ V of size O(n/τ ),
+and a collection of paths Π in G, containing at most one path πs,t for all s, t ∈ V , such that:
+
+                                                        13
+                            h
+ (a) For any s, t ∈ V , if δG−C (s, t) 6= ∞, then πs,t ∈ Π exists and is an s → t path in G of length
+              h
+     at most δG−C (s, t).
+
+ (b) For any u ∈ V , there exist at most O(hn · τ ) paths πs,t ∈ Π with u ∈ V (πs,t ).
+
+After the algorithm completes, the assumed data structure is reverted back to the state when W = V .
+
+Proof. Initially we put C = ∅ and Π = ∅. We will gradually extend C and Π to make the condition
+(a) satisfied for more and more pairs (s, t). We maintain the invariant that the set W in the assumed
+data structure equals V \ C. That is, whenever a new element is added to C, this is reflected in
+the data structure by a deletion to W .
+    Moreover, let α(v) := |{π ∈ Π : v ∈ V (π)}|. Initially all values α(·) are zero. We maintain an
+invariant that α(v) ≤ 2nhτ for all v ∈ V . By this invariant, (b) will follow when we are done.
+    We process the sources s ∈ V one by one. For a fixed source s, we start by moving to C all the
+vertices v ∈ V not yet in C such that α(v) > nhτ . Next, we compute shortest h-bounded paths
+from s to all v ∈ V in G[V \ C] in Q(n, h) time and add them as the respective paths πs,t (if they
+exist) to Π. We also update the counters α(·). Every α(v), for v ∈ V \ C, grows by at most n when
+processing the source s, and thus afterwards we have α(v) ≤ nhτ + n ≤ 2nhτ , so the invariant is
+satisfied. Since the set C may only grow in the process, and thus the values δG−C   h   (·, ·) may only
+increase, the paths already in Π satisfy (a). Moreover, after processing the source s, we ensure that
+the condition (a) is satisfied also for all pairs (s, t), t ∈ V .       P
+    Finally, to see that |C| = O(n/τ ), observe that for every source v∈V α(v) grows     Pby at most
+n(h + 1), as each path added to Π has at most h + 1 vertices. As a result, at the end v∈V α(v) ≤
+n2 (h + 1) ≤ 2n2 h. Since each c ∈ C satisfies α(c) > nhτ , we obtain |C| ≤ 2n/τ .
+    Once we have completed computing (C, Π), we revert all the changes to the assumed data
+structure, so that W is again equal to V . This can be done within the same bound as the the
+described computation since the assumed update/query bounds are worst-case.
+
+   We will repeatedly use the following deterministic algebraic data structure maintaining
+h-bounded distances of a fully dynamic graph G subject to single-edge updates and/or vertex
+updates. This data structure encapsulates and extends various earlier developments of [San04,
+San05, BFN22]. The full proof is given in Appendix A.
+
+Theorem 3.1 (Modification to [San05], proof in Appendix A). Let G = (V, E) be a fully dynamic
+unweighted digraph. Let h ∈ [1, n]. Let Y ⊆ V × V be a dynamic set. For any µ, δ ∈ [0, 1], there
+                                                              h (s, t) for all (s, t) ∈ Y and supporting:
+exists a deterministic data structure maintaining the values δG
+                                 e 2 · (nω(1,µ,1)−µ + n1+µ + |Y |)) worst-case time,
+   • single-edge updates to G in O(h
+                                                  e 2 nω(1,δ,1) ) worst-case time,
+   • batches of at most nδ vertex updates to G in O(h
+                                       e 2 nµ ) time,
+   • single-element insertions to Y in O(h
+
+   • removing elements from Y in O(1) time.
+
+The path-reporting data structure T . Let us apply the construction of Lemma 4.2 on top of
+the the data structure of Theorem 3.1, and subsequently augment it with induced subgraph opera-
+tions as described in Lemma 4.4. This way, we obtain a data structure T required by Theorem 3.2.
+
+
+
+
+                                                   14
+    More specifically, in terms of Lemma 4.2, the data structure of Theorem 3.1 satisfies
+
+                                                   e 2 n1+µ ),
+                                  Qsource (n, h) = O(h
+                                                   e 2 nµ ),
+                                   Qpair (n, h) = O(h
+                                                     e 2 (n1+ω(1,µ,1)−µ + n1+µ )).
+                     Usource (n, h) = Upair (n, h) = O(h
+
+Consequently, for any chosen b ∈ [1, n], the data structure T supports single-edge updates to G
+and switching off a vertex (via its removal from W ⊆ V ) in worst-case time
+                                                                      !
+                                           h2 n1+ω(1,µ,1)−µ   h2 n2+µ
+                            U (n, h) = O                    +           .
+                                                  b               b
+
+It also supports reporting h-bounded shortest path from any single source s ∈ V in
+                                                                
+                                 Q(n, h) = O h2 n1+µ log n + nb
+
+time, by issuing a submatrix predecessor query ({s}, {(s, v) : v ∈ V }). By plugging these bounds
+in Lemma 3.2 and noting that n · Q(n, h) = Ω(n2 h), we conclude with the following theorem which
+formally captures what we mean by preserving most h-bounded shortest paths in a large subgraph
+of G under a bounded number of deletions.
+
+Theorem 5.1. Let h, τ, b ∈ [1, n] and µ ∈ [0, 1]. Assume G is maintained in a data structure T of
+Theorem 3.1 extended as described in Lemmas 4.2 and 4.4 (for the given b). Then, in time
+                                                                   !
+                                  h2 n2+ω(1,µ,1)−µ   h2 n3+µ
+                             e
+                             O                     +         + n2 b ,
+                                        bτ              bτ
+
+one can deterministically compute a pair (C, Π), where C ⊆ V is of size O(n/τ ), and Π is a
+collection of paths in G, containing at most one path πs,t for all s, t ∈ V , such that:
+                                                 h
+ (a) For any i = 1, . . . , k and s, t ∈ V , if δG−C (s, t) 6= ∞, then πs,t ∈ Π exists and is an s → t
+                                      h
+     path in G of length at most δG−C (s, t).
+
+ (b) For any u ∈ V , there exist at most O(hn · τ ) paths πs,t ∈ Π with u ∈ V (πs,t ).
+
+   In our concrete applications, we will set b to be slightly sublinear and both h and τ to be small-
+polynomial so that n − o(n) vertices of G remain after removing the set C, and a small-polynomial
+∆ adversarial vertex deletions can destroy at most O(∆hτ n) = o(n2 ) paths in Π.
+
+
+6    Fully dynamic single-source shortest paths
+In this section we describe our deterministic fully dynamic SSSP data structure for unweighted
+graphs with truly subquadratic update and query time.
+
+Phases and global data structures. Let h, τ, ∆, b ∈ [1, n] and µ, ν ∈ [0, 1] be parameters to
+be set later. The data structure operates in phases of ∆ single-edge updates. It also maintains two
+global dynamic data structures shared between the phases:
+
+
+
+
+                                                  15
+   • A data structure A of Theorem 3.1 with µ := ν always storing the current graph G. Every
+     edge update issued to G is immediately passed to A. The dynamic set Y ⊆ V × V of vertex
+     pairs of interest in A, to be defined later, is initialized at the beginning of a phase. Moreover,
+     the set Y grows by at most O(τ hn) pairs per update in the worst-case. However, we will
+     guarantee that the size of Y is bounded by O(n2 /τ + ∆τ hn) at all times. By Theorem 3.1,
+     the worst-case update time of A is:
+                                                                                                     
+      e  2     ω(1,ν,1)−ν    1+ν           2     1+ν      e    2 ω(1,ν,1)−ν   h2 n2    3            ν
+     O(h ·(n              +n     + |Y |)+ h ·τ hn ) = O h n                 +       + h τ n · (∆ + n ) .
+                                                                               τ
+
+   • A data structure T , as required by Theorem 5.1 and described in Section 5, with parameters
+     h, b, µ. Every edge update issued to G is immediately passed to T . Recall that the cost of
+     updating T incurred by a single update to G is:
+                                                                     !
+                                            h2 n1+ω(1,µ,1)−µ h2 n2+µ
+                               U (n, h) = O                 +          .
+                                                   b             b
+
+     While the phase proceeds, the set W in the data structure T (describing the induced subgraph
+     of interest) equals V and it is only manipulated when a phase initializes. Similarly, queries
+     to T will only be issued at the beginning of a phase.
+
+Initializing a phase. For a fixed current phase, let G0 denote the graph G at the beginning
+of that phase. We always use G to refer to the current graph, i.e., with all updates issued so far
+applied. Moreover, when a phase proceeds, let D ⊆ V be the set of endpoints of the edges affected
+in the current phase, that is, the edges that have been inserted or deleted during the current phase.
+Note that by the definition of D, we have |D| ≤ ∆ and G0 − D = G − D ⊆ G at all times.
+    At the beginning of a phase, we apply Theorem 5.1 to obtain a pair (C, Π), where C ⊆ V is
+a “congested subset” of size O(n/τ ), and Π is a collection of paths in G0 . By Theorem 5.1, the
+amortized cost of such a preprocessing step, happening once per ∆ updates, is:
+                                                                          !
+                                n 2h   h 2 n2+ω(1,µ,1)−µ   h2 n3+µ   n 2b
+                           Oe        +                   +         +        .                     (1)
+                                 ∆            bτ ∆           bτ ∆     ∆
+
+                                            e
+   We next deterministically compute an O(n/h)-sized      hitting set H of those paths πs,t ∈ Π that
+have at least ⌊h/2⌋ edges. For this, we use the following folklore result (see, e.g., [Zwi02]).
+
+Lemma 6.1. Let X be a groundP               n and let Z be a family of subsets of X, each with
+                                  set of size
+at least k elements. Then, in O     Z∈Z |Z| time one can deterministically compute a hitting set
+R ⊆ X of size O((n/k) · log n) such that R ∩ Z 6= ∅ for all Z ∈ Z.
+
+   The total size of Π is O(n2 h) and each path in Π is a simple path; therefore, a desired set H
+can be computed in O(n2 h) time. Again, this incurs an amortized cost of O(n2 h/∆) per update.
+which is asymptotically the same as the first term in (1).
+   With the hitting set H in hand, for each πs,t with |πs,t | ≥ ⌊h/2⌋, we arbitrarily pick a single
+representative vertex β(πs,t ) ∈ H ∩ V (πs,t ). If |πs,t | < ⌊h/2⌋, we put β(πs,t ) :=⊥.
+   Let ΠD denote the subset of paths πs,t ∈ Π such that V (πs,t ) ∩ D 6= ∅. Recall that at the
+beginning of the phase D = ∅, so ΠD equals ∅ initially. The set ΠD (seen as pointers to the paths
+in Π) can be easily extended upon insertions to D (caused by updates to G) in optimal time if
+additional O(n2 h) vertex-path pointers are stored for the preprocessed collection Π.
+
+                                                  16
+   For a simple path p and a, b ∈ V (p) let p[a, b] denote the a → b subpath of p. Throughout a
+phase, for each z ∈ H and v ∈ V , we maintain two multisets:
+
+                 Ψto
+                  z (v) = {|πs,v [z, v]| : s ∈ V such that πs,v ∈ Π \ ΠD and β(πs,v ) = z},
+               Ψfrom
+                z    (v) = {|πv,t [v, z]| : t ∈ V such that πv,t ∈ Π \ ΠD and β(πv,t ) = z}.
+
+There are O(|H|n) = O(ne 2 /h) multisets Ψto        from (v) and their total size is bounded by 2|Π|, i.e.,
+                                            z (v), Ψz
+O(n2 ). At the beginning of the phase, these multisets can be initialized in O(n2 ) time, which, again,
+is negligible (amortized) to the cost (1). We store them in data structures allowing polylogarithmic
+deletions and minimum maintenance, for example balanced binary search trees.
+    Finally, we are ready to define the set Y of pair (s, t) for which we maintain values δG    h (s, t) in
+
+the data structure A. After the initialization step of a phase completes, at all times Y contains:
+   • all pairs (u, v) ∈ (D × V ) ∪ (V × D),
+
+   • all pairs (u, v) ∈ (C × V ) ∪ (V × C),
+
+   • all pairs (s, t) ∈ V × V such that πs,t ∈ ΠD .
+Since D = ∅ and ΠD = ∅ at the beginning of the phase, a phase’s initialization only potentially
+empties Y in A and subsequently inserts all O(n2 /τ ) pairs (C ×V )∪(V ×C) into Y . By Theorem 3.1,
+this incurs an additional amortized update cost of
+                                              2 2+ν 
+                                          Oe h n          .
+                                                 τ∆
+
+Performing updates. While the phase proceeds, the sets D and ΠD , and thus also Y , grow.
+However, recall from Theorem 5.1 that |D| ≤ ∆ implies that at all times we have:
+
+                                           |ΠD | = O(∆ · hτ n),
+
+which also yields the promised O(n∆ + ∆hτ n + n2 /τ ) = O(n2 /τ + ∆hτ n) bound on the size of
+the set Y . Also, more specifically, at most O(hτ n) new paths may be inserted to ΠD per update,
+which is also why Y may grow by at most O(hτ n) pairs per update in the worst-case. The changes
+to the set Y are immediately passed to the data structure A.
+    When a new path πs,t is added to ΠD , and β(πs,t ) = z, the two multisets Ψtoz (t) and Ψz
+                                                                                             from (s)
+
+have to be updated by issuing a single-element deletion. Therefore, maintaining the multisets costs
+ e
+O(hnτ  ) worst-case time per update, which is dominated by the update cost of the data structure A.
+    We are now ready to state the summarized amortized update cost of the data structure:
+
+           e     n2 h h2 n(nω(1,µ,1)−µ + n1+µ )     n  n2 b                       h2 n2
+           O         +                         · 1+     +       + h2 nω(1,ν,1)−ν +
+                  ∆                b                τ∆      ∆                         τ
+                                                                                       
+                                                                               h2 n2+ν
+                                                        +h3 τ n · (∆ + nν ) +            .
+                                                                                 τ∆
+
+Answering queries. Suppose a query for distances from a source vertex s ∈ V is issued. We
+first temporarily add all pairs (s, t), where t ∈ V , to the set Y so that this change is reflected in
+the data structure A. Let Ys be the set Y augmented this way. Recall that the augmentation of Y
+        e 2 n1+ν ) time, and the change can be reverted within the same bound.
+takes O(h
+     Next, we build an auxiliary graph X = (V, F ) with the following edges:
+
+                                                    17
+                            h (u, v) for all (u, v) ∈ Y ,
+    • an edge uv of weight δG                          s
+
+    • an edge zt of weight min(Ψto
+                                z (t)) for all (z, t) ∈ H × V ,
+
+    • an edge sz of weight min(Ψfrom
+                                z    (s)) for all (s, z) ∈ V × H.
+   Recall that the weights of edges of the former type are maintained in the data structure A. The
+graph X has O(|H|n + |Y |) = O(ne 2 /h + ∆hτ n + n2 /τ ) edges. The query procedure is to simply run
+near-linear time Dijkstra’s algorithm on the graph X. The following lemma establishes correctness.
+Lemma 6.2. For all t ∈ V , δG (s, t) = δX (s, t).
+Proof. First of all, note that for all uv ∈ E(X), the weight of an edge uv in X equals the weight of
+some u → v path in G. As a result, δG (u, v) ≤ wX (uv), which establishes δG (s, t) ≤ δX (s, t) easily.
+    Let us now prove that δX (s, t) ≤ δG (s, t). Consider any shortest s → t path P in G. First,
+split P into maximal segments P1 · . . . · Pk not passing through any of the vertices C ∪ D as
+intermediate vertices. In other words, for each Pi = ui → vi , we have V (Pi ) ∩ (C ∪ D) ⊆ {ui , vi }
+and ui ∈ C ∪ D ∪ {s}. We will prove that δX (ui , vi ) ≤ δG (ui , vi ). By summing through i, δX (s, t) ≤
+δG (s, t) will follow easily.
+    Consider some Pi . We have |Pi | = δG (ui , vi ). If |Pi | ≤ h, then δG (ui , vi ) = δG        h (u , v ) and by
+                                                                                                        i i
+ui ∈ C ∪ D ∪ {s}, (ui , vi ) ∈ Ys . As a result, there is an edge ui vi of weight δG (ui , vi ) in X.
+    Suppose |Pi | > h. Split Pi arbitrarily into subpaths Q1 , . . . , Ql such that ⌊h/2⌋ ≤ |Qj | ≤ h for
+all j = 1, . . . , l. Consider some j and let Qj be an xj → yj path. We will prove that δX (xj , yj ) ≤
+|Qj | = δGh (x , y ). It will follow that
+               j j
+                                   X                 X                 X
+                                                        h
+                   δX (ui , vi ) ≤   δX (xi , yj ) ≤   δG (xj , yj ) =   δG (xj , yj ) = δG (ui , vi ),
+                                j                    j                     j
+
+as desired.
+    If (xj , yj ) ∈ Ys , then there is an edge xj yj of weight δG    h (x , y ) = δ (x , y ) in X which imme-
+                                                                         j j       G j j
+diately implies δX (xj , yj ) ≤ δG   h (x , y ). Otherwise, we have (x , y ) ∈
+                                          j j                            j j / Ys . Then by the definition of
+Pi and Ys , we obtain that V (Qj ) ∩ (C ∪ D) = ∅. This means that Qj ⊆ G − (C ∪ D) ⊆ G0 − C
+and thus δG   h      (xj , yj ) ≤ δG (xj , yj ) as Qj is a shortest path in G. Moreover, since (xj , yj ) ∈    / Ys
+                0 −C
+       h
+and δG0 −C (xj , yj ) < ∞, πxj ,yj ∈ Π \ ΠD , i.e., πxj ,yj exists and does not contain a vertex from D.
+As a result, πxj ,yj ⊆ G, i.e., δG (xj , yj ) ≤ |πxj ,yj |. But we also have |πxj ,yj | ≤ δG    h      (xj , yj ) by
+                                                                                                  0 −C
+Theorem 3.2, so we obtain:
+                                                           h
+                             δG (xj , yj ) ≤ |πxj ,yj | ≤ δG 0 −C
+                                                                  (xj , yj ) ≤ δG (xj , yj ).
+
+All the inequalities above have to be in fact equalities. This proves that πxj ,yj is a shortest xj →
+yj path in G. Finally, recall that |πxj ,yj | = δG (xj , yj ) ≥ ⌊h/2⌋. Consequently, there exists a
+vertex z = β(πxj ,yj ) ∈ H on the path πxj ,yj ∈ Π \ ΠD . We conclude δG (xj , yj ) = |πxj ,yj [xj , z]| +
+|πxj ,yj [z, yj ]|. By the definition of the multisets Ψfrom
+                                                           z  (xj ) and Ψto                                  from (x )
+                                                                              z (yj ), |πxj ,yj [xj , z]| ∈ Ψz      j
+                          to
+and |πxj ,yj [z, yj ]| ∈ Ψz (yj ). Consequently, wX (xj , z) ≤ |πxj ,yj [xj , z]| and wX (z, yj ) ≤ |πxj ,yj [z, yj ]|,
+and thus there is a path xj → yj of weight wX (xj , z) + wX (z, yj ) ≤ δG (xj , yj ) in X.
+
+Setting the parameters. Let us now try to set the parameters so that the maximum of the
+update and query time is minimized. The only term incurred by the query procedure that is not
+dominated by the terms of the previously obtained update bound is O(n e 2 /h). Moreover, it can
+be easily verified that it is best to set µ := ρ, where ρ ≈ 0.529 is the unique value such that
+ω(1, ρ, 1) = 1 + ρ.
+
+                                                           18
+  This way, we obtain the following combined updated/query bound:
+   2                                                                                         
+   n h h2 n2+ρ          n  n2 b      2 ω(1,ν,1)−ν   h2 n2    3            ν    h2 n2+ν   n2
+O      +         · 1+         +     +h n            +       + h τ n · (∆ + n ) +         +      .
+    ∆       b           τ∆       ∆                     τ                           τ∆      h
+
+By setting the parameters h = n0.031 , ∆ = n0.78 , t = n0.093 , b = n0.749 , ν = ρ obtained using the
+online balancing tool [Bra], we get an O(n1.969 ) worst-case update and query bounds.
+    It is also interesting to see what is the exact dependence on ω we can get. One can prove that
+for large enough ∆ it is optimal to set ν := ρ so that nν < ∆, and also b := ∆/h, and τ := h3 .
+Then, we get the bound                2+ρ                          
+                                       hn       n 3+ρ           n 2
+                                   e
+                                   O          +           6
+                                                      + ∆h n +
+                                         ∆       ∆2              h
+By balancing the two last terms, we get ∆ = n/h7 . Then the first term (h8 n1+ρ ) becomes dominated
+by the second (h14 n1+ρ ). By further balancing the latter with n2 /h we get h = n(1−ρ)/15 . The final
+                           1
+bound becomes (by ρ ≤ 4−ω    ):
+                                                     3−ω
+                                                            
+                                   e n2− 1−ρ
+                                   O      15    e n2− 60−15ω .
+                                               ⊆O
+
+This bound is subquadratic assuming any truly subcubic matrix multiplication algorithm is used
+           e 2−1/30 ) if ω = 2 (then, ρ = 0.5).
+and equals O(n
+
+Deamortization. The heavy super-quadratic preprocessing invoking Theorem 5.1, initializing
+the set Y , and constructing the hitting set (which are the only source of amortization here) happens
+in a coordinated way, once every ∆ updates. Consequently, the data structure can be deamortized
+using a standard technique of running two copies of the data structure in parallel and spreading out
+the reset computation over several updates. While one copy of the algorithm is performing the reset,
+the other copy is used to answer the queries. For details, we refer to e.g., [ACK17, BNS19, Tho05].
+    We have thus proved:
+
+Theorem 6.3. Let G = (V, E) be unweighted digraph. There exists a deterministic data structure
+supporting fully dynamic single-edge updates to G and computing exact distances from an arbitrary
+query source s ∈ V to all other vertices in G in O(n1.969 ) worst-case time.
+                                 e 2−1/30 ).
+   If ω = 2, the bound becomes O(n
+
+SSSP tree reporting. We now explain how the data structure of Theorem 6.3 can be extended
+to also output a single-source shortest paths tree in subquadratic time, albeit at the cost of an
+additional polynomial overhead.
+    We apply Lemma 4.1 with h := n on top of the obtained data structure maintaining single-
+source distances. In terms of Lemma 4.1, we have Qsource (n, n) = O(n1.969 ) by Theorem 6.3, and
+we want to support queries of the form S = {s}, Y = {s} × V , for a query source s ∈ V . As
+a result, for any b ∈ [1, n], there exists a data structure supporting single-edge updates to G in
+O(n2.969 /b) time and reporting predecessors of shortest n-bounded paths from any source vertex s
+in O(n2.969 /b + nb) time. Clearly, the predecessors yield an SSSP tree from s. By setting b = 0.985,
+we obtain a deterministic tree-reporting SSSP data structure with O(n1.985 ) worst-case update and
+query time.
+
+
+
+
+                                                 19
+7    Fully dynamic path-reporting transitive closure and approxi-
+     mate APSP
+In this section, we consider the fully dynamic transitive closure and (1 + ǫ)-approximate APSP
+problems (in unweighted digraphs) under vertex updates to G. Under the assumption that ω ≥ 2.12,
+we describe a deterministic data structure with O(nω−γ ) worst-case update time, for some γ > 0
+dependent on ω, that explicitly maintains the transitive closure of a matrix of distance estimates.
+In the case of approximate distances, the data structure also supports reporting any s → t path
+of length at most (1 + ǫ) · δG (s, t) in optimal O(δG (s, t)) time. For reachability, an even stronger
+reporting interface is achieved: reachability trees in G from all possible sources s ∈ V are explicitly
+stored after each update. Clearly, this also allows for reporting paths in G between arbitrary pairs
+of vertices in optimal time.
+    The overall approach is similar as in the fully dynamic SSSP data structure from Section 6.
+Namely, we will operate in phases of length ∆ and use analogous global data structures shared
+among the phases. Every phase starts by computing a pair (C, Π) as given by Theorem 5.1.
+
+The data structure T . Recall that the global data structures A and T in Section 6, both
+implemented as data structures of Theorem 3.1 (with possibly some extensions of Section 4), rely
+only on single-edge updates (so that they reflect G at all times) and vertex switch-offs. Here, we
+will use the data structure T from Section 6, required by Theorem 5.1, in a slightly different way.
+    Instead of passing the updates to G to T immediately, we will only do so at the end of a phase,
+that is, in a batch of at most ∆ updates. This is done with the vertex batch-update operation of
+Theorem 3.1. To see that this is sufficient, recall that the only purpose of T was to construct the
+set C and a collection of paths Π. For this task, T only required supporting switching vertices
+off interleaved with h-bounded-shortest paths queries from a single source. We thus require T to
+reflect the current graph G only once per ∆ updates. Since a batch    update is performed on T only
+once per ∆ = nδ updates, this incurs an O    e h2 nω(1,δ,1)+1 /(∆b) worst-case cost per update. As a
+result, the total per-update cost of initializing a phase is now:
+                                                                         !
+                              h2 nω(1,δ,1)+1 h2 n2+ρ           n  n2 b
+                          O                  +          · 1+         +      .
+                                   ∆b              b            ∆τ     ∆
+
+
+
+The set Y . We also redefine the set Y ⊆ V × V , for a fixed phase, to only contain the pairs (s, t)
+such that πs,t ∈ ΠD . As a result, by Theorem 5.1, we have |Y | = O(∆hτ n) at all times.
+
+The predecessor reporting data structure B. Let S and P be two data structures of The-
+orem 3.1, for the parameter µ to be set later, responsible for maintaining h-bounded distances in
+G. While the phase proceeds, these data structures will not accept edge/vertex updates. Only at
+the end of the phase they are updated with a batch of ∆ vertex updates from the current phase.
+     The data structures S and P have different purposes. S is initialized so that it can maintain
+δGh (s, t) explicitly for all n2 pairs s, t ∈ V (i.e., Y := V × V in terms of Theorem 3.1), whereas P
+
+is capable of answering arbitrary δG                         e 2 nµ ) time. This way, S allows very fast
+                                         h (s, t) queries in O(h
+
+queries at the cost of O(h e n ) worst-case update time, whereas P answers queries slower, but can
+                               2 2
+
+handle updates more efficiently, in O(h   e 2 (nω(1,µ,1)−µ + nµ )) worst-case time.
+     We use data structures S and P to construct a predecessor reporting data structure B of
+Lemma 4.2 storing the graph G − D, for b := β, where β ∈ [1, n] is a parameter to be set later.
+
+                                                  20
+Specifically, we first apply Lemma 4.2, and then also Lemma 4.4 on top of that to enable cheap
+insertions to D (we model G − D as the induced subgraph G[W ] with W := V \ D). The general
+purpose of B is to reconstruct h-bounded shortest paths in G − D. Note that in terms of the
+                                                                              e 2 n2 ), Qpair (n, h) =
+quantities used in Lemma 4.2, we have Qsource (n, h) = O(n), Usource (n, h) = O(h
+ e 2 nµ ) and Upair (n, h) = O(h
+O(h                          e 2 (nω(1,µ,1)−µ + n1+µ )). Therefore, by issuing a query with S = V
+(which trivially guarantees Y ⊆ S × V ), B can compute a predecessor vertex qs,t on some shortest
+                                                     h
+h-bounded s → t paths for all (s, t) ∈ Y such that δG−D  (s, t) < ∞ in time
+
+                                             e 2 + (h2 nµ + β) · |Y |).
+                                             O(n
+
+Adding new vertices to D corresponds to removal of a vertex from the subset W issued to the data
+structure B, and thus costs
+                                    e 2 n2 + (n/β) · h2 (nω(1,µ,1)−µ + n1+µ ))
+                                    O(h
+                                                                                             2 ω(1,δ,1)+1 
+                                                                          e
+time. Similarly, the batch-vertex update to B at the end of a phase costs O                   h n
+                                                                                                               amortized
+                                                                                                    β∆
+time per update.
+
+Computing all-pairs distance estimates upon update. After an update, we compute the
+respective predecessors qs,t for all (s, t) ∈ Y using B. We now introduce a certain collection of paths
+Π′ = (π ′ )s,t∈V derived from Π, D, and the computed predecessors. For each s, t ∈ V , πs,t ′ is either
+
+a path in G − D, or is left undefined (set to ⊥). Specifically, we set:
+                       
+                       πs,t
+                                        if πs,t ∈ Π \ ΠD ,
+                 ′        ′                                 h                  ′
+                πs,t = πs,qs,t · qs,tt if πs,t ∈ ΠD and δG−D  (s, t) 6= ∞ and πs,q     6=⊥,
+                       
+                       
+                                                                                   s,t
+
+                         ⊥               otherwise.
+
+The definition is valid since πs,t ∈ ΠD and δG−D  h    (s, t) 6= ∞ implies that (s, t) ∈ Y and thus
+δG−D (s, qs,t ) = δG−D (s, t) − 1. Note that the collection Π′ can be explicitly constructed from the
+ h                 h
+
+definition in O(n2 h) time once the predecessors qs,t are computed. For simplicity, define | ⊥ | = ∞.
+
+Lemma 7.1. For any s, t ∈ V such that no shortest h-bounded s → t path in G goes through C ∪ D,
+          ′ | = δ h (s, t).
+we have |πs,t    G
+
+Proof. Recall that we denote by G0 the graph at the beginning of the current phase.
+                             h (s, t) = ∞. Then either π                                   ′ =⊥, or δ h
+    First consider the case δG                                  s,t ∈/ Π which implies πs,t                  G0 −C (s, t) <
+                              h
+∞ and thus πs,t ∈ ΠD by δG−D (s, t) = ∞. However, in such a case we set πs,t :=⊥ as well.   ′
+
+    Now let us assume that δG    h (s, t) is finite. We prove the claim by induction on δ h (s, t). Since
+                                                                                                         G
+no shortest s → t path goes through C ∪ D, δG          h (s, t) = δ h                  h                      h
+                                                                      G−D (s, t) = δG−(C∪D) (s, t) ≥ δG0 −C (s, t).
+Hence, we obtain that πs,t ∈ Π exists and has length at most δG           h                h (s, t). If π
+                                                                                 (s, t) ≤ δG
+                                                                            0 −C                            s,t ∈ Π\ΠD ,
+       ′                                                           ′        h
+then πs,t = πs,t ⊆ G − D ⊆ G, so indeed we have |πs,t | = δG (s, t). Otherwise, πs,t ∈ ΠD . By
+ h
+δG−D  (s, t) < ∞, qs,t exists and δG  h (s, q ) = δ h (s, t) − 1. Since no shortest h-bounded s → t path
+                                             s,t      G
+in G goes through C ∪ D, neither does any shortest h-bounded s → qs,t path in G. By the inductive
+assumption we have that |πs,q  ′     | = δGh (s, q ). As a result, the path π ′ = π ′
+                                 s,t              s,t                                 s,t     s,qs,t · qs,t t indeed has
+         h
+length δG (s, t).
+                                                                                        e
+    With the collection Π′ in hand, in O(n2 h) time we can deterministically compute an O(n/h)-
+                                ′ satisfying |π ′ | = h using Lemma 6.1.
+sized hitting set H ⊆ V of all πs,t            s,t
+
+
+                                                           21
+Lemma 7.2. Let s ∈ V \ (C ∪ D ∪ H) and t ∈ V be such that δG (s, t) < ∞. Some shortest s → t
+path in G either:
+                  ′ , or
+ (a) is equal to πs,t
+                   ′ · qr for some r ∈ C ∪ D ∪ H, where q = r or qr ∈ E(G) and |π ′ · qr| ≥ 1.
+ (b) has a prefix πs,q                                                           s,q
+
+Proof. First suppose that δG (s, t) ≤ h, i.e., δG h (s, t) 6= ∞.
+
+     If no shortest s → t path in G goes through C ∪ D, then by Lemma 7.1, πs,t     ′ is a shortest path,
+
+i.e., item (a) is satisfied.
+     Let us thus assume that some shortest s → t path goes through C ∪D. There exists an r ∈ C ∪D
+such that δG (s, t) = δG (s, r) + δG (r, t); if there are many such r, pick one with minimal δG (s, r).
+By s ∈  / C ∪ D, δG (s, r) ≥ 1. If δG (s, r) = 1, then some shortest s → t path starts with the edge
+sr, i.e., item (b) is satisfied with q = s. Otherwise, if δG (s, r) ≥ 2, then by the choice of r, any
+s → r path has no vertices in C ∪ D except r. As a result, if q ∈ V \ (C ∪ D) is the penultimate
+vertex on one such s → r path, we obtain that no s → q path in G contains a vertex from C ∪ D.
+By applying Lemma 7.1 to (s, q), we obtain that πs,q      ′ is a shortest s → q path in G. Therefore, we
+
+conclude that some shortest s → t path in G has a prefix πs,q     ′ · qr, where r ∈ C ∪ D, as desired.
+
+     Now consider the case δG (s, t) > h. Let x ∈ V be such that δG (s, t) = δG (s, x) + δG (x, t) and
+δG (s, x) = h. We have already proved the lemma for the pair (s, x). If there is a shortest s → x
+path satisfying (b), there is also clearly a shortest s → t path satisfying (b). It may also happen
+that πs,x′   is a shortest s → x path in G. But then, there exists a vertex u ∈ H, u 6= s, on πs,x′ . By
+
+applying the lemma once again to the pair (s, u) satisfying δG (s, u) ≤ h, we obtain that either (b)
+holds for (s, u) and thus also for (s, t), or (a) holds for (s, u), which together with s ∈  / H implies
+that |πs,u ′ | ≥ 1 and thus (b) holds for (s, t) with q = r = u ∈ H.
+
+
+   By proceeding symmetrically, one can prove a “suffix” version of Lemma 7.2:
+
+Lemma 7.3. Let s ∈ V and t ∈ V \ (C ∪ D ∪ H) be such that δG (s, t) < ∞. Some shortest s → t
+path in G either:
+                  ′ , or
+ (a) is equal to πs,t
+                        ′ for some r ∈ C ∪ D ∪ H, where q = r or rq ∈ E(G) and |rq · π ′ | ≥ 1.
+ (b) has a suffix rq · πq,t                                                           q,t
+
+    Let us now recall the definition of the min-plus product ⋆. If A is an a × b matrix and B is an
+b × c matrix, then A ⋆ B is a a × c matrix such that (A ⋆ B)i,j = minbk=1 {Ai,k + Bk,j }.
+    Define a matrix A ∈ {0, . . . , h, ∞}n×n as follows:
+                              
+                              
+                                 0       if u = v
+                              
+                              
+                              1          if u 6= v and uv ∈ E(G),
+                      Au,v =         ′ |                               ′
+                              
+                                 |πu,v   if u 6= v and uv ∈
+                                                           / E(G) and πu,v 6=⊥,
+                              
+                              
+                              ∞          otherwise.
+
+   Let A[S, T ] denote the submatrix of A with rows S and columns T , where S, T ⊆ V . Let
+X := C ∪ D ∪ H. Define the matrix A∗ as:
+
+              A∗ = min (A, (A ⋆ A[V, X]) ⋆ (A[X, V ] ⋆ A ⋆ A[V, X])n ⋆ (A[X, V ] ⋆ A)) ,             (2)
+
+where the matrix powering is using the min-plus matrix product ⋆, and the minimum is element-
+wise.
+
+                                                   22
+Lemma 7.4. For any s, t ∈ V , A∗s,t = δG (s, t).
+Proof. Note that Au,v ≥ δG (u, v) for all u, v ∈ V . Moreover, the min-plus product of any two
+matrices with rows and columns in V satisfying this condition also satisfies this condition. This
+proves that A∗u,v ≥ δG (u, v).
+     Let us now prove that A∗s,t ≤ δG (s, t). We first consider the case s, t ∈ X. We proceed by
+induction on d := δG (s, t) and prove that if B := A[X, V ] ⋆ A ⋆ A[V, X], then (B d )s,t ≤ δG (s, t)
+(where the powering is using the min-plus product ⋆). Let us first note that since A has zeros on
+the diagonal, (B i+1 )s,t ≤ (B i )s,t for any i ≥ 0 and Bs,t ≤ As,t .
+     The identity matrix I for the min-plus product has zeros on the diagonal and ∞ everywhere
+else. If d = 0, then s = t and B 0 = I, so indeed (B d )s,t = Is,s = 0.
+     Suppose d ≥ 1. Let u ∈ V be any vertex such that su ∈ E(G) and δG (u, t) = d − 1. We have
+As,u = 1 and thus also Bs,u ≤ 1. If u ∈ X, then both Bs,u ≤ 1 and (B d−1 )u,t ≤ d − 1 hold by the
+inductive assumption, and thus indeed (B d )s,t ≤ d.
+     Now assume u ∈     / X. By Lemma 7.2 applied to (u, t), we have two cases. If case (a) applies,
+  ′   6=⊥, so Bu,t ≤ Au,t ≤ |πu,t    ′ | = δ (u, t) ≤ d − 1 and thus again we obtain (B d−1 )
+πu,t                                         G                                                      u,t ≤ d − 1
+                          d
+and consequently (B )s,t ≤ d. If case (b) applies, then for some q, r, where q ∈ V , r ∈ X
+and δG (r, t) ≤ d − 1, we have δG (s, r) = |su · πu,q        ′  · qr|, where possibly q = r or s = q. But
+this implies Bs,r ≤ (A[X, V ])s,u + Au,q + (A[V, X])q,r ) ≤ δG (s, r). By the inductive assumption,
+(B d−1 )r,t ≤ δG (r, t), so (B d )s,t ≤ δG (s, r) + δG (r, t) = δG (s, t) as well.
+     We have therefore proved that for any s, t ∈ X, δG (s, t) < ∞ implies that (B n )s,t ≤ δG (s, t).
+This in turn implies A∗s,t ≤ δG (s, t) for such pairs (s, t).
+     If s ∈
+          / X and t ∈ X, then by Lemma 7.2, either (a) πs,t         ′ is a shortest s → t path, which implies
+
+As,t ≤ δG (s, t), or (b) for some q ∈ V and r ∈ X with δG (r, t) < δG (s, t), there is a shortest s → t
+                         ′ · qr, which implies δ (s, t) = δ (s, r) + δ (r, t) and A
+path starting with πs,q                             G            G           G           s,q + Aq,r ≤ δG (s, r).
+                                                     n
+In both cases we conclude ((A ⋆ A[V, X]) ⋆ B )s,t ≤ δG (s, t). By Lemma 7.3 we can symmetrically
+prove that if s ∈ X and t ∈    / X, then (B n ⋆ (A[X, V ] ⋆ A))s,t ≤ δG (s, t).
+     Finally, if s ∈
+                   / X and t ∈   / Y , then we analogously argue that either As,t ≤ δG (s, t) or for some
+r ∈ X we have δG (s, t) = δG (s, r) + δG (r, t), (A ⋆ A[V, X])s,r ≤ δG (s, r) and (B n ⋆ (A[X, V ] ⋆ A))r,t ≤
+δG (r, t), which implies that ((A ⋆ A[V, X]) ⋆ B n ⋆ (A[X, V ] ⋆ A))s,t ≤ δG (s, t). Therefore, we con-
+clude that for the general case s, t ∈ V , we have either As,t                               ≤     δG (s, t) or
+                      n
+((A ⋆ A[V, X]) ⋆ B ⋆ (A[X, V ] ⋆ A))s,t ≤ δG (s, t), as desired.
+
+   Lemma 7.4 yields a way of computing exact all-pairs distances in G based on the collection Π′
+provided that an efficient algorithm computing rectangular min-plus products is available. However,
+the known min-plus matrix product algorithms are not efficient enough to give an improved fully
+dynamic exact APSP algorithm this way. Nevertheless, we will argue that Lemma 7.4 is enough for
+deterministically computing the matrix of (1 + ǫ)-approximate distances in G polynomially faster
+than in O(nω ) time, for any ω > 2. To this end, we will need the following (1 + ǫ)-approximate
+min-plus matrix product ⋆ǫ of Zwick [Zwi02, Section 8]:
+Theorem 7.5. [Zwi02] Let A, B be two n × n matrices with elements from {0, ∞} ∪ [1, N ]. Let
+                e ω log(N )/ǫ) deterministic time one can compute a matrix A ⋆ǫ B such that for
+ǫ > 0. Then, in O(n
+all i, j ∈ [n]:
+                         (A ⋆ B)i,j ≤ (A ⋆ǫ B)i,j ≤ (1 + ǫ) · (A ⋆ B)i,j .
+Remark 7.6. [Zwi02] Theorem 7.5 can be easily generalized to the rectangular case, i.e., if A
+and B are na × nb and nb × nc matrices, then the approximate min-plus product can be computed
+   e ω(a,b,c) log(N )/ǫ) time. Moreover, the approximate min-plus product can be extended to de-
+in O(n
+terministically produce witnesses within a time bound that is a polylog(n) factor away.
+
+                                                      23
+    Let ǫ′ > 0. Suppose we evaluate the formula (2) by replacing the min-plus product ⋆ with
+(1 + ǫ′ )-approximate min-plus product ⋆ǫ′ of Theorem 7.5 (and Remark 7.6) and using the folklore
+repeated-squaring algorithm for matrix powering. Then, only O(log n) matrix products will be
+performed and each of the products involved will take O(n  e ω(1,α,1) log(N )/ǫ′ ) time, where α ∈ [0, 1]
+is such that |C ∪ D ∪ H| ≤ nα , and N is a bound on the largest finite number arising in this
+computation. Indeed, in all the matrix products involved, one of the matrix dimensions dimensions
+is bounded by nα (we will later set τ, h, ∆ so that α < 1). Moreover, since there are O(log n) matrix
+products, the approximation error at the end is bounded by (1 + ǫ′ )O(log n) . This also implies the
+bound N ≤ n · (1 + ǫ′ )O(log n) . By using a sufficiently small ǫ′ = Θ(ǫ/ log n), we can guarantee that
+the entire computation is (1 + ǫ)-approximate and N = O(n).    e      We conclude that the matrix of
+(1 + ǫ)-approximate distance estimates can be computed based on Π′ in O(n      e ω(1,α,1) /ǫ) time.
+    It is worth noting that if we wanted to compute the transitive closure of G (which can be seen
+as any finite approximation of APSP) instead, we could use the standard boolean matrix product ·
+instead of the approximate min-plus product ⋆ǫ′ here.
+
+Approximate shortest path reporting. We now turn to explaining how the data structure
+can be extended to enable efficient reporting of approximately shortest s, t-paths while computing
+the matrix A∗ approximately. Recall that, by Remark 7.6, the approximate min-plus product of
+Theorem 7.5 can also produce witnesses, i.e., such indices wi,j that
+
+                                Ai,wi,j + Bwi,j ,j ≤ (1 + ǫ′ ) · (A ⋆ B)i,j .
+
+Suppose we record the witnesses for all the ℓ = O(log n) approximate products involved when
+computing A∗ approximately using Equation 2. More concretely, let the subsequent matrices
+obtained be L1 , . . . , Lℓ , where min(A, Lℓ ) is a (1 + ǫ)-approximation of A∗ . By Lemma 7.4, we have
+
+                                  min(As,t , (Lℓ )s,t ) ≤ (1 + ǫ)δG (s, t).
+
+Put L0 := A and a define paths P0,s,t corresponding to the entries of A:
+                                
+                                
+                                 ∅     if s = t,
+                                
+                                
+                                st if st ∈ E(G),
+                       P0,s,t =     ′
+                                
+                                 πst   if s 6= t, st ∈
+                                                      / E(G), and As,t 6= ∞,
+                                
+                                
+                                ⊥ otherwise.
+
+Put | ⊥ | = ∞. When computing the matrix Lk as a product of a submatrix of Li and a submatrix
+of Lj (along with witnesses w·,· ), where i, j < k, for all s, t such that (Lk )s,t is defined, we define
+the path Pk,s,t as follows:
+                                     
+                                     Pi,s,ws,t · Pj,ws,t ,t if ws,t ∈
+                                                                    / {s, t},
+                            Pk,s,t = Pi,s,t                  if ws,t = t,
+                                     
+                                     
+                                       Pj,s,t                if ws,t = s.
+
+In the implementation, we do not explicitly copy or concatenate the paths define above, but rather
+store the pointers to the previously represented paths. This costs only O(n e 2 ) additional time.
+    It is easy to prove inductively that for all k, s, t such that (Lk )s,t 6= ∞, Pk,s,t is an s → t
+path in G of length at most (Lk )s,t . Consequently, for all s, t such that δG (s, t) 6= ∞, we have
+min(|P0,s,t |, |Pℓ,s,t |) ≤ (1 + ǫ)δG (s, t). As a result, using the stored pointers we can report an
+(1 + ǫ)-approximately shortest s → t path for any (s, t) ∈ V in optimal O(δG (s, t)) time.
+
+                                                     24
+Single-source reachability trees from all sources. While in the case of approximately short-
+est paths and a fixed source s ∈ V , we can report an s → t path of length (1 + ǫ)δG (s, t) for any
+t ∈ V efficiently, it is not clear how to organize such paths into a tree of approximately shortest
+paths rooted at s. However, as we show next, this is possible in the case of transitive closure.
+Specifically, we now show that one can compute reachability trees from all possible sources s ∈ V
+in G using the approximate matrix A∗ , if any constant ǫ ∈ (0, 1) is used.
+    We first compute in O(n2 ) time the strongly connected components (SCCs) of G, using any
+classical linear-time algorithm, e.g., that of [Tar72].
+Lemma 7.7. A subgraph GSCC ⊆ G with O(n) edges such that GSCC preserves the strongly con-
+nected components of G can be computed in O(n2 ) time.
+Proof. For any strongly connected component S ⊆ V of G, include in GSCC a pair of trees in G[S]:
+a reachability tree from and to any s ∈ S in the subgraph G[S]. These trees can be computed via
+graph search in time linear in the number of edges of G[S]. Since the subgraphs G[S] are clearly
+disjoint for distinct S, computing GSCC takes O(n2 ) time.
+
+   Now let us define a matrix A′ such that A′s,t = 0 if the vertices s and t are not strongly connected
+in G and either As,t 6= ∞ or (A[V, X] ⋆ǫ A[X, V ])s,t 6= ∞ holds, and A′s,t = ∞ otherwise.
+   Let us compute the matrix product FV := A∗ [V, X] ⋆ǫ A′ [X, V ] along with the matrix WV of
+witnesses, that is, for every u, v such that (FV )u,v 6= ∞, (WV )u,v is equal to some z ∈ X such
+that A∗u,z 6= ∞ and A′z,v 6= ∞. Similarly, we compute the matrix WX of witnesses of the product
+FX := A∗ [V, V ] ⋆ǫ A′ [V, X]. Finally, let us compute the matrix L of the witnesses of the product
+A[V, X] ⋆ǫ A[X, V ]. Again, in all the additional matrix products here, one of the dimension is
+bounded by |X| ≤ nα , so computing the required information takes O(n    e ω(1,α,1) /ǫ) time.
+
+Lemma 7.8. For any a, b ∈ V , define πa,b  ∗ to be either the edge ab if ab ∈ E(G) or the path π ′
+                                                                                                a,b if
+ ′                                                                            ∗ :=⊥.
+πa,b 6=⊥ (if both exist, pick an arbitrary one). If none of these exist, set πa,b
+    Let s ∈ V . Let Gs ⊆ G be a subgraph containing:
+               ∗ for all t ∈ V such that π ∗ 6=⊥,
+   • the path πs,t                        s,t
+                                                       ∗
+   • for each t ∈ V such that (FV )s,t = 1, the paths πx,w      ∗ , where where x = (W )
+                                                           and πw,t                   V s,t and
+     w = Lx,t .
+                                                      ∗ , where w = W .
+   • for each x ∈ X such that (FX )s,x = 1, the path πw,x            s,x
+
+   • the subgraph GSCC .
+Then a vertex is reachable from s in G if and only if it is reachable from s in Gs .
+Proof. The “ ⇐= ” direction is trivial since Gs is a subgraph of G.
+    We will prove the “ =⇒ ” part by showing that each SCC S of G that s can reach is also
+reachable from s in Gs . Since the SCCs of G are preserved in G by the inclusion of GSCC , this
+is clearly true for the SCC Ss containing the vertex s. Since the graph obtained from Gs by
+contracting the SCCs is a DAG, it is enough to argue that every other SCC S ′ 6= Ss has in Gs an
+edge coming from another SCC S ′′ 6= S ′ reachable from s.
+    Let S 6= Ss be an SCC of G such that d = minv∈S δG (s, v) ≥ 1. Let t ∈ S be such that
+δG (s, t) = d. Since every vertex z strongly connected with t has δG (s, z) ≥ δG (s, t) = d, every
+vertex y 6= t satisfying δG (s, t) = δG (s, y) + δG (y, t) is not strongly connected with t, i.e., y ∈
+                                                                                                     / S.
+    If t ∈ X, then let jt be an arbitrary edge lying on some shortest s → t path in G. We
+have δG (s, j) = δG (s, t) − 1, A∗ [s, j] < ∞ by Lemma 7.4, and A′ [j, t] < ∞ since j ∈         / S. As a
+
+                                                   25
+result, (FX )s,t ≤ A∗ [s, j] + A′ [j, t] < ∞. We conclude that there exists g = (WX )s,t such that
+A∗ [s, g], A′ [g, t] < ∞. It follows that g is not strongly connected with t and g is reachable from s.
+By the definition of Gs , the g → t path πg,t  ∗ (which exists by A′ [g, t] < ∞) is included in G . This
+                                                                                                   s
+certifies that the SCC S has an incoming edge from another SCC reachable from s.
+     Finally, suppose t ∈ V \ X. If st ∈ E(G) or πs,t     ′ 6=⊥, then the corresponding edge or path
+  ∗
+πs,t is included in Gs . Since that edge/path originates in Ss and ends in a different SCC S, it
+has to include at least one edge coming to S from another SCC reachable from s. So suppose
+  ∗ =⊥. By Lemma 7.3, we obtain that some shortest s → t path has a suffix rq · π ′ , where
+πs,t                                                                                           q,t
+r ∈ X and δG (s, r) < d. By the definition of t, r is in a different SCC than t. Hence, we have
+A′ [r, t] ≤ A[r, q] + A[q, t] < ∞. As a result, since r is reachable from s, we have (FV )s,t ≤
+A∗ [s, r] + A′ [r, t] < ∞. Thus, there exists x = (WV )s,t ∈ X such that A∗ [s, x] < ∞ and A′ [x, t] < ∞
+which in turn implies that x and t are not strongly connected and x is reachable from s. Moreover,
+w = Lx,t exists such that A[x, w] < ∞ and A[w, t] < ∞. Hence, there exist paths πx,w        ∗          ∗
+                                                                                                 and πw,t
+                                  ∗     ∗
+in G. Their concatenation πx,w · πw,t, included in Gs , certifies that S has an incoming edge from
+another SCC reachable from s.
+
+Corollary 7.9. Given the matrices FX , WX , FV , WV , L and the graph GSCC , one can compute
+reachability trees from all sources s ∈ V in O(n2 h) additional time.
+
+Proof. Note that for any s ∈ V , the subgraph Gs ⊆ G preserving reachability from s has O(nh)
+                                                                                ∗ . Thus, some
+edges since it consists of the O(n)-sized subgraph GSCC and O(n) ≤ h-hop paths πa,b
+reachability tree in Gs (and thus in G) can be computed in O(nh) time.
+
+Update time analysis. Let us now summarize the update time of the data structure. Recall that
+we set α ∈ [0, 1] to be the smallest number such that max(|C|, |H|, |D|) = O(max(n/τ, n/h, ∆)) ≤
+O(nα ), and ∆ = nδ . The amortized update time can be bounded by:
+
+               e   h2 nω(1,δ,1)+1 h2 n2+ρ           n  n2 b
+               O                  +          · 1+        +    + ∆hτ n(h2 nµ + β) + h2 n2
+                        ∆b              b           ∆τ      ∆
+                                                                                          !
+                                   h2 n(nω(1,µ,1)−µ + n1+µ ) h2 nω(1,δ,1)+1
+                                 +                          +               + nω(1,α,1) /ǫ .
+                                               β                  β∆
+
+Using the online balancing tool [Bra]4 , we find that by setting µ = 0.355, β = n0.562 , b = n0.816 ,
+∆ = n0.523 , h = n0.1035 and t = n0.104 , the obtained bound is O(n2.293 /ǫ).
+    It is also interesting to investigate for what values ω the obtained bound is better than nω . For
+this, let us again use the bound ω(1, a, 1) ≤ 2 + a · (ω − 2) (which yields ρ ≤ 1/(4 − ω)) to remove
+the dependency on rectangular matrix multiplication.
+    Since the only term that is non-increasing in h is nω(1,α,1) ≤ n2+α(ω−2) , having arbitrary h =
+poly n makes this term sub-nω . If all other terms with the h-terms skipped are also polynomially
+smaller nω , then sufficiently small polynomial h makes all terms smaller than nω .
+    Via experiments one can obtain that τ = h and β = h2 nµ is a good choice, and that the terms
+involving ω(1, δ, 1) are not bottlenecks if the parameters are chosen optimally. As a result, to find
+the threshold for ω, we need to pick µ, ∆, b such that the terms:
+                                               1
+                                    n2 b n3+ 4−ω
+                                        ,        , ∆n1+µ , n3+µ(ω−4)
+                                     ∆     b∆
+  4
+      https://jvdbrand.com/complexity/?terms=2h%2Bomega(1%2Cdelta%2C1)%2B1-delta-b%0A2h%2B2%2B0.529-b%0A2h%2B2%2B0.529
+
+
+
+                                                    26
+are all polynomially smaller than nω . Observe that it is beneficial to balance the first two terms,
+                      5−ω                                                        13−3ω
+which leads to b = n 8−2ω . Then, balancing with the third term yields ∆ = n 16−4ω −µ/2 . Finally,
+                                                    38−10ω
+balancing that with the fourth term yields µ = (16−4ω)(9−2ω)  . The final running time for ω > 2
+after simplifications and taking into account small-polynomial h, τ = nO(γ) becomes:
+                                           ω−1
+                                                             
+                                     O n2+ 18−4ω +γ + nω−γ /ǫ ,
+                                                                                             √
+for any sufficiently small γ > 0. This bound is polynomially better than nω if ω > 2+ 9− 8 65 ≈ 2.12.
+    Amortization can be removed in a standard way, as was done in Section 6. The following
+theorem summarizes the data structure developed in this section.
+
+Theorem 1.2. Let G = (V, E) be an unweighted directed graph. Let ǫ ∈ (0, 1). There exists
+a deterministic data structure explicitly maintaining all-pairs (1 + ǫ)-approximate distances in G
+under vertex updates in O(n2.293 /ǫ) worst-case time per update.
+   The data structure can be extended to:
+
+    • enable reporting a (1 + ǫ)-approximately shortest path P = s → t in G for query vertices
+      s, t ∈ V in optimal O(|P |) time.
+
+    • explicitly maintain reachability trees from all the sources s ∈ V within the same update bound.
+
+
+8    Deterministic fully dynamic transitive closure faster than O(nω )
+     for all ω > 2
+In this section we show a simple deterministic data structure maintaining the transitive closure of
+a digraph under vertex updates polynomially faster than within nω worst-case update time, unless
+ω = 2. Compared to the data structure of Theorem 1.2, we do not support optimal-time path
+reporting here. However, as opposed to the path-reporting data structure, we obtain a non-trivial
+worst-case update time for the entire range of possible values of ω > 2.
+     The bottleneck in the data structure of Theorem 1.2 lies in recomputing most of the pairwise
+h-bounded shortest paths. These paths have also been used to compute the hitting set H determin-
+istically. The set H hit all the h-bounded shortest paths in the graph G − (C ∪ D). For transitive
+closure, we do not need to hit the shortest paths; hitting a h-hop prefix of any path would also be
+                           e
+enough. Computing an O(n/h)-sized       hitting set achieving that deterministically is still challenging
+          ω
+in sub-n time, though. To deal with this problem, we will use slightly larger (but still sublinear)
+hitting sets that are, at the same time, slightly less costly to recompute. Using weaker (in terms of
+quality and size) hitting sets is the main idea behind the data structure developed in this section.
+    Let h, d ∈ [1, n] be parameters such that d · h ≥ 6n, to be chosen later. First of all, we set up the
+data structure of Theorem 3.1 that explicitly maintains the values δG    h (s, t) for all pairs (s, t) ∈ V
+
+under vertex updates to G in O(h e 2 n2 ) worst-case time per update.
+     The below lemma gives an algorithm to compute hitting sets of non-necessarily shortest paths.
+
+Lemma 8.1. Let G = (V, E) be any digraph. Then, for any ℓ ∈ [1, n], in O(n         e ω ) time one can
+                                                              e
+deterministically compute a hitting set H ⊆ V of size O(n/ℓ) satisfying the following. For any
+s, t ∈ V with δG (s, t) < ∞, either δG (s, t) < ℓ or there is such a vertex v ∈ H that δG (s, v) ≤ ℓ and
+δG (v, t) < ∞. If G is strongly connected, then the running time can be improved to O(n  e 2 ).
+
+
+
+
+                                                   27
+Proof. Suppose for any s ∈ V we have computed a reachability tree Ts from s in G. Let Ts,h be
+the tree Ts pruned of all the vertices at depth more than h. Note that for all t ∈ V (Ts,h ) at depth
+less than h, we necessarily have δG (s, t) < h.
+    For all other t ∈ V either δG (s, t) = ∞, or there exists a leaf lt at depth h in Ts,h such that one
+can reach t from s through lt . As a result, if H ⊆ V hits all the h-hop root-leaf paths in Ts,h , then
+there exists v ∈ H such that δG (s, v) ≤ h and there exists a path s → v → lt → t. Therefore, it
+                            e
+is enough to compute an O(n/h)-sized       hitting set H of all the h-hop root-leaf paths in all of the
+trees Ts,h , s ∈ V . King [Kin99, Lemma 5.2] gave a variant of the deterministic algorithm behind
+Lemma 6.1 that accomplishes precisely this task in O(n  e 2 ) time.
+    Finally, the reachability trees from all the sources in a general graph can be computed deter-
+                 e ω ) time [AGMN92]. If G is strongly connected, then the same can be achieved
+ministically in O(n
+in O(n2 ) time by running a graph search from every s ∈ V in the sparse subgraph GSCC ⊆ G from
+Lemma 7.7.
+
+    Lemma 8.1 alone is not enough to deterministically break through the O(nω ) worst-case update
+bound. To achieve that, proceed as follows upon each update. First, compute in O(n2 ) the strongly
+connected components of G, and their topological order using any classical algorithm. Let S1 , . . . , Sk
+be the SCCs of G in the topological order, that is, any edge uv such that u ∈ Si and v ∈ Sj , satisfies
+i ≤ j. Next, partition the sequence S1 , . . . , Sk into at most 2n/d blocks B of consecutive SCCs such
+that each block B ∈ B spanning Sa ∪ . . . ∪ Sb satisfies either a = b or |Sa | + . . . + |Sb | ≤ d. Such
+a partition into blocks can be computed by repeatedly locating the longest prefix Si , . . . , Sj of the
+remaining sequence Si , . . . , Sk such that |Si | + . . . + |Sj | ≤ d (if it exists), and forming either a block
+Si ∪ . . . ∪ Sj if |Si | ≤ d, or a single-SCC block Si if |Si | > d. Note that every two consecutive blocks
+formed span more than d vertices and this is why the total number of blocks is at most 2n/d.
+    We say that a block Sa ∪ . . . ∪ Sb = B ∈ B is small if |Sa | + . . . + |Sb | ≤ d. Otherwise, we call
+the block large. Recall that a large block necessarily consists of a single SCC of G.
+    Next, for each block B ∈ B we compute the hitting         setHB of Lemma 8.1 applied to the subgraph
+G[B] for ℓ := ⌊ 6n   dh
+                         ⌋. Note that we have |HB | = O    e |B|n . Set H ∗ := S
+                                                                dh                      B∈B HB . We obtain that
+             P                                              
+|H ∗ | = O e            |B|n      e n ·P                 e n2
+                  B∈B dh       =O     dh    B∈B |B| = O dh .
+    Observe that the total time spent on computing hitting sets in small blocks can be bounded by
+ e
+O((n/d) · dω ) = O(nd  e     ω−1 ) since |B| = O(n/d). Every large block is strongly connected and thus
+                                                                               
+                                                              e P                   e 2 ) time.
+                                                                              2 = O(n
+the hitting sets of large blocks can be computed in O                B∈B |B|
+
+Lemma 8.2. Let s, t ∈ V be such that δG (s, t) < ∞. Then either δG (s, t) ≤ h or there exists
+v ∈ H ∗ such that δG (s, v) ≤ h and δG (v, t) < ∞.
+
+Proof. Suppose δG (s, t) > h. Let p ∈ V be any vertex such that δG (s, p) = h and δG (s, t) =
+δG (s, p)+δG (p, t). Note that any shortest s → p path P in G can be expressed as P0 ·e1 ·P1 ·. . .·eq ·Pq ,
+where each Pi is a (possibly 0-hop) maximal subpath containing vertices of a single block B(Pi ) ∈ B,
+and ei is an edge between distinct blocks B(Pi−1 ) and B(Pi ). Recall that the partition of SCCs
+into blocks respects the topological ordering so each B(Pi−1 ) is strictly earlier than B(Pi ) in the
+ordering. It follows that all the blocks B(Pi ) are distinct and thus q ≤ |B| ≤ 2n/d. As a result, we
+obtain that some path Pj has at least
+     Pq
+        i=0 |Pi |   |P | − q   h−q       h              h           dh         dh dh       dh
+                  =          =      ≥        −1≥              −1≥       −1≥      −      =         ≥ℓ
+        q+1          q+1       q+1     q+1          2n/d + 1        3n         3n 6n       6n
+
+edges. Let x, y be the endpoints of Pj , i.e., Pj is an x → y path.
+
+
+                                                       28
+   Note that |Pj | = δG[B(Pj )] (x, y) = δG (x, y) ≥ ℓ since P is a shortest path in G. As a result, by
+Lemma 8.1 we obtain that there exists some vertex v ∈ HB(Pj ) ⊆ H ∗ such that δG[B(Pj )] (x, v) ≤ ℓ
+and δG[B(Pj )] (v, y) < ∞. By that, we have:
+
+                          δG (s, v) ≤ δG (s, x) + δG (x, v)
+                                   = δG (s, x) + δG[B(Pj )] (x, v)
+                                   ≤ δG (s, x) + ℓ
+                                   ≤ |P0 · e1 · P1 · . . . ej−1 · Pj−1 · ej | + |Pj |
+                                   ≤ |P | = h.
+
+
+Above we have also used a fact that for two vertices inside a single block, every path between them
+needs to be fully contained in the block. We also have:
+
+                            δG (v, t) ≤ δG (v, y) + δG (y, p) + δG (p, t)
+                                     ≤ δG[B(Pj )] (v, y) + δG (y, p) + δG (p, t)
+                                     < ∞.
+
+We conclude that indeed δG (s, t) > h implies that δG (s, v) ≤ h and δG (v, t) < ∞.
+
+   With the hitting set H ∗ computed, we find the transitive closure of G as follows. Let A be
+a V × V boolean matrix such that Au,v = 1 iff δGh (u, v) ≤ h. Recall that the values δ h (u, v) are
+                                                                                      G
+maintained explicitly under vertex updates by the data structure of Theorem 3.1. We define an
+analogous matrix A∗ as in Section 7:
+
+                          A∗ = A ∨ (A[V, H ∗ ] · (A[H ∗ , H ∗ ])n · A[H ∗ , V ]) ,
+
+where · denotes the boolean matrix product.
+
+Lemma 8.3. For any s, t ∈ V , there exists an s → t path in G iff A∗s,t = 1.
+
+   Having proved Lemma 8.2, the proof of the above lemma proceeds completely analogously to
+that of Lemma 7.4 so we skip it. To compute the transitive closure of G, we simply compute the
+matrix A∗ from the definition (similarly as in Section 7) via rectangular matrix multiplication.
+   Let us now analyze the update time. If α < 1 is such that |H ∗ | = O(ne 2 /(dh)) = O(n
+                                                                                       e α ), then
+the worst-case update time of the data structure can be bounded by:
+                                                                            
+                 e   2 2       ω−1     ω(1,α,1)     e   2 2      ω−1    n2ω−2
+                 O h n + nd        +n             ⊆ O h n + nd       +           .
+                                                                       (dh)ω−2
+
+                                                       e 2+4ǫ + nω−ǫ(ω−1) + nω−ǫ(ω−2) ). For any
+Note that for d = n1−ǫ , h = n2ǫ , the update bound is O(n
+        ω−2                                            ω
+0 < ǫ < 4 this bound is polynomially smaller than n . Such an ǫ exists iff ω > 2.
+
+Theorem 1.3. Let G = (V, E). Unless ω = 2, there exists a constant ǫω , 0 < ǫω < ω −2, dependent
+on ω, such that one can deterministically and explicitly maintain the transitive closure of G under
+fully dynamic vertex updates in O(nω−ǫω ) worst-case time per update.
+
+   Interestingly, with the currently known upper bounds on the exponents of (rectangular) matrix
+multiplication, it is best to set h = 0.15, d = 0.945 [Bra]. This yields an O(n2.3 ) worst-case update
+bound that is slightly worse then the bound obtained in Theorem 1.2.
+
+                                                     29
+Path reporting. Finally, we remark that given an explicitly recomputed transitive closure ma-
+trix, and by spending additional O(n2 )-time preprocessing time per update, reporting paths between
+arbitrary (reachable) pairs of vertices can be supported in O(n) time. We now sketch how this is
+achieved. [KMS22, Section 3.2] showed that given a topological order of an acyclic digraph G′ , for
+any vertices s, t such that s can reach t in G′ , some s → t path can be constructed by issuing O(n)
+reachability queries in G′ . That is, if the transitive closure matrix of G′ is explicitly stored, a path
+can be constructed in O(n) time. Since in our data structure we spend Ω(n2 ) time per update
+anyway, after each update in O(n2 ) time we can construct a condensation G′ of G by contracting
+the SCCs of G into single vertices. The condensation G′ is a DAG; hence, its topological order
+can be computed in O(n2 ) time. Moreover, the transitive closure of G′ can be easily read from the
+transitive closure of G by taking a submatrix on arbitrary representatives of the individual SCCs
+of G. Finally, observe that an s → t path in G can be found by (1) finding some path P ′ from the
+SCC of s (in G) to the SCC of t in the condensation G′ in O(n) time, (2) subsequently finding any
+s → t path in the O(n)-sized subgraph P ′ ∪ GSCC via graph search.
+
+
+9     Randomized improvements
+In this section we show sketch how one can obtain sharper worst-case update bounds for SSSP and
+transitive closure if randomization is used.
+    First of all, in all the components that use path counting, each h2 term in the update/query
+bounds can be replaced with a h term in a standard way (see, e.g., [San05]). This is because the
+used components only require testing whether the maintained path counts are zero or non-zero.
+                            e
+Hence, instead of using Θ(h)-bit   numbers for path counts, one can perform counting modulo a
+random Θ(log n)-bit prime number which is enough to differentiate between zero and non-zero
+                                                                                       e
+counts with high probability. Arithmetic operations on numbers from such a range cost O(1)  time
+                 e
+as opposed to O(h) time required in the deterministic path counting data structures.
+
+9.1   Path-reporting transitive closure
+In the case of path-reporting data structure of Section 7, it is not clear how to exploit randomization
+further (beyond reducing the cost of path counting) while still maintaining all-pairs single-source
+reachability trees against an adaptive adversary. Hence, the obtained randomized worst-case update
+bound becomes:
+
+               e    hnω(1,δ,1)+1 hn2+ρ          n  n2 b
+               O                +       · 1+         +     + ∆hτ n(hnµ + β) + hn2
+                       ∆b           b           ∆τ       ∆
+                                                                                   !
+                                  hn(nω(1,µ,1)−µ + n1+µ ) hnω(1,δ,1)+1    ω(1,α,1)
+                                +                        +             +n            .
+                                             β                β∆
+
+Using the online balancing tool [Bra], we find that by setting µ = 0.368, β = n0.503 , b = n0.764 ,
+d = n0.495 , h = n0.135 and t = n0.136 , the obtained bound is O(n2.27 ). That being said, the used
+improvement has no effect on the theoretical barrier of the approach: for ω < 2.12, O(n e ω )-time
+trivial recompute-from-scratch approach is polynomially faster than the above.
+
+9.2   SSSP
+In the case of single-source shortest paths, we can exploit the standard randomized hitting set
+argument [UY91], that a randomly sampled subset H ⊆ V of size Θ((n/h) log n) hits some shortest
+
+                                                   30
+s → t path in G for all pairs s, t with δG (s, t) ≥ h. Crucially, in the dynamic setting, a sampled
+hitting set remains (w.h.p.) valid through poly(n) versions of the evolving graph provided that it is
+not revealed to the adversary. In the case of maintaining exact single-source distances in dynamic
+unweighted digraphs, this assumption is indeed satisfied, as the answers sought are unique.
+    The overall framework is the same as in Section 6: we operate in phases of ∆ edge updates,
+and maintain global data structures T and A, defined exactly as in Section 6, albeit now using the
+aforementioned randomized path counting.
+    The main modification we make to the data structure of Section 6 is replacing the preprocessing
+of Theorem 5.1 with the following variation due to [ACK17].
+
+Lemma 9.1. [ACK17] Let G = (V, E) be a directed graph. Let h ∈ [1, n].
+    Assume one has constructed a data structure storing G and a subset W ⊆ V initially equal
+to V , and supporting:
+
+ (1) updates removing a vertex v ∈ V from W ,
+
+ (2) queries computing shortest h-bounded paths in G[W ] from a query vertex s to all v ∈ V .
+
+Suppose one can perform updates in U (n, h) worst-case time, and queries in Q(n, h) worst-case
+time. These bounds have to hold w.h.p. against an adaptive adversary.
+    Let C0 ⊆ V . Then, in O(|C0 |·(nh+U (n, h)+Q(n, h))) time one can compute a set C = {c1 , . . . , ck },
+where C0 ⊆ C ⊆ V and k = O(|C0 |), and a collection of paths Π in G, containing at most one path
+πs,t for all (s, t) ∈ C × V , such that, with high probability:
+                                                                 h (c , t) 6= ∞ and then π
+ (a) For any i = 1, . . . , k and t ∈ V , πci ,t ∈ Π exists iff δG i i                     ci ,t is a shortest
+     h-bounded ci → t path in the graph Gi := G − {c1 , . . . , ci−1 }.
+
+ (b) For any u ∈ V , there exist at most O(hn log n) paths πs,t ∈ Π with u ∈ V (πs,t ).
+
+Proof sketch. The preprocessing differs from that in Lemma 3.2 in the way how the subsequent
+sources are picked. Whereas in Lemma 3.2 sources (from all of V ) are picked in arbitrary order, in
+the construction of [ACK17, Section 3.1], one alternates between picking an arbitrary unprocessed
+element of C0 , and the most-congested vertex (that is, lying on the maximum number of paths
+picked so far) from V \ C. This way, only O(|C0 |) vertices are added to W and O(|C0 |) queries
+are issued. The O(hn log n) bound in item (b) follows via an analysis of a greedy load balancing
+technique [LO88]. This argument has been originally used in this context by [Tho05]. See [ACK17]
+for details.
+
+    More specifically, the congested set/paths collection pair (C, Π) of Theorem 5.1 is replaced with
+the corresponding pair (C, Π) produced by Lemma 9.1 with C0 := H, where H is the aforementioned
+randomly sampled hitting set. Importantly, the obtained set C has size O(n/h)e     this way, and the
+                  e   2                                2
+collection Π has O(n /h) paths (as opposed to Θ(n ) in Theorem 5.1).
+    For computing the pair (C, Π), we use the data structure T . Consequently, the worst-case time
+cost (per update) incurred by the construction of (C, Π) is now:
+                                                                       !!
+                                1  n     hn 1+ω(1,µ,1)−µ   hn 2+µ
+                           Oe     · ·                    +        + nb     .
+                               ∆ h              b            b
+
+For µ = ρ, this becomes:                                       
+                                            e       n3+ρ n2 b
+                                            O           +           .
+                                                     b∆   h∆
+
+                                                       31
+Recall that besides that, the cost of maintaining T under single-edge updates to G is O(hn e    2+ρ /b)
+
+per update.
+    We also redefine the contents of the maintained set Y throughout the phase. Recall that the
+        h (s, t) are maintained for all (s, t) ∈ Y by the data structure A with ν set to ρ ≈ 0.529. At
+values δG
+all times, the set Y contains:
+
+   • all pairs (s, t) ∈ C × V such that πs,t ∈ ΠD ,
+
+   • all pairs (u, v) ∈ (D × V ) ∪ (V × D).
+                                                      e
+     Observe that by Lemma 9.1, the set Y grows by O(hn)    new pairs per update in the worst case,
+                                            e   1+ρ                                     e
+and thus can be appropriately extended in O(hn ) time per update. Moreover, |Y | = O(∆hn)        at
+                              e
+all times and thus A requires O(∆h 2                                                        h (s, t)
+                                     n) additional time per update to recompute the values δG
+for all (s, t) ∈ Y .
+     The summarized worst-case update time of all the components of the data structure is:
+                              2+ρ                                    
+                           e   hn          2    n3+ρ n2 b       2 1+ρ
+                          O           + ∆h n +         +     +h n       .
+                                 b               b∆      h∆
+
+   For answering single-source distance queries, we use a slightly simpler auxiliary graph X, defined
+similarly as in Section 6. Suppose a query for distances from a source vertex s ∈ V is issued. Let
+Ys be the set Y augmented with temporary pairs (s, t) for all t ∈ V . The graph X contains:
+
+   • an edge uv of weight |πu,v | for all πu,v ∈ Π \ ΠD ,
+                           h (u, v) for all (u, v) ∈ Y .
+   • an edge uv of weight δG                          s
+
+                                       e 2 /h+∆hn) edges. The query procedure runs Dijkstra’s
+Again, the graph X has O(n2 /h+|Y |) = O(n
+algorithm from s on the graph X. This is correct by the following lemma.
+
+Lemma 9.2. With high probability, for any t ∈ V , δG (s, t) = δX (s, t).
+
+Proof. Note that for all uv ∈ E(X), wX (uv) ≥ δG (uv), which establishes δG (s, t) ≤ δX (s, t) easily.
+    Let us now prove that δX (s, t) ≤ δG (s, t). First of all, let G0 be the graph at the beginning of
+the phase. Note that by the definition of D, we have G0 − D = G − D ⊆ G.
+    Consider the shortest s → t path P in G; if there are many, pick the unique one that is
+lexicographically smallest. Split P into maximal segments P1 · . . . · Pk not passing through any of
+the vertices C ∪ D. In other words, for each Pi = ui → vi , we have V (Pi ) ∩ (C ∪ D) ⊆ {ui , vi } and
+ui ∈ C ∪ D ∪ {s}.
+    Consider some Pi . Pi is a lexicographically shortest path in G. We have |Pi | ≤ h with high
+probability, since H ⊆ C hits each of the O(n2 ) lexicographically shortest paths that have more
+than h hops in every of O(poly n) versions of G independent of H. As a result, we have
+                                                                h
+                                       δG (ui , vi ) = |Pi | = δG (ui , vi ).
+
+We now prove that
+P                 P wX (ui vi ) = |Pi |. This will imply that there existsh an s → t path in X of weight
+     w   (u
+   i X i i  v ) ≤   i |Pi | = δG (s, t). If (ui , vi ) ∈ Ys , then wX (ui vi ) = δG (ui , vi ) by construction.
+     Suppose that (ui , vi ) ∈/ Ys . Then we simultaneously have ui ∈ C \ D, vi ∈ V \ D, and either
+πui ,vi does not exist in Π or πui ,vi ∈ Π \ ΠD , i.e., πui ,vi does not pass through a vertex of D. Let
+ui = cj ∈ C, where cj and Gj ⊆ G0 are defined as in Theorem 5.1. Since Pi is internally disjoint
+with C ∪ D, and vi ∈    / D, Pi contains no edges inserted in the current phase. Hence, Pi ⊆ Gj .
+
+
+                                                        32
+As a result, δGh (u , v ) ≤ |P | < ∞. This proves that π
+                j  i i        i                          ui ,vi = πcj ,vi exists in Π. But we also have
+πui ,vi ⊆ Gj − D ⊆ G0 − D ⊆ G − D, so δG (ui , vi ) ≤ |πui ,vi |. Finally, by Theorem 5.1, we obtain:
+                                                         h
+                           δG (ui , vi ) ≤ |πui ,vi | = δG j
+                                                             (ui , vi ) ≤ |Pi | = δG (ui , vi ).
+
+This proves that wG (ui , vi ) = δG (ui , vi ) = |Pi | also when (ui , vi ) ∈
+                                                                            / Ys .
+
+    We obtain the following combined worst-case update/query bound:
+                           2+ρ                                      
+                        e  hn         2    n3+ρ n2 b      2 1+ρ   n2
+                       O         + ∆h n +        +     +h n     +      .
+                              b             b∆     h∆             h
+    Note that there is no point in setting b < ∆, as increasing b to ∆ would not make harm because
+of the n2 /h term. So b ≥ ∆. If we aim at equal update and query time, there is no point in putting
+                                                        3+ρ
+b > ∆ either. For b = ∆ we need to balance ∆h2 n, n∆2 and n2 /h. We get ∆ = n/h3 and finally
+we balance n1+ρ h6 and n2 /h. For h = n(1−ρ)/7 , the update/query time is O(n(13+ρ)/7 ) = O(n1.933 ).
+We have thus proved.
+
+Theorem 9.3. Let G = (V, E) be unweighted digraph. There exists a Monte Carlo randomized
+data structure supporting fully dynamic single-edge updates to G and computing exact distances
+from an arbitrary query source s ∈ V to all other vertices in G in O(n1.933 ) worst-case time.
+                                 e 2−1/14 ).
+   If ω = 2, the bound becomes O(n
+
+
+References
+[ABF23]       Amir Abboud, Karl Bringmann, and Nick Fischer. Stronger 3-sum lower bounds for
+              approximate distance oracles via additive combinatorics. In Proceedings of the 55th
+              Annual ACM Symposium on Theory of Computing, STOC 2023, Orlando, FL, USA,
+              June 20-23, 2023, pages 391–404. ACM, 2023.
+
+[ABKZ22] Amir Abboud, Karl Bringmann, Seri Khoury, and Or Zamir. Hardness of approximation
+         in p via short cycle removal: cycle detection, distance oracles, and beyond. In STOC,
+         pages 1487–1500. ACM, 2022.
+
+[ACG12]       Ittai Abraham, Shiri Chechik, and Cyril Gavoille. Fully dynamic approximate distance
+              oracles for planar graphs via forbidden-set distance labels. In STOC, pages 1199–1218.
+              ACM, 2012.
+
+[ACK17]       Ittai Abraham, Shiri Chechik, and Sebastian Krinninger. Fully dynamic all-pairs short-
+              est paths with worst-case update-time revisited. In Proceedings of the Twenty-Eighth
+              Annual ACM-SIAM Symposium on Discrete Algorithms, SODA 2017, Barcelona,
+              Spain, Hotel Porta Fira, January 16-19, pages 440–452. SIAM, 2017.
+
+[ACT14]       Ittai Abraham, Shiri Chechik, and Kunal Talwar. Fully dynamic all-pairs shortest
+              paths: Breaking the o(n) barrier. In APPROX-RANDOM, volume 28 of LIPIcs, pages
+              1–16. Schloss Dagstuhl - Leibniz-Zentrum fuer Informatik, 2014.
+
+[AGMN92] Noga Alon, Zvi Galil, Oded Margalit, and Moni Naor. Witnesses for boolean matrix
+         multiplication and for shortest paths. In 33rd Annual Symposium on Foundations of
+         Computer Science, Pittsburgh, Pennsylvania, USA, 24-27 October 1992, pages 417–426.
+         IEEE Computer Society, 1992.
+
+                                                           33
+[AHR+ 19] Bertie Ancona, Monika Henzinger, Liam Roditty, Virginia Vassilevska Williams, and
+          Nicole Wein. Algorithms and hardness for diameter in dynamic graphs. In ICALP,
+          volume 132 of LIPIcs, pages 13:1–13:14. Schloss Dagstuhl - Leibniz-Zentrum für Infor-
+          matik, 2019.
+
+[AIMN91] Giorgio Ausiello, Giuseppe F. Italiano, Alberto Marchetti-Spaccamela, and Umberto
+         Nanni. Incremental algorithms for minimal length paths. J. Algorithms, 12(4):615–638,
+         1991.
+
+[AvdB23]   Anastasiia Alokhina and Jan van den Brand. Fully dynamic shortest path reporting
+           against an adaptive adversary. CoRR, abs/2304.07403, 2023.
+
+[AW14]     Amir Abboud and Virginia Vassilevska Williams. Popular conjectures imply strong
+           lower bounds for dynamic problems. In FOCS, pages 434–443. IEEE Computer Society,
+           2014.
+
+[AW21]     Josh Alman and Virginia Vassilevska Williams. A refined laser method and faster
+           matrix multiplication. In Proceedings of the 2021 ACM-SIAM Symposium on Discrete
+           Algorithms, SODA 2021, Virtual Conference, January 10 - 13, 2021, pages 522–539.
+           SIAM, 2021.
+
+[BC16]     Aaron Bernstein and Shiri Chechik. Deterministic decremental single source shortest
+           paths: beyond the o(mn) bound. In STOC, pages 389–397. ACM, 2016.
+
+[BC17]     Aaron Bernstein and Shiri Chechik. Deterministic partially dynamic single source
+           shortest paths for sparse graphs. In SODA, pages 453–469. SIAM, 2017.
+
+[Ber09]    Aaron Bernstein. Fully dynamic (2 + epsilon) approximate all-pairs shortest paths with
+           fast query and close to linear update time. In FOCS, pages 693–702. IEEE Computer
+           Society, 2009.
+
+[Ber16]    Aaron Bernstein. Maintaining shortest paths under deletions in weighted directed
+           graphs. SIAM J. Comput., 45(2):548–574, 2016. Announced at STOC’13.
+
+[Ber17]    Aaron Bernstein. Deterministic partially dynamic single source shortest paths in
+           weighted graphs. In ICALP, volume 80 of LIPIcs, pages 44:1–44:14. Schloss Dagstuhl
+           - Leibniz-Zentrum für Informatik, 2017.
+
+[BFN22]    Jan van den Brand, Sebastian Forster, and Yasamin Nazari. Fast deterministic fully
+           dynamic distance approximation. In 63rd IEEE Annual Symposium on Foundations of
+           Computer Science, FOCS 2022, Denver, CO, USA, October 31 - November 3, 2022,
+           pages 1011–1022. IEEE, 2022.
+
+[BGS20]    Aaron Bernstein, Maximilian Probst Gutenberg, and Thatchaphol Saranurak. Deter-
+           ministic decremental reachability, scc, and shortest paths via directed expanders and
+           congestion balancing. In FOCS, pages 1123–1134. IEEE, 2020.
+
+[BGS21]    Aaron Bernstein, Maximilian Probst Gutenberg, and Thatchaphol Saranurak. Deter-
+           ministic decremental SSSP and approximate min-cost flow in almost-linear time. In
+           FOCS, pages 1000–1008. IEEE, 2021.
+
+
+
+
+                                              34
+[BGW20]    Aaron Bernstein, Maximilian Probst Gutenberg, and Christian Wulff-Nilsen. Near-
+           optimal decremental SSSP in dense weighted digraphs. In FOCS, pages 1112–1122.
+           IEEE, 2020.
+
+[BHG+ 21] Thiago Bergamaschi, Monika Henzinger, Maximilian Probst Gutenberg, Virginia Vas-
+          silevska Williams, and Nicole Wein. New techniques and fine-grained hardness for
+          dynamic near-additive spanners. In SODA, pages 1836–1855. SIAM, 2021.
+
+[BHS07]    Surender Baswana, Ramesh Hariharan, and Sandeep Sen. Improved decremental algo-
+           rithms for maintaining transitive closure and all-pairs shortest paths. J. Algorithms,
+           62(2):74–92, 2007.
+
+[BN19]     Jan van den Brand and Danupon Nanongkai. Dynamic approximate shortest paths
+           and beyond: Subquadratic and worst-case update time. In 60th IEEE Annual Sympo-
+           sium on Foundations of Computer Science, FOCS 2019, Baltimore, Maryland, USA,
+           November 9-12, 2019, pages 436–455. IEEE Computer Society, 2019.
+
+[BNS19]    Jan van den Brand, Danupon Nanongkai, and Thatchaphol Saranurak. Dynamic matrix
+           inverse: Improved algorithms and matching conditional lower bounds. In FOCS, pages
+           456–480. IEEE Computer Society, 2019.
+
+[BR11]     Aaron Bernstein and Liam Roditty. Improved dynamic algorithms for maintaining
+           approximate shortest paths under deletions. In SODA, pages 1355–1365. SIAM, 2011.
+
+[Bra]      Jan     van      den      Brand.               Complexity  term     balancer.
+           www.ocf.berkeley.edu/~vdbrand/complexity/.        Tool to balance complexity
+           terms depending on fast matrix multiplication.
+
+[BS19]     Jan van den Brand and Thatchaphol Saranurak. Sensitive distance and reachability
+           oracles for large batch updates. In FOCS, pages 424–435. IEEE Computer Society,
+           2019.
+
+[Chu21]    Julia Chuzhoy. Decremental all-pairs shortest paths in deterministic near-linear time.
+           In STOC, pages 626–639. ACM, 2021.
+
+[CK19]     Julia Chuzhoy and Sanjeev Khanna. A new algorithm for decremental single-source
+           shortest paths with applications to vertex-capacitated flow and cut problems. In STOC,
+           pages 389–400. ACM, 2019.
+
+[CS21]     Julia Chuzhoy and Thatchaphol Saranurak. Deterministic algorithms for decremental
+           shortest paths via layered core decomposition. In SODA, pages 2478–2496. SIAM, 2021.
+
+[CZ21]     Shiri Chechik and Tianyi Zhang. Incremental single source shortest paths in sparse
+           digraphs. In SODA, pages 2463–2477. SIAM, 2021.
+
+[CZ23]     Shiri Chechik and Tianyi Zhang. Faster deterministic worst-case fully dynamic all-pairs
+           shortest paths via decremental hop-restricted shortest paths. In Proceedings of the 2023
+           ACM-SIAM Symposium on Discrete Algorithms, SODA 2023, Florence, Italy, January
+           22-25, 2023, pages 87–99. SIAM, 2023.
+
+[DFNV22] Michal Dory, Sebastian Forster, Yasamin Nazari, and Tijn de Vos. New tradeoffs for
+         decremental approximate all-pairs shortest paths. CoRR, abs/2211.01152, 2022.
+
+
+                                               35
+[DI01]     Camil Demetrescu and Giuseppe F. Italiano. Fully dynamic all pairs shortest paths
+           with real edge weights. In FOCS, pages 260–267. IEEE Computer Society, 2001.
+
+[DI02]     Camil Demetrescu and Giuseppe F. Italiano. Improved bounds and new trade-offs for
+           dynamic all pairs shortest paths. In ICALP, volume 2380 of Lecture Notes in Computer
+           Science, pages 633–643. Springer, 2002.
+
+[DI04]     Camil Demetrescu and Giuseppe F. Italiano. A new approach to dynamic all pairs
+           shortest paths. J. ACM, 51(6):968–992, 2004. Announced at STOC’03.
+
+[DI05]     Camil Demetrescu and Giuseppe F. Italiano. Trade-offs for fully dynamic transitive
+           closure on dags: breaking through the o(n2 barrier. J. ACM, 52(2):147–156, 2005.
+
+[DI08]     Camil Demetrescu and Giuseppe F. Italiano. Mantaining dynamic matrices for fully
+           dynamic transitive closure. Algorithmica, 51(4):387–427, 2008.
+
+[DWZ22]    Ran Duan, Hongxun Wu, and Renfei Zhou. Faster matrix multiplication via asymmetric
+           hashing. CoRR, abs/2210.10173, 2022.
+
+[EFGW21] Jacob Evald, Viktor Fredslund-Hansen, Maximilian Probst Gutenberg, and Christian
+         Wulff-Nilsen. Decremental APSP in unweighted digraphs versus an adaptive adversary.
+         In ICALP, volume 198 of LIPIcs, pages 64:1–64:20. Schloss Dagstuhl - Leibniz-Zentrum
+         für Informatik, 2021.
+
+[ES81]     Shimon Even and Yossi Shiloach. An on-line edge-deletion problem. J. ACM, 28(1):1–4,
+           1981.
+
+[FGH21]    Sebastian Forster, Gramoz Goranci, and Monika Henzinger. Dynamic maintenance of
+           low-stretch probabilistic tree embeddings with applications. In SODA, pages 1226–
+           1245. SIAM, 2021.
+
+[FGNS23] Sebastian Forster, Gramoz Goranci, Yasamin Nazari, and Antonis Skarlatos. Bootstrap-
+         ping dynamic distance oracles. In 31st Annual European Symposium on Algorithms,
+         ESA 2023, September 4-6, 2023, Amsterdam, The Netherlands, volume 274 of LIPIcs,
+         pages 50:1–50:16. Schloss Dagstuhl - Leibniz-Zentrum für Informatik, 2023.
+
+[FMNZ01] Daniele Frigioni, Tobias Miller, Umberto Nanni, and Christos D. Zaroliagis. An exper-
+         imental study of dynamic algorithms for transitive closure. ACM J. Exp. Algorithmics,
+         6:9, 2001.
+
+[GR21]     Yong Gu and Hanlin Ren. Constructing a distance sensitivity oracle in o(nˆ2.5794 M)
+           time. In ICALP, volume 198 of LIPIcs, pages 76:1–76:20. Schloss Dagstuhl - Leibniz-
+           Zentrum für Informatik, 2021.
+
+[GU18]     Francois Le Gall and Florent Urrutia. Improved rectangular matrix multiplication
+           using powers of the coppersmith-winograd tensor. In Proceedings of the Twenty-Ninth
+           Annual ACM-SIAM Symposium on Discrete Algorithms, SODA 2018, New Orleans,
+           LA, USA, January 7-10, 2018, pages 1029–1046. SIAM, 2018.
+
+[GW20a]    Maximilian Probst Gutenberg and Christian Wulff-Nilsen. Decremental SSSP in
+           weighted digraphs: Faster and against an adaptive adversary. In SODA, pages 2542–
+           2561. SIAM, 2020.
+
+
+                                              36
+[GW20b]    Maximilian Probst Gutenberg and Christian Wulff-Nilsen. Fully-dynamic all-pairs
+           shortest paths: Improved worst-case time and space bounds. In SODA, pages 2562–
+           2574. SIAM, 2020.
+
+[GWW20] Maximilian Probst Gutenberg, Virginia Vassilevska Williams, and Nicole Wein. New
+        algorithms and hardness for incremental single-source shortest paths in directed graphs.
+        In STOC, pages 153–166. ACM, 2020.
+
+[HK95]     Monika Rauch Henzinger and Valerie King. Fully dynamic biconnectivity and transitive
+           closure. In FOCS, pages 664–672. IEEE Computer Society, 1995.
+
+[HKN13]    Monika Henzinger, Sebastian Krinninger, and Danupon Nanongkai. Sublinear-time
+           maintenance of breadth-first spanning tree in partially dynamic networks. In ICALP
+           (2), volume 7966 of Lecture Notes in Computer Science, pages 607–619. Springer, 2013.
+
+[HKN14]    Monika Henzinger, Sebastian Krinninger, and Danupon Nanongkai. Sublinear-time
+           decremental algorithms for single-source reachability and shortest paths on directed
+           graphs. In STOC, pages 674–683. ACM, 2014.
+
+[HKN16]    Monika Henzinger, Sebastian Krinninger, and Danupon Nanongkai. Dynamic approxi-
+           mate all-pairs shortest paths: Breaking the O(mn) barrier and derandomization. SIAM
+           J. Comput., 45(3):947–1006, 2016. Announced at FOCS’13.
+
+[HKNS15] Monika Henzinger, Sebastian Krinninger, Danupon Nanongkai, and Thatchaphol Sara-
+         nurak. Unifying and strengthening hardness for dynamic problems via the online
+         matrix-vector multiplication conjecture. In STOC, pages 21–30. ACM, 2015.
+
+[HP98]     Xiaohan Huang and Victor Y. Pan. Fast rectangular matrix multiplication and appli-
+           cations. J. Complex., 14(2):257–299, 1998.
+
+[Ita86]    Giuseppe F. Italiano. Amortized efficiency of a path retrieval data structure. Theor.
+           Comput. Sci., 48(3):273–281, 1986.
+
+[JX22]     Ce Jin and Yinzhan Xu. Tight dynamic problem lower bounds from generalized BMM
+           and omv. In STOC ’22: 54th Annual ACM SIGACT Symposium on Theory of Com-
+           puting, Rome, Italy, June 20 - 24, 2022, pages 1515–1528. ACM, 2022.
+
+[Kin99]    Valerie King. Fully dynamic algorithms for maintaining all-pairs shortest paths and
+           transitive closure in digraphs. In FOCS, pages 81–91. IEEE Computer Society, 1999.
+
+[KL19]     Adam Karczmarz and Jakub Lacki. Reliable hubs for partially-dynamic all-pairs short-
+           est paths in directed graphs. In ESA, volume 144 of LIPIcs, pages 65:1–65:15. Schloss
+           Dagstuhl - Leibniz-Zentrum für Informatik, 2019.
+
+[KL20]     Adam Karczmarz and Jakub Lacki. Simple label-correcting algorithms for partially
+           dynamic approximate shortest paths in directed graphs. In 3rd Symposium on Sim-
+           plicity in Algorithms, SOSA 2020, Salt Lake City, UT, USA, January 6-7, 2020, pages
+           106–120. SIAM, 2020.
+
+[KMG22]    Rasmus Kyng, Simon Meierhans, and Maximilian Probst Gutenberg. Incremental SSSP
+           for sparse digraphs beyond the hopset barrier. In SODA, pages 3452–3481. SIAM, 2022.
+
+
+
+                                              37
+[KMS22]   Adam Karczmarz, Anish Mukherjee, and Piotr Sankowski. Subquadratic dynamic path
+          reporting in directed graphs against an adaptive adversary. In STOC ’22: 54th Annual
+          ACM SIGACT Symposium on Theory of Computing, Rome, Italy, June 20 - 24, 2022,
+          pages 1643–1656. ACM, 2022.
+[KS02]    Valerie King and Garry Sagert. A fully dynamic algorithm for maintaining the transitive
+          closure. J. Comput. Syst. Sci., 65(1):150–167, 2002. Announced at STOC’99.
+[KS23]    Adam Karczmarz and Piotr Sankowski. Sensitivity and dynamic distance oracles via
+          generic matrices and Frobenius form. CoRR, abs/2308.08870, 2023.
+[Lac11]   Jakub Lacki. Improved deterministic algorithms for decremental transitive closure and
+          strongly connected components. In SODA, pages 1438–1445. SIAM, 2011.
+[LO88]    Christos Levcopoulos and Mark H. Overmars. A balanced search tree with O (1)
+          worst-case update time. Acta Informatica, 26(3):269–277, 1988.
+[Mao23]   Xiao Mao. Fully-dynamic all-pairs shortest paths: Likely optimal worst-case update
+          time. CoRR, abs/2306.02662, 2023.
+[Mun71]   J. Ian Munro. Efficient determination of the transitive closure of a directed graph. Inf.
+          Process. Lett., 1(2):56–58, 1971.
+[Rod08]   Liam Roditty. A faster and simpler fully dynamic transitive closure. ACM Trans.
+          Algorithms, 4(1):6:1–6:16, 2008.
+[RZ11]    Liam Roditty and Uri Zwick. On dynamic shortest paths problems. Algorithmica,
+          61(2):389–401, 2011.
+[RZ12]    Liam Roditty and Uri Zwick. Dynamic approximate all-pairs shortest paths in undi-
+          rected graphs. SIAM J. Comput., 41(3):670–683, 2012. Announced at FOCS’04.
+[San04]   Piotr Sankowski. Dynamic transitive closure via dynamic matrix inverse (extended
+          abstract). In 45th Symposium on Foundations of Computer Science (FOCS 2004), 17-
+          19 October 2004, Rome, Italy, Proceedings, pages 509–517. IEEE Computer Society,
+          2004.
+[San05]   Piotr Sankowski. Subquadratic algorithm for dynamic shortest distances. In Computing
+          and Combinatorics, 11th Annual International Conference, COCOON 2005, Kunming,
+          China, August 16-29, 2005, Proceedings, volume 3595 of Lecture Notes in Computer
+          Science, pages 461–470. Springer, 2005.
+[San07]   Piotr Sankowski. Faster dynamic matchings and vertex connectivity. In SODA, pages
+          118–126. SIAM, 2007.
+[SM10]    Piotr Sankowski and Marcin Mucha. Fast dynamic transitive closure with lookahead.
+          Algorithmica, 56(2):180–197, 2010.
+[Tar72]   Robert Endre Tarjan. Depth-first search and linear graph algorithms. SIAM J. Com-
+          put., 1(2):146–160, 1972.
+[Tho04]   Mikkel Thorup. Fully-dynamic all-pairs shortest paths: Faster and allowing negative
+          cycles. In SWAT, volume 3111 of Lecture Notes in Computer Science, pages 384–396.
+          Springer, 2004.
+
+                                               38
+[Tho05]     Mikkel Thorup. Worst-case update times for fully-dynamic all-pairs shortest paths. In
+            Proceedings of the 37th Annual ACM Symposium on Theory of Computing, Baltimore,
+            MD, USA, May 22-24, 2005, pages 112–119. ACM, 2005.
+[UY91]      Jeffrey D. Ullman and Mihalis Yannakakis. High-probability parallel transitive-closure
+            algorithms. SIAM J. Comput., 20(1):100–125, 1991.
+[WXXZ23] Virginia Vassilevska Williams, Yinzhan Xu, Zixuan Xu, and Renfei Zhou. New bounds
+         for matrix multiplication: from alpha to omega. CoRR, abs/2307.07970, 2023.
+[Zwi02]     Uri Zwick. All pairs shortest paths using bridging sets and rectangular matrix multi-
+            plication. J. ACM, 49(3):289–317, 2002.
+
+
+A     Algebraic data structure (Theorem 3.1)
+In this section we show the algebraic subroutine used by our dynamic graph algorithms. The
+dynamic algorithm is based on the reduction from dynamic distance to dynamic matrix inverse from
+[San05] and it’s deterministic equivalent from [BFN22]. The dynamic matrix inverse algorithm will
+imply the following dynamic distance result.
+Theorem 3.1 (Modification to [San05], proof in Appendix A). Let G = (V, E) be a fully dynamic
+unweighted digraph. Let h ∈ [1, n]. Let Y ⊆ V × V be a dynamic set. For any µ, δ ∈ [0, 1], there
+                                                              h (s, t) for all (s, t) ∈ Y and supporting:
+exists a deterministic data structure maintaining the values δG
+                                  e 2 · (nω(1,µ,1)−µ + n1+µ + |Y |)) worst-case time,
+    • single-edge updates to G in O(h
+                                                   e 2 nω(1,δ,1) ) worst-case time,
+    • batches of at most nδ vertex updates to G in O(h
+                                        e 2 nµ ) time,
+    • single-element insertions to Y in O(h
+    • removing elements from Y in O(1) time.
+    Theorem 3.1 is obtained from the following dynamic matrix inverse data structure. Note that
+unlike Theorem 3.1, Lemma A.1 measures the complexity in the number of arithmetic operations.
+This is because depending on what field or ring the matrix M is from, one iteration may take more
+than O(1) time. In particular when we later reduce dynamic distance to dynamic matrix inverse
+in order to prove Theorem 3.1, one arithmetic operation will take Õ(h2 ) time.
+Lemma A.1. Let M be a dynamic n × n matrix receiving entry updates that is promised to stay
+non-singular throughout all updates. Let Y ⊆ [n] × [n] be a dynamic set. For any µ ∈ [0, 1],
+there exists a deterministic data structure maintaining the values (M−1 )s,t for all (s, t) ∈ Y and
+supporting:
+    • single-entry updates to M in O(nω(1,µ,1)−µ + n1+µ + |Y |) operations in worst-case,
+    • rank nδ updates to M for any δ ∈ [0, 1] in O(nω(1,δ,1) ) operations in worst-case,
+    • single-element insertions to Y in O(nµ ) operations,
+    • removing elements from Y in O(1) time.
+Proof. The data structure internally maintains n × n matrices N and n × k matrices L, R (with
+k ≤ nµ ) such that
+                                          M−1 = N − LR⊤ .                                            (3)
+Further, the data structure explicitly maintains the values M−1
+                                                             s,t for all s, t ∈ Y .
+
+
+                                                   39
+Initialization. During initialization, the data structure computes M−1 in O(nω ) operations and
+stores this inverse as N. The matrices L, R are initialized as all-0 matrices. In particular, since we
+compute M−1 explicitly, we know M−1  s,t for all s, t ∈ Y .
+
+
+Update to set Y . When an index pair (s, t) is added to set Y , we must compute M−1       s,t . By
+                                                            µ                       µ
+representation (3) and matrices L, R consisting of at most n columns, this takes O(n ) operations.
+When deleting an index pair from Y , we do not need to compute anything so such an update takes
+O(1) time.
+
+Entry update to M. When matrix M changes, we must update the representation (3). By the
+Sherman-Morrison identity we have for any two vectors u, v that
+                                                      M−1 u v ⊤ M−1
+                              (M + uv ⊤ )−1 = M−1 −                    .                        (4)
+                                                        1 + v ⊤ M−1 u
+When M changes in a single entry, then vectors u, v have only one non-zero entry so the products
+M−1 u and v ⊤ M−1 consist of reading one row and column of M−1 . By the representation (3) and
+R, L having at most nµ columns, this takes O(n1+µ ) operations.
+     Let u′ := M−1 u/(1 + v ⊤ M−1 u) and v ′ = (v ⊤ M−1 )⊤ , then we can set L ← [L|u′ ], R ← [R|v ′ ]
+(i.e. append these vectors to matrices L, R) and thus have
+                                                     M−1 u v ⊤ M−1
+                              (M + uv ⊤ )−1 = M−1 −
+                                                      1 + v ⊤ M−1 u
+                                             = M−1 − u′ v ′⊤
+                                             = N − LR⊤ − u′ v ′⊤
+                                             = N − [L|u′ ][R|v ′ ]⊤
+so we again satisfy (3).
+   Note that every nµ updates, the matrices L, R have nµ columns. To guarantee these matrices
+never have more columns than that, we set N ← N + LR⊤ using O(nω(1,1,µ) ) operations every nµ
+updates, which is O(nω(1,1,µ)−µ ) amortized time per update.
+   At last, note that we must maintain M−1 s,t for all s, t ∈ Y . This can be done via
+
+                                   (M + uv ⊤ )−1     −1     ′ ′
+                                              s,t = Ms,t − us vt .
+
+Which takes O(|Y |) time per update.
+
+Low rank update to M. Consider a rank nδ update to M, i.e., we are given two matrices U, V
+of size n × nδ and want to update M ← M + UV⊤ . For these updates we update matrix N in (3)
+but not L or R. The Woodbury identity states that
+                   (M + UV⊤ )−1 = M−1 − M−1 U(I + V⊤ M−1 U)−1 V⊤ M−1 .                            (5)
+
+Here we can compute M−1 U = (N − LR⊤ )U and V⊤ M−1 = V⊤ (N − LR⊤ ) in O(nω(1,1,δ) )
+operations. In total, computing M−1 U(I + V⊤ M−1 U)−1 V⊤ M−1 takes O(nω(1,1,δ) + nω(1,δ,δ) +
+nδω ) = O(nω(1,1,δ) ) operations. We subtract the result from N in O(n2 ) operations, which is
+subsumed by the previous complexity terms. After this update, we still satisfy (3) because
+                 (M + UV⊤ )−1 = M−1 − M−1 U(I + V⊤ M−1 U)−1 V⊤ M−1
+                                 = N − M−1 U(I + V⊤ M−1 U)−1 V⊤ M−1 −LR⊤ .
+                                   |              {z              }
+                                                      new N
+
+
+                                                 40
+Worst-case update time Note that the rank nδ update does not affect the size of L or R, so the
+reset happens after exactly every nµ element updates. So the amortized O(nω(1,1,µ)−µ + n1+µ + |Y |)
+update time can be made worst-case via standard technique, see e.g. [BNS19, Appendix B].
+
+   Lemma A.1 can be extended to dynamic matrix inverse for polynomial matrices. Note that for
+a polynomial matrix, the inverse might not exist since it’s a matrix over a ring instead of a field.
+The following Corollary A.2 verifies that all the required inverses are well-defined.
+
+Corollary A.2. Let A be a dynamic n × n matrix receiving entry updates, h ∈ [1, n], and M :=
+(I − XA) ∈ (F[X]/hX h+1 i)n×n . Let Y ⊆ [n] × [n] be a dynamic set. For any µ ∈ [0, 1], there exists
+a deterministic data structure maintaining the values (M−1 )s,t for all (s, t) ∈ Y and supporting:
+                                  e · (nω(1,µ,1)−µ + n1+µ + |Y |)) operations in worst-case,
+   • single-entry updates to A in O(h
+                                                e · nω(1,δ,1) ) operations in worst-case,
+   • rank nδ updates to A for any δ ∈ [0, 1] in O(h
+                                       e · nµ ) operations,
+   • single-element insertions to Y in O(h
+
+   • removing elements from Y in O(1) time.
+
+Proof. The proof follows the common technique of extending dynamic matrix inverse to polynomial
+matrices [San04, BNS19, BFN22]. First, note that the inverse of M exists and is given by
+                                                                 h
+                                                                 X
+                                                        −1
+                                        (I − XA)             =         X k Ak .
+                                                                 k=0
+
+This is because
+                         h
+                                        !       h                 h+1
+                         X                      X                 X
+             (I − XA)          X k Ak       =         X k Ak −          X k Ak = I − X h+1 Ah+1 = I,
+                         k=0                    k=0               k=1
+
+where the last step uses that the entries of the matrix come from F[X]/hX h+1 i, i.e. all arithmetic
+of the matrix entries is performed modulo X h+1 , so X h+1 Ah+1 is an all-zero matrix.
+    We obtain Corollary A.2 by running Lemma A.1 on the matrix M := (I − XA). Note that the
+                                     e
+complexity increases by a factor of O(h)  because the arithmetic operations are now performed on
+polynomials of degree at most h.
+    The algorithm from Lemma A.1 works on polynomial matrices, because the division in (4) and
+inversion of (5) are well defined. To see this, note that an update to M = (I − XA) is given
+by an update to A. So we can assume that vector u in (4) (and likewise matrix U in (5)) is a
+multiple of X. Thus, the denominator in (4) is a polynomial of form (1 + X · P (x)) (and the to be
+inverted
+    Ph matrix    in (5) is of form
+                               Ph I + XB,  where B is a polynomial matrix) whose inverse is given
+by k=0 X (−P (X)) (and k=0 X (−B)k ).
+            k          k              k
+
+
+    We can now prove Theorem 3.1 via the reduction from dynamic distance to dynamic matrix
+inverse by [San05].
+
+Proof of Theorem 3.1. We maintain the distances in a dynamic graph via a reduction by Sankowski
+[San05] (and its deterministic variant from [BFN22]). Note that
+                                                h
+                                                X
+                          (I − XA)−1 =                 X k Ak ∈ (F[X]/hX h+1 i)n×n
+                                                 k=0
+
+
+                                                          41
+and when A is an adjacency matrix, we have that (Ak )s,t is the number of (not necessarily simple)
+paths from s to t of length k. In particular, the smallest k such that Aks,t 6= 0 is the st-distance.
+So by maintaining the inverse of (I − XA) for adjacency matrix A via data structure Lemma A.1
+we can maintain h-bounded distances by just checking the entries of (I − XA)−1 .
+    The maximum number of paths is bounded by nh , so we can pick as field F = Zp for some prime
+of size nh ≤ p ≤ 2nh . Here every arithmetic operation in Zp takes O(h) time in the Word-RAM
+model with word size O(log n). Thus the time complexity increases by a factor O(h) compared to
+Corollary A.2.
+
+
+B     Omitted proofs
+Lemma 4.1. For any b ∈ [1, n], there exists a dynamic data structure maintaining G and supporting
+submatrix predecessor queries (S, Y ) in
+                                   n                                    
+                                O      · |S| · Qsource (n, h) + |Y | · b
+                                     b
+                                                                                            
+time. The update and initialization times are O nb · Usource (n, h) and O nb · Isource (n, h) resp.
+Proof. Suppose we identify V with {1, . . . , n}. Let us partition V into q = O(n/b) blocks V1 , . . . , Vq
+of ≤ b consecutive integers. Moreover, let V ′ be a copy               ′
+                                                      Si of V , V ∩ V = ∅, such that each v ∈ V has
+                                ′      ′
+a unique corresponding vertex v ∈ V . Set V≤i := j=1 Vj for i ≥ 0. For each i = 1, . . . , q, define:
+                                                                              
+                      Gi := V ∪ V ′ , E(G) ∪ uv ′ : uv ∈ E(G) and u ∈ V≤i .
+
+Note that with graphs Gi defined as above, a single-edge update to G leads to at most two single-
+edge updates in each Gi . Similarly, if vertex updates are supported, then a vertex update to G can
+be reflected in each Gi using O(1) vertex updates therein. Moreover, we have Gq = G.
+     Observe that for any u, v ∈ V , u 6= v, there is a 1-1 correspondence between u → v paths
+P = P ′ · xv in G with x ∈ V≤i and paths u → v ′ = P ′ · xv ′ in Gi . As a result, we have
+δGh (u, v) = δ h (u, v ′ ) iff some shortest h-bounded path in G has the penultimate vertex in V .
+               Gi                                                                                      ≤i
+Moreover, every path in G is preserved in Gi [V ], so δG h (u, v) = δ h (u, v) for all i.
+                                                                     Gi
+     We construct and maintain data structures D(G1 ), . . . , D(Gq ). Since theq = O(n/b) graphs Gi
+are at most twice as large as G, the initialization time is O nb · Isource (n, h) and the update time
+is O nb · Usource (n, h) .
+     Upon query (S, Y ), for each s ∈ S we issue a single-source query to each D(Gi ), so that the
+values δG h (s, t) for all (s, t) ∈ S × V and i are computed. This takes O((n/b) · |S| · Q
+           i                                                                                source (n, h))
+time. Within the same bound, for each (s, t) ∈ S × V , we (naively) locate the smallest index is,t
+such that δG h    (s, t′ ) = δGh (s, t′ ).
+               i
+              s,t               q
+
+     For each (s, t) ∈ Y , we find the predecessor on some shortest h-bounded s → t path in G as
+follows. Find the first vertex ps,t ∈ Vis,t such that ps,t t ∈ E(G) and δG     h (s, t′ ) = δ h (s, p ) + 1, and
+                                                                                q            Gq      s,t
+report ps,t as the sought predecessor. Since |Vis,t | ≤ b, through all (s, t) this takes O(|Y |b) time.
+     We now argue that the above is correct. By the definition of is,t , we have either is,t = 1 or
+  h
+δGi −1 (s, t) > δG h (s, t). As a result, (1) no shortest h-bounded s → t path in G = G has the
+                    q                                                                                    q
+    s,t
+penultimate vertex in V≤(is,t −1) , (2) at least one such path has the penultimate vertex in V≤is,t .
+But V≤is,t \ V≤(is,t −1) = Vis,t and thus the penultimate vertex z on each such path has to satisfy
+z ∈ Vis,t , zt ∈ E(G) and δG h (s, z) + 1 = δ h (s, t). On the other hand, any z satisfying this condition
+                                             G
+is a valid predecessor vertex. By δG    h (s, t′ ) = δ h (s, t) and δ h (s, z) = δ h (s, z) we obtain that the
+                                          q            G             Gq           G
+found vertex ps,t is a valid predecessor.
+
+                                                      42
+Lemma 4.2. For any b ∈ [1, n], there exists a dynamic data structure maintaining G and supporting
+submatrix predecessor queries (S, Y ) in
+
+                         O (|S| · Qsource (n, h) + |Y | · Qpair (n, h) · log n + |Y | · b)
+                                                                                                          
+time.      The update and  initialization            times    are    O Usource (n, h) + nb · Upair (n, h)    and
+O Isource (n, h) + nb · Ipair (n, h) respectively.
+
+Proof. We will only describe the changes needed to make to the construction of Lemma 4.1. We
+use only one data structure D(G); for the q = O(n/b) auxiliary graphs Gi , we use data structures
+D ′ (G1 ), . . . , D ′ (Gq ). The update and initialization bounds follow easily.
+     Recall that in the proof of Lemma 4.1, once we have computed, for each (s, t) ∈ Y , the smallest
+index is,t such that δG        h               h (s, t′ ) = δ h (s, t), locating the desired predecessors required
+                                   (s, t′ ) = δG
+                           s,t   i               q           G
+O(|Y |b) additional time. The values δG        h (s, t) for all (s, t) ∈ Y can be clearly computed by issuing
+
+|S| single-source queries to D(G), i.e., in O(|S| · Qsource (n, h)) time. By G1 ⊆ G2 ⊆ . . . ⊆ Gq , we
+have δGh (s, t′ ) ≥ δ h (s, t′ ) ≥ . . . ≥ δ h (s, t′ ) = δ h (s, t). As a result, the desired smallest i
+         1           G2                     Gq             G                                             s,t such
+that δGi (s, t ) = δG (s, t) can be located via binary search using O(log n) queries about δGi (s, t′ )
+       h         ′     h                                                                                 h
+         s,t
+issued to D ′ (Gi ). Each of these queries costs Qpair (n, h) time.
+
+Lemma 4.4. Let h ∈ [1, n]. Let D(G) be a data structure maintaining a fully dynamic unweighted
+digraph G = (V, E) subject to single-edge updates in U (n, h) time per update, and possibly also
+vertex updates, and supporting submatrix predecessor queries (S, Y ) in Q(|S|, |Y |) time.
+    Let W ⊆ V be a dynamic subset. Then there exists a data structure D ′ supporting the same
+set of updates to G and supporting submatrix predecessor queries (S, Y ) in the induced subgraph
+G[W ] in O(Q(|S|, |Y |)) time. D ′ (G) processes updates to G within asymptotically the same time
+that D(G) needs for processing the respective updates to G. Moreover, a single-element update to W
+can be performed in O(U (n, h)) time.
+
+Proof. Let a graph GW = (V ′ , E ′ ) be obtained as follows. For each v ∈ V , there are two copies v +
+and v − of v in V ′ , and an auxiliary edge ev = v + v − ∈ E ′ iff v ∈ W . Moreover, each edge uv ∈ E
+gives rise to the edge u− v + in E ′ . This way, |V ′ | = 2|V | and |E ′ | = |E| + |W |.
+    Clearly, an edge update to G can be simulated using a single edge update to GW . Similarly, a
+vertex update to G can be simulated using O(1) vertex updates to GW . Finally, an element update
+to W translates to a single auxiliary edge update to GW . We set D ′ (G) := D(GW ).
+    Observe a 1-1 correspondence of k-edge paths P = s → t in G[W ] and 2k-edge paths s+ → t+
+in GW . Moreover, no odd-length s+ → t+ path exists in GW . As a result, we have δG          h (s, t) =
+1     2h + +
+2 · δG (s , t ). The submatrix predecessor query (S, Y ) in G[W ] is translated to the query
+({s : s ∈ S}, {(s+ , t+ ) : (s, t) ∈ Y }) issued to GW . By the path correspondence and the fact that
+    +
+
+all incoming edges of t+ in GW correspond to original incoming edges of t in G, we can indeed
+answer a submatrix predecessor query on G[W ] in O(Q(|S|, |Y |)) time.
+
+
+
+
+                                                        43
+

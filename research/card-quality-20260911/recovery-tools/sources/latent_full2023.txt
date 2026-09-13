@@ -1,0 +1,3064 @@
+                                                 Learning and Testing Latent-Tree Ising Models Efficiently
+                                         Davin Choo∗2 , Yuval Dagan†1 , Constantinos Daskalakis‡1 and Anthimos-Vardis Kandiros§1
+                                                         1
+                                                             Department of Electrical Engineering and Computer Science, MIT
+                                                                 2
+                                                                   School of Computing, National University of Singapore
+arXiv:2211.13291v2 [cs.LG] 10 Jul 2023
+
+
+
+
+                                                                                          July 11, 2023
+
+
+
+                                                                                             Abstract
+                                                     We provide time- and sample-efficient algorithms for learning and testing latent-tree Ising
+                                                 models, i.e. Ising models that may only be observed at their leaf nodes. On the learning side, we
+                                                 obtain efficient algorithms for learning a tree-structured Ising model whose leaf node distribution
+                                                 is close in Total Variation Distance, improving on the results of Cryan et al. [2001]. On the
+                                                 testing side, we provide an efficient algorithm with fewer samples for testing whether two latent-
+                                                 tree Ising models have leaf-node distributions that are close or far in Total Variation distance.
+                                                 We obtain our algorithms by showing novel localization results for the total variation distance
+                                                 between the leaf-node distributions of tree-structured Ising models, in terms of their marginals
+                                                 on pairs of leaves.
+
+
+                                         1       Introduction
+                                         Statistical estimation and hypothesis testing challenges involving high-dimensional distributions are
+                                         central in Statistics, Machine Learning and various other theoretical and applied ﬁelds. Core to
+                                         this challenge is the fact that even the most basic of those challenges require exponential sample
+                                         sizes in the dimension to solve if no structural or parametric assumptions are placed on the under-
+                                         lying distributions; see e.g. Daskalakis and Pan [2017], Canonne et al. [2017], Acharya et al. [2018],
+                                         Daskalakis et al. [2019] for discussions of this point and further references.
+                                             The afore-described exponential sample-size barriers motivate the study of models that sidestep
+                                         those requirements, e.g. models encapsulating conditional independence structure in the distribution,
+                                         such as Markov Random Fields (MRFs) and Bayesian networks. In turn, a vast line of research
+                                         has studied statistical inference questions involving MRFs and Bayesnets and their applications;
+                                         see e.g. Pearl [1988], Lauritzen [1996], Jordan [2004], Koller and Friedman [2009] for an introduc-
+                                         tion to graphical models, their uses, and associated inference algorithms, and see e.g. Chow and Liu
+                                         [1968], Chow and Wagner [1973], Narasimhan and Bilmes [2004], Ravikumar et al. [2010], Tan et al.
+                                         [2011], Jalali et al. [2011], Santhanam and Wainwright [2012], Bresler [2015], Vuﬀray et al. [2016],
+                                             ∗
+                                               davin@u.nus.edu
+                                             †
+                                               dagan@csail.mit.edu
+                                             ‡
+                                               costis@csail.mit.edu
+                                             §
+                                               kandiros@mit.edu
+
+
+                                                                                                 1
+Klivans and Meka [2017], Hamilton et al. [2017], Dagan et al. [2021], Kandiros et al. [2021], Daskalakis and Pan
+[2021], Bhattacharyya et al. [2021], Vuﬀray et al. [2022] and the references in the previous paragraph
+for some classical work and some recent theoretical progress on learning and testing graphical models
+as well as other types of statistical inference with them.
+     Despite the vast study of graphical models, and a recent burst of activity towards computa-
+tionally and statistically eﬃcient algorithms for inference with them, a broad outstanding chal-
+lenge in this space lies in computationally eﬃcient inference with graphical models that have la-
+tent variables. Those are widely motivated in practice (see e.g. Aigner et al. [1984], Bishop [1998],
+Everett [2013], Bartholomew et al. [2011], Felsenstein [1973]) but inference with them is known
+to be computationally intractable in general. For example, learning graphical models with la-
+tent variables in total variation distance is known to be intractable, even when the underlying
+graph is a tree [Mossel and Roch, 2005], while in the absence of latent nodes the same problem
+is computationally tractable, owing to classical work of Chow and Liu [1968] and its recent analy-
+sis [Daskalakis and Pan, 2021, Bhattacharyya et al., 2021]. Similarly, computing the likelihood of a
+tree-structured graphical model is tractable in the absence of latent nodes, but becomes intractable
+in the presence of latent nodes [Chor and Tuller, 2005, Roch, 2006]. These computational challenges
+become more daunting when the underlying graph gets cyclic, and the overall diﬃculty of handling
+latent variables has motivated the development of an array of widely-used approximate inference
+methods, such as the expectation-maximization algorithm of Dempster et al. [1977] and variational
+inference (see e.g. Blei et al. [2017] for a survey).
+     A main goal of this work is to advance the frontier of computationally eﬃcient learning and
+testing of graphical models with latent variables. While learning general tree MRFs over general
+alphabets is hard [Mossel and Roch, 2005], we focus on the binary-alphabet tree-structured Ising
+models, which have found extensive use in phylogenetics [Felsenstein, 1973]. We focus on two
+inference goals:
+   1. (Proper Learning): Given sample access to the distribution at the leaves of a tree-structured
+      Ising model P, we want to learn a tree-structured Ising model Q whose leaf-node distribution
+      is ε-close it total variation distance to that of P.
+
+   2. (Identity Testing): Given sample access to the distribution at the leaves of two tree-
+      structured Ising models P and Q with the same leaf set, we want to distinguish whether
+      the leaf-node distributions of P and Q are equal or at least ε-far in total variation distance.
+We provide computationally and statistically eﬃcient algorithms for both Goals 1 and 2. Our contri-
+bution to Goal 1 is an algorithm whose time- and sample- complexity provide substantial improve-
+ments compared to the algorithm by Cryan et al. [2001] as well as the algorithm by Mossel and Roch
+[2005], which requires restricting the correlations across the edges of the Ising model. We also im-
+prove upon work in the phylogenetic literature (see Section 3) which has focused on identifying
+the latent tree-structure of the model but also requires restrictions on the Ising model to achieve
+this. We ﬁnally note that, because we are targeting binary alphabet models, the computational
+intractability results of Mossel and Roch [2005] for learning tree-structured graphical models with
+latent variables do not apply to Goal 1.
+    On the technical front, a fruitful approach towards statistical inference with graphical models
+uses the paradigm of localization, whose goal is to localize the diﬀerence between two graphical
+models to diﬀerences of their marginals involving a small number of variables. Such localization
+properties can be used to distinguish between models for the purposes of hypothesis testing, or
+
+                                                 2
+exploited to learn graphical models or perform hypothesis selection. Localization of the KL di-
+vergence between two Bayesian networks with the same DAG follows directly from their shared
+factorization, which implies that the KL divergence between the two Bayesnets is upper bounded
+by the sum of the KL divergences of their marginals on diﬀerent neighborhoods of the graph, involv-
+ing a node and its parents. Similar subadditivity results have been established for total variation
+and square Hellinger distance [Daskalakis and Pan, 2017] as well as for other distances, for MRFs,
+and for causal models [Acharya et al., 2018, Daskalakis et al., 2019, Ding et al., 2021]. They are also
+known for comparing graphical models on different graphs, as long as the underlying graphs are
+trees Daskalakis and Pan [2017]. In turn, the afore-described localization results have been exploited
+to show that the celebrated Chow and Liu [1968] algorithm learns tree-structured Ising models with
+optimal sample complexity Daskalakis and Pan [2021] and to obtain optimal algorithms for testing
+Bayesian networks Daskalakis and Pan [2017]. Additionally, localization properties of graphical
+models are implicit in much of the recent burst of activity on learning graphical models referenced
+earlier in this section.
+    On the latent variable front, Bresler and Karzand [2020] proved localization bounds for the same
+model that we study: Ising models with zero external ﬁelds. Yet, their bound is exponential in the
+number of variables, hence we cannot apply it to obtain eﬃcient algorithms. A main goal of our
+work is the following:
+
+   3. (Localization of TV in latent-tree Ising models): We are seeking to upper bound
+      the total variation distance between the leaf-node distributions of two tree-structured Ising
+      models, which have the same leaf set but potentially diﬀerent underlying trees, in terms of
+      the marginals of these models on pairs of leaves. Further, the bound should be polynomial in
+      the size of the tree.
+
+In the fully observable case, the localization of distance results that are known for tree-structured
+graphical models exploit factorization properties of distributions deﬁned on trees, plus combina-
+torial results that allow writing two tree-structured graphical models under a common factoriza-
+tion Daskalakis and Pan [2017]. The challenge that arises in tree-structured models with latent
+variables is that their leaf-node distributions result from marginalizing out all non-leaf vertices,
+thus they cease to have any tree-structured factorization.
+
+1.1     Results
+Let us formally deﬁne tree-structured Ising models. One is given some undirected tree T = (V, E)
+whose leaves are denoted 1, . . . , n and whose internal nodes are denoted n + 1, . . . , n + n′ . Without
+loss of generality, we will assume that all non-leaf nodes have degree 31 . With any edge (i, j) ∈ E
+there is an associated weight, θij ∈ [−1, 1]. (Because the tree is undirected, edge (i, j) is the same
+as edge (j, i) and θij = θji ). Each node i is assigned a spin, xi ∈ {−1, 1}, and the probability of a
+spin-conﬁguration is deﬁned as
+                                                                  Y 1 + θij xi xj
+                                    Pr [x1 , . . . , xn+n′ ] ∝                    .
+                                                                         2
+                                                                 (i,j)∈E
+
+   1
+    Every tree can be converted into one with all non-leaf nodes having degree 3, without affecting the leaf distribution.
+We just contract every path that consists of nodes of degree 2 into a single edge and split nodes with degree larger
+than 3 by introducing edges with θ = 1.
+
+
+
+                                                             3
+We notice that this deﬁnition allows for any tree-structured
+                                                         P        Ising model with zero external ﬁelds (a
+more common expression is Pr[x1 , . . . , xn+n′ ] ∝ exp( (i,j)∈E βi,j xi xj )/Z, and this can be translated
+to our setting by substituting θij = E[xi xj ] = (eβij − e−βij )/(eβij + e−βij )). A sample can be
+obtained by ﬁrst choosing some internal node as a root for the tree and directing all the edges of
+the tree away from the root. Then, we draw a uniformly random value for the spin of the root and
+randomly propagate the values of the spins along the tree as follows: for any directed edge i → j
+such that the spin xi was already set, we set the spin xj such that Pr[xj = xi ] = (1 + θij )/2 and
+Pr[xj = −xi ] = (1 − θij )/2. This process has been used as a model in a variety of applications.
+    Our ﬁrst result involves proving bounds on the total variation (TV) distance between two latent
+tree Ising models. In the case of a fully observable tree, these properties can be proven by using
+the product factorization of the probability distribution over the edges of the tree. While it is in
+general hard to analyze latent-variable graphical models in the same way, the pairwise-marginals
+between leaves are easily accessible. In the speciﬁc case of an Ising model, for any two nodes i, j of
+the tree, the marginal distribution of (xi , xj ) is characterized by
+                                                           Y
+                                    αij := E[xi xj ] =           θkl ,                                   (1)
+                                                         (k,l)∈Pij
+
+where Pij is the unique path that connects i and j on the tree. Given m samples, the correlations αij
+between any pair of leaves uniquely identiﬁes the model and the parameters and further, they can be
+easily estimated from data approximately. Hence, a natural analogue of the marginal distribution
+of edges in the complete tree would be the marginal distribution of all pairs of leaves in the tree. In
+that direction, we provide a bound on the total variation of two leaf distributions based solely on
+their pairwise correlations, in two settings: when both share the same tree and for a diﬀerent tree.
+This can be seen as an approximate tensorization property for TV in latent tree Ising models.
+
+Theorem 1. Let µ and µ∗ be distributions over the leaves of two tree Ising models with n leaves and
+assume that |Eµ [xi xj ] − Eµ′ [xi xj ]| ≤ ǫ for all leaves i, j. Assume also that the minimum diameter
+of the two trees is D. Then:
+
+   • Same topology: If µ and µ∗ are defined on the same graph, then TV(µ, µ∗ ) ≤ 2n2 ǫ.
+
+   • Different topologies: If µ and µ∗ are defined on different graphs then TV(µ, µ∗ ) ≤ O(Dn5 ǫ),
+     where O hides absolute constants.
+
+    We note that the previous bound by Bresler and Karzand [2020] was n2n ǫ, and it holds for
+diﬀerent (and same) topologies. Their setting was slightly more general, as it applied to arbitrary
+subsets of the nodes of an Ising model, rather than only sets of leaves. Yet, we believe that using
+the same techniques as the ones we present here, one could prove a more general Theorem, similar
+to Proposition 1 in Appendix H of Bresler and Karzand [2020]. Such a general result would improve
+the bounds for learning in k-local-TV [Bresler and Karzand, 2020, Boix-Adsera et al., 2022] from
+being exponential in k to polynomial (see Section 3 for more details on this line of work).
+    Theorem 1 is a result of independent interest, since it can be used in a variety of applications.
+A direct corollary of Theorem 1 is a polynomial time algorithm for identity testing of latent tree
+Ising models, which uses a polynomial number of samples.
+
+Corollary 1. Let P, Q be leaf distributions of two potentially different tree Ising models. Suppose
+we are given access to samples from P and we wish to distinguish whether P = Q or T V (P, Q) > ǫ.
+
+                                                     4
+Assume also that the minimum diameter of the two trees is D. Then, there exists a polynomial time
+algorithm that answers correctly with probability at least 1 − δ, with sample size
+                                            10 2         
+                                             n D log nδ
+                                        O                    .
+                                                  ǫ2
+    Corollary 1 can be proven directly by applying Theorem 1. It is worth noting that the diameter
+is typically of the order O(log n) in many applications of interest.
+    To further show the utility of Theorem 1, we provide polynomial-time and polynomial-sample
+algorithms for learning tree-structured Ising models. We provide two algorithms: one that requires
+to know the structure of the tree in advance and the second does not require any assumption.
+Theorem 2. Given m samples from the joint distribution over the leaves of some tree-structured
+Ising model and given a target error ǫ > 0 and confidence δ > 0, there exist polynomial-time algo-
+rithms for learning a tree-structured Ising model whose marginal over the leaves is ǫ-close to the true
+marginal in total variation distance, with probability 1 − δ, with the following sample complexities:
+   • Known topology: If the tree topology T = (V, E) is known and the weights are unknown, the
+     sample complexity is m = O(n4 log(n/δ)/ǫ2 ).
+   • Unknown topology: If the tree and weights are unknown, then m = O(n14 log(n/δ)/ǫ6 ).
+    The algorithms for both settings consist of two steps: ﬁrst, they empirically estimate the pair-
+wise correlations between every pair of leaves. Then, they utilize an algorithm that, given these
+approximate correlations, ﬁnds some tree Ising model whose pairwise correlations are close to the
+estimated ones. The guarantees of those algorithms then follow directly from Theorem 1. Notice
+that for the case of known topology, it is possible to implement this algorithm using a simple linear
+programming, as outlined in Section 4. While for unknown topology, the algorithm is slightly more
+complicated, and it is outlined in Section 8.
+    The only prior work that we are aware of, that provided a polynomial time algorithm for learning
+in total variation without any restrictions on the weights of the model, is Cryan et al. [2001]. They
+do not explicitly state the sample complexity and it can be inferred from the proof to be at least
+n89 /ǫ18 . We notice that their result is slightly more general and holds for general trees with a binary
+alphabet. We provide a brief technical comparison with their result in Section 4. We further note
+that information theoretically, Θ̃(n/ǫ2 ) samples are suﬃcient and necessary for learning the joint
+distribution, in the known and unknown topology settings, and these are also the best known lower
+bounds for eﬃcient algorithms. This is well known, and can be shown, for example, by modifying
+the arguments in Devroye et al. [2020], Brustle et al. [2020], Koehler [2020]. For completeness, we
+provide a sketch of these arguments in Section 9. It remains an open problem whether there is a
+statistical-computational gap in this setting.
+
+Acknowledgements.
+Constantinos Daskalakis was supported by NSF Awards CCF-1901292, DMS-2022448 and DMS2134108,
+a Simons Investigator Award, the Simons Collaboration on the Theory of Algorithmic Fairness, a
+DSTA grant, and the DOE PhILMs project (DE-AC05-76RL01830). Vardis Kandiros was supported
+by a Fellowship of the Eric and Wendy Schmidt Center at the Broad Institute of MIT and Harvard
+and by the Onassis Foundation-Scholarship ID: F ZP 016-1/2019-2020. Yuval Dagan gratefully
+acknowledges the NSF’s support of FODSI through grant DMS-2023505.
+
+                                                   5
+2        Technical Contributions – Proof Sketch
+We describe the main tools for the proofs of Theorem 1.
+
+2.1       Preliminaries
+For the discussion, ﬁx some tree T = (V, E). For any leaves i, j, let Pij denote the path connecting
+them. Denote by θ any vector in [−1, 1]E whose entry θe denotes the correlation across the edge
+                                                                            n
+e ∈ E. When we write α, α̂ etc., this corresponds to a vector in [−1, 1]( 2 ) , whose entries, αij are
+indexed by two distinct leaves i 6= j. In general α can be an arbitrary vector, yet, we say that α is
+induced by some probability distribution on a tree T if it represents the pairwise correlations of the
+leaves in some Ising model that is deﬁned over the tree (i.e. if (1) holds for some edge-correlations
+{θe }e∈E ). Given a tree T , edge-correlations θ and x ∈ {−1, 1}n , denote by PrT,θ [x] the probability
+that the leaves equal x under the Ising model deﬁned by T and θ. We say that PrT,θ is the leaf
+distribution over {−1, 1}n .
+    First, we deﬁne a pair of leaves i, j to be a cherry if they share their common neighbor (recall
+that a leaf has only one neighbor). In other words, if one directs the edges from some internal node
+to the leaves, i and j would share their parent.
+
+2.2       An expression for the probability distribution on the leaves from Bresler and Karzand
+          [2020]
+We describe a convenient closed-form expression for the probability distribution over the leaves of
+the tree. To describe it, we begin with some deﬁnitions. Let S be a subset of the leaves of even
+cardinality. Then, there is a unique 2 way to partition S into |S|/2 pairs (x1 , y1 ), . . . , (x|S|/2 , y|S|/2 )
+such that the path connecting xi and yi is edge-disjoint from the path connecting xj and yj , for
+all i 6= j. This partitioning can be obtained by matching leaves that are closest to being a cherry
+(i.e. siblings have highest precedence) repeatedly. For example, if we have S = {i, j, k, ℓ, m, p} in
+the tree shown in 1, then we partition S into (i, ℓ), (j, m) and (k, p). The leaf distribution can be
+described as the following multilinear function of x, whose coeﬃcients, that are indexed by sets S
+of even cardinality, rely on the aforementioned partitioning into pairs:
+                                                                                        |S|/2
+                                            X               Y                           Y
+                        fxT (α) := 2−n ·              αTS         xi ,   where αTS :=           αxi yi          (2)
+                                            S⊆[n]           i∈S                         i=1
+                                           |S| even
+
+The following lemma, which is a special case of Theorem H.1 in Bresler and Karzand [2020], argues
+that fxT (α) is the leaf distribution, as a function of x.
+
+Lemma 1 (Bresler and Karzand [2020]). For any latent tree distribution with tree-topology T whose
+pairwise correlations over the leaves equal α = (αij )i,j leaves . Then, the probability of any configura-
+tion x = (x1 , . . . , xn ) ∈ {−1, 1}n on the leaves equals fxT (α).
+
+        For convenience, we give a proof of Lemma 1 in Section 5.
+    2
+    The uniqueness holds if each internal node has degree 3 and this assumption is without loss of generality, as we
+explain in a footnote in Section 1.
+
+
+
+                                                              6
+ ℓ                                                             ℓ
+
+ i                                            j                i                                        j
+
+
+
+ k                 p                                           k             p
+
+                                          m                                                       m
+
+                       (a)                                                       (b)
+
+
+
+Figure 1: Path removal: In (a) We depict the graph obtained from T by removing the path from i
+to j (i.e. the dashed edges are being removed). In (b) we depict a removal of the quartet {i, k, ℓ, m}.
+
+2.3    Technical tools for the tensorization of Theorem 1 (same topology)
+We now utilize Lemma 1 to prove Theorem 1 (same topology). The total variation distance  P       between
+two distributions
+                P  on  the  same   topology  T with  induced weight-vectors α and  α̂ is   x | Pr T,α [x] −
+PrT,α̂ [x]|/2 =     |f  (α) − f   (α̂)|/2, where T  is omitted from f T for brevity. We would like to
+                  x x           x                                     x
+bound the above expression, assuming that α and α̂ are close and this corresponds to showing
+some Lipschitzness properties on fx (α). We show that such a Lipschitzness property holds in the
+neighborhood of a probability distribution. Namely, that if α is induced by a distribution and we
+change one entry of α, then fx (α) does not change much:
+                                                                         n
+Lemma 2 (Formal statement in Lemma 6). Suppose α ∈ [−1, 1]( 2 ) is induced by some probability
+                                                      n
+distribution on a tree T . Denote by α(ij) ∈ [−1, 1]( 2 ) the vector that agrees with α everywhere, except
+                              (ij)
+for pair of leaves ij, where αij 6= αij . Then,
+                                 X                                        (ij)
+                                        |fx (α) − fx (α(ij) )| ≤ |αij − αij |
+                              x∈{−1,1}n
+
+Proof sketch. Let θ denote the weight vector on the edges of T that induces the correlation-vector α
+in accordance to (1), and let θ ′ be the weight vector that is obtained from θ by replacing any weight
+along the path from i to j with 0. Then, it is straightforward to see that for all x ∈ {−1, 1}n ,
+                                      |fx (α) − fx (α(ij) )|
+                                                   (ij)
+                                                               = Pr′ [x].                               (3)
+                                          |αij − αij |             T,θ
+
+In other words, the ratio above equals the probability of x in the distribution that is obtained from
+PrT,θ by removing the path from i to j in T , as depicted in Figure 1 (a). Since the right hand side
+represents a distribution over x, if we sum over x the result equals 1.
+    To bound the total variation between two weight vectors α and α̂, one would attempt to directly
+apply Lemma 2 multiple times, each time substituting one entry of α with its corresponding entry
+of α̂. However, in the process of transforming the vector one coordinate at a time, we may stumble
+upon an intermediate weight vector α′ that is not induced by a probability distribution and so
+Lemma 2 does not apply. Hence, one has to prove an analogue of Lemma 2 for the case that
+α is close to being induced by a distribution. Interestingly, this can be proved by an inductive
+application of Lemma 2.
+
+                                                      7
+2.4    Technical Tools for the tensorization of Theorem 1 (different topologies)
+In this section, we aim to bound the total variation distance between a probability distribution
+deﬁned on a tree T with weights α and another deﬁned on T̂ with weight α̂, under the assumptions
+that the weights are ǫ-close: |αij − α̂ij | ≤ ǫ. To compare between two diﬀerent topologies, we will
+use the known fact (folklore) that the topology on the nodes of a tree is completely determined
+by the set of all subgraphs that are induced by four leaves (quartets). Hence, in order to analyze
+the diﬀerence between two graphs, we can analyze the diﬀerence between these subgraphs. This is
+signiﬁcantly easier to analyze since the subgraphs contain only four nodes each. For this purpose,
+we introduce below some useful concenpts, inspired by the phylogenetics literature.
+
+
+
+                  1            3
+  {(12)(34)}
+                                                                  Step 1 (T 1 )         Step 2 (T 2 ) Step 3 (T 3 )
+                  2            4
+                                                                        i                    i              i
+                                           Step 0 (T )
+                  1            2
+  {(13)(24)}                                     i           v1                   v2                 v3          j
+                  3            4
+                                                         K                  L                    M
+                  1            2                             k                     ℓ                 m
+  {(14)(23)}
+                  4            3
+
+ (a) The 3 quartet possibilities                                                  (b)
+
+
+Figure 2: (a) The three possible topologies for a quartet. In the ﬁrst topology, {(12)(34)}, the path
+from 1 to 2 does not intersect the path from 3 to 4. Further, α12 α34 ≥ α13 α24 = α14 α23 ; (b) The
+diﬀerent positions of i in its movement across the tree towards j. Each position corresponds to a
+diﬀerent tree T i .
+
+Definitions of a quartet. In the discussion below, we focus without loss of generality in the case
+where αij ≥ 0 for all i, j. Similar claims can be made for arbitrary signs. We will use the notion of a
+quartet of leaves: this is a collection of four leaves, {i, j, k, ℓ}. It is well known in the phylogenetics
+literature that for every quartet there are 3 topologically distinct ways for these 4 leaves to connect
+with each other, if we contract all the paths leading to other leaves in the tree. Depending on which
+of the 3 ways we have, we say that the tree induces a topology for a speciﬁc quartet. We denote the
+three induced topologies by {(ij)(kℓ)}, {(ik)(jℓ)} and {(iℓ)(jk)}, where {(ij)(kℓ)} means that the
+path Pij is edge disjoint from the path Pkℓ , and similarly for the other topologies, as depicted in
+Figure 2 (a). For a ﬁxed quartet {i, j, k, l}, there are three quantities that determine the topology,
+out of the three possibilities, and those are αij αkℓ , αik αjℓ and αiℓ αjk . It is known that two of these
+quantities are always equal and always smaller than the third, which determines the true topology:
+if αij αkℓ is the largest then {(ij)(kℓ)} is the topology. If two trees induce a diﬀerent topology for a
+quartet, we say that the trees disagree on that quartet, otherwise we say that they agree on it. It is
+
+
+                                                     8
+known (folklore) that if two trees agree on all the quartets, then they should have the same topology.
+Lastly, note that in the special case where leaves {i, j} form a cherry, the path Pij does not share
+edges with the path between any two other leaves. This implies that the topology of {ijkℓ} would
+necessarily be {(ij), (jℓ)} for any two other leaves k and ℓ.
+    For the analysis, we would like to quantify how sensitive is the topology of a quartet to changing
+the weights. For any quartet {i, j, k, ℓ} and weight-vector α, deﬁne
+
+                 ∆ijkℓ := max{αij αkℓ , αik αjℓ , αiℓ αjk } − min{αij αkℓ , αik αjℓ , αiℓ αjk }
+
+(where the dependence on α is omitted for brevity). Recall that the topology is determined by the
+largest of these three products, while the other two smaller products are identical. Hence, it is
+easy to see that two trees T and T̂ , with ǫ-close weights α and α̂, disagree only on quartets where
+∆ijkℓ ≤ 2ǫ.
+
+General approach Recall from Section 2.3 that we transformed α into α̂ by replacing its values
+one coordinate at a time for the case where T̂ = T . Here, we ﬁrst ﬁx α and transform T into T̂ . In
+other words, we ﬁnd a sequence of topologies T 1 = T, T 2 , . . . , T k = T̂ that interpolates between T
+and T̂ in a way that T i , T i+1 only diﬀer in a small part of the graph. After transforming T into T̂ ,
+we then transform α into α̂.
+
+Transforming one tree into the other. We now describe in more detail the sequence of local
+moves from T to T̂ . Intuitively, the quartets are the analog of the pairwise distances in the ﬁxed
+topology setting, and so we will measure dissimilarity between trees by the number of quartets that
+they disagree on. Thus, the goal is to produce a sequence of local topological changes that reduces
+                                                                                                  i
+quartet disagreements between T and T̂ while ensuring that each consecutive pair of terms fxT and
+    i−1
+fxT     is close.
+     The sequence of moves starts by identifying two leaves i, j that are a cherry in T̂ but are not a
+cherry in T (if one exists). Since i, j are not a cherry in T , there is a path connecting them, which
+involves at least 2 other nodes, by deﬁnition of a cherry. Denote the path by Pij = v1 − v2 − · · · − vℓ
+where v1 = i, vl = j and l ≥ 4. In the process of transforming T into T̂ , we select one of the two
+nodes (according to some criterion), say it is i, and move it along the path Pij in T until it becomes
+a cherry with j. The diﬀerent steps of this movement are shown in Figure 2 (b), where we can see
+the diﬀerent positions of i. When we are done moving i towards j, we will ﬁnd a new pair to make
+a cherry and so on. If T and T̂ agree on all cherries, we look for disagreements due to parents of
+cherries, grandparents of cherries, and so on. When this process ends, T and T̂ are guaranteed to
+be the same.
+
+Analyzing one step. Let us focus on one of the steps in the above process. While the ﬁrst step
+does not change the topology over the leaves, we will analyze the second step, transforming T 1 into
+T 2 as shown in Figure 2 (b). This involves cutting i from the middle of edge (v1 , v2 ) and pasting it
+                                                    1         2
+in the middle of edge (v2 , v3 ). We will bound |fxT (α) − fxT (α)| in terms of the parameters ∆ijkℓ of
+the quartets that T 1 and T 2 disagree on:
+
+Lemma 3 (Formal statement in Lemma 8). Let i, j be a cherry in T̂ but not in T and let T 1 and
+T 2 be the topologies defined by procedure above (depicted in Figure 2 (b)). Also, denote by U the set
+
+
+
+                                                       9
+of quartets where T 1 and T 2 disagree on. Then,
+                              X          1         2
+                                                                X
+                                     |fxT (α) − fxT (α)| ≤                 ∆ikℓm                      (4)
+                            x∈{−1,1}n                        {i,k,ℓ,m}∈U
+
+    Lemma 3 can be seen as an analogue of Lemma 2 but we have quartets instead of pairwise
+                                                    1
+distances. It shows a type of Lipschitzness of fxT when we change the topology of some of the
+                                                                  1         2
+quartets. The way to prove it is to notice that the diﬀerence |fxT (α) − fxT (α)| can be factored into
+a sum of terms, each for a quartet in U . Each term is the expression of a probability distribution
+on a topology that results when we remove all paths between leaves in that quartet from the tree,
+as depicted in Figure 1 (b). Next, we will bound the right hand side of (4).
+
+Lemma 4 (Formal statement in Lemma 9). Each term ∆ikℓm in the right hand side of (4) is
+bounded by 2ǫ.
+
+Proof sketch. Using a simple case analysis, it can be shown that the only quartets that can change
+topology are those that contain i, some k ∈ K, some ℓ ∈ L and some m ∈ M ∪{j} (see Figure 2 (b)).
+The quartet topology is {(ik)(ℓm)} in T 1 and {(im)(kℓ)} in T 2 and we would like to argue that
+∆ikℓm ≤ 2ǫ. First, let us assume that m = j. Then, the topology of {i, k, l, m} in T 1 equals that
+of T , since T and T 1 share the same leaf topology, while the quartet topology of T 2 equals that of
+T̂ : indeed, the topology of T̂ is {(ij)(kℓ)} since (i, j) is a cherry in T̂ , as assumed in the algorithm
+and this is also the topology in T 2 . In particular, since the topology in T 1 is diﬀerent than that in
+T 2 , then the topology in T is diﬀerent than that in T̂ . As explained after the deﬁnition of ∆ikℓm
+above, this implies that ∆ikℓm ≤ 2ǫ. In particular, this provides a bound on ∆ikℓm as required.
+The case that j 6= m is more complicated and it relies on the fact that i can be selected such that
+∆ikℓm ≤ ∆jkℓm and cosidering the quartet (j, k, ℓ, m).
+
+Completing the proof After ensuring that the move described in Lemma 3 incurs a small loss,
+the natural next step is to repeatedly apply a variant of Lemma 3 for each other step of the sequence
+and obtain a bound for |fxT (α) − fxT̂ (α)|, using the triangle inequality. We would like to analyze the
+total loss incurred in all the steps. We divide these steps into rounds, where in the ﬁrst round we
+move leaves, in the second round we move parents of leaves etc. The number of rounds is bounded
+by the diameter D of T̂ . We can show that in each round, every quartet changes topology at most
+4 times. Furthermore, in the general variant of Lemma 4 that corresponds to         a movement of a
+subtree (rather than a leaf), ǫ is replaced with nǫ. Since there are at most n4 quartets, the total
+loss incurred in TV during all these steps is O(Dn5 ǫ).
+
+
+3    Related Work
+A popular method for latent-tree estimation are tree-metric approaches, which rely on estimating the
+pairwise correlations between any two leaves. For these algorithms, there is a vast theoretical analy-
+sis which is largely focused on estimating the structure of the tree, namely, ﬁnding the set of edges E
+Felsenstein [1973], Chang [1996], Erdős et al. [1999], Huson et al. [1999], Csurös [2002], Felsenstein
+[2004], King et al. [2003], Daskalakis et al. [2006], Roch [2006], Mossel [2007], Gronau et al. [2008],
+Roch [2010], Roch and Sly [2017]. The results typically require some upper and lower bounds on the
+edge-weights aij . Such bounds guarantee that the structure of the tree can be completely identiﬁed
+
+
+                                                   10
+from polynomially many samples. In contrast, Daskalakis et al. [2009] design an algorithm that re-
+constructs as much of the true topology as possible, without assuming bounds on the edge-weights.
+However, they do not provide any guarantee on the closeness of the learned distribution to the true
+distribution. Another popular family of algorithms are likelihood-based methods Felsenstein [1981],
+Yang [1997], Stamatakis [2006], Lee et al. [2006], Wang and Zhang [2006], Truell et al. [2021], but
+their convergence guarantees are barely understood [Zwiernik et al., 2017, Daskalakis et al., 2018,
+2022].
+    Beyond trees, the general problem of latent graphical model estimation has received some at-
+tention [Bresler et al., 2019, Bresler and Karzand, 2020, Moitra et al., 2021, Goel, 2019, Goel et al.,
+2020]. However, all these algorithms have time- and sample- complexity that is exponential in the
+maximum degree of the graph. Also, Acharya et al. [2018] study testing of Bayesnets with latent
+variables, but under the assumption that the c-components have constant size.
+    Another related line of work is that of estimating a tree from fully observable data, while
+guaranteeing that the error is bounded in k-local-TV : this means that the output model is ǫ-close in
+total variation to the true model in any marginal of k nodes (where k is considered small). While the
+complexity of learning the full tree to ǫ total variation distance is Θ(n log n/ǫ2 ) [Daskalakis and Pan,
+2021, Koehler, 2020], the algorithm of Boix-Adsera et al. [2022] has a sample complexity of O(log n ·
+k2 22k /ǫ2 ) for learning in k-local TV. The preceding paper of Bresler and Karzand [2020] obtained
+the same guarantee, however, they assume some upper bounds on the edge correlations θij .
+
+
+4      Algorithm
+
+    Algorithm 1: Learn a tree-structured distribution with a known topology
+     Input: An unweighted tree T = (V, E) whose leaves are labeled 1, . . . , n
+     Input: Estimates on the correlations between the leaves: (α̂ij )i,j∈{1,...,n}, i6=j
+     Input: A parameter η > 0 that bounds the errors of α̂ij in absolute value.
+     (wkℓ )kℓ∈E ← any solution for the following linear program:
+
+                   Find a feasible solution for: (wkℓ )kℓ∈E
+                   subject to
+                                                            P
+                     ∀ leaves i 6= j : log(|α̂ij | − η) ≤       (k,l)∈path(i,j) wkl ≤ log(|α̂ij | + η)
+                        (here log x is interpreted as −∞ for x ≤ 0)
+                     ∀ edge (k, ℓ) : wkℓ ≤ 0
+
+      U ← {(i, j) : |α̂ij | > η}
+     (skℓ )kℓ∈E ← any solution for the following linear system in F2 :
+                                   X
+                                         skℓ = sgn(α̂ij ) for all (i, j) ∈ U
+                                   (k,ℓ)∈Pij
+
+       return the weights θkℓ ← (−1)skl ewkℓ for all edges (k, ℓ) ∈ E
+
+   We describe the algorithms of Theorem 2 both for the case that the tree topology is known and
+when it is unknown, given m samples (x11 , . . . x1n ), . . . , (xm            m            n
+                                                                  1 , . . . , xn ) ∈ {−1, 1} . Both algorithms
+
+
+                                                       11
+                                                                                 1 Pm    ℓ ℓ
+ﬁrst estimate the covariance between any two leaves from samples, setting α̂ij = m  ℓ=1 xi xj .
+We note that by Chernoﬀ-Hoeﬀding and a union bound, with high probability all the estimated
+correlations are close to their true values α∗ij :
+                                                                                  p
+                With probability 1 − δ,        ∀i 6= j : |α̂ij − α∗ij | ≤ η :=        2 log(n2 /δ)/m.      (5)
+
+Given such estimates on the covariance, our algorithms will ﬁnd some weighted tree whose correla-
+tions αij between the leaves are close to the estimated correlations α̂ij . By the triangle inequality,
+the correlations of the estimated tree are close to the true correlations and the result will follow by
+applying Theorem 1.
+
+Known tree topology. We describe an algorithm that learns the weights of a ﬁxed tree, given
+the estimated correlations α̂p ij . From (5), we can assume that all these estimations are accurate up
+to an additive error of η = 2 log(n2 /δ)/m.
+    We start by assuming that the edge weights θkl     ∗ are non-negative, which also implies that the
+                                              ∗
+pairwise correlations between the leaves αij are non-negative by (1). Such Ising models are called
+ferromagnetic. Later, we will show how to use this algorithm to solve the unrestricted problem.
+    Starting with a ferromagnetic (non-negative weight) model, we will show how to write a linear
+program that returns weights on the edges of this tree, such that the pairwise correlations αij over
+the leaves are η-close to α̂ij , if such weights exist. Yet, a solution is guaranteed to exist since the
+true edge-weights satisfy these constraints. This gives us a model whose pairwise correlations are
+2η close to those of the true model:
+
+                           |αij − α∗ij | ≤ |αij − α̂ij | + |α̂ij − α∗ij | ≤ η + η = 2η.
+
+First, we discuss the linear program that ﬁnds weights θkℓ ≥ 0 on the edges (k, ℓ) ∈ E. The variables
+of the linear program are (wkℓ )(k,ℓ)∈E and they signify wkℓ = log θkℓ . We would like our output to
+satisfy the following constraints: (1) θkℓ ∈ [0, 1], which can be rewritten as wkℓ ≤        Q 0; and (2) For
+any leaves i, j, |α̂ij | − η ≤ |αij | ≤ |α̂ij | + η. If we take log and substitute |αij | = (k,l)∈path(i,j) θkℓ
+according to (1), we get the following linear constraints on the variables wkℓ :
+                                                                   X
+               For any leaves i 6= j : log(|α̂ij | − η) ≤                 wkl ≤ log(|α̂ij | + η)
+                                                                (k,l)∈path(i,j)
+
+(while using the convention log x = −∞ for x ≤ 0.) This yields a linear program for ﬁnding the
+logarithms of the weights of the tree, and we can obtain weights for the tree by exponentiation of
+these log-values.
+    It now remains to handle the case where the edge weights θkl     ∗ can be negative. We will ﬁrst
+                                                 ∗
+consider the tree whose edge weights are |θkl |, which we call the ferromagnetic variant of the
+original tree. Notice that by (1), the pairwise correlations in this tree equal |α∗ij |. In the ﬁrst
+part of our algorithm, we will ﬁnd a tree whose pairwise correlations are 2η close to those of the
+ferromagnetic variant of our tree. This can be done by feeding the linear program with the absolute
+values of the estimated correlations, |α̂ij |. Notice that these are η-close to the true correlations in
+the ferromagnetic variant. Indeed, by the triangle inequality,
+
+                                      ||α̂ij | − |α∗ij || ≤ |α̂ij − α∗ij | ≤ η.
+
+
+                                                        12
+Since the linear program is fed with the estimates |α̂ij | that are η-close to the correlations of the
+ferromagnetic variant, by the guarantees of the linear program, it outputs a tree whose pairwise
+correlations are 2η close to those of the ferromagnetic variant.
+    It now remains to ﬁnd a sign for each edge. Let skℓ ∈ {0, 1} be a variable for each edge (k, ℓ)
+so that the sign of edge (k, ℓ) is (−1)skℓ . By the approximation guarantee |α̂ij − α∗ij | ≤ η, we can
+accurately estimate the sign of α∗ij whenever |α̂ij | > η. Let i, j be such a pair of leaves and denote
+the sign as sgn(α̂ij ) ∈ {−1, 1}. By (1),
+                                  Y
+                                       (−1)skℓ = sgn(α̂ij ) = sgn(α∗ij ).
+                               (k,ℓ)∈Pij
+
+This gives us a linear equation in F2 with variables skℓ for all such pairs (i.e. there is a linear
+equation for each pair i, j such that α̂ij > η). We subsequently ﬁnd a solution to this system to
+obtain signs for all edges. We note that there exists at least one solution since the true signs of our
+model is a solution, yet, the algorithm can output any solution. As a ﬁnal output, the edge-weights
+θkl are determined such that their absolute values equal the output of the linear program over R,
+while the signs of the edges are taken according to the system of equations over F2 , as summarized
+in Algorithm 1.
+    We argue that the pairwise correlations in the output model, which we denote by αij , are 4η
+close to the true correlations. Indeed, divide into cases:
+
+   • If |α̂ij | > η, then, by the guarantee of the system of equations over F2 , the sign of αij equals
+     that of α∗ij . Their absolute values are 2η-close by the guarantee of the linear program over R.
+     Hence, their values are 2η-close.
+
+   • If |α̂ij | ≤ η, then, by the approximation assumption, we have that
+
+                                           |α∗ij | ≤ |α̂ij | + η ≤ 2η.
+
+      Further, recall that by the guarnatee of the linear program over R, we have that
+
+                                           |αij | ≤ |α̂ij | + η ≤ 2η.
+
+     We derive that
+                                |αij − α∗ij | ≤ |αij | + |α∗ij | ≤ 2η + 2η = 4η.
+
+According to Theorem 1, the output model is O(n2 η)-close in total variation distance. By the
+assumption on η in (5), the proof follows. See Section 6 for a more detailed proof.
+
+Unknown tree topology. If we do not know the tree structure, we use the algorithm of Daskalakis et al.
+[2011] that, given approximations α̂ij of the correlations between the leaves, ﬁnds a forest that shares
+multiple properties with the original tree. Then, for any tree in this forest, we compute weights on
+the edges, using Algorithm 1 and return the weighted forest, as summarized in Algorithm 2.
+    To analyze this algorithm, we perform a series of careful contractions and deletions of edges,
+that transform this forest into one where each subtree has exactly the same topology as the one
+induced by the true tree on that particular subset of leaves. Then, crucially, we use the analysis
+for the known topology setting, to bound the diﬀerence in total variation between learned marginal
+distribution over the leaves of each subtree and the true marginal distribution.
+
+                                                   13
+    Algorithm 2: Learn a tree-structured distribution with an unknown topology
+     Input: Estimates on the correlations between the leaves: (α̂ij )i,j∈{1,...,n}, i6=j
+     Input: Parameters η ′ , ξ, δ > 0.
+     F ← the forest output by the algorithm of Daskalakis et al. [2011] given weights (α̂ij )i6=j
+      and parameters ξ, δ > 0
+     for Tree T = (V, E) ∈ F do
+        (θkℓ )(k,ℓ)∈E ← the output of Algorithm 1 given T and the correlations α̂i,j between any
+         two leaves of T (while substituting its parameter η with η ′ )
+     end
+     return The forest F , where each T = (V, E) is weighted according to (θkℓ )kℓ∈E
+
+
+    To compare with Cryan et al. [2001], they employ a similar process of splitting the tree into
+subtrees. However, they then rely on learning the weights within in each subtree accurately. This
+yields a bound in total variation between the learned and true distribution within each tree. The
+diﬀerence between these approaches is that we learn in total variation only the leaf distribution
+within each subtree, while their analysis relies on learning the distribution on both the leaves and
+the internal nodes of each subtree. This requires them to cut the original tree into signiﬁcantly
+smaller subtrees, which harms the complexity.
+
+
+5      A Formula for the leaf distribution from [Bresler and Karzand,
+       2020]
+We ﬁrst introduce some convenient notation. Let S be a subset of the leaves of even cardinality.
+Then, there is a natural way to partition the leaves in S in |S|/2 pairs using the following criterion:
+each leaf i in S is matched with its closest relative in S in the tree. Yet, to be more exact, we say
+that a matching of S is a closest relative matching if for any two distinct pairs (i, j) and (k, ℓ) in
+the matching, the path from i to j does not intersect the path from k to ℓ. An example of such a
+matching is given in Figure 4. In the following proposition, we prove that there is a unique such
+matching, and use this matching to ﬁnd an expression to the leaf distribution of an Ising model:
+
+Lemma 5. Let x1 , . . . , xn denote the values over the n leaves of a tree T with pairwise correlations
+            n
+α ∈ [−1, 1]( 2 ) . Then, the following holds:
+
+     • Any subset S ⊆ [n] of even cardinality has a unique closest relative matching.
+
+     • Define for any subset S ⊆ [n] of even cardinality
+                                                            |S|/2
+                                                            Y
+                                                   αS :=            αik jk
+                                                            k=1
+
+       where (i1 , j1 ), . . . , (i|S|/2−1 , j|S|/2−1 ) are the pairs in the closest relative matching. Then, we
+       have                                                   P                         Q
+                                                                even subsets S ⊆ [n] αS   i∈S xi
+                                       Pr[x1 , . . . , xn ] =                                                 (6)
+                                                                              2n
+
+
+                                                       14
+Proof. Recall that we can assume that there are no nodes of degree 2 (otherwise, we can contract
+maximal paths of degree-2 nodes and replace them by a single edge whose weight is the product of
+all edges in the path. This does not change the leaf distribution.) We will prove both statements
+together by induction. We will focus on the proof for the probability expression, and the uniqueness
+of the matching will come as a by-product. The base case considers either 0, 1 or 2 leaves, and
+follows trivially. For the induction step, suppose the claim is true for all trees having at most n − 1
+leaves. Let T be a tree with n leaves. We are interested in the probability Pr[x1 , . . . , xn ] of the
+leaves taking some speciﬁc values. First of all, since T is assumed to contain no nodes of degree
+2, we know that there exists at least one cherry, i.e. a pair of leaves that share their parent. Also,
+without loss of generality, suppose that leaves n − 1 and n form a cherry and denote by p their
+common parent in the tree. Lastly, denote by θ(p,n−1) and θ(p,n) the weights of the edges (p, n − 1)
+and (p, n) respectively. Then, we know that xn , xn−1 are conditionally independent from the rest
+of the tree conditioned on yp , where yp denotes the value of node p. Thus, we can write
+
+                  Pr[x1 , . . . , xn ] = Pr[x1 , . . . , xn−2 , yp = 1] Pr[xn−1 , xn | yp = 1]
+                                   + Pr[x1 , . . . , xn−2 , yp = −1] Pr[xn−1 , xn | yp = −1]
+
+Now, notice that we can view the nodes 1, . . . , n − 2, p as the leaves of a tree T ′ which is simply
+T after deleting leaves n − 1 and n and the edges (n − 1, p) and (n, p). Hence, we can apply
+the induction hypothesis on the distribution of x1 , . . . , xn−2 , yp . Recall that the expression for the
+probability distribution is a function of the expressions αS of all the even subsets S of the leaves.
+Hence, we would like to compare the coeﬃcients αS between the distribution over x1 , . . . , xn and
+the distribution over x1 , . . . , xn−2 , yp that is used for the induction hypothesis. In order for such a
+comparison to be possible, we divide the collections of even subsets of the leaves of T and T ′ into
+categories. We start with the leaves of tree T . Denote by S the set of all even subsets of the set of
+leaves {1, . . . , n}. Clearly, we can partition S into 4 disjoint subsets:
+
+                S−− := {even subsets of [n] not containing neither n − 1 nor n}
+                S+− := {even subsets of [n] containing n − 1 but not containing n}
+                S−+ := {even subsets of [n] not containing n − 1 but containing n}
+                S++ := {even subsets of [n] containing both n − 1 and n}
+
+Similarly, we deﬁne analogues to be applied on the distribution that is used in the induction hy-
+pothesis. In particular, deﬁne by R the collection of all even subsets of [n − 2] ∪ {p}. We can also
+partition R into the following subsets:
+
+                       R− := {even subsets of [n − 2] ∪ {p} not containing p}
+                       R+ := {even subsets of [n − 2] ∪ {p} containing p}
+
+While applying the induction hypothesis, once computing Pr[x1 , . . . , xn ] we will split the sum in (6)
+into four sums over the diﬀerent subsets of S that were deﬁned above. Similarly, while computing
+Pr[x1 , . . . , xn−2 , yp ] we will split the sum into terms corresponding to R− and R+ . In order to be
+able to compare between these two sums, we will map each of the four subsets of S to a subset of
+R.
+    First, note that S−− = R− since both equal the collection of even subsets of [n − 2]. Hence,
+it follows by induction hypothesis that the sets S ∈ S−− have a unique closest relative matching.
+
+                                                        15
+Further,                                 X Y                    X Y
+                                                    xi αS =              xi αS .
+                                       S∈S−− i∈S              S∈R− i∈S
+
+    Next, notice that there is a bijection between S++ and R− , which takes any S ∈ S++ to
+S \ {n − 1, n}. We use this to prove that there exists a closest-relative matching for any S ∈ S++ .
+Indeed, we can match n − 1 with n and then match S \ {n − 1, n}. This is possible by induction
+hypothesis. Further, this matching is unique. This is true because any such matching must match
+n − 1 with n, and the matching in S \ {n − 1, n} is unique by induction hypothesis. Using this
+bijection between the matchings of S++ and R− , we derive that
+                           X Y                             X Y
+                                   xi αS = xn−1 xn αn−1,n           xi αS .
+                              S∈S++ i∈S                               S∈R− i∈S
+
+    Further, notice that there is a bijection between S+− which takes S ∈ S+− to S \ {n − 1} ∪ {p}.
+Further, to argue that each S ∈ S+− contains a unique closest-relative matching, it is easy to see
+that there is a one-to-one correspondence between the closest-relative matchings of S \ {n − 1} ∪ {p}
+and that of S. Indeed, for any closest-relative matching of S \ {n − 1} ∪ {p}, we can obtain a closest
+relative matching of S by replacing p with n − 1, and vice versa. Notice that the path from n − 1 to
+any other vertex can be obtained from the path from p to that vertex by adding the edge (n − 1, p)
+in the beginning. Hence, for any leaf i we have αn−1,i = θn−1,p αp,i . In particular, this implies that
+αS = θn−1,p αS\{n−1}∪{p} . Summing over S ∈ S+− , we get
+                            X Y                          X Y
+                                     xi αS = xn−1 θn−1,p             xi αS .
+                              S∈S+− i∈S                           S∈R+ i∈S\{p}
+
+Similarly, the sets S ∈ S−+ also have a unique closest-relative matching, and
+                             X Y                      X Y
+                                      xi αS = xn θn,p            xi αS .
+                                 S∈S−+ i∈S                      S∈R+ i∈S\{p}
+
+Using the above expressions, we can complete the proof, using the induction hypothesis:
+     Pr[x1 , . . . , xn ] = Pr[x1 , . . . , xn−2 , yp = 1] Pr[xn−1 , xn |yp = 1]
+             + Pr[x1 , . . . , xn−2 , yp = −1] Pr[xn−1 , xn |yp = −1]
+        P      Q                  P         Q
+         S∈R−     i∈S xi αS +        S∈R+    i∈S\{p} xi αS 1 + xn θn,p 1 + xn−1 θn−1,p
+     =                           n−1
+           P         Q         2       P        Q                  2             2
+             S∈R−       i∈S  x i αS  −    S∈R+    i∈S\{p}  x i αS 1 − xn θn,p 1 − xn−1 θn−1,p
+        +                             n−1
+       P       Q                     2                P          Q     2             2
+         S∈R−          x
+                  i∈S i Sα     +  x  x     θ  θ
+                                    n n−1 n,p n−1,p     S∈R−          x  α
+                                                                   i∈S i S
+     =                                    n
+                   P          Q          2                       P       Q
+           xn θn,p S∈R+ i∈S\{p} xi αS + xn−1 θn−1,p S∈R+ i∈S\{p} xi αS
+        +                                          n
+       P        Q                  P         Q 2            P          Q              P       Q
+         S∈S−−     i∈S xi αS +        S∈S++    i∈S xi αS +       S∈S−+    i∈S xi αS +   S∈S+−   i∈S xi αS
+     =                                                    n
+       P     Q                                           2
+                    x  α
+                      i S
+     = S∈S ni∈S
+              2
+
+
+
+                                                           16
+6    Proof of Theorem 1 (Same topology) and Theorem 2 (Known
+     topology)
+In this Section, we provide the proof for bounding the TV distance between two models with the
+same topology (Theorem 1). This argument immediately implies an algorithm for TV-learning using
+O(n4 /ǫ2 ) samples from the leaves.
+    We ﬁrst restate Theorem 1 for the same topology with a bit more detail.
+                                               n
+Theorem 3. Let T be a tree and α, α̂ ∈ [−1, 1]( 2 ) be two tree metrics on T . Suppose kα − α̂k∞ ≤ ǫ,
+for some ǫ > 0. Let µ, µ̂ be the corresponding distribution on the leaves of T with metric α, α̂
+respectively. Then,
+                                        T V (µ, µ̂) ≤ 2n2 ǫ
+    To start, let T be a tree with n leaves. We will refer to the leaf set as [n], so each number
+corresponds to one leaf. We deﬁne for each x ∈ {−1, 1}n and for each tree topology T a function
+                n
+fxT : [−1, 1]( 2 ) 7→ R as                  P                         Q
+                                                                    T
+                                   T          even subsets S ⊆ [n] αS   i∈S xi
+                                  fx (α) :=                  n
+                                                                                                     (7)
+                                                            2
+Notice the similarity of this expression with the probability distribution of the leaves. However, this
+                                                                            n
+is a multilinear function that is deﬁned for any vector α ∈ [−1, 1]( 2 ) , which might not necessarily
+arise from a tree metric on the leaves. This motivates the following deﬁnition. For a vector α ∈
+        n
+[−1, 1]( 2 ) , we say that α is induced by a metric in T if there exists an assignment θe of weights for
+each edge e of T , such that for all leaves i, j
+                                                        Y
+                                               αij =         θe
+                                                   e∈Pij
+
+In that case, we will refer to α as a tree metric on T . Now, bounding T V (µ, µ̂) essentially amounts
+to bounding                  X                          X
+                                    |µ(x) − µ̂(x)| =         |fx (α) − fx (α̂)|
+                         x∈{−1,1}n                  x∈{−1,1}n
+
+Thus, the problem amounts to bounding the Lipschitzness of fx . We will bound this quantity by
+substituting one by one the coordinates of α with α̂. We ﬁrst introduce some relevant deﬁnitions.
+We will need a total ordering of the pairs (i, j) of leaves. The precise ordering doesn’t matter, but
+for simplicity let’s say we pick the lexicographic order. This means that (i, j) < (k, l) if and only
+if i < k or i = k and j < l. We use the notation (i, j) ≤ (k, l) as a substitute for (i, j) < (k, l) or
+(i, j) = (k, l). Suppose we order all pairs of leaves in lexicographic order. Then, we denote the t-th
+                                                                                        n
+pair in this order as (it , jt ). For each 0 ≤ t ≤ n2 , we deﬁne the vector αt ∈ [−1, 1]( 2 ) as
+                                             
+                                         t      α̂kl , if (k, l) ≤ (it , jt )
+                                       αkl =
+                                                αkl , otherwise
+                                                           n
+For t = 0, the convention is that αt = α. Notice that α( 2 ) = α̂. Also, denote T \ {i, j} the topology
+that is obtained from T if we remove all edges on the path Pij from T .
+   We ﬁrst prove a Lemma about what happens to the expression of fxT (α) if we change exactly
+one coordinate of α. This is a purely combinatorial statement that relies on the structure of the
+coeﬃcients αS .
+
+                                                  17
+                                                                              n
+Lemma 6. Let T be a tree and i, j two leaves of T . Also, let α, β ∈ [−1, 1]( 2 ) such that αkl = βkl
+                                     n
+if (k, l) 6= (i, j). Let γ ∈ [−1, 1]( 2 ) be defined as follows
+                                    
+                                         0 , if Pij and Pkl have common edges
+                              γkl =
+                                         αkl , otherwise
+
+Then,
+                                fxT (α) − fxT (β) = xi xj (αij − βij )fxT \{i,j} (γ)                             (8)
+
+Proof. We have                                 P                                          Q
+                                                    even subsets S ⊆ [n]      αTS − βST        i∈S xi
+                         fxT (α) − fxT (β) =
+                                                                         2n
+We ﬁrst notice that if {i, j} is not a subset of S, then αij , βij will not appear in αTS , βST respectively.
+This means that αTS = βST , since α, β agree on the rest of the coordinates. Hence, we focus on the
+collection of subsets
+                                S1 := {S ⊆ [n] : {i, j} ⊆ S and |S| even}
+Suppose v0 = i, v1 , . . . , vk = j is the path connecting i, j in T . Since each non-leaf node has degree
+3, each one of the nodes v1 , . . . , vk−1 has exactly one other neighbor outside of the path. We can
+view this as each vi being the root of some subtree Ti that starts from the neighbor of vi that is
+outside of the path. Let Ai be the set of leaves on subtree Ti . Notice that the sets Ai partition
+[n] \ {i, j}. Figure 3 depicts these sets of leaves along the path.
+
+                v0 = i                                                                                  vk = j
+
+                  v0               v1                v2            ...                vk−1               vk
+
+
+
+                              T1               T2                              Tk−1
+                                                                   ...
+
+
+                                   A1                A2                               Ak−1
+
+
+Figure 3: The ﬁgure shows the path connecting i to j and the subtrees that will become connected
+components if we remove this path from the graph.
+
+    We now want to determine which elements of the family S1 of subsets gives diﬀerent coeﬃcients
+for α, β. We ﬁrst show that if for some S ∈ S1 we have |S ∩ Ar | being odd for some 0 < r < k, then
+αTS = βST . The reason is the following: suppose there exists r0 with |S ∩ Ar0 | being odd. Suppose
+also without loss of generality that this is the smallest r for which this property holds. This means
+that for r < r0 we have |S ∩ Ar | is even. Thus, by the matching process described in Section 5, it
+is clear that for each r < r0 , the leaves in S ∩ Ar will be matched in pairs inside the tree Tr and
+not with some leaves outside of the tree. Also, since |S ∩ Ar0 | is odd, the leaves in S ∩ Ar0 will
+be matched with each other, except one leaf, call it w, which will be left unmatched. Then, the
+matching process dictates that w should be matched with i. Hence, i will not be matched with j
+for this subset S. An example of this situation can be seen in Figure 4.
+
+
+
+                                                           18
+                            i       v1                                v2                      j
+
+
+
+
+                            1                 2            3
+
+                                                                      4                       5
+
+
+                                    A1                                     A2
+
+Figure 4: In this example, we have the subset S = {i, j, 1, 2, 3, 4}. Notice that |S ∩ A1 |, |S ∩ A2 | are
+even. Clearly, the closest relative matching is (i, j), (1, 2), (3, 4). If we had the set S ′ = {i, 1, 3, j},
+then the matching would be (i, 1), (3, j).
+
+   Hence, in αTS we will have the factor αiw instead of αij . This means that αij does not appear in
+αS and similarly βij does not appear in βST . But this implies that αTS = βST , since α, β agree on all
+ T
+
+the other coordinates. This proves our claim.
+    Hence, if we deﬁne the set
+                                             
+                                       k−1
+                      S2 := {{i, j} ∪ ∪r=1 Sr : Sr ⊆ Ar , |Sr | even, for all r}
+
+then
+                                                        1 X T        Y
+                                fxT (α) − fxT (β) =         αS − βS
+                                                                   T
+                                                                        xi
+                                                       2n
+                                                               S∈S2               i∈S
+Since Sr has an even number of leaves, they will be matched inside tree Tr , regardless of the topology
+of the rest of the tree. This leaves i, j, which will be mathced together. This enables us to write
+                                             k−1
+                                             Y                              k−1
+                                                                            Y
+                                  αS = αij         αTSrr   ,     βS = βij         αTSrr
+                                             r=1                            r=1
+
+The reason we wrote αSr in the expression of βS is that α, β agree on all coordinates other than ij.
+Hence,
+                                                                                   
+                                                                                                 
+                                                     k−1                                         
+                                                    1 Y 1              X                 Y       
+                                                                                      T
+              fxT (α) − fxT (β) = (αij − βij )xi xj 
+                                                                                                 
+                                                            |A   |
+                                                                                     α r
+                                                                                      Sr      x u 
+                                                    4    2    r                                  
+                                                     r=1          Sr ⊆Ar ,|Sr |even     u∈Sr     
+                                                         |                   {z                }
+                                                                                  fxTA
+                                                                                     r (α)
+                                                                                          r
+
+                                = (αij − βij )xi xj fxT \{i,j} (γ)
+Let us explain the last equality. The r-th element in this product corresponds to the expression
+of the probability distribution on the leaves Ar of the subtree Tr , with pairwise correlations that
+
+                                                           19
+are given by α (we are slightly abusing notation when we pass α as an argument in fxTr , since it
+is the vector of pairwise correlations for the whole tree). Hence, the product of these terms is the
+expression of a product probability distribution over the subsets Ar and i, j being independent from
+everyone else (this is the 1/4 term). This is exactly the expression of the distribution on T \ {i, j}
+with correlations given by α, except for pairs of leaves that belong to diﬀerent subtrees, which have
+correlation 0. This is exactly how we deﬁned γ, hence the result follows.
+
+
+    Lemma 6 tells us how much fx changes when we change one coordinate, corresponding to some
+pair (i, j). Hence, our eﬀorts will now be focused on bounding the expression on the RHS of (8).
+If this expression corresponds to a distribution on T \ {i, j}, then this term can easily be bounded.
+However, as we will see, that will not always be the case and we need to be more careful. The
+following Lemma contains the Lipschitzness property that we would like to prove.
+                                                n
+Lemma 7. Let T be a tree and α, α̂ ∈ [−1, 1]( 2 ) , where α is a metric on T . Suppose that kα− α̂k∞ ≤
+ǫ/(2n2 ), where ǫ ∈ (0, 1). Then, for any t ≥ 1
+                                    X                                ǫ
+                                           fxT (αt ) − fxT (αt−1 ) ≤ 2                              (9)
+                                         n
+                                                                    n
+                                      x∈{−1,1}
+
+                                                                                             n
+Proof. We will prove (9) via induction on t. First, we deﬁne for all s, t ≤                  2 the vector
+                               
+                         t,s     0 , if Pit jt and Pkl have common edges
+                        γkl =
+                                 αskl , otherwise
+
+The base case t = 1 corresponds to the pair of leaves (1, 2). Since α1 and α0 = α diﬀer only in the
+pair (1, 2), by Lemma 6 we have
+
+                      X                                                   X
+                                fxT (α1 ) − fxT (α) ≤ |α12 − α̂12 |                fxT \{1,2} (γ 1,0 )
+                    x∈{−1,1}n                                         x∈{−1,1}n
+
+                           T \{1,2}
+Now, we notice that fx         (γ 1,0 ) is actually the probability distribution on T that results from α
+if we set θe = 0 for all e ∈ P12 . Hence, we can remove the absolute value and get
+
+           X                                                   X                                                 ǫ
+                    fxT (α1 ) − fxT (α) ≤ |α12 − α̂12 |               fxT \{1,2} (γ 1,0 ) = |α12 − α̂12 | ≤
+                                                                                                                2n2
+        x∈{−1,1}n                                         x∈{−1,1}n
+
+Hence, the base case of the induction is proven.
+   Now, suppose we have proved the claim for all t′ < t.
+   By applying Lemma 6, we again obtain
+               X                                                           X
+                       fxT (αt ) − fxT (αt−1 ) ≤ |αit jt − α̂it jt |                fxT \{it ,jt } (γ t,t−1 )         (10)
+               x∈{−1,1}n                                               x∈{−1,1}n
+
+Now, the problem is that γ t,s contains some coordinates of α and some coordinates of α̂. As a result,
+the expression fxT (γ t ) is not necessarily a probability distribution anymore. We will try to relate
+this quantity to a true distribution.
+
+                                                          20
+    Essentially, γ t,s is the same as αs , except for pairs of leaves that belong to diﬀerent components
+of T \ {it , jt }. Now, we can write
+
+                X
+                        fxT \{it ,jt } (γ t,s )
+            x∈{−1,1}n
+
+                  X                                       t−1
+                                                          X       X
+            ≤               fxT \{it ,jt } (γ t,0 )   +                       fxT \{it ,jt } (γ t,s ) − fxT \{it ,jt } (γ t,s−1 )
+                x∈{−1,1}n                                 s=1 x∈{−1,1}n
+
+                                                          T \{i ,j }
+First of all, we notice that the expression fx t t (γ t,0 ) is the expression of a probability distribution
+on T , which is obtained from α by setting θe = 0 for all edges e ∈ Pit jt . Hence, the ﬁrst term of the
+RHS sums up to 1. As for the second sum, each term of the outer sum has exactly the form of (9),
+where the starting α is γ t,0 and we have substituted at most t − 1 with α̂, since s ≤ t − 1. Hence,
+we can apply the inductive assumption to get
+                    t−1
+                    X        X                                                                                ǫ
+                                         fxT \{it ,jt } (γ t,s ) − fxT \{it ,jt } (γ t,s−1 ) ≤ (t − 1)          ≤ǫ
+                                                                                                             n2
+                    s=1 x∈{−1,1}n
+
+            n   2
+since t ≤   2 ≤ n . Overall, this gives
+                                                  X
+                                                            fxT \{it ,jt } (γ t,s ) ≤ 1 + ǫ
+                                            x∈{−1,1}n
+
+Now, plugging this in (10) gives us
+                       X                                                             ǫ
+                              fxT (αt ) − fxT (αt−1 ) ≤ |αit jt − α̂it jt |(1 + ǫ) ≤ 2
+                            n
+                                                                                    n
+                        x∈{−1,1}
+
+since ǫ < 1. Thus, the inductive step is complete and the claim is proved.
+
+
+   We are now ready to prove Theorem 3.
+
+Proof of Theorem 3. Let ǫ′ = 2n2 ǫ. We divide into cases.
+   Case 1: Suppose ǫ′ < 1. Then, Lemma 7 applies and we get
+
+                                  X                                         (n2 )
+                                                                            X        X
+             T V (µ, µ̂) =                    fxT (α) − fxT (α̂)        ≤                        fxT (αt ) − fxT (αt−1 )
+                              x∈{−1,1}n                                     t=1 x∈{−1,1}n
+
+                              (n2 ) ′
+                              X     ǫ
+                          ≤               ≤ ǫ′ = 2n2 ǫ
+                              t=1
+                                  n2
+
+   Case 2: Suppose ǫ′ ≥ 1. This means that
+
+                                                      T V (µ, µ̂) ≤ 1 ≤ 2n2 ǫ
+so the claim is trivial in that case.
+
+
+                                                                   21
+    We can now also conclude the proof of Theorem 2 for known topology, which we sketched in
+earlier Sections.
+
+Proof of Theorem 2 (Known topology). Let α ∈ [−1, 1]n denote the vector of correlations of leaves
+in the model we are trying to learn and µ denote the distribution on the leaves for this model. Let
+us consider the sample mean obtained from m independent samples x(1) , . . . , x(m) .
+                                                      m  (k) (k)
+                                                      X xi xj
+                                             α̂ij =
+                                                               m
+                                                      k=1
+
+   By standard Chernoﬀ bounds, we know that with probability at least 1 − δ, for all leaves i, j
+                                             r
+                                               2 log(n2 /δ)
+                             |αij − α̂ij | ≤                := η                              (11)
+                                                    m
+   We run Algorithm 1 with this η parameter.
+    First, we claim that the LP that Algorithm 1 solves has a feasible solution for this choice of η.
+To show that, we will construct a feasible solution of the program. If θ ∈ [−1, 1]|E| is the vector of
+the edge weights of the model we are trying to learn, then for all leaves i, j
+                                                  Y
+                                          αij =         θkl
+                                                        (k,l)∈Pij
+
+This implies that                                         Y
+                                             |αij | =               |θkl |
+                                                        (k,l)∈Pij
+
+   Thus, if we set wkl = ln |θkl | for all edges (k, l), we have that
+                                                                
+                               X                     Y
+                                       wkl = ln           |θkl | = log |αij |
+                              (k,l)∈Pi,j              (k,l)∈Pij
+
+We know that with probability at least 1 − δ
+
+                                      ||αij | − |α̂ij || ≤ |αij − α̂ij | ≤ η
+
+which implies by the previous observations that
+                                              X
+                           log(|α̂ij | − η) ≤                 wkl ≤ log(|α̂ij | + η)
+                                                 (k,l)∈Pi,j
+
+    Hence, the inequality constraint for feasibility is satisﬁed. Hence, this is a feasible solution for
+the program.
+                                                                                    n
+    Let θ̃kl be the edge weights that are returned by the LP and α̃ ∈ [0, 1]( 2 ) be the pairwise
+correlations that are induced by these weights. We need to ﬁgure out the correct signs for each θkl .
+Let skl ∈ {−1, 1} be a sign variable for each edge (k, l). Also, let s(α)ij ∈ {−1, 1} be the sign of αij
+and likewise deﬁne s(αij ). If we ﬁnd an assignment of the skl variables such that
+                                            Y
+                                                 skl = s(αij )
+                                            (k,l)∈Pij
+
+
+                                                         22
+for all pairs i, j, then it follows that
+
+        Y                              Y                 Y                                      Y
+                  skl θ˜kl − αij =               skl               θ˜kl − s(αij )|αij | =               θ˜kl − |αij | ≤ η   (12)
+      (k,l)∈Pij                      (k,l)∈Pij         (k,l)∈Pij                            (k,l)∈Pij
+
+Thus, we will now focus on ﬁnding such skl and the output of the algorithm will be θkl = skl θ˜kl .
+First of all, we need a way to ﬁgure out s(αij ) for all i, j. Let U = {(i, j) : |α̂ij | > η}. By the
+approximation guarantee |αij − αˆij | < η, we conclude that for all (i, j) ∈ U , s(αij ) = s(αˆij ). Hence,
+we build up the system of equations
+                                 Y
+                                        skl = s(αˆij ) for all (i, j) ∈ U                              (13)
+                                       (k,l)∈Pij
+
+This can be viewed as a system of linear equations in F2 , which is the ﬁeld with 2 elements. Hence,
+we can use the standard Gaussian elimination algorithm to solve it. Since s(αˆij ) = s(αij ) for all
+(i, j) ∈ U , we know that this system has at least one solution, namely setting skl to be the sign of
+θkl in the true model. Let s̃ be the solution that is returned by the Gaussian elimination algorithm.
+There might be many solutions, since it’s possible that the system is underdetermined, which could
+be cause by the absence of some equations for (i, j) ∈  / U . But in any case, we know that s̃ satisﬁes
+(13).
+                               ˜                      (n)
+     Now, we set θQ kl = s˜kl θkl and let α ∈ [−1, 1] 2 be the correlations that are induced by θ,
+namely αij = α˜ij (k,l)∈Pij skl . If (i, j) ∈ U , then (13) holds, which means that by (12) we have
+|αij − αij | ≤ η. If (i, j) ∈
+                            / U , then |α̂ij | ≤ η implies |αij | ≤ 2η and |α˜ij | = |αij | ≤ 2η. Thus,
+|αij − αij | ≤ 4η.
+     Next, we argue about the TV distance between the distribution µ that is induced on the leaves
+by the output α of the algorithm and µ. We just proved that for all i, j
+                                                         |αij − αij | ≤ 4η
+We can then apply Theorem 3, which gives
+                                                                             r
+                                                              2          2       2 log(n2 /δ)
+                                      T V (µ, µ̃) ≤ 8n η = 8n
+                                                                                      m
+To make this quantity smaller than ǫ, we need
+                                             4          
+                                              n log(n/δ)
+                                      m=Θ
+                                                  ǫ2
+samples.
+
+
+
+7    Proof of Theorem 1(Different topologies)
+Let us start with some deﬁnitions. nLet T be a tree with n leaves and where all non-leaf nodes have
+degree 3. For a vector α ∈ [−1, 1]( 2 ) , we say that α is induced by a metric in T if there exists an
+assignment θe ∈ [−1, 1] of weights for each edge e of T , such that for all leaves i, j
+                                                     Y
+                                              αij =      θe
+                                                                    e∈Pij
+
+
+                                                                   23
+If µ is the distribution of the leaves of T when the vector of pairwise distances between leaves is α,
+we Qsay that µ is speciﬁed by the pair (T, α). For an even subset S ⊆ [n], we denote αTS the coeﬃcient
+of i∈S xi in the Fourier expansion of the probability distribution on a tree T . In this Section, we
+prove the following Theorem, which is a restatement of Theorem 1 (diﬀerent topologies).
+
+Theorem 4. Let T, T̂ denote the topologies of two trees with n leaves, where each non-leaf node
+                                    n
+has degree 3. Let α, α̂ ∈ [−1, 1]( 2 ) denote vectors of pairwise distances that are induced by some
+tree metric on T and T̂ , respectively. Let also µ̂ be the distribution that is induced on the leaves by
+(T̂ , α̂) and µ the one induced by (T, α). Finally, let D be the minimum diameter of T, T̂ . Suppose
+that for all leaves i 6= j we have that |αij − α̂ij | ≤ ǫ. Then,
+
+                                               T V (µ, µ̂) ≤ Cn5 Dǫ                                         (14)
+
+where C is an absolute constant.
+
+    For four leaves i, j, k, l, we will denote a quartet of leaves by {i, j, k, l} when we do not wish to
+specify their relative placement. The following fact is folklore: if we contract all edges that do not
+belong to some path between two leaves in the quartet, then we might end up with one of three
+possible topologies. We call this the topology of the quartet {i, j, k, l}. The 3 topologies are shown
+in Figure 5. For example, if we are in the ﬁrst topology, we write {(12)(34)} to denote that fact.
+We might refer to the quartet as either {1, 2, 3, 4} of {(12)(34)}, depending on whether we want to
+highlight the topology of the quartet or not.
+
+ 1                     3                   1                        2                  1                    2
+
+
+
+
+ 2                     4                   3                        4                  4                    3
+
+Possibility 1: {(12)(34)}                Possibility 2: {(13)(24)}                    Possibility 3: {(14)(23)}
+
+
+Figure 5: The three possible topologies for a quartet. In Possibility 1, the path from 1 to 2 does not
+intersect the path from 3 to 4. Further, α12 α34 ≥ α13 α24 = α14 α23 (and similarly for Possibilities 2
+and 3).
+
+    As explained in Figure 5, what distinguishes the topology is the relative order between the
+products α12 α34 , α13 α24 , α14 α23 . When α is induced by some tree metric, then two of these products
+will always be equal and the third will be larger or equal. Depending on which of the products is
+larger, we get one of the tree possible topologies (if all products are equal then we will choose the
+topology arbitrarily). Hence, if for some reason we cannot distinguish which of the three products
+is larger, then we intuitively expect that it will be hard to ﬁnd the correct topology for a quartet.
+We give the relevant deﬁnitions below.
+
+Definition 1. Let i, j, k, l be a quartet of four leaves of T . We define
+
+                ∆ijkl (α) := max(αij αkl , αik αjl , αil αjk ) − min(αij αkl , αik αjl , αil αjk )
+
+                                                       24
+Definition 2. Let i, j, k, l be a quartet of four leaves of T . We say that this is an ǫ-good quartet
+w.r.t. some vector α if
+                                              ∆ijkl (α) > ǫ
+
+    A quartet of leaves that is not an ǫ-good quartet is called an ǫ-bad quartet. Intuitively, if a
+quartet is good, then it is easy for an algorithm to distinguish which is the correct topology of these
+four leaves out of the three possibilities. If it is bad, then the topology is very close to being a star
+and so all three possibilities are roughly equivalent. One thing to note is that if |α̂ − α∗ | ≤ ǫ, then
+
+                                      |∆ijkl (α̂) − ∆ijkl (α∗ )| ≤ 2ǫ
+
+for all i, j, k, l. Hence, it does not really make a diﬀerence whether a quartet is good or bad with
+respect to α̂ or α∗ , since there is only an O(ǫ)-additive error.
+    We now proceed with the proof of Theorem 4. First, we need to formally deﬁne some notions of
+cutting and pasting nodes in diﬀerent parts of the tree. This will prove useful in having a uniﬁed
+vocabulary when describing the process of interpolating between two trees.
+
+Definition 3. Let T = G(V, E) denote the topology of a tree where every node has degree at most
+3. We define Binary(T ) to be the tree that is obtained from T by contracting all maximal paths of
+nodes of degree 2 into a single edge. In other words, it is obtained if we succesively find a degree 2
+node u with edges (u, v), (u, w) and replace it with edge (v, w), until we cannot find such a node.
+
+   Notice that the output of Binary is also described in Deﬁnition 6. For an example of how
+Binary works, see Figure 6. Clearly, Binary(T) satisﬁes the property that every non-leaf node
+has degree 3.
+
+
+                         T                                BINARY(T )
+
+
+
+
+Figure 6: On the left we have the tree before the contraction. On the right, we have the tree after
+applying Binary. We have highlighted with similar colors the path that is contracted on the left
+and the ﬁnal edge on the right.
+
+
+Definition 4. Let T = G(V, E) denote the topology of a tree and suppose (u, v) ∈ E. Let (r, s) ∈
+E be some other edge of T , where we might have {r, s} ∩ {u, v} =        6 ∅. The only requirement is
+that r, s belong to a different component than u when we remove edge (u, v) from T . We define
+CutPaste(T, u, v, (r, s)) to be the tree that is obtained from T as follows: we delete edges (u, v)
+and (r, s), we add a node t and we add the edges (t, u), (t, r), (t, s). This produces a tree T ′ . We set
+CutPaste(T, u, v, (r, s)) = Binary(T ′ ).
+
+
+                                                    25
+                                                                                              CutPaste(T )
+ T                                             T′                       u                                                     u
+                                                                                             = Binary(T ′ )
+       v       r            s                          v       r        t     s                                           r   t   s
+
+      u
+
+
+
+
+Figure 7: The Figure shows the output of CutPaste(T, u, v, (r, s)). In the ﬁrst step we cut u from
+it’s place and paste it in the middle of edge (r, s). In the second step we contract paths of degree 2
+nodes.
+
+    An example of applying CutPaste can be seen in Figure 7.
+    Intuitively, CutPaste encodes the following process: we delete edge (u, v), we add a node t in
+the middle of edge (r, s) and we attach u together with it’s connected component to t. This is why
+the order of u, v as arguments of CutPaste is important, while the order of r, s is not.
+    Before describing the interpolation process between the two trees, we prove a lemma about
+CutPaste. It shows what changes in the distribution if we change the tree according to CutPaste.
+For a tree T and a quartet {w, z, y, u}, let’s denote by T \ {w, z, y, u} the graph that we get if we
+remove all paths of the quartet {w, z, y, u} from T . An example is given in Figure 1(b).
+                                                          n
+Lemma 8. Let T = (V, E) be a tree and α ∈ [−1, 1]( 2 ) . Let i, j be two nodes in V (leaf or non-leaf )
+and denote i = v0 , v1 , . . . , vm = j to be the nodes in the path that connects them in the tree, with
+m ≥ 3. Define T k = CutPaste(T, i, v1 , (vk , vk+1 )) for all 0 < k < m. Denote by Uk the set of
+                                                                                      n
+quartets where T k and T k+1 differ. Lastly, let’s define the vector αwzyu ∈ [−1, 1]( 2 ) as
+         
+  wzyu     αkl , if the path Pkl does not have common edges with any of the paths in the quartet {w, z, y, u}
+αkl =
+           0, otherwise
+
+     Then,
+           k          k+1
+                                        X            k               k+1
+                                                                                               k
+      fxT (α) − fxT         (α) =                    αT{w,z,y,u} − αT{w,z,y,u} xw xz xy xu · fxT \{w,z,y,u} (αwzyu )
+                                    (w,z,y,u)∈Uk
+
+
+where fxT (α) was defined in (2).
+
+Proof. Let Ii denote the subset of leaves that lie on the subtree where i belongs to if we delete edge
+(i, v1 ) from the tree, and analogously we deﬁne Ij as the set of leaves of the subtree where j belongs
+to after this removal. By deﬁnition, we have
+                                       k+1            1        X                  k      k+1
+                                                                                                   Y
+                      fxTk (α) − fxT         (α) =                          (αTS − αST         )         xu
+                                                     2n
+                                                           S⊆[n],|S|even                           u∈S
+                                                      1             X                    k           k+1
+                                                                                                               Y
+                                                =                                     (αTS − αTS           )         xu
+                                                     2n
+                                                           S⊆[n],|S|even,S∩Ii6=∅                               u∈S
+
+
+
+                                                                   26
+The last equality follows because the relative topology of the leaves [n] \ Ii does not change, which
+means the coeﬃcients αS for S ⊆ [n] \ Ii also do not change. Now, for 0 < k < m let us deﬁne Sk to
+be the subset of leaves on the connected component that vk belongs to, if we remove all edges of the
+path Pij from the graph. Let’s also deﬁne Lk = ∪kq=1 Sq , Rk = ∪m−1
+                                                                  q=k Sq ∪ Ij . We will characterize
+the set of quartets Uk that change from Tk to Tk+1 . An illustration of all these concepts we just
+deﬁned is given in Figure 8.
+
+                                S0            S0 (in T k )        S0 (in T k+1 )
+
+                                w                  w                    w
+
+
+
+
+                                v0                v0                   v0
+  v0 = i                              v2 = vk                                                  v5 = j
+
+     v0                v1                v2                  v3                    v4               v5
+
+
+
+
+     w                                    z                  y                     u
+
+  S0 = Ii              S1                S2             S3 = Sk+1                  S4          S5 = Ij
+
+                            L2 = Lk                                                     R4 = Rk+2
+
+
+Figure 8: This is an illustration of how CutPaste cuts i from a place and moves it along the path
+to v5 = j, one step at a time. This is also exactly the same movement that is done by Algorithm 3,
+where one move corresponds to moving v0 one step to the right. Note that quartet {w, z, y, u} is
+changed when we move v0 from the left of v3 to the right of v3 . For illustration we denote k = 2
+and we depict the movement from tree T k to T k+1 .
+
+   First of all, notice that Ii , Ij , {Sq }m−1
+                                            q=1 partitions the set of leaves. It is straightforward to see
+that
+                       Uk = {{w, z, y, u} : w ∈ Ii , z ∈ Lk , y ∈ Sk+1 , u ∈ Rk+2 }
+Now let’s ﬁx a quartet {w, z, y, u} ∈ Uk . We would like to characterize the even subsets S ⊃
+{w, z, y, u} such that
+                                      k     k          k
+                                   αTS = αT{w,z,y,u}αTS\{w,z,y,u}
+Denote by Sw,z,y,u this collection of subsets. Essentially, these are the subsets were the matchings
+happen so that w, z and y, u are matched together. The reason we are interested in these subsets is
+                                              k        k+1
+that these are exactly the subsets where αTS and αST        will be diﬀerent (once we enumerate over
+
+                                                   27
+all quartets {w, z, y, u} in Uk ) Our strategy to understand how these sets look like will be similar
+to the one employed in the proof of Lemma 6. In particular, let us consider removing the paths of
+the quartet {w, z, y, u} from T k . This leaves us with a collection of connected subtrees, each with a
+leaf set Ar . Here, r ranges from 1 to l where l is the number of these components. The set of leaves
+can be partitioned as
+                                      [n] = {w, z, y, u} ∪ (∪r≤l Ar )
+    It should then be clear from the ﬁgure that S ∈ Sw,z,y,u if and only if |S ∩ Ai | is even, for all
+i. To justify that, let’s see what happens if for some r |S ∩ Ar | was odd. Then, there would be a
+leaf b ∈ Ar that would be left unmatched in Ar . As we can see from Figure 9, there are 5 diﬀerent
+possible positions that b can lie in the relative topology of the quartet {w, z, y, u}. However, from
+these, only 4 are possible, since b cannot lie in the middle of the quartet. The reason is that by
+deﬁnition of {w, z, y, u} there is no node in the middle edge of that quartet, so there is no subtree
+that is hanging from there.
+
+                                       b (1)                    b (4)      y
+                           w
+                                                     b (5)
+
+
+
+                           z                                               u
+                                       b (2)                    b (3)
+
+Figure 9: The 5 diﬀerent placings of b relative to the quartet {w, z, y, u}. Notice that position (5)
+is actually not possible, as there is no node in the middle of the quartet (see Figure 8)
+
+    Hence, b should lie closer to one of the 4 leaves. Let’s assume w.l.o.g. that it lies closer to w.
+Then, a similar argument as in Lemma 6 applies. In particular, we can also assume w.l.o.g. that b
+is the closest leaf in w that is left unmatched by it’s subtree Ar (otherwise we consider the closest
+                                                                   k
+one instead of b). Then, b has to be matched with w in αTS , which means that the term αwz will
+not appear in that expression. This means that S ∈     / Sw,z,y,u, a contradiction. Thus, we established
+that
+                        Sw,z,y,u = {{w, z, y, u} ∪ (∪r≤l Sr ) : Sr ⊆ Ar , |Sr | even }
+Note that the sets Sw,z,y,u are disjoint for diﬀerent quartets {w, z, y, u}. Also, it is easy to see that
+S ∈ Sw,z,y,u if and only if
+                                         k+1      k+1         k
+                                     αTS     = αT{w,z,y,u} αTS\{w,z,y,u}
+                                 k       k+1
+Hence, the sets S such that αTS 6= αTS         are precisely the union ∪{w,z,y,u}∈Uk Sw,z,y,u. Now, notice
+
+
+
+
+                                                     28
+that
+   1      X                k+1        k
+                                           Y
+                    (αTS         − αTS )         xu
+  2n
+       S∈Sw,z,y,u                          c∈S
+                                                                                                                            
+                                                k      k+1
+                                                                              1 Y               X                 Y
+                                     = αT{w,z,y,u} − αT{w,z,y,u} xw xz xy xu                                αS            xc 
+                                                                               2n   r   S⊆Ar ,|S|even             c∈S∩Ar
+                                                                               |                     {z                       }
+                                                                                             T \{w,z,y,u}
+                                                                                            fx              (αwzyu )
+
+The last equality is true, since it has the form of a product distribution over the subsets Ai , which
+is exactly the distribution of the topology T \ {w, z, y, u}. The weights in each subtree remain the
+same, but across subtrees the correlations are 0, which is why the argument is αwzyu now. Summing
+over all {w, z, y, u} ∈ Uk gives us the desired claim.
+
+
+    We now describe the process of interpolating between T and T̂ . We ﬁrst give the pseudocode,
+which is Algorithm 3. We note that even though we call this process an algorithm, it will only be
+used as part of the Analysis of the TV distance between two trees. Hence, we are not concerned
+with its computational complexity.
+    The interpolation will be carried away in rounds. Each round corresponds to a run of the outer
+While loop. In the ﬁrst round (q = 1), we make sure that any two leaves that form a cherry in T̂
+will also form a cherry in T . At the end of the ﬁrst round, we update the set of leaves by removing
+leaves that are cherries and adding their parents. Hence, in the second round, we make sure that
+parents of leaves that are cherries in T̂ become also cherries in T and so on.
+    Let us now describe in a bit more detail what happens in each round. First of all, notice that
+the L in the for loop condition is evaluated at the start of the loop. This means that if we change
+it during the run of the loop, the number of iterations will not be aﬀected. In the ﬁrst round, this
+set L corresponds to the leaf set [n]. We proceed to search for a pair i, j that is a cherry in T̂ but
+not in T . If such a pair i, j is found, the we have to move one of them towards the other to make
+them a cherry. This sequence of moves is called an epoch and corresponds to a run of the ﬁrst If
+statement inside the For. We include an extra If statement since we want to choose the weakest
+of i, j to move (we will see why this is important later). To move i towards j, we use the fuction
+Sequence. This gives us all the intermediate topologies that are needed to move i to j. Each of
+these topologies corresponds to a move. Hence, an epoch consists of moves. The movement is by
+cutting i from it’s current placement and pasting it in all the edges of the path to j consecutively,
+similarly to what is shown in Figure 8. After this movement is made, T3 is updated to store the
+new topology.
+    We now explain the signiﬁcance of the second If statement. If i, j was not a cherry in T but
+was in T̂ , then the previous If ﬁxed that. Now, the second If locates all these cherries that are
+common in T3 and T̂ and removes them from the leaf set L, while adding their parent. This means
+that the subtree rooted in the parent will not be changed after that point, since it has the same
+topology in T3 , T̂ and instead will be moved around with it’s parent in subsequent steps. Hence,
+in the second round, L will contain some parents of leaves and possibly some leaves that were not
+matched into cherries in the ﬁrst round. We give an example run of Algorithm 3 in Figure 10.
+    Let’s introduce a bit of notation about this process. Suppose q is a round, t is some epoch of
+this round, and m is some move in epoch t. We denote (it , jt ) the pair of leaves from L that is
+
+                                                              29
+Algorithm 3: Interpolation between two tree topologies
+ Input: Unweighted trees T = (V, E), Tˆ = (V̂ , Ê) whose leaves are labeled 1, . . . , n
+ Input: Correlations (αij )i,j∈{1,...,n}, i6=j between leaves of T and (α̂ij )i,j∈{1,...,n}, i6=j
+         between leaves of T̂
+ T1 ← T
+ S ← {T1 }
+ L ← {1, . . . , n}
+ while |L| ≥ 4 do // a new round starts
+    for i, j ∈ L do
+        if Cherry(i, j, T1 ) == False and Cherry(i, j, Tˆ) == True then // new epoch
+             p ← common neighbor of i, j in T̂
+             I ← set of leaves in the same component at i, if we remove (i, p) from T̂
+             J ← set of leaves in the same component at j, if we remove (j, p) from T̂
+             z ← arg maxu∈I α̂iu
+             w ← arg maxu∈J α̂ju
+             if α̂zp > α̂wp then
+                  Switch i, j
+             k ←neighbor of i on the path Pij
+             l ← neighbor of j on the path Pij
+             S2 ← Sequence(T1 , i, j)                                      // sequence of moves
+             T1 ← CutPaste(T1 , i, k, (j, l))                               // make i, j a cherry
+             S ← S ∪ S2
+        end
+        if Cherry(i, j, Tˆ) == True then // remove cherries where T1 , T̂ agree
+             p ← common neighbor of i, j in T̂
+             L ← L \ {i, j}
+             L ← L ∪ {p}
+        end
+    end
+ end
+ return The list L of topologies that were generated during interpolation
+
+
+
+
+                                                30
+        Initial                                                       Final
+
+
+
+
+        a    b    c   d    e    f       g       h       i             a   b   f   g    i       c       d       e       h
+
+                          (a)                                                         (g)
+
+
+
+
+        a    b    c   d    e    f       g       h       i             a   b   f   g        c       d       e       h   i
+
+                          (b)                                                         (f)
+
+
+
+
+        a    b    c   d    f        g   e       h       i             a   b   f   g        c       d   e       h       i
+
+                          (c)                                                         (e)
+
+
+
+
+                                    a       b       c       d    f    g   e   h   i
+
+                                                                (d)
+
+Figure 10: Example run of Algorithm 3. In the ﬁrst round, we have epoch 1. In epoch 1, e becomes
+a cherry with h. In the second round, we have epochs number 2 and 3. In epoch 2, the parent of
+f, g becomes a cherry with the parent of a, b. In epoch 3, the parent of c, d becomes a cherry with
+the parent of e, h. After that, we have reached the ﬁnal topology.
+
+
+                                                                 31
+ Algorithm 4: Functions Sequence and Cherry
+  Function Sequence(T, i, j)
+     S ← {T }
+     Let {v0 , . . . , vm } be path from i to j                                       // v0 = i, vm = j
+     for r ← 1 to m − 1 do
+         T2 ← CutPaste(T, i, v1 , (vr , vr+1 )                               // a move happens here
+         S ← S ∪ {T2 }
+     end
+     return S
+  Function Cherry(i,j,T )
+     if i, j have a common neighbor in T then
+         return True
+     else
+         return False
+     end
+
+
+selected during epoch t of the algorithm. Suppose the length of the path Pit jt is lt . Then, we denote
+by v0t = it , v1t , . . . , vltt = jt be the nodes in the path from it to jt , which has length lt . We denote
+by T m the topology that we get before move m and T m+1 the one we get after the move. We also
+deﬁne T 0 = T . Formally, if m′ is the ﬁrst move of epoch t, we have,
+                                                          ′
+                              T m+1 = CutPaste(T m , it , v1t , (vm
+                                                                  t    t
+                                                                    , vm+1 ))
+
+It is implied that in the deﬁnition of T qrs we do not delete the leaves that have already been ﬁxed
+into cherries. Note that it , jt might correspond to some internal nodes. Let It , Jt be the set of leaves
+in the same component as it , jt respectively, if we remove all the edges in the path from it to jt .
+     We collect here some observations about Algorithm 3 that will prove useful in the sequel.
+
+Observation 1. The total number of epochs for a single run of Algorithm 3 is at most n.
+
+Proof. Each time an epoch is complete, we build a subtree of strictly larger size than before (size
+stands for number of leaves here) which agrees with T̂ . Since there are at most n leaves, we need
+at most n steps until we reach T̂ . Hence, there are at most n epochs in the whole process.
+
+Observation 2. Any quartet {i, j, k, l} changes topology at most once per epoch.
+
+Proof. Follows by inspecting the set of quartets that change during a move, which was described in
+Lemma 8. It is trivial to see that these sets are disjoint for diﬀerent moves in a single epoch.
+
+Observation 3. For any epoch t and any move m in t, the subtree induced by the leaves in It and
+Jt is identical in T m and in T̂ .
+
+Proof. This follows inductively by the construction of the Algorithm. When a node it is selected, it
+is either a leaf or some node that was added in L after it’s two children it′ , jt′ became cherries in T1
+during a previous epoch t′ < t. Inductively, the subtrees rooted in it′ , jt′ have the same topology in
+T1 and T̂ . Since it′ , jt′ are siblings in T1 and in T ′ in epoch t, we conclude that the subtrees rooted
+at it are also identical in T1 and T̂ for epoch t. Same reasoning applies for Jt .
+
+
+                                                     32
+Observation 4. At the end of the last M of Algorithm 3 we have T M +1 = T̂ .
+
+Proof. Let us deﬁne the graph Ht as follows: it is obtained by running Algorithm 3 until epoch t
+and each time t′ ≤ t we make a cherry with it′ , jt′ , we remove the subtrees It′ , Jt′ , so that it′ , jt′
+become leaves. By Observation 3 we know that the subtrees we remove in each epoch have the
+same topology as in T̂ . Obviously, the number of leaves in Ht shrink with each epoch, until we
+have 3 leaves u, v, w, for which there is only one possible topology. At that point, topology T M +1
+is obtained by placing the subtrees for u, v, w back. By Observation 3, we know that these subtrees
+have the topology of T̂ , hence T M +1 should also have the topology of T̂ .
+
+Observation 5. If D is the diameter of T̂ , there are at most ⌈D/2⌉ rounds when we run Algorithm 3.
+Furthermore, each leaf is moved in at most one epoch per round.
+
+Proof. Consider the graph Ht that was deﬁned in the proof of Observation 4. We will show that
+the largest path in Ht shrinks by at least 2 edges in each round. It then follows that there will be
+at most ⌈D/2⌉ rounds in total.
+    Let u, v be two leaves of Ht such that Puv in Ht has length equal to the diameter D of Ht . Let
+p be the only neighbor of u in Ht . Clearly, u is also part of the path Puv . Let w be the neighbor of
+p that does not lie on the path Puv (since p has degree 3, such a neighbor should exist). We claim
+that w should be a leaf, otherwise we could extend the path Pup into one with larger length than
+Puv . Thus, u, w should be siblings, which means they will be selected in the current round to be
+paired into a cherry, which will remove them from the graph and will leave p as a leaf. Thus, Puv
+will shring by one edge on the side of u and for the same reason will also shring by one edge on the
+side of v. This proves our claim.
+    For the second claim, any leaf u is moved only when some subtree with root it is moved and u
+belongs in this subtree. Suppose that this happens during a round, resulting in it , jt becoming a
+cherry. Then, we can see that Algorithm 3 then removes it , jt from the list of leaves L, which means
+that it will not move again for the remainder of that round (it’s parent pt is not considered in the
+For loop of the current round). Hence, u remains ﬁxed for the remaining of that round.
+
+
+    We ﬁrst argue that during this interpolation process, only bad quartets change topology. This
+is crucial, since good quartets should be maintained if we wish to lose only a little in TV.
+
+Lemma 9. Let T = G(V, E) and T̂ = G(V̂ , Ê) be two trees with tree metrics α, α̂ respectively. We
+assume that kα − α̂k∞ ≤ ǫ. Suppose we run the procedure 3 with input T, T̂ , α, α̂. Let T m , T m+1
+be two arbitrary consecutive steps in this process. Let Um be the set of quartets where T m , T m+1
+disagree. Then, for all (w, z, y, u) ∈ Um , we have that
+
+                                           ∆w,z,y,u(α) ≤ 20nǫ
+
+Proof. We will denote by t the epoch where move m belongs to. We will prove the claim inductively
+over t. We will prove that if a quartet {w, z, y, u} is changed during the t-th epoch, then
+
+                                           ∆w,z,y,u(α) ≤ 20tǫ
+
+This obviously implies the ﬁnal claim since t ≤ n by Observation 1. Since the base case is the same
+as the inductive step, we give the inductive step proof only.
+
+
+                                                    33
+     Suppose we are at epoch t. First of all, we know that node it is selected to be moved towards
+jt , where the intermediate nodes are v0t = it , v1t , . . . , vm
+                                                                t = j . Similarly to the proof of Lemma 8,
+                                                                 t   t
+let It be the set of leaves on the same component with it if we remove edge (v0t , v1t ), Sit the set of
+leaves on the same component as vit , if we remove edges (vi−1     t , v t ), (v t , v t ) from the tree, and J be
+                                                                        i        i i+1                              t
+the set of leaves on the same component with jt if we remove edge (vm                t      , v t ). Also, let us deﬁne
+                                                                                       t −1     m t
+Lts = ∪k≤s Skt , Rts = ∪k≥s Skt ∪ Jt for all s ≤ mt . The situation is similar to the one presented in
+Figure 8.
+     Suppose T m corresponds to node it being pasted in the middle of edge (vst , vs+1              t ) for some ﬁxed s.
+
+As we saw in the proof of Lemma 8, the set Um of quartets that diﬀer in T , T m+1 can be written
+                                                                                              m
+
+as
+                        Um = {{w, z, y, u} : w ∈ It , z ∈ Lts , y ∈ Ss+1t
+                                                                              , u ∈ Rs+2  t
+                                                                                               }
+Note that all the quartets in Um are considered to change at epoch t. Suppose there exists a quartet
+{w, z, y, u} ∈ Um such that
+                                         ∆w,z,y,u(α) > 20tǫ
+First, we will assume that u ∈ ∪k≥s Skt . Afterwards, we will deal with the case u ∈ Jt , which
+will actually prove to be easier. The ﬁrst thing we observe is that we can assume without loss of
+generality that the topology of {w, z, y, u} has not been altered in any previous epoch. The reason
+is that if it was altered at some epoch t′ < t, then by the inductive assumption, we already have
+
+                                              ∆w,z,y,u(α) ≤ 20t′ ǫ < 20tǫ
+
+and we have nothing to prove. Hence, we can assume w.l.o.g. that it is the ﬁrst time that it is
+changing topology. Note also that by Observation 2 a quartet changes topology at most once per
+epoch. Since it has not changed topology before, it follows that it’s topology in T is {(wz)(yu)}. It
+is straightforward to notice that
+
+                                             ∆w,z,y,u(α) = ∆w,z,y,u(|α|)
+
+where |α| is the vector of absolute values of α. This implies that
+
+                                 ∆w,z,y,u(α) = |αwz ||αyu | − |αzy ||αwu | > 20tǫ
+
+Our assumption about α, α̂ implies that
+
+                      |αwz ||αyu | − |α̂wz ||α̂yu | ≤ 2ǫ       ,    |αzy ||αwu | − |α̂zy ||α̂wu | ≤ 2ǫ
+
+Hence, we have
+                                        |α̂wz ||α̂yu | − |α̂zy ||α̂wu | > 20tǫ − 4ǫ
+Let pt be the common parent of it , jt in the tree T̂ . Now, by the construction of procedure 3(ﬁrst
+If statement), we know that
+                                      max |α̂f,pt | ≥ max |α̂f,pt |                             (15)
+                                               f ∈Jt               f ∈It
+
+Now, we know by Observation 3 that the subtrees rooted at it and jt with leaf sets It and Jt
+respectively have the same topology in T m and T̂ . Since z, u ∈
+                                                               / It , we can write (see Figure 11).
+
+                        |α̂wz ||α̂yu | − |α̂zy ||α̂wu | = |α̂w,pt |(|α̂z,pt ||α̂yu | − |α̂zy ||α̂u,pt |)
+
+
+                                                              34
+                                                                                                 z
+
+
+                                 T̂ , α̂                   pt
+
+                                             it                           jt                     u
+
+
+
+
+                                             w                            h
+                                             It                           Jt
+
+                         Figure 11: From the picture, it is clear that α̂wz = α̂wpt α̂pt z
+
+
+    Let h = arg maxf ∈Jt |α̂f,pt |. Then, by(15) we have
+
+                    |α̂h,pt |(|α̂z,pt ||α̂yu | − |α̂zy ||α̂u,pt |) ≥ |α̂w,pt |(|α̂z,pt ||α̂yu | − |α̂zy ||α̂u,pt |)
+Since we have assumed that z, u ∈
+                                / It , ﬁgure 11 implies that
+
+|α̂hz ||α̂yu |−|α̂zy ||α̂hu | = |α̂h,pt |(|α̂z,pt ||α̂yu |−|α̂zy ||α̂u,pt |) ≥ |α̂w,pt |(|α̂z,pt ||α̂yu |−|α̂zy ||α̂u,pt |) > 20tǫ−6ǫ
+
+By the closeness of α, α̂, this in turn implies that
+
+                                 |αhz ||αyu | − |αzy ||αhu | > 20tǫ − 10ǫ > 20(t − 1)ǫ                                       (16)
+
+Clearly, leaves h, z, y, u do not change position during epoch t, hence the quartet {h, z, y, u} does
+not change topology during epoch t. Now, there are two possibilities:
+   Case 1: Suppose {h, z, y, u} has changed topology at least once in some previous epoch t′ < t.
+Then, by the inductive hypothesis, we should have
+
+                                                      ∆h,z,y,u(α) ≤ 20t′ ǫ
+
+Since t′ ≤ t − 1, this contradicts (16).
+   Case 2: Suppose {h, z, y, u} has not changed topology until epoch t. This means that the
+topology of {h, z, y, u} in T is {(zy)(hu)}, since that is the topology in T qrs . This implies that
+
+                                                  |αhz ||αyu | − |αzy ||αhu | < 0
+
+which again contradicts (16).
+    Hence, in all cases we obtain a contradiction and the inductive step is proved. Now, let’s consider
+the case u ∈ It . Then, we can assume w.l.o.g. that this is the ﬁrst epoch where {w, z, y, u} changes
+topology, otherwise the inductive step applies. This means that the topology of this quartet in T is
+{(wz)(yu)}. Hence,
+                                 ∆w,z,y,u(α) = |αwz ||αyu | − |αzy ||αwu |
+
+                                                                 35
+Clearly, the topology of this quartet is {(zy)(wu)} in T̂ . This implies that
+
+                                             |α̂wz ||α̂yu | − |α̂zy ||α̂wu | < 0
+
+In turn, this means
+                                       |αwz ||αyu | − |αzy ||αwu | < 4ǫ < 20tǫ
+and this concludes the claim in that case as well.
+
+
+    We now formulate our main result, which bounds the Lipschitzness of the function fxT in terms
+of local changes in the topology of T . We will use it to relate the changes in TV to the changes of
+quartet topologies along this interpolation process.
+
+Lemma 10. Let T = G(V, E) and T̂ = G(V̂ , Ê) be two trees and suppose that the diameter of T̂ is
+D. Let α be some tree metric induced by T . We assume that kα − α̂k∞ ≤ ǫ/(40Dn5 ) for some ǫ < 1.
+Suppose we run the procedure 3 with input T, T̂ , α, α̂. Let T m , T m+1 be two arbitrary consecutive
+topologies in this process, corresponding to move m. Let Um be the set of quartets where T m , T m+1
+disagree. Then,
+                                       X                m+1            m           |Um |ǫ
+                                                  fxT         (α) − fxT (α) ≤                                       (17)
+                                                                                    Dn4
+                                 x∈{−1,1}n
+
+Proof. We are going to prove this inductively on the total number of moves m. Suppose we are in
+the ﬁrst move, m = 1 of round q = 1 and epoch t = 1. By applying Lemma 8, we have that
+
+            X          1           0
+                                                        X            X                         1
+                     fxT (α) − fxT (α) =                                     xw xz xy xu fxT \{w,z,y,u} (α)
+         x∈{−1,1}n                                x∈{−1,1}n {w,z,y,u}∈U1
+                                                         X                            X            1
+                                              ≤                      ∆w,z,y,u(α)               fxT \{w,z,y,u} (α)
+                                                  {w,z,y,u}∈U111                   x∈{−1,1}n
+
+Now, notice that since there have not been any other changes to the topology of T except for
+                                                           T 1 \{w,z,y,u}
+the ﬁrst move, T 0 = T and furthermore, the expression fx                 (α) is actually the probability
+distribution on the leaves of a tree that has edge weights that agree with α, except for edges that
+belong to some path of the quartet {w, z, y, u}, which have weight 0. Hence, we can remove the
+absolute value and this gives us
+                          X          1         0
+                                                          X
+                                  fxT (α) − fxT (α) ≤               ∆w,z,y,u(α)
+                           x∈{−1,1}n                                  {w,z,y,u}∈U1
+
+Finally, by applying Lemma 9 we get
+                            X            1               0                      ǫ      ǫ|U1 |
+                                   fxT (α) − fxT (α) ≤ |U1 |20n ·                  5
+                                                                                     =
+                                                                              40Dn     2Dn4
+                       x∈{−1,1}n
+
+hence the base case is true.
+
+
+
+                                                                36
+                                                                                                 n
+     Now suppose the claim holds for all moves m′ < m. First, we deﬁne the vector αwzyu ∈ [0, 1]( 2 )
+as
+          
+              αkl , if the path Pkl does not have common edges with any of the paths in the quartet {w, z, y, u}
+αwzyu
+ kl   =
+              0, otherwise
+
+Clearly, αwzyu is also a metric on T , which is induced by the same weights as α, except that all
+edges on paths of the quartet {w, z, y, u} have weight 0. By again applying Lemma 8 and Lemma 9,
+we can get
+         X         m+1          m
+                                             X                    X         m
+               fxT     (α) − fxT (α) ≤              ∆w,z,y,u(α)          fxT \{w,z,y,u} (αwzyu )
+       x∈{−1,1}n                          {w,z,y,u}∈Um               x∈{−1,1}n
+                                           ǫ         X
+                                                                 T m \{w,z,y,u}
+                                       ≤                        fx                (αwzyu )            (18)
+                                         2Dn4
+                                                 {w,z,y,u}∈Um
+
+Now, let’s ﬁx a quartet {w, z, y, u} ∈ Uqrs . The graph T m \ {w, z, y, u} is a tree where all edges
+that belong to some path of the quartet {w, z, y, u} have been removed. The problem is that other
+changes have happened in the topology of T before it reaches the current state T m . Therefore, the
+            T m \{w,z,y,u} wzyu
+quantity fx               (α    ) is no longer a distribution over a tree, since αwzyu corresponds to the
+initial tree metric on T , with some edges set to 0. Hence, we cannot get rid of the absolute value
+and claim that this quantity sums up to 1. Instead, our strategy will be to relate this quantity
+to some other quantity that is a probability distribution. To describe this probability distribution,
+consider the collection of subtrees that are obtained from T m by removing all paths of the quartet
+{w, z, y, u}. These partition the set of leaves into subsets Si , one for each subtree. Let Gm be the
+forest that is obtained by taking for each subset on leaves Si the subtree induced by T (when we say
+induced, it is implicit that the function Binary is applied to make the subtree have all non-leaves
+                                                   T m \{w,z,y,u} wzyu
+with degree 3). We will show how to relate fx                    (α    ) with fxGm (αwzyu ). Notice that by
+deﬁnition, αwzyu is clearly a metric induced from Gm and so the latter quantity is a probability
+distribution.
+    Our strategy for relating these two quantities will be to interpolate between T m \ {w, z, y, u}
+to Gm . The way to do this interpolation is using Algorithm 3. In particular, the following Lemma
+shows that in order for Algorithm 3 to transform Gm to T m \ {w, z, y, u}, it will need strictly less
+moves than the ones needed to transform T to T m+1 .
+Lemma 11. Let M be the number of moves needed for Algorithm 3 to transform T to T m+1 . Then,
+it is possible to transform Gm to T m \ {w, z, y, u} using a number of moves that is strictly smaller
+than M .
+
+Proof. The idea of the proof is very simple and relies on the fact that we can simply "copy" the
+moves made from T to T m+1 , except when these moves aim at making a cherry with two leaves that
+belong to diﬀerent subtrees of Gm , in which case no move is necessary. To be more formal, let R be
+the number of epochs that Algorithm 3 needs to reach T m+1 starting from T . Then, we will show
+that we can reach T m \ {w, z, y, u} using a number of epochs R′ such that R′ < R. Furthermore, we
+will argue that each of the R′ epochs has at most the same number of moves as the corresponding
+one starting from R. We do this by examining one by one the R epochs from T to T m+1 and
+deciding how to potentially change it. First of all, let’s remember that at the start of each epoch t,
+Algorithm 3 chooses two nodes it , jt and makes them siblings with parent pt , thus making a larger
+
+                                                    37
+subtree that agrees with T̂ . The relative topology inside this subtree will never be altered by the
+algorithm again. We call this process fixing the subtree with root pt . When we refer to the subtree
+of it and jt we mean the connected component that results when we remove path Pit jt from the
+graph at epoch t. We denote {it , jt }t the sequence of epochs produced from T to T qrs and {i′t , jt′ }t
+the sequence of epochs that transforms Gm to T m \ {w, z, y, u}.
+      We will inductively prove that at any epoch in the sequence {it , jt }, if a subtree with root pt
+has been ﬁxed after that epoch and if this subtree is contained in some component of Gm , then
+this subtree will also be ﬁxed under sequence {i′t , jt′ }. In proving the inductive step, we will also
+describe how to deﬁne the sequence of epochs {i′t , jt′ }. After proving this claim, we will explain why
+it implies the statement of the Lemma.
+       Suppose the claim holds for all epochs prior to t(for t = 1 the claim is trivial). Suppose then
+that at epoch t it and jt become cherries with parent pt . Let T t be the topology at the start of the
+epoch and let Gtm be the corresponding topology at the start of epoch t under the sequence {i′t , jt′ }.
+Suppose ﬁrst that the subtrees of it , jt belong to the same component of T qrs . Then, inductively, we
+know that it , jt exist also in Gtm and their subtrees have already been ﬁxed by the sequence {i′t , jt′ }.
+In that case, we set i′t = it , jt′ = jt and set the movement of i′t to jt′ to be the same as the one
+from it to jt , but on the induced component of Gtm that it , jt belong to. We call this a true epoch.
+Since the paths in an induced subtree can only stay the same or become smaller than the ones in
+the original tree (after applying operation Binary), the number of moves required to move i′t to jt′
+is at most the number of moves required to move it to jt . Once we move i′t to become sibling with
+jt′ , the new subtree with root p′t has also been ﬁxed for the sequence {i′t , jt′ }, proving the inductive
+hypothersis in that case. Now, suppose that it , jt belong in diﬀerent subtrees of Gm . There are two
+cases: either both it , jt exists as nodes in Gtm , or at least one of them does not exist. If they both
+exist, then again by the inductive hypothesis, it follows that the subtrees it , jt have also been ﬁxed
+in Gtm . In that case, it must be the case that the entire component of it in Gtm is equal to that
+subtree (otherwise we would be able to connect it to some other sibling and enlarge it). Hence, in
+that case no movement takes place and we trivially set i′t = jt′ = it to denote that this is not a true
+epoch. The point is that there is no need to move them again until we reach T m \ {w, z, y, u}, so our
+choice not to move them is correct. Now, let’s examine the case that either it or jt does not exist
+in Gtm . Suppose it does not exist w.l.o.g. Then, this means that it is a parent of two subtrees that
+do not belong to the same component of Gtm . Thus, this means that there is no reason to connect
+these subtrees, hence we also trivially set i′t = jt′ = it . We call this epoch fake. The inductive step
+is now complete.
+      The induction we just proved shows that the sequence {i′t , jt′ } leads to T m \ {w, z, y, u} when
+started from Gm . Also, it is clear that the true number of epochs in {i′t , jt′ } at any given time is at
+most the ones in {it , jt }, since some epochs might be fake. In fact, if {it , jt } reaches T m+1 at epoch
+R, the number of true epochs R′ in {i′t , jt′ } should be strictly smaller than R. The reason is that
+at epoch R, iR and jR belong to diﬀerent components of T qrs \ {w, z, y, u} by deﬁnition (since we
+remove the path from w to u). Hence, the last epoch R will not be a true epoch for {i′t , jt′ }. Since
+we have also argued that the number of moves in epochs of {i′t , jt′ } is at most the corresponding
+number for epochs in {it , jt },this concludes the proof of the Lemma.
+
+
+   Let M be the total number of moves required by Algorithm 3 to transform T to T m+1 and M ′
+the moves to transform Gm to T m \ {w, z, y, u}. The point of Lemma 11 is that M ′ < M . Let
+                            ′
+Gm = G0m , G1m , . . . , GM
+                          m = T
+                                m \ {w, z, y, u} be the sequence of graphs in the interpolation. By
+
+
+
+                                                    38
+triangle inequality, we have
+                                                                            M   ′
+                     m                                   0
+                                                                            X         s              s−1
+                  fxT \{w,z,y,u}(αwzyu )         ≤    fxGm (αwzyu )     +           fxGm (α) − fxGm (α)
+                                                                            s=1
+
+As we have already explained, the ﬁrst term on the right hand side corresponds to a distribution,
+hence we can remove the absolute values. The remaining terms have the form of the left hand
+side of (17), which is what we want to bound in general. However, these diﬀerences are applied to
+graphs that are obtained after at most M ′ moves of Algorithm 3. Hence, we can apply the inductive
+hypothesis (17). If Us′ is the set of quartets that change from Gm
+                                                                 s−1 to Gs , then,
+                                                                         m
+
+                                         M ′                                              M′
+                                X        X         s          s−1                  ǫ X ′
+                                                fxGm (α) − fxGm (α)             ≤     |Us |
+                                                                                  Dn4
+                           x∈{−1,1}n s=1                                                  s=1
+
+                              P ′
+It remains to bound the sum M         ′
+                                s=1 |Us |. This is equal to the total number of quartets that have
+                                ′
+changed topology until move M , starting from Gm (if a quartet has changed multiple times, we
+count the number of times it has changed in this sum). We argue that
+
+                                                      M ′
+                                                      X
+                                                            |Us′ | ≤ Dn4
+                                                      s=1
+                                                   
+The reason is the following: there is a total of n4 quartets, so it suﬃces to bound the number of times
+that any speciﬁc quartet {w, z, y, u} changes topology. First of all, we have already argued that a
+quartet changes topology at most once every epoch. In order for a quartet to change topology during
+some epoch, at least one of it’s leaves should be moved to some diﬀerent position. By Observation 5
+we know that a leaf is moved at most ⌈D/2⌉ times in total. Hence, a quartet changes topology at
+most 4⌈D/2⌉ times in total. Hence,
+
+                                           M     ′            
+                                           X                  n
+                                                     |Us | ≤     2D ≤ Dn4
+                                                              4
+                                               s=1
+
+Combining everything together, we get
+             X         m
+                                                               X            0                    ǫ
+                    fxT \{w,z,y,u} (αwzyu ) ≤                           fxGm (αwzyu ) +             Dn4 = 1 + ǫ
+                                                                                                Dn4
+            x∈{−1,1}n                                       x∈{−1,1}n
+
+This holds for all {w, z, y, u} ∈ Um . Hence, by using (18) we get
+                X              m+1             m              ǫ          X                  m \{w,z,y,u}
+                         fxT         (α) − fxT (α) ≤                                  fxT                  (αwzyu )
+                                                            2Dn4
+             x∈{−1,1}n                                             {w,z,y,u}∈Um
+                                                            ǫ                  |Um |ǫ
+                                                        ≤     4
+                                                                |Um |(1 + ǫ) ≤
+                                                          2Dn                   Dn4
+since ǫ ≤ 1. This is the inductive claim that we wanted to prove.
+
+
+
+                                                              39
+    We are now ready to conclude the proof of Theorem 4. To do it, we simply use Lemma 10 to
+transition from T to T̂ . Then, we use the bound for the ﬁxed topology to change α to α̂.
+
+Proof of Theorem 4. We can assume without loss of generality that T̂ has a smaller diameter than T ,
+otherwise we just reverse the roles of T, T̂ . We run Algorithm 3 with input T, T̂ , α, which produces
+a sequence T = T 0 , T 2 , . . . , T M = T̂ , where each element of the sequence corresponds to some move.
+We have that
+                                       X
+                T V (µ, µ̂) =                  fxT (α) − fxT̂ (α̂)
+                                 x∈{−1,1}n
+                                   X                                   X
+                             ≤                fxT (α) − fxT̂ (α) +               fxT̂ (α) − fxT̂ (α̂)         (19)
+                                 x∈{−1,1}n                           x∈{−1,1}n
+
+
+Deﬁne ǫ′ = 40Dn5 ǫ. Let us divide into cases.
+   Case 1: Suppose ǫ′ < 1. Then, the ﬁrst term of the RHS of (19) can be bounded using the
+successive steps of the interpolation process. In particular, since ǫ = ǫ′ /(40Dn5 ), we can apply
+Lemma 10 to get
+                                               M                                               M
+              X                                X      X          m               m−1
+                                                                                               X |Um |ǫ′
+                       fxT (α) − fxT̂ (α) ≤                    fxT (α) − fxT           (α) ≤
+                                               m=1 x∈{−1,1}n                                   m=1
+                                                                                                        Dn4
+           x∈{−1,1}n
+
+   By the proof of Lemma 10, this implies that
+                            X                                 ǫ′
+                                     fxT (α) − fxT̂ (α) ≤        Dn4 = ǫ′ = 40Dn5 ǫ
+                                                             Dn4
+                         x∈{−1,1}n
+
+As for the second term of the RHS of (19), it is essentially the diﬀerence when we substitute α̂ with
+α in the ﬁxed topology T̂ . Hence, we can directly apply Theorem 3 to get
+                                    X
+                                           fxT̂ (α) − fxT̂ (α̂) ≤ 2n2 ǫ
+                                     x∈{−1,1}n
+
+Overall, this gives us
+                                               T V (µ, µ̂) ≤ 42Dn5 ǫ
+which proves inequality (14) in that case.
+   Case 2: Assume ǫ′ ≥ 1. Then,
+
+                                             T V (µ, µ̂) ≤ 1 ≤ 40Dn5 ǫ
+
+which means that (14) trivially holds in that case too. The proof is now complete.
+
+
+
+
+                                                        40
+8     Proof of Theorem 2 (unknown topology)
+8.1    Outline
+In this section, we will present an algorithm that takes samples from the leaves of some tree Ising
+model with tree T ∗ and weight θ ∗ and estimates a topology T̂ together with weights on the edges, so
+that the distributions on the leaves of T and T̂ are ǫ-close in TV distance. The number of samples
+will be polynomial in n and 1/ǫ.
+    We will use the results in Daskalakis et al. [2009] about learning phylogenetic trees without
+assuming any upper/lower bounds on the edge weights. We will show how we can use the guarantees
+of this prior work to obtain an algorithm for ﬁnding a good enough topology. Before explaining the
+result formally, we ﬁrst want to give an intuition. We discuss how the output might be diﬀerent
+from the original tree. Firstly, without suﬃcient samples, it is impossible to determine the existence
+of edges that are far away from leaves. In such cases, the algorithm of Daskalakis et al. [2009] will
+omit those edges and output a forest, as shown in Figure 12.
+
+
+
+
+ 1              2          3              4                 5              6          7              8
+
+
+Figure 12: A forest that is created by deleting edges: the true tree contains all the solid and dashed
+edges. Yet, the algorithm of Daskalakis et al. [2009] might not be able to identify some of the edges
+because they do not suﬃciently correlate with the leaves, and so it will return a forest. In the
+example here, the forest is obtained from the original tree by removing the dashed edges. The three
+connected components of the output forest are colored red, blue and green.
+
+    Secondly, the algorithm may fail to split the tree in a topologically sensible way. This means
+that it will return a forest, yet, in contrast with the example in Figure 12, it is impossible to obtain
+this forest by cutting some edges in the ground truth tree. Still, the topology within each connected
+component in this forest is preserved, as illustrated in Figure 13 (a)-(b). After splitting the tree into
+two subtrees, those subtrees might contain some internal nodes of degree 2. Such nodes cannot be
+identiﬁed from the leaves, and they will be contracted, as shown in Figure 13 (c).
+
+
+
+
+                                                   41
+ (a)
+
+
+
+
+        1               2     3            4                   5           6       7               8
+
+
+
+
+(b-1)                                 b                (b-2)       d
+
+                    a             c                                    e               f
+
+   1        2   3            5                                             4               6   7       8
+
+
+
+
+(c-1)                                                  (c-2)
+
+        1           2             3         5                  4       6               7           8
+
+
+
+Figure 13: Splitting a tree into subtrees in a more complicated fashion: In (a), the true tree contains
+both the solid and dashed edges. Yet, the algorithm might not identify completely the topology.
+Instead it will return two subtrees. Yet, the subtrees are not topologically sensible: one tree will
+contain the leaves {1, 2, 3, 5} and the other will contain {4, 6, 7, 8}. The red edges correspond to the
+ﬁrst tree, the blue edges to the second tree, while the dashed edges are shared by both trees. In
+ﬁgure (b), we split the original tree into the two subtrees, one containing the red and dashed edges
+and the other the blue and dashed edges. Notice that in Figure (b), the nodes labeled a-f have
+degree 2. Information theoretically, it is impossible to identify hidden nodes of degree 2. Indeed, the
+same leaf distribution is obtained by removing each of these nodes, connecting its neighbors, and
+adjusting the weight of the new edges. Hence, the output of the algorithm will not have degree-2
+nodes: instead, the transformation described above, that removes degree-2 nodes, will be performed.
+In (c) we demonstrate the result of removing such degree-2 nodes.
+
+    The two transformations that are applied to a tree in Figure 12 and Figure 13 can be viewed
+as a single transformation: separating the tree into subtrees, while preserving the topology within
+each subtree. This can be seen in Figure 14.
+
+
+
+
+                                                  42
+ (a)
+
+
+
+
+       1            2         3             4                    5        6         7             8
+
+
+
+
+(b)
+
+                   1     2     3                4        5   6           7           8
+
+
+Figure 14: Separating a tree into multiple subtrees: In (a), the original tree contains all solid,
+dashed and dotted edges. It is split by the algorithm to three subtrees. The ﬁrst subtree contains
+leaves {1, 2, 3} and the red and dashed edges. The second subtree contains {4, 5, 6} and the blue
+and dashed edges. The third contains {7, 8} and the green edges. Notice that the dashed purple
+edge is contained in two trees, while the dotted black edge is contained in no tree. Notice that the
+ﬁrst and second subtrees intersect while the third subtree is disjoint from the other subtrees. In (b)
+we see the output of the algorithm.
+
+    Yet, the algorithm of Daskalakis et al. [2009] might not be able to tell the exact topology within
+each subtree. In this case, the output will just contract some of the internal edges of this subtree.
+See Figure 15 (a)-(c) for an example of a contracted subtree. In Figure 15 (d) we depict some of
+the possible topologies that the algorithm could have confused between, which led to contracting a
+speciﬁc edge.
+
+
+
+
+                                                    43
+(a)                                          a                        b
+
+
+
+
+                  1            2      3               4       5               6       7       8
+
+
+
+
+(b)                                          a                        b
+
+
+
+
+                  1            2      3               4       5               6       7       8
+
+
+
+
+ (c)
+
+
+
+
+                  1            2                          3       4       5       6       7       8
+
+
+
+
+(d)
+
+
+
+
+                  1            2
+Option 1                              3               4       5               6
+Option 2                              3               6       4               5
+Option 3                              5               6       3               4
+
+
+Figure 15: An example of edge contraction. In (a), we see the original tree. In (b), the algorithm
+splits the tree into two subtrees. Yet, the algorithm could not ﬁgure exactly the topology of the
+left subtree. Instead, it contracts the dashed edge, and the result is shown in (c). The reason
+for the contraction is: the algorithm could not tell the true topology. In (d), we show multiple
+topologies that the algorithm might confuse between, leading it to contract the edge. These are
+labeled Option 1-3.
+
+
+                                                 44
+    Before we give the formal proof, let us give an imprecise intuition of the approach. In particular,
+we show how to compare between the output of the algorithm and the true topology. For the simple
+case where the output is obtained from the true tree by only deleting edges, these edges are “distant”
+from the leaves, and so they cannot inﬂuence the leaf distribution signiﬁcantly. Thus, it suﬃces
+to study the more complicated case where the subtrees are not obtained by simply cutting edges
+from the true tree. Here, we ﬁrst compare the true tree to a tree where all edges that appear in
+two diﬀerent subtrees have been contracted, as shown in Figure 16 (b). In the next step, each edge
+corresponds only to one subtree, and we can detach the diﬀerent subtrees, as shown in Figure 16 (c).
+Lastly, we can reconstruct the edges that were previously contracted, as shown in Figure 16 (d).
+
+
+
+
+                                                  45
+ (a)
+
+
+
+
+                  1       2       3       4                        5       6       7       8
+
+
+
+
+ (b)
+
+
+
+
+                          1       2       3        4       5       6       7       8
+
+
+
+
+ (c)
+
+
+
+
+                  1       2       5       6                        3       4       7       8
+
+
+
+
+ (d)
+
+
+
+
+          1               2       5                6       3               4       7               8
+
+
+Figure 16: Analyzing the diﬀerence between the true topology and the output of the algorithm. In
+(a), the true tree contains the union of solid and dashed lines. Yet, the algorithm splits the tree into
+two subtrees, with leaves {1, 2, 5, 6} and {3, 4, 7, 8}. In (d), we can see the output of the algorithm.
+In order to compare between the true and output topologies, we construct two auxiliary forests:
+In (b), we contract all the edges that are shared between the two subtree. In this example, this
+amounts to contracting the dashed edge. Then, in (c), we split the diﬀerent subtrees. In (d), we
+reconstruct the edge that was previously contracted. 46    Yet, we reconstruct this edge separately for
+each subtree.
+    We can bound the total variation distance for each of these steps using the following guarantees:
+(1) edges that appear in multiple subtrees have weight close to 1. Hence, contracting them, which is
+equivalent to changing their weight to 1, does not inﬂuence signiﬁcantly the total variation distance.
+(2) Leaves of diﬀerent trees have a small correlation. Hence, detaching the diﬀerent subtrees does
+not incur a high cost in total variation.
+
+8.2     Definitions and probabilistic lemmas
+We begin with some notations that are speciﬁc for this section: given a tree T = (V, E) with weights
+θe on the edges e ∈ E, denote the resulting distribution over the values x = (x1 , . . . , xn ) on the
+leaves by PrT,θ [x]. The total variation distance between two leaf-distributions of two models, (T, θ)
+and (T ′ , θ ′ ) is denoted by TV(PrT,θ [x], PrT ′ ,θ′ [x]). The values on the internal nodes are denoted by
+yv for each internal node v ∈ V , and PrT,θ [x, y] denotes the joint distribution over the leaves and
+internal nodes. We continue with some deﬁnitions:
+
+Definition 5 (Edge contraction). Given a graph G = (V, E) and an edge e = (u, v) in the graph,
+we say that a graph G′ = (V ′ , E ′ ) is obtained from G by contracting e if G′ is the result of removing
+e from the graph and identifying u and v as a single vertex. Namely, if the new edge is denoted z,
+then
+                                           V ′ = V \ {u, v} ∪ {z}
+and
+                  E ′ = E \ {(u, w) : w ∈ V } \ {(v, w) : w ∈ V } ∪ {(z, w) : (u, w) ∈ V } .
+
+    For an example of an edge-contraction, see Figure 15 (b)-(c): The dashed edge in (b) is con-
+tracted, resulting in the graph shown in (c).
+    We now deﬁne the contraction of all degree-2 nodes:
+
+Definition 6. Given a graph G = (V, E), we say that G′ = (V ′ , E ′ ) is obtained from G by contract-
+ing all the degree-2 nodes, if G′ is obtained from G using the following process:
+
+      • G′ ← G.
+
+      • While G′ contains a node w of degree 2:
+
+          – Contract one of the edges incident with w.
+
+   For an example of a contraction of degree-2 nodes, see Figure 13, (b)-(c): In (b), there are some
+nodes of degree 2, labeled a-f . In (c), we can see the result of contracting these nodes.
+
+Definition 7 (Subtrees induced by a set of leaves). Given a tree T and a subset S of the leaves of
+T , the subtree of T induced by S is the tree that is obtained from T by removing all the edges and
+all the nodes that are not in any path between two leaves i, j ∈ S.
+
+    In other words, the subtree of T induced by S is the minimal subtree of T that contains S.
+For an example, in Figure 13 (a), a tree is depicted, and its subtrees induced by {1, 2, 3, 5} and
+{4, 6, 7, 8} are depicted in Figure 13 (b-1) and (b-2), respectively.
+    Throughout the proof, we will modify graphs by contracting edges. Whenever we contract an
+edge, we identify its two endpoints as a single vertex. If we contract multiple edges, the resulting
+graph may identify even more than two edges of the original as one edge. If a graph T ′ is the
+
+                                                     47
+result of multiple edge-contractions applied on a graph T , then, for each vertex v ′ of T ′ , the set of
+preimages of v ′ under the transformation from T to T ′ is deﬁned as the set of all vertices of T that
+were identiﬁed into v ′ . To be more formal, we provide the following deﬁnition:
+Definition 8. Let T ′ = (V ′ , E ′ ) be obtained from T = (V, E) via a sequence of edge contractions.
+For any vertex v ′ ∈ T ′ , the set of preimages of v under the transformation from T to T ′ is defined
+as the following set, which we denote here by Av′ :
+   • Start with the tree T , and define Av = {v} for each v ∈ V .
+
+   • For any contraction of an edge (u, v) into a single vertex w:
+
+         – Define Aw = Au ∪ Av .
+
+   • Return Av′ for each vertex v ′ ∈ V ′ .
+   Lastly, notice that if we contract edges then some of the nodes might change names. Hence, an
+edge that was connecting between two nodes (u, v) in the original tree, might connect two other
+nodes in the contracted tree. Yet, the edge’s function remain the same. Hence, we deﬁne the
+analogue of an edge e in the contracted graph:
+Definition 9. Let T ′ be a tree that results from another tree T via a sequence of edge contractions.
+Let (u, v) be an edge in T that is not contracted. Then, the analogue of (u, v) in T ′ is the obtained
+from (u, v) in the following fashion:
+   • Set e′ ← (u, v).
+
+   • For any contraction of edge (z, w) into a node q that T undergoes:
+
+         – If u ∈ {z, w} then e′ ← (q, v).
+         – Otherwise, if v ∈ {z, w} then e′ ← (u, q),
+
+   • Return e′ .
+    We continue with presenting some auxiliary lemmas that will be used for the proof.
+Lemma 12. Let T = (V, E) and let (θe )e∈E denote some weight-vector on the edges. Let θ ′ denote
+a weight vector that differs only on one edge e′ . Then, TV(PrT,θ [x], PrT,θ′ [x]) ≤ |θe′ ′ − θe′ |/2.
+Proof. Due to the equivalent deﬁnition of total variation in terms of coupling, it is suﬃcient to
+produce a coupling between x ∼ PrT,θ and x′ ∼ PrT ′ ,θ′ such that Pr[x 6= x′ ] ≤ |θe′ ′ − θe′ |/2. While
+x and x′ denote the values of the leaves, we will use y and y ′ to denote the values on the internal
+nodes, such that (x, y) and (x′ , y ′ ) are jointly sampled from PrT,θ and PrT ′ ,θ′ , respectively. We will
+produce a coupling between (x, y) and (x′ , y ′ ) such that Pr[(x, y) 6= (x′ , y ′ )] ≤ |θe′ ′ − θe′ |/2 and this
+suﬃces to conclude the proof.
+   Let e′ = (u, v) denote the single edge where θ and θ ′ diﬀer. We produce the coupling as follows:
+   • We start by sampling yu uniformly from {−1, 1} and yu′ = yu
+
+   • Then, we sample yv such that Pr[yv = yu ] = (1 + θe )/2. Similarly, we sample yv′ such that
+     Pr[yv′ = yu′ ] = Pr[yv′ = yu ] = (1 + θe′ )/2. Note that we can couple yv and yv′ such that
+     Pr[yv 6= yv′ ] = TV(yv | yu , yv′ | yu ) = |θe − θe′ |/2.
+
+                                                       48
+   • Next, we will sample the remaining values of x, y conditioned on yu and yv , and the remaining
+     values of x′ , y ′ conditioned on yu′ and yv′ . If yu = yu′ and yv = yv′ , then these two conditional
+     distributions are the same, hence, we can sample such that (x, y) = (x′ , y ′ ). Otherwise, we
+     will sample x, y, x′ and y ′ arbitrarily.
+
+Notice that with probability 1 − |θe′ − θe′ ′ |/2, yu = yu′ and yv = yv′ . Hence, Pr[(x, y) = (x′ , y ′ )] ≥
+1 − |θe′ − θe′ ′ |/2, as required to complete the proof.
+
+Lemma 13. Let T be a tree and θ a weight-function on its edges. Let T ′ be obtained from T by
+contracting an edge e with θe = 1 and let θ ′ denote the restriction of θ to the edges of T ′ . Then, for
+any values x = (x1 , . . . , xn ) on the leaves, PrT,θ [x] = PrT ′ ,θ′ [x].
+
+Proof. Notice that by contracting the edge, the pairwise correlations αij between any two leaves do
+not change, hence the leaf distributions are identical (this is a known fact and it also follows directly
+from Lemma 5).
+
+8.3    Proof body
+We are ready to present the results of Daskalakis et al. [2009]. They are written in a slightly diﬀerent
+way than was originally present, but we translate their guarantees to our notation. (See Section 8.5
+for translating their guarantees).
+
+Theorem 5. There is a polynomial-time algorithm, for learning some unknown tree T ∗ = (V ∗ , E ∗ ),
+whose properties are presented below. Its inputs are:
+
+   • Approximate correlations, α̂ij , for any two leaves i, j ∈ [n]. These satisfy the guarantee that
+     there exists an Ising model PrT ∗ ,θ∗ , whose correlations α∗ij satisfy: |α∗ij − α̂ij | ≤ η, for any two
+     leaves i, j and for some η ∈ (0, 1/2].
+
+   • Parameters ξ, δ > 0 such that ξδ ≥ η.
+
+The algorithm outputs a forest, whose connected components are trees, T̃1 = (Ṽ1 , Ẽ1 ), . . . , T̃R =
+(ṼR , ẼR ) with the following guarantees: (below, C > 0 is a universal constant)
+
+   • Let Sr denote the set of leaves of T̃r for any r ∈ [R]. Then, {S1 , . . . , SR } is a partition of the
+     set of leaves of T ∗ .
+
+   • For all r = 1, . . . , R, denote by Tr = (Vr , Er ) the subtree of T ∗ induced by Sr , as defined in
+     Definition 7. Then, each tree T̃r is obtained from Tr using the following operations:
+
+         – Contract a subset of the edges. Only edges e of weight θe∗ ≥ 1 − Cξ can be contracted.
+         – Contract all the nodes of degree-2 from the resulting tree.
+
+   • Any edge e that is common to more than one of the trees {T1 , . . . , TR }, satisfies θe∗ ≥ 1 − Cξ.
+                                                                                                √
+   • Any leaves i, j that belongs to different sets from {S1 , . . . , SR }, satisfy |α∗ij | ≤ C δ.
+
+    For example, in Figure 15 (a) a tree is depicted, whereas the output of the algorithm is given
+in Figure 15 (c). Since the dashed edge e connecting nodes a and b is contracted in the output, its
+weight must satisfy θe∗ ≥ 1 − Ω(ξ). Further, since nodes 1 and 7 reside in diﬀerent subtrees in the
+
+
+                                                    49
+                                                                      √
+output of the algorithm, their correlation must satisfy |α∗17 | ≤ O( δ). For another example, see
+Figure 13: in (a), the original tree is depicted, whereas, the output is the forest in (c). The induced
+trees T1 and T2 are shown in (b). Since the dashed edges in (a) are shared by both induced subtrees,
+their weight satisﬁes θe∗ ≥ 1 − Ω(ξ).
+    Below, we will prove the following central Lemma:
+
+Lemma 14. Let η > 0 be a parameter and T ∗ be an unknown tree with weight vector θ ∗ and pairwise
+correlations α∗ between the leaves. Suppose we execute Algorithm 2 with the following inputs:
+
+    • Pairwise correlations α̂ij that satisfy |α̂ij − α∗ij | ≤ η.
+
+    • Parameters δ, ξ such that ξδ ≥ η and ξ = C1 /n, for some universal constant C1 > 0.
+
+    • Parameter η̂ that satisfies η̂ = C2 nξ + η, for some universal constant C2 > 0.
+
+Recall that the algorithm outputs a weighted forest,
+                                                   √   and denote the forest by F̃ and the weights by θ̂.
+                                           3     2
+Then, TV(PrT ∗ ,θ∗ [x], PrF̃ ,θ̃ [x]) ∈ O(n ξ + n δ + η). (We note that an Ising model over a forest is
+defined by taking the different tree components to be independent.)
+
+      The remainder of this section is dedicated to the proof of Lemma 14. In Section 8.4 we conclude
+the proof of Theorem 2 (unknown topology), by substituting the parameters ξ, δ and η appropriately
+using the ﬁnite-sample estimates.
+      To analyze the algorithm, we will create auxiliary trees T (i) = (V (i) , E (i) ) with weight function
+                                           (i)
+θ (i) and pairwise correlations αij (for i = {1, 2, 3}) that interpolate between the true parameters
+T ∗ , θ ∗ , and the Algorithm 2’s output (F̃ , θ̃). To bound the total variation distance between (T ∗ , θ ∗ )
+and (F̃ , θ̃), we apply triangle inequality after individually bounding the total variation of the leaf dis-
+tributions (i) between (T ∗ , θ ∗ ) and (T (1) , θ (1) ), (ii) between (T (1) , θ (1) ) and (T (2) , θ (2) ), (iii) between
+(T (2) , θ (2) ) and (T (3) , θ (3) ), and (iv) between (T (3) , θ (3) ) and (F̃ , θ̃).
+      Before deﬁning the ﬁrst intermediate distribution, (T (1) , θ (1) ), we recall some deﬁnitions. First,
+recall that the algorithm of Daskalakis et al. [2009] returns a forest whose connected components
+are (T̃1 , . . . , T̃R ). Each T̃r is a modiﬁcation of Tr , which is deﬁned as the subtree of T ∗ that is
+induced by the set of leaves of T̃r . As an intermediate step, we start by modifying T ∗ according to
+the induced subtrees T1 , . . . , TR . Note that initially, we consider Tr instead of T̃r , as Tr is closer to
+T ∗ than T̃r .
+      We start by deﬁning T (1) as the tree that is obtained from T ∗ by contracting all the edges
+that appear in more than one induced tree Tr Further, the edge-weight for θ (1) equals θ ∗ on all
+the remaining (non-contracted) edges. Note that T (1) still has a single connected component. (For
+example, in Figure 17, we contract the purple-dashed lines in (a) because they appear both in the
+induces red and blue trees. This results in the tree depicted in (b).)
+      We would like to bound the total variation distance between PrT ∗ ,θ∗ [x] and PrT (1) ,θ(1) [x]. Notice
+that for each contracted edge e, we have from Theorem 5 that θe ≥ 1−Cξ for some universal constant
+C > 0. Contracting each such edge e is equivalent to modifying θe to equal 1, as argued in Lemma 13.
+Hence, the total variation distance for each contraction is bounded by Cξ/2 from Lemma 12. By
+the triangle inequality, since we contract at most O(n) edges, then TV(PrT ∗ ,θ∗ [x], PrT (1) ,θ(1) [x]) ≤
+O(nξ).
+      Next, we continue to present the second intermediate model, parameterized by T (2) = (V (2) , E (2) )
+and θ (2) . To obtain T (2) = (V (2) , E (2) ) and θ (2) , recall that each vertex of T (1) = (V (1) , E (1) ) may
+
+
+                                                           50
+(a)
+
+
+
+
+        1            2        3          4       5            6        7                8       9   10   11
+
+
+
+
+(b)                      a                                                                          b
+
+
+
+
+               c                  d                                            e
+
+
+
+
+        1            2        3          4       5            6        7                8       9   10   11
+
+
+
+
+ (c)                                         a                                                      b
+
+
+
+
+                         a1                                       a2                                b3
+               c                                     d                             e
+
+
+
+              c1                                     d2                            e2
+
+
+
+
+        1            2            5          3            4       6        7                8   9   10   11
+
+
+
+Figure 17: A depiction of the intermediate trees, T (1) , T (2) and T (3) in the analysis of the algorithm.
+The original tree T ∗ contains all the edges in (a). The output forest partitions the leaves into three
+connected components: S1 = {1, 2, 5}, S2 = {3, 4, 6, 7, 8} and S3 = {9, 10, 11}. The tree T1 , which
+is the subtree of T ∗ induced by S1 , contains the red and purple-dashed edged. The tree T2 contains
+the blue and purple-dashed edges. And T3 contains the green edges. In (b), we depict T (2) , which
+is obtained by contracting all the edges that are shared among multiple subtrees Tr , for r = 1, 2, 3.
+In this example, those are the purple-dashed edges.51 In (c), we depict T (2) , which is obtained from
+T (2) by adding auxiliary nodes: for each internal node v and each subtree Tr that it touches, we
+create a new node v r , connect it with v with an edge of weight 1, and further, connect to v r all the
+edges in Tr that were incident with v in T (1) . The forest T (3) is obtained from T (2) by removing all
+the edges that are incident with the nodes a, b, c, d, e. These are the dashed edges.
+correspond to multiple vertices of T ∗ since T (1) was obtained by contracting edges in T ∗ . For any
+v ∈ V (1) , we denote by Av the set of preimages of v under the transformation from T ∗ to T (1) (see
+Deﬁnition 8 and the paragraph above this deﬁnition). In other words, Av is the set of nodes of
+T ∗ that were contracted into v. Denote by ρ(v) the set of indices r ∈ {1, . . . , R} of trees Tr that
+intersect a node that was contracted into v. In other words, ρ(v) is the set of indices r such that
+Av ∩ Vr 6= ∅, where Vr is the set of vertices of the subtree Tr . Intuitively, for the construction of
+T (2) , we would like to make ρ(v) copies of node v, each for a subtree that contains v. To be precise,
+T (2) is constructed as follows:
+   • The set of vertices V (2) of T (2) is obtained from V (1) by adding a new vertex v r , for each v
+     and r such that r ∈ ρ(v).
+
+   • For any v ∈ V (1) and r ∈ ρ(v), deﬁne an edge (v, v r ) of weight θ (2) (v, v r ) = 1.
+
+   • For any edge (u, v) ∈ E (1) , deﬁne a new edge in E (2) according to the following considerations:
+
+         – If |ρ(u) ∩ ρ(v)| = 1, denote {r} = ρ(u) ∩ ρ(v) and add an edge (ur , v r ) in E (2) , with
+                    (2)         (1)
+           weight θ(ur ,vr ) = θ(u,v) . This replaces the edge (u, v).
+                                                                             (2)      (1)
+         – If |ρ(u) ∩ ρ(v)| = ∅, add an edge (u, v) to E (2) with weight θ(u,v) = θ(u,v)
+         – It is impossible that |ρ(u) ∩ ρ(v)| > 1, otherwise, (u, v) would have been contracted.
+
+(See Figure 17 for an example of a tree T (2) .) We note that T (1) can be obtained from T (2) by
+contracting all the edges (v, v r ) for v ∈ V (1) and r ∈ ρ(v). Hence, from Lemma 13, PrT (2) ,θ(2) [x] =
+PrT (1) ,θ(1) [x] for all values x on the leaves. In particular,
+                                                                
+                                        TV      Pr [x], Pr [x] = 0.
+                                          T (2) ,θ (2)   T (1) ,θ (1)
+
+    Next, we deﬁne T (3) and θ (3) . Recall that the vertices of T (2) are of two types: (1) vertices that
+are copies of those in V (1) ; and (2) vertices v r for v ∈ V (1) and r ∈ ρ(v). Then, T (3) is obtained from
+T (2) by removing all the edges incident to the vertices of category (1), as depicted in Figure 17 (c).
+This creates a forest, and we remove from this forest each connected component that is disconnected
+from the leaves. We prove the following lemma:
+Lemma 15. There are R connected components in T (3) , and the sets of leaves of the connected com-
+ponents are exactly the sets of leaves of T1 , . . . , TR . Namely, for each Tr there exists one connected
+component of T (3) that has the same leaf-set as Tr .
+Proof. First, we argue that any two leaves that are in the same tree Tr , are also in the same connected
+component of T (3) . Let i, j be two leaves of Tr and consider the edges on the path P between them
+in Tr . For any such edge (u, v), there are two possibilities: (1) This edge was contracted at some
+point, and there is some w ∈ T (1) such that u, v ∈ Aw . (2) This edge was not contracted, and there
+exist some (w, z) in E (1) that is the analogue of (u, v) in T (1) (see Deﬁnition 9 and its preceding
+discussion). By deﬁnition of T (2) , this edge is moved in T (2) to connect (wr , z r ). In particular, the
+path from i to j in T (2) contains only vertices of the form q r . Hence, this path is not disconnected
+in T (3) from the graph.
+    Next, we argue why two leaves i, j in two diﬀerent trees Tr and Ts , respectively, cannot be
+connected in T (3) . Indeed, the parent of leaf i in T (2) must be of the form v r while the parent of
+
+                                                         52
+j must be of the form v s . Notice that in T (3) there is no edge connecting a vertex from v r with a
+vertex from v 3 , hence, these two leaves are necessarily disconnected.
+
+
+     We would like to use Theorem 1 to bound the total variation distance between PrT (2) ,θ(2) [x] and
+PrT (3) ,θ(3) [x], by analyzing the change in the pairwise correlations. To do so, we use the fact that the
+pairwise correlations that have changed are only those between leaves i, j of diﬀerent trees     √ Tr and
+                                                             ∗                           ∗
+Ts , respectively, and by Theorem 5 we have that in T those have correlation |αij | ≤ C δ where
+δ is deﬁned in Theorem 5 and C > 0 is a universal constant. Notice that, though, the correlation
+between two leaves in T (2) can be greater than their correlation in T ∗ . As argued above, the
+correlation in T (2) equals that in T (1) . To compare between the correlations in T (1) and T ∗ , recall
+that T (1) is obtained from T by contracting edges. Yet, any contracted edge has weight at least
+1 − Cξ, hence, contracting the edge can increase the correlation by at most 1/(1 − Cξ). Since any
+path between two leaves can contain at most n edges, the contraction can increase the correlation
+by at most 1/(1 − Cξ)n . By assumption, ξ ≤ 1/(Cn), hence this factor is at most a constant. Under
+that assumption,
+         √             the correlation in T (2) between any two leaves of diﬀerent subtrees Tr is bounded
+by O( δ). Since in T√(3) their correlation becomes 0, this implies that the pairwise correlations
+change by at most O( δ).
+                               (2)    (3)       √
+     Hence, for any i, j, |αij − αij | ≤ O( δ). Since T (2) and T (3) both share the same underlying
+graph (as removing edges can be done by just replacing the weight with 0), it follows from Theorem 1
+that √ the total variation distance between the leaf distributions of T (2) and T (3) is bounded by
+O(n2 δ).
+     Next, we would like to bound the total variation distance between the leaf distribution of T (3)
+and the output of the algorithm. Since T (3) and F̃ have the same connected components, the leaf
+distributions of both factorize the same. In particular, the leaf-sets S1 , . . . , SR of T1 , . . . , Tr are
+independent in these product distributions. To bound the total variation distance between the leaf
+distributions of T (3) and F̃ , it suﬃces to bound the total variation distance with respect to each
+connected component separately, and then sum the bounds for each component. Hence, we will
+ﬁx some r ∈ {1, . . . , R}. For this end, let us analyze the weights θ̃e given by Algorithm 2 on the
+tree T̃r . Recall that the last step of this algorithm is to use Algorithm 1 on the tree T̃r with some
+parameter η ′ > 0 and correlations α̂ij that were estmated from samples of the original tree T ∗ .
+Further, recall that Algorithm 1 is guaranteed to return some weights θ̃e on the edges, such that the
+pairwise correlations between the leaves, which we denote by α̃ij , are η ′ -close to the correlations α̂ij
+that were given to it as input, namely, |α̃ij − α̂ij | ≤ η for any pair i, j of leaves. Yet, Algorithm 1
+will succeed only if there exist such weights θ̃e that satisfy the above constraint. To that end, we
+claim the following:
+Lemma 16. Fix r ∈ {1, . . . , R}. Then, there exist weights θij       ′ to the edges of T̃ such that the
+                                                                                          r
+corresponding pairwise correlations, α′ij satisfy |α′ij − α̂ij | ≤ η + O(nξ) for any leaves i, j ∈ Sr .
+Proof. Notice that it is suﬃcient to ﬁnd weights θe′ such that |α′ij −α∗ij | ≤ O(nξ), since |α̂ij −α∗ij | ≤ η,
+by the assumption in Lemma 14. Since Tr is the subtree induced by the set of leaves Sr , our goal
+is to show that α′ij is O(nξ)-close to the pairwise correlation of i and j accross Tr . Hence, this is
+what we will do. As a ﬁrst solution, we propose to set for each edge e its weight θe′ to equal its
+corresponding weight θe∗ in Tr . Recall, though, that in the process of transforming Ti to T̃i , there
+are two modiﬁcations, which implies that we cannot exactly match the edges of T̃i with those of Ti .
+We elaborate below on the transformations and how to set θe′ given these transformations.
+
+                                                     53
+   • The ﬁrst transformation is obtained by contracting some edges of weight θe ≥ 1 − O(ξ). For
+     these contracted edges, we will not deﬁne θe′ . Contracting these edges changes the pairwise
+     correlations between the leaves by at most O(nξ), since there can be at most O(n) edges along
+     each path.
+
+   • The second transformation is a contraction of some nodes of degree 2. Yet, for each such
+     contraction, there is an easy way to modify the weights such that the pairwise correlations
+     over the leaves does not change. In particular, if u is a node and v, w are its neighbors, then u
+     is being deleted from the graph and v, w are being connected. If we set the weight of the new
+     edge as a multiplication of the weights of the two old edges, then the pairwise correlations
+     between the leaves do not change. In particular, we will deﬁne θ ′ under this logic: we will
+     track the changes from Ti to T̃i , and whenever a degree-2 node is being contracted, we modify
+     the weights accordingly: if edges e and e′ were contracted to e′′ , we set the weight of e′′ to
+     equal the multiplication of weights of e and e′ .
+
+Using the above deﬁnition of θe′ and the above analysis, it follows that |α′ij − α∗ij | ≤ O(nξ). This
+suﬃces to complete the proof, as explained above.
+
+   It follows from Lemma 16 that the execution of Algorithm 1 succeeds, if it is run with η ′ = Cnξ+η
+and a suﬃciently large C > 0. This implies that for any i, j ∈ Sr , |α̃ij − α̂ij | ≤ η ′ ≤ η + O(nξ). By
+the triangle inequality, |α̃ij − α∗ij | ≤ 2η + O(nξ). Lastly, following the analysis above, it is easy to
+                  (3)
+show that also |αij − α∗ij | ≤ O(nξ). Indeed, the only modiﬁcation from T to T (3) that aﬀects the
+pairwise correlation between i, j ∈ Sr is the contraction of edges of θe∗ ≥ 1 − O(ξ). This aﬀects the
+                                                                                     (3)
+pairwise correlation by O(nξ). By the triangle inequality, we derive that |α̃ij − αij | ≤ O(nξ + η).
+The last step would be to apply Theorem 1 (same topology) to compare between the distribution
+over T̃i and its corresponding connected component in T (3) . Yet, this theorem would apply only
+if the two components have the same topology. While they do not, we note that both trees are
+contractions of the same tree Tr . Hence, we can view both distributions as deﬁned over the tree Tr ,
+where the contracted edges have weight 1. By Theorem 1 (same topology) we derive that the total
+variation distance between the two distributions over Sr is bounded by O(nξ|Sr |2 ). By summing
+over all r, we derive that
+                                              !            r
+                                                                    !
+                                                         X
+                       TV      Pr [x], Pr [x] ≤ O nξ          |Sr |2 ≤ O(n3 ξ).
+                             T (3) ,θ (3)   F̃ ,θ̃         r=1
+
+   By summing up the total variation distances between the auxiliary distributions parameterized
+by T (i) , this concludes the proof of Lemma 14.
+
+8.4   Concluding the proof of Theorem 2 (unknown topology)
+We use Lemma 14. First of all, let us optimize ξ and δ for a ﬁxed value of η. This can be achieved by
+selecting δ = η 2/3 n2/3 and ξ = η 1/3 n−2/3 . We note that the requirement ξ ≤ O(1/n) if η ≤ O(1/n).
+The ﬁnal bound is O(n7/3 η 1/3 ). To get this below ǫ, we have to set η ≤ O(ǫ3 /n7 ). This requires a
+sample of size n ≥ Ω(log(n/δ)/η 2 ) = Ω(n14 log(n/δ)/ǫ6 ).
+
+
+
+
+                                                     54
+8.5    Translating the notation of Daskalakis et al. [2009]
+We note that Daskalakis et al. [2009] uses a diﬀerent notation. For convenience, we explain the
+translation in the Ferromagnetic setting where αij , θkl ≥ 0, however, in order to transition to the
+non-Ferromagnetic setting one would simply have to replace these quantities with their absolute
+values, |αij | and |θkl |, respectively.
+    Instead of edge weight θ(k,ℓ) , Daskalakis et al. [2009] use the metric dk,ℓ = − log θ(k,ℓ) . Instead
+of αi,j they use the metric di,j = − log αi,j . They denote the true (underlying) metric by d, whereas
+they assume that the algorithm receives a (τ, M )-distorted metric on the leaves, denoted d.      ˆ This
+means that |dˆi,j − di,j | ≤ τ whenever di,j ≤ M . Using our notation, this means that | log α̂ij −
+log α∗i,j | ≤ τ whenever α∗ij ≥ e−M . Equivalently,
+
+                           −τ ≤ log α̂ij − log α∗i,j ≤ τ         whenever α∗ij ≥ e−M
+which is equivalent to
+                              e−τ ≤ α̂ij /α∗i,j ≤ eτ        whenever α∗ij ≥ e−M .                        (20)
+We will show how their guarantees can be implied from our guarantees. First, notice that in order
+for (20) to hold, it is suﬃcient to assume that τ ≤ 1 and
+                       (1 − τ /2) ≤ α̂ij /α∗i,j ≤ (1 + τ /2) whenever α∗ij ≥ e−M .
+
+If we substitute ξ = τ /2 and δ = e−M , the last inequality substitutes to
+                          α∗i,j − ξα∗ij ≤ α̂ij ≤ α∗i,j + ξα∗ij     whenever α∗ij ≥ δ ,
+which is equivalent to
+                                 |α̂ij − α∗i,j | ≤ ξα∗ij     whenever α∗ij ≥ δ .                         (21)
+Eq. 21 is guaranteed to hold if |α̂i,j − α∗i,j | ≤ ξδ. Since in Theorem 5 we assume that |α̂i,j − α∗i,j | ≤ η,
+it suﬃces to assume that η ≤ ξδ in order to imply (21), which in turn implies the conditions in the
+paper of Daskalakis et al. [2009].
+
+
+9     Information theoretic bound
+Upper bound. While the result below was known, we prove it for completeness.
+Theorem 6. There is an algorithm that, given m samples from the leaf-marginal of some tree
+structured Ising model with n leaves, returns another tree structured Ising model whose total variation
+distance to the original model is bounded by ǫ, with sample complexity m = O(n log(n/ǫ)/ǫ2 ).
+    While it is apparent that the family of tree-structured Ising models is inﬁnite, we will select a
+ﬁnite set which is an ǫ-cover in total variation, and then we will use the following result to learn in
+total variation distance over a ﬁnite set:
+Theorem 7 (Yatracos [1985]). Let ǫ, δ > 0. Given a finite family C of distributions and m samples
+from some arbitrary distribution µ, there exists an algorithm such that, with probability 1−δ, returns
+a distribution µ̂ ∈ C that satisfies:
+                                      TV(µ, µ̂) ≤ 3 inf TV(µ, ν) + ǫ,
+                                                           ν∈C
+
+with sample complexity m = O(log(|C|/δ)/ǫ2 ).
+
+                                                           55
+  In order to apply Theorem 7, we will construct an ǫ-cover to the set of tree structured Ising
+models.
+
+Lemma 17. For any ǫ > 0, there exists a family C of tree-structured Ising models of log cardinality
+log |C| ≤ O(n log(n/ǫ)), such that for any tree structured Ising model, there exists some model from
+C such that the total variation distance between these the two leaf distributions of these models is
+bounded by ǫ.
+
+Proof. For completeness, we prove this lemma using Theorem 1, yet, there are more direct ways to
+prove this lemma.
+   Each element of C will be parameterized by the following:
+
+   • A tree topology, with n leaves labeled 1, . . . , n. There can be at most nO(n) distinct trees.
+
+   • For each edge of the tree, its weight θe is one of {0, 1/M, 2/M, . . . , 1}, where M = Θ(n3 /ǫ).
+     There can be at most M O(n) possibilities to select the weights.
+
+We derive that |C| ≤ (n/ǫ)O(n) .
+   Given some tree T and weight θ, we will ﬁnd an element of C that approximates it. In particular,
+we will take the element from C that has the same structure and additionally, each of its weights are
+1/M close to θ. It is easy to see from (1) that the pairwise correlations between the leaves αij , are
+O(n/M )-close in absolute value between the two models. Hence, by Theorem 1 (ﬁxed topology),
+the two models are O(n3 /M ) ≤ ǫ close in total variation between the leaf distributions, provided
+that M ≥ Ω(n3 /ǫ).
+
+    To conclude the proof, we use the algorithm of Theorem 7, applying it on an ǫ/4-cover using
+the construction in Lemma 17.
+
+Lower bound In order to learn latent tree-structured Ising models, when the topology is unknown,
+the sample complexity is lower bounded by Ω(n log(n)/ǫ2 ). This follows from Koehler [2020]: they
+prove that the number of samples that are required to learn a full tree from samples is Ω(n log(n)/ǫ2 ),
+yet, this proof extends directly to the setting of latent nodes.
+
+
+References
+Jayadev Acharya, Arnab Bhattacharyya, Constantinos Daskalakis, and Saravanan Kandasamy.
+  Learning and testing causal models with interventions. Advances in Neural Information Pro-
+  cessing Systems, 31, 2018.
+
+Dennis J Aigner, Cheng Hsiao, Arie Kapteyn, and Tom Wansbeek. Latent variable models in
+  econometrics. Handbook of econometrics, 2:1321–1393, 1984.
+
+David J Bartholomew, Martin Knott, and Irini Moustaki. Latent variable models and factor analysis:
+ A unified approach, volume 904. John Wiley & Sons, 2011.
+
+Arnab Bhattacharyya, Sutanu Gayen, Eric Price, and NV Vinodchandran. Near-optimal learning
+  of tree-structured distributions by chow-liu. In Proceedings of the 53rd Annual ACM SIGACT
+  Symposium on Theory of Computing, 2021.
+
+
+                                                  56
+Christopher M Bishop. Latent variable models. In Learning in graphical models, pages 371–403.
+  Springer, 1998.
+
+David M Blei, Alp Kucukelbir, and Jon D McAuliﬀe. Variational inference: A review for statisticians.
+ Journal of the American statistical Association, 112(518):859–877, 2017.
+
+Enric Boix-Adsera, Guy Bresler, and Frederic Koehler. Chow-liu++: Optimal prediction-centric
+  learning of tree ising models. In 2021 IEEE 62nd Annual Symposium on Foundations of Computer
+  Science (FOCS), pages 417–426. IEEE, 2022.
+
+Guy Bresler. Eﬃciently learning ising models on arbitrary graphs. In Proceedings of the forty-seventh
+ annual ACM symposium on Theory of computing, pages 771–782, 2015.
+
+Guy Bresler and Mina Karzand. Learning a tree-structured ising model in order to make predictions.
+ The Annals of Statistics, 48(2):713–737, 2020.
+
+Guy Bresler, Frederic Koehler, and Ankur Moitra. Learning restricted boltzmann machines via
+ inﬂuence maximization. In Proceedings of the 51st Annual ACM SIGACT Symposium on Theory
+ of Computing, pages 828–839, 2019.
+
+Johannes Brustle, Yang Cai, and Constantinos Daskalakis. Multi-item mechanisms without item-
+  independence: Learnability via robustness. In Proceedings of the 21st ACM Conference on Eco-
+  nomics and Computation, pages 715–761, 2020.
+
+Clément L Canonne, Ilias Diakonikolas, Daniel M Kane, and Alistair Stewart. Testing bayesian
+  networks. In Conference on Learning Theory, pages 370–448. PMLR, 2017.
+
+Joseph T Chang. Full reconstruction of markov models on evolutionary trees: identiﬁability and
+  consistency. Mathematical biosciences, 137(1):51–73, 1996.
+
+Benny Chor and Tamir Tuller. Maximum likelihood of evolutionary trees is hard. In Annual Inter-
+  national Conference on Research in Computational Molecular Biology, pages 296–310. Springer,
+  2005.
+
+C Chow and T Wagner. Consistency of an estimate of tree-dependent probability distributions
+ (corresp.). IEEE Transactions on Information Theory, 19(3):369–371, 1973.
+
+CKCN Chow and Cong Liu. Approximating discrete probability distributions with dependence
+ trees. IEEE transactions on Information Theory, 14(3):462–467, 1968.
+
+Mary Cryan, Leslie Ann Goldberg, and Paul W Goldberg. Evolutionary trees can be learned in
+ polynomial time in the two-state general markov model. SIAM Journal on Computing, 31(2):
+ 375–397, 2001.
+
+Miklós Csurös. Fast recovery of evolutionary trees with thousands of nodes. Journal of Computa-
+ tional Biology, 9(2):277–297, 2002.
+
+Yuval Dagan, Constantinos Daskalakis, Nishanth Dikkala, and Anthimos Vardis Kandiros. Learning
+  ising models from one or multiple samples. In Proceedings of the 53rd Annual ACM SIGACT
+  Symposium on Theory of Computing, pages 161–168, 2021.
+
+
+                                                 57
+Constantinos Daskalakis and Qinxuan Pan. Square hellinger subadditivity for bayesian networks
+  and its applications to identity testing. In Conference on Learning Theory, pages 697–703. PMLR,
+  2017.
+
+Constantinos Daskalakis and Qinxuan Pan. Sample-optimal and eﬃcient learning of tree ising
+  models. In Proceedings of the 53rd Annual ACM SIGACT Symposium on Theory of Computing,
+  2021.
+
+Constantinos Daskalakis, Elchanan Mossel, and Sébastien Roch. Optimal phylogenetic reconstruc-
+  tion. In Proceedings of the thirty-eighth annual ACM symposium on Theory of computing, pages
+ 159–168, 2006.
+
+Constantinos Daskalakis, Elchanan Mossel, and Sébastien Roch. Phylogenies without branch
+  bounds: Contracting the short, pruning the deep. In Annual International Conference on Research
+ in Computational Molecular Biology, pages 451–465. Springer, 2009.
+
+Constantinos Daskalakis, Elchanan Mossel, and Sébastien Roch. Evolutionary trees and the ising
+  model on the bethe lattice: a proof of steel’s conjecture. Probability Theory and Related Fields,
+ 149(1):149–189, 2011.
+
+Constantinos Daskalakis, Nishanth Dikkala, and Gautam Kamath. Testing ising models. IEEE
+ Transactions on Information Theory, 65(11):6829–6852, 2019.
+
+Constantinos Daskalakis, Yuval Dagan, and Anthimos-Vardis Kandiros. Where does em converge
+  in gaussian latent tree models? In Conference on Learning Theory (COLT), 2022.
+
+Costis Daskalakis, Christos Tzamos, and Manolis Zampetakis. Bootstrapping em via power em and
+  convergence in the naive bayes model. In International Conference on Artificial Intelligence and
+ Statistics, pages 2056–2064. PMLR, 2018.
+
+Arthur P Dempster, Nan M Laird, and Donald B Rubin. Maximum likelihood from incomplete
+  data via the em algorithm. Journal of the Royal Statistical Society: Series B (Methodological),
+  39(1):1–22, 1977.
+
+Luc Devroye, Abbas Mehrabian, and Tommy Reddad. The minimax learning rates of normal and
+  ising undirected graphical models. Electronic Journal of Statistics, 14(1):2338–2361, 2020.
+
+Mucong Ding, Constantinos Daskalakis, and Soheil Feizi. Gans with conditional independence
+ graphs: On subadditivity of probability divergences. In International Conference on Artificial
+ Intelligence and Statistics, pages 3709–3717. PMLR, 2021.
+
+Péter L Erdős, Michael A Steel, László A Székely, and Tandy J Warnow. A few logs suﬃce to build
+ (almost) all trees (i). Random Structures & Algorithms, 14(2):153–184, 1999.
+
+B Everett. An introduction to latent variable models. Springer Science & Business Media, 2013.
+
+Joseph Felsenstein. Maximum-likelihood estimation of evolutionary trees from continuous characters.
+  American journal of human genetics, 25(5):471, 1973.
+
+Joseph Felsenstein. Evolutionary trees from gene frequencies and quantitative characters: ﬁnding
+  maximum likelihood estimates. Evolution, pages 1229–1242, 1981.
+
+                                                58
+Joseph Felsenstein. Inferring phylogenies, volume 2. Sinauer associates Sunderland, MA, 2004.
+
+Surbhi Goel. Learning restricted boltzmann machines with arbitrary external ﬁelds. arXiv preprint
+  arXiv:1906.06595, 2019.
+
+Surbhi Goel, Adam Klivans, and Frederic Koehler. From boltzmann machines to neural networks
+  and back again. Advances in Neural Information Processing Systems, 33:6354–6365, 2020.
+
+Ilan Gronau, Shlomo Moran, and Sagi Snir. Fast and reliable reconstruction of phylogenetic trees
+   with very short edges. In SODA, volume 8, pages 379–388, 2008.
+
+Linus Hamilton, Frederic Koehler, and Ankur Moitra. Information theoretic properties of markov
+  random ﬁelds, and their algorithmic applications. Advances in Neural Information Processing
+  Systems, 30, 2017.
+
+Daniel H Huson, Scott M Nettles, and Tandy J Warnow. Disk-covering, a fast-converging method
+ for phylogenetic tree reconstruction. Journal of computational biology, 6(3-4):369–386, 1999.
+
+Ali Jalali, Pradeep Ravikumar, Vishvas Vasuki, and Sujay Sanghavi. On learning discrete graphical
+  models using group-sparse regularization. In Proceedings of the fourteenth international confer-
+  ence on artificial intelligence and statistics, pages 378–387. JMLR Workshop and Conference
+  Proceedings, 2011.
+
+Michael I Jordan. Graphical models. Statistical science, 19(1):140–155, 2004.
+
+Vardis Kandiros, Yuval Dagan, Nishanth Dikkala, Surbhi Goel, and Constantinos Daskalakis. Sta-
+  tistical estimation from dependent data. In International Conference on Machine Learning, pages
+  5269–5278. PMLR, 2021.
+
+Valerie King, Li Zhang, and Yunhong Zhou. On the complexity of distance-based evolutionary tree.
+  In Proceedings of the fourteenth annual ACM-SIAM symposium on Discrete algorithms, page 444.
+  SIAM, 2003.
+
+Adam Klivans and Raghu Meka. Learning graphical models using multiplicative weights. In 2017
+ IEEE 58th Annual Symposium on Foundations of Computer Science (FOCS), pages 343–354.
+  IEEE, 2017.
+
+Frederic Koehler. A note on minimax learning of tree models. 2020.
+
+Daphne Koller and Nir Friedman. Probabilistic graphical models: principles and techniques. MIT
+ press, 2009.
+
+Steﬀen L Lauritzen. Graphical models, volume 17. Clarendon Press, 1996.
+
+Chunghau Lee, Sigal Blay, Arne Ø Mooers, Ambuj Singh, and Todd H Oakley. Comet: A mesquite
+  package for comparing models of continuous character evolution on phylogenies. Evolutionary
+ Bioinformatics, 2:117693430600200022, 2006.
+
+Ankur Moitra, Elchanan Mossel, and Colin P Sandon. Learning to sample from censored markov
+ random ﬁelds. In Conference on Learning Theory, pages 3419–3451. PMLR, 2021.
+
+
+                                                59
+Elchanan Mossel. Distorted metrics on trees and phylogenetic forests. IEEE/ACM Transactions on
+  Computational Biology and Bioinformatics, 4(1):108–116, 2007.
+
+Elchanan Mossel and Sébastien Roch. Learning nonsingular phylogenies and hidden markov models.
+  In Proceedings of the thirty-seventh annual ACM symposium on Theory of computing, pages 366–
+  375, 2005.
+
+Mukund Narasimhan and Jeﬀ A Bilmes. Pac-learning bounded tree-width graphical models. In
+ Proc. 20th Ann. Conf. on Uncertainty in Artificial Intelligence (UAI), 2004.
+
+Judea Pearl. Probabilistic reasoning in intelligent systems: networks of plausible inference. Morgan
+  kaufmann, 1988.
+
+Pradeep Ravikumar, Martin J Wainwright, and John D Laﬀerty. High-dimensional ising model
+  selection using l 1-regularized logistic regression. The Annals of Statistics, 38(3):1287–1319, 2010.
+
+Sebastien Roch. A short proof that phylogenetic tree reconstruction by maximum likelihood is hard.
+  IEEE/ACM Transactions on Computational Biology and Bioinformatics, 3(1):92–94, 2006.
+
+Sebastien Roch. Toward extracting all phylogenetic information from matrices of evolutionary
+  distances. Science, 327(5971):1376–1379, 2010.
+
+Sebastien Roch and Allan Sly. Phase transition in the sample complexity of likelihood-based phy-
+  logeny inference. Probability Theory and Related Fields, 169(1):3–62, 2017.
+
+Narayana P Santhanam and Martin J Wainwright. Information-theoretic limits of selecting binary
+  graphical models in high dimensions. IEEE Transactions on Information Theory, 58(7):4117–4134,
+ 2012.
+
+Alexandros Stamatakis. Raxml-vi-hpc: maximum likelihood-based phylogenetic analyses with thou-
+  sands of taxa and mixed models. Bioinformatics, 22(21):2688–2690, 2006.
+
+Vincent YF Tan, Animashree Anandkumar, Lang Tong, and Alan S Willsky. A large-deviation
+  analysis of the maximum-likelihood learning of markov tree structures. IEEE Transactions on
+  Information Theory, 57(3):1714–1735, 2011.
+
+Michael Truell, Jan-Christian Hütter, Chandler Squires, Piotr Zwiernik, and Caroline Uhler. Maxi-
+ mum likelihood estimation for brownian motion tree models based on one sample. arXiv preprint
+ arXiv:2112.00816, 2021.
+
+Marc Vuﬀray, Sidhant Misra, Andrey Lokhov, and Michael Chertkov. Interaction screening: Eﬃcient
+ and sample-optimal learning of ising models. Advances in neural information processing systems,
+ 29, 2016.
+
+Marc Vuﬀray, Sidhant Misra, and Andrey Y Lokhov. Eﬃcient learning of discrete graphical models.
+ Journal of Statistical Mechanics: Theory and Experiment, 2021(12):124017, 2022.
+
+Yi Wang and Nevin Lianwen Zhang. Severity of local maxima for the em algorithm: Experiences
+  with hierarchical latent class models. In Probabilistic Graphical Models, pages 301–308. Citeseer,
+  2006.
+
+
+                                                  60
+Ziheng Yang. Paml: a program package for phylogenetic analysis by maximum likelihood. Computer
+  applications in the biosciences, 13(5):555–556, 1997.
+
+Yannis G Yatracos. Rates of convergence of minimum distance estimators and kolmogorov’s entropy.
+ The Annals of Statistics, 13(2):768–774, 1985.
+
+Piotr Zwiernik, Caroline Uhler, and Donald Richards. Maximum likelihood estimation for linear
+  gaussian covariance models. Journal of the Royal Statistical Society: Series B (Statistical Method-
+  ology), 79(4):1269–1292, 2017.
+
+
+
+
+                                                 61
+

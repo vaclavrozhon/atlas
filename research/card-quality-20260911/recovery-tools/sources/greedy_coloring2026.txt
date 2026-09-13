@@ -1,0 +1,2562 @@
+                                        Greedy-Like Defective Coloring: Distributed Algorithms and
+                                                               Applications
+                                                                Marc Fuchs                          Fabian Kuhn
+                                                            University of Freiburg                University of Freiburg
+                                                         marc.fuchs@cs.uni-freiburg.de           kuhn@cs.uni-freiburg.de
+
+
+
+                                                                                    Abstract
+                                            A d-defective c-coloring of a graph G = (V, E) is a coloring of the nodes V with c colors such
+                                        that every node has at most d neighbors of the same color. Distributed algorithms for computing
+                                        different variants of defective coloring are at the core of most deterministic state-of-the-art
+arXiv:2608.02386v1 [cs.DC] 3 Aug 2026
+
+
+
+
+                                        distributed coloring algorithms, and they are also an important tool in many other distributed
+                                        graph algorithms. In several cases, the overall complexity could be improved if some version of
+                                        defective coloring could be solved more efficiently.
+                                            Presently, the primary challenge in understanding the distributed complexity of defective
+                                        colorings is to understand which defective coloring problems can be solved in time O(log∗ n) and
+                                        for which such problems one needs Ω(log n) rounds (in n-node graphs if the maximum degree ∆
+                                        is treated as a constant). Already Barenboim and Elkin [STOC ’09] showed that for any integer
+                                        p ≥ 1, a simple greedy-like algorithm that makes two passes over the nodes can color with p2
+                                        colors and defect ⌊∆/p⌋ in O(∆ + log∗ n) rounds. Up to now, this algorithm provides the best
+                                        tradeoff between defect and number of colors for any known algorithm with complexity O(log∗ n)
+                                        in bounded-degree graphs.
+                                            In this paper, we further investigate the power of this greedy-like two-pass algorithm for
+                                        computing defective colorings. We first show that the algorithm can be generalized to the list
+                                        defective coloring problem as defined by Fuchs and Kuhn in [DISC ’23]. As a consequence of
+                                        this, we in particular
+                                                     √         get an alternative algorithm for computing a (proper) (∆ + 1)-coloring of a
+                                        graph in Õ( ∆) + O(log∗ n) rounds in the CONGEST model. In the second part of the paper, we
+                                        study a generalized version of the greedy-like two-pass algorithm for computing standard defective
+                                        colorings. We show that if the number of colors c is not a perfect square, we can in most cases
+                                        achieve a defect that improves the current state-of-the-art for distributed defective c-colorings by
+                                        a constant factor. We however also show that for any c ≥ 1, the√generalized two-pass algorithm
+                                        cannot achieve a c-coloring with defect less than (1 − o(1)) · ∆/ c.
+
+
+
+
+                                                                                         1
+Contents
+1 Introduction and Related Work                                                                     3
+
+2 Our Contributions                                                                                  6
+  2.1 List Defective Coloring and Applications . . . . . . . . . . . . . . . . . . . . . . . . .     6
+  2.2 Optimizing the Defect as a Function of the Number of Colors . . . . . . . . . . . . .         10
+
+3 The Two-Sweep Algorithm                                                                           13
+  3.1 Analysis of the Generic Two-Sweep Algorithm . . . . . . . . . . . . . . . . . . . . . .       14
+
+4 Solving OLDC Instances using the Two-Sweep Algorithm                                              15
+  4.1 Working With a Non-Proper Initial Coloring . . . . . . . . . . . . . . . . . . . . . .        18
+
+5 Applications of the Two-Sweep Algorithm                                                           20
+
+6 Optimizing the Defect for C Colors                                                                22
+  6.1 Two-Sweep Lower Bound on the Defect . . . . . . . . . . . . . . . . . . . . . . . . .         22
+  6.2 Towards the Upper Bound . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     25
+  6.3 Formulation as Linear Program . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     27
+  6.4 The Two-Bucket Two-Sweep Algorithm . . . . . . . . . . . . . . . . . . . . . . . . .          27
+  6.5 Solving the Linear Program . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    29
+
+A Coloring Graphs of Bounded Neighborhood Independence                                              38
+
+B Technical Details of the Two-Bucket Two-Sweep Algorithm                                           41
+  B.1 Relative Defect of Single Buckets . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   41
+  B.2 Useful Lemmas . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   42
+  B.3 Optimal Partitioning of the Color Space into two Buckets . . . . . . . . . . . . . . .        43
+
+
+
+
+                                                  2
+1    Introduction and Related Work
+Distributed coloring is arguably the most studied problem in the area of distributed graph algorithms.
+The task is to color the nodes (or edges) of some n-node graph G = (V, E), which also defines
+the network topology. The nodes of G have unique O(log n)-bit identifiers, and they can exchange
+messages over the edges of G in synchronous rounds. If the messages can be of arbitrary size, this
+setting is known as the LOCAL model [33, 38] and if the message size is restricted to O(log n) bits, it
+is known as the CONGEST model [38]. In its standard form, the coloring problem asks for a proper
+coloring, where no two adjacent nodes are assigned the same color. The number of allowed colors is
+usually some function of the maximum degree ∆. Of particular interest in the distributed setting is
+the problem of coloring with ∆ + 1 colors, which is the number of colors used by a sequential greedy
+algorithm. The round complexity of distributed (∆ + 1)-coloring is typically either studied as a
+function of n or (primarily) as a function of ∆. As a function of n, the best known complexities in the
+LOCAL model are Õ(log5/3 n) for deterministic algorithms [23] and Õ(log5/3 log n) for randomized
+algorithms [14, 23].1 The best known complexities in the CONGEST model are O(log2 ∆ · log n) for
+deterministic algorithms [26] and O(log3 log n) for randomized algorithms [26, 27]. The best known
+lower bound is Ω(log∗ n), which holds in the LOCAL model and even for randomized algorithms and
+if ∆ = 2 [33, 37]. When considering the problem’s complexity as a function of ∆, a √ log∗ n dependency
+therefore becomes unavoidable. In this
+                                     √ regime,   the best known upper bounds are O( ∆ log ∆+log∗ n)
+in the LOCAL [11, 19, 35] and O( ∆ · log ∆ · log6 log ∆ + log∗ n) in the CONGEST model [20].
+                                               2
+
+Furthermore, for problems with a deterministic complexity at most f (∆) · log∗ n (for some function
+f (·)), it is known that randomization does not help when ∆ is contant [13].
+
+Defective colorings. Defective colorings are natural generalizations of proper colorings, which
+have become instrumental tools in many modern distributed coloring algorithms and also more
+generally in distributed graph algorithms. For integers d ≥ 0 and c ≥ 1, a d-defective c-coloring
+of the nodes of a graph G = (V, E) is a coloring of V with at most c colors such that every node
+v ∈ V has at most d neighbors of the same color. In the context of distributed coloring algorithms,
+defective colorings can in particular be used to design recursive distributed coloring algorithms. A
+d-defective c-coloring partitions a graph into c parts of maximum degree d. As the complexity of
+many of the fastest distributed coloring algorithms quite strongly depends on the maximum degree,
+each of the c parts can be colored more efficiently (in parallel or in some cases also sequentially). In
+[34], Lovász showed that every graph of maximum degree ∆ has a defective c-coloring (for any c ≥ 1)
+with defect d = ⌊∆/c⌋.2 If defective colorings with these guarantees could be computed efficiently in
+the distributed setting, even the most naive implementation of the above recursive coloring strategy
+would directly lead to efficient algorithms to color with O(∆) colors.
+
+Distributed defective coloring algorithms. Defective colorings were introduced to distributed
+computing by Barenboim and Elkin [8] and by Kuhn [29]. Both used defective colorings to improve
+the complexity of (∆ + 1)-coloring from O(∆ · log ∆ + log∗ n) (cf. [31, 39]) to O(∆ + log∗ n). We
+                                                                                 ∆ 2
+                                                                                     
+show that for any d ≥ 0, one can compute a d-defective coloring with O d+1              colors in time
+O(f (∆) + log∗ n). The algorithm of [29] is an adaptation of the proper O(∆2 )-coloring algorithm of
+Linial [33] and has no ∆-dependency at all, i.e., it achieves f (∆) = O(1). The algorithm of [8] is
+slightly slower, it however uses a smaller number of colors. The algorithm of [8] is based on a simple
+greedy-like two-phase algorithm, which we discuss in more detail below. In the more than 15 years
+    1
+      Throughout the paper, we use the notation Õ(·) to hide polylogarithmic factors in the argument, i.e., Õ(x) =
+x · poly log x.
+    2
+      Note that this is tight if the graph is a complete graph with ∆ + 1 nodes.
+
+
+                                                         3
+since [8, 29] were published, there has been no improvement on the achievable defective colorings if
+the n-dependency of the round complexity is restricted to be O(log∗ n) (except for the special case
+of defective 3-colorings [5]). The only known distributed defective coloring algorithms that achieve
+d-defective colorings with O(∆/d) colors for general d require deterministic time poly log n and
+randomized time poly log log n. Bounds of this kind can be achieved by phrasing defective colorings
+as an instance of the Lovász Local Lemma (LLL) and by using generic distributed LLL algorithms
+to compute the colorings [15, 18, 25, 36]. It is known that when using generic LLL algorithms,
+the deterministic complexity must be at least Ω(log n) and the randomized complexity must be
+at least Ω(log log n) [12]. Very recently, a first efficient distributed algorithm that achieves the
+existentially optimal trade-off between defect and number of colors was presented in [1]. The paper
+gives a deterministic poly(∆ · log n)-round algorithm to compute a d-defective c-coloring whenever
+c · (d + 1) > ∆.
+     Defective colorings provide a decomposition of a graph into several graphs of lower degree on
+which a given graph problem (e.g., some proper coloring problem) can then be solved more efficiently.
+Defective colorings are thus naturally most interesting if we focus on the complexity as a function of
+∆ and if we thus restrict the n-dependency to O(log∗ n). Understanding which distributed defective
+coloring problems can be computed in time f (∆) · log∗ n for some function f (·) and for which
+problems, we need at least Ω(log n) rounds deterministically (and at least Ω(log log n) rounds with
+randomization) is therefore currently the most important open problem in the context of distributed
+defective coloring and possibly even in the context of distributed coloring more generally. It is known
+that d-defective 2-coloring requires Ω(log n) deterministic rounds even if d = ∆ − 2 [5] and that for
+d-defective 3-coloring, one needs Ω(log n) rounds whenever d ≤ (∆ − 3)/2. Apart from those hardness
+results, it is only known that d-defective c-coloring needs Ω(log n) rounds, whenever c · (d + 1) ≤ ∆ [2].
+In [8], it is shown that for any positive integer p, one can compute a ⌊∆/p⌋-defective coloring with p2
+colors in time O(∆ + log∗ n). Despite intensive research on distributed coloring problems, for general
+graphs, we do not know any O(f (∆) + log∗ n)-round (or O(f (∆) · log∗ n)-round) algorithm with a
+better trade-off between defect and number of colors.
+
+Arbdefective Colorings. Because computing defective colorings with a good defect to number of
+colors ratio appears to be a hard problem, researchers have considered a relaxed variant known as
+arbdefective coloring. In a coloring with arbdefect d, each color class forms a graph of arboricity at
+most d. Arbdefective colorings were introduced by Barenboim and Elkin in [9] and they have found
+many applications in the context of distributed coloring algorithms and more generally in the context
+of distributed graph algorithms (e.g., [7, 9, 11, 17, 19, 23, 24, 26, 30]). A d-arbdefective coloring
+can essentially be computed by computing a vertex coloring together with an edge orientation so
+that every node has at most d outneighbors of the same color.3 It is known that a d-arbdefective
+c-coloring can be computed in q  time f (∆) · log∗ n if and only if c · (d + 1) > ∆ [2]. In this case, the
+                                         ∆                      ∗
+best known algorithm requires           d+1 · poly log ∆ + O(log n) [20].
+
+
+Graphs of Bounded Neighborhood Independence. The only family of graphs for which
+we know significantly better defective coloring algorithms are graphs of bounded neighborhood
+independence, i.e., graphs where every node can only have constant-sized sets of pairwise non-
+adjacent neighbors. It has been shown in [10] that in this case, a d-arbdefective coloring with c colors
+directly also provides an O(d)-defective coloring with c colors. Together with some other advances (in
+particular on a generalized list version of defective colorings, see below), this fact led to particularly
+   3
+    To make this exactly equivalent with the original definition, we would have to require the edge orientation of each
+color class to be acyclic.
+
+
+                                                          4
+efficient (∆ + 1)-coloring algorithms in graphs of bounded neighborhood independence [3, 6, 22, 30].   
+                                                                                      O log log ∆
+In [22], it is shown that in such graphs, a (∆ + 1)-coloring can be computed in log ∆    log log log ∆
+                                                                                                         +
+       ∗
+O(log n) LOCAL rounds, i.e., in time quasi-polylogarithmic in ∆. An important subset of the family
+of graphs of bounded neighborhood independence are line graphs of graphs and of bounded-rank
+hypergraphs. For the special case of (2∆ − 1)-edge coloring, there even is an algorithm that solves
+the problem in O(log12 ∆ + log∗ n) rounds [3].
+
+List Defective Colorings. The state-of-the-art distributed coloring algorithms all rely on the
+explicit use of list colorings: In a list coloring instance, every node v obtains a list Lv of colors as
+input and as output, each node v has to choose some color from Lv such that the graph is properly
+colored. List colorings in particular allow to color a graph in several phases, where each phase
+extends a given partial proper coloring of the graph. In order to effectively use defective colorings
+in the context of list colorings, we should be able to use the coloring to divide a given list coloring
+instance into several (ideally independent) list coloring instances of smaller degree. If we divide the
+nodes into subsets of approximately equal smaller degree, we also need to divide the colors into the
+same number of parts in such a way that all lists are divided approximately evenly. Without global
+communication, it is clearly not possible to partition the colors such that the induced partition of
+each of the lists is close to a uniform partition.4 One can however generalize the idea in the following
+way. Assume that all the lists Lv consist of colors from some space of size C (say from the set
+{1, . . . , C}). One can then partition the global color space into p > 1 parts of size ≈ C/p. This
+induces a partition of the lists that is not uniform. As a consequence, each node has to select one of
+the p remaining color spaces in such a way that the number of conflicting neighbors decreases at
+a rate that is comparable to the decrease of the list size. This color space reduction idea has been
+introduced in [30] and it has since then been used in [3, 6, 20, 22, 26]. In [20], it is shown that the
+core task that needs to be solved can be phrased as a natural list extension of defective coloring.
+Formally, in list defective coloring, each node v obtains a color list Lv together with a defect function
+dv : Lv → N0 that assigns non-negative integer values to the colors in Lv . The coloring has to assign
+a color xv ∈ Lv to each node v such that the number of neighboring nodes u that get assigned color
+xu = xv is at most dv (xv ).
+
+The Two-Phase Algorithm for Computing Defective Colorings. A particularly simple and
+in our opinion very natural (distributed) algorithm to compute defective colorings is a two-phase
+greedy-like algorithm that was first described by Barenboim and Elkin in [8]. Assume that we are
+given a proper coloring of the nodes V of a graph G = (V, E) with q colors. We make two passes
+over the nodes. In both passes, nodes of the same color are processed simultaneously. In the first
+pass, we process the nodes in the order given by increasing colors and in the second pass, we process
+the nodes in the opposite order (i.e., by decreasing colors). The algorithm has as integer parameter
+p ≥ 1. In both passes, each node v ∈ V picks a color from {0, . . . , p − 1}. The color xv,1 of the first
+pass is chosen as a color that is chosen as the color xu,1 by the least number of neighbors of smaller
+input color (i.e., by the least number of previously processed neighbors in pass 1). Similarly, the
+color xv,2 of the second pass is chosen as a color that is chosen as the color xu,2 by the least number
+of neighbors of larger input color (i.e., by the least number of previously processed neighbors in pass
+2). The final color xv of v is computed as xv = p · xv,1 + xv,2 ∈ 0, . . . , p2 − 1 . It is not hard to
+                                                                     
+
+see that each node can have at most ⌊∆/p⌋ neighbors that choose the same color. This two-pass
+algorithm has later in particular also been used in [5], where it is in particular shown that one can
+compute a d-defective 3-coloring in time O(∆ + log∗ n) as long as d ≥ (2∆ − 4)/3.
+  4
+      Even with global communication, this is only possible if the lists are sufficiently large (as a function of n).
+
+
+                                                              5
+    The main goal of the present paper is to understand the power of the two-pass greedy approach
+to defective coloring problems. For this purpose, we generalize the algorithm in the following way:
+
+    • In the first pass (where nodes are still processed by increasing input color), every node v chooses
+      a set Sv of candidate colors. The set Sv is chosen from a set S of candidate sets. The set is
+      chosen such that the smallest defect of v when picking the best color in Sv is best possible,
+      when assuming that all not yet processed neighbors will pick worst-case colors (from set Sv )
+      and all already processed neighbors u will later pick a worst-case color from their set Su .
+
+    • In the second pass (where nodes are processed by decreasing input colors), each node v chooses
+      a color xv ∈ Sv that minimizes the worst-case possible defect of node v (when assuming that
+      the neighbors u with smaller input color will choose their color xu in a worst-case way from
+      Su ). In case of list defective coloring, the color xv of course has to be chosen from Sv ∩ Lv .
+
+   In the following, we will refer to this algorithm as the Two-Sweep Algorithm. A formally precise
+description of the algorithm is given in Section 3.1. We next give an overview of the technical
+contributions of the paper.
+
+
+2     Our Contributions
+The goal of this paper is to understand the power of the Two-Sweep Greedy approach for computing
+distributed defective colorings. We pursue this goal in two complementary directions.
+    First, we show that this approach extends beyond ordinary defective coloring and can solve
+a generalization of list defective coloring known as oriented list defective coloring [21]. We then
+show that this more general form of list defective coloring, applied recursively, yields a new and
+simple
+   √ deterministic (∆ + 1)-coloring algorithm in the CONGEST model with round complexity
+Õ( ∆) + O(log∗ n).
+    Second, we investigate the intrinsic limitations of the same two-sweep paradigm. More concretely,
+we ask for the smallest possible defect achievable when the number of output colors C is fixed.
+We show that suitable choices of candidate palettes improve the known constants for many values √
+of C, while also proving that no algorithm within this two-sweep framework can beat the 1/ C
+relative-defect barrier asymptotically.
+
+2.1    List Defective Coloring and Applications
+We extend our Two-Sweep Algorithm to solve oriented list defective coloring (OLDC) instances. In
+OLDC (formally defined below), the edges are oriented (possibly in both directions) and the defect
+of a node is measured only with respect to its outgoing edges. As we will see, we need this more
+general version of list defective coloring when using it as a building block for our new (∆ + 1)-coloring
+algorithm formalized in Theorem 2.3.
+
+Definition 2.1. Let G = (V, E) be a directed graph and C be a color space (i.e., a set of available
+colors). For every node v ∈ V , we are given a list Lv ⊆ C and a defect function dv : Lv → N0 . For
+the given lists and defect functions, a list defective coloring of G is a coloring of the nodes V such
+that every node v is assigned a color x ∈ Lv such that v has at most dv (x) outneighbors of color x.
+
+    In the above definition, N0 denotes the set of natural numbers including 0. If G is an undirected
+graph and we replace every edge {u, v} of G by the two directed edges (u, v) and (v, u), then the
+oriented list defective coloring gives a standard list defective coloring of G. When solving OLDC
+problems in a distributed way, we assume that the communication graph G itself is an undirected
+
+                                                   6
+graph (i.e., communication can always happen in both directions) and the edge directions are given
+as an edge orientation of G.
+     Note that the Two-Sweep Algorithm directly applies to the oriented (list) defective coloring
+problem. When applying the Two-Sweep Algorithm to an OLDC problem, in both sweeps, each
+node only considers assignments of color sets (in the first sweep) or colors (in the second sweep) to
+its outneighbors.
+     Our generic Two-Sweep algorithm for OLDC has an integer parameter p ≥ 1 that controls the
+size of the sets Sv . The algorithm solves a given OLDC instance if at each node v, the sum of the
+allowed defects for the colors x ∈ Lv is sufficiently large. More concretely, the algorithm requires the
+lists of each node v to satisfy the following inequality.
+                                                                   
+                                 X                            |Lv |
+                                     (dv (x) + 1) > max p,            · βv ,                          (1)
+                                                               p
+                                      x∈Lv
+
+where βv denotes the outdegree of node v. The following theorem gives our main oriented list
+defective coloring result. In order to allow a trade-off between the round complexity and the quality
+of the coloring, the theorem also has a parameter ε ≥ 0.
+
+Theorem 2.1. Let G = (V, E) be a directed graph that is equipped with a proper q-vertex coloring.
+For every node v ∈ V , assume that βv is the outdegree of v. Further, assume that we are given an
+oriented list defective coloring instance for G with color lists Lv and defect functions dv : Lv → N0
+for all v ∈ V . Let p ≥ 1 be an integer parameter, let ε ≥ 0, and assume that
+                                                                           
+                                  X                                   |Lv |
+                        ∀v ∈ V :      (dv (x) + 1) > (1 + ε) · max p,         · βv .
+                                                                       p
+                                       x∈Lv
+
+Then, the Two-Sweep algorithm (cf. Algorithm 2) solves     the given  oriented list defective coloring
+                                                2     ∗              5
+instance deterministically in O min q, (p/ε) + log q         rounds. The algorithm requires the nodes
+to forward their initial color first and later exchange a list containing p of the colors of Lv .
+
+    When ε = 0, the algorithm of Theorem 2.1 reduces exactly to the Two-Sweep algorithm under
+Condition (1). For ε > 0, the algorithm operates in two stages. First, it utilizes the methods of
+[28, 29] to compute a defective coloring with O(1/ε2 ) colors, ensuring that each node v shares its
+color with at most O(εβv ) outneighbors. Subsequently, it applies the Two-Sweep algorithm strictly
+to the subgraph induced by the properly colored edges.
+
+List Coloring with Bounded Outdegree It has been known since the late 1980s that an
+edge-oriented graph with maximum outdegree β can be colored with O(β 2 ) colors in O(log∗ n)
+rounds [32]. When considering β as a constant, we extend this result to solving list coloring instances
+with lists Lv of size |Lv | = Θ(β 2 ). In O(log∗ n) rounds, one can first use the algorithm of [32] to
+compute an O(β 2 )-coloring that we will then use as the initial q-coloring of our algorithm. By
+choosing p = β + 1 and setting all defect values to 0, we then get an O(β 2 + log∗ n)-round list coloring
+algorithm to properly color with lists Lv of size |Lv | ≥ β 2 + β + 1. The only previous algorithm to
+achieve something similar is the algorithm of [35]. As sketched in [35], their work can be adapted to
+compute list colorings with lists of size |Lv | = Θ(β 2 log β) in O(log∗ n + log∗ C) rounds.
+   5
+       We slightly abuse notation and allow ε = 0, in which case we assume that min q, (p/0)2 + log∗ q = q.
+                                                                                   
+
+
+
+
+                                                           7
+Recursive Oriented List Defective Coloring In Theorem 3 of [20], it is described how an
+oriented list defective coloring (OLDC) algorithm can be applied recursively to solve a given OLDC
+instance in several steps. This allows to drastically reduce the maximum list size and thus in the
+case of Theorem 2.1, the maximum message size and also the round complexity. This recursive color
+space reduction however comes at the cost of requiring somewhat larger lists. The following theorem
+follows by
+         √ combining Theorem 2.1 with Theorem 3 of [20] and it shows that if we have lists with
+slack O( C), a given OLDC instance can be solved in time polylogarithmic in C. The details of the
+resulting recursive variant of the Two-Sweep algorithm is given in Algorithm 2.
+
+Theorem 2.2. Let G = (V, E) be a graph that is equipped with a proper q-vertex coloring and with
+an edge orientation. For every node v ∈ V , assume that βv is the outdegree of v. Further, assume
+that we are given an oriented list defective coloring instance for G with color lists Lv ⊆ {1, . . . , C}
+and defect functions dv : Lv → N0 for all v ∈ V . Assume that
+                                          X                     √
+                              ∀v ∈ V :        (dv (x) + 1) ≥ 3 · C · βv .
+                                          x∈Lv
+
+Then, our recursive Two-Sweep algorithm  deterministically solves the given oriented list defective
+                          3       ∗
+                                    
+coloring instance in O log C +log q rounds. The algorithm requires the nodes to exchange messages
+of at most O(log q + log C) bits.
+
+    It might be instructive to compare the conditions of Theorems 2.1 and 2.2 with the constraint
+c(d + 1) > ∆, which is necessary that a d-defective c-coloring always exists (cf. [34]). When choosing
+the parameters optimally and replacing βv with the maximum degree ∆ (i.e., assuming an undirected
+graph), Theorems 2.1 and 2.2 show that a d-defective c-coloring can be computed efficiently by a
+                                          √
+simple greedy-like algorithm as long as c(d + 1) > α∆ for some constant α > 1 and this can also
+be generalized to the list defective coloring setting.
+
+Proper (∆ + 1)-Coloring in the CONGEST Model As a direct application, we can plug
+Theorem 2.2 into the framework of [19, 20, 30] to obtain a new efficient (∆ + 1)-coloring (and more
+generally a new efficient (degree + 1)-list coloring algorithm) for the CONGEST model.
+
+Theorem 2.3. Let G = (V, E) be an n-node graph of maximum degree ∆ and assume that all nodes
+v ∈ V have color lists Lv of size at least |Lv | ≥ deg(v) + 1, consisting
+                                                                      √ of colors from a color space of
+size O(∆). Then the given list coloring instance can be solved in O( ∆ · log4 ∆ + log∗ n) deterministic
+rounds in the CONGEST model.
+
+Comparison to the Results of [20, 35] The only previous distributed algorithms          √     to compute
+oriented list defective colorings and to compute a proper (∆ + 1)-coloring in Õ( ∆) + O(log∗ n)
+CONGEST rounds appeared in [20], which was based on techniques developed in [35]. It therefore
+makes sense to compare Theorems 2.1 to 2.3 with the results of [20, 35].
+    We start by discussing our distributed OLDC algorithms. First, our Two-Sweep Algorithm is
+essentially a greedy algorithm, and in our opinion, it is conceptually significantly simpler than the
+algorithm of [20, 35]. In the algorithm of [20, 35], each node v has to compute an appropriate set of
+       |Lv |
+size 22 , consisting of subsets of its list Lv . This collection of sets is computed in a non-trivial
+way as a function of the node’s initial color and of Lv . To simplify the comparison of the properties
+of our algorithms with the algorithm of [20], we consider a scenario where all the defects are equal
+                                                                 β 2                       
+to d ≥ 0. The algorithm of [20] then needs lists of size Ω d+1         · (log β + log log C) where β is
+the maximum outdegree of the graph, while when choosing p = β/(d + 1), the basic Two Sweep
+
+
+                                                   8
+                                                                              β 2 
+algorithm (Theorem 2.1) uses slightly smaller lists of size O(p2 ) = O d+1           . If we further assume
+that the size of the color space C is proportional to the maximum        list size, then  also the recursive
+                                                                β 2 
+Two Sweep algorithm (Theorem 2.2) uses lists of size O d+1 . The algorithm of [20] only requires
+                                                                   of Theorem 2.1 is O p2 + log∗ q and
+                                                                                                      
+O(log β) rounds, while for ε = Θ(1), the time complexity
+the time complexity of Theorem 2.2 is O log3 C + log∗ q . The time complexity of Theorem 2.1 is
+                                                               
+
+comparable as long as p, the number of colors per list of the first Sweep phase is small. The time
+complexity of Theorem 2.2 is comparable as long as C is at most polynomial in β. While the round
+complexity of our new algorithm is slightly larger than the round complexity of the algorithm of
+[20], the computational complexity of the internal computation at each node in our new algorithm is
+significantly smaller than in [20]. Although the internal computational complexity of a distributed
+algorithm is usually not studied, it might still be relevant in practical applications. The complexity of
+the computation that each node v needs to do in a single round of the algorithm of Theorem 2.1 is at
+most linear in the degree of v, the length of its list |Lv |, and the amount of data that v receives from
+its neighbors. Even if we assume that lists are of size ∆, this is at most Õ(∆2 ). The computational
+complexity of the algorithm of [20] is discussed in the appendix of [21] (the full version of [20]). It is
+superpolynomial in n and it can only be made nc for a constant c > 0 by incurring several log ∆
+factors in the round complexity. Note at this point, the algorithm of [20] will in many cases be slower
+than this new Two-Sweep algorithm. Further, since the necessary message size of both algorithms is
+linear in the maximum list size, when applied in the CONGEST model, the algorithms are therefore
+most relevant if ∆ ≤ poly log n. In this case, the internal computational complexity of our algorithm
+is still nearly exponentially better than the internal
+                                                √        computational complexity of [20].
+     We next also compare the resulting Õ( ∆) + O(log∗ n)-round CONGEST algorithm for the
+(∆ + 1)-coloring problem with the only previous such algorithm from [20]. Our new algorithm is
+by almost a Θ(log2 ∆)-factor slower than the algorithm of [20]. However, by replacing the oriented
+list defective coloring algorithm in [20] with the algorithm of Theorem 2.2, as discussed above, our
+algorithm becomes simpler and computationally significantly more efficient than the algorithm of
+[20]. Moreover, while the appendix of the full version [21] (of [20]) outlines a method to reduce
+the internal node complexity to o(n), it does so at the price of an additional factor of roughly
+Θ(log4 ∆), which causes its overall round complexity to exceed our bound stated in Theorem 2.3.
+Furthermore, the algorithm of [20] has the disadvantage that it only works in the CONGEST model
+as long as ∆ ≤ poly log n. For larger ∆, one has to use an alternative algorithm such as the algorithm
+of √[26], which has a round complexity of O(log2 ∆ · log n). Our algorithm from Theorem 2.3 is a
+Õ( ∆) + O(log∗ n)-round coloring algorithm in CONGEST for the whole range of degrees.
+     Finally, we would like to point out one additional reason why our new OLDC algorithm and
+also the resulting proper (∆ + 1)-coloring algorithm might be preferable to the algorithms of
+[20]. Generally, a low computational complexity is also interesting because it is significant when
+transforming distributed algorithms into parallel ones in models such as the standard PRAM model.
+In this case, clearly, the total work is at least proportional to n times the computational cost per
+node. We believe that the Two-Sweep algorithm is simple enough that it can almost directly be
+converted into an efficient PRAM algorithm. In particular in the most interesting setting, where
+the input graph is of degree at most polylog(n), a single phase of the Two-Sweep algorithm can be
+implemented in O(log ∆) rounds (for doing the local counting at each node) using Õ(m) processors
+(this allows to use poly(∆ log n) processors for each edge and node). Developing the details of a
+parallel implementation of our defective coloring algorithms and of the resulting (∆ + 1)-coloring
+algorithm is beyond the scope of this paper and left for future research. In particular, it would also
+require parallel implementations of some other basic distributed building blocks that we use (see [16]
+for some very recent work that partially does this). We however conjecture that by doing this, it
+should be possible to obtain an algorithm to compute a (∆ + 1)-coloring in O(poly log ∆ + log∗ n)
+
+
+                                                     9
+parallel time and Õ(m) √
+                        work and we do not see how to achieve the same thing by using any of the
+previous distributed Õ( ∆) + O(log∗ n)-round (∆ + 1)-coloring algorithms.
+
+Coloring of Graphs of Bounded Neighborhood Independence An application of Theorem 2.3
+is that we can efficiently compute (∆ + 1)-colorings in graphs of bounded neighborhood independence
+in the CONGEST model.6 The authors of [22] present a recursive LOCAL algorithm that uses the
+algorithm of [20] as a subroutine for the base cases. Note that this does not work in the CONGEST
+model. If however, we replace the algorithm of [20] with our Two-Sweep approach, we directly obtain
+a CONGEST model algorithm with the same round complexity up to some poly log ∆ factors. This
+result is stated in Theorem 2.4. The details are deferred to Section A.
+Theorem 2.4. There is a deterministic CONGEST algorithm with round complexity
+                                                   √
+                                                              
+                                3 log log ∆ +1 
+             min O θ2 log3 ∆ log log log ∆ , O θ2 · ∆ · log7 ∆    + O(log∗ n)
+
+to solve (∆ + 1)-coloring in any n-node graph of maximum degree ∆ and neighborhood independence
+at most θ.
+
+2.2    Optimizing the Defect as a Function of the Number of Colors
+As discussed e.g. in [20, 22], we believe that in order to make significant progress on the ∆-dependency
+of the complexity of (deterministic) distributed (∆ + 1)-coloring, we might need to understand which
+defective coloring problems can be solved in time f (∆) · log∗ n and for which such problems, there
+is an Ω(log n) lower bound even if ∆ = O(1). Further, the question seems most relevant for the
+case, where the number of colors is relatively small as in this case, it seems most likely to also get
+a reasonably small ∆-dependency for the defective coloring solution. For example, in the related
+arbdefective coloring problem, where this question is understood exactly
+                                                                       √      [2], if we have C colors, the
+best algorithms all require a round complexity that is at least Ω̃( C) [11, 20].
+    To make progress toward this question, we establish almost tight bounds on the best defective
+colorings that can be achieved by the Two-Sweep Algorithm if the number of colors C is fixed. In
+this part of the paper, we focus on the case where the maximum degree ∆ is large and we concentrate
+on the value of the achievable defect relative to the value of ∆. We say that an algorithm achieves
+relative defect ρ ∈ [0, 1] if the defect d is
+
+                                              d ≤ ρ · ∆ + o(∆).                                              (2)
+
+Let ρ∗ (C) be the smallest ρ ∈ [0, 1] for which there exists an f (∆) · log∗ n-round deterministic
+distributed algorithm to compute a C-coloring with relative defect ρ. There are existing lower bounds
+for defective colorings with 2 and 3 colors. In [5] and [4], it is shown that (∆ − 2)-defective 2-colorings
+and (∆ − 3)/2-defective 3-coloring requires Ω(log∆ n) rounds deterministically. We therefore have
+ρ∗ (2) = 1 and ρ∗ (3) ≥ 1/2. The best
+                                    √    known upper bounds on ρ∗ (C) are ρ∗ (3) ≤ 2/3 by using the
+algorithm of [5] and ρ∗ (C) ≤ 1/⌊√ C⌋ by using the base two-sweep algorithm of Barenboim and
+Elkin [8] with parameter p = ⌊ C⌋ and p2 ≤ C colors. While we do not provide any lower bounds
+for general defective coloring algorithms, we show that for large C, even the generalized Two-Sweep
+Algorithm cannot be significantly better than the algorithm of [8].
+Theorem 2.5. When using      √ C ≥ 1 colors, the Two-Sweep Algorithm cannot guarantee a relative
+defect that is better than 1/ C. This is true for any choice of the candidate sets S.
+  6
+   The neighborhood independence θ of a graph is the maximum number of pairwise non-adjacent neighbors of any
+node of the graph. As a prominent example, line graphs of hypergraphs of rank r have neighborhood independence r.
+
+
+                                                       10
+    In fact, the actual theorem we prove is a bit stronger. We formally show that even if different
+colors can have different relative defects and if ρx denotes thePallowed relative defect for color
+x ∈ {1, . . . , C}, then the Two-Sweep algorithm has to guarantee C          2
+                                                                        x=1 ρx ≥ 1 for any choice of S.
+    Once the available color sets S are fixed, the behavior of the two-sweep algorithm can be seen
+as a two-player game between an adversary that tries to maximize the defect of the algorithm and
+by an algorithm player that tries to minimize the defect. To maximize the defect of a worst-case
+node v, the adversary can determine the fraction of neighbors u of v that pick a color set Su before v
+and what color sets those neighbors choose in the first phase of the algorithm. The algorithm player
+can then choose a set S    Pv from S. The adversary can be modeled as picking a value αS ∈ [0, 1] for
+each S ∈ S such that S∈S αS ≤ 1. For each S ∈ S, this means that an αS -fraction       P    of all of v’s
+neighbors are processed before v and pick set S in Phase I. Let us define αx := S:x∈S αS as the
+fraction of v’s neighbors that are processed before v and pick a set that contains x in Phase I. For
+given relative defects ρx (for x ∈ [C]), one can show that the algorithm player can then pick a set S
+for node v if there exists a set S ∈ S for which
+                                       X        X
+                                   1−     αS ≤      max {0, ρx − αx } .
+                                       S∈S        x∈S
+
+In the proof of Theorem 2.5, we show that whenever x∈[C] ρ2x < 1, the adversary can always choose
+                                                       P
+the values αS such that the above inequality does not hold for any set S. To achieve this, we initialize
+all αS = 0 and we then show that whenever there exists a set S for which the above inequality holds,
+we can increase αS by a small amount such that after a finite number of steps, the inequality is not
+valid for any S ∈ S.                                                                        √
+     While already
+            √        the basic  two-sweep  algorithm of  [8] achieves a relative defect 1/⌊     C⌋ that is
+close to 1/ C, especially for small values of C, there is still room for improvement. For example,
+for C ∈ {5, 6, 7, 8}, the algorithm of [8] only guarantees a relative defect of 1/2, which can already
+be achieved with only 4 colors. A small improvement can already be achieved by our Two-Sweep
+Algorithm for list defective coloring (cf. Section 2.1). If each node v has all colors {1, . . . , C} in its
+list Lv and we use integer parameter p ≥ 1 (i.e., S contains all color sets of size p), Theorem 2.1
+guarantees that we can compute a d-defective C-coloring if C(d + 1) > max {p, C/p} · ∆. The relative
+defect of the algorithm is therefore max {p, C/p} /C = max {p/C, 1/p}. For C = 5, 6, 7, 8, this results
+in relative defects 1/2, 1/2, 3/7, 3/8.
+     We show that this can be further improved by using color sets of two different sizes in the first
+pass of the Two-Sweep Algorithm. More precisely, we consider the following Two-Bucket Two-Sweep
+Algorithm in which the colors are partitioned into two buckets and we use different sized sets in the
+two buckets.
+                         √                 √
+    • We define s1 := ⌊ C⌋ and s2 := ⌈ C⌉.
+
+   • We partition the c colors {1, . . . , C} into two parts {1, . . . , C1 } and {C1 + 1, . . . , C}, where C1
+     is chosen such that C1 ≥ s1 and C2 := C − C1 ≥ s2 .
+
+   • The set S consists of all s1 -element subsets of {1, . . . , C1 } and all s2 -element subsets of
+     {C1 + 1, . . . , C}.
+
+    In the following, we also refer to the algorithm that only uses sets of a single size p as the
+Single-Bucket Two-Sweep algorithm (i.e., the algorithm of Theorem 2.1 when all nodes have [C] as
+their color list). For the Two-Bucket Two-Sweep algorithm, we show that the optimal adversary
+strategy can be phrased as a simple linear program, which allows us to provide an explicit solution
+of the relative defect that the algorithm achieves.
+
+
+                                                     11
+                          C relative defect     ≈      C1 C2 single bucket
+                          3        2/3         0.667   0   3        *
+                          4        1/2         0.500   4   0        *
+                          5        1/2         0.500   5   0        *
+                          6        3/7         0.429   2   4
+                          7        9/23        0.391   2   5
+                          8        3/8         0.375   0   8        *
+                          9        1/3         0.333   9   0        *
+                         10        1/3         0.333 10    0        *
+                         11        4/13        0.308   6   5
+                         12       12/41        0.293   5   7
+                         13       16/57        0.281   4   9
+                         14       16/59        0.271   3   11
+                         15        4/15        0.267   0   15       *
+
+Table 1: The table shows for a given number of colors C, which relative defect is achievable using the
+Two-Bucket Two-Sweep Algorithm. The values C1 and C2 are the number of colors in the respective
+buckets to get the stated defect. A * indicates that only one bucket is used. An extended version of
+this table appears in the appendix.
+
+Theorem 2.6. The Two-Bucket Two-Sweep Algorithm achieves a relative defect ρ2B of
+                         (      √      √                √            )
+                               ⌊ C⌋ · ⌈ C⌉             ⌈ C⌉2
+               ρ2B = max    √           √       ,      √       √        .
+                           ⌊ C⌋ · C2 + ⌈ C⌉ · C1 C2 + ⌊ C⌋ · ⌈ C⌉2
+
+    Theorem 2.6 improves the state-of-the-art for a given number of colors C (and it provides
+relatively substantial improvements for many small values of C). Table 1 provides a summary of the
+best relative defects that we obtain for different values of C (when optimizing the choice of C1 in
+Theorem 2.6). The following theorem also provides asymptotic bounds on the relative defect that we
+can achieve by using Theorems 2.1 and 2.6.
+
+Theorem 2.7. When using either the Single-Bucket or the Two-Bucket Two-Sweep Algorithm, we
+can achieve a C-coloring with a relative defect ρ of
+                       √
+                      1/√C
+                                                      if C = q 2 for q ∈ N,
+                  ρ ≤ 1/ C + 1/(2C 3/2 ) + O(1/C 2 ) if C = q 2 ± 1 for q ∈ N
+                       √
+                      
+                        1/ C + 1/(8C 3/2 ) + O(1/C 2 ) otherwise.
+
+    The results of Theorems 2.6 and 2.7 also hold for the more general oriented defective coloring
+problem where the input graph is directed and the defect only limits the number of equally colored
+outneighbors. The relative defect then refers to the fraction of outneighbors that have the same
+color. When formally stating and analyzing the Two-Sweep algorithm in the following, we directly
+use the oriented version as we need this when applying our list defective algorithm to get a fast
+proper (∆ + 1)-coloring algorithm in CONGEST (cf. Theorems 2.1 and 2.3). Also note that in the
+
+                                                 12
+first case of Theorem 2.7, i.e., where C is a square number, the relative defect is optimal due to the
+lower bound of Theorem 2.5.
+
+
+3    The Two-Sweep Algorithm
+Assume that the given input graph G is provided with an initial (proper) q-coloring and an edge
+orientation. Further, each node v is equipped with a color list Lv ⊆ C (where C is the global color
+space) and with a defect function dv that assigns an allowed defect dv (x) to each color x ∈ Lv . That
+is, if v gets colored with color x, then at most dv (x) outneighbors of v are allowed to also be colored
+with color x. Each node also comes with a set of color lists Sv ⊆ 2Lv . In this section, the set will be
+treated as part of the input; in our later implementations, we will present different approaches to
+construct Sv .
+
+                             N< (v)                                 N> (v)
+                                                   v
+
+
+
+
+                                      increasing initial coloring
+
+Figure 1: The figure illustrates a node v (in red) together with its outneighbors in N< (v) (in blue)
+and N> (v) (in green). Note that when node v has to pick a set Sv ∈ Sv in Phase I, all blue nodes u
+have already picked their sets Su ∈ Su and have sent them to v. In Phase II, v has to output a final
+color from Sv . At this point, the green nodes have already picked their final colors. Node v therefore
+has to pick its color based on knowing the sets Su for nodes in N< (v) and the final colors of nodes in
+N> (v).
+
+    We note that throughout the algorithm, nodes do not consider their in-neighbors to guide their
+decisions; in other words, nodes only look towards their outneighbors at all times. The algorithm
+proceeds in two phases that we call Phase I and Phase II. In both phases, we iterate (sweep)
+through the q initial colors, in ascending order in Phase I and descending order in Phase II. Let v
+be a node with color c ∈ {1, . . . , q} from the initial q-coloring. Then, N< (v) is defined as the set
+of outneighbors of v that have an initial color ∈ {1, . . . , c − 1} and similarly, N> (v) is the set of
+outneighbors that have an initial color ∈ {c + 1, . . . , q}. Note that by the definition of a proper
+coloring, there is no outneighbor that is also colored with color c and thus βv = |N< (v)| + |N> (v)|.
+These notations are illustrated in Figure 1. The pseudocode of the algorithm is given in Algorithm 1.
+
+Phase I In this phase, we iterate over the initial q-coloring of the nodes (in ascending order). In
+each step, all nodes v sharing the same initial color will select the best color set Sv ∈ Sv — with
+respect to their quality defined in Equation (3) — in parallel and send these sets to their neighbors.
+We call these nodes active. For an active node, we define kv (x) for a color x ∈ Lv as the number of
+outneighbors u of v in N< (v) such that x ∈ Su . Note that all nodes in N< (v) have already selected
+
+
+
+
+                                                       13
+their sublists when v becomes active. The quality of a set S ∈ Sv is formally defined as follows.
+                                                                          !
+                                   1               X
+                         Q(S) :=       |N> (v)| +        (kv (x) − dv (x))                        (3)
+                                  |S|
+                                                      x∈S∩Lv
+
+Let us briefly explain the intuition behind this definition. Our goal is to find a color that has a low
+number of conflicts with the chosen colors of the outneighbors; hence, to decide on a good set of
+colors Sv , we also want to minimize the number of conflicts with neighbors. Neighbors in N< (v)
+have already chosen their sets and thus the number of conflicts with these neighbors is captured by
+kv (x). On the other hand, neighbors in N> (v) have not yet chosen their sets and thus we can only
+consider the worst case that all of them will choose a set containing colors with multiple conflicts.
+On the other hand, the defect values dv (x) of our own colors help in minimizing the conflicts; hence,
+they appear with a negative sign in the quality definition. The division by |S| is just a normalization
+factor to make the quality of sets of different sizes comparable, so intuitively the quality measures
+the average number of conflicts per color in S.
+    In this generic Two-Sweep Algorithm we consider Sv to be part of the input. However, in our
+implementations in Section 4 and Section 6, we give explicit constructions for Sv such that the set
+with the best quality (i.e., the minimum value) is guaranteed to meet necessary requirements (e.g.,
+Equation (5), as shown later).
+
+Phase II Every node v ∈ V already holds its palette Sv ⊆ C. We now revisit the q colors in reverse
+(i.e., descending) order. When it is v’s turn, it selects its final color from Sv ∩ Lv and announces
+this choice to its neighbors. Consequently: (1) All outneighbors in N> (v) have already fixed their
+colors. (2) All outneighbors in N< (v) are still undecided about their final color. Let rv (x) denote
+the number of outneighbors in N> (v) that decided on color x ∈ Sv . We call node v active in Phase
+II in the iteration where v has to decide on such a color. When v is active, it can choose any color
+x ∈ Sv ∩ Lv that minimizes:
+                                        kv (x) + rv (x) − dv (x).                                  (4)
+
+
+3.1   Analysis of the Generic Two-Sweep Algorithm
+We next show that for each active node v there exists a color satisfying this property, ensuring the
+algorithm correctly solves oriented list defective coloring instances.
+Lemma 3.1. Consider a node v in Phase II. If
+                                                     |Sv ∩ Lv |
+                                          Q(Sv ) <              .                                  (5)
+                                                        |Sv |
+holds, then there exists a color xv ∈ Sv ∩ Lv that satisfies
+                                       kv (xv ) + rv (xv ) ≤ dv (xv )                              (6)
+when v becomes active in Phase II. Further, at most dv (xv ) outneighbors of v will have decided on
+the same color after termination of Phase II.
+                                                           P
+Proof. To prove the existence of such a color, observe that x∈Sv ∩Lv rv (x) is at most the number of
+outneighbors in N> (v). Combining this with βv = |N< (v)| + |N> (v)| and Equation (5) we get the
+following.
+           X                                             X
+                 (rv (x) + kv (x) − dv (x)) ≤ |N> (v)| +     (kv (x) − dv (x)) ≤ |Sv | · Q(Sv )
+         x∈Sv ∩Lv                                         x∈Sv ∩Lv
+
+
+
+                                                    14
+Algorithm 1 Two-Sweep-Algorithm(q, Sv )
+Require: Proper q-coloring of the nodes. A collection of sets Sv ⊆ 2C drawn from the color list Lv .
+Ensure: Oriented List Defective Coloring (OLDC) in time O(q)
+ 1: /** Phase I **/
+ 2: for each node v with initial color c ∈ {1, . . . , q} do
+ 3:    For all x ∈ Lv , let kv (x) be the number of outneighbors u of v in N< (v) with x ∈ Su .
+ 4:    Decide on a set Sv ∈ Sv as follows:
+ 5:         Sv minimizes the quality Q(Sv ) among all sets in Sv .                    ▷ Equation (3)
+ 6: end for
+ 7: /** Phase II **/
+ 8: for each node v with initial color c ∈ {q, . . . , 1} do
+ 9:    For all x ∈ Lv ∩ Sv , let rv (x) be the number of outneighbors of N> (v) that already decided
+    on color x.
+10:    Compute color xv ∈ Sv ∩ Lv that minimizes
+
+                                          kv (xv ) + rv (xv ) − dv (xv ).
+
+11:      Decide on color xv .
+12: end for
+
+
+Due to Equation (5), this last term is < |Sv ∩ Lv |. By the pigeonhole principle there must be some
+color in Sv ∩ Lv , denoted by xv , such that rv (xv ) + kv (xv ) − dv (xv ) < 1. First note that at most
+rv (xv ) neighbors in N> (v) have decided on the very same color and no more nodes from that set will
+be colored in future iterations, while from N< (v) every node u with xv ∈ Su can cause a conflict in
+subsequent iterations, however, this number is upper bounded by kv (xv ). Since rv , kv and dv map
+colors to non-negative integers, the maximum total number of outneighbors of v that end up with
+color xv is kv (xv ) + rv (xv ) ≤ dv (xv ) which completes the proof.
+
+      The following lemma concludes the analysis of the algorithm.
+
+Lemma 3.2. Consider a graph G with an initial q-coloring and a given edge orientation. Algorithm 1
+solves an oriented list defective coloring instance if the input Sv guarantees requirement Equation (5)
+for all nodes v in O(q) communication rounds. The algorithm requires the node v to exchange the
+lists Sv with its neighbors.
+
+Proof. The correctness of the algorithm follows from Lemma 3.1. The complexity of the algorithm is
+O(q) since in both phases we have to iterate over all the q colors whereas in Phase I each node v has
+to transmit its color set Sv to all neighbors while in Phase II, nodes transmit only their final chosen
+color.
+
+
+4      Solving OLDC Instances using the Two-Sweep Algorithm
+We will now give a more concrete implementation of Algorithm 1. We start by explaining how to
+generate the set Sv . Note that later, in Section 6, we present another implementation that primarily
+differs in how Sv is constructed. For now, assume there is a globally known integer input parameter
+p > 0 that will serve as an upper bound on the set sizes we allow in Sv . Recall that we have a color
+space C and each node comes with a list of valid colors (and defects) that we call Lv ⊆ C. The set Sv
+is constructed as follows: If |Lv | ≤ p, we define Sv := {Lv }. Otherwise, if |Lv | > p, Sv consists of all
+
+
+                                                     15
+possible subsets of Lv of size exactly p, i.e., Sv := Lpv . Note that this construction leads to different
+                                                         
+
+candidate sets Sv for different nodes if they have different initial color lists. Furthermore, to make
+sure the sum over the defects is large enough to compute the coloring, we require the invariant for
+each node v given in Equation (1).
+
+Lemma 4.1. Consider a graph G with an initial q-coloring and a given edge orientation. Given that
+for an integer parameter p ≥ 1 it holds
+                                                              
+                               X                         |Lv |
+                                   (dv (x) + 1) > max p,         · βv                         (7)
+                                                          p
+                                 x∈Lv
+
+for all nodes v ∈ V , this implementation of Algorithm 1 solves an oriented list defective coloring
+instance in O(q) communication rounds. The algorithm requires the nodes to exchange a list of p
+colors from Lv .
+
+Proof. Since all the sets Sv we choose are of size at most p, it is sufficient to show that Equation (5)
+holds for all nodes in this setting, as the statement of this lemma then follows from Lemma 3.2.
+We prove this by a P case distinctionP  on the size of Lv . First consider |Lv | ≤ p and thus Sv = Lv .
+Using the fact that x∈Lv kv (x) ≤ u∈N< (v) |Su | ≤ |N< (v)| · p (since for all nodes u ∈P    V we have
+|Su | ≤ p by construction) together with the property of the lemma that bounds pβv by         dv (x) + 1
+(Equation (1)), we show that Equation (5) holds:
+                                                   X
+                      |Sv | · Q(Sv ) = |N> (v)| +        kv (x) − dv (x)
+                                                     x∈Sv ∩Lv
+                                                                                X
+                                   ≤ βv − |N< (v)| + |N< (v)| · p −                      dv (x)
+                                                                             x∈Sv ∩Lv
+                                                                           X
+                                   = βv + (p − 1) · |N< (v)| −                      dv (x)
+                                                                      x∈Sv ∩Lv
+                                                     X
+                                   ≤ p · βv −                dv (x)
+                                                  x∈Sv ∩Lv
+                                        X                         X
+                                   <           (dv (x) + 1) −              dv (x)
+                                        x∈Lv                    x∈Sv ∩Lv
+                                   = |Sv ∩ Lv |.
+
+Note that the last step only holds because we have Lv ∩ Sv = Lv . We will now proceed with the
+
+
+
+
+                                                       16
+                                                                                               Lv
+                                                                                                    
+second case where Lv > p and hence |Sv | = p. Here we choose Sv from                            p       .
+                                                           !
+               X                     X
+                        |N> (v)| +         (kv (x) − dv (x))
+             S∈(Lpv )                x∈S
+                                                     X
+             |Lv |                           |Lv | − 1
+         =          · (βv − |N< (v)|) +                   ·       (kv (x) − dv (x))
+              p                                 p−1
+                                                            x∈Lv
+                                                                                    X
+             |Lv | − 1       |Lv |                                            |Lv | − 1
+         ≤               ·         (βv − |N< (v)|) + |N< (v)| · p −                        ·      dv (x)
+              p−1              p                                                p−1
+                                                                                             x∈Lv
+                                                                                         X
+             |Lv | − 1       |Lv |                                   |Lv |           |Lv | − 1
+         ≤               ·         βv + |N< (v)| · max 0, p −                   −                ·      dv (x)
+              p−1              p                                       p              p−1
+                                                                                                   x∈Lv
+                                                                 X
+             |Lv | − 1                    |Lv |             |Lv | − 1
+         ≤               · βv · max             ,p    −                   ·      dv (x)
+              p−1                          p                  p−1
+                                                                            x∈Lv
+                       X                                    X
+             |Lv | − 1                              |Lv | − 1
+         <               ·       (dv (x) + 1) −                 ·        dv (x)
+              p−1                                    p−1
+                           x∈Lv                                    x∈Lv
+                      
+             |Lv | − 1
+         =               · |Lv |.
+              p−1
+
+   In the second step we used that for any positive integer k and arbitrary n, nk = nk n−1
+                                                                                                               
+                                                                                                             k−1 holds.
+By the pigeonhole principle there exists a p sized subset of Lv — let us call it Sv — with the following
+property:
+
+                                                          P                            P                       
+                          X                                    S∈(Lpv )   |N> (v)| +       x∈S (kv (x) − dv (x))
+           |N> (v)| +              (kv (x) − dv (x)) ≤                             |Lv |
+                                                                                           
+                        x∈Sv ∩Lv                                                     p
+                                                          |Lv |−1
+                                                                    
+                                                            p−1      · |Lv |
+                                                      <         |Lv |
+                                                                            = p = |Sv ∩ Lv |.
+                                                                  p
+
+    Thus, Sv satisfies Equation (5) by the following line which concludes the proof.
+                                                                      !
+                                                X
+                   |Sv | · Q(Sv ) = |N> (v)| +         kv (x) − dv (x) < |Sv ∩ Lv |.
+                                                        x∈Sv ∩Lv
+
+
+
+
+     The preceding lemma already proves our main contribution Theorem 2.1 for the ε = 0 case.
+Unfortunately, when ε = 0 we must sweep over all colors of a proper q-coloring. Relying on computing
+a proper coloring makes this approach too slow for OLDC instances. Even with highly efficient
+algorithms to compute an initial Θ(∆)-coloring,
+                                          √         the round complexity of Algorithm 1 would still be
+of order Ω(∆) and thus far from our Õ( ∆) target outlined in Theorem 2.3.
+     To achieve the desired speed-up, we instead use a defective coloring. This strategy employs far
+fewer colors for the initial coloring at the acceptable cost of allowing monochromatic edges. For a
+given parameter α > 0, a coloring with O(1/α2 ) colors in which for every node, at most an α-fraction
+of the node’s neighbors have the same color can be computed very efficiently in only O(log∗ n) rounds
+(cf. [28, 29], details in Lemma 4.2). We will later show that this additional (1 + ε)-factor in the slack,
+
+                                                           17
+combined with the aforementioned defective coloring algorithm (using α := ε/p), achieves a sufficient
+trade-off between the size of the initial coloring and the monochromatic edges.
+   The detailed implementation of the ε > 0 case is provided in Algorithm 2.
+
+Algorithm 2 Fast-Two-Sweep Algorithm(q, p, ε)
+Require: Proper q-coloring of the nodes. Integer p ≥ 1 and ε > 0. For each node v ∈ V Equation (8)
+    is true.
+Ensure: OLDC in time O(min{q, (p/ε)2 + log∗ q })
+            p2
+ 1: if q ≤ ε2 + log∗ q then
+        If |Lv | ≤ p, let Sv := {Lv }, otherwise Sv := Lpv .
+                                                           
+ 2:
+ 3:     Solve the OLDC instance using our Two-Sweep-Algorithm(q, p, Sv )                 ▷ Algorithm 1
+ 4: else
+ 5:     Compute defective coloring Ψ(v) using Lemma 4.2 setting α := ε/p.
+ 6:     Let G′ be the subgraph of G removing monochromatic edges regarding Ψ.
+ 7:     Define
+                                                   
+                           ′                      ε
+                          dv (x) := dv (x) − βv ·     and L′v := {x ∈ Lv | d′v (x) ≥ 0 }
+                                                  p
+
+ 8:    Define OLDC instance with defects d′v (x) and color lists L′v on G′ .
+                                                          ′
+ 9:    If |L′v | ≤ p, let Sv := {L′v }, otherwise Sv := Lpv .
+10:    Solve this OLDC instance on G′ :
+11:         Use our Two-Sweep-Algorithm(O(p2 /ε2 ), p, Sv )                            ▷ Algorithm 1
+12: end if
+
+
+
+4.1   Working With a Non-Proper Initial Coloring
+The weakness of the previous algorithm is the dependence of the complexity on the q-coloring. We
+do not have sufficiently fast (proper) coloring algorithms to use here. However, we overcome this
+problem by using a defective coloring as described in Lemma 4.2 instead of a proper coloring, and
+we show that monochromatic edges (induced by this defective coloring) can be safely ignored under
+a slightly increased slack (cf. Equation (8)).
+Lemma 4.2 ([28, 29]). For any 1 ≥ α > 0, there exists a defective coloring algorithm in the
+CONGEST model that colors the nodes of a directed graph with O(1/α2 ) colors such that each node
+has at most α · βv outneighbors of the same color. This takes O(log∗ q) communication rounds if the
+graph was already colored with O(q) colors.
+  Let ε > 0 be a real parameter and let p ≥ 1 be an integer as before. Subsequently, we consider
+OLDC instances where each node v satisfies the following property.
+                                                                 
+                          X                                 |Lv |
+                            (dv (x) + 1) > (1 + ε) · max p,         · βv                     (8)
+                                                              p
+                           x∈Lv
+
+Assume we have a defective coloring given on G such that every node v has at most ε/p · βv
+outneighbors of the same color. To run Algorithm 1, we have to make sure there are no neighbors
+with the same color, i.e., no monochromatic edges in the graph. The trick here is to form the subgraph
+G′ that contains all nodes of G but only the edges where both endpoints are colored differently by
+the initial coloring. Note that G′ is a properly colored graph. We can now run Algorithm 1 on G′ ,
+
+                                                 18
+however, this would not solve the problem directly on G. For that, we adjust the defects and color
+lists (according to Line 7 in the pseudocode) of the colors before we run the algorithm on G′ . In this
+way, we ’save’ some defect that we will need for a valid OLDC on G. The pseudocode in Algorithm 2
+specifies the details of the new defect function d′v (x). We can now prove our first main theorem.
+
+Theorem 2.1. Let G = (V, E) be a directed graph that is equipped with a proper q-vertex coloring.
+For every node v ∈ V , assume that βv is the outdegree of v. Further, assume that we are given an
+oriented list defective coloring instance for G with color lists Lv and defect functions dv : Lv → N0
+for all v ∈ V . Let p ≥ 1 be an integer parameter, let ε ≥ 0, and assume that
+                                                                           
+                                  X                                   |Lv |
+                        ∀v ∈ V :      (dv (x) + 1) > (1 + ε) · max p,         · βv .
+                                                                       p
+                                        x∈Lv
+
+Then, the Two-Sweep algorithm (cf. Algorithm 2) solves     the given  oriented list defective coloring
+instance deterministically in O min q, (p/ε)2 + log∗ q       rounds.7 The algorithm requires the nodes
+to forward their initial color first and later exchange a list containing p of the colors of Lv .
+
+Proof. First, assume that ε > 0, since the contrary case has already been proven in Lemma 4.1. If
+       2
+q ≤ pε2 + log∗ q, the problem instance can also be solved using Lemma 4.1. The runtime here is O(q).
+If the opposite is true, we compute a defective coloring using Lemma 4.2 with the parameter α = ε/p
+in time O(log∗ q). We will now show that the new problem instance on G′ (with updated defects and
+lists from line 6 in Algorithm 2) fulfills Equation (1) and thus Algorithm 1 can be applied.
+
+                    X                        X                       X          ε
+                                                                                         
+                                                                                              |Lv |
+                                                                                                    
+                           (d′v (x) + 1) ≥          (dv (x) + 1) −          βv ·     > max p,         βv
+                                                                                 p             p
+                   x∈L′v                     x∈Lv                    x∈Lv
+
+    All nodes are colored after this step. It remains to show that this leads to a valid coloring in G.
+Since each node v has at most d′v (x) outneighbors in G′ with the same color and at most βv · ε/p
+additional outneighbors connected by monochromatic edges in G (according to Lemma 4.2), there
+are at most d′v (x) + ⌊βv · ε/p⌋ = dv (x) outneighbors with the same color in G. The runtime here is
+linear in the number of colors we have in our defective coloring and thus is O(p2 /ε2 ).
+
+    We can now use our Two-Sweep Algorithm in a recursive manner to compute a (∆ + 1)-coloring
+in the CONGEST model as stated in Theorem 2.3. For that we use a known ([19, 20, 30]) technique,
+called color-space reduction, on Theorem 2.1. The details appear in the subsequent section.
+
+
+
+
+   7
+       We slightly abuse notation and allow ε = 0, in which case we assume that min q, (p/0)2 + log∗ q = q.
+                                                                                   
+
+
+
+                                                               19
+5    Applications of the Two-Sweep Algorithm
+Oriented List Defective Coloring in CONGEST In this section, we reduce the message
+complexity of our algorithm using the color space reduction technique as stated in Lemma 5.1. Note
+that this lemma is a special case of the more general Theorem 3 in [20].
+
+Lemma 5.1 (Theorem 3 in [20]). Let κ(Λ), M (Λ) and T (Λ) be functions of the maximum list size
+Λ. Assume we are given a deterministic algorithm A solving oriented list defective coloring instances
+where for each node v ∈ V we have
+                                   X
+                                       (dv (x) + 1) ≥ βv · κ(Λ)
+                                      x∈Lv
+
+with round complexity T (Λ) and message complexity M (Λ). Then, for any integer λ ∈ {1, . . . , C },
+there exists a deterministic algorithm A′ that solves an oriented list defective coloring instance where
+for each node v ∈ V we have
+                                   X
+                                      (dv (x) + 1) ≥ βv · κ(λ)⌈logλ (C)⌉
+                                  x∈Lv
+
+in time O(T (λ) · ⌈logλ C⌉) and message complexity M (λ).
+
+    Using our Fast-Two-Sweep routine (Algorithm 2) as the deterministic oriented list defective
+coloring algorithm A in Lemma 5.1 and choosing suitable parameters, we can drastically reduce the
+dependence on p and |Lv | in the round and message complexity. In particular, the size of messages
+drops to O(log C) bits, making the algorithm viable in CONGEST whenever the color space is poly(n).
+The detailed proof follows.
+
+Theorem 2.2. Let G = (V, E) be a graph that is equipped with a proper q-vertex coloring and with
+an edge orientation. For every node v ∈ V , assume that βv is the outdegree of v. Further, assume
+that we are given an oriented list defective coloring instance for G with color lists Lv ⊆ {1, . . . , C}
+and defect functions dv : Lv → N0 for all v ∈ V . Assume that
+                                          X                     √
+                              ∀v ∈ V :        (dv (x) + 1) ≥ 3 · C · βv .
+                                          x∈Lv
+
+Then, our recursive Two-Sweep algorithm  deterministically solves the given oriented list defective
+                          3       ∗
+                                    
+coloring instance in O log C +log q rounds. The algorithm requires the nodes to exchange messages
+of at most O(log q + log C) bits.
+                                                                                l√ m
+Proof of Theorem 2.2. First, consider Theorem 2.1. We set the parameter p :=       Λ , where Λ is
+the maximum list size as in Lemma 5.1, and we set ε := 3⌈log1 C⌉ . We get an algorithm that solves a
+                                                             4
+given OLDC instance for which
+                                                                     √ m
+                                                                l
+                           X                              1
+                              (dv (x) + 1) > βv · 1 +              ·   Λ
+                                                      3⌈log4 C⌉
+                           x∈Lv
+
+                                                               2        ∗
+                  √ v ∈ V . The round complexity is O(Λ · log C + log q) and messages are of size
+holds for every node
+at most O(log q + Λ · log C) bits. Note that the messages that have to be transmitted are the initial
+color (requiring O(log q) bits) and the list of ≤ p colors, where each color needs at most O(log C)
+bits. This algorithm (with those parameters) is used as algorithm A when applying Lemma 5.1.
+
+                                                   20
+Here we set the splitting parameter λ = 4. The outcome is an OLDC algorithm A′ with an initial
+slack requirement of
+                                                                                   ⌈log4 C⌉
+                        X                                           1
+                              (dv (x) + 1) > βv ·          1+                    ·2                  (9)
+                                                              3 · ⌈log4 C⌉
+                       x∈Lv
+
+for every node v ∈ V . The round complexity of A′ is O(log3 C + log∗ q) and it uses messages of size
+at most O(log q + log C) bits. The statement of the theorem follows by the subsequent simplification
+of Equation (9).
+                                          ⌈log4 C⌉                        ⌈log4 C⌉
+                            1                                            1
+                  1+                    ·2               ≤2· 1+                          · 2log4 C
+                        3⌈log4 C⌉                                    3⌈log4 C⌉
+                                                                     √       √
+                                                         < 2 · e1/3 · C < 3 C
+
+
+
+    Using Theorem 2.2 as OLDC subroutine of Theorem 4 in [20], we directly get an efficient
+(degree + 1)-list coloring algorithm for the CONGEST model. The details appear in the proof of
+Theorem 2.3.
+
+Theorem 2.3. Let G = (V, E) be an n-node graph of maximum degree ∆ and assume that all nodes
+v ∈ V have color lists Lv of size at least |Lv | ≥ deg(v) + 1, consisting
+                                                                      √ of colors from a color space of
+size O(∆). Then the given list coloring instance can be solved in O( ∆ · log ∆ + log∗ n) deterministic
+                                                                             4
+
+rounds in the CONGEST model.
+
+Proof of Theorem 2.3. In this given coloring instance
+                                                    Pall defects are zero, i.e., we have a list defective
+coloring instance where for all nodes v ∈ V it holds x∈Lv (dv (x) + 1) = |Lv | ≥ deg(v) + 1. Thus, we
+can apply Theorem 4 from [20] where we plug in Theorem 2.2 as list defective coloring algorithm.
+This results in an algorithm that computes the required (deg + 1)-list coloring in time
+                                         √
+                                      O( C · log ∆ · T + log∗ n)
+
+where T is the round complexity from Theorem 2.2. Since they start by computing an initial O(∆2 )
+coloring (e.g. by using Linial’s coloring algorithm [32]), we can also use this as the q-coloring in
+Theorem 2.2. By the theorem’s assumption C = O(∆), we get
+
+                                 T = O(log3 C + log∗ (∆2 )) = O(log3 ∆).
+
+Plugging this value of T into the round complexity above concludes the analysis of the round
+complexity. It remains to argue that the algorithm uses messages of size at most O(log n). Theorem
+4 from [20] states that if the given algorithm has a message complexity of B bits, the resulting
+algorithm uses messages of size at most O(B + log n) bits. Due to Theorem 2.2, this leads to messages
+of size at most O(log q + log C + log n) bits. As we have q = O(∆2 ) and C = O(∆), this algorithm is
+viable in CONGEST.
+
+
+
+
+                                                           21
+6     Optimizing the Defect for C Colors
+In this section, the goal is to characterize the defect achievable by our Two-Sweep algorithm as a
+function of the size of the color space C. As depicted in Section 2.2, we will consider relative defects
+instead of absolute ones throughout this section. Here, we again use Algorithm 1 but change the
+prerequisites slightly. First, there are no node-specific color lists (i.e., Lv = C), and second, we
+construct the candidate set Sv differently compared to the previous section. We want to emphasize
+that since all color lists are the same for all nodes, we also have the same candidate sets, and we
+will thus simply denote them by S throughout this section. Without loss of generality, we assume
+subsequently that S consists of k sets S1 , . . . , Sk . In this section, we use a slightly different notation
+as it turns out to be useful to observe all parameters and variables in a relative form, i.e., dividing by
+the (out)degree βv . In Phase I, we define αS for all S ∈ S to be the relative number of outneighbors
+in N< (v) that already decided on set S, i.e., there are αS · βv outneighbors
+                                                                          P       that already decided on S.
+Note that this also means that |N> (v)| can be expressed as 1 − S∈S αS using this normalization.
+To decide on a set Si , node v will compute the quality Qα⃗ (S), as defined later in Equation (14), of
+each set Si and chooses the set that minimizes this value (similarly to Algorithm 1). For the analysis,
+we will consider an adversary that, for a given node v, chooses the parameters of the quality function
+in a worst-case fashion (i.e., making it hard for v to find any good set). Our goal then is to show
+that if we choose S smartly enough, independent of the adversary’s choice, we will receive a coloring
+with good relative defects (Theorem 2.7).
+    Before we dive into the algorithmic details,√ we will first establish the lower bound showing that
+relative defects can never be better than 1/ C.
+
+6.1    Two-Sweep Lower Bound on the Defect
+As before, we consider the color space C := {1, . . . , C}. For each color x ∈ C, the allowed defect
+is specified by a parameter ρx ∈ [0, 1] that we call the relative defect of x. A node of color x is
+then allowed to have at most ρx · ∆ neighbors of color x. We consider the case where ∆ → ∞ so
+that rounding defect values to the next integer becomes negligible. In the following, we normalize
+everything so that the total number of neighbors of each node is 1.
+    Assume that for a node v, α neighbors are ordered before v and 1 − α neighbors are ordered
+after v (in the first phase). Assume further that in the first phase, for every S ∈ S, v has αS ≥ 0
+        P that have chosen set S in phase 1. For convenience, for every color x ∈ C, we also define
+neighbors
+αx := S∈S:x∈S αS to be the number of neighbors of v that are ordered before v and that can
+choose color x in phase 2. This means that if node v picks color x in phase 2 and if at this point,
+v already has δx neighbors that picked color x (in phase 2), then v can guarantee a defect of at
+most αx + δx . In phase 1, v thus must choose a set S that guarantees the existence of a color x ∈ S
+P which αx + δx ≤ dx .′ At this point, v does not know the values of δx , it however knows that
+for
+   x∈S δx = 1 − α. Let S ⊆ S be the set of colors for which αx < dx . W.l.o.g., we can assume that
+the adversary chooses δx = 0 for x ∈ S \ S ′ . When choosing set S in phase 1, node v can guarantee
+to be able to pick a color in phase 2 if and only if
+
+        X                             X              X                             X                        X
+               (αx + δx ) = 1 − α +           αx ≤           ρx        ⇐⇒   1−α+         min {αx , ρx } ≤         ρx .
+       x∈S ′                          x∈S ′          x∈S ′                         x∈S                      x∈S
+
+This is equivalent to requiring that
+                                    X
+                                                max {0, ρx − αx } ≥ 1 − α.                                               (10)
+                                          x∈S
+
+
+                                                                  22
+    The following lemma shows that the above inequality cannot be guaranteed for any choice of S
+and for all S ∈ S (and thus there cannot be a two-phase algorithm as described above) if the relative
+defects are too small. Note that this lemma directly implies Theorem 2.5.
+
+Lemma 6.1. The Two-Sweep Algorithm cannot color from a color space C if
+                                     X
+                                        ρ2x < 1.                                                   (11)
+                                                x∈C
+
+Proof. For the sake of contradiction, assume that there exists some defects ρx for x ∈ C such that (11)
+is satisfied, but for which there exists a two-sweep algorithm. Further, assume that this two-sweep
+algorithm uses S ⊂ 2C P as a collection of sets. We have to show that we can find values αS ≥ 0 for all
+S ∈ S such that α := S∈S αS ≤ 1 and such that (10) is not satisfied for any S ∈ S. We show how
+to construct the values αS in a step-wise manner in the following way.
+    For t ∈ N0 , we use αS (t) ≥ 0 to denote the value of αS after step t. We initialize αS (0) := 0 for
+all S ∈ S. For every t ∈ N0 , all sets S ⊆ S, and all colors x ∈ C, for convenience, we also define the
+following quantities:
+                                                X
+                                       α(t) :=    αS (t)
+                                                S∈S
+                                                 X
+                                    αx (t) :=              αS (t)
+                                                S∈S:x∈S
+                                    ρ̂x (t) := max {0, ρx − αx (t)}
+                                     S(t) := {x ∈ S : ρ̂x (t) > 0} .
+
+    Note that if a node v that has αx (t) neighbors that are ordered before v in phase 1 and that
+choose a set S for which x ∈ S, then ρ̂x (t) denotes the maximum defect that v is allowed to have in
+color x among the neighbors ordered after v in phase 1 (and thus before v in phase 2). To make sure
+that (10) is notP satisfied for any S ∈ S, we have to at some point t have values αS (t) such that for
+every S ∈ S, x∈S ρ̂x (t) < 1 − α(t).
+    Assume that we are given the values αS (t) and we want to compute the values αS (t + 1). The
+process
+P        to do this works as follows. In every step t + 1, we choose an arbitrary set S for which
+  x∈S(t) ρ̂x (t) ≥ 1−α(t). We then determine a value ε ∈ [0, 1−α(t−1)] and set αS (t+1) := αS (t−1)+ε.
+For the remaining sets S ′ , we set αS ′ (t + 1) := αS ′ (t).PWe will show that by choosing ε in the
+appropriate way, we eventually reach a scenario, where x∈S ρ̂x (t) < 1 − α(t) for all S ∈ S.
+    We next describe the choice of ε for step t + 1 more concretely. Before doing this, we define σ as
+                                                   X
+                                          σ := 1 −     ρ2x > 0.
+                                                      x∈C
+
+Note that from the assumption x∈CPρ2x < 1 of the lemma, we know that σ ∈ (0, 1]. Let us now
+                                    P
+assume that S ∈ S is a set for which x∈S ρ̂x ≥ 1 − α(t − 1).            P
+    The basic idea is to set ε to the maximum possible value so that x∈S ρ̂x remains upper bounded
+by ≈ 1 − α(t) and for convenience, we also want to choose ε ≤ ρ̂x (t) for any x ∈ S(t) (i.e., for any x
+for which ρ̂x (t) > 0). In order to make sufficient progress, we also use the slack σ defined above and
+we set ε as follows:
+                                                                          
+                                            
+                                        δ                       X                      
+   ε := min 1 − α(t), min ρ̂x (t),             , where δ :=        ρ̂x (t) − 1 − α(t) · (1 − σ). (12)
+                         x∈S(t)       |S(t)|
+                                                                    x∈S(t)
+
+
+                                                      23
+In order to analyze this process, we define a potential function Φ(t) as follows
+                                                  X
+                                          Φ(t) :=     ρ̂2x (t).
+                                                       x∈S
+
+Note that we have Φ(0) = 1 − σ. We next show that for all t ≥ 0, it holds that
+                                                                       
+                                     2                            α(t)
+                      Φ(t) ≤ 1 − α(t) · (1 − σ) − σ · α(t) · 1 −          .                            (13)
+                                                                     2
+We prove (13) by induction on t. For the base case, note that because Φ(0) = 1 − σ, (13) clearly
+holds for t = 0. For the induction step, let us now assume that (13) holds for some given t ≥ 0 and
+prove that then (13) also holds for t + 1. We have
+                                          X
+                                                ρ̂2x (t + 1) − ρ̂2x (t)
+                                                                       
+                   Φ(t + 1) − Φ(t) =
+                                           x∈S(t)
+                                              X
+                                                    (ρ̂x (t) − ε)2 − ρ̂2x (t)
+                                                                             
+                                      =
+                                           x∈S(t)
+                                              X
+                                                    ε2 − 2ε · ρ̂x (t)
+                                                                        
+                                      =
+                                           x∈S(t)
+                                                                X
+                                      = ε2 · |S(t)| − 2ε ·              ρ̂x (t)
+                                                               x∈S(t)
+
+                                      = ε2 · |S(t)| − 2ε · δ + 1 − α(t) · (1 − σ)
+                                                                                 
+                                                         
+                                      ≤ −2ε · 1 − α(t) · (1 − σ) − ε · δ.
+
+The first equation is true because when αS (t + 1) > αS (t) only holds for set S, the value of ρ̂x only
+changes for colors x ∈ S and there only for colors for which the value is not already 0. The second
+equation follows because, by (12), we have ε ≤ ρ̂x (t) for all x ∈ S(t). The second-to-last line follows
+by the definition of δ in (12) and the last line follows because by (12), we have ε ≤ δ/|S(t)|  and thus
+                                                              2
+δ ≥ ε · |S(t)|. For the next steps, we define A(t) := 1 − α(t) · (1 − σ) and B(t) := σ · α(t) · 1 − α(t)
+                                                                                                     2     .
+Note that Eq. (13) now becomes Φ(t) ≤ A(t) − B(t). We first look at the expressions for A(t + 1)
+and B(t + 1). We have
+                                                    2
+                       A(t + 1) = 1 − α(t + 1) · (1 − σ)
+                                                    2
+                                  = 1 − α(t) − ε · (1 − σ)
+                                      h          2                      i
+                                                                       2
+                                                                  
+                                  =     1 − α(t) − 2ε · 1 − α(t) + ε · (1 − σ)
+                                  = A(t) − 2ε · 1 − α(t) · (1 − σ) + ε2 · (1 − σ).
+                                                           
+
+We further have
+                                                       
+                                               α(t + 1)
+            B(t + 1) =     σ · α(t + 1) · 1 −
+                                                  2
+                                                         
+                                                 α(t) + ε
+                       =   σ · α(t) + ε) · 1 −
+                                                     2
+                                                                                    ε2
+                                                                
+                                           α(t)               α(t)         α(t)
+                       =   σ · α(t) · 1 −         +σ·ε· 1−           −σ·ε·      −σ·
+                                            2                  2            2       2
+                                                         ε 2
+                       =   B(t) + σ · ε · 1 − α(t) − σ · .
+                                                           2
+
+                                                      24
+                       hP             i                                             P
+By (12), we have δ =           ρ̂
+                         x∈S(t) x (t)   − 1−α(t) ·(1−σ). Because S is a set for which x∈S(t) ρ̂x (t) ≥
+                                             
+1 − α(t), we therefore have δ ≥ σ · 1 − α(t) . Hence,
+
+                                                                      ε2
+                                      B(t + 1) ≤ B(t) + ε · δ − σ ·      .
+                                                                      2
+We can therefore bound Φ(t + 1) as
+
+        Φ(t + 1)   =    Φ(t) + Φ(t + 1) − Φ(t)
+                   ≤    A(t) − B(t) + Φ(t + 1) − Φ(t)
+                                                                                  σ 2
+                   ≤    A(t + 1) − B(t + 1) + 2ε · 1 − α(t) · (1 − σ) + ε · δ − 1 −   ·ε +
+                                                                                    2
+                        Φ(t + 1) − Φ(t).
+
+Together with the above bound on Φ(t + 1) − Φ(t), this implies that
+
+                                       Φ(t + 1) ≤ A(t + 1) − B(t + 1)
+
+as required. It remains to show that the process has to stop after a finite number of steps and
+before
+P      we reach α(t) = 1. This then implies that at some point we fail to find a set S for which
+  x∈S(t) ρ̂x (t) ≥ 1 − α(t). To see this, note that by definition, we always have ρ̂x (t) ≥ 0 for all colors
+x and all t ≥ 0. We therefore always have Φ(t) ≥ 0. This impliesqthat for all t, we have A(t) ≥ B(t).
+                                                                            σ
+For α(t) ∈ [0, 1], we have A(t) ≥ B(t) if and only if α(t) ≤ 1 − 2−σ           . We therefore know that the
+                                                                                               q
+                                                                                                   σ
+process either makes ∞ many steps or the process has to stop as long as α(t) ≤ 1 − 2−σ                . When
+                                                                                      P
+the process stops with α(t) < 1, it is because there exists no set S such that x∈S ρ̂x (t) ≥ 1 − α(t).
+We therefore have computed values αS (t) such that (10) is not satisfied for any S ∈ S (which is a
+contradiction to the assumption that the given sets S can be used to compute a defective coloring
+with the given defects ρx for x ∈ C). It therefore remains to show that our construction cannot make
+∞ many steps. Because α(t) can never reach 1, we know that either ε is equal to ρ̂x (t) for some
+x ∈ S(t) or ε = δ/|S(t)|. In the first case, ρ̂x (t′ ) = 0 for all t′ > t. This can therefore q
+                                                                                              happen at most
+                                                                                                 σ
+once for each of the C colors. In the second case, because we know that 1 − α(t) ≥ 2−σ              , we have
+                                      
+                           X                                                      σ 3/2
+                   δ=            ρ̂x (t) − 1 − α(t) · (1 − σ) ≥ (1 − α(t)) · σ >       .
+                                                                                     2
+                         x∈S(t)
+                                                                                P
+The first inequality follows because for step t + 1, we choose a set S for which x∈S(t) ρ̂x (t) ≥ 1 − α(t).
+We therefore have ε > σ 3/2 /(2C). The number of steps before α(t) is too large is thus less than
+2C/σ 3/2 , which is finite.
+
+6.2    Towards the Upper Bound
+In this subsection, our goal is to compute a defective coloring using Algorithm 1 with a defect that
+is as small as possible. For simplicity, and in contrast to the previous section, we assign the same
+(relative) defect ρ to all colors. To decide on a set S ∈ S in the first phase, node v will compute the
+quality Qα⃗ (S), as defined below, of each set S and chooses the set with the best (minimal) quality.
+                                                                            !
+                                          1        X
+                                                               ′
+                                                                     
+                              Qα⃗ (S) :=     · 1+       |S ∩ S | − 1 · αS ′                        (14)
+                                         |S|        ′S ∈S
+
+
+                                                      25
+    Note that this definition of the quality is just the relative form of Equation (3) (i.e., divided
+by
+P βv and using the fact that the defects of all colors are the same). To see this, note that
+  x∈S kP
+       v (x), which is the sum of ”conflicting colors” of nodes in N< (v), can equivalently be written
+as βv · S ′ ∈S |S ∩ S ′ | · αS ′ and thus:
+
+                                                                                             !
+                                1                              X
+                        argmin             |N> (v)| +                (kv (x) − dv (x))
+                          S∈S  |S|
+                                                               x∈S
+                                                    k
+                                                                                                             !
+                              βv                    X                   X
+                      =argmin              1−                αS +              |S ∩ S ′ | · αS ′ − ρ · |S|
+                         S∈S  |S|
+                                                    S ′ ∈S            S ′ ∈S
+                                                                                        !
+                               1                    X
+                                                                        ′
+                      =argmin              1+                (|S ∩ S | − 1) · αS ′          −ρ
+                         S∈S  |S|
+                                                    S ′ ∈S
+                      =argmin Qα⃗ (S)
+                          S∈S
+
+Lemma 6.2. In this modification of the Two-Sweep algorithm, let ρ be the best achievable relative
+defect of v, then we have
+                                                 (                  )
+                                         1 X            X
+                          ρ ≤ Qα⃗ (S) ≤      max ρ,            αS ′
+                                        |S|           ′      ′
+                                                             x∈S                  S ∈S:x∈S
+
+where S is the set chosen by node v in Phase I.
+
+Proof. We first show that ρ ≤ Qα⃗ (S). If a node decides on a set S in Phase I, and on some color
+x ∈ S in Phase II, the worst possible defect of v is if all nodes in N< (v) choose some set S ′ with
+x ∈ S ′ and if all nodes in N> (v) decided on the same S as v. Note that x ∈ S is the ’best’ color in S
+at the point when v has to decide for it, hence, by the pigeonhole principle over all colors in S:
+                                                                         !
+                             1 X           X            X X
+                        ρ≤      ·      1−        αS ′ +             αS ′
+                            |S|             ′            ′       ′
+                                  x∈S      S ∈S         S ∈S x∈S
+                                                                               !
+                             1          X           X
+                                                           |S ∩ S ′ | · αS ′
+                                                                             
+                          =     · 1−        αS ′ +                               = Qα⃗ (S)
+                            |S|         ′             ′
+                                           S ∈S                 S ∈S
+
+This concludes the first direction. For the right-hand inequality, to get a defect ρ, we have to require
+                                      X           X
+                                  1−       αS ′ ≤    max{0, ρ − αx }.                               (15)
+                                           S ′ ∈S               x∈S
+
+due to Equation (10) P
+                     (adapted forP
+                                 the uniform defect case where ρx = ρ for all x). On the right-hand
+side we can use that x∈S αx = S ′ ∈S |S ∩ S ′ |αS ′ which leads to the following condition:
+                                 X                                              X
+                            1+            (|S ∩ S ′ | − 1) · αS ′ ≤                   max{αx , ρ}.
+                                 S ′ ∈S                                         x∈S
+
+Dividing both sides by |S| leads to the statement of the lemma.
+
+
+
+
+                                                                   26
+6.3    Formulation as Linear Program
+In this section we want to emphasize that the algorithm can be seen as a Zero-Sum game. The first
+player—the one who wants to compute a good defective coloring—has to choose a collection of sets
+S = {S1 , ..., Sk } from the color space C. The second player, i.e., the adversary, will then choose the
+parameters αSi for all i in a worst-case fashion (i.e., making the defect as large as possible for any
+node v). More precisely, the adversary will solve the following linear program to find a worst-case
+setting:
+                                         maximize z
+                                         subject to
+                                         ∀S ∈ S       Qα⃗ (S) ≥ z
+                                                      X                                              (16)
+                                                           αS ≤ 1
+                                                      S∈S
+                                        ∀S ∈ S :      αS ≥ 0
+    Our goal is to show that the solution of this linear program is exactly the relative defect ρ that
+a node achieves
+             √ using this algorithm. To make the analysis simpler, we will only consider sets of
+roughly size C (where C is the size of our color space) instead of allowing arbitrary subsets of the
+color space in S. The details are given in the subsequent section.
+
+6.4    The Two-Bucket Two-Sweep Algorithm
+                                                                                         √
+Instead of considering sets ofarbitrary size, we will only consider sets of size exactly C if C is a
+square number (i.e., S := √CC sets) or, if C is not a square number, we partition the colors in C into
+two disjoint buckets of sizes C1 √and C2 respectively (with
+                                                         √ C = C1 + C2 ) and independently construct
+all possible sets of fixed sizes ⌊ C⌋ for the first and ⌈ C⌉ for the second bucket. More precisely:
+
+                                        {1, ..., C1 } [ {C1 + 1, ..., C}
+                                                                     
+                                 S :=       √                √
+                                          ⌊ C⌋              ⌈ C⌉
+                                      |      {z      } |     {z          }
+                                       first bucket         second bucket
+
+    Note that this construction has the handy property that sets from different buckets are guaranteed
+                                                                                                    C1 
+to be disjoint. Furthermore, the number of sets we deduce from the first bucket is exactly ⌊√C⌋          ,
+        C 2
+            
+and ⌈√C⌉      sets can be constructed from the second bucket.
+    The two-player game mentioned above simplifies as follows: Player one chooses C1 and C2
+(note that this gives us all the possible sets), and player two (the adversary) then again solves the
+LP to compute the worst-case αS values (that make the defect as large as possible). Thus, the
+whole problem boils down to computing a good partitioning of the C colors into C1 and C2 that is
+robust against the adversarial choices defined by the LP. For some small values of C, we empirically
+computed such optimal partitions and stated them in Section B.3.
+    By symmetry, all αS values for sets S in the same bucket will have the same value. We will give
+a formal argument in Lemma B.5. Based on this, we will define α1 to be√       the α value for all sets in
+the first bucket and α2 for all √sets in the second bucket; we define s1 := ⌊ C⌋ as the size of all sets
+in the first bucket and s2 := ⌈ C⌉. Furthermore, we define the sum over all alpha values from the
+same buckets as follows:
+                                                                    
+                            ∗      C1                           ∗     C2
+                           α1 :=         · α1 and respectively α2 :=       · α2
+                                    s1                                s2
+
+
+
+                                                      27
+Using these new notations and Lemma B.5, we can also simplify the definition of the quality. Let S1
+be an arbitrary set from the first bucket and S2 be an arbitrary set from the second bucket:
+                                                                  !
+                              1        X
+                                                    ′
+                                                          
+                  Qα⃗ (S1 ) =    · 1+        |S1 ∩ S | − 1 · αS ′
+                              s1        ′
+                                       S ∈S
+                                                                                   
+                                                                        
+                              1          C1         C2        X     C1 − 1
+                            =    · 1−         α1 −        α2 +                 · α1 
+                              s1          s1          s2              s1 − 1
+                                                                     x∈S1
+                               1 − α1∗ − α2∗  s1
+                          =                    + · α1∗                                              (17)
+                                   s1         C1
+                              1 − α1∗ − α2∗   s2
+                  Qα⃗ (S2 ) =               +    · α2∗                                              (18)
+                                   s2         C2
+   The formulation of the Two-Bucket Two-Sweep Algorithm as linear program thus simplifies to
+the subsequent form.
+                                          maximize z
+                                                     subject to
+                                       1 − α1∗ − α2∗     s1
+                                                      +      · α1∗ ≥ z
+                                            s1          C1
+                                                                                                    (19)
+                                       1 − α1∗ − α2∗     s2
+                                                      +      · α2∗ ≥ z
+                                            s2          C2
+                                                        α1∗ + α2∗ ≤ 1
+                                                   α1∗ ≥ 0 and α2∗ ≥ 0
+    It remains to show that the objective value z of this LP equals the final defect of the color choice
+of v.
+
+Lemma 6.3. The objective value z of the linear program (stated in Eq. (19)) is exactly the relative
+defect ρ computed by the Two-Bucket Two-Sweep Algorithm.
+
+Proof. The final z is equal to the minimum quality of the sets in S. Let S be this set. Thus, by
+Lemma 6.2 we already know
+                                                (                 )
+                                       1 X             X
+                              ρ≤z≤         max ρ,             αS ′ .
+                                      |S|            ′      ′
+                                               x∈S            S ∈S:x∈S
+
+To prove the statement of the lemma it is sufficient to show that the right hand side is ≤ ρ. W.l.o.g.,
+assume for now that S is from the first bucket. Then, by consideration of all sets with colors in [C1 ],
+we have
+                                      X      X
+                                                    αS = s1 · α1∗
+                                        x∈[C1 ] S∈S:x∈S
+
+Due to Lemma B.5, all theP α values of sets
+                                          Pin the first bucket are equal, and hence for any two colors
+x1 , x2 ∈ S it also holds S∈S:x1 ∈S αS = S∈S:x2 ∈S αS . Since this makes all terms in the equation
+above equal, we get that
+                         X         s1                         X            s2
+                            αS =      · α1∗ or respectively         αS =      · α2∗
+                                   C1                                     C2
+                     S∈S:x∈S                                     S∈S:x∈S
+
+
+                                                        28
+if S is from the first (or respectively from the second) bucket. Before we proceed we want to argue
+that ρ ≥ Cs11 · α1∗ .
+    Clearly, the adversary wants to maximize the number of conflicts of the final color x ∈ S.
+Therefore, all outneighbors that decided on some set S ′ before v with x ∈ S ′ will for worst case
+                                                                                 −1
+purposes decide on x later. The number of such sets S ′ that contain x is Cs11−1    , and hence the
+number of (relative) outneighbors with such sets is a lower bound on ρ:
+                                                                     
+                                C1 − 1         s1 ∗             s1    ∗
+                           ρ≥             α1 =    α ⇒ max ρ,       · α1 = ρ
+                                 s1 − 1        C1 1             C1
+Hence, the right hand side of the inequality simplifies to
+                                  (                  )                
+                      1 X                X                     s1    ∗
+                             max ρ,              αS ′ ≤ max ρ,    · α1 ≤ ρ.
+                     |S|               ′       ′
+                                                               C1
+                           x∈S           S ∈S:x∈S
+
+    For symmetry reasons we also require Qα⃗ (S) ≤ ρ if our set S is from the second bucket. The
+z value obtained by solving Equation (19) is the minimum of those two qualities and hence the
+statement holds for any set S that minimizes the quality.
+
+6.5   Solving the Linear Program
+Solving this linear
+                √ program √ when we use only a single bucket (i.e., we create all possible sets of
+exclusive size ⌊ C⌋ or ⌈ C⌉) is straightforward and therefore we deferred the analysis to the
+appendix Section B.1. Note that when C is a square number or close to a square number, this
+single-bucket approach is optimal. In the remainder of this section, we assume that C is not a square
+number, and we analyze the linear program when none of the two buckets are empty. The following
+lemma states a property of the linear program that we will later use to simplify our calculations.
+Lemma 6.4. For any choice of C1 ≥ s1 and C2 ≥ s2 , a maximum value of z is
+                              1 − α1∗ − α2∗   s1         1 − α1∗ − α2∗   s2
+                         z=                 +    · α1∗ =               +    · α2∗                (20)
+                                   s1         C1              s2         C2
+where either α1∗ = 0 or α1∗ + α2∗ = 1.
+Proof. First, we show that the adversary will never choose α1∗ and α2∗ such that the quality from the
+statement is false. For contradiction purpose assume it is true that
+                           1 − α1∗ − α2∗   s1         1 − α1∗ − α2∗   s2
+                                         +    · α1∗ >               +    · α2∗ .
+                                s1         C1              s2         C2
+Here, the optimal value of z is:
+                           1 − α1∗ − α2∗                       α∗
+                                                                                
+                                           s2          1                  s2   1
+                      z=                 +    · α2∗ =       − 1 + α2∗ ·      −
+                                s2         C2          s2      s2         C2 s2
+                         
+Note that here Cs22 − s12 > 0 as s22 > C > C2 . It follows that if an optimal solution that would
+choose α1∗ + α2∗ < 1, then the adversary could increase α2∗ which would increase the value of z,
+contradiction. Hence, the adversary will choose the values s.t. α1∗ + α2∗ = 1 under our assumption.
+Using that fact, z simplifies as follows:
+                                                                     
+                                                 s1          s2
+                                      z = min        · α1∗ ,    · α2∗                         (21)
+                                                 C1          C2
+
+
+                                                    29
+Since increasing α1∗ increases the left argument of this minimum and α2∗ does so with the right
+argument, the maximal value of z is the one where both sides are equal and hence the assumption
+that the right hand side is larger than the left hand side can not be true for any optimal choice the
+adversary would take. In the following we will therefore w.l.o.g assume that
+                           1 − α1∗ − α2∗   s1         1 − α1∗ − α2∗   s2
+                                         +    · α1∗ ≤               +    · α2∗ .
+                                s1         C1              s2         C2
+Let αopt be the optimal value of α1∗ + α2∗ , then our inequality can be rewritten as
+                               1 − αopt 1 − αopt   s2         s1
+                                       −         ≤    · α2∗ −    · α1∗ .                              (22)
+                                  s1       s2      C2         C1
+Note that the value of the left side is guaranteed to be ≥ 0, and hence also the right side must be
+≥ 0. Since z is the smaller value of both sides, we also know
+                           1 − α1∗ − α2∗                  α∗
+                                                                            
+                                           s1         1              s1    1
+                      z=                 +    · α1∗ =    − 2 + α1∗      −
+                                s1         C1         s1   s1        C1 s1
+                                                                   |    {z   }
+                                                                           =:λ
+
+Now we have to go through some cases. If λ > 0 for the same reason as above, we can say that the
+adversary will choose α1∗ + α2∗ = 1. If, however, λ ≤ 0, the adversary wants to make either α1∗ or α2∗
+as small as possible, depending on their coefficients in the equation. This means that either α1∗ = 0
+or α2∗ = 0. Due to Equation (22), we know that α2∗ > 0 if α1∗ > 0, as the equation would otherwise be
+negative. Thus, either α1∗ + α2∗ = 1 or the adversary can make α1∗ incrementally smaller until α1∗ = 0.
+Either of these 2 conditions has to hold for an optimal choice made by the adversary.
+    We have already seen in Equation (21) that in the α1∗ + α2∗ = 1 case, the equality from the lemma
+statement holds. We will now show that the same is also true when α1∗ = 0:
+                                            1 − α2∗ 1 − α2∗
+                                                                     
+                                                              s2    ∗
+                                 z = min           ,        +    · α2
+                                              s1      s2      C2
+This one dimensional equation is minimal when both sides are equal. Thus, the statement of the
+lemma holds.
+
+    Based on that, we prove Theorem 2.6 by going through these two potential cases of what values
+α1∗ and α2∗ can take. The technical details are given in the subsequent lemma.
+Lemma 6.5. Given C is not a square number, for any choice of C1 ≥ s1 and C2 ≥ s2 , the maximum
+value of z is
+                                                          s22
+                                                                   
+                                          s1 · s2
+                         z = max                     ,                .
+                                    s1 · C2 + s2 · C1 C2 + s1 · s22
+Proof. Consider the 2 cases from Lemma 6.4.
+   Case α1 + α2 = 1:
+   In this case, we know that
+                                        s1 ∗    s2 ∗    s2
+                                   z=      α1 =    α2 =    (1 − α1∗ )
+                                        C1      C2      C2
+Solving this equation for α1∗ we get that α1∗ = C1 · s1 C2s+s
+                                                           2
+                                                              2 C1
+                                                                   . Substituting this value into z we get
+                                                     s1 · s2
+                                          z=                     .
+                                               s1 · C2 + s2 · C1
+
+                                                    30
+Case α1∗ = 0:
+
+                                         1 − α2∗
+                                                                               
+                                                   1                   s2   1
+                                    z=           =    + α2∗ ·             −
+                                           s1      s2                  C2 s2
+                                                                           C2
+This leads, using that s2 = s1 + 1 if C is not a square number, to α2∗ = C +s s2
+                                                                                 and thus
+                                                                                           2   1 2
+
+
+                           C2 + s1 s22                                 s1 s22           s22
+                                                      
+                                         C2
+                  z=                   −                   /s1 =                   =
+                           C2 + s1 s2 C2 + s1 s22
+                                    2                              C2 s1 + s21 s22   C2 + s1 s22
+
+
+
+     Note that together with Lemma 6.3, this implies Theorem 2.6.
+     Due to Theorem 2.6, we know what the adversary will do in the case of two buckets, i.e., it will
+choose all αS values to get the worst of the two arguments in the statement. The strategy of the
+first player is straightforward: for a given color space of size C, find C1 and C2 that make these two
+arguments as close to each other as possible, i.e., such that
+
+                                            s1 · s2           s22
+                                                        ≈               .
+                                      s1 · C2 + s2 · C1   C2 + s1 · s22
+
+   We show in Lemma 6.6 that the following choice of C1 and C2 makes these two arguments equal
+and hence is optimal in that sense.
+
+                                    s21 · (s22 − C)                       s22 · (C − s21 )
+                           C1∗ :=                      and     C2∗ :=                      .
+                                        s1 + s2                               s1 + s2
+   Note that C1∗ and C2∗ are non-negative values that sum up to C but are not necessarily integers.
+The following lemma summarizes why this choice is optimal.
+
+Lemma 6.6. Setting C1 := C1∗ and C2 := C2∗ , we have C = C1 + C2 and the two arguments in the
+max of Theorem 2.6 become equal and hence minimize the objective value of the linear program. Let
+z ∗ be this value, then
+                                                        2s1 + 1
+                                              z∗ =                 .
+                                                      C + s21 + s1
+
+Proof. We will now show that plugging in C1∗ and C2∗ into z makes both arguments of the max equal:
+
+                                   s1 · s2              s22
+                                                 =
+                             s1 · C2∗ + s2 · C1∗   C2∗ + s1 · s22
+                                C2 s1 s2 + s21 s32 = s22 s1 C2 + s32 C1
+                                C2 · s1 + s21 s22 = s2 s1 C2 + s22 C1
+                                            s21 s22 = (s2 s1 − s1 ) · (C − C1 ) + s22 C1
+                        s21 s22 + C(s1 − s1 s2 ) = C1 (s22 + s1 − s2 s1 )
+                                    s21 s22 − Cs21 = C1 (s2 + s1 )
+                                    s21 (s22 − C)
+                                                  = C1
+                                       s2 + s1
+
+
+
+                                                        31
+Note that is exactly the choice of C1∗ . The value of z ∗ can thus be stated in the following way:
+                                            s1 · s2
+                                z∗ =
+                                      s1 · C2∗ + s2 · C1∗
+                                                s1 · s2 · (s1 + s2 )
+                                   =
+                                      s1 · s2 (C − s21 ) + s2 · s21 (s22 − C)
+                                            2
+
+                                               s1 · s2 · (s1 + s2 )
+                                   =
+                                      Cs1 s2 (s2 − s1 ) + s21 s22 (s2 − s1 )
+                                         s1 + s2           2s1 + 1
+                                   =                 =
+                                      C + s1 · s2       C + s21 + s1
+   It remains to show that C1 and C2 sum up to C:
+                                   s21 · (s22 − C) + s22 · (C − s21 )
+                         C1∗ + C2∗ =
+                                                s1 + s2
+                                    2
+                                   s C − s1 C 2     s2 C + 2s1 C + C − s21 C
+                                  = 2            = 1                         =C
+                                      s1 + s2                 2s1 + 1
+
+
+    At this point, we know how to choose C1 and C2 if they were not restricted to integers. To handle
+the rounding issue, we will subsequently analyze our algorithm with the following integer choices of
+C1 and C2 :
+                                                                       √
+   • If C is a square number, use a single bucket with all sets of size C.                        (a)
+                              √               √
+   • Otherwise, define s1 = ⌊ C⌋ and s2 = ⌈ C⌉.
+   • If s22 − C = 1, use a single bucket with (C1 := 0 and) C2 := C.                                 (b)
+   • Else If C − s21 = 1, use a single bucket with C1 := C (and C2 := 0).                            (c)
+   • Else If s22 − C = 2, use two buckets with C1 := s1 and C2 := C − C1 .                           (d)
+   • Else choose 2 buckets with C1 := ⌈C1∗ ⌉ and C2 := C − C1 .                                      (e)
+   We first show that whenever we are in case (e), it holds that C1 ≥ s1 and C2 ≥ s2 and hence we
+can make use of our previous results. The proof is postponed to Section B.2.
+Lemma 6.7. Assume that C is not a square number. If C1∗ < s1 then C ∈ {s22 − 2, s22 − 1} and
+hence we consider case (b) or (d). If C2∗ > s2 then C = s21 + 1 and hence we consider case (c). In
+the remaining case (e) it is guaranteed that C1 ≥ s1 and C2 ≥ s2 .
+Proof. By the definitions of s1 and s2 we have s21 < C < s22 when C is not a square number. The
+first statement of the lemma comes from the following observation:
+                             s21 · (s22 − C)                      s2
+                     C1∗ =                   < s1 ⇒ s22 − C < 1 +    ⇒ C ≥ s22 − 2
+                                 s1 + s2                          s1
+Symmetrically (using C1∗ + C2∗ = C and s2 = s1 + 1)
+                         s21 · (s22 − C)                            s1
+                 C1∗ =                   > C − s2 ⇒ C < s21 + 1 +        ⇒ C ≤ s21 + 1
+                             s1 + s2                              s1 + 1
+Thus, whenever the algorithm ends up in case (e), we have C1∗ ≥ s1 and C2∗ ≥ s2 . Since s1 and s2
+are integers, it is always true that ⌈C1∗ ⌉ ≥ s1 and ⌊C2∗ ⌋ ≥ s2 and thus the statement of the lemma is
+true.
+
+                                                   32
+   We can now bound the relative defects in all 5 cases to show the desired bounds of our main
+theorem.
+Theorem 2.7. When using either the Single-Bucket or the Two-Bucket Two-Sweep Algorithm, we
+can achieve a C-coloring with a relative defect ρ of
+                       √
+                      1/√C
+                                                      if C = q 2 for q ∈ N,
+                  ρ ≤ 1/ C + 1/(2C 3/2 ) + O(1/C 2 ) if C = q 2 ± 1 for q ∈ N
+                       √
+                        1/ C + 1/(8C 3/2 ) + O(1/C 2 ) otherwise.
+                      
+
+Proof. Note that case (a) is already shown in Lemma B.1.
+
+                                                      2
+Case(b): By construction √ of this case, we have 1 = s2 − C and further let x > 0 be the rounding
+constant, i.e., x := s2 − C ∈ (0, 1).
+                                                                       1   1
+                     s22 − 1 = C = (s2 − x)2 ⇒ 1 = 2s2 x − x2 ⇒ x ≤      +
+                                                                      2s2 4s32
+
+The last inequality holds for s2 ≥ 2. The defect we get in this single bucket case (b) is
+                                 √
+                           s2      C +x       1    x      1        1       1
+                       z=      =          =√ +        ≤√ +             + 3                        (23)
+                            C       C          C   C       C     2s2 C   4s2C
+                             1       1        1
+                        ≤√ +          3/2
+                                          +                                                       (24)
+                              C   2C        4C 5/2
+                                            √
+due to Lemma B.1 and the fact that s2 ≥ C.
+
+Case(c): Similarly to the previous case, we have C − s21 = 1. The defect we get in this single
+bucket case (c) is
+                                   1      1     1    1       1
+                              z=      =√      ≤√ +    3/2
+                                                          + 5/2                                   (25)
+                                   s1    C −1    C 2C      C
+due to Lemma B.1. Here the last inequality holds when C ≥ 2.
+
+Case(d) and (e): In both cases we use two buckets round C1 to an integer. We will first show
+that the rounding, in both cases, does not have a huge impact on the relative defect.
+    Recall that due to Lemma 6.6, the values of C1∗ and C2∗ are optimal choices for C1 and C2 and
+lead to an objective value of
+                                2s1 + 1      1      1        1       5
+                       z∗ =         2     ≤ 1/2 +    3/2
+                                                         +     2
+                                                                 +         .                      (26)
+                              C + s1 + s1  C      8C       16C     64C 5/2
+The formal proof on this upper bound is stated in Lemma B.4 in Section B.2.
+   Let’s consider the actual objective value of our LP z, where C1 and C2 are integers. Let’s consider
+case (d) where s22 − C = 2. Here we have the property
+
+                                       s21 · 2   s1 (2s1 + 1) − 2s21     s1
+                    C1 − C1∗ = s1 −            =                     =         <1
+                                      s1 + s2          2s1 + 1         2s1 + 1
+that allows us to say there exists an ε ∈ (0, 1) such that C1 = C1∗ + ε. Since in case (e) we simply
+round C1∗ up to the next integer value, we can use the same equality here.
+
+                                                  33
+   If we plug C1 = C1∗ + ε into the linear program, the z of Theorem 2.6 is of the form z = B−ε
+                                                                                             A
+
+where A and B are positive integers with B = z ∗ and ε ∈ (0, 1). More precisely, we have
+                                          A
+
+
+                            A         s1 · s2                A        s22
+                              =                     and also   =
+                            B   s1 · C2∗ + s2 · C1∗          B   C2∗ + s1 · s22
+
+due to the fact that z ∗ is defined to make these two arguments equal (see Lemma 6.6). Note that
+because s22 > s1 · s2 we also have that C2∗ + s1 · s22 > s1 · C2∗ + s2 · C1∗ as both fractions are equal.
+Using that together with the fact that in (d) and (e) we do have C2∗ ≥ s1 we bound 1/B as follows
+
+               1            1                 1         1       1    1    2
+                 ≤                     ≤            ≤ 3/2    ≤ 3/2 + 2 + 5/2
+               B   s1 · C1∗ + s2 · C2∗   s1 C + C2∗  C    −C  C     C   C
+
+using Lemma B.2 in the last step. We will next show that the rounding has not much influence due
+to on ratio of z and z ∗ , using Lemma B.2 again.
+
+
+                                                   2ε2
+                                                          
+                 z       AB                  1   ε                    1           1    12
+                   ∗
+                     =         ≤B·             + 2+ 3          ≤1+           +     2
+                                                                                     + 5/2
+                 z     AB − Aε               B B   B                 C 3/2       C    C
+
+   Here we used that ε ≤ 1. By Equation (26) we can retrieve the final relative defects in cases (d)
+and (e).
+
+                                                                                      
+                        1       1        1       5                    1      1   12
+                z≤     1/2
+                           +     3/2
+                                     +     2
+                                             +             · 1+            + 2 + 5/2
+                     C       8C        16C     64C 5/2               C 3/2  C   C
+                     1        1       7
+                 ≤ 1/2 +           +                                                                (27)
+                   C       8C 3/2 C 2
+    Note that this last inequality holds for C ≥ 3, however, for smaller values of C the result clearly
+holds as well. To compare those results with the definitive best integer choices of C1 and C2 , take a
+look at Section B.3. Theorem 2.7 follows directly from these case splits together with Lemma 6.3.
+More specific, the first case in the theorem comes from (a), the second case from (b) and (c) and the
+last case from (d) and (e).
+
+
+References
+ [1] Alkida Balliu, Thomas Boudier, Francesco d’Amore, Fabian Kuhn, Dennis Olivetti, Gustav
+     Schmid, and Jukka Suomela. Distributed algorithms for potential problems. In Proc. 45th ACM
+     Symp. on Principles of Distributed Computing (PODC), 2026.
+
+ [2] Alkida Balliu, Sebastian Brandt, Fabian Kuhn, and Dennis Olivetti. Distributed ∆-coloring
+     plays hide-and-seek. arXiv preprint arXiv:2110.00643, 2021.
+
+ [3] Alkida Balliu, Sebastian Brandt, Fabian Kuhn, and Dennis Olivetti. Distributed edge coloring
+     in time polylogarithmic in ∆. In Proc. 41st ACM Symp. on Principles of Distributed Computing
+     (PODC), pages 15–25, 2022.
+
+ [4] Alkida Balliu, Sebastian Brandt, Fabian Kuhn, Dennis Olivetti, and Joonatan Saarhelo. Towards
+     fully automatic distributed lower bounds. In Proc. 39th Int. Symp. on Distributed Computing
+     (DISC), volume 356 of LIPIcs, pages 13:1–13:19, 2025.
+
+
+                                                    34
+ [5] Alkida Balliu, Juho Hirvonen, Christoph Lenzen, Dennis Olivetti, and Jukka Suomela. Locality
+     of not-so-weak coloring. In Proc. 26th Int. Coll. on Structural Information and Communication
+     Complexity (SIROCCO), pages 37–51, 2019.
+
+ [6] Alkida Balliu, Fabian Kuhn, and Dennis Olivetti. Distributed edge coloring in time quasi-
+     polylogarithmic in delta. In Proc. 39th ACM Symp. on Principles of Distributed Computing
+     (PODC), pages 289–298, 2020.
+
+ [7] Leonid Barenboim. Deterministic (∆+1)-coloring in sublinear (in ∆) time in static, dynamic,
+     and faulty networks. Journal of ACM, 63(5):1–22, 2016. doi:10.1145/2979675.
+
+ [8] Leonid Barenboim and Michael Elkin. Distributed (delta+1)-coloring in linear (in delta) time.
+     In Proc. 41st Annual ACM Symp. on Theory of Computing (STOC), pages 111–120, 2009.
+
+ [9] Leonid Barenboim and Michael Elkin. Deterministic distributed vertex coloring in polylogarith-
+     mic time. Journal of ACM, 58:23:1–23:25, 2011. doi:10.1145/2027216.2027221.
+
+[10] Leonid Barenboim and Michael Elkin. Distributed deterministic edge coloring using bounded
+     neighborhood independence. In Proc. 30th ACM Symp. on Principles of Distributed Computing
+     (PODC), pages 129–138, 2011.
+
+[11] Leonid Barenboim, Michael Elkin, and Uri Goldenberg. Locally-iterative distributed (∆ + 1)-
+     coloring below Szegedy-Vishwanathan barrier, and applications to self-stabilization and to
+     restricted-bandwidth models. In Proc. 37th ACM Symp. on Principles of Distributed Computing
+     (PODC), pages 437–446, 2018.
+
+[12] Sebastian Brandt, Orr Fischer, Juho Hirvonen, Barbara Keller, Tuomo Lempiäinen, Joel
+     Rybicki, Jukka Suomela, and Jara Uitto. A lower bound for the distributed Lovász local
+     lemma. In Proc. 48th ACM Symp. on Theory of Computing (STOC), pages 479–488, 2016.
+     doi:10.1145/2897518.2897570.
+
+[13] Yi-Jun Chang, Tsvi Kopelowitz, and Seth Pettie. An exponential separation between randomized
+     and deterministic complexity in the LOCAL model. SIAM Journal on Computing, 48(1):122–143,
+     2019. doi:10.1137/17M1117537.
+
+[14] Yi-Jun Chang, Wenzheng Li, and Seth Pettie. An optimal distributed (∆+1)-coloring algorithm?
+     In Proc. 50th ACM Symp. on Theory of Computing, (STOC), pages 445–456, 2018. doi:
+     10.1145/3188745.3188964.
+
+[15] Kai-Min Chung, Seth Pettie, and Hsin-Hao Su. Distributed algorithms for the Lovász lo-
+     cal lemma and graph coloring. Distributed Computing, 30(4):261–280, 2017. doi:10.1007/
+     s00446-016-0287-6.
+
+[16] Michael Elkin and Ariel Khuzman. Efficient parallel (∆+1)-edge-coloring. CoRR, abs/2601.13822,
+     2026. URL: https://doi.org/10.48550/arXiv.2601.13822, arXiv:2601.13822, doi:10.
+     48550/ARXIV.2601.13822.
+
+[17] Salwa Faour, Mohsen Ghaffari, Christoph Grunau, Fabian Kuhn, and Václav Rozhon. Local
+     distributed rounding: Generalized to mis, matching, set cover, and beyond. ACM Trans.
+     Algorithms, 21(4):42:1–42:48, 2025.
+
+
+
+
+                                                35
+[18] Manuela Fischer and Mohsen Ghaffari. Sublogarithmic distributed algorithms for lovász local
+     lemma, and the complexity hierarchy. In 31st International Symposium on Distributed Computing,
+     DISC 2017, October 16-20, 2017, Vienna, Austria, volume 91 of LIPIcs, pages 18:1–18:16. Schloss
+     Dagstuhl - Leibniz-Zentrum für Informatik, 2017. doi:10.4230/LIPIcs.DISC.2017.18.
+
+[19] Pierre Fraigniaud, Marc Heinrich, and Adrian Kosowski. Local conflict coloring. In Proc. 57th
+     IEEE Symp. on Foundations of Computer Science (FOCS), pages 625–634, 2016.
+
+[20] Marc Fuchs and Fabian Kuhn. List Defective Colorings: Distributed Algorithms and Applications.
+     In 37th International Symposium on Distributed Computing (DISC 2023), volume 281 of Leibniz
+     International Proceedings in Informatics (LIPIcs), pages 22:1–22:23, 2023. doi:10.4230/LIPIcs.
+     DISC.2023.22.
+
+[21] Marc Fuchs and Fabian Kuhn. List defective colorings: Distributed algorithms and applications.
+     CoRR, abs/2304.09666, 2023. arXiv:2304.09666.
+
+[22] Marc Fuchs and Fabian Kuhn. Distributed (∆+1)-coloring in graphs of bounded neighborhood
+     independence. In Proc. 29th Int. Conf. on Principles of Distributed Systems (OPODIS), volume
+     361 of LIPIcs, pages 23:1–23:21, 2025. doi:10.4230/LIPICS.OPODIS.2025.23.
+
+[23] Mohsen Ghaffari and Christoph Grunau. Near-optimal deterministic network decomposition
+     and ruling set, and improved MIS. In Proc. 65th IEEE Symp. on Foundations of Computer
+     Science (FOCS), pages 2148–2179, 2024.
+
+[24] Mohsen Ghaffari, Christoph Grunau, Bernhard Haeupler, Saeed Ilchi, and Václav Rozhon.
+     Improved distributed network decomposition, hitting sets, and spanners, via derandomization.
+     In Proc. 34th ACM-SIAM Symposium on Discrete Algorithms (SODA), 2023.
+
+[25] Mohsen Ghaffari, David G. Harris, and Fabian Kuhn. On derandomizing local distributed
+     algorithms. In Mikkel Thorup, editor, 59th IEEE Annual Symposium on Foundations of Computer
+     Science, FOCS 2018, Paris, France, October 7-9, 2018, pages 662–673. IEEE Computer Society,
+     2018. doi:10.1109/FOCS.2018.00069.
+
+[26] Mohsen Ghaffari and Fabian Kuhn. Deterministic distributed vertex coloring: Simpler, faster,
+     and without network decomposition. In Proc. 62nd IEEE Symp. on Foundations of Computing
+     (FOCS), 2021.
+
+[27] Magnús M. Halldórsson, Fabian Kuhn, Yannic Maus, and Tigran Tonoyan. Efficient randomized
+     distributed coloring in CONGEST. In Proc. 53rd ACM Symp. on Theory of Computing (STOC),
+     pages 1180–1193, 2021.
+
+[28] Ken-ichi Kawarabayashi and Gregory Schwartzman. Adapting local sequential algorithms to the
+     distributed setting. In Proc. 32nd Symp. on Distributed Computing (DISC), pages 35:1–35:17,
+     2018.
+
+[29] Fabian Kuhn. Weak graph colorings: distributed algorithms and applications. In Proc. 21st
+     ACM Symp. on Parallelism in Algorithms and Architectures (SPAA), 2009.
+
+[30] Fabian Kuhn. Faster deterministic distributed coloring through recursive list coloring. In Proc.
+     32nd ACM-SIAM Symp. on Discrete Algorithms (SODA), pages 1244–1259, 2020.
+
+[31] Fabian Kuhn and Roger Wattenhofer. On the complexity of distributed graph coloring. In Proc.
+     25th ACM Symp. on Principles of Distributed Computing (PODC), pages 7–15, 2006.
+
+                                                 36
+[32] Nathan Linial. Distributive graph algorithms—Global solutions from local data. In Proc.
+     28th Symp. on Foundations of Computer Science (FOCS), pages 331–335. IEEE, 1987. doi:
+     10.1109/SFCS.1987.20.
+
+[33] Nathan Linial. Locality in Distributed Graph Algorithms. SIAM Journal on Computing,
+     21(1):193–201, 1992. doi:10.1137/0221015.
+
+[34] L. Lovász. On decompositions of graphs. Studia Sci. Math. Hungar., 1:237–238, 1966.
+
+[35] Yannic Maus and Tigran Tonoyan. Local conflict coloring revisited: Linial for lists. In Proc.
+     34th Symp. on Distributed Computing (DISC), volume 179 of LIPIcs, pages 16:1–16:18, 2020.
+
+[36] Robin A. Moser and Gábor Tardos. A constructive proof of the general lovász local lemma. J.
+     ACM, 57(2):11:1–11:15, 2010.
+
+[37] Moni Naor. A lower bound on probabilistic algorithms for distributive ring coloring. SIAM
+     Journal on Discrete Mathematics, 4(3):409–412, 1991. doi:10.1137/0404036.
+
+[38] David Peleg. Distributed Computing: A Locality-Sensitive Approach. Society for Industrial and
+     Applied Mathematics, USA, 2000. doi:10.1137/1.9780898719772.
+
+[39] Mario Szegedy and Sundar Vishwanathan. Locality based graph coloring. In Proc. 25th ACM
+     Symp. on Theory of Computing (STOC), pages 201–207, 1993.
+
+
+
+
+                                               37
+A     Coloring Graphs of Bounded Neighborhood Independence
+In this section, we present an application of our list defective coloring result Theorem 2.3 in graphs
+of bounded neighborhood independence. The neighborhood independence θ of a graph G is the
+maximum independent set size of any one-hop neighborhood of G, that is, the maximum independence
+number of any of the induced subgraphs G[N (v)] for v ∈ V . Notable examples of graphs of bounded
+neighborhood independence, i.e., where θ = O(1), are line graphs (of hypergraphs of bounded rank).
+Another famous example is the family of claw-free graphs. In this work, we follow and extend the
+algorithms of [22] and show that with only negligible changes in the round complexity, their results
+for the LOCAL model are viable for the CONGEST model as well. We can actually keep all of the
+recursive algorithms from [22] unchanged, but use Theorem 2.3 as the base case when the color space
+C is already small. In particular, we show Theorem 2.4 as stated in the introduction.
+    In the following we consider graphs of neighborhood independence θ. We will quickly repeat the
+notation used in [22]. First, we say a defective or arbdefective coloring instance on color lists Lv ⊆ C
+has slack S if
+                                      X
+                                         (dv (x) + 1) > S · deg(v).
+                                    x∈Lv
+
+We denote an algorithm that solves a defective coloring instance with slack at least S and colors from
+a color space of size at most C := |calC| by PD (S, C) and denote its runtime by TD (S, C). In the
+same way we use PA (S, C) and TA (S, C) for arbdefective coloring instances. We will now introduce
+the notations of BA (S, C) and BD (S, C) that refer to the maximum number of bits a node has to
+exchange over an edge per round in the algorithms PA (S, C) and PD (S, C) respectively.
+    We first analyze the communication complexity of the Slack Generation algorithm (i.e., Lemma 5
+in [22]). The high-level idea here is the following: They first use a defective coloring variant from
+[29] to split the graph into multiple subgraphs where each node belongs to exactly one subgraph and
+each subgraph essentially reduces the degree of the nodes by an ε < 1 fraction. Now, they compute
+an arbdefective coloring within each subgraph in sequential fashion. Since in these subgraphs the
+degree is smaller, we obtain higher slack when using the same colors and defects as before.
+
+Lemma A.1. Let G = (V, E) be a graph that is equipped with a proper q-vertex coloring. For any
+S ≥ 1, we have
+
+                TA (1, C) ≤ O(log ∆) · TA (2, C) + log∗ ∆ + O(log∗ q)
+                                                            
+                                                                                           (28)
+                      TA (2, C) ≤ O(S 2 ) · TA (S, C) + O(log∗ q).                                 (29)
+
+The number of bits that nodes need to exchange with their neighbors per round is
+BA (1, C) = O(max{log q, log C, BA (2, C)}) and respectively
+BA (2, C) = O(max{log q, log C, log S, BA (S, C)}).
+
+Proof. It remains to show how many bits nodes need to exchange. Using [29] to construct the
+subgraphs one needs to send the ’current’ color and the computed defective color (where the defective
+color refers to the number of subgraphs). Note that this initial coloring has q colors and thus takes
+O(log q) bits. The computed defective color, using the parameter setting in [22], is either constant
+(case 1) or S 2 (case 2). Hence, it takes O(log S) bits for that. Furthermore, each node has to send
+its final arbdefective color which is at most C and thus takes O(log C) bits.
+
+   We will now proceed with the color space reduction technique. The technique is similar to the
+previous technique, however, here they split the color space into multiple parts (instead of the graph)
+
+
+                                                  38
+and assign nodes to ”good” parts. Each node is only allowed to use colors from its assigned part and
+thus the color space is reduced. The main technical challenge here is to show that there is a good
+part for each node and that the nodes can find such a part efficiently.
+
+Lemma A.2. Let 1 ≤ σ ≤ S and p ∈ {1, . . . , C}, then we have
+                                                         
+                                                         S C
+                         TA (S, C) ≤ TD (σ, p) + TA       ,   .                                  (30)
+                                                         σ p
+
+The number of bits that nodes need to exchange with their neighbors per round is at most BA (S, C) =
+O(max{log C, BD (σ, p), BA (S/σ, C/p)}).
+
+Proof. Besides the communication complexity everything is shown in Lemma 6 of [22]. Here the only
+messages that need to be communicated are the color that refers to the color space of size p ≤ C and
+the final color. Thus, the number of bits is O(log C) plus the bits needed for the recursive calls.
+
+   The next algorithm we look at is indeed the only one that makes use of the neighborhood
+independence θ. This algorithm first splits the graph into multiple subgraphs (similar to Lemma A.1)
+that are processed sequentially. Afterwards, there are O(log ∆) phases each node is active in at least
+one of these phases where it gets colored by the arbdefective algorithm.
+
+Lemma A.3. Let G = (V, E) be an n-node graph of maximum degree ∆ that is properly q-colored.
+Then, for S ≥ 1, we have
+
+                        TD (16 · θ · S, C) ≤ O(log3 ∆) · TA (S, C) + O(log∗ q).                  (31)
+
+The number of bits that nodes need to exchange with their neighbors per round is at most BD (16 · θ ·
+S, C) = O(max{log C + log q + log log ∆, BA (S, C)}).
+
+Proof. The proof is essentially the same as Theorem 7 of [22], however, we need to check the
+communication complexity. First, we need to split the graph into multiple subgraphs. This is done
+using the defective coloring algorithm from [29] that requires messages of O(log log ∆) bits. In the
+following active phase nodes have to send their final C color and their initial color which leads to
+O(log q + log C) bits. The statements follow by the recursive calls.
+
+   These are all the statements we need. We will now apply our Two-Sweep algorithm. The following
+Corollary brings these results in the form we need here.
+
+Corollary A.4. There is a deterministic algorithm to solve list defective coloring instances P (1, C)
+on any graph that is equipped with a proper q-vertex coloring with round complexity
+                                            √
+                              TD (1, C) = O( C log3 C log ∆ + log∗ q).
+
+The largest message that has to be sent is BD (1, C) = O(max{log n, log C, log q}).
+
+Proof. The statement directly follows from the proof of Theorem 2.3 without using the assumption
+that C = O(∆).
+
+   We are now ready to prove the following lemma that directly implies our main result Theorem 2.4.
+
+
+
+
+                                                  39
+Lemma A.5. In n-node graphs of maximum degree ∆ and neighborhood independence θ, we have
+the following two bounds on TA (1, C) in the CONGEST model, assuming that C is at most poly ∆.
+                                                             3 log log C +1
+                  TA (1, C) =                    O θ2 log3 ∆ log log log ∆ + O(log∗ n),                (32)
+                                                                √
+                                                         O θ2 · C · log7 ∆ + log∗ n .
+                                                                                     
+                  TA (1, C) =                                                                          (33)
+
+Proof. Let us first show how to solve P (2, C) and as Lemma A.1 finished the proof afterwards.
+Starting from here, the first task is to generate slack S = 32 · θ which can be achieved by using
+the second bound of Lemma A.1. Then, we solve this arbdefective coloring problem using color
+space reduction as of Lemma A.2 with parameters σ = S/2 and p = C ε for some appropriately
+chosen 1 > ε > 0. We can then use Lemma A.3 to transform the list defective instance into some
+arbdefective coloring instance.
+
+
+                    TA (2, C) ≤ O(θ2 ) · TA (32 · θ, C) + O(log∗ ∆)
+                              ≤ O(θ2 ) · TD 16θ, C ε + TA 2, C 1−ε + O(log∗ ∆)
+                                                                   
+
+                              ≤ O(θ2 ) · log3 ∆ · TA 2, C ε + TA 2, C 1−ε
+                                                                         
+                                                                                                       (34)
+
+   We now argue that all these steps have low message complexities. We will subsequently use that
+we initially computed a proper q = O(∆2 )-coloring using [32] and thus can ignore all those log q
+terms in message and round complexities.
+
+                 BA (2, C) ≤ O(max{log C, log θ, BA (32θ, C)})
+                            ≤ O(max{log C, log θ, BD (16θ, C ε ), BA (2, C 1−ε )})
+                            ≤ O(max{log C, log θ, log log ∆, BA (2, C ε ), BA (2, C 1−ε )})
+
+   In order to obtain (32), we set ε = logloglogloglogC∆ . One can then use induction to show the following
+bound on the runtime.
+                                                                 3 log log C
+                                 TA (2, C) = O θ2 log3 ∆ log log log ∆ .                                (35)
+The inductive proof of this appears in the full version of [22] in Lemma 4.3. Note that the induction
+step works in the very same way. We just have to argue that the base case, i.e., when C ≤ log ∆
+also holds in CONGEST, but this is obvious by Corollary A.4. However, we have to show that this
+can be done in CONGEST. It is not hard to see that whenever we make the color space smaller,
+the messages to be sent in the next recursive step will also become smaller. So, it depends on the
+message complexity we have when the color space is maximal or when we solve the base case, i.e,
+Corollary A.4, which is O(max{log n, log C}). Thus, using that θ ≤ ∆ ≤ n, we get the following
+message complexity:
+
+                                      BA (2, C) = O(log n + log C).
+
+Note that this especially tells us we can run this in CONGEST when C = poly ∆ as assumed in
+the statement of the lemma. Using the first equation of Lemma A.1 finalizes the statement of
+Equation (32). We proceed with the second bound (33) subsequently. Here we use Equation (34)
+again, but we set ε = 1/2. The remaining arbdefective coloring instance, will then be solved with our
+sweep-algorithm as of Corollary A.4. Note that thus, we actually solve a defective coloring instance,
+however, any list defective coloring is also a list arbdefective coloring when considering the same
+
+
+
+                                                    40
+colors and defects.
+                                                               √
+                            TA (2, C) ≤ O(θ2 · log3 ∆) · TA (2, C)
+                                                          √
+                                      ≤ O(θ2 · log3 ∆) · ( C log3 C log ∆)
+                                               √
+                                      = O(θ2 · C · log3 C · log4 ∆)
+Again using the first equation of Lemma A.1 and the fact that log C = O(log ∆) we get the second
+bound as claimed:
+                                                     √
+                                   TA (1, C) ≤ O(θ2 · C · log7 ∆)
+It remains to argue about the message complexity again. But as before, Corollary A.4 just comes
+with a message complexity of at most O(log n) which completes the statement.
+
+
+
+B     Technical Details of the Two-Bucket Two-Sweep Algorithm
+B.1    Relative Defect of Single Buckets
+In this section, we consider the linear program Equation (19) in which all C colors are placed into
+one bucket instead of two. Note that for our final result Theorem 2.7 we will combine these results
+with the two-bucket cases.
+Lemma B.1. If C is a square number, the single bucket approach is optimal and leads to a relative
+defect of
+                                                    1
+                                             ρ≤ √ .
+                                                     C
+Otherwise, the single bucket approach leads to a relative defect of
+                                             (          √ )
+                                                  1    ⌈ C⌉
+                                    ρ ≤ min     √ ,             .
+                                               ⌊ C⌋      C
+Proof. Let us first look at the case where C is a square number and hence the objective solution of
+the LP simplifies to
+                                                     √
+                                         1 − α1∗       C           1
+                                    z= √          +       · α1∗ = √ .
+                                            C         C             C
+By Lemma 6.3 we get that this is also the relative defect. Due to Theorem 2.5 this is optimal. If C
+is not a square, we put all colors into one bucket. Let us first consider the case C1 = C.
+                                  1 − α1∗ s1
+                                                                          
+                                                   ∗     1       ∗ s1   1
+                             z=           +     · α1 =      + α1      −
+                                    s1      C           s1          C   s1
+Note that because s21 < C implies s1 /C < 1/s1 , the factor of α1∗ is negative, the adversary will always
+choose α1∗ = 0 to maximize the term and thus get s11 as defect. In the case of the second bucket, we
+get
+                                1 − α2∗ s2
+                                                                         
+                                                 ∗    1      ∗ s2       1
+                           z=           +    · α2 =      + α2        −      .
+                                   s2     C           s2         C     s2
+Note that because s22 > C implies s2 /C > 1/s2 , the factor of α2∗ is positive, the adversary will always
+choose α1∗ = 1 to maximize the term and thus get sC2 as defect. Taking the better of the two cases
+concludes the proof.
+
+                                                   41
+B.2    Useful Lemmas
+Lemma B.2. Let B > 0 and let 0 ≤ ε ≤ B/2, then
+
+                                       1    1   ε 2ε2
+                                          ≤   + 2+ 3
+                                      B−ε   B B   B
+
+Proof. To show this we bring everything to the right-hand side and multiply by B 3 (B − ε).
+
+                B 2 (B − ε) + εB(B − ε) + 2ε2 (B − ε) − B 3 = −Bε2 + 2ε2 B − 2ε3
+                                                              = B · ε2 − 2ε3
+                                                              ≥ 2ε3 − 2ε3 = 0
+
+
+
+Lemma B.3. Let B > 0 be and let 0 ≤ ε < B, then
+
+                                    1    1   ε ε2 ε3
+                                       ≥   + 2+ 3+ 4
+                                   B−ε   B B   B  B
+and
+                                    1    1   ε  ε2  ε3
+                                       ≥   − 2 + 3 − 4.
+                                   B+ε   B B    B   B
+
+Proof. We start with the first inequality where we multiply each side by B 4 (B − ε). Then the
+left-hand side becomes B 4 and the right-hand side is
+
+                  B 3 (B − ε) + B 2 ε(B − ε) + Bε2 (B − ε) + ε3 (B − ε) = B 4 − ε4 .
+
+And hence, the left-hand side is ≥ the right-hand side which proves the first statement. For the
+second inequality, we use the same argument and multiply everything by (B − ε)B 4 , that is B 4 on
+the left and
+
+                  B 3 (B + ε) − B 2 ε(B + ε) + Bε2 (B + ε) − ε3 (B + ε) = B 4 − ε4
+
+on the right.
+
+Lemma B.4. The value of z ∗ (as defined in Lemma 6.6) can be upper bounded by
+                                 1        1        1      5
+                                     +        +       +     .
+                               C 1/2 8C 3/2 16C 2 64C 5/2
+                                                        √
+Proof. As we did before, let x ∈ (0, 1), such that s1 = C − x. We will plug that in and use
+Lemma B.2 with ε = 1/4 > 0 for simplification.
+
+
+
+
+                                                 42
+                      √
+           ∗        2 C − 2x + 1
+          z =        √       √
+              2C − 2 Cx + C + x2 − x
+                    √
+                   2 C − 2x + 1
+            ≤        √       √
+              2C − 2 Cx + C − 1/4
+                √
+            ≤ (2 C − 2x + 1)·
+                                                                         
+                        1                     1                  1
+                      √       √ +            √     √   +        √    √
+                2C − 2 Cx + C        4(2C − 2 Cx + C)2 16(2C − 2 Cx + C)3
+                                                    
+                1              1               1
+            ≤ √ · 1+             √     +         √
+                 C        4(2C − C) 16(2C − C)2
+                                 √                 !
+                1          1    4 C      32C     1
+            ≤ √ · 1+         +        +      +
+                 C        8C    64C 2 83 C 3 64C 2
+                    1            1        1       5
+               =           +          +     2
+                                              +
+                   C 1/2       8C 3/2   16C     64C 5/2
+
+
+Lemma B.5. Every set S ∈ S constructed from the first bucket has the same αS values and also the
+αS values for sets from the second bucket are all equal.
+
+Proof. The adversary’s objective is to make the final defect ρ as large as possible, i.e., it will decide
+on the αS values in the linear program in a way that the value of z is as large as possible. Since in
+both buckets we generate all possible sets of fixed length, each set in bucket one (respectively bucket
+two) has the same number of conflicts as every other set in the same bucket. Hence, if the α value
+of one of those sets would be smaller than the value of some other set from the same bucket, the
+defect would become smaller to choose the set with the smaller value. Since the adversary wants to
+maximize the defect, it will set all α values from the same bucket to be equal.
+
+B.3    Optimal Partitioning of the Color Space into two Buckets
+The following table extends Table 1. It is not hard to see that (empirically) it is optimal to use a
+single bucket when C is a square number or very close to a square number (indeed ±1 to a square
+number).
+
+                     C         relative defect      ≈          C1   C2    Single Bucket
+                                      2
+                     3                3          0.66667       0    3           *
+                                      1
+                     4                2          0.50000       4    0           *
+                                      1
+                     5                2          0.50000       5    0           *
+                                      3
+                     6                7          0.42857       2    4
+                                     9
+                     7               23          0.39130       2    5
+                                      3
+                     8                8          0.37500       0    8           *
+                                                                    Continued on next page
+
+
+                                                          43
+      Table 2 – Continued from previous page
+C    defect         ≈        C1   C2   Is Single Bucket
+       1
+9      3         0.33333     9    0            *
+       1
+10     3         0.33333     10   0            *
+       4
+11     13        0.30769     6    5
+       12
+12     41        0.29268     5    7
+       16
+13     57        0.28070     4    9
+       16
+14     59        0.27119     3    11
+       4
+15     15        0.26667     0    15           *
+       1
+16     4         0.25000     16   0            *
+       1
+17     4         0.25000     17   0            *
+       5
+18     21        0.23810     12   6
+      25
+19    108        0.23148     11   8
+      25
+20    111        0.22523     9    11
+       20
+21     91        0.21978     7    14
+       20
+22     93        0.21505     5    17
+      25
+23    119        0.21008     4    19
+       5
+24     24        0.20833     0    24           *
+       1
+25     5         0.20000     25   0            *
+       1
+26     5         0.20000     26   0            *
+       6
+27     31        0.19355     20   7
+       15
+28     79        0.18987     18   10
+      36
+29    193        0.18653     16   13
+       9
+30     49        0.18367     14   16
+       15
+31     83        0.18072     11   20
+      30
+32    169        0.17751     9    23
+      18
+33    103        0.17476     7    26
+      36
+34    209        0.17225     5    29
+       6
+35     35        0.17143     0    35           *
+       1
+36     6         0.16667     36   0            *
+                                  Continued on next page
+
+
+
+                        44
+      Table 2 – Continued from previous page
+C    defect         ≈        C1   C2   Is Single Bucket
+       1
+37     6         0.16667     37   0            *
+       7
+38     43        0.16279     30   8
+      49
+39    305        0.16066     28   11
+      49
+40    309        0.15858     25   15
+      21
+41    134        0.15672     22   19
+      42
+42    271        0.15498     19   23
+      49
+43    320        0.15313     17   26
+      49
+44    324        0.15123     14   30
+      42
+45    281        0.14947     11   34
+      21
+46    142        0.14789     8    38
+      49
+47    335        0.14627     6    41
+       7
+48     48        0.14583     0    48           *
+       1
+49     7         0.14286     49   0            *
+       1
+50     7         0.14286     50   0            *
+       8
+51     57        0.14035     42   9
+      56
+52    403        0.13896     39   13
+      64
+53    465        0.13763     36   17
+      64
+54    469        0.13646     33   21
+      28
+55    207        0.13527     29   26
+      28
+56    209        0.13397     26   30
+      32
+57    241        0.13278     23   34
+      32
+58    243        0.13169     20   38
+      56
+59    429        0.13054     16   43
+      56
+60    433        0.12933     13   47
+      64
+61    499        0.12826     10   51
+      64
+62    503        0.12724     7    55
+       8
+63     63        0.12698     0    63           *
+       1
+64     8         0.12500     64   0            *
+
+
+
+
+                        45
+

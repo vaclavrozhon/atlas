@@ -1,0 +1,1125 @@
+Derandomizing Multivariate Polynomial Factoring
+for Low Degree Factors
+Pranjal Dutta # Ñ
+School of Computing, National University of Singapore, Singapore
+Amit Sinhababu #
+Chennai Mathematical Institute, Chennai, India
+Thomas Thierauf # Ñ
+Ulm University, Germany
+
+      Abstract
+Kaltofen [STOC 1986] gave a randomized algorithm to factor multivariate polynomials given by
+algebraic circuits. We derandomize the algorithm in some special cases.
+    For an n-variate polynomial f of degree d from a class C of algebraic circuits, we design a
+deterministic algorithm to find all its irreducible factors of degree ≤ δ, for constant δ. The running
+time of this algorithm stems from a deterministic PIT algorithm for class C and a deterministic
+algorithm that tests divisibility of f by a polynomial of degree ≤ δ.
+    By using the PIT algorithm for constant-depth circuits by Limaye, Srinivasan and Tavenas [FOCS
+2021] and the divisibility results by Forbes [FOCS 2015], this generalizes and simplifies a recent
+result by Kumar, Ramanathan and Saptharishi [SODA 2024]. They designed a subexponential-time
+algorithm that, given a blackbox access to f computed by a constant-depth circuit, outputs its
+irreducible factors of degree ≤ δ. When the input f is sparse, the time complexity of our algorithm
+                                                    mi gidi , where mi are monomials and deg(gi ) ≤ δ. All
+                                               P
+depends on a whitebox PIT algorithm for           i
+the previous algorithms required a blackbox PIT algorithm for the same class.
+    Our second main result considers polynomials f , where each irreducible factor has degree at
+most δ. We show that all the irreducible factors with their multiplicities can be computed in
+polynomial time with blackbox access to f .
+    Finally, we consider factorization of sparse polynomials. We show that in order to compute all
+the sparse irreducible factors efficiently, it suffices to derandomize irreducibility preserving bivariate
+projections for sparse polynomials.
+
+2012 ACM Subject Classification Theory of computation → Algebraic complexity theory; Computing
+methodologies → Algebraic algorithms
+
+Keywords and phrases algebraic complexity, factoring, low degree, weight isolation, divisibility
+
+Digital Object Identifier 10.4230/LIPIcs.APPROX/RANDOM.2024.75
+
+Category RANDOM
+
+Funding Pranjal Dutta: Funded by the project “Foundation of Lattice-based Cryptography”, by
+NUS-NCS Joint Laboratory for Cyber Security.
+Thomas Thierauf : Supported by DFG grant TH 472/5-2.
+
+
+ 1      Introduction
+The problem of multivariate polynomial factorization asks to find the unique factorization
+of a given polynomial f ∈ F[x1 , . . . , xn ] as a product of distinct irreducible polynomials
+over F. The problem reduces to univariate polynomial factorization over the same field,
+for which a deterministic polynomial time algorithm is known over the field Q. The com-
+plexity of multivariate factorization depends on the representation of input and output
+polynomials. If we use dense representation (where all the coefficients are listed including
+the zero coefficients), deterministic polynomial time algorithms for multivariate factoring
+           © Pranjal Dutta, Amit Sinhababu, and Thomas Thierauf;
+           licensed under Creative Commons License CC-BY 4.0
+Approximation, Randomization, and Combinatorial Optimization. Algorithms and Techniques
+(APPROX/RANDOM 2024).
+Editors: Amit Kumar and Noga Ron-Zewi; Article No. 75; pp. 75:1–75:20
+                  Leibniz International Proceedings in Informatics
+                  Schloss Dagstuhl – Leibniz-Zentrum für Informatik, Dagstuhl Publishing, Germany
+75:2   Derandomizing Multivariate Polynomial Factoring for Low Degree Factors
+
+
+       are known [16]. If we use sparse representation (where only the nonzero coefficients are
+       listed), only randomized polynomial time (in the total sparsity of input polynomial and the
+       output factors) algorithms are known [41, 21]. There are other standard representations like
+       arithmetic circuits, and blackbox models (that gives the evaluations of the polynomial at any
+       point, but the internal structure of the computation is hidden). Randomized polynomial time
+       factorization algorithms are known in these models due to the classic results of Kaltofen [19]
+       and Kaltofen and Trager [21]. Randomization is naturally required for these models, as
+       the more basic question of polynomial identity testing (given a circuit/blackbox, test if it
+       computes the zero polynomial) is not yet derandomized.
+           Towards derandomization of special cases of multivariate factoring, we are motivated by
+       the following two questions.
+       ▶ Question 1. Given a sparse polynomial f . Can we find all the sparse irreducible factors
+       of f by a deterministic algorithm in polynomial/quasipolynomial/subexponential time?
+           Note that the factors of a sparse polynomial f might be nonsparse. Bhargava, Saraf and
+       Volkovich [3] showed an upper bound on the sparsity of the factors of a sparse polynomial f .
+       However, the bound is exponential in the degree of f . Therefore, instead of finding all the
+       irreducible factors, we want to output only those factors that are sparse.
+                                                       Qm
+       ▶ Question 2 ([41, 3]). Given polynomial f = i=1 gi ei as a blackbox, where polynomials gi
+       are irreducible polynomials whose sparsities are bounded by s. Can we find the polynomials
+       gi in deterministic time poly(s, n, d) or time quasi-poly/sub-exponential in s, n, d?
+           The second question can be seen as a special case of polynomial factorization, where we
+       are promised that all the irreducible factors are sparse. To our surprise, we do not know a
+       deterministic subexponential-time algorithm even for the special case of Question 2, when
+       the given blackbox computes the product of just two irreducible sparse polynomials.
+           Derandomization of multivariate factoring (whitebox, or blackbox) reduces to (whitebox,
+       or correspondingly blackbox) derandomization of polynomial identity testing (PIT). Kopparty,
+       Saraf and Shpilka [27] showed this reduction in the model of arithmetic circuits. However,
+       we do not know if sparse factorization reduces to sparse PIT or constant-depth arithmetic
+       circuit PIT (the algorithms of [27] reduce to general arithmetic circuit PIT). Recently, there
+       has been some progress on these questions by [28, 29]. Earlier works of Volkovich [39, 40]
+       made progress on several special cases of sparse multivariate factoring.
+           Multivariate polynomial factoring has various applications, such as low-degree testing [1],
+       constructions of pseudorandom generators for low-degree polynomials [6, 8], computational
+       algebraic geometry [14] and many more. blackbox multivariate polynomial factorization is
+       extensively used in arithmetic circuit reconstruction [36, 37], and polynomial equivalence
+       testing [22, 23, 33]. Algebraic hardness vs randomness [15] results crucially use multivariate
+       factorization. Special cases of depth-4 polynomial identity testing are related to questions
+       about sparse polynomial factorization [12, 40, 4].
+
+       Divisibility testing. In a factorization algorithm, we may want to check if a candidate factor
+       is truly a factor via divisibility testing. It asks to test if a polynomial g(z) divides a polynomial
+       f (z). Forbes [9] showed that the divisibility testing question can be efficiently reduced to an
+       instance of a PIT question of a model that relates to both f and g; see Lemma 9. Currently,
+       we do not know any deterministic polynomial time algorithm even when g and f are both
+       sparse polynomials. When f is a sparse polynomial and g is a linear polynomial, the problem
+       reduces to polynomial identity testing of any-order read-once oblivious branching programs
+       (ROABPs), for which polynomial time whitebox PIT algorithm [34] and quasipolynomial
+P. Dutta, A. Sinhababu, and T. Thierauf                                                                  75:3
+
+
+time blackbox PIT algorithms are known [10, 13, 11]. We do not know a deterministic
+polynomial time algorithm, even for testing if a quadratic polynomial g divides a sparse
+polynomial.
+
+1.1    Our results
+We show a general result that exhibits properties of a class C of polynomials, such that we
+can compute the constant-degree factors of polynomials f ∈ C. The following theorem is an
+informal statement of Theorem 18.
+
+▶ Theorem 1 (Low-degree factors via divisibility). Let δ ∈ N be a constant and C be a
+class of polynomials such that there is an efficient PIT algorithm for C. For any n-variate
+polynomial f ∈ C of degree d, finding all its irreducible factors of degree ≤ δ reduces to
+solving polynomially many divisibility questions of whether a given polynomial of degree ≤ δ
+divides f .
+
+     Arguably, Theorem 1 generalizes and simplifies a recent result by Kumar, Ramanathan
+and Saptharishi [28] about the factorization of polynomials computed by constant-depth
+circuits. Importantly, if f is represented in the whitebox setting, then both the required
+algorithms (PIT and divisibility testing) in Theorem 1 are whitebox algorithms, whereas [28]
+still requires blackbox algorithms. We compare the results in more detail in Section 1.2.
+     We can apply Theorem 1 in the case of (any-order) ROABPs. There are polynomial
+time (respectively, quasipolynomial time) whitebox (respectively, blackbox) PIT algorithms
+for ROABPs. Moreover, using the divisibility techniques by Forbes [9] (see Lemma 9) and
+the duality trick by Saxena [35], the divisibility testing question of whether a given linear
+polynomial divides a ROABP can be reduced to a PIT instance of a polynomial-size ROABP.
+
+▶ Corollary 2 (Linear factors of ROABPs). Let f be an n-variate polynomial of degree d,
+computed by an any-order ROABP of width w. Then one can output all its linear factors, along
+with the exponents in time poly(ndw) in the whitebox setting, and in time poly(ndwlog log w )
+in the blackbox setting.
+
+    When the input f is s-sparse, this result is already known due to Volkovich [39, Theorem 4].
+Note that a sparse polynomial has a trivial ROABP.
+    Finally, we remark that Theorem 1 can be further generalized to outputting factors from
+a general class D (as black box) when in addition to assuming (informally speaking) efficient
+PIT for C and the divisibility test for C by D, one has to assume efficient derandomization
+of HIT for D (in the sense of finding a good bivariate projection preserving irreducibility,
+see Assumption 1) and an inclusion property (i.e. given g ∈ D or not). For simplicity, in the
+conference version, we only assume that D is the class of constant-degree polynomials.
+
+    Our second result considers the class of polynomials f , where all the irreducible factors of f
+are promised to have degrees bounded by δ. For this class, there are blackbox PIT algorithms
+with time complexity poly(d, nδ ) for n-variate polynomials f of degree d, see [7, 5]. Hence,
+by Theorem 1, the factoring problem reduces to a divisibility question. Using techniques of
+Forbes [9] (see Lemma 9), this can be further reduced to designing a blackbox PIT algorithm
+for polynomials of the form Σi Πj fi,j , where deg(fi,j ) ≤ δ. However, we do not know better
+than subexponential-time PIT algorithms for this model. Thus, Theorem 1 does not yield
+anything fruitful in this promise setting. We show how to completely avoid divisibility testing
+and still find all the irreducible factors in polynomial time. The following theorem is an
+informal statement of Theorem 19.
+
+
+
+                                                                                                      APPROX/RANDOM 2024
+75:4   Derandomizing Multivariate Polynomial Factoring for Low Degree Factors
+
+
+       ▶ Theorem 3 (Promise low-degree factoring). Let δ ∈ N be a constant. Given a blackbox
+       access to an n-variate polynomial f of degree d such that all its irreducible factors have
+       degrees at most δ, one can deterministically output all its irreducible factors along with the
+       multiplicities in poly(nd) time.
+
+           The above theorem can be generalized to polynomials whose irreducible factors are from
+       a class D (and we will output them as blackbox), for which efficient PIT and derandomiz-
+       ation of HIT (in the sense of finding a good bivariate projection preserving irreducibility;
+       see Assumption 1) is known. For simplicity, in the conference version, we only focus on the
+       class of constant-degree polynomials.
+
+       Related work on Theorem 3. There have been some works when δ = 1. In this setting,
+       given a promise that f (z) = i∈[m] ℓei i , where ℓi (z) are mutually co-prime linear polynomials,
+                                    Q
+
+       we have to output ℓi . A randomized polynomial time algorithm for this problem follows
+       from the work of Kaltofen and Trager [21]. Recently, Koiran and Ressyare [25] gave three
+       different randomized algorithms for the non-promise problem that can test if a given f can
+       be completely factored into linear polynomials and output the factorization if it exists. The
+       first algorithm assumes that ℓ1 , . . . , ℓm are linearly independent, while the last two do not
+       need that assumption. Later, Koiran and Skomra [26] derandomized the first algorithm when
+       ℓi are linearly independent. Using a different idea and linearly independence of ℓi , Medini
+       and Shpilka [32] gave an alternative deterministic polynomial time algorithm. All these works
+       exploited the linearity (and sometimes randomization/linear independence) of the factors,
+       while our algorithm neither requires linearity of the factors nor any linear independence.
+           Finally, we go back to Question 1 of outputting all the sparse irreducible factors of a given
+       sparse polynomial. Can efficient sparse irreducibility testing lead to an efficient algorithm?
+       For general multivariate factoring, an effective version of Hilbert’s Irreducibility Theorem
+       (HIT) by Kaltofen [17] (Theorem 10) says that with high probability, an irreducible n-variate
+       polynomial remains irreducible if we randomly project it to a bivariate polynomial. This
+       leads to an efficient factoring algorithm, since HIT helps to preserve the factorization pattern
+       (the number of distinct irreducible factors and corresponding multiplicities). The hardness
+       of Question 1 stems from the fact that a sparse polynomial may have both sparse and
+       non-sparse irreducible factors. Hence, preserving irreducibility for sparse polynomials will
+       not preserve the factorization pattern, and therefore, it may be hard to get back the actual
+       factor. However, we observe that a deterministic version of HIT for sparse polynomials can
+       indeed solve Question 1. The following theorem is an informal statement of Theorem 20.
+
+       ▶ Theorem 4 (Conditional sparse factoring, Informal). Suppose there is an efficient algorithm
+       that finds a bivariate projection, making an s-sparse irreducible polynomial both monic (in
+       one variable) and irreducible. Then there is a subexponential-time algorithm that outputs all
+       its irreducible factors with sparsities ≤ s along with their multiplicities.
+
+       1.2    Comparison with Kumar, Ramanathan and Saptharishi [28]
+       Theorem 1 implies [28, Theorem 1.1–1.2]. Let ∆ ≥ 2 be an arbitrary positive integer.
+       Assume that we have a blackbox access to f , which can be computed by a ∆-depth algebraic
+       circuit of size s. The recent breakthrough result of Limaye, Srinivasan, and Tavenas [31]
+       gives a subexponential time identity testing algorithm for f . Moreover, using the techniques
+       from [9] (see Lemma 9), one can show that whether a given polynomial of degree ≤ δ
+       divides f can be efficiently reduced to PIT for an algebraic circuit of size poly(sd), of the
+P. Dutta, A. Sinhababu, and T. Thierauf                                                                75:5
+
+
+form i gi hdi i , where the polynomials gi are computable by ∆-depth algebraic circuits and
+       P
+
+deg(hi ) ≤ δ. For a formal proof, see [28, Corollary 2.19]. The main time complexity of [28,
+Theorem 1.1] is also dictated by the best-known blackbox PIT algorithm for the same model
+as above, which runs in subexponential time [31]. This algorithm requires the underlying
+field to have characteristic 0.
+    When ∆ = 2, Theorem 1 gives a quasipolynomial time algorithm to output irreducible
+factors of degree ≤ δ, thus implying [28, Theorem 1.2]. We know a polynomial time identity
+testing for sparse polynomials, due to Klivans and Spielman [24]. Further, [9, Corollary 7.16]
+showed that whether a polynomial of degree ≤ δ divides a sparse polynomial, reduces to PIT
+                                                                  Ppoly(sd)
+for Σm ∧ ΣΠ[δ] ; this model computes polynomials of the form        i=1     mi hdi i , where mi
+are monomials, and deg(hi ) ≤ δ. The best-known blackbox (and whitebox) PIT algorithm
+for this model runs in quasipolynomial time [9, Corollary 6.7], and work over fields of
+characteristics 0 or large.
+
+Whitebox vs. blackbox. Interestingly, if the input f has a whitebox access to it (for example
+when f is sparse, we can use [24]), then the required PIT algorithms in Theorem 1 are also
+in the whitebox setting. On the other hand, the factoring algorithm in [28] requires blackbox
+PIT algorithms. To explain it further, let f (x, z) be a monic polynomial (in x) and computed
+by a constant-depth circuit. Further, f = g · h, where deg(g) ≤ δ and gcd(g, h) = 1. In the
+usual factoring algorithm via Hensel lifting/Newton iteration, it is important to find a good
+starting point a ∈ Fn such that gcd(g(x, a), h(x, a)) = 1. This step is usually ensured by
+finding a hitting set for the Resultant polynomial Resx (g(x, z), h(x, z)). Once such a point
+is found, one can project to the univariate f (x, a), factorize it and then do the lifting. [28]
+observed that Res(g, h) = Res(g, f /g). Further, they showed that the polynomials f /g as
+well as Res(g, f /g) can be computed by small-size constant-depth algebraic circuits. This was
+enough to find a good projection using [31], and then find the true factor g via lifting. Since
+we do not know the factor g apirori, the polynomials f /g and Res(g, f /g) can be viewed
+as polynomials computable by small-size constant-depth algebraic circuits without having
+explicit access to them.
+
+1.3    Proof idea
+In this section, we give an overview of our algorithms. The overall idea is to project the
+input polynomial to a trivariate polynomial, factorize it, and recover the original factors via
+efficient sparse interpolation [24].
+
+Proof ideas of Theorem 1 and Theorem 3. Suppose f (x, z) is an (n + 1)-variate degree d
+homogeneous polynomial computed by an s-size circuit, which is monic in x. The monicness
+property can be assumed otherwise it is well-known that a random shift can make f monic,
+and this step can be derandomized assuming PIT for f ; see Lemma 7. We start with the
+simplest scenario of δ = 1, i.e., given f , we want to output its linear factors.
+    Suppose f = ℓe · g, with e ≥ 1, where gcd(ℓ, g) = 1 and ℓ is a linear polynomial. Consider
+the substitution ϕ : zi 7→ y i , where y is a new variable. Observe that ϕ(f ) ∈ F[x, y] is
+a nonzero monic polynomial (in x) of total degree at most nd. Further, ϕ(ℓ), remains
+an irreducible factor of ϕ(f ) and it is easy to identify ℓ from ϕ(ℓ), since the monomials
+{z1 , · · · , zn } are assigned y i uniquely. One can factorize the bivariate polynomial ϕ(f ) in
+deterministic poly(nd) time (see Lemma 11). We can apply the inverse of ϕ to each factor
+having degree 1 in x, and there could be nd many candidates of linear factors. The actual
+factor ℓ must be one of them. The divisibility testing makes sure that it always outputs the
+true linear factors.
+
+
+                                                                                                    APPROX/RANDOM 2024
+75:6   Derandomizing Multivariate Polynomial Factoring for Low Degree Factors
+
+
+           When δ ≥ 2, we can still find small weights wi , such that any monomial z e of degree ≤ δ
+       gets uniquely mapped to y i , via ϕ : zi 7→ y wi ; see Lemma 14. Unfortunately, this map may
+       not preserve irreducibility. On the other hand, an effective version of Hilbert’s Irreducibility
+       Theorem [20] shows that a monic irreducible polynomial g(x, z) remains irreducible under the
+       substitution zi 7→ βi t + γi , where βi , γi are randomly chosen from F; see Theorem 10. Further,
+       this step can be derandomized when g is a low-degree polynomial. We combine these two
+                                                                                             ′
+       ideas to get small weights wi and wi′ such that the projection Ψ : zi 7→ y wi t + y wi preserves
+       the irreducibility of any polynomial of degree ≤ δ, and further it is uniquely recoverable from
+       the projected trivariate polynomial; see Corollary 16. Therefore, it suffices to factor the
+       trivariate polynomial, find all its irreducible factors, and recover the original factors.
+           The proof of Theorem 3 uses the same trivariate projection as above. In this case, we
+       can avoid divisibility because the trivariate projection preserves the factorization pattern,
+       and one can recover the original factors uniquely from the projected ones.
+
+
+       Proof idea of Theorem 4. Kaltofen and Trager [21] gave an efficient blackbox factoring
+       algorithm, that given a blackbox access to a polynomial f , and an arbitrary point, outputs
+       evaluations at that point of all its irreducible factors. For simplicity, consider a monic
+       polynomial f (x, z). To get the evaluations at (α, c) ∈ Fn+1 , consider a trivariate projection η :
+       z 7→ βt1 + (c − γ)t2 + γ and x 7→ x, for new variables t1 and t2 . Here β, γ ∈ Fn was chosen
+       such that z 7→ βt + γ preserves the irreducibility all the irreducible factors of f ; such a
+       projection exists using Theorem 10. The map η preserves the factorization patter, and hence
+       one can find the evaluations by factoring η(f ), and evaluating the irreducible factors at
+       x = α, t1 = 0, t2 = 1.
+           Our algorithm is a simple adaptation of their algorithm, with the following observation.
+       Let g(x, z) be an irreducible sparse factor of f (x, z) and let β, γ ∈ Fn be such that g(x, βt+γ)
+       remains irreducible. Although the map η does not preserve the factorization pattern, η(g)
+       remains an irreducible factor of η(f ). Therefore, g(α, c) can be efficiently found, via evaluating
+       the right trivariate factor. For finding the right factor, one can observe that there is a unique
+       correspondence between the bivariate g(x, βt + γ) and trivariate η(g). Since, g is sparse,
+       one can use sparse interpolation [24] to explicitly reconstruct the polynomial g, from its
+       evaluations. Finally, whether a sparse polynomial g divides the input sparse polynomial f
+       can be solved in deterministic subexponential time, via divisibility-to-PIT reduction of [9]
+       (see Lemma 9) and the blackbox PIT algorithm for constant-depth circuits of [31].
+
+
+        2     Preliminaries
+
+       We take F = Q as the underlying field throughout the paper, although the results hold over
+       large characteristics.
+           Let P(n, d) be the set of n-variate polynomials of degree at most d, with variables
+       z = (z1 , z2 , . . . , zn ). For an exponent vector e = (e1 , e2 , . . . , en ), we denote the monomial
+                                                                  Pn
+       z e = (z1e1 , z2e2 , . . . , znen ). Its degree is ||e||1 = i=1 ei .
+           For a ∈ Fn , we also denote ||a||0 = |{i | ai ̸= 0}|.
+           sp(f ) denotes the sparsity, i.e., the number of monomials with nonzero coefficients in f .
+           Homk [f ] denotes the homogeneous component of f of degree equal to k.
+           A polynomial f is called irreducible, if it cannot be factored into the product of two
+       non-constant polynomials. Polynomial f is called square-free, if for any non-constant factor g,
+       the polynomial g 2 is not a factor of f .
+P. Dutta, A. Sinhababu, and T. Thierauf                                                                               75:7
+
+
+   By deg(f ) we denote the total degree of f . Let x and z = (z1 , . . . , zn ) be variables
+and f (x, z) be a (n + 1)-variate polynomial. Then we can view f as a univariate polynomial
+f = i ai (z) xi over K[x], where K = F[z]. The x-degree of f is denoted by degx (f ). It is
+    P
+
+the highest degree of x in f . Polynomial f is called monic in x, if the coefficient adx (z) is
+the constant 1 polynomial, i.e. adx (z) = 1, where dx = degx (f ).
+   An algorithm runs in subexponential time, if its running time on inputs of length n is
+                ϵ
+bounded by 2n , for any ϵ > 0.
+
+2.1       Computational problems, complexity measures and closure
+          properties
+For classes P, Q of multivariate polynomials, we define the following computational problems.
+   PIT(P): given p ∈ P, decide whether p ≡ 0.
+   Factor(P|Q ): given p ∈ P, compute all its irreducible factors in Q with their multiplicities.
+   Div(P/Q): given p ∈ P and q ∈ Q, decide whether q|p.
+
+   The time complexity to solve these problems we denote by TPIT(P) , TFactor(P|Q ) ,
+and TDiv(P/Q) , respectively.
+▶ Remark. Note that a decision algorithm for PIT(P) also yields an algorithm that computes
+a point a ∈ (F\{0})n such that p(a) ̸= 0, in case when p ̸≡ 0. In the blackbox case, the
+queries of the decision algorithm on the input of the zero-polynomial yield a hitting set 1
+for the whole class P. In the whitebox case, one can search for a by by assigning values
+successively to the variables and do kind of a self-reduction. For each variable, one tries at
+most d values from {1, 2, . . . , d} for a polynomial of degree d. If they all give 0, definitely
+d + 1 works because it cannot be zero at (d + 1) many values. With n variables, this amounts
+to nd calls to the PIT-decision algorithm. The final desired point a ∈ {1, · · · , d + 1}n , which
+is very explicit. The running time to compute a is therefore bounded by nd · TPIT(P) .
+    For time complexity, we assume that the polynomials are given in some model of compu-
+tation, such as circuits, branching programs, or formulas. With each model, we associate a
+complexity measure µ : F[z] → N. For example, let f ∈ F[z], some of the commonly used
+measures in the literature are:
+    µ(f ) = sp(f ), the number of monomials with nonzero coefficients,
+    µ(f ) = size∆ (f ), the size of the smallest depth-∆ algebraic circuit computing f ,
+    µ(f ) = sizeROABP (f ), the width of the smallest any-order read read-once oblivious
+    branching program (ROABP) computing f .
+
+     We define classes of polynomials of bounded measure,
+
+     Cµ (s, n, d) := { f ∈ P(n, d) | µ(f ) ≤ s } .                                                          (1)
+
+    We generally assume that all polynomials we deal with can be efficiently evaluated at
+any point a ∈ Fn within the respective measure, where we consider the unit-cost model for
+operations over F. This holds for all the computational models usually considered in the
+literature.
+
+▶ Definition 5 (Closure under derivatives). Class Cµ (s, n, d) is closed under derivatives, if
+for any f ∈ Cµ (s, n, d), a variable z ∈ {z1 , · · · , zn }, and e ∈ N, the size of the derivative
+µ(∂ e f /∂z e ) = poly(snd), and further it can be computed in poly(snd) time from f .
+
+1
+    H ⊆ Fn is a hitting set for a class P, if for every nonzero f ∈ P, there exists a ∈ H, such that f (a) ̸= 0.
+
+
+
+
+                                                                                                                   APPROX/RANDOM 2024
+75:8   Derandomizing Multivariate Polynomial Factoring for Low Degree Factors
+
+                                                                        Pd
+       ▶ Definition 6 (Closure under highest degree). Let f =             k=0 fk (z) ∈ Cµ (s, n, d),
+       where fk (z) = Homk [f ], the homogeneous component of f of degree k. We say that Cµ (s, n, d)
+       is closed under highest degree component if in the above, µ(fd ) ≤ poly(snd), and further it
+       can be computed in poly(snd) time from f .
+
+       For example, if the class contains polynomials where each is a product of constant-degree
+       polynomials, then it is not closed under homogenization (i.e. µ(fk ) ≤ poly(snd) and it can
+       be computed in polynomial time). However, the highest-degree component is still a product
+       of constant-degree polynomials. Other classes that are closed under the highest degree are
+       sparse polynomials, polynomials computed by polynomial size any-order ROABPs, or by
+       constant-depth circuits.
+           Finally, we define Hom[Cµ (s, n, d)], as follows:
+
+          Hom[Cµ (s, n, d)] := { f ∈ P(n, d) | g ∈ Cµ (s, n, d) and f = Homd [g] } .                (2)
+
+       When the context and the parameters are clear, we will simply denote the classes as C and
+       Hom[C], without explicitly writing the parameters.
+
+       2.2    Transformation to a monic polynomial
+       Algorithms for factoring polynomials often assume that the given polynomial is monic. If
+       this is not the case for the given polynomial f , we apply a transformation τ to f that yields
+       a monic polynomial τ (f ) that we can factor. From the factors of τ (f ) we can then reveal the
+       factors of f . Although this is standard in the literature, we state it in terms of the symbols
+       that we introduced above.
+
+       ▶ Lemma 7 (Transformation to monic). Let C be a class of polynomials that is closed under
+       highest degree component. Let f (z) ∈ C be n-variate of degree d and size s. For a new
+       variable x, and α = (α1 , . . . , αn ) ∈ (F\{0})n , define a linear transformation τα on the
+       variables zi :
+
+          τα : zi 7→ αi x + zi ,
+
+       where αi ̸= 0, for i = 1, 2, . . . , n. Let fα (x, z) be the resulting polynomial.
+          Then we can compute α such that fd1(α) fα (x, z) is monic in x in time nd · TPIT(Hom[C]) +
+       poly(snd), where fd = Homd [f ].
+
+       Proof. Let f (z) ∈ C be a polynomial of degree d with n variables z = (z1 , . . . , zn ) .
+          To see what the transformation does, let
+
+          f = f0 + f1 + · · · + fd ,
+
+       where fk = Homk [f ], the homogeneous degree-k component of f . Consider the degree-d
+       component,
+                   X
+          fd (z) =    cβ z β .
+                   |β|1 =d
+
+
+       Then, for fα , we have degx (fα ) = d and the coefficient of the leading x-term xd in fα is
+       fd (α) = |β|1 =d cβ αβ .
+                P
+
+           Hence, the PIT algorithm for the homogeneous component fd of f yields an α ∈ (F\{0})n
+                                                      1
+       such that fd (α) ̸= 0. Then the polynomial fd (α)  fα (x, z) is monic in x. For simplicity of
+       notation, assume in the following that fd (α) = 1, so that fα (x, z) is monic in x.        ◀
+P. Dutta, A. Sinhababu, and T. Thierauf                                                               75:9
+
+
+   Since we work with the shifted polynomial, we need to ensure that the shift of variables
+does not affect the irreducibility of the factors; this is guaranteed by the following lemma.
+This is quite standard in the literature; for a nice proof, see [29, Lemma B7].
+
+▶ Lemma 8. Let f (z) ∈ F[z] be an n-variate irreducible polynomial. Then, for every a ∈ Fn ,
+the polynomial f (ax + z) is also irreducible.
+
+2.3    Divisibility testing reduces to PIT
+Strassen [38] showed that if g | f , where both f and g can be computed by size s circuits, then
+h := f /g can also be computed by a circuit of size poly(sd), where d = deg(h). Forbes [9]
+observed that this procedure can still be done, even when g ∤ f , and we will get a small size
+circuit computing a polynomial h̃. We can then argue that g divides f if and only if f = g · h̃.
+The latter question is a PIT question.
+
+▶ Lemma 9 (Divisibility reduces to PIT, [9, Corollary 7.10]). Let g(z) and f (z) be two
+polynomials of degree at most d. Let S ⊆ F be a poly(d)-explicit set such that |S| =
+2d2 + 1. Further let α ∈ Fn such that g(α) ̸= 0. Then there are poly(d)-explicit constants
+{cβ,i }β∈S,0≤i≤d , such that
+                                           X             X
+    g(z) | f (z) ⇐⇒ f (z + α) − g(z + α) ·    f (βz + α)      cβ,i · g(βz + α)i = 0
+                                                β∈S              0≤i≤d
+
+
+2.4    Effective Hilbert’s Irreducibility Theorem
+An effective version of Hilbert’s Irreducibility Theorem due to Kaltofen and von zur Gathen
+shows how to project a multivariate irreducible polynomial down to two variables, such that
+the projected bivariate polynomial stays irreducible. The proof shows the existence of an
+irreducibility certifying polynomial G(a, b) in 2n variables corresponding to the irreducible
+polynomial g(x, z). The nonzeroness of G proves the irreducibility of g(x, z) and also gives a
+way to find an irreducibility-preserving projection to bivariate (see [17, 20, 27]).
+
+▶ Theorem 10. Let g(x, z) be an irreducible polynomial of total degree δ with n + 1 variables
+that is monic in x. There exists a nonzero polynomial G(a, b) of degree 2δ 5 in 2n variables
+such that for α, β ∈ Fn ,
+
+   G(α, β) ̸= 0 =⇒ gb(x, t) = g(x, α1 t + β1 , . . . , αn t + βn ) is irreducible.
+
+    The certifying polynomial G immediately yields a randomized algorithm to construct the
+irreducible projection gb via PIT. The derandomization of Hilbert’s Irreducibility Theorem is
+a challenging open problem in general. We observe that it can be derandomized for constant
+degree polynomials.
+
+2.5    Basics of factoring and interpolation
+Berlekamp [2] and Lenstra, Lenstra and Lovász [30] gave efficient factorization algorithms
+for univariate polynomials over finite fields and Q, respectively. Kaltofen [18] showed how
+to reduce the factorization of bivariate polynomials to univariate polynomials. In fact, the
+reduction works for k-variate polynomials, for any constant k. In our case, we use it for the
+case k = 3.
+    Via standard interpolation, one can assume that the input is given as a dense representa-
+tion.
+
+
+
+                                                                                                   APPROX/RANDOM 2024
+75:10   Derandomizing Multivariate Polynomial Factoring for Low Degree Factors
+
+
+        ▶ Lemma 11 (Trivariate Factorization). Let f (x, y, z) be a trivariate polynomial of degree d.
+        Then there exists an algorithm that outputs all its irreducible factors and their multiplicities
+        in time poly(d).
+
+           The following lemma shows how to find the multiplicity of an irreducible factor g of a
+        polynomial f . It holds when char(F) = 0, or, large. For a concise proof, see [28, Lemma 4.1].
+
+        ▶ Lemma 12 (Factor multiplicity). Let f (z), g(z) ∈ F[z] be non-zero polynomials and let
+        z ∈ {z1 , · · · , zn } be such that ∂z (g) ̸= 0 and g is irreducible. Then the multiplicity of g in f
+                                                                     e
+        is the smallest non-negative integer e such that g ∤ ∂∂zfe .
+
+           Klivans and Spielman [24] derandomized the isolation lemma for PIT of sparse polynomials.
+        Their algorithm works over fields of 0 or large characteristics.
+
+        ▶ Lemma 13 (Sparse PIT and interpolation). Given an n-variate s-sparse polynomial f of
+        degree d via blackbox access, PIT for f works in time poly(snd). Furthermore, if f is nonzero,
+        one can find the monomials in f with nonzero coefficients in time poly(snd).
+
+        ▶ Remark. Let F = Q, for the simplicity. The interpolation algorithm in [24] works by
+        projecting f to a univariate polynomial in y via the map zi 7→ pi y wi , for pi are distinct
+        primes, and weights wi . They used univariate interpolation, to find the coefficients and
+        the exponents. If the input polynomial f is not s-sparse, one can still run the algorithm.
+        If at any moment while doing the univariate interpolation, it detects more than s many
+        nonzero coefficients, it stops, otherwise it will continue, and indeed at the end, output a
+        wrong s-sparse polynomial fˆ, such that (unfortunately) it matches at all the interpolating
+        values. Given s, n, d, the evaluation points on which the interpolation algorithm can be
+        thought as coming from a fixed set.
+
+        2.6    Isolation
+        Let Mδ be the set of monomials in n variables z = (z1 , z2 , . . . , zn ) of degree bounded by δ,
+
+           Mδ = { z e | ||e||1 ≤ δ } .                                                                    (3)
+
+        Note that Mδ is polynomially bounded, for constant δ,
+                        
+                     n+δ
+           |Mδ | ≤         ≤ (n + δ)δ ≤ (δ + 1) nδ = O(nδ ).                                              (4)
+                      δ
+
+           There is a standard way to map the multivariate monomials in Mδ in a injective way to
+        univariate monomials of polynomial degree. For completeness, we describe the details.
+           Consider the standard Kronecker substitution on Mδ . Define
+                               i−1
+           φ : zi 7→ y (δ+1)         .                                                                    (5)
+
+        By extending φ linearly to monomials z e ∈ Mδ , we get
+                       Pn           i−1
+           φ : z e 7→ y i=1 ei (δ+1) ,                                                                    (6)
+
+        Clearly, φ is injective on Mδ . However, the degree of y can be exponentially large, up
+        to (δ + 1)n . A way around is to take the exponents modulo some small prime number p. We
+        have to determine p in a way to keep the mapping injective on Mδ . Hence, for any two terms
+                 ′
+        y e , y e we get from φ, we have to ensure that e ̸≡ e′ (mod p). Equivalently p ̸ | (e − e′ ).
+P. Dutta, A. Sinhababu, and T. Thierauf                                                                   75:11
+
+
+   We have |e − e′ | ≤ (δ + 1)n and, by (4), there are (δ + 1)2 n2δ many pairs e, e′ we get
+from Mδ via φ. Prime p should not divide any of these differences, and hence, p should not
+divide their product P . The product P is bounded by
+                       (δ+1)2 n2δ                      2   2δ+1
+   P ≤ ((δ + 1)n )                   = (δ + 1)(δ+1) n             .                              (7)
+
+Hence, P has at most log P ≤ R = (δ + 1)3 n2δ+1 many prime factors. By the Prime Number
+Theorem, there are more than log P primes in the set [R2 ]. Hence, we can find an appropriate
+prime p ≤ R2 = nO(δ) .
+
+▶ Lemma 14. There is a prime p = nO(δ) such that the linear extension of
+
+   φp : zi 7→ y wi , where wi = (δ + 1)i−1 mod p , for i = 1, 2, . . . , n,                      (8)
+
+to monomials is injective on Mδ . Moreover, we can find such a p in time nO(δ) and compute
+and invert φp in time nO(δ) .
+
+Proof. We already argued about the existence of prime p. For the running time, recall that
+|Mδ | = O(nδ ). Therefore we can search for p and check whether it works on Mδ in time nO(δ) .
+At the same time we can compute pairs of exponents (e, k) such that φp (z e ) = y k . These
+pairs can be used to invert φp .                                                          ◀
+
+    The mapping φp in Lemma 14 maintains factors of degree δ of a polynomial in the
+following sense.
+
+▶ Lemma 15. Let polynomial f (z) factor as f = gh, where g(z) has degree δ. Let φp be the
+map from Lemma 14. Then we have φp (f ) = φp (g)φp (h), and g can be recovered from φp (g)
+in time nO(δ) .
+
+    Note that in Lemma 15, we do not claim that irreducibility is maintained: when g is
+irreducible, still φp (g) might be reducible. Consider the example n = δ = 2. The weights
+{1, 3} make sure that each monomial z12 , z1 z2 , z22 gets mapped to a distinct power in y. Let
+g(x, z) = x2 − z1 z2 . Observe that g is irreducible, however g(x, y, y 3 ) = (x − y 2 )(x + y 2 ) is
+reducible.
+    We combine Lemma 14 and Theorem 10 to obtain a projection of a multivariate polynomial
+to a 3-variate polynomial that maintains irreducibility of polynomials up to degree δ.
+
+▶ Corollary 16. Let g(x, z) be an irreducible polynomial of constant degree δ with n + 1
+variables that is monic in x. There exists w, w′ ∈ Fn with wi , wi′ = npoly(δ) such that
+                                 ′                     ′
+   Ψ(g) = g(x, y w1 t + y w1 , . . . , y wn t + y wn ) ∈ F[x, y, t]                              (9)
+
+is irreducible. Moreover, we can compute and invert Ψ(g) in time npoly(δ) .
+
+Proof. Let G(a, b) be the polynomial of degree 2δ 5 in 2n variables provided by Theorem 10
+for g. Let w, w′ ∈ Fn with wi , wi′ = npoly(δ) be the exponents we get from Lemma 14 for G.
+That is,
+                                     ′              ′
+   G(y)
+   b    = G(y w1 , . . . , y wn , y w1 , . . . , y wn ) ̸= 0 .
+
+   Now, suppose that Ψ(g) is reducible. Then it would also be reducible at a point y = α,
+where G(α)
+       b    ̸= 0. But then gb(x, t) = Ψ(g)(x, α, t) would be reducible too, and this would
+contradict Theorem 10. We conclude that Ψ(g) is irreducible.
+
+
+
+                                                                                                        APPROX/RANDOM 2024
+75:12   Derandomizing Multivariate Polynomial Factoring for Low Degree Factors
+
+
+            For the complexity, we first determine prime p from Lemma 14 and then get the
+        weights w, w′ from above. For a given g(x, z) =                   k e
+                                                              P
+                                                                k,e ck,e x z , we can compute Ψ(g)
+        in time npoly(δ) . For a monomial of g, the mapping looks as follows:
+                                      n
+                                      Y                   ′
+             ck,e xk z e 7→ ck,e xk         (y wi t + y wi )ei .                                    (10)
+                                      i=1
+
+        To compute g from Ψ(g), set t = 0, i.e. consider Ψ(g)(x, y, 0). From (10) we see that
+        monomials then have the form
+                    Pn       ′
+           ck,e xk y i=1 ei wi .
+
+        From these we get the exponents k and e similar as in the proof of Lemma 14.                  ◀
+
+        ▶ Remark. In Corollary 16, when we say that we invert Ψ, it means that for a given h ∈
+        F[x, y, t] which is monic in x with x-degree ≤ δ, we either detect that h is not in the codomain
+        of Ψ, or we compute g ∈ F[x, z] such that Ψ(g) = h in time npoly(δ) .
+           The inversion can be done similarly as described in the proof of Corollary 16. One can
+        evaluate t = 0, and then for every monomial xk y j , try to find xk z e that would map to such
+        a monomial at t = 0. By the property of the map, while mapping the y-degrees, z-degree
+        could be at most δ, i.e. deg(xk z e ) ≤ 2δ. We will, of course, return empty if the degree of
+        any such monomial, after inverting, becomes > δ. Finally, once we have got a candidate g of
+        degree δ, we still have to check whether Ψ(g) = h, because the inversion procedure ignores
+        the variable t. The last step can also be efficiently checked.
+            The polynomial g of degree δ we considered so far can be thought to be a constant-degree
+        factor of a given polynomial f of degree d. Our goal would be to compute g. It is now easy
+        to extend the above results to hold for all degree-δ factors of f simultaneously.
+        ▶ Corollary 17. Let f (x, z) be a polynomial of degree d with n + 1 variables that is monic
+        in x, and let δ be a constant. There exists w, w′ ∈ Fn with wi , wi′ = dnpoly(δ) such that for
+        any irreducible factor g of degree δ of f , we have that Ψ(g) is an irreducible factor of Ψ(f ).
+        Proof. The proof goes along the lines of Corollary 16, but we choose the weights slightly larger
+        so that the G(y)
+                    b    polynomials for all the degree-δ factors g of f are non-zero simultaneously.
+        That is, we choose prime p in Lemma 14 as p = dnpoly(δ) .                                     ◀
+
+           Finally, we conclude this subsection by a general remark that whenever n and δ are fixed,
+        these weights are fixed and can be found efficiently.
+
+         3      Computing the low-degree factors
+        For a size measure µ, we consider a class of polynomials C = Cµ (s, n, d) ⊆ P(n, d) such that
+        C is closed under derivatives. Many classes C in the literature fulfill this condition. Useful
+        for us are in particular sparse polynomials, polynomials computed by poly-size any-order
+        ROABPs or by constant-depth circuits. For a constant δ ∈ N, let D = P(n, δ).
+            Our first theorem shows that for any polynomial f ∈ C, all the factors of f that are
+        in D can be computed in polynomial time with oracles for PIT for Hom[C] and divisibility
+        testing C by D.
+        ▶ Theorem 18. Factor(C|D ) can be solved deterministically in time
+
+             nd · TPIT(Hom[C]) + d2 npoly(δ) · TDiv(C/D) + poly(s, npoly(δ) , d).
+
+        Proof. Let f (z) ∈ C. To compute the factors of degree δ of f , we first do some transformations.
+        The first step is to make f monic in a new variable x via Lemma 7. Let fα (x, z) be monic.
+P. Dutta, A. Sinhababu, and T. Thierauf                                                                  75:13
+
+
+    Then we apply Corollary 17 to fα (x, z). That is we compute the weights w, w′ ∈ Fn
+bounded by dnpoly(δ) and explicitly compute Ψ(fα ) ∈ F[x, y, t] of degree at most d˜ = d2 npoly(δ) .
+Note that the x-degree of fα has not changed by mapping Ψ. In the blackbox case, we can
+interpolate and reconstruct the polynomial in time poly(sd) ˜
+    The next step is to factor 3-variate Ψ(fα ). This can be done efficiently Lemma 11.
+Finding and listing all the irreducible factors takes time poly(d).˜
+    Having the factors of Ψ(fα ) in hand, we invert transformations Ψ and τα on the factors.
+Let g̃ be a factor of Ψ(fα ). By Corollary 17, if g indeed corresponds to a δ-degree factor of f ,
+then τα (g) corresponds to a δ-degree factor of τα (f ). Therefore, the inverse transformations
+will yield g. Formally, the factor is g = τα−1 (Ψ−1 (g̃)).
+    However g̃ might also not correspond to a degree-δ factor of f . In this case, either the
+inverse transformation does not go through properly, or the degree we get is larger than δ.
+In these cases, we can immediately throw away g̃; see the remark after Corollary 16. But
+it could also be that we actually obtain a polynomial g of degree δ, just that it is not a
+factor of f . For that reason, we finally do a divisibility check whether g|f . That way we will
+compute all factors of f of degree δ.
+    For the time complexity of the factoring algorithm, we have nd · TPIT(Hom[C]) for trans-
+forming f to to monic fα by Lemma 7. Time poly(d npoly(δ) ) is used for map Ψ and the
+factoring of Ψ(fα ). Similar time is taken to invert and get the candidate factors. Finally, we
+have at most d2 npoly(δ) candidate polynomials g for which we test divisibility of g|f .       ◀
+
+
+▶ Remark. Theorem 18 can be applied in different algebraic models. Furthermore, if a class
+is closed under highest degree, one can simply assume PIT for C. In particular, if we work
+with algebraic formulas, or algebraic branching programs (ABPs), then the above theorem
+along with the divisibility lemma Lemma 9 implies that we need PIT for the same class, to
+deterministically find the constant-degree factors.
+     The following pseudo-code summarizes the algorithm given in the proof of Theorem 18.
+     Algorithm 1 Computing factors of degree ≤ δ.
+     Input  : f (z), s, and δ, where f is an n-variate polynomial of degree d such that µ(f ) ≤ s,
+              and δ is a constant.
+     Output : A list of irreducible polynomials of degree ≤ δ, which are factors of f , along with
+              the factor-multiplicities.
+ 1 Set the output list L = ∅. Set the intermediate candidates list L′ = ∅.
+ 2 Make a monic transformation τα : zi 7→ αi x + zi , according to Lemma 7. Let
+    fα (x, z) := τα (f ).
+                        ′                poly(δ)
+ 3 Find weights w, w bounded by dn               according to Corollary 17 and compute
+    Ψ(fα ) ∈ F[x, y] in dense representation.
+ 4 Factorize the trivariate polynomial Ψ(fα ) according to Lemma 11. Let S be the set of all
+    ≤ δ degree factors in x of Ψ(fα ) in dense representation.
+ 5 for g̃ ∈ S do
+       /* Computing candidate factors via divisibility                                     */
+ 6     Compute b  g = Ψ−1 (g̃) (if the inverse exists) of degree ≤ δ by Corollary 16.
+ 7     Compute g = τα−1 (b g ).
+ 8     If g | f then add g to L′ .
+ 9 for g ∈ L′ do
+       /* Computing multiplicities via Lemma 12                                                */
+10     Let z ∈ {z1 , . . . , zn } be any variable that g depends on, so that ∂z (g) ̸= 0.
+                                                    e
+11     Find the smallest e ≥ 0 such that g ∤ ∂∂zfe .
+12     if e > 1 then add (g, e) to the list L.
+13   return L
+
+
+                                                                                                       APPROX/RANDOM 2024
+75:14   Derandomizing Multivariate Polynomial Factoring for Low Degree Factors
+
+
+         4      Computing the factors of a constant degree product
+
+        Now, we want to output the constant-degree irreducible factors in the promise case.
+            It is still an open question to test in deterministic polynomial time if a quadratic
+        polynomial (or any non-linear polynomial whose total degree is upper bounded by a constant)
+        divides another polynomial f , even when f is a sparse polynomial. In the above theorem f
+        may not be sparse and we have only blackbox access to it. Thus, the proof for Theorem 2 is
+        a bit different from Theorem 1.
+                                                                                           Qs
+        ▶ Theorem 19. Given blackbox access to an n-variate degree-d polynomial f = i=1 giei ,
+        where gi are irreducible polynomials with deg(gi ) ≤ δ, one can deterministically output all
+        (gi , ei ) in time poly(dnpoly(δ) ).
+
+
+
+        Proof. The first step of the algorithm is to make f (z) monic in a new variable x via Lemma 7.
+        One can find an α ∈ (F\{0})n in poly(d, nδ ) time by using the hitting set for polynomials of
+        degree ≤ δ; see [7, 5].
+            Next step is to apply Corollary 16 to fα (x, z). Find the weights w, w′ ∈ Fn , each bounded
+        by dnpoly(δ) . Observe that Ψ(fα ) ∈ F[x, y, t], of degree at most d˜ := d2 npoly(δ) . By the same
+        lemma, we know that for any irreducible factor g of f , we have that Ψ(g) is an irreducible
+        factor of Ψ(f )
+            The next step is to explicitly compute the trivariate polynomial Ψ(fα ). Since, the degree
+        of the polynomial is at most d, ˜ one can interpolate and reconstruct the polynomial, from its
+        blackbox access, in time poly(sd).˜ Note that s ≤ d.
+            The next step is to factorize Ψ(fα ). This can be done efficiently using Lemma 11. Finding
+                                                                  ˜
+        and listing all the irreducible factors takes time poly(d).
+                                                              −1
+            The next step is to invert the transformation Ψ on the factors computed in the previous
+        step. This can be done efficiently in time poly(dnpoly(δ) ); see Corollary 16 and its remark.
+        Let g̃ be a factor of φ(fα ). Output g = τα−1 (Ψ−1 (g̃)).
+
+
+             Algorithm 2 Promise factors of degree ≤ δ.
+             Input  : An n-variate, degree d polynomial f (z), and a constant δ, and a promise
+                      that all its irreducible factors have degree ≤ δ.
+             Output : All the irreducible factors of f , along with the multiplicities.
+         1 Set the output list L = ∅.
+         2 Make a monic transformation τα : zi 7→ αi x + zi , according to Lemma 7. Let
+            fα (x, z) := τα (f ).
+                                ′                 poly(δ)
+         3 Find weights w, w bounded by dn                according to Corollary 17 and compute
+            Ψ(fα ) ∈ F[x, y] in dense representation.
+         4 Factorize the trivariate polynomial Ψ(fα ) according to Lemma 11. Let S be the set
+            of irreducible factors of Ψ(fα ) along with its multiplicities as a tupple.
+         5 for (g̃, e) ∈ S do
+               /* Computing the irreducible factors via inversion                               */
+                                  −1
+         6     Compute gb = Ψ (g̃), by Corollary 16 and its remark.
+         7     Compute g = τα−1 (b   g ), and add (g, e) to L.
+         8   return L
+P. Dutta, A. Sinhababu, and T. Thierauf                                                                   75:15
+
+
+    Now, we discuss the correctness of the output. By assumption, f = g1e1 · · · gses where
+                                           e                   e
+gi ∈ D. Therefore, Ψ(τα (f )) = Ψ(τα (g1 )) 1 · · · Ψ(τα (gs )) s . Furthermore, by choice of w, w′ ,
+we know the following facts.
+
+1. The polynomials Ψ(τα (gi )) ∈ F[x, y, t] are irreducible over F, for all i = 1, . . . , s.
+2. Ψ(τα (gi )) ̸= Ψ(τα (gj )), for i ̸= j.
+
+3. One can uniquely recover gi from Ψ(τα (gi )), using Corollary 16 and its remark.
+   This implies that the factoring pattern of f and Ψ(τα (f )) remain the same, and can be
+recovered by simply looking at the factorization of Ψ(τα (f )).
+
+Time complexity. To make f monic, we find vector α in time poly(dnδ ). Interpolation
+and trivariate factorization of a degree-d˜ polynomial takes time poly(d) ˜ = poly(dnpoly(δ) ),
+see Lemma 11. Inverting each of them to get the original factor also takes time poly(dnpoly(δ) ).
+                                                                                             ◀
+
+ 5      Finding sparse factors reduces to sparse irreducibility
+Let f be an n-variate irreducible polynomial of degree d. Let α ∈ (F\{0})n , such that
+
+     fd (α) ̸= 0, where fd = Homd [f ] is the homogeneous degree − d component of f .
+
+Using Lemma 7 and Lemma 8, one can conclude that fˆ(x, z) := f (αx + z) is a monic
+irreducible (n + 1)-variate polynomial of degree d.
+    On the other hand Theorem 10 shows that for a random β, γ ∈ Fn , the bivariate
+polynomial
+
+     f (αx + βt + γ) = fˆ(x, βt + γ) ∈ F[x, t] ,
+
+remains irreducible. When the degree of f is a constant, such an irreducibility preserving
+reduction can be efficiently derandomized; see Corollary 16. Formally, we should think of it
+as a derandomization for the class of constant degree polynomials. In Corollary 16, one can
+think of evaluating y at polynomially many points to find the right β, γ, while the point α
+comes from an efficient PIT algorithm for fd . Note that any α ∈ (F\{0})n suffices as long as
+fd (α) ̸= 0.
+    Let α ∈ (F\{0})n . We define a set Sα (s, n, d) as follows.
+
+     Sα (s, n, d) := {f ∈ P(n, d) | f is irreducible, sp(f ) ≤ s, and Homdeg(f ) [f ](α) ̸= 0} . (11)
+
+Motivated by the efficient derandomization of irreducibility preserving bivariate projections
+for constant degree polynomials, we assume the following.
+▶ Assumption 1 (Sparse irreducible projection). Let α ∈ (F\{0})n , and Sα (s, n, d) ⊆ P(n, d)
+as defined in Equation (11). Then, there is a deterministic subexponential time algorithm to
+find an explicit set Hα ⊆ F2n of size subexponential, such that for any f ∈ Sα (s, n, d), there
+exists (β, γ) ∈ Hα such that f (αx + βt + γ) remains irreducible.
+▶ Remark. Assuming the above, one can decide whether an s-sparse degree-d polynomial
+f is irreducible or not in subexponential time. To do this, one can find α ∈ (F\{0})n such
+that Homd [f ](α) ̸= 0, in time poly(snd), using [24]. Hence, one can find a set Hα such that
+f (z) is reducible if and only if f (αx + βt + γ) is reducible, for every (β, γ) ∈ Hα . Whether
+a bivariate polynomial is reducible can be checked in time poly(d) (Lemma 11).
+
+
+
+                                                                                                        APPROX/RANDOM 2024
+75:16   Derandomizing Multivariate Polynomial Factoring for Low Degree Factors
+
+
+            Using Assumption 1, one can design an efficient deterministic algorithm to output sparse
+        irreducible factors of a sparse polynomial.
+
+        ▶ Theorem 20 (Efficient sparse factoring). Let f ∈ F[z] be an s-sparse polynomial of degree
+        d. If Assumption 1 holds, then there is a deterministic subexponential time algorithm that
+        outputs all its irreducible factors with sparsities ≤ s, along with the multiplicities.
+
+        Proof. Assume that g is a s-sparse irreducible factor of f with multiplicity e, i.e., f = g e · R,
+        where gcd(g, R) = 1. Assume that deg(g) = d1 , and deg(R) = d2 . We will argue that
+        Algorithm 3 correctly outputs (g, e). Let α ∈ (F\{0})n , such that Homd [f ](α) ̸= 0. Observe
+        that Homd [f ] = (Homd1 [g])e · Homd2 [R]. Therefore, it must hold that Homd1 [g](α) ̸= 0,
+        implying g ∈ Sα (s, n, d).
+            By Assumption 1, we know that there exists a subexponential time algorithm to find a
+        set Hα such that g(αx + βt + γ) remains irreducible for some (β, γ) ∈ F2n . We call (β, γ) a
+        “good” point for g.
+            For such a good point, the set S in Line 6 of Algorithm 3 must contain g(αx + βt + γ).
+        Pick any c ∈ Fn . Observe that g̃(x, t1 , t2 ) := ϕc (g) = g(αx + βt1 + (c − γ)t2 + γ) is a
+        monic polynomial in x. Further, g̃ remains irreducible, since g̃(x, t, 0) = g(αx + βt + γ)
+        is irreducible by the choice of a good point (β, γ). Hence, S ′ in Line 10 must contain the
+        polynomial g̃.
+            One can find the corresponding factor in Line 12, and suppose the corresponding index is
+        j. Note that g̃(0, 0, 1) = g(c).
+            From the above, one can conclude that the L′j contains (j, c, g(c)). One can now do the
+        sparse interpolation using [24], to reconstruct g; see Lemma 13. Since g | f , this is correctly
+        detected and added to the list L′ . This is being discussed in Line 15-16.
+            Further, by our choice of a good point (β, γ) ∈ Hα , the bivariate g(αx + βt + γ) remains
+        irreducible, and hence it successfully passes Line 19. Since g is a nontrivial polynomial, one
+        can find a variable z ∈ {z1 , . . . , zn } such that ∂z (g) ̸= 0 in Line 20. Using Lemma 12, one
+        can conclude that indeed Line 22 adds (g, e) to the list L.
+            From the above analysis, we know that Algorithm 3 always outputs g with the corres-
+        ponding multiplicity. On the other hand, Line 15 makes sure that the candidate polynomial
+        is indeed at most s-sparse (see Lemma 13) and Line 16, by the divisibility testing, makes
+        sure it detects a wrong sparse factor. What could have happened is L′ contains factors which
+        are s-sparse reducible polynomials dividing f .
+            Line 19 again uses Assumption 1 to check if it is indeed irreducible or not. Finally, Line
+        20-22 make sure that the Algorithm 3 never outputs the correct multiplicity. This finishes
+        the correctness of the algorithm.
+
+
+        Running time analysis. Since f is s-sparse, one can find an α ∈ Fn , such that Homd [f ](α) ̸=
+        0, in poly(snd) time [24].
+            Line 6-10 take poly(d) time, since bivariate/trivariate interpolation and factorization can
+        be done efficiently Lemma 11.
+            Line 15 can be done using the sparse interpolation algorithm in poly(snd) time [24]. Line
+        16 requires whether a given s-sparse polynomial Pj divides another s-sparse polynomial f
+        or not. Using the techniques from [9] (Lemma 9), this divisibility question can be reduced
+        to a PIT instance of a constant-depth circuit, for which there is a subexponential time
+        algorithm [31].
+            Line 19 is again bivariate factorization Lemma 11 which can be done in poly(d) time.
+P. Dutta, A. Sinhababu, and T. Thierauf                                                                      75:17
+
+                e                                                                                    e
+    Further, ∂∂zfe is at most s-sparse. Hence, the divisibility question of whether P | ∂∂zfe in
+Line 21, can be similarly done in subexponential time. Finally, since |Hα | is subexponentially
+large, the overall running time remains subexponential.                                       ◀
+
+
+     Algorithm 3 Computing s-sparse factors.
+     Input : An n-variate, degree d polynomial s-sparse polynomial f (z).
+     Output : A list of irreducible s-sparse polynomials which are factors of f , along with
+              the factor-multiplicities.
+ 1 Set the output list L = ∅. Set the intermediate candidate list L′ = ∅.
+                                               n
+ 2 Use Lemma 13 to find an α ∈ (F\{0}) such that Homd [f ](α) ̸= 0.
+ 3 Use Assumption 1 to find a set Hα .
+ 4 for each (β, γ) ∈ Hα do
+ 5    Let ϕ : zi 7→ αi x + βi t + γi . Compute fˆ := ϕ(f ) ∈ F[x, t], as a dense
+        representation.
+ 6    Factorize the bivariate polynomial fˆ over F. Let S = {g1 (x, t), . . . , gm (x, t)} be
+        the set of its irreducible factors.
+ 7    Set m many interpolating lists L′j = ∅, for j ∈ [m].
+ 8    Fix c = (c1 , . . . , cn ) ∈ Fn .   /* These points are the evaluation points
+           for which s-sparse interpolation succeeds                                                  */
+ 9    For new variables t1 and t2 , define a new map
+        ϕc : zi 7→ αi x + βi t1 + (ci − γi )t2 + γi . Compute f˜c := ϕc (f ) ∈ F[x, t1 , t2 ], as a
+        dense representation.
+10    Factorize the trivariate f˜c over F. Let S ′ = {h1 (x, t1 , t2 ), . . . , hr (x, t1 , t2 )} be the
+        set of its irreducible factors.
+11    for hi ∈ S do
+          /* Computing the unique correspondence between bivariate and
+               trivariate factors, and the evaluations                                                */
+12         Find the unique j ∈ [m] such that hi (x, t, 0) = gj (x, t), if exists, otherwise go
+            to the next factor in S.
+13         Evaluate hi (0, 0, 1), and add (j, c, hi (0, 0, 1)) to L′j .
+14      for j ∈ [m] do
+           /* Computing candidate sparse factors via interpolation and
+                divisibility                                                        */
+15         Use sparse interpolation algorithm (Lemma 13) to find an s-sparse polynomial
+             Pj , if exists, such that Pj (c) = θ where (j, c, θ) ∈ L′j .
+16         Check if Pj | f , or not. If yes, then update L′ = {Pj } ∪ L′ .
+17      return L′
+18 for each P ∈ L′ do
+      /* Deciding irreducibility and computing multiplicities via
+           Lemma 12                                                                                  */
+19    Check if P is irreducible, using Assumption 1 and its remark. If it is not
+        irreducible, STOP, and go to the next polynomial in L′ .
+20    Otherwise, let z ∈ {z1 , . . . , zn } be any variable that P depends on, so that
+        ∂z (P ) ̸= 0.
+                                                    e
+21    Find the smallest e ≥ 1 such that P ∤ ∂∂zfe and add (P, e) to the list L.
+22   return L
+
+
+
+
+                                                                                                           APPROX/RANDOM 2024
+75:18   Derandomizing Multivariate Polynomial Factoring for Low Degree Factors
+
+
+        ▶ Remarks.
+        1. Assumption 1 is true for constant degree polynomials and can be solved in polynomial
+           time Corollary 16. Therefore, Algorithm 3 can be used to give an alternative proof
+           of Theorem 18. This is because for f ∈ C, we need to find α, such that Homd [f ](α) ̸=
+           0, which is given by the PIT oracle for C. Once the α is found, Hα can be found
+           for the constant-degree polynomials, that preserves irreducibility; see Corollary 16.
+           Additionally, the algorithm requires some divisibility testing by the candidate constant-
+           degree polynomials, which is done using the divisibility testing Div(C/D).
+        2. Theorem 20 can be generalized to the input and output polynomials being computed by
+           constant-depth circuits, by analogously changing the Assumption 1 for constant-depth
+           circuits. In this case, we will only be able to output the factors as blackbox (because
+           efficient reconstruction for constant-depth circuits is still unknown). Note that whether a
+           constant-depth circuit divides another constant-depth circuit can be deterministically
+           decided in subexponential time.
+
+         6     Conclusion
+        We conclude with some open questions.
+        1. Can we decide whether a given sparse polynomial is irreducible in deterministic subex-
+           ponential time? The proof may already give a good bivariate projection that preserves
+           irreducibility. Then Theorem 20 would give us a deterministic subexponential-time
+           algorithm to find irreducible sparse factors of a sparse polynomial.
+        2. Can we find bounded individual degree sparse factors of a sparse polynomial (without any
+           bound on the individual degree) in deterministic quasipolynomial time? Volkovich asked
+           if multilinear factors of a sparse polynomial can be found in deterministic polynomial
+           time [39].
+        3. Can one compute all the factors of a sparse polynomial/constant depth circuit by constant
+           depth circuits of small size? At least, can one find all the factors that are computable
+           in constant depth? The recent result in [29] gives a deterministic subexponential-time
+           algorithm that outputs a list of circuits (of unbounded depth and possibly with division
+           gates) that includes all such factors.
+        4. Given a blackbox computing the product of sparse irreducible polynomials fi with bounded
+           individual degree, find fi ’s in deterministic polynomial time. [3] gives a quasipolynomial
+           time algorithm, when the input is sparse with constant individual degree and the factors
+           are all sparse (polynomially upper bounded with respect to input polynomial’s sparsity).
+
+
+             References
+         1   Sanjeev Arora and Madhu Sudan. Improved low-degree testing and its applications. Combin-
+             atorica, 3(23), 2003.
+         2   Elwyn R Berlekamp. Factoring polynomials over large finite fields. Mathematics of computation,
+             24(111):713–735, 1970.
+         3   Vishwas Bhargava, Shubhangi Saraf, and Ilya Volkovich. Deterministic factorization of sparse
+             polynomials with bounded individual degree. Journal of the ACM (JACM), 67(2):1–28, 2020.
+         4   Pranav Bisht and Ilya Volkovich. On solving sparse polynomial factorization related problems.
+             In 42nd IARCS Annual Conference on Foundations of Software Technology and Theoretical
+             Computer Science (FSTTCS 2022). Schloss-Dagstuhl – Leibniz-Zentrum für Informatik, 2022.
+         5   Markus Bläser and Anurag Pandey. Polynomial identity testing for low degree polynomials
+             with optimal randomness. In Approximation, Randomization, and Combinatorial Optimization.
+             Algorithms and Techniques (APPROX/RANDOM 2020). Schloss Dagstuhl – Leibniz-Zentrum
+             für Informatik, 2020.
+P. Dutta, A. Sinhababu, and T. Thierauf                                                                   75:19
+
+
+ 6   Andrej Bogdanov. Pseudorandom generators for low degree polynomials. In Proceedings of
+     the thirty-seventh annual ACM symposium on Theory of computing, pages 21–30, 2005.
+ 7   Nader Bshouty. Testers and their applications. In Proceedings of the 5th conference on
+     Innovations in theoretical computer science, pages 327–352, 2014.
+ 8   Ashish Dwivedi, Zeyu Guo, and Ben Lee Volk. Optimal pseudorandom generators for low-degree
+     polynomials over moderately large fields. arXiv preprint, 2024. arXiv:2402.11915.
+ 9   Michael A Forbes. Deterministic divisibility testing via shifted partial derivatives. In 2015
+     IEEE 56th Annual Symposium on Foundations of Computer Science, pages 451–465. IEEE,
+     2015.
+10   Michael A Forbes, Ramprasad Saptharishi, and Amir Shpilka. Hitting sets for multilinear
+     read-once algebraic branching programs, in any order. In Proceedings of the forty-sixth annual
+     ACM symposium on Theory of computing, pages 867–875, 2014.
+11   Zeyu Guo and Rohit Gurjar. Improved explicit hitting-sets for roabps. In Approximation,
+     Randomization, and Combinatorial Optimization. Algorithms and Techniques (APPROX/RAN-
+     DOM 2020). Schloss-Dagstuhl-Leibniz Zentrum für Informatik, 2020.
+12   Ankit Gupta. Algebraic geometric techniques for depth-4 pit & sylvester-gallai conjectures for
+     varieties. In Electronic Colloquium on Computational Complexity (ECCC), volume 21, 2014.
+13   Rohit Gurjar, Arpita Korwar, Nitin Saxena, and Thomas Thierauf. Deterministic identity
+     testing for sum of read-once oblivious arithmetic branching programs. computational complexity,
+     26:835–880, 2017.
+14   Ming-Deh Huang and Yiu-Chung Wong. Extended hilbert irreducibility and its applications.
+     Journal of Algorithms, 37(1):121–145, 2000.
+15   Valentine Kabanets and Russell Impagliazzo. Derandomizing polynomial identity tests means
+     proving circuit lower bounds. In Proceedings of the 35th ACM Symposium on Theory of
+     Computing (STOC), pages 355–364. ACM, 2003.
+16   Erich Kaltofen. Computing with polynomials given by straight-line programs I: greatest
+     common divisors. In Proceedings of the 17th Annual ACM Symposium on Theory of Computing,
+     May 6-8, 1985, Providence, Rhode Island, USA, pages 131–142, 1985.
+17   Erich Kaltofen. Effective hilbert irreducibility. Information and Control, 66(3):123–137, 1985.
+18   Erich Kaltofen. Polynomial-time reductions from multivariate to bi-and univariate integral
+     polynomial factorization. SIAM Journal on Computing, 14(2):469–489, 1985.
+19   Erich Kaltofen. Factorization of polynomials given by straight-line programs. Randomness
+     and Computation, 5:375–412, 1989.
+20   Erich Kaltofen. Effective noether irreducibility forms and applications. Journal of Computer
+     and System Sciences, 50(2):274–295, 1995.
+21   Erich Kaltofen and Barry M. Trager. Computing with polynomials given byblack boxes for
+     their evaluations: Greatest common divisors, factorization, separation of numerators and
+     denominators. Journal of Symbolic Computation, 9(3):301–320, 1990.
+22   Neeraj Kayal. Efficient algorithms for some special cases of the polynomial equivalence problem.
+     In Dana Randall, editor, Proceedings of the Twenty-Second Annual ACM-SIAM Symposium
+     on Discrete Algorithms, SODA 2011, San Francisco, California, USA, January 23-25, 2011,
+     pages 1409–1421. SIAM, 2011. doi:10.1137/1.9781611973082.108.
+23   Neeraj Kayal. Affine projections of polynomials. In Proceedings of the forty-fourth annual
+     ACM symposium on Theory of computing, pages 643–662, 2012.
+24   Adam R Klivans and Daniel Spielman. Randomness efficient identity testing of multivariate
+     polynomials. In Proceedings of the thirty-third annual ACM symposium on Theory of computing,
+     pages 216–223, 2001.
+25   Pascal Koiran and Nicolas Ressayre. Orbits of monomials and factorization into products of
+     linear forms. arXiv preprint, 2018. arXiv:1807.03663.
+26   Pascal Koiran and Mateusz Skomra. Derandomization and absolute reconstruction for sums
+     of powers of linear forms. Theoretical Computer Science, 887:63–84, 2021.
+
+
+
+
+                                                                                                        APPROX/RANDOM 2024
+75:20   Derandomizing Multivariate Polynomial Factoring for Low Degree Factors
+
+
+        27   Swastik Kopparty, Shubhangi Saraf, and Amir Shpilka. Equivalence of polynomial identity
+             testing and polynomial factorization. computational complexity, 24(2):295–331, 2015.
+        28   Mrinal Kumar, Varun Ramanathan, and Ramprasad Saptharishi. Deterministic algorithms for
+             low degree factors of constant depth circuits. In Proceedings of the 2024 Annual ACM-SIAM
+             Symposium on Discrete Algorithms (SODA), pages 3901–3918. SIAM, 2024.
+        29   Mrinal Kumar, Varun Ramanathan, Ramprasad Saptharishi, and Ben Lee Volk. Towards
+             deterministic algorithms for constant-depth factors of constant-depth circuits. arXiv preprint,
+             2024. arXiv:2403.01965.
+        30   Arjen K Lenstra, Hendrik Willem Lenstra, and László Lovász. Factoring polynomials with
+             rational coefficients. Mathematische annalen, 261:515–534, 1982.
+        31   Nutan Limaye, Srikanth Srinivasan, and Sébastien Tavenas. Superpolynomial lower bounds
+             against low-depth algebraic circuits. In 2021 IEEE 62nd Annual Symposium on Foundations
+             of Computer Science (FOCS), pages 804–814. IEEE, 2021.
+        32   Dori Medini and Amir Shpilka. Hitting sets and reconstruction for dense orbits in vp_ {e} and
+             σπσ circuits. In 36th Computational Complexity Conference (CCC 2021). Schloss-Dagstuhl-
+             Leibniz Zentrum für Informatik, 2021.
+        33   C Ramya and BV Raghavendra Rao. Linear projections of the vandermonde polynomial.
+             Theoretical Computer Science, 795:165–182, 2019.
+        34   Ran Raz and Amir Shpilka. Deterministic polynomial identity testing in non-commutative
+             models. computational complexity, 14:1–19, 2005.
+        35   Nitin Saxena. Diagonal circuit identity testing and lower bounds. In Automata, Languages
+             and Programming: 35th International Colloquium, ICALP 2008, Reykjavik, Iceland, July 7-11,
+             2008, Proceedings, Part I 35, pages 60–71. Springer, 2008.
+        36   Amir Shpilka. Interpolation of depth-3 arithmetic circuits with two multiplication gates.
+             In Proceedings of the thirty-ninth annual ACM symposium on Theory of computing, pages
+             284–293, 2007.
+        37   Gaurav Sinha. Reconstruction of real depth-3 circuits with top fan-in 2. In 31st Conference
+             on Computational Complexity (CCC 2016). Schloss-Dagstuhl-Leibniz Zentrum für Informatik,
+             2016.
+        38   Volker Strassen. Vermeidung von divisionen. Journal für die reine und angewandte Mathematik,
+             264:184–202, 1973.
+        39   Ilya Volkovich. Deterministically factoring sparse polynomials into multilinear factors and sums
+             of univariate polynomials. In Approximation, Randomization, and Combinatorial Optimization.
+             Algorithms and Techniques (APPROX/RANDOM 2015). Schloss Dagstuhl – Leibniz-Zentrum
+             für Informatik, 2015.
+        40   Ilya Volkovich. On some computations on sparse polynomials. In Approximation, Randomiz-
+             ation, and Combinatorial Optimization. Algorithms and Techniques (APPROX/RANDOM
+             2017). Schloss Dagstuhl – Leibniz-Zentrum für Informatik, 2017.
+        41   Joachim von zur Gathen and Erich Kaltofen. Factoring sparse multivariate polynomials.
+             Journal of Computer and System Sciences, 31(2):265–287, 1985.
+

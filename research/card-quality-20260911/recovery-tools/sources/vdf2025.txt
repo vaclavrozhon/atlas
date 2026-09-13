@@ -1,0 +1,1593 @@
+Breaking Verifiable Delay Functions in the Random Oracle Model
+
+          Ziyi Guan                        Artur Riazanov                          Weiqiang Yuan
+   ziyi.guan@epfl.ch                artur.riazanov@epfl.ch                  weiqiang.yuan@epfl.ch
+          EPFL                               EPFL                                    EPFL
+
+                                                July 12, 2026
+
+
+                                                    Abstract
+      This work resolves the open problem of whether verifiable delay functions (VDFs) can be constructed
+  in the random oracle model.A VDF is a cryptographic primitive that requires a long time to compute
+  (even with parallelization), but produces a unique output that is efficiently and publicly verifiable.
+      We prove that VDFs do not exist in the random oracle model. This also rules out black-box construc-
+  tions of VDFs from other cryptographic primitives, such as one-way functions, one-way permutations and
+  collision-resistant hash functions.
+      Prior to our work, Mahmoody, Smith and Wu (ICALP 2020) prove that perfectly unique VDFs (a
+  much stronger form of VDFs) do not exist in the random oracle model; on the other hand, Ephraim,
+  Freitag, Komargodski, and Pass (Eurocrypt 2020) construct VDFs in the random oracle model assuming
+  the hardness of repeated squaring. Our result is optimal – we bridge the current gap between previously
+  known impossibility results and existing constructions.
+      We initiate the study of proof of work functions, a new cryptographic primitive that shares similarities
+  with both VDFs and proof of works. We show that a stronger form of it does not exist in the random
+  oracle model, leaving open the fascinating possibility of a random-oracle-based construction.
+
+  Keywords: verifiable delay functions; proof of work functions; random oracle model; query complexity
+Contents
+1   Introduction                                                                                                         1
+    1.1 Our results . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    2
+    1.2 Related works . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      3
+
+2 Techniques                                                                                                             5
+  2.1 From VDFs to search problems . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .           5
+  2.2 Warm-up: VDFs with perfect uniqueness in the ROM . . . . . . . . . . . . . . . . . . . . . . . . . .               6
+  2.3 Statistically unique PoWFs in the ROM . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .            7
+  2.4 VDFs with computational uniqueness in the ROM . . . . . . . . . . . . . . . . . . . . . . . . . . . .              8
+
+3   Preliminaries                                                                                                       11
+    3.1 Verifiable delay functions in the random oracle model . . . . . . . . . . . . . . . . . . . . . . . . . .       11
+    3.2 Proof of work functions in the random oracle model . . . . . . . . . . . . . . . . . . . . . . . . . . .        12
+    3.3 Search problems . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     13
+    3.4 VDFs to search problems . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .       14
+
+4   PoWFs with statistical uniqueness                                                                                   16
+    4.1 Proof of Theorem 4.2 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      16
+    4.2 Finding the best leaf: proof of Theorem 4.5 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .       17
+    4.3 Proof of Theorem 4.6 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      19
+
+5 VDFs with computational uniqueness                                                                                    21
+  5.1 The sequentiality breaker . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .       22
+  5.2 The uniqueness breaker . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .        23
+  5.3 Computational efficiency of the breakers . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .        26
+
+Acknowledgments                                                                                                         28
+
+A Tightness of Theorem 5.1                                                                                              28
+1    Introduction
+A verifiable delay function (VDF) [BBBF18] is a cryptographic primitive that requires a long sequential time
+to compute, while the output is efficiently verifiable. More specifically, a VDF is defined by two algorithms:
+Eval and Verify. On input x, Eval computes an output y and a proof π in time tEval , and Verify decides whether
+to accept (y, π) in time tVerify , where tVerify ≪ tEval . The main security requirements for VDFs are completeness,
+computational uniqueness and sequentiality. Completeness says that the solution output by Eval is accepted
+by Verify with high probability. Computational uniqueness says that given an input x, no adversary running in
+time poly(tEval ) can find a y ′ ̸= Eval(x) and a proof π ′ such that (y ′ , π ′ ) convinces the verifier. Sequentiality
+says that no adversary running in time smaller than tEval (with parallel processors) can compute y = Eval(x).
+    VDFs are useful in scenarios where a delay in the computation is needed to ensure that certain operations
+cannot be performed too quickly. It has applications in areas such as auction protocols, proof-of-work
+systems, cryptographic timestamping, secure multiparty computation, and building randomness beacons
+([BBBF18; BBF18; Pie19; Wes19; FMPS19; EFKP20; Sta20; HHKK23]).
+    Another line of work using VDFs as building blocks is proving hardness of TFNP classes. Establishing
+the hardness of the TFNP class PPAD [Pap94], in which finding the Nash equilibrium of a non-cooperative
+game is the complete problem, is a long-standing open question. [BPR15; HY17; LV20; Bit+22] discuss the
+similarities between constructions of hard instances in PPAD and constructions of VDFs.
+    A natural question to study is whether black-box constructions of VDFs are possible from unstructured
+primitives, like hash functions or other symmetric primitives. The starting point would be to consider
+constructions in the random oracle model (ROM). [EFKP20] constructs VDFs in the ROM based on hardness
+of repeated squaring [RSW96]. [DGMV20] shows that tight VDFs, a variant whose evaluation time is
+very close to the sequentiality requirement, do not exist in the ROM. However, it is unclear whether the
+impossibility on tight VDFs extend to general VDFs. [MSW20] proves that VDFs satisfying perfect
+uniqueness (a strengthening of the computational uniqueness saying that no adversary can find a different
+solution) cannot be constructed in the ROM; they raise whether it is possible to rule out VDFs with
+computational uniqueness in the ROM as an open question.
+    We resolve the open question in [MSW20] and close the gap between existing constructions and known
+lower bounds by showing that:
+                    Verifiable delay functions do not exist in the random oracle model.
+In particular, we rule out black-box constructions of VDFs from a number of cryptographic primitives such
+as one-way functions, one-way permutations, and collision-resistant hash functions.
+Proof of work functions. The above result indicates that sequentiality and uniqueness cannot coexist in the
+ROM. On the other hand, it is known that sequentiality alone does not cause problems — proof of sequential
+works (PoSWs) [DLM19] exist in the ROM. What about uniqueness? We study this question by proposing
+proof of work functions (PoWFs), that can be viewed as either VDFs without sequentiality or proof of works
+(PoWs) [DN93; JJ99; Bac02] with computational uniqueness. We ask:
+                Can proof of work functions be constructed in the random oracle model?
+PoWFs provide a better interface for some applications of PoWs. For example, in systems where resources are
+allocated based on PoWs [DN93; Bac02; JB99; LMCB12; GKL15], participants solve cryptographic puzzles
+as proof for their computational efforts to gain access to resources. However, standard PoW mechanisms
+do not prevent a user from finding multiple valid solutions after making the required effort once, thereby
+allowing them to exploit the system by submitting each valid solution separately. PoWFs address this risk by
+ensuring that only one valid solution can be found for each puzzle.
+
+                                                           1
+    Moreover, the parallelizable nature makes PoWFs suitable for scenarios where VDFs are typically used,
+but delay is not necessary. PoWFs can efficiently provide unique outputs for applications like randomness
+beacons, which is useful in decentralized lotteries, random leader elections, etc., offering a compelling
+alternative when delay is not a primary concern.
+
+1.1   Our results
+Our first result shows that VDFs cannot simultaneously satisfy sequentiality and computational uniqueness in
+the ROM. This implies that VDFs cannot be constructed in the ROM. We then prove that a “strong” form of
+PoWFs also cannot exist in the ROM, which naturally raises the intriguing question of whether PoWFs might
+be realizable in the ROM.
+Verifiable delay functions. Consider VDF = (Eval, Verify) in the ROM. We focus on the the number of
+queries made by Eval and Verify to the random oracle instead of their running time. Specifically, on input x,
+Eval computes an output y and a proof π with query complexity at most qEval , and Verify decides whether to
+accept (y, π) with query complexity at most qVerify , where qVerify ≪ qEval . The uniqueness and sequentiality
+requirements are adapted accordingly.
+
+Theorem 1 (Informal). Suppose VDF is a VDF in the random oracle model that satisfies completeness and
+computational uniqueness. Then, there exists an adversary Adv that breaks the sequentiality of VDF by
+making at most O(qVerify · qEval ) queries in O(qVerify ) rounds.
+
+We emphasize that our adversary Adv is optimal in the ROM – [EFKP20] constructs a VDF that satisfies
+both computational uniqueness and sequentiality in the ROM assuming the hardness of repeated squaring
+(the RSW assumption [RSW96]). We give a detailed explanation in Section 5.3.
+Proof of work functions. A PoWF in the ROM is a tuple of algorithms (PoWF.Solve, PoWF.Verify). Given
+input x, PoWF.Solve outputs a solution y in with query complexity qPoWF.Solve , and PoWF.Verify decides
+whether to accept y with query complexity qPoWF.Verify . Completeness ensures that PoWF.Verify accepts the
+output of PoWF.Solve(x) with high probability. Soundness states that any algorithm with query complexity
+significantly below qPoWF.Solve can produce a valid y where PoWF.Verify(x, y) = 1 with only negligible
+probability. Similarly to VDFs, we additionally require PoWF to satisfy computational uniqueness, which
+means that no algorithm with query complexity poly(qPoWF.Solve ) can find y ′ ̸= PoWF.Solve(x) such that
+PoWF.Verify(x, y ′ ) = 1 with non-negligible probability.
+    We give a partial answer to the question raised before by showing that PoWFs that satisfies statistical
+uniqueness (no adversary can find different solutions for all but negligibly many inputs) do not exist in the
+ROM.
+
+Theorem 2. Suppose PoWF is a PoWF in the random oracle model that satisfies completeness and statistical
+uniqueness. Then, there exists an O(q2PoWF.Verify )-query adversary Adv that breaks the soundness of PoWF.
+
+    Theorem 2 leaves open the problem whether PoWFs with computational uniqueness can be constructed in
+the ROM. In fact, since the techniques we use to show Theorem 2 is closely related to certificate complexity
+and query complexity of search problems [KSS11; Smy02], we also provide an alternative formulation of
+this open problem in terms of search problems in Open Problem 1.
+    Table 1 below summarizes the current state of our understanding on the trade-off between uniqueness
+and sequentiality when constructing cryptographic primitives in the ROM.
+
+
+
+
+                                                      2
+                                        With Sequentiality                    Without Sequentiality
+              Perfect
+                             (perf. uniq. VDF) [MSW20], Theorem 1: ✗     (perf. uniq. PoWF) Theorem 2: ✗
+             Uniqueness
+             Statistical
+                             (stat. uniq. VDF) Theorem 1: ✗              (stat. uniq. PoWF) Theorem 2: ✗
+             Uniqueness
+           Computational
+                             (VDF) Theorem 1: ✗                          (PoWF) Open
+            Uniqueness
+           No Uniqueness     (PoSW) [DLM19]: ✓                           (PoW) [GKL15]: ✓
+
+  Table 1: Trade-offs between uniqueness and sequentiality in the ROM. We use the red cross mark (✗) to indicate
+  impossibility results and the blue check mark (✓) to indicate constructions.
+
+
+1.2   Related works
+VDF and related cryptographic primitives have been studied extensively in prior works. We summarize the
+works that are most relevant to our results.
+Verifiable delay functions. [MSW20] shows that VDFs with perfect completeness (Eval outputs an accepting
+solution with probability 1) and adaptive perfect uniqueness cannot exist in the ROM. Our impossibility
+result on VDFs with imperfect completeness and non-adaptive computational uniqueness in the ROM is more
+general (see Theorem 3.4 and Theorem 3.5). In fact, we also show a stronger claim regarding VDFs with
+perfect uniqueness. We postpone a detailed comparison to Section 2.2. [DGMV20] presents an in-depth
+study of tight VDFs, a variant that requires the evaluation algorithm Eval to run in time almost the same as
+the sequentiality requirement, and proves a negative result in the ROM. Specifically, they show that there
+is no VDF construction that cannot be evaluated using T rounds of queries, but can be evaluated using
+T + O(T δ ) (for every constant 0 < δ < 1) rounds of queries. Note that this does not rule out VDFs that
+cannot be evaluated using T rounds of queries but can be evaluated using T + Ω(T ) rounds of queries.
+[RSS20] shows that VDFs cannot be constructed in cyclic groups of known orders. In fact, their result
+works for generic-group delay functions, a generalization of VDFs. [EFKP20] constructs VDFs with perfect
+completeness and computational uniqueness in the ROM assuming the hardness of repeated squaring. We
+summarize the comparison between the above-mentioned works and our results in Table 2.
+
+                                           Perfect Completeness              Imperfect Completeness
+                   Perfect       [MSW20]: ✗ (ROM)
+                                                                             Theorem 1: ✗ (ROM)
+                  Uniqueness     Theorem 1: ✗ (ROM)
+                                  [DGMV20]: ✗ (ROM + tight VDF)
+                Computational    [RSS20]:✗ (cyclic groups of known orders)
+                                                                             Theorem 1: ✗ (ROM)
+                 Uniqueness      [EFKP20]: ✓ (ROM + repeated squaring)
+                                 Theorem 1: ✗ (ROM)
+
+  Table 2: Comparison between prior works and our results. We use the red cross mark (✗) to indicate impossibility
+  results and the blue check mark (✓) to indicate constructions. We specify the underlying assumption for each
+  result in parenthesis.
+
+Time-lock puzzles. Time-lock puzzles ([RSW96]) are similar to VDFs as they also have the uniqueness and
+sequentiality guarantee. In a time-lock puzzle, a generator outputs a puzzle x and a corresponding solution y
+efficiently. However, computing y from x still requires large sequential time. The main difference is that
+time-lock puzzles require the verifier to have knowledge of a secret key to achieve efficient verification, while
+
+                                                         3
+VDFs are publicly verifiable. [MMV11] rules out time-lock puzzles in the ROM.
+Incrementally verifiable computations. Incrementally verifiable computation (IVC) [Val08] is a crypto-
+graphic primitive that enables efficient verification for multi-step computation. It is believed, though only
+partially proven [HN23; BCG24], that IVC does not exist in the ROM. [BBBF18] shows there is a black-box
+construction of VDFs from tight IVC (where IVC prover does not have too much overhead) for iterated
+sequential functions. Consequently, our results rule out tight IVC for iterated sequential functions in the ROM.
+However, since all hard sequential functions constructions use either the random oracle or cryptographic
+assumptions, our results imply that tight relativized IVC (tight IVC for which the target computation itself
+involves calls to the oracle) cannot be constructed in the ROM. In fact, [BCG24] proves a stronger claim:
+relativized IVC does not exist in the ROM, even when security holds against time-bounded (instead of just
+query-bounded) adversaries. We leave as an open question whether our techniques can be used to prove the
+impossibility of standard, non-relativized IVC in the ROM.
+Proofs of work. A proof of work can be constructed in the ROM [GKL15]. Proof of sequential works
+(PoSWs) are proof of works with sequentiality guarantee [MMV13; CP18; AKKPW19; DLM19; AFGK22;
+AC23; Abu23]. It is known that PoSWs can be constructed in the ROM ([MMV13; CP18; DLM19]). Our
+results show that (i) VDFs, which can be viewed as proof of works with sequentiality and uniqueness, cannot
+be contructed in the ROM; (ii) statistically unique PoWFs, which is defined to be proof of works with
+statistical uniqueness, do not exist in the ROM.
+
+
+
+
+                                                       4
+2     Techniques
+We overview the main ideas underlying our results. In Section 2.1, we discuss our reformulation of VDFs into
+search problems that enables us to apply techniques developed for decision tree algorithms, which enables
+us to use techniques in query complexity. In Section 2.2, we provide a simpler proof for the impossibility
+of VDFs with perfect uniqueness in the ROM as a warm-up. In Section 2.3, we explain how to generalize
+the approach in Section 2.2 to prove Theorem 2. In Section 2.4, we start with an alternative proof for the
+impossibility of VDFs with statistical uniqueness in the ROM and explain how to adapt it to show Theorem 1.
+
+2.1     From VDFs to search problems
+Review: VDF. A VDF in the ROM is a tuple of algorithms VDF = (Eval, Verify) that works as follows:
+for every security parameter λ ∈ N, let the random oracle O(λ) be the uniform distribution over the set of all
+functions with output length λ ({f : {0, 1}∗ → {0, 1}λ }):
+
+      • The evaluation function Eval gets oracle access to a random oracle function f , receives an input x ∈ X
+        and deterministically produces an output y ∈ Y. (Note that Eval should also output a proof π, we
+        omit it in this section for simplicity. Our formal proofs use the standard VDF definition as stated in
+        Theorem 3.2.) Eval makes at most qEval queries to f .
+      • The verifier Verify gets oracle access to a random oracle function f , receives input (x, y) ∈ X × Y
+        and deterministically decides whether to accept or reject. Verify makes at most qVerify queries to f .
+
+VDF is complete if the solution computed by Eval is accepted by Verify with high probability. For ease of
+discussion, we consider VDFs with perfect completeness in this section (imperfect completeness is handled
+carefully in Sections 4 and 5). VDF satisfies sequentiality if no rAdv -round qAdv -query (rAdv ≪ qEval and
+qAdv = O(qEval )) algorithm can correctly compute Eval with non-negligible probability. Moreover, we say
+that VDF has perfect uniqueness if for every input x, Verify only accepts the output y := Evalf (x); VDF has
+statistical uniqueness if for every input x, Verify accepts an alternative output y ′ ̸= Evalf (x) with negligible
+probability; VDF has computational uniqueness if for every input x and every poly(qEval )-query adversary
+Adv, Verify accepts Advf (x) ̸= Evalf (x) with negligible probability. Note that the above probabilities are
+with respect to the choice of the random oracle function f .
+Review: search problems. A search problem S ⊆ F × Y is defined by a family of verifiers {Vy : F →
+{0, 1}}y∈Y , where (f, y) ∈ S if and only if Vy (f ) = 1. We say an algorithm D : F → Y computes S if for
+every f ∈ F, (f, D(f )) ∈ S.
+Reformulation of VDFs. Recall that every query algorithm can be viewed as a decision tree: the internal
+nodes of the tree represent the queries, the leaves represent the solutions, and the branching is based on the
+answers from the oracle to the queries.
+    In the ROM, the efficiency of the algorithms is measured by the number of queries they make to the
+random oracle. Thus, the execution of every sequential algorithm can be viewed as a decision tree. The same
+holds for parallel algorithms except that the internal nodes are now labeled by the set of queries instead of a
+single query.
+    Formally, fix a security parameter λ ∈ N, for every x ∈ X , we define a search problem Sx ⊆ F × Y,
+                                                                               (x)
+where F := {f : {0, 1}∗ → {0, 1}λ } and Y := Y, by a family of verifiers {Vy : F → {0, 1}}y∈Y where for
+every y ∈ Y,
+                                           V(x)              f
+                                             y (f ) = Verify (x, y).
+
+
+
+
+                                                        5
+Moreover, we define D(x) : F → Y, which computes Sx , such that for every f ∈ F,
+
+                                              D(x) (f ) := Evalf (x).
+
+The convention in query complexity is that the domain of the relations is finite, whereas the domain
+F = {f : {0, 1}∗ → {0, 1}λ } is infinite. We observe that it is sufficient to define Sx ⊆ [2λ ]n × Y since
+there is some large constant n such that VDF depends on at most n positions of the random oracle. The total
+number of search problems we define is |X |. For each search problem, we have at most |Y| verifiers of query
+complexity qVerify , so each of them depends on at most 2λqVerify +1 positions in {0, 1}∗ . Moreover, Eval has
+query complexity qEval , so it depends                   λqEval +1 points in the domain of f . Thus we can bound n by
+            λq       +1        λq      +1
+                                           on at most 2
+n ≤ |X | 2    Verify    |Y| + 2   Eval     .
+               (x)
+    Hence, Vy has query complexity (with respect to the input string) t := qVerify and D(x) has query
+complexity T := qEval . These search problems preserve many properties of the original VDF:
+    • Algorithms computing these search problems can be transformed into algorithms computing the original
+       VDF with roughly the same complexity and success probability.
+    • VDFs with certain sequentiality and uniqueness properties correspond to search problems with similar
+       properties.
+
+2.2   Warm-up: VDFs with perfect uniqueness in the ROM
+As a warm-up, we present a new proof for the impossibility of VDFs with perfect uniqueness in the ROM.
+Our proof is inspired by the classical algorithm witnessing that decision tree complexity is at most the square
+of certificate complexity for total boolean functions ([AB09]).
+    Since VDFs have perfect completeness and perfect uniqueness, we know that for every x ∈ X and
+f ∈ [2λ ]n , there is a unique y ∈ Y such that (f, y) ∈ Sx . Hence, according to the search problem
+reformulation outlined in Section 2.1, it suffices to prove the following lemma.
+                                                                                                  (x)
+Lemma 1. Let Sx ⊆ [2λ ]n × Y be a search problem determined by a family of verifiers {Vy }y∈Y of query
+complexity t such that for every f ∈ [2λ ]n , |{y ∈ Y : (f, y) ∈ Sx }| = 1. Then there exists an O(t)-round
+O(t2 )-query adversary A(x) : [2λ ]n → Y that computes Sx .
+                                                                                                            (x)
+    For a fixed input x ∈ X , let’s consider the set of all accepting leaves {ℓi }i of the verifiers {Vy }y∈Y .
+Note that each leaf ℓi is an element in ([2λ ] ∪ {⋆})n such that for every f ∈ [2λ ]n that agrees with ℓi we have
+  (x)
+Vy (f ) = 1 for some y ∈ Y. For ease of notation, we define the domain dom(ℓ) for each ℓ ∈ ([2λ ] ∪ {⋆})n
+as the set of positions that are determined:
+
+                                         dom(ℓ) := {i ∈ [n] : ℓ[i] ̸= ⋆}.
+
+For each ℓ ∈ ([2λ ] ∪ {⋆})n , we define its corresponding cube Cube(ℓ) as follows:
+
+                           Cube(ℓ) := {f ∈ [2λ ]n : for all q ∈ dom(ℓ), f [q] = ℓ[q]}.
+
+Since every f ∈ [2λ ]n has a unique solution y, Cube(ℓi )’s are disjoint. Hence, for every ℓi ̸= ℓj , there is
+some q ∈ dom(ℓi ) ∩ dom(ℓj ) such that ℓi [q] ̸= ℓj [q]. In other words, if we pick an arbitrary ℓi and query
+the given random oracle function f at all positions in dom(ℓi ), we “learn” at least one position for every
+                     (x)
+leaf {ℓi }i . Since Vy makes at most qVerify queries, each leaf contains at most qVerify non-⋆ positions. Thus,
+repeating the above process for qVerify times suffices for an adversary to “learn” everything to determine the
+solution y. Hence, we can design an adversary that always outputs the correct solution y as follows:
+
+                                                         6
+                                                                                      (x)
+   1. Let L be the set of all accepting leaves {ℓi }i of the verifiers {Vy }y∈Y .
+   2. Initialize p∗ := ⋆n .
+   3. For i ∈ [qVerify ]: Choose an arbitrary leaf ℓ in L. Query the given oracle function f at all positions in
+      dom(ℓ). Update p∗ to record the answers of f and remove from L every leaf inconsistent with p∗ .
+                           (x)
+   4. Output y where Vy (ℓ) = 1 for every ℓ ∈ Cube(p∗ ).
+
+Observe that the adversary makes at most t2 queries in t rounds. However, it is not computationally efficient
+since it needs to go over all accepting leaves, contrary to the adversaries we designed in the proof of Theorem 1
+(see Section 5.3 for a detailed discussion).
+
+Remark 1. [MSW20] proves VDFs with perfect completeness and perfect uniqueness do not exist in the ROM
+by constructing a sequentiality adversary that makes (2qVerify + 1) · qEval queries in total over 2qVerify + 1 rounds.
+Qualitatively they show a similar result as Lemma 1. However, we construct a sequentiality adversary using
+only q2Verify queries in qVerify rounds and our construction works even when VDFs have imperfect completeness
+(see Section 4). In particular, this quantitative improvement on the query complexity of the adversary enables
+us to conclude that PoWFs with perfect uniqueness do not exist in the ROM.
+
+2.3    Statistically unique PoWFs in the ROM
+In this section we explain the idea behind Theorem 2. Observe that in Section 2.2 we have proved the
+following claim.
+
+Claim 1 ([BI87], see also [AB09]). For a given collection of certificates ℓ1 , . . . , ℓN ∈ ([2λ ] ∪ {⋆})n such
+that Cube(ℓi ) are disjoint there exists a decision tree of depth O((maxi∈[n] |dom(ℓi )|)2 ) that finds the unique
+certificate ℓi that agrees with the given f ∈ [2λ ].
+
+     The only difference between the statement of Lemma 1 and Claim 1 is that instead of certificates we have
+a collection of verifiers. It is easy to see that they are equivalent: a certificate can be checked by a verifier and
+a verifier can be replaced with a collection of certificates corresponding to its accepting leaves.
+     Theorem 2 can be seen as an approximate analogue of Claim 1. In fact, as explained Remark 1, to rule
+out PoWFs with statistically uniqueness in the ROM, it is enough to construct a sequentiality adversary for
+statistically unique VDFs whose query complexity is polynomial in qVerify .
+     The question of whether one can prove an approximate version of Claim 1 was first asked by Rudich in
+[Rud88], who derived from this (then) conjecture that one-way permutations do not exist in the random oracle
+model. Rudich’s conjecture was resolved by Kahn, Saks, and Smyth [KSS11] using Berg-Kesten-Reimer
+(BKR) inequality, which was conjectured in [BK85] and proved in [Rei00].
+     [KSS11] taken together with [Rud88] implies that given a collection of certificates ℓ1 , . . . , ℓN , if a random
+point in [2λ ]n belongs to exactly one Cube(ℓi ) with large enough constant probability, Claim 1 still applies,
+hence Theorem 2 holds. There is, however, an important technical caveat that prevents this simple logic to go
+through.
+Ambiguity of a proof. As remarked in Section 2.1, the definition for VDFs we use in this section is
+simplified: in the actual definition following the standard definition of VDF, Evalf (x) outputs a pair (y, π)
+                                                                                                 (x)
+where π is a proof that can be used by Verify. 1 In the language of certificates it means that Vy corresponds to
+a collection of potentially non-disjoint certificates, as opposed to certificates corresponding to accepting leaves
+   1
+     We emphasize that although this simplification needs to be taken care of separately in this case, it does not affect the proof of
+Theorem 1 (see Sections 2.4 and 5).
+
+
+
+                                                                  7
+of a single decision tree that are by definition disjoint. The uniqueness property of VDF then guarantees only
+that certificates corresponding to different values y have low total intersection, hence the result of [KSS11]
+does not apply.
+      Following up to [KSS11], Smyth [Smy02] proved that forStwo certificate collections         S     ℓ1 , . . . , ℓN and
+τ1 , . . . , τL such that a random point belongs to exactly one of i∈[N ] Cube(ℓi ) and i∈[L] Cube(τi ), there
+exists a decision tree of depth O(t2 ) finding a certificate agreeing with the given f ∈ [2λ ]n , where t is the
+largest domain size among ℓ1 , . . . , ℓN , τ1 , . . . , τN . This would be exactly equivalent to Theorem 2 if |Y| = 2.
+      In order to prove Theorem 2, we generalize Smyth’s result to arbitrary many certificate (cube) families in
+Section 4. The proof follows the original one pretty closely. However, a black-box reduction to the case of
+two families seems elusive: a naı̈ve attempt to partition the families in two groups, apply Smyth’s theorem
+and continue with a smaller group introduces an error multiplier logarithmic in the number of families, which
+is unacceptable in our case since the initial error is constant. Moreover, it is not even clear how to give any
+bound on |Y| in terms of t.
+
+2.4     VDFs with computational uniqueness in the ROM
+We explain how to prove Theorem 1. In order to tackle VDFs with computational uniqueness, we start with a
+different approach to rule out VDFs with statistical uniqueness. In fact, our proof has two steps:
+     • Step 1: We construct an adversary that computes Eval with small sequential time if the given VDF
+       admits statistical uniqueness;
+     • Step 2: We show that a modified adversary works well even when VDF only has computational
+       uniqueness.
+
+2.4.1    Adversary for VDFs with statistical uniqueness in the ROM
+Similar to Section 2.1 we use our reformulation for a given VDF = (Eval, Verify). Note that now VDF only
+satisfies statistical uniqueness, we don’t expect our sequentiality adversary A(x) to perfectly compute Sx
+anymore. Rather, we show that there exists some constant C such that for every x ∈ X , there is a O(t)-round
+O(t · T )-query adversary A(x) that computes Sx with success probability at least 1 − C · ϵ, where ϵ = negl(λ)
+is the uniqueness error of VDF.
+     Our proof is inspired by [MSW20, Algorithm 1], which they use to show that VDFs with perfect
+uniqueness cannot be constructed in the ROM. We first explain their idea and then present how we modify it
+to work in our setting. ([MSW20] presents their proof in terms of VDF, we rephrase it to fit into our decision
+tree framework.) For each input x ∈ X , [MSW20] constructs an adversary A(x) that proceeds in 2t + 1
+rounds to compute Sx . This adversary is described in Algorithm 1.
+     [MSW20] observes that in each iteration, if A(x) (f ) chooses a leaf that leads to some solution other than
+                                                                                          (x)
+y := D(x) (f ), it queries at least one “new” position that has also been queried by Vy (f ) in this iteration.
+                                                        (x)
+Formally, let ℓV,f be the unique accepting leaf of Vy that contains f . Let p∗i be the value of p∗ at the
+beginning of iteration i. Since VDF satisfies perfect uniqueness, which means that for every chosen leaf ℓi
+such that D(x) (ℓi ) ̸= D(x) (f ), the following holds:
+
+                                      Cube(p∗i ∪ ℓi ) ∩ Cube(p∗i ∪ ℓV,f ) = ∅.
+
+In other words, every time A(x) (f ) records a wrong solution, it makes progress in learning the verifier’s view
+              (x)
+of f . Since Vy has query complexity at most t, at most t of the recorded solutions do not equal to y, which
+implies that the majority of recorded solutions gives y = D(x) (f ).
+
+                                                            8
+Algorithm 1 Adversary A(x) from [MSW20].
+Input: f ∈ [2λ ]n
+Output: y ∈ Y ∪ {⊥}
+ 1: Let L1 := {ℓi }i be the set of leaves of D(x) .
+ 2: Initialize p∗ := ⋆n .
+ 3: Initialize W := [ ].
+ 4: for i ∈ [2qVerify + 1] do
+ 5:     Choose an arbitrary leaf ℓi from Li .
+ 6:     Append D(x) (ℓi ) to W .
+ 7:     For every q ∈ dom(ℓi ), query f at q and set p∗ [q] := f [q].
+ 8:     Let Li+1 ⊆ Li be the set of all leaves in Li that are consistent with p∗ .
+ 9: return y if W contains some y that wins the majority vote; ⊥ otherwise.
+
+
+
+    However, the above adversary cannot be directly applied in the statistical uniqueness setting: the adversary
+might not make progress when it records a wrong solution.
+    To be more specific, if the VDF does not have perfect uniqueness, when A(x) (f ) chooses a leaf ℓi that
+leads to some solution y ′ ̸= D(x) (f ) in round i, it is possible that the following happens:
+
+                                      Cube(p∗i ∪ ℓi ) ∩ Cube(p∗i ∪ ℓV,f ) ̸= ∅.
+
+Hence, we can neither record the correct solution nor learn the verifier’s view of f in this case.
+   The above issue can be addressed by the following two modifications to the adversary A(x) :
+      • In each iteration, instead of choosing an arbitrary leaf ℓi from Li , we need to carefully choose a leaf that
+        “breaks less perfect uniqueness”. More specifically, we choose leaf ℓi such that Cube(ℓi ) ∩ Cube(p∗i )
+        contains fewer functions f ∈ [2λ ]n that have non-unique solutions in Sx than that in Cube(p∗i ) (such
+        leaf ℓi exists by an averaging argument).
+      • Our new adversary runs in (2 + δ)qVerify rounds for some constant δ > 0 instead of merely 2qVerify + 1
+        rounds.
+As before, we know that there are at most t rounds i such that
+
+                        D(x) (ℓi ) ̸= D(x) (f ) and Cube(p∗i ∪ ℓi ) ∩ Cube(p∗i ∪ ℓV,f ) = ∅.
+
+Moreover, from statistical uniqueness, there are at most ϵ-fraction of f ∈ [2λ ]n such that there exists some
+                                  (x)
+y ′ ∈ Y where y ′ ̸= D(x) and Vy′ = 1. By our specific choice of leaves in each round, in expectation, there
+are (2 + δ)qVerify · ϵ rounds i such that
+
+                        D(x) (ℓi ) ̸= D(x) (f ) and Cube(p∗i ∪ ℓi ) ∩ Cube(p∗i ∪ ℓV,f ) ̸= ∅.
+
+Hence, by Markov’s inequality, A(x) records the true solution in the majority of rounds with high probability.
+
+2.4.2    Does computational uniqueness undermine the adversary?
+We briefly discuss how the above adversary A(x) would still succeed even when VDF satisfies only com-
+putational uniqueness. (We do need to modify A(x) further in the formal proof, but the version outlined in
+Section 2.4.1 is good enough for an intuitive explanation.) The rigorous proof can be found in Section 5.
+
+                                                          9
+    In order to better understand which part of the analysis outlined in Section 2.4.1 fails after relaxing
+the uniqueness guarantee, we first recall the difference in the definitions of statistical uniqueness and
+computational uniqueness:
+
+    • Statistical uniqueness: For a uniformly chosen x ∈ X , there are at most ϵ-fraction of f ∈ [2λ ]n such
+                                                            (x)
+      that there exists some y ′ ∈ Y where y ′ ̸= D(x) and Vy′ = 1.
+    • Computational uniqueness: For a uniformly chosen x ∈ X and every computationally-bounded
+      adversary B(x) , there are at most ϵ-fraction of f ∈ [2λ ]n such that B can find some y ′ ∈ Y where
+                        (x)
+      y ′ ̸= D(x) and Vy′ = 1.
+
+According to the above definitions, for a VDF that satisfies computational uniqueness, it is possible that more
+than ϵ-fraction of f ∈ [2λ ]n admits multiple solutions. Hence, the previous analysis in Section 2.4.1 fails to
+work as we cannot directly bound the number of rounds such that D(x) (ℓi ) ̸= D(x) (f ) and Cube(p∗i ∪ ℓi ) ∩
+Cube(p∗i ∪ ℓV,f ) ̸= ∅ anymore.
+    Our key observation is that from such iterations we can extract non-canonical solutions for points in
+the intersection of Cube(p∗i ∪ ℓi ) and Cube(p∗i ∪ ℓV,f ): by the choice of ℓi , the value of D(x) for all these
+points is D(x) (ℓi ); and by definition of ℓV,f , the value D(x) (f ) is accepted by the verifier. In order to
+exploit this observation we devise a uniqueness adversary B(x) coupled with the sequentiality adversary
+A(x) in Section 2.4.1, in such a way that if there are too many rounds i where D(x) (ℓi ) ̸= D(x) (f ) and
+Cube(p∗i ∪ ℓi ) ∩ Cube(p∗i ∪ ℓV,f ) ̸= ∅, B(x) breaks computational uniqueness. Since B(x) needs to work with
+non-negligible probability for a uniformly random function f ∈ [2λ ]n , we have to modify the sequentiality
+adversary A(x) such that the non-uniqueness witnesses are distributed uniformly.
+    We carefully explain how one can modify the construction of A(x) and construct an effective uniqueness
+adversary B(x) to rule out VDFs with computational uniqueness in Section 5.
+
+Open Problem 1. We do not know whether it is possible to construct a sequentiality adversary for compu-
+tationally unique VDFs with query complexity polynomially related to qVerify . In fact, the existence of such
+an adversary would imply that PoWFs cannot be constructed in the ROM. We present a query-complexity
+formulation of this problem below.
+    Let S ⊆ F × Y be a search problem defined by a verifier V : F × Y → {0, 1} with query complexity t.
+Let D : F → Y be a T -query algorithm (with arbitrarily many rounds) that computes S correctly with high
+probability. Assume that for uniformly sampled f ∈ F, it is computationally hard to find y ′ ̸= D(f ) where
+V (f, y ′ ) = 1. Is it possible to construct a poly(t)-query adversary that computes S with non-negligible
+probability?
+
+
+
+
+                                                      10
+3     Preliminaries
+Definition 3.1 (The random oracle model (ROM)). For every λ ∈ N, the random oracle O(λ) is the uniform
+distribution over the set of all functions f : {0, 1}∗ → {0, 1}λ .
+
+3.1     Verifiable delay functions in the random oracle model
+Definition 3.2 (Verifiable delay function (VDF) [BBBF18] in the random oracle model). A verifiable delay
+function VDF in the ROM is a tuple of oracle-aided algorithms VDF = (Setup, Eval, Verify) such that for
+every λ ∈ N and f ∈ O(λ), the following hold:
+
+      • Setupf (1λ , qEval ) → pp: On input the security parameter λ and the query bound qEval , the deterministic
+        setup algorithm Setup outputs the public parameters pp, where pp determines a (uniformly) samplable
+        input space X and an output space Y.
+
+      • Evalf (pp, x) → (y, π): On input the public parameter pp and an element x ∈ X , the evaluation
+        algorithm Eval outputs y and a proof π, where y is generated deterministically while π can be
+        generated in a randomized way. (Specifically, Eval outputs y before it accesses its internal randomness.)
+        We sometimes ignore the output proof π and write Evalf (pp, x) → y for simplicity.
+
+      • Verifyf (pp, x, y, π) → {0, 1}: On input the public parameter pp, and element x ∈ X , a value y ∈ Y,
+        and a proof π, the deterministic verification algorithm Verify outputs a bit indicating whether it
+        accepts or rejects.
+
+   We require that Setup, Eval and Verify make at most qSetup , qEval and qVerify queries, respectively, to the
+random oracle, where qSetup = qSetup (λ, qEval ) and qVerify = qVerify (λ, qEval ). In practice, we want to have VDFs
+where qSetup ≪ qEval and qVerify ≪ qEval .
+
+Definition 3.3 (Completeness of VDF). VDF = (Setup, Eval, Verify) has completeness error α if for every
+λ ∈ N and qEval ∈ N,
+
+                                                          f ← O(λ)
+                                                                        
+                           f                  pp ← Setupf (1λ , qEval ) 
+                                                                          ≥ 1 − α(λ).
+                 Pr Verify (pp, x, y, π) = 1                x←X 
+                                                (y, π) ← Evalf (pp, x)
+
+When α = 0, we say the VDF has perfect completeness.
+
+Definition 3.4 (Non-adaptive (qAdv , ϵ)-uniqueness of VDF). For every qAdv and ϵ, VDF = (Setup, Eval, Verify)
+satisfies (qAdv , ϵ)-uniqueness if for every λ ∈ N, qEval ∈ N, and qAdv -query adversary Adv,
+
+                                                                     f ← O(λ)
+                                                                                    
+                        y ̸= Evalf (pp, x)                pp ← Setupf (1λ , qEval ) 
+                    Pr                                                               ≤ ϵ(λ).
+                        ∧ Verifyf (pp, x, y, π) = 1                     x←X 
+                                                              (y, π) ← Advf (pp, x)
+
+We say that VDF satisfies perfect uniqueness if qAdv is unbounded and ϵ(λ) = 0. We say that VDF satisfies
+statistical uniqueness if qAdv is unbounded and ϵ(λ) = negl(λ). We say that VDF satisfies computational
+uniqueness if qAdv = poly(λ, qEval ) and ϵ(λ) = negl(λ).
+
+                                                         11
+Remark 3.5. Note that in previous works (e.g. [BBBF18; MSW20; DGMV20]), uniqueness is defined
+adaptively. In other words, instead of sampling an input x uniformly at random and giving to the adversary
+Adv as input, they allow Adv to choose the input themselves. The adaptive uniqueness is a stronger security
+notion than our non-adaptive uniqueness. However, since our focus in this paper is on impossibility results, we
+work with non-adaptive uniqueness, which implies stronger impossibility results compared to their adaptive
+analogues. We sometimes write “uniqueness” instead of “non-adaptive uniqueness” for simplicity; however,
+we always write “adaptive uniqueness” explicitly.
+
+Definition 3.6 ((rAdv , qAdv , γ)-sequentiality of VDF). For every rAdv , qAdv , and γ, VDF = (Setup, Eval, Verify)
+is (rAdv , qAdv , γ)-sequential if for every λ ∈ N, rAdv ∈ N, qEval ∈ N, and rAdv -round qAdv -query adversary Adv,
+
+                                                              f ← O(λ)
+                                                                             
+                                    f              pp ← Setupf (1λ , qEval ) 
+                                                                               ≤ γ(λ).
+                         Pr 
+                            y = Eval (pp, x)                     x←X 
+                                                        y ← Advf (pp, x)
+
+Remark 3.7. Note that we allow the adversary in the sequentiality definition to be parallel algorithms: it
+can ask multiple queries in the same round, as long as the total number of queries across rounds is upper
+bounded by qAdv . Moreover, canonical VDF definitions (e.g. [BBBF18]) require γ to be negligible in λ, here
+we consider the more general definition that considers various γ.
+
+3.2     Proof of work functions in the random oracle model
+Definition 3.8 (Proof of work function (PoWF) in the random oracle model). A proof of work function PoWF
+in the ROM is a tuple of oracle-aided algorithms PoWF = (PoWF.Setup, PoWF.Solve, PoWF.Verify) such
+that for every λ ∈ N and f ∈ O(λ), the following hold:
+
+      • PoWF.Setupf (1λ , qPoWF.Solve ) → pp: On input the security parameter λ and the query bound qPoWF.Solve ,
+        the deterministic setup algorithm PoWF.Setup outputs the public parameters pp, where pp determines
+        a (uniformly) samplable input space X and an output space Y.
+
+      • PoWF.Solvef (pp, x) → (y, π): On input the public parameter pp and an element x ∈ X , the solve
+        algorithm PoWF.Solve outputs a solution y and a proof π, where y is generated deterministically
+        while π can be generated in a randomized way. We sometimes ignore the output proof π and write
+        PoWF.Solvef (pp, x) → y for simplicity.
+
+      • PoWF.Verifyf (pp, x, y, π) → {0, 1}: On input the public parameter pp, element x ∈ X , a value
+        y ∈ Y and a proof π, the deterministic verification algorithm PoWF.Verify outputs a bit indicating
+        whether it accepts or rejects.
+
+    We require that PoWF.Setup, PoWF.Solve and PoWF.Verify make at most qPoWF.Setup , qPoWF.Solve and
+qPoWF.Verify queries, respectively, to the random oracle, where qPoWF.Setup = qPoWF.Setup (λ, qPoWF.Solve ) and
+qPoWF.Verify = qPoWF.Verify (λ, qPoWF.Solve ). In practice, we want to have PoWFs where qPoWF.Setup ≪ qPoWF.Solve
+and qPoWF.Verify ≪ qPoWF.Solve .
+
+
+
+
+                                                        12
+Definition 3.9 (Completeness of PoWF). PoWF = (PoWF.Setup, PoWF.Solve, PoWF.Verify) has com-
+pleteness error α if for every λ ∈ N and qPoWF.Solve ∈ N,
+
+                                                                      f ← O(λ)
+                                                                                     
+                           f                    pp ← PoWF.Setupf (1λ , qPoWF.Solve ) 
+                                                                                       ≥ 1 − α(λ).
+        Pr  PoWF.Verify      (pp, x, y, π) = 1
+                                                                         x←X 
+                                                      (y, π) ← PoWF.Solvef (pp, x)
+
+When α = 0, we say the PoWF has perfect completeness.
+
+Definition 3.10 ((qPoWF.Adv , κ)-soundness of PoWF). PoWF = (PoWF.Setup, PoWF.Solve, PoWF.Verify)
+has (qPoWF.Adv , κ)-soundness κ if for every λ ∈ N, qPoWF.Solve ∈ N, and qPoWF.Adv -query adversary PoWF.Adv,
+
+                                                            f ← O(λ)
+                                                                           
+                                      pp ← PoWF.Setupf (1λ , qPoWF.Solve ) 
+                                 ′
+                                                                           
+                       Pr 
+                          y = y                                x←X         ≤ κ(λ).
+                                          (y, π) ← PoWF.Solvef (pp, x) 
+                                                 y ′ ← PoWF.Advf (pp, x)
+
+Definition 3.11 (Non-adaptive (qPoWF.Adv , ϵ)-uniqueness of PoWF). For every qPoWF.Adv ∈ N and ϵ, PoWF =
+(PoWF.Setup, PoWF.Solve, PoWF.Verify) satisfies (qPoWF.Adv , ϵ)-uniqueness if for every λ ∈ N, qPoWF.Solve ∈
+N, and qPoWF.Adv -query adversary PoWF.Adv,
+
+                                                                           f ← O(λ)
+                                                                                          
+
+            y ̸= y ′
+                                                     pp ← PoWF.Setupf (1λ , qPoWF.Solve ) 
+                                                                                           
+        Pr 
+            ∧ PoWF.Verifyf (pp, x, y ′ , π ′ ) = 1                            x←X         ≤ ϵ(λ).
+                                                                              f
+                                                         (y, π) ← PoWF.Solve (pp, x) 
+                                                           (y ′ , π ′ ) ← PoWF.Advf (pp, x)
+
+We say that PoWF satisfies perfect uniqueness if qPoWF.Adv is unbounded and ϵ(λ) = 0. We say that PoWF
+satisfies statistical uniqueness if qPoWF.Adv is unbounded and ϵ(λ) = negl(λ). We say that PoWF satisfies
+computational uniqueness if qPoWF.Adv = poly(λ, qPoWF.Solve ) and ϵ(λ) = negl(λ).
+
+3.3   Search problems
+Definition 3.12. A search problem is defined by a relation S ⊆ F × Y. We say S is determined by a family
+of nondeterministic verifiers {Vy,π }y∈Y,π∈Π if for every f ∈ F, y ∈ Y, (f, y) ∈ S if and only if there exists
+some π ∈ Π such that Vy,π (f ) = 1. We say a search problem is total if, for every f ∈ F, there is at least one
+solution y s.t. (f, y) ∈ S.
+
+   We focus on search problems with product input space F = [M ]m for M, m ∈ N. Given f ∈ [M ]m , I ⊆
+[m], p ∈ [M ]I , we define fI→p ∈ [M ]m as follows:
+                                                    
+                                                      p[i] i ∈ I
+                                        fI→p [i] :=              .
+                                                      f [i] i ∈
+                                                              /I
+
+Definition 3.13 (Subcube). Fix M, m ∈ N. Let F = [M ]m . We say F′ ⊆ F is a (sub)cube if F′ =
+F′1 × · · · × F′n for some F′1 , . . . , F′m ⊆ [M ], where |F′i | ∈ {1, M } for each i ∈ [m].
+
+
+                                                      13
+     Every query algorithm can be viewed as a decision tree: the internal nodes of the tree represent the
+queries, the leaves represent the solutions, and the branching is based on the answers from the oracle to the
+queries.
+     A partial assignment p ∈ ([M ] ∪ {⋆})m is a length-m string, where each entry is either fixed to be some
+value in [M ], or “undetermined” (denoted by ⋆). The domain of p is defined as dom(p) := {i : pi ̸= ⋆}.
+     For ease of notation, we also identify each node p in a decision tree with a partial assignment p ∈
+([M ] ∪ {⋆})m that records the query outcomes leading to the node p, if a position i is not queried, we set
+pi := ⋆.
+     We say an input f ∈ [M ]m is consistent with a partial assignment p if they agree on the domain of p, i.e.
+f [i] = p[i] for all i ∈ dom(p). We denote by Cube(p) := {f ∈ [M ]m : ∀ i ∈ dom(p), f [i] = p[i]} the set of
+all inputs consistent with p.
+     We say that partial assignments p and q are consistent with each other if they agree on every position
+in the intersection of their domains, i.e. for every i ∈ dom(p) ∩ dom(q) we have p[i] = q[i]. Equivalently,
+Cube(p) ∩ Cube(q) ̸= ∅. We use p ∪ q to denote the partial assignment with domain dom(p) ∪ dom(q) that
+is consistent with both p and q. Note that Cube(p) ∩ Cube(q) = Cube(p ∪ q).
+     Given a distribution µ over some space F, for each F′ ⊆ F, we define µ(F′ ) := x∈F′ µ(x) as the
+                                                                                          P
+probability of a random element sampled from µ is in F′ . We use UF to denote the uniform distribution over
+F.
+     For any two partial assignments p, q ∈ ([M ] ∪ {⋆})m , we say p and q are independent, denoted p ≁d q,
+if dom(p) ∩ dom(q) = ∅. Otherwise, we say that p and q are dependent, denoted p ∼d q.
+
+Theorem 3.14 (BKR inequality). [BK85; Rei00] Let P, Q be two collections of partial assignments over
+[M ]m . Then for every product distribution µ over [M ]m ,
+                                                                             
+                            [                             [
+                  µ⊗2 
+                                                                            
+                                  Cube(p) × Cube(q)
+                                                     ≤ µ 
+                                                            Cube(p) ∩ Cube(q).
+                                                                              
+                         p∈P,q∈Q                                 p∈P
+                           p≁d q                                 q∈Q
+
+
+
+
+3.4   VDFs to search problems
+Consider VDF = (Setup, Eval, Verify) with completeness error α. We present the formal reformulation of
+VDF in terms of search problems as described in Section 2.1. Note that this reformulation directly applies to
+PoWF.
+    Fix λ ∈ N and a large enough constant n that depends on qSetup , qEval and qVerify . The search problems are
+defined below:
+
+      For every leaf ℓ ∈ ([2λ ] ∪ {⋆})n of the decision tree representation of Setup:
+       (a) Let pp denote the label of ℓ. Deduce X and Y from pp.
+       (b) For every x ∈ X , define the search problem Sℓ,x ⊆ Cube(ℓ) × Y where Y := Y as follows:
+              i. Sℓ,x is determined by verifiers Vy,π : Cube(ℓ) → {0, 1} of query complexity qVerify which
+                 satisfy that Vy,π (f ) = Verifyf (pp, x, y, π).
+             ii. There is an algorithm D : Cube(ℓ) → Y × Π of query complexity qEval which satisfies that
+                 D(f ) = Evalf (pp, x) and Prf ←[M ]m [VD(f ) (f ) = 1] ≥ 1 − αℓ,x for some αℓ,x ∈ [0, 1].
+
+
+
+                                                      14
+   Moreover, for every f , let ℓS,f denote the leaf of the decision tree representation of Setup such that
+f ∈ Cube(ℓS,f ). It follows from Theorem 3.3 that
+                                                                     
+                                                         f ← O(λ)
+                                E αℓS,f ,x pp ← Setupf (1λ , qEval )  ≤ α.
+                                                            x←X
+
+
+
+
+                                                   15
+4      PoWFs with statistical uniqueness
+Theorem 4.1 (Formal version of Theorem 2). Suppose PoWF = (PoWF.Setup, PoWF.Solve, PoWF.Verify)
+is a PoWF in the ROM with completeness error α that satisfies statistical uniqueness with error ϵ. Fix λ ∈ N.
+Let qPoWF.Setup and qPoWF.Verify denote the query complexity of PoWF.Setup and PoWF.Verify, respectively.
+Then for every non-zero√    constant δ such that α + ϵ ≤ δ ≤ 10−3 , PoWF does not satisfy (qPoWF.Setup +
+  2
+qPoWF.Verify /δ), 1 − 6 δ)-soundness.
+      According to Section 3.4, it suffices to prove the theorem below.
+Theorem 4.2. Let S ⊆ [M ]m × Y be a search problem determined by a family of nondeterministic verifiers
+{Vy,π }y∈Y,π∈Π of query complexity t. Let δ ≥ 0 be a parameter such that
+                                       Pr       [|{y ∈ Y | (f , y) ∈ S}| ̸= 1] ≤ δ
+                                     f ←[M ]m
+
+Then for δ ≤ 10−3 , there exists a t/δ-round and t2 /δ-query adversary A : [M ]m → Y such that
+                                                                    √
+                                       Pr [(f , A(f )) ∈ S] ≥ 1 − 6 δ.
+                                       f ←[M ]m
+
+Proof of Theorem 4.1 by Theorem 4.2. Observe that δ in Theorem 4.2 bounds from above the sum of the
+uniqueness and completeness errors, i.e., α + ϵ ≤ δ. Let A be the adversary in Theorem 4.2. We construct a
+VDF sequentiality adversary PoWF.Adv that gets oracle access to f , runs PoWF.Setup to locate the leaf ℓf ,
+samples x ← X , and executes the adversary A corresponding to the search problem Sℓf ,x . If follows that
+PoWF.Adv makes (qPoWF.Setup + q2PoWF.Verify /δ) queries across (qPoWF.Setup + qPoWF.Verify /δ) round and correctly
+                                                       √
+computes PoWF.Solve with probability at least 1 − 6 δ.
+
+4.1     Proof of Theorem 4.2
+Given a set F′ ⊆ [M ]m , we define Uniq(F′ ) := {f ∈ F′ : |{y ∈ Y | (f, y) ∈ S}| = 1} as the set of inputs in
+F′ which have a unique solution w.r.t. S. We describe the adversary A in Algorithm 2. The general structure
+of the algorithm follows the one described in Section 2.2. For several rounds we pick a leaf of a verifier that
+is consistent with the current assignment and query the input in the positions corresponding to that leaf. The
+crucial part of the algorithm is to choose that leaf correctly.
+
+Algorithm 2 Sequentiality-breaking adversary A for statistical uniqueness.
+Input: f ∈ [M ]m
+Output: y ∈ Y ∪ {⊥}
+ 1: Initialize p∗ := ⋆n , y0 := ⊥.
+ 2: for i ∈ [t/δ + 1] do
+ 3:       for y ∈ Y do                                                  √
+ 4:            if UCube(p∗ ) ({f ′ ∈ Cube(p∗ ) : (f ′ , y) ∈ S}) ≥ 1 − 3 δ then return y.
+                                                      √
+ 5:       if UCube(p∗ ) (Uniq(Cube(p∗ ))) < 1 − δ/2 then return ⊥.
+ 6:       if i = t/δ + 1 then return ⊥.
+ 7:       Set ℓi := F IND B EST L EAF(p∗ ), where F IND B EST L EAF is constructed in Algorithm 3.
+ 8:       For every q ∈ dom(ℓi ), query f at q and set p∗ [q] := f [q].
+
+      There are three cases where A outputs an invalid solution:
+
+                                                           16
+   1. Algorithm 2 halts at Line 4 but returns a solution y such that (f, y) ∈
+                                                                            / S.
+   2. Algorithm 2 halts at Line 5 and returns ⊥.
+   3. Algorithm 2 halts at Line 6 and returns ⊥.
+We denote the above three events by E1 , E2 , E3 respectively. We prove that each of them happens with low
+probability (over random f ← [M ]m ).
+    First we bound the probability of E1 and E2 . They do not depend on the definition of F IND B EST L EAF.
+Let LA denote the set of leaves of the decision tree representation of A. Observe that for each fixed leaf
+ℓ ∈ LA , A behaves identically for all f ∈ Cube(ℓ).
+                                √
+Claim 4.3. Prf ←[M ]m [E1 ] ≤ 3 δ.
+Proof. For each leaf ℓ ∈ LA such that A terminates on Line 4,  √ let y(ℓ) denote the solution that A outputs.
+We have Prf ∼Cube(ℓ) [E1 ] = Prf ∼Cube(ℓ) [(f , y(ℓ)) ∈
+                                                      / S] ≤ 3 δ, where the inequality follows from the if
+condition on Line 4. By averaging over all the leaves in LA , we obtain the desired claim.
+                               √
+Claim 4.4. Prf ←[M ]m [E2 ] ≤ 2 δ.
+             (2)
+Proof. Let LA ⊆ LA denote the set of leaves that lead to E2 . Observe that
+
+                                 δ ≥ 1 − U[M ]m (Uniq([M ]m ))
+                                      X
+                                   ≥      U[M ]m (Cube(ℓ) \ Uniq(Cube(ℓ)))
+                                             (2)
+                                         ℓ∈LA
+                                         √
+                                           δ X
+                                    ≥       ·     U[M ]m (Cube(ℓ)),
+                                          2   (2)
+                                                   ℓ∈LA
+
+where the last inequality follows from the if condition on Line 5. As a consequence,
+                                                X                         √
+                                 Pr [E2 ] =          U[M ]m (Cube(ℓ)) ≤ 2 δ.
+                                f ←[M ]m
+                                                             (2)
+                                                          ℓ∈LA
+                                √
+Claim 4.5. Prf ←[M ]m [E3 ] ≤       δ.
+   Given Theorem 4.5 √    we can conclude that A makes t2 /δ queries in t/δ rounds and succeeds with
+probability at least 1 − 6 δ.
+
+4.2   Finding the best leaf: proof of Theorem 4.5
+Event E3 can be described as “A fails to terminate in t/δ iterations”. Observe that A must halt in Algorithm 2
+if Cube(p∗ ) is contained within Cube(ℓ) where ℓ is an assignment corresponding to any leaf of a verifier
+Vy,π . We introduce a potential function to measure how far we are from this situation. Let
+
+                   L := {ℓ ∈ ([M ] ∪ {⋆})m : ℓ is a leaf of Vy,π for some y ∈ Y, π ∈ Π}.
+
+Let Lp∗ := {ℓ ∈ L : ℓ agrees with p∗ }. For i ∈ [t/δ] the potential function wi is defined as
+
+                            minℓ∈Lp∗ :f ∈Cube(ℓ) |dom(ℓ) \ dom(p∗ )| f ∈ Uniq(Cube(p∗ ))
+                          
+               wi (f ) :=                                                                     ,
+                                                0                      f∈ / Uniq(Cube(p∗ ))
+
+                                                                   17
+where p∗ is the value of this variable in A(f ) at the i-th iteration. For all f such that A(f ) halts before
+invoking F IND B EST L EAF in the i-th iteration, we define wi (f ) := 0. The routine for F IND B EST L EAF we
+describe in Algorithm 3 can be informally summarized as: find ℓ such that the potential function decreases
+for as many values of f ∈ Cube(p∗ ) as possible.
+
+Algorithm 3 Subroutine F IND B EST L EAF in Algorithm 2
+Input: p∗ ∈ ([M ] ∪ {⋆})m
+Output: ℓ ∈ Lp∗
+ 1: for f ′ ∈ ℓ∈L ∗ Cube(ℓ ∪ p∗ ) do
+             S
+                  p
+ 2:     Set min ℓ(f ′ ) := arg minℓ∈Lp∗ :f ′ ∈Cube(ℓ∪p∗ ) |dom(ℓ) \ dom(p∗ )|.
+ 3: for ℓ ∈ L do
+ 4:     Set Cℓ := {f ∈ Cube(ℓ ∪ p∗ ) : min ℓ(f ) = ℓ}.
+                         S
+ 5: return arg maxℓ∈Lp∗ | ℓ′ ∈L ∗ :ℓ′ ∼d ℓ Cℓ′ |.
+                               p
+
+
+
+    For each i ∈ [t/δ], let Pi denote the set of all possible query outcomes p∗ that are passed to F IND -
+B EST L EAF in the i-th iteration. Fix any p∗ ∈ Pi . For ease of notation, we abbreviate UCube(p∗ ) as U in the
+rest of the proof.
+    For each ℓ ∈ Lp∗ , define                             [
+                                             Fp∗ (ℓ) :=        Cℓ′ ,
+                                                               ℓ′ ∈Lp∗
+                                                                ℓ ′ ∼d ℓ
+where Cℓ′ is defined at Line 4 in Algorithm 3. We prove that
+                                                                   √
+Claim 4.6. There exists some ℓ̂ ∈ Lp∗ such that U(Fp∗ (ℓ̂)) ≥ (3/2) δ.
+                                                                                                            √
+    We defer the proof of Theorem 4.6 to Section 4.3. By Theorem 4.6 we have U(Fp∗ (ℓi )) ≥ (3/2) δ
+since ℓ = ℓi maximizes U(Fp∗ (ℓ)) by our choice of ℓi (Line 5).
+    Let G(p∗ ) := Fp∗ (ℓi ) ∩ Uniq(Cube(p∗ )). Observe that for all f ∈ G(p∗ ), we have wi+1 (f ) ≤ wi (f ) − 1
+since dom(ℓi ) \ dom(p∗ ) has intersection with dom(min ℓ(f )) \ dom(p∗ ). Moreover,
+                                                                               √     √       √
+             U(G(p∗ )) ≥ U (Fp∗ (ℓi )) − (1 − U(Uniq(Cube(p∗ )))) ≥ (3/2) δ − δ/2 ≥ δ.
+
+    Define Hi := Ef ←[M ]m [wi (f )]. Let ηi := p∗ ∈Pi U[M ]m (Cube(p∗ )) denote the fraction of inputs that
+                                                P
+survive after the i-th iteration. Then
+                                         X
+                           Hi+1 − Hi ≥        U[M ]m (Cube(p∗ )) · UCube(p∗ ) (G(p∗ ))
+                                           p∗ ∈Pi
+                                           √ X
+                                       ≥    δ  U[M ]m (Cube(p))
+                                                 p∗ ∈Pi
+                                           √
+                                       =       δηi .
+
+Observe that η1 ≥ . . . ≥ ηt/δ ≥ Prf ←[M ]m [E3 ]. Moreover, H1 ≤ t, Ht/δ+1 ≥ 0. Thus
+                                                             √
+                                              X          (1/ δ) · (Ht/δ+1 − H1 ) √
+                     Pr [E3 ] ≤ ηt/δ ≤ δ/t          ηi ≤                          ≤ δ.
+                 f ←[M ]m                                          t/δ
+                                                    i∈[t/δ]
+
+
+                                                              18
+4.3   Proof of Theorem 4.6
+                                                                        √
+Algorithm 2 in A guarantees that U({f ∈ Cube(p∗ ) : (f, y) ∈ S}) < 1 − 3 δ for all y ∈ Y. We can find a
+partition Y = YP ⊔ YQ such that
+                                                                   
+                                                                                     √
+                   
+                                                                        
+                                                                         
+                         [               ∗        [               ∗ 
+               max U           Cube(p ∪ p ) , U         Cube(q ∪ p ) ≤ 1 − 3 δ,
+                                                                        
+                          p∈LP                       q∈LQ
+                                                                        
+                                   p∗                                p∗
+
+
+where LPp∗ := {ℓ ∈ Lp∗ : ∃y ∈ YP , Cube(ℓ ∪ p∗ ) × {y} ⊆ S} and LQ   p∗ is defined analogously. Denote
+      P      Q                                                  ∗
+                                                                            √
+Γ := Lp∗ × Lp∗ . Algorithm 2 in A guarantees that U(Uniq(Cube(p ))) ≥ 1 − δ/2. We can then conclude
+that
+                                                                          
+                                        [
+                                U ⊗2         Cube(p ∪ p∗ ) × Cube(q ∪ p∗ ) ≥
+                                            (p,q)∈Γ
+                                                                
+                             [                      [
+                          U   Cube(p ∪ p∗ ) · U    Cube(q ∪ p∗ ) ≥
+                                                                
+                               p∈LP
+                                  p∗                                q∈LQ
+                                                                       p∗
+                                                                         √          √
+                                                                   (1 − 3 δ) · (5/2) δ,
+
+where
+   √ the last inequality holds since the sum of the multipliers
+                                                      √         on the left-hand side is U(Uniq(Cube(p∗ ))) ≥
+1 − δ/2 and the larger one of them is at most 1 − 3 δ. By applying Theorem 3.14, we have
+                                                                                              
+                       [                                 [
+          U ⊗2                Cp × Cq  ≤ U ⊗2                  Cube(p ∪ p∗ ) × Cube(q ∪ p∗ )
+                  (p,q)∈Γ; p≁d q                             (p,q)∈Γ; p≁d q
+                                                                                                          
+                                                               [
+                      (by Theorem 3.14) ≤ U                               Cube(p ∪ p∗ ) ∩ Cube(q ∪ p∗ )
+                                                          (p,q)∈Γ; p≁d q
+
+                                         ≤ 1 − U (Uniq(Cube(p∗ )))
+                                           √
+                                         ≤ δ/2.
+               S                       
+With α := U ⊗2                  C
+                  (p,q)∈Γ; p∼d q p × C q we then have
+
+                                                                                                            
+                          [                                                               [
+           α = U ⊗2               Cube(p ∪ p∗ ) × Cube(q ∪ p∗ ) − U ⊗2                             Cp × C q 
+                        (p,q)∈Γ                                                      (p,q)∈Γ; p≁d q
+                        √ √    √       √                √
+             ≥ 5/2(1 − 3 δ) δ − δ/2 = 2 δ − 7.5δ ≥ (3/2) δ,
+
+where the last inequality requires δ ≤ 1/225 which we have by the assumption. Equivalently,
+                                                     
+                        X                    [              X                    3√
+                  α=         U(Cp ) · U           Cq  =        U(Cp )Fp∗ (p) ≥     δ.
+                                                     
+                           P                 Q                 P
+                                                                                 2
+                       p∈Lp∗                 q∈Lp∗ ; q∼d p                 p∈Lp∗
+
+
+                                                              19
+              U(Cp ) ≤ 1, by averaging argument, there exists ℓ̂ ∈ LPp∗ such that
+        P
+Since   p∈LP
+           p∗
+
+
+                                                           3√
+                                           U(Fp∗ (ℓ̂)) ≥      δ.
+                                                           2
+
+
+
+
+                                                    20
+5     VDFs with computational uniqueness
+We discuss VDFs with computational uniqueness in the ROM.
+Theorem 5.1. Suppose VDF = (Setup, Verify, Eval) is a VDF in the ROM with completeness error α. Fix
+λ ∈ N. Let qSetup , qEval and qVerify denote the query complexity of Setup, Eval and Verify, respectively. Then, for
+every rAdv > 2qVerify , there exists ϵ ≥ 0 such that VDF does not satisfy either (qSetup + rAdv , qSetup + rAdv · qEval , γ)-
+sequentiality for every γ < 1 − rAdv2r   −2qVerify · ϵ − α or (qAdv , ϵ)-uniqueness for qAdv = O(qVerify · qEval ).
+                                           Adv
+
+
+
+We show in Section A that Theorem 5.1 is tight by constructing a VDF in the ROM with statistical uniqueness
+and weaker sequentiality.
+   According to Section 3.4, it suffices to prove the following theorem:
+Theorem 5.2. Let S ⊆ [M ]m × Y be a search problem, determined by nondeterministic verifiers V of
+query complexity at most t. Let D : [M ]m → Y × Π be an algorithm of query complexity T such that
+Prf ←[M ]m [VD(f ) (f ) = 1] ≥ 1 − α. Then for every t′ > 2t there is some ϵ = ϵ(t′ ) ≥ 0 such that either
+    1. there exists a t′ -round adversary A : [M ]m → Y of query complexity t′ T such that
+
+                                                                        2t′
+                                        Pr    [A(f ) = DY (f )] ≥ 1 − ′     ϵ − α; or
+                                     f ←[M ]m                        t − 2t
+
+    2. there exists an adversary B : [M ]m → Y × Π of query complexity O(t′ T ) such that
+
+                                        Pr      [BY (f ) ̸= DY (f ) ∧ VB(f ) (f ) = 1] ≥ ϵ,
+                                     f ←[M ]m
+
+where DY (f ) (resp. BY (f )) is the Y-component of D(f ) (resp. B(f )).
+Proof of Theorem 5.1 by Theorem 5.2. We devise two adversaries: one for breaking sequentiality, and the
+other for breaking computational uniqueness as follows: First, both adversaries run Setup to locate the leaf ℓf
+and sample x ← X . Then each adversary executes the corresponding algorithm described in Theorem 5.2 for
+the search problem Sℓf ,x . It follows that for every rAdv > 2qVerify , there is some ϵ = ϵ(rAdv ) ≥ 0 (by averaging
+over all the search problems’ individual ϵ) and either
+    1. there exists a (qSetup + rAdv )-round (rAdv · qEval + qSetup )-query adversary Adv such that
+
+                                                            f ← O(λ)
+                                                                         
+                               f            pp ← Setupf (1λ , qEval )   ≥1−          2rAdv
+                Pr   y =  Eval   (pp,  x)                                                         · ϵ − α; or           (1)
+                                                               x←X               rAdv − 2qVerify
+                                                    y ← Advf (pp, x)
+
+    2. there exists an adversary Adv of query complexity O(rAdv · qEval + qSetup ) such that
+
+                                                                         f ← O(λ)
+                                                                                       
+                             y ̸= Evalf (pp, x)          pp ← Setupf (1λ , qEval ) 
+                         Pr                                                             ≥ ϵ.                           (2)
+                             ∧ Verifyf (pp, x, y, π) = 1                    x←X 
+                                                            (y, π) ← Advf (pp, x)
+
+    Taking for example rAdv = 3qVerify , whatever ϵ is, either (1) is non-negligible, or (2) is non-negligible.
+
+
+                                                            21
+5.1      The sequentiality breaker
+We construct the adversary A below.
+
+Algorithm 4 Adversary A, the sequentiality breaker.
+Input: f ∈ [M ]m
+Output: y ∈ Y ∪ {⊥}
+ 1: p∗ := ⋆m .
+ 2: K := ∅.
+ 3: for r ∈ [t′ ] do
+ 4:     Uniformly sample f ∗ ∈ [M ]m consistent with p∗ .
+ 5:     Let ℓ be the unique leaf of D such that Cube(ℓ) contains f ∗ .
+ 6:     K := K ⊎ {the solution associated with ℓ}.
+ 7:     For every j ∈ dom(ℓ) such that p∗ [j] = ⋆, query f at j and update p∗ [j] to be the query outcome.
+ 8: return the majority of solutions in K if it exists; ⊥ otherwise.
+
+
+    Each iteration of A is a single round of queries, so A has t′ rounds and makes at most T queries in each
+round, thus making at most t′ T queries in total.
+    To prove the correctness, we will first go through the execution of A and introduce some useful notations.
+    Let F := {f : VD(f ) (f ) = 1} denote the set of functions computed correctly by D. Recall that in each
+iteration, we choose some leaf ℓ of D according to some distribution conditioned on the current partial
+assignment p∗ . Let y denote the solution associated with ℓ. For any input f ∈ F, let ℓV,f denote the unique
+leaf of VD(f ) such that Cube(ℓV,f ) contains f . We classify the iterations into three types according to f, p∗ , ℓ:
+
+      1. DY (f ) ̸= y and Cube(p∗ ∪ ℓ) ∩ Cube(p∗ ∪ ℓV,f ) = ∅.
+      2. DY (f ) ̸= y and Cube(p∗ ∪ ℓ) ∩ Cube(p∗ ∪ ℓV,f ) ̸= ∅.
+      3. DY (f ) = y.
+            (1)        (2)
+     Let Sr,f (resp. Sr,f ) be random indicator variables, which equals 1 if and only if the r-th iteration is the
+first type (resp. second type) for input f .
+     Intuitively, if both the first and the second type of iteration occur with low probability then we can
+prove A(f ) = DY (f ) with high probability by simple Markov’s inequality. Now assume that Prf ,r [f ∈
+        (2)                                                                                 (1)
+F ∧ Sr,f = 1] is negligible where r is uniformly sampled from [t′ ]. We will prove Prr [Sr,f = 1] is bounded
+for every f ∈ F, which in turn implies A succeeds in simulating D with high probability. In Section 5.2 we
+show that there exists an adversary breaking the computational uniqueness condition if this assumption is
+false.
+                                           (2)                                            ′
+Lemma 5.3. Let ϵ := Prf ,r [f ∈ F ∧ Sr,f = 1]. Then Prf [A(f ) ̸= DY (f )] ≤ t′2t
+                                                                               −2t ϵ + α.
+                             Pt′   (1)
+Proof. We first prove that    r=1 Sr,f ≤ t with probability 1 for every f ∈ F. Consider the r-th iteration, if
+ (1)
+Sr,f = 1, that is, Cube(p∗ ∪ ℓ) ∩ Cube(p∗ ∪ ℓV,f ) = ∅, then there exists some index i ∈ dom(ℓ) ∩ dom(ℓV,f )
+such that ℓ[i] ̸= ℓV,f [i]. The algorithm then queries f [i] in this iteration. Thus, i will not be the inconsistent
+index in the later iterations. Since |dom(ℓV,f )| ≤ t, we deduce that for every f , there can be at most t
+                                                                     P           (1)
+iterations such that Cube(p ∪ ℓ) ∩ Cube(p ∪ ℓV,f ) = ∅. Hence 1≤r≤t′ Sr,f ≤ t with probability 1.
+
+
+
+                                                        22
+                                         P′      (1)                                              (2)
+     Now let us combine the bound for tr=1 Sr,f with the assumption that Prf ,r [f ∈ F ∧ Sr,f = 1] is
+                     ′
+small. Let ϵ′ := t′2t
+                   −2t ϵ. By Markov’s inequality, for all but on average (over the internal randomness of A)
+                                                                               P′       (2)
+(ϵ′ + α)-fraction of f ∈ [M ]m (recall α = 1 − U[M ]m (F)), we have f ∈ F and tr=1 Sr,f < tϵ/ϵ′ = t′ /2 − t.
+               P′      (1)    (2)
+For those f , tr=1 Sr,f + Sr,f < t′ /2. Thus the majority of recorded solutions are exactly DY (f ). We
+conclude that the algorithm succeeds with probability at least 1 − ϵ′ − α.
+
+5.2   The uniqueness breaker
+                       (2)                                                                          (2)
+Lemma 5.4. Let Sr,f be defined as in the last subsection and ϵ := Prf ,r [f ∈ F ∧ Sr,f = 1]. Then there
+exists an adversary B : [M ]m → (Y × Π) ∪ {⊥} making O(t′ T ) queries such that
+
+                                     Pr     [BY (f ) ̸= DY (f ) ∧ VB(f ) (f ) = 1] ≥ ϵ.
+                                 f ←[M ]m
+
+Proof. We construct the adversary B in Algorithm 5.
+
+Algorithm 5 Adversary B, the uniqueness breaker.
+Input: f ∈ [M ]m
+Output: z ∈ (Y × Π) ∪ {⊥}
+ 1: Run D(f ), let I be the set of indices queried during the execution.
+ 2: p∗ := ⋆m .
+ 3: for r ∈ [t′ ] do
+                                                      ∗
+ 4:     Uniformly sample p′ ← [M ]I\dom(p ) .
+ 5:     f ′ := f(I\dom(p∗ ))→p′ .
+ 6:     (y, π) := D(f ′ ).
+ 7:     if y ̸= DY (f ) ∧ Vy,π (f ′ ) = 1 then return (y, π).
+ 8:     Uniformly sample f ∗ ∈ [M ]m consistent with p∗ .
+ 9:     Let ℓ be the unique leaf of D such that Cube(ℓ) contains f ∗ .
+10:     For every j ∈ dom(ℓ) such that p∗ [j] = ⋆, query f at j and update p∗ [j] to be the query outcome.
+11: return ⊥
+
+
+    Through the execution of B, we can define DB as the following joint distribution of (r ∈ [t′ ], p∗ ∈
+([M ] ∪ {⋆})m , f ∈ [M ]m , f ′ ∈ [M ]m ): Sample f ← [M ]m , r ← [t′ ] uniformly at random. Randomly
+simulate the for-loop in B on f = f for r − 1 iterations. Let p∗ denote the partial assignment at the start
+of the r-th iteration and f ′ denote the random function f ′ sampled in the r-th iteration of B (Line 5). See
+Figure 1 for visualization.
+    To prove the lemma, it suffices to show
+
+                                    Pr            [DY (f ′ ) ̸= DY (f ) ∧ VD(f ′ ) (f ) = 1] ≥ ϵ.               (3)
+                             (r,p∗ ,f ,f ′ )←DB
+
+    To this end, we give an alternative view of DB based on the execution of A.
+    First, we sample f ′ ← [M ]m , r ← [t′ ] uniformly at random. Then randomly simulate the for-loop in A
+on f = f ′ for r −1 iterations and let p∗ denote the partial assignment p∗ at the start of r-th iteration. Recall in
+the r-th iteration, we randomly choose some leaf ℓ of D conditioned on p∗ , and denote the solution associated
+with ℓ by y. Let f denote the projection of f = f ′ on Cube(p∗ ∪ ℓ). Formally, let J := dom(ℓ) \ dom(p∗ )
+denote the set of indices fixed by ℓ but not by p∗ and we can define f := fJ→ℓJ .
+
+                                                                23
+                                                                           Cube(p∗ )
+                                                        f
+                                                                                         Cube(ℓ)
+                                [M ]I
+
+
+                                                            f′
+                                                   Cube(ℓV,f ′ )
+
+                                                       [M ][m]\I
+
+                                                Figure 1: Distribution DB .
+
+                                                 (2)
+    Now observe that if f ′ ∈ F and Sr,f ′ = 1, then Cube(p∗ ∪ ℓ) ∩ Cube(p∗ ∪ ℓV,f ′ ) ̸= ∅. Since
+f ∈ Cube(ℓ ∪ p∗ ), f is consistent with ℓV,f ′ on I. Moreover, f equals f ′ on [m] \ I, and Cube(ℓV,f ′ )
+includes f ′ , hence f is consistent with ℓV,f ′ on [m] \ I. We can deduce that f ∈ Cube(ℓV,f ′ ), which
+immediately implies VD(f ′ ) (f ) = 1. Note that we also have DY (f ′ ) = y ̸= DY (f ) by the definition of
+ (2)
+Sr,f ′ = 1.
+     Finally, let DA denote the distribution of (r, p∗ , f , f ′ ) according to the above sampling process. Since
+             (2)
+f ′ ∈ F ∧ Sr,f ′ = 1 implies that DY (f ′ ) ̸= DY (f ) ∧ VD(f ′ ) (f ) = 1, we can deduce that
+
+                                                                                                   (2)
+                  Pr            [DY (f ′ ) ̸= DY (f ) ∧ VD(f ′ ) (f ) = 1] ≥ Pr′ [f ′ ∈ F ∧ Sr,f ′ = 1] = ϵ.
+           (r,p∗ ,f ,f ′ )←DA                                                      r,f
+
+    Thus to prove (3), it suffices to show DB ≡ DA , that is, for every r ∈ [t′ ], p∗ ∈ ([M ] ∪ {⋆})m , f, f ′ ∈
+[M ]m ,
+               Pr[r = r, p∗ = p∗ , f = f, f ′ = f ′ ] = Pr[r = r, p∗ = p∗ , f = f, f ′ = f ′ ].
+                DA                                                    DB
+
+Lemma 5.5. DA ≡ DB .
+
+Proof. We need the following four statements.
+Claim 5.6. For every r ∈ [t′ ], PrDA [r = r] = PrDB [r = r].
+
+Proof. Trivial since the marginal distributions of r are both uniform under A and B.
+
+Claim 5.7. For every r ∈ [t′ ] and p∗ ∈ ([M ] ∪ {⋆})m , PrDA [p∗ = p∗ | r = r] = PrDB [p∗ = p∗ | r = r].
+
+Proof. In both A and B, p∗ is the transcript of the query outcomes the following random process repeated
+for r − 1 times: Sample a uniformly random f ∗ consistent with the query outcome so far. Simulate D on f ∗
+and query all the variables on the corresponding root-to-leaf path.
+
+Claim 5.8. For every r ∈ [t′ ], p∗ ∈ ([M ] ∪ {⋆})m such that PrDA [p∗ = p∗ | r = r] > 0, and every
+f ∈ [M ]m , PrDA [f = f | r = r, p∗ = p∗ ] = PrDB [f = f | r = r, p∗ = p∗ ].
+
+
+
+
+                                                                 24
+Proof. Conditioned on r = r, p∗ = p∗ , it is easy to see that f ′ is uniformly distributed over Cube(p∗ ) under
+DA and f is uniformly distributed over Cube(p∗ ) under DB by Bayes’ rule. It suffices to show that f is also
+uniformly distributed over Cube(p∗ ) under DA .
+    Recall in the r-th round of A, we choose some leaf ℓ of D, and ℓ is chosen with probability |Cube(p∗ ∪
+ℓ)|/|Cube(p∗ )|. Note that f ∈ Cube(p∗ ∪ ℓ), we only need to prove f is uniformly distributed over
+Cube(p∗ ∪ ℓ) conditioned on ℓ is chosen. This is obvious since f ′ is uniformly distributed over Cube(p∗ ),
+and by definition, f is the projection of f ′ on Cube(p∗ ∪ ℓ).
+                                                            ∗ ∪ℓ)|
+    To conclude, PrDA [f = f | r = r, p∗ = p∗ ] = |Cube(p                1             1
+                                                      |Cube(p∗ )| · |Cube(p∗ ∪ℓ) = |Cube(p∗ )| .
+
+Claim 5.9. For every r ∈ [t′ ], p∗ ∈ ([M ] ∪ {⋆})m such that PrDA [p∗ = p∗ | r = r] > 0, and every
+f ∈ Cube(p∗ ), PrDA [f ′ = f ′ | r = r′ , p∗ = p∗ , f = f ] = PrDB [f ′ = f ′ | r = r′ , p∗ = p∗ , f = f ].
+
+Proof. Without loss of generality, we assume that f ′ ∈ Cube(p∗ ), as otherwise, PrDA [f ′ = f ′ | r = r′ , p∗ =
+p∗ , f = f ] = PrDB [f ′ = f ′ | r = r′ , p∗ = p∗ , f = f ] = 0.
+     By Bayes’ rule,
+
+                   Pr[f ′ = f ′ | r = r′ , p∗ = p∗ , f = f ]
+                   DA
+                   PrDA [f ′ = f ′ | r = r′ , p∗ = p∗ ] · PrDA [f = f | r = r′ , p∗ = p∗ , f ′ = f ′ ]
+               =
+                                          PrDA [f = f | r = r′ , p∗ = p∗ ]
+               = Pr[f = f | r = r′ , p∗ = p∗ , f ′ = f ′ ].
+                   DA
+
+where the second equality follows since PrDA [f = f | r = r′ , p∗ = p∗ ] = PrDA [f ′ = f ′ | r = r′ , p∗ =
+p∗ ] = |Cube(p
+           1                                                      ′                                   ∗
+              ∗ )| . Let ℓ denote the unique leaf of D such that f ∈ Cube(ℓ) and I = dom(ℓ) \ dom(p ). Now
+observe that
+                                                         |Cube(p∗ ∪ ℓ)|/|Cube(p∗ )| f[m]\I = f[m]\I
+                                                                                              ′
+                                                       
+                               ′ ∗      ∗   ′     ′
+          Pr[f = f | r = r , p = p , f = f ] =                                                      .
+          DA                                                         0                 otherwise
+
+On the other hand, for DB , given r = r, p∗ = p∗ , f = f , f ′ uniformly from {f ′ : f[m]\I
+                                                                                      ′     = f[m]\I }. Thus
+PrDB [f = f | r = r , p = p , f = f ] = PrDA [f = f | r = r , p = p , f = f ] = PrDA [f ′ = f ′ |
+         ′    ′         ′   ∗      ∗                                ′  ∗     ∗  ′       ′
+
+r = r′ , p∗ = p∗ , f = f ], as desired.
+
+    Finally, by combining the above four claims and applying the chain rule, we deduce that DA ≡ DB .
+
+   To summarize, our uniqueness breaker B satisfies that
+
+                                         Pr       [BY (f ) ̸= DY (f ) ∧ VB(f ) (f ) = 1] =
+                                     f ←[M ]m
+
+                                   Pr            [DY (f ′ ) ̸= DY (f ) ∧ VD(f ′ ) (f ) = 1] =
+                            (r,p∗ ,f ,f ′ )←DB
+
+                                   Pr            [DY (f ′ ) ̸= DY (f ) ∧ VD(f ′ ) (f ) = 1] ≥
+                            (r,p∗ ,f ,f ′ )←DA
+                                                                                (2)
+                                                               Pr′ [f ′ ∈ F ∧ Sr,f ′ = 1] = ϵ.
+                                                              r,f
+
+
+
+
+                                                              25
+5.3     Computational efficiency of the breakers
+In this section we explain how to efficiently implement our sequentiality breaker A and uniqueness breaker B.
+
+Lemma 5.10. Suppose that Eval is computable in time tEval and Verify computable in time tVerify . Then time
+complexity of the sequentiality adversary A (Algorithm 4) and the uniqueness adversary B (Algorithm 5) are
+both poly(tVerify · tEval ).
+
+Theorem 5.10 follows directly by the following implementation of the breakers (Algorithm 6 and Algorithm 7).
+
+Algorithm 6 Uniform version of the sequentiality breaker.
+Input: pp; x ∈ X ; oracle access to f : {0, 1}∗ → {0, 1}λ
+Output: z ∈ Y ∪ {⊥}
+ 1: K := ∅.
+ 2: p∗ := ∅.                                                                        ▷ p∗ ⊆ {0, 1}∗ × {0, 1}λ .
+ 3: Define function dom(p) := {x ∈ {0, 1}∗ | ∃y ∈ {0, 1}λ : (x, y) ∈ p} returning the set of the first
+    elements of a set of pairs.
+ 4: for r ∈ [t′ ] do
+ 5:     Uniformly sample f ∗ : {0, 1}∗ → {0, 1}λ consistent with p∗ .                  ▷ See Theorem 5.11
+                        ∗
+ 6:     (y, π) := Evalf (pp, x);
+ 7:     K := K ⊎ {y}.
+ 8:     Let ℓ ⊆ {0, 1}∗ × {0, 1}λ be the set of query-answer pairs from the execution in Line 6.
+ 9:     For every z ∈ dom(ℓ) \ dom(p∗ ) query f (z) and update p∗ := p∗ ∪ (z, k) where (z, k) ∈ ℓ.
+10: return majority of K if it exists an ⊥ otherwise.
+
+
+
+Algorithm 7 Uniform version of the uniqueness breaker.
+Input: pp; x ∈ X ; oracle access to f : {0, 1}∗ → {0, 1}λ
+Output: z ∈ (Y × Π) ∪ {⊥}
+ 1: (y0 , π0 ) := Evalf (pp, x); let I be the set of random oracle queries made during the execution.
+ 2: p∗ := ∅.                                                                        ▷ p∗ ⊆ {0, 1}∗ × {0, 1}λ .
+ 3: Define function dom(p) := {x ∈ {0, 1}∗ | ∃y ∈ {0, 1}λ : (x, y) ∈ p} returning the set of the first
+      elements of a set of pairs.
+ 4: for r ∈ [t′ ] do
+                                                  ∗
+ 5:     Uniformly sample p′ ← ({0, 1}λ )I\dom(p ) .
+ 6:     f ′ := f(I\dom(p∗ ))→p′ .        ▷ Here we only mean it symbolically, see Theorem 5.11 for details.
+                       f
+ 7:     (y, π)  := Eval (pp, x).
+                        ′
+ 8:     if y ̸= y0 ∧ Vf (pp, y, π) = 1 then return (y, π).
+ 9:     Uniformly sample f ∗ : {0, 1}∗ → {0, 1}λ consistent with p∗ .                  ▷ See Theorem 5.11
+                   f∗
+10:     Run Eval (pp, x);
+11:     Let ℓ ⊆ {0, 1}∗ × {0, 1}λ be the set of query-answer pairs from the execution in Line 10.
+12:     For every z ∈ dom(ℓ) \ dom(p∗ ) query f (z) and update p∗ := p∗ ∪ (z, k) where (z, k) ∈ ℓ.
+13: return ⊥
+
+
+
+
+                                                      26
+Remark 5.11. When we write assignments to oracles, we mean those to be defined lazily. In particular, the
+oracle defined in Line 6 is evaluated as follows: when f ′ (z) is queried we first check if z ∈ I \ dom(p∗ ), if it
+is we return p′ (z), otherwise we query f (z) and return the answer. The oracle defined in Line 9 is evaluated
+as follows: when f ∗ (z) is queried we first check if z ∈ dom(p∗ ), if it is we return the unique k such that
+(z, k) ∈ p∗ , otherwise if z was queried before we return the previously returned value, otherwise we sample
+k from {0, 1}λ uniformly at random and return k.
+
+Remark 5.12. It is clear that the sequentiality breaker A runs in time poly(tVerify · tEval ). However, A is not
+parallelizable. If one can construct a sequentiality breaker that runs in parallel time smaller than tEval , it
+would contradict the construction in [EFKP20], which presents a VDF that satisfies computational uniqueness
+and sequentiality in the ROM, assuming the hardness of repeated squaring. Hence, only a polynomial
+improvement is possible in the time complexity in either of our breakers unless the RSW assumption
+[RSW96] fails.
+
+
+
+
+                                                        27
+Acknowledgments
+We thank Eylon Yogev for detailed feedback on an earlier draft of this paper and for inspiring the definition
+for proof of work functions. We thank Alessandro Chiesa and Mika Göös for the helpful discussions. The
+authors are supported by the Swiss State Secretariat for Education, Research and Innovation (SERI) under
+contract number MB22.00026. Ziyi Guan is partially supported by the Ethereum Foundation.
+
+
+References
+[AB09]         Sanjeev Arora and Boaz Barak. Computational Complexity: A Modern Approach. 1st. USA: Cambridge
+               University Press, 2009. ISBN: 0521424267.
+[AC23]        Hamza Abusalah and Valerio Cini. “An Incremental PoSW for General Weight Distributions”. In: Pro-
+              ceedings of the 42th Annual International Conference on the Theory and Applications of Cryptographic
+              Techniques. EUROCRYPT ’23. 2023, pp. 282–311.
+[AFGK22]       Hamza Abusalah, Georg Fuchsbauer, Peter Gaži, and Karen Klein. “SNACKs: Leveraging Proofs
+               of Sequential Work for Blockchain Light Clients”. In: Proceedings of the 28th International Conference
+               on the Theory and Application of Cryptology and Information Security. ASIACRYPT ’22. 2022,
+               pp. 806–836.
+[AKKPW19]      Hamza Abusalah, Chethan Kamath, Karen Klein, Krzysztof Pietrzak, and Michael Walter. “Reversible
+               Proofs of Sequential Work”. In: Proceedings of the 38th Annual International Conference on the Theory
+               and Applications of Cryptographic Techniques. EUROCRYPT ’19. 2019, pp. 277–291.
+[Abu23]        Hamza Abusalah. SNACKs for Proof-of-Space Blockchains. IACR Cryptology ePrint Archive, Report
+               2023/806. 2023.
+[BBBF18]       Dan Boneh, Joseph Bonneau, Benedikt Bünz, and Ben Fisch. “Verifiable Delay Function”. In: Proceed-
+               ings of the 38th Annual International Cryptology Conference. CRYPTO ’18. 2018.
+[BBF18]        Dan Boneh, Benedikt Bünz, and Ben Fisch. A Survey of Two Verifiable Delay Functions. IACR
+               Cryptology ePrint Archive, Report 2018/712. 2018.
+[BCG24]       Annalisa Barbara, Alessandro Chiesa, and Ziyi Guan. Relativized Succinct Arguments in the ROM Do
+              Not Exist. Cryptology ePrint Archive, Paper 2024/728. 2024. URL: https://eprint.iacr.org/
+              2024/728.
+[BI87]        Manuel Blum and Russell Impagliazzo. “Generic oracles and oracle classes”. In: Proceedings of the
+              28th Annual Symposium on Foundations of Computer Science. SFCS ’87. USA: IEEE Computer
+              Society, 1987, 118–126. ISBN: 0818608072. DOI: 10.1109/SFCS.1987.30.
+[BK85]        J. Van Den Berg and H. Kesten. “Inequalities with applications to percolation and reliability”. In:
+              Journal of Applied Probability 22.3 (1985), 556–569. DOI: 10.2307/3213860.
+[BPR15]       Nir Bitansky, Omer Paneth, and Alon Rosen. “On the Cryptographic Hardness of Finding a Nash
+              Equilibrium”. In: Proceedings of the 56th Annual IEEE Symposium on Foundations of Computer
+              Science. FOCS ’15. 2015, pp. 1480–1498.
+[Bac02]        Adam Back. Hashcash: A Denial-of-Service Counter-Measure. http://www.hashcash.org/
+               papers/hashcash.pdf. Technical Memo. 2002.
+[Bit+22]      Nir Bitansky, Arka Rai Choudhuri, Justin Holmgren, Chethan Kamath, Alex Lombardi, Omer Paneth,
+              and Ron D. Rothblum. “PPAD is as Hard as LWE and Iterated Squaring”. In: Proceedings of the 20th
+              Theory of Cryptography Conference. TCC ’22. 2022, pp. 593–622.
+[CP18]        Bram Cohen and Krzysztof Pietrzak. “Simple Proofs of Sequential Work”. In: Proceedings of the
+              37th Annual International Conference on the Theory and Applications of Cryptographic Techniques.
+              EUROCRYPT ’18. 2018, pp. 451–467.
+
+
+                                                        28
+[DGMV20]   Nico Döttling, Sanjam Garg, Giulio Malavolta, and Prashant Vasudevan. “Tight verifiable delay
+           functions”. In: Proceedings of the 15th International Conference on Security and Cryptography for
+           Networks. SCN ’20. 2020, pp. 65–84.
+[DLM19]    Nico Döttling, Russell W. F. Lai, and Giulio Malavolta. “Incremental Proofs of Sequential Work”.
+           In: Proceedings of the 38th Annual International Conference on the Theory and Applications of
+           Cryptographic Techniques. EUROCRYPT ’19. 2019, pp. 292–323.
+[DN93]     Cynthia Dwork and Moni Naor. “Pricing via Processing or Combatting Junk Mail”. In: Advances in
+           Cryptology — CRYPTO’ 92. Ed. by Ernest F. Brickell. Springer Berlin Heidelberg, 1993, pp. 139–147.
+[EFKP20]   Naomi Ephraim, Cody Freitag, Ilan Komargodski, and Rafael Pass. “Continuous Verifiable Delay
+           Functions”. In: Proceedings of the 39th Annual International Conference on the Theory and Applications
+           of Cryptographic Techniques. EUROCRYPT ’20. 2020, pp. 125–154.
+[FMPS19]   Luca De Feo, Simon Masson, Christophe Petit, and Antonio Sanso. “Verifiable Delay Functions from
+           Supersingular Isogenies and Pairings”. In: Proceedings of the 25th International Conference on the
+           Theory and Application of Cryptology and Information Security. ASIACRYPT ’19. 2019, pp. 248–277.
+[GKL15]    Juan A. Garay, Aggelos Kiayias, and Nikos Leonardos. “The Bitcoin Backbone Protocol: Analysis and
+           Applications”. In: Annual International Conference on the Theory and Applications of Cryptographic
+           Techniques (EUROCRYPT). Springer, 2015, pp. 281–310.
+[HHKK23]   Charlotte Hoffmann, Pavel Hubáček, Chethan Kamath, and Tomáš Krňák. “(Verifiable) Delay Functions
+           from Lucas Sequences”. In: Proceedings of the 20th Theory of Cryptography Conference. TCC ’23.
+           2023.
+[HN23]     Mathias Hall-Andersen and Jesper Buus Nielsen. “On Valiant’s Conjecture: Impossibility of Incremen-
+           tally Verifiable Computation from Random Oracles”. In: Proceedings of the 42nd Annual International
+           Conference on the Theory and Applications of Cryptographic Techniques. EUROCRYPT ’23. 2023.
+[HY17]     Pavel Hubáček and Eylon Yogev. “Hardness of Continuous Local Search: Query Complexity and
+           Cryptographic Lower Bounds”. In: Proceedings of the 28th Annual ACM-SIAM Symposium on Discrete
+           Algorithms. SODA ’17. 2017, 1352–1371.
+[JB99]      Ari Juels and John Brainard. “Client Puzzles: A Cryptographic Defense Against Denial of Service
+            Attacks”. In: Proceedings of the 1999 Network and Distributed System Security Symposium (NDSS
+           ’99). 1999.
+[JJ99]     Markus Jakobsson and Ari Juels. “Proofs of Work and Bread Pudding Protocols(Extended Abstract)”.
+           In: Secure Information Networks: Communications and Multimedia Security IFIP TC6/TC11 Joint
+           Working Conference on Communications and Multimedia Security (CMS’99) September 20–21, 1999,
+           Leuven, Belgium. Springer US, 1999, pp. 258–272. ISBN: 978-0-387-35568-9. DOI: 10.1007/978-
+           0-387-35568-9_18. URL: https://doi.org/10.1007/978-0-387-35568-9_18.
+[KSS11]    Jeff Kahn, Michael Saks, and Cflifford Smyth. “The Dual BKR Inequality and Rudich’s Conjec-
+           ture”. In: Combinatorics, Probability and Computing 20.2 (2011), 257–266. DOI: 10 . 1017 /
+           S0963548310000465.
+[LMCB12]   Frank Li, Prateek Mittal, Matthew Caesar, and Nikita Borisov. “SybilControl: practical sybil defense
+           with computational puzzles”. In: Proceedings of the Seventh ACM Workshop on Scalable Trusted
+           Computing. STC ’12. Raleigh, North Carolina, USA: Association for Computing Machinery, 2012,
+           67–78. ISBN: 9781450316620. DOI: 10.1145/2382536.2382548. URL: https://doi.org/
+           10.1145/2382536.2382548.
+[LV20]     Alex Lombardi and Vinod Vaikuntanathan. “Fiat-Shamir for Repeated Squaring with Applications to
+           PPAD-Hardness and VDFs”. In: Proceedings of the 40th Annual International Cryptology Conference.
+           CRYPTO ’20. 2020, pp. 632–651.
+
+
+
+
+                                                    29
+[MMV11]         Mohammad Mahmoody, Tal Moran, and Salil Vadhan. “Time-Lock Puzzles in the Random Oracle
+                Model”. In: Proceedings of the 31st Annual International Cryptology Conference. CRYPTO ’11. 2011,
+                pp. 39–50.
+[MMV13]         Mohammad Mahmoody, Tal Moran, and Salil Vadhan. “Publicly Verifiable Proofs of Sequential Work”.
+                In: Proceedings of the 4th Innovations in Theoretical Computer Science Conference. ITCS ’13. 2013,
+                373–388.
+[MSW20]        Mohammad Mahmoody, Caleb Smith, and David J. Wu. “Can Verifiable Delay Functions Be Based on
+               Random Oracles?” In: Proceedings of the 47th International Colloquium on Automata, Languages and
+               Programming. ICALP ’20. 2020, 83:1–83:17.
+[Pap94]         Christos H. Papadimitriou. Computational Complexity. Reading, MA, USA: Addison-Wesley, 1994.
+[Pie19]        Krzysztof Pietrzak. “Simple Verifiable Delay Functions”. In: Proceedings of the 10rd Innovations in
+               Theoretical Computer Science Conference. ITCS ’19. 2019, 60:1–60:15.
+[RSS20]         Lior Rotem, Gil Segev, and Ido Shahaf. “Generic-Group Delay Functions Require Hidden-Order
+                Groups”. In: Advances in Cryptology – EUROCRYPT 2020. Ed. by Anne Canteaut and Yuval Ishai.
+                Cham: Springer International Publishing, 2020, pp. 155–180. ISBN: 978-3-030-45727-3.
+[RSW96]        R. L. Rivest, A. Shamir, and D. A. Wagner. Time-Lock Puzzles and Timed-Release Crypto. Tech. rep.
+               1996.
+[Rei00]        David Reimer. “Proof of the Van den Berg–Kesten Conjecture”. In: Combinatorics, Probability and
+               Computing 9.1 (2000), 27–32. DOI: 10.1017/S0963548399004113.
+[Rud88]         Steven Rudich. Limits on the Provable Consequences of One-way Functions. Tech. rep. USA, 1988.
+[Smy02]        Clifford Smyth. “Reimer’s inequality and tardos’ conjecture”. In: Proceedings of the Thiry-Fourth
+               Annual ACM Symposium on Theory of Computing. STOC ’02. Montreal, Quebec, Canada: Association
+               for Computing Machinery, 2002, 218–221. ISBN: 1581134959. DOI: 10.1145/509907.509942.
+               URL : https://doi.org/10.1145/509907.509942.
+
+[Sta20]        StarkWare Industries. Presenting: VeeDo. https://medium.com/starkware/presenting-
+               veedo-e4bbff77c7ae. 2020.
+[Val08]         Paul Valiant. “Incrementally Verifiable Computation or Proofs of Knowledge Imply Time/Space
+                Efficiency”. In: Proceedings of the 5th Theory of Cryptography Conference. TCC ’08. 2008, pp. 1–18.
+[Wes19]         Benjamin Wesolowski. “Efficient verifiable delay functions”. In: EUROCRYPT ’19 (2019), p. 623.
+
+
+A     Tightness of Theorem 5.1
+Theorem 5.1 is essentially “tight” in terms of sequentiality: a VDF can be constructed in the ROM with
+statistical uniqueness and weaker sequentiality.
+Lemma A.1. Fix λ ∈ N and T ∈ N. There exists a VDF = (Setup, Eval, Verify) in which qSetup = 0,
+qEval = T + 1, and qVerify = O(1) that satisfies
+    – perfect completeness,
+    – (qAdv , ϵ)-uniqueness for unbounded qAdv and ϵ = negl(λ), and
+    – (rAdv , q′Adv , γ)-sequentiality for every rAdv ∈ N, q′Adv = 2λ(T /rAdv −1)−1 , and γ ≥ 1 − ϵ/4.
+     In Theorem 5.1, we have that sequentiality error γ is upper bounded by 1 − rAdv2r
+                                                                                    −2qVerify · ϵ − α, which
+                                                                                      Adv
+
+
+is at most 1 − 2ϵ − α. Therefore, Theorem A.1 complements Theorem 5.1 by arguing for the existence of
+VDFs with perfect completeness and relaxed sequentiality error γ ≥ 1 − ϵ/4.
+     To show Theorem A.1, it suffices to prove the following lemma:
+
+                                                         30
+Lemma A.2. For any security parameter λ, query complexity parameter T ∈ N+ . Let n = (M T − 1)/(M −
+1) + 1. Then there is a search problem S ⊆ [2λ ]n × [2] defined by verifiers V1 , V2 and an algorithm D
+computing S which satisfies the following:
+
+   (i) Both verifiers V1 , V2 have query complexity O(1). D has query complexity T + 1.
+  (ii) Exactly 1/2λ -fraction of inputs have alternative solutions, i.e. there exists z ∈ Y such that (f, z) ∈ S
+       but z ̸= D(f ).
+ (iii) For every r-round adversary A with query complexity at most 2λ(T /r−1)−1 ,
+                                       h                        i                      1
+                                     Pr A(f ) = D(f ) f ← [2λ ]n ≤ 1 −                      .
+                                                                                     2λ+2
+    To construct the search problem in Theorem A.2, we define the following hard (on average) functions
+against parallel decision trees.
+
+Definition A.3. Let M > 0 be even, T ∈ N+ . For n := (M T − 1)/(M − 1), let hM,T : [M ]n → {0, 1}
+be the sequential function whose computation can be defined as a complete depth-T decision tree, where
+different non-leaf nodes are labeled with different variables. The leaf nodes are labeled with the parity of the
+variable associated with their respective parent nodes so that any non-trivial subtree is balanced, namely, the
+subtree contains an equal number of 0-leaves and 1-leaves.
+
+Lemma A.4. Any r-round algorithm computing hM,T with success probability 3/4 over the uniformly
+random input has query complexity at least M ⌊(T −1)/r⌋ /2.
+
+Proof. Fix ℓ = ⌊(T − 1)/r⌋. We prove by induction on R ∈ N that the following alternative statement holds:
+Any R-round algorithm of query complexity Q⋆ ≤ M l computing hM,kℓ+1 has success probability at most
+(1 + Q⋆ /M ℓ )/2.
+    When R = 0, any 0-round algorithm cannot make any queries. Since hM,1 is 0 on exactly half of the
+inputs, the algorithm must compute hM,1 with success probability exactly 1/2.
+    Now assume that the statement is true when R = k − 1 ≥ 0. Then for R = k and any k-round algorithm
+Ak of query complexity Q⋆ computing hM,kℓ+1 . Let I0 ⊆ [n(M, kℓ + 1)] of size |I0 | = Q0 denote the set of
+indices queried in the first round.
+    Recall that there is a complete depth-T decision tree computing hM,kℓ+1 , whose nodes are labeled with
+different variables. Let w1 , . . . , wM ℓ be all the nodes on the ℓ-th level. Moreover, for any 1 ≤ v ≤ M ℓ , let
+Iv be the set of indices of variables that appear in the subtree with root wv , gv := hM,kℓ+1 |Cube(wv ) . That is,
+gv is a function mapping from Cube(wv ) to {0, 1} where gv (f ) = hM,kℓ+1 (f ) for all f ∈ Cube(wv ). Let
+V := {v : Iv ∩ I0 ̸= ∅}. By the definition of hM,kℓ+1 , I1 , . . . , IM ℓ are pairwise disjoint, so |V | ≤ |I0 | = Q0 .
+    For any v ∈ [M ℓ ] \ V , since Ak does not query any variable in Iv in the first round, it performs exactly the
+same as some k − 1-round Q⋆ − Q0 -query algorithm computing gv . It follows from the induction hypothesis
+and the fact that gv is isomorphic to hM,(k−1)ℓ+1 that Ak computes gv with success probability at most
+(1 + (Q⋆ − Q0 )/M ℓ )/2.
+    Then we can bound the probability that Ak computes hM,kℓ+1 :
+
+         Pr [Ak (f ) = hM,kℓ+1 (f )]
+        f ←[M ]m
+                                                                                                             
+       1 X                                                       X
+      = ℓ           Pr    [Ak (f ) = hM,kℓ+1 (f )] +                            Pr     [Ak (f ) = hM,kℓ+1 (f )]
+       M      f ←Cube(wv )                                                  f ←Cube(wv )
+               v∈V                                             v∈[M ℓ ]\V
+
+
+
+                                                          31
+       1             ℓ               ⋆           ℓ
+                                                        
+     ≤      |V | + (M   − |V |)(1 + (Q  − Q 0 )/M   )/2
+      Mℓ
+       1                                             
+     ≤ ℓ Q0 + (M ℓ − Q0 )(1 + (Q⋆ − Q0 )/M ℓ )/2
+      M
+     ≤(1 + Q⋆ /M ℓ )/2.
+
+    Finally, by replacing Q⋆ with M ℓ /2 and observing that t ≥ rℓ + 1, we obtain the desired claim.
+
+Proof of Theorem A.2. The search problem is defined by two verifiers V1 , V2 : [2λ ]n → {0, 1}: V1 accepts
+all the inputs, and V2 only accepts f such that f1 = 1.
+     Now let us define D. For the set of input inputs {f : f1 ̸= 1}, D simply outputs 1. For rest of the inputs,
+we embed the sequential function h2λ ,T in the subcube {f : f1 = 1}. Specifically, we define
+                                             
+                                                          1          f1 ̸= 1
+                                  D(f ) :=                                  .
+                                                 h2λ ,T f[n]\{1} + 1 f1 = 1
+
+    It is clear that (i)(ii) hold. Note that any algorithm computing D with success probability at least 1 − 2λ+2
+also computes h2λ ,T with success probability at least 3/4. By Theorem A.4, (iii) holds.
+
+
+
+
+                                                         32
+

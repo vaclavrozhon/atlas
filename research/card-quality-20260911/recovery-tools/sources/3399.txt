@@ -1,0 +1,915 @@
+On the Computational Complexity of Linear
+Discrepancy
+Lily Li
+Department of Computer Science, University of Toronto, Canada
+xinyuan@cs.toronto.edu
+
+Aleksandar Nikolov
+Department of Computer Science, University of Toronto, Canada
+anikolov@cs.toronto.edu
+
+      Abstract
+Many problems in computer science and applied mathematics require rounding a vector w of
+fractional values lying in the interval [0, 1] to a binary vector x so that, for a given matrix A, Ax is
+as close to Aw as possible. For example, this problem arises in LP rounding algorithms used to
+approximate NP-hard optimization problems and in the design of uniformly distributed point sets
+for numerical integration. For a given matrix A, the worst-case error over all choices of w incurred
+by the best possible rounding is measured by the linear discrepancy of A, a quantity studied in
+discrepancy theory, and introduced by Lovasz, Spencer, and Vesztergombi (EJC, 1986).
+    We initiate the study of the computational complexity of linear discrepancy. Our investigation
+proceeds in two directions: (1) proving hardness results and (2) finding both exact and approximate
+algorithms to evaluate the linear discrepancy of certain matrices. For (1), we show that linear
+discrepancy is NP-hard. Thus we do not expect to find an efficient exact algorithm for the general
+case. Restricting our attention to matrices with a constant number of rows, we present a poly-time
+exact algorithm for matrices consisting of a single row and matrices with a constant number of rows
+and entries of bounded magnitude. We also present an exponential-time approximation algorithm for
+general matrices, and an algorithm that approximates linear discrepancy to within an exponential
+factor.
+
+2012 ACM Subject Classification Theory of computation → Design and analysis of algorithms
+
+Keywords and phrases discrepancy theory, linear discrepancy, rounding, NP-hardness
+
+Digital Object Identifier 10.4230/LIPIcs.ESA.2020.69
+
+Funding This research was supported by an NSERC Discovery Grant (application number RGPIN-
+2016-06333).
+
+
+ 1      Notation
+
+Below bold-face capital letters such as A denote matrices; Ai,j is the entry in the ith row
+and j th column of the matrix A. Bold-face lowercase letters such as x denote vectors; xi
+is the ith entry of the vector x. We denote the all ones vector by 1. Whenever we write
+i ∈ [n], we mean i ∈ {1, 2, ..., n}. For simplicity of exposition, assume that A ∈ Qm×n in the
+following sections. We will explicitly indicate other uses of A.
+
+
+ 2      Introduction
+
+A number of questions in mathematics and computer science can be reduced to the following
+basic rounding question: given a vector w ∈ [0, 1]n , and an m × n matrix A, find an integer
+vector x ∈ [0, 1]n such that Ax is as close as possible to Aw. For example, many NP-hard
+optimization problems can be modeled as an integer program
+            © Lily Li and Aleksandar Nikolov;
+            licensed under Creative Commons License CC-BY
+28th Annual European Symposium on Algorithms (ESA 2020).
+Editors: Fabrizio Grandoni, Grzegorz Herman, and Peter Sanders; Article No. 69; pp. 69:1–69:16
+                   Leibniz International Proceedings in Informatics
+                   Schloss Dagstuhl – Leibniz-Zentrum für Informatik, Dagstuhl Publishing, Germany
+69:2   On the Computational Complexity of Linear Discrepancy
+
+
+
+
+          min    c> x
+           s.t. Ax ≥ b
+                 x ∈ {0, 1}n
+
+       This integer program can be relaxed to a linear program by replacing the integer variables
+       x ∈ {0, 1}n with real-valued variables w ∈ [0, 1]n . A powerful method in approximation
+       algorithms is to solve this linear programming relaxation to get an optimal w, and then round
+       w to an integer solution x which is feasible (i.e., Ax ≥ b), and has objective value not much
+       bigger than c> w. Often, a useful intermediate step is to guarantee that x is approximately
+       optimal, i.e., that the coordinates of b − Ax are bounded from above. This approximately
+       feasible solution can then, hopefully, be turned into a truly feasible one with a small loss in
+       the objective value. This method was used, for example, by Rothvoss [18], and Rothvoss and
+       Hoberg [12] to give the best known approximation algorithm for the bin packing problem.
+           Another example is provided by the problem of constructing uniformly distributed points,
+       or, more generally, points that are well-distributed with respect to some measure. Variants
+       of this problem date back to work by Weyl, van der Corput, van Aardenne-Ehrenfest, and
+       Roth, and have important applications to such fields as numerical integration; see the book
+       of Matoušek [15] for references and an introduction to the area. In the classical setting, the
+       problem is to find, for any positive integer n, a set of n points P in [0, 1]d , so as to minimize
+       the quantity
+
+           sup ||R ∩ P | − nλd (R)|,
+          R∈Rd
+
+       where Rd is the set of all axis-aligned boxes contained in [0, 1]d , and λd is the Lebesgue
+       measure on Rd . The quantity above is known as the (unnormalized) discrepancy of P . Note
+       that if we sample a random point uniformly from P , then it would land in R with probability
+       |R∩P |                                                                           d
+          n ; on the other hand, if we sample a random point uniformly from [0, 1] , then it would
+       land in R with probability λd (R). The problem of minimizing the discrepancy of P is then
+       equivalent to finding a distribution that is uniform over n points that “looks the same” as
+       the continuous uniform distribution to all boxes R.
+           The discrepancy minimization problem can be modeled by the rounding problem with
+       which we started our discussion. To that end, we can discretize the domain [0, 1]d to a finite
+       set X of size N , and let A be the incidence matrix of sets induced by axis-aligned boxes, i.e.,
+       each row of A is associated with a box R, and equals the indicator vector of R ∩ X. If we also
+                 n
+       let w = N   1, where 1 is the all-ones vector, then, for a sufficiently fine discretization, each
+       coordinate of Aw is a close approximation of nλd (R). The problem of finding an n-point set
+       P of minimum discrepancy then becomes essentially equivalent to minimizing kAx − Awk∞
+       over x ∈ {0, 1}N , where k · k∞ is the standard `∞ norm. In particular, given x, we can take
+       P to consist of the points in X for which the corresponding coordinate in x is set to 1. Then,
+       since [0, 1]d ∈ Rd , we have ||P | − n| ≤ kAx − Awk∞ , and we can remove or add at most
+       kAx − Awk∞ to P to make it exactly of size n. The discrepancy of P is then bounded by
+       2kAx − Awk∞ plus the additional error incurred by the discretization of [0, 1]d .
+           These two examples motivate the definition of linear discrepancy, initially introduced by
+       Lovász, Spencer, and Vesztergombi [14]. The smallest possible error for rounding w with
+       respect to A is
+
+          lindisc(A, w) =      min kA (w − x)k∞ .
+                            x∈{0,1}n
+L. Li and A. Nikolov                                                                                         69:3
+
+
+This is the linear discrepancy of A with respect to w. The linear discrepancy of A is defined
+as as the worse case over all w ∈ [0, 1]n , i.e.,
+
+     lindisc(A) = max n lindisc(A, w).                                                              (1)
+                        w∈[0,1]
+
+It will be useful to consider a maximizer of equation (1) i.e. w∗ ∈ [0, 1]n such that
+lindisc(A, w∗ ) = lindisc(A). We call w∗ a deep-hole of A. Every A has at least one
+deep-hole, since linear discrepancy is a continuous function over the compact set [0, 1]n .
+    The special case of lindisc(A, w) when w = 12 1 is especially well studied. When A is the
+indicator matrix of a collection S of m subsets of a universe X, lindisc(A, 12 1) measures to
+what extent it is possible to choose a subset S of X that contains approximately half the
+elements of each set. This is a rescaling of the well-known combinatorial discrepancy of S,
+defined as
+                                         X
+     disc(S) =           min       max         χ(s)
+                  χ:X→{−1,+1} S∈S
+                                         s∈S
+
+It is straightforward to check that, by a change of variables, disc(S) = 2·lindisc(A, 12 1) where,
+again, A is the incidence matrix of S. This definition can be extended to arbitrary matrices
+A as disc(A) = 2 · lindisc(A, 12 1). Combinatorial discrepancy has been widely studied in
+combinatorics and computer science, see [4, 8, 15].
+     Sometimes disc(A) can be small “by accident”, thus it is useful to define a more robust
+discrepancy variant.1 The hereditary discrepancy of A is the maximum discrepancy over all
+sub-matrices, i.e.,
+
+     herdisc(A) = max disc(B),                                                                      (2)
+                          B
+
+where B ranges over submatrices of A.
+   A fundamental theorem by Lovász, Spencer, and Vesztergombi shows that linear discrep-
+ancy can be bounded above by twice the hereditary discrepancy.
+
+I Theorem 1 (Lovász et al. 1986, [14]). lindisc(A) ≤ 2 · herdisc(A).
+
+A number of the applications of combinatorial discrepancy use this basic theorem. In
+particular, it is common to give an upper bound on the hereditary discrepancy, and from
+that deduce an upper bound on the linear discrepancy. For example, this strategy was used
+to give approximation algorithms for bin packing [18, 12], and broadcast scheduling [3],
+and to design point sets well distributed with respect to arbitrary Borel measures [17, 1].
+However, linear discrepancy can be much smaller (by a factor of at least 2n ) than hereditary
+discrepancy,2 so hereditary discrepancy lower bounds do not translate to linear discrepancy,
+and, in general, linear discrepancy lower bounds appear to be challenging. Arguably, a better
+understanding of linear discrepancy itself would allow proving more and tighter results, in
+comparison with going through hereditary discrepancy. For example, it is likely that new
+
+
+1
+    Consider any matrix B ∈ Rm×n and let A ∈ Rm×2n be the concatenation of two copies of B side by side.
+    Regardless of the discrepancy of B, disc(A) = 0 since there exists x ∈ {−1, 1}n such that kAxk∞ = 0,
+    namely
+       x| = [−1, ..., −1, 1, ..., 1].
+              | {z } | {z }
+                    n          n
+
+2
+    Whether this remains true if the matrix A has bounded entries is a tantalizing open question.
+
+
+
+
+                                                                                                           ESA 2020
+69:4   On the Computational Complexity of Linear Discrepancy
+
+
+       analytic tools to estimate linear discrepancy would allow progress on questions in geometric
+       discrepancy theory, as well as questions about the integrality gaps of linear programming
+       relaxations of important optimization problems, such as the bin packing problem.
+           A sequence of recent works has shed light on the computational complexity of combinatorial
+       and hereditary discrepancy. It is now known that combinatorial discrepancy does not allow
+       efficient approximation algorithms, even in a weak sense (assuming P 6= NP)[6], while
+       hereditary discrepancy is NP-hard to approximate better than a factor of 2 [2], and can
+       be approximated within poly-logarithmic factors [16]. Despite being the tool most directly
+       relevant to many applications of discrepancy, however, essentially nothing is known about the
+       computational complexity of linear discrepancy itself. In this paper, we initiate the study of
+       linear discrepancy from a computational viewpoint, and give both the first hardness results,
+       as well as the first exact and approximate algorithms for it.
+           Before stating our results, it is worth mentioning that linear discrepancy can also be seen
+       as an analogue of the covering radius in lattice theory. Let Λ ⊂ Rn be a lattice, i.e. discrete
+       additive subgroup of Rn , and let us choose b1 , . . . , bn to be a basis of Λ. Let B be a matrix
+       with the bi as its columns. The covering radius of Λ in the `p -norm is defined as
+
+          ρ(Λ) = maxn minky − zkp = maxn minn kB · (w − x)kp = max n minn kB · (w − x)kp , (3)
+                  y∈R   z∈Λ              w∈R x∈Z                       w∈[0,1] x∈Z
+
+       and is independent of the basis. This definition is equivalent to the the definition of lindisc(A),
+       except that the minimum is over Zn rather than {0, 1}n . Haviv and Regev showed that the
+       covering radius problem (CRP) in the `p -norm is Π2 -hard to approximate within some fixed
+       constant for all large enough p [11], and Guruswami, Micciancio, and Regev showed it can
+       be approximated within a factor of 2O(n log n/ log log n) for the case of p = 2 [10].
+
+       2.1    Our Results
+       Let us start with the simple observation that, when A is a single row matrix, deciding
+                                                                               Pn
+       lindisc(A, t1) = 0 is the NP-hard Subset Sum problem with target sum t j=1 A1,j , and is,
+       therefore, NP-hard. This does not show, however, that computing lindisc(A) is NP-hard. In
+       this work we show the following hardness result for linear discrepancy.
+
+       I Theorem 2. The Linear Discrepancy problem of deciding, given an m × n matrix A with
+       rational entries, and a rational number t, whether lindisc(A) ≤ t, is NP-hard and is contained
+       in the class Π2 .
+
+          We present algorithms for computing linear discrepancy exactly when the matrix A has
+       a constant number of rows. We start with a result for a single row matrix.
+
+       I Theorem 3. For any matrix A ∈ Q1×n , lindisc(A) can be computed in time O(n log n).
+
+       Note that this stands in contrast to the observation above that computing lindisc(A, w)
+       is hard even for a single-row matrix A. In addition to the theorem above, we also give a
+       corresponding rounding result, showing that any w ∈ Qn can be efficiently rounded to within
+       error bounded by the linear discrepancy in the case of single row matrices.
+
+       I Theorem 4. For any matrix A ∈ Q1×n and any w ∈ ([0, 1] ∩ Q)n , we can find an
+       x ∈ {0, 1}n such that kA(w − x)k∞ ≤ lindisc(A) in time O(n log n).
+
+       This result stands in contrast with the hardness of the subset sum problem, which easily
+       implies that it is NP-hard to round w to within error lindisc(A, w) even when A is a single
+       row matrix.
+L. Li and A. Nikolov                                                                                   69:5
+
+
+   We can extend Theorem 3 to the case of matrices with a bounded number of rows, with
+the additional assumption that the entries of A are bounded. Removing this additional
+assumption is a fascinating open question.
+
+I Theorem 5. For any matrix A ∈ Zd×n          some fixed constant and maxi,j |Ai,j | ≤ δ,
+                                   where d is    2
+lindisc(A) can be computed in time O d(nδ)d +d .
+
+     We further present an approximation algorithm for linear discrepancy.
+
+I Theorem 6. For any matrix A ∈ Qm×n , lindisc(A) can be approximated in polynomial
+time within a factor of 2n+1 .
+
+
+ 3      Hardness Result
+
+In this section, we show that linear discrepancy (LDS) is NP-Hard by reducing from mono-
+tone not-all-equal 3-SAT (MNAE3SAT) [9] to each. The decision problem version of linear
+discrepancy we consider is defined below.
+
+
+  [MNAE3SAT] Monotone Not-All-Equal 3-SAT
+  Let U be a collection of variables {u1 , ..., un } and C be a 3-CNF with clauses {C1 , ..., Cm }
+  such that Ci = ti,1 ∨ ti,2 ∨ ti,3 for positive literals ti,j .
+  Question: Does there exist a truth assignment τ : U → {T, F} such that C is satisfied
+  and each clause has at least one true and one false literal?
+
+
+  [LDS] Linear Discrepancy
+  Let A ∈ Qm×n be a matrix and t ≥ 0 a rational value.
+  Question: Is lindisc(A) ≤ t?
+
+
+3.1     Linear Discrepancy
+Before we show that linear discrepancy is hard, we will show that the value of lindisc(A)
+can be expressed using a polynomial number of bits in the bit complexity of a matrix for
+rational matrices. Due to space constraints, the proof can be found in Section A.1.
+
+I Lemma 7. For any matrix A ∈ Qm×n , there exists a deep hole for A with bit complexity
+polynomial in n and the bit complexity of A, and, therefore, lindisc(A) can be written in
+number of bits polynimial in n and the bit complexity of A.
+
+Proof of Theorem 2. Note first that the fact that LDS is contained in Π2 is a straightforward
+consequence of Lemma 7: the “for-all” quantifier is over potential deep holes w ∈ [0, 1]n of
+the appropriate polynomially bounded bit complexity, and the “exists” quantifier is over
+x ∈ {0, 1}n .
+   Next we prove hardness. Let 3-CNF C be a MNAE3SAT instance as described above. The
+corresponding LDS instance will be the incidence matrix A ∈ {0, 1}m×n of C: column aj of
+A corresponds to variable uj and row ri of A corresponds to clause Ci , and Ai,j = 1 if and
+only if variable uj appears in clause Ci . Let the target t in the LDS problem be 32 −  for
+ > 0 to be determined later.
+
+
+
+                                                                                                     ESA 2020
+69:6   On the Computational Complexity of Linear Discrepancy
+
+
+           Consider first that case that C is a NO-instance of MNAE3SAT i.e. for every truth
+       assignments τ , there exists a clause Ci whose literals all get the same truth assignment. Each
+       x ∈ {0, 1}n corresponds to a truth assignment. If xi = 1 (resp. xi = 0) then ui is true (resp.
+       ui is false). Let Cj be the clause whose literals have the same truth value. Then
+                                                               
+                                                     1                 3    3
+           lindisc(A) ≥ lindisc(A, (1/2) · 1) ≥ rj      · 1 − x = > − ,
+                                                     2                 2    2
+       so A is a NO-instance of LDS.
+           Consider next the case that C is a YES-instance of MNAE3SAT, and let τ be a satisfying
+       assignment. Suppose w∗ ∈ [0, 1]n is a deep-hole of A. If wi∗ = 21 for all i ∈ [n] then
+                                                                         
+                                                               1                   1
+           lindisc(A) = lindisc(A, (1/2) · 1) = disc(A) ≤ A      · 1 − x∗      =
+                                                               2            ∞      2
+       since every clause has exactly two elements with the same truth value. Thus A is a YES-
+       instance of LDS as long as we choose  ≤ 1. Suppose then that w∗ 6= 12 1, and let  be a lower
+       bound on the smallest non-zero gap between wi∗ and 1/2 i.e. for all wi∗ 6= 12 ,
+
+                   1
+           wi∗ −     ≥ .
+                   2
+       By Lemma 7, which implies that w∗ has polynomial bit complexity, we know that we can
+       choose such an  of polynomial bit complexity. We will show that lindisc(A, w∗ ) ≤ 32 −  by
+       constructing a colouring x∗ . Let
+                (
+           ∗      rd(wi∗ ) if wi∗ 6= 21
+          xi =
+                  τ (ui )  otherwise
+
+       where rd(wi∗ ) is wi∗ rounded to the closest integer and ui is the variable corresponding to
+       column i. Let r be a row of matrix A with non-zero entries in columns i, j, and k. We bound
+       the discrepancy of row r based on the number of rounded variables Rv among {xi , xj , xk }.
+       Rv = 0: Since none of the variables are rounded, wi∗ = wj∗ = wk∗ = 12 and
+                                                              
+                   ∗     ∗        ∗   1        ∗    1        ∗   1      1
+              |r (x − w )| = xi −         + xj −        + xk −        =
+                                      2             2            2      2
+         since τ is a satisfying assignment.
+       Rv = 1: W.l.o.g assume that that x∗i is the rounded value and wj∗ = wk∗ = 12 . Then
+                                                                      
+                  ∗     ∗        ∗     ∗     ∗   1       ∗   1        1               3
+             |r (x − w )| = (xi − wi ) + xj −        + xk −       ≤     −  + 1 = − .
+                                                 2           2        2               2
+
+       Rv = 2: W.l.o.g assume that x∗i and x∗j are the rounded values and wk∗ = 12 . Then
+                                                                           
+                                                              1          1          1   3
+            |r (x∗ − w∗ )| = (x∗i − wi∗ ) + x∗j − wj∗ + x∗k −
+                                                     
+                                                                  ≤2·      −  + = − 2.
+                                                              2          2          2   2
+       Rv = 3: All three values are rounded so
+                                                                                         
+                                                                                   1              3
+              |r (x∗ − w∗ )| = (x∗i − wi∗ ) + x∗j − wj∗ + (x∗k − wk∗ ) ≤ 3 ·
+                                                       
+                                                                                     −       =     − 3.
+                                                                                   2              2
+
+       Since r was an arbitrary row of A, lindisc(A) = lindisc(A, w∗ ) ≤ 32 −  as required. This
+       completes the reduction.                                                                J
+L. Li and A. Nikolov                                                                                        69:7
+
+
+ 4      Algorithms for Linear Discrepancy
+In the following we consider restrictions and variants of linear discrepancy for which we
+are able to give poly-time algorithms. The first subsection considers matrices with a single
+row. The second subsection considers matrices A ∈ Zd×n with constant       d and
+                                                                                 entry of
+                                                                             d2
+largest magnitude δ. In that case, we compute lindisc(A) in time O d(2nδ) . The third
+subsection presents a poly-time 2n approximation to lindisc(A) for A ∈ Qm×n .
+
+4.1     Linear Discrepancy of a Row Matrix
+We begin by developing some intuition for the linear discrepancy of a one-row matrix,
+A = [a1 , ..., an ]. For now, let us make the simplifying assumption that the entries of A are
+non-negative and sorted in decreasing order. Define the subset sums of A to be the multi-set
+S(A) = {s1 , ..., s2n } where each si = Ax for exactly one x ∈ {0, 1}n . Enumerate the element
+of S(A) in non-decreasing order, i.e. si ≤ si+1 . If `A = 2 · lindisc(A), then `A is the width
+of the largest gap between consecutive entries in S(A).
+    Suppose Ai = [a1 , ..., ai ]. Let us consider how S(Ai ) and lindisc(Ai ) change for the first
+couple of values of i. Clearly, S(A1 ) = [0, a1 ] and lindisc(A1 ) = a21 . S(A2 ) is the disjoint
+union of S(A1 ) and S(A1 ) shifted to the right by a2 . Since a1 ≥ a2 , S(A2 ) = [0, a2 , a1 , a1 +a2 ]
+where the largest gap is of size max(a2 , a1 − a2 ). See Figure 1. In general, the entries of
+S(Ai ) consists of two copies of S(Ai−1 ) with one shifted to the right by ai . The gaps
+in S(Ai ) are gaps previously in S(Ai−1 ) or between an element of S(Ai−1 ) and one in
+{ai + s : s ∈ S(Ai−1 )}.
+
+                                        0                a1
+
+
+
+
+                                    0        a2      a1 a1 + a2
+     Figure 1 Obtaining S(A2 ) from S(A1 ) when a1 ≥ a2 .
+
+    A similar structure occurs for general matrices with real valued entries with two caveats:
+(1) the previous interval is shifted left or right depending on the sign of the current entry
+(negative and positive respectively) and (2) the smallest entry of S(A) is not zero but the
+sum of the negative entries in A.
+
+I Lemma 8. Suppose Ak−1 = [a1 , ..., ak−1 ] with entries in R and |ai | ≥ |ai+1 |. Let the
+largest gap in S(Ak−1 ) be of size `k−1 . Then, for Ak = [a1 , ..., ak−1 , ak ] where |ak | ≤ |ai | for
+all i ∈ [k − 1], the largest gap in S(Ak ) is of size max(|ak |, `k−1 − |ak |).
+
+Proof. Again, it is important to remember that the entries of S(Ak ) are exactly those in
+S(Ak−1 ) along with those in {ak + s : s ∈ S(Ak−1 )}. Let ` = max(|ak |, `k−1 − |ak |).
+   We first show that 2 · lindisc(Ak ) ≤ ` by showing that gaps between consecutive entries
+in S(Ak ) have size at most `. If (sj , sj+1 ) is a consecutive pair in S(Ak−1 ) such that
+sj+1 − sj > `, then sj and sj+1 are no longer consecutive in S(Ak ), since sj ≤ sj + ak ≤ sj+1
+
+
+                                                                                                          ESA 2020
+69:8   On the Computational Complexity of Linear Discrepancy
+
+
+       if ak > 0 and sj ≤ sj+1 + ak ≤ sj+1 if ak < 0. See Figure 2. Then, the gap given by any such
+       pair gets split into gaps of size at most max{|ak |, sj+1 − sj − |ak |} ≤ `, where the inequality
+       holds because sj+1 − sj ≤ `k−1 . It follows that the size of each gap in S(Ak ) is at most `.
+
+                           0                    sj                           sj+1
+
+
+
+                                  ak
+                                                sj      s j + ak             sj+1
+
+
+
+                      ak
+                                                sj                 sj+1 + ak sj+1
+
+           Figure 2 All consecutive pairs in S(Ak−1 ) of size greater than |ak | will be divided into two or
+       more consecutive pairs in S(Ak ). The red interval indicates what happens when ak > 0. The blue
+       interval indicates what happens when ak < 0.
+
+            Next we will show that 2 · lindisc(Ak ) ≥ ` by producing a pair of consecutive entries in
+       S(Ak ) which achieves gap `. Suppose ` = |ak |. Recall that s0 is the smallest subset sum of
+       all entries in Ak , which equals the sum of all negative entries in Ak . Then it is easy to check
+       that s1 equals s0 + |ak |, where we recall that ak is the entry in Ak with minimum absolute
+       value. Therefore, (s0 , s0 + |ak |) is a consecutive pair in S(Ak ). This means that if ` = |ak |,
+       then we are done, as we have produced a pair with gap `.
+            When ` = `k−1 − |ak | > |ak |, we split our analysis into two cases: (1) ak > 0 and (2)
+       ak < 0.
+            In the former case, let (sj ∗ , sj ∗ +1 ) be a consecutive pair in S(Ak−1 ) that achieves gap `k−1
+       and suppose, towards a contradiction, that sj ∗ + ak and sj ∗ +1 do not appear consecutively
+       in S(Ak ). Then there must be some s ∈ S(Ak ) such that sj ∗ + ak < s < sj ∗ +1 . Note that s
+       cannot be an element of S(Ak−1 ) since sj ∗ and sj ∗ +1 are consecutive in S(Ak−1 ), so s − ak
+       must be an element of S(Ak−1 ). However, since s > sj ∗ + ak , we have s − ak > sj ∗ . This is
+       a contradiction since sj ∗ and sj ∗ +1 are consecutive entries in S(Ak−1 ). See Figure 3. Thus
+       (sj ∗ + ak , sj ∗ +1 ) must be a consecutive pair in S(Ak ).
+
+
+
+
+                           sj ∗        s − ak        s j ∗ + ak      s              sj ∗+1
+
+                                                             `k−1
+          Figure 3 Suppose ak < `k−1 − ak and there exists s ∈ S(Ak ) such that sj ∗ + ak < s < sj ∗ +1 .
+
+            The latter case, when ak < 0, is similar. Again there exists a pair of consecutive entries
+       (sj ∗ , sj ∗ +1 ) in S(Ak−1 ) which achieves gap `k−1 . Suppose, towards contradiction, that sj ∗
+       and sj ∗ +1 − |ak | do not appear consecutively in S(Ak ). Then there must be some s ∈ S(Ak )
+       such that sj ∗ < s < sj ∗ +1 − |ak |. Again, s cannot be an element of S(Ak−1 ) since sj ∗ and
+       sj ∗ +1 are consecutive in S(Ak−1 ), so s + |ak | must be an element of S(Ak−1 ). However since
+       s < sj ∗ +1 − |ak |, we have s + |ak | < sj ∗ +1 . This is a contradiction since sj ∗ and sj ∗ +1 are
+       consecutive entries in S(Ak−1 ).                                                                   J
+L. Li and A. Nikolov                                                                                     69:9
+
+
+     Lemma 8 has the following curious corollary.
+
+I Corollary 9. Let A = [a1 , ..., an ] and A0 = [|a1 |, ..., |an |]. Then lindisc(A) = lindisc(A0 ).
+
+   Lemma 8 and Corollary 9 suggest an algorithm: replace the entries of A by their
+magnitudes. Sort A. Consider each entry in turn and update the largest gap accordingly.
+See Algorithm 1.
+
+Proof of Theorem 3. By Corollary 9 it is sufficient to consider row matrices with non-
+negative entries. Suppose that A = [a1 , ..., an ] is such a matrix with entries sorted in
+decreasing order. Algorithm 1 correctly outputs the linear discrepancy for matrices with a
+single entry. Let Ai = [a1 , ..., ai ]. Lemma 8 gives us a recursive method for computing the
+largest gap in S(Ai+1 ) from the largest gap in S(Ai ). Since lindisc(A) is half the size of the
+largest gap in S(A), Algorithm 8 output lindisc(A) as required.                               J
+
+
+     Algorithm 1 Linear discrepancy of row matrix.
+   Input: Matrix A ∈ Q1×n .
+   Output: lindisc(A).
+ 1 for i from 1 to n do
+ 2    A[i] ← |ai |
+ 3 sort A in decreasing order
+ 4 ` ← a1
+ 5 for i from 2 to n do
+ 6     ` ← max(ai , ` − ai )
+ 7   return 2`
+
+
+     Thus, for any row matrix A with n elements, we can find lindisc(A) in time O(n log n).
+
+4.1.1      One Row Linear Discrepancy Rounding
+Let lindisc(A) = `. By the definition of linear discrepancy, for every w ∈ [0, 1]n there exists
+an x ∈ {0, 1}n such that kA(w − x)k∞ ≤ `. In-fact, if w is not a deep-hole, there exists
+an x which satisfies kA(w − x)k∞ < `. However it is not obvious that finding such an x
+can be done efficiently i.e. in polynomial time with respect to the bit complexity of A and
+n. By reducing from the subset-sum problem, we observe that it is difficult to compute
+lindisc(A, w) let alone find an x which minimizes kA(w − x)k∞ ≤ `.
+
+Proof of Theorem 4. To begin, let A = [a1 , ..., an ] for positive ai in non-increasing order.
+We will consider A with arbitrary entries at the end. Let w = Aw. As before, let S(A) =
+[s0 , ..., s2n −1 ] be the subset-sums of A where each si = Ax for an x ∈ {0, 1}n and si ≤ si+1
+for all i. Recall that 2 · lindisc(A) is the largest gap between any two consecutive entries in
+S(A). Our algorithm will find a pair of subset sums containing w. If we can show that the
+size of the interval between these two subset sums is no more than the gap between some
+two consecutive entries in S(A), then the closest subset sum to w among these two will be
+within lindisc(A) of w.
+     Just as in Algorithm 1, we refine the interval between two subset sums containing
+w by incrementally adding the entries of A in decreasing order. Initially our interval is
+            Pn
+g0 = [0, i=1 ai ]. We maintain the invariants: (1) w ∈ gi for all i, and (2) the end-points of
+gi are subset sums.
+
+
+
+                                                                                                       ESA 2020
+69:10   On the Computational Complexity of Linear Discrepancy
+
+
+            Suppose w ∈ gi = [u, v] and we are considering ai . If u+ai > w then set v ← min(v, u+ai ).
+        Otherwise let u ← u + ai . Algorithm 2 computes this interval and the associated vectors u
+        and v representing its endpoints.
+            Consider the values of u and v at the end of the algorithm. We claim that the final
+        interval [u, v] is at most the width of some gap between two consecutive terms in S(A), the
+        array of all subset sums of A. Notice u = a1 u1 + · · · + an un where u = [u1 , ..., un ] is an
+        endpoint of the interval once Algorithm 2 completes.
+            We partition u into maximal blocks where all entries in the same block have the same
+        value i.e. [u1 , u2 , ..., u`1 ], ..., [u`r +1 , u`r +2 , ..., un ] such that u`i +1 = u`i +2 = · · · = u`i+1 for
+        i = 0, 1, ..., r − 1 where `0 = 0.
+            We claim that Algorithm 2 outputs an interval containing w whose width is at most the
+        distance between some two consecutive entries in S(A). The proof is by induction on r,
+        the number of blocks. In the base case, r = 1 and there is only one block. Thus u = 0 or
+             P
+        u=      ai . In the case where u = 0, we must have ai > w for all i ∈ [n], and v = an . Thus
+                                                                                                                     P
+        w ∈ [0, an ] with consecutive elements 0 and an of S(A). In the latter case when u = ai ,
+        we can output w since it is already a subset sum.
+            Suppose next that the claim holds for all matrices where the algorithm outputs a vector
+        u with k blocks, and we will show that it still holds for a matrix A whose output u has
+        k + 1 blocks. Let u0 = [u1 , ..., u`k+1 ] and v0 = [v1 , ..., v`k+1 ] be the final vectors after running
+                                                                                   P`k+1                   P`k+1
+        the algorithm on A0 = [a1 , ..., a`k+1 ]. Further let u0 = i=1                   ai ui and v 0 = i=1     ai vi . By
+        the induction hypothesis, the width of [u0 , v 0 ] is at most the distance between some two
+        consecutive elements in the list of subset sums of A0 . The last block of u is [u`k+1 +1 , ..., un ].
+        The entries of this block are either all zeros or all ones. Consider each case in-turn.
+            First suppose u`k+1 +1 = · · · = un = 0. Since none of the ai for i = `k+1 + 1, ..., n
+        were added to u, it must be the case that u0 + ai > w for all such i. Thus the interval
+        [u, v] = [u0 , min (v 0 , u0 + an )] has width at most an . Since 0 and an are consecutive in S(A),
+        as |an | is the entry with the smallest magnitude in A, the output interval satisfies our
+        requirements.
+            Next suppose u`k+1 +1 = · · · = un = 1. It must be the case that u = u0 +a`k+1 +1 +· · ·+an ≤
+        w. Observe that a`k+1 is in the k th block and so u`k+1 = 0. Let [u00 , v 00 ] be our interval
+                                                                        P`k                     P`k
+        after processing the k − 1st block i.e. u00 = i=1                      ai ui and v 00 = i=1    ai vi . Notice that
+        since none of the entries in the k th block were added to u00 , we must have u00 + ai > w
+        for all i = `k + 1, ..., `k+1 . In such cases, we always update v 00 ← min(v 00 , u00 + ai ) after
+        each such i, thus the interval [u0 , v 0 ] has width at most a`k+1 . Thus it suffices to show that
+        a`k+1 +1 +· · ·+an and a`k+1 are consecutive in S(A). First note that a`k+1 +1 +· · ·+an ≤ a`k+1
+        since u0 + a`k+1 +1 + · · · + an ≤ w ≤ v 0 ≤ u0 + a`k+1 . The two subset sums then are also
+        consecutive, since ai > a`k+1 for all i < `k+1 .
+            Now consider the case where A can have both positive and negative entries. Without loss
+        of generality we can assume that none of the entries are zero. Let A− = {ai ∈ A : ai < 0}
+                                                                               P                    P
+        and A+ = {ai ∈ A : ai > 0}. It suffices to set u0 = a∈A− a and v0 = a∈A+ a and let u
+        and v be the indicator vectors of A− and A+ respectively. The remainder of the algorithm
+        is identical except that the matrix should be sorted in decreasing order of magnitude and
+        every time an element ai ∈ A− is added to u, its entry in u should be set to zero.                                J
+
+
+        4.2     Constant Rows with Bounded Matrix Entries
+        Let A ∈ Zd×n with maxi,j |Ai,j | ≤ δ. Let Z = A[0, 1]d be the zonotope of A and let
+        T = [−nδ, nδ]d ∩ Zd be the set of all integer lattice points of Z. The following algorithm
+        computes lindisc(A) in polynomial time with respect to n for fixed d and δ. The algorithm
+        makes use of Lemma 11, which is proved in the Appendix.
+L. Li and A. Nikolov                                                                               69:11
+
+
+     Algorithm 2 Finding a close subset sum to Aw.
+   Input: A vector w ∈ [0, 1]n and a row matrix A = [a1 , ..., an ] of positive integers
+           sorted in increasing order.
+   Output: A vector x ∈ {0, 1}n such that kA(w − x)k∞ ≤ lindisc(A).
+ 1 A ← sort-decreasing(A)
+ 2 u ← zeros(n)
+ 3 v ← ones(n)
+ 4 w ← Aw, u ← Au, v ← Av
+ 5 return v if w == v
+ 6 for k = 1..n do
+ 7    if u + ak > w then
+ 8        v ← min (v, u + ak )
+ 9        if v == u + ak then
+10            v ← copy(u)
+11            v[k] ← 1
+
+12      else
+13         u ← u + ak
+14         u[k] ← 1
+
+15   return u if u is closer to w else v
+
+
+
+Proof of Theorem 5. For every one of the (2nδ +1)d integral points b ∈ T , compute whether
+Ax = b for some x ∈ {0, 1}n using dynamic programming. This procedure generalizes
+dynamic programming algorithms for knapsack and subset sum and will be outlined in
+the following. Let a1 , ..., an be the columns of A. Construct a matrix M with dimensions
+[−nδ, nδ]d × n. Cell (v, i) of M contains the indicator [M(v − ai , i − 1) ∨ M(v, i − 1)]; this
+corresponds to a linear combination of the first i − 1 columns of A which adds up to v − ai
+or a linear combination of the first i − 1 columns which adds up to v. The first column of M
+is the indicator vector for {a1 }. Computing the entries of M takes time O(2nδ)d+1 . M(b, n)
+indicates the feasibility of Ax = b. Computing this for all b takes time O(2nδ)d+1 . Let
+S ⊆ T be the set of points b in Z such that Ax = b for some x ∈ {0, 1}n , and set |S| = N .
+    Apply Lemma 11 to the points of S in `∞ -norm. The output is some radius r and
+point x∗ such that the `∞ -ball centered at x∗ with radius r is the largest such ball with
+center inside the convex hull of S not containing any points of S. Note that r is in-fact the
+linear discrepancy of A. Since r and x∗ can be computed in time O(N d ), lindisc(A) can be
+                              2
+computed in time O(2nδ)d +d .                                                                J
+
+
+
+4.3     Poly-time Approximation Algorithm
+Next, we prove Theorem 6 present a 2n -approximation algorithm for linear discrepancy.
+Recall that rd(w) is the function which rounds each coordinate of w to its nearest integer
+(with ties broken arbitrarily). Let the operator norms of a matrix A be:
+
+                        kAxkq
+     kAkp→q =     max         .
+                x∈R \{0} kxkp
+                   n
+
+
+
+
+                                                                                                  ESA 2020
+69:12   On the Computational Complexity of Linear Discrepancy
+
+
+        Note that
+                                                               1              1
+             lindisc(A) ≤ max n kA(w − rd(w))k∞ ≤                  max kAzk∞ = kAk∞→∞ .
+                           w∈[0,1]                             2 z∈[−1,1]n    2
+
+           To bound lindisc(A) from below, we show that kAk∞→∞ ≤ 2n+1 · lindisc(A). This
+        completes the proof of the theorem, since kAk∞→∞ equals the largest `1 norm of any row of
+        A, and can be computed in polynomial time.
+           Let us try to interpret the statement kAk∞→∞ ≤ 2n+1 · lindisc(A). Note that kAzk∞ is
+        equal to the Minkowski P-norm kzkP for P = {x : kAxk∞ ≤ 1} i.e. kzkP = inf{t ≥ 0 : z ∈
+        tP} so
+
+             kAk∞→∞ =        max kAzk∞ =         max kzkP .
+                          z∈[−1,1]n            z∈[−1,1]n
+
+
+        By interpreting z as the difference of two vectors x, x0 ∈ [0, 1]n we have that
+
+             kAk∞→∞ =        max kzkP =        max         kx − x0 kP .
+                          z∈[−1,1]n         x,x0 ∈[0,1]n
+
+
+        It is an easy, and well-known fact that lindisc(A) is the smallest t such that [0, 1]n ⊆
+        S
+          x∈{0,1}n (x + P); see [15]. We then just need to show that the diameter of the unit hyper-
+        cube with respect to the Minkowski P-norm is no more than this scale-factor t times O(2n ).
+        We prove the following more general statement.
+
+        I Lemma 10. Let K be a convex symmetric polytope and S ⊂ Rn be convex. Suppose there
+        exist N elements x1 , ..., xN ∈ S such that
+                [
+            S⊆     xi + tK.
+                  xi
+
+        Then maxx,x0 ∈S kx − x0 kK ≤ 2tN .
+
+        Proof. Fix any two points x and x0 in S. Let Pi be the polytope xi + tK. Since S is convex,
+        the line segment λx + (1 − λ)x0 for λ ∈ [0, 1] is in S. Therefore λx + (1 − λ)x0 intersects a
+        sequence of polytopes Pk1 , ..., Pkr with centres xk1 , ..., xkr , such that any two consequtive
+        polytopes in the sequence intersect. Since the polytopes are convex, we can assume that they
+        appear in the sequence at most once, so r ≤ N . By the triangle inequality we have
+
+             kx − x0 kK = k(x − xk1 ) + (xk1 − xk2 ) + · · · + (xkr − x0 )kK
+                        ≤ kx − xk1 kK + kxk1 − xk2 kK + · · · + kxkr − x0 kK
+                        ≤ t + 2t(N − 1) + t = 2tN
+
+        where the last inequality follows as x ∈ Pk1 , x0 ∈ Pkr , and kxki − xki+1 kK ≤ 2t.          J
+
+        Proof of Theorem 6. In Lemma 10, set K to be the parallelepiped defined by A, S = [0, 1]n ,
+        t = lindisc(A), and {x1 , ..., xN } = {0, 1}n .                                         J
+
+
+         5      Open Problems
+        Because of the similarity between the closest vector problem and linear discrepancy, we
+        suspect that linear discrepancy is also Π2 -complete, and the hardness result of Theorem
+        2 is, in this sense, not tight. Further, Haviv and Regev also showed that CRP is Π2 -hard
+        to approximate to with-in a factor of 32 , and we conjecture that a similar hardness of
+        approximation result should hold for linear discrepancy.
+L. Li and A. Nikolov                                                                                 69:13
+
+
+   We suspect that the algorithm used to prove Theorem 3 can be generalized to matrices
+A ∈ Qd×n with running time Õ(nd ). This would be a substantial improvement on the
+          2
+O d(nδ)d running time algorithm used to prove Theorem 5, and would be independent of
+the magnitude of the largest entry of A.
+    It is also interesting to extend the largest empty ball algorithm from Lemma 11 to other
+`p norms, or even arbitrary norms, given appropriate access to the norm ball. Currently, this
+seems rather difficult as Voronoi diagrams with respect to the `p -norm for p ∈ (2, ∞) are
+poorly behaved. For the standard `2 -norm Voronoi diagram in Rd , it is the case that d + 1
+affinely independent vertices are equidistant to exactly one point. This is no longer the case
+even in R3 for `4 -norm [13]. In particular, there exists a set of four vertices such that the
+intersection of their pair-wise bisectors has size three. The situation is even worse for general
+strictly convex norms. There exists such norms where the pair-wise bisectors of a set of four
+points in R3 can have arbitrarily many intersections.
+    We currently also have no evidence that the approximation factor in Theorem 6 is tight.
+One possibility is that there exists an approximation preserving reduction from the closest
+vector problem in lattices to linear discrepancy. This would show that one cannot expect
+a significant improvement to Theorem 6 without also improving the best polynomial time
+approximation to the covering radius, which is currently also exponential in the dimension n.
+On the other hand, we also conjecture that the approximation factor in Theorem 6 can be
+taken to be a function of min{m, n}, or even of the rank of the matrix A.
+
+
+
+
+     References
+ 1   Christoph Aistleitner, Dmitriy Bilyk, and Aleksandar Nikolov. Tusnády’s problem, the
+     transference principle, and non-uniform qmc sampling. In Art B. Owen and Peter W. Glynn,
+     editors, Monte Carlo and Quasi-Monte Carlo Methods, pages 169–180. Springer International
+     Publishing, 2016.
+ 2   Per Austrin, Venkatesan Guruswami, and Johan Håstad. (2+ε)-sat is np-hard. SIAM Journal
+     on Computing, 46(5):1554–1573, 2017.
+ 3   Nikhil Bansal, Ravishankar Krishnaswamy, and Viswanath Nagarajan. Better scalable algo-
+     rithms for broadcast scheduling. ACM Trans. Algorithms, 11(1):3:1–3:24, 2014.
+ 4   József Beck and Vera T Sós. Discrepancy theory. In Handbook of combinatorics (vol. 2), pages
+     1405–1446. MIT Press, 1996.
+ 5   Jean-Daniel Boissonnat, Micha Sharir, Boaz Tagansky, and Mariette Yvinec. Voronoi diagrams
+     in higher dimensions under certain polyhedral distance functions. Discrete & Computational
+     Geometry, 19(4):485–519, 1998. doi:10.1007/PL00009366.
+ 6   Moses Charikar, Alantha Newman, and Aleksandar Nikolov. Tight hardness results for
+     minimizing discrepancy. In Proceedings of the twenty-second annual ACM-SIAM symposium
+     on Discrete Algorithms, pages 1607–1614. Society for Industrial and Applied Mathematics,
+     2011.
+ 7   Bernard Chazelle. An optimal convex hull algorithm in any fixed dimension. Discrete &
+     Computational Geometry, 10(4):377–409, 1993.
+ 8   Bernard Chazelle. The discrepancy method: randomness and complexity. Cambridge University
+     Press, 2001.
+ 9   E Mark Gold. Complexity of automaton identification from given data. Information and
+     control, 37(3):302–320, 1978.
+10   Venkatesan Guruswami, Daniele Micciancio, and Oded Regev. The complexity of the covering
+     radius problem. Computational Complexity, 14(2):90–121, 2005.
+
+
+
+
+                                                                                                    ESA 2020
+69:14   On the Computational Complexity of Linear Discrepancy
+
+
+        11    Ishay Haviv and Oded Regev. Hardness of the covering radius problem on lattices. In
+              Computational Complexity, 2006. CCC 2006. Twenty-First Annual IEEE Conference on, pages
+              14–pp. IEEE, 2006.
+        12    Rebecca Hoberg and Thomas Rothvoss. A logarithmic additive integrality gap for bin packing.
+              In Proceedings of the Twenty-Eighth Annual ACM-SIAM Symposium on Discrete Algorithms,
+              pages 2616–2625. SIAM, 2017.
+        13    Christian Icking, Rolf Klein, Ngoc-Minh Lé, and Lihong Ma. Convex distance functions in
+              3-space are different. Fundamenta Informaticae, 22(4):331–352, 1995.
+        14    László Lovász, Joel Spencer, and Katalin Vesztergombi. Discrepancy of set-systems and
+              matrices. European Journal of Combinatorics, 7(2):151–160, 1986.
+        15    Jiri Matousek. Geometric discrepancy: An illustrated guide. Springer, 1999.
+        16    Jiří Matoušek, Aleksandar Nikolov, and Kunal Talwar. Factorization Norms and Hereditary
+              Discrepancy. International Mathematics Research Notices, 2020(3):751–780, March 2018.
+              doi:10.1093/imrn/rny033.
+        17    A. Nikolov. Tighter bounds for the discrepancy of boxes and polytopes. Mathematika,
+              63(3):1091–1113, 2017. doi:10.1112/S0025579317000250.
+        18    Thomas Rothvoß. Approximating bin packing within o (log opt* log log opt) bins. In
+              Foundations of Computer Science (FOCS), 2013 IEEE 54th Annual Symposium on, pages
+              20–29. IEEE, 2013.
+        19    Alexander Schrijver. Theory of linear and integer programming. John Wiley & Sons, 1998.
+        20    Godfried T Toussaint. Computing largest empty circles with location constraints. International
+              journal of computer & information sciences, 12(5):347–358, 1983.
+
+
+         A      Appendix
+        A.1     Bit Complexity of Linear Discrepancy
+        Proof of Lemma 7. Let ri for i ∈ [m] be the rows of A, lindisc(A) = λA , and w∗ be a
+        deep-hole of A. For every x ∈ {0, 1}n there exists an i ∈ [m] and σ ∈ {−1, 1} such that
+        σri (w∗ − x) ≥ λA . Let bx = σri and consider the following linear program over the variables
+        w ∈ Rn and λ ∈ R:
+
+             Maximize: λ
+             Subject to: bx (w − x) ≥ λ                         for all x ∈ {0, 1}n
+                         0≤w≤1
+
+            Let λ∗ be the optimum value of this linear program. First note that λA ≤ λ∗ since (w∗ , λ)
+        satisfies the constraints. Next we show that λA ≥ λ∗ . Suppose, towards contradiction, that
+        λA < λ∗ . Then there exists w0 ∈ [0, 1]n such that
+
+             kA(w0 − x)k∞ ≥ bx (w0 − x) ≥ λ∗ > λA
+
+        for every x ∈ {0, 1}n . Since λA = lindisc(A), we cannot have lindisc(A, w0 ) > λA . Thus
+        λ∗ = lindisc(A). Since this LP has n variables, the number of bits required to express the
+        linear discrepancy and some deep-hole w∗ of A are polynomial in n and the bit complexity
+        of the largest entry of A [19].                                                         J
+
+        A.2     Largest Empty Ball Problem
+        Let V be a set of n points in the plane and let ch(V ) denote the convex hull of V . The
+        largest empty circle problem, denoted LEC, takes V and outputs both a radius r and point
+        x∗ ∈ ch(V ) such that the circle centered at x∗ with radius r is the largest empty circle
+        not containing any point of V . We generalize this problem to other norms and to higher
+L. Li and A. Nikolov                                                                                 69:15
+
+
+dimensions as follows: V is a set of n points in Rd , and the goal is to compute a point x∗ in
+ch(V ) such that x∗ + rB does not contain any point of V , where B is the unit ball of either
+the `d2 or the `d∞ norm. In the following we present an algorithm which solves this largest
+empty ball (LEB) problem.
+I Lemma 11 (LEC in Higher Dimensions). Let V be a set of n points in Rd for some fixed
+constant d. The LEB of V , in both `2 - and `∞ -norms, can be computed in time O(nd ).
+Proof. We use the following terminology. Define a face F of the Voronoi diagram vd(V ) of
+V to be a subset of Rd such that, for some S ⊆ V , and every x ∈ F , S are the points in V
+closest to x. In particular, this means that any x ∈ F is equidistant from all points in S.
+    The algorithm of Toussaint [20] computes the LEB of n points V in the plane with respect
+to the `2 -norm as follows,
+ 1. Compute vd(V ). Note that vd(V ) is the union of Voronoi faces of dimension k, the set
+    of which we denote vdk (V ), over all k = 0, ..., d − 1.
+ 2. Compute the convex hull of V , denoted ch(V ). Let h be the number of facets of ch(V ).
+ 3. Preprocess the points of ch(V ) so that queries of the form “Is a point x in ch(V )?”
+    can be answered in time O(log h). For every v ∈ vd0 (V ), determine if v ∈ ch(V ). Let
+    C1 = {v ∈ vd0 (V ) : v ∈ ch(V )}.
+ 4. Determine the intersection points of faces in vdk (V ) with faces of ch(V ) of co-dimension
+    k, for pairs of such faces that intersect at a unique point. Let C2 be the set of all such
+    intersection points.
+ 5. For all points v ∈ C1 ∪ C2 , find the largest empty circle centered at v. Output a v which
+    maximizes this radius.
+We find the analogue of each step for points in Rd with respect to the `2 -norm, and then
+adapt the algorithm to the `∞ -norm.
+    In the following let N = ndd/2e . The complexity, i.e. total number of faces of every
+dimension, of the `2 -Voronoi diagram in Rd for fixed d is O(N ) and can be computed in time
+O(N + n log n) by a classic result of Chazelle [7]. The complexity of ch(V ) is O(N ) and can
+also be computed in time O(N + n log n).
+    To determine the set C1 of Voronoi intersection points inside the convex hull, we let
+H be the set of bounding hyperplanes of ch(V ). Assume, without loss of generality, that
+ch(V ) contains the origin, and, for each H ∈ H, let H − be the half-space with H as its
+boundary containing the origin. Then ch(V ) = H∈H H − . We simply test, for each Voronoi
+                                                   T
+
+intersection point v, whether v ∈ H − for each H ∈ H, in total time O(N ). Since there are
+at most O(N ) Voronoi intersection points, we can find C1 in time O(N 2 ).
+    To determine the set C2 of all unique intersection points of k-faces of vdk (V ) and faces
+of ch(V ) of co-dimension k will require solving several linear systems. Note that the points
+in each face F in vdk (V ) satisfy d − k equality constraints ha1 , xi = b1 , hak , xi = bk for
+linearly independent vectors a1 , ...ak ∈ Rd . Similarly, the points in each face of co-dimension
+k of ch(V ) satisfy k linearly independent equality constraints. Since there are at most
+O(2d N ) = O(N ) faces of ch(V ), there are at most that many faces of ch(V ) of co-dimension
+k. We can then go over all Voronoi faces F of dimension k, and all faces G of ch(V ) of
+co-dimension k, and solve the corresponding system of (d − k) + k = d linear equations. If
+the system has a unique solution, we check if that solution is in F ∩ G, and, if so, we add it
+to C2 . Thus, for constant d, the size of C2 and the time to compute it are bounded bounded
+above by O(N · 2d N ) = O(N 2 ).
+    In total there are at most O(N + N 2 ) points in C1 ∪ C2 which can be computed in time
+O(N 2 ). Thus solving the largest empty ball problem in dimension d for constant d takes
+time O(nd ).
+
+
+
+                                                                                                    ESA 2020
+69:16   On the Computational Complexity of Linear Discrepancy
+
+
+            Next we consider the largest empty ball problem in `∞ -norm. The convex hull remains the
+        same, so we just have to consider the Voronoi diagram with respect to the `∞ -norm. Again,
+        constructing the Voronoi diagram can be done in expected time O(ndd/2e logd−1 n) using the
+        randomized algorithm of Boissonnat et al. [5]. Next we consider the number of intersections
+        between the Voronoi diagram and the convex hull. First note that Voronoi diagrams with
+        respect to the `∞ -norm need not consist of only hyperplanes and their intersections. Indeed,
+        in Rd , for two points with the same y-coordinate, there exists regions with affine dimension
+        two which are equidistant to both points. To remedy this, we assume that no two points
+        in V have the same i-th coordinate, for any i ∈ [d]. This is without loss of generality, by
+        perturbing the points in V slightly. It remains to consider the complexity of each bisector in
+        `∞ -norm. By Claim 12, in constant dimension d, each such bisector can have at most O(d2 )
+        facets. Therefore, the complexity of any face of the Voronoi diagram, being the intersection
+        of at most d bisectors, is bounded by a function of d. Thus the bounds of the `2 -norm
+        algorithm still hold, up to constant factors that depend on d.                              J
+
+        B Claim 12 (Bound on Number of Facets of `∞ Bisectors). Let u, v ∈ Rd be such that assume
+        that ui 6= vi for all i ∈ [d]. Then the bisector {x : kx − uk∞ = kx − vk∞ } has at most O(d2 )
+        facets.
+
+        Proof. Let x be a point in the bisector at `∞ distance r from u and v. Pick coordinates i
+        and j and signs σ and τ in {−1, +1} such that
+
+           σi (xi − ui ) = τj (xj − vj ) = r.                                                        (4)
+
+        Moreover, let us make this choice so that either i 6= j or σi 6= τi . This is always possible,
+                                                                                                      d
+        since, otherwise, the assumption on u and v is violated. Then, (4) defines a hyperplane  in R2 ,
+                                                                                              2d
+        namely Hi,j,σ,τ = {x : σi xi − τj xj = σi ui − τj vj }. Note that there are at most 2 ∈ O(d )
+        such hyperplanes, and each x in the bisector lies in at at least one of them. Moreover, a
+        point x in Hi,j,σ,τ lies in the bisector if and only if it satisfies the inequalities
+
+           |xk − uk | ≤ σi (xi − ui ) ∀k ∈ [d],
+           |xk − vk | ≤ τj (xj − vj ) ∀k ∈ [d].
+
+
+        Thus, the bisector is the union of (d − 1)-dimensional convex polyhedra, one per each of the
+        O(d2 ) hyperplanes Hi,j,σ,τ .                                                             C
+

@@ -1,0 +1,2087 @@
+                                         Polynomially Low Error PCPs with polyloglog n Queries via
+                                                          Modular Composition∗
+
+                                                               Irit Dinur†            Prahladh Harsha‡                Guy Kindler§
+
+                                                                                        August 18, 2018
+arXiv:1505.06362v1 [cs.CC] 23 May 2015
+
+
+
+
+                                                                                              Abstract
+                                                   We show that every language in NP has a PCP verifier that tosses O(log n) random coins,
+                                               has perfect completeness, and a soundness error of at most 1/poly(n), while making at most
+                                               O(poly log log n) queries into a proof over an alphabet of size at most n1/poly log log n . Previous
+                                               constructions that obtain 1/poly(n) soundness error used either poly log n queries or an expo-
+                                                                                      c
+                                               nential sized alphabet, i.e. of size 2n for some c > 0. Our result is an exponential improvement
+                                               in both parameters simultaneously.
+                                                   Our result can be phrased as a polynomial-gap hardness for approximate CSPs with arity
+                                               poly log log n and alphabet size n1/poly log n . The ultimate goal, in this direction, would be to
+                                               prove polynomial hardness for CSPs with constant arity and polynomial alphabet size (aka the
+                                               sliding scale conjecture for inverse polynomial soundness error).
+                                                   Our construction is based on a modular generalization of previous PCP constructions in this
+                                               parameter regime,which involves a composition theorem that uses an extra ‘consistency’ query
+                                               but maintains the inverse polynomial relation between the soundness error and the alphabet
+                                               size.
+                                                   Our main technical/conceptual contribution is a new notion of soundness, which we refer
+                                               to as distributional soundness, that replaces the previous notion of “list decoding soundness”,
+                                               and that allows us to prove a modular composition theorem with tighter parameters. This
+                                               new notion of soundness allows us to invoke composition a super-constant number of times
+                                               without incurring a blow-up in the soundness error.
+
+
+
+
+                                           ∗
+                                               A preliminary version of this paper appeared in the Proc. 47th ACM Symp. on Theory of Computing (STOC),
+                                         2015 [DHK15].
+                                             †
+                                               Weizmann Institute of Science, ISRAEL. email: irit.dinur@weizmann.ac.il. Research supported in part by a
+                                         ISF-UGC grant 1399/4 and by an ERC grant 239985.
+                                             ‡
+                                               Tata Institute of Fundamental Research (TIFR), Mumbai, INDIA. email: prahladh@tifr.res.in. Research sup-
+                                         ported in part by ISF-UGC grant 1399/4. Part of this work was done while visiting the Simons Institute for the Theory
+                                         of Computing, UC Berkeley.
+                                             §
+                                               The Hebrew University of Jerusalem, ISRAEL. email: gkindler@cs.huji.ac.il. Research supported in part by an
+                                         Israeli Science Foundation grant no. 1692/13 and by US-Israel Binational Science Foundation grant no. 2012220. Part
+                                         of this work was done while visiting the Simons Institute for the Theory of Computing, UC Berkeley.
+1        Introduction
+Probabilistically checkable proofs (PCPs) provide a proof format that enables verification with
+only a small number of queries into the proof such that the verification, though probabilistic, has
+only a small probability of error. This is formally captured by the following notion of a probabilis-
+tic verifier.
+Definition 1.1 (PCP Verifier). A PCP verifier V for a language L is a polynomial time probabilistic
+algorithm that behaves as follows: On input x, and oracle access to a (proof) string Π (over an alphabet
+Σ), the verifier reads the input x, tosses some random coins R, and based on x and R computes a (local)
+window I = (i1 , . . . , iq ) of q indices to read from Π, and a (local) predicate ϕ : Σq → {0, 1}. The verifier
+then accepts iff ϕ(Π|I ) = 1.
+        • The verifier has perfect completeness: if for every x ∈ L, there is a proof Π that is accepted with
+          probability 1. I.e., ∃Π, PrR [ϕ(Π|I ) = 1] = 1.
+        • The verifier has soundness error δ < 1: if for any x 6∈ L, every proof Π is accepted with probability
+          at most δ. I.e., ∀Π, PrR [ϕ(Π|I ) = 1] ≤ δ.
+    The celebrated PCP Theorem [AS98, ALM+ 98] states that every language in NP has a verifier
+that has perfect completeness and soundness error bounded by a constant δ < 1, while using only
+a logarithmic number of random coins, and reading only q = O(1) proof bits. Naturally (and
+motivated by the fruitful connection to inapproximability due to Feige et al. [FGL+ 96]), much
+attention has been given to obtaining PCPs with desirable parameters, such as a small number of
+queries q, smallest possible soundness error δ, and smallest possible alphabet size |Σ|.
+    How small can we expect the soundness error δ to be? There are a couple of obvious limita-
+tions. First observe that the soundness error δ cannot be smaller than 1/poly(n) just because there
+are only poly(n) different random choices for the verifier and at least one of the corresponding
+local predicates must be satisfiable1 . Next, note that if the verifier reads a total of k bits from
+the proof (namely, q log |Σ| ≤ k), the soundness error cannot be smaller than 2−k , just because a
+random proof is expected to cause the verifier to accept with at least this probability.
+    The best case scenario is thus if one can have the verifier read k = O(log n) bits from the proof
+and achieve a soundness error of 1/2k = 1/poly(n). Indeed, the following is well known (obtained
+by applying a randomness efficient sequential repetition to the basic PCP Theorem):
+Theorem 1.2 (PCP theorem + randomness efficient sequential repetition). For every integer k, every
+language in NP has a PCP verifier that tosses at most O(k + log n) random coins, makes q = O(k) queries
+into a proof over the Boolean alphabet {0, 1}, has perfect completeness, and soundness error δ = 2−k .
+    In particular, setting k = log n we get q = O(log n) and δ = 1/poly(n).
+    This theorem gives a ballpark optimal tradeoff (up to constants) between soundness error and
+the number of bits read from the proof. However it does not achieve a small number of queries, a
+fundamental requirement that is important, among other things, for hardness of approximation.
+The goal of constructing a PCP with both a small error and a small number of queries turns out to
+be much more challenging and has attracted considerable attention. This was first formulated by
+Bellare et al. [BGLR93] as the “sliding scale” conjecture.
+    1                                                                                          ?
+    One may assume that every local predicate ϕ is satisfiable. Otherwise the question of “x ∈ L” reduces to the
+question of whether ϕ is satisfiable for any of the predicates computed by the verifier. This cannot occur without a
+collapse of NP into NTIME(q log |Σ|).
+
+
+                                                         1
+                                                               1
+Conjecture 1.3 (Sliding Scale Conjecture [BGLR93]). For any poly(n) ≤ δ < 1, every language in NP
+has a PCP verifier that tosses O(log n) random coins, makes q = O(1) queries2 into a proof over an alphabet
+Σ of size poly(1/δ), has perfect completeness, and soundness error δ.
+                                                                                              1−ε
+    As we describe shortly below, this conjecture is known to hold for 1 > δ ≥ 2−(log n) , namely
+where δ can be made ‘almost’ polynomially small. The interesting regime, that has remained open
+for two decades, is that of (inverse) polynomially small δ. This is the focus of our work. Our main
+goal is to find the smallest q and |Σ| parameters for which we can get δ to be polynomially small.
+Our main result is the following.
+Main Theorem 1.4. Every language in NP has a PCP verifier that tosses O(log n) random bits, makes
+                                                                                        O(1)
+q = (log log n)O(1) queries into a proof over an alphabet Σ of size |Σ| = n1/(log log n) , has perfect
+completeness, and soundness error δ = 1/poly(n).
+    Previous PCP constructions require at least (log n)Ω(1) queries in order to achieve polynomially
+small error (and this remains true even for constructions that are allowed quasi-polynomial size,
+see further discussion at the end of this introduction).
+    The first works making progress towards this conjecture are due to Raz and Safra [RS97], and
+Arora and Sudan [AS03], and rely on the classical (algebraic) constructions of PCPs. They prove
+                                                 β
+the conjecture for all δ such that δ ≥ 2−(log n) for some constant β > 0. These ideas were then
+extended by Dinur et al. [DFK+ 11] with an elaborate composition-recursion structure, proving the
+                                1−ε
+conjecture for all δ ≥ 2−(log n)    for any ε > 0. The small catch here is that the number of queries
+grows as ε approaches 0. The exact dependence of q on ε was not explicitly analyzed in [DFK+ 11],
+but we show that it can be made O(1/ε) while re-deriving their result.
+                                                                           1−ε
+Theorem 1.5 ([DFK+ 11]). For every ε > 0 and δ = 2−(log n) , every language in NP has a PCP verifier
+that tosses O(log n) random coins, makes q = O(1/ε) queries into a proof over an alphabet Σ of size
+|Σ| = 1/poly(δ), has perfect completeness, and has soundness error δ.
+   The focus of [DFK+ 11] was on a constant number of queries but their result can also be applied
+towards getting polynomially small error with a non-trivially small number of queries. This is
+done by combining it with sequential repetition. We get,
+Corollary 1.6 ([DFK+ 11] + randomness efficient sequential repetition). For every ε > 0, every lan-
+guage in NP has a PCP verifier that tosses O(log n) random coins, makes q = O((log n)ε /ε) queries into
+                                                 1−ε
+a proof over an alphabet Σ of size |Σ| = 2(log n) , has perfect completeness, and has soundness error
+δ = 1/poly(n).
+   Corollary 1.6 describes the previously known best result in terms of minimizing the number of
+queries subject to achieving a polynomially small error and using at most a logarithmic amount of
+randomness. Whereas in Corollary 1.6 the number of queries is q = (log n)ε , our Main Theorem 1.7
+requires only q = poly log log n queries.
+
+PCP Composition and dPCPs
+Like in recent improved constructions of PCPs [BGH+ 06, DR06, BS08, Din07, MR10, DH13], our
+main theorem is obtained via a better understanding of composition. All known constructions
+  2
+      It is even conjectured that this constant can be made as low as 2.
+
+
+                                                              2
+of PCPs rely on proof composition. This paradigm, introduced by Arora and Safra [AS98], is a
+recursive procedure applied to PCP constructions to reduce the alphabet size. The idea is to start
+with an easier task of constructing a PCP over a very large alphabet Σ. Then, proof composition
+is applied (possibly several times over) to PCPs over the large alphabet to obtain PCPs over a
+smaller (even binary) alphabet, while keeping the soundness error small.
+    In the regime of high soundness error (greater than 1/2), composition is by now well under-
+stood using the notion of PCPs of proximity [BGH+ 06] (called assignment testers in [DR06]) (see also
+[Sze99]). The idea is to bind the PCP proof of a statement to an NP witness for it, so that the veri-
+fier not only checks that the statement is correct but also that the given witness is (close to) a valid
+one. This extension allows one to prove a modular composition theorem, which is oblivious to
+the inner makings of the PCPs being composed. This modular approach has facilitated alternate
+proofs of the PCP theorem and constructions of shorter PCPs [BGH+ 06, BS08, Din07]. However,
+the notion of a PCP of proximity, or assignment tester, is not useful for PCPs with low-soundness
+error. The reason is that for small δ we are in a “list decoding regime”, in that the PCP proof can
+be simultaneously correlated with more than one valid NP witness.
+    The works mentioned earlier [RS97, AS03, DFK+ 11] addressed this issue by using a notion of
+local list-decoding. This was called a local-reader in [DFK+ 11] and formalized nicely as a locally-
+decode-or-reject-code (LDRC) by Moshkovitz and Raz [MR10]. Such a code allows “local decod-
+ing” in that for any given string w there is a list of valid codewords {c1 , . . . , cL } such that when
+the verifier is given a tuple of indices j1 , . . . , jk , then but for an error probability of δ, the verifier
+either rejects or outputs (ci )|j1 ,...,jk for some i ∈ [L].
+
+Decodable PCPs (dPCPs) Dinur and Harsha [DH13] introduced the notion of a PCP decoder
+(dPCP), which extends the earlier definitions of LDRCs and local-readers from codes to PCP veri-
+fiers. A PCP decoder is like a PCP verifier except that it also gets as input an index j (or a tuple of
+indices). The PCP decoder is supposed to check that the proof is correct, and to also return the j-th
+symbol of the NP witness encoded by the PCP proof. As in previous work, the soundness guaran-
+tee for dPCPs is that for any given proof Π there is a short list of valid NP witnesses {x1 , . . . , xL }
+such that except with probability δ the verifier either rejects or outputs (xi )|j for some xi in the
+list.
+     The main advantage of dPCPs is that they allow a modular composition theorem in the regime
+of small soundness error. The composition theorem proved by Dinur and Harsha [DH13] was a
+two-query composition theorem, generalizing from the ingenious construction of Moshkovitz and
+Raz [MR10]. The two-query requirement is a stringent one, and in this construction it inherently
+causes an exponential increase in the alphabet, so that instead of |Σ| = poly(1/δ) one gets a PCP
+with |Σ| = exp(poly(1/δ)).
+     In this work we give a different (modular) dPCP composition theorem. Essentially, our the-
+orem is a modular generalization of the composition method, as done implicitly in previous
+works [RS97, AS03, DFK+ 11], which uses an extra ‘consistency’ query but maintains the inverse
+polynomial relation between δ and |Σ|.
+     We remark that unlike recent PCP constructions [BGH+ 06, DR06, MR10, DH13] which recurse
+on the large (projection) query of the outer PCP, our composition recurses on the entire test as
+was done originally by Arora and Safra [AS98]. This aspect of the composition is explained and
+abstracted nicely in [Mos14].
+
+
+
+                                                      3
+Distributional Soundness Our main technical/conceptual contribution is a new notion of sound-
+ness, which we refer to as distributional soundness, which replaces the previous notion of list decod-
+ing soundness described above, and allows us to apply a non-constant number of compositions
+without a blowup in the error.
+     We say that a verifier has distributional soundness δ if its output is “δ-indistinguishable” from
+the output of an idealized verifier. The idealized verifier has access to a distribution Π e over valid
+proofs or ⊥. When it is run with random coins R it samples a proof Π(R) from this distribution and
+                                                                        e
+either rejects if Π(R)
+                   e     = ⊥ or outputs what the actual verifier would output when given access to
+Π(R).
+e       By δ-indistinguishable, we mean that there is a coupling between the actual verifier and the
+idealized verifier, such that the probability that the verifier does not reject and its output differs
+from the output of the idealized verifier, is at most δ.
+     The advantage of moving from list decoding soundness to distributional soundness, is that it
+removes the extra factor of Lin (the list size) incurred in previous composition analyses. Recall that,
+e.g. in the composition theorem of Dinur-Harsha [DH13], one takes an outer PCP with soundness
+δout and an inner PCP decoder with soundness δin and out comes a PCP with soundness δin +
+Lin · δout . This is true in all (including implicit) prior composition analyses. When making only a
+constant number of composition steps, this is not an issue, but when the number t of composition
+steps grows, the soundness is at least (Lin )t · δout and this is too expensive for the parameters we
+seek. Using distributional soundness, we prove that the composition of a PCP with soundness
+error δout and a dPCP with soundness error δin yields a PCP with soundness error δout + δin + η
+where η is an error term that is related to the distance of an underlying error correcting code,
+and can be controlled easily. Thus, after t composition steps the soundness error will only be
+O(t(δ + η)).
+     We remark that this notion of soundness, though new, is satisfied by most of the earlier PCP
+constructions (at least the ones based on the low-degree test). In particular, it can be shown that
+list-decoding soundness and very good error-correcting properties of the PCP imply distributional
+soundness.
+
+Proof Overview
+At a high level, our main theorem is derived by adopting the recursive structure of the construc-
+tion in [DFK+ 11]. The two main differences are the use of our modular composition theorem, and
+the soundness analysis that relies on the notion of distributional soundness3 .
+    We fix a field F at the outset and use the same field throughout the construction. This is
+important for the interface between the outer and the inner dPCPs, as it provides a convenient
+representation of the output of the outer dPCP as an arithmetic circuit over F, which is then the
+input for the inner dPCP.
+                                                               1−ε
+    As in the construction of [DFK+ 11], we take |F| ≈ 2(log n)    and begin by constructing PCPs
+over a fairly large alphabet size which we gradually reduce via composition. The initial alphabet
+           (log n)1−ε                             (log n)1−2ε                 (log n)1−3ε
+size is 22              , and then it drops to 22               and then to 22              and so on. After 1/ε
+   3
+    Looking at the construction as it is presented here, one may ask, why wasn’t this done back in 1999, when the
+conference version of [DFK+ 11] was published. This construction is notoriously far from modular. Thus, tweaking pa-
+rameters, following them throughout the construction, and making the necessary changes, would have been a daunting
+task. Without the modular approach it was not at all clear what the bottlenecks were, let alone address them.
+
+
+
+
+                                                          4
+steps we make a couple of final composition steps and end up with the desired alphabet size of
+        1−ε
+2(log n) , logarithmic in the initial alphabet size.
+    Unlike the construction in [DFK+ 11], we can afford to plug in a sub-constant value for ε,
+                                                                               1−ε                     c
+and we take ε = c log log log n/ log log n for some constant c so that 2(log n)    = 2log n/(log log n) =
+              c
+n1/(log log n) .
+    The number of composition steps is O(1/ε), resulting in a PCP with O(log log n) queries and
+                              c
+soundness error n1/(log log n) for some constant c < 3 (see Theorem 5.1). Finally, (log log n)c steps
+of (randomness-efficient) sequential repetition yield a PCP with polynomially small error and
+poly log log n queries as stated in Main Theorem 1.7. It can be shown that the parameters obtained
+                                                      O(1)
+in Theorem 5.1 (namely, soundness error n1/(log log n) ) is tight given the basic Reed-Muller and
+Hadamard based building blocks (see § 5.3 for details).
+
+Further Background and Motivation
+Every PCP theorem can be viewed as a statement about the local-vs.-global behaviour of proofs,
+in that the correctness of a proof, which is clearly a global property, can be checked by local checks,
+on average. The parameters of the PCP (number of queries, soundness error, alphabet size) give a
+quantitative measure to this local to global behavior. The sliding scale conjecture essentially says
+that even with a constant number of queries, this local to global phenomenon continues to hold,
+for all ranges of the soundness error.
+    Another motivation for minimizing the number of queries becomes apparent when consider-
+ing interaction with provers instead of direct access to proofs (i.e. MIP instead of PCP). A PCP
+protocol can not in general be simulated by a protocol between a verifier and a prover because
+the prover might cheat by adaptively changing her answers. This can be sidestepped by sending
+each query to a different prover, such that the provers are not allowed to communicate with each
+other. This is the MIP model of Ben-Or et al. [BGKW88]. It is only natural to seek protocols using
+the smallest number of (non-communicating) provers.
+    The importance of the sliding scale conjecture stems, in addition to the fundamental nature of
+the question, from its applications to hardness of approximation. First, it is known that every PCP
+theorem can be phrased as a hardness-of-approximation for M AX -CSP: the problem of finding
+an assignment that satisfies a maximal number of constraints in a given constraint system. The
+soundness error translates to the approximation factor, the alphabet of the proof is the alphabet of
+the variables, and the number of queries becomes the arity of the constraints in the CSP.
+    The main goal of this paper can be phrased as proving polynomial hardness of approximation
+factors for CSPs with smallest possible arity (and over an appropriately small alphabet). Our main
+theorem translates to the following result
+
+Theorem 1.7. It is NP-hard to decide if a given CSP with n variables and poly(n) constraints, is perfectly
+satisfiable or whether every assignment satisfies at most 1/poly(n) fraction of the constraints. The CSP is
+such that each constraint has arity at most poly log log n and the variables take values over an alphabet of
+                          O(1)
+size at most n1/ log log n .
+
+    In addition to the syntactic connection to M AX -CSP, it is also known that a proof of the sliding
+scale conjecture would immediately imply polynomial factors inapproximability for D IRECTED -
+S PARSEST-C UT and D IRECTED -M ULTI -C UT [CK09].
+
+
+
+                                                     5
+    The results of [DFK+ 11] were used in [DS04] for proving hardness of approximation for a
+certain `p variant of label cover. However, that work mis-quoted the                         +
+                                                                  √ main result from [DFK 11]
+as holding true even for a super-constant number of queries, up to log log n. In this work, we fill
+the gap proving the required PCP statement. We thank Michael Elkin for pointing this out.
+
+Further Discussion
+A possible alternate route to small soundness PCPs is via the combination of the basic PCP theo-
+rem [AS98, ALM+ 98] with the parallel repetition theorem [Raz98]. Applying k-fold parallel repeti-
+tion yields a two-query PCP verifier over alphabet of size |Σ| = 2O(k) , that uses O(k log n) random
+bits, and has soundness error δ = 2−Ω(k) .
+     If we restrict to polynomial-size constructions, then parallel repetition is of no help compared
+to Theorem 1.2. If we allow k to be super constant, then more can be obtained. First, it is important
+to realize that the soundness error should be measured in terms of the output size, namely N =
+2k log n . For k = (log n)c a simple calculation shows log n = (log N )1/(c+1) , and hence the soundness
+                             c          1−1/(c+1)
+error is δ(N ) = 2−(log n) = 2−(log N )           . This is no better than the result of [DFK+ 11] in terms
+                                                                                                      c+1
+of the soundness error, and in fact, worse in terms of the instance size blow up (N = 2(log n)            as
+opposed to N = n      O(1) ). Even parameters similar to our main theorem can be obtained, albeit with
+                                                      √
+an almost exponential blowup. Consider  √       k = n for example. In this case log n = 2 log log N −
+Θ(log log log N ), and so δ(N ) = 2− n = N −1/Θ(log log N ) . From here, to get a polynomially small
+error one can take O(log log N ) rounds of (randomness efficient) sequential repetition, coming       √ up
+with a result that is similar to our Main Theorem 1.7 but with a huge blow up (N = n n as
+opposed to N = nO(1) ).
+     We remark that a natural approach towards the sliding scale conjecture is to try and find a
+randomness-efficient version of parallel repetition to match the parameters of Theorem 1.2 but with
+q = O(1). Unfortunately, this approach has serious limitations [FK95] and has so-far been less
+successful than the algebra-and-composition route, see also [DM11, Mos14].
+
+Organization
+We begin with some preliminaries in § 2. We introduce and define dPCPs and distributional
+soundness in § 3. Our dPCPs have k provers which are analogous to (and stronger than) PCPs
+that make k queries. In § 4, we state and prove a modular composition theorem for two (algebraic)
+dPCPs. In § 5, we prove the main theorem, relying on specific “classical” constructions of PCPs
+that are given in § 6, one based on the Reed-Muller code and low degree test, and one based on the
+quadratic version of the Hadamard code. These PCPs are the same as in earlier constructs [RS97,
+AS03, DFK+ 11, MR10, DH13] except that here we prove that they have the stronger notion of
+small distributional soundness.
+
+
+2     Preliminaries
+2.1   Notation
+All circuits in this paper have fan-in 2 and fan-out 2, and we allow only unary NOT and binary
+AND Boolean operations as internal gates. The size of a Boolean circuit/predicate Φ is the number
+
+
+                                                     6
+of gates in Φ. Given a circuit/predicate Φ : {0, 1}n → {0, 1}, we denote by SAT(Φ) the set of
+satisfying assignments for Φ, i.e.,
+
+                                   SAT(Φ) = {x ∈ {0, 1}n | Φ(x) = 1} .
+
+We will refer to the following NP-complete language associated with circuits:
+
+                 C KT SAT = {Φ | Φ is specified as a Boolean circuit and SAT(Φ) 6= ∅} .
+
+We will follow the following convention regarding input lengths: n will refer to the length of the
+input to the circuit Φ (i.e., Φ : {0, 1}n → {0, 1}) while N will refer to the size of the circuit/predicate
+(i.e., size(Φ) = N ). Thus, N is the input size to the problem C KT SAT.
+     We will also refer to a similar language associated with arithmetic circuits. First, for some
+notation. Given a finite field F, we consider arithmetic circuits over F with addition (+) and
+multiplication (×) gates and constants from the field F. For a function Φ : Fn → F, the size of Φ
+is the number of gates in the arithmetic circuit specifying Φ. We denote by SAT(Φ) the set of all x
+such that Φ(x) = 0.
+
+Definition 2.1 (Algebraic Circuit SAT). Given a field F, the Algebraic-Circuit-Satisfiability problem,
+denoted by A LG -C KT SATF , is defined as follows:
+
+          A LG -C KT SATF = {Φ | Φ is specified by an arithmetic circuit over F and SAT(Φ) 6= ∅} .
+
+As in the case of C KT SAT, n refers to the length of the input to the function Φ (i.e., Φ : Fn → F), while N
+refers to the size of the arithmetic circuit Φ.
+
+2.2     Error Correcting Codes
+Let E : Fn → FN be an error correcting code with relative distance 1 − µ, i.e., for every x 6= x0 ,
+Prj∈[N ] [E(x)j = E(x0 )j ] ≤ µ. For a word w ∈ FN that is not necessarily a correct codeword,
+we can consider the list of all “admissible” codewords, i.e. codewords that have a non-negligible
+correlation with w. We are interested in more than just a list: we want to associate with each index
+j ∈ [N ] an element in that list in a unique way. This will allow us to treat w as a random variable
+W : for a random index j, the random variable W (j) will output the list-element associated with
+the jth index.
+
+Definition 2.2. Let τ > 0 be a parameter an let w : [N ] → F. We define the τ -local decoding function
+of w with respect to the code E, W : [N ] → Fn ∪ {⊥}, as follows:
+
+      • The τ -admissible words for w are
+                                                                                       
+                                                        n
+                                 agrτ (w) =       x∈F            Pr [E(x)j = wj ] ≥ τ       .
+                                                                j∈[N ]
+
+
+      • For any j ∈ [N ], if there is a unique word x ∈ agrτ (w) such that E(x)j = wj we set W (j) = x.
+        Otherwise, we set W (j) = ⊥.
+
+
+
+
+                                                            7
+Claim 2.3. Let E : Fn → FN be an error correcting code with relative distance 1 − µ, let w : [N ] → F ,
+and let W : [N ] → Fn be its τ -local decoding function with respect to E. Also, suppose that v : [N ] → F
+is a legal codeword, i.e., v = E(y) for some y ∈ Fn . Then
+
+                                     Pr [vj = wj and W (j) 6= y] ≤ τ + 4µ/τ 2 .
+                                    j∈[N ]
+                                                                 √
+Proof. Without loss of generality, we may assume that τ ≥ 2 µ. Let us write agrτ (w) = {x1 , x2 , . . .}
+and let Si = {j ∈ [N ] | wj = (E(xi ))j }. We say that j ∈ [N ] is an ambiguous point for w if
+j ∈ Si ∩ Si0 for some distinct i, i0 . We first bound the fraction of ambiguous points for w.
+    By inclusion-exclusion, for any ` ≤ |agrτ (w)|
+                                                 `                                                 
+                                                 X                X                                `
+                        N≥     ∪`i=1 Si      ≥         |Si | −              |Si ∩ Si0 |) ≥ `τ N −    µN,
+                                                                                                   2
+                                                 i=1             i6=i0 ≤`
+
+where we have used that by definition |Si | ≥ τ N and by the distance of the code |Si ∩ Si0 | ≤ µN .
+This implies that for every ` ≤ |agrτ (w)|,
+                                             
+                                             `
+                                   1 ≥ `τ −     µ ≥ `τ − `2 τ 2 /8
+                                             2
+
+which clearly fails if ` = 2/τ , so |agrτ (w)| ≤ 2/τ and so
+                                                                       1 X
+                                 Pr [j is ambiguous] ≤                      |Si ∩ Si0 | ≤ 4µ/τ 2                  (2.1)
+                                j∈[N ]                                 N  0  i6=i
+
+    Now the event [vj = wj and W (j) 6= y] can occur either if j is an ambiguous point for w, or if
+v is not τ -admissible with respect to w. But the former happens with probability at most 4µ/τ 2
+by (2.1), and the latter happens with probability at most τ , as otherwise v would have been τ -
+admissible.
+
+Remark 2.4. We minimize the quantity τ +4µ/τ 2 , by setting τ = (4µ)1/3 . We refer to this minimum
+as the agreement parameter η of the code E. Thus, η = 2τ = 2(4µ)1/3 .
+
+
+3      PCPs with distributional soundness
+3.1     Standard PCPs
+We begin by recalling the definition of a standard k-prover projection PCP verifier.
+Definition 3.1 (PCP verifier).
+      • A k-prover projection PCP verifier over alphabet F is a probabilistic-time algorithm V that on input
+        Φ, a circuit of size N and a random input R of r(N ) random bits generates a tuple (q, ϕ, g) where
+        q = (u, v1 . . . , vk−1 ) is a vector of k queries, ϕ : Fm → {0, 1} is a predicate, and g = (g1 , . . . , gk−1 )
+        is a list of k − 1 functions gi : Fm → F such that the size of the tuple (ϕ, g) is at most s(N ).
+
+      • We write (q, ϕ, g) = V (Φ; R) to denote the query-predicate-function tuple output by the verifier V
+        on input Φ and random input R.
+
+                                                                     8
+      • It is good to keep in mind the k = 2 case as it captures all of the difficulty. In this case the output of V
+        is a label cover instance, when enumerating over all of V ’s random inputs. (The query pairs specify
+        edges (u, v) and (ϕ, g) specify which pairs of labels are acceptable).
+      • We think of V as a probabilistic oracle machine that on input (Φ; R) queries k provers Π = (A, B1 , . . . , Bk−1 )
+        at positions q = (u, v1 , . . . , vk−1 ) respectively to receive the answers Π|q := (A(u), B1 (v1 ), . . . , Bk−1 (vk−1 ))
+        ∈ Fm × Fk−1 , and accepts iff the following checks pass: ϕ(A(u)) = 1 and gi (A(u)) = Bi (vi ) for all
+        i ∈ {1, . . . , k − 1}.
+      • Given k provers Π = (A, B1 , . . . , Bk−1 ), we will sometimes collectively refer to them as the “proof
+        Π” . Furthermore, we refer to A as the large prover and the Bi ’s as the projection provers. We call
+        Π|q the local view of the proof Π on queries q and denote by V Π (Φ; R) the output of the verifier V on
+        input (Φ; R) when interacting with the k provers Π. Thus, V Π (Φ; R) = ACC if the checks pass and
+        is REJ otherwise.
+      • We call N the input size, k the number of provers, r(N ) the randomness complexity, and s(N )
+        the answer size of the verifier V .
+Definition 3.2 (standard PCPs). For a function δ : Z+ → [0, 1], a k-prover projection PCP verifier V is a
+k-prover probabilistically checkable proof system for C KT SAT with soundness error δ if the following
+completeness and soundness properties hold for every circuit Φ:
+Completeness: If x ∈ SAT(Φ), then there exist k provers Π = (A, B1 , . . . , Bk−1 ) that cause the verifier
+    V to accept with probability 1. Formally,
+                                                      Pr V Π (Φ; R) = ACC = 1.
+                                                                             
+                        ∃Π = (A, B1 , . . . , Bk−1 ),
+                                                                    R
+
+        In this case, we say that Π is a valid proof for the statement x ∈ SAT(Φ).
+Soundness: If Φ ∈ / C KT SAT (i.e, SAT(Φ) = ∅), then for every k provers Π = (A, B1 , . . . , Bk−1 ), the
+    verifier V accepts Φ with probability at most δ(N ). Formally,
+                                                      Pr V Π (Φ; R) = ACC ≤ δ(N ).
+                                                                        
+                       ∀Π = (A, B1 , . . . , Bk−1 ),
+                                                                R
+
+We then say that C KT SAT has a k-prover projective PCP with soundness error δ.
+
+3.2     Distributional Soundness
+We now present distributional soundness, a strengthening of the standard PCP soundness condition
+that we find to be very natural. Informally, distributional soundness means that the event of the
+verifier accepting is roughly the same as the event of the local view of the verifier being consistent
+with a globally consistent proof, up to ”the soundness error”. I.e.,
+             Pr[ accept ] = Pr[ accept and the local view agrees with a correct proof ] ± δ.
+Thus, the local acceptance of the verifier is ”fully explained” in terms of global consistency.
+    A little more formally, every purported proof Π (valid or not) can be coupled with an “ideal-
+ized” distribution Π(R)
+                    e    over valid proofs and ⊥ such that the behavior of the verifier on random
+string R when interacting with the proof Π is identical to the corresponding behavior when in-
+teracting with the “idealized” proof Π(R)
+                                        e      upto an error of δ, which we call the distributional
+soundness error. Formally,
+
+                                                            9
+Definition 3.3 (Distributional Soundness for k-prover PCPs). For a function δ : Z+ → [0, 1], a k-
+prover projection PCP verifier V for C KT SAT is said to have distributional soundness error δ if for every
+circuit Φ and any set of provers Π = (A, B1 , . . . , Bk−1 ) there is an ‘idealized pair’ of functions x
+                                                                                                       e(R) and
+Π(R) defined for every random string R such that the following holds.
+e
+
+      • For every random string R, Π(R)
+                                   e                                              e(R) ∈ SAT (Φ), or
+                                        is either a valid proof for the statement x
+        Π(R)
+        e     = ⊥.
+
+      • With probability at least 1 − δ over the choice of the random string R, the local view of the provers Π
+        completely agrees with the local view of the provers Π(R)
+                                                               e     or is a rejecting local view. In other words,
+                                      h                                     i
+                                   Pr V Π (Φ; R) = ⊥ or Π|q = Π(R)|e       q ≥ 1 − δ,
+                                    R
+
+        where q is the query vector generated by the PCP verifier V on input (Φ; R).
+        When the local views agree, i.e. Π|q = Π(R)|
+                                               e     q , we say that Π is successful (in explaining the success
+                                                                     e
+        of Π).
+
+    The advantage of distributional soundness is that it explains the acceptance probability of
+every proof Π, valid or otherwise, in the following sense. Suppose a proof Π is accepted with
+probability p. I.e., p fraction of the local views Π|q are “accepting”. Then, it must be the case
+that but for an error probability of δ, each of these accepting views are projections of (possibly
+different) valid proofs. It is an easy consequence of this, that distributional soundness implies
+(standard) soundness.
+
+Proposition 3.4. If CSAT has a k-prover PCP with distributional soundness error δ, then C KT SAT has a
+k-prover PCP with (standard) soundness error δ. Furthermore, all other parameters (randomness, answer
+size, alphabet, perfect completeness) are identical.
+
+Proof. Suppose there exists a circuit Φ and a proof Π such that PrR V Π (Φ; R) = ACC > δ. Then,
+                                                                                        
+
+by the distributional soundness property it follows that there exists at least one local accepting
+view which is a projection of a valid proof. In particular, there exists a valid proof which implies
+Φ ∈ C KT SAT.
+
+3.3     PCP decoders
+We now present a variant of PCP verifiers, called PCP decoders, introduced by Dinur and Har-
+sha [DH13]. PCP decoders, as the name suggests, have the additional property that they not only
+locally check the PCP proof Π, but can also locally decode symbols of an encoding of the original NP
+witness from the PCP proof Π. PCP decoders are implicit in many previous constructions of PCPs
+with small soundness error and were first explicitly defined under the name of local-readers by
+Dinur et al. [DFK+ 11], as locally-decode-or-reject-codes (LDRC) by Moshkovitz and Raz [MR10]
+and as decodable PCPs by Dinur and Harsha [DH13]. As in the case of PCP verifiers, our PCP
+decoders will be projection PCP decoders.
+
+
+
+
+                                                        10
+Definition 3.5 (PCP decoder).
+
+   • A k-prover l-answer projection PCP decoder over alphabet F and encoding length t is a probabilistic-
+     time algorithm D that on input (Φ, F ) of size N , a random input string R of r(N ) random bits and
+     an additional input index j ∈ [t], where Φ : Fn → {0, 1} is a predicate, and F = (F1 , . . . , Fl−1 )
+     a list of l − 1 functions Fi : Fn → F, generates a tuple (q, ϕ, g, f ) where q = (u, v1 . . . , vk−1 ) is a
+     vector of k queries, ϕ : Fm → {0, 1} is a predicate, g = (g1 , . . . , gk−1 ) is a list of k − 1 functions
+     gi : Fm → F and f = (f0 , . . . , fl−1 ) is a list of l functions fi : Fm → F such that the size of the
+     tuple (ϕ, g, f ) is at most s(N ).
+
+   • We write (q, ϕ, g, f ) = D(Φ, F ; R, j) to denote the query-predicate-functions tuple output by the
+     decoder D on input pair (Φ, F ), random input R and input index j.
+
+   • We think of D as a probabilistic oracle machine that on input (Φ, F ; R, j) queries k provers Π =
+     (A, B1 , . . . , Bk−1 ) at positions q = (u, v1 , . . . , vk−1 ) respectively to receive the answers Π|q :=
+     (A(u), B1 (v1 ), . . . , Bk−1 (vk−1 )) ∈ Fm × Fk−1 , then checks if ϕ(A(u)) = 1 and gi (A(u)) = Bi (vi )
+     for all i ∈ {1, . . . , k−1} and if these tests pass outputs the l-tuple (f0 (A(u)), f1 (A(u)), . . . , fl−1 (A(u))) ∈
+     Fl+1 and otherwise outputs ⊥.
+
+   • Given k provers Π = (A, B1 , . . . , Bk−1 ), we will sometimes collectively refer to them as the “proof
+     Π” . Furthermore, we refer to A as the large prover and the Bi ’s as the projection provers. We call Π|q
+     the local view of the provers Π on queries q and denote by DΠ (Φ, F ; R, j) the output of the decoder
+     D on input (Φ, F ; R, j) when interacting with the k provers Π. Note that the output is an element of
+     Fl+1 ∪ {⊥}.
+
+   • We call N the input size, k the number of provers, l the number of answers, r(N ) the random-
+     ness complexity, and s(N ) the answer size of the decoder D.
+
+    We now equip the above defined PCP decoders with the new notion of soundness, distribu-
+tional soundness. We find it convenient (and sufficient) to define decodable PCPs only for predi-
+cates and function tuples which have an algebraic structure over the underlying alphabet, which
+is the field F. In other words, both the input tuple (Φ, F ) and output tuple (ϕ, g, f ) have the prop-
+erty that the predicates Φ, ϕ and the functions F, f, g are specified as arithmetic circuits over F. For
+the above reasons, we define dPCPs for A LG -C KT SAT (see Definition 2.1).
+
+Definition 3.6 (decodable PCPs with distributional soundness). For δ ∈ (0, 1) and a code E : Fn →
+Ft , a k-prover l-answer projection PCP decoder D is a k-prover l-answer decodable probabilistically
+checkable proof system for A LG -C KT SATF with respect to encoding E with distributional soundness
+error δ if the following properties hold for every input pair (Φ, F ):
+
+Perfect Completeness: For every x ∈ SAT(Φ), there exist k provers Π = (A, B1 , . . . , Bk−1 ) such that
+     the PCP decoder D when interacting with provers Π outputs (E(x)j , F1 (x), . . . , Fl−1 (x)) for every
+     random input R and index j. I.e.,
+
+                        Pr DΠ (Φ, F ; R, j) = (E(x)j , F1 (x), . . . , Fl−1 (x)) = 1.
+                                                                               
+                            R,j
+
+      In other words, the decoder D on input (Φ, F ; R, j) outputs the j-th symbol of the encoding E(x) and
+      the tuple F evaluated at x. In this case, we say that Π is a valid proof for the statement x ∈ SAT(Φ).
+
+
+                                                        11
+Distributional Soundness: For any set of provers Π = (A, B1 , . . . , Bk−1 ) there exists an idealized pair
+      of functions x
+                   e(R) and Π(R)
+                            e    defined for every random string R such that the following holds.
+
+         • For every random string R, Π(R)
+                                      e                                              e(R) ∈ SAT (Φ), or
+                                           is either a valid proof for the statement x
+           Π(R)
+           e     = ⊥.
+         • For every j ∈ {1, . . . , t}, with probability at least 1 − δ over the choice of the random string R,
+           the local view of the provers Π completely agrees with the local view of the provers Π(R) e     or is a
+           rejecting local view. In other words,
+                                              h                                         i
+                          ∀j ∈ [t],       Pr DΠ (Φ, F ; R, j) = ⊥ or Π|q = Π(R)|e      q ≥ 1 − δ,
+                                          R
+
+           where q is the query vector generated by the PCP decoder D on input (Φ, F ; R, j).
+           When the local views agree, i.e. Π|q = Π(R)|
+                                                    e    q , we say that Π is successful (in explaining the
+                                                                         e
+                                                      Π
+           success of Π). In this case we have that D (Φ, F ; R, j) = (E(e x(R))j , F (e
+                                                                                       x(R))).
+
+We then say that D is a k-prover l-answer PCP decoder for A LG -C KT SAT with respect to encoding E with
+perfect completeness and distributional soundness error δ.
+Remark 3.7. The above definition is a non-uniform one in the sense that it is defined for a particular
+choice of input lengths n, N , size of field F and encoding E : Fn → Ft . A uniform version of the
+above definition can be obtained as follows: there exists a polynomial time uniform procedure
+that on input n, N (both in unary), the field F (specified by a prime number and an irreducible
+polynomial) and the encoding E (specified by the generator matrix) outputs the PCP decoder
+algorithm. We note that our construction satisfies this stronger uniform property.
+   As in previous works [MR10, DH13], dPCPs imply PCPs with similar parameters
+Proposition 3.8. If A LG -C KT SAT has a k-prover dPCP with distributional soundness error δ, then
+A LG -C KT SAT has a k-prover PCP with distributional soundness error δ. Furthermore, all other pa-
+rameters (randomness, answer size, alphabet, perfect completeness) are identical.
+   We conclude this section highlighting the differences/similarities between the above notion of
+PCP decoders/dPCPs with that of Dinur and Harsha [DH13] besides the obvious difference in the
+soundness criterion.
+Remark 3.9.
+
+   • The above definition of PCP decoders is a generalization of the corresponding definition of
+     Dinur and Harsha [DH13] to the multi-prover (k > 2) setting. Since our PCP verifiers are
+     multi-prover verifiers and not just 2-prover verifiers, so are our PCP decoders. Thus, in our
+     notation, the PCP decoders of [DH13] are 2-prover 1-answer projection PCP decoders.
+
+   • The above defined PCP decoders locally decode symbols of some pre-specified encoding
+     E of the NP-witness. The PCP decoders of Dinur and Harsha [DH13] is a special case of
+     this when the encoding E is the identity encoding. However as we will see in the next sec-
+     tion, it will be convenient to work with encodings which have good distance. In particular,
+     the dPCP composition (considered in this paper) requires the encoding of the “inner” PCP
+     decoder to have good distance.
+
+
+                                                       12
+                       Inner              Outer                                                  Composed
+
+
+
+
+                               𝑧
+          𝑤
+                                     𝑢                                                                  𝑢, 𝑗𝑖𝑛
+                          𝐵(𝑅, 𝑗)                 𝑣                                                              𝑣
+        𝐴(𝑅, 𝑗)
+
+
+
+
+                                                                                    𝐵(𝑅, 𝑗)
+                                                                                                 𝑧
+
+
+
+
+                                                                     𝐴(𝑅, 𝑗)
+                                                                                𝑤
+                                                  𝑣′
+                       …
+
+
+
+
+                                                                                              …
+                                                                                …
+                                     𝑢′
+
+                                                  𝐷                                                              𝐷
+
+
+
+
+                                                                    𝐴(𝑅′, 𝑗′)
+
+
+
+
+                                                                                     𝐵(𝑅′, 𝑗′)
+                               ′
+                         𝐵(𝑅 , 𝑗′)                                                                       𝐶∗
+       𝐴(𝑅 ′ , 𝑗 ′ )
+                                     𝐶
+
+
+                                                                                𝐴         𝐵
+
+
+
+
+Figure 1: Composition of two 2-prover dPCPs Dout and Din to yield composed dPCP Dcomp . Note
+that Din , Dout make two queries each, and Dcomp makes four queries: w, z, (u, jin ), v to A, B, C ∗ , D
+respectively.
+
+
+
+
+4   Composition
+In this section, we describe how to compose two PCP decoders. Informally speaking, an “outer”
+PCP decoder Dout can be composed with an “inner” PCP decoder Din if the answer size of the
+outer PCP decoder matches the input size of the inner PCP decoder and the number of answers
+of the inner PCP decoder is the sum of the number of answers of the outer PCP decoder and the
+number of provers of the outer PCP decoder.
+    We begin with an informal description of the composition procedure. It might be useful to read
+this description while looking at Figure 4, in which there are three dPCPs: the inner, the outer, and
+the composed. We depict each dPCP as a bi-partite (or 4-partite) label-cover-like graph whose
+vertices correspond to proof locations, and whose (hyper-)edges correspond to local views of the
+PCP decoder. The main goal of composition is to reduce the answer size of the outer PCP decoder.
+By this we are referring to the answer size of the large prover; as it is always possible to reduce the
+answer size of projection provers at negligible cost. For simplicity, let us assume that each of the
+inner and the outer PCP decoders use only two provers. The inner PCP decoder Din interacts with
+provers A and B, and the outer PCP decoder Dout interacts with provers C and D. The composed
+PCP decoder Dcomp works as follows: On input (Φ, F ), Dcomp simulates Dout to obtain the tuple
+(qout , ϕout , gout , fout ). Letting qout = (u, v) we picture this as an edge in the bipartite graph of the
+outer dPCP, and we label this edge with (ϕout , gout , fout ). In its normal running Dout generates
+queries qout = (u, v) and queries C on u and D on v. It then checks that ϕout (C(u)) = 0 and
+gout (C(u)) = D(v) and if so it outputs fout (C(u)).
+
+
+                                                       13
+     However, the answer C(u) is too large for Dcomp , and we would like to use the inner PCP
+decoder Din to replace querying C directly, reducing the answer size at the cost of a few extra
+queries. For this purpose, the composed PCP decoder Dcomp now simulates the inner PCP decoder
+Din on input (ϕout , (gout , fout )) to generate the tuple (qin , ϕin , gin , fin ). The composed PCP decoder
+Dcomp then queries the inner provers A, B on queries qin = (w, z) to obtain the answers α = A(w)
+and β = B(z). It then performs the projection tests gin of the inner PCP decoder Din and produces
+its output fin (α). These answers are then used to both perform the projection test of the outer PCP
+decoder as well as produce the required output of the outer PCP decoder.
+     As usual in composition, we need to enforce consistency between the different invocations of
+Din . The input for Din , namely (qin , ϕin , gin , fin ), is generated using Dout ’s randomness, namely R
+and j. The provers A and B must be told this input because they need to know what they are
+supposed to prove. Thus A and B are actually aggregates of prover-pairs A(R, j), B(R, j) ranging
+over all possible R, j. There is a possibility that they could “cheat” by outputting a different
+answer for the same outer question, depending on R and j. In particular, think of two outer query
+pairs (u, v1 ) and (u, v2 ) generated by two different random strings R1 , j1 and R2 , j2 . We need to
+ensure that both invocations of Din are consistent with the same answer C(u).
+     We address this issue using the decoding feature of the inner PCP decoder Din . We replace
+the outer prover C by a prover C ∗ , which we call the consistency prover. This prover is sup-
+posed to hold an encoding, via Ein , of the outer prover C. The composed PCP decoder Dcomp ex-
+pects the inner PCP decoder Din to decode a random symbol in this encoding (i.e., in Ein (C(u))).
+This decoded value is then checked against the consistency prover C ∗ , which unlike the inner
+provers is not informed of the outer randomness R. In all, the queries of Dcomp are w, z, (u, jin ), v
+to A, B, C ∗ , D respectively.
+     This additional consistency query helps us get around the above mentioned issue at a small
+additional cost of ηin in the soundness error, where ηin is the agreement parameter of the encoding
+Ein (see Remark 2.4).
+     It can be shown that this consistency query ensures that the distributional soundness error
+of the composed decoder is at most the sum of the distributional soundness errors of the outer
+and inner PCP decoders and the agreement parameter of the encoding Ein . Previous soundness
+analyses using list-decoding soundness typically involved a Lin -fold multiplicative blowup in the
+soundness error δout of the outer PCP decoder (i.e., δcomp ≥ Lin · δout ) where Lin is the list-size of
+the inner PCP decoder. Distributional soundness has the advantage of getting rid of this Lin -fold
+blowup at the cost an additional ηin additive error.
+     The above description easily generalizes to k > 2 by replacing B by B1 , . . . , Bkin −1 and D by
+D1 , . . . , Dkout −1 .
+     As in the case of the definition of decodable PCPs, we find it sufficient to describe composition
+of algebraic dPCPs and not general dPCPs.
+
+Theorem 4.1 (Composition Theorem). Let F be a finite field. Suppose that Nout , Nin , rout , rin , sout ,
+sin , nout , nin , tout , tin , kout , kin , lout , lin ∈ Z+ , and δout , δin , ηin ∈ [0, 1] are such that
+
+   • A LG -C KT SAT has a kout -prover lout -answer decodable PCP Dout with respect to encoding Eout :
+     Fnout → Ftout with randomness complexity rout , answer size sout , and distributional soundness error
+     δout on inputs Φ of size Nout ,
+
+   • A LG -C KT SATF has a kin -prover lin -answer decodable PCP Din with respect to encoding Ein :
+
+
+                                                     14
+      Fnin → Ftin with randomness complexity rin , answer size sin , and distributional soundness sound-
+      ness error δin on inputs ϕ of size Nin
+
+   • sout ≤ nin ≤ Nin ,
+
+   • lin = kout + lout ,
+
+   • the inner encoding Ein has agreement parameter ηin
+
+Then, A LG -C KT SAT has a kout +kin -prover lout -answer dPCP, denoted Dcomp = Dout ~Din , with respect
+to encoding Eout on inputs Φ of size N with
+
+   • randomness complexity rout + rin + log2 (tin ),
+
+   • answer size sin , and
+
+   • distributional soundness error δout + δin + ηin .
+
+Furthermore, there exists a universal algorithm with black-box access to Dout and Din that can perform the
+actions of Dcomp (i.e. evaluating Dcomp (Φ, F ; R, j)). On inputs of size N , this algorithm runs in time N c
+for a universal constant c, with one call to Dout on an input of size N and one call to Din on an input of size
+sout .
+
+Proof. We will follow the following notation to describe the composed decoder.
+
+Provers of Dcomp Suppose the inner PCP decoder Din interacts with provers A, B1 , . . . , Bkin −1
+(here A is the large prover and Bi ’s are the projection provers), and the outer PCP decoder interacts
+with provers C, D1 , . . . , Dkout −1 (here C is the large prover and Di ’s are the projection provers).
+    As mentioned in the informal description, the composed PCP decoder Dcomp simulates Dout
+except that instead of querying C, uses the inner PCP decoder Din and an additional consis-
+tency prover C ∗ . Thus, the provers for the composed PCP decoder Dcomp will be the following:
+A, B1 , . . . , Bkin −1 , C ∗ , D1 , . . . , Dkout −1 ; the main prover being A and the projection provers being
+the rest. As mentioned in the outline, for each choice of the outer randomness Rout and index
+jout the inner PCP decoder Din is simulated on a different input. Hence the corresponding inner
+provers for the composed dPCP Dcomp (i.e., A, B1 , . . . , Bkin −1 ) are explicitly given the specification
+of the outer randomness Rout and index jout as part of their queries. (Alternatively, one can think
+of A and Bi as an aggregate of separate provers A(Rout , jout ) and Bi (Rout , jout ) per Rout , jout ).
+
+Randomness of Dcomp The randomness of Dcomp comes in three parts: the randomness Rout of
+Dout , the randomness Rin of Din and a random index jin to perform the consistency test. Thus,
+Rcomp = (Rout , Rin , jin ).
+
+Decoded Index of Dcomp          The index jcomp being decoded by Dcomp is passed as the index jout
+being decoded by Dout .
+
+
+
+
+                                                      15
+Indexing the answers of Dcomp Note that the number of answers lin of the inner PCP decoder
+Din is the sum of the number of answers lout of the outer Dout and the number of provers kout
+of outer Dout . Thus, fin is a list of lout + kout functions. We will find it convenient to index the
+functions in fin with {0} ∪ ({out} × {0, 1, . . . , lout − 1}) ∪ ({proj} × {1, . . . , kout − 1}), such that
+fin,(proj,i) , i = 1, . . . , kout − 1, are the answers to be compared with the outer projection provers,
+fin,0 is intended for the consistency test, and fin,(out,i) , i = 0, . . . , `out − 1, give the answers for the
+outer decoder.
+     With these conventions in place, here is the description of the composed PCP decoder, Dcomp :
+
+     Dcomp (Φ, F ; Rout , Rin , jin ):
+
+         • Input: (Φ, F )
+
+         • Random input string: (Rout , Rin , jin )
+
+         • Index to be decoded: jout
+
+         • Provers: Π = (A, B1 , . . . , Bkin −1 , C ∗ , D1 , . . . , Dkout −1 )
+
+              1. Initial Computation:
+                   (a) [Simulating Dout ] Run Dout (Φ, F ; Rout , jout ) to obtain (qout , ϕout , gout , fout ).
+                   (b) [Simulating Din ] Run Din (ϕout , (gout , fout ) ; Rin , jin ) to obtain (qin , ϕin , gin , fin ).
+              2. Queries: Let qout = (u, v1 , . . . , vkout −1 ) and let qin = (w, z1 , . . . , zkin −1 ).
+                  (a) Send query (Rout , jout , w) to prover A to obtain answer α = A(Rout , jout , w).
+                  (b) For i = 1, . . . , kin−1 , send query (Rout , jout , zi ) to prover Bi to obtain answer βi =
+                       Bi (Rout , jout , zi ).
+                   (c) Send query (u, jin ) to prover C ∗ to obtain answer γ = C ∗ (u, jin ).
+                  (d) For i = 1 . . . , kout − 1, send query vi to prover Di to obtain answer ζi = Di (vi ).
+              3. Checks:
+                  (a) [Inner local predicate] Check that ϕin (α) = 1.
+                  (b) [Inner projection tests] For i = 1, . . . , kin−1 , check that gin,i (α) = βi .
+                   (c) [Consistency test] Check that fin,0 (α) = γ.
+                  (d) [Outer projection tests] For i = 1, . . . , kout−1 , check that fin,(proj,i) (α) = ζi .
+              4. Output: If all the checks in the above step pass, then return fin,(out,·) (α) else return ⊥.
+   The claims about Dcomp ’s parameters (randomness complexity, answer size, number of provers,
+number of answers) except completeness and soundness error can be verified by inspection. Thus,
+we only need to check completeness and soundness.
+
+Completeness Let x ∈ SAT (Φ). By the completeness of outer Dout , there exist provers Πout =
+(C, D1 , . . . , Dkout −1 ), such that for all (Rout , jout ) we have
+                                                                                                 
+                            Πout
+                         Dout    (Φ, F ; Rout , jout ) = Eout (x)jout , F1 (x) , . . . , Flout (x) .
+
+Fix any particular outer random string Rout and index jout . Let Dout (Φ, F ; Rout , jout ) = (qout , ϕout , gout , fout ).
+Since the outer decoder Dout does not reject, we must have that y(Rout ,jout ) := C(u) satisfies ϕout . In
+
+                                                            16
+other words, y(Rout ,jout ) ∈ SAT (ϕout ). Now, by the completeness of the inner Din , we have that for
+these (Rout , jout ) there exist provers Πin           (Rout ,jout ) = A(Rout ,jout ) , B(Rout ,jout ),1 , . . . , B(Rout ,jout ),kin −1
+such that for all (Rin , jin ) we have
+  Πin                                                                                                                              
+ Din(Rout ,jout ) (ϕout , (gout , fout ) ; Rin , jin ) = Ein y(Rout ,jout ) j , gout y(Rout ,jout ) , fout y(Rout ,jout ) .
+                                                                                                        
+                                                                                 in
+
+
+    We are now ready to define the provers
+
+                                     Π = (A, B1 , . . . , Bkin −1 , C ∗ , D1 , . . . , Dkout −1 )
+
+for the composed decoder Dcomp . As the name suggests, the projection provers Di , i = 1, . . . , kout −
+1 are exactly the same as the outer projection provers in Πout . The consistency prover C ∗ is defined
+by encoding C(u) separately for each u as
+
+                                                 C ∗ (u, jin ) := Ein (C(u))jin .
+
+The projection provers Bi , i = 1, . . . , kin − 1 are defined as Bi (Rout , jout , zi ) := B(Rout ,jout ),i (zi ).
+Finally, the large prover A is defined as A (Rout , jout , w) := A(Rout ,jout ) (w). It is easy to check that
+according to this definition of Π, for each ((Rout , Rin , jin ) , jout ) it holds that
+                                                                                                    
+                 Π
+               Dcomp (Φ, F ; (Rout , Rin , jin ) , jout ) = Eout (x)jout , F1 (x) , . . . , Flout (x) .
+
+This proves the completeness of Dcomp .
+
+Distributional Soundness of Dcomp                    We prove the following statement about the distributional
+soundness of Dcomp .
+Lemma 4.2. Suppose the outer PCP decoder Dout has distributional soundness error δout with respect
+to encoding Eout , and the inner PCP decoder Din has distributional soundness error δin with respect to
+encoding Ein , and suppose Ein has agreement parameter ηin (see Remark 2.4). Then, the composed PCP
+decoder Dcomp = Dout ~ Din has distributional soundness error δcomp ≤ δout + δin + ηin with respect to
+encoding Eout .
+
+Proof. Suppose Dcomp on input (Φ, F ) interacts with provers
+
+                                    Π = (A, B1 , . . . , Bkin −1 , C ∗ , D1 , . . . , Dkout −1 ) .
+
+To prove soundness of Dcomp , we need to construct for each composed random string Rcomp :=
+(Rout , Rin , jin ), functions xe (Rcomp ) and Π                       e (Rcomp ) is either ⊥ or a valid proof
+                                                  e (Rcomp ) such that Π
+for the statement x     e (Rcomp ) ∈ SAT (Φ), and for every jout we have
+            h                                                                    i
+                 Π
+       Pr Dcomp        (Φ, F ; Rcomp , jout ) = ⊥ or Π|qcomp = Πe (Rcomp ) |qcomp ≥ 1 − (δout + δin + ηin ),
+      Rcomp
+
+where qcomp is the query vector generated by Dcomp .
+
+The construction of x               e (Rcomp ) relies on the soundness properties of Dout and Din . We
+                     e (Rcomp ) and Π
+                       ∗
+first locally-decode C to obtain a distribution over outer provers C. We then use the distributional
+soundness of Dout to obtain an idealized outer proof (C,   e De i ). We then use the soundness of Din to
+obtain idealized inner proofs (A, Bi ).
+                                 e  e
+
+                                                                  17
+Outer main prover Cjin : For each jin , we define an outer main prover Cjin using the consistency
+     prover C ∗ as follows. Let τ = ηin /2 be the agreement parameter of Ein , as in Remark 2.4. For
+     each query u := qout,0 to the outer main prover, Cjin (u) is defined to be the jin -th entry of the
+     τ -local decoding of C ∗ (u, ·) as in Definition 2.2 if well-defined and ⊥ otherwise.
+
+                      eout
+Idealized outer pairs x                 e out
+                        jin (Rout ) and Πjin (Rout ): For each jin we have an outer proof
+
+                                                           Πout
+                                                            jin = (Cjin , D1 , . . . , Dkout −1 ) .
+
+           Note that only the C provers are different in the various outer provers Πout       jin as we range
+           over jin . From the soundness of Dout for every Πout  jin there is an idealized pair eout
+                                                                                                xjin (Rout ) and
+                                                 
+           e out (Rout ) = C,
+           Π                e D             e k −1 4 that “explain” its success.
+                               e 1, . . . , D
+             jin                                         out
+
+
+                        in
+Idealized inner pairs ye(R,j)            e in (Rin ): For every outer randomness R and index j let
+                              (Rin ) and Π (R,j)
+
+                                         Πin
+                                          (R,j) := (A (R, j, ·) , B1 (R, j, ·) , . . . , Bkin −1 (R, j, ·))
+
+           be the relevant part of the proof for Din .
+           Let (q, ϕ, g, f ) = Dout (Φ, F ; R, j). When Rout = R and jout = j, the composed decoder Dcomp
+           simulates running Din with input (ϕ, (g, f ) ; Rin , jin ) and with the proof Πin
+                                                                                          (R,j) .
+
+           For each Πin(R,j) , the soundness of Din guarantees idealized prover pairs y
+                                                                                        in
+                                                                                      e(R,j)     e in
+                                                                                             and Π (R,j)
+           (functions of Rin ) that ”explain” its success.
+
+         We are ready to define the idealized (e  e pairs for the composed decoder Dcomp .
+                                               x, Π)
+
+Idealized composed pairs x          e (Rcomp ) and Π    e (Rcomp ): Recall that Rcomp is short for (Rout , Rin , jin ).
+      Define x e (Rcomp ) := x      out
+                                   ejin (Rout ). We then set Π                              e out (Rout ) is successful,
+                                                                  e (Rcomp ) as follows: If Π
+                                                                                              jin
+      in
+        particular      C jin (u) =   C(u),
+                                       e        set  Π
+                                                     e (Rcomp
+                                                             ) to be the set of provers
+        A,
+        e Be1 , . . . , B
+                        ek −1 , C e∗ , D            e k −1 defined next.
+                                       e 1, . . . , D
+                                in                             out
+
+
+
+              • The outer projection provers D                                    e out (Rout ).
+                                             e i are defined to be the same as in Π
+                                                                                    jin
+
+              • Let C
+                    e be the main prover in Π                        e ∗ as follows:
+                                            e out (Rout ). We define C
+                                              jin
+                                                                                      
+                                                                 e ∗ (u, j) := Ein C(u)
+                                                                 C                  e    .
+                                                                                                j
+
+
+              • For any pair (R, j) where R ∈ {0, 1}rout and j ∈ [tout ], we define A       e (R, j, ·) and B
+                                                                                                            ei (R, j, ·)
+                (for i = 1, . . . , kin − 1) as follows. Denote (q, ϕ, g, f ) = Dout (Φ, F ; R, j) and suppose
+                                                      in
+                q = (u, v1 , . . . , vkout −1 ). If ye(R,j) (Rin ) = C(u)
+                                                                      e             e in (Rin ) is successful, we set
+                                                                           and also Π (R,j)
+                Ae (R, j, ·) and the provers B        ei (R, j, ·) to be the main prover and projection provers in
+                e in (Rin ) respectively.
+                Π  (R,j)
+                                                    
+     4
+         The proofs       C,
+                          e De1, . . . , D
+                                         e kout −1        depend on jin and Rout so more formally could be written as
+                                                               
+    Cjin (Rout ), Djin ,1 (Rout ), . . . , Djin ,kout −1 (Rout ) , but we will drop the indices for ease of readability.
+    e             e                        e
+
+
+                                                                         18
+                            in
+           Otherwise, if ye(R,j) (Rin ) 6= C(u)
+                                           e    or Π e in (Rin ) is not successful, we define A
+                                                                                              e (R, j, ·)
+                                                       (R,j)
+               ei (R, j, ·) by letting them be some valid proofs for the statement C(u)
+           and B                                                                       e    ∈ SAT (ϕ)
+           (Note that C(u)
+                      e      satisfies ϕ since Π out
+                                               e (Rout ) is successful).
+                                                     jin
+
+               e out (Rout ) is not successful or any of the intermediate objects in the above definition
+     If either Π jin
+     are ⊥, then we set Π   e (Rcomp ) to ⊥.
+
+    It remains to show that the pair xe (Rcomp ) and Π
+                                                     e (Rcomp ) has the desired properties. It follows
+by inspection of the definition of Π (Rcomp ) that whenever it is not ⊥, it is a valid proof of the
+                                     e
+statement x e (Rcomp ) ∈ SAT (Φ) and agrees with the local view of Π on input (Φ, F ; Rcomp , jout ).
+    So it remains to show that for every jout ,
+                  h                                                   i
+               Pr Π e (Rcomp ) = ⊥ and DΠ (Φ, F ; Rcomp , jout ) 6= ⊥ ≤ δout + δin + ηin .
+                                          comp
+             Rcomp
+
+We partition the above event intro three parts according to the highest indexed condition among
+the following three conditions that does not hold — one of them must not hold for Π
+                                                                                  e (Rcomp ) to be
+equal to ⊥.
+     e out (Rout ) is successful, in particular Cj (u) = C(u).
+  1. Π                                                   e
+       jin                                        in
+
+       in
+  2. ye(R             (Rin ) = C
+                               ej (u).
+          out ,jout )            in
+
+
+     e in
+  3. Π (Rout ,jout ) (Rin ) is successful.
+
+   We separately bound the probability of each event in this partition.
+   • We bound the probability that Condition 3 does not hold, namely that Πe in
+                                                                             (Rout ,jout ) (Rin ) is not
+     successful, and yet Dcomp does not reject. If Dcomp doesn’t reject then in particular checks
+                                                                      Πin
+     Check 3a and Check 3b pass, which means that Din(Rout ,jout ) (ϕout , (gout , fout ) ; Rin , jin ) 6= ⊥.
+     But the soundness of Din implies that the probability over the choice of Rin that this occurs
+             e in
+     and yet Π (Rout ,jout ) (Rin ) is not successful is bounded by δin .
+
+   • Now we bound the probability that Condition 3 holds, Condition 2 does not hold, and
+     yet Dcomp does not 
+                        reject. When Condition
+                                              3 holds, the output of the Din simulation for
+     the encoding is Ein y(R      in             (Rin )      . It is thus enough to bound the probability that
+                                     out ,jout )
+                                                       jin                    
+       in
+     ye(R out ,jout )
+                      (Rin ) 6
+                             = C(u)
+                               e    and     yet   Ein   y
+                                                        e in
+                                                          (Rout ,jout ) (Rin )   = C ∗ (u, jin ), i.e. Check 3c passes.
+                                                                            jin
+     Since by definition Cjin (u) is the τ -local decoding of C ∗ (u, ·) at position jin , Claim 2.3 and
+     Remark 2.4 imply that the probability of this event over the choice of jin is bounded by the
+     agreement parameter ηin .
+   • It remains to bound the probability that Conditions 3 and 2 hold but Condition 1 does
+     not, and yet Dcomp does not reject. When Condition 2 and 3 hold it means that C           e (u) =
+       in
+     ye(Rout ,jout ) (Rin ) ∈ SAT (ϕout ) and the output of the simulated Din computed by Dcomp is
+                                                                                  
+                     fin (A (Rout , jout , w)) =   Ein C (u)
+                                                        e      , gout C (u) , fout C (u)
+                                                                       e            e        .
+                                                                jin
+
+
+                                                           19
+                                                                     
+        If Dcomp does not reject it means that the values of gout C(u)
+                                                                   e    match the ones obtained from
+        the outer projection provers, to which it is compared in Check 3d. But these are also the
+                                                                                         e out , which
+        values used by Dout when it is run on input (Φ, F ; Rout , jout ) with the proof Π jin
+                        e out
+                        Π j
+        means that Doutin (Φ, F ; Rout , jout ) 6= ⊥. But the probability over the choice of Rout that this
+        happens while Condition 1 fails is bounded by δout , the distributional soundness error of
+        Dout .
+
+This proves the distributional soundness of Dcomp .
+
+
+      This completes the proof of the Composition Theorem 4.1.
+
+
+5      Proof of Main Theorem
+Theorem 5.1 (Main Construct). Every language L in NP has a O(lg lg N/ lg lg lg N )-prover projective
+PCP with the following parameters. On input a Boolean predicate/circuit Φ of size N , the PCP has
+
+      • randomness complexity O(lg N ),
+
+      • query complexity O(lg lg N/ lg lg lg N ),
+
+      • answer size O(lg N/poly lg lg N ),
+
+      • perfect completeness, and
+                                     Ω(1)
+      • soundness error N 1/(lg lg N )      .
+
+   The PCP with inverse polynomial soundness error stated in Main Theorem 1.7 is obtained by
+sequentially repeating the above PCP poly(lg lg N ) times in a randomness efficient manner.
+
+5.1     Building Blocks
+The two building blocks, we need for our construction, are two decodable PCP based on the
+Reed-Muller code and the Hadamard code respectively. The constructions of both these objects is
+standard given the requirements of the dPCP. These PCPs are based on two encodings the low-
+degree encoding LDE and the quadratic Hadamard encoding QH respectively. The definition of
+these codes is given in the next section (§ 6). For the purpose of this section, it suffices that these
+are error correcting codes with very good distance.
+
+Theorem 5.2 (Reed-Muller based dPCP). For any finite field F, and parameter h such that 1 < h <
+|F|0.1 and any ` > 0, there is a 2-prover `+1-answer decodable PCP D with respect to the encoding LDEF,h
+for the language A LG -C KT SATF with the following parameters: On inputs (i) a predicate Φ : Fn → {0, 1}
+and (ii) functions F1 , . . . , F` : Fn → F given by arithmetic circuits over F whose total size is N , the dPCP
+D has (let m = log N/ log h),
+
+      • randomness complexity O(log N + m log |F|) = O(m log |F|),
+
+      • answer size s, s0 = O(m(m + `)),
+
+                                                      20
+      • and distributional soundness error 1/|F|0.1 .
+
+Theorem 5.3 (Hadamard based dPCP). For any finite field F, and any ` > 0, there is a 2-prover ` + 1-
+answer decodable PCP DQH,F with respect to the encoding QHF for the language A LG -C KT SATF with the
+following parameters: On inputs (i) a predicate Φ : Fn → {0, 1} and (ii) functions F1 , . . . , F` : Fn → F
+given by arithmetic circuits over F whose total size is N , the dPCP DQH,F has
+
+      • randomness complexity O(N 2 log |F|),
+
+      • answer size s, s0 = O(`),
+
+      • perfect completeness, and
+
+      • distributional soundness error ≤ 1/|F|0.1 .
+
+      These theorems are proved in Section 6.
+
+5.2     Putting it together (Proof of Theorem 5.1)
+By NP-completeness of C KT SAT it suffices to prove Theorem 5.1 for C KT SAT. Let Ψ be an instance
+of C KT SAT and let N denote its size. Let ε = 20 lg lg lg N/9 lg lg N be a parameter5 . Note that
+                                            1−ε                 20/9
+(lg N )ε = (lg lg N )20/9 . Let M = 2(lg N )    = N 1/(lg lg N ) . Choose a prime number p ∈ (M, 2M )6
+and let F = GF (p) be the finite field of size p, which we fix for the rest of the proof. We may
+assume wlog. that the predicate Ψ has only AND and NOT gates. Given this, we can arithmetize
+Φ to obtain an arithmetic circuit Φ over F by replacing AND gates by multiplication gates and
+NOT gates by 1 − x gates. Thus, we can view the N -sized predicate Φ as an N -sized arithmetic
+circuit over the field F.
+    We construct a PCP for Ψ with the required parameters by constructing a dPCP for Φ with
+respect to the encoding LDEF,h0 for some suitable choice of h0 . This dPCP is in turn constructed
+by composing a sequence of dPCPs each with smaller and smaller answer size. Each dPCP in the
+sequence will be obtained by composing the prior dPCP (used as an outer dPCP) with an adequate
+inner dPCP. The outermost dPCP as well as the inner dPCP in all but the last step of composition
+will be obtained from Theorem 5.2 by various instantiations of the parameter h. The innermost
+dPCP used in the final stage of the composition will be the dPCP obtained from Theorem 5.3.
+                                                               1−ε                    20/9
+Stage I: Let n0 = N and h0 = |F|0.1 = 20.1(lg N )               = N 0.1/(lg lg N ) . For this choice of n0 , h0
+and F and l0 = 0, let D      (0) := D0 be the dPCP obtained from Theorem 5.2. This will serve as
+our outermost dPCP. Let us recall the parameters of this dPCP. Observe that for this setting m0 =
+logh0 n0 = lg N/ lg h0 = 10(lg lg N )20/9 . D(0) is a 2-prover decodable PCP with respect to the
+encoding LDEF,h0 for the language A LG -C KT SATF with the following parameters: On inputs
+Φ of size N over F, D(0) has randomness complexity R0 = c · m0 lg |F| = 10c lg N , answer size
+                             1−ε                    20/9
+s0 = 2(m0 h0 )2 < 20.3(lg N )     = N 0.3/(lg lg N )     and distributional soundness error 1/|F|0.1 .
+    5
+      In the construction, setting ε = 20 lg lg lg N/9 lg lg N will prove the poly lg lg N -query PCP with inverse polynomi-
+ally soundness error (as stated in the main theorem). It is to be noted that setting ε to a constant in (0, 1) will recover
+the DFKRS PCP.
+    6
+      Since the procedure is allowed to run in polynomial time in N , it has enough time to examine every number in the
+range (M, 2M ) and check if it is prime or not.
+
+
+
+                                                            21
+   Let ε0 = ε/10 = 2 lg lg lg N/9 lg lg N . Let i∗ be the smallest integer such that 1 − ε − iε0 < 9ε/80.
+Note that i∗ = O(1/ε) = O(lg lg N/ lg lg lg N ). For i = 1, . . . , i∗ , let Di be the dPCP obtained by in-
+                                                                                              1−ε−iε0                      20/9·(1+i/10)
+stantiating the dPCP in Theorem 5.2 with parameters hi = 2(lg N )                                       = N 1/(lg lg N )                   and
+                                                                                              1−ε−(i−1)ε   0                   20/9·(1+(i−1)/10)
+li = 2i. We will run dPCP Di on inputs of instance size ni                        = 23(lg N )                  = N 3/(lg lg N )                  .
+                                    0
+Thus, mi = lg ni / lg hi = 3(lg N )ε = 3(lg lg N )2/9 . Hence, Di is a (2i + 1)-answer 2-prover dPCP
+                                                                                                  0
+that on inputs of instance size ni has randomness complexity Ri = cmi lg |F| = 3c(lg N )1−ε+ε =
+                                                                                1−ε−iε0                    20/9·(1+i/10)
+3c lg N/(lg lg N )2 , answer size si = 2(mi hi )2 < 23(lg N )    = N 3/(lg lg N )        and distribu-
+tional soundness error δi = 1/|F| .     0.1
+
+    Observe that our setting of parameters satisfy si−1 ≤ ni and li+1 + 1 = 2(i + 1) + 1 = (li + 1) + 2.
+So the answer size of the predicates produced by dPCP Di are valid input instances for dPCP
+Di+1 , for i = 0, . . . , i∗ − 1. Hence, we can compose them with each other. Consider the dPCPs D(i)
+defined as follows:
+
+                                      D(i) := D(i−1) ~ Di ,                     i = 1, . . . , i∗ .
+                                                           mi
+  pAlso note that the code LDEF,hi has block length |F| 1/6and distance (1 − O(mi hi )/|F|) ≥ 1 −
+1/ |F|. Thus, the agreement parameter ηi is at least 1/|F| .
+                      ∗
+   Let D(I) := D(i ) be the final dPCP obtained as above. Observe that it is a 2i∗ = O(1/ε) =
+O(lg lg N/ lg lg lg N )-prover dPCP with respect to the encoding LDEF,h0 for the language A LG -C KT SATF
+with the following parameters: On inputs Φ of size N over F, the dPCP D(I) has randomness com-
+plexity R(I) , distributional soundness error δ (I) and answer size s(I) (which are calculated below).
+                                              i   ∗
+                                              X
+                              (I)
+                          R         = R0 +             (Ri + log(blocklength(LDEF,hi )))
+                                               i=1
+                                                         i      ∗
+                                                         X
+                                    = 10c lg N +                    (cmi lg |F| + mi lg |F|)
+                                                         i=1
+                                                          i∗
+                                                         X                        lg N
+                                    = 10c lg N +                    3(c + 1)
+                                                                               (lg lg N )2
+                                                            i=1
+                                    = 11c lg N                  [ since i∗ ≤ lg lg N ].
+                          s(I) = si∗
+                                                1−ε−i∗ ε0
+                                    = 23(lg N )
+                                                9ε/80
+                                    ≤ 23(lg N )
+                                                      1/4
+                                    = 23(lg lg N )          .
+                                              Xi∗
+                          δ (I) = δ0 +                (δi + ηi )
+                                              i=1
+                                                                                 
+                                                              1      1
+                                    = (i∗ + 1) ·                  +
+                                                            |F|0.1 |F|1/6
+                                           1
+                                    ≤           .
+                                        |F|0.05
+
+
+                                                                      22
+Stage II: We now compose the dPCP D(I) constructed in Stage I with another dPCP obtained
+from Theorem 5.2 as follows. Let DII be the dPCP obtained from Theorem 5.2 by setting h = 2
+                                                                                    9ε/80               1/4
+and l = 2i∗ . This dPCP will run on inputs of instance size nII ≥ s(I) = 23(lg N )        = 23(lg lg N ) .
+Thus, mII = lg nII / lg h = 3(lg N )9ε/80 = 3(lg lg N )1/4 . Thus, DII is a 2-query (2i∗ + 1)-answer
+dPCP on inputs of instance size nII , randomness RII = c · mII log |F| = 3c(lg N )1−71ε/80 =
+3c lg N/(lg lg N )71/36 , answer size sII = 2(mII hII )2 < O((lg N )9ε/40 ) = O((lg lg N )1/2 ) and dis-
+tributional soundness error δII = 1/|F|0.1 . Let D(II) be the dPCP obtained by composing dPCP
+D(I) obtained in the previous stage with dPCP DII , i.e., D(II) = D(I) ~ DII . The encoding LDEF,h
+has blocklength |F|mII and distance 1−O(mII h)/|F| ≥ 1−2/|F|. Hence, its agreement parameter is
+at least 1/|F|1/6 . Thus, dPCP D(II) is a 2(i∗ + 1)-prover dPCP with respect to the encoding LDEF,h0
+for the language A LG -C KT SATF with the following parameters: On inputs Φ of size N over F, the
+dPCP D(II) has randomness complexity R(II) = R(I) + RII + mII lg |F| = O(lg N√), distributional
+soundness error δ (II) = δ (I) + δII + ηII ≤ |F|10.05 and answer size s(II) = sII = O( lg lg N ).
+
+Stage III: We now compose dPCP D(II) with the Hadamard based dPCP constructed in Theo-
+rem 5.3 to obtain our final dPCP. Let DIII be the Hadamard based dPCP constructed in The-
+orem 5.3 with√     l = 2(i∗ + 1), i.e., DIII = DQH,F,2(i∗ +1) . DIII will be run on instances of size
+nIII = O( lg lg N ). Thus, DIII is a 2-prover (2i∗ + 3)-answer dPCP with respect to the encoding
+QHF for the language A LG -C KT SAT with the following parameters: on inputs of instance size
+nIII , it has randomness complexity RIII = O(n2III lg |F|) = O(lg N ), answer size sIII = O(i∗ )
+and distributional soundness error δIII = 1/|F|       0.1 . Furthermore, the blocklength of the encoding
+          2                                        p
+is |F|O(nIII ) and has agreement parameter 1/ |F|. The final dPCP D(III) is given by composing
+D(II) with DIII , i.e., D(III) = D(II) ~ DIII . Note that s(II) ≤ nIII . Thus, the final dPCP D(III) is
+a 2(i∗ + 2)-prover dPCP with respect to the encoding LDEF,h0 for the language A LG -C KT SATF
+with the following parameters: On inputs Φ of size N over F, the dPCP D(III) has random-
+ness complexity R(III) = R(II) + RIII + O(n2III lg |F|) = O(lg N ), distributional soundness error
+δ (III) = δ (II) + δIII + ηIII ≤ |F|10.05 and answer size s(III) = sIII = O(i∗ ) = O(1/ε).
+    Summarizing, we have constructed a O(lg lg n/ lg lg lg n)-prover dPCP D(III )f orA LG -C KT SATF
+with respect to the encoding LDEF,h0 with the following parameters: on inputs Φ of size N ,
+D(III) has randomness complexity O(lg N ), answer size O(lg lg N/ lg lg lg N ) and and distribu-
+tional soundness error N 1/poly lg lg N . This dPCP implies a PCP for C KT SAT with parameters as
+stated in Theorem 5.1. Note that the answer size is larger by a factor of log |F| = lg N/poly lg lg N
+since the size of the output predicate is measured in terms of its Boolean circuit complexity as
+opposed to arithmetic complexity.
+
+5.3   Optimality of our parameter choices
+In this section, we show the optimality of the parameters (upto constants) obtained in our Theo-
+rem 5.1 using the Reed-Muller based dPCP (Theorem 5.2) and the Hadamard based (Theorem 5.3)
+dPCP as building blocks in our composition paradigm. Of course, if one had an improved build-
+ing block, then one can potentially improve on the construction.
+    Let N be the size of the instance and let δ be the soundness error of the construction. Define
+parameter ε as follows: log(1/δ) = (log N )1−ε . Consider any sequence of compositions of the
+Reed-Muller based dPCP and Hadamard based dPCP. Observe that the size of the Hadamard
+based dPCP is exponential in its input instance size. Hence, the first sequence of composition steps
+
+
+                                                    23
+must involve only the Reed-Muller based dPCP wherein the size of the instance is sufficiently
+reduced to allow for composition with the Hadamard based dPCP.
+    We first argue that one needs to perform at least Ω(1/ε) steps of composition of the Reed-
+Muller based dPCP so that the instance size is sufficiently small to apply the Hadamard based
+dPCP. Suppose we perform t steps of composition of the Reed-Muller based dPCP wherein at the
+i-th step the instance size drops from Ni−1 to Ni (here, N0 = N ). Since the error at each step
+is at most δ, the field size used in each stage of the Reed-Muller based dPCP must be at least
+              1−ε
+1/δ = 2log N . To maintain polynomial size of the overall construction, each of the Reed-Muller
+based dPCPs used in the t steps of composition must satisfy |Fi |mi = N O(1) where Fi and mi are
+the field and dimension used in the construction of the Reed-Muller based dPCP used in the i-th
+stage of the composition. Hence, mi ≤ O((log N )ε ). Thus, the reduction in size in the i-th step
+                   1/m       1/(log N )ε
+is at most Ni ≥ Ni−1 i = Ni−1            , which implies inductively that the instance size after t steps
+                                                                       1−tε
+of composition of the Reed-Muller based dPCP is at least 2log N             . Hence, to obtain a size that
+allows for composition with the Hadamard-based dPCP we must have at least t = Ω(1/ε) steps of
+composition.
+    We now account for the total randomness used in these t = Ω(1/ε) steps of composition. Since
+the error in each step is at most δ, the randomness uses in each step must be at least log(1/δ) =
+(log N )1−ε . Hence, the total randomness used in these t steps is at least t · log(1/δ) = Ω(1/ε) ·
+(log N )1−ε . Since the size of the entire construction is at most polynomial we must have that
+1/ε · (log N )1−ε = O(log N ). Solving for ε7 , we obtain that ε ≥ log log log N/ log log N . Hence,
+the best soundness error obtained by a sequence of composition involving the Reed-Muller and
+                                                      1−ε
+Hadamard based dPCPs is at least δ = 2−(log N )            = N 1/poly log log N proving optimality of the
+Theorem 5.1 construction.
+
+
+6       Construction of specific dPCPs
+In this section, we construct our two building blocks; the Hadamard-based dPCP (Theorem 5.3)
+and the Reed-Muller-based dPCP (Theorem 5.2). Our construction proceeds by adapting previous
+constructions of these objects which guaranteed only list-decoding soundness. We obtain distribu-
+tional soundness by observing that if the dPCP satisfies list-decoding soundness and the encoding
+has very good distance (nearly 1), then the dPCP satisfies distributional soundness.
+
+6.1     Preliminaries
+Let F be a finite field.
+Definition 6.1 (Hadamard). The Hadamard encoding of a string a ∈ Fm is a function h : Fm → F
+defined by                                        X
+                                ∀α ∈ Fm , h(α) =       αi ai .
+                                                                  i
+Definition 6.2 (Quadratic Hadamard). The Quadratic Hadamard encoding (QH encoding for short) of
+                                                                                                      2
+a string a ∈ Fm , denoted QHa , is defined to be the Hadamard encoding of the string w = a ◦ b ∈ Fm+m
+              2
+where b ∈ Fm is defined by bim+j = ai aj for all 1 ≤ i, j, ≤ m (i.e. b = a ⊗ a).
+    7
+   1/ε · (log N )1−ε = O(log N ) implies that 1/ε ≤ O((log N )ε or equivalently 1/ε · log(1/ε) ≤ O(log log N ). This
+implies that ε ≥ log log log N/ log log N .
+
+
+                                                        24
+                       2
+   Let εi ∈ Fm+m be the unit vector with 1 on the ith coordinate and zeros elsewhere. Observe
+that if h = QHa is the quadratic functions encoding of a, then for each 1 ≤ i, j ≤ m,
+                                      h(εi ) = ai           and           h(εi·m+j ) = ai aj .
+Let H ⊂ F and denote h = |H|. Fix an arbitrary 1-1 mapping H ↔ [h] := {0, 1, . . . , h − 1}.
+We refer to elements in H as integers in [h] relying on this mapping. For any m > 0 we map
+x = (x1 , . . . , xm ) ∈ H m to x̃ = x1 + x2 h + . . . + xm hm−1 + 1 ∈ [hm ].
+Definition 6.3 (Low Degree Extension). Given a string a ∈ Fn , we define its Low Degree Extension
+with respect to H ⊆ F, denoted LDEa , as follows. Let m be the smallest integer such that hm ≥ n. Let
+f : Fm → F be the unique function whose degree in each variable is at most h, defined on H m by
+                                                   
+                                    m                ax̃ x̃ ∈ [n];
+                             ∀x ∈ H , f (x) =
+                                                     0 n < x̃ ≤ hm .
+and extend f to Fm by interpolation, and set LDEa = f .
+                            m                       m      m                             m
+Claim 6.4. Let a ∈ Fh 1 , and let b ∈ Fh 2 −h 1 , so that a ◦ b ∈ Fh 2 . If g1 = LDEa and g2 = LDEa◦b
+then
+                    ∀x1 , . . . , xm ∈ Fm , g1 (x1 , . . . , xm1 ) = g2 (x1 , . . . , xm1 , 0̄).
+Proof. For each (x1 , . . . , xm ) ∈ H m we have
+                                g1 (x1 , . . . , xm ) = ax̃ = (a ◦ b)x̃ = g2 (x1 , . . . , xm , 0̄).
+Thus, g1 and g2 coincide for all points in H m . As a function of x1 , . . . , xm , g1 and g2 (x1 , . . . , xm , 0̄)
+have degree at most h in each variable, so they must coincide for all points in Fm too.
+
+Definition 6.5 (Curve). Given k < |F| and a sequence of k + 1 points τ = (z0 , . . . , zk ) in Fm , define
+                                                        curveτ : F → Fm
+to be the polynomial function of degree at most k which satisfies curveτ (i) = zi for i = 0, . . . , k.
+
+
+Definition 6.6 (Manifold). Given τ = (z1 , . . . , zk ) ∈ Fm , and three points x1 , x2 , x3 ∈ Fm define
+γz1 ,...,zk ;x1 ,x2 ,x3 : F4 → Fm to be the following degree k + 1 function
+                     γz1 ,...,zk ;x1 ,x2 ,x3 (t0 , t1 , t2 , t3 ) = t0 · curvex1 ,z1 ,...,zk (t1 ) + t2 x2 + t3 x3 .
+    Observe that γz1 ,...,zk ;x1 ,x2 ,x3 contains the points z1 , . . . , zk and x1 , x2 , x3 .
+    We now state a low degree test, which has appeared in several places in the literature [RS97,
+DFK+ 11, MR10]. First, a little notation. Supposed that Q : Fm → F is a function of degree ≤ d,
+and γz1 ,...,zk ,x1 ,x2 ,x3 (t0 , t1 , t2 , t3 ) = t0 · curvex1 ,z1 ,...,zk (t1 ) + t2 x2 + t3 x3 is a manifold in Fm of degree
+at most k + 1. Then the function Q ◦ γ : F 4 → F has degree at most d(k + 1) and can be specified
+by d(k+1)       coefficients. Given a manifold γ and a function M (γ) : F4 → F, we denote for each
+             
+      4
+x ∈ Im(γ)
+                  M (γ)[x] := M (γ)(t1 , . . . , t4 )          for t1 , . . . , t4 such that γ(t1 , . . . , t4 ) = x.
+The following lemma appears in [MR10, Lemma 4.4, Section 10.2 (in appendix)] and a similar
+lemma can be found in [Har10, Lecture 9].
+
+                                                                   25
+Lemma 6.7 (Low Degree Test - Manifold vs. Point). Let m, k, d > 0, let δ = (mkd/ |F|)1/8 , and let
+z1 , . . . , zk ∈ Fm be fixed. Let Q : Fm → F be an arbitrary function, supposedly of degree ≤ d. There
+exists a list of L ≤ 2/δ degree d functions Q1 , . . . , QL : Fm → F such that the following holds. Let Γ be a
+collection of manifolds,
+             Γ = {γz1 ,...,zk ,x1 ,x2 ,x3 (t0 , t1 , t2 , t3 ) = t0 · curvex1 ,z1 ,...,zk (t1 ) + t2 x2 + t3 x3 }x1 ,x2 ,x3
+                                                    d(k+1)
+one per choice of x1 , x2 , x3 ∈ Fm . Let M : Γ → F( 4 ) specify for each γ the coefficients of a degree-
+d(k + 1) function supposedly equal to Q ◦ γ : F4 → F. Then,
+
+                            Pr [Q(z) = M (γ)[z] and Q(z) 6∈ {Q1 (z), . . . , QL (z)}] ≤ δ.
+                           z,γ3z
+
+    Finally, we state the following lemma, which gives a probabilistic verifier that inputs a predi-
+cate Φ : Fn → {0, 1} and a list of functions F1 , . . . , F` : Fn → F, and checks that (a, b) are such that
+Φ(a) = 1 and bi = Fi (a) for each i = 1, . . . , ` (b = F (a) for short).
+Lemma 6.8 (Initial Verifier). Given a predicate Φ : Fn → {0, 1} and functions F1 , . . . , F` : Fn → F
+whose total circuit complexity is N , there is a randomized verifier V0 that uses O(log |F| + log N ) random
+bits and generates a quadratic polynomial p : Fm → F on m = O(N ) variables such that, given access to a
+proof π = a ◦ b ◦ s ∈ Fm ,
+      • If Φ(a) = 1 and Fi (a) = bi for each i = 1, . . . , `, then there is a unique string s = s(a, b) such that
+                                                         Pr [p(a, b, s) = 0] = 1.
+                                                        p∼V0
+
+      • If either Φ(a) = 0 or bi 6= Fi (a) for some 1 ≤ i ≤ `, or s 6= s(a, b), then
+                                                                                     2
+                                                       Pr [p(a, b, s) = 0] ≤            .
+                                                      p∼V0                          |F|
+
+   This verifier would be ideal except for one drawback: in order to evaluate p(π) it makes an
+unbounded number of queries to the proof π.
+
+Proof. (sketch) The proof of this lemma is standard: s will specify the values of all of the inter-
+mediate gates of the circuit computing Φ as well as the circuits computing F1 , . . . , F` . The validity
+of each intermediate computation step can be checked by a quadratic or linear equation over
+the entries in s. The verifier V0 will use its randomness to generate a (pseudo)random sum of
+these equations (using an error correcting code, details are omitted). This can be expressed as a
+quadratic polynomial over the set of new variables.
+
+6.2     Hadamard based dPCP
+In this section we construct a dPCP based on the Hadamard encoding, given formally in the fol-
+lowing lemma.
+
+Theorem 5.3 (Restated) (Hadamard based dPCP) For any finite field F, and any ` > 0, there is a 2-
+prover `+1-answer decodable PCP DQH,F with respect to the encoding QHF for the language A LG -C KT SATF
+with the following parameters: On inputs (i) a predicate Φ : Fn → {0, 1} and (ii) functions F1 , . . . , F` :
+Fn → F given by arithmetic circuits over F whose total size is N , the dPCP DQH,F has
+
+                                                                  26
+   • randomness complexity O(N 2 log |F|),
+   • answer size s, s0 = O(`),
+   • perfect completeness, and
+   • distributional soundness error ≤ 1/|F|0.1 .
+
+
+
+   We define the verifier for Theorem 5.3.
+
+Decoder Protocol On input Φ, F1 , . . . , F` ; j, r, let V0 be the verifier from Lemma 6.8, and let π ∈
+Fm be the proof that V0 expects. Our decoder V expects the B prover to hold the QH encoding
+of π and the A prover is expected to give restrictions of B to specified subspaces. It is known
+that with O(1) queries into B the decoder could check that B is indeed a QH encoding of a valid
+proof π, as well as decode any quadratic function of π. The A prover is used to simulate this while
+making only one query to A and one to B. This is done by computing several query points for the
+former test, and then taking a random subspace S containing these points as well as a couple of
+uniformly random ones.
+    The low degree test (see Lemma 6.11 below) guarantees that if A’s answer on the subspace
+S is consistent with B’s answer on a random point in S, then B is linear (in other words, it is a
+Hadamard encoding of some string). The decoder will also perform some other tests on values in
+S which ensure that moreover B is a valid QH encoding of a valid π.
+
+   1. Computing the query points.
+                                                                                                            2
+       (a) Choose β, γ ∈ Fm uniformly at random, and define u1 , u2 , u3 ∈ Fm+m as follows:
+                                   m
+                                   X                       m
+                                                           X                       m X
+                                                                                   X m
+                            u1 =         β i εi ,   u2 =         γ i εi ,   u3 =                βi γi0 εim+i0 .
+                                   i=1                     i=1                      i=1 i0 =1
+
+           (These are points for the multiplication test: if we already know that B is a Hadamard
+           encoding of some string, then this test will ensure it is moreover a QH encoding. )
+                                                                           P      P
+       (b) Draw a random quadratic polynomial p(t1 , . . . , tm ) = α0 + i αi ti + i,i0 αii0 ti ti0 from
+           the distribution of V0 (from Lemma 6.8). To check that p(π) = 0 we define z ∈ Fm2 (for
+           m2 = m + m2 ) by
+                                           Xm          Xm X  m
+                                        z=     αi εi +         αii0 εim+i0
+                                                    i=1             i=1 i0 =1
+           (If B were equal to QHπ for some string π then B(z) + α0 = p(π) so the value of B(z)
+           could be used to check that p(π) = 0).
+       (c) For each i = 1, . . . , ` let oi = εi+n . Let o`+1 be the point in Fm2 corresponding to
+                                           2
+           j = (δ1 , . . . , δn+n2 ) ∈ Fn+n . (We are using here the fact that π = a ◦ b ◦ s so the QF
+           encoding of π contains in it the QF encoding of a. Explicitly, set
+                                                    n
+                                                    X               n X
+                                                                    X n
+                                          o`+1 =          δi εi +               δin+i0 εim+i0 .
+                                                    i=1             i=1 i0 =1
+
+
+                                                           27
+            (These are the points to be output by the decoder.)
+
+   2. Choose x1 , x2 , x3 ∈ Fm2 uniformly at random, consider the (l + 8)-dimensional linear sub-
+      space
+                           S = span(x1 , x2 , x3 , u1 , u2 , u3 , z, o1 , . . . , o`+1 ) ⊂ Fm2 .
+      We assume there is a canonical mapping that maps each subspace S to a particular basis
+      v~S = {v1 , . . . , v`+8 } ⊂ Fm2 for S and send it to the A prover and let A(v~S ) ∈ F`+8 be the
+      prover’s answer. The answer specifies a linear function AS : S → F defined by
+
+                                                              X            `+8
+                                                                           X
+                                                                       
+                               ∀t1 , . . . , t`+8 ∈ F,   AS       ti vi :=     ti · A(v~S )i
+                                                              i             i=1
+
+
+   3. Send x1 to the B prover and let B(x1 ) be its answer.
+
+   4. Reject unless
+
+        (a) AS (x1 ) = B(x1 ), and
+       (b) AS (z) + α0 = 0.
+        (c) AS (u1 )AS (u2 ) = AS (u3 ), and
+
+   5. Output AS (o1 ), . . . , AS (o` ).
+
+The decoding PCP will follow the protocol above, using its randomness R for selecting p, β, γ, x1 , x2 , x3 ,
+and generate an output (q, ϕ, f, g) as follows:
+
+   • The queries q are q0 = v~S to the first prover and q1 = x1 to the second prover.
+
+   • The predicate ϕ - rejects iff at least one of the tests in Items 4b and 4c reject.
+
+   • The function g computes AS (x1 ) (for the consistency test in Item 4a).
+
+   • The functions f1 , . . . , f`+1 - compute AS (oi ) for i = 1, . . . , ` + 1.
+
+Lemma 6.9 (Perfect Completeness). The verifier has perfect completeness. Namely, for every a ∈
+                                                            2                                   2
+Φ−1 (1), there is a proof Π such that for every j ∈ Fn+(n) and every random string R ∈ {0, 1}O(N log|F|) ,
+the verifier on input (Φ, F ; j, R) accepts and outputs F1 (a), . . . , F` (a), QHa (j).
+
+Proof. Let b = F (a) and let s be the string promised in Lemma 6.8. Let B : Fm2 → F be the
+quadratic functions encodings of π = a◦b◦s. For each v~S = (vi )i , let A(v~S ) = (B(v1 ), B(v2 ), . . . , B(v`+8 )).
+We claim that Π = (A, B) is a valid proof for a ∈ Φ−1 (1):
+    By definition B is a linear function on Fm2 , so AS (x) = B(x) for all x ∈ S and in particular the
+test in Item 4a passes. Also, by definition B is the Hadamard encoding of the string σ = π ◦(π ⊗π),
+so B(εi ) = σi for all 1 ≤ i ≤ m + m2 . Thus
+
+                       B(εi1 m+i2 ) = σi1 m+i2 = πi1 · πi2 = σi1 · σi2 = B(εi1 ) · B(εi2 )
+
+
+
+
+                                                         28
+which, by linearity, implies that the test in Item 4c passes. Next, for Item 4b, we know that for
+every p generated by V0 ,
+                      n
+                      X                n
+                                       X                               X                   X
+  0 = p(π) = α0 +           αi π i +             αii0 πi πi0 = α0 +         αi B(εi ) +           αii0 B(εim+i0 ) = α0 + B(z),
+                      i=1              i,i0 =1                          i                   ii0
+
+so AS (z) + α0 = B(z) + α0 = 0 as required. It is finally easy to check that
+                             AS (εi+n ) = B(εi+n ) = πi+n = bi ,                       i = 1, . . . , `.
+Finally, for the ` + 1st output,
+                                                   n
+                                                   X                   n X
+                                                                       X n
+                AS (o`+1 ) = B(o`+1 ) =                  δi B(εi ) +               δin+i0 B(εim+i0 ) = QHa (j)
+                                                   i=1                 i=1 i0 =1
+
+where the last equality is due to the fact that the QH encoding of π = a ◦ b ◦ s contains the QH
+encoding of a. More precisely, QHa (εin+i0 ) = B(εim+i0 ) for all 0 ≤ i ≤ n and 1 ≤ i0 ≤ n.
+Lemma 6.10 (Distributional Soundness). The verifier above has soundness error at most δ = |F|−0.1 .
+Namely, given (Φ, F ) for every proof Π = (A, B), there are functions Π(·),
+                                                                      e     e(·) such that
+                                                                            x
+   • For each R, either Φ(e
+                          x(R)) = 1 and Π(R)
+                                        e    is a valid proof for “x ∈ SAT (Φ)” or Π(R)
+                                                                                   e    = ⊥.
+   • For every j, there is probability at least 1 − ε that when R is chosen randomly and V is run on
+     (Φ, F ; j, R) it either rejects, or Π(R)
+                                         e    is a proof that completely agrees with the answers of the provers
+     A, B on the queries of V (in which case V ’s output is consistent with x   e(R)).
+Proof. Fix Π = (A, B). Given B, let g1 , . . . , gL be as in the low degree test below, Lemma 6.11. Let
+                 L∗ = {i ∈ [L] | gi = QHπ for π = a ◦ b ◦ s s.t. Pr[V0π accepts] = 1} .
+Set Π(R)
+    e    = ⊥ if events E1 or E2 occurred, where
+ E1: B(x1 ) 6∈ {gi (x1 ) | i ∈ L∗ }.
+ E2: there is more than one index i ∈ L∗ for which B(x1 ) = gi (x1 ).
+Otherwise, there is a unique i ∈ L∗ such that B(x1 ) = gi (x1 ). By assumption gi is the QH encoding
+of some π = a ◦ b ◦ s for which Φ(a) = 1 and F (a) = b and s = s(a, b). So we set x  e(R) = a and set
+                                               −1
+Π(R) = (AR , BR ) to be a valid proof for a ∈ Φ (1) so that BR = gi .
+e
+                                   2
+    Now fix an arbitrary j ∈ Fn+n , and let R be chosen uniformly at random. We claim that the
+probability that the verifier accepts and yet the view of Π and of Π(R)e    differ is very small. We
+analyze two cases.
+   • Accept and Π(R)
+                e    = ⊥: This event can be bounded by
+                                                                  
+                                                         1/6 4L     L
+                  Pr[Accept and E1] + Pr[E2] ≤ max 2/ |F| ,       +   / |F|
+                                                             |F|    2
+      where the second item is bounded due to the large distance of the Hadamard code, and the
+      first item is bounded as follows. If B(x1 ) 6∈ {gi (x1 ) | i ∈ [L]} then Lemma 6.11 implies that
+      the probability of acceptance is small. If however B(x1 ) = gi (x1 ) for some i ∈ [L] \ L∗ then
+      for each i ∈ [L] \ L∗ Lemma 6.12 shows that the acceptance probability is small, and we take
+      a union bound over all such i.
+
+                                                                 29
+   • Accept and Π(R)|
+                  e     q 6= Π|q : We defined Π(R) so that BR (x1 ) = B(x1 ) = gi (x1 ) for some
+                                                   e
+          ∗
+     i ∈ L . So this event occurs if AS 6= gi |S . We observe that this event is contained in ∪i∈L∗ Ei
+     where Ei is the event that AS 6= gi |S yet AS (x1 ) = gi (x1 ). For each i this event has probability
+     at most 2/ |F|, and we take a union bound over i ∈ L∗ .
+
+
+
+    The proof of soundness is based on the following lemma, which has appeared in several places
+in the literature. The following lemma appears in [MR10, Proposition 11.0.3].
+
+Lemma 6.11 (Subspace vs. Point - linearity testing list decoding soundness). Let δ = 2/ |F|1/6 .
+Given a pair of provers A, B, there is a list of L ≤ 2/δ 3 linear functions g1 , . . . , gL : Fm2 → F such that
+the probability that the decoder does not reject yet B(x1 ) 6∈ {g1 (x1 ), . . . , gL (x1 )} is at most O(δ).
+
+   The following claim shows that if B’s answers are a linear function, then the verifier rejects
+unless B is a QH encoding of a valid proof.
+
+Lemma 6.12. Suppose that B : Fm2 → F is a linear function. Let π = a ◦ b ◦ s be defined by
+
+          a = B(ε1 ) . . . B(εn ) and b = B(εn+1 ), . . . , B(εn+` ) and s = B(εn+`+1 ), . . . , B(εm ).
+
+Assume that either Φ(a) = 0 or F (a) 6= b or s 6= s(a, b) or B 6= QHπ . Then, for all provers A, for all j,
+PrR [V A,B (Φ, F ; j; R) accepts] ≤ 4/ |F|.
+
+Proof. Assume first that B = QHπ , but either Φ(a) = 0 or F (a) 6= b or s 6= s(a, b). By Lemma 6.8,
+when choosing a random quadratic p, there is at most probability 2/ |F| that p(π) = 0. So let p be
+such that p(π) 6= 0. Since B is the QH encoding of π, by the definition of z
+
+                                           B(z) + α0 = p(π) 6= 0.
+
+However, V accepts so Item 4b passing implies that AS (z) + α0 = 0. This means that as linear
+functions on S, AS 6≡ B|S . It remains to observe that conditioned on S, x1 is drawn almost
+uniformly from S, so the probability that Item 4a does not reject is at most 1/ |F| + neg ≤ 2/ |F|.
+Altogether the total probability of accepting in this case is at most 4/ |F|.
+    We move to analyze the case where Φ(a) = 1 and F (a) = b and s = s(a, b) but B 6= QHπ .
+There must be some indices i1 , i2 such that B(εi1 )B(εi2 ) 6= B(εi1 m+i2 ). We need to upper bound
+the probability over random β, γ that the following expression is zero:
+                                                m X
+                                                X m
+                    B(u1 )B(u2 ) − B(u3 ) =                 βi γi0 (B(εi )B(εi0 ) − B(εim+i0 )).
+                                                i=1 i0 =1
+
+Let us fix the value of βi (for i 6= i1 ) and γi0 (for i0 6= i2 ) arbitrarily. The remaining expression
+becomes a non-zero quadratic polynomial in βi1 , γi2 , so it can be zero with probability at most
+2/ |F| over the choice of βi1 , γi2 .
+    Consider the event where it is not zero. Since Item 4c accepts, AS (u1 )AS (u2 ) = AS (u3 ) so
+AS (ui ) 6= B(ui ) for some i ∈ {1, 2, 3}. So as linear functions AS 6= B|S and the probability
+of Item 4a passing is at most 1/ |F| + neg ≤ 2/ |F| (where neg is a small probability introduced
+because x1 is only almost uniform in S conditioned on S). Altogether we get a bound of 4/ |F| in
+this case as well.
+
+                                                       30
+6.3     Reed-Muller based dPCP
+Theorem 5.2 (Restated) (Reed-Muller based dPCP) For any finite field F, and parameter h such that
+1 < h < |F|0.01 and any ` > 0, there is a 2-prover ` + 1-answer decodable PCP D with respect to
+the encoding LDEF,h for the language A LG -C KT SATF with the following parameters: On inputs (i) a
+predicate Φ : Fn → {0, 1} and (ii) functions F1 , . . . , F` : Fn → F given by arithmetic circuits over F
+whose total size is N , the dPCP D has (let m = log N/ log h)
+      • randomness complexity O(log N + m log |F|) = O(log N + log |F|),
+      • answer size s, s0 = O(m(m + `)),
+      • and distributional soundness error 1/|F|0.1 .
+
+
+
+    Fix H ⊆ F throughout this section and denote h = |H|.
+    We construct a PCP decoder that receives as proof a sequence of low degree polynomials that
+allow it to simulate the actions of the initial verifier V0 (from Lemma 6.8) using fewer queries. We
+first construct this sequence of polynomials g1 , g2 , g3 , g4 , then describe a “verification protocol”
+checking that a given sequence of polynomials have the intended form, and finally describe the
+PCP decoder.
+
+Constructing the low degree functions Let Φ, F1 , . . . , F` be the input.
+   1. Suppose a ∈ Φ−1 (1) and let bi = Fi (a) for all i = 1, . . . , `, and let s = s(a, b) so that the initial
+      verifier V0 accepts π = a ◦ b ◦ s with probability 1. Wlog we assume that n = |a| is a power of
+      h, and also n1 = |π| + 1 is a power of h. This can be arranged by padding a with zeros and
+      then padding π with zeros and changing V0 accordingly.
+   2. Let m1 = m = logh n and define g1 = LDEa : Fm1 → F (see Definition 6.3),
+   3. Let m2 = logh n1 and let g2 = LDEπ ◦ 1 : Fm2 → F be the low degree extension of the
+      string obtained by appending a 1 to π. By Claim 6.4 g2 (x1 , . . . , xm1 , 0̄) = g1 (x1 , . . . , xm1 ). Let
+      z0 ∈ H m2 be the point associated with the last element in π ◦ 1, i.e. such that g2 (z0 ) = 1.
+   4. Let m3 = 2m2 and let g3 : Fm3 → F be defined by g3 (x, y) = g2 (x) · g2 (y). Note that the
+      degree of g3 is at most m3 h.
+   5. Let P0 be the set of all quadratic  P polynomials     generated by V0 on input (Φ, F ). Fix some
+      p ∈ P0 , p(t1 , . . . , tn1 ) = p0 + i pi ti + ii0 pii0 ti ti0 . Define the function p̂ : Fm3 → F as
+                                                    P
+      follows. For 1 ≤ i ≤ hm2 let ~i be the corresponding element in H m2 (see discussion before
+      Definition 6.3). For each i < i0 ∈ H m2 \ {z0 }, set
+                p̂(z0 , z0 ) = p0 ,   p̂(z0 ,~i) = pi ,   p̂(~i,~i0 ) = pii0 ,   p̂(z) = 0 for all other z ∈ H m3 .
+        Extend p̂ from H m3 to Fm3 by interpolation. The degree of p̂ is at most m3 h.
+        This definition ensures that for σ := (π ◦ 1) ∈ Fn1 ,
+                                      X           X                X
+                         p(σ) = p0 +      pi σi +    pii0 σi σi0 =   p̂(x) · g3 (x) = 0.                              (6.1)
+                                              i            ii0                   x∈H m3
+
+
+                                                                 31
+   6. Define low degree functions sp1 , . . . , spm3 : Fm3 → F as nested partial sums of g3 as follows.
+
+                                                spi−1 (x) =
+                                                            X p
+       spm3 (x) = p̂(x) · g3 (x) and                           si (x1 , . . . , xi−1 , h, 0, . . . , 0) 1 < i ≤ m3
+                                                                       h∈H
+
+      The degree of each spi is at most 2m3 h.
+
+   7. Bundling: From the polynomials g3 and spi for each i and p ∈ P0 , we will now create one
+      single polynomial g4 that ‘bundles’ them together. Let us number them as q1 , . . . , qT for
+      T = m3 |P0 | + 1 and let t = dlogh (T + 1)e = O(m3 ).
+      Let m4 = m3 + t and define g4 : Fm4 → F by
+                                                                 T
+                                                                 X
+                                    g4 (y1 , . . . , yt , x) =         qi (x) · wi (y1 , . . . , yt )          (6.2)
+                                                                 i=1
+
+      where wi : Ft → F is the degree th polynomial for which wi (y1 , . . . , yt ) = 1 iff y1 , . . . , yt is the
+      H-ary representation of i, and zero for all other y1 , . . . , yt ∈ H t . The degree of g4 is at most
+
+                                                d = ht + 2hm3 = O(hm).
+
+   By construction the function g4 contains inside of it (as restrictions) the functions g1 , g2 , g3 :
+
+Claim 6.13. There is a sequence of 1-1 (linear) mappings
+                                                  σ          σ            σ
+                                          Fm1 →1 Fm2 →2 Fm3 →3 Fm4
+
+such that for each x ∈ Fm3 we have g4 (σ3 (x)) = g3 (x); and for each x ∈ Fm2 we have g3 (σ2 (x)) = g2 (x);
+and for each x ∈ Fm1 we have g2 (σ1 (x)) = g1 (x).
+
+Proof. We map a point x1 ∈ Fm1 to (x1 , 0̄) ∈ Fm2 . We map a point x2 ∈ Fm2 to (z0 , x2 ) ∈ Fm3 . We
+map a point x3 ∈ Fm3 to (y, x3 ) ∈ Fm4 in the domain of g4 , where y ∈ Ft is the index of g3 in the
+bundling.
+
+   Answers of the B prover will correspond to point-evaluations of g4 , and answers of the A
+prover will correspond to restrictions of g4 to certain low-degree curves. A low degree curve, see
+Definition 6.5, is specified by a tuple of points in Fm4 through which it passes. This tuple contains
+
+   • Points for the verification check protocol, see below
+
+   • Output points: The are ` + 1 points whose values will give ` + 1 answers for the decoder.
+     These answers are the values of b1 , . . . , b` and the j-th element in the encoding LDEa .
+      Let v1 , . . . , v` ∈ Fm2 be the points in the domain of g2 that correspond to b1 , . . . , b` . For each
+      i, let oi = σ3 (σ2 (vi )) be the corresponding point in the domain of g4 (as in the claim above).
+      Let v`+1 ∈ Fm1 be the jth point in the domain of g1 = LDEa (we assume some canonical
+      numbering of the indices of the LDE encoding). Let o`+1 = σ3 (σ2 (σ1 (v`+1 ))) be the corre-
+      sponding point in the domain of g4 .
+
+   • Random points
+
+
+                                                            32
+Verification Protocol The verification protocol accesses functions g̃3 and {s̃pi }i,p and checks (lo-
+cally) that they have the correct form, as intended in the construction, i.e. that there is some valid
+proof π such that they are equal to g3 and spi as in the construction above.
+
+  1. Check that g̃3 (z0 , z0 ) = 1.
+
+  2. Choose two random points x, y ∈ Fm2 , so that (x, y) ∈ Fm3 . Check that g̃3 (z0 , x) · g̃3 (z0 , y) =
+     g̃3 (x, y).
+
+  3. Choose a random quadratic p by simulating V0 , and compute p̂ : Fm3 → F as in Item 5 in the
+     expected proof.
+
+  4. Do the sumcheck: Choose a random point x = (x1 , . . . , xm3 ) ∈ Fm3 , and do
+
+       (a) Check that s̃pm3 (x) = p̂(x) · g̃3 (x)
+       (b) For each 1 < i ≤ m3 check that s̃pi−1 (x1 , . . . , xi−1 , 0̄) =             p
+                                                                              P
+                                                                                  h∈H s̃i (x1 , . . . , xi−1 , h, 0̄)
+       (c) Check that h∈H s̃p1 (h, 0̄) = 0.
+                      P
+
+
+The verification protocol accesses k = (h + 1)m3 + 5 points in the domains of g̃3 and s̃pi . Let
+u1 , . . . , uk ∈ Fm4 be the corresponding points in the domain of g4 (as in Claim 6.13).
+
+The PCP Decoder protocol
+
+  1. Compute the output points o1 , . . . , o`+1 as above.
+
+  2. Use the randomness R to compute u1 , . . . , uM using the verification protocol.
+
+  3. Use the randomness R to choose x1 , x2 , x3 ∈ Fm4 uniformly. Let γ = γo1 ,...,o`+1 ,u1 ,...,uM ;x1 ,x2 ,x3
+     be the manifold as in Definition 6.6, such that γ contains the points o1 , . . . , o`+1 , u1 , . . . , uM
+     as well as x1 , x2 , x3 and has degree at most ` + 1 + k + 1 = ` + O(hm). Send γ to A and
+     let A’s answer A(γ) be the coefficients of a function F4 → F whose degree is at most d0 ≤
+     d(M + ` + 2). This function is supposed to equal B ◦ γ.
+     Let Aγ : Im(γ) → F be defined for each x ∈ Im(γ) as Aγ (x) := A(γ)(t) where x = γ(t).
+     Clearly Aγ can be computed from A(γ).
+
+  4. Send x1 to the B prover and let B(x1 ) be its answer. Reject unless Aγ (x1 ) = B(x1 ).
+
+  5. Simulate the checks of Item 4 using the values Aγ (u1 ), . . . , Aγ (uM ). Reject unless all of the
+     checks succeed.
+
+  6. Output Aγ (o1 ), . . . , Aγ (o`+1 ).
+
+To summarize, the PCP decoder computes (q, ϕ, f, g) as follows:
+
+   • The queries q: q0 = γ is the query to the A prover and q1 = x1 is the query to the B prover.
+
+   • The predicate ϕ rejects unless all of the checks in Item 4 pass.
+
+   • The function g computes Aγ (x1 ) (for the consistency test).
+
+
+                                                       33
+   • The functions f1 , . . . , f`+1 - compute Aγ (oi ) for i = 1, . . . , ` + 1.
+
+This completes the description of the PCP decoder, and we proceed to prove its correctness.
+
+Lemma 6.14 (Perfect Completeness). The PCP decoder has perfect completeness. Namely, for every
+a ∈ Φ−1 (1), there is a proof Π such that for every j ∈ Fm and every random string R, the verifier on input
+(Φ, F ; j, R) accepts and outputs F1 (a), . . . , F` (a), LDEa (j).
+
+Proof. If Φ(a) = 1 and F (a) = b then there is a proof π = abs ∈ Fn1 such that for every quadratic
+p generated by the initial verifier V0 , p(π) = 0. Compute from π the function g4 as described in
+the “expected proof” section above, and let B answer according to g4 . The checks in Item 4 will
+always succeed. It remains to take A to be the restrictions of B to the manifolds and then the
+consistency checks will pass and the verifier will always output as required.
+
+Lemma 6.15 (Distributional Soundness). The verifier above has soundness error at most δ = |F|−0.1 .
+Namely, given (Φ, F ) for every proof Π = (A, B), there are functions Π(·),
+                                                                      e     e(·) such that
+                                                                            x
+
+   • For each R, either Φ(e
+                          x(R)) = 1 and Π(R)
+                                        e    is a valid proof for “x ∈ SAT (Φ)” or Π(R)
+                                                                                   e    = ⊥.
+
+   • For every j, there is probability at least 1 − ε that when R is chosen randomly and V is run on
+     (Φ, F ; j, R) it either rejects, or Π(R)
+                                         e    is a proof that completely agrees with the answers of the provers
+     A, B on the queries of V (in which case V ’s output is consistent with x   e(R)).
+
+Proof. Fix Π = (A, B). Given B, let Q1 , . . . , QL be degree ≤ d functions as in Lemma 6.7. We say
+that Qi is a valid proof for a ∈ Φ−1 (1) when the B prover answers according to Qi , there is an A
+prover causing the verifier to always output consistently with LDEa . Let I ⊂ [L] be the indices
+for which Qi is a valid proof for some a, b.
+    For each R note that in the verifier protocol x1 is chosen (based on R but) independently of j.
+Set Π(R)
+    e     = ⊥ if events E1 or E2 occurred, where
+
+ E1: B(x1 ) 6∈ {Qi (x1 ) | i ∈ I}.
+
+ E2: there is more than one index i ∈ I for which B(x1 ) = Qi (x1 ).
+
+Otherwise, there is a unique i ∈ I such that B(x1 ) = Qi (x1 ). By assumption Qi is a valid proof for
+some a ∈ Φ−1 (1) so we set xe(R) = a and set Π(R)
+                                             e      = (AR , BR ) to be a valid proof for a.
+                                 m
+   Now fix an arbitrary j ∈ F , and let R be chosen uniformly at random. We claim that the
+probability that the verifier accepts and yet the view of Π and of Π(R)
+                                                                      e      differ is very small. We
+analyze two cases.
+
+   • Accept and Π(R)
+                e    = ⊥: This event can be bounded by
+                                                                                          
+                                                                  −0.1
+                                                                                         L
+               Pr[Accept and E1] + Pr[E2] ≤ max O(|F|)                   ), O(Lmd/|F|) +     · d/ |F|
+                                                                                          2
+
+      where the second item is bounded due to the large distance between degree d functions,
+      and the first item is bounded as follows. If B(x1 ) 6∈ {Qi (x1 ) | i ∈ [L]} then Lemma 6.7 with
+      parameters m = m4 , k 0 = k + ` = O(hm), d implies that the probability of acceptance is at
+      most
+                                (mk 0 d/ |F|)1/8 = O(h2 m3 |F|)1/8 ≤ |F|−0.1
+
+                                                       34
+      (the last inequality is true since h ≤ |F|0.01 and for large enough n since m = log n/ log h and
+      |F|  poly log n.)
+      If however B(x1 ) = Qi (x1 ) for some i ∈ [L] \ I then for each i ∈ [L] \ I Lemma 6.16 below
+      shows that the acceptance probability is at most O(md/ |F|), and we take a union bound over
+      all such i.
+
+    • Accept and Π(R)|
+                    e     q 6= Π|q : We defined Π(R) so that BR (x1 ) = B(x1 ) = Qi (x1 ) for some i ∈ I.
+                                                 e
+      So this event occurs if Aγ 6= Qi |γ . We observe that this event is contained in ∪i∈I Ei where Ei
+      is the event that Aγ 6= Qi |γ yet Aγ (x1 ) = Qi (x1 ). For each i this event has probability at most
+      dd0 / |F|, and we take a union bound over i ∈ I. The total probability of error in this event is
+      at most Ldd0 / |F|.
+
+
+
+Lemma 6.16 (Soundness against a low degree prover). Suppose that B : Fm4 → F is a function of
+degree at most d = ht + 2hm3 , and let g, {spi } be its unbundling. Suppose further that g is consistent with
+a, b such that either Φ(a) = 0 or b 6= F (a). Then, for all provers A, the probability that the verifier accepts
+is at most O(md/|F|).
+
+Proof. (of Lemma 6.16) Assume that Φ(a) = 0 or F (a) 6= b and denote σ = abs. The probability
+that a random quadratic p drawn according to V0 (from Lemma 6.8) will satisfy p(σ) = 0 is at most
+O(1/ |F|). Suppose p(σ) 6= 0. This means that
+                                        X
+                                              p̂(x)g(x) 6= 0.                                (6.3)
+                                                      x∈H m3
+
+Observe that if the check in Item 4c passes then either
+
+                                                          spm3 6= p̂ · g,                                               (6.4)
+
+or, for some i, as functions of x1 , . . . , xi−1 ,
+
+                                spi−1 (x1 , . . . , xi−1 , 0̄) 6=         spi (x1 , . . . , xi−1 , h, 0̄).
+                                                                    X
+                                                                                                                        (6.5)
+                                                                    h∈H
+
+Otherwise,                        X                             X
+                                           p̂(x)g(x) =                      spm3 (x1 , . . . , xm3 ) =
+                                x∈H m3                     x1 ,...,xm3 ∈H
+
+                                          spm3 −1 (x1 , . . . , xm3 −1 , 0) = ... =             spm3 −1 (x1 , 0̄) = 0
+                            X                                                            X
+                  =
+                      x1 ,...,xm3 −1 ∈H                                                 x1 ∈H
+
+contradicting (6.3). The verifier checks each of these m3 equalities in (6.4) and (6.5)) on a random
+                                                                              d
+point (in Items 4a and 4b), so the probability of acceptance is at most m3 · |F| .
+
+
+
+
+                                                                    35
+References
+[ALM+ 98] S ANJEEV A RORA, C ARSTEN L UND, R AJEEV M OTWANI, M ADHU S UDAN, and M ARIO
+          S ZEGEDY. Proof verification and the hardness of approximation problems. J. ACM, 45(3):501–555, May
+          1998. (Preliminary version in 33rd FOCS, 1992). eccc:TR98-008, doi:10.1145/278298.278306.
+          1, 6
+[AS98]      S ANJEEV A RORA and S HMUEL S AFRA. Probabilistic checking of proofs: A new characterization
+            of NP. J. ACM, 45(1):70–122, January 1998. (Preliminary version in 33rd FOCS, 1992). doi:
+            10.1145/273865.273901. 1, 2, 3, 6
+[AS03]      S ANJEEV A RORA and M ADHU S UDAN. Improved low-degree testing and its applications. Com-
+            binatorica, 23(3):365–426, 2003. (Preliminary version in 29th STOC, 1997). eccc:TR97-003,
+            doi:10.1007/s00493-003-0025-0. 2, 3, 6
+[BGH+ 06] E LI B EN -S ASSON, O DED G OLDREICH, P RAHLADH H ARSHA, M ADHU S UDAN, and S ALIL
+          VADHAN. Robust PCPs of proximity, shorter PCPs and applications to coding. SIAM J. Com-
+          put., 36(4):889–974, 2006. (Preliminary version in 36th STOC, 2004). eccc:TR04-021, doi:
+          10.1137/S0097539705446810. 2, 3
+[BGKW88] M ICHAEL B EN -O R, S HAFI G OLDWASSER, J OE K ILIAN, and AVI W IGDERSON. Multi-prover in-
+         teractive proofs: How to remove intractability assumptions. In Proc. 20th ACM Symp. on Theory of
+         Computing (STOC), pages 113–131. 1988. doi:10.1145/62212.62223. 5
+[BGLR93]    M IHIR B ELLARE, S HAFI G OLDWASSER, C ARSTEN L UND, and A LEXANDER R USSELL. Efficient
+            probabilistically checkable proofs and applications to approximation. In Proc. 25th ACM Symp. on
+            Theory of Computing (STOC), pages 294–304. 1993. doi:10.1145/167088.167174. 1, 2
+[BS08]      E LI B EN -S ASSON and M ADHU S UDAN. Short PCPs with polylog query complexity. SIAM J.
+            Comput., 38(2):551–607, 2008. (Preliminary version in 37th STOC, 2005). eccc:TR04-060,
+            doi:10.1137/050646445. 2, 3
+[CK09]      J ULIA C HUZHOY and S ANJEEV K HANNA. Polynomial flow-cut gaps and hardness of directed cut
+            problems. J. ACM, 56(2), 2009. (Preliminary version in 39th STOC, 2007). doi:10.1145/1502793.
+            1502795. 5
+[DFK+ 11] I RIT D INUR, E LDAR F ISCHER, G UY K INDLER, R AN R AZ, and S HMUEL S AFRA. PCP charac-
+          terizations of NP: Toward a polynomially-small error-probability. Comput. Complexity, 20(3):413–
+          504, 2011. (Preliminary version in 31st STOC, 1999). eccc:TR98-066, doi:10.1007/
+          s00037-011-0014-4. 2, 3, 4, 5, 6, 10, 25
+[DH13]      I RIT D INUR and P RAHLADH H ARSHA. Composition of low-error 2-query PCPs using decodable
+            PCPs. SIAM J. Comput., 42(6):2452–2486, 2013. (Preliminary version in 51st FOCS, 2009). eccc:
+            TR09-042, doi:10.1137/100788161. 2, 3, 4, 6, 10, 12
+[DHK15]     I RIT D INUR, P RAHLADH H ARSHA, and G UY K INDLER. Polynomially low error PCPs with poly-
+            loglog n queries via modular composition. In Proc. 47th ACM Symp. on Theory of Computing (STOC).
+            2015. (To appear). doi:10.1145/2746539.2746630. 0
+[Din07]     I RIT D INUR. The PCP theorem by gap amplification. J. ACM, 54(3):12, 2007. (Preliminary version
+            in 38th STOC, 2006). eccc:TR05-046, doi:10.1145/1236457.1236459. 2, 3
+[DM11]      I RIT D INUR and O R M EIR. Derandomized parallel repetition via structured PCPs. Comput. Com-
+            plexity, 20(2):207–327, 2011. (Preliminary version in 25th Conference on Computation Complexity,
+            2010). arXiv:1002.1606, doi:10.1007/s00037-011-0013-5. 6
+[DR06]      I RIT D INUR and O MER R EINGOLD. Assignment testers: Towards a combinatorial proof of the PCP
+            Theorem. SIAM J. Comput., 36:975–1024, 2006. (Preliminary version in 45th FOCS, 2004). doi:
+            10.1137/S0097539705446962. 2, 3
+
+
+                                                     36
+[DS04]      I RIT D INUR and S HMUEL S AFRA. On the hardness of approximating label-cover. Inform. Process.
+            Lett., 89(5):247–254, March 2004. eccc:TR99-015, doi:10.1016/j.ipl.2003.11.007. 5
+[FGL+ 96]   U RIEL F EIGE, S HAFI G OLDWASSER, L ÁSZL Ó L OV ÁSZ, S HMUEL S AFRA, and M ARIO S ZEGEDY.
+            Interactive proofs and the hardness of approximating cliques. J. ACM, 43(2):268–292, March 1996.
+            (Preliminary version in 32nd FOCS, 1991). doi:10.1145/226643.226652. 1
+[FK95]      U RIEL F EIGE and J OE K ILIAN. Impossibility results for recycling random bits in two-prover proof
+            systems. In Proc. 27th ACM Symp. on Theory of Computing (STOC), pages 457–468. 1995. doi:
+            10.1145/225058.225183. 6
+[Har10]     P RAHLADH H ARSHA. Limits of approximation algorithsm: PCPs and unique games., 2010. A course
+            on PCPs at TIFR and IMSc. 25
+[Mos14]     D ANA M OSHKOVITZ. An approach to the Sliding Scale Conjecture via parallel repetition for low
+            degree testing. Technical Report TR14-030, Elect. Colloq. on Comput. Complexity (ECCC), 2014.
+            eccc:TR14-030. 3, 6
+[MR10]      D ANA M OSHKOVITZ and R AN R AZ. Two-query PCP with subconstant error. J. ACM, 57(5), 2010.
+            (Preliminary version in 49th FOCS, 2008). eccc:TR08-071, doi:10.1145/1754399.1754402. 2,
+            3, 6, 10, 12, 25, 30
+[Raz98]     R AN R AZ. A parallel repetition theorem. SIAM J. Comput., 27(3):763–803, June 1998. (Preliminary
+            version in 27th STOC, 1995). doi:10.1137/S0097539795280895. 6
+[RS97]      R AN R AZ and S HMUEL S AFRA. A sub-constant error-probability low-degree test, and a sub-constant
+            error-probability PCP characterization of NP. In Proc. 29th ACM Symp. on Theory of Computing
+            (STOC), pages 475–484. 1997. doi:10.1145/258533.258641. 2, 3, 6, 25
+[Sze99]     M ARIO S ZEGEDY. Many-valued logics and holographic proofs. In J IR Í W IEDERMANN, P ETER VAN
+            E MDE B OAS, and M OGENS N IELSEN, eds., Proc. 26th International Colloq. of Automata, Languages
+            and Programming (ICALP), volume 1644 of LNCS, pages 676–686. Springer, 1999. doi:10.1007/
+            3-540-48523-6_64. 3
+
+
+
+
+                                                     37
+

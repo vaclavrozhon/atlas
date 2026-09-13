@@ -1,0 +1,1206 @@
+                                         On the Complexity of Value Iteration
+                                         Nikhil Balaji
+                                         University of Oxford
+                                         nikhil.balaji@cs.ox.ac.uk
+
+                                         Stefan Kiefer
+                                         University of Oxford
+                                         stekie@cs.ox.ac.uk
+
+                                         Petr Novotný
+                                         Masaryk University
+                                         petr.novotny@fi.muni.cz
+
+                                         Guillermo A. Pérez
+                                         University of Antwerp
+                                         guillermoalberto.perez@uantwerpen.be
+arXiv:1807.04920v3 [cs.FL] 27 Apr 2019
+
+
+
+
+                                         Mahsa Shirmohammadi
+                                         CNRS & IRIF
+                                         mahsa.shirmohammadi@irif.fr
+
+                                               Abstract
+                                         Value iteration is a fundamental algorithm for solving Markov Decision Processes (MDPs). It
+                                         computes the maximal n-step payoff by iterating n times a recurrence equation which is naturally
+                                         associated to the MDP. At the same time, value iteration provides a policy for the MDP that is
+                                         optimal on a given finite horizon n. In this paper, we settle the computational complexity of value
+                                         iteration. We show that, given a horizon n in binary and an MDP, computing an optimal policy is
+                                         EXPTIME-complete, thus resolving an open problem that goes back to the seminal 1987 paper on
+                                         the complexity of MDPs by Papadimitriou and Tsitsiklis. To obtain this main result, we develop
+                                         several stepping stones that yield results of an independent interest. For instance, we show that
+                                         it is EXPTIME-complete to compute the n-fold iteration (with n in binary) of a function given
+                                         by a straight-line program over the integers with max and + as operators. We also provide new
+                                         complexity results for the bounded halting problem in linear-update counter machines.
+
+                                         2012 ACM Subject Classification Theory of computation → Probabilistic computation; Theory of
+                                         computation → Logic and verification; Theory of computation → Markov decision processes
+
+                                         Keywords and phrases Markov decision processes, Value iteration, Formal verification
+
+                                         Funding Stefan Kiefer: is supported by a Royal Society University Research Fellowship.
+                                         Petr Novotný: is supported by the Czech Science Foundation, grant no. GJ19-15134Y “Verification
+                                         and Analysis of Probabilistic Programs.”
+                                         Mahsa Shirmohammadi: is supported by the “AAPS” PEPS JCJC grant.
+
+                                         Acknowledgements We thank James Worrell for helpful comments on early version of this work.
+
+
+                                          1     Introduction
+
+                                         Markov decision processes (MDP) are a fundamental formalism of decision making under
+                                         probabilistic uncertainty [29, 9]. As such, they play a prominent role in numerous domains,
+                                         including artificial intelligence and machine learning [34, 33], control theory [10, 1], operations
+                                         research and finance [11, 31], as well as formal verification [12, 5], to name a few. Informally,
+                                         an MDP represents a system which is, at every time step, in one of the states from a finite
+                                         set S. The system evolves in steps: in each step, we can perform an action (or decision) from
+                                         a finite set A. When using an action a ∈ A in state s ∈ S, we collect an immediate reward
+2   On the Complexity of Value Iteration
+
+
+    R(s, a) and then transition stochastically to a successor state according to a rational-valued
+    distribution P (s, a), which is given as a part of the MDP. This interaction with an MDP
+    proceeds over either a finite or infinite horizon. In the finite-horizon case, we are given a
+    bound H ∈ N (a horizon) such that the interaction stops after H steps; in the infinite horizon
+    case the process goes on forever. To solve an MDP means to find an optimal policy; that is,
+    a blueprint for selecting actions that maximizes the expected reward accumulated over a
+    finite or infinite horizon. The accumulated rewards are typically discounted by some factor
+    0 < γ ≤ 1; for infinite horizon, we need γ < 1 to ensure that the infinite sum is well defined.
+
+    Value iteration. Given the importance of MDPs, it is hardly surprising that they have
+    attracted significant interest in the theory community. Past research on MDPs included the
+    study of complexity issues [27] as well as the design and analysis of algorithms for solving
+    MDPs [22, 24, 38, 39]. In this paper, we provide a fresh look on one of the most familiar
+    algorithms for MDPs: value iteration (VI). Introduced by Bellman in the 1950s [6], VI makes
+    use of the optimality principle: the maximal n-step reward achievable from a state s, which
+    we denote by ~vn (s), satisfies the recurrence
+                      (                                            )
+                                      X
+                                                    0            0
+        ~vn (s) = max R(s, a) + γ ·       P (s, a)(s ) · ~vn−1 (s ) ,                        (1)
+                   a∈A
+                                        s0 ∈S
+
+    with ~v0 (s) = 0. Consequently, a finite-horizon policy is optimal if and only if it chooses, in
+    a situation when the current state is s and n steps are remaining, an action maximizing
+    the right-hand side (RHS) of (1). Thus, to solve an MDP with a finite horizon H, the VI
+    algorithm computes the values ~vn (s) for all 0 ≤ n ≤ H and all states s, by iterating the
+    recurrence (1). Using these values, VI then outputs (using some tie-breaking rule) some
+    policy satisfying the aforementioned optimality characterization. VI can be deployed also
+    for infinite-horizon MDPs: one can effectively compute a horizon H such that action a is
+    optimal in state s for an infinite horizon1 if it maximizes the RHS of (1) for n = H [8]. This
+    H has a bit-size which is polynomial in the size of the original MDP, but the magnitude of
+    H can be exponential in the size of the MDP if the discount factor is given in binary [22].
+        VI is one of the most popular MDP-solving algorithms due to its versatility (as shown
+    above, it can be used for several MDP-related problems) and conceptual simplicity, which
+    makes it easy to implement within different programming paradigms [30, 37], including
+    implementation via neural nets [35]. Several variants of VI with improved performance were
+    developed [36, 14]. For instance, the recent paper by Sidford et al. [32] presented a new class
+    of randomized VI techniques with the best theoretical runtime bounds (for certain values
+    of parameters) among all known MDP solvers. The paper also expresses hope that their
+    techniques “will be useful in the development of even faster MDP algorithms.” To get insight
+    into the underlying structure of VI, which might enable or limit further such accelerations, we
+    take a complexity-theoretic vantage point and study the theoretical complexity of computing
+    an outcome of a VI execution. That is, we consider the following decision problem ValIt:
+    given an MDP with a finite horizon H (encoded as a binary number), does a given action
+    a maximize the RHS of (1) for n = H? This problem is inspired by the paper of Fearnley
+    and Savani [16], where they show PSPACE-hardness (and thus also completeness) for the
+    problem of determining an outcome of policy iteration, another well-known algorithm for
+
+
+    1
+        In infinite-horizon MDPs, there is always an optimal stationary policy, which makes decisions based
+        only on the current state. [29]
+N. Balaji et al.                                                                                3
+
+
+MDP solving. To the best of our knowledge, VI has not yet been explicitly subjected to this
+type of analysis. However, questions about the complexity of ValIt were implicitly raised by
+previous work on the complexity of finite-horizon MDPs, as discussed in the next paragraph.
+
+Finite-horizon MDPs. The complexity of finite-horizon MDPs is a long-standing open
+problem. Since “finding an optimal policy” is a function problem, we can instead consider
+the decision variant: “In a given finite-horizon MDP, is it optimal to use a given action in
+the first step?” As discussed above, this is exactly the ValIt problem in disguise.
+     In the seminal 1987 paper on the complexity of MDPs [27], Papadimitriou and Tsitsiklis
+showed P-completeness of a special case of finite-horizon optimization where the horizon H
+has magnitude polynomial in the size of the MDP. At the same time, they noted that in the
+general case of binary-encoded H, VI can be executed on an EXPTIME-bounded Turing
+machine (since H is represented using log(H) bits, the number of iterations is exponential in
+the size of the input). Hence ValIt is in EXPTIME. However, the exact complexity of
+the general finite-horizon optimization remained open ever since, with the best lower bound
+being the P-hardness inherited from the “polynomial H” sub-problem. Tseng [36] presented
+a more efficient (though still exponential) algorithm for finite-horizon MDPs satisfying a
+certain stability condition; in the same paper, he comments that “in view of the stability
+assumptions needed to obtain an exact solution and the absence of negative results, we are
+still far from a complete complexity theory for this problem.”
+     In this paper, we address this issue, provide the missing negative results, and provide
+tight bounds on the computational complexity of ValIt and finite-horizon MDP optimization.
+
+Our Results
+The main result of the paper is that ValIt is EXPTIME-complete (Theorem 1). In the
+rest of this section, we first explain some challenges we needed to overcome to obtain the
+result. Then we sketch our main techniques and conclude with discussing the significance of
+our results, which extends beyond MDPs to several areas of independent interest.
+
+Challenges
+ Bitsize of numbers. One might be tempted to believe that ValIt is in PSPACE, since
+ the algorithm needs to store only polynomially many values at a time. However, the bitsize
+ of these values may become exponentially large during the computation (e.g., the quantity
+~vn (s) may halve in every step). Hence, the algorithm cannot be directly implemented by
+ a polynomial-space Turing machine (TM). One could try to adapt the method of Allender
+ et al. [20, 2] based on an intricate use of the Chinese remainder representation (CRR) of
+ integers. However, there is no known way of computing the max operation directly and
+ efficiently on numbers in CRR.
+
+Complex optimal policies. Another hope for PSPACE membership would be a possibly
+special structure of optimal policies. Fixing any concrete policy turns an MDP into a
+Markov chain, whose H-step behavior can be evaluated in polynomial space (using, e.g., the
+aforementioned CRR technique of Allender et al.). If we could prove that (A) an optimal
+policy can be represented in polynomial space and (B) that the Markov chain induced by
+such a policy is polynomially large in the size of the MDP, we would get the following
+PSPACE algorithm: cycle through all policies that satisfy (A) and (B), evaluate each of
+them, and keep track of the best one found so far. Tseng [36] commented that optimal
+4   On the Complexity of Value Iteration
+
+
+        EXPTIME-bounded        Prop 6      Bounded termination       Thm 7     Straight-Line
+          Turing Machine                of simple counter programs           Program powering
+           termination
+                                                                                      Thm 5
+           Finite-Horizon     Thm 3
+            reachability                      Synchronizing          Thm 4       Monotone
+                                              reachability in                  SLP powering
+                              Thm 2      Markov decision processes
+           Value Iteration
+
+       Figure 1 Chain of reductions.
+
+
+    policies in finite-horizon MDPs are “poorly understood”. Hence, there was still hope that
+    optimal Markovian deterministic policies may have a shape that satisfies both (A) and (B).
+    Unless PSPACE = EXPTIME, our results put such hopes to rest.
+
+    No hardness by succinctness. One might try to prove EXPTIME-hardness using a
+    succinctness argument. The results of [27] show that ValIt is P-hard when the horizon
+    is written in unary, and many optimization problems over discrete structures incur an
+    exponential blow-up in complexity when the discrete structure is encoded succinctly, e.g., by
+    a circuit [28]. Giving a horizon H in binary amounts to a succinct encoding of an exponentially
+    large MDP obtained by “unfolding” the original MDP into a DAG-like MDP of depth H.
+    This unfolded MDP is “narrow” in the sense that it consists of many polynomial-sized layers,
+    while standard EXPTIME-hardness-by-succinctness proofs, use succinct structures of an
+    exponential “width” and “depth”, accommodating the tape contents of an EXPTIME-
+    bounded TM. Hence, straightforward succinctness proofs do not apply here; e.g., there does
+    not seem to be a direct reduction from the succinct circuit value problem.
+
+    Our Techniques
+    To obtain EXPTIME-hardness of ValIt, we proceed by a sequence of non-trivial reductions.
+    Below we outline these reductions in the order in which they appear in the sequence, see
+    Figure 1. In the main text, we present the reductions in a different order (indicated by
+    the numbering of propositions and theorems), so that we start with MDPs and gradually
+    introduce more technical notions.
+        We start from a canonical EXPTIME-complete problem: the halting problem for an
+    exponential-time TM. We then present a reduction to a halting problem for a class of counter
+    programs (CPs; simple imperative programs with integer variables) that allow for linear
+    variable updates. In this way, we encode the tape contents into numerical values (6). The
+    crucial feature of this reduction is that the produced CP possesses a special simplicity
+    property, which imposes certain restrictions on the use of tests during the computation.
+        Next, we introduce straight-line programs (SLPs) with max, +, and − operations. SLPs
+    are a standard model of arithmetic computation [3] and they can be equivalently viewed
+    as arithmetic circuits consisting (in our case) of max, +, and − gates. We also consider
+    a sub-class of SLPs with only max, + operations, so called monotone SLPs. We define
+    the following powering problem: given a function f : Qn → Qn represented as an SLP, a
+    horizon H, an initial argument ~x ∈ {0, 1}n , and two indices 1 ≤ i, j ≤ n, is it true that the
+    i-component of f H (~x), i.e. the image of ~x with respect to the H-fold composition of f , is
+    greater than the j-component of f H (~x)? Although VI in MDPs does not necessarily involve
+    integers, the powering problem for monotone SLPs captures the complexity inherent in
+    iterating the recurrence (1). To obtain a reduction from CPs to SLP powering, we construct
+N. Balaji et al.                                                                                     5
+
+
+SLP gadgets with max, + and − (minus) operations to simulate the tests in CPs; the
+simplicity of the input CP is crucial for this reduction to work (Theorem 7). To get rid of
+the minus operation, we adapt a technique by Allender et al. [4], which introduces a new
+“offset” counter and models subtraction by increasing the value of the offset (Theorem 5).
+    A final step is to show a reduction from monotone SLP powering to ValIt. The reduction
+proceeds via an intermediate problem of synchronizing reachability in MDPs (maximize the
+probability of being in a target set of states T after exactly H steps [15]). This divides a
+rather technical reduction into more comprehensible parts. We present novel reductions
+from monotone SLP powering to synchronizing reachability (Theorem 4), and from the
+latter problem to ValIt (Theorem 2). As a by-product, we present a reduction proving
+EXPTIME-hardness of finite-horizon reachability in MDPs, arguably the conceptually
+simplest objective in probabilistic decision-making (Theorem 3).
+
+
+Significance
+As our main result, we characterize the complexity of computing an outcome of VI, one of the
+fundamental algorithms for solving both finite- and infinite-horizon MDPs. As a consequence,
+we resolve a long-standing complexity issue [27] of solving finite-horizon MDPs.
+    On our way to proving this result, we encounter non-trivial stepping stones which are of
+an independent interest. First, we shed light on the complexity of succinctly represented
+arithmetic circuits, showing that comparing two output wires of a given (max, +)-circuit
+incurs an exponential blow-up in complexity already when employing a very rudimental form
+of succinctness: composing a single (max, +)-circuit with H copies of itself, yielding a circuit
+of exponential “height” but only polynomial “width.” Second, we obtain new hardness results
+for the bounded reachability problem in linear-update counter programs. CPs are related
+to several classical abstractions of computational machines, such as Minsky machines and
+Petri nets [25], see [13] for a recent breakthrough in this area. Our work establishes a novel
+connection between counter programs and MDPs.
+
+
+Further Related Work
+Our work is also related to a series of papers on finite-horizon planning [21, 17, 18, 23].
+The survey paper [26] provides a comprehensive overview of these results. These papers
+consider either MDPs with a polynomially large horizon, or succinctly represented MDPs
+of possibly exponential “width” (the succinctness was achieved by circuit-encoding). The
+aforementioned hardness-by-succinctness proofs are often used here. The arbitrary horizon
+problem for standard MDPs, which we study, is left open in these papers, and our work
+employs substantially different techniques. The complexity of finite-horizon decentralized
+MDPs was studied in [7].
+
+
+ 2     Markov Decision Processes and Finite-Horizon Problems
+
+We start with some preliminaries. A probability distribution d : S → [0, 1] over a finite set S is
+                       P
+a function such that s∈S d(s) = 1. We denote by D(S) the set of all (rational) probability
+distributions over S. The Dirac distribution on s ∈ S assigns probability 1 to s.
+    A Markov decision process (MDP) M = (S, A, P, R, γ) consists of a finite set S of
+states, a finite set A of actions, a transition function P : S × A → D(S), a reward function
+R : S × A → Q, and a discount factor γ ∈ (0, 1]. The transition function P assigns to each
+6   On the Complexity of Value Iteration
+
+
+    state s and action a a distribution over the successor states, while the reward function assigns
+    to s and a a rational reward.
+        A path % is an alternating sequence s0 a1 s1 · · · an sn of visited states and played actions
+                                                                                                %
+    in M (that starts and ends in a state); write |%| = n for the length of %. We may use s0 → sn
+    to denote that path % goes from s0 to sn . We extend the reward function R from single
+    state-action pairs to paths by R(%) = 1≤i≤n R(si−1 , ai )γ i−1 .
+                                            P
+
+        A policy for the controller is a function σ that assigns to each path a distribution over
+    actions. Let PM,s,σ (%) denote the probability of a path % starting in s when the controller
+    follows the policy σ. This probability is defined inductively by setting PM,s,σ (s0 ) = 1 if
+    s = s0 , and PM,s,σ (s0 ) = 0 otherwise. For a path % = s0 a1 s1 · · · sn−1 an sn , we set
+       PM,s,σ (%) = PM,s,σ (s0 · · · sn−1 ) · σ(s0 · · · sn−1 )(an ) · P (sn−1 , an )(sn ) .
+    We omit the subscripts from PM,s,σ (·) if they are clear from the context. Additionally, we
+    extend PM,s,σ (·) to sets of paths of the same length by summing the probabilities of all the
+    paths in the set.
+        In this paper, we focus on a special class of policies: A (deterministic) Markov policy is
+    a function σ : N × S → A. Intuitively, a controller following a Markov policy plays σ(n, s)
+    from s if it is the n-th visited state, irrespective of the other states in the path. Markov
+    policies suffice for the problems we consider.
+
+    2.1    Finite-Horizon Problems
+    Given an MDP M, the core problem of MDPs is computing the values of states with respect
+    to the maximum expected reward. Let ~vn ∈ QS denote the vector of n-step maximum expected
+    rewards obtainable from each state of the MDP. That is, for all s ∈ S we have that
+                                        
+                        X
+        ~vn (s) = max    Ps,σ (%) · R(%) .
+                   σ
+                         |%|=n
+
+     Note that ~v0 = ~0 by this definition. The vector ~vn can be computed by value iteration, i.e.
+     by iterating the recurrence stated in Equation (1). From that recurrence, for each n ∈ N and
+     state s0 , one can extract an (optimal) Markov policy σ that achieves the maximum value
+    ~vn (s0 ) after n steps: for each s ∈ S and for 1 ≤ i ≤ n we have
+                                 (                                            )
+                                               X
+         σ(i − 1, s) = argmax R(s, a) + γ ·        P (s, a)(s0 ) · ~vn−i (s0 ) .
+                         a∈A
+                                                 s0 ∈S
+
+         Papadimitriou and Tsitsiklis posed the finite-horizon reward problem which asks to
+     compute such an optimal policy for the controller [27]. Formally, given an MDP M, an
+     initial state s0 ∈ S, a distinguished action a ∈ A, and a horizon H ∈ N encoded in binary,
+     the finite-horizon reward problem asks whether there exists a policy achieving ~vH (s0 ) by
+     choosing a as the first action from s0 . Note that this problem is equivalent to the ValIt
+     problem defined in the introduction.
+         Consider the MDP N depicted in Figure 2 with γ = 12 . By iterating the indicated
+     recurrence, we have that ~v5 (s) = max( 14 ~v4 (s1 ) + 14 ~v4 (s2 ), 12 ~v4 (s1 )) = 41
+                                                                                          32 . The value of
+    ~v5 (s) is due to the second argument of max (corresponding to action b), hence a policy to
+     maximize ~v5 (s) starts with b in s.
+         The finite-horizon reward problem can be decided by value iteration in exponential
+     time by unfolding recurrence (1) for H steps [29], while the best known lower bound is
+     P-hardness [27]. Our main result closes this long-standing complexity gap:
+N. Balaji et al.                                                                                                                                    7
+
+                                                                                                                                          
+                                                                                                   1              1            1
+          MDP N                        s2                                      ~vn (s) = max         ~vn−1 (s1 ) + ~vn−1 (s2 ), ~vn−1 (s1 )
+                                                                                                   4              4            2
+                   a, 0 : 12                                                                 1
+                                                  a, b, 2 : 1                 ~vn (s1 ) =2 + ~vn−1 (s)
+                                                                                             2
+              s                        s3                     t                              1
+                                                                              ~vn (s2 ) =2 + ~vn−1 (t)
+                     a, b, 0 : 1            a, b, 1 : 1                                      2
+  a, 0 : 12                                                                                  1
+                     a, b, 2 : 1                                                ~vn (t) =1 + ~vn−1 (s3 )
+  b, 0 : 1                                                                                   2
+                                                                                         1
+                                                                              ~vn (s3 ) = ~vn−1 (s)
+              s1                                                                         2
+
+
+   Figure 2 The transitions are labelled with actions, rewards and their probabilities. For example,
+the reward of the transition from s to s1 on action a is 0, and its probability is 12 .
+
+I Theorem 1. The finite-horizon reward problem (and thus also the ValIt problem) is
+EXPTIME-complete.
+    To prove EXPTIME-completeness of the finite-horizon reward problem, we introduce a
+variant of reachability, which we call synchronized reachability [15]. Let t ∈ S be a target
+state. For reachability, the objective is to maximize the probability of taking a path from s
+to t, whereas in synchronized reachability only a subset of such paths with the same length
+are considered.
+    Let M be an MDP, s0 an initial state, and a an action. Define p~≤n ∈ QS as the vector of
+maximum probabilities of taking a path to t within n steps. Similarly, define p~=n ∈ QS to be
+the vector of maximum probabilities of taking such a path with length exactly n. Formally,
+for all s ∈ S we have that
+                            %
+                                                                         %
+                                                                                         
+    p~≤n (s) = max Ps,σ ({s → t : |%| ≤ n}) and p~=n (s) = max Ps,σ ({s → t : |%| = n}) .
+                       σ                                                                           σ
+
+Given a horizon H, encoded in binary, the finite-horizon reachability problem asks
+whether an optimal policy achieving p~≤H (s0 ) chooses action a as the first action from s0 ;
+the finite-horizon synchronized-reachability problem asks whether an optimal policy
+achieving p~=H (s0 ) chooses action a as the first action from s0 .
+
+2.2      Connections Among Finite-Horizon Problems
+We now prove the following theorem.
+I Theorem 2. The finite-horizon synchronized-reachability problem reduces, in polynomial
+time, to the finite-horizon reward problem.
+   Consider an MDP M, an initial state s0 , an action a and a target state t. The following
+recurrence can be used to compute p~=n (s):
+                  (                              )
+                    X
+                                 0             0
+   p~=n (s) = max      P (s, a)(s ) · p~=n−1 (s ) ,                                     (2)
+                     a∈A
+                                   s0 ∈S
+
+where p~0 (t) = 1 and p~0 (s) = 0 for all s 6= t. We construct a new MDP N obtained from M
+by replacing all transitions by two consecutive transitions. The construction is such that
+the probability of going from s to t with a path of length n in M is equal to the probability
+of going from s to t with a path of length 2n in N . More formally, for all s, s0 and a with
+                                                                  −:p                                            1:p            0:1
+P (s, a)(s0 ) = p, the transition                         s              s0   is replaced with             s                            s0     if
+                                                    1
+                                     0:p            γ :1
+s = t and with                 s                                  s0   otherwise; where 0 < γ ≤ 1 is an arbitrary chosen
+8   On the Complexity of Value Iteration
+
+
+    discount factor for N , and the intermediate state in both cases is a new state. The MDP N
+    in Figure 2 is the result of applying the construction to M in Figure 3 with γ = 12 .
+        For the constructed MDP N , one can show that for all states s, an action is optimal to
+    maximize p~=2H (s) if and only if it is optimal to maximize ~v2H+1 (s). Consider the MDPs
+    from Figure 2 as an example. We have previously argued that a policy maximizing ~v5 (s)
+    in N starts with action b. Observe that the optimal first choice to maximize p~4 (s) is also b.
+    This implies that an optimal policy of M for synchronized-reachability with H = 2 starts
+    with b, too. By the above argument, the finite-horizon synchronized-reachability problem
+    reduces to the finite-horizon reward problem.
+        Hence, to obtain Theorem 1, it remains to determine the complexity of the finite-horizon
+    synchronized-reachability problem. To this aim, we show a close connection between MDPs
+    and a class of piecewise-affine functions represented by straight line programs (SLPs). Section 3
+    provides the details.
+
+    Finite-horizon reachability. We also show the finite-horizon synchronized-reachability prob-
+    lem reduces to the finite-horizon reachability problem. We remark that the natural probability-
+    1 variants of these problems have different complexities: specifically, the problem of reaching t
+    from s within H steps with probability 1 is in P; however, the analogous problem of reaching
+    t from s in exactly H steps with probability 1 is PSPACE-complete [15].
+    I Theorem 3. The finite-horizon synchronized reachability problem reduces, in polynomial
+    time, to the finite-horizon reachability problem.
+
+     3      Straight-Line Programs and The Powering Problem
+    We now establish the connection between MDPs and SLP powering. We start with prelimin-
+    aries.
+        For all n ∈ N, define the set varn := {x1 , . . . , xn } of variables and the collection of terms
+         Tn := {a1 xj1 + · · · + an xjn + b | ai , b ∈ {−1, 0, 1} and 1 ≤ ji ≤ n, for all 1 ≤ i ≤ n}.
+    A straight-line program (SLP) of order n is a sequence c1 , . . . , cm of commands of the form
+    x ← max(T ), where x ∈ varn and T ⊆ Tn is non-empty. We refer to commands x ← b as
+    initializations. Recall that min(x, y) = − max(−x, −y).
+        For complexity analyses we shall assume that T , for every command, is given explicitly
+    as a list of terms. Each term is also assumed to be explicitly represented as a constant, a
+    list of coefficients ai , and a list of indices ji , both lists having length n (i.e. the number of
+    variables). The size of T , and also that of the command, corresponds to the length of its list
+    of terms; the size of the SLP, the sum of the sizes of its commands.
+        A valuation ν is a vector in Zn , where the i-th coordinate gives the value of xi . The
+    semantics of a command c is a function JcK : Zn → Zn , transforming a valuation into another.
+    An SLP S = c1 , . . . , cm defines the function JSK : Zn → Zn obtained by composing the
+    constituent commands: JSK = Jcm K ◦ · · · ◦ Jc1 K. Clearly this is a piecewise-affine function.
+    Given a function f : Zn → Zn , we define its m-th power as f m : Zn → Zn where
+         fm = f ◦ · · · ◦ f
+              | {z }
+                 m times
+
+    is the m-fold composition of f .
+        We denote by Tn+ the set of terms a1 xj1 +· · ·+an xjn +b where the coefficients a1 , · · · , an , b
+    are in {0, 1}. An SLP that only uses terms in Tn+ is called monotone. Note that monotone
+    SLPs induce monotone functions from Zn to Zn (subtraction and min are not allowed).
+N. Balaji et al.                                                                                     9
+
+
+3.1     The Powering Problem
+For an SLP S of order n, a valuation ν ∈ Nn and m ∈ N (encoded in binary), let ν 0 =
+JSKm (ν). Given two variables x, y ∈ varn of the SLP, the powering problem asks whether
+ν 0 (x) ≥ ν 0 (y). Since the initial valuations ν are always non-negative, all valuations obtained
+by powering monotone SLPs are non-negative. The above problem is P-complete if the
+exponent m is written in unary [19].
+     Observe that all numbers generated by powering an SLP can be represented using
+exponentially-many bits in the bitsize of the exponent. It follows that the powered SLP can
+be explicitly evaluated in exponential time. We provide a matching lower bound in Section 4.
+Before that, we show the connection of SLP powering to MDPs.
+
+3.2     Synchronized Reachability and SLP Powering
+The connection is stated in the following Theorem.
+
+I Theorem 4. The powering problem for monotone SLPs reduces, in polynomial time, to
+the finite-horizon synchronized reachability problem in MDPs.
+
+To illustrate this reduction, let us consider the SLP S of order 2:
+
+     x1 ← max(x1 + x2 , x2 + x2 );          x2 ← max(x1 + x1 , x1 + x1 ).
+
+This SLP is normalized, that is to say all its max commands have exactly two arguments
+t1 , t2 ∈ Tn+ and furthermore t1 , t2 have exactly two summands. (Note that focusing on
+normalized SLPs is no loss of generality.) We are interested in the 2-nd power of S with
+initial valuation ν(x1 ) = 0 and ν(x2 ) = 1. In Figure 3, two copies of S are shown on the
+right to visualize the concept of powering it. To obtain an MDP, we consider a set of actions
+A = {a, b} and have each variable xi become a state. In the example, s and t are the
+corresponding states for x1 and x2 . The t1 , t2 arguments of max commands determine the
+successors of actions a, b, respectively, where each successor has probability 12 . The command
+x1 ← max(x1 + x2 , x2 + x2 ) translates to P (s, a)(s) = P (s, a)(t) = 12 and P (s, b)(s) = 1, as
+shown in the MDP in Figure 3. Since ν(x2 ) = 1, we make t a target state. Now the i-th
+iteration of value iteration of (2) (corresponding to the i-th step before the horizon) is tightly
+connected to the i-th power of the SLP. Indeed, letting νi = JSKi (ν), one can prove that
+p~=i (s) = 21i νi (s) and p~=i (t) = 21i νi (t).
+
+SLP vs. monotone SLP powering. It thus remains to provide a lower bound for the
+Monotone SLP powering problem. The crucial step, which we cover in Section 4, is providing
+lower bounds for the non-monotone variant. The remaining step from non-monotone to
+monotone powering can be made by adapting the techniques of Allender et al. [4].
+
+I Theorem 5. The powering problem for arbitrary SLPs reduces, in polynomial time, to the
+powering problem for monotone SLPs.
+
+
+ 4      Main Reductions
+To show EXPTIME-hardness of all the problems introduced so far, we introduce a class of
+counter programs that allow linear updates on counters and show that a (time-)bounded
+version of the termination problem for these programs is EXPTIME-complete. Finally, we
+reduce this bounded termination problem to the powering problem.
+10   On the Complexity of Value Iteration
+
+
+        x1           x2                               s             t
+                            2-nd power                                  starting step
+       max          max                               ?          ?
+
+         +           +                           a        b     a, b
+                                                                                              a : 21
+                                                  1             1
+                                                  2
+                                                                                              b:1
+                                                                2
+        x1           x2                               s             t                                   a : 21
+                            1-st power                                  1-st step
+       max          max                               ?          ?                              s                t
+
+         +           +                           a        b     a, b                                   MDP M
+                                                  1             1
+                                                  2             2
+       x1 : 0      x2 : 1                             s             t
+                            initialization                              2-nd step
+
+         Figure 3 An example for the translation from SLPs to MDPs.
+
+
+
+        A deterministic linear-update counter program (CP) consists of n counters {ci | 1 ≤ i ≤ n},
+     ranging over Z, and a sequence of m instructions. We consider instructions of the form
+
+         p : c1 ← c2 + c3             p : if c1 ≥ c2 goto t             p : c1 ← c2 − c3
+
+     where 1 ≤ p < m and 1 ≤ t ≤ m, and the final instruction is always m : halt. More precisely,
+     the instructions allow
+       (i) adding or subtracting two counters, assigning the result to a third one, and continuing
+           to the next instruction;
+      (ii) testing two counters against each other, and jumping to some given instruction if the
+           result of the test is positive, continuing to the next instruction otherwise.
+     The halt instruction only loops to itself.
+         A configuration of a CP is a tuple (p, v1 , . . . , vn ) ∈ {1, . . . , m} × Zn consisting of an
+     instruction p and values of the counters (e.g., v1 is the value for the counter c1 ). We equip
+     CPs with a fixed initial configuration lying in {1} × Nn . Given a CP, the termination prob-
+     lem asks whether the halt instruction is reached. The bounded termination problem
+     additionally takes as input an integer N ∈ N, encoded in binary, and asks whether the halt
+     instruction is reached within N steps.
+         The bounded termination problem is in EXPTIME: in a computation with N steps,
+     the magnitude of the counters is bounded by 2N , so each step can be simulated in time
+     exponential in the bitsize of N . We will now show that the problem is EXPTIME-hard
+     already for a certain subclass of CPs which facilitates the reductions to the powering problem.
+
+     Simple counter programs. A CP is simple if it satisfies the following conditions. First,
+     all values in all reachable configurations (p, v1 , . . . , vn ) are non-negative: vi ∈ N for all
+     1 ≤ i ≤ n (one may “guard” subtractions by test instructions to achieve this). Second, all test
+     instructions q : if ci ≥ cj goto r use counters c1 and c2 exclusively. Moreover, for each such
+     instruction q, there are counters cq̄1 , cq̄2 such that in all reachable configurations (q, v1 , . . . , vn )
+     we have that
+      1. v1 = a1 vq̄1 and v2 = a2 vq̄2 with a1 , a2 ∈ {64, 64 · 10, 64 · 12}. That is, the values of tested
+         counters are “scaled-up” versions of the values of other counters.
+      2. Additionally, the absolute difference of the values of the tested counters is larger than the
+         values of all other counters, in symbols |v1 − v2 | ≥ max{vk | 3 ≤ k ≤ n}.
+N. Balaji et al.                                                                                       11
+
+
+Note that the class of simple CPs is a semantically defined subclass of all CPs. Further
+observe that for every test instruction we necessarily have that q̄1 , q̄2 ≥ 3.
+   The following proposition kick-starts our sequence of reductions.
+
+I Proposition 6. The bounded termination problem for simple CPs is EXPTIME-complete.
+
+    To prove the proposition, we follow the classical recipe of first simulating a Turing machine
+using a machine with two stacks, and then simulating the two-stack machine by a CP. We
+note two key differences between our construction and the classical reduction: (1) We use
+the expressiveness of linear updates in CPs to simulate pushing and popping on the stack in
+a linear number of steps of the CP. (2) We instrument the two-stack machine to ensure that
+the height of the two stacks differs by at most 1 along any computation. This is crucial to
+allow us to simulate the two-stack machine by a simple linear-update counter program.
+
+4.1    From the Termination Problem to the Powering Problem
+We now sketch the main ideas behind the last (and most technically involved) missing link
+in our sequence of reductions.
+
+I Theorem 7. The bounded termination problem for simple CPs reduces, in polynomial
+time, to the powering problem for SLPs.
+
+The encoding. Given a CP C we construct an SLP S of order ≥ 2n with variables including
+{x1 , . . . , x2n }. Let us denote xn+i by Qi for 1 ≤ i ≤ n. The reduction is such that a
+configuration (p, v1 , . . . , vn ) of C is encoded as a valuation ν : var2n → Z of the SLP with
+the property that ν(xi ) = vi and ν(Qi ) = pν(xi ) = pvi for all 1 ≤ i ≤ n. In this way, the
+instruction p of the CP is encoded in the variables of the SLP (recall that SLPs are stateless).
+    Given this encoding, the main challenge is to realize the transition function of the CP
+as a function computed by an SLP. Once this is accomplished, for every m ∈ N, the m-th
+power of the SLP S represents the m-step transition function of the CP.
+
+Conditional commands. Intuitively, to encode the transition function we would like to equip
+the SLP with conditional commands, whose execution depends on a conditional. Specifically,
+we want to implement the following two kinds of conditional updates
+
+   (y ← y ± xk if Qk = pxk ) and (Qk ← p · xk if xi ≥ xj )
+
+in terms of primitive commands of an SLP. In both commands, if the condition is not satisfied,
+the command is not executed, and the value of y or Qk remains unchanged. For example,
+one can simulate the first type of conditional commands by executing y ← y ± max(0, xk + t),
+where t is an expression that is 0 if the test is passed and less than −xk otherwise. Intuitively,
+we think of t as “masking” the assignment if the test fails.
+    For the following result, which formalizes how we implement conditional commands, we
+call a valuation ν valid if there exists q ∈ {1, . . . , m} with ν(xi ) ≥ 0 and ν(Qi ) = qν(xi ) for
+all 1 ≤ i ≤ n.
+
+I Lemma 8. Let p ∈ {1, . . . , m} and i, j, k ∈ {1, . . . , n} be distinct. The following equation
+holds for all valid valuations ν:
+                                                                  (
+                                                                    ν(xk ) if ν(Qk ) = pν(xk )
+   max(0, ν(xk ) + min(ν(Qk ) − pν(xk ), pν(xk ) − ν(Qk ))) =                                  (3)
+                                                                    0       otherwise.
+12   On the Complexity of Value Iteration
+
+
+     Moreover, if |ν(xi ) − ν(xj )| ≥ ν(xk ), then the following holds:
+                                                     (
+                                                      ν(xk ) if ν(xi ) ≥ ν(xj )
+       max(0, ν(xk ) + min(0, ν(xi ) − ν(xj ))) =                                                 (4)
+                                                      0        otherwise.
+
+     Proof. The equations follow directly from the assumption that ν is valid, since if ν(Qj ) 6=
+     pν(xj ) then we also have |ν(Qj ) − pν(xj )| ≥ ν(xj ). In addition, if |ν(xi ) − ν(xj )| ≥ ν(xk )
+     and ν(xi ) < ν(xj ), we will have ν(xk ) + ν(xi ) − ν(xj ) ≤ 0.                               J
+
+        Using the property that the simulated program is simple, Equation (3) can be used to
+     simulate the conditional update (y ← y ± xk if Qk = pxk ) where t = min(Qk − pxk , pxk − Qk )
+     masks the update. Likewise, Equation (4) can be used to simulate the second type of
+     conditional update (Qk ← p·xk if xi ≥ xj ) where the masking expression is t = min(0, xi −xj ).
+     Finally, the multiplication-by-a-constant required for the second type of the conditional
+     update is achieved via repeated addition.
+
+     Encoding the instructions. We recall that we encode being at the instruction p of the CP
+     by a valuation ν such that ν(Qi ) = pν(xi ) for all 1 ≤ i ≤ n.
+         Using the aforementioned conditional commands, we can construct the SLP S as the
+     composition of m smaller SLPs. Each sub-SLP πp simulates an instruction p from the given
+     CP C. Hence S, when applied upon a valid valuation ν (i.e., a properly-encoded configuration
+     of C), simulates all of its instructions at once. By using conditional commands, we make
+     sure that only one sub-SLP results in a non-zero update: executing πp has no effect on the
+     valuation unless pν(xi ) = ν(Qi ) for all 1 ≤ i ≤ n.
+         In this way, powering S allows us to simulate consecutive steps of C. In particular, for all
+     N ∈ N we have that JSKN (ν)(Q1 ) ≥ m · JSKN (ν)(x1 ), where m is the halt instruction, holds
+     if and only if C halts after at most N steps.
+
+      5     Conclusion
+     By the virtue of our chain of reductions (see Figure 1), we get the following theorem.
+
+     I Theorem 9. All the following problems are EXPTIME-complete:
+        The finite-horizon reward problem for MDPs, and thus also the ValIt problem.
+        The finite-horizon reachability and synchronized reachability problems for MDPs.
+        The powering problem for SLPs and for monotone SLPs.
+        The bounded termination problem for simple counter programs.
+
+        The exact complexity of the following variant of the problem remains open: given an
+     MDP and a horizon encoded in binary, determine whether there exists a policy achieving
+     some given expected-reward threshold (with no restriction on the actions used to do so).
+N. Balaji et al.                                                                                      13
+
+
+     References
+ 1   Pieter Abbeel and Andrew Y. Ng. Learning first-order markov models for control. In
+     L. K. Saul, Y. Weiss, and L. Bottou, editors, Advances in Neural Information Pro-
+     cessing Systems 17, pages 1–8. MIT Press, 2005. URL: http://papers.nips.cc/paper/
+     2569-learning-first-order-markov-models-for-control.pdf.
+ 2   Eric Allender, Nikhil Balaji, and Samir Datta. Low-depth uniform threshold circuits and the
+     bit-complexity of straight line programs. In Erzsébet Csuhaj-Varjú, Martin Dietzfelbinger, and
+     Zoltán Ésik, editors, Mathematical Foundations of Computer Science 2014 - 39th International
+     Symposium, MFCS 2014, Budapest, Hungary, August 25-29, 2014. Proceedings, Part II,
+     volume 8635 of Lecture Notes in Computer Science, pages 13–24. Springer, 2014. URL:
+     https://doi.org/10.1007/978-3-662-44465-8_2, doi:10.1007/978-3-662-44465-8_2.
+ 3   Eric Allender, Peter Bürgisser, Johan Kjeldgaard-Pedersen, and Peter Bro Miltersen. On the
+     complexity of numerical analysis. SIAM Journal on Computing, 38(5):1987–2006, 2009.
+ 4   Eric Allender, Andreas Krebs, and Pierre McKenzie. Better complexity bounds for cost register
+     automata. Theory of Computing Systems, pages 1–19, 2017.
+ 5   Christel Baier and Katoen Joost-Pieter, editors. Principles of Model Checking. MIT Press,
+     2008.
+ 6   Richard Bellman. Dynamic Programming. Princeton University Press, 1957.
+ 7   Daniel S Bernstein, Robert Givan, Neil Immerman, and Shlomo Zilberstein. The complexity
+     of decentralized control of Markov decision processes. Mathematics of Operations Research,
+     27(4):819–840, 2002.
+ 8   Dimitri P. Bertsekas. Dynamic Programming: Deterministic and Stochastic Models. Prentice-
+     Hall, Inc., Upper Saddle River, NJ, USA, 1987.
+ 9   Dimitri P. Bertsekas. Dynamic Programming and Optimal Control. Athena scientific Belmont,
+     MA, 2005.
+10   Vincent D Blondel and John N Tsitsiklis. A survey of computational complexity results in
+     systems and control. Automatica, 36(9):1249–1274, 2000.
+11   Nicole Bäuerle and Ulrich Rieder. Markov Decision Processes with Applications to Finance.
+     Springer-Verlag Berlin Heidelberg, 2011.
+12   Edmund M. Clarke, Thomas A. Henzinger, Helmut Veith, and Bloem Roderick, editors.
+     Handbook of Model Checking. Springer International Publishing, 2018.
+13   Wojciech Czerwinski, Slawomir Lasota, Ranko Lazic, Jérôme Leroux, and Filip Mazowiecki.
+     The reachability problem for petri nets is not elementary (extended abstract). CoRR,
+     abs/1809.07115, 2018. URL: http://arxiv.org/abs/1809.07115, arXiv:1809.07115.
+14   Peng Dai, Mausam, Daniel S. Weld, and Judy Goldsmith. Topological value iteration algorithms.
+     J. Artif. Intell. Res., 42:181–209, 2011. URL: http://jair.org/papers/paper3390.html.
+15   Laurent Doyen, Thierry Massart, and Mahsa Shirmohammadi. Limit synchronization in
+     Markov decision processes. In Anca Muscholl, editor, Foundations of Software Science and
+     Computation Structures - 17th International Conference, FOSSACS 2014, Held as Part of
+     the European Joint Conferences on Theory and Practice of Software, ETAPS 2014, Grenoble,
+     France, April 5-13, 2014, Proceedings, volume 8412 of Lecture Notes in Computer Science,
+     pages 58–72. Springer, 2014. URL: https://doi.org/10.1007/978-3-642-54830-7_4, doi:
+     10.1007/978-3-642-54830-7_4.
+16   John Fearnley and Rahul Savani. The complexity of the simplex method. In Proceedings of the
+     Forty-seventh Annual ACM Symposium on Theory of Computing, STOC ’15, pages 201–208,
+     New York, NY, USA, 2015. ACM. URL: http://doi.acm.org/10.1145/2746539.2746558,
+     doi:10.1145/2746539.2746558.
+17   Judy Goldsmith, Michael L Littman, and Martin Mundhenk. The complexity of plan existence
+     and evaluation in probabilistic domains. In Proceedings of the Thirteenth conference on
+     Uncertainty in artificial intelligence (UAI’97), pages 182–189. Morgan Kaufmann Publishers
+     Inc., 1997.
+14   On the Complexity of Value Iteration
+
+
+     18   Judy Goldsmith and Martin Mundhenk. Complexity issues in Markov decision processes.
+          In Proceedings of the 13th Annual IEEE Conference on Computational Complexity, Buffalo,
+          New York, USA, June 15-18, 1998, pages 272–280. IEEE Computer Society, 1998. URL:
+          https://doi.org/10.1109/CCC.1998.694621, doi:10.1109/CCC.1998.694621.
+     19   R. Greenlaw, H.J. Hoover, and W.L. Ruzzo. Limits to Parallel Computation: P-completeness
+          Theory. Oxford University Press, 1995. URL: https://books.google.fr/books?id=
+          YZHnCwAAQBAJ.
+     20   William Hesse, Eric Allender, and David A. Mix Barrington. Uniform constant-depth threshold
+          circuits for division and iterated multiplication. J. Comput. Syst. Sci., 65(4):695–716, 2002.
+          URL: https://doi.org/10.1016/S0022-0000(02)00025-9, doi:10.1016/S0022-0000(02)
+          00025-9.
+     21   Michael L Littman. Probabilistic propositional planning: Representations and complexity. In
+          AAAI’97, pages 748–754, 1997.
+     22   Michael L. Littman, Thomas L. Dean, and Leslie Pack Kaelbling. On the complex-
+          ity of solving Markov decision problems. In Philippe Besnard and Steve Hanks, edit-
+          ors, UAI ’95: Proceedings of the Eleventh Annual Conference on Uncertainty in Artifi-
+          cial Intelligence, Montreal, Quebec, Canada, August 18-20, 1995, pages 394–402. Morgan
+          Kaufmann, 1995. URL: https://dslpitt.org/uai/displayArticleDetails.jsp?mmnu=1&
+          smnu=2&article_id=457&proceeding_id=11.
+     23   Michael L Littman, Judy Goldsmith, and Martin Mundhenk. The computational complexity
+          of probabilistic planning. Journal of Artificial Intelligence Research, 9:1–36, 1998.
+     24   Yishay Mansour and Satinder P. Singh. On the complexity of policy iteration. In Kathryn B.
+          Laskey and Henri Prade, editors, UAI ’99: Proceedings of the Fifteenth Conference on
+          Uncertainty in Artificial Intelligence, Stockholm, Sweden, July 30 - August 1, 1999, pages 401–
+          408. Morgan Kaufmann, 1999. URL: https://dslpitt.org/uai/displayArticleDetails.
+          jsp?mmnu=1&smnu=2&article_id=192&proceeding_id=15.
+     25   Ernst W. Mayr. An algorithm for the general petri net reachability problem. In Proceedings
+          of the thirteenth annual ACM Symposium on Theory of computing (STOC’81), pages 238–246.
+          ACM, 1981.
+     26   Martin Mundhenk, Judy Goldsmith, Christopher Lusena, and Eric Allender. Complexity of
+          finite-horizon Markov decision process problems. J. ACM, 47(4):681–720, July 2000. URL:
+          http://doi.acm.org/10.1145/347476.347480, doi:10.1145/347476.347480.
+     27   Christos H. Papadimitriou and John N. Tsitsiklis. The complexity of Markov decision processes.
+          Math. Oper. Res., 12(3):441–450, 1987. URL: https://doi.org/10.1287/moor.12.3.441,
+          doi:10.1287/moor.12.3.441.
+     28   Christos H. Papadimitriou and Mihalis Yannakakis. A note on succinct representations of
+          graphs. Information and Control, 71(3):181–185, 1986. URL: https://doi.org/10.1016/
+          S0019-9958(86)80009-2, doi:10.1016/S0019-9958(86)80009-2.
+     29   Martin L. Puterman. Markov Decision Processes. Wiley-Interscience, 2005.
+     30   Tim Quatmann and Joost-Pieter Katoen. Sound value iteration. In Hana Chockler and Georg
+          Weissenbacher, editors, Computer Aided Verification, pages 643–661. Springer International
+          Publishing, 2018.
+     31   Manfred Schäl. Markov decision processes in finance and dynamic options. In Handbook
+          of Markov Decision Processes, International Series in Operations Research & Management
+          Science, pages 461–487. Springer, 2002.
+     32   Aaron Sidford, Mengdi Wang, Xian Wu, and Yinyu Ye. Variance Reduced Value
+          Iteration and Faster Algorithms for Solving Markov Decision Processes, pages 770–
+          787. SIAM, 2018. URL: https://epubs.siam.org/doi/abs/10.1137/1.9781611975031.
+          50, arXiv:https://epubs.siam.org/doi/pdf/10.1137/1.9781611975031.50, doi:10.1137/
+          1.9781611975031.50.
+     33   Olivier Sigaud and Olivier Buffet. Markov Decision Processes in Artificial Intelligence. John
+          Wiley & Sons, 2013.
+N. Balaji et al.                                                                                       15
+
+
+34   R.S. Sutton and A.G Barto. Reinforcement Learning: An Introduction. Adaptive Computation
+     and Machine Learning. MIT Press, 2018.
+35   Aviv Tamar, YI WU, Garrett Thomas, Sergey Levine, and Pieter Abbeel. Value iteration
+     networks. In D. D. Lee, M. Sugiyama, U. V. Luxburg, I. Guyon, and R. Garnett, editors,
+     Advances in Neural Information Processing Systems 29, pages 2154–2162. Curran Associates,
+     Inc., 2016. URL: http://papers.nips.cc/paper/6046-value-iteration-networks.pdf.
+36   Paul Tseng. Solving H-horizon, stationary Markov decision problems in time proportional to
+     log(H). Operations Research Letters, 9(5):287–297, 1990.
+37   Zhimin Wu, Ernst Moritz Hahn, Akin Günay, Lijun Zhang, and Yang Liu. GPU-accelerated
+     value iteration for the computation of reachability probabilities in mdps. In Gal A. Kaminka,
+     Maria Fox, Paolo Bouquet, Eyke Hüllermeier, Virginia Dignum, Frank Dignum, and Frank van
+     Harmelen, editors, ECAI 2016 - 22nd European Conference on Artificial Intelligence, pages
+     1726–1727. IOS Press, 2016. URL: https://doi.org/10.3233/978-1-61499-672-9-1726,
+     doi:10.3233/978-1-61499-672-9-1726.
+38   Yinyu Ye. A new complexity result on solving the Markov decision problem. Mathematics of
+     Operations Research, 30(3):733–749, 2005.
+39   Yinyu Ye. The simplex and policy-iteration methods are strongly polynomial for the Markov
+     decision problem with a fixed discount rate. Mathematics of Operations Research, 36(4):593–603,
+     2011.
+16   On the Complexity of Value Iteration
+
+
+                                             Technical Appendix
+      A        Proof of Theorem 2
+     In this section, we will show that there is a polynomial-time many-one reduction from the
+     finite-horizon synchronized-reachability problem to the finite-horizon reward problem — for
+     any discount factor γ.
+
+     Proof of Theorem 2. Consider an instance of the finite-horizon synchronized-reachability
+     problem, i.e., an MDP M = (S, A, P, ·, γ), an initial state s0 , a target vertex t, and horizon
+     H. In polynomial time we can construct a new MDP M0 = (S 0 , A, P 0 , R, γ) with an initial
+     state s00 and horizon H 0 such that:
+          S 0 = S × {even, odd};
+          P 0 is such that for each s, s0 ∈ S and a ∈ A we have: P 0 ((s, even), a)(s0 , odd) = P (s, a)(s0 )
+          and P 0 ((s, odd), a)(s, even) = 1; for all other arguments, P 0 (·, ·)(·) returns zero;
+          finally, s00 = (s0 , even).
+     For M0 we construct (also in polynomial time), the reward function R as follows: for each
+     (s, a) ∈ S × A such that s 6= t we have R((s, even), a) = 0 and R((s, odd), a) = 1/γ. If s = t,
+     then R((s, even), a) = 1 and R((s, odd), a) = 0. This ensures that under any strategy σ 0 in
+     M0 the i-step (expected) value, which we denote by ~vi,σ0 (s0 ), is equal to
+
+          (1 − γ i )
+           1 − γ2
+     if i is even, and otherwise it is equal to
+          (1 − γ i−1 )
+                       + γ i−1 · Ps00 ,σ0 ({s00 , . . . , s0i−1 : s0i−1 = t0 }),
+            1 − γ2
+     where t0 = (t, even). Finally, we set H 0 = 2H + 1.
+        Intuitively, M0 is formed by subdividing each probabilistic transition into two transitions
+     by using newly added “middle” states (those of the form S × {odd}). Hence, there is a
+     one-to-one correspondence between runs of some length ` in M and finite paths of length 2`
+     in M0 . The correspondence naturally extends to sets of runs and strategies (since there is
+     no real choice in states of the form S × {odd}). Moreover, under corresponding strategies,
+     the probabilities of corresponding sets of runs are identical. Hence, for all 0 ≤ p ≤ 1 and all
+     j ∈ N there exists a strategy σ in M such that Ps0 ,σ ({s0 , . . . , sj : sj = t}) ≥ p in M if and
+     only if there is a strategy σ 0 in M0 such that Ps00 ,σ0 ({s00 , . . . , s2j : s2j = t0 }) ≥ p in M0 . But
+     by the discussion in the previous paragraph, such a strategy exists if and only if there is σ 00
+     in M0 such that
+                                (1 − γ 2j )
+          ~v2j+1,σ00 (s00 ) ≥               + γ 2j · p.
+                                 1 − γ2
+     It follows that an action a is an optimal first action for the finite-horizon synchronized-
+     reachability problem in M (with horizon H) if and only if it is an optimal first action for
+     the finite-horizon reward problem in M0 (with horizon H 0 ).                             J
+
+      B        Proof of Theorem 3
+     We show that there is a polynomial-time many-one reduction from the finite-horizon
+     synchronized-reachability problem to the finite-horizon reachability problem.
+N. Balaji et al.                                                                                        17
+
+
+Proof of Theorem 3. Given an instance (M, t, s0 , H) of the finite-horizon synchronized-
+reachability problem — where t is the target state, s0 is an initial state, and H is a
+binary-encoded horizon — we compute an instance (M0 , {g}, s0 , H + 1) of the finite-horizon
+reachability problem where the MDP M0 is a modification of M. In particular, g, b (standing
+for “good” and “bad”, respectively) are two fresh states, both sinks in M0 . For all other
+states and all actions a we define a modified transition function P 0 : with probability 13
+action a leads to the new target g, and with probability 23 it does whatever it did in M;
+formally, we put P 0 (s, a)(g) = 13 and P 0 (s, a)(s0 ) = 23 P (s, a)(s0 ) for all states s, s0 in M.
+Finally, we introduce a fresh action, f , which leads to g and b, both with probability 12 ,
+when played from t; formally, we put P 0 (t, f )(g) = P 0 (t, f )(b) = 12 and P 0 (s, f )(b) = 1 for
+all s 6= t. Observe that from state t and at time H it is best to play f , as 12 > 13 . Strictly
+before time H, any optimal strategy does not play f — regardless of the current state
+— as playing two different consecutive actions instead leads to g with probability at least
+1 − ( 23 )2 = 59 > 21 ; rather, any optimal strategy maximizes the probability of reaching state t
+at time H (because then it is beneficial to play f ). It follows that any optimal strategy (for
+synchronization) in M corresponds naturally to an optimal strategy (for reachability) in M0 ,
+and vice versa. Specifically, the first action played in the two strategies is the same. This
+gives the reduction.                                                                               J
+
+
+ C      Proof of Theorem 5
+
+We show how to remove all but one last subtraction — which is then subsumed by the
+comparison — in a Max-Plus-Minus SLP.
+
+Proof of Theorem 5. Let S be a (general) SLP of order n. Without loss of generality,
+we suppose S consists only of (binary) addition, subtraction, and max commands. To
+eliminate subtractions, we closely follow the proof of Theorem 8 in Allender et al. [4]. We
+construct a monotone SLP S 0 of order n + 1 from S by first introducing a new variable z
+that will help us maintain the invariant that for all 1 ≤ i ≤ n and all 1 ≤ m ≤ N we have
+JSKm (ν)(xi ) = JS 0 Km (ν)(xi ) − JS 0 Km (ν)(z).
+    We proceed as follows: First we initialize z ← 0. Whenever we encounter a command
+xk ← xi ± xj in S, we replace this with the following sequence of commands in S 0 .
+
+
+                                                                xk ← xi + z
+     xk ← xi + xj
+                                                                  z ← z + xj
+     x` ← x` + z, ∀` 6= k         (Add)                                                       (Sub)
+                                                                 x` ← x` + xj , ∀` 6= j, k
+      z ←z+z
+                                                                xj ← xj + xj
+
+For addition commands, i.e. if xk ← xi + xj , replace it by the sequence of commands (Add);
+for subtraction commands, i.e. if xk ← xi − xj , by the sequence of commands (Sub).
+    We leave the max commands in the SLP S unchanged in S 0 . Notice that the sequence
+of commands above are monotone (i.e. they include no subtraction commands), and the
+number of commands used in S 0 is at most (n + 3) times the number of commands used in S
+plus an additional command to initialize z. To complete the proof, it suffices to note that
+for every command in S, the corresponding sequence of {max, +} commands in S 0 satisfy
+the invariant that the value of every variable xi for all 1 ≤ i ≤ n of S, is obtained as the
+difference of variables xi and z in S 0 .                                                 J
+18   On the Complexity of Value Iteration
+
+
+                                           110                        110
+                                                 pointer `
+                                           101                        110
+
+
+
+
+                              height = 7
+
+
+
+
+                                                                            height = 7
+                                           110                        100
+                                           110                        100
+                                           100                         ×
+                                           100                         ×
+                                            ×                          ×
+                      counter c3 storing stack s1        counter c4 storing stack s2
+
+        Figure 4 The stack s1 contains the word abaa and stack s2 contains the word ba. If
+     the state of the Turing machine is q then the overall configuration of the Turing machine is
+     aabahqiba. Here, ` = 86 as the height of both stacks is 7.
+
+
+
+
+      D      Proof of Proposition 6
+
+     The proof is by a reduction from the termination problem of a O(2n )-time bounded Turing
+     machine. We suppose the tape alphabet of the Turing machine is {a, b, } with  denoting
+     the empty-cell symbol. For convenience, we also assume that the machine always overwrites
+     empty-cell symbols it reads and replaces them with some sequence of symbols meant to
+     internally represent an empty-and-read cell. This is clearly no loss of generality. Moreover it
+     implies that cells with a’s and b’s are never separated by ’s.
+         The tape can be encoded into the two stacks s1 and s2 , such that the top of the stack s1
+     encodes the contents of the tape cell the head of the Turing machine is currently at; the top
+     of s2 , those of the tape cell immediately right of it; the bottom of s1 , the leftmost part of the
+     simulated tape; the bottom of s2 , its rightmost part. The stack alphabet we use consists of
+     3 binary codes 110, 101, 100, corresponding to the symbols from the Turing-machine tape
+     a, b, . We then keep the contents of s1 and s2 in counters c3 and c4 by interpreting the
+     binary codes as little-endian binary numbers (that is, we write bits from left to right and
+     the right-most bits are the least significant) and keeping the tops of the stacks in the most
+     significant bits of the counters. The technical difficulty of the proof lies in making sure that
+     the resulting counter program is simple and in simulating push and pop instructions efficiently
+     by using linear updates on the counters. Apart from counters c3 , c4 used to simulate the
+     stacks as previously described, we use counters c1 , c2 for tests as well as additional counters
+     described below.
+         Let i ∈ {1, 2}. The contents of the stack si (encoded by counter c2+i ) end after the first
+     end-of-stack symbol 100. That is, since 100 represents an empty cell in the Turing-machine
+     tape, the rest of the tape (and stack) contents are considered to be trash. Note that this
+     means our stacks have a virtual height, the number of symbols before an end-of-stack symbol,
+     and an actual height, the actual number of symbols. Throughout our simulation, we will
+     make sure both stacks always have the same height h. Additionally, we will keep a counter `
+     whose value will always be a power of 8 divided by 2. More precisely, we will maintain the
+     invariant ` = 8h /2. Intuitively, ` will be used as a pointer to the first bit (from left to right,
+     thus its most significant bit) of the second element (from top to bottom) of both stacks as
+     encoded in the corresponding counters. Finally, we will also make sure h ≥ 2 always holds by
+     initializing both stacks with two 100 symbols that will never be popped. (Additionally, all
+     the trash below these two symbols in the stack will be just invalid 000 codes.) See Figure 4
+     for an illustration of the proposed encoding. Henceforth, for all j, we denote by vj the value
+N. Balaji et al.                                                                                   19
+
+
+of the counter cj . Observe that the above definitions imply the following invariant always
+holds.
+   8` < v2+i < 16` and v2+i 6∈ {8`, 10`, 12`}                                               (5)
+Indeed 8`, 10`, and 12`, can be thought of as simulated stacks with , b, and a, as their
+respective topmost symbols and invalid 000 symbols below. Therefore, one can test the
+symbol σ at the top of a simulated stack si by using the corresponding counter test based on
+the following equivalences.
+    σ = a ⇐⇒ 12` ≤ v2+i < 14`
+      σ = b ⇐⇒ 10` ≤ v2+i < 12`                                                             (6)
+    σ =  ⇐⇒ 8` ≤ v2+i < 10`
+Unfortunately, doing as described above may not always yield a simple linear-update counter
+program. In the sequel we will describe how to simulate pushing and popping symbols from
+the stacks as well as how to test popped symbols to obtain a simple counter program.
+
+D.1     Pushing
+To push a symbol σ into s1 , the counter program executes the following instructions: ` ← 8`;
+c3 ← c3 + s`; c4 ← 8c4 ; where s is 8, 10, or 12, depending on whether σ is , b, or a,
+respectively. Note that multiplication is not an allowed operation for our linear-update
+counter programs, so, for instance, the instruction ` ← 8` has to be realized via a (constant)
+number of addition instructions. Roughly speaking, three new most-significant bits are “freed”
+in c3 and then set by adding to it a stack whose topmost symbol is the one we want to push.
+Then, we left-shift (multiply by 8, to be technically correct) the contents of the other counter
+since we have updated the height pointer. The operations are executed mutatis mutandis
+when pushing a symbol into s2 .
+
+D.2     Popping and testing
+To pop a symbol from a stack, we set to zero the 3 most significant bits of the counter
+simulating the popped stack and then left-shift it. Additionally, prior to popping, we test the
+symbol at the top of the stack. Once more, let i ∈ {1, 2}. Instead of using the equivalences
+from Equation (6), we observe that thanks to the invariant from Equation (5) and because
+of our encoding we have that
+    max{v3 , v4 , `} ≤ 16` ≤ 64|v2+i − 12`|, and
+                                                                                            (7)
+    max{v3 , v4 , `} ≤ 16` ≤ 64|v2+i − 10`|.
+The left inequalities follow from the fact that v2+i < 16` and ` is positive. For the right
+inequalities we have the following lemma.
+I Lemma 10. For all i ∈ {1, 2} and both t ∈ {10, 12} it holds that ` ≤ 4|v2+i − t`|.
+Proof. Since all codes have a 1 as their most significant bit, and since the symbol below
+the top of the stack is always a, b, or , (recall that we push two  into the stack from the
+beginning and never pop them) then we have the following refinement of Equation (6) where
+σ denotes the top of the simulated stack.
+    σ = a ⇐⇒ 13` ≤ v2+i < 14`
+      σ = b ⇐⇒ 11` ≤ v2+i < 12`                                                             (8)
+    σ =  ⇐⇒ 9` ≤ v2+i < 10`
+20   On the Complexity of Value Iteration
+
+
+     It follows that the claim holds whenever v2+i > t`. Observe that by the above inequalities
+     v2+i is never t`.
+         Let us now focus on the cases when v2+i < t`. This can only happen if b is on the top of
+     the stack and t = 12 or if  is on the top of the stack and t ∈ {10, 12}. Note that it suffices
+     to consider the cases when v2+i encodes a stack with topmost symbol b or  and t is 12 or
+     10, respectively. We have the following equivalences
+                                
+                  h blocks of 3
+                z      }|       {
+           ` = 000 100 000 . . .
+                                      2
+        10` = (101 100 000 . . . )2
+        12` = (110 100 000 . . . )2
+
+     Additionally, because of our encoding (see Equation (8)) we also have the following.
+                  h=log8 (2`)
+                                 
+                z     }|       {
+        v2+i ≤ 101 110 110 . . .                       if the top symbol is b                 (9)
+                                          2
+        v2+i = (100 100 000 . . . )2                    if the top symbol is                  (10)
+
+        For the first case, i.e. v2+i encodes a stack with b as the symbol in its top and t = 12.
+     For Inequality (9), on the right-hand side we present the largest integer realizable via our
+     encoding, i.e., the contents of the stack are (from top to bottom) baa . . . We let A denote
+     the right-hand side of the Inequality (9). Observe that
+                             
+                   h
+             z     }|       {
+        A + 000 001 000 . . . ≤ 12`.
+                                  2
+
+
+     The desired result thus follows from Inequality (9) and the fact that the second summand in
+     the above equation is 4` . For the second case, i.e. v2+i encodes a stack with  on its top and
+     t = 10, we proceed similarly. It suffices to note that v2+i + ` ≤ 10`.                        J
+
+
+         It follows that we can copy 64v2+i and 64t` (for t ∈ {10, 12}) into counters c1 and c2 and
+     test them instead of c2+i and ` directly. More precisely, we execute the following
+
+          : c1 ← 64c2+i
+          : c2 ← 64 · 12 · `
+          : if c1 ≥ c2 goto p
+          : c2 ← 64 · 10 · `
+          : if c1 ≥ c2 goto q
+        r : ...
+
+     where from instruction p onward we handle the case where the topmost symbol is 110
+     (encoding an a); from q, the case where it is 101 (encoding a b); and from r, the case where it
+     is 100 (encoding ). From p, we first make sure the pop is correctly simulated by executing
+     p : c2+i ← c2+i − 12`; c2+i ← 8c2+i . Popping b from q is handled similarly.
+N. Balaji et al.                                                                                          21
+
+
+D.3      Simplicity
+To conclude the proof, we observe that the above instructions — in particular, the ones
+simulating the popping and testing — satisfy the properties required of the tests for the
+program to be simple (see Equation (7)). Note that on faithful simulations of a Turing
+machine, all reachable configurations of the constructed counter program have non-negative
+counter values. Hence, the program is indeed simple.                                    J
+
+
+ E       Proof of Theorem 7
+In this section, we show that the Powering problem is EXPTIME-complete. To this end,
+we reduce the bounded termination problem for simple linear-update counter programs to
+the powering problem.
+     Let us consider a linear-update counter program C with n counters and m instructions.
+Without loss of generality, we will assume that the addition and subtraction instructions are
+all of the form ci ← ci ± cj . That is, the assigned counter ci appears as the left operand of
+the instruction. Indeed, for any instruction ci ← cj ± ck that does not conform to this (i.e.
+i=6 j), we can replace it by a sequence of three conforming instructions that achieves the
+same effect: a “reset” via subtraction ci ← ci − ci ; a “copy” via addition ci ← ci + cj ; and,
+finally, the intended operation ci ← ci ± ck . Since no test instruction is introduced, this
+transformation preserves simplicity of the program. Recall that the halt instruction, i.e. the
+m-th instruction of C, is of the form m : if c1 ≥ c1 goto m. That is, m is “absorbing”.
+     We will now describe how the Max-Plus-Minus SLP S is constructed. The SLP has two
+distinct variables z, o whose values will be initially set to 0 and 1, respectively. Additionally, we
+will make sure that the values of these variables remain constant with respect to applications
+of S. For convenience, we will use multiplication by integer constants in the description
+of the SLP. These are to be interpreted as sequences of addition commands. (We can
+obtain multiplication by binary constants using polynomially-repeated doubling.) Apart from
+the variables x1 , . . . , xn , Q1 , . . . , Qn introduced in the main text, we use auxiliary variables
+di , d0i , ei , si , s0i , s00i for each 1 ≤ i ≤ n.
+
+E.1      Linear updates
+First, for all 1 ≤ i ≤ n we initialize variables di by appending to S the following command
+
+     di ← z.
+
+Now, for all addition and subtraction instructions
+
+     p : ci ← ci ± cj
+
+from C we append to the SLP the following commands
+        (
+    0     xj if Qj = pxj
+   di ←
+          0 otherwise
+
+and
+
+     di ← di ± d0i
+     ei ← (p + 1) · di .
+22   On the Complexity of Value Iteration
+
+
+     Note that the first command is a conditional command, and so we are making use of its
+     implementation from Lemma 8 (recall that C is simple, and thus the lemma indeed applies).
+         Observe that if the di are not updated by commands in the rest of the SLP, then we have
+     that, for all 1 ≤ i ≤ n, di is non-zero only if ν(Qj ) = pν(xj ). Hence, if the valuation of the
+     variables before the application of P is a correct encoding of a configuration of C then, for
+     all 1 ≤ i ≤ n, di is non-zero if and only if the current simulated instruction will affect the
+     value of ci by a non-zero value of di .
+
+     E.2    Tests and jumps
+     For all test-and-jump instructions
+
+        p : if ci ≥ cj goto q
+
+     from C we append, for all 1 ≤ k ≤ n, the following commands to S
+              (
+         00     xk if xi ≥ xj
+        sk ←
+                0   otherwise,
+              (
+               s00k if Qj = pxj
+        s0k ←
+               0 otherwise,
+
+     and
+
+        sk ← s0k · (q − p − 1).
+
+     If i = j, then we forego the first conditional commands and just set s00k to the value of xk .
+          Some remarks about the above commands are in order. First, the command updating s00k
+     is not completely covered by Lemma 8 since we may have k ∈ {i, j}. The second command
+     is also not explicitly implemented in Lemma 8. It should, however, be easy to see that
+     the second command is indeed implementable using our chosen encoding using the same
+     Max-Plus-Min expression used for the first part of Lemma 8 (one possible way is to use
+     similar approach as for modifying the addition in counter programs above, i.e. to first reset
+     s0k using subtraction and then use addition to perform the copy). Let us now extend Lemma 8
+     to cover the first command.
+     I Lemma 11. Let p ∈ {1, . . . , m} and i, j, k ∈ {1, 2} be such that i 6= j and k ∈ {i, j}. The
+     following equation holds for all valid valuations ν that encode configurations of a simple
+     linear-update CM, i.e. ν(xi ) = vi and ν(Qi ) = pν(xi ) for all 1 ≤ i ≤ n, before executing a
+     test-and-jump instruction q : if ci ≥ cj goto r.
+                                                           (
+                                                             ν(xk ) if ν(xi ) ≥ ν(xj )
+         ak · max(0, ν(xq̄k ) + min(0, ν(xi ) − ν(xj ))) =                                       (11)
+                                                            0       otherwise.
+
+     (Here ak is as defined in Section 4.)
+     Proof. By simplicity of the CM, and since k ∈ {i, j}, we know that there exists xq̄k such that
+     ν(xk ) = ak ν(xq̄k ), i.e. xk is the ak -scaled-up version of xq̄k . Hence, it suffices to show that
+     the left-hand side of Equation (11) evaluates to ak ν(xq̄k ) if ν(xi ) ≥ ν(xj ) and to 0 otherwise.
+         We have that ν(xq̄k ) + ν(xi ) − ν(xj ) ≤ 0 whenever ν(xi ) < ν(xj ) by simplicity since
+     |ν(xj ) − ν(xi )| ≥ x` for all ` 6= i, j and in particular for ` = q̄k . Hence, the outermost max
+     yields a positive number only if ν(xi ) > ν(xj ) and 0 otherwise. Furthermore, it yields ν(xq̄k )
+     because the inner min evaluates to 0 if ν(xi ) ≥ ν(xj ) does indeed hold.                         J
+N. Balaji et al.                                                                                     23
+
+
+The appended commands are such that, if the sk are not updated by commands in the rest
+of the SLP, then we have that, for all 1 ≤ k ≤ n, sk is non-zero only if ν(Qj ) = pν(xj ) and
+ν(xi ) ≥ ν(xj ). It follows that if the valuation of the variables before applying S satisfies our
+encoding then sk holds the “jump difference” (precisely, the difference q − p − 1 if vi ≥ vj
+holds for the simulated configuration and 0 otherwise) that should be applied to all Qi so
+as to obtain the new correct encoding for the next configuration of C. Note that, we have
+overshot by −1 if the test of the simulated instruction is passed. This will be compensated
+for in the sequel.
+
+E.3    Final counter and PC update
+To conclude our construction of S we have to affect the xi by the di and update the Qi
+to account for the change of configuration in C. We can do the latter via the following
+commands appended for all 1 ≤ i ≤ n.
+
+   Qi ← Qi + xi
+   xi ← xi + di
+   Qi ← Qi + ei
+   Qi ← Qi + si
+
+Note that the first command increases the “program counter” by exactly one, i.e. if ν(Qi ) =
+pν(xi ) before the command, then ν(Qi ) = (p + 1)ν(xi ) after it. Intuitively, if the simulated
+instruction was p, then we move to p + 1. That is, unless si is non-zero. Otherwise, we move
+to the instruction dictated by the test-and-jump instruction that was just simulated. The
+second and third commands take into account the update of the value of counter xi into our
+state-encoding too.
+    It is easy to see that, for all N ∈ N, S satisfies
+
+   JSKN (ν)(Qi ) ≥ m · JSKN (ν)(xi )
+
+for any 1 ≤ i ≤ n if and only if C halts in at most N steps. To conclude the proof it suffices
+to observe that we can add a variable that is assigned m-times the value of xi at the end of
+the SLP to obtain an instance of SLPPow whose answer is positive if and only if the above
+inequality holds.                                                                           J
+

@@ -1,0 +1,1692 @@
+         On the Power of Hierarchical Identity-Based Encryption
+                       Mohammad Mahmoody∗                     Ameer Mohammed†
+
+                                            August 16, 2015
+
+
+
+                                                 Abstract
+          We prove that there is no fully black-box construction of collision-resistant hash functions
+      (CRH) from hierarchical identity-based encryption (HIBE) with arbitrary polynomial number
+      of identity levels. As a corollary we obtain a series of separations showing that none of the
+      primitives implied by HIBE in a black-box way (e.g., IBE, CCA-secure public-key encryption)
+      can be used in a black-box way to construct fully homomorphic encryption or any other primitive
+      that is known to imply CRH in a black-box way. To the best of our knowledge, this is the first
+      limitation proved for the power of HIBE.
+          Our proof relies on the reconstruction paradigm of Gennaro and Trevisan (FOCS 2000) and
+      Haitner et al. (FOCS 2007) and extends their techniques for one-way and trapdoor permu-
+      tations to the setting of HIBE. A technical challenge for our separation of HIBE stems from
+      the adaptivity of the adversary who is allowed to obtain keys for different identities before she
+      selects the attacked identity. Our main technical contribution is to show how to achieve com-
+      pression/reconstruction in the presence of such adaptive adversaries.
+        Keywords: Hierarchical Identity-based Encryption, Collision Resistant Hashing, Homo-
+      morphic Encryption, Black-Box Separations.
+
+
+
+
+∗
+    University of Virginia, mohammad@cs.virginia.edu. Supported by NSF CAREER award CCF-1350939.
+†
+    University of Virginia, am8zv@virginia.edu. Supported by University of Kuwait.
+Contents
+1 Introduction                                                                                        1
+  1.1 Our Results . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   2
+  1.2 Technical Overview . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    4
+       1.2.1 Beyond TDP: The Case of IBE and HIBE . . . . . . . . . . . . . . . . . . . .             5
+
+2 Preliminaries                                                                                   7
+  2.1 Black-Box Constructions . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 7
+  2.2 Collision-resistant Hash Functions . . . . . . . . . . . . . . . . . . . . . . . . . . . . 9
+  2.3 Hierarchical Identity-Based Encryption . . . . . . . . . . . . . . . . . . . . . . . . . . 9
+  2.4 Collision Finding (Sam) Oracle . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 10
+
+3 Separating Hierarchical IBE from Collision Resistant Hashing                                        11
+  3.1 Description of Oracle O . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     12
+  3.2 Implementing `-level HIBE Using Oracle O . . . . . . . . . . . . . . . . . . . . . . .          13
+  3.3 Security of Implemented HIBE Relative to O . . . . . . . . . . . . . . . . . . . . . .          14
+      3.3.1 Formalizing the Adversary A . . . . . . . . . . . . . . . . . . . . . . . . . . .         14
+      3.3.2 Step 1: Compression and reconstruction of O without the presence of SamO .                16
+      3.3.3 Step 2: Adding the SamO oracle . . . . . . . . . . . . . . . . . . . . . . . . .          22
+
+A Compression Building Blocks                                                                  27
+  A.1 Basic Compression Lemmas . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 27
+
+B Extension to HIBE with Unbounded-length Identities                                                  30
+1    Introduction
+Modern cryptography is based on well-defined hardness assumptions and formal proofs of security.
+For example, a sequence of fundamental work [Yao82, GM84, Rom90, HILL99, GGM86, LR88,
+IL89, NY89a, Nao91] led to constructions of private key encryption, pseudorandom generators,
+pseudorandom functions and permutations, bit commitment, and digital signatures solely based on
+the assumption that one-way function exists. On the other hand, cryptographic primitives such as
+public key encryption, oblivious transfer, and key agreement that are perhaps more “structured”
+are not known to be implied by one-way functions alone. The goal of founding cryptography on
+minimal assumptions has let to an extensive study of the power and limitations of cryptographic
+primitives. As a result, for every (newly introduced) primitive P, researchers aim to answer two
+questions: (1) What are the minimal computational assumptions necessary for constructing P? (2)
+What are the power and limitations of P as a computational assumption? In particular, what other
+basic cryptographic primitives could be constructed from P?
+
+Hierarchical identity-based encryption. In this work, we study the limitations of the power
+of identity based encryption as a strong form of encryption and its hierarchical variant. A traditional
+public-key encryption scheme allows Alice to send messages to Bob privately over a public channel
+knowing only Bob’s public key. An identity-based encryption scheme [Sha84, BF03] does not require
+Alice to know a specific individual’s public-key and allows Alice to encrypt messages for Bob by
+only knowing Bob’s identity and a single master public key that is the same for all identities. Bob’s
+decryption key can be generated using the (single) master secret key and Bob’s (public) identity.
+The notion of IBE was first proposed by Shamir [Sha84], but the first fully functional IBE was first
+constructed by Boneh and Franklin [BF03] based on assumptions on bilinear maps.
+    A hierarchical identity based encryption scheme (see Definition 2.6) takes the versatility of
+IBE to the next level: each identity’s decryption key can be considered as a master secret key on
+its own to generate decryption keys for “sub-identities”. So as the name suggests it allows the
+delegation of encrypting power in a hierarchical structure of identities. HIBE was first defined
+and constructed in [GS02, HL02] where the security was based on the hardness of the Bilinear
+Diffie-Hellman problem in the random oracle model. Later, Boneh and Boyen [BB04] proposed a
+more efficient HIBE scheme in the standard (plain) model but only achieved selective-ID security.
+This construction was further improved in [BBG05], and in [ABB10] Agrawal et al. showed how to
+construct fully-secure efficient HIBE based on the learning with errors (LWE) assumption [Reg05].
+    Other than for their “prescribed” way of using them, IBE and specially HIBE are very powerful
+computational primitives for achieving other cryptographic tasks. For example it was shown by
+[BCHK06] that IBE can be used to obtain CCA secure public-key encryption in a black-box way,
+and Gentry et al. [GHRW14] showed a perhaps surprising application of IBE to garbling RAM
+programs. Canetti, Halevi, and Katz [CHK03] showed how to achieve forward-secure encryption
+scheme from IBE and HIBE. More recently, Naor and Ziv [NZ15] used HIBE in their construction
+of Primary-Secondary-Resolver Membership Proof Systems. In this work, we study the following
+question about HIBE as a cryptographic primitive/assumption:
+
+      What are the limitations of the power of hierarchical identity based encryption? In other
+      words, what crypto primitives can or cannot be constructed from IBE/HIBE?
+
+
+
+
+                                                  1
+The Black-Box Framework. We study our main question in the black-box framework of [IR89].
+Impagliazzo and Rudich [IR89] were the first to develop such framework which enabled us to rule
+out the existence of an important and powerful class of reductions between primitives. The work
+of Reingold, Trevisan, and Vadhan [RTV04] formalized this framework further and established a
+taxonomy for the field. Many cryptographic constructions are black-box in the sense that (1) the
+algorithms implementing the construction of Q use another cryptographic primitive P (e.g., one-
+way functions) only as an oracle, and (2) the security reduction takes any adversary Adv who
+breaks QP also as an oracle to reduce it to an attack against P. Black-box constructions are also
+considered important due to their (typical) efficiency advantage over their non-black-box counter-
+parts. Following the work of [IR89] a sequence of results known as “black-box separations” emerged
+in which limitation of the power of cryptographic primitives are proved with respect to black-box
+constructions/reductions. In this work we study the power of fully black-box reductions as defined
+in [RTV04] which is the most common form of black-box constructions used in cryptography.
+
+1.1    Our Results
+In this work we prove a black box separation result for hierarchical IBE which, to the best of our
+knowledge, is the first such result. Namely, we show that there is no fully black box construction
+of collision-resistant hash functions (CRH) from HIBE schemes.
+
+Theorem 1.1 (Main Theorem). There is no black-box construction of collision-resistant hash
+functions from hierarchical identity-based encryption with an arbitrary polynomial number of levels.
+
+Separating homomorphic encryption from HIBE. A primary corollary of our main theorem
+above is that HIBE does not imply fully homomorphic encryption (FHE) in a black-box way. That
+is because by the result of Ishai, Kushilevitz, and Ostrovsky [IKO05] FHE implies CRHF in a
+black-box way. Theorem 1.1 together with the result of [BCHK06] implies that CCA secure public-
+key encryption does not imply CRH or FHE in a black-box way. Since CCA-secure public key
+encryption can be constructed from trapdoor permutations one might think that this separation
+follows form the work of Haitner et al. [HHRS07] who ruled out black-box constructions of CRH
+from trapdoor-permutations. However the construction of CCA secure encryption from TDP is
+non-black-box [NY90, Sah99, Lin06] due to its use of noninteractive zero knowledge proofs.1
+    The work of [IKO05] provides several other primitives (than FHE) whose existence also implies
+CRH in a black-box way. These primitives include: one-round private information retrieval (PIR)
+protocols as well as homomorphic one-way commitments. As a direct corollary, our main theorem
+above extends to all these primitives as well. Our separations also holds when the goal of the con-
+struction is to achieve statistically hiding commitment schemes with o(n/ log n) round complexity
+(where n is the security parameter).2 However, for simplicity of the presentation here we focus on
+the simpler primitive of CRH.
+   1
+     We shall also note that even the techniques behind the proof of [HHRS07] do not seem to extend to a separation of
+CCA secure encryption from TDPs, even though CCA secure encryption could be constructed from TDP and random
+oracles [BR93]. The reason is that the “collision finding oracle” (see Definition 2.7) of [Sim98, HHRS07] prevents the
+random TDP oracle from being independent of the other subroutines of the oracle to be used as a random oracle.
+   2
+     Statistically hiding commitment is known to be implied by CRH [DPP97, NY89b] and so proving separation for
+statistically hiding commitment is stronger than a similar result for CRH.
+
+
+
+
+                                                          2
+                                                                Claw-free
+                                                      FHE
+                    HIBE                                       Permutations
+
+
+                     IBE
+                                               PIR               O(n/log(n))xRound
+                                Black-Box                           Stat.xHidingx
+                  CCA-PKE                            CRHF          Commitment
+
+
+
+
+Figure 1: Our works shows that primitives on the left side do not imply any of the primitives on
+the right side in a black-box way.
+
+
+Previous separations regarding IBE. In this work we present the first black-box separation
+for hierarchical IBE. However previous separations about IBE are known. The work of Boneh
+et al. [BPR+ 08] proved that there is no black-box construction of IBE from trapdoor permutations.
+Furthermore, Goyal et al. [GKLM12] studied the limitations of IBE and proved the first separation
+for IBE and separated it from fuzzy IBE schemes [SW05]. Our techniques are quite different from
+those of [GKLM12]. At a high level, [GKLM12] uses a random IBE oracle and aims at breaking
+any fuzzy IBE construction relative to this oracle with only a polynomial number of queries to this
+oracle, while our approach uses a random HIBE oracle together with the collision-finding oracle of
+[Sim98, HHRS07] (see Section 2.4). So the challenging part of our proof is to show that the random
+HIBE oracle remains secure in the presence of the collision-finding oracle rather than finding a
+poly-query attack to break CRH relative to this oracle.
+
+Comparison with [AS15]. A corollary of our Theorem 1.1 for the case of IBE could be also de-
+rived [Vai] from the concurrent beautiful work of Asharov and Segev [AS15]. In particular Asharov
+and Segev [AS15] showed that there is no black-box construction of CRH from indistinguishability
+obfuscation (iO) and one-way functions, even if the iO primitive could be applied to OWF in a non-
+black-box way. Technically, they prove this result using an oracle O with OWF and iO subroutines
+while the iO sub-oracle could accept circuits with OWF gates in them. On the other hand Waters
+[Wat14] showed how to construct general (adaptively secure) functional encryption [BSW11] from
+iO and OWFs. Note that IBE (and not HIBE) is a special case of functional encryption. The
+construction of [Wat14] also uses OWF in a non-black-box way but only for applying the iO to
+circuits with OWF gates, therefore it can be implemented using the separating oracle of [AS15]. In
+other words, [AS15] shows how to construct an oracle relative to which the functional encryption
+(and thus IBE) construction of [Wat14] exists, but relative to the same oracle no CRH is secure.
+    As we will describe below, our proof is quite different from that of [AS15] and our compression
+techniques do not have a counterpart in [AS15]. While the result of [AS15] handles richer class of
+functional encryption schemes beyond IBE, our result extends to arbitrary levels of hierarchies.
+
+
+
+                                                3
+1.2    Technical Overview
+In this subsection we give an overview of our techniques in the proof of our main theorem. Here we
+focus on the case of IBE (i.e. HIBE with one hierarchy) since some of the main challenges already
+show up for the (adaptively secure) IBE, and after resolving them we can scale the proof up easily
+with the number of hierarchy levels.
+    We first need to recall tools and techniques from Haitner et al. [HHRS07] and [GT00] which we
+use as building blocks in our proof. Our starting point for the proof of Theorem 1.1 is the result
+of Haitner et al. [HHRS07] that separates CRH from trapdoor permutations. In their separation,
+they employed an oracle O = (T, SamT ) where T is a random trapdoor permutation and SamT
+is (a variant of) the collision finding oracle of Simon [Sim98] (see Definition 2.7) which returns a
+collision (x, x0 ) for any given input circuit C with T gats. It is easy to see that relative to O there
+is no secure construction of CRH that only uses T gates. To derive the separation it is enough to
+show that relative to O, T remains a secure TDP (see Lemma 2.8 for a proof). The main technical
+argument in [HHRS07] was to show that a random trapdoor permutation T remains secure in the
+presence of SamT . We will sketch some components of this proof first, and then we will discuss
+how to use these tools in addition to our new compression lemmas to prove our main separation.
+
+Hardness of random permutations in the presense of Sam. The seminal work of [GGKT05]
+showed that a random permutation π : {0, 1}n 7→ {0, 1}n is hard to invert by introducing the
+compresson/reconstruction technique. For any supposed adversary Aπ who inverts an 1/ poly(n)
+fraction of {0, 1}n , [GGKT05] showed how to represent the permutation π with Ω(n) bits fewer
+than it is takes to represent a random permutation. That would be sufficient to show that the
+probability that π is “easy” for such A is at most exponentially small 2−Ω(n) .3
+    The work of [HHRS07] extended the result of [GGKT05] by showing that the hardness of random
+permutations π holds, even if we allow the adversary access the collision finding oracle Samπ that
+takes as input any circuit C with π gates (that shrinks its input) and returns a collision for it
+(chosen from a specific distribution). This immediately implies a (fully) black-box separation for
+CRH from TDP since for every black-box construction H it gives an oracle (π, Samπ ) relative to
+which secure TDP exists (i.e. π) but the implementation H of CRH using π is insecure. This is
+indeed sufficient to derive the fully black-box separation [RTV04, GKM+ 00].
+
+Extension to TDPs. [HHRS07] extended their result to trapdoor permutations using a similar
+argument to that of [GGK03] who also proved the hardness of random trapdoor permutation
+as follows. Let T = (G, F, F −1 ) be a random trapdoor permutation in which G is a random
+permutation over {0, 1}n , F [pk](·) is a random permutation for every pk ∈ {0, 1}n and F −1 [sk](·)
+                                                                T
+be the inverse of F [pk](·) whenever G(sk) = pk. Let A(T,Sam ) be an adversary who inverts a
+random y under a random public key pk with probability 1/ poly(n). Then A is implicitly doing
+either of the following. Case 1: A finds sk = G−1 (pk) for the given random pk. In this case A
+has inverted the random permutation G. Case 2: A succeeds at finding x = F −1 [sk](y) without
+asking G(sk) = pk. Since A does not ask G(sk) = pk the permutation F [pk](·) would be a random
+permutation inverted by A. In both cases the existence of A leads to an efficient-query algorithm
+inverting random permutations in the presence of Sam. However, as we saw this is impossible.
+   3
+   In fact [GT00] achieves exponential compression and doubly exponentially small probability of success for a fixed
+A. This lets them do a union bound over all poly-sized circuits A when π is chosen at random.
+
+
+
+                                                         4
+1.2.1      Beyond TDP: The Case of IBE and HIBE
+First, let us recall IBE informally (see Definition 2.6). An identity-based encryption (IBE) scheme
+for security parameter n and messages {0, 1}n is defined using four PPTs (Setup, KeyGen, Enc, Dec):
+    • Setup(MSK) takes random master secret key and generates master public key MPK.
+    • KeyGen[MSK](id) generates a trapdoor td for a given identity id.
+    • Enc[MPK, id](x) encrypts x under identity id and outputs ciphertext y.
+    • Dec[MPK, id, td](y) decrypts y using the trapdoor td and gets back x.
+Security variants. The basic CPA security of an IBE requires that no adversary can distinguish
+between the encryptions of any two messages of his choice even if he is allowed to choose the
+challenge identity id∗ of the encryption after getting trapdoors for identities id 6= id∗ of his choice.
+Here we first focus on the basic CPA security for IBE, but our full proof handles the stronger notion
+of CCA secure IBE/HIBE. For simplicity in this exposition we assume that the IBE’s adversary
+aims at decrypting a randomly selected message x (encrypted under challenge identity id∗ ).4
+     As in the case of TDPs, here our goal is to design an oracle O = (U, SamU ) such that U
+implements IBE/HIBE in way that it remains secure even in the presence of the SamU oracle. We
+first start by a direct generalization of the above arguments to oracles with more than one level
+of trapdoor, and then will see what aspects of the security of IBE will require us to change our
+oracle and the proof of hardness accordingly. Our first try is to use hierarchical random trapdoor
+permutations to implement, but to prove the full fledged adaptive security of IBE/HIBE we will
+change this oracle to use injective random functions.
+
+Hierarchical random permutations. We first use a direct adaptation from random TDPs
+to implement our IBE oracle. Let U = (S, G, F, F −1 ) be an oracle that we call a “random IBE
+oracle” defined and used as follows. S implements the setup and is a random permutation over
+{0, 1}n that maps master secret key MSK to master public key MPK. G[MSK](·) implements
+the trapdoor generation and is a random permutation over {0, 1}n that maps identities to their
+trapdoor. Finally F [MPK, id](·) and F −1 [MPK, td]) are random permutations over {0, 1}n that
+are used for encryption and decryption.
+    Our goal here would be to show that any adversary A who breaks the IBE implemented by
+U by accessing O = (U, SamU ) will be forced to invert some random permutation (to derive the
+contradiction). Let us list the possible cases through which an adversary can win the security game:
+    • Case 1: A finds MSK = S −1 (MPK).
+    • Case 2: A does not find MSK but finds the trapdoor td∗ for his identity of choice id∗ .
+    • Case 3: A does not find the trapdoor for id∗ but still inverts the challenge ciphertext y.
+
+Problem with Case 2: adaptivity of adversary. Similarly to the case of random TDP, Case
+1 and Case 3 will imply that A is indeed inverting a random permutation, which can only happen
+with negligible probability. However, Case 2 does not imply so for two reasons:
+   1. While inverting id∗ to find its trapdoor, the adversary A is allowed to obtain trapdoors
+      td 6= td∗ for other identities id 6= id∗ .
+   2. The adversary gets to choose id∗ as opposed to being given a random one.
+    In the following we will show how to resolve the two issues above. First we will ignore the
+second issue above by working with a weaker security definition for IBE in which the adversary
+  4
+      By the Goldreich Levin lemma [GL89] these two notions of security are equivalent in a black-box way.
+
+
+
+                                                          5
+does not choose id∗ but rather is given a random one (but still gets to ask the trapdoor for other
+identities). And then we will describe our new oracle to handle both issues above.
+
+Attacks against random challenge identity. Note that we are focusing on the scenario in
+                             U
+which the adversary AU,Sam breaks the IBE by causing Case 2 to occur with non-negligible proba-
+bility. We are also assuming, for now, that the adversary does not choose an identity of his choice,
+bur rather finds the trapdoor of a random identity. Our goal is to reduce this case to when (a
+variant of) A is essentially inverting a random permutation using Sam oracle. Think of the per-
+mutation G−1 [MPK](·) as the inverse of G[MSK]. It can be verified that when A succeeds in Case
+2, it is in fact inverting G−1 on a random point while he is able to ask some “inversion queries” to
+G−1 before “inverting” the random challenge id∗ on its own.
+    To rule out successful attackers against random challenge identity we generalize the results of
+[GGKT05] for hardness of random permutations π to the setting in which the adversary is allowed
+to ask inversion queries to π −1 (·) in addition to direct queries to π(·). Namely, we show that a
+random permutation, is adaptively one-way [PPV08] even in the presence of the Sam oracle.
+
+Lemma 1.2 (Informal: Adaptive/CCA hardness of random permutations in the presence of Sam).
+For any permutation π over {0, 1}n , define O = (π, π −1 ) to be an oracle giving access to π in both
+directions. Let A be a poly(n)-query circuit that accepts a challenge y ∗ ∈ {0, 1}n and whose goal
+is to find x = π −1 (y ∗ ) using O while all queries to O are allowed except for π −1 (y ∗ ). Then, with
+overwhelming probability over the choice of random permutation π it holds that: the probability of
+success for A is negligible, even if it is allowed to call the SamO oracle.
+
+   We show that the argument of [GT00] for the case of “basic” (i.e., non-CCA) attackers does
+indeed extend to the CCA setting described in Lemma 1.2. (Lemma A.1 is a formalization of this
+                                                                               −1
+lemma without the presence of the Sam oracle.) We also show that the Sam(π,π ) oracle will not
+help the attacker much, using the techniques of [HHRS07] (see Section 3 for a proof of this).
+
+Fully adaptive attacks. The most challenging aspect of our proof handing general IBE attacks
+stems from the fact that here the adversary is allowed to choose the challenge identity. Note that
+such an adversary does not necessarily invert a “randomly sampled” identity id∗ to win according
+to Case 2, and it has has full control over id∗ . Unfortunately, we are not able to prove a variant
+of Lemma 1.2 in which the adversary chooses y ∗ itself since as soon as we sample and fix the
+permutation π, there is always a trivial adversary whose description depends on π and “knows” a
+pair π(x) = y (through non-uniformity) and that proposes y as the challenge and inverts it!
+
+Compression Amplification. The way we can rule out such attacks in the context of IBE/HIBE
+(for Case 2) is by relying on the fact that the adversary needs to succeed for a randomly given
+master public-key out of his choice. The idea is that even though one cannot prove a strong
+hardness of inverting π when the adversary chooses the inversion point y, we can still compress the
+description of π by ≈ Ω(n) bits. Even though the above compression for the oracle achieved in Case
+2 as described above is quite small (i.e., Ω(n) as opposed to the needed 2Ω(n) bits of compression)
+we show how to amplify this compression for our random IBE oracle. The key point is that the
+adversary A who has 1/ poly(n) chance of winning in Case 2 is still winning in Case 2 for 2n / poly(n)
+number of the master public keys given to him. As a result, we achieve Ω(n) · 2n / poly(n) bits of
+
+
+
+                                                   6
+compression on the total representation of the random IBE oracle, which is sufficient to derive its
+hardness against poly-size (oracle-aided) circuits.
+
+Using random injective functions for trapdoor generation. A seemingly minor technical
+obstacle against our compression amplification argument sketched above is that we need to represent
+the key (MPK or MSK) for each of the sub-oracles G[MSK](·) for which we achieve Ω(n) bits of
+compression, so that we can reconstruct the full oracle (S, G, F, F −1 ). Unfortunately, if we do so,
+we will lose all the (little) compression that we could achieve for representation of G[MSK](·) (for
+many MSKs). To resolve this issue, we use random injective functions with large image length to
+generate the identity trapdoors. This enables us to gain compression for representation of each
+G[MSK](·) over which the attacker succeeds in finding matching G[MSK](id∗ ) = td∗ even if we
+explicitly represent the corresponding MSK. Lemma A.2 formally states and proves this simple,
+yet useful building block of our compression argument (when there is no Sam oracle) when we
+switch to use injective functions for generating identity trapdoors.
+
+Extension to HIBE. Our proof sketched above scales well with the number of identity hierar-
+chies. We will do so by expanding Case 2 of the analysis into many more subcases corresponding
+to each level. However, the fundamental difference between the first (master key general) and last
+(encryption/decryption) levels compared to other levels (generating identity trapdoors) remain
+different and is handled as described above using injective functions with long output.
+
+Comparison to [CLMP13]. At an abstract level, our compression amplification technique de-
+scribed above allows us to achieve exponential compression for primitives that are of the “family”
+form (here we are interpreting the MPK as an index over which the (sub) primitive and the attack
+are launched) and can potentially be applied to more applications. In particular, we conjecture
+that our technique could give an alternative approach to that of Chung et al [CLMP13] whose goal
+was to show how to achieve hardness against non-uniform attackers (circuits) when the primitive
+is of the “family” form. [CLMP13] achieved this by employing an information theoretic lemma by
+Unruh [Unr07], while our approach uses the compression technique of [GT00].
+
+
+2     Preliminaries
+For any n ∈ N, let Πn be a family of permutations where π ← Πn is a random permutation mapping
+{0, 1}n to {0, 1}n . Furthermore, let Fn,m be a family of injective functions where f ← Fn,m is
+random injective function mapping {0, 1}n to {0, 1}m . For a set S by x ← S we refer to the process
+of sampling x uniformly at random from S. We use [i..j] for {i, . . . , j} and [N ] for [1..N ].
+
+2.1    Black-Box Constructions
+We use the following definition of black-box constructions due to Reingold et al. [RTV04]. Unless
+specified otherwise, in this work we use the terms black-box and fully black-box equivalently.
+
+Definition 2.1. [Fully black-box constructions [RTV04]] A fully black-box construction of a prim-
+itive Q from a primitive P consists of two PPT algorithms (Q, S) as follows:
+
+    1. Implementation: For any oracle P that implements P, QP implements Q.
+
+                                                 7
+  2. For any oracle P implementing P and for any oracle adversary A successfully breaking the
+     security of QP , it holds that S P,A breaks the security of P .
+
+    Even though the notion above was formalized in [RTV04], the original work of Impagliazzo and
+Rudich were the first to note that black-box constructions “relativize”; namely they hold relative
+to any oracle. Thus to rule out black-box constructions it is sufficient to rule out relativizing
+constructions. The following argument has its roots in the work of Gertner et al. [GKM+ 00] and
+is a strengthening of this argument. Informally speaking it asserts that it is enough to choose the
+separating oracle after (and based on) a candidate construction. Another interpretation of this
+technique is known as the two-oracle technique of Hsiao and Reyzin [HR04]. Here we describe this
+lemma and prove it for sake of completeness. This lemma is implicitly used in the work of Haitner
+et al. [HHRS07]. Here we abstract out this lemma and use it in our proof of Section 3.
+
+Lemma 2.2. For any primitives P and Q let O = (O1 , O2 ) be a randomized oracle with two
+subroutines such that:
+
+  1. Primitive P could be implemented using (any sample for) the first part O1 .
+
+  2. Any fixed (computationally unbounded) poly(n)-query adversary B who could call both of O1
+     or O2 could break the implementation of P relative to O1 with probability negl(n) where n is
+     the security parameter. This probability is over the selection of O as well as attacker B.
+
+  3. For any implementation Q of Q that only calls O1 there is a poly(n)-query attacker A who
+     breaks QO1 with probability ≥ 1 − 1/n2 where the probability is over O and the attacker A.
+
+Then there is no fully black-box construction of Q from P.
+
+   Breaking a primitive could mean different thing for different primitives, but in this paper we
+deal with Q being CRH whose attackers have to find collisions with non-negligible probability.
+
+Proof. For sake of contradiction, suppose (Q, S) is a fully black-box construction of Q from P.
+Sample O = (O1 , O2 ) and use the implementation of P that exists relative to O1 to get implemen-
+tation QO1 of Q, and let A be the attacker who breaks this scheme (whose existence   P is guaranteed
+by the property 3 of O). Since A succeeds with probability 1 − 1/n and that n 1/n2 = O(1)
+                                                                         2
+
+by Borel-Cantelli lemma, with measure one over the choice of O, A succeeds in its attack for an
+infinite set of security parameters. In this case we call A a good adversary relative to O.
+    Now, consider S P,A where P is the implementation of P using O1 and A is the above adversary.
+By the definition of fully black-box constructions, for any sampled O such that A is a good adversary
+relative to O, S P,A will break P O1 also for an infinite sequence of security parameters. Therefore,
+with measure one over the choice of O, S P,A will break P O1 for an infinite sequence of security
+parameters. But we will show below that this cannot happen.
+    Let us “merge” the algorithm A into S and consider B O = (S A )O as a new poly(n)-query
+attacker who calls O and tries to break P O1 directly. By property 2 of O, this attacker would
+have negl(n) chance of doing so. By an averaging argument, for each fixed security parameter,
+with probability 1 − negl(n) ≥ 1 − 1/n2 over the choice of O it holds that B O breaks P O1 with
+probability at most negl(n) = α(n). By another application of Borel-Cantelli lemma, it follows that
+with measure one over the choice of O it holds that: the number of security parameters for which
+B O = (S A )O breaks P O1 with probability more than α(n) is finite, which is a contradiction.
+
+
+                                                 8
+2.2     Collision-resistant Hash Functions
+In this work we define collision-resistant hash functions only for those that shrink their input by
+a factor of two. It is well known that any CRH with only one bit of shrinkage could be turned
+into one defined below. We use this definition as it simplifies some of the arguments needed for the
+separation.
+
+Definition 2.3. A collision resistant hash function H = {h | h : {0, 1}m × {0, 1}n 7→ {0, 1}n/2 }
+for m = poly(n) is a family of functions such that for any PPT adversary A there is a negligible
+function (n) such that:
+
+                    Pr     [A(d) = (x1 , x2 ) ∈ {0, 1}2n ∧ x1 6= x2 ∧ hd (x1 ) = hd (x2 )] ≤ (n).
+                d←{0,1}m
+
+
+2.3     Hierarchical Identity-Based Encryption
+Definition 2.4 (Identity vector). For i ≥ 0, an i-level identity vector IDi = hid0 , ..., idi i is a tuple
+of i identities, where idj ∈ {0, 1}∗ ∀ j ∈ [0, i]. Furthermore, the corresponding private-key for
+identity vector IDi is given as tdIDi . If i < 0, we let IDi = , the empty vector.
+
+Definition 2.5 (Prefix vector). We define a prefix vector for identity vector IDi = hid0 , ..., idi i as
+any tuple hs0 , ..., sj i such that j ≤ i and sk = idk for 0 ≤ k ≤ j. We denote the set of all prefix
+vectors of IDi as pre(IDi ).
+
+Definition 2.6 (Hierarchical identity-based encryption [HL02]). Given security parameter n and
+n = poly(n), an l-depth hierarchical identity-based encryption (l-HIBE) scheme for messages in M
+and ciphertext space C consists of l + 3 PPT algorithms (Setup, {KeyGeni }li=1 , Enc, Dec) defined as
+follows. (For simplicity and without loss of generality we assume that n is the security parameter
+as well as the length of the master secret and public keys.)
+    • Setup(1n ) takes as input security parameter n and outputs a pair (MSK, MPK) ∈ {0, 1}n ×
+      {0, 1}n . We let ID0 = hid0 i = hMPKi and tdID0 = htd0 i = MSK.
+    • For i ∈ [1, l], KeyGeni (IDi−1 , tdIDi−1 , idi ) takes as input the parent identity vector IDi−1 ,
+      the corresponding private-key tdIDi−1 and identity idi then outputs the corresponding i-level
+      private key vector tdIDi .5
+    • Enc(IDl , x) takes as input the full public identity vector IDl , and a message x ∈ M, and
+      outputs ciphertext y ∈ C.6
+    • Dec(IDl , tdIDl , y) takes as input the identity vector IDl , the corresponding private-key vector
+      tdIDl , and ciphertext y ∈ C, then returns the message x ∈ M.
+
+Correctness: Given any (MSK, MPK) ← Setup(1n ), an HIBE scheme must satisfy the following
+correctness condition for all x ∈ M and all (IDl , tdIDl ) where tdIDl is the corresponding private-key
+of the identity vector IDl = hMPK, id1 , ..., idl i obtained through iterative call to KeyGeni it holds
+that Dec(IDl , tdIDl , Enc(IDl , x)) = x.
+   5
+     Note that we define a key generation algorithm for each level (as opposed to a single algorithm) in order to
+simplify our HIBE construction using our ideal oracle.
+   6
+     Some of the subsequent definitions of HIBE use a more general definition in which one can encrypt messages
+under partial identity vectors IDi = hid0 , ..., idi i of depth i < `. Our impossibility result directly extends to this more
+general setting as well. However, for simplicity of the presentation here we focus on the original definition of [HL02].
+
+
+
+                                                             9
+Security:    An HIBE scheme is said to be CCA secure if for all adaptive PPT adversaries A:
+                                                            1
+                                 Pr[CCAHIBE
+                                       A    (1n ) = 1] ≤      + negl(n)
+                                                            2
+where CCAHIBE A    is shown in Figure 2. In Step 2, A can adaptively ask key generation queries
+for IDi to oracle HMSK which returns tdIDi , the private-key associated with this identity vector,
+by recursively applying tdIDi = KeyGeni (IDi−1 , tdIDi−1 , idi ) given that tdID0 = MSK. Its chosen
+identity IDA l must not be asked as a query to HMSK . Furthermore, A can adaptively ask decryption
+queries DMSK (IDl , c) to decrypt ciphertext c ∈ C with respect to any identity IDl . In Step 4, A
+can still issue queries to HMSK but only for identities IDi that are not in pre(IDA  l ), and it can still
+issue queries to DMSK but not for inputs (IDA  l , c), where c is the challenge ciphertext.
+
+
+      Experiment CCAHIBE  A     (1n ):
+  1. (MSK, MPK) ← Setup(1n )
+  2. (x0 , x1 , IDA
+                  l )←A
+                        HMSK (.),DMSK (.,.) (MPK)
+                                  $
+  3. c ← Enc(IDAl , xb ) where b ← − {0, 1}
+  4. b0 ← AHMSK (.),DMSK (.,.) (c)
+  5. Output (b = b0 )
+
+
+                                 Figure 2: The CCAHIBE
+                                                    A   Experiment
+    Note that, for l = 0, this reduces to a standard CCA secure public-key encryption system, and
+for l = 1 this reduces to a CCA-secure IBE scheme.
+
+    Definitional Variations: The standard CCA security of HIBE as given in the previous defi-
+nition can be weakened in multiple ways. We present here some variations of the security definition
+that we might refer to later, noting only the differences from the original definition.
+    • CPA (resp. CCA1): The adversary’s capabilities are limited to chosen plaintext (resp. non-
+      adaptive chosen ciphertext) attacks.
+    • rID-CCA/rID-CPA: Instead of having the adversary choose IDA        l , the target identity will be
+      chosen uniformly at random by the challenger and provided to the adversary along with MPK.
+    • OW-CCA/OW-CPA: Instead of distinguishing between two ciphertexts, the goals of the ad-
+      versary here is to “invert” the given challenge ciphertext and find the corresponding (randomly
+      selected) message.
+      These notions could be combined into notions like OW-rID-CPA, OW-CCA, etc.
+
+Black-box construction of HIBE. The definition of a black-box construction of CRH from
+HIBE (in its various security forms) could be derived from Definitions 2.1 and 2.6.
+
+2.4   Collision Finding (Sam) Oracle
+In this section, we define the collision finding oracle Sam of [Sim98, HHRS07]. Roughly speaking
+and in its simplest form, Sam is a (possibly inefficient) algorithm that accepts some description of
+a circuit C and outputs (x, x0 ), both uniformly distributed, such that C(x) = C(x0 ). This oracle
+
+
+
+                                                    10
+was originally introduced by Simon [Sim98] and then was extended into the nested Sam oracle of
+Haitner et al. [HHRS07].7
+Definition 2.7 (Collision-finding oracle [Sim98, HHRS07]). For any arbitrary oracle O, the algo-
+rithm SamO                                                                         n
+           r (C) for C with input length n samples a uniformly random x ∈ {0, 1} and then (after
+sampling x) samples another uniformly random point x conditioned on C(x) = C(x0 ).8 It then
+                                                           0
+
+returns (x, x0 ). Note that this oracle is randomized but the randomness rC is independent for each
+circuit C (and is sampled only once). The randomness of Sam for each query is provided by the
+randomized function r(C) = rC that for each circuit query C provides a random point in the inputs
+of C as well as a random permutation over the input space of C. The first is used to sample x and
+then the random permutation is enumerated till we get a collision x0 .
+    It is easy to see that using Sam one can efficiently find collisions for any circuit C whose output
+length m is smaller than its input length n. Specifically, if n > m then one guarantees the existence
+of some pair (x, x0 ) such that C(x) = C(x0 ) (i.e. a collision), which results in Sam successfully
+returning such a pair. The following lemma provides a general tool to use Sam for separating
+primitives from CRH.
+Lemma 2.8. Let P be any primitive and Q represent the collision-resistant hash function primitive.
+Let U = (O, SamO ) be a randomized oracle with two subroutines such that:
+  1. Primitive P could be implemented using O.
+  2. Any fixed (even computationally unbounded) poly(n)-query adversary B who could call both
+     of O and SamO could break the implementation of P relative to O with probability negl(n)
+     where n is the security parameter.
+Then there is no fully black-box construction of collision-resistant hash functions from P.
+Proof. The lemma almost directly follows from Lemma 2.2; we just have to prove the third property
+needed by Lemma 2.2. In fact, for any implementation Q of CRH that only calls O there is a 1-
+query attacker A who breaks QO with probability 1 − negl(n). All A does is to take d as the index
+of hash function, turn hd (·) into a poly(n)-size circuit C with input length n, and call SamO over C
+and outputs the result. It is easy to see that since h is shrinking its input by a factor of two, with
+1 − negl(n) probability over the first sampled point x1 , the number of “siblings” of x1 relative to
+the function hd (·) are exponentially large, and therefore the two colliding points (x1 , x2 ) returned
+by SamO will be different points with probability 1 − negl(n).
+
+
+3       Separating Hierarchical IBE from Collision Resistant Hashing
+In this section we will formally prove our main Theorem 1.1. Namely, we will prove that there
+exists no fully black-box construction of collision-resistant hash functions from l-level hierarchical
+identity-based encryption for any polynomial l = poly(n).
+Theorem 3.1. For any security parameter n and an arbitrary polynomial number of levels ` =
+poly(n) there is no fully black-box construction of collision-resistant hash functions from `-level
+OW-CCA secure hierarchical identity-based encryption scheme.
+    7
+     In this work we focus on using the simpler collision finding oracle that is not interactive. However, all of our
+separation results hold with respect to the stronger Sam oracle of “low” (i.e. o(n/ log n)) as well. We refer the proof
+for the more general case to the full version of the paper.
+   8
+     Note that the returned “collision” (x, x0 ) is not necessarily distributed like a uniformly sampled collision from all
+possible collisions.
+
+
+                                                            11
+Corollary of Theorem 3.1. The above theorem, together with the result of Boneh et al.
+[BCHK06] shows the separation of (standard) CCA-secure HIBE from CRH. In particular, we
+apply Theorem 3.1 for ` + 1 levels of identity with one-way CCA security (in fact one-way CPA
+also suffices). Then using Goldreich-Levin lemma and bit-by-bit encryption, we can achieve CPA
+security as a black-box, and the result of [BCHK06] gives us an CCA secure HIBE for ` levels of
+identity relative to the same oracle.
+
+  To prove Theorem 3.1, we will state and use the following claim, which shows the existence of a
+separating oracle for which a secure implementation of a hierarchical IBE exists.
+Claim 3.2. There exists a randomized oracle U = (O, SamO ) such that the following holds:
+  1. An implementation P of OW-CCA-secure l-HIBE exists relative to O.
+  2. Any poly(n)-query adversary A with access to U can break P only with negligible probability.
+Proof of Theorem 3.1. Using Claim 3.2, we can assume the existence of oracle U = (O, SamO ) for
+which OW-CCA-secure l-HIBE exists. Thus, since such an oracle exists, an immediate application
+of Lemma 2.8 yields that there is no black-box construction of collision-resistant hash functions
+from OW-CCA-secure l-HIBE.
+
+    We now dedicate the rest of this section to proving Claim 3.2. We first start in Section 3.1 by
+giving a formal description of the first subroutine O of our separating oracle, which represents an
+(idealized) random hierarchical trapdoor injective function, so that we will later use it to implement
+HIBE in Section 3.2. The proof proper starts in Section 3.3 where we will use the randomized oracle
+U = (O, SamO ) such that (1) a OW-CCA-secure l-level HIBE implementation exists relative to
+O, and (2) the HIBE implementation remains secure against any poly(n)-query computationally
+unbounded adversary even after adding SamO . The first part is proven in Section 3.3.2 while the
+second part is discussed in Section 3.3.3.
+
+3.1    Description of Oracle O
+In this section, we describe the distribution of our oracle O, which will be used to show that with
+overwhelming probability over the choice of this oracle, `-level OW-CCA HIBE exists relative to it.
+In the following definition we will use our notation of identity vectors as defined in Definition 2.4
+but, for simplicity of presentation, all of our identities will be strings of length n. Our proof can
+be directly extended to handle the case of unbounded-length identities as well, but for sake of the
+simplicity of the presentation we focus on the case of bounded-length identities; see Section B for
+a sketch of the modifications needed for the case of unbounded identity lengths.
+Definition 3.3 (Random Hierarchical Trapdoor Injective Functions). For any security parameter
+integer n ∈ N and number of hierarchies `, let m = 10n · `. Our random hierarchical injective func-
+tions oracle On consists of 2` + 3 subroutines: {h−1                 −1                −1
+                                                         0 , g1 , h1 , . . . , g`+1 , h`+1 } which are distributed
+as follows. Note that even though the functions hi (·) are not publicly available as subroutines of
+O we still use them to describe the subroutines of O more easily.
+    • The key generation oracle h−1                                                   −1
+                                    0 (·) := S(·), the encryption oracle h`+1 [ID` ](·) := F [ID` ](·) and
+       the decryption oracle g`+1 [ID`−1 , td` ](·) := F −1 [ID` ](·) are random permutations over {0, 1}n .
+    • For i ∈ [1..`], and index IDi−1 = (MPK, id1 , . . . , idi−1 ) ∈ {0, 1}i·n , let hi [IDi−1 ](·) : {0, 1}n 7→
+       {0, 1}m be a random injective function. We define h−1        i [IDi−1 ](tdi ) = idi if hi [IDi−1 ](idi ) = tdi
+       for some idi ∈ {0, 1}n and we define h−1   i  [IDi−1 ](td i ) = ⊥ if no such idi exists.
+
+                                                         12
+   • For i ∈ [1..`] and (IDi−2 , tdi−1 ) ∈ {0, 1}(i−1)n+m function gi [IDi−2 , tdi−1 ](·) : {0, 1}n 7→ {0, 1}m
+     is defined as follow: For given input idi , if h−1   i−1 [IDi−2 ](tdi−1 ) = idi−1 for some idi−1 6= ⊥, then
+     gi [IDi−2 , tdi−1 ](idi ) = hi [IDi−1 ](idi ). If no such idi−1 exists, then gi [IDi−2 , tdi−1 ](idi ) = ⊥.
+    Our actual oracle (for applying Lemma 2.8) will be (O, SamO ) where O is sampled from the
+distribution of the oracles of Definition 3.3, and SamO is the Sam oracle as defined in Section 2.4
+where the input circuits to SamO are allowed to have O-gates.
+
+3.2    Implementing `-level HIBE Using Oracle O
+Here we show how to use the oracle O of Definition 3.3 to implement `-level HIBE. Then we will turn
+into proving the security which is the main part of the proof. Although the security of the sampled
+O is intuitive, due to the fully random nature of the permutations used in the implementation,
+since our actual oracle also has SamO attached to it, the proof of security becomes nontrivial.
+
+Intuition. We use the subroutine h−1        0 (·) to generate the master public key. We use gi (·) to
+generate the ID’s of the i’th layer, and we use h−1  `+1 (·) to encrypt and g`+1 (·) to decrypt. Therefore,
+for sake of clarity of the presentation, we will use the following alternative names for the subroutines
+of the first and last layers: h−1                 −1
+                                  0 (·) = S(·), h`+1 [·](·) = F [·](·), g`+1 [·](·) = F
+                                                                                         −1 [·](·). We will also
+
+treat the master public key as the identity of level zero, the ciphertexts as identity of the level ` + 1,
+and the plaintexts as the trapdoors of the level ` + 1.
+    Note that we elected to use random trapdoor injective functions to represent h−1                i [.](.) in O
+as opposed to using random trapdoor permutations as one would first naturally assume. This is
+to prevent the adversary from trivially breaking the scheme using a call to the h−1              i [.](.) subrou-
+tines. Specifically, if we used a trapdoor permutation, since the adversary can choose the challenge
+identity, it can first call h−1
+                              i [.](.) for any i ∈ [1..l] to find an identity for his own (say randomly
+selected) trapdoor of level i and announce that specific identity as the one he will use in the at-
+tack! Therefore, it was crucial that either we remove the subroutines h−1           i [.](.) from O or change
+the oracle in way that mitigates such an attack. We thus chose to use random injective functions
+with a sparse range to make it hard for an adversary to discover a valid trapdoor tdi such that
+h−1
+  i [IDi−1 ](tdi ) 6= ⊥ for any IDi−1 .
+
+Construction 3.4 (Implementing `-level HIBE Using Oracle O). For any security parameter n,
+and oracle On sampled according to Definition 3.3, we will implement an l-HIBE scheme as follows.
+Our message space and the identities of each level are all {0, 1}n . To get unbounded message length,
+we will use bit-by-bit encryption after the scheme is turned into an CPA secure scheme. For larger
+poly(n) identity lengths, we will change the security parameter n into poly(n) in the first step of the
+construction. As described below, for any identity vector IDi , we will represent its trapdoor tdIDi
+as (IDi−1 , tdi ) for the “correct” tdi . The algorithms for the constructed scheme work as follows:
+    • Setup(1n ): Choose MSK ∈ {0, 1}n uniformly at random then get MPK = S(MSK). We let
+      ID0 = hid0 i = hMPKi and tdID0 = td0 = MSK. Output (MSK, MPK).
+    • For i ∈ [1..l], KeyGeni (ID∗i−1 , tdIDi−1 , idi ) where ID∗i−1 = hid∗0 , ..., id∗i−1 i: Parse tdIDi−1 =
+      (IDi−2 , tdi−1 ). If ID∗i−2 = IDi−2 then set
+      tdi = gi [IDi−2 , tdi−1 ](idi ) and output tdIDi = (IDi−1 , tdi ). Otherwise, output ⊥.
+    • Enc(IDl , m): Output F (IDl−1 , idl , m).
+    • Dec(ID∗l , tdIDl , c): Parse tdIDl = (IDl−1 , tdl ). If ID∗l−1 = IDl−1 then output F −1 (IDl−1 , tdl , c).
+      Otherwise, output ⊥.
+
+                                                       13
+3.3     Security of Implemented HIBE Relative to O
+We prove that the constructed HIBE of Construction 3.4 (using the oracle O of Definition 3.3) is
+OW-CCA secure relative to (O, SamO ). The proof has the following two steps:
+
+   1. Compression and Reconstruction. Assuming the existence of any (deterministic) ad-
+      versary A who can break the OW-CCA security of the constructed HIBE (using O of Def-
+      inition 3.3) with probability  ≥ 1/ poly(n) and q = poly(n) queries, we show how to (1)
+      compress O to represent it using a “fewer” bits than is necessary to represent a general sam-
+      pled O, and (2) show how to reconstruct O. This compression is relative to the fixed adversary
+      A and both compression and reconstruction heavily depend on A. The number of bits saved
+      in the representation of O will directly imply a bound on the number of such oracles that A
+      can successfully attack. This would imply that with overwhelming probability over the choice
+      of O it will not be a good oracle for A’s attack. As usual with reconstruction-type arguments,
+      the bound obtained with this argument allows us to even do a union bound over all possible
+      adversaries that are implemented as circuits of polynomial size. Thus, with overwhelming
+      probability no efficient attacker would exist.
+
+   2. Adding SamO . The second step of the proof shows that adding SamO (and allowing A to
+      call it) does not interfere with the compression and reconstruction. The argument of this step
+      is identical to that of [HHRS07] but we provide our sketch of the proof in later in this section.
+
+3.3.1    Formalizing the Adversary A
+Without loss of generality, we assume that A is a deterministic adversary who asks q queries (to O
+and the challenger combined) and wins against a fixed oracle O with probability ≥ :
+
+                  Pr [A(MPK, y) = (id∗1 , . . . , id∗` , x) | F (MPK, id∗1 , . . . , id∗` , x) = y] ≥ 
+               (MPK,y)
+
+where A is participating in the OW-CCA security game, i.e. no vector of identities (id∗1 , . . . , id∗` ) is
+given to the adversary and he is the one who chooses them, but A is given a random master public
+key MPK and a random ciphertext y and he wants to invert y in a CCA attack. We can assume
+A is deterministic since we are working with non-uniform adversaries and we will prove that our
+oracle is secure against all circuits, and a non-uniform attacker can always fix its randomness to
+the “best” value.
+
+Notation. Throughout this section, we might occasionally use the simplifying notation in which
+MPK = id∗0 , y = id∗`+1 , and so the full identity vector of the attack is simply ID∗`+1 = (MPK, id∗1 , . . . , id∗` , y),
+but the first and last components of this vector are not chosen by the adversary but are selected at
+random. In addition we use td∗i to denote the corresponding trapdoor for id∗i with respect to the
+prefix ID∗i−1 . So we will also have the selected MSK = td∗0 and x = td∗`+1 for x the inverse of y.
+
+Putting A in canonical form.              We will modify A as follows.
+
+   1. Whenever A wants to output x as its final answer, it queries the encryption on x by calling
+      F [ID∗` ](x).
+
+
+
+                                                         14
+   2. Whenever A is about to ask the query gi [IDi−2 , tdi−1 ](idi ) (which returns tdi ) A will first
+      ask the query h−1
+                      i−1 [IDi−3 , idi−2 ](tdi−1 ) from O (that returns idi−1 corresponding to tdi−1 for
+      prefix IDi−2 ). This modification potentially increases the number of queries asked by A by
+      a factor of two which we can safely ignore (and assume that A is in canonical form to start
+      with).
+
+    Now we define the following events, which somehow capture the “level” in which the adversary
+finds a relevant trapdoor. This “trapdoor” could be finding the message x itself (which as described
+before, is interpreted as the “trapdoor” for its corresponding challenge ciphertext y), or it could be
+finding the relevant master secret key MSK (which we interpret as the trapdoor of the “identity”
+MPK), or it could be finding a trapdoor somewhere in between for idi for i ∈ [`]. Note that finding
+trapdoor for smaller i is a “stronger” attack that lets A find the relevant trapdoors for bigger i and
+eventually invert y.
+
+Definition 3.5 (Events Ei ). For i ∈ [0..` + 1] we say that the event Ei has happened during the
+execution of A in the (OW-CCA) security game, if A calls the query h−1      ∗       ∗
+                                                                       i [IDi−1 ](tdi ) and receives
+an answer other than ⊥. We also let E−1 be an empty event (and so ¬E−1 holds with probability
+one).
+
+   The first canonical modification of A implies that the success probability of A (and the notation
+we use to denote x as td∗`+1 and MPK = id∗0 ) simply means that what we are assuming about A’s
+success attack is equivalent to saying:
+
+                                                  Pr [E`+1 ] ≥ .
+                                                ID∗`+1
+
+   In the following we assume this is the case.
+
+Lemma 3.6. For events Ei ’s defined according to Definition 3.5, there exists i ∈ [0..` + 1] such
+that PrID∗`+1 [Ei ∧ ¬Ei−1 ] ≥ /(` + 2).
+
+Proof. It holds that:
+                             [                                            [
+                 E`+1 ⊆                (Ei ∧ ¬Ei−1 ∧ · · · ∧ ¬E0 ) ⊆                (Ei ∧ ¬Ei−1 ) .
+                          i∈[0..`+1]                                   i∈[0..`+1]
+
+Also note that Pr[E`+1 ] ≥ . Therefore, there should exists an index i for which Pr[Ei ∧ ¬Ei−1 ] ≥
+/(` + 2).
+
+Fixing parameters. In the rest of the proof, we fix i to the value that satisfies Lemma 3.6, and
+we let 0 = /(` + 2). However, we will not always fix the master public-key MPK nor the challenge
+ciphertext y using an averaging argument. Whether or not we fix either of them will depend on i.
+
+The sub-oracle h(·) = {h0 (·), . . . , h`+1 (·)}. So far we only defined h−1 (·) without referring to h(·)
+(which was not a subroutine provided as part of the oracle O). Here we introduce this subroutine
+module and allow A to call it in a “restricted” way. To elaborate, note that in the CCA security
+game, the adversary can call the oracles HMSK (.) and DMSK (., .), which allow him get the trapdoors
+for any identity as long as it is not a prefix of the challenge identity, and get decryption of any
+message other than challenge ciphertext y. Both of these queries are special cases of queries that
+
+                                                         15
+are the inverse of h−1 (·). Namely, for i ∈ [1..`+1] let hi (IDi ) = hi [IDi−1 ](idi ) be defined to be equal
+to tdi whenever h−1                            −1
+                   i [IDi−2 , idi−1 ](tdi ) = hi [IDi−1 ](tdi ) = idi . Then any query of the adversary A
+to both of the oracles HMSK (.), DMSK (., .) is a special case of a query to hi (·) for some i ∈ [1..` + 1].
+For simplicity, we will even define h0 even though the adversary is not calling such queries directly
+(since the MPK = id∗0 is given by the challenger and is fixed). The restriction on adversary’s queries
+to HMSK (.), DMSK (., .) translates into a natural restriction on how he accesses the oracle h(·): none
+of these queries are allowed to be a prefix of ID∗`+1 .
+
+3.3.2     Step 1: Compression and reconstruction of O without the presence of SamO
+We now begin the first step of the proof by showing how we can use a fixed adversary A (with the
+behaviour and capabilities that were described in 3.3.1) to compress the description of oracle O.
+
+Full representation of O with no compression. To represent a general oracle O fully (while
+there is no attacker) without redundant information, it suffices to represent only the injective
+oracles hi [IDi−1 ](·) for all i ∈ [0..` + 1] and all IDi−1 ∈ {0, 1}in . Note that for i = {0, ` + 1}
+these injective functions happen to be a permutation as well! Now any query to h−1              i [IDi−1 ](·)
+can be answered using its corresponding explicitly represented inverse function hi [IDi−1 ](·). To
+answer the gi [IDi−2 , tdi−1 ](idi ) queries, we employ induction on i. Recall that the master public
+key generation S(·) sub-routine of O is the same as h−1        0 (·). Now, for i ∈ [1..` + 1] and a given
+query gi [IDi−2 , tdi−1 ](idi ), we can first find the relevant identity of tdi−1 by looking up the value of
+h−1
+ i−1 [IDi−2 ](tdi−1 ), whose answer is represented in the description of the permutation hi−1 [IDi−2 ](·),
+and get idi−1 . This will enable us to find hi (IDi ) = hi [IDi−1 ](idi ), which is also the answer to
+gi [IDi−2 , tdi−1 ](idi ).
+
+Intuition behind the compression of O relative to A. Here we describe the high level idea
+behind how to compress O relative to A, using the ideas described in Lemma A.1 and Lemma A.2.
+At a very high level we will compress O as follows.
+
+   1. If i = l + 1 (i.e. adversary wins by inverting y = idl+1 without finding any trapdoor for
+      any of the identities he proposes): In this case, we apply a similar idea to Lemma A.1 and
+      compress O by representing it using three pieces of information: the description of the fixed
+      master public key id∗0 = MPK∗ that maximizes the adversary’s success probability, the full
+      description of h−1                                                            in
+                           i [IDi−1 ](·) for all i ∈ [0..`] and all IDi−1 ∈ {0, 1} , and the “compressed”
+                          −1        ∗       ∗             ∗     ∗    ∗      ∗
+      description of hl+1 [IDl ] = F [IDl ] where IDl = hid0 , id1 , ..., idl i for some adversarially chosen
+      identities (id∗1 , ..., id∗l ).
+        The idea behind compressing h−1                ∗
+                                                l+1 [IDl ](·) is as follows. Note that the identity vector IDl
+                                                                                                                  ∗
+
+        (and its corresponding trapdoor) determines a single permutation that is described in dif-
+        ferent directions by h−1           ∗                ∗                   ∗     ∗
+                                   l+1 [IDl ](·), hl+1 [IDl ](·), and gl+1 [IDl−1 , tdl ](·). The main difference
+                                                              −1
+        between these three permutations is that hl+1 [ID∗l ](·) provides the access from trapdoors to
+        identities, while the other two provide the access in the opposite direction. The algorithm A
+        is “inverting” a random ciphertext idl+1 with respect to the identity vector ID∗l , and it finds
+        its related tdl+1 with probability 0 . Now, if we can show that A’s access to the three permu-
+        tations h−1      ∗                ∗                     ∗     ∗
+                  l+1 [IDl ](·), hl+1 [IDl ](·), and gl+1 [IDl−1 , tdl ](·) does not let him find tdl+1 “trivially”
+        we can apply the compression algorithm of Lemma A.1. The queries that let A find tdl+1
+
+
+                                                        16
+      trivially are the two queries hl+1 [ID∗l ](idl+1 ) and gl+1 [ID∗l−1 , td∗l ](idl+1 ). However, we already
+      know that none of these queries are asked by A (before he asks h−1                  ∗
+                                                                                   l+1 [IDl ](tdl+1 )). The reason
+                                        ∗
+      that A is not asking hl+1 [IDl ](·) is that h(·) is not a subroutine publicly available as part of
+      oracle O, and is only provided due to the CCA nature of the attack, yet this particular query
+      hl+1 [ID∗l ](idl+1 ) is prohibited to be asked by A since it violates the CCA attack’s requirements
+      (asking this query is akin to allowing the adversary to query the oracle with the challenge!).
+      In addition, the reason that A is not asking gl+1 [ID∗l−1 , td∗l ](idl+1 ) is that if he does so, he
+      would be asking the query h−1            ∗       ∗
+                                          l [IDl−1 ](tdl ) right before that, which means the event El is
+      happening (which we already assumed is not happening). Therefore, the behaviour of A lets
+      us apply the compression algorithm of Lemma A.1 to compress the description of h−1                       ∗
+                                                                                                        l+1 [IDl ](·).
+
+  2. If i = 0 (i.e. adversary wins by finding the master secret key): In this case, we apply a similar
+     idea to Lemma A.1 and compress O by representing it using three pieces of information: the
+     description of the fixed challenge ciphertext id∗l+1 = y ∗ that maximizes the adversary’s success
+     probability, the full description of h−1                                                         in
+                                           i [IDi−1 ](·) for all i ∈ [1..` + 1] and all IDi−1 ∈ {0, 1} ,
+                                              −1
+     and the “compressed” description of h0 (which corresponds to S). The same idea that was
+     described for i = (l + 1) applies here as well except that we need not concern ourselves with
+     queries that could be used to trivially find td0 .
+
+  3. If i ∈ [1..`]: This is the part of the proof for the OW-CCA security game that differs from
+     the other two cases significantly. First we will fix y to whatever that maximizes the winning
+     probability of the adversary. Now, the only remaining randomness (over which the adversary
+     wins with some probability ≥ 0 ) is the randomly selected master public key. We call a MPK
+     good (for adversary) if the adversary manages to make (Ei ∧ ¬Ei−1 ) hold given this MPK
+     (and the fixed challenge ciphertext y).
+      We compress O as follows. We represent each “subtree” of the oracle O that correspond to
+      different MPKs differently. For MPKs that are not good, we will give a full representation.
+      However, for each good MPK, we will represent the part of O that corresponds to this MPK
+      in a compressed manner using the basic compression algorithm of Lemma A.2 applied to
+      the single injective function hi [ID∗i−1 ](·). We will also represent (ID∗i−1 ) (for this particular
+      MPK) but the number of bits that we save by compressing hi [ID∗i−1 ](·) is more than |ID∗i−1 |
+      because m  n · `. Finally, since the adversary is succeeding for all good MPK’s and there
+      are super-polynomially many of them, our compression algorithm compresses the description
+      of O by a super-polynomial number of bits.
+
+    Now we proceed with stating the formal claims that we will focus on from now on for proving
+that there exists a secure HIBE with respect to O. In particular, we will have two claims: one
+for handling the two identical cases of i = 0 and i = l + 1 (where an adversary would find the
+corresponding MSK∗ = td∗0 or x∗ = td∗l+1 ), and another for treating the case of i ∈ [1..l] (where an
+adversary finds an intermediate trapdoor) as mentioned during the intuition.
+
+Claim 3.7. Let O be an l-level random hierarchical trapdoor injective function oracle and n be the
+security parameter. Let A be a q-query circuit that accepts a master public key MPK∗ ∈ {0, 1}n ,
+chooses an identity vector ID∗l = hMPK∗ , id∗1 , ..., id∗l i, then receives a challenge ciphertext y ∗ ←
+F [ID∗l ](x∗ ) = h−1     ∗    ∗                ∗              n
+                  l+1 [IDl ](x ) for a random x ∈ {0, 1} . Then for q ≤ 2
+                                                                                   n/5 , 0 ≥ 2−n/5 , and
+
+
+
+
+                                                         17
+i ∈ {0, l + 1} (and large enough n) we have:
+                                                                                       
+                                                          −1                                   −2n/2
+                             ∗       O          O               ∗     ∗         ∗
+                                                                                       0
+        Pr       Pr         ID   ← A   (MPK) : A  (MPK, h    [ID  ](x   )) = td     ≥    ≤ 2
+           
+                          n     l                         l+1    l               i       
+        O     MPK←{0,1}
+               x∗ ←{0,1}n
+
+
+Therefore, the oracle O can be represented using α − 2n/2 bits where α is the number of bits required
+to represent a random O.
+
+Claim 3.8. Let O be an l-level random hierarchical trapdoor injective function oracle and n be the
+security parameter. Let A be a q-query circuit that accepts a master public key MPK∗ ∈ {0, 1}n ,
+chooses an identity vector ID∗l = hMPK∗ , id∗1 , ..., id∗l i, then receives a challenge ciphertext y ∗ ←
+F [ID∗l ](x∗ ) = h−1     ∗    ∗                ∗           n
+                  l+1 [IDl ](x ) for a random x ∈ {0, 1} . Then for q ≤ 2
+                                                                              n/5 , 0 ≥ 2−n/5 , m = 10nl,
+
+and i ∈ [1, l] (and large enough n) we have:
+                                                                                       
+                           ∗                            −1     ∗     ∗        ∗               3n/5
+                                    O           O
+                                                                                   ≥ 0  ≤ 2−2
+                                                                                 
+       Pr        Pr       ID   ← A   (MPK) : A   (MPK, h    [ID  ](x   )) = td
+                                                                                       
+                        n     l                          l+1    l              i
+        O   MPK←{0,1}
+             x∗ ←{0,1}n
+
+
+Therefore, the oracle O can be represented using α−23n/5 bits where α is the number of bits required
+to represent a random O.
+
+Proof of Claim 3.7. We show here the compression of the oracle in case i = 0 or i = (l + 1)
+since these two cases are identical in nature. As described before, the compressed representation
+of O will contain the fixed i, the fixed master public key or challenge ciphertext, as well as full
+representation of permutations h−1                                                          ∗
+                                   j [IDj−1 ](·) for all j ∈ [0..` + 1] and all IDj−1 6= IDi−1 . In the
+following we describe how to represent the description of h−1        ∗
+                                                               i [IDi−1 ](·) by describing the encoding
+and decoding algorithms.
+    Encoder: Fix i and let c = |i − (l + 1)|. Fix id∗c such that Lemma 3.6 is satisfied. Note that id∗c
+represents the fixed master public key if i = (l + 1), and represents the fixed ciphertext challenge
+when i = 0. Let N = 2n and let I ⊆ {0, 1}n be the set of i-level identities id∗i ∈ {0, 1}n for which A
+can successfully find their corresponding trapdoor td∗i (so |I| ≥ 0 N ), and let Y = ∅. The encoder
+works as follows:
+                                                 f∗ from I and put it in Y
+   1. Remove the lexicographically first element idi
+
+   2. Run AO (id∗c , id
+                     f∗ ). If A asks query:
+                        i
+
+         • h−1   ∗       ∗       ∗       ∗                   ∗
+            i [IDi−1 ](tdi ) = idi and idi ∈ I then remove idi from I
+         • hi [ID∗i−1 ](id∗i ) and id∗i ∈ I then remove id∗i from I
+
+      Note that since event Ei−1 does not happen here, A will not call gi [ID∗i−2 , td∗i−1 ](·)
+
+   3. If |I| =
+             6 ∅, go back to Step 1. Otherwise go to the next step.
+
+   4. Output the following:
+
+         • Description of i
+
+                                                      18
+        • Description of id∗c
+        • The compressed representation of h−1   ∗
+                                            i [IDi−1 ] which consists of:
+             – Description of Y ⊆ I
+             – Description of X = hi [ID∗i−1 ](Y )
+             – Description of permutation Z = {(id∗i , hi [ID∗i−1 ](id∗i ) | id∗i ∈ {0, 1}n \Y }
+        • The full representation of all the other permutations H = {h−1
+                                                                      j [IDj−1 ] | j ∈ [0, .., l +
+                         ∗
+          1], IDj−1 6= IDi−1 }
+
+   Decoder: Given A, the descriptions of X, Y ,Z, and H, and the description of i and id∗c , the
+decoder can reconstruct O as follows:
+
+  1. Remove first lexicographically ordered id∗i from Y and call it id
+                                                                    f∗
+                                                                      i
+
+  2. Run AO (id∗c , id
+                    f∗ ). If A asks query:
+                      i
+
+        • h−1   ∗       ∗             ∗         n
+           i [IDi−1 ](tdi ) for any tdi ∈ {0, 1} :
+                       / X: value of h−1
+             – If td∗i ∈                    ∗       ∗
+                                       i [IDi−1 ](tdi ) is given by Z.
+             – If td∗i ∈ X and h−1      ∗      ∗         f∗            −1   ∗       ∗
+                                 i [IDi−1 ](tdi ) <lex idi : value of hi [IDi−1 ](tdi ) would have been
+               precomputed before this call.
+             – If td∗i ∈ X and h−1       ∗      ∗      f∗              f∗
+                                  i [IDi−1 ](tdi ) = idi : A has hit idi and found its corresponding
+               trapdoor, so we set h−1      ∗       ∗      f∗
+                                      i [IDi−1 ](tdi ) = idi .
+
+        • hi [ID∗i−1 ](id∗i ) = td∗i for any id∗i ∈ {0, 1}n \id
+                                                             f∗
+                                                                i
+                       / X: value of hi [ID∗i−1 ](id∗i ) is given by Z.
+             – If td∗i ∈
+             – If td∗ ∈ X and id∗ <lex id  f∗ : value of hi [ID∗ ](id∗ ) would have been precomputed
+                     i               i          i                   i−1   i
+               before this call and can be inferred from the description of h−1   ∗
+                                                                             i [IDi−1 ]
+        • h−1                                   n                                  ∗
+           j [IDj−1 ](tdj ) for any tdj ∈ {0, 1} , and either j 6= i or IDj−1 6= IDi−1 : the result idj
+          can be obtained using the given full representation of h−1 j [IDj−1 ]
+        • hj [IDj−1 ](idj ) for any idj ∈ {0, 1}n , and either j 6= i or IDj−1 6= ID∗i−1 : the result tdj
+          can be obtained using the given full representation of h−1   j [IDj−1 ]
+        • gj [IDj−2 , tdj−1 ](idj ) for any tdj ∈ {0, 1}n , and either j 6= i or IDj−1 6= ID∗i−1 : due to
+          the canonical behaviour of A, h−1    j−1 [IDj−2 ](tdj−1 ) will be called first to get idj−1 . Then
+          we can find the desired trapdoor tdj using hj [IDj−1 ](idj ) whose answer is represented in
+          h−1
+           j [IDj−1 ].
+
+  3. If |Y | = ∅ then stop. Otherwise go to step 1.
+
+    Since for each id∗i that is inserted into Y we remove at most q from I, the size of Y is at
+least a := |I|/(q + 1) ≥ 0 N/(q + 1). Let Enc(O) represent the size (in bits) of the compressed
+oracle. The only difference in the description of the permutations between Enc(O) and O is that
+in the compressed oracle we are saving on the representation of h−1          ∗
+                                                                        i [IDi−1 ]. Specifically, while
+  −1   ∗                                                                            N
+                                                                                      
+hi [IDi−1 ] requires log N ! bits to be fully represented in O, we only need 2 log a + log((N − a)!)
+to represent the compressed h−1         ∗
+                                  i [IDi−1 ], which consists of X, Y and Z. Furthermore, we need
+
+
+
+
+                                                       19
+n+log(l +2) = O(n+l) to represent id∗c and i. Thus, the amount of bits we save in our compression
+is:                                     
+                                        N
+                       log N ! − 2 log       − log((N − a)!) − O(n + l)
+                                         a
+and since l = poly(n), the overhead we incur due to representing the index i and identity id∗c in
+the compressed oracle is relatively insignificant. In particular, the fraction of oracles O on which
+A can do 0 -well is at most:
+
+                              2|Enc(O)|    2 log (N
+                                                  a)
+                                                     +log((N −a)!)+O(n+l)−log N !
+                                        = 2
+                                2|O|
+                                            N 2
+                                              
+                                            a (N − a)!
+                                        =                   · 2O(n+l)
+                                                  N !
+                                             N
+                                              
+                                        =    a
+                                               · 2O(n+l)
+                                           a!
+                                           2 a
+                                            Ne
+                                        ≤           · 2O(n+l)
+                                             a2
+
+                                                        2−n/5 2n
+If we let q ≤ 2n/5 and 0 ≥ 2−n/5 we get that a ≥ n/5            ≥ 23n/5 /2. So the upper bound
+                        a             2 a            2   +  1
+               (4)2n e2
+             
+                                       4e                               3n/5−1 +O(n+l)      n/2
+reduces to        6n/5
+                           2 O(n+l) =   n/5
+                                             2O(n+l) ≤ 2−a+O(n+l) ≤ 2−2                ≤ 2−2    for
+                2                      2
+sufficiently large n.
+
+Proof of Claim 3.8. We show here the compression of the oracle in case i ∈ [1..l]. In the following
+we describe how to represent the description of the injective function hi [ID∗i−1 ](·) by describing the
+encoding and decoding algorithms.
+   Encoder: Fix i and y such that Lemma 3.6 is satisfied. Let N = 2n , M = 2m and let I ⊆ {0, 1}n
+be the set of master public keys MPK ∈ {0, 1}n for which A can successfully find some ID∗i such
+that id∗i was obtained by calling h−1      ∗       ∗                                           ∗      ∗
+                                      i [IDi−1 ](tdi ) without any prior invocation to hi [IDi−1 ](idi ).
+             0
+Thus, |I| ≥  N . Initialize the set Y = ∅. The encoder works as follows:
+
+  1. Remove the lexicographically first element MPK
+                                                ^ from I and put it in Y
+
+  2. Run AO (MPK,
+             ^ y). If A asks query:
+
+         • hi [ID∗i−1 ](id∗i ) and id∗0 ∈ I then remove id∗0 from I
+
+      Note that since event Ei−1 does not happen here, A will not call gi [ID∗i−2 , td∗i−1 ](·)
+
+  3. If |I| =
+            6 ∅, go back to Step 1. Otherwise go to the next step.
+
+  4. Output the following:
+
+         • Description of i and y
+         • Description of Y ⊆ I
+         • For each MPK = id∗0 ∈ Y :
+             – Description of ID∗i−1 on which A was successful
+
+                                                      20
+             – The compressed representation of hi [ID∗i−1 ] which consists of:
+                ∗ Description of point id∗i
+                ∗ Description of the injective function h0i [ID∗i−1 ] : [N − 1] → [M ] on all points
+                    except id∗
+                ∗ The query index k ∈ [q] during which h−1         ∗      ∗       ∗
+                                                             i [IDi−1 ](tdi ) = idi is called
+             – The full representation of all the other injective functions H = {hj [IDj−1 ] | IDj−1 6=
+               ID∗i−1 }
+        • The full representation of all injective functions for “bad” MPK: R = {hj [IDj−1 ] | id0 ∈
+                                                                                                   /
+          Y}
+
+     Decoder: Given A, the descriptions of i, y, Y, H, R, and the |Y | compressed representations of
+hi [ID∗i−1 ] (including ID∗i−1 the query index k for each representation), the decoder can reconstruct
+O as follows:
+                                                                   ^ Let ID∗i−1 be the target
+  1. Remove first lexicographically ordered MPK from Y and call it MPK.
+     identity that specifies which function has been compressed.
+
+  2. Reconstruct all the answers of hi (ID∗i−1 ) using h0i [ID∗i−1 ] except for hi (ID∗i−1 )(id∗i ) which is
+     yet to be determined
+
+  3. Run AO (MPK,
+             ^ y). If A asks query:
+
+        • h−1   ∗       ∗             ∗         m
+           i [IDi−1 ](tdi ) for any tdi ∈ {0, 1} :
+             – If this is the k th query then we have found the corresponding id∗i so set hi [ID∗i−1 ](id∗i ) =
+               td∗i
+             – Otherwise answer using h0i [ID∗i−1 ]
+        • hi [ID∗i−1 ](id∗i ) = td∗i for any id∗i ∈ {0, 1}n : answer using h0i [ID∗i−1 ]
+        • h−1                                   m                                ∗
+           j [IDj−1 ](tdj ) for any tdj ∈ {0, 1} , and id0 ∈ Y and IDj−1 6= IDi−1 : answer using
+          the given full representation from H. The same applies for hj [IDj−1 ] queries.
+        • h−1                                   m
+           j [IDj−1 ](tdj ) for any tdj ∈ {0, 1} , and id0 ∈
+                                                           / Y : answer using the given full repre-
+          sentation from R. The same applies for hj [IDj−1 ] queries.
+        • gj [IDj−2 , tdj−1 ](idj ) for any tdj ∈ {0, 1}m : due to the canonical behaviour of A, h−1
+                                                                                                  j−1 [IDj−2 ](tdj−1 )
+          will be called first to get idj−1 . Then we can find the desired trapdoor tdj using
+          hj [IDj−1 ](idj ) whose answer is represented in the description of h−1   j [IDj−1 ].
+
+  4. If |Y | = ∅ then stop. Otherwise go to step 1.
+
+    Since for each MPK that is inserted into Y we remove at most q from I, the size of Y is at least
+a := |I|/(q + 1) ≥ 0 N/(q + 1). Let Enc(O) represent the size (in bits) of the compressed oracle.
+The only difference in the description of the injective functions between Enc(O) and O is that in
+the compressed oracle, we are saving on the representation of hi [ID∗i−1 ] for the master public keys
+represented in Y . Specifically, for each MPK ∈ Y , we are compressing a single injective function
+from requiring αN,M = Πi∈[N ] (M − i − 1) bits to αN −1,M bits whilst incurring an overhead of at
+
+
+
+
+                                                       21
+most n(l + 1) + log(q) to represent ID∗i and the query index k. Thus if q < 2n/5 and m = 10nl and
+l = poly(n), we have that, for each good MPK, the net savings (in bits) of:
+
+         log(αN,M ) − log(αN −1,M ) − nl − n − log(q) = log(αN,M /αN −1,M ) − nl − n − log(q)
+                                                       = log(M − N − 1) − nl − n − log(q)
+                                                       ≥ log(M/2) − nl − n − log(2n/5 )
+                                                       ≥ m − 1 − nl − n − (n − 1)
+                                                       = 10nl − nl − 2n ≥ 6nl
+
+Since we have a ≥ 0 N/(q + 1) “good” master public keys and given that q < 2n/5 and 0 > 2−n/5 ,
+                                                         23n/5
+the total number of savings we get is at least a × 6nl ≥       (6nl) ≥ 23n/5 for sufficiently large
+                                                           2
+n.
+
+3.3.3     Step 2: Adding the SamO oracle
+The second step of the proof shows that giving access to the oracle SamO to A does not interfere with
+the compression and reconstruction procedures. The argument of this step is identical to that of
+[HHRS07]. However, we sketch the steps of this argument for sake of completeness. Our goal here is
+to show that the same compression level of the oracle O (relative to which the adversary “succeeds”
+with non-negligible probability) could be obtained even when we add the SamO oracle (with an
+arbitrary fixed randomness) and allow A to call it. This would show that, with high probability
+over the choice of the oracle O and the randomness of the oracle SamO the implementation of HIBE
+using O remains secure.
+    Looking ahead, the only change would be that this time we need to use the augmented query
+complexity of the attacker instead, and we lose a factor of 3 in the success probability of A.
+Therefore, the hardness of the constructed HIBE using the sampled oracle O would be almost the
+same as before (as a parameter of  and the augmented query complexity q). The augmented query
+complexity of an attacker A is equal to its standard query complexity to the oracle O plus the total
+number of indirect O queries in the form of O gates that are planted in circuits that are queried to
+from SamO by the adversary. The new modified proof goes through the following two steps.
+
+  1. First note that the job of the adversary is essentially to “hit” the preimage of the challenge
+     ciphertext y or an identity id∗i , or the master public key. This event could be either as a
+     result of a direct query to O or as a result of an indirect query to O through a circuit C
+     asked to Sam. The exact hitting event that the adversary is looking for depends on which
+     case Ei ∧ ¬Ei−1 we are focusing on, but let us assume we are dealing with a fixed i and the
+     adversary is able to make the event Ei ∧ ¬Ei−1 happen with a decent chance by “hitting” the
+     trapdoor td∗i of id∗i . An indirect hitting of td∗i would happen iff the adversary sends a circuit
+     C to SamO (C) with O gates in it and returns a collision (x, x0 ) and either of C(x) or C(x0 )
+     happens to hit td∗i .
+        A crucial argument due to [HHRS07] shows that one can always modify the attacker to ask
+        a few more queries so that it hits its goal td∗i directly (before it happens indirectly) with
+        a probability that is at most a factor of 3 less than the the total probability of hitting it
+        (directly or indirectly). The intuition behind this argument is that the distributions of the
+
+
+                                                  22
+        two points x and x0 are both uniform over the inputs of C (even though they are distributed
+        in a correlated way). So, if the adversary chooses a random point x00 and evaluates C(x00 )
+        before asking C from the SamO oracle, it keeps the chance of hitting td∗i directly at least half
+        of hitting it indirectly!9
+        In the second part of the argument below we will safely assume that the event Ei ∧ ¬Ei−1 ∧
+        ¬SamHit is happening with non-negligible probability, while SamHit refers to to an the
+        event that td∗i is being hit first indirectly through a Sam query by the adversary.
+
+   2. The second part of the proof shows that if we start with the guarantee that Ei ∧ ¬Ei−1 ∧
+      ¬SamHit is happening with a noticeable probability, we can achieve the same compression
+      of the oracle O even if we fix the randomness of Sam. This argument indeed holds because
+      of the way our compression and decompression algorithms work. Note that at the heart of
+      our compression and decompression algorithms we basically run the adversary over different
+      inputs till it hits a special point. What is crucial in these arguments is that while we have not
+      hit the final point of interest we can still continue the execution of the adversary and hope that
+      the answer to the current queries are already reconstructed. Now if we have the guarantee
+      that no SamO (C) query by adversary is hitting td∗i indirectly, and if we have already fixed the
+      randomness of the Sam oracle, we can still run the encoding and decoding algorithms with
+      almost no change. Namely, suppose C is a circuit query to Sam. The first thing Sam does
+      is to run C on a random (but not fixed) input x. We have the guarantee that the execution
+      of C(x) does not encounter any query whose answer is not already reconstructed. Moreover,
+      the second point x0 is the lexicographically first input to C such that C(x) = C(x0 ) where
+      x0 is being chosen from a random permutation (that is also fixed!) over the inputs of C. To
+      find the same x0 while doing the reconstruction, all we have to do is to run C over all inputs
+      one by one using the same permutation order (that is now fixed) till we manage to finish an
+      execution C(x0 ) that happens to output the same C(x). This means that we can run the
+      same encoding and decoding algorithms even in the presence of Sam oracle.
+
+Proof of Claim 3.2. Given the implementation of the HIBE scheme using O in Construction 3.4,
+we prove the first part of the claim, by referring to Claims 3.7 and 3.8. In particular, the combined
+claims show that for any given adversary of the HIBE scheme whose goal is to invert its challenge
+ciphertext for an identity vector of its choice, the probability of doing so is negligible in the security
+parameter when it is trying to invert an identity at level i. Thus, a union bound over all possible
+i ∈ [l], where l = poly(n) still results in negligible probability of success. The second part of the
+claim (that is, that the HIBE is secure even in the presence of SamO ) follows by extension from
+the discussion in Section 3.3.3, and in particular from the techniques of [HHRS07].
+
+Acknowledgement.              We thank Vinod Vaikuntanathan for very useful discussions.
+
+
+References
+[ABB10]         Shweta Agrawal, Dan Boneh, and Xavier Boyen. Efficient lattice (h)ibe in the standard
+                model. In Henri Gilbert, editor, Advances in Cryptology EUROCRYPT 2010, volume
+  9
+      The actual argument is more subtle, but the main idea is the linearity of expectation over different probabilities.
+
+
+
+                                                           23
+           6110 of Lecture Notes in Computer Science, pages 553–572. Springer Berlin Heidelberg,
+           2010. 1
+
+[AS15]     Gilad Asharov and Gil Segev. Limits on the power of indistinguishability obfuscation
+           and functional encryption. Cryptology ePrint Archive, Report 2015/341, 2015. http:
+           //eprint.iacr.org/. 3
+
+[BB04]     Dan Boneh and Xavier Boyen. Efficient selective-id secure identity-based encryption
+           without random oracles. In Christian Cachin and JanL. Camenisch, editors, Advances
+           in Cryptology - EUROCRYPT 2004, volume 3027 of Lecture Notes in Computer Sci-
+           ence, pages 223–238. Springer Berlin Heidelberg, 2004. 1
+
+[BBG05]    Dan Boneh, Xavier Boyen, and Eu-Jin Goh. Hierarchical identity based encryption with
+           constant size ciphertext. In Proceedings of the 24th Annual International Conference on
+           Theory and Applications of Cryptographic Techniques, EUROCRYPT’05, pages 440–
+           456, Berlin, Heidelberg, 2005. Springer-Verlag. 1
+
+[BCHK06] Dan Boneh, Ran Canetti, Shai Halevi, and Jonathan Katz. Chosen-ciphertext security
+         from identity-based encryption. SIAM J. Comput., 36(5):1301–1328, December 2006.
+         1, 2, 12
+
+[BF03]     Dan Boneh and Matthew K. Franklin. Identity-Based Encryption from the Weil Pairing.
+           SIAM J. Comput., 32(3):586–615, 2003. 1
+
+[BPR+ 08] Dan Boneh, Periklis A. Papakonstantinou, Charles Rackoff, Yevgeniy Vahlis, and Brent
+          Waters. On the impossibility of basing identity based encryption on trapdoor permu-
+          tations. In FOCS, pages 283–292. IEEE Computer Society, 2008. 3
+
+[BR93]     Mihir Bellare and Phillip Rogaway. Random Oracles are Practical: A Paradigm for
+           Designing Efficient Protocols. In ACM Conference on Computer and Communications
+           Security, pages 62–73, 1993. 2
+
+[BSW11]    Dan Boneh, Amit Sahai, and Brent Waters. Functional encryption: Definitions and
+           challenges. In TCC, pages 253–273, 2011. 3
+
+[CHK03]    Ran Canetti, Shai Halevi, and Jonathan Katz. A forward-secure public-key encryp-
+           tion scheme. In Eli Biham, editor, EUROCRYPT, volume 2656 of Lecture Notes in
+           Computer Science, pages 255–271. Springer, 2003. 1
+
+[CLMP13] Kai-Min Chung, Huijia Lin, Mohammad Mahmoody, and Rafael Pass. On the power of
+         nonuniformity in proofs of security. In Proceedings of the 4th conference on Innovations
+         in Theoretical Computer Science, pages 389–400. ACM, 2013. 7
+
+[DPP97]    Ivan B. Damgård, Torben P. Pedersen, and Birgit Pfitzmann. On the existence of statis-
+           tically hiding bit commitment schemes and fail-stop signatures. Journal of Cryptology,
+           pages 163–194, 1997. Preliminary version in CRYPTO ’93. 2
+
+[GGK03]    Gennaro, Gertner, and Katz. Lower bounds on the efficiency of encryption and digital
+           signature schemes. In STOC: ACM Symposium on Theory of Computing (STOC),
+           2003. 4
+
+                                               24
+[GGKT05] Rosario Gennaro, Yael Gertner, Jonathan Katz, and Luca Trevisan. Bounds on the
+         efficiency of generic cryptographic constructions. SIAM J. Comput., 35(1):217–246,
+         2005. 4, 6
+
+[GGM86]    Oded Goldreich, Shafi Goldwasser, and Silvio Micali. How to construct random func-
+           tions. J. ACM, 33(4):792–807, 1986. 1
+
+[GHRW14] Craig Gentry, Shai Halevi, Mariana Raykova, and Daniel Wichs. Garbled ram revisited,
+         part i. Cryptology ePrint Archive, Report 2014/082, 2014. http://eprint.iacr.org/.
+         1
+
+[GKLM12] Vipul Goyal, Virendra Kumar, Satya Lokam, and Mohammad Mahmoody. On black-
+         box reductions between predicate encryption schemes. In Ronald Cramer, editor, The-
+         ory of Cryptography, volume 7194 of Lecture Notes in Computer Science, pages 440–457.
+         Springer Berlin Heidelberg, 2012. 3
+
+[GKM+ 00] Yael Gertner, Sampath Kannan, Tal Malkin, Omer Reingold, and Mahesh
+          Viswanathan. The Relationship between Public Key Encryption and Oblivious transfer.
+          In FOCS, pages 325–335, 2000. 4, 8
+
+[GL89]     Oded Goldreich and Leonid A. Levin. A hard-core predicate for all one-way functions.
+           In Proc. 21st STOC, pages 25–32. ACM, 1989. 5
+
+[GM84]     Shafi Goldwasser and Silvio Micali. Probabilistic encryption. J. Comput. Syst. Sci.,
+           28(2):270–299, 1984. 1
+
+[GS02]     Craig Gentry and Alice Silverberg. Hierarchical id-based cryptography. In Proceed-
+           ings of the 8th International Conference on the Theory and Application of Cryptology
+           and Information Security: Advances in Cryptology, ASIACRYPT ’02, pages 548–566,
+           London, UK, UK, 2002. Springer-Verlag. 1
+
+[GT00]     Rosario Gennaro and Luca Trevisan. Lower Bounds on the Efficiency of Generic Cryp-
+           tographic constructions. In FOCS, pages 305–313, 2000. 4, 6, 7, 27
+
+[HHRS07] Iftach Haitner, Jonathan J. Hoch, Omer Reingold, and Gil Segev. Finding collisions
+         in interactive protocols - A tight lower bound on the round complexity of statistically-
+         hiding commitments. In 48th Annual IEEE Symposium on Foundations of Computer
+         Science (FOCS 2007), October 20-23, 2007, Providence, RI, USA, Proceedings, pages
+         669–679. IEEE Computer Society, 2007. 2, 3, 4, 6, 8, 10, 11, 14, 22, 23
+
+[HILL99]   Johan Håstad, Russell Impagliazzo, Leonid A. Levin, and Michael Luby. A pseudoran-
+           dom generator from any one-way function. SIAM J. Comput., 28(4):1364–1396, 1999.
+           1
+
+[HL02]     Jeremy Horwitz and Ben Lynn. Toward hierarchical identity-based encryption. In
+           LarsR. Knudsen, editor, Advances in Cryptology EUROCRYPT 2002, volume 2332 of
+           Lecture Notes in Computer Science, pages 466–481. Springer Berlin Heidelberg, 2002.
+           1, 9
+
+
+
+                                               25
+[HR04]    Hsiao and Reyzin. Finding collisions on a public road, or do secure hash functions need
+          secret coins? In CRYPTO: Proceedings of Crypto, 2004. 8
+
+[IKO05]   Yuval Ishai, Eyal Kushilevitz, and Rafail Ostrovsky. Sufficient conditions for collision-
+          resistant hashing. In In Proceedings of the 2nd Theory of Cryptography Conference,
+          pages 445–456, 2005. 2
+
+[IL89]    Russell Impagliazzo and Michael Luby. One-way functions are essential for complexity
+          based cryptography (extended abstract). In FOCS, pages 230–235, 1989. 1
+
+[IR89]    Russell Impagliazzo and Steven Rudich. Limits on the provable consequences of one-
+          way permutations. In Proceedings of the 21st Annual ACM Symposium on Theory of
+          Computing (STOC), pages 44–61. ACM Press, 1989. 2
+
+[Lin06]   Yehuda Lindell. A simpler construction of CCA2-secure public-key encryption under
+          general assumptions. J. Cryptology, 19(3):359–377, 2006. 2
+
+[LR88]    Michael Luby and Charles Rackoff. How to construct pseudorandom permutations from
+          pseudorandom functions. SIAM J. Comput., 17(2):373–386, 1988. 1
+
+[Nao91]   Moni Naor. Bit commitment using pseudorandomness. J. Cryptology, 4(2):151–158,
+          1991. 1
+
+[NY89a]   Moni Naor and Moti Yung. Universal one-way hash functions and their cryptographic
+          applications. In STOC, pages 33–43, 1989. 1
+
+[NY89b]   Moni Naor and Moti Yung. Universal one-way hash functions and their cryptographic
+          applications. In Proceedings of the 21st Annual ACM Symposium on Theory of Com-
+          puting (STOC), pages 33–43. ACM Press, 1989. 2
+
+[NY90]    Moni Naor and Moti Yung. Public-key cryptosystems provably secure against chosen
+          ciphertext attacks. In In Proc. of the 22nd STOC, pages 427–437. ACM Press, 1990. 2
+
+[NZ15]    Moni Naor and Asaf Ziv. Primary-secondary-resolver membership proof systems. In
+          Theory of Cryptography, pages 199–228. Springer, 2015. 1
+
+[PPV08]   Omkant Pandey, Rafael Pass, and Vinod Vaikuntanathan. Adaptive One-Way Func-
+          tions and Applications. In CRYPTO, pages 57–74, 2008. 6
+
+[Reg05]   Regev. On lattices, learning with errors, random linear codes, and cryptography. In
+          STOC: ACM Symposium on Theory of Computing (STOC), 2005. 1
+
+[Rom90]   John Rompel. One-way functions are necessary and sufficient for secure signatures. In
+          STOC, pages 387–394, 1990. 1
+
+[RTV04]   Omer Reingold, Luca Trevisan, and Salil P. Vadhan. Notions of reducibility between
+          cryptographic primitives. In Theory of Cryptography, First Theory of Cryptography
+          Conference, TCC 2004, volume 2951 of Lecture Notes in Computer Science, pages
+          1–20. Springer, 2004. 2, 4, 7, 8
+
+
+
+                                               26
+[Sah99]     Amit Sahai. Non-malleable non-interactive zero knowledge and adaptive chosen-
+            ciphertext security. In Proceedings of the 40th Annual Symposium on Foundations
+            of Computer Science (FOCS), pages 543–553, 1999. 2
+
+[Sha84]     Adi Shamir. Identity-Based Cryptosystems and Signature Schemes. In CRYPTO, pages
+            47–53, 1984. 1
+
+[Sim98]     Daniel R. Simon. Finding Collisions on a One-Way Street: Can Secure Hash Functions
+            Be Based on General Assumptions? In EUROCRYPT, pages 334–345, 1998. 2, 3, 4,
+            10, 11
+
+[SW05]      Amit Sahai and Brent Waters. Fuzzy Identity-Based Encryption. In EUROCRYPT,
+            pages 457–473, 2005. 3
+
+[Unr07]     Dominique Unruh. Random oracles and auxiliary input. In Alfred Menezes, editor,
+            CRYPTO, volume 4622 of Lecture Notes in Computer Science, pages 205–223. Springer,
+            2007. 7
+
+[Vai]       Vinod Vaikunthanatan. Personal communication. Personal Communication. 3
+
+[Wat14]     Brent Waters. A punctured programming approach to adaptively secure functional
+            encryption. Cryptology ePrint Archive, Report 2014/588, 2014. http://eprint.iacr.
+            org/. 3
+
+[Yao82]     Andrew C. Yao. Theory and applications of trapdoor functions. In Proc. 23rd FOCS,
+            pages 80–91. IEEE, 1982. 1
+
+
+A       Compression Building Blocks
+A.1     Basic Compression Lemmas
+Our first compression lemma is almost identical to the celebrated reconstruction lemma of Gennaro
+and Trevisan [GT00] with a big difference being that in our lemma, the adversary is allowed to
+call the permutation π in both directions except the query π −1 (y) for the challenge y which is not
+allowed. Thus, we call this a CCA attack. We will rely on the CCA nature of this lemma when
+we apply it for the case of HIBE in which the adversary can ask trapdoors for arbitrary identities
+of his choice before trying to invert the challenge ciphertext. The proof is very similar to that
+of [GT00]. We go over the proof of [GT00] and show that it holds for the stronger version in which
+the adversary can access the permutation in both directions.
+
+Lemma A.1 (CCA hardness of random permutations). For any π ∈ Πn , define O = (π, π −1 ) to
+be an oracle for which one can request π(x) and π −1 (y) for any x, y ∈ {0, 1}n . Let A be a q-query
+circuit that accepts a challenge y ∗ ∈ {0, 1}n and whose goal is to find x = π −1 (y ∗ ) using O while
+all queries to O are allowed except for π −1 (y ∗ ). Then for q ≤ 2n/5 ,  ≥ 2−n/5 (and large enough
+n) the oracle O can be represented using α − 2n/2 bits where α is the number of bits required to
+represent a random permutation over {0, 1}n . Therefore:
+                                                                     
+                                                                              n/2
+                                                 A (y) = π (y) ≥  ≤ 2−2
+                                                            −1
+                                                O               
+                            Pr            Pr
+                     π←Πn ,O:=(π,π −1 ) y←{0,1}n
+
+
+                                                   27
+Proof. Let N = 2n . We use a variant of the reconstruction lemma to find an upper bound on
+the fraction of oracles O = (π, π −1 ) for which adversary A can -invert π. For that, we define an
+encoder and decoder as follows:
+    Encoder: Let I ⊆ {0, 1}n be the set of strings y ∈ {0, 1}n for which A successfully inverts π
+(so |I| ≥ N ), and let Y = ∅. The encoder works as follows:
+
+  1. Remove the lexicographically first element ye from I and put it in Y
+
+  2. Run AO (e
+             y ). If A asks query:
+
+        • π(x) = y and y ∈ I then remove y from I
+        • π −1 (y) and y ∈ I then remove y from I
+
+  3. If |I| =
+            6 ∅, go back to step 2. Otherwise go to the next step.
+
+  4. Output the following compressed representation of O, which consists of:
+
+        • Description of Y ⊆ I
+        • Description of X = π −1 (Y )
+        • Description of permutation Z = {(y, π −1 (y) | y ∈ {0, 1}n \Y }
+
+   Decoder: Given A, Y, X, and Z, the decoder can reconstruct O as follows:
+
+  1. Remove first lexicographically ordered y from Y and call it ye
+
+  2. Run AO (e
+             y ). If A asks query:
+
+        • π(x) for any x ∈ {0, 1}n :
+            – If x ∈/ X: value of π(x) is given by Z.
+            – If x ∈ X and π(x) <lex ye: value of π(x) would have been precomputed before this
+              call.
+            – If x ∈ X and π(x) = ye: A has hit ye and found its inverse, so we set π(x) = ye.
+        • π −1 (y) = x for any y ∈ {0, 1}n \e
+                                            y
+            – If x ∈/ X: value of π −1 (y) is given by Z.
+            – If x ∈ X and y <lex ye: value of π −1 (x) would have been precomputed before this
+              call.
+
+  3. If |Y | = ∅ then stop. Otherwise go to step 1.
+
+   To find an upper bound on the success probability of A, we first compute the total number of
+oracles O = (π, π −1 ), which is determined by the number of bits needed to represent permutation
+π. Hence, |O| = log(N !).
+   Now, given A and the compressed representation of π, which consists of X, Y, Z, we show how
+many bits are required to represent the encoded oracle. Assuming A asks q queries, we would
+remove at most q elements from I for each y we insert into Y . Hence, a := |Y | ≥ N/(q + 1).
+
+
+
+
+                                                28
+So, for each of X and Y , we need log Na bits, and for Z we need log((N − a)!) bits. Thus,
+                                           
+
+|Enc(O)| = 2 log Na + log((N − a)!). The fraction of oracles O on which A can do -well is at most:
+                   
+
+
+                                2|Enc(O)|           N
+
+                                    |O|
+                                          = 22 log ( a )+log((N −a)!)−log N !
+                                  2
+                                             N 2
+                                                
+                                              a (N − a)!
+                                          =
+                                               N
+                                                 N!
+                                               a
+                                           =
+                                             a! 2 a
+                                               Ne
+                                           ≤          .
+                                                a2
+
+                                                  2−n/5 2n
+If we let q ≤ 2n/5 and  ≥ 2−n/5 we get that a ≥ n/5        ≥ 23n/5 /2. So the upper bound reduces
+              a  2 a                           2    +  1
+     (4)2n e2
+   
+                     4e                 3n/5−1       n/2
+to              =           ≤ 2−a = 2−2        ≤ 2−2     for sufficiently large n.
+      26n/5          2n/5
+    Our second compression lemma asserts the simple fact that for a bounded-query attacker it
+is hard to hit the images of an “expanding” random injective function. Namely, if f ← Fn,m is
+a random injective function from {0, 1}n to {0, 1}m , then for large m  n, a q query attacker
+has “small” chance of finding an image of f , even if he is allowed to call f in both directions, as
+long as he does not cheat by asking f (x) first and then announcing f (x) as the image. The small
+probability of A doing so is described through compressing the description f by at least m − 2n
+bits relative to the adversary A. We emphasize to bound the success provability of the adversary in
+this game a simpler argument based on “lazy evaluation” of the oracle can be used. However, we
+need the compression/decmopression procedures to use them inside the proof of our main result.
+
+Lemma A.2 (Hardness of hitting images of injective random functions). For any f ∈ Fn,m , define
+O = (f, f −1 ) to be an oracle for which one can request f (x) and f −1 (y) for any x ∈ {0, 1}n , y ∈
+{0, 1}m , and if f −1 (y) is undefined then ⊥ is returned. Let A be a q-query deterministic algorithm
+that gets access to O and at some point manages to query f −1 (y ∗ ) for some y ∗ to get x∗ before
+asking f (x∗ ). Then, for such fixed adversary A (and for large enough n) any such oracle O (that
+A can successfully hit some image y ∗ without asking f (x∗ ) = y ∗ ) can be uniquely represented by
+α − log(2m − 2n + 1) + n + log q many bits where α is the number of bit required to represent an
+arbitrary function f ∈ Fn,m . As a result for q < 2n/5 and m > 2n, the function f can be represented
+by α − m + 2n bits.
+
+Proof. Let N = 2n , M = 2m . We first provide a description of the encoding algorithm.
+
+Encoder: Output the following compressed representation of O:
+
+   • Description of x∗
+
+   • Description of the injective function f ([N ] \ {x}); namely the injective function f (·) excluding
+     without the point x∗ in its domain. This can be represented as an injective function from
+     [N − 1] to [M ] which we call g.
+
+
+                                                    29
+    • The index j ∈ [q] of the query f −1 (y ∗ ) among the all q queries of A.
+
+    Before describing the decoding algorithm, we analyze how much the encoder algorithm saved
+in the representation of the oracle O. The number of injective functions from [N ] to [M ] is
+equal to αN,M = Πi∈[N ] (M − i − 1). So by representing g as a function over [N − 1] we save
+log(αN,M /αN −1,M ) = log(M − N − 1) many bits which is at least log(M/2) = m − 1 for m > 2n.
+On the other hand we need to represent x∗ that takes n bits and also j ∈ [q] that takes log(q) <
+log(2n/5 ) < n/5 < n − 1 bits. So the total number of bits we saved in the representation of O is at
+least m − 1 − n − (n − 1) = m − 2n.
+
+Decoder: Given x∗ , g : [N − 1] → [M ], and j, the decoder can reconstruct O as follows:
+
+    1. First use x∗ and g to “reconstruct” all of the answers of f (·) except for f (x∗ ). Note that
+       by only looking at the description of g(·) it is not clear what is the point x∗ whose image is
+       unknown (since we represent g simply as a function over [N −1] to save bits of representation).
+
+    2. Run AO for j steps till it asks f −1 (y ∗ ) as its j’th query. At this point we have found y ∗ = f (x∗ )
+       and will output the full description of f (·). Note that in the process of executing A till its
+       j’th query we would not encounter the query f (x∗ ) be asked by A and so the execution could
+       go on till the j’th query of A.
+
+
+
+
+B      Extension to HIBE with Unbounded-length Identities
+In this section, we present a brief justification on why the main theorem can be easily extended
+to work with the more standard notion of HIBE oracles, which can support mapping identities of
+unbounded polynomial length to trapdoors (as opposed to restricting the identity lengths to an
+a-priori fixed polynomial in the security parameter).
+    Referring to Definition 3.3 of our oracle O, we note that, for a fixed number of hierarchies l
+and security parameter n, we have a single set of random injective function for each level in the
+hierarchy. That is, for any i ∈ [1, .., l], we have 2in functions of the form hi [IDi−1 ](.), where each
+function maps an i-level identity idi ∈ {0, 1}n to an i-level trapdoor tdi ∈ {0, 1}m and each identity
+vector IDi−1 is of length in10 . Recall that we set m = 10nl in order to offset the overhead of
+representing the identity prefix (which is of length at most nl bits) by having a comparably large
+savings in the compression of the function.
+    For the case where we have unbounded-length identities, we have that, for any identity vector
+                                                                               0
+IDi−1 = hid0 , ..., idi−1 i and each j ∈ [0, .., i], the identity idj ∈ {0, 1}nj has length n0j ≥ n, which can
+be an unbounded polynomial in the security parameter. We now need                P a set of injective functions
+for each i ∈ [1, ..l] and for each identity vector IDi of length Ni := ij=0 n0j = poly(n). That is,
+                                                                                                            0
+for any i ∈ [1, ..l] we define hi,N [IDi−1 ](.) to be a random injective function from idi ∈ {0, 1}ni to
+tdi ∈ {0, 1}m where m = 10 · Ni−1 . As a result, we now have 2Ni−1 + n0i random injective functions
+for every i.
+  10
+     For simplicity, we only consider the function h in the oracle. Adapting the function g to work in this extended
+proof proceeds in a similar fashion.
+
+
+
+                                                        30
+    Notice that the proof remains almost identical when we use this oracle. In particular, the
+length of the target identity vector ID∗i−1 that needs to be represented in the compressed oracle
+is now of length Ni−1 , but since m = 10Ni−1 , the amount of savings in the compression more
+than compensates for the representation of ID∗i−1 . Moreover, similar to the main proof described
+for fixed-length identities, the compressed oracle contains the full representation of ALL other
+functions except hi [ID∗i−1 ] : {0, 1}ni → {0, 1}m , where we provide its description on all points
+except for id∗ , for which the adversary can find its inverse.
+
+
+
+
+                                                31
+

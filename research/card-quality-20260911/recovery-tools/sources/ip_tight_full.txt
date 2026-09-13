@@ -1,0 +1,1055 @@
+                                         Tight complexity lower bounds for integer linear
+                                         programming with few constraints
+                                         Dušan Knop
+                                         Algorithmics and Computational Complexity, Faculty IV, TU Berlin and
+                                         Department of Theoretical Computer Science, Faculty of Information Technology,
+                                         Czech Technical University in Prague, Prague, Czech Republic
+                                         dusan.knop@fit.cvut.cz
+
+                                         Michał Pilipczuk
+                                         Institute of Informatics, University of Warsaw, Warsaw, Poland
+                                         michal.pilipczuk@mimuw.edu.pl
+
+                                         Marcin Wrochna
+                                         Institute of Informatics, University of Warsaw, Warsaw, Poland and University of Oxford, UK
+                                         m.wrochna@mimuw.edu.pl
+arXiv:1811.01296v3 [cs.DS] 23 Jul 2019
+
+
+
+
+                                               Abstract
+                                         We consider the standard ILP Feasibility problem: given an integer linear program of the form
+                                         {Ax = b, x ⩾ 0}, where A is an integer matrix with k rows and ` columns, x is a vector of `
+                                         variables, and b is a vector of k integers, we ask whether there exists x ∈ N` that satisfies Ax = b.
+                                         Each row of A specifies one linear constraint on x; our goal is to study the complexity of ILP
+                                         Feasibility when both k, the number of constraints, and kAk∞ , the largest absolute value of an
+                                         entry in A, are small.
+                                              Papadimitriou [32] was the first to give a fixed-parameter algorithm for ILP Feasibility under
+                                                                                                                                          2
+                                         parameterization by the number of constraints that runs in time ((kAk∞ + kbk∞ ) · k)O(k ) . This
+                                         was very recently improved by Eisenbrand and Weismantel [11], who used the Steinitz lemma to
+                                         design an algorithm with running time (kkAk∞ )O(k) · kbk2∞ , which was subsequently improved by
+                                         Jansen and Rohwedder [19] to O(kkAk∞ )k · log kbk∞ . We prove that for {0, 1}-matrices A, the
+                                         running time of the algorithm of Eisenbrand and Weismantel is probably optimal: an algorithm with
+                                         running time 2o(k log k) · (` + kbk∞ )o(k) would contradict the Exponential Time Hypothesis (ETH).
+                                         This improves previous non-tight lower bounds of Fomin et al. [12].
+                                              We then consider integer linear programs that may have many constraints, but they need to be
+                                         structured in a “shallow” way. Precisely, we consider the parameter dual treedepth of the matrix A,
+                                         denoted tdD (A), which is the treedepth of the graph over the rows of A, where two rows are adjacent
+                                         if in some column they simultaneously contain a non-zero entry. It was recently shown by Koutecký
+                                                                                                          O(tdD (A))
+                                         et al. [26] that ILP Feasibility can be solved in time kAk2∞                · (k + ` + log kbk∞ )O(1) . We
+                                         present a streamlined proof of this fact and prove that, again, this running time is probably optimal:
+                                         even assuming that all entries of A and b are in {−1, 0, 1}, the existence of an algorithm with
+                                                           o(tdD (A))
+                                         running time 22              · (k + `)O(1) would contradict the ETH.
+
+                                         2012 ACM Subject Classification Theory of computation → Integer programming; Theory of
+                                         computation → Fixed parameter tractability
+
+                                         Keywords and phrases integer linear programming, fixed-parameter tractability, ETH
+
+                                         Funding This work is a part of projects CUTACOMBS, PowAlgDO (M. Wrochna) and TOTAL
+                                         (M. Pilipczuk) that have received funding from the European Research Council (ERC) under the
+                                         European Union’s Horizon 2020 research and innovation programme (grant agreements No. 714704,
+                                         No 714532, and No. 677651, respectively); the authors acknowledge the support of the OP VVV
+                                         MEYS funded project CZ.02.1.01/0.0/0.0/16_019/0000765 "Research Center for Informatics"
+                                         Dušan Knop: Supported by DFG, project “MaMu”, NI 369/19.
+                                         Marcin Wrochna: Supported by the Foundation for Polish Science (FNP) via the START stipend
+                                         programme.
+2   Tight lower bounds for ILP with few constraints
+
+
+
+
+     1     Introduction
+
+    Integer linear programming (ILP) is a powerful technique used in countless algorithmic
+    results of theoretical importance, as well as applied routinely in thousands of instances of
+    practical computational problems every day. Despite the problem being NP-hard in general,
+    practical ILP solvers excel in solving real-life instances with thousands of variables and
+    constraints. This can be partly explained by applying a variety of subroutines, often based
+    on heuristic approaches, that identify and exploit structure in the input in order to apply
+    the best suited algorithmic strategies. A theoretical explanation of this phenomenon would
+    of course be hard to formulate, but one approach is to use the paradigm of parameterized
+    complexity. Namely, the idea is to design algorithms that perform efficiently when certain
+    relevant structural parameters of the input have moderate values.
+        In this direction, probably the most significant is the classic result of Lenstra [27], who
+    proved that ILP Optimization is fixed-parameter tractable when parameterized by the
+    number of variables `. That is, it can be solved in time f (`) · |I|O(1) , where f is some function
+    and |I| is the total bitsize of the input; we shall use the previous notation throughout the
+    whole manuscript. Subsequent work in this direction [13, 20] improved the dependence of
+    the running time on ` to f (`) ⩽ 2O(` log `) .
+        In this work we turn to a different structural aspect and study ILPs that have few
+    constraints, as opposed to few variables as in the setting considered by Lenstra. Formally,
+    we consider the parameterization by k, the number of constraints (rows of the input matrix
+    A), and kAk∞ , the maximum absolute value over all entries in A. The situation when the
+    number of constraints is significantly smaller than the number of variables appears naturally
+    in many relevant settings. For instance, to encode Subset Sum as an instance of ILP
+    Feasibility it suffices to introduce a {0, 1}-variable xi for every input number si , and then
+                               Pn
+    set only one constraint: i=1 si xi = t, where t is the target value. Note that the fact that
+    Subset Sum is NP-hard for the binary encoding of the input and polynomial-time solvable
+    for the unary encoding, explains why kAk∞ is also a relevant parameter for the complexity
+    of the problem. Integer linear programs with few constraints and many variables arise most
+    often in the study of knapsack-like and scheduling problems via the concept of so-called
+    configuration ILPs, in the context of approximation and parameterized algorithms.
+
+
+    Parameterization by the number of constraints. Probably the first to study the complexity
+    of integer linear programming with few constraints was Papadimitriou [32], who already in
+    1981 observed the following. Consider an ILP of the standard form {Ax = b, x ⩾ 0}, where A
+    is an integer matrix with k rows (constraints) and ` columns (variables), x is a vector of integer
+    variables, and b is a vector of integers. Papadimitriou proved that assuming such an ILP is
+    feasible, it admits a solution with all variables bounded by B = ` · ((kAk∞ + kbk∞ ) · k)2k+1 ,
+    which in turn can be found in time O((`B)k+1 · |I|) using simple dynamic programming.
+    Noting that by removing duplicate columns one can assume that ` ⩽ (2kAk∞ + 1)k , this
+                                                                    2
+    yields an algorithm with running time ((kAk∞ + kbk∞ ) · k)O(k ) . The approach can be lifted
+    to give an algorithm with a similar running time bound also for the ILP Optimization
+    problem, where instead of finding any feasible solution x, we look for one that maximizes
+    the value w| x for a given optimization goal vector w.
+        The result of Papadimitriou was recently improved by Eisenbrand and Weismantel [11],
+    who used the Steinitz Lemma to give an amazingly elegant algorithm solving the ILP
+D. Knop, Mi. Pilipczuk, M. Wrochna                                                                     3
+
+
+Optimization problem (and thus also the ILP Feasibility problem) for a given instance
+{max w| x : Ax = b, x ⩾ 0} with k constraints in time (kkAk∞ )O(k) ·kbk2∞ . This running time
+has been subsequently refined by Jansen and Rohwedder [19] to O(kkAk∞ )2k ·log kbk∞ in the
+case of ILP Optimization, and to O(kkAk∞ )k · log kbk∞ in the case of ILP Feasibility.1
+    From the point of view of fine-grained parameterized complexity, this raises the question
+of whether the parametric factor O(kkAk∞ )k is the best possible. Jansen and Rohwedder [19]
+studied this question under the assumption that k is a fixed constant and kAk∞ is the relevant
+parameter. They proved that assuming the Strong Exponential Time Hypothesis (SETH),
+for every fixed k there is no algorithm with running time (k · (kAk∞ + kbk∞ ))k−δ · |I|O(1) ,
+for any δ > 0. Note that as k is considered a fixed constant, this essentially shows that the
+degree of kAk∞ needs to be at least k, but does not exclude algorithms with running time
+                    O(k)
+of the form kAk∞ · |I|O(1) , or 2O(k) · |I|O(1) when all entries in the input matrix A are in
+{−1, 0, 1}. On the other hand, the algorithms of [11, 19] provide only an upper bound of
+2O(k log k) · |I|O(1) in the latter setting. As observed by Fomin et al. [12], a trivial encoding of
+3SAT as an ILP shows a lower bound of 2o(k) · |I|O(1) for instances with A having entries
+only in {0, 1}, b having entries only in {0, 1, 2, 3}, and ` = O(k). This still leaves a significant
+gap between the 2o(k) · |I|O(1) lower bound and the 2O(k log k) · |I|O(1) upper bound.
+
+Parameterization by the dual treedepth. A related, recent line of research concerns ILPs
+that may have many constraints, but these constraints need to be somehow organized in
+a structured, “shallow” way. It started with a result of Hemmecke et al. [15], who gave a
+fixed-parameter tractable algorithm for solving the so-called n-fold ILPs. An n-fold ILP is
+an ILP where the constraint matrix is of the form
+
+                                        B B ... B
+                                                        
+                                      C 0 · · · 0 
+                                                        
+                                  A = 0 C ··· 0
+                                                        
+                                      .     .. . .    .
+                                       ..    .     . .. 
+                                              0     0   ···   C
+
+and the considered parameters are the dimensions of matrices B and C, as well as kAk∞ .
+                                                        O(k3 )
+The running time obtained by Hemmecke et al. is kAk∞ · |I|O(1) when all these dimensions
+are bounded by k. See [15] and the recent improvements of Eisenbrand et al. [10] for more
+refined running time bounds expressed in terms of particular dimensions.
+    The result of Hemmecke et al. [15] quickly led to multiple improvements in the best known
+upper bounds for several parameterized problems, where the technique of configuration ILPs
+is applicable [22, 23, 24]. Recently, the technique was also applied to improve the running
+times of several approximation schemes for scheduling problems [18]. Chen and Marx [7]
+introduced a more general concept of tree-fold ILPs, where the “star-like” structure of an
+n-fold ILP is generalized to any bounded-depth rooted tree, and they showed that it retains
+relevant fixed-parameter tractability results. This idea was followed on by Eisenbrand et al. [9]
+and by Koutecký et al. [26], whose further generalizations essentially boil down to considering
+a structural parameter called the dual treedepth of the input matrix A. This parameter,
+denoted tdD (A), is the smallest number h such that the rows of A can be organized into
+a rooted forest of height h with the following property: whenever two rows have non-zero
+entries in the same column, one is the ancestor of the other in the forest. As shown explicitly
+
+
+1
+    Throughout, log denotes the binary logarithm.
+4   Tight lower bounds for ILP with few constraints
+
+
+    by Koutecký et al. [26] and somewhat implicitly by Eisenbrand et al. [9], ILP Optimization
+    can be solved in fixed-parameter time when parameterized by kAk∞ and tdD (A). For
+    more detailed discussion of algorithmic implications and theory of block-structured integer
+    programs we refer the reader to a recent survey [6].
+
+    Our results. For the parameterization by the number of constraints k, we close the above
+    mentioned complexity gap by proving the following optimality result.
+
+    I Theorem 1. Assuming ETH, there is no algorithm that would solve any ILP feasibility
+    instance {Ax = b, x ⩾ 0} with A ∈ {0, 1}k×` , b ∈ Nk , and `, kbk∞ = O(k log k) in
+    time 2o(k log k) .
+
+        This shows that the algorithms of [11, 19] have the essentially optimal running time of
+     O(k log k)
+    2         · |I|O(1) also in the regime where kAk∞ is a constant and the number of constraints
+    k is the relevant parameter. We can also reduce the coefficients in the target vector b to
+    constant at the cost of adding negative entries to A:
+
+    I Corollary 2. Assuming ETH, there is no algorithm that would solve any ILP feasibility
+    instance {Ax = b, x ⩾ 0} with A ∈ {−1, 0, 1}k×` , b ∈ {0, 1}k and ` = O(k log k) in
+    time 2o(k log k) .
+
+        The same cannot be done for non-negative matrices A, since in this case Papadimitriou’s
+                                                      O(k)
+    algorithm is even simpler and works in time kbk∞ · |I|O(1) . The reduction in Theorem 1 is
+    hence simultaneously tight against this algorithm (since for kbk∞ = O(k log k) the bound
+        O(k)
+    kbk∞ is 2O(k log k) ).
+        The main ingredient of the proof of Theorem 1 is a certain quaint combinatorial con-
+    struction — detecting matrices introduced by Lindström [28] — that provides a general way
+    for compressing a system Ax = b with k equalities and bounded targets kbk∞ ⩽ d into
+    O(k/ logd k) equalities (with unbounded targets). Each new equality is a linear combination
+    of the original ones; in fact, just taking O(k/ logd k) sums of random subsets of the original
+    equalities suffices, but we also provide a deterministic construction taking O(dk/ logd k)
+    such subsets. By composing such a compression procedure for d = 4 with a standard
+    reduction from (3,4)SAT — a variant of 3SAT where every variable occurs at most 4
+    times — to ILP Feasibility, we obtain a reduction that given an instance of (3,4)SAT
+    with n variables and m clauses, produces an equivalent instance of ILP Feasibility with
+    k = O((n + m)/ log(n + m)) constraints. Since 2o(k log k) = 2o(n+m) , we would obtain a
+    2o(n+m) -time algorithm for (3,4)SAT, which is known to contradict ETH. We note that
+    detecting matrices were recently used by two of the authors in the context of different lower
+    bounds based on ETH [3].
+
+        For the parameterization by the dual treedepth, we first streamline the presentation of the
+    approach of Koutecký et al. [26] and clarify that the parametric factor in the running time is
+    doubly-exponential in the treedepth. The key ingredient here is the upper bound on `1 -norms
+    of the elements of the Graver basis of the input matrix A, expressed in terms of kAk∞ and
+    tdD (A). Using standard textbook bounds for Graver bases and the recursive definition of
+                                                                                    td (A)
+    treedepth, we prove that these `1 -norms can be bounded by (2kAk∞ + 1)2 D −1 . This,
+    combined with the machinery developed by Koutecký et al. [26], implies the following.
+
+    I Theorem 3. There is an algorithm that solves any given ILP Optimization instance
+                                                   O(td (A))
+    I = {max w| x : Ax = b, l ⩽ x ⩽ u} in time kAk2∞ D       · |I|O(1) .
+D. Knop, Mi. Pilipczuk, M. Wrochna                                                                   5
+
+
+    We remark that the running time as outlined above also follows from a fine analysis of the
+reasoning presented in [26], but the intermediate step of using tree-fold ILPs in [26] makes
+tracking parametric dependencies harder to follow.
+    We next show that, perhaps somewhat surprisingly, the running time provided by
+Theorem 3 is optimum. Namely, we have the following lower bound.
+
+I Theorem 4. Assuming ETH, there is no algorithm that would solve any ILP Feasib-
+ility instance I = {Ax = b, x ⩾ 0}, where all entries of A and b are in {−1, 0, 1}, in
+       o(td (A))
+time 22 D        · |I|O(1) .
+
+   To prove Theorem 4 we reduce from the Subset Sum problem. The key idea is that we are
+able to “encode” any positive integer s using an ILP with dual treedepth O(log log s). This
+lower bound has been recently generalized by Eisenbrand et al. [10] to include a parameter
+they call topological height.
+
+
+ 2     Parameterization by the number of constraints
+
+2.1    Detecting matrices
+Our main tool is the usage of so-called detecting matrices, first studied by Lindström [28].
+They can be explained via the following coin-weighing puzzle: given m coins with weights
+in {0, 1, . . . , d − 1}, we want the deduce the weight of each coin with as few weighings as
+possible. We have a spring scale, so in one weighing we can exactly determine the sum of
+weights of any subset of the coins. While the naive strategy—weigh coins one by one—yields
+m weighings, it is actually possible to find a solution using O(m/ logd m) weighings. This
+number is asymptotically optimal, as each weighing provides Θ(log m) bits of information,
+so fewer weighings would not be enough to distinguish all dm possible weight functions.
+    Probably the easiest way to construct such a strategy is using the probabilistic method. It
+turns out that querying O(m/ logd m) random subsets of coins with high probability provides
+enough information to determine the weight of each coin. This is because a random subset
+distinguishes any of the O(dm · dm ) non-equal pairs of weight functions with probability at
+least 12 , but pairs of weight functions that are close to each other are few, while pairs of
+weight functions that are far from each other have a significantly better probability than 12
+of being distinguished. Note that thus we construct a non-adaptive strategy: the subsets
+of coins to be weighed can be determined and fixed at the very start. We refer the reader
+to e.g. [14, Corollary 2] for full details, and we remark that the last two authors recently
+used detecting matrices in the context of algorithmic lower bounds for the Multicoloring
+problem [3].
+    Viewing each tuple of coin weights as a vector v ∈ {0, . . . , d − 1}m , each weighing returns
+the value a| v for the characteristic vector a ∈ {0, 1}m of some subset of coins. Thus k
+weighings give the vectors of values M v for some {0, 1}-matrix M with k rows and m columns.
+An equivalent formulation is then to ask for a {0, 1}-matrix M with m columns, such that
+knowing the vector M v uniquely determines any v ∈ {0, . . . , d − 1}m . Such an M is called
+a d-detecting matrix and we seek to minimize the number of rows/weighings k it can have.
+Lindström gave a deterministic construction and proved the bound on k to be tight. See also
+Bshouty [4] for a more direct and general construction using Fourier analysis.
+
+I Theorem 5 ([28]). For all d, m ∈ N, there is a {0, 1}-matrix M with m columns and
+       log d
+k ⩽ 2m                                                                m
+     log m (1 + o(1)) rows such that for any u, v ∈ {0, . . . , d − 1} , if M u = M v then u = v.
+Moreover, such matrix M can be constructed in time polynomial in dm.
+6   Tight lower bounds for ILP with few constraints
+
+
+         In other words, this allows us to check m equalities between values in {0, . . . , d − 1}
+    (i.e., corresponding coordinates of vectors u and v) using only O(m/ logd m) comparisons of
+    sums of certain subsets of these values (i.e., coordinates of vectors M u and M v). For an
+    ILP instance Ax = b with kbk∞ ⩽ d and m constraints, we may use this idea to check the
+    equality on each of the m coordinates of Ax using only O(m/ logd m) constraints. Indeed,
+    the intuition is that if M is a d-detecting matrix, then we can rewrite Ax = b as M Ax = M b
+    and check the latter — which involves O(m/ logd m) {0, 1}-combinations of the original
+    constraints.
+         This is the core of our approach. However, there is one subtle caveat: in order to claim
+    that the assertions Ax = b and M Ax = M b are equivalent, we would need to ensure that
+    kAxk∞ ⩽ d for an arbitrary vector x ∈ Nn . One solution is to use the fact that a uniformly
+    random {0, 1}-matrix has a stronger “detecting” property: it will, with high probability,
+    distinguish all vectors of low `1 -norm, as shown by Grebinski and Kucherov [14].
+
+    I Lemma 6 ([14]). For all d, m ∈ N, there exists a {0, 1}-matrix M with m columns and
+    k ⩽ 4m log
+            log(d+1)
+               m     (1 + o(1)) rows such that for any u, v ∈ Nm satisfying kuk1 , kvk1 ⩽ dm, if
+    M u = M v then u = v. Moreover, such matrix M can be computed in randomized polynomial
+    time (in dm).
+
+        Note that in Lemma 6, we do not actually have to assume bounds on one of the two
+    vectors: it suffices to assume u ∈ Nm and kvk1 ⩽ dm, because simply adding a single row full
+    of ones to M guarantees kuk1 = kvk1 . Therefore as long as A is non-negative and kbk∞ ⩽ d,
+    it suffices to check M Ax = M b. Unfortunately, to the best of our knowledge, no deterministic
+    construction is known for Lemma 6. We remark that Bshouty gave a deterministic, but
+    adaptive detecting strategy [4]; that is, in terms of coin weighing, consecutive queries on
+    coins may depend on results of previous weighings.
+        Instead, we show that a different, recursive construction by Cantor and Mills [5] for
+    2-detecting matrices can be adapted so that no bounds (other than non-negativity) are
+    assumed for one of the vectors, while the other must have all coefficients in {0, 1, . . . , d − 1}.
+
+    I Lemma 7. For all d, m ∈ N, there exists a {0, 1}-matrix M with m columns and
+    k ⩽ md  log d                                      m                           m
+          log m (1 + o(1)) rows such that for any u ∈ N and v ∈ {0, 1, . . . , d−1} , if M u = M v
+    then u = v. Moreover, such matrix M can be computed in time polynomial in dm.
+
+    Proof of Lemma 7. Fix d ⩾ 2. We construct inductively for each i ∈ N a certain {0, 1}-
+    matrix Mi with ki rows and mi columns such that for any u ∈ Nmi and v ∈ {0, 1, . . . , d−1}mi ,
+    if M u = M v then u = v. For i = 1 we use the d × d identity matrix, that is, k1 = m1 = d.
+        Let B = Mi be such the matrix for i ⩾ 1. We claim that the following matrix M = Mi+1
+    with ki+1 = d · ki + d rows and mi+1 = d · mi + ki columns satisfies the same condition
+                                              
+               B      B      ···    B      I
+             B J − B                          
+                                              
+             .              ..
+              ..
+                                               
+                               .              
+                                               
+             B                   J −B         
+        M =
+                                              
+                    1...1
+                                               
+                                              
+                             ..
+                                              
+                                .
+                                              
+                                              
+                                              
+                                 1...1        
+                                        1...1
+
+    Here, I is the ki × ki identity matrix, J is the ki × mi matrix with all entries equal to 1, and
+D. Knop, Mi. Pilipczuk, M. Wrochna                                                                                      7
+
+
+all empty blocks are 0. Take any u ∈ Nmi+1 and v ∈ {0, 1, . . . , d − 1}mi+1 , and write
+                  |                 |
+    u| = (x(1) | · · · | x(d) | z| ) for x(1) , . . . , x(d) ∈ Nmi , z ∈ Nki ;
+                  |                 |        |
+    v| = (x0(1) | · · · | x0(d) | z0 ) for x0(1) , . . . , x0(d) ∈ {0, . . . , d − 1}mi , z0 ∈ {0, . . . , d − 1}ki .
+
+Then M u = M v is equivalent to:
+           d
+           X                        d
+                                    X
+                 Bx(i) + Iz =               Bx0(i) + Iz0                                                        (1)
+           i=1                      i=1
+
+    Bx(1) + (J − B)x(i) = Bx0(1) + (J − B)x0(i)                                    (i = 2 . . . d)              (2)
+                      mi            mi
+                             (i)              0(i)
+                      X             X
+                            xj =            xj                                     (i = 2 . . . d)              (3)
+                      j=1           j=1
+                       ki
+                       X            ki
+                                    X
+                             zj =           zj0                                                                 (4)
+                       j=1          j=1
+
+
+    Equation (3) is equivalent to Jx(i) = Jx0(i) (for i = 2 . . . d), thus the sum of (1) with all
+(2) equations implies dBx(1) + z = dBx0(1) + z0 and hence zj ≡ zj0 (mod d) for all j. Since
+zj ⩾ 0 and zj0 ∈ {0, . . . , d − 1}, this implies zj ⩾ zj0 . This together with (4) implies that in
+fact zj = zj0 for all j, and thus z = z0 .
+    Since Iz = Iz0 and Jx(i) = Jx0(i) (i = 2 . . . d), linear combinations of equations (1) and
+(2) imply that Bx(i) = Bx0(i) for each i = 1 . . . d. By inductive assumption on B, this implies
+that x(i) = x0(i) and hence u = v.
+
+    We thus obtain {0, 1}-matrices Mi with ki rows and mi columns such that
+
+    k1 = m1 = d and ki+1 = dki + d and mi+1 = dmi + ki .
+
+Using a straightforward induction we can check the following explicit formulas for ki and mi :
+
+           di+1 − d                           (i − 1) · di   Cdi + d
+    ki =                    and mi =                       +          ,   where C = (d − 1)(d − 2).
+             d−1                                 d−1         (d − 1)2
+                  i                     i
+            d·d
+Hence ki ⩽ d−1  , mi ⩾ (i−1)·d                                                   mi ·d
+                         d−1 , and logd (mi ) ⩽ (i−1)(1+o(1)), implying ki ⩽ logd mi (1+o(1)).
+To interpolate between mi and mi+1 , one can join several of the constructed matrices into
+a block-diagonal matrix. Formally, if f (m) denotes the least k such that a k × m matrix
+                                                                    mi ·d
+as above exists, then f (m + m0 ) ⩽ f (m) + f (m0 ) and f (mi ) ⩽ log  mi (1 + o(1)). Standard
+                                                                                    d
+                                                  m·d
+methods then allow us to show that f (m) ⩽ log         (1 + o(1)), see e.g. [5, Theorem 2]; see
+                                                   dm
+also [30] for a slightly more explicit construction for all m.                               J
+
+    We remark that the bounds in Theorem 5 and Lemma 6 were also shown to be tight.
+Lemma 7 gives matrices that are also d-detecting, in particular, hence the bound is tight for
+d = 2 (and tight up to an O(d) factor in general).
+    Note also that we can relax the non-negativity constraint to requiring that u ∈ Zm is any
+integer with all entries lower bounded by −b d2 c and v ∈ {−b d2 c, . . . , b d2 c}m . This is because
+M u = M v is equivalent to M (u + c) = M (v + c) where c is the constant b d2 c vector. This
+allows to use the same detecting matrix for such pairs of vectors as well. However, note that
+some lower bound on the coefficients of u is necessary, since even if we fix v = 0, the matrix
+M has a non-trivial kernel, giving many non-zero vectors u ∈ Zm satisfying M u = M v.
+8   Tight lower bounds for ILP with few constraints
+
+
+    2.2       Coefficient reduction
+    In further constructions, we will need a way to reduce coefficients in a given ILP Feasibility
+    instance with a nonnegative constraint matrix A to {0, 1}. We now prove that this can be
+    done in a standard way by replacing each constraint with O(log kAk∞ ) constraints that check
+    the original equality bit by bit. Here and throughout this paper we use the convention that
+    for a vector x, by xi we denote the i-th entry of x.
+
+    I Lemma 8 (Coefficient Reduction). Consider an instance {Ax = b, x ⩾ 0} of ILP
+    Feasibility, where b ∈ Nk and A is a nonnegative integer matrix with k rows and
+    ` columns. In polynomial time, this instance can be reduced to an equivalent instance
+    {A0 x = b0 , x ⩾ 0} of ILP Feasibility where A0 is a {0, 1}-matrix with k 0 = O(k log kAk∞ )
+                                                          0
+    rows and `0 = ` + O(k log kAk∞ ) columns, and b0 ∈ Nk is a vector with kb0 k∞ = O(kbk∞ ).
+
+    Proof. Denote δ = dlog(1 + kAk∞ )e = O(log kAk∞ ). Consider a single constraint a| x = b,
+    where a ∈ N` is a row of A and b ∈ N is an entry of b. Let ai [j] be the j-th bit of ai , the
+    i-th entry of vector a; similarly for b. By choice of δ, kak∞ ⩽ 2δ − 1, so each entry of a has
+    up to δ binary digits. Now, for x ∈ Zn , the constraint a| x = b is equivalent to
+        δ−1      n
+                               !
+        X       X
+              j
+            2       ai [j] · xi = b .
+        j=0      i=1
+
+    We rewrite this equation into δ equations, each responsible for verifying one bit. For this,
+    we introduce δ − 1 carry variables y0 , y1 , . . . , yδ−2 and emulate the standard algorithm for
+    adding binary numbers by writing equations
+                 n
+                 X
+       yj−1 +          ai [j] · xi = b[j] + 2yj           for j = 0, . . . , δ − 1,
+                 i=1
+
+    where y−1 and yδ−1 are replaced with 0 and b[δ − 1] is replaced with the number whose binary
+    digits are (from the least significant): b[δ − 1], b[δ], b[δ + 1], . . . (we do this because b may have
+    more than δ digits). To get rid of the variable yj on the right-hand side, we let B = 2dlog be
+    and introduce two new variables yj0 , yj00 for each carry variable yj , with constraints
+
+       yj + yj0 = B       and yj + yj00 = B        for j = 0, . . . , δ − 2,
+
+    which is equivalent to yj0 = yj00 = B − yj . Hence the previous equations can be replaced by
+                 n
+                 X
+       yj−1 +          ai [j] · xi + yj0 + yj00 = b[j] + 2B            for j = 0, . . . , δ − 1.
+                 i=1
+
+    We thus replace each row of A with 2(δ − 1) + δ rows and 3(δ − 1) auxiliary variables.              J
+
+    2.3       Proof of Theorem 1
+    The Exponential Time Hypothesis states that for some c > 0, 3SAT with n variables cannot
+    be solved in time O? (2cn ) (the O? notation hides polynomial factors). It was introduced by
+    Impagliazzio, Paturi, and Zane [17] and developed by Impagliazzo and Paturi [16] to become
+    a central conjecture for proving tight lower bounds for the complexity of various problems.
+    While the original statement considers the parameterization by the number of variables, the
+    Sparsification Lemma [16] allows us to assume that the number of clauses is linear in the
+    number of variables, and hence we have the following.
+D. Knop, Mi. Pilipczuk, M. Wrochna                                                                    9
+
+
+I Theorem 9 (see e.g. [8, Theorem 14.4]). Unless ETH fails, there is no algorithm for 3SAT
+that runs in time 2o(n+m) , where n and m denote the numbers of variables and clauses.
+    We now proceed to the proof of Theorem 1. Our first step is to decrease the number of
+occurrences of each variable. The (3,4)SAT is the variant of 3SAT where each clause uses
+exactly 3 different variables and every variable occurs in at most 4 clauses. Tovey [33] gave a
+linear reduction from 3SAT to (3,4)SAT, i.e., an algorithm that, given an instance of 3SAT
+with n variables and m clauses, in linear time constructs an equivalent instance of (3,4)SAT
+with O(n + m) variables and clauses. In combination with Theorem 9 this yields:
+I Corollary 10. Unless ETH fails, there is no algorithm for (3,4)SAT that runs in time
+2o(n+m) , where n and m denote the numbers of variables and clauses, respectively.
+    We now reduce (3,4)SAT to ILP Feasibility. A (3, 4)SAT instance ϕ with n variables
+and m clauses can be encoded in a standard way as an ILP Feasibility instance with
+O(n + m) variables and constraints as follows. For each formula variable v we introduce two
+ILP variables xv and x¬v with a constraint xv + x¬v = 1 (hence exactly one of them should
+be 1, the other 0). For each clause c we introduce two auxiliary slack variables yc , zc and two
+constraints: yc + zc = 2 and x`1 + x`2 + x`3 + yc = 3, where `1 , `2 , `3 are the three literals
+in c. Since yc , zc will not appear in any other constraints, the first constraint is equivalent to
+ensuring that yc ⩽ 2, so the second constraint is equivalent to x`1 + x`2 + x`3 ⩾ 1. This way,
+one can reduce in polynomial time a (3, 4)SAT instance ϕ with n variables and m clauses
+into an equivalent instance {x ∈ Z` | Ax = b, x ⩾ 0} of ILP feasibility where:
+   the constraint matrix A has k := n + 2m rows and ` := 2n + 2m columns;
+   each entry in A is zero or one;
+   each row and column of A contains at most 4 non-zero entries; and
+   the target vector b has all entries equal to 1, 2, or 3;
+     We now reduce the obtained instance to another ILP Feasibility instance containing
+only O((n + m)/ log(n + m)) constraints. Let M be the detecting matrix given by Lemma 7
+for d = 4 and the required number of columns (m in the notation of the statement of
+Lemma 7) equal to the number or rows (constraints) in A, which is k. Then for any x ∈ N` ,
+we have Ax ∈ Nk (since A is non-negative) and b ∈ {0, . . . , d − 1}k , hence by Lemma 7
+we have that Ax = b if and only if M Ax = M b. We conclude that the ILP Feasibility
+instance {x ∈ Z` | A0 x = b0 , x ⩾ 0} with A0 = M A and b0 = M b is equivalent to the
+previous instance {x ∈ Z` | Ax = b, x ⩾ 0}.
+     The new instance has the same number `0 = ` = 2n + 2m of variables, but only
+k = O(k/ log k) = O((n + m)/ log(n + m)) constraints. The entries of b0 = M b are
+  0
+
+non-negative and bounded by k · kbk∞ = O(n + m). Similarly, entries of A0 = M A are
+non-negative, and since every column of A has at most 4 non-zero entries, we get kA0 k∞ ⩽ 4.
+     To further reduce kA0 k∞ , we apply Lemma 8, replacing each row of A0 by a constant
+number of {0, 1}-rows and auxiliary variables. This way, we reduced in polynomial time a
+(3, 4)SAT instance ϕ with n variables and m clauses into an equivalent ILP Feasibility
+                   00
+instance {x ∈ Z` | A00 x = b00 , x ⩾ 0}, where A00 is a {0, 1}-matrix with `00 = `0 + O(k 0 ) =
+O(n + m) columns and k 00 = Θ(k 0 ) = Θ((n + m)/ log(n + m)) rows, while kb00 k∞ = O(n + m).
+Hence `00 , kb00 k∞ = O(k 00 log k 00 ).
+     We are now in position to finish the proof of Theorem 1. Suppose there is an algorithm
+                                                     00   00                              00  00
+for ILP Feasibility that works in time 2o(k log k ) on instances with A ∈ {0, 1}k ×`
+and `00 , kb00 k∞ = O(k 00 log k 00 ). Then applying the above reduction would solve (3,4)SAT
+instances with N = n + m variables and clauses in time 2o((N/ log N )·log(N/ log N )) = 2o(N ) ,
+which contradicts ETH by Corollary 10. This concludes the proof of Theorem 1.
+10   Tight lower bounds for ILP with few constraints
+
+
+     2.4     Reducing coefficients in the target vector
+     We now prove Corollary 2. That is, we show that in Theorem 1, the coefficients in the target
+     vector b can be reduced to constant, at the cost of introducing negative (-1) coefficients in
+     the matrix A.
+
+     Proof of Corollary 2. Let {Ax = b, x ⩾ 0} be an instance given by Theorem 1, with
+     `, kbk∞ = O(k log k). Let s := dlog(kbk∞ + 1)e. To the system of linear equalities we add
+     s + 1 new variables z, y0 , . . . , ys−1 , with constraints z = 1 and
+
+          z + y0 + · · · + yi−1 = yi           ∀i = 0, . . . , s − 1 ,
+
+     which force z = 1 and yi = 2i . Then each original constraint a| x = b, where a ∈ N` is a row
+     of A and b ∈ N is an entry of b, can be replaced by the constraint a| x − c| y = 0, where c is
+     chosen so that c| y = b; that is, the i-th entry of c is 0 or 1 depending on the i-th bit of b.
+         In matrix form, we thus created the following instance (where B ∈ {−1, 0}(1+s)×` is
+     the matrix corresponding to the binary encoding of b, with the first column zero, since it
+     corresponds to the variable z):
+
+                                      `               1+s               
+                                                                    0
+                            k 
+                                      A                B            0
+                                                                      
+                                                                     0
+                                                                     
+                              
+                                                                   = 
+                              
+                                             1                      1
+                                                                      
+                                             1   −1                 0
+                          1+s 
+                                                                     
+                                              1    1    −1           0
+                                              1    1    1      −1         0
+
+
+     Since s = O(log k), the resulting matrix has {−1, 0, 1} entries, k + 1 + s = Θ(k) rows,
+     ` + 1 + s = O(k log k) columns. The new target vector has only {0, 1} entries, as required. J
+
+      3      Parameterization by the dual treedepth
+     3.1     Preliminaries
+     Treedepth and dual treedepth. For a graph G, the treedepth of G, denoted td(G), can be
+     defined recursively as follows:
+                 
+                 
+                 
+                   1                           if G has one vertex;
+                 
+                 
+                 
+                 max(td(G1 ), . . . , td(Gp )) if G is disconnected and G1 , . . . , Gp
+                 
+                 
+                 
+         td(G) =                                are its connected components;            (5)
+                 
+                 
+                 
+                    1 + minu∈V (G) td(G − u)    if G has more than one vertex
+                 
+                 
+                 
+                 
+                 
+                 
+                                               and is connected.
+
+     See e.g. [31]. Equivalently, treedepth is the smallest possible height of a rooted forest F on
+     the same vertex set as G such that whenever uv is an edge in G, then u is an ancestor of v
+     in F or vice versa.
+         Since we focus on constraints, we consider, for a matrix A, the constraint graph or dual
+     graph GD (A), defined as the graph with rows of A as vertices where two rows are adjacent if
+D. Knop, Mi. Pilipczuk, M. Wrochna                                                                       11
+
+
+and only if in some column they simultaneously contain a non-zero entry. The dual treedepth
+of A, denoted tdD (A), is the treedepth of GD (A).
+    The recursive definition (5) is elegantly reinterpreted in terms of row removals and
+partitioning into blocks as follows. A matrix A is block-decomposable if after permuting its
+rows and columns it can be presented in block-diagonal form, i.e., rows and columns can
+be partitioned into intervals R1 , . . . , Rp and C1 , . . . , Cp , for some p ⩾ 2, such that non-zero
+entries appear only in blocks B1 , . . . , Bp , where Bi is the block of entries at intersections
+of rows from Ri with columns from Ci . It is easy to see that A is block-decomposable if
+and only if GD (A) is disconnected, and the finest block decomposition of A corresponds
+to the partition of GD (A) into connected components. The blocks B1 , . . . , Bp in this finest
+partition are called the block components of A—they are not block-decomposable. Then the
+recursive definition of treedepth provided in (5) translates to the following definition of the
+dual treedepth of a matrix A:
+               
+               
+                1                                     if A has one row;
+               
+               
+               
+               max(tdD (B1 ), . . . , tdD (Bp ))      if A is block-decomposable and
+               
+               
+    tdD (A) =                                          B1 , . . . , Bp are its block components; (6)
+               
+               
+               
+               1 + a| : rows
+                         min       tdD (A\a| )         if A has more than one row and
+               
+               
+               
+                              of A
+                                                       is not block decomposable.
+               
+
+Here A\a| is the matrix obtained from A by removing the row a| . Intuitively, dual treedepth
+formalizes the idea that a block-decomposable matrix is as hard as the hardest of its block
+components, and that adding a single row makes it a bit harder, but not uncontrollably so.
+
+Graver bases. Two integer vectors a, b ∈ Zn are sign-compatible if ai · bi ⩾ 0 for all
+i = 1, . . . , n. For a, b ∈ Zn we write a v b if a and b are sign-compatible and |ai | ⩽ |bi | for
+all i = 1, . . . , n. Then v is a partial order on Zn ; we call it the conformal order. Note that
+v has a unique minimum element, which is the zero vector 0.
+    For a matrix A, the Graver basis of A, denoted G(A) is the set of conformally minimal
+vectors in (ker A ∩ Zn ) − {0}. It is easy to see by Dickson’s lemma that (Zn , v) is a well
+quasi-ordering, hence there are no infinite antichains with respect to the conformal order. It
+follows that the Graver basis of every matrix is finite, though it can be quite large. For a
+matrix A and p ∈ [1, ∞], we denote gp (A) = maxu∈G(A) kukp .
+
+3.2    Upper bound
+We start with the upper bound for the dual treedepth parameterization, that is, Theorem 3.
+As explained in the introduction, this result easily follows from the work of Koutecký et
+al. [26] and the following lemma bounding g1 (A) in terms of tdD (A) and kAk∞ , for any
+integer matrix A.
+
+I Lemma 11. For any matrix A with integer entries, it holds that
+                                                          tdD (A)
+                                                                    −1
+                                 g1 (A) ⩽ (2kAk∞ + 1)2                   .
+
+    Before we prove Lemma 11, let us sketch how using the reasoning from Koutecký et al. [26]
+one can derive Theorem 3. Using the bound on the `1 -norm of vectors in the Graver basis
+of A, we can construct a Λ-Graver-best oracle for the considered ILP Optimization instance.
+This is an oracle that given any feasible solution x, returns another feasible solution x0 that
+12   Tight lower bounds for ILP with few constraints
+
+
+     differs from x only by an integer multiple not larger than Λ of a vector from the Graver basis
+     of A, and among such solution achieves the best goal value of w| x0 . Such a Λ-Graver-best
+     oracle runs in time (kAk∞ · g1 (A))O(twD (A)) · |I|O(1) , where twD (A) is the treewidth of the
+     constraint graph GD (A), which is always upper bounded by tdD (A) + 1. See the proof
+     of Lemma 25 and the beginning of the proof of Theorem 3 in [26]; the reasoning there is
+     explained in the context of tree-fold ILPs, but it uses only boundedness of the dual treedepth
+     of A. Once a Λ-Graver-best oracle is implemented, we can use it to implement a Graver-best
+     oracle (Lemma 14 in [26]) within the same asymptotic running time, and finally use the main
+     theorem—Theorem 1 in [26]—to obtain the algorithm promised in Theorem 3 above.
+         We now proceed to the proof of Lemma 11.
+
+     Proof of Lemma 11. We proceed by induction on the number of rows of A using the recursive
+     definition (6). For the base case—when A has one row—we may use the following well-known
+     bound.
+
+     B Claim 12 (Lemma 3.5.7 in [29]). If A is an integer matrix with one row, then
+
+                                              g1 (A) ⩽ 2kAk∞ + 1.
+
+     We note that the original bound of 2kAk∞ − 1, stated in [29], works only for non-zero A.
+          We now move to the induction step, so suppose the considered matrix A has more than
+     one row. We consider two cases: either A is block-decomposable, or it is not.
+          First suppose that A is block-decomposable. Let B1 , . . . , Bp be the block components
+     of A, and let R1 , . . . , Rp and C1 , . . . , Cp be the corresponding partitions of rows and columns
+     of A into segments, respectively. Observe that integer vectors u from ker A are exactly
+     vectors of the form ( v(1) | v(2) | . . . | v(p) ), where each v(i) is an integer vector of length
+     |Ci | that belongs to ker Bi . It follows that G(A) consists of vectors of the following form: for
+     some i ∈ {1, . . . , p} put a vector from G(Bi ) on coordinates corresponding to the columns of
+     Ci , and fill all the other entries with zeroes. Consequently, we have
+
+        g1 (A) ⩽ max g1 (Bi ).                                                                                  (7)
+                  i=1,...,p
+
+
+     On the other hand, by (6) we have
+
+        tdD (A) = max tdD (Bi ).                                                                                (8)
+                    i=1,...,p
+
+
+     Since each matrix Bi has fewer rows than A, we may apply the induction assumption to
+     matrices B1 , . . . , Bp , thus inferring by (7) and (8) that
+                                                               tdD (Bi )                       tdD (A)
+                                                                         −1                            −1
+           g1 (A) ⩽ max g1 (Bi ) ⩽ max (2kBi k∞ + 1)2                         ⩽ (2kAk∞ + 1)2                .
+                    i=1,...,p           i=1,...,p
+
+
+         We are left with the case when A is not block-decomposable. For this, we use the following
+     claim, which is essentially Lemma 3.7.6 and Corollary 3.7.7 in [29]. The statement there is
+     slightly different, but the same proof, which we repeat for convenience in the appendix, in
+     fact proves the following bound.
+
+     B Claim 13. Let A be an integer matrix and let a| be a row of A. Then
+
+                                g1 (A) ⩽ (2ka| k∞ + 1) · g1 (A\a| ) · g∞ (A\a| ).
+D. Knop, Mi. Pilipczuk, M. Wrochna                                                                     13
+
+
+Proof. Denote B = A\a| . Consider any vector u ∈ G(A). Then u is also in ker B ∩ Zn ,
+where n is the number of columns of A, which means that we can write u as a sign-compatible
+sum of elements of the Graver basis of B, that is,
+                                                      p
+                                                      X
+                                                u=          λi gi ,
+                                                      i=1
+
+for some λ1 , . . . , λp ∈ N and distinct sign-compatible vectors g1 , . . . , gp ∈ G(B).
+    Let λ be a vector of length p with entries λ1 , . . . , λp . Further, let b be also a vector of
+length p, where bi = a| gi . Considering b| as a matrix with one row, we have λ ∈ ker b| .
+Indeed, we have
+                          Xp           p
+                                       X                  p
+                                                          X
+                              λ i bi =   λi (a| gi ) = a|   λi gi = a| u = 0,
+                       i=1               i=1                    i=1
+
+because u ∈ ker a| due to u ∈ G(A).
+    We now verify that in fact λ ∈ G(b| ). Indeed, since u is non-zero, λ is non-zero as well.
+Also, if there existed some non-zero λ0 @ λ with λ0 ∈ ker b| , then the same computation as
+                             Pp
+above would yield that u0 = i=1 λ0i gi also belongs to ker A. However, as vectors g1 , . . . , gp
+are sign-compatible, 0 @ λ0 @ λ would entail 0 @ u0 @ u, a contradiction with the conformal
+minimality of u following from u ∈ G(A).
+    Now that we know that λ ∈ G(b| ), we may use Claim 12 to infer that
+
+   kλk1 ⩽ 2kb| k∞ + 1 = 2 max |a| gi | + 1 ⩽ 2kak∞ · g1 (B) + 1 ⩽ (2kak∞ + 1) · g1 (B).
+                               i=1,...,p
+
+Hence, we have
+                       p
+                       X
+             kuk1 =          λi gi       ⩽ kλk1 · g∞ (B) ⩽ (2kak∞ + 1) · g1 (B) · g∞ (B).
+                       i=1           1
+
+This concludes the proof.                                                                         y
+
+   Suppose then that A is not block-decomposable. By (6), there exists a row a| of A such
+that tdD (A\a| ) = tdD (A) − 1. Then, by Claim 13 and the inductive assumption, we have
+                                                                                       2
+   g1 (A) ⩽ (2ka| k∞ + 1) · g1 (A\a| ) · g∞ (A\a| ) ⩽ (2kAk∞ + 1) · (g1 (A\a| ))
+                                     tdD (A)−1                        tdD (A)
+                                               −1)                            −1
+          ⩽ (2kAk∞ + 1)1+2·(2                        = (2kAk∞ + 1)2                .
+
+This concludes the proof.                                                                        J
+
+3.3    Lower bound
+We now move to the proof of the lower bound, Theorem 4. We will reduce from the Subset
+Sum problem: given non-negative integers s1 , . . . , sk , t, encoded in binary, decide whether
+there is a subset of numbers s1 , . . . , sk that sums up to t. The standard NP-hardness reduction
+from 3SAT to Subset Sum takes an instance of 3SAT with n variables and m clauses, and
+produces an instance (s1 , . . . , sk , t) of Subset Sum with a linear number of numbers and
+each of them of linear bit-length, that is, k ⩽ O(n + m) and 0 ⩽ s1 , . . . , sk , t < 2δ , for some
+δ ⩽ O(n + m). See e.g. [1] for an even finer reduction, yielding lower bounds for Subset Sum
+under Strong ETH. By Theorem 9, this immediately implies an ETH-based lower bound for
+Subset Sum.
+14   Tight lower bounds for ILP with few constraints
+
+
+     I Lemma 14. Unless ETH fails, there is no algorithm for Subset Sum that would solve
+     any input instance (s1 , . . . , sk , t) in time 2o(k+δ) , where δ is the smallest integer such that
+     s1 , . . . , sk , t < 2δ .
+         The idea for our reduction from Subset Sum to ILP Feasibility is as follows. Given
+     an instance (s1 , . . . , sk , t), we first construct numbers s1 , . . . , sk using ILPs P1 , . . . , Pk , where
+     each Pi uses only constant-size coefficients and has dual treedepth O(log δ). The ILP Pi will
+     have a designated variable zi and two feasible solutions: one that sets zi to 0 and one that
+     sets it to si . Similarly we can construct an ILP Q that forces a designated variable w to be set
+     to t. Having that, the whole input instance can be encoded using one additional constraint:
+     z1 + . . . + zk − w = 0. To construct each Pi , we first create δ variables y0 , y1 , . . . , yδ−1 that
+     are either all evaluated to 0 or all evaluated to 20 , 21 , . . . , 2δ−1 , respectively; this involves
+     constraints of the form yj+1 = 2yj . Then the number si (or 0) can be obtained on a new
+     variable zi using a single constraint that assembles the binary encoding of si . The crucial
+     observations is that the constraint graph GD (Pi ) consists of a path on δ vertices and one
+     additional vertex, and thus has treedepth O(log δ).
+         We start implementing this plan formally by giving the construction for a single number s.
+     I Lemma 15. For all positive integers δ and s satisfying 0 ⩽ s < 2δ , there exists an instance
+     P = {Ax = b, x ⩾ 0} of ILP Feasibility with the following properties:
+         A has all entries in {−1, 0, 1, 2} and tdD (A) ⩽ log δ + O(1);
+         b is a vector with all entries in {0, 1}; and
+                                                             (1)        (2)
+         P has exactly two solutions x(1) and x(2) , where x1 = 0 and x1 = s.
+     Moreover, the instance P can be constructed in time polynomial in δ + log s.
+     Proof. We shall use n + 2 variables, denoted for convenience by y0 , y1 , . . . , yδ−1 , z, u; these
+     are arranged into the variable vector x of length δ + 2 so that x1 = z. Letting b0 , b1 , . . . , bδ−1
+     be the consecutive digits of the number s in the binary encoding, the instance P then looks
+     as follows:
+             u +        y0                                                                           =    1
+                       2y0      −    y1                                                              =    0
+                                    2y1    −     y2                                                  =    0
+                                                 ..            ..                                         ..
+                                                    .           .                                          .
+                                                            2yδ−2        −      yδ−1                 =    0
+                       b0 y 0   + b1 y 1   + ...        + bδ−2 yδ−2      +    bδ−1 yδ−1     − z      =    0
+     Since 0 ⩽ u ⩽ 1, it is easy to see that P has exactly two solutions in nonnegative integers:
+         If one sets u = 1, then all the other variables need to be set to 0.
+         If one sets u = 0, then yi needs to be set to 2i for all i = 0, 1, . . . , δ − 1, and then z needs
+         to be set to s by the last equation.
+     It remains to analyze the dual treedepth of A. Observe that the constraint graph GD (A)
+     consists of a path of length δ, plus one vertex corresponding to the last equation that may
+     have an arbitrary neighborhood within the path. Since the path on δ vertices has treedepth
+     dlog(δ + 1)e, it follows that GD (A) has treedepth at most 1 + dlog(δ + 1)e ⩽ log δ + O(1). J
+
+         We note that in the above construction one may remove the variable u and replace the
+     constraint u + y0 = 1 with y0 = 1, thus forcing only one solution: the one that sets the first
+     variable to s. This will be used later.
+         We are ready to show the core part of the reduction.
+D. Knop, Mi. Pilipczuk, M. Wrochna                                                                       15
+
+
+I Lemma 16. An instance (s1 , . . . , sk , t) of Subset Sum with 0 ⩽ si , t < 2δ for i = 1, . . . , k,
+can be reduced in polynomial time to an equivalent instance {Ax = b, x ⩾ 0} of ILP
+Feasibility where entries of A are in {−1, 0, 1, 2}, entries of b are in {0, 1}, and tdD (A) ⩽
+log δ + O(1).
+
+Proof. For each i ∈ {1, . . . , k}, apply Lemma 15 to construct a suitable instance Pi =
+{Ai x = bi , x ⩾ 0} of ILP Feasibility for s = si . Also, apply Lemma 15 to construct a
+suitable instance Q = {Cx = d, x ⩾ 0} of ILP Feasibility for s = t, and modify it as
+explained after the lemma’s proof so that there is only one solution, setting the first variable
+to t. Let                                                  
+                                                c|
+                                     A                     
+                                      1                    
+                                           A2
+                                                           
+                                                           
+                                 A= 
+                                                ..
+                                                            
+                                                   .
+                                                            
+                                                           
+                                                           
+                                                    Ak     
+                                                          C
+where
+                    c| = ( 1 0 . . . 0 | 1 0 . . . 0 | . . . | 1 0 . . . 0 | (−1) 0 . . . 0 )
+with consecutive blocks of lengths equal to the numbers of columns of A1 , . . . , Ak , and C,
+respectively. Observe that
+
+               tdD (A) ⩽ 1 + max(tdD (A1 ), . . . , tdD (Ak ), tdD (C)) = log δ + O(1).
+
+Further, let
+                                    b| = ( 0 | b|1 | . . . | b|k | d| ).
+We now claim that the ILP {Ax = b, x ⩾ 0} is feasible if and only if the input instance of
+Subset Sum has a solution. Indeed, if we denote by z1 , . . . , zk , w the variables corresponding
+to the first columns of blocks A1 , . . . , Ak , C, respectively, then by Lemma 15 within each
+block Ai there are two ways of evaluating variables corresponding to columns of Ai : one
+setting zi = 0 and second setting zi = si . However, there is only one way of evaluating
+the variables corresponding to columns of C, which sets w = t. The first row of A then
+constitutes the constraint z1 + . . . + zk − w = 0, which can be satisfied by setting zi -s and w
+as above if and only if some subset of the numbers s1 , . . . , sk sums up to t.                J
+
+    It remains to reduce entries in A equal to 2, simply by duplicating variables.
+
+I Lemma 17. An instance {Ax = b, x ⩾ 0} of ILP Feasibility where entries of A
+are in {−1, 0, 1, 2} and entries of b are in {0, 1} can be reduced in polynomial time to an
+equivalent instance {A0 x = b0 , x ⩾ 0} of ILP Feasibility with all entries in {−1, 0, 1} and
+tdD (A0 ) ⩽ tdD (A) + 1.
+
+Proof. It suffices to duplicate each variable x by introducing a variable x0 , adding a constraint
+x − x0 = 0, and replacing occurrences of 2x in constraints by x + x0 . In the dual graph, this
+results in introducing a new vertex (for the constraint x − x0 = 0), adjacent only to those
+constraints that contained x, which form a clique in GD (A) (they are pairwise adjacent).
+The new vertices are non-adjacent to each other. We show that in total, this operation can
+only increase the dual treedepth by at most 1.
+   Let F be a rooted forest of height td(GD (A)) with the same vertex set as GD (A) such
+that whenever uv is an edge of GD (A), then u is an ancestor of v in F or vice versa. Then in
+16   Tight lower bounds for ILP with few constraints
+
+
+     particular, for each original variable x, the constraints containing it form a clique in GD (A),
+     so the constraint that is the lowest in F , say a| , has all the others as ancestors. This means
+     that the new vertex representing the constraint x − x0 = 0 can be added to F as a pending
+     leaf below a| . Doing this for each original variable x can only add pendant leaves to original
+     vertices of F , which increases its height by at most 1.                                      J
+
+        Theorem 4 now follows by observing that combining the reductions of Lemma 16 and
+     Lemma 17 with a hypothetical algorithm for ILP Feasibility on {−1, 0, 1}-input with
+                    o(td (A))                          td (A)
+     running time 22 D        · |I|O(1) , or just 2o(2 D ) · |I|O(1) , would yield an algorithm for
+                                          o(k+δ)
+     Subset Sum with running time 2              , contradicting ETH by Lemma 14.
+
+      4     Conclusions
+     We conclude this work by stating two concrete open problems in the topic.
+         First, apart from considering the standard form {Ax = b, x ⩾ 0}, Eisenbrand and
+     Weismantel [11] also studied the more general setting of ILPs of the form {Ax = b, l ⩽ x ⩽ u},
+     where l and u are integer vectors. That is, instead of only requiring that every variable is
+     nonnegative, we put an arbitrary lower and upper bound on the values it can take. Note that
+     such lower and upper bounds can be easily emulated in the standard formulation using slack
+     variables, but this would require adding more constraints to the matrix A; the key here is
+     that we do not count these lower and upper bounds in the total number of constraints k. For
+     this more general setting, Eisenbrand and Weismantel [11] gave an algorithm with running
+                2        O(k2 )                                     2
+     time k O(k ) · kAk∞        · |I|O(1) , which boils down to 2O(k log k) · |I|O(1) when kAk∞ = O(1).
+                                    2
+     (A typo leading to a 2O(k ) · |I|O(1) bound has been fixed in later versions of the paper). Is
+                                                        2
+     this running time optimal or could the 2O(k log k) factor be improved? Note that Theorem 1
+     implies a 2o(k log k) -time lower-bound, unless ETH fails.
+         Second, in this work we studied the parameter dual treedepth of the constraint matrix A,
+     but of course one can also consider the primal treedepth. It can be defined as the treedepth
+     of the graph over the columns (variables) of A, where two columns are adjacent if they
+     have a non-zero entry in same row (the variables appear simultaneously in some constraint).
+     It is known that ILP Feasibility and ILP Optimization are fixed-parameter tractable
+     when parameterized by kAk∞ and tdP (A), that this, there is an algorithm with running
+     time f (kAk∞ , tdP (A)) · |I|O(1) , for some function f [26] (see also [10]). Again, the key
+     ingredient here is an inequality on `∞ -norms of the elements of the Graver basis of any
+     integer matrix A: g∞ (A) ⩽ h(kAk∞ , tdP (A)) for some function h. The first bound on
+     g∞ (A) was given by Aschenbrenner and Hemmecke [2]. The work of Aschenbrenner and
+     Hemmecke [2] considers the setting of multi-stage stochastic programming (MSSP), which is
+     related to primal treedepth in the same way as tree-fold ILPs are related to dual treedepth.
+     The translation between MSSP and primal treedepth was first formulated by Koutecký et
+     al. [26]. However, to establish a bound on g∞ (A), Aschenbrenner and Hemmecke [2] use the
+     theory of well quasi-orderings (in a highly non-trivial way) and consequently give no direct
+     bounds on the function h. Recently, Klein [21] gave the first constructive bound on g∞ (A)
+     for MSSP. However, we conjecture that the function h has to be non-elementary in tdP (A).
+     If this was the case, an example could likely be used to prove a non-elementary lower bound
+     under ETH for ILP Feasibility under that tdP (A) parameterization (with kAk∞ = O(1)).
+         Very recently, Koutecký and Král’ [25] showed that algorithms parameterized by dual
+     treedepth can be extended to the parameter “branch-depth” defined on the column matroid
+     of the constraint matrix. This parameter has the advantage of being invariant under row
+     operations. The transformation however incurs an exponential blow-up in the parameter.
+D. Knop, Mi. Pilipczuk, M. Wrochna                                                                   17
+
+
+     References
+ 1   Amir Abboud, Karl Bringmann, Danny Hermelin, and Dvir Shabtay. SETH-based lower
+     bounds for Subset Sum and Bicriteria Path. In SODA 2019, pages 41–57. SIAM, 2019.
+ 2   Matthias Aschenbrenner and Raymond Hemmecke. Finiteness theorems in stochastic integer
+     programming. Foundations of Computational Mathematics, 7(2):183–227, 2007.
+ 3   Marthe Bonamy, Łukasz Kowalik, Michał Pilipczuk, Arkadiusz Socała, and Marcin Wrochna.
+     Tight lower bounds for the complexity of Multicoloring. In ESA 2017, volume 87 of LIPIcs,
+     pages 18:1–18:14. Schloss Dagstuhl — Leibniz-Zentrum für Informatik, 2017.
+ 4   Nader H. Bshouty. Optimal algorithms for the coin weighing problem with a spring scale. In
+     COLT 2009, 2009.
+ 5   David G Cantor and WH Mills. Determination of a subset from certain combinatorial properties.
+     Canad. J. Math, 18:42–48, 1966.
+ 6   Lin Chen. On Block-Structured Integer Programming and Its Applications, pages 153–177.
+     Springer, Cham, 2019. doi:10.1007/978-3-030-16194-1_7.
+ 7   Lin Chen and Dániel Marx. Covering a tree with rooted subtrees — parameterized and
+     approximation algorithms. In SODA 2018, pages 2801–2820. SIAM, 2018.
+ 8   Marek Cygan, Fedor V. Fomin, Łukasz Kowalik, Daniel Lokshtanov, Dániel Marx, Marcin
+     Pilipczuk, Michał Pilipczuk, and Saket Saurabh. Parameterized Algorithms. Springer, 2015.
+ 9   Friedrich Eisenbrand, Christoph Hunkenschröder, and Kim-Manuel Klein. Faster algorithms
+     for integer programs with block structure. In ICALP 2018, volume 107 of LIPIcs, pages
+     49:1–49:13. Schloss Dagstuhl — Leibniz-Zentrum für Informatik, 2018.
+10   Friedrich Eisenbrand, Christoph Hunkenschröder, Kim-Manuel Klein, Martin Koutecký, Asaf
+     Levin, and Shmuel Onn. An algorithmic theory of integer programming. CoRR, abs/1904.01361,
+     2019. arXiv:1904.01361.
+11   Friedrich Eisenbrand and Robert Weismantel. Proximity results and faster algorithms for
+     Integer Programming using the Steinitz lemma. In SODA 2018, pages 808–816. SIAM, 2018.
+12   Fedor V. Fomin, Fahad Panolan, M. S. Ramanujan, and Saket Saurabh. On the optimality of
+     pseudo-polynomial algorithms for Integer Programming. In ESA 2018, volume 112 of LIPIcs,
+     pages 31:1–31:13. Schloss Dagstuhl — Leibniz-Zentrum für Informatik, 2018.
+13   András Frank and Éva Tardos. An application of simultaneous diophantine approximation in
+     combinatorial optimization. Combinatorica, 7(1):49–65, 1987.
+14   Vladimir Grebinski and Gregory Kucherov. Optimal reconstruction of graphs under the
+     additive model. Algorithmica, 28(1):104–124, 2000.
+15   Raymond Hemmecke, Shmuel Onn, and Lyubov Romanchuk. n-fold integer programming in
+     cubic time. Math. Program., 137(1-2):325–341, 2013.
+16   Russell Impagliazzo and Ramamohan Paturi. On the Complexity of k-SAT. J. Comput. Syst.
+     Sci., 62(2):367–375, 2001.
+17   Russell Impagliazzo, Ramamohan Paturi, and Francis Zane. Which problems have strongly
+     exponential complexity? J. Comput. Syst. Sci., 63(4):512–530, 2001.
+18   Klaus Jansen, Kim-Manuel Klein, Marten Maack, and Malin Rau. Empowering the
+     configuration-IP — new PTAS results for scheduling with setups times. In ITCS 2019,
+     volume 124 of LIPIcs, pages 44:1–44:19. Schloss Dagstuhl — Leibniz-Zentrum für Informatik,
+     2019.
+19   Klaus Jansen and Lars Rohwedder. On integer programming and convolution. In ITCS 2019,
+     volume 124 of LIPIcs, pages 43:1–43:17. Schloss Dagstuhl — Leibniz-Zentrum für Informatik,
+     2019.
+20   Ravi Kannan. Minkowski’s convex body theorem and integer programming. Mathematics of
+     Operations Research, 12(3):415–440, 1987.
+21   Kim-Manuel Klein. About the complexity of two-stage stochastic IPs. CoRR, abs/1901.01135,
+     2019.
+22   Dušan Knop and Martin Koutecký. Scheduling meets n-fold integer programming. J. Scheduling,
+     21(5):493–503, 2018.
+18   Tight lower bounds for ILP with few constraints
+
+
+     23   Dušan Knop, Martin Koutecký, and Matthias Mnich. Combinatorial n-fold integer program-
+          ming and applications. In ESA 2017, volume 87 of LIPIcs, pages 54:1–54:14. Schloss Dagstuhl
+          — Leibniz-Zentrum für Informatik, 2017.
+     24   Dušan Knop, Martin Koutecký, and Matthias Mnich. Voting and bribing in single-exponential
+          time. In STACS 2017, volume 66 of LIPIcs, pages 46:1–46:14. Schloss Dagstuhl — Leibniz-
+          Zentrum für Informatik, 2017.
+     25   Martin Koutecký and Daniel Král’. A row-invariant parameterized algorithm for integer
+          programming. CoRR, abs/1907.06688, 2019. arXiv:1907.06688.
+     26   Martin Koutecký, Asaf Levin, and Shmuel Onn. A parameterized strongly polynomial algorithm
+          for block structured integer programs. In ICALP 2018, volume 107 of LIPIcs, pages 85:1–85:14.
+          Schloss Dagstuhl — Leibniz-Zentrum für Informatik, 2018.
+     27   Hendrik W. Lenstra. Integer programming with a fixed number of variables. Mathematics of
+          Operations Research, 8(4):538–548, 1983.
+     28   Bernt Lindström. On a combinatorial problem in number theory. Canad. Math. Bull, 8(4):477–
+          490, 1965.
+     29   Jesús A. De Loera, Raymond Hemmecke, and Matthias Köppe. Algebraic and Geometric Ideas
+          in the Theory of Discrete Optimization, volume 14 of MOS-SIAM Series on Optimization.
+          SIAM, 2013.
+     30   S. S. Martirosyan and G. G. Khachatryan. Construction of signature codes and the coin
+          weighing problem. Probl. Peredachi Inf. (Problems Inform. Transmission), 25:96–97, 1989. (in
+          Russian).
+     31   Jaroslav Nešetřil and Patrice Ossona de Mendez. Sparsity — Graphs, Structures, and Al-
+          gorithms, volume 28 of Algorithms and combinatorics. Springer, 2012.
+     32   Christos H. Papadimitriou. On the complexity of integer programming. J. ACM, 28(4):765–768,
+          1981.
+     33   Craig A. Tovey. A simplified NP-complete satisfiability problem. Discrete Applied Mathematics,
+          8(1):85–89, 1984.
+

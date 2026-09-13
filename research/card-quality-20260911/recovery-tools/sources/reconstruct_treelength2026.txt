@@ -1,0 +1,456 @@
+                                                 Reconstructing Bounded Treelength Graphs with Linearithmic
+                                                                Shortest Path Distance Queries
+                                                                          Chirag Kaudan∗               Amir Nayyeri†‡
+
+                                                                                        March 12, 2026
+arXiv:2603.10432v1 [cs.DS] 11 Mar 2026
+
+
+
+
+                                                                                            Abstract
+                                                      We consider the following graph reconstruction problem: given an unweighted connected
+                                                  graph G = (V, E) with visible vertex set V and an oracle which takes two vertices u, v ∈ V and
+                                                  returns the shortest path distance between u and v, how many queries are needed to reconstruct
+                                                  E?
+                                                      Specifically, we consider bounded degree ∆ and bounded treelength tl connected graphs and
+                                                  show that reconstruction can be done in O∆,tl (n log n) queries with a deterministic algorithm.
+                                                  This result improves over the best known algorithm (deterministic or randomized) for this graph
+                                                  class by a log n factor and matches the known lower bound for the class of graphs with bounded
+                                                  chordality, which is a subclass of bounded treelength graphs.
+
+
+                                         1       Introduction
+                                         In the graph reconstruction problem, only the vertex set V of a hidden graph G = (V, E) is visible,
+                                         and the goal is to reconstruct the edge set E by querying an oracle. A graph reconstruction
+                                         algorithm aims to discover the edge set with as few adaptively chosen queries as possible. The
+                                         reconstruction task is considered complete once there is a unique graph consistent with all answers
+                                         to the queries. Several query models have been studied for graph reconstruction, including edge
+                                         existence queries, edge counting, effective resistance queries, and shortest path queries [RS07, AC04,
+                                         HMMT18, ABK+ 04, AA05, BBNW26].
+                                             In the Shortest Path (SP) distance query model, we have access to a distance oracle: for any
+                                         two vertices u, v ∈ V , a query returns the length of the shortest path between u and v in G and
+                                         returns ∞ if no such path exists.
+                                             The study of network reconstruction using shortest path queries is motivated by applications
+                                         such as Internet topology reconstruction and evolutionary tree reconstruction [Hei89, WSSB77,
+                                         BEE+ 05, DAHB+ 06, ACKM09].
+                                             Any (unweighted) graph can trivially be reconstructed using n2 SP queries, simply by querying
+                                                                                                               
+
+                                         every pair of vertices to check whether they are adjacent. Unfortunately, this upper bound is tight
+                                         even for trees, once we allow unbounded degree [RS07].
+                                             ∗
+                                               Oregon State University, kaudanc@oregonstate.edu
+                                             †
+                                               Oregon State University, amir.nayyeri@oregonstate.edu
+                                             ‡
+                                               The authors were supported by NSF grants CCF-1941086 and CCF-2311180.
+
+
+
+
+                                                                                                1
+    Moreover, the bound is tight if one allows disconnected graphs–reconstructing a graph with n
+vertices and 1 edge requires Ω(n2 ) queries. In light of these observations, all non-trivial algorithmic
+results on graph reconstruction focus on connected bounded degree graphs.
+    Mathieu et al. [MZ13] [KMZ18] showed that general bounded-degree graphs can be recon-
+structed using O e∆ (n3/2 ) expected queries via a randomized algorithm.1 . This is still the best
+known general upper bound today. It is unknown whether there exists a deterministic algorithm to
+reconstruct a bounded-degree graph in O e∆ (n3/2 ) queries. Mathieu et al. further described a random-
+ized algorithm that reconstructs chordal graphs using only O∆ (n log3 n) queries. Building on this,
+Bastide and Groenland [BG24a] strengthened their result by obtaining a reconstruction algorithm
+for bounded degree k-chordal graphs with O∆,k (n log n) queries (See also Rong et al. [RLYW21] for
+other nearly linear reconstruction algorithms of nearly chordal graphs).2
+    In a more recent work, Bastide and Groenland [BG24b] describe a randomized O∆,τ (n log2 n)-
+query algorithm for reconstructing graphs with treelength at most τ . Note that bounded chordality
+implies bounded treelength [DG07], but the converse is not true. Thus, their latter result applies
+to a broader class of graphs, though the algorithm is slightly slower and randomized.
+    In this paper, we present a deterministic O∆,τ (n log n)-query algorithm for reconstructing graphs
+of bounded degree ∆ and treelength at most τ –our algorithm is deterministic and more efficient by
+a factor of log n compared to Bastide and Groenland [BG24b].
+Theorem 1. Given a hidden graph G, and an integer τ ≥ tl(G), there is an algorithm that
+reconstructs G using at most O(∆3τ +2 · n log n) SP queries, where n is the number of vertices in G
+and ∆ is its maximum degree.
+    In particular, our result implies a deterministic O∆,k (n log n)-query algorithm for reconstructing
+bounded degree graphs with bounded chordality, matching the optimal result for reconstructing
+graphs with bounded k-chordality [BG24a]. Note that this theorem assumes that the parameter τ
+is given.
+
+
+2     Background and notation
+In this paper, all graphs are simple, connected, unweighted and undirected. For a graph G = (V, E)
+and vertices u, v ∈ V (G), we use dG (u, v) to denote the length of the shortest path between u and
+v in G. For a graph G = (V, E) and a vertex v ∈ V (G), we use NG (v) to denote the set of all
+neighbors of v in the graph G and NG [v] = NG (v) ∪ {v}, the open and closed neighborhood of v
+respectively. Analogously, for a graph G = (V, E) and a set S ⊆ V (G), we let NG [S] = {u ∈ V (G) |
+∃a ∈ S, dG (a, u) ≤ 1} and NG (S) = NG [S] \ S be the closed neighborhood and open neighborhood
+of S in G respectively. For a graph G = (V, E) and a path π = v0 v1 . . . vk in G, we use π[vi , vj ]
+to denote the subpath of π starting at vi and ending at vj for 0 ≤ i ≤ j ≤ k. Further, we denote
+the concatenation of paths π = π0 , . . . , πn and ρ = ρ0 , . . . , ρm where πn = ρ0 in graph G with
+π ◦ ρ = π0 , . . . , πn , . . . , ρn resulting in a π0 -ρn walk in G.
+
+Tree decomposition and treelength. A tree decomposition of G = (V, E) is an ordered
+pair (T, {Vt | t ∈ V (T )}) where T is a tree and Vt ⊆ V (G) is a subset associated with each vertex
+   1        e (n)) as a shorthand for O(f (n) · polylog(n)). Also, we use Op (·) for different paratmeters p to indicate
+     We use O(f
+that the hidden constant depends on p.
+   2
+     A graph is k-chordal if all its induced cycles have length at most k; chordal graphs are 3-chordal.
+
+
+                                                           2
+of T . The tree T and the collection of subsets {Vt | t ∈ V (T )}, which are often referred to as bags
+of the tree decomposition, must satisfy the following properties.
+
+   • Every vertex of G is contained in at least one bag Vt i.e. V (G) =
+                                                                                S
+                                                                                        Vt .
+                                                                             t∈V (T )
+
+   • For each edge e of G, there is a bag Vt which contains both endpoints of e.
+
+   • Let t, t′ and t′′ be three vertices of T such that t′ lies on the unique path from t to t′′ in T .
+     Then, if a vertex v of G belongs to both Vt and Vt′′ , it also belongs to Vt′ .
+
+    The treelength of a graph G = (V, E), denoted tl(G), is the minimum integer j such that there
+exists a tree decomposition (T, {Vt | t ∈ V (T )}) where dG (u, v) ≤ j for all u, v ∈ Vt for t ∈ V (T ).
+That is, any two vertices in the same bag of the tree decomposition are at distance at most j.
+    For example, the treelength of a complete graph is one, as one can place all vertices in a single
+bag. More generally, the treelength of a chordal graph is one, and of a k-chordal graph is O(k).
+
+The layering tree. A key tool that our algorithm uses is the notion of layering tree as used
+by Chepoi and Dragan [CD00]. A similar notion has appeared in the literature of graph theory,
+computational geometry, and topology under different names such as merge tree, join tree or split
+tree (see these references: [CSA03, WWW14]).
+     Let G = (V, E) be a connected graph, and let s ∈ V be an arbitrary vertex. We define
+Breath First Search (BFS) layers Li to be the set of vertices at shortest path distance i from s,
+i.e. Li = {v | dG (s, v) = i}. In particular, L0 = {s}. We use notations, L≤k := L0 ∪ . . . ∪ Lk , and
+L≥k := Lk ∪ . . . ∪ Ln−1 .
+     For any i ≥ 0, let Si = {Si1 , . . . , Sisi } be the set of connected components of G \ L≤i−1 , noting
+that L−1 = ∅. In turn, for any 1 ≤ j ≤ si , let Pij = Sij ∩ Li , the set of vertices in Sij that belong
+to Li . We call the elements of Pi = {Pi1 , . . . , Pisi } the parts of G at layer
+                                                                                 S i. It follows that these
+parts partition Li . Moreover, the set of all parts (across all layers), P = 0≤i Pi , partitions V (G).
+     We define the layering tree T = (P, E) of G with respect to s to be the graph whose vertices
+are the parts of G. For two parts P, P ′ ∈ P, (P, P ′ ) ∈ E if and only if there exists u ∈ P and
+u′ ∈ P ′ such that (u, u′ ) ∈ E(G).
+     In this paper, we refer to parts both as vertices of the layering tree and as subsets of V (G),
+but it should be clear from the context which one we refer to. Our algorithm needs      S to consider the
+subtrees induced by subsets of P. We use Tk to refer to the induced subtree T [ i≤k−1 Pi ] i.e. the
+subtree of T induced by the parts at layers 0, 1, . . . , k − 1, and not k.
+     Further we define the length of a layering tree, denoted ℓ(T ), to be the maximum diameter of
+any of its parts, i.e. ℓ(T ) = maxP ∈P (maxu,v∈P (dG (u, v))). By a simple counting argument, the size
+of each part of a layering tree can be bounded.
+
+Lemma 1. Let G = (V, E) be a graph with maximum degree ∆, and let T = (P, E) be any of its
+                                                       ℓ(T )+1
+layering trees. The size of each part in P is at most ∆ ∆−1 −1 ≤ ∆ℓ(T )+1
+
+    Our definition of layering tree is equivalent to the definition used by Dourisbourne and Gavoille [DG07]–
+in their definition, two vertices in Li belong to the same part if and only if there is a path between
+them in G[L≥i ]. They show, in Theorem 8 of their paper [DG07], the following bound on the length
+of a layering tree of G with respect to its treelength.
+
+
+                                                    3
+                        s
+
+
+
+
+Figure 1: Left: the parts of a graph, shaded in purple, based on the BFS layering done with respect
+to s; Right: the layering tree whose vertices correspond to the parts.
+
+
+Lemma 2 (Dourisbourne and Gavoille [DG07], Theorem 8). Let G = (V, E) be a connected graph
+with treelength tl(G), and let T = (P, E) be its layering tree (with respect to an arbitrary vertex s).
+Then ℓ(T ) ≤ 3tl(G).
+
+   Chepoi and Dragan [CD00] show that the layering tree of a graph can be computed in linear
+time. In this paper, we focus on query complexity rather than time complexity. However, it is
+not hard to show that the asymptotic time complexity of our algorithm is the same as its query
+complexity once the maximum degree and treelength are treated as constants.
+
+
+3     Reconstruction Algorithm
+Let G = (V, E) be a hidden graph with a visible vertex set of cardinality n and with a shortest path
+distance oracle. Our algorithm first selects an arbitrary vertex s ∈ V (G) and uses n − 1 queries to
+find dG (s, v) for all v ∈ V (G) \ {s}. Based on this information, our algorithm can build the BFS
+layers L0 , L1 , . . . , Ln−1 .
+    Next, our algorithm reconstructs G layer by layer. Specifically, for each vertex v ∈ Li our
+algorithm uses SP queries to find the neighbors of v in Li ∪ Li−1 .
+    Let Gi = G[L≤i−1 ] be the subgraph of G induced by the first i layers. Also, recall that T is the
+layering tree rooted at s, and let ℓ be an upper bound on its length, i.e. ℓ ≥ ℓ(T ). Similarly, let Tk
+be the subtree of T induced by the first k = i − ℓ − 2 layers of T , the layering tree. Our algorithm
+alternates between extending Gi to Gi+1 and Tk to Tk+1 . Specifically, given Gi , we construct Tk with
+no shortest path queries. Then, given Tk and Gi , we construct Gi+1 with |Li | · ∆O(ℓ) · log n shortest
+path queries. Our latter algorithm is composed of a binary search type algorithm in Tk and an
+exhaustive search within layers k to i, which is similar in spirit to Bastide and Groenland [BG24a]
+reconstruction for k-chordal graphs.
+
+3.1   Extending the layering tree
+We first show that given Gi , one can reconstruct the first k = i − ℓ − 2 layers of T , denoted Tk .
+By the definition of a layering tree, if there exists a path in G[L≥k ] between two vertices u, v ∈ Lk ,
+then u and v belong to the same part at layer k; in particular, if there exists a u-v path within the
+
+                                                   4
+   Lk−1
+                                            P
+     Lk            u                                                v
+                                                                                         Length ≥ 2(µ + 1)
+                       π
+                             x                  y
+  Lk+µ
+                                        F                                         Length ≥ 2(ℓ + 2 − µ)
+Lk+ℓ+2                        t
+
+
+
+
+Figure 2: A shortest u-v path π in G \ L≤k−1 and its x-y subpath F (in red) in the proof of
+Lemma 3. Parts are represented by the shaded ellipses.
+
+
+next O(ℓ) layers of G, then u and v belong to the same part at layer k. The following lemma is a
+key structural insight for our construction that shows the converse is also true, i.e., showing that if
+two vertices belong to the same part at layer k then there is a path between them within the next
+O(ℓ) layers of G. Thus, this lemma implies that to construct Tk , we only need to know the first
+k + O(ℓ) layers of G.
+
+Lemma 3. Let G = (V, E), let T = (P, E) be a layering tree of G, and let ℓ ≥ ℓ(T ). Suppose
+u, v ∈ V (G) belong to the same part P of T at layer k. Then, there is a path between u and v in
+G whose vertices are in L≤k+ℓ+1 ∩ L≥k , i.e. u and v are connected in G \ (L≤k−1 ∪ L≥k+ℓ+2 ).
+
+Proof. Suppose there is no u-v path in G \ (L≤k−1 ∪ L≥k+ℓ+2 ). Since u, v ∈ P , by definition there
+exists a u-v path in G \ L≤k−1 . Let π be a shortest such u-v path. Then π has a vertex t in Lk+ℓ+2 .
+Let µ = ⌊ 2ℓ ⌋, and let x be the last vertex in Lk+µ on the subpath π[u, t] and y be the first vertex
+in Lk+µ on the subpath π[t, v]. Note that x and y are both in Lk+µ and there exists a path π[x, y]
+in G \ L≤k+µ−1 that is composed of π[x, t] and π[t, y], both in G \ L≤k+µ−1 . Therefore, x and y
+belong to the same part of T . It follows that dG (x, y) ≤ ℓ(T ) ≤ ℓ, as the diameter of each part is
+at most ℓ.
+    By definition of π, the path F := π[x, t] ◦ π[t, y] is a shortest x-y path whose vertices are in L≥k .
+Thus, any x-y path either has length at least the length of F or contains a vertex of layer Lk−1 .
+That is, dG (x, y) ≥ min{2(ℓ + 2 − µ), 2(µ + 1)} ≥ ℓ + 1, a contradiction.
+
+    We use Lemma 3 to construct Tk from Gi . Note that to construct Tk , one only needs to be able
+to check if a pair of vertices u, v ∈ Lk are connected in the graph G \ L≤k−1 . By Lemma 3, to check
+this connectivity we only need to consider Gi .
+
+Corollary 1. Let G = (V, E), and let T = (P, E) be a layering tree of G. For any i ≥ ℓ(T ) + 2
+and k ≤ i − ℓ(T ) − 2, there is an algorithm to compute Tk from Gi (and no more information about
+G) with no shortest path queries.
+
+
+
+
+                                                    5
+3.2    Extending graph reconstruction
+Next, we show we can reconstruct Gi+1 given Gi and Tk for k = i − ℓ − 2. That is, we can find
+all the edges that are in Gi+1 but not in Gi , namely the edges with both endpoints in Li+1 or one
+endpoint in Li and one in Li+1 .
+     Our algorithm takes two steps to achieve this reconstruction. First, for each vertex v ∈ Li ,
+it finds the connected component of v in G \ L≤k−1 ; more specifically, the part at layer k that
+is the ancestor (in the partially constructed layering tree Tk ) of the part that contains v. This
+step requires ∆O(ℓ) · log n shortest path queries. Once this connected component is discovered, our
+algorithm exhaustively searches for all neighbors of v within this connected component at layers Li
+and Li−1 to find all its neighbors. This step takes ∆O(ℓ) queries per vertex in Li .
+     To prepare for a more formal description of our method, we provide a few definitions:
+   • For a vertex v ∈ V (G), we define part(v) to be the part of the layering tree T that contains
+     v. Note that for any vertex v ∈ L≤k−1 , the vertex of Tk which contains v is equivalent to
+     part(v), so we will use part(v) for such vertices v despite possibly not having reconstructed
+     T.
+
+   • For a vertex v ∈ Li and an integer k ∈ {0, 1, . . . , i}, we define anc(v, k) to be the part of T that
+     is the ancestor of part(v) at depth k e.g. anc(v, i) = part(v), and anc(v, 0) = part(s) = {s},
+     where s is the root of the BFS tree.
+
+   • For a part P of T , we define comp(P ) to be the subset of vertices contained in P and all of
+     the descendants of P in T . That is, the subset of V (G) that is contained in the subtree of
+     T rooted at P . Note, if P is a part at layer k then comp(P ) is the connected component of
+     G \ L≤k−1 that contains the vertices in P .
+
+Logarithmic search for the connected component. Let v ∈ Li , and let k ∈ {0, 1, . . . , i}.
+The first step of our algorithm is a logarithmic search to find anc(v, k). To that end, we use the
+following classic result on vertex separators of trees. A (1/2)-cut vertex or centroid of graph G
+is a vertex whose removal results in connected components whose size is at most 12 |V (G)|.
+Lemma 4. Every tree has a centroid. (see [Die17, Ch. 1])
+Lemma 5. Let G = (V, E), let T = (P, E) be a layering tree of G, and let ℓ ≥ ℓ(T ). Also,
+let i ≥ k ≥ 0, and suppose Tk and Gi are known. For any x ∈ Li , one can find anc(x, k) with
+O(∆ℓ+2 · log n) queries.
+Proof. Since Tk is a tree, by Lemma 4 it contains a (1/2)-cut vertex. The proof constructs a
+                                                                                           −1
+sequence of subtrees of Tk , namely (Tkj )fj=0 and a sequence of (1/2)-cut vertices (Pj )fj=0 for these
+subtrees such that (1) f ≤ ⌈log n⌉, and (2) Tkf has only one vertex: anc(x, k). Initially, Tk0 = Tk .
+The tree Tkj+1 is defined as the connected component of Tkj \ {Pj } that contains anc(x, k).
+    Since Pj ∈ V (Tkj ) is a separator, Tkj+1 is the subtree of Tkj that contains the neighbor of Pj which
+contains the vertex closest to x among all vertices in NG (Pj ), the set of all vertices of V (G) \ Pj
+that have a neighbor in Pj . Therefore, to find Tkj+1 it suffices to query the distance from x to all
+the vertices in NG (Pj ). Note that anc(x, k) is a leaf of Tk and thus we can always avoid choosing it,
+                                                       −1
+or any other leaf, as a vertex in the sequence (Pj )fj=0  ; this also guarantees that NG (Pj ) ⊆ G[V (Tk )]
+for all Pj in the sequence.
+
+                                                    6
+   By Lemma 1 there are at most ∆ℓ+1 vertices in Pj . Since each vertex in NG (Pj ) has at least
+one neighbor in Pj and G has maximum degree ∆, we have that
+
+                                     |NG (Pj )| ≤ ∆ · |Pj | = ∆ℓ+2
+
+Since Tk has at most n parts and we eliminate at least half of the parts at each step, we know that
+this search takes at most ⌈log2 n⌉ steps, therefore the total query complexity is ∆ℓ+2 · ⌈log2 n⌉ =
+O(∆ℓ+2 · log n)
+
+   Based on the lemma above, we can compute the connected component of each v ∈ Li in
+G \ L≤k−1 .
+
+Lemma 6. Let G = (V, E), let T = (P, E) be a layering tree of G and let ℓ ≥ ℓ(T ). Also, let
+i ≥ k ≥ 0, and suppose Tk and Gi are known. There is an algorithm to compute comp(P ) ∩ L≤i
+for all P at depth k with O(|Li | · ∆ℓ+2 · log n) queries.
+
+Proof. To compute comp(P ) ∩ L≤i for all P in T at depth k, it suffices to find anc(u, k) for all
+u ∈ Lk ∪ . . . ∪ Li . Since we have Gi , which is equal to G[L≤i−1 ], for each u ∈ Lk ∪ . . . ∪ Li−1 we
+have its shortest path to Lk as part of the BFS tree, therefore we can find anc(u, k) by checking
+which part at depth k is connected to u in G \ L≤k−1 . We do not need any shortest path queries for
+this step as Gi is given. For vertices u ∈ Li , we use Lemma 5 to find anc(u, k) with O(∆ℓ+2 · log n)
+queries. Since there are |Li | vertices at layer i, the total number of queries is as stated in the
+lemma.
+
+Brute force search to find neighbors. So far, we have computed comp(P ) ∩ L≤i for all P at
+depth k. We bound the size of each of these vertex sets.
+
+Lemma 7. Let G = (V, E), let T = (P, E) be a layering tree of G, and let ℓ ≥ ℓ(T ). Also, let
+P ∈ P be a part of T with depth k. Also, let i ≥ k. Then |comp(P ) ∩ L≤i | ≤ ∆ℓ+i−k+2 .
+
+Proof. Each vertex in comp(P ) ∩ L≤i is at distance at most i − k from a vertex in P . Since the
+graph has maximum degree ∆, it follows that there are at most |P | · ∆i−k+1 such vertices. By
+Lemma 1, |P | ≤ ∆ℓ+1 , which implies the bound of the lemma.
+
+   Putting together Lemma 6 and Lemma 7, our algorithm constructs Gi+1 from Gi and Tk .
+
+Lemma 8. Let G = (V, E), let T = (P, E) be a layering tree of G, and let ℓ ≥ ℓ(T ). Also, let
+k ≥ 0 and i = k + ℓ + 2. Suppose Gi and Tk are given. There is an algorithm to compute Gi+1 with
+O(|Li |(∆ℓ+2 log n + ∆4ℓ+8 )) queries.
+
+Proof. By Lemma 6, comp(P ) ∩ L≤i can be computed for all P in T at depth k with O(|Li | · ∆ℓ+2 ·
+log n) queries. To compute edges between Li and Li−1 and within Li , it suffices to check whether
+every vertex v ∈ Li is adjacent to vertices in the same connected component as v in G \ L≤k−1 .
+To do that we check the set comp(anc(v, k)) ∩ L≤i for possible neighbors of v. By Lemma 7, these
+sets are bounded by ∆ℓ+i−k+2 = ∆2ℓ+4 . Overall, we have at most |Li | · ∆4ℓ+8 queries of the latter
+type. Hence, the total number of queries is O(|Li |(∆ℓ+2 log n + ∆4ℓ+8 ))
+
+
+
+
+                                                  7
+3.3   Proof of the main result
+Finally, we are ready to prove our main result.
+
+Proof of Theorem 1. First, we select an arbitrary vertex s in V (G) and we query the distance from
+s to every v ∈ V (G) \ {s} to build the layers L0 , . . . , Ln−1 ; this takes n − 1 queries. Let T be
+the layering tree of G rooted at {s} (note, we have not yet computed T ). By Lemma 2, we know
+ℓ(T ) ≤ 3tl(G). We set ℓ := 3τ ≥ 3tl(G), where τ is from the theorem statement. Hence ℓ ≥ ℓ(T ).
+    We compute Gℓ+2 by querying every pair of vertices in L≤ℓ+1 , taking at most ∆2ℓ+4 queries.
+    For i ≥ ℓ + 2, we compute Gi+1 from Gi in two steps. First, we compute Tk for k = i − (ℓ + 2),
+using no queries, by the algorithm of Corollary 1. Then, by Lemma 8, we compute Gi+1 using at
+most |Li |(∆ℓ+2 · log n + ∆4ℓ+8 ) queries. Summing over all remaining layers, this quantity is at most
+n(∆ℓ+2 · log n + ∆4ℓ+8 ). Therefore, we reconstruct G with at most
+
+                           n − 1 + ∆2ℓ+4 + n(∆ℓ+2 · log n + ∆4ℓ+8 )
+                                 = O(∆ℓ+2 · n log n) = O(∆3τ +2 · n log n)
+
+queries.
+
+
+References
+[AA05]       Noga Alon and Vera Asodi. Learning a hidden subgraph. SIAM Journal on Discrete
+             Mathematics, 18(4):697–712, 2005.
+
+[ABK+ 04]    Noga Alon, Richard Beigel, Simon Kasif, Steven Rudich, and Benny Sudakov. Learning
+             a hidden matching. SIAM Journal on Computing, 33(2):487–501, 2004.
+
+[AC04]       Dana Angluin and Jiang Chen. Learning a hidden graph using o(log n) queries per
+             edge. In John Shawe-Taylor and Yoram Singer, editors, Learning Theory, pages 210–
+             223, Berlin, Heidelberg, 2004. Springer Berlin Heidelberg.
+
+[ACKM09] Dimitris Achlioptas, Aaron Clauset, David Kempe, and Cristopher Moore. On the
+         bias of traceroute sampling: Or, power-law degree distributions in regular graphs. J.
+         ACM, 56(4), July 2009.
+
+[BBNW26] Huck Bennett, Mitchell Black, Amir Nayyeri, and Evelyn Warton. Graph inference
+         with effective resistance queries. In Proceedings of the 37th International Conference
+         on Algorithmic Learning Theory, 2026.
+
+[BEE+ 05]    Zuzana Beerliova, Felix Eberhard, Thomas Erlebach, Alexander Hall, Michael Hoff-
+             mann, Matúš Mihaľák, and L. Shankar Ram. Network discovery and verification. In
+             Dieter Kratsch, editor, Graph-Theoretic Concepts in Computer Science, pages 127–
+             138, Berlin, Heidelberg, 2005. Springer Berlin Heidelberg.
+
+[BG24a]      Paul Bastide and Carla Groenland. Optimal distance query reconstruction for graphs
+             without long induced cycles, 2024.
+
+
+
+
+                                                  8
+[BG24b]     Paul Bastide and Carla Groenland. Quasi-linear distance query reconstruction for
+            graphs of bounded treelength. In Édouard Bonnet and Pawel Rzazewski, editors,
+            19th International Symposium on Parameterized and Exact Computation, IPEC 2024,
+            September 4-6, 2024, Royal Holloway, University of London, Egham, United Kingdom,
+            volume 321 of LIPIcs, pages 20:1–20:11. Schloss Dagstuhl - Leibniz-Zentrum für In-
+            formatik, 2024.
+
+[CD00]      Victor Chepoi and Feodor Dragan. A note on distance approximating trees in graphs.
+            European Journal of Combinatorics, 21(6):761–766, 2000.
+
+[CSA03]     Hamish Carr, Jack Snoeyink, and Ulrike Axen. Computing contour trees in all dimen-
+            sions. Computational Geometry, 24(2):75–94, 2003. Special Issue on the Fourth CGC
+            Workshop on Computational Geometry.
+
+[DAHB+ 06] Luca Dall’Asta, Ignacio Alvarez-Hamelin, Alain Barrat, Alexei Vázquez, and Alessan-
+           dro Vespignani. Exploring networks with traceroute-like probes: Theory and simula-
+           tions. Theoretical Computer Science, 355(1):6–24, 2006. Complex Networks.
+
+[DG07]      Yon Dourisboure and Cyril Gavoille. Tree-decompositions with bags of small diameter.
+            Discret. Math., 307(16):2008–2029, 2007.
+
+[Die17]     Reinhard Diestel. Graph Theory. Springer Publishing Company, Incorporated, 5th
+            edition, 2017.
+
+[Hei89]     Jotun J. Hein. An optimal algorithm to reconstruct trees from additive distance data.
+            Bulletin of Mathematical Biology, 51(5):597–603, 1989.
+
+[HMMT18] Jeremy Hoskins, Cameron Musco, Christopher Musco, and Babis Tsourakakis. In-
+         ferring networks from random walk-based node similarities. In Advances in Neural
+         Information Processing Systems, volume 31, 2018.
+
+[KMZ18]     Sampath Kannan, Claire Mathieu, and Hang Zhou. Graph reconstruction and verifi-
+            cation. ACM Trans. Algorithms, 14(4), August 2018.
+
+[MZ13]      Claire Mathieu and Hang Zhou. Graph reconstruction via distance oracles. In
+            Fedor V. Fomin, Rūsiņš Freivalds, Marta Kwiatkowska, and David Peleg, editors,
+            Automata, Languages, and Programming, pages 733–744, Berlin, Heidelberg, 2013.
+            Springer Berlin Heidelberg.
+
+[RLYW21]    Guozhen Rong, Wenjun Li, Yongjie Yang, and Jianxin Wang. Reconstruction and
+            verification of chordal graphs with a distance oracle. Theoretical Computer Science,
+            859:48–56, 2021.
+
+[RS07]      Lev Reyzin and Nikhil Srivastava. Learning and verifying graphs using queries with a
+            focus on edge counting. In Marcus Hutter, Rocco A. Servedio, and Eiji Takimoto, ed-
+            itors, Algorithmic Learning Theory, pages 285–297, Berlin, Heidelberg, 2007. Springer
+            Berlin Heidelberg.
+
+[WSSB77]    M.S. Waterman, T.F. Smith, M. Singh, and W.A. Beyer. Additive evolutionary trees.
+            Journal of Theoretical Biology, 64(2):199–213, 1977.
+
+                                               9
+[WWW14]   Suyi Wang, Yusu Wang, and Rephael Wenger. The js-graphs of join and split
+          trees. In Proceedings of the Thirtieth Annual Symposium on Computational Geome-
+          try, SOCG’14, page 539–548, New York, NY, USA, 2014. Association for Computing
+          Machinery.
+
+
+
+
+                                          10
+

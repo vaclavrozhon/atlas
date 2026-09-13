@@ -1,0 +1,2879 @@
+                                                Non-Euclidean High-Order Smooth Convex Optimization
+
+                                          Juan Pablo Contreras∗                                                                          jcontrere@uc.cl
+                                          Institute for Mathematical and Computational Engineering
+                                          Pontificia Universidad Católica de Chile
+                                          Cristóbal Guzmán∗                                                                      crguzmanp@mat.uc.cl
+                                          Institute for Mathematical and Computational Engineering
+                                          Faculty of Mathematics and School of Engineering
+                                          Pontificia Universidad Católica de Chile
+                                          David Martı́nez-Rubio∗
+arXiv:2411.08987v2 [math.OC] 6 Feb 2025
+
+
+
+
+                                                                                                                                    dmrubio@ing.uc3m.es
+                                          Signal Theory and Communications Department,
+                                          Universidad Carlos III de Madrid, Spain
+
+
+
+
+                                                                                             Abstract
+                                              We develop algorithms for the optimization of convex objectives that have Hölder continuous q-th
+                                              derivatives by using a q-th order oracle, for any q ≥ 1. Our algorithms work for general norms
+                                              under mild conditions, including the ℓp -settings for 1 ≤ p ≤ ∞. We can also optimize structured
+                                              functions that allow for inexactly implementing a non-Euclidean ball optimization oracle. We do
+                                              this by developing a non-Euclidean inexact accelerated proximal point method that makes use of an
+                                              inexact uniformly convex regularizer. We show a lower bound for general norms that demonstrates
+                                              our algorithms are nearly optimal in high-dimensions in the black-box oracle model for ℓp -settings
+                                              and all q ≥ 1, even in randomized and parallel settings. This new lower bound, when applied to
+                                              the first-order smooth case, resolves an open question in parallel convex optimization.
+
+
+                                          1. Introduction
+                                          In optimization, objectives with high-order smoothness offer the possibility of faster convergence
+                                          rates, at the expense of computation of higher-order derivatives. Recently, this area of research
+                                          has gained significant interest, both due to the discovery of acceleration techniques for high-order
+                                          methods, and also due to the active development of tensor methods which are the working horse
+                                          for the subroutines required in this context [ACZ23; CZ23; ZC23; ZC24]. Despite the substantial
+                                          activity in this field, there has been scarce investigation of the role of these ideas for non-Euclidean
+                                          norms (more precisely, norms that are not Hilbertian). Given the proved advantages of exploit-
+                                          ing non-Euclidean structure in various applications, see e.g. [BMN01; Nes05; Nem04; She17], we
+                                          consider this as a major gap in the current optimization toolbox.
+                                              In this work, we study the optimization of a general convex q-times differentiable function f
+                                          whose q-th derivative is (L, ν)-Hölder continuous with respect to a norm ∥ · ∥, that is,
+
+                                                                     ∥∇q f (x) − ∇q f (y)∥∗ ≤ L∥x − y∥ν for all x, y ∈ Rd ,                                (1)
+                                           . ∗ Equal contribution.
+                                           . Most of the non-local notations in this work have a link to their definitions, using this code, such as fq (y; x),
+                                             which links to where this notation is defined as the q-th order Taylor expansion of f around x.
+where q ∈ Z+ , ν ∈ (0, 1], and where the norm of a multilinear operator F : Rd⊗q → R like
+                                            def
+F = ∇q f (x) − ∇q f (y) is defined as ∥F ∥∗ = max∥v∥≤1 |F [v]⊗q |. In this case, we say f is q-th order
+(L, ν)-Hölder smooth with respect to ∥ · ∥. We make use of an oracle that returns all derivatives
+of f at a point up to order q. For the case of p-norms, we specialize our results and characterize
+the optimal oracle complexity, up to logarithmic factors. We also study the optimization of convex
+functions with a reduction to inexact p-norm ρ-ball optimization oracles. That is, using an oracle
+to approximately minimizing the function in balls of a fixed radius ρ with respect to a p-norm,
+we minimize the function globally. The oracle can be implemented fast for some functions with
+structure. More concretely, our contributions can be summarized as in the following.
+
+1.1. Our Contributions
+Upper Bounds We develop a general non-Euclidean inexact accelerated proximal point method
+and apply it for the optimization of q-th order Hölder-smooth convex functions, and of structured
+functions for which we can implement a ball optimization oracle. The algorithm makes use of an
+inexact uniformly convex regularizer, a property that we introduce that is key to solve several cases,
+in particular the ℓp setting for p ≥ q + ν. We also develop an inexact unaccelerated proximal point
+method, that achieves near optimality for the case p = ∞, not covered by the accelerated method.
+     Each iteration of our algorithms only requires one call to the q-th order, or ball optimization
+oracle. When the square of the norm considered is strongly-convex with respect to itself, we
+establish convexity of the regularized Taylor subproblems appearing at each iteration of the high-
+order smooth convex case. In the q-th order (L, ν)-Hölder smooth convex setting with respect to
+∥ · ∥p , the near-optimal convergence rates that we establish for achieving an ε-minimizer are
+                                m                                            ! 1
+                                                                                  
+                        !
+                    q+ν   (m+1)(q+ν)−m                                   q+ν   q+ν−1
+     eq+ν,p  LRp
+     O                                  if p ∈ [1, ∞), and Oq+ν     LR∞
+                                                                                      if p = ∞,
+                                                                                     
+                    ε                                                    ε
+                                                                  
+
+
+          def               def
+where m = max{2, p}, Rp = ∥x0 − x∗ ∥p is the initial distance to a minimizer x∗ , and where log
+factors only appear for p = 1. Similarly for ρ-ball
+                                               m
+                                                     optimization oracles, which can be thought as
+the case q → ∞, we achieve rates O                       e ∞ /ρ) for p ∈ [1, ∞) and p = ∞.
+                                  em ((Rp /ρ) m+1 ) and O(R
+
+Lower Bounds As is customary in convex optimization, we study the suboptimality of our
+algorithms in the black-box oracle model [NY83] and provide a lower bound for convex high-order
+Hölder smooth functions in high dimensions, with respect to a general norm, even for randomized
+and parallel settings with access to a local oracle, implying near-optimality of our algorithms for
+ℓp settings. Our approach constructs lower bounds by composing a non-Euclidean randomized
+smoothing with a hard Lipschitz instance with respect to an arbitrary norm, built as the maximum
+of softmax-like functions applied to an increasing sequence of linear functions. A key technical
+innovation is proving that any piecewise linear function can be smoothed while preserving its
+norm-dependent Lipschitz properties, unlike previous techniques restricted to the ℓ2 setting.
+    Another contribution is the analysis of a non-Euclidean randomized smoothing operator that
+can be iterated to obtain high-order smooth functions from a Lipschitz function. By leveraging the
+divergence theorem, we establish a smoothing technique that applies seamlessly to all norms, and
+in particular to all ℓp settings, p ∈ [1, ∞], whereas previous lower bounds via smoothing techniques
+only worked for p ≥ 2 and required intricate reductions via high-dimensional embeddings to the
+
+
+                                                  2
+p = ∞ case to handle p ∈ [1, 2), even for simpler cases, like those applying to deterministic
+algorithms in the first-order smooth case, see Section 1.2. Our approach offers a unified treatment
+and, to the best of our knowledge, is the first to address the case of order q ≥ 2 in this setting.
+Moreover, our results strengthen existing first-order lower bounds, establishing a nearly optimal
+e −1/2 ) rate for first-order parallel smooth convex optimization in the ℓ1 setting, thereby improving
+Ω(ε
+upon previous work, cf. [DG20].
+
+1.2. Related Work
+We note that [Bae09] was the first work to develop (unaccelerated) general high-order methods
+under convexity and high-order smoothness, defined with respect to the Euclidean norm. While
+it is enough to approximate a critical point of the proximal subproblems appearing in [Bae09],
+Nesterov [Nes21] showed that by choosing the right regularization parameter, the subproblems
+become convex. Although convexity is not required in order to find an approximate critical point
+in a tractable way in several optimization contexts, it usually enables to solve such a problem faster,
+cf. [CDH+21]. Previously, Monteiro and Svaiter [MS13] developed a general accelerated inexact
+proximal point algorithm, for which they achieved near optimal second-order oracle complexity for
+convex functions with a Lipschitz Hessian with respect to the Euclidean norm. Building on this
+framework, three works [GDG+19; BJL+19; JWZ19] independently achieved near optimal q-th
+order oracle complexity for high-order Euclidean smooth convex optimization. Later Kovalev and
+Gasnikov [KG22] and Carmon et al. [CHJ+22] concurrently achieved optimal q-th order oracle
+complexity, up to constants, improving over previous solutions by logarithmic factors, via two very
+different techniques. Song, Jiang, and Ma [SJM19] studied the problem for functions with p-norm
+regularity, but they only solved the case where p ≤ q + 1, where q is the degree of the high-order
+oracle. Besides, each iteration of their algorithm requires solving two regularized Taylor expansions
+of the function with different regularization functions and a binary search. Adil et al. [ABJ+22]
+designed and algorithm for the setting of high-order non-Euclidean smooth monotone variational
+inequalities with strongly-convex regularizers. Carmon et al. [CJJ+20] introduced the optimization
+framework with Euclidean ball optimization oracles, and this technique has enabled the design of
+algorithms in several different settings [CJJ+21; CH22; Mar23; CJJ+24].
+    Regarding lower bounds, Arjevani, Shamir, and Shiff [ASS19] showed a lower bound for de-
+terministic algorithms for convex functions with Lipschitz q-th derivatives with respect to the
+Euclidean norm, by providing a hard function in the form of a (q + 1)-degree polynomial. Inde-
+pendently, Agarwal and Hazan [AH18] developed some suboptimal lower bounds by an interesting
+technique consisting of compounding randomized smoothing by repeated convolution of a hard con-
+vex Lipschitz instance resulting in a function with Lipschitz high-order derivatives. In this spirit
+and inspired by them, Garg et al. [GKN+21] developed a nearly optimal lower bound via applying
+randomized smoothing to a construction similar to the classical Lipschitz instance consisting of a
+maximum of linear functions, but using the maximum of a variant of these functions via applying
+several softmax. They achieve, up to logarithmic factors, the lower bound in [ASS19], but they
+also provide lower bounds for parallel randomized algorithms, and for quantum algorithms. In the
+non-Euclidean setting, existing lower bounds typically rely on inf-convolution smoothing for p ≥ 2,
+whereas for p ∈ [1, 2), they use high-dimensional embeddings since an inf-convolution smoothing
+kernel is known to be unattainable in this regime without incurring polynomial dependence on the
+dimension, as implicitly shown in [dGJ18, Example 5.1]. These techniques have been applied to
+
+
+
+                                                  3
+establish lower bounds for deterministic sequential methods [NY83; GN15] and parallel randomized
+methods [DG20].
+Concurrent independent work. We note that the concurrent work [ABJ+24], independently
+showed convergence of an analogous accelerated non-Euclidean (exact) proximal algorithm. As
+opposed to them, we also introduced the notion of inexact uniformly-convex regularizers, proved
+convergence when we use them, even when we have an inexact implementation of the proximal
+oracles, and we show our subproblems are convex for several cases. Adil et al. [ABJ+24] also
+apply their framework to the optimization of non-Euclidean high-order smooth convex functions
+by exactly solving a regularized Taylor expansion of the function. However, we studied the more
+general q-order ν-Hölder smooth case with respect to a p-norm and established the optimal or
+near-optimal convergence, by inexactly solving a regularized Taylor expansion, for all cases p ≥ 1,
+q ≥ 1, ν ∈ (0, 1], where the smooth case corresponds to ν = 1. The high-order smooth convex
+optimization analysis in [ABJ+24] is limited to p ≥ 2 and q + 1 ≥ p. On the other hand, they
+studied the application of this framework to p-norm regression.
+
+
+2. Preliminaries and Groundwork
+Throughout, we consider a finite-dimensional normed space (Rd , ∥ · ∥) with an inner product ⟨·, ·⟩
+that, importantly, does not necessarily induce the norm. Most of our proofs work for general norms,
+although we sometimes specialize to the case ∥ · ∥ = ∥ · ∥p , where 1 ≤ p ≤ ∞.
+Notation. In this work, we often use functions that are regular with respect to p-norms such
+as q-th order (L, ν)-Hölder smoothness, and we use regularizers that are, possibly δ-inexact (µ, r)-
+                                                                                       def
+uniformly convex. We reserve the letters p, q, r, δ, µ, L, ν for this. We always use m = max{2, p}.
+                                                                                                   def
+We denote I{A} the event indicator that is 1 if A holds true and 0 otherwise. We denote fq (y; x) =
+Pq 1 i                  ⊗i the q-th order Taylor expansion of f at y around x. We use x∗ for a
+   i=0 i! ∇ f (x)[y − x]
+minimizer of a function when is clear from context and it exists. We use Op (·) and O(·)   e as the
+big-O notation omitting, respectively, factors depending on p and logarithmic factors. Given a
+                                                                                            def
+differentiable function ψ, we denote the Bregman divergence of ψ at x, y by Dψ (x, y) = ψ(x) −
+ψ(y) − ⟨∇ψ(y), x − y⟩.
+Definition 1 (Young’s conjugate number) Given p ∈ [1, ∞], we define its Young’s conjugate
+      def
+as p∗ = (1 − 1/p)−1 so that p1 + p1∗ = 1. For p = 1 it is p∗ = ∞ and vice versa. It is well known
+that the dual norm of ∥ · ∥p is ∥ · ∥p∗ .
+
+Definition 2 (Enlarged subdifferential) Given a function f : Rd → R and γ ≥ 0, we define
+the γ-enlarged subdifferential of f as
+                         def
+                 ∂ γ f (y) = {g ∈ Rd | f (z) ≥ f (y) + ⟨g, z − y⟩ − γ} for all z ∈ Rd .
+
+We say any g ∈ ∂ γ f (y) is a γ-enlarged subgradient of f at y.
+
+Definition 3 (Non-Euclidean Moreau envelope) Given a norm ∥ · ∥, and a parameter λ ≥ 0,
+define the Moreau envelope of a convex, proper, and closed function f : Rd → R ∪ {+∞} as
+                                        def               1
+                                Mλ (x) = min {f (y) +       ∥x − y∥2 },                           (2)
+                                              y∈Rd       2λ
+
+                                                     4
+                                    def                                         def
+where for λ = 0 we define M0 (x) = f (x). Similarly, we define Prox λ (x) = arg miny∈Rd {f (y) +
+ 1        2
+2λ ∥x − y∥ } and proxλ (x) ∈ Prox λ (x) to be an arbitrary element. We omit subindices if λ is clear
+from context.
+
+   We now present some properties of this envelope. The proof can be found in Appendix B.
+
+Proposition 4 (Envelope properties) [↓] Using Definition 3 and letting x∗ be a minimizer of
+f , the following holds:
+
+  1. If ∥ · ∥ = ∥ · ∥p , for p ∈ (1, ∞), Prox λ (x) contains a single element. This may not be the case
+     for p = 1 or p = ∞.
+
+  2. Mλ (x) is convex.
+
+  3. f (proxλ (x)) ≤ Mλ (x) ≤ f (x). In particular, f (x∗ ) = Mλ (x∗ ).
+                           2                                2
+  4. Let hx (y) = ∂x ∥x−y∥  be the subdifferential of ∥·−y∥
+                def
+                       2λ                               2λ  at x. Then ∂Mλ (x) = conv{hx (z) : z ∈
+     Prox λ (x)} and there is g ∈ hx (proxλ (x)) such that g ∈ ∂f (proxλ (x)).
+
+  5. For all y ∈ Rd and g ∈ hx (y), it is λ⟨g, y − x⟩ = ∥x − y∥2 = λ2 ∥g∥2∗ . In particular, for any
+     g ∈ hx (proxλ (x)) ⊆ ∂Mλ (x) we have ∥g∥∗ = λ1 ∥x − proxλ (x)∥.
+
+  6. For any λ1 > 0, λ2 ≥ 0, we have the following descent condition:
+                                                            1
+                            Mλ1 (x) − Mλ2 (proxλ1 (x)) ≥       ∥x − proxλ1 (x)∥2 .
+                                                           2λ1
+
+     Given a function class F and a set X , a local oracle is a functional, mapping (f, x) 7→ Of (x)
+to a vector space, such that when queried with the same point x ∈ X for two different functions
+f, g ∈ F that are equal in a neighborhood of x, it returns the same answer [NY83; Nem95]. An
+example of such an oracle that we use for our upper bounds is a q-th order oracle, for q ∈ Z+ .
+Given the family F of functions that are q-times differentiable, the q-th order oracle is defined
+as Of (x) = (f (x), ∇f (x), . . . , ∇q f (x)). The main problem we study is the optimization of high-
+order Hölder-smooth functions convex functions by making use of a q-th order oracle. Similarly
+to the definition of Hölder smoothness, we say a function is L-Lipschitz with respect to ∥ · ∥p if
+|f (x) − f (y)| ≤ L∥x − y∥p . For a convex function that has (L, 1)-Hölder continuous first derivative
+with respect to some norm, we simply say that the function is L-smooth with respect to that norm.
+Our algorithms make use of regularizers with a new property that we introduce below, which is key
+to fully solve all cases of high-order smooth convex optimization.
+
+Definition 5 (Inexact uniform convexity) Given µ, σ, δ > 0, a differentiable function ψ is said
+to be δ-inexact (µ, σ)-uniformly convex with respect to a norm ∥ · ∥, in a convex set X , if for all
+x, y ∈ X we have
+                                               µ
+                                    Dψ (x, y) ≥ ∥x − y∥σ − δ.
+                                               σ
+When δ = 0 and σ ≥ 2, we recover the classical notion of uniform convexity.
+
+Exact uniform convexity implies the inexact property with respect to smaller exponents.
+
+
+                                                   5
+Lemma 6 [↓] Let ψ be a function that is (1, σ)-uniformly convex, σ ≥ 2. If 0 < s < σ, then ψ is
+         σ2                       σ
+also (a s(σ−s) σ−s
+                sσ )-inexact (a , s)-uniformly convex for any a > 0.
+                               s
+
+
+Note that although (µ, σ)-uniform convexity is a property that requires σ ≥ 2, our definition of
+δ-inexact (µ, s)-uniform convexity, and the example provided in the previous lemma, allows for any
+s > 0. Our algorithms work with inexact uniformly convex regularizers for s > 1. In particular,
+we will use the following regularizers for simplicity, but we note that our accelerated method works
+for any norm, given that we provide an inexact uniformly convex regularizer. Our unaccelerated
+method works for any norm. A proof of the following well-known fact can be found in Appendix B.
+
+Fact 7 (Regularizers’ properties) [↓] If p ≥ 2, the regularizer ψ(x) = p1 ∥x − x0 ∥pp , is (22−p , m)-
+                                                                                    1
+uniformly convex regularizer in Rd with respect to ∥ · ∥p , and if p ≤ 2, ψ(x) = 2(p−1) ∥x − x0 ∥2p is
+                                                                      def
+(1, m)-uniformly convex in Rd with respect to ∥ · ∥p , where m = max{2, p}.
+
+
+3. Accelerated Inexact Proximal Point with an Inexact Uniformly
+   Convex Regularizer
+We study an accelerated optimization method that interacts with a function f via a non-Euclidean
+inexact proximal oracle, in the spirit of [MS13]. The algorithm approximately optimizes the non-
+Euclidean Moreau envelope convolving with respect to a power of the norm being considered, instead
+of with respect to the more traditional choice of a strongly-convex or other types of functions, see
+e.g. [Teb18]. Explained from the point of view of linear coupling [AO17], the intuition of the analysis
+is that this choice makes the gradient norm of the Moreau envelope approximation satisfy some
+crucial property analogous to Property 5, that makes the regret of the mirror descent algorithm in
+Line 7 be small enough. On the other hand, this Moreau envelope is not smooth in general, but
+still applying the oracle of Line 6, we obtain enough descent to compensate for the aforementioned
+regret and the approximation error.
+Inexact Proximal Oracle Given a function f , the oracle yk , vk ← Or (xk , λk ) returns an inexact
+proximal point yk of the proximal problem miny {f (y) + rλ1k ∥y − xk ∥r }, and an enlarged subgradient
+vk ∈ ∂ εk f (yk ). Given σ, σ ′ ∈ [0, 1/2), a norm ∥ · ∥, and exponent r, the requirement on the oracle is
+
+                  σ                                      1                              σ′
+ ∥vk − v̂k ∥∗ ≤      ∥xk − yk ∥r−1 for some v̂k ∈ ∂y (−     ∥y − xk ∥r )(yk ), and εk ≤    ∥xk − yk ∥r . (3)
+                  λk                                    rλk                             λk
+    It is straightforward to check that an exact solution of the proximal problem satisfies the
+properties in (3) for σ = σ ′ = 0. We also have the following, by Proposition 4, Property 5 and
+v̂k ∈ ∂(− λ1k r ∥y − xk ∥r )(yk ) = ∥yk − xk ∥r−2 ∂(− 2λ1k ∥y − xk ∥2 )(yk ):
+
+                                  1                                        1
+                      ∥v̂k ∥∗ =      ∥xk − yk ∥r−1 and ⟨v̂k , yk − xk ⟩ = − ∥xk − yk ∥r .               (4)
+                                  λk                                       λk
+Making use of this oracle, we show the following convergence rate. In Section 4, we discuss how to
+implement such an oracle in different settings.
+
+
+
+
+                                                        6
+Algorithm 1 Non-Euclidean Accelerated Inexact Proximal Point with Inexact Uniformly Convex
+Regularizer
+Input: Convex function f . Regularizer ψ that is a δ-inexact (µ, r)-uniformly convex function wrt
+    a norm ∥ · ∥, and r > 1. Inexactness constants σ, σ ′ and proximal parameters λk > 0.
+                                                  ′ ) r−1
+                                                    
+ 1: z0 ← y0 ← x0 ;   A0 ← 0; C ← µ2 r∗ (1−σ−σ
+                                           1+σ r∗
+ 2: for k = 1 to T do
+ 3:   Ak = ak + Ak−1
+ 4:   ak = (C r−1 Ar−1
+                    k λk )
+                          1/r                                       ⋄ r-degree equation on ak > 0.
+             A               a
+ 5:   xk ← Ak−1 yk−1 + Ak zk−1
+               k             k
+ 6:   yk , vk ← Or (xk , λk )P                                                       ⋄ Oracle satisfying (3)
+ 7:   zk ← arg minz∈Rd { ki=1 ai ⟨vi , z⟩ + Dψ (z, x0 )}
+ 8: end for
+ 9: return yT .
+
+
+
+Theorem 8 [↓] Let f : Rd → R be a convex function and let ψ be a δ-inexact (µ, r)-uniformly
+convex regularizer with respect to a norm ∥ · ∥, for r > 1. Given some constants σ, σ ′ and proximal
+parameters λi > 0, the iterates yt of Algorithm 1 satisfy for any u ∈ Rd :
+                                                                      
+                                                     Dψ (u, x0 ) + δt 
+                              f (yt ) − f (u) = Or  P                  .
+                                                                 1/r r
+                                                                    
+                                                          t
+                                                     µ        λ
+                                                          k=1 k
+
+In particular, it holds for a minimizer u = x∗ of f , if it exists.
+
+3.1. Adaptive version
+In some cases of the high-order smooth convex setting, we neither have full control nor prior
+knowledge over the value of λk for which we can implement the oracle Or (xk , λk ): this value becomes
+an output rather than an oracle input, since λk turns out to be a function of the traveled distance
+∥xk − yk ∥. This causes an implicit mutual dependence between yk and λk . For this reason, inspired
+by the adaptive Euclidean analysis in [CHJ+22], we develop a generalized adaptive algorithm that
+uses a guess for the proximal parameter, and comes with stronger guarantees.
+Generalized Inexact Proximal Oracle Given a function f , the oracle ỹk , vk , λk ← O      br (xk , λ
+                                                                                                    bk )
+returns a proximal parameter λk , an inexact proximal point yk of the proximal problem miny {f (y)+
+ 1           r                                     εk
+rλk ∥y − xk ∥ }, and an enlarged subgradient vk ∈ ∂ f (yk ), possibly using λk for these estimations.
+                                                                            b
+           ′
+Given σ, σ ∈ [0, 1/2), a norm ∥ · ∥, and exponent r, the output satisfies
+
+                  σ                                       1                               σ′
+ ∥vk − v̂k ∥∗ ≤      ∥xk − ỹk ∥r−1 for some v̂k ∈ ∂y (−     ∥y − xk ∥r )(ỹk ), and εk ≤    ∥xk − ỹk ∥r . (5)
+                  λk                                     rλk                              λk
+
+ Note that for a convex function f , the points in arg min{f (y) + rλ1k ∥y − xk ∥r } satisfy the properties
+above. Then, we obtain the following theorem for Algorithm 2.
+
+Theorem 9 [↓] Let f : Rd → R be a convex function and let ψ be a (µ, r)-uniformly convex
+regularizer with respect to ∥ · ∥. Given some constants σ, σ ′ and initial proximal parameter λ
+                                                                                              b0 > 0,
+
+
+                                                       7
+Algorithm 2 Non-Euclidean Adaptive Accelerated Proximal Point with Uniformly Convex Regu-
+larizer
+Input: Convex function f : Rd → R. Regularizer ψ that is (1, r)-uniformly convex function wrt a
+     norm ∥ · ∥. Initial λ  b0 . Adjustment constant factor α > 1. Inexactness constants σ, σ ′ .
+                                                       ′ ) r−1
+                                                         
+  1: z0 ← y0 ← x0 ;       A0 ← 0; C ← 12 r∗ (1−σ−σ
+                                                1+σ r∗
+  2: ỹ1 , v1 , λ1 ← Or (x0 , λ0 );
+                     b        b     λ1 ← λ1
+                                    b
+ 3: for k = 1 to T do
+ 4:   Abk = b
+            ak + Ak−1 ; b ak = (C Abr−1 λ
+                                        bk )1/r                                    ⋄ r-degree equation on b
+                                                                                                          ak > 0.
+                                    k
+            Ak−1
+ 5:   xk ← b yk−1 + babk zk−1
+              Ak         Ak
+ 6:   if k > 1 then ỹk , vk , λk ← O
+                                    br (xk , λ
+                                             bk )                                            ⋄ Oracle satisfying (5)
+ 7:   γk ← min{λk /λk , 1}; ak ← γk b
+                    b                ak ; Ak ← ak + Ak−1
+                                                                                           (1−γk )Ak−1
+      yk ← arg min{f (ỹk ), f (yk−1 )}                                    ⋄ Or yk ←                   yk−1 + γkAAk k ỹk
+                                                                                                                  b
+ 8:                                                                                            Ak
+      zk ← arg minz∈Rd { ki=1 ai ⟨vi , z⟩ + Dψ (z, x0 )}
+                         P
+ 9:
+10:      bt ≤ λt then λ
+      if λ            bt+1 ← αλ            bt+1 ← α−1 λ
+                                   bt else λ            bt
+11: end for
+12: return yT .
+
+
+
+every iterate yt of Algorithm 2 satisfies, for any u ∈ Rd :
+                                                                   
+                                                        Dψ (u, x0 )
+                                 f (yt ) − f (u) = Or                 .
+                                                            At
+
+In particular, it holds for a minimizer u = x∗ of f , if it exists, in which case we also have:
+                          t
+                          X                         1 − σ − σ′              1/r       C 1/r X ri −2 b 1/r
+        Dψ (x∗ , x0 ) ≥         bk ∥ỹr − xk ∥r
+                                A                                  , and   At     ≥          (α     λi ) ,
+                                                  2 max{λbk , λk }                     2r
+                          k=1                                                               i∈Λ
+                                                                           P               t−1
+for some set of indices Λ and some numbers ri ≥ 0 satisfying                    i∈Λ ri =    2 .
+
+The second statement allows for lower bounding Ak in different contexts, in order to characterize the
+convergence of the method. We also note that above we could have used inexact uniformly-convex
+regularizers instead of exact ones but we used the latter for simplicity.
+
+
+4. High-Order Smooth Convex or Structured Optimization
+In this section, we use Algorithms 1 and 2 in order to optimize high-order Hölder smooth convex
+functions with respect to p-norms by using a q-th order oracle. The main result of this section is the
+following theorem. We also show convergence for structured functions for which we can implement
+an inexact p-norm ball optimization oracle.
+
+Theorem 10 [↓] Let f : Rd → R be a q-times differentiable convex function with a minimizer at
+x∗ whose q-th derivative is (L, ν)-Hölder continuous with respect to ∥ · ∥p , p ∈ (1, ∞). By making
+
+
+
+                                                            8
+                                                                                              def
+use of Algorithm 1 or its generalization Algorithm 2, initialized at x0 and defining Rp = ∥x∗ −x0 ∥p ,
+  def
+m = max{2, p}, we obtain a point yT after T iterations, satisfying
+                                                                (m+1)(q+ν)−m
+                                                                            
+                          f (yT ) − f (x∗ ) = Oq+ν,p LRpq+ν T −       m        ,
+
+Each iteration of the algorithm makes 1 query to a q-th order oracle of f .
+
+In Section 5, we show that our bounds are nearly optimal for any algorithm that accesses f via
+a local oracle, even in randomized and parallel settings. We note that if we use the alternative
+definition of yk in Line 8 of Algorithm 2, our algorithms do not require the knowledge of the
+function’s 0-th order information. We also note that from our proof one can derive an analogous
+statement of the above theorem for any norm, if a uniformly-convex regularizer with respect to this
+norm is provided. Below, we show how we can implement an inexact proximal oracle using one
+call of the q-th order oracle by building the q-th order Taylor expansion fq (y; x) of f (y) at a point
+x. Note that below, ∇fq (yk ; xk ) − v̂k ∈ ∂F (yk ), so the condition below requires an approximate
+critical point of F .
+                                                                                                      def
+Lemma 11 (Taylor subproblems) [↓] Under the conditions of Theorem 10, and consider F (y) =
+ fq (y; xk ) + 1 ∥y − xk ∥q+ν , for λ̂ = σ(q−1)!
+                                       def
+                                           2L    and any σ ∈ (0, 1). The tuple (yk , vk , λk ) ←
+              λ̂(q+ν)
+(yk , ∇f (yk ), λ̂∥yk − xk ∥r−q−ν ) implements the oracle O
+                                                          br (xk , ·) for εk = 0, if yk satisfies
+
+                                                               L
+                                ∥∇fq (yk ; xk ) − v̂k ∥ ≤            ∥yk − xk ∥q+ν−1 ,
+                                                            (q − 1)!
+                            1
+for some v̂k ∈ ∂y (−            ∥y − xk ∥q+ν )(yk ) = ∂y (− λ1k r ∥y − xk ∥r )(yk ).
+                        λ̂(q+ν)
+
+Remark 12 The function F has a global minimizer, and thus at least one critical point, which
+is what we need to approximate in order to implement the inexact proximal oracle. This is due to
+                                                                              1
+F being a polynomial of degree q plus the (q + ν)-homogeneous term                ∥y − xk ∥q+ν and so it
+                                                                          λ̂(q+1)
+is continuous and tends to +∞ in every direction. Finding an approximate critical point does not
+require any further interaction with any oracle from f . Convexity of F is not required in order to
+find an approximate critical point in a tractable way in several contexts, but it usually enables to
+solve such a problem faster, cf. [CDH+21]. Note that since f is convex, in the cases q = 1 and
+q = 2, its Taylor expansion, and thus F , is also convex. We also show in Proposition 13 that for
+p ∈ (1, 2] (and similarly in general for norms whose square is strongly convex with respect to itself )
+the Taylor subproblems of Lemma 11 are in fact also convex for all other cases q ≥ 3, as long as
+σ ≤ p−1
+     q−1 . Note that in this case the right hand side of this condition is in (0, 1).
+
+Proposition 13 (Convexity of Taylor subproblems) [↓] Let f be a convex function satisfying
+(1) for some norm ∥ · ∥ such that x 7→ ∥x∥2 is µ̂-strongly convex, and let q ≥ 2. Then, the function
+      def            M                                    2L
+F (y) = fq (y; x) + q+ν ∥y − x∥q+ν is convex, for M ≥ µ̂(q−2)! .
+                                                                                 L
+   In particular for ∥ · ∥ = ∥ · ∥p , with p ∈ (1, 2], it is enough that M ≥ (p−1)(q−2)! and thus the
+Taylor subproblems of Lemma 11 are convex if σ ≤ p−1
+                                                 q−1 .
+
+   We also show our framework applies to structured functions for which we can inexactly imple-
+ment a non-Euclidean ball optimization oracle. This is the case for instance for a function f that
+
+                                                            9
+is quasi-self concordant with respect to a p-norm, cf. [CJJ+20]. In such a case, we have that the
+Hessian of f is stable in a p-norm ball of some radius ρ and any center x, that is, there exists a
+constant c such that c−1 ∇2 f (y) ≼ ∇2 f (x) ≼ c∇2 f (y), for all y satisfying ∥x − y∥p ≤ ρ. Under
+this assumption f can be approximated fast in such p-norm ball by solving some linear systems
+with the Hessian at the center of the ball, since by Hessian stability, if we transform the space by
+x → (∇2 f (x))−1 x, we obtain a smooth and strongly-convex function with O(1) condition num-
+ber. As an example, for the ℓ∞ -regression problem, [CJJ+20, Section 4.2] proved that a smoothed
+version of the objective, whose optimization is enough for approximating the solution, satisfies
+quasi-self-concordance with respect to the ℓ∞ -norm. Thus, for certain radius ρ, one can implement
+a ball optimization oracle of radius ρ for any p ∈ [1, ∞], by using a few linear system solves, while
+only p = 2 was exploited in [CJJ+20]. This results in a trade-off where a p-norm for greater p
+may give a smaller initial distance versus a slower convergence rate dependence on the problem
+parameters.
+Proposition 14 (Inexact Ball Optimization Oracle) [↓] If we can implement the oracle in
+                                                                                                m
+(5) while satisfying ∥xk − ỹk ∥p ≥ ρ for p ∈ (1, ∞), we achieve an ε-minimizer in O
+                                                                                   em ((Rp /ρ) m+1 ),
+                                 def
+where m = max{2, p} and Rp = ∥x∗ − x0 ∥p .
+Remark 15 (p = 1 and p = ∞) The convergence rates in Theorem 10 and Proposition 14 also
+hold in the case p = 1 up to some ln(d) factors, by noticing that for p̂ = 1 + ln−1 (d), we have
+∥x∥p = Θ(∥x∥p̂ ), so we can work in the corresponding new p̂-norm and the constants depending
+on p̂ in the bound above amount to O(ln(d)) factors. Moreover, for the case p = ∞, by making
+use of an unaccelerated method specified in Appendix D, we get the natural limit convergence rates
+Oq+ν (LRpq+ν T −(q+ν−1) ), and O
+                               er (Rp /ρ).
+
+
+5. Lower bounds
+In this section, we derive lower bounds for algorithms that interact with a local oracle to minimize
+a convex function that is q-th order (L, ν)-Hölder continuous with respect to a given arbitrary norm
+∥ · ∥. We then specialize these results to p-norms, obtaining near-optimal guarantees in the high-
+dimensional regime. Our analysis encompasses both deterministic and randomized algorithms,
+as well as sequential and parallel methods. The following theorem presents the main result for
+deterministic sequential algorithms. In Appendix E.2, we prove Theorem 26, which extends this
+lower bound to potentially randomized and parallel methods.
+Theorem 16 (Lower bound for deterministic sequential algorithms) [↓] Let ∥ · ∥ a norm
+                                                           ∥·∥
+in Rd and X a closed convex set containing the R-ball BR of (Rd , ∥ · ∥) for some R > 0. Let T ≤ d
+a positive integer, Θ > 0 a real number, and {zi }i∈[d] orthogonal vectors in Rd such that:
+(i) ∥zi ∥∗ ≤ 1 for every i ∈ [d],
+(ii) minx∈X maxi∈[T ] ⟨zi , x⟩ ≤ −Θ,
+(iii) d ≥ T /Θ.
+    Then, for every L > 0, ν ∈ (0, 1], q ≥ 1, and any deterministic algorithm A interacting with a
+local oracle O there exist a function F : X 7→ R that is q-th order (L, ν)-Hölder continuous with
+respect to ∥ · ∥ such that
+                                                                     q+ν
+                                                                         
+                                                               q+ν Θ
+                             min F (xt ) − inf F (x) ≥ Ωq LR
+                                                       e                    ,
+                             t∈[T ]        x∈X                    T q+ν−1
+
+                                                 10
+where {xt }t∈[T ] is the sequence generated by the pair (A, O).
+
+    The lower bound results are particularly relevant for p-norms, where the coefficient Θ can be
+explicitly estimated as a function of the number of iterations T . Specifically, they imply that if the
+dimension is sufficiently
+                          large, any algorithm interacting with a local oracle will require at least
+               q+ν θq,p
+            LR p
+Ω
+e q+ν,p,
+             ε            queries to reach a precision ε > 0 where, for m = max{2, p}, we have:
+
+                          m                                                   1
+         θq,p =                      if p ∈ [1, ∞),                    and          if p = ∞.
+                                                                                  θq,p =
+                  (m + 1)(q + ν) − m                                      q+ν−1
+                                                                    − 2
+                                                                         
+    We observe that for p = 2, our result recovers the bound Ω ε 3q+1 from the Euclidean setting
+in [ASS19], up to logarithmic factors. Additionally, for q = 1 and p ≥ 2, we recover the bound
+       p
+e − p+1 ) established in [GN15]. Also for p = ∞ and q = 1, our result coincides with [GN15]. To
+Ω(ε
+the best of our knowledge, this is the first work to address the general case of p-norms for q ≥ 2.
+    Our construction builds upon the approach of Garg et al. [GKN+21], combining randomized
+smoothing, similar to that proposed in Agarwal and Hazan [AH18], with a modified softmax version
+of the classical hard instance function from Nemirovskii and Yudin [NY83]. Randomized smoothing
+enables the approximation of a non-smooth function by one with Lipschitz continuous higher-order
+derivatives. In this work, we derive new bounds on the Lipschitz and smoothness constants of
+the smoothing operation through a novel application of the divergence theorem. Notably, our
+proof works seamlessly for all norms, and is the first to establish lower complexity bounds for
+the smooth ℓp -setting with 1 ≤ p ≤ 2 without relying on high-dimensional embedding reductions
+[GN15], making these proofs arguably more constructive. Moreover, we generalize the results of
+Garg et al. [GKN+21] to accommodate general norms, noting that the properties of the partial
+softmax operator hold in a broader context than previously established. Interestingly, this approach
+yields polynomial improvements upon the state of the art lower bounds for first-order smooth
+parallel convex optimization; namely, for p = 1, q = 1, [DG20] established a Ω̃(ε−2/5 ) lower bound,
+whereas we are able to obtain a nearly optimal Ω̃(ε−1/2 ), establishing the impossibility of polynomial
+acceleration by parallelization in this case. The rest of this section is dedicated to give some proof
+details of the results announced. The full proofs are in Appendix E.
+
+5.1. Randomized smoothing
+                                                                               ∥·∥
+Let ν S be the uniform distribution on a set S ⊆ Rd . Let Bβ ⊂ Rd be the ball of center 0 and
+radius β with respect to norm ∥ · ∥. Given a function f : Rd 7→ R, we define its randomized and its
+sequential randomized smoothing, respectively:
+                   def                                           (q)    def
+        S β [f ](x) = Ev∼ν ∥·∥ [f (x + v)],          and        Sβ [f ] = (S β/2q ◦ S β/2q−1 ◦ · · · ◦ S β/2 )(f ).
+                            B
+                             β
+
+The following lemma briefs the main properties of our smoothing.
+
+Lemma 17 [↓] Assume that f : Rd → R is G-Lipschitz with respect to a norm ∥ · ∥. Then,
+  1. S β [f ] is G-Lipschitz and β −1 dG-smooth with respect to ∥ · ∥.
+       (q)                                                 (q)
+  2. Sβ [f ] is q-times differentiable and ∇i Sβ [f ] is Li -Lipschitz in an ∥ · ∥-ball of radius β/2q
+                   i i(i+1)/2
+      with Li ≤ d 2 β i         G, for i ∈ {0, 1, . . . , q}.
+
+                                                            11
+        (q)
+  3. |Sβ [f ](x) − f (x)| ≤ βG.
+                                             (q)
+  4. If f is a convex function, then Sβ [f ] is also a convex function.
+                  (q)
+  5. The value Sβ [f ](x) only depends on the values of f within the ∥ · ∥-ball of radius (1 − 2−q )β
+     and center x.
+
+5.2. Hard instance construction
+Given µ > 0 and n < d, define the softmax and the partial softmax functions as
+                                                                                
+                            Xd                                       Xn
+                                                 smax≤n
+                   def                                        def
+         smaxµ (x) = µ ln      exp(xi /µ) ,         µ (x) = µ ln
+                                                                        exp(xi /µ) .
+                                  j=1                                      j=1
+
+
+The following lemma generalizes the results in [GKN+21] to arbitrary norms.
+
+Lemma 18 [↓] Let A : Rd 7→ Rd a linear map A(x) = (⟨a1 , x⟩, . . . , ⟨ad , x⟩) such that ∥aℓ ∥∗ ≤ 1 for
+every ℓ ∈ [d]. The following properties hold.
+
+ (a) The composition smaxµ (Ax) is 1-Lipschitz with respect to ∥ · ∥.
+                                                                            q+1
+                                                                       q+1        q!
+ (b) ∇q smaxµ (Ax) is Lq -Lipschitz with respect to ∥ · ∥ with Lq := ln(q+2)      µq .
+
+ (c) Let x ∈ Rd and n < d. If µ1 [smaxµ (Ax) − smax≤n
+                                                   µ (Ax)] = δ < 1 then
+
+
+                                        ∥∇ smaxµ (Ax) − ∇ smax≤n
+                                                              µ (Ax)∥∗ ≤ 4δ.
+
+
+    Our hard instance construction is as follows. Let γ, µ, β and α positive parameters. For i ∈ [T ]
+define the functions fi , h, g : Rd 7→ R by
+
+                   fi (x) = smax≤i                                             −α
+                         def
+                                µ ((⟨zj , x⟩ + (T − j)γ)j∈[d] ) + µ(T + 1 − i)d   ,
+                         def                           def   (q)
+                    h(x) = max fi (x),             g(x) = Sβ [h](x).
+                               i∈[T ]
+
+The functions fi are translated partial softmax functions, which are 1-Lipschitz by Lemma 18.
+The function h is the maximum of 1-Lipschitz functions and is thus also 1-Lipschitz. Finally, the
+function g is the sequentially randomized version of h, making it smooth with Lipschitz derivatives,
+as established in Lemma 17. The following lemma formalizes the high-order smoothness of g.
+
+Lemma 19 [↓] For any choice of vectors {zj }j∈[T ] with ∥zj ∥∗ ≤ 1, the function g is convex, q-times
+                                                             ln d q
+differentiable and ∇q g(x) is Lq -Lipschitz with Lq = Oq ( T Θ
+                                                                 
+                                                                    ).
+
+
+
+
+                                                        12
+5.3. Overview of the proof
+Given the constructions above, the rest of the proof of Theorem 16 follows from a standard argument
+[NY83; GN15]. Assuming that we work with a set X containing the unit ball of (Rd , ∥ · ∥), we first
+establish an upper bound on the minimum value of g over X by leveraging a uniform bound on
+the functions fi , consequence of condition (ii) of the theorem. Then, for any sequence of points
+{xt }t∈[T ] , we construct an instance of the function g such that g(xt ) remains uniformly lower
+bounded for all t ∈ [T ]. This construction uses vectors of the form zt = ξt vt , where {vt }t∈[T ] is a
+sequence of orthogonal vectors, and {ξt }t∈[T ] is a sequence of signs chosen adaptively based on the
+points {xt }. By setting the parameters γ = 4T  Θ
+                                                  , µ = 4αγln d , β = lnγd and α ≥ q + 1, we establish a
+gap between the upper and lower bounds of order Ω     e q (Θ).
+    Next, we rescale g by a factor L/Lq to   ensure it is a q-th    order L-Lipschitz function while
+                                                 Θ               Θ q+1
+preserving an optimality gap of order Ω   eq L
+                                                Lq    = Ω e q L q , where we apply Lemma 19 to
+                                                                T
+estimate Lq . Finally, we extend the result to general R-balls and (L, ν)-Hölder continuous functions
+via standard rescaling and interpolation techniques.
+
+
+Acknowledgments
+D. Martı́nez-Rubio was partially funded by the project IDEA-CM (TEC-2024/COM-89). C.
+Guzmán’s research was partially supported by INRIA Associate Teams project, ANID FONDE-
+CYT 1210362 grant, ANID Anillo ACT210005 grant, and National Center for Artificial Intelligence
+CENIA FB210017, Basal ANID. J.P. Contreras was supported by Postdoctoral Fondecyt Grant No.
+3240505.
+
+
+References
+[ABJ+22]     Deeksha Adil, Brian Bullins, Arun Jambulapati, and Sushant Sachdeva. “Optimal
+             Methods for Higher-Order Smooth Monotone Variational Inequalities”. In: CoRR
+             abs/2205.06167 (2022) (cit. on p. 3).
+[ABJ+24]     Deeksha Adil, Brian Bullins, Arun Jambulapati, and Aaron Sidford. “Convex opti-
+             mization with p-norm oracles”. In: arXiv preprint arXiv:2410.24158 (2024) (cit. on
+             p. 4).
+[ACZ23]      Amir Ali Ahmadi, Abraar Chaudhry, and Jeffrey Zhang. “Higher-Order Newton Meth-
+             ods with Polynomial Work per Iteration”. In: CoRR abs/2311.06374 (2023) (cit. on
+             p. 1).
+[AH18]       Naman Agarwal and Elad Hazan. “Lower Bounds for Higher-Order Convex Optimiza-
+             tion”. In: Conference On Learning Theory, COLT 2018, Stockholm, Sweden, 6-9 July
+             2018. Ed. by Sébastien Bubeck, Vianney Perchet, and Philippe Rigollet. Vol. 75. Pro-
+             ceedings of Machine Learning Research. PMLR, 2018, pp. 774–792 (cit. on pp. 3, 11,
+             35).
+
+
+
+
+                                                     13
+[AO17]     Zeyuan Allen-Zhu and Lorenzo Orecchia. “Linear Coupling: An Ultimate Unification
+           of Gradient and Mirror Descent”. In: 8th Innovations in Theoretical Computer Science
+           Conference, ITCS 2017, January 9-11, 2017, Berkeley, CA, USA. Ed. by Christos H.
+           Papadimitriou. Vol. 67. LIPIcs. Schloss Dagstuhl - Leibniz-Zentrum für Informatik,
+           2017, 3:1–3:22 (cit. on p. 6).
+[ASS19]    Yossi Arjevani, Ohad Shamir, and Ron Shiff. “Oracle complexity of second-order meth-
+           ods for smooth convex optimization”. In: Math. Program. 178.1-2 (2019), pp. 327–360
+           (cit. on pp. 3, 11).
+[Bae09]    Michel Baes. “Estimate sequence methods: extensions and approximations”. In: Insti-
+           tute for Operations Research, ETH, Zürich, Switzerland 2.1 (2009) (cit. on p. 3).
+[BCL94]    Keith Ball, Eric A Carlen, and Elliott H Lieb. “Sharp uniform convexity and smooth-
+           ness inequalities for trace norms”. In: Inequalities: Selecta of Elliott H. Lieb (1994),
+           pp. 171–190 (cit. on p. 23).
+[Bec17]    Amir Beck. “First-Order Methods in Optimization”. Vol. 25. SIAM, 2017 (cit. on
+           p. 36).
+[BJL+19]   Sébastien Bubeck, Qijia Jiang, Yin Tat Lee, Yuanzhi Li, and Aaron Sidford. “Near-
+           optimal method for highly smooth convex optimization”. In: Conference on Learning
+           Theory. PMLR. 2019, pp. 492–507 (cit. on p. 3).
+[BMN01]    Aharon Ben-Tal, Tamar Margalit, and Arkadi Nemirovski. “The Ordered Subsets Mir-
+           ror Descent Optimization Method with Applications to Tomography”. In: SIAM Jour-
+           nal on Optimization 12.1 (2001), pp. 79–108 (cit. on p. 1).
+[BNO03]    Dimitri Bertsekas, Angelia Nedic, and Asuman Ozdaglar. “Convex analysis and opti-
+           mization”. In: vol. 1. Athena Scientific, 2003, pp. 245–247. isbn: 9781886529458 (cit.
+           on p. 22).
+[Bul20]    Brian Bullins. “Highly smooth minimization of non-smooth problems”. In: Confer-
+           ence on Learning Theory, COLT 2020, 9-12 July 2020, Virtual Event [Graz, Austria].
+           Ed. by Jacob D. Abernethy and Shivani Agarwal. Vol. 125. Proceedings of Machine
+           Learning Research. PMLR, 2020, pp. 988–1030 (cit. on p. 36).
+[CDH+21]   Yair Carmon, John C. Duchi, Oliver Hinder, and Aaron Sidford. “Lower bounds for
+           finding stationary points II: first-order methods”. In: Math. Program. 185.1-2 (2021),
+           pp. 315–355 (cit. on pp. 3, 9).
+[CH22]     Yair Carmon and Danielle Hausler. “Distributionally Robust Optimization via Ball
+           Oracle Acceleration”. In: Advances in Neural Information Processing Systems 35: An-
+           nual Conference on Neural Information Processing Systems 2022, NeurIPS 2022, New
+           Orleans, LA, USA, November 28 - December 9, 2022. Ed. by Sanmi Koyejo, S. Mo-
+           hamed, A. Agarwal, Danielle Belgrave, K. Cho, and A. Oh. 2022 (cit. on p. 3).
+[CHJ+22]   Yair Carmon, Danielle Hausler, Arun Jambulapati, Yujia Jin, and Aaron Sidford.
+           “Optimal and Adaptive Monteiro-Svaiter Acceleration”. In: NeurIPS. 2022 (cit. on
+           pp. 3, 7, 18, 20, 31).
+
+
+
+
+                                               14
+[CJJ+20]   Yair Carmon, Arun Jambulapati, Qijia Jiang, Yujia Jin, Yin Tat Lee, Aaron Sidford,
+           and Kevin Tian. “Acceleration with a Ball Optimization Oracle”. In: Advances in
+           Neural Information Processing Systems 33: Annual Conference on Neural Information
+           Processing Systems 2020, NeurIPS 2020, December 6-12, 2020, virtual. Ed. by Hugo
+           Larochelle, Marc’Aurelio Ranzato, Raia Hadsell, Maria-Florina Balcan, and Hsuan-
+           Tien Lin. 2020 (cit. on pp. 3, 10).
+[CJJ+21]   Yair Carmon, Arun Jambulapati, Yujia Jin, and Aaron Sidford. “Thinking Inside the
+           Ball: Near-Optimal Minimization of the Maximal Loss”. In: Conference on Learning
+           Theory, COLT 2021, 15-19 August 2021, Boulder, Colorado, USA. Ed. by Mikhail
+           Belkin and Samory Kpotufe. Vol. 134. Proceedings of Machine Learning Research.
+           PMLR, 2021, pp. 866–882 (cit. on p. 3).
+[CJJ+24]   Yair Carmon, Arun Jambulapati, Yujia Jin, and Aaron Sidford. “A Whole New Ball
+           Game: A Primal Accelerated Method for Matrix Games and Minimizing the Maximum
+           of Smooth Functions”. In: Proceedings of the 2024 ACM-SIAM Symposium on Discrete
+           Algorithms, SODA 2024, Alexandria, VA, USA, January 7-10, 2024. Ed. by David P.
+           Woodruff. SIAM, 2024, pp. 3685–3723 (cit. on p. 3).
+[CZ23]     Coralia Cartis and Wenqi Zhu. “Second-order methods for quartically-regularised cu-
+           bic polynomials, with applications to high-order tensor methods”. In: CoRR abs/2308.15336
+           (2023) (cit. on p. 1).
+[DG20]     Jelena Diakonikolas and Cristóbal Guzmán. “Lower Bounds for Parallel and Random-
+           ized Convex Optimization”. In: J. Mach. Learn. Res. 21 (2020), 5:1–5:31 (cit. on pp. 3,
+           4, 11, 44, 45).
+[dGJ18]    Alexandre d’Aspremont, Cristóbal Guzmán, and Martin Jaggi. “Optimal Affine-Invariant
+           Smooth Minimization Algorithms”. In: SIAM J. Optim. 28.3 (2018), pp. 2384–2405
+           (cit. on p. 3).
+[DO19]     Jelena Diakonikolas and Lorenzo Orecchia. “The Approximate Duality Gap Technique:
+           A Unified Theory of First-Order Methods”. In: SIAM J. Optim. 29.1 (2019), pp. 660–
+           689 (cit. on p. 24).
+[GDG+19]   Alexander Gasnikov, Pavel Dvurechensky, Eduard Gorbunov, Evgeniya Vorontsova,
+           Daniil Selikhanovych, and César A Uribe. “Optimal tensor methods in smooth convex
+           and uniformly convex optimization”. In: Conference on Learning Theory. PMLR. 2019,
+           pp. 1374–1391 (cit. on p. 3).
+[GKN+21]   Ankit Garg, Robin Kothari, Praneeth Netrapalli, and Suhail Sherif. “Near-Optimal
+           Lower Bounds For Convex Optimization For All Orders of Smoothness”. In: Advances
+           in Neural Information Processing Systems 34: Annual Conference on Neural Infor-
+           mation Processing Systems 2021, NeurIPS 2021, December 6-14, 2021, virtual. Ed.
+           by Marc’Aurelio Ranzato, Alina Beygelzimer, Yann N. Dauphin, Percy Liang, and
+           Jennifer Wortman Vaughan. 2021, pp. 29874–29884 (cit. on pp. 3, 11, 12, 37).
+[GN15]     Cristóbal Guzmán and Arkadi Nemirovski. “On lower complexity bounds for large-
+           scale smooth convex optimization”. In: Journal of Complexity 31.1 (2015), pp. 1–14
+           (cit. on pp. 4, 11, 13).
+
+
+
+
+                                              15
+[JWZ19]    Bo Jiang, Haoyue Wang, and Shuzhong Zhang. “An optimal high-order tensor method
+           for convex optimization”. In: Conference on Learning Theory. PMLR. 2019, pp. 1799–
+           1801 (cit. on p. 3).
+[KG22]     Dmitry Kovalev and Alexander V. Gasnikov. “The First Optimal Acceleration of High-
+           Order Methods in Smooth Convex Optimization”. In: Advances in Neural Information
+           Processing Systems 35: Annual Conference on Neural Information Processing Systems
+           2022, NeurIPS 2022, New Orleans, LA, USA, November 28 - December 9, 2022. Ed.
+           by Sanmi Koyejo, S. Mohamed, A. Agarwal, Danielle Belgrave, K. Cho, and A. Oh.
+           2022 (cit. on p. 3).
+[Mar23]    David Martı́nez-Rubio. “Global Riemannian Acceleration in Hyperbolic and Spherical
+           Spaces”. In: arXiv preprint arXiv:2012.03618 (2023) (cit. on p. 3).
+[MS13]     Renato DC Monteiro and Benar Fux Svaiter. “An accelerated hybrid proximal extra-
+           gradient method for convex optimization and its implications to second-order meth-
+           ods”. In: SIAM Journal on Optimization 23.2 (2013), pp. 1092–1125 (cit. on pp. 3,
+           6).
+[Nem04]    Arkadi Nemirovski. “Prox-Method with Rate of Convergence O(1/t) for Variational
+           Inequalities with Lipschitz Continuous Monotone Operators and Smooth Convex-
+           Concave Saddle Point Problems”. In: SIAM Journal on Optimization 15.1 (2004),
+           pp. 229–251 (cit. on p. 1).
+[Nem94]    Arkadi Nemirovski. “On parallel complexity of nonsmooth convex optimization”. In:
+           Journal of Complexity 10.4 (1994), pp. 451–463 (cit. on p. 42).
+[Nem95]    Arkadi Nemirovski. “Information-based complexity of convex programming”. In: Lec-
+           ture notes 834 (1995) (cit. on p. 5).
+[Nes+18]   Yurii Nesterov et al. “Lectures on convex optimization”. Vol. 137. Springer, 2018 (cit.
+           on p. 23).
+[Nes04]    Yurii E. Nesterov. “Introductory Lectures on Convex Optimization - A Basic Course”.
+           Vol. 87. Applied Optimization. Springer, 2004. isbn: 978-1-4613-4691-3 (cit. on p. 24).
+[Nes05]    Yu Nesterov. “Smooth minimization of non-smooth functions”. In: Math. Program.
+           103.1 (May 2005), pp. 127–152. issn: 0025-5610 (cit. on p. 1).
+[Nes21]    Yurii E. Nesterov. “Implementable tensor methods in unconstrained convex optimiza-
+           tion”. In: Math. Program. 186.1 (2021), pp. 157–183 (cit. on p. 3).
+[NY83]     A.S. Nemirovskii and D.B. Yudin. “Problem Complexity and Method Efficiency in
+           Optimization”. A Wiley-Interscience publication. Wiley, 1983. isbn: 9780471103455
+           (cit. on pp. 2, 4, 5, 11, 13, 41).
+[Sha07]    Shai Shalev-Shwartz. “Online learning: Theory, algorithms, and applications”. Hebrew
+           University, 2007 (cit. on p. 23).
+[She17]    Jonah Sherman. “Area-convexity, ℓ∞ regularization, and undirected multicommodity
+           flow”. In: Proceedings of the 49th Annual ACM SIGACT Symposium on Theory of
+           Computing. STOC 2017. Montreal, Canada: Association for Computing Machinery,
+           2017, pp. 452–460. isbn: 9781450345286 (cit. on p. 1).
+
+
+
+                                              16
+[SJM19]    Chaobing Song, Yong Jiang, and Yi Ma. “Unified Acceleration of High-Order Algo-
+           rithms under Hölder Continuity and Uniform Convexity”. In: arXiv preprint arXiv:1906.00582
+           (2019) (cit. on pp. 3, 27).
+[Teb18]    Marc Teboulle. “A simplified view of first order methods for optimization”. In: Math.
+           Program. 170.1 (2018), pp. 67–96 (cit. on p. 6).
+[Wan19]    Yining Wang. “Selective Data Acquisition in Learning and Decision Making Prob-
+           lems.” PhD thesis. Carnegie Mellon University, USA, 2019 (cit. on p. 35).
+[Zǎl83]   Constantin Zǎlinescu. “On Uniformly Convex Functions”. In: Journal of Mathematical
+           Analysis and Applications (1983), pp. 344–374 (cit. on p. 22).
+[ZC23]     Wenqi Zhu and Coralia Cartis. “Cubic-quartic regularization models for solving poly-
+           nomial subproblems in third-order tensor methods”. In: CoRR abs/2312.10283 (2023)
+           (cit. on p. 1).
+[ZC24]     Wenqi Zhu and Coralia Cartis. “Global Convergence of High-Order Regularization
+           Methods with Sums-of-Squares Taylor Models”. In: CoRR abs/2404.03035 (2024) (cit.
+           on p. 1).
+
+
+
+
+                                             17
+Appendix A. Convergence of the adaptive algorithm
+This section proves convergence of the generalized version of our Algorithm 1 that is, Algorithm 2.
+Recall that for any r ∈ [1, ∞], we define r∗ as in Definition 1. We repeat the pseudocode for
+convenience.
+
+Algorithm 3 Non-Euclidean Adaptive Accelerated Proximal Point with Uniformly Convex Regu-
+larizer
+Input: Convex function f : Rd → R. Regularizer ψ that is (1, r)-uniformly convex function wrt a
+     norm ∥ · ∥. Initial λ  b0 . Adjustment constant factor α > 1. Inexactness constants σ, σ ′ .
+                                                       ′ ) r−1
+                                                         
+  1: z0 ← y0 ← x0 ;       A0 ← 0; C ← 12 r∗ (1−σ−σ
+                                                1+σ r∗
+
+  2: ỹ1 , v1 , λ1 ← O
+                     br (x0 , λ     b 1 ← λ1
+                              b0 ); λ
+ 3: for k = 1 to T do
+ 4:   Abk = b
+            ak + Ak−1 ; b          br−1 λ
+                           ak = (C A     bk )1/r                           ⋄ r-degree equation on b
+                                                                                                  ak > 0.
+                                     k
+            A             ak
+ 5:   xk ← k−1bk yk−1 + A bk zk−1
+                          b
+              A
+ 6:   if k > 1 then ỹk , vk , λk ← O
+                                    br (xk , λ
+                                             bk )                                    ⋄ Oracle satisfying (5)
+ 7:   γk ← min{λk /λbk , 1}; ak ← γk bak ; Ak ← ak + Ak−1
+                                                                                   (1−γk )Ak−1
+      yk ← arg min{f (ỹk ), f (yk−1 )}                               ⋄ Or yk ←                yk−1 + γkAAk k ỹk
+                                                                                                          b
+ 8:                                                                                    Ak
+      zk ← arg minz∈Rd { ki=1 ai ⟨vi , z⟩ + Dψ (z, x0 )}
+                         P
+ 9:
+10:      bt ≤ λt then λ
+      if λ            bt+1 ← αλ            bt+1 ← α−1 λ
+                                   bt else λ            bt
+11: end for
+12: return yT .
+
+
+Proof of Theorem 9. We use an adaptive scheme inspired by [CHJ+22] used to guess the
+proximal parameter λk . In some cases of high-order smooth convex optimization, we can implement
+the inexact proximal oracle of Algorithm 1, but with a parameter of λk that depends on yk . Because
+yk also depends on λk , this double dependence leads to problems that can be solved by using a
+binary search at each iteration. However, the adaptive scheme removes the need for the binary
+search.
+    We use the same lower bound as in (7) but this time for simplicity we only use r-uniformly
+convex regularizers, r ≥ 2, instead of inexact ones. As opposed to Algorithm 1, this time we denote
+by ỹk the points that the inexact proximal oracle returns. Therefore, vk ∈ ∂ εk f (ỹk ). We define a
+                                                                                 A             ak
+different convex combination for the point where we compute the gradient xk = k−1   b yk−1 + b zk−1
+                                                                                               b
+                                                                                           Ak           Ak
+                                                                             def
+for some b
+         ak to be determined later, that satisfies ak = γk b
+                                                           ak , where γk = min{λk /λ
+                                                                                   bk , 1}, and where
+λ
+bk is a guess on the proximal parameter of our next oracle and λk is the proximal parameter that
+the oracle actually returns. We also have Abk def
+                                               = Ak−1 + bak .
+                                     def                                       def
+    We define the upper bound Uk = f (yk ) and the primal-dual gap Gk = Uk − Lk but this
+                        (1−γk )Ak−1
+time we want Uk ≤                       f (yk−1 ) + γkAAk k f (ỹk ). Therefore, we can define the combination
+                                                        b
+                             Ak
+   def (1−γk )Ak−1
+yk =               yk−1 + γkAAk k ỹk , which note it is a convex combination, or we can simply define it
+                              b
+           Ak
+
+
+
+
+                                                     18
+as yk ∈ arg min{f (yk−1 ), f (ỹk )}. With these definitions, we have
+
+                                          1
+Ak Gk − Ak−1 Gk−1 − I{k=1} Dψ (u, x0 ) ≤ (1 − γk )Ak−1 f (yk−1 ) + γk A       bk f (ỹk ) − (           (
+                                                                                             Ak−1
+                                                                                               ((f(
+                                                                                                  (y(k−1 )
+                                                                                                        (
+
+                   k−1              k−1
+                                                                                  !
+                   X              X
+     − ak f (ỹk )− ai f (ỹi ) −     ai (⟨vi , zk − ỹi ⟩ − εi ) + Dψ (zk , x0 ) − ak ⟨vk , zk − ỹk ⟩ + ak εk
+                    i=1                    i=1
+          k−1                   k−1
+                                                                                  !
+          X                     X
+      +         a
+                 i f (ỹi ) +         ai (⟨vi , zk−1 − ỹi ⟩ − εi ) + Dψ (zk−1 , x0 )
+                   
+            
+          i=1                   i=1
+          
+    2                                                               1
+    ≤ ⟨vk , γk Ak−1 (ỹk − yk−1 ) − ak (±zk−1 + zk − ỹk )⟩ − ∥zk−1 − zk ∥r + γk A           bk εk
+                                                                    r
+    3           bk (ỹk − xk ) + a (zk−1 − zk )⟩ − 1 ∥zk−1 − zk ∥r + γk A
+    = ⟨vk , γk A                   k
+                                                                              bk εk
+                                                        r
+    4                           ark∗
+    ≤ γk Ak ⟨vk , ỹk − xk ⟩ +
+         b                           ∥vk ∥r∗∗ + γk Abk εk
+                                 2
+    5                                                                 1/(r−1)
+    ≤ γk A
+         bk ⟨bvk , ỹk − xk ⟩ + γk Abk ∥vk − vbk ∥∗ · ∥ỹk − xk ∥ + 2         ark∗ (∥b
+                                                                                     vk ∥r∗∗ + ∥vk − vbk ∥r∗∗ ) + γk A
+                                                                                                                     bk εk
+                                                                        r∗
+                                                               !
+    6 γk A   bk (−1 + σ) ar/(r−1) 21/(r−1)
+    ≤                       + kr/(r−1)              (1 + σ r∗ ) ∥ỹk − xk ∥r + γk A  bk εk
+                 λk            λk             r∗
+
+                                   r/(r−1) 1/(r−1)
+                                                                 !
+    7                            a           2                     γk
+    ≤ −A    bk (1 − σ − σ ′ ) + kb
+                                                      (1 + σ r∗ )     ∥ỹk − xk ∥r
+                                   1/(r−1)       r∗                λk
+                                 λ
+                                 b
+                                        k
+    8 A bk (1 − σ − σ ′ )    n         o
+                                 −1 −1             def
+    ≤ −                   min λk , λk ∥ỹk − xk ∥r = Ek .
+                               b
+               2
+     Above, we wrote the definition of the gaps in 1 , we canceled some terms and we used the
+indicator on the left hand side to handle the cases k = 1 and k > 1 at the same time. We
+also used the bound Ak Uk ≤ (1 − γk )Ak−1 f (yk−1 ) + γk Âk ỹk . In 2 , we applied the enlarged
+subgradient property on the remaining terms with f (·), namely γk Ak−1 (f (yk ) − f (ỹk )) and used
+ak = γk bak , A
+              bk = Ak−1 + b   ak , yielding error γk Ak−1 εk which gives γk A
+                                                                            bk εk after merging it with
+the other error. We grouped the resulting expression with another term, and we used that the
+terms in parentheses are ℓk−1 (zk−1 ) − ℓk−1 (zk ). The (1, r)-uniform convexity of ℓk−1 (·) and the
+fact that zk−1 is its minimizer implies the bound. In 3 , we used that by definition of xk it is
+Abk xk = Ak−1 yk−1 + bak zk−1 , along with ak = γk b  ak . We had added and subtracted zk−1 to apply
+Hölder’s and Young’s inequalities in 4 , namely ⟨v, u⟩ ≤ ∥v∥∗ ∥u∥ ≤ r1∗ ∥v∥r∗∗ + 1r ∥u∥r . In 5 , we
+added and subtracted some vbk terms and use simple bounds to make ∥vk − vbk ∥∗ appear. We do this
+because the first and third resulting terms are proportional to ∥yk − xk ∥r and with our criterion
+we can make the rest to be as well. So indeed, in 6 we applied the properties of the oracle (3) for
+the second and fourth terms and used (4) which also holds in this algorithm, and this application
+yields equality for the first and third terms. We obtain 7 by    n substituting
+                                                                            o     ak = γk b
+                                                                                          ak , and using
+                          def                                        −1 −1         −1
+that by definition of γk = min{λk /λk , 1}, it is γk /λk = min λk , λk
+                                        b                          b          ≤ λk . We also used the
+                                                                                 b
+                          ′
+assumption εk ≤ λσk ∥ỹk − xk ∥r .
+
+
+                                                                19
+    Finally, for 8 , we find b ak > 0 so the second summand is half of the absolute value of the first
+summand. This only changes the value of b      ak slightly with respect to making the bound 0, and at
+the same time, it provides a good negative term that can be used to guarantee fast growth of Ak
+                                                                 r−1
+                                                      (1−σ−σ ′ )
+                                                  
+when ∥yk − xk ∥ is large enough. Let C = 21 r∗2(1+σ
+                                             def
+                                                            r∗ )      . It is enough to solve the equation
+ark = C A  br−1 λ
+                bk . And this does not require to know the value of λk , which is only revealed after we
+b           k
+choose xk and receive the answer from the oracle O      br . The first part of the second statement now
+holds by (9) and the definition of our Ek .
+    From now on, we assume a minimizer x∗ exists and set u = x∗ . Borrowing from [CHJ+22]
+(note that our convention for the proximal parameter λ being in the denominator of the Moreau’s
+envelope definition reverses the order), we define ST≥ = {k ∈ [T ] | λk ≥ λ
+                                                             def
+                                                                                  bk } = {k ∈ [T ] | γk = 1}
+the set of up iterates, and recall that after any iterate k of them we have that λ        bk is increased to
+       def                                                              < def
+λk+1 = αλk . Similarly, the set of down iterates is defined as ST = {k ∈ [T ] | λk < λ
+b            b                                                                                bk } and after
+any of these iterates k, we have λ   bk+1 = α−1 λbk . The first iterate is an up iterate by construction,
+see Line 2 of Algorithm 2.
+    The sequence of iterates up to T can be split into subsequences of maximal length with only
+up or only down iterates. We denote the last iterate of the i-th subsequence of down iterates as
+di+1 . And for convenience, even if the first and last iterates are not down iterates we denote them
+by d1 = 1 and dS = T , where S − 1 is the number of up subsequences. We denote the last iterate
+of the i-th of these S − 1 up subsequences as ui . As an example:
+
+                U U |{z}
+               |{z}  U D D |{z}
+                            D U U |{z}
+                                   U D D D |{z}
+                                            D |{z}
+                                                U |{z}
+                                                   D U U |{z}
+                                                          U D |{z}
+                                                               D
+                 d1       u1        d2        u2            d3   u3   d4        u4      d5
+
+
+Because of how we update λ         bk , and the indices definitions, we have for i ∈ [S − 1] that λ   bu ≥
+                                                                                                         i
+αdi+1 −ui −2 λ
+             bd , where the inequality is an equality for i = S in case that the last iterate is an up
+               i+1
+                                                               dS −uS−1 −2 λ
+                                               S−1 = λdS ≥ α
+iterate in which case uS−1 = dS and λ        bu       b                    bd . We also have for all i ∈ [S]
+                                                                             S
+
+that λui ≥ α
+      b         ui −di −2 λdi , where the inequality is also an equality except for i = 1 in case that the
+                          b
+first subsequence of up iterates is of length one in which case d1 = u1 and so λ      bu ≥ αu1 −d1 −2 λbd .
+                                                                                        1                 1
+
+
+
+
+                                                    20
+   Now, given the relation b          br−1 λ
+                           ark = 12 C A    bk , and ak = b           bk for all , and Ak ≥ Ak−1 ,
+                                                         ak and Ak = A
+                                        k
+we have 1 below by (10):
+
+     1/r
+           1 1/r                C 1/r b1/r 2 X C 1/r b1/r
+   AT      ≥ AT −1 + I{T ∈S ≥ }       λ    ≥         λ .
+                           T      r T         ≥
+                                                 r i
+                                                                  i∈ST
+                                   
+             C 1/r  X b1/r  X
+                               b1/r 
+           ≥           λui +   λ ui
+              2r
+                        i∈[S−1]                 i∈[S−1]
+                           S                                          S−1
+                                                                                                       !
+           3 C 1/r
+                                                                                                                                            (6)
+                           X                                          X
+                                      di −ui−1 −2 b         1/r                  ui −di −2 b     1/r
+           ≥                     (α                 λdi )         +         (α            λdi )
+              2r
+                           i=2                                        i=1
+                                                                  S−1
+                                                                                                                                        !
+           4   C 1/r            1                                             1
+                                                                                                bd )1/r + (α 21 (dS −uS−1 )−2 λ
+                                                                  X
+                                  (u1 −d1 )−2   bd )1/r +                       (ui −ui−1 )−2                                 bd )1/r
+           ≥               (α   2               λ 1                      (α   2                 λ i                             S
+                2r
+                                                                   i=2
+           5 C 1/r X
+           ≥        (αri −2 λ
+                            bd )1/r ,
+                              i
+              2r
+                       i∈Q
+
+
+where 2 applied the same as 1 recursively. In 3 we applied the bounds on λ         bu that we computed
+                                                                                     i
+above. In 4 , for the indices i = 2, 3, . . . , S − 1, we used the r- and geometric mean inequality:
+1    a/r + αb/r ) ≥ α(a+b)/(2r) ≥ 1 α(a+b)/(2r) for any r > 0, where losing a factor of 2 is done
+2 (α                                 2
+just for convenience. In the first and third summands, we just reduce the value of the exponent
+in order to have a unified structure in 5 , where we just used the numbers ri ≥ 0 defined as
+   def                                                 def
+r1 = 21 (n1 − d1 ) = 12 (n1 − 1), rS = 21 (dS − nS−1 ) = 21 (T − nS−1 ), and for i = 2, 3, . . . , S − 1, it is
+ri = 12 (ni − ni−1 ). And note Si=1 ri = T −1
+   def                           P
+                                              2 .
+    Finally, we note that T was arbitrary, and also that the numbers defined by the subsequence
+are compatible with a longer subsequence, except for the last one. The theorem statement holds,
+after some indices relabeling and using a set Λ.
+
+
+
+Appendix B. Proofs from Preliminaries and Groundwork
+Proof of Proposition 4.
+   Proof of Property 1. For the norm ∥ · ∥p and p = 1, we can consider the function f (x) = 12 ∥x∥21 ,
+then for instance for x = (1, 1, . . . , 1) and λ = 21 , there is not a unique minimizer. Similarly, if
+p = ∞ and f (x) = 21 ∥x∥2∞ then for instance for x = e1 and λ = 21 there is not a unique minimizer.
+                                                           1
+For p ∈ (1, ∞) the minimizer prox(x) is unique since 2λ       ∥x − ·∥2 is strictly convex.
+   Proof of Property 2. The function to be optimized in the definition of M(x) is jointly convex
+                                                             1
+on x, y. Consequently, the epigraph of (x, y) 7→ f (y) + 2λ    ∥x − y∥2 is convex and so the epigraph of
+M(x) is the projection of a convex set and therefore convex. The joint convexity is derived from
+the joint convexity of (x, y) 7→ ∥x − y∥2 which holds since for points x, x′ , y, y ′ ∈ Rd , we have
+
+                                  1 1                   2
+                 ′                      ′       1 ′         1         1
+        ∥(x + x )/2 − (y + y )/2∥ ≤    ∥x − y∥ + ∥x − y ∥ ≤ ∥x − y∥2 + ∥x′ − y ′ ∥2 ,
+                                                2      ′
+                                     2          2           2         2
+
+
+                                                                               21
+where we used the triangular inequality in 1 and (a + b)2 ≤ 2a2 + 2b2 in 2 .
+   Proof of Property 3. By definition of M , we have
+                                           1                                  1
+          f (prox(x)) ≤ f (prox(x)) +        ∥x − prox(x)∥2 = M(x) ≤ f (x) +    ∥x − x∥2 = f (x).
+                                          2λ                                 2λ
+In particular, since f (x∗ ) = minx∈Rd f (x), it must be f (prox(x∗ )) = M(x∗ ) = f (x∗ ).
+    Proof of Property 4. By the generalized Danskin’s theorem [BNO03], we have ∂M (x) =
+conv{hx (prox(x)) | prox(x) ∈ Prox(x)}. Moreover, by the first order optimality condition of
+any prox(x) ∈ Prox(x) in the optimization problem defining M(x), we have 0 ∈ ∂f (prox(x)) +
+         2
+∂y ∥x−y∥
+     2λ             and so there is g ∈ hx (prox(x)) such that g ∈ ∂f (prox(x)). Note that our proof
+                y=prox(x)
+relies on the symmetry of the function that we use to convolve with f , or more in particular, on
+hx (y) = −hy (x) for all x, y. (compare to Bregman proximal point, in which one uses the Moreau
+                def
+envelope M(x) = miny∈Rd {f (y) + Dψ (x, y)} where Dψ is not symmetric in general).
+    Proof of Property 5. Let f (x) = 12 ∥x∥2 and let g ∈ ∂f (x), for some x ∈ Rd . We have
+
+     1              1                  2                      3 1      1               4 1
+       ∥x∥2 = f (x) = ⟨g, x⟩ − f ∗ (g) ≤ ∥g∥∗ · ∥x∥ − f ∗ (g) ≤ ∥g∥2∗ + ∥x∥2 − f ∗ (g) = ∥x∥2 .
+     2                                                          2      2                 2
+where 1 uses Fenchel duality, 2 uses Cauchy-Schwarz, 3 is due to Young’s inequality and 4
+uses the duality between norms. Because we arrived to an equality, then 2 and 3 must be
+equalities, which only holds if ⟨g, x⟩ = ∥x∥2 = ∥g∥2∗ . By shifting, scaling, and Property 4, defining
+                                                                                                        ?
+any g ∈ hx (prox(x)) and gM ∈ ∂M(x), we have λ⟨g, prox(x) − x⟩ = ∥x − prox(x)∥2 = ∥λg∥2∗ =
+               ?
+λ2 ∥gM ∥2∗ = λ⟨gM , prox(x) − x⟩, as desired.
+    Proof of Property 6. We have
+
+                                  1                    1                2
+                     Mλ1 (x) −       ∥x − proxλ1 (x)∥2 = f (proxλ1 (x)) ≥ Mλ2 (proxλ1 (x)),
+                                 2λ1
+
+where 1 holds by definition of M(x) and prox(x), and 2 uses Property 3.
+
+
+Proof of Lemma 6. By using Young’s inequality with conjugate exponents σ/s > 1 and σ/(σ −
+s) > 1:
+                                      1                 σ σ − s
+                       ∥x − y∥s ≤ σ       ∥x − y∥σ + a σ−s      ,
+                                  a s σ/s                   σ
+or equivalently we have 1 below
+                              σ
+                            as                 σ    σ σ − s 1 1        2
+                                ∥x − y∥s − a( σ−s + s )     ≤ ∥x − y∥σ ≤ Dψ (x, y),
+                             s                          sσ    σ
+where 2 holds by (1, σ)-uniform convexity of ψ. Simplifying the left hand side yields the statement.
+
+
+Proof of Fact 7. In the first case ψ(x) = p1 ∥x − x0 ∥pp and p ≥ 2, we note that a proof of
+      p(p−2)
+  −
+(2     p−1     , m)-uniform convexity is provided in [Zǎl83, Proposition 3.2]. We show a proof of uniform
+
+                                                       22
+convexity with a slightly better constant. Note that ∥x∥pp is a separable function. Thus, it is enough
+to show the uniform convexity of the one-dimensional case and add up all of the corresponding
+inequalities in order to obtain the result. In [Nes+18, Lemma 4.2.3], it is established that p1 ∥x∥p2 is
+(22−p , p)-uniformly convex with respect to the Euclidean norm ∥ · ∥2 . Since in one dimension, all
+of the p-norms are the same, the result is proven.
+    The second statement was shown in [BCL94; Sha07]. We reproduce the argument of the latter
+                                          def   1                                                    def
+for completeness. We now have ψ(x) = 2(p−1)        ∥x − x0 ∥2p and p ∈ (1, 2], and we write ψ(x) =
+                              a2/p
+Ψ( di=1 ϕ(xi )) for Ψ(a) = 2(p−1)
+                          def
+                                   and ϕ(a) = |a|p with derivatives:
+   P
+
+                                                                                              
+                                            1      2
+                                                     −1                     1             2       2
+                                                                                                    −2
+                    Ψ′ (a) =                      ap ;      Ψ′′ (a) =                       − 1 a p ≥ 0,
+                                         p(p − 1)                        p(p − 1)         p
+
+                                    ϕ′ (a) = p sign(a)|a|p−1 ;         ϕ′′ (a) = p(p − 1)|a|p−2 .
+We used |a|q is differentiable everywhere for q > 1. Thus,
+                                 d                                                           d
+                                         !                                                                 !
+                                X                                                            X
+              ∇2i,j f (x) = Ψ′′    ϕ(xk ) ϕ′ (xi )ϕ′ (xj ) + I{i=j} Ψ′                               ϕ(xk ) ϕ′′ (xi ),
+                                            k=1                                              k=1
+                                             p
+   Let us denote yi = |xi |(2−p) 2 . We have
+
+                                            n
+                                                        !                     !2           d
+                                                                                                          !
+                                            X               X                              X                  X
+           ∇2 f (x)[v, v] = Ψ′′                   ϕ(xr )         ϕ′ (xi )vi        + Ψ′          ϕ(xi )             ϕ′′ (xi )vi2
+                                            r=1              i                             i=1                 i
+                                    
+                          p       2
+                                    −1                       d
+                                                                                     ! 2−p
+                                                                                        p
+               1 ∥x∥p          X  p                         X                                X
+                                                p−2 2
+               ≥                   p(p − 1)|xi | vi =           |xi |p                               |xi |p−2 vi2
+                   p(p − 1)
+                                i                           i=1                                  i
+                                                       2
+                              !  2−p            ! p  p
+                     X 2−p   2     2   X v2 2
+                                              i
+               =        yi                  2/p
+                                                     
+                      i                 i yi
+                              !2             !2
+               2 X vp p               X p p
+               ≥        yi i      =       vi      = ∥v∥2p .
+                          yi
+                      i                             i
+
+In 1 we dropped the first summand which is ≥ 0, and wrote the expression for the second one. In
+                                                                       2
+ 2 we used Hölder’s inequality ⟨w, z⟩ ≤ ∥w∥q ∥z∥q∗ with the norm q = 2−p and its dual q ∗ = p2 .
+
+
+
+Appendix C. Other proofs from Accelerated Inexact Proximal Point
+            with an Inexact Uniformly Convex Regularizer: Al-
+            gorithms
+Proof of Theorem 8. Our algorithm makes use of a δ-inexact (µ, r)-uniformly convex regularizer
+with respect to a norm ∥ · ∥, i.e. Dψ (x, y) ≥ µr ∥x − y∥r − δ. Note that for convex h we have that
+
+                                                                  23
+    def
+ℓ(x) = ψ(x) + h(x) is also δ-inexact (µ, r)-uniformly convex and if z is a global minimizer of ℓ, then
+by the first-order optimality condition, we have ℓ(x) − ℓ(z) ≥ Dℓ (x, z) ≥ µr ∥x − z∥r − δ.
+    We use a primal-dual technique in the spirit of Nesterov’s estimate sequences [Nes04] and the
+approximate duality gap technique of Diakonikolas and Orecchia [DO19] in order to naturally define
+a Lyapunov function that allows to prove convergence. Given ai > 0, for i ≥ 1 and Ak = ki=1 ai
+                                                                                            def P
+
+
+to be chosen later, we define the following lower bound Lk on f (u), for all k ≥ 1:
+
+                      k
+                    1 X              k
+                                     X
+           Ak f (u) ≥   ai f (yi ) +   ai ⟨vi , u − yi ⟩ − ai εi
+                         i=1                  i=1
+                         k
+                                                     ( k                                               )
+                    2    X                            X
+                    ≥          ai f (yi ) + min               (ai ⟨vi , z − yi ⟩ − ai εi ) + Dψ (z, x0 )   − Dψ (u, x0 )
+                         i=1
+                                              z∈Rd
+                                                        i=1
+                                                                                                                           (7)
+                          k                   k
+                    3    X                    X
+                    =          ai f (yi ) +         (ai ⟨vi , zk − yi ⟩ − ai εi ) + Dψ (zk , x0 ) − Dψ (u, x0 )
+                         i=1                  i=1
+                   def
+                    = Ak L k ,
+
+where 1 holds because vi ∈ ∂ εi f (yi ). In 2 , we added and subtracted the regularizer Dψ (u, x0 ) and
+took a minimum to remove the dependence of u in the lower bound (except for the term −Dψ (u, x0 )
+that is irrelevant for defining the algorithm, as it will become evident in a moment). Equality 3
+simply uses that zk was defined as the arg min of that minimization problem. Since A0 = 0, we
+              def
+define A0 L0 = 0. We define the δ-inexact (µ, r)-uniformly convex function
+                                                k
+                                                X
+                                          def
+                                   ℓk (z) =           (ai ⟨vi , z − xi ⟩ − ai εi ) + Dψ (z, x0 ),
+                                                i=1
+
+which is part of the bound above, and recall that its minimizer is zk . Now, if we define an upper
+                                                                                def
+bound Uk ≥ f (yk ) and we show that for some numbers Ek , the duality gap Gk = Uk − Lk satisfies
+
+          Ak Gk − Ak−1 Gk−1 ≤ Ek for all k > 1, and A1 G1 − A0 G0 = A1 G1 ≤ Dψ (u, x0 ) + E1 ,                             (8)
+
+then telescoping the inequalities above, we obtain the following convergence rate after T steps:
+
+                                               A1 G1 + Ti=2 Ei   Dψ (u, x0 ) + Ti=1 Ei
+                                                      P                       P
+              f (yT ) − f (u) ≤ UT − LT = GT ≤                 ≤                       ,                                   (9)
+                                                     AT                    AT
+
+
+
+
+                                                                    24
+   We choose the upper bound Uk = f (yk ), so Gk = f (yk ) − Lk . Thus, we have, for all k ≥ 1:
+                                            1
+  Ak Gk − Ak−1 Gk−1 − I{k=1} Dψ (u, x0 ) = Ak−1 (f (yk ) − f (yk−1 )) +     akf (y
+                                                                                  k )
+          k             k−1
+                                                                        !
+         X            X
+       − ai f (yi ) −     (ai ⟨vi , zk − yi ⟩ − ai εi ) + Dψ (zk , x0 ) − ak ⟨vk , zk − yk ⟩ + ak εk
+        
+        i=1                i=1
+          k−1               k−1
+                                                                                       !
+          X               X
+       + ai f (yi ) +           (ai ⟨vi , zk−1 − yi ⟩ − ai εi ) + Dψ (zk−1 , x0 )
+        
+        i=1                i=1
+      2                                                       µ
+      ≤ ⟨vk , Ak−1 (yk − yk−1 ) − ak (±zk−1 + zk − yk )⟩ − ∥zk−1 − zk ∥r + δ + Ak εk
+                                                              r
+      3                                            µ
+      = ⟨vk , Ak (yk − xk ) + ak (zk−1 − zk )⟩ − ∥zk−1 − zk ∥r + δ + Ak εk
+                                                   r
+      4                            r∗
+                                  ak
+      ≤ Ak ⟨vk , yk − xk ⟩ + 1/(r−1)     ∥vk ∥r∗∗ + δ + Ak εk
+                             µ        r∗
+                                                                         1
+      5                                                      2 r−1 ark∗
+      ≤ Ak ⟨v̂k , yk − xk ⟩ + Ak ∥vk − v̂k ∥∗ · ∥yk − xk ∥ +        1   (∥v̂k ∥r∗∗ + ∥vk − v̂k ∥r∗∗ ) + δ + Ak εk
+                                                             r∗ µ r−1
+                              r/(r−1)   1
+                                                                    !
+      6     Ak       σAk     ak          2 r−1 1 + σ r∗      σ ′ Ak
+      ≤ −         +        + r/(r−1)                       +           ∥yk − xk ∥r + δ
+             λk       λk     λ          µ           r∗        λ  k
+                                k
+      7 def
+      ≤ δ = Ek .
+Above, we wrote the definition of the gaps in 1 , we canceled some terms and we used the indicator
+on the left hand side to handle the cases k = 1 and k > 1 at the same time. In 2 , we applied
+the enlarged subgradient property on the first term, which gives an error of Ak−1 εk that we group
+with the other ak εk error, and we grouped the resulting expression with another term, and we
+used that the terms in parentheses are ℓk−1 (zk−1 ) − ℓk−1 (zk ). The inexact uniform convexity of
+ℓk−1 (·) and the fact that zk−1 is its minimizer implies the bound. In 3 , we used that by definition
+of xk it is Ak xk = Ak−1 yk−1 + ak zk−1 . We had added and subtracted zk−1 to apply Hölder’s
+and Young’s inequalities in 4 , namely ⟨v, u⟩ ≤ ∥v∥∗ ∥u∥ ≤ rc∗ ∥v∥r∗∗ + cp 1
+                                                                             ∥u∥r , with c = ak , and
+          def
+where r∗ = (1 − 1/r)−1 . In 5 , we added and subtracted some v̂k terms and use bounds to make
+∥vk − v̂k ∥∗ appear, and other terms that we can bound with something proportional to ∥yk − xk ∥r .
+For the second summand, after applying the triangular inequality we used the means inequality
+a+b      ar∗ +br∗ 1/r∗
+ 2 ≤(        2   )     , for r∗ > 1. In 6 we applied the inequalities of our oracle Or criterion for the
+second and fourth terms and used (4) that yields equality for the first terms and ∥v̂k ∥r∗∗ .
+                               ′ ) r−1
+                                 
+    Let C = µ2 r∗ (1−σ−σ
+             def
+                        1+σ r∗         . It is enough to satisfy ark ≤ CAr−1
+                                                                          k λk to make 7 hold, and
+then we define Ek as δ. We choose ak > 0 as large as possible, that is, ark = CAr−1      k λk . For
+                                def
+notational simplicity, let Dk = Cλk . Then, since Ak = ak + Ak−1 , we can express the equation as
+  r/(r−1)
+          = âk + Âk−1 , where âk = ak Dk−1 and Âk−1 = Ak−1 Dk−1 . Now, using this expression and
+                                    def                 def
+âk
+Young’s inequality, we obtain
+                                                           1/(r−1)           1/(r−1)
+                 1/r      1/r       1/(r−1)               âk            âk           −1      1/(r−1)    1
+                Âk−1 = âk (âk              − 1)1/r ≤              +                      = âk        − ,
+                                                                r∗               r                        r
+
+                                                                25
+which implies 1 below
+
+                                   1  1/r   1 r−1         2  1/r   1 r
+                                                                      
+                       âk + Âk−1 ≥ Âk−1 +       + Âk−1 ≥ Âk−1 +     .
+                                             r                       r
+
+Above, 2 holds by Bernoulli’s inequality (1 −1/x)r ≥ 1 − r/x
+                                                           for x, r > 1, since dividing by the
+                                                                         r
+                                             r                    1                                  1/r
+right hand side and simplifying gives      1/r        + 1−    1/r            ≥ 1, where here x = Âk−1 r +1 > 1.
+                                          Âk−1 r+1          Âk−1 r+1
+Multiplying by Dk and taking an r-th root, we obtain
+
+                       1/r                       1/r   1 1/r        1/r   1 1 1/r
+                     Ak   = (ak + Ak−1 )1/r ≥ Ak−1 + Dk = Ak−1 + C r λk ,                                  (10)
+                                                       r                  r
+            1/r        1 P     1/r
+and thus, Ak ≥ 1r C r ki=1 λi . Hence, we conclude by (9) that for any T ≥ 1, we have:
+                                                                                              
+                          Dψ (u, x0 ) + δT   rr (Dψ (u, x0 ) + δT )         D ψ (u, x0 ) +  δT
+        f (yT ) − f (u) ≤                  ≤                        = O r  P               .
+                                                            1/r r                        1/r r
+                                                  P           
+                                AT             C     T
+                                                         λ                  µ     T
+                                                                                       λ
+                                                            i=1   i                        i=1   i
+
+
+
+                                                                        r−1
+                                                             (1−σ−σ ′ )
+                                                         
+    We note that in the proof above, if we had set C = µ2 r∗2(1+σ
+                                                     def
+                                                                  r∗ )        instead, then we would
+get Ek is δ and a negative term, which after concluding and using f (yT ) − f (x∗ ) ≥ 0, yields a
+similar statement to the second property in Theorem 9.
+    We now proceed to prove how finding an approximate critical point of the regularized Taylor
+subproblems satisfies the oracle criteria.
+                                                                   L
+Proof of Lemma 11. Firstly, we have ∥∇f (y) − ∇fq (y; x)∥∗ ≤ (q−1)!     ∥y − x∥q+ν−1 , see Lemma 21.
+Then, for vk = ∇f (yk ) and λk = λ̂∥yk − xk ∥r−q−ν = σ(q−1)!
+                                   def                              r−q−ν we have
+                                                       2L ∥yk − xk ∥
+
+         λk ∥vk − v̂k ∥∗ ≤ λk (∥∇f (yk ) − ∇fq (yk ; xk )∥∗ + ∥∇fq (yk ; xk ) − v̂k ∥∗ )
+                          1         L
+                                          ∥yk − xk ∥q+ν−1 + ∥yk − xk ∥q+ν−1 = σ∥yk − xk ∥r−1 .
+                                                                           
+                          ≤ λk
+                                 (q − 1)!
+
+where 1 uses the bound above in Lemma 21 and the guarantee on yk .
+
+    We now present the following two lemmas, which develop the key ideas to show the convexity
+of some of our Taylor subproblems in Lemma 11.
+
+Lemma 20 (Hessian property of powers of some norms) Let ∥ · ∥ be a norm such that
+ψ(x) = ∥x∥2 is twice differentiable and µ-strongly convex. Then, the function gq (x) = 1q ∥x∥qp
+                                                                                     def
+
+
+satisfies
+                                       µ
+                        ∇2 h(x)[v, v] ≥ ∥x∥q−2     2                 d
+                                            p ∥v∥p , for all x, v ∈ R .
+                                       2
+
+Proof Let x ∈ Rd . Writing gq (x) = 1q (ψ(x))q/2 , we differentiate gq using the chain rule:
+
+                                                  1    q−2
+                                         ∇gq (x) = ψ(x) 2 ∇ψ(x),
+                                                  2
+
+                                                       26
+and thus, for any v ∈ Rd :
+                              q−2     q−4                     1    q−2
+            ∇2 gq (x)[v, v] =     ψ(x) 2 (v T ∇ψ(x)∇ψ(x)T v) + ψ(x) 2 ∇2 ψ(x)[v, v]
+                                4                             2
+                              µ   q−2   2
+                             ≥ ∥x∥ ∥v∥ .
+                              2
+In the inequality, we dropped the first summand, which is nonnegative, and we substituted the
+value of ψ(x) and used the strong convexity of ψ.
+
+
+
+Lemma 21 Let q ∈ Z+ and let ∥ · ∥ be an arbitrary norm. If ∥∇q f (x) − ∇q f (y)∥∗ ≤ L∥x − y∥ν
+then, for all ℓ ∈ {0, 1, . . . , q − 1}, we have
+
+                                                             L
+                          ∥∇ℓ f (x) − ∇ℓ fq (x; y)∥∗ ≤             ∥x − y∥q−ℓ+ν .
+                                                          (q − ℓ)!
+
+We note that [SJM19, Lemma 2.5] claimed this fact for ℓ = 0 and ℓ = 1, but the proof for ℓ = 1 was
+not correct since the chain rule was not used in their equation (A.12). We provide a complete proof
+and of a more general statement, namely for all ℓ. Also note that above we followed the convention
+∇0 f ≡ f .
+Proof Define the quantity
+                                  Z 1
+                            def 1
+                       Ci,j =         (1 − τ )j ∇i+1 f (y + τ (x − y))[x − y]j+1 dτ.
+                                j! 0
+
+that for i > 1 satisfies, by integrating by parts:
+                                                              Z 1
+         1h                                i1       1
+   Ci,i = (1 − τ )i ∇i f (y+τ (x−y))[x−y]i      +                   (1 − τ )i−1 ∇i f (y+τ (x−y))[x−y]i dτ
+         i!                                 τ =0 (i − 1)!      0
+            1 i
+        = − ∇ f (y)[x − y]i + Ci−1,i−1 .
+            i!
+And also C0,0 = f (x) − f (y) by simple integration. In turn, these facts imply:
+                                q−1
+                                X                                          1
+                                      Ci,i − Ci−1,i−1 = f (x) − fq (x; y) + ∇q f (y)[x − y]q .
+                                                     
+          Cq−1,q−1 = C0,0 +
+                                                                           q!
+                                i=1
+
+Taking derivatives with respect to x, we obtain
+                                                1
+    ∇ℓ Cq−1,q−1 = ∇ℓ f (x) − ∇ℓ fq (x; y) +           ∇q f (y)[x − y]q−ℓ
+                                             (q − ℓ)!
+                                                                             Z 1                        (11)
+                                                  1
+                 = ∇ℓ f (x) − ∇ℓ fq (x; y) +              ∇q f (y)[x − y]q−ℓ     (1 − τ )q−ℓ−1 dτ.
+                                             (q − ℓ − 1)!                     0
+
+
+
+
+                                                     27
+Now, if we differentiate the definition of Ci,j with respect to x, we obtain, for j > 1:
+
+                   j+1 1
+                           Z
+          ∇Ci,j =               (1 − τ )j ∇i+1 f (y + τ (x − y))[x − y]j dτ
+                     j!      0
+                      1 1
+                         Z
+                   +           τ (1 − τ )j ∇i+2 f (y + τ (x − y))[x − y]j+1 dτ
+                      j! 0
+                 1 j+1 1
+                            Z
+                 =               (1 − τ )j ∇i+1 f (y + τ (x − y))[x − y]j dτ
+                      j!      0
+                                                                      (((
+                      1h             j i+1                ( ((((j i1
+                          τ (1 − τ ) ∇ f (          τ (x − y))[x − y]
+                                                        (
+                   +                          (y(+(   (
+                      j! (((((((                                       τ =0                                     (12)
+                     ((  Z 1
+                      1                                                                 
+                   −           ∇i+1 f (y + τ (x − y))[x − y]j (1 − τ )j − jτ (1 − τ )j−1 dτ
+                      j! 0
+                                Z 1
+                 2      1                                                                  
+                 =                  ∇i+1 f (y + τ (x − y))[x − y]j (1 − τ )j + τ (1 − τ )j−1 dτ
+                    (j − 1)! 0
+                               Z 1
+                       1
+                 =                  ∇i+1 f (y + τ (x − y))[x − y]j (1 − τ )j−1 dτ
+                   (j − 1)! 0
+                 = Ci,j−1 .
+
+Above, 1 holds by integrating the second summand by parts and canceling one term by using
+j ̸= 0, and 2 groups and simplifies some terms, using j > 0. Thus, ∇ℓ Cq−1,q−1 is also equal to
+Cq−1,q−1−ℓ , as long as ℓ ≤ q − 1. Note that we also have ∇C0,0 = ∇f (x) since C0,0 = f (x) − f (y).
+    Combining (11) and (12), we obtain, for any ℓ ∈ {0, 1, . . . , q − 1}:
+
+   (q − ℓ − 1)!∥∇ℓ f (x) − ∇ℓ fq (x; y)∥∗
+                   Z 1                               
+                =        ∇ f (y) − ∇ f (y + τ (x − y)) [x − y]q−ℓ (1 − τ )q−ℓ−1 dτ
+                           q           q
+                     0                                                                           ∗
+                          Z 1
+                1                                               
+                = max            ∇q f (y) − ∇q f (y + τ (x − y)) [x − y]q−ℓ [v]ℓ (1 − τ )q−ℓ−1 dτ
+                    v:∥v∥≤1 0
+
+                2 Z 1                                                                           
+                ≤     (1 − τ )q−ℓ−1 dτ ·       max               ∇q f (y) − ∇q f (y + τ̃ (x − y)) [x − y]q−ℓ [v]ℓ
+                     0                     τ̃ ∈[0,1],∥v∥≤1
+
+                3     1
+                ≤          max ∥∇q f (y) − ∇q f (y + τ̃ (x − y))∥∗ ∥x − y∥q−ℓ
+                    q − ℓ τ̃ ∈[0,1]
+                4    L
+                ≤       ∥x − y∥q+ν−1 .
+                    q−ℓ
+
+We used the definition of the dual norm in 1 for symmetric operators, and in 2 we bounded the
+expression by moving the max inside and we bounded part of the integrand by its maximum. In
+ 3 we used the definition of the operator norm on a symmetric operator and used ∥v∥ ≤ 1. Finally,
+in 4 we used the Hölder continuity property (1) and τ̃ ≤ 1.
+
+   Now we have all of the ingredients to prove Proposition 13.
+
+
+                                                       28
+                                                                                    def
+Proof of Proposition 13. Let v such that ∥v∥p = 1 and define gsx (y) = 1s ∥y −x∥sp as in Lemma 20
+but with a shift. We have the following:
+
+                    1                2                                 L
+                  0 ≤ ∇2 f (y)[v, v] ≤ ∇2 fq (y; x)[v, v] +                  ∥x − y∥q−2+ν
+                                                                                    p
+                                                                    (q − 2)!
+                    3                            2L
+                    ≤ ∇2 fq (y; x)[v, v] +              ∇2 gq+ν
+                                                            x
+                                                                (y)[v, v] ≤ ∇2 F (y)[v, v],
+                                             µ̂(q − 2)!
+
+where 1 holds by convexity of f while 2 is by Lemma 21, and 3 uses Lemma 20 which also holds
+true for the shifted function we defined above, without loss of generality by shifting the domain so
+x is 0. Thus, F (y) is convex.
+    For the second part of the proposition, fix p ∈ (1, 2] and use that by Fact 7, it is µ̂ = 2(p − 1),
+                                                                           L
+by rescaling, which translates to the requirement for the subproblem (p−1)(q−2)! ≤ M = 1 = σ(q−1)! L
+                                                                                                              λ̂
+in Lemma 11, equivalent to σ ≤ p−1
+                               q−1 .
+
+  We are now ready to prove the convergence rates for high-order smooth convex functions.
+Proof of Theorem 10.
+                                                                                     def
+Solving the case q + ν ≤ max{2, p}. Recall that we defined m = max{2, p}. We use the
+regularizers in Fact 7. Depending on whether p > 2, one or the other of these two regularizers is
+(Op (1), m)-uniformly convex with respect to ∥ · ∥p and therefore that regularizer is, by Lemma 6,
+δ-inexact (µ, q + ν)-uniformly convex regularizer with respect to ∥ · ∥p , for some δ, µ that are a
+function of a constant a, that we will determine later. We use such regularizer. Note that if p ≤ 2,
+the restriction q + ν ≤ m = max{2, p} = 2 along with q ≥ 1, ν ∈ (0, 1] implies q = 1. But for p > 2
+we may still be working in greater order q > 1.
+    As established in Lemma 11, we can solve the inexact proximal problems in Algorithm 1 with
+a single call of the q-th order oracle if we set r = q + ν for the proximal parameter λk = σ(q−1)!
+                                                                                               2L .
+This parameter λk , unlike for other cases, does not depend on yk . This fact avoids having to
+perform a binary search or an adaptive guess on the value of the proximal parameter, so we can
+use Algorithm 1 instead of Algorithm 2. Set σ = σ ′ = 1/4 for simplicity. Applying the results from
+the previous section, we obtain a convergence rate of
+
+                                      L(Rpm + δT )            L∥x − x0 ∥m
+                                                                                      
+                                                                        p       m
+                          ∗                                                          1−r
+            f (yT ) − f (x ) ≤ Op,r                  = Op,r       m       + La m−r T       ,
+                                         µT r                   a r Tr
+
+where Rp = Θp (Dψ (x∗ , x0 )1/r ) is the initial distance ∥x∗ − x0 ∥p measured with the p-norm. But we
+could also set it to an upper bound. The bound above is convex on a > 0. By taking derivatives     
+                                                                                                      r m−r        r(m−r)
+and finding a zero, the bound is found to be optimized at a value a = Op,r Rp m T −                                  m2     .
+Thus, if we make this choice of a, the convergence rate becomes:
+                                                                                              !
+                                                     LRpr                       LRpq+ν
+                                                             
+                                ∗
+                   f (yT ) − f (x ) = Op,r           mr+r−m       = Op,r       (m+1)(q+ν)−m
+                                                                                                  .
+                                                 T     m                   T         m
+
+
+Note that the step sizes ak depend on the constant a via µ via the constant C.
+
+
+
+                                                        29
+Solving the case q + ν > max{2, p}. We run Algorithm 2 with r = m = max{2, p} with
+σ = σ ′ = 41 for simplicity. One may want to run it with σ = p−1    q−1 when p ∈ (1, 2] and q ≥ 3,
+according to Remark 12. Note that this only changes constants Oq+ν,r (1) in our analysis. From (6)
+in the analysis of Algorithm 2, we have that there is a set of iterates QT ⊆ [T ] and some numbers
+rk ≥ 0 such that
+                                    1/r
+                                            X 1/r
+                                  AT ≥ C  b      b (α1/r )rk −2 .
+                                                 λ                                            (13)
+                                                  k
+                                                                k∈QT
+                       def
+                 b = C 1/r /(2r) where C is defined in Algorithm 2, and such that P
+for the constant C                                                                 k∈QT rk = (T −
+                                                            def
+1)/2. For notational convenience, we use q̂ = q+ν. By Lemma 11, in the case of high-order methods,
+                                                                                                          r          r
+                                                                                                               def
+we can implement the oracle with one call to the q-th order oracle for λkr−q̂ = λ̂ r−q̂ ∥ỹk − xk ∥r for
+λ̂ = σ(q−1)!
+   def
+       2L . Thus, the analysis in Theorem 9 yields
+
+                              1 − σ − σ′ X                                ′
+                                                           b−1 = 1 − σ − σ λ̂ r−q̂
+                                                                               r   X       q̂
+          Dψ (x∗ , x0 ) ≥                  Ak ∥ỹk − xk ∥r λ k                       A    r−q̂
+                                                                                       k k .
+                                                                                        λ
+                                                                                        b
+                                  2                                  2
+                                                 k∈QT                                                         k∈QT
+
+We will make use of the reverse Hölder inequality, with which is a common tool in analysis of
+Monteiro-Svaiter acceleration. For s > 1 and positive numbers αi , βi , we have
+                                               !s              !1−s
+                            X           X 1/s        X 1/(1−s)
+                               αi βi ≥     αi           βi              .
+                                     i                      i                     i
+
+We apply this inequality in 2 below, for s = q̂+rrq̂q̂−r > 1 where the inequality for s holds by the
+                                                                                    1     rq̂
+assumption of this section q̂ = q + ν > max{2, p} = r. Also take into account that 1−s = r−q̂ .
+Thus, we obtain the following estimate
+
+                          1 X 1/r             X                 
+                b −1 A1/r ≥
+                C            b (α1/r )rk −2 =
+                             λ                   A s−1 1/r rk −2
+                                                      (α  )        (A1−s b1/r
+                      t        k                   k                 k λk )
+                                    k∈Qt                                 k∈Qt
+                                                           s              1−s
+                                2   X 1−1/s                      X        q̂
+                                ≥   Ak     (α1/(rs) )rk −2         b r−q̂ 
+                                                                   At λ k                                                (14)
+                                     k∈Qt                                             k∈Qt
+                                                                      s
+                                3                                                                       1−s
+                                         q̂−r
+                                                                                2Dψ (x∗ , x0 ) − r−q̂
+                                                                            
+                                    X q̂+r                                                        r
+                                ≥   Ak q̂−r rk cα,s                                       ′
+                                                                                              λ̂
+                                                                                 1−σ−σ
+                                     k∈Qt
+
+
+where 1 uses (13). In 3 we used Lemma 22 with cα,s = α−2/(rs) min{1, rs
+                                                                     1
+                                                                        ln(α)}. Now by using
+                             q̂−r
+                 def
+the notation Bk = Akq̂+rq̂−r and
+                                                                                              1 −1
+                                                                    2Dψ (x∗ , x0 ) − r−q̂
+                                                                
+                                                                                      r        s
+                                           def
+                                           b 1/s cα,s
+                                         Γ=C                                      λ̂
+                                                                     1 − σ − σ′
+
+we have                                     q̂          1               X
+                                         Btq̂−r = Atrs ≥ Γ                        Bk rk for all t.
+                                                                      k∈Qt ∩[t]
+
+
+                                                                       30
+                                                            q̂
+and note that the exponent above on the left hand side is q̂−r   > 1. Thus, we can use [CHJ+22,
+Lemma 3] which yields
+                                                           q̂−r
+                                                               r
+                                      q̂ − r +  r 2   X
+                              BT ≥                 Γ   rt       ,
+                                      q̂ + rq̂ − r
+                                                                    k∈QT
+
+or equivalently
+                                                 q̂+rrq̂−r
+                         q̂ − r + r2 T − 1
+                                                                                                    
+                                                                                   r−q̂     q̂+r q̂−r
+              AT ≥                    Γ                       = Ωq̂,r Dψ (x∗ , x0 ) r λ̂−1 T r          .
+                         q̂ + rq̂ − r   2
+Note that above we took into account that α is a constant. The lower bound on AT and the same
+reasoning as in (9) yield the convergence rate
+                                                        !                        !
+                                 ∗             LRpq̂                  LRpq+ν
+                   f (yT ) − f (x ) = Oq̂,r   (r+1)q̂−r
+                                                          = Oq̂,r   (m+1)(q+ν)−m
+                                                                                   ,
+                                            T     r               T       m
+
+
+where Rp = Θp (Dψ (x∗ , x0 )1/r ) is the initial distance to a minimizer measured with the p-norm, up
+to constants, due to our choice of regularizer.
+
+Lemma 22 For a > 1 and b ≥ 0, we have ab−2 ≥ a−2 min{1, ln(a)}b.
+Proof It holds at b = 0. Taking derivatives with respect to b, it is clear that the derivative of the
+left hand side is greater than the one of the right hand side for all b ≥ 0.
+
+Proof of Proposition 14. Analogously to the case q + ν > max{2, p} in the proof of Theorem 10,
+we have for r = m = max{2, p}, that by Theorem 9:
+                                                                   
+                                            1 − σ − σ ′ X
+                        Dψ (x∗ , x0 ) = Ω                      b−1  ,
+                                                          Ak ρr λ
+                                                2                 k
+                                                                      k∈Qt
+
+and thus, using the same as (14) where the reverse Hölder’s inequality is applied for s = 1+r
+                                                                                            r > 1,
+we obtain                                         r+1                    
+                                                      r
+                                             1
+                       b 1/r = Ωr 
+                                      X
+                      CA                  Akr+1 rk      ρDψ (x∗ , x0 )−1/r  .
+                                                                            
+                         t        
+                                                k∈Qt
+                                                    1
+                   r                      def
+Taking a power of r+1 and using Bk = Akr+1 we obtain
+                                                               
+                                  r                  1
+                      Bt = Ωr ρ r+1 Dψ (x∗ , x0 )− r+1
+                                                        X
+                                                          Bk rk  for all t.
+                                                                     k∈Qt
+
+Thus, by [CHJ+22, Lemma                      for our regularizers it is Rp = Θp (Dψ (x∗ , x0 )1/r ),
+                     3], and the fact that
+                                          r
+we obtain BT ≥ exp Ωr T (ρ/Rp ) r+1 + ln(A1 )                      . Note that by (8) and the fact that Ei ≤ 0,
+                                 Dψ (x∗ ,x0 )
+it is enough to obtain AT ≥        ε    in order to reach an ε-minimizer. Hence, there is a T =
+        r 
+        Rp r+1
+Θ
+er
+         ρ       such that after at most that number of iterations, we find an ε-minimizer.
+
+
+
+                                                              31
+Appendix D. Unaccelerated Proximal Point Algorithm Analysis
+In this section, we analyze an algorithm for an unaccelerated method for high-order smooth convex
+optimization. In particular, this method matches the lower bound when smoothness is measured
+with respect to ∥ · ∥∞ , a case that was not covered by the accelerated method in Theorem 10. We
+also analyze an unaccelerated non-Euclidean ball-optimization-oracle algorithm.
+    The algorithm is simple. Sequentially iterate
+
+                                             xk+1 , vk ← Or (xk , λ),                                 (15)
+
+where Or is the inexact proximal oracle in (3) and r = q + ν, λk = 1/L if the function f to
+be optimized is convex and q-th order (L, ν)-Hölder smooth with respect to a norm ∥ · ∥. This
+is the setting explained in Lemma 11, that requires a single call to the q-th order oracle. The
+                                                                   def
+convergence of the algorithm after T + 1 iterations depends on R = maxk∈[T ] ∥xi − x∗ ∥ although
+any upper bound works as well. For instance, if f is the sum of a high-order smooth function and
+the indicator function of a compact set X , we can use its diameter, or we can add the constraint
+X = B ∥·∥p (x0 , C∥x0 − x∗ ∥p ) for some C ≥ 1.
+
+Theorem 23 After T + 1 iterations, the algorithm described in (15) satisfies.
+
+                                                       LRq+ν
+                                                              
+                                           ∗
+                          f (xT +1 ) − f (x ) = Oq+ν             .
+                                                       T q+ν−1
+
+Proof Recall that the oracle requires vk ∈ ∂ εk f (yk ). In this algorithm, we assume 3σ + A2A k
+                                                                                             k−1
+                                                                                                 σ′ ∈
+(0, 1) for all k ∈ [T ] We define Uk = f (xk+1 ) and Ak = Ak−1 + ak = ki=1 ak , for ak > 0 to be
+                                     def                                   P
+                           def
+determined later, and Gk = Uk − Lk . The lower bound Lk on f (x∗ ) is defined via
+                               k
+                               X                      k
+                                                      X
+                                                            ai ⟨vi , x∗ − xi+1 ⟩ − ai εi ≤ f (x∗ ),
+                         def
+                   Ak L k =          ai f (xi+1 ) +
+                               i=1                    i=1
+
+
+
+
+                                                            32
+using the inexact subgradient property in the definition of the inexact proximal oracle. Note that
+                    def
+in particular A0 L0 = 0. We have, for all k ≥ 1:
+                           1
+         Ak Gk − Ak−1 Gk−1 = Ak−1 (f (xk+1 ) − f (xk )) + 
+                                                          ak
+                                                            f (x 
+                                                              k+1 )
+
+                   k
+                   X            X   k−1                  
+                                                                  !
+                                                     xi+1 ⟩ − ai εi − ak ⟨vk , x∗ − xk+1 ⟩ + ak εk
+                                                , x∗ −
+                                                        
+               −       a
+                        i f (xi+1 ) +
+                                         ai ⟨v
+                                              i
+                                                       
+                                         
+                   i=1
+                                     i=1
+                                       
+                   k−1
+                   X            X   k−1                  
+                                                                  !
+                                                , x∗ −
+                                                        
+               +       a
+                        i f (xi+1 ) +
+                                         ai ⟨v
+                                              i
+                                                     xi+1 ⟩ − ai εi
+                                         
+                   i=1
+                                     i=1
+                                       
+             2
+             ≤ Ak−1 ⟨vk , xk+1 − xk ⟩ − ak R∥vk ∥∗ + Ak εk                                            (16)
+             3
+             ≤ Ak−1 ⟨v̂k , xk+1 − xk ⟩ + Ak−1 ∥vk − v̂k ∥∗ ∥xk+1 − xk ∥
+                                                    r−1
+                 Ak−1 λ1/(r−1) ∥vk ∥r∗∗    2Rr ark   2
+               +                        +     r−1             + A k εk
+                     2 · 21/(r−1)         rλAk−1    r ∗
+                                                                                !
+             4 Ak−1  1 3σ              Ak ′
+                                             
+                                                                         R r ar
+             ≤ −             −     −       σ ∥xk+1 − xk ∥r + Or               k
+                   λ       2     2    Ak−1                              λAr−1
+                                                                            k−1
+                             !
+                        r
+                     R ak  r
+             5
+             = Or              .
+                    λAr−1k−1
+
+Above, 1 , substitutes the definition and cancels some terms, 2 uses the enlarged subgradient
+property of vk for the first term between xk+1 and xk , and uses Cauchy-Schwarz and the definition
+of R on the second term. Then 3 adds and subtracts some terms to the first summand and applies
+Cauchy-Schwarz to make terms that we can bound by the oracle condition, appear, and we apply
+Young’s inequality to the second summand so we will be able to cancel the term depending on
+∥vk ∥∗ in which we add and subtract v̂k , apply the triangular inequality and the means inequality
+(a+b)r∗ ≤ 2(r∗ −1) (ar∗ +br∗ ), so in 4 we use (3) and (4) to these terms and also the first summands.
+Finally by the assumption on σ, σ ′ , in 5 we drop the first term. Adding (16) up for k ∈ [T ], using
+A0 = 0, reorganizing and recalling that GT is a primal-dual gap, we obtain, when we choose
+ak = Θr (k r−1 ), and thus Ak = Θr (k r ):
+                                             T
+                                                         !
+                                                   r Rr
+                                                                    Rr               LRq+ν
+                                                                                           
+                         ∗                 1 X    ak
+        f (xT +1 ) − f (x ) ≤ GT ≤ Or                      = Or            = Oq+ν               .
+                                         AT
+                                             k=1
+                                                 λAr−1
+                                                     k−1
+                                                                  λT r−1             T q+ν−1
+
+Note that the term appearing in the condition regarding σ ′ is AAk−1
+                                                                  k
+                                                                     = Θ((1 + k1 )r ) = Or (1).
+
+
+Remark 24 (Unaccelerated Ball Optimization Oracle Analysis) Let I X (x) be the indica-
+tor function of a set X , that is 0 if x ∈ X and +∞ otherwise. We note that for a closed convex set
+X and a function f with minimizer x∗ when constrained to X , we converge with linear rates if we
+implement                                                          
+                                                       1          2
+                               xk+1 ∈ arg min f (x) +     ∥xk − x∥ ,
+                                          x∈X         2λk
+
+                                                    33
+provided that we have the guarantee that at each iteration either ∥xk+1 − xk ∥ ≥ ρ or we find a
+minimizer. Indeed, let vk ∈ ∂(f + I X )(xk+1 ) such that ∥gk ∥∗ = λ1 ∥xk − xk+1 ∥, cf. Definition 3,
+                                     def
+and Property 5. As above define R = maxk∈[T ] ∥xi − x∗ ∥ or as an upper bound of it. For instance,
+if X is compact, we can use its diameter, or we can choose X = B∥·∥p (x0 , O(∥x0 − x∗ ∥p )) or the
+diameter of the sublevel set of the function at x0 , since this method decreases the function value.
+                  def                                                                                def
+    Denote Mk = Mλk the non-Euclidean Moreau envelope with parameter λk , and define Uk =
+ Mk+1 (xk+1 ) and the lower bound Lk on f (x∗ ) as Ak Lk = ki=1 ai Mi (xi ) + ki=1 ai ⟨gi , x∗ − xi ⟩ ≤
+                                                            def P              P
+
+Ak f (x∗ ). Recall Ak = Ak−1 +ak = ki=1 ak , for ak > 0 to be determined later, and let Gk = Uk −Lk .
+                                    P                                                       def
+
+
+If we choose ak = Ak ∥xk − xk+1 ∥/(2R), we have, for all k ≥ 1 (note A0 = 0):
+
+                                 1
+               Ak Gk − Ak−1 Gk−1 = Ak−1 (Mk+1 (xk+1 ) − Mk (xk )) + ak Mk+1 (xk+1 )
+
+                                                                      
+                                    k−1
+                                    X
+                                              
+                                                   k−1
+                                                     X               
+                                                                 , x − xi ⟩ − ak ⟨gk , x∗ − xk ⟩
+                                                                  ∗
+                                                                  
+                     − ak Mk (xk )− ai Mi (xi ) −
+                                           
+                                                           ai ⟨g
+                                                               i
+                                                        
+                                  i=1
+                                                   i=1
+                                                    
+                         k−1       k−1
+                                                     
+                                                                                                    (17)
+                         X     
+                                     X
+                                                ∗ 
+                    + ai Mi (xi ) +     ai ⟨g
+                                              i , x − xi ⟩
+                                          
+                     i=1             i=1
+                                       
+                                      
+                   2 Ak               ak
+                   ≤ − ∥xk − xk+1 ∥2 + ∥xk − xk+1 ∥R.
+                        2λ            λ
+                   3
+                   ≤ 0.
+
+Above, 1 just uses the definitions and cancels some terms, and 2 groups some terms, uses the
+descent Definition 3, Property 6, Hölder’s inequality along with the definition of R, and ∥gk ∥∗ =
+1
+λ ∥xk − xk+1 ∥. In 3 we used the value of ak .
+                                                                                             4R
+    If we solve the equation ak = (Ak−1 + ak )∥xk − xk+1 ∥/(4R), we obtain ak = Ak−1 ( ∥xk −x   k+1 ∥
+                                                                                                      −
+                                                         
+1)−1 and so Ak = Ak−1 + ak = Ak−1 1−∥xk −x1k−1 ∥/(4R) ≥ Ak−1 ( 1−ρ/(4R)1                 1
+                                                                             ) ≥ A1 ( 1−ρ/(4R) )k−1 ≥
+                ρ
+A1 exp((k − 1) 4R  ), where we used the lower bound that is guaranteed on the distance traveled from
+one point to the next one. Hence, adding up we conclude:
+
+                         ∗                         ∗         A1 G1                    ρ 
+        f (xT +2 ) − f (x ) ≤ MT +1 (xT +1 ) − f (x ) ≤ GT ≤       ≤ G1 exp −(k − 1)       .
+                                                              AT                      4R
+                               e R ln( G1 )) iterations.
+So we obtain an ε-minimizer is O( ρ     ε
+
+
+Appendix E. Proofs from Lower bounds: Lower Bounds
+Proof of Lemma 17.
+                   ∥·∥
+  1. Let X = Bβ . The Lipschitzness of S β [f ] is a direct consequence of the smoothing as
+     an averaging and f being G-Lipschitz. For the smoothness, we first note that we have
+     ∇S β [f ](x) = vol(∂X  )
+                     vol(X ) Ev∼ν ∂X [f (x + v)wv ], where wv is defined as an outward ∥ · ∥2 unit vector
+     normal to ∂X , that is, wv ∈ ∂(∥ · ∥)(v) is a subgradient of the norm at v. By Property 5 of
+
+                                                    34
+      Proposition 4 with x ← 0, y ← v, λ ← 1, and taking into account that since wv is normal to
+      ∂X, we have wv ∝ g ∈ h0 (v) = ∂( 12 ∥ · ∥2 )(v), and ⟨v, wv ⟩ = ∥v∥∥wv ∥∗ = β∥wv ∥∗ . Thus, by
+      the divergence theorem on the identity function ϕ(v) = v and on X :
+                     Z Xd                   Z
+                           ∂ϕ(v)
+         d vol(X ) =             dν X (v) =     ⟨v, wv ⟩dν ∂X (v) = vol(∂X )βEv∼ν ∂X [∥wv ∥∗ ]. (18)
+                      X     ∂vi              ∂X
+                           i=1
+
+      Finally, using that f is G-Lipschitz with respect to ∥ · ∥, we obtain
+                                                        vol(∂X )
+                ∥∇S β [f ](x) − ∇S β [f ](y)∥∗ =                 ∥Ev∼ν ∂X [f (x + v)wv − f (y + v)wv ]∥∗
+                                                         vol(X )
+                                                        vol(∂X )
+                                                      ≤          Ev∼ν ∂X [|f (x + v) − f (y + v)|∥wv ∥∗ ]
+                                                         vol(X )
+                                                                  vol(∂X )
+                                                      ≤ G∥x − y∥            Ev∼ν ∂X [∥wv ∥∗ ]
+                                                                   vol(X )
+                                                        Gd
+                                                      =    ∥x − y∥,
+                                                         β
+      where the last equality is due to (18).
+   2. It can be argued by induction on q similarly to [AH18, Corollary 2.4] but using the previous
+      part. We have the statement for q = 0 since the Lipschitzness of a function is preserved
+      after smoothing. Let v1 , . . . , vq be arbitrary unit vectors with respect to ∥ · ∥, and let Gi =
+      di 2i(i+1)/2                                                              (q−1)
+            βi
+                   G. If the result holds for q − 1, we have that S β/2q ∇q−1 Sβ      [f ](x)[v1 , . . . , vq−1 ] is
+      differentiable and its differential is
+             (q)
+      ∇q Sβ [f ](x)[v1 , . . . , vq−1 ], by commutativity of the smoothing and differential operator, hence
+                                                                         q
+      by the first part it is Lipschitz w.r.t ∥ · ∥ with constant d2β Gq−1 = Gq . Similarly, for i <
+                                                                                           (q)
+       q, by the commutativity of the operators again, we have that ∇i Sβ [f ](x)[v1 , . . . , vi ] =
+                   (q−1)
+       S β/2q ∇i Sβ [f ](x)[v1 , . . . , vi ], and we know that the right hand side is Gi Lipschitz by
+      induction hypothesis and the fact that S β/2q preserves the Lipschitzness.
+                                    (q)
+   3. By Lipschitzness of f , |Sβ [f ](x) − f (x)| ≤ maxx∈X ∥x∥G = βG.
+   4. This is a direct consequence of the convexity of f and the smoothing as an averaging.
+                                                                       (q)                (q)
+   5. By expanding the expectations in the definition of Sβ , we get that Sβ [f ](x) = Ey∼µx [f ](y)
+                                                            ∥·∥
+      where µx is a distribution supported in B(1−2−q )β (x).
+
+
+                                          def   ∥·∥
+Remark 25 For p-norm balls X = Bβ p with p ∈ [1, ∞), we previously established in part 1 of
+Lemma 17 that vol(∂X  )                        −1                     vol(∂X )
+               vol(X ) Ev∼ν(∂X ) [∥wv ∥p∗ ] = β d. However, the ratio vol(X ) behaves differently
+depending on p. Specifically, it holds that vol(∂X  )       −1 1/2+1/p ), as shown in [Wan19, Lemma
+                                             vol(X ) = Op (β d
+22]. In contrast, for p = ∞, we find vol(∂X  )   −1
+                                      vol(X ) = β d. This discrepancy reveals a phase transition in
+the behavior of vol(∂X    )                                  vol(∂X )
+                   vol(X ) across p, even though the product vol(X ) Ev∼ν(∂X ) [∥wv ∥p∗ ] remains constant
+at β −1 d for all p.
+
+                                                            35
+Proof of Lemma 18. Let us denote rj = exp(⟨aj , x⟩/µ) for simplicity.
+(a) We follow the idea in [Bec17, Example 5.15]. The derivatives of smaxµ (Ax) is
+                                                                           d
+                                        ∂ smaxµ (Ax)      1    X
+                                                     = Pd        rℓ aℓi
+                                            ∂xi         j=1 rj            ℓ=1
+
+We can conclude the 1-Lipschitzness by looking at the norm of the gradient:
+                            ∥∇ smaxµ (Ax)∥∗ = sup ⟨∇ smaxµ (Ax), h⟩
+                                                       ∥h∥≤1
+                                                                        d X
+                                                                          d
+                                                         1              X
+                                                = Pd              sup             rℓ aℓi hi
+                                                        j=1 rj ∥h∥≤1 i=1 ℓ=1
+                                                               d
+                                                         1     X
+                                                ≤ Pd                 rℓ sup ∥aℓ ∥∗ ∥h∥ ≤ 1.
+                                                        j=1 rj ℓ=1      ∥h∥≤1
+                                                                                                              Pd
+(b) Here we generalize the ideas in [Bul20, Theorem 5]. Let f (x) = µ log(x) and Zµ (x) =                      j=1 rj .
+Then, smaxµ (x) = f (Zµ (Ax)). Moreover, it is easy to check that for every k ≥ 1
+                                                                                               d     k
+                           (−1)k−1 (k − 1)!                                           1 X Y j
+           f (k) (x) = µ                    ,            k
+                                                        ∇ Zµ (Ax)[h1 , . . . , hk ] = k  rj ⟨a , hℓ ⟩.
+                                 xk                                                  µ
+                                                                                              j=1   ℓ=1
+
+Fix unitary vectors h1 , . . . , hq+1 ∈ Rd . For any subset B = {i1 , . . . , i|B| } ⊆ [q + 1], let us denote
+hB = [hi1 , . . . , hi|B| ]. Then, because of the chain rule and Faà di Bruno’s formula we have
+
+                                           X                             Y
+      |∇(q+1) smaxµ (x)[h[q+1] ]| =                 f |π| (Zµ (Ax)) ·          ∇|B| Zµ (Ax)[hB ]
+                                        π∈Π(q+1)                        B∈π
+
+                                                                                        d
+                                           X            (−1)|π|−1 (|π| − 1)! Y 1 X Y j
+                                    =               µ                       ·              rj     ⟨a , hℓ ⟩
+                                        π∈Π(q+1)
+                                                           Zµ (Ax)|π|         B∈π
+                                                                                  µ|B|
+                                                                                       j=1    ℓ∈B
+                                                                                      d
+                                          X           (−1)|π|−1 (|π| − 1)! Y 1 X Y j
+                                    ≤               µ                     ·             rj   ∥a ∥∗ ∥hℓ ∥
+                                        π∈Π(q+1)
+                                                         Zµ (Ax)|π|         B∈π
+                                                                                µ|B| j=1 ℓ∈B
+                                          X            (|π| − 1)! Y 1
+                                    ≤              µ             ·         Zµ (Ax)
+                                        π∈Π(q+1)
+                                                       Zµ (Ax)|π| B∈π µ|B|
+                                          X            (|π| − 1)!   1        |π| ∥h∥(q+1)
+                                                                                
+                                    =              µ            · (q+1) 
+                                                             |π|        Zµ
+                                                                           (Ax)
+                                        π∈Π(q+1)
+                                                       Z
+                                                       µ(Ax)
+                                                                 µ
+                                          X
+                                    =               µ−q (|π| − 1)!∥h∥(q+1)
+                                        π∈Π( q+1)
+
+                                    ≤ Π(q+1) µ−q q!∥h∥(q+1) .
+
+Therefore, ∥∇(q+1) smaxµ (x)∥∗ ≤ Lq = Π(q+1) µ−q q!. In particular, Π(q+1) is the (q + 1)-th Bell
+                                              (q+1)
+                                          q+1
+number that can be bounded as Π(q+1) ≤ ln(q+2)        . Finally, the Lipschitzness of ∇q smaxµ (x)
+
+                                                             36
+comes from a standard mean value argument.                    Pd
+                                                                      rj
+(c) We now generalize the result in [GKN+21, Lemma 3]. Let c = Pj=n+1
+                                                                 n       . We have
+                                                                 j=1 rj
+
+
+                       ∥∇ smaxµ (Ax) − ∇ smax≤n
+                                             µ (Ax)∥∗
+                                                      d                                       n
+                                            1         X                     1                 X
+                           = sup Pd                         rℓ ⟨aℓ , h⟩ − Pn                        rℓ ⟨aℓ , h⟩
+                               ∥h∥≤1       j=1 rj     ℓ=1                       j=1 rj        ℓ=1
+                                                      d                         n
+                                            1         X
+                                                               ℓ        1+c X
+                           = sup Pd                       rℓ ⟨a , h⟩ − Pd          rℓ ⟨aℓ , h⟩
+                               ∥h∥≤1       j=1 rj     ℓ=1
+                                                                            r
+                                                                         j=1 j ℓ=1
+                                                        d                           n
+                                            1           X
+                                                                   ℓ
+                                                                                    X
+                           = sup Pd                           rℓ ⟨a , h⟩ − c              rℓ ⟨aℓ , h⟩
+                               ∥h∥≤1       j=1 rj ℓ=n+1                             ℓ=1
+                                                      d                                 n
+                                            1         X                                 X
+                           ≤ sup Pd                          rℓ ∥aℓ ∥∗ ∥h∥ + c                rℓ ∥aℓ ∥∗ ∥h∥
+                               ∥h∥≤1       j=1 rj ℓ=n+1                                 ℓ=1
+                                                 d               n
+                                                                            !           Pd
+                                   1             X               X                  2     ℓ=n+1 rℓ
+                           ≤ Pd                         rℓ + c         rℓ       =       Pd              .
+                                  j=1 rj        ℓ=n+1            ℓ=1                       j=1 rj
+
+
+On the other hand, smaxµ (Ax) − smax≤n
+                                    µ (Ax) = δ implies
+                                 Pd         !                    Pd                 !
+                                      rj                           j=n+1 rj                          c
+                     δ = ln      Pj=1
+                                  n              = ln 1 +          P n                  = ln(1 + c) ≥ .
+                                  j=1 rj                             j=1 rj                          2
+         Pd                Pd
+Hence,     j=n+1 rj ≤ 2δ       j=1 rj and the conclusion follows.
+
+
+
+Proof of Lemma 19. Each fi is an instance of partial softmax composed with a linear map
+and a translation. Therefore, the high-order Lipschitzness and convexity properties of smaxµ in
+Lemma 18 also apply to fi , and thus fi is convex, q-times differentiable with Oq (µ−q )-Lipschitz
+q-th derivatives. The function h is also convex, since it is a maximum of convex functions. Because
+of Lemma 17.4 the function g is also convex.
+                                                                                           ∥·∥
+    Let x ∈ Rd . Let j ∈ [T ] be the minimum number such that there is a point ω ∈ Bβ (x) for
+                                                ∥·∥
+which h(ω) = fj (ω). For every z ∈ Bβ (x), h(z) = fj (z) + maxi≥j {fi (z) − fj (z)}. The term fj (z)
+is smooth in the ball whereas the term maxi≥j {fi (z) − fj (z)} may not be smooth. If all points
+     ∥·∥
+z ∈ Bβ (x) satisfy h(z) = fj (z), then the nonsmooth term is 0 and so h is as smooth as fj , and the
+                         (q)
+i-th derivative of g = Sβ [h] enjoys the same Lipschitzness as the i-th derivative of fj by Lemma 17.
+                                                                                                                  ∥·∥
+    We show that the nonsmooth term has a small Lipschitz constant in Bβ (x), which will
+be later used in conjunction with Lemma 17 to conclude. We can now assume that the non-
+                                                   ∥·∥                                  ∥·∥
+smooth term is nonzero at some point in Bβ (x). Towards this let x′ ∈ Bβ (x), and I(x′ ) =
+{i ∈ [T ] | h (x′ ) = fi (x′ )}. The set of subgradients of the nonsmooth term at x′ is the convex hull
+of {∇ (fi − fj ) (x′ )}i∈I(x′ ) . So if we show that for an arbitrary i ∈ I (x′ ) , ∥∇ (fi − fj ) (x′ ) ∥∗ ≤ L,
+then we know that the nonsmooth part is L-Lipschitz at x′ . If i = j, then the gradient is zero.
+
+
+                                                              37
+Let us take an i ̸= j (since j is the smallest, in fact i > j). By convexity of the ball and the
+                                                      ∥·∥
+continuity of fi and fj , there must be a point y in Bβ (x) for which h(y) = fi (y) = fj (y). Note
+             ∥·∥
+that x′ ∈ B2β (y). The statement fi (y) = fj (y) translates to 1 below
+
+                                                                        ≤j
+             −α    1 smax≤iµ ((⟨zℓ , y⟩ + (T − ℓ)γ)ℓ∈[d] ) − smaxµ ((⟨zℓ , y⟩ + (T − ℓ)γ)ℓ∈[d] )
+      (i − j)d     =
+                                                            µ
+                                                                                                      
+                                       ⟨zℓ ,y⟩+(T −ℓ)γ                                    ⟨zℓ ,y⟩+(T −ℓ)γ
+                        P                                        
+                            i                                              Pi
+                            ℓ=1 exp            µ                              ℓ=j+1 exp            µ
+                   = ln  P                             = ln 1 + P                                   
+                            j          ⟨zℓ ,y⟩+(T −ℓ)γ                         j         ⟨zℓ ,y⟩+(T −ℓ)γ
+                            ℓ=1 exp            µ                               ℓ=1 exp           µ
+                                                                               
+                                                               ⟨z          −ℓ)γ
+                                                                   ,y⟩+(T
+                                                  i
+                                       e2β/µ ℓ=j+1 exp
+                                               P                  ℓ
+                   2                                                    µ
+                       −4β/µ
+                   ≥ e       ln 1 +
+                                                                             
+                                                    j         ⟨z   ,y⟩+(T −ℓ)γ
+                                        e−2β/µ ℓ=1 exp
+                                                 P               ℓ
+                                                                       µ
+                                                                        ≤j
+                   3        smax≤i           ′                             (⟨zℓ , x′ ⟩ + (T − ℓ)γ)ℓ∈[d]
+                                                                                                                       
+                                 µ ((⟨zℓ , x ⟩ + (T − ℓ)γ)ℓ∈[d] ) − smaxµ
+                   ≥ e−4β/µ
+                                                                  µ
+                   4
+                   = e−4β/µ fi (x′ ) − fj (x′ ) + (i − j)d−α ,
+                                                            
+
+
+where 2 holds since for all c > 0, it is ln(1+c) ≥ e−4β/µ ln(1+e4β/µ c) and 3 is due to |x′ℓ −yℓ | ≤ 2β
+which for any ℓ is implied by the fact that ∥x′ − y∥p ≤ 2β. Finally 4 holds by the definition of fi
+and fj . Therefore, by Lemma 18 (c)
+
+                                 ∥∇ (fi − fj ) x′ ∥∗ ≤ 4(i − j)d−α e4β/µ ≤ 4T d−α e4β/µ .
+                                                 
+
+                                            (q)       (q)             (q)
+    The q-th derivatives of g = Sβ [h] = Sβ [fj ] + Sβ [maxi≥j {fi − fj }] are thus the sum of two
+Lipschitz functions with constants Oq (µ−q ) and Oq (β −q T dq−α exp(4β/µ)) respectively, where the
+                                                                                     Θ
+last is a consequence of Lemma 17. Finally, we use the values of the parameters γ = 4T  , µ = 4αγln d ,
+            γ
+and β = ln d to bound both quantities:
+                                                                     −q                      q 
+                                 q γ −q
+                                                           Θ                           T ln d
+                             µ =         =                                  ≤ Oq                        ,
+                                 4α ln d                 16T α ln d                       Θ
+
+and                                                 γ −q                                                q 
+                       −q    q−α                                T                                T ln d
+                   β        Td       exp(4β/µ) =                      exp(16α) ≤ Oq                                ,
+                                                    ln d      dα−q                                 Θ
+where the last inequality holds because α ≥ q + 1 and T ≤ d.
+
+Proof of Theorem 16. We start by estimating the optimality gap of the function g. We start by
+establishing an upper bound for inf x∈X g(x). Initially, we assume that X ⊆ Rd is a closed convex
+set containing the unit ball B ∥·∥ of (Rd , ∥ · ∥).
+
+
+
+
+                                                              38
+   For every i ∈ [T ] we have the upper bound
+                                                                 
+                                       i                       
+                                      X         ⟨zj , x⟩ + T γ 
+                  fi (x) ≤ min µ ln      exp                       + µ(T + 1)d−α
+                           x∈X                         µ
+                                      j=1
+
+                                          maxj∈[T ] ⟨zj , x⟩ + T γ
+                                                                 
+                         ≤ µ ln T exp                                 + µ(T + 1)d−α
+                                                     µ
+                         ≤ µ ln T + max⟨zj , x⟩ + T γ + µ(T + 1)d−α ,                                   (19)
+                                      j∈[T ]
+
+    Therefore h(x) ≤ µ ln T + maxj∈[T ] ⟨zj , x⟩ + T γ + µ(T + 1)d−α for every x ∈ X . Moreover,
+using the properties of the randomized smoothing we have that for every x, g(x) ≤ h(x) + 2β. In
+particular,
+                inf g(x) ≤ inf h(x) + 2β ≤ µ ln T − Θ + T γ + µ(T + 1)d−α + 2β,
+                  x∈X         x∈X
+
+where we have used the hypothesis (ii) of Theorem 16.
+    Now, we compute a lower bound for the algorithm’s output. For this, we consider the construc-
+tion of the hard instance functions g with vectors of the form zi = ξi vi where ξ ∈ {−1, 1}d is a
+vector of signs and {vi }i∈[d] are orthogonal vectors in Rd . Given an algorithm A interacting with
+a local oracle O, denote x0 , x1 , . . . , xT −1 the first T query points. The key of the construction is
+to choice ξi such that they only depend on {x0 , . . . , xi }. In particular, our sign choices are based
+on inductively defined sets Ii = {ij }ij=0 ⊆ [d], as follows. First, I−1 = ∅, and given Ii−1 , let
+Ii = Ii−1 ∪ {σ(i)}, where σ(i) ∈ arg maxj∈[d]\Ii |⟨vj , xi ⟩|, and we let ξi = sign(⟨vσ(i) , xi ⟩). Hence for
+every t ∈ [T ]
+                          1                                  2                  3
+                   g(xt ) ≥ h(xt ) − 2β ≥ ft (xt ) − 2β ≥ ξt ⟨vσ(t) , xt ⟩ − 2β ≥ −2β.
+Here, 1 uses the properties of the randomized smoothing, in 2 we drop every term in the softmax
+except the last one, and 3 is because of the choice of ξt .
+   Function g is q-th order smooth with constant Lq ≤ O eq ((T /Θ)q ). By rescaling, we can construct
+the function F = (L/Lq )g that is q-th order smooth with constant L and the optimality gap for
+every t ∈ [T ] is
+
+                                                                                     Θq+1
+                                                                                            
+                            L                                   −α
+                                                                        
+      F (xt ) − inf F (x) ≥    −µ ln T + Θ − T γ − µ(T + 1)d − 4β ≥ Ωq L q  e                  .
+                 x∈X        Lq                                                     T (ln d)q
+                                           ∥·∥
+It remains to prove that for any yt ∈ Bβ (xt ), we have that h(yt ) does not depend on ξi , for i > t.
+That is, ft+1 (yt ) ≥ fi+1 (yt ). Assume for simplicity from now on by relabeling the coordinates
+without loss of generality that the index at the ℓ-th step is ℓ, that is iℓ−1 = ℓ. Inequality ft+1 (yt ) ≥
+fi+1 (yt ) holds if the following expression is ≤ (i − t)d−α
+                     P                                   
+                          i+1      ξj ⟨vj ,yt ⟩+(T −j)γ       Pi+1        ξ ⟨v ,y ⟩+(T −j)γ
+                          j=1 exp(                      )   1        exp( j j t µ               )
+                  ln  P
+                                               µ           ≤ Pj=t+2
+                          t+1      ξj ⟨vj ,yt ⟩+(T −j)γ         t+1      ξj ⟨vj ,yt ⟩+(T −j)γ
+                          j=1 exp(             µ        )       j=1 exp(             µ        )
+                                                                           ξ ⟨v ,y ⟩+(T −j)γ
+                                                            max exp( j j t µ
+                                                     2 T t+2≤j≤i+1                          )
+                                                     ≤
+                                                          exp( ξt+1 ⟨vt+1 ,ytµ⟩+(T −t−1)γ )
+
+
+                                                     39
+where 1 uses ln(1 + c) ≤ c, while in 2 we drop all summands in the denominator but the last one
+and bounded the sum by a max and we bound j by t + 2 in the exp in the numerator. It suffices
+to prove that the right hand side is upper bounded by d−α ≤ (i − t)d−α . Equivalently, it suffices
+to show
+                    µ ln T + max ξj ⟨vj , yt ⟩ − ξt+1 ⟨vt+1 , yt ⟩ + γ ≤ −µα ln d.
+                               t+2≤j≤i+1
+
+By the definition of it = t + 1, we have ξi+1 ⟨vi+1 , xt ⟩ − ξt+1 ⟨vt , xt ⟩ ≤ 0 for any i > t. Thus, we have
+ξi+1 ⟨vi+1 , yt ⟩ − ξt+1 ⟨vt , yt ⟩ ≤ 2β. So it suffices that
+
+                                        µ(ln T + α ln d) + 2β ≤ γ,
+
+which holds by construction.
+Extension to R-balls To extend the results for a set containing a ball of radius R > 0, it is
+                                                                   def
+enough to use the construction above with the function F̂ (x) = Rq+1 F (x/R) acting over the set
+   def                                     ∥·∥
+X̂ = RX . Clearly, if B ∥·∥ ⊆ X , then BR ⊆ X̂ . Moreover, using the chain rule and the fact that
+F is q-th order L-Lipschitz, it is easy to verify that F̂ is also q-th order L-Lipschitz, and for every
+t ∈ [T ]
+                                                                                     q+1
+                                                                                         
+                                       q+1                                  q+1   Θ
+            F̂ (Rxt ) − inf F̂ (x) = R       F (xt ) − inf F (x) ≥ Ωe q LR                    .
+                        x∈X̂                           x∈X                      T q (ln d)q
+Moreover, by applying a simple translation, X can be centered at the origin. This enables us to
+shift and scale any full-dimensional convex body to ensure it encloses B ∥·∥ .
+Extension to Hölder continuous functions Now we extend the result to Hölder continuous
+functions. Let g constructed as in the past sections. We have that g is q-times differentiable and
+its derivatives are Lq Lipschitz from Lemma 19, i.e.
+
+                                   ∥∇q g(x) − ∇q g(y)∥∗ ≤ Lq ∥x − y∥.
+
+Moreover, since ∇q−1 g(x) is Lq−1 -Lipschitz, a standard mean value argument implies that the q−th
+order derivatives are bounded, i.e.
+
+                                  ∥∇q g(x)∥∗ ≤ Lq−1       for every x ∈ X .
+
+Hence for every ν ∈ (0, 1]
+
+                             ∥∇q g(x) − ∇q g(y)∥∗ ≤ (2Lq−1 )1−ν Lνq ∥x − y∥νp .
+                                                            def
+Therefore, g is (Hν,q , ν)-Hölder continuous with Hq,ν = (2Lq−1 )1−ν Lνq .
+   It follows from Lemma 19 that
+                              eq ((T /Θ)(q−1)(1−ν) (T /Θ)qν ) = O
+                       Hν,q = O                                 eq ((T /Θ)q+ν−1 ).
+
+   Given H > 0, the rescaled function F (x) = HHν,q g(x) is (H, ν)-Hölder continuous. Further-
+more, we can extend the result to a set containing a R-ball by considering the function F̂ (x) =
+Rq+ν F (x/R), which is also (H, ν)-Hölder continuous leading to the optimality gap Ω
+                                                                                    e q (HRq+ν Θ/Hν,q ) =
+e q HRq+ν Θq+ν /T q+ν−1 .
+                          
+Ω
+
+
+                                                     40
+   In particular, recalling the specific value of Θ for p-norms, i.e., Θ = T −1/p for p ≥ 2, Θ = 1 for
+p = ∞, and Θ = T −1/2 for 1 ≤ p < 2, we have that the number of iterations needed to reach the
+precision ε is at least
+                                                          m      !
+                                                q+ν (m+1)(q+ν)−m
+                                                  
+                                            HR
+                                  Ω
+                                  e q,p                             ,
+                                               ε
+                                                                     1 
+          def                                                  HRq+ν q+ν−1
+where m = max{2, p}. For p = ∞, we have the rate Ωq,p   e
+                                                                  ε           .
+
+
+
+
+E.1. The case of p-norms
+In this section, we specialize Theorem 16 for the case of the p-norms, following classical constructions
+of orthonormal bases from [NY83] that we include for self-containedness. To this, we separate the
+cases p ≥ 2 and 1 ≤ p ≤ 2. In particular, for p ≥ 2 we prove that if d ≥ Ω(T 1+1/p ) then we can take
+Θ = T −1/p . On the other hand, when 1 ≤ p < 2 we can take Θ = T −1/2 provided that d ≥ Ω(T 3/2 ).
+
+   • For p ≥ 2 we use zi = ξi ei where ξ ∈ {−1, 1}d is a vector of signs and ei is the i-th canonical
+     vector. It is easy to check that
+
+                               min max⟨zi , x⟩ ≤ min max ξi ⟨ei , x⟩ ≤ −T −1/p .
+                               x∈X i∈[T ]             ∥x∥p ≤1 i∈[T ]
+
+
+      Replacing Θ = T −1/p the optimality gap for p ≥ 2 is
+
+                                                   Θq+1
+                                                                          pq+q+1 
+                        F (xT ) − inf F (x) ≥ Ωq L q
+                                              e               = e q,p LT − p
+                                                                Ω                     ,
+                                  x∈X             T (ln d)q
+                         p 
+                  e q,p L pq+q+1 iterations are needed to reach the precision ε.
+      so at least Ω       ε
+                                                                            
+                                                                          1
+                                                                        L q
+      Similarly, replacing Θ = 1 for p = ∞ we obtain the rate Ωq,p
+                                                               e
+                                                                        ε      .
+
+   • For 1 ≤ p < 2 we use a different construction. Assume that d = 2s̄ with s̄ ∈ N such that
+     2s̄−1 < 8T 3/2 ≤ 2s̄ , and consider the Hadamard base {ê1 , . . . , êd } formed by the columns of
+     the matrix Hd that is constructed recursively as H1 = H20 = [1], and
+                                                                  
+                                                1   H2s H2s
+                                       H2s+1 = √                      .
+                                                 2 H2s −H2s
+
+      It is easy to see that                                                √
+                                            ∥êj ∥2 = 1,        ∥êj ∥∞ = 1/ d.
+      Using interpolation inequalities for p norms, we have that for all j ∈ [d],
+                                                  2
+                                                           1− 2        − 12 (1− p2 )       1
+                                                                                                − 12
+                               ∥êj ∥p∗ ≤ ∥êj ∥2p∗ ∥êj ∥∞ p∗ = d               ∗     = d p∗          .
+
+      In particular, we have that {vj }j∈[d] , where vj = d1/2−1/p∗ êj , is such that these vectors are
+      orthogonal and have unit ℓp∗ -norm.
+
+                                                           41
+      Using minimax duality, for every ξ ∈ {−1, +1}T
+                                                              X                                          X
+                  min max ξj ⟨vj , x⟩ ≤ min max                        λj ⟨vj , x⟩ = − min                          λ j ξj v j        .
+                  x∈X j∈[T ]                  ∥x∥≤1 λ∈∆T                                  λ∈∆T                                   p∗
+                                                              j∈[T ]                                     j∈[T ]
+
+
+      In order to estimate this quantity. Consider first the ∥ · ∥2 :
+
+                                                                        − 1 1
+                                              sX
+                           X                                          1
+                                 λ j ξj v j =         λ2j ∥vj ∥22 = T 2 p∗ √ = T −1/p∗ .
+                          j∈[T ]
+                                           2
+                                               j∈[T ]
+                                                                             T
+
+      Now, using Hölder’s inequality:
+                                   − p1                                   1
+                                                                              − p1
+                                               X                                     X
+                               T      ∗   =            λj ξj vj       ≤T2        ∗            λj ξj vj          ,
+                                                                  2                                        p∗
+                                              j∈[T ]                                 j∈[T ]
+
+
+      hence minx∈X maxj∈[T ] ξj ⟨vj , x⟩ ≤ − √1T , and Θ = √1T . The optimality gap is then
+
+                                                        Θq+1
+                                                                                 
+                         F (xT ) − inf F (x) ≥ Ωq L q
+                                                e                 = e q,p LT − 3q+1
+                                                                    Ω            2    ,
+                                   x∈X                T (ln d)q
+                                 
+                             2
+                          L 3q+1
+      so at least Ωq,p
+                  e
+                          ε         iterations are needed to reach the precision ε.
+
+
+E.2. Randomized and parallel methods
+In this section we prove the result in Theorem 26 for possibly randomized and parallel algorithms
+that interact with a local oracle.
+    In the K-parallel framework for convex optimization [Nem94], algorithms operate iteratively
+across multiple rounds. During each round, the algorithm issues a batch of queries denoted by
+Xt = {xt,1 , . . . , xt,K }. In response, the local oracle O provides a batch of outputs, represented as
+OF (Xt ) = (OF (xt,1 ), . . . , OF (xt,K )). The algorithm’s behavior may adapt over successive rounds,
+with each new batch of queries depending on prior queries and the corresponding oracle responses:
+
+                        Xt+1 = Ψt+1 (X1 , OF (X1 ), . . . , Xt , OF (Xt )),                     ∀t ≥ 1,
+
+where Ψt+1 defines the update (possible randomized) mechanism for generating the next batch of
+queries. Notably, setting K = 1 recovers the standard definition of sequential oracle complexity.
+The following theorem is the extension of Theorem 16 for K-parallel randomized algorithms, which
+we prove in Appendix E.2.
+
+Theorem 26 (Lower bound for parallel randomized algorithms) [↓] Let ∥ · ∥ a norm in Rd
+                                                 ∥·∥
+and X a closed convex set containing the R-ball BR of (Rd , ∥ · ∥) for some R > 0. Let T a positive
+integer, Θ, M̃ > 0 real numbers, 0 < η < 1/2 a probability, and {zi }i∈[T ] independent random
+vectors in Rd such that:
+(i) ∥zi ∥∗ ≤ 1 for every i ∈ [T ],
+(ii) P[minx∈X maxi∈[T ] ⟨zi , x⟩ ≤ −Θ] ≥ 1 − η,
+
+
+                                                              42
+(iii) For everyqi ∈ [T ], x ∈ X and δ > 0, max{P[⟨zi , x⟩ ≥ δ], P[⟨zi , x⟩ ≤ −δ]} ≤ exp(−M̃ δ 2 )
+(iv) Θ ≥ 64T ln(T K/η)/M̃ .
+    Then, for every L > 0, ν ∈ (0, 1], there exists a family of q-th order (L, ν)-Hölder continuous
+functions F such that for any K-parallel algorithm AK interacting with a local oracle O it holds
+                                                                      q+ν
+                                                                         
+            PF ∼∆(F )      min F (xt,k ) − min F (x) ≥ Ωe q LRq+ν Θ           ≥ 1 − 2η,
+                        t∈[T ],k∈[K]       x∈X                     T q+ν−1
+
+where {xt,k }t∈[T ],k∈[K] is the sequence generated by the pair (AK , O).
+
+Proof of Theorem 26. The lower bound for randomized algorithms relies on two properties.
+First, an upper bound on the minimal value of F that holds with high probability, and second, a
+lower bound on the function value of the algorithm’s output that also holds with high probability.
+Let us start by considering a set X containing the unit ball, and recall the construction of the hard
+instance function
+    For i = 1, . . . , T define the functions fi : Rd 7→ R we define
+
+                     fi (x) = smax≤i                                             −α
+                           def
+                                  µ ((⟨zj , x⟩ + (T − j)γ)j∈[d] ) + µ(T + 1 − i)d   ,
+
+and
+                                         def                            def   (q)
+                                 h(x) = max fi (x),                 g(x) = Sβ [h](x).
+                                               i∈[T ]
+
+Here, zi are random vectors as described in the statement of Theorem 26, and the parameters are
+chosen as before
+                              Θ            γ            γ
+                        γ=       , µ=           , β=        , α ≥ q + 1.
+                              4T        4α ln d        ln d
+Lemma 19 implies that g is q-th order smooth with constant Lq . Moreover, as in (19) we can upper
+bound the minimal value of g over X as follows:
+
+                    min g(x) ≤ min h(x) + 2β
+                    x∈X            x∈X
+                                 ≤ µ ln T + min max⟨zi , x⟩ + T γ + µ(T + 1)d−α + 2β
+                                                  x∈X i∈[T ]
+
+                                 ≤ µ ln T − Θ + T γ + µ(T + 1)d−α + 2β
+
+To lower bound g(xT ) the key idea is to show that, at each round t, w.h.p., the algorithm can only
+access information about z1 , . . . , zt and has no knowledge of zt+1 , . . . , zk . We denote the history of
+the algorithm-oracle interaction until iteration t − 1 as Πt = (Xs , O(Xs ))s<t . We also define the
+following events
+                def
+                    n          γo n               γ       o
+                                                                                def
+                                                                                      \
+        E t (x) = ⟨zi , x⟩ > −      ∩ ⟨zi , x⟩ < (∀i > t) , and E <t =                     {E s (xs,k )},
+                               4                  4
+                                                                                        s<t,k∈[K]
+
+
+where γ > 0 is a parameter to be determined and E <1 is such that P[E <1 ] = 1. By Fact 27, we
+have in particular that w.p. at least 1 − η for every t ∈ T
+                                                                                        γ
+                    g(xt ) ≥ h(xt ) − 2β ≥ ft (xt ) − 2β ≥ ⟨zt , xt ⟩ − 2β ≥ −            − 2β.
+                                                                                        4
+
+
+                                                               43
+Putting the results together, rescaling g by F = L/Lq g, and using the value of the parameters we
+obtain the result.
+
+   Under the assumptions of Theorem 26, the following fact1 directly follows from [DG20], which
+we used in the proof of Theorem 26.
+                                                                                                                        ∥·∥
+Fact 27 Let t < T and assume that event E t holds. Then, for all k ∈ [K] and x ∈ Br (xt,k ), g(x)
+is fully determined
+               hT by vectors
+                        i    zs with s ≤ t. Moreover, Xt is independent of {zs }s≥t , conditionally
+     <t               t
+on E , and P t∈[T ] E ≥ 1 − η.
+
+E.3. The case of p-norms in randomized and parallel methods
+To specialize the result for p-norms we need to estimate the value of Θ in (ii) of Theorem 26. We
+separate the cases p ≥ 2 and 1 ≤ p < 2.
+
+   • For p ≥ 2, the construction is as follows. Let {Ji }Ti=1 be a collection of subsets of {1, . . . , d}
+     such that |Ji | = M and Ji ∩ Ji′ = ∅, ∀i ̸= i′ . Here M is an integer such that d ≥ T M .
+     Set IiM = diag(1Ji ), i.e., the (j, j) element of the diagonal matrix IiM is 1 if j ∈ Ji and 0
+     otherwise. The vector zi is defined as
+                                                             def    1
+                                                        zi =            I M ξi ,
+                                                                   M ∗ i
+                                                                    1/p
+
+      where (ξi ) ∈ {−1, 1}d is an independent Rademacher sequence.
+      Using minimax duality we have
+                                                               *                    +
+                                                                   X                              X
+                      min max⟨zi , x⟩ ≤ min max                             λi zi , x   = − min            λi zi        .
+                      x∈X i∈[T ]             ∥x∥≤1 λ∈∆T                                    λ∈∆T
+                                                                   i∈[T ]                         i∈[T ]           p∗
+
+
+      Let λ ∈ ∆T be fixed. Observe that, since zi ’s have disjoint support P (each zi is supported
+                                                               ′
+      on Ji such that |Ji | = M and Ji ∩ Ji′ = ∅ for all i ̸= i ), vector i∈[T ] λi zi is such that its
+      coordinates indexed by j ∈ Ji (M of them) are equal to λi zj,i , ∀i ∈ [T ]. Therefore, using the
+      definition of zi
+                                      p∗
+                             X             X                    p ∗ 
+                                λi zi    =      M · λi M −1/p∗           = ∥λ∥pp∗∗ .
+                                   i∈[T ]      p∗     i∈[T ]
+
+      By the relationship between ℓp norms and the definition of λ, we have that 1 = ∥λ∥1 ≤
+      T 1/p ∥λ∥p∗ . Hence
+                                       X
+                                 min      λi zi  = ∥λ∥p∗ ≥ T −1/p ,
+                                            λ∈∆T
+                                                    i∈[T ]           p∗
+
+      and condition (ii) in Theorem 26 is satisfied with Θ = T −1/p for any η ≥ 0.
+1. In [DG20], this claim mentions the predictability of Xt with respect to {zs }s<t , conditionally on E <t . This claim is
+   incorrect, as the algorithm is randomized. Instead, the correct affirmation is that X t is conditionally independent,
+   which suffices for the high-probability conclusion.
+
+
+                                                                   44
+  On the other hand, by the definition of zi ’s and Hoeffding’s Inequality, for all x ∈ B ∥·∥p , δ > 0
+                                                                                            !
+                                               X                                  M  2/p∗ δ 2
+                                                                1/p
+      P[⟨zi , x⟩ > δ] = P[⟨zi , x⟩ < −δ] = P     ξi [j]xj > δM     ∗  ≤ exp − P                ,
+                                                                                 2 j∈Ji x2j
+                                                      j∈Ji
+
+  where ξi [j] is the j-th coordinate of ξi . As |Ji | = M , using the relations between p-norms
+
+                 ∥{xj }j∈Ji ∥2 ≤ M 1/2−1/p ∥{xj }j∈Ji ∥p ≤ M 1/2−1/p ∥x∥p ≤ M 1/2−1/p .
+
+  Therefore,
+                                                                                !
+                                                          M 2/p∗ δ 2                        M δ2
+                                                                                                
+               P[⟨zi , x⟩ > δ] = P[⟨zi , x⟩ < −δ] ≤ exp −                           = exp −        .
+                                                          2M 1−2/p                           2
+
+                                                                     def
+  Hence, condition (iii) in Theorem 26 holds with M̃ = ⌊d/(2T )⌋. Finally, to guarantee condi-
+  tion (iv) it is enough to take the dimension large enough, namely d ≥ Ω T 3+2/p ln(T K/η) .
+                                                                                           
+
+• For 1 ≤ p < 2, define zi = d1/p∗ ξi where ξi ∈ {−1, 1}d are independent vectors with
+  Rademacher entries. It is easy to check that ∥zi ∥p∗ ≤ 1. Moreover, using minimax dual-
+  ity
+                                           X                      X
+              min max⟨zi , x⟩ ≤ min max ⟨      λi zi , x⟩ = − min    λi zi
+                  x∈X i∈[T ]         ∥x∥≤1 λ∈∆T                                λ∈∆T
+                                                        i∈[T ]                        i∈[T ]   p∗
+
+  Let ε and cq be a constant that only depends on q. Using [DG20, Lemma 23], for T ≤
+         1     cq d−ln(1/η)
+  min{ 200ε 2,    ln(3/ε) } it holds
+                                                                          
+                                             X
+                                     P               λi zi        ≤ 4ε ≤ η.
+                                             i∈[T ]           p∗
+
+               1
+                                    √               
+  Taking ε = √200T and d ≥ Ωq T ln(3 200T ) + ln(1/η) we obtain that condition (ii) in
+                                 √
+  Theorem 26 holds with Θ = 5√2T . On the other hand, by a direct application of the Hoeffding’s
+  inequality for every x ∈ B ∥·∥p
+                                                                               
+                        P[⟨zi , x⟩ > δ] = P[⟨ξi , x⟩ > d1/p∗ δ] ≤ exp −d2/p∗ δ 2 .
+
+  Hence,
+    condition (iii) inTheorem 26 holds with M̃ = d2/p∗ , and condition (iv) reads d ≥
+         p            p∗
+  Ω T 3/2 ln(T K/η)       .
+
+
+
+
+                                                       45
+

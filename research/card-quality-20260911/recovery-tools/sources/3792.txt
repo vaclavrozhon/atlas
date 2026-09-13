@@ -1,0 +1,840 @@
+On Deterministic Linearizable Set Agreement
+Objects
+Felipe de Azevedo Piovezan
+Department of Computer Science, University of Toronto, Canada
+felipe@cs.toronto.edu
+
+Vassos Hadzilacos
+Department of Computer Science, University of Toronto, Canada
+vassos@cs.toronto.edu
+
+Sam Toueg
+Department of Computer Science, University of Toronto, Canada
+sam@cs.toronto.edu
+
+      Abstract
+A recent work showed that, for all n and k, there is a linearizable (n, k)-set agreement object OL
+that is equivalent to the (n, k)-set agreement task [4]: given OL , it is possible to solve the (n, k)-set
+agreement task, and given any algorithm that solves the (n, k)-set agreement task (and registers), it
+is possible to implement OL . This linearizable object OL , however, is not deterministic. It turns out
+that there is also a deterministic (n, k)-set agreement object OD that is equivalent to the (n, k)-set
+agreement task, but this deterministic object OD is not linearizable. This raises the question whether
+there exists a deterministic and linearizable (n, k)-set agreement object that is equivalent to the
+(n, k)-set agreement task. Here we show that in general the answer is no: specifically, we prove that
+for all n ≥ 4, every deterministic linearizable (n, 2)-set agreement object is strictly stronger than
+the (n, 2)-set agreement task. We prove this by showing that, for all n ≥ 4, every deterministic and
+linearizable (n, 2)-set agreement object (together with registers) can be used to solve 2-consensus,
+whereas it is known that the (n, 2)-set agreement task cannot do so. For a natural subset of (n, 2)-set
+agreement objects, we prove that this result holds even for n = 3.
+
+2012 ACM Subject Classification Theory of computation → Concurrency; Theory of computation
+→ Parallel computing models; Theory of computation → Distributed computing models
+
+Keywords and phrases Asynchronous shared-memory systems, consensus, set agreement, determin-
+istic objects
+
+Digital Object Identifier 10.4230/LIPIcs.OPODIS.2019.16
+
+Funding This research was partially funded by the Natural Sciences and Engineering Research
+Council of Canada.
+
+
+
+ 1      Introduction
+
+Consensus is a fundamental problem of distributed computing and set agreement [5] is
+a well-known generalization of this problem. In the (n, k)-set agreement task each of n
+processes has an input value and must output one of the input values so that there are at
+most k distinct output values (the special case when k = 1 is the n-consensus task) [5, 7, 10].
+Researchers have also considered (n, k)-set agreement objects [1, 6]. An (n, k)-set agreement
+(SA) object is an object that allows up to n processes to invoke a propose operation with
+some proposal value, such that the following two properties hold: (a) the value returned by
+the operation has been proposed, and (b) at most k different values are returned. Obviously,
+every (n, k)-SA object can be used to solve the (n, k)-SA task.
+            © Felipe de Azevedo Piovezan, Vassos Hadzilacos, and Sam Toueg;
+            licensed under Creative Commons License CC-BY
+23rd International Conference on Principles of Distributed Systems (OPODIS 2019).
+Editors: Pascal Felber, Roy Friedman, Seth Gilbert, and Avery Miller; Article No. 16; pp. 16:1–16:15
+                   Leibniz International Proceedings in Informatics
+                   Schloss Dagstuhl – Leibniz-Zentrum für Informatik, Dagstuhl Publishing, Germany
+16:2   On Deterministic Linearizable Set Agreement Objects
+
+
+           Until recently, it was thought that, for k ≥ 2, (n, k)-SA objects were inherently not
+       linearizable,1 because every linearizable (n, k)-SA object imposes constraints that are not
+       required by the (n, k)-SA task. For example, for k ≥ 2, with any linearizable (n, k)-SA object,
+       the propose operation that is linearized first must return its own proposal value; in contrast,
+       with the (n, k)-set agreement task two processes with distinct inputs are allowed to each
+       output the other’s input (i.e., they can “swap” their inputs). In fact, such differences in
+       allowable behaviours between tasks and objects motivated the introduction of generalizations
+       of linearizability [9, 3]. Despite this, it was recently shown that there does exist a linearizable
+       (n, k)-SA object OL that is equivalent to the (n, k)-set agreement task, in the following sense:
+       (a) given OL , it is possible to solve the (n, k)-SA task, and (b) given any algorithm that
+       solves the (n, k)-SA task (and registers), it is possible to implement OL [4].
+           An object is deterministic if, when accessed sequentially, the response of each operation
+       depends uniquely on the sequence of the preceding operations. For k ≥ 2, the linearizable
+       (n, k)-SA object OL is not deterministic: in a sequential execution where the first operation
+       proposes 1 and the second operation proposes 2, the second operation can return either 1 or 2.
+           Are (n, k)-SA objects inherently not deterministic? The answer is “no”. We show that
+       there exists a deterministic (n, k)-SA object OD that is equivalent to the (n, k)-SA task (see
+       Section 5). For k ≥ 2, however, OD is not linearizable.
+           Thus, the (n, k)-SA task has an equivalent linearizable (n, k)-SA object, and it also has an
+       equivalent deterministic (n, k)-SA object. This raises the following question: is the (n, k)-SA
+       task equivalent to some (n, k)-SA object that is both deterministic and linearizable?
+           In this paper we explore this question, and answer it in the negative. Specifically, we
+       prove that for n ≥ 4, no deterministic linearizable (n, 2)-SA object is equivalent to the
+       (n, 2)-SA task: we do so by showing that, for n ≥ 4, every deterministic linearizable (n, 2)-SA
+       object can be used to solve the 2-consensus task; in contrast, it is known that solving the
+       (n, 2)-SA task is not sufficient to solve 2-consensus [1]. This implies that, for n ≥ 4, every
+       deterministic linearizable (n, 2)-SA object is strictly stronger than the (n, 2)-SA task. For a
+       natural subset of deterministic linearizable (n, 2)-SA objects, we prove that this result holds
+       even for n = 3.
+
+           2    Sketch of the model and basic definitions
+       In this paper, we consider distributed systems in which asynchronous processes communicate
+       via shared objects. To limit the number of processes that can concurrently access an object,
+       we consider shared objects with ports: to apply an operation on an object, a process chooses
+       one of its ports, invokes the operation at that port, and waits for the response of the operation
+       at that port before invoking another operation. No two operations are allowed to be applied
+       simultaneously on the same port, otherwise the behavior of the object is arbitrary. So an
+       object with n ports can be accessed concurrently by at most n processes. An execution of
+       operations applied to an object is well formed if each operation invoked at a port of the object
+       returns before another operation is invoked at that port. Note that a sequential execution of
+       operations on an (n, k)-SA object, i.e., an execution where each operation completes before
+       the next operation starts, is necessarily well formed.
+
+
+
+
+       1
+           Intuitively, an object is linearizable if it behaves as if all operations, including concurrent ones, are
+           applied sequentially: each operation appears to take effect instantaneously at some distinct point
+           between its invocation and response [8].
+F. de Azevedo Piovezan, V. Hadzilacos, and S. Toueg                                                                   16:3
+
+
+I Definition 1. An (n, k)-set agreement object is an n-ported object that allows processes
+to invoke ProposeSA operations, each with some proposal value v ∈ I (where |I| ≥ n), and
+the responses of the ProposeSA operations satisfy the following two properties in every
+well-formed execution:
+
+     Validity: the value returned by each operation is either its proposal value or the proposal
+     value of some previously invoked ProposeSA operation.
+     k-Agreement: at most k different values are returned by the invocations of ProposeSA
+     operations.
+
+    For the rest of this section, O is an (n, k)-set agreement object. As we mentioned in the
+introduction, O is not necessarily linearizable, but of course it can be accessed sequentially.
+A sequential execution of operations on O can be modelled by a sequence of triples as follows:
+
+I Definition 2. A finite or infinite sequential execution (of operations) on O is a sequence
+of the form (p1 , v1 , u1 )(p2 , v2 , u2 ) . . . , where the i-th operation on O is a ProposeSA(vi ) at
+port pi of O that returns ui .
+
+I Definition 3. The sequential behaviour of O is the set of all possible sequential execu-
+tions of operations on O.
+
+Thus, the sequential behaviour of O is a set of sequences of the form (p1 , v1 , u1 )(p2 , v2 , u2 ) . . . .
+
+I Notation 4.
+  If a sequence S is in the sequential behaviour of O, i.e., S is a sequential execution of
+  operations on O, we write S ∈ O.
+  If S ∈ O and the ProposeSA(v) operation applied immediately after S on port pi of O
+  can return the value u, we write S(pi , v, u) ∈ O.
+  If S ∈ O but the ProposeSA(v) operation applied immediately after S on port pi of O
+  can not return the value u, we write S(pi , v, 6=u) ∈ O.
+
+   Intuitively, object O is deterministic if for every finite sequential execution of operations
+S on O the following holds: if S is executed on O, and then a ProposeSA(v) operation is
+applied on port p of O, the response of that operation is uniquely determined by S, p, and v.
+More precisely:
+
+I Definition 5. O is deterministic if for every finite S ∈ O, every port p, and all values
+v, u, u0 , if S(p, v, u) ∈ O and S(p, v, u0 ) ∈ O, then u = u0 .
+
+   Intuitively, O is linearizable if each operation on O appears to take effect instantaneously
+between its invocation and its response (even in the presence of concurrent operations) [8].
+
+I Definition 6. O is linearizable if in every well-formed execution of operations E on O,
+each operation has a distinct linearization point, between its invocation and its response,
+such that E appears to be one of the sequential executions of operations S ∈ O, where the
+operations of S occur in the order of their linearization points in E.2
+
+    Because of the above definition, if O is linearizable we can view any well-formed execution
+of operations on O as one of the sequences S ∈ O.
+
+
+2
+    For simplicity, this definition assumes that all operations of E are complete, i.e., each one has a response.
+    If E contains incomplete operations, one is allowed to discard some incomplete operations and complete
+    the remaining ones by returning some value, before linearizing the now “complete” E.
+
+
+
+
+                                                                                                                    OPODIS 2019
+16:4   On Deterministic Linearizable Set Agreement Objects
+
+
+       I Notation 7. If an (n, k)-SA object is both deterministic and linearizable, we say that it is
+       an (n, k)-DLSA object.
+
+          In the 2-consensus task, each of two processes has an input value and must output one of
+       the inputs, such that both processes output the same value. Intuitively, we say that O can
+       be used to solve 2-consensus, if two processes can solve the 2-consensus task using registers
+       and copies of O initialized appropriately. More precisely:
+
+       I Definition 8. We say that O can be used to solve 2-consensus if two processes can
+       solve the 2-consensus task using copies of O (each of which may be initialized by applying
+       some finite sequential execution of operations on O) and registers.3
+
+           3       Oblivious (3, 2)-DLSA objects can be used to solve 2-consensus
+       In this section, we focus on oblivious (n, k)-DLSA objects, that is, (n, k)-DLSA objects that
+       behave the same regardless of the port to which operations are applied. We show that for
+       n ≥ 3, oblivious (n, 2)-DLSA objects can be used to solve 2-consensus, and thus they are not
+       equivalent to the (n, 2)-SA task.
+           We first define oblivious (n, k)-DLSA objects more precisely as follows:
+
+       I Definition 9. Let O be an (n, k)-DLSA object. O is oblivious if for all finite sequen-
+       tial executions of operations S ∈ O, ports pi , pj , and values u, v, the following holds:
+       If S(pi , u, v) ∈ O then S(pj , u, v) ∈ O.
+
+          Thus, henceforth we omit ports from sequential executions of operations on oblivi-
+       ous (n,k)-SA objects, e.g., instead of S = (p1 , v1 , u1 )(p2 , v2 , u2 ) . . . (pk , vk , uk ), we write
+       S = (v1 , u1 )(v2 , u2 ) . . . (vk , uk ).
+          By the validity and the k-set agreement properties, it is clear that the first ProposeSA
+       operation applied to an (n, k)-DLSA object must return its own proposal value and the
+       second must return either its own proposal value (allowed only if k ≥ 2) or the proposal
+       value of the first. Thus,
+
+       I Observation 10. Let O be an oblivious (n, k)-DLSA object. For all values a, a0 , b, b0 , if
+       (a, a0 )(b, b0 ) ∈ O then a = a0 and b0 ∈ {a, b}.
+
+          Suppose an oblivious (n, k)-DLSA object O has a finite sequential execution of operations S
+       such that, after S has been applied to O, a process proposing a and another process proposing b
+       can determine the order in which their propose operations were executed. Then O can be
+       used to solve 2-consensus as we now explain.
+
+       I Definition 11. Let O be an oblivious (n, k)-DLSA object. Let a, b be two (not necessarily
+       distinct) proposal values, and let S ∈ O. Let a0 , a00 , b0 be the unique values such that:
+
+                   S(b, b0 )(a, a0 ) ∈ O
+               
+
+                   S(a, a00 ) ∈ O
+
+                                                                               S
+               If a0 6= a00 , we say “a notices b after S”, denoted a −
+                                                                      → b.
+                                                                               S
+               If a0 = a00 , we say “a does not notice b after S”, denoted a −
+                                                                             6 → b.
+
+
+       3
+           Note that this solution is allowed to use registers, in addition to copies of O; allowing the use of registers
+           in solutions and object implementations is standard.
+F. de Azevedo Piovezan, V. Hadzilacos, and S. Toueg                                                                 16:5
+
+
+   If S is the empty sequence, we simply say that a notices b, denoted a → b, or a does
+not notice b, denoted a 6→ b.
+
+I Observation 12. Let O be an oblivious (n, k)-DLSA object. By Observation 10 and
+Definition 11, we have that for all distinct proposal values a, b:
+
+    a → b if and only if (b, b)(a, b) ∈ O
+    a 6→ b if and only if (b, b)(a, a) ∈ O
+
+I Definition 13. Let O be an oblivious (n, k)-DLSA object. We say that O is good if there
+                                                                               S         S
+exist a finite sequential execution S ∈ O and proposal values a, b such that a −
+                                                                               → b and b −
+                                                                                         → a.
+
+I Lemma 14. Let O be an oblivious (n, k)-DLSA object. If O is good, then O can be used
+to solve 2-consensus.
+
+Proof. Let O be an oblivious (n, k)-DLSA object and assume it is good. Since O is good,
+                                                                                           S               S
+there exists a finite sequential execution S ∈ O and two values a, b such that a −         → b and b −     → a.
+                        S
+By the definition of −  →, it follows that there exist a0 , a00 , b0 , b00 such that a0 6= a00 , b0 6= b00 and:
+
+    S(a, a0 )(b, b00 ) ∈ O                                                                                (1)
+          0      00
+    S(b, b )(a, a ) ∈ O                                                                                   (2)
+
+   To solve 2-consensus, O is first initialized by applying S to it. Two processes, p and q,
+can now solve 2-consensus using this initialized O and two registers, Rp (written only by p)
+and Rq (written only by q), by executing the following algorithm. We assume that p and q
+use different ports when accessing O, so their access to O is guaranteed to be well-formed.
+
+
+    Propose(vp ) by process p                               Propose(vq ) by process q
+    1   Rp := vp                                            1   Rq := vq
+    2   ret := ProposeSA(a) on a port of O                  2   ret := ProposeSA(b) on a port of O
+    3   if ret = a0                                         3   if ret = b0
+    4         decide Rp                                     4         decide Rq
+    5   else // ret = a00                                   5   else // ret = b00
+    6         decide Rq                                     6         decide Rp
+     Since O is linearizable (and it is accessed in a well-formed manner), we can regard the
+ProposeSA operations of p and q as atomic, and thus the ProposeSA operations are totally
+ordered. From the algorithm and (1), (2) it is clear that each process decides the value it reads
+from the register it writes if it is the first to execute a ProposeSA operation; otherwise, it
+decides the value it reads from the register written by the other process. Therefore agreement
+and validity hold provided that the process that reads the register written by the other
+process (in its Line 6) does so after the other process has written into that register (in its
+Line 1). To see that if process p reads register Rq , p does so after process q has written into
+Rq , note that process p reads Rq if and only if its ProposeSA operation does not return
+a0 . By (1) and (2), this means that q executed its ProposeSA operation (in Line 2) before
+p executes its ProposeSA operation; and therefore q writes into Rq (in its Line 1) before p
+reads Rq (in its Line 6). A similar argument applies to q.                                     J
+
+   We will now prove that oblivious (3, 2)-DLSA objects that are not good have some other
+properties that can also be exploited to solve 2-consensus.
+
+
+
+                                                                                                                  OPODIS 2019
+16:6   On Deterministic Linearizable Set Agreement Objects
+
+
+       I Lemma 15. Let O be an oblivious (3, 2)-DLSA object. If O is not good, the following
+       holds. For all distinct proposal values u, v, w, if v 6→ u then w → u.
+       Proof. Let O be an oblivious (3, 2)-DLSA object and assume it is not good. Suppose v 6→ u.
+       By Observation 12, (u, u)(v, v) ∈ O. Furthermore, if w is proposed after that, the response
+       of this operation cannot be w, by the 2-agreement property (see the left branch of the figure
+       below). So (u, u)(v, v)(w, 6=w) ∈ O.
+           Assume for contradiction that w 6→ u. By Observation 12 (u, u)(w, w) ∈ O. Furthermore,
+       if v is proposed after that, the response of this operation cannot be v, by the 2-agreement
+       property (right branch of the figure below). So (u, u)(w, w)(v, 6=v) ∈ O.
+
+
+
+
+                                                                                S                     S
+          Let S = (u, u). Since S(v, v) ∈ O and S(w, w)(v, 6=v) ∈ O, v −
+                                                                       → w. Similarly, w −
+                                                                                         → v,
+       and so O is good, a contradiction.                                                  J
+
+       I Lemma 16. Let O be an oblivious (3, 2)-DLSA object. If O is not good, the following
+       holds. For all distinct proposal values u, v, w, if v 6→ u then all of the relationships illustrated
+       in the diagram below hold:
+
+
+
+
+       Proof. Let O be an oblivious (3, 2)-DLSA object and assume it is not good. Suppose v 6→ u.
+       We prove each of the arrows in turn:
+
+          w → u: Since v 6→ u, Lemma 15 implies w → u.
+          u 6→ w: Because O is not good and w → u, it follows that u 6→ w.
+          v → w: Since u 6→ w, Lemma 15 implies v → w.
+          w 6→ v: Because O is not good and v → w, it follows that w 6→ v.
+          u → v: Since w 6→ v, Lemma 15 implies u → v.                                                     J
+       I Lemma 17. Let O be an oblivious (3, 2)-DLSA object. If O cannot be used to solve
+       2-consensus, the following holds. For all distinct proposal values u, v, w, if u → v then there
+       exists x 6= w such that:
+            (v, v)(u, v)(w, x) ∈ O
+            (u, u)(v, v)(w, x) ∈ O
+       Proof. Let O be an oblivious (3, 2)-DLSA object and assume it cannot be used to solve
+       2-consensus. So, by Lemma 14, O is not good.
+          Assume u → v, thus, by Observation 12, (v, v)(u, v) ∈ O. By the definition of DLSA
+       objects, there exists x such that:
+
+          (v, v)(u, v)(w, x) ∈ O                                                                          (3)
+F. de Azevedo Piovezan, V. Hadzilacos, and S. Toueg                                                   16:7
+
+
+   Since O is not good, u → v implies v 6→ u. By Observation 12, (u, u)(v, v) ∈ O, and so
+there exists x0 such that:
+
+   (u, u)(v, v)(w, x0 ) ∈ O                                                                  (4)
+
+   The 2-agreement property implies that x0 ∈ {u, v}, thus w 6= x0 .
+   Because v 6→ u, Lemma 16 implies w 6→ v. By Observation 12, (v, v)(w, w) ∈ O. Thus,
+by the 2-agreement property:
+
+   (v, v)(w, w)(u, 6=u) ∈ O                                                                  (5)
+
+   Our goal is to show that x = x0 . Suppose, for contradiction, that x 6= x0 .
+   Two processes, p and q, can solve 2-consensus using O and two registers, Rp (written
+only by p) and Rq (written only by q), by executing the following algorithm. We assume
+that p and q use different ports when accessing O, so their access to O is guaranteed to be
+well-formed.
+
+
+   Propose(vp ) by process p                        Propose(vq ) by process q
+   1   Rp := vp                                     1   Rq := vq
+   2   ret := ProposeSA(u) on a port of O           2   ProposeSA(v) on a port of O
+   3   if ret = u                                   3   ret := ProposeSA(w) on a port of O
+   4         decide Rp                              4   if ret = x0
+   5   else                                         5         decide Rp
+   6         decide Rq                              6   else
+                                                    7         decide Rq
+   To see why this algorithm is correct, first notice that the possible interleavings of the
+three ProposeSA operations by p and q are:
+   v, u, w (process q, then p, then q)
+   u, v, w (process p, then q, then q)
+   v, w, u (process q, then q, then p)
+   The values returned by O in these three cases are given in (3), (4) and (5), respectively.
+We now argue that the algorithm is correct. Termination is obvious since the algorithm is
+wait free.
+   Validity trivially holds if a process decides the value in the register it writes. So consider
+the cases where each process decides the value contained in the register of the other.
+
+   Process p decides Rq iff its ProposeSA(u) operation returns a value different from u,
+   which only happens in (3) and (5). In both cases, q has previously proposed v, in which
+   case q has previously written its proposal into Rq .
+   Process q decides Rp iff its ProposeSA(w) operation returns x0 , which only happens
+   in (4). In that case, p has previously proposed u, in which case p has previously written
+   its proposal into Rp .
+   In both cases, validity holds.
+   Agreement also follows from (3), (4) and (5). If only one process decides, then agreement
+holds trivially. So suppose both processes decide.
+
+   If p decides Rp , then its ProposeSA(u) operation returned u, which only happens
+   in (4). So q receives x0 as the response of its ProposeSA(w) operation, and thus q also
+   decides Rp .
+
+
+
+                                                                                                    OPODIS 2019
+16:8   On Deterministic Linearizable Set Agreement Objects
+
+
+          If p decides Rq , then its ProposeSA(u) operation returned a value different from u,
+                                                                          6 x0 (in (3)) or w 6= x0 (in
+          which only happens in (3) and (5). In those cases, q receives x =
+          (5)) as the response of its ProposeSA(w) operation. Either way, the value q receives is
+          different from x0 , and thus q also decides Rq .
+
+          In both cases, agreement holds.
+          We have shown that O can be used to solve 2-consensus, a contradiction. Therefore,
+       x = x0 , as desired.                                                               J
+
+       I Lemma 18. Let O be an oblivious (3, 2)-DLSA object. If O cannot be used to solve
+       2-consensus, the following holds. For all distinct proposal values u, v, w, if u → v then
+       (v, v)(w, w)(u, v) ∈ O.
+
+       Proof. Let O be an oblivious (3, 2)-DLSA object and assume it cannot be used to solve
+       2-consensus. So, by Lemma 14, O is not good.
+          Assume u → v. By Lemma 16, w 6→ v, therefore (v, v)(w, w) ∈ O (Observation 12). Also,
+       there exists x0 such that (v, v)(w, w)(u, x0 ) ∈ O. By the 2-agreement property, x0 ∈ {v, w}. If
+       x0 = v, we are done, so assume, for contradiction, that x0 = w, i.e., (v, v)(w, w)(u, w) ∈ O(*).
+          Since u → v, by Lemma 17, there exists x 6= w such that (v, v)(u, v)(w, x) ∈ O, in other
+                                                                                              S
+       words, (v, v)(u, v)(w, 6=w) ∈ O (**). Let S = (v, v); then (*) and (**) imply that u − → w and
+          S
+       w− → u. Thus O is good, a contradiction. So it must be that x0 = v.                           J
+
+          We are now ready to prove the following theorem:
+
+       I Theorem 19. Every oblivious (3, 2)-DLSA object can be used to solve 2-consensus.
+
+       Proof. Let O be an oblivious (3, 2)-DLSA object and let a, b, c be three distinct proposal
+       values of O. Suppose, for contradiction, that O cannot be used to solve 2-consensus. By
+       Lemma 14, O is not good.
+          Because O is not good, either a 6→ b or b 6→ a. Without loss of generality, assume b 6→ a.
+       By Lemma 16, we have:
+
+       I Observation 20. All of the relationships among a, b, and c illustrated in the diagram below
+       hold:
+
+
+
+
+          By Observation 20, c → a. Applying Lemma 18 with c = u, a = v and b = w, it follows
+       that (a, a)(b, b)(c, a) ∈ O. By the 2-agreement property, if we then propose b, the return
+       value of this operation cannot be c. Therefore:
+
+          (a, a)(b, b)(c, a)(b, 6=c) ∈ O                                                           (6)
+
+          By Observation 20, b → c. Applying Lemma 18 with b = u, c = v and a = w, it follows
+       that (c, c)(a, a)(b, c) ∈ O (*). Furthermore, since c → a, by Lemma 17 with c = u, a = v and
+       b = w, there exists x 6= b such that:
+
+           (a, a)(c, a)(b, x) ∈ O
+           (c, c)(a, a)(b, x) ∈ O
+F. de Azevedo Piovezan, V. Hadzilacos, and S. Toueg                                                   16:9
+
+
+   By (*) and the fact that O is deterministic, x = c. Thus, (a, a)(c, a)(b, c) ∈ O. Now let y
+be such that
+
+   (a, a)(c, a)(b, c)(b, y) ∈ O
+
+By the 2-agreement property, y ∈ {a, c}. If y = a, for S = (a, a)(c, a), we have S(b, c)(b, a) ∈
+               S
+O. Therefore b −
+               → b, contradicting the fact that O is not good. Thus y = c and
+
+   (a, a)(c, a)(b, c)(b, c) ∈ O                                                              (7)
+
+   To solve 2-consensus, O is first initialized by applying S = (a, a) to it. Two processes,
+p and q, can now solve 2-consensus using this initialized O and two registers, Rp (written
+only by p) and Rq (written only by q), by executing the following algorithm. We assume
+that p and q use different ports when accessing O, so their access to O is guaranteed to be
+well-formed.
+
+
+   Propose(vp ) by process p                        Propose(vq ) by process q
+   1   Rp := vp                                     1   Rq := vq
+   2   ret := ProposeSA(b) on a port of O           2   ProposeSA(c) on a port of O
+   3   if ret = b                                   3   ret := ProposeSA(b) on a port of O
+   4         decide Rp                              4   if ret 6= c
+   5   else                                         5         decide Rp
+   6         decide Rq                              6   else
+                                                    7         decide Rq
+   To see why this algorithm is correct, first notice that the possible interleavings of the
+three ProposeSA operations by p and q are:
+   b, c, b (process p, then q, then q)
+   c, b, b (process q, then p, then q)
+   c, b, b (process q, then q, then p)
+
+   Notice that the second and third interleavings have the same sequence of proposal values.
+The values returned by O in each of those cases is given in (6) and (7), under the assumption
+that the object is initialized by applying (a, a) to it. We now argue that the algorithm is
+correct; the arguments are similar to those of Lemma 17. Termination is obvious since the
+algorithm is wait free.
+   Validity trivially holds if a process decides the value in the register it writes. So consider
+the cases where each process decides the value contained in the register of the other.
+
+   Process p decides Rq iff its ProposeSA(b) operation returns a value different from b,
+   which only happens in (7). In that case, q has previously proposed c, in which case q has
+   previously written its proposal into Rq .
+   Process q decides Rp iff its ProposeSA(b) operation returns a value different from c,
+   which only happens in (6). In that case, p has previously proposed b, in which case p has
+   previously written its proposal into Rp .
+
+   In both cases, validity holds.
+   Agreement also follows from the properties of O’s specification that we derived above. If
+only one process decides, then agreement holds trivially. So suppose both processes decide.
+
+
+
+                                                                                                    OPODIS 2019
+16:10   On Deterministic Linearizable Set Agreement Objects
+
+
+             If p decides Rp , then its ProposeSA(b) operation returned b, which only happens in (6).
+             So q receives a value different from c as the response of its ProposeSA(b) operation,
+             and thus q also decides Rp .
+             If p decides Rq , then its ProposeSA(b) operation returned a value different from b, which
+             only happens in (7). So q receives c as the response of its ProposeSA(b) operation, and
+             thus q also decides Rq .
+
+            In both cases, agreement holds.
+            Under the assumption that O cannot be used to solve 2-consensus, we have shown that
+        O can be used to solve 2-consensus, a contradiction. We conclude that O can indeed be used
+        to solve 2-consensus.                                                                   J
+
+        I Corollary 21. For all n ≥ 3, every oblivious (n, 2)-DLSA object can be used to solve
+        2-consensus.
+
+        I Theorem 22. For all n ≥ 3, there is no oblivious (n, 2)-DLSA object that is equivalent to
+        the (n, 2)-SA task.
+
+        Proof. It is known that it is impossible to solve the 2-consensus task using an arbitrary
+        solution to the (n, 2)-SA task (and registers) [1]. The theorem now follows immediately by
+        Corollary 21.                                                                           J
+
+
+         4      (4, 2)-DLSA objects can be used to solve 2-consensus
+        We now prove that for n ≥ 4, (n, 2)-DLSA objects can be used to solve 2-consensus, which
+        implies that they are not equivalent to the (n, 2)-SA task.
+           Recall that (4, 2)-DLSA objects accept at least 4 different values as proposal values, and
+        have 4 ports to which ProposeSA operations may be applied. The proof that such objects
+        can be used to solve 2-consensus is simpler than the oblivious (3, 2)-DLSA case.
+           By the validity and the k-set agreement properties, it is clear that the first ProposeSA
+        operation applied to an (n, k)-DLSA object must return its own proposal value and the
+        second must return either its own proposal value (allowed only if k ≥ 2) or the proposal
+        value of the first. Thus,
+
+        I Observation 23. Let O be an (n, k)-DLSA object. For any two (not necessarily distinct)
+        ports p1 , p2 and for all values a, a0 , b, b0 , if (p1 , a, a0 )(p2 , b, b0 ) ∈ O then a = a0 and b0 ∈ {a, b}.
+
+           Suppose an (n, k)-DLSA object O has a finite sequential execution of operations S such
+        that, after S has been applied to O, a process proposing a to some port pi and another
+        process proposing b to some port pj can determine the order in which their propose operations
+        were executed. Then O can be used to solve 2-consensus as we now explain.
+
+        I Definition 24. Let O be an (n, k)-DLSA object. Let a, b be two (not necessarily distinct)
+        proposal values, let pi , pj be two (not necessarily distinct) ports, and let S ∈ O. Let a0 , a00 , b0
+        be the unique values such that:
+
+               S(pj , b, b0 )(pi , a, a0 ) ∈ O
+            
+
+               S(pi , a, a00 ) ∈ O
+
+                                                                                                  S
+             If a0 6= a00 , we say that (pi , a) notices (pj , b) after S, denoted (pi , a) −
+                                                                                            → (pj , b).
+                                                                                                           S
+             If a0 = a00 , we say that (pi , a) does not notice (pj , b) after S, denoted (pi , a) −
+                                                                                                   6 → (pj , b).
+F. de Azevedo Piovezan, V. Hadzilacos, and S. Toueg                                                          16:11
+
+
+    If S is the empty sequence, we simply say (pi , a) notices (pj , b), denoted (pi , a) → (pj , b),
+or (pi , a) does not notice (pj , b), denoted (pi , a) 6→ (pj , b).
+
+I Observation 25. Let O be an (n, k)-DLSA object. By Observation 23 and Definition 24, we
+have that for all (not necessarily distinct) ports pi , pj and for all distinct proposal values a, b:
+
+    (pi , a) → (pj , b) if and only if (pj , b, b)(pi , a, b) ∈ O
+    (pi , a) 6→ (pj , b) if and only if (pj , b, b)(pi , a, a) ∈ O
+
+I Definition 26. Let O be an (n, k)-DLSA object. We say that O is good if there exist
+a finite sequential execution S ∈ O, two proposal values a, b, and two distinct ports pi , pj
+                     S                         S
+such that (pi , a) −
+                   → (pj , b) and (pj , b) −
+                                           → (pi , a).
+
+I Lemma 27. Let O be an (n, k)-DLSA object. If O is good, then O can be used to solve
+2-consensus.
+
+Proof. Let O be a (n, k)-DLSA object and assume it is good. Since O is good, there exists
+a finite sequential execution S ∈ O two values a, b and two distinct ports pi , pj such that
+        S                              S
+(pi , a) −
+         → (pj , b) and (pj , b) −
+                                 → (pi , a).
+                                S
+                        →, it follows that there exist a0 , a00 , b0 , b00 such that a0 =
+   By the definition of −                                                               6 a00 , b0 6= b00
+and:
+
+    S(pi , a, a0 )(pj , b, b00 ) ∈ O                                                                 (8)
+               0           00
+    S(pj , b, b )(pi , a, a ) ∈ O                                                                    (9)
+
+    To solve 2-consensus, O is first initialized by applying S to it. Two processes, p and q,
+can now solve 2-consensus using this initialized O and two registers, Rp (written only by p)
+and Rq (written only by q), by executing the following algorithm. Recall that pi and pj are
+distinct, so the two processes apply their ProposeSA operations to different ports, ensuring
+that there are no concurrent operations applied to any port.
+
+
+    Propose(vp ) by process p                               Propose(vq ) by process q
+    1   Rp := vp                                            1   Rq := vq
+    2   ret := ProposeSA(a) on port pi of O                 2   ret := ProposeSA(b) on port pj of O
+    3   if ret = a0                                         3   if ret = b0
+    4         decide Rp                                     4         decide Rq
+    5   else // ret = a00                                   5   else // ret = b00
+    6         decide Rq                                     6         decide Rp
+     From the algorithm and (8), (9) it is clear that each process decides the value it reads
+from the register it writes if it is the first to execute a ProposeSA operation; otherwise, it
+decides the value it reads from the register written by the other process. Therefore agreement
+and validity hold provided that the process that reads the register written by the other
+process (in its Line 6) does so after the other process has written into that register (in its
+Line 1). To see that if process p reads register Rq , p does so after process q has written into
+Rq , note that process p reads Rq if and only if its ProposeSA operation does not return
+a0 . By (8) and (9), this means that q executed its ProposeSA operation (in Line 2) before
+p executes its ProposeSA operation; and therefore q writes into Rq (in its Line 1) before p
+reads Rq (in its Line 6). A similar argument applies to q.                                    J
+
+
+
+                                                                                                            OPODIS 2019
+16:12   On Deterministic Linearizable Set Agreement Objects
+
+
+           We will now prove that (4, 2)-DLSA objects that are not good have some other properties
+        that can also be exploited to solve 2-consensus.
+
+        I Lemma 28. Let O be a (4, 2)-DLSA object. If O is not good, the following holds. For all
+        distinct proposal values u, v, w and all ports pi , pj , pk such that pj 6= pk , if (pj , v) 6→ (pi , u)
+        then (pk , w) → (pi , u).
+
+        Proof. Let O be a (4, 2)-DLSA object and assume that it is not good. Suppose (pj , v) 6→ (pi , u).
+        By Observation 25, (pi , u, u)(pj , v, v) ∈ O. Furthermore, if w is proposed after that on port
+        pk , the response of this operation cannot be w, by the 2-agreement property (see the left
+        branch of the figure below). So (pi , u, u)(pj , v, v)(pk , w, 6=w) ∈ O.
+              Now assume, for contradiction, that (pk , w) 6→ (pi , u). Then, by Observation 25,
+        (pi , u, u)(pk , w, w) ∈ O. Furthermore, if v is proposed after that on port pj , the response of
+        this operation cannot be v, by the 2-agreement property (right branch of the figure below).
+        So (pi , u, u)(pk , w, w)(pj , v, 6=v) ∈ O.
+
+
+
+
+                                                                                                     S
+            Let S = (pi , u, u). Since S(pj , v, v) ∈ O and S(pk , w, w)(pj , v, 6=v) ∈ O, (pj , v) −
+                                                                                                    → (pk , w).
+                            S
+        Similarly, (pk , w) −
+                            → (pj , v), and so O is good, a contradiction.                                     J
+
+            We are now ready to prove the following theorem:
+
+        I Theorem 29. Every (4, 2)-DLSA object can be used to solve 2-consensus.
+
+        Proof. Let O be a (4, 2)-DLSA object, let p1 , p2 , p3 , p4 be distinct ports and let a, b, c, d
+        be distinct proposal values. Suppose, for contradiction, that O cannot be used to solve
+        2-consensus. By Lemma 27, O is not good.
+           Because O is not good, either (p2 , b) 6→ (p1 , a) or (p1 , a) 6→ (p2 , b). Without loss of
+        generality, assume that (p2 , b) 6→ (p1 , a) (*).
+        I Claim 29.1. All of the relationships among (p1 , a), (p2 , b), and (p3 , c) illustrated in the
+        diagram below hold:
+
+
+
+
+        Proof. We prove each of the relationships in turn:
+
+            (p2 , b) 6→ (p1 , a): this is (*).
+            (p3 , c) → (p1 , a): since (p2 , b) 6→ (p1 , a), Lemma 28 implies (p3 , c) → (p1 , a).
+            (p1 , a) 6→ (p3 , c): since O is not good and (p3 , c) → (p1 , a), we have (p1 , a) 6→ (p3 , c).
+            (p2 , b) → (p3 , c): since (p1 , a) 6→ (p3 , c), Lemma 28 implies (p2 , b) → (p3 , c).
+F. de Azevedo Piovezan, V. Hadzilacos, and S. Toueg                                                          16:13
+
+
+     (p3 , c) 6→ (p2 , b): since O is not good and (p2 , b) → (p3 , c), we have (p3 , c) 6→ (p2 , b).
+     (p1 , a) → (p2 , b): since (p3 , c) 6→ (p2 , b), Lemma 28 implies (p1 , a) → (p2 , b).             J
+     Now consider what happens to port p4 and value d:
+
+
+
+
+     (p4 , d) → (p2 , b): by Claim 29.1, (p3 , c) 6→ (p2 , b). Then, by Lemma 28, (p4 , d) → (p2 , b).
+     (p2 , b) 6→ (p4 , d): because (p4 , d) → (p2 , b) and because O is not good, it must be the case
+     that (p2 , b) 6→ (p4 , d).
+     (p1 , a) → (p4 , d): because (p2 , b) 6→ (p4 , d), by Lemma 28 it follows that (p1 , a) → (p4 , d).
+     (p4 , d) → (p1 , a): by Claim 29.1, (p2 , b) 6→ (p1 , a). Then, by Lemma 28, (p4 , d) → (p1 , a).
+   Since (p1 , a) → (p4 , d) and (p4 , d) → (p1 , a), O is good, a contradiction. Therefore O can
+be used to solve 2-consensus, as desired.                                                       J
+
+I Corollary 30. For all n ≥ 4, every (n, 2)-DLSA object can be used to solve 2-consensus.
+
+I Theorem 31. For all n ≥ 4, there is no (n, 2)-DLSA object that is equivalent to the
+(n, 2)-SA task.
+
+Proof. It is known that it is impossible to solve the 2-consensus task using an arbitrary
+solution to the (n, 2)-SA task (and registers) [1]. The theorem now follows immediately by
+Corollary 30.                                                                           J
+
+ 5      Existence of a deterministic (n, k)-SA object equivalent to the
+        (n, k)-SA task
+In this section we prove that for all n and k, there is a deterministic (n, k)-set agreement
+object OD that is equivalent to the (n, k)-set agreement task. This object is not linearizable,
+but its behaviour is deterministic when it is accessed sequentially (so concurrency is its only
+source of non-determinism).
+    Fix any (n, k)-SA object that is equivalent to the (n, k)-SA task. As we mentioned in
+the introduction, such objects exist [1, 6]; for concreteness we choose here the linearizable
+(n, k)-SA object OL defined in [4]. Since OL is equivalent to the (n, k)-SA task: (a) given
+OL , it is possible to solve the (n, k)-SA task, and (b) given any algorithm that solves the
+(n, k)-SA task (and registers), it is possible to implement OL . The simple algorithm of
+Figure 1 shows how to use OL and a shared register R (initialized to ⊥) to implement a
+deterministic (n, k)-set agreement object OD :
+    It is easy to see that OD behaves as follows:
+    When accessed sequentially, OD behaves deterministically: every ProposeSA operation
+    on OD returns the proposal value of the first ProposeSA operation on OD . In other
+    words, in sequential executions, OD behaves like a consensus object.
+    In all executions, OD respects validity and k-agreement.
+Thus, OD is indeed a deterministic (n, k)-set agreement object.
+
+
+
+                                                                                                            OPODIS 2019
+16:14   On Deterministic Linearizable Set Agreement Objects
+
+
+
+        ProposeSA(v) on port pi of OD
+        1 temp := R
+        2 if temp = ⊥
+        3      temp := ProposeSA(v) on port pi of OL
+        4      R := temp
+        5 decide temp
+
+
+             Figure 1 Implementation of OD using OL and registers.
+
+
+        I Theorem 32. For all n ≥ k ≥ 1, the deterministic (n, k)-SA object OD is equivalent to
+        the (n, k)-SA task.
+
+        Proof. Clearly OD can be used to solve the (n, k)-SA task. It remains to show that given any
+        algorithm An,k that solves the (n, k)-SA task (and registers), it is possible to implement OD .
+        Since OL is equivalent to the (n, k)-SA task, it can be implemented using An,k (and registers).
+        Plugging this implementation of OL in the algorithm of Figure 1, gives an implementation of
+        OD that uses An,k (and registers).                                                          J
+
+            Note that for k ≥ 2, the deterministic object OD is not linearizable, even though the
+        object OL is: a concurrent execution of two ProposeSA operations on OD with different
+        proposal values may result in each operation returning its own proposal, but this behaviour
+        is not possible in any sequential execution of these operations on OD .
+
+
+         6      Remark on object initialization
+        To obtain our results, we gave several algorithms that solve 2-consensus using (a single copy
+        of) some (n, k)-DLSA object O that was initialized by applying some sequence of operations.
+        The reader may ask whether these results still apply if algorithms solving 2-consensus are
+        required to use only uninitialized copies of O. The answer is yes. This is because, by a result
+        of [2], the ability to solve 2-consensus using an object does not depend on whether this object
+        can be initialized to a specific state or not.
+
+
+         7      Conclusion and open problems
+        In this paper, we proved that for all n ≥ 4 there is no deterministic and linearizable (n, 2)-set
+        agreement object that is equivalent to the (n, 2)-set agreement task, and this is because
+        any such object can be used to solve 2-consensus. We conjecture that for all n > k > 2
+        there is no deterministic linearizable (n, k)-set agreement object that is equivalent to the
+        (n, k)-set agreement task, and this is because any such object can be used to solve some
+        (n0 , k 0 )-set agreement task that is strictly stronger than the (n, k)-set agreement task according
+        to the partial order of set agreement tasks shown by Chaudhuri and Reiners [6]. The techniques
+        we used in this paper to prove Theorems 19 and 29, however, do not seem appropriate to
+        approach this conjecture: As n and k increase, the number of sequential behaviours for the
+        first k accesses of an (n, k)-DLSA object increases exponentially with k, and this would be
+        overwhelming for k ≥ 3.
+             We also proved that there is no oblivious deterministic and linearizable (3, 2)-set agreement
+        object that is equivalent to the (3, 2)-set agreement task; the case of (not necessarily oblivious)
+        (3, 2)-set agreement objects is still open.
+F. de Azevedo Piovezan, V. Hadzilacos, and S. Toueg                                                   16:15
+
+
+     References
+ 1   Elizabeth Borowsky and Eli Gafni. The implication of the Borowsky-Gafni simulation on the
+     set-consensus hierarchy. CSD (Series). UCLA Computer Science Department, 1993. URL:
+     https://books.google.ca/books?id=gpNeGwAACAAJ.
+ 2   Elizabeth Borowsky, Eli Gafni, and Yehuda Afek. Consensus Power Makes (Some) Sense!
+     (Extended Abstract). In Proceedings of the Thirteenth Annual ACM Symposium on Principles
+     of Distributed Computing, PODC ’94, pages 363–372, New York, NY, USA, 1994. ACM.
+     doi:10.1145/197917.198126.
+ 3   Armando Castañeda, Michel Raynal, and Sergio Rajsbaum. Specifying Concurrent Problems:
+     Beyond Linearizability. CoRR, abs/1507.00073, 2015. arXiv:1507.00073.
+ 4   David Yu Cheng Chan, Vassos Hadzilacos, and Sam Toueg. On the Number of Objects with
+     Distinct Power and the Linearizability of Set Agreement Objects. In Andréa W. Richa, editor,
+     31st International Symposium on Distributed Computing (DISC 2017), volume 91 of Leibniz
+     International Proceedings in Informatics (LIPIcs), pages 12:1–12:14, Dagstuhl, Germany, 2017.
+     Schloss Dagstuhl–Leibniz-Zentrum fuer Informatik. doi:10.4230/LIPIcs.DISC.2017.12.
+ 5   Soma Chaudhuri. More Choices Allow More Faults: Set Consensus Problems in Totally
+     Asynchronous Systems. Inf. Comput., 105(1):132–158, July 1993. doi:10.1006/inco.1993.
+     1043.
+ 6   Soma Chaudhuri and Paul Reiners. Understanding the Set Consensus Partial Order Using the
+     Borowsky-Gafni Simulation (Extended Abstract). In Proceedings of the 10th International
+     Workshop on Distributed Algorithms, WDAG ’96, pages 362–379, London, UK, UK, 1996.
+     Springer-Verlag. URL: http://dl.acm.org/citation.cfm?id=645953.675630.
+ 7   Maurice Herlihy and Nir Shavit. The Topological Structure of Asynchronous Computability.
+     J. ACM, 46(6):858–923, November 1999. doi:10.1145/331524.331529.
+ 8   Maurice Herlihy and Jeannette Wing. Linearizability: A Correctness Condition for Concurrent
+     Objects. ACM Trans. Program. Lang. Syst., 12(3):463–492, July 1990. doi:10.1145/78969.
+     78972.
+ 9   Gil Neiger. Set-Linearizability. In Proceedings of the Thirteenth Annual ACM Symposium
+     on Principles of Distributed Computing, PODC ’94, pages 396–, New York, NY, USA, 1994.
+     ACM. doi:10.1145/197917.198176.
+10   Michael Saks and Fotios Zaharoglou. Wait-free K-set Agreement is Impossible: The Topology
+     of Public Knowledge. In Proceedings of the Twenty-fifth Annual ACM Symposium on Theory
+     of Computing, STOC ’93, pages 101–110, New York, NY, USA, 1993. ACM. doi:10.1145/
+     167088.167122.
+
+
+
+
+                                                                                                     OPODIS 2019
+

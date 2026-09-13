@@ -1,0 +1,992 @@
+Datalog with Negation and Monotonicity
+Bas Ketsman1
+École Polytechnique Fédérale de Lausanne (EPFL), Switzerland
+
+Christoph Koch
+École Polytechnique Fédérale de Lausanne (EPFL), Switzerland
+christoph.koch@epfl.ch
+
+        Abstract
+Positive Datalog has several nice properties that are lost when the language is extended with negation.
+One example is that fixpoints of positive Datalog programs are robust w.r.t. the order in which facts
+are inserted, which facilitates efficient evaluation of such programs in distributed environments. A
+natural question to ask, given a (stratified) Datalog program with negation, is whether an equivalent
+positive Datalog program exists.
+    In this context, it is known that positive Datalog can express only a strict subset of the monotone
+queries, yet the exact relationship between the positive and monotone fragments of semi-positive and
+stratified Datalog was previously left open. In this paper, we complete the picture by showing that
+monotone queries expressible in semi-positive Datalog exist which are not expressible in positive
+Datalog. To provide additional insight into this gap, we also characterize a large class of semi-positive
+Datalog programs for which the dichotomy ‘monotone if and only if rewritable to positive Datalog’
+holds. Finally, we give best-effort techniques to reduce the amount of negation that is exhibited by
+a program, even if the program is not monotone.
+
+2012 ACM Subject Classification Information systems → Relational database query languages;
+Theory of computation → Constraint and logic programming
+
+Keywords and phrases Datalog, Monotonicity
+
+Digital Object Identifier 10.4230/LIPIcs.ICDT.2020.19
+
+
+    1    Introduction
+
+Within classical model theory, several results exist that equate syntactic with semantic
+restrictions of first-order logic (FOL). One example is the homomorphism preservation
+theorem [22], which states that the fragment of FOL that is preserved under homomorphisms
+has the same expressive power as the set of existential positive FOL formulas. Analogously,
+Lyndon’s preservation theorem states that the fragment preserved under surjective homo-
+morphisms equals the set of positive FOL formulas. (Recall that query q is preserved under
+homomorphisms if, for all instances I, J and mappings h, h(I) ⊆ J implies h(q(I)) ⊆ q(J).)
+    For finite structures, which are the central interest in database theory, it is well-known
+that most of such equalities fail. For example, for Lyndon’s theorem this was shown in the
+80’s by Ajtai and Gurevich [4] (and by Stolboushkin [25], using a simplified counterexample).
+One of the only exceptions is the homomorphism theorem, which Rossman [22] proved to
+hold in the finite as well. A similar result exists in the context of Datalog. Here, Feder and
+Vardi [12] showed that the fragment of semi-positive Datalog (in which negation is allowed
+only over extensional atoms) preserved under homomorphisms has the same expressive power
+as the positive fragment of Datalog. That the latter result does not transfer to general
+fixpoint logics was shown by Dawar and Kreutzer [10].
+
+
+1
+    Currently at Vrije Universiteit Brussel, Brussels, Belgium
+            © Bas Ketsman and Christoph Koch;
+            licensed under Creative Commons License CC-BY
+23rd International Conference on Database Theory (ICDT 2020).
+Editors: Carsten Lutz and Jean Christoph Jung; Article No. 19; pp. 19:1–19:18
+                   Leibniz International Proceedings in Informatics
+                   Schloss Dagstuhl – Leibniz-Zentrum für Informatik, Dagstuhl Publishing, Germany
+19:2   Datalog with Negation and Monotonicity
+
+
+                                                           Sp-Datalog(6=)
+
+         M
+                                                              Negation
+                            Sp-Datalog(6=) ∩ M                bounded                    Sp-Datalog
+                                                              Datalog
+
+                                     Pos-Datalog(6=)
+
+                                                            Pos-Datalog
+                                      H                 = Sp-Datalog(6=)∩H
+                                                        = Sp-Datalog ∩ M
+
+
+          Figure 1 Schematic overview of the different fragments of semi-positive Datalog that we consider
+       and the relationship between their expressive power and the classes of homomorphically closed
+       queries (denoted H) and monotone queries (denoted M). Here, arrows mean subsumption.
+
+
+           In this paper, we study the relationship between the positive and the monotone fragment
+       of stratified Datalog (which allows negation in a stratified fashion) and semi-positive Datalog
+       (which allows negation over existential predicates only; thus consisting of the single stratum
+       programs). Their positive fragment is the fragment in which all forms of negation are
+       forbidden. Their monotone fragment is the subclass of programs expressing a monotone
+       query q; thus with I ⊆ J implying q(I) ⊆ q(J) for all instances I and J. It is known that
+       positive Datalog can only express monotone queries [3, 5, 18], and that some polynomial time
+       computable monotone queries are not expressible in positive Datalog [3, 10]. To the best of
+       our knowledge it remained open whether such queries exist that are themselves expressible
+       in stratified Datalog.
+           Our first set of contributions addresses this gap and proves the relationships that were
+       previously left open:
+
+       (a) The monotone fragment of stratified Datalog without inequalities is strictly more express-
+           ive than positive Datalog, even when restricted to two-stratum programs. (Theorem 7.2)
+       (b) The monotone fragment of stratified Datalog with inequalities is strictly more expressive
+           than positive Datalog, even when restricted to single-stratum programs. (Theorem 4.1)
+       (c) The monotone fragment of semi-positive Datalog without inequalities is equally expressive
+           as positive Datalog without inequalities. (Theorem 5.1)
+
+          Motivated by contributions (a) and (b), we explore further the expressivity gap between
+       the monotone fragment of semi-positive Datalog and positive Datalog:
+
+       (d) Based on the notion conflict-freedom, we identify a large fragment of semi-positive Datalog,
+           called negation-bounded Datalog, for which the two restrictions coincide. (Theorem 6.2)
+           We show that deciding conflict freedom is exp-complete, respectively, conp-complete if a
+           bound is assumed on the arities of relations. (Theorem 3.13)
+       Our motivation to study the monotone fragment and the positive fragment of Datalog with
+       negation is driven by an underlying interest in the declarative networking paradigm [1, 19],
+       which is concerned with the design of network programs in extensions of Datalog. In this
+       setting, it is folklore knowledge that positive Datalog programs can be computed efficiently
+       via asynchronous pipelined joins [19, 16], because Datalog rules without negation can fire
+       independently of each other, without a need for synchronisation. This is in stark contrast to
+       the case where rules have negated atoms, as then a round of consensus is needed to reach
+B. Ketsman and C. Koch                                                                                 19:3
+
+
+agreement on the absence of facts. A model-theoretic explanation for this observation is that
+fixpoints of positive Datalog programs are robust w.r.t. the order in which facts are inserted.
+Monotonicity on the other hand is recognized as the facilitating property for this observation
+and as theoretical upper-bound on what can be computed efficiently [6, 16, 17, 28]. Not
+surprisingly, the terms positive and monotone are often mentioned in the same breath.
+    Our contributions (a-b) shows that the terms positive and monotone do not always
+interchange, even in the context of a language as simple as semi-positive Datalog.
+    We note that avoiding negation completely is usually not desirable, as this puts a significant
+limitation on the type of programs that can be formulated. Nevertheless, it is common in
+practice to strive for both goals: To find an optimal rewrite for a program (i.e., equivalent
+with less exposure to negation) as well as to give up robustness in favour of computational
+properties (i.e., less exposure to negation at the cost of some expressive power). A real-world
+example of the latter is the choice of the 2-phase commit (2PC) protocol to support atomicity
+of distributed transactions: While it is well-known that 2PC blocks under certain types
+of failures, it is usually favoured over more robust alternatives, because their robustness
+comes at the cost of additional rounds of consensus, and thus higher latency [14, 15]. When
+formulated in a logical language, consensus is recognisable as universal quantification, which
+in Datalog-like languages is encoded through negation.
+    In non-distributed contexts a similar trade-off exists, which is in terms of the number of
+strata that the program admits. Indeed, while there are several well-known optimization
+techniques to evaluate single-stratum programs, like semi-naive evaluation and magic-set
+optimization, traditional Datalog engines evaluate the strata of a stratified Datalog program
+one after another and thus benefit from techniques that reduce the number of strata.
+    Our final contribution elaborates on this by addressing the negation elimination problem:
+(e) We describe how the exposure to negation in stratified Datalog programs can be reduced
+    even if the program is not monotone. Together, these techniques form a best effort
+    procedure to remove negated atoms from programs, which we show to run with exponential
+    space (respectively polynomial space if a bound on the arity of relations is assumed).
+    (Theorem 8.5) Given that almost all properties for Datalog are undecidable, this is
+    essentially the best one can hope for.
+
+
+Outline
+In Section 2, we give the essential definitions that are used throughout the paper. Section 3
+covers the concept of conflict-free proof trees, which is central in several of our results. In
+Section 4, we show that the monotone fragment of semi-positive Datalog is not expressible
+in positive Datalog. In Section 5 and Section 6, we give positive results on this equality for
+when no inequalities occur in the considered programs, or when a bound exists on the number
+of negated facts that can occur in proof trees of a program. Finally, in Section 7, we describe
+best-effort techniques that can be used to remove negation from programs independent of
+whether these programs are monotone.
+
+
+ 2     Preliminaries
+
+In this section, we give an overview of the necessary concepts and definitions that are used
+throughout the paper.
+    For positive integers n, henceforth we abbreviate the set {1, . . . , n} by [n].
+
+
+
+                                                                                                     ICDT 2020
+19:4   Datalog with Negation and Monotonicity
+
+
+       2.1     Schemas and Instances
+       As usual, a (database) schema σ is a set of relation names R with associated arities arity(R).
+       We often write R(r) ∈ σ, as abbreviation for R ∈ σ with arity(R) = r.
+           Throughout the paper, we assume the existence of an infinite domain dom of data values.
+       Given schema σ, a fact f over σ is then defined as a tuple f := R(t), with R(r) ∈ σ and
+       t ∈ domr . By Facts(σ) we denote the infinite set consisting of all facts over σ. A (database)
+       instance I over σ is a finite subset of Facts(σ).
+
+       2.2     Queries
+       A query q is a mapping from instances over some database schema σ1 to instances over
+       another database schema σ2 . We call σ1 the input schema and σ2 the output schema of q.
+       As usual, we assume queries to be generic, which means that π(q(I)) = q(π(I)), for every
+       permutation π of dom.
+           For two instances I and J over σ1 , we call a mapping h a homomorphism from I
+       to J, if h(I) ⊆ J. We say that query q is preserved under homomorphisms (also called
+       strongly monotone [3]) if for every homomorphism h from some instance I to instance J,
+       h(q(I)) ⊆ q(J). We say that q is monotone if I ⊆ J implies q(I) ⊆ q(J), for every pair of
+       instances I and J, Henceforth, we denote the class of all queries that are preserved under
+       homomorphisms by H and the class of all monotone queries by M.
+           A query q is contained in a query q 0 , denoted q ⊆ q 0 , if q(I) ⊆ q 0 (I) for every instance I.
+
+       2.3     Datalog with Negation
+       We define semi-positive Datalog. For this, let var be an infinite domain of variables, disjoint
+       from dom, and let σ be a schema. An atom R(x) over σ consists of a relation name R(r) ∈ σ
+       and a tuple x from varr . We do not allow constants in atoms. For a set U of atoms, we
+       write Vars(U ) to denote the set of all variables used by the atoms in U .
+          A Datalog rule τ over σ has the following form:
+
+           H(y) ← R1 (x1 ), . . . , R` (xk ), ¬S1 (z1 ), . . . , ¬Sm (zm ), β1 , . . . , βn .
+
+       Here, for every i ∈ [`] and j ∈ [m], H(y), Ri (xi ) and Sj (zj ) are atoms over σ, and, for
+       every k ∈ [n], βi is an inequality of the form x 6= y, with {x, y} ⊆ var. Henceforth, we
+       also refer to H(y) by headτ (the head of τ ); to {Ri (xi ) | i ∈ [`]} by Posτ (the positive body
+       atoms in τ ); to {Si (zi ) | i ∈ [m]} by Negτ (the negated body atoms in τ ); and finally to
+       {β1 , . . . , βn } by Ineqτ (the inequalities in τ ). As usual, we only consider safe rules, thus with
+       Vars(Negτ ∪ Ineqτ ∪ {headτ }) ⊆ Vars(Posτ ).
+           For a schema σ, a Semi-positive Datalog program P over σ is a set of Datalog rules P .
+       As usual, we call relation names from σ that occur in the head of a rule in P intensional
+       and all others extensional. For rules τ in P , the set Negτ must contain only atoms with
+       extensional relation names. By Sp-Datalog(6=) we denote the class of all semi-positive
+       Datalog programs. We also consider the following subclasses: Sp-Datalog (semi-positive
+       Datalog without inequalities) denotes the programs in which Ineqτ is empty for every rule τ ;
+       Pos-Datalog(6=) (positive Datalog) denotes the programs in which Negτ is empty for every
+       rule τ ; and Pos-Datalog (Positive Datalog without inequalities) denotes the intersection of
+       the latter two, thus in which Ineqτ and Negτ are empty for every rule τ .
+           Since we are interested in Datalog programs that express queries, we assume that the
+       schema σ that a Datalog program P is defined over has distinguished input and output
+B. Ketsman and C. Koch                                                                                 19:5
+
+
+relation names. We denote these by in(P ) ⊆ σ and out(P ) ⊆ σ, respectively. When not
+explicitly mentioned, we assume that in(P ) coincides with the extensional relation names in
+P and that out(P ) = {Output(k) }, for some integer k ≥ 0.
+I Example 2.1. As a running example throughout this paper, we consider semi-positive Data-
+log program P∆ . This program is defined over schema σ := {Edge(2) , T1(2) , T2(2) , Output(2) },
+with in(P∆ ) = {Edge} and out(P∆ ) = {Output}, and has the following rules:
+
+        T1(x, y) ← Edge(x, y), Edge(y, z), ¬Edge(z, x).                                       (1)
+        T2(x, y) ← Edge(x, y), ¬Edge(y, z), Edge(z, x).                                       (2)
+   Output(x, y) ← Edge(x, y), Edge(y, z), Edge(z, x).                                         (3)
+   Output(x, y) ← T1(x, y), T2(x, y), x 6= y.                                                 (4)
+
+Intuitively, P∆ expects a directed graph as input and asks for edges (a, b) for which one
+of the following properties is true: (a, b) is part of a triangle; or (a, b) is part of two open
+triangles, one in which the edge to a is missing, the other in which the edge from b is missing.
+We will later show (in Proposition 3.12) that P∆ is of particular interest because it expresses
+a monotone query.
+
+2.4    Proof Tree Semantics
+The semantics of Datalog is usually defined bottom-up, in terms of an immediate consequence
+operator. We use the equivalent top-down definition via proof trees. (We refer to [2] for a
+detailed discussion on their equivalence.) For a formal definition, we first define a prevaluation
+v for a Datalog rule τ as a mapping from the variables occurring in τ to values from dom. A
+prevaluation v for τ is a valuation for τ if each inequality x 6= y ∈ Ineqτ admits v(x) 6= v(y).
+Before defining the concept proof tree, we first define a slightly weaker concept, which we
+call a candidate proof tree:
+I Definition 2.2. Given a fact f , instance I and program P ∈ Sp-Datalog(6=), a candidate
+proof tree T of f from I and P is a labeled tree with the following properties:
+1. Each vertex is labeled with a fact;
+2. Each leaf is labeled with a fact g over an extensional relation name, and with either sign
+   ‘+’, if g ∈ I, or ‘-’, if g 6∈ I.
+3. The root is labeled with f ;
+4. Each intermediary vertex is associated with a rule τ ∈ P and prevaluation v for τ , such
+    that its label equals v(headτ ), and for each atom A ∈ Bodyτ it has a child whose label
+    equals v(A). If A has an extensional relation name this child must have a sign that equals
+   ‘+’ if A ∈ Posτ and ‘-’ if A ∈ Negτ .
+   Unless stated otherwise, we assume throughout the paper that the root of a candidate
+proof tree is always labeled with a fact from an output relation. Further, we denote by
+Fringe+
+      T the set of all extensional facts that occur as labels for leafs in T with sign ‘+’, and
+by Fringe−
+         T the set of extensional facts for leafs with sign ‘−’.
+
+I Definition 2.3. A proof tree T of f from I and P ∈ Sp-Datalog(6=) is a candidate proof
+tree of f from I and P in which all prevaluations are valuations (for the respective rule),
+                        −
+Fringe+T ⊆ I, and FringeT ∩ I = ∅.
+
+We sometimes refer to a (candidate) proof tree T from program P without specifying a fact
+or instance. In that case, we assume that T is a (candidate) proof tree of the fact that its
+root is labeled with, and that it is a proof tree from some instance I and P .
+
+
+
+                                                                                                     ICDT 2020
+19:6   Datalog with Negation and Monotonicity
+
+
+          Every semi-positive Datalog program P expresses a unique query qP : in(P ) 7→ out(P )
+       that is defined by P and its distinguished input and output relation names. Its evaluation
+       over instances I ⊆ Facts(in(P )), denoted by qP (I), is defined by the set of all facts f ∈
+       Facts(out(P )) for which a proof tree of f from I and P exists. Henceforth, we say that two
+       programs P1 and P2 having the same input and output relation names are equivalent if they
+       express the same query, thus with qP1 (I) = qP2 (I) for every instance I ⊆ Facts(in(P1 )). For
+       every class of Datalog programs we consider also the class of queries that are expressed
+       by these programs. To distinguish between the two, the latter are always in boldface.
+       For example, Sp-Datalog(6=) refers to the class of queries expressible with Sp-Datalog(6=)
+       programs.
+
+        3      Conflicts
+       In this section, we introduce the main machinery that we use to reason about the relationship
+       between proof trees from different programs. We start with two simple constructions. Given
+       a semi-positive Datalog program P , P + denotes the program in Pos-Datalog(6=) obtained
+       by removing all negated atoms from rules in P ; P ∗ denotes the program in Pos-Datalog
+       obtained by removing, in addition to the negated atoms, also all inequalities from rules
+       in P + . We leave the schema definitions untouched, thus in(P ) = in(P + ) = in(P ∗ ), and
+       out(P ) = out(P + ) = out(P ∗ ).
+
+       I Example 3.1. For an example of the constructions, take program P∆ from Example 2.1.
+              +
+       Then, P∆ contains the following rules:
+
+                T1(x, y) ← Edge(x, y), Edge(y, z).
+                T2(x, y) ← Edge(x, y), Edge(z, x).
+            Output(x, y) ← Edge(x, y), Edge(y, z), Edge(z, x).
+            Output(x, y) ← T1(x, y), T2(x, y), x 6= y.
+                ∗
+       Program P∆ has the next rules:
+
+                T1(x, y) ← Edge(x, y), Edge(y, z).
+                T2(x, y) ← Edge(x, y), Edge(z, x).
+            Output(x, y) ← Edge(x, y), Edge(y, z), Edge(z, x).
+            Output(x, y) ← T1(x, y), T2(x, y).
+
+           Both constructions result in well-defined Datalog programs. Particularly notice that
+       the constructions preserve safeness of the programs by only removing negated atoms and
+       inequalities, whose variables all occur also in non-negated atoms (due to safeness of the
+       original program P ).
+           We conclude this section with the following observation:
+
+       I Proposition 3.2. Let σ be a database schema and P a semi-positive Datalog program over
+       σ. Then, qP ⊆ qP + ⊆ qP ∗ .
+
+       3.1     Fringe and Inequality Conflicts
+       To reason about the other direction of the containments in Proposition 3.2 (that is, qP ∗ ⊆ qP
+       and qP + ⊆ qP ), we need to reason about subtle differences in the proof trees that these
+       programs admit. For this purpose, our distinction between proof trees and candidate proof
+B. Ketsman and C. Koch                                                                                19:7
+
+
+trees comes in handy. First, recall that every proof tree T from an instance I and program
+P ∈ Sp-Datalog(6=) is a candidate proof tree from I and P (by definition). The opposite
+direction is not true, because a candidate proof tree T may admit
+                                                                           −
+    fringe conflicts, a term we use to refer to facts in Fringe+
+                                                               T ∩ FringeT ; and
+    inequality conflicts, a term we use to refer to inequalities in rules (associated to vertices
+    of T ) that are not made true by the associated prevaluation.
+
+I Example 3.3. For an example of a proof tree with fringe conflicts, consider the proof tree
+for program P∆ from Example 2.1 that is given below.
+
+                                                          (Edge(c, a), −)
+                                        (T1(a, b))        (Edge(b, c), +)
+                                                          (Edge(a, b), +)
+                       (Output(a, b))
+                                                          (Edge(a, b), +)
+                                        (T2(a, b))        (Edge(b, c), −)
+                                                          (Edge(c, a), +)
+
+   The following relationship applies:
+
+I Proposition 3.4. A candidate proof tree T from semi-positive Datalog program P is a
+proof tree from P if and only if T is free of fringe and inequality conflicts.
+
+3.2    Expansion Trees
+A special type of candidate proof tree is the (unfolding) expansion tree [9], which we generalize
+here for semi-positive Datalog:
+
+I Definition 3.5. An expansion tree is a candidate proof tree T in which every intermediate
+vertex n (including the root) is associated with a rule τ and prevaluation V , such that V
+maps every pair of different variables not occurring in headτ onto different values that all
+occur only in the subtree of T with n as root.
+
+    While a candidate proof tree for a semi-positive Datalog program is not necessarily an
+expansion tree, it always is the homomorphic image of an expansion tree. Henceforth we use
+the following naming conventions: We denote expansion trees by Te . For a mapping g over
+dom and candidate proof tree T , g(T ) denotes the candidate tree obtained by substituting
+all facts f occurring as labels in T and all valuations v associated to vertices in T by their
+respective images g(f ) and g ◦ v under g.
+
+I Proposition 3.6. Let P ∈ Sp-Datalog(6=). For every candidate proof tree T from P , there
+is an expansion tree Te and mapping g such that g(Te ) = T . Moreover, if T is free of fringe
+and inequality conflicts, then Te is free of fringe and inequality conflicts.
+
+I Example 3.7. The below tree is an example expansion tree for P∆ .
+
+                                                         (Edge(c, a), −)
+                                        (T1(a, b))       (Edge(b, c), +)
+                                                         (Edge(a, b), +)
+                       (Output(a, b))
+                                                         (Edge(a, b), +)
+                                        (T2(a, b))       (Edge(b, d), −)
+                                                         (Edge(d, a), +)
+
+
+
+
+                                                                                                    ICDT 2020
+19:8   Datalog with Negation and Monotonicity
+
+
+       3.3    Conflicts and Monotonicity
+       In the remainder of this section, we show the relevance of conflicts in the relationship between
+       monotone and positive programs. First, we distinguish two categories of programs depending
+       on which conflicts their candidate proof trees admit.
+       I Definition 3.8. Let P ∈ Sp-Datalog(6=). Program P is conflict-free if each candidate proof
+       tree from P without inequality conflicts is without fringe conflicts. Program P is free of
+       explicit conflicts if each expansion tree from P is without fringe and inequality conflicts.
+           The intuition behind the term explicit conflict is that expansion trees are less diverged
+       from the rules of the program than arbitrary candidate proof trees are, and that conflicts in
+       expansion trees therefore can be observed more easily than fringe conflicts by looking at the
+       wiring of variables throughout rules in the program.
+       I Proposition 3.9. For P ∈ Sp-Datalog(6=) we have the following equivalences:
+       1. qP = qP ∗ if qP ∈ H and P is free of explicit conflicts;
+       2. qP = qP + if qP ∈ M and P is conflict-free.
+       Proof. Since qP ⊆ qP ∗ and qP ⊆ qP + follow from Proposition 3.2, we need to show only
+       qP ∗ ⊆ qP and qP + ⊆ qP .
+       (1) Let I be an arbitrary instance and f an arbitrary fact in qP ∗ (I). Let T ∗ denote the proof
+       tree of f from I and P ∗ . We show f ∈ qP (I).
+           By Proposition 3.6, there exists an expansion tree Te∗ for P ∗ that is without fringe and
+       inequality conflicts and a mapping g, with g(Te∗ ) = T ∗ . It follows from the construction of
+       P ∗ that Te∗ can be extended to an expansion tree Te from P : For vertices n, let τn∗ and Vn
+       denote its associated rule and valuation. Then let Te be the candidate proof tree obtained
+       from Te∗ by replacing, for each vertex n, its rule τn∗ by a rule τ from P with Posτ = Posτ ∗ ;
+       and by adding, for every fact g in Vn (Negτ ), a leaf under n with label g and sign ‘−’. Note
+       that rules τ exist by definition of P ∗ and that Te is an expansion tree because rules in P are
+       safe and Te∗ is an expansion tree. Furthermore, rootTe = rootTe∗ and Fringe+                +
+                                                                                        Te = FringeTe∗ .
+           It follows from the assumption that P is without explicit conflicts that Te is free of
+       fringe and inequality conflicts, thus with rootTe ∈ qP (Fringe+     Te ), and from qP ∈ H and
+       homomorphism g with g(Fringe+     Te ) = I, that f = g(rootTe∗ ) = g(rootTe ) ∈ qP (I).
+       (2) Let I be an arbitrary instance over in(P ), and f an arbitrary fact in qP + (I).
+           To show f ∈ qP (I), we observe that the presence of f in qP + (I) implies the existence
+       of a proof tree T + for P + with root f and Fringe+     T + ⊆ I. By Proposition 3.6, there is an
+       expansion tree Te+ for P + that is without fringe and inequality conflicts; and a mapping g,
+       with g(Te+ ) = T . We observe that Te+ can be extended to an expansion tree Te for P by
+       adding ‘−’ signed leafs. Indeed, for every intermediate vertex n in Te+ , say with label f n
+       and associated rule τn and valuation vn , there is a rule τ ∈ P that differs from τn only w.r.t.
+       the set of negated atoms (by construction of P + ). Due to safeness of rules, negated atoms
+       do not introduce new variables that are not already in τn , hence, for every A ∈ Negτ we just
+       add a new leaf under vertex n with label vn (A) and sign ‘−’.
+           Another consequence of the safeness of rules is that g is a total mapping for Te . Moreover,
+       since P is free of fringe conflicts, and g(Te ) is a correctly defined candidate proof tree, it
+       must be that g(Te ) is free of fringe conflicts. Since all inequalities in Te already exist in Te+ ,
+       the fact that g(Te+ ) is free of inequality conflicts transfers to g(Te ).
+           As a consequence, T := g(Te ) is a proof tree for f from P , with Fringe+                  +
+                                                                                          T = FringeT + ,
+                   +           −                                +
+       and FringeT ∩ FringeT = ∅, thus f ∈ qP (FringeT ). We conclude from qP ∈ M and
+       Fringe+           +
+             T = FringeT + ⊆ I that f ∈ qP (I).                                                         J
+B. Ketsman and C. Koch                                                                                 19:9
+
+
+    Proposition 3.9(1) reveals a relation that was also observed by Feder and Vardi [12], albeit
+less explicit, to show the following result:
+I Theorem 3.10 ([12]). Sp-Datalog(6=) ∩ H = Pos-Datalog.
+   More precisely, the construction in [12] implies the next proposition, which together with
+Proposition 3.9 is a proof for Theorem 3.10.
+I Proposition 3.11. For every program P ∈ Sp-Datalog(6=) there is a program P 0 ∈
+Sp-Datalog(6=) that is free of explicit conflicts and with qP = qP 0 .
+   For an example of a program that is monotone but not conflict-free, one can take program
+P∆ from Example 2.1.
+I Proposition 3.12. Program P∆ expresses a monotone query and is not conflict-free.
+   Since each program in Pos-Datalog(6=) is conflict-free by definition, it is immediate that
+a query q ∈ Sp-Datalog(6=) ∩ M is in Pos-Datalog(6=) if and only if it can be expressed
+by a program in Sp-Datalog(6=) that is conflict-free. We conclude this section by showing
+that conflict freedom is a decidable property.
+I Theorem 3.13. The problem of deciding whether a given program in Sp-Datalog(6=) is
+conflict-free is polynomial-time equivalent with the non-satisfiability problem for programs in
+Pos-Datalog(6=):
+   exp-complete in general; and
+   conp-complete if a bound on the arity of relations is assumed.
+
+ 4     Semi-Positive Datalog
+In this section, we answer one of the central questions of the paper and show that not all
+monotone queries expressible in semi-positive Datalog have an equivalent in positive Datalog.
+I Theorem 4.1. Sp-Datalog(6=) ∩ M 6⊆ Pos-Datalog(6=).
+   The proof for Theorem 4.1 is similar to a recent proof by Rudolph and Thomazo [23],
+which shows that the homomorphically closed queries expressible in order-invariant semi-
+positive Datalog do not all have an equivalent in order-invariant Datalog without negation
+(and without inequality). Before proceeding with the details, we first give a definition of
+order-invariant Datalog.
+
+4.1    Order-Invariant Semi-Positive Datalog
+Let σ be a database schema and σ≤ the extension of σ with relation names Succ(2) , Min(1) ,
+and Max(1) . (We assume of course that Succ, Min and Max do not already occur in σ.)
+Then for an instance I over σ, by I≤ we denote the extension of I over σ≤ in which Succ is
+interpreted as the successor relation of some linear order over the active domain of I, and in
+which Min and Max are interpreted to contain exactly the minimal, respectively maximal,
+value that occurs in I according to the assumed linear order.
+    An order-invariant Sp-Datalog(6=) program P over schema σ then is defined as an
+Sp-Datalog(6=) program, say P 0 , over schema σ≤ , whose output is independent of the chosen
+                                           0
+linear order. That is, qP 0 (I≤ ) = qP 0 (I≤ ), for every instance I over σ and pair of extensions
+          0
+I≤ and I≤ of I. Due to the latter, the semantics of qP itself can be defined in terms of
+instances I over σ, as qP (I) := qP (I≤ ) for arbitrary extension I≤ of I. Henceforth, we refer
+by Sp-Datalog(≤, 6=) to the class of order-invariant Sp-Datalog(6=) programs.
+
+
+
+                                                                                                     ICDT 2020
+19:10   Datalog with Negation and Monotonicity
+
+
+        4.2     The perfect Matching Problem over Ordered Graphs
+        The query qP M that we use to show Sp-Datalog(6=) ∩ M ( Pos-Datalog(6=) expresses a
+        variant of the perfect matching problem. Given a graph G = (V, E), the perfect matching
+        problem asks whether a subset M ⊆ E of edges exists such that every vertex in V is
+        incident to exactly one edge in M . For the definition of qP M , consider schemas σ1 :=
+        {Edge(2) , Next(2) , First(1) , Last(1) } and σ2 := {Output(0) }. Given an instance I over σ1 , we
+        denote by Ge the graph obtained by interpreting relation Edge as edge relation and its set
+        of end-points as vertices. Graph Gn is defined analogously, by interpreting relation Next as
+        edge relation and its set of end-points as vertices. We say that a vertex has label first if its
+        associated value is in relation First and that it has label last if its value is in relation Last.
+
+        I Definition 4.2 (Separating Query). Let qP M be the boolean query over input schema σ1
+        and output schema σ2 , and with Output() ∈ qP M (I) if (and only if) one of the following
+        conditions is true:
+         1. At least two different vertices have label first or last;
+         2. Some vertex in Gn has either label first and an incoming edge, label last and an
+            outgoing edge, two incoming edges, two outgoing edges, or a self-loop; or
+         3. For set C, defined as the vertices in connected components of Ge that connect a vertex
+            with label first to one with label last, graph Ge induced by the vertices in C has a
+            perfect matching.
+
+             Next, we show that qP M has the desired properties.
+
+        I Proposition 4.3. The following properties are true for qP M :
+        1. qP M is in Sp-Datalog(6=);
+        2. qP M is monotone; and
+        3. qP M is not in Pos-Datalog(6=).
+
+        Proof Sketch. (1) Since the perfect matching problem is well-known to be in ptime, we can
+        assume an implementation in Sp-Datalog(6=). The latter is due to another well-known result,
+        that the language Sp-Datalog(≤, 6=) captures exactly the ptime computable queries [2].
+            To write a program in Sp-Datalog(6=) that expresses qP M , we make use of program P (in
+        which the relations Succ, Min, and Max are now intensional and no longer interpreted), and
+        feed it a conservative fragment of the extensional relations Next, First, and Last.
+        (2) Monotonicity can be verified easily from Definition 4.2.
+        (3) The proof is analogous to a recent proof by Rudolph and Thomazo [23] for the statement
+        Sp-Datalog(≤) ∩ H ( Pos-Datalog(≤). While our query is slightly different to the query
+        used in [23] and admits inequalities, it uses the same key ingredients:
+        (a) A result by Razborov [21], which states that no family of monotone boolean circuits
+            exists that answers the perfect matching problem and has circuits of polynomial size in
+            the number of input gates.
+        (b) The existence of an algorithm that converts programs in Pos-Datalog(6=) that express
+            qP M into a family of monotone boolean circuits that answers the perfect matching
+            problem and has circuits of polynomial size in the number of input gates.            J
+
+         5      Semi-Positive Datalog without Inequalities
+        This section is devoted to showing Theorem 5.1.
+
+        I Theorem 5.1. Sp-Datalog ∩ M = Pos-Datalog.
+B. Ketsman and C. Koch                                                                                      19:11
+
+
+   Theorem 5.1 is a consequence of the observation that, for semi-positive Datalog without
+inequalities, the fragment of monotone queries and the fragment of queries preserved under
+homomorphisms collapses (cf. Proposition 5.2). That is, Sp-Datalog ∩ M = Sp-Datalog ∩
+H. Given this observation, Theorem 5.1 follows directly from Theorem 3.10.
+
+I Proposition 5.2. For a program P ∈ Sp-Datalog, qP ∈ M implies qP ∈ H.
+
+Proof. We show that for an arbitrary fact f , instance I, and homomorphism h from I to
+h(I), the fact h(f ) is in qP (h(I)). The proof is by an iterative procedure that searches for
+an instance I (i) , with the following properties:
+1. There is a proof tree T of f from I (i) and P ;
+2. adom(I (i) ) = adom(I);
+3. h(I (i) ) = h(I); and
+4. h(Fringe−                +
+              T ) ∩ h(FringeT ) = ∅.
+
+     Suppose that the described instance I (i) exists, then the combination of Property (1)
+and Property (2) allows to apply homomorphism h to all valuations and facts associated
+to vertices in T . The result is a candidate proof tree T 0 from P with Fringe+           T 0 ⊆ h(I )
+                                                                                                     (i)
+                                                                   0
+and rootT 0 = h(f ). Since rules in P have no inequalities, T is without inequality conflicts.
+Property (4) implies that T 0 is also without fringe conflicts, thus T 0 is a proof tree of h(f ) from
+P and Fringe+                                       +
+                T 0 witnessing h(f ) ∈ qP (FringeT 0 ). Now, the desired result h(f ) ∈ qP (h(I))
+follows from Property (3), implying Fringe+              (i)
+                                                T 0 ⊆ h(I ) = h(I), and qP ∈ M.
+     It remains to describe the procedure to find I (i) , which uses an inductive argument
+taking conditions (1), (2), and (3) as invariants over the tentative instances that are being
+considered. As base case, we observe that the three invariants are true on I itself, by taking
+as T the proof tree of f from I and P . We now refer to I as I (0) .
+     If Property (4) is true on the currently considered instance I (i) , then we terminate the
+procedure. Otherwise, (†) there must be a fact g ∈ Fringe−      T , such that h(g) ∈ h(FringeT ) ∩
+                                                                                                   +
+           −
+h(FringeT ), with T the proof tree as defined by Property (1). It also follows from Property (1)
+that g 6∈ Fringe+       (i)
+                   T ⊆I .
+     We now construct a new instance I (i+1) by adding g to I (i) . Clearly, Property (3) is
+true, since h(g) ∈ h(Fringe+              (i)
+                               T ) ⊆ h(I ) = h(I), which implies h(I
+                                                                             (i+1)
+                                                                                   ) = h(I (i) ) = h(I).
+Property (2) is straightforward as well, since the safeness of rules in P and g ∈ Fringe−       T imply
+                             +              (i)                          (i)       (i+1)
+adom(g) ⊆ adom(FringeT ) ⊆ adom(I ) = adom(I). Finally, I ⊆ I                            and qP ∈ M
+imply f ∈ qP (I (i+1) ), which means that Property (1) is also as well.
+     Since the active domain of I is fixed and the number of facts g 6∈ I with adom(g) ⊆ adom(I)
+is finite, eventually I (i) cannot grow further and (†) must fail. From this, we conclude that
+the desired instance I (i) exists.                                                                     J
+
+ 6     Negation-Bounded Datalog
+In Section 4, we have formally shown that some monotone queries in Sp-Datalog(6=) have no
+equivalent in Pos-Datalog(6=). This result implies that restricting ourselves to write programs
+in the positive variant of Sp-Datalog(6=) as a convenient way to write monotone programs in
+Sp-Datalog(6=), comes at the cost of some loss in expressive power. While a theoretician may
+be satisfied with this observation alone, a practitioner would likely wonder whether this gap
+matters in practice, for example, within a specific application domain. To help answer this
+question, an interesting direction is to consider conservative fragments of Pos-Datalog(6=) for
+which the monotone and positive fragment coincide. In Section 5, we have already seen that
+programs in Sp-Datalog have this property.
+
+
+
+                                                                                                           ICDT 2020
+19:12   Datalog with Negation and Monotonicity
+
+
+           In this section, we define an orthogonal fragment, which we call negation-bounded Datalog.
+
+        I Definition 6.1. Let P ∈ Sp-Datalog(6=) be over some schema σ and R ∈ σ. Program P is
+        negation-bounded if a positive integer k exists, such that for every instance I over σ and
+        fact f ∈ qP (I), there is a proof tree T of f from I and P with |Fringe−
+                                                                               T | ≤ k.
+
+           We immediately proceed with the main result of this section:
+
+        I Theorem 6.2. For every program P in Sp-Datalog(6=) that is negation bounded, qP ∈ M
+        implies there is a program P 0 in Pos-Datalog(6=), with qP 0 = qP .
+
+           For a proof of Theorem 6.2, we combine Proposition 3.9 with the below result.
+
+        I Proposition 6.3. For every program P in Sp-Datalog(6=) that is negation bounded, there
+        is a conflict-free program P 0 in Sp-Datalog(6=), with qP = qP 0 .
+
+            The proof of Proposition 6.3 uses a technique that is inspired by the indexing technique
+        in [12] to show Theorem 3.10, but rather than statically annotating relation names with
+        associated dependencies, we encode indexes in a prefix of the intensional relations, which
+        serve as pivot through the program evaluation. More precisely, program P 0 encodes the
+        facts whose absence it observes while simulating program P in the prefix of intensional
+        relation names and fires a rule of P in the simulation only if it is consistent with the index at
+        hand. That is, if the index does not encode a fact that is required by the rule or any of its
+        children. The latter is enforced via inequalities. (We note that similar techniques are used
+        in, e.g., [27, 8, 17].) As the proof of Proposition 6.3 is tedious, we illustrate the construction
+        by an example.
+
+        I Example 6.4. Let P∆ be again the program from Example 2.1. We notice that expansion
+        trees for P∆ have at most two negated atoms, corresponding, respectively, to the negated
+        atom in the first and second rule of program P∆ . Program P∆ is thus clearly negation
+        bounded. After applying the construction underlying Proposition 6.3, we obtain the following
+        rules. First, two rules to collect in relation Adom the active domain of the input instance:
+
+           Adom(x) ← Edge(x, y).                            Adom(x) ← Edge(y, x).
+
+        Then, for every choice β ∈ {x 6= z, y 6= x}, γ ∈ {y =  6 z, z 6= x}, χ ∈ {x =
+                                                                                    6 y, y 6= z} of
+        inequalities, we consider variants of the T1 and T2 generating rules in P∆ , in which their
+        negated facts are encoded as a prefix in the head of the rule:
+
+           T1(z, x, x2 , y2 , x, y) ←Edge(x, y), Edge(y, z), ¬Edge(z, x), Adom(x2 ), Adom(y2 ), β, γ.
+           T2(x1 , y1 , y, z, x, y) ←Edge(x, y), ¬Edge(y, z), Edge(z, x), Adom(x1 ), Adom(y1 ), χ, γ.
+
+        Rules without negated atoms forward the prefix of body atoms that are over intensional
+        relation names, or (if no intensional relation name occurs in the body) generate facts with
+        arbitrary prefix:
+
+           Output0 (x1 , y1 , x2 , y2 , x, y) ←Edge(x, y), Edge(y, z), Edge(z, x),
+                                                Adom(x1 ), Adom(y1 ), Adom(x2 ), Adom(y2 ).
+                    0
+           Output (x1 , y1 , x2 , y2 , x, y) ←T1(x1 , y1 , x2 , y2 , x, y), T2(x1 , y1 , x2 , y2 , x, y), x 6= y.
+                            Output(x, y) ←Output0 (x1 , y1 , x2 , y2 , x, y).
+B. Ketsman and C. Koch                                                                                19:13
+
+
+Finally, we have to deal also with proof trees for P∆ that have no leafs with sign ‘−’. To
+support this case, we augment the program with all rules from P∆ that are without negation:
+
+     Output(x, y) ←Edge(x, y), Edge(y, z), Edge(z, x).
+
+    It is easy to verify that the program consisting of the above listed rules is conflict-free,
+since every fringe conflict now implies an inequality conflict. Equivalence follows from the
+observation that the constructed program simulates P∆ with some additional bookkeeping.
+    We remark that the concept negation boundedness is related to the well-known concept
+boundedness for Datalog programs: A program P in Sp-Datalog(6=) is bounded if there is a
+positive integer k such that, for every instance I and fact f ∈ qP (I), there is a proof tree
+of f from I and P with depth at most k. Since the latter implies existence of a bound on
+                                                                 −
+the size of Fringe+                                    +
+                  T , and thus on the domain of FringeT ∪ FringeT , it follows directly that
+boundedness implies negation boundedness. Not surprisingly, the decision problem that asks
+whether a given program P ∈ Sp-Datalog(6=) is negation bounded is undecidable.
+I Proposition 6.5. No algorithm exists that decides for an arbitrary program
+P ∈ Sp-Datalog(6=) whether it is negation bounded.
+   Analogously to the classical result that the class of bounded programs is equally ex-
+pressive as UCQ(¬, 6=) (the subset of Sp-Datalog(6=) programs in which the body of rules
+are constructed solely out of extensional relation names), we have the following syntactical
+characterisation:
+I Proposition 6.6. For every negation bounded program P in Sp-Datalog(6=) there is an equi-
+valent program P 0 in Sp-Datalog(6=) that has a stratification P1 , P2 , with P1 ∈ Pos-Datalog(6=)
+and P2 ∈ UCQ(¬, 6=) (with no intensional relation name of P2 occuring in P1 ).
+    Finally, we remark that the class of negation bounded programs can be extended a little,
+for example, by requiring a bound on the number of negated atoms only for relation symbols
+that occur positively in the program; or, by extension, for relation symbols that are not
+excluded from generating fringe conflicts due to some other syntactic reason. It is currently
+unclear whether a more fundamental generalization of Theorem 5.1 and Theorem 6.2 exists.
+
+ 7      Stratified Datalog
+A stratified Datalog program P is a set of rules as defined in Section 2.3, for which a
+stratification exists in a sequence of disjoint subprograms P1 , . . . , Pm , with the following
+constraints: Every intensional relation name R in P occurs as a head in at most one
+subprogram Pi (we refer to Pi as the stratum in which R is defined).
+      If an intensional relation name occurs positively in the body of a rule in subprogram Pi ,
+      then it is defined in a subprogram Pj , with j ≤ i.
+      If an intensional relation name occurs negated in the body of a rule in subprogram Pi ,
+      then it is defined in a subprogram Pj , with j < i.
+We denote the class of stratified Datalog programs by Str-Datalog(6=). Since the subprograms
+Pi can be considered semi-positive, the semantics is defined as follows: qP (I) = qPm ◦ qPm−1 ◦
+· · · ◦ qP1 (I). Here, we assume that for the subprograms Pi , with i < m all relation names are
+output relation names, and for Pm only the distinguished output relations as defined by P .
+Similarly as before, we write Str-Datalog(6=) to denote the class of all queries expressible
+by programs in Str-Datalog(6=).
+      The following corollary is a straightforward consequence of Theorem 4.1.
+
+
+
+                                                                                                     ICDT 2020
+19:14   Datalog with Negation and Monotonicity
+
+
+        I Corollary 7.1. Str-Datalog(6=) ∩ M 6⊆ Pos-Datalog(6=).
+
+           Despite Theorem 5.1, the gap between the monotone and positive fragment of stratified
+        Datalog remains also without the interpreted inequality relation. The proof argument
+        combines Theorem 4.1 with the observation that inequality is expressible through negation
+        over intensional relation names.
+
+        I Theorem 7.2. Str-Datalog ∩ M 6⊆ Pos-Datalog(6=).
+
+         8     A Best-Effort Approach to Negation Elimination
+        In this section, we consider the scenario in which an arbitrary Str-Datalog(6=) program is
+        given and we are interested in finding an equivalent program with better computational
+        properties (i.e., with less exposure to negation). Here, a program without negation is the
+        ideal. Unfortunately, results like Proposition 3.9 do not help much to find such a program:
+            Firstly, the question if a given program in semi-positive Datalog is monotone is undecidable.
+        Therefore, we cannot automatically infer whether a given program is in one of the desired
+        subclasses.
+
+        I Proposition 8.1. Testing whether a program in Sp-Datalog is monotone is undecidable.
+
+            Secondly, these results only indicate whether an ideal equivalent rewriting (i.e., a rewriting
+        to a positive program) “certainly exists” or “may not exist”. They do not help, especially in
+        the latter case, to find such a program. Thirdly, even if no equivalent positive program exists,
+        we may still be interested in finding an equivalent program with less exposure to negation.
+            The section proceeds as follows: In Section 8.1, we define a formal cost measure that
+        allows to compare programs with negation. In Sections 8.2 and 8.3, we describe best-effort
+        approaches towards improving the cost of a program as defined by this cost measure.
+
+        8.1    Cost Measure
+        We base our cost measure on observations from distributed Datalog evaluation (cf. Section 1):
+        In an asynchronous distributed context (e.g., [19, 16]), deciding the absence of a fact is
+        significantly more difficult than deciding its presence, as it requires a round of consensus
+        between the participating machines. One way to translate this observation into a formal cost
+        measure is by hypothesising a correlation between the time it takes to derive an output fact
+        for the first time and the minimal number of negated facts that its proof trees admit.
+            Notice that, in this hypothesis, positive programs are a conservative ideal (because proof
+        trees of positive programs admit no negated facts), but programs that admit negated atoms
+        are not necessarily considered worse (i.e., if the rules with negated atoms are redundant).
+            For a formal definition, let P be an arbitrary program in Sp-Datalog(6=). We call a proof
+        tree T from P minimal if no other proof tree T 0 from P exists that agrees with T on the label
+                                                             −            −
+        of its root, and has Fringe+            +
+                                    T 0 ⊆ FringeT and FringeT 0 ⊆ FringeT . Clearly, for every instance
+        I and fact f ∈ qP (I), we can always assume that a witnessing proof tree T exists that
+        is minimal. Now, for two programs P1 , P2 ∈ Sp-Datalog(6=), we write cost(P1 ) ≤ cost(P2 )
+        if for every minimal proof tree T1 for P1 , with root an output fact, there is a proof tree
+        T2 for P2 that agrees with T1 on the label of its root, and with Fringe+                 +
+                                                                                    T2 ⊆ FringeT1 and
+        Fringe−             −
+                T2 ⊆ FringeT1 . We write cost(P1 ) < cost(P2 ) if cost(P1 ) ≤ cost(P2 ) and for at least
+        one such pair of proof trees T1 and T2 , we have Fringe−               −
+                                                                   T2 ( FringeT1 . We notice that our
+        cost measure is defined over Sp-Datalog(6=) programs only, as we will use it to compare
+        single-stratum fragments of Str-Datalog(6=) programs.
+B. Ketsman and C. Koch                                                                                 19:15
+
+
+   As can be expected, deciding properties about cost(·) quickly become undecidable.
+
+I Proposition 8.2. No algorithm exists that can decide for arbitrary equivalent programs
+P1 , P2 ∈ Sp-Datalog(6=) if cost(P1 ) < cost(P2 ).
+
+
+8.2    Containment Testing
+We start with an exploration of containment tests. Given a program P ∈ Sp-Datalog(6=), we
+call a program P 0 ∈ Sp-Datalog(6=) a superior equivalent of P if it is obtained by removing
+(some) negated atoms in rules from P . Clearly, P + is the extreme case, but now we are
+interested in programs P 0 that remain equivalent to the original program P . We note that
+qP ⊆ qP 0 holds for every superior equivalent P 0 of P (the proof is a simple generalization of
+the proof argument for Proposition 3.2). Unfortunately, the other direction is undecidable.
+
+I Proposition 8.3. No procedure exists that decides qP 0 ⊆ qP for arbitrary programs P ∈
+Sp-Datalog(6=) and superiorequivalent P 0 of P .
+
+    To overcome this limitation, we test for UCQ(¬, 6=) containment instead (which is conexp-
+complete [13], respectively Πp2 -complete [26, 20], if the arity of relations is bounded).
+    To formulate the next proposition, we need some additional notation: Given a program
+P ∈ Sp-Datalog(6=), we denote by #(P ) the program in UCQ(¬, 6=) obtained by adding a
+prime to all relation names occurring in the heads of rules (i.e., T(x, y) ← E(x, z), T(z, y)
+becomes T0 (x, y) ← E(x, y), T(z, y)). Then, for P1 , P2 ∈ Sp-Datalog(6=) we test q#(P1 ) ⊆ q#(P2 )
+instead of qP1 ⊆ #(P2 ). Alternatively, one can consider uniform containment [24], which
+means that containment is tested for the queries described by P1 and P2 , but taking as
+input schema the set of all extensional and intensional relation names of P1 (resp, P2 ) and
+as output schema the set of all intensional relation names of P1 (resp, P2 ). For the bounded
+arity case, a Πp2 -completeness result is known due to Eiter and Fink [11]. The complexity
+for the non-bounded case appears to be open (albeit at least conexp-hard due to the earlier
+mentioned result for UCQ(¬, 6=) containment).
+
+I Proposition 8.4. For a program P ∈ Sp-Datalog(6=) and superior equivalent P 0 of P ,
+#(P 0 ) ⊆ #(P ) implies qP 0 = qP and cost(P 0 ) ≤ cost(P ).
+
+   Let P be a stratified Datalog program. Then Proposition 8.4 admits a naive procedure,
+which we call neg-elim, that applies to every stratum of P the following steps:
+1. Test for every combination of negated atoms whether qP is contained in qP 0 , with P 0 the
+   superior equivalent of P in which the selected atoms are removed.
+2. Choose the superior equivalent of P that minimizes the total number of negated atoms,
+   among those for which the test succeeds.
+
+I Theorem 8.5. Procedure neg-elim runs with exponential space (respectively polynomial
+space, if a bound on the arity of considered relations is assumed).
+
+    We remark that the special structure of #(P ) and #(P 0 ) (i.e., P 0 is a superior equivalent
+of P ), does not admit a more efficient containment test.
+
+I Proposition 8.6. Testing for an arbitrary program P ∈ Sp-Datalog(6=) and superior
+equivalent P 0 of P whether q#(P 0 ) ⊆ q#(P ) is conexp-hard (respectively Πp2 -hard, if a bound
+on the arities of considered relations is assumed).
+
+
+
+                                                                                                      ICDT 2020
+19:16   Datalog with Negation and Monotonicity
+
+
+        8.3     Rule Expansions
+        One way to make the procedure from the previous section more powerful, is by doing
+        containment tests for partially expanded program.
+            Let P ∈ Sp-Datalog(6=) and τ ∈ P . By exp(P ) we denote the set of all 1-step expansions
+        of rules in P . That is, the set of rules obtain from P by considering all possible replacements
+        of intensional atoms in rules by the bodies of rules whose head matches the respective atom
+        (after doing the necessary variable renaming).
+
+        I Proposition 8.7. For every P ∈ Sp-Datalog(6=), qexp(P ) = qP and cost(exp(P )) = cost(P ).
+
+        I Example 8.8. For an example illustrating the use of expansions in combination with
+        algorithm neg-elim, consider the two stratum program P , whose second stratum is pro-
+        gram P∆ from Example 2.1, and whose first stratum is a program P 0 over schema σ 0 :=
+        {Arc(2) , Edge(2) , Adom(1) } with the next rules:
+
+              Adom(x) ← Arc(x, y).
+              Adom(x) ← Arc(y, x).
+             Edge(x, y) ← ¬Arc(x, y), Adom(x), Adom(y).
+
+        Now consider the expansion exp(P∆ ) of the second stratum:
+             Output(x, y) ← Edge(x, y), Edge(y, z), Edge(z, x).
+             Output(x, y) ← Edge(x, y), Edge(y, z), ¬Edge(z, x), Edge(x, y), ¬Edge(y, w), Edge(w, x), x 6= y.
+
+         While directly applying algorithm neg-elim over P∆ does not improve the program, an
+        application over exp(P∆ ) finds a negation-free equivalent:
+
+             Output(x, y) ← Edge(x, y), Edge(y, z), Edge(z, x).
+             Output(x, y) ← Edge(x, y), Edge(y, z), Edge(x, y), Edge(w, x), x 6= y.
+
+        Hence, while P is not monotone, and therefore has no equivalent in Pos-Datalog(6=), we do
+        obtain an equivalent single-stratum program P1 ∪ P20 .
+
+         9      Conclusion
+        Motivated by applications in network programming, we studied fundamental questions about
+        the relationship between the monotone and positive fragments of several variants of Datalog
+        with negation (an overview is given by Figure 1). We also showed how the amount of negation
+        that such programs admit can be decreased independently of whether they are monotone.
+           Related to monotonicity is the concept preservation under extensions (E). While it is
+        known that Sp-Datalog(6=) ⊆ E [3], to the best of our knowledge, it is still an open question
+                                          ?
+        whether Str-Datalog(6=) ∩ E = Sp-Datalog(6=). The latter question is of particular interest,
+        because E is another notion that is associated with coordination in distributed systems [7].
+            The techniques that we discuss in Section 8, to remove negation from stratified Datalog
+        programs, are by no means exhaustive. We also do not provide formal guarantees on the
+        effectiveness of the approach. An interesting question therefore is whether other decidable
+        techniques exist that can be of use for this purpose. Additionally, it would be interesting to
+        perform an experimental study to see if these techniques can be combined into an effective
+        procedure that is of use for real-live programs. The techniques that we present in Section 8
+        aim for a best-effort approach to automatically reduce the need for consensus in a program,
+B. Ketsman and C. Koch                                                                              19:17
+
+
+which in the context of Datalog, translates to the elimination of (stratified) negation. While
+it is obvious that such a procedure cannot beat optimization by hand, we see it useful in
+complex systems, that a program may be composed out of multiple programs and views.
+Then, optimization of individual subprograms does not necessarily imply optimization of the
+program as a whole, and a best-effort approach may be the only way to achieve improvement.
+
+
+     References
+ 1   Serge Abiteboul, Meghyn Bienvenu, Alban Galland, and Émilien Antoine. A rule-based
+     language for web data management. In Proceedings of the 30th ACM SIGMOD-SIGACT-
+     SIGART Symposium on Principles of Database Systems (PODS 2011), pages 293–304, 2011.
+     doi:10.1145/1989284.1989320.
+ 2   Serge Abiteboul, Richard Hull, and Victor Vianu. Foundations of Databases. Addison-Wesley,
+     1995. URL: http://webdam.inria.fr/Alice/.
+ 3   Foto N. Afrati, Stavros S. Cosmadakis, and Mihalis Yannakakis. On Datalog vs. Polynomial
+     Time. Journal of Computer and System Sciences, 51(2):177–196, 1995. doi:10.1006/jcss.
+     1995.1060.
+ 4   Miklós Ajtai and Yuri Gurevich. Monotone versus positive. Journal of the ACM, 34(4):1004–
+     1015, 1987. doi:10.1145/31846.31852.
+ 5   Miklós Ajtai and Yuri Gurevich. Datalog vs First-Order Logic. J. Comput. Syst. Sci.,
+     49(3):562–588, 1994. doi:10.1016/S0022-0000(05)80071-6.
+ 6   Tom J. Ameloot, Jan Van den Bussche, William R. Marczak, Peter Alvaro, and Joseph M.
+     Hellerstein. Putting logic-based distributed systems on stable grounds. Theory and Practice
+     of Logic Programming, 16(4):378–417, 2016. doi:10.1017/S1471068415000381.
+ 7   Tom J. Ameloot, Bas Ketsman, Frank Neven, and Daniel Zinn. Weaker Forms of Monotonicity
+     for Declarative Networking: A More Fine-Grained Answer to the CALM-Conjecture. ACM
+     Transactions on Database Systems, 40(4):21:1–21:45, 2016. doi:10.1145/2809784.
+ 8   Tom J. Ameloot, Bas Ketsman, Frank Neven, and Daniel Zinn. Datalog Queries Distributing
+     over Components. ACM Transactions on Computational Logic, 18(1):5:1–5:35, 2017. doi:
+     10.1145/3022743.
+ 9   Surajit Chaudhuri and Moshe Y. Vardi. On the Equivalence of Recursive and Nonrecursive
+     Datalog Programs. In Proceedings of the 11th ACM SIGACT-SIGMOD-SIGART Symposium
+     on Principles of Database Systems (PODS 1992), pages 55–66, 1992.
+10   Anuj Dawar and Stephan Kreutzer. On Datalog vs. LFP. In Automata, Languages and
+     Programming, 35th International Colloquium, (ICALP 2008), pages 160–171, 2008. doi:
+     10.1007/978-3-540-70583-3_14.
+11   Thomas Eiter and Michael Fink. Uniform Equivalence of Logic Programs under the Stable
+     Model Semantics. In Logic Programming, 19th International Conference (ICLP 2003), pages
+     224–238, 2003. doi:10.1007/978-3-540-24599-5_16.
+12   Tomás Feder and Moshe Y. Vardi. Homomorphism Closed vs. Existential Positive. In
+     18th IEEE Symposium on Logic in Computer Science (LICS 2003), pages 311–320, 2003.
+     doi:10.1109/LICS.2003.1210071.
+13   Gaetano Geck, Bas Ketsman, Frank Neven, and Thomas Schwentick. Parallel-Correctness
+     and Containment for Conjunctive Queries with Union and Negation. In 19th International
+     Conference on Database Theory (ICDT 2016), pages 9:1–9:17, 2016. doi:10.4230/LIPIcs.
+     ICDT.2016.9.
+14   Jim N. Gray. Notes on data base operating systems. Lecture Notes in Computer Science,
+     60:393–481, 1978.
+15   Rachid Guerraoui and Jingjing Wang. How Fast can a Distributed Transaction Commit? In
+     Proceedings of the 36th ACM SIGMOD-SIGACT-SIGAI Symposium on Principles of Database
+     Systems, (PODS’17), pages 107–122, 2017. doi:10.1145/3034786.3034799.
+
+
+
+
+                                                                                                   ICDT 2020
+19:18   Datalog with Negation and Monotonicity
+
+
+        16   Joseph M. Hellerstein. The declarative imperative: experiences and conjectures in distributed
+             logic. SIGMOD Record, 39(1):5–19, 2010. doi:10.1145/1860702.1860704.
+        17   Bas Ketsman, Aws Albarghouthi, and Paraschos Koutris. Distribution Policies for Datalog.
+             In 21st International Conference on Database Theory (ICDT 2018), pages 17:1–17:22, 2018.
+             doi:10.4230/LIPIcs.ICDT.2018.17.
+        18   Phokion G. Kolaitis and Moshe Y. Vardi. On the Expressive Power of Datalog: Tools and a
+             Case Study. J. Comput. Syst. Sci., 51(1):110–134, 1995. doi:10.1006/jcss.1995.1055.
+        19   Boon Thau Loo, Tyson Condie, Minos N. Garofalakis, David E. Gay, Joseph M. Heller-
+             stein, Petros Maniatis, Raghu Ramakrishnan, Timothy Roscoe, and Ion Stoica. Declarative
+             networking: language, execution and optimization. In Proceedings of the ACM SIGMOD
+             International Conference on Management of Data (SIGMOD 2006), pages 97–108, 2006.
+             doi:10.1145/1142473.1142485.
+        20   Marie-Laure Mugnier, Geneviève Simonet, and Michaël Thomazo. On the complexity of
+             entailment in existential conjunctive first-order logic with atomic negation. Information and
+             Computation, 215:8–31, 2012. doi:10.1016/j.ic.2012.03.001.
+        21   Aleksandr A. Razborov. Lower bounds on the monotone complexity of some Boolean functions.
+             Doklady Akademii Nauk SSSR, 281:798–801, 1985.
+        22   Benjamin Rossman. Homomorphism preservation theorems. Journal of the ACM, 55(3):15:1–
+             15:53, 2008. doi:10.1145/1379759.1379763.
+        23   Sebastian Rudolph and Michaël Thomazo. Expressivity of Datalog Variants - Completing the
+             Picture. In Proceedings of the 25th International Joint Conference on Artificial Intelligence
+             (IJCAI 2016), pages 1230–1236, 2016. URL: https://hal.inria.fr/hal-01302832.
+        24   Yehoshua Sagiv. Optimizing Datalog Programs. In Proceedings of the Sixth ACM SIGACT-
+             SIGMOD-SIGART Symposium on Principles of Database Systems (PODS 1987), pages 349–
+             362, 1987. doi:10.1145/28659.28696.
+        25   Alexei P. Stolboushkin. Finitely Monotone Properties. In Proceedings, 10th Annual IEEE
+             Symposium on Logic in Computer Science, pages 324–330, 1995. doi:10.1109/LICS.1995.
+             523267.
+        26   Jeffrey D. Ullman. Information integration using logical views. Theoretical Computer Science,
+             239(2):189–210, 2000. doi:10.1016/S0304-3975(99)00219-4.
+        27   Ouri Wolfson and Abraham Silberschatz. Distributed Processing of Logic Programs. In
+             Proceedings of the 1988 ACM SIGMOD International Conference on Management of Data
+             (SIGMOD 1988), pages 329–336, 1988. doi:10.1145/50202.50242.
+        28   Daniel Zinn, Todd J. Green, and Bertram Ludäscher. Win-Move is Coordination-Free (Some-
+             times). CoRR, abs/1312.2919, 2013. arXiv:1312.2919.
+

@@ -1,0 +1,1404 @@
+Proceedings of Machine Learning Research vol 178:1–23, 2022                35th Annual Conference on Learning Theory
+
+
+
+
+                 Tracking Most Significant Arm Switches in Bandits
+
+Joe Suk                                                                              JS 5338@ COLUMBIA . EDU
+Columbia University
+Samory Kpotufe                                                                     SAMORY @ COLUMBIA . EDU
+Columbia University
+
+
+Editors: Po-Ling Loh and Maxim Raginsky
+
+
+                                                        Abstract
+     In bandit with distribution shifts, one aims to automatically adapt to unknown changes in reward
+     distribution, and restart exploration when necessary. While this problem has been studied for many
+     years, a recent breakthrough of Auer et   √al. (2018, 2019) provides the first adaptive procedure to
+     guarantee an optimal (dynamic) regret LT , for T rounds, and an unknown number L of changes.
+     However, while this rate is tight in the worst case, it remained open whether faster rates are possible,
+     without prior knowledge, if few changes in distribution are actually severe.
+          To resolve this question, we propose a new notion of significant shift, which only counts very
+     severe changes that clearly necessitate a restart: roughly, these are changes involving not only best
+     arm switches, but also involving large aggregate differences in reward overtime. Thus,√our resulting
+     procedure adaptively achieves rates always faster (sometimes significantly) than O( ST ), where
+     S ≪ L only counts best arm switches, while at the same time, always faster than the optimal
+           1   2
+     O(V 3 T 3 ) when expressed in terms of total variation V (which aggregates differences overtime).
+     Our results are expressed in enough generality to also capture non-stochastic adversarial settings.
+
+
+1. Introduction
+In Multi-armed bandit (MAB) an agent sequentially chooses an action, out of a finite set of K
+actions (or arms), based on partial and uncertain feedback in the form of rewards Yt (a) for past
+actions a ∈ [K] (a pull of arm a) (see Bubeck and Cesa-Bianchi, 2012; Slivkins, 2019; Lattimore
+and Szepesvári, 2020, for surveys). The goal is to maximize the cumulative reward.
+    We consider the setting of switching bandits, where the distributions of arms’ rewards change an
+unknown number of times, say L times, till a time horizon T . Performance is then measured by a
+dynamic regret which compares rewards against those of the best arm at each round t (i.e., the arm
+                                     .
+maximizing mean rewards µt (a) = E Yt (a) over a ∈ [K]). Garivier and Moulines (2011) showed
+that existing
+           √ procedures (Auer et al., 2002; Kocsis and Szepesvári, 2006) could achieve a dynamic
+regret Õ( LT ), however, requiring knowledge of L. This requirement on knowledge of L, although
+impractical, remained standing till a recent breakthrough of Auer et al. (2018, 2019), with important
+follow-ups in Chen et al. (2019); Wei and Luo (2021) for contextual settings. Soon afterwards, other
+parameter-free approaches were studied in Besson et al. (2022); Mukherjee and Maillard (2019).
+This work is concerned with the achievability of faster rates that better account for mild to severe
+changes.               √
+    In particular, the LT rate is understood to be tight only in the worst-case, since L counts
+all changes in distribution, even mild ones. This is evidenced, e.g., by alternative bounds of the
+         1  2                                                          . P
+                                                    √ variation V = √t maxa |µt+1 (a) − µt (a)|
+form V 3 T 3 (see e.g. Chen et al., 2019), when the total
+(aggregating differences) is small, e.g., V ≲ 1/ T , yielding regret T , irrespective of the L
+
+© 2022 J. Suk & S. Kpotufe.
+                                                    S UK K POTUFE
+
+
+
+
+changes. However, the total variation perspective can also be pessimistic as V could be large, up to
+O(T ) (yielding regret O(T )), even when the best arm remains fixed across the L changes.
+                                                      √
+    Outside of best arm switches, a dynamic regret of T remains possible
+                                                                    √       (Allesiardo et al., 2017),
+irrespective of V and L. In light of this, achieving faster rates of ST , for an unknown number
+S ≪ L of best arm switches, is understood as a key open problem 1 (Auer et al., 2019; Foster et al.,
+2020).
+      We in fact aim beyond solving this problem, as even the quantity S overcounts the severity of
+changes, e.g., when V remains small across best arm switches. Instead we propose a new notion of
+significant shift which aims to only count severe changes in mean reward that clearly necessitate a
+restart. Integral to our definition is the idea that a restart (in exploration) is only necessary when there
+                                   P 2 an arm a is considered
+are no safe arms left to play. Here,                                safe if its total regret over any interval
+                                                         ′ ) − µ (a), is o(√s − s ).
+[s1 , s2 ] within a phase, namely st=s    1
+                                            max   ′
+                                                 a tµ (a        t              2     1
+
+    As such, a significant phase ends only when no safe arm remains, which in particular does not
+count best arm switches that do not last long enough to hurt regret. For example, a change from arm
+a to a′ as a new best arm, with a large gap µt (a′ ) − µt (a) = δ, constant over the next rounds, is
+ignored if another switch within the next O(δ −2 ) rounds, reverts back to a as the best arm. Also,
+unlike with total variation, aggregate differences are ignored outside of best arm switches.
+    As a simple sanity check that other distributional changes beyond significant shifts are safely
+ignored, we show
+               p in Proposition 1 that a simple oracle that effectively ignores all other changes,
+achieves regret |I| over any significant phase I of length |I|. Furthermore, such a basic p guarantee
+   P p
+of I |I| total regret over significant phases I, immediately implies (1) a rate of L̃T where
+                                                               1   2
+L̃ ≤ S ≤ L only counts significant shifts, and (2) a rate of V 3 T 3 in terms of total variation.
+    Finally we show that these guarantees are attained adaptively, i.e., with no prior knowledge of
+the environment (Theorem 1). Our key algorithmic innovation over previous works is that, rather
+than aiming to detect changes in the mean rewards µt (a) of arms  P a, we focus on detecting changes
+in the aggregate gaps in mean rewards between arms, i.e., in t µt (a′ ) − µt (a), a stable quantity
+across milder shifts. While this quantity does not directly track the dynamic regret of arm a (as the
+comparator a′ here is independent of t), it will turn out sufficient (see beginning of Section 4). Now,
+this quantity is estimable via a simple unbiased (importance-weighted) statistic, which concentrates
+via martingale inequalities and can thus be used for change-point detection; however, the estimate
+does require replays of previously discarded arms a′ . These replays are carefully scheduled so as to
+not overly affect regret, as inspired by previous work (e.g. Auer et al., 2019; Chen et al., 2019). The
+resulting procedure META is described in Algorithm 1.
+     Our results not only concern the stochastic switching bandits setting, but extend to the adversarial
+setting, since we allow for shifts at every round, though they may not trigger significant shifts, and as
+well as allow for deterministic rewards (i.e., degenerate distributions). Formally, our setting admits a
+randomized, oblivious adversary which decides, a priori, an arbitrary sequence of distributions for
+the rewards (Slivkins, 2019).
+   Finally, we remark that a recent paper of Abbasi-Yadkori
+                                                       √       et al. (2022) independently and
+concurrently also resolves the problem of obtaining the ST rate adaptively.
+
+
+ 1. The open problem in (Foster et al., 2020), of adapting to switching regret, is even more general than that resolved here.
+
+
+                                                             2
+1.1. Further Discussion on Related Work
+
+The work of Manegueu et al. (2021) is closest in spirit to this paper, also establishing dynamic regret
+bounds scaling with a generalized notion of shifts. However, their notion is considerably weaker,
+as it for instance counts changes resulting in large differences |µt (a) − µt−1 (a)| in mean rewards
+of a best arm a, even when the best arm does not change. More importantly, their procedures are
+non-adaptive, requiring knowledge of the number of such changes.
+    Many works have considered the problem of achieving regret depending only on the number of
+best arm switches S, which we discuss next.
+    First, in the setting of adversarial bandits with deterministic rewards, the EXP3.S procedure
+                                                                                           √         of
+                                                                2
+(Auer et al., 2002; Auer, 2002) can achieve a near-optimal dynamic regret bound Õ( ST ), but
+requiring knowledge of S. However,  √ for more practical situations where S is unknown, the best regret
+guarantee to our knowledge is O( ST + T 3/4 ), obtained by combining the Bandits-over-Bandits
+strategy of Cheung et al. (2019) with EXP3.S (Foster et al., 2020;  √ Auer et al., 2019). It is also
+known that EXP3.S alone can obtain the suboptimal rate of Õ(S T ) for unknown S by setting the
+parameters of the algorithm independently of S (Auer, 2002).
+                                                                         √
+    The more general problem of obtaining adaptive switching regret ST for all S remains open
+and is beyond the scope of this paper (Foster et al., 2020). Relatedly, recent work of Marinov and
+Zimmert (2021) showed the impossibility of obtaining such adaptive switching regret bounds against
+an adaptive adversary (where switch points may depend on the algorithm’s actions).
+    Second, the work of Allesiardo et al. (2017) studies dynamic regret in the same randomized
+adversarial bandit setting as this paper (which as√stated above also
+                                                                √ recovers the deterministic setting).
+They provide   two  algorithms   that get regret S  T  and T 2/3 S, which do not match the optimal
+         √
+regret of ST . Furthermore, their procedures either require knowledge of S or lower-bounds on the
+magnitude of the changes to allow for easier detection.
+    In contrast to the above works, we impose no requirements on detectability,
+                                                                          √     nor knowledge of
+the environment, while achieving rates (at times considerably) faster than ST .
+    A different body of literature considers more structured changes in reward distributions. In
+rested rotting bandits, the reward of an arm decreases depending on its amount of play (Seznec et al.,
+2020; Levine et al., 2017; Heidari et al., 2016; Seznec et al., 2019). Slivkins and Upfal (2008) study
+a setting where the rewards follow a Brownian motion across time. Several works also studied a
+subcase of the above mentioned drifting environment: slowly varying bandits, parametrized by a local
+limit on the change of rewards between consecutive rounds (Wei and Srivatsva, 2018; Krishnamurthy
+and Gopalan, 2021). Generally, such stronger structural conditions can yield faster rates at times,
+often of the form ϕ · log(T ), for some problem dependent quantity ϕ.
+    Finally, various works combine adversarial and stochastic approaches to simultaneously address
+both settings (Bubeck and Slivkins, 2012; Seldin and Slivkins, 2014; Auer and Chiang, 2016).
+However, these approaches measure regret to the best arm in hindsight, whereas our results hold for
+the stronger dynamic regret.
+
+
+ 2. It remains unclear whether log terms are avoidable for adaptive procedures in this setting.
+
+
+                                                            3
+                                               S UK K POTUFE
+
+
+
+
+2. Problem Setting
+In our environment, an oblivious adversary decides a sequence of distributions on the rewards. This
+subsumes the stochastic switching bandit problem and is also a generalization of the adversarial
+bandit problem with deterministic rewards since our reward distributions can have zero variance.
+    We assume a decision space [K] of K arms with bounded reward distributions: arm a at round t
+has reward Yt (a) ∈ [0, 1] with mean µt (a). A (possibly randomized) policy π selects at each round t
+some arm πt ∈ [K] and observes reward Yt (πt ). The goal is to minimize the dynamic regret, i.e., the
+expected regret to the best arm at each round. This is defined as:
+                                        T
+                                                            " T          #
+                                     . X                     X
+                           R(π, T ) =      max µt (a) − E        µt (πt ) .
+                                               a∈[K]
+                                         t=1                      t=1
+
+    In this paper, we rely heavily on analyzing the gaps in mean rewards between arms. Therefore,
+                                 .
+for convenience, let δt (a′ , a) = µt (a′ ) − µt (a) denote the relative gap of arms a to a′ at round t.
+                                             .
+Define the worst gap of arm a as δt (a) = maxa′ ∈[K] δt (a′ , a), correspondingP to the instantaneous
+regret of playing a at round t. Notice that the above regret is then given as t∈[T ] E[δt (πt )].
+Significant Shifts and Phases.      First, we say arm a incurs significant regret on interval [s1 , s2 ] if:
+                                      s2
+                                      X                p
+                                            δt (a) ≥    K · (s2 − s1 ).                                  (⋆)
+                                     t=s1
+
+Intuitively, such an arm is no longer safe to play. Now, if instead (⋆) holds for no interval in a time
+period, the arm a incurs little regret over that period. We therefore propose to record a significant
+shift only when there is no safe arm left to play. This idea leads to the following recursive definition.
+
+Definition 1 Let τ0 = 1. Then, recursively for i ≥ 0, the (i + 1)-th significant shift is recorded at
+time τi+1 , which denotes the earliest time τ ∈ (τi , T ] such that for every arm a ∈ [K], there exists
+rounds s1 < s2 , [s1 , s2 ] ⊆ [τi , τ ], such that arm a has significant regret (⋆) on [s1 , s2 ].
+   We will refer to intervals [τi , τi+1 ), i ≥ 0, as (significant) phases. The unknown number of such
+                                                                           .
+phases (by time T ) is denoted L̃ + 1, whereby [τL̃ , τL̃+1 ), for τL̃+1 = T + 1, denotes the last phase.
+
+    It should be clear from the above that not all shifts are counted, and in fact not all best arm
+switches are counted, since simply having δt (a) > 0, where a was previously a best arm, does not
+trigger a significant shift. For further intuition that a procedure need only restart exploration
+                                                                                              p upon a
+significant shift, notice that the last arm to trigger (⋆) in a phase I, only incurs regret O( |I|) over
+the phase. As long as there exists a safe arm to play, a small regret may be achieved if all other
+arms are rejected in time as they become unsafe in a phase. This intuition is verified in the next
+proposition.
+
+Proposition 1 (Sanity Check) For each round t belonging to phase [τi , τi+1 ), define a good arm
+set Gt as the set of safe arms, i.e., arms which do not yet satisfy (⋆) on any subinterval of [τi , t]. Then,
+consider the following oracle procedure π: at each round t, π plays a random arm a ∈ Gt with
+probability 1/|Gt |. We then have:
+                                                        L̃ p
+                                                        X
+                                R(π, T ) ≤ log(K)           K(τi+1 − τi ).
+                                                        i=0
+
+
+                                                        4
+Proof See Appendix A.
+
+   pIt is not hard to show, essentially by Jensen’s, that a rate of the form above is always faster than
+                1  2
+O( L̃T ∧ V 3 T 3 ). This is shown for instance in Corollaries 1 and 2.
+    It is therefore left to design a procedure which mimics the above oracle, i.e., that quickly detects
+and rejects unsafeParms, and restarts in time whenever no safe arm is ′left. Note that we may not be
+able to estimate t δt (a), but since there exists a relatively safe armP a in each phase, it’ll be enough
+to ensure small regret w.r.t. such a′ . Thus, we will need only track t δt (a′ , a).
+
+3. Results Overview
+Our main result is a dynamic regret bound of similar order to Proposition 1 without knowledge of the
+environment, e.g., the significant shift times, or the number of significant phases. It is stated for our
+algorithm META (Algorithm 1 of Section 4), which, for simplicity, requires knowledge of the time
+horizon T . Knowledge of T is easily removed using a doubling trick (see Proposition 2).
+
+Theorem 1 Let π denote the META procedure. Let {τi }L̃+1
+                                                    i=0 denote the unknown significant shift
+times of Definition 1. We then have for some C > 0:
+                                                       L̃ p
+                                                       X
+                              R(π, T ) ≤ C log3 (T )       K · (τi+1 − τi ).
+                                                       i=0
+
+Remark 1 The log dependence in the rate of Theorem 1 can be improved to
+                L̃
+                X                         p
+                       log(K) log3/2 (KT ) K · (τi+1 − τi ) + log(K) log2 (KT ) · K,
+                 i=0
+                                      q
+by modifying the threshold in (2) to K log(T ) · (s2 − s1 ) ∨ K 2 log2 (T ) and adjusting Proposi-
+tion 3 in the same manner. This is avoided in the analysis to simplify presentation.
+    Note that, while thep
+                        rates above are similar to the oracle rates onP
+                                                                      Proposition
+                                                                         p        1, META may not
+actually achieve regret |I| over each phase I, but only guarantees I |I| on aggregate.
+    The following corollary is immediate from Jensen’s inequality.
+Corollary 1 (Bounding by Number of Significant Shifts) Using the same notation of Theorem 1:
+                                                     q
+                             R(π, T ) ≤ C log3 (T ) · (L̃ + 1)KT .
+                                                                         √
+    Since L̃ ≤ S, we have by Corollary 1 that META recovers the Õ( SKT ) rate of EXP3.S,
+           p knowledge of L̃ or S. The rate can in fact be much faster when L̃ ≪ S.
+however without
+    The Õ( L̃KT ) rate is optimal up to log terms in the worst-case since any algorithm which has
+   q L̃ independent adversarial bandit problems of length T /L̃ can be forced to suffer regret
+to solve
+Ω( KT /L̃) on each phase, following similar arguments as in Auer (2002); Auer et al. (2019).
+    The next corollary asserts that Theorem 1 also recovers the optimal rate for the drifting environ-
+ment setting, i.e., in terms of total-variation V . The proof (Appendix C) follows from the definition
+of significant shift (Definition 1) in that the total-variation over every phase [τi , τi+1 ) can be bounded
+                        √
+below by roughly 1/ τi+1 − τi .
+
+                                                     5
+                                                   S UK K POTUFE
+
+
+
+                                                     . P
+Corollary 2 (Bounding by Total Variation) Let V = Tt=2 maxa∈[K] |µt (a) − µt−1 (a)| be the
+unknown total variation of change in the rewards. Using the same notation of Theorem 1:
+                                               √                     
+                        R(π, T ) ≤ C log3 (T )    KT + (KV )1/3 T 2/3 .
+
+    Finally, as stated above, a simple doubling trick removes the need to know T .
+
+Proposition 2 The doubling-horizon version of META has dynamic regret
+                        q               √                      
+                                                         1/3 2/3
+                     Õ    (L̃ + 1)KT ∧      KT + (KV ) T ) .
+
+
+4. Algorithm
+
+
+  Algorithm 1: Meta-Elimination while Tracking Arms (META)
+Input: horizon T .
+Initialize: round count t ← 1.
+Episode Initialization (setting global variables tℓ , Amaster , Bs,m ):
+    tℓ ← t.                                                                  // tℓ indicates start of ℓ-th episode.
+    Amaster ← [K]                                                                    // Master candidate arm set.
+    For each m = 2, 4, . . . , 2⌈log(T )⌉ and s =tℓ + 1, . . . ,T :
+                                                    √     1
+         Sample and store Bs,m ∼ Bernoulli                          .                      // Set replay schedule.
+                                                        m·(s−tℓ )
+
+Run Base-Alg(tℓ , T + 1 − tℓ ).
+if t < T then restart from Line 2 (i.e. start a new episode).
+
+
+
+  Algorithm 2: Base-Alg(tstart , m0 ): elimination with randomized arm-pulls
+Input: starting round tstart , scheduled duration m0 .
+Initialize: t ← tstart , At ← [K].                                                 // t and At are global variables.
+while t ≤ T do
+    Play a random arm a ∈ At selected with probability 1/|At |.
+    Let Acurrent ← At                                                           // Save current candidate arm set.
+    Increment t ← t + 1.
+    if ∃m such that Bt,m > 0 then
+                  .
+         Let m = max{m ∈ {2, 4, . . . , 2⌈log(T )⌉ } : Bt,m > 0}.                    // Set maximum replay length.
+         Run Base-Alg(t, m).                                                // Replay interrupted by child replay.
+    if t > tstart +m0 then RETURN.
+    Evict bad arms:
+         Amaster ← Amaster \{a ∈ [K] : ∃ rounds [s1 , s2 ] ⊆ [tℓ , t) s.t. (2) holds}.
+         At ← Acurrent \{a ∈ [K] : ∃ rounds [s1 , s2 ] ⊆ [tstart , t) s.t. (2) holds}.
+    Restart criterion: if Amaster = ∅ then RETURN.
+end
+
+
+    As explained earlier in the introduction, a main departure from P   past work is that, in order to
+detect a (significant) shift, we aim to detect changes in aggregate gaps st=s
+                                                                           2
+                                                                              δ (a′ , a) between pairs
+                                                                             1 t
+
+
+
+                                                             6
+Fig. 1: Shown are two replay p
+                             durations m = m1 or m2 , and corresponding replays are shown (gray seg-
+ments) at intervals of roughly M/m   √ rounds, where M is the eventual length of1 an
+                                                                                  Pepisode.   Each replay
+                                                                                     m
+(gray
+  √   segments)  aims  to detect a 1/ m magnitude change, i.e., an average gap m        δ
+                                                                                     t=1 t (a) of order
+1/ m. As a recursive procedure, the replays of Base-Alg form a parent-child relationship as depicted.
+
+
+of arms, over intervals [s1 , s2 ], rather than, e.g., changes in mean rewards µt (a). In particular this
+allows us to avoid triggering a restart upon benign changes in distribution.
+                                             Ps2         ′
+Ps2  However,   as previously   discussed,     t=s1 δt (a , a) does not directly track the dynamic regret
+                    ′
+   t=s1 maxa′ δt (a , a). Fortunately, for one, it is a lower boundP       on the dynamic regret; thus if it
+is large, so is the dynamic regret. On the other hand, if maxa′ st=s         2
+                                                                                 δ (a′ , a) remains small for
+                                                                               1 t
+some a over any [s1 , s2 ], we can rely on the very definition of significant shift to infer that a remains
+relatively safe to play: letpa′ be the last arm to incur significant regret (⋆) in a phase I, a and a′ must
+then have similar regret |I| over I.
+     Now, as we eliminate arms overtime, estimating st=s           δ (a′ , a) involves replaying previously
+                                                            P2
+                                                                 1 t
+eliminated arms. This has to be done on a careful schedule so as not to overly affect regret when
+there is no change; here we simply borrow from similar schedules as in previous work (Auer et al.,
+2019; Chen et al., 2019; Wei and Luo, 2021).
+     We next establish some useful terminology for discussing our approach in more detail.
+
+Terminology and Overview. Our main procedure META operates in episodes, starting each episode
+by playing a base algorithm for a possible duration equal to the rounds left till T . Now, a base
+algorithm occasionally activates its own base algorithms of varying durations (Line 2 of Algorithm 2),
+called replays, aimed at detecting changes according to the aforementioned schedule (stored in the
+variable {Bs,m }). We refer to the base algorithm playing at round t as the active base algorithm.
+This results in recursive calls, from parent to child instances of Base-Alg, as depicted in Figure 1.
+    Each instance of Base-Alg maintains at each round t a candidate arm set At , initialized to [K] at
+t = tstart and further refined as it eliminates suboptimal arms. Instances of Base-Alg and META share
+information, in the form of global variables as listed below:
+
+• All variables defined in META, namely tℓ , t, Amaster , {Bs,m } (see Lines 1–1 of Algorithm 1).
+
+• All arms played at any round t, along with observed rewards Yt (a), and the candidate arm set At .
+  As such, the size of At can fluctuate throughout an episode as it is reset to [K] by new replays, i.e.,
+
+                                                     7
+                                                     S UK K POTUFE
+
+
+
+
+  as a base algorithm is activated by a parent, and again reset as the parent resumes (as maintained
+  via Acurrent ).
+
+    By sharing these global variables, any replay can trigger a new episode: every time an arm is
+evicted by a replay, it is also evicted from Amaster , essentially the candidate arm set for the current
+episode. A new episode is triggered when Amaster is empty, i.e., there is no safe arm left to play.
+
+Eviction Criteria and Critical Estimates.  Ps2 A running   intuition so far is that Base-Alg ejects any
+                                                      ′
+arm a from At when it determines that t=s1 δt (a , a) is large. Note that any rejected arm is also
+immediately rejected by the parent when a child terminates.
+     Now, the quantity st=s     δ (a′ , a) is estimated as st=s   δ̂ (a′ , a), whereby the relative gap
+                          P2                              P2
+                               1 t                              1 t
+     ′
+δt (a , a) is estimated by importance weighting as:
+                                   .
+                      δ̂t (a′ , a) = |At | · Yt (a′ ) · 1 {πt = a′ } − Yt (a) · 1 {πt = a} .
+                                                                                          
+                                                                                                                  (1)
+
+     Note that the above is an unbiased estimate  of δt (a′ , a) whenever  ′
+                                                                       a and a are both in At at time
+                                      Ps2 
+t. It then follows that the difference t=s1 δ̂t (a′ , a) − δt (a′ , a) is a martingale that concentrates
+                  p
+at a rate roughly K(s2 − s1 ) (see Proposition 3).
+     An arm a is then evicted at round t if, for some fixed C0 > 0 3 , ∃ rounds s1 < s2 ≤ t such that:
+                                  s2
+                                  X
+                                         δ̂s (a′ , a) > log(T )
+                                                                  p
+                         max                                       C0 · (K(s2 − s1 ) ∨ K 2 ).                     (2)
+                        a′ ∈[K]
+                                  t=s1
+
+
+
+5. Regret Analysis
+Continuing from the discussion at the beginning of Section 3, for any arm a being played by META,
+ideally, the regret to the last arm a′ to incur P significant      regret in any given phase remains small,
+lest a would be evicted before such regret st=s     2
+                                                        δ
+                                                       1 t
+                                                           (a ′ , a) is too large over a given interval [s , s ].
+                                                                                                                1 2
+However, we can only reliably estimate such regret via st=s                      ′ , a) when both a, a′ are being
+                                                                   P2
+                                                                           δ̂
+                                                                          1 t
+                                                                              (a
+played over [s1 , s2 ] (in fact, this estimator is only unbiased when this is the case).
+     To this end, we will decompose each phase into bad segments where st=s                   δ (a′ , a) is large (see
+                                                                                      P2
+                                                                                             1 t
+Definition 5); we then argue that, while it is safe to miss a few such bad segments, a timely replay of
+Base-Alg is likely to occur over some such segment, ensuring both a, a′ are being played, and thus
+leading to the detection that a is no longer safe.P Note    that it is easyPto argue that such a perfect replay
+will not evict arm a′ since otherwise maxa′′ st=s     2
+                                                          δ
+                                                        1 t
+                                                             (a′′ , a′ ) ≤ st=s 2
+                                                                                      δ (a′ ) must be large, i.e., a′
+                                                                                     1 t
+must have significant regret on some interval before the end of the phase. For simplicity, we’ll refer
+to such well-timed replays as perfect replays. This is discussed in more detail in Section 5.4.
+
+Preliminaries. Throughout the proof c1 , c2 , . . . will denote positive constants not depending on T
+or any distributional parameters. Recall from Line 1 of Algorithm 1 that tℓ is the first round of the
+                                                                                 .
+ℓ-th episode. WLOG, there are T total episodes and, by convention, we let tℓ = T + 1 if only ℓ − 1
+episodes occurred by round T .
+
+ 3. C0 > 0 needs to be sufficiently large, but does not depend on the horizon T or any distributional parameters. An
+    appropriate value can be derived from the regret analysis.
+
+
+                                                             8
+    We first handle the simple case of T < K. In this case, the bound of Theorem 1 vacuously holds:
+              L̃ p
+              X                     q                   p
+                  K · (τi+1 − τi ) ≥ K · (τL̃+1 − τ0 ) = K · (T + 1 − 1) > T.
+              i=0
+
+Thus, it remains to show Theorem 1 for T ≥ K.
+
+5.1. Decomposing the Total Regret
+Continuing from the earlier discussion, we first decompose the total regret into (i) the regret of the
+last arm to incur significant regret in a phase and (ii) the relative regret of META to this last safe arm.
+We start by defining notation, to be used throughout, for this last safe arm,
+
+Definition 2 (Last Safe Arm in a Phase) As described in Section 2, there is a safe arm to play in
+each phase i, namely the last arm to incur significant regret (⋆) in phase i, which we denote a♯i . We
+                                                                 .
+then let a♯t , t ∈ [0, T ], track a♯i across phases, that is a♯t = a♯i for t ∈ [τi , τi+1 ).
+
+    Then, the total regret decomposes as:
+                           " T          #  T
+                                                          " T              #
+                                                  ♯                ♯
+                             X             X               X
+                         E      δt (πt ) =   δt (at ) + E     δt (at , πt ) .
+                                 t=1              t=1              t=1
+
+Note that there is no randomness in the first sum of the R.H.S. above since the safe arm a♯t is
+non-random for any fixed round t. This first sum is handled similarly to the guarantee for the oracle
+procedure of Proposition 1, as each arm a♯i is safe to play in phase i. In particular, showing this sum
+is of the desired order follows from taking St = {a♯t } in Lemma 3 of Appendix A.
+    So, it remains to bound the relative regret of πt to the safe arm a♯t . To this end, we will first show
+that the estimation error of the aggregate relative gap over an interval is suitably small.
+
+5.2. Estimating the Aggregate Gap over an Interval
+We first recall a Bernstein-type martingale tail bound, namely, Freedman’s inequality, which yields
+as tight a concentration rate as necessary for our purpose (see Proposition 3):
+
+Lemma 1 (Theorem 1 of Beygelzimer et al. (2011)) Let X1 , . . . , Xn ∈ R be a martingale differ-
+encePsequence with respect to some filtration {F0 , F1 , . . .}. Assume for all t that Xt ≤ R a.s. and
+that ni=1 E[Xi2 |Fi−1 ] ≤ Vn a.s. for some constant Vn only depending on n. Then for any δ ∈ (0, 1)
+and λ ∈ [0, 1/R], with probability at least 1 − δ, we have:
+                                       n
+                                       X                         log(1/δ)
+                                             Xi ≤ (e − 2)λVn +            .
+                                                                    λ
+                                       i=1
+                       q
+                       log(1/δ)
+    Letting λ = R1 ∧      Vn    in Lemma 1 implies that if Vn ≥ R2 log(1/δ), then the above L.H.S.
+                            p
+is upper-bounded by (e − 1) Vn log(1/δ). On the other hand, if Vn < R2 log(1/δ), then the bound
+becomes (e − 1)R log(1/δ). Thus, in any case, Lemma 1 gives us that with probability at least 1 − δ:
+                           n
+                           X                      p                        
+                                 Xi ≤ (e − 1)       Vn log(1/δ) + R log(1/δ) .                         (3)
+                           i=1
+
+
+                                                        9
+                                               S UK K POTUFE
+
+
+
+
+    We next apply Lemma 1 for the result below, where the estimate δ̂t (a′ , a) is given in (1).
+Proposition 3 Let E1 be the event that for all rounds s1 < s2 and all arms a, a′ ∈ [K]:
+          Xs2                s2
+                             X   h                   i             p                
+              δ̂t (a′ , a) −    E δ̂t (a′ , a) | Ft−1 ≤ c1 log(T )   K(s2 − s1 ) + K ,                      (4)
+            t=s1              t=s1
+                                                          .
+for an appropriately large constant c1 , and where F = {Ft }Tt=1 is the filtration with Ft generated
+by {πs , Ys (πs )}ts=1 . Then, E1 occurs with probability at least 1 − 1/T 2 .
+Proof The martingale difference δ̂t (a′ , a) − E[δ̂t (a′ , a)|Ft−1 ] is clearly bounded above by 2K for
+all rounds s and all arms a, a′ . We also have a cumulative variance bound:
+            s2
+            X      h                  i X  s2
+                E δ̂t2 (a′ , a) | Ft−1 ≤      |At |2 · E 1 {πt = a or a′ } | Ft−1
+                                                                                   
+            t=s1                             t=s1
+                                              s2                      s2
+                                             X                  2     X
+                                         ≤          |At |2 ·        =    2|At | ≤ 2K · (s2 − s1 ).
+                                             t=s1
+                                                               |At | t=s
+                                                                         1
+
+Then, the result follows from (3), and taking union bounds over arms a, a′ and s1 , s2 .
+
+
+5.3. Relating Episodes to Significant Phases
+We next show that w.h.p. a restart occurs (i.e., a new episode begins) only if a significant shift has
+occurred sometime within the episode. As an important consequence, each significant phase straddles
+at most two episodes; this fact comes in handy in summing the regret over episodes (Section 5.5).
+      Recall from Definition 1 that τ1 , τ2 , . . . , τL̃ are the times of the significant shifts and that
+t1 , . . . , tT are the episode start times.
+Lemma 2 (Restart Implies Significant Shift) On event E1 , for each episode [tℓ , tℓ+1 ) with tℓ+1 ≤
+T (i.e., an episode which concludes with a restart), there exists a significant shift τi ∈ [tℓ , tℓ+1 ).
+Proof Fix an episode [tℓ , tℓ+1 ). Then, by Line 2 of Algorithm 1, every arm a ∈ [K] was evicted from
+Amaster at some round s ∈ [tℓ , tℓ+1 ), i.e. (2) is true for some interval [s1 , s2 ] ⊆ [tℓ , s). It suffices to
+show that this implies arm a incurs significant regret (⋆) on [s1 , s2 ].
+   Suppose (2) triggers the eviction of arm a. By (4) and (2), we have that there is an arm a′ ̸= a
+such that (using the notation of Proposition 3) for large enough C0 > 0 and some c2 > 0:
+                     Xs2     h                  i
+                           E δ̂t (a′ , a) | Ft−1 ≥ c2 log(T ) K(s2 − s1 ) ∨ K 2 .
+                                                               p
+                                                                                                             (5)
+                      t=s1
+
+Next, note that by comparing Lines 2 and 2, we see that any arm which is evicted from At at any
+round t ∈ [tℓ , s) must have also been evicted from Amaster in the same round. Thus, if arm a is
+evicted from Amaster at round s, then we must have that a ∈ At for all t ∈ [tℓ , s). Then
+                                                     (
+                                    ′                 δt (a′ , a) a′ ∈ At
+                            E[δ̂t (a , a) | Ft−1 ] =
+                                                      −µt (a) a′ ̸∈ At
+In either case, the above L.H.S. expectation is bounded above by δt (a′ , a) ≤ δt (a). Thus,
+                                                                                       P 2 (5) implies
+arm a incurs significant regret (⋆) on [s1 , s2 ] since the L.H.S. is upper-bounded by st=s   δ (a).
+                                                                                             1 t
+
+
+
+
+                                                         10
+5.4. Bounding the Regret Within Each Episode
+The relative regret of META to the last safe arm within each episode [tℓ , tℓ+1 ) will be given in terms
+of the phases it intersects. To this end, we introduce the following new notation.
+                                     .
+Definition 3 Let P HASES(tℓ , tℓ+1 ) = {i ∈ [L̃] : [τi , τi+1 ) ∩ [tℓ , tℓ+1 ) ̸= ∅}, i.e., denote those
+phases intersecting episode ℓ.
+
+   Then, our main claim is as follows, w.r.t. the event E1 of Proposition 3:
+                                                                                         
+      tℓ+1 −1
+                               1
+              δt (a♯t , πt ) ≤ + c3 log3 (T ) · E 1 {E1 }
+        X                                                      X         p
+   E                                                                       K · (τi − τi−1 ) .                 (6)
+        t=t
+                               T
+            ℓ                                                       i∈P HASES(tℓ ,tℓ+1 )
+
+Expectations above are taken over all randomness in both algorithm and environment. We will be
+comparing the safe arm a♯t to any arm META considered safe throughout the episode.
+
+Definition 4 (Last Master Arm) We let aℓ denote any arm surviving at time tℓ+1 − 1 in Amaster .
+
+   The relative regret to the last safe arm over episode ℓ is then decomposed into the following two
+quantities:
+
+ (a) The relative regret of πt w.r.t. the last master arm aℓ .
+
+(b) The relative regret of the last master arm aℓ to last safe arms a♯t .
+
+Namely, we have:
+                                                                                                    
+                  tℓ+1 −1                       tℓ+1 −1                          tℓ+1 −1
+                            δt (a♯t , πt ) = E                                            δt (a♯t , aℓ ) .
+                     X                              X                               X
+                E                                          δt (aℓ , πt ) + E                                 (7)
+                     t=tℓ                           t=tℓ                            t=tℓ
+                                            |              {z          }    |              {z            }
+                                                           (a)                             (b)
+
+We then proceed to show that each of (a) and (b) are of order (6).
+    An immediate difficulty is that these two quantities involve interdependencies between the
+random variables tℓ , tℓ+1 , πt and aℓ , which require careful handling. Our general approach is to first
+condition on just tℓ , whereby appropriate surrogates for these various quantities can be bounded
+pointwise, i.e., independent of the values of πt , tℓ+1 and aℓ . We go over more detailed intuition
+below.
+• Bounding (a). Here we first assume the event E1 of Proposition 3, whereby for any a, a′
+retained
+Ps2       together in a given interval of time [s1 , s2 ], i.e., a, a′ ∈ At , ∀t ∈ [s1 , s2 ], we have that
+              ′                                                        ′
+                     p
+   t=s1 δt (a , a) ≲ P K(s2 − s1 ). Now, aℓ , by definition, is any a retained at all rounds in episode ℓ,
+            ′                     ′
+while δt (a , πt ) = a∈[K] δt (a , a) · 1 {πt = a}. We may therefore reduce the problem to bounding
+relative regrets t δt (a′ , a) · 1 {πt = a} · 1 {E1 }, by carefully considering such intervals of time
+                   P
+where a is also retained. In particular, first an interval from tℓ to tℓ (a), defined as the round at which
+a is evicted from Amaster , and then intervals within replays of Base-Alg which bring a back into At .
+Importantly, bounding the regret within replays crucially uses the fact that sufficiently few replays
+are expected. The details are found in Appendix B.1.
+
+                                                           11
+                                                        S UK K POTUFE
+
+
+
+
+• Bounding (b). This is most involved, a main difficulty arising from the fact that, if arm a♯t is
+evicted from Amaster by some time s1 , large aggregate values of st=s     δ (a♯t , aℓ ) may go undetected
+                                                                   P2
+                                                                         1 t
+outside of well-timed replays of Base-Alg. Our main strategy, as discussed at the start of Section
+5 is to divide up every phase i intersecting remaining rounds [tℓ , T ] into bad segments where aℓ
+                                     .
+incurs significant regret to arm a♯i = a♯t , and argue that few such bad segments may occur before a
+well-timed replay occurs that finally evicts aℓ .
+    Note that such an argument is independent of the episode end time tℓ+1 − 1, so we only need to
+condition on tℓ . A difficulty remains in that aℓ is undetermined till time tℓ+1 , which we circumvent
+by defining bad segments w.r.t. any possible arm a, and arguing that any such a is evicted in time.
+
+Definition 5 Fix tℓ , and let [τi , τi+1 ) be any phase intersecting [tℓ , T ). For any arm a, define rounds
+                                                                                            .
+si,0 (a), si,1 (a), si,2 (a) . . . ∈ [tℓ ∨ τi , τi+1 ) recursively as follows: let si,0 (a) = tℓ ∨ τi and define
+si,j (a) as the smallest round in (si,j−1 (a), τi+1 ) such that arm a satisfies for some fixed c4 > 0:
+
+                             si,j (a)                                 q
+                                          δt (a♯i , a) ≥ c4 log(T )
+                              X
+                                                                       K · (si,j (a) − si,j−1 (a)),         (8)
+                           t=si,j−1 (a)
+
+                                                                .
+if such a round si,j (a) exists. Otherwise, we let the si,j (a) = τi+1 − 1. We refer to any interval
+[si,j−1 (a), si,j (a)) as a critical segment, and as a bad segment (w.r.t. arm a) if (8) above holds.
+
+    We can restrict attention to bad segments, since outside of this, any critical segment–in fact, at
+most one per phase–contributes small regret as (8) is reversed. The following proposition, which
+relates the concentration bound of Proposition 3 to (8), establishes crucial guarantees on bad segments.
+
+Proposition 4 (proof in Appendix B.2) Suppose event E1 holds. Let [si,j (a), si,j+1 (a)) be a bad
+segment with respect to arm a. Fix an integer m ≥ si,j+1 (a) − si,j (a). Then:
+
+  (i) No run of Base-Alg(tstart , m) with tstart ∈ [si,j (a), si,j+1 (a)] ever evicts arm a♯i .
+                  Tsi,j+1 (a)                 . s (a)+si,j+1 (a)
+  (ii) If a♯i ∈     t=s̃        At , where s̃ = ⌈ i,j 2          ⌉, then arm a is evicted by round si,j+1 (a).
+
+Note that such an eviction implies crucially an eviction from Amaster . The above guarantees lead to
+the following notion of perfect replay, well-timed to evict arm a over a given bad segment.
+
+Definition 6 Given a bad segment [si,j (a), si,j+1 (a)), a perfect replay designates a call of
+Base-Alg(tstart , m) where tstart ∈ [si,j (a), s̃] (as defined in (ii)) and m ≥ si,j+1 (a) − si,j (a)
+
+Corollary 3 Under the conditions of Proposition 4, a perfect replay will evict arm a from Amaster .
+
+    All that is left is to show that, for any arm a (in particular, a = aℓ ), a perfect replay is scheduled
+with high probability before too many bad segments w.r.t. a elapse. This leads to an immediate
+bound on the regret of any a to a♯i over the phases [τi , τi+1 ) intersecting episode [tℓ , tℓ+1 ). The full
+details are found in Appendix B.2.
+
+                                                               12
+5.5. Summing the regret over episodes.
+                                                                                     .
+Recall from earlier that there are WLOG T total episodes with the convention that tℓ = T + 1 if only
+ℓ episodes occur by round T . Then, summing our episode regret bound (6) over ℓ gives:
+                                                                                            
+   T      tℓ+1 −1                                    T
+                  δt (a♯t , πt ) ≤ 1 + c3 log3 (T )
+  X         X                                        X             X        p
+      E                                               E 1 {E1 }              K · (τi − τi−1 ) .
+  ℓ=1      t=tℓ                                  ℓ=1            i∈P HASES(tℓ ,tℓ+1 )
+
+Recall here that E1 is the good event over which the concentration bounds of Proposition 3 hold. Then,
+using the fact that, on event E1 , each phase [τi , τi+1 ) intersects at most two episodes (Lemma 2), the
+sum over ℓ ∈ [T ] on the above R.H.S. becomes:
+                                                                 
+                        XT        X         p                            XL̃ p
+           E {E1 }
+               1                              K · (τi − τi−1 ) ≤ 2
+                                                                               K · (τi+1 − τi ).
+                      ℓ=1 i∈P HASES(tℓ ,tℓ+1 )                        i=1
+
+
+This concludes the proof of Theorem 1.
+
+
+6. Conclusion
+We have shown that it is possible to adapt optimally to an unknown number of significant shifts—a
+new notion proposed here—resulting in rates always faster than optimal total variation rates, while at
+the same time resolving the open problem of adaptivity to an unknown number of best arm switches
+S. Our rates can in fact be much faster than when expressed in terms of S or total variation, as the
+notion of significant shift is considerably milder.
+    The more general problem of adaptive switching regret (Foster et al., 2020), where one aims to
+compete against any sequence of arms (as opposed to the best arm at each round), remains open.
+
+
+Acknowledgements
+Samory Kpotufe thanks Google AI Princeton, and the Institute for Advanced Study at Princeton for
+hosting him during part of this project. He also acknowledges support from NSF:CPS:Medium:1953740
+and the Alfred P. Sloan Foundation.
+
+
+References
+Yasin Abbasi-Yadkori, András György, and Nevena Lazic. A new look at dynamic regret for non-
+  stationary stochastic bandits. arXiv preprint arXiv:2201.06532, 2022. URL https://arxiv.
+  org/pdf/2201.06532.pdf.
+
+Robin Allesiardo, Raphaël Féraud, and Odalric-Ambrym Maillard. The non-stationary stochastic
+  multi-armed bandit problem. International Journal of Data Science and Analytics, 3(4):267–283,
+  2017.
+
+Peter Auer. Using confidence bounds for exploitation-exploration trade-offs. Journal of Machine
+  Learning Research, 3:397–422, 2002.
+
+                                                   13
+                                         S UK K POTUFE
+
+
+
+
+Peter Auer and Chao-Kai Chiang. An algorithm with nearly optimal pseudo-regret for both stochastic
+  and adversarial bandits. Proceedings of the 29th Conference on Learning Theory, COLT 2016,
+  pages 116–120, 2016.
+
+Peter Auer, Nicolo Cesa-Bianchi, Yoav Freund, and Robert E Schapire. The nonstochastic multiarmed
+  bandit problem. SIAM journal on computing, 32(1):48–77, 2002.
+
+Peter Auer, Pratik Gajane, and Ronald Ortner. Adaptively tracking the best arm with an unknown
+  number of distribution changes. 14th European Workshop on Reinforcement Learning (EWRL),
+  2018.
+
+Peter Auer, Pratik Gajane, and Ronald Ortner. Adaptively tracking the best bandit arm with an
+  unknown number of distribution changes. Conference on Learning Theory, pages 138–158, 2019.
+
+Lilian Besson, Emilie Kaufmann, Odalric-Ambrym Maillard, and Julien Seznec. Efficient change-
+  point detection for tackling piecewise-stationary bandits. The Journal of Machine Learning
+  Research, 23(77):1–40, 2022.
+
+Alina Beygelzimer, John Langford, Lihong Li, Lev Reyzin, and Robert E. Schapire. Contextual
+  bandit algorithms with supervised learning guarantees. AISTATS, 2011.
+
+Sébastien Bubeck and Nicoló Cesa-Bianchi. Regret analysis of stochastic and nonstochastic multi-
+  armed bandit problems. arXiv preprint arXiv:1803.06971, 5(1), 2012.
+
+Sébastien Bubeck and Aleksandrs Slivkins. The best of both worlds: Stochastic and adversarial
+  bandits. The 25th Annual Conference on Learning Theory, (42):1–23, 2012.
+
+Yifang Chen, Chung-Wei Lee, Haipeng Luo, and Chen-Yu Wei. A new algorithm for non-stationary
+  contextual bandits: Efficient, optimal and parameter-free. In Conference on Learning Theory,
+  pages 696–726, 2019.
+
+Wang Chi Cheung, David Simchi-Levi, and Ruihao Zhu. Learning to optimize under non-stationarity.
+ In The 22nd International Conference on Artificial Intelligence and Statistics, pages 1079–1087.
+ PMLR, 2019.
+
+Dylan J. Foster, Akshay Krishnamurthy, and Haipeng Luo. Open problem: Model selection for
+  contextual bandits. 33rd Annual Conference on Learning Theory (COLT), 2020.
+
+Aurélien Garivier and Eric Moulines. On upper-confidence bound policies for switching bandit
+  problems. In Proceedings of the 22nd International Conference on Algorithmic Learning Theory,
+  pages 174–188. ALT 2011, Springer, 2011.
+
+Hoda Heidari, Michael Kearns, and Aaron Roth. Tight policy regret bounds for improving and
+  decaying bandits. Proceedings of the International Joint Conference on Artificial Intelligence
+ (IJCAI), pages 1562–1570, 2016.
+
+Levente Kocsis and Csaba Szepesvári. Discounted ucb. 2nd PASCAL Challenges Workshop, 2006.
+
+Ramakrishnan Krishnamurthy and Aditya Gopalan. On slowly-varying non-stationary bandits. arXiv
+  preprint: arXiv:2110.12916, 2021. URL https://arxiv.org/pdf/2110.12916.pdf.
+
+                                               14
+Tor Lattimore and Csaba Szepesvári. Bandit Algoritms. Cambridge University Press, 2020.
+
+Nir Levine, Koby Crammer, and Shie Mannor. Rotting bandits. Advanced in Neural Information
+  Processing Systems, 2017.
+
+Anne Gael Manegueu, Alexandra Carpentier, and Yi Yu. Generalized non-stationary bandits. arXiv
+  preprint: arXiv:2102.00725, 2021. URL https://arxiv.org/pdf/2102.00725.pdf.
+
+Teodor Marinov and Julian Zimmert. The pareto frontier of model selection for general contextual
+  bandits. Advances in Neural Information Processing Systems, 2021.
+
+Subhojyoti Mukherjee and Odalric-Ambrym Maillard. Distribution-dependent and time-uniform
+  bounds for piecewise i.i.d bandits. Reinforcement Learning for Real Life (RL4RealLife) Workshop
+  in the 36th International Conference on Mearning Learning, 2019.
+
+Yevgeny Seldin and Aleksandrs Slivkins. One practical algorithm for both stochastic and adversarial
+  bandits. Proceedings of the 31st International Conference on Machine Learning (ICML), 2014.
+
+Julien Seznec, Andrea Locatelli, Alexandra Carpentier, Alessandro Lazaric, and Michal Valko.
+  Rotting bandits are no harder than stochastic ones. Proceedings of the Twenty-Second International
+  Conference on Artificial Intelligence and Statistics, pages 2564–2572, 2019.
+
+Julien Seznec, Pierre Menard, Alessandro Lazaric, and Michal Valko. A single algorithm for both
+  restless and rested rotting bandits. Proceedings of the 22nd International Conference on Artificial
+  Intelligence and Statistics (AISTATS), 2020.
+
+Aleksandrs Slivkins. Introduction to Multi-Armed Bandits. 2019. URL https://arxiv.org/
+  abs/1904.07272.
+
+Alex Slivkins and Eli Upfal. Adapting to a changing environment: the brownian restless bandits.
+  21st Conference on Learning Theory (COLT), 2008.
+
+Chen-Yu Wei and Haipeng Luo. Non-stationary reinforcement learning without prior knowledge:
+  An optimal black-box approach. Proceedings of the 32nd International Conference on Learning
+  Theory, 2021.
+
+Lai Wei and Vaihbav Srivatsva. On abruptly-changing and slowly-varying multiarmed bandit
+  problems. Annual American Control Conference (ACC), 2018.
+
+
+
+
+                                                 15
+                                                           S UK K POTUFE
+
+
+
+
+Appendix A. Proof of Proposition 1
+We show a slightly more general version of Proposition 1 below which comes in handy in the proof
+of Theorem 1.
+
+Lemma 3 Let {St }Tt=1 be a fixed sequence of arm-sets such that St ⊆ Gt and, for any fixed phase
+[τi , τi+1 ), St ⊇ St+1 for all t ∈ [τi , τi+1 ). Let π be a procedure which, at each round t, plays an
+arm uniformly at random from St . We then have
+                                                             L̃ p
+                                                             X
+                                           R(π, T ) ≤ log(K)     K · (τi+1 − τi ).
+                                                                       i=0
+
+Proof Fix a phase [τi , τi+1 ) and for arm a ∈ [K], let τia be the last round in phase [τi , τi+1 ) when a
+is included in St . WLOG, suppose τi1 ≤ τi2 ≤ · · · ≤ τiK . Then, the regret of a procedure π which
+plays arm a ∈ St at round t ∈ [τi , τi+1 ) with probability 1/|St | is:
+                                       a
+  τi+1 −1       K τXi −1            K                                    p
+   X X δt (a) X            δt (a)   X                                     K(τia − 1 − τi )         p
+              ≤                   ≤                                                        ≤ log(K) K(τi+1 − τi ),
+   t=τ
+        |St |      t=τ
+                         K +1−a                                            K +1−a
+      i     a∈St             a=1            i                      a=1
+
+where we use the fact that |St | ≥ K + 1 − a for t < τia . Summing the regret over all phases [τi , τi+1 )
+gives the desired result.
+
+    The proof of Proposition 1 follows by taking St = Gt in Lemma 3.
+
+Appendix B. Details for the Proof of Theorem 1
+                          Ptℓ+1 −1
+B.1. Bounding E[            t=tℓ       δt (aℓ , πt )] (Term (a) of Equation (7))
+Following    the discussion of Section 5.4, we first reduce the problem to bounding the relative regret
+        ′ , a). To relate the quantity δ (a , π ) to the relative gap δ (a , a) for a fixed arm a, we first
+P
+    δ
+  t t (a                                t ℓ t                          t ℓ
+convert (a) to an alternative form involving the relative regrets to fixed arms.
+
+Proposition 5                                                                       
+                                   tℓ+1 −1                                   tℓ+1 −1
+                                           X                           X X δt (aℓ , a)
+                              E                  δt (aℓ , πt ) = E                  .                                 (9)
+                                           t=tℓ                        t=t
+                                                                              |A t |
+                                                                                 ℓ     a∈At
+
+Proof This indeed follows from first conditioning on on tℓ and carefully applying tower property:
+                                                                     
+             tℓ+1 −1                          tℓ+1 −1
+               X                                X
+        E           δt (aℓ , πt ) = Etℓ E         δt (aℓ , πt ) | tℓ 
+                   t=tℓ                                         t=tℓ
+                                                        " T                                             #
+                                                         X
+                                                = Etℓ          E [δt (aℓ , πt ) · 1{t < tℓ+1 } | tℓ ]
+                                                        t=tℓ
+                                                        " T                                                        #
+                                                         X
+                                                = Etℓ          E[11{t < tℓ+1 } · E[δt (aℓ , πt ) | Ft−1 , tℓ ] | tℓ ] ,
+                                                        t=tℓ
+
+
+
+                                                                       16
+where we use the fact that 1 {t < tℓ+1 } is constant conditional on Ft−1 . Next, the innnermost
+expectation on the above R.H.S. is:
+                                              X                                                  X δt (aℓ , a)
+        E[δt (aℓ , πt ) | Ft−1 , tℓ ] =           δt (aℓ , a) · P(πt chooses a | Ft−1 , tℓ ) =                   .
+                                                                                                        |At |
+                                          a∈At                                                   a∈At
+
+Plugging the above into our earlier chain of expectations and unconditioning then gives us (9).
+
+    Next, we condition on the good event E1 on which recall the concentration bounds of Proposition 3
+hold. We also further decompose (9) by partitioning the rounds t to those before arm a is evicted
+from Amaster and those after. Suppose arm a is evicted from Amaster at round taℓ ∈ [tℓ , tℓ+1 ). In
+particular, this means arm a ∈ At for all t ∈ [tℓ , taℓ ). Thus, it suffices to bound:
+                                  a −1
+                                                                                        
+                              K tXℓ                  K tℓ+1  −1
+                             X         δt (aℓ , a)   X     X     δt (aℓ , a)
+               E 1 {E1 } ·                       +                         · 1 {a ∈ At } .   (10)
+                                 t=t
+                                          |A t |             a      |A t |
+                                  a=1         ℓ               a=1 t=tℓ
+
+
+Suppose WLOG that t1ℓ ≤ t2ℓ ≤ · · · ≤ tK                                a          ′
+                                         ℓ . Then, for each round t < tℓ all arms a ≥ a are retained
+in Amaster and thus retained in the candidate arm set At . Thus, |At | ≥ K + 1 − a for all t ≤ taℓ .
+    Next, we bound the first double sum in (10), i.e. the regret of playing a to aℓ from tℓ to taℓ − 1,
+Applying Proposition 3, since arm a is not evicted from At till round taℓ , on event E1 we have for
+some c5 > 0 and any other arm a′ ∈ Amaster through round taℓ − 1 (i.e., a′ ∈ At for all t ∈ [tℓ , taℓ )):
+                         ta
+                          ℓ −1                                      q
+                          X
+                                          ′
+                                 E[δ̂t (a , a) | Ft−1 ] ≤ c5 log(T ) K(taℓ − tℓ ) ∨ K 2 .
+                          t=tℓ
+
+Next, since a, a′ ∈ At for each t ∈ [tℓ , taℓ ), we have:
+
+                                  ∀t ∈ [tℓ , taℓ ) : E[δ̂t (a′ , a) | Ft−1 ] = δt (a′ , a).
+
+Thus, we conclude for any such a′ :
+ta
+ ℓ −1                                          ta
+                                                ℓ −1
+                                                                             p
+X
+          ′
+                           q
+                               a           2
+                                               X     δt (a′ , a)   c5 log(T ) K(taℓ − tℓ ) ∨ K 2
+    δt (a , a) ≤ c5 log(T ) K(tℓ − tℓ ) ∨ K =⇒                   ≤                               ,
+t=t                                            t=t
+                                                        |At |                K +1−a
+   ℓ                                                                  ℓ
+
+
+where the second inequality appeals to |At | ≥ K + 1 − a for all t ∈ [tℓ , taℓ ). Since this last bound
+holds uniformly for all a′ ∈ Amaster at round taℓ − 1, it must hold for the last master arm aℓ . In
+particular,
+               ta
+                ℓ −1                               ta
+                                                    ℓ −1
+                                                                               p
+                X δt (aℓ , a)                      X δt (a′ , a)     c5 log(T ) K(taℓ − tℓ ) ∨ K 2
+                                  ≤ ′ max                          ≤                               .
+               t=tℓ
+                        |At |        a ∈Ata −1
+                                              ℓ    t=tℓ
+                                                           |At |               K +1−a
+
+Then, summing the above R.H.S. over all arms a, we have on event E1 :
+                            a
+                          ℓ −1
+                       K tX
+                       X       δt (aℓ , a)                           p
+                                                  ≤ c5 log(K) log(T ) K(tℓ+1 − tℓ ) ∨ K 2 .
+                                     |At |
+                       a=1 t=tℓ
+
+
+                                                              17
+                                            S UK K POTUFE
+
+
+
+
+Fig. 2: Shown are various replay scheduled durations (gray segments) with indications of when a given arm
+a may be reintroduced to At .
+
+
+    Next, we handle the second double sum in (10). We first observe that if arm a is played after
+round taℓ , then it must due to an active replay. The difficulty here is that replays
+                                                                                 P may interrupt each
+other and so care must be taken in managing the relative regret contribution t δt (aℓ , a) (which may
+be negative) of different overlapping replays.
+    Our strategy is to partition the rounds when a given arm a is played by a replay after round taℓ
+according to which replay is active and not accounted for by another replay. This will allow us to
+isolate the relative regret contributions δt (aℓ , a) to (10) of a given replay.
+    For this purpose, we define the following notation.
+
+Definition 7 Recall that the Bernoulli Bs,m (see Line 1 of Algorithm 1) decides whether Base-Alg(s, m)
+is scheduled (and hence has the chance to become active at all).
+    Call a replay Base-Alg(s, m) proper if there is no other activated replay Base-Alg(s′ , m′ ) such
+that [s, s + m] ⊂ (s′ , s′ + m′ ) where Base-Alg(s′ , m′ ) will become active again after round s + m.
+In other words, a proper replay is not scheduled inside the scheduled range of rounds of another
+replay. For each Base-Alg(s, m), let M (s, m, a) be the last round in [s, s + m] when arm a is
+retained by Base-Alg(s, m) and all of its children. Furthermore, let P ROPER(tℓ , tℓ+1 ) be the set
+of proper replays scheduled to start before round tℓ+1 . Let R(a) be the set of scheduled replays
+Base-Alg(s, m) such that its parent Base-Alg has evicted arm a before round s.
+
+
+    We first observe that for each round t when a replay is active, there is a unique proper replay
+associated to t. This is either the replay active at round t or the proper replay which was scheduled
+most recently before t. Then, for a fixed arm a, we partition the set of rounds t > taℓ where
+arm a ∈ At (and hence could be played) into intervals, each initiated by the start of a unique
+Base-Alg(s, m) ∈ P ROPER(tℓ , tℓ+1 ) ∪ R(a) and terminated when arm a is evicted or when the
+replay in question terminates, i.e. at round M (s, m, a). Note that in this partition of rounds, it is
+not enough to merely consider the scheduling of proper replays Base-Alg(s, m) ∈ P ROPER(tℓ , tℓ+1 )
+since non-proper children of proper replays may resample arm a after their parent evicts a. It is also
+not enough to consider just the schedules of replays in R(a), which reintroduce arm a, since a proper
+replay may not evict a before being pre-empted by another proper replay. This delicate accounting
+of the rounds where arm a is resampled is demonstrated in Figure 2.
+    Then, the second double sum in (10) can be decomposed into a sum over such replays and then a
+sum over the rounds where each such replay retains arm a. In other words, we can write the second
+
+                                                   18
+double sum of (10) as:
+                K                                                          M (s,m,a)
+                X                    X                                        X        δt (aℓ , a)
+                                                            1 {Bs,m = 1}                           .
+                                                                                          |At |
+                a=1 Base-Alg(s,m)∈P ROPER(tℓ ,tℓ+1 )∪R(a)                   t=s∨ta
+                                                                                 ℓ
+
+
+Further bounding the sum over t above by its positive part, we can sum over all Base-Alg(s, m), or
+obtain:                                                                      
+               K                               M (s,m,a)
+              X        X                          X δt (aℓ , a)
+                              1{Bs,m = 1}                        · 1{a ∈ At } ,            (11)
+                                                      a     |At |
+                a=1 Base-Alg(s,m)                      t=s∨tℓ
+                                                                                                  +
+    where the sum is over all replays Base-Alg(s, m), i.e. s ∈ {tℓ + 1, . . . , tℓ+1 − 1} and m ∈
+{2, 4, . . . , 2⌈log(T )⌉ }. It then remains to bound the contributed relative regret of each Base-Alg(s, m)
+in the interval [s ∨ taℓ , M (s, m, a)], which will follow similarly to the previous steps. Fix s, m and
+suppose taℓ + 1 ≤ M (s, m, a) since otherwise Base-Alg(s, m) contributes no regret in (11).
+    Then, following similar reasoning as before, i.e. combining our concentration bound (4) with the
+eviction criterion (2), we have for a fixed arm a:
+                             M (s,m,a)                           √
+                                X        δt (aℓ , a)   c5 log(T ) Km ∨ K 2
+                                                     ≤                          ,
+                                            |At |      mint∈[s,M (s,m,a)] |At |
+                              t=s∨ta
+                                   ℓ
+
+
+    Plugging this into (11) and switching the ordering of the outer double sum, we obtain
+
+                                              √         K
+                         X                              X                     1
+                                    c5 log(T ) Km ∨ K 2                                       .
+                                                                   mint∈[s,M (s,m,a)] |At |
+                    Base-Alg(s,m)                            a=1
+
+We claim this inner sum over a is at most log(K). For a fixed Base-Alg(s, m), if ak is the k-th arm in
+[K] to be evicted by Base-Alg(s, m) or any of its children, then mint∈[s,M (s,m,ak )] |At | ≥ K + 1 − k.
+Thus, our claim follows follows from K            1
+                                          P
+                                       √    k=1 K+1−k ≤ log(K).
+                 .
+    Let R(m) = c5 log(K) log(T ) Km ∨ K 2 which is the bound we’ve obtained so far on the
+relative regret for a single Base-Alg(s, m). Then, plugging R(m) into (11) gives:
+                                                                                                  
+            X     X−1 δt (aℓ , a)
+             K tℓ+1                                                X
+ E 1 {E1 }                       · 1 {a ∈ At } ≤ Etℓ E                   1 {Bs,m = 1} · R(m) | tℓ 
+                     a     |At |
+            a=1 t=tℓ                                           Base-Alg(s,m)
+                                                                     
+             XT    X
+   = Etℓ               E[11{Bs,m = 1} · 1 {s < tℓ+1 } | tℓ ] · R(m) .
+           s=tℓ+1 m
+
+Next, we observe that Bs,m and 1 {s < tℓ+1 } are independent conditional on tℓ since 1 {s < tℓ+1 }
+                                p observations of base algorithms scheduled before round s. Thus,
+only depends on the scheduling and
+recalling that P(Bs,m = 1) = 1/ m · (s − tℓ ),
+
+          E[11{Bs,m = 1} · 1{s < tℓ+1 } | tℓ ] = E[11{Bs,m = 1} | tℓ ] · E[11{s < tℓ+1 } | tℓ ]
+                                                        1
+                                               =p                 · E[11{s < tℓ+1 } | tℓ ].
+                                                    m · (s − tℓ )
+
+
+                                                      19
+                                                             S UK K POTUFE
+
+
+
+
+Plugging this into our expectation from before and unconditioning, we obtain:
+                                               
+      tℓ+1 −1 ⌈log(T )⌉
+        X X                   1                                           hp                   i
+  E                    p               · R(2n ) ≤ c6 log3 (T )Etℓ ,tℓ+1   K(tℓ+1 − tℓ ) ∨ K 2 . (12)
+     s=tℓ +1 n=1         2n · (s − tℓ )
+                                               p
+Then, to bound (a), it suffices to bound K(tℓ+1 − tℓ ) ∨ K 2 . First, we claim that every phase
+[τi , τi+1 ) is length at least K/4. Observe by our notion of significant regret, that an arm a incurring
+significant regret on the interval [s1 , s2 ] means
+    s2
+    X                 p                                  p
+           δt (a) ≥    K · (s2 − s1 ) =⇒ 2 · (s2 − s1 ) ≥ K · (s2 − s1 ) =⇒ s2 − s1 ≥ K/4.
+    t=s1
+
+Thus, each significant phase (Definition 1) must be at least K/4 rounds long meaning τi+1 − τi =
+(τi+1 − τi ) ∨ K/4.
+    Showing (a) is order (6) then follows from conditioning again on E1 in (12) and upper bounding
+tℓ+1 − tℓ by the combined length of all phases [τi , τi+1 ) intersecting episode [tℓ , tℓ+1 ).
+                          Ptℓ+1 −1
+B.2. Bounding E[             t=tℓ     δt (a♯t , aℓ )] (Term (b) of Equation (7))
+To show Proposition 4, we first need an elementary lemma which only depends on the definition of
+significant shift (Definition 1).
+
+Lemma 4 Let [si,j (a), si,j+1 (a)) be a bad segment, defined with respect to arm a. Then
+            si,j+1 (a)
+                                                                 s                                       
+                                               c4                                    si,j (a) + si,j+1 (a)
+                                δt (a♯i , a) ≥
+               X
+                                                  log(T )           K si,j+1 (a) −                           .   (13)
+                                             4                                               2
+         s (a)+si,j+1 (a)
+     t= i,j    2
+
+
+
+                           . s (a)+si,j+1 (a)
+                             l                  m
+Proof (of Lemma 4) Let s̃ = i,j       2           be the midpoint between si,j (a) and si,j+1 (a). Then,
+we have by (8) in the construction of the si,j (a)’s (Definition 5) that:
+            si,j+1 (a)                    si,j+1 (a)                      s̃−1
+                         δt (a♯i , a) =                δt (a♯i , a) −                δt (a♯i , a)
+              X                             X                             X
+
+              t=s̃                        t=si,j (a)                    t=si,j (a)
+                                        √
+                                                              q       q                 
+                            ≥ c4 log(T ) K      si,j+1 (a) − si,j (a) − s̃ − 1 − si,j (a)
+                               c4
+                                         q
+                            ≥     log(T ) K(si,j+1 (a) − s̃),                                                    (14)
+                               4
+                                               √          √       √
+where the last step is from the elementary fact a + b − a ≥ b/4 for any b ≥ a ≥ 0.
+
+Proof (of Proposition 4) Suppose event E1 (i.e., our concentration bound (4)) holds. For (i), if
+                                                           ♯                                        ♯
+Base-Alg(tstart , m) with tstart ≥ si,j (a) evicts arm ai before round si,j+1 (a), then arm ai incurs
+significant regret (⋆) on a subinterval of [si,j (a), si,j+1 (a)], which is a contradiction to the definition
+of arm a♯i .
+
+                                                                     20
+     For (ii), we first observe E[δ̂t (a♯i , a) | Ft−1 ] = δt (a♯i , a) for any round t ∈ [s̃, si,j+1 (a)] if
+ ♯
+ai , a ∈ At . Then, combining (13) of Lemma 4 with our concentration bound (4), we have that arm a
+will satisfy the eviction criterion (2) over interval [s̃, si,j+1 (a)].
+
+    Next, following the outline of Section 5.4, we bound the the regret of a fixed arm a to a♯i over the
+bad segments w.r.t. a. It should be understood that in what follows, we condition on tℓ . First, fix
+an arm a and define the bad round s(a) > tℓ as the smallest round which satisfies, for some fixed
+c7 > 0:
+                        Xq                                        p
+                                si,j+1 (a) − si,j (a) > c7 log(T ) s(a) − tℓ ,                      (15)
+                          (i,j)
+
+where the above sum is over all pairs of indices (i, j) ∈ N × N such that [si,j (a), si,j+1 (a)) is a
+bad segment with si,j+1 (a) < s(a). We will show that arm a is evicted within episode ℓ with high
+probability by the time the bad round s(a) occurs.
+                                                               . s (a)+si,j+1 (a)
+                                                                l                 m
+    For each bad segment [si,j (a), si,j+1 (a)), let s̃i,j (a) = i,j   2            denote the midpoint
+                                      . n
+of the bad segment and also let mi,j = 2 where n ∈ N satisfies:
+
+                                   2n ≥ si,j+1 (a) − si,j (a) > 2n−1 .
+
+Next, recall that the Bernoulli Bm.t decides whether Base-Alg(t, m) activates at round t (see Line 1
+of Algorithm 1). If for some t ∈ [si,j (a), s̃i,j (a)], Bt,mi,j = 1, i.e. a perfect replay is scheduled,
+then a will be evicted from Amaster by round si,j+1 (a)      P (Corollary
+                                                                    P        3). We will show this happens
+with high probability via concentration on the sum (i,j) t Bt,mi,j where j, i, t run through all
+t ∈ [si,j (a), s̃i,j (a)) and all bad segments [si,j (a), si,j+1 (a)) with si,j+1 (a) < s(a). Note that these
+random variables only depend on the fixed arm a, the episode start time tℓ , and the randomness of
+scheduling replays on Line 1. In particular, the Bt,mi,j are independent conditional on tℓ .
+    Then, a Chernoff bound over the randomization of META on Line 1 of Algorithm 1 conditional
+on tℓ yields
+                   P     P                                 P     P                 !
+     XX           E[ (i,j) t Bt,mi,j | tℓ ]                E[ (i,j) t Bt,mi,j | tℓ ]
+   P   Bt,mi,j ≤                           | tℓ  ≤ exp −                             .
+      t
+                           2                                        8
+       (i,j)
+
+
+We claim the error probability on the R.H.S. above is at most 1/T 3 . To this end, we compute:
+                       
+                            X s̃i,j  (a)
+                                                                      s
+  XX                                X           1             1 X si,j+1 (a) − si,j (a)   c7
+E         Bt,mi,j | tℓ  ≥               p                 ≥                           ≥    log(T ),
+                                           mi,j · (t − tℓ )   4         s(a) − tℓ         4
+   (i,j) t                  (i,j) t=s (a)
+                                      i,j                       (i,j)
+
+
+where the last inequality follows from (15). The R.H.S. above is larger than 24 log(T ) for c7 large
+enough, showing that the error P probability
+                                       P       is small. Taking a further union bound over the choice
+of arm a ∈ [K] gives us that (i,j) t Bt,mi,j > 1 for all choices of arm a (define this as the good
+event E2 (tℓ )) with probability at least 1 − K/T 3 .
+    Recall on the event E1 the concentration bounds of Proposition 3 hold. Then, on E1 ∩ E2 (tℓ ),
+we must have tℓ+1 − 1 ≤ s(aℓ ) since otherwise aℓ would have been evicted by some perfect replay
+
+                                                     21
+                                                           S UK K POTUFE
+
+
+
+                                                    P    P
+before the end of the episode tℓ+1 − 1 by virtue of (i,j) t Bt,mi,j > 1 for arm aℓ . Thus, by the
+definition of the bad round s(aℓ ) (15), we must have:
+                               X                           q                                      p
+                                                            si,j+1 (aℓ ) − si,j (aℓ ) ≤ c7 log(T ) tℓ+1 − tℓ .             (16)
+          [si,j (aℓ ),si,j+1 (aℓ )):si,j+1 (aℓ )<tℓ+1 −1
+
+
+Thus, by (8) in Definition 5, over the bad segments [si,j (aℓ ), si,j+1 (aℓ )) which elapse before the end
+of the episode tℓ+1 − 1, the regret of aℓ to a♯t is at most order log2 (T ) K · (tℓ+1 − tℓ ).
+                                                                             p
+
+     Over each non-bad critical segment [si,j (aℓ ), si,j+1 (aℓ )) and the last segment [si,j (aℓ ), tℓ+1 − 1),
+                                                         √
+the regret of playing arm aℓ to a♯i is at most log(T ) τi+1 − τi since there is at most one non-bad
+critical segment per phase [τi , τi+1 ) (see (8) in Definition 5).
+     So, we conclude that on event E1 ∩ E2 (tℓ ):
+                       tℓ+1 −1
+                                 δt (a♯t , aℓ ) ≤ c8 log2 (T )
+                        X                                                  X             p
+                                                                                          K(τi+1 − τi ).
+                        t=tℓ                                     i∈P HASES(tℓ ,tℓ+1 )
+
+
+Taking expectation, we have by conditioning first on tℓ and then on event E1 ∩ E2 (tℓ ):
+                                                                               
+   tℓ+1 −1                                             tℓ+1 −1
+           δt (a♯t , aℓ ) ≤ Etℓ E 1 {E1 ∩ E2 (tℓ )}         δt (a♯t , aℓ ) | tℓ  + T · Etℓ [E [11{E1c ∪ E2c (tℓ )} | tℓ ]]
+     X                                                   X
+E
+     t=tℓ                                                           t=tℓ
+                                                                                                                          
+                                                                                           X           p                             K
+                            ≤ c8 log2 (T )Etℓ E 1 {E1 ∩ E2 (tℓ )}                                        K(τi+1 − τi ) | tℓ  +
+                                                                                                                                     T2
+                                                                                i∈P HASES(tℓ ,tℓ+1 )
+                                                                                                
+                                                                      X              √                   1
+                            ≤ c8 log2 (T )E 1 {E1 }                                     τi+1 − τi  +     ,
+                                                                                                         T
+                                                              i∈P HASES(tℓ ,tℓ+1 )
+
+
+where in the last step we bound 1 {E1 ∩ E2 (tℓ )} ≤ 1 {E1 } and apply tower law again. This shows (b)
+is at most order the R.H.S. of (6).                                                                ■
+
+
+Appendix C. Proof of Corollary 2
+The proof of Corollary 2 follows straightforwardly from Definition 1. Recall from Section 3 that
+   . PT
+V = t=2 maxa∈[K] |µt (a) − µt−1 (a)| is the total variation of change in the rewards. Then, by
+Theorem 1, it suffices to show
+
+                                 L̃ p
+                                 X                  √
+                                     K(τi+1 − τi ) ≲ KT + (KV )1/3 · T 2/3 .                                               (17)
+                                 i=0
+
+Fix a phase [τi , τi+1 ) such that τi+1 < T + 1. We first bound the total variation over this phase
+                                                    τi+1
+                                                  . X
+                                     V[τi ,τi+1 ) =      max |µt (a) − µt−1 (a)|.
+                                                                a∈[K]
+                                                      t=τi +1
+
+
+                                                                 22
+By the definition of significant shift (Definition 1), an arm a = argmaxa∈[K] µτi+1 (a) must incur
+significant regret (⋆) on the interval [s1 , s2 ] for some τi ≤ s1 < s2 < τi+1 , or
+                                        s2
+                                        X                 p
+                                               δt (a) ≥    K(s2 − s1 ).
+                                        t=s1
+     √                Ps2     √
+Since s2 − s1 >        t=s1 1/ τi+1 − τi , there must be a round t ∈ [s1 , s2 ] such that δt (a) ≥
+  K/(τi+1 − τi ). Let a′ ∈ argmaxa′ ∈[K] µt (a′ ). Then, we have
+p
+
+                 s
+                        K
+                               ≤ δt (a) ≤ µt (a′ ) − µt (a) + µτi+1 (a) − µτi+1 (a′ )
+                     τi+1 − τi
+                                          ≤ |µτi+1 (a) − µt (a)| + |µt (a′ ) − µτi+1 (a′ )|
+                                                  τi+1
+                                                  X
+                                          ≤2              max |µs (a) − µs−1 (a)|
+                                                          a∈[K]
+                                                 s=t+1
+                                          ≤ 2 · V[τi ,τi+1 )
+
+This gives us a lower bound on the total variation over each interval [τi , τi+1 ). Then, by Hölder’s
+inequality:
+
+        L̃ p
+        X                  q                  L̃−1
+                                              Xp
+            K(τi+1 − τi ) = K(T + 1 − τL̃ ) +      K(τi+1 − τi )
+        i=0                                                        i=0
+                                         s                                    1/3              2/3
+                               √       L̃                                             L̃       √
+                                      X                      K                       X
+                              ≤ KT +                                            (τi+1 − τi ) K 
+                                                          τi+1 − τi
+                                                 i=0                                   i=0
+                                                                          1/3
+                               √      XL̃
+                              ≤ KT +     2V[τ ,τ              i   i+1 )
+                                                                                 K 1/3 T 2/3
+                                                 i=0
+                                  √
+                              =       KT + (2KV )1/3 · T 2/3 .
+
+                                                                                                         ■
+
+
+
+
+                                                          23
+

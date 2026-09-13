@@ -1,0 +1,1516 @@
+Classical Natural Deduction from Truth Tables
+Herman Geuvers # Ñ
+Radboud University, Nijmegen, The Netherlands
+Technical University Eindhoven, The Netherlands
+Tonny Hurkens #
+Unaffiliated Researcher, Haps, The Netherlands
+
+      Abstract
+In earlier articles we have introduced truth table natural deduction which allows one to extract
+natural deduction rules for a propositional logic connective from its truth table definition. This
+works for both intuitionistic logic and classical logic. We have studied the proof theory of the
+intuitionistic rules in detail, giving rise to a general Kripke semantics and general proof term calculus
+with reduction rules that are strongly normalizing. In the present paper we study the classical rules
+and give a term interpretation to classical deductions with reduction rules. As a variation we define
+a multi-conclusion variant of the natural deduction rules as it simplifies the study of proof term
+reduction. We show that the reduction is normalizing and gives rise to the sub-formula property.
+We also compare the logical strength of the classical rules with the intuitionistic ones and we show
+that if one non-monotone connective is classical, then all connectives become classical.
+
+2012 ACM Subject Classification Theory of computation → Proof theory; Theory of computation
+→ Type theory; Theory of computation → Constructive mathematics; Theory of computation →
+Functional constructs
+
+Keywords and phrases Natural deduction, classical proposition logic, multiple conclusion natural
+deduction, proof terms, formulas-as-types, proof normalization, subformula property, Curry-Howard
+isomorphism
+
+Digital Object Identifier 10.4230/LIPIcs.TYPES.2022.2
+
+Acknowledgements We want to thank the reviewers for their valuable comments.
+
+
+ 1      Introduction
+Classically, the meaning of a propositional connective is fixed by its truth table. This
+immediately implies consistency, a decision procedure, completeness (with respect to Boolean
+algebras) for classical logic. Constructively, following the Brouwer-Heyting-Kolmogorov
+interpretation [17], the meaning of a connective is fixed by explaining what a proof is that
+involves the connective. Basically, this explains the introduction rule(s) for each connective,
+from which the elimination rules follow. This was first phrased like this by Prawitz in [14],
+who studied natural deduction in detail, including the reduction of proofs (deductions).
+By analyzing constructive proofs we then also get consistency (from proof normalization),
+a decision procedure (from the sub-formula property) and completeness (with respect to
+Heyting algebras and Kripke models).
+    In previous papers [6, 7], we have defined a general method to derive natural deduction
+rules for a connective from its truth table definition, which we have coined TT-ND, Truth
+Table Natural Deduction. This also works for constructive logic, which we have shown in
+detail by relating the method to Kripke semantics and by studying proof normalization. For
+classical logic, a similar method has been described by Milne [10]. The advantage is that
+the derived rules give natural deduction rules for a connective “in isolation”, so without the
+need to explain a connective in terms of another (e.g. explaining the classical properties of
+implication using the double negation law). Also, this gives constructive rules for connectives
+that haven’t been studied so far, like if-then-else and nand. These constructive connectives
+            © Herman Geuvers and Tonny Hurkens;
+            licensed under Creative Commons License CC-BY 4.0
+28th International Conference on Types for Proofs and Programs (TYPES 2022).
+Editors: Delia Kesner and Pierre-Marie Pédrot; Article No. 2; pp. 2:1–2:27
+                   Leibniz International Proceedings in Informatics
+                   Schloss Dagstuhl – Leibniz-Zentrum für Informatik, Dagstuhl Publishing, Germany
+2:2   Classical Natural Deduction from Truth Tables
+
+
+      are described and studied in detail in [7]. Finally, it allows to study various properties
+      for a whole set of connectives all at once, like proof normalization and a generic (sound
+      and complete) Kripke semantics. Proof normalization has been defined and studied in [7],
+      where a weak normalization result is proven. Strong normalization has been proven in [8]
+      and [1]. These proofs proceed by defining a proof-term calculus for TT-ND, following the
+      Curry-Howard proofs-as-terms (and formulas-as-types) interpretation, and by defining a
+      reduction relation on these proof terms.
+          These results all apply to the constructive case. In the present paper we study the
+      classical case. We first prove some results only in terms of the logic. We show that for
+      monotonic connectives (like ∨, ∧), the classical and constructive rules are equivalent. This
+      has also been shown in [18, 9], but we give a new (arguably simpler) proof. This shows that
+      non-monotonic connectives “make classical logic classical”. In our systems, the difference
+      between constructive logic and classical logic for a connective c lies only in the introduction
+      rules for c. To substantiate that non-monotonicity is crucial, we prove that if we allow one
+      classic introduction rule for one non-monotonic connective, all connectives become classical.
+      This implies, for example, that the classical rules for → imply the (seemingly stronger)
+      classical rules for ¬ in presence of the constructive rules for ¬.
+          We also study proof reduction for classical logic derived from truth tables. To do this,
+      we define a proof term calculus which now also has conclusion variables, similar in style
+      with λµ of Parigot [13] or variants of that studied by Ariola and Herbelin [2] and Curien
+      and Herbelin [4]. We define various variants of this, depending on whether one has a single
+      conclusion or multiple conclusions. We also define these as logics and we show – as was to be
+      expected – that multiple conclusion intuitionistic TT-ND is logically equivalent to classical
+      TT-ND. On the proof terms (that include conclusion variables and binding of them), we
+      define a reduction relation that conforms with the reduction of deductions arising from detour
+      elimination and with the goal to obtain a deduction that satisfies the sub-formula property.
+      We describe this in detail for classical multi-conclusion logic, classical single-conclusion logic
+      and intuitionistic single-conclusion logic. We define the reduction on proof-terms, show that
+      it satisfies the subject reduction property and show that proof-terms in normal form satisfy
+      the sub-formula property.
+          For the study of normalization, we introduce the unified framework of Truth Table Logic
+      that arises quite naturally as a system unifying classical/intuitionistic multi-conclusion logic
+      and classical/intuitionistic single conclusion logic. It works with elimination patterns and
+      introduction patterns which can be combined to form proof terms. For this system we prove
+      strong normalization, and from that, strong normalization for the original intuitionistic logic
+      follows immediately. For the original versions of classical logic, the reduction is actually too
+      “fine-grained” to derive strong normalization directly. But we can conclude that, if there is a
+      proof term in classical logic (multi-conclusion or single conclusion), there is a proof-term
+      in normal form of that same formula. From this we conclude that all logics satisfy the
+      subformula property.
+
+       2      Natural Deduction from Truth Tables
+      We recap our earlier work on Truth Table Natural Deduction. To be able to reason generically
+      about natural deduction rules, all our rules have a “standard form” that looks like this
+           Γ ⊢ A1   ...   Γ ⊢ An      Γ, B1 ⊢ D    ...   Γ, Bm ⊢ D
+                                    Γ⊢D
+      The idea is that, if the conclusion of a rule is Γ ⊢ D, then the hypotheses of the rule can be
+      of one of two forms:
+H. Geuvers and T. Hurkens                                                                                     2:3
+
+
+1. Γ ⊢ A: instead of proving D from Γ, we now need to prove A from Γ. We call A a Lemma.
+2. Γ, B ⊢ D: we are given extra data B to prove D from Γ. We call B a Casus.
+Given this standard form of the rules, we don’t have to give the Γ explicitly, as it can be
+retrieved, so we write
+   ⊢ A1    ...   ⊢ An      B1 ⊢ D      ...     Bm ⊢ D
+                           ⊢D
+   Various well-known deduction rules follow this format:
+   ⊢A∨B          A⊢D        B⊢D                   ⊢B                  ⊢A         ⊢B
+                                     ∨-el                 ∨-in2                          ∧-in
+                 ⊢D                             ⊢A∨B                     ⊢A∧B
+But there are others that do not follow this format, for example implication introduction:
+     A⊢B
+              → -in
+   ⊢A→B
+In our set-up, implication introduction will break down in two rules, one introducing the
+implication, and one discharging the hypothesis. these together are equivalent to standard
+implication introduction.
+      A⊢B                   A⊢A→B
+                 → -in1                      → -in2
+   A⊢A→B                     ⊢A→B
+
+
+▶ Definition 1 (Natural Deduction rules from truth tables). Let c be an n-ary connective c
+with truth table tc .
+    Each row of tc gives rise to an elimination rule or an introduction rule for c. (We write
+Φ = c(A1 , . . . , An ).)
+
+      A1   ...   An    Φ         ⊢ Φ . . . ⊢ Ai (if pi = 1) . . . Aj ⊢ D (if pj = 0) . . .
+                           7→                                                                   el
+      p1   ...   pn    0                                   ⊢D
+
+     constructive intro
+      A1 . . . A n Φ             . . . ⊢ Ai (if qi = 1) . . . Aj ⊢ Φ (if qj = 0) . . .
+                           7→                                                            ini
+      q1 . . . qn 1                                      ⊢Φ
+
+     classical intro
+      A1 . . . A n     Φ         Φ ⊢ D . . . ⊢ Ai (if ri = 1) . . . Aj ⊢ D (if rj = 0) . . .
+                           7→                                                                        inc
+       r1 . . . rn     1                                     ⊢D
+    We call ⊢ Φ (resp. Φ ⊢ D) the major premise and the other hypotheses of the rule we
+call the minor premises. The minor premises are either a Lemma, Ai (if pi = 1 or qi = 1 or
+ri = 1 in tc ), or a Casus, Aj (if pj = 0 or qj = 0 rj = 0) in tc .
+
+▶ Definition 2 (Definition of the logics). Given a set of connectives C := {c1 , . . . , cn }, we
+define the intuitionistic and classical natural deduction systems for C, IPCC and CPCC as
+follows.
+    Both IPCC and CPCC have an axiom rule
+              axiom( if A ∈ Γ)
+       Γ⊢A
+   Both IPCC and CPCC have the elimination rules for the connectives in C.
+
+
+
+                                                                                                           TYPES 2022
+2:4   Classical Natural Deduction from Truth Tables
+
+
+          IPCC has the intuitionistic introduction rules for the connectives in C.
+          CPCC has the classical introduction rules for the connectives in C.
+      In [6], we have given a sound and complete a Kripke semantics for IPCC . Briefly, a Kripke
+      model is defined as usual and for w a world in the Kripke model, we define [[φ]]w ∈ {0, 1} with
+      the meaning that [[φ]]w = 1 if and only if formula φ is true in world w. For φ = c(φ1 , . . . , φn ),
+      we define [[φ]]w := 1 if tc ([[φ1 ]]w′ , . . . , [[φn ]]w′ ) = 1 for each w′ ≥ w, where tc is the truth table
+      of c, and otherwise [[φ]]w := 0. Similarly, a sound and complete valuation semantics can be
+      given for CPCC , where a valuation is a map from the proposition letters to {0, 1} and the
+      interpretation of composite formulas follows the truth table.
+
+      ▶ Example 3. Constructive rules for ∧ (3 elimination rules and one intro rule):
+
+           A    B      A∧B
+           0    0       0
+           0    1       0
+           1    0       0
+           1    1       1
+
+           ⊢A∧B         A⊢D       B⊢D                   ⊢A∧B         A⊢D       ⊢B
+                                          ∧-el00                                    ∧-el01
+                        ⊢D                                           ⊢D
+           ⊢A∧B          ⊢A     B⊢D                     ⊢A          ⊢B
+                                        ∧-el10            ∧-in11
+                    ⊢D                           ⊢A∧B
+          These rules can be shown to be equivalent to the well-known constructive rules. These
+      rules can be optimized to the three rules we are familiar with.
+
+      ▶ Example 4. Rules for ¬: 1 elimination rule and 1 introduction rule.
+
+           A    ¬A
+           0     1
+           1     0
+
+          Constructive:
+          ⊢ ¬A      ⊢A             A ⊢ ¬A
+                         ¬-el                ¬-ini
+               ⊢D                   ⊢ ¬A
+          Classical:
+          ⊢ ¬A      ⊢A             ¬A ⊢ D        A⊢D
+                         ¬-el                               ¬-inc
+               ⊢D                         ⊢D
+          Using the classical rules for ¬, we show that ¬¬A ⊢ A is derivable:
+          ¬¬A, ¬A ⊢ ¬¬A         ¬¬A, ¬A ⊢ ¬A
+                                                     ¬-el
+                       ¬¬A, ¬A ⊢ A                             ¬¬A, A ⊢ A
+                                                                            ¬-inc
+                                    ¬¬A ⊢ A
+
+      Simplifying the set of rules
+      There are various ways to optimize the rules, for example by taking two rules together in one
+      that is equivalent. These have already been described and proven in [6], so we only recap the
+      Lemmas here. To describe these, a first important operation is substituting one derivation
+      on top of another, a kind of “cut operation”.
+H. Geuvers and T. Hurkens                                                                             2:5
+
+
+▶ Lemma 5 (Substituting a deduction in another [6]). If Γ ⊢ A and ∆, A ⊢ B, then Γ, ∆ ⊢ B.
+Proof. If Σ is a deduction of Γ ⊢ A and Π is a deduction of ∆, A ⊢ B, then we have the
+following deduction of Γ, ∆ ⊢ B.
+     ·         ·
+     ·Σ        ·Σ
+     ·         ·
+     ·         ·
+   Γ ⊢ A ... Γ ⊢ A
+          ·
+          ·Π
+          ·
+          ·
+      Γ, ∆ ⊢ B
+The idea here is that in Π, the leaves that derive ∆′ ⊢ A (for some ∆′ ) as an (axiom) is
+replaced by a copy of the deduction Σ, which is also a deduction of ∆′ , Γ ⊢ A (due to
+weakening). As contexts only grow if one goes upwards in the tree, we have ∆′ ⊇ ∆, so this
+new derivation is well-formed.                                                          ◀
+
+▶ Lemma 6 ([6]). A system with two deduction rules of the following form
+   ⊢ A1 . . . ⊢ An    B 1 ⊢ D . . . Bm ⊢ D      C⊢D
+                           ⊢D
+
+   ⊢ A1 . . . ⊢ An    ⊢C    B1 ⊢ D . . . Bm ⊢ D
+                        ⊢D
+   is equivalent to the system with these two rules replaced by
+   ⊢ A1 . . . ⊢ An    B1 ⊢ D . . . Bm ⊢ D
+                      ⊢D
+   We don’t repeat the proof, which is in [6], but we give an example.
+▶ Example 7. The two rules for ∧ from Example 3, (∧-el00 ) and (∧-el10 ) can be replaced by
+one rule:
+   ⊢A∧B        B⊢D
+                      ∧-el_0
+          ⊢D
+The intuition is that, as A can occur as a Lemma or as a Casus in an elimination rule where
+everything else is the same, we can just omit it.
+   As we can also leave rule (∧-el00 ) in (as it is derivable), we can do the replacement again,
+and replace rules (∧-el00 ) and (∧-el01 ) by
+   ⊢A∧B        A⊢D
+                      ∧-el0_
+          ⊢D
+▶ Lemma 8. [6] A system with a deduction rule of the form to the left is equivalent to the
+system with this rule replaced by the rule on the right.
+   ⊢ A1 . . . ⊢ An    B⊢D                        ⊢ A1 . . . ⊢ An
+             ⊢D                                       ⊢B
+   Again, we don’t repeat the proof, as it is in [6], but we give an example.
+▶ Example 9. Having the optimized rules for ∧ from Example 7, (∧-el_0 ) and (∧-el0_ ), we
+can replaced them by the following rules, which are the well-known elimination rules for ∧.
+   ⊢A∧B                        ⊢A∧B
+            ∧-el′_0                   ∧-el′0_
+     ⊢B                         ⊢A
+
+
+
+                                                                                                   TYPES 2022
+2:6   Classical Natural Deduction from Truth Tables
+
+
+      The constructive connectives
+      We have already seen the ∧, ¬ rules. The optimized rules for ∨, →, ⊤ and ⊥ we obtain are:
+
+           ⊢A∨B        A⊢D     B⊢D                ⊢A                ⊢B
+                                      ∨-el                ∨-in1            ∨-in2
+                       ⊢D                       ⊢A∨B              ⊢A∨B
+
+
+           ⊢A→B         ⊢A               ⊢B                  A⊢A→B
+                             → -el               → -in1                  → -in2
+                 ⊢B                    ⊢A→B                   ⊢A→B
+
+
+                        ⊢⊥
+                ⊤-in          ⊥-el
+           ⊢⊤           ⊢D
+
+      The rules for the classical → connective
+      The classical rules for implication are as follows. The elimination is rule is the same as the
+      constructive one and we also have the first introduction rule → -in1 . In addition we have the
+      rule on the right. It is classical in the sense that one can derive Peirce’s law from it (without
+      using negation).
+
+           ⊢A→B         ⊢A               ⊢B                  A→B⊢D         A⊢D
+                             → -el               → -in1                            → -inc2
+                 ⊢B                    ⊢A→B                         ⊢D
+
+      ▶ Example 10. We give a classical derivation of Peirce’s law, using only the classical rules
+      for →.
+
+                                             (A → B) → A ⊢ (A → B) → A       A→B⊢A→B
+                                                       A → B, (A → B) → A ⊢ A
+                       A⊢A                    A → B, (A → B) → A ⊢ ((A → B) → A) → A
+           A ⊢ ((A → B) → A) → A                    A → B ⊢ ((A → B) → A) → A
+                                                                                      → -inc2
+                                     ⊢ ((A → B) → A) → A
+
+
+       3     Monotone and non-monotone connectives
+
+      ▶ Definition 11. A connective c is monotone if its truth table tc is a monotone function
+      from {0, 1}n to {0, 1} with respect to the ordering 0 ≤ 1.
+
+          Of the standard connectives, ∨ and ∧ are monotone, while ¬, → and ↔ are non-monotone.
+      For monotone connectives, the constructive and classical rules are equivalent. (So this holds
+      for ∧, ∨.) For the non-monotone connectives like → and ¬, this is not the case, which is
+      well-known, as Example 10 shows. There is an even stronger result: the classical intro rule
+      for the one (→ or ¬) implies the classical intro rule for the other (¬ or →). This hold in
+      general: if we add one classical introduction rule for one non-monotone connective, then all
+      non-monotone connectives are classical.
+
+      ▶ Proposition 12. For c monotone, the classical and constructive derivation rules are
+      equivalent.
+H. Geuvers and T. Hurkens                                                                                                             2:7
+
+
+Proof. Let c be a monotone connective, say with an introduction rule derived from the
+truth table row r = (r1 , . . . , ri , . . . , rn |1). If ri = 0, then we also have the truth table row
+r′ = (r1 , . . . , 1, . . . , rn |1). That is, we have rows (r1 , . . . , 0, . . . , rn |1) and (r1 , . . . , 1, . . . , rn |1).
+Now, the first lemma for simplifying the rules (Lemma 6) says that the i-th minor premise
+is immaterial for the rule. This reasoning applies to every 0-entry in row r, so we can
+eliminate all 0-s from r and we obtain an equivalent introduction rule without any Casus,
+which therefore looks like this:
+    Φ⊢D          ⊢ A1 . . . ⊢ Am
+                   ⊢D
+Now, by the second lemma for simplifying rules, Lemma 8, this rule is equivalent to
+    ⊢ A1 . . . ⊢ Am
+            ⊢Φ
+which is the constructive introduction rule for c. So for c monotone, a classical introduction
+rule is equivalent to a constructive one.                                                    ◀
+
+3.1      For non-monotone connectives, one classical introduction suffices
+We now show that, if we have a set of connectives C and c ∈ C is non-monotone, then adding
+one classical introduction rule for c makes the whole logic classical. So, if we add this one
+classical introduction rule, we can derive the other classical introduction rules for c and also
+the classical introduction rules for all other connectives d. In case d is monotone, this doesn’t
+add anything, because of Proposition 12. But, for example in the case of ¬ and →, which are
+both non-monotone, this shows that the classical rule for → can be derived from the classical
+rule for ¬, and vice versa, the classical rule for ¬ can be derived from the classical rule for →.
+The first might be expected, but the second maybe not, as one might have the impression
+that the “double negation law” is really stronger then the classical rules for →. Theorem
+13 below is even more general, as it says that all non-monotonic classical connectives are
+equally strong.
+     It should be noted that, when we talk about a non-monotonic connective c, say of arity n,
+we should actually speak about a “non-monotonic pattern in tc ”, which is an index i (1 ≤ i ≤
+n) and a sequence a1 , . . . , ai−1 , 1, ai+1 , . . . , an such that tc (a1 , . . . , ai−1 , 0, ai+1 , . . . , an ) = 1
+and tc (a1 , . . . , ai−1 , 1, ai+1 , . . . , an ) = 0. When we say we “add a classical introduction
+rule for this non-monotone c”, we mean to add a classical introduction rule for a line
+                                                                                                                     →
+                                                                                                                     −
+(a1 , . . . , ai−1 , 0, ai+1 , . . . , an ) that is part of such a pattern. (There may be other lines b
+                                               →
+                                               −
+in the truth table of c, with tc ( b ) = 0, that are not part of such a pattern; making the
+                                           →
+                                           −
+introduction rule for such a b classical leaves the whole system intuitionistic.) We will not
+use the terminology of “non-monotonic pattern in tc ”, to keep the text simple, and for ¬, →
+etcetera it isn’t relevant. But in the proof we will start from such a situation.
+
+▶ Theorem 13. Let C be a set of connectives and let c ∈ C be non-monotone. If we add one
+classical introduction rule for c, we can derive the classical rules for all connectives.
+
+Proof. To simplify the presentation we do not consider the situation where we have optimized
+rules, but the proof goes through basically unaltered. Let c be an n-ary connective which is
+not monotone. Then there are rows r = (r1 . . . rn |1) and s = (s1 . . . sn |0) which only differ
+at position f and such that rf = 0 and sf = 1. So the corresponding classical introduction
+and elimination rules for c have the same minor premises, except for position f where the
+introduction rule (based on r) has a Casus while the elimination rule (based on s) has a
+Lemma.
+
+
+                                                                                                                                   TYPES 2022
+2:8   Classical Natural Deduction from Truth Tables
+
+
+         We want to show that any other classical introduction rule, say the one for m-ary connective
+      d based on a row t = (t1 . . . tm |1), can be derived from this particular classical introduction
+      rule for c based on row r = (r1 . . . rn |1), by just using the constructive introduction rules
+      and the elimination rules of the connectives c and d. Note that c and d need not be different
+      connectives and the language need not contain any other connective.
+         The problem can be stated more precisely as follows. We have the following rows in the
+      truth tables.
+        r = (r1 . . . rn |1)      for n-ary c      rk ranges over the 1-entries, rℓ ranges over the 0-entries,
+        s = (s1 . . . sn |0)      for n-ary c      sg ranges over the 1-entries, sh ranges over the 0-entries,
+         t = (t1 . . . tm |1) for m-ary d          ti ranges over the 1-entries, tj ranges over the 0-entries.
+      Based on these rows, we have the following rules, where D and the As are arbitrary.
+         c(A1 , . . . , An ) ⊢ D        ⊢ Ak      (for rk = 1)        Aℓ ⊢ D     (for rℓ = 0)
+                                                                                                c-intro based on r
+                                                    ⊢D
+
+          ⊢ c(A1 , . . . , An )        ⊢ Ag     (for sg = 1)         Ah ⊢ D     (for sh = 0)
+                                                                                                c-elim based on s
+                                                    ⊢D
+
+        ⊢ Ai    (for ti = 1)          Aj ⊢ d(A1 , . . . , Am )   (for tj = 0)
+                                                                                d-intro based on t, intuitionistic
+                                   ⊢ d(A1 , . . . , Am )
+
+         Fix the formulas Φ = d(C1 , . . . , Cm ) and D (where C1 , . . . , Cm , D are arbitrary). We
+      need to show that the following is derivable (without using classical introduction for d):
+
+         Φ ⊢1 D          ⊢2 Ci       (for ti = 1)          Cj ⊢3 D    (for tj = 0)
+                                              ⊢D
+      We have marked, using ⊢1 , ⊢2 and ⊢3 , the hypotheses that we will need to derive ⊢ D so we
+      can easily refer to them.
+      Solution from any extra assumption
+      We first show that we can derive our result D from an arbitrary additional assumption.
+
+      ▷ Claim 14. For any formula X, we can derive X ⊢ D (under the assumptions laid out so
+      far).
+
+      Proof of the Claim. Let X be any formula. Define Ψ = c(B1 , . . . , Bn ) where:
+         Bu = X if ru = su = 1,
+         Bu = D if ru = 0 and su = 1 (so this is the case where u = f , the only place where rows
+         r and s differ),
+         Bu = Φ if ru = su = 0.
+          We now have the following derivation of X ⊢ D (where we still have to create a derivation
+      of the major premise, X, Ψ ⊢∗ D).
+
+         X, Ψ ⊢∗ D             X ⊢ Bk      (rk = 1)         Bf ⊢ D       Bℓ ⊢ D      (rℓ = 0)
+                                                                                                c-intro based on r
+                                                  X⊢D
+      Note that the minor premises of this rule are all derivable:
+         For rk = 1, we have Bk = X and we have X ⊢ X,
+         For rℓ = 0 with ℓ = f , we have Bf = D and we have D ⊢ D,
+         For rℓ = 0 with ℓ ̸= f , we have Bℓ = Φ and we have Φ ⊢1 D, one of our hypotheses.
+H. Geuvers and T. Hurkens                                                                                           2:9
+
+
+   We now show the derivability of the major premise, X, Ψ ⊢∗ D, by giving a derivation of
+X, Ψ ⊢ Φ, which, combined with Φ ⊢1 D, gives X, Ψ ⊢ D. Here is the derivation:
+                            Ψ ⊢ Ψ X, Ψ ⊢ Bg (for sg = 1) Cj ⊢ Bf             Bh ⊢ Φ (for sh = 0)
+  2
+                                                                                                   c-el
+⊢ Ci (for ti = 1)                                X, Ψ, Cj ⊢ Φ (for tj = 0)
+                                                                                                          d-in
+                                            X, Ψ ⊢ Φ          1
+                                                       by Φ ⊢ D
+                                            X, Ψ ⊢ D
+Note that the minor premises of this rule are all derivable:
+   For sg = 1 and rg = 1, we have Bg = X and we have X ⊢ X,
+   For sg = 1 with g = f , we have Bf = D and we have Cj ⊢3 D, one of our hypotheses,
+   For sh = 0, we have Bh = Φ and we have Φ ⊢ Φ.
+   So we have shown that, given Φ ⊢1 D, ⊢2 Ci (for ti = 1) and Cj ⊢3 D for tj = 0, we can
+derive X ⊢ D for any formula X. This proves our Claim 14.                               ◁
+
+Full Solution. If we can find a formula X such that ⊢ X then in combination with Claim
+14, X ⊢ D we get ⊢ D so we are done. If we have some standard connectives in our language,
+then we can take any theorem for X, like ⊤, ¬⊥ or A → A. If we happen to be inside a
+non-empty Γ, we can take X to be any formula in Γ. But in general, we don’t have a Γ and
+we cannot assume any other connectives than c and d (where c and d may even be the same).
+    If the introduction rule for d that is based on row t has at least one Lemma (Ci ), then we
+can take for X any such Ci . So if in t = (t1 . . . tm |1) we have ti = 1 somewhere, we are done.
+    Now suppose that t = (0 . . . 0|1), so each minor premise is a Casus in the introduction
+rule for d based on t that we are considering. Let, for A a formula, δ(A) denote the formula
+d(A, . . . , A). Then constructive d-intro gives
+      A ⊢ δ(A)
+                 d-intro based on t, intuitionistic
+       ⊢ δ(A)
+   Let’s denote by v the row in the truth table for d with just 1s as arguments: either
+v = (1 . . . 1|1) or v = (1 . . . 1|0).
+case v = (1 . . . 1|1).
+Then the constructive introduction rule derived from v directly gives A ⊢ δ(A) so we are
+done: take X := δ(A) (for arbitrary A), then ⊢ X is shown by:
+           A⊢A
+                            d-intro based on v, intuitionistic
+      A ⊢ d(A, . . . , A)
+                                                                  d-intro based on t, intuitionistic
+                             ⊢ d(A, . . . , A)
+case v = (1 . . . 1|0).
+Now take X := δ(δ(D)), where D is the formula that we want to prove ⊢ D for.
+   From row v we have an elimination rule for d, in particular we have, for any E:
+      ⊢ δ(D)        ⊢D
+                   d-elim based on v
+         ⊢E
+   We take δ(δ(D)) for E and we have the following derivation of δ(δ(D)) (and we are done).
+Note that δ(D) ⊢ D holds by our earlier Claim 14, because X ⊢ D for any X.
+
+      δ(D) ⊢ δ(D)           δ(D) ⊢ D
+                                         d-elim based on v
+            δ(D) ⊢ δ(δ(D))
+                                                             d-intro based on t, intuitionistic
+                             ⊢ δ(δ(D))
+This completes the proof of Theorem 13.                                                                     ◀
+
+                                                                                                                 TYPES 2022
+2:10   Classical Natural Deduction from Truth Tables
+
+
+        4     Variants of Classical Natural Deduction
+       There are various ways to move from constructive logic to classical logic. In sequent calculus,
+       this is done by considering multi-conclusion judgments of the form Γ ⊢ ∆, where ∆ is a
+       sequence (or finite set) of formulas, with the intuitive meaning that the conjunction of the
+       formulas in Γ implies the disjunction of the formulas in ∆. We can also make our truth
+       table natural deduction “multi-conclusion”, which helps to clarify the connection between
+       the various systems, but more importantly, it is helpful in describing the proof reduction of
+       classical logic. We first introduce these logics and prove their connection.
+
+       ▶ Definition 15. Let C be a set of connectives with their associated truth tables and let Γ and
+       ∆ be finite sets of formulas over C. We define intuitionistic and classical multi-conclusion
+       logic by considering the following derivation rules.
+
+                                                                    (axiom)
+                                                    Γ, A ⊢ A, ∆
+
+                     Γ ⊢ Φ, ∆0 . . . Γ ⊢ Ak , ∆k . . .       . . . Γ, Aℓ ⊢ ∆ℓ
+                                                                                 (el) if ∆ ⊇ ∆0 , ∆k , ∆ℓ
+                                               Γ⊢∆
+
+                        . . . Γ ⊢ Ai , ∆ i . . .   . . . Γ, Aj ⊢ Φ, ∆j . . .
+                                                                               (in-int) if ∆ ⊇ ∆i , ∆j
+                                             Γ ⊢ Φ, ∆
+
+                Γ, Φ ⊢ ∆0 . . . Γ ⊢ Ai , ∆i . . .      . . . Γ, Aj ⊢ ∆j . . .
+                                                                                (in-class) if ∆ ⊇ ∆0 , ∆i , ∆j
+                                           Γ⊢∆
+
+       In each rule, Φ = c(A1 , . . . , An ) for some connective c. The Ai and Aj range over the entries
+       with ri = 1 and rj = 0 of some 1-row r for c. The Ak and Aℓ range over the entries with
+       rk′ = 1 and rℓ′ = 0 of some 0-row r′ for c.
+           We define the following logics by having the rules (axiom) and (el) and one introduction
+       rule:
+        1. Int-mc, intuitionistic multi-conclusion logic, has introduction rule (in-int).
+        2. Class-mc, classical multi-conclusion logic, has introduction rule (in-class).
+       For the multi-conclusion logics, we can also let the ∆ be a constant in the rules (just like
+       the Γ), as the (axiom) rule gives weakening anyway. We get the original truth table natural
+       deduction rules by restricting these derivation rules to judgments with a single conclusion:
+           (axiom-sc) is rule (axiom) with ∆ empty
+           (el-sc) is rule (el) with ∆ a singleton, ∆0 and the ∆k empty, and the ∆ℓ equal to ∆
+           (in-int-sc) is rule (in-int) with ∆ empty
+           (in-class-sc) is rule (in-class) with ∆ a singleton, ∆0 and the ∆j equal to ∆, and the ∆i
+           empty
+       We define the original truth table natural deduction logics in this format by having the rules
+       (axiom-sc) and (el-sc) and one introduction rule:
+        1. Int, intuitionistic single-conclusion logic, has introduction rule (in-int-sc).
+        2. Class, classical single-conclusion logic, has introduction rule (in-class-sc).
+
+       ▶ Proposition 16.
+       1. Int-mc, Class and Class-mc are equivalent in the sense that
+               Γ ⊢ Φ in Class ⇔ Γ ⊢ Φ in Class-mc
+              Γ ⊢ ∆ in Int-mc ⇔ Γ ⊢ ∆ in Class-mc
+       2. Int is really weaker than the other 3 systems if C contains a non-monotone connective.
+H. Geuvers and T. Hurkens                                                                              2:11
+
+
+Proof.
+1. The proof of Γ ⊢ Φ in Class ⇔ Γ ⊢ Φ in Class-mc is by showing completeness for both
+   Class and Class-mc in the standard way (using maximally consistent extensions of sets
+   of formulas) with respect to a valuation semantics. For Class-mc, one proves Γ ⊢ ∆ ⇔
+   Γ ⊨ ∆, where Γ ⊨ ∆ is defined as: for all v : At → {0, 1}, if ∀φ ∈ Γ(v(φ) = 1), then
+   ∃ψ ∈ ∆(v(ψ) = 1). One proves the same result for Class, from which the first equivalence
+   in the Proposition follows.
+   For the proof of Γ ⊢ ∆ in Int-mc ⇔ Γ ⊢ ∆ in Class-mc, the ⇒ is immediate, while for the
+   ⇐ we show that the classical introduction rule (in-class) is derivable in Int-mc: suppose
+   we have Γ, Φ ⊢ ∆0 , Γ ⊢ Ai , ∆i (for all appropriate i, according to row r in truth table tc )
+   and Γ, Aj ⊢ ∆j (for all appropriate j) in Int-mc. We also have Γ, Aj ⊢ Φ, ∆j , so we can
+   apply the intuitionistic introduction rule (in-int) to conclude Γ ⊢ Φ, ∆ for ∆ ⊇ ∆i , ∆j .
+   We also have Γ, Φ ⊢ ∆0 , so by Substitution Lemma (Lemma 5 extends directly to the
+   case for Int-mc and Class-mc), we conclude Γ ⊢ ∆, ∆0 (for ∆ ⊇ ∆i , ∆j ) and we are done.
+2. For well-known non-monotone connectives like ¬ and →, it is known that Int is really
+   weaker than Class, e.g. one can prove Peirce’s law and ¬¬A ⊢ A in Class, which cannot
+   be proven in Int, as one can show by constructing a Kripke counter-model. This also
+   implies that for other non-monotone connective, say c of arity n, the classical rules are
+   really stronger: with the classical rules for c and the intuitionistic rules for ¬ one can
+   prove ¬¬A ⊢ A. (This follows directly from Theorem 13.) With the intuitionistic rules
+   for c and ¬ one cannot prove ¬¬A ⊢ A, as the Kripke semantics for intuitionistic truth
+   table natural deduction shows, see [6].                                                    ◀
+
+ 5     Proof terms for natural deduction
+In earlier articles, we gave proof terms for natural deductions. This simplified the study of
+proof normalization. We followed the Curry-Howard formulas-as-types (and proofs-as-terms)
+paradigm. We defined systems with judgments Γ ⊢ t : B, where B is a formula, Γ is a set of
+declarations {x1 : A1 , . . . , xn : An }, where the Ai are formulas and the xi are term variables
+such that every xi occurs at most once in Γ, and t is a proof term. In these systems, the
+type of a proof term t is the conclusion B of the proof and the types of the free variables xi
+of t are the assumptions Ai of the proof. A Lemma D (a sub-proof of formula D as part of
+the proof of B) is represented by a sub-term of t of type D. A Casus C (a part of the proof
+that uses C as extra assumption) is represented by a λ-abstraction over a variable of type C.
+    In this section, we first define proof term calculi for the logics we have already discussed,
+and also for some logics we have studied in earlier work, but now with both variables for
+assumptions (hypotheses) and for conclusions (goals).
+    By using (abstractions over) conclusion variables, we can distinguish between terms like
+x (representing an assumption A), γ · x (representing a proof of A ⊢ A) and µγ : A.γ · x
+(representing a Lemma A). It is also very useful to represent multi-conclusion deductions.
+
+5.1    Proof terms for truth table natural deduction with conclusion
+       variables
+We define proof term calculi for TT-ND with conclusion variables for various logics:
+1. Int, intuitionistic logic,
+2. Class, classical logic,
+3. Int-mc, intuitionistic multi-conclusion logic,
+4. Class-mc, classical multi-conclusion logic,
+
+
+
+                                                                                                     TYPES 2022
+2:12   Classical Natural Deduction from Truth Tables
+
+
+       The judgments of these calculi will be of the form
+
+           t : (Γ ⊢ ∆)
+
+       where t denotes the proof term, Γ contains the labelled assumptions, typically Γ = x1 , :
+       A1 , . . . , xn : An , and ∆ contains the labelled conclusions, typically ∆ = α1 : B1 , . . . , αm : Bm .
+           Such a judgment expresses that the sequent A1 , . . . , An ⊢ B1 , . . . , Bm is derivable in the
+       corresponding logic. As in sequent calculus, this can informally be read as “t is a proof of the
+       disjunction of the Bj from the conjunction of the Ai ”. In case we have single conclusion logic
+       ∆ is a singleton, but still with a labelled conclusion, so ∆ = α : B. We use λ to abstract
+       over assumption variables and µ to abstract over conclusion variables. Each free variable of t
+       is declared in Γ or ∆. Each proof term consists of two parts (separated by ·). Conclusion
+       variables only occur as left part of a (nested) proof term and assumption variables only as
+       right part.
+
+       ▶ Definition 17. Let C be a set of connectives with their associated truth tables and let Γ
+       be an assumption context and ∆ a conclusion context for formulas over C. We consider the
+       following derivation rules for terms, where the syntactic class of terms is as follows.
+
+           t ::= α · x | (µα : A.t) · [µβ : B.t′ ; λz : C.t′′ ]r
+                      | (λx : A.t) · {µβ : B.t′ ; λz : C.t′′ }r | γ · {µβ : B.t′ ; λz : C.t′′ }r
+
+                                                                               (axiom)
+                                            α · x : (Γ, x : A ⊢ α : A, ∆)
+
+                t : (Γ ⊢ β : Φ, ∆0 ) . . . pk : (Γ ⊢ αk : Ak , ∆k ) . . .      . . . qℓ : (Γ, yℓ : Aℓ ⊢ ∆ℓ )
+                                                                                                                (el)∗
+                               (µβ : Φ.t) · [µαk : Ak .pk ; λyℓ : Aℓ .q ] : (Γ ⊢ ∆)
+                                                                             ℓ r′
+
+
+                   . . . pi : (Γ ⊢ αi : Ai , ∆i ) . . .   . . . qj : (Γ, yj : Aj ⊢ γ : Φ, ∆j ) . . .
+                                                                                                       (in-int)∗∗
+                              γ · {µαi : Ai .pi ; λyj : Aj .qj }r : (Γ ⊢ γ : Φ, ∆)
+
+          t : (Γ, x : Φ ⊢ ∆0 ) . . . pi : (Γ ⊢ αi : Ai , ∆i ) . . .    . . . qj : (Γ, yj : Aj ⊢ ∆j ) . . .
+                                                                                                             (in-class)∗∗∗
+                           (λx : Φ.t) · {µαi : Ai .pi ; λyj : Aj .qj }r : (Γ ⊢ ∆)
+
+       In each rule, Φ = c(A1 , . . . , An ) for some connective c. Each r is a 1-row for connective c,
+       where Ai ranges over the entries of r with ri = 1 and Aj ranges over the entries with rj = 0.
+       Each r′ is a 0-row for c and Ak ranges over the entries of r′ with ri′ = 1 and Aℓ ranges over
+       the entries with rℓ′ = 0.
+           Just as in the definition of the logics (Definition 15), each term rule has the same side
+       condition on the ∆ in the conclusion: it should be a superset of the ∆’s in the hypotheses. In
+       particular, this means that ∗ represents ∆ ⊇ ∆0 , ∆k , ∆ℓ where k and ℓ range over a number
+       of ∆’s, ∗∗ represents ∆ ⊇ ∆i , ∆j where i and j range over a number of ∆’s, ∗∗∗ represents
+       ∆ ⊇ ∆0 , ∆i , ∆j where i and j range over a number of ∆’s. We define the multi-conclusion
+       term calculi by having the rules (axiom) and (el) and one introduction rule:
+        1. Int-mc, intuitionistic multi-conclusion calculus, has introduction rule (in-int).
+        2. Class-mc, classical multi-conclusion calculus, has introduction rule (in-class).
+
+           Each rule for terms can be restricted to judgments t : (Γ ⊢ ∆) in which ∆ is a singleton,
+       just like the corresponding derivation rule for sequents in Definition 15. We define the
+       single-conclusion term calculi by having the rules (axiom-sc) and (el-sc) and one introduction
+       rule:
+       1. Int, intuitionistic single-conclusion calculus, has introduction rule (in-int-sc).
+       2. Class, classical single-conclusion calculus, has introduction rule (in-class-sc).
+H. Geuvers and T. Hurkens                                                                                          2:13
+
+
+   We want to single out specific sub-term patterns that occur in the elimination rule and
+the introduction rule.
+
+▶ Definition 18. An intro pattern is a sub-term of the form {µαi : Ai .pi ; λyj : Aj .qj }r . An
+elim pattern is a sub-term of the form [µαk : Ak .pk ; λyℓ : Aℓ .qℓ ]r′ .
+    We say that the intro pattern {µαi : Ai .pi ; λyj : Aj .qj }r is well-typed in Γ ⊢ ∆, if for
+all i, pi : (Γ ⊢ αi : Ai , ∆i ) for some ∆i and for all j, qj : (Γ, yj : Aj ⊢ γ : Φ, ∆j ) for some
+∆j and all ∆i , ∆j ⊆ ∆. (And all this is relative to line r in the truth table for c, where
+Φ = c(A1 , . . . , An ).)
+    We say that the elim pattern [µαk : Ak .pk ; λyℓ : Aℓ .qℓ ]r′ is well-typed in Γ ⊢ ∆, if for
+all k, pk : (Γ ⊢ αk : Ak , ∆k ) for some ∆k and for all ℓ, qℓ : (Γ, yℓ : Aℓ ⊢ ∆ℓ ) for some ∆k
+and all ∆k , ∆ℓ ⊆ ∆. (And all this is relative to line r′ in the truth table for some c.)
+
+▶ Example 19. The derivation rules for negation are as follows in the classical multi-conclusion
+logic. We omit the Γ and ∆.
+
+   t : (x : ¬B ⊢ α : D)          q : (y : B ⊢ α : D)                t : (⊢ α : ¬B)         q : (⊢ β : B)
+                                                         in¬                                               el¬
+        (λx : ¬B.t) · {; λy : B.q}r : (⊢ α : D)                    (µα : ¬B.t) · [µβ : B.q ; ]r′ : (⊢)
+
+    As logics, the relation between these calculi has been given in Proposition 16. We can
+also give the relation between the term calculi.
+
+▶ Lemma 20. The calculus Int is a subsystem of Int-mc and the calculi Class and Int-mc are
+subsystems of Class-mc:
+
+       Int ⊆ Int-mc ⊆ Class-mc
+              Class ⊆ Class-mc
+
+where Int ⊆ Int-mc and Class ⊆ Class-mc are by the identity on terms and Int-mc ⊆ Class-mc
+is by interpreting
+
+   [[γ · {µαi : Ai .pi ; λyj : Aj .qj }r ]] := (λx : Φ.γ · x) · {µαi : Ai .[[pi ]]; λyj : Aj .[[qj ]]}r
+
+Proof. The proof is by a straightforward induction on the derivation, using the fact that all
+systems have weakening: if t : (Γ ⊢ ∆) and Γ ⊆ Γ′ , ∆ ⊆ ∆′ , then t : (Γ′ ⊢ ∆′ ).          ◀
+
+▶ Example 21. We consider a proof of the double negation law in classical multi-conclusion
+calculus, given by the proof term t : (z : ¬¬A ⊢ α : A), where
+
+   t     :=    (µγ : ¬¬A.γ · z) · [µβ : ¬A.(λy : ¬A.β · y) · {; λx : A.α · x}r ; ]r′
+
+Observe that t contains a sub-term (λy : ¬A.β · y) · {; λx : A.α · x}r , of type (⊢ β : ¬A, α : A),
+with two different free conclusion variables. Such proof terms, having multiple free conclusion
+variables, can only occur in multiple-conclusion calculus.
+    We give the derivation of t, using the rules given in Example 19. Except for the last line,
+we omit the declarations z : ¬¬A and α : A from the context.
+                                     β · y : (y : ¬A ⊢ β : ¬A) α · x : (x : A ⊢ β : ¬A)
+                                                                                                    in¬
+        γ · z : (⊢ γ : ¬¬A)             (λy : ¬A.β · y) · {; λx : A.α · x}r : (⊢ β : ¬A)
+                                                                                                           el¬
+   (µγ : ¬¬A.γ · z) · [µβ : ¬A.(λy : ¬A.β · y) · {; λx : A.α · x}r ; ]r′ : (z : ¬¬A ⊢ α : A)
+
+In the right branch of this derivation, we have as conclusion context α : A, β : ¬A.
+
+
+
+                                                                                                                 TYPES 2022
+2:14   Classical Natural Deduction from Truth Tables
+
+
+                                                              ......
+             ......                                                     intro-Φ
+                      intro-Φ                        ⊢Ψ            ⊢Φ             ...
+              ⊢Φ                    ...                                                 elim-Ψ
+                                          elim-Φ                    ⊢Φ                            ...
+                       ⊢D                                                                               elim-Φ
+                                                                           ⊢D
+
+          Figure 1 Detour and Permutation.
+
+
+       5.2     Proof terms and reductions: the intuitionistic case
+       We now describe the term reduction rules. For Int these should correspond to what we
+       have defined and studied in [7] and [8]. There we have defined a proof term calculus for
+       intuitionistic TT-ND (but without conclusion variables), and we have detour elimination and
+       permutation rules to normalize proofs and to obtain a proof in normal form that satisfies the
+       sub-formula property.
+           A detour in intuitionistic logic is a pattern of an introduction of a formula Φ immediately
+       followed by an elimination of Φ. Such a step can be eliminated by not using Φ at all. This is
+       depicted on the left in Figure 1. A permutation is necessary when a detour for Φ is blocked
+       by the elimination of another formula Ψ. Then we first have to permute the two elimination
+       rules, for Φ and Ψ, to make the detour of Φ explicit. See Figure 1 on the right.
+           It turns out that in our new setting, the conclusion variables nicely take care of the
+       permutation rules. We use the following shorthand notation to improve readability:
+           p represents µαk : Ak .pk ,
+           q represents λyℓ : Aℓ .qℓ .
+           r represents µαi : Ai .ri ,
+           s represents λyj : Aj .sj .
+       ▶ Definition 22. The reduction rule for Int is as follows, for t ̸= β · x.
+           (µβ : Φ.t) · [p ; q]r′     −→      t[β := [p ; q]r′ ]
+       Here the substitution t[β := [p ; q]r′ ] is defined by, inside t,
+
+             replacing         β·x            by       (µα : Φ.α · x) · [p ; q]r′       for a fresh α
+             replacing      β · {r; s}r       by       qℓ [yℓ := µαi : Ai .ri ]         if i = ℓ
+                                             or by     sj [yj := µαk : Ak .pk ]         if j = k.
+
+       Here qℓ [yℓ := µαi : Ai .ri ] is defined by replacing γ · yℓ by ri [αi := γ].
+       Note that all free occurrences of β in t should be replaced, including those in sj . We will see
+       an example in Example 27. Since Int is a single-conclusion calculus, the (only) conclusion
+       variable β of t does not occur in µαi : Ai .ri .
+       ▶ Lemma 23 (Subject Reduction). If t : (Γ ⊢ γ : D) and t −→ t′ , then t′ : (Γ ⊢ γ : D).
+       Proof. By induction on the derivation of t : (Γ ⊢ γ : D), which treats the cases where the
+       reduction takes place deeper inside t. The only interesting case is when t is itself a redex.
+       For that we have to prove an auxiliary Substitution Lemma 24, which we give below and
+       from which the case of t itself being a redex follows immediately.                         ◀
+
+       ▶ Lemma 24 (Substitution Property). Let Φ = c(A1 , . . . , An ) and t : (Γ ⊢ β : Φ). If the elim
+       pattern [µαk : Ak .pk ; λyℓ : Aℓ .qℓ ]r′ is well-typed in Γ ⊢ γ : D, where r′ is a line in the truth
+       table for c that gives an elimination rule, then t[β := [p ; q]r′ ] : (Γ ⊢ γ : D).
+H. Geuvers and T. Hurkens                                                                                        2:15
+
+
+Proof. The proof is by induction on t, using the definition of the substitution given in
+Definition 22.                                                                        ◀
+
+    The role of the side condition t ̸= β · x in Definition 22 should be clear: without it
+we create an infinite reduction sequence right away. As a matter of fact, (µβ : Φ.β · x) ·
+[µαk : Ak .pk ; λyℓ : Aℓ .qℓ ]r′ is not a redex as it is an elimination of an assumption, which is
+exactly what we want from a proof in normal form in Int: that all occurrences of elimination
+rules eliminate a hypothesis. It is convenient to syntactically characterize the normal forms
+of Int, NFInt .
+
+▶ Definition 25. We define NFInt , the normal forms of Int, as follows.
+
+  NFInt ::= α · x | (µβ : Φ.β · x) · [µαk : Ak .pk ; λyℓ : Aℓ .qℓ ]r′ | γ · {µαk : Ak .pk ; λyℓ : Aℓ .qℓ }r′
+
+where all sub-terms are again in NFInt .
+
+   We give the main properties of normal forms and reduction.
+
+▶ Lemma 26.        NFInt captures precisely the normal forms of Int.
+  The normal forms of Int satisfy the Sub-formula Property: If t : (Γ ⊢ γ : D), t ∈ NFInt ,
+   then for each bound variable, α : A or x : A, occurring in t, A is a sub-type of a type in Γ
+   or D.
+  The reduction is strongly normalizing.
+
+Proof. The proof of the first is immediate: terms in NFInt cannot reduce and all terms
+that cannot reduce are in NFInt . The second follows by induction on the derivation of
+t : (Γ ⊢ γ : D), where we analyze t based on the cases that arise from t ∈ NFInt . The strong
+normalization property follows from the strong normalization proofs for intuitionistic TT-ND
+that have been given in [8] and [1]. It also follows from strong normalization of Truth Table
+Logic (using (2) of Lemma 41) which we prove in Theorem 46.                                ◀
+
+    The term reduction rules of Definition 22 indeed correspond to the ones of [7] and [8].
+The interpretation is straightforward, but we do not give it here, because we would have to
+introduce the definitions of [7] first. To be more precise: every reduction step of the Definition
+corresponds to a combination of multiple detour elimination/permutation steps from[7]. So
+the reduction of Definition 22 covers both the detour elimination and the permutation rules.
+We illustrate this in an example.
+
+▶ Example 27. The following deduction has a hidden detour which can be made explicit
+using a permutation elimination step. (The · · · are auxiliary parts of the deduction.) The
+→ -el and → -in are separated by an ∨-el, so the detour arising from an → -in followed by an
+→ -el is blocked. The detour can be made explicit using a permutation step. (Note that in
+TT-ND, the “normal” →-introduction proceeds in two steps, first introducing the →-formula
+C → D, then abstracting over the hypothesis C.)
+                         ···
+                     A, C ⊢ D
+                                    → -in
+       ···        A, C ⊢ C → D                               ···
+                                            → -in
+   ⊢A∨B                   C→D                           B⊢C→D                     ···
+                                                                       ∨-el
+                                C→D                                              ⊢C       D⊢D
+                                                                                                  → -el
+                                                 D
+
+
+
+                                                                                                               TYPES 2022
+2:16   Classical Natural Deduction from Truth Tables
+
+
+          Using the proof terms of [6], this derivation looks like this.
+                           x:A, z:C ⊢ q:D
+                                                → -in
+                     x:A, z:C ⊢ {q ; −}:C → D
+                                                        → -in
+       ⊢ t:A ∨ B     x:A ⊢ {− ; λz:C.{q ; −}}:C → D             y:B ⊢ r:C → D
+                                                                                 ∨-el
+                   ⊢ t · [− ; λx:A.{− ; λz:C.{q ; −}}, λy:B.r]:C → D                       ⊢ p:C   u:D ⊢ u:D
+                                                                                                               → -el
+                            ⊢ t · [− ; λx:A.{− ; λz:C.{q ; −}}, λy:B.r] · [p ; λu:D.u]:D
+
+          The permutation step for this proof term
+
+          t · [− ; λx:A.{− ; λz:C.{q ; −}}, λy:B.r] · [p ; λu:D.u]
+
+       allows one elimination to move into another, in this case to permute the → -el into the ∨-el,
+       leading to
+
+          t · [− ; λx:A.{− ; λz:C.{q ; −}} · [p ; λu:D.u], λy:B.r · [p ; λu:D.u]]
+
+          Here is the same proof in Int of Definition 17.
+
+                                                q:(x:A, z:C ⊢ β:D)
+                                    γ · {µβ:D.q ; −}:(x:A, z:C ⊢ γ:C → D)
+         t:(⊢ α:A ∨ B)        γ · {− ; λz:C.γ · {µβ:D.q ; −}}:(x:A ⊢ γ:C → D)                r:(y:B ⊢ γ:C → D)
+               (µα:A ∨ B.t) · [− ; λx:A.γ · {− ; λz:C.γ · {µβ:D.q ; −}}, λy:B.r]:(⊢ γ:C → D)
+
+          Abbreviating M := (µα:A ∨ B.t) · [− ; λx:A.γ · {− ; λz:C.γ · {µβ:D.q ; −}}, λy:B.r] we
+       then have
+
+          M :(⊢ γ:C → D) p:(⊢ η:C) δ · u:(u:D ⊢ δ:D)
+          (µγ:C → D.M ) · [µη:C.p ; λu:D.δ · u]:(⊢ δ : D)
+
+       So the final proof-term is
+
+         (µγ:C → D.(µα:A ∨ B.t) · [− ; λx:A.γ · {− ; λz:C.γ · {µβ:D.q ; −}}, λy:B.r]) · [µη:C.p ; λu:D.δ · u]
+
+       and the “hidden detour” is directly accessible via the conclusion variable γ. We have
+       underlined the places where a substitution for γ can take place (following Definition 22). It
+       is noteworthy that also the first → -in is contracted with the → -el. If we reduce the term
+       according to Definition 22, we obtain, writing N := [µη:C.p ; λu:D.δ · u]
+
+          (µα:A ∨ B.t) · [− ; λx:A.q[β := δ, z := µη:C.p], λy:B.r[γ := N ]]
+
+
+       5.3    Proof terms and reductions: the classical multi-conclusion case
+       We now define reduction for Class-mc. We again use the following shorthand notation to
+       improve readability:
+          p represents µαk : Ak .pk ,
+          q represents λyℓ : Aℓ .qℓ .
+          r represents µαi : Ai .ri ,
+          s represents λyj : Aj .sj .
+H. Geuvers and T. Hurkens                                                                              2:17
+
+
+▶ Definition 28. The reduction rules for Class-mc are as follows.
+
+                                                      (λx : Φ.t) · {r; s}r        −→   t   if x ∈
+                                                                                                /t
+                                                     (µβ : Φ.t) · [p ; q]r′       −→   t   if β ∈
+                                                                                                /t
+
+        (λx : Φ. . . . (µβ : Φ. . . . β · x . . .) · [p ; q]r′ . . .) · {r; s}r   −→
+          (λx : Φ. . . . (µβ : Φ. . . . M . . .) · [p ; q]r′ . . .) · {r; s}r
+
+        (µβ : Φ. . . . (λx : Φ. . . . β · x . . .) · {r; s}r . . .) · [p ; q]r′   −→
+          (µβ : Φ. . . . (λx : Φ. . . . M . . .) · {r; s}r . . .) · [p ; q]r′
+
+where for M we can choose
+
+    M    = qℓ [yℓ := µαi : Ai .ri ] if i = ℓ
+         = sj [yj := µαk : Ak .pk ] if j = k.
+
+Here qℓ [yℓ := µαi : Ai .ri ] is defined by replacing γ · yℓ by ri [αi := γ].
+
+   Similar to the intuitionistic case (Lemma 23), we have Subject Reduction, which is (again)
+based on the type soundness of the substitution that is involved.
+
+▶ Lemma 29 (Subject Reduction). If t : (Γ ⊢ ∆) and t −→ t′ , then t′ : (Γ ⊢ ∆).
+
+Proof. By induction on the derivation of t : (Γ ⊢ ∆), which treats the cases where the
+reduction takes place deeper inside t. The only interesting case is when t is itself a redex.
+For that we have to verify that the substitution, of M for β · x (and the substitutions that
+are part of the definition of M ) are type correct. That is the case, as we always apply goal
+variables to assumption variables of the right type, and we substitute expressions under a
+binder, which avoids the risk of variables being no longer in scope. (And the usual variable
+hygiene, with renaming of bound variables, avoids capture of free variables by a binder.) ◀
+
+   Just as for the single conclusion intuitionistic case, we give an explicit syntax for the
+normal forms, and give the basic properties for reduction and normal forms, as in Definitions
+25 and Lemma 26 for the intuitionistic case.
+
+▶ Definition 30. We define NFClass-mc , the normal forms of Class-mc, as follows.
+
+    NFClass-mc ::= α · x | (µβ : Φ.t) · [p ; q]r′ | (λx : Φ.q) · {p; q}r′
+
+where all sub-terms are again in NFClass-mc and
+   x occurs in q only as α · x with α free in q, and x occurs at least once.
+   β occurs in t only as β · z with z free in t, and β occurs at least once.
+
+    We give the main properties of normal forms and reduction.
+
+▶ Lemma 31.        NFClass-mc captures precisely the normal forms of Class-mc.
+  The normal forms of Class-mc satisfy the Sub-formula Property: If t : (Γ ⊢ ∆), t ∈
+   NFClass-mc , then for each bound variable, α : A or x : A, occurring in t, A is a sub-type
+   of a type in Γ or ∆.
+  The calculus is normalizing, in the sense that, if t : (Γ ⊢ ∆), then there is a term in
+   normal form q, such that q : (Γ ⊢ ∆).
+
+
+
+                                                                                                     TYPES 2022
+2:18   Classical Natural Deduction from Truth Tables
+
+
+       Proof. The proof of the first is immediate: terms in NFClass-mc cannot reduce and all terms
+       that cannot reduce are in NFClass-mc . The second follows by induction on the derivation
+       of t : (Γ ⊢ ∆), where we analyze t based on the cases that arise from t ∈ NFClass-mc . The
+       normalization property follows from the strong normalization proof for Truth Table Logic
+       (Theorem 46), which is a generalization of all these systems, and the fact that normal
+       forms in Truth Table Logic can be reflected back to normal forms in Class-mc (Lemma 41
+       part (3)).                                                                                ◀
+
+
+       5.4    Proof terms and reductions: the classical single-conclusion case
+       The reductions for proof-terms in the classical single-conclusion case are a bit less well-
+       behaved than the ones for the multi-conclusion case, because in the classical single conclusion
+       case, there should always be at most one free conclusion variable in a proof term. This means
+       that if t is a proof-term in classical single conclusion logic, then
+           a sub-expression λy : A.q of t should have at most one free conclusion variable,
+           in a sub-expression µα : A.q of t, q should have only α as free conclusion variable.
+       If one starts from a proof-term t having these properties, and one performs the reductions
+       of Definition 28, one easily ends up in a proof term t′ that violates them. Then t′ is still
+       valid in multi-conclusion logic, but not in the single conclusion system. The way to prevent
+       this is to first reduce a term to a lemma-normal form, which is a term where all Lemmas
+       are assumptions (variables). Those can then be reduced safely in the “standard” way of
+       Definition 28.
+           This means that reduction for proof terms in single conclusion classical logic proceeds as
+       follows.
+           First perform permutation reductions to obtain a lemma-normal form.
+           Then perform detour reductions, where a detour is an elimination of Φ followed by an
+           introduction of Φ.
+       This is similar to the constructive case, except for now a term is in “permutation normal
+       form” if all lemmas are axioms.
+
+       ▶ Definition 32. This is the abstract syntax NFlemma for lemma-normal forms:
+
+          α · x | (λx:A.t) · {µαk :Ak .αk · zk ; λyℓ :Aℓ .qℓ } | (µβ:A.β · y) · [µαk :Ak .αk · zk ; λyℓ :Aℓ .qℓ ],
+
+       where x, y, z range over variables and t and the q are again in NFlemma .
+
+           We can obtain a proof term in lemma-normal form by moving applications of an elimination
+       or introduction rule that have a non-trivial Lemma upwards, until all Lemmas become trivial:
+       the proof terms are variables. (Note that µβ:A.β · y is basically the assumption y : A.)
+       This only works in classical logic. If one tries this for intuitionistic proofs, which –from
+       the point of view of classical logic– are proofs with a trivial main premise in the classical
+       introduction rule, one immediately ends up with a proof that has a non-trivial main premise
+       in the classical introduction rule.
+           We can now specialize Definition 28 to the single-conclusion case by considering only
+       terms in lemma-normal form. We use a similar abbreviation style as before:
+           z represents µαk : Ak .αk · zk ,
+           q represents λyℓ : Aℓ .qℓ .
+           v represents µαi : Ai .αi · vi ,
+           s represents λyj : Aj .sj .
+H. Geuvers and T. Hurkens                                                                                       2:19
+
+
+▶ Definition 33. In Class, the notion of detour and the reduction rules are modified as
+follows.
+1. A detour is a pattern of the following shape.
+
+       (λx : Φ. . . . (µβ : Φ.β · x) · [z ; q] . . .) · {v; s}
+
+2. The reduction rules are
+                                       (λx : Φ.t) · {r; s}r      −→   t if x ∈
+                                                                             /t
+      (λx : Φ. . . . (µβ : Φ.β · x) · [z ; q] . . .) · {v; s}    −→   (λx : Φ. . . . M . . .) · {v; s}
+   where for M we can choose
+      M = qℓ [yℓ := vi ] if i = ℓ
+             = sj [yj := zk ] if j = k.
+
+   Again we have Subject Reduction, which basically follows from the classical multi-
+conclusion case (Lemma 29). The only thing to verify is that we don’t go “out of” the single
+conclusion fragment.
+
+▶ Lemma 34 (Subject Reduction). If t : (Γ ⊢ γ : D) in Class, t ∈ NFlemma and t −→ t′ ,
+then t′ : (Γ ⊢ γ : D) in Class and t′ ∈ NFlemma .
+
+Proof. We don’t have to verify the type of t, as its correctness follows from Lemma 29. To
+verify that t′ is a single-conclusion proof term and t′ ∈ NFlemma follows from the fact that
+we never substitute a term under a µ-binder and for assumption variables, we just substitute
+other assumption variables.                                                               ◀
+
+    Again, we give an explicit syntax for the normal forms, and the basic properties for
+reduction and normal forms, as in Definitions 30 and Lemma 31 for the multi-conclusion
+classical case.
+
+▶ Definition 35. We define NFClass-sc , the normal forms of Class, as follows.
+
+   α · x | (λx:A.t) · {µαk :Ak .αk · zk ; λyℓ :Aℓ .qℓ } | (µβ:A.β · y) · [µαk :Ak .αk · zk ; λyℓ :Aℓ .qℓ ],
+
+where t and the qℓ are again in NFClass-sc and
+   x occurs in t only as α · x with α free in t, and x occurs at least once.
+
+   We give the main properties of normal forms and reduction.
+
+▶ Lemma 36.
+   NFClass-sc captures precisely the normal forms of Class-sc.
+  The normal forms of Class-sc satisfy the Sub-formula Property: If t : (Γ ⊢ γ : D),
+   t ∈ NFClass-sc , then for each bound variable, α : A or x : A, occurring in t, A is a sub-type
+   of a type in Γ or D.
+  The calculus is normalizing, in the sense that, if t : (Γ ⊢ D), then there is a term in
+   normal form q, such that q : (Γ ⊢ D).
+
+Proof. The proof is the same as for Lemma 31. For the second second we analyze t based
+on the cases that arise from t ∈ NFClass-sc . The normalization property follows from the
+normalization of Class-mc and the fact that, from a normal form in Class-mc we can construct
+a normal form in Class-sc by taking the lemma-normal form.                                ◀
+
+
+
+                                                                                                              TYPES 2022
+2:20   Classical Natural Deduction from Truth Tables
+
+
+        6       Truth Table Logic
+
+       We now define Truth Table Logic as a unifying logic and proof term calculus for the various
+       logics we have seen before. The idea of Truth Table Logic is that, for Φ = c(A1 , . . . , An ), we
+       decompose an elimination rule for Φ in two parts:
+        1. the part to be eliminated, µβ : Φ.t, which is the proof of Φ,
+        2. the elim pattern, [µαk : Ak .tk ; λyℓ : Aℓ .tℓ ]r′ , consisting of the Lemmas and Casuses that
+           we eliminate Φ with, which are the proofs of Ak (in case Ak is a Lemma) or the proofs
+           from assumption Aℓ (in case Aℓ is a Casus).
+       These elim patterns have already been introduced in Definition 18, but in Truth Table Logic
+       they will get a “first class status”, as expressions that have their own type. Similarly we
+       decompose a classical introduction rule in two parts (and give intro patterns a first class
+       status):
+        1. the part to be introduced, λy : Φ.t, which is the proof from assumption Φ,
+        2. the intro pattern, {µαi : Ai .ti ; λyj : Aj .tj }r , consisting of the Lemmas and Casuses that
+           we intro Φ with, which are the proofs of Ai (in case Ai is a Lemma) or the proofs from
+           assumption Aj (in case Aj is a Casus).
+       For conciseness, we again adopt the earlier abbreviations, where we let p and r represent
+       series of µ-abstractions, while q and s represent series of λ-abstractions:
+           a and b typically represent µαk : Ak .tk ,
+           f and g typicallty represent λyℓ : Aℓ .tℓ .
+
+           We will be able to combine intro patterns and elim patterns directly into a proof, without
+       explicit “interference” of an elimination or introduction rule, so we will e.g. have the following
+       as a proof term:
+
+            {b; g} · [a ; f ].
+
+       To make this work, we introduce a new type o, that can informally be read as the type of
+       proofs. It is the only type in Truth Table Logic that is not related to a specific formula. In
+       Truth Table Logic, each proof term t will be of the form f · a, where the parts f and a have
+       one of the following syntactical forms:
+           a variable x or α
+           an abstraction λx.t or µα.t
+           an elim pattern [a ; f ] or an intro pattern {b; g}.
+       These parts will be treated as typed terms on their own and proof terms are just applications
+       f · a that result in type o. Which applications are allowed depends on the variant of Truth
+       Table Logic: we have three variants, where one can choose for intuitionistic or classical logic
+       and for classical logic the single-conclusion or multiple-conclusion variant.
+           When we consider the “application” f · a, we treat f as function and a as argument, not
+       the other way around. If a is of type T , then f should be of type T → o. We abbreviate the
+       function type T → o to ∼T . The type T can be a formula Φ, but it can also be ∼Φ, and
+       then we would have a : ∼Φ and f : ∼∼Φ to make f · a : o. So every type T is related to
+       some formula: it can be Φ itself, or ∼Φ, or ∼∼Φ or ∼∼∼Φ.
+           The typing of the µ-abstractions and λ-abstractions is determined by the typing of the
+       variables: if t : o and v is an assumption or conclusion variable of type T , then µv:T.t : ∼T
+       and λv:T.t : ∼T .
+           There are three variants of Truth Table Logic, but we first give the generic definition.
+H. Geuvers and T. Hurkens                                                                                         2:21
+
+
+▶ Definition 37 (Truth Table Logic). Given a set of connectives C with their truth tables
+and the propositional formulas generated from C, we define the following classes of types and
+pre-terms:
+
+   T     ::=   Φ | ∼T
+    t ::= f · a | a · f
+    f    ::= α | λx : T.t | [a ; f ]r
+    a    ::= x | µα : T.t | {a; f }r
+
+where Φ ranges over formulas, α ranges over conclusion variables, x ranges over assumption
+variables, and r ranges over the rules of the connectives.
+    Contexts are of the form Γ; ∆, where Γ consists of declarations of assumption variables,
+typically Γ = x1 : T1 , . . . , xn : Tn , and ∆ consists of declarations of conclusion variables,
+typically ∆ = α1 : T1 , . . . , αm : Tm .
+   A typing judgment is of the respective forms Γ; ∆ ⊢ t : o, Γ; ∆ ⊢ f : T , Γ; ∆ ⊢ a : T , for
+some type T . We have the derivation rules below for deriving a typing judgment.
+    The allowed form of the type T in each of the rules depends on the variant of Truth Table
+Logic, and will be specified in Definition 38. In the rules (in-pat) and (el-pat), each Ti and Tk
+is the type of µ-abstractions and each Tj and Tℓ is the type of λ-abstractions in the specific
+variant of Truth Table Logic.
+
+
+                           (hyp), if x : T ∈ Γ                                      (conc), if α : T ∈ ∆
+           Γ; ∆ ⊢ x : T                                         Γ; ∆ ⊢ α : T
+
+                Γ, x : T ; ∆ ⊢ t : o                                     Γ; ∆, α : T ⊢ t : o
+                                           (λ)                                                  (µ)
+               Γ; ∆ ⊢ λx : T.t : ∼T                                   Γ; ∆ ⊢ µα : T.t : ∼T
+
+        Γ; ∆ ⊢ f : ∼T         Γ; ∆ ⊢ a : T                   Γ; ∆ ⊢ a : ∼T             Γ; ∆ ⊢ f : T
+                                                 (app1 )                                              (app2 )
+                Γ; ∆ ⊢ f · a : o                                        Γ; ∆ ⊢ a · f : o
+
+                          . . . Γ; ∆ ⊢ ai : Ti . . .   . . . Γ; ∆ ⊢ fj : Tj . . .
+                                                                                    (in-pat)
+                                         Γ; ∆ ⊢ {ai ; fj }r : T
+
+                        . . . Γ; ∆ ⊢ ak : Tk . . .     . . . Γ; ∆ ⊢ fℓ : Tℓ . . .
+                                                                                    (el-pat)
+                                         Γ; ∆ ⊢ [ak ; fℓ ]r : T
+
+
+   Here, Φ = c(A1 , . . . , An ) and if r is a 1-row for connective c we have the rule (in-pat),
+where the Ti are related to the Ai for which ri = 1 and the Tj are related to the Aj for which
+rj = 0. If r is a 0-row for c we have the rule (el-pat), where the Tk are related to the Ak for
+which rk = 1 and the Tℓ are related to the Aℓ for which rℓ = 0.
+
+    We now define how the various logics arise from the definition by specifying what is
+allowed for T in the various derivation rules. In each variant of Truth Table Logic, conclusion
+variables α for Φ and elim patterns [a ; f ]r for Φ are of type ∼Φ. This implies that µ-
+abstractions for Φ, µα : ∼Φ.t, are of type ∼∼Φ and substituting an elim pattern for a
+conclusion variable in a proof term is well-typed.
+
+
+
+                                                                                                                TYPES 2022
+2:22   Classical Natural Deduction from Truth Tables
+
+
+       ▶ Definition 38. Classical multi-conclusion calculus Class-mc is specified by
+               ∼∼Φ          ∼Φ           Φ
+               µα.t         λx.t
+                             α           x
+                          [f ; g]r    {f ; g}r
+
+       Intuitionistic single-conclusion calculus Int is specified by
+               ∼∼∼Φ         ∼∼Φ         ∼Φ            Φ
+                λx.t        µα.t
+                             x           α
+                                      [f ; g]r     {f ; g}r
+
+       Classical single-conclusion calculus, Class-sc is specified by
+               ∼∼Φ           ∼Φ        Φ
+               µα.t          λx.t
+                              α         x
+               {f ; g}r    [f ; g]r
+
+          In the Class-mc variant of Truth Table Logic, all proof-terms of the forms (µα.t) · [f ; g]r
+       and (λx.t) · {f ; g}r are permitted. Note that we have reversed some of the applications, and
+       some proof terms can be reduced further than in the original Class-mc.
+       ▶ Example 39. We revisit Example 21, where we saw a classical multi-conclusion proof term
+       of type z : ¬¬A ⊢ α : A. We can recast that term in Class-mc in Truth Table Logic, and
+       then we have the following term t of type o in the context z : ¬¬A; α : ∼A.
+          t       :=      (µγ : ∼¬¬A.γ · z) · [µβ : ∼¬A.(λy : ¬A.β · y) · {; λx : A.α · x}r ; ]r′
+       But there is a simpler term, because we can normalize t further. (See below for the reduction
+       rules.) Then we get z : ¬¬A; α : ∼A ⊢ t′ : o with
+          t′      :=      [µβ : ∼¬A.β · {; λx : A.α · x}r ; ]r′ · z.
+          The derivation in Truth Table Logicis as follows, where we omit z : ¬¬A and α : ∼A
+       from the context, except for the conclusion.
+                                                  x : A. ⊢ α · x : o
+                                                 ⊢ λx : A.α · x : ∼A
+          β : ∼¬A ⊢ β : ∼¬A                  ⊢ {; λx : A.α · x}r : ¬A
+                       β : ∼¬A ⊢ β · {; λx : A.α · x}r : o
+           ⊢ [µβ : ∼¬A.β · {; λx : A.α · x}r ; ]r′ : ∼¬¬A               ⊢ z : ¬¬A
+           z : ¬¬A; α : ∼A ⊢ [µβ : ∼¬A.β · {; λx : A.α · x}r ; ]r′ · z : o
+           In Int, we have reversed the application α · x, but that is merely a syntactic reformulation.
+       The main point of Int is that we do not have (λx.t) · {f ; g}r , to avoid the classical introduction
+       rule. In Int we only have γ · {f ; g}r , which is exactly the term we had for the intuitionistic
+       introduction rule in Definition17.
+           The system Class-sc is a subsystem of Class-mc, but we avoid the redex (λx.t) · {f ; g}r ,
+       by reversing the order of application to {f ; g}r · (λx.t). See below for the reduction rules,
+       where we will enforce that only an abstraction on the left of an application gives a redex.
+       This avoids the possibility of having multiple free conclusion variables in a proof term.
+H. Geuvers and T. Hurkens                                                                                   2:23
+
+
+▶ Definition 40 (Reduction of proof terms in Truth Table Logic). In the (intuitionistic)
+variant in which patterns are applied in the order [. . .] · {. . .} and abstractions in the order
+(λx.s) · (µα.t), proof terms are reduced to proof terms as follows:
+
+            (λx : T.t) · a      −→   t[x := a]
+           (µα : T.t) · f       −→   t[α := f ]
+   [bk ; gℓ ]r · {ai ; fj }r′   −→   gℓ · ai
+                                     if i = ℓ as indexes in 1, . . . , n, where Φ = c(A1 , . . . , An )
+                                         and r, r′ are rules for Φ
+   [bk ; gℓ ]r · {ai ; fj }r′   −→   f j · bk
+                                     if j = k as indexes in 1, . . . , n, where Φ = c(A1 , . . . , An )
+                                         and r, r′ are rules for Φ
+
+In the classical variants, the order of the patterns in the redex and/or the order of the parts
+in the reduct is reversed.
+
+   That Truth Table Logic is a unification of the logics (actually the calculi) that we have
+seen in the previous section can be stated and proven precisely.
+
+▶ Lemma 41. For each of the calculi of the previous section, Int, Class and Class-mc, the
+obvious interpretation [[−]] of proof terms of the logic as proof terms of Truth Table Logic has
+the following properties.
+ 1. If t : (Γ ⊢ ∆) in Int, Class or Class-mc, then Γ; ∆ ⊢ [[t]] : o in Truth Table Logic.
+ 2. If t −→ q in Int, then [[t]] −→+ [[q]], where −→+ is the transitive closure of −→.
+ 3. If Γ; ∆ ⊢ q : o in the classical multi-conclusion variant of Truth Table Logic, and q is
+    in normal form, we can reconstruct a proof term t in Class-mc such that [[t]] = q and
+    t : (Γ ⊢ ∆) in Class-mc
+
+Proof. The interpretation is the obvious one, and the proof is a direct check of all the
+cases.                                                                                ◀
+
+    A proof term f · a is a redex if f is an abstraction or both f and a are patterns. In most
+variants, for each proof term f · a in normal form, at least one of the parts is a variable. In
+such a calculus, each normal proof has the sub-formula property: except for the assumptions,
+conclusions and sub-formulas, no other formulas are used.
+    The normal forms of type o of the intuitionistic variant of our term calculus are of the
+following shape:
+
+   x · α | α · {f ; g}r | x · [f ; g]r
+
+In the other variants, the order of the parts of some of these normal forms are reversed.
+There are no variants with proof terms f · a in which f is a variable and a an abstraction.
+But the single-conclusion classical variant has proof terms of the form {. . .} · (λx.t). In this
+calculus, more proof term reductions are needed to get the sub-formula property.
+    We now prove Strong normalization of reduction for each variant of Truth Table Logic,
+showing that every reduction sequence leads to a proof term in normal form. We will define,
+with induction on the type T of terms t the property “t is hereditarily strong normalizing”.
+Then we prove, by induction on the structure of a term t, that each substitution of hereditarily
+strong normalizing terms for the free variables of t results in a (hereditarily) strongly
+normalizing term.
+
+
+
+                                                                                                          TYPES 2022
+2:24   Classical Natural Deduction from Truth Tables
+
+
+          For the rest of this section, the variant of Truth Table Logic is fixed. So the types of the
+       conclusion and assumption variables, λ- and µ-abstractions, elim and intro patterns for a
+       formula Φ are specific choices from ∼∼∼Φ, ∼∼Φ, ∼Φ, and Φ.
+          To prove strong normalization we need the notion of “hereditarily strongly normalizing”.
+
+       ▶ Definition 42. We say that a term t is HSN (hereditarily strongly normalizing) if
+       1. t is SN,
+       2. if t is an abstraction λx : T.e or µα : T.e, then t · a is SN for each HSN a : T ,
+       3. if t is a pattern {a; f }r or [a ; f ]r , then all a, f are HSN.
+       Note that this definition is by induction on the type of term t.
+          Also note that if t is HSN and t −→ t′ , then t′ is HSN. This follows from the fact that
+       each redex and each reduct is a proof term:
+          if t′ is an abstraction λx.e′ or µα.e′ , then t must be of the form λx.e or µα.e where
+          e −→ e′ ,
+          if t′ is a pattern {a′ ; f ′ }r or [a′ ; f ′ ]r , then t must be a pattern {a; f }r or [a ; f ]r that is
+          the same as t′ except that for a single i or j, ai −→ a′i or fj −→ fj′ .
+
+       ▶ Definition 43. We consider substitutions σ that assign terms to variables in a well-typed
+       way:
+           for each assumption variable x of type T , σ(x) : T ,
+           for each conclusion variable α of type T , σ(α) : T .
+       Substitution for variables extends in a straightforward way to all terms, so we write σ(t) for
+       the result of substituting σ(v) for each free occurrence of v in a term t (after having renamed
+       bound variables in t if needed to avoid capturing of free variables of σ(v)). Note that t and
+       σ(t) are terms of the same type.
+           A substitution σ is HSN if term σ(v) is HSN for each variable v.
+           A term t is strongly HSN if term σ(t) is HSN for each HSN substitution σ.
+
+       Since each variable x or α is HSN, the identity substitution is HSN and so each strongly HSN
+       term is HSN.
+            As usual, reduction rules are closed under substitution: if t −→ t′ then σ(t) −→ σ(t′ ).
+       By definition, t −→ t′ if and only if t has a subterm s (possibly s = t itself) that is a redex
+       with reduct s′ and t′ is the result of replacing s in t by s′ . Since, as usual, each free variable
+       of s′ is a free variable of s, there is no danger of unintended capturing of a free variable of s′
+       by a surrounding abstraction inside t. Let σ ′ be the substitution that is like σ, except that
+       σ ′ (v) = v for each variable v that is bound by an abstraction surrounding the subterm s of t.
+       Then for the corresponding reduction σ(t) −→ σ(t′ ), the subterm σ ′ (s) of σ(t) is replaced by
+       σ ′ (s).
+            The usually β-reduction (λx.t) · a −→ t[x := a] has the special property that for each
+       substitution σ, σ((λx.t) · a) −→ σ ′ (t), where the substitution σ ′ is like σ except that
+       σ ′ (x) = σ(a).
+
+       ▶ Lemma 44. If proof term e is strongly HSN, then the abstractions λx.e and µα.e are
+       strongly HSN.
+
+       Proof. Let e be a strongly HSN proof term and σ an HSN substitution. We do the case
+       for λx : T.e. We have to show that σ(λx.e) is HSN. Note that σ(λx.e) = λx.σ ′ (e) where
+       substitution σ ′ is like σ, except that σ ′ (x) = x. For (1), we need that λx.σ ′ (e) is SN, which
+       follows from the fact that substitution σ ′ is HSN and term e is strongly HSN. For (2), let
+       a : T be HSN. We have to show that (λx.σ ′ (e)) · a is SN. Since λx.σ ′ (e) and a are SN, an
+       infinite path from (λx.σ ′ (e)) · a must contract a redex (λx.e′ ) · a′ where σ ′ (e) −→∗ e′ and
+       a −→∗ a′ .
+H. Geuvers and T. Hurkens                                                                                     2:25
+
+
+     In Truth Table Logic, this reduct is e′ [x := a′ ]. Note that σ ′ (e)[x := a′ ] −→∗ e′ [x := a′ ].
+Let σ ′′ be the substitution that is like σ and σ ′ except that σ ′′ (x) = a′ . Substitution σ ′′ is
+HSN since term a′ : T is HSN. So proof term σ ′′ (e) is SN. Now σ ′′ (e) = σ ′ (e)[x := a′ ] −→∗
+e′ [x := a′ ], so the reduct e′ [x := a′ ] is SN and cannot create an infinite path either.        ◀
+
+Note that the situation is different if we add reduction rules like those for Class-mc in
+which redex (λx.e′ ) · a′ can have reducts of the form (λx.e′′ ) · a′ where e′ ̸−→∗ e′′ but
+e′ [x := a′ ] −→+ e′′ [x := a′ ]. Then σ ′′ (e) −→+ e′′ [x := a′ ], so e′′ [x := a′ ] is SN. This implies
+that e′′ is SN, so an infinite path from (λx.e′′ ) · a must contract a redex again. This cannot
+happen infinitely often: an infinite path (λx.e′ ) · a −→ (λx.e′′ ) · a −→ (λx.e′′′ ) · a −→ . . .
+would result in an infinite path e′ [x := a′ ] −→+ e′′ [x := a′ ] −→+ e′′′ [x := a′ ] −→ . . ..
+
+▶ Lemma 45. Each term t is strongly HSN.
+
+Proof. We prove this by induction on t.
+   If t is a variable α or x, then for each HSN substitution σ, σ(t) is HSN by definition.
+   If t is an abstraction λx.e or µα.e, then the proof term e is strongly HSN by induction,
+   so t is strongly HSN by Lemma 44.
+   If t is a pattern {a; f }r or [a ; f ]r , then all terms a, f are strongly HSN by induction. Let
+   σ be an HSN substitution. We have to show that σ(t) is an HSN term. For (1), we need
+   that σ(t) is SN, which follows from the fact that all terms σ(ai ) and σ(fj ) are SN. For
+   (3), we need that all all terms σ(ai ) and σ(fj ) are HSN, which holds by induction.
+   If t is a proof term f · a, then the terms f and a are strongly HSN by induction. Let σ be
+   an HSN substitution. We have to show that σ(t) is an HSN term. Since σ(t) = σ(f ) · σ(a),
+   we only need to show (1): proof term σ(f ) · σ(a) is SN. Both σ(f ) and σ(a) are HSN and
+   thus SN. An infinite path from σ(f ) · σ(a) must contract a redex f ′ · a′ where σ(f ) −→∗ f ′
+   and σ(a) −→∗ a′ . Now both f ′ and a′ are HSN terms. Since f ′ · a′ is a redex in Truth
+   Table Logic, either f ′ is an abstraction or both f ′ and a′ are patterns. If f ′ is an HSN
+   abstraction, then by (1), since a′ is HSN, f ′ · a′ is SN. If both f ′ and a′ are HSN patterns
+   for some formula Φ = c(A1 , . . . , An ) and the reduct is f ′′ · a′′ , then f ′′ and a′′ are HSN
+   terms for some subformulas Ai , so f ′′ and a′′ are SN. So an infinite path from f ′′ · a′′
+   must contract a redex f ′′′ · a′′′ again, where f ′′ −→∗ f ′′′ and a′′ −→∗ a′′′ . Since f ′′′ has
+   the same type as f ′′ (and a′′′ has the same type as a′′ ), related to formula Ai , this cannot
+   happen infinitely often.                                                                        ◀
+
+▶ Theorem 46. All proof terms in Truth Table Logic are SN.
+
+Proof. By Lemma 45, each (proof) term is strongly HSN, so HSN, so SN.                                 ◀
+
+ 7     Conclusion
+We have shown a couple of basic results for general classical logic derived from truth tables.
+Most surprisingly maybe is that one classical connective makes the whole logic classical: it
+is not possible to combine e.g. a classical implication with a constructive negation, as the
+negation becomes classical due to the fact that implication is classical. Truth Table Natural
+Deduction, TT-ND, provides the good setting for studying these properties as it gives generic
+deduction rules for connectives “in isolation”, i.e. without explaining one connective in terms
+of the other.
+    Then we have studied the proof theory of classical TT-ND, and we have introduced
+proof terms for classical deductions that use both assumption variables (hypotheses) and
+conclusion variables. This has enabled us to study proof normalization, with the aim that
+
+
+
+                                                                                                            TYPES 2022
+2:26   Classical Natural Deduction from Truth Tables
+
+
+       proofs in normal form satisfy the sub-formula property. The use of conclusion variables turns
+       out to be useful in general, also for the intuitionistic case, where it enables a reduction rule
+       that unifies detour steps and permutation steps. Conclusion variables also naturally enable
+       multi-conclusion natural deduction. Classical multi-conclusion TT-ND is the most general of
+       these systems, where other systems can be embedded into. For this system we prove strong
+       normalization. Classical multi-conclusion TT-ND also emphasizes that there are basically
+       four term-formers: λ-abstraction, µ-abstraction, intro patterns and elim patterns, where the
+       latter two are derived from the truth table. Based on this we define Truth Table Logic as a
+       unifying system.
+
+
+        8     Future and Related Research
+       For future work, we see the further study of Truth Table Logic as unifying framework for
+       TT-ND. Truth Table Logic also emphasizes the interpretation of proofs of a negated formula
+       as a continuation, where ∼Φ denotes the type of continuations over Φ. This relates to the
+       general question of the computational interpretation of classical proofs, which has been
+       studied in various research works, like [13, 2, 4], and it is to be studied how our generic
+       computation rules relate to the concrete ones studied in these papers for implication.
+           Also, the system TT-ND derives rules from a truth table, but that doesn’t cover all
+       possible connectives. E.g. if one defines a constructive connective in terms of other, the truth
+       table one obtains generates constructive rules that are sometimes stronger and sometimes
+       weaker than the constructive formula. For example, if we consider the truth table for
+       c(A, B) := ¬A → B, the constructive rules we derive for c are exactly the ones for A ∨ B,
+       which is stronger than ¬A → B. On the other hand, if we consider the truth table for
+       d(A, B) := ¬A ∨ B, the constructive rules we derive for c are exactly the ones for A → B,
+       which is weaker than ¬A ∨ B.
+           Olkhovikov and Schroeder-Heister [12] also show examples of this, e.g. for A ∨ (B → C)
+       one can write down the truth table and derive constructive rules, but they are weaker than
+       the constructive formula A ∨ (B → C) (because one basically obtains B → (A ∨ C)). The
+       TT-ND derived rules give so called “flat elimination” rules [15], and it is likely that it defines
+       exactly the connectives with flat elimination rules. We conjecture that if c(A1 , . . . , An ) is a
+       formula defined in terms of the standard connectives, and we derive constructive rules form
+       the truth table for c, then we get a formula equivalent to c(A1 , . . . , An ) if in every subformula
+       (of c(A1 , . . . , An )) of the shape P ∨ Q, Q ∨ P , P → Q or ¬P , P does not contain negation
+       or implication. Or put differently: in P we only have monotone connectives.
+           This is related to the general study of elimination rules [11, 19], the notion of higher
+       level rules [16] and “harmony” in logic [15, 5]. It would be interesting to see which class of
+       connectives can be defined using TT-ND, and whether the generic approach can be extended
+       to more connectives, e.g. with higher level elimination rules.
+           Also, based on generalizing λµ of Parigot [13], and with a semantic view on dualizing
+       implication Crolard [3] has defined the − connective, which has a constructive interpretation
+       that is different from what we would get from a truth table. The interpretation in Kripke
+       models “looks downward”, which our interpretation doesn’t do. It would be interesting
+       whether the ideas of Crolard can be generalized to other connectives. The relation between
+       Crolard’s work and the work on generalized elimination rules and harmony in logic is also
+       unclear.
+           Finally, there is the obvious question of how these results extend to predicate logic. We
+       are working on extending the TT-ND ideas to predicate logic and define general rules, both
+       classical and constructive for quantifiers, “in isolation”, that is without explaining them in
+       terms of other quantifiers.
+H. Geuvers and T. Hurkens                                                                                 2:27
+
+
+     References
+ 1   Andreas Abel. On model-theoretic strong normalization for truth-table natural deduction.
+     In Ugo de’Liguoro, Stefano Berardi, and Thorsten Altenkirch, editors, 26th International
+     Conference on Types for Proofs and Programs, TYPES 2020, March 2-5, 2020, University of
+     Turin, Italy, volume 188 of LIPIcs, pages 1:1–1:21. Schloss Dagstuhl – Leibniz-Zentrum für
+     Informatik, 2020. doi:10.4230/LIPIcs.TYPES.2020.1.
+ 2   Z. Ariola and H. Herbelin. Minimal classical logic and control operators. In ICALP, volume
+     2719 of LNCS, pages 871–885. Springer, 2003.
+ 3   T. Crolard. A formulae-as-types interpretation of subtractive logic. J. Log. Comput., 14(4):529–
+     570, 2004.
+ 4   P.-L. Curien and H. Herbelin. The duality of computation. In ICFP, pages 233–243, 2000.
+ 5   N Francez and R Dyckhoff. A note on harmony. Journal of Philosophical Logic, 41(3):613–628,
+     June 2012. doi:10.1007/s10992-011-9208-0.
+ 6   H Geuvers and T Hurkens. Deriving natural deduction rules from truth tables. In Logic
+     and Its Applications – 7th Indian Conference, ICLA 2017, Kanpur, India, January 5-7,
+     2017, Proceedings, volume 10119 of Lecture Notes in Computer Science, pages 123–138, 2017.
+     doi:10.1007/978-3-662-54069-5_10.
+ 7   H Geuvers and T Hurkens. Proof terms for generalized natural deduction. In Andreas Abel,
+     Fredrik Nordvall Forsberg, and Ambrus Kaposi, editors, 23rd International Conference on
+     Types for Proofs and Programs, TYPES 2017, May 29-June 1, 2017, Budapest, Hungary,
+     volume 104 of LIPIcs, pages 3:1–3:39. Schloss Dagstuhl – Leibniz-Zentrum fuer Informatik,
+     2018. doi:10.4230/LIPIcs.TYPES.2017.3.
+ 8   H. Geuvers, I. van der Giessen, and T. Hurkens. Strong normalization for truth table natural
+     deduction. Fundam. Inform., 170(1-3):139–176, 2019.
+ 9   Tomoaki Kawano, Naosuke Matsuda, and Kento Takagi. Effect of the choice of connectives on
+     the relation between classical logic and intuitionistic logic. Notre Dame Journal of Formal
+     Logic, 63(2), 2022. doi:10.1215/00294527-2022-0016.
+10   Peter Milne. Inversion principles and introduction rules. In Heinrich Wansing, editor, Dag
+     Prawitz on Proofs and Meaning, pages 189–224. Springer International Publishing, Cham,
+     2015. doi:10.1007/978-3-319-11041-7_8.
+11   S. Negri and J. von Plato. Structural Proof Theory. Cambridge University Press, 2001.
+12   Grigory K. Olkhovikov and Peter Schroeder-Heister. On flattening elimination rules. Rev.
+     Symb. Log., 7(1):60–72, 2014. doi:10.1017/S1755020313000385.
+13   M. Parigot. λµ-calculus: An algorithmic interpretation of classical natural deduction. In
+     LPAR, volume 624 of LNCS, pages 190–201. Springer, 1992.
+14   D. Prawitz. Natural deduction: a proof-theoretical study. Almqvist & Wiksell, 1965.
+15   S Read. Harmony and autonomy in classical logic. Journal of Philosophical Logic, 29(2):123–154,
+     2000. doi:10.1023/A:1004787622057.
+16   Peter Schroeder-Heister. The calculus of higher-level rules, propositional quantification, and
+     the foundational approach to proof-theoretic harmony. Stud Logica, 102(6):1185–1216, 2014.
+     doi:10.1007/s11225-014-9562-3.
+17   A.S. Troelstra and D. van Dalen. Constructivism in Mathematics, volume I. Number volume
+     121 in Studies in Logic and the Foundations of Mathematics. Elsevier Science, 1988.
+18   I. van der Giessen. Natural deduction derived from truth tables, Master Thesis Mathemat-
+     ics, Radboud University Nijmegen, July 2018. URL: http://www.cs.ru.nl/~herman/PUBS/
+     Masterscriptie_IrisvanderGiessen.pdf.
+19   J. von Plato. Natural deduction with general elimination rules. Arch. Math. Log., 40(7):541–567,
+     2001.
+
+
+
+
+                                                                                                        TYPES 2022
+

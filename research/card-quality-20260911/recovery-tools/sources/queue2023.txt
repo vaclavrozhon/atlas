@@ -1,0 +1,1310 @@
+                                                A Wait-free Queue with Polylogarithmic Step Complexity
+                                                                Hossein Naderibeni                                                       Eric Ruppert
+                                                                   York University                                                     York University
+                                                               Toronto, Ontario, Canada                                            Toronto, Ontario, Canada
+                                         ABSTRACT                                                                 and search trees [9] have an Ω(𝑐) term in their step complexity,
+                                         We present a novel linearizable wait-free queue implementation           where 𝑐 represents contention, the number of processes that ac-
+                                         using single-word CAS instructions. Previous lock-free queue im-         cess the data structure concurrently, which can be 𝑝 in the worst
+                                         plementations from CAS all have amortized step complexity of             case. Attiya and Fouren [2] proved that amortized Ω(𝑐) steps per
+                                         Ω(𝑝) per operation in worst-case executions, where 𝑝 is the num-         operation are indeed necessary for any CAS-based implementa-
+arXiv:2305.07229v1 [cs.DC] 12 May 2023
+
+
+
+
+                                         ber of processes that access the queue. Our new wait-free queue          tion of a lock-free bag data structure, which provides operations
+                                         takes 𝑂 (log 𝑝) steps per enqueue and 𝑂 (log2 𝑝 + log 𝑞) steps per       to insert an element or remove an arbitrary element (chosen non-
+                                         dequeue, where 𝑞 is the size of the queue. A bounded-space ver-          deterministically). Since a queue trivially implements a bag, this
+                                         sion of the implementation has 𝑂 (log 𝑝 log(𝑝 + 𝑞)) amortized step       lower bound also applies to queues. Although this might seem to
+                                         complexity per operation.                                                settle the step complexity of lock-free queues, the lower bound
+                                                                                                                  holds only if 𝑐 is 𝑂 (log log 𝑝) so it should be stated more precisely
+                                         CCS CONCEPTS                                                             as an amortized bound of Ω(min(𝑐, log log 𝑝)) steps per operation.
+                                                                                                                     We exploit this loophole. We show it is, in fact, possible for
+                                         • Theory of computation → Data structures design and anal-
+                                                                                                                  a linearizable queue to have step complexity sublinear in 𝑝. Our
+                                         ysis; Concurrent algorithms.
+                                                                                                                  queue is the first whose step complexity is polylogarithmic in 𝑝
+                                         KEYWORDS                                                                 and in 𝑞, the number of elements in the queue. It is wait-free, mean-
+                                                                                                                  ing that every operation is guaranteed to complete within a finite
+                                         concurrent data structures, wait-free queues                             number of its own steps. For ease of presentation, we first give an
+                                                                                                                  unbounded-space construction where enqueues take 𝑂 (log 𝑝) steps
+                                         1   INTRODUCTION
+                                                                                                                  and dequeues take 𝑂 (log2 𝑝 + log 𝑞) steps, and then modify it to
+                                         There has been a great deal of research in the past several decades      bound the space while having 𝑂 (log 𝑝 log(𝑝 + 𝑞)) amortized step
+                                         on the design of shared queues. Besides being a fundamental data         complexity per operation. Moreover, each operation does 𝑂 (log 𝑝)
+                                         structure, queues are used in significant concurrent applications, in-   CAS instructions in the worst case, whereas previous lock-free
+                                         cluding OS kernels [28], memory management [4], synchronization          queues use Ω(𝑝) CAS instructions, even in an amortized sense.
+                                         [26], and sharing resources or tasks. We focus on shared queues          Both versions of our queue use single-word CAS on reasonably-
+                                         that are linearizable [16], meaning that operations appear to take       sized words. We assume that a word is large enough to store an
+                                         place atomically, and lock-free, meaning that some operation on the      item to be enqueued (or at least a pointer to it). We also assume that
+                                         queue is guaranteed to complete regardless of how asynchronous           the number of operations performed on the queue can be stored
+                                         processes are scheduled to take steps.                                   (in binary) in 𝑂 (1) words. This is analogous to the assumption
+                                            The lock-free MS-queue of Michael and Scott [29] is a classic         for the classical RAM model that the number of bits per word is
+                                         shared queue implementation. It uses a singly-linked list with point-    logarithmic in the problem size. For the space-bounded version,
+                                         ers to the front and back nodes. To dequeue or enqueue an element,       we unlink unneeded objects from our data structure. We do not
+                                         the front or back pointer is updated by a compare-and-swap (CAS)         address the orthogonal problem of reclaiming memory; we assume
+                                         instruction. If this CAS fails, the operation must retry. In the worst   a safe garbage collector, such as the highly optimized one that Java
+                                         case, this means that each successful CAS may cause all other pro-       provides.
+                                         cesses to fail and retry, leading to an amortized step complexity           Our queue uses a binary tree, called the ordering tree, where each
+                                         of Ω(𝑝) per operation in a system of 𝑝 processes. (To measure            process has its own leaf. A process adds its operations to its leaf.
+                                         amortized step complexity of a lock-free implementation, we con-         As in previous work (e.g., [1, 19]), operations are propagated from
+                                         sider all possible finite executions and divide the number of steps      the leaves up to the root in a cooperative way that ensures wait-
+                                         in the execution by the number of operations in the execution.)          freedom and avoids the CAS retry problem. Operations in the root
+                                         Numerous papers have suggested modifications to the MS-queue             are ordered, and this order is used to linearize the operations and
+                                         [17, 23, 24, 27, 30, 31, 36], but all still have Ω(𝑝) amortized step     compute their responses. Explicitly storing operations in the tree
+                                         complexity as a result of contention on the front and back of the        nodes would be too costly. Instead, we use a novel implicit repre-
+                                         queue. Morrison and Afek [32] called this the CAS retry problem.         sentation of sets of operations that allows us to quickly merge two
+                                         The same problem occurs in array-based implementations of queues         sets from the children of a node, and quickly access any operation
+                                         [6, 14, 39, 43]. Solutions that tried to sidestep this problem using     in a set. A preliminary version of this work appeared in [33].
+                                         fetch&increment [32, 34, 35, 44] rely on slower mechanisms to
+                                         handle worst-case executions and still have Ω(𝑝) step complexity.
+                                            Many concurrent data structures that keep track of a set of ele-      2   RELATED WORK
+                                         ments also have an Ω(𝑝) term in their step complexity, as observed         List-based Queues. The MS-queue [29] is a lock-free queue that
+                                         by Ruppert [38]. For example, lock-free lists [13, 40], stacks [42]      has stood the test of time. The standard Java Concurrency Package
+                                                                                                                 Hossein Naderibeni and Eric Ruppert
+
+
+includes a version of it. See [29] for a survey of the early history      enqueues from claiming a spot, the enqueues fall back on using a
+of concurrent queues. As mentioned above, the MS-queue suffers            CAS to add a new array to the linked list, and the CAS retry prob-
+from the CAS retry problem because of contention at the front and         lem reappears. This approach is similar to the fast-path slow-path
+back of the queue. Thus, it is lock-free but not wait-free and has an     methodology [25]. Other array-based queues [34, 35, 44] also used
+amortized step complexity of Θ(𝑝) per operation.                          this methodology. In worst-case executions that use the slow path,
+    Many papers have described ways to reduce contention in the           they also take Ω(𝑝) steps per operation, due either to the CAS retry
+MS-queue. Moir et al. [31] added an elimination array that allows an      problem or helping mechanisms.
+enqueue to pass its enqueued value directly to a concurrent dequeue
+                                                                             Universal Constructions. One can also build a queue using a uni-
+when the queue is empty. However, when there are 𝑝 concurrent
+                                                                          versal construction [15]. Jayanti [18] observed that the universal
+enqueues (and no dequeues), the CAS retry problem is still present.
+                                                                          construction of Afek, Dauber, and Touitou [1] can be modified to
+The baskets queue of Hoffman, Shalev, and Shavit [17] attempts to
+                                                                          use 𝑂 (log 𝑝) steps per operation, assuming that words can store
+reduce contention by grouping concurrent enqueues into baskets.
+                                                                          Ω(𝑝 log 𝑝) bits. (Thus, in terms of operations on reasonably-sized
+An enqueue that fails its CAS is put in the basket with the enqueue
+                                                                          𝑂 (log 𝑝)-bit words, their construction would take Ω(𝑝 log 𝑝) steps
+that succeeded. Enqueues within a basket order themselves without
+                                                                          per operation.) Fatourou and Kallimanis [12] used their own uni-
+having to access the back of the queue. However, if 𝑝 concurrent
+                                                                          versal construction based on fetch&add and LL/SC instructions to
+enqueues are in the same basket the CAS retry problem occurs when
+                                                                          implement a queue, but its step complexity is also Ω(𝑝).
+they order themselves using CAS instructions. Both modifications
+still have Ω(𝑝) amortized step complexity.                                   Restricted Queues. David gave the first sublinear-time queue [7],
+    Kogan and Herlihy [23] improved the MS-queue’s performance            but it works only for a single enqueuer. It uses fetch&increment
+using futures. Operations return future objects instead of responses.     and swap instructions and takes 𝑂 (1) steps per operation, but uses
+Later, when an operation’s response is needed, it is evaluated using      unbounded memory. Bounding the space increases the steps per
+the future object. This allows batches of enqueues or dequeues to         operation to Ω(𝑝). Jayanti and Petrovic gave a wait-free polylog-
+be done at once on an MS-queue. However, the implementation               arithmic queue [19], but only for a single dequeuer. Our ordering
+satisfies a weaker correctness condition than linearizability. Milman-    tree is similar to the tree structure they use to agree on a lineariza-
+Sela et al. [30] extended this approach to allow batches to mix           tion ordering. Concurrently with our work, which first appeared in
+enqueues and dequeues. In the worst case, where operations require        [33], Johnen, Khattabi and Milani [20] built on [19] to give a wait-
+their response right away, batches have size 1, and both of these         free queue that achieves 𝑂 (log 𝑝) steps for enqueue operations but
+implementations behave like a standard MS-queue.                          fails to achieve polylogarithmic step complexity for dequeues: their
+    In the MS-queue, an enqueue requires two CAS steps. Ladan-            dequeue operations take 𝑂 (𝑘 log 𝑝) steps if there are 𝑘 dequeuers.
+Mozes and Shavit [27] presented an optimistic queue implemen-
+tation that uses a doubly-linked list to reduce the number of CAS            Other Primitives. Khanchandani and Wattenhofer [21] gave a
+                                                                                                   √
+instructions to one in the best case. Pointers in the doubly-linked       wait-free queue with 𝑂 ( 𝑝) step complexity using non-standard
+list can be inconsistent, but are fixed when necessary by traversing      synchronization primitives called half-increment and half-max,
+the list. This fixing is rare in practice, but it yields an amortized     which can be viewed as double-word read-modify-write operations.
+complexity of Ω(𝑞𝑝) steps per operation in the worst case.                They use this as evidence that their primitives can be more efficient
+    Kogan and Petrank [24] used Herlihy’s helping technique [15] to       than CAS since previous CAS-based queues all required Ω(𝑝) step
+make the MS-queue wait-free. Then, they introduced the fast-path          complexity. Our new implementation counters this argument.
+slow-path methodology [25] for making data structures wait-free:             Fetch&Increment Objects. Ellen, Ramachandran and Woelfel [10]
+the fast path has good performance and the slow path guarantees           gave an implementation of fetch&increment objects that uses a
+termination. They applied their methodology to combine the MS-            polylogarithmic number of steps per operation. Like our queue,
+queue (as the fast path) with their wait-free queue (as the slow path).   they also use a tree structure similar to the universal construction
+Ramalhete and Correia [36] added a different helping mechanism            of [1] to keep track of the operations that have been performed.
+to the MS-queue. Although these approaches can perform well in            However, our construction requires more intricate data structures
+practice, the amortized step complexity remains Ω(𝑝).                     to represent sets of operations, since a queue’s state cannot be rep-
+                                                                          resented as succinctly as the single-word state of a fetch&increment
+   Array-Based Queues. Arrays can be used to implement queues             object. Ellen and Woelfel [11] gave an improved implementation of
+with bounded capacity [6, 39, 43]. Dequeues and enqueues update           fetch&increment with better step complexity.
+indices of the front and back elements using CAS instructions.
+Gidenstam, Sundell, and Tsigas [14] avoid the capacity constraint         3 QUEUE IMPLEMENTATION
+by using a linked list of arrays. These solutions also use Ω(𝑝) steps
+per operation due to the CAS retry problem.                               3.1 Overview
+   Morrison and Afek [32] also used a linked list of (circular) ar-       Our ordering tree data structure is used to agree on a total ordering
+rays. To avoid the CAS retry problem, concurrent operations try           of the operations performed on the queue. It is a static binary tree
+to claim spots in an array using fetch&increment instructions. (It        of height ⌈log2 𝑝⌉ with one leaf for each process. Each tree node
+was shown recently that this implementation can be modified to            stores an array of blocks, where each block represents a sequence
+use single-word CAS instructions rather than double-width CAS             of enqueues and a sequence of dequeues. See Figure 1 for an ex-
+[37].) If livelock between enqueues and a racing dequeue prevent          ample. In this section, we use an infinite array of blocks in each
+A Wait-free Queue with Polylogarithmic Step Complexity
+
+
+node. Section 6 describes how to replace the infinite array by a          from each of v’s children. The merged blocks in v’s children are
+representation that uses bounded space.                                   called the direct subblocks of 𝐵. A block 𝐵 ′ is a subblock of 𝐵 if it
+   To perform an operation on the queue, a process 𝑃 appends a            is a direct subblock of 𝐵 or a subblock of a direct subblock of 𝐵. A
+new block containing that operation to the blocks array in 𝑃’s leaf.      block 𝐵 represents the set of operations in all of 𝐵’s subblocks in
+Then, 𝑃 attempts to propagate the operation to each node along            leaves of the tree. The operations propagated by a Refresh are all
+the path from that leaf to the root of the tree. We shall define a        pending when the Refresh occurs, so there is at most one operation
+total order on all operations that have been propagated to the root,      per process. Hence, a block represents at most 𝑝 operations in total.
+which will serve as the linearization ordering of the operations.         Moreover, we never append empty blocks, so each block represents
+   To propagate operations from a node v’s children to v, 𝑃 first         at least one operation and it follows that a block can have at most
+observes the blocks in both of v’s children that are not already in v,    𝑝 direct subblocks.
+creates a new block by combining information from those blocks,                As mentioned above, we are free to order operations within a
+and attempts to append this new block to v’s blocks array using a         block however we like. We order the enqueues and dequeues sepa-
+CAS. Following [19], we call this a 3-step sequence a Refresh on v. A     rately, and put the operations propagated from the left child before
+Refresh’s CAS may fail if there is another concurrent Refresh on v.       the operations from the right child. More formally, we inductively
+However, since a successful Refresh propagates multiple pending           define sequences 𝐸 (𝐵) and 𝐷 (𝐵) of the enqueues and dequeues
+operations from v’s children to v, we can prove that if two Refreshes     represented by a block 𝐵. If 𝐵 is a block in a leaf representing an
+by 𝑃 on v fail, then 𝑃’s operation has been propagated to v by some       enqueue operation, its enqueue sequence 𝐸 (𝐵) is that operation
+other process, so 𝑃 can continue onwards towards the root.                and its dequeue sequence 𝐷 (𝐵) is empty. If 𝐵 is a block in a leaf
+   Now suppose 𝑃’s operation has been propagated all the way to           representing a dequeue, 𝐷 (𝐵) is that single operation and 𝐸 (𝐵) is
+the root. If 𝑃’s operation is an enqueue, it has obtained a place in      empty. If 𝐵 is a block in an internal node v with direct subblocks
+the linearization ordering and can terminate. If 𝑃’s operation is a       𝐵 𝐿1 , . . . , 𝐵 ℓ𝐿 from v’s left child and 𝐵𝑅1 , . . . , 𝐵𝑟𝑅 from v’s right child,
+dequeue, 𝑃 must use information in the tree to compute the value          then 𝐵’s operation sequences are defined by the concatenations
+that the dequeue must return. To do this, 𝑃 first determines which
+                                                                                    𝐸 (𝐵)     =     𝐸 (𝐵 𝐿1 ) · · · 𝐸 (𝐵 ℓ𝐿 ) · 𝐸 (𝐵𝑅1 ) · · · 𝐸 (𝐵𝑟𝑅 ) and
+block in the root contains its dequeue (since the dequeue may have
+been propagated to the root by some other process). 𝑃 does this by                 𝐷 (𝐵)      =     𝐷 (𝐵 𝐿1 ) · · · 𝐷 (𝐵 ℓ𝐿 ) · 𝐷 (𝐵𝑅1 ) · · · 𝐷 (𝐵𝑟𝑅 )       (3.1)
+finding the dequeue’s location in each node along the path from           We say the block 𝐵 contains the operations in 𝐸 (𝐵) and 𝐷 (𝐵).
+the leaf to the root. Then, 𝑃 determines whether the queue is empty          When linearizing the operations propagated to the root, we must
+when its dequeue is linearized. If so, it returns null and we call it a   choose how to order operations within a block. We choose to put
+null dequeue. If not, 𝑃 computes the rank 𝑟 of its dequeue among          each block’s enqueues before its dequeues. Thus, if the root’s blocks
+all non-null dequeues in the linearization ordering. (We say that         array contains blocks 𝐵 1, . . . , 𝐵𝑘 , the linearization ordering is
+the 𝑟 th element in a sequence has rank 𝑟 within that sequence.) 𝑃
+then returns the value of the 𝑟 th enqueue in the linearization.                𝐿 = 𝐸 (𝐵 1 ) · 𝐷 (𝐵 1 ) · 𝐸 (𝐵 2 ) · 𝐷 (𝐵 2 ) · · · 𝐸 (𝐵𝑘 ) · 𝐷 (𝐵𝑘 ).        (3.2)
+   We must choose what to store in each block so that the following
+tasks can be done efficiently.                                            3.3     Designing a Block Representation to Solve
+ (T1) Construct a block for node v that represents the operations in              Tasks (T1) to (T4)
+      consecutive blocks in v’s children, as required for a Refresh.      Each node of the ordering tree has an infinite array called blocks.
+ (T2) Given a dequeue in a leaf that has been propagated to the           To simplify the code, blocks[0] is initialized with an empty block
+      root, find that operation’s position in the root’s blocks array.    𝐵 0 , where 𝐸 (𝐵 0 ) and 𝐷 (𝐵 0 ) are empty sequences. Each node’s head
+ (T3) Given a dequeue’s position in the root, decide if it is a null      index stores the position in the blocks array to be used for the next
+      dequeue (i.e., if the queue is empty when it is linearized) or      attempt to append a block.
+      determine the rank 𝑟 of the enqueue whose value it returns.             If a block contained an explicit representation of its sequences
+ (T4) Find the 𝑟 th enqueue in the linearization ordering.                of enqueues and dequeues, it would take Ω(𝑝) time to construct
+Since these tasks depend on the linearization ordering, we describe       a block, which would be too slow for task (T1). Instead, the block
+that ordering next.                                                       stores an implicit representation of the sequences. We now explain
+                                                                          how we designed the fields for this implicit representation. Refer to
+                                                                          Figure 2 for an example showing how the tree in Figure 1 is actually
+3.2     Linearization Ordering
+                                                                          represented, and Figure 3 for the definitions of the fields of blocks
+Performing a double Refresh at each node along the path from the          and nodes.
+leaf to the root ensures a block containing the operation is appended         A block in a leaf represents a single enqueue or dequeue. The
+to the root before the operation completes. So, if an operation 𝑜𝑝 1      block’s element field stores the value enqueued if the operation is
+terminates before another operation 𝑜𝑝 2 begins, 𝑜𝑝 1 will be in an       an enqueue, or null if the operation is a dequeue.
+earlier block than 𝑜𝑝 2 in the root’s blocks array. Thus, we linearize        Each block in an internal node v has fields endleft and endright
+operations according to the block they belong to in the root’s array.     that store the indices of the block’s last direct subblock in v’s left
+We can choose how to order operations in the same block, since            and right child. Thus, the direct subblocks of v.blocks[𝑏] are
+they must be concurrent.
+   Each block in a leaf represents one operation. Each block 𝐵 in         v.left.blocks[v.blocks[𝑏 −1].endleft +1..v.blocks[𝑏].endleft ] and
+an internal node v results from merging several consecutive blocks        v.right.blocks[v.blocks[𝑏 −1].endright +1..v.blocks[𝑏].endright ]. (3.3)
+                                                                                                                                                                        Hossein Naderibeni and Eric Ruppert
+
+
+                                                                   Enq(a) Enq(e) Enq(b)    Enq(d) Enq(f) Enq(h) Enq(c) Enq(g)
+                                                                    Deq2         Deq4 Deq5 Deq1                  Deq3
+
+
+
+
+                                 Enq(a) Enq(b) Enq(d) Enq(c)                                                            Enq(e)                   Enq(f) Enq(h) Enq(g)
+                                  Deq2          Deq1         Deq3                                                                Deq4 Deq5
+
+
+
+
+                     Enq(a) Enq(b)           Enq(c)                    Enq(d)                          Enq(e)            Enq(f) Enq(g)                         Enq(h)
+                                     Deq1                      Deq2             Deq3                            Deq4                                    Deq5            Deq6
+
+
+Figure 1: An example ordering tree with four processes. We show explicitly the enqueue sequence and dequeue sequence
+represented by each block in the blocks arrays of the seven nodes. The leftmost element of each blocks array is a dummy block.
+Arrows represent the indices stored in endleft and endright fields of blocks (as described in Section 3.3). The fourth process’s
+Deq6 is still propagating towards the root. The linearization order for this tree is Enq(a) Enq(e) Deq2 | Enq(b) Deq4 Deq5 |
+Enq(d) Enq(f) Enq(h) Deq1 | Enq(c) Deq3 | Enq(g), where vertical bars indicate boundaries of blocks in the root.
+                                                                         sumenq     0     2    3   6      7         8
+                                                                         sumdeq     0     1    3   4      5         5
+                                                                         size       0     1    0   2      2         3
+
+
+
+
+                           sumenq    0   1         2       3   4        4                                     sumenq      0      1       1       3      4
+                           sumdeq    0   1         1       2   2        3                                     sumdeq      0      0       2       2      2
+
+
+
+
+               element      a        b      null       c               null     d       null                    e        null        f       g                 null     h      null
+
+
+Figure 2: The actual, implicit representation of the tree shown in Figure 1. The leaf blocks simply show the element field.
+Internal blocks show the sumenq and sumdeq fields, and endleft and endright fields are shown using arrows as in Figure 1. Root
+blocks also have the additional size field. The super field is not shown.
+
+  ⊲ Shared variable                                                                                     enqueue 𝐸𝑟 in the linearization. A binary search for 𝑟 on sumenq
+  • Node root                 ⊲ root of binary tree of Nodes with one leaf per process
+  ⊲ Thread-local variable                                                                               fields of the root’s blocks finds the block containing 𝐸𝑟 . If we know
+  • Node leaf                 ⊲ process’s leaf in the tree                                              a block 𝐵 in a node v contains 𝐸𝑟 , we can use the sumenq field again
+  ▶ Node
+  • Node left, right, parent ⊲ tree pointers initialized when creating the tree                         to determine which child of v contains 𝐸𝑟 and then do a binary
+  • Block[0..∞] blocks        ⊲ blocks that have been propagated to this node;                          search among the direct subblocks of 𝐵 in that child. Thus, we work
+                              ⊲ blocks[0] is empty block whose integer fields are 0                     our way down the tree until we find the leaf block that stores 𝐸𝑟
+  • int head                  ⊲ position to append next block to blocks, initially 1
+  ▶ Block                                                                                               explicitly. We shall show that the binary search in the root can be
+  • int sumenq , sumdeq       ⊲ number of enqueues, dequeues in blocks array                            done in 𝑂 (log 𝑝 + log 𝑞) steps, and the binary search within each
+                              ⊲ up to this block (inclusive)                                            other node along the path to a leaf takes 𝑂 (log 𝑝) steps, for a total
+  • int super                 ⊲ approximate index of superblock in parent.blocks
+  ⊲ Blocks in internal nodes have the following additional fields                                       of 𝑂 (log2 𝑝 + log 𝑞) steps for task (T4).
+     • int endleft , endright ⊲ index of last direct subblock in the left and right child                  A block is called the superblock of all of its direct subblocks. To
+  ⊲ Blocks in leaf nodes have the following additional field                                            facilitate task (T2), each block 𝐵 has a field super that contains the
+     • Object element         ⊲ x for Enqueue(x) operation; otherwise null
+  ⊲ Blocks in the root node have the following additional field                                         (approximate) index of its superblock in the parent node’s blocks
+     • int size               ⊲ size of queue after performing all operations up                        array (it may differ from the true index by 1). This allows a process
+                              ⊲ to the end of this block
+                                                                                                        to determine the true location of the superblock by checking the
+                                                                                                        endleft or endright values of just two blocks in the parent node. Thus,
+ Figure 3: Objects used in the ordering tree data structure.                                            starting from an operation in a leaf’s block, one can use these indices
+                                                                                                        to track the operation up the path to the root, and determine the
+                                                                                                        operation’s location in a root block in 𝑂 (log 𝑝) time.
+The endleft and endright fields allow us to navigate to a block’s
+                                                                                                           Now consider task (T3). To determine whether the queue is
+direct subblocks. Blocks also store some prefix sums: v.blocks[𝑏]
+                                                                                                        empty when a dequeue occurs, each block in the root has a size
+has two fields sumenq and sumdeq that store the total numbers of
+                                                                                                        field storing the number of elements in the queue after all opera-
+enqueues and dequeues in v.blocks[1..b]. We use these to search
+                                                                                                        tions in the linearization up to that block (inclusive) have been done.
+for a particular operation. For example, consider finding the 𝑟 th
+A Wait-free Queue with Polylogarithmic Step Complexity
+
+
+We can determine which dequeues in a block 𝐵𝑑 in the root are                  A Refresh on node v creates a block representing the new blocks
+null dequeues using 𝐵𝑑−1 .size, which is the size of the queue just        in v’s children and tries to append it to v.blocks. Line 25 reads v.head
+before 𝐵𝑑 ’s operations, and the number of enqueues and dequeues           into the local variable h. Line 32 creates the new block to install
+in 𝐵𝑑 . Moreover, the total number of non-null dequeues in blocks          in v.blocks[h]. If line 32 returns null instead of a new block, there
+𝐵 1, . . . , 𝐵𝑑−1 is 𝐵𝑑−1 .sumenq − 𝐵𝑑−1 .size. We can use this informa-   were no new blocks in v’s children to propagate to v, so Refresh
+tion to determine the rank of a non-null dequeue in 𝐵𝑑 among all           can return true at line 33 and terminate. Otherwise, the CAS at
+non-null dequeues in the linearization, which is the rank (among all       line 35 tries to install the new block into v.blocks[h]. Either this
+enqueues) of the enqueue whose value the dequeue should return.            CAS succeeds or some other process has installed a block in this
+    Having defined the fields required for tasks (T2), (T3) and (T4),      location. Either way, line 36 then calls Advance to advance v’s
+we can easily see how to construct a new block 𝐵 during a Refresh          head index from h to h + 1 and fill in the super field of the most
+in 𝑂 (1) time. A Refresh on node v reads the values ℎ ℓ and ℎ𝑟 of the      recently appended block. The boolean value returned by Refresh
+head fields of v’s children and stores ℎ ℓ − 1 and ℎ𝑟 − 1 in 𝐵.endleft     indicates whether its CAS succeeded. A Refresh may pause after a
+and 𝐵.endright . Then, we can compute                                      successful CAS before calling Advance at line 36, so other processes
+                                                                           help keep head up to date by calling Advance, either at line 29
+         𝐵.sumenq      =    v.left.blocks[𝐵.endleft ].sumenq               during a Refresh on v’s parent or line 36 during a Refresh on v.
+                            +v.right.blocks[𝐵.endright ].sumenq .              CreateBlock(v, i) is used by Refresh to construct a block to
+                                                                           be installed in v.blocks[i]. The endleft and endright fields store the
+For a block 𝐵 in the root, 𝐵.size is computed using the size field of      indices of the last blocks appended to v’s children, obtained by
+the previous block 𝐵 ′ and the number of enqueues and dequeues             reading the head index in v’s children. Since the sumenq field should
+in 𝐵:                                                                      store the number of enqueues in v.blocks[1..i] and these enqueues
+                                                                           come from v.left.blocks[1..new.endleft ] and v.blocks[1..new.endright ],
+       𝐵.size    =    max(0, 𝐵 ′ .size + (𝐵.sumenq − 𝐵 ′ .sumenq )
+                                                                           line 45 sets sumenq to the sum of v.left.blocks[new.endleft ].sumenq
+                                       −(𝐵.sumdeq − 𝐵 ′ .sumdeq )).        and v.right.blocks[new.endright ].sumenq . Line 47 sets numenq to the
+                                                                           number of enqueues in the new block by subtracting the number
+   The only remaining field is 𝐵.super. When the block 𝐵 is created        of enqueues in v.blocks[1..i − 1] from new.sumenq . The values of
+for a node v, we do not yet know where its superblock will even-           new.sumdeq and numdeq are computed similarly. Then, if new is
+tually be installed in v’s parent. So, we leave 𝐵.super blank. Soon        going to be installed in the root, line 50 computes the size field,
+after 𝐵 is installed, some process will set B.super to a value read        which represents the number of elements in the queue after the
+from the head field of v’s parent. We shall show that this happens         operations in the block are performed. Finally, if the new block
+soon enough that 𝐵.super can differ from the true index of 𝐵 ′ by at       contains no operations, CreateBlock returns null to indicate there
+most 1.                                                                    is no need to install it.
+                                                                               Once a dequeue is appended to a block of the process’s leaf and
+3.4     Details of the Implementation                                      propagated to the root, the IndexDequeue routine finds the de-
+We now discuss the queue implementation in more detail. Pseu-              queue’s location in the root. More precisely, IndexDequeue(v, b, i)
+docode is provided in Figure 4.                                            computes the block in the root and the rank within that block of
+    An Enqueue(e) appends a block to the process’s leaf. The block         the ith dequeue of the block B stored in v.blocks[b]. Lines 72–74
+has element = e to indicate it represents an Enqueue(e) operation.         compute the location of 𝐵’s superblock in v’s parent, taking into ac-
+It suffices to propagate the operation to the root and then use its        count the fact that 𝐵.super may be off by one from the superblock’s
+position in the linearization for future Dequeue operations.               true index. The arithmetic in lines 76–79 compute the dequeue’s
+    A Dequeue also appends a block to the process’s leaf. The block        rank within the superblock’s sequence of dequeues, using (3.1).
+has element = null to indicate that it represents a Dequeue opera-             To compute the response of the 𝑖th Dequeue in the 𝑏th block of
+tion. After propagating the operation to the root, it computes its         the root, FindResponse(b, i) determines at line 86 if the queue is
+position in the root using IndexDequeue and then computes its              empty. If not, line 89 computes the rank e of the Enqueue whose
+response by calling FindResponse.                                          argument is the Dequeue’s response. A binary search on the sumenq
+    Append(B) first adds the block B to the invoking process’s leaf.       fields of root.blocks finds the index 𝑏𝑒 of the block that contains the
+The leaf’s head field stores the first empty slot in the leaf’s blocks     eth enqueue. Since the enqueue is linearized before the dequeue,
+array, so the Append writes B there and increments head. Since             𝑏𝑒 ≤ 𝑏. To find the left end of the range for the binary search for
+Append writes only to the process’s own leaf, there cannot be              𝑏𝑒 , we can first do a doubling search [5], comparing e to the sumenq
+concurrent updates to a leaf. Append then calls Propagate to ensure        fields at indices 𝑏 − 1, 𝑏 − 2, 𝑏 − 4, 𝑏 − 8, . . .. Then, GetEnqueue is
+the operation represented by B is propagated to the root.                  used to trace down through the tree to find the required enqueue
+    Propagate(v) guarantees that any blocks that are in v’s children       in a leaf.
+when Propagate is invoked are propagated to the root. It uses the              GetEnqueue(v, b, i) returns the argument of the 𝑖th enqueue in
+double Refresh idea described above and invokes two Refreshes on           the 𝑏th block 𝐵 of Node v. It recursively finds the location of the
+v in Lines 17 and 18. If both fail to add a block to v, it means some      enqueue in each node along the path from 𝑣 to a leaf, which stores
+other process has done a successful Refresh that propagated blocks         the argument explicitly. GetEnqueue first determines which child
+that were in v’s children prior to line 17 to v. Then, Propagate           of v contains the enqueue, and then finds the range of blocks within
+recurses to v.parent to continue propagating blocks up to the root.
+                                                                                                                                                        Hossein Naderibeni and Eric Ruppert
+
+
+ 1: void Enqueue(Object e)                                                     58: void Advance(Node v, int h) ⊲ set v.blocks[h].super and increment v.head from h to h + 1
+ 2:     let B be a new Block with element := e,                                59:     if v ≠ root then
+            sumenq := leaf.blocks [ leaf.head − 1].sumenq + 1,                 60:         hp := v.parent.head
+            sumdeq := leaf.blocks [ leaf.head − 1].sumdeq                      61:         CAS(v.blocks[h].super, null, hp )
+ 3:     Append(B)                                                              62:     end if
+ 4: end Enqueue                                                                63:     CAS(v.head, h, h+1)
+ 5: Object Dequeue()                                                           64: end Advance
+ 6:    let B be a new Block with element := null,                            65: ⟨int, int ⟩ IndexDequeue(Node v, int b, int i) ⊲ return ⟨b′, i′ ⟩ such that ith dequeue in
+           sumenq := leaf.blocks [ leaf.head − 1].sumenq ,                   66:     ⊲ 𝐷 ( v .blocks [ b ]) is ( i′ ) th dequeue of 𝐷 ( root .blocks [ b′ ])
+           sumdeq := leaf.blocks [ leaf.head − 1].sumdeq + 1                 67:     ⊲ Precondition: v .blocks [ b ] is not null, was propagated to root, and contains at least
+ 7:    Append(B)                                                             68:     ⊲ i dequeues
+ 8:    ⟨b, i ⟩ := IndexDequeue(leaf , leaf.head − 1, 1)                      69:     if v = root then return ⟨b, i ⟩
+ 9:    return FindResponse(b, i)                                             70:     else
+10: end Dequeue                                                              71:          dir := (v.parent.left = v ? left : right)
+                                                                             72:          sup := v.blocks[b].super
+11: void Append(Block B) ⊲ append block to leaf and propagate to root
+                                                                             73:          if b > v .parent.blocks [ sup ].enddir then sup := sup + 1
+12:     leaf.blocks[leaf.head] := B
+                                                                             74:          end if
+13:     leaf.head := leaf.head + 1
+                                                                             75:          ⊲ compute index i of dequeue in superblock
+14:     Propagate(leaf.parent)
+                                                                             76:          i += v .blocks [ b − 1].sumdeq − v .blocks [ v .parent.blocks [ sup − 1].enddir ].sumdeq
+15: end Append
+                                                                             77:          if dir = right then
+16: void Propagate(Node v) ⊲ propagate blocks from v’s children to root 78:                    i += v .blocks [ v .parent.blocks [ sup ].endleft ].sumdeq −
+17:     if not Refresh(v) then                             ⊲ double refresh                        v .blocks [ v .parent.blocks [ sup − 1].endleft ].sumdeq
+18:         Refresh(v)                                                       79:          end if
+19:     end if                                                               80:          return IndexDequeue(v.parent, sup, i)
+20:     if v ≠ root then                                  ⊲ recurse up tree 81:      end if
+21:         Propagate(v.parent)                                              82: end IndexDequeue
+22:     end if
+23: end Propagate                                                            83: element FindResponse(int b, int i) ⊲ find response to ith dequeue in 𝐷 ( root .blocks [ b ])
+                                                                             84:     ⊲ Precondition: 1 ≤ 𝑖 ≤ |𝐷 ( root .blocks [ b ]) |
+24: boolean Refresh(Node v) ⊲ try to append a new block to v.blocks 85:              numenq := root .blocks [ b ].sumenq − root .blocks [ b − 1].sumenq
+25:     h := v.head                                                          86:     if root .blocks [ b − 1].size + numenq < i then
+26:     for each dir in {left, right } do                                    87:          return null                                                    ⊲ queue is empty when dequeue occurs
+27:         childHead := v.dir.head                                          88:     else ⊲ response is the eth enqueue in the root
+28:         if v.dir.blocks[childHead] ≠ null then                           89:          e := i + root.blocks[b-1].sumenq - root.blocks[b-1].size
+29:             Advance(v.dir, childHead)                                    90:          ⊲ compute enqueue’s block using binary search
+30:         end if                                                           91:          find min 𝑏𝑒 ≤ b with root .blocks [𝑏𝑒 ].sumenq ≥ e
+31:     end for
+                                                                             92:          ⊲ find rank of enqueue within its block
+32:     new := CreateBlock(v, h)
+                                                                             93:         𝑖𝑒 := e − root .blocks [𝑏𝑒 − 1].sumenq
+33:     if new = null then return true
+                                                                             94:          return GetEnqueue(root, 𝑏𝑒 , 𝑖𝑒 )
+34:     else
+                                                                             95:     end if
+35:         result := CAS(v.blocks[h], null, new)
+                                                                             96: end FindResponse
+36:         Advance(v, h)
+37:         return result                                                    97: element GetEnqueue(Node v, int b, int i)               ⊲ returns argument of ith enqueue in 𝐸 ( v .blocks [ b ])
+38:     end if                                                               98:     ⊲ Preconditions: i ≥ 1 and v.blocks[b] is non-null and contains at least i enqueues
+39: end Refresh                                                              99:     if v is a leaf node then return v.blocks[b].element
+                                                                            100:     else
+40: Block CreateBlock(Node v, int i)
+                                                                            101:          sumleft := v.left.blocks[v.blocks[b].endleft ].sumenq
+41:     ⊲ create new block for a Refresh to install in v.blocks[i]
+42:     let new be a new Block                                              102:          ⊲ sumleft is the number of enqueues in v.blocks[1..b] from v’s left child
+43:     new.endleft := v .left .head − 1                                    103:          prevleft := v.left.blocks[v.blocks[b − 1].endleft ].sumenq
+44:     new.endright := v .right .head − 1                                  104:          ⊲ prevleft is the number of enqueues in v.blocks[1..b − 1] from v’s left child
+45:     new.sumenq := v.left.blocks[new.endleft ].sumenq +                  105:          prevright := v.right.blocks[v.blocks[b − 1].endright ].sumenq
+                         v.right.blocks[new.endright ].sumenq               106:          ⊲ prevright is the number of enqueues in v.blocks[1..b − 1] from v’s right child
+46:     new.sumdeq := v.left.blocks[new.endleft ].sumdeq +                  107:          if i ≤ sumleft − prevleft then                ⊲ required enqueue is in v.left
+                         v.right.blocks[new.endright ].sumdeq               108:               dir := left
+47:     numenq := new .sumenq − v .blocks [ i − 1].sumenq                   109:          else                                          ⊲ required enqueue is in v.right
+                                                                            110:               dir := right
+48:     numdeq := new .sumdeq − v .blocks [ i − 1].sumdeq
+                                                                            111:               i := i − ( sumleft − prevleft )
+49:     if v = root then
+                                                                            112:          end if
+50:         new.size := max(0, v .blocks [ i − 1].size + numenq − numdeq )
+                                                                            113:          ⊲ Use binary search to find enqueue’s block in v.dir and its rank within block
+51:     end if
+                                                                            114:          find minimum b′ in range [v.blocks[b − 1].enddir +1..v.blocks[b].enddir ] such that
+52:     if numenq + numdeq = 0 then
+                                                                                               v .dir.blocks [ b′ ].sumenq ≥ i + prevdir
+53:         return null             ⊲ no blocks need to be propagated to v
+                                                                            115:          i′ := i − ( v .dir.blocks [ b′ − 1].sumenq − prevdir )
+54:     else
+55:         return new                                                      116:          return GetEnqueue(v.dir, b′ , i′ )
+56:     end if                                                              117:     end if
+57: end CreateBlock                                                         118: end GetEnqueue
+
+                                                                      Figure 4: Queue implementation.
+
+
+that child that are subblocks of 𝐵 using information stored in 𝐵 and                                 4     PROOF OF CORRECTNESS
+the block that precedes 𝐵 in 𝑣. GetEnqueue finds the exact subblock                                 After proving some basic properties in Section 4.1, we show in
+containing the enqueue using a binary search on the sumenq field                                    Section 4.2 that a double refresh at each node suffices to propagate
+(line 114) and proceeds recursively down the tree.                                                  an operation to the root. In Section 4.3 we show GetEnqueue and
+                                                                                                    IndexDequeue correctly navigate through the tree. Finally, we prove
+                                                                                                    linearizability in Section 4.4.
+A Wait-free Queue with Polylogarithmic Step Complexity
+
+
+4.1     Basic Properties                                                    Lemma 5. If 𝐵 and 𝐵 ′ are two blocks in nodes at the same depth,
+A Block object’s fields, except for super, are immutable: they are          their sets of subblocks are disjoint.
+written only when the block is created. Moreover, only a CAS at line            Proof. We prove the lemma by reverse induction on the depth.
+61 modifies super (from null to a non-null value), so it is changed         If 𝐵 and 𝐵 ′ are in leaves, they have no subblocks, so the claim holds.
+only once. Similarly, only a CAS at line 35 modifies an element of          Assume the claim holds for nodes at depth 𝑑 + 1 and let 𝐵 and 𝐵 ′
+a node’s blocks array (from null to a non-null value), so blocks are        be two blocks in nodes at depth 𝑑. Consider the direct subblocks
+permanently added to nodes. Only a CAS at line 63 can update a              of 𝐵 and 𝐵 ′ defined by (3.3). If 𝐵 and 𝐵 ′ are in different nodes at
+node’s head field by incrementing it, which implies the following.          depth 𝑑, then their direct subblocks are disjoint. If 𝐵 and 𝐵 ′ are in
+Observation 1. For each node v, v.head is non-decreasing over time.         the same node, it follows from Lemma 4 that their direct subblocks
+Observation 2. Let 𝑅 be an instance of Refresh(v) whose call to             are disjoint. Either way, their direct subblocks (at depth 𝑑 + 1) are
+CreateBlock returns a non-null block. When 𝑅 terminates, v.head is          disjoint, so the claim follows from the induction hypothesis.        □
+strictly greater than the value 𝑅 reads from it at line 25.                    It follows that each block has at most one superblock. Moreover,
+   Proof. After 𝑅’s CAS at line 63, v.head is no longer equal to the        we can now prove each operation is contained in at most one block
+value h read at line 25. The claim follows from Observation 1. □            of each node, and hence appears at most once in the linearization 𝐿.
+
+   Now we show v.blocks[v.head] is either the last non-null block           Corollary 6. For 𝑖 ≠ 𝑗, v.blocks[𝑖] and v.blocks[ 𝑗] cannot both
+or the first null block in node v.                                          contain the same operation.
+
+Invariant 3. For 0 ≤ 𝑖 < v.head, v.blocks[𝑖] ≠ null. For 𝑖 > v.head,           Proof. A block 𝐵 contains the operations in 𝐵’s subblocks in
+v.blocks[𝑖] = null. If v ≠ root, v.blocks[𝑖].𝑠𝑢𝑝𝑒𝑟 ≠ null for 0 < 𝑖 <       leaves of the tree. An operation by process 𝑃 appears in just one
+v.head.                                                                     block of 𝑃’s leaf, so an operation cannot be in two different leaf
+                                                                            blocks. By Lemma 5, v.blocks[𝑖] and v.blocks[ 𝑗] have no common
+   Proof. Initially, v.head = 1, v.blocks[0] ≠ null and v.blocks[𝑖] =       subblocks, so the claim follows.                                □
+null for 𝑖 > 0, so the claims hold.
+   Assume the claims hold before a change to v.blocks, which can               The accuracy of the values stored in the sumenq and sumdeq
+be made only by a successful CAS at line 35. The CAS changes                fields on lines 2, 6, 45 and 46 follows easily from the definition of
+v.blocks[ℎ] from null to a non-null value. Since v.blocks[ℎ] is null        subblocks. See Appendix A for a detailed proof of Invariant 7.
+before the CAS, v.head ≤ ℎ by the hypothesis. Since ℎ was read
+                                                                            Invariant 7. If 𝐵 is a block stored in v.blocks[𝑖], then
+from v.head earlier at line 25, the current value of v.head is at least
+ℎ by Observation 1. So, v.head = ℎ when the CAS occurs and a                      𝐵.sumenq      =   |𝐸 (v.blocks[0]) · · · 𝐸 (v.blocks[𝑖])| and
+change to v.blocks[v.head] preserves the invariant.                               𝐵.sumdeq      =   |𝐷 (v.blocks[0]) · · · 𝐷 (v.blocks[𝑖])|.
+   Now, assume the claim holds before a change to v.head, which
+can only be an increment from ℎ to ℎ + 1 by a successful CAS at                This allows us to prove that every block a Refresh installs con-
+line 63 of Advance. For the first two claims, it suffices to show           tains at least one operation.
+that v.blocks[ℎ𝑒𝑎𝑑] ≠ null. Advance is called either at line 29 after       Corollary 8. If a block 𝐵 is in v.blocks[𝑖] where 𝑖 > 0, then 𝐸 (𝐵)
+testing that v.blocks[ℎ] ≠ null at line 28, or at line 36 after the CAS     and 𝐷 (𝐵) are not both empty.
+at line 35 ensures v.blocks[ℎ] ≠ null. For the third claim, observe
+that prior to incrementing v.head to 𝑖 + 1 at line 63, the CAS at line         Proof. The Refresh that installed 𝐵 got 𝐵 as the response to its
+61 ensures that v.blocks[𝑖].𝑠𝑢𝑝𝑒𝑟 ≠ null.                             □     call to CreateBlock on line 32. Thus, at line 52, numenq +numdeq ≠ 0.
+                                                                            By Invariant 7, numenq = |𝐸 (𝐵)| and numdeq = |𝐷 (𝐵)|, so these
+  It follows that blocks accessed by the Enqueue, Dequeue and               sequences cannot both be empty.                                    □
+CreateBlock routines are non-null.
+  The following two lemmas show that no operation appears in                4.2    Propagating Operations to the Root
+more than one block of the root.                                            In the next two lemmas, we show two Refreshes suffice to propagate
+Lemma 4. If 𝑏 > 0 and v.blocks[𝑏] ≠ null, then                              operations from a child to its parent. We say that node v contains
+         v.blocks[𝑏 − 1].endleft      ≤     v.blocks[𝑏].endleft and         an operation 𝑜𝑝 if some block in v.blocks contains 𝑜𝑝. Since blocks
+                                                                            are permanently added to nodes, if v contains 𝑜𝑝 at some time, 𝑣
+        v.blocks[𝑏 − 1].endright      ≤     v.blocks[𝑏].endright .
+                                                                            contains 𝑜𝑝 at all later times too.
+     Proof. Let 𝐵 be the block in v.blocks[𝑏]. Before creating 𝐵 at
+                                                                            Lemma 9. Let 𝑅 be a call to Refresh(v) that performs a successful
+line 32, the Refresh that installed 𝐵 read 𝑏 from v.head at line
+                                                                            CAS on line 35 (or terminates at line 33). After that CAS (or termina-
+25. At that time, v.blocks[𝑏 − 1] contained a block 𝐵 ′ , by Invari-
+                                                                            tion, respectively), v contains all operations that v’s children contained
+ant 3. Thus, the CreateBlock(v, 𝑏 − 1) that created 𝐵 ′ terminated
+                                                                            when 𝑅 executed line 25.
+before the CreateBlock(v, 𝑏) that created 𝐵 started. It follows from
+Observation 1 that the value that line 43 of CreateBlock(v, 𝑏 − 1)             Proof. Suppose v’s child (without loss of generality, v.left) con-
+stores in 𝐵 ′ .endleft is less than or equal to the value that line 43 of   tained an operation 𝑜𝑝 when 𝑅 executed line 25. Let 𝑖 be the index
+CreateBlock(v, 𝑏) stores in 𝐵.endleft . Similarly, the values stored in     such that the block 𝐵 = v.left.blocks[𝑖] contains 𝑜𝑝. By Observa-
+𝐵 ′ .endright and 𝐵.endright at line 44 satisfy the claim.             □    tion 1 and Lemma 4, the value of 𝑐ℎ𝑖𝑙𝑑𝐻𝑒𝑎𝑑 that 𝑅 reads from
+                                                                                                                    Hossein Naderibeni and Eric Ruppert
+
+
+v.left.head in line 27 is at least 𝑖. If it is equal to 𝑖, 𝑅 calls Ad-      node on 𝑃 contains 𝐵’s operation. There is at most one such block
+vance at line 29, which ensures that v.left.head > 𝑖. Then, 𝑅 calls         in each node, by Corollary 6.                                   □
+CreateBlock(v, ℎ) in line 32, where ℎ is the value 𝑅 reads at line 25.
+CreateBlock reads a value greater than 𝑖 from v.left.head at line 43.       4.3    Correctness of GetEnqueue and
+Thus, 𝑛𝑒𝑤 .endleft ≥ 𝑖. We consider two cases.                                     IndexDequeue
+   Suppose 𝑅’s call to CreateBlock returns the new block 𝐵 ′ and 𝑅’s
+                                                                            See Appendix A for detailed proofs for this section.
+CAS at line 35 installs 𝐵 ′ in v.blocks. Then, 𝐵 is a subblock of some
+                                                                                We first show the super field is accurate, since IndexDequeue
+block in v, since 𝐵 ′ .endleft is greater than or equal to 𝐵’s index 𝑖 in
+                                                                            uses it to trace superblocks up the tree. This is proved by showing
+v.left.blocks. Hence v contains 𝑜𝑝, as required.
+                                                                            that the super field of a block 𝐵 in node v is read from v.parent’s
+   Now suppose 𝑅’s call to CreateBlock returns null, causing 𝑅 to
+                                                                            head field close to the time that 𝐵’s superblock 𝐵𝑠 is installed in the
+terminate at line 33. Intuitively, since there are no operations in v’s
+                                                                            parent node. On one hand, 𝐵.𝑠𝑢𝑝𝑒𝑟 is written before 𝐵𝑠 is installed:
+children to promote, 𝑜𝑝 is already in v. We formalize this intuition.
+                                                                            Advance writes 𝐵.𝑠𝑢𝑝𝑒𝑟 before advancing v.head past 𝐵’s index,
+The value computed at line 45 is
+                                                                            which must happen before the CreateBlock that creates 𝐵𝑠 gets the
+  numenq = v.left.blocks[𝑛𝑒𝑤 .endleft ].sumenq                              value of 𝐵𝑠 .endleft or 𝐵𝑠 .endright . On the other hand, 𝐵.super cannot
+                +v.right.blocks[𝑛𝑒𝑤 .endright ].sumenq                      be written too long before 𝐵𝑠 is installed: 𝐵.super is written after 𝐵
+                                                                            is installed, and Lemma 9 ensures that 𝐵 is propagated to the parent
+                −v.blocks[ℎ − 1].sumenq
+                                                                            soon after.
+            = v.left.blocks[𝑛𝑒𝑤 .endleft ].sumenq
+                                                                            Lemma 12. Let 𝐵 = v.blocks[𝑏]. If v.parent.blocks[𝑠] is the su-
+                +v.right.blocks[𝑛𝑒𝑤 .endright ].sumenq
+                                                                            perblock of 𝐵 then 𝑠 − 1 ≤ 𝐵.super ≤ 𝑠.
+                −v.left.blocks[v.blocks[ℎ − 1].endleft ].sumenq
+                −v.right.blocks[v.blocks[ℎ − 1].endright ].sumenq .           To show GetEnqueue and IndexDequeue work correctly, we just
+                                                                            check that they correctly compute the index of the required block
+It follows from Invariant 7 that 𝑛𝑢𝑚 enq is the total number of en-         and the operation’s rank within the block. For IndexDequeue, we
+queues in v.left.blocks[v.blocks[ℎ − 1].endleft + 1..𝑛𝑒𝑤 .endleft ] and     use Lemma 12 each time IndexDequeue goes one step up the tree.
+v.right.blocks[v.blocks[ℎ − 1].endright + 1..𝑛𝑒𝑤 .endright ]. Similarly,
+𝑛𝑢𝑚 deq is the total number of dequeues contained in these blocks.          Lemma 13. If v.blocks[𝑏] has been propagated to the root and
+Since 𝑛𝑢𝑚 enq + 𝑛𝑢𝑚 deq = 0 at line 52, these blocks contain no op-         1 ≤ 𝑖 ≤ |𝐷 (v.blocks[𝑏])|, then IndexDequeue(v, 𝑏, 𝑖) returns ⟨𝑏 ′, 𝑖 ′ ⟩
+erations. By Corollary 8, this means the ranges of blocks are empty,        such that the ith dequeue in 𝐷 (v.blocks[b]) is the (𝑖 ′ )th dequeue of
+so that v.blocks[ℎ − 1].endleft ≥ new.endleft ≥ 𝑖. Hence, 𝐵 is already      𝐷 (root.blocks[𝑏 ′ ]).
+a subblock of some block in v, so v contains 𝑜𝑝.                      □
+                                                                            Lemma 14. If 1 ≤ 𝑖 ≤ |𝐸 (v.blocks[𝑏])| then getEnqueue(v, 𝑏, 𝑖)
+   We now show a double Refresh propagates blocks as required.              returns the argument of the 𝑖th enqueue in 𝐸 (v.blocks[𝑏]).
+Lemma 10. Consider two consecutive terminating calls 𝑅1 , 𝑅2 to
+Refresh(v) by the same process. All operations contained v’s children       4.4    Linearizability
+when 𝑅1 begins are contained in v when 𝑅2 terminates.                       We show that the linearization ordering 𝐿 defined in (3.2) is a legal
+                                                                            permutation of a subset of the operations in the execution, i.e., that
+    Proof. If either 𝑅1 or 𝑅2 performs a successful CAS at line 35 or       it includes all operations that terminate and if one operation 𝑜𝑝 1
+terminates at line 33, the claim follows from Lemma 9. So suppose           terminates before another operation 𝑜𝑝 2 begins, then 𝑜𝑝 2 does not
+both 𝑅1 and 𝑅2 perform a failed CAS at line 35. Let ℎ 1 and ℎ 2 be          precede 𝑜𝑝 1 in 𝐿. We also show the result each dequeue returns is
+the values 𝑅1 and 𝑅2 read from v.head at line 25. By Observation 2,         the same as in the sequential execution 𝐿.
+ℎ 2 > ℎ 1 . By Lemma 4, v.𝑏𝑙𝑜𝑐𝑘𝑠 [ℎ 2 ] = null when 𝑅1 executes line 25.
+Since 𝑅2 fails its CAS on v.𝑏𝑙𝑜𝑐𝑘𝑠 [ℎ 2 ], some other Refresh 𝑅3 must       Lemma 15. 𝐿 is a legal linearization ordering.
+have done a successful CAS on v.𝑏𝑙𝑜𝑐𝑘𝑠 [ℎ 2 ] before 𝑅2 ’s CAS. 𝑅3
+                                                                               Proof. By Corollary 6, 𝐿 is a permutation of a subset of the op-
+must have executed line 25 after 𝑅1 , since 𝑅3 read the value ℎ 2 from
+                                                                            erations in the execution. By Lemma 11, each terminating operation
+v.head and the value of v.head is non-decreasing, by Observation 1.
+                                                                            is propagated to the root before it terminates, so it appears in 𝐿.
+Thus, all operations contained in v’s children when 𝑅1 begins are
+                                                                            Also, if 𝑜𝑝 1 terminates before 𝑜𝑝 2 begins, then 𝑜𝑝 1 is propagated to
+also contained in v’s children when 𝑅3 later executes line 25. By
+                                                                            the root before 𝑜𝑝 2 begins, so 𝑜𝑝 1 appears before 𝑜𝑝 2 in 𝐿.        □
+Lemma 9, these operations are contained in v when 𝑅3 performs
+its successful CAS, which is before 𝑅2 ’s failed CAS.                 □       A simple proof (in Appendix A) shows that size fields are com-
+                                                                            puted correctly.
+Lemma 11. When an Append(𝐵) terminates, 𝐵’s operation is con-
+tained in exactly one block in each node along the path from the            Lemma 16. If the operations of root.blocks[0..𝑏] are applied sequen-
+process’s leaf to the root.                                                 tially in the order of 𝐿 on an initially empty queue, the resulting queue
+                                                                            has root.blocks[𝑏].size elements.
+   Proof. Append adds 𝐵 to the process’s leaf and calls Propagate,
+which does a double Refresh on each internal node on the path 𝑃               Next, we show operations return the same response as they
+from the leaf to the root. By Lemma 10, this ensures a block in each        would in the sequential execution 𝐿.
+A Wait-free Queue with Polylogarithmic Step Complexity
+
+
+Lemma 17. Each terminating dequeue returns the response it would                   Lemma 21. Each block 𝐵 in each node contains at most one operation
+in the sequential execution 𝐿.                                                     of each process. If 𝑐 is the execution’s maximum point contention, 𝐵
+                                                                                   has at most 𝑐 direct subblocks.
+    Proof. If a dequeue 𝐷 terminates, it is contained in some block
+in the root, by Lemma 11. By Lemma 13, 𝐷’s call to IndexDequeue on                    Proof. Suppose 𝐵 contains an operation of process 𝑝. Let 𝑜𝑝 be
+line 8 returns a pair ⟨𝑏, 𝑖⟩ such that 𝐷 is the 𝑖th dequeue in the block           the earliest operation by 𝑝 contained in 𝐵. When 𝑜𝑝 terminates,
+𝐵 = root.blocks[𝑏]. 𝐷 then calls FindResponse(𝑏, 𝑖) on line 9. By                  𝑜𝑝 is contained in 𝐵 by Lemma 11. Thus, 𝐵 cannot contain any
+Lemma 16, the queue contains root.blocks[𝑏 − 1].size elements after                later operations by 𝑝, since 𝐵 is created before those operations are
+the operations in root.blocks[1..𝑏 − 1] are performed sequentially in              invoked.
+the order given by 𝐿. By Invariant 7, the value of numenq computed                    Let 𝑡 be the earliest termination of any operation contained in 𝐵.
+on line 85 is the number of enqueues in 𝐵. Since the enqueues                      By Lemma 11, 𝐵 is created before 𝑡, so all operations contained in
+in block 𝐵 precede the dequeues, the queue is empty when the                       𝐵 are invoked before 𝑡. Thus, all are running concurrently at 𝑡, so
+𝑖th dequeue of 𝐵 occurs if root.blocks[𝑏 − 1].size + numenq < 𝑖.                   𝐵 contains at most 𝑐 operations. By definition, the direct subblocks
+So 𝐷 returns null on line 87 if and only if it would do so in the                  of 𝐵 contain these 𝑐 operations, and each operation is contained in
+sequential execution 𝐿. Otherwise, the size of the queue after doing               exactly one of these subblocks, by Lemma 5. By Corollary 8, each
+the operations in root.blocks[0..𝑏 − 1] in the sequential execution 𝐿              direct subblock of 𝐵 contains at least one operation, so 𝐵 has at
+is root.blocks[𝑏 −1].sumenq minus the number of non-null dequeues                  most 𝑐 direct subblocks.                                           □
+in that prefix of 𝐿. Hence, line 89 sets 𝑒 to the rank of 𝐷 among all
+the non-null dequeues in 𝐿. Thus, in the sequential execution 𝐿, 𝐷                    We now bound step complexity in terms of the number of pro-
+returns the value enqueued by the 𝑒th enqueue in 𝐿. By Invariant 7,                cesses 𝑝, the maximum contention 𝑐 ≤ 𝑝, and the size of the queue.
+this enqueue is the 𝑖𝑒 th enqueue in 𝐸 (root.blocks[𝑏𝑒 ]), where 𝑏𝑒 and
+                                                                                   Theorem 22. Each Enqueue and null Dequeue takes 𝑂 (log 𝑝) steps
+𝑖𝑒 are the values 𝐷 computes on line 91 and 93. By Lemma 14, the call
+                                                                                   and each non-null Dequeue takes 𝑂 (log 𝑝 log 𝑐 +log 𝑞𝑒 +log 𝑞𝑑 ) steps,
+to GetEnqueue returns the argument of the required enqueue. □
+                                                                                   where 𝑞𝑑 is the size of the queue when the Dequeue is linearized and
+    Combining Lemma 15 and Lemma 17 provides our main result.                      𝑞𝑒 is the size of the queue when the Enqueue of the value returned is
+                                                                                   linearized.
+Theorem 18. The queue implementation is linearizable.
+                                                                                      Proof. An Enqueue or null Dequeue creates a block, appends it
+5    ANALYSIS                                                                      to the process’s leaf and propagates it to the root. The Propagate
+We now analyze the number of steps and the number of CAS in-                       does 𝑂 (1) steps at each node on the path from the process’s leaf to
+structions performed by operations.                                                the root. A null Dequeue additionally calls IndexDequeue, which
+                                                                                   also does 𝑂 (1) steps at each node on this path. So, the total number
+Proposition 19. Each Enqueue or Dequeue operation performs
+                                                                                   of steps for either type of operation is 𝑂 (log 𝑝).
+𝑂 (log 𝑝) CAS instructions.
+                                                                                      A non-null Dequeue must also search at line 91 and call GetEn-
+   Proof. An operation invokes Refresh at most twice at each of                    queue at line 94. By Lemma 20, the doubling search takes 𝑂 (log(𝑞𝑒 +
+the ⌈log2 𝑝⌉ levels of the tree. A Refresh does at most 5 CAS steps:               𝑞𝑑 + 𝑝)) steps, since the size of the queue can change by at most
+one in line 35 and two during each Advance in line 29 or 36.      □                𝑝 within one block (by Lemma 21). GetEnqueue does a binary
+                                                                                   search within each node on a path from the root to a leaf. Each
+Lemma 20. The search that FindResponse(𝑏, 𝑖) does at line 91 to                    node v’s search is within the subblocks of one block in v’s parent.
+find the index 𝑏𝑒 of the block in the root containing the 𝑒th enqueue              By Lemma 21, each such search takes 𝑂 (log 𝑐) steps, for a total of
+takes 𝑂 (log(root.blocks[𝑏𝑒 ].size + root.blocks[𝑏 − 1].size)) steps.              𝑂 (log 𝑝 log 𝑐) steps.                                             □
+    Proof. Let the blocks in the root be 𝐵 1, . . . , 𝐵 ℓ . The doubling           Corollary 23. The queue implementation is wait-free.
+search for 𝑏𝑒 takes 𝑂 (log(𝑏 − 𝑏𝑒 )) steps, so we prove 𝑏 − 𝑏𝑒 ≤ 2 ·
+𝐵𝑏𝑒 .size+𝐵𝑏−1 .size+1. If 𝑏 ≤ 𝑏𝑒 +1, then this is trivial, so assume 𝑏 >          6   BOUNDING SPACE USAGE
+𝑏𝑒 + 1. As shown in Lemma 17, the dequeue that calls FindResponse
+is in 𝐵𝑏 and is supposed to return an enqueue in 𝐵𝑏𝑒 . Thus, there can             Operations remain in the blocks arrays forever. This uses space
+be at most 𝐵𝑏𝑒 .size dequeues in 𝐷 (𝐵𝑏𝑒 +1 ) · · · 𝐷 (𝐵𝑏−1 ); otherwise            proportional to the number of enqueues that have been invoked.
+in the sequential execution 𝐿, all elements enqueued before the                    Now, we modify the implementation to remove blocks that are
+end of 𝐸 (𝐵𝑏𝑒 ) would be dequeued before 𝐷 (𝐵𝑏 ). Furthermore, by                  no longer needed, so that space usage is polynomial in 𝑝 and 𝑞,
+Lemma 16, the size of the queue after the prefix of 𝐿 corresponding                while (amortized) step complexity is still polylogarithmic. For lack
+to 𝐵 1, . . . , 𝐵𝑏−1 is 𝐵𝑏−1 .size ≥ 𝐵𝑏𝑒 .𝑠𝑖𝑧𝑒 + |𝐸 (𝐵𝑏𝑒 +1 ) · · · 𝐸 (𝐵𝑏−1 )| −   of space, details are in Appendix B. We replace the blocks array in
+|𝐷 (𝐵𝑏𝑒 +1 ) · · · 𝐷 (𝐵𝑏−1 )|. Thus, |𝐸 (𝐵𝑏𝑒 +1 ) · · · 𝐸 (𝐵𝑏−1 )| ≤ 𝐵𝑏−1 .size+   each node by a red-black tree (RBT) that stores the blocks. Each
+|𝐷 (𝐵𝑏𝑒 +1 ) · · · 𝐷 (𝐵𝑏−1 )| ≤ 𝐵𝑏−1 .size + 𝐵𝑏𝑒 .size. So, the total number       block has an additional index field that represents its position within
+of operations in 𝐵𝑏𝑒 +1, . . . , 𝐵𝑏−1 is at most 𝐵𝑏−1 .size + 2 · 𝐵𝑏𝑒 .size.       the original blocks array, and blocks in a RBT are sorted by index.
+Each of these 𝑏 − 1 − 𝑏𝑒 blocks contains at least one operation, by                The attempt to install a new block in blocks[𝑖] on line 35 is replaced
+Corollary 8. So, 𝑏 − 1 − 𝑏𝑒 ≤ 𝐵𝑏−1 .size + 2 · 𝐵𝑏𝑒 .size.                      □   by an attempt to insert a new block with index 𝑖 into the RBT.
+                                                                                   Accessing the block in blocks[𝑖] is replaced by searching the RBT
+    The following lemma helps bound the time for GetEnqueue.                       for the index 𝑖. The binary searches for a block in line 91 and 114
+                                                                                                                Hossein Naderibeni and Eric Ruppert
+
+
+can simply search the RBT using the sumenq field, since the RBT is        𝑂 (𝐺 log(𝑝 +𝑞)) steps. Since there are at least 𝐺 operations between
+also sorted with respect to this field, by Invariant 7.                   two GC phases, each node contributes 𝑂 (log(𝑝 + 𝑞)) steps to each
+    Known lock-free search trees have step complexity that includes       operation in an amortized sense. Adding up over all nodes an opera-
+a term linear in 𝑝 [9, 22]. However, we do not require all the standard   tion may have to do GC on, an operation spends 𝑂 (log 𝑝 log(𝑝 +𝑞))
+search tree operations. Instead of a standard insertion, we allow a       steps doing GC in an amortized sense. So the total amortized step
+Refresh’s insertion to fail if another concurrent Refresh succeeds in     complexity is 𝑂 (log 𝑝 log(𝑝 + 𝑞)) per operation.
+inserting a block, just as the CAS on line 35 can fail if a concurrent
+Refresh does a successful CAS. Moreover, the insertion should             7   FUTURE DIRECTIONS
+succeed only if the newly inserted block has a larger index than          Our focus was on optimizing step complexity for worst-case exe-
+any other block in the RBT. Thus, we can use a particularly simple        cutions. However, our queue has a higher cost than the MS-queue
+concurrent RBT implementation. A sequential RBT can be made               in the best case (when an operation runs by itself). Perhaps our
+persistent using the classic node-copying technique of Driscoll et        queue could be made adaptive by having an operation capture a
+al. [8]: all RBT nodes are immutable, and operations on the RBT           starting node in the ordering tree (as in [1]) rather than starting at
+make a new copy of each RBT node 𝑥 that must be modified, as              a statically assigned leaf. A possible application of our queue might
+well as each RBT node along the path from the RBT’s root to 𝑥.            be to use it as the slow path in the fast-path slow-path methodology
+The RBT reachable from the new copy of the root is the result of          [25] to get a queue that has good performance in practice while
+applying the RBT operation. This only adds a constant factor to           also having good worst-case step complexity.
+the running time of any routine designed for a (sequential) RBT.             A gap remains between our queue, which takes 𝑂 (log2 𝑝 + log 𝑞)
+Once a process has performed an update to the RBT representing            steps per operation, and Attiya and Fouren’s Ω(min(𝑐, log log 𝑝))
+the blocks of a node v in the ordering tree, it uses a CAS to swing       lower bound [2]. It would be interesting to determine how the
+v’s pointer from the previous RBT root to the new RBT root. A             true step complexity of lock-free queues (or, more generally, bags)
+search in the RBT can simply read the pointer to the RBT root and         depends on 𝑝. Since a queue is also a bag, our queue is the first
+perform a standard sequential search on it. Bashari and Woelfel [3]       lock-free bag we know of that has polylogarithmic step complexity.
+used persistent RBTs in a similar way for a snapshot data structure.         We believe the approach used here to implement a lock-free
+    To prevent RBTs from growing without bound, we would like             queue could be applied to obtain other lock-free data structures
+to discard blocks that are no longer needed. Ensuring the size of         with a polylogarithmic step complexity. For example, we can easily
+the RBT is polynomial in 𝑝 and 𝑞 will also keep the running time          adapt our routines to implement a vector data structure that stores
+of our operations polylogarithmic. Blocks should be kept if they          a sequence and provides three operations: Append(e) to add an
+contain operations still in progress. Moreover, a block containing        element e to the end of the sequence, Get(i) to read the ith element
+an Enqueue(𝑥) must be kept until 𝑥 is dequeued.                           in the sequence, and Index(e) to compute the position of element e
+    To maintain good amortized time, we periodically do a garbage         in the sequence. We are investigating whether a similar approach
+collection (GC) phase. If a Refresh on a node adds a block whose          can be used for stacks, deques or even priority queues.
+index is a multiple of 𝐺 = 𝑝 2 ⌈log 𝑝⌉, it does GC to remove obsolete
+blocks from the node’s RBT. To determine which blocks can be              ACKNOWLEDGMENTS
+thrown away, we use a global array last [1..𝑝] where each process         We thank Franck van Breugel and the anonymous referees for their
+writes the index of the last block in the root containing a null          helpful comments. Funding was provided by the Natural Sciences
+dequeue or an enqueue whose element it dequeued. To perform               and Engineering Research Council of Canada.
+GC, a process reads last [1..𝑝] and finds the maximum entry 𝑚.
+Then, it helps complete every other process’s pending dequeue by
+computing the dequeue’s response and writing it in the block in the
+leaf that represents the dequeue. Once this helping is complete, it
+follows from the FIFO property of the queue that elements enqueued
+in root.blocks[1..𝑚 − 1] have all been dequeued, so GC can discard
+all subblocks of those. Fortunately, there is an RBT Split operation
+that can remove these obsolete blocks from an RBT in logarithmic
+time [41, Sec. 4.2].
+    An operation 𝑜𝑝’s search of a RBT may fail to find the required
+block 𝐵 that has been removed by another process’s GC phase. If
+𝑜𝑝 is a dequeue, 𝑜𝑝 must have been helped before 𝐵 was discarded,
+so 𝑜𝑝 can simply read its response from its own leaf. If 𝑜𝑝 is an
+enqueue, it can simply terminate.
+    Our GC scheme ensures each RBT has 𝑂 (𝑞 + 𝑝 2 log 𝑝) blocks, so
+RBT operations take 𝑂 (log(𝑝 +𝑞)) time. Excluding GC, an operation
+does 𝑂 (1) operations on RBTs at each level of the tree for a total of
+𝑂 (log 𝑝 log(𝑝 + 𝑞)) steps. A GC phase takes 𝑂 (𝑝 log 𝑝 log(𝑝 + 𝑞))
+steps to help complete all pending operations. If all processes carry
+out this GC phase, it takes a total of 𝑂 (𝑝 2 log 𝑝 log(𝑝 + 𝑞)) =
+A Wait-free Queue with Polylogarithmic Step Complexity
+
+
+REFERENCES                                                                                    [24] Alex Kogan and Erez Petrank. 2011. Wait-free queues with multiple enqueuers
+ [1] Yehuda Afek, Dalia Dauber, and Dan Touitou. 1995. Wait-free made fast. In Proc.               and dequeuers. In Proc. 16th ACM SIGPLAN Symposium on Principles and Practice
+     27th ACM Symposium on Theory of Computing. 538–547. https://doi.org/10.1145/                  of Parallel Programming. 223–234. https://doi.org/10.1145/1941553.1941585
+     225058.225271                                                                            [25] Alex Kogan and Erez Petrank. 2012. A Methodology for Creating Fast Wait-Free
+ [2] Hagit Attiya and Arie Fouren. 2017. Lower Bounds on the Amortized Time                        Data Structures. ACM SIGPLAN Not. 47, 8 (2012), 141–150. https://doi.org/10.
+     Complexity of Shared Objects. In 21st International Conference on Principles of               1145/2370036.2145835
+     Distributed Systems (LIPIcs), Vol. 95. 16:1–16:18. https://doi.org/10.4230/LIPIcs.       [26] Nikita Koval, Dan Alistarh, and Roman Elizarov. 2023. Fast and Scalable Channels
+     OPODIS.2017.16                                                                                in Kotlin Coroutines. In Proc. ACM Symposium on Principles and Practice of Parallel
+ [3] Benyamin Bashari and Philipp Woelfel. 2021. An Efficient Adaptive Partial                     Programming. 107–118. https://doi.org/10.1145/3572848.3577481
+     Snapshot Implementation. In Proc. ACM Symposium on Principles of Distributed             [27] Edya Ladan-Mozes and Nir Shavit. 2008. An optimistic approach to lock-free
+     Computing. 545–555. https://doi.org/10.1145/3465084.3467939                                   FIFO queues. Distributed Computing 20, 5 (2008), 323–341. https://doi.org/10.
+ [4] Naama Ben-David, Guy E. Blelloch, Panagiota Fatourou, Eric Ruppert, Yihan Sun,                1007/s00446-007-0050-0
+     and Yuanhao Wei. 2021. Space and Time Bounded Multiversion Garbage Col-                  [28] Henry Massalin and Carlton Pu. 1991. A Lock-Free Multiprocessor OS Kernel.
+     lection. In Proc. 35th International Symposium on Distributed Computing (LIPIcs),             Technical Report CUCS-005-91. Department of Computer Science, Columbia
+     Vol. 209. 12:1–12:20. https://doi.org/10.4230/LIPIcs.DISC.2021.12                             University.
+ [5] Jon Louis Bentley and Andrew Chi-Chih Yao. 1976. An almost optimal algorithm             [29] Maged M. Michael and Michael L. Scott. 1998. Nonblocking Algorithms and
+     for unbounded searching. I nform. Process. Lett. 5, 3 (1976), 82–87. https://doi.             Preemption-Safe Locking on Multiprogrammed Shared Memory Multiprocessors.
+     org/10.1016/0020-0190(76)90071-5                                                              J. Parallel and Distrib. Comput. 51, 1 (1998), 1–26. https://doi.org/10.1006/jpdc.
+ [6] Robert Colvin and Lindsay Groves. 2005. Formal Verification of an Array-Based                 1998.1446
+     Nonblocking Queue. In 10th International Conference on Engineering of Complex            [30] Gal Milman-Sela, Alex Kogan, Yossi Lev, Victor Luchangco, and Erez Petrank.
+     Computer Systems. IEEE, 507–516. https://doi.org/10.1109/ICECCS.2005.49                       2022. BQ: A Lock-Free Queue with Batching. ACM Trans. Parallel Comput. 9, 1,
+ [7] Matei David. 2004. A Single-Enqueuer Wait-Free Queue Implementation. In                       Article 5 (March 2022), 49 pages. https://doi.org/10.1145/3512757
+     Proc. 18th International Conference on Distributed Computing (LNCS), Vol. 3274.          [31] Mark Moir, Daniel Nussbaum, Ori Shalev, and Nir Shavit. 2005. Using elimination
+     Springer, 132–143. https://doi.org/10.1007/978-3-540-30186-8_10                               to implement scalable and lock-free FIFO queues. In Proc. 17th ACM Symposium
+ [8] James R. Driscoll, Neil Sarnak, Daniel D. Sleator, and Robert E. Tarjan. 1989.                on Parallelism in Algorithms and Architectures. 253–262. https://doi.org/10.1145/
+     Making Data Structures Persistent. J. Comput. System Sci. 38, 1 (Feb. 1989),                  1073970.1074013
+     86–124. https://doi.org/10.1016/0022-0000(89)90034-2                                     [32] Adam Morrison and Yehuda Afek. 2013. Fast concurrent queues for x86 pro-
+ [9] Faith Ellen, Panagiota Fatourou, Joanna Helga, and Eric Ruppert. 2014. The                    cessors. In Proc. ACM SIGPLAN Symposium on Principles and Practice of Parallel
+     Amortized Complexity of Non-blocking Binary Search Trees. In Proc. 33rd ACM                   Programming. 103–112. https://doi.org/10.1145/2442516.2442527
+     Symposium on Principles of Distributed Computing. 332–340. https://doi.org/10.           [33] Hossein Naderibeni. 2022. A Wait-free Queue with Poly-logarithmic Worst-case
+     1007/978-3-642-25873-2_15                                                                     Step Complexity. Master’s thesis. York University, Toronto, Canada.
+[10] Faith Ellen, Vijaya Ramachandran, and Philipp Woelfel. 2012. Efficient Fetch-and-        [34] Ruslan Nikolaev. 2019. A Scalable, Portable, and Memory-Efficient Lock-Free
+     Increment. In Proc. International Symposium on Distributed Computing (LNCS),                  FIFO Queue. In Proc. 33rd International Symposium on Distributed Computing
+     Vol. 7611. Springer, 16–30. https://doi.org/10.1007/978-3-642-33651-5_2                       (LIPIcs), Vol. 146. 28:1–28:16. https://doi.org/10.4230/LIPIcs.DISC.2019.28
+[11] Faith Ellen and Philipp Woelfel. 2013. An Optimal Implementation of Fetch-               [35] Ruslan Nikolaev and Binoy Ravindran. 2022. wCQ: A Fast Wait-Free Queue
+     and-Increment. In Proc. 27th International Symposium on Distributed Computing                 with Bounded Memory Usage. In Proc. 34th ACM Symposium on Parallelism in
+     (LNCS), Vol. 8205. Springer, 284–298. https://doi.org/10.1007/978-3-642-41527-                Algorithms and Architectures. 307–319. https://doi.org/10.1145/3490148.3538572
+     2_20                                                                                     [36] Pedro Ramalhete and Andreia Correia. 2017. Poster: A Wait-Free Queue with
+[12] Panagiota Fatourou and Nikolaos D. Kallimanis. 2014. Highly-Efficient Wait-Free               Wait-Free Memory Reclamation. ACM SIGPLAN Not. 52, 8 (Jan. 2017), 453–454.
+     Synchronization. Theory of Computing Systems 55, 3 (2014), 475–520. https:                    https://doi.org/10.1145/3155284.3019022
+     //doi.org/10.1007/s00224-013-9491-y                                                      [37] Raed Romanov and Nikita Koval. 2023. The state-of-the-art LCRQ concurrent
+[13] Mikhail Fomitchev and Eric Ruppert. 2004. Lock-free linked lists and skip lists.              queue algorithm does NOT require CAS2. In Proc. ACM Symposium on Principles
+     In Proc. 23rd ACM Symposium on Principles of Distributed Computing. 50–59.                    and Practice of Parallel Programming. 14–26. https://doi.org/10.1145/3572848.
+     https://doi.org/10.1145/1011767.1011776                                                       3577485
+[14] Anders Gidenstam, Håkan Sundell, and Philippas Tsigas. 2010. Cache-Aware Lock-           [38] Eric Ruppert. 2016. Analysing the average time complexity of lock-free data struc-
+     Free Queues for Multiple Producers/Consumers and Weak Memory Consistency.                     tures. Presented at BIRS Workshop on Complexity and Analysis of Distributed
+     In Proc. 14th International Conference on Principles of Distributed Systems (LNCS),           Algorithms. (2016). Available from http://www.birs.ca/videos/2016.
+     Vol. 6490. Springer, 302–317. https://doi.org/10.1007/978-3-642-17653-1_23               [39] Niloufar Shafiei. 2009. Non-blocking Array-Based Algorithms for Stacks and
+[15] Maurice Herlihy. 1991. Wait-Free Synchronization. ACM Trans. Program. Lang.                   Queues. In Proc. 10th International Conference on Distributed Computing and
+     Syst. 13, 1 (1991), 124–149. https://doi.org/10.1145/114005.102808                            Networking (LNCS), Vol. 5408. Springer, 55–66. https://doi.org/10.1007/978-3-540-
+[16] Maurice P. Herlihy and Jeannette M. Wing. 1990. Linearizability: A Correctness                92295-7_10
+     Condition for Concurrent Objects. ACM Trans. Program. Lang. Syst. 12, 3 (1990),          [40] Niloufar Shafiei. 2015. Non-blocking doubly-linked lists with good amortized
+     463–492. https://doi.org/10.1145/78969.78972                                                  complexity. In Proc. 19th International Conference on Principles of Distributed
+[17] Moshe Hoffman, Ori Shalev, and Nir Shavit. 2007. The Baskets Queue. In Proc.                  Systems (LIPIcs), Vol. 46. 35:1–35:17. https://doi.org/10.4230/LIPIcs.OPODIS.2015.
+     11th International Conference on Principles of Distributed Systems (LNCS), Vol. 4878.         35
+     Springer, 401–414. https://doi.org/10.1007/978-3-540-77096-1_29                          [41] Robert Endre Tarjan. 1983. Data Structures and Network Algorithms. SIAM,
+[18] Prasad Jayanti. 1998. A Time Complexity Lower Bound for Randomized Imple-                     Philadelphia, USA.
+     mentations of Some Shared Objects. In Proc. 17th ACM Symposium on Principles             [42] R.K. Treiber. 1986. Systems programming: Coping with parallelism. Technical
+     of Distributed Computing. 201–210. https://doi.org/10.1145/277697.277735                      Report RJ 5118. IBM Almaden Research Center.
+[19] Prasad Jayanti and Srdjan Petrovic. 2005. Logarithmic-Time Single Deleter,               [43] Philippas Tsigas and Yi Zhang. 2001. A simple, fast and scalable non-blocking
+     Multiple Inserter Wait-Free Queues and Stacks. In Foundations of Software Tech-               concurrent FIFO queue for shared memory multiprocessor systems. In Proc.
+     nology and Theoretical Computer Science (LNCS), Vol. 3821. Springer, 408–419.                 13th ACM Symposium on Parallel Algorithms and Architectures. 134–143. https:
+     https://doi.org/10.1007/11590156_33                                                           //doi.org/10.1145/378580.378611
+[20] Colette Johnen, Adnane Khattabi, and Alessia Milani. 2023. Efficient Wait-Free           [44] Chaoran Yang and John M. Mellor-Crummey. 2016. A wait-free queue as fast as
+     Queue Algorithms with Multiple Enqueuers and Multiple Dequeuers. In Proc.                     fetch-and-add. In Proc. 21st ACM SIGPLAN Symposium on Principles and Practice
+     26th International Conference on Principles of Distributed Systems (LIPIcs), Vol. 253.        of Parallel Programming. 16:1–16:13. https://doi.org/10.1145/2851141.2851168
+     4:1–4:19. https://doi.org/10.4230/LIPIcs.OPODIS.2022.4
+[21] Pankaj Khanchandani and Roger Wattenhofer. 2018. On the Importance of
+     Synchronization Primitives with Low Consensus Numbers. In Proc. 19th In-
+     ternational Conference on Distributed Computing and Networking. 18:1–18:10.
+     https://doi.org/10.1145/3154273.3154306
+[22] Jeremy Ko. 2020. The amortized analysis of a non-blocking chromatic tree.
+     Theoretical Computer Science 840 (Nov. 2020), 59–121. https://doi.org/10.1016/j.
+     tcs.2020.07.007
+[23] Alex Kogan and Maurice Herlihy. 2014. The future(s) of shared data structures.
+     In Proc. ACM Symposium on Principles of Distributed Computing. 30–39. https:
+     //doi.org/10.1145/2611462.2611496
+                                                                                                                        Hossein Naderibeni and Eric Ruppert
+
+
+A    DETAILED PROOFS FOR SECTION 4                                            Observation 1, v.parent.head is non-decreasing, so the value this
+Detailed proofs omitted from Section 4 for lack of space appear               Advance reads in v.parent.head and writes in 𝐵.super is greater
+here.                                                                         than or equal to the value 𝑠 − 1 that 𝑟 ′ reads in v.parent.head. □
+
+Invariant 7. If 𝐵 is a block stored in v.blocks[𝑖], then                      Lemma 13. If v.blocks[𝑏] has been propagated to the root and
+                                                                              1 ≤ 𝑖 ≤ |𝐷 (v.blocks[𝑏])|, then IndexDequeue(v, 𝑏, 𝑖) returns ⟨𝑏 ′, 𝑖 ′ ⟩
+      𝐵.sumenq      =    |𝐸 (v.blocks[0]) · · · 𝐸 (v.blocks[𝑖])| and
+                                                                              such that the ith dequeue in 𝐷 (v.blocks[b]) is the (𝑖 ′ )th dequeue of
+      𝐵.sumdeq      =    |𝐷 (v.blocks[0]) · · · 𝐷 (v.blocks[𝑖])|.             𝐷 (root.blocks[𝑏 ′ ]).
+   Proof. Initially, each blocks array contains only an empty block
+                                                                                 Proof. We prove the claim by induction on the depth of node v.
+𝐵 0 in location 0. By definition, 𝐸 (𝐵 0 ) and 𝐷 (𝐵 0 ) are empty se-
+                                                                              The base case where v is the root is trivial (see Line 69). Assuming
+quences. Moreover, 𝐵 0 .sumenq = 𝐵 0 .sumdeq = 0, so the claim is
+                                                                              the claim holds for v’s parent, we prove it for v. Let 𝐵 = v.blocks[𝑏]
+true.
+                                                                              and 𝐵 ′ be the superblock of 𝐵. IndexDequeue(v, 𝑏, 𝑖) first computes
+   We show that each installation of a block 𝐵 into some location
+                                                                              the index 𝑠𝑢𝑝 of 𝐵 ′ in v.parent. By Lemma 12, this index is either
+v.blocks[𝑖] preserves the claim, assuming the claim holds before
+                                                                              𝐵.𝑠𝑢𝑝𝑒𝑟 or 𝐵.𝑠𝑢𝑝𝑒𝑟 + 1. The correct index is determined by testing
+this installation. We consider two cases.
+                                                                              on line 73 whether 𝐵 is a subblock of v.parent.blocks[𝐵.super] + 1.
+   If v is a leaf, 𝐵 was created at line 2 or 6. For line 2, 𝐵 represents
+                                                                                 Next, the position of the required dequeue in 𝐷 (𝐵 ′ ) is computed
+a single enqueue, so |𝐸 (𝐵)| = 1 and |𝐷 (𝐵)| = 0. Since 𝐵.sumenq is
+                                                                              in lines 76–79. We first add the number of dequeues in the subblocks
+set to v.blocks[𝑖 − 1].sumenq + 1 and 𝐵.sumdeq is set to v.blocks[𝑖 −
+                                                                              of 𝐵 ′ in v that precede 𝐵 on line 76. If v is the right child of its parent,
+1].sumdeq , the claim follows from the hypothesis. The proof for
+                                                                              then all of the subblocks of 𝐵 ′ from v’s left sibling also precede
+line 6, where 𝐵 has a single dequeue, is similar.
+                                                                              the required dequeue, so we add the number of dequeues in those
+   Now suppose v is an internal node. By the definition of sub-
+                                                                              subblocks in line 78.
+blocks in (3.3) and Lemma 4, the subblocks of v.blocks[1..𝑖] are
+                                                                                 Finally, IndexDequeue is called recursively on v’s parent. Since
+v.left.blocks[1..𝐵.endleft ] and v.right.blocks[1..𝐵.endright ]. Thus, the
+                                                                              𝐵 has been propagated to the root, so has its superblock 𝐵 ′ . Thus,
+enqueues in 𝐸 (v.blocks[0]) · · · 𝐸 (v.blocks[𝑖]) are those in
+                                                                              all preconditions of the recursive call are met. By the induction
+𝐸 (v.left.blocks[0]) · · · 𝐸 (v.left.blocks[𝐵.endleft ]) and those in
+                                                                              hypothesis, the recursive call returns the location of the required
+𝐸 (v.left.blocks[0]) · · · 𝐸 (v.left.blocks[𝐵.endright ]). By the hypothe-
+                                                                              dequeue in the root.                                                       □
+sis,     the      total     number        of    these       enqueues     is
+v.left.blocks[𝐵.endleft ].sumenq + v.right.blocks[𝐵.endright ].sumenq ,       Lemma 14. If 1 ≤ 𝑖 ≤ |𝐸 (v.blocks[𝑏])| then getEnqueue(v, 𝑏, 𝑖)
+which is the value that line 45 stored in 𝐵.sumenq when 𝐵 was                 returns the argument of the 𝑖th enqueue in 𝐸 (v.blocks[𝑏]).
+created. The proof for sumdeq (stored on line 46) is similar.            □
+                                                                                  Proof. We prove the claim by induction on the height of node
+Lemma 12. Let 𝐵 = v.blocks[𝑏]. If v.parent.blocks[𝑠] is the su-               v. If v is a leaf, the hypothesis implies that 𝑖 = 1 and the block
+perblock of 𝐵 then 𝑠 − 1 ≤ 𝐵.super ≤ 𝑠.                                       v.blocks[𝑏] represents an enqueue whose argument is stored in
+   Proof. We first show that 𝐵.super ≤ 𝑠. Let 𝑅𝑠 be the instance of           v.blocks[𝑏].element. GetEnqueue returns the argument of this en-
+Refresh(v.parent) that installs 𝐵’s superblock in v.parent.blocks[𝑠].         queue at line 99.
+By the definition of subblocks (3.3), 𝑅𝑠 ’s read 𝑟 of v.ℎ𝑒𝑎𝑑 at line              Assuming the claim holds for v’s children, we prove it for v.
+43 or 44 obtains a value greater than 𝑏. By Invariant 3, 𝐵.super              Let 𝐵 be v.blocks[𝑏]. By (3.1), 𝐸 (𝐵) is obtained by concatenating
+is not null when 𝑟 occurs, which means that 𝐵.super was set (by               the enqueue sequences of the direct subblocks of 𝐵, which are
+line 61) to a value read from v.parent.head before 𝑟 . When 𝑟 occurs,         listed in (3.3). By Invariant 7, sumleft − prevleft is the number of
+v.parent.blocks[𝑠] = null, since the later CAS by 𝑅𝑠 at line 35 suc-          enqueues in 𝐸 (𝐵) that come from 𝐵’s subblocks in v’s left child.
+ceeds. So, by Invariant 3, v.parent.head ≤ 𝑠 when 𝑟 occurs. Since             Thus, 𝑑𝑖𝑟 is set to the direction for the child of v that contains
+the value stored in 𝐵.super was read from v.parent.head before 𝑟              the required enqueue. Moreover, when line 112 is reached, 𝑖 is the
+and the head field is non-decreasing by Observation 1, it follows             position of the required enqueue within the portion 𝐸 ′ of 𝐸 (𝐵)
+that 𝐵.𝑠𝑢𝑝𝑒𝑟 ≤ 𝑠.                                                             that comes from that child. Thus, line 114 finds the index 𝑏 ′ of
+   Next, we show that 𝐵.super ≥ 𝑠 − 1. The value stored in 𝐵.super            the subblock 𝐵 ′ containing the required enqueue. By Invariant 7,
+at line 61 is read from v.parent.head at line 60 and head is always           v.dir.blocks[𝑏 ′ − 1].sumenq − prevdir is the number of enqueues in
+at least 1, so 𝐵.super ≥ 1. So, if 𝑠 ≤ 2, the claim is trivial. Assume        𝐸 ′ before the enqueues of block 𝐵 ′ , so the value 𝑖 ′ computed on
+𝑠 > 2 for the rest of the proof. By Lemma 4, v.parent.blocks[𝑠 − 1] is        line 115 is the position of the required enqueue within 𝐸 (𝐵 ′ ). Thus,
+not null. Let 𝑅𝑠−1 be the call to Refresh(v.parent) that installed the        the recursive call on line 116 satisfies its precondition, and returns
+block in v.parent.blocks[𝑠 − 1]. Let 𝑟 ′ be the step when 𝑅𝑠−1 reads          the required result, by the induction hypothesis.                    □
+𝑠 − 1 in v.parent.head at line 25. This read 𝑟 ′ must be before 𝐵 is          Lemma 16. If the operations of root.blocks[0..𝑏] are applied sequen-
+installed in v; otherwise, Lemma 9 would imply that 𝐵 is a subblock           tially in the order of 𝐿 on an initially empty queue, the resulting queue
+of one of v.parent.blocks[1..𝑠 − 1], contrary to the hypothesis. Now,         has root.blocks[𝑏].size elements.
+consider the call to Advance(v, 𝑏) that writes 𝐵.super. It is invoked
+either at line 29 after seeing v.blocks[𝑏] ≠ null at line 28 or at              Proof. We prove the claim by induction on 𝑏. The base case
+line 36 after ensuring v.blocks[𝑏] ≠ null at line 35. Either way, the         when 𝑏 = 0 is trivially true, since the queue is initially empty
+Advance is invoked after 𝐵 is installed, and therefore after 𝑟 ′ . By         and root.blocks[0] contains an empty block whose size field is 0.
+A Wait-free Queue with Polylogarithmic Step Complexity
+
+
+Assuming the claim holds for 𝑏 − 1, we prove it for 𝑏. The size              a separate routine called CompleteDeq so that it can also be used
+field of the block 𝐵 installed in root.blocks[𝑏] is computed at line         by other processes helping to complete the operation. The Refresh
+50 of a call to CreateBlock(root, b). By the induction hypothesis,           routine no longer needs to set the super field of blocks since that
+𝑟𝑜𝑜𝑡 .blocks[𝑏 − 1].size gives the size of the queue before the opera-       field has been removed. The IndexDequeue routine, which must
+tions of block 𝐵 are performed. By Invariant 7, the values of numenq         trace the location of a dequeue along a path from its leaf to the root
+and numdeq are the number of enqueues and dequeues contained                 has a minor modification to search the blocks RBT at each level
+in 𝐵. Hence, the size of the queue after the operations of 𝐵 are             instead of using the super field.
+performed (with enqueues before dequeues as specified by 𝐿) is                   The new routines, AddBlock, SplitBlock, Help and Propagated
+max(0, root.blocks[𝑏 − 1].size + numenq − numdeq ).                 □        are used to implement the garbage collection (GC) phase. When
+                                                                             a Refresh or Append wants to add a new block to a node’s blocks
+B    DETAILED DESCRIPTION OF THE                                             RBT, it calls the new AddBlock routine. Before attempting to add
+     BOUNDED-SPACE IMPLEMENTATION                                            the block to a node’s RBT, AddBlock triggers a GC phase on the
+                                                                             RBT if the new block’s index is a multiple of the constant 𝐺, which
+Here, we give more details of the bounded-space construction
+                                                                             we choose to be 𝑝 2 ⌈log 𝑝⌉. This ensures that obsolete blocks are
+sketched in Section 6. We first describe the modifications to the
+                                                                             removed from the RBT once every 𝐺 times a new block is added
+implementation. To avoid confusion, we use nodes to refer to the
+                                                                             to it. The GC phase uses SplitBlock to determine the index 𝑠 of the
+nodes of the ordering tree, and blocks to refer to the nodes of a RBT
+                                                                             oldest block to keep, calls Help to help all pending dequeues that
+(since the RBT stores blocks).
+                                                                             have been propagated to the root (to ensure that all blocks before 𝑠
+   The space-bounded implementation uses two additional shared
+                                                                             can safely be discarded), uses the standard RBT Split routine [41]
+arrays: the leaf array allows processes to access one another’s
+                                                                             to remove all blocks with index less than 𝑠, inserts the new block
+leaves to perform helping, and the last array is used to determine
+                                                                             and finally performs a CAS to swing the node’s blocks pointer to
+which blocks are safe to discard.
+                                                                             the new RBT.
+     • Node[] leaf [1..𝑝] ⊲ leaf [𝑘] is the leaf assigned to process 𝑘           To determine the oldest block in a node v to keep, the SplitBlock
+     • int[] last [1..𝑝] ⊲ last [𝑘] is the largest index of a block in the   routine first uses the last array to find the most recent block 𝐵𝑟𝑜𝑜𝑡
+        ⊲ root that process 𝑘 has observed to contain either an en-          in the root that contains either an enqueue that has been dequeued
+        ⊲ queue whose value has been dequeued or a null dequeue              or a null dequeue. By the FIFO property of queues, all enqueues in
+   The blocks field of each node in the ordering tree is implemented         blocks before 𝐵𝑟𝑜𝑜𝑡 are either dequeued or will be dequeued by a
+as a pointer to the root of a RBT of Blocks rather than an infinite          dequeue that is currently in progress. Once those pending dequeues
+array. Each RBT is initialized with an empty block with index 0.             have been helped to complete by line 227, it is safe to discard any
+Any access to an entry of the blocks array is replaced by a search           blocks in the root older than 𝐵𝑟𝑜𝑜𝑡 , as well as their subblocks.1 The
+in the RBT. The node’s head field, which previously gave the next            SplitBlock uses the endleft and endright fields to find the last block
+position to insert into the blocks array is no longer needed; we can         in v that is a subblock of 𝐵𝑟𝑜𝑜𝑡 (or any older block in the root, in
+instead simply find the maximum index of any block in the RBT.               case 𝐵𝑟𝑜𝑜𝑡 has no subblocks in v). As SplitBlock is in progress, it
+To facilitate this, MaxBlock is a query operation on the RBT that            is possible that some block that it needs in a node v ′ along the
+returns the block with the maximum index. We can store, in the               path from v to the root is discarded by another GC phase. In this
+root of the RBT, a pointer to the maximum block so that MaxBlock             case, SplitBlock uses the last subblock in v of the oldest block in
+can be done in constant time, without affecting the time of other            v ′ instead (since a GC phase on v ′ determined that all blocks older
+RBT operations. Similarly, a MinBlock query finds the block with             than that are safe to discard anyway).
+the minimum index in a RBT.                                                      The Help routine is fairly straightforward: it loops through all
+   Blocks no longer require the super field. It was used to quickly          leaves and helps the dequeue that is in progress there if it has
+find a block’s superblock in the parent node’s blocks array, but this        already been propagated to the root. The Propagated function is
+can now be done efficiently by searching the parent’s blocks RBT             used to determine whether the dequeue has propagated to the root.
+instead. Each Block has an additional field.                                     In the code, we use v.blocks[𝑖] to refer to the block in the RBT
+     • int index ⊲ position this block would have in the blocks array        stored in v.blocks with index 𝑖. A search for this block may some-
+                                                                             times not find it, if it has already been discarded by another process’s
+To facilitate helping, each Block in a leaf has one more additional
+                                                                             GC phase. As mentioned in Section 6, if this happens to an enqueue
+field that is used only for blocks that store a dequeue operation.
+                                                                             operation, the enqueue can simply terminate because the fact that
+     • Object response ⊲ response of the dequeue in the block                the block is gone means that another process has helped the en-
+   Pseudocode for the space-bounded implementation appears in                queue reach the root of the ordering tree. Similarly, if a dequeue
+Figures 5 and 6. New or modified code appears in blue. The Prop-             operation performs a failed search on a RBT, the dequeue can return
+agate and GetEnqueue routines are unchanged. A few lines have                the value written in the response field of the leaf block that rep-
+been added to FindResponse to update the last array to ensure                resents the dequeue and terminate, since some other process will
+that it stores the value described above. Minor modifications have           have written the response there before discarding the needed block.
+also been made to Enqueue, Dequeue, CreateBlock, Refresh and
+                                                                             1 If we used the more conservative approach of discarding blocks whose indices are
+Append to accommodate the switch from an array of blocks to a
+                                                                             smaller than the minimum entry of last instead of the maximum, helping would be
+RBT of blocks (and the corresponding disappearance of the head               unnecessary, but then one slow process could prevent GC from discarding any blocks,
+field). In addition, the second half of the Dequeue routine is now in        so the space would not be bounded.
+                                                                                                                                                     Hossein Naderibeni and Eric Ruppert
+
+
+201: void Enqueue(Object e)
+202:     h :=MaxBlock(leaf .blocks).index+1                                   268: boolean Propagated(Node v, int b) ⊲ check if v .blocks [𝑏 ] has propagated to root
+203:     let B be a new Block with element := e,                              269:    ⊲ Precondition: v .blocks [𝑏 ] exists
+             sumenq := leaf .blocks [ℎ − 1].sumenq + 1,                       270:    if v = root then return true
+             sumdeq := leaf .blocks [ℎ − 1].sumdeq ,                          271:    else
+                                                                              272:        𝑇 :=v .parent.blocks
+             index:=ℎ
+                                                                              273:        dir := (v.parent.left = v ? left : right)
+204:     Append(B)                                                            274:        if MaxBlock(𝑇 ).enddir < 𝑏 then return false
+205: end Enqueue                                                              275:        else
+206: Object Dequeue()                                                         276:            𝐵𝑝 :=min block in 𝑇 with enddir ≥ 𝑏
+207:    h :=MaxBlock(leaf .blocks).index+1                                    277:            return Propagated(v.parent, 𝐵𝑝 .index)
+208:    let B be a new Block with element := null,                            278:        end if
+            sumenq := leaf .blocks [ℎ − 1].sumenq ,                           279:    end if
+            sumdeq := leaf .blocks [ℎ − 1].sumdeq + 1,                        280: end Propagated
+            index:=ℎ                                                          281: ⟨int, int ⟩ IndexDequeue(Node v, int b, int i)
+209:    Append(B)                                                             282:     ⊲ return ⟨x, y ⟩ such that ith dequeue in 𝐷 ( v .blocks [ b ]) is yth dequeue of 𝐷 ( root .blocks [ x ])
+210:    return CompleteDeq(leaf , ℎ )                                         283:     ⊲ Precondition: v.blocks[b] exists and has propagated to root and |𝐷 ( v .blocks [ b ]) | ≥ i
+211: end Dequeue                                                              284:     if v = root then return ⟨b, i ⟩
+212: Object CompleteDeq(leaf , ℎ )                                            285:     else
+213:    ⊲ finish propagated dequeue in leaf .blocks [ℎ]                       286:          dir := (v.parent.left = v ? left : right)
+214:    ⟨b, i ⟩ := IndexDequeue( leaf , ℎ, 1)                                 287:         𝑇 :=v .parent.blocks
+215:    res:=FindResponse(𝑏, 𝑖)                                               288:         𝐵𝑝 :=min block in 𝑇 with enddir ≥ 𝑏
+216:    return res                                                            289:         𝐵𝑝′ :=max block in 𝑇 with enddir < 𝑏
+217: end CompleteDeq                                                          290:          ⊲ compute index i of dequeue in superblock 𝐵𝑝
+218: void Append(Block B) ⊲ append block to leaf and propagate to root        291:          i += v .blocks [ b − 1].sumdeq − v .blocks [𝐵𝑝′ .enddir ].sumdeq
+219:     leaf .blocks :=AddBlock(leaf , leaf .blocks, B)                      292:          if dir = right then
+220:     Propagate(leaf .parent)                                              293:               i += v .blocks [𝐵𝑝 .endleft ].sumdeq − v .blocks [𝐵𝑝′ .endleft ].sumdeq
+221: end Append                                                               294:          end if
+222: RBT AddBlock(Node v, RBT T , Block B)                                    295:          return IndexDequeue(v.parent, 𝐵𝑝 .index, i)
+223:    ⊲ add block B ≠ null to T ; do GC if necessary                        296:     end if
+224:    if B.index is a multiple of 𝐺 then                                    297: end IndexDequeue
+225:        ⊲ Do garbage collection                                           298: void Help ⊲ help pending operations
+226:        𝑠 :=SplitBlock( v ).index                                         299:     for ℓ in leaf [1..𝑘 ] do
+227:        Help                                                              300:         B:=MaxBlock(ℓ.blocks)
+228:        𝑇 ′ := Split(𝑇 , 𝑠)                                               301:         if B.element = null and B.index > 0 and Propagated(ℓ, B.index) then
+229:        ⊲ Split removes blocks with index < 𝑠                             302:             ⊲ operation is a propagated dequeue
+230:        return Insert(𝑇 ′, 𝐵 )                                            303:             B.response:= CompleteDeq(ℓ, B.index )
+231:    else return Insert(𝑇 , 𝐵 )                                            304:         end if
+232:    end if                                                                305:     end for
+233: end AddBlock                                                             306: end Help
+234: Block SplitBlock(Node v)                                                 307: Block CreateBlock(Node v, int i) ⊲ create new block to install in v.blocks[i]
+235:    ⊲ figure out where to split v’s RBT                                   308:    let new be a new Block
+236:    if v = root then                                                      309:    new.endleft := MaxBlock( v .left .blocks).index
+237:        𝑚 :=0                                                             310:    new.endright := MaxBlock( v .right .blocks).index
+238:         for 𝑘 :=1..𝑝 do 𝑚 := max(𝑚, v .last [𝑘 ])                        311:    new .index:=𝑖
+239:         end for                                                          312:    new.sumenq := v.left.blocks[new.endleft ].sumenq + v.right.blocks[new.endright ].sumenq
+240:         𝐵 :=root .blocks [𝑚 − 1]                                         313:    new.sumdeq := v.left.blocks[new.endleft ].sumdeq + v.right.blocks[new.endright ].sumdeq
+241:    else                                                                  314:    numenq := new .sumenq − v .blocks [ i − 1].sumenq
+242:         𝐵𝑝 :=SplitBlock( v .parent )                                     315:    numdeq := new .sumdeq − v .blocks [ i − 1].sumdeq
+243:         dir :=(v = v .parent.left ? left : right)                        316:    if v = root then
+244:         𝐵 :=v .blocks [𝐵𝑝 .enddir ]                                      317:        new.size := max(0, v .blocks [ i − 1].size + numenq − numdeq )
+245:    end if                                                                318:    end if
+246:    ⊲ If 𝐵 was discarded, use leftmost block instead                      319:    if numenq + numdeq = 0 then
+247:    return (𝐵 = null ? MinBlock( v .blocks) : 𝐵 )                         320:        return null                                              ⊲ no blocks to be propagate to v
+248: end SplitBlock                                                           321:    else
+249: void Propagate(Node v)                                                   322:        return new
+250:     ⊲ propagate blocks from v’s children to root                         323:    end if
+251:     if not Refresh(v) then                           ⊲ double refresh    324: end CreateBlock
+252:         Refresh(v)                                               325: element FindResponse(int b, int i) ⊲ find response to ith dequeue in 𝐷 ( root .blocks [ b ])
+253:     end if                                                       326:    ⊲ Precondition: 1 ≤ 𝑖 ≤ |𝐷 ( root .blocks [ b ]) |
+254:     if v ≠ root then                                 ⊲ recurse up tree
+                                                                      327:    numenq := root .blocks [ b ].sumenq − root .blocks [ b − 1].sumenq
+255:         Propagate(v.parent)
+                                                                      328:    if root .blocks [ b − 1].size + numenq < i then ⊲ queue is empty when dequeue occurs
+256:     end if
+                                                                      329:        if 𝑏 > last [ id ] then last [ id ] :=𝑏
+257: end Propagate
+                                                                      330:        end if
+258: boolean Refresh(Node v) ⊲ try to append a new block to v .blocks 331:        return null
+259:    𝑇 :=v .blocks                                                 332:    else ⊲ response is the eth enqueue in the root
+260:    h:=MaxBlock(𝑇 ).index + 1                                     333:        e := i + root.blocks[b-1].sumenq - root.blocks[b-1].size
+261:    new := CreateBlock(v, h)                                      334:        find min 𝑏𝑒 ≤ b with root .blocks [𝑏𝑒 ].sumenq ≥ e ⊲ use binary search
+262:    if new = null then return true                                335:        𝑖𝑒 := e − root .blocks [𝑏𝑒 − 1].sumenq ⊲ find rank of enqueue within its block
+263:    else                                                          336:        res :=GetEnqueue(root, 𝑏𝑒 , 𝑖𝑒 )
+264:        𝑇 ′ :=AddBlock(𝑣,𝑇 , new )                                337:        if 𝑏𝑒 > last [ id ] then last [ id ] :=𝑏𝑒
+265:        return CAS(v.blocks, 𝑇 , 𝑇 ′ )                            338:        end if
+266:    end if                                                        339:        return res
+267: end Refresh                                                      340:    end if
+                                                                      341: end FindResponse
+                    Figure 5: Bounded-space queue implementation. 𝐺 is a constant, which we choose to be 𝑝 2 ⌈log 𝑝⌉.
+A Wait-free Queue with Polylogarithmic Step Complexity
+
+
+342: element GetEnqueue(Node v, int b, int i)                                                                                        ⊲ returns argument of ith enqueue in 𝐸 ( v .blocks [ b ])
+343:    ⊲ Preconditions: i ≥ 1 and v.blocks[b] exists and contains at least i enqueues
+344:    if v is a leaf node then return v.blocks[b].element
+345:    else
+346:        sumleft := v.left.blocks[v.blocks[b].endleft ].sumenq                                                                    ⊲ # of enqueues in v.blocks[1..b] from left child
+347:        prevleft := v.left.blocks[v.blocks[b − 1].endleft ].sumenq                                                               ⊲ # of enqueues in v.blocks[1..b − 1] from left child
+348:        prevright := v.right.blocks[v.blocks[b − 1].endright ].sumenq                                                            ⊲ # of enqueues in v.blocks[1..b − 1] from right child
+349:        if i ≤ sumleft − prevleft then                                                                                           ⊲ required enqueue is in v.left
+350:             dir := left
+351:        else                                                                                                                     ⊲ required enqueue is in v.right
+352:             dir := right
+353:             i := i − ( sumleft − prevleft )
+354:        end if
+355:        ⊲ Use binary search to find enqueue’s block in v.dir.blocks and its rank within block
+356:        find minimum b′ in range [v.blocks[b-1].enddir +1..v.blocks[b].enddir ] s.t. v .dir.blocks [ b′ ].sumenq ≥ i + prevdir
+357:        i′ := i − ( v .dir.blocks [ b′ − 1].sumenq − prevdir )
+358:        return GetEnqueue(v.dir, b′ , i′ )
+359:    end if
+360: end GetEnqueue
+
+
+                                                 Figure 6: Bounded-space queue implementation, continued.
+
+
+We do not explicitly write this early termination in the pseudocode                                Corollary 25. The RBT stored in each node v is never empty and
+every time we do a lookup in an RBT. There is one exception to                                     always stores a set of blocks with consecutive indices. Moreover, its
+this rule: if an RBT lookup for block 𝐵 returns null on line 240 or                                maximum index can only increase over time.
+244 of SplitBlock because the required block has been discarded,
+                                                                                                      Since RBTs are always non-empty, calls to MaxBlock have well-
+we continue doing GC, since we do not want a GC phase on one
+                                                                                                   defined answers. Throughout the proof, we use v.𝑏𝑙𝑜𝑐𝑘𝑠 [𝑏] to refer
+node to be prevented from cleaning up its RBT because a GC phase
+                                                                                                   to the block with index 𝑏 that appeared in v’s tree at some time dur-
+on a different node threw away some blocks that were needed. Line
+                                                                                                   ing the execution. It follows from Lemma 24 and Corollary 25 that
+247 says what to do in this case.
+                                                                                                   each time a new block appears in v’s RBT, its index is greater than
+                                                                                                   any block that has appeared in v’s RBT earlier. Thus, v.𝑏𝑙𝑜𝑐𝑘𝑠 [𝑏] is
+B.1      Correctness                                                                               unique, if it exists. We also use this notation in the code to indicate
+There are enough changes to the algorithm that a new proof of                                      that a search of the RBT should be performed for the block with
+correctness is required. Its structure mirrors the proof of the original                           index 𝑏.
+algorithm, but requires additional reasoning to ensure GC does not                                    We now establish that Definition (3.3) of a block’s subblocks still
+interfere with other routines.                                                                     makes sense by proving the analogue of Lemma 4.
+B.1.1 Basic Properties. The following observation describes how                                    Lemma 4 ′ . If ℎ > 0 and a block with index ℎ has been inserted
+the set of blocks in a node’s RBT can be modified.                                                 into v.blocks then v.blocks[ℎ − 1].endleft ≤ v.blocks[ℎ].endleft and
+                                                                                                   v.blocks[ℎ − 1].endright ≤ v.blocks[ℎ].endright .
+Lemma 24. Suppose a step of the algorithm changes v.blocks from a
+non-empty tree 𝑇 to 𝑇 ′ . If the set of index values in 𝑇 is 𝐼 , then the set                           Proof. The block 𝐵 with index ℎ was installed into v’s RBT by
+of index values in 𝑇 ′ is (𝐼 ∩ [𝑚 − 1, ∞)) ∪ {max(𝐼 ) + 1} for some 𝑚.                             the CAS at line 265. Suppose that CAS changed the tree from 𝑇 to
+                                                                                                   𝑇 ′ . Before this CAS, line 259 read the tree 𝑇 from v.𝑏𝑙𝑜𝑐𝑘𝑠, line 260
+                                                                                                   found a block 𝐵 ′ with index ℎ − 1 in 𝑇 , and then line 261 created
+    Proof. The RBT of a node is updated only at line 219 or 265.
+                                                                                                   the block 𝐵 with index = ℎ. Since 𝐵 ′ was already in 𝑇 before 𝐵 was
+    If line 219 of an Append operation modifies v.blocks, then v is
+                                                                                                   created, the CreateBlock(v, 𝑏 − 1) that created 𝐵 ′ terminated before
+a leaf node, and no other process ever modifies v.blocks. 𝑇 ′ was
+                                                                                                   the CreateBlock(v, 𝑏) that created 𝐵 started. By Corollary 25, the
+obtained from 𝑇 by calling AddBlock(𝑇 , 𝐵). 𝐵 was created either by
+                                                                                                   value that line 309 of CreateBlock(v, 𝑏 − 1) stores in 𝐵 ′ .endleft is
+the Enqueue or Dequeue that called Append. Either way, 𝐵.index =
+                                                                                                   less than or equal to the value that line 309 of CreateBlock(v, 𝑏)
+max(𝐼 ) + 1. The AddBlock that creates 𝑇 ′ may optionally Split the
+                                                                                                   stores in 𝐵.endleft . Similarly, the values stored in 𝐵 ′ .endright and
+RBT and then add 𝐵 to it. So the claim is satisfied.
+                                                                                                   𝐵.endright at line 310 satisfy the claim.                             □
+    If line 265 of a Refresh modifies v.blocks, then v is an internal
+node. After reading 𝑇 from v.blocks at line 259, the Refresh then                                      Lemma 4 ′ implies that the nodes of an in-order traversal of any
+creates the block new, and then calls AddBlock(𝑇 , 𝑛𝑒𝑤) to create 𝑇 ′ .                            RBT have non-decreasing values of endleft (and of endright ). Thus,
+Line 311 sets new.index = max(𝐼 ) + 1. The AddBlock that creates 𝑇 ′                               the searches for a block based on endleft or endright values at lines
+may optionally Split the RBT and then add 𝑛𝑒𝑤 to it. So the claim                                  276, 288 and 289, which are used to look for the superblock of a
+is satisfied.                                                      □                               node or its predecessor, can be done in logarithmic time.
+                                                                                                       Lemma 5, Corollary 6, Invariant 7, Corollary 8 hold for the mod-
+  Since each RBT starts with a single block with index 0, the fol-                                 ified algorithm. Their proofs are identical to those given in Section
+lowing is an easy consequence of Lemma 24.                                                         4.1 since they depend only on Lemma 4 (which can be replaced
+                                                                                                   by Lemma 4 ′ ) and the definition of subblocks given in (3.3). In
+                                                                                                                   Hossein Naderibeni and Eric Ruppert
+
+
+particular, Invariant 7 says that nodes in an in-order traversal of           We say a block is finished if
+a RBT have non-decreasing values of sumenq so the searches of a                • it has been propagated to the root,
+RBT based on sumenq values in lines 334 and 356 can be done in                 • the value of each enqueue contained in the block has either
+logarithmic time.                                                                 been returned by a dequeue or written in the response field
+B.1.2 Propagating Operations to the Root. Next, we prove an ana-                  of a dequeue, and
+logue of Lemma 9. We say a node v contains an operation if some                • each dequeue contained in the block has terminated or some
+block containing the operation has previously appeared in v’s RBT                 process has written to the response field in the leaf block that
+(even if the block has been removed from the RBT by a subsequent                  represents it.
+Split).                                                                    Intuitively, once a block is finished, operations no longer need
+                                                                           the block to compute responses to operations. The following is an
+Lemma 9 ′ . Let 𝑅 be a call to Refresh(v) that performs a successful
+                                                                           immediate consequence of the definition of finished and what it
+CAS on line 265 (or terminates at line 262). In the configuration after
+                                                                           means for an operation to be contained in a block.
+that CAS (or termination, respectively), v contains all operations that
+v’s children contained when 𝑅 executed line 259.                           Observation 26. A block is finished if and only all of its subblocks
+                                                                           are finished.
+   Proof. Suppose v’s child (without loss of generality, v.left) con-
+tained an operation 𝑜𝑝 when 𝑅 executed line 259. Let 𝑖 be the index        Invariant 27. If the minimum index of any block in v’s RBT is 𝑏𝑚𝑖𝑛 ,
+of the block containing 𝑜𝑝 that was in v’s RBT before 𝑅 executed           then each block with index at most 𝑏𝑚𝑖𝑛 that was ever added to v is
+line 259. We consider two cases.                                           finished.
+   Suppose 𝑅’s call to CreateBlock returns a new block 𝐵 ′ that
+                                                                               Proof. The invariant is true initially, since the minimum index
+is installed in v.blocks by 𝑅’s CAS at line 265. The CreateBlock
+                                                                           block in v’s RBT is the empty block, which is (vacuously) finished.
+set 𝐵 ′ .endleft to the maximum index in v.left’s RBT at line 309. By
+                                                                               We show that every step preserves the invariant. We need only
+Corollary 25, this maximum index is bigger than 𝑖. By the definition
+                                                                           consider a step 𝑠𝑡 that modifies a node’s RBT. The minimum index
+of subblocks, some block in v contains 𝐵 as a subblock and therefore
+                                                                           of v’s RBT can only change when v’s RBT changes, either at line
+v contains 𝑜𝑝.
+                                                                           219 (if v is a leaf) or at line 265 (if v is an internal node). In either
+   Now suppose 𝑅’s call to CreateBlock returns null, causing 𝑅 to
+                                                                           case, the step 𝑠𝑡 changes v.blocks from 𝑇 to 𝑇 ′ , where 𝑇 ′ is obtained
+terminate at line 262. Let ℎ be the maximum index in 𝑇 plus 1. By
+                                                                           by a call 𝐴 to AddBlock(v, 𝑇 , 𝐵). (In the case of a leaf v, this is true
+reasoning identical to the last paragraph of Lemma 9’s proof, it
+                                                                           because only the process that owns the leaf ever writes to v.blocks.)
+follows from the fact that numenq + numdeq = 0 at line 319 that
+                                                                           If 𝐴 does not do GC (lines 225–230), then 𝑇 ′ is obtained by adding a
+the blocks v.left.blocks[v.blocks[ℎ − 1].endleft + 1..𝑛𝑒𝑤 .endleft ] and
+                                                                           new block to 𝑇 , so by Lemma 24 the minimum index is unchanged
+v.right.blocks[v.blocks[ℎ − 1].endright + 1..𝑛𝑒𝑤 .endright ] contain no
+                                                                           and the invariant is trivially preserved. So consider the case where
+operations. By Corollary 8, each block contains at least one opera-
+                                                                           𝐴 performs GC. We must show that any block of v whose index is
+tion, so these ranges must be empty, and v.blocks[ℎ − 1].endleft ≥
+                                                                           less than or equal to the minimum index in 𝑇 ′ is finished when 𝑇 ′
+new.endleft ≥ 𝑖. This implies that the block 𝐵 containing 𝑜𝑝 is a sub-
+                                                                           is installed in v.blocks. Since 𝑇 ′ is obtained by discarding all blocks
+block of some block that has appeared in v’s RBT, so 𝑜𝑝 is contained
+                                                                           with index at most 𝑠 (and adding a block with a larger index), it
+in v.                                                                  □
+                                                                           suffices to show that all blocks that were ever added to v’s RBT
+   This allows us to show that a double Refresh propagates opera-          with index at most 𝑠 are finished.
+tions up the tree, as in Lemma 10.                                             We must examine how 𝐴’s call to the recursive algorithm Split-
+                                                                           Block computes the value of 𝑠.
+Lemma 10 ′ . Consider two consecutive terminating calls 𝑅1 , 𝑅2 to
+Refresh(v) by the same process. All operations contained v’s children      Claim 27.1. If one of the recursive calls to SplitBlock(𝑥) within
+when 𝑅1 begins are contained in v when 𝑅2 terminates.                      𝐴’s call to SplitBlock, then that block and all earlier blocks in 𝑥 are
+                                                                           finished when 𝑠𝑡 occurs.
+   Proof. If either 𝑅1 or 𝑅2 performs a successful CAS at line 265 or
+terminates at line 262, the claim follows from Lemma 9 ′ . So suppose         Proof of Claim. We prove this claim by induction on the depth
+both 𝑅1 and 𝑅2 perform a failed CAS at line 265. Then some other           of 𝑥.
+CAS on v.blocks succeeds between the time each Refresh reads                  For the base case, suppose 𝑥 is the root. SplitBlock finds the
+v.blocks at line 259 and performs its CAS at line 265. Consider the        maximum value 𝑚 in last, which is the index of some block that
+Refresh 𝑅3 that does this successful CAS during 𝑅2 . 𝑅3 must have          contains an operation that is either a null dequeue or an enqueue
+read v.blocks after the successful CAS during 𝑅1 . The claim follows       whose value is the response for a dequeue that has been propagated
+from Lemma 9 ′ applied to 𝑅3 .                                     □       to the root (since these are the only ways that an entry of last can
+                                                                           be set to 𝑚). By the FIFO property of queues, the values enqueued
+  Lemma 11 can then be proved in the same way as in Section 4.2.
+                                                                           by enqueues in root.blocks[1..𝑚 − 1] are all dequeued by operations
+B.1.3 GC Keeps Needed Blocks. The correctness of GetEnqueue                that have already been installed in root.blocks before the end of the
+and IndexDequeue, which are very similar to the original imple-            SplitBlock. Between the termination of 𝐴’s call to SplitBlock at line
+mentation, are dependent only on the fact that GC does not discard         226 and the CAS step 𝑠𝑡 after 𝐴 terminates, 𝐴 helps all pending
+blocks needed by those routines. The following results are used to         dequeues at line 227. Thus, after this helping (and before step 𝑠𝑡),
+show this.                                                                 root.blocks[1..𝑚 − 1] are all finished blocks, so the claim is true.
+A Wait-free Queue with Polylogarithmic Step Complexity
+
+
+   For the induction step, we assume the claim holds for 𝑥’s parent,          Similarly, the results of Section 4.4 can be reproved in exactly
+and prove it for 𝑥. We consider two cases.                                 the same way as for the original algorithm to establish that the
+   If SplitBlock(𝑥) returns the minimum block of 𝑥’s RBT at line           space-bounded algorithm is linearizable.
+247, then the claim follows from the assumption that Invariant 27
+holds at all times before 𝑠𝑡.                                              B.2    Analysis
+   Otherwise, SplitBlock(𝑥) returns the block 𝐵 at line 247. By the        We first bound the size of RBTs. Let 𝑞𝑚𝑎𝑥 be the maximum size of
+induction hypothesis, the block 𝐵𝑝 computed at line 242 (and all           the queue at any time during the sequential execution given by the
+earlier blocks of 𝑥) are finished when 𝑠𝑡 occurs. By Observation 26,       linearization 𝐿. Recall that GC is done on a node every 𝐺 times its
+the block 𝐵 in 𝑥 indexed by 𝐵𝑝 .endleft or 𝐵𝑝 .endright is also finished   RBT is updated, and we chose 𝐺 to be 𝑝 2 ⌈log 𝑝⌉. Part of the proof
+when 𝑠𝑡 occurs. This completes the proof of Claim 27.1.                ♦   of the following lemma is similar to the proof of Lemma 20.
+   If the Split at line 228 of 𝐴 modifies the RBT, then it discards all    Lemma 29. If the maximum index in a node’s RBT is a multiple of
+the blocks older than the one returned by SplitBlock at line 226.          𝐺, then it contains at most 2𝑞𝑚𝑎𝑥 + 4𝑝 + 1 blocks.
+By Claim 27.1, the minimum block in the new tree will satisfy the
+invariant when 𝑠𝑡 installs the new tree in v.blocks.                 □         Proof. Consider the invocation 𝐴 of AddBlock that updates a
+                                                                           node v’s RBT with the insertion of a block whose index is a multiple
+   We remark that Invariant 27 guarantees that GC keeps one block          of 𝐺. Then, 𝐴 performs a GC phase. Let 𝐶 be the configuration before
+that is finished and discards all blocks with smaller indices. This        𝐴 invokes SplitBlock on line 226. That call to SplitBlock recurses up
+is because the first unfinished block may still be traversed by an         to the root, where it computes 𝑚 by reading the last array. Let 𝐿1 be
+operation in the future, and when examining that block the opera-          the prefix of the linearization 𝐿 corresponding to blocks 1..𝑚 of the
+tion may need information from the preceding block. For example,           root. Let 𝐿2 be the next segment of the linearization corresponding
+when FindResponse is called on a block with index 𝑏, line 327 looks        to blocks 𝑚 + 1..ℓ of the root, where ℓ is the last block added to the
+up the block with index 𝑏 − 1.                                             root’s RBT before 𝐶.
+                                                                               We first bound the number of operations in 𝐿2 .
+Lemma 28. If a Dequeue operation fails to find a block in an RBT,
+                                                                               The number of enqueues in 𝐿2 whose values are still in the queue
+then it has been propagated to the root and its result has been written
+                                                                           at the end of 𝐿2 is at most 𝑞𝑚𝑎𝑥 . Any enqueue in 𝐿2 whose value
+in its response field. If an Enqueue operation fails to find a block in
+                                                                           is not still in the queue at the end of 𝐿2 must still be in progress
+an RBT, it has been propagated to the root.
+                                                                           at 𝐶; otherwise the process that dequeued it would have set its last
+                                                                           entry to a value greater than the index of the block of the root that
+   Proof. Any block that GC removes from an RBT is finished,
+                                                                           contains the enqueue prior to 𝐶, contradicting the definition of 𝑚.
+by Invariant 27, so if an Enqueue or Dequeue fails to find a block
+                                                                           So, there are at most 𝑝 enqueues in 𝐿2 whose values are still in the
+while it is propagating itself up to the root (for example, during the
+                                                                           queue at the end of 𝐿2 . Thus, there are at most 𝑞𝑚𝑎𝑥 + 𝑝 enqueues
+CreateBlock routine), then a block containing the operation itself
+                                                                           in 𝐿2 .
+has been removed from a RBT, so the operation has propagated to
+                                                                               If a dequeue in 𝐿2 returns a non-null value in the sequential
+the root, by the definition of finished. Moreover, by Invariant 27, if
+                                                                           execution 𝐿, then the value it returns was either in the queue at
+the operation is a dequeue, then its result is in its response field.
+                                                                           the end of 𝐿1 or it was enqueued during 𝐿2 . Thus, there are at most
+   After propagation to the root, a Dequeue must access blocks that
+                                                                           𝑞𝑚𝑎𝑥 + (𝑞𝑚𝑎𝑥 + 𝑝) dequeues in 𝐿2 that return non-null values. Any
+contain the dequeue, as well as the enqueue whose value it will
+                                                                           dequeue in 𝐿2 that returns a null value in the sequential execution 𝐿
+return (if it is not a null dequeue). If any of those blocks have been
+                                                                           must still be in progress at 𝐶; otherwise the process that performed
+removed, it follows from Invariant 27 that the Dequeue’s result is
+                                                                           the dequeue would have set its last entry to a value greater than
+written in its response field.                                        □
+                                                                           the index of the block of the root that contains the dequeue prior
+   By Lemma 28, an operation that fails to find a block in an RBT can      to 𝐶, contradicting the definition of 𝑚. So, there are at most 𝑝 null
+terminate. If it is a Dequeue, it can return the result written in its     dequeues in 𝐿2 . Thus, there are at most 2𝑞𝑚𝑎𝑥 + 2𝑝 dequeues in 𝐿2 .
+response field. Since no other process updates the RBT in a process’s          𝐴’s call to SplitBlock determines the index 𝑠 used to split v’s
+leaf, the block containing the response will be the last block in the      RBT by following endleft and endright pointers from the root down
+leaf’s RBT, and the last block of an RBT is never removed by GC.           to v. So, the block returned is a subblock of block 𝑚 of the root,
+Thus, the response field will still be there when a Dequeue needs it.      unless at some point along the path of subblocks the subblock has
+                                                                           already been removed by a split, in which case SplitBlock returns a
+B.1.4 Linearizability. The correctness of the IndexDequeue and             subblock of a block 𝑚 ′ > 𝑚 in the root.
+GetEnqueue operations can be proved in the same way as in Section              Next, we bound the number of operations in v’s blocks that are
+4.3, since they are largely unchanged (except for the simplification       retained when 𝐴 sets 𝑇 ′ :=Split(𝑇 , 𝑠). Since 𝑇 was read before 𝐶, any
+that IndexDequeue can simply search for a block’s superblock in-           operation in 𝑇 is either in progress at 𝐶 or has been propagated to
+stead of using the block’s super field to calculate the superblock’s       the root before 𝐶. Thus, there are at most 𝑝 operations in 𝑇 that
+position). They will give the correct response, provided none of           do not appear in 𝐿1 · 𝐿2 . All the rest of the operations in blocks of
+the blocks they need to access have been removed by GC. But as             𝑇 ′ have been propagated to blocks 𝑚..ℓ of the root. There are at
+we have seen above, if that happens, the Enqueue or Dequeue can            most 𝑝 operations in block 𝑚 of the root and we showed above that
+simply terminate.                                                          there are at most 2𝑞𝑚𝑎𝑥 + 2𝑝 in blocks 𝑚 + 1..ℓ of the root. Thus,
+                                                                                                                  Hossein Naderibeni and Eric Ruppert
+
+
+there are at most 2𝑞𝑚𝑎𝑥 + 4𝑝 operations in blocks of 𝑇 ′ . Since each      process 𝑃 ever calls AddBlock on v again, the block it passes as the
+block is non-empty by Corollary 8, 𝑇 ′ contains at most 2𝑞𝑚𝑎𝑥 + 4𝑝         third argument will have index > 𝑟 · 𝐺, so 𝑃 will not perform an
+blocks, and one more block is inserted before 𝐴 sets v’s blocks to         𝑟 th helping phase on v again.
+the resulting RBT.                                                  □          Each helping phase takes 𝑂 (𝑝) steps to read the last array, and
+                                                                           𝑂 (𝑝 log 𝑝 log(𝑝 +𝑞𝑚𝑎𝑥 )) steps in Help, and 𝑂 (log(𝑝 +𝑞𝑚𝑎𝑥 )) steps
+Corollary 30. At all times, the size of a node’s RBT is 𝑂 (𝑞𝑚𝑎𝑥 + 𝑝 +      to split and insert a new node into a RBT. Thus, for each integer
+𝐺).                                                                        𝑟 and each node v, a total of 𝑂 (𝑝 2 log 𝑝 log(𝑝 + 𝑞𝑚𝑎𝑥 )) steps are
+    Proof. Each update to a node’s RBT adds at most one block to           performed by all processes during their 𝑟 th helping phase on v.
+it, increasing its maximum index by 1. Thus, there are at most 𝐺           We can amortize these steps over the operations that appear in
+updates since the last time its maximum index was a multiple of 𝐺.         v.blocks[(𝑟 − 1)𝐺 + 1..𝑟𝐺]. By Corollary 8, there are at least 𝐺
+The claim follows from Lemma 29.                                □          such operations, so each operation’s amortized number of steps
+                                                                           for GC at each node along the path from its leaf to the root is
+   The following theorem bounds the space that is reachable (and           𝑂 (𝑝 2 log 𝑝 log(𝑝 +𝑞𝑚𝑎𝑥 )/𝐺) = 𝑂 (log(𝑝 +𝑞𝑚𝑎𝑥 )). Hence each oper-
+therefore cannot be freed by the environment’s garbage collector)          ation’s amortized number of GC steps is 𝑂 (log 𝑝 log(𝑝 +𝑞𝑚𝑎𝑥 )). □
+at any time.
+                                                                               The implementation remains wait-free: the depth of recursion
+Theorem 31. The queue data structure uses a maximum of 𝑂 (𝑝𝑞𝑚𝑎𝑥 +          in each routine is bounded by the height of the tree and the only
+𝑝 3 log 𝑝) words of memory at any time.                                    loop is the counted loop in the Help routine. Since each operation
+                                                                           still does only two CAS instructions at each level of the tree (at line
+   Proof. There are 2𝑝 − 1 nodes in the ordering tree. Aside from          265), the following proposition still holds for the space-bounded
+the RBT, each node uses 𝑂 (1) memory words. Each process may               version of the queue.
+hold pointers to 𝑂 (1) RBTs that are no longer current in local
+variables. So the space bound follows from Corollary 30 and the            Proposition 19 ′ . Each operation performs 𝑂 (log 𝑝) CAS instruc-
+fact that 𝐺 is chosen to be 𝑝 2 ⌈log 𝑝⌉.                        □          tions in the worst case.
+
+    Although individual operations may now become more expen-
+sive because they have to perform GC, we show that operations
+still have polylogarithmic amortized step complexity.
+Theorem 32. The amortized step complexity of each operation is
+𝑂 (log 𝑝 log(𝑝 + 𝑞𝑚𝑎𝑥 )).
+
+    Proof. It follows from Corollary 30 and our choice of 𝐺 =
+𝑝 2 ⌈log 𝑝⌉ that all the RBT routines we use to perform Split, In-
+sert and searches for blocks with a particular index or for a sumenq
+value (in line 334 or 356) can be done in 𝑂 (log(𝑝 + 𝑞𝑚𝑎𝑥 )) steps.
+    First, we bound the number of steps taken excluding the GC
+phase in line 225–230. An Enqueue or null Dequeue does 𝑂 (1)
+RBT operations and other work at each level of the tree during
+Propagate, for a total of 𝑂 (log 𝑝 log(𝑝 + 𝑞𝑚𝑎𝑥 )) steps. A non-null
+Dequeue must also search for a block in the root at line 334 and call
+GetEnqueue. At each level of the tree, GetEnqueue does 𝑂 (1) RBT
+operations (including a search at line 356) and 𝑂 (1) other steps.
+Thus, a Dequeue also takes 𝑂 (log 𝑝 log(𝑝 + 𝑞𝑚𝑎𝑥 )) steps.
+    Now we consider the additional steps a process takes while doing
+GC in line 225–230 and show that the amortized number of GC
+steps each operation performs is also 𝑂 (log 𝑝 log(𝑝 + 𝑞𝑚𝑎𝑥 )). If a
+process does GC in a call to AddBlock(v,𝑇 , 𝐵) where 𝐵 has index
+𝑟 · 𝐺 for some integer 𝑟 , we call this the process’s 𝑟 th helping phase
+on v.
+    We argue that each process 𝑃 can do an 𝑟 th helping phase on
+v at most once. Consider 𝑃’s first call 𝐴 to AddBlock that does
+an 𝑟 th helping phase on v. Let v,𝑇 , 𝐵 be the arguments of 𝐴. Any
+call to AddBlock on internal node v is from line 264 of Refresh, so
+𝐵.index is the maximum index in 𝑇 plus 1. The Refresh that called
+𝐴 performed a CAS at line 265. Either the CAS succeeds or it fails
+because some other CAS changes v.blocks from 𝑇 to another tree.
+Either way, by Lemma 24, v’s RBT’s maximum index will be at
+least 𝑟 · 𝐺 at all times after this CAS. So if a subsequent Refresh by
+

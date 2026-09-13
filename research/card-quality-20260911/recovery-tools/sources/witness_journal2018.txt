@@ -1,0 +1,1101 @@
+                                            Randomised enumeration of small witnesses using a
+                                                           decision oracle
+                                                                                  Kitty Meeks∗
+                                                               School of Computing Science, University of Glasgow
+                                                                           kitty.meeks@glasgow.ac.uk
+
+                                                                                 January 2018
+arXiv:1509.05572v4 [cs.DS] 4 Jan 2018
+
+
+
+
+                                                                                     Abstract
+                                                    Many combinatorial problems involve determining whether a universe of n ele-
+                                                ments contains a witness consisting of k elements which have some specified prop-
+                                                erty. In this paper we investigate the relationship between the decision and enu-
+                                                meration versions of such problems: efficient methods are known for transforming
+                                                a decision algorithm into a search procedure that finds a single witness, but even
+                                                finding a second witness is not so straightforward in general. We show that, if the
+                                                decision version of the problem can be solved in time f (k) · poly(n), there is a ran-
+                                                domised algorithm which enumerates all witnesses in time ek+o(k) ·f (k)·poly(n)·N ,
+                                                where N is the total number of witnesses. If the decision version of the problem
+                                                is solved by a randomised algorithm which may return false negatives, then the
+                                                same method allows us to output a list of witnesses in which any given witness will
+                                                be included with high probability. The enumeration algorithm also gives rise to
+                                                an efficient algorithm to count the total number of witnesses when this number is
+                                                small.
+
+
+                                        1       Introduction
+                                        Many well-known combinatorial decision problems involve determining whether a uni-
+                                        verse U of n elements contains a witness W consisting of exactly k elements which have
+                                        some speciﬁed property; we refer to such problems as k-witness problems. Although the
+                                        decision problems themselves are of interest, it is often not suﬃcient for applications to
+                                        output simply “yes” or “no”: we need to find one or more witnesses. The issue of ﬁnding
+                                        a single witness using an oracle for the decision problem has previously been investigated
+                                        by Björklund, Kaski, and Kowalik [6], motivated by the fact that the fastest known pa-
+                                        rameterised algorithms for a number of widely studied problems (such as graph motif [5]
+                                        and k-path [4]) are non-constructive in nature. Moreover, for some problems (such as
+                                        k-Clique or Independent Set [3] and k-Even Subgraph [17]) the only known FPT
+                                            The author is supported by a Royal Society of Edinburgh Personal Research Fellowship, funded by
+                                            ∗
+
+                                        the Scottish Government.
+
+                                                                                          1
+decision algorithm relies on a Ramsey theoretic argument which says the answer must be
+“yes” provided that the input graph avoids certain easily recognisable structures.
+   Following the ﬁrst approach used in [6], we begin by assuming the existence of a de-
+terministic inclusion oracle (a black-box decision procedure), as follows.
+
+INC-ORA(X, U, k)
+  Input: X ⊆ U and k ∈ N
+  Output: 1 if some witness of size k in U is entirely contained in X; 0 otherwise.
+
+Such an inclusion oracle can easily be obtained from an algorithm for the basic decision
+problem in the case of self-contained k-witness problems, where we only have to examine
+the elements of a k-element subset (and the relationships between them) to determine
+whether they form a witness: we simply call the decision procedure on the substruc-
+ture induced by X. Examples of k-witness problems that are self-contained in this sense
+include those of determining whether a graph contains a k-vertex subgraph with some
+property, such as the well-studied problems k-Path, k-Cycle and k-Clique; algorithms
+to count the number of witnesses in problems of this form have been designed for ap-
+plications ranging from the analysis of biological networks [23] to the design of network
+security tools [16, 25, 26].
+    Given access to an oracle of this kind, a naı̈ve approach easily ﬁnds a single witness
+using Θ(n) calls to INC-ORA: we successively delete elements of the universe, following
+each deletion with an oracle call, and if the oracle answers “no” we reinsert the last
+deleted element and continue. Assuming we start with a yes-instance, this process will
+terminate when only k elements remain, and these k elements must form a witness. In [6],
+ideas from combinatorial group testing are used to make a substantial improvement on
+this strategy for the extraction of a single witness: rather than deleting a single element
+at a time, large subsets are discarded (if possible) at each stage. This gives an algorithm
+                                               n
+                                                 
+that extracts a witness with only 2k log2 k + 2 oracle queries.
+    However, neither of these approaches for ﬁnding a single witness can immediately be
+extended to ﬁnd all witnesses, a problem which is of interest even if an eﬃcient decision
+algorithm does output a single witness. Both approaches for ﬁnding a ﬁrst witness rely
+on the fact that we can safely delete some subset of elements from our universe provided
+we know that what is left still contains at least one witness; if we need to look for a
+second witness, the knowledge that at least one witness will remain is no longer suﬃcient
+to guarantee we can delete a given subset. Of course, for any k-witness problem we can
+check all possible subsets of size k, and hence enumerate all witnesses, in time O(nk );
+indeed, if every set of k vertices is in fact a witness then we will require this amount of
+time simply to list them all. However, we can seek to do much better than this when the
+number of witnesses is small by making use of a decision oracle.
+    The enumeration problem becomes straightforward if we have an extension oracle,1
+deﬁned as follows.
+
+EXT-ORA(X,Y ,U,k)
+  Input: X ⊆ U, Y ⊆ X, and k ∈ N
+   1
+     Such an oracle is sometimes called an interval oracle, as in the enumeration procedure described by
+Björklund, Kaski, Kowalik and Lauri [7] which builds on earlier work by Lawler [21].
+
+
+                                                   2
+   Output: 1 if there exists a witness W with Y ⊆ W ⊆ X; 0 otherwise.
+
+The existence of an eﬃcient procedure EXT-ORA(X,Y ,U,k) for a given self-contained
+k-witness problem allows us to use standard backtracking techniques to devise an eﬃcient
+enumeration algorithm. We explore a binary search tree of depth O(n), branching at level
+i of the tree on whether the ith element of U belongs to the solution. Each node in the
+search tree then corresponds to a speciﬁc pair (X, Y ) with Y ⊆ X ⊆ U; we can call EXT-
+ORA(X,Y ,U,k) to determine whether any descendant of a given node corresponds to a
+witness. Pruning the search tree in this way ensures that no more than O(n · N) oracle
+calls are required, where N is the total number of witnesses.
+    Note that, with only the inclusion oracle, we can determine whether there is a witness
+that does not contain some element x (we simply call INC-ORA(U \ {x}, U, k)), but
+we cannot determine whether there is a witness which does contain x. Moreover, as we
+will show in Section 3, there are natural (self-contained) k-witness problems for which the
+inclusion problem can be solved eﬃciently but there is no fpt-algorithm for the extension
+decision problem unless FPT=W[1]. This motivates the development of enumeration
+algorithms that do not rely on such an oracle.
+    The main result of this paper is just such an algorithm; speciﬁcally, we prove the
+following theorem.
+Theorem 1.1. There is a randomised algorithm to enumerate all witnesses of size k
+in a k-witness problem exactly once, whose expected number of calls to a deterministic
+inclusion oracle is at most ek+o(k) log2 n · N, where N is the total number of witnesses. If
+an oracle call can be executed in time g(k) · nO(1) for some computable function g, then
+the expected total running time of the algorithm is
+                                  ek+o(k) · g(k) · nO(1) · N.
+Moreover, the total space required by the algorithm is at most ek+o(k) · nO(1) .
+    The key tool we use to obtain this algorithm is a colour coding method, using a family
+of k-perfect hash functions. This technique was introduced by Alon, Yuster and Zwick
+in [1] and has been widely used in the design of parameterised algorithms for decision
+and approximate counting (see for example [15, Chapters 13 and 14] and [12, Chapter
+8]), but to the best of the author’s knowledge has not yet been applied to enumeration
+problems.
+    The main limitation of Theorem 1.1 is that it requires access to a deterministic inclu-
+sion oracle INC-ORA which always returns the correct answer. However, in a number of
+cases (including k-Path [4] and Graph Motif [5]) the fastest known decision algorithm
+for a self-contained k-witness problem (and hence for the corresponding inclusion prob-
+lem) is in fact randomised and has a small probability of returning an incorrect answer.
+We will also show that the same algorithm can be used in this case, at the expense of a
+small increase in the expected running time (if the oracle can return false positives) and
+the loss of the guarantee that we will output every witness exactly once: for each witness
+in the instance, there is a small probability that we will omit it from the list due to the
+oracle returning false negatives. Speciﬁcally, we prove the following theorem.
+Theorem 1.2. Given a randomised inclusion oracle for the k-witness problem Π, whose
+probability of returning an incorrect answer is at most c < 21 , there is a randomised
+
+                                              3
+algorithm which takes as input an instance of Π and a constant ǫ > 0, and outputs a
+list of witnesses of size k in the instance such that no witness appears more than once
+and, for any witness W , the probability that W is included in the list is at least 1 − ǫ.
+In expectation, the algorithm makes at most ek+o(k) · log(ǫ−1 ) · log3 n (log log n) · N oracle
+calls, where N is the total number of witnesses in the instance, and if an oracle call can
+be executed in time g(k) · nO(1) for some computable function g, then the expected running
+time of the algorithm is
+
+                              ek+o(k) · log(ǫ−1 · g(k) · nO(1) · N.
+
+Moreover, the total space required by the algorithm is ek+o(k) · nO(1) .
+    This result initiates the study of approximate algorithms for enumeration problems:
+in contrast with the well-established ﬁeld of approximate counting, this relaxation of the
+requirements for enumeration does not seem to have been addressed in the literature to
+date.
+    In the study of counting complexity it is standard practice, when faced with a #P-
+hard problem, to investigate whether there is an eﬃcient method to solve the counting
+problem approximately. The answer to this question is considered to be “yes” if and only
+if the problem admits a fully polynomial randomised approximation scheme (FPRAS),
+deﬁned as follows.
+Definition. An FPRAS for a counting problem Π is a randomised approximation scheme
+that takes an instance I of Π (with |I| = n), and real numbers ǫ > 0 and 0 < δ < 1, and
+in time poly(n, 1/ǫ, log(1/δ)) outputs a rational number z such that
+
+                         P[(1 − ǫ)Π(I) ≤ z ≤ (1 + ǫ)Π(I)] ≥ 1 − δ.
+
+In the parameterised setting, the analogue of this is a fixed parameter tractable randomised
+approximation scheme (FPTRAS), in which the running time is additionally allowed to
+depend arbitrarily on the parameter.
+    Perhaps the most obvious way to translate this notion in to the setting of enumeration
+would be to look for an algorithm which, with probability at least (1 − δ), would output
+at least (1 − ǫ)-proportion of all witnesses. In the setting of counting, all witnesses are
+essentially interchangeable, so it makes sense to consider only the total number of objects
+counted in relation to the true answer. However, this deﬁnition perhaps allows too much
+freedom in the setting of enumeration: we could design an algorithm which satisﬁes these
+requirements and yet will never output some collection of hard-to-ﬁnd witnesses, so long
+as this collection is not too large compared with the total number of witnesses.
+    Instead, we propose here a more demanding notion of approximate enumeration: given
+ǫ > 0, we want a (randomised) algorithm such that, for any witness W , the probability
+we output W is at least 1 − ǫ. This implies that we will, with high probability (depending
+on ǫ) output a large proportion of all possible witnesses, but also ensures that we cannot
+choose to ignore certain potential witnesses altogether. It may also be desirable to permit
+a witness to be repeated in the output with small probability: we can allow this ﬂexibility
+by requiring only that, for each witness W , the probability that W is included in the
+output exactly once is at least 1 − ǫ. We give a formal deﬁnition of eﬃcient approximate
+enumeration in Section 2.
+
+                                               4
+    Theorem 1.1 is proved in Section 4, and Theorem 1.2 in Section 5. We then discuss
+some implications of our enumeration algorithms for the complexity of related counting
+problems in Section 6. We begin in Section 2 with some background on relevant com-
+plexity theoretic notions, before discussing the hardness of the extension version of some
+self-contained k-witness problems in Section 3.
+
+
+2     Parameterised enumeration
+There are two natural measures of the size of a self-contained k-witness problem, namely
+the number of elements n in the universe and the number of elements k in each witness, so
+the running time of algorithms is most naturally discussed in the setting of parameterised
+complexity. There are two main complexity issues to consider in the present setting: ﬁrst
+of all, as usual, the running time, and secondly the number of oracle calls required.
+    For general background on the theory of parameterised complexity, we refer the reader
+to [12, 15]. The theory of parameterised enumeration has been developed relatively
+recently [13, 9, 8], and we refer the reader to [9] for the formal deﬁnitions of the diﬀerent
+classes of parameterised enumeration algorithms. To the best of the author’s knowledge,
+this is the ﬁrst occurrence of a randomised parameterised enumeration algorithm in the
+literature, and so we introduce randomised analogues of the four types of parameterised
+enumeration algorithms introduced in [9] (for a problem with total input size n and
+parameter k, and with f : N → N assumed to be a computable function throughout):
+
+    • an expected-total-fpt algorithm enumerates all solutions and terminates in expected
+      time f (k) · nO(1) ;
+
+    • an expected-delay-fpt algorithm enumerates all solutions with expected delay at
+      most f (k) · nO(1) between the times at which one solution and the next are output
+      (and the same bound applies to the time before outputting the ﬁrst solution, and
+      between outputting the ﬁnal solution and terminating);
+
+    • an expected-incremental-fpt algorithm enumerates all solutions with expected delay
+      at most f (k) · (n + i)O(1) between outputting the ith and (i + 1)th solution;
+
+    • an expected-output-fpt algorithm enumerates all solutions and terminates in ex-
+      pected time f (k)·(n+N)O(1) , where N is the total number of solutions enumerated.
+
+    Under these deﬁnitions, Theorem 1.1 says that, if there is an FPT decision algorithm
+for the inclusion version of a k-witness problem, then there is an expected-output-fpt
+algorithm for the corresponding enumeration problem.
+    In the setting of approximate enumeration, we deﬁne a fully output polynomial ran-
+domised enumeration scheme (FOPRES) to be an algorithm which, given an instance I
+of an enumeration problem (with total input size n) and a rational ǫ ∈ (0, 1), outputs, in
+time bounded by a polynomial function of n, N and ǫ−1 (where N is the total number
+of solutions to I), a list of solutions to I with the property that, for any solution W , the
+probability that W appears exactly once in the list is at least 1 − ǫ. In the parameterised
+setting, we analogously deﬁne a fully output fpt randomised enumeration scheme (FOF-
+PTRES) to be an algorithm which, given an instance I of a parameterised enumeration
+
+                                             5
+problem (with total input size n and parameter k) and a rational ǫ ∈ (0, 1), outputs, in
+time bounded by f (k) · p(n, N, ǫ−1 ), where p is a polynomial, f is any computable func-
+tion, and N is the total number of solutions to I, a list of solutions to I with the property
+that, for any solution W , the probability that W appears exactly once in the list is at
+least 1 − ǫ. An expected -FOPRES (respectively expected -FOFPTRES) is a randomised
+algorithm which satisﬁes the deﬁnition of a FOPRES (resp. FOFPTRES) if we replace
+the condition on the running time by the same condition on the expected running time.
+We can make analogous deﬁnitions for total-polynomial, total-fpt, delay-polynomial etc.
+    Under these deﬁnitions, Theorem 1.2 says that, if there is a randomised FPT decision
+algorithm for the inclusion version of a k-witness problem with error probability less than
+a half, then the corresponding enumeration problem admits a FOFPTRES.
+
+
+3     Hardness of the extension problem
+Many combinatorial problems have a very useful property, often referred to as self-
+reducibility, which allows a search or enumeration problem to be reduced to (smaller
+instances of) the corresponding decision problem in a very natural way (see [9, 20, 27]).
+A problem is self-reducible in this sense if the existence of an eﬃcient decision proce-
+dure (answering the question: “Does the universe contain at least one witness of size
+k?”) implies that there is an eﬃcient algorithm to solve the extension decision problem
+(equivalent to EXT-ORA). While many self-contained k-witness problems do have this
+property, we will demonstrate that there exist self-contained k-witness problems that
+do not (unless FPT=W[1]), and so an enumeration procedure that makes use only of
+INC-ORA and not EXT-ORA is desirable.
+    In order to demonstrate this, we show that there exist self-contained k-witness prob-
+lems whose decision versions belong to FPT, but for which the corresponding extension
+decision problem is W[1]-hard. We will consider the following problem, which is clearly
+a self-contained k-witness problem.
+
+    k-Clique or Independent Set
+    Input: A graph G = (V, E) and k ∈ N.
+    Parameter: k.
+    Question: Is there a k-vertex subset of V that induces either a clique or an indepen-
+    dent set?
+
+This problem is known to belong to FPT [3]: any graph with at least 22k vertices must
+be a yes-instance by Ramsey’s Theorem. We now turn our attention to the extension
+version of the problem, deﬁned as follows.
+
+    k-Extension Clique or Independent Set
+    Input: A graph G = (V, E), a subset U ⊆ V and k ∈ N.
+    Parameter: k.
+    Question: Is there a k-vertex subset S of V , with U ⊆ S, that induces either a clique
+    or an independent set?
+
+
+
+                                             6
+It is straightforward to adapt the hardness proof for k-Multicolour Clique or In-
+dependent Set [22, Proposition 3.7] to show that k-Extension Clique or Inde-
+pendent Set is W[1]-hard.
+
+Proposition 3.1. k-Extension Clique or Independent Set is W[1]-hard.
+
+Proof. We prove this result by means of a reduction from the W[1]-complete problem
+k-Clique. Let (G, k) be the input to an instance of k-Clique. We now deﬁne a new
+graph G′ , obtained from G by adding one new vertex v, and an edge from v to every
+vertex u ∈ V (G). It is then straightforward to verify that (G′ , {v}, k + 1) is a yes-instance
+for k-Extension Clique or Independent Set if and only if G contains a clique of
+size k.
+    This demonstrates that k-Extension Clique or Independent Set is a problem
+for which there exists an eﬃcient decision procedure but no eﬃcient algorithm for the
+extension version of the decision problem (unless FPT=W[1]). Both of these arguments
+(inclusion of the decision problem in FPT, and hardness of the extension version) can
+easily be adapted to demonstrate that the following problem exhibits the same behaviour.
+
+    k-Induced Regular Subgraph
+    Input: A graph G = (V, E) and k ∈ N.
+    Parameter: k.
+    Question: Is there a k-vertex subset of V that induces a subgraph in which every
+    vertex has the same degree?
+
+Indeed, the same method can be applied to any problem in which putting a restriction
+on the degree of one of the vertices in the witness guarantees that the witness induces a
+clique (or some other induced subgraph for which it is W[1]-hard to decide inclusion in
+an arbitrary input graph).
+
+
+4     The randomised enumeration algorithm
+In this section we describe our randomised witness enumeration algorithm and analyse
+its performance when used with a deterministic oracle, thus proving Theorem 1.1.
+    As mentioned above, our algorithm relies on a colour coding technique. A family F
+of hash functions from [n] to [k] is said to be k-perfect if, for every subset A ⊂ [n] of size
+k, there exists f ∈ F such that the restriction of f to A is injective. We will use the
+following bound on the size of such a family of hash functions.
+
+Theorem 4.1. [24] For all n, k ∈ N there is a k-perfect family Fn,k of hash functions
+from [n] to [k] of cardinality ek+o(k) · log n. Furthermore, given n and k, a representation
+of the family Fn,k can be computed in time ek+o(k) · n log n.
+
+   Our strategy is to solve a collection of ek+o(k) · log n colourful enumeration problems,
+one corresponding to each element of a family F of k-perfect hash functions. In each of
+these problems, our goal is to enumerate all witnesses that are colourful with respect to
+the relevant element f of F (those in which each element is assigned a distinct colour by
+
+
+                                              7
+f ). Of course, we may discover the same witness more than once if it is colourful with
+respect to two distinct elements in F , but it is straightforward to check for repeats of
+this kind and omit duplicate witnesses from the output. It is essential in the algorithm
+that we use a deterministic construction of a k-perfect family of hash functions rather
+than the randomised construction also described in [1], as the latter method would allow
+the possibility of witnesses being omitted (with some small probability).
+    The advantage of solving a number of colourful enumeration problems is that we can
+split the problem into a number of sub-problems with the only requirement being that we
+preserve witnesses in which every element has a diﬀerent colour (rather than all witnesses).
+This makes it possible to construct a number of instances, each (roughly) half the size
+of the original instance, such that every colourful witness survives in at least one of the
+smaller instances. More speciﬁcally, for each k-perfect hash function we explore a search
+tree: at each node, we split every colour-class randomly into (almost) equal-sized parts,
+and then branch to consider each of the 2k combinations that includes one (nonempty)
+subset of each colour, provided that the union of these subsets still contains at least one
+witness (as determined by the decision oracle). This simple pruning of the search tree
+will not prevent us exploring “dead-ends” (where we pursue a particular branch due to
+the presence of a non-colourful witness), but turns out to be suﬃcient to make it unlikely
+that we explore very many branches that do not lead to colourful witnesses.
+    We describe the algorithm in pseudocode (Algorithm 1), making use of two subrou-
+tines. In addition to our oracle INC-ORA(X,U,k), we also deﬁne a procedure RAND-
+PART(X) which we use, while exploring the search tree, to obtain a random partition
+of a subset of the universe.
+
+RANDPART(X)
+  Input: X ⊆ U
+  Output: A partition (X1 , X2 ) of X with ||X1 | − |X2 || ≤ 1, chosen uniformly at ran-
+  dom from all such partitions of X.
+
+We prove the correctness of the algorithm and discuss the space used in Section 4.1, and
+bound the expected running time in Section 4.2.
+
+4.1    Correctness of the algorithm
+In order to prove that our algorithm does indeed output every witness exactly once, we
+begin by showing that we will identify a given k-element subset X during the iteration
+corresponding to the hash-function f ∈ F if and only if X is a colourful witness with
+respect to f .
+
+Lemma 4.2. Let X be a set of k vertices in the universe U. In the iteration of Algorithm 1
+corresponding to f ∈ F , we will execute 9 to 11 with A = X if and only if:
+
+  1. X is a witness, and
+
+  2. X is colourful with respect to f .
+
+
+
+
+                                             8
+ Algorithm 1: Randomised algorithm to enumerate all k-element witnesses in the
+ universe U, using a decision oracle.
+ 1 if INC − ORA(U, U, k) = 1 then
+ 2     Construct a family F = {f1 , f2 , . . . , f|F | } of k-perfect hash functions from U to
+        [k];
+ 3     for 1 ≤ r ≤ |F | do
+ 4         Initialise an empty FIFO queue Q;
+ 5         Insert U into Q;
+ 6         while Q is not empty do
+ 7             Remove the ﬁrst element A from Q;
+ 8             if |A| = k then
+ 9                 if A is not colourful with respect to fs for any s ∈ {1, . . . , r − 1}
+                     then
+10                     Output A;
+11                 end if
+12             else
+13                 for 1 ≤ i ≤ k do
+14                     Set Ai to be the set of elements in A coloured i by fr ;
+                               (1)  (2)
+15                     Set (Ai , Ai ) = RANDPART(Ai );
+16                 end for
+17                 for each j = (j1 , . . . , jk ) ∈ {1, 2}k do
+                             (j )
+18                     if |Ai ℓ | > 0 for each 1 ≤ ℓ ≤ k then
+                                         (j )             (j )
+19                         Set Aj = Ai 1 ∪ · · · ∪ Ai k ;
+20                         if INC − ORA(Aj , U, k) = 1 then
+21                              Add Aj to Q;
+22                         end if
+23                     end if
+24                 end for
+25             end if
+26         end while
+27     end for
+28 end if
+
+
+
+
+                                               9
+Proof. We ﬁrst argue that we only execute lines 9 to 11 with A = X if X is a witness and
+is colourful with respect to f . We claim that, throughout the execution of the iteration
+corresponding to f , every subset B in the queue Q has the following properties:
+
+  1. there is some witness W such that W ⊆ B, and
+
+  2. B contains at least one vertex receiving each colour under f .
+
+Notice that we check the ﬁrst condition before adding any subset A to Q (lines 1 and
+20), and we check the second condition for any A 6= U in line 18 (U necessarily satisﬁes
+condition 2 by construction of F ), so these two conditions are always satisﬁed. Thus, if
+we execute lines 9 to 11 with A = X, these conditions hold for X; note also that we only
+execute these lines with A = X if |X| = k. Hence, as there is a witness W ⊆ X where
+|W | = |X| = k, we must have X = W and hence X is a witness. Moreover, as X must
+contain at least one vertex of each colour, and contains exactly k elements, it must be
+colourful.
+    Conversely, suppose that W = {w1 , . . . , wk } is a witness such that f (wi ) = i for
+each 1 ≤ i ≤ k; we need to show that we will at some stage execute lines 9 to 11 with
+A = W . We argue that at the start of each execution of the while loop, if W has not
+yet been output, there must be some subset B in the queue such that W ⊆ B. This
+invariant clearly holds before the ﬁrst execution of the loop (U will have been inserted
+into Q, as U contains at least one witness W ). Now suppose that the invariant holds
+before starting some execution of the while loop. Either we execute lines 9 to 11 with
+A = W on this iteration (in which case we are done), or else we proceed to line 13. Now,
+                                                                          (j )
+for 1 ≤ i ≤ k, set ji to be either 1 or 2 in such a way that wi ∈ Ai i . The subset Aj ,
+where j = (j1 , . . . , jk ) will then pass both tests for insertion into Q, and W ⊆ Aj by
+construction, so the invariant holds when we exit the while loop. Since the algorithm
+only terminates when Q is empty, it follows that we must eventually execute lines 9 to
+11 with A = W .
+    The key property of k-perfect families of hash functions then implies that the algo-
+rithm will identify every witness; it remains only to ensure that we avoid outputting any
+witness more than once. This is the purpose of lines 9 to 11 in the pseudocode. We know
+from Lemma 4.2 that we ﬁnd a given witness W while considering the hash-function f
+if and only if W is colourful with respect to f : thus, in order to determine whether we
+have found the witness in question before, it suﬃces to verify whether it is colourful with
+respect to any of the colourings previously considered. Hence we see that every witness
+is output exactly once, as required.
+    Note that the most obvious strategy for avoiding repeats would be to maintain a list
+of all the witnesses we have output so far,  and check for membership of this list; however,
+                                          n
+in general there might be as many as k witnesses, so both storing this list and searching
+it would be costly. The approach used here means that we only have to store the family
+F of k-perfect hash functions (requiring space ek+o(k) n log n). Since each execution of the
+outer for loop clearly requires only polynomial space, the total space complexity of the
+algorithm is at most ek+o(k) nO(1) , as required.
+
+
+
+
+                                             10
+4.2    Expected running time
+We know from Theorem 4.1 that a family F of k-perfect hash functions from U to [k], with
+|F | = ek+o(k) log n, can be computed in time ek+o(k) n log n; thus line 2 can be executed in
+time ek+o(k) n log n and the total number of iterations of the outer for-loop (lines 2 to 34)
+is at most ek+o(k) log n.
+    Moreover, it is clear that each iteration of the while loop (lines 6 to 26) makes at most
+2k oracle calls. If an oracle call can be executed in time g(k) · nO(1) for some computable
+function g, then the total time required to perform each iteration of the while loop is at
+most max{|F |, kn + 2k · g(k) · nO(1) } = ek+o(k) · g(k) · nO(1) .
+    Thus it remains to bound the expected number of iterations of the while loop in any
+iteration of the outer for-loop; we do this in the next lemma.
+
+Lemma 4.3. The expected number of iterations of the while-loop in any given iteration
+of the outer for-loop is at most N (1 + ⌈log n⌉), where N is the total number of witnesses
+in the instance.
+
+Proof. We ﬁx an arbitrary f ∈ F , and for the remainder of the proof restrict our attention
+to the iteration of the outer for-loop corresponding to f .
+    We can regard this iteration of the outer for-loop as the exploration of a search tree,
+with each node of the search tree indexed by some subset of U. The root is indexed by U
+itself, and every node has up to 2k children, each child corresponding to a diﬀerent way
+of selecting one of the two randomly constructed subsets for each colour. A node may
+have strictly fewer than 2k children, as we use the oracle to prune the search tree (line
+20), omitting the exploration of branches indexed by a subset of U that does not contain
+any witness (colourful or otherwise). Note that the search tree deﬁned in this way has
+depth at most ⌈log n⌉: at each level, the size of each colour-class in the indexing subset
+is halved (up to integer rounding).
+    In this search tree model of the algorithm, each node of the search tree corresponds
+to an iteration of the while-loop, and vice versa. Thus, in order to bound the expected
+number of iterations of the while-loop, it suﬃces to bound the expected number of nodes
+in the search tree.
+    Our oracle-based pruning method means that we can associate with every node v
+of the search tree some representative witness Wv (not necessarily colourful), such that
+Wv is entirely contained in the subset of U which indexes v. (Note that the choice of
+representative witness for a given node need not be unique.) We know that in total there
+are N witnesses; our strategy is to bound the expected number of nodes, at each level of
+the search tree, for which any given witness can be the representative.
+    For a given witness W , we deﬁne a random variable XW,d to be the number of nodes
+at depth d (where the root has depth 0, and children of the root have depth 1, etc.) for
+which W could be the representative witness. Since every node has some representative
+witness, it follows that the total number of nodes in the search tree is at most
+                                                 ⌈log n⌉
+                                     X               X
+                                                           XW,d .
+                                  W a witness        d=0
+
+Hence, by linearity of expectation, the expected number of nodes in the search tree is at
+
+                                                11
+most
+                              ⌈log n⌉                           ⌈log n⌉
+                  X               X                              X
+                                        E [XW,d ]    ≤     N                max         E [XW,d] .
+                                                                          W a witness
+               W a witness        d=0                            d=0
+
+    In the remainder of the proof, we argue that E[XW,d ] ≤ 1 for all W and d, which will
+give the required result.
+    Observe ﬁrst that, if W is in fact a colourful witness with respect to f , then XW,d = 1
+for every d: given a node whose indexing set contains W , exactly one of its children will
+be indexed by a set that contains W . So we will assume from now on that W intersects
+precisely ℓ colour classes, where ℓ < k.
+    If a given node is indexed by a set that contains W , we claim that the probability
+                                                                                     k−ℓ
+that W is contained in the set indexing at least one of its children is at most 21 . For
+this to happen, it must be that for each colour i, all elements of W having colour i are
+assigned to the same set in the random partition. If ci elements     in W have colour i, the
+                                                         1 ci −1
+                                                           
+probability of this happening for colour i is at most 2          (the ﬁrst vertex of colour i
+can be assigned to either set, and each subsequent vertex has probability at most 21 of
+being assigned to this same set). Since the random partitions for each colour class are
+independent, the probability that the witness W survives is at most
+                                   ci−1  k−|{i:W ∩f −1 (i)6=∅}|  k−ℓ
+                     Y             1       1                         1
+                                         =                         =       .
+                                   2       2                         2
+                 W ∩f −1 (i)6=∅
+
+
+Moreover, if W is contained in the set indexing at least one of the child nodes, it will be
+contained in the indexing sets for exactly 2k−ℓ child nodes: we must select the correct
+subset for each colour-class that intersects W , and can choose arbitrarily for the remaining
+k − ℓ colour classes. Hence, for each node indexed by a set that contains W , the expected
+                                                                                  k−ℓ k−ℓ
+number of children which are also indexed by sets containing W is at most 12          ·2    =
+1.
+   We now prove by induction on d that E [XW,d ] ≤ 1 (in the case that W is not colourful).
+The base case for d = 0 is trivial (as there can only be one node at depth 0), so suppose
+that d > 0 and that the result holds for smaller values. Then, if E[Y |Z = s] is the
+conditional expectation of Y given that Z = s,
+                                 X
+                      E[XW,d ] =     E[XW,d |XW,d−1 = t] P[XW,d−1 = t]
+                                        t≥0
+                                        X
+                                   ≤          t P[XW,d−1 = t]
+                                        t≥0
+
+                                   = E[XW,d−1 ]
+                                   ≤ 1,
+
+by the inductive hypothesis, as required. Hence E[XW,d ] ≤ 1 for any witness W , which
+completes the proof.
+   By linearity of expectation, it then follows that the expected total number of exe-
+cutions of the while loop will be at most |F | · N (1 + ⌈log n⌉), and hence that the ex-
+pected number of oracle calls made during the execution of the algorithm is at most
+
+                                                      12
+ek+o(k) log2 n · N. Moreover, if an oracle call can be executed in time g(k) · nO(1) for some
+computable function g, then the expected total running time of the algorithm is
+
+                                   ek+o(k) · g(k) · nO(1) · N,
+
+as required.
+
+
+5      Using a randomised oracle
+In this section we show that the method described in Section 4 will in fact work almost
+as well if we only have access to a randomised decision oracle, thus proving Theorem
+1.2. The randomised decision procedures in [4, 5] only have one-sided errors, but for the
+sake of generality we consider the eﬀect of both false positives and false negatives on our
+algorithm.
+    False positives and false negatives will aﬀect the behaviour of the algorithm in diﬀerent
+ways. If the decision procedure gives false positives then, provided we add a check
+immediately before outputting a supposed witness that it really is a witness, the algorithm
+is still sure to output every witness exactly once; however, we will potentially waste time
+exploring unfruitful branches of the search tree due to false positives, so the expected
+running time of the algorithm will increase. If, on the other hand, our algorithm outputs
+false negatives, then this will not increase the expected running time; however, in this
+case, we can no longer be sure that we will ﬁnd every witness as false negatives might
+cause us to prune the search tree prematurely. We will show, however, that we can still
+enumerate approximately in this case.
+    Before turning our attention to the speciﬁc eﬀects of false positives and false neg-
+atives on the algorithm, we observe that, provided our randomised oracle returns the
+correct answer with probability greater than a half, we can obtain a decision procedure
+with a much smaller failure probability by making repeated oracle calls. We make the
+standard assumption that the events corresponding to each oracle call returning an error
+are independent.
+
+Lemma 5.1. Let c > 12 be a fixed constant, and let ǫ > 0. Suppose that we have access to
+a randomised oracle for the decision version of a self-contained k-witness problem which,
+on each call, returns the correct answer independently with probability at least c. Then
+there is a decision procedure for the problem, making O (k + log log n + log ǫ−1 ) calls to
+this oracle, such that:
+
+    1. the probability of obtaining a false positive is at most 2−k , and
+                                                                     ǫ
+    2. the probability of obtaining a false negative is at most ⌈log n⌉+1
+
+Proof. Our procedure is as follows: we make t oracle calls (where t is a value to be
+determined later) and output whatever is the majority answer from these calls. We
+need to choose t large enoughnto ensure that o the probability that the majority answer is
+incorrect is at most δ := min 2−k , ⌈log n⌉+1 .
+                                         ǫ
+
+    The probability that we obtain the correct answer from a given oracle call is at least
+c, so the number of correct answers we obtain out of t trials is bounded below by the
+
+                                               13
+random variable X, where X has distribution Bin(t, c). Thus E[X] = tc. We will return
+the correct answer so long as X > 2t .
+   Using a Chernoﬀ bound, we can see that
+                                                  
+                                t                 1
+                        P X≤        = P X ≤ tc ·
+                                2                2c
+                                                             
+                                                       2c − 1
+                                    = P X ≤ tc 1 −
+                                                         2c
+                                                       2 !
+                                            1 2c − 1
+                                    ≤ exp −                 tc
+                                            2       2c
+                                            (2c − 1)2 t
+                                                       
+                                    = exp −               .
+                                                 8c
+It is enough to ensure that this is at most δ, which we achieve if
+                                   (2c − 1)2 t
+                                 −             < ln δ
+                                       8c
+                                                  −8c ln δ
+                                   ⇐⇒        t>            ,
+                                                 (2c − 1)2
+
+so we can take t = O(log δ −1 ). Thus the number of oracle calls required is
+              (                                −1 )!
+                         −1              ǫ
+     O max log 2−k                                     = O k + log log n + log ǫ−1 ,
+                                                                                 
+                            , log
+                                    ⌈log n⌉ + 1
+
+as required.
+    We now show that, if the probability that our oracle gives a false positive is suﬃciently
+small, then such errors do not increase the expected running time of Algorithm 1 too
+much. Just as when bounding the expected running time in Section 4.2, it suﬃces to
+bound the expected number of iterations of the while loop corresponding to a speciﬁc
+colouring f in our family F of hash functions.
+Lemma 5.2.
+        n Suppose o   that the probability that the oracle returns a false positive is at
+          −k      1
+most min 2 , ⌈log n⌉+1 . Then the expected number of iterations of the while-loop in
+any given iteration of the outer for-loop is at most O(N · log2 n), where N is the total
+number of witnesses in the instance.
+Proof. We ﬁx an arbitrary f ∈ F , and for the remainder of the proof we restrict our
+attention or the iteration of the outer for-loop corresponding to f . As in the proof of
+Lemma 4.3, we can regard this iteration of the outer for-loop as the exploration of a
+search tree, and it suﬃces to bound the expected number of nodes in the search tree.
+   We can associate with each node of the search tree some subset of the universe, and
+we prune the search tree in such a way that we only have a node corresponding to a
+subset A of the universe if a call to the oracle with input A has returned yes. This
+means that for the node corresponding to the set A, either there is some representative
+witness W ⊆ X, or the oracle gave a false positive. We call a node good if it has some
+
+                                             14
+representative witness, and bad if it is the result of a false positive. We already bounded
+the expected number of good nodes in the proof of Lemma 4.3, so it remains to show
+that the expected number of bad nodes is not too large.
+    We will assume initially that there is at least one witness, and so the root of the search
+tree is a good node. Now consider a bad node v in the search tree; v must have some
+ancestor u in the search tree such that u is good (note that the root will always be such
+an ancestor in this case). Since the subset of the universe associated with any node is
+a subset of that associated with its parent, no bad vertex can have a good descendant.
+Thus, any path from the root to the bad node v must consist of a segment of good nodes
+followed by a segment of bad nodes; we can therefore associate with every bad node v a
+unique good node good(v) such that good(v) is the last good node on the path from the
+root to v. In order to bound the expected number of bad nodes in the tree, our strategy
+is to bound, for each good node u, the number of bad nodes v such that good(v) = u.
+    As in the proof of Lemma 4.3, we will write XW,d for the number of nodes at depth d
+for which W is the representative witness. For c > d, we further deﬁne YW,d,c to be the
+number of bad nodes v such that v is at depth c, good(v) is at depth d, and W is the
+representative witness for good(v).
+    Since every node can have at most 2k children, and the probability that the oracle
+gives a false positive is at most 2−k , the expected number of bad children of any node is
+at most one. Thus we see that
+                                    X
+                     E [YW,d,d+1] =     E [YW,d,d+1 |XW,d = t] P [XW,d = t]
+                                       t≥0
+                                     X
+                                 ≤           tP [WW,d = t]
+                                       t≥0
+
+                                 = E [XW,d] .
+
+Observe also that if u and w are bad nodes such that u is the child of w, then good(u) =
+good(w) (and so good(u) and good(w) are at the same depth and have the same repre-
+sentative witness). For c > d + 1 we can then argue inductively:
+                                X
+                   E [YW,d,c] =   E [YW,d,c |YW,d,c−1 = t] P [YW,d,c−1 = t]
+                                 t≥0
+                                 X
+                             =         tP [YW,d,c−1 = t]
+                                 t≥0
+
+                             = E [YW,d,c−1]
+                             = E [XW,d] .
+
+
+
+
+                                                   15
+We can therefore bound the expected number of nodes in the search tree by
+                                                       
+                          ⌈log n⌉         ⌈log n⌉
+                    X      X               X
+              E                  XW,d +         YW,d,c 
+                    W a witness d=0                  c=d+1
+                                                                                           
+                                             ⌈log n⌉                     ⌈log n⌉
+                                      X       X                           X
+                               =                       E [XW,d] +                 E [YW,d,c ]
+                                   W a witness d=0                       c=d+1
+                                                                                           
+                                             ⌈log n⌉                     ⌈log n⌉
+                                      X       X                           X
+                               =                       E [XW,d] +                 E [XW,d ]
+                                   W a witness d=0                       c=d+1
+                                             ⌈log n⌉
+                                      X       X
+                               =                       (⌈log n⌉ − d + 1) E [XW,d] .
+                                   W a witness d=0
+
+As we know from the proof of Lemma 4.3 that E [XW,d ] ≤ 1, we can therefore deduce
+that the expected number of nodes is at most
+                       ⌈log n⌉                               ⌈log n⌉+1
+                X       X                                      X
+                                 (⌈log n⌉ − d + 1) = N                   i
+             W a witness d=0                                   i=1
+                                                         N
+                                                       =   (⌈log n⌉ + 1) (⌈log n⌉ + 2)
+                                                         2
+                                                       = O(N log2 n),
+
+as required. This completes the proof in the case that the instance contains at least one
+witness.
+    If there is in fact no witness in the instance, we know that there are no good
+nodes in the tree. Moreover, the expected number of bad nodes at depth 0 is at most
+1/ (⌈log n⌉ + 1) (the probability that the oracle returns a false positive). Since we have al-
+ready argued that the expected number of bad children of any node is at most 1, it follows
+that the expected number of bad nodes at each level is at most 1/ (⌈log n⌉ + 1), and so
+the total expected number of bad nodes is at most 1/ (⌈log n⌉ + 1) (1 + ⌈log n⌉) = 1.
+    To complete the proof of Theorem 1.2, it remains to show that, so long as the prob-
+ability that the oracle returns a false negative is suﬃciently small, our algorithm will
+output any given witness with high probability.
+
+Lemma 5.3. Fix ǫ ∈ (0, 1), and suppose that the probability that the oracle returns a false
+negative is at most ⌈log ǫn⌉+1 . Then, for any witness W , the probability that the algorithm
+does not output W is at most ǫ.
+
+Proof. By construction of F , we know that there is some f ∈ F such that W is colourful
+with respect to f . We wil now restrict our attention to the iteration of the outer for-loop
+corresponding to f ; it suﬃces to demonstrate that we will output W during this iteration
+with probability at least 1 − ǫ.
+   If we obtain the correct answer from each oracle call, we are sure to output W . The
+only way we will fail to output W is if our oracle gives us an incorrect answer on at
+
+                                                     16
+least one occasion when it is called with input V ⊇ W . This can either happen in line 1
+when we make the initial check that we have a yes-instance, or when we check whether a
+subset is still a yes-instance in line 20. Note that we execute line 20 with Aj = W at most
+⌈log n⌉ times, so the total number of times we call INC-ORA(V ,U,k) with some V ⊇ W
+during the iteration of the outer for-loop corresponding to f is at most ⌈log n⌉ + 1. By
+the union bound, the probability that we obtain a false negative on at least one of these
+calls is at most
+                                                      ǫ
+                                 (⌈log n⌉ + 1) ·             = ǫ,
+                                                 ⌈log n⌉ + 1
+as required.
+
+
+6      Application to counting
+There is a close relationship between the problems of counting and enumerating all wit-
+nesses in a k-witness problem, since any enumeration algorithm can very easily be adapted
+into an algorithm that counts the witnesses instead of listing them. However, in the case
+that the number N of witnesses is large, an enumeration algorithm necessarily takes time
+at least Ω(N), whereas we might hope for much better if our goal is simply to determine
+the total number of witnesses.
+    The family of self-contained k-witness problems studied here includes subgraph prob-
+lems, whose parameterised complexity from the point of view of counting has been a
+rich topic for research in recent years [14, 18, 19, 10, 11, 22, 17]. Many such count-
+ing problems, including those whose decision problem belongs to FPT, are known to
+be #W[1]-complete (see [15] for background on the theory of parameterised counting
+complexity). Positive results in this setting typically exploit structural properties of the
+graphs involved (e.g. small treewidth) to design (approximate) counting algorithms for
+inputs with these properties, avoiding any dependence on N [2, 3, 18].
+    In this section we demonstrate how our enumeration algorithms can be adapted to
+give eﬃcient (randomised) algorithms to solve the counting version of a self-contained
+k-witness problem whenever the total number of witnesses is small. This complements
+the fact that a simple random sampling algorithm can be used for approximate counting
+when the number of witnesses is very large [22, Lemma 3.4], although there remain many
+situations which are not covered by either result.
+    We begin with the case in which we assume access to a deterministic oracle for the
+decision problem.
+
+Theorem 6.1. Let Π be a self-contained k-witness problem, and suppose that 0 <
+δ ≤ 21 and M ∈ N. Then there exists a randomised algorithm which makes at most
+ek+o(k) log2 n M log(δ −1 ) calls to a deterministic decision oracle for Π, and
+
+    1. if the number of witnesses in the instance of Π is at most M, outputs with probability
+       at least 1 − δ the exact number of witnesses in the instance;
+
+    2. if the number of witnesses in the instance of Π is strictly greater than M, always
+       outputs “More than M.”
+
+
+
+                                             17
+Moreover, if there is an algorithm solving the decision version of Π in time g(k) · nO(1) for
+some computable function g, then the expected running time of the randomised algorithm
+is bounded by ek+o(k) · g(k) · nO(1) · M · log(δ −1 ).
+
+Proof. Note that Algorithm 1 can very easily be adapted to give a randomised counting
+algorithm which runs in the same time as the enumeration algorithm but, instead of
+listing all witnesses, simply outputs the total number of witnesses when it terminates.
+We may compute explicitly the expected running time of our randomised enumeration
+algorithm (and hence its adaptation to a counting algorithm) for a given self-contained
+k-witness problem Π in terms of n, k and the total number of witnesses, N. We will write
+T (Π, n, k, N) for this expected running time.
+     Now consider an algorithm A, in which we run our randomised counting algorithm for
+at most 2T (Π, n, k, M) steps; if the algorithm has terminated within this many steps, A
+outputs the value returned, otherwise A outputs “FAIL”. Since our randomised counting
+algorithm is always correct (but may take much longer than the expected time), we know
+that if A outputs a numerical value then this is precisely the number of witnesses in our
+problem instance. If the number of witnesses is in fact at most M, then the expected
+running time of the randomised counting algorithm is bounded by T (Π, n, k, M), so by
+Markov’s inequality the probability that it terminates within 2T (Π, n, k, M) steps is at
+least 1/2. Thus, if we run A on an instance in which the number of witnesses is at most
+M, it will output the exact number of witnesses with probability at least 1/2.
+     To obtain the desired probability of outputting the correct answer, we repeat A a
+total of ⌈log(δ −1 )⌉ times. If any of these executions of A terminates with a numerical
+answer that is at most M, we output this answer (which must be the exact number of
+witnesses by the argument above); otherwise we output “More than M.”
+     If the total number of witnesses is in fact less than or equal to M, we will output the
+exact number of witnesses unless A outputs “FAIL” every time it is run. Since in this
+case A outputs “FAIL” independently with probability at most 1/2 each time we run it,
+the probability that we output “FAIL” on every one of the ⌈log(δ −1 )⌉ repetitions is at
+most (1/2)⌈log(δ )⌉ ≤ 2log δ = δ. Finally, note that if the number of witnesses is strictly
+                  −1
+
+
+greater than M, we will always output “More than M” since every execution of A must
+in this case return either “FAIL” or a numerical answer greater than M.
+     The total running time is at most O (log(δ −1 ) · T (Π, n, k, M)) and hence, using the
+bound on the running time of our enumeration algorithm from Theorem 1.1, is bounded
+by ek+o(k) · g(k) · nO(1) · M · log(δ −1 ), as required.
+   Finally, we prove an analogous result in the case that we only have access to a ran-
+domised oracle.
+
+Theorem 6.2. Let Π be a self-contained k-witness problem, suppose that 0 < ǫ < 1,
+0 < δ ≤ 12 and M ∈ N, and that we have access to a randomised oracle for the decision
+problem whose error probability is at most some constant c < 21 . Then there exists a
+randomised algorithm which makes at most ek+o(k) log3 n M log(δ −1 ) calls to this oracle
+and, with probability at least 1 − δ, if the total number of witnesses in the instance is
+exactly N, does the following:
+
+  1. if N ≤ M, outputs a number N ′ such that (1 − ǫ)N ≤ N ′ ≤ N;
+
+
+                                             18
+  2. if N ≥ M, outputs either a number N ′ such that (1 − ǫ)N ≤ N ′ ≤ M or “More
+     than M.”
+Moreover, if there is a randomised algorithm solving the decision version of Π (with error
+probability at most c < 12 ) in time g(k) · nO(1) for some computable function g, then the
+expected running time of the randomised counting algorithm is bounded by ek+o(k) · g(k) ·
+nO(1) · M · log(δ −1 ).
+Proof. We claim that it suﬃces to demonstrate that there is a procedure which makes at
+most ek+o(k) · log3 n · M oracle calls and, with probability greater than 21 , outputs
+ (a) a number N ′ such that (1 − ǫ)N ≤ N ′ ≤ N if N ≤ M, and
+ (b) either a number N ′ such that (1 − ǫ)N ≤ N ′ ≤ N or “FAIL” if N > M.
+Given such a procedure, we run it log(δ −1 ) times; if the largest numerical value returned
+on any run (if any) is at most M then we return this maximum value, otherwise we return
+“More than M.” Conditions (a) and (b) ensuer that the procedure never returns a value
+strictly greater than N, so the largest numerical value returned (if any) is sure to be the
+best estimate. Therefore we only return an answer that does not meet the conditions of
+the theorem if all of the executions of the procedure fail to return an answer that meets
+conditions (a) and (b), which happens with probability at most 2− log(δ ) = δ.
+                                                                             −1
+
+
+    To obtain the required procedure, we modify the enumeration algorithm used to prove
+Theorem 1.2 so that it counts the total number of witnesses found rather than listing
+them; we will run this randomised enumeration procedure with error probability ǫ2 /4. We
+can compute explicitly the expected running time of this adapted algorithm for a given k-
+witness problem Π in terms of n, k, N and ǫ; we write T (Π, n, k, ǫ, N) for this expectation.
+We will allow the adapted algorithm to run for time 4T (Π, n, k, ǫ, M), outputting “FAIL”
+if we have not terminated within this time.
+    There are two ways in which the procedure could fail to meet conditions (a) and (b).
+First of all, the adapted enumeration algorithm might not terminate within the required
+time. Secondly, it might terminate but with an answer N ′ where N ′ < (1 − ǫ)N (recall
+that enumeration algorithm never repeats a witness, and that we can verify each witness
+deterministically, ensuring that only ever output a subset of the witnesses actually present
+in the instance). In the remainder of the proof, we will argue that the probability of each
+of these two outcomes is strictly less than 14 , so the probability of avoiding both is greater
+than 21 , as required.
+    First, we bound the probability that the algorithm does not terminate within the
+required time. By Markov’s inequality, the probability that a random variable takes a
+value greater than four times its expectation is less than 14 , so we see immediately that if
+the total number of witnesses is at most M then the probability that the algorithm fails
+to terminate within the permitted time is less than 14 .
+    Next, we need to bound the probability that the procedure outputs a value N ′ <
+(1 − ǫ)N. Let the random variable Z denote the number of witnesses omitted by the
+procedure. Then E[Z] ≤ ǫ2 N/4, so by Markov’s inequality we have
+                                          ǫ2 N/4    ǫ    1
+                               P[Z > ǫN] ≤       = < ,
+                                            ǫN      4    4
+as required. This completes the argument that the procedure outputs the an answer that
+meets conditions (a) and (b) with probability greater than 21 , and hence the proof.
+
+                                              19
+7    Conclusions and open problems
+Many well-known combinatorial problems satisfy the deﬁnition of the k-witness problems
+considered in this paper. We have shown that, given access to a deterministic decision
+oracle for the inclusion version of a k-witness problem (answering the question “does this
+subset of the universe contain at least one witness?”), there is a randomised algorithm
+which is guaranteed to enumerate all witnesses and whose expected number of oracle
+calls is at most ek+o(k) log2 n · N, where N is the total number of witnesses. Moreover,
+if the decision problem belongs to FPT (as is the case for many self-contained k-witness
+problems), our enumeration algorithm is an expected-output-fpt algorithm.
+    We have also shown that, in the presence of only a randomised decision oracle, we
+can use the same strategy to produce a list of witnesses so that the probability of any
+given witness appearing in the list is at least 1 − ǫ, with only a factor log n increase in
+the expected running time. This result initiates the study of algorithms for approximate
+enumeration.
+    Our results also has implications for counting the number of witnesses. In particular, if
+the total number of witnesses is small (at most f (k) · nO(1) for some computable function
+f ) then our enumeration algorithms can easily be adapted to give fpt-algorithms that
+will, with high probability, calculate a good approximation to the number of witnesses
+in an instance of a self-contained k-witness problem (in the setting where we have a
+deterministic decision oracle, we in fact obtain the exact answer with high probability).
+The resulting counting algorithms satisfy the conditions for a FPTRAS (Fixed Parameter
+Tractable Randomised Approximation Scheme, as deﬁned in [3]), and in the setting with
+a deterministic oracle we do not even need the full ﬂexibility that this deﬁnition allows:
+with probability 1 − δ we will output the exact number of witnesses, rather than just an
+answer that is within a factor of 1 ± ǫ of this quantity.
+    While the enumeration problem can be solved in a more straightforward fashion for
+self-contained k-witness problems that have certain additional properties, we demon-
+strated that several self-contained k-witness problems do not have these properties, unless
+FPT=W[1]. A natural line of enquiry arising from this work would be the characterisation
+of those self-contained k-witness problems that do have the additional properties, namely
+those for which an fpt-algorithm for the decision version gives rise to an fpt-algorithm for
+the extension version of the decision problem.
+    Our approach assumed the existence of an oracle to determine whether a given subset
+of the universe contains a witness of size exactly k. An interesting direction for future
+work would be to explore the extent to which the same techniques can be used if we only
+have access to a decision procedure that tells us whether some subset of the universe
+contains a witness of size at most k.
+    Another key question that remains open after this work is whether the existence of
+an fpt-algorithm for the inclusion version of a k-witness problem is suﬃcient to guaran-
+tee the existence of an (expected-)delay-fpt or (expected-)incremental-fpt algorithm for
+the enumeration problem. Finally, it would be interesting to investigate whether the
+randomised algorithm given here can be derandomised.
+
+
+
+
+                                             20
+References
+ [1] Noga Alon, Raphael Yuster, and Uri Zwick, Color-coding, Journal of the ACM 42
+     (1995), no. 4, 844–856.
+
+ [2] N. Alon, P. Dao, I. Hajirasouliha, F. Hormozdiari, S. C. Sahinalp, Biomolecular
+     network motif counting and discovery by color coding, Bioinformatics 24(13), 241–
+     249, 2008.
+
+ [3] V. Arvind and Venkatesh Raman, Approximation algorithms for some parameterized
+     counting problems, ISAAC 2002, LNCS, vol. 2518, Springer-Verlag Berlin Heidelberg,
+     2002, pp. 453–464.
+
+ [4] Andreas Björklund, Thore Husfeldt, Petteri Kaski, and Mikko Koivisto, Narrow
+     sieves for parameterized paths and packings, arXiv:1007.1161 [cs.DS], 2010.
+
+ [5] Andreas Björklund, Petteri Kaski, and Lukasz Kowalik, Probably Optimal Graph
+     Motifs, 30th International Symposium on Theoretical Aspects of Computer Science
+     (STACS 2013), LIPIcs, vol. 20, Schloss Dagstuhl–Leibniz-Zentrum fuer Informatik,
+     Dagstuhl, Germany, 2013, pp. 20–31.
+
+ [6] Andreas Björklund, Petteri Kaski, and Lukasz Kowalik, Fast witness extraction us-
+     ing a decision oracle, Algorithms (ESA 2014), LNCS, vol. 8737, Springer Berlin
+     Heidelberg, 2014, pp. 149–160.
+
+ [7] Andreas Björklund, Petteri Kaski, Lukasz Kowalik, and Juho Lauri, Engineering
+     motif search for large graphs, 2015 Proc. of the Seventeenth Workshop on Algorithm
+     Engineering and Experiments (ALENEX 2015), SIAM, 2015, pp. 104–118.
+
+ [8] Nadia Creignou, Raı̈da Ktari, Arne Meier, Julian-Steﬀen Müller, Frédéric Olive, and
+     Heribert Vollmer, Parameterized enumeration for modification problems, Language
+     and Automata Theory and Applications (LATA 2015), LNCS, vol. 8977, Springer
+     International Publishing, 2015, pp. 524–536.
+
+ [9] Nadia Creignou, Arne Meier, Julian-Steﬀen Müller, Johannes Schmidt, and Heribert
+     Vollmer, Paradigms for parameterized enumeration, Mathematical Foundations of
+     Computer Science (MFCS 2013), LNCS, vol. 8087, Springer Berlin Heidelberg, 2013,
+     pp. 290–301.
+
+[10] Radu Curticapean, Counting matchings of size k is #W[1]-hard, Automata, Lan-
+     guages, and Programming (ICALP 2013), LNCS, vol. 7965, Springer Berlin Heidel-
+     berg, 2013, pp. 352–363.
+
+[11] Radu Curticapean and Dániel Marx, Complexity of counting subgraphs: Only the
+     boundedness of the vertex-cover number counts, 55th Annual IEEE Symposium on
+     Foundations of Computer Science (FOCS 2014), 2014.
+
+[12] Rodney G. Downey and Michael R. Fellows, Fundamentals of parameterized com-
+     plexity, Springer London, 2013.
+
+
+                                            21
+[13] Henning Fernau, On parameterized enumeration, Computing and Combinatorics
+     (COCOON 2002), LNCS, vol. 2387, Springer Berlin Heidelberg, 2002, pp. 564–573.
+
+[14] J. Flum and M. Grohe, The parameterized complexity of counting problems, SIAM
+     Journal on Computing 33 (2004), no. 4, 892–922.
+
+[15] J. Flum and M. Grohe, Parameterized complexity theory, Springer, 2006.
+
+[16] B. Gelbord, Graphical techniques in intrusion detection systems, Information Net-
+     working, 2001. Proc. 15th International Conference on, 2001, pp. 253–258.
+
+[17] Mark Jerrum and Kitty Meeks, The parameterised complexity of counting even and
+     odd induced subgraphs, Combinatorica, 2016, doi:10.1007/s00493-016-3338-5.
+
+[18] Mark Jerrum and Kitty Meeks, The parameterised complexity of counting connected
+     subgraphs and graph motifs, Journal of Computer and System Sciences 81 (2015),
+     no. 4, 702 – 716.
+
+[19] Mark Jerrum and Kitty Meeks, Some hard families of parameterised counting prob-
+     lems, ACM Transactions on Computation Theory 7 (2015), no. 3.
+
+[20] Samir Khuller and Vijay V. Vazirani, Planar graph coloring is not self-reducible,
+     assuming P 6= NP, Theoretical Computer Science 88 (1991), no. 1, 183 – 189.
+
+[21] Eugene L. Lawler, A procedure for computing the k best solutions to discrete op-
+     timization problems and its application to the shortest path problem, Management
+     Science 18 (1972), no. 7, 401–405.
+
+[22] Kitty Meeks, The challenges of unbounded treewidth in parameterised subgraph count-
+     ing problems, Discrete Applied Mathematics 198 (2016), 170 – 194.
+
+[23] R. Milo, S. Shen-Orr, S. Itzkovitz, N. Kashtan, D. Chklovskii, and U. Alon, Network
+     motifs: Simple building blocks of complex networks, Science 298 (2002), no. 5594,
+     824–827.
+
+[24] M. Naor, L. J. Schulman and A. Srinivasan, Splitters and near-optimal derandom-
+     ization, Proceedings of IEEE 36th Annual Foundations of Computer Science (FOCS
+     1995), Milwaukee, WI, 1995, pp. 182-191. doi: 10.1109/SFCS.1995.492475
+
+[25] V. Sekar, Y. Xie, D.A. Maltz, M.K. Reiter, and H. Zhang, Toward a framework for
+     internet forensic analysis, Third Workshop on Hot Topics in Networking (HotNets-
+     III), 2004.
+
+[26] S. Staniford-Chen, S. Cheung, R. Crawford, M. Dilger, J. Frank, J. Hoagland,
+     K. Levitt, C. Wee, R. Yip, and D. Zerkle, GrIDS - A graph based intrusion detec-
+     tion system for large networks, In Proc. of the 19th National Information Systems
+     Security Conference, 1996, pp. 361–370.
+
+[27] C.P. Schnorr, Optimal algorithms for self-reducible problems, Proc. of the 3rd ICALP,
+     Edinburgh University Press, 1976, pp. 322 – 337.
+
+
+                                           22
+

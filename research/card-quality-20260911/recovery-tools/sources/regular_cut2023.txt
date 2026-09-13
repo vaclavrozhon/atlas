@@ -1,0 +1,1572 @@
+                                              Local algorithms for Maximum Cut and Minimum Bisection on
+                                                       locally treelike regular graphs of large degree
+                                                                    Ahmed El Alaoui∗,               Andrea Montanari†,         Mark Sellke‡
+arXiv:2111.06813v2 [math.PR] 3 Feb 2023
+
+
+
+
+                                                                                                        Abstract
+                                                     Given a graph G of degree k over n vertices, we consider the problem of computing a near max-
+                                                 imum cut or a near minimum bisection in polynomial time. For graphs of girth 2L, we develop
+                                                 a local message passing algorithm whose complexity is O(nkL), and that achieves near optimal cut
+                                                 values among p all L-local algorithms. Focusing on max-cut, the algorithm constructs a cut of value
+                                                 nk/4 + nP⋆ k/4 + err(n, k, L), where P⋆ ≈ 0.763166 is the value of the Parisi formula from spin glass
+                                                                                           √        √
+                                                 theory, and err(n, k, L) = on (n) + nok ( k) + n koL (1) (subscripts indicate the asymptotic variables).
+                                                 Our result generalizes to locally treelike graphs, i.e., graphs whose girth becomes 2L after removing a
+                                                 small fraction of vertices.
+                                                     Earlier
+                                                     p       work established √ that, for random k-regular graphs, the typical max-cut value is nk/4 +
+                                                 nP⋆ k/4 + on (n) + nok ( k). Therefore our algorithm is nearly optimal on such graphs. An immediate
+                                                 corollary of this result is that random regular graphs have nearly minimum max-cut, and nearly maximum
+                                                 min-bisection among all regular locally treelike graphs. This can be viewed as a combinatorial version of
+                                                 the near-Ramanujan property of random regular graphs.
+
+
+                                          1      Introduction
+                                          Given a k-regular graph G = (V = [n], E) over n vertices, the minimum bisection problem aims at finding
+                                          a partition of the vertex set V = V+ ∪ V− into two sets of equal size as to minimize the number of edges
+                                          across the partition. (To avoid notational burden, we will assume n even throughout.) The partition can be
+                                          encoded into a vector σ = (σ1 , . . . , σn ) ∈ {−1, +1}n, which leads to the equivalent optimization problem
+                                                                                        n1 X                                       n
+                                                                                                                                   X           o
+                                                                    MinBis(G) = max                      σi σj : σi ∈ {−1, +1} ,         σi = 0 .               (1.1)
+                                                                                           n                                       i=1
+                                                                                               (i,j)∈E
+
+
+                                          The number of edges across the partition is then given by (|E| − nMinBis(G))/2 = (nk/4) − nMinBis(G)/2.
+                                          The maximum cut is defined analogously, except that we want to maximize the number of edges across the
+                                          cut, and it is customary not to constrain the cardinality of V+ , V− . We therefore define
+                                                                                                n       1 X                      o
+                                                                        MaxCut(G) = max             −       σi σj : σi ∈ {−1, +1} .                             (1.2)
+                                                                                                        n
+                                                                                                          (i,j)∈E
+
+
+                                          As before, the number of edges cut by such a partition is (nk/4) + nMaxCut(G)/2.
+                                              For random k-regular graphs Gn,k , it is known based on a combinatorial version of the interpolation
+                                          method that the maximum cut value MaxCut(Gn,k ) converges in probability as n → ∞ to a limiting non-
+                                          random degree-dependent constant cmax-cut (k) [BGT13, Gam14, Sal16]. The analogous result for the min-
+                                          imum bisection value MinBis(Gn,k ) is expected but is not known to hold for any fixed value of k. See for
+                                          instance [Sal16, Hua18] for variants of this quantity which are known to converge. Calling cmin-bis (k) the
+                                          putative limiting value of MinBis(Gn,k ), it was conjectured in [ZB10] based on the cavity method that in fact
+                                              ∗ Department of Statistics and Data Science, Cornell University. Email: ae333@cornell.edu.
+                                              † Department of Electrical Engineering and Department of Statistics, Stanford University. Email: montanar@stanford.edu.
+                                              ‡ Department of Mathematics, Stanford University. Email: msellke@gmail.com.
+
+
+
+
+                                                                                                            1
+cmin-bis (k) = cmax-cut (k) for all k ≥ 3. The first-order asymptotics for large k of this conjecture were confirmed
+in [DMS17], where it was shown that
+                                                            √       √
+                                        MinBis(Gn,k ) = P⋆ k + ok ( k) + on (1) ,                               (1.3)
+                                                            √       √
+                                       MaxCut(Gn,k ) = P⋆ k + ok ( k) + on (1) .                                (1.4)
+
+Here the subscripts to the “o” notation indicate the asymptotic variables, and
+
+                                                    P⋆ = inf P(γ) ,                                            (1.5)
+                                                          γ∈U
+
+where the Parisi functional P and the function space U are defined as follows.
+Definition 1.1. Let U be the space of non-decreasing, right-continuous non-negative functions γ : [0, 1) →
+R+ . The Parisi functional at zero temperature is the function P : U → R given by
+                                                                    Z 1
+                                                                1
+                                           P(γ) = Φγ (0, 0) −             tγ(t)dt ,
+                                                                2    0
+
+where Φγ : [0, 1) × R → R is the unique solution of the Parisi PDE
+
+                                        1                                   
+                       ∂t Φγ (t, x) +     γ(t)(∂x Φγ (t, x))2 + ∂xx Φγ (t, x) = 0 ,                            (1.6)
+                                        2
+                                                                     Φγ (1, x) = |x| ,   x ∈ R.                (1.7)
+
+   The constant P⋆ naturally arises as the limiting ground state energy of the Sherrington-Kirkpatrick
+(SK) model from spin glass theory. In this model, one samples a GOE matrix A ∈ Rn×n (A = AT ,
+(Aij )i<j ∼iid N(0, 1/n) and (Aii )i ∼iid N(0, 2/n), although we remark that the diagonal of A does not
+matter) and then considers the optimization problem
+                                                 1    n                                 o
+                             OPTSK (A) :=          max σ, Aσ             : σ ∈ {−1, +1}n .                     (1.8)
+                                                2n
+                                                                                                      √
+The aforementioned result of [DMS17] was established by bounding the difference | E MaxCut(G)/ k −
+E OPTSK (A)| (and similarly for MinBis(G)) via the Lindeberg exchange method. Furthermore, the celebrated
+Parisi formula implies that in this dense model, the normalized ground state energy converges to P⋆ :
+Theorem 1.2 ([Tal06, AC17]). For A ∼ GOE(n),
+
+                                                p-lim OPTSK (A) = P⋆ .                                         (1.9)
+                                                n→∞
+
+   The purpose of the present paper is to study efficient algorithms to compute a point σ ∈ {−1, +1}n
+approximately achieving the minimum bisection or maximum cut value for regular graphs. Our approach
+builds upon recent algorithmic advances for the SK model. Namely, the second author showed in [Mon21]
+that an approximate optimizer can be constructed in nearly linear time under a certain no overlap gap
+assumption. This was generalized in [AMS21], which established the same result under a somewhat more
+compact assumption. To state this assumption, we first note that [AC17] shows that the infimum in (1.5) is
+achieved by some γ∗ ∈ U .
+Assumption 1. The function γ∗ : [0, 1) → R+ is strictly increasing.
+Theorem 1.3 ([Mon21, AMS21]). Under Assumption 1, for every ε > 0, there is an efficient approximate
+message passing algorithm outputting σ ∈ {−1, +1}n such that
+
+                                                       hσ, Aσi
+                                               p-lim           ≥ P⋆ − ε.
+                                               n→∞       2n
+
+
+
+                                                            2
+    Our main result is a message passing algorithm on locally treelike regular graphs of large degree, also
+under Assumption 1. (Note that the assumption is about the minimizer of the Parisi formula for the SK
+model.) The algorithm is local in the sense defined below. Consequently, our results apply to any sequence
+of k-regular graphs Gn,k which converges locally-weakly to the k-regular tree. A special example is provided
+of course by k-regular random graphs.
+    Below, we let (Ω, F , ν) be a probability space and G∗ (k, ℓ; Ω) be the set of rooted k-regular graphs of
+radius (maximum distance from the root) ℓ, with vertices carrying labels in Ω. We will consider random
+variables (ωi )i∈V (G) labelling the vertices, with ωi ∈ Ω, ωi ∼ ν. We denote by Bi (ℓ) the ball of radius ℓ
+around i in the graph distance on G rooted at i, and by (Bi (ℓ), ωBi (ℓ) ) the corresponding labeled graph. Here
+ωBi (ℓ) = (ωj )j∈Bi (ℓ) .
+Definition 1.4. A randomized algorithm defined on a k-regular graph G is ℓ-local if there exists a measurable
+function F : G∗ (k, ℓ; Ω) → {−1, +1}, such that the algorithm has the following structure. First, generate
+i.i.d. random variables (ωi )i∈V (G) as above, i.e. with ωi ∈ Ω and ωi ∼ ν for some law ν. Then let σi =
+F (Bi (ℓ), ωBi (ℓ) ). Furthermore, we say that such an algorithm is balanced if P(σi = 1) = 21 .
+Definition 1.5. A stochastic process (ξv )v∈V (T ) ∈ X V (T ) indexed by the vertices of the infinite k-regular
+tree T and taking values in a measurable space X , is a block factor of IID if there exists a finite ℓ ≥ 1 and a
+measurable function F : G∗ (k, ℓ; Ω) → {−1, +1} such that ξv = F (Bv (ℓ), ωBv (ℓ) ) for all v ∈ V (T ).
+    While we stated the above definitions in general form for clarity, by the Borel equivalence theorem, there
+is essentially no loss of generality in assuming (Ω, F , ν) = (R, BR , N(0, 1)), i.e., taking the ωi to be standard
+Gaussian random variables, which we will do in the remainder of this paper.
+Definition 1.6. A finite graph G is (ℓ, ε)-locally treelike if Bi (ℓ + 1) is isomorphic to a tree for at least
+(1 − ε)n vertices i ∈ V (G).
+   For convenience, we introduce the notation
+                                                      1       X
+                                           UG (σ) =                    σi σj .                              (1.10)
+                                                      n
+                                                          (i,j)∈E(G)
+
+Theorem 1.7. If Assumption 1 holds, then for any η > 0 there exists ℓ0 ≥ 1 such that for any ℓ ≥ ℓ0
+there exists n0 = n0 (ℓ) ≥ 1, k0 = k0 (η, ℓ) ≥ 2 such that the following holds for all k ≥ k0 and n ≥ n0 .
+                                                                          1      2
+There exist
+          √ balanced ℓ-local algorithms Amin-bis and Amax-cut outputting σ and σ respectively such that on
+any (ℓ, η/ k)-locally treelike k-regular graph G with n vertices,
+                         1                                         1
+                       √    UG (σ 1 ) ≥ P⋆ − η ,      and       −√    UG (σ 2 ) ≥ P⋆ − η ,                  (1.11)
+                        k−1                                       k−1
+                                                                2
+where each event holds with probability at least 1 − Ce−nη /(Ck) where C = C(ℓ, k) > 0.
+    Less formally, in the above result, one should think of n → ∞ first, then k → ∞, then finally L → ∞.
+    Local algorithms for extremal cuts on locally treelike graphs were studied by Lyons in [Lyo17]. The
+term block√ factor of IID is introduced in that paper. Lyons [Lyo17] gives a local algorithm achieving
+UG (σ 1 )/ k − 1 ≥ 2/π + ok (1). In fact his approach can be viewed as a special case of our general strategy:
+we refer to Section 2.2 for further comparison. Recent attempts to compute extremal cuts on sparse graphs
+using quantum algorithms appear in [BM22, BFM+ 21]. These algorithms are shown to surpass the value 2/π
+achieved by the local algorithm of Lyons, but require a quantum computer, or otherwise run in exponential
+time on a classical one. Besides the algorithmic question, there are a number of papers providing upper and
+lower bounds for the max-cut value and related quantities on sparse random graphs. We refer to the two
+recent papers [GL18, COLMS20] and references therein regarding this topic.
+    Our algorithm uses a message passing strategy developing the ideas of [Mon21, AMS21]. However, these
+papers dealt with dense graph structures, and used an approximate message passing (AMP) update [BM11]
+as the underlying iterative scheme. In dealing with sparse locally treelike graphs, we will consider a message
+passing algorithm of more classical type that operates by updating messages associated to the directed edges
+of G (two directed edges are associated to each edge in G). The algorithm constructs a martingale on each
+vertex, coupling martingales on different vertices in a non-trivial manner by propagating messages through
+directed edges.
+
+                                                          3
+                                                                                                    Pn
+Remark 1. Since our algorithms are local and balanced, an elementary concentration bound implies i=1 σi =
+O(n1/2+ε ) for any constant ε > 0, with probability converging to one as n → ∞. Hence,     P for instance, we
+can flip O(n0.51 ) variables to construct an exact bisection σ ∈ {−1, +1}n (i.e., such that ni=1 σi = 0). The
+resulting cut obeys the guarantees of Theorem 1.7, namely Eq. (1.11).
+
+Organization of the paper. Section 2 describes a general message passing scheme, and characterizes the
+achieved value. In Section 3 we prove that, for large degrees, the messages of this algorithm obey a central
+limit theorem, which simplifies the analysis. Finally, in Section 4 we take the continuum time limit of the
+previous algorithm and prove Theorem 1.7.
+
+
+2     A general message passing algorithm
+2.1    Algorithm definition
+The algorithm depends on two sequences of measurable functions: Fℓ : Rℓ+1 → R, Hℓ : Rℓ+1 → R, for ℓ ≥ 0.
+    We initialize the algorithm using (u0i )i∈V a collection of i.i.d. random variables with u0i ∼ N(0, 1). The
+algorithm updates messages indexed by directed edges E     ~ = {(i → j) : (i, j) ∈ E} (in particular |E|~ = 2|E|).
+We denote by ∂i the set of neighbors of i. We will denote the basic messages by (uℓi→j )(i→j)∈E~ , with
+ℓ ∈ {0, 1, 2, . . . } denoting the iteration number. Messages are initialized by setting u0i→j = u0i , and updated
+for ℓ ≥ 0 via
+                                               1     X
+                                      uℓ+1
+                                       i→j = √            Aℓ−1 · uℓv→i ,
+                                              k − 1 v∈∂i\j v→i                                              (2.1)
+                                      Aℓi→j = Fℓ (u0i→j , . . . , uℓi→j ) ,
+
+where, by convention, we set A−1
+                              i→j = 1. We further define node quantities
+
+                                                  1 X ℓ−1
+                                          uℓ+1
+                                           i   = √        Av→i · uℓv→i .                                    (2.2)
+                                                   k v∈∂i
+
+    Finally, fixing an integer L ≥ 1 and a ‘time step’ δ ∈ [0, 1], we construct the outputs of the algorithm via
+
+                                                      √ XL
+                                              zvL =    δ   Bvℓ−1 · uℓv ,                                    (2.3)
+                                                      ℓ=1
+                                             Bv = Hℓ (u0v , . . . , uℓv ) .
+                                              ℓ
+                                                                                                            (2.4)
+
+    Intuitively, we think of zvL as a martingale driven by the sequence (uℓv )1≤ℓ≤L when δ is small and δL is
+constant. The general strategy will be to maximize or minimize the correlation E{zvL zvL } over an edge (v, v) ∈
+E in the case of minimum bisection or maximum cut respectively, subject to the constraint that |zvL | → 1
+a.s. when δ → 0 and L → ∞ inversely proportionally. Without the last constraint,
+                                                                               √      the process solving this
+extremal problem is the so-called Gaussian wave function with eigenvalues ±2 k − 1, respectively [CGHV15].
+We consider this case for illustration in the next section. Putting back the binary constraint, for k large,
+we expect this optimization problem to be closely related to its analogue on the complete graph, which was
+solved in [Mon21, AMS21] and is given by a stochastic representation of the Parisi formula. Assumption 1
+guarantees that this stochastic representation indeed achieves the optimal value P⋆ . We will prove a central
+limit theorem for the sequence (uℓv )1≤ℓ≤L when k is large, and with an appropriate choice of the functions
+                                       ⌊t/δ⌋
+{Fℓ , Hℓ }, approximate the process zv       by a martingale Mt = ∂x Φγ∗ (t, Xt ) where Φγ∗ is the solution to
+the Parisi PDE Eq. (1.6) with the optimal order parameter γ∗ , Eq. (1.5), and Xt is the solution to the
+associated SDE, see Section 4.3. Since |Mt | → 1 a.s. as t → 1, this construction approximately solves the
+extremization problem, and leads to the result of Theorem 1.7. It remains an interesting open problem to
+solve this extremization problem for fixed k, either over processes of the form given in Eq. (2.3), or over
+(block) factors of IID more generally.
+
+
+                                                            4
+2.2    A special case
+Before proceeding with the analysis of the above algorithm, we remark here that with a special choice of the
+two sequences of functions {Fℓ , Hℓ }, the above iteration computes a finite   √ approximation of the Gaussian
+wave function of [CGHV15] on the infinite tree for any eigenvalue |ρ| ≤ 2 k − 1. As a consequence one can
+recover the result of [Lyo17, Theorem 4.1] for the bisection and cut values realized by a local algorithm on
+a k-regular random graph.
+    For simplicity, assume G is k-regular of girth at least 2L+1 (i.e. it is (L, 0)-locally treelike). Let Aℓi→j = 1
+                             ~
+for all ℓ ≥ 0 and (i, j) ∈ E(G).   We let Biℓ = βℓ for all i ∈ V (G) and 1 ≤ ℓ ≤ L, for some deterministic
+sequence of numbers (βℓ )ℓ=1 (not depending on u0i , · · · , uL
+                           L
+                                                              i but possibly depending on L). We also let δ = 1.
+Then we can verify by induction that for every edge (i, j) ∈ E(G)   ~     the vector of messages (uℓi→j )0≤ℓ≤L is
+                                                                        ℓ
+distributed as N(0, IL+1 ). Similarly, for each vertex i ∈ V (G), (ui )0≤ℓ≤L ∼ N(0, IL+1 ). Furthermore, we
+can write uℓi and ziℓ as follows:
+
+                                                 X                                 ℓ
+                                                                                   X
+                                uℓi = αℓ                      u0v ,   and ziℓ =          βs usi ,                 (2.5)
+                                           v∈V (G):d(i,v)=ℓ                        s=1
+
+
+with
+                                                 1      1
+                           α0 = 1 ,        αℓ = √          ℓ−1           for all     1 ≤ ℓ ≤ L.                   (2.6)
+                                                  k (k − 1) 2
+                                                                          Pℓ
+Therefore (ziℓ )i∈V (G) is a centered Gaussian sequence with E{(ziℓ )2 } = s=1 βs2 for all i ∈ V (G) and ℓ ≤ L.
+A simple computation reveal that the covariance between neighboring vertices (v, v) ∈ E(G) is
+                                         √    L           √
+                                L L    2 k−1 X            k−1
+                              E zv zv =         βℓ−1 βℓ =      β, T β ,                                           (2.7)
+                                           k                k
+                                                         ℓ=2
+
+where β = (β1 , · · · , βL ) and T is a L × L matrix with entries Tℓ,ℓ+1 = 1 for 1 ≤ ℓ ≤ L − 1, Tℓ,ℓ−1 = 1 for
+2 ≤ ℓ ≤ L, and zero entries otherwise. (This formula will be generalized to arbitrary choices of Fℓ and Hℓ in
+Proposition 2.1 further below.)
+                                                          ℓπ
+    Observe that the matrix T has eigenvalues 2 cos( L+1     ) for 1 ≤ ℓ ≤ L. By letting β be a unit-norm
+eigenvector of T with eigenvalue ρ̄, we can construct a Gaussian process zρ̄ ∈ RV (G) with
+
+   1                     1                         √                            n              ℓπ         o
+     E kzρ̄ k2 = 1 ,        E zρ̄ , AG zρ̄       = ρ̄ k − 1,          ∀ ρ̄ ∈ EL := 2 cos              : 1≤ℓ≤L .   (2.8)
+   n                      n                                                                     L+1
+Here AG is the adjacency matrix of G. Since the sets EL form increasingly finer discretizations
+                                                                                            √ of the√interval
+[−2, 2] as L gets large, we can approximate Gaussian processes with any correlation ρ ∈ [−2 k − 1, 2 k − 1].
+Also, in that limit, the process converges to an eigenfunction of the adjacency operator of the infinite tree,
+known as Gaussian wave function [CGHV15].
+   As a special case, we obtain a local algorithm for optimizing the objective function UG , Eq. (1.10).
+                                                                                                         π
+Focusing on minimum bisection, let β be a unit-norm eigenvector of T with the largest eigenvalue 2 cos( L+1 ).
+From Eq. (2.7) we have
+                                                    √           π 
+                                                 2 k−1
+                                      E zvL zvL =          cos          .
+                                                      k         L+1
+
+We set σiL = sign(ziL ) and let G = Gn converge locally-weakly to the infinite regular tree rooted at vertex o.
+Then, with ρL = k E{zvL zvL }, the following holds almost surely for every L ≥ 0:
+
+                                                1 X  L L
+                           lim UGn (σ L ) =        E σo σv
+                          n→∞                   2
+                                                  v∈∂o
+                                               k                     k
+                                             =   1 − 2 P zoL zvL < 0 = arcsin(ρL /k) .                            (2.9)
+                                               2                       π
+
+
+                                                                5
+                        √
+As L → ∞, ρL → 2 k − 1 and we recover the result of [Lyo17, Theorem 4.1] (appealing to √            Remark 1
+to construct an exact bisection). In particular, for large k, this algorithm achieves UGn (σ)/ k − 1 =
+2/π + ok (1) + on (1). The constant 2/π ≈ 0.636620 is strictly smaller than P⋆ ≈ 0.763166. This is also
+the value achieved by the Goemans–Williamson semidefinite programming relaxation [FM17]. The above
+argument can be adapted in the obvious way to maximum cut, by taking β corresponding to the lowest
+eigenvalue of T .
+    Before moving to the more general case, let us remark that in the above construction, for any node v,
+the process (zvℓ )ℓ≥0 is a particularly simple martingale: zvL is as a sum of independent random variables,
+each one constructed from the randomness available at a particular radius ℓ ≤ L around v; see Eq. (2.5).
+In order to achieve the higher value P⋆ we will need to choose the coefficients Aℓi→j and Biℓ (or equivalently
+the functions Fℓ and Hℓ ) in a way keeping memory of past iterates, which drives the martingales towards a
+binary value {−1, +1} and simultaneously maximizes the edge-correlation E{zv zv }.
+
+2.3    Analysis on the regular tree
+In this section, we analyze the message passing algorithm introduced above on the infinite k-regular tree
+T = (V (T ), E(T )). We will then transfer some of the results to locally treelike graphs.
+   We write u≤ℓ          0             ℓ                                                                   ≤ℓ
+                i→j = (ui→j , . . . , ui→j ). Note that, for any ℓ ≥ 0, the random variables (ui→j )(i→j)∈E(T         ~ )
+indexed by directed edges in T are identically distributed and their joint distribution is uniquely determined
+by the sequence of functions Fℓ .
+                                            ≤ℓ
+   In particular the distribution of ui→j       satisfies a recursive distributional equation. Letting u≤ℓ       → be a
+random vector with the same distribution of (any of) the u≤ℓ      i→j   , and (u ≤ℓ
+                                                                                    )
+                                                                                 i→ i≥1 i.i.d. copies of the  same vector,
+      0                                  ≤ℓ
+and u ∼ N(0, 1) independent of (ui→ )i≥1 , we have
+                                               d                                 
+                                         u≤ℓ+1
+                                          →    = Fℓ u0 , u≤ℓ              ≤ℓ
+                                                           1→ , . . . , u(k−1)→ ,                                   (2.10)
+
+where Fℓ (u0 , u≤ℓ            ≤ℓ           0
+                1→ , . . . , u(k−1)→ )0 ≡ u and, for 0 ≤ t ≤ ℓ − 1,
+
+                                                                k−1
+                                                                X
+                              ≤ℓ                          1
+                     Fℓ u0 , u1→ , . . . , u≤ℓ
+                                            (k−1)→ t+1 ≡ √          Ft−1 (u0i→ , . . . , ut−1   t
+                                                                                          i→ ) ui→ .               (2.11)
+                                                          k − 1 i=1
+We will require the following polynomial growth and normalization conditions to hold.
+Assumption 2 (General conditions on updates Fℓ , Hℓ .). We assume the following conditions to hold:
+   1. There exists constants Cℓ < ∞ such that, for all ℓ ≥ 0, |Fℓ (u)| ∨ |Hℓ (u)| ≤ Cℓ (1 + kukCℓ ) for all
+      u ∈ Rℓ+1 .
+   2. Let (uti→j )t≥0 be the random variables defined by the above recursion, on the k-regular tree T . Then,
+      for any ℓ ≥ 0,
+                                                    E{Fℓ (u0i→j , . . . , uℓi→j )2 } = 1 .                         (2.12)
+
+    Note that the first assumption implies that, for each ℓ, |uℓi |, and |uℓi→j | are bounded by polynomials in
+the Gaussian random variables {u0v }v∈V (T ) . In particular, all moments of |uℓi |, and |uℓi→j | are finite.
+    The second condition is equivalent to E{(Aℓi→j )2 } = 1. It is immediate to see that this condition is
+non-empty. Note that the functions F0 , . . . , Fℓ−1 determine the joint distribution of u0i→j , . . . , uℓ+1
+                                                                                                          i→j . If the
+normalization condition is not satisfied by these functions, we can extend the sequence, for instance by
+starting with an arbitrary polynomially bounded function Fbℓ : Rℓ+1 → R. We could then satisfy Eq. (2.12)
+by setting
+                                                                       Fbℓ (ũ0i→j , . . . , ũℓi→j )
+                                 Fℓ (ũ0i→j , . . . , ũℓi→j ) =                                                   (2.13)
+                                                                   E{Fbℓ (u0 , . . . , uℓ )2 }1/2
+                                                                            i→j          i→j
+
+so long as the denominator is non-zero.
+    The main result of this section is a computation of the correlation of zvL and zvL over an edge (v, v) ∈ E(T )
+achieved by the local algorithm of Section 2.1 on the regular tree.
+
+                                                                     6
+Proposition 2.1. Consider the algorithm of Section 2.1, under Assumption 2. If (v, v) ∈ E(T ), then
+                                                  √
+                                                   k − 1 X n ℓ−2 ℓ−1 2 ℓ−1 ℓ−2 o
+                                                         L
+                                             2
+                               E{zvL zvL } =               E Av→v (uv→v ) Bv Bv  δ
+                                                    k
+                                                              ℓ=2
+                                                    L
+                                                   1X         n                                o
+                                               +             E Bvℓ−1 Bvℓ−1 Aℓ−2  ℓ−2 ℓ−1 ℓ−1
+                                                                            v→v Av→v uv→v uv→v   δ.
+                                                   k
+                                                       ℓ=1
+
+   The rest of this section is devoted to the proof of Proposition 2.1. The arguments, somewhat routine,
+exploit the conditional independence structure of the algorithm on the tree T .
+   In order to proceed we require the following notation. We denote by Bi (ℓ) the subgraph of T induced by
+vertices whose distance from i is at most ℓ, and by Bi→j (ℓ) the subgraph induced by all the vertices that can
+be reached from i via a path of length at most ℓ that does not pass through j. With an abuse of notation,
+we will use Bi (ℓ), Bi→j (ℓ) also to denote the corresponding sets of vertices.
+   It is useful to define certain σ-algebras:
+      ℓ,+                               ℓ,−
+   • Fi→j ≡ σ(u0i→j , . . . , uℓi→j ), Fi→j ≡ σ(u1i→j , . . . , uℓi→j ).
+
+   • Fiℓ,+ ≡ σ(u0i , . . . , uℓi ), Fiℓ,− ≡ σ(u1i , . . . , uℓi ).
+      ℓ,+                             ℓ,−
+   • Gi→j ≡ σ({u0v : v ∈ Bi→j (ℓ)}), Gi→j ≡ σ({u0v : v ∈ Bi→j (ℓ) \ {i}}).
+
+   • Giℓ,+ ≡ σ({u0v : v ∈ Bi (ℓ)}), Giℓ,− ≡ σ({u0v : v ∈ Bi (ℓ) \ {i}}).
+For ℓ = −1 we stipulate that all of these σ-algebras coincide with the trivial one.
+Lemma 2.2. The following relations hold between the σ-algebras defined above:
+                             ℓ,−
+ (a) For all ℓ ≥ 1, uℓi→j ∈ Gi→j , uℓi ∈ Giℓ,− .
+      ℓ,±    ℓ,±
+ (b) Fi→j ⊆ Gi→j and Fiℓ,± ⊆ Giℓ,± .
+
+ (c) If the shortest path between i1 and i2 passes through vertices j1 , j2 , then Giℓ11→j
+                                                                                        ,±
+                                                                                           1
+                                                                                             and Giℓ22→j
+                                                                                                      ,±
+                                                                                                         2
+                                                                                                           are inde-
+                                    ℓ1 ,±       ℓ2 ,±
+     pendent. As a consequence, Fi1 →j1 and Fi2 →j2 are independent. (This also holds for (i1 , i2 ) ∈ E(T ),
+     and i2 = j1 , i1 = j2 .)
+      ℓ+1,−              ℓ,+
+ (d) Fi→j   ⊆ σ(∪v∈∂i\j Fv→i ).
+
+ (e) For j ∈ ∂i, Giℓ,+ = σ(Gi→j
+                            ℓ,+    ℓ−1,+
+                                ∪ Gj→i          ℓ,+
+                                         ) and Gi→j                        ℓ−1,+
+                                                    = σ(σ({u0i }) ∪v∈∂i\j Gv→i   ).
+                                                   ℓ,−
+Proof. (a) Consider the statement uℓi→j ∈ Gi→j         , since the other one is proved analogously. We can proceed
+                                                                      P                  ℓ,−
+by induction over ℓ. For ℓ = 1, we have uℓi→j = (k − 1)−1/2 v∈∂i\j u0v and Gi→j              = σ({u0v : v ∈ ∂i \ j}).
+Assume that the statement holds for some ℓ ≥ 1, and consider the definition (2.1) of uℓ+1     i→j . By the induction
+                          ℓ−1 ℓ        ℓ                                 ℓ       ℓ+1
+hypothesis, we have Av→i uv→i ∈ Gv→i . Since by construction Gv→i ⊆ Gi→j , the claim follows.
+                                 ℓ,+     ℓ,+
+(b) Consider the inclusion Fi→j      ⊆ Gi→j  , since the others are proved analogously. The proof is by induction
+                                0,+     0,+
+over ℓ. For ℓ = 0 we have Fi→j = Gi→j = σ(u0i ). Assume that the claim holds for a certain ℓ ≥ 0. Of course
+  ℓ+1,+                        ℓ,+                                            ℓ,+    ℓ,+     ℓ+1,+
+Fi→j     = σ(σ({uℓ+1i→j }) ∪ Fi→j ). Since by the induction hypothesis Fi→j ⊆ Gi→j ⊆ Gi→j           and by point (a)
+            ℓ+1      ℓ+1,−     ℓ+1,+
+we have ui→j ∈ Gi→j ⊆ Gi→j , the claim follows.
+(c) This is immediate, since Bi1 →j1 (ℓ1 ) and Bi2 →j2 (ℓ2 ) are disjoint.
+                                                                      ℓ,+
+(d) It is sufficient to prove that, for each ℓ, uℓ+1
+                                                  i→j ∈ σ(∪v∈∂i\j Fv→i ). This follows as above from the definition
+(2.1).
+(e) This follows from Bi (ℓ) = Bi→j (ℓ) ∪ Bj→i (ℓ − 1), and Bi→j (ℓ) = {i} ∪v∈∂i\j Bv→i (ℓ − 1).
+    The next lemma is a standard consequence of the monotone class theorem (see e.g., [Dur19, Theorem
+5.2.2]).
+
+                                                                     7
+Lemma 2.3. Let F1 , . . . , Fm , A be σ-algebras, and F = σ(F1 ∪· · ·∪Fm ) ⊆ A. Assume X ∈ A, and that, for
+any Y1 ∈ F1 , . . . , Ym ∈ Fm , E{XY1 · · · Ym } = 0 (provided the expectation exists). Then E{XY } = 0 for any
+Y ∈ F such that the expectation exists. (The same statement remains true if Yi ’s are bounded non-negative.)
+
+Lemma 2.4. Let (i, j) ∈ E(T ), ℓ ≥ −1, and Yiℓ ∈ Giℓ,+ . Then
+                                                        
+                                  E uℓ+1
+                                     i→j Yi
+                                           ℓ
+                                              = 0 , E uℓ+1 i  Yiℓ = 0 .                                                    (2.14)
+
+Proof. We will limit ourselves to proving the equations for uℓi→j , since the ones for uℓi are completely analo-
+gous.
+    By Lemma 2.2.(e) and Lemma 2.3, it is sufficient to prove the claim for Yiℓ = Yi→j  ℓ
+                                                                                             Y ℓ−1 , where Y ℓ ∈
+  ℓ           ℓ−1     ℓ−1
+                                                                   ℓ+1 ℓ           ℓ+1 ℓ j→i  ℓ−1 i→j
+Gi→j , and Yj→i ∈ Gj→i . Since by Lemma 2.2.(c), we have E ui→j Yi = E ui→j Yi→j E Yj→i , it is
+                            
+sufficient to prove that E uℓ+1     ℓ
+                              i→j Yi→j   = 0. We do this by induction over ℓ. For ℓ = −1, the claim is
+                  −1,+                                           −1
+                                                                                                          −1
+trivial, because Gi→j is the trivial σ-algebra, and therefore Yi→j   is a constant. Therefore E u0i→j Yi→j      =
+     0   −1
+E{ui }Yi→j = 0.
+    For the induction Qstep, consider any ℓ ≥ 0. Note that by Lemma 2.3, we can assume without loss of
+             ℓ
+generality Yi→j                  ℓ−1
+                 = Yi0 v∈∂i\j Yv→i   , where Yi0 ∈ Gi0,+ (namely, Yi0 is a function of u0i ), and Yv→i
+                                                                                                     ℓ−1    ℓ−1,+
+                                                                                                         ∈ Gv→i   .
+Using the update (2.1), we get
+                               1     X                     Y
+                E uℓ+1   ℓ
+                   i→j Yi→j = √             E Aℓ−1  ℓ
+                                               m→i um→i Yi
+                                                          0          ℓ−1
+                                                                   Yv→i
+                               k − 1 m∈∂i\j                 v∈∂i\j
+                                   1     X                       0    Y
+                               = √             E Aℓ−1  ℓ    ℓ−1
+                                                  m→i um→i Ym→i E Yi
+                                                                                  ℓ−1
+                                                                                Yv→i
+                                  k − 1 m∈∂i\j                       v∈∂i\{j,m}
+
+                               = 0,
+
+where in the last step we used the induction hypothesis and the fact that Aℓ−1  ℓ−1    ℓ−1
+                                                                           m→i Ym→i ∈ Gm→i .
+
+Lemma 2.5. Let (v, v) ∈ E(T ) and assume Yvt−1 ∈ Gvt−1,+ , Ỹvs ∈ Gvs,+ . If t ≥ s ∨ 1, then
+                                                    1  
+                                 E utv Yvt−1 Ỹvs = √ E At−2   t−1
+                                                          v→v uv→v Yv
+                                                                     t−1 s
+                                                                        Ỹv .                                              (2.15)
+                                                      k
+Proof. Using Eq. (2.1), we get
+                                1 X                              1  
+             E utv Yvt−1 Ỹvs = √          E At−2  t−1
+                                              j→v uj→v Yv   Ỹv + √ E At−2
+                                                         t−1 s               t−1   t−1 s
+                                                                        v→v uv→v Yv→v Ỹv .                                (2.16)
+                                  k j∈∂v\v                          k
+
+The proof follows by showing that the terms in the first sum vanish. Throughout the rest of the proof,
+we will denote by Yiℓ , Ỹiℓ random variables measurable with respect to Giℓ,+ , and by Yi→j
+                                                                                          ℓ       ℓ
+                                                                                             , Ỹi→j random
+                                           ℓ,+
+variables measurable with respect to Gi→j . Fix j ∈ ∂v \ v. By Lemma 2.2.(e) and Lemma 2.3, we can assume
+          t−2 t−1                   s−1          s−1       Q          s−2
+Yvt−1 = Yj→v Yv→j , Ỹvs = Ỹv→v
+                              s
+                                 Ỹv→v  , and Ỹv→v  = Ỹv0 i∈∂v\v Ỹi→v  . Therefore
+                                  
+           E At−2  t−1
+              j→v uj→v Yv   Ỹv = E At−2
+                         t−1 s            t−1   t−2 t−1 s        s−1
+                                     j→v uj→v Yj→v Yv→j Ỹv→v Ỹv→v
+                                   n                                Y        o
+                                = E At−2  t−1   t−2 t−1 s
+                                     j→v uj→v Yj→v Yv→j Ỹv→v Ỹv
+                                                                 0       s−2
+                                                                      Ỹi→v
+                                                                                 i∈∂v\v
+                                    (1)                                   n                        Y                  o
+                                      = E       At−2  t−1   t−2 s−2
+                                                 j→v uj→v Yj→v Ỹj→v   E         t−1 s
+                                                                               Yv→j Ỹv→v Ỹv0                   s−2
+                                                                                                              Ỹi→v
+                                                                                                 i∈∂v\{v,j}
+                                    (2)
+                                      = 0,
+                                                                 
+where we used Lemma 2.2.(c) in (1), and Lemma 2.4 which implies E At−2  t−1   t−2 s−2
+                                                                   j→v uj→v Yj→v Ỹj→v = 0 for t ≥ s
+(step (2)).
+
+
+                                                            8
+Lemma 2.6. Let (v, v) ∈ E(T ) and assume Yvt−1 ∈ Gvt−1,+ , Ỹvs ∈ Gvs,+ . If t ≥ s + 2, s ≥ 0, then
+                                         
+                                        E utv Yvt−1 Ỹvs = 0 .                                        (2.17)
+                                                                                           t−1 t−2
+Proof. By Lemma 2.3 and Lemma 2.2.(e), we can assume, without loss of generality Yvt−1 = Yv→v Yv→v and
+   s     s     s−1
+Ỹv = Ỹv→v Ỹv→v . By Lemma 2.5, we get
+                                          1    t−2 t−1 t−1 s
+                      E utv Yvt−1 Ỹvs = √ E Av→v    uv→v Yv Ỹv
+                                            k
+                                           1    t−2 t−1 t−1 t−2 s           s−1
+                                       = √ E Av→v    uv→v Yv→v Yv→v Ỹv→v Ỹv→v
+                                            k
+                                       (1) 1                            s−1 t−1
+                                       = √ E At−2      t−1   t−2 s
+                                                  v→v uv→v Yv→v Ỹv→v E Ỹv→v Yv→v
+                                             k
+                                      (2)
+                                       = 0,
+
+where in step (1) we use Lemma 2.2.(c) and in step (2) we used Lemma 2.4, together with the fact that
+ t−2   t−2 s       t−2
+Av→v Yv→v Ỹv→v ∈ Gv→v .
+
+Lemma 2.7. Let (v, v) ∈ E(T ) and assume (for some t ≥ 2) Yvt−1 ∈ Gvt−1,+ , Ỹvt−2 ∈ Gvt−2,+ . Then
+                                               √
+                                               k − 1  t−2 t−1 2 t−1 t−2
+                    E utv Yvt−1 uvt−1 Ỹvt−2 =       E Av→v (uv→v ) Yv Ỹv         .                (2.18)
+                                                 k
+Proof. By Lemma 2.5, and using the fact that ut−1
+                                              v Ỹv
+                                                   t−2
+                                                       ∈ Gvt−1,+ , we have
+                                                   1  
+                        E utv Yvt−1 uvt−1 Ỹvt−2 = √ E At−2   t−1
+                                                         v→v uv→v Yv
+                                                                    t−1 t−1 t−2
+                                                                       uv Ỹv   .
+                                                     k
+On the other hand Eqs. (2.1) and (2.2) imply, for any j ∈ ∂i,
+                                         r
+                                  t−1      k − 1 t−1       1
+                                uv =              uv→v + √ At−3    t−2
+                                                              v→v uv→v .                              (2.19)
+                                             k              k
+Hence
+                                                √
+                                                k − 1  t−2 t−1 2 t−1 t−2
+                     E utv Yvt−1 uvt−1 Ỹvt−2 =       E Av→v (uv→v ) Yv Ỹv
+                                                  k
+                                                  1  t−2 t−1 t−3 t−2 t−1 t−2
+                                                + E Av→v  uv→v Av→v uv→v Yv Ỹv .
+                                                  k
+The proof follows by showing that the second term on the right-hand side vanishes. To this end, by Lemmas
+                                    t−1 t−2
+2.2 and 2.3 we can assume Yvt−1 = Yv→v  Yv→v and Ỹvt−2 = Ỹv→v
+                                                             t−3 t−2
+                                                                Ỹv→v . Using once more Lemma 2.2, we get
+      t−2 t−1 t−3 t−2 t−1 t−2                                         t−3 t−2 t−1 t−3
+   E Av→v   uv→v Av→v uv→v Yv Ỹv      = E At−2    t−1   t−2 t−2
+                                              v→v uv→v Yv→v Ỹv→v E Av→v uv→v Yv→v Ỹv→v = 0 .       (2.20)
+                                       t−2   t−2 t−2     t−2,+
+In the last step we use the fact that Av→v Yv→v Ỹv→v ∈ Gv→v   , together with Lemma 2.4.
+
+Lemma 2.8. Let (v, v) ∈ E(T ) and assume Yvℓ ∈ Gvℓ,+ , Ỹvℓ ∈ Gvℓ,+ for each ℓ ≥ 0. Then, for each t ≥ 1,
+                                              
+                     E utv uvt Yvt−1 Ỹvt−1 = E At−2   t−1    t−2 t−1
+                                                 v→v uv→v Av→v uv→v Yv
+                                                                          t−1 t−1
+                                                                             Ỹv    .                 (2.21)
+
+Proof. Since uvt Ỹvt−2 ∈ Gvt,+ , we apply Lemma 2.5 to obtain
+                          1  
+ E utv uvt Yvt−1 Ỹvt−1 = √ E At−2   t−1 t t−1 t−1
+                                v→v uv→v uv Yv Ỹv
+                            k
+                                                         √
+                          1  t−2 t−1 t−2 t−1 t−1 t−1     k − 1  t−2 t−1 t
+                        = E Av→v uv→v Av→v uv→v Yv Ỹv +       E Av→v uv→v uv→v Yvt−1 Ỹvt−1 ,
+                          k                                k
+
+                                                       9
+where the last line follows by using Eq. (2.19) with a time index t instead of t − 1. It remains to show that
+the second term in the above display vanishes. By Lemma 2.3 and Lemma 2.2.(e), we can assume, without
+                              t−1 t−2
+loss of generality, Yvt−1 = Yv→v Yv→v and Ỹvt−1 = Ỹv→v
+                                                      t−1 t−2
+                                                          Ỹv→v . Substituting in the second term above and
+using independence (Lemma 2.2.(c)), we get
+                t−2 t−1 t                                                         t−1 t−2
+             E Av→v    uv→v uv→v Yvt−1 Ỹvt−1 = E At−2    t−1 t      t−2 t−1
+                                                    v→v uv→v uv→v Yv→v Ỹv→v · E Yv→v Ỹv→v .
+
+       t−2 t−1    t−2 t−1     t−1,+
+Since Av→v uv→v Yv→v Ỹv→v ∈ Gv→v   , the first expectation on the right-hand side is zero by Lemma 2.4.
+   We can now collect and apply the previous lemmas to obtain a statement about the correlation achieved
+by the local algorithm of Section 2.1.
+Proof of Proposition 2.1. Using Eq. (2.3), we get
+
+                                        X ℓ−1
+                                        L X                                         L
+                                                                                    X
+                    E{zvL zvL } = 2                 E{uℓv uℓ̃v Bvℓ−1 Bvℓ̃−1 } δ +         E{uℓv uℓv Bvℓ−1 Bvℓ−1 } δ
+                                         ℓ=1 ℓ̃=1                                   ℓ=1
+                                        L
+                                        X                                          L
+                                                                                   X
+                                  =2           E{uℓv uℓ−1
+                                                      v Bv
+                                                          ℓ−1 ℓ−2
+                                                             Bv } δ +                    E{uℓv uℓv Bvℓ−1 Bvℓ−1 } δ ,
+                                         ℓ=2                                       ℓ=1
+
+
+where the last equality follows from Lemma 2.6, using the fact that Biℓ ∈ Giℓ,+ . We next apply Lemma 2.7
+to the first sum, and Lemma 2.8 to the second one, thus getting the desired claim.
+
+
+3     A central limit theorem for large degree
+We consider the situation where the degree k is large. We will show in this case that the vector of messages
+                                              ~ ) is approximately Gaussian. In order to avoid inessential
+(uℓi→j )1≤ℓ≤L for each directed edge (i, j) ∈ E(T
+technicalities, we make the following simplifying assumption. It will always hold in our applications thanks
+to Proposition 4.4.
+Assumption 3 (Boundedness of Fℓ , Hℓ .). We assume that there exists a constant K < ∞ such that, for all
+ℓ ≥ 0, |Fℓ (u)| ∨ |Hℓ (u)| ≤ K for all u ∈ Rℓ+1 .
+    This of course implies that the coefficients Aℓi→j and Biℓ are almost surely uniformly bounded:
+                                                                                                  
+                       P          sup          Aℓi→j ≤ K = 1 ,             P        sup       Biℓ ≤ K = 1 .            (3.1)
+                                     ~
+                               (i,j)∈E,ℓ≥0                                         i∈V,ℓ≥0
+
+
+We say that a function ψ : Rn → R is pseudo-Lipschitz if there is L ≥ 0 such that for every x, y ∈ Rn ,
+|ψ(x) − ψ(y)| ≤ L(1 + kxk + kyk)kx − yk.
+Theorem 3.1. Let ℓ ≥ 0 and ψ : Rℓ+1 → R be a pseudo-Lipschitz function. Let (U0 , · · · , Uℓ ) ∼ N(0, Iℓ+1 ).
+Then for any fixed ℓ, the following hold
+                                    1 X                           
+                                p-lim   ψ u0i→j , · · · , uℓi→j = E ψ(U0 , · · · , Uℓ ) ,                              (3.2)
+                                k→∞ k     i∈∂j
+                                            1 X                       
+                                     p-lim      ψ u0i , · · · , uℓi = E ψ(U0 , · · · , Uℓ ) .                          (3.3)
+                                        k→∞ k
+                                                 i∈∂j
+
+Here, p-lim denotes the limit in probability.
+    The next two lemmas will be useful in the proof of the above theorem.
+
+
+
+
+                                                                   10
+                        ~ ) and ℓ ≥ 0,
+Lemma 3.2. For (i, j) ∈ E(T
+                                                   ℓ−1,−             d                      2 
+                                            uℓi→j Gi→j           ℓ
+                                                         = N 0, τi→j                               ,                                   (3.4)
+        ℓ
+where (τi→j ) are defined by the recursion:
+                                 2        1  X                       2           2
+                           ℓ+1
+                          τi→j        =                        Aℓ−1
+                                                                v→i
+                                                                             ℓ
+                                                                            τv→i        ,     and       0
+                                                                                                       τi→j = 1.                       (3.5)
+                                          k−1
+                                                  v∈∂i\j
+
+Proof. We proceed by induction, the base case ℓ = 0 being clear. Suppose the statement holds for all
+         ~ and iterations up to ℓ. We have
+(i, j) ∈ E
+                                                               1     X
+                                           uℓ+1
+                                            i→j = √                        Aℓ−1  ℓ
+                                                                            v→i uv→i .
+                                                              k − 1 v∈∂i\j
+
+                                              ℓ,−                        ℓ,− d ℓ      ℓ−1,− d           2
+We observe that for all v ∈ ∂i \ j, Aℓ−1                           ℓ
+                                      v→i is Gi→j –measurable and uv→i Gi→j = uv→i Gv→i
+                                                                                                    ℓ
+                                                                                            = N(0, τv→i    ),
+                                                           ℓ                                          ℓ+1
+where the last inequality in law is by induction. Since (uv→i )v∈∂i are independent, we deduce that ui→j is
+                           ℓ,+
+Gaussian conditional on Gi→j   , with mean and variance
+                         ℓ,+                                ℓ,+                      1  X                       2          2
+                E uℓ+1
+                   i→j | Gi→j = 0 ,              E (uℓ+1  2
+                                                     i→j ) | Gi→j =                                        Aℓ−1
+                                                                                                            v→i
+                                                                                                                        ℓ
+                                                                                                                       τv→i        .
+                                                                                      k−1
+                                                                                                  v∈∂i\j
+
+This completes the induction argument.
+                        ~ ) and ℓ ≥ 0,
+Lemma 3.3. For (i, j) ∈ E(T
+                                                                     2
+                                                      E       uℓi→j         ≤ K 2ℓ .
+
+Proof. Since Aℓ−1  ℓ        ℓ−1 ℓ                                    ′
+              v→i uv→i and Av ′ →i uv ′ →i are independent for v 6= v and have zero mean, we have
+
+                                                2         1  X            2
+                                  E       uℓ+1
+                                           i→j        =          E Aℓ−1  ℓ
+                                                                    v→i uv→i
+                                                           k−1
+                                                                      v∈∂i\j
+                                                            1   X      
+                                                      ≤ K2            E (uℓv→i )2
+                                                           k−1
+                                                               v∈∂i\j
+                                                             ℓ
+                                                      = K E (ui→j )2 ,
+                                                         2
+
+
+where the second line follows from Assumption 3, and the last line follows by transitivity of the tree. Since
+E[(u0i→j )2 ] = 1, we obtain the desired result.
+Lemma 3.4. For ℓ ≥ 0 there exists a constant C = C(ℓ) < ∞ such that
+                                                 n             2         2 o       C(ℓ)
+                                                       ℓ
+                                             E        τi→j           −1           ≤        .                                           (3.6)
+                                                                                      k−1
+Proof. We define
+                                                               n           2         2 o
+                                                 ∆ℓ := E              ℓ
+                                                                     τi→j         −1          .
+
+Using the relation (3.5), we have the bound
+                                             n
+                                             1   X          2 ℓ 2          2 o
+                            ∆ℓ+1 ≤ 2 E                 Aℓ−1
+                                                        v→i     (τv→i ) − 1
+                                            k−1
+                                                v∈∂i\j
+                                          n 1    X          2    2 o
+                                      +2E              Aℓ−1
+                                                         v→i    −1      .
+                                            k−1
+                                                               v∈∂i\j
+
+
+
+                                                                      11
+We bound the first term via Jensen’s inequality and the fact that |Aℓ−1
+                                                                    v→i | ≤ K almost surely. We expand the
+square in the second term and use independence together with the normalization condition (2.12) to obtain
+the recursion
+                       2K 4 X       n             2 o       2     X       n      2    2 o
+              ∆ℓ+1 ≤             E (τv→i ℓ
+                                            )2 − 1      +        2
+                                                                          E    Aℓ−1
+                                                                                v→i    −1
+                      k−1                                 (k − 1)
+                                         v∈∂i\j                                         v∈∂i\j
+                                                    4
+                                               2(K + 1)
+                         ≤ 2K 4 ∆ℓ +                    .
+                                                 k−1
+                            2         2
+Since ∆0 = E           u0i        −1         = 0, it follows that ∆ℓ ≤ C(ℓ)/(k − 1).
+Proof of Theorem 3.1. We only prove convergence of (u0i→j , · · · , uℓi→j ). Convergence of (u0i , · · · , uℓi ) can be
+shown similarly. We proceed by induction over ℓ. The base case ℓ = 0 follows from the law of large numbers,
+as (u0i→j )i∈∂j are i.i.d. with zero mean and unit variance. We suppose that the claim is true up to ℓ. Let
+                                         ℓ,−
+ψ : Rℓ+2 → R. Since (usi→j )0≤s≤ℓ are Gi→j   –measurable, Lemma 3.2 implies
+
+                        1 X                         ℓ,− d 1 X                                  
+                            ψ u0i→j , · · · , uℓ+1
+                                               i→j   Gi→j =                               ℓ+1
+                                                               ψ u0i→j , · · · , uℓi→j , τi→j Ui ,                    (3.7)
+                        k                                   k
+                             i∈∂j                                           i∈∂j
+
+where (Ui )i∈∂j are mutually independent N(0, 1) r.v.’s which are independent of everything else. Using
+Lemma 3.4 combined with the facts that ψ is pseudo-Lipschitz and (usi→j )0≤s≤ℓ have moments bounded
+uniformly in k (because the coefficients (Asi→j ) are almost surely uniformly bounded), we have
+    n                                                                   o                2 1/2     ℓ+1    2 
+                                   ℓ+1                                                ℓ+1
+E       ψ u0i→j , · · · , uℓi→j , τi→j Ui − ψ u0i→j , · · · , uℓi→j , Ui    ≤ C(ℓ) E τi→j −1        + E τi→j −1
+                                                 C(ℓ)
+                                               ≤√     .                                                               (3.8)
+                                                  k−1
+Next, we define the function
+                                                   
+                         ψ̄(u0 , · · · , uℓ ) := EU ψ(u0 , · · · , uℓ , U ) ,              U ∼ N(0, 1).
+                                                        
+By independence of the tuples u0i→j , · · · , uℓi→j , Ui i∈∂j we have
+
+                              n 1 X                                                                  2 o σψ2
+                         E                     ψ u0i→j , · · · , uℓi→j , Ui − ψ̄ u0i→j , · · · , uℓi→j       =    ,   (3.9)
+                                    k                                                                          k
+                                        i∈∂j
+
+where                                                                                       
+                                        σψ2 := E var ψ u0i→j , · · · , uℓi→j , Ui (usi→j )0≤s≤ℓ .
+
+It follows from Lemma 3.3 and ψ being pseudo-Lipschitz that σψ2 is bounded uniformly in k. Combin-
+ing (3.7), (3.8) and (3.9) via Chebyshev’s inequality we obtain
+                                    1 X                                                           p
+                                         ψ u0i→j , · · · , uℓ+1       0              ℓ
+                                                            i→j − ψ̄ ui→j , · · · , ui→j          −−−−→ 0 .
+                                    k                                                              k→∞
+                                        i∈∂j
+
+
+Using the induction hypothesis with the function ψ̄ allows us to conclude the argument.
+
+
+4        The non-linearities and continuum limit
+In this section we propose a choice of the nonlinearities Fℓ , Hℓ that is motivated by the algorithm introduced
+for the SK model in [Mon21]. We will show that, by rounding the resulting estimate ziL , we obtain an
+algorithm that verifies the claim of Theorem 1.7.
+
+
+                                                                       12
+4.1    General construction of the non-linearities and value on the tree
+We begin by constructing a general class of non-linearities Fℓ , Hℓ , which depends on two functions a, b :
+[0, 1) → R. The construction proceeds by defining the sequences (xℓi→j )(i,j)∈E(T             ℓ
+                                                                                ~ ),ℓ≥0 and (xi )i∈V (T ),ℓ≥0
+recursively as
+                                                       √ ℓ+1                √
+                       xℓ+1     ℓ               ℓ
+                        i→j = xi→j + b(δℓ, xi→j )δ +    δ ui→j , x0i→j = δ u0i ,                       (4.1)
+                                                  √                  √
+                       xℓ+1
+                         i  = xℓi + b(δℓ, xℓi )δ + δ uℓ+1
+                                                      i   , x0i = δ u0i ,                              (4.2)
+
+where (uℓi→j )(i,j)∈E(T           ℓ
+                    ~ ),ℓ≥0 and (ui )i∈V (T ),ℓ≥0 are defined by the general message passing iteration of Eqs. (2.1),
+(2.2) with
+
+                                        Aℓi→j = a(δℓ, xℓi→j ) ,           and Biℓ = a(δℓ, xℓi ) .                                (4.3)
+
+In other words we defined
+
+                    Fℓ (u0i→j , · · · , uℓi→j ) := a(δℓ, xℓi→j ) ,         and Hℓ (u0i , · · · , uℓi ) := a(δℓ, xℓi ) ,          (4.4)
+
+where the xℓi→j , and xℓi are given by the recursions (4.1), (4.2).
+                                                                    
+    We now analyze the expected value achieved on the tree T , k2 E zoL zvL                             where (o, v) is an edge of the
+tree, with the above choice of non-linearities.
+Theorem 4.1. Assume the functions a, b satisfy the following conditions for some constants ε > 0, K, M <
+∞:
+  1. supx∈R,t≤1−ε |a(t, x)| ≤ K.
+  2. |b(t, x) − b(t, x′ )| ≤ M |x − x′ | for all t ∈ [0, 1 − ε], x, x′ ∈ R.
+Let ε > 0, δ ∈ [0, 1] and L ≥ 0 such that Lδ ≤ 1 − ε. Then there exists C = C(M, K, δ, ε) < ∞ such that for
+all k ≥ 2,
+
+                                           √        nX
+                                                      L              o
+                             k E zoL zvL − 2 k − 1 E    a(δℓ, xℓo ) δ ≤ C(M, K, δ, ε) .                                          (4.5)
+                                                                    ℓ=2
+
+   Note that condition 1 in the above theorem is a restatement of Assumption 3. We will use the next two
+lemmas in the proof of the above theorem.
+Lemma 4.2. Let ε > 0, δ ∈ [0, 1] and L ∈ N be such that Lδ ≤ 1 − ε. Under the assumptions of Theorem
+4.1, there exists C = C(M, K, L) < ∞ such that the following holds. For all k ≥ 2, and ℓ ≤ L
+                                                   2        C                                   2       C
+                             E       xℓi − xℓi→j         ≤      ,   and      E       Biℓ − Aℓi→j        ≤     .
+                                                              k                                             k
+Proof. First, we control the difference uℓi − uℓi→j . Since
+                                                         r
+                                                             k−1 ℓ      1
+                                            uℓi =               ui→j + √ Aℓ−2   ℓ−1
+                                                                           j→i uj→i ,
+                                                              k          k
+we have
+                                              2        1 n ℓ−2 ℓ−1       1          2 o
+                         E       uℓi − uℓi→j         =     E Aj→i uj→i − √  √    uℓi→j
+                                                         k                k+ k−1
+                                                         2K 2ℓ
+                                                     ≤         ,
+                                                          k
+                                                                                                           2
+where the last line follows from the fact |Aℓ−2
+                                            j→i | ≤ K and Lemma 3.3: E                              uℓi→j         ≤ K 2ℓ .
+
+
+                                                                     13
+  We now proceed by induction. For ℓ = 0, we have uℓi = uℓi→j . Further, for any ℓ ≥ 0, letting ∆ℓi→j :=
+             2
+E xℓi − xℓi→j    , we get
+                                                                        √            ℓ+1 2
+                                                                                           
+                ∆ℓ+1
+                 i→j = E    xℓi→j − xℓi + b(δℓ, xℓi→j )δ − b(δℓ, xℓi )δ + δ (uℓ+1
+                                                                              i→j − ui   )
+                                                                2                         
+                                                                                         ℓ+1 2
+                      ≤ 3∆ℓi→j + 3 E b(δℓ, xℓi→j ) − b(δℓ, xℓi ) δ 2 + 3 E uℓ+1   i→j − ui     δ
+                                                 6K 2(ℓ+1)
+                      ≤ 3(1 + M 2 δ 2 )∆ℓi→j +             δ.
+                                                     k
+Since ∆0i→j = 0 and using Lδ ≤ 1 − ε ≤ 1, it holds by the discrete Grönwall inequality that for all ℓ ≤ L,
+
+                                                        C(M, K, L)
+                                             ∆ℓi→j ≤
+                                                           k
+as claimed. We then obtain the desired bound for Biℓ − Aℓi→j by using the Lipschitz property of a.
+Lemma 4.3. Under the assumptions of Theorem 4.1, let ε > 0, δ ∈ [0, 1] and L ∈ N be such that Lδ ≤ 1 − ε.
+Then there exists C = C(M, K, δ, ε) < ∞ such that the following holds. For all k ≥ 2, and ℓ ≤ L
+                                                                             C
+                                 E Biℓ−1 Bjℓ Aℓ−1   ℓ
+                                              i→j (ui→j )
+                                                         2
+                                                           − E Bjℓ            ≤√ ,                      (4.6)
+                                                                                k
+                                  
+                                 E Biℓ−1 Bjℓ−1 Aℓ−2  ℓ−2 ℓ−1 ℓ−1
+                                                i→j Aj→i ui→j uj→i            ≤ K6 .                    (4.7)
+
+Proof. In the following we omit the dependence of various constants upon K, M . We start with (4.6). Using
+                                             ℓ−1,+
+Lemma 3.4, and the fact that Biℓ−1 , Aℓ−1
+                                      i→j ∈ Gi     and Bjℓ ∈ Gjℓ,+ = σ(Gi→j
+                                                                        ℓ−1,+    ℓ,+
+                                                                              ∪ Gj→i ), we have
+                                                                        2    
+            E Biℓ−1 Bjℓ Aℓ−1   ℓ    2
+                         i→j (ui→j ) − 1         = E Biℓ−1 Bjℓ Aℓ−1
+                                                                i→j τi→j
+                                                                        ℓ
+                                                                              −1
+                                                    n               2 o1/2    n      2    2 o1/2
+                                                 ≤ E Biℓ−1 Bjℓ Aℓ−1
+                                                                 i→j         ·E     ℓ
+                                                                                   τi→j    −1
+                                                   K 3 C(ℓ)
+                                                 ≤ √        .
+                                                     k−1
+Moreover, using Lemma 4.2 in a similar way, we have
+                                                   ℓ        
+                                                          ℓ−1 2                 C
+                               E Biℓ−1 Bjℓ Aℓ−1
+                                            i→j − E Aj→i Ai→j                  ≤√ .
+                                                                                 k
+
+Since Aℓj→i and Aℓ−1
+                 i→j are independent,
+
+                                    2                  2    
+                        E Aℓj→i Aℓ−1
+                                 i→j    = E Aℓj→i · E Aℓ−1
+                                                       i→j    = E Aℓj→i ,
+
+where we used the normalization condition (2.12) to obtain the last equality. We then obtain the bound (4.6)
+with application of Lemma 4.2 by noting that, for ℓ ≤ L, C(ℓ, ε) is bounded by a constant depending on δ
+and ε (and K, M ).
+   In order to prove Eq. (4.7), we use the boundedness assumption (3.1) we have
+                                                                        
+                     E Biℓ−1 Bjℓ−1 Aℓ−2  ℓ−2 ℓ−1 ℓ−1
+                                    i→j Aj→i ui→j uj→i          ≤ K4 E       uℓ−1  ℓ−1
+                                                                              i→j uj→i
+                                                                                        
+                                                                = K4 E       uℓ−1
+                                                                              i→j   ·E       uℓ−1
+                                                                                              j→i
+                                                                ≤ K6 ,
+
+where the second line is by independence, and the third line follows from Lemma 3.2 and Lemma 3.4.
+
+
+
+
+                                                         14
+Proof of Theorem 4.1. Let ε > 0, δ ∈ [0, 1] and L ≤ (1 − ε)/δ. According to Proposition 2.1,
+                      L
+                      X                         L
+                                                X
+      L L     √          ℓ−2 ℓ−1 2 ℓ−1 ℓ−2       
+  k E zo zv = 2 k − 1   E Av→o (uv→o ) Bo Bv δ+   E Boℓ−1 Bvℓ−1 Aℓ−2  ℓ−2 ℓ−1 ℓ−1
+                                                                 v→o Ao→v uv→o uo→v δ .
+                            ℓ=2                                          ℓ=1
+
+Using Lemma 4.3, and the formula Boℓ = a(δℓ, xℓo ) we obtain the desired bound:
+                                            L
+                                            X
+                                    √         
+                      k E zoL zvL − 2 k − 1   E a(δℓ, xℓo ) δ ≤ 2 max C(ℓ, ε) + K 6 .
+                                                                               2≤ℓ≤L
+                                                   ℓ=2
+
+
+
+
+4.2   The Parisi PDE
+At this point we have constructed a discrete martingale zvL on each node of the graph and we have expressed
+its edge-correlation in terms of a Riemann sum of the function a, see Theorem 4.1 in the previous section.
+Now it remains to choose the non-linearities in a way which, once the continuum limit δ → 0 is taken,
+maximizes this edge-correlation, and at the same time drives this martingale to a binary value {−1, +1}
+for each node v. This optimization problem was solved in [Mon21, AMS21] via the Parisi formula. Here
+we recall properties of the function Φγ defined in (1.6). The results quoted below are taken from [AMS21]
+which systematically treats the more general setting of non-monotone γ at zero or positive temperature. In
+the positive temperature setting, analogous results have been obtained in for instance [AC15, JT16, Che17].
+Proposition 4.4. [AMS21, Lemmas 6.2, 6.4] For any γ ∈ U , the function Φγ (t, x) is continuous on
+[0, 1] × R, convex in x, and satisfies the following regularity properties for any ε > 0.
+ (a) ∂xj Φ ∈ L∞ ([0, 1 − ε]; L2 (R) ∩ L∞ (R)) for j ≥ 2.
+ (b) ∂t Φ ∈ L∞ ([0, 1] × R) and ∂t ∂xj Φ ∈ L∞ ([0, 1 − ε]; L2 (R) ∩ L∞ (R)) for j ≥ 1.
+ (c) |∂x Φγ (t, x)| ≤ 1 for (t, x) ∈ [0, 1) × R.
+   We now define a corresponding diffusion process Xt which solves the following SDE with (Bt ) a standard
+Brownian motion
+
+                                   dXt = γ(t)∂x Φγ (t, Xt )dt + dBt ,          X0 = 0 .               (4.8)
+Proposition 4.5. [AMS21, Lemma 6.5] For any γ ∈ U , Eq. (4.8) has a pathwise unique strong solution
+(Xt )t∈[0,1] which is almost surely continuous and satisfies
+                                                          Z t
+                                       ∂x Φγ (t, Xt ) =         ∂xx Φγ (s, Xs ) dBs .                 (4.9)
+                                                           0
+
+   Finally we give additional properties for the minimizing γ∗ = arg minγ∈U P(γ).
+Lemma 4.6. If Assumption 1 holds with minimizer γ∗ ∈ U , then for all t ∈ [0, 1) the following identities
+hold:
+
+                                                   E{∂xx Φγ∗ (t, Xt )2 } = 1 ,                       (4.10)
+                                          Z 1
+                                                 
+                                                E ∂xx Φγ∗ (t, Xt )}dt = P⋆ .                         (4.11)
+                                            0
+
+Proof. The first identity follows by combining [AMS21, Lemma 6.15] and [AMS21, Corollaries 6.10 and 6.11,
+and Theorem 5].
+   To prove the second identity, we use [Sel21, Lemma 2.9, Equation (2.7)] which states that
+                                                       Z 1
+                                 E{∂xx Φγ∗ (t, Xt )} =     γ∗ (s)ds , t ∈ [0, 1) .
+                                                               t
+
+
+                                                               15
+As a result it remains to check that                Z 1Z 1
+                                                                   γ∗ (s)dsdt = P⋆ .
+                                                      0    t
+Changing the order of integration, we find
+                           Z 1Z 1              Z 1Z s              Z 1
+                                  γ∗ (s)dsdt =        γ∗ (s)dtds =     sγ∗ (s)ds .
+                                 0     t                       0     0                  0
+
+The desired equality now follows by the last displayed equations in [Sel21, Proof of Lemma 3.11] upon
+specializing to the case (ξ(t), h) = (t2 /2, 0).
+
+4.3    Choosing functions a(t, x), b(t, x) and taking the continuum limit
+We next introduce our choice of functions a(t, x), b(t, x). We begin by introducing a discrete time stochastic
+process, depending on the discretization parameter δ. Let (U0δ , U1δ , · · · ) be a sequence of i.i.d. N(0, 1) random
+variables, and define the auxiliary sequence
+                              δ
+                                                         √ δ                     √
+                            Xℓ+1  = Xℓδ + b(δℓ, Xℓδ )δ + δ Uℓ+1  , X0δ = δ U0δ ,                                 (4.12)
+                                             √ XL
+                                                                    δ
+                                     ZLδ =    δ                δ
+                                                  a δ(ℓ − 1), Xℓ−1  Uℓ ,                Z0δ = 0 .               (4.13)
+                                                ℓ=1
+
+   Let Φγ solve the Parisi PDE, and γ = γ∗ : [0, 1) → R+ be the optimal order parameter in the Parisi
+formula, c.f. Section 1. We then define
+                          b(t, x) := γ(t)∂x Φγ (t, x) ,                                                         (4.14)
+                         a(t, x) := ∂xx Φγ (t, x) ,
+                         b                                                                                      (4.15)
+                                                                                                    −1/2
+                        a(ℓδ, x) := ξδ,k (ℓδ) · b
+                                                a(ℓδ, x) ,                              a(ℓδ, xℓ→ )2
+                                                                         ξδ,k (ℓδ) := E b                 .     (4.16)
+In the last equation, the expectation is with respect to xℓ→ , a random variable distributed as xℓi→j for
+any (i, j) ∈ E(T ). (The distribution of these random variables can be defined recursively using Eq. (2.10)
+together with the relation between xℓi→j and uℓi→j in Eq. (4.1).) Further notice that we defined a(t, x) only
+for t ∈ Nδ, which is what is required by the algorithm construction. We can extend this definition by letting
+a(t, x) := ξδ,k (⌈t/δ⌉δ) · b
+                           a(t, x). for all values of t.
+    By an application of Theorem 3.1, we have the following.
+Proposition 4.7. Let (Xℓδ )ℓ≥0 be defined as per Eq. (4.12). Then we have
+                                                                             a(ℓδ, Xℓδ )2 }−1/2 ,
+                                              lim ξδ,k (ℓδ) = ξδ,∗ (ℓδ) := E{b                                  (4.17)
+                                              k→∞
+                                                   X                     L
+                                  k     
+                            lim √      E zoL zvL =                 a(δℓ, Xℓδ )}δ .
+                                                       ξδ,∗ (ℓδ) E{b                                            (4.18)
+                           k→∞ 2 k − 1
+                                                   ℓ=2
+
+    The limit δ → 0 of the processes introduced in Eq. (4.12) is given by (Xt , Zt )t∈[0,1] , where (Xt )t∈[0,1]
+solves the SDE in Eq. (4.8) which we reproduce here:
+                                       dXt = γ(t)∂x Φγ (t, Xt )dt + dBt ,              X0 = 0 ,                 (4.19)
+and (Zt )t∈[0,1] is defined by
+                                                          Z t
+                                                 Zt =           ∂xx Φγ (s, Xs )dBs .                            (4.20)
+                                                           0
+In the above, (Bt )t∈[0,1] is a standard Brownian motion.
+    The following result now shows convergence of the limiting discrete-time dynamics to a continuous-time
+stochastic differential equation as δ → 0. It follows from the proof of [AMS21, Proposition 5.3] with (3.1)
+replacing state evolution for AMP. The idea there is to show by induction on ℓ and (4.23) that the distinction
+between a and b a becomes irrelevant as k → ∞ in the sense that the normalizing constants in (2.13) each tend
+to 1 (see [AMS21, Eq. (5.7)]). One shows in the same induction that the discretized dynamics approximate
+the SDE (4.19).
+
+                                                                      16
+Proposition 4.8. For any η > 0 there exist constants δ0 ∈ [0, 1] and C < ∞ and a coupling between
+{(Uℓδ , Xℓδ )ℓ≥0 and {(Bt , Xt )})t≥0 such that for all δ ≤ δ0 ,
+                              δ                                       δ
+                     sup E |X⌊t/δ⌋     − Xt |2 ≤ Cδ , and        sup E |Z⌊t/δ⌋ − Zt |2 ≤ Cδ . (4.21)
+                 t∈[0,1−η]                                              t∈[0,1−η]
+
+
+Moreover for all L ≤ (1 − η)/δ,
+                                                                                  √
+                                    lim sup      sup    E |a(ℓδ, x) − b
+                                                                      a(ℓδ, x)| ≤ C δ .                  (4.22)
+                                     k→∞ ℓ∈[L],x∈R
+
+
+   We next compute the value achieved in the limit δ → 0.
+Proposition 4.9. Let η ∈ [0, 1), δ ∈ (0, 1) and L = ⌊(1 − η)/δ⌋.
+                                                              Z 1−η
+                                k                                     
+                     lim lim  √      E zoL zvL =                      E ∂xx Φγ (s, Xs ) ds ≥ P⋆ − η ,
+                     δ→0 k→∞ 2 k − 1                           0
+
+where (Xt )t∈[0,1] solves the SDE (4.19).
+Proof. By Proposition 4.7, we need to evaluate the δ → 0 limit of the right-hand side of Eq. (4.18).
+   Recall that under Assumption 1, (4.10) ensures that, for all t ∈ [0, 1):
+
+                                                         a(δℓ, Xt )2 } = 1.
+                                                       E{b                                               (4.23)
+
+      a(t, x) is Lipschitz in x uniformly over t bounded away from 1, Proposition 4.8 implies
+Since b
+
+                                                  lim max ξδ,∗ (ℓδ) − 1 = 0 .
+                                                  δ→0 ℓ≤L
+
+Therefore, for any t ∈ [0, 1),
+                                   ⌊t/δ⌋                                      ⌊t/δ⌋
+                                   X                                           X
+                             lim                       a(δℓ, Xℓδ )}δ = lim
+                                           ξδ,∗ (ℓδ) E{b                                a(δℓ, Xℓδ )}δ
+                                                                                      E{b
+                             δ→0                                       δ→0
+                                   ℓ=2                                         ℓ=2
+                                                                              ⌊t/δ⌋
+                                                                               X
+                                                                    = lim               a(δℓ, Xℓδ )}δ
+                                                                                      E{b
+                                                                        δ→0
+                                                                               ℓ=2
+                                                                        Z t
+                                                                               
+                                                                    =         E ∂xx Φγ (s, Xs ) ds .
+                                                                         0
+
+   Therefore by appealing to Proposition 4.7,
+                                             Z 1−η
+                              k E zoL zvL                              (4.11)
+                    lim lim      √        =         E ∂xx Φγ (s, Xs ) ds ≥ P⋆ − η ,
+                    δ→0 k→∞     2 k−1          0
+
+where in the final step we used that for t ∈ [1 − η, 1],
+
+                                                     q                                  (4.10)
+                                   E ∂xx Φγ (s, Xs ) ≤ E ∂xx Φγ (s, Xs )2                  ≤ 1.
+
+
+
+
+4.4    Rounding and proof of Theorem 1.7
+Let G = (V, E) be a (L, ε)-locally treelike k-regular graph, as per Definition 1.6. The message passing
+algorithm described in the previous section outputs a vector z L = (ziL )i∈V after L iterations. In this section
+we relate the value obtained on the finite graph G with that achieved on the infinite tree T , describe a
+rounding procedure to obtain feasible solutions σ 1 , σ 2 ∈ {−1, +1}n and complete the proof of Theorem 1.7.
+
+
+                                                               17
+    Let zbL ∈ [−1, +1]n defined by
+                                                      (
+                                                          ziL           if |ziL | ≤ 1 ,
+                                             zbiL =                                                            (4.24)
+                                                          sign(ziL )    otherwise .
+
+                            b ∈ {−1, +1}n by drawing (b
+    The algorithm generates σ                          σi )i∈V conditionally independently given u0 =
+(u0i )i∈V
+        so that                            
+                                          E σbi u0 = zbiL .                                      (4.25)
+Equivalently, we can let σ
+                         bi = sign(bziL − ũ0i ) where (ũ0i )i∈V is a collection of i.i.d. random variables uniformly
+distributed in [−1, 1] and independent of (u0i )i∈V . ObserveP       that this algorithm is L-local and balanced as
+per Definition 1.4, and recalling that UG (σ) = (1/n) (i,j)∈E(G) σi σj , we have
+
+                                                    E UG (b           zL ) .
+                                                          σ ) = E UG (b                                        (4.26)
+
+Furthermore, we have the following concentration properties.
+Lemma 4.10. There exists a constant C = C(L, k) > 0 such that for all t ≥ 0,
+                                      1 X                         2
+                                   P              bi ≥ t + ε ≤ Ce−nt /(2C) ,
+                                                  σ                                                            (4.27)
+                                        n
+                                          i∈V (G)
+                                                                  2
+                         P UG (b             σ ) ≥ k(t + ε) ≤ Ce−nt /(2C) .
+                                 σ ) − E UG (b                                                                 (4.28)
+
+Proof. We first prove Eq. (4.27). Let W (G) ⊆ V (G) consist of all vertices with L-neighborhood a tree. By
+a simple greedy argument, W (G) can be partitioned into CL,k sets W1 , . . . , WCL,k ⊆ W (G) of vertices such
+that dG (i, j) ≥ 2L + 1 for any i, j ∈ Wq in the same set. Then for any 1 ≤ q ≤ CL,k , L-locality implies that
+                                                       X
+                                                  Sq =      σ
+                                                            bi
+                                                                   i∈Wq
+
+                                                                                                         2
+is a sum of i.i.d. zero-mean ±1 random variables. By Hoeffding’s inequality, P(|Sq | ≥ t) ≤ 2e−t /(2|Wq |) for
+all t ≥ 0. Since
+                                                         CL,k
+                                               X         X
+                                        S :=        σ
+                                                    bi =      Sq ,
+                                                          i∈W (G)         q=1
+
+we obtain by a union bound
+                                             CL,k
+                                            X                                             2      2
+                           P |S| ≥ t ≤              P(|Sq | ≥ t/CL,k ) ≤ 2CL,k e−t /(2nCL,k ) ,
+                                             q=1
+
+where we have upper-bounded |Wq | by n to obtain the last inequality. Finally, since the graph G is (L, ε)-
+locally treelike,       X                                              2       2
+                    P        bi ≥ t ≤ P |S| ≥ t − εn ≤ 2CL,k e−(t−εn) /(2nCL,k ) .
+                             σ
+                            i∈V (G)
+
+Next, we prove Eq. (4.28) using the same approach. We consider a partitioning of W (G) into CL,k sets
+W1 , . . . , WCL,k ⊆ W (G) of vertices such that dG (i, j) ≥ 2L + 3 for any i, j ∈ Wq for any q. Let
+                                                                                    CL,k
+                                             X           X                           X
+                                      Sq =          σ
+                                                    bi          σ
+                                                                bj ,    and S =            Sq .
+                                             i∈Wq        j∈∂i                        q=1
+
+Since dG (u, v) ≥ 2L + 3 implies dG (i, j) ≥ 2L + 1 for any two vertices i ∈ ∂u and j ∈ ∂v, it follows that
+Sq is a sum of i.i.d. random variables which are also bounded in absolute value by k. Hoeffding’s inequality
+                                     2    2
+implies P(|Sq − E{Sq }| ≥ t) ≤ 2e−t /(8k |Wq |) for all t ≥ 0. We finish the argument similarly, using that
+|2nUG (bσ ) − S| ≤ kε.
+
+                                                                   18
+   The next lemma is useful to control error terms in the rounding process.
+Lemma 4.11. Let {(ξv , ξ̃v )}v∈V (T ) be a block factor of IID on the infinite k-regular tree T taking values in
+R2 , such that E{ξv } = E{ξ˜v } = 0 (see Definition 1.5). For (u, v) ∈ E(T ) an edge, we have
+                                 √                                 √
+                                2 k−1                             2 k−1
+                  E{ξu ξv } ≤                2
+                                         E{ξu } ,    E{ξu ξ̃v } ≤          E{ξu2 }1/2 E{ξ˜v2 }1/2 .       (4.29)
+                                   k                                  k
+Proof. A more general statement appears in [BSV15], but we give a simple argument here for completeness.
+Let (F, F̃ ) : G∗ (k, ℓ; Ω) → R2 be the function that witnesses {(ξv , ξ˜v )}v∈V (T ) being a block factor of IID. For
+S ⊆ N a diverging sequence,   √ let (Gn )n∈S be a sequence√ of k-regular graphs of girth larger than 2ℓ + 2, such
+that limn→∞ λ2 (Gn ) ≤ 2 k − 1, limn→∞ λn (Gn ) ≤ −2 k − 1. Here k = λ1 (G) ≥ λ2 (G) ≥ · · · ≥ λn (G) are
+the (real) eigenvalues of the adjacency matrix of G, and the condition on (λ2 , λn ) amounts to the Gn being
+nearly Ramanujan. Such a sequence can be constructed by sampling k-regular graphs conditional on the
+girth being at least 2ℓ + 2 (an event that has probability bounded away from zero for each constant ℓ), and
+applying Friedman’s theorem [Fri08].
+     We then construct random variables (ωi )i∈V (Gn ) ∼iid ν, and {(zv , z̃v )}v∈V (Gn ) , by letting zv = F (Bv (ℓ), ωBv (ℓ) ),
+z̃v = F̃ (Bv (ℓ), ωBv (ℓ) ), where v ∈ V (G) and Bv (ℓ) is the ball of radius ℓ in Gn . Note that, for any edge
+(i, j) ∈ E(Gn ), we have E{ξu ξv } = E{zi zj }, E{ξu } = E{zi } = 0, and E{ξu2 } = E{zi2 }. Let Q ∈ Rn×n be the
+second moment matrix Qij = E{zi zj }. Note that h1, Q1i ≤ C(ℓ)n. Letting An be the adjacency matrix of
+Gn , we have
+                                             1
+                                 E{ξu ξv } =         E{hz, An zi}
+                                         2|E(Gn )|
+                                          1            
+                                       =    Tr An Q
+                                         nk
+                                          1                       1
+                                       ≤    λ2 (Gn )Tr(Q) + 2 λ1 (Gn )h1, Q1i
+                                         nk
+                                          √                     n  k
+                                                                ′
+                                         2 k−1                C   (ℓ)
+                                       ≤            E{ξv2 } +         .
+                                             k                  n
+                                                                −1
+                                                                    √
+By taking the limit n → ∞ limit, we obtain E{ξ    √ u ξv } ≤ 2k       k − 1 E{ξv2 }. By a similar argument (using
+                                               −1              2
+bipartite graphs) we deduce E{ξu ξv } ≥ −2k          k − 1 E{ξv }. The second inequality in (4.29) follows by
+applying the first inequality to
+                               q the  processes  z +
+                                                   u   = ξu + λξ˜u and zu− = ξu − λξ˜u , subtracting
+                                                                                               q         the two
+inequalities, and setting λ = E{ξ }/ E{ξ } to obtain the upper bound, and λ = − E{ξ }/ E{ξ˜2 } to
+                                     2
+                                         u
+                                            ˜2
+                                                   u
+                                                                                                     2
+                                                                                                            u       u
+obtain the lower bound.
+   Next we build on the results of the previous sections to relate E UG (b
+                                                                         σ ) to the Parisi formula.
+                                                                                                         L        L
+Lemma 4.12. Let (o(T ), v(T )) be a fixed edge in the infinite k-regular tree T , and denote by zo(T         ) , zv(T ) ,
+the estimates of the message passing algorithm on T . For η > 0 there exists δ0 (η), C(η) > 0, n0 ≥ 1 such that
+for all δ ≤ δ0 (η), there exists k0 = k0 (η, δ) such that the following holds for all k ≥ k0 . Let G be (L, ε)-locally
+treelike k-regular graph on n ≥ n0 vertices with L = ⌊(1 − η)/δ⌋. We have
+
+                                               k                         p
+                                     zL ) −
+                               E UG (b              L
+                                                 E{zo(T    L
+                                                        ) zv(T ) } ≤ C(η) (k − 1)δ + 2kε .                          (4.30)
+                                               2
+Proof. Let E0 ⊆ E be the subset of edges (i, j) ∈ E such that Bi (ℓ) and Bj (ℓ) are both k-regular trees.
+Define
+                                                  1 X
+                                     UG,0 (σ) :=          σi σj .
+                                                  n
+                                                              (i,j)∈E0
+
+
+                                              z L )− E UG,0 (b
+Note that |E \ E0 | ≤ knε and therefore E UG (b              z L ) ≤ kε. On the other hand, for any (i, j) ∈ E0
+
+
+
+
+                                                            19
+the pair of random variables (ziL , zjL ) is distributed as (zo(T
+                                                              L        L
+                                                                  ) , zv(T ) ), and therefore
+
+                  k                                       k
+         zL ) −
+   E UG (b             L
+                    E{zo(T    L
+                           ) zv(T ) } ≤ E UG,0 (bz L ) − E{zo(T  L       L
+                                                                      ) zv(T ) } + kε
+                  2                                       2
+                                         |E0 |    L      L         k        L        L
+                                      =          zo(T
+                                               E{b    )z
+                                                       bv(T )} −       E{zo(T    ) zv(T ) } + kε
+                                          n                        2
+                                        k       L         L        L           L                 L         L      L
+                                      ≤    E{(zo(T  )−z bo(T ) )(zv(T ) − z bv(T    ) )} + 2 E{(zo(T ) − z
+                                                                                                         bo(T ) )b
+                                                                                                                 zv(T ) } + 2kε
+                                        2
+                                        √          L            L      2
+                                                                                  √             L        L      2 1/2
+                                      ≤ k − 1 E (zo(T ) − zbo(T      ))    + 2 k − 1 E (zo(T        )−z bo(T ))         + 2kε .
+
+Here the last step follows from Lemma 4.11. Next, we define the function ψ(x) = miny∈[−1,1] (x − y)2 . Since
+            2
+E zboL − zoL     = E ψ(zoL ), we obtain by Theorem 3.1,
+                                                            2               
+                                    lim E       zboL − zoL        = E ψ ZLδ
+                                   k→∞
+                                                                  (a)                
+                                                                  = E ψ ZLδ − E ψ ZδL
+                                                                  (b)
+                                                                  ≤ C(η)δ .
+
+Here in (a) we are using the fact that |Zt | ≤ 1 a.s. for all t, which follows by the definition (4.20) of Zt
+combined with (4.9) and Proposition 4.4, part (c). Indeed these imply that ψ(ZδL ) = 0. In step (b) we used
+Proposition 4.8. The desired bound follows by combining the last two displays.
+Lemma 4.13. For η > 0 there exists δ0 (η) > 0 and n0 (η) ≥ 1 such that for all δ ≤ δ0 (η), there exists
+k0 = k0 (η, δ) such that the following holds for all k ≥ k0 . Let G be a (L, ε)-locally treelike k-regular graph
+on n ≥ n0 vertices with L = ⌊(1 − η)/δ⌋. We have
+
+                                                      zL )
+                                                E UG (b                 √
+                                                 √         ≥ P⋆ − 2η − 4 k ε ,
+                                                   k−1
+Proof. For any δ < δ0 (η), k ≥ k0 (η, δ) as per Lemma 4.12, we have
+
+                               zL )
+                         E UG (b         1 k        L      L
+                                                                         p                
+                          √         ≥ √          E{zo(T   z
+                                                         ) v(T ) } − C(η)  (k − 1)δ − 2kε
+                            k−1         k−1 2
+                                                                   √    √
+                                    ≥ P⋆ − η − err(k, δ) − C(η) δ − 4 kε ,
+                                                                                   √
+where limδ→0 limk→∞ err(k, δ) = 0 by Lemma 4.9. We can decrease δ0 (η) so that C(η) δ ≤ η/3 and
+
+                                                   lim sup err(k, δ) ≤ η/3
+                                                     k→∞
+
+for all δ ≤ δ0 (η). Finally, we increase k0 (η, δ) such that
+
+                                           err(k, δ) − lim sup err(k, δ) ≤ η/3 .
+                                                              k→∞
+
+
+
+
+   We are now ready to prove Theorem 1.7.
+Proof of Theorem 1.7. We obtain a feasible solution σ 1 ∈ {−1, +1}n to the minimum bisection problem by
+using the message passing algorithm with non-linearities {Fℓ , Hℓ }ℓ≤L as described in Section 4.3 and the
+rounding procedure described above. We obtain a vector σ̃ 1 ∈ {−1, +1}n which by Lemma 4.10, Eq. (4.26),
+and Lemma 4.13 is such that
+                              UG (σ̃ 1 )              √                            X
+                              √          ≥ P⋆ − 2η − 8 kε ,             and                 σ̃i1 ≤ 2εn ,
+                               k−1                                                i∈V (G)
+
+
+
+                                                                   20
+                                     2
+with probability at least 1 − Ce−Cnε , with C = C(L, k). To obtain an exactly balanced partition σ 1 (i.e.,
+P    1
+  i σi = 0), it suffices to change the signs of εn many vertices.
+                                                           √      The effect of this change on the normalized
+                                                                                  √
+cut value UG is no more than kε. We then choose ε = η/ k to obtain UG (σ 1 )/ k − 1 ≥ P⋆√      − 10η.
+    Next, a feasible solution σ 2 ∈ {−1, +1}n to the maximum cut problem with −UG (σ 2 )/ k − 1 ≥ P⋆ −
+10η is obtained similarly, by rounding the output of the message passing algorithm with non-linearities
+{−Fℓ , Hℓ }ℓ≤L . (Note that the resulting partition need not be balanced in this case.)
+
+Acknowledgements
+A.M. was partially supported by the NSF grant CCF-2006489 and the ONR grant N00014-18-1-2729. M.S.
+was partially supported by an NSF graduate research fellowship and a Stanford graduate fellowship. Parts
+of this work were completed while the authors were virtually participating in the Fall 2020 program on
+Probability, Geometry and Computation in High Dimensions at the Simons Institute for the Theory of
+Computing.
+
+
+References
+[AC15]       Antonio Auffinger and Wei-Kuo Chen. The Parisi formula has a unique minimizer. Communi-
+             cations in Mathematical Physics, 335(3):1429–1444, 2015.
+[AC17]       Antonio Auffinger and Wei-Kuo Chen. Parisi formula for the ground state energy in the mixed
+             p-spin model. The Annals of Probability, 45(6b):4617–4631, 2017.
+[AMS21]      Ahmed El Alaoui, Andrea Montanari, and Mark Sellke. Optimization of Mean-field Spin
+             Glasses. The Annals of Probability, 49(6):2922–2960, 2021.
+[BFM+ 21]    Joao Basso, Edward Farhi, Kunal Marwaha, Benjamin Villalonga, and Leo Zhou. The Quan-
+             tum Approximate Optimization Algorithm at High Depth for MaxCut on Large-Girth Regular
+             Graphs and the Sherrington-Kirkpatrick Model. arXiv preprint arXiv:2110.14206, 2021.
+[BGT13]      Mohsen Bayati, David Gamarnik, and Prasad Tetali. Combinatorial approach to the interpola-
+             tion method and scaling limits in sparse random graphs. The Annals of Probability, 41(6):4080
+             – 4115, 2013.
+[BM11]       Mohsen Bayati and Andrea Montanari. The dynamics of message passing on dense graphs, with
+             applications to compressed sensing. IEEE Transactions on Information Theory, 57(2):764–785,
+             2011.
+[BM22]       Boaz Barak and Kunal Marwaha. Classical algorithms and quantum limitations for maximum
+             cut on high-girth graphs. 13th Innovations in Theoretical Computer Science Conference (ITCS),
+             2022.
+[BSV15]      Ágnes Backhausz, Balázs Szegedy, and Bálint Virág. Ramanujan graphings and correlation
+             decay in local algorithms. Random Structures & Algorithms, 47(3):424–435, 2015.
+
+[CGHV15]     Endre Csóka, Balázs Gerencsér, Viktor Harangi, and Bálint Virág. Invariant gaussian pro-
+             cesses and independent sets on regular graphs of large girth. Random Structures & Algorithms,
+             47(2):284–303, 2015.
+[Che17]      Wei-Kuo Chen. Variational representations for the Parisi functional and the two-dimensional
+             Guerra–Talagrand bound. The Annals of Probability, 45(6A):3929–3966, 2017.
+
+[COLMS20] Amin Coja-Oghlan, Philipp Loick, Balázs F Mezei, and Gregory B Sorkin. The Ising antiferro-
+          magnet and max cut on random regular graphs. arXiv preprint arXiv:2009.10483, 2020.
+[DMS17]      Amir Dembo, Andrea Montanari, and Subhabrata Sen. Extremal cuts of sparse random graphs.
+             The Annals of Probability, 45(2):1190–1217, 2017.
+
+
+                                                     21
+[Dur19]   Rick Durrett. Probability: theory and examples, volume 49. Cambridge university press, 2019.
+[FM17]    Zhou Fan and Andrea Montanari. How well do local algorithms solve semidefinite programs?
+          In Proceedings of the 49th Annual ACM SIGACT Symposium on Theory of Computing, pages
+          604–614, 2017.
+[Fri08]   Joel Friedman. A proof of Alon’s second eigenvalue conjecture and related problems. Memoirs
+          of the American Mathematical Society, 2008.
+[Gam14]   David Gamarnik. Right-convergence of sparse random graphs. Probability Theory and Related
+          Fields, 160(1-2):253–278, 2014.
+[GL18]    David Gamarnik and Quan Li. On the Max-Cut of Sparse Random Graphs. Random Structures
+          & Algorithms, 52(2):219–262, 2018.
+[Hua18]   Brice Huang. Convergence of maximum bisection ratio of sparse random graphs. Electronic
+          Communications in Probability, 23:1–10, 2018.
+[JT16]    Aukosh Jagannath and Ian Tobasco. A dynamic programming approach to the Parisi functional.
+          Proceedings of the American Mathematical Society, 144(7):3135–3150, 2016.
+[Lyo17]   Russell Lyons. Factors of IID on Trees. Combinatorics, Probability and Computing, 26(2):285–
+          300, 2017.
+[Mon21]   Andrea Montanari. Optimization of the Sherrington–Kirkpatrick Hamiltonian. SIAM Journal
+          on Computing, (0):FOCS19–1, 2021.
+[Sal16]   Justin Salez. The interpolation method for random graphs with prescribed degrees. Combina-
+          torics, Probability and Computing, 25(3):436–447, 2016.
+[Sel21]   Mark Sellke. Optimizing Mean Field Spin Glasses with External Field.         arXiv preprint
+          2105.03506, 2021.
+[Tal06]   Michel Talagrand. The Parisi formula. Annals of Mathematics, pages 221–263, 2006.
+[ZB10]    Lenka Zdeborová and Stefan Boettcher. A conjecture on the maximum cut and bisection
+          width in random regular graphs. Journal of Statistical Mechanics: Theory and Experiment,
+          2010(02):P02020, 2010.
+
+
+
+
+                                                22
+

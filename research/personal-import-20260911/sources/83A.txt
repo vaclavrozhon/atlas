@@ -1,0 +1,1228 @@
+                                                             Byzantine Agreement with Optimal Resilience
+                                                                    via Statistical Fraud Detection
+                                                    Shang-En Huang                           Seth Pettie                            Leqi Zhu
+                                                  University of Michigan                University of Michigan                University of Michigan
+arXiv:2206.15335v1 [cs.DC] 30 Jun 2022
+
+
+
+
+                                                                                                 Abstract
+                                                    Since the mid-1980s it has been known that Byzantine Agreement can be solved with probability 1
+                                                asynchronously, even against an omniscient, computationally unbounded adversary that can adaptively
+                                                corrupt up to f < n/3 parties. Moreover, the problem is insoluble with f ≥ n/3 corruptions. However,
+                                                Bracha’s [Bra87] 1984 protocol (see also Ben-Or [Ben83]) achieved f < n/3 resilience at the cost of
+                                                exponential expected latency 2Θ(n) , a bound that has never been improved in this model with f =
+                                                ⌊(n − 1)/3⌋ corruptions.
+                                                    In this paper we prove that Byzantine Agreement in the asynchronous, full information model can be
+                                                solved with probability 1 against an adaptive adversary that can corrupt f < n/3 parties, while incurring
+                                                only polynomial latency with high probability. Our protocol follows earlier polynomial latency protocols
+                                                of King and Saia [KS16, KS18] and Huang, Pettie, and Zhu [HPZ22], which had suboptimal resilience,
+                                                namely f ≈ n/109 [KS16, KS18] and f < n/4 [HPZ22], respectively.
+                                                    Resilience f = (n−1)/3 is uniquely difficult as this is the point at which the influence of the Byzantine
+                                                and honest players are of roughly equal strength. The core technical problem we solve is to design a
+                                                collective coin-flipping protocol that eventually lets us flip a coin with an unambiguous outcome. In the
+                                                beginning the influence of the Byzantine players is too powerful to overcome and they can essentially
+                                                fix the coin’s behavior at will. We guarantee that after just a polynomial number of executions of the
+                                                coin-flipping protocol, either (a) the Byzantine players fail to fix the behavior of the coin (thereby ending
+                                                the game) or (b) we can “blacklist” players such that the blacklisting rate for Byzantine players is at
+                                                least as large as the blacklisting rate for good players. The blacklisting criterion is based on a simple
+                                                statistical test of fraud detection.
+
+
+                                         1      Introduction
+                                         In the Byzantine Agreement problem [PSL80, LSP82], n players begin with input values in {−1, 1} and each
+                                         must decide an output value in {−1, 1} subject to:
+                                         Agreement. All uncorrupted players must decide the same value (and only that value).
+                                         Validity. If all uncorrupted players decide v, then at least one such player had v as its input.
+                                         Termination. Each uncorrupted player terminates the protocol with probability 1.
+                                         The difficulty of this problem depends on the strength of the adversary and assumptions on the communi-
+                                         cation medium. We consider a standard asynchronous model of communication against a strong adversary.
+                                         Each player can send point-to-point messages to other players, which can be delayed arbitrarily by the ad-
+                                         versary, but not dropped or forged. In addition, the adversary is aware of the internal state of every player, is
+                                         computationally unbounded, and may adaptively corrupt up to f players; these are also known as Byzantine
+                                         players. Once corrupted, the behavior of a player is arbitrary, and assumed to be controlled by the adversary.
+                                         Following Ben-Or [Ben83], Bracha [Bra87] proved that Byzantine Agreement can be solved in this model
+                                         when f < n/3. The protocols of Ben-Or and Bracha are not entirely satisfactory because they have latency
+                                         exponential in n. (In the asynchronous model, a protocol has latency L if, in an execution in which every
+                                         message delay is bounded by ∆ and all local computation is instantaneous, each player halts by time L∆.1 )
+                                             1 Note that ∆ is unknown to the players and cannot be used to detect crash-failures. Moreover, since there is no minimum
+
+                                         message delay, these conditions place no constraints on message delivery order.
+
+
+                                                                                                       1
+   The Byzantine Agreement problem has been solved satisfactorily in stronger communication models or
+against a weaker adversary than the ones we assume.
+
+Synchronized Communication. Lamport et al. [LSP82] proved that if communication occurs in syn-
+chronized rounds, Byzantine Agreement can be obtained deterministically in f + 1 rounds, where f < n/3.
+Fischer and Lynch proved that round complexity f + 1 is optimal [FL82]. The communication complexity
+of [LSP82] is exponential, and was later reduced to polynomial by Garay and Moses [GM98]. Dwork, Lynch,
+and Stockmeyer [DLS88] developed agreement protocols under weakly synchronous models.
+
+Impossibility Results. Fischer, Lynch, and Patterson [FLP85] proved that the problem cannot be solved
+deterministically, in an asynchronous system in which just one player is subject to a crash failure. This
+result is commonly known as FLP Impossibility. Thus, to solve Byzantine Agreement we must assume some
+level of synchronization or randomization. Even with randomization, the problem is insoluble when f ≥ n/3.
+The proof of this result is straightforward in the asynchronous model [BT85, Thm. 3] and more complicated
+in the synchronized model [PSL80, FLM86].
+
+Cryptographic Solutions. Against a computationally bounded adversary cryptography becomes use-
+ful. Byzantine Agreement can be solved against such an adversary in O(1) latency against an adversary
+controlling f < n/3 players2 [CKS05, CR93]; see also [BG93, FM97].
+
+Non-Adaptive Adversaries. The ability to adaptively corrupt players is surprisingly powerful. Gold-
+wasser, Pavlov, and Vaikuntanathan [GPV06], improving [BOPV06], considered a synchronized, full infor-
+mation model in which the adversary corrupts up to f players up front, i.e., it is non-adaptive. They proved
+that Byzantine Agreement can be solved with resiliency f < n/(3 + ǫ) in O(log n/ǫ2 ) rounds. See Chor and
+Coan [CC85] for prior results in similar adversarial models [CC85].
+    Kapron et al. [KKK+ 10] developed a Byzantine Agreement protocol in the asynchronous, full information
+model, in which the adversary corrupts f < n/(3 + ǫ) players non-adaptively. Their protocol has different
+parameterizations, and can achieve agreement in quasipolynomial latency with probability 1 − 1/ poly(n),
+or polylogarithmic latency with probability 1 − 1/ poly(log n). When these protocols err, they do not satisfy
+the Agreement and Termination criteria, and may deadlock or terminate without agreement.
+
+Limits of Fully Symmetric Protocols. Lewko [Lew11] proved that in the asynchronous, full information
+model, a certain class of “fully symmetric” Byzantine Agreement protocols has latency 2Ω(n) when f = Θ(n).
+This class was designed to capture Ben-Or [Ben83] and Bracha [Bra87] but is broader. Protocols in this class
+make state transitions that depend on the set of validated messages received, but may not take into account
+the transaction history of the sender. In retrospect, Lewko’s result can be seen as justifying two strikingly
+different approaches for improving [Ben83, Bra87] in the asynchronous, full information model. The first is to
+break symmetry by having the players take on different roles: this is necessary to implement Feige’s lightest
+bin rule and other routines in Kapron et al.’s [KKK+ 10] protocol. The second is to stay broadly within
+the Ben-Or–Bracha framework, but periodically blacklist players after accumulating statistical evidence of
+fraudulent coin flips in their transaction history. This is the approach taken by King and Saia [KS16, KS18]
+and Huang et al. [HPZ22].
+
+Fraud Detection. King and Saia [KS16, KS18] presented two Byzantine Agreement protocols with polyno-
+mial latency. The first uses exponential local computation and is resilient to f < n/400 adaptive corruptions.
+The second uses polynomial local computation and is resilient to n/(0.87×109) adaptive corruptions. Huang,
+Pettie, and Zhu [HPZ22] recently proposed a different fraud detection mechanism, which lead to a Byzantine
+Agreement protocol with polynomial latency and polynomial local computation that is resilient to f < n/4
+adaptive corruptions. However, the specific statistical tests used by Huang et al. [HPZ22] are incapable of
+closing the gap from f < n/4 to f < n/3. See Section 2.
+  2 This assumes that RSA encryption cannot be broken by a polynomially bounded adversary.
+
+
+
+
+                                                          2
+1.1    New Results
+One feature of the asynchronous model is that every player must perpetually entertain the possibility that
+f players have crashed and will never be heard from again. Thus, when n = 3f + 1, the number of fully
+participating players at any stage is n − f = 2f + 1 and up to f of these players may be corrupt! Among
+the set of participating players, the good players hold the thinnest possible majority: f + 1 vs. f .
+    We develop a special coin-flipping protocol to be used in Bracha’s framework [Bra87, Ben83] when the
+corrupt and non-corrupt players have roughly equal influence. Initially all players have weight 1. The coin-
+flipping protocol has the property that if the corrupt players repeatedly foil its attempts to flip a global
+coin, then we can fractionally blacklist players (reduce their weights) in such a way that the blacklisting rate
+for good players is only infinitesimally larger than the blacklisting rate for corrupt players. Specifically, we
+guarantee that among any n − f = 2f + 1 participating players, the total weight of the good players minus
+the total weight of the corrupt players is bounded away from zero. Eventually all corrupt players have their
+weights reduced to zero (meaning they have no influence over the global coin protocol) and at this point, the
+scheduling power of the adversary is insufficient to fix the behavior of the global coin. Agreement is reached
+in a few more iterations of Bracha’s algorithm, with high probability.
+    The final result is a randomized f -resilient Byzantine Agreement protocol with latency (expected and
+with high probability) Õ(n4 ǫ−8 ), where n = (3 + ǫ)f , ǫ ≥ 1/f . In other words, the latency ranges between
+n4 and n12 , depending on ǫ. This latency-resiliency tradeoff is always at least as good as [HPZ22], but is
+slower than [KS16, KS18] when f < n/400 or f < n/(0.87 × 109 ) is sufficiently small; see Table 1.
+
+ Citation                          Resilience                Latency            Local Computation per Message
+                                   f < n/5                   2Θ(n)                                   poly(n)
+ Ben-Or [Ben83]                          √                              2
+                                   f = O( tn)                exp(t )                                 poly(n)
+                                                                 Θ(n)
+ Bracha [Bra87]                    f < n/3                   2                                       poly(n)
+                                   f < n/400                 Õ(n5/2 )                                exp(n)
+ King & Saia [KS16, KS18]                            9             3
+                                   f < n/(0.87 × 10 )        O(n )                                   poly(n)
+                                                                   4        4
+ Huang, Pettie & Zhu [HPZ22]       f < n/(4 + ǫ)             Õ(n /ǫ )                               poly(n)
+ new                               f < n/(3 + ǫ)             Õ(n4 /ǫ8 )                             poly(n)
+
+Table 1: Randomized Byzantine Agreement protocols in the asynchronous, full information model against
+an adaptive adversary. Here ǫ = Ω(1/n).
+
+
+1.2    Organization of the Paper
+In Section 2 we review Bracha’s algorithm [Bra87], the coin-flipping protocols of King & Saia and Huang et
+al. [KS16, HPZ22], and the fraud detection mechanism of Huang et al. [HPZ22]. We then walk through a
+few failed attempts to improve its resiliency to f < n/3. The specific structure of these failures motivates
+several design choices in our final protocol, many of which will not make sense without understanding the
+vulnerabilities of alternate solutions. Section 3 presents the protocol and its analysis. We conclude in
+Section 4 with some remarks and open problems.
+
+
+2     Preliminaries, Misfires, and Dead Ends
+Bracha’s protocol [Bra87] is based on Ben-Or’s protocol [Ben83]. It improves the resiliency of [Ben83] from
+f < n/5 to f < n/3 by introducing two mechanisms that constrain the misbehavior of corrupt players.
+Reliable Broadcast. The point-to-point communication network can be used to implement a simple Reliable-
+     Broadcast primitive [Bra87] resilient to f < n/3 corruptions. It guarantees that if any good player
+     attempts to broadcast a value v, then every good player eventually accepts v and only v. Moreover,
+
+
+
+                                                         3
+      if any corrupt player initiates a broadcast, then either all good players accept the same value v, and
+      only v, or all good players accept nothing. See [Bra87] for details of this primitive.
+Validation. The Reliable-Broadcast primitive allows us to assume that all relevant communication is public,
+     via broadcasts. Fix any protocol P based on broadcasts. Informally, a player p validates a message
+     m originating from q if p has already accepted and validated a set of broadcasts that, were they to be
+     received by q, would have caused q to make a suitable state transition according to P and broadcast
+     m. See [Bra87] for details of validation.
+    The reliable broadcast primitive prevents the adversary from sending conflicting messages to different
+players, or convincing one player to accept a broadcast and another not to. The validation mechanism
+prevents it from making state transitions logically inconsistent with the protocol P. Note, however, that
+in general P is probabilistic and validation permits a series of transitions that are logically possible but
+statistically unlikely. In summary, the adversary is characterized by the following powers.
+Full Information & Scheduling. The adversary knows the internal state of all players and controls the
+      order in which messages are delivered. It may delay messages arbitrarily.
+Corruption & Coin Flipping. The adversary may adaptively corrupt up to f players as the execution of
+    the protocol progresses. Once corrupted, a player continues to follow protocol , except the adversary
+    now chooses the outcomes of all of its coin flips.
+
+
+Algorithm 1 Bracha-Agreement() from the perspective of player p
+Require: vp ∈ {−1, 1}.
+ 1: loop
+ 2:    Reliable-Broadcast Pvp and wait until n − f messages are validated from some set of players Sp .
+          set vp ← sgn( q∈Sp vq ).                                  ⊲ sgn(x) = 1 if x ≥ 0 and −1 otherwise.
+ 3:    Reliable-Broadcast vp and wait until n − f messages are validated.
+          if more than n/2 messages have some value v ∗ then set vp ← v ∗ , otherwise set vp ← ⊥.
+ 4:    Reliable-Broadcast vp and wait until n − f messages are validated.
+          let xp be the number of v ∗ 6= ⊥ messages validated by p.
+ 5:    if xp ≥ 1 then
+ 6:        set vp ← v ∗ .
+ 7:    if xp ≥ f + 1 then
+ 8:        decide v ∗ .
+ 9:    if xp = 0 then
+10:        vp ← Coin-Flip().                                                    ⊲ Returns value in {−1, 1}.
+
+
+    The Bracha-Agreement protocol loops until all players decide a value. As we will see, if any non-corrupt
+player decides in iteration i, then all non-corrupt players will decide by iteration i + 1. Suppose that, at
+Line 2, a supermajority of at least (n + f + 1)/2 players hold the same value v ∗ . It follows that in any set
+Sp of n − f messages, v ∗ will be in the majority, and all players will be forced to adopt v ∗ .3 Thus, after
+Line 3, all players will see n − f > n/2 messages containing v ∗ and again broadcast v ∗ in Line 4, setting
+xp = n − f ≥ f + 1 and deciding v ∗ in Line 8. In other words, if the adversary is to prolong the execution
+of this protocol, it must avoid supermajorities of (n + f + 1)/2 or more in every iteration.
+    Suppose the populations holding −1 and 1 at Line 2 are more balanced. The scheduling power of the
+adversary is sufficient to fix vp arbitrarily in Lines 2 and 3. Note, however, that regardless of how the
+messages are delivered, it is always the case that |xp − xq | ≤ f for any p, q. Thus, if Akeep , Adec , Aflip are the
+populations with xp ∈ [1, f ], xp ∈ [f + 1, n − f ], and xp = 0, respectively, then either Aflip = ∅ or Adec = ∅.
+In the former case, a supermajority of players hold the majority value v ∗ and will decide in the current or
+following iteration. In the latter case, the Akeep population keeps the value v ∗ and the remaining population
+Aflip chooses their new value on the basis of a coin flip (Line 10). The key insight of [Ben83, Bra87] is
+   3 A corrupt player may successfully broadcast the message −v ∗ in Line 3 of Bracha-Agreement, but no good player will
+
+validate this message as it cannot be justified by any n − f messages broadcast in Line 2.
+
+
+                                                           4
+that if all good players in the second population Aflip happen to have Coin-Flip return v ∗ , then at least
+n − f ≥ (n + f + 1)/2 players will go into the next iteration with the same value, and, according to the
+argument above, decide v ∗ in that iteration.
+    The probability that private coin-flipping creates a sufficiently large supermajority by chance is 2−Θ(n)
+when f = Θ(n). In expectation the number of trials is 2Θ(n) , hence the exponential expected latency
+of [Ben83, Bra87]. The protocols of Rabin [Rab83] and Toueg [Tou84] operate in a similar fashion, but
+assume away the difficulty by supposing there is some mechanism to flip a shared coin, or reliably distribute
+shared randomness to players before the protocol begins.
+   The protocols of King and Saia [KS16, KS18] and Huang et al. [HPZ22] follow Bracha-Agreement, but
+implement Coin-Flip (Line 10) as a “global” coin, which aims for two desirable, but ultimately unattainable
+guarantees:
+Property (i) all players agree on the same value returned by Coin-Flip(), and
+Property (ii) the output of Coin-Flip() is close to unbiased.
+The problem of flipping a bounded-bias coin against adversarial manipulation is well studied. The problem
+can be solved against surprisingly large coalitions of corrupt players [BL85, AL93, Sak89, AN93, RSZ02,
+HK20, KKL88, Fei99, BN00]. This body of work assumes reliable communication (no dropped or delayed
+messages) and reliable computation (no crash failures). Aspnes [Asp98] gave a lower bound that models
+aspects of an adaptive adversary in an asynchronous network. In his coin-flipping game, a vector of values
+(v1 , . . . , vN ) is generated as follows. Once (v1 , . . . , vi−1 ) are known, a random value vi′ is generated4 and the
+adversary may set vi ← vi′ or suppress it, setting vi ← ⊥. The outcome of the coin flip is some function
+g(v1 , . . . , vN ) ∈ {−1, 1}. If the adversary can suppress t values, then N = Ω(t2 ) for g to have constant bias
+and N = Ω(t2 / log2 t) if the probability that g = 1 and −1 are at least 1/ poly(t). Aspnes [Asp98] proved that
+this result implies Ω̃(n) latency lower bounds on Byzantine Agreement in the asynchronous model, which
+was improved to Ω(n) by Attiya and Censor-Hillel [AC08]. The moral of [Asp98, AC08] and related lower
+bounds against adaptive adversaries, such as Haitner and Karidi-Heller’s [HK20], is that the aggregation
+function g that implements majority voting is at least close to optimal. However, the Byzantine Agreement
+protocols against non-adaptive adversaries, such as [BOPV06, GPV06, KKK+ 10] can afford to implement
+clever coin-flipping protocols that are not based exclusively on majority voting [Fei99, RSZ02].
+    The coin-flipping protocols of King and Saia [KS16] and Huang et al. [HPZ22] do not attempt to guarantee
+Properties (i) and (ii) immediately. Rather, after a sufficiently large number of invocations of Coin-Flip, if
+the adversary foils Properties (i,ii), it will leave behind enough statistical evidence that proves incriminating,
+allowing us to blacklist suspicious players, removing their explicit influence over subsequent calls to Coin-Flip.
+When all corrupt players are blacklisted, the adversary still has the power of scheduling, but this power is
+insufficient to significantly delay agreement.
+    The basis of King and Saia’s [KS16] implementation of Coin-Flip is a shared blackboard primitive, which
+was improved by Kimmett [Kim20], and again by Huang et al. [HPZ22]. A blackboard is an m × n matrix
+BB, initially all blank (⊥). The goal is to have each player i write m values successively to column i (via
+Reliable-Broadcasts), and once the blackboard is full, to have all players agree on its contents. Because up
+to f players may crash, a full blackboard is one in which n − f columns have m writes, and the remaining f
+columns may be partial. Due to the scheduling power of the adversary, every player p sees a slightly different
+version BB(p) of the “true” blackboard BB, which is derived by replacing with ⊥ the last write in some of the
+f partial columns. Thus, BB(p) and BB(q) differ in at most f entries. In [KS16, HPZ22] the Coin-Flip routine
+is implemented as follows: every write to BB is a value in {−1, 1} chosen uniformly at random. When p
+finishes participating in Pthe construction of BB it has a view BB(p) and sets the output of Coin-Flip to be
+sgn(Σ ), where Σ = j,q BB(p) (j, q)), treating ⊥s as zero. Note that whenever Σ(p) 6∈ [−f, f ], p can be
+       (p)           (p)
+
+sure that Coin-Flip generates the same output for all players, even corrupt ones.5
+    We can of course execute the blackboard primitive iteratively [KS16], but two players may disagree on
+the contents of each blackboard in up to f cells. The Iterated-Blackboard protocol of Huang et al. [HPZ22]
+   4 The distribution and range of v ′ are arbitrary, and may depend on (v , . . . , v
+                                       i                                        1        i−1 ).
+   5 In particular, in Line 2 of Bracha-Agreement, if a message v broadcast from q is purportedly the output of the last iteration’s
+                                                                     q
+call to Coin-Flip(), player p will validate it only if it is possible that sgn(Σ(q) ) = vq .
+
+
+                                                                 5
+guarantees a stronger form of agreement. An iterated blackboard is an endless sequence (BB1 , BB2 , . . .) of
+blackboards, where BBt is an m(t) × n matrix. After player p finishes participating in the construction of
+                                    (p,t)       (p,t)                                                       (p,t)
+BBt , it has a view BB(p,t) = (BB1 , . . . , BBt ) of the first t blackboards. It is guaranteed that BBt          and
+   (q,t)                                                                             (p,t)         (q,t)
+BBt      differ in at most f cells in partial columns; it is also guaranteed that BB       and BB        differ in at
+most f cells in total, over all t blackboards. In order to make this type of guarantee, during the construction
+                                                                                      (p,t+1)
+of BBt+1 , p may record retroactive updates to an earlier BBt′ , t′ ≤ t, so that BBt′         records some writes
+                                  (p,t)
+to cells that were still ⊥ in BBt′ .
+Theorem 1. There is a protocol for n players to generate an iterated blackboard BB that is resilient to
+f < n/3 Byzantine failures. For t ≥ 1, the following properties hold:
+   1. Upon completion of the matrix BBt , each column consists of a prefix of non-⊥ values and a suffix of
+      all-⊥ values. Let last(i) = (t′ , r) be the position of the last value written by player i, i.e., BBt′ (r, i) 6= ⊥
+      and if t′ < t then i has not written to any cells of BBt . When BBt is complete, it has at least n − f
+      full columns and up to f partial columns, i.e., last(i) ≥ (t, m(t)) for at least n − f values of i.
+   2. Once p finishes participating in the construction of BBt , it forms a historical view of the first t black-
+                           (p,t)        (p,t)
+      boards BB(p,t) = (BB1 , . . . , BBt ) such that for every t′ ∈ [t], i ∈ [n], r ∈ [m(t)],
+
+                                                                     if last(i) 6= (t′ , r),
+                                          
+                                 (p,t)        = BBt′ (r, i)
+                              BBt′ (r, i)
+                                              ∈ {BBt (r, i), ⊥}
+                                                     ′               otherwise.
+                        (p,t)
+       Moreover, BBt′           (r, i) 6= BBt′ (r, i) for at most f tuples (t′ , r, i).
+
+   3. If q writes any non-⊥ value to BBt+1 , then by the time any player p fixes BB(p,t+1) , p will be aware of
+      q’s view BB(q,t) of the history up to blackboard t.
+   4. The latency of constructing BB(p,t) is O( t′ ≤t m(t′ )).
+                                                 P
+
+
+2.1     Coin Flipping and Fraud Detection
+The King-Saia [KS16, KS18] and Huang et al. [HPZ22] protocols rely on the fact that the f corrupt players,
+being a small minority, must collectively generate coin flips whose sum is conspicuously large, as they must
+often counteract the coin flips of n − 2f good players.6 At the end of the tth iteration of Bracha-Agreement,
+the [KS16, HPZ22] protocols call Coin-Flip, which populates the blackboard BBt with random {−1, 1} coin
+flips. Define Xi (t) to be the sum of the coin flips in BBt (·, i) generated by player i. (Recall that the players
+are partitioned into Akeep , Aflip , where those in Akeep will keep the majority value v ∗ ∈ {−1, 1}, regardless
+of the outcome of Coin-Flip. Nonetheless, every player in Akeep ∪ Aflip participates in the Coin-Flip protocol.)
+    At the very least the adversary wants at least one player in Aflip to believe the outcome of the global
+coin is σ(t) = −v ∗ , which is called the adversarial direction. Let ΣG (t) and ΣB (t) be the sum of the
+good and bad (corrupt) coin flips written to BBt . If sgn(ΣG (t)) = σ(t) then the adversary is happy, and
+if sgn(ΣG (t)) = −σ(t) then the adversary needs to counteract the good coin flips and get the total sum
+ΣG (t) + ΣB (t) in the interval [−f, f ] in order for at least one player believe the coin flip outcome (sign of
+the sum) is σ(t). Thus,
+                                       |ΣB (t)| ≥ max{0, −σ(t)ΣG (t) − f }.
+ΣG (t) is the sum of at least m(n − 2f ) = Ω(mn) coin flips; suppose for simplicity that ΣG (t) is the sum
+of exactly this many flips. When m ≫ n > 3f , f is much smaller than the standard deviation of ΣG (t),
+so let us also ignore the “−f ” term for simplicity. By symmetry, ΣG (t) is positive and negative with equal
+probability, so up to these simplifications, E[ΣB (t)2 ] ≥ 12 E[ΣG (t)2 ] = 21 m(n − 2f ).7 On the other hand, if
+these f bad players were flipping fair coins then E[ΣB (t)2 ] ≤ mf .
+    6 Recall that the adversary can fail to deliver messages of up to f players in a timely fashion, so there can be as few as
+
+f + (n − 2f ) players fully participating in any given blackboard/coin-flip.
+    7 It is a small abuse of notation to measure the expectation of Σ (t)2 since it has no well defined distribution. The expectation
+                                                                     B
+is naturally w.r.t. any fixed adversarial strategy that convinces at least one player that the outcome of the global coin is σ(t).
+
+
+
+
+                                                                   6
+    The statistics tracked by Huang et al. [HPZ22] are pairwise correlations and individual deviations over
+a series of calls to Coin-Flip.
+                                                            X
+                                  corr(i, j) = hXi , Xj i =   Xi (t)Xj (t),
+                                                                      t
+                                                                    X
+                                           dev(i) = hXi , Xi i =          (Xi (t))2 .
+                                                                      t
+
+Note that (ΣB (t))2 can be decomposed into terms that contribute to corr(i, j) scores (Xi (t)Xj (t), i 6= j)
+and dev(i) scores (Xi (t)2 ). When f < n/4 there is a gap between 12 m(n − 2f ) and mf , which implies that
+after a sufficient number of iterations, either some bad player i has an unusually large dev(i) score, or two
+bad players i, j have an unusually large corr(i, j) score [HPZ22, Lemma 5]. Unusually large here means
+one beyond what any good players flipping fair coins could generate, with high probability. If corr(i, j) is
+unusually large, it follows that at least one of i, j must be bad. The Huang et al. [HPZ22] protocol “blacklists”
+players according to a fractional matching in a graph on [n] weighted by correlation and deviation scores,
+which ensures that bad players are blacklisted at the same or higher rate than the good players.
+
+2.2    Misfires and Dead Ends
+Our goal is to improve the resilience from f < n/4 to the optimal f < n/3. As f tends towards n/3, many
+natural statistics worth tracking lose traction, and “n/3” is the point at which coin-flipping games become
+perfectly balanced between the influence of n − 2f good and f bad players. For example, when f = n/4,
+mf = 12 m(n − 2f ), and bad players may not be detected by tracking dev(i) and corr(i, j) scores alone. When
+n = 3f + 1, we can assume n − f = 2f + 1 players fully participate in the coin-flipping protocol, at least
+f + 1 of which are good and at most f of which are bad. To illustrate why this is a uniquely difficult setting
+to perform fraud detection, consider a simple Mirror-Mimic strategy deployed by the adversary.
+
+Mirror-Mimic Strategy. When sgn(ΣG (t)) = −σ(t), the adversary sets ΣB (t) = −ΣG (t) (mirror). When
+sgn(ΣG (t)) = σ(t), it sets ΣB (t) = ΣG (t) (mimic). There is some flexibility in the mirror case as it only
+needs ΣB (t) + ΣG (t) to hit the interval [−f, f ]. In any case, we do not expect to see large good-good
+corr(i, j) scores outside of random noise, nor large bad-bad correlations since they are mirroring/mimicking
+the distribution of good players. Because the mirror/mimic cases occur about equally often, the aggregate
+positive correlations between good and bad players in the mimic case and negative correlations between good
+and bad players in the mirror case cancel out. Thus, against the mirror-mimic adversary, tracking pairwise
+correlations alone seems insufficient to detect fraud.
+
+σ-Correlation. When we attempt to flip a global coin, the good players are generally unaware of the
+adversarial direction σ(t)8 but we can ensure that σ(t) eventually becomes known, and can estimate σ-
+correlation over the long term. In the context of Bracha-Agreement, σ(t) should be defined as:
+
+                             −v ∗ if Akeep 6= ∅ keeps the majority value v ∗ ∈ {−1, 1},
+                           
+                    σ(t) =
+                             0       if Akeep = ∅.
+
+Define the σ-correlation score as:
+                                                                    X
+                                          σ-corr(i) = hσ, Xi i =            σ(t)Xi (t).
+                                                                      t
+
+Note that good players flip fair coins, so values of σ-corr(i) that are inconsistent with random noise should
+indicate that i is corrupt. However, it is rather easy for the adversary to keep σ-corr(i) scores close to zero
+for corrupt players as well. Regardless of sgn(ΣG (t)), set ΣB (t) = −ΣG (t), or at least put ΣB (t) + ΣG (t)
+in the interval [−f, f ]. One may easily verify that this strategy is consistent with mirror-mimic when
+sgn(ΣG (t)) = −σ(t), but that it prescribes exactly the opposite behavior when sgn(ΣG (t)) = σ(t)! In fact,
+  8 (if they all knew what it was, there would be no need to flip a coin)
+
+
+
+
+                                                               7
+there is no general strategy for setting ΣB (t) as a function of ΣG (t) and σ(t) that keeps all corr(i, j) and
+σ-corr(i) scores close to zero.9
+   Tracking corr(i, j) and σ-corr(i) scores seems to be a winning combination, that will eventually let us
+blacklist individual players for having large σ-corr(i) scores, or pairs of players for having large − corr(i, j)
+scores. In the latter case, we are blacklisting good and bad players at the same rate, which is fine so long as
+good players retain their slim majority (f + 1 vs. f initially) among any set of n − f = 2f + 1 participating
+players.
+
+A Scheduling Attack. There is a serious flaw in the reasoning above. Recall that σ(t) ∈ {−1, 0, 1}, where
+σ(t) = 0 means that in Bracha-Agreement, the population Akeep = ∅ committed to keeping the true majority
+value v ∗ is empty. The value v ∗ is determined by the scheduling of messages in Line 2. Whether v ∗ becomes
+known to any particular player in Line 3 is generally at the discretion of the adversarial scheduler. Thus,
+in general the adversary can control whether Akeep = ∅, and hence whether σ(t) = −v ∗ or 0. Moreover,
+because the protocol is asynchronous, it can even do so after BBt is populated with coin flips.10
+    These observations give rise to the following attack. The adversary targets two good players i0 , i1 . When
+Coin-Flip is initiated the adversary has two choices for σ(t) ∈ {−v ∗ , 0} and can decide which late in the game.
+If sgn(Xi0 (t)) = sgn(Xi1 (t)) = −v ∗ , it sets σ(t) = −v ∗ ; otherwise it sets σ(t) = 0. In general it makes sure
+ΣB (t) + ΣG (t) ∈ [−f, f ] so it can force roughly equal numbers of players to have Coin-Flip return −1 and
+1. Players i0 , i1 will show unusually large σ-correlation and be blacklisted, and any other blacklisting (from
+negative correlations) will apply equally to good and bad players. At this point the corrupt players have
+now attained a slim majority, and are entirely content to let further blacklisting hurt good and bad players
+equally.
+    The problem here is that σ(t) and Xi0 (t) are not independent. In reality σ(t) can be chosen maliciously
+after Xi0 (t) is known.
+
+A Finger on the Scale. The issue with the previous scheme is that the notions of σ(t), the population
+Akeep , and even v ∗ are too indeterminate. On the other hand, if any good player p finds itself with xp ∈ [1, f ],
+there is nothing indeterminate from p’s perspective about the fact that {p} ⊆ Akeep 6= ∅ or that σ(t) = −v ∗ .
+This leads to a natural question: why should p participate in the Coin-Flip protocol as if it were ignorant
+of the desired outcome v ∗ ? Why not “put a finger on the scale” and just write v ∗ to every entry in column
+BBt (·, p)? (We would naturally refrain from judging such special columns according to statistical tests, e.g.
+deviations and correlations.)
+    The problem with this simple minded scheme is that if |Akeep | is small, the adversary has the discretion
+to suppress or allow p ∈ Akeep to write its column, or any prefix thereof. This allows for a mirror-mimic
+type attack, in which the sum of BBt always lies in [−f, f ], and yet there are no negative correlations in
+aggregate between good players flipping fair coins and bad players.
+
+2.3     Overview of the Protocol
+To simplify the description of the coin-flipping problem, in Section 2.1 we originally stated the adversary
+chooses σ(t) = −v ∗ , and has the goal to convince one player to believe the output of Coin-Flip is σ(t). This
+is too conservative, and in fact makes the coin-flipping problem needlessly difficult.
+    Consider the sizes of the sets Akeep and Aflip . There are two relevant cases to consider:
+Case |Akeep | ∈ [0, f ]. When Akeep 6= ∅, σ(t) = −v ∗ is defined, and it would be bad for the adversary if
+    everyone agreed the output of Coin-Flip were v ∗ , i.e., sgn(Σ(p) ) = v ∗ for all p ∈ [n]. In fact, it would
+    be equally bad for the adversary if sgn(Σ(p) ) = −v ∗ for all p. Since Aflip ≥ n − f , the next iteration of
+    Bracha-Agreement would end in agreement since now a supermajority of n − f ≥ (n + f + 1)/2 holds
+   9 When sgn(Σ (t)) = −σ(t), the adversary is forced to set σ(t)Σ (t) ≥ −σ(t)Σ (t), increasing the aggregate σ-correlation
+                 G                                                    B             G
+of bad players and increasing the aggregate negative good-bad correlation. When sgn(ΣG (t)) = σ(t), the adversary can
+choose to reverse either of these trends and exacerbate the other, i.e., reduce good-bad negative correlations but increase bad
+σ-correlations, or reduce bad σ-correlations but increase good-bad negative correlations.
+  10 One player p will be allowed to set v = v ∗ in Line 3, and p will execute Line 4 slowly, either validating its own message
+                                          p
+among the first n − f or not, at the discretion of the scheduler. In this way the scheduler decides if Akeep = {p} or ∅.
+
+
+
+                                                              8
+      the value −v ∗ . To summarize, when |Akeep | ≤ f , it is critical for the adversary to create disagreement
+      on the outcome of the global coin flip.
+Case |Akeep | ≥ f + 1. If this is the case, then some kind of “finger on the scale” strategy should force the
+    outcome of the coin flip to be v ∗ . Any player that validates the state of n − f players must necessarily
+    validate the state of some p ∈ Akeep , and hence learn the value of v ∗ . If any player that knows v ∗
+    writes only v ∗ to its entries in the blackboard, this will surely be the outcome of the global coin flip.
+     In light of this dichotomy on the size of Akeep , we design a coin-flipping protocol that (i) forces all players
+to see the same outcome v ∗ whenever |Akeep | ≥ f + 1 — thereby letting Bracha-Agreement terminate — or
+(ii) reverts to a more standard collective coin-flipping game in which the adversary is obligated to land the
+sum in the interval [−f, f ]. Because of the certainty of the outcome in case (i) and the specific strategy
+forced upon the adversary in case (ii), fraud can now be detected by tracking just one statistic: the weighted
+correlation scores corr(i, j) between all pairs of players.
+
+
+3     A Protocol with Optimal Resilience
+The protocol consists of O(f ) epochs. Each epoch consists of T iterations of Bracha-Agreement, the last step
+of which is to execute Coin-Flip (Algorithm 2). The tth√execution of Coin-Flip constructs two blackboards
+BB2t−1 and BB2t , where the odd blackboards have Õ( m) rows and the even blackboards have m rows,
+for an m ≫ n to be determined. We write n = (3 + ǫ)f , where we assume without loss of generality that
+ǫ ∈ [1/f, 1/2].
+    Each player i has a weight wi ∈ [0, 1], initially 1 and non-increasing over time. (The coin flips generated
+by player i will be weighted by wi .) At the end of each epoch the weights of some players will be reduced,
+which one can think of as fractional blacklisting. Let (wi,k ) denote the weights used throughout epoch k, and
+(wi ) be the current weights if k is understood from context. We guarantee that Invariant 1 is maintained,
+with high probability. Let G and B be the good and bad (Byzantine) players at a given point in time.
+Invariant 1. At all times,              X                   X
+                                              (1 − wi ) ≤         (1 − wi ) + ǫ4 f.
+                                        i∈G                 i∈B
+
+
+Organization. In Section 3.1 we explain how Coin-Flip is implemented using the Iterated-Blackboard pro-
+tocol [HPZ22]. In Section 3.2 we prove that if the adversary persistently manipulates the outcome of the
+Coin-Flip protocol, then there will be a detectable negative correlation between some bad player and some
+good player. In Section 3.3 we give the procedure for reducing weights between epochs, and prove that it
+maintains Invariant 1 with high probability. (The weight reduction routine uses the same fractional match-
+ing method as [HPZ22].) In Section 3.4 we prove that agreement is reached after O(f ) epochs, with high
+probability.
+
+3.1    Implementation of Coin-Flip
+Consider the tth iteration of Bracha-Agreement and the tth execution of Coin-Flip. When each player p begins
+executing Coin-Flip, it has a value vp ∈ {−1, 1, ⊥}, where vp ∈ {−1, 1} indicates that vp = v ∗ is the majority
+value at Line 3 of Bracha-Agreement, and vp = ⊥ indicates that p did not learn the majority value and will
+adopt the output of Coin-Flip as its value going into the next iteration of Bracha-Agreement.
+   Recall that xp is the number of v ∗ ∈ {−1, 1} messages validated by p in Line 4 of Bracha-Agreement and
+Akeep is the set of all p such that xp ∈ [1, f ] before executing Coin-Flip. The first stage of Coin-Flip is to
+populate a blackboard BB2t−1 that will help end the game quickly if |Akeep | ≥ f + 1 and cause no harm if
+|Akeep | ∈ [0, f ]. The contents of BB2t−1 are used to generate a bias. The second stage of Coin-Flip populates
+a blackboard BB2t with random values in {−1, 1}. Let
+                                                  X
+                                              Σ=      wq · BB2t (j, q)
+                                                     j,q
+
+
+
+
+                                                             9
+be the weighted sum of the contents of BB2t (mapping ⊥ to 0). The output of Coin-Flip is sgn(bias +Σ). Due
+to the scheduling power of the adversary, each player has a slightly different view of these two blackboards.
+Naturally p outputs sgn(bias(p) +Σ(p) ), where a superscript of (p) in any variable indicates p’s opinion of its
+value.
+
+Algorithm 2 Coin-Flip() from the perspective of player p
+Require: vp ∈ {v ∗ , ⊥}, v ∗ ∈ {−1, 1}, and t ≥ 1 is current iteration of Bracha-Agreement.
+ 1: Stage 1:
+ 2: Reliable-Broadcast vp and wait for n − f messages to be validated from some set Sp of players.
+              v ∗ if vq = v ∗ for some q ∈ Sp ,
+                 
+ 3: valp ←
+              0   if vq = ⊥ for all q ∈ Sp .
+ 4: Construct BB2t−1 , writing valp to every cell in column p.
+ 5: Stage 2:
+ 6: Construct BB2t , writing independent coin flips in {−1, 1} to cells in column p.
+           (p)
+            P         (p,2t)
+ 7: bias   ← j,q BB2t−1 (j, q)                                                              ⊲ Substitute ⊥ = 0
+                         (p,2t)
+ 8: Σ(p) ←
+           P
+            j,q wq · BB2t       (j, q)                                                      ⊲ Substitute ⊥ = 0
+                       (p)        (p)
+ 9: return (sgn(bias         +Σ         ))
+
+
+   The even and odd blackboards BB2t and BB2t−1 have the following number of rows
+
+                                                m(2t) = m,
+                                                                √
+                                             m(2t − 1) = m0 =    m · c ln n.
+
+Here c is a parameter, and with high probability means an event holds with probability 1 − n−Ω(c) .
+                                                                        √
+Lemma 2. If |Akeep | ≥ f + 1 then v ∗ · bias > (n − f )m0 > 23 n m · c ln n. If |Akeep | = 0 then bias = 0. If
+|Akeep | ∈ [1, f ] then v ∗ · bias ∈ [0, nm0 ], and can be selected by the adversary.
+Proof. If |Akeep | ≥ f + 1 then for every player p, there exists a q ∈ Sp with q ∈ Akeep and vq = v ∗ ,
+hence valp = v ∗ . By Theorem √ 1, the number of values written to BB2t−1 is at least (n − f )m0 . and hence
+v ∗ · bias ≥ (n − f )m0 > 32 n m · c ln n.
+     If |Akeep | = 0 then every player will set valp = 0 hence bias = 0.
+    In the second stage of Coin-Flip, the players will populate BB2t with coin flips in {−1, 1}. Redefine
+Xi (t) be the sum of all non-⊥ entries in column BB2t (·, i). By Chernoff bounds, if i is uncorrupted then
+|Xi (t)| ≤ Xmax with high probability, where
+                                                       √
+                                         Xmax = m0 = m · c ln n.
+
+We will force |Xi (t)| ≤ Xmax to hold with probability 1 by rounding Xi (t) to ±Xmax if it lies outside
+[−Xmax , Xmax ].
+Lemma 3. If |Akeep | ≥ f + 1, the output of Coin-Flip will be v ∗ for all players, with high probability.
+                                                   √
+Proof. By Lemma 2, | bias | ≥ (n − f )m0 > 32 n m · c ln n. The number of good coin flips in BB2t is
+between m(n − 2f ) and mn, which we model as a martingale with an optional stopping    √       time controlled
+by the adversary. By Azuma’s inequality, the sum of all Θ(mn) good coin flips is mn · c ln n in absolute
+value, with high probability.
+                       √          Due to the Xmax ceiling, the contribution
+                                                                √            of √corrupt players to
+                                                                                                 √ the sum is
+at most f Xmax < 31 n m · c ln n in absolute value. Since 31 n mc ln n + Õ( mn) + f < 32 n mc ln n, the
+contribution of corrupt and non-corrupt players will be much smaller than bias, with high probability, and
+sgn(bias(p) +Σ(p) ) = v ∗ for all p.
+
+Lemma 4. If |Akeep | ≤ f , and for some player p, bias(p) +Σ(p) 6∈ [−f, f ], all players will decide the value
+sgn(bias(p) +Σ(p) ) by the next iteration of Bracha-Agreement.
+
+                                                         10
+Proof. By Theorem 1, two players p and q disagree in at most f locations in BB2t−1 and BB2t . Since
+the absolute value of any cell in either matrix is at most 1, if bias(p) +Σ(p) 6∈ [−f, f ] then for any p, q,
+sgn(bias(p) +Σ(p) ) = sgn(bias(q) +Σ(q) ). Thus, at the end of this iteration of Bracha-Agreement, at least
+|Aflip | ≥ n − f ≥ (n + f + 1)/2 players will hold a supermajority and reach agreement in the next iteration
+of Bracha-Agreement.
+
+3.2     Negative Correlations
+Hereafter t ∈ [T ] refers to the iteration index within the current epoch k, and (wi ) = (wi,k ) is the current
+weight vector used in epoch k. In each epoch we track weighted pairwise correlations, defined as:
+                                                                     X
+                               corr(i, j) = hwi Xi , wj Xj i = wi wj   Xi (t)Xj (t).
+                                                                       t∈[T ]
+
+
+   Recall that n = (3 + ǫ)f , ǫ ∈ [1/f, 1/2], and G, B are the good and bad players.
+Lemma 5. Suppose the weight vector (wi )i∈[n] used in an epoch satisfies Invariant 1, but Bracha-Agreement
+fails to reach agreement within the epoch. Let m = Ω(n ln n/ǫ4 ) and T = Ω(n2 ln3 n/ǫ4 ). Then, with high
+probability,
+                                                                             p
+   1. Every pair of distinct i, j ∈ G has − corr(i, j) ≤ wi wj β, where β = m T (c ln n)3 .
+   2. If the adversary does not corrupt any new players during the epoch, then
+                                         X                                         1 2
+                                               max{0, − corr(i, j) − wi wj β} ≥      ǫ f mT.
+                                                                                   8
+                                   (i,j)∈G×B
+
+
+                                                                  i
+Proof of Part 1. Fix an iteration t ∈ [T ]. If i ∈ G, let δt,r       ∈ {−1, 0, 1} be the outcome of i’s rth coin flip
+                                                                                                          i  j
+in iteration t, where 0 indicates the coin was never flipped. For any r, s ≥ 1 and i, j ∈ G, E[δt,r         δt,s ]=0
+                i     j
+since each of δt,r , δt,s is either 0 or a fair coin flip independent of the other. By linearity of expectation this
+implies E[Xi (t)Xj (t)] = 0 as well.
+    Consider the martingale (St )t∈[0,T ] , where S0 = 0 and St = St−1 + Xi (t)Xj (t). For any t, |St − St−1 | ≤
+  2                                              2
+                                                    √                 p
+Xmax  . By Azuma’s inequality, |ST | ≤ Xmax            T · c ln n = m T (c ln n)3 with
+                                                                                    p high probability. Therefore,
+by a union bound, for every pair of distinct i, j ∈ G, − corr(i, j) ≤ wi wj m T (c ln n)3 = wi wj β with high
+probability.
+    Part 2 of Lemma 5 will be proved following Lemmas 6–10. It only applies to epochs in which the adversary
+corrupts no one, so we shall assume that G, B are stable throughout the epoch.
+    In the Coin-Flip algorithm, the construction of BB2t−1 logically precedes the construction of BB2t , but
+because of asynchrony some of the contents of BB2t−1 may actually depend on the coin flips written to
+BB2t .11 We eliminate these mild dependencies as follows. Suppose that p̂ is the first player in G to fix its
+historical view BB(p̂,2t−1) . At this moment, define bias(t) as
+                                       (p̂,2t−1)
+                                 X
+                      bias(t) =      BB2t−1 (j, q)                    (Treating ⊥ as 0)
+                                   j,q
+
+Write Σ(t) = ΣG (t) + ΣB (t), where ΣG (t) and ΣB (t) are the sum of coin flips of the good and bad players,
+respectively.
+Lemma 6. In any iteration t,
+   1. For any player q, |bias(t) − bias(q) (t)| ≤ f .
+   2. E[bias(t)ΣG (t)] = 0.
+ 11 The construction of BB
+                          2t can proceed as soon as n − f    players are finished with BB2t−1 . Thus, a group of f slow and
+corrupt players can choose whether to perform their last write in BB2t−1 based on the contents of BB2t .
+
+
+                                                            11
+  3. If Bracha-Agreement does not terminate by iteration t + 1, then
+
+                                         −ΣG (t)ΣB (t) ≥ ΣG (t)2 + bias(t)ΣG (t) − 2f |ΣG (t)|.
+
+                                                 (p̂,2t−1)              (q,t′ )
+Proof. Part 1. By Theorem 1, BB2t−1             and BB2t−1 disagree in at most f cells, for any q ∈ [n] and
+t′ ≥ 2t − 1, hence |bias(t) − bias(q) (t)| ≤ f . Part 2. By definition, bias(t) is fixed before any good players
+have written anything to BB2t . Thus E[bias(t)ΣG (t)] = bias(t) · E[ΣG (t)] = 0. Part 3. By Lemma 4, if the
+adversary avoids termination then sgn(bias(p) (t) + Σ(p) (t)) 6= sgn(bias(q) (t) + Σ(q) (t)) for two players p, q.
+Since |bias(t) − bias(p) (t)| ≤ f and |Σ(t) − Σ(p) (t)| ≤ f , it follows from Σ(t) = ΣG (t) + ΣB (t) that
+
+                                                  −2f ≤ bias(t) + ΣG (t) + ΣB (t) ≤ 2f.
+
+Rearranging terms, we have both
+
+                                               −ΣB (t) ≥ −2f + bias(t) + ΣG (t)
+
+and
+
+                                                ΣB (t) ≥ −2f − bias(t) − ΣG (t).
+
+Depending on sgn(ΣG (t)), we multiply the first inequality by ΣG (t) ≥ 0 or the second by −ΣG (t) ≥ 0, which
+implies the following.
+
+                                     −ΣG (t)ΣB (t) ≥ ΣG (t)2 + bias(t)ΣG (t) − 2f |ΣG (t)|.                             (1)
+
+
+                                                                      p
+   Since Var(|ΣG (t)|) = E[ΣG (t)2 ] − E[|ΣG (t)|]2 ≥ 0, E[|ΣG (t)|] ≤ E[ΣG (t)2 ]. Lemmas 7–10 analyze the
+terms of (1).
+Lemma 7. For any Ĝ ⊆ G with |Ĝ| = n − 2f = (1 + ǫ)f , i∈Ĝ wi2 ≥ 21 ǫ2 f .
+                                                             P
+
+Proof. We compute:
+        X                    X                               X                                                    7ǫ
+                                                                   (1 − wi ) − ǫ4 f ≥ |Ĝ| − 1 + ǫ4 f = ǫ − ǫ4 f ≥ f.
+                                                                                                             
+               wi = |Ĝ| −          (1 − wi ) ≥ |Ĝ| −
+                                                                                                                  8
+        i∈Ĝ                 i∈Ĝ                            i∈B
+
+
+The first inequality follows from Invariant 1 and the fact that the total weight deduction of Ĝ is at most
+that of G. The second inequality follows from wi ∈ [0, 1], so the total weight deduction of B is at most f .
+The equality follows from |Ĝ| = n − 2f = (1 + ǫ)f . Finally, the last inequality follows from the assumption
+that ǫ ≤ 1/2. Consequently:
+                                                             2
+                                                                                  2
+                  X
+                        2
+                                X
+                                    2  1            X     1                  7ǫ        1
+                      wi = |Ĝ|   wi       ≥ |Ĝ|    wi        ≥ |Ĝ|               ≥ ǫ2 f ,
+                                      |Ĝ|               |Ĝ|             8(1 + ǫ)     2
+                     i∈Ĝ               i∈Ĝ                         i∈Ĝ
+
+where the first inequality is Jensen’s inequality, the middle inequality is from above, and the last inequality
+follows from |Ĝ| = (1 + ǫ)f and the assumption ǫ ≤ 21 .
+Lemma 8 (Cf. [HPZ22]). No matter how the coin flips of G are scheduled in iteration t, E[ΣG (t)2 ] ≥ 21 ǫ2 mf .
+Proof. The good players write between m(n − 2f ) and mn coin flips to BB2t , at the adversary’s discretion.
+For r ∈ [0, 2mf ], let Sr be the sum of the first m(n − 2f ) + r coin flips generated by the good players. Then
+E[ΣG (t)2 ] = E[S2f2
+                     m ], which we claim is at least E[S0 ]. In general Sr = Sr−1 + wi δr , where δr ∈ {−1, 1} if
+the adversary lets player i flip the next coin and δr = 0 if the adversary chooses to stop allowing coin flips.
+If δr = 0 then Sr = Sr−1 and if δr ∈ {−1, 1} then
+                             (
+                               (Sr−1 + wi )2 = Sr−1
+                                                 2
+                                                     + 2wi Sr−1 + wi2 with probability 21 ,
+                       Sr2 =
+                               (Sr−1 − wi )2 = Sr−1
+                                                 2
+                                                     − 2wi Sr−1 + wi2 with probability 21 .
+
+                                                                            12
+Thus, E[Sr2 | δr 6= 0] = Sr−1
+                          2
+                              + wi2 > Sr−1
+                                       2
+                                           , and in general, E[Sr2 ] ≥ E[Sr−1
+                                                                          2
+                                                                              ] ≥ E[S02 ]. Thus, the adversarial
+strategy minimizing ΣG (t)2 is to allow as few coin flips as possible, and from those n − 2f players Ĝ with
+the smallest weights. By Lemma 7 we have
+                                                            X              1 2
+                                              E[S02 ] ≥ m          wi2 ≥     ǫ mf.
+                                                                           2
+                                                            i∈Ĝ
+
+
+
+
+                                                                             1 2
+                                                                          2
+                                                                                              p
+                                                                                               T (c ln n)3 .
+                                                        P
+Lemma 9 (Cf. [HPZ22]). With high probability,                t∈[T ] ΣG (t) ≥ 2 ǫ mf T − mn
+
+Proof. Consider the sequence (At )t∈[T ] , where A0 = 0, At = At−1 + ΣG (t)2 − 21 ǫ2 mf . By Lemma 8,
+E[ΣG (t)2 ] ≥ 21 ǫ2 mf , so (At )t is a submartingale. Since ΣG (t) is a sum of at most mn coin flips, |At −
+At−1 | = ΣG√ (t)2 ≤ mn · c ln n with high probability. By Azuma’s inequality, with high probability, AT ≥
+−(mnc ln n) T c ln n and
+                         X                    1 2            1            p
+                                 ΣG (t)2 =      ǫ mf T + AT ≥ ǫ2 mf T − mn T (c ln n)3 .
+                                              2              2
+                        t∈[T ]
+
+
+
+                                                                            p
+                                                                             nT (c ln n)3 .
+                                          P
+Lemma 10. With high probability,             t∈[T ] bias(t)ΣG (t) ≤ mn
+
+Proof. By Lemma 6, E[bias(t)ΣG (t)] = 0 and hence the sequence (At )t∈[T ] is a martingale, where A0 = 0 and
+                                                           p                                     p
+At = At−1 + bias(t)ΣG (t). With high probability |ΣG (t)|p≤ mn(c ln n) and bias(t) ≤ nm0 = n m(c ln n),
+hence by Azuma’s inequality, t∈[T ] bias(t)ΣG (t) ≤ mn nT (c ln n)3 with high probability.
+                             P
+
+   We are now equipped to prove the second part of Lemma 5.
+Proof of Part 2 of Lemma 5. Recall G, B are the sets of good and bad players, which, by assumption, do
+not change during the epoch.
+       X                     X
+  −           corr(i, j) = −   ΣG (t)ΣB (t)
+    (i,j)∈G×B                  t∈[T ]
+                            X
+                                     ΣG (t)2 − 2f |ΣG (t)| + bias(t)ΣG (t)
+                                                                          
+                        ≥                                                                                      (Lemma 6)
+                            t∈[T ]
+                          1 2               √          √             √
+                        ≥   ǫ mf T − Õ(mn T ) − 2f Õ( mnT ) − Õ(mn nT ) (W.h.p., by Lemmas 9, 10)
+                          2
+                                                          √
+                                    r 
+                            1 2           n
+                        =     ǫ − Õ          mf T − Õ(mn nT )
+                            2            m
+                                                      √
+                                       
+                            1 2
+                        ≥     ǫ − o(ǫ2 ) mf T − Õ(mn nT )                 (whenever m = Ω(n ln n/ǫ4 ))
+                            2
+                          1
+                        ≥ ǫ2 f mT                                         (whenever T = Ω(n ln3 n/ǫ4 ))
+                          4
+   Finally, since max{0, − corr(i, j) − wi wj β} ≥ − corr(i, j) − wi wj β, Lemma 5(2) follows from the above
+inequality and the fact that
+                              X                                            √     1
+                                        wi wj β ≤ |G| · |B| · β ≤ nf · Õ(m T ) ≤ ǫ2 f mT
+                                                                                 8
+                         (i,j)∈G×B
+
+
+holds whenever T = Ω(n2 ln3 n/ǫ4 ).
+
+
+
+
+                                                              13
+3.3     Blacklisting via Fractional Matching
+When the T iterations of epoch k are complete, we reduce the weight vector (wi ) in preparation for epoch
+k + 1. According to Lemma 5, if a correlation score − corr(i, j) is too large, B ∩ {i, j} =
+                                                                                          6 ∅ w.h.p., so reducing
+both i and j’s weights by the same amount preserves Invariant 1. With this end in mind, Weight-Update
+(Algorithm 3) constructs a complete, vertex- and edge-capacitated graph H on [n], finds a fractional maximal
+matching µ in H, then docks the weights of i and j by µ(i, j), for each edge (i, j). This is essentially the
+same as the blacklisting routine of [HPZ22], except we are paying attention to large negative correlations
+instead of large positive correlations and individual deviations.
+Definition 1 (Fractional Maximal Matching). Let H = (V, E, cV , cE ) be a graph where cV : V → R≥0 are
+vertex capacities and cE : E → R≥0 P are edge capacities. A function µ : E → R≥0 is a feasible fractional
+matching if µ(i, j) ≤ cE (i, j) and j µ(i, j) ≤ cV (i). It is maximal if it is not strictly dominated by any
+feasible µ′ .
+
+                                                                                                       (p)
+Rounding Weights Down.           At the end of epoch k, player p generates a local weight vector (wi,k+1 )i∈[n] ,
+which is a function of (wi,k )i∈[n] and its historical view BB(p,2kT ) . (There are 2T blackboards in each epoch.)
+The consensus weight vector (wi,k+1 )i∈[n] is obtained by everyone adopting the weight of i according to
+player i’s local view, and rounding down if it is too close to zero.
+                                            (                                  √
+                                                  (i)        (i)
+                                                wi,k+1 if wi,k+1 > wmin = Tn ,
+                                  wi,k+1 =
+                                                0         otherwise.
+Recall from Theorem 1 that if i writes anything to any blackboard in epoch k + 1, that every player can
+                                                                                       (i)
+deduce what its view BB(i,2kT ) looked like at the end of epoch k, and hence what wi,k+1 and wi,k+1 are.
+By ensuring that all participating players use exactly the same weight function, we eliminate one source of
+potential numerical disagreement.
+                                                                                         (p)    (q)
+   We will see that the maximum pointwise disagreement in the local weight vectors |wi,k+1 − wi,k+1 | is at
+                                                          (p)
+most wmin . As a consequence, if any p thinks that wi,k+1 = 0 then all players will agree that wi,k+1 = 0.
+
+Excess Graph. The excess correlation graph H = (V, E, cV , cE ) used in Algorithm 3 is a complete undi-
+rected graph on V = [n], capacitated as follows:
+
+                                  cV (i) = wi ,
+                                                  8
+                                cE (i, j) =           · max{0, corr(i, j) − wi wj β},
+                                              ǫ2 f mT
+where β is the quantity from Lemma 5. By Part 1 of Lemma 5, cE (i, j) = 0 whenever both i and j are good.
+    The Weight-Update algorithm from the perspective of player p is presented in Algorithm 3. We want to
+ensure that the fractional matchings computed by good players are numerically very close to each other, and
+for this reason, we use a specific maximal matching algorithm called Rising-Tide (Algorithm 4) that has a
+continuous Lipschitz property [HPZ22, Lemma 13], i.e., bounded perturbations to its input yield bounded
+perturbations to its output. Other natural maximal matching algorithms such as greedy do not have this
+property.
+
+3.3.1   Rising Tide Algorithm
+The Rising-Tide algorithm initializes µ = 0 and simply simulates the continuous process of increasing all
+µ(i, j)-values in lockstep, so long as i, j, and (i, j) are not saturated. At the moment one becomes saturated,
+µ(i, j) is frozen at its current value.
+    Recall that cV (i) is initialized to be the old weight wi,k and the new weight in p’s local view is set to
+  (p)              P (p)
+wi,k+1 = cV (i) − j µk (i, j). We are mainly interested in differences in the new weight vector computed by
+players that begin with slightly different graphs H (p) , H (q) . Lemma 11 [HPZ22] bounds the distance between
+outputs in terms of the distance between inputs.
+
+                                                          14
+Algorithm 3 Weight-Update from the perspective of player p.
+Output: Weights (wi,k )i∈[n],k≥0 where wi,k refers to the weight wi after processing epoch k − 1, and is
+used throughout epoch k.
+
+ 1: Set wi,1 ← 1 for all i.                                                   ⊲ All weights are 1 in epoch 1.
+ 2: for epoch k = 1, 2, . . . , Kmax do                                                 ⊲ Kmax = last epoch
+ 3:    Execute T iterations of Bracha-Agreement, using weights (wi,k ) in Coin-Flip. Let corr(p) be the
+                                                                                       (p)
+    resulting correlation scores known to p. Construct the excess correlation graph Hk with capacities:
+
+                                          cV (i) = wi,k ,
+                                     (p)                8         n
+                                                                           (p)
+                                                                                                    o
+                                cE (i, j) =                 · max   0, corr    (i, j) − wi,k wj,k β   .
+                                                    ǫ2 f mT
+         (p)                        (p)
+ 4:    µk ← Rising-Tide(Hk )                                                                      ⊲ A maximal fractional matching
+ 5:    For each i, once wi,k is known, set
+                                          (p)                        (p)
+                                                             X
+                                     wi,k+1 ← wi,k −               µk (i, j).
+                                                               j
+
+                              (i)
+ 6:    Once the vector (wj,k+1 )j∈[n] is known for i ∈ [n], set
+                                                      (                                           √
+                                                             (i)                 (i)        def    n
+                                           wi,k+1 =         wi,k+1         if wi,k+1 > wmin =     T ,
+                                                            0              otherwise.
+
+
+
+                                                                           (p)    (p)                   (q)   (q)
+Lemma 11 ([HPZ22, Lemma 13]). Let H (p) = (V, E, cV , cE ) and H (q) = (V, E, cV , cE ) be two capacitated
+                               P    (p)          (q)                                     P (p)       (q)
+graphs, which differ by ηE = i,j |cE (i, j)−cE (i, j)| in their edge capacities and ηV = i |cV (i)−cV (i)| in
+their vertex capacities. Let µ(p) and µ(q) be the fractional matchings computed by Rising-Tide (Algorithm 4).
+Then:                                                                       
+                           (p)                           (q)
+                   X               X                            X
+                        c (i) −
+                           V           µ(p) (i, j) − cV (i) −     µ(q) (i, j) ≤ ηV + 2ηE .
+                    i                           j                                       j
+
+
+3.4    Error Accumulation and Reaching Agreement
+The maximum number of epochs is Kmax = 3f . Let k ∈ [1, Kmax] be the index of the current epoch, and let
+(wi,k ) be the weights that were used in the execution of Coin-Flip during epoch k. Upon completing epoch
+k, each player p applies Algorithm 3 to update the consensus weight vector (wi,k )i∈[n] to produce a local
+                 (p)
+weight vector (wi,k+1 )i∈[n] , and then the consensus weight vector (wi,k+1 )i∈[n] used throughout epoch k + 1.
+Lemma 12 (Maintaining Invariant 1). Suppose for some ǫ > 0 that n = (3 + ǫ)f , m = Ω(n ln n/ǫ4 ), and
+T = Ω(n2 ln3 n/ǫ4 ). At any point in epoch k ∈ [1, Kmax ], with high probability,
+                             X                 X                   ǫ4
+                                 (1 − wi,k ) ≤     (1 − wi,k ) + √        · (k − 1).
+                             i∈G               i∈B                n ln6 n
+Proof. By induction on k. For the base case k = 1 all the weights are 1 so the claim clearly holds. Now
+suppose the claim holds for k and consider k + 1. Fix any good player p. A consequence of Part 1 of
+                                                                                   (p)
+Lemma 5 is that with high probability, player p’s view of the weight vector, (wi,k+1 ), is derived from (wi,k )
+by deducting at least as much weight from bad players as from good players. By the inductive hypothesis,
+                          X         (p)
+                                              X         (p)         ǫ4
+                              (1 − wi,k+1 ) ≤     (1 − wi,k+1 ) + √        · (k − 1).
+                          i∈G                 i∈B                  n ln6 n
+
+
+                                                                      15
+Algorithm 4 Rising-Tide(H = (V, E, cV , cE ))
+ 1: E ′ ← {(i, j) ∈ E | cE (i, j) > 0}.
+ 2: µ(i, j) ← 0 for all i, j ∈ V .
+ 3: while E ′ 6= ∅ do (
+                            1 if (i, j) ∈ E ′
+ 4:     Let µE ′ (i, j) =                      .
+                            0 otherwise.
+ 5:     Choose maximum ǫ > 0 such that µ′ = µ + ǫµE ′ is a feasible fractional matching.
+ 6:     Set µ ← µ′ .
+ 7:     E ′ ← E ′ − {(i, j) | i or j or (i, j) is saturated}                      ⊲ µ(i, j) cannot increase
+ 8: return µ.
+
+
+                                                                                               (q)
+Subsequently, player p derives the consensus weight vector (wi,k+1 ) from (wi,k+1 )q∈[n],i∈[n] by setting wi,k+1 =
+  (i)
+wi,k+1 , rounding the value down to 0 if it is at most wmin . Therefore,
+           X                       X                     ǫ4                 X (p)           (i)
+                 (1 − wi,k+1 ) ≤       (1 − wi,k+1 ) + √    6
+                                                               · (k − 1) +       |wi,k+1 − wi,k+1 | + wmin n0 ,
+           i∈G                     i∈B                  n ln n             i∈[n]
+
+where n0 is the number of players whose weight is rounded down to √      0 after epoch k.
+                                             (p)   (i)
+    Hence, it suffices to show that i∈[n] |wi,k − wi,k | + wmin n0 ≤ ǫ4 / n ln6 n. By Lemma 11, the computed
+                                    P
+weight difference between player p and any player q can be bounded by twice the sum of all edge capacity
+differences (ηE ), since they agree on the vertex capacities (ηV = 0).12 According to Algorithm 3, the edge
+capacities differ due to underlying disagreement on the corr(i, j) values. Thus,
+
+                          (p)           (q)                        8      X
+                       |wq,k+1 − wq,k+1 | ≤ 2ηE ≤ 2 ·                            corr(p) (i, j) − corr(q) (i, j) .                (2)
+                                                                ǫ2 f mT
+                                                                          i6=j
+
+By Theorem 1, two players may only disagree in up to f cells of the blackboards
+                                              (BB2(k−1)T +2 , BB2(k−1)T +4 , . . . , BB2kT ),
+i.e., those used to compute corr-values in epoch k. Since the sum of each column in each blackboard is
+                       (p)    (p)       (q)     (q)
+bounded by Xmax , |Xi (t)Xj (t) − Xi (t)Xj (t)| ≤ 2Xmax . Each of the f cells that p and q disagree
+about affects n − 1 corr-values. Therefore, the right hand side of (2) is upper bounded by:
+                                                  8
+                                    ≤2·                 · nf · 2Xmax
+                                              ǫ2 f mT
+                                      32nXmax
+                                    ≤    2
+                                      √ǫ mT
+                                        n                                                                          √
+                                    ≤                                              (m = Ω(n ln n/ǫ4 ) and Xmax = Θ( m ln n))
+                                       T
+                                    = wmin
+Now the inductive step for k + 1 holds by noticing that
+                   X (p)           (i)
+                        |wi,k+1 − wi,k+1 | + wmin n0 ≤ 2wmin n
+                        i∈[n]
+
+                                                                        ǫ4
+                                                                   ≤            ·n                              (T = Ω(n2 ln3 n/ǫ4 ))
+                                                                    n3/2 ln3 n
+                                                                       ǫ4
+                                                                   =√         .
+                                                                      n ln6 n
+  12 Strictly speaking one player can know c
+                                             V (i) and another player may be ignorant of it, but in this case all the edges incident
+to i have capacity zero. This situation is indistinguishable from all players knowing and agreeing on cV .
+
+
+                                                                    16
+Since k ≤ Kmax = 3f , we conclude that Invariant 1 holds in every epoch, with high probability. That is, if
+(wi ), G, B are the weight vector, good players, and bad players at any point in time, then
+                                  X                   X                 ǫ4
+                                        (1 − wi ) ≤     (1 − wi ) + √          · Kmax
+                                  i∈G               i∈B                n ln6 n
+                                                    X                                                     √
+                                                  ≤     (1 − wi ) + ǫ4 f.                                ( n ln6 n ≥ 3)
+                                                      i∈B
+
+
+
+
+  The next observation and Lemma 13 shows that the weight of every bad player becomes 0 after running
+Kmax epochs of Weight-Updates without reaching agreement.
+                                                                                   (p)
+Observation 1. For any i and k, if there exists a player p such that wi,k = 0, then wi,k = 0.
+                                                                    (p)    (i)     √                       (p)
+Proof. In the proof of Lemma 12 it was shown that |wi,k − wi,k | ≤                  n/T = wmin , hence if wi,k = 0,
+ (i)
+wi,k ≤ wmin and wi,k is rounded down to 0. See Algorithm 3.
+Lemma 13. If agreement has not been reached after Kmax = 3f epochs, then with high probability, there
+are f bad players with weight 0.
+Proof. There are at most f epochs in which the adversary corrupts at least one player. We argue below
+that for all other epochs, in the call to Weight-Update, the sum of the capacities of edges with at least one
+endpoint in B is at least 1. This implies that in each iteration of Weight-Update, either some i ∈ B with
+cV (i) = wi > wmin becomes saturated (and thereafter wi = 0 by Observation 1), or the total weight of all
+players in B drops by at least 1. Each of these cases also occurs at most f times, hence Kmax = 3f epochs
+suffice to push the weight of f bad players to zero, with high probability.
+    We now prove that the sum of the capacities of edges with at least one endpoint in B is at least 1.
+                        X                    8       X
+                               cE (i, j) = 2               max{0, corr(i, j) − wi,k wj,k β}
+                                          ǫ f mT
+                    (i,j)∈[n]×B                         (i,j)∈[n]×B
+                                               8            X
+                                           ≥ 2                      max{0, corr(i, j) − wi,k wj,k β}
+                                            ǫ f mT
+                                                        (i,j)∈G×B
+                                                                      
+                                                  8         1 2
+                                           ≥    2
+                                                              ǫ f mT                                   (by Lemma 5(2))
+                                               ǫ f mT       8
+                                           = 1.
+
+Lemma 14. Suppose Invariant 1 holds in an epoch in which bad players have zero weight. With high
+probability, Bracha-Agreement terminates with agreement in this epoch.
+Proof. The proof of Lemma 5(2) states that with high probability, − (i,j)∈G×B corr(i, j) ≥ 14 ǫ2 f mT > 0
+                                                                      P
+in P
+   any epoch in which Bracha-Agreement fails to reach agreement. On the other hand, by assumption
+− (i,j)∈G×B corr(i, j) = 0. Thus, with high probability Bracha-Agreement reaches agreement in this epoch.
+
+
+Remark 1. Assuming the preconditions of Lemma 14, only good players participate and flip fair coins.
+Nonetheless, the output of Coin-Flip need not be close to unbiased. The scheduling power of the adversary
+is still strong enough to heavily bias the outcome of the coin flip or create disagreement on the outcome.
+More√careful calculations show the probability of an unambiguous −1 or unambiguous +1 outcome are each
+Ω(1/ n). This occurs when f + 1 good players have total weight about 1 and the remaining f good players
+each have weight 1.
+Theorem 15. Suppose n = (3 + ǫ)f where ǫ > 0, m = Θ(n ln n/ǫ4 ), and T = Θ(n2 ln3 n/ǫ4 ). Using the
+implementation of Coin-Flip from Section 3.1, Bracha-Agreement solves Byzantine agreement with probability
+1 in the full information, asynchronous model against an adaptive adversary. In expectation the total latency
+is Õ(n4 /ǫ8 ). The local computation of each player is polynomial in n.
+
+                                                              17
+Proof. By Lemma 13, if the players have failed to reach agreement after Kmax = 3f epochs, all bad players’
+weights are zero with high probability. By Lemma 14, the players reach agreement in the next epoch with
+high probability. If, by chance, the players have not reached agreement after epoch Kmax + 1, they reset all
+weights to 1 and restart the algorithm at epoch 1. Thus, the algorithm terminates with probability 1.
+    By Theorem 1 the latency to construct BBt′ is O(m(t′ )), so if the algorithm is not restarted, the total
+latency is O((Kmax + 1)mT ) = O(f mT ) = Õ(n4 /ǫ8 ). Even after incorporating the possibility of restarts,
+this latency bound holds with high probability and in expectation.
+
+
+4     Conclusion
+Our main result is a randomized agreement protocol in the full-information model resilient to f = n/(3 + ǫ)
+adaptive Byzantine failures. When ǫ is bounded away from zero it has expected latency Õ(n4 ) and in
+the extreme case when ǫ = 1/f (n = 3f + 1) it has latency Õ(n12 ). This is the first improvement to
+Bracha’s [Bra87] 1984 protocol when n = 3f + 1, which had exponential expected latency 2O(n) . The prior
+results of King and Saia [KS16, KS18] and Huang, Pettie, and Zhu [HPZ22] offer different tradeoffs between
+resiliency, latency, and local computation time; see Table 1.
+    Our goal was to present the simplest possible protocol with polynomial latency and resiliency f < n/3,
+so we have made no attempt to optimize the latency prematurely.13 We see several interesting directions for
+future work.
+    • If one tried to stay broadly within our coin-flipping framework but maximally optimize the parameters,
+      one would find that m = Ω(n) and T = Ω(n2 ). The bound on m is necessary to overcome the ±f
+      discrepancies introduced by the adversarial scheduler, and the bound on T is the time needed for the
+      small negative aggregate good-bad correlations to dwarf the random noise of good-good correlations.
+      Thus, Ω(n3 ) latency seems to be baked into this approach when n = 3f + 1, even just to reliably
+      blacklist any pair of players and maintain Invariant 1. Is it possible to solve Byzantine Agreement in
+      close to O(n3 ) latency?
+    • Let ng(ǫ) be the optimum latency of a Byzantine Agreement protocol with resiliency f = n/(3 +
+      ǫ) against an adaptive adversary. What does the function g look like and what is limǫ→∞ g(ǫ)?
+      From [KS16] we know that limǫ→∞ g(ǫ) ≤ 2.5, at least for protocols with exponential local com-
+      putation, and from [Asp98, AC08] we know limǫ→∞ g(ǫ) ≥ 1. What is the correct limit of g(ǫ)? Are
+      there qualitatively different protocols achieving latency ng(ǫ) for various ranges of ǫ? One can also look
+      at the optimal latency-resiliency tradeoff when f = nγ , γ ∈ (0, 1), is expressed as a polynomial of n.
+    • Each step in the protocols we use (Bracha’s [Bra87] Reliable-Broadcast, Huang et al.’s [HPZ22] Iterated-
+      Blackboard, and the Coin-Flip protocol of Section 3.1) typically consists of sending a message to all
+      players and waiting for n − f messages before making some state transition. If we were to wait for
+      n − f + 1 messages, we may wait forever if f players crashed and never sent any messages. On the other
+      hand, once we introduce blacklisting itPis not clear that waiting for just n − f messages is necessary
+      anymore. For example, suppose that i wi = n − 2ρf and that we have reduced the weight of good
+      and bad players each by ρf , with high probability. Rather than wait for n − f messages, we could
+      wait for messages from players whose total weight is at least n − (ρ + 1)f .14 This would help speed up
+      later epochs since we could then access the weight advantage of good players. However, since there is
+      some non-zero probability of blacklisting pairs of good players, there is some non-zero probability that
+      a protocol will deadlock if it waits for n − (ρ + 1)f weight before proceeding. This raises the possibility
+      that there is a complexity separation between Las Vegas (which never err) and Monte Carlo protocols
+      (which may deadlock) for Byzantine Agreement in our model. Cf. [KKK+ 10].
+  13 For example, there is a mismatch in the two terms of Lemma 9 ( 1 ǫ2 mf T − mn T (c ln n)), the first achieves its worst case
+                                                                                    p
+                                                                     4
+in later epochs, after close to 2f units of weight have been deducted from (wi ), and the second achieves its worst case in the
+beginning, when wi = 1. Similarly Lemma 10 achieves its worst case when wi = 1. These mismatches lead to the introduction
+of additional ǫ−1 factors in the proof of Lemma 5(2).
+  14 More generally, players should make a state transition only when it is plausible, w.h.p., that all un-received messages were
+
+to be sent by Byzantine players.
+
+
+
+
+                                                               18
+References
+[AC08]    Hagit Attiya and Keren Censor. Tight bounds for asynchronous randomized consensus. J. ACM,
+          55(5):1–26, 2008.
+
+[AL93]    Miklós Ajtai and Nathan Linial. The influence of large coalitions. Comb., 13(2):129–145, 1993.
+[AN93]    Noga Alon and Moni Naor. Coin-flipping games immune against linear-sized coalitions. SIAM
+          J. Comput., 22(2):403–417, 1993.
+[Asp98]   James Aspnes. Lower bounds for distributed coin-flipping and randomized consensus. J. ACM,
+          45(3):415–450, 1998.
+[Ben83]   Michael Ben-Or. Another advantage of free choice: Completely asynchronous agreement protocols
+          (extended abstract). In Proceedings 2nd Annual ACM Symposium on Principles of Distributed
+          Computing (PODC), pages 27–30, 1983.
+[BG93]    Piotr Berman and Juan A. Garay. Randomized distributed agreement revisited. In Proceedings
+          23rd Annual International Symposium on Fault-Tolerant Computing (FTCS), pages 412–419,
+          1993.
+
+[BL85]    Michael Ben-Or and Nathan Linial. Collective coin flipping, robust voting schemes and minima
+          of Banzhaf values. In Proceedings 26th Annual IEEE Symposium on Foundations of Computer
+          Science (FOCS), pages 408–416, 1985.
+[BN00]    Ravi B. Boppana and Babu O. Narayanan. Perfect-information leader election with optimal
+          resilience. SIAM J. Comput., 29(4):1304–1320, 2000.
+[BOPV06] Michael Ben-Or, Elan Pavlov, and Vinod Vaikuntanathan. Byzantine agreement in the full-
+         information model in O(log n) rounds. In Proceedings of the 38th Annual ACM Symposium on
+         Theory of Computing (STOC), pages 179–186, 2006.
+[Bra87]   Gabriel Bracha. Asynchronous Byzantine agreement protocols. Inf. Comput., 75(2):130–143,
+          1987.
+[BT85]    Gabriel Bracha and Sam Toueg. Asynchronous consensus and broadcast protocols. J. ACM,
+          32(4):824–840, 1985.
+[CC85]    Benny Chor and Brian A Coan. A simple and efficient randomized Byzantine agreement algo-
+          rithm. IEEE Transactions on Software Engineering, (6):531–539, 1985.
+[CKS05]   Christian Cachin, Klaus Kursawe, and Victor Shoup. Random oracles in Constantinople: Prac-
+          tical asynchronous Byzantine agreement using cryptography. J. Cryptol., 18(3):219–246, 2005.
+[CR93]    Ran Canetti and Tal Rabin. Fast asynchronous Byzantine agreement with optimal resilience.
+          In Proceedings of the Twenty-Fifth Annual ACM Symposium on Theory of Computing (STOC),
+          pages 42–51, 1993.
+[DLS88]   Cynthia Dwork, Nancy Lynch, and Larry Stockmeyer. Consensus in the presence of partial
+          synchrony. J. ACM, 35(2):288–323, 1988.
+[Fei99]   Uriel Feige. Noncryptographic selection protocols. In Proceedings 40th Annual IEEE Symposium
+          on Foundations of Computer Science (FOCS), pages 142–153, 1999.
+[FL82]    Michael J. Fischer and Nancy A. Lynch. A lower bound for the time to assure interactive
+          consistency. Inf. Process. Lett., 14(4):183–186, 1982.
+[FLM86]   Michael J. Fischer, Nancy A. Lynch, and Michael Merritt. Easy impossibility proofs for dis-
+          tributed consensus problems. Distributed Comput., 1(1):26–39, 1986.
+
+
+
+                                                  19
+[FLP85]    Michael J. Fischer, Nancy A. Lynch, and Mike Paterson. Impossibility of distributed consensus
+           with one faulty process. J. ACM, 32(2):374–382, 1985.
+[FM97]     Pesech Feldman and Silvio Micali. An optimal probabilistic protocol for synchronous Byzantine
+           agreement. SIAM J. Comput., 26(4):873–933, 1997.
+[GM98]     Juan A. Garay and Yoram Moses. Fully polynomial Byzantine agreement for n > 3t processors
+           in t + 1 rounds. SIAM J. Comput., 27(1):247–290, 1998.
+[GPV06]    Shafi Goldwasser, Elan Pavlov, and Vinod Vaikuntanathan. Fault-tolerant distributed computing
+           in full-information networks. In Proceedings 47th Annual IEEE Symposium on Foundations of
+           Computer Science (FOCS), pages 15–26, 2006.
+[HK20]     Iftach Haitner and Yonatan Karidi-Heller. A tight lower bound on adaptively secure full-
+           information coin flip. In Proceedings 61st Annual IEEE Symposium on Foundations of Computer
+           Science (FOCS), pages 1268–1276, 2020.
+[HPZ22]    Shang-En Huang, Seth Pettie, and Leqi Zhu. Byzantine agreement in polynomial time with
+           near-optimal resilience. In Proceedings 54th ACM Symposium on Theory of Computing (STOC),
+           2022.
+[Kim20]    Ben Kimmett. Improvement and partial simulation of King & Saia’s expected-polynomial-time
+           Byzantine agreement algorithm. Master’s thesis, University of Victoria, Canada, 2020.
+[KKK+ 10] Bruce M. Kapron, David Kempe, Valerie King, Jared Saia, and Vishal Sanwalani. Fast asyn-
+          chronous Byzantine agreement and leader election with full information. ACM Trans. Algorithms,
+          6(4):68:1–68:28, 2010.
+[KKL88]    Jeff Kahn, Gil Kalai, and Nathan Linial. The influence of variables on boolean functions (extended
+           abstract). In Proceedings of the 29th Annual IEEE Symposium on Foundations of Computer
+           Science (FOCS), pages 68–80, 1988.
+[KS16]     Valerie King and Jared Saia. Byzantine agreement in expected polynomial time. J. ACM,
+           63(2):13:1–13:21, 2016.
+[KS18]     Valerie King and Jared Saia. Correction to Byzantine agreement in expected polynomial time,
+           JACM 2016. CoRR, abs/1812.10169, 2018.
+[Lew11]    Allison B. Lewko. The contest between simplicity and efficiency in asynchronous Byzantine
+           agreement. In Proceedings 25th International Symposium on Distributed Computing (DISC),
+           volume 6950 of Lecture Notes in Computer Science, pages 348–362, 2011.
+[LSP82]    Leslie Lamport, Robert E. Shostak, and Marshall C. Pease. The Byzantine generals problem.
+           ACM Trans. Program. Lang. Syst., 4(3):382–401, 1982.
+[PSL80]    Marshall C. Pease, Robert E. Shostak, and Leslie Lamport. Reaching agreement in the presence
+           of faults. J. ACM, 27(2):228–234, 1980.
+[Rab83]    Michael O. Rabin. Randomized Byzantine generals. In Proceedings 24th Annual IEEE Symposium
+           on Foundations of Computer Science (FOCS), pages 403–409, 1983.
+[RSZ02]    Alexander Russell, Michael E. Saks, and David Zuckerman. Lower bounds for leader election
+           and collective coin-flipping in the perfect information model. SIAM J. Comput., 31(6):1645–1662,
+           2002.
+[Sak89]    Michael E. Saks. A robust noncryptographic protocol for collective coin flipping. SIAM J.
+           Discret. Math., 2(2):240–244, 1989.
+[Tou84]    Sam Toueg. Randomized Byzantine agreements. In Proceedings 3rd Annual ACM Symposium
+           on Principles of Distributed Computing (PODC), pages 163–178, 1984.
+
+
+                                                    20
+

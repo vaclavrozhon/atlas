@@ -1,0 +1,157 @@
+# Applying 50 removals and three duplicate consolidations
+
+The user authorized a few consolidations, about 50 weak-card removals, and retention of the rest of the previous 100 candidates. Exactly 50 cards were removed separately and three duplicate cards were merged into existing survivors. The other 47 proposed candidates remain byte-for-byte unchanged, including all 18 borderline candidates.
+
+The active pool changes from 1,066 to 1,013. There are 1,049 canonical card files, including the same 36 inactive resolved records. Only three surviving canonical cards were edited; all other 1,046 surviving files are unchanged.
+
+Of the 50 separate removals, 44 are comparative editorial judgments about scientific reach and marginal coverage, four retire historical questions answered by later results, and two retire invalid extractions. Narrow scope is not a claim of mathematical triviality or resolution. Scores, category sizes, quota filling, draft completeness and formalization cost did not select the removals.
+
+The prior individual review was reused after confirming all 53 removed or merged cards match its hashes. Their current targets and summaries were reread, along with all six cards in the three merges. Merge scope was checked against primary sources. This was not an exhaustive new literature audit or independent verification of the cited proofs.
+
+## Consolidations
+
+- **TCS-0054 → [TCS-4949: Tensor decomposition at Kruskal’s uniqueness threshold](../../data/cards/TCS-4949.json)**. The inherited paper-level entry and this Open Problem 4 entry refer to the same 2014 Kruskal-threshold decomposition question. The source also discusses robustness on page 3; this context is retained without equating exact recovery, noisy recovery, or mere identifiability.
+  Source: [Definition 2, Theorem 3 and Open Problem 4 on PDF page 2; robustness discussion on page 3](https://proceedings.mlr.press/v35/bhaskara14b.pdf). Both records cite this same source question. The paper-level record supplies no distinct selected target. Exact and robust recovery remain distinguished.
+- **TCS-0691 → [TCS-2339: Linear recursive teaching dimension versus VC dimension](../../data/cards/TCS-2339.json)**. The 2015 Simon–Zilles paper and Open Problem 3 of Simon 2023 ask for the same universal linear upper bound on recursive teaching dimension by VC dimension for finite concept classes. The 2023 question explicitly cites the 2015 source. Non-clashing teaching and sample compression remain different targets.
+  Source: [Abstract](https://proceedings.mlr.press/v40/Simon15b.html). Asks for a universal linear RTD bound in terms of VC dimension.
+  Source: [Open Problem 3, PDF page 13](https://proceedings.mlr.press/v201/simon23a/simon23a.pdf). States the same inequality for every finite concept class and explicitly attributes the question to Simon and Zilles 2015.
+- **TCS-6007 → [TCS-6890: Superpolynomial noncommutative circuit lower bounds](../../data/cards/TCS-6890.json)**. The selected 2021 introductory passage reiterates general noncommutative circuit lower bounds already represented by Open Problem 10 of the 2010 survey. The 2021 paper's ABP-versus-formula target and restricted-model results are not being identified with general circuit lower bounds. Field, degree and explicitness conventions remain unfinished in the surviving draft.
+  Source: [Open Problem 10, PDF page 35](https://www.cs.tau.ac.il/~shpilka/publications/SY10.pdf). The selected survey question is a superpolynomial lower bound for general noncommutative circuits.
+  Source: [Introduction, PDF page 2](https://drops.dagstuhl.de/storage/00lipics/lipics-vol200-ccc2021/LIPIcs.CCC.2021.7/LIPIcs.CCC.2021.7.pdf). The exact extracted passage concerns general circuit lower bounds. The paper's separate ABP/formula results are not claimed equivalent.
+
+The surviving mathematical targets, statuses and evidence levels are preserved. Unique references and active incoming/outgoing related links were transferred. Existing editorial importance assessments of 83 and 80 were transferred with their original dates from TCS-0054 and TCS-0691 to their previously unassessed survivors; these are preserved assessments, not new ratings. No focus choice needed replacement.
+
+## Fifty separate removals
+
+1. **TCS-3114: Thus, the case that remains open concerns uncountable X and general (random) sequences X.** — Blanchard's COLT 2022 result explicitly closes the COLT 2021 universal-online-learning questions, including weak and strong learning on general spaces. The card still extracts the earlier unresolved case.
+   Scope: The solved target uses deterministic target functions. Preserve the distinction from TCS-2654, which permits arbitrarily dependent responses.
+   Evidence: [Universal Online Learning: an Optimistically Universal Learning Rule](https://proceedings.mlr.press/v178/blanchard22b.html); Published abstract and PDF abstract; matched to the saved COLT 2021 source and its weak/strong deterministic-target questions.
+2. **TCS-3347: Complexity of conditional-independence implication** — The 2020 source leaves conditional-independence implication undecided. Li's later undecidability theorem covers finite-support random variables with unrestricted alphabet sizes, so the standard historical question has an answer.
+   Scope: A separately specified fixed-alphabet or other restricted complexity problem would need its own assessment; the theorem is not about unconditional Shannon inequalities.
+   Evidence: [Undecidability of Network Coding, Conditional Information Inequalities, and Conditional Independence Implication](https://arxiv.org/html/2205.11461v3); Introduction, finite-support convention and Theorem 3 statement.
+3. **TCS-6418: Simultaneously time- and message-optimal distributed MST** — The saved 2011 target asks for simultaneous near-optimal time and message complexity for distributed MST. Pandurangan, Robinson and Scquizzato give precisely these randomized bounds; this historical target should leave the open-problem pool.
+   Scope: The result permits Las Vegas randomization. Do not reinterpret the old card as a new deterministic target.
+   Evidence: [A Time- and Message-Optimal Distributed Algorithm for Minimum Spanning Trees](https://arxiv.org/abs/1607.06883); Abstract and introductory theorem description; publication metadata corroborated.
+4. **TCS-6737: Polynomial-query testing of minor-closed bounded-degree properties** — Kumar, Seshadhri and Stolman provide a tester with polynomial dependence on degree and inverse proximity for each fixed minor-closed property. This answers the historical polynomial-query target.
+   Scope: The theorem permits two-sided error and property-dependent constants. A one-sided tester is a different target, not an implicit replacement.
+   Evidence: [Random walks and forbidden minors II: A polynomial-query tester for minor-closed properties of bounded-degree graphs](https://arxiv.org/abs/1904.01055); Abstract and Theorem 1.1 on PDF page 2, explicitly referring to Goldreich's historical problem.
+5. **TCS-3685: Average-case formula hardness of the majority Andreev function** — The current reviewed card records a direct contradiction of its literal average-case target: a single input-table bit already gives inverse-polynomial advantage. This is stronger evidence for retirement than an ordinary unfinished statement.
+   Scope: A corrected distribution, encoding or advantage target would be a new source-supported formulation to assess; the paper's worst-case theorem is not being refuted.
+   Evidence: [Existing card's raw-table consistency check](https://doi.org/10.4230/LIPIcs.ITCS.2019.35); Full current formal statement, definitions, answer criterion and recorded consistency calculation. The original paper was not newly re-audited here.
+6. **TCS-5777: Monotone versus general spanning-tree polynomial circuits** — The extracted sentence is the broad introductory question about monotone versus unrestricted computation. The same paper then proves concrete strong monotone separations for spanning-tree polynomials; the card identifies no additional independent residual conjecture.
+   Scope: Retire this extraction, not the general study of cancellation or every question in the paper. Its solved theorems can remain context elsewhere.
+   Evidence: [Monotone Complexity of Spanning Tree Polynomial Re-Visited](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITCS.2022.39); Published abstract and introduction on PDF page 2, compared with the exact extracted sentence in the full canonical card.
+7. **TCS-3314: Competitive chasing of three sets on the line** — Chasing exactly three arbitrary sets on the real line is a sharply restricted request-family question. It is an attractive small puzzle, but its saved motivation gives it less independent reach than the general k-server and convex-chasing frontiers.
+   Scope: The sets are not necessarily intervals or convex; one-dimensional convex chasing is not a resolution.
+8. **TCS-0173: Pattern unification modulo variable-preserving equations** — The target combines higher-order patterns with variable-preserving equational theories. It adds a specific closure question for symbolic unification beside the more central word, modal and rewriting decision barriers.
+   Scope: The presentation of the equation set must still be fixed; incompleteness of that detail is not the reason for the proposed cut.
+9. **TCS-0328: Sparse \((1 + \epsilon )\)-emulator for Euclidean Point Sets** — The target optimizes sparse near-isometric emulators for Euclidean points using abstract auxiliary vertices. It is a specific geometric representation variant beside broader metric-distortion and graph-spanner tradeoffs.
+   Scope: Abstract emulators and geometric Steiner spanners are not equivalent; the distinction is precisely the extra model choice being evaluated.
+10. **TCS-0363: Negative cycles on surface embedded graphs** — Negative-weight closed walks subject to contractibility combine path optimization with one topological constraint. I would place this particular surface-embedded task below the general shortest-path and topological-decision barriers.
+   Scope: Closed walks may repeat edges; neither ordinary negative-cycle detection nor simple-cycle algorithms settle the target.
+11. **TCS-0414: Surface Reconstruction** — This asks for topology recovery from samples of surfaces with singular features, extending a particular geometric reconstruction setting. Its benchmark contribution is focused on sampling guarantees for sharp edges and corners rather than a general topology or metric barrier.
+   Scope: A meaningful singular-surface theorem could be substantial. The missing density convention alone is not grounds for deletion.
+12. **TCS-0871: Universality and inclusion of AC-recognizable languages** — Universality and inclusion are asked for the particular AC-recognizable tree-language model. I would favor the central unresolved language-equivalence and automaton-state-complexity questions over another equational recognition variant.
+   Scope: This is a scope judgment; decidability of restricted transition forms is not a solution of the full model.
+13. **TCS-0957: Approximating Rank in the Bounded-Degree Model** — This isolates additive rank estimation for finite-field matrices with bounded row and column degree. The specific access model and matrix promise give it lower priority than general algebraic computation and sublinear-model characterizations.
+   Scope: Rank estimation on incidence matrices is only a special case and does not settle general sparse matrices.
+14. **TCS-0968: “For All” Guarantee for Computationally Bounded Adversaries** — This combines public compressed sensing, adaptive signal choice and computationally bounded adversaries. The benchmark would gain one cryptographic relaxation of a recovery guarantee, rather than a general sparse-recovery or cryptographic-foundations result.
+   Scope: The unrestricted-adversary impossibility does not settle the computationally bounded model.
+15. **TCS-1478: Adversarial sequential prediction with abstentions for VC classes** — This combines adaptive corruptions, abstention and unknown clean distributions for VC classes. The requested extension removes a reduction-dimension condition from that particular sequential prediction model, rather than changing the general PAC or online learnability boundary.
+   Scope: Finite VC dimension alone is not asserted to suffice; the model-specific extension is the target being deprioritized.
+16. **TCS-2111: Fully polynomial learning of positive ReLU networks under Gaussian inputs** — The chosen target is noiseless Gaussian learning of positive combinations of ReLUs with normalized weights. This restricted network/distribution/sign regime contributes less broad coverage than the general learning barriers, even though polynomial dependence on width remains meaningful.
+   Scope: Improper prediction, not parameter recovery, is required; the existing quasipolynomial width dependence is not a solution.
+17. **TCS-2680: Relativizing subexponential UP from heuristic average-case NP** — The exact conjecture requires a heuristic-average-case-to-UP implication relative to every oracle and at a specified subexponential scale. That relativizing, quantitative strengthening has less independent reach than the main worst-case versus average-case hardness questions.
+   Scope: The universal oracle quantifier is part of the target, not an optional proof technique.
+18. **TCS-2689: Deterministic safety and termination in hybrid synchrony** — The question removes randomized progress from one hybrid-synchrony permissionless-consensus model. Its safety/termination distinction is useful, but the specific participation model makes it a more specialized target than general agreement boundaries.
+   Scope: Do not apply an asynchronous impossibility theorem without matching the source's synchrony and participation assumptions.
+19. **TCS-3344: Decidability of rounded planar-rotation reachability** — Reachability for rounded planar rotations isolates one numerical-dynamics model at two dimensions. It is a useful verification example, but more specialized than the general recurrence, linear-loop and reachability barriers.
+   Scope: Rounding can fundamentally change an orbit; ordinary rotation analysis does not decide this problem.
+20. **TCS-3414: Explicit permutation groups requiring superpolynomial graph embeddings** — This asks for large graph representations of explicit permutation actions with a distinguished invariant subset. It is an interesting representation lower bound, but the extra action-realization requirement makes its benchmark contribution more specialized than the main group-isomorphism and algebraic lower-bound questions.
+   Scope: The target is not ordinary realization of abstract groups as automorphism groups.
+21. **TCS-3676: Binary-horizon MDP reward-threshold complexity** — The target classifies exact reward-threshold decisions for explicitly described MDPs with binary-encoded long horizons. It is a particular encoding-sensitive variant beside the broader stochastic-game and optimization-complexity questions.
+   Scope: The source's hardness of choosing a specified first action is not a theorem about this threshold problem.
+22. **TCS-4299: Collision detection in deterministic broadcast** — This asks whether collision feedback accelerates deterministic broadcast in the specified radio-network model. It compares one physical-layer capability for one communication task, with less independent coverage than broader distributed-computation questions.
+   Scope: Randomized benefits of collision detection do not establish a deterministic separation.
+23. **TCS-4463: Markov computability versus K-computability** — This isolates a Markov-versus-K-computability separation for a particular represented codomain O(B). The representation-specific witness is less broad than the main randomness, degree-structure and computability barriers already represented.
+   Scope: The codomain representation is mathematically essential; the proposed cut does not generalize to all comparisons of represented-space computation.
+24. **TCS-4495: Recovery hardness for sparse planted dense subgraphs** — This selects exact recovery in a particular sparse planted-subgraph exponent region under the planted-clique hypothesis. The detection/recovery distinction matters, but the restricted phase region makes it a more specialized benchmark than the central planted-model thresholds.
+   Scope: Dense, leakage-assisted and restricted-algorithm hardness results do not resolve the saved interior region.
+25. **TCS-4549: Polynomial-time colorful choice with polynomially many colors** — Allowing polynomially many colors is a particular redundancy tradeoff in colorful Carathéodory computation. I would prioritize general fixed-point and convex-optimization complexity over this relaxation of one geometric existence theorem.
+   Scope: The required output still uses at most one point from each color; extra colors do not make the task trivially solvable.
+26. **TCS-4716: \(\mathrm{AC}^{0}\)-distinguishable locally indistinguishable \(\mathrm{NC}^{0}\) sources** — The construction simultaneously demands NC0 generation, large-coordinate indistinguishability and AC0 distinguishability. These combined circuit restrictions support a particular simple secret-sharing architecture rather than a general cryptographic existence barrier.
+   Scope: Local indistinguishability and global circuit indistinguishability are different requirements, both essential to the target.
+27. **TCS-4869: Fine-grained reductions from 4-cycles to triangles** — The question seeks a particular fine-grained reduction from four-cycles to triangles in a source centered on listing. I would prioritize the main APSP, 3SUM and clique relationships over another task-specific reduction edge.
+   Scope: Decision and enumeration, including output size and instance blowup, must be aligned; no equivalence is assumed.
+28. **TCS-4960: Polynomial depth lower bounds for Transformers** — Polynomial depth lower bounds for a specified decoder-only Transformer model target one architecture and its resource conventions. I would prefer more broadly transferable circuit, formula and communication barriers in the main benchmark.
+   Scope: This is not a dismissal of learning theory or attention models; stronger evidence of consequences outside the chosen architecture would improve its case.
+29. **TCS-5004: Polynomial-time robust online decision making** — The question makes one robust-MDP regret guarantee computationally efficient with polynomial horizon, state and action dependence. It sits inside a specified uncertainty model, so I would prioritize more general online decision and bandit complexity barriers.
+   Scope: Information-theoretic regret guarantees do not imply a polynomial-time implementation.
+30. **TCS-5334: Sample-efficient latent-tree Ising learning** — The intended target is sample-optimal proper learning in the latent-tree Ising family. It is a specific hidden-variable statistical-computational gap; the broader learning questions have greater independent coverage in the benchmark.
+   Scope: The current card additionally records a missing-logarithm conflict in the source. That defect needs correction, but is not by itself the reason to discard the genuine learning question.
+31. **TCS-5349: Dimension-free regret for bounded-max-norm experts** — Dimension-free regret is sought under the particular bounded factorization-max-norm promise with the factorization hidden. This special structural promise adds less general coverage than unrestricted expert, bandit and convex-optimization regret questions.
+   Scope: Low rank, bounded max norm and a known factorization are different assumptions.
+32. **TCS-7288: Adaptivity gap of influence maximization with full feedback** — The full adaptivity-gap function measures the value of observations for independent-cascade influence maximization with full-adoption feedback. Its dependence on a particular diffusion and feedback model gives it lower priority than more general online-selection and inference barriers.
+   Scope: Keep the whole n,k function in view; this proposal is not based on disallowing quantitative or functional answers.
+33. **TCS-3056: Deterministic convolution with negative entries** — The target extends one fast n-fold Boolean-convolution result to signed entries. Its main contribution would be removing the no-cancellation restriction of that algorithmic setting, with less independent reach than the general convolution and algebraic-computation barriers.
+   Scope: Do not infer that all signed convolution questions are minor; this judgment concerns the selected extension and its saved efficiency target.
+34. **TCS-4293: PLS-completeness of k-means local minima** — PLS-completeness of finding a local optimum for the k-means method studies the inherent limitations of a particular heuristic's neighborhood. I would give the unrestricted clustering approximation and general total-search barriers higher priority.
+   Scope: A long convergence example does not by itself prove PLS-completeness.
+35. **TCS-6466: Polynomial tour complexity of BKZ** — The open target bounds the number of tours of the particular BKZ basis-reduction algorithm. It would strengthen analysis of an important practical method, but has less independent foundational scope than the best possible lattice-algorithm and hardness questions.
+   Scope: The count of tours is not the total cost of exact block solving; practical early stopping is not a worst-case proof.
+36. **TCS-3845: Efficient distributed multicommodity routing** — The selected task finds multicommodity routes inside the low-width random-network setting used to simulate parallel algorithms. I would treat this as a focused supporting construction rather than another general routing or parallel-computation benchmark.
+   Scope: Its potential improvement to parallel-to-distributed simulation is real; this is a comparative priority judgment, not merely a criticism of missing bounds.
+37. **TCS-3940: Note however that we do not know whether these lower bounds imply general algorithmic hardness.** — The saved direction asks to convert graph-pattern polynomial lower bounds into general algorithmic hardness. Its selected contribution remains tied to the interpretation of one algebraic lower-bound framework; broader subgraph complexity questions already express the scientific objective more directly.
+   Scope: The awkward extracted title is not the reason for removal, and method-specific hardness is not itself a general algorithmic lower bound.
+38. **TCS-4301: Two-sided hardness amplification by ODD-MAX-BIT** — The target upgrades a specific ODD-MAX-BIT amplification mechanism from one-sided hardness to ordinary two-sided approximate degree. Its wider uses are real, but the proposed theorem remains tied to this composition rather than the full hardness-amplification frontier.
+   Scope: The universal inner function and pointwise approximation convention must be preserved; known one-sided amplification does not settle it.
+39. **TCS-5288: Entropy-optimal grammar compression** — The target asks whether grammar-based compression can achieve a specific entropy-optimality benchmark, already at zero order. It compares one representation family with statistical coding rather than the broad optimal grammar-size and string-algorithm frontiers.
+   Scope: Counterexamples to named compressors do not rule out all grammars, and entropy optimality is not the same as constant-factor smallest-grammar approximation.
+40. **TCS-6198: Majority hardness of balanced functions** — The question tests the source's majority-hardness notion by seeking a balanced counterexample. Its immediate payoff is a limit on that specific amplification principle, making it a lower-priority standalone target than general information compression and direct sums.
+   Scope: Majority-hardness is a source-defined predicate, not ordinary difficulty of evaluating majority.
+41. **TCS-6433: Polynomial-time Győri–Lovász partitions** — The target algorithmizes the exact rooted, prescribed-size Győri–Lovász partition guarantee, already at five parts. I would give this construction problem lower independent priority than general connectivity, flow and disjoint-path barriers.
+   Scope: Stronger-connectivity constructions do not resolve the original theorem's algorithmic case.
+42. **TCS-6859: Polynomial-time Gilbert–Varshamov inner-code construction** — This removes exhaustive search from the inner-code step of a Gilbert–Varshamov construction on the component's own dimension scale. Its natural role is a focused explicit-construction challenge rather than a separate general code-rate frontier.
+   Scope: It does not ask merely for a faster implementation, and should not be misrepresented as the general question of beating Gilbert–Varshamov.
+43. **TCS-0344: Additivity of extension complexity under Cartesian products** — The conjecture asks whether extension complexity is exactly additive under Cartesian product. It refines how two existing descriptions combine, with less direct algorithmic scope than general LP, SDP and extension-complexity barriers.
+   Scope: The possibility of sharing inequalities is a real structural question; additivity for pyramids is only a special case.
+44. **TCS-0943: Polynomial-pass barriers to near-exact streaming Max-Cut** — The target couples a near-exact Max-Cut accuracy depending on C with a polynomial-pass exponent barrier. It refines one problem's memory–accuracy–pass landscape beyond the broader streaming and sketching model questions.
+   Scope: The accuracy may depend on the desired pass exponent; do not strengthen this to one fixed accuracy for every exponent.
+45. **TCS-2529: Polynomial-time ultrametric embedding** — Exact optimization or a PTAS for the instance-optimal ultrametric embedding improves the quality of one hierarchical representation. I would give it lower priority than the main universal metric embedding and distortion questions.
+   Scope: Computing a distribution over embeddings and evaluating worst-pair expected distortion must remain separate from deterministic embeddings.
+46. **TCS-3580: Class-dependent parameter exponents for minor-closed vertex deletion** — This asks whether the polynomial degree in an FPT exponent must depend on the excluded-minor class. It refines dependence inside an existing tractability theorem, with less independent impact than the general kernelization and tractability barriers.
+   Scope: A limitation of irrelevant-vertex techniques is not a lower bound against every algorithm; the hypothesized complexity assumption remains to be fixed.
+47. **TCS-3690: Untuned switching regret for oblivious adversarial bandits** — The target removes prior tuning of the switch budget while matching known regret rates for every comparator against an oblivious adversary. That adaptive-parameter guarantee is a narrower increment than establishing a new broad online-learning rate or learnability boundary.
+   Scope: Adaptive-adversary impossibility and algorithms told the switch budget do not resolve this untuned target.
+48. **TCS-4419: Structural randomized query lower bounds for subgraph containment** — This refines randomized subgraph-query lower bounds through parameters of the fixed pattern, including independence number. I would prioritize the general evasiveness and query-complexity barriers over additional pattern-sensitive inequalities.
+   Scope: The rationale is the extra granularity of the proposed structural bounds, not a claim that all subgraph queries behave alike.
+49. **TCS-5215: Accuracy threshold for agnostic ReLU learning** — This locates the accuracy threshold between known efficient and conditionally hard regimes for agnostic learning of one ReLU. It is a detailed error-versus-time frontier within a restricted predictor class rather than a general learnability classification.
+   Scope: The distribution-free and sphere-normalization conventions matter; no threshold value is asserted here.
+50. **TCS-5442: Steiner Tree bidirected-cut integrality gap below two** — The goal improves the integrality gap of one specific bidirected Steiner Tree relaxation below two. It evaluates the strength of that formulation more directly than the best attainable approximation for the optimization problem itself.
+   Scope: The bidirected, undirected-cut and hypergraphic relaxations are distinct; stronger-relaxation results do not settle this gap.
+
+## Forty-seven retained candidates
+
+These are retained under the user’s partial-pruning instruction. The earlier proposal remains a historical recommendation, not a pending deletion instruction. All six conditional consolidations were deferred because their source/model distinctions would require further editorial decisions.
+
+TCS-0133, TCS-0171, TCS-2783, TCS-6937, TCS-6953, TCS-7033, TCS-0073, TCS-0914, TCS-1035, TCS-1539, TCS-2243, TCS-3557, TCS-3655, TCS-3906, TCS-4490, TCS-4677, TCS-4778, TCS-4894, TCS-4977, TCS-5087, TCS-5210, TCS-5434, TCS-5863, TCS-6814, TCS-7086, TCS-0310, TCS-1125, TCS-1595, TCS-1978, TCS-3331, TCS-3391, TCS-3792, TCS-4350, TCS-4454, TCS-4659, TCS-5779, TCS-7196, TCS-3513, TCS-5221, TCS-5275, TCS-5330, TCS-6768, TCS-1133, TCS-4259, TCS-5031, TCS-6721, TCS-6784.
+
+## Application and verification
+
+Changes were applied while holding `.publish.lock`, after checking hashes of all canonical cards, the deletion log, focus selection, ID registry and category registry. Removed IDs stay reserved with individual reasons in the canonical deletion log. The active review queue was reconciled, and nine existing full-card review backups of removed cards were deleted. No restoration archive was created.
+
+Category quotas, category assignments, focus selections and historical ID mappings are unchanged. Publication may update derived ranks, memberships and related links as a consequence of the smaller pool and transferred existing assessments.
+
+- [Fifty removal IDs and reasons](deletions.json)
+- [Three consolidations and source checks](consolidations.json)
+- [Retained IDs and scope decisions](review.json)
+- [Historical-result and extraction checks](source-checks.json)
+- [Input hashes](input-hashes.json)
+- [Application receipt](receipt.json)
+- [Verification](verification.json)
+
+`make publish`, `make check`, the browser deletion regression and all 10,216 active-card LaTeX checks passed for catalogue `a05d7076b68b7c1c2940`. The rebuilt reader and exports are in `build/`.
+
+[Direct browser verification](browser-verification.json) confirms all 53 removed IDs are absent, all 47 retained candidates are present, and each of the three merged survivors renders with its consolidated context and sources.
+
+At the user's subsequent request, this version was deployed to [the public reader](https://vaclavrozhon.github.io/atlas/) in commit `8262c91495b0b4846fa7518897c10338d1447ef8`. GitHub Pages completed successfully. Public browser verification confirmed the same 1,013 active cards, all 53 removals, all 47 retained candidates, and all three merged survivors. The public Top 100/500/1000 exports match the local exports. [Deployment evidence](deployment.json) records the version, workflow, counts and error-free browser checks.

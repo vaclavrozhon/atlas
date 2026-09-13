@@ -1,0 +1,1245 @@
+                                        On Rational Recursive Sequences
+                                        Lorenzo Clemente !
+                                        University of Warsaw, Poland
+                                        Maria Donten-Bury !
+                                        University of Warsaw, Poland
+                                        Filip Mazowiecki !
+                                        University of Warsaw, Poland
+                                        Michał Pilipczuk !
+                                        University of Warsaw, Poland
+
+                                              Abstract
+                                        We study the class of rational recursive sequences (ratrec) over the rational numbers. A ratrec
+                                        sequence is defined via a system of sequences using mutually recursive equations of depth 1, where
+                                        the next values are computed as rational functions of the previous values. An alternative class is
+arXiv:2210.01635v1 [cs.FL] 4 Oct 2022
+
+
+
+
+                                        that of simple ratrec sequences, where one uses a single recursive equation, however of depth k: the
+                                        next value is defined as a rational function of k previous values.
+                                            We conjecture that the classes ratrec and simple ratrec coincide. The main contribution of this
+                                        paper is a proof of a variant of this conjecture where the initial conditions are treated symbolically,
+                                        using a formal variable per sequence, while the sequences themselves consist of rational functions
+                                        over those variables. While the initial conjecture does not follow from this variant, we hope that the
+                                        introduced algebraic techniques may eventually be helpful in resolving the problem.
+                                            The class ratrec strictly generalises a well-known class of polynomial recursive sequences (polyrec).
+                                        These are defined like ratrec, but using polynomial functions instead of rational ones. One can
+                                        observe that if our conjecture is true and effective, then we can improve the complexities of the
+                                        zeroness and the equivalence problems for polyrec sequences. Currently, the only known upper
+                                        bound is Ackermanian, which follows from results on polynomial automata. We complement this
+                                        observation by proving a PSPACE lower bound for both problems for polyrec. Our lower bound
+                                        construction also implies that the Skolem problem is PSPACE-hard for the polyrec class.
+
+                                        2012 ACM Subject Classification Replace ccsdesc macro with valid one
+
+                                        Keywords and phrases recursive sequences, polynomial automata, zeroness problem, equivalence
+                                        problem
+
+                                        Digital Object Identifier 10.4230/LIPIcs.CVIT.2016.23
+
+                                        Funding Lorenzo Clemente: partially supported by the ERC grant INFSYS, agreement no. 950398.
+                                        Maria Donten-Bury: partially supported by the National Science Center, Poland, project 2017/26/E/ST1/00231.
+                                        Filip Mazowiecki: partially supported by the ERC grant INFSYS, agreement no. 950398.
+                                        Michał Pilipczuk: partially supported by the ERC grant BOBR, agreement no. 948057.
+
+                                        Acknowledgements I want to thank . . .
+
+
+
+
+                                                    © Lorenzo Clemente, Maria Donten-Bury, Filip Mazowiecki and Michał Pilipczuk;
+                                                    licensed under Creative Commons License CC-BY 4.0
+                                        42nd Conference on Very Important Topics (CVIT 2016).
+                                        Editors: John Q. Open and Joan R. Access; Article No. 23; pp. 23:1–23:21
+                                                           Leibniz International Proceedings in Informatics
+                                                           Schloss Dagstuhl – Leibniz-Zentrum für Informatik, Dagstuhl Publishing, Germany
+23:2   On Rational Recursive Sequences
+
+
+        1     Introduction
+
+       The topic of this paper are recursively defined sequences of rational numbers N Ñ Q. There
+       are two natural ways to define such sequences. In a simple recursion of depth k one fixes k
+       initial values and defines the next value as a function of the previous k values. This is how
+       the Fibonacci sequence is usually defined (with k “ 2): f0 “ 0, f1 “ 1, and fn`2 “ fn`1 ` fn .
+       In a mutual recursion of width k one defines a system of k sequences such that every sequence
+       has its initial value and the update function can access the immediately previous value of all
+       k sequences, but no older value. For example, we can define an “ n2 with an extra sequence
+       bn “ n as follows: a0 “ b0 “ 0 and an`1 “ an ` 2bn ` 1, bn`1 “ bn ` 1. Both styles allow to
+       define various classes of sequences depending on what operations are allowed in the equations,
+       and in general mutual recursion of width k can simulate simple recursion of depth k (by
+       adding sufficiently many auxiliary sequences).
+          One of the most well-known classes of sequences is the class of linear recursive sequences,
+       which is obtained by allowing the update function to use addition and multiplication with
+       constants. These are usually defined with a simple recursion, like in the Fibonacci example,
+       but in fact, as a consequence of the Cayley-Hamilton theorem, one obtains the same class
+       when using mutual recursion [19, Lemma 1.1]. In particular, all the example sequences fn ,
+       an and bn are linear recursive.
+           Another natural class of sequences are the polynomial recursive sequences (polyrec),
+       which are defined with mutual recursion and updates from the ring of polynomial functions
+       Qrx1 , . . . , xk s. An example sequence from this class is cn “ n!, where one can use the already
+       defined sequence bn and define c0 “ 1 and cn`1 “ cn ¨ pbn ` 1q. To see the polynomials
+       behind this definition, let x and y be variables corresponding to bn and cn , respectively.
+       The polynomial to define bn`1 is Pb px, yq “ x ` 1, and the polynomial to define cn`1 is
+       Pc px, yq “ ypx ` 1q. The class of simple polynomial recursive sequences is obtained by using
+       polynomial updates and a simple recursion (instead of mutual recursion) and it is known to
+       be strictly included in the class of all polyrec sequences. In particular, the sequence cn is
+       polyrec but not simple polyrec [12, Theorem 3.1].
+           The definition via mutual recursion appears in the area of control theory (under the name
+       implicit representation of the space of states), and, in computer science, in the context of
+       weighted automata over Q. Such automata output a rational number for every word over a
+       finite alphabet Σ, and they are defined by linear updates [16]. Linear recursive sequences
+       are thus equivalent to weighted automata with a 1-letter alphabet Σ “ tau [3]. Similarly,
+       polyrec sequences are equivalent to polynomial automata [4] (also known as cost-register
+       automata [1]) with a 1-letter alphabet [12].
+           We are interested in two classical decision problems for such automata. Equivalence:
+       Given two automata A and B do they output the same number for every word, and zeroness:
+       Does the input automaton A output 0 for every word. These problems are well-known to
+       be efficiently equivalent to each other: Zeroness is clearly a special case of equivalence (just
+       take B to output zero for every word), and equivalence of A, B reduces to zeroness of the
+       difference automaton A ´ B with the expected semantics. Therefore, we will consider only
+       the zeroness problem. From the seminal work of Schützenberger on minimisation of weighted
+       automata it follows that the zeroness problem for weighted automata is in PTIME [30] (in
+       fact even in NC2 [34]). For polynomial automata over a binary alphabet, zeroness is known
+       to be Ackermann-complete [4]. Using the connection between sequences and automata one
+       immediately obtains NC2 and Ackermann upper bounds for the zeroness problem of linear
+       recursive sequences, resp., polyrec sequences.
+L. Clemente, M. Donten-Bury, F. Mazowiecki and M. Pilipczuk                                                     23:3
+
+
+    Let us take a closer look at the zeroness problem for recursive sequences, i.e., given a
+sequence un is it the case that un “ 0 for all n P N? The zeroness problem is a fundamental
+problem for number sequences. It is a basic building block in computer algebra, e.g., in proving
+identities involving recursively defined sequences. It is also important from a theoretical point
+of view as a yardstick of the well-behavedness of classes of number sequences, i.e., interesting
+classes of sequences should at least have a decidable zeroness problem. The difficulty of solving
+the zeroness problem in general depends on how the sequence is presented. If the sequence is
+defined with a simple recursion of depth k such as un`k “ f pun`k´1 , . . . , un q, then zeroness
+trivially reduces to checking that the first k values are 0 and that the recursive update f
+is well-defined and needs to output 0 when the previous values are 0, i.e., f p0, . . . , 0q “ 0.
+However, this simple reasoning is flawed in the case of mutual recursion, because the auxiliary
+sequences employed in the mutual recursion need not be zero. However, for linear recursive
+sequences the zeroness problem is easily solved even in the case of mutual recursion, because
+the reduction to simple recursion [19, Lemma 1.1] implies that an is zero if, and only if,
+its first k ` 1 values a0 “ ¨ ¨ ¨ “ ak are zero. For polyrec sequences we cannot apply this
+argument since mutual recursion cannot be simulated by simple recursion in the case of
+polynomial updates.
+
+Our results In this paper we introduce the class of rational recursive sequences (ratrec).
+This class is defined with mutual recursion and updates from the field of rational functions
+Qpx1 , . . . , xk q. For example, the Catalan numbers Cn`1 “ 2p2n`1q
+                                                               n`2 Cn can be defined using
+bn as an auxiliary sequence. Namely, C0 “ 1 and Cn`1 “ 2p2bn `1q
+                                                         bn `2 Cn , where the rational
+function used to define Cn`1 is Rpx, yq “ 2p2x`1qx`2 y. By definition, the class of polyrec
+sequences is included in the class of ratrec sequences, and in fact the inclusion is strict
+as witnessed by the fact that the Catalan numbers Cn are not polynomialy recursive [12,
+Corollary 4.1]. Moreover, ratrec sequences also include the well-known and wide-spread
+P-recursive sequences 1 [21], which according to a 2005 estimate comprise at least 25% of the
+OEIS archive [29].
+    A natural question is whether the class of ratrec sequences semantically collapes to the
+class of simple rational recursive sequences obtained by adopting simple recursion. Unlike
+in the case of polynomial updates, we conjecture that for rational updates we do have such
+a collapse.
+
+§ Conjecture 1. The class of rational recursive sequences coincides with the class of simple
+rational recursive sequences.
+
+    To see the power of ratrec sequences recall that cn “ n! is not a simple polyrec sequence.
+However, when in the recursion we allow rational functions, then cn can be defined with a
+                                            q2
+simple recursion, namely: cn`2 “ pcn`1   cn    ` cn`1 . Thus cn is simple ratrec.
+    We introduce a technique towards proving Conjecture 1, which comes from commutative
+algebra. Instead of looking at the elements of a ratrec sequence as numbers in the field
+of rationals Q, we symbolically view them as elements of the field of rational functions
+Qpx1 , . . . , xk q. More precisely, we assume that the sequences Fp1q , . . . , Fpkq are initialised
+                  piq
+by setting F0 “ xi for all i P t1, . . . , ku; then, a system of recursive equations governed by
+rational functions defines further entries of the sequences. Thus, the recursive definition will
+
+
+1
+    Sometimes P-recursive sequences are also called holonomic sequences, due to a connection with holonomic
+    generating functions.
+
+
+
+
+                                                                                                              CVIT 2016
+23:4   On Rational Recursive Sequences
+
+
+       output elements in Qpx1 , . . . , xk q rather than Q. Intuitively, this corresponds to treating the
+       initial conditions of a system of ratrec sequences symbolically, rather than instantiating them
+       with actual rational values.
+           Informally speaking, we prove Conjecture 1 for symbolic ratrec sequences, as explained
+       above. Here is a semi-formal statement of our main result, see Theorem 6 for a formalization.
+
+       § Theorem 2. The class of rational recursive sequences over Qpx1 , . . . , xk q, with the system
+                       piq
+       initialised by F0 “ xi , coincides with the class of simple rational recursive sequences.
+
+          The proof proceeds as follows. From the functions defining the ratrec system we build a
+       sequence of field extensions
+
+          Q Ď F0 Ď F1 Ď F2 Ď . . . Ď Qpx1 , . . . , xk q
+
+       and translate the problem of belonging to the class of simple ratrec sequences to the question
+       of whether this sequence of field extensions eventually stabilises. In order to estimate at
+       which level the stabilisation occurs we use certain results on basic algorithms for rational
+       function fields [23]. We believe that this technique could be extended to prove Conjecture 1,
+       but we also show an example why our current results are not strong enough.
+           Note that if Conjecture 1 is moreover efficient, it gives a simple algorithm to check
+       zeroness for polyrec. Indeed, since polyrec is a particular case of ratrec, then once a sequence
+       is expressed as a simple ratrec it suffices to check whether the first elements of the sequence
+       are 0. This would improve the Ackermann upper bound inherited from polynomial automata
+       from [4]. This suggests that for polyrec sequences the natural object of study are rational
+       function fields, which are of more algebraic nature and could provide better complexity
+       bounds than the order-theoretic techniques based on sequences of polynomial ideals and
+       Hilbert’s finite basis theorem [4].
+           Our final result is a complexity lower bound for the zeroness problem of polyrec sequences.
+
+       § Theorem 3. The zeroness problem for polynomial recursive sequences is PSPACE-hard.
+
+           As far as we know, prior to this work nothing was known about the complexity of zeroness
+       for polyrec sequences, except for the Ackermann upper bound following from polynomial
+       automata [4]. The lower bound is proved by reducing from the QBF validity problem.
+           Given Conjecture 1 it seems natural to investigate the zeroness problem for ratrec
+       sequences. The issue is that it is not clear what would be the input for such a decision
+       problem. Recall that to define ratrec sequences we allow for rational functions in the recursion,
+       which means that we have to deal with division in order to compute the elements of the
+       sequences. Then either one would require that the input sequence comes with a promise
+       that all elements are well-defined and no division by 0 occurs; or one would need to verify
+       whether division by 0 occurs in the input sequence. We find the former solution unnatural,
+       and the latter is at least as hard as the so-called Skolem problem (c.f. below), which is not
+       known to be decidable even for linear recursive sequences.
+
+       Related work The zeroness problem has been extensively studied. In the field of automata
+       theory, we can mention applications to the equivalence problem of several classes of automata
+       and grammars, starting from weighted finite automata [30] and polynomial automata [4]
+       already mentioned above, and including context-free grammars [13], multiplicity equivalence
+       of finite automata [34] and multitape finite automata [20, 35], unambiguous context-free
+       grammars [28, Theorem 5.5] (c.f. [18, 14] for a PSPACE upper bound), polynomial grammars
+L. Clemente, M. Donten-Bury, F. Mazowiecki and M. Pilipczuk                                                        23:5
+
+
+(which generalise polynomial automata) [8, Chapter 11], deterministic top-down tree-to-
+string transducers [31], MSO transductions on unordered forests [6, 7], MSO transductions
+of bounded treewidth under a certain equivalence relation [9], Parikh automata [10], and
+unambiguous register automata [2]. By replacing (pointwise) multiplication with convolution
+in the definition of polyrec sequences we obtain the so-called convolution recursive sequences,
+for which the zeroness problem can be solved in PSPACE [14, Theorem 4].
+    The zeroness problem of D-finite [36] and, more generally, D-algebraic power series [15, 33]
+is known to be decidable, but its computational complexity has not been investigated.
+    A natural problem related to the zeroness problem is the so-called Skolem problem, which
+asks whether a given sequence an has a zero, i.e., whether for some n we have an “ 0. As a
+corollary of the constructions used to prove Theorem 3, it follows that the Skolem problem
+for polyrec sequences is PSPACE-hard. Only NP-hardness was formerly known, and already
+for linear recursive sequences [5, Corollary 2.1]. Decidability of the Skolem problem for
+linear recursive sequences is a long-standing open problem (c.f. the survey paper [25]). It is
+interesting to notice that those lower bounds are obtained already on the fixed field with
+two elements t0, 1u, and are thus of a combinatorial rather than numerical nature. The
+Skolem problem for weighted automata over Q (that generalise linear recursive sequences) is
+undecidable [27].
+
+
+ 2      Preliminaries
+
+By N we denote the set of nonnegative integers. We denote an arbitrary field by F, and we
+use 0 and 1 to denote the zero, resp., one elements thereof. Example fields of interest in
+this paper are: rationals Q; and the two-element field F2 . A sequence over a domain D is a
+function u : N Ñ D. The sequences considered in this work are over domains that have a
+field structure, like rationals Q. We use bold-face letters as a short-hand for sequences, e.g.,
+u “ xun ynPN .
+    In this paper we work with multivariate polynomials and rational functions. The (com-
+bined) degree of a monomial xd11 ¨ ¨ ¨ xdkk is d1 ` ¨ ¨ ¨ ` dk and the degree of a polynomial
+P P Qpx1 , . . . , xk q, written deg P , is the maximum degree of monomials appearing in it. A
+rational function is a formal fraction of two polynomials, where the denominator is required to
+be non-zero. The degree of a rational function is the maximum of the degrees of the numerator
+and the denominator. Recall that for any field F and a set of variables x1 , . . . , xn , polynomials
+over x1 , . . . , xn form the ring Frx1 , . . . , xn s, while rational functions over x1 , . . . , xn form the
+field Fpx1 , . . . , xn q. We also write Frxs and Fpxq, where x “ px1 , . . . , xn q.
+    The computational aspects of multivariate polynomials, in particular their representation
+on input to algorithms, are explained in Appendix A, as they will be of no concern in
+Sections 3 and 4.
+
+
+ 3      Rational recursive sequences
+
+We start with the central definitions, which were already discussed in Section 1.
+
+§ Definition 4. A sequence up1q over a field F is rationally recursive (or ratrec for short)
+of dimension k and degree D if there exist auxiliary sequences up2q , . . . , upkq over F and
+rational functions P1 , . . . , Pk P Fpx1 , . . . , xk q of degree at most D such that for all n P N, we
+
+
+
+                                                                                                                 CVIT 2016
+23:6   On Rational Recursive Sequences
+
+
+       have
+          $
+             p1q                p1q          pkq
+          & un`1      “ P1 pun , . . . , un q,
+          ’
+          ’
+                      ..                                                                                 (1)
+           ’           .
+           % upkq
+           ’
+                      “
+                                p1q          pkq
+                           Pk pun , . . . , un q.
+                n`1
+
+       A sequence u over a field F is polynomially recursive (or polyrec for short) if it satisfies the
+       same definition above, where P1 , . . . , Pk are taken as polynomials in Frx1 , . . . , xk s. We refer
+       to pup1q , . . . , upkq q as the system defining up1q .
+
+          In what follows we assume that whenever u is a ratrec sequence, say defined by a system
+       pu “ up1q , . . . , upkq q, for all n P N all the right hand sides of equations (1) are well-defined,
+       that is, no denominator of any rational expression contained in `the˘right hand side is zero.
+          For instance, the sequence of Catalan numbers Cn “ n`1            1
+                                                                               ¨ 2n
+                                                                                 n is ratrec. This can be
+       seen in several ways. For example, they satisfy the recurrence Cn`1 “ 2p2n`1q
+                                                                               n`2   ¨ Cn , giving
+       rise to the following ratrec system:
+           #
+              un`1 “ 2p2v   n `1q
+                          vn `2   ¨ un ,
+              vn`1 “ vn ` 1.
+
+          More generally, any P-recursive sequence an is ratrec. A sequence is P-recursive [32,
+       Sec. 6.4] if it satisfies a single recursion of the form
+
+           P0 pnq ¨ an ` P1 pnq ¨ an`1 ` ¨ ¨ ¨ ` Pd pnq ¨ an`d “ 0,                                      (2)
+
+       for every n large enough, where P0 , . . . , Pd P Qrns are polynomials of the index variable n.
+       This is readily transformed into the ratrec system
+
+                                                  Pd´1 pvn q
+                     “ ´ PPd0 pv
+           $ pdq                 nq    p0q                     pd´1q
+           ’
+           ’ un`1             pvn q ¨ un ´ ¨ ¨ ¨ ´ Pd pvn q ¨ un     ,
+           ’   pd´1q     pdq
+           & un`1 , “ un ,
+           ’
+           ’
+           ’
+                     ..
+           ’          .
+           ’
+           ’   p0q       p1q
+           ’ u       “  un ,
+           % n`1
+           ’
+           ’
+             vn`1    “ vn ` 1.
+                                       p0q              pdq
+           Assuming v0 “ 0 and u0 “ a0 , . . . , u0 “ ad , it is immediate to verify vn “ n and
+        p0q               pdq
+       un “ an , . . . , un “ an`d for every n P N.
+           The family of ratrec sequences strictly includes both P-recursive sequences and polyrec
+                                                                    n
+       sequences. As an example consider the sequence un “ 22 ` Cn . On the one hand, this
+       sequence is certainly ratrec because it is the sum of a polyrec and a P-recursive sequence
+       (which are ratrec) and ratrec sequences are closed under sum. On the other hand, un is
+       not P-recursive since it grows asymptotically faster than any P-recursive sequence (every
+       P-recursive sequence is in Oppn!qγ q for some constant γ P R [22, Proposition 3.11]). Further,
+                                           n
+       un is also not polyrec, because 22 is polyrec, Cn is not [12, Corollary 4.1], and polyrec
+       sequences are closed under sum and subtraction.
+           In [12, Theorem 7.1], the following property of ratrec sequences is proved: if u is ratrec,
+       then there exists m P N and a cancelling polynomial P P Qry0 , . . . , ym s, that is, a non-zero
+       polynomial such that
+
+                                 P pun , un`1 , . . . , un`m q “ 0    for all n P N.
+L. Clemente, M. Donten-Bury, F. Mazowiecki and M. Pilipczuk                                                 23:7
+
+
+§ Theorem 5 (Theorem 7.1 in [12]). Every ratrec sequence admits a cancelling polynomial.
+
+   In [12, Theorem 5.3] it is shown that the sequence un “ nn has no cancelling polynomial,
+and hence is not polyrec and not ratrec.
+
+ 4       Transcendence degrees
+In this section we consider ratrec sequences as in Definition 4 over the field Qpxq. Let
+pFp1q , . . . , Fpkq q be a system defining Fp1q . In this section we will consider sequences with the
+                                          piq
+following fixed initial conditions: F0 “ xi . Note that this technical assumption is important,
+                                             piq
+in particular we cannot initialise F0 with elements in Q. (If we could, this class would
+generalise ratrec over the field Q.)
+    Theorem 6 below formalises Theorem 2 and is the main result of this paper. In essence,
+we show that a ratrec definition over Qpxq can be translated to a simple ratrec over Qpxq
+with a polynomial recursion depth. We hope that this insight might lead towards a resolution
+of Conjecture 1.
+
+§ Theorem 6. Let Fp1q be a ratrec sequence over the field Qpxq, defined by a system
+                                                       piq
+pFp1q , . . . , Fpkq q, with the initial conditions: F0 “ xi for i “ 1, . . . , k. Then there ex-
+ists a rational function R P Qpy0 , . . . , ym q such that
+       p1q                      p1q          p1q
+     Fn`m`1 “ RpFnp1q , Fn`1 , . . . , Fn`m q, for all n P N.
+
+                    p1q
+Moreover, if Fn           is of dimension k and degree D, then m can be bounded from above by
+k ` k 3 logpkDq.
+                                                                                       Apy0 ,...,ym q
+    Before we proceed to the proof, let us note that if we write Rpy0 , . . . , ym q “ Bpy0 ,...,ym q
+                                                                                                      ,
+where A, B P Qry0 , . . . , ym s, then Theorem 6 shows that the following polynomial is cancelling
+for up1q :
+
+     P py0 , . . . , ym , ym`1 q “ ym`1 ¨ Bpy0 , . . . , ym q ´ Apy0 , . . . , ym q.
+
+Thus, Theorem 6 shows (and in fact, is equivalent to) that every ratrec sequence over Qpxq
+admits a cancelling polynomial that is linear in the last variable (here ym`1 ), improving
+upon Theorem 5.
+    The remainder of this section is devoted to the proof of Theorem 6 and to a discussion
+related to it. In particular, the first part of the theorem (existence) will be proved in
+Section 4.1 and the concrete bound on the depth m will be proved in Section 4.2.
+                                                             p1q     pkq
+    Let us make a few observations about the sequences Fn , . . . , Fn . First, a straightforward
+                                                p1q           pkq
+estimation shows that the degrees of functions Fn , . . . , Fn grow at most single-exponentially
+in n.
+                                                                            p1q        pkq
+§ Lemma 7. For n P N, let dn be the maximum degree of Fn , . . . , Fn . Then dn ď pk ¨ Dqn .
+
+Proof. We proceed by induction on n. Initially we have d0 “ 1 by definition. By Definition 4
+  piq                                                 p1q          pkq
+Fn`1 is obtained by substituting rational functions Fn , . . . , Fn of degree at most dn into
+                                                          A
+a rational function Pi of degree at most D. Let Pi “ B       be the ratio of two polynomials
+A, B P Qrxs of degree at most D. Let C P Qrxs be the least common multiple of all
+                    p1q        pkq
+denominators of Fn , . . . , Fn , and thus of degree at most k ¨ dn . We can then write
+  p1q    p1q       pkq     pkq
+Fn “ GC , . . . , Fn “ GC , where the numerators Gp1q , . . . , Gpkq P Qrxs are polynomials
+                                                         p1q          pkq        p1q         pkq
+of degree also at most k ¨ dn . It follows that both ApFn , . . . , Fn q and BpFn , . . . , Fn q
+
+
+
+                                                                                                          CVIT 2016
+23:8   On Rational Recursive Sequences
+
+
+       can be written as rational functions of the form CÂD , resp., CB̂D , where the numerators are
+       polynomials Â, B̂ P Qrxs of degree at most D ¨ k ¨ dn and the same holds for the common
+                                                 piq
+       denominator C D P Qrxs. It follows that Fn`1 is a rational function of degree dn`1 ď k ¨D ¨dn ,
+       as required.                                                                                 đ
+
+           The next lemma is a key property implied by the recurrence: if several consecutive
+                                    piq
+       elements of the sequence Fn satisfy some algebraic constraint, then this constraint is also
+       satisfied at every step later in the sequence.
+
+       § Lemma 8 (Substitution lemma). Suppose Zpy0 , . . . , ym q P Qry0 , . . . , ym s is a polynomial
+                    piq             piq                 piq             piq
+       such that ZpF0 pxq, . . . , Fm pxqq “ 0. Then ZpFn pxq, . . . , Fn`m pxqq “ 0 for all n P N.
+
+       Proof. By assumption we have
+               piq           piq
+          ZpF0 pxq, . . . , Fm   pxqq “ 0.                                                               (3)
+
+       Consider the ring homomorphism h : Qrxs Ñ Qpxq that maps the variables x1 , . . . , xk
+                              p1q          pkq
+       to rational functions F1 , . . . , F1 , respectively. For a rational function P {Q such that
+       hpQq ‰ 0, by hpP {Qq we understand the rational function hpP q{hpQq. (Note that such an
+       extension of h to Qpxq does not have to be a field homomorphism.) From the definition of
+                      piq
+       the sequence Fn it readily follows that
+                        piq
+          hpFnpiq q “ Fn`1 ,     for all n P N.
+
+       Thus, by applying h to both sides of (3), we infer that
+               piq             piq
+          ZpF1 pxq, . . . , Fm`1 pxqq “ 0.
+
+       We conclude by repeating this reasoning n times.                                                    đ
+
+           In the following we introduce some basic terminology about (commutative) fields (c.f. [24,
+       Sec. II.1], [11, Sec. V.3], or [17, Sec. 13.1 and 13.2] for more details). Let E, F be two fields.
+       When E Ď F we say that F is a field extension of E, which is called the base field. The degree
+       of F over E, written
+                          ? degE F, is the dimension of F as a vector space over the base field?E.
+       For instance,
+               ?       Qp 2q has degree 2 over Q (its elements can be put in     ? the form? a ` b ¨ 2)
+       and Qp 3 2q has degree 3 (its elements can be put in the form a ` b ¨ 3 2 ` c ¨ p 3 2q2 ). Field
+       extensions need not have finite degree. For instance, Qpπq and Qpxq are two field extensions
+       of Q of infinite degree. The degree is multiplicative:
+
+       § Lemma 9 (c.f. [17, Theorem 14]). Consider field extensions E Ď F Ď G. Then, degE G “
+       degE F ¨ degF G (even for infinite degrees).
+
+           An element f P F is algebraic over the base field E if there is a nonzero polynomial
+       P pxq P Erxs s.t. P pf q “ 0. The field extension F is algebraic over the base field E if every
+       element in F is algebraic over E.
+           Let F be a field extension of E. A subset tf1 , . . . , fn u Ď F of elements of F is algebraically
+       independent over E if there is no nonzero polynomial P px1 , . . . , xn q P Erx1 , . . . , xn s such
+       that P pf1 , . . . , fn q “ 0. The transcendence degree of F over E, denoted tr degE F, is the
+       largest number of elements of F which are algebraically independent over E. Note that F is
+       algebraic over E if and only if tr degE F “ 0. Like the algebraic degree is multiplicative, the
+       transcendence degree is additive:
+L. Clemente, M. Donten-Bury, F. Mazowiecki and M. Pilipczuk                                                   23:9
+
+
+§ Lemma 10 (c.f. [11, Corollary to Theorem 4, A.5.111]). Consider field extensions E Ď F Ď G.
+Then, tr degE G “ tr degE F ` tr degF G.
+    In the following we will always take as the base field E “?Q, in which case?we will
+write just tr deg F instead of tr deg?
+                                     Q F. For example, tr deg Qp 2q “ 0 because                   2 is an
+algebraic number over Q, tr deg Qp 2, πq “ 1 because π is a transcendental number, and
+tr deg Qpx1 , . . . , xn q “ n.
+    Given a field extension F over E and elements f1 , . . . , fn P F, let Epf1 , . . . , fn q be the
+smallest field extension over E containing f1 , . . . , fn . If F “ Epf1 , . . . , fn q, then we say that
+F is finitely generated over E (with generators f1 , . . . , fn ).
+    The motivation to look at field extensions is that a ratrec system naturally defines the
+following sequence of field extensions
+    Q Ď F0 Ď F1 Ď . . . Ď Qpxq,                                                                      (4)
+                                           p1q
+where F0 “ Qpx1 q and Fn`1 “ Fn pFn`1 pxqq for n P N.
+
+4.1     Ascending sequences of field extensions
+In this section we prove the following Noether-like result.
+§ Theorem 11. Consider any ascending sequence of field extensions of the form
+    Q Ď F0 Ď F1 Ď . . . Ď Qpx1 , . . . , xk q.
+Then the sequence eventually stabilises: there exists n0 such that Fn0 “ Fn0 `1 “ Fn0 `2 “ . . ..
+   The crucial reason for the result above is that the number k of variables is fixed. In the
+proof of Theorem 11 we use the following result on finitely generated extensions.
+§ Lemma 12 (c.f. [11, A.5.118, Cor. 3]). If G is a finitely generated extension over E, then
+every subextension E Ď F Ď G of G over E is also finitely generated.
+Proof of Theorem 11. First of all, observe that
+    tr deg Fn ď tr deg Qpx1 , . . . , xk q “ k,   for all n.
+                                                                                         Ť8
+Hence, there is n1 such that tr deg Fn1 “ tr deg Fn1 `1 “ ¨ ¨ ¨ . Let F8 :“                n“0 Fn   and
+consider the ascending sequence
+    Fn1 Ď Fn1 `1 Ď ¨ ¨ ¨ Ď F8 .                                                                      (5)
+We have tr deg Fn1 “ tr deg Fn1 `i for all i ą 0, and, by Lemma 10, tr degFn1 Fn1 `i “ 0, i.e.,
+Fn1 `i is algebraic over Fn1 . Moreover, F8 is also algebraic over Fn1 because any element
+of F8 belongs to some Fn1 `i . Since Fn1 Ď Qpx1 , . . . , xk q is a finitely generated extension
+of Fn1 and Fn1 Ď F8 Ď Qpx1 , . . . , xk q is a subextension of Fn1 , by Lemma 12 we have
+that F8 is also a finitely generated extension of Fn1 . In other words, there are generators
+f1 , . . . , fm P F8 such that
+    F8 “ Fn1 pf1 , . . . , fm q.
+Since the generators f1 , . . . , fm are algebraic over Fn1 , F8 is an algebraic extension of finite
+degree over Fn1 by Lemma 9. (Concretely, an upper bound for the degree is the product of
+the degrees of minimal polynomials of the generators f1 , . . . , fn .) It follows that the sequence
+in (5) is an ascending sequence of vector subspaces of F8 , where we treat F8 as a vector
+space over Fn1 . Since the dimension of F8 as a vector space over Fn1 is finite, this sequence
+must eventually stabilize at Fn0 for some n0 ě n1 .                                                đ
+
+
+
+                                                                                                            CVIT 2016
+23:10   On Rational Recursive Sequences
+
+
+           We now prove the existence part of Theorem 6 using Theorem 11.
+
+        Proof (of the first part of Theorem 6). By Theorem 11, the sequence in (4) stabilizes at
+        some Fm , that is,
+                                    p1q
+           Fm “ Fm`1 “ Fm pFm`1 pxqq.
+
+                                  p1q                                     p1q        p1q
+        Therefore, we have Fm`1 pxq P Fm . Noting that Fm “ QpF0 pxq, . . . , Fm pxqq, we see that
+          p1q
+        Fm`1 pxq can be expressed as a rational function of the generators: There exists a rational
+        function R P Qpy0 , . . . , ym q such that
+              p1q            p1q         p1q
+           Fm`1 pxq “ RpF0 pxq, . . . , Fm   pxqq.
+
+        We may now apply Lemma 8 to the numerator of the rational function Rpy0 , . . . , ym q ´ ym`1 ,
+        thus obtaining that
+              p1q                             p1q
+           Fn`m`1 pxq “ RpFnp1q pxq, . . . , Fn`m pxqq,      for every n P N.
+
+                                                                                                         đ
+
+        4.2     Upper bound
+        We now move to the second, quantitative part of the proof of Theorem 6: we need to
+        prove that m is bounded from above by k ` k 3 logpkDq. For this, we inspect the proof of
+        Theorem 11 in the special case of the chain of extensions (4) given by a ratrec system. The
+        first observation is that the sequence of transcendence degrees stabilises very quickly.
+
+        § Lemma 13. The transcendence degrees tr deg Fn of the sequence (4) stabilise after at most
+        k steps.
+
+        Proof. As argued, tr deg Fn ď tr deg Qpx1 , . . . , xk q “ k for all n. The next extension Fn`1
+                                                              p1q
+        is obtained by adding a new rational function Fn`1 px1 , . . . , xk q to the previous extension
+        Fn . This immedately shows that tr deg Fn ď tr deg Fn`1 ď tr deg Fn ` 1. We argue that if
+        tr deg Fm`1 “ tr deg Fm for some m, then the transcendence degree cannot change anymore:
+        tr deg Fm “ tr deg Fm`1 “ tr deg Fm`2 “ ¨ ¨ ¨ . Note that this will conclude the proof, because
+        then the transcendence degree can increase at most k times before eventually stabilizing.
+                                                                p1q
+            Since tr deg Fm`1 “ tr deg Fm , it follows that Fm`1 pxq is algebraic over Fm , which means
+                              p1q
+        that it satisfies P pFm`1 pxqq “ 0 for some nonzero polynomial P pxq P Fn rxs. By clearing out
+        denominators, there is a nonzero polynomial Zpy0 , . . . , ym`1 q P Qry0 , . . . , ym`1 s such that
+                    p1q       p1q
+           ZpF0 pxq, . . . , Fm`1 pxqq “ 0.                                                            (6)
+
+        By Lemma 8 we have
+                              p1q
+           ZpFnp1q pxq, . . . , Fn`m`1 pxqq “ 0     for every n P N.
+
+                            p1q
+        This means that Fn`m`1 pxq is algebraic over Fn`m , implying
+
+                                                               p1q
+                          tr deg Fn`m`1 “ tr deg Fn`m pFn`m`1 pxqq “ tr deg Fn`m .
+
+        This concludes the proof.                                                                        đ
+L. Clemente, M. Donten-Bury, F. Mazowiecki and M. Pilipczuk                                                  23:11
+
+
+    Note that even when the transcendence degrees of the fields in (4) stabilise, it may still
+take several further steps until the fields themselves eventually stabilise. We will later give
+an example that this may indeed happen.
+    We are left with estimating the degrees of field extensions after the transcendence degree
+in the chain (4) stabilises. For this, we use the following two results.
+§ Lemma 14 (c.f. [23, Lemma 3.4]). Let f P Qpx1 , . . . , xk q be algebraic over
+
+                            Fn “ QpF0 px1 , . . . , xk q, . . . , Fn px1 , . . . , xk qq.
+
+Then there is a polynomial Zpxq P Fn rxs of degree at most deg F0 ¨ ¨ ¨ deg Fn s.t. Zpf q “ 0.
+§ Lemma 15 (c.f. [24, Exercise III.A.2]). Let Q Ď F Ď Qpx1 , . . . , xk q be a subextension of
+Qpx1 , . . . , xk q over Q of transcendence degree r :“ tr degQ F. Then there are (algebraically
+independent) rational functions f1 , . . . , fr P Qpx1 , . . . , xk q such that F Ď Qpf1 , . . . , fr q.
+§ Lemma 16. The sequence (4) eventually stabilizes after at most k ` k 3 logpkDq steps.
+Proof. By Lemma 13, there exists j1 ď k such that
+
+                             r :“ tr deg Fj1 “ tr deg Fj            for all j ě j1 .
+
+In particular, all field extensions Fj for j ě j1 are algebraic over Fj1 . As in the proof
+                                                       8
+                                                       Ť
+of Theorem 11, consider the field extension F8 “          Fj over Fj1 , which is algebraic.
+                                                                       j“0
+In particular, tr deg F8 “ r. By Lemma 15, there are rational functions f1 , . . . , fr P
+Qpx1 , . . . , xk q s.t. F8 Ď Qpf1 , . . . , fr q. Since Qpf1 , . . . , fr q has the same transcendence
+degree tr deg Qpf1 , . . . , fr q “ r as Fj1 , it follows that the fi ’s are algebraic over Fj1 . By
+Lemma 14, each fi is algebraic of degree at most deg F0 ¨ ¨ ¨ deg Fj1 over Fj1 . It follows that
+Qpf1 , . . . , fr q is an algebraic extension of degree at most d “ pdeg F0 ¨ ¨ ¨ deg Fj1 qr over Fj1 .
+Thus the chain
+
+    Fj1 Ď Fj1 `1 Ď Fj1 `2 Ď ¨ ¨ ¨
+
+is such that the degree of any Fj1 `t over Fj1 is at most d. In particular, all extensions in
+this chain are algebraic. We show that it stabilizes after at most d steps. Assume that for
+                                                 p1q
+some t ě 0 we have Fj1 `t “ Fj1 `t`1 , that is Fj1 `t`1 pxq P Fj1 `t . Thus, there is a rational
+                                                     p1q                     p1q            p1q
+function R P Fj1 py1 , . . . , yt q such that Fj1 `t`1 pxq “ RpFj1 `1 pxq, . . . , Fj1 `t pxqq. Then by
+                                                                                                  p1q
+applying Lemma 8 to the numerator of Rpy1 , . . . , yt q ´ yt`1 , we may express Fj1 `n`t`1 pxq
+                                 p1q                    p1q
+as a rational function of Fj1 `n`1 pxq, . . . , Fj1 `n`t pxq, i.e., elements of Fj1 `n`t . Hence an
+equality in the field chain implies stabilization at this point.
+   Since the degree grows at each step before stabilization and the degree is multiplicative, the
+chain stabilizes after at most log d steps, at Fj0 for some j0 ď j1 ` logppdeg F0 ¨ ¨ ¨ deg Fj1 qr q.
+By Lemma 7 and since j1 ď k and r ď k, we have, as required,
+
+    j0 ď j1 ` r logpdeg F0 ¨ ¨ ¨ deg Fj1 q
+       ď k ` k logppkDq0 ¨ ¨ ¨ pkDqk q
+       ď k ` k 3 logpkDq.                                                                               đ
+
+    We are ready to provide the proof of the quantitative bound promised in Theorem 6.
+
+Proof (of the second part of Theorem 6). It suffices to observe that m in the proof the
+first part of Theorem 6 can be bounded by k ` k 3 logpkDq thanks to Lemma 16.         đ
+
+
+
+                                                                                                            CVIT 2016
+23:12   On Rational Recursive Sequences
+
+
+           We finish this section by giving an example that shows that in the proof of Lemma 16, it
+        may happen that j1 ă j0 , that is, after the stabilisation of the transcendence degree, there
+        can be several non-trivial algebraic extensions until the fields themselves stabilise. Consider
+        the poly-rec system
+           #
+                p1q         p1q       p2q
+              un`1 “ pun q2 ` pun q2 ,
+                p2q        p1q    p2q
+              un`1 “ un ` un .
+
+                   p1q          p2q                p1q                  p2q                  p1q
+        We have F0 “ x1 , F0 “ x2 , then F1              “ x21 ` x22 , F1     “ x1 ` x2 and F2     “ px21 ` x22 q2 `
+        px1 ` x2 q2 . The chain (4) starts with
+
+           Q Ď F0 “ Qpx1 q Ď F1 “ F0 px21 ` x22 q “ Qpx1 , x22 q Ď F2 .
+
+        Note that tr deg F0 “ 1 and tr deg F1 “ 2, which is the maximum value. However, the next
+                                       p1q
+        extension F1 Ď F2 “ F1 pF2 q “ F1 px1 x2 q is non-trivial, because x1 x2 does not belong to
+                2
+        Qpx1 , x2 q. In fact, it is algebraic of degree 2.
+
+        4.3    Obstacles towards the zeroness problem for polyrec sequences
+        Theorem 6 suggests the following algorithm for deciding zeroness of a polyrec sequence u.
+        Suppose the dimension of u is k and the degree is D. We compute the first p ` 2 entries
+        of u, where p “ k ` k 3 rlogpkDqs, and we verify whether all of them are zero. Obviously, if
+        one of them is non-zero, then u is non-zero. Otherwise, by Theorem 6, we expect that there
+        is a rational function Rpy0 , . . . , ym q for some m ď p such that
+
+           un`m`1 “ Rpun , un`1 , . . . , un`m q          for all n P N.                                        (7)
+
+        In particular,
+
+           0 “ um`1 “ Rpu0 , . . . , um q “ Rp0, . . . , 0q.
+
+        Consequently,
+
+           um`2 “ Rpu1 , . . . , um`1 q “ Rp0, . . . , 0q “ 0,
+
+        and a straightforward induction shows that un “ 0 for all n P N. So we can declare that u is
+        the zero sequence.
+            The reasoning above is incorrect for the following reason. By Theorem 6, there is a rational
+        function R P Qpy0 , . . . , ym q such that (7) holds when both sides are treated symbolically,
+        as rational functions over a set of k variables x that denote the vector of initial entries of
+        the polyrec system defining u. However, R is a rational function, hence when the variables
+        are substituted with actual entries of the sequence u, we may get an accidental 0 in the
+        denominator of the right hand side. In other words, assertion (7) may be incorrect due to
+        the right hand side being ill-defined, which renders the remainder of the reasoning flawed.
+        To exemplify the problem we now present an example where this situation actually occurs.
+            Fix some d P N, and let
+
+           P pxq “ xpx ´ 1q . . . px ´ d ` 1q.
+
+        Define the sequence u by setting
+
+           un “ P pnq       for all n P N.
+L. Clemente, M. Donten-Bury, F. Mazowiecki and M. Pilipczuk                                        23:13
+
+
+It is straightforward to see that u is polyrec of dimension 2 and degree d: one can simply
+use one auxiliary sequence v with vn “ n.
+    Observe that if instead of setting v0 “ 0, we set v0 “ x for a formal variable x, the same
+polyrec system defines a sequence of polynomials u  p over x defined as
+
+     u
+     pn “ P px ` nq          for all n P N.
+
+(Here, we also set initial condition u
+                                     p0 “ P pxq.) Now, we may apply the reasoning behind
+Theorem 6 to find the rational function Rpy0 , y1 q P Qpy0 , y1 q, defined as
+                          pd ` 1q ¨ y1 ´ y0
+     Rpy0 , y1 q “ y1 ¨                     ,
+                          y1 ` pd ´ 1q ¨ y0
+such that
+
+     u        un , u
+     pn`2 “ Rpp    pn`1 q          for all n P N.
+
+This, however, should be regarded as an equality of two rational functions over the variable x,
+which means that we cannot infer that
+
+     un`2 “ Rpun , un`1 q          for all n P N,
+
+because the right hand side can be undefined for specific values; and indeed, Rp0, 0q is
+undefined. The flawed reasoning from the beginning of this section would suggest that in
+order to verify the zeroness of u, it suffices to check that the first three entries of u are
+zero. However, we have u0 “ u1 “ ¨ ¨ ¨ “ ud´1 “ 0 and ud “ d! ‰ 0, so the algorithm would
+provide an incorrect answer.
+   Notice that if we had a promise that we never encounter a division by zero when recursively
+applying (7) from the given initial conditions, then the naïve zeroness algorithm presented at
+the beginning of the section would be sound. (The naïve algorithm is complete even without
+the promise.) However, deciding whether no division by zero occurs is essentially the Skolem
+problem for polyrec sequences, which, as mentioned in the introduction, is a long-standing
+open problem.
+   We are hopeful that the problem with accidentally hitting a singularity of R when starting
+from a polyrec sequence, as present in the example above, can somehow be circumvented,
+hence we state the following conjecture.
+§ Conjecture 17. There is an elementary function g : N Ñ N such that the following holds.
+Suppose u is a polyrec sequence of dimension at most N and degree at most N such that
+un “ 0 for all n ď gpN q. Then un “ 0 for all n P N.
+   Note that a positive resolution to Conjecture 17 would immediately imply that the
+complexity of the zeroness problem for polyrec sequences is elementary.
+
+ 5       Conclusion
+We believe that ratrec is a natural class of sequences with various promising questions
+deserving further investigation. Questions about decision problems are more natural for
+polyrec sequences due to their connection to polynomial automata and the issues with
+division by 0 in ratrec discussed in the introduction. Nevertheless, as discussed in this
+paper, understanding the properties of ratrec might lead to concrete complexity results for
+polyrec. The most natural problem for future work is to overcome the obstacles discussed in
+Section 4.3.
+
+
+
+
+                                                                                                  CVIT 2016
+23:14   On Rational Recursive Sequences
+
+
+             References
+         1   Rajeev Alur, Loris D’Antoni, Jyotirmoy V. Deshmukh, Mukund Raghothaman, and Yifei
+             Yuan. Regular functions and cost register automata. In 28th Annual ACM/IEEE Symposium
+             on Logic in Computer Science, LICS 2013, New Orleans, LA, USA, June 25-28, 2013, pages
+             13–22, 2013. doi:10.1109/LICS.2013.65.
+         2   Corentin Barloy and Lorenzo Clemente. Bidimensional linear recursive sequences and univer-
+             sality of unambiguous register automata. In Markus Bläser and Benjamin Monmege, editors,
+             Proc. of STACS’21, volume 187 of Leibniz International Proceedings in Informatics (LIPIcs),
+             pages 8:1–8:15, Dagstuhl, Germany, 2021. Schloss Dagstuhl – Leibniz-Zentrum für Informatik.
+         3   Corentin Barloy, Nathanaël Fijalkow, Nathan Lhote, and Filip Mazowiecki. A robust class of
+             linear recurrence sequences. In 28th EACSL Annual Conference on Computer Science Logic,
+             CSL 2020, January 13-16, 2020, Barcelona, Spain, pages 9:1–9:16, 2020. doi:10.4230/LIPIcs.
+             CSL.2020.9.
+         4   M. Benedikt, T. Duff, A. Sharad, and J. Worrell. Polynomial automata: Zeroness and
+             applications. In Proc. of LICS’17, pages 1–12, June 2017. doi:10.1109/LICS.2017.8005101.
+         5   Vincent D. Blondel and Natacha Portier. The presence of a zero in an integer lin-
+             ear recurrent sequence is NP-hard to decide. Linear Algebra and its Applications, 351–
+             352:91–98, 2002. Fourth Special Issue on Linear Systems and Control. URL: http://www.
+             sciencedirect.com/science/article/pii/S0024379501004669, doi:https://doi.org/10.
+             1016/S0024-3795(01)00466-9.
+         6   Adrien Boiret, Radoslaw Piórkowski, and Janusz Schmude. Reducing transducer equivalence
+             to register automata problems solved by “Hilbert Method”. In Sumit Ganguly and Paritosh
+             Pandya, editors, Proc. of FSTTCS’18, volume 122 of Leibniz International Proceedings in
+             Informatics (LIPIcs), pages 48:1–48:16, Dagstuhl, Germany, 2018. Schloss Dagstuhl–Leibniz-
+             Zentrum fuer Informatik. URL: http://drops.dagstuhl.de/opus/volltexte/2018/9947,
+             doi:10.4230/LIPIcs.FSTTCS.2018.48.
+         7   Mikołaj Bojańczyk. The Hilbert method for transducer equivalence. ACM SIGLOG News,
+             6(1):5–17, February 2019. URL: http://doi.acm.org/10.1145/3313909.3313911, doi:10.
+             1145/3313909.3313911.
+         8   Mikołaj Bojańczyk and Wojciech Czerwiński. An automata toolbox, Feb 2018. URL: https:
+             //www.mimuw.edu.pl/~bojan/paper/automata-toolbox-book.
+         9   Mikołaj Bojańczyk and Janusz Schmude. Some remarks on deciding equivalence for graph-to-
+             graph transducers. In Javier Esparza and Daniel Kráľ, editors, Proc. of MFCS’20, volume 170
+             of LIPIcs, pages 19:1–19:14, Dagstuhl, Germany, 2020. Schloss Dagstuhl–Leibniz-Zentrum für
+             Informatik. URL: https://drops.dagstuhl.de/opus/volltexte/2020/12752, doi:10.4230/
+             LIPIcs.MFCS.2020.19.
+        10   Alin Bostan, Arnaud Carayol, Florent Koechlin, and Cyril Nicaud. Weakly-unambiguous
+             parikh automata and their link to holonomic series. In Artur Czumaj, Anuj Dawar, and
+             Emanuela Merelli, editors, Proc. of ICALP’20, volume 168 of LIPIcs, pages 114:1–114:16,
+             Dagstuhl, Germany, 2020. Schloss Dagstuhl–Leibniz-Zentrum für Informatik. URL: https://
+             drops.dagstuhl.de/opus/volltexte/2020/12521, doi:10.4230/LIPIcs.ICALP.2020.114.
+        11   N. Bourbaki. Algebra II. Elements of Mathematics. Springer Verlag Berlin Heidelberg, 2003.
+        12   Michaël Cadilhac, Filip Mazowiecki, Charles Paperman, Michał Pilipczuk, and Géraud Sén-
+             izergues. On polynomial recursive sequences. Theory of Computing Systems, pages 1–22,
+             2021.
+        13   N. Chomsky and M. P. Schützenberger. The algebraic theory of context-free languages. In
+             P. Braffort and D. Hirschberg, editors, Computer Programming and Formal Systems, volume 35
+             of Studies in Logic and the Foundations of Mathematics, pages 118–161. Elsevier, 1963. URL:
+             http://www.sciencedirect.com/science/article/pii/S0049237X08720238, doi:10.1016/
+             S0049-237X(08)72023-8.
+        14   Lorenzo Clemente. On the complexity of the universality and inclusion problems for unambigu-
+             ous context-free grammars. In Laurent Fribourg and Matthias Heizmann, editors, Proceedings
+L. Clemente, M. Donten-Bury, F. Mazowiecki and M. Pilipczuk                                            23:15
+
+
+     8th International Workshop on Verification and Program Transformation and 7th Workshop
+     on Horn Clauses for Verification and Synthesis, Dublin, Ireland, 25-26th April 2020, volume
+     320 of EPTCS, pages 29–43. Open Publishing Association, 2020. doi:10.4204/EPTCS.320.2.
+15   J. Denef and L. Lipshitz. Decision problems for differential equations. Journal of Symbolic
+     Logic, 54(3):941–950, 1989. doi:10.2307/2274755.
+16   Manfred Droste, Werner Kuich, and Heiko Vogler. Handbook of Weighted Automata. Springer,
+     1st edition, 2009.
+17   David S. Dummit and Richard M. Foote. Abstract Algebra. Wiley, 3rd edition, 2003. URL:
+     http://gen.lib.rus.ec/book/index.php?md5=36e6532b72807b9ef6b27e52e8c62ccc.
+18   Vojtěch Forejt, Petr Jančar, Stefan Kiefer, and James Worrell. Language equivalence of
+     probabilistic pushdown automata. Information and Computation, 237:1–11, 2014.
+19   Vesa Halava, Tero Harju, Mika Hirvensalo, and Juhani Karhumäki. Skolem’s problem - on the
+     border between decidability and undecidability, 2005.
+20   T. Harju and J. Karhumäki.               The equivalence problem of multitape finite
+     automata.        Theoretical Computer Science, 78(2):347–355, 1991.              URL: http:
+     //www.sciencedirect.com/science/article/pii/0304397591903567, doi:http://dx.doi.
+     org/10.1016/0304-3975(91)90356-7.
+21   Manuel Kauers and Peter Paule. The Concrete Tetrahedron - Symbolic Sums, Recurrence
+     Equations, Generating Functions, Asymptotic Estimates. Texts & Monographs in Symbolic
+     Computation. Springer, 2011. doi:10.1007/978-3-7091-0445-3.
+22   Leonard Lipshitz. D-finite power series. Journal of Algebra, 122(2):353–373, 1989. URL:
+     http://www.sciencedirect.com/science/article/pii/0021869389902226, doi:https://
+     doi.org/10.1016/0021-8693(89)90222-6.
+23   J. Müller-Quade and R. Steinwandt. Basic algorithms for rational function fields. Journal of
+     Symbolic Computation, 27(2):143–170, 1999. URL: http://www.sciencedirect.com/science/
+     article/pii/S0747717198902462, doi:https://doi.org/10.1006/jsco.1998.0246.
+24   Masayoshi Nagata. Theory of Commutative Fields. Translations of Mathematical Monographs,
+     Vol. 125. American Mathematical Society, 1993. URL: http://gen.lib.rus.ec/book/index.
+     php?md5=249c3cba331671e0fd3c692d01b54b94.
+25   Joël Ouaknine and James Worrell. On linear recurrence sequences and loop termination. ACM
+     SIGLOG News, 2(2):4–13, April 2015. URL: http://doi.acm.org/10.1145/2766189.2766191,
+     doi:10.1145/2766189.2766191.
+26   Christos H. Papadimitriou. Computational Complexity. Addison-Wesley, 1994.
+27   Azaria Paz. Introduction to probabilistic automata. Academic Press, 1971.
+28   Arto Salomaa and Marti Soittola. Automata-theoretic aspects of formal power series. Texts
+     and Monographs in Computer Science. Springer, 1978. URL: http://gen.lib.rus.ec/book/
+     index.php?md5=1E7B3DCFFFC7F6146062637382E5067D, doi:10.1007/978-1-4612-6264-0.
+29   Bruno Salvy. D-finiteness: Algorithms and applications. In Proc. of ISAAC’05, pages 2–3,
+     New York, NY, USA, 2005. ACM. doi:10.1145/1073884.1073886.
+30   Marcel Paul Schützenberger. On the definition of a family of automata. Information and
+     Control, 4(2–3):245–270, 1961.
+31   Helmut Seidl, Sebastian Maneth, and Gregor Kemper. Equivalence of deterministic top-
+     down tree-to-string transducers is decidable. J. ACM, 65(4):21:1–21:30, April 2018. URL:
+     http://doi.acm.org/10.1145/3182653, doi:10.1145/3182653.
+32   Richard P. Stanley and Sergey Fomin. Enumerative combinatorics, volume 2 of Cambridge
+     studies in advanced mathematics. Cambridge University Press, 1 edition, 2001.
+33   Joris van der Hoeven. Computing with d-algebraic power series. Applicable Algebra in Engineer-
+     ing, Communication and Computing, 30(1):17–49, 2019. doi:10.1007/s00200-018-0358-y.
+34   Tzeng Wen-Guey. On path equivalence of nondeterministic finite automata. Information Pro-
+     cessing Letters, 58(1):43–46, 1996. URL: http://www.sciencedirect.com/science/article/
+     pii/0020019096000397, doi:10.1016/0020-0190(96)00039-7.
+
+
+
+
+                                                                                                      CVIT 2016
+23:16   On Rational Recursive Sequences
+
+
+        35     James Worrell. Revisiting the equivalence problem for finite multitape automata. In Fedor V.
+               Fomin, Rūsin, š Freivalds, Marta Kwiatkowska, and David Peleg, editors, Proc. of ICALP’13,
+               pages 422–433, Berlin, Heidelberg, 2013. Springer Berlin Heidelberg.
+        36     Doron Zeilberger. A holonomic systems approach to special functions identities. Journal of Com-
+               putational and Applied Mathematics, 32(3):321–368, 1990. URL: http://www.sciencedirect.
+               com/science/article/pii/037704279090042X, doi:10.1016/0377-0427(90)90042-X.
+
+
+         A          Zeroness for polyrec is PSPACE-hard
+        In order to speak about computational aspects of poly-rec sequences, we need to fix how
+        they are encoded on input. For robustness, we choose to use arithmetic circuits. Formally,
+        for a fixed field F, a polynomial P P Frx1 , . . . , xk s is encoded by a circuit C that may use
+        the following gates:
+            binary addition and multiplication gates;
+            nullary input gates, bijectively labelled with variables x1 , . . . , xk ; and
+            nullary constant gates, each labelled with an element of F.
+        Note that subtraction can be emulated using addition and multiplication by the constant
+        ´1. One of the gates is designated as the output gate. Given a valuation of variables with
+        elements of F, the values of the gates can be computed as expected, and the value yielded by
+        the circuit C is the one computed for the output gate.
+            In this section we prove the following lower bound.
+        § Theorem 18. For every fixed field F, the zeroness problem for polyrec sequences over F is
+        PSPACE-hard.
+            The lower bound claimed in the introduction follows from the theorem above by taking
+        F “ Q. Note also that together with Theorem 19 below, we can conclude that the problem
+        is actually PSPACE-complete for every fixed finite field F.
+        § Theorem 19. For every fixed finite field F, the zeroness problem for polyrec sequences over
+        F is in PSPACE.
+        Proof. Let m be the cardinality of F; note that m is a fixed constant. A standard periodicity
+        argument, e.g. as in the proof of [12, Theorem 4.1], shows that if u is a polyrec sequence of
+        dimension k, then it is zero if, and only if, it is zero for the first mk steps. We can check the
+        latter condition by storing in memory a k-tuple of values and computing the first mk values
+        of the sequence, which takes an amount of space which is polynomial in k.                       đ
+
+        A.1         Extended polyrec sequences
+        In the reductions leading to the lower bound of Theorem 18 it is convenient to construct
+        polyrec sequences according to a definition slightly more general than what we allowed in
+        Definition 4. Namely, the definition of an extended polyrec system is the same as before,
+                                                                     piq                         piq
+        except that we generalize the format of the ith equation un`1 “ Pi p¨ ¨ ¨ q by allowing un`1 to
+                                 p1q           pi´1q
+        additionally depend on un`1 , . . . , un`1 . Thus, the ith equation takes the form:
+              piq                           p1q         pi´1q
+             un`1 “ Pi pup1q          pkq
+                         n , . . . , un , un`1 , . . . , un`1 q,                                         (8)
+
+        where now Pi is a polynomial in k ` i ´ 1 variables. This more relaxed definition will help
+        focus on the important aspects of the reduction presented in the rest of this section. The
+        following lemma shows that the modification does not affect the complexity of the zeroness
+        problem.
+L. Clemente, M. Donten-Bury, F. Mazowiecki and M. Pilipczuk                                                    23:17
+
+
+§ Lemma 20. Suppose u is a sequence defined by an extended polyrec system S of dimension
+k, where each polynomial Pi is represented by circuit Ci . Then given the circuits Ci , one can
+in polynomial time construct a circuit C that represents a polyrec system S 1 of dimension k
+that also defines u (with the same initial condition as S).
+
+Proof. Let the input gates of circuit Ci be labelled with x1 , . . . , xk , z1 , . . . , zi´1 , where
+                                                                    p1q           pi´1q
+variables z1 , . . . , zi´1 respectively correspond to the values un`1 , . . . , un`1 in (8). Construct
+the circuit C from the union of circuits C1 , . . . , Ck by performing the following operations
+for each i P t1, . . . , ku:
+    Fuse all input gates labelled xi in circuits C1 , . . . , Ck into a single input gate labelled xi .
+    Fuse the output gate of Ci with all input gates labelled zi in circuits Ci`1 , . . . , Ck .
+The output gates of C are the output gates of C1 , . . . , Ck . (Formally, we assumed that output
+gates must have fan-out 0, but this can be easily obtained by making a copy of each output
+gate.) It is straightforward to verify that the polyrec system S 1 that C represents defines the
+same k-tuple of sequences as S under the same initial condition.                                      đ
+
+A.2      Reduction
+We now proceed to the proof of Theorem 18. Let us fix the field F; in the reduction we will
+use only two constants from F, namely 0 and 1. We reduce from the validity problem for
+Quantified Boolean Formulas (QBF), which is known to be PSPACE-complete (see, e.g., [26,
+Theorem 19.1]). Recall that the QBF validity problem amounts to determine whether a given
+QBF of the form
+
+    ψ “ Dx1 @x2 . . . Qk xk ϕpx1 , . . . , xk q                                                        (9)
+
+is true, where ϕpx1 , . . . , xk q is quantifier-free, the variables with odd indices are quantified
+existentially, the remaining variables are quantified universally, and Qk is either D or @
+depending on the parity of k. Hence, we are given a QBF ψ and we wish to construct, in
+polynomial time, a polyrec system S and its initial condition that define a sequence u over
+F such that the zeroness of u is equivalent to the invalidity of ψ. By Lemma 20, it suffices
+to construct an extended polyrec system S with this property, where each polynomial Pi
+involved is represented by a separate circuit. In the following, the size of an extended polyrec
+system is the total size of its representation through circuits, which is constructed implicitly.
+    In the reduction it will be convenient to consider formulas obtained by fixing the truth
+values of a subset of the bound variables of ψ. For every i P t0, . . . , ku and ci`1 , . . . , ck P t0, 1u
+we define the formula
+
+    ψ|ci`1 ,...,ck “ Dx1 @x2 ¨ ¨ ¨ Qi xi ϕpx1 , . . . , xi , ci`1 , . . . , ck q,
+
+where Qi is either D or @ depending on the parity of i. In particular, for i “ k we get back ψ,
+and for i “ 0 the formula ψ|c1 ,...,ck reduces to the truth value of ϕpc1 , . . . , ck q. We encode a
+quantifier Boolean formula ϕ into a polynomial Pϕ using the following simulation of Boolean
+operators , ^ and _ by arithmetic operations:
+
+       Px “ x,
+      P ϕ “ 1 ´ Pϕ ,
+    Pϕ^ψ “ Pϕ ¨ Pψ ,
+    Pϕ_ψ “ P p ϕ^ ψq .                                                                               (10)
+
+
+
+
+                                                                                                              CVIT 2016
+23:18   On Rational Recursive Sequences
+
+
+        For example, τ px, yq “ px ^ yq _ y is encoded as Pτ px, yq “ 1 ´ p1 ´ xyqy. The following
+        straightforward claim shows that with the standard interpretation of 1 and 0 representing
+        true, resp., false, such polynomials evaluate as expected. Note that this claims holds in any
+        fixed field.
+
+        Ź Claim 21. Let τ px1 , . . . , xk q be a Boolean formula and Pτ px1 , . . . , xk q its corresponding
+        polynomial. For every c1 , . . . , ck P t0, 1u we have Pτ pc1 , . . . , ck q P t0, 1u and
+
+                                         pc1 , . . . , ck q |ù τ ðñ Pτ pc1 , . . . , ck q “ 1.
+
+        To ease the notation we will directly write formulas as polynomials; for instance, Pτ px, yq “
+        px ^ yq _ y. All sequences in this section will be over t0, 1u and the involved polynomials
+        will be of the form Pτ .
+
+        Sequences c1 , . . . , ck The truth valuations of variables x1 , . . . , xk will be encoded by
+        sequences c1 , . . . , ck , where for every i and n we have
+
+
+                    #
+                        0   if n mod 2i is less than 2i´1 ,
+            cin “                                                                                       (11)
+                        1   otherwise.
+
+        For example, the first eight values of c1 , c2 , c3 are
+             c1     =       0   1   0    1    0    1    0    1
+             c2     =       0   0   1    1    0    0    1    1
+             c3     =       0   0   0    0    1    1    1    1   .
+
+        Ź Claim 22. For every i ě 1, the sequence ci is definable by an extended polyrec system
+        over F of size polynomial in i.
+
+        Proof. We proceed by induction on i. For i “ 1, by definition we have c1n “ 1 ´ c1n´1 , and
+        thus we let
+
+            c1n “ P pc1n´1 q, with P pxq “         x.                                                   (12)
+
+            Now, suppose i ą 1 and we have defined ci´1 . We start by proving the following equality
+        for every n ą 1
+                 #
+                   1 ´ ci     if ci´1          i´1
+                                  n´1 “ 1 and cn   “ 0;
+            cn “ i n´1
+             i
+                                                                                               (13)
+                   cn´1       otherwise.
+
+        Notice that ci is periodic with period 2i , i.e., cin “ cin`2i for all n. Thus it suffices to prove
+        (13) for n P t1, . . . , 2i u. By definition, ci´1
+                                                       n´1 “ 1 and cn
+                                                                     i´1
+                                                                         “ 0 hold precisely for two values
+        of n P t1, . . . , 2i u, namely for n “ 2i´1 and n “ 2i . Thus (13) is proved since cin “ 0 for
+        0 ď n ă 2i´1 ; cin “ 1 for 2i´1 ď n ă 2i ; and ci2i “ 0.
+            Using (13) one can determine cin given cin´1 , ci´1            i´1
+                                                                n´1 , and cn :
+
+            cin “ Qpcin´1 , ci´1    i´1
+                             n´1 , cn q,                                                                (14)
+
+        where Qpx, y, zq “ p x ^ py ^ zqq _ px ^ p y _ zqq. This follows from (13) and from the
+        fact that y ^ z and y _ z are mutually exclusive formulas encoding the “if” condition in
+        (13). It is clear that the constructed extended polyrec system is of size polynomial in i. Ÿ
+L. Clemente, M. Donten-Bury, F. Mazowiecki and M. Pilipczuk                                                   23:19
+
+
+Sequences d0 , . . . , dk        We define sequences d0 , . . . , dk , where for any i ě 0 we have:
+
+                       $
+                       &0                               if 2i ffl n
+   di0 “ 0,       din “ r                          z                                                  (15)
+                       % ψ|ci`1 ,...,ck                 otherwise,
+                                    n´1      n´1
+
+
+where for a closed formula ξ (i.e., with no free variables) JξK is 1 if ξ is true and 0 otherwise.
+Notice that the formula depends on c1 , . . . , ck . Since dk is the zero sequence if, and only if,
+ψ is false, it suffices to show that each di can be defined by an extended polyrec system of
+polynomial size.
+    We proceed by induction on i. In the base case i “ 0,
+
+   d0n “ Pϕ pc1n´1 , . . . , ckn´1 q,                                                                 (16)
+
+where Pϕ is the polynomial obtained from the quantifier-free formula ϕ according to the
+rules in (10). (Notice that Pϕ can be represented by an arithmetic circuit of size polynomial
+in the size of ϕ—this is where we use the conciseness of representation using circuits.) This
+fulfills the conditions in (15) since, for n ą 0, d0n “ 1 if pc1n´1 , . . . , ckn´1 q |ù ϕ and d0n “ 0
+otherwise.
+    Now, fix i ě 1 and suppose that di´1 is defined. The goal is to define di . Recall that if i
+is odd then xi is quantified existentially, and otherwise xi is quantified universally.
+
+Ź Claim 23. Let fi “ _ if i is odd and fi “ ^ if i is even. For every n ą 0 and 0 ă i ď k,
+we have
+
+
+           #
+            di´1
+             n   fi di´1
+                     n´2i´1
+                                          if 2i  n
+   din “                                                                                              (17)
+              0                           otherwise.
+
+Proof. We may focus only on the case 2i  n. Since xi is quantified according to the parity
+of i, we have
+
+   ψ|ci`1 ,...,ck       “ ψ|0,ci`1 ,...,ck         fi ψ|1,ci`1 ,...,ck      .
+       n´1        n´1           n´1        n´1              n´1       n´1
+
+
+   We claim that
+
+   di´1
+    n   “ ψ|1,ci`1 ,...,ck           and di´1
+                                          n´2i´1
+                                                 “ ψ|0,ci`1 ,...,ck                   .
+                    n´1       n´1                                 n´1           n´1
+
+
+By (11) and the fact that 2i  n, we get cin´1 “ ci2i ´1 “ 1, which proves the first equation. For
+the second equation, we observe that cipn´1q´2i´1 “ ci2i´1 ´1 “ 0 and that cjpn´1q´2i´1 “ cjn´1
+for all j ą i. The latter assertion readily follows from 2i  n and (11).                       Ÿ
+
+   As an immediate consequence of Claim 23, we can write
+                 i´1       i´1
+   din “ Spdi´1                   i´1
+            n , dn´2i´1 , cn´1 , cn q,                                                                (18)
+
+where Spx, y, z, tq “ px fi yq ^ pz ^ tq (by recalling that ci´1          i´1
+                                                                n´1 “ 1, cn   “ 0 holds if, and
+          i
+only if, 2  n, where n ą 0). The issue with this recursive definition is that it requires access
+to the value di´1
+               n´2i´1
+                      , which in general is not allowed in a polyrec system for i ě 2 (not even
+in the extended variant). This will be addressed in the next section by introducing the last
+family of recursive sequences.
+
+
+
+                                                                                                             CVIT 2016
+23:20   On Rational Recursive Sequences
+
+
+        Sequences f 0 , . . . , f k´1 For every 1 ď i ď k, the sequence f i´1 is defined as
+                 #
+            i´1     0             if n mod 2i is less than 2i´1
+           fn “       i´1
+                    dm            otherwise,
+
+        where m ď n is the unique number such that n ´ m ă 2i´1 and 2i´1  m. Thus, f is divided
+        into blocks of length 2i´1 of equal elements, where every other block is either filled with
+        zeros, or its value is determined by the value of an appropriate entry di´1   m . Observe that in
+                                    i´1
+        particular, if 2i  n then fn´1 “ di´1
+                                           n´2 i´1 . Thus,  intuitively,  the sequence f i´1 is a “memory”
+                                                        i´1           i´1
+        that allows us to store the relevant value of d        from 2      ´ 1 steps back.
+            We now proceed to defining sequences f 0 , . . . , f k´1 using polyrec systems. Observe that
+        f0i´1 “ 0 and for n ą 0, we can write
+
+
+                     $
+                     ’
+                     ’ i´1
+                     &dn      if ci´1          i´1
+                                  n´1 “ 0 and cn   “ 1;
+           fni´1 “     0      if ci´1          i´1
+                                  n´1 “ 1 and cn   “ 0;                                               (19)
+                     ’
+                     %f i´1
+                     ’
+                              otherwise.
+                       n´1
+
+                                                        i´1
+        Notice that the value of fni´1 is copied from fn´1   unless ci´1    i´1
+                                                                     n´1 , cn   differ. To conclude, recall
+                                                       i´1
+        from (11) that this happens if, and only if, 2       n.
+
+        Ź Claim 24. For every i ě 1, the sequences di and f i´1 are definable by extended polyrec
+        systems over F of size polynomial in i and the size of ϕ.
+
+        Proof. Using (19), we may write f i´1 as an extended polyrec sequence f0i´1 “ 0 and, for
+        n ą 0,
+
+           fni´1 “ Rpci´1    i´1 i´1   i´1
+                      n´1 , cn , dn , fn´1 q,                                                         (20)
+
+        where
+                         Rpx, y, z, tq “ pz ^ p x ^ yqq _ pt ^ ppx ^ yq _ p x ^ yqq.
+        In turn, this allows us to rewrite (18) as
+                         i´1 i´1
+           din “ Spdi´1                i´1
+                    n , fn´1 , cn´1 , cn q,                                                           (21)
+
+        where S was defined in (18). Note that (20) and (21) are in the extended polyrec format
+        provided that we write the equations for the f i ’s after the equations for the di ’s, and the
+        latter after the equations for ci ’s (in order to avoid creating a cyclic dependency). In other
+        words, the final extended polyrec system consists of equations (14), followed by (21), and
+        followed by (20), where each set of equations is numbered naturally according to the indices
+        of sequences.
+            The involved polynomials Pϕ , R and S are all of size polynomial in the input size
+        when represented as arithmetic circuits (R and S are even of constant size), and we have a
+        polynomial number of equations. Thus, the definition above is an extended polyrec system
+        of polynomial size.                                                                          Ÿ
+
+           As discussed, Claim 24 finishes the proof of Theorem 18.
+           In the end, we discuss the Skolem problem: given a sequence u to determine whether
+        there is n such that un “ 0. This problem was extensively studied for the class of linear
+        recursive sequences (see e.g. [25]). For linear recursive sequences it is open whether the
+L. Clemente, M. Donten-Bury, F. Mazowiecki and M. Pilipczuk                                        23:21
+
+
+Skolem problem is decidable, but only NP-hardness is known [5, Corollary 2.1]. For polyrec
+sequences, decidability of the Skolem problem is also open, but we can improve the lower
+bound.
+
+§ Corollary 25. The Skolem problem is PSPACE-hard for polyrec sequences.
+
+Proof. Notice that in the proof of Theorem 18 we define a system of sequences over t0, 1u.
+It remains to observe that for such sequences the zeroness problem and the Skolem problem
+reduce to each other. Indeed, the nonzeroness problem of a sequence u over t0, 1u is equivalent
+to the Skolem problem of v defined as vn “ 1 ´ un .                                           đ
+
+    We conclude this section by noting that the reduction from QBF that we have presented
+produces a polyrec sequence which is identically zero if and only if the first exponentially
+many initial values thereof are zero. We are not aware of examples requiring longer witnesses
+of zeroness for polyrec sequences.
+
+
+
+
+                                                                                                  CVIT 2016
+

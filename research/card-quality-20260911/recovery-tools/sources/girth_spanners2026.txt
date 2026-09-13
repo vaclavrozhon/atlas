@@ -1,0 +1,659 @@
+                                        Unconditional Lower Bounds for Degree Fault Tolerant
+                                                             Spanners
+                                                                 Greg Bodwin and Aleksey Lopez
+                                                                  University of Michigan EECS
+                                                                 {bodwin, lopezag}@umich.edu
+
+
+                                                                                 Abstract
+                                            We study multiplicative graph spanners in the f -degree fault tolerant (f -DFT) model, in
+                                        which the spanner must approximately preserve distances even after any subset of edges of
+                                        maximum degree f temporarily “fails” and is removed from the graph. We prove that there
+arXiv:2607.07576v1 [cs.DS] 8 Jul 2026
+
+
+
+
+                                        are n-node lower bound graphs for which any f -DFT (2k − 1)-stretch spanner H must have
+                                        size                                                     
+                                                                        |E(H)| ≥ Ω f 1−1/k n1+1/k .
+                                        This matches a lower bound that was previously only known to hold conditionally, under the
+                                        1963 girth conjecture of Erdős. It also matches the current upper bounds, up to a factor of
+                                        exp(k). Our proof is an analysis of the so-called Wenger graphs (J. Comb. Theory 1991), via
+                                        their recent reinterpretation by Szabó and by Conlon (Am. Math. Monthly 2021).
+1     Introduction
+1.1     Spanners and the Girth Conjecture
+A multiplicative spanner is a primitive in graph theory and algorithms, which sparsifies an input
+graph while approximately preserving its shortest path distances. Spanners were abstracted in the
+late ’80s after being implicitly studied in networking, distributed algorithms, etc (see survey [1]).
+Definition 1 (Spanners [29]). Given a graph G = (V, E, w), a subgraph H = (V, E ′ , w) is a
+k-spanner of G if for all nodes s, t, we have distH (s, t) ≤ k · distG (s, t).
+    Spanners and their variants are often studied from the extremal perspective, where the goal is
+to prove that one can always construct a spanner with a good tradeoff between size and error. The
+following classic theorem of Althöfer, Das, Dobkin, Joseph, and Soares [2] conditionally settles the
+extremal tradeoff available for multiplicative spanners:
+Theorem 2 ([2]). For all positive integers n, k, every n-node graph has a (2k − 1)-spanner on
+O(n1+1/k ) edges. Moreover, assuming the girth conjecture [18], for all positive integers k there are
+families of n-node graphs on which this size bound cannot be improved to o(n1+1/k ).
+   The girth conjecture referenced in this theorem, attributed to Erdős [18], says the following. Let
+us denote by ex(n, C≤2k ) the maximum possible number of edges in an n-node graph that does not
+have any cycles of length ≤ 2k as subgraphs. There is a simple folklore counting argument, called
+the Moore bound, that implies                               
+                                    ex(n, C≤2k ) ≤ O n1+1/k .
+
+The girth conjecture posits that this bound is asymptotically best possible for all k. The girth
+conjecture is an old and very difficult problem in extremal graph theory, likely beyond the reach
+of current techniques. It has been confirmed only for k ∈ {1, 2, 3, 5} [34, 35], with no new cases
+settled since the 1950s. In fact, the community has more recently started to regard it with some
+skepticism. For example, in an article from 2021, Conlon [14] writes:
+“It is now quite commonplace to believe that the true value of certain extremal numbers lie below
+what the classical arguments give. We suspect that this should already be the case for C8 , that is,
+                                   that ex(n, C8 ) = o(n5/4 ).”
+
+Here ex(n, C8 ) is the maximum possible number of edges in an n-node graph with no C8 subgraph.
+It follows from the definitions that ex(n, C8 ) ≥ ex(n, C≤8 ), and so the suggested bound of o(n5/4 )
+would imply that the girth conjecture is false already for k = 4. Since this seems difficult to prove,
+Conlon goes on to give a more attainable conjecture, very roughly stating that the techniques from
+incidence geometry used to confirm the girth conjecture for k ∈ {1, 2, 3, 5} cannot be extended
+to other values of k. This conjecture is related to the classical Feit-Higman Theorem [19], which
+is sometimes interpreted as further evidence against the girth conjecture.1 For further technical
+discussion and references on the girth conjecture and its surrounding literature, we recommend the
+excellent set of lecture notes by Szabó [33].
+   1 The constructions implying the girth conjecture for k ∈ {1, 2, 3, 5} arise from highly symmetric incidence struc-
+
+tures known as finite generalized polygons. The Feit-Higman Theorem constrains the existence of finite generalized
+polygons, and in particular, it implies that finite generalized polygons cannot be used to prove the girth conjecture
+for any further values of k.
+
+
+
+                                                          1
+                    ×                                                        ×
+                                       ×                                                        ×
+Figure 1: An input graph G (left) and a 1-DFT 3-spanner H (right). Note that after any degree-1
+fault set is removed from both G and H (such as the pair of edges marked with red X’s), the
+remaining part of H is still a 3-spanner of the remaining part of G.
+
+
+1.2     Fault Tolerant Spanners
+Spanners are often used in distributed systems and networking, where there is a possibility of
+nodes or edges in the input graph G temporarily failing and becoming unusable while they await
+repair. A desirable feature in these application domains is for a spanner H to retain its distance
+approximation guarantees even after any “reasonable” failure event occurs.
+    The first formal model of fault tolerant spanners was introduced by Levcopoulos, Narasimhan,
+and Smid [22]. They defined H to be an f -vertex (edge) fault tolerant k-spanner of G if, for
+any set F of |F | ≤ f vertices (edges), the subgraph H \ F is still a k-spanner of G \ F . The
+initial results in this model were for geometric graphs, which has remained an area of intensive
+focus for the community [9–12, 15, 21–24, 32]. Results for general graphs were obtained later by
+Chechik, Langberg, Peleg, and Roditty [13], which has inspired a similarly long line of followup
+work [4–6, 8, 16, 17, 25]. By now, this model of fault tolerance is mostly well understood. We have
+optimal existential bounds [4, 8] and near-optimal algorithms [25] for the setting of vertex faults.
+We also have optimal existential bounds for edge faults for infinitely many values of spanner error
+k [4, 5], although some knowledge gaps remain. As usual, the lower bounds in both settings are
+conditioned on the girth conjecture.2
+    More recently, the community has turned toward new and more expressive models of fault
+tolerance, that strengthen the original model without harming the spanner size too much. One
+such model is color-fault tolerant spanners, a compelling model of correlated failure introduced
+recently by Petruschka, Sapir, and Tzalik [31] (see also [26, 27, 30, 31]). Optimal or near-optimal
+bounds are known for this setting as well, again with the lower bounds conditioned on the girth
+conjecture.3 Another more expressive fault tolerance model, which will be a focus of this work, is
+degree fault tolerant spanners:
+Definition 3 (Degree Fault Tolerant Spanners [7]). Given a graph G = (V, E, w), a subgraph
+H = (V, E ′ , w) is an f -degree fault tolerant (f -DFT) k-spanner of G if, for any edge subset F ⊆ E
+   2 In the setting of vertex faults (but not edge faults), we remark that the upper bounds and lower bounds both
+
+work by reduction to ex(n, C≤2k ), and hence proving an unconditional tight lower bound would be equivalent to
+proving the girth conjecture itself [4, 8]. In the setting of edge faults, for higher fault tolerance parameters f , the
+lower bounds can also be proved by conditioning on a certain bipartite extension of the girth conjecture; see [6],
+Section 2.1 for discussion.
+   3 Again, the upper and lower bounds in the color-fault model work by reduction to ex(n, C
+                                                                                                   ≤2k ), and so proving
+an unconditional lower bound is equivalent to proving the girth conjecture [31].
+
+
+
+
+                                                           2
+such that F contains at most f edges incident on each node, we have
+                          distH\F (s, t) ≤ k · distG\F (s, t)      for all nodes s, t.
+    An f -DFT spanner can tolerate many more edge failures at once than in the original model
+of fault tolerance; for example, it can handle O(nf ) edge failures, so long as they are spread
+throughout the graph such that at most f failing edges are incident to any particular node. Despite
+this possibility of massive failure, Bodwin, Haeupler, and Parter [7] showed that fairly reasonable
+existential size bounds are available, not much worse than the ones known for the original model:
+Theorem 4 ([7]). For all positive integers k, every n-node graph G has an f -DFT (2k − 1)-spanner
+H on                                                             
+                             |E(H)| ≤ O exp(k) · f 1−1/k · n1+1/k
+edges. Moreover, assuming the girth conjecture, there is a family of n-node input graphs G for
+which any f -DFT (2k − 1)-spanner H must have
+                                                           
+                               |E(H)| ≥ Ω f 1−1/k · n1+1/k .
+
+   Thus conditionally nearly-tight bounds are known for this problem, up to a factor of exp(k),
+and assuming the girth conjecture. Followup work by Parter and Tzalik [28] obtained matching
+upper and lower bounds in the reachability (k = ∞) setting, and Biniaz, Carufel, Maheshwari, and
+Smid [3] obtained results in the DFT model for metric and geometric spanners.
+
+1.3     Our Results
+The contribution of this paper is to show that the additional strength of the DFT model is enough
+to obtain unconditional lower bounds. We show:
+Theorem 5. For all positive integers k, there are n-node input graphs G for which any f -DFT
+(2k − 1)-spanner H must have
+                                                          
+                               |E(H)| ≥ Ω f 1−1/k · n1+1/k .
+
+    These lower bounds are both optimal up to Ok (1) factors, and they hold via explicit constructions
+that do not assume the girth conjecture. This makes DFT spanners essentially the first variants
+of multiplicative spanners where one can obtain unconditionally near-optimal lower bounds. For
+essentially every other variant, the best unconditional lower bounds are inherited from the lower
+bounds for the function ex(n, C≤2k ), where the state-of-the-art is from a 1995 work of Lazebnik,
+Ustimenko, and Woldar [20]. These bounds are polynomially below the bound posited by the girth
+conjecture, meaning that our results represent polynomial improvements in the known unconditional
+bounds.
+    These theorems may also have independent interest from the standpoint of extremal combina-
+torics. In some sense, they state that the DFT model captures the gap between known algebraic
+techniques and the structure that would be needed to prove the girth conjecture, if possible. More
+specifically, our proofs analyze the Wenger graphs [35], which are an elegant algebraic construction
+that notably achieves optimal lower bounds on the function ex(n, C2k ) for k ∈ {1, 2, 3, 5}.4 Szabó
+   4 The Wenger graphs also imply the girth conjecture for k ∈ {1, 2, 3}, but not for k = 5: although they do not
+
+have C10 subgraphs, they do have C8 subgraphs.
+
+
+                                                       3
+[33] and Conlon [14] independently devised a reinterpretation of Wenger’s original construction with
+a more algebraic flavor. We adopt their interpretation, and make algebraic arguments to reason
+about the fine-grained structure of the short cycles that appear in these graphs. The main part of
+our proofs can be viewed as a formalization of the sense in which the Wenger graphs come close to
+proving the girth conjecture; that is, their short cycles are sparsely “spread out” throughout the
+graph in a way that lets one destroy the relevant ones with a low-degree fault set.
+
+
+2     Proof of Main Result
+2.1     Construction of Incidence System and Fault Sets
+We begin by constructing an incidence system, consisting of n points and n lines (subsets of the
+points). This construction and its incidence graph are originally by Wenger [35], while our algebraic
+exposition follows Szabó [33] and Conlon [14].
+    • (The parameters.) The construction is parametrized by an arbitrary prime p and an
+      arbitrary integer k ≥ 1. We will have n := pk points and lines in the construction. We will
+      use the standard shorthand [p] := {0, 1, . . . , p − 1}.
+    • (The points.) The set of points A is the elements of the finite field Fkp . We interpret Fkp as
+      a vector space with scalars in Fp , and so we will perform scalar multiplication with scalars
+      from [p].
+    • (The lines.) For any t ∈ [p], let σt := (1, t, t2 , . . . , tk−1 ) ∈ Fkp ; we will refer to σt as a slope
+      vector. The set of lines L is exactly the lines of slope σt for any t ∈ [p]. In other words, a
+      subset of points forms a line ℓ iff there exists t ∈ [p] such that ℓ is a maximal subset of points
+      with the property that any two points in ℓ differ by a multiple of σt . Formally:
+                              L := x + λσt | λ ∈ [p] | x ∈ Fkp , t ∈ [p] .
+                                    
+
+
+    • (The graph.) We define B to be the bipartite incidence graph between the set of points A
+      and the set of lines L. That is: the left side is A, the right side is L, and there is an edge
+      {a, ℓ} ∈ E(B) iff a ∈ ℓ.
+    The graph B has the following statistics:
+Lemma 6 (Size of B). The graph B has 2n nodes and n1+1/k edges.
+Proof. There are n = pk nodes in Fkp . The lines are indexed by pk possible choices of x and p
+possible choices of t, but each line can be generated in p ways (by choosing any of its p points for
+x), so there are pk · p/p = pk = n lines. Thus B has n nodes on each side of its bipartition, for
+2n nodes in total. Each line contains exactly p points, so it generates p edges in B. So there are
+pk+1 = n(k+1)/k = n1+1/k edges in B.
+   Our goal will be to argue that B is the only 1-DFT (2k − 1)-spanner of itself. This gives our
+desired lower bound in the special case f = 1. Later, in Section 2.4, we will describe a standard
+technique used to boost the lower bound to arbitrary f ≥ 1. The first step towards this goal is, for
+every edge e, to define a corresponding edge set Fe of maximum degree 1 (i.e., a matching) such
+that e does not participate in any cycles of length ≤ 2k in the graph B \ Fe . The next step in our
+proof is to define these sets Fe . The following definitions will be useful:
+
+
+                                                      4
+                                                  (4, 4)
+
+
+
+
+                       )
+                     1, 2
+                   =(
+                 σ2
+
+
+
+                                )
+                              ,1
+                            (1
+                        =
+                      σ1
+
+
+
+
+        (0, 0)        σ0 = (1, 0)
+
+
+
+Figure 2: (Left) The 25 points and first 3 lines used in the construction with k = 2 and p = 5.
+(Right) The corresponding incidence graph. In the full system, there would be 25 lines and therefore
+25 nodes on the right side of the incidence graph.
+
+
+Definition 7 (Line and Path Properties). Two lines ℓ, ℓ′ ∈ L are parallel, written ℓ ∥ ℓ′ , if they
+are distinct and they have the same direction vector σt . A path π in B with vertex sequence
+
+                                     π = (a = a0 , ℓ0 , a1 , ℓ1 , . . . , ℓr−1 , ar = b)
+
+is called ℓ-transverse if it is simple5 and none of the lines {ℓ0 , ℓ1 , . . . , ℓr−1 } are equal to ℓ or parallel
+to ℓ. Its line-length is the number of lines in L corresponding to nodes in the path; for example,
+the above path π has line-length(π) = r.
+Definition 8 (Failure Set Fe ). For any edge e = {a, ℓ} ∈ E(B), we define Fe ⊆ E(B) \ {e} to be
+the set of all edges {b, ℓ′ } such that ℓ ∥ ℓ′ , and there exists an ℓ-transverse path from a to b of
+line-length ≤ k2 − 1.6
+
+
+2.2     Bound on Degree of Fe
+Our next goal is to prove that, for each edge e ∈ E(B), the associated fault set Fe has maximum
+degree 1. We will need two supporting structural lemmas before the main proof.
+
+Lemma 9. For any closed, non-backtracking7 walk W in B of length |W | ≤ 2k, there is no t ∈ [p]
+such that W contains exactly one line of slope σt . (This allows the case where W contains two
+instances of the same line ℓ.)
+   5 Recall: a simple path is one that does not repeat nodes.
+  6 The expression k − 1 is not necessarily integral, but line-length is necessarily integral, so this is equivalent to an
+                   2
+upper bound on line-length of ≤ ⌊ k2 − 1⌋. Since the floor symbols are not technically necessary, we will omit them
+here and for other possibly-non-integral expressions encountered as upper bounds in the rest of this paper.
+   7 Recall: a walk is closed if it starts and ends at the same node, and it is non-backtracking if it never uses the
+
+same edge twice in a row with opposite orientations.
+
+
+
+
+                                                             5
+                                          ℓ                                  ℓ′
+
+                                                                             {b, ℓ′ } ∈ Fe
+                                                                             b
+                               e = {a, ℓ}
+                                       a
+
+
+
+
+Figure 3: When considering the edge e corresponding to the point-line incidence a ∈ ℓ, we add to
+its associated fault set Fe the edges corresponding to point-line incidences b ∈ ℓ′ , where ℓ ∥ ℓ′ and
+b can be reached from a by an ℓ-transverse path of small line-length.
+
+
+Proof. Let the vertex sequence of W be
+                                    W = (a0 , ℓ0 , a1 , ℓ1 , . . . , ℓr−1 , ar = a0 ),
+where each aj is a point and each ℓj is a line with slope vector σj , and r ≤ k. Since aj , aj+1 ∈ ℓj ,
+there exists a scalar λj ∈ Fp such that aj+1 = aj + λj σj . Moreover, since the walk is non-
+backtracking, we have aj ̸= aj+1 and so these scalars are all nonzero. Summing these equations
+around the walk W gives the identity
+                                            r−1
+                                            X
+                                                λj σj = 0.
+                                                      j=0
+
+However, it follows from the usual analysis of the Vandermonde matrix [14] that any k slope
+vectors {σj } are linearly independent. Thus, this identity is possible only if after grouping equal
+slope vectors together, their associated coefficients must sum to 0. Since each individual coefficient
+λj is nonzero, this implies that each slope vector must have at least two associated coefficients,
+implying the lemma.
+Lemma 10 (Unique endpoints). Let ℓ, ℓ′ be parallel lines in L and let a ∈ ℓ. Then there is a point
+b ∈ ℓ′ such that every ℓ-transverse path of line-length ≤ k2 − 1 that starts at a and ends at a point
+in ℓ′ specifically ends at b.
+Proof. Suppose there are ℓ-transverse paths with node sequences
+              π1 = (a, ℓ0 , a1 , ℓ1 , . . . , ℓr−1 , b)   and   π2 = (a, m0 , b1 , m1 , . . . , ms−1 , b′ )
+ending at points b, b′ ∈ ℓ′ , of respective line-lengths r, s both ≤ k2 − 1. Suppose for contradiction
+that b ̸= b′ . Concatenating π1 and the reverse of π2 with the node ℓ′ placed between them produces
+a closed walk W in B. Consider a minimal nonempty closed subwalk W ′ ⊆ W that contains an
+edge of ℓ′ , which is a simple cycle (and hence non-backtracking). We have
+                                                                   
+                                                               k
+                       line-length(W ′ ) ≤ r + 1 + s ≤ 2 ·       − 1 + 1 ≤ k − 1.
+                                                               2
+Hence the total length of W ′ in B is |W ′ | ≤ 2k. Moreover, the only line in W ′ parallel to ℓ is ℓ′ ,
+since both π1 and π2 are ℓ-transverse. This contradicts Lemma 9. Thus we have b = b′ , completing
+the proof.
+
+                                                            6
+                                 b                                           b                                     b
+
+
+ a                                   a                                           a
+         Initial a ⇝ b path,                   Reorder so that                         Merge lines of repeated
+         which may use lines                   same-slope lines                      slope, to obtain a ⇝ b path
+          of repeated slope                      are adjacent                           of shorter line-length
+
+
+
+       Figure 4: A depiction of the “path-straightening” technique used to prove Lemma 12.
+
+Lemma 11. For any edge e, the edge set Fe ∪ {e} has maximum degree 1.
+Proof. Let e =: {a, ℓ}. We analyze degFe (v) in cases:
+     • Suppose that v corresponds to a point (rather than a line) in the incidence system. Since v
+       lies on exactly one line ℓ′ parallel to ℓ (or v lies on ℓ itself), the only edge containing v that
+       might be in Fe is (v, ℓ′ ), so degFe (v) ≤ 1.
+     • Suppose that v corresponds to a line in the incidence system that is not parallel to ℓ. Then
+       by construction, degFe (v) = 0.
+     • Suppose that v corresponds to a line in the incidence system that is parallel to ℓ. By Lemma 10,
+       there is at most one point b ∈ v that is the endpoint of an ℓ-transverse path from a of line-
+       length ≤ k2 − 1. Hence v is incident to at most one edge of Fe .
+     • Suppose that v = ℓ. By construction, the only edge in Fe ∪ {e} incident to v is e itself.
+
+2.3     Correctness of Fault Set Fe
+Our next goal is to prove that each edge e does not participate in any cycles of length ≤ 2k in the
+graph B \ Fe .
+Lemma 12 (Path straightening). Let π be an ℓ-transverse a ⇝ b path in B that uses lines with z
+distinct slope vectors. Then there is an ℓ-transverse path π ′ with the same endpoints a ⇝ b that
+has line-length ≤ z.
+Proof. Let π ′ be an a ⇝ b path in B of minimum length, among the paths with the property that
+every slope vector used by a line in π ′ is also used by at least one line in π. Note that, since π is
+ℓ-transverse, this implies that π ′ is ℓ-transverse as well. Let the vertex sequence of π ′ be
+                                 π ′ = (a = a0 , ℓ0 , a1 , . . . , ℓs−1 , as = b).
+If all lines {ℓi } used by π ′ have pairwise distinct slope vectors, then since π ′ has at most z distinct
+slope vectors, we get s ≤ z. So π ′ has line-length ≤ z and it satisfies the lemma.
+    So, for the remaining part of the proof, assume towards contradiction that not all lines {ℓi }
+have distinct slope vectors. For each index i, let ∆i := ai+1 − ai . We may therefore describe the
+sequence of point-nodes along π ′ as
+                                                                      s−1
+                                                                                !
+                                                                      X
+                                a, a + ∆0 , a + ∆0 + ∆1 , . . . , a +     ∆i = b .
+                                                                       i=0
+
+
+                                                        7
+                                                               {ai+1 , ℓi }      ℓi ∥ ℓ
+                                                             ai+1
+
+
+
+
+                            chosen ℓ-transverse
+                                 arc of C              straightened path
+                                                                                 ℓ
+
+
+                                    a = ar
+                                                e
+
+                                             short cycle C through e
+
+
+
+Figure 5: Geometric view of the cycle-hitting argument. The solid orange path is the chosen ℓ-
+transverse arc of the cycle, and the dashed orange path is the straightened path with the same
+endpoints.
+
+
+Next, let ϕ be an arbitrary permutation on [s]. We define πϕ as the walk in B whose sequence of
+point-nodes is                                                                    !
+                                                                     s−1
+                                                                     X
+                      a, a + ∆ϕ(0) , a + ∆ϕ(0) + ∆ϕ(1) , . . . , a +     ∆ϕ(i) = b .
+                                                                           i=0
+
+Note that adjacent point-nodes in this sequence differ by some vector ∆i , which is the slope of
+the line ℓi , and so by construction there is indeed a line that contains these adjacent points. This
+confirms that there is a unique walk πϕ with this sequence of point-nodes, so πϕ is well defined.
+   We assumed that a slope vector is used in π ′ at least twice, so by choice of ϕ, we may have
+
+                                              ∆ϕ(0) = λ · ∆ϕ(1)
+
+for some scalar λ ∈ [p]. Thus, we may delete the second point-node along πϕ , giving a shorter
+sequence                                                                  !
+                                                             s−1
+                                                             X
+                          a, a + ∆ϕ(0) + ∆ϕ(1) , . . . , a +     ∆ϕ(i) = b .
+                                                                    i=0
+
+The difference between the first two point nodes is (λ + 1) · ∆ϕ(1) , so these points are still connected
+by a line of a viable slope vector. If λ = −1 then we simply omit that step, which still results in a
+shorter walk. Thus there is a corresponding a ⇝ b walk of length shorter than π ′ . Deleting closed
+subwalks yields a path that contradicts minimality of the length of π ′ , completing the proof.
+
+Lemma 13. Every cycle C in B of length at most 2k that contains an edge e = {a, ℓ} also contains
+an edge of Fe .
+Proof. Let the vertex sequence of C be
+
+                            C = (a, ℓ, a1 , ℓ1 , a2 , ℓ2 , . . . , ar−1 , ℓr−1 , ar = a)
+
+
+                                                         8
+with r ≤ k. By Lemma 9, at least one of the other lines in C is parallel to ℓ. Let ℓi be such a line,
+with the index i selected as large as possible. Our goal will now be to argue that {ai+1 , ℓi } ∈ Fe .
+    There are r distinct lines in C. By Lemma 9, each slope vector that is used by any of these r
+lines is used by at least two of them, so there are at most 2r distinct slope vectors used by lines in
+C. Now consider the subpath π ⊆ C with vertex sequence
+
+                                 π = (ar , ℓr−1 , ar−1 , . . . , ℓi+1 , ai+1 ).
+
+By maximal choice of i, this is an ℓ-transverse path, and hence does not contain any lines whose
+slope vector matches ℓ. So there are at most 2r − 1 distinct slope vectors used by the lines in π.
+Thus, by Lemma 12, there is an ℓ-transverse path π ′ with the same endpoints (ar , ai+1 ) that has
+line-length at most 2r − 1 ≤ k2 − 1. Thus, by construction, the set Fe associated to e = {a = ar , ℓ}
+will include the edge (ai+1 , ℓi ) ∈ C.
+
+2.4    Proof Wrapup
+The following theorem certifies our lower bound for the special case f = 1:
+Theorem 14. The only 1-DFT (2k − 1)-spanner of B is B itself.
+Proof. Let H be a proper subgraph of B, and we will show that H is not a 1-DFT (2k − 1)-spanner
+of B. Consider an edge
+                                  e = {u, v} ∈ E(B) \ E(H).
+    Let Fe denote the set associated to this edge (as in Definition 8). By Lemma 11, the set Fe has
+maximum degree 1. Next, let π be a shortest u ⇝ v path in the graph H \ Fe . Since e ∈  / E(H), we
+have e ∈/ π, and so π ∪ {e} is a cycle in B. This cycle contains e but it does not contain any edge
+of Fe . By Lemma 13, this means π ∪ {e} contains > 2k edges. Thus π contains > 2k − 1 edges, so
+we have
+                                  |E(π)| = distH\Fe (u, v) > 2k − 1.
+On the other hand, e ∈ / Fe , so we have distB\Fe (u, v) = 1. This implies that H is not a 1-DFT
+(2k − 1)-spanner of B.
+    We now upgrade the previous lower bound to an arbitrary degree parameter f using a standard
+cloud-blowup technique, which has appeared in many previous papers on fault tolerance [4, 7, 31].
+Definition 15 (Cloud blowup). For an integer f ≥ 1, the f -cloud blowup of the base graph is
+
+                                             B ⟨f ⟩ := B × [f ],
+
+where [f ] denotes the edgeless graph on f vertices, and × denotes the f -cloud blowup operation
+defined below. In other words, it is the graph obtained from B by the following steps:
+   • For each vertex x ∈ V (B), create a “cloud” of f nodes, C(x) := {(x, i) : i ∈ [f ]}.
+   • For each base edge {x, y} ∈ E(B), lift it to a complete bipartite graph between the clouds
+     C(x) and C(y). That is,
+                                                                          [
+           L({x, y}) := {{(x, i), (y, j)} | i, j ∈ [f ]} and E B ⟨f ⟩ :=
+                                                                     
+                                                                               L({x, y}).
+                                                                                  {x,y}∈E(B)
+
+
+                                                       9
+                                                            C(u)           C(v)
+
+
+
+                          e = {u, v}          blowup
+                                                                      eb
+                    u                    v
+
+                        base edge in B
+                                                    L(e) is the complete bipartite graph
+                                                          between C(u) and C(v)
+
+
+
+Figure 6: A lifted edge in the cloud blowup. Each base vertex is replaced by a cloud of f copies,
+and each base edge e = {u, v} is replaced by the complete bipartite graph L(e) between C(u) and
+C(v).
+
+
+   The following lemma computes how the cloud blowup affects the parameters of the graph:
+Lemma 16 (Size of Blown-Up Graph). Letting 2n be the number of vertices in B, the corresponding
+blown-up graph B ⟨f ⟩ has N := 2nf vertices and Θ(f 1−1/k N 1+1/k ) edges.
+Proof. Each node in B corresponds to f copies in B⟨f ⟩ , and each edge in B corresponds to f 2 edges
+in B ⟨f ⟩ . Thus we have
+                                      
+                               E B ⟨f ⟩ = f 2 · |E (B)|
+                                                          
+                                         = Θ f 2 n1+1/k                                   Lemma 6
+                                                                  
+                                         = Θ f 1−1/k (nf )1+1/k
+                                                               
+                                         = Θ f 1−1/k N 1+1/k .
+
+    From the previous lemma, it suffices to prove that B ⟨f ⟩ is the only f -DFT (2k − 1)-spanner of
+itself. To do so, let us first define lifted fault sets:
+Definition 17 (Lifted Fault Sets Fbe ). For an edge e ∈ E(B) and an edge eb ∈ L(e), we define Fbeb
+to be the set of all lifted edges from Fe ∪ {e}, except for eb itself. That is:
+                                                   
+                                             [                        
+                                   Fbeb :=    L(g) ∪ L(e) \ {b   e} .
+                                             g∈Fe
+
+   The next lemma shows that the lifted fault sets have degree ≤ f :
+Lemma 18 (Lifted fault set has maximum degree f ). For any edge eb, the corresponding edge set
+Fbeb has maximum degree ≤ f in B ⟨f ⟩ .
+Proof. Since Fe ∪ {e} has maximum degree 1 in the base graph, each base vertex x ∈ V (B) is
+incident to at most one edge of Fe ∪ {e}. Hence each lifted vertex in B ⟨f ⟩ is incident to at most one
+lifted biclique, and within that biclique it is incident to at most f edges.
+
+
+                                                       10
+   We are finally ready to wrap up the proof:
+Theorem 19 (Cloud-blowup lower bound). For any positive integer f , the only f -DFT (2k − 1)-
+spanner of B ⟨f ⟩ is B ⟨f ⟩ itself.
+Proof. Since the following cloud-lift is standard in the previous literature, we will sketch parts of
+the proof. Let H be a proper subgraph of B ⟨f ⟩ . Choose a missing lifted edge
+                                                             
+                              eb = {(u, i), (v, j)} ∈ E B ⟨f ⟩ \ E(H),
+
+and let e = {u, v} ∈ E(B) be the corresponding base edge; that is, eb ∈ L(e). Consider the associated
+fault set Fbeb. By the previous lemma, Fbeb has maximum degree at most f . Next, let π be a shortest
+(u, i) ⇝ (v, j) path in the graph H \ Fbeb. Projecting π ∪ {be} to the base graph yields a closed walk in
+B containing e and avoiding Fe . Choose a closed subwalk of minimum positive length that contains
+e; this is a cycle, still contains e, and still avoids Fe . By Lemma 13, this cycle has length greater
+than 2k. Hence π has length greater than 2k − 1, and so
+
+                               |E(π)| = distH\Fbeb ((u, i), (v, j)) > 2k − 1.
+
+On the other hand, eb ∈
+                      / Fbeb, so we have distB⟨f ⟩ \Fbeb ((u, i), (v, j)) = 1. This implies that H is not an
+f -DFT (2k − 1)-spanner of B ⟨f ⟩ .
+
+
+References
+ [1] Reyan Ahmed, Greg Bodwin, Faryad Darabi Sahneh, Keaton Hamm, Mohammad Javad Latifi
+     Jebelli, Stephen Kobourov, and Richard Spence. Graph spanners: A tutorial review. Computer
+     Science Review, 37:100253, 2020.
+ [2] Ingo Althöfer, Gautam Das, David Dobkin, Deborah Joseph, and José Soares. On sparse
+     spanners of weighted graphs. Discrete & Computational Geometry, 9(1):81–100, 1993.
+
+ [3] Ahmad Biniaz, Jean-Lou De Carufel, Anil Maheshwari, and Michiel Smid. Metric and geomet-
+     ric spanners that are resilient to degree-bounded edge faults. arXiv preprint arXiv:2405.18134,
+     2024.
+ [4] Greg Bodwin, Michael Dinitz, Merav Parter, and Virginia Vassilevska Williams. Optimal
+     vertex fault tolerant spanners (for fixed stretch). In Proceedings of the 29th Annual ACM-
+     SIAM Symposium on Discrete Algorithms (SODA), pages 1884–1900. Society for Industrial
+     and Applied Mathematics, 2018.
+ [5] Greg Bodwin, Michael Dinitz, and Caleb Robelle. Optimal vertex fault-tolerant spanners in
+     polynomial time. In Proceedings of the 2021 ACM-SIAM Symposium on Discrete Algorithms
+     (SODA), pages 2924–2938. SIAM, 2021.
+
+ [6] Greg Bodwin, Michael Dinitz, and Caleb Robelle. Partially optimal edge fault-tolerant span-
+     ners. In Proceedings of the 2022 Annual ACM-SIAM Symposium on Discrete Algorithms
+     (SODA), pages 3272–3286. SIAM, 2022.
+
+
+                                                    11
+ [7] Greg Bodwin, Bernhard Haeupler, and Merav Parter. Fault-tolerant spanners against bounded-
+     degree edge failures: Linearly more faults, almost for free. In Proceedings of the 2024 Annual
+     ACM-SIAM Symposium on Discrete Algorithms (SODA), pages 2609–2642. SIAM, 2024.
+ [8] Greg Bodwin and Shyamal Patel. A trivial yet optimal solution to vertex fault tolerant span-
+     ners. In Proceedings of the 2019 ACM Symposium on Principles of Distributed Computing,
+     pages 541–543, 2019.
+ [9] Prosenjit Bose, Vida Dujmovic, Pat Morin, and Michiel Smid. Robust geometric spanners.
+     SIAM Journal on Computing, 42(4):1720–1736, 2013.
+[10] Kevin Buchin, Sariel Har-Peled, and Dániel Oláh. A spanner for the day after. Discrete &
+     Computational Geometry, 64(4):1167–1191, 2020.
+[11] T-H Hubert Chan, Mingfei Li, and Li Ning. Sparse fault-tolerant spanners for doubling metrics
+     with bounded hop-diameter or degree. Algorithmica, 71(1):53–65, 2015.
+[12] T-H Hubert Chan, Mingfei Li, Li Ning, and Shay Solomon. New doubling spanners: Better
+     and simpler. SIAM Journal on Computing, 44(1):37–53, 2015.
+
+[13] Shiri Chechik, Michael Langberg, David Peleg, and Liam Roditty. Fault tolerant spanners for
+     general graphs. SIAM Journal on Computing, 39(7):3403–3423, 2010.
+[14] David Conlon. Extremal numbers of cycles revisited. The American Mathematical Monthly,
+     128(5):464–466, 2021.
+
+[15] Artur Czumaj and Hairong Zhao. Fault-tolerant geometric spanners. Discrete & Computational
+     Geometry, 32(2):207–230, 2004.
+[16] Michael Dinitz and Robert Krauthgamer. Fault-tolerant spanners: better and simpler. In
+     Proceedings of the 30th annual ACM SIGACT-SIGOPS symposium on Principles of distributed
+     computing, pages 169–178. ACM, 2011.
+
+[17] Michael Dinitz and Caleb Robelle. Efficient and simple algorithms for fault-tolerant spanners.
+     In Proceedings of the 39th Symposium on Principles of Distributed Computing, pages 493–500,
+     2020.
+[18] Paul Erdős. Extremal problems in graph theory. In Proceedings of the Symposium on Theory
+     of Graphs and its Applications, pages 29–36, 1963.
+
+[19] Walter Feit and Graham Higman. The nonexistence of certain generalized polygons. Journal
+     of Algebra, 1(2):114–131, 1964.
+[20] Felix Lazebnik, Vasiliy A Ustimenko, and Andrew J Woldar. A new series of dense graphs of
+     high girth. Bulletin of the American Mathematical Society, 32(1):73–79, 1995.
+
+[21] Hung Le, Shay Solomon, and Cuong Than. Optimal fault-tolerant spanners in euclidean and
+     doubling metrics: Breaking the Ω (log n) lightness barrier. In 64th IEEE Annual Symposium on
+     Foundations of Computer Science, FOCS 2023, Santa Cruz, CA, USA, November 6-9, 2023,
+     pages 77–97. IEEE, 2023. doi:10.1109/FOCS57990.2023.00013.
+
+
+
+                                                12
+[22] Christos Levcopoulos, Giri Narasimhan, and Michiel Smid. Efficient algorithms for constructing
+     fault-tolerant geometric spanners. In Proceedings of the thirtieth annual ACM symposium on
+     Theory of computing, pages 186–195. ACM, 1998.
+[23] Tamás Lukovszki. New results on fault tolerant geometric spanners. In Workshop on Algorithms
+     and Data Structures, pages 193–204. Springer, 1999.
+
+[24] Giri Narasimhan and Michiel Smid. Geometric Spanner Networks. Cambridge University Press,
+     2007. doi:10.1017/CBO9780511546884.
+[25] Merav Parter. Nearly optimal vertex fault-tolerant spanners in optimal time: Sequential,
+     distributed and parallel. In Proceedings of the 54th Annual ACM SIGACT Symposium on
+     Theory of Computing (STOC). ACM, 2022.
+[26] Merav Parter and Asaf Petruschka. Preserving distances in faulty colored graphs. arXiv
+     preprint arXiv:2504.17868, 2025.
+[27] Merav Parter, Asaf Petruschka, Shay Sapir, and Elad Tzalik. Parks and recreation: Color
+     fault-tolerant spanners made local. In Proceedings of the 2025 Annual ACM-SIAM Symposium
+     on Discrete Algorithms (SODA), pages 4061–4094. SIAM, 2025.
+[28] Merav Parter and Elad Tzalik. Connectivity certificate against bounded-degree faults: Simpler,
+     better and supporting vertex faults. In 2025 Symposium on Simplicity in Algorithms (SOSA),
+     pages 369–377. SIAM, 2025.
+
+[29] David Peleg and Alejandro A Schäffer. Graph spanners. Journal of Graph Theory, 13(1):99–
+     116, 1989.
+[30] Asaf Petruschka, Shay Sapir, and Elad Tzalik. Connectivity Labeling in Faulty Colored Graphs.
+     In 38th International Symposium on Distributed Computing (DISC 2024), pages 36:1–36:22,
+     2024.
+
+[31] Asaf Petruschka, Shay Sapir, and Elad Tzalik. Color fault-tolerant spanners. ACM Transac-
+     tions on Algorithms, 22(1):1–21, 2025.
+[32] Shay Solomon. From hierarchical partitions to hierarchical covers: Optimal fault-tolerant
+     spanners for doubling metrics. In Proceedings of the forty-sixth annual ACM symposium on
+     Theory of computing, pages 363–372. ACM, 2014.
+
+[33] Tibor Szabó. Even cycles, 2018. Lecture notes, FU Berlin. URL: http://discretemath.imp.
+     fu-berlin.de/DMIII-2018/notes-evencycles.pdf.
+[34] Jacques Tits. Sur la trialité et certains groupes qui s’ en déduisent. Publications Mathématiques
+     de l’IHÉS, 2:13–60, 1959.
+
+[35] Rephael Wenger. Extremal Graphs with no C4’s, C6’s, or C10’s. Journal of Combinatorial
+     Theory, Series B, 52(1):113–116, 1991.
+
+
+
+
+                                                   13
+

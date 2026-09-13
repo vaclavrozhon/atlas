@@ -1,0 +1,1572 @@
+Pure Differentially Private Summation from
+Anonymous Messages
+Badih Ghazi
+Google Research, Mountain View, CA, USA
+badihghazi@gmail.com
+
+Noah Golowich
+Google Research, Mountain View, CA, USA
+MIT, Cambridge, MA, USA
+nzg@mit.edu
+
+Ravi Kumar
+Google Research, Mountain View, CA, USA
+ravi.k53@gmail.com
+
+Pasin Manurangsi
+Google Research, Mountain View, CA, USA
+pasin30055@gmail.com
+
+Rasmus Pagh
+Google Research, Mountain View, CA, USA
+IT University of Copenhagen, Denmark
+Basic Algorithms Research Copenhagen, Denmark
+pagh@itu.dk
+
+Ameya Velingker
+Google Research, Mountain View, CA, USA
+ameyav@google.com
+
+      Abstract
+The shuffled (aka anonymous) model has recently generated significant interest as a candidate
+distributed privacy framework with trust assumptions better than the central model but with
+achievable error rates smaller than the local model. In this paper, we study pure differentially private
+protocols in the shuffled model for summation, a very basic and widely used primitive. Specifically:
+    For the binary summation problem where each of n users holds a bit as an input, we give a pure
+    -differentially private protocol for estimating the number of ones held by the users up to an
+    absolute error of O (1), and where each user sends O (log n) one-bit messages. This is the first
+                                                          √
+    pure protocol in the shuffled model with error o( n) for constant values of .
+    Using our binary summation protocol as a building block, we give a pure -differentially private
+    protocol that performs summation of real numbers in [0, 1] up to an absolute error of O (1), and
+    where each user sends O (log3 n) messages each consisting of O(log log n) bits.
+    In contrast, we show that for any pure -differentially private protocol for binary summation
+    in the shuffled model having absolute error n0.5−Ω(1) , the per user communication has to be at
+              √
+    least Ω ( log n) bits. This implies (i) the first separation between the (bounded-communication)
+    multi-message shuffled model and the central model, and (ii) the first separation between pure
+    and approximate differentially private protocols in the shuffled model.
+Interestingly, over the course of proving our lower bound, we have to consider (a generalization of)
+the following question that might be of independent interest: given γ ∈ (0, 1), what is the smallest
+positive integer m for which there exist two random variables X 0 and X 1 supported on {0, . . . , m}
+such that (i) the total variation distance between X 0 and X 1 is at least 1 − γ, and (ii) the moment
+generating functions of X 0 and X 1 are withinp a constant factor of each other everywhere? We show
+that the answer to this question is m = Θ( log(1/γ)).
+
+2012 ACM Subject Classification Security and privacy → Privacy-preserving protocols; Mathematics
+of computing → Probabilistic algorithms; Theory of computation → Communication complexity
+            © Badih Ghazi, Noah Golowich, Ravi Kumar, Pasin Manurangsi, Rasmus Pagh, and Ameya
+            Velingker;
+            licensed under Creative Commons License CC-BY
+1st Conference on Information-Theoretic Cryptography (ITC 2020).
+Editors: Yael Tauman Kalai, Adam D. Smith, and Daniel Wichs; Article No. 15; pp. 15:1–15:23
+                   Leibniz International Proceedings in Informatics
+                   Schloss Dagstuhl – Leibniz-Zentrum für Informatik, Dagstuhl Publishing, Germany
+15:2   Pure Differentially Private Summation from Anonymous Messages
+
+
+       Keywords and phrases Pure differential privacy, Shuffled model, Anonymous messages, Summation,
+       Communication bounds
+
+       Digital Object Identifier 10.4230/LIPIcs.ITC.2020.15
+
+       Related Version A full version of the paper is available at https://arxiv.org/abs/2002.01919.
+
+       Funding Noah Golowich: Supported at MIT by a Fannie & John Hertz Foundation Fellowship, an
+       MIT Akamai Fellowship, and an NSF Graduate Fellowship.
+
+       Acknowledgements We are grateful to Borja Balle, Kunal Talwar, and Vitaly Feldman for helpful
+       discussions.
+
+
+        1      Introduction
+
+       Since its introduction by Dwork et al. [19, 18], differential privacy (DP) has become widely
+       popular as a rigorous mathematical definition of privacy. This has led to practical deployments
+       at companies such as Apple [28, 4], Google [22, 38], and Microsoft [17], and in government
+       agencies such as the United States Census Bureau [2]. The most widely studied setting with
+       DP is the so-called central model (denoted DPcentral ) where an analyzer observes the crude
+       user data but is supposed to release a differentially private data structure. Many accurate
+       private algorithms have been discovered in the central model; however, the model is limited
+       when the analyst is not to be trusted with the user data. To remedy this, the more appealing
+       local model of DP (denoted DPlocal ) [33] (also [41]) requires the messages sent by each user to
+       the analyst to be private. Nevertheless, the local model suffers from large estimation errors
+                                                √
+       that are known to be on the order of n, where n is the number of users, for a variety of
+       problems including summation, the focus of this work [10, 14]. This has motivated the study
+       of the shuffled model of DP (denoted DPshuffled ), which is intended as a middle-ground with
+       trust assumptions better than those of the central model and estimation accuracy better
+       than the local model.
+           While an analogous setup was first introduced in crytpography by Ishai et al. [31] in their
+       work on cryptography from anonymity, the shuffled model was first proposed for privacy-
+       preserving computations by Bittau et al. [11] in their Encode-Shuffle-Analyze architecture. In
+       this setup, each user sends (potentially several) messages to a trusted shuffler, who randomly
+       permutes all incoming messages before passing them to the analyst. We will treat the
+       shuffler as a black box in this work, though we point out that various efficient cryptographic
+       implementations of the shuffler have been considered, including onion routing, mixnets,
+       third-party servers, and secure hardware (see, e.g., the discussions in [31, 11]). The privacy
+       properties of DPshuffled were first studied, independently, by Erlingsson et al. [21] and Cheu
+       et al. [15]. Moreover, several recent works have sought to nail down the trade-offs between
+       accuracy, privacy, and communication [15, 8, 27, 6, 25, 26, 7, 5, 20, 9].
+
+
+       Pure- and Approximate-DP
+       The two most widely used notions of DP are pure-DP [19] and approximate-DP [18], which
+       we recall next. For any parameters  ≥ 0 and δ ∈ [0, 1], a randomized algorithm P is (, δ)-DP
+       if for every pair datasets X, X 0 differing on a single user’s data, and for every subset S of
+       transcripts of P , it is the case that
+
+            Pr[P (X) ∈ S] ≤ e · Pr[P (X 0 ) ∈ S] + δ,                                             (1)
+B. Ghazi, N. Golowich, R. Kumar, P. Manurangsi, R. Pagh, and A. Velingker                                         15:3
+
+
+where the probabilities are taken over the randomness in P . The notion of -DP is the special
+case where δ is set to 0 in (1); we use the terms pure-DP when δ = 0 and approximate-DP
+when δ > 0. While δ is intuitively an upper bound on the probability that an (, δ)-DP
+algorithm fails to be -DP, this failure event can in principle be catastrophic, revealing all the
+user inputs to the analyst. Pure-DP protocols are thus highly desirable as they guarantee
+more stringent protections against the leakage of user data. In the central and local settings,
+several prior works either obtained pure protocols in regimes where approximate protocols
+were previously known, or proved separations between pure and approximate protocols (e.g.,
+[30, 16, 37, 39, 13]).
+
+Summation
+A basic primitive in data analytics and machine learning is the summation (aka aggregation)
+of inputs held by different users. Indeed, private summation is a critical building block in
+the emerging area of federated learning [34], where a machine learning model, say a neural
+network, is to be trained on data held by many users without having the users send their
+data over to a central analyzer (see [32] for a recent extensive overview). To do so, private
+variants of Stochastic Gradient Descent have been developed and their privacy/accuracy
+trade-offs analyzed (e.g., [1]). The gist of these procedures is the private summation of users’
+gradient updates. Private summation is also closely related to functions in the widely studied
+class of counting queries (e.g., [40, 12, 30, 29, 37]).
+    Several recent work studied approximate-DPshuffled protocols for summation [15, 8, 27,
+6, 26, 7, 5]. For binary summation, Cheu et al. [15] show that the standard randomized
+response is an (, δ)-DPshuffled protocol for binary summation and that it incurs an absolute
+                 √
+error of only O( log n) for  constant and δ inverse polynomial in n. For real summation
+in the single-message shuffled model (denoted DP1shuffled ), where each user sends a single
+message to the shuffler, Balle et al. [8] show that the tight error for approximate protocols
+is Θ(n1/6 ). For real summation in the multi-message shuffled model (denoted DP≥1         shuffled ),
+where a user can send more than one message, the state-of-the-art approximate protocol
+was recently obtained in [26, 7]1 and it incurs error at most O(1/) with every user sending
+O(1 + log(1/δ)
+         log n ) messages of O(log n) bits each.
+    The aforementioned protocols, along with several other results (including the work on
+“privacy amplification by shuffling” of Erlingsson et al. [21] and Balle et al. [8]), demonstrate
+the power of the shuffled model over the local model in terms of privacy, as any (, o(1/n))-
+                                                         √
+DPlocal summation protocol must incur an error of Ω ( n) [14]. However, all of the protocols
+proposed so far in the shuffled model only achieve an advantage over the local model when
+allowed approximation. This leads us to the following basic and perplexing question that is
+the focus of our work:
+I Question 1. Are there pure-DPshuffled protocols that achieve better utility than any DPlocal
+protocol?
+
+1.1      Main Results
+We positively answer the above question for the problem of summation. Namely, we give
+the first pure-DPshuffled protocol for binary summation with error depending only on  but
+independent of n and with logarithmic communication per user.
+
+1
+    See also [9] (merger of [7, 6]) together with a novel recursive protocol with poly(log log n) error where
+    each user sends O(log log n) messages.
+
+
+
+
+                                                                                                                ITC 2020
+15:4   Pure Differentially Private Summation from Anonymous Messages
+
+
+       I Theorem 2 (Pure Binary Summation via Shuffling). For every positive real number
+       , there is a (non-interactive) -DPshuffled protocol for binary summation that has expected
+       error O (1) and where each user sends O (log n) messages each consisting of a single bit.
+           We use the protocol in Theorem 2 as a building block in order to also obtain a protocol
+       with constant error and polylogarithmic communication per user for the more general task
+       of real summation where each user input is a real number in [0, 1].
+       I Theorem 3 (Pure Real Summation via Shuffling). For every positive real number ,
+       there is a (non-interactive) -DPshuffled protocol for real summation that has expected error
+       O (1) and where each user sends O (log3 n) messages each consisting of O(log log n) bits.
+           In light of Theorem 2, a natural question is if there is a (non-interactive) pure-DP protocol
+       for binary summation with logarithmic (or even constant) error and constant communication
+       per user, as in the approximate case. We show that no such protocol exists, even for very
+       large (polynomial) errors:
+       I Theorem 4 (Communication Lower Bound). In any non-interactive -DPshuffled
+       protocol for binary summation with expected error at most n0.5−Ω(1) , the worst-case per user
+                                  √
+       communication must be Ω ( log n) bits.
+
+       1.2    Implications
+       Our results described above imply new separations between different types of DP protocols
+       (e.g., DPcentral , DPlocal , DP1shuffled , and DP≥1
+                                                        shuffled ), and also give the first accurate pure-
+       DPshuffled protocol for histograms. We elaborate on these next.
+
+       Pure Local vs Shuffled Protocols
+                                                                              √
+       In DPlocal , the tight accuracy for binary summation is known to be Θ( n) for approximate
+       protocols [41, 10, 14]. Our Theorems 2 and 3 give the first pure-DPshuffled protocols with
+               √
+       error o( n) for binary and real summation respectively, and in fact they only incur constant
+       error for both of these problems. Furthermore, Bun et al. [13] gave a generic transformation
+       from any sequentially interactive approximate-DPlocal protocol to a pure-DPlocal protocol
+       with essentially the same accuracy and each user communicates only O(log log n) bits. In
+       contrast, our Theorem 4 implies that in any such transformation in the shuffled model (if
+                                                             √
+       one exists), the per user communication has to be Ω( log n).
+
+       Pure vs Approximate Shuffled Protocols
+       Cheu et al. [15] showed that the standard randomized response [41] is an approximate-DP
+       protocol for binary summation that incurs only logarithmic error (for  constant and δ inverse
+       polynomial in n), and where each user sends a single bit. In contrast, our Theorem 4 implies
+       that the communication cost of any pure-DP protocol for binary summation with logarithmic
+                                                                  √
+       error (and in fact with error as large as n0.5−Ω(1) ) is Ω( log n) bits. Put together, these two
+       results imply the first separation between the communication complexity of pure-DPshuffled
+       and approximate-DPshuffled protocols.
+
+       Pure Single-Message vs Multi-Message Shuffled Protocols
+       As recently shown by [5], any pure-DP1shuffled protocol implies a pure-DPlocal protocol with
+       the same accuracy. This implies that any pure-DP1shuffled protocol for binary summation
+                            √                                                          √
+       must incur error Ω ( n). Our Theorem 2 thus implies a huge separation of Θ ( n) between
+       the errors possible for pure-DP1shuffled and pure-DP≥1
+                                                           shuffled protocols.
+B. Ghazi, N. Golowich, R. Kumar, P. Manurangsi, R. Pagh, and A. Velingker                               15:5
+
+
+Multi-Message Shuffled vs Central Protocols
+It is well-known that the tight error for binary summation in DPcentral is O(1/) [19].
+                                                                                    √
+Theorem 4 proves that any DPshuffled protocol with per user communication o ( log n)
+bits must incur error n0.5−Ω(1) . It thereby gives the first separation between (bounded-
+communication) DP≥1   shuffled and DPcentral protocols. Indeed, this is, to the best of our
+knowledge, the first separation between the accuracy of (bounded-communication) DP≥1 shuffled
+protocols and those of DPcentral protocols with the same privacy parameters; all previous
+lower bounds for DPshuffled [15, 8, 25] only apply to single-message protocols.
+
+Pure Protocol for Histograms
+Our pure binary summation protocol (Theorem 2) implies as a black-box the first pure-
+DP protocol with polylogarithmic error for computing histograms (aka point functions or
+frequency estimation), albeit with very large communication (see Appendix A of the full
+version [24] for more details). It remains a very interesting open question to obtain a
+communication-efficient and accurate pure-DP protocol for histograms (see Section 5 for
+more on this and other open questions).
+
+
+1.3    Overview of Techniques
+Binary Summation Protocol
+                                                                                              √
+We first explain why all existing summation protocols in the shuffled model with error o( n)
+are not O(1)-DP. First, note that as observed by [5], any pure-DP1shuffled protocol implies
+a pure-DPlocal protocol with the same accuracy and privacy. Combined with the fact that
+                                                                    √
+any O(1)-DPlocal protocol for summation must have error Ω( n), this implies the same
+lower bound for any pure O(1)-DP1shuffled protocol. In particular, this rules out the binary
+randomized response [41] that was analyzed in the shuffled model by [15]. It also rules out the
+protocol implied by shuffling RAPPOR [22], and more generally any protocol obtained by the
+amplification via shuffling approach of [21, 8]. Moreover, in the multi-message shuffled setup,
+the state-of-the-art real summation protocols of [26, 7], which rely on the Split-and-Mix
+procedure [31], only give approximate-DP.
+    A different DP≥1 shuffled protocol for binary summation can be obtained by instantiating the
+recent DP≥1shuffled protocols  for computing histograms [25], with a domain size of B = 2. On a
+high-level, the two resulting protocols – one of which is based on the Count Min sketch and
+the other on the Hadamard response – can be seen as special cases of the following common
+template: each user (i) samples a number ρ of messages that depend on their input, (ii)
+independently samples a number η of noise messages, and (iii) sends these ρ + η messages to
+the shuffler. Loosely, the analyzer then outputs the number of messages “consistent with” the
+queried input. However, it can be seen that any protocol following this template will not be
+pure-DP, as the supports of the distribution of the count observed at the analyzer can shift
+by 1 when a single user input is changed. The crucial insight in our pure protocol for binary
+summation will be to correlate the input-dependent messages and the noise messages sampled
+by each user in steps (i) and (ii) above. By doing so, we not only aim to ensure that the
+supports are identical but that the two densities are also within a small multiplicative factor
+on any point. We implement this idea using binary messages by having each user send d bits
+on both inputs 0 and 1. Specifically, the user will start by flipping a suitably biased coin. If it
+lands as head, the user will send (d + 1)/2 zeros and (d − 1)/2 ones when the input is 0, and
+vice versa when the input is 1. If the coin lands as tail, the user will sample an integer z from
+
+
+
+                                                                                                      ITC 2020
+15:6   Pure Differentially Private Summation from Anonymous Messages
+
+
+             Algorithm 1 Randomizer for binary summation.
+        1: procedure BinaryRandomizer,n (x)
+        2:       Let p, d, s be as in Lemma 9 (depending on , n)
+        3:       a ← Ber(p)
+        4:       if a = 0 then
+        5:           if x = 0 then
+                         return the multiset with d−1               d+1
+                                                                         
+        6:                                          2   ones and     2        zeros
+        7:           else
+                         return the multiset with d+1               d−1
+                                                                         
+        8:                                          2   ones and     2        zeros
+        9:       else
+       10:          z ← DLapd (d/2, s)
+       11:          return the multiset with z ones and (d − z) zeros
+
+             Algorithm 2 Analyzer for binary summation.
+        1: procedure BinaryAnalyzer,n (R)
+        2:       Let d be as in Lemma 9 (depending on , n)
+                 return nd               1
+                               P           
+        3:                2 +    y∈R y − 2
+
+
+
+
+       a truncated discrete Laplace distribution and send z zeros and d − z ones (see Algorithm 1
+       and Equation (2) for more details). The analyzer (Algorithm 2) then outputs the number of
+       received ones after debiasing. Note that the number of ones received by the analyzer is a
+       random variable taking values between 0 and dn inclusive. To prove that the algorithm is
+       private, we intuitively wish to argue that the noise distribution satisfies the property that its
+       density values on any two adjacent points are within a multiplicative e factor. However, the
+       technical challenge stems from the fact that this noise distribution depends on the specific
+       input sequence (and as we discussed above this dependence is necessary!). Instead, we have
+       to analyze the n-fold convolution of the individual responses, and show that the density
+       values of the resulting distribution on any two adjacent points in {0, 1, . . . , dn} are within
+       a multiplicative factor of e , for any input sequence. The crux of the proof is to relate the
+       tails of different convolutions of the truncated discrete Laplace distribution (Lemmas 10
+       and 11). We determine a setting of (i) the mixture probability coefficient (denoted by p in
+       Algorithm 1), (ii) the parameter d, and (iii) the “inverse scaling coefficient” of the truncated
+       discrete Laplace distribution (denoted by s in Algorithm 1), for which the privacy property
+       holds and for which the resulting expected absolute error is O (1).
+           We point out that the dependence of the error on  that we obtain is Õ(1/3/2 ) for
+        ≤ O(1) (see Theorem 8). An interesting open question is whether this dependence can be
+       further reduced to O(1/), which is the tight error in the central model [19].
+
+       Real Summation Protocol
+       We use our pure private binary summation protocol outlined above as a building block in
+       order to obtain a pure private real summation protocol and prove Theorem 3. We note that
+       Cheu et al. [15] had given a transformation from binary summation to real summation, but
+                                                                                   √
+       their reduction results in a protocol with a very large communication of Ω̃( n) bits in order
+       to achieve logarithmic error. We instead give a (different) transformation that results in a
+       protocol with polylogarithmic communication. The high-level idea of our reduction is the
+       following: consider the binary representation of the inputs after rounding them to O(log n)
+B. Ghazi, N. Golowich, R. Kumar, P. Manurangsi, R. Pagh, and A. Velingker                                   15:7
+
+
+      Algorithm 3 Randomizer for real summation.
+ 1: procedure RealRandomizer(j )j∈N ,n (x)
+ 2:       for j = 1 to 2 log n do
+ 3:          x[j] ← jth most significant bit of x
+ 4:          Sj ←BinaryRandomizerj ,n (x[j])                    Sj is a multiset of zeros and ones.
+ 5:          Rj ← {j} × Sj                               Rj is a multiset of tuples (j, 0) and (j, 1).
+                  S2 log n
+ 6:       return j=1 Rj
+
+
+      Algorithm 4 Analyzer for real summation.
+ 1: procedure RealAnalyzer(j )j∈N ,n (R)
+ 2:       for j = 1 to 2 log2 n do
+ 3:          Rj ← {y1 | y ∈ R and y0 = j}                 Multiset of bit messages for the jth bit.
+ 4:          aj ←BinaryAnalyzerj ,n (Rj )
+                  P2 log n
+ 5:       return j=1 aj /2j
+
+
+
+bits of precision, then approximate the sum for each bit position independently, and finally
+combine the estimates into an approximation of the (real-valued) sum of the inputs. Since the
+bit sum estimates have geometrically decreasing weights, we can afford to increase the error
+on less significant bits. In terms of privacy, this means that for the jth most significant bit,
+we run an j -DP binary summation protocol where 1 , 2 , . . . is a decreasing sequence. The
+protocol is illustrated in Algorithms 3 and 4. By carefully choosing the sequence 1 , 2 , . . . ,
+                                                           P
+we can ensure that the total pure privacy parameter j j is small, while the total error is a
+constant times the error for the sum of the most significant bits of the inputs. Intuitively,
+                                                                                   j
+choosing 1 , 2 , . . . to be a geometrically decreasing sequence (e.g., j = 0.910· ) should suffice
+for our purposes. However since the communication complexity of our binary summation
+protocol also depends on the privacy parameter , such a choice of the sequence would result
+in poly(n) communication complexity.      To overcome this, our actual sequence has a “cut-off”
+                                           
+so that the j ’s do not go below Θ      log n   . This completes the proof overview.
+
+
+Lower Bound
+We next outline the proof of Theorem 4. Without loss of generality, we consider an arbitrary
+-DPshuffled protocol performing binary summation with error n0.5−Ω(1) , and where every
+user sends m messages each belonging to the domain {1, . . . , k}. We wish to lower bound
+the number of bits of communication per user in this protocol, which is equal to m log k.
+We denote by X0 and X1 the random multisets of messages sent by a user in this protocol
+under inputs 0 and 1 respectively. Note that X0 and X1 are supported on the set ∆k,m :=
+{(z1 , . . . , zk ) ∈ Zk≥0 | z1 + · · · + zk = m}. Here, zi captures the number of i messages sent
+by the user for each i ∈ {1, . . . , k}.
+    Using the pure privacy of the protocol, we can argue that the ratio of the moment
+generating functions (MGFs) of X0 and X1 cannot take a very large or a very small value.
+Specifically, using the fact that the MGF of a sum of independent random variables is equal
+to the product of the individual MGFs, we derive a simple yet powerful property that should
+be satisfied by any -DP protocol in the shuffled model: the ratio of the MGFs of X0 and X1
+should always lie in the interval [e− , e ]. We will refer to such random variables as having
+an e -bounded MGF ratio (see Section 4.1 for more details). We remark that while MGFs
+
+
+
+                                                                                                          ITC 2020
+15:8   Pure Differentially Private Summation from Anonymous Messages
+
+
+       have been used before in DP by Abadi et al. [1] and subsequent works on Renyi DP (starting
+       from [36]), these usages are in a completely different context compared to ours. In particular,
+       these prior works keep track of the moments in order to bound the privacy parameters under
+       composition of protocols. To the best of our knowledge, MGFs have neither been used in
+       lower bounds for DP nor in the shuffled model before.
+           Then, using the accuracy of the protocol, we can deduce that the total variation distance
+       between X0 and X1 has to be large. We do so by invoking a result from the literature [14, 25]
+       showing that for any binary summation protocol that incurs an absolute error of α, the total
+                                                                           √
+       variation distance between X0 and X1 must be at least 1 − Θ(α/ n) (see Theorem 16 for
+       more details). Since α = n0.5−Ω(1) in our case, we get a lower bound of 1 − n−Ω(1) on the
+       total variation distance between X0 and X1 .
+           Equipped with these two ingredients, the task of lower bounding the per user communic-
+       ation cost of the protocol reduces to lower bounding the following quantity:
+
+       I Definition 5. Given parameters  > 0 and γ ∈ [0, 1], we define C,γ as the minimum value
+       of m log k for which there exist two random variables supported on ∆k,m that are at total
+       variation distance is at least 1 − γ but that have an e -bounded MGF ratio.
+
+           Note that any lower bound on the value of C,γ can be used to infer a lower bound on
+       the per user communication cost. In order to prove Theorem p       4, and given our setting of
+       γ = 1/nΩ(1) , it is thus enough for us to show that C,γ ≥ Ω ( log(1/γ)). To prove this
+       bound, it suffices to show that if two random variables X0 , X1 have an e -bounded MGF
+       ratio, then their total variation distance must be at least 1 − exp(O (m2 log k)). For each
+       x ∈ ∆k,m , we view Pr[X0 = x] and Pr[X1 = x] as variables. The e -bounded MGF ratio
+       constraints can then be written as infinitely many linear inequalities over these variables.
+       Moreover, the total variation distance between X0 and X1 can be written as a maximum of
+       linear combinations of these same variables. We therefore get a linear program with infinitely
+       many constraints, and we would like to show that any solution to it has “cost” (i.e., total
+       variation distance) at least 1 − exp(O (m2 log k)). We do so by giving a dual solution with
+       cost at most 1 − exp(O (m2 log k)), which by weak duality implies our desired bound (see
+       Section 4 for more details).                               p
+           A natural question is if the lower bound C,γ ≥ Ω ( log(1/γ)) outlined above can be
+       improved, as that would immediately lead to an improved communication complexity lower
+                                                                                     p where k = 2.
+       bound. However, we show that the lower bound is tight, even in the special case
+       Namely, we give two random variables supported on ∆2,m with m = Θ ( log(1/γ)) that
+       are at total variation distance at least 1 − γ but that have an e -bounded MGF ratio. Our
+       construction is based on truncations of discrete Gaussian random variables (see Section 4.3
+       for more details). We note that this limitation only applies to the approach of lower bounding
+       the per user communication complexity via lower bounding C,γ . It remains possible that
+       other approaches might give better lower bounds. For instance, one might be able to proceed
+       by giving a necessary condition for the accuracy of binary summation protocols that is
+       stronger than the total variation distance bound that we used, or a necessary condition for
+       pure privacy that is better than our e -bounded MGF ratio property.
+
+       1.4    Organization
+       We start with some notation and background in Section 2. Our protocol for binary summation
+       is presented and analyzed in Section 3. In Section 4, we prove our lower bound (Theorem 4).
+       Any deferred proofs from these sections appear in the full version of the paper [24]. We
+       conclude with some interesting open questions in Section 5. Our full proof for real summation
+       (Theorem 3) and our corollary for histograms are deferred to the full version [24].
+B. Ghazi, N. Golowich, R. Kumar, P. Manurangsi, R. Pagh, and A. Velingker                                    15:9
+
+
+ 2     Preliminaries
+Shuffled Model of Privacy
+Let n be the number of users and let X be the domain. For each i in [n] := {1, . . . , n}, we
+denote by xi the input held by the ith user, and further assume that xi ∈ X . In the binary
+summation case, we have that X = {0, 1} while in the real summation case, we let X be the
+set [0, 1] of real numbers. A protocol P = (R, S, A) in the shuffled model consists of three
+algorithms: (i) the local randomizer R(·) whose input is the data of one user and whose
+output is a sequence of messages, (ii) the shuffler S(·) whose input is the concatenation of
+the outputs of the local randomizers and whose output is a uniform random permutation of
+its inputs, and (iii) the analyzer A(·) whose input is the output of the shuffler and whose
+output is the output of the protocol. The privacy in the shuffled model is guaranteed with
+respect to the input to the analyzer, i.e., the output of the shuffler.
+
+I Definition 6 (DP in the shuffled model, [21, 15]). A protocol P = (R, S, A) is (, δ)-DPshuffled
+if, for any dataset X = (x1 , . . . , xn ), the algorithm S(R(x1 ), . . . , R(xn )) is (, δ)-DP. In the
+special case where δ = 0, we say that the protocol P is -DPshuffled .
+
+Note that the DPlocal model corresponds to the case where S is the identity function.
+
+I Definition 7 (Non-Interactive Protocols). Let k and m be positive integers. In a non-
+interactive (aka one-round) protocol, each of the n users (i.e., randomizers) receives an
+input b and outputs at most m messages each consisting of log k bits, according to a certain
+distribution (depending on b), and using private randomness. We say that such a protocol
+has a communication complexity of m log k.
+
+It is often convenient to view each message as a number in [k]. We use Xb ∈ Zk≥0 to denote
+the random variable whose sth coordinate Xsb denotes the number of s-messages output
+by the randomizer on input b. Note that it is always the case that s∈[k] Xsb = m, i.e.,
+                                                                       P
+
+supp(Xb ) ⊆ ∆k,m := {(z1 , . . . , zk ) ∈ Zk≥0 | z1 + · · · + zk = m}.
+
+
+ 3     Pure Binary Summation Protocol via Shuffling
+In this section we prove Theorem 2, restated formally below.
+
+I Theorem 8. For every sufficiently large n and O(1) ≥  > 1/n2/3 , there is 
+                                                                             an -DP
+                                                                                   shuffled
+                                                                                         log n
+protocol for summation for inputs x1 , . . . , xn ∈ {0, 1} where each user sends O              one-bit
+                                                                 √          
+                                                                     log 1/
+messages to the analyzer and has expected error at most O            3/2
+                                                                               .
+
+                                          1                                       1
+    We remark that the assumption  > n2/3    is made w.l.o.g., because, for  ≤ n2/3 , there is a
+                                                     3/2
+trivial algorithm that achieves square error of O(1/ ): the analyzer just always outputs 0.
+    Throughout this section we assume that for some absolute constant C,  ≤ C, and thus
+in particular e can be bounded above by an absolute constant. (The constant C can be
+arbitrary.) It is well-known that any -DPcentral protocol for summation has error Ω(1/)
+                                                                                 √
+[40]. Thus the error in Theorem 8 is suboptimal by a factor of at most Õ(1/ ).
+    The remainder of the section is organized as follows. In Section 3.1, we present the
+protocol used to prove Theorem 8. In Section 3.2, we prove the accuracy and privacy
+guarantees of Theorem 8, and in Section 3.3 we outline the proof of a technical lemma needed
+in the privacy analysis.
+
+
+
+                                                                                                           ITC 2020
+15:10   Pure Differentially Private Summation from Anonymous Messages
+
+
+        3.1     The Protocol
+        To described the protocol, we will use the truncated version of the discrete Laplace distribution,
+        for which we condition the support to be on [µ − w/2, µ + w/2] where w ≥ 1 is the “width” of
+        the support. We denote such a distribution by DLapw (µ, s). More specifically, its probability
+        mass function satisfies
+                                   (
+                                        1
+                                              · e−|z−µ|/s if µ − w/2 ≤ z ≤ µ + w/2 and z ∈ Z
+                 Pr      [Z = z] = Cw (µ,s)                                                            (2)
+            Z∼DLapw (µ,s)            0                     otherwise.
+
+        Here Cw (µ, s) = z∈[µ−w/2,µ+w/2]∩Z e−|z−µ|/s is simply the normalization factor.
+                        P
+
+           Our randomizer and analyzer are presented in Algorithm 1 and Algorithm 2, respectively.
+        The protocol has 3 parameters: the number of messages d, the “inverse scaling exponent” s,
+        and the “noise probability” p. We always assume that d is a positive odd integer2 . These
+        parameters will be chosen later (in Lemma 9).
+
+        3.2     Privacy Analysis
+        For b ∈ {0, 1}, we write Rb to denote the distribution3 on the number of ones output by the
+        randomizer on input b. (This distribution depends on d, s, p but we do not include them in
+        the notation to avoid being cumbersome.) Notice that we can decompose Rb as a mixture
+        p · DLapd (d/2, s) + (1 − p) · 1( d−1
+                                            2 + b), where we use 1(ϑ) to denote the distribution that is
+        ϑ with probability 1.
+            To prove the privacy guarantee of Theorem 8, we first note that we may focus only on
+        the neighboring datasets (0, . . . , 0, 0) and (0, . . . , 0, 1); this follows since we may assume (due
+        to symmetry) that more than half of the bits are zero and we can then condition out the
+        results from the 1 bits that they share. (See the proof of Theorem 8 for a formalization of
+        this.) For these datasets, Lemma 9 below bounds the ratio of the probabilities of ending up
+        with a particular union of outputs from these two datasets.
+
+        I Lemma 9. There is a sufficiently small constant c0 ∈ (0, 1) so that the following holds. For
+                                                                                             100
+                                                                                                  log(1/(1−e−0.1 ))
+        any sufficiently large n ∈ N and any c0 ≥  > n2/3    1
+                                                                 , let s = 10
+                                                                             , p = 100 e n(1−e        −0.1 )       ,
+                   l        100
+                                                 m
+                     1000 e                 n
+        and d = 4 (1−e   −0.1 ) · log   1−e−0.1    + 3. Then, for all t ∈ {0, . . . , dn}, we have
+
+                PrZ1 ,...,Zn ∼R0 [Z1 + · · · + Zn = t]
+                                                             ∈ [e− , e ].                                       (3)
+            PrZ1 ,...,Zn−1 ∼R0 ,Zn ∼R1 [Z1 + · · · + Zn = t]
+
+            This means that, for the above selection of parameters, the protocol is -DP. Using Lemma
+        9, we prove Theorem 8.
+
+        Proof of Theorem 8. We may assume without loss of generality that  ≤ c0 , as otherwise
+        we may set  to min{, c0 } instead.
+           We use the local randomizer BinaryRandomizer,n of Algorithm 1 and the analyzer
+        BinaryAnalyzer,n of Algorithm 2, with the parameters s, d, p given by the expressions
+        in Lemma 9, except with n replaced by d(n + 1)/2e. Explicitly, we have s = 10    , p =
+
+
+
+        2
+                                                                                    
+          We only assume that d is odd for convenience, so that d−1
+                                                                 2    and d+12    are integers. Using an even d
+          and replacing these two quantities with d/2 − 1 and d/2 + 1 also works, provided that the proofs are
+          adjusted appropriately.
+        3
+          This is the distribution of Xb defined in Section 2.
+B. Ghazi, N. Golowich, R. Kumar, P. Manurangsi, R. Pagh, and A. Velingker                                                      15:11
+
+
+100 e100 log(1/(1−e−0.1 ))
+                                         l                                        m
+                                              1000 e100              d(n+1)/2e
+   d(n+1)/2e(1−e−0.1 )      and d = 4       (1−e−0.1 ) · log     + 3. We prove the accuracy
+                                                                       1−e−0.1
+guarantee first, which is a simple consequence of the choices of p, d made in Lemma 9, followed
+by the privacy guarantee, which uses Lemma 9.
+
+Proof of accuracy
+Fix a dataset X = (x1 , . . . , xn ) ∈ {0, 1}n . Let Y ∈ R be the count released by the analyzer.
+Moreover, for 1 ≤ i ≤ n, let Z1 , . . . , Zn be i.i.d. random variables distributed according
+to ν = DLapd (d/2, s). It is easy to check that Var[Zi ] ≤ 2s2 . Moreover, let M ∈ [n] be
+the number of users for whom the Bernoulli random variable a is equal to 1. In particular,
+M ∼ Binom(n, p). The expected absolute error is given by
+             "       n
+                              #       n                                             
+                    X                X                  m                         md
+           E Y −         xi ≤           Pr[M = m] ·       + E Z1 + · · · + Zm −
+                    i=1             m=0
+                                                        2                          2
+                                                                 v "
+                                                 n               u                         2 #
+                                                X                u                      md
+   (by Jensen’s inequality) ≤ E[M/2] +              Pr[M = m] · tE Z1 + · · · + Zm −
+                                                m=0
+                                                                                         2
+                                                 n                                     √
+                                                 X                            √
+                                 ≤ pn/2 +              Pr[M = m] ·                m·       2s2
+                                                 m=0
+                                                 √          √
+                                 ≤ pn/2 +            2s ·       pn.                                                     (4)
+                                                                                           √
+                                                                      √
+                                                                                                           
+                100           −0.1                                                             log 1/
+              e
+Since p = 100d(n+1)/2e(1−e
+                  log(1/(1−e
+                           −0.1 )
+                                   ))
+                                      , we have pn/2 +                    2pn · s = O            3/2
+                                                                                                            . Combined with
+(4), this gives us the desired upper bound on the expected error of the protocol.
+
+Proof of privacy
+Let X = (x1 , . . . , xn−1 , xn ) ∈ {0, 1}n and X 0 = (x1 , . . . , xn−1 , x0n ) ∈ {0, 1}n be two neighbor-
+ing datasets. By symmetry, without loss of generality, we may assume that xn = 0 and at
+least n0 := dn − 1e/2 of the values of x1 , . . . , xn−1 are also 0. By permuting the users, we
+may also assume without loss of generality that x1 = x2 = · · · = xn0 = 0. For 1 ≤ i ≤ n,
+let Yi ∈ [0, d] denote the (random) number of 1s output by user i when their input is xi .
+Also let Yn0 ∈ [0, 1] denote the (random) number of 1’s output by user n when its input is x0n .
+By [8, Lemma A.2], to show that Pr[Y          1 +···+Yn−1 +Yn =t]      − 
+                                          Pr[Y1 +···+Yn−1 +Y 0 =t] ∈ [e , e ] for all t ∈ N, it suffices to
+                                                                      n
+                             Pr[Y +···+Y       +Y =t ]
+show that for all t0 ∈ N, Pr[Y11 +···+Ynn0 +Yn0 =t00 ] ∈ [e− , e ]. Now the validity of the latter is an
+                                         0   n
+immediate consequence of Lemma 9 with the parameter n of Lemma 9 equal to n0 + 1. J
+
+     From now on, we will use ν and ωb as abbreviations for DLapd (d/2, s) and 1( d−1    2 + b)
+respectively, where d, s are defined as in Lemma 9.
+     Let us denote by Pm,k the probability that m independent random variables from the
+noise distribution ν sums up to k; more formally, Pm,k := PrZ1 ,...,Zm ∼ν [Z1 + · · · + Zm = k].
+For convenience, we define P0,0 = 1 and P0,k = 0 for all k 6= 0.
+     As we will see in the proof of Lemma 9 below, expansions of the numerator and de-
+nominator of the left hand side of (3) result in similar terms involving Pm,k , except oc-
+casionally  with (i) k differing by one or (ii) m differing by 1 and k differing by d−1   2  or
+ d−3
+      
+   2    . Hence, to bound the ratio between the two, we have to find some relation between
+Pm,k , Pm,k−1 , Pm+1,k+( d−1 ) , and Pm+1,k+( d−3 ) . The exact inequality we will use here is
+                          2                    2
+stated below and its proof overview is given in Section 3.3.
+
+
+
+                                                                                                                              ITC 2020
+15:12   Pure Differentially Private Summation from Anonymous Messages
+
+
+        I Lemma 10. For any sufficiently large n ∈ N, let , d and s be as in Lemma 9. Then the
+                                                       −0.1
+        following hold: For any integers 10 log(1/(1−e       ))
+                                                                ≤ m ≤ n − 1, and `1 , `2 ∈ d−1 d−3
+                                                                                          
+                                               1−e−0.1                                     2 , 2  , if
+                     100
+             100 e
+        p ≥ n(1−e −0.1 ) , then we have
+
+
+                                                                                      
+              −             −/2                   (n − m − 1)
+            e      p(1 − e          ) · Pm+1,k+`1 +             · Pm+1,k+`2                 + e0.2 · Pm,k−1 ≥ Pm,k .
+                                                       m+1
+
+            We also need the following lemma, which can be interpreted as an anti-concentration result.
+        Recall that Pi,j = PrZ1 ,...,Zi ∼ν [Z1 + · · · + Zi = j]. For any a ∈ N, if also Z10 , . . . , Za0 ∼ ν, then
+        as E[Z10 + · · · + Za0 ] = da/2 and the distribution of Z10 + · · · + Za0 has sufficient mass at its
+        expectation, one expects that Pi+a,j+a = Pr[Z1 + · · · + Zi + Z10 + · · · + Za0 = j + da/2] is not
+        too much smaller than Pi,j . Lemma 11 says that in fact Pr[Z1 + · · · + Zi + Z10 + · · · + Za0 =
+        j + da/2 − d/2] is not too much smaller than Pi,j . Its proof is deferred to the full version [24].
+
+                                                                                                                    √
+        I Lemma 11. For any i, j, a ∈ N0 such that a ≤ s2 /1000, we have Pi+a,j+a( d−1 ) ≥ 40sa3 ·Pi,j .
+                                                                                                            2
+
+
+            With Lemmas 10 and 11 ready, we can now prove Lemma 9 as follows.
+
+        Proof of Lemma 9. Let c0 ∈ (0, 1) be some sufficiently small positive constant, to be
+        specified later. We would like to show that, for all t ∈ {0, . . . , dn}, the following hold:
+
+                   Pr         [Z1 + · · · + Zn = t] ≤ e ·                Pr               [Z1 + · · · + Zn = t],       (5)
+            Z1 ,...,Zn ∼R0                                   Z1 ,...,Zn−1 ∼R0 ,Zn ∼R1
+
+
+        and
+
+                         Pr                [Z1 + · · · + Zn = t] ≤ e ·        Pr          [Z1 + · · · + Zn = t].       (6)
+            Z1 ,...,Zn−1 ∼R0 ,Zn ∼R1                                      Z1 ,...,Zn ∼R0
+
+
+            Due to space constraints, we will only prove (5) here; (6) can be proved in a similar
+        manner. To prove (5), let us first decompose the probability on the left and the right hand
+        sides based on whether Zn is sampled from the noise distribution ν. This gives
+
+                    Pr         [Z1 + · · · + Zn = t]
+              Z1 ,...,Zn ∼R0
+
+              =p·                Pr        [Z1 + · · · + Zn = t]
+                     Z1 ,...,Zn−1 ∼R0 ,Zn ∼ν
+                                                                              
+                                                                            d−1
+                    + (1 − p) ·         Pr        Z1 + · · · + Zn−1 = t −          ,
+                                Z1 ,...,Zn−1 ∼R0                             2
+
+        and
+
+                         Pr                [Z1 + · · · + Zn = t]
+              Z1 ,...,Zn−1 ∼R0 ,Zn ∼R1
+
+              =p·                Pr        [Z1 + · · · + Zn = t]
+                     Z1 ,...,Zn−1 ∼R0 ,Zn ∼ν
+                                                                              
+                                                                            d+1
+                    + (1 − p) ·         Pr        Z1 + · · · + Zn−1 = t −          .
+                                Z1 ,...,Zn−1 ∼R0                             2
+
+        Moreover, observe that, by expanding based on the number of variables among Z1 , . . . , Zn−1
+        that uses the noise distribution (i.e., i below), we have
+
+                         Pr               [Z1 + · · · + Zn = t]
+              Z1 ,...,Zn−1 ∼R0 ,Zn ∼ν
+B. Ghazi, N. Golowich, R. Kumar, P. Manurangsi, R. Pagh, and A. Velingker                                     15:13
+
+
+          n−1
+          X         
+                  n−1 i
+      =               p (1 − p)n−1−i · Pi+1,t−(n−1−i)( d−1 ) ,
+          i=0
+                   i                                    2
+
+
+
+and
+                                                        
+                                                    d−1
+             Pr         Z1 + · · · + Zn−1 = t −
+      Z1 ,...,Zn−1 ∼R0                                2
+          n−1
+          X n−1       
+      =                  pi (1 − p)n−1−i · Pi,t−(n−i)( d−1 ) .
+          i=0
+                    i                                   2
+
+
+
+Finally, we have
+                                                          
+                                                      d+1
+             Pr          Z1 + · · · + Zn−1 = t −
+      Z1 ,...,Zn−1 ∼R0                                  2
+          n−1
+          X n−1       
+      =                   pi (1 − p)n−1−i · Pi,t−(n−i)( d−1 )−1 .
+          i=0
+                    i                                     2
+
+
+                n−1          
+           1 X n−1 i
+      = ·                      p (1 − p)n−1−i · e/2 · Pi,t−(n−i)( d−1 )−1
+          e i=0          i                                           2
+
+
+                     n−1          
+                 1 X n−1 i
+              + ·                   p (1 − p)n−1−i · (e − e/2 )Pi,t−(n−i)( d−1 )−1
+                e i=0          i                                                2
+
+
+                n−1          
+           1 X n−1 i
+      ≥ ·                      p (1 − p)n−1−i · e/2 · Pi,t−(n−i)( d−1 )−1
+          e i=0          i                                           2
+
+
+                     n−1          
+                 1 X n−1 i
+              + ·                   p (1 − p)n−1−i · (e/2 − 1)Pi,t−(n−i)( d−1 )−1
+                e i=0          i                                              2
+
+
+                n−1          
+           1 X n−1 i
+      ≥ ·                      p (1 − p)n−1−i · e/2 · Pi,t−(n−i)( d−1 )−1
+          e i=0          i                                           2
+
+
+                     n−1          
+                 1 X n − 1 i+1
+              + ·                   p (1 − p)n−2−i · (e/2 − 1)Pi+1,t−(n−i−1)( d−1 )−1
+                e i=0 i + 1                                                           2
+
+
+                n−1          
+           1 X n−1 i
+      ≥ ·                      p (1 − p)n−1−i e/2 · Pi,t−(n−i)( d−1 )−1
+          e i=0          i                                         2
+
+
+                     n−1          
+                 1 X n−1 i                             p(n − 1 − i)
+              + ·                   p (1 − p)n−1−i ·                · (e/2 − 1)Pi+1,t−(n−i−1)( d−1 )−1 .
+                e i=0          i                           i+1                                    2
+
+
+
+   Using the above expressions, we may write the difference between the right hand side
+and the left hand side of (5) as
+
+   e ·              Pr              [Z1 + · · · + Zn = t] −        Pr          [Z1 + · · · + Zn = t]
+          Z1 ,...,Zn−1 ∼R0 ,Zn ∼R1                             Z1 ,...,Zn ∼R0
+                          n−1
+                          X     
+                            n−1 i
+      ≥ (e − 1) · p ·             p (1 − p)n−1−i · Pi+1,t−(n−1−i)( d−1 )
+                        i=0
+                              i                                         2
+
+
+                      n−1 
+                      X n−1     
+          + (1 − p) ·            pi (1 − p)n−1−i e/2 · Pi,t−(n−i)( d−1 )−1
+                      i=0
+                            i                                        2
+
+
+                      n−1
+                      X n − 1                    p(n − 1 − i)
+          + (1 − p) ·            pi (1 − p)n−1−i ·                · (e/2 − 1)Pi+1,t−(n−i−1)( d−1 )−1
+                      i=0
+                            i                           i+1                                    2
+
+
+
+
+                                                                                                             ITC 2020
+15:14   Pure Differentially Private Summation from Anonymous Messages
+
+
+                               n−1
+                               X    
+                                n−1 i
+              − (1 − p) ·              p (1 − p)n−1−i · Pi,t−(n−i)( d−1 )
+                          i=0
+                                 i                                   2
+
+
+                      n−1
+                      X n − 1
+            ≥ (1 − p)              pi (1 − p)n−1−i ∆i ,                                                                    (7)
+                      i=0
+                              i
+
+        where
+                                                                                        
+                                                         n−1−i
+           ∆i := p(1 − e−/2 ) · Pi+1,t−(n−1−i)( d−1 ) +       · Pi+1,t−(n−i−1)( d−1 )−1
+                                                  2       i+1                     2
+
+
+                     + e/2 · Pi,t−(n−i)( d−1 )−1 − Pi,t−(n−i)( d−1 ) ,
+                                               2                          2
+
+
+        and we have used that e − 1 ≥ e/2 − 1 ≥ 1 − e−/2
+                                                          for  ≥d−1
+                                                                   0. 
+           By Lemma 10 with m = i, k = t − (n − i) d−1                                             d−3
+                                                                                                           
+                                                       2   , `1 =  2    , `2 =                      2          , we have
+
+           ∆i ≥ (e0.3 − 1)Pi,t−(n−i)( d−1 ) ≥ 0,                                                                          (8)
+                                                2
+
+                                               −0.1                                              −0.1
+        for all i such that 10 log(1/(1−e
+                                  1−e−0.1
+                                             ))
+                                                ≤ i ≤ n − 1. Let i0 := 10 log(1/(1−e
+                                                                             1−e−0.1
+                                                                                        ))
+                                                                                           . It remains to
+        lower bound the terms in (7) for 0 ≤ i < i0 . To do so, we will “borrow” the additional mass
+        of (e0.3 − 1)Pi,t−(n−i)( d−1 ) from the terms with i ≥ i0 . To show that this borrowing gives
+                                   2
+        sufficient positive mass from the terms Pi,t−(n−i)( d−1 ) with i ≥ i0 , we will use Lemma 11.
+                                                                          2
+           Next, let imax ∈ {0, 1, . . . , i0 − 1} and imin ∈ {i0 , i0 + 1, . . . , 2p(n − 1)} be defined so that:
+
+           Pimax ,t−(n−imax )( d−1 ) ≥ Pi,t−(n−i)( d−1 )          ∀i ∈ {0, 1, . . . , i0 − 1}
+                                   2                        2
+
+            Pimin ,t−(n−imin )( d−1 ) ≤ Pi,t−(n−i)( d−1 )         ∀i ∈ {i0 , i0 + 1, . . . , 2p(n − 1)}.
+                                   2                        2
+
+
+                          log(1/(1−e−0.1 ))
+                       100
+        As p = 100 e     n(1−e−0.1 )        and  < c0 ≤ 1, we have that as long as c0 is sufficiently small,
+
+                               100e100 log(5/)   1
+           2p(n − 1) ≤                          ≤ 2 = s2 /1000.
+                                     0.1        4
+        It follows from Lemma 11 with a = imin − imax ≤ 2p(n − 1) that
+                                             1
+           Pimin ,t−(n−imin )( d−1 ) ≥          P                  d−1 .
+                                   2        40s3 imax ,t−(n−imax )( 2 )
+           Let M ∼ Binom(n − 1, p) be a binomial random variable. Then, as (8) holds for
+        n − 1 ≥ i ≥ i0 , we have
+           n−1
+           X n − 1
+                          pi (1 − p)n−1−i ∆i
+            i=0
+                    i
+                 0 −1 
+                iX             
+                        n−1 i
+            ≥−                  p (1 − p)n−1−i Pi,t−(n−i)( d−1 )
+                 i=0
+                          i                                 2
+
+
+                     2p(n−1)        
+                        X         n−1 i
+                 +                    p (1 − p)n−1−i (e0.3 − 1) · Pi,t−(n−i)( d−1 )
+                        i=i0
+                                   i                                            2
+
+
+                                               0 −1 
+                                              iX            
+                                                         n−1 i
+            ≥ −Pimax ,t−(n−imax )( d−1 )                     p (1 − p)n−1−i                                                (9)
+                                        2
+                                               i=0
+                                                          i
+                                                          2p(n−1)       
+                                                           X          n−1 i
+                 + 0.3 · Pimin ,t−(n−imin )( d−1 )                       p (1 − p)n−1−i
+                                                     2
+                                                           i=i0
+                                                                       i
+B. Ghazi, N. Golowich, R. Kumar, P. Manurangsi, R. Pagh, and A. Velingker                                  15:15
+
+                                                                                    
+                                          0.3
+      ≥ Pimax ,t−(n−imax )( d−1 ) ·            · Pr[i0 ≤ M ≤ 2p(n − 1)] − Pr[M < i0 ] .           (10)
+                             2            40s3
+                                                                                   log(1/(1−e−0.1 ))
+                                                                                100
+   By the Chernoff bound, for sufficiently large n and since pn = n· 100 e        n(1−e−0.1 )        ≥
+100, we have
+
+   Pr[M > 2p(n − 1)] ≤ exp(−p(n − 1)/3) ≤ exp(−pn/4) < 1/2.
+                                           −0.1
+Moreover, since i0 = 10 log(1/(1−e
+                           1−e−0.1
+                                                   ))
+                                        ≤ pn/3 ≤ p(n − 1)/2 and  ≤ 1 in the current case,
+                                                                         
+                                                                   10
+  Pr[M < i0 ] ≤ exp(−p(n − 1)/8) ≤ exp(−pn/10) ≤ exp                        < 1/4.
+                                                               1 − e−0.1
+                                                                                 log(1/(1−e−0.1 ))
+                               l                          m               100
+                                 1000 e100
+Hence, recalling s = 10                              n
+                       , d = 4 (1−e−0.1 ) · log 1−e−0.1    + 3, p = 100 e n(1−e    −0.1 )       ,
+as well as the assumption  > 1/n2/3 ,
+    0.3
+         · Pr[i0 ≤ M ≤ 2p(n − 1)] − Pr[M < i0 ]
+    40s3
+        0.3
+    ≥         − exp(−1/(2))
+       160s3
+    ≥ c4 − exp(−1/(2)),
+
+for some sufficiently small positive absolute constant c. The above quantity is positive as
+long as exp(1/(2)) ≥ c14 , i.e., as long as  ≤ c0 for some absolute constant c0 > 0 (which
+holds as long as we select c0 ≤ c0 ). From this and (7), we can conclude that (5) holds. J
+
+3.3      Proof Overview of Lemma 10
+In this subsection, we give an overview of the proof of Lemma 10; we defer the full proof to
+the full version [24]. Throughout this section, we will use the several additional notation:
+    First, we will overload the notation and use ν(z) to denote the probability mass function
+    of ν at z, i.e., ν(z) := PrZ∼ν [Z = z].
+    We often represent a sequence of integers a1 , . . . , am as a vector a = (a1 , . . . , am ). For
+    such a vector, we use ν(a) as a shorthand for the product ν(a1 ) · · · ν(am ), and zero(a) as
+    a shorthand for the number of zero coordinates, i.e., zero(a) := |{i ∈ [m] | ai = 0}|.
+    We use Sm,k,d to denote the set of all sequences of integers a1 , . . . , am between 0 and d
+   (inclusive) whose sum is k; more formally, Sm,k,d := ∆m,k ∩ [0, d]m . Since d will be fixed
+    throughout, we omit d and simply write Sm,k .
+                                     zero<i          zero≥i
+    Next, for any i ∈ R, we use Sm,k        (resp. Sm,k     ) to denote the sets of sequences in
+    Sm,k whose number of zero-coordinates is less than (resp., at least) i. More formally,
+      zero<i                                    zero≥i
+    Sm,k     := {a ∈ Sm,k | zero(a) < i} and Sm,k      := {a ∈ Sm,k | zero(a) ≥ i}.
+
+   To prove Lemma 10, let us observe that we may expand Pm,k as
+            X             X              X
+   Pm,k =      ν(a) =           ν(a) +        ν(a),
+              a∈Sm,k                zero<i
+                                 a∈Sm,k                    zero≥i
+                                                        a∈Sm,k
+
+
+where i will be chosen later in the proof.
+   We will bound the two terms on the right separately. More specifically, we will show that
+     X
+             ν(a) ≤ e0.5 · Pm,k−1 ,                                                    (11)
+      zero<i
+   a∈Sm,k
+
+
+
+
+                                                                                                          ITC 2020
+15:16   Pure Differentially Private Summation from Anonymous Messages
+
+
+        and that for `1 , `2 ∈ { d−1 d−3
+                                  2 , 2 },
+                                                                                  
+               X                                            (n − m + 1)
+                        ν(a) ≤ p(1 − e−0.5 ) · Pm+1,k+`1 +             · Pm+1,k+`2 .                                   (12)
+                 zero≥i
+                                                               m+1
+             a∈Sm,k
+
+        Once we have these two inequalities, Lemma 10 immediately follows. The intuition behind
+                                                                                                   zero<i
+        the two inequalities is quite simple. For (11), since each sequence a ∈ Sm,k                      contains few
+        zeros, we should be able to pick a non-zero ai and decrease it by one and end up with a
+        sequence in Sm,k−1 instead; since the discrete Laplace distribution’s mass (i.e., ν) on ai and
+        on ai − 1 differs (multiplicatively) by a factor of at most e1/s , the mass of the modified
+        sequence also differs from the original sequence by a factor of e1/s .
+                                                                                                         zero≥i
+            For (12), the intuition is pretty similar. We start with a sequence a ∈ Sm,k                          and we
+                                                                                                  d−1        d−3
+                                                                                                                  
+        will modify it to end up with a sequence in Sm+1,k+` where ` is either 2 or 2 . The
+        intuition here is that since a contains many zero coordinates, there are many ways for us
+        to divide ` among these zero coordinates and an additional coordinate, which would result
+        naturally in a sequence in Pm+1,k+` .
+            To turn the intuition into a formal proof, we need to be careful about “double counting”
+        a modified sequence. As an example, for (11), suppose we would like to modify a sequence in
+          zero<i
+        Sm,k     to one in Sm,k−1 by decreasing any non-zero coordinate. Then, it is possible that two
+        sequences (1, 0, a3 , . . . , an ) and (0, 1, a3 , . . . , an ) results in the same sequence (0, 0, a3 , . . . , an ).
+            In order to avoid such “double counting”, we divide our proofs into two parts. First,
+                                                 zero<i                zero≥i
+        we show that we may replace Sm,k                  (resp. Sm,k         ) with the set of sequences whose first
+        coordinate is non-zero (resp., whose first few coordinates are zeros).
+
+         4      Lower Bound for Binary Summation
+        We next prove our lower bound on the communication complexity of any non-interactive
+        pure-DPshuffled protocol that can perform bit addition with small error (Theorem 4). To
+        prove our lower bound, first recall the following notion from probability theory.
+        I Definition 12 (Moment Generating Function). Let Y be a Rk -valued random variable for
+        some k ∈ N. Its moment generating function (MGF) is defined as MY (t) = E[eht,Yi ].
+        Throughout this section, we will be dealing with pairs of random variables whose MGFs are
+        within a certain factor of each other. The following definition will be particularly handy.
+        I Definition 13 (Bounded MGF ratio). We say that two Rk -valued random variables Y, Y0
+                                                                               MY (t)
+        have e -bounded MGF ratio if and only if, for all t ∈ Rk we have that M 0 (t)
+                                                                                       ∈ [e− , e ].
+                                                                                                      Y
+
+        Furthermore, let SD(Y, Y0 ) denote the total variation distance between them.
+           Our proofs follow the outline from Section 1.3. Specifically, in Section 4.1, we prove that
+        a pure-DPshuffled protocol implies bounded MGF ratio. Then, in Section 4.2, we give a lower
+        bound on C,γ from Definition 5, which then implies Theorem 4. Finally, in Section 4.3, we
+        provide an example which shows that our lower bound for the question is tight.
+
+        4.1     Pure-DP Implies Bounded MGF Ratio
+        We start by proving a necessary (but not sufficient) condition on -DP protocols in terms of
+        the MGFs of X0 , X1 . A straightforward observation we will use is the following:
+        I Observation 14. Let Y, Y0 be two random variables with the same support supp(Y) =
+                                 Pr[Y=v]
+        supp(Y0 ) ⊆ Rk such that Pr[Y0 =v] ∈ [e
+                                                − 
+                                                  , e ]. Then, Y, Y0 satisfies e -bounded MGF ratio.
+B. Ghazi, N. Golowich, R. Kumar, P. Manurangsi, R. Pagh, and A. Velingker                            15:17
+
+
+   Furthermore, recall a (well-known) multiplicative property of MGF that, if Y, Y0 ∈ Rk
+are two independent random variables, then MY+Y0 (t) = MY (t) · MY0 (t) for all t ∈ Rk .
+With this in mind, we can now prove the desired result:
+I Lemma 15. For any -DP protocol, X0 , X1 must satisfy e -bounded MGF ratio.
+Proof. Consider two input vectors 0 . . . 00 and 0 . . . 01. Let Y0 , Y1 ∈ Zk denote the views
+of the shuffled output on the corresponding input vectors, where Yj0 denote the number of
+j’s received by the analyzer for the input vector 0 . . . 00 and Yj1 denote the number of j’s
+received by the analyzer for the input vector 0 . . . 01. Notice that Y0 is a sum of n i.i.d.
+copies of X0 and Y1 is a sum of (n − 1) i.i.d. copies of X0 and a copy of X1 . Observe also
+that -DP implies that Y0 , Y1 satisfy the condition in Observation 14. From this, we have
+                   MY0 (t)        (MX0 (t))n          MX0 (t)
+   [e− , e ] 3           =                        =         .                                J
+                   MY1 (t)   (MX0 (t))n−1 · MX1 (t)   MX1 (t)
+
+4.2    From Bounded MGF Ratio to Communication Lower Bound
+We will now use the bounded MGF ratio property to bound the communication complexity
+of any non-interactive protocol for summation that incurs small error. To do so, let us recall
+below a known result that any protocol that can perform binary summation to within a
+small error must have large statistical distance between X0 and X1 :
+I Theorem 16 ([14]). Any non-interactive protocol that can perform binary
+                                                                      summation to
+within an expected absolute error of α must satisfy SD(X0 , X1 ) ≥ 1 − O      √α    .
+                                                                                n
+
+    Thanks to Lemma 15 and Theorem 16, to prove our lower bound (Theorem 4), it now
+suffices to show that, for any Y, Y0 whose supports lie in ∆k,m that satisfy e -bounded MGF
+ratio and SD(Y, Y0 ) is large, then m log k must be large. The main lemma of this subsection,
+which is a quantitative version of the aforementioned statement, is stated formally below.
+I Lemma 17. Let Y, Y0 be two random variables supported on ∆k,m with e -bounded MGF
+                                     2
+ratio. Then, SD(Y, Y0 ) ≤ 1 − 2−O (m log k) .
+   It is straightforward to see that Lemma 17, Lemma 15, and Theorem 16 together implies
+Theorem 4. We devote the rest of this subsection to the proof of Lemma 17.
+
+Dual Approach and Proof of Lemma 17
+For notational convenience, we use py and p0y to denote Pr[Y = y] and Pr[Y0 = y] respectively.
+   Before we formalize the proof below, let us first present an informal
+                                                                 nP      overview. Recall that
+                                                                                             o
+1 − SD(Y, Y0 ) is equal to y∈∆k,m min{py , p0y } = minS⊆∆k,m                               0
+                             P                                                P
+                                                                         p
+                                                                     y∈S y +    y∈∆k,m \S py .
+Hence, it suffices for us to show that, for every S ⊆ ∆k,m , we have
+   X            X                    2
+       py +             p0y ≥ 2−O (m log k) .                                            (13)
+   y∈S         y∈∆k,m \S
+
+We will give a “dual certificate” for this statement. Notice that since the total probability of
+each of Y, Y0 must be one, we have y∈∆k,m py = 1 and y∈∆k,m p0y = 1. We also have the
+                                      P                     P
+
+non-negativity constraints: py , p0y ≥ 0 for all y ∈ ∆k,m . Finally, the e -bounded MGF ratio
+property between Y and Y0 translates to the following linear inequalities for all t ∈ Rk :
+     X                    X                         X                  X
+           eht,yi · p0y −      eht,yi− · py ≥ 0,       eht,yi · py −         eht,yi− · p0y ≥ 0.
+   y∈∆k,m                  y∈∆k,m                y∈∆k,m              y∈∆k,m
+                                                                                            (14)
+
+
+
+                                                                                                    ITC 2020
+15:18   Pure Differentially Private Summation from Anonymous Messages
+
+
+           Hence, we have a system of linear inequalities and we would like to certify a linear
+        inequality (13). We may do so by writing (13) as a linear combination of the constraints.
+           As a wishful thinking, if we could somehow “extract” only the py and p0y terms from (14),
+        we would be done because we would simply have e · py ≥ p0y ≥ e− · py which can easily be
+        combined with the total probability and non-negativity constraints to get a good bound on
+                                   0
+        P            P
+          y∈S py +      y∈∆k,m \S py . Of course, such extraction is not possible since, for any value t
+        we plug into (14), we always get non-zero coefficients for all vectors in ∆k,m , not just y.
+           With this in mind, our relaxed goal is to select t = τ (y) for each y in such a way that the
+        coefficient of y from its own inequality (i.e., t = τ (y)) “dominates” the coefficients of y from
+        other inequalities (i.e., t = τ (y0 ) for y0 6= y). A formal version of the statement is proved
+        below. Note that eβ(y) should be thought of as the “scaling factor” for the inequality for y.
+
+        I Lemma 18. For any  > 0, there exist mappings τ : ∆k,m → Rk and β : ∆k,m → R such
+        that the following hold for all y ∈ ∆k,m :
+
+           0 ≥ hτ (y), yi + β(y) ≥ ζ := −O (m2 log k),                                             (15)
+
+        and
+                                                                 0         0
+                                                           ehτ (y ),yi+β(y ) .
+                                                  X
+           ehτ (y),yi+β(y) ≥ 2e ·                                                                  (16)
+                                           y0 ∈∆k,m \{y}
+
+                                                                                                   
+        Proof. Let ρ =  + 10 ln(k + 1) + 10. We pick τ (y) = ρ · 2y and β(y) = ρ · −kyk22 − m2 . It
+        is obvious to see that (15) holds. To prove (16), let us first observe the following identity:
+
+           hτ (y0 ), yi + β(y0 ) = hτ (y), yi + β(y) − ρ · ky − y0 k22 .                            (17)
+
+        Thus, we may rewrite the right hand side of (16) as
+                                   0              0
+                              ehτ (y ),yi+β(y )
+                     X
+
+              y0 ∈∆k,m \{y}
+                                             2
+                                                                                           
+                                           2m
+              (17)                         X
+               = ehτ (y),yi+β(y) ·               e−ρi · |{y0 ∈ ∆k,m | ky − y0 k22 = i}| .         (18)
+                                           i=1
+
+
+        Furthermore, we have |{y0 ∈ ∆k,m | ky − y0 k22 = i}| ≤ |{z ∈ Zk | kzk22 = i}| ≤ 2i · k+i−1
+                                                                                                   
+                                                                                               i     ≤
+                   i
+        (2e(k + 1)) . Plugging this back into (18), we have
+                                                               2                    
+                                                               2m
+                              0        0
+                        ehτ (y ),yi+β(y ) ≤ ehτ (y),yi+β(y) · 
+               X                                                X                  i
+                                                                  e−ρ · 2e(k + 1) 
+                                                                                 
+
+           y0 ∈∆k,m \{y}                                                       i=1
+                                                                          1
+                 (From our choice of ρ) ≤ ehτ (y),yi+β(y) ·                  .                        J
+                                                                         2e
+           With Lemma 18 ready, we can now prove Lemma 17.
+
+        Proof of Lemma 17. Let τ, β be as in Lemma 18. Consider any set S ⊆ ∆k,m .
+           For every y0 ∈ S, MY (τ (y0 )) ≥ e− · MY0 (τ (y0 )) is equivalent to
+                              0        0                             0           0
+                     ehτ (y ),yi−β(y ) · py −                  ehτ (y ),yi−β(y )− · p0y ≥ 0.
+               X                                       X
+                                                                                                    (19)
+           y∈∆k,m                                     y∈∆k,m
+B. Ghazi, N. Golowich, R. Kumar, P. Manurangsi, R. Pagh, and A. Velingker                                                                 15:19
+
+
+Similarly, for every y0 ∈ ∆k,m \ S, MY0 (τ (y0 )) ≥ e− · MY (τ (y0 )) can be rearranged as
+                    0        0                                                  0        0
+              ehτ (y ),yi−β(y ) · p0y −                                   ehτ (y ),yi−β(y )− · py ≥ 0.
+     X                                                        X
+                                                                                                                                  (20)
+   y∈∆k,m                                                 y∈∆k,m
+
+
+By adding (19) for all y0 ∈ S with (20) for all y0 ∈ ∆k,m \ S, we have
+                                                                                                              
+                                        0                 0                                   0          0
+                              ehτ (y ),yi−β(y ) −                                      ehτ (y ),yi−β(y )−  py
+        X             X                                                   X
+                 
+       y∈∆k,m         y0 ∈S                                        y0 ∈∆k,m \S
+                                                                                                              
+                                                  0                   0                       0          0
+                                            ehτ (y ),yi−β(y ) −                        ehτ (y ),yi−β(y )−  p0y ≥ 0.
+        X                X                                                     X
+   +                                                                                                                             (21)
+       y∈∆k,m         y0 ∈∆k,m \S                                              y0 ∈S
+
+
+   Now, for all y ∈ S, we can upper bound the coefficient of p0y in (21) by
+
+                          0                   0                            0             0
+                     ehτ (y ),yi−β(y ) −                          ehτ (y ),yi−β(y )−
+        X                                             X
+
+    y0 ∈∆k,m \S                                       y0 ∈S
+
+                                    0                 0                                       (16)                         (15)
+                          ehτ (y ),yi−β(y ) − ehτ (y),yi−β(y)− ≤ −0.5ehτ (y),yi−β(y)− ≤ −eζ−1− .
+              X
+    ≤
+        y0 ∈∆k,m \{y}
+
+
+Similarly, for all y ∈ ∆k,m \ S, the coefficient of py in (21) is at most −eζ−1− .
+   Moreover, for all y ∈ S, we can upper bound the coefficient in (21) of py by
+                 0              0                                          0             0
+            ehτ (y ),yi−β(y ) −                                   ehτ (y ),yi−β(y )−
+    X                                             X
+
+    y0 ∈S                                    y0 ∈∆k,m \S
+                                                  (16)
+                                                                                                      (15)
+                           0        0                                1
+                     ehτ (y ),yi−β(y ) ≤
+            X
+    ≤                                                             1+              ehτ (y),yi−β(y) ≤ 2.
+                                                                    2e
+        y0 ∈∆k,m
+
+
+Similarly, for all y ∈ S, the coefficient of p0y in (21) is at most 2.
+   Plugging these back into (21), we have
+                                                                                                                    
+                 X                  X                                                X                 X
+   0 ≤ 2             py +                        p0y  − eζ−1−                            p0y +               py  .
+               y∈S             y∈∆k,m \S                                            y∈S              y∈∆k,m \S
+
+                                                                            0
+                              P                                   P
+Using the fact that                 y∈∆k,m py =                     y∈∆k,m py = 1, we can simplify the RHS above to
+
+                                                                                            
+                                                  X                            X
+   2eζ−1− ≤ (2 + eζ−1− )                                   py +                      p0y  .
+                                                  y∈S                 y∈∆k,m \S
+
+
+This means that
+                                            
+     X          X                                       2eζ−1− (15) −O (m2 log k)
+       py +                            p0y  ≥                  ≥ 2                .
+                                                      2 + eζ−1−
+       y∈S           y∈∆k,m \S
+
+                                                                                                                   2
+This establishes (13) and hence we have SD(Y, Y0 ) ≤ 1 − 2−O (m log k) as desired.                                                 J
+
+
+
+                                                                                                                                         ITC 2020
+15:20   Pure Differentially Private Summation from Anonymous Messages
+
+
+        4.3     Limitations of the Lower Bound Approach
+        In this subsection, we argue that the bound we achieve in Lemma 17 is essentially tight, even
+        for k = 2. In other words, our approach of using only bounded MGF ratio property and the
+        total variation distance bound from Theorem 16 cannot give any lower bound better than
+            √
+        O ( log n). Specifically, the main lemma of this section is stated below.
+
+        I Lemma 19. For every  > 0 and γ ∈ (0, 0.5),p     there exist two random variables Y, Y0
+        supported on (subsets of) ∆2,m for some m = O ( log(1/γ)) such that SD(Y, Y0 ) ≥ 1 − γ
+        and that Y, Y0 satisfy the e -bounded MGF ratio property.
+
+            Similar to when we analyze our binary summation protocol in Section 3, it suffices to
+        prove the following one-dimensional version of the above statement, where the two random
+        variables are from {0, 1, . . . , m} rather than ∆2,m .
+
+        I Lemma 20. For every  > 0 and γ ∈ (0, 0.5), p there exist two random variables  Y 0 and Y 1
+        supported on {0, . . . , m} for some m = O ( log(1/γ)) such that SD(Y 0 , Y 1 ) ≥ 1 − γ and
+        that Y 0 , Y 1 satisfy e -bounded MGF ratio property.
+
+        4.3.1     Discrete Gaussian Distributions
+        Our construction for Lemma 20 is based on the discrete Gaussian distribution, which can
+        be defined as follows. Let the (one-dimensional)
+                                                         Gaussian function centered at c with
+                                                   2
+        parameter s as ρs,c (x) := exp − π(x−c)    s2      for all x ∈ R. For any countable A ⊆ R, let
+                   P
+        ρs,c (A) := x∈A ρs,c (x). When ρs,c (A) is finite, the discrete Gaussian distribution over A
+                                                                                  ρs,c (x)
+        centered at c with parameter s, denoted by DA,s,c , has DA,s,c (x) = ρs,c     (A) for all x ∈ A.
+            We will use a special case of a well-known property of lattices (cf. [35, 23, 3]). Recall that
+        a one-dimensional lattice is aZ := {at | t ∈ Z} for some a ∈ R+ . Informally, the property
+        states that, if for sufficiently large s , “shifting” the discrete Gaussian distribution by c does
+        not change its normalization factor too much. This is formalized below.
+
+        I Lemma 21 (e.g. [23, Lemma 2.6]). For any constants a, δ ∈ R+ , there exists a sufficiently
+                                                                        ρ ∗ ,c (aZ)
+        large constant s∗ = s∗ (a, δ) such that, for any c ∈ R, we have ρss∗ ,0 (aZ) ∈ [e
+                                                                                          −δ
+                                                                                             , 1].
+
+            We will also use the following (rather straightforward) observation that, similar to the
+        (continuous) Gaussian distribution, we may choose a sufficiently large truncation point `∗ a
+        for which the total mass of all points x with |X − c| > `∗ a is arbitrarily small.
+
+        I Observation 22. For any constants a, δ ∈ R+ , let s∗ = s∗ (a, δ) be as in Lemma 21. Then,
+        for any λ > 0, there exists a sufficiently large positive integer `∗ = `∗ (a, δ, λ) such that, for
+        any c ∈ R, we have PrX∼DaZ,s∗ ,c [|X − c| > `∗ a] ≤ λ.
+
+        4.3.2     Proof Overview of Lemma 20
+        Distributions of both Y 0 , Y 1 will place γ2 probability masses at each of 0 and m, and these two
+        points shared by the supports of Y 0 and Y 1 . (This ensures that the total variation distance
+        of Y 0 and Y 1 are at least 1 − γ.) In the middle, we then place discrete Gaussian distributions
+        centered at c = m/2 for Y 0 and Y 1 , with that of Y 0 only supported on even numbers whereas
+        that of Y 1 supported on odd numbers. These discrete Gaussian distributions are truncated
+        so that the supports are within the range of [c − w, c + w] for some parameter    p w.
+            The intuition behind the construction is as follows. First, when |t| ≥ O ( log(1/γ)), it is
+        not hard to see that the MGFs at t are dominated by the terms corresponding to the points
+B. Ghazi, N. Golowich, R. Kumar, P. Manurangsi, R. Pagh, and A. Velingker                            15:21
+
+
+0 or m. Our parameters are selected in such a way that, when this is not the case, it must be
+that |t|  w. In this case, we observe that the MGFs of discrete Guassian distributions are
+simply proportional to normalization terms of other discrete Gaussian distributions, shifted
+by O(t) (and truncated appropriately). Since |t|  w, we can then apply Lemma 21 and
+Observation 22 to get a good bound on these terms. This concludes the main ideas in the
+proof; due to space constraints, the full proof is deferred to the full version [24].
+
+ 5     Conclusions and Open Questions
+We gave the first pure-DPshuffled protocols for binary and real summation with constant error.
+We further prove a communication lower bound for any non-interactive protocols for binary
+summation. While these have advanced our understanding of pure-DPshuffled protocols, many
+questions remain open after this work. Specifically, the immediate open questions are:
+   Can we improve the error guarantee in the (binary and real) summation protocols to
+   achieve the asymptotically optimal error 1/, which can be achieved in DPcentral [19]?
+   What is the optimal per user communication complexity of non-interactive DPshuffled
+   protocols for binary and real summation? As we have shown, the communication
+                                                                          √
+   complexity for binary summation lies between O (log n) and Ω ( log n). On the other
+   hand, for real summation, the only lower bound is the trivial Ω(log n) bound (which holds
+   even without privacy concerns) whereas our upper bound is O (log3 n).
+   In Appendix A of the full version [24], we show that our binary summation protocol also
+   yields a pure-DP protocol for histograms with error O (log B log n) but with O (B log n)
+   per user communication complexity. The latter is in contrast to the approximate-DP
+   multi-message protocol of [25], which has a per user communication complexity of only
+   O (poly(log n, log B)) and incurs a similar error. It is thus an interesting open question to
+   come up with (or rule out) a pure-DP protocol with a smaller communication complexity.
+                                                        √
+   Can we exploit interactivity to break our Ω ( log n) communication lower bound?
+   Alternately, can we prove any non-trivial lower bound that holds also with interaction?
+
+    On a high-level, it would also be interesting to develop tools to help prove guarantees for
+pure-DPshuffled protocols. In the case of approximate-DP, there are amplification theorems [21,
+8] that can yield an approximate-DPshuffled protocol from a DPlocal protocol. Although this
+may not be optimal in some cases (as shown by the multi-message protocols in [25, 7, 26]),
+such theorems can be conveniently applied to a large class of protocols and yield good
+approximate-DP guarantees. On the other hand, our proofs in this work are specific to our
+carefully designed protocols. It would be much more convenient if one can give a unifying
+theorem that proves pure privacy guarantees for any protocol with easily verifiable conditions.
+
+
+     References
+ 1   Martín Abadi, Andy Chu, Ian J. Goodfellow, H. Brendan McMahan, Ilya Mironov, Kunal
+     Talwar, and Li Zhang. Deep learning with differential privacy. In CCS, pages 308–318, 2016.
+     doi:10.1145/2976749.2978318.
+ 2   John M Abowd. The US Census Bureau adopts differential privacy. In KDD, pages 2867–2867,
+     2018.
+ 3   Shweta Agrawal, Craig Gentry, Shai Halevi, and Amit Sahai. Discrete Gaussian leftover
+     hash lemma over infinite domains. In ASIACRYPT, pages 97–116, 2013. doi:10.1007/
+     978-3-642-42033-7_6.
+ 4   Apple Differential Privacy Team. Learning with privacy at scale. Apple Machine Learning
+     Journal, 2017.
+
+
+
+
+                                                                                                    ITC 2020
+15:22   Pure Differentially Private Summation from Anonymous Messages
+
+
+         5   Victor Balcer and Albert Cheu. Separating local & shuffled differential privacy via histograms.
+             arXiv: 1911.06879, 2019.
+         6   Borja Balle, James Bell, Adrià Gascón, and Kobbi Nissim. Differentially private summation
+             with multi-message shuffling. arXiv: 1906.09116, 2019.
+         7   Borja Balle, James Bell, Adrià Gascón, and Kobbi Nissim. Improved summation from shuffling.
+             arXiv: 1909.11225, 2019.
+         8   Borja Balle, James Bell, Adrià Gascón, and Kobbi Nissim. The privacy blanket of the shuffle
+             model. In CRYPTO, pages 638–667, 2019. doi:10.1007/978-3-030-26951-7_22.
+         9   Borja Balle, James Bell, Adrià Gascón, and Kobbi Nissim. Private summation in the multi-
+             message shuffle model. arXiv: 2002.00817, 2020.
+        10   Amos Beimel, Kobbi Nissim, and Eran Omri. Distributed private data analysis: Simultaneously
+             solving how and what. In CRYPTO, pages 451–468, 2008.
+        11   Andrea Bittau, Úlfar Erlingsson, Petros Maniatis, Ilya Mironov, Ananth Raghunathan, David
+             Lie, Mitch Rudominer, Ushasree Kode, Julien Tinnés, and Bernhard Seefeld. Prochlo: Strong
+             privacy for analytics in the crowd. In SOSP, pages 441–459, 2017.
+        12   Avrim Blum, Katrina Ligett, and Aaron Roth. A learning theory approach to non-interactive
+             database privacy. In STOC, pages 609–618, 2008.
+        13   Mark Bun, Jelani Nelson, and Uri Stemmer. Heavy hitters and the structure of local privacy.
+             In PODS, pages 435–447, 2018.
+        14   T.-H. Hubert Chan, Elaine Shi, and Dawn Song. Optimal lower bound for differentially private
+             multi-party aggregation. In ESA, pages 277–288, 2012. doi:10.1007/978-3-642-33090-2_25.
+        15   Albert Cheu, Adam D. Smith, Jonathan Ullman, David Zeber, and Maxim Zhilyaev.
+             Distributed differential privacy via shuffling. In EUROCRYPT, pages 375–403, 2019.
+             doi:10.1007/978-3-030-17653-2_13.
+        16   Anindya De. Lower bounds in differential privacy. In TCC, pages 321–338, 2012. doi:
+             10.1007/978-3-642-28914-9_18.
+        17   Bolin Ding, Janardhan Kulkarni, and Sergey Yekhanin. Collecting telemetry data privately.
+             In NIPS, pages 3571–3580, 2017.
+        18   Cynthia Dwork, Krishnaram Kenthapadi, Frank McSherry, Ilya Mironov, and Moni Naor. Our
+             data, ourselves: Privacy via distributed noise generation. In EUROCRYPT, pages 486–503,
+             2006.
+        19   Cynthia Dwork, Frank McSherry, Kobbi Nissim, and Adam Smith. Calibrating noise to
+             sensitivity in private data analysis. In TCC, pages 265–284, 2006.
+        20   Úlfar Erlingsson, Vitaly Feldman, Ilya Mironov, Ananth Raghunathan, Shuang Song, Kunal
+             Talwar, and Abhradeep Thakurta. Encode, shuffle, analyze privacy revisited: Formalizations
+             and empirical evaluation. arXiv:2001.03618, 2020.
+        21   Úlfar Erlingsson, Vitaly Feldman, Ilya Mironov, Ananth Raghunathan, Kunal Talwar, and
+             Abhradeep Thakurta. Amplification by shuffling: From local to central differential privacy via
+             anonymity. In SODA, pages 2468–2479, 2019.
+        22   Úlfar Erlingsson, Vasyl Pihur, and Aleksandra Korolova. RAPPOR: Randomized aggregatable
+             privacy-preserving ordinal response. In CCS, pages 1054–1067, 2014.
+        23   Craig Gentry, Chris Peikert, and Vinod Vaikuntanathan. Trapdoors for hard lattices and new
+             cryptographic constructions. In STOC, pages 197–206, 2008. doi:10.1145/1374376.1374407.
+        24   Badih Ghazi, Noah Golowich, Ravi Kumar, Pasin Manurangsi, Rasmus Pagh, and Ameya
+             Velingker. Pure differentially private summation from anonymous messages. arXiv: 2002.01919,
+             2020. arXiv:2002.01919.
+        25   Badih Ghazi, Noah Golowich, Ravi Kumar, Rasmus Pagh, and Ameya Velingker. On the
+             power of multiple anonymous messages. Cryptology ePrint Archive, Report 2019/1382, 2019.
+        26   Badih Ghazi, Pasin Manurangsi, Rasmus Pagh, and Ameya Velingker. Private aggregation
+             from fewer anonymous messages. arXiv: 1909.11073, 2019.
+        27   Badih Ghazi, Rasmus Pagh, and Ameya Velingker. Scalable and differentially private distrib-
+             uted aggregation in the shuffled model. arXiv: 1906.08320, 2019.
+B. Ghazi, N. Golowich, R. Kumar, P. Manurangsi, R. Pagh, and A. Velingker                             15:23
+
+
+28   Andy Greenberg. Apple’s “differential privacy” is about collecting your data – but not your
+     data. Wired, June, 13, 2016.
+29   Moritz Hardt and Guy N. Rothblum. A multiplicative weights mechanism for privacy-preserving
+     data analysis. In FOCS, pages 61–70, 2010.
+30   Moritz Hardt and Kunal Talwar. On the geometry of differential privacy. In STOC, pages
+     705–714, 2010.
+31   Yuval Ishai, Eyal Kushilevitz, Rafail Ostrovsky, and Amit Sahai. Cryptography from anonymity.
+     In FOCS, pages 239–248, 2006.
+32   Peter Kairouz, H. Brendan McMahan, Brendan Avent, Aurélien Bellet, Mehdi Bennis, Ar-
+     jun Nitin Bhagoji, Keith Bonawitz, Zachary Charles, Graham Cormode, Rachel Cummings,
+     Rafael G. L. D’Oliveira, Salim El Rouayheb, David Evans, Josh Gardner, Zachary Garrett,
+     Adrià Gascón, Badih Ghazi, Phillip B. Gibbons, Marco Gruteser, Zaid Harchaoui, Chaoyang
+     He, Lie He, Zhouyuan Huo, Ben Hutchinson, Justin Hsu, Martin Jaggi, Tara Javidi, Gauri
+     Joshi, Mikhail Khodak, Jakub Konečný, Aleksandra Korolova, Farinaz Koushanfar, Sanmi
+     Koyejo, Tancrède Lepoint, Yang Liu, Prateek Mittal, Mehryar Mohri, Richard Nock, Ayfer
+     Özgür, Rasmus Pagh, Mariana Raykova, Hang Qi, Daniel Ramage, Ramesh Raskar, Dawn
+     Song, Weikang Song, Sebastian U. Stich, Ziteng Sun, Ananda Theertha Suresh, Florian Tramèr,
+     Praneeth Vepakomma, Jianyu Wang, Li Xiong, Zheng Xu, Qiang Yang, Felix X. Yu, Han Yu,
+     and Sen Zhao. Advances and open problems in federated learning. arXiv: 1912.04977, 2019.
+33   Shiva Prasad Kasiviswanathan, Homin K. Lee, Kobbi Nissim, Sofya Rashkodnikova, and Adam
+     Smith. What can we learn privately? In FOCS, pages 531–540, 2008.
+34   Jakub Konečnỳ, H Brendan McMahan, Felix X Yu, Peter Richtárik, Ananda Theertha Suresh,
+     and Dave Bacon. Federated learning: Strategies for improving communication efficiency. arXiv:
+     1610.05492, 2016.
+35   Daniele Micciancio and Oded Regev. Worst-case to average-case reductions based on Gaussian
+     measures. SICOMP, 37(1):267–302, 2007. doi:10.1137/S0097539705447360.
+36   Ilya Mironov. Rényi differential privacy. In CSF, pages 263–275, 2017. doi:10.1109/CSF.
+     2017.11.
+37   Aleksandar Nikolov, Kunal Talwar, and Li Zhang. On the geometry of differential privacy:
+     the sparse and approximate cases. In STOC, pages 351–360, 2013.
+38   Stephen Shankland. How Google tricks itself to protect Chrome user privacy. CNET, October,
+     2014.
+39   Thomas Steinke and Jonathan Ullman. Between pure and approximate differential privacy.
+     arXiv: 1501.06095, 2015.
+40   Salil Vadhan. The Complexity of Differential Privacy, pages 347–450. Springer International
+     Publishing, 2017.
+41   Stanley L Warner. Randomized response: A survey technique for eliminating evasive answer
+     bias. JASA, 60(309):63–69, 1965.
+
+
+
+
+                                                                                                     ITC 2020
+

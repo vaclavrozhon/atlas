@@ -1,0 +1,1592 @@
+                                                                                Stabbing Planes
+
+                                                   Paul Beame†                       Noah Fleming‡                    Russell Impagliazzo
+                                               University of Washington            Memorial University                          UCSD
+arXiv:1710.03219v3 [cs.CC] 17 Mar 2023
+
+
+
+
+                                               Antonina Kolokolova‡                Denis Pankratov‡                      Toniann Pitassi§
+                                                 Memorial University               Concordia University             Columbia University & IAS
+
+                                                                                    Robert Robere‡
+                                                                                     McGill University
+
+
+                                                                                     March 20, 2023
+
+
+                                                                                         Abstract
+
+                                              We develop a new semi-algebraic proof system called Stabbing Planes which formalizes
+                                         modern branch-and-cut algorithms for integer programming and is in the style of DPLL-based
+                                         modern SAT solvers. As with DPLL there is only a single rule: the current polytope can be
+                                         subdivided by branching on an inequality and its “integer negation.” That is, we can (non-
+                                         deterministically choose) a hyperplane ax ≥ b with integer coefficients, which partitions the
+                                         polytope into three pieces: the points in the polytope satisfying ax ≥ b, the points satisfying
+                                         ax ≤ b−1, and the middle slab b−1 < ax < b. Since the middle slab contains no integer points
+                                         it can be safely discarded, and the algorithm proceeds recursively on the other two branches.
+                                         Each path terminates when the current polytope is empty, which is polynomial-time checkable.
+                                         Among our results, we show that Stabbing Planes can efficiently simulate the Cutting Planes
+                                         proof system, and is equivalent to a tree-like variant of the R(CP) system of Krajı́ček [54]. As
+                                         well, we show that it possesses short proofs of the canonical family of systems of F2 -linear
+                                         equations known as the Tseitin formulas. Finally, we prove linear lower bounds on the rank of
+                                         Stabbing Planes refutations by adapting lower bounds in communication complexity and use
+                                         these bounds in order to show that Stabbing Planes proofs cannot be balanced. In doing so, we
+                                         show that real communication protocols cannot be balanced and establish the first lower bound
+                                         on the real communication complexity of the set disjointness function.
+
+
+
+
+                                           †
+                                             Research supported by NSF Grants No. CCF-152424 and CCF-2006359.
+                                           ‡
+                                             Research supported by NSERC.
+                                           §
+                                             Research supported by NSERC, NSF Grant No. CCF-1900460 and the IAS school of mathematics.
+                                             A preliminary version of this work appeared at the 9th Innovations in Theoretical Computer Science (ITCS).
+1 Introduction
+Proof complexity provides an effective and principled way to analyze classes of practical algorithms for solving
+NP-hard problems. The general idea is to formalize a class of algorithms as a proof system — a set of sound rules
+for making logical inferences — by extracting out the types of reasoning used in the algorithms. This allows us to
+discard the practical implementation details while still maintaining the techniques that the algorithm can employ.
+Thus, by proving lower bounds on the size of proofs in these proof systems, we obtain lower bounds on the runtime
+of the associated class of algorithms.
+     An illustrative example is the DPLL algorithm [29, 30], which forms the basis of modern conflict-driven clause
+learning algorithms for solving SAT. For a CNF formula F , the DPLL algorithm is the following recursive search
+algorithm for a satisfying assignment: choose a variable xi (non-deterministically, or via some heuristic), and then
+recurse on the formulas F ↾ (xi = 0) and F ↾ (xi = 1). If at any point a satisfying assignment is found, the algorithm
+halts and outputs the assignment. Otherwise, if the current partial assignment falsifies some clause C of F , the
+recursive branch is terminated. If every recursive branch terminated with a falsified clause, then F is unsatisfiable
+and we can take the recursion tree as a proof of this fact; in fact, such a DPLL tree is equivalent to a treelike resolution
+refutation of F .
+     Beyond DPLL, the approach of using proof complexity for algorithm analysis has been successfully employed
+to study many other classes of algorithms. This includes Conflict-driven clause-learning algorithms for SAT [52,61,
+72], which can be formalized using resolution proofs [30]; lift-and-project methods for solving integer programming
+problems, which are formalized by the Lovász-Schrijver [60], Sherali-Adams [71], and Sums-of-Squares proofs
+[7, 45] proof systems; and the classical cutting planes methor for integer programming [18, 41], which is formalized
+by Cutting Planes proofs [18, 19, 23].
+     In this work, we continue the study of algorithms for solving integer programming problems through the lens
+of proof complexity. Many classic NP-optimization problems are naturally phrased using integer programming and,
+due to this, algorithms for integer programming have had a profound effect throughout computer science and beyond.
+Recall that in an integer programming problem, we are given a polytope P ⊆ Rn and a vector c ∈ Rn , and our goal
+is to find a point x ∈ P ∩ Zn maximizing c · x. A classic approach for solving integer programming problems is
+to refine the polytope P by introducing Chvátal-Gomory (CG) cutting planes [41]. A CG cutting plane for P is
+any inequality ax ≤ ⌊b⌋, where a is an integral vector, b is a rational vector, and every point in P satisfies ax ≤ b.
+Observe that a CG cutting plane removes non-integral points from P while preserving integer points. Thus, with
+each additional cutting plane, the polytope becomes a better approximation to the integer hull.
+     Chvátal observed that the cutting planes method can be naturally formalized as a proof system. The Cutting
+Planes proof system proves the integer-infeasibility of a polytope P by deducing the empty polytope by a sequence of
+CG-cutting planes. This has led to a number of strong lower bounds on the runtime of these algorithms [13,35,48,67],
+as well as bounds on related measures such as the Chvátal rank (see for example [14,17,43]). However, while Cutting
+Planes has become a highly influential proof system in proof complexity, the original cutting planes algorithms suffer
+from numerical instabilities and difficulties choosing good heuristics, and are therefore seldom used on their own in
+practice.
+     Modern algorithms for integer programming combine cutting planes with a branch-and-bound procedure [5, 57],
+resulting in a class of optimization algorithms known as branch-and-cut algorithms [65]. These algorithms search
+for an integer solution to a polytope P by the following two procedures
+
+    • Branch. Split P into smaller polytopes P1 , . . . , Pk such that every integer solution to P lies in at least one of
+      P1 , . . . , Pk .
+
+    • Cut. Refine P1 , . . . , Pk by introducing additional cutting planes.
+
+Finally, the algorithm recurses on each of the resulting polytopes. While this branching rule is extremely general, in
+practice branching is typically done by single variables: selecting a variable xi and branching on all possible integer
+outcomes P ∩ {xi = t} for each feasible integer value t. Other schemes that have been used in practice include
+branching on the hamming weight of a subset of variables [34] or branching using basis-reduction techniques [1, 2,
+
+
+                                                             1
+                                                                                                                   x+y ≥ 2
+
+
+
+
+                             x+y ≤ 1                   x+y ≥ 2
+
+                                                                                        x+y ≤ 1
+
+                 x−y ≤ 0                x−y ≥ 1                                        x−y ≤ 0
+
+
+
+
+                                                                                                                  x−y ≥ 1
+
+
+Figure 1: A partial stabbing planes proof (left) and its result on the unit square (right). The yellow and red areas are
+removed from the polytope (green), and we recurse on both sides.
+
+
+46, 51, 56, 59]*
+    While these branch-and-cut algorithms are much more efficient in practice than the classical cutting planes
+methods they are no longer naturally modelled by Cutting Planes proofs. In this work we introduce† the Stabbing
+Planes (SP) proof system in order to properly model branch-and-cut solvers. Intuitively, Stabbing Planes has the
+same branching structure as DPLL, but generalizes branching on single variables to branching on integer linear
+inequalities.
+    We formalize Stabbing Planes in stages as a generalization of DPLL. Recall that in the setting of integer program-
+ming we want to prove the integer-infeasibility of a system of integer linear inequalities Ax ≥ b over real-valued
+variables. Further, suppose for simplicity of exposition that the system encodes a CNF formula F . We can rephrase
+DPLL geometrically to the setting of integer linear programming. Consider some DPLL refutation of F . Each time
+the DPLL tree branches on the {0, 1}-value of a variable xi , instead branch on whether xi ≤ 0 or xi ≥ 1; because
+the encoding Ax ≥ b of F includes axioms xi ≥ 0 and xi ≤ 1 this is equivalent. After this replacement, each node v
+in the DPLL tree is naturally associated with a polytope Pv of points satisfying Ax ≥ b and each of the inequalities
+labelling the root-to-v path. Since we began with a DPLL refutation, it is clear that for any leaf ℓ, the polytope Pℓ
+associated with the leaf is empty, as any Zn -valued point would have survived each of the inequalities queried on
+some path in the tree and thus would exist in one of the polytopes at the leaves.
+    The Stabbing Planes system is then the natural generalization of the previous object: at each step in the refutation
+an arbitrary integer linear form ax in the input variables is chosen and we recurse assuming that it is at least some
+integer b or at most its integer negation b − 1. Observe that because a and b are integral, any x∗ ∈ Zn will satisfy at
+least one of the inequalities (ax ≤ b − 1, ax ≥ b), and so if the polytope at each leaf (again, obtained by intersecting
+the original system with the inequalities on the path to this leaf) is empty then we have certified that the original
+system has no integral solutions (cf. Figure 1). The queries in a Stabbing Planes proof correspond to what is known
+as branching on general disjunctions or split disjunctions [22] in integer programming, and capture the majority of
+branching that is done in practice [20]. One of the major advantages of Stabbing Planes is its simplicity: refutations
+are decision trees that query integer linear inequalities.
+    Recall that branch-and-cut solvers combine Stabbing Planes-style branching with additional cutting planes in
+order to refine the search space. We show that a single branching step in a Stabbing Planes proof can actually simulate
+CG cuts to the polytope, and therefore Stabbing Planes can simulate the execution of a branch-and-cut solver. A
+novel corollary is that Stabbing Planes can polynomially-simulate dag-like Cutting Planes despite being a tree-like
+   * For an in-depth discussions on branch-and-bound and branch-and-cut we refer the reader to [3, 20, 73].
+   †
+     Recently (and subsequent to the conference publication of this work [10]), the authors became aware of the invited chapter of Pudlák [68]
+for the Logic Colloquium‘97, in which he states that an unpublished work of Chvátal defines the Stabbing Planes system and the simulation
+of Cutting Planes. We take this independent discovery as evidence that Stabbing Planes is a highly natural proof system, which deserves
+further exploration.
+
+
+                                                                      2
+                                                        R(CP)
+
+
+
+
+                                    SP = treeR(CP)                Semantic CP
+
+
+                    AC0 -Frege                SP∗               CP = Facelike SP            Sum of Squares
+
+
+                                 treeRes(k)              CP∗                                Nullstellensatz
+
+
+                                                       treeCP
+
+Figure 2: Known relationships between relevant proof systems. A solid black (red) arrow from proof system P1 to
+P2 indicates that P2 can polynomially (quasi-polynomially) simulate P1 . A black (red) dashed arrow from P1 to P2
+indicates that P2 cannot polynomially (quasi-polynomially) simulate P1 .
+
+
+refutation system. This simulation was extended by [8] to show that Stabbing Planes can simulate disjunctive cuts
+which capture the vast majority of cutting planes used in practice, including lift and project cuts [6], split cuts [22],
+Gomory mixed integer cuts [40] and MIR cuts.
+    Beyond providing a theoretical model for branch and cut algorithms, we believe that the simplicity of Stabbing
+Planes proofs, as well as its closeness to DPLL, makes Stabbing Planes a better starting point for the analysis
+and development of search algorithms based on integer programming, such as pseudoboolean SAT solvers, than
+established proof systems. From the perspective of SAT solving, even though treeRes is equivalent to DPLL, it is
+the search point of view of DPLL that has led to major advances in SAT algorithms. A natural hypothesis is that it is
+much easier to invent useful heuristics in the language of query-based algorithms, as opposed to algorithms based on
+the deductive rules of resolution. Stabbing Planes offers similar benefits with respect to reasoning about inequalities.
+Furthermore, Stabbing Planes is a direct generalization of DPLL, and therefore we hope that the fine-tuned heuristics
+that have been developed for modern DPLL-based solvers can be lifted to algorithms based on Stabbing Planes.
+
+Stabbing Planes in Proof Complexity
+Despite its simplicity, Stabbing Planes proofs are remarkably powerful. As a motivating example, we give simple,
+short (quasi-polynomial size) SP proofs of systems of F2 linear equations known as the Tseitin formulas. These
+formulas are one of the canonical hard examples for many algebraic and semi-algebraic proof systems, including
+Nullstellensatz [44], Polynomial Calculus [15], and Sum-of-Squares [45, 70].
+Theorem 1. There are quasipolynomial size Stabbing Planes proofs of any instance of the Tseitin tautologies.
+    We also explore the relationships between SP and other proof systems. This is summarized in Figure 2. Most
+notably, we show that SP is polynomially-equivalent to treeR(CP), the tree-like variant of Krajı́ček’s R(CP) proof
+system [54]. This system can be thought of as a mutual generalization of resolution and Cutting Planes, in which
+the lines are disjunctions of integer linear inequalities, and we are allowed to apply Cutting Planes rules on the
+inequalities and resolution-style cuts on the disjunctions.
+Theorem 2. The proof systems SP and treeR(CP) are polynomially equivalent.
+     We note that even though SP is equivalent to a system already in the literature, the new perspective provided by
+it is indeed enlightening as none of the results in this section were known for treeR(CP) (including the simulation
+of CP!).
+
+                                                           3
+    The remainder of this work tackles the problem of proving superpolynomial lower bounds on the complexity
+of SP proofs. Although we are unable to establish size lower bounds, we prove nearly optimal lower bounds on
+the depth of SP refutations, as well as explain why several natural approaches for proving size bounds fail. The
+depth of an SP proof — the longest root to leaf path — is a natural parameter that captures the parallelizability of
+proofs, and is closely related to rank measures of polytopes, which have been heavily studied in integer programming
+theory [17].
+
+Theorem 3. There exists a family of unsatisfiable CNF formulas {Fn } for which any SP refutation requires depth
+Ω(n/ log2 n)
+
+    The proof of this theorem proceeds by showing that shallow SP proofs give rise to short randomized and real
+communication protocols for the false clause search problem, and then appealing to known lower bounds for this
+problem. In many strong proof systems such as Frege and Extended Frege it is known that depth lower bounds imply
+size lower bounds via so-called balancing theorems [55]. However, we can show that SP proofs cannot be balanced.
+More precisely, SP proofs of size s do not imply the existence of proofs of size poly(s) and depth polylog(s).
+    While SP proofs cannot be balanced, the real communication protocols that result from SP proofs preserve
+the topology of the SP proof, and therefore size lower bounds on SP would follow by showing instead that the
+real communication protocols themselves could be balanced. There is a precedent for this: both deterministic
+and randomized communication protocols can be balanced, and lower bounds on treeCP proofs were obtained by
+exploiting this fact [49]. However, we can also show that real communication protocols cannot be balanced. Enroute,
+we establish the first superlogarithmic lower bound on the real communication complexity of the set disjointness
+function, a function which has been central to many of the lower bounds which exploit communication complexity.
+
+1.1 Related and Subsequent Work
+Lower Bounds on Variable Branching. Lower bounds for a number of branch-and-cut algorithms using variable-
+branching — meaning that they branch on the integer value of single variables, rather than arbitrary inequalities (i.e.,
+DPLL which branches on xi ∈ Z) — have previously been established. The first example of this was the lower bound
+of Jerslow [50] on the number of queries made by branch-and-bound algorithms with variable branching. Cook and
+Hartman proved exponential lower bounds on the number of operations required to solve certain travelling salesman
+instances by branch-and-cut algorithms which use variable branching and Chvátal-Gomory cuts [24]. However, their
+lower bound is exponential only in the number of variables, and not in the number of inequalities. The first truly
+exponential (in the encoding size of the instance) lower bound for branch-and-cut algorithms which use variable
+branching was established by Dash [27] by extending the lower bound of Pudlák [67] for Cutting Planes proofs.
+
+Lower Bounds for treeR(CP). Lower bounds on certain restrictions of treeR(CP) were established in earlier
+works. Krajı́ček [54] proved superpolynomial lower bounds on the size of R(CP) proofs when both the width of the
+clauses and the magnitude of the coefficients of every line are sufficiently bounded. Concretely, letting w and c be
+                                                                                                        Ω(1)     2
+upper bounds on the width and coefficient size respectively, the lower p bound that he obtained was 2n /cw log n .
+For treeR(CP), Kojevnikov [53] improved this lower bound to exp(Ω( n/w log n)), removing the dependence on
+the coefficient size. In Figure 5.1 we prove a size-preserving simulation of SP by treeR(CP) which translates depth
+d SP proofs into width d treeR(CP) proofs. Therefore, Kojevnikov’s result implies a superpolynomial lower bound
+on the size of SP proofs of depth o(n/ log n). In Subsection 6.1 we exhibit a formula for which any SP refutation
+requires depth Ω(n/ log2 n).
+
+Subsequent Work. Following the conference version of this work [10], Dadush and Tiwari [25] showed that the
+Stabbing Planes proofs of the Tseitin formulas could be efficiently translated into CP. This refuted a long-standing
+conjecture that CP requires exponential size refutations of these formulas [23]. In the same paper, they established
+a polynomial equivalence between the number of nodes and the size of SP proofs (i.e., the number of bits needed to
+express the proof).
+
+
+
+                                                           4
+     Dadush and Tiwari also considered SP in the context of mixed integer programming (MIP) and proved expo-
+nential lower bounds on SP in this setting. In this setting, you are given a polytope P = {(x, y) ∈ Rn1 × Rn2 :
+Ax + By ≥ b}, and you are searching for an integer solution to the x-variables and a real solution to the y-variables.
+In other words, rather than proving that P ∩ Zn = ∅, instead you would like to prove that P ∩ Zn1 ∩ Rn2 = ∅. In
+this case, SP queries involving y-variables are disallowed, as this would not be sound. As shown by Dadush and
+Tiwari, this restriction turns out to be enough to obtain quite simple proofs of intractability. First, they prove that
+any SP refutation of a certain system of 2n many inequalities (encoding the complete unsatisfiable formula) requires
+size 2n /n. Next, they show that this system of inequalities admits a poly(n)-size MIP extended formulation. As
+SP cannot branch on the extension variables, refuting this extended formulation is identical refuting the complete
+unsatisfiable formula in SP. Dey, Dubey, and Molinaro [32] extended this technique to prove lower bounds for a
+number of MIP instances for packing, set cover, the Travelling Salesman problem, and the cross polytope, even
+when Gaussian noise is added to the coefficients. However, this technique crucially relies on the fact that for MIP
+problems, SP queries cannot involve the real-variables, and therefore it does not appear to be possible to extend this
+technique to prove lower bounds on pure integer programming problems (i.e. those with only integer-variables) such
+as standard encodings of CNF formulas.
+     Fleming et al. [35] showed that any Stabbing Planes proof with quasipolynomially bounded coefficients (SP∗ )
+can be translated into a Cutting Planes proof with at most a quasipolynomial increase in size. This allowed them
+to lift the exponential lower bounds on Cutting Planes proofs [36, 39, 48, 67] to SP∗ , and even to SP proofs with
+coefficients of size exp(nδ ) for some constant δ < 1. As well, using this connection, they generalized the result
+of Dadush and Tiwari to show that there are quasipolynomial-size Cutting Planes refutations of any unsatisfiable
+system of linear equations over the finite field Fp for any prime p. To prove this simulation of SP∗ by Cutting
+Planes, they characterized Cutting Planes as a subsystem of Stabbing Planes, which they called facelike Stabbing
+Planes. Briefly, a facelike Stabbing Planes proof restricts Stabbing Planes queries to have one side of the query be a
+face of the current polytope. Then, they show that SP proofs can be made facelike with a blowup that is proportional
+to the size of the coefficients and the diameter of the polytope.
+     Basu et al. [8] showed that SP can simulate disjunctive cuts, a result which we cover in more detail in Subsection 4.3.
+Furthermore, they give an IP instance can be solved in size O(1) in SP but requires poly(n) deductions using split
+cuts. As well, they explore the effect that sparsity —the number of non-zero coordinates in each query — has on
+branch-and-cut. Sparse queries can be thought of as an intermediate between full SP branching and variable branch-
+ing. They provide an instance where the any branch-and-bound tree must be of exponential size if the sparsity is
+o(n).
+     Recently, Dantchev et al. [26] introduced several novel techniques for proving lower bounds on SP proofs by
+exploiting their geometric structure. In particular, they make use of the fact that for a polytope P , every point x∗ ∈ P
+must be contained within some slab of the SP proof. This allowed them to establish linear lower bounds on the size
+of SP proofs of the pigeonhole principle as well as the Tseitin formulas; because SP proofs are binary trees, this
+leads to a depth Ω(log n) lower bound for both formulas.
+
+1.2 Organization
+We begin by formally defining the Stabbing Planes proof system in Section 2. The Stabbing Planes refutations of the
+Tseitin formulas are given in Section 3. Section 4 explores how Stabbing Planes relates to Cutting Planes: we show
+that Stabbing Planes can polynomially simulate Cutting Planes, and we explore whether a simulation of Cutting
+Planes by Stabbing Planes can preserve other parameters of the proof in Subsection 4.2. We end this section (in
+Subsection 4.3) by observing that Stabbing Planes can simulate most other types of cutting planes that are used in
+integer programming. In Section 5 we explore how Stabbing Planes compares to other popular proof systems in the
+literature, and we prove the equivalence with treeR(CP). In the final section (Section 6) we explore whether we can
+prove lower bounds on Stabbing Planes with unbounded coefficients. We prove unrestricted depth lower bounds in
+Subsection 6.1 and rule out several natural approaches that utilize communication complexity in Subsection 6.2.
+
+
+
+
+                                                           5
+2 Preliminaries
+We begin by formally defining the Stabbing Planes proof system. For this, it will convenient to use the following
+combination of Farkas’ Lemma with Carathéodory’s Theorem, which we state next.
+
+Farkas’ Lemma. Let A ∈ Qm×n and b ∈ Qm . Then exactly one of the following holds:
+
+  (i) There exists x ∈ Rn such that Ax ≤ b.
+
+  (ii) There exists y ∈ Zm with y ≥ 0 such that y ⊤ A = 0 and y ⊤ b < 0. Moreover, y has at most n + 2 non-zero
+       coordinates.
+
+    The “moreover” part in (ii) follows from Carathéodory’s Theorem. Proofs of both Carathéodory’s Theorem and
+Farkas’ Lemma can be found in [20].
+    With this, we are ready to define the Stabbing Planes proof system. The Stabbing Planes proof system is a proof
+system for refuting the existence of integer-solutions to systems of linear inequalities; we will call such systems
+unsatisfiable.
+
+Stabbing Planes. Let Ax ≥ b be an unsatisfiable system of linear inequalities. A Stabbing Planes (SP) refutation
+of Ax ≥ b is a directed binary tree, T , where each edge is labelled with a linear integral inequality satisfying the
+following consistency conditions:
+
+    • Internal Nodes. For any internal node u of T , if the right outgoing edge of u is labelled with cx ≥ d, then the
+      left outgoing edge is labelled with its integer negation cx ≤ d − 1.
+
+    • Leaves. Each leaf node v of T is labelled with a conic combination of inequalities in F with inequalities along
+      the path leading to v that yields 0 ≥ 1 (provided by Farkas’ Lemma).
+
+For an internal node u of T , the pair of inequalities (cx ≤ d − 1, cx ≥ d) is called the query corresponding to the
+node. Every node of T has a polytope P associated with it, where P is the polytope defined by the intersection of
+the inequalities in F together with the inequalities labelling the path from the root to this node. We will say that
+the polytope P corresponds to this node. That is, if P is the polytope corresponding to a node v which queries
+(cx ≤ d − 1, cx ≥ d), then the polytopes of the children of v are given by P ∩ {x ∈ Rn : cx ≤ d − 1} and
+P ∩ {x ∈ Rn : cx ≥ d}. For readability, we will use the abbreviation P ∩ {cx ≥ d} for P ∩ {x ∈ Rn : cx ≥ d}.
+
+    The slab corresponding to the query is {x∗ ∈ Rn | d − 1 < cx∗ < d}, which is the set of points ruled out by
+this query. The width of the slab is the minimum distance between cx ≤ d − 1 and cx ≥ d, which is 1/kck2 . This
+gives an intuitive geometric interpretation of SP refutations: at each step we remove a slab from the polytope and
+recurse on the resulting polytopes on both sides of the slab. The aim is to recursively cover the polytope with slabs
+until every feasible point has been removed. An example of this can be seen in Figure 1, where the yellow and red
+areas are the slabs of the two queries.
+    The size of an SP refutation is the bit-length needed to encode a description of the entire proof tree, which, for
+CNF formulas as well as sufficiently bounded systems of inequalities, is polynomially equivalent to the number of
+queries in the refutation. In particular, Dadush and Tiwari [25] prove the following.
+
+Proposition 4 (Corollary 1.2 in [25]). Let Ax ≥ b be any unsatisfiable system of linear equations whose coefficients
+require ℓ bits to express, and let s be the number of nodes in an SP refutation of Ax ≥ b. Then there exists an SP
+refutation of size sℓn6 .
+
+    As well, the depth (or rank) of the refutation is the depth of the binary tree. The depth of refuting an unsatisfiable
+system of linear inequalities Ax ≥ b, denoted depthSP (Ax ≥ b), is the minimum depth of any SP refutation of
+Ax ≥ b. Observe that any unsatisfiable system of inequalities Ax ≥ b whose corresponding polytope is contained
+within the unit cube [0, 1]n (this includes the encodings of all CNF formulas) has a trivial size 2n and depth n SP
+refutation by branching on (xi ≤ 0, xi ≥ 1) for every i ∈ [n].
+
+
+                                                            6
+    We will be particularly interested in Stabbing Planes refutations of unsatisfiable CNF formulas. Given a CNF
+formula F we can translate it into an equisatisfiable system of linear inequalitiesWin the natural
+                                                                                               W way. First, introduce
+the inequalities 0 ≤ xi ≤ 1 for every variable xi . Second, for each clause i∈I xi ∨ j∈J ¬xj introduce the
+inequality                                   X         X
+                                                  xi +     (1 − xj ) ≥ 1.
+                                               i∈I        j∈J
+
+It is easy to see that the this system of inequalities will have no integer solutions if and only if the original formula F
+was unsatisfiable. With this translation we consider Stabbing Planes refutations of CNF formulas F to be refutations
+of the translation of F into a system of linear inequalities.
+     With the previous translation in hand we show that SP is indeed a propositional proof system as defined by Cook
+and Reckhow [21].
+Proposition 5. Stabbing Planes is sound, complete, and polynomially verifiable.
+Proof. Completeness follows immediately from the fact that SP simulates DPLL, which is itself a complete proof
+system. Soundness follows because each slab in an SP proof, corresponding to a query (cx ≤ d − 1, cx ≥ d),
+removes only non-integral points. Indeed, by the integrality of c and d, any x ∈ Zn satisfies either cx ≤ d − 1 or
+cx ≥ d. Finally, to see that SP proofs are polynomially verifiable, observe that we only need to verify that every
+query is of the form (cx ≤ d − 1, cx ≥ d) for integral c and d, and that each conic combination labelling the leaves
+evaluates to 0 ≥ 1.
+
+    We will also be interested in the Cutting Planes proof system, the first proof system to formalize a class of
+integer programming algorithms.
+
+Cutting Planes. A Cutting Planes proof (CP) of an inequality cx ≥ d from a system of integer linear inequalities
+Ax ≥ b is a sequence of inequalities {ci x ≥ di }i∈[s] such that cs = c, ds = d, and each inequality ci x ≥ di either
+belongs to Ax ≥ b or is deduced from earlier inequalities in the sequence by one of the following inference rules
+    • Linear Combination. From inequalities ci x ≥ di , cj x ≥ dj , deduce any non-negative linear combination with
+      integer coefficients.
+
+    • Division. From an inequality ci x ≥ di , if t ∈ Z divides all entries in ci then deduce (ci /t)x ≥ ⌈di /t⌉.
+The size of a Cutting Planes derivation is the number of inequalities s, and is known to be equivalent up to a
+polynomial blow-up to the complexity of expressing the proof [23]. It is useful to visualize the derivation as a
+directed acyclic graph, where the nodes are the inequalities in the derivation, and for each inference, there are arcs
+from the at-most-two inequalities from which it was derived. With this in mind, the depth of a Cutting Planes
+derivation is the length of the longest root-to-leaf path in the dag. Finally, a Cutting Planes refutation of a system of
+integer linear inequalities Ax ≥ b is a derivation of the trivially false inequality −1 ≥ 0.
+
+
+3 Refutations of the Tseitin Formulas
+As a motivating example, we show that Stabbing Planes has quasipolynomial size proofs of the Tseitin formulas,
+proving Theorem 1. For any graph G = (V, E) and any labelling ℓ : V → {0, 1} of the vertices, the Tseitin formula
+of (G, ℓ) is the following system of F2 -linear equations: for each edge e we introduce a variable xe , and for each
+vertex v we have an equation                      M
+                                                        xuv = ℓ(v),
+                                                     u:uv∈E
+
+asserting that the sum of edge variables
+                                    P    incident to v must agree with its label ℓ(v). It is not difficult to see that a
+Tseitin formula is unsatisfiable iff v∈V ℓ(v) is odd. If we denote by deg(G) the maximum degree of any vertex in
+G then the Tseitin formula of (G, ℓ) can be encoded as a CNF formula with |V | · 2deg(G)−1 many clauses. The next
+theorem shows that there is a quasi-polynomial size Stabbing Planes refutation of any Tseitin formula.
+
+                                                                7
+                                b
+                                                                a
+                                       U1                                   U2
+
+
+
+                                                                U
+                                                                                 G
+
+           Figure 3: A single round of the algorithm. Note that κU1 = a + b and KU2 = a + (KU − b).
+
+                                                                                                 2
+Theorem 6. For any Tseitin instance (G, ℓ) there is a Stabbing Planes refutation of size 2O(log n)+deg(G) and depth
+deg(G) · log2 n.
+
+    First we will introduce some notation. For U ⊆ V let ℓ(U ) = ⊕v∈U ℓ(v). As well, if U, W ⊆ V then let
+E[U, W ] denote the set of edges with one endpoint in U and the other in W , and let E[U ] denote the set of edges
+with one endpoint in U .
+
+Proof. The Stabbing Planes proof will implement the following recursive search algorithm for a violated constraint
+of the Tseitin instance. In each round we maintain a subset U ⊆ V and an integer κU ∈ N representing the total
+value of the edges E[U ] leaving U . Over the algorithm, we maintain the invariant that ℓ(U ) + κU is odd, which
+implies that there is a contradiction to the Tseitin instance inside of U .
+    Initially, set U := V and κV = 0, and note that the invariant holds since ℓ(V ) is odd by definition. Then perform
+the following algorithm (see also Figure 3):
+
+   1. Choose a balanced partition U = U1 ∪ U2 (so ||U1 | − |U2 || ≤ 1)
+                                 P                       P
+   2. Query the value of a =          xe and b =                   xe .
+                               e∈E[U1 ,U2 ]           e∈E[U1 ]\E[U1 ,U2 ]
+
+   3. The value of the edges leaving U1 is κU1 := a+b and the value of the edges leaving U2 is κU2 := a+(κU −b);
+      so we recurse on the subset that maintains the invariant.
+
+First we note that exactly one of the two subsets must maintain the invariant. This follows from the next short
+calculation:
+
+                 ℓ(U ) + κU = ℓ(U1 ) + ℓ(U2 ) + κU + 2a                                       (mod2)
+                             = (ℓ(U1 ) + a + b) + (ℓ(U2 ) + a + (κU − b))                     (mod2)
+                             = (ℓ(U1 ) + κU1 ) + (ℓ(U2 ) + κU2 )                              (mod2)
+
+thus, since ℓ(U ) + κU is odd, it follows that exactly one of the ℓ(U1 ) + κU1 or ℓ(U2 ) + κU2 must also be odd. Second,
+we note that the recursion ends when |U | = 1, at which point we obtain an immediate contradiction between κU and
+the equation corresponding to the single node inside U .
+    To implement this algorithm in Stabbing Planes, it suffices to show how to perform the queries in step 2, and how
+to deduce a contradiction when |U | = 1; we begin with step 2. The first query can be performed by a binary tree with
+|E[U1 , U2 | ≤ n leaves, one corresponding to each possible query outcome. Internally, the tree queries all possible
+integer values for the sum (e.g. (a ≤ 0, a ≥ 1), (a ≤ 1, a ≥ 2), . . .). The second query can similarly be performed
+by a tree with |E[U1 ]| ≤ n leaves. Since we choose a balanced partition in each step, the recursion terminates in at
+most O(log n) rounds — thus, we have a tree with branching factor O(n) and depth O(log n), yielding a size bound
+
+                                                            8
+of nO(log n) . Furthermore, each query can be implemented in a tree of depth O(log n), and so the depth of the proof
+is O(log2 n).
+    For the leaf-case, when |U | = 1, let u be the unique vertex in U . Stabbing Planes has deduced that
+                              X
+                                   xuv = κU 6= ℓ(u)                               (mod2).
+                            v:uv∈E
+
+This is a contradiction to the Tseitin axiom ⊕v:uv∈E xuv = ℓ(v). However, the Tseitin formula is presented to
+SP as a system of linear inequalities (encoding a CNF formula) which is equivalent to the Tseitin formulas (a
+systemP of F2 linear equations) over integer solutions. Therefore, while there are no integer solutions satisfying
+κU = v:uv∈E xuv = ℓ(u), there could still be non-integer solutions. To handle this, we simply force each of the
+deg(G) variables involved in this constraint to take integer values by sequentially querying the value of each variable
+one-by-one. That is, for each {xuv : uv ∈ E} we query (xuv ≤ 0, xuv ≥ 1), noting that we have axioms saying
+that xe ≥ 0 and xe ≤ 1 for every e ∈ E. This can be done in a binary tree of height deg(G) with at most 2deg(G)
+leaves, where at each leaf we derive 0 ≥ 1.
+
+    Together with the lower bounds of Buresh-Oppenheim et. al. [14] and Fleming et. al. [35] on the depth of Cutting
+Planes and semantic Cutting Planes proofs of the Tseitin formulas, Theorem 1 provides an exponential separation in
+terms of depth for these proof systems and Stabbing Planes.
+
+
+4 The Relationship Between Stabbing Planes and Cutting Planes
+It is an interesting question how Stabbing Planes compares to Cutting Planes, the main proof system based on ideas
+from integer programming. By contrasting the two systems we see three major differences:
+
+    • Top-down vs. Bottom-up. Stabbing Planes is a top-down proof system formed by performing queries on
+      the polytope and recursing; while Cutting Planes is a bottom-up proof system, formed by deducing new
+      inequalities from previously deduced ones.
+
+    • Polytopes vs. Halfspaces. Individual “lines” in a Stabbing Planes proof are polytopes, while individual “lines”
+      in a Cutting Planes proof are halfspaces.
+
+    • Tree-like vs. dag-like. The graphs underlying Stabbing Planes proofs are trees, while the graphs underlying
+      Cutting Planes proofs are general dags: intuitively, this means that Cutting Planes proofs can “re-use” their
+      intermediate steps, while Stabbing Planes proofs cannot.
+
+When taken together, these facts suggest that Stabbing Planes and Cutting Planes could be incomparable in power,
+as polytopes are more expressive than halfspaces, while dag-like proofs offer the power of line-reuse. Going against
+this intuition, we show next that Stabbing Planes and Cutting Planes are in fact very closely related.
+
+4.1 Stabbing Planes Simulates Cutting Planes
+A Cutting Planes proof is of a linear inequality cx ≥ d from polytope P , presented as a list of integer linear
+inequalities {ai x ≥ bi }, is a sequence of inequalities {ci x ≥ di }i∈[s] such that the final inequality is cx ≥ d, and
+each ci x ≥ di is either one of the inequalities of P , or is deduced from previously derived inequalities by one of the
+following two deduction rules:
+
+    • Conic Combination. From inequalities ax ≥ b, cx ≥ d deduce any nonnegative linear combination of these
+      two inequalities with integer coefficients.
+
+    • Division. From an inequality ax ≥ b, if d ∈ Z with d ≥ 0 divides all entries of a then deduce (a/d)x ≥ ⌈b/d⌉.
+
+
+
+
+                                                           9
+                                                   P1
+                                   a1 x ≤ b1 − 1          a1 x ≥ b1
+
+                                             ∅             P2
+                                         a2 x ≤ b2 − 1           a2 x ≥ b2
+
+                                                   ∅
+
+                                                                       Ps−1
+
+                                                       as x ≤ bs − 1          as x ≥ bs
+
+                                                                  ∅            ∅
+
+
+Figure 4: The Stabbing Planes refutation which results from translating a Cutting Planes refutation P =
+P1 , . . . , Ps = ∅.
+
+
+A Cutting Planes refutation is a proof of the trivially false inequality 0 ≥ 1.
+    Equivalently, we can view a Cutting Planes refutation as a sequence of polytopes P = P1 , . . . , Ps = ∅ such that
+Pi is obtained from Pi−1 by including an inequality which can be deduced from the inequalities of Pi−1 by one of
+the two rules of Cutting Planes. In integer programming, we obtain Pi from Pi−1 by a Chvátal-Gomory cut.
+Theorem 7. Stabbing Planes polynomially simulates Cutting Planes.
+Proof. We will say that a polytope P ′ can be deduced from P by Stabbing Planes if there is a query (ax ≤ b −
+1, ax ≥ b) such that P ∩ {x : ax ≤ b − 1} = ∅ and P ∩ {x : ax ≥ b} ⊆ P ′ .
+    Let P be an unsatisfiable polytope and P = P1 , . . . , Ps = ∅ be a Cutting Planes refutation. To prove the
+theorem, we show that for each i ∈ [s − 1], Pi+1 = Pi ∩ {x : ax ≥ b} can be deduced from from Pi in Stabbing
+Planes by the query (ax ≤ b − 1, ax ≥ b). It remains to show that Pi ∩ {x : ax ≤ b − 1} = ∅. There are two cases,
+depending on the rule used to derive ax ≥ b from Pi .
+    • If ax ≥ b was derived by a conic combination of inequalities belonging to Pi , then Pi ∩ {ax ≤ b − 1} = ∅ can
+      be witnessed by adding the conic combination equalling ax ≥ b together with ax ≤ b − 1 to deduce 0 ≥ 1.
+
+    • Otherwise, ax ≥ b is derived by division, i.e., it is (c/t)x ≥ ⌈c/t⌉ for some integer t ≥ 0. Then ⌈d/t⌉ ≥ d/t
+      and so 0 ≥ 1 is a conic combination of (c/t)x ≤ ⌈d/t⌉ − 1 and cx ≥ d, witnessing that P ∩ {x : (c/t)x ≤
+      ⌈d/t⌉ − 1} = ∅.
+   To see that Stabbing Planes can simulate Cutting Planes, we view each inequality
+
+4.2 Towards a Topology Preserving Simulation of Cutting Planes
+An artifact of both the simulations of CP by variants of SP and of SP∗ by CP is that they are far from being depth-
+preserving; they convert shallow proofs into ones that are extremely deep. In this section, we explore whether this
+explosion in depth is inherent to the simulation of CP by SP. While we are unable to conclusively resolve this
+question — indeed, at this time the only technique for proving super-logarithmic depth lower bounds on SP works
+equally well for CP — we provide a number of depth-preserving simulations of subsystems of CP.
+    To motivate our results, we will take a detour and discuss the relationship between SP, CP and real commu-
+nication protocols. Presently, almost all known lower bounds for CP are obtained by studying the communication
+complexity of the false clause search problem (defined in Section 2). For instance, it is known that:
+    • A depth d CP refutation yields a d-round real communication protocol for the associated false clause search
+      problem.
+
+    • A size s treeCP refutation yields a real communication protocol O(log s)-round real communication protocol
+      for the associated false clause search problem.
+
+                                                                10
+    • A size s and space ℓ CP refutation yields a O(ℓ log s)-round real communication protocol for the associated
+      false clause search problem.
+
+    • A size s CP proof yields a dag-like real communication protocol for the associated false clause search problem.
+
+All of these results have been used to derive strong lower bounds on Cutting Planes by proving the corresponding
+lower bound against the false clause search problem [12, 31, 36, 48, 54, 67]. Furthermore, this technique applies
+even to the stronger semantic CP system, as all one needs to exploit is that the lines are linear inequalities, rather
+than expoiting some weakness of the deduction rules. However, this strength also illustrates a weakness of current
+techniques, as once the lines of a proof system become expressive enough, proof techniques which work equally
+well for semantic proof systems break down since every tautology has a short semantic proof. Therefore, it is of
+key importance to develop techniques which truly exploit the “syntax” of proof systems, and not just the expressive
+power of the lines.
+    Hence, it is somewhat remarkable that we are able to show that each of the simulation results above still hold if
+we replace real communication protocols with SP refutations, which are syntactic objects. That is, we show
+
+  (i) A depth d CP refutation yields a depth 2d SP refutation.
+
+ (ii) A size s treeCP refutation yields a size O(s) and depth O(log s) SP refutation.
+
+ (iii) A size s and space ℓ CP refutation yields a size O(2ℓ s) and depth O(ℓ log s) SP refutation.
+
+ (iv) A size s CP refutation yields a size O(s) SP refutation
+
+4.2.1    Simulating CP Depth
+First, we exhibit a depth-preserving simulation of CP by SP, which establishes (i). Furthermore, if the proof is
+tree-like then this simulation simultaneously preserves the size.
+
+Theorem 8. depthCP (F ) ≥ 2 · depthSP (F ). Moreover, for any treeCP refutation of depth d and size s there is an
+SP refutation of depth 2d and size O(s).
+
+Proof. It is sufficient to prove the “moreover” part of the statement, since, by recursive doubling, any CP refutation
+can be converted into a treeCP refutation where the depth remains the same.
+    Fix a treeCP refutation of size s and depth d, and let G be the its underlying tree. We will construct an SP
+refutation of the same system of linear inequalities by proceeding from the root of G to the leaves. In the process,
+we will keep track of a subtree T of G, which we have left to simulate, and an associated “current” node v of the
+SP refutation that we are constructing. Along the way, the following invariant will be maintained: at every recursive
+step (T, v) with T 6= G, if the root of T is labelled with the inequality ax ≥ b, then the edge leading to v in the SP
+refutation is labelled with ax ≤ b − 1.
+    Initially, T = G and the SP refutation contains only a single root node v. Consider a recursive step (T, v). We
+break into cases based on which rule was used to derive the root of T .
+
+    • Conic Combination. Suppose that the root of T is labelled with an inequality λ(a + c)x ≥ λ(b + d) which
+      was derived as a conic combination of ax ≥ b and cx ≥ d. At the current node v in the SP refutation, query
+      (ax ≤ b − 1, ax ≥ b). On the branch labelled with ax ≥ b, query (cx ≤ d − 1, cx ≥ d). This sequence of
+      queries results in three leaf nodes; see Figure 5. Let the leaf of the branch labelled with ax ≤ b − 1 be ℓ1 and
+      let T1 be the subtree rooted at the child of the root of T labelled with ax ≥ b; recurse on (T1 , ℓ1 ). Similarly,
+      for the leaf ℓ2 of the branch labelled with cx ≤ d − 1, let T2 be the sub-tree rooted at the child of the root of
+      T labelled with cx ≥ d, and recurse on (T2 , ℓ2 ).
+        For the final leaf, obtained by traversing the edges labelled with ax ≥ b and cx ≥ d, we can derive 0 ≥ 1.
+        To see this, first observe that if T = G (i.e. the base case) then the root node of T is labelled with 0 ≥ 1 and
+        ax ≥ b and cx ≥ d are the premises used to derive it by a conic combination. In this case, we can derive
+
+
+                                                           11
+                                                                   λ(a + c)x ≤ λ(b + d) − 1
+
+
+
+                     ax ≥ b                          cx ≥ d            ax ≤ b − 1             ax ≥ b
+
+                                                                        ℓ1   ∅
+                                                                                 cx ≤ d − 1            cx ≥ d
+
+                              λ(a + c)x ≥ λ(c + d)                                  ℓ2   ∅                 ℓ3
+
+
+Figure 5: A treeR(CP) refutation invoking the conic combination rule (left) and the corresponding partial SP refu-
+tation (right).
+
+
+        0 ≥ 1 by the same conic combination in SP. Otherwise, by the invariant, the edge leading to v is labelled with
+        the inequality λ(a + c)x ≤ λ(b + d) − 1. Therefore, a conic combination of this inequality with ax ≥ b and
+        cx ≥ d yields 0 ≥ 1.
+
+    • Division. If the root of T is labelled with an inequality ax ≥ ⌈b/δ⌉ obtained by division from δax ≥ b, then
+      query (δax ≤ b−1, δax ≥ b). At the leaf ℓ1 corresponding to the edge δax ≤ b−1, let T1 be the subtree of T
+      rooted at the child of the root of T and recurse on (T1 , ℓ1 ). At the leaf corresponding to the edge δax ≥ b we
+      derive 0 ≥ 1 by a conic combination with ax ≤ ⌈b/δ⌉ − 1, which we have already deduced by the invariant.
+      To see this, observe that b − δ(⌈b/δ⌉ − 1) > 0
+
+    • Axiom. If T is a single node — a leaf of the treeCP refutation labelled with some initial inequality ax ≥ b of
+      the system that it is refuting — then, by the invariant, we have already deduced ax ≤ b − 1 and this can be
+      added to ax ≥ b to derive 0 ≥ 1.
+
+    To see that the SP refutation that we have constructed has depth at most twice that of the treeCP refutation,
+observe that conic combinations are the only inference rule of CP for which this construction requires depth 2 to
+simulate, while all other rules require depth 1.
+    To measure the size, note that every CP rule with a single premise is simulated in SP by a single query, where
+one of the outgoing edges of that query is immediately labelled with 0 ≥ 1. Each rule with two premises is simulated
+by two queries in the SP refutation, where one of the three outgoing edges is labelled with 0 ≥ 1. Therefore, the
+size of the SP refutation is O(s).
+
+4.2.2    Balancing treeCP Proofs into SP
+A proof system can be balanced if any proof of size s implies one of simultaneous size poly(s) depth polylog(s).
+While it is known that treeCP refutations cannot be balanced, we show next that if we permit the resulting refutation
+to be in SP, then we can balance. This establishes (ii).
+
+Theorem 9. Any size s treeCP refutation of an unsatisfiable system of linear inequalities Ax ≥ b implies a size
+O(s) and depth O(log s) SP refutation of Ax ≥ b.
+
+Proof. Consider a treeCP refutation of Ax ≥ b and let T be its corresponding tree. As well, let |T | denote the
+number of nodes in T . We will construct the SP refutation recursively; at each step we will keep track of a current
+node u in the SP proof we are constructing. The base case is when |T | = O(1), in which case we can use Theorem 8
+to create an SP refutation of Ax ≥ b satisfying these properties, and append it to u.
+    For the recursive step, observe that because the tree has fanin at most 2, there exists a node v in T such that the
+subtree Tv rooted at v satisfies |T |/3 ≤ |Tv | ≤ 2|T |/3. Let cx ≥ d be the line corresponding to v. At node u in the
+SP proof, query (cx ≤ d − 1, cx ≥ d). Let u1 (resp. u2 ) be the child of u obtained by following the edge labelled
+with cx ≤ d − 1 (resp. cx ≥ d); see Figure 6. We recurse as follows:
+
+
+                                                              12
+                                                                                u
+                                    T \ Tv         v               cx ≤ d − 1        cx ≥ d
+
+                                                                        u1              u2
+                                                 Tv
+                                                                       Tv            T \ Tv
+
+Figure 6: A decomposition of treeR(CP) tree T into Tv and T \ Tv (left) and the corresponding partial SP refutation
+(right).
+
+
+    • At u1 ; Observe that the sub-proof Tv is a treeCP derivation of the inequality cx ≥ d. Because we have
+      deduced cx ≤ d − 1 on the path to u1 , if we also deduce cx ≥ d then this is sufficient to derive 0 ≥ 1.
+      Therefore, at u1 we recurse on the treeCP derivation Tv .
+
+    • At u2 : Observe that the sub-proof T \Tv is a treeCP refutation of Ax ≥ b where we have assumed cx ≥ d as an
+      axiom. Therefore, at u2 we recursively construct an SP refutation of the set of inequalities {Ax ≥ b, cx ≥ d}
+      using tree T \ Tv .
+
+The size of the treeCP refutation is clearly preserved. Observe that the depth of the resulting SP refutation becomes
+logarithmic in s, since we are reducing the size of the proof to be simulated by a constant factor on each branch of a
+query.
+
+4.2.3   Balancing Low-Space CP Proofs into SP
+Next,we show how to balance CP proofs into SP, provided the space at each step of the proof is bounded.
+    The space for a proof system models the amount of information that must be remembered at each state in
+the nondeterministic Turing machine that underlies a proof system. To capture this, we redefine a Cutting Planes
+refutation of a system of linear inequalities Ax ≥ b as a sequence of configurations C1 , . . . , Cs where a configuration
+Ci is a set of integer linear inequalities satisfying the following conditions: (i) C1 = ∅, (ii) Cs contains the inequality
+0 ≥ 1, (iii) each configuration Ct follows from Ct−1 by removing any number of inequalities and including an
+inequality which was derived from inequalities in Ct−1 by one of the rules of CP or an initial inequality belonging
+to Ax ≥ b. The line space of a refutation is maxi∈[s] |Ci |, the maximum number of inequalities in any configuration.
+
+Theorem 10. For any CP refutation of size s and line space ℓ of a system of linear inequalities Ax ≥ b there is an
+SP refutation of depth O(ℓ log s) and size O(s · 2ℓ ).
+
+    This implies that strong depth lower bounds on SP proofs can lead to size-depth tradeoffs for CP.
+
+Proof. Fix a Cutting Planes refutation C1 , . . . , Cℓ where |Ci | ≤ ℓ for all i ∈ [s]. The theorem will follow by taking
+i = s in the following claim.
+
+Claim. For any i ∈ [s] there exists an SP tree of depth 2ℓ log i such that every root-to-leaf path ends in a leaf labelled
+with 0 ≥ 1, except for one, along which we have deduced all of the inequalities in Ci .
+
+Proof of Claim. It remains to prove the claim. If Ci contains only a single inequality ai x ≥ bi and it belongs to
+Ax ≥ b, then take the tree to be the one corresponding to the SP query (ai x ≤ bi − 1, ai x ≥ bi ). Otherwise, the SP
+tree begins with a complete binary tree in which every inequality in C⌊i/2⌋ is queried. Exactly one path in this tree
+is labelled with the inequalities in C⌊i/2⌋ , and the remaining paths contain the integer negation (i.e., cx ≤ d − 1) of
+at least one inequality cx ≥ d in C⌊i/2⌋ . We consider these two cases separately.
+     In the case that a path contains a negation of a line from C⌊i/2⌋ , we attach to its leaf the SP tree we obtain
+recursively by running our construction on C1 , . . . , C⌊i/2⌋ . The leaves of the resulting tree are all labelled with
+
+                                                            13
+                                                  cx ≤ d − 1              cx ≥ d
+
+
+
+
+                              C⌊i/2⌋+1 , . . . , Ci                                C1 , . . . , C⌊i/2⌋
+
+
+
+
+                       Figure 7: The SP tree corresponding to a configuration Ci = {cx ≥ d}.
+
+
+0 ≥ 1, except for one. By construction, at the leaf not labelled with 0 ≥ 1 we have deduced all inequalities in C⌊i/2⌋ .
+Since we attached this tree to a path along which we had deduced the negation of a line in C⌊i/2⌋ , we can label this
+leaf with a conic combination of these inequalities equalling 0 ≥ 1. The overall depth in this case is ℓ for the initial
+tree and 2ℓ log(⌊i/2⌋) for the tree obtained recursively. Altogether, ℓ+2ℓ log(⌊i/2⌋) ≤ ℓ(1+2 log(i)−2) ≤ 2ℓ log i.
+    For the path labelled with the inequalities in C⌊i/2⌋ , note that C⌊i/2⌋+1 , . . . , Ci can viewed as configurations of
+a refutation of the original inequalities Ax ≥ b together with the inequalities in C⌊i/2⌋ . At the leaf of this path we
+have deduced all inequalities in C⌊i/2⌋ . Thus, we can apply the recursive construction to C⌊i/2⌋+1 , . . . , Ci to refute
+this leaf. The overall depth is ℓ + 2ℓ log(⌊i/2⌋) ≤ ℓ(1 + 2 log(i + 2) − 2) ≤ 2ℓ log i.
+
+4.3 Simulating non-CG Cuts
+So far, we have focused on the relationship between Stabbing Planes and Chvátal-Gomory cutting planes. In this
+section we discuss the relationship between SP and other popular types of cutting planes. First, we cover the result
+of Basu et al. [8] which shows that SP can simulate split cuts. Split cuts, which were introduced by Cook et al. [22],
+and form one of the most popular classes of cutting planes in practical integer linear programming. Recall that an
+inequality ax ≥ b is valid for a polytope P if for every x∗ ∈ P , ax∗ ≥ b.
+
+Split Cut. A split cut for a polytope P is any integer-linear inequality ax ≥ b for which there exists a witnessing
+pair c ∈ Zn and d ∈ Z such that ax ≥ b is valid for both P ∩ {x ∈ Rn : cx ≤ d − 1} and P ∩ {x ∈ Rn : cx ≥ d}.
+
+
+
+
+                                                               ax ≥ b
+
+
+                                     cx ≤ d − 1
+                                                                        cx ≥ d
+
+
+
+
+             Figure 8: A split cut ax ≥ b witnessed by (cx ≤ d − 1, cx ≥ d) on the polytope in green.
+
+    Split cuts are known to be equivalent to mixed-integer rounding (MIR) cuts [63] and Gomory mixed integer
+cuts [40], and generalize lift-and-project cuts [6]. As well, Dash [28] gave an example on which split cuts are
+exponentially separated from Chvátal-Gomory cuts and lift-and-project cuts. Basu et al. [8] showed that split cuts
+can be simulated in Stabbing Planes. For completeness, we include a proof of this.
+
+
+                                                                   14
+Lemma 11 ( [8]). Let P be a polytope and let P ′ = P ∩ {ax ≥ b} be obtained by a split cut from P . Then, there is
+an SP tree of size O(1) beginning from P such that every leaf is empty, except for one whose corresponding polytope
+is P ′ .
+
+Proof. We simulate the deduction of P ′ from P in Stabbing Planes as follows:
+
+  (i) Query (ax ≤ b − 1, ax ≥ b)
+
+  (ii) On the branch labelled with ax ≤ b − 1, query (cx ≤ d − 1, cx ≥ b). Observe that because ax ≥ b was
+       valid for both P ∩ {cx ≥ d} and P ∩ {cx ≤ d − 1}, it follows that both P ∩ {cx ≥ d} ∩ {ax ≤ b − 1} and
+       P ∩ {cx ≥ d} ∩ {ax ≤ b − 1} are empty.
+
+Therefore, the only non-empty leaf is the one corresponding to P ′ .
+
+    Dash [28] studied split cuts as a proof system, and showed that the lower bound of Pudlak [67] could be extended
+to prove exponential lower bounds on the length of split cut proofs. A split cut refutation of a system of integer linear
+inequalities Ax ≥ b (representing a polytope P ) is a sequence of inequalities c1 x ≥ d1 , . . . , cs x ≥ ds = 0 ≥ 1 such
+that ci x ≥ di is a split cut for the polytope P ∩ {cj x ≥ dj }j<i . The following is immediate corollary of Lemma 4.3.
+
+Corollary 12. Stabbing Planes polynomially simulates split cut proofs.
+
+Proof. To simulate any split cut refutation c1 x ≥ b1 , . . . , cs x ≥ bs , we simply simulate each cut inductively using
+Lemma 4.3.
+
+    Finally, we note that there exist cutting planes that cannot be efficiently simulated by SP. This is witnessed by
+the fact that SP cannot polynomially simulate semantic CP [33]. A concrete example of a type of cutting plane that
+SP likely cannot simulate are the matrix cuts of Lovász and Schrijver [60]. As we describe in Section 5 CP, and
+therefore, SP∗ cannot quasi-polynomially simulate the Lovasz-Schrijver proof system. However, whether this holds
+for SP with unbounded coefficients remains an interesting question.
+
+
+5 Relationship Between Stabbing Planes and Other Proof Systems
+Having explored in depth the relationship between Cutting Planes and Stabbing Planes, we now describe how Stab-
+bing Planes relates to other proof systems. A summary of these relationships can be seen in Figure 2.
+    Let us first note some of the separations that have already been established.
+
+    • Lower bounds for unsatisfiable systems of linear equations over finite fields, which are known for Nullstel-
+      lensatz [44], the Polynomial Calculus [15], Sum-of-Squares [45, 70], AC0 -Frege [11, 38, 47, 66], rule out the
+      possibility of these systems simulating CP.
+
+    • Göös et al. [42] gave an exponential separation between Nullstellensatz and Cutting Planes by observing that,
+      for any unsatisfiable system of linear equations F , composing with the m-bit index gadget can only increase
+      the degree of refuting F in Nullstellensatz by O(log m). On the other hand, Garg et al. [39] showed that
+      composing any function which requires resolution refutations of width w when composed with the index
+      gadget requires Cutting Planes proofs of size nΩ(w) . Thus, any function which requires large resolution width
+      but small Nullstellensatz degree provides such a separation.
+
+    • Semantic CP is not polynomially verifiable, and therefore, assuming P 6= NP, no propositional proof system
+      can simulate it. Indeed, Filmus, Hrubeš, and Lauria observed that it has O(1) size refutations of unsatisfiable
+      instances of the NP-complete subset sum problem.
+
+    We establish the remaining simulations and separations in Figure 2 next.
+
+
+
+                                                           15
+                                                         R(CP)
+
+
+                                             CP                   SP = treeR(CP)
+
+
+                                                         treeCP
+
+Figure 9: Relationships between R(CP), CP, and their tree-like variants. An arrow from proof system P1 to P2
+indicates that P2 can polynomially simulate P1 .
+
+
+5.1 Equivalence Between Stabbing Planes and treelike R(CP)
+The Resolution over Cutting Planes (R(CP)) proof system was introduced by Krajı́ček [54] as a mutual generaliza-
+tion of both Cutting Planes and resolution — the lines of an R(CP) proof are clauses of integer-linear inequalities,
+and in a single step one can take two previously derived disjunctions and either apply a Cutting Planes rule to a
+single inequality in the disjunctions, or apply a resolution-style “cut”.
+Resolution over Cutting Planes. An R(CP) proof of a disjunction Γs from a system of integer-linear inequalities
+Ax ≥ b is a sequence of disjunctions P = {Γi }i∈[s] such that each Γi is a disjunction which is either an inequality
+from Ax ≥ b or was derived from earlier disjunctions by one of the following deduction rules:
+
+    • Conic Combination. From (ax ≥ b) ∨ Γ and (cx ≥ d) ∨ Γ deduce (λ(a + c)x ≥ λ(b + d)) ∨ Γ for any
+      non-negative integer λ.
+    • Division. From (ax ≥ b) ∨ Γ and integer δ dividing each entry of a, deduce ((a/δ)x ≥ ⌈b/δ⌉) ∨ Γ.
+    • Cut. From (ax ≥ b) ∨ Γ and (ax ≤ b − 1) ∨ Γ derive Γ.
+    • Weakening. From Γ deduce Γ ∨ (ax ≥ b)
+    • Axiom Introduction. Deduce (ax ≥ b) ∨ (ax ≤ b − 1) for any integer-linear inequality ax ≥ b.
+    • Elimination. From (0 ≥ 1) ∨ Γ deduce Γ.
+
+The size of a proof is the number of disjunctions s in the proof and the width of the proof is the maximal number of
+inequalities in any disjunction in the proof. An R(CP) refutation of Ax ≥ b is a proof of the empty clause Λ from
+Ax ≥ b. The proof system treeR(CP) is the tree-like restriction of R(CP) in which the underlying implication graph
+is required to be a tree.
+    The main result of this sub-section is that SP is polynomially equivalent to treeR(CP).
+Theorem 2. The proof systems SP and treeR(CP) are polynomially equivalent.
+   Even though SP turns out to be equivalent to a system already in the literature, this new perspective has already
+shown to be useful: none of aforementioned results were known for treeR(CP).
+   We will prove Theorem 2 in two parts.
+Claim 13. Let Ax ≥ b be an unsatisfiable system of m integer-linear inequalities. Any size s and depth d SP
+refutation implies a treeR(CP) refutation of size O(s(d2 + dm)) and width d + 1.
+
+Proof. Consider an SP refutation of Ax ≥ b of size s and depth d. Fix any root-to-leaf path p in the refutation and
+let c1 x ≥ d1 , . . . , ct x ≥ dt be the sequence of linear inequalities labelling p. We will first show how to derive the
+clause
+
+                                        (c1 x ≤ d1 − 1) ∨ . . . ∨ (ct x ≤ dt − 1)                                     (1)
+
+
+                                                           16
+in treeR(CP). For every i ∈ [t], using axiom introduction, introduce (ci x ≤ di − 1) ∨ (ci x ≥ di ) and weaken it to
+obtain
+
+                                (ci x ≥ di ) ∨ (c1 x ≤ d1 − 1) ∨ . . . ∨ (ct x ≤ dt − 1).                           (2)
+
+As well, weaken each initial inequality ai x ≥ bi in Ax ≥ b to
+
+                                (ai x ≥ bi ) ∨ (c1 x ≤ d1 − 1) ∨ . . . ∨ (ct x ≤ dt − 1)                            (3)
+
+Because p is a root-to-leaf path in the SP proof, it is labelled with a conic combination of Ax ≥ b and ci x ≥ di for
+every i ∈ [t] equalling 0 ≥ 1. By taking this conic combination of the first inequalities of the lines in (2) and (3) we
+can deduce
+                                  (0 ≥ 1) ∨ (c1 x ≤ d1 − 1) ∨ . . . ∨ (ct x ≤ dt − 1),
+from which we can obtain (1) by elimination.
+    Repeat this process to deduce (1) for every root-to-leaf path in the SP proof. Applying the cut rule appropriately
+to these inequalities yields the empty clause. To see this, let p and p′ be two root-to-leaf paths which differ only on
+their leaf nodes. Then, their corresponding inequalities (1) are of the form
+
+                    (ci x ≥ di ) ∨ (c1 x ≤ d1 − 1) ∨ . . . ∨ (ct−1 x ≤ dt−1 − 1) ∨ (ct x ≤ dt − 1),
+                    (ci x ≥ di ) ∨ (c1 x ≤ d1 − 1) ∨ . . . ∨ (ct−1 x ≤ dt−1 − 1) ∨ (ct x ≥ dt ).
+
+That is, they differ in their final inequality. Applying the cut rule, we can deduce
+
+                             (ci x ≥ di ) ∨ (c1 x ≤ d1 − 1) ∨ . . . ∨ (ct−1 x ≤ dt−1 − 1).
+
+Therefore, by repeating this process we can derive the empty clause.
+   Each deduction of a clause (1) can be done in size O(t2 + tm + t + m) = O(d2 + dm) and has width at most
+d + 1. Thus, the size of the proof is at most O(s(d2 + dm)).
+
+    We now prove the converse.
+Claim 14. Let Ax ≥ b be an unsatisfiable system of m integer-linear inequalities. If there is a treeR(CP) proof of
+the line (a1 x ≤ b1 − 1) ∨ . . . ∨ (am x ≤ bm − 1), where ai x ≥ bi is the ith row of Ax ≥ b, of size s and depth d
+then there is an SP refutation of Ax ≥ b of size O(s) and depth 2d.
+
+Proof. Fix such a treeR(CP) proof of the disjunction. For any clause Γ = (c1 x ≥ d1 ) ∨ . . . (cm x ≥ dm ), we will
+denote by ¬Γ the set of inequalities {c1 x ≤ d1 − 1, . . . , cm x ≤ dm − 1}. We will construct the SP refutation by
+structural induction, beginning at the leaves of the refutation and proceeding towards the root. At each line Γ in the
+proof, deduced from children Γ1 and Γ2 , we will assume that we have constructed SP refutations ¬Γ1 and ¬Γ2 and
+use them to construct an SP refutation of ¬Γ.
+    First, consider a leaf of the proof which, by definition, is an axiom introduction of (cx ≤ d − 1) ∨ (cx ≥ d) for
+some arbitrary integer-linear inequality cx ≥ d. We can construct an SP refutation of (cx ≥ d) ∧ (cx ≤ d − 1) by
+querying (cx ≤ d − 1, cx ≥ d), and then labelling each leaves with the appropriate conic combination equalling
+0 ≥ 1.
+    Now, let Γ be some line in the proof which was derived from earlier lines {Γi }, and suppose that we have
+constructed SP refutations of {¬Γi }. To construct a refutation of ¬Γ, we break into cases based on the rule used to
+derive Γ.
+    • Conic combination. Let Γ := (λ(c1 + c2 )x ≥ λ(d1 + d2 )) ∨ ∆, let Γ1 := (c1 x ≥ d1 ) ∨ ∆, and let
+      Γ2 := (c2 x ≥ d2 ) ∨ ∆. We construct an SP refutation of ¬Γ by first querying (c1 x ≤ d1 − 1, c1 x ≥ d1 ).
+      On the branch labelled with c1 x ≥ d1 , apply the SP refutation of ¬Γ1 . On the branch labelled with c1 x ≥ d1 ,
+      query (c2 x ≤ d2 − 1, c2 x ≥ d2 ), and use the refutation of ¬Γ2 to refute the branch labelled with c2 x ≥ d2 .
+      On the remaining branch, where we have deduced c1 x ≤ d1 − 1 and c2 x ≤ d2 − 1, we have that 0 ≥ 1 is a
+      conic combination with λ(c1 + c2 )x ≥ λ(d1 + d2 ).
+
+                                                           17
+    • Division. Let Γ := ((c/δ)x ≥ ⌈d/δ⌉) ∨ ∆ and let Γ1 = (δcx ≥ d) ∨ ∆. Query (δcx ≤ d − 1, δcx ≥ d). On
+      the branch labelled with cx ≤ d − 1 we can use the refutation of ¬Γ1 . On the branch labelled with cx ≥ d, it
+      is enough to observe that the intersection of cx ≥ d and ((c/δ)x ≤ ⌈d/δ⌉ − 1), provided by ¬Γ, is empty.
+    • Cut. Suppose Γ := ∆ was derived by cutting on Γ1 := (cx ≥ d) ∨ ∆ and Γ2 := (cx ≤ d − 1) ∨ ∆. Query
+      (cx ≤ d − 1, cx ≥ d). On the branch labelled with cx ≤ d − 1 apply the refutation of ¬Γ1 , and on the branch
+      labelled with cx ≥ d use the refutation of ¬Γ2 .
+    • Weakening. If Γ := (cx ≥ d) ∨ ∆) was derived by weakening Γ1 := ∆, then query (cx ≤ d − 1, cx ≥ d).
+      On the branch labelled with cx ≤ d − 1 use the refutation of ¬Γ1 , and the branch labelled with cx ≥ d we can
+      deduce 0 ≥ 1 by adding this inequality to cx ≤ d − 1 with is an inequality of ¬Γ.
+Simulating each rule requires at most two queries, of which at most two of the children are not immediately the
+empty polytope. Therefore, the size of the resulting tree is at most 2s and the depth is at most 2d.
+
+5.2 Stabbing Planes Simulates Tree-like DNF Resolution
+Next, we show how to simulate the k-DNF resolution proof systems by variants of Stabbing Planes.
+k-DNF Resolution. A Res(k) refutation of a CNF formula F is a sequence of k-DNF formulas P = {Γi }i∈[s] such
+that Γs is the empty clause Λ, and each Γi is either a clause of F or was derived from earlier DNFs by one of the
+following deduction rules, where a literal ℓi is either xi or ¬xi :
+    • Cut. From k-DNFs A ∨ (∧i∈S ℓi ) and B ∨ (∨i∈S ¬ℓ) deduce A ∨ B.
+    • Weakening. From a k-DNF A deduce A ∨ ℓ for any literal ℓ.
+    • ∧-Introduction. From {A ∨ ℓi }i∈S deduce A ∨ (∧i∈S ℓi ).
+    • ∧-Elimination. From A ∨ (∧i∈S ℓi ) deduce A ∨ ℓi for any i ∈ S.
+A refutation is tree-like if every deduced inequality is used at most once in the refutation (i.e., the underlying
+implication graph is a tree). The proof system which produces only treelike Res(k) refutations is denoted treeRes(k).
+Theorem 15. For any integer k ≥ 1, any Res(k) refutation of size s implies an R(CP) refutation of size O(ks).
+Similarly, any treeRes(k) refutation of size s implies an SP refutation of size O(ks).
+    The proof will follow by a straightforward application of the following claim.
+                                   W                W
+Claim 16. From any disjunction i∈S (xi ≥ 1) ∨ j∈T (−xi ≥ 0),P                   P inequalities xi ≥ 0 and xi ≤ 1 for
+                                                                     together with
+every i ∈ [n], there is a size O(|S| + |T |) treeR(CP) derivation of i∈S xi + j∈T (1 − xj ) ≥ 1.
+                                     P               P
+Proof. For every v ∈ T ∪ S, derive i∈T \{v} xi + j∈S\{v} (1 − xj ) ≥ 0 by adding   W together the inequalities
+                                                                                                    W          xi ≥ 0
+and xi ≤ 1. For v ∈ T ∪ S add the corresponding inequality to the disjunction in i∈S (xi ≥ 1) ∨ j∈T (−xj ≥ 0)
+containing the variable v. The result is the disjunction
+                                           _ X           X               
+                                                     xi +    (1 − xj ) ≥ 1 ,
+                                               S∪T    i∈S         j∈T
+                          P              P
+which is the inequality       i∈S xi +       j∈T (1 − xj ) ≥ 1.
+
+Proof of Theorem 15. We will show that R(CP) can simulate Res(k). That SP simulates treeRes(k) will follow by
+observing that the same proof also shows a simulation of treeRes(k) by treeR(CP), and then applying Theorem 2.
+    Let {Γi }i∈[s] be a Res(k) refutation of a CNF formula F , and note that the encoding of F as a system of
+inequalities (recalled in Section 2) includes xi ≥ 0 and xi ≤ 1 for every i ∈ [n]. We will encode P each disjunction
+Γ := ∆1 ∨ . . . ∨ ∆t as follows: each ∆ := (∧i∈S xi ) ∧ (∧j∈T ¬xj ) is represented by the inequality i∈S (xi − 1) +
+P
+   j∈T −xj ≥ 0; observe that both representations are satisfied by the same set of {0, 1}-assignments. Let LΓ be the
+encoding of Γ obtained by replacing each ∆i by its encoding as an inequality.
+    It remains to show that R(CP) can simulate the deduction rules of Res(k).
+
+                                                                  18
+    • Cut. Suppose that Γ := A ∨ B be deduced by cutting on Γ1 := A ∨ (∧i∈S xi ) ∧ (∧j∈T ¬xj ) and Γ2 := B ∨
+       Pi∈S ¬xi ) ∨ (∨j∈TPxj ). As well, suppose that we haveWalready deduced the
+      (∨                                                                       W corresponding lines LΓ1 := LA ∨
+      ( i∈S (xi − 1) + j∈T −x     Pj ≥ 0) and LΓ2P:= LB ∨ i∈S (−xi ≥ 0) ∨ j∈T (xj ≥ 1). By Claim 16, R(CP)
+      can reencode LΓ2 as LB ∨( i∈S (1−xi )+ j∈T xj ≥ 1), which when added to LΓ1 gives LA ∨LB ∨(0 ≥ 1),
+      which is LΓ .
+    • Weakening. This is already a rule of R(CP).
+    • ∧-Introduction. If Γ := A ∨ (∧i∈S xi ) ∧ (∧j∈T ¬xj ) was deduced from {A ∨ xi }i∈S and {A ∨ ¬xj }j∈T and
+      we have already deduced LΓi := LA ∨ (xi ≥ 1) and LΓj := LA ∨ (−xj ≥ 0) for all i ∈ S and j ∈ T . Then
+      LΓ can be deduced by adding together all of the LΓi and LΓj .
+    • ∧-Elimination. If ΓP= A ∨ xi was deduced
+                                           P      from Γ1 := A ∨ (∧j∈S xj ) ∧ (∧t∈T xt ), then LΓ can be deduced
+      from LΓ1 := A ∨ ( j∈S (xj − 1) + t∈T −xt ≥ 0) by adding the inequalities xj ≤ 1 for every j ∈ S \ {i}
+      and xt ≥ 0 for every t ∈ T . A similar argument holds if xi is negated.
+
+
+    Atserias, Bonet, and Estaban [4] gave polynomial-size proofs of the clique-coclique formulas in treeRes(k), for
+                  √
+cliques of size Ω( n) and cocliques of size o(log2 n). For this range of parameters, quasi-polynomial size lower
+bounds are known [67]. This rules out the possibility of a polynomial simulation of R(CP) or treeRes(k) by Cutting
+Planes.
+
+
+6 Lower Bounds on Stabbing Planes
+Next, we tackle the problem of proving lower bounds on Stabbing Planes proofs. First, we show that near-maximal
+depth lower bounds on unrestricted Stabbing Planes proofs can be obtained by a straightforward reduction to com-
+munication complexity. Next, while we are unable to prove unrestricted size lower bounds, we explain why current
+techniques that would attempt to leverage the depth lower bounds fail. In doing so, we show that real communica-
+tion protocols cannot be balanced by establishing the first superlogarithmic lower bound on the real communication
+complexity of the set disjointness function.
+    First, we recall some standard models of communication and previous lower bounds on depth via communication
+complexity. In proving lower bounds on proof complexity it has been fruitful to study the following associated search
+problem, introduced by Lovász et al. [58].
+False Clause Search Problem. Let F = C1 ∧ . . . ∧ Cm be a CNF formula and let (X, Y ) be any partition of
+                                                                (X,Y )
+its variables. The associated false clause search problem SearchF      ⊆ {0, 1}|X| × {0, 1}|Y | × [m] is defined as
+                  (X,Y )
+(x, y, i) ∈ SearchF      if and only if Ci (x, y) = 0.
+    Our depth lower bounds are inspired by the approach of Impgliazzo et al. [49] who observed that small treelike
+Cutting Planes proofs implied short protocols in certain models of communication for solving the following false
+clause search problem.
+Deterministic Communication. A deterministic communication protocol for a search problem S ⊆ X × Y × O
+consists of two players, Alice and Bob. They receive private inputs x ∈ X and y ∈ Y respectively, and their
+aim is to agree on some o ∈ O for which (x, y, o) ∈ S. To do so, they are allowed to communicate by sending
+messages to each other (in the form of a single bit) according to some predetermined protocol. This can be modelled
+combinatorially: every step in the communication protocol is associated with rectangle of inputs X ′ × Y ′ ⊆ X × Y
+consistent with the communication thus far; X ′ models what Bob knows about Alice’s input, and Y ′ models what
+Alice knows about Bob’s. If Alice communicates a bit, then this partitions X ′ into X0′ and X1′ corresponding to
+whether the bit Alice sent was 0 or 1. The communication ends when X ′ × Y ′ is monochromatic, meaning that there
+is some o ∈ O such that (x, y, o) ∈ S for every (x, y) ∈ X ′ × Y ′ .
+     The deterministic communication complexity of computing S is the minimum number of bits communicated, or
+rounds of communication, needed to solve S on any input (x, y) ∈ X × Y.
+
+                                                         19
+    Observe that for x, y ∈ {0, 1}n , any integer linear inequality ax + by ≥ d can be evaluated in w = log kak1 +
+log kbk1 bits by Alice communicating ax to Bob, and Bob responding with by. Therefore, for example, a Cutting
+Planes refutation of a CNF formula F of depth d in which the size of the coefficients are at most 2w implies
+                                                                (X,Y )
+a O(dw)-round communication protocol for solving SearchF               for any partition (X, Y ) of the variables. By
+strengthening the model of communication, we can simulate arbitrary linear inequalities. Next, we define two
+models of communication which allow us to do this; the first is the standard model of randomized communication
+complexity.
+
+Randomized Communication. A (bounded error) randomized communication protocol solving a search problem
+S ⊆ X ×Y ×O is a distribution over deterministic communication protocols such that for every (x, y) ∈ X ×Y, with
+probability at least 2/3, the protocol outputs o for which (x, y, o) ∈ S. The randomized communication complexity
+of S is the minimum number of rounds of any randomized protocol computing S, where the number of rounds of a
+randomized protocol is the maximum number of rounds of any protocol with non-zero support in the distribution.
+
+   An alternative model, which more directly simulates arbitrarily linear inequalities, is the real communication
+model introduced by Krajı́ček [54].
+
+Real Communication. In a real communication protocol for a search problem S ⊆ X × Y × O, the players
+Alice and Bob communicate via a “referee”. In each round, Alice and Bob send real numbers rA , rB to the referee
+who responds with a single bit b which is 1 if rA > rB , and 0 otherwise. The real communication complexity of
+computing S is the number minimum number of rounds needed to communication needed to solve S on any input
+(x, y) ∈ X × Y.
+
+6.1 Depth Lower Bounds
+In this section we prove Theorem 3, which we restate next for convenience.
+
+Theorem 3. There exists a family of unsatisfiable CNF formulas {Fn } for which any SP refutation requires depth
+Ω(n/ log2 n)
+
+     Note that every unsatisfiable CNF formula has a refutation in depth n by simply querying (xi ≤ 0, xi ≥ 1) for
+all i ∈ [n]. Therefore, this lower bound is tight up to a log2 n factor.
+     The proof proceeds by showing that from any shallow SP refutation we can extract a short randomized or real
+communication protocol for the associated false clause search problem. The lower bound follows by appealing to
+known lower bounds on the communication complexity of this problem.
+
+Lemma 17. Let Az ≥ b be an unsatisfiable system of linear equations encoding a CNF formula F and let (X, Y )
+be any partition of the variables z. Every depth d SP refutation of Az ≥ b implies a O(d log n + log2 n)-round ran-
+domized communication protocol and a O(d+log n)-round real communication protocol for solving SearchX,Y (F ).
+
+Proof. We will first present a general procedure for solving the false clause search problem and then show how to
+instantiate it in both models of communication.
+    Fix an SP refutation of Az ≥ b. Let Alice be given a boolean assignment to X and Bob be given a boolean
+assignment to Y . To solve the search problem, they will follow the root-to-leaf path through the refutation, main-
+taining the invariant that their joint assignment (X, Y ) satisfies all of the inequalities labelling the root to leaf path.
+Suppose that they have arrived at a node in the refutation corresponding to a query (cz ≤ d − 1, cz ≥ d). Observe
+that their joint assignment (X, Y ) to z satisfies exactly one of these two inequalities. They will proceed down the
+path corresponding to the satisfied inequality, thus preserving their invariant.
+    Once they arrive at a leaf, they will use the conic combination of inequalities which evaluates to 0 ≥ 1 that
+labels it in order to search for an inequality of Az ≥ b (corresponding to a clause of F ) which is falsified by (X, Y ).
+Indeed, by the invariant, the only inequalities in this conic combination which could be falsified by (X, Y ) are those
+belonging
+    P       to Az ≥ P b, and a falsified inequality must exist because (X, Y ) falsifies 0 ≥ 1. Let the conic combination
+be i∈[ℓ] αi ci z ≤ i∈[ℓ] αi d, where αi ≥ 0. By Carathéodory’s Theorem (point (ii) in Farkas’ Lemma), we can
+
+                                                            20
+assume that ℓ ≤ n + 2. To find a falsified inequality, we binary search over the conic combination: test whether
+Pℓ/2              Pℓ/2                                                                                Pℓ
+   i=1 αi ci z ≤    i=1 αi di is falsified by (X, Y ). If it is, recurse on it; otherwise, recurse on  i=ℓ/2+1 αi ci z ≤
+Pℓ
+   i=ℓ/2+1 αi di . Because ℓ ≤ n+2, this process terminates in O(log n) rounds having found an inequality belonging
+to Az ≥ b which is falsified by (X, Y ).
+     To implement this procedure in communication, it remains to show that linear inequalities can be evaluated
+efficiently in each of the models.
+    • Real communication: this can be done in a single round of communication. If Alice and Bob want to evaluate
+      c1 x + c2 y ≥ d, then Alice can send c1 x to the referee and Bob can send d − c2 y. The referee returns whether
+      c1 x ≥ d − c2 y.
+    • Randomized communication: this can be done in O(log n) rounds of communication by combining the follow-
+      ing two results. The first is the O(log b) protocol of Nisan [64] for deciding a linear inequality representable
+      in b bits. The second is a result due to Muroga [62] which states that for any linear inequality on n variables,
+      there exists a linear inequality whose coefficients are represented in O(n log n) bits and which has the same
+      output on points in {0, 1}n .
+
+
+    To establish Theorem 3, it remains to lower bound the communication complexity of Search(F ). Strong lower
+bounds on the randomized communication complexity of the false clause search lower bound were proven by Göös
+and Pitassi [43]. In particular, Theorem 8.1 in [43] gives an unsatisfiable CNF formula F on poly(n) many clauses
+and partition (x, y) of the variables for which the randomized commutation complexity of Searchx,y (F ) requires
+Ω(n/ log n) rounds. Together with Lemma 17, this establishes Theorem 3.
+    We remark that the formula provided by Göös and Pitassi is somewhat artificial. It is obtained by lifting the
+Tseitin formulas with a versatile gadget. By Theorem 6 we know that the Tseitin formulas have O(log2 n)-depth
+SP refutations, and therefore the hardness of these formulas of Göös and Pitassi is derived from the composition
+with this gadget. It remains an open problem to obtain strong lower bounds on the depth of SP refutations for more
+natural families of formulas. Towards this, Dantchev et al. [26] were able to establish Ω(log n) lower bounds on
+the depth of SP refutations of the Tseitin formulas and the Pigeonhole principle via new techniques which take into
+account the geometric structure of SP proofs.
+
+6.2 Barriers to Size Lower Bounds
+Next, we explore whether it is possible to leverage this depth lower bound in order to obtain size bounds. Throughout
+this section, we will heavily make use of results of de Rezende, Nordström, and Vinyals [31]. They established a
+lifting theorem that translates decision tree lower bounds for a function f : {0, 1}n → {0, 1} to lower bounds on the
+real communication complexity of the composed function f ◦INDnt , which we define next. Let INDt : [t]×{0, 1}t →
+{0, 1} be the t-bit index function mapping (x, y) to yx . The function f ◦ INDnt is obtained by replacing each variable
+of f with a copy of INDnt on new variables. For any function f , composing with INDt induces a standard partition,
+where Alice is given x ∈ [t]n and Bob is given y ∈ {0, 1}tn .
+     The decision tree complexity of a function f is closely related to the DPLL complexity of refuting an unsatisfiable
+formula. A decision tree is a binary tree in which: (i) every internal node is labelled by a variable xi and has two
+outgoing edges labelled with 0 and 1, (ii) the leaves are labelled with either 0 or 1. A decision tree computes f if for
+every x ∈ {0, 1}n , the leaf obtained by following the root-to-leaf path which agrees with x is labelled with f (x).
+The decision tree complexity of f , denoted DT(f ), is the minimal depth of any decision tree computing f .
+Theorem 18 (de Rezende et al. [31]). The following statements hold:
+    • For any function f : {0, 1}n → {0, 1}, the real communication complexity of f ◦ INDnn4 is at least DT(f ).
+    • There is CNF formula F with poly(n) many clauses which has poly(n)
+                                                                    p     size resolution refutation but for which
+                                                                      1/4
+      any real communication protocol for Searchx,y (F ) requires Ω( n log n) rounds, for some partition of the
+      variables.
+
+                                                          21
+6.2.1   SP Proofs Cannot be Balanced
+As an immediate corollary of Lemma 17 and Theorem 18, we show that SP proofs cannot be balanced. That is, an
+SP refutation of size s does not imply one of size poly(s) and depth poly(log s). Thus, superpolynomial SP size
+lower bounds do not immediately follow from depth lower bounds.
+Corollary 19. There exists a CNF formula F which has poly(n) size SP refutations but any SP refutation requires
+depth Ω(n1/8 / log n).
+Proof. This follows immediately by combining Theorem 18 with Lemma 17 together with the fact that SP can
+simulate resolution proofs.
+
+6.2.2   Real Communication Cannot be Balanced
+Unlike the randomized protocols, the real communication protocols that result from Lemma 17 preserve the topology
+of the SP proof. That is, the size — the number of nodes in the protocol tree — of the resulting real communication
+protocol is equivalent, up to a poly(n) factor, to the size of the SP refutation. Therefore, while SP proofs cannot be
+balanced, one might hope that the resulting real communication protocols could be, and thus size lower bounds could
+still be obtained from depth bounds. This is not without precedent; both deterministic and randomized communi-
+cation complexity can be balanced. Furthermore, although it known that treeCP cannot be balanced, Impagliazzo
+et al. [49] show that treeCP refutations of size s can be balanced into O(log s)-round randomized communication
+protocols for the false clause search problem.
+     Surprisingly, we show that real communication protocols cannot be balanced. To do so, we establish the first
+lower bound on the real communication of the set disjointness function, perhaps the most well-studied function
+in communication complexity, which we define next. Let ORn : {0, 1}n → {0, 1} be the n-bit ∨-function and
+AND2 : {0, 1}n → {0, 1}. Then the set disjointness function, DISJn := ORn ◦ ANDn2 , is obtained by replacing each
+of the n input variables of ORn by a copy of AND2 on new variables. As before, this function induces a standard
+partition where Alice is given one of the two input bits of each AND2 function, and Bob is given the other.
+Theorem 20. There is a partition of the variables such that DISJn has a real communication protocol of size O(n),
+but any real communication protocol requires Ω((n log n)1/5 ) rounds of communication.
+    This lower bound was subsequently improved to Ω(n/ log2 n) by Chattopadhyay, Lovett, and Vinyals [16].
+    The main technique for obtaining lower bounds on the real communication complexity of a function is by a lifting
+theorem, reducing the task of proving lower bounds on certain composed functions to the decision tree complexity
+of the un-composed function. Although DISJn is a composed function, there is currently no lifting theorem for
+composition with the AN D2 function. We circumvent this by exploiting the fact that DISJn is complete for the class
+NPcc of functions with polylogarithmic nondeterministic communication protocols.
+Nondeterministic Communication Complexity. The nondeterministic communication complexity of a function
+f : {0, 1}n → {0, 1} and a partition (X, Y ), is the length of the shortest string z ∈ {0, 1}ℓ that can convince Alice
+and Bob to accept an input (x, y) ∈ f −1 (1) (without communicating). That is, it is the smallest ℓ such that for every
+(x, y) ∈ f −1 (1) there is a string z ∈ {0, 1}ℓ such that both Alice and Bob accept, and for every (x, y) ∈ f −1 (0) and
+every string z ∈ {0, 1}ℓ , either Alice or Bob rejects.
+    To prove the lower bound on DISJn we find a function in NPcc to which known lifting theorems for real com-
+munication can be applied. Then, we use NPcc -completeness to transfer this lower bound to DISJn . The function
+that we will use is ORn ◦ INDt . First, we show that this function belongs to NPcc .
+Lemma 21. There is a O(log t + log n) NPcc protocol computing ORn ◦ INDnt for the standard partition associated
+with INDt .
+Proof. Fix some input (x, y) ∈ [t]n × {0, 1}nt and observe that the ith input bit to ORn can be computed in log t + 1
+rounds of communication by brute-forcing the index gadget: Alice sends xi := xi,1 , . . . , xi,log t to Bob who can then
+compute INDt (xi , yi ), where yi := yi,1 , . . . , yi,t , and return the answer to Bob in a single bit.
+
+                                                          22
+                                        y
+                                   1
+                                                        2
+                                                                       0          0
+                                                                       0          1
+                                                    3
+                                                                       0          0
+                                            4           5
+                                                                       1          1
+                          x                                            1          0
+                                   6
+                                                                       0          0
+
+                                                                     IA (x)     IB (y)
+
+Figure 10: A covering of the communication matrix with monochromatic rectangles (left) and the corresponding
+DISJn instance (right).
+
+
+    Consider the following protocol NPcc for ORn ◦ INDnt : Alice and Bob are given a log n-bit string encoding the
+index i ∈ [n] where INDt (xi , yi ) = 1; that is, i witnesses that (x, y) is accepting input of ORn ◦INDnt ; see Figure 10.
+Alice and Bob verify that indeed INDt (xi , yi ) = 1 by performing the above brute force protocol in log t rounds of
+communication.
+
+Lemma 22. Let m = n4 , then any real communication protocol computing ORn ◦ INDnt over the standard partition
+requires Ω(n log n) rounds.
+
+Proof. Observe that the decision tree complexity of computing ORn is n (since the sensitivity of ORn is n). The
+proof follows by combining this with Theorem 18.
+
+    Finally, we are ready to prove the main theorem of this section.
+
+Proof of Theorem 20. First, we prove the lower bound. We will reduce ORn ◦ INDnt for t = n4 to DISJn . By
+Lemma 21 there is a cover of the 1-entries of the communication matrix of ORn ◦ INDnt by at most 2nt monochro-
+matic rectangles. Enumerating this rectangle covering gives us an instance of set disjointness: on input (x, y) to
+ORn ◦ INDnt , Alice and Bob construct indicator vectors IA (x) and IB (y) of the rectangles in this rectangle covering
+in their respective inputs lie. Then ORn ◦ INDnt = 1 iff DISJ(IA (x), IB (y)) = 1.
+     This instance of DISJn is on tn/2 variables, and therefore Lemma 22 implies a lower bound of Ω(n log n).
+Letting ℓ = tn be the total number of variables, this is a bound of the form ℓ1/5 log ℓ.
+     For the upper bound, we give a real communication protocol for DISJn = ORn ◦ ANDn2 that has O(n) nodes.
+Let x, y be the inputs given to Alice and Bob respectively. Sequentially from i = 1, . . . , n, they will solve xi ∧ yi by
+Alice sending xi to the referee and Bob sending 2 − yi . If they discover that xi ∧ yi = 0 then they halt and output 0,
+otherwise they continue.
+
+
+7 Conclusion
+We end with a several questions left open by this work. First, let us note that several of the questions posed in the
+original version of this paper were subsequently resolved by [25] who exhibited an upper bound (Proposition 4) on
+the size of the coefficients which occur in Stabbing Planes proofs, and showed that the Tseitin formulas could not
+provide an exponential separation between Cutting Planes and Stabbing Planes.
+
+   1. In this work we showed that there are quasipolynomail-size Stabbing Planes proofs of the Tseitin formulas.
+      Can this be improved to polynomial?
+
+   2. A recent work [37] exhibited supercritical size/depth tradeoffs for Cutting Planes — exhibiting a formula
+      for which any small proof must have depth which goes far beyond worst-case. This built upon an earlier
+
+
+                                                            23
+     supercritical size/width tradeoff for tree-like Resolution by Razborov [9, 69]. This is in contrast to sufficiently
+     expressive proof systems, such as AC0 -Frege, which can be balanced. Depth captures the degree to proofs
+     — and therefore algorithms which they formalize — can be parallelized. Furthermore, the depth in integer-
+     programming based proof systems such as Stabbing Planes is closely related to rank measures of polytopes,
+     which are studied in integer programming theory. In this work, we showed that Stabbing Planes cannot be
+     balanced. We ask whether this can be improved to a supercritical size/depth tradeoff.
+
+  3. We have shown transformations of Cutting Planes proofs into Stabbing Planes which preserve either the size
+     or the depth of the original proof. Does there exist a transformation which preserves both parameters simulta-
+     neously?
+
+  4. Establish super-polynomial lower bounds on the size of Stabbing Planes proofs. As mentioned in the related
+     work section, [35] proved superpolynomial lower bounds on SP proofs with coefficients of magnitude bounded
+                   δ
+     above by 2n for some constant δ > 0 by reducing to Cutting Planes lower bounds, however it is unclear
+     whether this reduction can be made to work for arbitrarily large coefficients. Dadush and Tiwari [25] exhibited
+     an upper bound of exp(poly(n)) on the magnitude of the coefficients in any Stabbing Planes proof. Thus, one
+                                                                                                                   δ
+     potential (although seemingly unlikely) way to resolve this question is to improve their upper bound to 2n .
+     Another approach for obtaining lower bounds on general Stabbing Planes proofs, suggested by Garg et al. [39],
+     would be to obtain lifting theorem for intersection of triangles trees.
+
+  5. Fleming et al. [35] showed that any bounded-weight Stabbing Planes (SP∗ ) proof can be quasi-polynomially
+     translated into Cutting Planes. Can this simulation be improved to handle SP proofs of arbitrarily large
+     coefficients? Alternatively, can we separate SP from CP?
+
+  6. As mentioned in the introduction, we feel that SP has potential, in combination with state-of-the-art algorithms
+     for SAT, for improved performance on certain hard instances, or possibly to solve harder problems such as
+     maxSAT or counting satisfying assignments. The upper bound on the Tseitin example illustrates the kind
+     of reasoning that SP is capable of: arbitrarily splitting the solution space into sub-problems based on some
+     measure of progress. This opens up the space of algorithmic ideas for solvers and should allow one to take
+     fuller advantage of the expressibility of integer linear inequalities. For example, since geometric properties
+     of the rational hull formed by the set of constraints can be determined efficiently, an SP-based solver could
+     branch on linear inequalities representing some geometric properties of the rational hull. Therefore, it is an
+     open problem to realize a SP based solvers or to implement SP-like branching in conjunction with current
+     solvers.
+
+
+References
+[1] Karen Aardal, Robert E. Bixby, Cor A. J. Hurkens, Arjen K. Lenstra, and Job W. Smeltink. Market split and
+    basis reduction: Towards a solution of the cornuéjols-dawande instances. INFORMS J. Comput., 12(3):192–
+    202, 2000.
+
+[2] Karen Aardal and Arjen K. Lenstra. Hard equality constrained integer knapsacks. Math. Oper. Res., 29(3):724–
+    738, 2004.
+
+[3] David L Applegate, Robert E Bixby, Vasek Chvatal, and William J Cook. The traveling salesman problem: a
+    computational study. Princeton university press, 2006.
+
+[4] Albert Atserias, Maria Luisa Bonet, and Juan Luis Esteban. Lower bounds for the weak pigeonhole principle
+    and random formulas beyond resolution. Inf. Comput., 176(2):136–152, 2002.
+
+[5] Egon Balas. An additive algorithm for solving linear programs with zero-one variables. Operations Research,
+    13(4):517–546, 1965.
+
+
+                                                         24
+ [6] Egon Balas, Sebastián Ceria, and Gérard Cornuéjols. A lift-and-project cutting plane algorithm for mixed 0–1
+     programs. Mathematical programming, 58(1):295–324, 1993.
+
+ [7] Boaz Barak, Fernando G. S. L. Brandão, Aram Wettroth Harrow, Jonathan A. Kelner, David Steurer, and Yuan
+     Zhou. Hypercontractivity, sum-of-squares proofs, and their applications. In Proceedings of the 44th Symposium
+     on Theory of Computing Conference, STOC 2012, New York, NY, USA, May 19 - 22, 2012, pages 307–326,
+     2012.
+
+ [8] Amitabh Basu, Michele Conforti, Marco Di Summa, and Hongyi Jiang. Complexity of branch-and-bound and
+     cutting planes in mixed-integer optimization - II. CoRR, abs/2011.05474, 2020.
+
+ [9] Paul Beame, Chris Beck, and Russell Impagliazzo. Time-space trade-offs in resolution: Superpolynomial
+     lower bounds for superlinear space. SIAM J. Comput., 45(4):1612–1645, 2016.
+
+[10] Paul Beame, Noah Fleming, Russell Impagliazzo, Antonina Kolokolova, Denis Pankratov, Toniann Pitassi, and
+     Robert Robere. Stabbing planes. In 9th Innovations in Theoretical Computer Science Conference, ITCS 2018,
+     January 11-14, 2018, Cambridge, MA, USA, pages 10:1–10:20, 2018.
+
+[11] Eli Ben-Sasson. Hard examples for the bounded depth frege proof system. Comput. Complex., 11(3-4):109–
+     136, 2002.
+
+[12] Maria Luisa Bonet, Juan Luis Esteban, Nicola Galesi, and Jan Johannsen. On the relative complexity of
+     resolution refinements and cutting planes proof systems. SIAM J. Comput., 30(5):1462–1484, 2000.
+
+[13] Maria Luisa Bonet, Toniann Pitassi, and Ran Raz. Lower bounds for cutting planes proofs with small coeffi-
+     cients. J. Symb. Log., 62(3):708–728, 1997.
+
+[14] Joshua Buresh-Oppenheim, Nicola Galesi, Shlomo Hoory, Avner Magen, and Toniann Pitassi. Rank bounds
+     and integrality gaps for cutting planes procedures. Theory of Computing, 2(4):65–90, 2006.
+
+[15] Samuel R. Buss, Dima Grigoriev, Russell Impagliazzo, and Toniann Pitassi. Linear gaps between degrees for
+     the polynomial calculus modulo distinct primes. J. Comput. Syst. Sci., 62(2):267–289, 2001.
+
+[16] Arkadev Chattopadhyay, Shachar Lovett, and Marc Vinyals. Equality alone does not simulate randomness.
+     In Amir Shpilka, editor, 34th Computational Complexity Conference, CCC 2019, July 18-20, 2019, New
+     Brunswick, NJ, USA, volume 137 of LIPIcs, pages 14:1–14:11. Schloss Dagstuhl - Leibniz-Zentrum für In-
+     formatik, 2019.
+
+[17] V. Chvátal, W. Cook, and M. Hartmann. On cutting-plane proofs in combinatorial optimization. Linear Algebra
+     and its Applications, 114-115:455–499, 1989. Special Issue Dedicated to Alan J. Hoffman.
+
+[18] Vasek Chvátal. Edmonds polytopes and a hierarchy of combinatorial problems. Discrete Mathematics,
+     4(4):305–337, 1973.
+
+[19] Vašek Chvátal. Cutting-plane proofs and the stability number of a graph. Inst. für Ökonometrie und Operations
+     Research, Rhein. Friedrich-Wilhelms-Univ., 1984.
+
+[20] Michele Conforti, Gérard Cornuéjols, Giacomo Zambelli, et al. Integer programming, volume 271. Springer,
+     2014.
+
+[21] Stephen A. Cook and Robert A. Reckhow. The relative efficiency of propositional proof systems. J. Symb.
+     Log., 44(1):36–50, 1979.
+
+[22] William Cook, Ravindran Kannan, and Alexander Schrijver. Chvátal closures for mixed integer programming
+     problems. Mathematical Programming, 47(1):155–174, 1990.
+
+
+
+                                                         25
+[23] William J. Cook, Collette R. Coullard, and György Turán. On the complexity of cutting-plane proofs. Discrete
+     Applied Mathematics, 18(1):25–38, 1987.
+
+[24] William J. Cook and Mark Hartmann. On the complexity of branch and cut methods for the traveling salesman
+     problem. In William J. Cook and Paul D. Seymour, editors, Polyhedral Combinatorics, Proceedings of a
+     DIMACS Workshop, Morristown, New Jersey, USA, June 12-16, 1989, volume 1 of DIMACS Series in Discrete
+     Mathematics and Theoretical Computer Science, pages 75–82. DIMACS/AMS, 1990.
+
+[25] Daniel Dadush and Samarth Tiwari. On the complexity of branching proofs. In Shubhangi Saraf, editor,
+     35th Computational Complexity Conference, CCC 2020, July 28-31, 2020, Saarbrücken, Germany (Virtual
+     Conference), volume 169 of LIPIcs, pages 34:1–34:35. Schloss Dagstuhl - Leibniz-Zentrum für Informatik,
+     2020.
+
+[26] Stefan S. Dantchev, Nicola Galesi, Abdul Ghani, and Barnaby Martin. Depth lower bounds in stabbing planes
+     for combinatorial principles. CoRR, abs/2102.07622, 2021.
+
+[27] Sanjeeb Dash. Exponential lower bounds on the lengths of some classes of branch-and-cut proofs. Math. Oper.
+     Res., 30(3):678–700, 2005.
+
+[28] Sanjeeb Dash. On the complexity of cutting plane proofs using split cuts. Electron. Colloquium Comput.
+     Complex., 15(084), 2008.
+
+[29] Martin Davis, George Logemann, and Donald W. Loveland. A machine program for theorem-proving. Com-
+     mun. ACM, 5(7):394–397, 1962.
+
+[30] Martin Davis and Hilary Putnam. A computing procedure for quantification theory. J. ACM, 7(3):201–215,
+     1960.
+
+[31] Susanna F. de Rezende, Jakob Nordström, and Marc Vinyals. How limited interaction hinders real communi-
+     cation (and what it means for proof and circuit complexity). Electron. Colloquium Comput. Complex., 28:6,
+     2021.
+
+[32] Santanu S. Dey, Yatharth Dubey, and Marco Molinaro. Lower bounds on the size of general branch-and-bound
+     trees. CoRR, abs/2103.09807, 2021.
+
+[33] Yuval Filmus, Pavel Hrubeš, and Massimo Lauria. Semantic versus syntactic cutting planes. In Nicolas
+     Ollinger and Heribert Vollmer, editors, 33rd Symposium on Theoretical Aspects of Computer Science, STACS
+     2016, February 17-20, 2016, Orléans, France, volume 47 of LIPIcs, pages 35:1–35:13. Schloss Dagstuhl -
+     Leibniz-Zentrum für Informatik, 2016.
+
+[34] Matteo Fischetti and Andrea Lodi. Local branching. Math. Program., 98(1-3):23–47, 2003.
+
+[35] Noah Fleming, Mika Göös, Russell Impagliazzo, Toniann Pitassi, Robert Robere, Li-Yang Tan, and Avi
+     Wigderson. On the power and limitations of branch and cut. In Valentine Kabanets, editor, 36th Compu-
+     tational Complexity Conference, CCC 2021, July 20-23, 2021, Toronto, Ontario, Canada (Virtual Conference),
+     volume 200 of LIPIcs, pages 6:1–6:30. Schloss Dagstuhl - Leibniz-Zentrum für Informatik, 2021.
+
+[36] Noah Fleming, Denis Pankratov, Toniann Pitassi, and Robert Robere. Random Θ(log n)-CNFs are hard for
+     cutting planes. In 58th IEEE Annual Symposium on Foundations of Computer Science, FOCS 2017, Berkeley,
+     CA, USA, October 15-17, 2017, pages 109–120, 2017.
+
+[37] Noah Fleming, Toniann Pitassi, and Robert Robere. Extremely deep proofs. In Mark Braverman, editor, 13th
+     Innovations in Theoretical Computer Science Conference, ITCS 2022, January 31 - February 3, 2022, Berkeley,
+     CA, USA, volume 215 of LIPIcs, pages 70:1–70:23. Schloss Dagstuhl - Leibniz-Zentrum für Informatik, 2022.
+
+
+
+                                                        26
+[38] Nicola Galesi, Dmitry Itsykson, Artur Riazanov, and Anastasia Sofronova. Bounded-depth frege complexity
+     of tseitin formulas for all graphs. In Peter Rossmanith, Pinar Heggernes, and Joost-Pieter Katoen, editors,
+     44th International Symposium on Mathematical Foundations of Computer Science, MFCS 2019, August 26-
+     30, 2019, Aachen, Germany, volume 138 of LIPIcs, pages 49:1–49:15. Schloss Dagstuhl - Leibniz-Zentrum
+     für Informatik, 2019.
+
+[39] Ankit Garg, Mika Göös, Pritish Kamath, and Dmitry Sokolov. Monotone circuit lower bounds from resolution.
+     In Ilias Diakonikolas, David Kempe, and Monika Henzinger, editors, Proceedings of the 50th Annual ACM
+     SIGACT Symposium on Theory of Computing, STOC 2018, Los Angeles, CA, USA, June 25-29, 2018, pages
+     902–911. ACM, 2018.
+
+[40] Ralph Gomory. An algorithm for the mixed integer problem. Technical report, RAND CORP SANTA MON-
+     ICA CA, 1960.
+
+[41] Ralph E Gomory. An algorithm for integer solutions to linear programs. Recent advances in mathematical
+     programming, 64(260-302):14, 1963.
+
+[42] Mika Göös, Pritish Kamath, Robert Robere, and Dmitry Sokolov. Adventures in monotone complexity and
+     TFNP. In Avrim Blum, editor, 10th Innovations in Theoretical Computer Science Conference, ITCS 2019,
+     January 10-12, 2019, San Diego, California, USA, volume 124 of LIPIcs, pages 38:1–38:19. Schloss Dagstuhl
+     - Leibniz-Zentrum für Informatik, 2019.
+
+[43] Mika Göös and Toniann Pitassi. Communication lower bounds via critical block sensitivity. SIAM J. Comput.,
+     47(5):1778–1806, 2018.
+
+[44] Dima Grigoriev. Tseitin’s tautologies and lower bounds for nullstellensatz proofs. In 39th Annual Symposium
+     on Foundations of Computer Science, FOCS ’98, November 8-11, 1998, Palo Alto, California, USA, pages
+     648–652. IEEE Computer Society, 1998.
+
+[45] Dima Grigoriev. Linear lower bound on degrees of positivstellensatz calculus proofs for the parity. Theor.
+     Comput. Sci., 259(1-2):613–622, 2001.
+
+[46] M. Grötschel, L. Lovász, and A. Schrijver. Geometric methods in combinatorial optimization. In William R.
+     Pulleyblank, editor, Progress in Combinatorial Optimization, pages 167–183. Academic Press, 1984.
+
+[47] Johan Håstad. On small-depth frege proofs for tseitin for grids. Electron. Colloquium Comput. Complex.,
+     24:142, 2017.
+
+[48] Pavel Hrubeš and Pavel Pudlák. Random formulas, monotone circuits, and interpolation. In 58th IEEE Annual
+     Symposium on Foundations of Computer Science, FOCS 2017, Berkeley, CA, USA, October 15-17, 2017, pages
+     121–131, 2017.
+
+[49] Russell Impagliazzo, Toniann Pitassi, and Alasdair Urquhart. Upper and lower bounds for tree-like cutting
+     planes proofs. In Proceedings of the Ninth Annual Symposium on Logic in Computer Science (LICS ’94),
+     Paris, France, July 4-7, 1994, pages 220–228. IEEE Computer Society, 1994.
+
+[50] Robert G Jeroslow. Trivial integer programs unsolvable by branch-and-bound. Mathematical Programming,
+     6(1):105–109, 1974.
+
+[51] Hendrik W. Lenstra Jr. Integer programming with a fixed number of variables. Math. Oper. Res., 8(4):538–548,
+     1983.
+
+[52] Roberto J. Bayardo Jr. and Robert Schrag. Using CSP look-back techniques to solve real-world SAT instances.
+     In Benjamin Kuipers and Bonnie L. Webber, editors, Proceedings of the Fourteenth National Conference on
+     Artificial Intelligence and Ninth Innovative Applications of Artificial Intelligence Conference, AAAI 97, IAAI
+     97, July 27-31, 1997, Providence, Rhode Island, USA, pages 203–208. AAAI Press / The MIT Press, 1997.
+
+                                                        27
+[53] Arist Kojevnikov. Improved lower bounds for tree-like resolution over linear inequalities. In João Marques-
+     Silva and Karem A. Sakallah, editors, Theory and Applications of Satisfiability Testing - SAT 2007, 10th In-
+     ternational Conference, Lisbon, Portugal, May 28-31, 2007, Proceedings, volume 4501 of Lecture Notes in
+     Computer Science, pages 70–79. Springer, 2007.
+
+[54] Jan Krajı́cek. Discretely ordered modules as a first-order extension of the cutting planes proof system. J. Symb.
+     Log., 63(4):1582–1596, 1998.
+
+[55] Jan Krajı́ček. Proof complexity. Cambridge University Press, 2019.
+
+[56] Bala Krishnamoorthy and Gábor Pataki. Column basis reduction and decomposable knapsack problems. Dis-
+     cret. Optim., 6(3):242–270, 2009.
+
+[57] Ailsa H. Land and Alison G. Doig. An automatic method for solving discrete programming problems. In
+     Michael Jünger, Thomas M. Liebling, Denis Naddef, George L. Nemhauser, William R. Pulleyblank, Gerhard
+     Reinelt, Giovanni Rinaldi, and Laurence A. Wolsey, editors, 50 Years of Integer Programming 1958-2008 -
+     From the Early Years to the State-of-the-Art, pages 105–132. Springer, 2010.
+
+[58] László Lovász, Moni Naor, Ilan Newman, and Avi Wigderson. Search problems in the decision tree model.
+     SIAM J. Discret. Math., 8(1):119–132, 1995.
+
+[59] László Lovász and Herbert E. Scarf. The generalized basis reduction algorithm. Math. Oper. Res., 17(3):751–
+     764, 1992.
+
+[60] László Lovász and Alexander Schrijver. Cones of matrices and set-functions and 0-1 optimization. SIAM J.
+     Optim., 1(2):166–190, 1991.
+
+[61] Matthew W. Moskewicz, Conor F. Madigan, Ying Zhao, Lintao Zhang, and Sharad Malik. Chaff: Engineering
+     an efficient SAT solver. In Proceedings of the 38th Design Automation Conference, DAC 2001, Las Vegas, NV,
+     USA, June 18-22, 2001, pages 530–535. ACM, 2001.
+
+[62] Saburo Muroga. Threshold logic and its applications. Wiley, 1971.
+
+[63] George L Nemhauser and Laurence A Wolsey. A recursive procedure to generate all cuts for 0–1 mixed integer
+     programs. Mathematical Programming, 46(1):379–390, 1990.
+
+[64] Noam Nisan. The communication complexity of threshold gates. Combinatorics, Paul Erdos is Eighty, 1:301–
+     315, 1993.
+
+[65] Manfred Padberg and Giovanni Rinaldi. A branch-and-cut algorithm for the resolution of large-scale symmetric
+     traveling salesman problems. SIAM review, 33(1):60–100, 1991.
+
+[66] Toniann Pitassi, Benjamin Rossman, Rocco A. Servedio, and Li-Yang Tan. Poly-logarithmic Frege depth lower
+     bounds via an expander switching lemma. In Proceedings of the 48th Annual ACM SIGACT Symposium on
+     Theory of Computing, STOC 2016, Cambridge, MA, USA, June 18-21, 2016, pages 644–657, 2016.
+
+[67] Pavel Pudlák. Lower bounds for resolution and cutting plane proofs and monotone computations. J. Symb.
+     Log., 62(3):981–998, 1997.
+
+[68] Pavel Pudlák. On the complexity of the propositional calculus. Sets and Proofs, 258:197, 1999.
+
+[69] Alexander A. Razborov. A new kind of tradeoffs in propositional proof complexity. J. ACM, 63(2):16:1–16:14,
+     2016.
+
+[70] Grant Schoenebeck. Linear level lasserre lower bounds for certain k-CSPs. In 49th Annual IEEE Symposium on
+     Foundations of Computer Science, FOCS 2008, October 25-28, 2008, Philadelphia, PA, USA, pages 593–602.
+     IEEE Computer Society, 2008.
+
+                                                         28
+[71] Hanif D. Sherali and Warren P. Adams. A hierarchy of relaxations between the continuous and convex hull
+     representations for zero-one programming problems. SIAM J. Discret. Math., 3(3):411–430, 1990.
+
+[72] João P. Marques Silva and Karem A. Sakallah. GRASP: A search algorithm for propositional satisfiability.
+     IEEE Trans. Computers, 48(5):506–521, 1999.
+
+[73] Laurence A Wolsey and George L Nemhauser. Integer and combinatorial optimization, volume 55. John Wiley
+     & Sons, 1999.
+
+
+
+
+                                                     29
+

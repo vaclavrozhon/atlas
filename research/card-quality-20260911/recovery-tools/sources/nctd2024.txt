@@ -1,0 +1,1979 @@
+Proceedings of Machine Learning Research vol 196:1–36, 2024                  37th Annual Conference on Learning Theory
+
+
+
+
+                   Non-Clashing Teaching Maps for Balls in Graphs
+Jérémie Chalopin                                                            JEREMIE . CHALOPIN @ LIS - LAB . FR
+Aix-Marseille Université, Université de Toulon, CNRS, LIS, Marseille, France
+Victor Chepoi                                                                     VICTOR . CHEPOI @ LIS - LAB . FR
+Aix-Marseille Université, Université de Toulon, CNRS, LIS, Marseille, France
+Fionn Mc Inerney                                                                        FMCINERN @ GMAIL . COM
+Algorithms and Complexity Group, TU Wien, Vienna, Austria
+Sébastien Ratel                                                                       RATEL . SEB @ GMAIL . COM
+Aix-Marseille Université, Université de Toulon, CNRS, LIS, Marseille, France
+
+
+Editors: Shipra Agrawal and Aaron Roth
+
+
+                                                           Abstract
+      Recently, Kirkpatrick et al. [ALT 2019] and Fallat et al. [JMLR 2023] introduced non-clashing
+      teaching and showed it to be the most efficient machine teaching model satisfying the benchmark
+      for collusion-avoidance set by Goldman and Mathias. A teaching map T for a concept class C
+      assigns a (teaching) set T (C) of examples to each concept C ∈ C. A teaching map is non-clashing
+      if no pair of concepts are consistent with the union of their teaching sets. The size of a non-
+      clashing teaching map (NCTM) T is the maximum size of a teaching set T (C), C ∈ C. The non-
+      clashing teaching dimension NCTD(C) of C is the minimum size of an NCTM for C. NCTM+ and
+      NCTD+ (C) are defined analogously, except the teacher may only use positive examples.
+           We study NCTMs and NCTM+ s for the concept class B(G) consisting of all balls of a graph G.
+      We show that the associated decision problem B-NCTD+ for NCTD+ is NP-complete in split, co-
+      bipartite, and bipartite graphs. Surprisingly, we even prove that, unless the ETH fails, B-NCTD+
+                                                       o(vc)
+      does not admit an algorithm running in time 22         · nO(1) , nor a kernelization algorithm outputting
+                       o(vc)
+      a kernel with 2        vertices, where vc is the vertex cover number of G. We complement these
+      lower bounds with matching upper bounds. These are extremely rare results: it is only the second
+      problem in NP to admit such a tight double-exponential lower bound parameterized by vc, and only
+      one of very few problems to admit such an ETH-based conditional lower bound on the number of
+      vertices in a kernel. For trees, interval graphs, cycles, and trees of cycles, we derive NCTM+ s or
+      NCTMs for B(G) of size proportional to its VC-dimension. For Gromov-hyperbolic graphs, we
+      design an approximate NCTM+ for B(G) of size 2, in which only pairs of balls with Hausdorff
+      distance larger than some constant must satisfy the non-clashing condition.
+      Keywords: Non-clashing teaching, VC-dimension, balls in graphs, parameterized complexity, ver-
+      tex cover, kernelization, double-exponential lower bounds, ETH lower bounds, hyperbolic graphs
+
+
+1. Introduction
+Machine teaching is a core paradigm in computational learning theory that has attracted signifi-
+cant attention due to its applications in diverse areas such as trustworthy AI Mei and Zhu (2015);
+Zhang et al. (2018), inverse reinforcement learning Brown and Niekum (2019); Ho et al. (2016),
+robotics Akgun et al. (2012); Thomaz and Cakmak (2009), and education Chen et al. (2018); Zhu
+(2015) (see Zhu et al. (2018) for an overview). In machine teaching models, given a concept class
+C, a teacher presents to a learner a carefully chosen set T (C) of correctly labeled examples from
+a concept C ∈ C in such a way that the learner can reconstruct C from T (C). This defines the
+
+© 2024 J. Chalopin, V. Chepoi, F. Mc Inerney & S. Ratel.
+                              C HALOPIN C HEPOI M C I NERNEY R ATEL
+
+
+
+
+teaching map (TM) T and the teaching sets T (C), C ∈ C. The goal is to find a TM that minimizes
+the size of a largest teaching set. The examples selected in T (C) by the teacher are the most useful
+to the learner to reconstruct C, in contrast to models of learning (like the classical PAC-learning)
+where the learner must reconstruct a concept of C from randomly chosen examples.
+     There are a multitude of formal models of machine teaching Balbach (2008); Gao et al. (2016,
+2017); Goldman and Kearns (1995); Goldman and Mathias (1996); Mansouri et al. (2019); Shino-
+hara and Miyano (1991); Zilles et al. (2011), which differ by the conditions imposed on the teacher
+and learner. Several of these are batch teaching models, where the examples proposed by the teacher
+to the learner are sets. This is in contrast to sequential teaching models, where the examples are not
+presented all at once, but rather in an order chosen by the teacher. A key notion in formal models
+of machine teaching is that the teacher and learner should not collude. The benchmark for prevent-
+ing this is the Goldman-Mathias (GM) collusion-avoidance criterion Goldman and Mathias (1996),
+which essentially demands a teaching map T to admit a learner that returns the concept C whenever
+it is shown any set of labeled examples that include T (C) and are consistent with C. Recently, a
+batch teaching model called non-clashing teaching (NC-teaching) was proposed Fallat et al. (2023);
+Kirkpatrick et al. (2019). Given a concept class C, a TM T on C is non-clashing if, for any two dis-
+tinct concepts C, C ′ ∈ C, either T (C) is not consistent with C ′ or T (C ′ ) is not consistent with
+C, or both. They proved NC-teaching to be the most efficient model (in terms of the worst-case
+number of examples required) satisfying the GM collusion-avoidance criterion. It is common to
+restrict the teacher to only presenting positive examples (see Angluin (1980a,b) for early successes
+of this approach). These models are vastly studied due to their pertinence in, e.g., grammatical in-
+ference Denis (2001); Stolcke and Omohundro (1994), computational biology Wang et al. (2006);
+Yousef et al. (2008), and recommendation systems Schwab et al. (2000). For these reasons, Fallat
+et al. (2023); Kirkpatrick et al. (2019) also introduced and studied positive NC-teaching, in which
+the teacher may only use positive examples.
+     As with PAC-learning, where the VC-dimension VCD(C) of C drives the number of randomly
+chosen examples that are sufficient to learn the concepts of C, various models of machine teaching
+lead to different notions of teaching dimension which bound the teaching set sizes. The definitive
+teaching dimension (DTD) Goldman and Kearns (1995); Shinohara and Miyano (1991) is a proto-
+typical one. A definitive teaching set (DTS) of a concept C ∈ C is a C-sample (a sample consistent
+with a concept of C) for which C is the only consistent concept in C. DTD(C) is the maximum size
+of a DTS over all C ∈ C. Note also the important recursive teaching dimension (RTD) Zilles et al.
+(2008, 2011). NC-teaching and positive NC-teaching also have dimension parameters. The size of
+a TM T on C is the maximum size of T (C) over all C ∈ C. The non-clashing teaching dimension
+NCTD(C) (positive non-clashing teaching dimension NCTD+ (C), resp.) is the minimum size of
+a non-clashing TM (NCTM) for C (positive NCTM (NCTM+ ) for C, resp.) Fallat et al. (2023);
+Kirkpatrick et al. (2019). An important research direction for various notions of teaching dimension
+is their relationship with the VC-dimension. For NC-teaching, Fallat et al. (2023); Kirkpatrick et al.
+(2019) say that “The most fundamental open question resulting from our paper is probably whether
+NCTD is upper-bounded by VCD in general”, and Simon (2023) also mentions this open question.
+     NCTMs are signed versions of representation maps (RMs) for concept classes. Kuzmin and
+Warmuth (2007) introduced RMs to design unlabeled sample compression schemes (SCSs) for max-
+imum concept classes. They proved that the existence of RMs of size d = VCD(C) for a maximum
+class C is equivalent to the existence of unlabeled SCSs of size d for C. Chalopin et al. (2022) gen-
+eralized this equivalence to ample classes, and they also constructed RMs of size d for maximum
+
+                                                  2
+                        N ON -C LASHING T EACHING M APS FOR BALLS IN G RAPHS
+
+
+
+
+classes. The main difference between NCTMs and RMs is that RMs assign to each concept C ∈ C
+a set shattered by C. Littlestone and Warmuth (1986) introduced SCSs, which have been vastly
+studied due to their importance in computational machine learning.
+    In this paper, we consider NCTMs and NCTM+ s for the concept class B(G) consisting of all
+balls of a graph G. For several graph classes, we derive NCTMs for B(G) of size proportional to
+VCD(B(G)). Further, we study the computational complexity of the following decision problems:
+NCTD FOR BALLS IN G RAPHS (B-NCTD)
+ Input:    A graph G on n vertices and a positive integer k.
+  Question:         Is NCTD(B(G)) ≤ k?
+
+
+NCTD+ FOR BALLS IN G RAPHS (B-NCTD+ )
+ Input:    A graph G on n vertices and a positive integer k.
+  Question:         Is NCTD+ (B(G)) ≤ k?
+
+Motivation for balls in graphs. The combinatorial and geometric aspects of balls in graphs mo-
+tivate B-NCTD and B-NCTD+ . The combinatorial one ensures that the study of balls in graphs
+is as general as that of arbitrary concept classes. Notably, to any set-family C ⊆ 2V , one can
+associate a set of balls of a graph G as follows. V (G) = V ∪ {xC : C ∈ C}, the vertices of
+{xC : C ∈ C} form a clique, and xC and v ∈ V are adjacent if and only if v ∈ C. For any C ∈ C,
+B1 (xC ) = C ∪ {xC ′ : C ′ ∈ C}. On the other hand, one may hope that for graphs G with a rich
+metric structure, the geometric structure of B(G) may allow to efficiently construct NCTMs, which
+our results confirm. Further, in light of the open question of Fallat et al. (2023); Kirkpatrick et al.
+(2019); Simon (2023), B(G) may provide graph classes where NCTD(B(G)) > VCD(B(G)), e.g.,
+we prove that, for trees of cycles, NCTD(B(G)) ≤ 4, while VCD(B(G)) ≤ 3. Trees of cycles
+are planar, and, for planar graphs, VCD(B(G)) ≤ 4 Bousquet and Thomassé (2015); Chepoi et al.
+(2007), but it is unclear how to bound NCTD(B(G)) by a small constant (it is at most 615 as, for
+any set-family C with VCD(C) = d, NCTD(C) ≤ RTD(C) ≤ 39.3752d2 − 3.633d Fallat et al.
+(2023); Hu et al. (2017)). Lastly, SCSs for balls in graphs were studied in Chalopin et al. (2023).
+Our Results. Our focus is twofold: we show that 1) B-NCTD+ is computationally hard and
+exhibits rare properties from parameterized complexity, and 2) for several graph classes, we derive
+NCTMs of size proportional to VCD(B(G)). We begin with the first direction, proving that:
+1. B-NCTD+ is NP-complete in split and co-bipartite graphs with a universal vertex, and bipartite
+   graphs of diameter 3.
+     Note that Kirkpatrick et al. (2019) proved that it is NP-hard to decide, for a concept class C,
+whether NCTD(C) = k or NCTD+ (C) = k, even if k = 1, but their results do not apply to B(G)
+as they rely on the fact that deciding whether NCTD+ (C) = 1 is NP-hard.1
+     B-NCTD+ being NP-hard in these graph classes motivates studying its parameterized complex-
+ity, as was done for other problems in learning theory Brand et al. (2023); Downey et al. (1993); Ga-
+nian and Korchemna (2021); Li and Liang (2018). This leads to our first main result, which exhibits
+the extreme computational complexity of the problem. Recently, Foucaud et al. (2024a) developed
+ 1. NCTD+ (B(G)) = 1 if and only if G is edgeless. Let uv ∈ E(G). T (B1 (v)) must contain a vertex in N (v) as
+    T (B0 (v)) ⊆ {v}, say u ∈ T (B1 (v)). Then, T (B1 (v)) must contain another vertex in N [v] as T (B0 (u)) ⊆ {u}.
+
+
+                                                         3
+                                   C HALOPIN C HEPOI M C I NERNEY R ATEL
+
+
+
+
+ a technique to prove double-exponential dependence on the treewidth (tw) and/or the vertex cover
+ number (vc) of the graph in the running time of FPT algorithms for problems in NP. For these clas-
+ sic structural parameters, they proved that, unless the ETH fails,2 even on bounded-diameter graphs
+                                                                  o(tw)
+ M ETRIC D IMENSION and G EODETIC S ET do not admit 22                  · nO(1) -time algorithms, S TRONG
+                                              o(vc)
+ M ETRIC D IMENSION does not admit a 22             · nO(1) -time algorithm, and these bounds are tight.
+ Notably, these were the only problems in NP known to admit such tight double-exponential lower
+ bounds, until now.3 Applying this technique, we obtain our first main result:
+                                                                        o(vc)
+ 2. Unless the ETH fails, B-NCTD+ does not admit a 22                           · nO(1) -time algorithm, even in
+    diameter-3 graphs.
+     Our lower bound is robust as all the traditional structural parameters like treewidth, pathwidth,
+ and treedepth are at most vc + 2. Further, B-NCTD+ is only the second problem in NP to admit
+ a double-exponential dependence in vc. Thus, B-NCTD+ is also incredibly interesting from a
+ purely theoretical perspective, and it is strongly linked with other metric graph problems. The same
+ reduction yields two more results, the first of which is also extremely rare:
+ 3. Unless the ETH fails, B-NCTD+ does not admit a kernelization algorithm outputting a kernel
+    with 2o(vc) vertices, even in diameter-3 graphs.
+ 4. Unless the ETH fails, B-NCTD+ does not admit a 2o(n) -time algorithm, even in diameter-3
+    graphs.
+     Indeed, such ETH-based conditional lower bounds on the number of vertices in a kernel are very
+ rare as they are only known for a few other problems Chandran et al. (2016); Cygan et al. (2016);
+ Chakraborty et al. (2024); Foucaud et al. (2024a,b); Tale (2024). We show that our lower bounds
+ concerning vc are tight by giving matching upper bounds:
+                               O(vc)
+ 5. B-NCTD+ admits a 22                · nO(1) -time algorithm.
+ 6. B-NCTD+ admits a kernelization algorithm outputting a kernel with 2O(vc) vertices.
+                                                2                                           2
+     For B-NCTD+ , we also give a 2O(n ·diam) -time algorithm, yielding a 2O(n ) -time algorithm in
+ bounded-diameter graphs. We then focus on our second goal: designing NCTMs for B(G) that are
+ linear in VCD(B(G)), when G is restricted to certain graph classes. Proving that any ball in a tree
+ or interval graph can be distinctly represented by two of its “farthest apart” vertices, we show that:
+ 7. If G is a tree or an interval graph, then NCTD(B(G)) ≤ NCTD+ (B(G)) = VCD(B(G)) ≤ 2.
+     In contrast to trees and interval graphs, we prove that:
+ 8. Cycles do not admit NCTM+ s of fixed size for B(G), but do admit NCTMs of size 2.
+      With this in mind, we search for NCTMs for B(G) for richer graph classes. This already proves
+ difficult in trees of cycles, for which, by a technical proof, we get the following:
+ 9. If G is a tree of cycles, then NCTD(B(G)) ≤ 4, while VCD(B(G)) ≤ 3.
+     In analogy to PAC-learning, in approximate NCTM+ s, only pairs of balls with Hausdorff dis-
+ tance larger than some constant must satisfy the non-clashing condition. Akin to our method in
+ trees, we show that:
+10. If G is a δ-hyperbolic graph, then B(G) admits a 2δ-approximate NCTM+ of size 2.
+  2. Roughly, the Exponential Time Hypothesis (ETH) states that n-variable 3-SAT cannot be solved in time 2o(n) .
+  3. After a preprint of this paper appeared on arXiv, tight double-exponential dependence on the treewidth was also
+     shown for the NP-complete problems T EST C OVER and L OCATING -D OMINATING S ET Chakraborty et al. (2024).
+
+
+                                                         4
+                      N ON -C LASHING T EACHING M APS FOR BALLS IN G RAPHS
+
+
+
+
+2. Preliminaries
+This section consists of definitions and notation. For the ball Br (x), T (x, r) denotes T (Br (x)).
+Omitted proofs of theorems and sketches of proofs (marked by ⋆) are in the appendix.
+
+Concept classes and samples. In machine learning, a concept class on a set V is any collection C
+of subsets of V . The VC-dimension VCD(C) of C is the size of a largest set S ⊆ V shattered by C,
+that is, such that {C ∩ S : C ∈ C} = 2S . A sample is a set X = {(x1 , y1 ), . . . , (xm , ym )}, where
+xi ∈ V and yi ∈ {−1, +1}. A sample X is realizable by a concept C ∈ C if yi = +1 when xi ∈ C,
+and yi = −1 when xi ∈   / C. A sample X is a C-sample if X is realizable by some concept C in C.
+To encode concepts of a concept class C on V and C-samples, we use the language of sign vectors
+from oriented matroids theory Björner et al. (1993). Let L be a non-empty set of sign vectors, i.e.,
+maps from V to {±1, 0} := {−1, 0, +1}. For X ∈ L, let X + := {v ∈ V : Xv = +1} and
+X − := {v ∈ V : Xv = −1}. The set X := X + ∪ X − is called the support of X. We denote by ⪯
+the product ordering on {±1, 0}V relative to the ordering of signs with 0 ⪯ −1 and 0 ⪯ +1. Any
+C ⊆ 2V can be viewed as a set of sign vectors of {±1}V : each concept C ∈ C is encoded by the
+sign vector X(C), where Xv (C) = +1 if v ∈ C and Xv (C) = −1 if v ∈      / C. In what follows, we
+consider C simultaneously as a collection of sets and as a set of {±1}-vectors. From the definition
+of a sample X, it follows that X is just a sign vector and that the samples realizable by a concept
+C ∈ C are all X ∈ {±1, 0}V such that X ⪯ C.
+
+NCTMs and NCTD. For a concept class C on V , a TM T associates, to each C ∈ C, a realizable
+sample T (C) for C (the teaching set of C), i.e., T (C) ∈ {±1, 0}V and T (C) ⪯ C. Rephrasing
+the original definitions of NCTMs and RMs, a TM T : C → {±1, 0}V is non-clashing if whenever
+T (C ′ ) ⪯ C and T (C) ⪯ C ′ for C, C ′ ∈ C, then C = C ′ . Equivalently, T is non-clashing if, for any
+two distinct concepts C, C ′ of C, the non-clashing condition holds: for all C, C ′ ∈ C with C ̸= C ′ ,
+C|(T (C)∪T (C ′ )) ̸= C ′ |(T (C)∪T (C ′ )) . If T also satisfies the inclusion condition: T (C) = T + (C) ⊆
+C + for any C ∈ C, then T is an NCTM+ . The size of a TM T for C is max{|T (C)| : C ∈ C}.
+NCTD(C) (NCTD+ (C), resp.) is the minimum size of an NCTM for C (NCTM+ for C, resp.).
+
+Graphs. In this paper, graphs are simple, connected, and undirected, and logarithms are to the
+base 2. For a positive integer k, [k] := {1, . . . , k}. Given a graph G, its vertex set is V (G) and
+its edge set is E(G). The distance dG (u, v) between two vertices u, v ∈ V (G) is the length of
+a shortest (u, v)-path in G. For any r ∈ N and u ∈ V (G), the ball of radius r centered at u is
+Br (u) := {v : dG (u, v) ≤ r}. For any u ∈ V (G), B1 (u) = NG [u] and NG (u) := NG [u] \ {u}.
+Two balls are distinct if they are distinct as sets. B(G) is the set of all distinct balls of G. For
+S ⊆ V (G), the diameter of S is diam(S) := maxu,v∈S dG (u, v), and a diametral pair of S is a
+pair u, v ∈ S such that dG (u, v) = diam(S). The diameter of G is diam(G) := diam(V (G)). For
+any u, v ∈ V (G), the interval IG (u, v) between u and v in G is the set of vertices on a shortest path
+between u and v in G. The vertex cover number vc(G) of G is the minimum number of vertices that
+are incident to all edges of G. When the context is clear, G is omitted from some of these notations.
+
+Parameterized complexity. An instance of a parameterized problem π consists of an input I of
+the non-parameterized problem and a parameter k ∈ N. A kernelization algorithm for π transforms,
+in polynomial time, an instance (I, k) of π into an equivalent instance (I ′ , k ′ ) of π with |I ′ |, k ′ ≤
+f (k), for a computable function f . A reduction rule is safe if the input instance is a YES-instance
+if and only if the output instance is a YES-instance. See Cygan et al. (2015) for a book on the topic.
+
+                                                     5
+                               C HALOPIN C HEPOI M C I NERNEY R ATEL
+
+
+
+
+Examples. To illustrate the notion, we present NCTMs for some concept classes in graphs.
+
+Example 1 Let G be any graph of diameter 2 such that, for each edge xy ∈ E(G), B1 (x) ∪
+B1 (y) = V (G). Examples are the complete bipartite graph Kn,m and the n-octahedron, which is
+the complete graph K2n on 2n vertices minus a perfect matching. We define an NCTM T for B(G)
+of size 2 as follows:
+
+    • for all x ∈ V (G), set T + (x, 0) := {x} and T − (x, 0) := {y} for some neighbor y of x;
+
+    • for all x ∈ V (G) such that V (G) \ B1 (x) ̸= ∅, set T + (x, 1) := {x} and T − (x, 1) := {z}
+      for some vertex z at distance 2 from x. Also set T + (V (G)) := ∅ and T − (V (G)) := ∅.
+
+We show that T is non-clashing. For any x ∈ V (G) and r ∈ {0, 1}, if Br (x) ̸= V (G), then
+T − (x, r) ̸= ∅, and thus, T is non-clashing for Br (x) and V (G). Consider a ball B0 (x) and
+let T (x, 0) = {x, y}. For any ball B ′ ̸= B0 (x) such that x ∈ B ′ and y ∈  / B ′ , we have that
+B ′ = B1 (y ′ ) for some neighbor y ′ of x distinct from y. Since y ′ ∈ T + (y ′ , 1) \ B0 (x), T is
+non-clashing for B0 (x) and any other ball. Consider now two balls B1 (x) and B1 (y) such that
+B1 (x) ̸= V (G) and B1 (y) ̸= V (G). If d(x, y) = 2, then x ∈ T + (x, 1) \ B1 (y) and T is non-
+clashing for B1 (x) and B1 (y). Suppose now that x and y are adjacent and let T (x, 1) = {x, z}.
+Then, z is adjacent to y, and thus, T is non-clashing for B1 (x) and B1 (y).
+
+    There is no NCTM+ of constant size for the example above, even for the n-dimensional octahe-
+dron G. Indeed, for any x ∈ V (G), there is a unique x̄ ∈ V (G)\B1 (x). Thus, in order to distinguish
+B1 (x) = V (G) \ {x̄} and V (G), we must have x̄ ∈ T + (V (G)), and thus, |T + (V (G))| = |V (G)|.
+    Our second example is the concept class C5 that does not come from the family of balls of a
+graph. It was given in Pálvölgyi and Tardos (2020) as an example of a concept class with VC-
+dimension 2 that does not admit an unlabeled sample compression scheme of size 2.
+
+Example 2 The ground set of C5 is the vertex set of the 5-cycle C5 (which we will suppose to be
+oriented counterclockwise). The concepts of C5 are of two types: the sets {u, v} of size 2 such
+that u and v are not adjacent in C5 , and the sets {x, y, z} defining a path of length 2 in C5 . If
+C = {x, y, z} is a path of length 2 in C5 ordered counterclockwise, we call y the middle vertex
+of C, and xy the first edge of C. Consider the following NCTM+ T of size 2: for any concept
+C = {u, v} of size 2, set T (C) := C = {u, v}; for any concept C = {x, y, z} of size 3, set
+T (C) := {x, y}.
+     We show that T is non-clashing. Any two concepts C, C ′ of size 2 are clearly distinguished
+by their traces on T (C) ∪ T (C ′ ). Analogously, any two concepts C, C ′ of size 3 have different
+first edges, and thus, are distinguished by their traces on T (C) ∪ T (C ′ ). Finally, any concepts
+C = {u, v} of size 2 and C ′ = {x, y, z} of size 3 are distinguished by their traces on T (C) ∪ T (C ′ )
+since T (C) = C = {u, v} =  ̸ {x, y} = T (C ′ ) as u and v are not adjacent in C5 , while x and y are.
+
+3. B-NCTD+ is NP-complete
+In this section, we prove that B-NCTD+ is NP-complete for split, co-bipartite, and bipartite graphs.
+We reduce from the well-known NP-hard S ET C OVER problem defined as follows: given a set of
+elements X = {1, . . . , n}, a family S = {S1 , . . . , Sm } of subsets of X that covers X (i.e., whose
+union is X), and a positive integer k, does there exist S ′ ⊂ S such that S ′ covers X and |S ′ | ≤ k?
+
+                                                   6
+                       N ON -C LASHING T EACHING M APS FOR BALLS IN G RAPHS
+
+
+
+
+Theorem 1 B-NCTD+ is NP-complete in split and co-bipartite graphs with a universal vertex,
+and bipartite graphs of diameter 3.
+
+Proof (⋆) The problem is in NP as any NCTM+ for B(G) has a set of at most n2 distinct balls as a
+domain. We sketch the proof for split graphs. The proof for co-bipartite graphs is similar, while the
+one for bipartite graphs is more involved.
+    Let ϕ be an instance of S ET C OVER in which each element of X is in at most m − 2 sets of
+S. From ϕ, we construct the graph G as follows. Add the sets of vertices V = {v1 , . . . , vn },
+S = {s1 , . . . , sm }, U = {u1 , . . . , um+1 }, and W = {w1 , . . . , wm }. For all i ∈ [n] and j ∈ [m], if
+i∈/ Sj in ϕ, then add the edge vi sj . For all j, ℓ ∈ [m] with j ̸= ℓ, add the edges uj wℓ and um+1 wℓ .
+Make each vertex in U adjacent to each vertex in S. Make each vertex in V adjacent to each vertex
+in W . Lastly, make the vertices in U ∪ V form a clique. We prove that ϕ admits a set cover of size
+at most t if and only if there is an NCTM+ of size at most k = m + t for B(G).
+    Suppose that ϕ admits a set cover S ′ ⊂ S of size at most t. Let S ′ ⊂ S be such that, for all
+j ∈ [m], sj ∈ S ′ if and only if Sj ∈ S ′ in ϕ. We define an NCTM+ T of size at most k for
+B(G). Note that we only need to define T for balls of G of radius 0 or 1 as, for all x ∈ V (G),
+B2 (x) = B1 (um+1 ) = V (G). For all x ∈ V (G), set T (x, 0) := {x}. For all x ∈ V , set
+T (x, 1) := B1 (x) ∩ S. For all x ∈ W ∪ S, set T (x, 1) := {x, um+1 }. For all x ∈ U , set
+T (x, 1) := S ′ ∪ (B1 (x) ∩ W ). Clearly, T has size at most k and satisfies the inclusion condition.
+One can also check that T is non-clashing. Thus, T is an NCTM+ of size at most k for B(G).
+    Now, suppose that ϕ does not admit a set cover of size at most t. For all i ∈ [n] and j ∈ [m],
+B1 (um+1 ) = B1 (uj ) ∪ {wj }, B1 (vi ) ⊂ B1 (um+1 ), and (B1 (um+1 ) \ B1 (vi )) ⊂ S. Hence,
+for any NCTM+ T for B(G), W ⊆ T (um+1 , 1) and T (um+1 , 1) ∩ S corresponds to a set cover.
+Consequently, |T (um+1 , 1) ∩ S| > t, and thus, |T (um+1 , 1)| > k for any NCTM+ T for B(G).
+
+
+
+4. Tight bounds for parameterizations by the vertex cover number
+In this section, we consider B-NCTD+ parameterized by the vertex cover number vc of G. For any
+x ∈ V (G) and r ∈ N, there are at most 2n possibilities for T (x, r), and there are at most n · diam
+unique balls in G (as it is connected). Thus, we get the following algorithm that will be needed later.
+                                                                                          2
+Proposition 2 B-NCTD+ and B-NCTD admit algorithms running in time 2O(n ·diam(G)) .
+
+    We use a recently introduced technique from Foucaud et al. (2024a) to prove the following:
+
+Theorem 3 Unless the ETH fails, even in graphs of diameter 3, B-NCTD+ does not admit
+                                         o(vc)
+    • an algorithm running in time 22            · nO(1) , nor
+
+    • a kernelization algorithm outputting a kernel with 2o(vc) vertices, nor
+
+    • an algorithm running in time 2o(n) .
+
+     Using this technique, we prove Theorem 3 via a reduction from 3-PARTITIONED -3-SAT, in-
+troduced in Lampis et al. (2023) and defined as follows. Given a 3-CNF formula ϕ and a partition
+of its variables into three disjoint sets X α , X β , X γ such that |X α | = |X β | = |X γ | = N and no
+
+                                                        7
+                                 C HALOPIN C HEPOI M C I NERNEY R ATEL
+
+
+
+
+clause contains more than one variable from any of X α , X β , and X γ , is ϕ satisfiable? The crux of
+the technique is to replace edges between clause and variable vertices by a “small” separator, called
+a set representation gadget, that encodes these relationships. The proof of (Lampis et al., 2023,
+Theorem 3) along with the Sparsification Lemma Impagliazzo et al. (2001) implies the following:
+
+Proposition 4 Unless the ETH fails, 3-PARTITIONED -3-SAT does not admit an algorithm run-
+ning in time 2o(M ) , where M is the number of clauses.
+
+Set representation gadget. Let p be the smallest integer such that 3M ≤ 2p
+                                                                                      
+                                                                                     p , and observe that
+p = O(log M ). Let Fp be the collection of subsets of [2p] that contain exactly p integers. Define
+set-rep : [3M ] → [Fp ] as a one-to-one function by arbitrarily assigning a set in Fp to each integer
+in [3M ]. Consider the variables from X α in ϕ. For each variable xαi (i ∈ [N ]) in X α in ϕ, there are
+two vertices tα2i and f2i−1
+                       α    corresponding to the positive and negative literals of xαi , respectively. For
+each clause Cj (j ∈ [M ]) in ϕ, there is a clause vertex cj . Add a set of vertices V α = {v1α , . . . , v2p
+                                                                                                          α }.
+                                   α  α             ′
+For each i ∈ [N ], add the edge t2i vp′ for each p ∈ set-rep(2i). Similarly, for each i ∈ [N ], add
+           α v α for each p′ ∈ set-rep(2i − 1). Now, for all i ∈ [N ] and j ∈ [M ], if the variable
+the edge f2i−1    p′
+xi appears as a positive (negative, resp.) literal in the clause Cj in ϕ, then add the edge cj vpα′ for
+  α
+
+each p′ ∈ [2p] \ set-rep(2i) (p′ ∈ [2p] \ set-rep(2i − 1), resp.). For all j ∈ [M ], if no variable
+from X α appears in Cj in ϕ, then make cj adjacent to all the vertices in V α . See Fig. 1 (right). As a
+clause contains at most one variable from X α in ϕ, tα2i (f2i−1
+                                                              α , resp.) and c do not share a common
+                                                                                j
+neighbor in V α if and only if the clause Cj contains xαi as a positive (negative, resp.) literal in ϕ.
+We exploit this for the reduction, and since p = O(log M ), this ensures that vc(G) = O(log M ).
+Reduction. Let ϕ be an instance of 3-PARTITIONED -3-SAT on 3N variables and M = O(N )
+clauses such that M > N . For all δ ∈ {α, β, γ}, let the variables in X δ be xδ1 , . . . , xδN . From ϕ, we
+construct the graph G as follows. Add the vertex sets C = {c1 , . . . , cM }, W = {w1 , . . . , w3M }, and
+U = {u1 , . . . , u3M }, and the vertices u3M +1 , u′3M +1 , and z. For all δ ∈ {α, β, γ} and i ∈ [N ], add
+the vertices tδ2i and f2i−1
+                        δ   , and let Aδ = {tδ2i | i ∈ [N ]} ∪ {f2i−1
+                                                                    δ      | i ∈ [N ]}. For all δ ∈ {α, β, γ},
+add two independent sets of 2p vertices V = {v1 , . . . , v2p } and V δ,∗ = {v1δ,∗ , . . . , v2p
+                                                δ      δ       δ                                 δ,∗
+                                                                                                     }, and make
+                                                                                         W
+all of them adjacent to each vertex in U . Also, add a clique of 2p vertices V = {v1 , . . . , v2p W         W }.
+
+For all i ∈ [N ] and δ ∈ {α, β, γ}, add the edge tδ2i vpδ′ (f2i−1 δ     vpδ′ , resp.) for all p′ ∈ set-rep(2i)
+  ′
+(p ∈ set-rep(2i − 1), resp.). For all i ∈ [N ], j ∈ [M ], and δ ∈ {α, β, γ}, if the variable xδi
+appears as a positive (negative, resp.) literal in the clause Cj in ϕ, then add the edge cj vpδ′ for all
+p′ ∈ [2p] \ set-rep(2i) (p′ ∈ [2p] \ set-rep(2i − 1), resp.). For all j ∈ [M ] and δ ∈ {α, β, γ}, if no
+variable from X δ appears in Cj in ϕ, then make cj adjacent to each vertex in V δ . For all ℓ ∈ [3M ],
+add the edge wℓ vpW′ (uℓ vpW′ , resp.) for all p′ ∈ set-rep(ℓ) (p′ ∈ [2p] \ set-rep(ℓ), resp.).
+     Now, to ensure that, for all i ∈ [N ] and δ ∈ {α, β, γ}, exactly one of tδ2i and f2i−1 δ    is in T (V (G))
+(each variable is assigned exactly one truth value), do the following: (i) Add a clause vertex cδi , and
+let C δ = {cδi | i ∈ [N ]}. (ii) Add the edges tδ2i vpδ,∗      δ      δ,∗            ′
+                                                       ′ and f2i−1 vp′ for all p ∈ set-rep(2i). Then, t2i
+                                                                                                               δ
+
+      δ
+and f2i−1   have the same neighbors in V δ,∗ . (iii) Add the edge cδi vpδ,∗           ′
+                                                                          ′ for all p ∈ [2p] \ set-rep(2i).
+
+Note that cδi and tδ2i (f2i−1
+                          δ   , resp.) have no common neighbors in V δ,∗ . One can think of cδi as a
+                                                                ′
+clause (xδi ∨xδi ). (iv) Make cδi adjacent to each vertex in V δ ,∗ for all δ ′ ∈ {α, β, γ} such that δ ′ ̸= δ.
+    Lastly, make z adjacent to each vertex in U ∪Aα ∪Aβ ∪Aγ ∪{u3M +1 , u′3M +1 }, u3M +1 adjacent
+to each vertex in V (G) \ (U ∪ Aα ∪ Aβ ∪ Aγ ), and u′3M +1 adjacent to each neighbor of u3M +1 .
+See Fig. 1 (left). The reduction returns (G, k) as an instance of B-NCTD+ where k = 3N + 3M .
+
+                                                       8
+                       N ON -C LASHING T EACHING M APS FOR BALLS IN G RAPHS
+
+
+
+
+                                                                                      c1               c2
+                 Cα         C          Cβ                               C
+
+
+                                                            u3M +1
+         V α,∗        Vα         Vβ         V β,∗                             v1α     v2α          v3α        v4α
+                                                                       Vα
+
+                            z
+                 Aα                    Aβ
+                                                                       Aα
+                                                                                f1α        tα2   f3α        tα4
+                            U         VW            W
+
+
+Figure 1: Graph G in the proof of Thm. 3 (left) and its sets Aα , V α , C (right). For clarity, we omit
+          C γ , V γ , V γ,∗ , Aγ , u′3M +1 . In ϕ, xα1 appears as a positive literal in C1 , and xα2 as a nega-
+          tive literal in C2 . Red and blue edges are according to set-rep (in a complementary way).
+
+
+Lemma 5 If ϕ is satisfiable, then G admits an NCTM+ for B(G) of size k.
+
+Proof (⋆) Let π : X α ∪ X β ∪ X γ → {True, False} be a satisfying assignment for ϕ. We define the
+set π ′ ⊂ Aα ∪ Aβ ∪ Aγ corresponding to π. For all δ ∈ {α, β, γ} and xδi in ϕ, if π(xδi ) = True,
+then tδ2i ∈ π ′ , and otherwise, f2i−1
+                                   δ    ∈ π ′ . So, |π ′ | = 3N . We define an NCTM+ T of size k for
+B(G) as follows. We need not define T for B2 (z), B2 (u′3M +1 ), and balls of radius at least 3 as, for
+all x ∈ V (G), B3 (x) = B2 (z) = B2 (u′3M +1 ) = B2 (u3M +1 ) = V (G).
+     For all x ∈ V (G), set T (x, 0) := {x}. For all δ ∈ {α, β, γ} and x ∈ Aδ , set T (x, 1) := B1 (x)
+                          ′    ′′
+and T (x, 2) := {u1 , tδ2 , tδ2 } ∪ B1 (x), where {δ, δ ′ , δ ′′ } = {α, β, γ}. For all δ ∈ {α, β, γ} and
+x ∈ V δ ∪ V δ,∗ , set T (x, 1) := B1 (x) \ U and T (x, 2) := {w1 , z} ∪ (B1 (x) \ U ). For all x ∈ V W ,
+set T (x, 1) := {u3M +1 , u′3M +1 }∪V W ∪(B1 (x)∩U ) and T (x, 2) := {u3M +1 , u′3M +1 , z}∪V W ∪U .
+For all δ ∈ {α, β, γ} and x ∈ C ∪ C δ , set T (x, 1) := B1 (x) and T (x, 2) := {x, w1 } ∪ (B2 (x) ∩
+(Aα ∪ Aβ ∪ Aγ )). For all x ∈ U ∪ {u3M +1 , u′3M +1 }, set T (x, 1) := B1 (x) \ (C ∪ C α ∪ C β ∪
+C γ ) and T (x, 2) := (B2 (x) ∩ W ) ∪ π ′ . For all x ∈ W , set T (x, 1) := B1 (x) and T (x, 2) :=
+{x, z, u3M +1 , u′3M +1 } ∪ (B2 (x) ∩ U ). Set T (z, 1) := {z, u1 }. One can verify that T has size at
+most k and satisfies the inclusion condition for each ball in B(G) and the non-clashing condition
+for all pairs of balls in B(G). Hence, T is an NCTM+ of size at most k for B(G).
+
+Lemma 6 If G admits an NCTM+ for B(G) of size k, then ϕ is satisfiable.
+
+Proof (⋆) Let T be an NCTM+ for B(G) of size k. For all i ∈ [N ], ℓ ∈ [3M ], and δ ∈ {α, β, γ},
+as B2 (u3M +1 ) = V (G), B2 (uℓ ) = V (G) \ {wℓ }, and B2 (cδi ) = V (G) \ {tδ2i , f2i−1   δ  }, we have
+                                                        δ    δ
+|T (u3M +1 , 2) ∩ W | = 3M and |T (u3M +1 , 2) ∩ {t2i , f2i−1 }| ≥ 1. Since k = 3N + 3M , the latter
+inequality is an equality. From T (u3M +1 , 2), we extract an assignment π : X α ∪ X β ∪ X γ →
+{True, False} for ϕ. For all i ∈ [N ] and δ ∈ {α, β, γ}, if T (u3M +1 , 2) ∩ {tδ2i , f2i−1
+                                                                                      δ    } = {tδ2i }, then
+set π(xδi ) = True, and otherwise, set π(xδi ) = False. Thus, π assigns each variable in ϕ exactly one
+truth value. It is not hard to see that π is a satisfying assignment for ϕ.
+
+                                                        9
+                               C HALOPIN C HEPOI M C I NERNEY R ATEL
+
+
+
+
+Proof of Theorem 3 By Lemmas 5 and 6, there is a reduction that takes an instance of 3-
+PARTITIONED -3-SAT and returns an equivalent instance (G, k) of B-NCTD+ with diam(G) = 3.
+As |V (G)| = O(M ), unless the ETH fails, B-NCTD+ does not admit a 2o(n) -time algorithm by
+Prop. 4. S = {u3M +1 , u′3M +1 , z}∪V W ∪V α ∪V β ∪V γ ∪V α,∗ ∪V β,∗ ∪V γ,∗ is a vertex cover of G
+                                o(vc)
+of size O(log M ). Hence, a 22        · nO(1) -time algorithm for B-NCTD+ would imply a 2o(M ) -time
+algorithm for 3-PARTITIONED -3-SAT, contradicting the ETH by Prop. 4. Toward a contradiction,
+suppose that B-NCTD+ admits a kernelization algorithm outputting a kernel with 2o(vc) vertices.
+Consider the following algorithm for B-NCTD+ . Given an instance of 3-PARTITIONED -3-SAT
+with M clauses, it applies the reduction to obtain an equivalent instance (G, k) of B-NCTD+ with
+vc(G) = O(log M ). Then, it applies the assumed kernelization algorithm on (G, k), outputting a
+kernel with 2o(vc) vertices. Finally, it applies the algorithm from Prop. 2 on the kernel, which takes
+      o(vc) 2
+2O((2 ) ·diam) = 2o(M ) time, contradicting the ETH by Prop. 4.
+
+    We now show that our vc lower bounds are tight:
+
+Theorem 7 B-NCTD+ admits
+                                        O(vc)
+    • an algorithm running in time 22           · nO(1) , and
+
+    • a kernelization algorithm outputting a kernel with 2O(vc) vertices.
+
+    Given a graph G, two vertices u, v ∈ V (G) are false twins if N (u) = N (v). The following
+reduction rule is used to design the kernelization algorithm in Theorem 7.
+
+Reduction Rule 1 (RR1) Given a graph G and a set X ⊆ V (G) such that I := V (G) \ X is an
+independent set (i.e., X is a vertex cover of G), if there exist 2|X| + 2 vertices in I that are pairwise
+false twins, then delete one of them.
+
+    The idea for proving the forward direction of the next lemma is that, by the pigeonhole principle,
+for any set S ⊆ I of 2|X| + 2 false twins, there exist x, y ∈ S such that x ∈ T (x, 1), y ∈ T (y, 1),
+and T (x, 1) \ {x} = T (y, 1) \ {y}. Then, for any teaching set containing y, we can replace y by x
+or another vertex of S if x is already in the teaching set.
+
+Lemma 8 Reduction Rule 1 is safe for B-NCTD+ .
+
+    Theorem 7 follows from exhaustively applying RR1 for the kernelization algorithm, and using
+the algorithm from Prop. 2 on the resulting kernel for the other algorithm.
+
+
+5. NCTMs for classes of graphs
+In this section, we construct NCTMs for balls of several simple classes of graphs: trees, interval
+graphs, cycles, and trees of cycles. We also design approximate NCTMs for balls in δ-hyperbolic
+graphs. In each of our NCTMs T , for any ball Br (x), T + (x, r) consists of two vertices of Br (x)
+that are “farthest apart”. In each case except for (trees of) cycles, we set T (x, r) = T + (x, r).
+
+                                                     10
+                      N ON -C LASHING T EACHING M APS FOR BALLS IN G RAPHS
+
+
+
+
+5.1. Trees
+For any ball Br (x) of a tree T, define T (x, r) as any diametral pair {u, v} of Br (x).
+
+Proposition 9 For a tree T, T is an NCTM+ for B(T), i.e., NCTD+ (B(T)) = VCD(B(T)) ≤ 2.
+
+Proof For any ball Br (x), T (x, r) ⊆ Br (x). So, as |T (x, r)| = 2 for any ball Br (x) with r ≥ 1, T
+is non-clashing for any pair of balls that includes a ball of radius 0. Now, suppose Br1 (x) ̸= Br2 (y)
+and assume that there exists z ∈ Br2 (y) \ Br1 (x). Let T (y, r2 ) = {u, v}. Then, d(x, z) + d(u, v) ≤
+max{d(x, u) + d(v, z), d(x, v) + d(u, z)}, say d(x, z) + d(u, v) ≤ d(x, v) + d(u, z). Since u, z ∈
+Br2 (y), d(u, z) ≤ d(u, v). Thus, v ∈ / Br1 (x) as d(x, v) ≥ d(x, z) > r1 . So, T is non-clashing.
+
+
+5.2. Interval graphs
+We consider a representation of an interval graph I by a set of segments Jv , v ∈ V (I), of R with
+pairwise distinct ends. For any u ∈ V (I), its segment is denoted by Ju = [su , eu ], where su is the
+start of Ju , and eu is the end of Ju , i.e., su ≤ eu . We use the following property:
+
+Lemma 10 (Lemma 24, Chalopin et al. (2023)) If u, v ∈ Br (x), su , sz < sv , and eu < ev , ez , then
+z ∈ Br (x).
+
+    For a subgraph I′ of I, {u, v} is a farthest pair of I′ if u is the vertex in I′ whose segment Ju
+ends farthest to the left, and v is the vertex in I′ whose segment Jv begins farthest to the right, i.e.,
+for any w ∈ V (I′ ) \ {u, v}, we have eu < ew and sw < sv . Define the map T on B(I): for any ball
+Br (x) of I, set T (x, r) to be the farthest pair {u, v} of Br (x) if r ≥ 1, and set T (x, 0) := {x}.
+
+Proposition 11 For an interval graph I, T is an NCTM+ for B(I), i.e., NCTD+ (B(I)) =
+VCD(B(I)) ≤ 2.
+
+Proof For any ball Br (x), T (x, r) ⊆ Br (x). So, as |T (x, r)| = 2 for any ball Br (x) with r ≥ 1, T
+is non-clashing for any pair of balls that includes a ball of radius 0. Now, consider two balls Br1 (x)
+and Br2 (y) such that T (x, r1 ) = {u, v} ⊆ Br2 (y). For any z ∈ Br1 (x), we have ez > eu and
+sz < sv , and thus, z ∈ Br2 (y) by Lemma 10, establishing that Br1 (x) ⊆ Br2 (y). Consequently, T
+sastisfies the non-clashing condition. Finally, VCD(B(I)) ≤ 2 Ducoffe et al. (2020).
+
+
+5.3. Cycles
+In contrast with trees and interval graphs, we prove that:
+
+Proposition 12 In cycles, the family of balls do not admit NCTM+ s of constant size.
+
+Proof Consider the cycle Cn with n = 2k + 2 ≥ 4 and suppose that Cn admits an NCTM+ T of
+size at most k. Each ball Bk (x) contains all the vertices of Cn except the vertex x opposite to x in
+Cn . Hence, T (x, k) ⊂ P
+                       Cn \{x} = Bk (x). Since |T (x, k)| ≤ k, x ∈ T (z, k) for at least n − k − 1
+vertices z ̸= x. Thus, x∈Cn |T (x, k)| ≥ n(n − k − 1). But, since |T (x, k)| ≤ k, this sum is at
+most nk. Therefore, nk ≥ n(n − k − 1), and thus, n ≤ 2k + 1, a contradiction.
+
+                                                   11
+                                 C HALOPIN C HEPOI M C I NERNEY R ATEL
+
+
+
+
+    However, any cycle C = Cn with n ≥ 6 admits an NTCM of size 2 < VCD(B(C)) = 3.
+Suppose that C is oriented counterclockwise. Each ball Br (x) of C either coincides with C or is
+an arc of C. When Br (x) is an arc, we can speak about the first and last vertices of Br (x) in the
+counterclockwise order, and about the first vertex outside of Br (x) (this vertex is adjacent to the last
+vertex of Br (x)). The NCTM T for B(C) is as follows. If a ball Br (x) covers C, then T (x, r) = ∅.
+Otherwise, T + (x, r) is the first vertex of Br (x) and T − (x, r) is the first vertex outside of Br (x).
+
+Proposition 13 For a cycle C = Cn , T is an NCTM for B(C), and if n ≥ 6, then NCTD(B(C)) =
+2 < VCD(B(C)) = 3.
+
+Proof First, we prove that T is an NCTM for B(C). Let B = Br (x) and B ′ = Br′ (y) be two
+different balls of C. The non-clashing condition is immediate if one of the balls coincides with C.
+Therefore, suppose that both balls are arcs. Let T (x, r) = {u, w}, where u is the first vertex of
+Br (x) and w is the first vertex outside of Br (x). Analogously, T (y, r′ ) = {u′ , w′ }, where u′ is the
+first vertex of Br′ (y) and w′ is the first vertex outside of Br′ (y). Also, let v and v ′ be the last vertices
+of Br (x) and Br′ (y), respectively. Since Br (x) and Br′ (y) are arcs of C, they are either (1) disjoint,
+or (2) one is a proper subset of another, or (3) they overlap on a proper arc, or (4) they overlap on
+two arcs and together cover C. If Br (x) and Br′ (y) are disjoint, then u ∈ T + (x, r) \ Br′ (y). If
+Br′ (y) ⊆ Br (x), then Br (x) and Br′ (y) differ with respect to at least at one of the vertices u or v. If
+u ̸= u′ , then u ∈ T + (x, r) \ Br′ (y). If u = u′ and v ′ ̸= v, then w′ ∈ Br (x), while w′ ∈ T − (y, r′ ).
+Now, suppose that Br (x) and Br′ (y) overlap on a proper arc of each of Br (x) and Br′ (y). With
+respect to the counterclockwise order, this can be either the arc between u′ and v or the arc between
+u and v ′ , say the first (the other case is symmetric). In this case, u ∈ T + (x, r) \ Br′ (y). Finally,
+suppose that Br (x) and Br′ (y) overlap on two arcs and cover C. These two arcs are defined by u
+and v ′ and by u′ and v (in the counterclockwise order). Then, w ∈ Br′ (y), while w ∈ T − (x, r).
+Thus, in all cases, T satisfies the non-clashing condition. Hence, T is an NCTM for B(C) of size 2.
+     To prove the lower bound, let k = ⌊n/2⌋ (i.e., n ∈ {2k, 2k + 1}) and assume that C admits an
+NCTM T of size 1. There are kn + 1 distinct balls in C (kn proper balls and Bk (x) = C). Since at
+most one ball can have an empty teaching set, there are kn balls that have teaching sets of size 1. As
+there are 2n possible teaching sets of size 1 (each vertex has sign ±1), by the pigeonhole principle, if
+kn > 2n, then there exist two different balls B, B ′ with T + (B) = T + (B ′ ) and T − (B) = T − (B ′ ).
+But then T does not satisfy the non-clashing condition for B and B ′ , contrary to the assumption
+that T is an NCTM. Thus, for any n ≥ 6, there is no NCTM of size 1 for B(C).
+
+
+5.4. Trees of cycles (cacti)
+A tree of cycles (or cactus) is a graph K in which each 2-connected component is a cycle or an edge.
+For a vertex v of K that is not a cut vertex, let C(v) be the unique cycle containing v. If v is a cut
+vertex, then C(v) = {v}. For any vertices u, v of K, let C(u, v) be the union of all cycles and/or
+edges on the unique path of B(K) between C(u) and C(v). Note that C(u, v) is a path of cycles.
+A set S ⊆ V (G) is gated if, for any u ∈ V (G), there exists u′ ∈ S (the gate of u, with u′ = u if
+u ∈ S) such that u′ ∈ I(u, v) for any v ∈ S. Given a triplet x, u, v of vertices of G, a vertex y is an
+apex of x with respect to u and v if y ∈ I(x, u) ∩ I(x, v) and I(x, y) is maximal with respect to the
+inclusion. One can easily show that for any triplet x, u, v of a tree of cycles K, there exists a unique
+apex of x with respect to u and v and that any cycle and any path of cycles of K are gated. Let K be
+
+                                                      12
+                       N ON -C LASHING T EACHING M APS FOR BALLS IN G RAPHS
+
+
+
+
+                                                    Z(x, u, v)
+                                                      s t
+                                    Z u(x, u, v)               Z v (x, u, v)
+
+                                  u   C(u)         u0          v0           C(v)   v
+                                                        x I(x, u0) ∪ I(x, v0)
+
+                        Figure 2: Z(x, u, v), Z u (x, u, v), Z v (x, u, v), s, and t.
+
+
+a tree of cycles and B its set of balls. For B ∈ B, let [B] = {Br (x) : Br (x) = B}. We call a ball
+Br (x) in [B] minimal if it has a minimal radius among all balls in [B].
+
+Lemma 14 If {u, v} is a diametral pair of Br (x), x′ is the apex of x with respect to u, v and
+r′ = r −d(x, x′ ), then Br′ (x′ ) = Br (x). In particular, if Br (x) is a minimal ball, then x ∈ C(u, v).
+
+The NCTM. We define a map T for B as follows. Let B ∈ B and u, v be a diametral pair of B.
+We set T + (B) := {u, v} (T + (B) := B if |B| = 1). To define T − (B), let Br (x) be a minimal
+ball from [B]. By Lemma 14, x belongs to C(u, v). If x is a cut vertex of C(u, v), then we set
+T − (B) := ∅. Otherwise, let C be the unique cycle of C(u, v) containing x, and let u′ and v ′ be
+the respective gates of u and v in C. For any vertex z of K, we denote by z ′ its gate in C. Consider
+the set Z(x, u, v) = {z ∈ V (K) : z ′ ∈/ I(x, u′ ) ∪I(x, v ′ ) and d(x, z) = r + 1}. If Z(x, u, v) = ∅,
+then we set T (B) = ∅. If Z(x, u, v) ̸= ∅, let Z u (x, u, v) = {s ∈ Z(x, u, v) : u′ ∈ I(x, s)}
+                −
+
+and Z v (x, u, v) = {t ∈ Z(x, u, v) : v ′ ∈ I(x, t)}. If Z u (x, u, v) (Z v (x, u, v), resp.) is not empty,
+pick s ∈ Z u (x, u, v) (t ∈ Z v (x, u, v), resp.) such that the distance d(u′ , s′ ) (d(v ′ , t′ ), resp.) is
+maximized. We set T − (B) := {s, t} if s and t exist, and T − (B) := {s} or T − (B) := {t} if only
+one of s and t exists (see Fig. 2). Observe that if the cycle C is not completely included in Br (x),
+then s and t exist, they belong to C (possibly s = t), s = s′ , t = t′ , and d(x, s) = d(x, t) = r + 1.
+
+Theorem 15 Let B1 , B2 ∈ B be two balls of the same diameter in a tree of cycles K such that, for
+all q ∈ T (B1 ) ∪ T (B2 ), q ∈ B1 if and only if q ∈ B2 . Then, B2 = B1 . Consequently, T is an
+NCTM of size 4 for B(K), and thus, NCTD(B(K)) ≤ 4, while VCD(B(K)) ≤ 3.
+
+Proof (⋆) First, analogous to the case of trees, T is non-clashing for any pair of balls including a ball
+of radius 0. Let Br1 (x) ∈ [B1 ] be a minimal ball for B1 and u, v be the diametral pair of B1 defining
+T + (B1 ). Analogously, let Br2 (y) ∈ [B2 ] be a minimal ball for B2 . By contradiction, assume that
+B1 ̸= B2 and that T does not satisfy the non-clashing condition for B1 and B2 . Without loss of
+generality, suppose that there exists a vertex z ∈ B2 \ B1 . One can show that x cannot disconnect
+z and u (or v). So, x is not a cut vertex of C(u, v). Hence, x belongs to a unique (gated) cycle C of
+C(u, v). Since diam(B1 ) = diam(B2 ) and T + (B1 ) ⊂ B2 , u, v is also a diametral pair of B2 .
+    If z ′ ∈ I(x, u′ ), one can show that diam(B2 ) ≥ d(v, z) > d(v, u) = diam(B1 ), a contradic-
+tion. Thus, z ′ ∈
+                / I(x, u′ ) and, similarly, z ′ ∈ / I(x, v ′ ). Since x belongs to C, I(x, u′ ) and I(x, v ′ )
+intersect only in x, and their union is the (u′ , v ′ )-path passing via x. By the previous assertion, z ′
+belongs to the complementary (u′ , v ′ )-path P of C and I(x, z ′ ) ∩ {u′ , v ′ } ̸= ∅. Hence, Z(x, u, v)
+is non-empty. Indeed, let w be a vertex of I(x, z) at distance r1 + 1 from x. Then, either z ′ is the
+gate of w in C or w is a vertex of the path P , and so, w ∈ Z(x, u, v). Hence, Z(x, u, v) ̸= ∅, and
+thus, one of the vertices s, t exists. If s (t, resp.) exists, then its gate s′ (t′ , resp.) in C belongs to P .
+
+                                                        13
+                                  C HALOPIN C HEPOI M C I NERNEY R ATEL
+
+
+
+
+     If C ⊈ B1 , then s = s′ and t = t′ disconnect x and any vertex of P . Since x, z ′ ∈ B2 and
+s, t ∈/ B2 , necessarily z ′ ∈ I(u′ , s′ ) ∪ I(v ′ , t′ ). If C ⊆ B1 , then by the definition of s and t, we also
+have z ′ ∈ I(u′ , s′ )∪I(v ′ , t′ ). Assume, w.l.o.g., that z ′ ∈ I(u′ , s′ ) and recall that z ′ ̸= u′ . Since u′ ∈
+I(z ′ , x) ⊆ I(s′ , x), z ′ ∈ I(x, z), and s′ ∈ I(x, s), we get d(x, z) = d(x, u′ ) + d(u′ , z ′ ) + d(z ′ , z)
+and d(x, s) = d(x, u′ ) + d(u′ , z ′ ) + d(z ′ , s′ ) + d(s′ , s). Since d(x, z) ≥ r1 + 1 = d(x, s), we
+conclude that d(z ′ , z) ≥ d(z ′ , s′ ) + d(s′ , s).
+     By Lemma 14 applied to B2 = Br2 (y), we have y ∈ C(u, v). Thus, y = y ′ ∈ C or y ′ ∈
+{u′ , v ′ }. So, d(y, z) = d(y, y ′ )+d(y ′ , z ′ )+d(z ′ , z). As s ∈
+                                                                     / B2 , r2 < d(y, s) = d(y, y ′ )+d(y ′ , s′ )+
+d(s , s) ≤ d(y, y ) + d(y , z ) + d(z , s ) + d(s , s) ≤ d(y, y ′ ) + d(y ′ , z ′ ) + d(z ′ , z) = d(y, z) ≤ r2 ,
+    ′               ′        ′    ′        ′  ′           ′
+
+a contradiction. This gives B1 = B2 . The second assertion follows from the first one since two
+balls with distinct diameters are distinguished by diametral pairs. Finally, VCD(B(K)) ≤ 3 since
+trees of cycles K cannot be contracted to K4 , and if a graph G does not contain Kd+1 as a minor,
+then VCD(B(G)) ≤ d Bousquet and Thomassé (2015); Chepoi et al. (2007).
+
+
+5.5. Hyperbolic graphs
+Gromov’s δ-hyperbolicity is important in metric geometry and geometric group theory, with appli-
+cations in analyzing real networks. It stipulates how close, locally, the graph (or metric space) is to
+a tree metric. For δ ≥ 0, a metric space (X, d) is δ-hyperbolic Gromov (1987) if, for any four points
+u, v, x, y of X, d(u, v) + d(x, y) ≤ max{d(u, x) + d(v, y), d(u, y) + d(v, x)} + 2δ. Two sets A and
+B of a metric space (X, d) are ρ-identical if the Hausdorff distance dH (A, B) between A and B is
+at most ρ. Otherwise, they are ρ-distinct. For balls, Br1 (x) and Br2 (y) are ρ-identical if and only if
+Br1 (x) ⊆ Br2 +ρ (y) and Br2 (y) ⊆ Br1 +ρ (x). A ρ-approximate NCTM+ (NCTM+           ρ ) T associates,
+to each ball Br (x) ∈ B(G), a set T (x, r) ⊆ Br (x) such that the non-clashing condition holds for
+each pair of ρ-distinct balls. For a δ-hyperbolic graph H and any ball Br (x) of H, let T (x, r) be any
+diametral pair of Br (x) if r ≥ 1, and set T (x, 0) := {x}. Akin to our method in trees, we get that:
+
+Theorem 16 For a δ-hyperbolic graph H, T is an NCTM+
+                                                   2δ of size 2 for B(H).
+
+
+6. Further work
+As is the case for general set-families, it would be interesting to know whether B-NCTD+ and
+B-NCTD are also para-NP-hard parameterized by k. Further, it would be intriguing to know for
+which (other) structural parameterizations (e.g., treewidth, feedback vertex number, feedback edge
+number, and treedepth) they are tractable, and whether NCTD(B(G)) > VCD(B(G)) for pla-
+nar graphs. Lastly, as our NCTMs are simpler than the SCSs in Chalopin et al. (2023), it seems
+reasonable to study them for notable and rich metric graph classes like median and Helly graphs.
+
+Acknowledgments
+We thank the anonymous reviewers for their valuable feedback. This work has been supported by
+the Austrian Science Fund (FWF, project Y1329) and the ANR projects DISTANCIA (ANR-17-
+CE40-0015) and DUCAT (ANR-20-CE48-0006).
+
+
+
+
+                                                        14
+                    N ON -C LASHING T EACHING M APS FOR BALLS IN G RAPHS
+
+
+
+
+References
+B. Akgun, M. Cakmak, J. W. Yoo, and A. L. Thomaz. Trajectories and keyframes for kinesthetic
+  teaching: A human-robot interaction perspective. In Proceedings of the 7th ACM/IEEE Interna-
+  tional Conference on Human-Robot Interaction (HRI 2012), pages 391–398, 2012.
+
+D. Angluin. Inductive inference of formal languages from positive data. Information and Control,
+  45:117–135, 1980a.
+
+D. Angluin. Finding patterns common to a set of strings. Journal of Computer and System Sciences,
+  21:46–62, 1980b.
+
+F. Balbach. Measuring teachability using variants of the teaching dimension. Theoretical Computer
+   Science, 397(1–3):94–113, 2008.
+
+A. Björner, M. Las Vergnas, B. Sturmfels, N. White, and G. Ziegler. Oriented Matroids, volume 46
+  of Encyclopedia of Mathematics and its Applications. Cambridge University Press, Cambridge,
+  1993.
+
+N. Bousquet and S. Thomassé. VC-dimension and Erdős–Pósa property. Discrete Mathematics,
+  338:2302–2317, 2015.
+
+C. Brand, R. Ganian, and K. Simonov. A parameterized theory of PAC learning. In Proceedings of
+  the AAAI Conference on Artificial Intelligence (AAAI 2023), pages 6834–6841, 2023.
+
+D. S. Brown and S. Niekum. Machine teaching for inverse reinforcement learning: Algorithms
+  and applications. In Proceedings of the AAAI Conference on Artificial Intelligence (AAAI 2019),
+  volume 33, pages 7749–7758, 2019.
+
+D. Chakraborty, F. Foucaud, D. Majumdar, and P. Tale. Tight (double) exponential bounds for
+  identification problems: Locating-dominating set and test cover, 2024. URL http://arxiv.
+  org/abs/2402.08346.
+
+J. Chalopin, V. Chepoi, S. Moran, and M. K. Warmuth. Unlabeled sample compression schemes
+   and corner peelings for ample and maximum classes. Journal of Computer and System Sciences,
+   127:1–28, 2022.
+
+J. Chalopin, V. Chepoi, F. Mc Inerney, S. Ratel, and Y. Vaxès. Sample compression schemes for
+   balls in graphs. SIAM Journal on Discrete Mathematics, 37(4):2585–2616, 2023.
+
+L. S. Chandran, D. Issac, and A. Karrenbauer. On the parameterized complexity of biclique cover
+  and partition. In 11th International Symposium on Parameterized and Exact Computation (IPEC
+  2016), volume 63 of LIPIcs, pages 11:1–11:13, 2016.
+
+Y. Chen, A. Singla, O. Mac Aodha, P. Perona, and Y. Yue. Understanding the role of adaptivity
+  in machine teaching: The case of version space learners. In Advances in Neural Information
+  Processing Systems (NeurIPS 2018), volume 31, pages 1483–1493, 2018.
+
+V. Chepoi, B. Estellon, and Y. Vaxès. On covering planar graphs with a fixed number of balls.
+  Discrete & Computational Geometry, 37:237–244, 2007.
+
+                                               15
+                             C HALOPIN C HEPOI M C I NERNEY R ATEL
+
+
+
+
+M. Cygan, F. V. Fomin, L. Kowalik, D. Lokshtanov, D. Marx, M. Pilipczuk, M. Pilipczuk, and
+ S. Saurabh. Parameterized Algorithms. Springer, 2015.
+
+M. Cygan, M. Pilipczuk, and M. Pilipczuk. Known algorithms for edge clique cover are probably
+ optimal. SIAM Journal on Computing, 45(1):67–83, 2016.
+
+F. Denis. Learning regular languages from simple positive examples. Machine Learning, 44:37–66,
+   2001.
+
+R. G. Downey, P. A. Evans, and M. R. Fellows. Parameterized learning complexity. In Proceedings
+  of the 6th Annual ACM Conference on Computational Learning Theory (COLT 1993), pages
+  51–57, 1993.
+
+G. Ducoffe, M. Habib, and L. Viennot. Diameter computation on H-minor free graphs and graphs
+  of bounded (distance) VC-dimension. In Proceedings of the Thirty-First Annual ACM-SIAM
+  Symposium on Discrete Algorithms (SODA 2020), pages 1905–1922, 2020.
+
+S. M. Fallat, D. G. Kirkpatrick, H. U. Simon, A. Soltani, and S. Zilles. On batch teaching without
+   collusion. Journal of Machine Learning Research, 24:40:1–40:33, 2023.
+
+F. Foucaud, E. Galby, L. Khazaliya, S. Li, F. Mc Inerney, R. Sharma, and P. Tale. Problems in NP
+   can admit double-exponential lower bounds when parameterized by treewidth or vertex cover.
+   In Proceedings of the 51st International Colloquium on Automata, Languages and Program-
+   ming (ICALP 2024), volume 297 of Leibniz International Proceedings in Informatics (LIPIcs),
+   Dagstuhl, Germany, 2024a. Schloss Dagstuhl – Leibniz-Zentrum für Informatik.
+
+F. Foucaud, E. Galby, L. Khazaliya, S. Li, F. Mc Inerney, R. Sharma, and P. Tale. Metric dimension
+   and geodetic set parameterized by vertex cover, 2024b. URL http://arxiv.org/abs/
+   2405.01344.
+
+R. Ganian and V. Korchemna. The complexity of Bayesian network learning: Revisiting the super-
+  structure. In Advances in Neural Information Processing Systems (NeurIPS 2021), volume 34,
+  pages 430–442, 2021.
+
+Z. Gao, C. Ries, H. U. Simon, and S. Zilles. Preference-based teaching. In Proceedings of the 29th
+   Conference on Learning Theory (COLT 2016), volume 49 of JMLR Workshop and Conference
+   Proceedings, pages 971–997, 2016.
+
+Z. Gao, C. Ries, H. U. Simon, and S. Zilles. Preference-based teaching. Journal of Machine
+  Learning Research, 18:1–32, 2017.
+
+S. A. Goldman and M. J. Kearns. On the complexity of teaching. Journal of Computer and System
+   Sciences, 50(1):20–31, 1995.
+
+S. A. Goldman and H. D. Mathias. Teaching a smarter learner. Journal of Computer and System
+   Sciences, 52(2):255–267, 1996.
+
+M. Gromov. Hyperbolic groups. Essays in group theory, pages 75–263, 1987.
+
+                                               16
+                    N ON -C LASHING T EACHING M APS FOR BALLS IN G RAPHS
+
+
+
+
+M. K. Ho, M. L. Littman, J. MacGlashan, F. Cushman, and J. L. Austerweil. Showing versus
+ doing: Teaching by demonstration. In Advances in Neural Information Processing Systems
+ (NeurIPS 2016), volume 33, pages 3027–3035, 2016.
+
+L. Hu, R. Wu, T. Li, and L. Wang. Quadratic upper bound for recursive teaching dimension of finite
+   VC classes. In Proceedings of the 30th Conference on Learning Theory (COLT 2017), volume 65
+   of Proceedings of Machine Learning Research, pages 1147–1156, 2017.
+
+R. Impagliazzo, R. Paturi, and F. Zane. Which problems have strongly exponential complexity?
+  Journal of Computer and System Sciences, 63(4):512–530, 2001.
+
+D. Kirkpatrick, H. U. Simon, and S. Zilles. Optimal collusion-free teaching. In Proceedings of
+  the 30th International Conference on Algorithmic Learning Theory (ALT 2019), volume 98 of
+  Proceedings of Machine Learning Research, pages 506–528, 2019.
+
+D. Kuzmin and M. K. Warmuth. Unlabelled compression schemes for maximum classes. Journal
+  of Machine Learning Research, 8:2047–2081, 2007.
+
+M. Lampis, N. Melissinos, and M. Vasilakis. Parameterized max min feedback vertex set. In
+ Proceedings of the 48th International Symposium on Mathematical Foundations of Computer
+ Science (MFCS 2023), volume 272 of LIPIcs, pages 62:1–62:15, 2023.
+
+Y. Li and Y. Liang. Learning mixtures of linear regressions with nearly optimal complexity. In
+  Proceedings of the 31st Conference on Learning Theory (COLT 2018), volume 75 of Proceedings
+  of Machine Learning Research, pages 1125–1144, 2018.
+
+N. Littlestone and M. K. Warmuth. Relating data compression and learnability. Unpublished, 1986.
+
+F. Mansouri, Y. Chen, A. Vartanian, J. Zhu, and A. Singla. Preference-based batch and sequential
+   teaching: Towards a unified view of models. In Advances in Neural Information Processing
+   Systems (NeurIPS 2019), volume 32, pages 9195–9205, 2019.
+
+S. Mei and X. Zhu. Using machine teaching to identify optimal training-set attacks on machine
+   learners. In Proceedings of the AAAI Conference on Artificial Intelligence (AAAI 2015), vol-
+   ume 29, pages 2871–2877, 2015.
+
+D. Pálvölgyi and G. Tardos. Unlabeled compression schemes exceeding the VC-dimension. Dis-
+  crete Applied Mathematics, 276:102–107, 2020.
+
+I. Schwab, W. Pohl, and I. Koychev. Learning to recommend from positive evidence. In Proceedings
+   of the 5th International Conference on Intelligent User Interfaces (IUI 2000), pages 241–247,
+   2000.
+
+A. Shinohara and S. Miyano. Teachability in computational learning. New Generation Computing,
+  8:337–347, 1991.
+
+H. U. Simon. Tournaments, johnson graphs, and NC-teaching. In Proceedings of the 34th Interna-
+  tional Conference on Algorithmic Learning Theory (ALT 2023), volume 201 of Proceedings of
+  Machine Learning Research, pages 1411–1428, 2023.
+
+                                               17
+                              C HALOPIN C HEPOI M C I NERNEY R ATEL
+
+
+
+
+A. Stolcke and S. Omohundro. Inducing probabilistic grammars by Bayesian model merging. In
+  Proceedings of the Second International Colloquium on Grammatical Inference (ICGI 1994),
+  pages 106–118, 1994.
+
+P. Tale. Double exponential lower bound for telephone broadcast, 2024. URL http://arxiv.
+   org/abs/2403.03501.
+
+A. L. Thomaz and M. Cakmak. Learning about objects with human teachers. In Proceedings of the
+  4th ACM/IEEE International Conference on Human-Robot Interaction (HRI 2009), pages 15–22,
+  2009.
+
+C. Wang, C. Ding, R. F. Meraz, and S. R. Holbrook. PSoL: a positive sample only learning algorithm
+  for finding non-coding RNA genes. Bioinformatics, 22(21):2590–2596, 2006.
+
+M. Yousef, S. Jung, L. C. Showe, and M. K. Showe. Learning from positive examples when the neg-
+ ative class is undetermined - microRNA gene identification. Algorithms for Molecular Biology,
+ 3(2), 2008.
+
+X. Zhang, X. Zhu, and S. Wright. Training set debugging using trusted items. In Proceedings of the
+  AAAI Conference on Artificial Intelligence (AAAI 2018), pages 4482–4489, 2018.
+
+X. Zhu. Machine teaching: An inverse problem to machine learning and an approach toward op-
+  timal education. In Proceedings of the AAAI Conference on Artificial Intelligence (AAAI 2015),
+  volume 29, pages 4083–4087, 2015.
+
+X. Zhu, A. Singla, S. Zilles, and A. N. Rafferty. An overview of machine teaching.
+  Arxiv:1801.05927, 2018. URL https://arxiv.org/abs/1801.05927.
+
+S. Zilles, S. Lange, R. Holte, and M. Zinkevich. Teaching dimensions based on cooperative learning.
+   In Proceedings of the 21st Conference on Learning Theory (COLT 2008), pages 135–146, 2008.
+
+S. Zilles, S. Lange, R. Holte, and M. Zinkevich. Models of cooperative teaching and learning.
+   Journal of Machine Learning Research, 12:349–384, 2011.
+
+
+Appendix A. Full proofs of omitted or sketched proofs
+Theorem 1 B-NCTD+ is NP-complete in split and co-bipartite graphs with a universal vertex,
+and bipartite graphs of diameter 3.
+
+Proof The problem is in NP since any NCTM+ T for B(G) has a set of at most n2 distinct balls as
+a domain, and thus, it can be verified in polynomial time whether T satisfies both the non-clashing
+condition for all pairs of balls in B(G), and the inclusion condition for each ball in B(G). In all
+three cases, to prove that it is NP-hard, we give a reduction from S ET C OVER.
+    We begin with the case of split graphs. Let ϕ be an instance of S ET C OVER with X = {1, . . . , n}
+and S = {S1 , . . . , Sm }. We may also assume that ϕ is an instance in which each element of X is
+contained in at most m − 2 sets of S. Indeed, any element contained in all of the sets of S will
+be covered by any choice of the sets of S, and so, could simply be removed from the instance. In
+the resulting instance, for each of the elements contained in exactly m − 1 sets of S, it suffices to
+
+                                                  18
+                         N ON -C LASHING T EACHING M APS FOR BALLS IN G RAPHS
+
+
+
+
+duplicate the set not containing that element to obtain the property that any element is contained in
+at most m − 2 sets of S. From this instance ϕ, we construct the graph G as follows. For all i ∈ [n]
+and j ∈ [m], add a vertex vi and a vertex sj , and if i ∈/ Sj in ϕ, then add the edge vi sj . Add the sets
+of vertices U = {u1 , . . . , um+1 } and W = {w1 , . . . , wm }, and, for all j, ℓ ∈ [m] such that j ̸= ℓ,
+add the edge uj wℓ . For all j ∈ [m], add the edge um+1 wj . Add edges so that every vertex in U is
+adjacent to every vertex in S = {s1 , . . . , sm }. Add edges so that every vertex in V = {v1 , . . . , vn }
+is adjacent to every vertex in W . Lastly, add edges so that the vertices in U ∪ V form a clique. This
+completes the construction of G, which is clearly achieved in polynomial time. See Figure 3 for
+an illustration of G. Note that um+1 is a universal vertex, and that the vertices in W ∪ S form an
+independent set, and thus, G is a split graph containing a universal vertex. We prove that ϕ admits
+a set cover of size at most t if and only if there is an NCTM+ of size at most k = m + t for B(G).
+
+                    s1
+      S                  . . . s   m                               w1    w2
+                                                                              . . .w    m
+                                                                                              W
+
+
+
+
+      V       v1    v2     v3
+                                . . . v                            u1    u2
+                                                                              . . . u       um+1   U
+                                       n                                              m
+
+
+
+
+Figure 3: The split graph G constructed in the proof of Theorem 1. Vertices contained in a rectangle
+          form a clique. An edge between two ellipses indicates that each vertex in one ellipse is
+          adjacent to each vertex in the other. Dashed lines highlight some non-existing edges. In
+          this example, 2, 3 ∈ S1 (but 1, n ∈
+                                            / S1 ) and 1, 3 ∈ Sm (but 2, n ∈
+                                                                           / Sm ) in ϕ.
+
+
+    First, suppose that ϕ admits a set cover of size at most t, and let S ′ ⊂ S be such a set cover. Let
+S ′ ⊂ S be such that, for all j ∈ [m], Sj ∈ S ′ in ϕ if and only if sj ∈ S ′ . We define an NCTM+
+T of size at most k for B(G) as follows. Also, note that we only need to define T for balls of G of
+radius at most 1 since, for all x ∈ V (G), B2 (x) = B1 (um+1 ) = V (G).
+
+    • For all x ∈ V (G), set T (x, 0) := {x}.
+
+    • For all x ∈ V , set T (x, 1) := B1 (x) ∩ S and note that |T (x, 1)| ≥ 2 since every element of
+      X is contained in at most m − 2 sets of S.
+
+    • For all x ∈ W ∪ S, set T (x, 1) := {x, um+1 }.
+
+    • Finally, for all x ∈ U , set T (x, 1) := S ′ ∪ (B1 (x) ∩ W ).
+
+     It is easy to verify that the map T has size at most k and satisfies the inclusion condition for
+each ball in B(G). We now show that T satisfies the non-clashing condition for all pairs of balls
+in B(G). For all x ∈ V (G), |B0 (x)| = |T (x, 0)| = 1 and |T (x, 1)| ≥ 2, and thus, T satisfies the
+non-clashing condition for all pairs of balls in B(G) where at least one of the balls has radius 0. For
+all x ∈ W ∪ S, we have that x ∈ T (x, 1), and W ∪ S is an independent set. Hence, T satisfies the
+non-clashing condition for all pairs of balls of radius 1 in B(G) centered at vertices in W ∪S. For all
+
+                                                    19
+                               C HALOPIN C HEPOI M C I NERNEY R ATEL
+
+
+
+
+x, y ∈ V , B1 (x) \ S = B1 (y) \ S, T (x, 1) ∩ S = B1 (x) ∩ S, and T (y, 1) ∩ S = B1 (y) ∩ S. Hence,
+T satisfies the non-clashing condition for all pairs of balls of radius 1 in B(G) centered at vertices
+in V. For all x ∈ W ∪ S and y ∈ V , |B1 (x) ∩ S| ≤ 1 and |T (y, 1) ∩ S| ≥ 2. Hence, T satisfies the
+non-clashing condition for all pairs of balls of radius 1 in B(G) centered at vertices in W ∪ S ∪ V.
+For all x, y ∈ U , B1 (x) \ W = B1 (y) \ W , T (x, 1) ∩ W = B1 (x) ∩ W , T (y, 1) ∩ W = B1 (y) ∩ W .
+Hence, T satisfies the non-clashing condition for all pairs of balls of radius 1 in B(G) centered at
+vertices in U. For all x ∈ U and y ∈ W ∪ S, |T (x, 1) ∩ W | ≥ m − 1 and B1 (y) ∩ W ≤ 1. Hence, T
+satisfies the non-clashing condition for all pairs of balls of radius 1 in B(G) centered at vertices in
+W ∪ S ∪ U. For all x ∈ V , by the construction, we have that B1 (x) ∩ S ′ ̸= S ′ since S ′ corresponds
+to the set cover S ′ , and, for all y ∈ U , S ′ ⊂ T (y, 1). Hence, T satisfies the non-clashing condition
+for all pairs of balls of radius 1 in B(G) centered at vertices in V ∪ U. Combining all this, we get
+that T is an NCTM+ of size at most k for B(G).
+    Now, suppose that ϕ does not admit a set cover of size at most t. In this case, we prove that there
+is no NCTM+ of size at most k for B(G). We first prove that W ⊆ T (um+1 , 1) for any NCTM+
+T for B(G). Indeed, for all j ∈ [m], B1 (um+1 ) = B1 (uj ) ∪ {wj }, and so, to ensure that T satisfies
+the non-clashing condition for the pair B1 (um+1 ) and B1 (uj ), we must have that wj ∈ T (um+1 , 1).
+Now, we prove that |T (um+1 , 1)∩S| > t for any NCTM+ T for B(G) in this case, which completes
+the proof. Observe that, for all i ∈ [n], B1 (vi ) ⊂ B1 (um+1 ) and (B1 (um+1 ) \ B1 (vi )) ⊂ S. Hence,
+for each i ∈ [n], to ensure that T satisfies the non-clashing condition for the pair B1 (um+1 ) and
+B1 (vi ), it is necessary that sj ∈ T (um+1 , 1) for some j ∈ [m] such that sj ∈     / B1 (vi ). However,
+sj ∈/ B1 (vi ) if and only if i ∈ Sj in ϕ. In other words, T (um+1 , 1) ∩ S must correspond to a set
+cover in ϕ, and thus, |T (um+1 , 1)| > k. This concludes the proof for split graphs.
+    We now proceed with the proof for co-bipartite graphs. Let ϕ be an instance of S ET C OVER
+with X = {1, . . . , n} and S = {S1 , . . . , Sm }. As in the proof for split graphs, we may assume that
+each element of X is contained in at most m − 2 sets of S. We may also assume that m > n since
+we can simply duplicate sets in S to ensure this. From ϕ, we construct the graph G as in the proof
+for split graphs, except that we add the necessary edges so that the vertices in W ∪ S form a clique,
+and we add a vertex v ∗ and make it adjacent to each vertex in V ∪ W ∪ U . The graph G is clearly a
+co-bipartite graph with a universal vertex, that is constructed in polynomial time. See Figure 4 for
+an illustration of G. We prove that ϕ admits a set cover of size at most t if and only if there is an
+NCTM+ of size at most k = 2m + t + 1 for B(G).
+
+
+                   s1
+      S                 . . . s   m                              w1    w2
+                                                                            . . .w    m
+                                                                                            W
+
+
+
+
+      V      v1    v2    v3
+                              . . . v                             u1   u2
+                                                                            . . . u       um+1   U
+                                      n            v∗                               m
+
+
+
+
+Figure 4: The co-bipartite graph G constructed in the proof of Theorem 1. An edge between a
+          vertex and an ellipse indicates that vertex is adjacent to each vertex in the ellipse.
+
+
+
+                                                   20
+                       N ON -C LASHING T EACHING M APS FOR BALLS IN G RAPHS
+
+
+
+
+    First, suppose that ϕ admits a set cover of size at most t, and let S ′ ⊂ S be such a set cover. Let
+S ′ ⊂ S be such that, for all j ∈ [m], Sj ∈ S ′ in ϕ if and only if sj ∈ S ′ . We define an NCTM+ T
+of size at most k for B(G) as follows. As in the proof for split graphs, we only need to define T for
+balls of G of radius at most 1 since, for all x ∈ V (G), B2 (x) = B1 (um+1 ) = V (G).
+
+    • For all x ∈ V (G), set T (x, 0) := {x}.
+
+    • Set T (v ∗ , 1) := {v ∗ , um+1 }.
+
+    • For all x ∈ V , set T (x, 1) := {v ∗ } ∪ U ∪ (B1 (x) ∩ S).
+
+    • For all x ∈ S, set T (x, 1) := {x, um+1 } ∪ (B1 (x) ∩ V ).
+
+    • For all x ∈ W , set T (x, 1) := {v ∗ } ∪ S ∪ (B1 (x) ∩ U ).
+
+    • Finally, for all x ∈ U , set T (x, 1) := {v ∗ } ∪ S ′ ∪ {u1 , . . . , um } ∪ (B1 (x) ∩ W ).
+
+    It is easy to verify that T satisfies the inclusion condition for each ball in B(G), and that T has
+size at most k since m > n. We now show that T satisfies the non-clashing condition for all pairs of
+balls in B(G). For all x ∈ V (G), |B0 (x)| = |T (x, 0)| = 1 and |T (x, 1)| ≥ 2, and thus, T satisfies
+the non-clashing condition for all pairs of balls in B(G) where at least one of the balls has radius 0.
+For all x, y ∈ V , B1 (x) \ S = B1 (y) \ S, T (x, 1) ∩ S = B1 (x) ∩ S, and T (y, 1) ∩ S = B1 (y) ∩ S.
+Hence, T satisfies the non-clashing condition for all pairs of balls of radius 1 in B(G) centered
+at vertices in V. For all x, y ∈ U , B1 (x) \ W = B1 (y) \ W , T (x, 1) ∩ W = B1 (x) ∩ W , and
+T (y, 1) ∩ W = B1 (y) ∩ W . Hence, T satisfies the non-clashing condition for all pairs of balls
+of radius 1 in B(G) centered at vertices in U. For all x ∈ V , by the construction, we have that
+B1 (x) ∩ S ′ ̸= S ′ since S ′ corresponds to the set cover S ′ , and, for all y ∈ U , S ′ ⊂ T (y, 1).
+Hence, T satisfies the non-clashing condition for all pairs of balls of radius 1 in B(G) centered at
+vertices in V ∪ U. For all x, y ∈ W , B1 (x) \ U = B1 (y) \ U , T (x, 1) ∩ U = B1 (x) ∩ U , and
+T (y, 1) ∩ U = B1 (y) ∩ U . Hence, T satisfies the non-clashing condition for all pairs of balls
+of radius 1 in B(G) centered at vertices in W. For all x ∈ V ∪ U and y ∈ W , we have that
+{u1 , . . . , um } ⊂ T (x, 1) and B1 (y) ∩ {u1 , . . . , um } ̸= {u1 , . . . , um }. Hence, T satisfies the non-
+clashing condition for all pairs of balls of radius 1 in B(G) centered at vertices in V ∪ U ∪ W. For
+all x ∈ V ∪ U ∪ W , |T (x, 1) ∩ S| ≥ 1 (recall that each element of X is contained in at most
+m − 2 sets of S), and |B1 (v ∗ ) ∩ S| = 0. Hence, T satisfies the non-clashing condition for all
+pairs of balls of radius 1 in B(G) centered at vertices in V ∪ U ∪ W ∪ {v ∗ }. For all x, y ∈ S,
+B1 (x) \ V = B1 (y) \ V , T (x, 1) ∩ V = B1 (x) ∩ V , and T (y, 1) ∩ V = B1 (y) ∩ V . Hence, T
+satisfies the non-clashing condition for all pairs of balls of radius 1 in B(G) centered at vertices in
+S. For all x ∈ V ∪ U ∪ W ∪ {v ∗ } and y ∈ S, we have that v ∗ ∈ T (x, 1) and v ∗ ∈          / B1 (y). Hence, T
+satisfies the non-clashing condition for all pairs of balls of radius 1 in B(G) centered at vertices in
+V (G). Thus, T is an NCTM+ of size ≤ k for B(G).
+    Now, suppose that ϕ does not admit a set cover of size at most t. In this case, we prove that
+there is no NCTM+ of size at most k for B(G). For all x ∈ V ∪ U , it holds that B1 (x) \ {v ∗ } is
+the same as in the graph G constructed in the proof for split graphs. Thus, since, for all x ∈ V ∪ U ,
+it holds that v ∗ ∈ B1 (x), we get that |T (um+1 , 1) ∩ (W ∪ S)| > m + t for any NCTM+ T for
+B(G) in this case. Now, we prove that |T (um+1 , 1) ∩ {u1 , . . . , um }| = m for any NCTM+ T for
+B(G). Indeed, for all j ∈ [m], B1 (um+1 ) = B1 (wj ) ∪ {uj }, and so, to ensure that T satisfies the
+
+                                                      21
+                                C HALOPIN C HEPOI M C I NERNEY R ATEL
+
+
+
+
+non-clashing condition for the pair B1 (um+1 ) and B1 (wj ), we must have that uj ∈ T (um+1 , 1).
+Lastly, we prove that |T (um+1 , 1) ∩ (V ∪ {v ∗ })| ≥ 1 for any NCTM+ T for B(G). Indeed,
+B1 (um+1 ) = V (G) and, for all x ∈ S, B1 (um+1 ) \ (V ∪ {v ∗ }) = B1 (x) \ (V ∪ {v ∗ }), and so,
+to ensure that T satisfies the non-clashing condition for the pair B1 (um+1 ) and B1 (x), we must
+have that |T (um+1 , 1) ∩ (V ∪ {v ∗ })| ≥ 1. Thus, |T (um+1 , 1)| > k. This concludes the proof for
+co-bipartite graphs.
+     We now proceed with the proof for bipartite graphs. Let ϕ be an instance of S ET C OVER with
+X = {1, . . . , n} and S = {S1 , . . . , Sm }. As in the proof for co-bipartite graphs, we may assume
+that m > n, and that ϕ is an instance in which each element of X is contained in at most m − 2
+sets of S. From this instance ϕ, we construct the graph G as follows. For all i ∈ [n] and j ∈ [m],
+add a vertex vi and a vertex sj , and if i ∈  / Sj in ϕ, then add the edge vi sj . Add the sets of vertices
+U = {u1 , . . . , um+1 } and W = {w1 , . . . , wm }, and, for all j, ℓ ∈ [m] such that j ̸= ℓ, add the edge
+uj wℓ . For all j ∈ [m], add the edge um+1 wj . Add edges so that every vertex in U is adjacent to
+every vertex in V = {v1 , . . . , vn }. Lastly, add a vertex z, and add edges so that z is adjacent to every
+vertex in U ∪ S, where S = {s1 , . . . , sm }. This completes the construction of G, which is clearly
+achieved in polynomial time. See Figure 5 for an illustration of G. Note that G has diameter 3 and
+is bipartite, as witnessed by the bipartition (W ∪ V ∪ {z}) ∪ (U ∪ S) of its vertices. We prove that
+ϕ admits a set cover of size at most t if and only if there is an NCTM+ of size at most k = m + t
+for B(G).
+
+                                            w1    w2
+                                     W                  . . .w    m
+
+
+
+
+                                     U       u1    u2
+                                                        . . . u       um+1
+                                                                m
+
+
+
+
+                                             v1    v2    v3
+                               V ∪ {z}                        . . . v z n
+
+
+
+
+                                      S                 . . .
+                                                   s1           sm
+
+
+Figure 5: The bipartite graph G constructed in the proof of Theorem 1. An edge between a vertex
+          and an ellipse indicates that vertex is adjacent to each vertex in the ellipse. See the caption
+          of Figure 3 for more details.
+
+
+    First, suppose that ϕ admits a set cover of size at most t, and let S ′ ⊂ S be such a set cover. Let
+S ′ ⊂ S be such that, for all j ∈ [m], Sj ∈ S ′ in ϕ if and only if sj ∈ S ′ . We define an NCTM+
+T of size at most k for B(G) as follows. Also, note that we only need to define T for balls of G of
+radius at most 2 since, for all x ∈ V (G), B3 (x) = B2 (um+1 ) = V (G). Furthermore, we only need
+
+                                                    22
+                       N ON -C LASHING T EACHING M APS FOR BALLS IN G RAPHS
+
+
+
+
+to define T for balls of radius at most 1 centered at z since B2 (z) = B2 (um+1 ) and we will define
+T for B2 (um+1 ).
+
+    • For all x ∈ V (G), set T (x, 0) := {x}.
+
+    • For all x ∈ V , set T (x, 1) := {x} ∪ (B1 (x) ∩ S) and T (x, 2) := {w1 } ∪ (B1 (x) ∩ S), and
+      note that |T (x, 2)| = |T (x, 1)| ≥ 3 since, in ϕ, every element of X is contained in at most
+      m − 2 sets of S.
+
+    • Similarly, set T (z, 1) := {z} ∪ S.
+
+    • For all x ∈ S, set T (x, 1) := {x, z} ∪ (B1 (x) ∩ V ), T (x, 2) := {um+1 , z} ∪ (B1 (x) ∩ V ).
+
+    • For all x ∈ W , set T (x, 1) := {x} ∪ (B1 (x) ∩ {u1 , . . . , um }), and T (x, 2) := {x, z} ∪
+      (B1 (x) ∩ {u1 , . . . , um }).
+
+    • Finally, for all x ∈ U , set T (x, 1) := {x} ∪ (B1 (x) ∩ W ) and T (x, 2) := S ′ ∪ (B1 (x) ∩ W ).
+
+    It is easy to verify that T has size at most k and satisfies the inclusion condition for each ball in
+B(G).
+    We now show that T satisfies the non-clashing condition for all pairs of balls in B(G). For all
+x ∈ V (G), |B0 (x)| = |T (x, 0)| = 1, |T (x, 1)| ≥ 2, and |T (x, 2)| ≥ 2, and thus, T satisfies the
+non-clashing condition for all pairs of balls in B(G) where at least one of the balls has radius 0.
+For all x ∈ V (G), we have that x ∈ T (x, 1). Furthermore, W ∪ S, W ∪ V ∪ {z}, and U ∪ S are
+independent sets. Hence, T satisfies the non-clashing condition for all pairs of balls of radius 1 in
+B(G) centered at vertices in
+                                                 W ∪ S;                                              (1)
+                                               W ∪ V ∪ {z};                                                (2)
+                                                   U ∪ S.                                                  (3)
+For all x ∈ W and y ∈ U , |T (x, 1) ∩ U | = m − 1 and |B1 (y) ∩ U | = 1. Similarly, for all
+x′ ∈ V ∪ {z} and y ′ ∈ U ∪ S, |T (x′ , 1) ∩ S| ≥ 2 and |B1 (y ′ ) ∩ S| ≤ 1. Hence, in combination
+with (1), (2), and (3), T satisfies the non-clashing condition for all pairs of balls of radius 1 in B(G)
+centered at vertices in
+                                                 V (G).                                                (4)
+For all x ∈ W and y ∈ U , |T (x, 2) ∩ W | = 1, |T (y, 2) ∩ W | ≥ m − 1, and |B1 (z) ∩ W | = 0.
+Also, for all x′ ∈ V , |B2 (x′ ) ∩ S| < m and |T (z, 1) ∩ S| = m. Lastly, |B1 (z) ∩ V | = 0 and, for
+all y ′ ∈ S, either |T (y ′ , 2) ∩ V | = 0, in which case B1 (z) = B2 (y ′ ), or |T (y ′ , 2) ∩ V | ≥ 1. Recall
+that B2 (um+1 ) = B2 (z), and hence, T satisfies the non-clashing condition for all pairs of balls in
+B(G), where one of the balls is B1 (z) and the other has radius 2 and is centered at a vertex in
+
+                                                   V (G).                                                  (5)
+
+For all x ∈ V (G), there exists a vertex y ∈ T (x, 2) such that d(x, y) = 2. Hence, in combination
+with the construction of G, T satisfies the non-clashing condition for all pairs of balls in B(G),
+where one of the balls has radius 1 and the other has radius 2, that are centered at vertices in
+
+                                                     W;                                                    (6)
+
+                                                      23
+                                  C HALOPIN C HEPOI M C I NERNEY R ATEL
+
+
+
+
+                                                       U;                                                     (7)
+                                                       V;                                                     (8)
+                                                       S.                                                     (9)
+For all x ∈ S and y ∈ W , we have that z ∈ T (x, 2), z ∈      / B1 (y), |T (y, 2) ∩ U | = m − 1, and
+|B1 (x) ∩ U | = 0. Hence, in combination with (6) and (9), T satisfies the non-clashing condition
+for all pairs of balls in B(G), where one of the balls has radius 1 and the other has radius 2, that are
+centered at vertices in
+                                               W ∪ S.                                              (10)
+For all x ∈ V , y ∈ W , and q ∈ {1, 2}, |T (x, q) ∩ S| ≥ 2 and |Bq (y) ∩ S| = 0. Hence, in
+combination with (6) and (8), T satisfies the non-clashing condition for all pairs of balls in B(G),
+where one of the balls has radius 1 and the other has radius 2, that are centered at vertices in
+
+                                                    W ∪ V.                                                   (11)
+
+For all x ∈ W and y ∈ U , |T (x, 2) ∩ U | = m − 1, |B1 (y) ∩ U | = 1, |T (y, 2) ∩ S| ≥ 1, and
+|B1 (x) ∩ S| = 0. Hence, in combination with (6) and (7), T satisfies the non-clashing condition
+for all pairs of balls in B(G), where one of the balls has radius 1 and the other has radius 2, that are
+centered at vertices in
+                                               W ∪ U.                                              (12)
+For all x ∈ S, y ∈ U , and q ∈ {1, 2}, |T (y, q) ∩ W | ≥ m − 1 and |Bq (x) ∩ W | = 0. Hence, in
+combination with (7) and (9), T satisfies the non-clashing condition for all pairs of balls in B(G),
+where one of the balls has radius 1 and the other has radius 2, that are centered at vertices in
+
+                                                    U ∪ S.                                                   (13)
+
+For all x ∈ V and y ∈ U , |T (y, 2) ∩ W | ≥ m − 1, |B1 (x) ∩ W | = 0, |T (x, 2) ∩ S| ≥ 2, and
+|B1 (y) ∩ S| = 0. Hence, in combination with (7) and (8), T satisfies the non-clashing condition
+for all pairs of balls in B(G), where one of the balls has radius 1 and the other has radius 2, that are
+centered at vertices in
+                                                U ∪ V.                                             (14)
+For all x ∈ V and y ∈ S, we have that w1 ∈ T (x, 2), w1 ∈   / B1 (y), z ∈ T (y, 2), and z ∈ / B1 (x).
+Hence, in combination with (8) and (9), T satisfies the non-clashing condition for all pairs of balls
+in B(G), where one of the balls has radius 1 and the other has radius 2, that are centered at vertices
+in
+                                              V ∪ S.                                              (15)
+Combining (5) and (10)–(15), T satisfies the non-clashing condition for all pairs of balls in B(G),
+where one of the balls has radius 1 and the other has radius 2, that are centered at vertices in
+
+                                                     V (G).                                                  (16)
+
+It remains to prove that T satisfies the non-clashing condition for all pairs of balls of radius 2 in
+B(G). For all j ∈ [m], T (wj , 2) ∩ {u1 , . . . , um } = B2 (wj ) ∩ {u1 , . . . , um } = {u1 . . . , um } \ {uj }.
+
+                                                       24
+                      N ON -C LASHING T EACHING M APS FOR BALLS IN G RAPHS
+
+
+
+
+Hence, T satisfies the non-clashing condition for all pairs of balls of radius 2 in B(G), that are
+centered at vertices in
+                                               W.                                             (17)
+For all j ∈ [m], T (uj , 2) ∩ W = B2 (uj ) ∩ W = W \ {wj }. Also, W ⊂ T (um+1 , 2). Hence,
+T satisfies the non-clashing condition for all pairs of balls of radius 2 in B(G), that are centered at
+vertices in
+                                                  U.                                               (18)
+For any x, y ∈ V , B2 (x) \ S = B2 (y) \ S, T (x, 2) ∩ S = B2 (x) ∩ S, and T (y, 2) ∩ S = B2 (y) ∩ S.
+Hence, T satisfies the non-clashing condition for all pairs of balls of radius 2 in B(G), that are
+centered at vertices in
+                                                  V.                                             (19)
+For any x, y ∈ S, B2 (x)\V = B2 (y)\V , T (x, 2)∩V = B2 (x)∩V , and T (y, 2)∩V = B2 (y)∩V .
+Hence, T satisfies the non-clashing condition for all pairs of balls of radius 2 in B(G), that are
+centered at vertices in
+                                               S.                                             (20)
+For all x ∈ W and y ∈ S, we have that x ∈ T (x, 2) and |B2 (y) ∩ W | = 0. Hence, in combination
+with (17) and (20), T satisfies the non-clashing condition for all pairs of balls of radius 2 in B(G),
+that are centered at vertices in
+                                               W ∪ S.                                             (21)
+For all x ∈ V and y ∈ W , |T (x, 2) ∩ S| ≥ 2 and |B2 (y) ∩ S| = 0. Hence, in combination with (17)
+and (19), T satisfies the non-clashing condition for all pairs of balls of radius 2 in B(G), that are
+centered at vertices in
+                                              W ∪ V.                                             (22)
+For all x ∈ W and y ∈ U , |T (y, 2) ∩ S| ≥ 1 and |B2 (x) ∩ S| = 0. Hence, in combination with (17)
+and (18), T satisfies the non-clashing condition for all pairs of balls of radius 2 in B(G), that are
+centered at vertices in
+                                              W ∪ U.                                             (23)
+For all x ∈ S and y ∈ U , |T (y, 2) ∩ W | ≥ m − 1 and |B2 (x) ∩ W | = 0. Hence, in combination
+with (18) and (20), T satisfies the non-clashing condition for all pairs of balls of radius 2 in B(G),
+that are centered at vertices in
+                                               U ∪ S.                                             (24)
+For all x ∈ V and y ∈ S, we have that w1 ∈ T (x, 2) and w1 ∈       / B2 (y). Hence, in combination
+with (19) and (20), T satisfies the non-clashing condition for all pairs of balls of radius 2 in B(G),
+that are centered at vertices in
+                                               V ∪ S.                                             (25)
+For all x ∈ V , by the construction, B2 (x) ∩ S ′ ̸= S ′ since S ′ corresponds to the set cover S ′ , and,
+for all y ∈ U , S ′ ⊂ T (y, 2). Hence, in combination with (18) and (19), T satisfies the non-clashing
+condition for all pairs of balls of radius 2 in B(G), that are centered at vertices in
+
+                                                 U ∪ V.                                              (26)
+
+                                                   25
+                                C HALOPIN C HEPOI M C I NERNEY R ATEL
+
+
+
+
+Combining (21)–(26), we get that T satisfies the non-clashing condition for all pairs of balls of
+radius 2 in B(G), that are centered at vertices in
+
+                                                  V (G).                                                (27)
+
+Combining (4), (16), and (27), we get that T is an NCTM+ of size at most k for B(G).
+    Now, suppose that ϕ does not admit a set cover of size at most t. In this case, we prove that
+there is no NCTM+ of size at most k for B(G). We first prove that |T (um+1 , 2) ∩ W | = m for
+any NCTM+ T for B(G). Indeed, for all 1 ≤ j ≤ m, B2 (um+1 ) = B2 (uj ) ∪ {wj }, and so,
+to ensure that T satisfies the non-clashing condition for the pair B2 (um+1 ) and B2 (uj ), we must
+have that wj ∈ T (um+1 , 2). Now, we prove that |T (um+1 , 2) ∩ S| > t for any NCTM+ T for
+B(G) in this case, which completes the proof. Observe that, for all i ∈ [n], B2 (vi ) ⊂ B2 (um+1 )
+and (B2 (um+1 ) \ B2 (vi )) ⊂ S. Hence, for each i ∈ [n], to ensure that T satisfies the non-
+clashing condition for the pair B2 (um+1 ) and B2 (vi ), it is necessary that sj ∈ T (um+1 , 1) for some
+j ∈ [m] such that sj ∈  / B1 (vi ). However, sj ∈
+                                                / B1 (vi ) if and only if i ∈ Sj in ϕ. In other words,
+T (um+1 , 2) ∩ S must correspond to a set cover in ϕ, and thus, |T (um+1 , 2)| > k. This concludes
+the proof for bipartite graphs.
+
+                                                                                         2
+Proposition 2 B-NCTD+ and B-NCTD admit algorithms running in time 2O(n ·diam(G)) .
+
+Proof For any x ∈ V (G) and r ∈ N, there are at most 2n possible choices for T (x, r), and there are
+at most n · min{(diam +1), n} unique balls in G. Thus, for each possible (positive) NCTM, it can
+be checked in polynomial time whether it satisfies the non-clashing condition for all pairs of balls in
+B(G), and the inclusion condition (for B-NCTD+ ) for each ball in B(G). Hence, there is a brute-
+                                    2                         2
+force algorithm running in time 2O(n ·min{diam +1,n}) = 2O(n ·diam(G)) (since G is connected).
+
+
+Lemma 5 If ϕ is satisfiable, then G admits an NCTM+ for B(G) of size k.
+
+Proof Suppose that π : X α ∪ X β ∪ X γ → {True, False} is a satisfying assignment for ϕ. Let us
+define the set π ′ of vertices in Aα ∪ Aβ ∪ Aγ corresponding to π. Initially, set π ′ := ∅. Now, for
+each δ ∈ {α, β, γ} and xδi in ϕ, if π(xδi ) = True (π(xδi ) = False, respectively), then add tδ2i (f2i−1
+                                                                                                    δ    ,
+                    ′         ′               ′
+respectively) to π . Thus, |π | = 3N and π corresponds to a satisfying assignment for ϕ in the sense
+that, from π ′ , we can extract the satisfying assignment π for ϕ. Using π ′ , we define an NCTM+ T
+of size k for B(G) as follows. Also, note that we only need to define T for balls of G of radius at
+most 2 since, for all x ∈ V (G), B3 (x) = B2 (u3M +1 ) = V (G). Furthermore, we do not need to
+define T for B2 (u′3M +1 ) nor B2 (z) since B2 (z) = B2 (u′3M +1 ) = B2 (u3M +1 ), and we will define
+T for B2 (u3M +1 ).
+
+    • For all x ∈ V (G), set T (x, 0) := {x}.
+                                                                                                   ′   ′′
+    • For each δ ∈ {α, β, γ} and x ∈ Aδ , set T (x, 1) := B1 (x) and T (x, 2) := {u1 , tδ2 , tδ2 } ∪
+      B1 (x), where δ ′ , δ ′′ ∈ {α, β, γ} such that δ ∈
+                                                       / {δ ′ , δ ′′ } and δ ′ ̸= δ ′′ . Note that T (x, 1) ⊂
+      T (x, 2) and |T (x, 2)| = O(log M ).
+
+    • For each δ ∈ {α, β, γ} and x ∈ V δ ∪ V δ,∗ , set T (x, 1) := B1 (x) \ U and T (x, 2) :=
+      {w1 , z} ∪ (B1 (x) \ U ). Note that T (x, 1) ⊂ T (x, 2) and |T (x, 2)| < 2N + 3M + 3.
+
+                                                    26
+                      N ON -C LASHING T EACHING M APS FOR BALLS IN G RAPHS
+
+
+
+
+    • For each x ∈ V W , set T (x, 1) := {u3M +1 , u′3M +1 } ∪ V W ∪ (B1 (x) ∩ U ) and T (x, 2) :=
+      {u3M +1 , u′3M +1 , z}∪V W ∪U . Note that T (x, 1) ⊂ T (x, 2) and |T (x, 2)| = 3M +O(log M ).
+
+    • For each δ ∈ {α, β, γ} and x ∈ C ∪ C δ , set T (x, 1) := B1 (x) and T (x, 2) := {x, w1 } ∪
+      (B2 (x) ∩ (Aα ∪ Aβ ∪ Aγ )). Note that |T (x, 1)| = O(log M ) and |T (x, 2)| ≤ 6N + 2 <
+      3N + 3M = k.
+
+    • For each x ∈ U ∪ {u3M +1 , u′3M +1 }, set T (x, 1) := B1 (x) \ (C ∪ C α ∪ C β ∪ C γ ) and
+      T (x, 2) := (B2 (x) ∩ W ) ∪ π ′ . Note that |T (x, 1)| ≤ 3M + O(log M ) and |T (x, 2)| ≤
+      3N + 3M = k.
+
+    • For each x ∈ W , set T (x, 1) := B1 (x) and T (x, 2) := {x, z, u3M +1 , u′3M +1 }∪(B2 (x)∩U ).
+      Note that |T (x, 1)| = O(log M ) and |T (x, 2)| ≤ 3M + 4.
+
+    • Finally, set T (z, 1) := {z, u1 }.
+
+    Hence, T has size at most k, and it is easy to verify that T satisfies the inclusion condition for
+each ball in B(G).
+    We now show that T satisfies the non-clashing condition for all pairs of balls in B(G). For all
+x ∈ V (G), |B0 (x)| = |T (x, 0)| = 1, |T (x, 1)| ≥ 2, and |T (x, 2)| ≥ 2, and thus, T satisfies the
+non-clashing condition for all pairs of balls in B(G) where at least one of the balls has radius 0.
+For all x ∈ V (G), x ∈ T (x, 1). Furthermore, W ∪ U ∪ C ∪ C α ∪ C β ∪ C γ ∪ Aα ∪ Aβ ∪ Aγ ,
+{z} ∪ W ∪ V α ∪ V β ∪ V γ ∪ V α,∗ ∪ V β,∗ ∪ V γ,∗ , {u3M +1 , u′3M +1 } ∪ U ∪ Aα ∪ Aβ ∪ Aγ ,
+C ∪ V α,∗ ∪ V β,∗ ∪ V γ,∗ , C α ∪ C β ∪ C γ ∪ V α ∪ V β ∪ V γ , and {z} ∪ C ∪ C α ∪ C β ∪ C γ are
+independent sets. Hence, T satisfies the non-clashing condition for all pairs of balls of radius 1 in
+B(G) centered at vertices in
+
+                          W ∪ U ∪ C ∪ C α ∪ C β ∪ C γ ∪ Aα ∪ Aβ ∪ Aγ ;                             (1)
+
+                         {z} ∪ W ∪ V α ∪ V β ∪ V γ ∪ V α,∗ ∪ V β,∗ ∪ V γ,∗ ;                       (2)
+                               {u3M +1 , u′3M +1 } ∪ U ∪ Aα ∪ Aβ ∪ Aγ ;                            (3)
+                                       C ∪ V α,∗ ∪ V β,∗ ∪ V γ,∗ ;                                 (4)
+                                  Cα ∪ Cβ ∪ Cγ ∪ V α ∪ V β ∪ V γ;                                  (5)
+                                      {z} ∪ C ∪ C α ∪ C β ∪ C γ .                                  (6)
+For all x ∈ W and y ∈ V W , |B1 (x) ∩ V W | = p, |T (y, 1) ∩ V W | = 2p, and |T (u3M +1 , 1) ∩ W | =
+|T (u′3M +1 , 1) ∩ W | = 3M . Hence, in combination with (1) and (2), T satisfies the non-clashing
+condition for all pairs of balls of radius 1 in B(G), where one of the balls is centered at a vertex in
+
+                                                  W.                                               (7)
+
+For all x ∈ V W and x′ ∈ U ∪ {u3M +1 , u′3M +1 }, we have that z ∈ T (x′ , 1) and z ∈         / B1 (x).
+Further, for all x ∈ V W and x′′ ∈ V (G) \ (V W ∪ W ∪ U ∪ {u3M +1 , u′3M +1 }), we have that
+x′′ ∈ T (x′′ , 1) and x′′ ∈
+                          / B1 (x). Lastly, for all x, y ∈ V W , B1 (x) \ (W ∪ U ) = B1 (y) \ (W ∪ U ),
+(B1 (x) ∩ U ) ⊂ T (x, 1), (B1 (y) ∩ U ) ⊂ T (y, 1), and B1 (x) ∩ U = B1 (y) ∩ U if and only if
+B1 (x) ∩ W = B1 (y) ∩ W by the construction. Hence, in combination with (7), T satisfies the
+
+                                                   27
+                               C HALOPIN C HEPOI M C I NERNEY R ATEL
+
+
+
+
+non-clashing condition for all pairs of balls of radius 1 in B(G), where one of the balls is centered
+at a vertex in
+                                                 V W.                                             (8)
+For all x ∈ U ∪ {u3M +1 , u′3M +1 }, |T (x, 1) ∩ V W | ≥ p. Further, for all y ∈ V (G) \ (V W ∪ W ∪ U ∪
+{u3M +1 , u′3M +1 }), |B1 (y) ∩ V W | = 0. Hence, in combination with (3), (7), and (8), this implies
+that T satisfies the non-clashing condition for all pairs of balls of radius 1 in B(G), where one of
+the balls is centered at a vertex in
+
+                                        U ∪ {u3M +1 , u′3M +1 }.                                      (9)
+
+For all x ∈ C, y ∈ C α ∪ C β ∪ C γ , and δ ∈ {α, β, γ}, |T (x, 1) ∩ V δ | ≥ p and |T (y, 1) ∩ V δ,∗ | ≥ p.
+Hence, in combination with (1), (4), (5), (6), (8), and (9), T satisfies the non-clashing condition for
+all pairs of balls of radius 1 in B(G), where one of the balls is centered at a vertex in
+
+                                         C ∪ Cα ∪ Cβ ∪ Cγ.                                           (10)
+
+For all x ∈ Aα ∪ Aβ ∪ Aγ and δ ∈ {α, β, γ}, |T (x, 1) ∩ V δ | ≥ p and z ∈ T (x, 1). Hence, in
+combination with (1), (2), and (7)–(10), T satisfies the non-clashing condition for all pairs of balls
+of radius 1 in B(G) centered at vertices in
+
+                                                 V (G).                                              (11)
+
+For all x ∈ V (G) \ (U ∪ Aα ∪ Aβ ∪ Aγ ∪ {u3M +1 , u′3M +1 }), we have that x ∈ T (x, 2) and
+x ∈/ B1 (z). For all δ ∈ {α, β, γ} and x′ ∈ Aδ , |T (x′ , 2) ∩ V δ | = p and |B1 (z) ∩ V δ | = 0.
+Lastly, for all x′′ ∈ U ∪ {u3M +1 }, |T (x′′ , 2) ∩ W | ≥ 3M − 1 and |B1 (z) ∩ W | = 0. Recall that
+B2 (u3M +1 ) = B2 (u′3M +1 ) = B2 (z), and hence, T satisfies the non-clashing condition for all pairs
+of balls in B(G), where one of the balls is B1 (z) and the other has radius 2 and is centered at a
+vertex in
+                                                  V (G).                                          (12)
+For all x ∈ V (G), there exists a vertex y ∈ T (x, 2) such that d(x, y) = 2. Hence, in combination
+with the construction of G, T satisfies the non-clashing condition for all pairs of balls in B(G),
+where one of the balls has radius 1 and the other has radius 2, that are centered at vertices in
+
+                                                   W;                                                (13)
+
+                                                  V W;                                               (14)
+                                        U ∪ {u3M +1 , u′3M +1 };                                     (15)
+
+                                         C ∪ Cα ∪ Cβ ∪ Cγ;                                           (16)
+                                V α ∪ V β ∪ V γ ∪ V α,∗ ∪ V β,∗ ∪ V γ,∗ ;                            (17)
+                                            Aα ∪ Aβ ∪ Aγ .                                           (18)
+For all x ∈ W and y ∈ V W , we have that z ∈ T (x, 2), z ∈/ B1 (y), z ∈ T (y, 2), and z ∈
+                                                                                        / B1 (x).
+Hence, in combination with (13) and (14), T satisfies the non-clashing condition for all pairs of
+
+                                                   28
+                     N ON -C LASHING T EACHING M APS FOR BALLS IN G RAPHS
+
+
+
+
+balls in B(G), where one of the balls has radius 1 and the other has radius 2, that are centered at
+vertices in
+                                            W ∪ V W.                                           (19)
+For all x ∈ W and y ∈ U ∪ {u3M +1 , u′3M +1 }, |T (x, 2) ∩ {u3M +1 , u′3M +1 }| = 2, |B1 (y) ∩
+{u3M +1 , u′3M +1 }| ≤ 1, |T (y, 2) ∩ Aα | = N , and |B1 (x) ∩ Aα | = 0. Hence, in combination with
+(13) and (15), T satisfies the non-clashing condition for all pairs of balls in B(G), where one of the
+balls has radius 1 and the other has radius 2, that are centered at vertices in
+
+                                    W ∪ U ∪ {u3M +1 , u′3M +1 }.                                  (20)
+
+For all x ∈ W and y ∈ V (G) \ (W ∪ V W ∪ U ∪ {u3M +1 , u′3M +1 , z}), we have that x ∈ T (x, 2),
+x∈/ B1 (y), y ∈ T (y, 2), and y ∈/ B1 (x). Hence, in combination with (13) and (16)–(18), T satisfies
+the non-clashing condition for all pairs of balls in B(G), where one of the balls has radius 1 and the
+other has radius 2, that are centered at vertices in
+
+                                     W ∪ C ∪ Cα ∪ Cβ ∪ Cγ;                                        (21)
+
+                            W ∪ V α ∪ V β ∪ V γ ∪ V α,∗ ∪ V β,∗ ∪ V γ,∗ ;                         (22)
+                                        W ∪ Aα ∪ Aβ ∪ Aγ .                                        (23)
+For all x ∈ V W and y ∈ U ∪ {u3M +1 , u′3M +1 }, |T (x, 2) ∩ {u3M +1 , u′3M +1 }| = 2, |B1 (y) ∩
+{u3M +1 , u′3M +1 }| ≤ 1, |T (y, 2) ∩ Aα | = N , and |B1 (x) ∩ Aα | = 0. Hence, in combination with
+(14) and (15), T satisfies the non-clashing condition for all pairs of balls in B(G), where one of the
+balls has radius 1 and the other has radius 2, that are centered at vertices in
+
+                                   V W ∪ U ∪ {u3M +1 , u′3M +1 }.                                 (24)
+
+For all x ∈ V W and y ∈ V (G) \ (W ∪ V W ∪ U ∪ {u3M +1 , u′3M +1 , z}), we have that x ∈ T (x, 2),
+x∈/ B1 (y), y ∈ T (y, 2), and y ∈/ B1 (x). Hence, in combination with (14) and (16)–(18), T satisfies
+the non-clashing condition for all pairs of balls in B(G), where one of the balls has radius 1 and the
+other has radius 2, that are centered at vertices in
+
+                                     V W ∪ C ∪ Cα ∪ Cβ ∪ Cγ;                                      (25)
+
+                           V W ∪ V α ∪ V β ∪ V γ ∪ V α,∗ ∪ V β,∗ ∪ V γ,∗ ;                        (26)
+                                       V W ∪ Aα ∪ Aβ ∪ Aγ .                                       (27)
+For all x ∈ U ∪ {u3M +1 , u′3M +1 } and y ∈ V (G) \ (W ∪ V W ∪ U ∪ {u3M +1 , u′3M +1 , z}), |T (x, 2) ∩
+W | ≥ 3M −1, |B1 (y)∩W | = 0, |T (y, 2)∩(Aα ∪Aβ ∪Aγ )| ≥ 1, and |B1 (x)∩(Aα ∪Aβ ∪Aγ )| = 0.
+Hence, in combination with (15)–(18), T satisfies the non-clashing condition for all pairs of balls in
+B(G), where one of the balls has radius 1 and the other has radius 2, that are centered at vertices in
+
+                           U ∪ {u3M +1 , u′3M +1 } ∪ C ∪ C α ∪ C β ∪ C γ ;                        (28)
+
+                  U ∪ {u3M +1 , u′3M +1 } ∪ V α ∪ V β ∪ V γ ∪ V α,∗ ∪ V β,∗ ∪ V γ,∗ ;             (29)
+                              U ∪ {u3M +1 , u′3M +1 } ∪ Aα ∪ Aβ ∪ Aγ .                            (30)
+
+                                                  29
+                               C HALOPIN C HEPOI M C I NERNEY R ATEL
+
+
+
+
+For all x ∈ C ∪ C α ∪ C β ∪ C γ and y ∈ V α ∪ V β ∪ V γ ∪ V α,∗ ∪ V β,∗ ∪ V γ,∗ , we have that
+w1 ∈ T (x, 2), w1 ∈   / B1 (y), z ∈ T (y, 2), and z ∈/ B1 (x). Hence, in combination with (16) and
+(17), T satisfies the non-clashing condition for all pairs of balls in B(G), where one of the balls has
+radius 1 and the other has radius 2, that are centered at vertices in
+
+                   C ∪ C α ∪ C β ∪ C γ ∪ V α ∪ V β ∪ V γ ∪ V α,∗ ∪ V β,∗ ∪ V γ,∗ .                  (31)
+
+For all x ∈ C ∪ C α ∪ C β ∪ C γ and y ∈ Aα ∪ Aβ ∪ Aγ , we have that x ∈ T (x, 2), x ∈          / B1 (y),
+y ∈ T (y, 2), and y ∈/ B1 (x). Hence, in combination with (16) and (18), T satisfies the non-clashing
+condition for all pairs of balls in B(G), where one of the balls has radius 1 and the other has radius 2,
+that are centered at vertices in
+
+                                C ∪ C α ∪ C β ∪ C γ ∪ Aα ∪ Aβ ∪ Aγ .                                (32)
+
+For all x ∈ V α ∪ V β ∪ V γ ∪ V α,∗ ∪ V β,∗ ∪ V γ,∗ and y ∈ Aα ∪ Aβ ∪ Aγ , we have that w1 ∈ T (x, 2),
+w1 ∈/ B1 (y), z ∈ T (y, 2), and z ∈ / B1 (x). Hence, in combination with (17) and (18), T satisfies
+the non-clashing condition for all pairs of balls in B(G), where one of the balls has radius 1 and the
+other has radius 2, that are centered at vertices in
+
+                      V α ∪ V β ∪ V γ ∪ V α,∗ ∪ V β,∗ ∪ V γ,∗ ∪ Aα ∪ Aβ ∪ Aγ .                      (33)
+
+Combining (12) and (19)–(33), T satisfies the non-clashing condition for all pairs of balls in B(G),
+where one of the balls has radius 1 and the other has radius 2, that are centered at vertices in
+
+                                                V (G).                                              (34)
+
+It remains to prove that T satisfies the non-clashing condition for all pairs of balls of radius 2 in
+B(G). For all ℓ ∈ [3M ], T (wℓ , 2) ∩ U = B2 (wℓ ) ∩ U = U \ {uℓ }. Hence, T satisfies the
+non-clashing condition for all pairs of balls of radius 2 in B(G) that are centered at vertices in
+
+                                                  W.                                                (35)
+
+For any x, y ∈ V W , B2 (x) = B2 (y). Hence, T satisfies the non-clashing condition for all pairs of
+balls of radius 2 in B(G) that are centered at vertices in
+
+                                                 V W.                                               (36)
+
+For all ℓ ∈ [3M ], T (uℓ , 2) ∩ W = B2 (uℓ ) ∩ W = W \ {wℓ }, and W ⊂ T (u3M +1 , 2). Hence,
+T satisfies the non-clashing condition for all pairs of balls of radius 2 in B(G) that are centered at
+vertices in
+                                           U ∪ {u3M +1 }.                                         (37)
+For any x, y ∈ C ∪ C α ∪ C β ∪ C γ , B2 (x) \ (Aα ∪ Aβ ∪ Aγ ) = B2 (y) \ (Aα ∪ Aβ ∪ Aγ ),
+B2 (x) ∩ (Aα ∪ Aβ ∪ Aγ ) ⊂ T (x, 2), and B2 (y) ∩ (Aα ∪ Aβ ∪ Aγ ) ⊂ T (y, 2). Hence, T satisfies
+the non-clashing condition for all pairs of balls of radius 2 in B(G) that are centered at vertices in
+
+                                         C ∪ Cα ∪ Cβ ∪ Cγ.                                          (38)
+
+For any x, y ∈ V α ∪V β ∪V γ ∪V α,∗ ∪V β,∗ ∪V γ,∗ , B2 (x)\(Aα ∪Aβ ∪Aγ ) = B2 (y)\(Aα ∪Aβ ∪Aγ ),
+B2 (x) ∩ (Aα ∪ Aβ ∪ Aγ ) = B1 (x) ∩ (Aα ∪ Aβ ∪ Aγ ) ⊂ T (x, 2), and B2 (y) ∩ (Aα ∪ Aβ ∪ Aγ ) =
+
+                                                   30
+                      N ON -C LASHING T EACHING M APS FOR BALLS IN G RAPHS
+
+
+
+
+B1 (y) ∩ (Aα ∪ Aβ ∪ Aγ ) ⊂ T (y, 2). Hence, T satisfies the non-clashing condition for all pairs of
+balls of radius 2 in B(G) that are centered at vertices in
+
+                               V α ∪ V β ∪ V γ ∪ V α,∗ ∪ V β,∗ ∪ V γ,∗ .                           (39)
+
+For any x, y ∈ Aα ∪Aβ ∪Aγ , we have that B1 (x) ⊂ T (x, 2), B1 (y) ⊂ T (y, 2), and B2 (x) ̸= B2 (y)
+if and only if B1 (x) ̸= B1 (y). Hence, T satisfies the non-clashing condition for all pairs of balls of
+radius 2 in B(G) that are centered at vertices in
+
+                                           Aα ∪ Aβ ∪ Aγ .                                          (40)
+
+For all x ∈ W and y ∈ V W , B2 (x) \ U = B2 (y) \ U and U ⊂ T (y, 2). Hence, in combination
+with (35) and (36), T satisfies the non-clashing condition for all pairs of balls of radius 2 in B(G)
+that are centered at vertices in
+                                             W ∪ V W.                                             (41)
+For all x ∈ W ∪ V W and y ∈ V (G) \ (W ∪ V W ∪ {u′3M +1 } ∪ {z}), |T (y, 2) ∩ (Aα ∪ Aβ ∪ Aγ )| ≥ 1
+and |B2 (x) ∩ (Aα ∪ Aβ ∪ Aγ )| = 0. Hence, in combination with (37)–(41), T satisfies the non-
+clashing condition for all pairs of balls of radius 2 in B(G) that are centered at vertices in
+
+                                     W ∪ V W ∪ U ∪ {u3M +1 };                                      (42)
+
+                                  W ∪ V W ∪ C ∪ Cα ∪ Cβ ∪ Cγ;                                      (43)
+                        W ∪ V W ∪ V α ∪ V β ∪ V γ ∪ V α,∗ ∪ V β,∗ ∪ V γ,∗ ;                        (44)
+                                     W ∪ V W ∪ Aα ∪ Aβ ∪ Aγ .                                      (45)
+For all x ∈ U ∪{u3M +1 } and y ∈ C ∪C α ∪C β ∪C γ , we have that π ′ ⊂ T (x, 2) and B2 (y)∩π ′ ̸= π ′ .
+Indeed, for all y ∈ C ∪ C α ∪ C β ∪ C γ , the only vertices in Aα ∪ Aβ ∪ Aγ that are not in B2 (y)
+are those corresponding to the literals contained in the clause corresponding to y in ϕ (as mentioned
+before, for each i ∈ [N ] and δ ∈ {α, β, γ}, the vertex cδi can be thought of as a clause containing
+only the positive and negative literals of xδi ). The property then follows since π ′ corresponds to
+the satisfying assignment π for ϕ. Hence, in combination with (37) and (38), T satisfies the non-
+clashing condition for all pairs of balls of radius 2 in B(G) that are centered at vertices in
+
+                                U ∪ {u3M +1 } ∪ C ∪ C α ∪ C β ∪ C γ .                              (46)
+
+For all x ∈ U ∪ {u3M +1 } ∪ C ∪ C α ∪ C β ∪ C γ and y ∈ Aα ∪ Aβ ∪ Aγ , |T (x, 2) ∩ W | ≥ 1 and
+|B2 (y) ∩ W | = 0. Hence, in combination with (40) and (46), T satisfies the non-clashing condition
+for all pairs of balls of radius 2 in B(G) that are centered at vertices in
+
+                      U ∪ {u3M +1 } ∪ C ∪ C α ∪ C β ∪ C γ ∪ Aα ∪ Aβ ∪ Aγ .                         (47)
+
+For all x ∈ U ∪{u3M +1 }∪C ∪C α ∪C β ∪C γ ∪Aα ∪Aβ ∪Aγ , y ∈ V α ∪V β ∪V γ ∪V α,∗ ∪V β,∗ ∪V γ,∗ ,
+                                                                                   ′
+and δ ∈ {α, β, γ}, |T (x, 2) ∩ Aδ | ≥ 1 and, for some δ ′ ∈ {α, β, γ}, |B2 (y) ∩ Aδ | = 0. Hence,
+in combination with (39) and (47), T satisfies the non-clashing condition for all pairs of balls of
+radius 2 in B(G) that are centered at vertices in
+
+ U ∪ {u3M +1 } ∪ C ∪ C α ∪ C β ∪ C γ ∪ Aα ∪ Aβ ∪ Aγ ∪ V α ∪ V β ∪ V γ ∪ V α,∗ ∪ V β,∗ ∪ V γ,∗ . (48)
+
+                                                  31
+                                C HALOPIN C HEPOI M C I NERNEY R ATEL
+
+
+
+
+Combining (42)–(45) and (48), T satisfies the non-clashing condition for all pairs of balls of radius 2
+in B(G) that are centered at vertices in
+                                              V (G).                                               (49)
+Combining (11), (34), and (49), we get that T is an NCTM+ of size at most k for B(G).
+
+Lemma 6 If G admits an NCTM+ for B(G) of size k, then ϕ is satisfiable.
+
+Proof Suppose that T is an NCTM+ for B(G) of size k. We first prove some properties of T . For
+each ℓ ∈ [3M ], to ensure that T satisfies the non-clashing condition for the pair B2 (u3M +1 ) =
+V (G) and B2 (uℓ ) = V (G) \ {wℓ }, we have that |T (u3M +1 , 2) ∩ W | = 3M . For each i ∈ [N ]
+and δ ∈ {α, β, γ}, to ensure that T satisfies the non-clashing condition for the pair B2 (u3M +1 ) =
+V (G) and B2 (cδi ) = V (G) \ {tδ2i , f2i−1
+                                         δ  }, we have that |T (u3M +1 , 2) ∩ {tδ2i , f2i−1
+                                                                                         δ    }| ≥ 1. Since
+k = 3N + 3M , by the two previous arguments, it must be that |T (u3M +1 , 2) ∩ {t2i , f2i−1 δ     δ  }| = 1
+for each i ∈ [N ] and δ ∈ {α, β, γ}.
+    From T (u3M +1 , 2), we extract an assignment π : X α ∪ X β ∪ X γ → {True, False} for ϕ. For
+each i ∈ [N ] and δ ∈ {α, β, γ}, if T (u3M +1 , 2) ∩ {tδ2i , f2i−1
+                                                              δ    } = {tδ2i }, then set π(xδi ) = True, and
+                     δ
+otherwise, set π(xi ) = False. Thus, each variable in ϕ is assigned exactly one truth value by π. It
+remains to show that π is a satisfying assignment for ϕ.
+    Recall that, for each ℓ ∈ [M ], we have that cℓ is the vertex in G corresponding to the clause Cℓ
+in ϕ. By the construction, for each i ∈ [N ] and δ ∈ {α, β, γ}, if xδi appears as a positive (negative,
+respectively) literal in Cℓ , then tδ2i ∈            δ
+                                        / B2 (cℓ ) (f2i−1 ∈
+                                                          / B2 (cℓ ), respectively). Moreover, these are
+the only vertices of G that are not in B2 (cℓ ). Since, for all ℓ ∈ [M ], T satisfies the non-clashing
+condition for the pair B2 (u3M +1 ) = V (G) and B2 (cℓ ), we have that T (u3M +1 , 2) contains at least
+one of the vertices missing from B2 (cℓ ). Further, for each of these vertices in T (u3M +1 , 2) that are
+missing from B2 (cℓ ), π assigns the corresponding truth value of that vertex to the corresponding
+variable. Since this is true for the clause vertices in C corresponding to all the clauses in ϕ, we have
+that π is a satisfying assignment for ϕ.
+
+Theorem 7 B-NCTD+ admits
+                                         O(vc)
+    • an algorithm running in time 22            · nO(1) , and
+    • a kernelization algorithm outputting a kernel with 2O(vc) vertices.
+
+Proof We begin by proving that B-NCTD+ admits a kernelization algorithm outputting a kernel
+with 2O(vc) vertices. Given a graph G, let X ⊆ V (G) be a minimum vertex cover of G, that is,
+I =: V (G) \ X is an independent set. If a minimum vertex cover is not given, then we can compute
+a 2-approximate vertex cover in polynomial time. The kernelization algorithm exhaustively applies
+Reduction Rule 1 to G, which is safe by Lemma 8. Now, for any instance on which Reduction
+Rule 1 cannot be applied, it holds that, for any Y ⊆ X, there are at most 2vc + 1 vertices in I whose
+open neighborhoods are exactly Y . Since there are 2vc distinct subsets of vertices of X, there are at
+most 2vc · (2vc + 1) + vc = 2O(vc) vertices in the reduced instance.
+                                                 O(vc)
+    To obtain an algorithm running in time 22          · nO(1) , one can apply the above (polynomial-
+time) kernelization algorithm to the graph G, and then apply the algorithm from Proposition 2 to
+the resulting kernel.
+
+
+                                                      32
+                       N ON -C LASHING T EACHING M APS FOR BALLS IN G RAPHS
+
+
+
+
+Lemma 8 Reduction Rule 1 is safe for B-NCTD+ .
+
+Proof Let S ⊆ I be a set of 2|X| + 2 vertices that are pairwise false twins. Let T be an NCTM+ of
+size at most k for B(G). Since T satisfies the non-clashing condition, for any u, v ∈ S, at least one
+of the inclusions u ∈ T (u, 1), v ∈ T (v, 1) holds. Thus, there is at most one vertex w ∈ S such that
+w∈  / T (w, 1). Note that, for any u ∈ S, T (u, 1) ⊆ B1 (u) ⊆ X ∪ {u}. As there are at most 2|X|
+distinct subsets of the vertices of X, and there is at most one vertex w ∈ S such that w ∈         / T (w, 1),
+since |S| = 2|X| + 2, there exist two vertices x, y ∈ S such that x ∈ T (x, 1), y ∈ T (y, 1),
+and T (x, 1) \ {x} = T (y, 1) \ {y}. Pick any vertex z ∈ V (G) \ {y} and any r ∈ N such that
+y ∈ T (z, r). We assert that removing y from T (z, r) and adding another carefully chosen vertex v
+to T (z, r) maintains that T is an NCTM+ of size at most k for B(G). If it was not the case that x
+was in T (z, r), then v = x, and otherwise, v is any other vertex in S \ {y} (if S \ {y} ⊆ T (z, r),
+then y is simply removed from T (z, r) and no vertex is added to it).
+     Namely, let T ′ be the map obtained from T by applying the above procedure for all z ∈ V (G) \
+{y} and any r ∈ N such that y ∈ T (z, r). Note that x ∈ T ′ (z, r) and T (z, r) \ {y} ⊆ T ′ (z, r).
+Clearly, T ′ has size at most k, so it remains to show that T ′ is an NCTM+ for B(G). The presence
+of y in T (z, r) could only be used to satisfy the non-clashing condition between Br (z) (which
+contains S) and a ball B ′ that contains at most 1 vertex from S \ {y} since any ball in G contains 0,
+1 or |S| vertices from S as the vertices of S are pairwise false twins. If |B ′ ∩ S| = 0, then T ′ (z, r)
+satisfies the non-clashing condition for the pair Br (z) and B ′ since x ∈ T ′ (z, r) ∩ S. Otherwise,
+|B ′ ∩ S| = 1, and so, B ′ is a ball of radius 0 or 1 centered at a vertex in S. In this case, T ′ (z, r)
+clearly satisfies the non-clashing condition for the pair Br (z) and B ′ , as long as B ′ is not the ball
+of radius 0 or 1 centered at x. Thus, let B ′ ∈ {B0 (x), B1 (x)}. For T to be an NCTM+ for B(G),
+it must be that T (z, r) ̸= {x}, and thus, T ′ (z, r) ̸= {x}, since otherwise T would not satisfy
+the non-clashing condition for the pair Br (z) and B0 (x). Hence, let B ′ = B1 (x). If there exists
+w1 ∈ T (z, r) such that w1 ∈ / B ′ ∪{y}, then T ′ satisfies the non-clashing condition for the pair Br (z)
+and B since T (z, r)\{y} ⊆ T ′ (z, r). So, assume no such vertex w1 exists. Similarly, if there exists
+       ′
+
+w2 ∈ T (x, 1) such that w2 ∈  / Br (z), then T ′ satisfies the non-clashing condition for the pair Br (z)
+and B ′ . So, assume no such vertex w2 exists. Then, it must be that T (z, r) \ {y} ⊆ B1 (x) and
+T (x, 1) ⊆ Br (z). Thus, T (y, 1) ⊆ Br (z) since T (x, 1) \ {x} = T (y, 1) \ {y} and x, y ∈ Br (z).
+Since T is an NCTM+ for B(G), T (z, r) \ B1 (y) ̸= ∅. Let the vertex s be in T (z, r) \ B1 (y), and
+note that s ∈ T ′ (z, r)\B1 (y) since T (z, r)\{y} ⊆ T ′ (z, r). If s ̸= x, then T ′ (z, r) satisfies the non-
+clashing condition for the pair Br (z) and B1 (x). If s = x, then there exists t ∈ T ′ (z, r)∩(S\{x, y})
+since either v = t or t was already in T (z, r). In this case, T ′ (z, r) satisfies the non-clashing
+condition for the pair Br (z) and B1 (x). Consequently, T ′ is an NCTM+ for B(G). Since y is not
+contained in T ′ (z, r), then T ′ restricted to the vertices of G \ {y} is an NCTM+ of size at most k
+for B(G \ {y}).
+     For the reverse direction, let T ′ be an NCTM+ of size at most k for B(G \ {y}). Without loss
+of generality, assume that T ′ (z, r) ̸= ∅ for any z ∈ V (G) and any integer r ≥ 0. First, note that
+the addition of y does not make any two balls that were the same in G \ {y} become distinct in G.
+Indeed, if both balls contained every vertex in S \{y}, then they will both contain y; if both balls did
+not contain any vertex in S \ {y}, then neither of them will contain y; if both balls contained exactly
+one vertex in S \ {y}, then neither of them will contain y. Hence, it suffices to extend T ′ to an
+NCTM+ T of size at most k for B(G), by defining T (y, r) for all r ∈ N so that T satisfies the non-
+clashing condition for any pair of balls, where one ball is centered in y. Thus, let T (z, r) := T ′ (z, r)
+
+                                                     33
+                               C HALOPIN C HEPOI M C I NERNEY R ATEL
+
+
+
+
+for all z ∈ V (G) \ {y} and r ∈ N. As before, let x ∈ S be such that x ∈ T (x, 1) (there must be
+such an x since there is at most one vertex w ∈ S such that w ∈          / T (w, 1)). Set T (y, 0) := {y},
+                         ′                                    ′
+T (y, 1) := {y} ∪ (T (x, 1) \ {x}), and T (y, r) = T (x, r) for all integers r ≥ 2. Note that
+B1 (x) \ {x} = B1 (y) \ {y} and Br (x) = Br (y) for all integers r ≥ 2.
+     To show that T is an NCTM+ for B(G), we have to show that it satisfies the non-clashing
+condition for a ball B ∈ {B0 (y), B1 (y)} and any other ball B ′ = Br (z). First, let z = y. Since
+T ′ satisfies the non-clashing condition for B0 (x) and Br (x) for any r > 0, T ′ (x, r) \ {x} =     ̸ ∅,
+and thus, T (y, r) \ {y} =                 ′
+                            ̸ ∅ since T (x, r) \ {x} ⊆ T (y, r) \ {y} for all r > 0. Moreover,
+since T ′ satisfies the non-clashing condition for B1 (x) and Br (x) for any r > 1, there exists
+u ∈ T ′ (x, r) \ B1 (x). Note that u ̸= y, and thus, u ∈ T (y, r) \ B1 (y). Consequently, T satisfies the
+non-clashing condition for a ball B in {B0 (y), B1 (y)} and any other ball Br (y). Now, let z = x.
+If r ≤ 1, then y ∈ T (y, r) \ Br (x). If r ≥ 2, then Br (x) = Br (y) and, by the previous case, T
+satisfies the non-clashing condition for B ∈ {B0 (y), B1 (y)} and Br (x). Finally, let z ∈        / {x, y}.
+Since T (z, r) = T ′ (z, r) is non-empty and does not contain y, we have that T (z, r) \ B0 (y) ̸= ∅.
+If T (z, r) \ B1 (y) ̸= ∅, then T satisfies the non-clashing condition for B1 (y) and Br (z). Suppose
+now that T (z, r) ⊆ B1 (y). Since y ∈  / T (z, r) = T ′ (z, r), T ′ (z, r) ⊆ B1 (y) \ {y} ⊆ B1 (x). Since
+T satisfies the non-clashing condition for Br (z) and B1 (x), there exists u ∈ T ′ (x, 1) \ Br (z). If
+  ′
+
+u ̸= x, then u ∈ T (y, 1) \ Br (z), and if u = x, then Br (z) contains neither x nor y, and thus,
+y ∈ T (y, 1) \ Br (z). In any case, T satisfies the non-clashing condition for B1 (y) and Br (z).
+Hence, T is an NCTM+ of size at most k for B(G).
+
+    We continue with Lemma 14, which we reformulate and prove in a more general form through
+the following lemma and its corollary:
+
+Lemma 17 (Lemma 11, Chalopin et al. (2023)) Let B ∈ B, X be a realizable sample for B, and
+{u, v} be a diametral pair of X + in K. If Br (x) ∈ [B], x′ is the apex of x with respect to u and v,
+and r′ = r − d(x, x′ ), then X is a realizable sample for Br′ (x′ ). Consequently, the path of cycles
+C(u, v) contains a center of a ball realizing X.
+
+Corollary 18 If {u, v} is a diametral pair of a ball Br (x), x′ is the apex of x with respect to u and
+v, and r′ = r − d(x, x′ ), then Br′ (x′ ) = Br (x). In particular, if B ∈ B, {u, v} is a diametral pair
+of B, and Br (x) is a minimal ball of [B], then x belongs to C(u, v).
+
+Proof Set X := V (K). By Lemma 17, Br (x) = X + ⊂ Br′ (x′ ) ⊆ Br (x), yielding Br′ (x′ ) =
+Br (x).
+
+
+Theorem 15 Let B1 , B2 ∈ B be two balls of the same diameter in a tree of cycles K such that, for
+all q ∈ T (B1 ) ∪ T (B2 ), q ∈ B1 if and only if q ∈ B2 . Then, B2 = B1 . Consequently, T is an
+NCTM of size 4 for B(K), and thus, NCTD(B(K)) ≤ 4, while VCD(B(K)) ≤ 3.
+
+Proof First, analogous to the case of trees, T is non-clashing for any pair of balls including a ball
+of radius 0. Now, suppose that B1 is defined by the minimal ball Br1 (x) ∈ [B1 ] and let u, v be the
+diametral pair of B1 defining T + (B1 ). Analogously, suppose that B2 is defined by the minimal ball
+Br2 (y) ∈ [B2 ]. By contradiction, assume that B1 ̸= B2 and that T does not satisfy the non-clashing
+condition for B1 and B2 . Without loss of generality, suppose that there exists a vertex z ∈ B2 \ B1 .
+
+                                                    34
+                        N ON -C LASHING T EACHING M APS FOR BALLS IN G RAPHS
+
+
+
+
+Claim 19 The vertex x is not a cut vertex of C(u, v).
+
+Proof By Corollary 18, x belongs to C(u, v). If x disconnects u and v, we can suppose, without
+loss of generality, that x also disconnects z and u. Consequently, d(z, u) = d(z, x) + d(x, u) >
+r1 + d(x, u) ≥ d(v, x) + d(x, u) = d(v, u). Thus, diam(B2 ) ≥ d(u, z) > d(u, v) = diam(B1 ),
+contrary to the assumption that B1 and B2 have the same diameter.
+
+    Consequently, x belongs to a unique (gated) cycle C of C(u, v). Let y ′ and z ′ be the gates of y
+and z in C. Recall also that u′ and v ′ are the gates of u and v in C. Since diam(B1 ) = diam(B2 )
+and T + (B1 ) ⊂ B2 , u, v is also a diametral pair of B2 . By Corollary 18 applied to B2 = Br2 (y)
+and the diametral pair u, v of B2 , we conclude that y ∈ C(u, v). Therefore, either y belongs to the
+cycle C or the gate y ′ of y in C coincides with u′ or v ′ .
+
+Claim 20 z ′ ∈
+             / I(x, u′ ) ∪ I(x, v ′ ).
+
+Proof Suppose by way of contradiction that z ′ ∈ I(x, u′ ). Then, z ′ and v ′ separate v and z, and
+thus, d(v, z) = d(v, v ′ ) + d(v ′ , z ′ ) + d(z ′ , z). First, suppose that x ∈ I(v ′ , z ′ ). Then, x ∈ I(v, z).
+Since u ∈ Br1 (x) and z ∈          / Br1 (x), we obtain that d(v, u) ≤ d(v, x) + d(x, u) < d(v, x) +
+d(x, z) = d(v, z). Consequently, diam(B2 ) > diam(B1 ), a contradiction. Now, suppose that
+x∈ / I(v ′ , z ′ ). This implies that u′ ∈ I(z ′ , v ′ ). Since u, v is a diametral pair of B2 , we obtain that
+d(v, v ′ ) + d(v ′ , u′ ) + d(u′ , z ′ ) + d(z ′ , z) = d(v, z) ≤ d(v, u) = d(v, v ′ ) + d(v ′ , u′ ) + d(u′ , u),
+yielding d(u′ , z ′ ) + d(z ′ , z) ≤ d(u′ , u). Since z ′ ∈ I(x, u′ ), u ∈ Br1 (x), and z ∈            / Br1 (x),
+we obtain that d(x, z ′ ) + d(z ′ , u′ ) + d(u′ , u) = d(x, u) ≤ r1 < d(x, z) = d(x, z ′ ) + d(z ′ , z),
+yielding d(z ′ , u′ ) + d(u′ , u) < d(z ′ , z). From the inequalities d(u′ , z ′ ) + d(z ′ , z) ≤ d(u′ , u) and
+d(z ′ , u′ ) + d(u′ , u) < d(z ′ , z), we obtain that d(u′ , z ′ ) < 0, a contradiction.
+
+     Since x is the apex of x with respect to u and v, the shortest paths I(x, u′ ) and I(x, v ′ ) intersect
+only in x, and their union is the (u′ , v ′ )-path passing via x. By Claim 20, z ′ belongs to the comple-
+mentary (u′ , v ′ )-path P of C and I(x, z ′ ) ∩ {u′ , v ′ } ̸= ∅. Hence, the set Z(x, u, v) is non-empty.
+Indeed, let w be a vertex of I(x, z) at distance r1 + 1 from x. Then, either z ′ is the gate of w in C or
+w is a vertex of the path P , showing that w ∈ Z(x, u, v). Consequently, Z(x, u, v) ̸= ∅, and thus,
+at least one of the vertices s, t exists. If s (t, respectively) exists, then its gate s′ (t′ , respectively) in
+C belongs to the path P . Since T does not satisfy the non-clashing condition for B1 and B2 , if s (t,
+respectively) exists, then s ∈/ B2 (t ∈ / B2 , respectively), and thus, z ̸= s (z ̸= t, respectively).
+
+Claim 21 z ′ ∈ I(u′ , s′ ) ∪ I(v ′ , t′ )
+
+Proof Suppose first that C ⊈ B1 . If the claim does not hold, then z ′ belongs to the (s′ , t′ )-path of
+C that does not contain x. This implies that removing s = s′ and t = t′ disconnects z and u. Since
+u, z ∈ B2 and s, t ∈ / B2 , we obtain a contradiction.
+    Suppose now that C ⊆ B1 . Since z ′ ∈       / I(x, u′ ) ∪ I(x, v ′ ), u′ and v ′ disconnect x from z ′
+                                      ′ ′
+and z. Consequently, I(x, z) ∩ {u , v } =   ̸ ∅. Without loss of generality, assume that u′ ∈ I(x, z ′ )
+and consider a vertex w ∈ I(x, z) such that d(x, w) = r1 + 1. Since C ⊆ B1 , w ∈              / C and z ′
+disconnects x and w, i.e., w′ = z ′ . Therefore, w ∈ Z u (x, u, v), and thus, by the definition of s, we
+have d(u′ , s′ ) ≥ d(u′ , w′ ). Consequently, w′ = z ′ ∈ I(u′ , s′ ), and we are done.
+
+                                                       35
+                                  C HALOPIN C HEPOI M C I NERNEY R ATEL
+
+
+
+
+    Without loss of generality, assume that z ′ ∈ I(u′ , s′ ). By Claim 20, z ′ ̸= u′ . Since u′ ∈
+I(z ′ , x) ⊆ I(s′ , x), z ′ ∈ I(x, z), and s′ ∈ I(x, s), we obtain that d(x, z) = d(x, u′ ) + d(u′ , z ′ ) +
+d(z ′ , z) and d(x, s) = d(x, u′ ) + d(u′ , z ′ ) + d(z ′ , s′ ) + d(s′ , s). Since d(x, z) ≥ r1 + 1 = d(x, s),
+from the two previous equalities we conclude that d(z ′ , z) ≥ d(z ′ , s′ ) + d(s′ , s). Recall that the
+vertex y belongs to C(u, v), and thus, either y = y ′ ∈ C or y ′ ∈ {u′ , v ′ }. Consequently, d(y, z) =
+d(y, y ′ )+d(y ′ , z ′ )+d(z ′ , z). Since s ∈
+                                             / B2 , r2 < d(y, s) = d(y, y ′ )+d(y ′ , s′ )+d(s′ , s) ≤ d(y, y ′ )+
+d(y , z ) + d(z , s ) + d(s , s) ≤ d(y, y ′ ) + d(y ′ , z ′ ) + d(z ′ , z) = d(y, z) ≤ r2 , a contradiction (by
+    ′    ′         ′    ′         ′
+
+the triangle inequality and the inequality d(z ′ , s′ ) + d(s′ , s) ≤ d(z ′ , z) established above). This
+contradiction establishes that under the conditions of the theorem, we must have B1 = B2 .
+     The second assertion is a consequence of the first one since two balls with distinct diameters are
+distinguished by the diametral pair of the ball with the larger diameter. Finally, VCD(B(K)) ≤ 3
+follows from the fact that trees of cycles K cannot be contracted to K4 and the result of Bousquet
+and Thomassé (2015); Chepoi et al. (2007) that if a graph G does not contain Kd+1 as a minor, then
+VCD(B(G)) ≤ d.
+
+    We continue with the proof of the theorem for δ-hyperbolic graphs.
+
+Theorem 16 For a δ-hyperbolic graph H, T is an NCTM+
+                                                   2δ of size 2 for B(H).
+
+Proof The proof is similar to the proof for trees. Clearly, T (x, r) ⊆ Br (x) for any vertex x and any
+radius r, and thus, the map T satisfies the inclusion condition. Hence, since |T (x, r)| = 2 for any
+ball Br (x) with r ≥ 1, T is non-clashing for any pair of balls that includes a ball of radius 0. Now,
+assume that Br1 (x) and Br2 (y) are not δ-identical, and suppose, without loss of generality, that there
+exists z ∈ Br2 (y) \ Br1 +2δ (x). Let T (y, r2 ) = {u, v} and note that, since H is δ-hyperbolic, we
+have d(x, z) + d(u, v) ≤ max{d(x, u) + d(v, z), d(x, v) + d(u, z)} + 2δ. Without loss of generality,
+assume that d(x, z) + d(u, v) ≤ d(x, v) + d(u, z) + 2δ. Since u, z ∈ Br2 (y) and since {u, v} is a
+diametral pair of Br2 (y), d(u, z) ≤ d(u, v). Consequently, r1 + 2δ < d(x, z) ≤ d(x, v) + 2δ, and
+thus, v ∈/ Br1 (x). Therefore, v ∈ (Br2 (y) \ Br1 (y)) ∩ (T (x, r1 ) ∪ T (y, r2 )), establishing that T
+satisfies the non-clashing condition for Br1 (x) and Br2 (y).
+
+
+
+
+                                                       36
+

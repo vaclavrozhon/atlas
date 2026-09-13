@@ -1,0 +1,1631 @@
+                                              Accelerated Algorithms for Monotone Inclusions and
+                                           Constrained Nonconvex-Nonconcave Min-Max Optimization
+arXiv:2206.05248v1 [math.OC] 10 Jun 2022
+
+
+
+
+                                                Yang Cai*†                     Argyris Oikonomou*†                          Weiqiang Zheng†
+                                             Yale University                      Yale University                            Yale University
+                                            yang.cai@yale.edu              argyris.oikonomou@yale.edu                   weiqiang.zheng@yale.edu
+
+                                                                                           June 13, 2022
+
+
+
+                                                                                               Abstract
+                                                   We study monotone inclusions and monotone variational inequalities, as well as their gen-
+                                               eralizations to non-monotone settings. We first show that the Extra Anchored Gradient (EAG)
+                                               algorithm, originally proposed by Yoon and Ryu [2021] for unconstrained convex-concave min-
+                                               max optimization, can be applied to solve the more general problem of Lipschitz monotone
+                                               inclusion. More specifically, we prove that the EAG solves Lipschitz monotone inclusion prob-
+                                               lems with an accelerated convergence rate of O( T1 ), which is optimal among all first-order methods
+                                               [Diakonikolas, 2020, Yoon and Ryu, 2021]. Our second result is a new algorithm, called Extra
+                                               Anchored Gradient Plus (EAG+), which not only achieves the accelerated O( T1 ) convergence
+                                               rate for all monotone inclusion problems, but also exhibits the same accelerated rate for a fam-
+                                               ily of general (non-monotone) inclusion problems that concern negative comonotone opera-
+                                               tors. As a special case of our second result, EAG+ enjoys the O( T1 ) convergence rate for solving
+                                               a non-trivial class of nonconvex-nonconcave min-max optimization problems. Our analyses
+                                               are based on simple potential function arguments, which might be useful for analysing other
+                                               accelerated algorithms.
+
+
+
+
+                                            * Supported by a Sloan Foundation Research Fellowship and the NSF Award CCF-1942583 (CAREER).
+                                            † Part of this work was done while the author was visiting the Simons Institute for the Theory of Computing.
+Contents
+1 Introduction                                                                                            1
+  1.1 Our Contributions . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .       2
+  1.2 Related Work . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      3
+       1.2.1 Convex-Concave and Monotone Settings . . . . . . . . . . . . . . . . . . . . .               3
+       1.2.2 Nonconvex-Nonconcave and Non-Monotone Setting . . . . . . . . . . . . . .                    4
+
+2 Preliminaries                                                                                           5
+  2.1 Monotone Inclusion and Variational Inequality . . . . . . . . . . . . . . . . . . . . . .           6
+  2.2 General Inclusion. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    8
+  2.3 Convergence Criteria . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      9
+
+3 Optimal Monotone Inclusion via EAG                                                             9
+  3.1 Warm Up: Unconstrained Case . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 10
+  3.2 Convergence of EAG with Arbitrary Convex Constraints . . . . . . . . . . . . . . . . 13
+
+4 Optimal Algorithms for General Inclusions with Negatively Comonotone Operators                    17
+  4.1 Monotone Case . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 19
+  4.2 Non-Monotone Case . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 19
+
+5 Auxiliary Propositions                                                                                 24
+1 Introduction
+We study the monotone inclusion problem and the monotone variational inequality, as well as their
+generalizations in non-monotone settings. Given a closed convex set Z ⊆ Rn and a single-valued
+and monotone operator F : Z → Rn , i.e.,
+
+                                       F (z) − F (z′ ), z − z′ ≥ 0,            ∀z, z′ ∈ Z ,
+
+the monotone inclusion problem (MI) consists in finding a z∗ ∈ Z such that
+
+                                                   0 ∈ F ( z ∗ ) + ∂I Z ( z ∗ ) ,
+
+where IZ (·) is the indicator function for set Z ,1 and ∂IZ (·) is the subdifferential operator of IZ .
+The corresponding monotone variational inequality shares the same input, and asks for a z∗ ∈ Z
+such that
+
+                                           h F (z∗ ), z∗ − zi ≥ 0,          ∀z ∈ Z .
+
+    The monotone inclusion problem and the related monotone variational inequality play a cru-
+cial role in mathematical programming, providing unifying settings for the study of optimization
+and equilibrium problems. They also serve as computational frameworks for numerous impor-
+tant applications in fields such as economics, engineering, probability and statistics, and machine
+learning [Facchinei and Pang, 2003, Bauschke and Combettes, 2011, Ryu and Boyd, 2016]. It is not
+hard to observe that the exact solutions to the monotone inclusion problem coincide with the exact
+solutions to the corresponding variational inequality. Due to the different selected performance
+measures, the approximate solutions to these two problems differ. Take the unconstrained case
+for example, i.e., Z = Rn , an point z approximates the monotone inclusion problem implies that
+its operator norm k F (z)k is small, while an approximate solution to the variational inequality
+only satisfies a weaker condition, i.e., its gap function is small.2 Indeed, it is well-known that an
+approximate solution to the monotone inclusion problem is also an approximate solution to the
+monotone variational equality, but the reverse is not true in general. Additionally, the type of per-
+formance measure used in quantifying the sub-optimality of an approximate solution to monotone
+inclusion problems is readily extendable to non-monotone settings, e.g., nonconvex-nonconcave
+min-max optimization, while it is unclear how to provide a meaningful generalization of the gap
+function to non-monotone settings. We focus on algorithms for inclusion problems for the rest of
+the paper, but as explained earlier, these algorithms are also applicable to variational inequalities.
+For computational purposes, we make the standard assumption that the operator F is L-Lipschitz.
+    An important special case of the monotone inclusion problem is the convex-concave min-max
+optimization problem:
+                                            min max f ( x, y),
+                                                      x ∈X y∈Y
+
+   1 I( z ) = 0 for all z ∈ Z and + ∞ otherwise.
+   2 There are several variations of the gap function. Depending on the exact definition, a small gap function value could
+
+mean an approximate weak solution, i.e., approximately solve the Minty Variational Inequality, or an approximate strong
+solution, i.e., approximately solve the Stampacchia Variational Inequality.
+
+
+                                                                 1
+where X and Y are a closed convex sets in Rn x and Rny respectively, and f (·, ·) is smooth, con-
+vex in x, and concave in y.3 Besides its central importance in game theory, convex optimization,
+and online learning, the convex-concave min-max optimization problem has recently received a
+lot of attention from the machine learning community due to several novel applications such as
+the generative adversarial networks (GANS) (e.g., [Goodfellow et al., 2014, Arjovsky et al., 2017]),
+adversarial examples (e.g., [Madry et al., 2017]), robust optimization (e.g., [Ben-Tal et al., 2009]),
+and reinforcement learning (e.g., [Du et al., 2017, Dai et al., 2018]).
+    Given the importance of the monotone inclusion problem, it is crucial to understand the fol-
+lowing open question.
+   What is the optimal convergence rate achievable by a first-order method for monotone inclusions?                     (*)
+We provide the first algorithm that achieves the optimal convergence rate and further extend it to
+a nontrivial class of general inclusion problems that includes, for example, a family of nonconvex-
+nonconcave min-max optimization problems. Prior to our work, even for the special case of
+convex-concave min-max optimization, the optimal convergence rate is only known for the rel-
+atively weak notion of duality gap [Nemirovski, 2004, Nesterov, 2007], which is also difficult to
+generalize to nonconvex-nonconcave settings, see [Yoon and Ryu, 2021] for more discussion.
+
+1.1 Our Contributions
+A point z ∈ Z is an ǫ-approximate solution to a monotone inclusion problem if
+                                            0 ∈ F (z) + ∂IZ (z) + B(0, ǫ),
+where B(0, ǫ) is the ball with radius ǫ centered at 0. As we argue in Section 2.3, this is equivalent
+to the tangent residual of z, a notion introduced in [Cai et al., 2022], being no more than ǫ. Our
+first contribution provides an answer to question (*).
+  Contribution 1: We extend the Extra Anchored Gradient algorithm (EAG) , originally pro-
+  posed by Yoon and Ryu [2021] for unconstrained convex-concave min-max problems, to
+  solve monotone inclusion problems, which include constrained convex-concave min-max
+  optimization as a special case. We show in Theorem 4 that EAG finds an O( TL )-approximate
+  solution in T iterations for monotone inclusions, where L is the Lipschitz constant of the op-
+  erator F. The convergence rate we obtain for EAG matches the lower bound by Diakonikolas
+  [2020], Yoon and Ryu [2021], and is therefore optimal for any first-order method.
+   For the second part of the paper, we go beyond the monotone case and study general inclusion
+problems (GI) with operators that are not necessarily monotone and only satisfy the weaker ρ-
+comonotoncity (Assumption 2) condition. Given a single-valued, L-Lipschitz, and possibly non-
+monotone operator F and a set-valued maximally monotone operator A, we denote E = F + A. The
+general inclusion problem (GI) consists in finding a point z∗ ∈ Rn that satisfies
+                                            0 ∈ E ( z ∗ ) = F ( z ∗ ) + A ( z ∗ ).
+                                        
+   3 If we set F ( x, y) = ∇ x f ( x, y)
+                                           and Z = X × Y , then (i) F ( x, y) is a Lipschitz and monotone operator, and (ii)
+                          −∇y f ( x, y)
+the set of saddle points coincide with the solutions to the monotone inclusion problem for operator F and domain Z .
+
+
+                                                              2
+    The general inclusion problem (GI) captures (MI) (when ρ = 0 and A = ∂IZ ) and a class of
+non-smooth nonconvex-nonconcave min-max optimization problems (when ρ < 0 and A chosen ap-
+propriately, see Example 1). Our second contribution is a new algorithm that achieves accelerated
+rate for solving GI.
+  Contribution 2: We design a new algorithm EAG+ that finds a O( TL )-approximate solution
+  to the general inclusion problem (GI) in T iterations as long as E = F + A is a ρ-comonotone
+  operator with ρ ≥ − c1· L for some c > 0.a See Theorem 7 for the formal statement.
+        a We have not optimized the range of permissible ρ, and our constant c is slightly worse than some in the
+
+  literature [Diakonikolas et al., 2021, Lee and Kim, 2021]
+
+  Our result is the first to obtain accelerated rate for constrained nonconvex-nonconcave min-
+max optimization and more generally non-monotone inclusion problems.
+
+1.2 Related Work
+There is a vast literature on general inclusion problems and variational inequalities, e.g., see [Facchinei and Pang,
+2003, Bauschke and Combettes, 2011, Ryu and Boyd, 2016] and the references therein. We only
+provide a brief discussion of the most relevant and recent results.
+
+1.2.1     Convex-Concave and Monotone Settings
+Convergence in Gap Function. [Nemirovski, 2004, Nesterov, 2007] show that the average iterate
+of extragradient-type methods has O( T1 ) convergence rate in terms of gap function defined as
+maxz′ ∈Z h F (z′ ), z − z′ i, which means that their result only provides an approximate solution to
+the weak solution. The O( T1 ) rate is optimal for first-order methods due to the lower bound by
+[Ouyang and Xu, 2021].
+
+Convergence of the Extragradient Method in Stronger Performance Measures. For stronger
+performance measures such as the norm of the operator (when Z = Rn ) or the residual (in con-
+strained setting), classical results [Korpelevich, 1976, Facchinei and Pang, 2003] show that the best-
+iterate of the extragradient method converges at a rate of O( √1 ). Recently, the same convergence
+                                                                   T
+rate is shown to hold even for the last-iterate of the extragradient method [Gorbunov et al., 2021,
+Cai et al., 2022]. Although O( √1 ) convergence on the residual is optimal for all p-SCIL algorithms
+                                  T
+[Golowich et al., 2020], a subclass of first-order methods that includes the extragradient method
+and many of its variations, faster rate is possible for other first-order methods.
+
+Faster Convergence Rate in Operator Norm or Residual. We provide a brief overview of re-
+sults that achieve faster convergence rate in terms of the operator norm or residual. Note that
+these results also imply essentially the same convergence rate in terms of the gap function. The
+literature here is rich and fast-growing, we only discuss the ones that are close related to our
+paper. Recent results show accelerated rates through Halpern iteration [Halpern, 1967] or a simi-
+lar mechanism – anchoring. Implicit versions of Halpern iteration have O( T1 ) convergence rate
+
+                                                              3
+[Kim, 2021, Lieder, 2021, Park and Ryu, 2022] for monotone operators and explicit variants of
+Halpern iteration achieve the same convergence rate when F is cocoercive [Diakonikolas, 2020,
+Kim, 2021]. Diakonikolas [2020] also provide a double-loop implementation of the algorithm for
+monotone operators at the expense of an additional logarithmic factor in the convergence rate.
+Yoon and Ryu [2021] propose the extra anchored gradient (EAG) method, which is the first ex-
+plicit method with accelerated O( T1 ) rate in the unconstrained setting for monotone operators.
+They also established a matching Ω( T1 ) lower bound that holds for all first-order methods. Con-
+vergence analysis of past extragradient method with anchoring in the unconstrained setting is pro-
+vided in [Tran-Dinh and Luo, 2021]. Lee and Kim [2021] proposed a generalization of EAG called
+fast extraradient (FEG), which applies to comonotone operators and improves the constants in the
+convergence rate, but only for the unconstrained setting. Very recently, Tran-Dinh [2022] studies
+the connection between Halpern iteration and Nesterov accelerated method, and provides new al-
+gorithms for monotone operators and alternative analyses for EAG and FEG in the unconstrained
+setting. In Theorem 4, we show the projected version of EAG has O( T1 ) convergence rate under
+arbitrary convex constraints, achieving the optimal convergence rate for all first-order methods in
+the constrained setting.
+
+1.2.2   Nonconvex-Nonconcave and Non-Monotone Setting
+Many practical applications of min-max optimization in modern machine learning, such as GANs
+and multi-agent reinforcement learning, are nonconvex-nonconcave. Without any additional struc-
+ture, the problem is intractable [Daskalakis et al., 2021]. Hence, recent works study nonconvex-
+nonconcave min-max optimization problems under several structural assumptions. We only in-
+troduce the definitions in the unconstrained setting, as that is the setting considered by several of
+the results, and all convergence rates are in terms of the the operator norm. The Minty variational
+inequality (MVI) condition (also called coherence or variationally stable): there exits z∗ such that
+                                     h F (z), z − z∗ i ≥ 0,    ∀ z ∈ Rn
+is studied in e.g., [Dang and Lan, 2015, Zhou et al., 2017, Liu et al., 2019, Malitsky, 2020, Song et al.,
+2020, Liu et al., 2021]. Extragradient-type algorithms has O( √1 ) convergence rate for Lipschitz op-
+                                                                 T
+erators that satisfy the MVI condition [Dang and Lan, 2015]. Diakonikolas et al. [2021] proposes a
+weaker condition called weak MVI: there exits z∗ and ρ ≤ 0 such that
+
+                               h F (z), z − z∗ i ≥ ρ · k F (z)k2 ,   ∀ z ∈ Rn .
+The weak MVI condition includes both MVI and negative comonotonicity [Bauschke et al., 2021]
+as special cases. Diakonikolas et al. [2021] proposes the EG+ algorithm, which has O( √1 ) con-
+                                                                                        T
+vergence rate under the weak MVI condition in the unconstrained setting. Recently, Pethick et al.
+[2022] generalized EG+ to CEG+ algorithm which has O( √1 ) under weak MVI condition in gen-
+                                                           T
+eral (constrained) setting. The result for accelerated algorithms in the nonconvex-nonconcave
+setting is more sparse. FEG achieves O( T1 ) convergence rate for comonotone operators in the
+unconstrained setting [Lee and Kim, 2021]. In general (constrained) setting with comonotone op-
+erators, the proximal point algorithm is known to exhibit O( √1 ) convergence rate [Kohlenbach,
+                                                                          T
+
+
+                                                       4
+                                                                                       Non-Monotone
+                  Algorithm                             Setting     Monotone
+                                                                                Comonotone MVI     weak MVI
+                 EG [Dang and Lan, 2015]            general           O( √1 )              O( √1 )
+                                                                          T                       T
+   Normal      EG+ [Diakonikolas et al., 2021]   unconstrained        O( √1 )      O( √1 )    O( √1 )   O( √1 )
+                                                                           T            T          T        T
+                 CEG+ [Pethick et al., 2022]        general          O( √1 )       O( √1 )    O( √1 )   O( √1 )
+                                                                           T            T          T        T
+                                                                       log T
+               Halpern [Diakonikolas, 2020]         general          O( T )
+                EAG [Yoon and Ryu, 2021]         unconstrained        O( T1 )
+ Accelerated     FEG [Lee and Kim, 2021]         unconstrained        O( T1 )       O( T1 )
+                    EAG [This paper]                general           O( T1 )
+                   EAG+ [This paper]                general           O( T1 )       O( T1 )
+
+Table 1: Existing results for inclusion problem (min-max optimization problem) with monotone
+or non-monotone operators. The convergence rate is in terms of the operator norm (in the uncon-
+strained setting) and the residual (in the constrained setting).
+
+
+2022]. To the best of our knowledge, (EAG+) is the first explicit and efficient method that has an
+accelerated O( T1 ) convergence rate in the constrained nonconvex-nonconcave setting (Theorem 7).
+
+
+2 Preliminaries
+We consider the Euclidean Space (Rn , k · k), where k · k is the ℓ2 norm and h·, ·i denotes inner
+product on Rn .
+
+Basic Notions about Monotone Operators. A set-valued operator A : Rn ⇒ Rn maps z ∈ Rn
+to a subset A(z) ⊆ Rn . We say A is single-valued if | A(z)| ≤ 1 for all z ∈ Rn . Tha graph of an
+operator A is defined as Gra A = {(z, u) : z ∈ Rn , u ∈ A(z)}. The inverse operator of A is denoted
+as A−1 whose graph is Gra A−1 = {(u, z) : (z, u) ∈ Gra A }. For two operators A and B, we denote
+A + B as the operator with graph Gra A+ B = {(z, u A + u B ) : (z, u A ) ∈ Gra A , (z, u B ) ∈ GraB }. We
+denote the identity operator as I : Rn → Rn .
+    For a closed convex set Z ⊆ Rn and point z ∈ Rn , we denote the normal cone operator as NZ :
+                               (
+                                 ∅,                                       z∈
+                                                                           / Z,
+                     NZ (z) =            n      ′             ′
+                                 {v ∈ R : hv, z − zi ≤ 0, ∀z ∈ Z}, z ∈ Z .
+
+Define the indicator function                       (
+                                                        0         if z ∈ Z ,
+                                       IZ ( z ) =
+                                                        +∞        otherwise.
+Then it is not hard to see that the subdifferential operator ∂IZ = NZ . The projection operator
+                                                          2
+ΠZ : Rn → Rn is defined as ΠZ [z] := argminz′ ∈Z kz − z′ k .
+   For L ∈ (0, ∞), a single-valued operator A : Rn → Rn is L-Lipschitz if
+
+                                A ( z) − A ( z′ ) ≤ L · z − z′ ,         ∀z, z′ ∈ Rn .
+
+                                                            5
+Moreover, A is non-expansive if it is 1-Lipschitz. A set-valued operator A : Rn ⇒ Rn is monotone if
+
+                             u − u′ , z − z′ ≥ 0,      ∀(z, u), (z′ , u′ ) ∈ Gra A .
+
+Maximally Monotone Operator. A is maximally monotone if A is monotone and there is no other
+monotone operator B such that Gra A ⊂ GraB . When f : Rn → R is a convex closed proper
+function, then the subdifferential operator ∂ f is maximally monotone. Therefore, ∂IZ = NZ is
+maximally monotone. We denote the resolvent of an operator A as JA := ( I + A)−1 . When A is
+maximally monotone, useful properties of JA (See e.g., [Ryu and Boyd, 2016, Ryu and Yin, 2022])
+include:
+  1. JA is well-defined on Rn ;
+
+  2. JA is non-expansive thus single-valued;
+
+  3. when z = JA (z′ ), then z′ − z ∈ A(z);
+
+  4. when A = ∂IZ is the normal cone operator of a closed convex set Z ⊆ Rn , then Jη A = ΠZ is
+     the projection operator for all η > 0.
+
+ρ-comonotonicity. A generalized notion of monotonicity is the ρ-comonotonicity [Bauschke et al.,
+2021]: For ρ ∈ R, an operator A : Rn ⇒ Rn is ρ-comonotone if
+                                                        2
+                       u − u ′ , z − z′ ≥ ρ u − u ′         ,   ∀(z, u), (z′ , u′ ) ∈ Gra A .
+Note that when A is 0-comonotone, then A is monotone. If A is ρ-comonotone for ρ > 0, we
+also say A is ρ-cocoercive (a stronger assumption than monotonicity). When A satisfies negative
+comonotonicity, i.e., ρ-comonotonicity with ρ < 0, then A is possibly non-monotone. Negative
+comonotonicity is the focus of this paper in the non-monotone setting.
+
+2.1 Monotone Inclusion and Variational Inequality
+Monotone Inclusion. Given a closed convex set Z ⊆ Rn and a single-valued monotone operator
+F, the monotone inclusion problem is to find a point z∗ ∈ Rn that satisfies
+
+                                         0 ∈ F ( z ∗ ) + ∂I Z ( z ∗ ) .                                        (MI)
+
+We focus on monotone inclusion problem of a Lipschitz operator with a solution. The assumptions
+on (MI) is summarized in Assumption 1.
+Assumption 1. In (MI) problem,
+  1. F is monotone and L-Lipschitz on Z , i.e.,
+
+                 F (z) − F (z′ ), z − z′ ≥ 0 and F (z) − F (z′ ) ≤ L · z − z′ ,                 ∀z, z′ ∈ Z .
+
+  2. There exists a solution z∗ ∈ Z such that 0 ∈ F (z∗ ) + ∂IZ (z∗ ).
+
+                                                       6
+Variational Inequality. A closely related problem to (MI) is the monotone variational inequality
+(VI) with operator F and feasible set Z , which has two variants. The Stampacchia Variational In-
+equality (SVI) problem is to find z∗ ∈ Z such that
+
+                                    h F (z∗ ), z∗ − zi ≤ 0,          ∀z ∈ Z .                     (SVI)
+
+Such z∗ is called a strong solution to VI. The Minty Variational Inequality (MVI) problem is to find
+z∗ ∈ Z such that
+                                    h F (z), z∗ − zi ≤ 0, ∀z ∈ Z .                            (MVI)
+Such z∗ is called a weak solution to VI. When F is continuous, then every solution to (MVI) is also a
+solution to (SVI). When F is monotone, every solution to (SVI) is also a solution to (MVI) and thus
+the two solution sets are equivalent. Moreover, the solution set to (MI) is the same as the solution
+set to (SVI).
+
+Approximate Solutions. We say z ∈ Z is an ǫ-approximate solution to (MI) if
+
+                                     0 ∈ F (z) + ∂IZ (z) + B(0, ǫ),
+
+where we use B(u, r) to denote a ball in Rn centered at u with radius r. We say z ∈ Z is an
+ǫ-approximate solution to (SVI) or (MVI) if
+
+                               F (z), z − z′ ≤ ǫ, ∀z′ ∈ Z , or
+                               F (z′ ), z − z′ ≤ ǫ, ∀z′ ∈ Z , respectively.
+
+When F is monotone, it is clear that every ǫ-approximate solution to (SVI) is also an ǫ-approximate
+solution to (MVI); but the reverse does not hold in general. When F is monotone and Z is
+bounded by D, then any Dǫ -approximate solution to (MI) is an ǫ-approximate solution to (SVI)
+[Diakonikolas, 2020, Fact 1]. Note that when Z is unbounded, neither (SVI) nor (MVI) can be
+approximated. If we restrict the domain to be a bounded subset of (possibly unbounded) Z , then
+we can define the (restricted) gap functions as
+
+                                G AP SV I
+                                     F,D ( z) : =       max          F ( z ), z − z ′ ,
+                                                    z′ ∈Z∩B( z,D )
+                                   MV I
+                              G AP F,D  ( z) : =        max          F ( z ′ ), z − z ′ .
+                                                    z′ ∈Z∩B( z,D )
+
+
+The O( T1 ) convergence rate for extragradient-type algorithm [Nemirovski, 2004, Nesterov, 2007]
+                                MV I
+is provided in terms of G AP F,D     (z), which means convergence to an approximate weak solution.
+Prior to our work, the O( T1 ) convergence rate on G AP SV     I
+                                                            F,D ( z) was only known in the unconstrained
+setting [Yoon and Ryu, 2021]. When F is monotone, then the tangent residual rtan (z) ≤ Dǫ (defini-
+tion in section 2.3) implies G AP SV   I
+                                    F,D ( z) ≤ ǫ [Cai et al., 2022, Lemma 2]. Therefore, our result also
+implies an O( T1 ) convergence rate on G AP SV    I
+                                               F,D ( z) when Z is arbitrary convex set (Theorem 4).
+
+
+
+
+                                                         7
+2.2 General Inclusion.
+We study inclusion problem (GI) with (non)-monotone operators that satisfies ρ-comonotoncity (As-
+sumption 2), which captures (MI) (when ρ = 0) and a class of nonconvex-nonconcave min-max
+optimization problems (when ρ < 0). Given a single-valued and possibly non-monotone operator
+F and a set-valued maximally monotone operator A, we denote E = F + A. The inclusion problem is
+to find a point z∗ ∈ Rn that satisfies
+
+                                       0 ∈ E ( z ∗ ) = F ( z ∗ ) + A ( z ∗ ).                        (GI)
+
+Similar to (MI) , we say z is an ǫ-approximate solution to (GI) if
+
+                                        0 ∈ F (z) + A(z) + B(0, ǫ).
+
+   We summarize the assumptions on (GI) below.
+
+Assumption 2. In (GI) problem,
+
+   1. F : Rn → Rn is L-Lipschitz.
+
+   2. A : Rn ⇒ Rn is maximally monotone.
+
+   3. E = F + A is ρ-comonotone, i.e., there exists ρ ≤ 0 such that
+                                                              2
+                           u − u ′ , z − z′ ≥ ρ u − u ′           ,   ∀(z, u), (z′ , u′ ) ∈ GraE .
+
+   4. There exists a solution z∗ ∈ Rn such that 0 ∈ E(z∗ ).
+
+    The formulation of (GI) provides a unified treatment for a range of problems, such as min-max
+optimization and multi-player games. We present one detailed example below and refer readers
+to [Facchinei and Pang, 2003] for more examples.
+
+Example 1 (Min-Max Optimization). The following structured min-max optimization problem captures
+a wide range of applications in machine learning such as GANs, adversarial examples, robust optimization,
+and reinforcement learning:
+
+                                    min max f ( x, y) + g( x) − h(y),                                  (1)
+                                    x ∈Rn x y ∈Rn y
+
+
+where f (·, ·) is possibly non-convex in x and non-concave in y. Regularized and constrained min-max
+problems are covered by appropriate choices of lower semicontinuous and convex functions g and h. Ex-
+amples include ℓ1 -norm, ℓ2 -norm, and indicator function of a convex feasible set. Let z = ( x, y), if we
+define F (z) = (∂x f ( x, y), −∂y f ( x, y)) and A(z) = (∂g( x), ∂h(y)), where A is maximally monotone,
+then the first-order optimality condition of (1) has the form of (GI) . See [Lee and Kim, 2021, Example 1]
+for examples of nonconvex-nonconcave conditions that are implied by negative comonotonicity,.
+
+
+
+                                                         8
+2.3 Convergence Criteria
+An appropriate convergence criterion is the tangent residual rtan      F,A ( z) : = min c∈ A ( z) k F ( z) + c k de-
+fined in [Cai et al., 2022]. It is not hard to see that rtan
+                                                         F,A ( z ) ≤ ǫ  implies that z is an ǫ-approximate
+solution to (GI) . If A = ∂I Z , and Z is bounded and has diameter no more than D, then z is an
+ǫ-approximate solution to (MI) and also an (ǫ · D )-approximate solution to (SVI).
+    Another commonly-used convergence  h       criterion
+                                                i         that captures the stationarity of a solution        h is
+the natural residual rnat                                        ∗                           ∗         ∗
+                       F,A : = kz − J A z − F ( z) k. Note that z is a solution to (GI) iff z = J A z −
+       i                                                                                 h          i
+F (z∗ ) . The definition of the natural residual for (MI) is similar: rnat
+                                                                       F,∂IZ : = kz − Π Z z − F ( z) k.
+
+Fact 1. In (GI) , rnat          tan
+                   F,A ( z) ≤ r F,A ( z).
+
+Proof. For any c ∈ A(z), we have
+                                                  h           i
+                               rnat
+                                F,A ( z) = z − J A z − F ( z)
+                                              h     i       h         i
+                                         = J A z + c − J A z − F ( z)                             (z = J A [z + c])
+                                         ≤ k F ( z) + ck.                              (non-expansiveness of JA )
+
+Thus rnat                                         tan
+      F,A ( z) ≤ min c∈ A ( z) k F ( z) + c k = r F,A ( z).
+
+   In this paper, we state our convergence rates in terms of the tangent residual rtan    F,A ( z), which
+                                                                 nat
+implies (i) convergence rates in terms of the natural residual r F,A (z), and (ii) z is an approximate
+solution to (GI) , (MI) , (SVI), or (MVI).
+
+
+3 Optimal Monotone Inclusion via EAG
+In this section, we study constrained monotone inclusion problem (MI) with closed convex feasi-
+ble set Z ⊆ Rn and monotone and L-Lipschitz operator F, as summarized in Assumption 1. We
+analyse the (projected) Extra Anchored Gradient Method (EAG) , which is proposed by Yoon and Ryu
+[2021] in the unprojected form for Z = Rn . Let z0 ∈ Z be an arbitrary starting point and
+{zk , zk+ 1 }k≥0 be the iterates of (EAG) with step size η > 0, whose update rule is as follows:
+         2
+
+                                             h                 1              i
+                                  zk+ 1 = ΠZ zk − ηF (zk ) +      ( z0 − z k ) ,
+                                      2                      k+1
+                                                                                                            (EAG)
+                                           h                    1               i
+                                 zk+1 = ΠZ zk − ηF (zk+ 1 ) +       ( z0 − z k ) .
+                                                         2    k+1
+    Our analysis is based on the following potential function
+
+                        k ( k + 1)
+                Vk :=              · kηF (zk ) + ηck k2 + k · hηF (zk ) + ηck , zk − z0 i,   k ≥ 1,
+                              2
+
+
+                                                              9
+where
+                                  zk−1 − ηF (zk− 1 ) + 1k (z0 − zk−1 ) − zk
+                                                   2
+                         ck :=                                                ,   k ≥ 1.
+                                                       η
+From the update rule of (EAG) , we know ck ∈ NZ (zk ). Thus k F (zk ) + ck k ≥ minc∈ NZ (zk ) k F (zk ) + ck =
+rtan (zk ). In Theorem 3, we show Vk is “approximately” non-increasing, i.e., Vk+1 ≤ Vk + O(1) ·
+kηF (zk+1 ) + ηck+1 k2 for all k ≥ 1. From this property, we get O( T1 ) last-iterate convergence rate in
+terms of k F (zT ) + c T k and thus the same convergence rate in rtan (zT ) (Theorem 4).
+     Potential functions in a similar form as Vk have been used to analyse (MI) by Diakonikolas
+[2020] for the Halpern iteration algorithm, and by Yoon and Ryu [2021] for (EAG) in the uncon-
+strained setting (Z = Rn ). We emphasize that we use a different potential function with different
+analysis.
+     Diakonikolas [2020] studied the Halpern iteration with operator P := I − JF+∂I Z , which is 21 -
+cocoercive but can not be computed efficiently in general. She showed that the follwoing potential
+function is non-increasing.
+                                     k ( k + 1)
+                            Pk :=               · k P(zk )k2 + k · h P(zk ), zk − z0 i,
+                                           2
+which leads to O( T1 )-approximate solution to (MI) after T iterations. However, since P can not
+be computed efficiently in general, the algorithm needs O(log( 1ǫ )) oracle queries for an O(ǫ)-
+approximate value of P in each iteration, thus total oracle complexity O( LD               1
+                                                                                  ǫ · log( ǫ )) for an ǫ-
+approximate solution to (MI) . In contrast, we use operator F in the potential function Vk , and
+we prove Vk is only ”approximately” non-increasing (see Theorem 1 and 3). Moreover, (EAG)
+needs only 2 oracle query in each iteration and achieves optimal O( LD    ǫ ) oracle complexity for an
+ǫ-approximate solution to (MI) (Theorem 4).
+     Yoon and Ryu [2021] studied convergence of (EAG) for (MI) in the unconstrained setting (Z =
+                                                                 1                                1
+Rn ). The specific algorithm they analysed uses anchoring term k+  2 ( z0 − zk ) while we use k+1 ( z0 −
+zk ) (see Remark 1 for more discussion on the choice of the constant in the anchoring term). They
+use the following potential function
+                                                       2
+                                 Pk := Ak · k F (zk )k + Bk · h F (zk ), zk − z0 i,
+where Bk = k + 1, and Ak = O(k2 ) is updated adaptively in a sophisticated way for each k. Their
+potential function Pk is more complicated compared to Vk as we choose Bk = k and Ak = k(k2+1) .
+For the analysis, their proof of the monotonicity of Pk is relatively involved. In contrast, we use
+a simple proof to show that Vk is “approximately” non-increasing (Theorem 1) which suffices to
+establish the O( T1 ) convergence rate. Moreover, our analysis can be naturally extended to the
+constrained setting where Z ⊆ Rn is an arbitrary closed convex set (Theorem 3).
+
+3.1 Warm Up: Unconstrained Case
+We begin with the unconstrained setting Z = Rn , which illustrate our main idea and proof tech-
+niques. [Yoon and Ryu, 2021] also analyse the unconstrained setting but our proof is much sim-
+pler.
+
+                                                           10
+    In the unconstrained setting, ck = 0 by definition. Thus
+
+                                 k ( k + 1)
+                          Vk =              kηF (zk )k2 + kh ηF (zk ), zk − z0 i, ∀k ≥ 1.
+                                       2
+                                                                        2
+It is not hard to see that V1 ≤ (η 2 L2 + 2ηL)kz0 − z∗ k : since the update rule for z 1 and z1 of
+                                                                                                                      2
+(EAG) coincides with the update rule of EG, by [Cai et al., 2022, Theorem 1], we have kηF (z1 )k2 ≤
+kηF (z0 )k2 ≤ η 2 L2 kz0 − z∗ k2 and and by [Korpelevich, 1976], [Facchinei and Pang, 2003, Lemma
+12.1.10 ] kz1 − z∗ k ≤ kz0 − z∗ k
+                                               2
+                           V1 = kηF (z1 )k + hηF (z1 ), z1 − z0 i
+                              ≤ kηF (z0 )k2 + kηF (z1 )k(kz1 − z∗ k + kz0 − z∗ k)
+                              ≤ (η 2 L2 + 2ηL)kz0 − z∗ k2 .
+
+Theorem 1. Suppose Assumption 1 holds with Z = Rn . Then for any k ≥ 1, (EAG) with any step size
+                                      η 2 L2                    2
+η ∈ (0, L1 ) satisfies Vk+1 ≤ Vk + 1−η 2 L2 kηF (zk+1 )k .
+
+Proof. Since F is monotone and L-Lipschitz, we have the following inequalities
+
+                                       h F ( z k+1 ) − F ( z k ), z k − z k+1 i ≤ 0
+
+and
+                                                            2                            2
+                               F ( z k+ 1 ) − F ( z k+1 )       − L2 z k+ 1 − z k+1          ≤ 0.
+                                       2                                    2
+
+We simplify them using the update rule of (EAG) .
+    In particular, we replace zk − zk+1 with ηF (zk+ 1 ) − k+1 1 (z0 − zk ) and zk+ 1 − zk+1 with ηF (zk+ 1 ) −
+                                                         2                          2                     2
+ηF (zk ).
+                                                                           
+                                                             1
+                       ηF (zk+1 ) − ηF (zk ), ηF (zk+ 1 ) −       (z0 − zk ) ≤ 0,                           (2)
+                                                      2     k+1
+                                                      2                                             2
+                        ηF (zk+ 1 ) − ηF (zk+1 )          − η 2 L2 ηF (zk+ 1 ) − ηF (zk )               ≤ 0.                    (3)
+                                 2                                                2
+
+
+    It is not hard to verify that the following identity holds.
+
+                                                            k ( k + 1)
+Vk − Vk+1 + k(k + 1) · LHS of Inequality(2) +                          · LHS of Inequality(3)
+                                                              2η 2 L2
+                                                                                              2
+ k + 1 ( η 2 L 2 − 1) k + η 2 L 2                                                                       k+1     η 2 L2
+                                                      q
+= 2 2                             · ηF (zk+1 ) +            (1 − η 2 L2 )k · ηF (zk+ 1 )          −         ·            kηF (zk+1 )k2 .
+                                                                                                              1 − η 2 L2
+           p
+ 2η L          (1 − η 2 L2 ) k                                                           2               2k
+
+           +1                                                                   η 2 L2                   2
+Note that k2k ≤ 1 holds for all k ≥ 1. Thus, Vk+1 ≤ Vk + 1−η 2 L2 kηF (zk+1 )k .
+
+
+
+                                                                11
+Lemma 1. For all k ≥ 2,
+
+             k ( k + 1)     η 2 L2                                                      η 2 L2 k−1
+                                    
+                                                     2              2           ∗ 2
+                                                                                                     kηF (zt )k2 .
+                                                                                      1 − η 2 L2 t∑
+                        −              k ηF ( z k )k   ≤ ( 1 + ηL )   k z 0 − z  k  +
+                   4      1 − η 2 L2                                                              =2
+
+Moreover, when η ∈ (0, √13L ), we have
+
+                       k2                                           η 2 L2 k−1
+                          · kηF (zk )k2 ≤ (1 + ηL)2 kz0 − z∗ k2 +                kηF (zt )k2 .
+                       4                                          1 − η 2 L2 t∑
+                                                                              =2
+
+Proof. Fix any k ≥ 2. By definition, we have
+
+       k ( k + 1)
+  Vk =            kηF (zk )k2 + kh ηF (zk ), zk − z0 i
+             2
+       k ( k + 1)
+     ≥            kηF (zk )k2 + kh ηF (zk ), z∗ − z0 i                                  ( h F (zk ), z∗ − zk i ≤ 0)
+             2
+       k ( k + 1)               k ( k + 1)                    k2
+     ≥            kηF (zk )k2 −            kηF (zk )k2 −            kz0 − z∗ k2 ( h a, bi ≥ − 4c kak2 − 1c kbk2 )
+             2                        4                  k ( k + 1)
+       k ( k + 1)
+     ≥            kηF (zk )k2 − kz0 − z∗ k2 .                                                            ( k+k 1 ≤ 1)
+             4
+Using Theorem 1, we have
+
+                                                                  k
+                                                        η 2 L2
+                                                                     kηF (zt )k2 .
+                                                      1 − η 2 L2 t∑
+                                         Vk ≤ V1 +
+                                                                  =2
+
+                                                                                                            2
+Combining the two inequalities above and the fact that V1 ≤ (2ηL + η 2 L2 )kz0 − z∗ k yields the
+                                                                                  η 2 L2
+first inequality in the statement. When ηL ∈ (0, √13 ), we have 1−η 2 L2 ≤ 12 ≤ 4k for k ≥ 2. Hence the
+second inequality in the statement holds.
+
+Theorem 2. Suppose Assumption 1 holds with Z = Rn . Let z0 ∈ Rn be arbitrary starting point and
+{zk , zk+ 1 }k≥0 be the iterates of (EAG) with any step size η ∈ (0, √13L ). Denote D := kz0 − z∗ k. Then for
+          2
+any T ≥ 1,
+
+                                                              4(1 + ηL)2          D 2 L2
+                                         k F (zT )k2 ≤                          ·        ,
+                                                          η 2 L2 (1 − 3η 2 L2 )    T2
+                                                            2(1 + ηL)      D2 L
+                                     G AP SV I
+                                          F,D ( z T ) ≤     p            ·      .
+                                                          ηL 1 − 3η 2 L2    T
+
+                                     2         2 2
+               1
+If we set η = 3L , then k F (zT )k ≤ 96·TD2 L .
+
+
+
+
+                                                              12
+Proof. Note that the second inequality is implied by the first inequality since G AP SV I
+                                                                                     F,D ( z) ≤ D ·
+                                                                                     2
+k F (zT )k [Cai et al., 2022, Lemma 2]. Denote ak := kηF(zk∗) 2k . It suffices to prove for all k ≥ 1,
+                                                                     k z0 − z k
+
+                                                           4(1 + ηL)2
+                                                   ak ≤                    .                                        (4)
+                                                          (1 − 3η 2 L2 )k2
+Since the update rule for z 1 and z1 of (EAG) coincides with the update rule of EG, by [Cai et al.,
+                               2
+                                               2                         2                   2
+2022, Theorem 1], we have kηF (z1 )k ≤ kηF (z0 )k ≤ η 2 L2 kz0 − z∗ k and thus a1 ≤ η 2 L2 < 13 .
+Thus Equation (4) holds for k = 1.
+   From Lemma 1, we know for k ≥ 2,
+                                     k2                      η 2 L2 k−1
+                                        · ak ≤ (1 + ηL)2 +
+                                                           1 − η 2 L2 t∑
+                                                                          at .
+                                     4                                 =2
+
+Applying Proposition 4 with C1 = (1 + ηL)2 and p = η 2 L2 < 31 completes the proof.
+
+3.2 Convergence of EAG with Arbitrary Convex Constraints
+                       (1+ ηL+ η 2 L2 )(2+2ηL+ η 2 L2 )
+Proposition 1. V1 ≤                1− η 2 L 2
+                                                        k z0 − z ∗ k 2 .
+Proof. We first upper bound kηF (z1 ) + ηc1 k and kz1 − z0 k . Note that z 1 , z1 are updated exactly as
+                                                                           2
+original EG. By definition, we have
+
+                  kηF (z1 ) + ηc1 k = ηF (z1 ) + z0 − ηF (z 1 ) − z1
+                                                                                 2
+
+                                       ≤ ηF (z1 ) − ηF (z 1 ) + kz0 − z1 k
+                                                                     2
+
+                                       ≤ ηL z1 − z 1 + kz0 − z1 k                                (L-Lipschitzness of F)
+                                                          2
+
+                                       ≤ (1 + ηL) z1 − z 1 + z 1 − z0
+                                                                     2                   2
+
+                                                              2 2
+                                       ≤ (1 + ηL + η L ) z 1 − z0
+                                                                             2
+
+                                           1 + ηL + η 2 L2
+                                       ≤      p                  k z0 − z ∗ k ,
+                                                   1 − η 2 L2
+                                                                                                             ∗ 2     ∗ 2
+where in the last inequality we use a well-known result regarding EG: kz 1 − z0 k ≤ kz0 −z 1k−−k   z1 − z k
+                                                                                                   2
+                                                                         2                    η 2 L2
+[Facchinei and Pang, 2003, Lemma 12.1.10 ]. Note that in the above sequence of inequalities, we
+                               1+ ηL
+also prove that kz1 − z0 k ≤ √ 2 2 kz0 − z∗ k.
+                                    1− η L
+   By definition of V1 and the above upper bound for kηF (z1 ) + ηc1 k and kz1 − z0 k, we have
+                                                          2
+                          V1 = kηF (z1 ) + ηc1 k + hηF (z1 ) + ηc1 , z1 − z0 i
+                               ≤ kηF (z1 ) + ηc1 k2 + kηF (z1 ) + ηc1 k · kz1 − z0 k
+                                   (1 + ηL + η 2 L2 )(2 + 2ηL + η 2 L2 )
+                               ≤                                         k z0 − z ∗ k 2 .
+                                                1 − η 2 L2
+
+
+                                                                13
+Theorem 3. Suppose Assumption 1 holds. Let z0 ∈ Z be any starting point and {zk , zk+ 1 }k≥0 be the it-
+                                                                                             2
+                                                                                 η 2 L2                      2
+erates of (EAG) with step size η ∈ (0, 1L ). Then for any k ≥ 1, Vk+1 ≤ Vk + 1−η 2 L2 kηF (zk+1 ) + ηck+1 k ,
+                                     1
+               zk − ηF ( zk + 1 )+ k + 1 ( z0 − z k )− z k +1
+where ck+1 =                  2
+                                     η                          .
+
+Proof. We first present several inequalities. From the monotonicity and L-Lipschitzness of F, we
+have
+                 k ( k + 1)
+                                                                               
+                                                   2                          2
+                                 2 2
+              (−            ) · η L · zk+ 1 − zk+1 − ηF (zk+ 1 ) − ηF (zk+1 )     ≤ 0,        (5)
+                   2η 2 L2                2                  2
+
+               (−k(k + 1)) · hηF (zk+1 ) − ηF (zk ), zk+1 − zk )i ≤ 0.                                    (6)
+                      h                               i
+    Since zk+ 1 = ΠZ zk − ηF (zk ) + k+1 1 (z0 − zk ) , we can infer that zk − ηF (zk ) + k+1 1 (z0 − zk ) −
+              2
+zk+ 1 ∈ NZ (zk+ 1 ). Moreover, by definition of ck and ck+1 , we know ck ∈ NZ (zk ) and ck+1 ∈
+    2             2
+NZ (zk+1 ). Therefore, we have
+                                                                                      
+                                                          1
+                (−k(k + 1)) · zk − ηF (zk ) − zk+ 1 +          (z0 − zk ), zk+ 1 − zk+1 ≤ 0,              (7)
+                                                    2    k+1                   2
+
+                (−k(k + 1)) · hηck+1 , zk+1 − zk i ≤ 0,                                                   (8)
+                              D               E
+                (−k(k + 1)) · ηck , zk − zk+ 1 ≤ 0.                                                       (9)
+                                                                    2
+
+
+The following identity holds when we substitute ηck+1 on both sides using ηck+1 = zk − ηF (zk+ 1 ) +
+                                                                                                         2
+  1
+k+1 ( z0 − zk ) − zk+1 , which follows from the definition. The correctness of the identity follows from
+Identity (28) in Proposition 3: we treat x0 as z0 ; xt as zk+ t−1 for t ∈ {1, 2, 3}; yt as ηF (zk+ t−1 ) for
+                                                                   2                                2
+t ∈ {1, 2, 3}; u1 as ηck and u3 as ηck+1 ; p as η 2 L2 and q as k.
+
+          Vk − Vk+1 + LHS of Inequality (5) + LHS of Inequality (6) + LHS of Inequality (7)
+          + LHS of Inequality (8) + LHS of Inequality (9)
+                                                                             2
+          k ( k + 1)                                           1
+        =             · zk+ 1 − zk + ηF (zk ) + ηck +             ( z − z0 )                            (10)
+                2                2                          k+1 k
+               ( 1 − η 2 L 2 ) k ( k + 1)                            2
+          +                2    2
+                                          · ηF (zk+ 1 ) − ηF (zk+1 )                                    (11)
+                       2η L                         2
+                          D                                               E
+          + (k + 1) · ηF (zk+ 1 ) − ηF (zk+1 ), ηF (zk+1 ) + ηck+1 .                                    (12)
+                                            2
+
+
+
+
+                                                                        14
+                                       2      2
+Since kak + h a, bi = ka + 2b k − kb4k , we have
+            2
+
+
+     Expression(11) + Expression(12)
+      s                                                        s                                            2
+        ( 1 − η 2 L 2 ) k ( k + 1)                              η 2 L 2 ( k + 1)
+   =                              · ηF (zk+ 1 ) − ηF (zk+1 ) +                      · (ηF (zk+1 ) + ηck+1 )
+                2η 2 L2                     2                    2( 1 − η 2 L 2 ) k
+           k+1     η 2 L2
+       −       ·            kηF (zk+1 ) + ηck+1 k2 .
+            2k   1 − η 2 L2
+
+                      +1                                                 η 2 L2                          2
+Since k ≥ 1, we have k2k ≤ 1. Hence, we have Vk+1 ≤ Vk + 1−η 2 L2 kηF (zk+1 ) + ηck+1 k .
+
+Remark 1. The proof of Theorem 3 naturally extends to the following algorithm and potential function:
+Fix any z0 ∈ Z and η ∈ (0, L1 ), δ ≥ 0. Update z 1 , z1 , c1 , V1 as (EAG) and for k ≥ 1:
+                                                        2
+
+            h                     1                 i
+ zk+ 1 = ΠZ zk − ηF (zk ) +             ( z0 − z k ) ,
+     2                        k+δ+1
+            h                        1                   i
+ zk+1 = ΠZ zk − ηF (zk+ 1 ) +               ( z0 − z k ) ,
+                           2    k+δ+1
+                              1
+         zk − ηF (zk+ 1 ) + k+δ+1 (z0 − zk ) − zk+1
+                      2
+ c k+1 =                                               ,
+                             η
+         (k + δ + 1)(k + δ + 2)
+ Vk+1 =                          kηF (zk+1 ) + ηck+1 k2 + (k + δ + 1) · hηF (zk+1 ) + ηck+1 , zk+1 − z0 i.
+                    2
+Since the identity in Proposition 3 holds for any q 6= 0, we only need to change every k to be k + δ in the
+proof of Theorem 3. It is possible that a choice of δ > 0 leads to a better upper bound (better constant) than
+δ = 0 which is chosen for (EAG) , but we do not optimize over δ here.
+
+Lemma 2. For k ≥ 2,
+
+       k ( k + 1)     η 2 L2                                                        η 2 L2 k−1
+                                
+                                     · kηF (zk ) + ηck k2 ≤ V1 + kz0 − z∗ k2 +                   kηF (zt ) + ηct k2 .
+                                                                                  1 − η 2 L2 t∑
+                  −
+             4      1 − η 2 L2                                                                =2
+
+Moreover, when η ∈ (0, √13L ), then
+
+                 k2                                             η 2 L2 k−1
+                    · kηF (zk ) + ηck k2 ≤ V1 + kz0 − z∗ k2 +                kηF (zt ) + ηct k2 .
+                 4                                            1 − η 2 L2 t∑
+                                                                          =2
+
+
+
+
+                                                            15
+Proof. Fix any k ≥ 2. By definition, we have
+
+                    k ( k + 1)
+               Vk =            kηF (zk ) + ηck k2 + kh ηF (zk ) + ηck , zk − z0 i
+                          2
+                    k ( k + 1)
+                  ≥            kηF (zk ) + ηck k2 + kh ηF (zk ) + ηck , z∗ − z0 i
+                          2
+                                                            (F + ∂I Z is monotone and 0 ∈ F (z∗ ) + ∂I Z (z∗ ))
+                      k ( k + 1)                      k ( k + 1)                          k
+                  ≥              kηF (zk ) + ηck k2 −            kηF (zk ) + ηck k2 −         k z0 − z ∗ k2
+                            2                               4                          k+1
+                                                                                                            2      2
+                                                                                      ( h a, bi ≥ − 4c kak − 1c kbk )
+                      k ( k + 1)
+                  ≥              kηF (zk ) + ηck k2 − kz0 − z∗ k2 .                                             (13)
+                            4
+                                                          η 2 L2
+    According to Theorem 3, Vt+1 − Vt ≤ 1−η 2 L2 kηF (zt+1 ) + ηct+1 k2 for all t ≥ 1. Through a
+telescoping sum, we obtain the following inequality:
+                                                               k
+                                                    η 2 L2
+                                    Vk ≤ V1 +               · ∑   kηF (zt ) + ηct k2 .                          (14)
+                                                  1 − η 2 L2 t =2
+
+The first inequality in the statement follows from the combination of Inequality (13) and (14).
+                                                                                         η 2 L2
+The second inequality in the statement follows from the fact that 1−η 2 L2 ≤ 12 ≤ 4k when η ∈
+(0, √13L ).
+
+Theorem 4. Suppose Assumption 1 holds. Let z0 ∈ Z be any starting point and {zk , zk+ 1 }k≥0 be the
+                                                                                                       2
+                                                                                  2
+iterates of (EAG) with step size η ∈ (0, √13L ). Denote D := kz0 − z∗ k . Then for any T ≥ 1,
+
+                                      h               i 2                                44         D 2 L2
+         rnat   (
+          F,∂IZ T z  ) 2
+                         =   z T − Π Z Tz − F ( z T )     ≤ k F ( z T ) + c T k2 ≤ 2 2       2 2
+                                                                                                  ·
+                                                                                  η L (1 − 3η L )    T2
+                                   √
+                                     44         D2 L
+         G AP SV   I
+               F,D ( z T ) ≤     p           ·         .
+                             ηL 1 − 3η 2 L2       T
+
+Proof. Note that by non-expansiveness of ΠZ , we have
+                     h             i 2                         h               i 2
+              zT − ΠZ zT − F (zT )     = Π Z [z T + c T ] − Π Z z T − F (z T )     ≤ k F ( z T ) + c T k2 .
+
+The bound on G AP SV    I                                    tan                    SV I                tan
+                     F,D ( z T ) follows from the bound on r F,A ( z T ) since G AP F,D ( z T ) ≤ D · r F,A ( z T )
+[Cai et al., 2022, Lemma 2].
+                       k ηF( zk )+ ηck k2
+    Denote ak :=                          . It suffices to prove that for all k ≥ 1,
+                          k z0 − z ∗ k 2
+
+                                                              44
+                                                 ak ≤                    .                                      (15)
+                                                        (1 − 3η 2 L2 )k2
+
+                                                             16
+Note that from the proof of Proposition 1, we have
+
+                               (1 + ηL + η 2 L2 )2                              (1 + ηL + η 2 L2 )2
+        kηF (z1 ) + ηc1 k2 ≤                       k z0 − z ∗ k 2   ⇒    a1 ≤                       ≤ 6.
+                                   1 − η 2 L2                                       1 − η 2 L2
+
+Thus Equation (15) holds for k = 1.
+   From Proposition 1, we also have
+
+                         (1 + ηL + η 2 L2 )(2 + 2ηL + η 2 L2 )
+                  V1 ≤                                         kz0 − z∗ k2 ≤ 10 · kz0 − z∗ k2 .
+                                      1 − η 2 L2
+
+Thus by Lemma 2, we have
+
+                  k2                                             η 2 L2 k−1
+                     · kηF (zk ) + ηck k2 ≤ 11 · kz0 − z∗ k2 +                kηF (zt ) + ηct k2
+                  4                                            1 − η 2 L2 t∑
+                                                                           =2
+                  k2               η 2 L2 k−1
+                                 1 − η 2 L2 t∑
+              ⇒      · ak ≤ 11 +                at .
+                  4                          =2
+
+Applying Proposition 4 with C1 = 11 and p = η 2 L2 ∈ (0, 31 ) completes the proof.
+
+
+4 Optimal Algorithms for General Inclusions with Negatively Comono-
+  tone Operators
+Algorithm. The following (EAG+) is a generalization of (EAG) to the general inclusion problem
+(GI) . Given any initial point z0 ∈ Rn and step size η > 0, (EAG+) updates {zk+ 1 , zk+1 , ck+1 }k≥0 as
+                                                                                2
+follows:
+                      h             i                h              i           z0 − ηF (z 1 ) − z1
+                                                                                            2
+            z 1 = Jη A z0 − ηF (z0 ) ,      z1 = Jη A z0 − ηF (z 1 ) ,   c1 =                         ,      (16)
+              2                                                     2                   η
+
+and for k ≥ 1:
+                                                           1
+                                zk+ 1 = zk − ηF (zk ) +       (z0 − zk ) − ηck
+                                    2                    k+2
+                                           h                     1               i
+                               zk+1 = Jη A zk − ηF (zk+ 1 ) +       ( z0 − z k )                          (EAG+)
+                                                         2     k+2
+                                                            1
+                                       zk − ηF (zk+ 1 ) + k+2 (z0 − zk ) − zk+1
+                                                     2
+                               c k+1 =
+                                                           η
+Note that by definition we have ck ∈ A(zk ) for all k ≥ 1.
+
+Remark 2. In the special case where A = ∂IZ is the normal cone operator, Jη A is the projection operator
+ΠZ . In this case, (EAG+) is still different from (EAG) . The major difference is that in each iteration,
+(EAG) performs two projections while (EAG+) only performs one projection. Consequently, the iterates
+
+                                                        17
+{zk+ 1 , zk+1 }k≥0 produced by (EAG) are all in the feasible set Z , while {zk+ 1 }k≥1 produced by (EAG+)
+      2                                                                         2
+may not belong to Z . As a result, the convergence guarantee for (EAG+) requires that monotonicity and
+Lipschitzness of F hold on Rn while the guarantee for (EAG) only requires those properties to hold on the
+feasible set Z . Nevertheless, we believe in many natural settings, i.e., min-max optimization, the operator
+F is indeed monotone in the entire Euclidean space.
+
+    We use the following potential function:
+
+                    (k + 1)(k + 2)
+          Vk =                     · kηF (zk ) + ηck k2 + (k + 1) · hηF (zk ) + ηck , zk − z0 i,     k ≥ 1.
+                          2
+The following proposition provides a bound for V1 .
+                                                                                           1
+Proposition 2. V1 ≤ η 2 (1 + ηL + η 2 L2 )(5 + 5ηL + 3η 2 L2 ) · rtan (z0 )2 . If η ∈ (0, 2L ), then V1 ≤
+ 15     tan      2
+4L2
+    · r F,A (z0 ) .
+Proof. Let us bound kz 1 − z0 k first. For any c ∈ A(z0 ), we have
+                             2
+
+
+
+                             z 1 − z0 = Jη A (z0 − ηF (z0 )) − Jη A (z0 + ηc)
+                                 2
+
+                                           ≤ kηF (z0 ) + ηck.                         (non-expansiveness of Jη A )
+
+Thus we have kz 1 − z0 k ≤ η · minc∈ A(z0 ) k F (z0 ) + ck = η · rtan
+                                                                  F,A ( z0 ).
+                2
+   Now we bound kηF (z1 ) + ηc1 k and kz1 − z0 k first. By definition of c1 , we have
+
+         kηF (z1 ) + ηc1 k = ηF (z1 ) − ηF (z 1 ) + z0 − z1
+                                                       2
+
+                              ≤ (ηL) · z1 − z 1 + kz0 − z1 k                                       (F is L-Lipschitz)
+                                                   2
+
+                              ≤ (1 + ηL) · z1 − z 1 + z 1 − z0
+                                                               2            2
+
+                              ≤ (1 + ηL) · ηF (z 1 ) − ηF (z0 ) + z 1 − z0                (Jη A is non-expansive)
+                                                           2                    2
+
+                              ≤ (1 + ηL + η 2 L2 ) · z 1 − z0 .                                    (F is L-Lipschitz)
+                                                                   2
+
+                              ≤ η (1 + ηL + η 2 L2 ) · rtan
+                                                        F,A ( z0 ).
+
+In the above chain of inequalies, we also prove kz1 − z0 k ≤ η (1 + ηL) · rtan (z0 ).
+    Finally, by definition of V1 , we have
+
+       V1 = 3 · kηF (z1 ) + ηc1 k2 + 2 · hηF (z1 ) + ηc1 , z1 − z0 i
+           ≤ 3 · kηF (z1 ) + ηc1 k2 + 2 · kηF (z1 ) + ηc1 k · kz1 − z0 k            (Cauchy-Schwarz inequality)
+           ≤ η (1 + ηL + η L )(5 + 5ηL + 3η L ) · rtan
+                2                    2 2                     2
+                                                   F,A ( z0 ) .
+                                                               2 2
+
+
+            1                                    15
+If η ∈ (0, 2L ), then V1 ≤ 15η 2 · rtan       2
+                                    F,A ( z0 ) ≤ 4L2 · r
+                                                         tan ( z )2 .
+                                                                0
+
+
+
+                                                                       18
+4.1 Monotone Case
+Theorem 5. Suppose Assumption 2 holds with ρ = 0. Let z0 ∈ Rn be any starting point and {zk+ 1 , zk+1 }k≥0
+                                                                                                      2
+                                                                                        η 2 L2
+be the iterates of (EAG+) with step size η ∈ (0, 1L ). Then for any k ≥ 1, Vk+1 ≤ Vk + 1−η 2 L2 kηF (zk+1 ) + ηck+1 k2 .
+
+Proof. Fix any k ≥ 1. We first present several inequalities. Since F is L-Lipschitz, we have
+              (k + 1)(k + 2)
+                                                                                   
+                                                       2                            2
+                                   2 2
+            −                  · η L · zk+ 1 − zk+1 − ηF (zk+ 1 ) − ηF (zk+1 )          ≤ 0.               (17)
+                  2η 2 L2                    2                      2
+
+
+   Additionally, as F is monotone, A is maximally monotone,ck ∈ A(zk ), and ck+1 ∈ A(zk+1 ), we
+have
+                (−(k + 1)(k + 2)) · hηF (zk+1 ) + ηck+1 − ηF (zk ) − ηck , zk+1 − zk )i ≤ 0.               (18)
+    The following identity holds due to Identity (29) in Proposition 3: we treat x0 as z0 ; xt as zk+ t−1
+                                                                                                             2
+for t ∈ {1, 2, 3}; yt as ηF (zk+ t−1 ) for t ∈ {1, 2, 3}; u1 as ηck , and u3 as ηck+1 ; p as η 2 L2 , and q as
+                                       2
+k + 1. Note that by the update rule of (EAG+) , we have ηck = zk − ηF (zk ) + k+1 2 (z0 − zk ) − zk+ 1 ,
+                                                                                                             2
+and by definition, we have ηck+1 = zk − ηF (zk+ 1 ) + k+1 2 (z0 − zk ) − zk+1 .
+                                                         2
+
+
+                         Vk − Vk+1 + LHS of Inequality (17) + LHS of Inequality (18)
+                         (1 − η 2 L2 )(k + 1)(k + 2)                                 2
+                     =                               · ηF ( z    1 ) − ηF ( z k +1 )
+                                                              k+ 2                                         (19)
+                                    2η 2 L2
+                                       D                                               E
+                         + (k + 2) · ηF (zk+ 1 ) − ηF (zk+1 ), ηF (zk+1 ) + ηck+1 .                        (20)
+                                                2
+
+                                   2       2
+Since kak + h a, bi = ka + 2b k − kb4k , we have
+           2
+
+
+  Expression(19) + Expression(20)
+   s                                                         s                                               2
+     (1 − η 2 L2 )(k + 1)(k + 2)                                 η 2 L 2 ( k + 2)
+=                               · ηF (zk+ 1 ) − ηF (zk+1 ) +                         · (ηF (zk+1 ) + ηck+1 )
+                2η 2 L2                   2                    2(1 − η 2 L2 )(k + 1)
+       k+2        η 2 L2
+  −            ·       2 2
+                           kηF (zk+1 ) + ηck+1 k2 .
+      2( k + 1) 1 − η L
+                                                                 η 2 L2
+Since k ≥ 1, we have 2(kk++21) ≤ 1. Hence, Vk+1 ≤ Vk + 1−η 2 L2 kηF (zk+1 ) + ηck+1 k2 .
+
+4.2 Non-Monotone Case
+                       1                          1
+Fact 2. For any ρ ≥ − 24L , there exists η ∈ (0, 2L ) such that
+                                                   
+                                                 4ρ 2 2 4ρ
+                                      1− 4−            η L +      ≥ 0.                                     (21)
+                                                  η             η
+                       1                                                   ρ
+Moreover, any η ∈ (0, 2L ) that satisfies Inequality (21) also satisfies η ≥ − 14 .
+
+                                                         19
+Proof. Rearranging Inequality (21), we get
+
+                                                       ηL(4η 2 L2 − 1) 1
+                                               ρ≥                        ·
+                                                        4( 1 + η 2 L 2 )   L
+                                                                            2
+Denote x = ηL ∈ (0, 12 ) and consider function f ( x) = x4((4x − 1)
+                                                            1+ x 2 )
+                                                                     . Note that
+
+                                                               1     1
+                                               min f ( x) ≤ f ( ) = − .
+                                                    1
+                                             x ∈(0, 2 )        3     24
+
+                       1        1
+Thus there exists η = 3L ∈ (0, 2L ) such that Inequality (21) holds.
+   Moreover, by rearranging Inequality (21), we get
+
+                                             ρ     1 − 4η 2 L2       1
+                                               ≥−                  ≥− .
+                                             η    4( 1 + η 2 L 2 )   4
+
+
+                                                    1
+Theorem 6. Suppose Assumption 2 holds with − 24L       ≤ ρ ≤ 0. Fix p = 41 . Let z0 ∈ Rn be any starting
+                                                                               1
+point and {zk+ 1 , zk+1 }k≥0 be the iterates of (EAG+) with step size η ∈ (0, 2L ) that satisfies Inequality
+               2
+                                               p
+(21). Then for any k ≥ 1, Vk+1 ≤ Vk + 1− p kηF (zk+1 ) + ηck+1 k2 = Vk + 31 · kηF (zk+1 ) + ηck+1 k2 .
+
+Proof. Fix any k ≥ 1. We first present several inequalities. Since F is L-Lipschitz, we have
+                                                       2                                 2
+                           η 2 L2 · z k+ 1 − z k+1         − ηF (zk+ 1 ) − ηF (zk+1 )        ≥ 0.
+                                         2                              2
+
+
+               4pρ
+Denote c = − η ≥ 0. Multiply both sides of the above inequality by (1 + c) and rearrange terms
+we get
+                                    2                                       2
+              p · z k+ 1 − z k+1        − ηF (zk+ 1 ) − ηF (zk+1 )
+                       2                               2
+                                                                2                                    2
+              + ((1 + c)η 2 L2 − p) · zk+ 1 − zk+1                  − c · ηF (zk+ 1 ) − ηF (zk+1 )       ≥ 0.   (22)
+                                                   2                                2
+
+
+By definition, we have ck ∈ A(zk ) and ck+1 ∈ A(zk+1 ). Since E = F + A satisfies ρ-comonotonicity,
+we have
+                                                      ρ
+  hηF (zk+1 ) + ηck+1 − ηF (zk ) − ηck , zk+1 − zk i − kηF (zk+1 ) + ηck+1 − ηF (zk ) − ηck k2 ≥ 0. (23)
+                                                      η
+
+    The following identity holds due to Identity (29) in Proposition 3: we treat x0 as z0 ; xt as zk+ t−1
+                                                                                                          2
+for t ∈ {1, 2, 3}; yt as ηF (zk+ t−1 ) for t ∈ {1, 2, 3}; u1 as ηck , and u3 as ηck+1 ; p as out choice of p
+                                    2
+in the statement, and q as k + 1. Note that by update rule, we have ηck = zk − ηF (zk ) + k+1 2 (z0 −
+zk ) − zk+ 1 , and by definition, we have ηck+1 = zk − ηF (zk+ 1 ) + k+1 2 (z0 − zk ) − zk+1 . Note that
+          2                                                                     2
+
+
+
+                                                               20
+Term (24) and Term (25) come from the identity in Proposition 3, Term (26) directly comes from
+(22), and Term (27) directly comes from (23).
+
+                   (k + 1)(k + 2)
+                                  
+   Vk − Vk+1 + −                      · LHS of Inequality (22) + (−(k + 1)(k + 2)) · LHS of Inequality (23)
+                          2p
+   (1 − p)(k + 1)(k + 2)                              2
+ =                        · ηF (zk+ 1 ) − ηF (zk+1 )                                             (24)
+             2p                     2
+               D                                            E
+   + (k + 2) · ηF (zk+ 1 ) − ηF (zk+1 ), ηF (zk+1 ) + ηck+1                                      (25)
+                      2
+      (k + 1)(k + 2)
+                                                                                             
+                                                              2                            2
+   +                 · ( p − (1 + c)η 2 L2 ) · zk+ 1 − zk+1 + c · ηF (zk+ 1 ) − ηF (zk+1 )       (26)
+            2p                                      2                     2
+
+      (k + 1)(k + 2)ρ
+   +                  kηF (zk+1 ) + ηck+1 − ηF (zk ) − ηck k2 .                                  (27)
+             η
+                                2      2
+Since kak + h a, bi = ka + 2b k − kb4k , we have
+           2
+
+
+  Expression(24) + Expression(25)
+   s                                                   s                                         2
+     (1 − p)(k + 1)(k + 2)                                 p ( k + 2)
+=                         · ηF (zk+ 1 ) − ηF (zk+1 ) +                   · (ηF (zk+1 ) + ηck+1 )
+              2p                    2                    2(1 − p)(k + 1)
+        k+2        p
+   −            ·      kηF (zk+1 ) + ηck+1 k2 .
+       2( k + 1) 1 − p
+
+Since k ≥ 1, we have 2(kk++21) ≤ 1.
+   Now it remains to prove Expression (26) + Expression (27) is non-negative. Recall that c =
+  4pρ
+− η .
+
+               2
+                        · (Expression(26) + Expression(27))
+        (k + 1)(k + 2)
+                                
+                    1 4ρ 2 2                         2     4ρ                             2
+        = 1−          −       η L · z k+ 1 − z k+1 −          · ηF (zk+ 1 ) − ηF (zk+1 )
+                    p     η               2                η              2
+
+             2ρ
+           +     · kηF (zk+1 ) + ηck+1 − ηF (zk ) − ηck k2
+              η
+                                
+                    1 4ρ 2 2                         2     4ρ                                       2
+        ≥ 1−          −       η L · z k+ 1 − z k+1 +           ηF (zk+ 1 ) + ηck+1 − ηF (zk ) − ηck
+                    p     η               2                η           2
+                                                                                 2          2          2
+                                                                            (k Ak − 21 k Bk ≥ −k A + Bk )
+                                     
+                    1 4ρ 2 2 4ρ                             2
+        = 1−          −       η L +       · z k+ 1 − z k+1
+                    p     η           η           2
+
+        ≥ 0.                                                      (Fact 2: Inequality (21) and p = 1/4)
+
+
+
+
+                                                   21
+The last equality holds because, by the update rule of (EAG+)
+                                                                                                
+                                   1                                         1
+zk+ 1 − zk+1 = zk − ηF (zk ) +        (z0 − zk ) − ηck − zk − ηF (zk+ 1 ) +     (z0 − zk ) − ηck+1
+    2                            k+2                                  2     k+2
+             = ηF (zk+ 1 ) + ηck+1 − ηF (zk ) − ηck .
+                         2
+
+                             p
+   Hence, Vk+1 ≤ Vk + 1− p kηF (zk+1 ) + ηck+1 k2 = Vk + 13 kηF (zk+1 ) + ηck+1 k2 .
+                                                              1
+Lemma 3. Suppose Assumption 2 holds with ρ ∈ [0, − 24L          ]. Let z0 ∈ Rn be any starting point and
+                                                                     1
+{zk+ 1 , zk+1 }k≥0 be the iterates of (EAG+) with step size η ∈ (0, 2L ) that satisfies Inequality (21). Then
+     2
+for any k ≥ 2,
+
+                ( k + 1) 2                                          1 k−1
+                           · kηF (zk ) + ηck k2 ≤ V1 + kz0 − z∗ k2 + · ∑ kηF (zt ) + ηct k2 .
+                    4                                               3 t =2
+
+Proof. Fix any k ≥ 2. By definition, we have
+     (k + 1)(k + 2)
+Vk =                kηF (zk ) + ηck k2 + (k + 1)hηF (zk ) + ηck , zk − z0 i
+           2
+     (k + 1)(k + 2)
+   =                kηF (zk ) + ηck k2 + (k + 1)hηF (zk ) + ηck , z∗ − z0 i + (k + 1)hηF (zk ) + ηck , zk − z∗ i
+           2
+     (k + 1)(k + 2)                                                           ( k + 1) ρ
+   ≥                kηF (zk ) + ηck k2 + (k + 1)hηF (zk ) + ηck , z∗ − z0 i +            kηF (zk ) + ηck k2
+           2                                                                       η
+                                                     (0 ∈ F (z∗ ) + A(z∗ ) and F + A is ρ-comonotone)
+       (k + 1)(k + 32 )
+   ≥                    kηF (zk ) + ηck k2 + (k + 1)h ηF (zk ) + ηck , z∗ − z0 i
+             2                                                                      ρ
+                                                                                   ( η ≥ − 14 according to Fact 2)
+       (k + 1)(k + 32 )                      (k + 1)(k + 23 )                      k+1
+   ≥                    kηF (zk ) − ηck k2 −                  kηF (zk ) − ηck k2 −         k z0 − z ∗ k 2
+             2                                      4                              k + 32
+                                                                                 ( h a, bi ≥ − 4c kak2 − 1c kbk2 )
+       (k + 1)(k + 32 )
+   ≥                    kηF (zk ) + ηck k2 − kz0 − z∗ k2 .                                                (k ≥ 2)
+             4
+   According to Theorem 6, we know that
+
+                                                  1 k
+                                     Vk ≤ V1 +     · ∑ kηF (zt ) + ηct k2 .
+                                                  3 t =2
+
+Combing the above two inequalities and rearranging terms, we obtain the following inequality
+for any k ≥ 2:
+                              !
+          (k + 1)(k + 23 ) 1                                           1 k−1
+                          −     kηF (zk ) + ηck k2 ≤ V1 + kz0 − z∗ k2 + · ∑ kηF (zt ) + ηct k2 .
+                4           3                                          3 t =2
+
+
+                                                        22
+Since 31 ≤ (k+8 1) for all k ≥ 2, we can further simplify the inequality for any k ≥ 2:
+
+                ( k + 1) 2                                          1 k−1
+                           · kηF (zk ) + ηck k2 ≤ V1 + kz0 − z∗ k2 + · ∑ kηF (zt ) + ηct k2 .
+                    4                                               3 t =2
+
+
+                                                              1
+Theorem 7. Suppose Assumption 2 holds with ρ ∈ [0, − 24L        ]. Let z0 ∈ Rn be any starting point and
+                                                                     1
+{zk+ 1 , zk+1 }k≥0 be the iterates of (EAG+) with step size η ∈ (0, 2L ) that satisfies Inequality (21). Then
+     2
+for any T ≥ 1,
+                              h               i 2                                        16 H02 L2
+      rnat (
+       F,A T z ) 2
+                   = z T − J A Tz − F ( z T )     ≤ min k F (zT ) + ck2 = rtan        2
+                                                                           F,A ( z T ) ≤ 2 2 ·     ,
+                                                   c∈ A(zT )                            η L    T2
+
+where H02 = kz0 − z∗ k2 + 4L
+                          15       tan       2
+                             2 · r F,A ( z0 ) .
+
+
+Proof. The first inequality follows from Fact 1. To prove the second inequality, we denote ak :=
+k ηF( zk )+ ηck k2
+       H02
+                   for k ≥ 1. It suffices to prove for all k ≥ 1,
+
+                                                                  16
+                                                         ak ≤        .
+                                                                  k2
+From the proof of Proposition 2, we have
+
+                       kηF (z1 ) + ηc1 k2 ≤ η 2 (1 + ηL + η 2 L2 )2 · rtan
+                                                                       F,A ( z0 )
+                                                                                  2
+                                                                                      ⇒   a1 ≤ 1.
+
+                                 15
+From Proposition 2, we have V1 ≤ 4L       tan       2                      ∗ 2 ≤ H 2 . Then from
+                                    2 · r F,A ( z0 ) and thus V1 + k z0 − z k     0
+Lemma 3, we have
+
+                                                 k2           1 t −1
+                                                    · ak ≤ 1 + · ∑ at .
+                                                 4            3 t =2
+                   1
+Note that 13 = 1−4 1 . Applying Proposition 4 with C1 = 1 and p = 41 , we get for all k ≥ 2,
+                       4
+
+
+                                                          4C1      16
+                                                ak ≤              = 2.
+                                                       (1 − 3p)k2   k
+
+This completes the proof.
+
+
+
+
+                                                             23
+5 Auxiliary Propositions
+Proposition 3. Let x0 , x1 , x2 , x3 , y1 , y2 , y3 , u1 , u3 be arbitrary vectors in Rn and p, q 6= 0 be real numbers.
+When u3 = x1 − y2 + q+1 1 ( x0 − x1 ) − x3 , the following identity holds:
+
+                        q ( q + 1)
+                                     · k y1 + u 1 k 2 + q · h y1 + u 1 , x1 − x0 i
+                            2
+                                (q + 1)(q + 2)
+                                                                                                      
+                                                                 2
+                        −                          · k y3 + u 3 k + ( q + 1) · h y3 + u 3 , x3 − x0 i
+                                        2
+                             q ( q + 1)                                       
+                        −                · p · k x2 − x3 k2 − k y2 − y3 k 2
+                                  2p
+                        − q ( q + 1) · h y3 − y1 , x3 − x1 i
+                                                                                     
+                                                             1
+                        − q ( q + 1) · x1 − y1 − x2 +           ( x0 − x1 ) , x2 − x3                             (28)
+                                                            q+1
+                        − q ( q + 1) · h u 3 , x3 − x1 i
+                        − q ( q + 1) · h u 1 , x1 − x2 i
+                                                                                  2
+                        q ( q + 1)                                 1
+                    =               · x2 − x1 + y1 + u 1 +            ( x1 − x0 )
+                              2                                   q+1
+                             ( 1 − p ) q ( q + 1)
+                        +                         · k y2 − y3 k 2
+                                     2p
+                        + ( q + 1) · h y2 − y3 , y3 + u 3 i
+
+Moreover, if u1 = x1 − y1 + q+1 1 ( x0 − x1 ) − x2 , then the following identity holds:
+
+                        q ( q + 1)
+                                     · k y1 + u 1 k 2 + q · h y1 + u 1 , x1 − x0 i
+                              2
+                                (q + 1)(q + 2)
+                                                                                                     
+                                                                 2
+                        −                          · k y3 + u 3 k + ( q + 1) · h y3 + u 3 , x3 − x0 i
+                                        2
+                             q ( q + 1)                                       
+                        −                · p · k x2 − x3 k2 − k y2 − y3 k 2                                       (29)
+                                  2p
+                      − q ( q + 1) · h y3 + u 3 − y1 − u 1 , x3 − x1 i
+                      ( 1 − p ) q ( q + 1)
+                    =                      · k y2 − y3 k2
+                              2p
+                      + ( q + 1) · h y2 − y3 , y3 + u 3 i
+
+Proof. We verify the first identity using M ATLAB. Here is the verification M ATLAB code 4 . The
+second identity follows easily from the first identity. Notice that when u1 = x1 − y1 + q+1 1 ( x0 −
+x1 ) − x2 , the first term on the RHS of Identity (28) is 0. Moreover, as we demonstrate below, the
+   4 https://github.com/weiqiangzheng1999/Accelerated-Non-Monotone-Inclusion/blob/main/Identity_verification.m
+
+
+
+                                                              24
+sum of the fourth term to the seventh term on the LHS of Identity (28) is exactly identical to the
+fourth term on the LHS of Identity (29).
+                     h y3 − y1 , x3 − x1 i
+                                                                      
+                                            1
+                   + x1 − y1 − x2 +              ( x0 − x1 ) , x2 − x3
+                                           q+1
+                   + h u 3 , x3 − x1 i
+                   + h u 1 , x1 − x2 i
+                  =hy3 − y1 , x3 − x1 i + hu1 , x2 − x3 i + hu3 , x3 − x1 i + hu1 , x1 − x2 i
+                  =hy3 + u3 − y1 − u1 , x3 − x1 i
+   Therefore, Identity (29) follows from Identity (28).
+Proposition 4. Let {ak ∈ R+ }k≥2 be a sequence of real numbers. Let C1 ≥ 0 and p ∈ (0, 13 ) be two real
+numbers. If the following condition holds for every k ≥ 2,
+                                                             k−1
+                                       k2               p
+                                          · ak ≤ C1 +      · ∑ at ,                                         (30)
+                                       4              1 − p t =2
+then for each k ≥ 2 we have
+                                                     4 · C1 1
+                                             ak ≤          · .                                              (31)
+                                                    1 − 3p k2
+Proof. We prove the statement by induction.
+Base Case: k = 2. From Inequality (30), we have
+                              22                                    4 · C1 1
+                                 · a2 ≤ C1     ⇒      a2 ≤ C1 ≤           · .
+                              4                                    1 − 3p 22
+Thus, Inequality (31) holds for k = 2.
+Inductive Step: for any k ≥ 3. Fix some k ≥ 3 and assume that Inequality (31) holds for all
+2 ≤ t ≤ k − 1. We slightly abuse notation and treat the summation in the form ∑2t=3 as 0. By
+Inequality (30), we have
+                              k−1
+        k2               p
+           · ak ≤ C1 +      · ∑ at
+        4              1 − p t =2
+                               k−1
+                    C1    p
+              ≤        +     · ∑ at                                                                    (a2 ≤ C1 )
+                  1 − p 1 − p t =3
+                                        k−1
+                    C1      4p · C1         1
+              ≤        +               ·∑ 2                    (Induction assumption on Inequality (31))
+                  1 − p (1 − p)(1 − 3p) t=3 t
+                  C1      2p · C1                                                                  2
+              ≤       +                                                               (∑ ∞     1    π   5   1
+                                                                                         t = 3 t2 = 6 − 4 ≤ 2 )
+                1 − p (1 − p)(1 − 3p)
+                  C1
+              =        .
+                1 − 3p
+
+
+                                                      25
+This complete the inductive step. Therefore, for all k ≥ 2, we have ak ≤ 14−·C3p1 · k12 .
+
+
+References
+M. Arjovsky, S. Chintala, and L. Bottou. Wasserstein Generative Adversarial Networks. In Pro-
+ ceedings of the 34th International Conference on Machine Learning, pages 214–223. PMLR, July 2017.
+ URL https://proceedings.mlr.press/v70/arjovsky17a.html. ISSN: 2640-3498.
+
+H. H. Bauschke and P. L. Combettes.                 Convex Analysis and                     Mono-
+  tone  Operator  Theory  in   Hilbert Spaces.       Springer, 2011.                         URL
+  https://link.springer.com/book/10.1007/978-1-4419-9467-7.
+
+H. H. Bauschke, W. M. Moursi, and X. Wang. Generalized monotone operators and their averaged
+  resolvents. Mathematical Programming, 189(1):55–74, 2021.
+
+A. Ben-Tal, L. El Ghaoui, and A. Nemirovski. Robust Optimization.   Princeton Univer-
+  sity Press, Dec. 2009.  ISBN 978-1-4008-3105-0. doi: 10.1515/9781400831050.   URL
+  https://www.degruyter.com/document/doi/10.1515/9781400831050/html.
+
+Y. Cai, A. Oikonomou, and W. Zheng.          Tight Last-Iterate Convergence of the Extra-
+  gradient and the Optimistic Gradient Descent-Ascent Algorithm for Constrained Mono-
+  tone Variational Inequalities. Technical Report arXiv:2204.09228, arXiv, May 2022. URL
+  http://arxiv.org/abs/2204.09228. arXiv:2204.09228 [cs, math] type: article.
+
+B. Dai, A. Shaw, L. Li, L. Xiao, N. He, Z. Liu, J. Chen, and L. Song. Sbeed: Convergent reinforce-
+  ment learning with nonlinear function approximation. In International Conference on Machine
+  Learning, pages 1125–1134. PMLR, 2018.
+
+C. D. Dang and G. Lan. On the convergence properties of non-euclidean extragradient methods
+  for variational inequalities with generalized monotone operators. Computational Optimization
+  and applications, 60(2):277–310, 2015.
+
+C. Daskalakis, S. Skoulakis, and M. Zampetakis. The complexity of constrained min-max opti-
+  mization. In Proceedings of the 53rd Annual ACM SIGACT Symposium on Theory of Computing,
+  pages 1466–1478, 2021.
+
+J. Diakonikolas. Halpern iteration for near-optimal and parameter-free monotone inclusion and
+   strong solutions to variational inequalities. In Conference on Learning Theory, 2020.
+
+J. Diakonikolas, C. Daskalakis, and M. I. Jordan. Efficient Methods for Structured Nonconvex-
+   Nonconcave Min-Max Optimization. arXiv:2011.00364 [cs, math, stat], Feb. 2021. URL
+   http://arxiv.org/abs/2011.00364. arXiv: 2011.00364.
+
+S. S. Du, J. Chen, L. Li, L. Xiao, and D. Zhou. Stochastic variance reduction methods for policy
+   evaluation. In International Conference on Machine Learning, pages 1049–1058. PMLR, 2017.
+
+
+                                                    26
+F. Facchinei and J.-S. Pang. Finite-Dimensional Variational Inequalities and Complementarity Problems.
+   Springer, 2003. URL https://link.springer.com/book/10.1007/b97544.
+
+N. Golowich, S. Pattathil, and C. Daskalakis. Tight last-iterate convergence rates for no-
+  regret learning in multi-player games.   arXiv:2010.13724 [cs, math], Oct. 2020.    URL
+  http://arxiv.org/abs/2010.13724. arXiv: 2010.13724.
+
+I. Goodfellow, J. Pouget-Abadie, M. Mirza, B. Xu, D. Warde-Farley, S. Ozair, A. Courville, and
+   Y. Bengio. Generative adversarial nets. Advances in neural information processing systems, 27,
+   2014.
+
+E. Gorbunov, N. Loizou, and G. Gidel. Extragradient Method: $O(1/K)$ Last-Iterate Convergence
+   for Monotone Variational Inequalities and Connections With Cocoercivity. arXiv:2110.04261 [cs,
+   math], Oct. 2021. URL http://arxiv.org/abs/2110.04261. arXiv: 2110.04261.
+
+B. Halpern. Fixed points of nonexpanding maps. Bulletin of the American Mathematical Society, 73
+  (6):957–961, 1967.
+
+D. Kim. Accelerated proximal point method for maximally monotone operators. Mathematical
+  Programming, 190(1):57–87, Nov. 2021. ISSN 1436-4646. doi: 10.1007/s10107-021-01643-0. URL
+  https://doi.org/10.1007/s10107-021-01643-0.
+
+U. Kohlenbach. On the proximal point algorithm and its halpern-type variant for generalized
+  monotone operators in hilbert space. Optimization Letters, 16(2):611–621, 2022.
+
+G. M. Korpelevich. The extragradient method for finding saddle points and other problems. Mate-
+  con, 12:747–756, 1976. URL https://ci.nii.ac.jp/naid/10017556617/.
+
+S. Lee and D. Kim. Fast extra gradient methods for smooth structured nonconvex-nonconcave
+   minimax problems. In Annual Conference on Neural Information Processing Systems, 2021.
+
+F. Lieder. On the convergence rate of the Halpern-iteration. Optimization Letters, 15(2):
+  405–418, Mar. 2021. ISSN 1862-4472, 1862-4480. doi: 10.1007/s11590-020-01617-9. URL
+  https://link.springer.com/10.1007/s11590-020-01617-9.
+
+M. Liu, Y. Mroueh, J. Ross, W. Zhang, X. Cui, P. Das, and T. Yang. Towards better understanding
+ of adaptive gradient algorithms in generative adversarial nets. In International Conference on
+ Learning Representations, 2019.
+
+M. Liu, H. Rafique, Q. Lin, and T. Yang. First-order convergence theory for weakly-convex-
+ weakly-concave min-max problems. Journal of Machine Learning Research, 22(169):1–34, 2021.
+
+A. Madry, A. Makelov, L. Schmidt, D. Tsipras, and A. Vladu. Towards deep learning models
+  resistant to adversarial attacks. arXiv preprint arXiv:1706.06083, 2017.
+
+Y. Malitsky. Golden ratio algorithms for variational inequalities. Mathematical Programming, 184
+   (1):383–410, 2020.
+
+                                                 27
+A. Nemirovski. Prox-method with rate of convergence O (1/t) for variational inequalities with
+  Lipschitz continuous monotone operators and smooth convex-concave saddle point problems.
+  SIAM Journal on Optimization, 15(1):229–251, 2004. Publisher: SIAM.
+
+Y. Nesterov. Dual extrapolation and its applications to solving variational inequalities and related
+   problems. Mathematical Programming, 109(2):319–344, Mar. 2007. ISSN 1436-4646. doi: 10.1007/
+   s10107-006-0034-z. URL https://doi.org/10.1007/s10107-006-0034-z.
+
+Y. Ouyang and Y. Xu. Lower complexity bounds of first-order methods for convex-concave bilin-
+   ear saddle-point problems. Mathematical Programming, 185(1):1–35, 2021.
+
+J. Park and E. K. Ryu. Exact optimal accelerated complexity for fixed-point iterations. arXiv preprint
+   arXiv:2201.11413, 2022.
+
+T. Pethick, P. Patrinos, O. Fercoq, V. Cevherå, et al. Escaping limit cycles: Global convergence for
+   constrained nonconvex-nonconcave minimax problems. In International Conference on Learning
+   Representations, 2022.
+
+E. K. Ryu and S. Boyd. Primer on monotone operator methods. Appl. Comput. Math, 15(1):3–43,
+  2016.
+
+E. K. Ryu and W. Yin. Large-Scale Convex Optimization via Monotone Operators. 2022. To be published
+   with Cambridge University Press.
+
+C. Song, Z. Zhou, Y. Zhou, Y. Jiang, and Y. Ma. Optimistic dual extrapolation for coherent non-
+  monotone variational inequalities. Advances in Neural Information Processing Systems, 33:14303–
+  14314, 2020.
+
+Q. Tran-Dinh. The connection between nesterov’s accelerated methods and halpern fixed-point
+  iterations. arXiv preprint arXiv:2203.04869, 2022.
+
+Q. Tran-Dinh and Y. Luo. Halpern-type accelerated and splitting algorithms for monotone inclu-
+  sions. arXiv preprint arXiv:2110.08150, 2021.
+
+T. Yoon and E. K. Ryu. Accelerated Algorithms for Smooth Convex-Concave Minimax Problems
+   with $\mathcal{O}(1/kˆ2)$ Rate on Squared Gradient Norm. arXiv:2102.07922 [math], June
+   2021. URL http://arxiv.org/abs/2102.07922. arXiv: 2102.07922.
+
+Z. Zhou, P. Mertikopoulos, N. Bambos, S. Boyd, and P. W. Glynn. Stochastic mirror descent in
+  variationally coherent optimization problems. Advances in Neural Information Processing Systems,
+  30, 2017.
+
+
+
+
+                                                 28
+

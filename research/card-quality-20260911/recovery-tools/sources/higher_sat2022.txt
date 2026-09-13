@@ -1,0 +1,874 @@
+Higher-Order Quantified Boolean Satisfiability
+Dmitry Chistikov
+Centre for Discrete Mathematics and its Applications (DIMAP) &
+Department of Computer Science, University of Warwick, Coventry, UK
+Christoph Haase
+Department of Computer Science, University of Oxford, Oxford, UK
+Zahra Hadizadeh
+Sharif University of Technology, Tehran, Iran
+Alessio Mansutti
+Department of Computer Science, University of Oxford, Oxford, UK
+
+      Abstract
+The Boolean satisfiability problem plays a central role in computational complexity and is often
+used as a starting point for showing NP lower bounds. Generalisations such as Succinct SAT, where
+a Boolean formula is succinctly represented as a Boolean circuit, have been studied in the literature
+in order to lift the Boolean satisfiability problem to higher complexity classes such as NEXP. While,
+in theory, iterating this approach yields complete problems for k-NEXP for all k > 0, using such
+iterations of Succinct SAT is at best tedious when it comes to proving lower bounds.
+    The main contribution of this paper is to show that the Boolean satisfiability problem has
+another canonical generalisation in terms of higher-order Boolean functions that is arguably more
+suitable for showing lower bounds beyond NP. We introduce a family of problems HOSAT(k, d),
+k ≥ 0, d ≥ 1, in which variables are interpreted as Boolean functions of order at most k and there are
+d quantifier alternations between functions of order exactly k. We show that the unbounded HOSAT
+problem is TOWER-complete, and that HOSAT(k, d) is complete for the weak k-EXP hierarchy
+with d alternations for fixed k, d ≥ 1 and d odd.
+    We illustrate the usefulness of HOSAT by characterising the complexity of weak Presburger
+arithmetic, the first-order theory of the integers with addition and equality but without order. It has
+been a long-standing open problem whether weak Presburger arithmetic has the same complexity as
+standard Presburger arithmetic. We answer this question affirmatively, even for the negation-free
+fragment and the Horn fragment of weak Presburger arithmetic.
+
+2012 ACM Subject Classification Theory of computation → Logic
+
+Keywords and phrases Boolean satisfiability problem, higher-order Boolean functions, weak k-EXP
+hierarchies, non-elementary complexity, Presburger arithmetic
+
+Digital Object Identifier 10.4230/LIPIcs.MFCS.2022.33
+
+Funding This work is part of a project that has received funding from the European Research
+Council (ERC) under the European Union’s Horizon 2020 research and innovation programme
+(Grant agreement No. 852769, ARiAT).
+
+Acknowledgements We would like to thank the anonymous reviewers for their thoughtful comments,
+and in particular for pointing us to [22], which uncovered profound connections between our work
+and the basic language of set theory and typed λ-calculi studied by Statman [30].
+
+
+ 1      Introduction
+The Boolean satisfiability problem (SAT) plays a central role in computational complexity. It
+was the first problem shown to be NP-complete [8] and has ever since been used a countless
+number of times to show NP lower bounds for numerous combinatorial problems, a prime
+example being Karp’s list of twenty-one NP-complete problems [17]. What makes SAT stand
+             © Dmitry Chistikov, Christoph Haase, Zahra Hadizadeh, and Alessio Mansutti;
+             licensed under Creative Commons License CC-BY 4.0
+47th International Symposium on Mathematical Foundations of Computer Science (MFCS 2022).
+Editors: Stefan Szeider, Robert Ganian, and Alexandra Silva; Article No. 33; pp. 33:1–33:15
+                    Leibniz International Proceedings in Informatics
+                    Schloss Dagstuhl – Leibniz-Zentrum für Informatik, Dagstuhl Publishing, Germany
+33:2   Higher-Order Quantified Boolean Satisfiability
+
+
+       out is its simplicity: describing an instance of SAT does not require tapes and automata as
+       in the case of Turing machines, and neither grids nor dominoes like in tiling problems; it also
+       does not require the introduction of graphs and their properties as in, e.g., graph colouring
+       problems. To obtain a reduction from SAT, it suffices to show how to encode assignments
+       to Boolean variables and how to model connectives. Unfortunately, this simplicity does not
+       transfer over to higher complexity classes.
+           Succinct representations have been used as a technical tool to lift NP-complete problems
+       to exponential classes [27, 20, 2, 32]. The idea is that the main object of interest is succinctly
+       encoded by a Boolean circuit. For instance, a Boolean formula represented as a DAG whose
+       vertices are labelled by a type (e.g., a Boolean connective or constant value) and a unique
+       integer index can be encoded by a Boolean circuit with outputs. Given a binary encoding of
+       an index, this circuit returns the type of the node with that index and, if present, the indices
+       of its two predecessor nodes. Succinct variants of P- or NP-complete problems become EXP-
+       or NEXP-complete, e.g., the Succinct Circuit Value problem and the Succinct SAT Problem
+       are respectively EXP- and NEXP-complete [26]. In theory, this approach can be iterated
+       indefinitely, and, e.g., the problem of deciding whether a propositional formula encoded by a
+       Boolean circuit that is itself encoded by a Boolean circuit evaluates to true is a “canonical”
+       2-EXP-complete problem. One does not need too much imagination to see that these iterated
+       succinct problems become unbearable for showing lower bounds.
+           This loss of simplicity for higher complexity classes compared to classical SAT is at odds
+       with other canonical problems, such as the halting problem for a (non)deterministic Turing
+       machine running in time f (n) on an input of length n, or the problem of tiling a grid of
+       size f (n) × f (n). Here, the function f can be chosen appropriately in order to obtain hard
+       problems for many complexity classes such as k-EXP and k-NEXP [26]. The same picture
+       emerges in the presence of alternation: whereas QBF [12, Chapter 7.4] elegantly extends
+       SAT to the whole polynomial hierarchy [33], no simple extension of SAT has been defined to
+       capture every level of the weak k-EXP hierarchies, for any k ≥ 1 (cf. [15]). Again, this is
+       in contrast with Turing machines and tiling problems: both admit extensions to deal with
+       alternation in the context of complexity classes above NP [4, 5, 23].
+           The main contribution of this paper is to identify a canonical generalisation of SAT,
+       called HOSAT, that gives complete problems for all weak k-EXP hierarchies and that shares
+       the simplicity of classical SAT. Instead of Boolean variables, the building blocks of HOSAT
+       are function applications. The functions considered are higher-order Boolean function f of
+       order k, i.e., functions that take as input higher-order functions of order k−1 and return a
+       Boolean value, and Boolean values themselves are functions of order zero. HOSAT closes
+       function applications under Boolean connectives as well as quantification.
+           The development of HOSAT is a result of an attempt of the authors to settle the open
+       problem of the computational complexity of weak Presburger arithmetic, the first-order theory
+       of the integers with addition and equality, but without an order predicate (which is provably
+       not definable in this theory). This less expressive theory is in fact the “original” arithmetic
+       theory studied by Presburger in his seminal paper [28], see also [7], and it has been an open
+       problem whether it is computationally as hard as what is nowadays commonly understood
+       as Presburger arithmetic; see, e.g., [6]. The lower bound for Presburger arithmetic given
+       by Berman [3] reduces from an alternating Turing machine running in doubly exponential
+       time with a linear number of alternations. This reduction glosses over some technical details,
+       which is unproblematic in the presence of the sufficient expressive power that the order
+       predicate provides, but becomes problematic for weak Presburger arithmetic. Giving a clean
+       reduction from HOSAT enables us to settle the complexity of weak Presburger arithmetic
+D. Chistikov, C. Haase, Z. Hadizadeh, and A. Mansutti                                                          33:3
+
+
+and to show that it has indeed the same complexity as Presburger arithmetic with the order
+predicate. We hope that HOSAT will be as beneficial as it was for us for other researchers
+for proving their lower bounds, in particular since the question of finding canonical complete
+problems for weak k-EXP hierarchies frequently comes up; see, e.g., [31, 21].
+
+
+ 2     Preliminaries
+We write Z, N and N+ to denote the set of integers, natural numbers including zero, and
+natural numbers without zero, respectively. Unless otherwise stated, we assume integers to
+be encoded in binary. Given l, u ∈ N, we define [l, u] := {l, l + 1, . . . , u}, [l, u) := [l, u − 1] and
+[u] := [0, u). The cardinality of a finite set A is denoted by #A. For k, n ∈ N, we write expk2 (n)
+                                                                                                   k−1
+for the tetration function inductively defined as exp02 (n) := n and expk2 (n) := 2exp2 (n) .
+Intuitively, expk2 (n) is a tower of exponentials of height k, base 2, and top-most exponent n.
+    We recall complexity classes based on the notion of alternating Turing machines [5]. The
+class Σk-EXP
+        d      contains all problems that can be decided by an alternating Turing machine
+running in time expk2 (f (n)) on an input of length n, where f : N → N is some polynomial
+that does not depend on the input, and starting in an existential state and making at most
+d − 1 alternations on every computation path. By definition, Σk-EXP    1       = k-NEXP. The weak
+k-EXP hierarchy is defined as d≥0 Σk-EXP
+                                  S
+                                           d     ; for k = 1 see [15].
+    Given functions a, s, t : N → N, the class STA(s(n), t(n), a(n)) contains all problems that
+can be decided by an alternating Turing machine in time t(n) using space s(n) making
+at most a(n) alternations on every computation path, where n is the length of the input.
+We use ∗ to indicate an unbounded availability of a certain resource. For instance, the
+polynomial hierarchy can be characterized as d∈N STA(∗, nO(1) , d), and the d-th level of the
+                                                   S
+
+weak k-EXP hierarchy Σkd EXP corresponds to STA(∗, expk2 (nO(1) ), d). The STA complexity
+measure was introduced by Berman [3] to show the following result.
+                                                                              nO(1)
+▶ Theorem 1 ([3]). Presburger arithmetic is complete for STA(∗, 22                    , O(n)).
+
+    A function f : N → N is said to be elementary if there is a k ∈ N such that f (n) < expk2 (n)
+for all n ∈ N. The (non-elementary) class TOWER [29] contains all problems decidable by a
+                             g(n)
+Turing machine in time exp2 (f (n)) for some fixed polynomial f and elementary function g,
+on inputs of length n. We have ∪k≥1 k-EXP ⊊ TOWER, as TOWER contains problems
+decidable in time expn2 (1).
+
+
+ 3     The higher-order quantified satisfiability problem
+We introduce the higher-order quantified satisfiability problem, a problem whose instances form
+a hierarchy (HOSAT(k, d))k,d of problems that characterise every complexity class Σk-EXP  d     .
+    We write B to denote the Boolean domain {0, 1}. We often treat B as the set of the two
+nullary Boolean functions () → {0} and () → {1}. Fix n ∈ N+ and let B0,n := B. Given
+k ≥ 1, we write Bk,n for the set of all functions with domain (Bk−1,n )n and codomain B. For
+instance, B1,n is the set of all n-ary Boolean functions f : {0, 1}n → {0, 1}, whereas B2,n is
+the set of all n-ary second-order Boolean functions f : ({0, 1}n → {0, 1})n → {0, 1}. For
+                                                                                               n
+k ≥ 1, the number of functions in Bk,n satisfies the recurrence relation #(Bk,n ) = 2#(Bk−1,n ) ,
+and therefore expk+1
+                   2   (n) ≤ #Bk,n ≤ expk+12   ((k + 1) · n). We refer to the indices k and n as
+the order and the arity of Bk,n , respectively. Both n and k are written in unary.
+    We discuss the encoding enc(f ) of Boolean functions as bit-strings over {0, 1}, which we
+often treat as the binary number from N represented by the bit-string, with least significant
+digit first. For b ∈ B, enc(b) := b. Functions f ∈ B1,n can be encoded as a string of length
+
+
+                                                                                                            M FC S 2 0 2 2
+33:4   Higher-Order Quantified Boolean Satisfiability
+
+
+       2n over B, whose i-th position encodes the truth value of f on the tuple (b1 , . . . , bn ) ∈ Bn
+       such that b1 · · · bn is the binary encoding of i, with least significant digit first. For k > 1,
+       functions f ∈ Bk,n can be encoded as a string over B whose i-th position encodes the truth
+       value of f on input (g1 , . . . , gn ) ∈ (Bk−1,n )n such that the concatenation enc(g1 ) · · · enc(gn )
+       of the encodings of g1 , . . . , gn is a binary encoding of i, with least significant digit first. The
+       length |f | of a function f from Bk,n is defined as the length of enc(f ). Therefore, |b| = 1 for
+       all b ∈ B, and for every f ∈ Bk,n with k ≥ 1, we have |f | = (#(Bk−1,n ))n ≥ (expk2 (n))n .
+           A quantifier-free generalised Boolean formula is a formula from the following grammar
+
+           Φ ::= ⊤ | f (g1 , . . . , gn ) | ¬Φ | Φ ∧ Φ
+
+       where f (g1 , . . . , gn ) is said to be a function application, and each f , g1 , . . . , gn are function
+       symbols taken from an infinite alphabet Σ. Each function symbol in Σ is implicitly endowed
+       with a type Bk,n , with k, n ∈ N. A (quantifier-free) generalised Boolean formula is said to be
+       well-formed whenever every function application is consistent with the type of the function
+       symbol, i.e., a function application f (g1 , . . . , gn ) requires f to be of arity n, if f ∈ B then
+       n = 0, and otherwise f ∈ Bk,n for some k ≥ 1 and every gi with i ∈ [1, n] belongs to Bk−1,n .
+           Given a vector-variable of function symbols f = (f1 , . . . , fm ) of type Bk,n , we write
+       ∃f : Bk,n as a shorthand for the existential quantifier block ∃f1 : Bk,n . . . ∃fm : Bk,n ; the
+       universal quantifier block ∀f : Bk,n stands for ∀f1 : Bk,n . . . ∀fm : Bk,n . The set of all
+       generalised Boolean formulae of order 0 and alternation depth d is the set of all formulae
+       ∃b1 : B ∀b2 : B . . . ∃bd : B . Φ, where Φ is a quantifier-free generalised Boolean formula.
+       Generalised Boolean formulae of order k ≥ 1 and alternation depth d are formulae
+
+           ∃f 1 : Bk,n ∀f 2 : Bk,n . . . ∃f d : Bk,n . Φ,
+
+       where the arity n is arbitrary and Φ is a generalised Boolean formula of order k − 1, arbitrary
+       alternation depth, and same arity n. The semantics of generalised Boolean formulae is as
+       expected, e.g., ∃f : Bk,n Ψ states that there is a function f ∈ Bk,n that makes Ψ true. We
+       write Φ ≡ Ψ to denote that Φ and Ψ are equivalent.
+            The size |Φ| of a generalised Boolean formula Φ is the number of symbols required to
+       write it down, where “: Bk,n ” is a lexeme that decorates the function symbols, providing
+       their type, and should not be confused with the actual set Bk,n . We write fv(Φ) for the set of
+       free function symbols of Φ, i.e., the set of those function symbols that do not appear in the
+       scope of a quantifier. A sentence is a well-formed generalised Boolean formula Φ where all
+       function symbols are quantified, i.e. fv(Φ) = ∅. We sometimes write Φ(f1 , . . . , fm ) or Φ(f ),
+       with f = (f1 , . . . , fm ), for a formula Φ with fv(Φ) = {f1 , . . . , fm }. Given function symbols
+       g1 , . . . , gm and a formula Φ(f1 , . . . , fm ), we write Φ(g1 , . . . , gm ) for the formula obtained
+       from Φ by replacing each fi with gi .
+            Generalised Boolean formulae are formulae in prenex normal form in which the type Bk,n
+       of Boolean functions of the quantifier prefix weakly decreases with respect to k. For
+       presentational convenience, throughout the remainder of the paper we relax these constraints
+       and consider formulae that are not in prenex formal form. This is done w.l.o.g., as standard
+       ways of efficiently translating formulae in prenex normal form also work for generalised
+       Boolean formulae. Moreover, we use standard Boolean connectives ∨, → and ↔, and ⊥.
+            Let k and d in N+ . We introduce the problem HOSAT(k, d):
+       HOSAT(k, d) : d-alternating satisfiability problem of order k
+       INPUT:    A sentence Φ of order k and alternation depth d.
+       QUESTION: Is Φ valid?
+D. Chistikov, C. Haase, Z. Hadizadeh, and A. Mansutti                                                 33:5
+
+                           S
+We define HOSAT(k, ∗) := d∈N+ HOSAT(k, d), i.e., the problem of deciding the validity of
+                                                                   S
+a sentence of order k and arbitrary alternation depth; and HOSAT := k∈N+ HOSAT(k, ∗).
+
+▶ Theorem 2.      (I) HOSAT(k, d) is complete for Σk-EXP
+                                                    d    for odd d.
+                  (II) HOSAT(k, ∗) is complete for STA(∗, expk2 (nO(1) ), O(n)).
+
+To keep the presentation simple, we only formulate the result for odd d. The reduction we
+use to show the lower bound of Theorem 2(I) is uniform for all k ≥ 1. By uniform polynomial
+time reduction [29], this implies that HOSAT is TOWER-complete.
+
+Related work. In view of the fact that HOSAT is a natural generalisation of SAT, it comes
+with no surprise that some of its instances have previously been defined and have found
+diverse application in the past. In [1], Babai, Fortnow and Lund relied on HOSAT(1, 1)
+(called Oracle-3-satisfiability in the paper) to show that NEXP ⊆ MIP, where MIP is the
+class of all languages with multiple-prover interactive proof systems. In [19], Lohrey relied
+on HOSAT(1, d) (called QOΣd -SAT in the paper) to show ΣEXP  d    -hardness of model checking
+Σd -MSO sentences over hierarchical graph unfoldings. These works already hint at how
+considering Boolean functions instead of succinct circuits is already beneficial, in terms of
+directness of the reductions, for NEXP-hard problems.
+    Above ΣEXPd   , closely related is the work of Statman on the typed λ-calculus. In [30],
+he considers the λ-calculus with single ground type 0, no constants, only power types (→)
+and β-conversion, and shows that checking whether two λ-terms of the calculus reduce to
+the same normal form is non-elementary recursive (in fact, it shows that the problem is
+TOWER-complete). The proof of TOWER-hardness follows thanks to a Church encoding
+of the basic language of set theory denoted by Statman with Ω. The variables in formulae
+from Ω are associated with a number type from N. A variable of type n ranges over Dn where
+D0 := {0, 1}, with 0 and 1 constants, and Dn+1 is the powerset of Dn . Formulae of Ω are
+obtained by taking the closure under Boolean connectives and quantification of membership
+queries of the form 0 ∈ x, 1 ∈ x and y ∈ z, where x is of type 1 and y and z are of types n
+and n + 1, respectively, for some n ∈ N. While HOSAT and the satisfiability of formulae from
+Ω are essentially the same problem, the logic Ω is not suitable to capture any of the levels of
+the weak k-EXP hierarchies. To see this, fix k ≥ 1 and let Ω(k) be the subset of the formulae
+in Ω having variables of type at most k. Differently from HOSAT(k, ∗), the satisfiability
+problem of Ω(k) can be shown to be in PSPACE (more precisely, it is equivalent to QBF)
+since the sets Dj with j ≤ k are now fixed a priori. Here, the reason why HOSAT(k, ∗) is
+instead k-NEXP-hard is because the sets Bj,n with j ≤ k still have some degree of freedom
+given by the unbounded number of choices for n ∈ N.
+    According to [30], TOWER-completeness of the satisfiability problem of Ω was announced
+by Meyer in [24, Theorem 1(7)] as part of a forthcoming paper coauthored with Fischer. To
+the best of our knowledge, the latter paper was never published. To resolve this issue, in [22]
+Mairson gives a revision of [30] that provides a standalone proof of the TOWER-hardness of
+Ω and a simplification to the aforementioned Church encoding.
+
+
+ 4     The complexity of HOSAT(k, d)
+We prove Theorem 2(I). The proof of the Σk-EXP       d     upper bound is quite simple: given a
+sentence ∃f 1 : Bk,n ∀f 2 : Bk,n · · · ∃f d : Bk,n . Φ, where Φ is a generalised Boolean formula
+of order k − 1 and arbitrary alternation depth, an alternating Turing machine running in
+k-EXP time and performing d alternations implements the following recursive procedure.
+
+
+
+                                                                                                   M FC S 2 0 2 2
+33:6   Higher-Order Quantified Boolean Satisfiability
+
+
+        1. Guess functions from Bk,n for each of the function symbols in the vectors f 1 , . . . , f d ,
+           alternating between existential and universal states according to the quantifier prefix.
+        2. Recursively on Φ, if Φ = ∃f : Bj,n Ψ (resp. Φ = ∀f : Bj,n Ψ) with j < k then check whether
+           some (resp. each) function of order j satisfies Φ when assigned to f ; if Φ is quantifier-free,
+           then check whether it is satisfied under the current assignment of function symbols.
+       Since k-exponential time is available, the second step can be performed deterministically by
+       iterating through all function in Bj,n , thus without introducing further alternation.
+           The Σk-EXP
+                   d         lower bound of HOSAT(k, d) is shown by reducing from the d-alternating
+       multi-tiling problem of order k (in short, AMTP(k, d)) considered in [10]. A multi-tiling system
+       S is a tuple (T , T0 , Tacc , H, V, M, m) such that T is a finite set of tile types, T0 , Tacc ⊆ T are
+       sets of initial and accepting tiles, respectively, H, V, M ⊆ T × T represent the horizontal,
+       vertical and multi-tiling matching relations, respectively, and m ∈ N+ is a number written in
+       unary. We write |S| for the number of symbols required to encode S.
+           Fix k ∈ N+ , and let grid(k, m) be the two-dimensional grid [expk2 (m)] × [expk2 (m)], where
+       we recall that [u] := [0, u). Each (h, v) ∈ grid(k, m) is said to be a position of the grid,
+       comprised of a horizontal position h and a vertical position v. Let d ∈ N odd (so that the
+       innermost quantifier of the AMTP(k, d) problem we are about to formalise is existential).
+       A d-level S-tiling for grid(k, m) is a tuple (f1 , f2 , f3 , . . . , fd ) such that for all ℓ ∈ [1, d]:
+       maps: fℓ : grid(k, m) → T assigns a tile type to each position of grid(k, m);
+       hori: (fℓ (i, j), fℓ (i, j + 1)) ∈ H for every j ∈ [expk2 (m) − 1] and i ∈ [expk2 (m)];
+       vert: (fℓ (i, j), fℓ (i + 1, j)) ∈ V for every i ∈ [expk2 (m) − 1] and j ∈ [expk2 (m)];
+       multi: if ℓ < d, then (fℓ (i, j), fℓ+1 (i, j)) ∈ M for every i, j ∈ [expk2 (m)]; and
+       accept: fd (expk2 (m) − 1, j) ∈ Tacc , for some j ∈ [expk2 (m)].
+       The initial row I (f) of a map f : grid(k, m) → T is the word f(0, 0)f(0, 1) . . . f(0, expk2 (m) − 1).
+       AMTP(k, d) : d-alternating multi-tiling problem of order k
+       INPUT:    A multi-tiling system S = (T , T0 , Tacc , H, V, M, m).
+                                                                k                               k
+       QUESTION: Is it true that there is w1 ∈ (T0 )exp2 (m) such that for all w2 ∈ (T0 )exp2 (m)
+                                                           k
+                 there is · · · there is wd ∈ (T0 )exp2 (m) such that grid(k, m) has a d-level tiling
+                 (f1 , . . . , fd ) where I (fℓ ) = wℓ for all ℓ ∈ [1, d] ?
+
+       ▶ Proposition 3 ([10]). The problem AMTP(k, d) is complete for Σk-EXP    d    . When d is given
+       as part of the input instead of being fixed, the problem is STA(∗, expk2 (nO(1) ), O(n))-complete.
+       The AMTP(k, d) problem arose from [4], in which the case k = 1 and d not fixed is shown
+                       O(1)
+       to be STA(∗, 2n      , O(n))-complete. See [25, Appendix E.7] or [23] for self-contained proofs.
+           In the remaining part of this section, we describe a reduction from AMTP(k, d) to
+       HOSAT(k, d). First, we introduce a family of generalised Boolean formulae that allows us to
+       compare the bit-strings enc(f ) and enc(g) of two functions f and g in Bk,n , with n, k ∈ N.
+       Subsequently, we define formulae to encode the tiling conditions (maps)–(accept) as well as
+                                              k
+       the alternation on elements of (T0 )exp2 (m) required by the AMTP(k, d) problem. We remind
+       the reader that, w.l.o.g., we define generalised Boolean formulae without constraining them
+       to be in prenex normal form, though we need to keep track of the quantifier alternation for
+       function symbols of type k.
+
+       Comparing bit-strings. We define formulae eqk (f, g), lessk (f, g) and succk (f, g) stating that
+       enc(f ) = enc(g), enc(f ) < enc(g) and enc(f ) + 1 = enc(g), respectively, and (h1 , . . . , hn ) <k
+       (h′1 , . . . , h′n ), with all hi and h′i in Bk,n , which checks if the concatenation enc(h1 ) · · · enc(hn )
+       encodes a number smaller than enc(h′1 ) · · · enc(h′n ). The formula eqk (f, g) is defined as:
+
+           eqk (f, g) := ∀h1 , . . . , hn : Bk−1,n .f (h1 , . . . , hn ) ↔ g(h1 , . . . , hn ).
+D. Chistikov, C. Haase, Z. Hadizadeh, and A. Mansutti                                                                 33:7
+
+
+The formulae lessk (f, g) and (h1 , . . . , hn ) <k (h′1 , . . . , h′n ) have a mutually recursive definition:
+lessk+1 (f, g) is defined using (h1 , . . . , hn ) <k (h′1 , . . . , h′n ), which in turn requires lessk (f, g).
+First, we define the base case (h1 , . . . , hn ) <0 (h′1 , . . . , h′n ), with each hi and h′i in B = {0, 1}:
+                                                    Wn                Vn
+    (h1 , . . . , hn ) <0 (h′1 , . . . , h′n ) :=               ′
+                                                     i=1 ¬hi ∧ hi ∧
+                                                                               ′
+                                                                       j=i+1 (hj ↔ hj ).
+
+Intuitively, this formula forces enc(h1 ) . . . enc(hn ) < enc(h′1 ) . . . enc(h′n ) by requiring that
+there is a bit i ∈ [1, n] that is set to 0 in enc(h1 ) . . . enc(hn ), set to 1 in enc(h′1 ) . . . enc(h′n ),
+and the binary representations of enc(h′1 ) . . . enc(h′n ) and enc(h1 ) . . . enc(hn ) coincide on all
+bits j > i. This is indeed the characterisation of < on binary numbers in least significant digit
+first encoding. The same idea is used to define the formula lessk (f, g). Inductively, assume
+that the formula (h1 , . . . , hn ) <k (h′1 , . . . , h′n ) was defined. We use it to define lessk+1 (f, g):
+
+    lessk+1 (f, g) := ∃h : Bk,n . ¬f (h) ∧ g(h) ∧ ∀h′ : Bk,n . h <k h′ → (f (h′ ) ↔ g(h′ )),
+
+where h = (h1 , . . . , hn ) and h′ = (h′1 , . . . , h′n ).
+     To complete the definitions of lessk (f, g) and (h1 , . . . , hn ) <k (h′1 , . . . , h′n ), what is left is
+to define (h1 , . . . , hn ) <k+1 (h′1 , . . . , h′n ) using lessk+1 . We need to respect the equivalence
+                                                Wn                      Vn
+(h1 , . . . , hn ) <k+1 (h′1 , . . . , h′n ) ≡ i=1 lessk+1 (hi , h′i ) ∧ j=i+1 eqk+1 (hj , h′j ). However, we
+cannot define (h1 , . . . , hn ) <k+1 (h′1 , . . . , h′n ) as the formula in the right hand side of this
+equivalence, as this formula uses n occurrences of lessk and would thus lead to both lessk and
+(h1 , . . . , hn ) <k (h′1 , . . . , h′n ) being of size exponential in k. To solve this issue and obtain
+formulae of polynomial size, we rely on a variant of a trick used by Fisher and Rabin in [11],
+based on the equivalence Φ(a) ∨ Φ(b) ≡ ∃c : Φ(c) ∧ (c = a ∨ c = b):
+
+    (h1 , . . . , hn ) <k+1 (h′1 , . . . , h′n ) :=
+                                                 Wn                            Vn
+       ∃a, b : Bk+1,n . lessk+1 (a, b) ∧ i=1 eqk+1 (a, hi ) ∧ eqk+1 (b, h′i ) ∧ j=i+1 eqk+1 (hj , h′j ).
+
+▶ Lemma 4. Let f, g ∈ Bk,n . Then, lessk (f, g) iff enc(f )<enc(g); and |lessk (f, g)| ≤ O(n3 k).
+
+    The definition of succk (f, g) follows a similar characterisation of successor for binary
+numbers: we have a + 1 = b whenever (1) there is a bit i that is set to 0 in a and to 1 in b,
+(2) the binary representations of a and b coincide on every bit j > i (exactly as in the case of
+<) and moreover (3) every bit j < i is set to 1 in a and it is set to 0 in b. For instance, in
+least significant digit first encoding, (1111001)2 + 1 = (0000101)2 . We have:
+
+    succk+1 (f, g) := ∃h : Bk,n . ¬f (h) ∧ g(h) ∧ ∀h′ : Bk,n .
+                            h <k h′ → (f (h′ ) ↔ g(h′ )) ∧ h′ <k h → f (h′ ) ∧ ¬g(h′ ) ,
+                                                                                     
+
+
+where h = (h1 , . . . , hn ) and h′ = (h′1 , . . . , h′n ).
+
+▶ Lemma 5. For f, g ∈ Bk,n , succk (f, g) iff enc(f ) + 1 = enc(g); and |succk (f, g)| ≤ O(n3 k).
+
+From AMTP(k, d) to HOSAT(k, d). We are ready to prove the lower bounds of The-
+orem 2. For k = 1, the ΣEXPd   -hardness of HOSAT(1, d) was already established by Lohrey
+in [19, Proposition 33] via a reduction from Turing machines. Therefore, we consider k ≥ 2
+(our proof can nonetheless be adapted to the case k = 1). Let S = (T , T0 , Tacc , H, V, M, m) be
+a multi-tiling system. We assume T = [1, r] for some r ∈ N+ (thus H, V, M ⊆ [1, r] × [1, r]).
+     Let n := 2 + #T + m. We write ⊥k for the function in Bk,n such that enc(⊥k ) = 0,
+i.e. ⊥k is the only solution f of the formula botk (f ) := ∀g1 , . . . , gn : Bk−1,n . ¬f (g1 , . . . , gn ).
+Similarly, we write ⊤k for the function in Bk,n with maximal encoding, that is the only
+
+
+
+                                                                                                                   M FC S 2 0 2 2
+33:8   Higher-Order Quantified Boolean Satisfiability
+
+
+       solution f to the formula topk (f ) := ∀g1 , . . . , gn : Bk−1,n . f (g1 , . . . , gn ). The first step of the
+       reduction consists of encoding the d functions of a d-level S-tiling (f1 , . . . , fd ). We encode
+       each of these functions using a function f ∈ Bk,n satisfying the following two properties:
+       1: If f (h, v, t1 , . . . , tr , u1 , . . . , um ) = 1 then enc(h) and enc(v) belong to [expk2 (m)], each ti
+           belongs to {⊥k−1 ,⊤k−1 } and every uj is ⊥k−1 .
+       2: Given h, v ∈ Bk−1,n , if enc(h), enc(v) ∈ [expk2 (m)] then there is exactly one tuple t =
+          (t1 , . . . , tr ) such that f (h, v, t, u1 , . . . , um ) = 1; and exactly one among t1 , . . . , tr is ⊤k−1 .
+       Here, the inputs h and v are used to represent horizontal and vertical positions in the grid,
+       the inputs t1 , . . . , tr are used to encode the tiles, and the inputs u1 , . . . , um are only required
+       to makes sure we have enough inputs to encode the fact that h and v belong to [expk2 (m)] (see
+       the formula ok1 below). Together, Properties (1) and (2) characterise the condition (maps)
+       of the S-tiling (we add the other tiling conditions later). To capture Property 1 above,
+       notice first that h and v should be taken from a space of exactly expk2 (m) functions. As
+       #(Bk−1,n ) ≥ expk2 (m), this obliges us to introduce a formula okk (g) characterising the fact
+       that a function g ∈ Bk,n is such that enc(g) ∈ [expk+1             2  (m)]. We have
+                                                                        Vn
+              ok1 (g) := ∀h1 , . . . , hn : B . g(h1 , . . . , hn ) →    i=m+1 ¬hi
+                                                                                     Vn
+           okk+1 (g) := ∀h1 , . . . hn : Bk,n . g(h1 , . . . , hn ) → (okk (h1 ) ∧     i=2 botk (hi )).
+
+
+       Intuitively, for k ≥ 1 the formula okk (g) holds whenever for all inputs (h1 , . . . , hn ) and
+       j := enc(h1 ) · · · enc(hn ), if the j-th bit of enc(g) is set to 1 then j ∈ [expk2 (m)]. This means
+       that enc(g) corresponds to a binary number with expk2 (m) bits, i.e. enc(g) ∈ [expk+1         2     (m)].
+                                                                                                 ′
+           In all the formulae below, we let t = (t1 , . . . , tr ), u = (u1 , . . . , um ) and t = (t1 , . . . , t′r ).
+                                                                                                      ′
+
+       We define the formula mapsOnek (f ) stating that f ∈ Bk,n satisfies Property 1:
+
+           mapsOnek (f ) :=∀h, v, t, u : Bk−1,n . f (h, v, t, u) → okk−1 (h) ∧ okk−1 (v) ∧
+                                           Vr                                    Vm
+                                             i=1 (topk−1 (ti ) ∨ botk−1 (ti )) ∧  j=1 botk−1 (uj ).
+
+
+       Suppose that f ∈ Bk,n satisfies mapsOnek (f ). In a similar fashion, one defines a for-
+       mula mapsTwok (f ) stating that f satisfies Property 2 of the encoding:
+
+           mapsTwok (f ) := ∀h, v : Bk−1,n . okk−1 (h) ∧ okk−1 (v) → ∃t, u : Bk−1,n . f (h, v, t, u)∧
+            Wr                    Vr                     ′                     ′
+                                                                                       Vr                 ′
+              i=1 (topk−1 (ti ) ∧  j=1 botk−1 (tj )) ∧ ∀t : Bk−1,n . f (h, v, t , u) →  i=1 eq k−1 (ti , ti ).
+                                        j̸=i
+
+
+          We define mapsk (f ) := mapsOnek (f ) ∧ mapsTwok (f ), and move to the remaining tiling
+       conditions. The conditions (hori) and (vert) can be defined with the help of the formula succk .
+       Below, we present the definition of the formula horik (f ) that encodes the condition (hori):
+
+           horik (f ) := ∀h, v, v ′ : Bk−1,n . okk−1 (h) ∧ okk−1 (v) ∧ okk−1 (v ′ ) ∧ succk−1 (v, v ′ )
+                                                 → (i,j)∈H f (h, v, i) ∧ f (h, v ′ , j),
+                                                   W
+
+
+       where f (h, v, i) is a shortcut for ∃t, u : Bk−1,n . topk−1 (ti ) ∧ f (h, v, t, u), i.e. a formula stating
+       that the tile i ∈ T is assigned to the position (enc(h), enc(v)) of the grid, under the
+       hypothesis that f satisfies mapsk (f ). The definition of the formula vertk (f ) encoding the
+       condition (vert) is defined analogously. For the condition (multi), let f and g be two functions
+       of Bk,n satisfying mapsk . We define:
+                                                                               W
+           multik (f, g) := ∀h, v : Bk−1,n . okk−1 (h) ∧ okk−1 (v) →               (i,j)∈M f (h, v, i) ∧ g(h, v, j).
+D. Chistikov, C. Haase, Z. Hadizadeh, and A. Mansutti                                                          33:9
+
+
+Lastly, we define the formula acck (f ) corresponding to the condition (accept):
+                                                                W                    
+     acck (f ) := ∃h, v : Bk−1,n . okk−1 (h) ∧ okk−1 (v) ∧       i∈Tacc f (h, v, i) ∧
+
+                                     ∀h′ : Bk−1,n . lessk−1 (h, h′ ) → ¬okk−1 (h′ ).
+
+Here, the subformula ∀h′ : Bk−1,n . lessk−1 (h, h′ ) → ¬okk−1 (h′ ) forces enc(h) = exp22 (m)−1.
+                                                                                              k
+    To complete the reduction, what is left is to encode the quantifier prefix “∃w1 ∈ (T0 )exp2 (m)
+              k                         k
+∀w2 ∈ (T0 )exp2 (m) . . . ∃wd ∈ (T0 )exp2 (m) ” of the AMTP(k, d) problem. To this end, we
+introduce two formulae rowk (f ) and rowCpk (f, g). The former states that f ∈ Bk,n satisfies
+mapsk , and whenever f (h, v, t, u) holds the only ti equal to ⊤k−1 is such that i ∈ T0 :
+                                                                         W
+     rowk (f ) := mapsk (f ) ∧ ∀h, v, t, u : Bk−1,n . f (h, v, t, u) →       i∈T0 topk (ti ).
+
+We use this formula to quantify on the initial row I(f) of a S-tiling function f, forgetting about
+the information stored by f elsewhere. This is done thanks to the formula rowCpk (f, g),
+which given f, g ∈ Bk,n satisfying mapsk , states that f and g agree on the first row:
+
+     rowCpk (f, g) := ∃h : Bk−1,n . botk−1 (h) ∧ ∀v, t, u : Bk−1,n . f (h, v, t, u) ↔ g(h, v, t, u),
+
+The quantifier prefix of AMTP(k, d) is encoded in HOSAT(k, d) by first quantifying over
+functions w1 , . . . , wd ∈ Bk,n satisfying rowk , appropriately alternating between existential and
+universal quantification, and then existentially quantifying over functions f1 , . . . , fd ∈ Bk,n
+that encode the S-tiling functions (f1 , . . . , fd ). The formula rowCpk (fi , wi ) is used to “copy”
+the first row of wi in fi . This leads to the formula amtpk (S):
+
+     ∃w1 : Bk,n . rowk (w1 ) ∧
+       ∀w2 : Bk,n . rowk (w2 ) →
+          ...
+            ∃wd : Bk,n . rowk (wd ) ∧
+                                       Vd
+              ∃f1 , . . . , fd : Bk,n . i=1 (mapsk (fi ) ∧ rowCpk (fi , wi ) ∧ horik (fi ) ∧ vertk (fi ))
+                                        Vd−1
+                                       ∧ i=1 multik (fi , fi+1 ) ∧ acck (fd ).
+
+▶ Proposition 6. Let d ∈ N+ and k ≥ 2. The formula amtpk (S) is valid if and only if
+                                                                                     4
+AMTP(k, d) accepts on input S. Moreover, the formula amtpk (S) has size O(d · k · |S| ).
+
+    Notice that amtpk (S) is a generalised Boolean formula of order k and alternation depth d,
+since bringing it into prenex normal form yields a formula of the form ∃w1 : Bk,n ∀w2 : Bk,n . . .
+∃wd , f1 , . . . , fd : Bk,n . Φ, where Φ is a generalised Boolean formula of order k − 1 and size
+                     4
+in O(d · k · |S| ). By Proposition 3 (first part), this completes the proof of Theorem 2(I).
+Theorem 2(II) is proven analogously, by simply treating d as part of the input instead of
+being fixed. The upper bound follows the same strategy as the case of HOSAT(k, d), and
+the lower bound follows form Proposition 6 together with the second part of Proposition 3.
+
+ 5       Weak Presburger arithmetic is as hard as Presburger arithmetic
+In this section, we illustrate the usefulness of the higher order satisfiability problem by
+employing it to derive a STA(∗, exp22 (nO(1) ), O(n)) lower bound for the weak fragment of
+Presburger arithmetic (Weak PA), hence showing that this logic matches the complexity
+of (standard) Presburger arithmetic. Weak PA is the first-order theory of the structure
+⟨Z, (c)c∈Z , +, =⟩, where (c)c∈Z are constant symbols interpreted as their homographic integer,
+
+
+
+                                                                                                            M FC S 2 0 2 2
+33:10   Higher-Order Quantified Boolean Satisfiability
+
+
+        the binary function symbol + is interpreted as addition on Z and the binary relation = is
+        interpreted as equality on Z. Subsequently, linear Terms t, t′ , . . . are of the form a1 x1 +
+        · · · + ad xd + c, where d is arbitrary, a1 , . . . , ad , c ∈ Z, and x1 , . . . , xd are first-order variables
+        interpreted over Z. Formulae of Weak PA close equalities between linear terms t = t′ under
+        Boolean connectives ¬, ∧, ∨, etc., and first-order quantifiers ∃x and ∀x. For example, given
+        m ∈ N+ and linear terms t, t′ , the modulo constraint t ≡m t′ stating that t is congruent to t′
+        modulo m is characterised by the Weak PA formula ∃x . t − t′ = x · m, where x is a variable
+        not appearing in t or t′ .
+              Surprisingly, our lower bound holds for the following two fragments of Weak PA:
+              The positive fragment that forbids negation, allowing formulae from the grammar
+
+                Φ ::= a1 x1 + · · · + ad xd = c | Φ ∧ Φ | Φ ∨ Φ | ∃x . Φ | ∀x . Φ.
+                                                                                        V
+            The Horn fragment, in which formulae are of the form ∃x1 ∀x2 . . . ∃xm . i∈I (Φi → Ψi ),
+            where x1 , . . . , xm are vectors of variables, and each Φi and Ψi is a system of equalities,
+            that is a conjunction of equalities between linear terms.
+                                                                                                 nO(1)
+        ▶ Theorem 7. The positive and Horn fragments of Weak PA are STA(∗, 22          , O(n))-hard.
+        To prove this theorem we provide a reduction from HOSAT(2, ∗) to the validity problem for
+        the positive fragment of Weak PA, and a translation from Weak PA to its Horn fragment.
+        The reduction defines arithmetic with multiplication on doubly exponential finite segments
+                                n
+        of integers, such as [22 ], and, in a more restricted way, one exponential higher. Here we
+        strengthen Berman’s lower bound argument for standard PA [3] (see also [18, Lecture 22]),
+        which relies on the order predicate throughout.
+
+        Encoding second-order Boolean functions in Weak PA. Let n ∈ N+ be encoded in unary.
+        In a nutshell, the main difficulty in the reduction from HOSAT(2, ∗) is to understand how
+        to encode the functions in B1,n and B2,n using integer numbers, as well as translating the
+        function applications f (g1 , . . . , gn ). For the set B1,n , we rely on the encoding enc(.) defined
+                                                                                                n
+        in Section 3 that maps every function f ∈ B1,n into the number enc(f ) ∈ [22 ] written in
+        binary. To encode functions in B2,n , we borrow ideas from [13, 14]. We say that z ∈ Z
+                                                                                   n
+        encodes some function in B2,n if and only if for every i ∈ [2n2 ] and all prime numbers
+        p, q ∈ [i3 , (i + 1)3 ), z ≡p 0 or z ≡p 1, and z ≡p 0 if and only if z ≡q 0. Furthermore, we say
+        that z ∈ Z (precisely) encodes the function f ∈ B2,n if and only if z encodes some function
+        in B2,n and moreover for every g = (g0 , . . . , gn−1 ) ∈ (B1,n )n and b ∈ {0, 1},
+
+            f (g) = b if and only if z ≡p b for a prime p ∈ [β(g)3 , (β(g) + 1)3 ),
+                                         n                                        Pn−1               n
+        where β : (B1,n )n → [0, 2n2 ) is the bijection β(g0 , . . . , gn−1 ) := j=0 enc(gj ) · 2j·2 . The
+        fact that any function in B2,n is encoded by some z ∈ Z follows from the Chinese remainder
+        theorem together with Ingham’s theorem [16], a theorem ensuring that for i sufficiently large,
+        [i3 , (i + 1)3 ) contains at least one prime. As in, e.g., [13, 14], to simplify the presentation we
+        apply Ingham’s theorem as if it was known to be true for all i ∈ N. An alternative would be
+        to use an analogous result on primes between fixed powers that holds for all i [9], or to add
+        constant offsets throughout.
+
+        From HOSAT(2, ∗) to the positive fragment of Weak PA. We formalise the translation τ
+        that, given a formula from HOSAT(2, ∗) returns an equivalent formula in the positive fragment
+        of Weak PA. We divide the translation into three parts, depending on whether we are dealing
+        with a generalised Boolean formula of order 0, 1 or 2. The translation τ is homomorphic for
+D. Chistikov, C. Haase, Z. Hadizadeh, and A. Mansutti                                                                          33:11
+
+
+  formula             semantics                             formula                  semantics
+                                  n                                                                             n
+  φn (x, z)           x = 22 · z                            intdivn (x, y, q, r)     x = q · y + r, y ∈ [22 ], r ∈ [y]
+                                                n
+  multn (x, y, z)     x = y · z, z ∈ [22 ]                  quotn (x, y, q)          ∃r ∈ [y] s.t. intdivn (x, y, q, r)
+                                  n
+  In (x)              z ∈ [22 ]                             remn (x, y, r)           ∃q ∈ Z s.t. intdivn (x, y, q, r)
+                                                                                            n
+  powern (y, j)               j
+                      y = 2 and j ∈ [2 ]         n
+                                                            (not)primen (p)          p ∈ [22 ] is (not) prime
+                                  n                                                            2(n+1)
+  ψk,n (x)            x = 2k2                               x =n y 3                 y ∈ [22            ] and x = y 3
+
+   Figure 1 Auxiliary formulae required to reduce HOSAT(2, ∗) to positive Weak PA.
+
+
+binary Boolean connectives: τ (Φ ∧ Ψ) := τ (Φ) ∧ τ (Ψ) and τ (Φ ∨ Ψ) := τ (Φ) ∨ τ (Ψ). Without
+loss of generality we assume that negations occurring in the quantifier-free part of generalised
+Boolean formulae only appear in front of function applications (recall that we see Boolean
+values as 0-ary functions). A (function application) literal is either a function application
+f (g1 , . . . , gℓ ) or its negation ¬f (g1 , . . . , gℓ ).
+
+Formulae of order 0. We translate ∃f : B, ∀f : B and literals f and ¬f , with f of type B.
+Let B(x) := x = 0 ∨ x = 1, i.e. the formula stating x ∈ B. Clearly, τ (f ) := f = 1 and
+τ (¬f ) := f = 0. The quantifiers ∃f : B and ∀f : B are translated as follows:
+    τ (∃f : B Φ) := ∃f . B(f ) ∧ τ (Φ),                   τ (∀f : B Φ) := ∀f ′ ∃f . f ≡2 f ′ ∧ B(f ) ∧ τ (Φ).
+A few words on the translation of ∀f : B. We cannot translate the universal quantifier ∀f : B Φ
+as ∀f . B(f ) → τ (Φ), i.e. relying on the ∃-∀ duality, as B(f ) → τ (Φ) is not in the positive
+fragment of Weak PA. Our definition circumvents this problem by relying on the equivalence
+∀x . x ∈ [0, ℓ] → Φ(x, z) ≡ ∀x′ ∃x . x′ ≡ℓ+1 x ∧ x ∈ [0, ℓ] ∧ Φ(x, z).
+
+Formulae of order 1. We treat quantifiers ∃f : B1,n , ∀f : B1,n and literals f (g1 , . . . , gn ) and
+¬f (g1 , . . . , gn ), where f is of type B1,n and each gi is of type B. To achieve this we rely on the
+auxiliary formulae formally specified in Figure 1 and defined below (ψk,n (x), notprimen (p)
+and x =n y 3 are defined later as only used for formulae of order 2). The formulae φn , multn ,
+In and intdivn are an adaptation of the homonymous formulae provided by Kozen in [18,
+Lecture 22] in the context of linear real arithmetic. For instance, the formula φn (x, z) is
+inductively defined in [18, p. 147] as follows:
+
+ φ0 (x, z) := x = 2z,             φn+1 (x, z) := ∃y∀a, b . (a = x ∧ b = y) ∨ (a = y ∧ b = z) → φn (a, b).
+
+The inductive case of φn+1 (x, z) is defined relying on the trick of Fisher and Rabin [11] we
+already encountered in Section 3, used here to obtain a linear size formula equivalent to
+∃y : φn (x, y) ∧ φn (y, z). As it stands φn+1 (x, z) is not in the positive fragment of Weak PA.
+We rely on modulo constraints to resolve this issue, redefining φn+1 (x, z) as follows:
+                                                                                     
+    φn+1 (x, z) := ∃y∀i∃a, b . (i ≡2 0 ∧ a = x ∧ b = y) ∨ (i ≡2 1 ∧ a = x ∧ b = y) ∧ φn (a, b) .
+
+The definitions of multn (x, y, z), In (x) and intdivn (x, y, q, r) require similar adaptations
+w.r.t. [18, p. 148f], which are omitted due to space constraints. The formulae quotn and
+remn are simple shortcuts of intdivn , e.g., quotn (x, y, q) := ∃r intdivn (x, y, q, r).
+   Finally, powern (y, j) is intuitively defined by bit-blasting j into n bits j0 , . . . , jn−1 , so
+          Pn−1
+that j = i=0 ji · 2i , and forcing y = 2j = {exp22 (i) : i ∈ [n] and ji = 1} to hold:
+                                              Q
+                                                           Pn−1       i
+   powern (y, j) := ∃(j0 , y0 , z0 ), . . . , (jn−1 , yn−1 , zn−1 ) . j =      i=0
+                                                                                     ji · 2 ∧ z0 = y0 ∧ y = zn−1
+                              Vn−1                                                                                  
+                          ∧           i=1
+                                            multn (zi , zi−1 , yi ) ∧ (ji = 0 ∧ yi = 1) ∨ (ji = 1 ∧ φi (yi , 1))         .
+
+
+
+
+                                                                                                                             M FC S 2 0 2 2
+33:12   Higher-Order Quantified Boolean Satisfiability
+
+                                                 Vn−1                                    Qn−1
+        The subformula z0 = y0 ∧ y = zn−1 ∧ i=1 multn (zi , zi−1 , yi ) computes y = i=0 yi . We
+        are ready to translate the generalised Boolean formula of order 1. Recall that we encode
+                                                               n
+        a function f in B1,n with the number enc(f ) ∈ [22 ], and we have f (g0 , . . . , gn−1 ) = 1
+                                                                   Pn−1        i
+        if and only if the jth bit of enc(f ) is 1, where j =        i=1 gi · 2 . With this in mind,
+        the case for existential quantifiers closely follows the definition for formulae of order 0:
+        τ (∃f : B1,n Φ) := ∃f . In (f ) ∧ τ (Φ). The case of universal quantifiers is more involved:
+        whereas for the case of formulae of order 0 we resorted to reasoning modulo 2, we now reason
+                    n                   n
+        modulo 22 . We can bind 22 to a variable ℓ with the formula φn (ℓ, 1). For m ∈ Z and
+                n
+        r ∈ [22 ], we can then check if m ≡ℓ r holds using the formula remn+1 (m, ℓ, r). Note that we
+                                                                 n+1      n
+        use remn+1 instead of remn , as ℓ belongs to the set [22 ] \ [22 ]. Here is the translation:
+            τ (∀f : B1,n Φ) := ∀f ′ ∃f, ℓ . φn (ℓ, 1) ∧ remn+1 (f ′ , ℓ, f ) ∧ τ (Φ).
+        For the function application literal f (g0 , . . . , gn−1 ), where each gi is mapped through τ into
+        a homonymous Boolean variable according to the translation of formulae of order 0, we
+                                           Pn−1
+        consider the number j = i=0 gi · 2i and check that the jth bit of enc(f ) is set to 1 by
+        verifying that the quotient of the division f /2j is odd. As a formula:
+                                                        Pn−1
+            τ (f (g0 , . . . , gn−1 )) := ∃j, y, q . j = i=0 gi · 2i ∧ powern (y, j) ∧ quotn (f, y, q) ∧ q ≡2 1.
+        We treat the literal ¬f (g0 , . . . , gn−1 ) in a similar way, by checking whether f /2j is even. So,
+        τ (¬f (g0 , . . . , gn−1 )) is obtained from τ (f (g0 , . . . , gn−1 )) by replacing q ≡2 1 with q ≡2 0.
+
+        Formulae of order 2. To complete the definition of τ , we now show how to handle quantifiers
+        ∃f : B2,n and ∀f : B2,n , and function application literals f (g1 , . . . , gn ) and ¬f (g1 , . . . , gn ),
+        where f is of type B2,n and every gi is of type B1,n . As explained at the beginning of the
+        section, functions in B2,n are encoded as integers z ∈ Z having the property that for every
+                n
+        i ∈ [2n2 ] and all prime numbers p, q ∈ [i3 , (i + 1)3 ), z ≡p 0 or z ≡p 1, and z ≡p 0 if and
+        only if z ≡q 0. Below, we aim at defining the formula enc2n (z) stating that z encodes some
+        function in B2,n . We start by defining the formula notprimen (p) from Figure 1:
+            notprimen (p) := In (p) ∧ ∃d . In (d) ∧ In (d − 2) ∧ In (p − d − 1) ∧ remn (p, d, 0).
+        Informally, notprimen (p) states that p is not a prime number by finding a divisor d ∈ [2, p − 1].
+                                                    n
+        Notice that if we assume p, d ∈ [22 ] then In (d − 2) ≡ d ≥ 2 and In (p − d − 1) ≡ d < p.
+            Two further comments on the definition of encoding for functions in B2,n given above:
+                                                                                                            n
+        first, observe that this definition requires the construction of numbers (i + 1)3 with i ∈ [2n2 ].
+                    n               2(n+1)
+        Since (2n2 + 1)3 < 22               , all these numbers satisfy the formula I2(n+1) (x). This explains
+        the contribution of notprime2(n+1) and similar formulae in the forthcoming definition of
+                                                                                     n
+        enc2n (z). Second, the encoding requires to iterate over all i ∈ [2n2 ]. As in the definition of τ
+                                                                   n
+        for the case ∀f : B1,n , this is done by binding 2n2 to a variable ℓ and then considering all
+                                                                                         n
+        numbers in [ℓ] by relying on the formula rem2(n+1) . To characterise 2n2 we use the following
+                                                                                       n
+        formula that, given k ∈ N+ in unary, is satisfied whenever x = 2k2 :
+                                                                 Vk−1
+            ψk,n (x) := ∃z1 , . . . , zk . zk = 1 ∧ φk (x, z1 ) ∧ i=1 φn (zi , zi+1 ).
+        We define x =n y 3 := ∃z . mult2(n+1) (z, y, y) ∧ mult2(n+1) (x, z, y) and the formula enc2n (z):
+            enc2n (z) := ∀i′ ∃i, ℓ, a, b . ψn,n (ℓ) ∧ rem2(n+1) (i′ , ℓ, i) ∧ a =n i3 ∧ b =n (i + 1)3 ∧
+                         ∀p′ , q ′ ∃ℓ′ , p, q . φ2(n+1) (ℓ′ , 1) ∧ rem2n+3 (p′ , ℓ′ , p) ∧ rem2n+3 (q ′ , ℓ′ , q) ∧
+                         W                                                                                     
+                              r∈{p,q} I2(n+1) (a − r − 1) ∨ I2(n+1) (r − b) ∨ notprime2(n+1) (r)
+                               W                                                           
+                           ∨ s∈{0,1} rem2(n+1) (z, p, s) ∧ rem2(n+1) (z, q, s) .
+D. Chistikov, C. Haase, Z. Hadizadeh, and A. Mansutti                                                         33:13
+
+
+                                                                                                      n
+Let us dissect this formula line by line. The first line iterates through all i ∈ [ℓ] = [2n2 ],
+binding a and b to i3 and (i+1)3 respectively. The second line iterates through all p, q ∈
+            2(n+1)
+[ℓ′ ] = [22        ]. Following the definition of our encoding of functions in B2,n , we check that
+      one among p and q lies outside [a, b) or is not prime (third line of the formula), or
+      z ≡p 0 or z ≡p 1, and z ≡p 0 if and only if z ≡q 0 (fourth line of the formula).
+▶ Lemma 8. A number z ∈ Z satisfies enc2n (z) iff z encodes some function in B2,n .
+We can now define τ for ∃ quantifiers: τ (∃f : B2,n Φ) := ∃f : enc2n (f ) ∧ τ (Φ). For universal
+quantifiers we reason dually and define a positive Weak PA formula notenc2n (z) stating that
+z does not encode any function in B2,n . Defining this formula requires a positive Weak PA
+                                               n
+formula to test for the primality of p ∈ [22 ]:
+                                                                                                
+   primen (p) := In (p) ∧ ∀z∃d, r . remn (z, p, d) ∧ d = 0 ∨ d = 1 ∨ remn (p, d, r) ∧ In (r − 1) .
+
+Afterwards, notenc2n (z) is defined by slightly revisiting enc2n (z):
+
+    notenc2n (z) := ∃i, ℓ, a, b, p, q . ψn,n (ℓ) ∧ I2(n+1) (ℓ − i − 1) ∧ a =n i3 ∧ b =n (i + 1)3 ∧
+                    V                                                                      
+                      r∈{p,q} I2(n+1) (r − a) ∧ I2(n+1) (b − r − 1) ∧ prime2(n+1) (r) ∧
+
+                    ∃s, t . rem2(n+1) (z, p, s) ∧ rem2(n+1) (z, p, t) ∧ (I2(n+1) (s − 2) ∨ s ≡2 t + 1).
+
+We define the translation for universal quantifiers as τ (∀f : B2,n Φ) := ∀f : notenc2n (f ) ∨ τ (Φ).
+    Let g = (g0 , . . . , gn−1 ). What is left is to treat the literals f (g) and ¬f (g). Once
+more, recall that every gi is a function in B1,n , and thus it is translated through τ into a
+                                                                 n
+homonymous integer variable that is constrained to be in [22 ]. Suppose that z encodes the
+function f . To check whether f (g) holds (resp. does not hold), we must check whether z ≡p 1
+                                                                                  Pn−1             n
+(resp. z ≡p 0) for some prime number p in the interval [i3 , (i + 1)3 ) with i := j=0 gj · 2j·2 .
+                                        n
+Formally, given d ∈ {0, 1} and i ∈ [2n2 ], we define the macro z[i] =n d to check this property:
+
+    z[i] =n d := ∃a, b, p . a =n i3 ∧ b =n (i + 1)3 ∧ prime2(n+1) (p) ∧
+                             I2(n+1) (p − a) ∧ I2(n+1) (b − p − 1) ∧ rem2(n+1) (z, p, d).
+
+It then suffices to compute i from g = (g0 , . . . , gn−1 ), with the following formula
+                                                  Pn−1     Vn−1                                        
+ γn (i, g) := ∃x0 , y0 , . . . , xn−1 , yn−1 . i = j=0 xj ∧ j=0 ψj,n (yj ) ∧ mult2(n+1) (xj , yj , gj ) ,
+leading to the following translations for the literals f (g) and ¬f (g):
+       τ (f (g)) := ∃i . γn (i, g) ∧ f [i] =n 1,       τ (¬f (g)) := ∃i . γn (i, g) ∧ f [i] =n 0.
+    The correctness of the translation τ is provided by the following proposition, shown by
+structural induction on the generalised Boolean formula Φ.
+▶ Proposition 9. A generalised Boolean formula Φ of order 2 is valid if and only if so
+is τ (Φ). The size of τ (Φ) is polynomial in the size of Φ.
+
+Horn Weak PA = Weak PA. To complete the proof of Theorem 7, we need to show
+that Weak PA reduces to its Horn fragment. Briefly, this is done with standard formula
+manipulations and by relying on the equivalences below (notice the similarities to the trick
+used to define φn ):
+ Φ ∧ Ψ ≡ ∀x . (x ≡2 0 → Φ) ∧ (x ≡2 1 → Ψ),            Φ ∨ Ψ ≡ ∃x . (x ≡2 0 → Φ) ∧ (x ≡2 1 → Ψ);
+
+where the variable x above does not occur in Φ nor in Ψ.
+
+
+
+
+                                                                                                            M FC S 2 0 2 2
+33:14   Higher-Order Quantified Boolean Satisfiability
+
+
+             References
+         1   László Babai, Lance Fortnow, and Carsten Lund. Non-deterministic exponential time has
+             two-prover interactive protocols. Comput. Complex., 1:3–40, 1991. doi:10.1007/BF01200056.
+         2   José L. Balcázar, Antoni Lozano, and Jacobo Torán. The Complexity of Algorithmic Problems
+             on Succinct Instances, pages 351–377. Springer, 1992. doi:10.1007/978-1-4615-3422-8_30.
+         3   Leonard Berman. The complexity of logical theories. Theor. Comput. Sci., 11(1):71–77, 1980.
+             doi:10.1016/0304-3975(80)90037-7.
+         4   Laura Bozzelli, Alberto Molinari, Angelo Montanari, and Adriano Peron. On the complexity
+             of model checking for syntactically maximal fragments of the interval temporal logic HS with
+             regular expressions. In International Symposium on Games, Automata, Logics, and Formal
+             Verification, GandALF, volume 277 of EPTCS, pages 31–45, 2017. doi:10.4204/EPTCS.256.3.
+         5   Ashok K. Chandra, Dexter Kozen, and Larry J. Stockmeyer. Alternation. J. ACM, 28(1):114–
+             133, 1981. doi:10.1145/322234.322243.
+         6   Dmitry Chistikov and Christoph Haase. On the Power of Ordering in Linear Arithmetic
+             Theories. In International Colloquium on Automata, Languages, and Programming, ICALP,
+             volume 168 of LIPIcs, pages 119:1–119:15, Dagstuhl, Germany, 2020. Schloss Dagstuhl–Leibniz-
+             Zentrum für Informatik. doi:10.4230/LIPIcs.ICALP.2020.119.
+         7   Christian Choffrut and Achille Frigeri. Deciding whether the ordering is necessary in a
+             Presburger formula. Discret. Math. Theor. C., 12(1):21–38, 2010. URL: http://dmtcs.
+             episciences.org/510.
+         8   Stephen A. Cook. The complexity of theorem-proving procedures. In Symposium on Theory
+             of Computing, STOC, pages 151–158, 1971. doi:10.1145/800157.805047.
+         9   Adrian W. Dudek. An explicit result for primes between cubes. Functiones et Approximatio
+             Commentarii Mathematici, 55(2):177–197, 2016.
+        10   Raul Fervari and Alessio Mansutti. Modal logics and local quantifiers: A zoo in the
+             elementary hierarchy. In Foundations of Software Science and Computation Structures,
+             FoSSaCS, volume 13242 of Lecture Notes in Computer Science, pages 305–324, 2022.
+             doi:10.1007/978-3-030-99253-8_16.
+        11   Michael J. Fischer and Michael O. Rabin. Super-exponential complexity of Presburger
+             arithmetic. In Quantifier Elimination and Cylindrical Algebraic Decomposition, pages 122–135,
+             1998. doi:10.1007/978-3-7091-9459-1_5.
+        12   Michael R. Garey and David S. Johnson. Computers and Intractability: A Guide to the Theory
+             of NP-Completeness. W. H. Freeman, 1979.
+        13   Erich Grädel. Dominoes and the complexity of subclasses of logical theories. Ann. Pure Appl.
+             Log., 43(1):1–30, 1989. doi:10.1016/0168-0072(89)90023-7.
+        14   Christoph Haase and Alessio Mansutti. On deciding linear arithmetic constraints over p-adic
+             integers for all primes. In Mathematical Foundations of Computer Science, MFCS, volume 202
+             of LIPIcs, pages 55:1–55:20, 2021. doi:10.4230/LIPIcs.MFCS.2021.55.
+        15   Lane A. Hemachandra. The strong exponential hierarchy collapses. J. Comput. Syst. Sci.,
+             39(3):299–322, 1989. doi:10.1016/0022-0000(89)90025-1.
+        16   Albert E. Ingham. On The Estimation Of N (σ, T ). Q. J. Math., os-11(1):201–202, January
+             1940. doi:10.1093/qmath/os-11.1.201.
+        17   Richard M. Karp. Reducibility among combinatorial problems. In Complexity of Computer
+             Computations, pages 85–103, 1972. doi:10.1007/978-1-4684-2001-2_9.
+        18   Dexter Kozen. Theory of Computation. Texts in Computer Science. Springer, 2006.
+        19   Markus Lohrey. Model-checking hierarchical structures. J. Comput. Syst. Sci., 78(2):461–490,
+             2012. Games in Verification. doi:10.1016/j.jcss.2011.05.006.
+        20   Antoni Lozano and José L. Balcázar. The complexity of graph problems fore succinctly repres-
+             ented graphs. In Graph-Theoretic Concepts in Computer Science, WG, volume 411 of Lecture
+             Notes in Computer Science, pages 277–286. Springer, 1990. doi:10.1007/3-540-52292-1.
+        21   Martin Lück. Canonical models and the complexity of modal team logic. In Computer Science
+             Logic, CSL, volume 119 of LIPIcs, pages 30:1–30:23, 2018. doi:10.4230/LIPIcs.CSL.2018.30.
+D. Chistikov, C. Haase, Z. Hadizadeh, and A. Mansutti                                                    33:15
+
+
+22   Harry G. Mairson. A simple proof of a theorem of Statman. Theor. Comput. Sci., 103(2):387–
+     394, 1992. doi:10.1016/0304-3975(92)90020-G.
+23   Alessio Mansutti. Notes on kAExp(pol) problems for deterministic machines. CoRR,
+     abs/2110.05630, 2021. arXiv:2110.05630.
+24   Albert R. Meyer. The inherent computational complexity of theories of ordered sets. In
+     Proceedings of the International Congress of Mathematicians, volume 2, pages 477–482, 1974.
+25   Alberto Molinari. Model checking: the interval way. PhD thesis, Università degli Studi di
+     Udine, 2019. arXiv:1901.03880.
+26   Christos H. Papadimitriou. Computational complexity. Addison-Wesley, 1994.
+27   Christos H. Papadimitriou and Mihalis Yannakakis. A note on succinct representations of
+     graphs. Inf. Control., 71(3):181–185, 1986. doi:10.1016/S0019-9958(86)80009-2.
+28   Mojżesz Presburger. Über die Vollständigkeit eines gewissen Systems der Arithmetik ganzer
+     Zahlen, in welchem die Addition als einzige Operation hervortritt, 1929. In Comptes Rendus
+     du I Congrès de Mathématiciens des Pays Slaves, pages 92–101.
+29   Sylvain Schmitz. Complexity hierarchies beyond elementary. ACM Trans. Comput. Theory,
+     8(1):3:1–3:36, 2016. doi:10.1145/2858784.
+30   Richard Statman. The typed λ-calculus is not elementary recursive. Theor. Comput. Sci.,
+     9(1):73–81, 1979. doi:10.1016/0304-3975(79)90007-0.
+31   user4625. Complexity class NEXPNP . Theoretical Computer Science Stack Exchange, 2011.
+     URL: https://cstheory.stackexchange.com/q/6001.
+32   Helmut Veith. Succinct representation, leaf languages, and projection reductions. Inf. Comput.,
+     142(2):207–236, 1998. doi:10.1006/inco.1997.2696.
+33   Celia Wrathall. Complete sets and the polynomial-time hierarchy. Theor. Comput. Sci.,
+     3(1):23–33, 1976. doi:10.1016/0304-3975(76)90062-1.
+
+
+
+
+                                                                                                       M FC S 2 0 2 2
+

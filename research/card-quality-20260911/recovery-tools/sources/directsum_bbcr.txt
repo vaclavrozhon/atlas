@@ -1,0 +1,923 @@
+                       Electronic Colloquium on Computational Complexity, Report No. 83 (2010)
+
+
+
+
+             Efficient Communication Using Partial Information
+                                  Mark Braverman∗                    Anup Rao†
+
+                                                 May 12, 2010
+
+
+
+                                                    Abstract
+         We show how to efficiently simulate the sending of a message M to a receiver who has
+      partial information about the message, so that the expected number of bits communicated in
+      the simulation is close to the amount of additional information that the message reveals to the
+      receiver.
+         We use our simulation method to obtain several results in communication complexity.
+         • We prove a new direct sum theorem for bounded round communication protocols. For
+           every k, if the two party communication complexity of computing a function f is C > k,
+           then the complexity
+                            √    of computing n copies of f using a k round protocol is at least
+           Ω(n(C − O(k + Ck))). This is true in the distributional setting under any distribution
+           on inputs, and also in the setting of worst case randomized computation.
+         • We prove that the internal information cost (namely the information revealed to the par-
+           ties) involved in computing any functionality using a two party interactive protocol on any
+           input distribution is exactly equal to the amortized communication complexity of com-
+           puting independent copies of the same functionality. Here by amortized communication
+           complexity we mean the average per copy communication in the best protocol for comput-
+           ing multiple copies of a functionality, with a fixed error in each copy of the functionality.
+         • Finally, we show that the only way to prove a strong direct sum theorem for communication
+           complexity is by solving a particular variant of the pointer jumping problem that we define.
+           If this problem has a cheap communication protocol, then a strong direct sum theorem
+           must hold. On the other hand, if it does not, then the problem itself gives a counterexample
+           for the direct sum question. In the process we show that a strong direct sum theorem for
+           communication complexity holds if and only if efficient compression of communication
+           protocols is possible.
+
+
+
+
+∗
+    Microsoft Research New England, mbraverm@cs.toronto.edu.
+†
+    Computer Science and Engineering, University of Washington, anuprao@cs.washington.edu.
+
+
+                                                          1
+
+
+                                                                                                      ISSN 1433-8092
+1       Introduction
+Suppose a sender wants to transmit a message M that is correlated with an input X to a receiver
+that has some information Y about X. What is the best way to carry out the communication in
+order to minimize the expected number of bits transmitted? A natural lowerbound for this problem
+is the mutual information between the message and X, given Y : I(M ; X|Y ), i.e. the amount of
+new information M reveals to the receiver about X. In this work, we give a protocol that has the
+same effect as sending M , yet the expected number of bits communicated is asymptotically close
+to optimal — it is the same as the amount of new information that the receiving party learns from
+M , up to a sublinear additive term.
+    Our result is a generalization of classical data compression, where Y is empty (or constant),
+and M is a deterministic function of X. In this case, the information learnt by the receiver is equal
+to the entropy H(M ), and the compression result above corresponds to classical results on data
+compression first considered by Shannon [Sha48] — M can be encoded so that the expected number
+of bits required to transmit M is H(M ) + 1 (see for example the text [CT91]). In more recent
+decades, several works have considered the version where M is not necessarily determined by X
+[JRS03, HJMR07], but to our knowledge, there has been no successful study of the case described
+above, where the receiver has some partial information about the sender’s message1 .
+    This problem has received a significant amount of attention in computer science because of
+its connection to one of the most basic questions in the field: the direct sum question. The
+direct sum question is: what is the complexity of computing n copies of a function f (x, y), in
+terms of the complexity of computing one copy? A related variant is the direct product question:
+what is the success probability of computing n copies of f with few resources, in terms of the
+success probability of computing one copy? Famous examples of direct product theorems include
+Yao’s XOR Lemma [Yao82] and Raz’s Parallel Repetition Theorem [Raz95]. In the context of
+communication complexity, Shaltiel [Sha03] gave a direct product theorem for the discrepancy of a
+function, but it remains open to give such a theorem for the success probability of communication
+tasks. While the direct sum question for general models such as Boolean circuits has a long history
+(cf [Uhl74, Pau76, GF81]), no general results are known, and indeed they cannot be achieved by
+the standard reductions used in complexity theory, as a black-box reduction mapping a circuit C
+performing n tasks into a circuit C ′ performing a single task will necessarily make C ′ larger than C,
+rather than making it smaller. Indeed it is known that at least the most straightforward/optimistic
+formulation of a direct sum theorem for Boolean circuits is false.2
+    In communication complexity, a form of this question first appeared in a work by Karchmer, Raz,
+and Wigderson [KRW91], who conjectured a certain direct sum result for deterministic communi-
+cation complexity of relations, and showed that it would imply that P * NC1 . Feder, Kushilevitz,
+Naor, and Nisan [FKNN91] gave a direct sum theorem for non-deterministic communication com-
+plexity, and deduced from it a somewhat weaker result for deterministic communication complexity
+    1
+      We observe that if X, Y, M are arbitrary random variables, and the two parties are tasked with sampling M
+efficiently (as opposed to one party transmitting and the other receiving), it is impossible to succeed in communication
+comparable to the information revealed by M . For example, if M = f (X, Y ), where f is a boolean function with high
+communication complexity on average for X, Y , M reveals only one bit of information about the inputs, yet cannot
+be cheaply sampled.
+    2
+      The example comes from fast matrix multiplication. By a counting argument, there exists an n × n matrix A over
+GF(2) such that the map x 7→ Ax requires a circuit of Ω(n2 / log n) size. But the map (x1 , . . . , xn ) 7→ (Ax1 , . . . , Axn )
+is just the product of the matrices A and X (whose columns are x1 , . . . , xn ) and hence can be carried out by a circuit
+of O(n2.38 ) ≪ n · (n2 / log n). See Shaltiel’s paper [Sha03] for more on this question.
+
+
+                                                               1
+                                                                                                √
+— if a single copy of a function f requires C bits of communications, then n copies require Ω( Cn)
+bits. Feder et al also considered the direct sum question for randomized communication complexity
+(see also Open Problem 4.6 in [KN97]) and showed that the dependence of the communication on
+the error of the protocol for many copies can be better than that obtained by the naı̈ve protocol
+for many copies.
+    Direct sum results for randomized communication complexity are closely related to results about
+compressing randomized communication protocols. Chakrabarti et al [CSWY01] were the first to
+relate the compression question to the direct sum question in this context. They introduced a notion
+that they called the information cost of a protocol, to measure the amount of information that an
+observer learns about the inputs of the parties by watching the messages and public randomness
+of the protocol. In our work we refer to this as the external information cost, to contrast it with
+the internal information cost (defined in [BBCR10]), that measures the information learnt by the
+parties in the protocol.
+    Formally, given a distribution on inputs X, Y to a communication problem, the external in-
+formation cost is the mutual information I(XY ; π) between the inputs (XY ), and the messages
+sent and the public randomness in the protocol π. The internal information cost is the sum
+I(X; π|Y ) + I(Y ; π|X). It is the total new information learnt by each of the parties through partic-
+ipation in the protocol, over the information that they already knew via their inputs. The internal
+information cost is smaller or equal to the external information cost, which in turn does not exceed
+the communication complexity of a protocol.
+    The two measures of information are the same when X is independent of Y , and in this case
+an optimal direct sum theorem can be proved for the external information cost (and consequently
+for the internal information cost). Chakrabarti et al showed that from a protocol computing n
+copies of f on independent inputs with communication C, one can obtain a protocol computing f
+with external information cost C/n, as long as the inputs X, Y to f are independent of each other.
+Thus the problem of proving direct sum theorems for independent inputs reduces to the problem
+of simulating a protocol τ with small external information cost with a protocol ρ that has small
+communication. That is, the direct sum question reduces to the problem of protocol compression.
+Chakrabarti et al used this idea to give a direct sum theorem in the case that the communication
+involves one simultaneous round of messages. This was followed by a few works [JRS03, HJMR07]
+that obtained stronger direct sum theorems by designing more efficient compression algorithms
+that could compress each round of the communication in turn. These results applied to protocols
+where the number of rounds of communication for the protocol computing n copies was restricted
+to being sufficiently smaller than the communication complexity of computing one copy, and only
+applied when the inputs were independent of each other, since this is the only scenario where the
+external information cost could be bounded in the reduction for multiround protocols. Jain et al
+[JRS05] did manage to get results for arbitrary distributions on inputs as long as the protocols were
+restricted to being non-interactive (i.e. there is a single simultaneous round of communication). In
+this case they showed that computing n copies of f must require Ω(n) times the communication
+for computing a single copy.
+    For arbitrary input distributions, if n copies of f can be computed with communication C,
+then there is a protocol with internal information cost C/n and communication C that computes
+one copy of f , as shown implicitly in [BYJKS04] and explicitly in our prior work with Barak and
+Chen [BBCR10]. In that work we showed how to compress the communication globally, rather
+than round by round. As a result, we obtained direct sum results with no restrictions on the
+
+
+                                                  2
+dependence between inputs or on the number of rounds. Ignoring polylogarithmic factors, we
+showed that any protocol involving C bits of communication whose √internal information cost is I can
+be compressed to give a protocol with communication complexity C · I. If the external information
+cost is Iext ≥ I, we gave a different compression scheme that gives a protocol with communication
+complexity Õ(Iext ). A consequence is a direct sum theorem proving that computing n copies of a
+                   √
+function requires n times the communication, with no restrictions on the number of rounds of
+communication, under any input distribution, and even for worst case randomized computation.
+In the case that the inputs are independent of each other, our second compression scheme shows
+that n times the communication is required (again ignoring polylogarithmic factors), thus yielding
+a near-optimal direct sum theorem for distributional complexity over product distributions.
+    The main challenge that remains is to find a more efficient way to compress protocols whose
+internal information cost is small. Indeed, as we discuss below, in this work we show that this is
+essentially the only way to make progress on the direct sum question, in the sense that if there is
+some protocol that cannot be compressed well, then there is a way to compute n copies of some
+function surprisingly efficiently.
+
+1.1   Our Results
+Our main technical result is a protocol for two parties to efficiently sample from a distribution P
+that only the sender knows, by taking advantage of a distribution Q known only to the receiver. We
+obtain a protocol whosePcommunication complexity can be bounded in terms of the informational
+divergence D (P ||Q) = x P (x) log(P (x)/Q(x)).
+Theorem 1.1. Suppose that player A is given a distribution P and player B is given a distribution
+Q over a universe U . There is a public coin protocol that uses an expected
+                                                     p               
+                           D (P ||Q) + log(1/ε) + O      D (P ||Q) + 1
+
+bits of communication such that at the end of the protocol:
+   • Player A outputs an element a distributed according to P ;
+
+   • Player B outputs b such that for each x ∈ U , P[b = x| a = x] > 1 − ε.
+    As a corollary, we obtain the formulation discussed earlier. For any distribution X, Y and
+message M that is independent of Y once X is fixed, we can have the sender set P to be the
+distribution of M conditioned on her input x, and the receiver set Q to be the distribution of M
+conditioned on her input y. The expected divergence D (P ||Q) turns out to be equal to the mutual
+information I(M ; X|Y ). If we apply Theorem 1.1 to each round of communication in a multiround
+protocol, we can show the following corollary.
+Corollary 1.2. Let X, Y be inputs to an r round communication protocol π whose internal infor-
+mation cost is I. Then for every ε > 0, there exists a protocol τ such that at the end of the protocol,
+each party outputs a transcript for π. Furthermore, there is an event√ G with P[G] > 1 − rε such
+that conditioned on G, the expected communication of τ is I + O( rI + 1) + r log(1/ε), and both
+parties output the same transcript distributed exactly according to π(X, Y ).
+    The proof appears in Section 5.1. Let f n denote the function that computes n copies of f on n
+different inputs. Protocol compression yields the following direct sum theorem:
+
+                                                  3
+Corollary 1.3 (Direct Sum for Bounded Rounds). Let C be the communication complexity of the
+best protocol for computing f with error ρ on inputs drawn from µ. Then any r round protocol
+computing
+   √       f n on the distribution µn with error ρ − ε must involve at least Ω(n(C − r log(1/ε) −
+O( C · r))) communication.
+
+    Although the information cost of solving a problem may be much smaller than its communication
+complexity, we show that the internal information cost of computing a function f according to a
+fixed distribution is exactly equal to the amortized communication complexity of computing many
+copies of f . Specifically, let ICi µ (f, ρ) denote the smallest possible internal information cost of any
+protocol computing f with probability of failure at most ρ when the inputs are drawn from the
+distribution µ. Denote by Dρµ,n (f ) the communication complexity of the best protocol for computing
+f on n independent inputs drawn from µ so that the error with respect to each coordinate is at
+most ρ. We obtain the following:
+
+Theorem 1.4. For any f , µ, and ρ,
+
+                                                       Dρµ,n (f )
+                                      ICi µ (f, ρ) = lim          .
+                                                   n→∞    n
+    Finally, we define a communication problem we call Correlated Pointer Jumping – CPJ(C, I)
+– that is parametrized by two parameters C and I such that C ≫ I. CPJ(C, I) is designed in a
+way that the randomized communication complexity cost I < CC(CPJ(C, I)) < C. By combining
+prior work with new results, we show that determining the worst case randomized communication
+complexity CC(CPJ(C, I)) for I = C/n is equivalent (up to poly-logarithmic factors) to determining
+the best parameter k(n) for which a direct sum theorem CC(f n ) = Ω(k(n) · CC(f )) holds. For
+simplicity, we formulate only part of the result here, see Section 5.3 for more details.
+
+Theorem 1.5. If CC(CPJ(C, C/n)) = Õ(C/n) for all C, then a near optimal direct sum theorem
+holds: CC(f n ) = Ω̃(n · CC(f )) for all f .
+    On the other hand, if CC(CPJ(C, C/n)) = Ω((C loga C)/n) for all a > 0, then direct sum is
+violated by CPJ(C, C/n):
+
+                CC(CPJ(C, C/n)n ) = O(C log C) = o(n · CC(CPJ(C, C/n))/ log a C),
+
+for all a.
+
+1.2    Techniques
+The key technical contribution of our work is a sampling
+                                                       P protocol that    proves Theorem 1.1. Recall
+                                                                    P (x)
+that the informational divergence D (P ||Q) is equal to x P (x) log Q(x) . Intuitively, if this quantity
+is small, then typically the ratio PQ(x)(x)
+                                            is close to 1. To illustrate our technique, let us focus on an
+easy special case: suppose Q is the uniform distribution on some subset SQ of the universe U ,
+and P is the uniform distribution on some subset SP ⊂ SQ . Then the informational divergence
+D (P ||Q) is exactly log(|SQ |/|SP |).
+    In this case, the players use an infinite public random tape that samples an infinite sequence of
+elements a1 , a2 , . . . uniformly at random from the universe U . Player A then picks the first element
+that lies in SP to be his sample. If this element is ai , player A sends k = ⌈ i/|U | ⌉ to player B. In
+expectation k is only a constant, so the expected number of bits for this step is only a constant.
+
+                                                    4
+Next the players use the public randomness to sample a sequence of uniformly random boolean
+functions on the universe. A then sends the value of approximately log(1/ε) of these functions
+evaluated on his sample. B looks at her window of |U | elements and checks to see whether any of
+them agree with the evaluations sent by A and are in her set SQ . If more than one agrees with A
+she asks A to send more evaluations of random functions. They continue this process until there
+is a unique element in the k’th interval that agrees with the evaluations and is in the set SQ . For
+the analysis, note that the fraction of elements in the window that are in SQ but not in SP can be
+bounded in terms of the divergence between P and Q.
+    Of course in general P and Q are not distributions that take uniformly random points in sets.
+Still, our protocol for doing the sampling is simple, and is based on intuitions similar to those used
+in the example above.
+
+
+2     Preliminaries
+Notation. We reserve capital letters for random variables and distributions, calligraphic letters
+for sets, and small letters for elements of sets. Throughout this paper, we often use the notation |b
+to denote conditioning on the event B = b. Thus A|b is shorthand for A|B = b.
+    We use the standard notion of statistical/total variation distance between two distributions.
+
+Definition 2.1. Let D and F be two random variables taking values in a set S. Their statistical
+distance is
+                     def                                 1X
+            |D − F | = max(| Pr[D ∈ T ] − Pr[F ∈ T ]|) =    | Pr[D = s] − Pr[F = s]|
+                         T ⊆S                            2
+                                                             s∈S
+
+                                                                                        ε
+If |D − F | ≤ ε we shall say that D is ε-close to F . We shall also use the notation D ≈ F to mean
+D is ε-close to F .
+
+2.1   Information Theory
+                                                                     def P
+Definition 2.2 (Entropy). The entropy of a random variable X is H(X) =     x Pr[X = x] log(1/ Pr[X =
+x]). The conditional entropy H(X|Y ) is defined to be Ey∈R Y [H(X|Y = y)].
+
+Fact 2.3. H(AB) = H(A) + H(B|A).
+
+Definition 2.4 (Mutual Information). The mutual information between two random variables
+A, B, denoted I(A; B) is defined to be the quantity H(A) − H(A|B) = H(B) − H(B|A). The
+conditional mutual information I(A; B|C) is H(A|C) − H(A|BC).
+
+    In analogy with the fact that H(AB) = H(A) + H(B|A),
+
+Proposition 2.5. Let C1 , C2 , D, B be random variables. Then
+
+                           I(C1 C2 ; B|D) = I(C1 ; B|D) + I(C2 ; B|C1 D).
+
+    The previous proposition immediately implies the following:
+
+
+
+
+                                                  5
+Proposition 2.6 (Super-Additivity of Mutual Information). Let C1 , C2 , D, B be random variables
+such that for every fixing of D, C1 and C2 are independent. Then
+
+                                I(C1 ; B|D) + I(C2 ; B|D)         ≤     I(C1 C2 ; B|D).
+
+   We also use the notion of divergence, which is a different way to measure the distance between
+two distributions:
+                                                                                                                       def
+Definition
+P           2.7 (Divergence). The informational divergence between two distributions is D (A||B) =
+  x A(x) log(A(x)/B(x)).
+
+      For example, if B is the uniform distribution on {0, 1}n then D (A||B) = n − H(A).
+
+Proposition 2.8. Let A, B, C be random variables in the same probability space. For every a in
+the support of A and c in the support of C, let Ba denote B|A = a and Bac denote B|A = a, C = c.
+Then I(A; B|C) = Ea,c∈R A,C [D (Bac ||Bc )]
+
+Lemma 2.9.
+                               D (P1 × P2 ||Q1 × Q2 ) = D (P1 ||Q1 ) + D (P2 ||Q2 ) .
+
+2.2      Communication Complexity
+Let X , Y denote the set of possible inputs to the two players, who we name Px , Py . In this paper3 ,
+we view a private coins protocol for computing a function f : X × Y → ZK as a rooted tree with
+the following structure:
+
+      • Each non-leaf node is owned by Px or by Py .
+
+      • Each non-leaf node owned by a particular player has a set of children that are owned by the
+        other player. Each of these children is labeled by a binary string, in such a way that this
+        coding is prefix free: no child has a label that is a prefix of another child.
+
+      • Every node is associated with a function mapping X to distributions on children of the node
+        and a function mapping Y to distributions on children of the node.
+
+      • The leaves of the protocol are labeled by output values.
+
+    On input x, y, the protocol π is executed as in Figure 1.
+    A public coin protocol is a distribution on private coins protocols, run by first using shared
+randomness to sample an index r and then running the corresponding private coin protocol πr .
+Every private coin protocol is thus a public coin protocol. The protocol is called deterministic if
+all distributions labeling the nodes have support size 1.
+
+Definition 2.10. The communication complexity of a public coin protocol π, denoted CC(π), is
+the maximum number of bits that can be transmitted in any run of the protocol.
+
+Definition 2.11. The number of rounds of a public coin protocol is the maximum depth of the
+protocol tree πr over all choices of the public randomness.
+  3
+      The definitions we present here are equivalent to the classical definitions and are more convenient for our proofs.
+
+
+                                                            6
+                               Generic Communication Protocol
+
+    1. Set v to be the root of the protocol tree.
+
+    2. If v is a leaf, the protocol ends and outputs the value in the label of v. Otherwise, the
+       player owning v samples a child of v according to the distribution associated with her input
+       for v and sends the label to indicate which child was sampled.
+
+    3. Set v to be the newly sampled node and return to the previous step.
+
+
+                                Figure 1: A communication protocol.
+
+
+    Given a protocol π, π(x, y) denotes the concatenation of the public randomness with all the
+messages that are sent during the execution of π. We call this the transcript of the protocol.
+We shall use the notation π(x, y)j to refer to the j’th transmitted message in the protocol. We
+write π(x, y)≤j to denote the concatenation of the public randomness in the protocol with the first j
+message bits that were transmitted in the protocol. Given a transcript, or a prefix of the transcript,
+v, we write CC(v) to denote the number of message bits in v (i.e. the length of the communication).
+
+Definition 2.12 (Communication Complexity notation). For a function f : X × Y → ZK , a
+distribution µ supported on X × Y, and a parameter ρ > 0, Dρµ (f ) denotes the communication
+complexity of the cheapest deterministic protocol for computing f on inputs sampled according to
+µ with error ρ. Rρ (f ) denotes the cost of the best randomized public coin protocol for computing
+f with error at most ρ on every input.
+
+   We shall use the following theorem due to Yao:
+
+Theorem 2.13 (Yao’s Min-Max). Rρ (f ) = maxµ Dρµ (f ).
+
+   Recall that the internal information cost ICi µ (π) of a protocol π is defined to be I(π(X, Y ); X|Y )+
+I(π(X, Y ); Y |X).
+
+Lemma 2.14. Let R be the public randomness used in the protocol π. Then ICi µ (π) = ER ICi µ (πR )
+                                                                                                        
+
+Proof.
+
+            ICi µ (π) = I(π(X, Y ); X|Y ) + I(π(X, Y ); Y |X)
+                    = I(R; X|Y ) + I(R; Y |X) + I(π(X, Y ); X|Y R) + I(π(X, Y ); Y |XR)
+                    = I(π(X, Y ); X|Y R) + I(π(X, Y ); Y |XR)
+                    = E ICi µ (πR )
+                                  
+                       R
+
+
+
+
+   The following theorem was proved in [BYJKS04]. Here we cite a version appearing in [BBCR10]:
+
+Theorem 2.15. For every µ, f, ρ there exists a protocol τ computing f on inputs drawn from µ with
+                                                                                                n
+                                                                 n                           Dρµ (f n )
+probability of error at most ρ and communication at most Dµρ (f n ) such that ICi µ (τ ) ≤      n       .
+
+                                                    7
+    For our results on amortized communication complexity, we need the following definition: we
+shall consider the problem of computing n copies of f , with error ρ in each coordinate of the
+computation, i.e. the computation must produce the correct result in any single coordinate with
+probability at least 1 − ρ. We denote the communication complexity of this problem by Dρµ,n (f ) ≤
+   n
+Dµρ (f n ). Formally,
+Definition 2.16. Let µ be a distribution on X × Y and let 0 < ρ < 1. We denote by Dρµ,n (f ) the
+distributional complexity of computing f on each of n independent pairs of inputs drawn from µ,
+with probability of failure at most µ on each of the inputs.
+   The result above is actually much stronger, the same proof that appears in [BBCR10] shows
+the following theorem:
+Theorem 2.17. For every µ, f, ρ there exists a protocol τ computing f on inputs drawn from µ
+                                                                                            Dρµ,n (f )
+with probability of error at most ρ and communication at most Dµ,n n              i
+                                                               ρ (f ) such that IC µ (τ ) ≤    n       .
+
+
+3    Sampling From Correlated Distributions
+Here we prove the following theorem
+Theorem 3.1. Suppose that player A is given a distribution P and player B is given a distribution
+Q over a universe U . There is a protocol that uses an expected
+                              D (P ||Q) + log 1/ε + O(D (P ||Q)1/2 + 1)
+bits of communication such that at the end of the protocol:
+    • player A outputs an element a distributed according to P ;
+    • for each x, P[b = a| a = x] > 1 − ε.
+Note that the second condition implies in particular that player B outputs an element b such that
+b = a with probability > 1 − ε. The protocol requires no prior knowledge or assumptions on
+D (P ||Q).
+
+Proof. We prove the theorem by exhibiting such a protocol. The protocol runs as follows. Both
+parties interpret the shared random tape as a sequence of uniformly selected elements {ai }∞
+                                                                                           i=1 =
+{(xi , pi )}∞
+            i=1 from the set A := U × [0, 1]. Denote the subset
+                                      P := {(x, p) : P (x) < p}
+of A as the set of points under the histogram of the distribution P . Similarly, define
+                                      Q := {(x, p) : Q(x) < p}.
+For a constant C ≥ 1 we will define the C-multiple of Q as
+                               C · Q := {(x, p) ∈ A : (x, p/C) ∈ Q}.
+   We will also use a different part of the shared random tape to obtain a sequence of random
+hash functions hi : U → {0, 1} so that for any x 6= y ∈ U , P[hi (x) = hi (y)] = 1/2.
+   We are now ready to present the protocol:
+
+                                                   8
+Figure 2: An illustration on the execution of the protocol. The elements ai are selected uniformly
+from A = U × [0, 1]. The first ai to fall in P is a6 , and thus player A outputs x6 . Player A sends
+hashes of a6 , which do not match the hashes of a5 , the only ai in Q. Player B responds ‘failure’,
+and considers surviving elements in 2Q, which are a6 and a9 . After a few more hashes from A, a6
+is selected by B with high probability.
+
+
+  1. Player A selects the first index i such that ai ∈ P, and outputs xi ;
+
+  2. Player A sends Player B the binary encoding of k := ⌈i/|U |⌉;
+
+  3. Player A sends the values of hj (x) for j = 1, .., s0 , where s0 := 2 + ⌈log 1/ε⌉;
+
+  4. Repeat, until Player B produces an output, beginning with iteration t = 0:
+                        2
+      (a) set C := 2t ;
+      (b) if there is an ar = (y, q) with r ∈ {(k − 1) · |U | + 1, . . . , k · |U |} in C · Q such that
+          hj (y) = hj (x) for j = 1, .., st , Player B responds ‘success’ and outputs y; if there is more
+          than one such a, player B selects the first one;
+       (c) otherwise, Player B responds ‘failure’ and Player A sends 2t + 3 more hash values
+           hst +1 (x), . . . , hst +t+1 (x) and sets st+1 := st + 2t + 3 = 1 + ⌈log 1/ε⌉ + (t + 2)2 , t := t + 1.
+
+It is easy to see that the output of Player A is distributed according to the distribution P . We
+will show that for any choice of i and the pair (xi , pi ) by A, Player B outputs the same xi with
+probability > 1 − ε. In addition, we will show that the expected amount of communication is
+D (P ||Q) + log 1/ε + O(D (P ||Q)1/2 + 1). Hence, in particular, if D (P ||Q) is finite, the protocol
+terminates with probability 1. We start with the following claim.
+Claim 3.2. For each n, P[k > n] < e−n .
+
+                                                       9
+Proof. For each n, we have
+                                 / P for i = 1, . . . , n · |U |] = (1 − 1/|U |)|U |·n < e−n .
+                 P[k > n] = P[ai ∈
+
+
+   Thus the expected length of the first two messages from Player A is log 1/ε + O(1) bits. It
+remains to analyze Step 4 of the protocol. We say that an element a = (x, p) survives iteration t if
+      2
+a ∈ 2t · Q and it satisfies hj (x) = hj (xi ) for all j = 1, . . . , st for this t.
+                                                                                    2
+   Note that the “correct” element ai survives iteration t if and only if 2t ≥ P (xi )/Q(xi ).
+Claim 3.3. Let Eai be the event that the element selected by player A is ai , which is the i-th
+element on the tape. Denote k := ⌈i/|U |⌉. Conditioned on Eai , the probability that a different
+element aj with j ∈ {(k − 1) · |U | + 1, . . . , k · |U |} survives iteration t is bounded by ε/2t+1 .
+
+Proof. Without loss of generality we can assume that |U | ≥ 2, since for a singleton universe our
+sampling protocol will succeed trivially. This implies that for any C > 0 and for a uniformly
+selected a ∈ A,
+             P[a ∈ C · Q| a ∈
+                            / P] ≤ P[a ∈ C · Q]/P[a ∈
+                                                    / P] ≤ 2 · P[a ∈ C · Q] ≤ 2C/|U |.
+Denote K := k ·|U |. Conditioning on Eai , the elements aK−|U |+1 , . . . , ai−1 are distributed uniformly
+on A \ P, and ai+1 , . . . , aK are distributed uniformly on A. For any such j = K − |U | + 1, . . . , i − 1,
+and for any C > 0,
+                                           P[aj ∈ C · Q] ≤ 2C/|U |.
+                                                                      2
+For such a j, surviving round t means aj belonging to 2t · Q and agreeing with ai on st =
+1 + ⌈log 1/ε⌉ + (t + 1)2 random hashes h1 , . . . , hst . The probability of this event is thus bounded by
+                                                               2
+                                        2                  2 · 2t
+  P[aj survives round t] ≤ P[aj ∈ 2t · Q] · 2−st ≤                · 2−st ≤
+                                                            |U |
+                                                               2
+                                                             2t −st −1 /|U | ≤ 2−2t−1 ε/|U | ≤ ε/(|U | · 2t+1 ).
+By taking a union bound over all j = K − |U | + 1, . . . , K, j 6= i, we obtain the ε/2t+1 bound.
+
+ThusP  for any Eai , the probability of Player B to output anything other than xi conditioned on Eai
+is < ∞   t=0 ε/2
+                t+1 = ε.
+
+    It remains to observe that Step 4 of the protocol isl guaranteed to terminate    m       when t2 ≥
+                                        P (xi )                  p
+log P (xi )/Q(xi ) since ai belongs to Q(x  i)
+                                                · Q. Denote T :=   log P (xi )/Q(xi ) . Thus the amount
+of communication in Step 4 is bounded by
+     ST − S0 + T = (T + 1)2 − 1 + T = T 2 + 3T < log P (xi )/Q(xi ) + 2 + 5 log P (xi )/Q(xi ),
+                                                                                 p
+
+and the expected amount of communication is bounded by
+        h                          p                  i
+  Exi ∼P log P (xi )/Q(xi ) + 2 + 5 log P (xi )/Q(xi ) =
+                                                      p
+                            D (P ||Q) + 2 + 5 · Exi ∼P log P (xi )/Q(xi ) ≤
+                                       q
+                    D (P ||Q) + 2 + 5 · Exi ∼P log P (xi )/Q(xi ) = D (P ||Q) + O(D (P ||Q)1/2 + 1),
+                                                √
+where the inequality is by the concavity of         . This completes the proof.
+
+                                                      10
+Remark 3.4. The sampling in the proof of Theorem    p 3.1 may take significantly more than one
+round. In fact, the expected number of rounds is Θ( D (P ||Q)). One should not hope to get rid
+of the dependence of the number of rounds in the simulation on the divergence since D (P ||Q) is
+not known to the players ahead of time, and the only way to “discover” it (and thus to estimate
+the amount of communication necessary to perform the sampling task) is through interactive com-
+munication. By increasing the expected communication by a constant multiplicative factor, it is
+possible to decrease the expected number of rounds to O(log D (P ||Q)).
+
+For technical reasons we will need the following easy extension of Theorem 3.1:
+
+Lemma 3.5. In the setup of Theorem 3.1 there is an event E such that P[E] > 1 − ε, and
+conditioned on E:
+
+    • both parties output the same value distributed exactly according to P ;
+
+    • the expected communication is still bounded by D (P ||Q) + log 1/ε + O(D (P ||Q)1/2 + 1).
+
+Proof. Let E ′ be the event when both parties output the same value (i.e. when the protocol
+succeeds). Since the probability of success is > 1 − ε conditioned on the value being output by
+Player A, there is an event E ⊂ E ′ such that P[Player A outputs x|E] = P (x) for all x and
+P[E] > 1 − ε.
+    It remains to see that the communication guarantee holds. This is trivially true since assum-
+ing the protocol succeeds the estimate on the communication amount depends exclusively on the
+element x sampled, and the analysis in the proof of Theorem 3.1 carries conditioned on E.
+
+
+4    Correlated Pointer Jumping
+Here we define the correlated pointer jumping problem, that is at the heart of several of our results.
+The input in this problem is a rooted tree such that
+
+    • Each non-leaf node is owned by Px or by Py .
+
+    • Each non-leaf node owned by a particular player has a set of children that are owned by the
+      other player. Each of these children is labeled by a binary string, in such a way that this
+      coding is prefix free: no child has a label that is a prefix of another child.
+
+    • Each node v is associated with two distributions on its children: child(v)x known to Px and
+      child(v)y known to Py .
+
+    • The leaves of the tree are labeled by output values.
+
+   The number of rounds in the instance is the depth of the tree.
+   The goal of the problem is for the players to sample the leaf according to the distribution that is
+obtained by sampling each child according to the distribution specified by the owner of the parent.
+We give a way to measure the correlation between the knowledge of the two parties in the problem.
+Given an instance F of the correlated pointer jumping problem and a vertex from the tree, we
+write Fv to denote the correlated pointer jumping problem associated with the tree rooted at v.
+
+
+
+                                                 11
+Definition 4.1 (Divergence Cost). The divergence cost of a correlated pointer jumping instance
+whose root is v, denoted D (F ), is recursively defined as follows:
+                 
+                 0
+                                                                        if the tree has depth 0
+       D (F ) = D (child(v)x ||child(v)y ) + Ew∈R child(v)x [D (Fw )] if v is owned by Px
+                 
+                   D (child(v)y ||child(v)x ) + Ew∈R child(v)y [D (Fw )] if v is owned by Py
+                 
+
+   We can use our sampling lemma to solve the correlated pointer jumping problem.
+
+Theorem 4.2. Let F be an r-round correlated pointer jumping instance. Then there is a protocol
+to sample a leaf such that there is an event E, with P[E] > 1 − rε, and conditioned on E, the
+sampled leaf has the correct distribution
+                                    p     and conditioned on E, the expected communication of the
+protocol is D (F ) + r log(1/ε) + O( rD (F ) + r).
+
+Proof. We prove the theorem by induction on the depth r. For r = 0 the statement is true, since the
+sampling is trivial. Suppose the statement is true for depth (r − 1) instances. Suppose, without loss
+of generality, that the root v of F is owned by Px . Then for each w ∈ child(v) there is a protocol to
+sample a leaf from Fw and an event Ew with P[Ew ] > 1 − (r − 1)ε such that p conditioned on Ew , the
+expected communication of the protocol is D (Fw )+(r−1) log(1/ε)+C ·( (r − 1)(D (Fw )+(r−1))
+for a constant C. Denote Drt := D (child(v)x ||child(v)y ) and Dch := Ew∈R child(v)x [D (Fw )]. Then
+by definition, D (F ) = Drt + Dch .
+     By the sampling theorem, and specifically by Lemma 3.5, there is a protocol for sending the
+first message and an event E ′ such that the expected communication conditioned on E ′ is
+                                                         p
+                                   Drt + log(1/ε) + C · ( Drt + 1),
+
+and P[E ′ ] > 1 − ε. Let E be the event that E ′ holds, child w is sampled and Ew holds. Then
+clearly P[E] > 1 − rε, and conditioned of E holding the communication of the protocol is
+                        p
+  Drt + log(1/ε) + C · ( Drt + 1)+
+                       h                                  p                         i
+                E       D (Fw ) + (r − 1) log(1/ε) + C · ( (r − 1)D (Fw ) + (r − 1)) ≤
+            w∈R child(v)x
+                                                         p     p
+                      D (F ) + r log(1/ε) + C · r + C · ( Drt + (r − 1)Dch ) ≤
+                                                                                         p
+                                                      D (F ) + r log(1/ε) + C · r + C · ( r · D (F ))
+                                            √
+The first inequality is by the concavity of   , and the second one holds by the Cauchy Schwartz
+inequality since D (F ) = Drt + Dch . This completes the proof of the inductive step.
+
+    A key fact is that both the internal and external information cost of a protocol can be used
+to bound the expected divergence cost of an associated distribution on correlated pointer jumping
+instances. Since, in this work, we only require the connection to internal information cost, we shall
+restrict our attention to it.
+    Given a public coin protocol with inputs X, Y and public randomness R, for every fixing of
+x, y, r, we obtain an instance of correlated pointer jumping. The tree is the same as the protocol
+tree with public randomness r. If a node v at depth d is owned by Px , let M be the random variable
+denoting the child of v that is picked. Then define child(v)x so that it has the same distribution as
+
+
+                                                 12
+M | X = x, π(X, Y )≤d = rv, and child(v)y so it has the same distribution as M | Y = y, π(X, Y )≤d =
+rv. We denote this instance of correlated sampling by Fπ (x, y, r). Let µ denote the distribution on
+X, Y . Next we relate the average divergence cost of this instance to the internal information cost
+of π:
+
+Lemma 4.3. EX,Y,R [D (Fπ (x, y, r))] = ICi µ (π)
+
+Proof. We shall prove that for every r, EX,Y,R [D (Fπ (x, y, r))] = ICi µ (πr ). The proof can then be
+completed by Lemma 2.14.
+    So without loss of generality, assume that π is a private coin protocol, and write F (x, y) to
+denote the corresponding divergence cost. We shall prove this by induction on the depth of the
+protocol tree of π. If the depth is 0, then both quantities are 0. For the inductive step, without
+loss of generality, assume that Px owns the root node of the protocol. Let M denote the child of
+the root that is sampled during the protocol, and let F (x, y)m denote the divergence cost of the
+subtrees rooted at m. Then
+
+                                                                 "                                    #
+       E [D (F (x, y))] = E [D (child(v)X ||child(v)Y )] + E               E          [D (F (X, Y )M )]   (1)
+       X,Y                  X,Y                            X,Y       M ∈R child(v)X
+
+
+     Since for every x, y, M |xy has the same distribution as M |x, Proposition 2.8 gives that the
+first term in Equation 1 is exactly equal to I(X; M |Y ) = I(X; M |Y ) + I(Y ; M |X). We can rewrite
+the second term EM [EX,Y [D (F (X, Y )M )]]. For each fixing of M = m, we can use the inductive
+hypothesis to show that the inner expectation is equal to I(X; π(X, Y )|Y m) + I(Y ; π(X, Y )|Xm).
+Together, these two bounds imply that
+
+               E [D (F (x, y))]
+              X,Y
+
+              = I(X; M |Y ) + I(Y ; M |X) + I(X; π(X, Y )|Y M ) + I(Y ; π(X, Y )|XM )
+              = ICi µ (π)
+
+
+
+
+5     Applications
+In this section, we use Theorem 4.2 to prove a few results about compression and direct sums.
+
+5.1   Compression and Direct sum for bounded-round protocols
+We start by proving our result about compressing bounded round protocols:
+
+Proof of Corollary 1.2. The proof follows by applying our sampling procedure to the correlated
+pointer jumping instance Fπ (x, y, r). For each fixing of x, y, r, define the event Gx,y,r to be the
+event E from Theorem 4.2. Then we have that P[G] > 1 − rε. Conditioned on G, we sample from
+
+
+
+
+                                                   13
+exactly the right distribution, and the expected communication of the protocol is
+                 h                                   p                       i
+             E     D (Fπ (X, Y, R)) + r log(1/ε) + O(  rD (Fπ (X, Y, R)) + r)
+           X,Y,R
+                                                                                         !
+                                                            r
+           ≤ E [D (Fπ (X, Y, R))] + r log(1/ε) + O               E [rD (Fπ (X, Y, R))] + r ,
+              X,Y,R                                            X,Y,R
+
+where the inequality follows from the concavity of the square root function. By Lemma 4.3, this
+                                                             i
+                                                                                  p
+proves that the expected communication conditioned on G is IC µ (π)+r log(1/ε)+O    rICi µ (π) + r .
+
+
+
+5.2   Information = amortized communication
+In this section we will show that Theorem 4.2 reveals a tight connection between the amount
+of information that has to be revealed by a protocol computing a function f and the amortized
+communication complexity of computing many copies of f . Recall that ICi µ (f, ρ) denotes the
+smallest possible internal information cost of any protocol computing f with probability of failure
+at most ρ when the inputs are drawn from the distribution µ. Observe that ICi µ (f, ρ) is an infimum
+over all possible protocols and may not be achievable by any individual protocol. It is also clear
+that ICi µ (f, ρ) may only increase as ρ decreases.
+    We first make the following simple observation.
+Claim 5.1. For each f , ρ and µ,
+
+                                      lim ICi µ (f, α) = ICi µ (f, ρ)
+                                     α→ρ
+
+Proof. The idea is that if we have any protocol with internal information cost I, error δ and input
+length ℓ, for every ε we can decrease the error to (1 − ε)δ at the cost of increasing the information
+by at most ε · ℓ just by using public randomness to run the original protocol with probability 1 − ε,
+and with probability ε, run the trivial protocol where the players simply exchange their inputs.
+Thus as α tends to ρ, the information cost of the best protocols must tend to each other.
+
+    Next we define the amortized communication complexity of f . We define it to be the cost of
+computing n copies of f with error ρ in each coordinate, divided by n. Note that computing n
+copies of f with error ρ in each coordinate is in general an easier task than computing n copies
+of f with probability of success 1 − ρ for all copies. We use the notation Dρµ,n (f ) to denote the
+communication complexity for this task, when the inputs for each coordinate are sampled according
+to µ. Dρµ,n (f ) was formally defined in Definition 2.16.
+    It is trivial to see in this case that Dρµ,n (f ) ≤ n · Dρµ (f ). The amortized communication com-
+plexity of f with respect to µ is the limit
+
+                                     AC(fρµ ) := lim Dρµ,n (f )/n,
+                                                  n→∞
+
+when the limit exists. We prove an exact equality between amortized communication complexity
+and the information cost:
+Theorem 5.2.
+                                         AC(fρµ ) = ICi µ (f, ρ).
+
+
+                                                   14
+Proof. There are two directions in the proof:
+AC(fρµ ) ≥ ICi µ (f, ρ). This is a direct consequence of Theorem 2.17.
+ AC(fρµ ) ≤ ICi µ (f, ρ). Let δ > 0. We will show that Dρµ,n (f )/n < ICi µ (f, ρ) + δ for all sufficiently
+large n.
+    By Claim 5.1 there is an α < ρ such that ICi µ (f, α) < ICi µ (f, ρ) + δ/4. Thus there is a protocol
+π that computes f with error < α with respect to µ and that has an internal information cost
+bounded by I := ICi µ (f, ρ) + δ/2. Denote by C the communication complexity of π. C can be very
+large compared to I. For every n, the protocol π n that is comprised of n independent copies of π
+that are executed in parallel, computes n copies of f as per Definition 2.16 with error bounded by
+α.
+    The internal information cost of π n is n · I, and by Theorem 4.2 we can simulate π n with a total
+error ε < ρ − α using                                        √
+                               Cn := n · I + C · log 1/ε + O( C · I · n + C)
+bits of communication. The total additional error is ε and hence the new protocol makes at most
+an error α + ε < ρ on each copy of f . Hence Dρµ,n (f ) ≤ Cn . By letting n be large enough (with
+respect to C and 1/ε) we see that we can make Dρµ,n (f ) ≤ Cn < n · I + nδ/2, thus completing the
+proof.
+
+5.3      A complete problem for direct sum
+Let f n denote the function mapping n inputs to n outputs according to f . We will show that the
+promise version of the correlated pointer jumping problem is complete for direct sum. In other
+words, if near-optimal protocols for correlated pointer jumping exist, then direct sum holds for all
+promise problems. On the other hand, if there are no near-optimal protocols for correlated pointer
+jumping, then direct sum fails to hold, with the problem itself as the counterexample. Thus any
+proof of direct sum for randomized communication complexity must give (or at least demonstrate
+existence) of near-optimal protocols for the problem.
+    We define the CPJ(C, I) promise problem as follows.
+Definition 5.3. The CPJ(C, I) is a promise problem, where the players are provided with a binary
+instance4 F of a C-round pointer jumping problem, i.e. player Px is provided with the distributions
+child(v)x and Py is provided with the distributions child(v)y for each v, with the following additional
+guarantees:
+      • the divergence cost D (F ) ≤ I;
+      • let µF be the correct distribution on the leafs of F ; each leaf z of F are labeled with ℓ(z) ∈
+        {0, 1} so that there is a value g = g(F ) such that Pz∈R µF [ℓ(z) = g(F )] > 1 − ε, for some small
+        ε. The goal of the players is to output g(F ) with probability > 1 − 2ε.
+   Note that players who know how to sample from F can easily solve the CPJ problem. It follows
+from [BBCR10] that:
+Theorem 5.4. If CPJ(C, I) has a randomized protocol that uses T (C, I) := CC(CPJ(C, I)) com-
+munication, so that T (C, C/n) < C/k(n), then for each f ,
+                                        CC(f n ) = Ω(k(n) · CC(f )).
+  4
+      Each vertex has degree 2.
+
+
+                                                    15
+                                         √                                             √
+    In [BBCR10] a bound of T (C, I) = Õ( C · I) is shown, which implies CC(f n ) = Ω̃( n · CC(f ))
+for any f . Using Theorem 4.2 we are able to prove the converse direction.
+
+Theorem 5.5. For any C > I > 0, set n := ⌊C/I⌋, then
+
+                                 CC(CPJ(C, I)n ) = O(C log(nC/ε)).
+
+   Thus, if there are parameters C and n such that CPJ(C, C/n) cannot be solved using I = C/n
+communication, i.e. T (C, C/n) > C/k(n) ≫ C/n, then CPJ(C, C/n) is a counterexample to direct
+sum, i.e.
+
+CC(CPJ(C, I)n ) = O(C log nC/ε) = Õ(C) = Õ(k(n)CC(CPJ(C, C/n))) = o(n · CC(CPJ(C, C/n))).
+
+Proof. (of Theorem 5.5) We solve CPJ(C, I)n by taking m := n log n copies of the CPJ(C, I) problem
+representing log n copies of each of the n instances. The players will compute all the copies in parallel
+with error < 2ε, and then take a majority of the log n copies for each instance. For a sufficiently
+large n this guarantees the correct answer for all n instances except with probability < ε. Thus our
+goal is to simulate m copies of CPJ(C, I). We view CPJ(C, I)m as a degree-2m , C-round correlated
+pointer jumping problem in the natural way. Each node represents a vector V = (v1 , . . . , vm ) of
+m nodes in the m copies of CPJ(C, I). The children of V are the 2m possible combinations of
+children of {v1 , . . . , vm }. The distribution on the children is the product distribution induced by
+the distributions in v1 , . . . , vm . We claim that
+                                                                m
+                                                                X
+                                CPJ(C, I)nv1 ,...,vm
+                                                       
+                            D                              =          D (CPJ(C, I)vi ) .             (2)
+                                                                i=1
+
+This follows easily by induction on the tree, since the distribution on each node is a product
+distribution, and for each independent pairs (P1 , Q1 ), . . . , (Pm , Qm ) we have
+
+         D (P1 × P2 × . . . × Pm ||Q1 × Q2 × . . . × Qm ) = D (P1 ||Q1 ) + . . . + D (Pm ||Qm ) ,
+
+by Lemma 2.9. By applying (2) to the root of the tree we see that D (CPJ(C, I)m ) ≤ m·I ≤ C log n.
+Thus Theorem 4.2 implies that CPJ(C, I)n can be solved with an additional error of ε/2 using an
+expected
+                                C log n + C log C/ε + o(C log n)
+bits of communication.
+
+
+6    Acknowledgments
+We thank Boaz Barak and Xi Chen for useful discussions.
+
+
+References
+[BBCR10] B. Barak, M. Braverman, X. Chen, and A. Rao. How to compress interactive communi-
+         cation. In Proceedings of the 42nd Annual ACM Symposium on Theory of Computing,
+         2010.
+
+
+                                                           16
+[BYJKS04] Z. Bar-Yossef, T. S. Jayram, R. Kumar, and D. Sivakumar. An information statistics
+          approach to data stream and communication complexity. Journal of Computer and
+          System Sciences, 68(4):702–732, 2004.
+
+[CSWY01] A. Chakrabarti, Y. Shi, A. Wirth, and A. Yao. Informational complexity and the direct
+         sum problem for simultaneous message complexity. In B. Werner, editor, Proceedings
+         of the 42nd Annual IEEE Symposium on Foundations of Computer Science, pages
+         270–278, Los Alamitos, CA, Oct. 14–17 2001. IEEE Computer Society.
+
+[CT91]     T. M. Cover and J. A. Thomas. Elements of Information Theory. Wiley series in
+           telecommunications. J. Wiley and Sons, New York, 1991.
+
+[FKNN91] T. Feder, E. Kushilevitz, M. Naor, and N. Nisan. Amortized communication com-
+         plexity. SIAM Journal on Computing, 24(4):736–750, 1995. Prelim version by Feder,
+         Kushilevitz, Naor FOCS 1991.
+
+[GF81]     G. Galbiati and M. Fischer. On the complexity of 2-output boolean networks. Theor.
+           Comput. Sci., 16:177–185, 1981.
+
+[HJMR07] P. Harsha, R. Jain, D. A. McAllester, and J. Radhakrishnan. The communication
+         complexity of correlation. In IEEE Conference on Computational Complexity, pages
+         10–23. IEEE Computer Society, 2007.
+
+[JRS03]    R. Jain, J. Radhakrishnan, and P. Sen. A direct sum theorem in communication
+           complexity via message compression. In J. C. M. Baeten, J. K. Lenstra, J. Parrow,
+           and G. J. Woeginger, editors, ICALP, volume 2719 of Lecture Notes in Computer
+           Science, pages 300–315. Springer, 2003.
+
+[JRS05]    R. Jain, J. Radhakrishnan, and P. Sen. Prior entanglement, message compression and
+           privacy in quantum communication. In IEEE Conference on Computational Complex-
+           ity, pages 285–296. IEEE Computer Society, 2005.
+
+[KN97]     E. Kushilevitz and N. Nisan. Communication complexity. Cambridge University Press,
+           Cambridge, 1997.
+
+[KRW91]    M. Karchmer, R. Raz, and A. Wigderson. Super-logarithmic depth lower bounds via
+           the direct sum in communication complexity. Computational Complexity, 5(3/4):191–
+           204, 1995. Prelim version CCC 1991.
+
+[Pau76]    W. Paul. Realizing boolean functions on disjoint sets of variables. Theor. Comput.
+           Sci., 2:383–396, 1976.
+
+[Raz95]    R. Raz. A parallel repetition theorem. SIAM Journal on Computing, 27(3):763–803,
+           June 1998. Prelim version in STOC ’95.
+
+[Sha48]    C. E. Shannon. A mathematical theory of communication. Bell System Technical
+           Journal, 27, 1948. Monograph B-1598.
+
+[Sha03]    R. Shaltiel. Towards proving strong direct product theorems. Computational Com-
+           plexity, 12(1-2):1–22, 2003.
+
+
+                                             17
+[Uhl74]   D. Uhlig. On the synthesis of self-correcting schemes from functional elements with a
+          small number of reliable elements. Matematicheskie Zametki, 15(6):937–944, 1974.
+
+[Yao82]   A. C.-C. Yao. Theory and applications of trapdoor functions (extended abstract). In
+          FOCS, pages 80–91. IEEE, 1982.
+
+
+
+
+                                             18
+                                                                    ECCC                     ISSN 1433-8092
+
+                                                                    http://eccc.hpi-web.de
+

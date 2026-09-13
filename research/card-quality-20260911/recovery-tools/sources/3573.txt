@@ -1,0 +1,1392 @@
+Distributional Property Testing in a Quantum
+World
+András Gilyén
+QuSoft, CWI and University of Amsterdam, The Netherlands
+gilyen@cwi.nl
+Tongyang Li
+Department of Computer Science, Institute for Advanced Computer Studies,
+University of Maryland, USA
+Joint Center for Quantum Information and Computer Science,
+University of Maryland, USA
+tongyang@cs.umd.edu
+
+      Abstract
+A fundamental problem in statistics and learning theory is to test properties of distributions. We
+show that quantum computers can solve such problems with significant speed-ups. We also introduce
+a novel access model for quantum distributions, enabling the coherent preparation of quantum
+samples, and propose a general framework that can naturally handle both classical and quantum
+distributions in a unified manner. Our framework generalizes and improves previous quantum
+algorithms for testing closeness between unknown distributions, testing independence between two
+distributions, and estimating the Shannon / von Neumann entropy of distributions. For classical
+distributions our algorithms significantly improve the precision dependence of some earlier results.
+We also show that in our framework procedures for classical distributions can be directly lifted
+to the more general case of quantum distributions, and thus obtain the first speed-ups for testing
+properties of density operators that can be accessed coherently rather than only via sampling.
+
+2012 ACM Subject Classification Mathematics of computing → Distribution functions; Theory of
+computation → Algorithm design techniques; Theory of computation → Quantum query complexity
+
+Keywords and phrases distributional property testing, quantum algorithms, quantum query com-
+plexity
+
+Digital Object Identifier 10.4230/LIPIcs.ITCS.2020.25
+
+Related Version The arXiv version of the paper is available at https://arxiv.org/abs/1902.00814.
+
+Funding András Gilyén: Supported by ERC Consolidator Grant QPROGRESS and partially
+supported by QuantERA project QuantAlgo 680-91-034.
+Tongyang Li: Supported by IBM PhD Fellowship, QISE-NET Triplet Award (NSF DMR-1747426),
+and the U.S. Department of Energy, Office of Science, Office of Advanced Scientific Computing
+Research, Quantum Algorithms Teams program.
+
+Acknowledgements A.G. thanks Ronald de Wolf, Ignacio Cirac and Yimin Ge for useful discussion.
+T.L. thanks Xiaodi Wu and Nengkun Yu for useful discussion.
+
+
+ 1      Introduction
+Distributional property testing is a fundamental problem in theoretical computer science
+(see, e.g. [22]) aiming at determining properties of probability distributions with the least
+number of independent samples. It has intimate connections and applications to statistics,
+learning theory, and algorithm design.
+    The merit of distributional property testing mainly comes from the fact that the testing of
+many properties admits sublinear algorithms. For instance, given the ability to take samples
+from a discrete distribution p on [n] := {1, . . . , n}, it requires Θ(n/2 ) samples to “learn” p,
+            © András Gilyén and Tongyang Li;
+            licensed under Creative Commons License CC-BY
+11th Innovations in Theoretical Computer Science Conference (ITCS 2020).
+Editor: Thomas Vidick; Article No. 25; pp. 25:1–25:19
+                   Leibniz International Proceedings in Informatics
+                   Schloss Dagstuhl – Leibniz-Zentrum für Informatik, Dagstuhl Publishing, Germany
+25:2   Distributional Property Testing in a Quantum World
+
+
+       i.e., to construct a distribution q on [n] such that kp − qk1 ≤  with success probability at
+       least 2/3 (k · k1 being `1 -distance). However, testing whether p = q or kp − qk1 >  requires
+                       2/3   1/2
+       only Θ(max{ n4/3 , n2 }) samples from p and q [19], which is sublinear in n and significantly
+       smaller than the complexity of learning the entire distributions. See Section 1.4 for more
+       examples and discussions.
+            In this paper, we study the impact of quantum computation on distributional property
+       testing problems. We are motivated by the emerging topic of “quantum property testing” (see
+       the survey of [30]) which focuses on investigating the quantum advantage in testing classical
+       statistical properties. Quantum speed-ups have already been established for a few specific
+       problems such as testing closeness between distributions [13, 29], testing identity to known
+       distributions [18], estimating entropies [27], etc. In this paper we propose a generic approach
+       for quantum distributional property testing, and illustrate its power on a few examples. This
+       is our attempt to make progress on the question:
+
+       Can quantum computers test properties of distributions systematically and more efficiently?
+
+       1.1      Problem statements
+       Throughout the paper, we denote probability distributions on [n] by p and q; their `α -distance
+                                  Pn                 1
+       is defined as kp − qkα := ( i=1 |pi − qi |α ) α . Similarly, we denote n × n density operators1
+       (i.e., quantum distributions) by ρ and σ; their `α -distance is defined via the corresponding
+       Schatten norm.
+
+       Input models. To formulate the problems we address, we define classical and quantum
+       access models for distributions on [n]. We begin with the very natural model of sampling.
+
+       I Definition 1 (Sampling). A classical distribution (pi )ni=1 is accessible via classical sampling
+       if we can request independent samples from the distribution, i.e., get a random i ∈ [n] with
+       probability pi . A quantum distribution ρ ∈ Cn×n is accessible via quantum sampling if we
+       can request independent copies of the state ρ.
+
+           Now we define a coherent analogue of the above sampling model. To our knowledge
+       this type of query-access was only studied by a few earlier works [29, 24] and only in the
+       special case of classical distributions. The motivation for this input model is the following:
+       we can think about a density operator as the outcome of some physical process modeled by
+       some black-box. Suppose that the black-box can generate samples on demand. Unlike in
+       the classical (randomized) setting, in a quantum scenario in principle it is always possible
+       to reverse every computational / physical process – including this black-box. If reversion
+       is not feasible, then we get the plain sampling model; however if it is possible to reverse
+       the (quantum) black-box then we get the purified query access model that we describe. For
+       example, if a quantum computer produces the samples via, say, a Monte Carlo method, then
+       the process is easily reversible. However, if the samples come from some source “outside
+       the lab”, then reversing the process might not be possible. Therefore, both input models
+       (purified quantum query access and sampling access) are well-motivated. The surprising
+       fact is that this subtle difference in the input models gives rise to significantly different
+       complexities, as we show later for several problems.
+
+
+       1
+           For readers less familiar with quantum computing, a density operator (=quantum distribution) ρ ∈ Cn×n
+           is a positive semidefinite matrix with Tr[ρ] = 1. Please refer to the textbook [31] for more information.
+A. Gilyén and T. Li                                                                                                25:3
+
+
+I Definition 2 (Purified quantum query-access). A density operator ρ ∈ Cn×n , has purified
+quantum query-access if we have access to a unitary oracle Uρ (and its inverse) acting as2
+                                     n
+                                     X √
+    Uρ |0iA |0iB = |ψρ iAB =               pi |φi iA |ψi iB , (where hφi |φj i = hψi |ψj i = (Kronecker) δij )
+                                     i=1
+                                                        Pn
+such that TrA (|ψρ ihψρ |) = ρ. If |ψi i = |ii, then ρ = i pi |iihi| is a diagonal density operator
+which can be identified with the classical distribution p, so we can simply write Up instead of
+Uρ . With a slight abuse of notation sometimes we will concisely write |ρi instead of |ψρ i.
+    We also define an even stronger input model that is considered in a series of earlier works,
+see, e.g., [13, 18, 27, 15].
+I Definition 3 (Classical distribution with discrete query-access). A classical distribution
+(pi )ni=1 , has discrete query-access if we have classical / quantum query-access to a function
+f : S → [n] such that for all i ∈ [n], pi = |{s ∈ [S] : f (s) = i}|/|S|. (Typically the interesting
+regime is when |S|  n.) In the quantum case a query oracle is a unitary operator O acting
+on C|S| ⊗ Cn as
+
+    O : |s, 0i ↔ |s, f (s)i for all s ∈ S.
+
+Note that if one first creates a uniform superposition over S and then makes a query, then
+the above oracle turns into a purified query oracle to a classical distribution as in Definition 2.
+Therefore all lower bounds that are proven in this model also apply to the purified query-
+access oracles. In fact all algorithms that the authors are aware of do this conversion, so they
+effectively work in the purified query-access model. Moreover, we conjecture that the two
+input models are equivalent when |S|  n. For this reason we only work with the purified
+query-access model in this work.
+    Another strengthening of the purified query-access model for classical distributions is
+                                                                            Pn √
+when we assume access to a unitary (and its inverse) acting as |0i 7→ i=1 pi |ii. A very
+similar input model was thoroughly studied by [4].
+I Definition 4 (Classical distribution with pure-state preparation access). A classical distribution
+(pi )ni=1 , is accessible via pure state preparation oracle if we have access to a unitary oracle
+Upure (and its inverse) acting as
+                     n
+                     X √
+    Upure : |0i 7→         pi |ii.
+                     i=1
+
+   This is strictly stronger3 than the purified query-access model. In order to simulate
+purified queries we can first do a pure state query and then copy |ii to a second fresh ancillary
+
+
+2
+  |ψi ∈ Cn denotes a “ket” vector and hψ| = (|ψi)† stands for its conjugate transpose, called “bra” in Dirac
+  notation; |ii =~ei is the ith basis vector. An `2 -normalized |ψi is called a pure state, and corresponds to
+  density operator |ψihψ|. For A = Ck , B = Cn and |φi ∈ A⊗B we denote by Tr[|φihφ|]A ∈ B⊗B ∗ = Cn×n
+  the partial trace over A.
+3
+  This can be seen in various ways. We give an argument in the spirit of distributional property testing.
+  Closeness of two unknown distributions p, q can be tolerantly tested in the squared Hellinger distance
+                   √     √ 2                                                √ 
+  H(p, q)2 = 12      p− q       to precision  in query complexity O 1/  in the model of Definition 4
+                              2
+  using amplitude estimation. On the other hand the classical sample complexity of testing equality to 
+  precision in this metric is Θ e (min(n2/3 /4/3 , n3/4 /)), as shown in [20]. The results of Chailloux [16]
+  imply that this query complexity improves at most cubically in the model of Definition 2, showing that
+  the input model of Definition 4 is strictly stronger.
+
+
+
+
+                                                                                                                 ITCS 2020
+25:4   Distributional Property Testing in a Quantum World
+
+
+       register using, e.g., some CNOT gates. Finally, for completeness we mention that one could
+       also consider a model similar to the above where one can only request samples of pure states
+                    Pn √
+       of the form i=1 pi |ii, as studied for example in [6, 5].
+           We will mostly focus on the first two input models and will only use the latter strength-
+       enings of the purified query-access model for invoking and proving lower bounds.
+
+       Property testing problems. We study three distributional properties: `α -closeness testing,
+       independence testing, and entropy estimation. In the classical literature these are well-studied
+       properties, and the corresponding testers motivate general algorithms for testing properties
+       of discrete distributions [20, 1].
+           For brevity we only give the definitions for classical distributions; similar definitions apply
+       to quantum density matrices if we replace vector norms by the corresponding Schatten norms.
+
+
+       I Definition 5 (`α -closeness testing). Given  > 0 and two probability distributions p, q on
+       [n], `α -closeness testing is to decide whether p = q or kp−qkα ≥  with success probability
+       at least 23 . Tolerant testing: decide whether kp−qkα ≤ 0.99 or kp−qkα ≥  with success
+       probability at least 23 .
+
+       I Definition 6 (Independence testing). Given  > 0 and a probability distribution p on
+       [n] × [m] with n ≥ m, independence testing is to decide, with success probability at least 23 ,
+       whether p is a product distribution or p is -far in `1 -norm from any product distribution on
+       [n] × [m] .
+
+       I Definition 7 (Entropy estimation). Given  > 0 and a density operator ρ ∈ Cn×n , entropy
+       estimation is to estimate the Shannon / von Neumann entropy H(ρ) = −Tr[ρ log(ρ)] within
+       additive -precision with success probability at least 23 .
+
+       1.2      New results
+       We give a systematic study of distributional property testing for classical / quantum distribu-
+       tions, and obtain the following results for the purified quantum query
+                                                                            √ model
+                                                                                      of Definition 2:
+                                                                               n           n
+                                                                                              
+           Entropy estimation of classical / quantum distributions costs O 1.5 and O
+                                                                         e
+                                                                                     
+                                                                                        e 1.5   queries
+                                                                                                    
+            respectively,4 as we prove in Theorem 12 and Theorem 13.
+                                      testing of classical / quantum distributions costs Θ̃ 1 and
+                                                                                              
+            Tolerant   `2 -closeness
+                    √       
+            O min n, 12 queries respectively, as we prove in Theorem 14 and Theorem 15.
+                            
+                                                                               √ 
+                                                                             e n and O n queries
+                                                                                            
+            `1 -closeness testing of classical / quantum distributions costs O           
+            respectively, as we prove in Corollary 17.                             √ 
+                                                                                 e nm and O nm
+                                                                                                 
+            Independence testing of classical / quantum distributions costs O                                
+            queries respectively, as we prove in Corollary 18.
+       For context, we compare our results with previous classical and quantum results in Table 1
+       and Table 2. (Note that all of our results are gate efficient, because they are based on
+       singular value transformation and amplitude estimation, both of which have gate-efficient
+       implementations.)
+
+
+       4
+           Throughout the paper, we use O  e to omit poly-logarithmic factors in O, i.e., O(T
+                                                                                          e ) = O(T poly(log T )).
+       5
+           Recent results of [16] imply that in this model quantum speed-ups are at most cubic.
+A. Gilyén and T. Li                                                                                                                                         25:5
+
+
+   Table 1 Summary of sample and query complexity results. Our new bounds are printed in bold.
+For classical distributions with quantum query-access5 we prove (almost) matching upper and lower
+                                                                  e √n/2.5 for `1 -testing by [29]
+                                                                           
+bounds for `2 -testing, and improve the previous best complexity O
+     e √n/2 for Shannon entropy estimation by [27]. We are not aware of prior work on testing
+               
+and O
+quantum distributions with purified query-access.
+
+                        problem
+                                        `1 -closeness testing               (tolerant) `2 -closeness testing   Shannon / von Neumann entropy
+ model
+                                             n 2/3         1/2
+                                                                o                                                                 2
+                                                                                                                                           
+                                                n
+ Classical distribution sampling   Θ max        4/3
+                                                     , n2           [19]                 1
+                                                                                       Θ 2        [19]          Θ        n
+                                                                                                                        log n
+                                                                                                                               + log2 n       [25, 42]
+   Classical distribution with
+                                                   √ 
+                                                        n
+                                                                                                                        √ 
+                                                                                                                             n         √
+                                               O
+                                               e
+                                                       
+                                                                                        Θ̃ 1                        O
+                                                                                                                     e
+                                                                                                                           1.5
+                                                                                                                                  ; Ω̃( n) [15]
+     purified query-access
+                                                                                          √
+      Quantum state with                                                                                                        
+                                                       n                                        n 1                               n
+                                                O      
+                                                                                 O min         
+                                                                                                 , 2                         O
+                                                                                                                              e 1.5
+                                                                                                                                
+     purified query-access                                                                                                  2  2
+                                                                                              
+    Quantum state sampling                     Θ n2       [7]                         Θ 12       [7]                 O    n
+                                                                                                                            2
+                                                                                                                                  ,Ω   n
+                                                                                                                                        
+                                                                                                                                                [3]
+
+
+
+
+   As we show our quantum algorithms for classical distributional property testing problems
+with purified access can be naturally lifted to the case of quantum distributions, incurring
+                  √
+an overhead of ≈ n, which is manifested in the complexities of Table 1.
+
+    Table 2 Complexities of Shannon / von Neumann entropy estimation with constant precision.
+It seems that the n-dependence is roughly quadratically higher for quantum distributions, while
+coherent quantum access gives a quadratic advantage for both classical and quantum distributions.
+This suggests that our entropy estimation algorithm has essentially optimal n-dependence for density
+operators with purified access, however we do not have a matching lower bound yet.
+
+                                              Sample complexity                (Purified) Query complexity
+                                                                                             √ 
+                            Classical            Θ logn n [40]                          Θ
+                                                                                        e      n [27, 15]
+                                                                 
+                            Quantum                 Θ n2 [3]                                       O(n)
+                                                                                                   e
+
+
+
+
+1.3      New techniques
+The motivating idea behind our approach is that if we can prepare a purification of a quantum
+distribution / density operator ρ, then we can construct a unitary U , which has this density
+operator in the top-left corner, using only two queries to Uρ . This observation is due to [28].
+We call such a unitary a block-encoding of ρ:
+               
+           ρ .
+                     ⇐⇒ ρ = h0|⊗a ⊗ I U |0i⊗a ⊗ I .
+                                                        
+    U=
+           . .
+
+One can think of a block-encoding as a post-selective implementation of the linear map ρ:
+given an input state |ψi, applying the unitary U to the state |0i⊗a |ψi, measuring the first
+a-qubit register and post-selecting on the |0i⊗a outcome, we get a state ∝ ρ|ψi in the second
+register. Block-encodings are easy to work with, for example given a block-encoding of ρ and
+σ we can easily construct a block-encoding of (ρ − σ)/2, see for example in the work of [17].
+
+                        3
+Example application to ` -testing.
+                                   The problem is to decide whether ρ = σ or kρ − σk3 ≥ ,
+                                          3
+with query complexity O − 2 . The first idea is that if we can prepare a purification of ρ
+and σ, then we can also prepare a purification of (ρ + σ)/2 by setting a qubit to the state
+
+
+
+
+                                                                                                                                                          ITCS 2020
+25:6   Distributional Property Testing in a Quantum World
+
+                   √
+       (|0i + |1i)/ 2, and then controlled on the |0i or |1i value of the qubit run the process that
+       samples from ρ or σ, respectively. The second idea is to combine the block-encodings of ρ
+       and σ to apply the map ρ−σ2 to the purification of (ρ + σ)/2, to get
+                                        
+            ρ+σ          ρ−σ         ρ+σ
+                    7→        ⊗I             |0i + . . . |1i.
+               2           2           2
+                                                                        3
+       Finally, apply amplitude estimation with setting M = Θ(− 2 ). This
+                                                                                since ifkρ − σk3 ≥
+                                                                            works
+       , then the |0i ancilla state has probability Tr (ρ − σ)2 (ρ + σ) /8 ≥ Tr |ρ − σ|3 /8 ≥ 3 /8.
+
+       Working with singular values. The above is a promising approach because it directly makes
+       the density operator in question operationally accessible. However, it turns out that using
+       this simple block-encodings is often suboptimal for distribution testing, because a query
+       in some sense gives access to the square-root of ρ, whereas this unitary has ρ itself in the
+       top-left corner. Since the problems often heavily depend on smaller eigenvalues of ρ, the
+       square root of ρ is more desirable since it has quadratically larger singular/eigenvalues.
+           One of our main technical contributions is to use a new type of block-encoding, which is a
+       unitary matrix having a certain block proportional to a matrix A such that A† A = ρ, i.e., we
+       use a “square-root” of the (quantum) distribution ρ (in the case of classical distributions rho
+       is a diagonal matrix with the probabilities as diagonal entries). This new technique allows us
+       to develop a unified approach for distributional property testing, which we consider one of
+       our major contributions. It is this new perspective that enables us to derive several results
+       in a relatively short paper. Once we establish this methodology the results are relatively
+       easy to derive in a systematic way, both for classical and quantum distributions.
+           Therefore, we show how to efficiently construct a unitary matrix whose top-left corner
+                                                 √         √
+       contains a matrix with singular values p1 , . . . , pn , given purified access to a classical
+       distribution p. To be more precise, we define a slight generalization of block-encodings called
+       projected unitary encodings, which represent a matrix A in the form of ΠU Π,     e where Π, Π e
+       are orthogonal projectors and U is a unitary matrix. One can think about     U in a projected
+       unitary encoding as a post-selective implementation of the map A : img Π     e → img(Π). Take
+                                           Pn
+       for example U := (Up ⊗ I), Π := (         I ⊗ |iihi| ⊗ |iihi|), and Π
+                                                   i=1
+                                                                           e := (|0ih0| ⊗ |0ih0| ⊗ I). As
+       we show in Appendix A these operators form a projected unitary encoding of
+                          n
+                          X √
+            A = ΠU Π
+                   e=           pi |φi ih0| ⊗ |iih0| ⊗ |iihi|.                                       (1)
+                          i=1
+
+           We can use a similar trick for a general density operator ρ too. However, there is a
+       major difficulty which arises from the fact that we do not a prioiri know the diagonalizing
+       basis of ρ. Therefore we use slightly different    operators. Let W be a unitary,6 mapping
+                Pn |ji|ji          0           †
+                                                  †       0
+       |0i|0i 7→ j=1 n . Let U := I ⊗ Uρ W ⊗ I , Π := (I ⊗ |0ih0| ⊗ |0ih0|) and Π
+                        √                                                               e as above.
+       As we show in Appendix A these operators form a projected unitary encoding of
+                           n r
+             0    0 0e
+                          X     pi 0
+           A =ΠU Π=               |φ ih0| ⊗ |0ih0| ⊗ |0ihψi |,                                 (2)
+                          i=1
+                                n i
+
+              Pn |φ0 i|φj i Pn
+       where j=1 j√n = j=1 |ji|ji        √
+                                            n
+                                                is the Schmidt decomposition of the maximally entangled
+       state under the basis (|φ1 i, . . . , |φn i).
+
+
+       6
+           This unitary is easy to implement, e.g., by using a few Hadamard and CNOT gates.
+A. Gilyén and T. Li                                                                                       25:7
+
+
+    As we can see, the case of general density operators is less efficient, it only gives operational
+access to the “square root” of ρ/n. We note that for (approximately) transforming a block-
+                √
+encoding of A/ n to a block-encoding of A/O(1) it is necessary and sufficient to use the
+                      √           √
+block-encoding of A/ n about n times [21, Theorems 3&17]. This is essentially the reason
+          √
+for the ≈ n overhead in our quantum algorithms for quantum distributions in Table 1. If
+      √
+the 1/ n factor could be directly improved, that would speed up our von Neumann entropy
+estimation algorithm Theorem 13, which seems unlikely, cf. Table 2. This suggests that it is
+impossible to obtain a more efficient block-encoding in the general case.
+
+
+General recipe.     We summarize our recipe to distributional property testing as follows.
+1. Construct quantum circuit / unitary matrix operationally representing the distribution.
+2. Transform the singular values of the corresponding matrix according to a desired function.
+3. Apply the resulting map to the purification of the distribution, or another suitable state.
+4. Estimate the amplitude of the flagged output state and conclude.
+The above general scheme describes our approach to the problems we discuss in this paper.
+Sometimes it is useful to divide the probabilities / singular values into bins, and fine-tune
+the algorithm by using the approximate knowledge of the size of the singular values. This
+divide-and-conquer strategy is at the core of our improved tolerant `2 -closeness tester of
+Theorem 14.
+
+
+1.4    Related works on distributional property testing
+Classical algorithms. Many distributional property testing problems fall into the category
+of closeness testing, where we are given the ability to take independent samples from two
+unknown distributions p and q with cardinality n, and the goal is to determine whether
+they are the same versus significantly different. For `1 -closeness testing, which is about
+testing whether p = q or kp − qk1 ≥ , [10] first gave a sublinear algorithm using Õ(n2/3 /8/3 )
+samples to p and q. The follow-up work by [19] determined the optimal sample complexity as
+           2/3   1/2
+Θ(max{ n4/3 , n2 }); the same paper also gave a tight bound Θ( 12 ) for `2 -closeness testing.
+     Besides closeness testing, a similar problem is identity testing where one of the distribu-
+tions, say q, is known and we are given independent samples from the other distribution p.
+For `1 identity testing, it is known that the sample complexity can be smaller than that of
+                                                             √
+`1 -closeness testing, which was proved by [9] to be Õ( n/4 ) and then [37] gave the tight
+           √
+bound Θ( n/2 ). More recently, Ref. [20] proposed a modular reduction-based approach for
+distributional property testing problems, which recovered all closeness and identity testing
+results above. Furthermore, they also studied independence testing (see also the previous
+studies by [9, 26, 2]), i.e., whether a distribution on [n]×[m] (n ≥ m) is a product distribution
+or at least -far in `1 -distance from any product distribution, and determined the optimal
+                   2/3            1/2
+                       m1/3 (nm)
+bound Θ(max{ n 4/3         , 2 }).
+     Apart from the relationship between distributions, properties of a single distribution
+also have been extensively studied. One of the most important properties is Shannon
+entropy [39] because it measures for example compressibility. The sample complexity of
+estimating H(p) within additive error  has been intensively studied [8, 35, 36]; in particular,
+                                                                              n
+[40, 41] gave an explicit algorithm for entropy estimation using Θ(  log        n ) samples when
+         −0.03
+ = Ω(n       ) and    = O(1);  for the general case [25] and [42] gave the  optimal estimator
+                         2
+            n      (log n)
+with Θ    log n +    2     samples.
+
+
+
+
+                                                                                                        ITCS 2020
+25:8   Distributional Property Testing in a Quantum World
+
+
+       Quantum algorithms. The first paper on distributional property testing by quantum
+       algorithms was by [13], which considered classical distributions with discrete quantum
+                                                                                               √
+       query-access (see Definition 3); it gives a quantum query complexity upper bound O( n/6 )
+       for `1 -closeness testing and O(n1/3 /4/3 ) for identity testing to the uniform distribution
+       on [n]. Subsequently, [18] gave an algorithm for identity testing (to an arbitrary known
+       distribution) with O e n1/3 /5 queries, and [29] improved the -dependence of `1 -closeness
+                   e √n/2.5 . More recently, [27] studied entropy estimation under this model, and
+                              
+       testing to O
+                                                                           e √n/2 queries and also
+                                                                                     
+       gave a quantum algorithm for Shannon entropy estimation with O
+       sublinear quantum algorithms for estimating Rényi entropies ([38]).
+           Another type of quantum property testing results ([32, 33, 34, 3, 7, 23]) concern density
+       matrices, where the `1 -distance becomes the trace distance and the Shannon entropy becomes
+       the von Neumann entropy. To be more specific, for n-dimensional density matrices, the
+       number of samples needed for `1 and `2 -closeness testing are Θ(n/  
+                                                                                2
+                                                                                  ) and       2
+                                                                                        Θ(1/ ) ([7]),
+                                                                        2 2        2
+       respectively. In addition [3] gave upper and lower bounds O n / , Ω n / for estimating
+       the von Neumann entropy of an n-dimensional density matrix with accuracy .
+
+       1.5    Organization of the paper
+       The rest of the paper is organized as follows. In Section 2 we introduce two important
+       quantum algorithmic techniques, amplitude estimation and singular value transformation.
+       We give entropy estimators of classical and quantum distributions in Section 3. In Section 4
+       we give an (essentially) optimal quantum algorithm for tolerantly testing `2 -closeness of
+       classical distributions, and another efficient tolerant `2 -closeness tester for quantum distribu-
+       tions. Proof details of projected encodings, polynomial approximations for singular value
+       transformation, and corollaries about `1 -closeness and independence testing are deferred to
+       Appendix A, B, and C respectively.
+
+        2     Preliminaries
+       2.1    Amplitude estimation
+       Classically, given i.i.d. samples of a Bernoulli random variable X with E[X] = p, it takes
+       Θ(1/2 ) samples to estimate p within  with high success probability. Quantumly, if we are
+       given a unitary U such that
+                      √
+           U |0i|0i = p|0i|φi + |0⊥ i, where k|φik = 1 and (h0| ⊗ I)|0⊥ i = 0,                 (3)
+       then if measure the output state, we get 0 in the first register with probability p. Given
+       access to U we can estimate the value of p quadratically more efficiently than what is possible
+       by sampling:
+       I Theorem 8 ([12, Theorem 12]). Given U satisfying (3), the amplitude estimation algorithm
+       outputs p̃ such that p̃ ∈ [0, 1] and
+                        p
+                     2π p(1 − p)         π2
+          |p̃ − p| ≤                 + 2                                                       (4)
+                          M             M
+       with success probability at least 8/π 2 , using M calls to U and U † .
+                                           l  √          m      √         
+                                                  2 p                p
+           In particular, if we take M = 2π  + √1           = Θ  + √1 in (4), we have
+                        p
+                      2π p(1 − p)       π2            
+           |p̃ − p| ≤               + 2 2 ≤ + ≤ .
+                           2π          4π          2 4
+A. Gilyén and T. Li                                                                                                        25:9
+
+
+Therefore, using only Θ(1/) implementations of U and U † , we could get an -additive
+approximation of p with success probability at least 8/π 2 , which is a quadratic speed-up
+compared to the classical sample complexity Θ(1/2 ). The success probability can be
+boosted to 1 − ν by executing the algorithm for Θ(log 1/ν) times and taking the median of
+the estimates.
+
+
+2.2      Quantum singular value transformation
+Singular value decomposition (SVD) is one of the most important tools in linear algebra, gener-
+alizing eigen-decomposition of Hermitian matrices. Recently, [21] proposed quantum singular
+value transformation which turns out to be very useful for property testing. Mathematically,
+it is defined as follows:
+
+I Definition 9 (Singular value transformation). Let f : R → C be an even or odd function.
+          ˜
+Let A ∈ Cd×d have the following singular value decomposition
+           dX
+            min
+
+     A=           ςi |ψ̃i ihψi |,
+           i=1
+
+                     ˜ For the function f we define the singular value transform of A as
+where dmin := min(d, d).
+              ( Pdmin
+                             i=1
+                                     f (ςi )|ψ̃i ihψi |   if f is odd, and
+     f (SV )(A) :=         Pd
+                               i=1
+                                     f (ςi )|ψi ihψi |    if f is even, where for i ∈ [d] \ [dmin ] we define ςi := 0.
+
+   Quantum singular value transformation by real polynomials can be efficiently implemented
+on a quantum computer as follows:
+
+I Theorem 10 ([21, Corollary 18]). Let HU be a finite-dimensional Hilbert space and let
+      e ∈ End(HU ) be linear operators on HU such that U is a unitary, and Π, Π
+U, Π, Π                                                                               e are
+                                           Pn        k
+orthogonal projectors. Suppose that P = k=0 ak x ∈ R[x] is a degree-n polynomial such
+that
+    ak 6= 0 only if k ≡ n mod 2, and
+    for all x ∈ [−1, 1] : |P (x)| ≤ 1.
+Then there exist Φ ∈ Rn , such that
+                                                                
+                  h+| ⊗ Π      e |0ih0|⊗UΦ + |1ih1|⊗U−Φ |+i ⊗ Π      if n is odd, and
+    P (SV ) ΠU
+             e Π =                                               
+                      h+| ⊗ Π |0ih0|⊗U + |1ih1|⊗U            |+i ⊗ Π   if n is even,
+                                            Φ           −Φ
+
+
+                  e−I) U              Q(n−1)/2  iφ2j (2Π−I) † iφ2j+1 (2Π     
+                                                                        e−I) U .7
+where UΦ = eiφ1 (2Π                    j=1      e           U e
+
+    Thus for an even or odd polynomial P of degree n, we can apply singular value transform-
+                    e Π with n uses of U , U † and the same number of controlled reflections
+ation of the matrix ΠU
+I −2Π, I −2Π.
+            e
+    To apply singular value transformation corresponding to our problems, we need low-degree
+polynomial approximations to the following functions, which we construct in Appendix B.
+
+
+7
+    This is the mathematical form for odd n; even n is defined similarly.
+
+
+
+
+                                                                                                                         ITCS 2020
+25:10   Distributional Property Testing in a Quantum World
+
+
+        I Lemma 11. (Polynomial approximations) Let β ∈ (0, 1], η ∈ (0, 12 ] and t ≥ 1. There exists
+        polynomials P̃ , Q̃, S̃ such that
+            ∀x ∈ [ 1t , 1] : |P̃ (x) − 2tx
+                                        1
+                                           | ≤ η, and ∀x ∈ [−1, 1] : − 1 ≤ P̃ (x) = P̃ (−x) ≤ 1,
+                       1−β 1−β
+            ∀x ∈ [− t , t ] : |Q̃(x) − tx| ≤ η · (tx), and ∀x ∈ [−1, 1] : Q̃(x) = −Q̃(−x) ≤ 1,
+            ∀x ∈ [β, 1] : |S̃(x) − 2ln(1/x)    | ≤ η, and ∀x ∈ [−1, 1] : − 1 ≤ S̃(x) = S̃(−x) ≤ 1,
+                                      ln(2/β)
+                                                                                            
+        moreover deg(P̃ ) = O t log η , deg(Q̃) = O βt log η1 , and deg(S̃) = O β1 log η1 .
+                                             1
+
+
+
+
+         3      Entropy estimation
+        3.1     Classical distributions with purified quantum query-access
+        Recall that we introduced purified quantum query-access in Definition 2. In particular, for a
+        classical distribution p on [n], we are given a unitary Up acting on Cn×n such that
+                                       n
+                                       X √
+             Up |0iA |0iB = |ψp i =           pi |φi iA |iiB .                                                                   (5)
+                                       i=1
+
+        We use Up and Up† to estimate the Shannon entropy H(p):
+
+        I Theorem 12. For any 0 <       < 1, we can estimate     H(p) with accuracy  with success
+                                          √               log n 
+                                            n     1.5 n
+        probability at least 2/3 using O 1.5 log      log         calls to Up and Up† .
+
+        Proof. The general idea is to first construct a unitary matrix that has a specific matrix block
+                             √           √
+        with singular values p1 , . . . , pn . We use the construction of Eq. (1) and apply singular
+        value transformation (Theorem
+                              √            10) by a polynomial S̃ constructed in Lemma 11, setting
+                                                 
+        η = 24 ln(2/β) and β = ∆ for ∆ = 12n ln(n/)    . Notice that this ∆ satisfies
+               1         2                    16(4n ln n )3                   n6    
+             ∆ ln   + 4 ln        =             · ln                ≤             · ln    =    , (6)
+                  ∆          β      12n ln(n/)           3          12n ln(n/)      6   2n
+
+        provided that n ≥ 152. Note that the polynomial S̃ satisfies both conditions in Theorem 10.
+        Applying the singular value transformed version of the operator (1) to the state |ψp i gives
+                       n
+                       X √         √
+             |Ψ
+              fp i =         pi S̃( pi )|φi iA |iiB |0i + . . . |1i.                                                             (7)
+                       i=1
+                                                                    q                                  
+                                                                                                     log n
+                                                    1        1               n     n
+                                                                                                                  uses of Up and Up†
+                                                                                       
+        Preparing |Ψ
+                   fp i costs deg S̃ = O
+                                                    β log    η     =O         log        log         
+        and the same number of controlled reflections through Π, Π. e Furthermore, Lemma 11 implies
+        that for all i such that pi ≥ ∆,
+                                                    √
+            pi ln(1/pi )         √            ln(1/ pi )      √
+                         − pi S̃( pi ) = pi ·            − S̃( pi ) ≤ ηpi .                    (8)
+             4 ln(2/β)                         2 ln(2/β)
+        For all i such that pi < ∆, we have
+                                                                     1
+              pi ln(1/pi )         √       pi ln(1/pi )        ∆(ln( ∆ ) + 4 ln(2/β))        
+                           − pi S̃( pi ) ≤              + pi ≤                        ≤            ,                             (9)
+               4 ln(2/β)                    4 ln(2/β)                4 ln(2/β)          8n ln(2/β)
+
+        where the first inequality comes from the fact that |S̃(x)| ≤ 1 for all x ∈ [−1, 1], the second
+                                                                                     1
+        inequality comes from the monotonicity of x(ln(1/x) + 4 ln(2/β)) on (0, ∆      ], and the third
+        inequality comes from (6). As a result of (5), (8), and (9), we have
+A. Gilyén and T. Li                                                                                        25:11
+
+
+
+
+                                                       n
+                              H(p)           √       X   pi log(1/pi )
+      hψp | ⊗ h0| |Ψ
+                   fp i −             = pi S̃( pi ) −
+                            4 ln(2/β)                 i=1
+                                                           4 ln(2/β)
+                                         X                      X
+                                      ≤                     +          ηpi
+                                                8n ln(2/β)
+                                           i : pi <∆            i : pi ≥∆
+                                                                     
+                                         ≤          +           =           .
+                                           8 ln(2/β) 24 ln(2/β)   6 ln(2/β)
+
+Therefore, |4 ln(2/β)(hψp | ⊗ h0|)|Ψ  fp i − H(p)| ≤ 2/3. By Theorem 8, we can use Θ(ln(1/β)/)
+applications of the unitaries (and their inverses) that implement |ψp i and |Ψ         fp i to estimate
+                                                  
+(hψp | ⊗ h0|)|Ψfp i within additive error
+                                             12 ln(2/β) . In total, this estimates H(p) within additive
+                              2
+error 12 ln(2/β) · 4 ln(2/β) + 3 =  with success probability at least 8/π 2 . The total complexity
+of the algorithm is
+                       r         n   log n             √            n   log n 
+         ln(1/β)             n                                      n
+    O                 ·O       log       log               = O 1.5 log1.5        log          .      J
+                                                                                 
+
+3.2     Density matrices with purified quantum query-access
+For a density matrix ρ, we also assume the purified quantum query-access in Definition 2,
+                                                        Pn √
+i.e., a unitary oracle Uρ acting as Uρ |0iA |0iB = |ρi = i=1 pi |φi iA |ψi iB . We use Uρ and
+Uρ† to estimate the von-Neumann entropy H(ρ) = −Tr[ρ log ρ]:
+
+I Theorem 13. For any 0 <  < 1, we can estimate H(p) with accuracy  with success
+probability at least 2/3 using O   n
+                               e 1.5
+                                    calls to Uρ and Uρ† .
+
+Proof. We use the construction of Eq. (2). The proof is essentially the same as that of
+Theorem 12 proceeding by constructing singular value transformation via Theorem 10, with
+                                                                          √
+the only difference that all probabilities are rescaled by a factor of 1/ n in (2); as a result,
+                                                              √
+                                                     e √n · 1.5
+                                                                  
+                                                                n
+the number of calls to Uρ and U † is blown up to O                        n
+                                                                            
+                                     ρ                             =Oe 1.5
+                                                                             .               J
+
+
+ 4     Tolerant testers for `2 -closeness with purified query-access
+First we give an `2 -closeness tester for unknown classical distributions p, q.
+
+I Theorem 14. Given purified quantum query-access for classical distributions p, q as in
+Definition 2, for any ν,  ∈ (0, 1) the quantum query complexity of distinguishing the cases
+kp − qk2 ≥  and kp − qk2 ≤ (1 − ν) with success probability at least 2/3 is
+                           
+        1      3  1            1
+   O       log       log log         .
+        ν        ν          ν
+
+Proof. The main idea is to first bin the x elements based on the approximate value of
+p(x) + q(x), then apply fine-tuned algorithms exploiting the knowledge of the approximate
+value of p(x) + q(x).
+   Using amplitude estimation for any k ∈ N we can construct an algorithm Ak that for any
+input x with p(x) + q(x) ≥ 2−k outputs “greater” with probability
+                                                                at least 2/3, and for any
+                                                                     k
+x with p(x) + q(x) ≤ 2−k−1 outputs “smaller” and uses O 2 2 queries to Up and Uq . Using
+       1
+            
+O log( ν )) repetitions we can boost the success probability to 1 − O(poly(ν)). Since our
+
+
+
+                                                                                                          ITCS 2020
+25:12   Distributional Property Testing in a Quantum World
+
+
+        algorithm only needs to succeed with constant probability, and will use these subroutines at
+                 1
+        most poly(ν) times, we can ignore the small failure probability. Therefore in the rest of the
+        proof we assume without loss             that Ak that solves perfectly the above question
+                                    kof generality,
+                                            1
+        with (query) complexity O 2 log( ν )) .
+                                      2
+
+
+
+
+           Algorithm 1 Estimating log2 (p(x) + q(x)).
+            input x ∈ [n],θ ∈ (0, 1)
+                           −1, 0, 1, 2, . . . , log2 θ1
+                                                       
+         1: for k ∈ K :=                                   do
+         2:     Run algorithm Ak on |xi if output is “greater” then return k
+         3: return “less than θ”
+
+
+        For any x with p(x)+q(x) ≥ θ, Algorithm 1 outputs a k such that p(x)+q(x) ∈ (2−k−1 , 2−k+1 ).
+        However, note that this labeling is probabilistic; let us     by sk (x)kthe
+                                                               njdenote             l probability
+                                                                                                 that
+                                                                                                    mox
+                                                                                        1     1
+        is labeled by k. Observe that sk (x) = 0 unless k ∈                  log2   p(x)+q(x)   , log2
+                                                                                          p(x)+q(x)
+                                                                                             2
+        (otherwise the return is either “greater” or “less than”). Now let us express kp − qk2 in terms
+        of this “soft-selection” function s(x).
+                    2
+                         X                2
+            kp − qk2 =      |p(x) − q(x)|
+                              x
+                              XX                          2
+                          =             sk (x)|p(x) − q(x)| + η                                             (η ∈ [0, 2θ))
+                              x k∈K
+                                                                                        2
+                                                   p(x) + q(x) 2−k−2
+                                                                          
+                              X
+                                    9−k
+                                          X                                 p(x) − q(x)
+                          =         2       sk (x)                                         + η,                     (10)
+                                          x
+                                                        2     p(x) + q(x)     2−k+3
+                              k∈K
+
+        where the bound on η follows from the observation that
+                X                  2
+                                           X                   2
+                                                                                           X
+        η≤            |p(x) − q(x)| ≤             (p(x) + q(x)) < θ                                     p(x)+q(x) < 2θ.
+            x : p(x)+q(x)<θ                     x : p(x)+q(x)<θ                       x : p(x)+q(x)<θ
+
+                                            θ
+           If for all k ∈ K we have a 2k−9 |K| -precise estimate of
+                                                               2
+                          p(x) + q(x) 2−k−2
+                                                 
+           X                                       p(x) − q(x)
+                 sk (x)                                           ,                                                 (11)
+             x
+                               2     p(x) + q(x)     2−k+3
+
+                                                                  2
+        then we get a 3θ-precise estimate of kp − qk2 . In particular setting θ := ν2 /6, this solves
+                                                                          2
+        the tolerant testing problem, since if kp − qk ≥  then kp − qk ≥ 2 , on the other hand if
+                                         2
+        kp − qk ≤ (1 − ν) then kp − qk ≤ (1 − ν)  ≤ (1 − ν) =  − ν2 .
+                                                    2 2            2    2
+
+            Now we describe how to construct a quantum algorithm that sets the first output qubit to
+        |0i with probability (11). Start with preparing a purification of the distribution of p(x)+q(x)
+                                                                                                   2    ,
+        then set the label of x to k with probabilityq  sk (x) using Algorithm  1  terminating  it after
+                                                            and p(x)−q(x)
+                                                     2                −k−2
+        using Ak . Then separately apply the maps p(x)+q(x)       2−k−3
+                                                                          to the state.
+           Note that we do not need to apply the above transformations exactly, it is enough if
+                                              θ
+        apply them with precision say 2k−11 |K| . We analyze the complexity of (approximately)
+                                                                         q
+                                                                             2−k−2
+        implementing the above sketched algorithm. To implement the map p(x)+q(x)   , we use the
+        unitary of Eq. (1), and transform the singular values by the polynomial P̃ from Lemma 11
+        using Theorem 10. In order to implement the map p(x)−q(x)
+                                                                2−k−2
+                                                                        , we again use
+                                                                                    p the unitary
+                                                                                             p of
+        Eq. (1), but now separately for p and q. We amplify both the singular values p(x) and q(x)
+A. Gilyén and T. Li                                                                                         25:13
+
+            √
+by a factor 2k−2 using the polynomial Q̃ from Lemma 11 in Theorem 10. Then we create a
+block-encoding8 of both and 2k−2 p(x) and 2k−2 q(x) and then combine them to get a block-
+encoding of p(x)−q(x)
+              2−k−3
+                      . In both cases the query
+                                             complexity     of O(θ/|K|)-precisely
+                                                                                      implementing
+the transformations is O 2k/2 log(|K|/θ)
+                                             =  O  2 k/2
+                                                          log(1/θ)   . Since   computing   the label
+                 k/2
+k also costs O 2 log(1/(ν)) , this is the overall complexity so far. Finally we estimate
+the probability of the first qubit being set to |0i with setting M = O |K|2−k/2 /(ν) in
+                                                                                                
+
+Theorem 8, and boost the success probability to 1 − O(1/|K|) with O(log(|K|)) repetitions.
+Thus for any k ∈ K the overall
+                                   complexity of estimating
+                                                              Eq. (11) with sufficient precision
+                               |K|
+has (query) complexity O ν log ν log(|K|) = O ν log2 ν
+                                       1                     1         1           1
+                                                                                    
+                                                                           log log ν    . Therefore
+                      2
+estimating kp − qk2 to precision ν2 /6 with high probability has (query) complexity
+                              
+          1     3  1             1
+    O       log         log log       .                                                          J
+         ν        ν            ν
+    It is easy to see an Ω 1 lower bound on the above problem even in the strongest quantum
+                              
+
+pure state input model Definition 4. Indeed, consider the case n = 2, q = ( 12 , 12 ) (the uniform
+distribution on {1, 2}) and we want to test whether p = q or kp − qk2 ≥ . This is equivalent
+to test whether p1 = 12 or |p1 − 12 | ≥ √2 ; due to the optimality of amplitude estimation in
+Theorem 8, this task requires Ω( 1 ) quantum queries to the unitary U preparing the state
+√           √
+  p1 |1i + p2 |2i.
+    Now we prove the result below on (tolerant) `2 -closeness testing for quantum distributions:
+
+
+I Theorem 15. Given , ν ∈ (0, 1) and two density operatorsρ, σ ∈ Cn×n with
+                                                                            purified
+                                                                                √
+                                                                                  n 1     1
+quantum query-access to Uρ and Uσ as in Definition 2, it takes O min              , 2   ν   queries to
+Uρ , Uρ† , Uσ , Uσ† to decide whether kρ−σk2 ≥  or kρ−σk2 ≤ (1 − ν), with success probability
+at least 2/3.
+Proof. We can combine the block-encodings of ρ and σ to apply the map ρ−σ
+                                                                       2  to the
+                         Pn |ji|ji
+maximally entangled state j=1 √n , which gives
+      n                 Xn
+     X   |ji|ji   ρ−σ         |ji|ji
+          √ →         ⊗I       √ |0i + . . . |1i.
+     j=1
+            n      2      j=1
+                                 n
+
+The probability of measuring the |0i ancilla state is
+     n                                     n
+         hi|hi| (ρ − σ)2
+                          
+    X                        |ji|ji    1 X                       1
+          √              ⊗I √ =               hi|(ρ − σ)2 |ii =    Tr[(ρ − σ)2 ].
+   i,j=1
+            n       4           n     4n  i=1
+                                                                4n
+                                                                √ 
+Thus it suffices to apply amplitude estimation with M = Θ νn calls to Uρ , Uρ† , Uσ , Uσ† .
+                                                    2                             2             2
+                                                                                                   
+    On
+      2the
+          other hand, we        estimate kρ − σk2 by observing that kρ − σk2 = Tr (ρ − σ)
+                             2can
+= Tr ρ − 2Tr[ρσ] + Tr σ . Since the success probability of the SWAP test ([14]) on input
+states ρ, σ is 12 (1 + Tr[ρσ]), we can individually estimate the latter quantities with precision
+O ν2 using amplitude estimation (Theorem 8) with O ν12 queries to Uρ , Uρ† , Uσ , Uσ† . As
+a result, we could decide whether kρ−σk2 ≥  or kρ−σk2 ≤ (1 − ν) using O ν12 queries.
+    The result of Theorem 15 hence follows by taking the minimum of the two complexities. J
+
+8
+                                                             P
+    If we have a projected unitary encoding of ΠU Π e = A = i ςi |ψi ih0, i| with Π
+                                                                                  e = |0ih0| ⊗ I, we can
+                                                  †
+                                                       P 2
+    immediately turn it into a block-encoding of A A =    ς |iihi| by e.g. applying Theorem 10 with the
+                                                         i i
+    polynomial x2 .
+
+
+
+
+                                                                                                           ITCS 2020
+25:14   Distributional Property Testing in a Quantum World
+
+
+         5    Future work and open questions
+
+        Our paper raises a couple of natural open questions for future work, including:
+          For which other distributional property testing problems can we get faster and simpler
+          quantum algorithms using the presented methodology?
+          Can we prove quantum       lower bounds that match our upper bounds? For instance, can
+                           n
+                             
+          we prove an Ω  lower bound on estimating the von Neumann entropy in the purified
+          quantum query-access model for density operators?
+          Is there a lower bound technique which naturally fits our purified quantum query input
+          model?
+          Can we prove the conjecture that the purified and discrete query input models are equi-
+          valent for classical distributions, with respect to the query complexity of (distributional)
+          property testing problems? For some recent progress in this direction see [11].
+
+
+             References
+         1   Jayadev Acharya, Hirakendu Das, Alon Orlitsky, and Ananda Theertha Suresh. A unified
+             maximum likelihood approach for estimating symmetric properties of discrete distributions. In
+             Proceedings of the 34th International Conference on Machine Learning (ICML), pages 11–21,
+             2017. URL: http://proceedings.mlr.press/v70/acharya17a.html, arXiv:1611.02960.
+         2   Jayadev Acharya, Constantinos Daskalakis, and Gautam Kamath.                   Optimal test-
+             ing for properties of distributions.        In Advances in Neural Information Processing
+             Systems 28 (NIPS), pages 3591–3599, 2015.             URL: http://papers.nips.cc/paper/
+             5839-optimal-testing-for-properties-of-distributions, arXiv:1507.05952.
+         3   Jayadev Acharya, Ibrahim Issa, Nirmal V. Shende, and Aaron B. Wagner. Measuring Quantum
+             Entropy. In 2019 IEEE International Symposium on Information Theory (ISIT), pages 3012–
+             3016, 2019. arXiv:1711.00814.
+         4   Dorit Aharonov and Amnon Ta-Shma. Adiabatic Quantum State Generation. SIAM Journal
+             on Computing, 37(1):47–82, 2007. Earlier version in STOC’03, arXiv:quant-ph/0301023.
+             doi:10.1137/060648829.
+         5   Srinivasan Arunachalam, Sourav Chakraborty, Troy Lee, and Ronald de Wolf. Two new results
+             about quantum exact learnings, 2018. arXiv:1810.00481.
+         6   Srinivasan Arunachalam and Ronald de Wolf. Optimal Quantum Sample Complexity of Learn-
+             ing Algorithms. In Proceedings of the 32nd IEEE Conference on Computational Complexity
+             (CCC), pages 25:1–25:31, 2017. doi:10.4230/LIPIcs.CCC.2017.25.
+         7   Costin Bădescu, Ryan O’Donnell, and John Wright. Quantum state certification. In Proceedings
+             of the 51st ACM Symposium on the Theory of Computing (STOC), pages 503–514. ACM, 2019.
+             doi:10.1145/3313276.3316344.
+         8   Tuğkan Batu, Sanjoy Dasgupta, Ravi Kumar, and Ronitt Rubinfeld. The complexity of
+             approximating the entropy. SIAM Journal on Computing, 35(1):132–150, 2005. doi:10.1145/
+             509907.510005.
+         9   Tuğkan Batu, Eldar Fischer, Lance Fortnow, Ravi Kumar, Ronitt Rubinfeld, and Patrick
+             White. Testing random variables for independence and identity. In Proceedings of the
+             42nd IEEE Symposium on Foundations of Computer Science (FOCS), pages 442–451, 2001.
+             doi:10.1109/SFCS.2001.959920.
+        10   Tuğkan Batu, Lance Fortnow, Ronitt Rubinfeld, Warren D Smith, and Patrick White. Testing
+             closeness of discrete distributions. Journal of the ACM, 60(1):4, 2013. doi:10.1145/2432622.
+             2432626.
+        11   Aleksandrs Belovs. Quantum Algorithms for Classical Probability Distributions, 2019. arXiv:
+             1904.02192.
+A. Gilyén and T. Li                                                                                    25:15
+
+
+12   Gilles Brassard, Peter Høyer, Michele Mosca, and Alain Tapp. Quantum Amplitude Amp-
+     lification and Estimation. In Quantum Computation and Quantum Information: A Millen-
+     nium Volume, volume 305 of Contemporary Mathematics Series, pages 53–74. AMS, 2002.
+     doi:10.1090/conm/305.
+13   Sergey Bravyi, Aram W. Harrow, and Avinatan Hassidim. Quantum algorithms for testing
+     properties of distributions. IEEE Transactions on Information Theory, 57(6):3971–3981, 2011.
+     doi:10.1109/TIT.2011.2134250.
+14   Harry Buhrman, Richard Cleve, John Watrous, and Ronald de Wolf. Quantum Fingerprinting.
+     Physical Review Letters, 87(16):167902, 2001. doi:10.1103/PhysRevLett.87.167902.
+15   Mark Bun, Robin Kothari, and Justin Thaler. The polynomial method strikes back: Tight
+     quantum query bounds via dual polynomials. In Proceedings of the 50th ACM Symposium on
+     the Theory of Computing (STOC), 2018. doi:10.1145/3188745.3188784.
+16   André Chailloux. A Note on the Quantum Query Complexity of Permutation Symmetric
+     Functions. In Proceedings of the 10th Innovations in Theoretical Computer Science Conference
+     (ITCS), pages 19:1–19:7, 2018. doi:10.4230/LIPIcs.ITCS.2019.19.
+17   Shantanav Chakraborty, András Gilyén, and Stacey Jeffery. The power of block-encoded matrix
+     powers: improved regression techniques via faster Hamiltonian simulation. In Proceedings of
+     the 46th International Colloquium on Automata, Languages, and Programming (ICALP), 2019.
+     doi:10.4230/LIPIcs.ICALP.2019.28.
+18   Sourav Chakraborty, Eldar Fischer, Arie Matsliah, and Ronald de Wolf. New Results on
+     Quantum Property Testing. In Proceedings of the 30th International Conference on Foundations
+     of Software Technology and Theoretical Computer Science (FSTTCS), page 145, 2010. doi:
+     10.4230/LIPIcs.FSTTCS.2010.145.
+19   Siu-On Chan, Ilias Diakonikolas, Gregory Valiant, and Paul Valiant. Optimal algorithms for
+     testing closeness of discrete distributions. In Proceedings of the 25th ACM-SIAM Symposium
+     on Discrete Algorithms (SODA), pages 1193–1203, 2014. doi:10.1137/1.9781611973402.88.
+20   Ilias Diakonikolas and Daniel M. Kane. A new approach for testing properties of discrete
+     distributions. In Proceedings of the 57th IEEE Symposium on Foundations of Computer
+     Science (FOCS), pages 685–694, 2016. doi:10.1109/FOCS.2016.78.
+21   András Gilyén, Yuan Su, Guang Hao Low, and Nathan Wiebe. Quantum singular value
+     transformation and beyond: exponential improvements for quantum matrix arithmetics.
+     In Proceedings of the 51st ACM Symposium on the Theory of Computing (STOC), 2019.
+     doi:10.1145/3313276.3316366.
+22   Oded Goldreich. Introduction to property testing. Cambridge University Press, 2017.
+23   Jeongwan Haah, Aram W. Harrow, Zhengfeng Ji, Xiaodi Wu, and Nengkun Yu. Sample-optimal
+     tomography of quantum states. IEEE Transactions on Information Theory, 63(9):5628–5641,
+     2017. arXiv:1508.01797.
+24   Yassine Hamoudi and Frédéric Magniez. Quantum Chebyshev’s Inequality and Applications. In
+     Proceedings of the 46th International Colloquium on Automata, Languages, and Programming
+     (ICALP), pages 69:1–69:16, 2019. doi:10.4230/LIPIcs.ICALP.2019.69.
+25   Jiantao Jiao, Kartik Venkat, Yanjun Han, and Tsachy Weissman. Minimax estimation of
+     functionals of discrete distributions. IEEE Transactions on Information Theory, 61(5):2835–
+     2885, 2015. doi:10.1109/TIT.2015.2412945.
+26   Reut Levi, Dana Ron, and Ronitt Rubinfeld. Testing properties of collections of distributions.
+     Theory of Computing, 9(1):295–347, 2013. doi:10.4086/toc.2013.v009a008.
+27   Tongyang Li and Xiaodi Wu. Quantum Query Complexity of Entropy Estimation. IEEE
+     Transactions on Information Theory, 65(5):2899–2921, 2019. doi:10.1109/TIT.2018.2883306.
+28   Guang Hao Low and Isaac L. Chuang. Hamiltonian Simulation by Qubitization. Quantum,
+     3:163, 2019. doi:10.22331/q-2019-07-12-163.
+29   Ashley Montanaro. Quantum speedup of Monte Carlo methods. Proceedings of the Royal
+     Society A, 471(2181), 2015. doi:10.1098/rspa.2015.0301.
+
+
+
+
+                                                                                                      ITCS 2020
+25:16   Distributional Property Testing in a Quantum World
+
+
+        30     Ashley Montanaro and Ronald de Wolf. A Survey of Quantum Property Testing. Number 7 in
+               Graduate Surveys. Theory of Computing Library, 2016. arXiv:1310.2035, doi:10.4086/toc.
+               gs.2016.007.
+        31     Michael A. Nielsen and Isaac L. Chuang. Quantum computation and quantum information.
+               Cambridge University Press, 2000. doi:10.1017/CBO9780511976667.
+        32    Ryan O’Donnell and John Wright. Quantum Spectrum Testing. In Proceedings of the
+              47th ACM Symposium on the Theory of Computing (STOC), pages 529–538, 2015. doi:
+              10.1145/2746539.2746582.
+        33    Ryan O’Donnell and John Wright. Efficient Quantum Tomography. In Proceedings of the
+              48th ACM Symposium on the Theory of Computing (STOC), pages 899–912, 2016. doi:
+              10.1145/2897518.2897544.
+        34    Ryan O’Donnell and John Wright. Efficient quantum tomography II. In Proceedings of the
+              49th ACM Symposium on the Theory of Computing (STOC), pages 962–974, 2017. doi:
+              10.1145/3055399.3055454.
+        35    Liam Paninski. Estimation of entropy and mutual information. Neural Computation, 15(6):1191–
+              1253, 2003. doi:10.1162/089976603321780272.
+        36    Liam Paninski. Estimating entropy on m bins given fewer than m samples. IEEE Transactions
+              on Information Theory, 50(9):2200–2203, 2004. doi:10.1109/TIT.2004.833360.
+        37     Liam Paninski. A coincidence-based test for uniformity given very sparsely sampled discrete
+               data. IEEE Transactions on Information Theory, 54(10):4750–4755, 2008. doi:10.1109/TIT.
+               2008.928987.
+        38    Alfréd Rényi. On measures of entropy and information. In Proceedings of the 4th Berkeley
+              Symposium on Mathematical Statistics and Probability, volume 1, pages 547–561. University of
+              California Press, 1961. URL: https://projecteuclid.org/euclid.bsmsp/1200512181.
+        39    Claude E. Shannon. A Mathematical Theory of Communication. Bell System Technical
+              Journal, 27(3):379–423, 1948. doi:10.1002/j.1538-7305.1948.tb01338.x.
+        40    Gregory Valiant and Paul Valiant. Estimating the unseen: an n/log(n)-sample estimator for
+              entropy and support size, shown optimal via new CLTs. In Proceedings of the 43rd ACM
+              Symposium on the Theory of Computing (STOC), pages 685–694, 2011. doi:10.1145/1993636.
+              1993727.
+        41    Gregory Valiant and Paul Valiant. The power of linear estimators. In Proceedings of the
+              52nd IEEE Symposium on Foundations of Computer Science (FOCS), pages 403–412, 2011.
+              doi:10.1109/FOCS.2011.81.
+        42     Yihong Wu and Pengkun Yang. Minimax rates of entropy estimation on large alphabets via
+               best polynomial approximation. IEEE Transactions on Information Theory, 62(6):3702–3720,
+               2016. doi:10.1109/TIT.2016.2548468.
+
+
+
+
+         A      Projected unitary encodings used for singular value transformation
+
+        First we handle the case of classical distributions. Let Up be a purified quantum or-
+        acle of a classical distribution p as in Definition 2, and let U := (Up ⊗ I), also let Π :=
+         Pn
+        ( i=1 I ⊗ |iihi| ⊗ |iihi|), Π
+                                    e := (|0ih0| ⊗ |0ih0| ⊗ I), then
+
+                                n
+                               X                                                 
+                e = Π(Up ⊗ I)Π
+             ΠU Π            e=   I ⊗ |iihi| ⊗ |iihi| (Up ⊗ I) |0ih0| ⊗ |0ih0| ⊗ I
+                                       i=1
+                                      n 
+                                      X                                      
+                                  =          (I ⊗ |iihi|)Up (|0ih0| ⊗ |0ih0|) ⊗ |iihi|
+                                      i=1
+A. Gilyén and T. Li                                                                                      25:17
+
+
+                n                    n
+                X                     X √                      
+        ... =          (I ⊗ |iihi|)           pj |φj i|jih0|h0| ⊗ |iihi|
+                i=1                   j=1
+                 n
+                X     √
+           =              pi |φi ih0| ⊗ |iih0| ⊗ |iihi|.
+                i=1
+
+    Now we turn to quantum distributions where we do not know the diagonalizing basis of
+the density operator ρ. Let Uρ be a purified quantum oracle of a quantum distribution ρ as
+in Definition 2, and W a unitary, mapping |0i|0i 7→ j=1 |ji|ji
+                                                   Pn
+                                                         √ . Let U 0 := I ⊗ U † W † ⊗ I ,
+                                                                                        
+                                                           n                  ρ
+Π0 := (I ⊗ |0ih0| ⊗ |0ih0|) and Π
+                                e as above, then
+
+
+                      Π0 U 0 Π
+                             e =Π0 I ⊗ U † W † ⊗ I Π
+                                                 
+                                                    e
+                                        ρ
+                                                                                          
+                                                                    n
+                                                                   X    |ji|ji
+                                = I ⊗ (|0ih0| ⊗ |0ih0|Uρ† ) 
+                                                             
+                                                                         √ h0|h0| ⊗ I 
+                                                                   j=1
+                                                                           n
+                                                                  !                              
+                                        n                                n
+                                       X    √                          X    |φ0j i|φj i
+                                = I⊗           pi |0i|0ihφi |hψi |           √        h0|h0| ⊗ I 
+                                       i=1                             j=1
+                                                                                  n
+                                   n
+                                  X pi
+                                      r
+                                =          |φ0i i|0i|0ih0|h0|hψi |,
+                                  i=1
+                                        n
+
+       Pn |φ0 i|φj i Pn
+where j=1 j√n = j=1 |ji|ji        √
+                                     n
+                                         is the Schmidt decomposition of the maximally entangled
+state under the basis (|φ1 i, . . . , |φn i).
+
+    B       Polynomial approximations for singular value transformation
+We use the following result based on local Taylor series:
+
+I Lemma 16 ([21, Corollary 66]). Let x0 ∈ [−1, 1], r ∈ (0, 2], ν ∈ (0, r] and let f : [−x0 −
+                                                       P∞
+r − ν, x0 + r + ν] → C and be such that f (x0 + x) = `=0 a` x` for all x ∈ [−r − ν, r + ν].
+                          P∞                                   1
+Suppose B > 0 is such that `=0 (r + ν)` |a` | ≤ B. Let
+                                                        ∈ 0, 2B , then there is an efficiently
+                                               1    B
+computable polynomial P ∈ C[x] of degree O ν log        such that9
+
+                 kf (x) − P (x)k[x0 −r,x0 +r] ≤ 
+                                     kP (x)k[−1,1] ≤  + kf (x)k[x0 −r−ν/2,x0 +r+ν/2] ≤  + B
+        kP (x)k[−1,1]\[x0 −r−ν/2,x0 +r+ν/2] ≤ .
+
+        We can use the above result to construct the following useful polynomial approximations.
+
+I Lemma 11. (Polynomial approximations) Let β ∈ (0, 1], η ∈ (0, 12 ] and t ≥ 1. There exists
+polynomials P̃ , Q̃, S̃ such that
+    ∀x ∈ [ 1t , 1] : |P̃ (x) − 2tx
+                                1
+                                   | ≤ η, and ∀x ∈ [−1, 1] : − 1 ≤ P̃ (x) = P̃ (−x) ≤ 1,
+               1−β 1−β
+    ∀x ∈ [− t , t ] : |Q̃(x) − tx| ≤ η · (tx), and ∀x ∈ [−1, 1] : Q̃(x) = −Q̃(−x) ≤ 1,
+    ∀x ∈ [β, 1] : |S̃(x) − 2ln(1/x)    | ≤ η, and ∀x ∈ [−1, 1] : − 1 ≤ S̃(x) = S̃(−x) ≤ 1,
+                              ln(2/β)
+                                                                                    
+moreover deg(P̃ ) = O t log η , deg(Q̃) = O βt log η1 , and deg(S̃) = O β1 log η1 .
+                                     1
+
+
+
+9
+    For a function g : R → C, and an interval [a, b] ⊆ R, we define kgk[a,b] := maxx∈[a,b] |g(x)|.
+
+
+
+
+                                                                                                        ITCS 2020
+25:18   Distributional Property Testing in a Quantum World
+
+
+        Proof. For the construction of the P̃ and Q̃ polynomials see Corollary 67 and Theorem 30
+        of [21], respectively. It remains to construct the polynomial S̃ above.
+            Denote f (x) = 2ln(1/x)                                                β
+                               ln(2/β) ; by taking  = η/2, x0 = 1, r = 1 − β, ν = 2, and B =
+                                                                                               1
+                                                                                               2 in
+                                                                                             
+        Corollary 16, we have a polynomial S ∈ C[x] of degree O ν1 log( B ) = O β1 log( η1 ) such
+                                                                              
+
+        that
+
+             kf (x) − S(x)k[β,2−β] ≤ η/2                                                               (12)
+                     kS(x)k[−1,1] ≤ B + η/2 ≤ (1 + η)/2                                                (13)
+                    kS(x)k[−1, β ] ≤ η/2.                                                              (14)
+                                  2
+
+
+                                                                                             P∞     (−1)l xl
+        Note that B = 12 is valid because the Taylor series of f (x) at x = 1 is 2 ln(2/β)
+                                                                                      1
+                                                                                              l=1      l     ,
+        and as a result we could take
+                            ∞
+                            X (1 − β/2)l                  ∞
+                                                      X (−1)l−1
+                      1                         1
+             B=                          =−                     (−1 + β/2)l
+                  2 ln(2/β)        l        2 ln(2/β)      l
+                            l=1                           l=1
+                                                   1      β 1
+                                            =−          ln = .
+                                               2 ln(2/β) 2  2
+
+        However, S is not an even polynomial in general; we instead take S̃(x) = S(x) + S(−x) for
+        all x ∈ [−1, 1]. Then by (12) and (14) we have
+
+                                                                     η η
+              f (x) − S̃(x) [β,1] ≤ f (x) − S̃(x) [β,1] + S̃(−x) [β,1] ≤+ = η.                    (15)
+                                                                     2 2
+                                                                               
+        Furthermore, S̃ is an even polynomial such that deg(S̃) = O β1 log( η1 ) ; hence (13) and (14)
+        imply
+
+                                                                           1+η η
+              S̃(x) [−1,1] = S̃(x) [0,1] ≤ kS(x)k[0,1] + kS(x)k[−1,0] ≤       + ≤1
+                                                                            2  2
+
+        given η ≤ 1/2. (Finally we can take the real part of S̃(x) if it has some complex coefficients.)
+                                                                                                     J
+
+
+         C      Corollaries of our `2 -closeness testing results
+
+        C.1     `1 -closeness testing with purified query-access
+        I Corollary 17. Given  > 0 and two distributions p, q on the domain    √[n] with puri-
+        fied quantum query-access via Up and Uq as in Definition 2, it takes O n queries to
+                                                                             e
+                                                                                         
+        Up , Up† , Uq , Uq† to decide whether p = q or kp−qk1 ≥  with success probability at least 2/3.
+        Similarly for density    operators ρ, σ ∈ Cn×n with purified quantum query-access via Uρ and
+        Uσ , it takes O  queries to Uρ , Uρ , Uσ , Uσ† to decide whether ρ = σ or kρ−σk1 ≥  with
+                              n                  †
+
+        success probability at least 2/3.
+
+        Proof. By the Cauchy-Schwartz inequality we have kp − qk2 ≥ √1n kp − qk1 , therefore
+                                                     √
+        Theorem 14 implies our claim by taking  ← / n therein. Similarly, Theorem 15 implies
+        our claim for quantum distributions ρ and σ.                                        J
+A. Gilyén and T. Li                                                                                          25:19
+
+
+C.2    Independence testing with purified query-access
+I Corollary 18. Given  > 0 and a classical distribution    √p on[n] × [m] with the purified
+                                                         e nm queries to Up , Up† to decide
+quantum query-access via Up as in Definition 2, it takes O                    
+whether p is a product distribution on [n] × [m] or p is -far in `1 -norm from any product
+distribution on [n] × [m] with success probability at least 2/3.
+
+Proof. We define pA to be the margin of p on the first marginal space, i.e., pA (i) =
+Pm
+   j=1 p(i, j) for all i ∈ [n]. We
+                                 Pn
+                                   similarly define pB to be the margin of p on the second
+marginal space, i.e., pB (j) = i=1 p(i, j) for all j ∈ [m]. Assume the quantum oracle Up
+from Definition 2 acts as
+                         n X
+                         X m p
+   Up |0iA |0iB |0iC =                  p(i, j)|iiA |jiB |ψi,j iC ;
+                         i=1 j=1
+
+                       m     √                                              n √
+                             √p(i,j) |ji|ψi,j i for all i ∈ [n] and |ϕj i =   √ p(i,j) |ii|ψi,j i for all
+                       P                                                    P
+if we denote |φi i =
+                       j=1     pA (i)                                                i=1      pB (j)
+j ∈ [m], then we have
+                         n p
+                         X                                 m p
+                                                           X
+   Up |0iA |0iB |0iC =          pA (i)|iiA |φi iB,C =                 pB (j)|jiB |ϕj iA,C .
+                         i=1                               j=1
+
+As a result,
+                          n X
+                          X m p                p
+   (Up ⊗ Up )(|0i⊗6 ) =                  pA (i) pB (j)|ii|ji|φi i|ϕj i;
+                           i=1 j=1
+
+in other words, one purified quantum query to the distribution pA × pB can be implemented
+by two queries to Up .
+    If p is a product distribution on [n] × [m], then p = pA × pB ; if p is -far in `1 -norm from
+any product distribution on [n] × [m], then kp − pA × pB k1 ≥ . Therefore, the problem of
+independence testing reduces to `1 -closeness testing for distributions on [n] × [m], and hence
+Corollary 18 follows from Corollary 17.                                                          J
+
+    Similarly, Corollary 17 implies that
+                                      the quantum query complexity of testing independence
+of quantum distributions is O nm   .
+
+
+
+
+                                                                                                            ITCS 2020
+

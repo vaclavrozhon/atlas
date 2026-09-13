@@ -1,0 +1,1890 @@
+Proceedings of Machine Learning Research vol 195:1–26, 2023                    36th Annual Conference on Learning Theory
+
+
+
+
+                  Projection-free Online Exp-concave Optimization
+
+Dan Garber                                                                            DANGAR @ TECHNION . AC . IL
+Ben Kretzu                                                             BENKRETZU @ CAMPUS . TECHNION . AC . IL
+Technion - Israel Institute of Technology
+
+
+Editors: Gergely Neu and Lorenzo Rosasco
+
+
+                                                        Abstract
+     We consider the setting of online convex optimization (OCO) with exp-concave losses. The best
+     regret bound known for this setting is O(n log T ), where n is the dimension and T is the num-
+     ber of prediction rounds (treating all other quantities as constants and assuming T is sufficiently
+     large), and is attainable via the well-known Online Newton Step algorithm (ONS). However, ONS
+     requires on each iteration to compute a projection (according to some matrix-induced norm) onto
+     the feasible convex set, which is often computationally prohibitive in high-dimensional settings and
+     when the feasible set admits a non-trivial structure. In this work we consider projection-free online
+     algorithms for exp-concave and smooth losses, where by projection-free we refer to algorithms that
+     rely only on the availability of a linear optimization oracle (LOO) for the feasible set, which in
+     many applications of interest admits much more efficient implementations than a projection ora-
+     cle. We present an LOO-based ONS-style algorithm, which using overall O(T ) calls to a LOO,
+     guarantees in worst case regret bounded by O(n e 2/3 T 2/3 ) (ignoring all quantities except for n, T ).
+     However, our algorithm is most interesting in an important and plausible low-dimensional data
+     scenario: if the gradients (approximately) span a subspace of dimension at most ρ, ρ << n, the re-
+     gret bound improves to O(ρe 2/3 T 2/3 ), and by applying standard deterministic sketching techniques,
+     both the space and average additional per-iteration runtime requirements are only O(ρn) (instead
+     of O(n2 )). This improves upon recently proposed LOO-based algorithms for OCO which, while
+     having the same√  state-of-the-art dependence on the horizon T , suffer from regret/oracle complexity
+     that scales with n or worse.
+     Keywords: online learning, online convex optimization, projection-free, exp-concave, linear opti-
+     mization oracle
+
+
+1. Introduction
+This work contributes to the line of research on efficient projection-free algorithms for online convex
+optimization (OCO), which has received a significant amount of interest in the theoretical machine
+learning community in recent years, see for instance Hazan and Kale (2012); Garber and Hazan
+(2013); Chen et al. (2019); Garber and Kretzu (2020); Kretzu and Garber (2021); Hazan and Mi-
+nasyan (2020); Levy and Krause (2019); Wan and Zhang (2021); Ene et al. (2021); Chen et al.
+(2018); Zhang et al. (2017); Garber and Kretzu (2022); Mhammedi (2021, 2022); Lu et al. (2022).
+We recall that in the setting of OCO (Hazan, 2019; Shalev-Shwartz et al., 2012) (see formal defini-
+tion in Section 2.2) a decision maker is required to iteratively choose an action — a point in some
+convex and closed set K ⊆ Rn (fixed throughout all iterations)1 , where after her selection, a convex
+loss function from K to R is revealed and the decision maker incurs a loss which equals the value of
+the loss function evaluated at the point chosen on that round. The performance of the decision maker
+ 1. for ease of presentation we consider the underlying vector space to be Rn , however any finite Euclidean space will
+    work
+
+
+© 2023 D. Garber & B. Kretzu.
+                                              G ARBER K RETZU
+
+
+
+
+is measured via the standard notion of regret which is the difference between her accumulated loss
+throughout all T rounds (where T here is assumed to be known in advanced) and that of the best
+fixed point in K in hindsight. Throughout this work we consider the full-information setting, where
+after each round, the decision maker gains full knowledge of the loss function used on that round.
+The term projection-free refers to algorithms which avoid the computation of orthogonal projections
+onto the feasible set K, as required by most standard algorithms, and instead only access the feasible
+set via conceptually simpler computational primitives, such as an oracle for linear optimization over
+K (LOO). The motivation for such methods is that indeed for many feasible sets of interest and for
+high-dimensional problems, implementing the LOO can be much more efficient than projection, see
+for instance detailed examples in Jaggi (2013); Hazan and Kale (2012) (see in the sequel discussion
+on other projection-free oracles).
+     In this work we consider, to the best of our knowledge for the first time, efficient projection-free
+LOO-based algorithms for OCO in case all loss functions are exp-concave. We recall that a function
+f (x) is α-exp-concave for some α > 0, if the function e−αf (x) is concave2 . Exp-concavity is a
+property which is well known to allow for faster convergence rates (in terms of regret). In particular,
+exp-concave losses underly some of the most important applications of OCO such as online linear
+regression and online portfolio selection. More generally, any loss of the form f (x) = g(a> x) with
+g : R → R strongly convex, is exp-concave.   √ While for general convex functions the optimal regret
+bound attainable (by any algorithm) is O( T ) (treating all quantities except for n, T as constants),
+in case all losses are exp-concave, a regret bound of the form O(n log T ) is attainable (Hazan et al.,
+2007; Hazan, 2019), which is faster for any fixed dimension n and T large enough. The latter regret
+bound is attainable via a well-known algorithm known as Online Newton Step (ONS), however,
+ONS requires on each iteration to compute a non-Euclidean projection onto the feasible set w.r.t. to
+some matrix-induced norm (this matrix aggregates all the gradients of the losses observed so far),
+and hence is often computationally prohibitive in high-dimensional settings and when the feasible
+set K admits non-trivial structure.
+     Our main contribution is a novel projection-free LOO-based variant of ONS for exp-concave
+and smooth (Lipschitz continuous gradient) losses. Using overall O(T ) calls to a LOO (throughout
+all rounds), our algorithm guarantees in worst case O(n e 2/3 T 2/3 ) regret (where currently for ease
+of presentation we treat all quantitates except for n, T as constants, and O  e hides poly-logarithmic
+factors). However, our algorithm is most interesting in a highly popular and plausible scenario
+in high-dimensional analytics, namely when the observed gradients of the loss functions (the data
+fed into the algorithm), approximately, span only a low dimensional subspace. Denoting by ρ the
+(approximate) dimension of the subspace spanned by the gradients, by a simple tuning of param-
+eters, our regret bound improves to O(ρ e 2/3 T 2/3 ), which is independent of the ambient dimension
+n. Moreover, by leveraging well-known efficient deterministic sketching techniques, as was already
+proposed in Luo et al. (2016) (but not in the context of projection-free algorithms), we can also
+reduce the memory and additional average runtime per iteration from O(n2 ) to only O(ρn), i.e.,
+linear in the dimension for a constant ρ.
+     To put our results in perspective, the best previous regret bound for a LOO-based algorithm for
+OCO (that holds for arbitrary convex losses and with no assumption on the span of the gradients)
+which is dimension-independent is O(T 3/4 ) and requires overall O(T ) calls to the LOO (Hazan and
+Kale, 2012; Garber and Kretzu, 2022). Two recently proposed LOO-based algorithms also improved
+ 2. in linear regression one has g(x) = (x − b)2 for some b ∈ R, and in online portfolio selection one has g(x) =
+    − log(x), which is strongly convex on R>0
+
+
+                                                       2
+                        P ROJECTION - FREE O NLINE E XP - CONCAVE O PTIMIZATION
+
+
+
+
+the dependence on the horizon T from T 3/4 to T 2/3 , however suffer from regret and/or oracle
+                                  √
+complexity which scales with n or worse: the regret bound of the Follow The Perturbed Leader-
+                                                                                        √
+based algorithm of Hazan and Minasyan (2020) has a regret bound of the form O( nT 2/3 ), while
+the Follow The Leader-based algorithm of Mhammedi (2022) (which is based on approximating
+the feasible set with a strongly convex set, which leads to the faster rate) requires overall O(nT
+                                                                                                 e      )
+                                                                     2/3 2/3
+calls to the LOO and has a regret bound of the form O((R/r) T ), where R/r is the ratio
+                                                                            √
+between an enclosing ball and an enclosed ball, which often scales with n and even with n (e.g.,
+for the simplex or the spectrahedron, see Mhammedi (2021)). Moreover, the additional runtime
+per iteration of the algorithm in Mhammedi (2022) scales with n3 . Unfortunately, such explicit
+dependencies on the ambient dimension may be prohibitive for high-dimensional problems, which
+is indeed the typical setting of interest for projection-free methods. Thus, it is interesting whether it
+is possible to obtain a fast T 2/3 rate without explicit dependence on the ambient dimension.
+     A very popular approach to circumvent explicit dependencies on the ambient dimension, which
+underlies numerous models in statistics/high-dimensional analytics and is observed frequently in
+real-world scenarios, is the assumption that the data, at least approximately, lies only in a low-
+dimensional subspace. In our context of OCO with exp-concave losses, as discussed above, many
+losses of interest take the form ft (x) = gt (a>     t x), gt : R → R, with the gradient vector be-
+                    0  >
+ing ∇ft (x) = gt (at xt )at . Thus, when the data vectors a1 , . . . , aT approximately span only
+a low-dimensional     subspace (in the sense that the eigenvalues of the unnormalized covariance
+λi ( Tt=1 at a>
+    P
+              t ) are sufficiently small for all i ≥ ρ+1, for some ρ << n), our regret bound becomes
+dimension-independent and thus suitable for such popular high-dimensional settings. To the best
+of our knowledge, the fast (in terms of T , but not n) algorithms proposed in Hazan and Minasyan
+(2020); Mhammedi (2022) cannot efficiently leverage low-dimensionality of the gradients.
+     Table 1 gives a short summery of our results as well as a comparison to related LOO-based
+algorithms for OCO.
+     On the technical side, our work primarily builds on the recent approach of Garber and Kretzu
+(2022) which suggested a LOO-based projection-free variant of the well known Euclidean Online
+Projected Gradient Descent method (Zinkevich, 2003; Hazan, 2019), and is based on the concept of
+approximately-feasible (Euclidean) projections3 , which refers to the computation of points which
+on one-hand, while infeasible w.r.t. the decision set K, still satisfy certain properties related to or-
+thogonal projections and are sufficiently close to the feasible set, which drives the regret bound, and
+on the other-hand, could be computed efficiently using only a limited number of queries to the LOO
+of the feasible set via the classical Frank-Wolfe algorithm for offline convex minimization (Frank
+and Wolfe, 1956; Jaggi, 2013). Here we provide a non-trivial extension of this framework, from
+supporting only Euclidean (approximately feasible) projections, to supporting projections w.r.t.
+matrix-induced norms as employed by ONS. We also substantially improve the bound on the or-
+acle complexity required to compute such approximately-feasible projections, which is crucial to
+obtaining our faster regret rate (T 2/3 instead of T 3/4 in Garber and Kretzu (2022)).
+
+Other projection-free oracles: We mention in passing that while, as in this work, most literature
+on projection-free OCO assumes the feasible set is accessible through a LOO, some recent works
+have also considered other oracles such as a separation oracle or a membership oracle (Mhammedi,
+2021; Garber and Kretzu, 2022; Lu et al., 2022). While each of these oracles could be implemented
+via the others (see for instance Tat Lee et al. (2017)), none of them is generically superior to the
+ 3. Garber and Kretzu (2022) originally used the terminology close infeasible projections
+
+
+                                                          3
+                                               G ARBER K RETZU
+
+
+
+
+                           Additional           Based        Deter-     LOO     Additional
+     Reference                                                                                    Regret
+                          assumptions            on         ministic?   calls    runtime
+  Hazan and Kale                                                                                       3
+                               -                RFTL           X         T         nT             RGT 4
+  (2012)
+  Garber      and                                                                                      3
+                               -                OGD            X         T         nT             RGT 4
+  Kretzu (2022)
+  Mhammedi                                                                                             2   2
+                            rB ⊆ K               FTL           ×        nT        n3 T        GR(R/r) 3 T 3
+  (2022)
+  Hazan and Mi-            β-smooth                                                              √          2
+                                                FTPL           ×         T         nT        R (G n + βR) T 3
+  nasyan (2020)             losses
+                                                                                                         2  2
+                                                                                             G + α−1 Rn 3 T 3
+                                                                                                    
+                         α-exp concave
+    Theorem 10                                  ONS            X         T        n2 T                 2
+                      and β-smooth losses                                                       +βR2 T 3
+                       1. α-exp concave
+                                                                                                        2   2
+                                                                                             G + α−1 Rρ 3 T 3
+                                                                                                    
+                      and β-smooth losses
+    Theorem 11                                  ONS            X         T        ρnT               2 2
+                      2. gradients approx.                                                      +βR T 3
+                    span ρ-dim. subspace (*)
+
+Table 1: Summary of results and comparison to previous LOO-based methods (applicable to arbi-
+         trary convex and compact sets). G denotes an upper-bound on the `2 norm of the gradients,
+         R denotes the radius of the feasible set K, and B denotes the unit
+                                                                        PEuclidean ball
+                                                                                      centered at
+         the origin. Condition (*) should be understood as ni=ρ+1 λi        T      > = O(T 2/3 ),
+                                                            P
+                                                                               ∇ ∇
+                                                                            t=1 t t
+         where λi (·) denotes the i-th largest eigenvalue and ∇t ∈ Rn denotes the gradient of the
+         loss observed on round t. The bounds omit constants and poly-logarithmic factors.
+
+
+
+
+other (in terms of efficiency of implementation). Finally, the very recent work Mhammedi and
+Gatmiry (2022) considers an efficient variant of ONS which is based on accessing the feasible set
+only through a separation oracle, however it requires the feasible set K to by symmetric in the sense
+that K = −K, which is fairly restrictive.
+
+
+2. Preliminaries
+
+2.1. Notation
+
+We let k·k denote the Euclidean norm over Rn . For a positive semidefinite matrix  √       A, we let
+k·kA denote the induced semi-norm over Rn , i.e., for any x ∈ Rn , kxkA = x> Ax. We let
+Sn , Sn+ , Sn++ denote the space of real symmetric n × n matrices, the set of all real n × n (sym-
+metric) positive semidefinite matrices, and the set of all real n × n (symmetric) positive definite
+matrices, respectively. We use the standard notation A  0 (A  0) to denote that A ∈ Sn+
+(A ∈ Sn++ ). For a matrix A ∈ Sn and i ∈ [n], we let λi (A) denote the i-th largest (signed)
+eigenvalue of A. PnWePdenote    by A • B the standard inner product between two matrices in Sn ,
+                          n
+i.e., A • B = i=1 j=1 Ai,j Bi,j = Tr(AB> ). We let B denote the unit Euclidean ball in Rn
+centered at the origin. Given a convex and compact set C ⊂ Rn , a point x ∈ Rn , and a positive
+definite matrix A ∈ Sn++ , we let dist(x, C) and distA (x, C) denote the Euclidean distance of x from
+
+                                                        4
+                         P ROJECTION - FREE O NLINE E XP - CONCAVE O PTIMIZATION
+
+
+
+
+C and the distance induced by A of x from C, respectively. That is, dist(x, C) = miny∈C kx − yk,
+dist(x, C) = miny∈C kx − ykA .
+
+2.2. Problem setup: online exp-concave and smooth optimization with a LOO
+We recall the setting of OCO (Hazan, 2019; Shalev-Shwartz et al., 2012), in which, a decision maker
+is required for T rounds (T is assumed known in advanced for simplicity), to select on each round
+some point xt ∈ K, where K ⊂ Rn is convex and closed (and fixed throughout all rounds). After
+making her choice on round t, the decision maker observes a convex loss function ft : K → R and
+incurs the loss ft (xt ). The goal of the decision maker is to minimize her regret which is given by
+                                          XT                 XT
+                                   RT =       ft (xt ) − min    ft (x),
+                                                                x∈K
+                                                t=1                   t=1
+
+i.e., it is the difference between her cumulative loss, and the cumulative loss of the best fixed point
+in K in hindsight.
+     Throughout this work we assume the feasible set is compact and accessible through a linear
+optimization oracle, which means that for any g ∈ Rn we can efficiently compute some v∗ ∈
+argminv∈K v> g.
+     We now turn to discuss our specific assumptions on the loss functions f1 , . . . , fT . In the follow-
+ing definitions we let C denote a convex and compact subset of Rn .
+
+Definition 1 We say f : C → R is β-smooth over C, for some β ≥ 0, if for every x, y ∈ C it holds
+that k∇f (x) − ∇f (x)k ≤ β kx − yk.
+
+Definition 2 We say f : C → R is α-exp concave over C, for some α > 0, if e−αf (x) is concave
+over C.
+
+We recall that an exp-concave function is in particular convex (see Hazan (2019)). In fact, we shall
+consider a weaker condition than exp concavity, which we shall refer to as a curvature condition.
+
+Definition 3 Let R denote the radius of C, i.e., maxx,y∈C kx − yk ≤ 2R. A differentiable function
+f : C → R with gradients upper-bounded in `2 norm by some G > 0 over C, is said to satisfy the
+curvature condition over C with some parameter α > 0, if for every η ≥ max{4GR, 2/α} and every
+x, y ∈ C, it holds that f (x) − f (y) ≤ ∇f (x)> (x − y) − 2η
+                                                           1
+                                                              (x − y)> ∇f (x)∇f (x)> (x − y).
+
+This condition is weaker than exp-concavity in the sense that an α-exp-convave function also satis-
+fies the curvature condition with the same parameter α (Hazan, 2019).
+     The following assumption records all of our assumptions on the loss functions f1 , . . . , fT , which
+we assume to hold throughout the rest of the paper.
+
+Assumption 1 The loss functions f1 , . . . , fT , are all β-smooth, have gradients upper-bounded in
+`2 norm by some G > 0, and satisfy the curvature condition with some parameter α > 0, over the
+set 3RB, where R denotes the radius of a ball enclosing K and centered at the origin.4
+ 4. The consideration of a set strictly containing K (the ball 3RB) in which these assumptions hold is required since
+    our algorithm will query gradients of the loss functions at infeasible points. For ease of presentation we consider the
+    enclosing set 3RB, however this could be very much relaxed to consider a set only slightly larger than K in which
+    the assumption needs to hold, see discussion in Section D.
+
+
+                                                            5
+                                                G ARBER K RETZU
+
+
+
+
+2.3. Online Newton step with approximately-feasible (matrix) projections
+We now begin to discuss our high-level approach towards efficient LOO-based implementation of
+the Online Newton Step method. As discussed, our approach builds on the one in Garber and Kretzu
+(2022), which considered the Euclidean Online Gradient Descent method, and extends it to ONS
+which requires non-Euclidean projections according to matrix-induced norms.
+    One of our central algorithmic building blocks is an oracle for computing approximately-feasible
+projections onto the feasible set K w.r.t. to some matrix-induced norm, which we now define. In
+the sequel we show how such an oracle could be implemented efficiently using only a LOO for the
+feasible set K.
+Definition 4 Given a convex and compact set K ⊂ Rn , a positive definite matrix A ∈ Sn++ , and
+a tolerance  > 0, we say a function OAF P (y, A, , K) is an approximately-feasible projection
+(AFP) oracle (for the set K with parameters A, ), if for any input point y ∈ Rn , it returns some
+    e ) ∈ K × Rn such that i. for all z ∈ K, ke
+(x, y                                                                           e k2A ≤ .
+                                              y − zkA ≤ ky − zkA , and ii. kx − y
+     Equipped with the concept of an AFP oracle, we can now introduce our second central algo-
+rithmic building block — a template for ONS-style algorithms that only accesses the feasible set
+K through an AFP oracle. As opposed to the standard (projection-based) ONS which maintains
+a single sequence of feasible points, Algorithm 1 maintains two main sequences: one sequence
+({eym }m≥1 }) which is infeasible and corresponds to an ONS-style update, and another sequence
+({xm }m≥1 }) which is feasible and point-wise close to the previous sequence. We refer to Algorithm
+1 as a template since it does not explicitly state how to choose the matrices Am , m = 1, 2, . . . , used
+in the algorithm, but only states some restrictions on them. This will be useful later on to derive our
+two variants: one in which Am is based on exact aggregation of gradients (as in standard ONS),
+and the other which is only a certain approximation via a matrix sketching technique and useful
+for reducing memory and runtime requirements in case the gradients span (approximately) only a
+low-dimensional subspace. Finally, Algorithm 1 partitions the prediction rounds 1, . . . , T into con-
+secutive disjoint blocks of size K (denoted by a subscript of m). This will be important to make
+sure the AFP oracle is called only once every K iterations, which will allow to upper bound the
+number of LOO calls required to implement it according to our needs. The following lemma states
+the regret bound of Algorithm 1 that will be used to derive all following regret bounds.
+Lemma 5 Consider running Algorithm 1 with some block size K ∈ [T ]5 and with I ≥ G2 K 2 ,
+η ≥ max{12KGR, 2K  α }. Suppose further that for all m it holds that y
+                                                                     em ∈ 3RB. Then, it holds
+that
+                                        v
+          T                             u 6T TX /K                          T /K
+                                        u
+                               3β                                    2
+                                                      ¯ m k2 −1 + 2R I + η
+          X                                                                  X
+ ∀x ∈ K :        t
+            ft (x ) − ft (x) ≤     T +t              k∇    Am
+                                                                                  k∇m k2A−1 .
+                                I         K                         η     2             m
+              t=1                                              m=1                                m=1
+
+The proof, at a high level, builds on coupling the standard ONS proof (Hazan, 2019) with the
+properties of the AFP oracle, to derive a regret bound on the infeasible sequence {e  ym }m≥1 . The
+smoothness assumption on the losses is then used (and only in this proof) to derive a regret bound
+on the feasible sequence {xt }t≥1 , without incurring terms which (eventually) will scale worse than
+T 2/3 .
+ 5. without loosing much generality, throughout this paper we assume that the chosen block size K is integer and divides
+    T , which will ease the analysis. Waiving this convention will only add lower-order terms to our regret bounds
+
+
+                                                           6
+                         P ROJECTION - FREE O NLINE E XP - CONCAVE O PTIMIZATION
+
+
+
+
+  Algorithm 1: Template for Online Newton Step Without Feasibility
+Data: horizon T , block length K, learning rate η > 0, initialization parameter I > 0, error
+       tolerance  > 0, approximately-infeasible projection oracle OAF P (·, ·, ·, K)
+x1 = ye1 ← arbitrary point in K
+A0 =  I In
+for m = 1, . . . , T /K do
+    Set ∇¯m = 0
+    for s = 1, . . . , K do
+        Play xt = xm for t = (m − 1)K + s
+        Set ∇t = ∇ft (e                  ¯m = ∇
+                         ym ) and update ∇     ¯ m + ∇t
+    end
+    Update Am such that A0  Am  Am−1 + ∇        ¯ m∇¯>
+                                                       m
+    Update ym+1 = y             −1
+                        em − ηAm ∇ ¯m
+    Set (xm+1 , yem+1 ) ← OAF P (ym+1 , Am , 3, K)
+end
+
+
+Proof [Proof of Lemma 5] Fix some block m ∈ {1, . . . , T /K}. Since ∇ ¯ m = PmK
+                                                                               t=(m−1)K+1 ∇t ,
+              ¯ m∇
+it holds that ∇  ¯ m  K G In . Thus, for the value of I stated in the lemma and the choice of
+                   >     2  2
+
+Am−1 , we have that ∇¯ m∇
+                        ¯>                                                             ¯ ¯>
+                          m  I In = A0  Am−1 . Additionally, since Am  Am−1 + ∇m ∇m ,
+we have that
+
+           kxm − y               em k2Am−1 + kxm − y
+                 em k2Am ≤ kxm − y                 em k2∇               em k2Am−1 .
+                                                           ¯ > ≤ 2kxm − y
+                                                        ¯ m∇                                                              (1)
+                                                                                     m
+
+
+Denote x∗ ∈ argminx∈K Tt=1 ft (x), m(t) := Kt , and gt = ∇ft (xm(t) ) for all t ∈ [T ]. Using
+                           P                 
+
+the convexity of each ft (·), it holds that
+
+             T
+             X                                 T
+                                               X                                 T
+                                                                                 X
+                                        ∗
+                                                     gt>                                     ym(t) ) − ft (x∗ ).
+                                                                             
+                   ft (xm(t) ) − ft (x ) ≤                 xm(t) − y
+                                                                   em(t) +               ft (e
+             t=1                               t=1                               t=1
+
+Since each ft (·) is β-smooth we have that,
+
+T
+X                                T
+                                 X
+      ft (xm(t) ) − ft (x∗ ) ≤     (gt − ∇t )> xm(t) − y
+                                                       em(t) + ∇>                     ym(t) ) − ft (x∗ )
+                                                                              
+                                                                t xm(t) − y
+                                                                          em(t) + ft (e
+t=1                              t=1
+                                 T                                   T /K                          T
+                                                             2
+                                 X                                   X                             X
+                            ≤          β xm(t) − y
+                                                 em(t)           +          ¯ m (xm − y
+                                                                            ∇         em ) +                 ym(t) ) − ft (x∗ ).
+                                                                                                         ft (e
+                                 t=1                                 m=1                           t=1
+                                                                                                                          (2)
+
+                               em ) are the output of OAF P (ym , Am−1 , 3, K), we have that
+Since for every block m, (xm , y
+
+
+  T                                     T /K                                  T /K
+  X                          2
+                                        X                       βK X
+                                                                 2                       3β
+        β xm(t) − y
+                  em(t)          =K            β kxm − y
+                                                       em k ≤              em k2Am−1 ≤
+                                                                     kxm − y                 T, (3)
+  t=1                                   m=1                 (a) I            m=1    (b) I
+
+
+
+                                                             7
+                                              G ARBER K RETZU
+
+
+
+
+where (a) holds since, by the choice of Am−1 , it holds that Am−1  A0 = I In , and so, for any
+z ∈ Rn we have that kzk2Am−1 ≥ I kzk2 , and (b) holds due to the gurantee of the AFP oracle.
+    Using Eq. (1) and the facts that for every block m, k·kAm , k·kA−1
+                                                                    m
+                                                                       are dual norms, and (xm , y
+                                                                                                 em )
+are the outputs of OAF P , we have that
+ XT /K                          XT /K
+             ¯ > (xm − y
+             ∇         em ) ≤               ¯ m k −1 kxm − y
+                                           k∇              em kAm
+       m=1     m                 m=1             Am
+                                XT /K                √                     √ XT /K
+                           ≤                ¯ m k −1 2kxm − y
+                                           k∇                   m k A    ≤  6      ¯ m k −1 ,
+                                                                                   k∇
+                                     m=1         Am           e      m−1                 Am  m=1
+
+where the last inequality is again due to the guarantee of the AFP oracle.
+   Using Jensen’s inequality, we have that
+                                     v                   2              v
+                                     u
+        T /K                         u TX   /K                      r uT /K
+                                 √                              √
+                                                 ¯ m k −1  ≤ 6 T t
+        X                                                                 uX
+             ¯ > (xm − y
+             ∇           em ) ≤ 6t
+                                     u
+                                               k∇                             ¯ m k2 −1 .
+                                                                             k∇                      (4)
+               m                                      Am                           Am
+                                                                       K
+         m=1                                  m=1                                    m=1
+
+Now we turn to upper bound the third term in Eq. (2). For every block m, using the fact that y
+                                                                                             em+1
+is the output of OAF P w.r.t. the input point ym+1 , we have that
+
+         ∀x ∈ K :    ke                               ym − ηA−1
+                      ym+1 − xk2Am ≤ kym+1 − xk2Am = ke           ¯
+                                                               m ∇m − xkAm
+                                                                           2
+
+                                      ym − xk2 + η 2 ∇
+                                   = ke              ¯ > A−1 ∇
+                                                      Am
+                                                                      ¯ > (e
+                                                             ¯ m − 2η ∇
+                                                                        m  ym − x).
+                                                                            m          m
+
+Rearranging, for every m ∈ [T /K], we have that
+
+                                      ym − xk2Am
+                                     ke             ym+1 − xk2Am
+                                                   ke             η ¯ 2
+                  ¯>
+                  ∇   ym − x) ≤
+                   m (e                          −               + k∇ m kA−1 .                       (5)
+                                         2η             2η        2       m
+
+
+
+                                                     ym − xk2Am − ke
+Before we continue, we upper bound the summation of ke             ym+1 − xk2Am over m ∈
+              e1 ∈ K and A0 = I In , we have that
+[T /K]. Since y
+T /K                                                             T /K
+X                                                                X
+        ym − xk2Am − ke
+       ke             ym+1 − xk2Am ≤ ke
+                                      y1 − xk2A1 +                       ym − x)> (Am − Am−1 ) (e
+                                                                        (e                      ym − x)
+m=1                                                              m=2
+                                                                 T /K
+                                                                 X
+                                               y1 − xk2A0 +
+                                            = ke                         ym − x)> (Am − Am−1 ) (e
+                                                                        (e                      ym − x)
+                                                                 m=1
+                                                         T /K
+                                                         X
+                                            ≤ 4R2 I +           ym − x)> (Am − Am−1 ) (e
+                                                                (e                      ym − x).
+                                                         m=1
+
+                                                                                      ¯ m∇
+Summing Eq. (5) over m ∈ [T /K], and using the fact that for all blocks m, Am −Am−1  ∇  ¯>,
+                                                                                           m
+we have that
+       T /K                                T /K                                       T /K
+        X                   2R I2         X (e        ¯ m∇
+                                              ym − x)> ∇  ¯ > (e
+                                                               ym − x)               η X ¯ 2
+              ¯ > (e
+              ∇                                                      m
+                m ym − x) ≤       +                                              +      k∇m kA−1 .
+                              η                                 2η                   2        m
+       m=1                                 m=1                                        m=1
+
+Since η ≥ max{12KGR, 2K  α }, and y
+                                  em ∈ 3RB for every m ∈ [T /K] (by the assumption of the
+lemma), using Lemma 19 (sum of functions which satisfy the curvature condition in Definition 3,
+
+                                                     8
+                      P ROJECTION - FREE O NLINE E XP - CONCAVE O PTIMIZATION
+
+
+
+
+also satisfies this condition) we have that for every x ∈ K ⊆ 3RB, and every m ∈ [T /K], it holds
+that
+            mK
+                                                              1
+                                                                 ym − x)> ∇
+            X
+                     ft (e               ¯>
+                         ym ) − ft (x) ≤ ∇    ym − x) −
+                                           m (e                 (e           ¯>
+                                                                          ¯ m∇    ym − x) .
+                                                                               m (e
+                                                             2η
+        t=(m−1)K+1
+
+Combining the last two inequalities we obtain that for every x ∈ K it holds that,
+
+                        T                                      T /K
+                        X                            2R2 I   η X
+                                  ym(t) ) − ft (x) ≤
+                              ft (e                         +     k∇m k2A−1 .
+                                                       η      2          m
+                        t=1                                    m=1
+
+Plugging-in the last equation, Eq. (4), and Eq. (3) into Eq. (2), we obtain
+                                                 v
+   T                                       r uT /K                                T /K
+  X                          3β       √      Tu    X                  2R2 I   η X
+                        ∗
+     ft (xm(t) ) − ft (x ) ≤      T + 6         t        ¯    2
+                                                         k∇m kA−1 +           +        k∇m k2A−1 .
+                               I             K                   m      η      2             m
+  t=1                                                  m=1                           m=1
+
+Finally, the lemma follows from recalling that with the notation of Algorithm 1, we have that for all
+t ∈ [T ], xt = xm(t) .
+
+
+3. Efficient LOO-based Approximately-Feasible Projections
+In this section we turn to discuss the technical heart of the paper — the efficient construction of an
+AFP oracle for the feasible set K (Definition 4) using only a linear optimization oracle for K. As
+already discussed, we build on the approach of Garber and Kretzu (2022) for Euclidean projection,
+but expand on it in two ways: i. we extend it to projection w.r.t. matrix-induced norms, as em-
+ployed by ONS, and ii. we critically improve certain parts of the analysis, which while not being a
+bottleneck in the analysis of Garber and Kretzu (2022) (which has a T 3/4 regret bound), are indeed
+crucial for our faster T 2/3 regret bounds.
+    At a high level, the construction relies on the following idea: given an infeasible point y, us-
+ing only the LOO, we can either construct a generalized hyperplane that separates y from K with
+sufficient margin (generalized in the sense that it separates w.r.t. to a given positive definite matrix
+A, see in the sequel), or find a feasible point that is sufficiently close to y (in terms of the distance
+induced by the matrix A). In case such a generalized hyperplane is found, it can then be used to
+“pull” the infeasible point closer to K, and the process repeats itself.
+    We show that by applying the classical LOO-based Frank-Wolfe method (Frank and Wolfe,
+1956; Jaggi, 2013) to the non-Euclidean projection problem minx∈K kx − yk2A , we can indeed
+either find such a separating hyperplane, or find a close-enough feasible point, w.r.t. the matrix A.
+    One may wonder: if we can directly approximate matrix-based projections, arbitrarily well,
+using Frank-Wolfe, why do we need to go through the (conceptually more complex) approach of
+using separating hyperplanes? The reason is that, has already discussed in Garber and Kretzu
+(2022), such a simplified approach will lead to a worse regret/oracle complexity tradeoff (mainly
+in terms of T ). In particular, when applying Frank-Wolfe to the problem minx∈K kx − yk2A , we
+will only compute a feasible point that is an approximated projection. On the other hand, with
+our approach (recall the definition of the AFP oracle) we always return a valid (though infeasible)
+
+                                                   9
+                                          G ARBER K RETZU
+
+
+
+
+projection (and a feasible point that is sufficiently close to it), which allows for a tighter regret
+analysis.
+    The following lemma shows how given an infeasible point y and such a generalized separating
+hyperplane, we can “pull” y closer to the feasible set.
+
+Lemma 6 Let K ⊂ Rn be convex and compact, let A ∈ Sn++ , and let y ∈ Rn \ K. Let g ∈ Rn be
+such that for all z ∈ K, (y − z)> Ag ≥ Q, for some Q ≥ 0. Consider the point y
+                                                                             e = y − γg for
+          2
+γ = Q/C , where C ≥ kgkA . It holds that
+
+                           ∀z ∈ K :     y − zk2A ≤ ky − zk2A − (Q/C)2 .
+                                       ke
+
+Proof Fix some z ∈ K. It holds that
+
+             y − zk2A = ky − z − γgk2A = ky − zk2A − 2γ(y − z)> Ag + γ 2 kgk2A .
+            ke
+
+Since (y − z)> Ag ≥ Q and C ≥ kgkA , we indeed obtain
+
+                     y − zk2A ≤ ky − zk2A − 2γQ + γ 2 C 2 = ky − zk2A − Q2 /C 2 ,
+                    ke
+
+where the last equality follows from plugging-in the value of γ.
+
+    Algorithm 2 given below, which simply applies the Frank-Wolfe method (with line-search) for
+smooth convex minimization over a convex and compact set (Jaggi, 2013) to the non-Euclidean
+projection problem minx∈K kx − yk2A , returns some feasible point x e ∈ K, that is either close
+enough (w.r.t. k·kA ) to the infeasible point y, or can be used to construct a hyperplane which
+separates y from K w.r.t. A and with sufficient margin.
+
+  Algorithm 2: Generalized Separating Hyperplane via Frank-Wolfe
+Data: LOO for the feasible set K, error tolerance  > 0, initial point x1 ∈ K, A ∈ Sn++ ,
+       infeasible point y
+for i = 1, 2, . . . do
+    vi ∈ argmin{(xi − y)> Ax};                                 /* call to LOO of K */
+           x∈K
+   if (xi − y)> A(xi − vi ) ≤  or kxi − yk2A ≤ 3 then
+              e ← xi
+       return x
+   σi = argmin{ky − xi − σ(vi − xi ))k2A }
+          σ∈[0,1]
+   xi+1 = xi + σi (vi − xi )
+end
+
+
+
+                                                       27R2 λ1 (A)/ − 2 iterations, and returns a
+                                                                      
+Lemma 7 Algorithm 2 terminates after at most
+      e ∈ K satisfying:
+point x
+
+       x − yk2A ≤ kx1 − yk2A .
+   1. ke
+
+                                            x − yk2A ≤ 3 or ∀z ∈ K : (y − z)> A(y − x
+   2. At least one of the following holds: ke                                        e) >
+      (2/3)ke       2
+             x − ykA .
+
+                                                 10
+                     P ROJECTION - FREE O NLINE E XP - CONCAVE O PTIMIZATION
+
+
+
+
+   3. If dist2A (y, K) ≤ , then ke
+                                  x − yk2A ≤ 3.
+
+Proof As discussed, Algorithm 2 is simply the well-known Frank-Wolfe method with line-search,
+see Algorithm 3 in Jaggi (2013), when applied to minimizing the convex and λ1 (A)-smooth func-
+tion g(x) := 12 kx − yk2A , whose gradient vector is given by ∇g(x) = A(x − y), over the set K.
+Thus, the upper-bound on the number of iterations executed by Algorithm 2 follows immediately
+from Theorem 2 in Jaggi (2013), which gives a convergence rate for the dual gap. For our choice of
+g, the dual gap on any iteration i is given precisely by ∇g(xi )> (xi − vi ) = (xi − y)> A(xi − vi ),
+which corresponds to one of the stopping conditions is Algorithm 2.
+     Since the line-search guarantees that the function value g(xi ) = 12 kxi − yk2A does not increase
+when moving from iterate xi to xi+1 , Item 1 holds trivially.
+     Item 2 follows from the stopping condition of the algorithm and by noting that, if for some
+iteration i it holds that (xi − y)> A(xi − vi ) ≤  and kxi − yk2A > 3 (in which case the algorithm
+will return xe = xi ) then, for all z ∈ K it holds that
+(z − y)> A (xi − y) = (z − xi )> A (xi − y) + kxi − yk2A ≥ (vi − xi )> A (xi − y) + kxi − yk2A
+                      ≥ − + kxi − yk2A > −(kxi − yk2A /3) + kxi − yk2A = (2/3)kxi − yk2A ,
+where the first inequality is due to the definition of vi .
+    Finally, to prove Item 3, denote x∗ = argminx∈K kx − yk2A . Suppose by contradiction that
+distA (y, K) = kx∗ − yk2A ≤ , and ke
+    2
+                                           x − yk2A > 3. By the stopping condition of the algorithm,
+                                                     x −y)> A(e
+on the last iteration executed i, it must hold that (e        x −vi ) = maxv∈K ∇g(e  x)> (e
+                                                                                          x −v) ≤ ,
+which means that
+                               x) − 2g(x∗ ) ≤ 2∇g(e
+ x − yk2A − dist2A (y, K) = 2g(e
+ke                                                x)> (e
+                                                       x − x∗ ) ≤ 2 max ∇g(e
+                                                                           x)> (e
+                                                                                x − v) ≤ 2,
+                                                                          v∈K
+
+where the first inequality is due to the gradient inequality and the convexity of g(·). Thus, we have
+      x − yk2A ≤ 2 + dist2A (y, K) ≤ 3, which contradicts the assumption that ke
+that ke                                                                               x − yk2A > 3.
+
+
+    Our LOO-based implementation of a AFP oracle for the feasible set K is given as Algorithm 3.
+The algorithm builds on iteratively using separating hyperplanes generated by Algorithm 2 to “pull
+closer” the infeasible point y towards the feasible set K using the updates suggested in Lemma 6,
+until it is sufficiently close.
+    The proof of the following lemma is given in the appendix.
+Lemma 8 Setting γ = 2/3 in Algorithm 3 guarantees that it stops after at most
+                                             ky1 − x0 k2A
+                                                               
+                              max 2.25 log                  + 1, 0
+                                                  
+                                         p           
+iterations, and returns (x, y) ∈ K × R + 3/λn (A) B such that
+
+                   ∀z ∈ K : ky − zk2A ≤ ky1 − zk2A        and    kx − yk2A ≤ 3.
+It is important to note that Lemma 8 significantly and critically improves upon its Euclidean coun-
+terpart in Garber and Kretzu (2022): while the number of iterations here scales only with log(1/),
+in Garber and Kretzu (2022) it scales with 1/2 . This improvement is critical for obtaining our
+improved regret/oracle complexity tradeoffs.
+
+                                                   11
+                                         G ARBER K RETZU
+
+
+
+
+   Algorithm 3: Approximately-Feasible (matrix) Projection via a Linear Optimization Oracle
+Data: LOO for the feasible set K, feasible point x0 ∈ K, initial point y1 ∈ Rn , A ∈ Sn++ ,
+        error tolerance  > 0, step-size γ > 0
+if kx0 − y1 k2A ≤ 3 then
+    Return x ← x0 , y ← y1
+end
+for i = 1, 2, . . . do
+    xi ← Output of Algorithm 2 when called with LLO of K, tolerance , feasible point xi−1 ,
+      positive definite matrix A, and initial point yi
+    if kxi − yi k2A > 3 then
+         yi+1 = yi − γ (yi − xi )
+    else
+         Return x ← xi , y ← yi
+    end
+end
+
+
+4. LOO-based Online Newton Step
+In this section we present our main result — an efficient LOO-based ONS-style algorithm and its
+regret and complexity guarantees.
+     The following lemma builds on the combination of our ONS Without Feasibility template (Al-
+gorithm 1) together with our LOO-based construction for an AFP oracle (Algorithm 3). The proof
+is given in the appendix.
+
+Lemma 9 Fix block size K ∈ [T ]. Consider running Algorithm 1 with parameters η, , I such that
+η ≥ max{12KGR, 2K                        2     3      2
+                      α }, I ≥ (KG) , and I ≤ 4R , and when the OAF P oracle is implemented
+via Algorithm 3, where the initial feasible input to Algorithm 3 (the point x0 in Algorithm 3), when
+called during block m in Algorithm 1, is the previous feasible output of Algorithm 3 — the point
+xm , if m ≥ 2, and the initialization point of Algorithm 1 (the point x1 ), if m = 1. Then, the regret
+is upper bounded by
+                                              v
+   T                  T                       u 6T TX/K                            T /K
+                                              u
+  X                   X              3β                               2R2 I     η X
+           t
+      ft (x ) − min     f t (x ∗
+                                 ) ≤      T + t          k ¯
+                                                           ∇  k 2
+                                                             m A−1  +           +        k∇m k2A−1  ,
+                x∗ ∈K                 I          K               m        η      2              m
+ t=1                t=1                               m=1                          m=1
+
+and the overall number of calls to the LOO of K is upper bounded by
+
+                                              η 2 K 2 G2 I + G2 KT
+                                                       
+                                     2
+                      Ncalls ≤ 61R log 19 + 4                       T.
+                                                  I        K
+
+    We are now ready to formally present our main result. Here for ease of presentation we present
+a concise version only. A fully detailed version which specifics all choices of parameters and all
+poly-logarithmic factors, as well as the proof, is given in the appendix.
+
+Theorem 10 (short version) Consider the implementation of Algorithm 1 as described in Lemma
+9 and when using the (standard ONS) update rule: Am = Am−1 + ∇ ¯ m∇¯ > for every block m.
+                                                                     m
+
+
+                                                 12
+                     P ROJECTION - FREE O NLINE E XP - CONCAVE O PTIMIZATION
+
+
+
+
+   1. If T ≥ T0 = O(1),
+                     e      there exists a choice for the parameters K, η, , I in Algorithm 1 which
+      depends only on the quantities T, n, G, R, α and satisfies the assumptions of Lemma 9, such
+      that the regret is upper-bounded by
+                                                                          
+                               RT = O   e (βR2 + (GR + α−1 )n2/3 )T 2/3 .                         (6)
+
+   2. In continue to thePprevious item
+                                    PTand under  the same choice of parameters, for any ρ ∈ [n],
+                          n                  > ) (∇ is as defined in Algorithm 1), the regret is
+      denoting Ωρ =             λ
+                          i=ρ+1 i (      ∇ ∇
+                                      t=1 t t       t
+      upper-bounded by
+                                                                               
+                     RT = O e (βR2 + GR(ρ1/2 n1/6 + n1/3 ) + α−1 n−1/3 ρ)T 2/3
+                                                                      
+                            e RT 1/3 Ωρ + G−2 n−2/3 (GR + α−1 )Ωρ .
+                                       p
+                          +O                                                                 (7)
+
+
+   3. Fix ρ ∈ [n]. If T ≥ T0 = O(1),
+                                   e       there exists a choice for the parameters K, η, , I in
+      Algorithm 1 which depends only on the quantities T, n, G, R, α and ρ, and satisfies the as-
+      sumptions of Lemma 9, such that the regret is upper-bounded by
+                                                                                             
+              e (βR2 + (GR + α−1 )ρ2/3 )T 2/3 + RT 1/3 Ωρ + G−2 ρ−2/3 (GR + α−1 )Ωρ .
+                                                           p
+       RT = O
+                                                                                                  (8)
+
+      Note this bound is not explicitly dependent on the ambient dimension n.
+
+In all cases, the overall number of calls to the LOO of K is upper-bounded by O(T + n1/3 T 2/3 ), the
+additional space requirement is O(n2 ), and using the Sherman-Morrison formula for fast matrix
+inversion, the overall additional runtime is O(n2 (T + n1/3 T 2/3 )).
+
+Let us make a few comments regarding Theorem 10. The regret bounds (7), (8) may significantly
+improve upon the worst case bound (6) in case the observed gradients approximately span a sub-
+space of dimension at most ρ, for some ρ ∈ [n], in the sense that Ωρ = O(T 2/3 ) (note that Ωρ = 0
+implies that the dimension of the subspace spanned by the gradients is at most ρ). In particu-
+lar, the bound (7) holds simultaneously for all values of ρ (i.e., the algorithm is independent of
+the choice of ρ), but still depends on the ambient dimension n (though with milder dependence
+than (6)), while the bound (8) is completely independent of n, but requires a priori knowledge of
+ρ. In case it indeed holds that Ωρ = O(T 2/3 ) for some known ρ << n, (8) translates into a
+ e (βR2 + (GR + α−1 )ρ2/3 )T 2/3 regret bound.
+                                   
+O
+
+5. Leveraging Frequent Directions Sketching for Low-dimensional Data
+While Theorem 10 yields a regret bound for Algorithm 1 which is independent of the ambient
+dimension n and depends only on the (approximate) dimension of the subspace spanned by the
+gradients (guarantee (8)), the space and average additional runtime requirements still scale with
+n2 . Following the approach of Luo et al. (2016), who considered the coupling of ONS with matrix
+sketching techniques to reduce space and runtime requirements in case of low-dimensional data (but
+not in a projection-free setting), in this section we discuss the implications of such coupling to our
+LOO-based algorithm.
+
+                                                 13
+                                         G ARBER K RETZU
+
+
+
+
+    Similarly to Luo et al. (2016), we consider the use of the well known deterministic Frequent
+Directions sketching method (Ghashami et al., 2016). The idea is that instead of taking the matrix
+Am for each block m in Algorithm 1 to be the exact aggregation of gradients as in Theorem 10 and
+maintain it (and its inverse A−1
+                              m ) explicitly, we shall only maintain a certain approximation of this
+gradient information in a low-rank factorized form, see Algorithm 4 which shows how the Frequent
+Directions sketch is used in synergy with Algorithm 1.
+
+  Algorithm 4: Frequent Directions Sketch for Algorithm 1
+Data: sketch size ρ ∈ [n], I > 0
+Initialization: Set S0 = 0(ρ+1)×n , and A0 = I In
+for m = 1 to T /K do
+    Receive ∇¯ m ∈ Rn from Algorithm 1 and insert it as the last row of Sm−1
+    Compute eigendecomposition of S>                        >b       >
+                                          m−1 Sm−1 : Vm Σm Vm = Sm−1 Sm−1
+    Set σm = Σ b m (ρ + 1, ρ + 1) and Σm = Σ     b m − σm Iρ+1            . Σm (ρ + 1, ρ + 1) = 0
+                     1
+    Set Sm = (Σm ) Vm
+                     2
+                                                                       . last row of Sm is now 0
+                                                                                               −1
+                           1                  1          1
+    Set Hm = diag I +Σm (1,1) , . . . , I +Σm (ρ,ρ) , I         . Hm = I Iρ+1 + Sm S>    m
+                                          −1
+    Set Am = A0 + S>            −1            In − S>
+                                                                
+                       m Sm , Am = I                   m Hm Sm   . not to be explicitly computed;
+                          −1
+     the expression for Am follows from the Woodbury matrix identity
+end
+
+   The full version of the following theorem, as well as the proof and additional details regarding
+Algorithm 4, are given in the appendix.
+Theorem 11 Fix ρ ∈ [n]. Consider the implementation of Algorithm 1 as described in Lemma 9,
+and when the matrix PAm for every
+                                  block m in Algorithm 1 is generated by Algorithm 4. Denote
+Ωρ = ni=ρ+1 λi          T       > . If T ≥ T = O(1),
+       P
+                            ∇ ∇
+                        t=1 t t              0
+                                                   e     then there exists a choice for the parame-
+ters K, η, , I in Algorithm 1 which depends only on the quantities T, ρ, G, R, α and satisfies the
+assumptions of Lemma 9, such that the regret is upper bounded by
+                                                                                          
+         e βR2 + GR + α−1 ρ2/3 T 2/3 + Rρ1/2 T 1/3 Ωρ + G−2 ρ1/3 GR + α−1 Ωρ .
+                                                            p
+  RT = O
+
+The overall number of calls to the LOO is upper bounded by O ρ1/3 T 2/3 + T , the additional
+                                                                                   
+
+space requirement is O(ρn), and the overall additional runtime is O(ρnT +ρ4/3 nT 2/3 +ρ7/3 nT 1/3 ).
+
+6. Discussion
+We provided the first projection-free LOO-based algorithm for exp-concave and smooth losses that
+in the case of (approximately) low-dimensional gradients, using O(T ) queries to the LOO, guaran-
+tees regret that both scales only with T 2/3 , and is independent of the ambient dimension.
+    It is interesting if a similar result could be obtained when removing one or more of the above
+assumptions: smoothness of the losses, exp-concavity of the losses, low-dimensionality of the gra-
+dients. In particular, the two recent works Hazan and Minasyan (2020); Mhammedi (2022) achieve
+fast LLO-based regret bounds that scale with T 2/3 (but also with the dimension) without curvature
+assumptions on the losses. It is thus interesting whether the exp-concavity assumption, or even
+strong convexity (Kretzu and Garber, 2021), could lead to even faster rates than T 2/3 .
+
+                                                 14
+                    P ROJECTION - FREE O NLINE E XP - CONCAVE O PTIMIZATION
+
+
+
+
+References
+Lin Chen, Christopher Harshaw, Hamed Hassani, and Amin Karbasi. Projection-free online opti-
+  mization with stochastic gradient: From convexity to submodularity. In Jennifer Dy and Andreas
+  Krause, editors, Proceedings of the 35th International Conference on Machine Learning, vol-
+  ume 80 of Proceedings of Machine Learning Research, pages 814–823. PMLR, 10–15 Jul 2018.
+
+Lin Chen, Mingrui Zhang, and Amin Karbasi. Projection-free bandit convex optimization. In The
+  22nd International Conference on Artificial Intelligence and Statistics, pages 2047–2056. PMLR,
+  2019.
+
+Alina Ene, Huy L Nguyen, and Adrian Vladu. Projection-free bandit optimization with privacy
+  guarantees. In Proceedings of the AAAI Conference on Artificial Intelligence, volume 35, pages
+  7322–7330, 2021.
+
+M. Frank and P. Wolfe. An algorithm for quadratic programming. Naval Research Logistics Quar-
+ terly, 3:149–154, 1956.
+
+Dan Garber and Elad Hazan. Playing non-linear games with linear oracles. In 2013 IEEE 54th
+  Annual Symposium on Foundations of Computer Science, pages 420–428. IEEE, 2013.
+
+Dan Garber and Ben Kretzu. Improved regret bounds for projection-free bandit convex optimization.
+  In International Conference on Artificial Intelligence and Statistics, pages 2196–2206. PMLR,
+  2020.
+
+Dan Garber and Ben Kretzu. New projection-free algorithms for online convex optimization with
+  adaptive regret guarantees. In Po-Ling Loh and Maxim Raginsky, editors, Proceedings of Thirty
+  Fifth Conference on Learning Theory, volume 178 of Proceedings of Machine Learning Re-
+  search, pages 2326–2359. PMLR, 02–05 Jul 2022.
+
+Mina Ghashami, Edo Liberty, Jeff M Phillips, and David P Woodruff. Frequent directions: Simple
+ and deterministic matrix sketching. SIAM Journal on Computing, 45(5):1762–1792, 2016.
+
+Elad Hazan. Introduction to online convex optimization. arXiv preprint arXiv:1909.05207, 2019.
+
+Elad Hazan and Edgar Minasyan. Faster projection-free online learning. In Conference on Learning
+  Theory, pages 1877–1893. PMLR, 2020.
+
+Elad Hazan, Amit Agarwal, and Satyen Kale. Logarithmic regret algorithms for online convex
+  optimization. Machine Learning, 69(2):169–192, 2007.
+
+Elad E Hazan and Satyen Kale. Projection-free online learning. In 29th International Conference
+  on Machine Learning, ICML 2012, pages 521–528, 2012.
+
+Martin Jaggi. Revisiting frank-wolfe: Projection-free sparse convex optimization. In ICML (1),
+ pages 427–435, 2013.
+
+Ben Kretzu and Dan Garber. Revisiting projection-free online learning: the strongly convex case.
+  In International Conference on Artificial Intelligence and Statistics, pages 3592–3600. PMLR,
+  2021.
+
+                                               15
+                                         G ARBER K RETZU
+
+
+
+
+Kfir Levy and Andreas Krause. Projection free online learning over smooth sets. In The 22nd
+  International Conference on Artificial Intelligence and Statistics, pages 1458–1466, 2019.
+
+Zhou Lu, Nataly Brukhim, Paula Gradu, and Elad Hazan. Projection-free adaptive regret with
+  membership oracles. arXiv preprint arXiv:2211.12638, 2022.
+
+Haipeng Luo, Alekh Agarwal, Nicolo Cesa-Bianchi, and John Langford. Efficient second order
+  online learning by sketching. Advances in Neural Information Processing Systems, 29, 2016.
+
+Zakaria Mhammedi. Efficient projection-free online convex optimization with membership oracle.
+  arXiv preprint arXiv:2111.05818, 2021.
+
+Zakaria Mhammedi. Exploiting the curvature of feasible sets for faster projection-free online learn-
+  ing, 2022. URL https://arxiv.org/abs/2205.11470.
+
+Zakaria Mhammedi and Khashayar Gatmiry. Quasi-newton steps for efficient online exp-concave
+  optimization. arXiv preprint arXiv:2211.01357, 2022.
+
+Shai Shalev-Shwartz et al. Online learning and online convex optimization. Foundations and
+  Trends® in Machine Learning, 4(2):107–194, 2012.
+
+Yin Tat Lee, Aaron Sidford, and Santosh S Vempala. Efficient convex optimization with member-
+  ship oracles. arXiv e-prints, pages arXiv–1706, 2017.
+
+Yuanyu Wan and Lijun Zhang. Projection-free online learning over strongly convex sets. In Pro-
+  ceedings of the AAAI Conference on Artificial Intelligence, volume 35, pages 10076–10084, 2021.
+
+Wenpeng Zhang, Peilin Zhao, Wenwu Zhu, Steven CH Hoi, and Tong Zhang. Projection-free dis-
+ tributed online learning in networks. In International Conference on Machine Learning, pages
+ 4054–4062. PMLR, 2017.
+
+Martin Zinkevich. Online convex programming and generalized infinitesimal gradient ascent. In
+ Proceedings of the 20th International Conference on Machine Learning (ICML-03), pages 928–
+ 936, 2003.
+
+
+Appendix A. Proof of Lemma 8
+Proof First, we note that in the special case that kx0 −y1 k2A ≤ 3, sinceq
+q                                                                         ky1 k−kx0 k ≤ kx0 −y1 k ≤
+  λn (A)kx0 − y1 kA , and since x ∈ K, it holds that ky1 k ≤ R + 3λ−1
+    −1
+                                                                               n (A), and the lemma
+holds trivially.
+    For the remaining of the proof we shall assume that kx0 − y1 k2A > 3. Let us denote by
+k ≥ 1 the overall number of for loop iterations executed in Algorithm 3, i.e., kyk − xk k2A ≤ 3
+and kyi − xi k2A > 3 for all i < k. Using Lemma 7 we have that for all i < k it holds that
+(yi − z)> A (yi − xi ) ≥ (2/3)kyi − xi k2A for every z ∈ K. Thus, using Lemma 6 with g =
+(yi − xi ) , C = kyi − xi kA , Q = (2/3)kyi − xi k2A , and γ = Q/C 2 = 2/3, we have that for every
+i < k,
+
+                   ∀z ∈ K :    kyi+1 − zk2A ≤ kyi − zk2A − (4/9)kyi − xi k2A .                   (9)
+
+
+                                                16
+                     P ROJECTION - FREE O NLINE E XP - CONCAVE O PTIMIZATION
+
+
+
+
+Thus, we obtain that for all z ∈ K it holds that kyk − zk2A ≤ ky1 − zk2A .
+    Now we continue to upper-bound the number of iterations until Algorithm 3 stops. Denote
+ ∗
+xi = argminx∈K kyi − xk2A for every iteration i < k. Using Eq. (9), for every iteration i < k it
+holds that
+
+           dist2A (yi+1 , K) = kyi+1 − x∗i+1 k2A ≤ kyi+1 − x∗i k2A
+                           ≤ kyi − x∗i k2A − (4/9)kyi − xi k2A ≤ e−(4/9) dist2A (yi , K),
+
+where the last inequality is since dist2A (yi , K) = kyi − x∗i |2A ≤ kyi − xi k2A , and by using the
+inequality 1 − x ≤ e−x . Unrolling the recursion we have,
+
+               dist2A (yk , K) ≤ e−(4/9)(k−1) dist2A (y1 , K) ≤ e−(4/9)(k−1) ky1 − x0 k2A .
+
+Thus, after at most k −1 = 2.25 log ky1 − x0 k2A / iterations, we obtain dist2A (yk , K) ≤ , which
+                                                         
+
+by using Lemma 7, implies that the next iteration will be the last one, and the points xk , yk will
+indeed satisfy kxk − yk k2A ≤ 3. This proves the upper-bound on the overall number of for loop
+iterations.
+q Finally, note that x ∈ K since it is the output
+                                                q of Algorithm 2, and since kyk − kxk ≤ kx − yk ≤
+  λ−1
+   n (A)kx − ykA , we obtain kyk ≤ R +          3λ−1
+                                                   n (A) as required.
+
+
+
+
+Appendix B. Full Version of Theorem 10 and Proof
+Before we state the full version of Theorem 10 and prove it, we first prove Lemma 9 and an addi-
+tional lemma.
+Proof [Proof of Lemma 9] First, note that since for every block m in Algorithm 1 we have that
+Am  A0 = I In , it holds that λn (Am ) ≥ I . By our assumption that 3       2
+                                                                         I ≤ 4R , using Lemma 8,
+it follows that for every block m in Algorithm 1 we have that y em ∈ 3RB, which is in accordance
+with the assumption of Lemma 5. Since η ≥ max{12KGR, 2K                                2
+                                                                  α }, and I ≥ (KG) , the regret
+bound stated in the lemma follows immediately from the one in Lemma 5.
+     Now we move on to upper-bound the overall number of calls to the LOO. We note that Eq. (1)
+holds here as well from the same arguments stated in the proof of Lemma 5. Recall that the update
+step of Algorithm 1 is ym+1 = y   em − ηA−1     ¯
+                                             m ∇m . Thus, by using Eq. (1), and the fact that the
+            em are the outputs of OAF P when called from Algorithm 1 with the input point ym , the
+points xm , y
+positive definite matrix Am−1 , and an error tolerance of 3, we have that
+                                                                     √
+        kxm − ym+1 kAm ≤ kxm − y    em kAm + ke  ym − ym+1 kAm ≤ 6 + ηkA−1         ¯
+                                                                                m ∇m kAm .
+
+Using (a + b)2 ≤ 2a2 + 2b2 and since λ1 (A−1     −1         −1
+                                          m ) = λn (Am ) ≤ λn (A0 ) = 1/I , we have that
+for any block m in Algorithm 1,
+
+                                              ¯ m k2 −1 ≤ 12 + 2η 2 K 2 G2 /I ,
+                kxm − ym+1 k2Am ≤ 12 + 2η 2 k∇                                                (10)
+                                                   A    m
+
+
+                                                   ¯ m k ≤ KG.
+where the last inequality also uses the fact that k∇
+   Using Lemma 8, each call to Algorithm        3 on some block m of Algorithm 1, makes at most
+max{2.25 log kxm − ym+1 k2Am / + 1, 0} iterations. On each such iteration it calls Algorithm 2
+                                     
+
+
+                                                17
+                                             G ARBER K RETZU
+
+
+
+                                                       l                      m
+                                                           27R2 λ1 (Am )
+which, according to Lemma 7, makes at most                              −2
+                                                                    calls to the LOO. Recall that by
+the update rule of Algorithm 1: λ1 (Am ) ≤ λ1 (Am−1 ) + λ1 (∇   ¯ m∇ ¯>                    2
+                                                                       m ) ≤ · · · ≤ I + G KT for
+                                              ¯
+every m, where we again used the fact that k∇m k ≤ KG for every block m. Thus, Algorithm 1,
+on each block m, makes at most
+                              12 + 2η 2 K 2 G2 /I        27R2 (I + G2 KT )
+                                                      
+           nm ≤ 2.25 log                              +1
+                                                                     
+                                       2   2  2                      27R2 (I + G2 KT )
+                                                               
+                              12 + 2η K G /I               4
+                                                                
+               = 2.25 log                             + log e 9
+                                                                              
+                                          2   2  2          2          2
+                                                     
+                                12 + 2η K G /I 27R (I + G KT )
+               ≤ 2.25 log 1.56
+                                                                 
+calls to the LOO. Thus, the overall number of calls to the LOO throughout the run of Algorithm 1 is
+                         T /K
+                                                        η 2 K 2 G2 T
+                         X                                       
+                                       2
+               Ncalls =       nm ≤ 61R log 19 + 4                      (I + G2 KT ).
+                                                            I     K
+                          m=1
+
+
+
+
+                                                                               ¯ m∇
+Lemma 12 Consider Algorithm 1 with the (standard ONS) update rule: Am = Am−1 + ∇  ¯>
+                                                                                    m
+for every block m. Then, for every ρ ∈ [n] it holds that,
+              T /K                                            n    T
+                                                                           !
+                                               2+
+                                                      
+              X          2              T KG         I     K  X    X
+                    ¯ m −1 ≤ ρ log
+                    ∇    Am
+                                                         +      λi   ∇t ∇>
+                                                                         t   .
+                                              I           I
+             m=1                                                        i=ρ+1      t=1
+
+Proof For every m ≥ 1 it holds that
+               ¯ m 2 −1 = ∇
+               ∇          ¯ > A−1 ∇
+                                  ¯ m = A−1 • ∇  ¯ > = A−1 • (Am − Am−1 ).
+                                              ¯ m∇
+                   A  m     m m          m         m    m
+
+Since Am , Am−1  0, using Lemma 20, for every m ≥ 1 we have that,
+
+                                         ¯ m 2 −1 ≤ log |Am | .
+                                         ∇   Am        |Am−1 |
+Summing over m ∈ [T /K], we have
+                          T /K                  T /K
+                          X                     X             |Am |        |AT /K |
+                                  ¯ m k2 −1 ≤
+                                 k∇                    log           = log          .
+                                       Am                    |Am−1 |        |A0 |
+                          m=1                   m=1
+                                                                                   PT /K ¯ ¯ >
+Since according to the update rule listed in the lemma we have that AT /K = I In + m=1 ∇ m ∇m ,
+      ¯   2       2  2                                  2
+and ∇m ≤ K G then, λ1 (AT /K ) ≤ (I + T KG ). Using Weyl’s inequality for the eigenval-
+ues, we have that for every ρ ∈ [n] it holds that,
+                                                                                  
+                        ρ                T /K             n              T /K
+                        Y                X               Y               X
+           |AT /K | =      λi I In +        ∇¯ m∇¯>
+                                                    m
+                                                            λi I In +      ¯ m∇
+                                                                              ∇   ¯>
+                                                                                   m
+                                                                                     
+                       i=1                  m=1                 i=ρ+1               m=1
+                                                                                
+                                           n                         T /K
+                                        ρ Y                         X
+                    ≤ T KG + I   2                 I + λi               ∇  ¯>
+                                                                            ¯ m∇ m
+                                                                                    .
+                                            i=ρ+1                  m=1
+
+
+
+                                                        18
+                          P ROJECTION - FREE O NLINE E XP - CONCAVE O PTIMIZATION
+
+
+
+
+                               ¯ m = PmK                              PT       >
+                                                                                   PT /K ¯ ¯ >
+Recall that A0 = I In . Since ∇      t=(m−1)K+1 ∇t , it holds that K  t=1 ∇t ∇t   m=1 ∇m ∇m
+(Lemma 18). Thus, we have that
+
+                                                            P                
+                                                                   T         >
+                   |AT /K |
+                             
+                                 T KG 2
+                                        ρ Y  n         λ i  K     t=1 ∇ t ∇ t
+                            ≤ 1+                 1 +                           
+                    |A0 |          I                              I
+                                           i=ρ+1
+                                     2
+                                        ρ 
+                                 T KG                Pn         PT       >
+                                                                            
+                            ≤ 1+             e(K/I ) i=ρ+1 λi ( t=1 ∇t ∇t ) ,
+                                   I
+
+where the last inequality follows from using 1 + x ≤ ex .
+   Thus, we obtain
+
+    T /K                                                                   n        T
+                                                                                                  !
+                                   |AT /K |                   T KG2
+                                                                 
+     X                                                                  K X         X
+            ¯ m k2 −1 ≤ log
+           k∇    Am
+                                                  ≤ ρ log 1 +         +      λi           ∇t ∇>
+                                                                                              t       .
+                                    |A0 |                       I      I
+    m=1                                                                     i=ρ+1   t=1
+
+
+
+
+Theorem 13 (Full version of Theorem 10) Consider the implementation of Algorithm 1 as de-
+scribed in Lemma 9 and when using the (standard ONS) update rule: Am = Am−1 + ∇¯ m∇
+                                                                                  ¯ > for
+                                                                                    m
+every block m.
+                                               4 1
+   1. Suppose T ≥ T0 = c log3 c + c + R2 Gc2 α2 n− 3 T 3 , where c > 0 is a certain universal
+      constant. Setting
+
+                                       1     1   2           1  2               4
+                         η = 8 max{6GR, }n− 3 T 3 , K = 4n− 3 T 3 , I = 32G2 T 3 ,
+                                      α                                
+                                2 2                     1         − 34 13
+                          = 96G R log 19 + 8 12 +              n T         T
+                                                    3R2 G2 α2
+
+      in Algorithm 1, the regret is upper-bounded by
+
+           T                       T
+           X                       X                      2
+                                                                       c      1        1   2
+                     t
+                 ft (x ) − min           ft (x∗ ) ≤9βR2 T 3 log       2
+                                                                       c+  2 2
+                                                                                T 3 + 2RGn 3 T 3
+                           ∗x ∈K                                   R G α
+           t=1                     t=1
+                                                              
+                                                             4     2    2
+                                                                                     c   1
+                                                    + 36GR +     n 3 T 3 log c + 2 2 2 T 3 .
+                                                             α                      R G α
+
+
+   2. In continue to thePprevious item
+                                    PTand under  the same choice of parameters, for any ρ ∈ [n],
+                          n                  > ) (∇ is as defined in Algorithm 1), the regret is
+      denoting Ωρ =             λ
+                          i=ρ+1 i (      ∇ ∇
+                                      t=1 t t       t
+
+
+                                                        19
+                                                G ARBER K RETZU
+
+
+
+
+      upper-bounded by
+           T                     T
+           X
+                     t
+                                 X
+                                            ∗         2    2
+                                                                 c     1      1 2
+               ft (x ) − min       ft (x ) ≤9βR T log c + 2 2 2 T 3 + 2RGn 3 T 3
+                                                           3
+                         x∗ ∈K                                   R G α
+           t=1                 t=1
+                                                     1  1   2
+                                                                         c  1
+                                            + 36GRρ 2 n 6 T 3 log c + 2 2 2 T 3
+                                                                         G α
+                                              4 −1 2           1
+                                            + ρn 3 T 3 log cT 3
+                                              α           r 
+                                                  1p                      c   1
+                                            + 5RT 3    Ωρ log c + 2 2 2 T 3
+                                                                       R G α
+                                                        1
+                                                          
+                                               3GR + 2α
+                                            +         2     Ωρ .
+                                                 G2 n 3
+                                                            4 1
+   3. Fix ρ ∈ [n]. Suppose T ≥ T0 = c log3 c + c + R2 Gc2 α2 ρ− 3 T 3 , where c is as in the
+      previous items. Setting
+                                  1    1   2           1   2               4
+                    η = 8 max{6GR, }ρ− 3 T 3 , K = 4ρ− 3 T 3 , I = 32G2 T 3 ,
+                                 α                                
+                           2 2                     1         − 34 13
+                     = 96G R log 19 + 8 12 +              ρ T         T
+                                               3R2 G2 α2
+
+      in Algorithm 1, the regret is upper-bounded by
+          T                      T
+          X                      X                        2
+                                                                          c      1        1   2
+                ft (xt ) − min         ft (x∗ ) ≤9βR2 T 3 log        c+  2    2 2
+                                                                                   T 3 + 2RGρ 3 T 3
+                           ∗
+                         x ∈K                                           R G α
+          t=1                    t=1
+                                                                 
+                                                                4      2   2
+                                                                                        c   1
+                                                  + 36GR +          ρ 3 T 3 log c + 2 2 2 T 3
+                                                                α                      R G α
+                                                                r 
+                                                        1p                          c    1
+                                                  + 5RT 3 Ωρ log c + 2 2 2 T 3
+                                                                                R G α
+                                                              1
+                                                                 
+                                                     3GR + 2α
+                                                  +      2         Ωρ .
+                                                       ρ 3 G2
+      Note this bound is not explicitly dependent on the ambient dimension n.
+                                                                              1 2        
+In all cases, the overall number of calls to the LOO is upper-bounded by 0.65 8n 3 T 3 + T , the
+additional space requirement is O(n2 ), and using the Sherman-Morrison formula for fast matrix
+inversion, the overall additional runtime is O(n2 (T + n1/3 T 2/3 )).
+
+Proof The regret bound for each of the three cases is obtained directly by combining Lemma 9
+with Lemma 12, and plugging-in the values of the parameters listed in the theorem. The bound on
+the overall number of calls follows also from the bound in Lemma 9 and plugging-in the values
+of the parameters listed in the theorem. The space requirement is dominated by the storage of
+Am , A−1                                                                        2
+       m on each block m of Algorithm 1, and is thus upper-bounded by O(n ). Finally, in terms
+of additional runtime, it can be seen that the most expensive arithmetic operation preformed is the
+
+                                                      20
+                     P ROJECTION - FREE O NLINE E XP - CONCAVE O PTIMIZATION
+
+
+
+
+multiplication of a n × n matrix (Am or A−1 m for some block m of Algorithm 1) with some vector
+                                        −1
+(including when updating A−1 m  from  A m−1 via the Sherman-Morrison formula for rank-one update
+                                    2
+of the inverse), which requires O(n ) time. It can thus be seen that the overall additional runtime is
+dominated by the overall number of calls to the LOO (i.e., the overall number of iterations executed
+by Algorithm 2 throughout the run of Algorithm 1) times O(n2 ), which by plugging-in the values
+of the parameters in the theorem, gives the listed upper-bound on the overall additional runtime.
+
+
+
+Appendix C. Missing Details from Section 5
+In this section we provide additional details on the sketching algorithm, and give the full version of
+Theorem 11 and its proof.
+
+
+C.1. Properties of the sketching algorithm
+The following observation shows that Algorithm 4 produces matrices Am , m = 0, . . . , T /K, that
+indeed satisfy the requirements of Algorithm 1.
+
+                                                                                 ¯ m∇
+Observation 1 Fix iteration m ≥ 1 of Algorithm 4. It holds that A0  Am  Am−1 + ∇  ¯>.
+                                                                                      m
+
+Proof The first inequality Am  A0 holds trivially due to the definition of Am in the algorithm.
+We thus focus on the proof of the second inequality. Let Sm−1 be as at the beginning of the m-th
+iteration of the for loop, and let S+                                                  ¯
+                                    m−1 denote its value after setting its last row to ∇m (instead of
+                   +>    +
+0). It holds that Sm−1 Sm−1 = S>              ¯ ¯>
+                                   m−1 Sm−1 + ∇m ∇m . By the definition of Sm in the algorithm we
+have that,
+
+           S>       +>   +         >       >          ¯ ¯>        >
+            m Sm = Sm−1 Sm−1 − σm Vm Vm = Sm−1 Sm−1 + ∇m ∇m − σm Vm Vm .
+
+
+Since Am−1 = I In + S>                          >
+                      m−1 Sm−1 and Am = I In + Sm Sm , it indeed holds that
+
+
+                 Am − Am−1 = S>       >          ¯ ¯>        >
+                              m Sm − Sm−1 Sm−1 = ∇m ∇m − σm Vm Vm                                (11)
+                           ∇¯ m∇¯>.
+                                          m
+
+
+
+
+   We now state several results regarding Algorithm 4 which will be required in order to prove
+Theorem 11.
+
+Theorem 14 (Theorem 1.1 in Ghashami et al. (2016)) Consider Algorithm 4 and let B ∈ R(T /K)×n
+                                                                                       ¯ i ). It holds
+be the matrix which is received by the algorithm row by row (i.e., the ith row of B is ∇
+that
+                                                           n
+                                                           X             
+                                >
+                         0B        B − S>
+                                         T /K ST /K  In           λi B> B .
+                                                           i=ρ+1
+
+
+                                                 21
+                                                   G ARBER K RETZU
+
+
+
+
+Lemma 15 Consider Algorithm 4 and let B ∈ R(T /K)×n be the matrix which is received by the
+                                                ¯ i ). Denote Bρ its best rank-ρ approximation, i.e.
+algorithm row by row (i.e., the ith row of B is ∇
+Bρ = argminC:rank(C)≤ρ kB − CkF . It holds that
+
+                                                T /K
+                                                X
+                                                       σm ≤ kB − Bρ k2F ,
+                                                m=1
+
+where σm is as defined in Algorithm 4.
+
+Proof Let zi , i = 1, . . . , n denote the left singular vector of B corresponding to the singular value
+σi (B). We denote S = ST /K , where ST /K is as defined in Algorithm 4, i.e., the last sketched
+matrix. Using Property 3 in Ghashami et al. (2016) we have that,
+          T /K                                  n                                  ρ                         n
+          X                                     X                                  X                         X
+(ρ + 1)          σm ≤ kBk2F − kSk2F =                  kBzi k   2
+                                                                    − kSk2F =            kBzi k + 2
+                                                                                                                  kBzi k2 − kSk2F .
+          m=1                                   i=1                                i=1                   i=ρ+1
+
+Since Bρ denotes the best rank-ρ approximation of B, the above inequality implies that,
+
+                                     T /K                                   ρ
+                                     X                                      X
+                        (ρ + 1)             σm ≤ kB − Bρ k2F +                    kBzi k2 − kSk2F .                            (12)
+                                     m=1                                    i=1
+
+Note that
+                             ρ
+                             X                   ρ
+                                                 X
+                                    kSzi k =2
+                                                        z>  >          >        2
+                                                         i S Szi ≤ Tr(S S) = kSkF .
+                              i=1                i=1
+
+Thus, using Property 2 in Ghashami et al. (2016) we have that,
+                      ρ                                ρ                                            T /K
+                      X             2
+                                                       X                                              X
+                            kBzi k      − kSk2F ≤                       2
+                                                               kBzi k − kSzi k           2
+                                                                                                 ≤ρ          σm                (13)
+                      i=1                               i=1                                           m=1
+
+The lemma follows from plugging Eq. (13) into Eq. (12).
+
+                                                                                                                  Pn           P            
+                                                                                                                                 T       >
+Lemma 16 Consider the run of Algorithm 4 with a sketch size ρ, and denote Ωρ =                                      i=ρ+1 λi     t=1 ∇t ∇t       ,
+where ∇t is as defined in Algorithm 1. It holds that,
+                        T /K
+                                                   G2 KT
+                                                        
+                        X
+                                ¯  2                         (ρ + 1)KΩρ
+                                ∇m A−1 ≤ ρ log 1 +         +            .
+                                     m               I           I
+                        m=1
+
+Proof Using Eq. (11) it holds that,
+ T /K                  T /K                             T /K                                           T /K
+          ¯ m 2 −1 =
+  X                    X                                X                                              X
+          ∇   A
+                              A−1  ¯ ¯>
+                               m • ∇m ∇m =                     A−1
+                                                                m • (Am − Am−1 ) +                            σm A−1   >
+                                                                                                                  m • Vm Vm .
+                  m
+ m=1                   m=1                              m=1                                            m=1
+
+
+                                                                22
+                         P ROJECTION - FREE O NLINE E XP - CONCAVE O PTIMIZATION
+
+
+
+
+Since λ1 A−1    ≤ −1          >                            −1      >    −1
+                                    
+           m       I and Tr Vm Vm = ρ + 1, it holds that Am • Vm Vm ≤ I (ρ + 1) for
+every m ∈ [T /K]. Since Am  0 for every m, using Lemma 20 we have that,
+
+                        T /K                          T /K                                      T /K
+                        X
+                                  ¯ m 2 −1 ≤
+                                                      X                 |Am |           (ρ + 1) X
+                                  ∇   A
+                                                             log                      +           σm
+                                              m                        |Am−1 |             I
+                        m=1                           m=1                                         m=1
+                                                                                           T /K
+                                                               |AT /K |
+                                                                         
+                                                                                  (ρ + 1) X
+                                                  = log                       +             σm .                               (14)
+                                                                |A0 |                I
+                                                                                           m=1
+
+Since rank(ST /K ) ≤ ρ (recall the last row is 0), we have that
+                        n                                                        ρ                       
+                                                                          (n−ρ)
+                        Y                                                          Y
+         |AT /K | =              λi       I In + S>
+                                                   T /K ST /K          = I               I + λi S>   S
+                                                                                                   T /K T /K    .
+                        i=1                                                        i=1
+
+                                                  PT /K ¯ ¯ >
+Since A0 = I In and S>
+                      T /K ST /K                  m=1 ∇m ∇m (Theorem 14), we have that
+                                                               P                     
+                                                                   T /K ¯ ¯ >
+                                                  
+                                      ρ
+                  |AT /K |                              λi         m=1 ∇m ∇m                            2
+                                                                                                         
+                                                                                          ≤ ρ log 1 + G KT ,
+                                      X
+        log                      ≤          log 1 +                                                                           (15)
+                   |A0 |                                                I                               I
+                                      i=1
+
+                                                      P                      
+                                                          T /K ¯ ¯ >                  PT /K      ¯ m 2 ≤ (T /K)(KG)2 =
+where the last inequality is since λi                     m=1 ∇m ∇m               ≤      m=1     ∇
+G2 KT .                                                         P             
+                                     PT /K          Pn             T /K ¯ ¯ >          ¯
+    From Lemma 15 we have that m=1 σm ≤                      λ
+                                                       i=ρ+1 i     m=1 m m . Since ∇m =
+                                                                        ∇   ∇
+PmK                                                   PT         >
+                                                                       P T /K ¯ ¯ >
+   t=(m−1)K+1 ∇t , using Lemma 18 it holds that K        t=1 ∇t ∇t      m=1 ∇m ∇m . Plugging
+these observations and Eq. (15) into Eq.(14), we indeed obtain
+          T /K                                                         n                             T
+                                                                                                                       !
+                                                    G2 KT
+                                                         
+           X
+                    ¯ m 2 −1 ≤ ρ log                          (ρ + 1)K X                             X
+                    ∇   Am
+                                                 1+         +            λi                                    ∇t ∇>
+                                                                                                                   t       .
+                                                      I          I
+          m=1                                                                            i=ρ+1           t=1
+
+
+
+
+C.2. Full version of Theorem 11 and its proof
+Theorem 17 [Full version of Theorem 11] Consider the implementation of Algorithm 1 as de-
+                                                                                         >
+scribed in Lemma 9 and when using the update rule describedin Algorithm 4:
+                                                 Pn           PT            Am = A0 + Sm Sm
+for every block m. Fix ρ ∈ [n] and denote Ωρ = i=ρ+1 λi                  >
+                                                                 t=1 ∇t ∇t . Suppose T ≥ T0 =
+                        −4 1  
+c log3 c + c + R2 Gc
+                     2 α ρ 3 T 3 , where c > 0 is a certain universal constant. Setting
+
+
+
+                                  1    1   2           1   2               4
+                    η = 8 max{6GR, }ρ− 3 T 3 , K = 4ρ− 3 T 3 , I = 32G2 T 3 ,
+                                 α                                
+                           2 2                     1         − 43 13
+                     = 96G R log 19 + 8 12 +              ρ T         T
+                                               3R2 G2 α2
+
+
+                                                                   23
+                                         G ARBER K RETZU
+
+
+
+
+in Algorithm 1, the regret is upper bounded by
+    T                  T
+    X
+            t
+                       X
+                               ∗         2   2
+                                                         c      1          1  2
+        ft (x ) − min       ft (x ) ≤9βR T log c + 2 2 2 T 3 + 2RGρ 3 T 3
+                                             3
+                  x∗ ∈K                                 R G α
+    t=1                 t=1
+                                                   
+                                                  4           2   2
+                                                                              c    1
+                                     + 36GR +         (ρ + 1) 3 T 3 log c + 2 2 2 T 3
+                                                  α                         R G α
+                                                     r 
+                                           1   1p                      c    1
+                                                                               
+                                     + 5Rρ 2 T 3 Ωρ log c + 2 2 2 T 3
+                                                                    R G α
+                                                  1
+                                                 1 ρ 3 Ωρ
+                                     + 6GR +              .
+                                                α     G2
+                                                                     1 2      
+The overall number of calls to the LOO is upper bounded by 0.65 8ρ 3 T 3 + T , the additional
+space requirement is O(ρn), and the overall additional runtime is O(ρnT +ρ4/3 nT 2/3 +ρ7/3 nT 1/3 ).
+
+Proof The upper-bound on the regret and number of calls to the LOO follows directly from com-
+bining Lemma 9, Lemma 16, and plugging-in the values for parameters listed in the theorem. In
+terms of space requirement, by only explicitly maintaining the (ρ + 1) × n matrices Sm , Vm and the
+diagonal matrices Hm , Σm , Σ b m on each block m of Algorithm 1, i.e., Am , A−1 are never computed
+                                                                              m
+explicitly, the space is upper-bounded by O(ρn). Finally, for upper-bounding the overall additional
+runtime we note that the two most expensive arithmetic operations are i. computing a matrix-vector
+product with either Am or A−1  m during some block m of Algorithm 1, and ii. computing the eigen-
+decomposition of S>  m−1 m−1 ∈ R
+                          S          n×n for some iteration m of Algorithm 4. Using the low-rank
+
+factorizations of Am , A−1 m in Algorithm 4 (i.e., by only explicitly maintaining Sm ∈ R
+                                                                                             (ρ+1)×n
+                                                                                        −1
+and the diagonal matrix Hm ), computing a matrix-vector product with either Am or Am , could be
+carried out in O(ρn) time. Computing the eigen-decomposition of each S>     m−1 Sm−1 , could be done
+in O(ρ2 n) time by computing the SVD of Sm−1 ∈ R(ρ+1)×n . Note however that such an SVD
+is computed only once during each block m of Algorithm 1. Thus, the overall runtime associated
+with these SVD computations is O((T /K)ρ2 n), which by plugging the value of K in the theo-
+rem, is only O(ρ7/3 nT 1/3 ). The overall additional runtime, excluding these SVD computations, is
+thus dominated by the number of matrix-vector products, times the runtime required for each such
+product which, as discussed, is O(ρn). As discussed in the proof of Theorem 13, the number of
+matrix-vector products is dominated by the overall number of calls to the LOO (i.e., the overall
+number of iterations executed by Algorithm 2). Combining these two contributions (matrix-vector
+products and SVD computations) to the overall additional runtime, yields the bound listed in the
+theorem.
+
+
+
+
+Appendix D. Discussion of Assumption 1
+We recall that while the feasible set is K, Assumption 1 assumes the losses are defined and satisfy
+the various properties listed in the (potentially much) larger set 3RB, where R is such that K ⊆ RB.
+This is because our Algorithm 1 queries gradients at infeasible points w.r.t. K, and thus we must
+make sure these assumptions hold in these infeasible points, and for ease of presentation we simply
+
+                                                 24
+                        P ROJECTION - FREE O NLINE E XP - CONCAVE O PTIMIZATION
+
+
+
+
+make sure in our analysis that indeed all infeasible points y
+                                                            em in the instantiations of Algorithm 1,
+lie inside the ball 3RB.
+     First, we note that our consideration of enclosing balls centered at the origin is w.l.o.g. since
+one can apply translation. Second, with a slightly more involved analysis it suffices to require that
+Assumption 1 holds only in the set K  e δ := {x ∈ Rn | dist(x, K) ≤ δ}, for some small δ > 0, as
+we now explain. Note in particular that Lemma 8 guarantees that our LOO-based implementation
+of the AFP oracle (Algorithm 3) returns an infeasible point y and a corresponding
+                                                                               q        feasible point
+                           2                                                        3
+x ∈ K, such that kx − ykA ≤ 3. This implies that dist(y, K) ≤ kx − yk ≤ λn (A) . Thus, when
+used with our Algorithm 1 (as described in Lemma 9), for every block m we have that,
+                                       s                        s                   r
+                                                3                      3              3   e −1/6 ),
+                     ym , K) ≤
+                dist(e                                 ≤                      =            = O(T
+                                            λn (Am−1 )               λn (A0 )           I
+
+where the second inequality is due to the constraints on the matrices {Am }m≥1 in Algorithm 1, and
+the last equality follows from plugging-in the values of , I listed in our main theorems — Theorem
+13 and Theorem 11.
+     Thus, already for δ = O(Te −1/6 ), all the points in which our algorithm queries gradients lie in
+Kδ , and it suffices to require that the assumptions listed in Assumption 1 hold only in this set, which
+ e
+becomes tighter around K as T increases.
+
+
+Appendix E. Auxiliary Lemmas
+                                                      Pk                       Pk           >     >
+Lemma 18 Let {vi }ki=1 ⊂ Rn , and u =                      i=1 vi . Then, k         i=1 vi vi  uu .
+
+
+Proof From Jensen’s inequality we have that for every sequence of scalars {ai }ki=1 ⊂ R, it holds
+                  P      2
+that k ki=1 a2i ≥   k                              n
+      P
+                    i=1 ai . Thus, for every z ∈ R we have that,
+
+
+              k
+                             !        k                         k
+                                                                               !2
+              X                       X              2     1    X                      1  > 2 1
+        z>          vi vi>       z=          vi> z        ≥            vi> z        =      u z = z> uu> z.
+                                                            k                           k        k
+              i=1                     i=1                        i=1
+
+
+
+
+Lemma 19 Let C ⊂ Rn be convex and compact and such that C ⊆ RB. Let f1 , . . . , fk be functions
+C → R that are differentiable over C and have gradients upper-bounded in `2 norm by some G > 0
+over C, and
+         P satisfy the curvature condition (Definition 3) over C with some parameter α > 0. Define
+h(x) = ki=1 fi (x). For all η ≥ max{4kGR, 2k/α} and every x, y ∈ C it holds that,
+
+                                                                 1
+             h(x) − h(y) ≤ ∇h(x)> (x − y) −                        (y − x)> ∇h(x)∇h(x)> (y − x)
+                                                                2η
+
+                                                                25
+                                             G ARBER K RETZU
+
+
+
+
+Proof Let η 0 = max{4GR, 2/α} and fix some x, y ∈ C. It holds that
+                       k
+                       X
+    h(x) − h(y) =         fi (x) − fi (y)
+                      i=1
+                       k                          k
+                                               1 X                                    
+                                                       (y − x)> ∇fi (x)∇fi (x)> (y − x)
+                      X
+                    ≤      ∇fi (x)> (x − y) − 0
+                                               2η
+                      i=1                         i=1
+                                                       k
+                                                                         !
+                                           1
+                    = ∇h(x)> (x − y) − 0 (y − x)>
+                                                      X
+                                                          ∇fi (x)∇fi (x)> (y − x) .
+                                          2η
+                                                      i=1
+
+                                     Pk                                    P                  P                  >
+                                                        >                       k                      k
+Using Lemma 18 we have that k         i=1 ∇fi (x)∇fi (x)                       i=1 ∇fi (x)            i=1 ∇fi (x)       and
+thus,
+                                          
+                                            k
+                                                      ! k        !> 
+                               1
+h(x) − h(y) ≤ ∇h(x)> (x − y) − 0 (y − x)> 
+                                            X           X
+                                              ∇fi (x)     ∇fi (x)  (y − x)
+                              2η k
+                                                                       i=1                   i=1
+                                           1
+                 ≤ ∇h(x)> (x − y) −          (y − x)> ∇h(x)∇h(x)> (y − x) ,
+                                          2η
+
+where the last inequality holds since η ≥ kη 0 .
+
+
+Lemma 20 Let A, B ∈ Sn be positive definite matrices. Then, A−1 • (A − B) ≤ ln |A|
+                                                                               |B| .
+
+Proof It holds that,
+                                               n  
+                                               X                     
+                               1            1                 1     1
+         A−1 • (A − B) = Tr A− 2 (A − B) A− 2 =    λi In − A− 2 BA− 2    .
+                                                                          i=1
+
+                                                                                                         1      1
+Since λi (In − A) = 1 − λn−i+1 (A), 1 − x ≤ − ln x for every x ∈ R+ , and A− 2 BA− 2  0, it
+holds that
+                               n                                            n                    
+                                                  − 12        − 12                             1     1
+                               X                                                X
+            −1
+        A        • (A − B) =         1 − λi A            BA               ≤−          ln λi A− 2 BA− 2
+                               i=1                                              i=1
+                                      n
+                                                                       !
+                                      Y             1           1
+                                                                                        1         1
+                           = − ln           λi A− 2 BA− 2                  = − ln |A− 2 BA− 2 |
+                                      i=1
+                           = ln (|A|/|B|).
+
+
+
+
+                                                         26
+

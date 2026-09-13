@@ -1,0 +1,754 @@
+On the Complexity of Recovering Incidence
+Matrices
+Fedor V. Fomin
+University of Bergen, Norway
+fomin@ii.uib.no
+
+Petr Golovach
+University of Bergen, Norway
+Petr.Golovach@ii.uib.no
+
+Pranabendu Misra
+Max Planck Institute for Informatics, Saarland Informatics Campus, Saarbrücken, Germany
+pmisra@mpi-inf.mpg.de
+
+M. S. Ramanujan
+University of Warwick, Coventry, UK
+R.Maadapuzhi-Sridharan@warwick.ac.uk
+
+      Abstract
+The incidence matrix of a graph is a fundamental object naturally appearing in many applications,
+involving graphs such as social networks, communication networks, or transportation networks.
+Often, the data collected about the incidence relations can have some slight noise. In this paper,
+we initiate the study of the computational complexity of recovering incidence matrices of graphs
+from a binary matrix: given a binary matrix M which can be written as the superposition of two
+binary matrices L and S, where S is the incidence matrix of a graph from a specified graph class,
+and L is a matrix (i) of small rank or, (ii) of small (Hamming) weight. Further, identify all those
+graphs whose incidence matrices form part of such a superposition. Here, L represents the noise in
+the input matrix M . Another motivation for this problem comes from the Matroid Minors project
+of Geelen, Gerards and Whittle, where perturbed graphic and co-graphic matroids play a prominent
+role. There, it is expected that a perturbed binary matroid (or its dual) is presented as L + S where
+L is a low rank matrix and S is the incidence matrix of a graph. Here, we address the complexity of
+constructing such a decomposition.
+    When L is of small rank, we show that the problem is NP-complete, but it can be decided in
+time (mn)O(r) , where m, n are dimensions of M and r is an upper-bound on the rank of L. When L
+is of small weight, then the problem is solvable in polynomial time (mn)O(1) . Furthermore, in many
+applications it is desirable to have the list of all possible solutions for further analysis. We show
+that our algorithms naturally extend to enumeration algorithms for the above two problems with
+delay (mn)O(r) and (mn)O(1) , respectively, between consecutive outputs.
+
+2012 ACM Subject Classification Theory of computation → Design and analysis of algorithms;
+Mathematics of computing → Enumeration
+
+Keywords and phrases Graph Incidence Matrix, Matrix Recovery, Enumeration Algorithm
+
+Digital Object Identifier 10.4230/LIPIcs.ESA.2020.50
+
+
+ 1      Introduction
+
+Suppose that we are given a large binary data matrix M , and we know that this matrix is of
+the form M = L + S, where S is the incidence matrix of an undirected graph and L is a
+sparse binary matrix. We assume that the sums are taken over GF(2) and thus 1 + 1 = 0.
+See Section 2 for a formal definition of incidence matrices. Now, consider the following two
+computational questions.
+            © Fedor V. Fomin, Petr Golovach, Pranabendu Misra, and M. S. Ramanujan;
+            licensed under Creative Commons License CC-BY
+28th Annual European Symposium on Algorithms (ESA 2020).
+Editors: Fabrizio Grandoni, Grzegorz Herman, and Peter Sanders; Article No. 50; pp. 50:1–50:13
+                   Leibniz International Proceedings in Informatics
+                   Schloss Dagstuhl – Leibniz-Zentrum für Informatik, Dagstuhl Publishing, Germany
+50:2   On the Complexity of Recovering Incidence Matrices
+
+
+       Question 1: How efficiently can we recover some incidence matrix S such that M = L + S
+         as described above?
+       Question 2: How efficiently can we recover all possible graphs whose incidence matrices
+         form part of such a superposition M = L + S?
+
+           Our main motivation for studying these questions comes from the study of perturbed
+       graphic matroids, which naturally arise in many settings. A prominent example is the
+       emerging Matroid Minors Project of Geelen, Gerards, and Whittle [5], mirroring the Graph
+       Minors project. Let us recall that binary matroids are represented by a matrix over GF(2),
+       and graphic matroids are a sub-class of binary matroids defined by the incidence matrices of
+       graphs. Then, for each proper minor-closed class M of binary matroids, there exists a non-
+       negative integer r such that every well-connected matroid M ∈ M is either a perturbation
+       of a graphic matroid or a co-graphic matroid [5]. In other words, either M or M ? (the dual
+       matroid) can be decomposed as L + S where S is the incidence matrix of a graph and L is
+       a matrix of rank at most r. Matroid Minors and perturbed matroids are expected to have
+       important applications in matroid algorithms, similar to the applications of Graph Minors
+       and H-minor free decompositions in graph algorithms. In the applications of perturbed
+       binary matroids [6, 4], it is expected that a decomposition of the perturbed matroid M into
+       L + S is given as a part of the input. A natural computational question that arises here is
+       the construction of such a decomposition for a given matroid.
+           Such a problem can be seen as the problem of the recovery of incidence matrices, which is
+       a fundamental representation of graphs. Often the data collected about the network incidence
+       relations contains some slight noise or errors. Our objective is to decompose the data matrix
+       M into two sparse matrices L and S, where L is a low weight matrix, that is matrix with a
+       small number of ones, representing the error or noise, and S is the incidence matrix of some
+       graph from a specified graph class.
+           Besides applications in matroid minors theory, the problem of superposing binary matrix
+       M in L + S has strong connections to robust Principal Component Analysis (PCA), a popular
+       approach to robust subspace learning by the decomposition of the data matrix into low rank
+       and sparse components. Here we have as data a matrix M , which is the superposition of a
+       low rank component L and a sparse component S. In particular, this approach to robust
+       PCA was popularized by Candès et al. [1], Wright et al. [11], and Chandrasekaran et al. [2].
+       Thus our problem can be seen as a variant of robust PCA for binary matrices, with additional
+       constraint on sparse component S of being incidence matrix of some graph. Other variants
+       of robust PCA when the structure of the sparse matrix S is imposed from the structure of
+       some graph were studied in [10, 12].
+           In this paper, we initiate the study of the computational complexity of graph recovering
+       problems and identify several settings which imply efficient algorithms for the questions
+       stated above. Moreover, we also provide complexity theoretic lower bounds for certain other
+       settings that preclude polynomial-time solvability of either question. Let us formally describe
+       our contributions and state our results.
+
+
+
+       Our contributions. Our first contribution is the formulation of a pair of generic Graph
+       Recovering problems dealing with two common notions of sparsity for L. Let C be a fixed
+       class of simple graphs.
+F. V. Fomin, P. Golovach, P. Misra, and M. S. Ramanujan                                               50:3
+
+
+  (min-rank, C)-Graph Recovery
+  Input: An n × m binary matrix M and r ∈ N.
+  Question: Decide whether M = L + S, where L is a binary matrix of GF(2)-rank at
+  most r, S is the incidence matrix of a graph in C and the sums are taken over GF(2).
+
+   Let kLk denote the (Hamming) weight of a matrix L, i.e. the number of non-zero entries
+in L.
+
+  (min-weight, C)-Graph Recovery
+  Input: An n × m binary matrix M and r ∈ N.
+  Question: Decide whether M = L + S, where L is a binary matrix of weight at most r,
+  S is the incidence matrix of a graph in C and the sums are taken over GF(2).
+
+    Our second contribution is establishing the computational complexity of (min-rank, C)-
+Graph Recovery and (min-weight, C)-Graph Recovery for some fundamental graph
+classes and obtain the following upper and lower bounds.
+
+(a) We show that if C is one of {simple graphs, acyclic graphs, trees, arboricity-d graphs,
+    connected graphs}, then (min-rank, C)-Graph Recovery can be solved in time
+    (mn)O(r) .
+(b) We show that if C is one of {simple graphs, acyclic graphs, trees, connected graphs},
+    then (min-weight, C)-Graph Recovery is polynomial-time solvable, i.e., in time
+    (mn)O(1) .
+(c) We show that the running time in Result (a) cannot be improved to a purely polynomial
+    dependence on m and n (as in Result (b)) unless P=NP. Specifically, we show that if C
+    is any of {simple graphs, acyclic graphs, trees, arboricity-d graphs, connected graphs},
+    then the (min-rank, C)-Graph Recovery problem is NP-complete.
+
+    A key feature of the methodology we introduce to obtain our algorithms is that it not only
+answers Question 1 (i.e., the decision problem) for the settings above, it also naturally extends
+to an algorithm that addresses the significantly harder Question 2 (i.e., the enumeration of
+all solutions) in these settings. Specifically, we show that in the case of Result (a) above,
+we can also enumerate all possible solution matrices S (if any exist) with a delay of time
+(mn)O(r) between consecutive outputs. Similarly, we show that in the case of Result (b),
+we can also enumerate all possible solution matrices S (and equivalently, the corresponding
+graphs) with polynomial delay, i.e., a delay of time (mn)O(1) between consecutive outputs.
+The importance of enumeration lies in the fact that a solution M = S + L may not be unique,
+and further analysis of the list of all solutions is required.
+
+Roadmap of the paper
+Following the introduction of the requisite notation, we first describe the methodology behind
+our enumeration algorithms, where we reduce the problem of enumerating all solutions to one
+of deciding whether a solution exists for appropriate annotated variants of (min-rank, C)-
+Graph Recovery and (min-weight, C)-Graph Recovery. We then present our decision
+algorithms for the aforementioned annotated problems. The precise formulation of these
+problems involves some notation and we do not go into more details here. The algorithms
+for the annotated variant of (min-rank, C)-Graph Recovery are centred around a novel
+application of Matroid Intersection involving carefully chosen matroids. On the other
+hand, the algorithms for (min-weight, C)-Graph Recovery are designed through an
+
+
+
+                                                                                                    ESA 2020
+50:4   On the Complexity of Recovering Incidence Matrices
+
+
+       intricate analysis of the structure of bridges (or cut edges) in graphs and appropriate
+       repeated reassignments of these to columns of our input matrix in a manner reminiscent
+       of the “augmenting path” step in maximum matching algorithms. Finally, we give our
+       NP-completeness result for (min-rank, C)-Graph Recovery.
+
+        2     Preliminaries
+       Matrices and Linear Algebra
+       For ` ∈ N, we use [`] to denote the set {1, . . . , `}. For a matrix M , we denote the set of
+       rows of M by rows(M ) and the set of column of M by cols(M ). For a set P ⊆ cols(M ),
+       we denote by M [P ] the submatrix of M induced by the columns in P . Consider the set
+       V = {v1 , v2 , . . . , vk } of vectors over F. The vectors in V are said to be linearly dependent
+                                                                                Pk
+       if there exist elements a1 , a2 , . . . , ak ∈ F, not all zero, such that i=1 ai vi = 0. Otherwise
+       these vectors are said to be linearly independent. The rank of a matrix is the cardinality of a
+       maximum sized set of columns which are linearly independent. The vector space spanned
+       by V is the set of all linear combinations of vectors in V and is denoted by span(V ). The
+       vector space spanned by the set of columns of a matrix M over the field F is defined as
+       span(cols(M )) and is denoted by col-span(M ). We say a matrix A has dimension n × m
+       (or is an n × m matrix) if A has n rows and m columns. In this paper we always view the
+       elements of a binary matrix as elements of GF(2), the Galois field of two elements. Then the
+       GF(2)-rank of a binary n × m matrix A is the minimum r such that A = U · V , where U
+       and V are n × r and r × m binary matrices respectively, and arithmetic operations are over
+       GF(2).
+
+       Graphs
+       For standard graph theoretic terminology and notation, we refer to [3]. For an undirected
+       graph G, we denote by inc(G), the incidence matrix of G which is the |V (G)| × |E(G)|
+       binary matrix M with a row for each vertex and a column for each edge such that for every
+       v ∈ V (G) and e ∈ E(G), M [v, e] = 1 if and only if v is an endpoint of e. When considering
+       the incidence matrix M of an unspecified graph, we denote by inc−1 (M ) the graph G where
+       V (G) = rows(M ), E(G) = cols(M ) and whose incidence matrix is precisely M . For ` ∈ N,
+       we denote by K` the complete graph on ` vertices. We assume without loss of generality that
+       the vertices of K` are labelled 1 to ` and unless otherwise specified, the columns in inc(Kn )
+       are assumed to be arranged in lexicographically increasing order based on the endpoints of
+       the corresponding edges.
+
+       Matroids
+       We recall relevant definitions related to matroids. For a broader overview on matroids, we
+       refer to [9].
+       I Definition 1. A matroid M is a pair (E, I), where E is a set called the universe or
+       ground set, and I is a family of subsets of E, called independent sets, with the following
+       three properties : (i) ∅ ∈ I, (ii) if I ∈ I and I 0 ⊆ I, then I 0 ∈ I, and (iii) if I, J ∈ I and
+       |I| < |J|, then there is e ∈ J \ I such that I ∪ {e} ∈ I.
+       Any set F ⊆ E, F ∈  / I, is called a dependent set and an inclusion-wise maximal set B such
+       that B ∈ I is called a basis. The cardinality of a basis in a matroid M is called the rank
+       of M and is denoted by rank(M ). The rank function of M , denoted by rankM () (with the
+       reference to M omitted when clear from the context), is a function from 2E to N ∪ {0} and
+       is defined as, rank(S) = maxS 0 ⊆S,S 0 ∈I |S 0 | for every S ⊆ E.
+F. V. Fomin, P. Golovach, P. Misra, and M. S. Ramanujan                                                50:5
+
+
+I Definition 2. Let A be a matrix over a field F and E be the set of columns of A. The pair
+(E, I), where I defined as follows, is a matroid. For every X ⊆ E, X ∈ I if and only if the
+columns of A corresponding to X are linearly independent over F. Such matroids are called
+linear matroids. If a matroid M can be defined by a matrix A over a field F, then we say
+that the matroid is representable over F and A is a linear representation of M .
+
+I Definition 3 (Elongation of matroids). Let M = (E, I) be a matroid and k ∈ N. Suppose
+that rank(M ) ≤ k ≤ |E|. A k-elongation matroid Mk of M is a matroid with the universe as
+E and S ⊆ E is a basis of Mk if and only if, it contains a basis of M and |S| = k.
+
+   Observe that the rank of the matroid Mk in the definition above is k.
+
+I Definition 4 (Direct-sum of matroids). Consider a set of ` matroids {Mi = (Ei , Ii ) | i ∈ [`]},
+where Ei ∩ Ej = ∅ for every i 6= j. The direct-sum of these matroids is the matroid
+      S                                            S
+M = ( i∈[`] Ei , I) where I ∈ I if and only if I = i∈[`] Ii where Ii ∈ Ii for every i ∈ [`].
+
+   Given the representations of ` linear matroids over F, it is straightforward to obtain a
+representation for their direct-sum over F and this can be done in polynomial time.
+   For a finite field F, F[X] denotes the ring of polynomials in X over F and F(X) denotes
+the field of fractions of F[X]. A vector v over a field F is a tuple of elements from F.
+   The next two propositions follow from [8].
+
+I Proposition 5 ([8]). Let M be a linear matroid of rank r, over a ground set of size n,
+which is representable over a field F. Given k ≥ r, we can compute a representation of the
+k-elongation of M , over the field F(X) in O(nrk) field operations over F.
+
+I Proposition 6 ([8]). Given a linear representation of the k-elongation of M over the field
+F(X) and a set of columns in the representation matrix, one can test for linear dependence
+of this set in polynomial time.
+
+    In the Weighted Matroid Intersection problem, the input is a pair of matroids
+M1 = (E, I1 ), M2 = (E, I2 ) and a weight function w : E → N ∪ {0} and the objective is to
+find a maximum-weight common independent set in the two matroids. That is, the goal is
+to compute I ∈ I1 ∩ I2 such that Σe∈I w(e) is maximized. We will use the polynomial-time
+algorithm for this problem stated in Proposition 7.
+
+I Proposition 7 ([7]). Given two general matroids M1 and M2 over the element set E, one
+can solve Weighted Matroid Intersection in time O(τ W nr1.5 ), where W is the largest weight
+assigned to an element, n = |E|, r = min{rank(M1 ), rank(M2 )} and τ is the time required
+to test whether a given subset of E is independent in M1 and M2 .
+
+Graphic Matroids. These are matroids that arise from graphs in the following way. The
+graphic matroid M (G) of an undirected graph G has universe E(G) and a set S ⊆ E(G)
+is independent if the subgraph with vertex set V (G) and edge set S is acyclic. Graphic
+matroids are representable over every field and a representation of M (G) over GF(2) can
+be computed in time polynomial in the size of G [9]. Observe that testing whether a set is
+independent in the matroid M (G) can be done in polynomial time if one is given either the
+linear representation of the matroid or the graph G.
+
+Transversal Matroids. For a bipartite graph G = (X, Y, E), we can define a matroid M
+with universe X, where a set S ⊆ X is independent if there exists a matching in G such that
+every vertex in S is an endpoint of a matching edge. We denote this matroid by Tr(G, X).
+
+
+
+                                                                                                     ESA 2020
+50:6   On the Complexity of Recovering Incidence Matrices
+
+
+       Observe that if G is given, then one can use a Maximum Matching algorithm as a subroutine
+       to determine in polynomial time (in the size of G) whether a given set is independent in
+       Tr(G, X).
+
+       Gammoids. Let D be a digraph and S, T ⊆ V (D). Then a gammoid with respect to D
+       and S on ground set T is a matroid (T, I), where I is defined as follows. For any T 0 ⊆ T ,
+       T 0 ∈ I, if and only if there are |T 0 | vertex disjoint paths which originate in S and end in T 0 .
+       Observe that if D, S are given, then one can use a Maximum Flow algorithm as a subroutine
+       to determine in polynomial time (in the size of D) whether a given set is independent in this
+       gammoid.
+
+       I Definition 8. A pair of matroids M1 = (E1 , I1 ), M2 = (E2 , I2 ) are said to be isomorphic
+       if there is a bijection φ : E1 → E2 such that for every S ⊆ E1 , S ∈ I1 if and only if φ(S) ∈ I2
+       where the function φ is extended in the natural way to subsets of E1 . Equivalently, we say
+       that M1 and M2 are isomorphic under the bijection φ.
+
+
+        3     The enumeration algorithms for (min-rank, C)-Graph Recovery and
+              (min-weight, C)-Graph Recovery
+       This section is devoted to our enumeration algorithms. We begin by reducing the enumeration
+       task to one of deciding an annotated version of the problem at hand.
+
+       3.1    Reducing enumeration to decision
+       Our enumeration strategy is based on first designing an algorithm for the decision version
+       of an “annotated” version of these problems. In this version, certain columns of the input
+       matrix M already have their corresponding columns in the hypothetical solution matrix
+       S (equivalently, in the matrix L) identified and the goal is to check whether this partial
+       mapping can be extended to a full solution. We now formally define the annotated versions
+       of these problems.
+           In the Extended (min-rank, C)-Graph Recovery problem, we are given an n × m binary
+                                                                                                   n
+       matrix M , number r ∈ N, a set CM ⊆ cols(M ) and an injective mapping τ : CM → GF(2)
+       and the task is to decide whether there exist binary matrices L and S such that M = L + S, S
+       is an incidence matrix of a simple graph belonging to the class C, rank(L) ≤ r and moreover,
+       for every x ∈ CM , S[{x}] = τ (x). Similarly in the Extended (min-weight, C)-Graph Recovery
+       problem, the input is the same and the the goal is to decide whether there exist binary
+       matrices L and S such that M = L + S, S is an incidence matrix of a simple graph belonging
+       to the class C, kLk ≤ r and for every x ∈ CM , S[{x}] = τ (x).
+           We remark that if, in an instance (M, r, CM , τ ) of either problem, it holds that CM = ∅,
+                                                              n
+       then the corresponding mapping τ : CM → GF(2) is denoted by τ∅ . Moreover, notice
+       that by setting CM = ∅ and τ = τ∅ , we have that (min-rank, C)-Graph Recovery
+       ((min-weight, C)-Graph Recovery) is a special case of Extended (min-rank, C)-Graph
+       Recovery (respectively, Extended (min-weight, C)-Graph Recovery).
+           Our enumeration algorithms are based on the following pair of algorithms for Extended
+       (min-rank, C)-Graph Recovery and Extended (min-weight, C)-Graph Recovery.
+
+       I Lemma 9. For every C ∈ {simple graph, forest, connected graph, arboricity-d graph},
+       there is an algorithm C-D that runs in time (mn)O(r) and correctly decides whether or
+       not the given input (M, r, CM , τ ) is a yes-instance of Extended (min-rank, C)-Graph Recovery.
+F. V. Fomin, P. Golovach, P. Misra, and M. S. Ramanujan                                             50:7
+
+
+     Algorithm 1 Algorithm C-E.
+ 1   if CM = [m] then
+ 2      Define the matrix S as S[{x}] = τ (x) for every x ∈ [m].
+ 3      if inc−1 (S) ∈ C and rank(M + S) ≤ r then
+ 4          Output S
+ 5      end
+ 6 end
+ 7 return
+ 8 x ← minp∈[m] {p ∈/ CM }
+                                          −1
+ 9 for each y ∈ cols(inc(Kn )) such that τ (y) is undefined do
+10    if C-D((M, r, CM ∪ {x}, τ ∪ {x 7−→ y})) returns Yes then
+11          C-E((M, r, CM ∪ {x}, τ ∪ {x 7−→ y}))
+12    end
+13 end
+14 return
+
+
+
+
+I Lemma 10. For every C ∈ {simple graph, forest, connected graph}, there is an algorithm
+C-D0 that runs in time (mn)O(1) and correctly decides whether or not the given input
+(M, r, CM , τ ) is a yes-instance of Extended (min-weight, C)-Graph Recovery.
+
+   We first assume Lemma 9 and Lemma 10, and present our enumeration algorithms
+(Theorem 11 and Theorem 12).
+
+I Theorem 11. For every C ∈ {simple graph, forest, connected graph, arboricity-d graph},
+there is an algorithm C-E that, on input (M, r, CM , τ ), outputs precisely those matrices S
+such that M = S + L for some binary matrix L of GF(2)-rank at most r, S is an incidence
+matrix of a simple graph in C such that for every x ∈ CM , S[{x}] = τ (x). Moreover, the
+delay between successive outputs is (mn)O(r) and each such matrix S is output exactly once.
+
+Proof.  The algorithm C-E is described in Algorithm 1. The for loop is executed at most
+ n
+   
+ 2   times in any single call to the algorithm and the recursive call to C-E is made precisely
+when there is at least one solution to be output for a specific extension of CM and τ . This is
+witnessed by the positive answer returned by the execution of the decision algorithm C-D.
+Finally, since the depth of the recursion is bounded by m, the first part of the lemma follows.
+The fact that this algorithm outputs precisely the required matrices (exactly once each) with
+delay bounded by (mn)O(r) follows from the correctness and running time bound of the
+algorithm C-D in Lemma 9.                                                                    J
+
+    The enumeration algorithm for (min-weight, C)-Graph Recovery is analogous to that
+for (min-rank, C)-Graph Recovery (building on Lemma 10 instead of Lemma 9) and so
+we only state the theorem, omitting the proof.
+
+I Theorem 12. For every C ∈ {simple graph, forest, connected graph, arboricity-d graph},
+there is an algorithm C-E 0 that, on input (M, r, CM , τ ), outputs precisely those matrices S
+such that M = S + L for some binary matrix L such that kLk ≤ r, S is an incidence matrix
+of a simple graph in C such that for every x ∈ CM , S[{x}] = τ (x). Moreover, the delay
+between successive outputs is (mn)O(1) and each such matrix S is output exactly once.
+
+
+
+                                                                                                  ESA 2020
+50:8   On the Complexity of Recovering Incidence Matrices
+
+
+          Notice that in order to enumerate all possible solutions for an instance (M, r) of
+       (min-rank, C)-Graph Recovery ((min-weight, C)-Graph Recovery), it is sufficient to
+       execute the enumeration algorithm C-E (respectively, C-E 0 ) on input (M, r, ∅, τ∅ ). We next
+       prove Lemma 9.
+
+       3.2    Decision algorithms for Extended (min-rank, C)-Graph Recovery
+       The goal of this subsection is to prove Lemma 9. We always assume that without loss of
+       generality, the input M satisfies: m, n ≥ r. Note that since we require that for every x ∈ CM ,
+       S[{x}] = τ (x), the range of τ can be assumed to be cols(inc(Kn )).
+          Our algorithms for deciding the Extended (min-rank, C)-Graph Recovery problem
+       comprise the following two steps, the first of which only relies on S being an incidence matrix
+       and L being a matrix of rank at most r. The second step depends on the class C under
+       consideration and we will describe it in detail for each application separately.
+       1. We show that given M , one can enumerate in time (mn)O(r) , a set QrM of sufficiently few
+          sets, each of which contains at most r n-dimensional binary vectors such that for every
+          L, S such that M = L + S, rank(L) ≤ r and S is an incidence matrix, there is a Q ∈ QrM
+          whose elements form a basis for col-span(L).
+       2. We then show that for each class C that we consider, if one is given a basis for the vector
+          space spanned by the columns of the hypothetical solution matrix L of rank ≤ r, then
+          it is possible to determine the existence of the required matrix S in polynomial time (in
+          the size of M ) using an appropriate Weighted Matroid Intersection algorithm as a
+          subroutine.
+       We begin by formalizing Step 1 of our algorithms.
+
+       I Lemma 13. Given M and r, one can enumerate in time (mn)O(r) , a set QrM = {Q1 , . . . , Q` }
+       satisfying the following properties: (a) ` = (mn)O(r) , (b) each Qi is a set of r n-dimensional
+       vectors over GF(2), (c) for every pair of matrices L, S such that M = L + S, S is an incidence
+       matrix and rank(L) ≤ r, there is an i ∈ [`] such that Qi is a basis for col-span(L).
+
+          In the rest of this section, for given r and M , we denote by QrM the set described in
+       Lemma 13.
+                                                                                  n
+       I Definition 14. For an n × m binary matrix M and a set Q ∈ GF(2)       ≤r    , we denote
+       by GQ                         Q           Q                   Q
+            M the bipartite graph (XM = [m], YM = cols(inc(Kn )), EM ) where the edge set EM
+                                                                                              Q
+
+       is defined as all those pairs (x, y) such that x ∈ [m], y ∈ cols(inc(Kn )) and satisfying
+       ∃q ∈ span(Q) such that M [{x}] = y + q.
+
+          Note that in the graph GQ             Q
+                                   M , the set YM contains all columns of the incidence matrix of
+       every simple graph on n vertices.
+
+       I Observation 15. Given M , r and Q, the graph GQ                          r
+                                                        M can be computed in time 2 ·(m+n)
+                                                                                           O(1)
+                   n
+       and has m + 2 vertices.
+                                                                                               Q
+           The time bound in the above observation comes from the fact that for each x ∈ XM
+                  Q                            Q
+       and y ∈ YM , deciding whether (x, y) ∈ EM can be done by iterating over all the at most 2r
+       vectors in span(Q).
+                                                                         n
+       I Definition 16. Consider an n × m binary matrix M , Q ∈ GF(2) ≤r    , CM ⊆ cols(M ) and
+                                             n
+       an injective mapping τ : CM → GF(2) . If Z = {(x, τ (x)) | x ∈ CM } is a matching in the
+       graph GQ                      eQ                          Q
+               M , then we denote by GM the graph obtained from GM by deleting all edges incident
+F. V. Fomin, P. Golovach, P. Misra, and M. S. Ramanujan                                               50:9
+
+
+on the set V (Z) except the edges in Z. Otherwise, we denote by G   e Q the graph obtained from
+                                                                      M
+GQM  by   deleting every edge. Then,  Tr(GQ
+                                          M , YM
+                                                Q
+                                                  , hC M , τ i) denotes the transversal matroid
+Tr(Ge Q , Y Q ).
+      M    M
+
+                            Q                                                            Q
+I Definition 17. Let φ : YM    → E(Kn ) be the trivial bijection which maps y ∈ YM         to the
+                                        Q
+corresponding edge of Kn (recall that YM  is precisely the set of columns of the incidence matrix
+                                 Q                                         Q
+of Kn ). We denote by M(Kn , YM    ) the matroid over the element set YM     which is isomorphic
+to the graphic matroid M (Kn ) under the bijection φ. We assume that φ is extended in the
+                                                                 Q           S
+natural way to subsets of vertices. That is, for every Y ⊆ YM      , φ(Y ) = y∈Y φ(y).
+                                        Q
+I Observation 18. Let φ and M(Kn , YM     ) be as in Definition 17. For every n × m incidence
+matrix S, the graph inc−1 (S) is isomorphic to the subgraph of Kn with edge set φ(cols(S)).
+
+   We are now ready to give our algorithms for each choice of C.
+
+
+3.2.1    Recovering simple graphs
+I Lemma 19. (M, r, CM , τ ) is a yes-instance of Extended-(min-rank, simple)-Graph Re-
+covery if and only if there is a Q ∈ QrM such that the graph GQ
+                                                              M has a matching saturating
+  Q
+XM  and containing the edges {(x, τ (x)) | x ∈ CM }.
+
+Proof. In the forward direction, suppose that M = S + L where inc−1 (S) is a simple graph,
+rank(L) ≤ r and for every x ∈ CM , S[{x}] = τ (x). By Lemma 13, we know that some
+Q ∈ QrM is a basis for col-span(L). Consequently, by Definition 14, for each x ∈ [m], there
+is an edge in GQ  M between x and S[{x}]. Since no 2 columns in S are identical (inc (S)
+                                                                                           −1
+
+                                                               Q
+is a simple graph), this implies a matching saturating XM         in GQM and extending the set
+{(x, τ (x)) | x ∈ CM } as required.
+                                                                    Q
+    Conversely, suppose that there is a matching C saturating XM       in GQ
+                                                                           M and extending the
+                                             Q
+set {(x, τ (x)) | x ∈ CM }. For each x ∈ XM = [m], we denote by xC the partner of x in C.
+By definition, for every x ∈ CM , xC = τ (x). We define S and L as follows. For each x ∈ [m],
+set S[{x}] = xC and L[{x}] = M [{x}] + xC . Since S contains only distinct columns and
+these are all contained in cols(inc(Kn )), it follows that S is the incidence matrix of a simple
+                                                                                              Q
+graph. On the other hand, Definition 14 implies that for every x ∈ [m], since (x, xC ) ∈ EM     ,
+it must be the case that L[{x}] = M [{x}] + xC ∈ span(Q). Consequently we have that
+col-span(L) ⊆ span(Q) and since |Q| ≤ r, the lemma follows.                                   J
+
+  Lemma 13 and Lemma 19 imply our algorithm for Extended-(min-rank, simple)-Graph
+Recovery.
+
+I Lemma 20. Extended-(min-rank, simple)-Graph Recovery can be solved in time
+(mn)O(r) .
+
+   Observe that based on Lemma 19, we may conclude that if the given instance is positive,
+then there is a solution M = S + L where the columns of S form an independent set of size
+m in the transversal matroid Tr(GQ     Q                  r
+                                  M , YM ) for some Q ∈ QM . Moreover, there must be such
+an independent set saturated by a matching extending {(x, τ (x)) | x ∈ CM }. Consequently,
+we have the following observation which forms a critical part of all our algorithms.
+
+I Observation 21. (M, r, CM , τ ) is a yes-instance of Extended-(min-rank, simple)-Graph
+Recovery if and only if there is a Q ∈ QrM such that there is an independent set of size m
+in the transversal matroid Tr(GQ     Q
+                               M , YM , hCM , τ i).
+
+
+
+
+                                                                                                    ESA 2020
+50:10   On the Complexity of Recovering Incidence Matrices
+
+
+        3.2.2     Recovering acyclic graphs
+        I Lemma 22. (M, r, CM , τ ) is a yes-instance of Extended (min-rank, acyclic)-Graph
+        Recovery if and only if there is a Q ∈ QrM such that there is a common independent set of
+        size m in the transversal matroid Tr(GQ    Q                                      Q
+                                              M , YM , hCM , τ i) and the matroid M(Kn , YM ).
+
+        Proof. In the forward direction, suppose that M = S + L where inc−1 (S) is a forest, for
+        every x ∈ CM , S[{x}] = τ (x) and rank(L) ≤ r. By Lemma 13, we know that some Q ∈ QrM
+        is a basis for col-span(L). Moreover, we know that the columns of S form an independent
+        set in Tr(GQ       Q
+                      M , YM , hCM , τ i) (by Observation 21). Hence, it is sufficient to show that the
+                                                                                       Q
+        set of columns of S form an independent set of the matroid M(Kn , YM             ). But this follows
+                                 −1                               Q
+        from the fact that inc (S) is a forest and M(Kn , YM ) is isomorphic to M (Kn ) under φ (see
+        Definition 17 and Observation 18).
+            In the converse direction, suppose that for some Q ∈ QrM , there is a common independent
+        set I of size m in the transversal matroid Tr(GQ         Q                                        Q
+                                                           M , YM , hCM , τ i) and the matroid M(Kn , YM ).
+                                                                          Q
+        We construct S and L as follows. Pick a matching C in G         e (see Definition 16) saturating
+                                                                          M
+                  Q                                                                 Q
+        I and XM . Since |I| = m, such a matching exists. For each x ∈ XM              = [m], we denote by
+                                                                             Q
+        xC the partner of x in C. Notice that by the definition of GM , every vertex x ∈ CM has a
+                                                                           e
+        unique neighbor, which must be τ (x).
+            We now define S and L as follows. For each x ∈ [m], set S[{x}] = xC and L[{x}] =
+        M [{x}] + xC . Since S contains only distinct columns and these are all contained in
+        cols(inc(Kn )), it follows that S is the incidence matrix of a simple graph. In addition,
+        for every x ∈ CM , S[{x}] = τ (x) by the definition of S. Moreover, from Observation 18 and
+                                                                                           Q
+        the fact that the set I = {xC |x ∈ [m]} is an independent set in M(Kn , YM           ), we have that
+            −1
+        inc (S) is isomorphic to the subgraph of Kn induced by the edge set φ(I), which is a forest.
+            Finally, by the definition of GQ  M , we have that for every x ∈ [m], M [{x}] + xC ∈ span(Q).
+        Consequently we have that col-span(L) ⊆ span(Q) and since |Q| ≤ r, and the lemma
+        follows.                                                                                           J
+
+        I Lemma 23. Extended (min-rank, acyclic)-Graph Recovery can be solved in time
+        (mn)O(r) .
+
+        3.2.3     Recovering Graphs of Fixed Arboricity
+        In the Arboricity-d Graph Recovery problem, the input is the pair (M, r) and the
+        goal is to decide whether M = S + L, where H = inc−1 (S) has arboricity at most d and
+        rank(L) ≤ r. Observe that Extended Arboricity-d Graph Recovery is a generalization
+        of Extended Acyclic Graph Recovery (set d = 1).
+
+        I Definition 24. For every d ∈ N, we define the gammoid Gamd (GQ                   Q
+                                                                                      M , YM , hCM , τ i) as
+        follows. Consider the digraph D1 obtained from G   e by orienting all edges from X Q to Y Q .
+                                                             Q
+                                                             M                                   M        M
+                       Q                              y
+        For each y ∈ YM , construct a directed path D2 = (y, 1), . . . , (y, d). We define the digraph D3
+                                                         Q
+        as the graph obtained by identifying each y ∈ YM    in D1 with (y, 1) in D2y . The vertex set of
+                     Q      Q                    d   Q     Q
+        D3 is now XM ∪ (YM × [d]). Then, Gam (GM , YM , hCM , τ i) is defined as the gammoid with
+                             Q                  Q
+        respect to D3 and XM   on ground set YM   × [d].
+                                                                             Q
+        I Definition 25. For each i ∈ [d], define the matroid J i (Kn , YM     ) as the matroid over
+                         Q                                         Q
+        element set YM     × {i} which is isomorphic to M(Kn , YM    ) under the bijection ψi where
+                                     Q                          Q
+        ψi (y, i) = y, for each y ∈ YM . We denote by Md (Kn , YM ) the direct-sum of the d matroids
+            i         Q
+        {J (Kn , YM ) | i ∈ [d]}. We also extend each ψi to sets in the following way: for every
+                  Q
+        Z1 ⊆ YM     , and Z2 = Z1 × {i}, ψi (Z2 ) = Z1 .
+F. V. Fomin, P. Golovach, P. Misra, and M. S. Ramanujan                                             50:11
+
+
+   The following lemma generalizes Lemma 22.
+
+I Lemma 26. (M, r, CM , τ ) is a yes-instance of Extended Arboricity-d Graph Re-
+covery if and only if there is a Q ∈ QrM such that there is a common independent set of
+size m in the gammoid Gamd (GQ       Q                               d       Q
+                                M , YM , hCM , τ i) and the matroid M (Kn , YM ).
+
+I Lemma 27. For every fixed constant d, Extended (min-rank, d-arboricity)-Graph Re-
+covery can be solved in time (mn)O(r) on input (M, r, CM , τ ).
+
+Proof. (Sketch) The crux of this lemma is a proof that (M, r, CM , τ ) is a yes-instance of
+Extended (min-rank, d-arboricity)-Graph Recovery if and only if there is a Q ∈ QrM
+such that there is a common independent set of size m in an appropriate defined gammoid
+                          Q
+and the matroid Md (Kn , YM ).                                                           J
+
+3.2.4    Recovering connected graphs
+Here, we prove an analogous version of Lemma 23 for Extended (min-rank, connected)-
+Graph Recovery.
+
+I Lemma 28. Extended (min-rank, connected)-Graph Recovery can be solved in time
+(mn)O(r) .
+
+Proof. (Sketch) The crux of this lemma is a proof that (M, r, CM , τ ) is a yes-instance
+of Extended (min-rank, connected)-Graph Recovery if and only if there is a Q ∈
+QrM such that there is a common independent set of size m in the transversal matroid
+Tr(GQ     Q                                                                 Q
+     M , YM , hCM , τ i) and the m-elongation of the matroid M(Kn , YM ) (assuming that
+m ≥ n − 1, otherwise we have a no-instance). The details of this argument follow along the
+same lines as the proof of Lemma 22. The crucial part of this lemma is the choice of the
+                            Q
+m-elongation of M(Kn , YM     ) as the matroid that we intersect with Tr(GQ    Q
+                                                                          M , YM , hCM , τ i). J
+
+   Lemma 9 is now a straightforward consequence of Lemma 20, Lemma 23, Lemma 28, and
+Lemma 27.
+
+3.3     Decision algorithms for Extended (min-weight, C)-Graph Recovery
+The goal of this subsection is to prove Lemma 10. The proof is involved and has several
+stages. In the following, we provide a high level overview of our proof strategy.
+    Recall that an instance of (min-weight, C)-Graph Recovery is of the form (M, k, CM , τ)
+where CM ⊆ cols(M ) and τ fixes the mapping of the columns in CM in the solution. When
+we just want G to be a simple graph (i.e., C is the class of all simple graphs), a solution
+M = L + S minimizing the cost, kLk, can be computed in polynomial time using an
+algorithm for Minimum Weight Bipartite Matching, in an auxiliary bipartite graph
+which represents the costs of mapping each column of M to a specific edge. The design of
+this bipartite graph is similar in spirit to that of the graph in Definition 14. We refer to a
+solution M = L + S minimizing the cost kLk, as a minimum cost solution.
+    To obtain connected graphs and forests, we build upon this algorithm. We first describe
+an algorithm that computes a minimum cost solution M = L0 + S0 along with the graph
+G0 and try to reassign columns of M associated with non-bridge edges in G0 to reduce the
+number of connected components without increasing the cost of the solution at hand. That
+is, we move from one solution to another without increasing the cost but while decreasing
+the number of connected components in the graph corresponding to the incidence matrix in
+the solution. Note that, we may need to perform a number of reassignments in a sequence
+
+
+
+                                                                                                   ESA 2020
+50:12   On the Complexity of Recovering Incidence Matrices
+
+
+        before the number of connected components is reduced. To determine this sequence of
+        reassignments, we associate them with paths in an auxiliary digraph, where the nodes are the
+        edges and non-edges of the current graph, and directed edges indicate feasible reassignments,
+        or reassignments that convert a bridge in the current graph to a non-bridge. We show that the
+        current solution minimizes the number of connected components if and only if the auxiliary
+        digraph has no paths starting from a non-bridge edge and ending at a non-edge. This requires
+        an intricate analysis of the structure of a solution and how reassignments affect them. This
+        leads to an iterative algorithm that “remaps” the edges in the graph associated with the
+        current solution using paths in the auxiliary digraph. When this algorithm terminates, we
+        obtain a minimum cost solution that minimizes the number of connected components in the
+        corresponding graph. We then use this algorithm as the starting point for the algorithms to
+        recover connected graphs and forests. To recover a connected graph, we observe that any
+        further reassignments to reduce the number of connected components must increase the cost
+        of the solution. Therefore, we design an iterative algorithm that reassigns non-bridge edges
+        until every edge is a bridge, or the graph becomes connected. This algorithm can be used to
+        recover a connected graph, or a forest satisfying the required properties.
+
+        3.4    NP-completeness of (min-rank, C)-Graph Recovery
+        I Theorem 29. (min-rank, C)-Graph Recovery is NP-complete for C ∈ {simple graphs,
+        acyclic graphs, connected graphs, arboricity-d graphs}.
+
+         4     Concluding remarks and future work
+        In this paper, we have initiated the study of a family of graph recovery problems. In these
+        problems, the aim is to recover the incidence matrix of a graph (contained in a specific graph
+        class) from a given binary matrix. The input matrix is assumed to be a perturbation of
+        an incidence matrix by either a small rank or low weight matrix. We have demonstrated
+        the rich combinatorial structure possessed by these problems by designing decision and
+        enumeration algorithms using classic concepts such as matchings and matroids. We leave
+        open the following concrete questions.
+        1. Is (min-rank, C)-Graph Recovery fixed-parameter tractable parameterized by r for the
+           classes we consider? That is, can it be solved in time f (r)(mn)O(1) for some computable
+           function f ?
+        2. Identify classes C for which (min-rank, C)-Graph Recovery is polynomial-time solvable.
+        3. Characterize those C for which (min-weight, C)-Graph Recovery is polynomial-time
+           solvable.
+
+              References
+         1    Emmanuel J. Candès, Xiaodong Li, Yi Ma, and John Wright. Robust principal component
+              analysis? J. ACM, 58(3):11:1–11:37, 2011. doi:10.1145/1970392.1970395.
+         2    Venkat Chandrasekaran, Sujay Sanghavi, Pablo A. Parrilo, and Alan S. Willsky. Rank-sparsity
+              incoherence for matrix decomposition. SIAM Journal on Optimization, 21(2):572–596, 2011.
+              doi:10.1137/090761793.
+         3    Reinhard Diestel. Graph theory, volume 173 of Graduate Texts in Mathematics. Springer-Verlag,
+              Berlin, 3rd edition, 2005.
+         4    Fedor V Fomin, Petr A Golovach, Daniel Lokshtanov, Saket Saurabh, and Meirav Zehavi.
+              Covering vectors by spaces in perturbed graphic matroids and their duals. arXiv preprint,
+              2019. arXiv:1902.06957.
+F. V. Fomin, P. Golovach, P. Misra, and M. S. Ramanujan                                               50:13
+
+
+ 5   Jim Geelen, Bert Gerards, and Geoff Whittle. On rota’s conjecture and excluded minors
+     containing large projective geometries. Journal of Combinatorial Theory, Series B, 96(3):405–
+     425, 2006.
+ 6   Jim Geelen and Rohan Kapadia. Computing girth and cogirth in perturbed graphic matroids.
+     Combinatorica, 38(1):167–191, 2018.
+ 7   Chien-Chung Huang, Naonori Kakimura, and Naoyuki Kamiyama. Exact and approximation
+     algorithms for weighted matroid intersection. In Proceedings of the Twenty-Seventh Annual
+     ACM-SIAM Symposium on Discrete Algorithms, SODA 2016, Arlington, VA, USA, January
+     10-12, 2016, pages 430–444, 2016. doi:10.1137/1.9781611974331.ch32.
+ 8   Daniel Lokshtanov, Pranabendu Misra, Fahad Panolan, and Saket Saurabh. Deterministic
+     truncation of linear matroids. ACM Trans. Algorithms, 14(2):14:1–14:20, 2018. doi:10.1145/
+     3170444.
+ 9   James G. Oxley. Matroid theory, volume 21 of Oxford Graduate Texts in Mathematics. Oxford
+     University Press, 2nd edition, 2010.
+10   Nauman Shahid, Nathanael Perraudin, Vassilis Kalofolias, Gilles Puy, and Pierre
+     Vandergheynst. Fast robust pca on graphs. IEEE Journal of Selected Topics in Signal
+     Processing, 10(4):740–756, 2016.
+11   John Wright, Arvind Ganesh, Shankar R. Rao, YiGang Peng, and Yi Ma. Robust
+     principal component analysis: Exact recovery of corrupted low-rank matrices via con-
+     vex optimization. In Proceedings of 23rd Annual Conference on Neural Information
+     Processing Systems (NIPS), pages 2080–2088. Curran Associates, Inc., 2009. URL:
+     http://papers.nips.cc/paper/3704-robust-principal-component-analysis-exact-
+     recovery-of-corrupted-low-rank-matrices-via-convex-optimization.
+12   Mengnan Zhao, M Devrim Kaba, René Vidal, Daniel P Robinson, and Enrique Mallada.
+     Sparse recovery over graph incidence matrices. In 2018 IEEE Conference on Decision and
+     Control (CDC), pages 364–371. IEEE, 2018.
+
+
+
+
+                                                                                                     ESA 2020
+

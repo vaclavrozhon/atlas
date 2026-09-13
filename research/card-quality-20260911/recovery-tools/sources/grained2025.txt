@@ -1,0 +1,1241 @@
+Settling the Complexity of Testing Grainedness of
+Distributions, and Application to Uniformity
+Testing in the Huge Object Model
+Clément L. Canonne # Ñ
+School of Computer Science, University of Sydney, Australia
+
+Sayantan Sen # Ñ
+Centre for Quantum Technologies, National University of Singapore, Singapore
+
+Joy Qiping Yang # Ñ
+School of Computer Science, University of Sydney, Australia
+
+      Abstract
+In this work, we study the problem of testing m-grainedness of probability distributions over an
+n-element universe U, or, equivalently, of whether a probability distribution is induced by a multiset
+S ⊆ U of size |S| = m. Recently, Goldreich and Ron (Computational Complexity, 2023) proved
+that Ω(nc ) samples are necessary for testing this property, for any c < 1 and m = Θ(n). They also
+conjectured that Ω( logmm ) samples are necessary for testing this property when m = Θ(n). In this
+work, we positively settle this conjecture.
+    Using a known connection to the Distribution over Huge objects (DoHo) model introduced by
+Goldreich and Ron (TheoretiCS, 2023), we leverage our results to provide improved bounds for
+uniformity testing in the DoHo model.
+
+2012 ACM Subject Classification Theory of computation → Streaming, sublinear and near linear
+time algorithms
+
+Keywords and phrases Distribution testing, Uniformity testing, Huge Object Model, Lower bounds
+
+Digital Object Identifier 10.4230/LIPIcs.ITCS.2025.26
+
+Related Version Full Version: https://eccc.weizmann.ac.il/report/2024/196 [12]
+
+Funding Clément L. Canonne: Supported by an ARC DECRA (DE230101329).
+Sayantan Sen: Supported by the National Research Foundation, Singapore and A∗ STAR under its
+Quantum Engineering Programme NRF2021-QEP2-02-P05.
+Joy Qiping Yang: Supported by a JD Technology Research Scholarship in Artificial intelligence.
+
+Acknowledgements We would like to thank the anonymous reviewers of ITCS 2025 for their
+suggestions which improved the presentation of the paper. SS would like to thank Clément Canonne
+and the Theory CS group at the University of Sydney for the warm hospitality during his academic
+visit, where this work was initiated.
+
+
+ 1      Introduction
+
+The field of distribution testing [7, 6] is concerned with providing statistically accurate
+information about large datasets or their underlying probability distributions, given very
+scarce data (sample size). Drawing insights from property testing [20, 27], distribution testing
+lies at the intersection of theoretical computer science, statistics, and learning theory; and
+has received significant attention over the past two decades, with many algorithms, insights,
+and new theoretical access models to the data being proposed and analyzed. We refer the
+reader to recent surveys [8, 4, 9] and textbook [19, Chapter 11] for more on distribution
+testing and property testing.
+            © Clément L. Canonne, Sayantan Sen, and Joy Qiping Yang;
+            licensed under Creative Commons License CC-BY 4.0
+16th Innovations in Theoretical Computer Science Conference (ITCS 2025).
+Editor: Raghu Meka; Article No. 26; pp. 26:1–26:19
+                   Leibniz International Proceedings in Informatics
+                   Schloss Dagstuhl – Leibniz-Zentrum für Informatik, Dagstuhl Publishing, Germany
+26:2   Settling the Complexity of Testing Grainedness of Distributions
+
+
+           In the most standard access model, the algorithm accesses the underlying unknown
+       probability distribution D (usually assumed to be over a known discrete domain of size n)
+       by obtaining independent, identically distributed (i.i.d.) samples from it. The goal of the
+       algorithm is then, given a fixed property Π ⊆ ∆n (a subset of the n-dimensional probability
+       simplex ∆n ) and a distance parameter ε ∈ (0, 1], as follows:
+           If D ∈ Π, the algorithm must output accept with probability at least 2/3;
+           If dTV (D, Q) > ε for all Q ∈ Π, the algorithm must output reject with probability at least
+           2/3;
+       where dTV denotes the total variation distance between distributions, and the probability is
+       taken over the choice of the samples and the internal randomness of the algorithm. This
+       is defined as the ε-testing of the property Π. The minimum number of samples s = s(n, ε)
+       necessary to achieve this task in the worst case (over all possible distributions D) is the
+       sample complexity of testing Π. That is, the testing task requires the algorithm, given as few
+       samples as possible, to distinguish with high probability between distributions which have
+       the property, and those which are “far” from having it.
+           Many other access models have been introduced, providing additional types of queries
+       to the algorithm, or changing the distance metric, or both (see [8] for an overview): among
+       them is the Distribution over Huge Objects (DoHO) model, recently introduced by Goldreich
+       and Ron [23] to capture settings where full access to the data sampled is itself costly or
+       impractical, due to the size of these objects. In the simplest version of this model, the
+       distribution D is defined over the n-dimensional hypercube {0, 1}n , where n is assumed to be
+       very large; given a sample x ∼ D, the algorithm must then choose which bits of x to observe,
+       paying a unit cost for every such query made. The distance metric to quantify “farness”
+       between distributions also differs from that of the standard formulation, and instead is taken
+       to be the Earthmover distance (EMD) between probability distributions, with underlying
+       metric chosen to be the (relative) Hamming distance between n-bit strings. (For the formal
+       definition of this model, and the relation to the standard sampling model, see Section 1.3.)
+           Many different properties of distributions have been studied, some of them quite extens-
+       ively: among those, uniformity (Π = {UΩ }, consisting of the single uniform distribution
+       over the whole domain Ω), generalized uniformity [5] (ΠU = {US : S ⊆ Ω}, consisting of
+       all distributions uniform over some subset of the domain), and parameterized uniformity
+       (Πm = {US : S ⊆ Ω, |S| = m}, consisting of all distributions uniform over some size-m subset
+       of the domain) [23], and m-grainedness (denoted Π◦m , which we will define shortly) [18, 22]
+       are the most relevant to this work.
+          In this paper, we will focus on two distribution testing tasks, intimately related:
+          Testing m-grainedness of distributions in the standard sampling model (property Π◦m );
+          and
+          Testing parameterized uniformity in the DoHO model.
+
+       Grainedness of distributions
+       A probability distribution D ∈ ∆n over a discrete set Ω of n elements is said to be m-grained,
+       for a given parameter m, if all its probabilities are integer multiples of 1/m. That is,
+
+          mD(x) ∈ N≥0 ,        x ∈ Ω.
+
+       Such distributions naturally arise due to quantization (e.g., binning of continuous or discrete
+       distributions), or when sampling from datasets: that is, if S ⊆ Ω is a multiset of size m,
+       uniformly sampling from S with replacement yields an m-grained distribution DS over Ω.
+C. L. Canonne, S. Sen, and J. Q. Yang                                                               26:3
+
+
+    Throughout this work, we will assume ε ∈ (0, 1) is a constant. Thus, m < n/ε = O(n).
+Previous works fixed m = Θ(n) but these results can also be extended for m = O(n), and
+therefore our results are stated in terms of m, instead of n.
+    Recent work of Goldreich and Ron [22] showed that Ω(mc ) samples are necessary for
+testing this property, for any fixed c < 1. A sample complexity upper bound of O( logmm ) also
+follows from previous work of Valiant and Valiant [29], which led [22] to conjecture a lower
+bound of Ω( logmm ) samples. Our main contribution is to resolve this conjecture, showing that,
+indeed, Θ( logmm ) samples are necessary and sufficient for m-grainedness testing:
+▶ Theorem 1.1. Let n be a sufficiently large integer, m = O(n), and let ε ∈ (0, 1) be a
+sufficiently small constant. Then, ε-testing m-grainedness of distributions over [n] requires
+Ω( logmm ) samples.
+We note that the restriction m = O(n) is necessary, as if m = n/α for some α < 1, every
+distribution is α-close to being m-grained. Recall that we assume ε is a small constant.
+Moreover, the problem of testing m-grainedness becomes trivial when m ≥ n/ε as in that
+case every distribution is ε-close to being m-grained. Along the way, we also present as a
+warmup a new proof of the lower bound of Ω(nc ) samples for m-grainedness testing:
+▶ Theorem 1.2. Let n be a sufficiently large integer, m = O(n), and let ε ∈ (0, 1) be a
+sufficiently small constant. Then, for any fixed constant c ∈ (0, 1), ε-testing m-grainedness
+of distributions over [n] requires Ω(mc ) samples.
+While this is a strictly weaker result than our main lower bound, our proof strategy differs
+significantly from that of [22], and may be of independent interest.
+
+Parameterized uniformity testing in the DoHO model
+In a separate work [23], Goldreich and Ron studied the problem of parameterized uniformity
+testing in the Huge Object model. Among other results, they established a connection
+between m-grainedness testing in the standard model and testing Πm in the DoHO model:
+▶ Theorem 1.3 ([23, Theorem 2.13]). Assume that, for constant ε ∈ (0, 1), ε-testing m-
+grainedness in the standard model has sample complexity Ω( logmm ). Then, for every 1 ≤ m ≤ n
+and constant ε′ ∈ (0, 2ε ), ε′ -testing Πm for distribution over {0, 1}n in the DoHO model has
+query complexity Ω( logmm ).
+    Our lower bound for m-grainedness immediately implies that this result holds uncon-
+ditionally. In the same paper, the authors provided an algorithm for testing Πm using
+O(m)
+ e     samples and queries (for constant ε = Ω(1)), which together with the above – now
+unconditional – lower bound settles the complexity of testing Πm in the DoHO model, up to
+logarithmic factors, for m ≤ n. One may be tempted to assume the same query complexity
+lower bound holds in all parameter regimes: perhaps surprisingly, our next result is a new
+and simple algorithm for testing Πm in the DoHO model which takes O(m2/3 ) samples and
+performs O(m2/3 n) queries:
+▶ Theorem 1.4. There is an algorithm which, given an integer m ∈ N and constant ε ∈ (0, 1),
+ε-tests the property Πm of distributions over {0, 1}n in the DoHO model, taking O(m2/3 )
+samples and performing O(m2/3 · n) queries. Moreover, any ε-tester for Πm in the DoHO
+model must take Ω(m2/3 ) samples.
+Notably, this improves the upper bound of Goldreich and Ron whenever n3 ≤ m ≤ 2n , and
+rules out any Ω̃(m) query complexity lower bound for the whole range of m.
+
+
+
+                                                                                                  ITCS 2025
+26:4   Settling the Complexity of Testing Grainedness of Distributions
+
+
+       1.1    Overview of our techniques
+       Lower bound for m-grainedness testing
+       Our lower bound approach follows Le Cam’s two-point method: we will design two distribu-
+       tions of distributions Dyes and Dno such that the distributions in Dyes are m-grained and the
+       distributions in Dno are “far” from being m-grained in variation distance. The name of the
+       game is then to prove that it is information-theoretically impossible to distinguish between
+       Dyes and Dno .
+            To achieve this, we will rely on the moment-matching technique, particularly suited
+       to properties like m-grained (which are symmetric, i.e., invariant to relabelling of the
+       domain elements). Broadly, if two probability distributions Dyes and Dno have sufficiently
+       similar moments ∥Dyes ∥tt ≈ ∥Dno ∥tt , for say 1 ≤ t ≤ K, then it is hard to distinguish (a
+       permutation of) Dyes from (a permutation of) Dno by using o(n1−1/K /K) samples. That
+       is, the more moments one can match, the more samples one needs to tell two distributions
+       apart. Note that setting K = Θ(log n) would then lead to an Ω( logn n ) lower bound (and
+       that, as remarked later, in our case we can assume without loss of generality, for the sake of
+       the lower bound argument, that m = Θ(n).) This approach has been used in the literature
+       extensively [26, 29, 28, 30, 31, 32, 10], and has proven to be very successful in obtaining
+       tight lower bounds for a range of symmetric properties. We will rely on the formulation
+       of the technique described by [32], which maps the problem of matching moments of two
+       full probability distributions (an n-dimensional object) to that of matching moments of
+       two single-dimensional random variables U and V : these two random variables will then
+       be used to generate the probability distributions: intuitively (and as described below), “n
+       independent draws from U will give Dyes (1), . . . , Dyes (n)” (and similarly for Dno and V ).
+            Thus, a crucial ingredient in our lower bound is the construction of a pair of discrete
+       random variables U and V whose first logarithmically many moments are identical. Using n
+       independent copies of U (resp. V ), we will then define a random measure over [n], which
+       corresponds to a “yes”-instance Dyes (resp., a “no”-instance Dno ). Thus, another requirement
+       on our construction of U and V is that the first one should yield an m-grained distribution,
+       while the second should correspond to a distribution far from being m-grained. We will
+       formalize this in Lemma 2.2.
+            To build these two random variables U and V , we will, as previously done in the literature,
+       rely on the properties of the Chebyshev polynomial Td of degree d = O(log n), defining U
+       and V to be supported on disjoint subsets of the roots of a suitable polynomial P (x), where
+       the probability mass assigned to a given root r is proportional to 1/|P ′ (r)|. The idea is
+       that some of the roots of P , those corresponding to U , will be multiples of 1/m (leading
+       to m-grained probabilities) while the others, corresponding to V , will be odd multiples of
+       1/(2m) (leading to “far-from-m-grained” probabilities): for instance, we would take
+                                      
+                             1         1
+            P (x) = x x −          1−      Td (c · x)
+                            2m         m
+       for some scaling constant c > 0. The remaining roots will be that of the Chebyshev polynomial
+       Td , which are there to ensure that we can match sufficiently many moments of U and V .
+            However, this approach, which underlies most of previous work, cannot be directly used
+       here: indeed, while the resulting two random variables U, V could be made to have many
+       matching moments, and as such be hard to distinguish, doing so will put a lot of probability
+       mass on the roots of the Chebyshev polynomial Td both for U and V ; and these roots are not
+       multiples of 1/m. This would have the undesirable effect of making both our distributions
+       far from being m-grained. Trying to fix this the obvious requires to ensure very little mass is
+C. L. Canonne, S. Sen, and J. Q. Yang                                                                  26:5
+
+
+put by U (and so V ) on the roots of Td , which in turns limits the number of moments that
+can be matched. (Note that fixing this by choosing not to use the Chebyshev polynomial
+                                                                    1             1          L
+                                                                                               
+Td at all but instead choosing P (x) of the form P (x) = x x − 2m       · x− m       ··· x − m   ,
+for some large constant integer L, does get part of the way there and provides a non-trivial
+result, leading to our (weaker) Ω(mc ) lower bound for every c < 1).
+    To remedy this, we take a different route, using an idea we believe to be of independent
+interest and applicable to other lower bounds: instead of using Chebyshev polynomials
+directly, we will be using a modified version of Chebyshev polynomials, T̃d , defined from Td by
+first rounding its roots to multiples of 1/m. By carefully analyzing the resulting polynomial,
+we can show that it behaves, for our lower bound construction purposes, similarly to the
+Chebyshev polynomial, and so we can use it to define both U and V . This allows us to
+match more moments, leading to our final Ω(m/ log m) lower bound.
+
+Upper bound for parameterized uniformity testing
+In contrast, the idea underlying our upper bound for testing Πm in the DoHO model is
+relatively straightforward: namely, by making n queries per sample, we can simulate any
+testing algorithm in the standard sampling model, as we now have observed the full samples.
+This, along with the relation between TV distance and EMD distance, allows us to lift any
+s-sample tester for Πm in the standard sampling model to an s-sample, s · n-query tester for
+Πm in the DoHO model.
+    The only issue with this plan is that there is no known (nontrivial) tester for Πm in
+the standard sampling model. There is, however, a known testing algorithm for the related
+property of generalized uniformity, ΠU . Our key contribution here is then to use this known
+tester A to derive a tester B for Πm in the standard sampling model. Notably, this is not as
+immediate as it seems, and our algorithm needs to use A in a whitebox way, and combine
+this with an additional test to estimate the ℓ2 norm of the unknown distribution D. The
+subtlety here (and the reason for which we cannot use any A in a blackbox fashion, but
+need to use a specific algorithm due to [5]) is that being close to some uniform distribution
+over some subset does not immediately allow to conclude about being close to some uniform
+distribution over some m-size subset – even if we are guaranteed the ℓ2 norm of D is close
+to 1/m.
+
+
+1.2    Related work
+The field of distribution testing has its roots in theoretical computer science with the work
+of Goldreich and Ron [21], who designed a uniformity testing algorithm as a tool to check
+whether a graph is an expander; and formally defined and introduced in [7]. [6] studied the
+problem of identity testing, which generalizes the problem of uniformity testing. Over the
+last two decades, this field has seen significant growth, and a host of new tools and techniques
+have emerged, see [25, 1, 18, 16, 14, 15, 11] to name a few. See the surveys [8, 4, 9] and the
+book of [19, Chapter 11] for more details.
+    The study of grained distributions was done implicitly in the work of [26], and later [18]
+studied it in more detail.
+    As mentioned earlier, the Huge Object model was introduced by [23]. Since then, there
+have been several works focusing on this model. [13] defined the notion of index-invariant
+properties, a set of properties that are invariant under the permutation of the indices (these
+properties are different than label-invariant properties). They showed that index-invariant
+properties whose VC dimension of the support set is bounded can be learned using a constant
+
+
+
+                                                                                                     ITCS 2025
+26:6   Settling the Complexity of Testing Grainedness of Distributions
+
+
+       number of queries, depending only on the VC dimension. They also gave tight separation
+       between adaptive and non-adaptive testers for index and non-index-invariant properties.
+       Later, [2] studied various different notions of adaptivity, and showed several separation
+       results. Very recently, [3] studied the problem of support size testing in this model.
+
+       1.3    Preliminaries
+       For a positive integer n, let [n] denote the set {1, . . . , n}. We will use the standard asymptotic
+       notation O(·), Ω(·), Θ(·), and, in some cases, the (somewhat less) standard notation O(·),     e
+       which omits poly-logarithmic dependencies in the parameters for readability.
+          We will use several notions of distance between two distributions.
+       ▶ Definition 1.5. Let D1 and D2 be two probability distributions over a domain Ω. The ℓ1
+       distance between D1 and D2 is defined as
+                         X
+           ∥D1 − D2 ∥1 =     |D1 (x) − D2 (x)|.
+                           x∈Ω
+
+       The total variation distance between D1 and D2 is defined as:
+                          1
+          dTV (D1 , D2 ) = · ∥D1 − D2 ∥1 = sup (D1 (S) − D2 (S)).
+                          2                 S⊆Ω
+
+       ▶ Definition 1.6 (EMD with respect to Hamming distance). Let D1 , D2 be two distributions
+       defined over the n-dimensional Hamming cube {0, 1}n and dH be the (relative) Hamming
+       distance over {0, 1}n . Then the Earth Mover distance (EMD) between D1 and D2 is defined
+       as follows:
+          dEM (D1 , D2 ) :=        inf         E(x,y)∼T [dH (x, y)]
+                              T ∈T (D1 ,D2 )
+
+       where T (D1 , D2 ) denotes the set of all couplings between µ and τ .
+          Since we are working with the (relative) Hamming distance, dH (x, y) ≤ 1. Then directly
+       from the definitions of dEM (D1 , D2 ) and dH (x, y), we get the following simple yet useful
+       observation connecting total variation and EMD distances between two distributions.
+       ▶ Observation 1.7 (Relation between EMD and TV distances). Let D1 and D2 be two
+       distributions over the n-dimensional Hamming cube {0, 1}n . Then,
+          dEM (D1 , D2 ) ≤ dTV (D1 , D2 ).
+       ▶ Definition 1.8 (Huge Object Model). Consider a discrete distribution D supported over the
+       n-dimensional Hamming cube {0, 1}n . D is accessed by obtaining iid samples, where each
+       sample obtained is an n-bit Boolean string. In addition to the sampling oracle, there is also a
+       query oracle associated with D, where the tester can query any index i ∈ [n] for any samples
+       (say j-th sample sj ) obtained, and the query oracle will return the i-th bit of sj . The goal is
+       then to minimize both the total sample and query complexities required to decide a property.
+           Note that this Huge Object model is particularly suited for studying high-dimensional
+       distributions, where the dimension of the underlying domain is so large that even reading a
+       single sample in its entirety might not be feasible.
+           Finally, we state here some technical result which will be used in our lower bounds proofs:
+
+
+       ▶ Lemma 1.9 ([31, Lemma 4]). Let W1 , W2 be discrete random variables taking values in
+       [0, Λ]. If E[W1t ] = E[W2t ] for 1 ≤ t ≤ T , then
+                                                eΛ T
+           dTV EW1 [Poi(W1 )], EW2 [Poi(W2 )] ≤           .
+                                                       2T
+C. L. Canonne, S. Sen, and J. Q. Yang                                                                      26:7
+
+
+▶ Fact 1.10 ([10, Fact 7], [24]). Let p be a degree-d polynomial with distinct roots r1 , . . . , rd .
+                                              Pd       rik
+Then, for every 0 ≤ k ≤ d − 2, we have that      i=1 p′ (ri ) = 0.
+
+     We will be using the following two well-known trigonometric inequalities.
+▶ Fact 1.11.
+ (i) For x ∈ [0, π], the following holds:
+                 2
+          sin x ≥  min(x, π − x)                                                                  (1)
+                π
+ (ii) For x ∈ [−π/2, π/2], the following holds:
+              4                    2
+          |     · x| ≥ | sin x| ≥ | · x|,                                                         (2)
+              π                    π
+
+Organization
+The rest of the paper is organized as follows. In Section 2, we present a new proof of the lower
+bound of Ω(mc ) samples. Then in Section 3, we present the Ω(m/ log m) lower bound for
+testing m-grainedness. In Section 4, we present our result of uniformity testing in the Huge
+Object Model. We conclude in Section 5 with some open questions. Due to the shortage of
+space, the formal proofs of some claims are deferred to the full version of the paper [12].
+
+ 2      An Ω(mc ) lower bound for testing m-grainedness
+In this section, we prove Theorem 1.2, thereby presenting a new proof of the lower bound
+of [22].
+▶ Theorem 1.2. Let n be a sufficiently large integer, m = O(n), and let ε ∈ (0, 1) be a
+sufficiently small constant. Then, for any fixed constant c ∈ (0, 1), ε-testing m-grainedness
+of distributions over [n] requires Ω(mc ) samples.
+Note that it suffices to consider the case m = Θ(n), as if m ≪ n one can then embed the
+hard instances in a larger domain, lifting the lower bound. As a result, we hereafter assume
+without loss of generality that m = Θ(n). We start by stating a relatively standard theorem
+which will be crucial in the proof of our sample complexity lower bound, and whose proof is
+deferred to the full version [12].
+▶ Theorem 2.1. Fix positive integers m, n, s, where n > 4.3 × 108 and m ≤ C0 (n − 1)
+for some absolute constant  C0 ∈ R. Suppose
+                                           there  exist random variables U and V , where
+                               m
+                    1                      1    3
+                                                    , . . . , 2m−1 ≥ 23 ; and they satisfy the
+                                     
+U is supported on 0, m   ,..., m ; Pr V ∈ 2m  , 2m             2m
+following three conditions,
+                      20 log2 (n − 1)
+     max(U, V ) ≤                     ,                                                           (3)
+                          (n − 1)
+
+                           1
+     E[U ] = E[V ] ≤             .                                                                (4)
+                        2(n − 1)
+
+                                                1
+     dTV (E[Poi(sU )], E[Poi(sV )]) ≤                 ,                                           (5)
+                                            20(n − 1)
+Then any tester taking less than s/2 number of samples from unknown distribution p cannot
+distinguish between the cases that p is m-grained and p is at least 8C1 0 -far from any m-grained
+distributions in TV distance with probability 3/5.
+     In order to prove Theorem 1.2, we will be using the following lemma.
+
+                                                                                                         ITCS 2025
+26:8   Settling the Complexity of Testing Grainedness of Distributions
+
+
+       ▶ Lemma 2.2. There exist constants L, K, such that for any n and m = L(n − 1), there
+       exist two discrete random variables U and V such that the following Equations (6), (7), (8)
+       and (9) hold.
+                           Z                   2Z + 1
+          Support(U ) ⊆      and Support(V ) ⊆                                                            (6)
+                           m                    2m
+
+                   L
+          U, V ≤                                                                                          (7)
+                   m
+
+                               1
+          E[U ] = E[V ] ≤            .                                                                    (8)
+                            2(n − 1)
+
+
+          E[U t ] = E[V t ] for t ∈ [K].                                                                  (9)
+          In order to prove the above lemma, we will use the following polynomial to construct our
+       U and V (fix any positive integer L):
+                                                             
+                           1           2         3               2L
+          P (x) = x x −          x−          x−       ... x −                                 (10)
+                          2m         2m         2m              2m
+              In the context of Lemma 2.2, the random variable U will be supported on the roots
+            1 2             L                                                                    1    3
+       0, m    , m, . . . , m . Similarly, the random variable V will be supported on the roots 2m , 2m ,...,
+               2L−1
+       . . . , 2m .
+
+       Proof of Lemma 2.2. We will first describe the construction of random variables U and V ,
+       associated with the polynomial P . Namely, let Pr[U = r] ∝ |P ′1(r)| for r in the support of
+                                                                                         1 2           L
+       U (every derivative is positive when r is in the support of U , i.e., r ∈ {0, m    , m, . . . , m }).
+                                          1
+       Similarly, we have Pr[V = r] ∝ |P ′ (r)| for r in the support of V (likewise, all derivative will
+       be negative). The normalization term is simply
+                  L                 L
+                  X        1       X       1
+          ZP :=          ′   i
+                                 =       ′ 2i−1
+                                                  .
+                   i=0
+                       |P ( m )|   i=1
+                                       |P ( 2m )|
+       And we can show that
+                L   2L
+                           2L          L 
+                                 (2m)2L X 2L       (2m)2L 2L−1
+                                               
+                    2k (2m)
+               X
+         ZP =                  =                 =        ·2   .
+                      (2L)!       (2L)!     2k      (2L)!
+                 k=0                             k=0
+
+       Applying Fact 1.10 with k = 0, we can notice that the two summations are equal (U has all
+       positive roots and V all negative).
+       Proof of Equation (7).      The largest value of U and V is the largest root of the polynomial
+       P : max{U, V } ≤ L/m.
+       Proof of Equation (8). Let us compute the derivative of the polynomial P in Equation (10).
+       For any k ∈ [2L] ∪ {0}, we have the following:
+                         k−1
+                           Y k−ℓ Y   2L
+            ′    k                        ℓ−k
+          P           =                         (−1)2ℓ−k
+                2m             2m          2m
+                             ℓ=0         ℓ=k+1
+
+                           (−1)k
+                        =        k!(2L − k)!
+                          (2m)2L
+                                  (2L)!
+                        = (−1)k 2L
+                                        2L
+                                 k (2m)
+C. L. Canonne, S. Sen, and J. Q. Yang                                                             26:9
+
+
+     Now let us compute E[U ] as follows:
+                                                                 
+                                     X                          ℓ     ℓ
+     E[U ] = Pr[U = 0] · 0 +                             Pr U =     ·
+                                                                m m
+                                     ℓ: ℓ even, ℓ∈[2m]
+                        L          2L
+                                          2L
+               1      2k           2k (2m)
+                        X
+            =
+              ZP      2m     (2L)!
+                  k=0
+                 PL      2L
+                           
+              1 k=0 k 2k
+          =          2L−1
+              m     2
+               L
+          =
+              2m
+We finally upper bound the expectation:
+        1        L
+              ≥    = E[U ] ⇒ m ≥ L(n − 1).                                               (11)
+     2(n − 1)   2m
+
+
+Proof of Equation (9). Their first K = 2L − 1 moments are matched by recalling Fact 1.10
+(applied for k = t) and how U and V are constructed.                                  ◀
+
+Proof of Theorem 1.2. Using Lemma 1.9 on random variables constructed in Lemma 2.2,
+                                                 L
+by setting m = 2L(n − 1) = Θ(n), we know Λ = s · m , we get that
+                                                  !K
+                                              L
+                                         es · m                 1
+     dTV (E[Poi(sU ), Poi(sV )]) ≤                       ≤            ,
+                                          2K                 2(n − 1)
+
+which gives,
+                                           1/K
+                        2K            1
+     s ≤ 2(n − 1)             ·                      .
+                         e         2(n − 1)
+
+Further simplification yields,
+                
+         4L − 2                   1
+   s≤              (2(n − 1))1− 2L−1 .
+           e
+                                                       1
+                                                          
+Applying Theorem 2.1, gives the lower bound s = Ω n1− 2L−1 . For any constant c < 1, one
+                                              1
+can choose L large enough such that c ≤ 1 − 2L−1 , and thus concludes our proof.           ◀
+
+
+ 3      Ω( logmm ) lower bound for m-grainedness (Proof of Theorem 1.1)
+In this section, we will be proving the following theorem:
+
+▶ Theorem 1.1. Let n be a sufficiently large integer, m = O(n), and let ε ∈ (0, 1) be a
+sufficiently small constant. Then, ε-testing m-grainedness of distributions over [n] requires
+Ω( logmm ) samples.
+
+    Similar to the proof of Theorem 1.2, we will make use of Theorem 2.1 to prove our
+Ω( logmm ) lower bound. Namely, we will construct two random variables U and V such that
+they can be used to construct approximate probability vector for m-grained and mostly
+2m-grained and their first log(m) moments match. In particular, we will prove the following
+lemma:
+
+
+
+                                                                                                ITCS 2025
+26:10   Settling the Complexity of Testing Grainedness of Distributions
+
+
+        ▶ Lemma 3.1. For m = 70(n − 1) and n > 20, there exist discrete random variables U and
+        V such that the following hold:
+                     1
+           Pr[V =      ] ≥ 2/3.                                                                     (12)
+                    2m
+
+                           Z
+           Support(U ) ⊆                                                                            (13)
+                           m
+
+                        20 log2 (n − 1)
+           0 ≤ U, V ≤                   .                                                           (14)
+                             n−1
+
+                                 1
+           E[U ] = E[V ] ≤             .                                                            (15)
+                             20(n − 1)
+
+
+           E[U t ] = E[V t ] for t ∈ [3 · log(n − 1)]                                               (16)
+
+        3.1    Construction of U and V
+        The main focus of this subsection is to establish Lemma 3.1.
+            Fact 1.10 allows us to define two random variables U and V with matching moments
+        up to the degree of some polynomial – similar to the analysis in Section 2, by simply
+        defining U and V through its roots and partitioning them by the signs of the derivatives
+        at those roots. However, the challenge here is, we need to match even higher degree (in
+        Section 2, we can match them up to a constant degree C1 , here we need to match them
+        up to Θ(log m) = Θ(log n) degree), all while keeping every other conditions unchanged: U
+        is m-grained and V on the most part is (2m)-grained; maximum value of the support size
+        does not blow up; and more importantly, the expectation could be bounded by O(1/n).
+        Notably, if we try to match higher degree: say instead of constant, we make L = O(log n) in
+        Equation (11), with m = Θ(n), using the construction in Section 2. It will fail miserably –
+        the expectation E[U ] will exceed O(1/n), and so when we take n copies of U or V , it would
+        not be a distribution in an approximate sense.
+            To work around this and match degree (by implication, moments) as high as possible,
+        we take the (shifted) Chebyshev polynomial of degree d and we will later use properties of
+        this polynomial to construct our prior variables U and V . Recall that the shifted Chebyshev
+        polynomial of the first kind is defined as follows:
+                                                d
+                                                Y
+           pTd (x) = Td (1 − ∆x) = 2d−1 ∆d ·          (x − ti ),                                    (17)
+                                                i=1
+
+        where Td (θ) = cos(d · arccos θ), for θ ∈ [−1, 1]; ti denotes the roots of the degree-d (shifted)
+        Chebyshev polynomial for every i ∈ [d]; ∆ ∈ R, a parameter to be chosen in the analysis
+        later.
+            However, as mentioned in the introduction, instead of using the shifted Chebyshev
+        polynomial directly, we will be using a variant of it for our proof. For this purpose, we
+        will define the polynomial p̃Td , a slightly modified Chebyshev polynomial of degree d, by
+        “rounding up to the nearest multiple of 1/m” its d roots:
+                                                    d
+                                                    Y
+           p̃Td (x) = T̃d (1 − ∆ · x) = 2d−1 ∆d ·         (x − t̃i )                                (18)
+                                                    i=1
+              1              1
+        where m + ti ≥ t̃i = m ⌈mti ⌉ ≥ ti .
+C. L. Canonne, S. Sen, and J. Q. Yang                                                                  26:11
+
+
+   Putting these ideas together, we will focus on two polynomials based on the Cheby-
+shev polynomial and modified Chebyshev polynomial respectively (obtained by appending
+                                1          1
+Chebyshev polynomial to x(x − 2m    )(x − m  )):
+                            
+                  1          1
+   p(x) = x x −         x−        · pTd (x)                                      (19)
+                 2m         m
+
+                        
+                  1      1
+   p̃(x) = x x −      x−     · p̃Td (x)                                                        (20)
+                 2m      m
+
+   Through polynomial p̃ in Equation (20), we can construct two random variables U and
+V identified by their probability mass function. Namely, we define U as follows:
+                       1
+   Pr[U = r] ∝                if p̃′ (r) > 0 and r is a root of p̃                             (21)
+                  |p̃′ (r)|
+   Similarly, we define the random variable V as follows:
+                       1
+   Pr[V = r] ∝                if p̃′ (r) < 0 and r is a root of p̃                             (22)
+                  |p̃′ (r)|
+    For both U and V , we assign probability 0 to the roots not specified. Thus, by setting
+k = 0 in Fact 1.10 and noting that the negative and positive terms sum to 0, the normalization
+factor are equal for both U and V , and can be expressed as follows:
+
+▶ Observation 3.2.
+
+                        1       1    Xd
+                                        1{p̃′ (t̃j )>0}         1
+                                                                        d
+                                                                        X 1{p̃′ (t̃j )<0}
+   Zp̃ = Z(∆, m, d) = ′    + ′ 1 +                      =         1   +                   .    (23)
+                     p̃ (0) p̃ ( m ) j=1 p̃′ (t̃j )       |p̃′ ( 2m )| j=1 |p̃′ (t̃j )|
+
+    The reasons we are taking the shifted Chebyshev polynomial and “round the roots up”
+are two-fold: first, this kind of construction (before rounding) was used to prove lower bounds
+with Ω(n/ log n) complexity before, by constructing a polynomial of degree Θ(log n) with
+certain constraints [10]. Second, we need to make sure that the distributions derived from U
+are m-grained with very high probability. Yet, using the shifted Chebyshev directly, some of
+the roots of U (the positive roots) resulting from Td will not be m-grained with non-trivial
+probability. Intuitively, we want to leverage the known properties of the shifted Chebyshev
+pTd and argue that rounding up and creating p̃Td will only “mildly” change those properties.
+    Since we are deciding the support of U, V based on the evaluation of derivative at each
+root of p̃Td and argue that it is somewhat close to pTd , we need to first make sure that the
+signs of derivative at the main three roots remain the same as pTd ’s (the rest of the roots’
+derivative’s signs, the ones induced by p̃Td , will not affect the argument). Note that the
+sign of the polynomial p̃Td when evaluated at 0, 1/2m, 1/m is not changed (same as pTd ), as
+(0 − tj ) and (0 − t̃j ) have the same sign; we also have 1/2m, 1/m ≤ tj ≤ t̃j , via a constraint
+on setting ∆ and therefore we can conclude that
+
+   pTd (0) · p̃Td (0) > 0;    pTd (1/2m) · p̃Td (1/2m) > 0;      pTd (1/m) · p̃Td (1/m) > 0.
+
+   Next, we compute their corresponding derivatives of the two polynomials evaluated at
+the roots tℓ and t̃ℓ .
+                                
+                        1        1           Y
+   p′ (tℓ ) = tℓ tℓ −       tℓ −     2d−1 ∆d   (tj − tℓ )                          (24)
+                       2m        m
+                                                    j̸=ℓ
+
+
+
+
+                                                                                                      ITCS 2025
+26:12   Settling the Complexity of Testing Grainedness of Distributions
+
+
+           Table 1 Properties of the polynomial p and its distinct d + 3 roots. |p′ (r1 )|, |p′ (r2 )|, |p′ (r3 )|’s
+        upper and lower bounds are proven in Claim A.7 of the full version [12].
+
+
+                                  roots                                  value of p′ (rℓ )                bound on |p′ (rℓ )|
+                                                                              1                                         1
+                                                                                                                            
+                                 r1 = 0                                      2m2
+                                                                                 · Td (1)                      Θ       m2
+                                     1                                   1             ∆
+                                                                                                                       1
+                                                                                                                            
+                               r2 = 2m                                − 4m 2 · Td 1 − 2m                       Θ       m2
+                                      1                                 1              ∆
+                                                                                                                       1
+                                                                                                                          
+                                 r3 = m                                2m2
+                                                                           · Td     1− m                       Θ       m2
+                                                                                                                       5
+                                                                                                                           
+                                                           p′ (tℓ ) = tℓ · tℓ − 2m          · Td′ (tℓ )
+                                                                                                  
+                         2
+             rℓ+3 = tℓ = ∆ sin2            π
+                                           2
+                                               2ℓ−1
+                                                2d
+                                                                                 1        1
+                                                                                   · tℓ − m                   Θ        ℓ
+                                                                                                                      ∆2 d4
+
+
+
+
+                                                    
+             ′                           1           1           Y
+            p̃ (t̃ℓ ) = t̃ℓ       t̃ℓ −        t̃ℓ −     2d−1 ∆d   (t̃j − t̃ℓ )                                                 (25)
+                                        2m           m
+                                                                      j̸=ℓ
+
+
+             Here, note that by construction, all the roots of p̃Td will be m-grained (see Equation (18)).
+                           1
+        Moreover, 0 and m     are m-grained roots of pe(x) (see Equation (20)). On the other hand, the
+                1
+        root 2m of the polynomial pe(x) is not m-grained by definition.
+                                                                                                       1
+             In the context of Lemma 3.1, the random variable U will be supported on the roots 0, m      ,
+        and a subset of the roots etℓ of the modified Chebyshev polynomial peTd from Equation (18),
+                                                                                                1
+        for ℓ ∈ [d]. On the other hand, the random variable V will be supported over 2m            and a
+        disjoint (from support of U constructed by modified Chebeshev roots of p̃Td ) subset of the
+        modified Chebyshev polynomial roots. U and V ’s support form a partition for all roots of
+        p̃Td .
+             To prove Lemma 3.1, we need a few claims, that we state below and whose proof can be
+        found in the full version [12].
+
+        ▷ Claim 3.3 (Relation between roots at p̃′ and p′ ).
+
+           |p̃′ (t̃ℓ )|
+                                      
+                                  12∆
+                        ≥ exp   −        for every ℓ ∈ [d].                                                                     (26)
+           |p′ (tℓ )|             m/d2
+
+
+                   |p̃′ (0)|              |p̃′ (1/m)|                 p′ (1/2m)|
+                                                                     |e
+            1≤               ,      1≤                ≤ 6,      1≤               ≤ 6.                                           (27)
+                   |p′ (0)|               |p′ (1/m)|                 |p′ (1/2m)|
+
+           The proofs of Equation (26) and Equation (27) can be found in Appendix A.1 of the full
+        version (Claims A.2 to A.5). From now onwards, we will assume that Claim 3.3 holds.
+                                                          m
+                                                                      √
+           For the lower bound, we will be choosing ∆ = 20d 2 and d =   10 log(n − 1).
+
+        ▶ Observation 3.4. Let tj and t̃j be the roots of the Cheybyshev and modified Chebyshev
+                                                 m
+        polynomials, for any j ∈ [d]. When ∆ ≤ 2d 2 , we have that
+
+
+                              1
+            t̃j ≥ tj ≥          .
+                              m
+        Proof. Using Equation (2), we can lower bound tj for any j,
+                                                                       2
+                    1              2j − 1        2       π 2j − 1      2 2j − 1     1
+            tj =         1 − cos          π    =   sin2              ≥             ≥ ,                                          (28)
+                    ∆                2d          ∆       2   2d        ∆   2d       m
+C. L. Canonne, S. Sen, and J. Q. Yang                                                                                    26:13
+
+
+where the last inequality follows from 2j − 1 ≥ 1 (which holds for all j ≥ 1), and our
+assumption on ∆. Moreover, we also have:
+           1               1
+   t̃j =     ⌈mtj ⌉ ≥ tj ≥
+           m               m
+where the last inequality follows from Equation (28). This completes the proof.                                     ◀
+
+   We need the following two claims (Claim 3.5 and Claim 3.6) whose proofs are deferred
+                                                               1
+to Appendix A.2 of the full version [12], to show that Pr[V = 2m ] ≥ Ω(1) in Claim 3.7 as
+required by Equation (12).
+                          p′ ( 1 )|
+                         |e                            2m
+▷ Claim 3.5. Suppose 1 ≤ |p′ ( 2m
+                                1
+                                  )|
+                                     ≤ 6 holds and ∆ ≤ 9d2 . Then we have,
+                                          2m
+            
+           1         1       2
+   Pr V =      ∝ ′ 1        ≥ m2 .
+          2m    |p̃ ( 2m )|  3
+
+                                  2m
+▷ Claim 3.6. Suppose that ∆ ≤ 9d    2 . For any j ∈ [d], let t̃j denote the j-th root of the
+
+modified Chebyshev polynomial pe. Then we have:
+     
+            1
+               X d
+                     1{p̃′ (t̃j )<0}       
+                                             12∆
+                                                   
+                                                       66
+   Pr V ̸=     ∝          ′ (t̃ )|
+                                     ≤ exp       2
+                                                     ·    · ∆2 d4 .
+           2m    j=1
+                      |p̃      j             m/d       π
+                       m
+▷ Claim 3.7. If ∆ ≤ 20d   2 , then
+
+              
+             1             1        5
+   Pr V =        = ′ 1             ≥ ,
+            2m     |p̃ ( 2m )| · Z  6
+
+where Z is the normalizing constant defined in Equation (23).
+Proof. Following the definition of the random variable V (Equation (22)) and the normaliza-
+tion term Zp̃ (Equation (23)), we can say that:
+               
+              1            1                           1
+    Pr V =        = ′ 1             =    P     1{p̃′ (t̃j )<0}                 .
+             2m     |p̃ ( 2m )| · Z   1+
+                                            d
+                                                                  · |p̃ ′ ( 1 )|
+                                            j=1   |p̃′ (t̃j )|             2m
+
+   Combining Claim 3.5 and Claim 3.6, we see that
+                                                                       
+         1{p̃′ (t̃j )<0}
+      d                                                            12∆
+                                                        3 exp
+                          · |p̃′ ( 1 )| ≤                                     66
+    X                                                             m/d   2
+   
+              ′ (t̃ )|                                             2
+                                                                             ·      · ∆2 d4
+     j=1
+          |p̃      j               2m                         2m                π
+
+                                                                                    ∆2 d 4
+                                                                             
+                                                        99             12∆
+                                             =              exp                  ·
+                                                         π            m/d2           m2
+                                                                          m             m 2 4
+                                                                                          
+                                                        99            12 20d 2         20d2   d             m
+                                             ≤              exp             2
+                                                                                   ·        2
+                                                                                                  [∵ ∆ ≤        ]
+                                                         π            m/d                 m                20d2
+                                                        99         12        1        1
+                                             ≤              exp( ) ·               ≤ .
+                                                         π         20 400             5
+   Thus, we can say that
+                    
+                1                                 1                                5
+   Pr V =              =       P       1                                     ≥ .
+             2m          1+
+                                    d     { p̃ ′ (t̃ j )<0}             1
+                                                              · |p̃′ ( 2m )|       6
+                                    j=1    |p̃′ (t̃j )|
+
+   This completes the proof.                                                                                        ◁
+
+
+
+                                                                                                                        ITCS 2025
+26:14   Settling the Complexity of Testing Grainedness of Distributions
+
+
+           Now we are ready to prove Lemma 3.1.
+
+        Proof of Lemma 3.1. We now prove that the random variables U and V defined in Section 3.1
+                                                                        m
+        satisfies Equation (12)-Equation (16). We begin by setting ∆ = 20d2.
+
+
+        Proof of Equation (12). Using Claim 3.7, we know that
+                      
+                    1
+           Pr V =        ≥ 5/6.
+                   2m
+
+        Proof of Equation (14). The largest value of U and V are the largest root of the modified
+        Chebyshev polynomial. Now let us first upper bound the largest value of the roots of the
+        Chebyshev polynomial. The largest value of the roots of Chebyshev polynomial is:
+                                                                 
+                          1             2ℓ − 1        2       π 2d − 1        2
+           max tℓ = max       1 − cos          π    =   sin2              ≤ ,
+           ℓ∈[d]    ℓ∈[d] ∆               2d          ∆       2   2d         ∆
+
+        where the last inequality is obtained via Equation (2). So, the largest value of the roots of
+        the modified Chebyshev polynomial is:
+
+                         1          2   1   40d2 + 1
+           max t̃ℓ =       ⌈mtj ⌉ ≤   +   =          ,
+           ℓ∈[d]         m          ∆ m        m
+                                                           m
+                √ equality follows from the fact that ∆ = 20d2 . Plugging the values of m = 70(n−1)
+           The last
+        and d = 10 log(n − 1), we have the result.
+        Proof of Equation (15). Recall that the random variable U is supported on the roots 0,
+        1/m and a subset of the roots of the modified Chebyshev polynomial (Equation (18)). Let
+        us start by computing an upper bound on E[U ].
+                                                                                d
+                                                         1    1   X
+           E[U ] ≤ Pr[U = 0] · 0 + Pr[U =                  ]·   +   Pr[U = t̃j ] · t̃j
+                                                         m m
+                                                                            j=1
+                                                              d
+                                                                                         !
+                           1    1   1                    X                   1
+                   = Pr[U = ] ·   +                                 t̃j · ′                     [Zp̃ is the normalization term, see Equation (23)]
+                           m m      Zp̃                                  |p̃ (t̃j )|
+                                                         j=1
+                               d                         exp             12∆
+                                                                                        !
+                     1   1                     1                                                                         1
+                                                                                                           h                                              i
+                                                                           m/d2
+                               X
+                   ≤   +                  tj +                 ·                                               ∵ t̃j =     ⌈mtj ⌉ and Equation (26)
+                     m   Zp̃                   m                      |p′ (tj )|                                         m
+                                   j=1
+                               d                                            12∆
+                                                                                              !
+                     1   1     X             1
+                                                                     exp   m/d2
+                   ≤   +                  1+                 tj ·   ∆            d
+                     m   Zp̃                 2                           3
+                                                                    4 · tj · sin 2j−1
+                                   j=1                                             2d
+
+                            [∵ using the proof of Claim 3.6 (Appendix A.2, full version [12])]
+                               d
+                                                                                                          !
+                                                                          12∆
+                     1   1     X                             6 · exp      m/d2                                                            2j−1
+                                                                                                                                                 
+                   =   +                                              π 2j−1
+                                                                                                                           2
+                                                                                                                     [∵ tj = ∆ sin2   π
+                                                                                                                                      2    2d         ]
+                     m   Zp̃              ∆·    4
+                                                ∆2 sin
+                                                       4
+                                                                      2 · 2d                 · sin d2j−1
+                                   j=1                                                              2d
+                                                                                            
+                                   d                                 12∆
+                                                                             
+                       1   1      X                6 · exp          m/d2
+                   ≤     +                                                                                       [∵ Via Equation (2)]
+                       m   Zp̃                4      2j−1 4                   d
+                                   j=1        ∆ ·     2d                 · 4 (2j−1)
+                                                                                ·
+                                                                            π       2d
+                                                                  d
+                                                                                                !
+                               12∆                   2
+                     1   exp   m/d2           · ∆d                 X          6
+                   =   +                                 ·
+                     m              Zp̃                                  π(j − 1/2)3
+                                                                   j=1
+                                                                               "       ∞
+                                                                                                                            #
+                                         12∆                  2
+                     1        exp        m/d2       · ∆d                                X             6
+                   ≤   + 17 ·                                                       ∵                         ≤ 17
+                     m                    Zp̃                                                  π · (i − 1/2)3
+                                                                                        i=1
+C. L. Canonne, S. Sen, and J. Q. Yang                                                                                26:15
+
+                                     
+                              12∆
+                                         · ∆d2
+                                                                                                               
+           1   17 × 3 exp     m/d2                                  1           2 2
+         =   +       ·                           ∵ Zp̃ ≥             1
+                                                                            ≥     m via Equation (23) & Claim 3.5
+           m     2             m2                            |p̃′ ( 2m )|       3
+              7       1                                       m
+                                                 h                                       i
+         ≤      =                                    ∵∆≤          & m = 70(n − 1)
+             2m   20(n − 1)                                  20d2
+   Since Equation (16) holds, as we will prove below, we know that E[U ] = E[V ]. This
+                        1
+implies that E[V ] ≤ 20(n−1) holds as well.
+Proof of Equation (16).       We have E[U t ] = E[V t ] for 1 ≤ t ≤ d + 1 from Fact 1.10 and
+Observation 3.2.                                                                           ◀
+
+3.2     Putting it together: proof of the Ω(m/ log m) lower bound
+We are now ready to prove the lower bound of m-grainedness testing (Theorem 1.1): we
+will combine the results from Lemma 3.1, Lemma 1.9 and Theorem 2.1 to show our main
+Ω(m/ log m) lower bound in Theorem 1.1.
+
+Proof of Theorem 1.1. Let us fix n > 20, m = 70(n − 1), and s ≥ 1 be a parameter (we
+will later on set it to s = Θ(n/ log n)). From Lemma 3.1, we know that there exist two
+discrete random variables U and V with the matching moments properties. Now we will use
+                                                                                 2
+Lemma 1.9 for sU, sV . Following Lemma 3.1 and Lemma 1.9, we have Λ ≤ s · 20 logn−1(n−1)
+
+and T = 3 · log(n − 1)
+                                                     2
+                                                              3·log(n−1)
+                                       e · s · 20 logn−1(n−1)
+    dTV (E[Poi(sU ), E[Poi(sV )]]) ≤                                    .
+                                         3 · log(n − 1)
+
+And we want to satisfy Equation (5), as all others have been matched to use Theorem 2.1.
+                 2
+                          3·log(n−1)
+                                                                                               1
+   e · s · 20 logn−1(n−1)                                                               3·log(n−1)
+                                            1       e · s · 20 log(n − 1)         1
+                                    ≤           ⇔                       ≤
+     3 · log(n − 1)                     20(n − 1)          3(n − 1)           20(n − 1)
+
+For n ≥ 21, we have
+                                                           1
+                                                      3·log(n−1)
+     e · s · 20 log(n − 1)  1            1
+                           ≤ ≤                                      ,
+            3(n − 1)        4        20(n − 1)
+
+and thus for s = 80e3(n−1)
+                     log(n−1) , we can invoke, and get a sample complexity lower bound in
+Theorem 1.1, noting that m = 70(n − 1) = Θ(n). Thus
+                                     
+   s       3(n − 1)               m
+     =                   =Ω             .
+   2   160e log(n − 1)          log m
+This concludes our proof.                                                                                      ◀
+
+ 4      Uniformity Testing in the DoHo Model
+In this section, we prove the following result on parameterized uniformity testing in the
+DoHO model, improving on the known Õ(m)-query upper bound in the regime m ≥ n3 .
+▶ Theorem 4.1. For any m and constant ε > 0, the property Πm of distributions over
+{0, 1}n defined as
+     Πm = {US : S ⊆ {0, 1}n , |S| = m}
+can be ε-tested in the DoHO model using s = O(m2/3 /ε6 ) samples and s · n queries. Moreover,
+Ω(m2/3 ) samples are necessary.
+
+
+                                                                                                                    ITCS 2025
+26:16   Settling the Complexity of Testing Grainedness of Distributions
+
+
+        Proof. The algorithm itself is quite simple, and follows from combining existing algorithms
+        for generalized uniformity testing in the standard sampling model [5, 17] with an additional
+        “check” of the ℓ2 norm of the distribution: the tester is described in Algorithm 1. The query
+        complexity follows trivially from the stated sample complexity, as n queries suffice to read
+        the full sample.
+            Specifically, the algorithm is as follows:
+
+             Algorithm 1 Algorithm to test Πm .
+               1: Set δ ← 1/6, and α = Θ(ε).
+               2: Run the adaptive ℓ2 norm estimator of [5, Lemma 3.1] to obtain an (1 ± ε/10)
+                                                                          √
+                  estimate ρ̂ of ∥D∥22 (with error probability δ) using O( m/ε2 ) samples. If the
+                  algorithm does not terminate with this number of samples, or if the estimate is
+                  not in (1 ± ε/10)/m, output reject.
+               3: Run the generalized uniformity tester of [5] on s (fully queried) samples from D
+                  with (TV) distance parameter α and error probability δ. If it rejects, output
+                  reject.
+               4: Output accept.
+
+
+           We now argue correctness. By a union bound, both subroutines behave as they should
+        with overall probability 2/3: we hereafter assume their output is correct.
+           Completeness: Assume D ∈ Πm . Then ∥D∥22 = m        1
+                                                                 , so ρ̂ ∈ [ 1−ε/10
+                                                                               m    , 1+ε/10
+                                                                                        m    ] and the first
+                                                        S∞
+           step does not reject. Similarly, D ∈ ΠU = k=1 Πk , so the generalized uniformity tester
+           (which is by definition a tester for ΠU ) accepts. Overall, Algorithm 1 returns accept.
+           Soundness: By contrapositive, suppose Algorithm 1 returns accept. Since the second
+           subroutine did not reject, it must be the case that D is 2ε -close (in total variation distance)
+           to a distribution UT , uniform on some subset T of a given size k. Moreover, the algorithm
+           of [5] provides the extra guarantee that (1 − O(ε))∥D∥22 ≤ k1 ≤ (1 + O(ε))∥D∥22 (see [5,
+           Lemma 3.4]).1
+           Now, let US ∈ Πm be a closest distribution to D, over all subsets S of size m:
+                                                                   ε     min(m, k)
+                 dTV (D, US ) ≤ dTV (D, UT ) + dTV (UT , US ) ≤      +1−
+                                                                   2     max(m, k)
+             where the second inequality follows the minimum TV distance between two uniform
+             distributions on supports k and m, which occurs when the supports of the distributions
+                                                                min(m,k)
+             overlap as much as possible, and is equal to 1 − max(m,k)   . In particular, we have
+                 min(m,k)
+             1 − max(m,k) ≤ 2ε if
+
+                   1
+                        · m ≤ k ≤ (1 − 2ε ) · m
+                 1 − 2ε
+                                                                                                           ε
+             Now, to see why this holds, observe that by our first check, ∥D∥22 is within a (1 ± 10          )
+                       1
+             factor of m , and, by the additional guarantee of the [5] tester (adjusting the constant in
+                                               ε
+             the setting of α), within a (1 ± 10 ) factor of k1 . This implies that m and k are within a
+                  ε                                          min(m,k)
+             1 ± 4 factor of each other, and thus that 1 − max(m,k)     ≤ 2ε . Overall, this establishes that
+             dTV (D, US ) ≤ ε.
+           Finally, the claimed lower bound follows directly from the lower bound on generalized
+        uniformity testing of [17], which holds even when the target size of the support is given. ◀
+
+        1
+            This is why we chose to use this specific algorithm, instead of that of [17], which has better sample
+            complexity (with respect to ε) but does not provide this extra guarantee.
+C. L. Canonne, S. Sen, and J. Q. Yang                                                                 26:17
+
+
+ 5     Conclusion and open problems
+In this work, we studied the problem of testing m-grainedness of distributions. We established
+a new lower bound of Ω(m/ log m) samples, improving on the previous lower bound of Ω(mc )
+due to [22], thereby settling a conjecture by [22]. Along the way, we also obtained an
+alternative, simpler proof of the Ω(mc ) lower bound. By leveraging a reduction between
+the testing models due to [23], our result implies an optimal lower bound for uniformity
+testing in the DoHO (Distributions over Huge Objects) model, settling another conjecture of
+[23]. Finally, we provided a simple tester for uniformity testing in this DoHO model, with
+improved sample complexity for a large range of the parameters.
+    Our work leaves open several new avenues of research in this context; we list two of them
+below:
+  (i) Our lower bound for m-grainedness testing establishes the optimal dependence on the
+      parameter m, for constant proximity parameter ε = Ω(1). It would be interesting to
+      fully characterize the complexity of the question, including the dependence on ε.
+ (ii) From [23], it is known that testing uniformity over an m-element subset of {0, 1}n
+      requires Ω(m/ log m) queries, for m ≤ n; and that Õ(m) queries are sufficient for all m.
+      Our own tester (Theorem 4.1) shows an upper bound of O(m2/3 n) queries, better in the
+      regime m ≥ n3 . This leaves understanding the landscape of parameterized uniformity
+      testing, especially in the intermediate regime n ≪ m ≪ n3 , as an open and intriguing
+      question.
+
+
+     References
+ 1   Jayadev Acharya, Constantinos Daskalakis, and Gautam Kamath. Optimal testing for
+     properties of distributions. Advances in Neural Information Processing Systems (NeurIPS),
+     28, 2015.
+ 2   Tomer Adar and Eldar Fischer. Refining the adaptivity notion in the huge object model. In
+     International Conference on Randomization and Computation (RANDOM), pages 45:1–45:16,
+     2024. doi:10.4230/LIPICS.APPROX/RANDOM.2024.45.
+ 3   Tomer Adar, Eldar Fischer, and Amit Levi. Support testing in the huge object model. In
+     International Conference on Randomization and Computation (RANDOM), pages 46:1–46:16,
+     2024. doi:10.4230/LIPICS.APPROX/RANDOM.2024.46.
+ 4   Sivaraman Balakrishnan and Larry Wasserman. Hypothesis testing for high-dimensional
+     multinomials: A selective review, 2018.
+ 5   Tugkan Batu and Clément L Canonne. Generalized uniformity testing. In Symposium on
+     Foundations of Computer Science (FOCS), pages 880–889, 2017. doi:10.1109/FOCS.2017.86.
+ 6   Tugkan Batu, Eldar Fischer, Lance Fortnow, Ravi Kumar, Ronitt Rubinfeld, and Patrick
+     White. Testing random variables for independence and identity. In Symposium on Foundations
+     of Computer Science (FOCS), pages 442–451, 2001. doi:10.1109/SFCS.2001.959920.
+ 7   Tugkan Batu, Lance Fortnow, Ronitt Rubinfeld, Warren D Smith, and Patrick White. Testing
+     that distributions are close. In Symposium on Foundations of Computer Science (FOCS),
+     pages 259–269, 2000. doi:10.1109/SFCS.2000.892113.
+ 8   Clément L Canonne. A survey on distribution testing: Your data is big. but is it blue? Theory
+     of Computing, pages 1–100, 2020.
+ 9   Clément L Canonne. Topics and techniques in distribution testing: A biased but representative
+     sample. Foundations and Trends® in Communications and Information Theory, pages 1032–
+     1198, 2022. doi:10.1561/0100000114.
+10   Clément L Canonne, Ilias Diakonikolas, Daniel Kane, and Sihan Liu. Nearly-tight bounds
+     for testing histogram distributions. Advances in Neural Information Processing Systems
+     (NeurIPS), 35:31599–31611, 2022.
+
+
+
+
+                                                                                                     ITCS 2025
+26:18   Settling the Complexity of Testing Grainedness of Distributions
+
+
+        11   Clément L Canonne, Ayush Jain, Gautam Kamath, and Jerry Li. The price of tolerance in
+             distribution testing. In Conference on Learning Theory (COLT), pages 573–624, 2022. URL:
+             https://proceedings.mlr.press/v178/canonne22a.html.
+        12   Clément L. Canonne, Sayantan Sen, and Joy Qiping Yang. Settling the complexity of testing
+             grainedness of distributions, and application to uniformity testing in the huge object model.
+             ECCC preprint, 2024. URL: https://eccc.weizmann.ac.il/report/2024/196.
+        13   Sourav Chakraborty, Eldar Fischer, Arijit Ghosh, Gopinath Mishra, and Sayantan Sen.
+             Testing of index-invariant properties in the huge object model. In Conference on Learn-
+             ing Theory (COLT), pages 3065–3136, 2023. URL: https://proceedings.mlr.press/v195/
+             chakraborty23a.html.
+        14   Ilias Diakonikolas, Themis Gouleakis, John Peebles, and Eric Price. Sample-optimal identity
+             testing with high probability. In International Colloquium on Automata, Languages, and
+             Programming (ICALP), 2018.
+        15   Ilias Diakonikolas, Themis Gouleakis, John Peebles, and Eric Price. Collision-based testers
+             are optimal for uniformity and closeness. Chic. J. Theor. Comput. Sci, 25:1–21, 2019. URL:
+             http://cjtcs.cs.uchicago.edu/articles/2019/1/contents.html.
+        16   Ilias Diakonikolas and Daniel M Kane. A new approach for testing properties of discrete
+             distributions. In Symposium on Foundations of Computer Science (FOCS), pages 685–694,
+             2016. doi:10.1109/FOCS.2016.78.
+        17   Ilias Diakonikolas, Daniel M Kane, and Alistair Stewart. Sharp bounds for generalized
+             uniformity testing. Advances in Neural Information Processing Systems (NeurIPS), 2018.
+        18   Oded Goldreich. The uniform distribution is complete with respect to testing identity to a
+             fixed distribution. In Electronic Colloquium on Computational Complexity (ECCC), page 1,
+             2016.
+        19   Oded Goldreich. Introduction to property testing. Cambridge University Press, 2017. doi:
+             10.1017/9781108135252.
+        20   Oded Goldreich, Shafi Goldwasser, and Dana Ron. Property testing and its connection
+             to learning and approximation. Journal of the ACM (JACM), pages 653–750, 1998. doi:
+             10.1145/285055.285060.
+        21   Oded Goldreich and Dana Ron. On testing expansion in bounded-degree graphs. Elec-
+             tron. Colloquium Comput. Complex., TR00-020, 2000. URL: https://eccc.weizmann.ac.il/
+             eccc-reports/2000/TR00-020/index.html.
+        22   Oded Goldreich and Dana Ron. A lower bound on the complexity of testing grained distribu-
+             tions. Computational Complexity (CC), page 11, 2023. doi:10.1007/S00037-023-00245-W.
+        23   Oded Goldreich and Dana Ron. Testing distributions of huge objects. In TheoretiCS, page 78,
+             2023.
+        24   metamorphy. Proving a formula for n-th degree polynomial with n distinct real roots,
+             2021. URL: https://math.stackexchange.com/questions/4074098/proving-a-formula-
+             for-sum-j-1n-fracx-jkfx-j-for-f-an-n-th-degr.
+        25   Liam Paninski. A coincidence-based test for uniformity given very sparsely sampled discrete
+             data. IEEE Transactions on Information Theory, pages 4750–4755, 2008. doi:10.1109/TIT.
+             2008.928987.
+        26   Sofya Raskhodnikova, Dana Ron, Amir Shpilka, and Adam Smith. Strong lower bounds for
+             approximating distribution support size and the distinct elements problem. SIAM Journal on
+             Computing (SICOMP), pages 813–842, 2009. doi:10.1137/070701649.
+        27   Ronitt Rubinfeld and Madhu Sudan. Robust characterizations of polynomials with applications
+             to program testing. SIAM Journal on Computing (SICOMP), pages 252–271, 1996. doi:
+             10.1137/S0097539793255151.
+        28   Gregory Valiant and Paul Valiant. Estimating the unseen: improved estimators for entropy
+             and other properties. Journal of the ACM (JACM), pages 1–41, 2017. doi:10.1145/3125643.
+        29   Paul Valiant. Testing symmetric properties of distributions. SIAM Journal on Computing
+             (SICOMP), pages 1927–1968, 2011. doi:10.1137/080734066.
+C. L. Canonne, S. Sen, and J. Q. Yang                                                            26:19
+
+
+30   Yihong Wu and Pengkun Yang. Minimax rates of entropy estimation on large alphabets via
+     best polynomial approximation. IEEE Transactions on Information Theory, pages 3702–3720,
+     2016. doi:10.1109/TIT.2016.2548468.
+31   Yihong Wu and Pengkun Yang. Chebyshev polynomials, moment matching, and optimal
+     estimation of the unseen. The Annals of Statistics, pages 857–883, 2019.
+32   Yihong Wu, Pengkun Yang, et al. Polynomial methods in statistical inference: theory and
+     practice. Foundations and Trends® in Communications and Information Theory, pages
+     402–586, 2020.
+
+
+
+
+                                                                                                ITCS 2025
+

@@ -1,0 +1,703 @@
+                                             Parameter-Free Dynamic Regret for Unconstrained Linear Bandits
+
+
+
+                                                                 Alberto Rumi*                                   Andrew Jacobsen*
+                                                           Intesa Sanpaolo AI Research                      Università degli Studi di Milano,
+                                                                                                                 Politecnico di Milano
+
+
+                                                             Nicolò Cesa-Bianchi                                   Fabio Vitale
+arXiv:2603.25916v1 [cs.LG] 26 Mar 2026
+
+
+
+
+                                                         Università degli Studi di Milano,               Intesa Sanpaolo Innovation Center
+                                                              Politecnico di Milano
+
+
+                                                               Abstract                               round the learner observes only the scalar output of
+                                                                                                      their decision, ⟨ℓt , wt ⟩.
+                                              We study dynamic regret minimization in un-             The classical way to evaluate the performance of online
+                                              constrained adversarial linear bandit prob-             algorithms is through the notion of regret, which com-
+                                              lems. In this setting, a learner must mini-             pares the learner’s expected cumulative loss to that
+                                              mize the cumulative loss relative to an arbi-           of the best fixed strategy chosen in hindsight. While
+                                              trary sequence of comparators u1 , . . . , uT in        this can be a natural benchmark in some settings, it
+                                              Rd , but receives only point-evaluation feed-           implicitly assumes that the environment is stationary,
+                                              back on each round. We provide a sim-                   i.e., that the optimal action does not change over time.
+                                              ple approach to combining the guarantees                In many practical scenarios, however, this can be unre-
+                                              of several bandit algorithms, allowing us to            alistic: user preferences, market conditions, or system
+                                              optimally
+                                                    P adapt to the number of switches                 dynamics can evolve unpredictably over time, lead-
+                                              ST = t I {ut ̸= ut−1 } of an arbitrary com-             ing to situations where minimizing regret against a
+                                              parator sequence. In particular, we pro-                fixed comparator becomes meaningless. Instead, in
+                                              vide the first algorithm for linear bandits             this paper we focus on the more general notion of
+                                              achieving
+                                                     p the optimal regret guarantee of or-           dynamic regret, in which the learner’s performance is
+                                              der O d(1 + ST )T up to poly-logarithmic                evaluated relative to an arbirary comparator sequence
+                                              terms without prior knowledge of ST , thus re-          u1 , . . . , uT in Rd :
+                                              solving a long-standing open problem.                                                                         
+                                                                                                                                            X
+                                                                                                            E [RT (u1 , . . . , uT )] = E    ⟨ℓt , wt − ut ⟩ ,
+                                         1    Introduction                                                                           t∈[T ]
+
+                                                                                                      The standard notion of (static) regret is recovered
+                                         Online learning is a framework that models sequenc-          when u1 = · · · = uT . In this work, we consider a
+                                         tial decision-making against adversarial environments        partially-oblivious model in which the comparator se-
+                                         (Shalev-Shwartz et al., 2012; Orabona, 2019). For-           quence is chosen obliviously at the start of the game,
+                                         mally, learning is modelled as a game played over a          while the loss sequence is free to be chosen adaptively
+                                         convex decision set W ⊆ Rd for T rounds of inter-            based on the learner’s past decisions.
+                                         action. On each round t ∈ [T ], the learner chooses
+                                         wt ∈ W, the adversary chooses chooses a loss function        Notice that the “complexity” of the comparator se-
+                                         ft : W → R, and the learner incurs loss ft (wt ). We         quence contributes to characterizing the difficulty of
+                                         focus in particular on the unconstrained linear bandit       a given problem. If the comparator is allowed to
+                                         setting, wherein W = Rd , the losses are linear func-        change arbitrarily on each round, there is no hope to
+                                         tions ft (w) = ⟨ℓt , w⟩ for some ℓt ∈ Rd , and on each       achieve sublinear dynamic PTregret since the compara-
+                                                                                                      tor sequence can ensure t=1 ℓt (ut ) = 0 even against
+                                         *
+                                          Equal contribution. Proceedings of the 29th International   completely unpredictable losses. On the other hand,
+                                         Conference on Artificial Intelligence and Statistics (AIS-   we know that in the special case u1 = · · · = uT we can
+                                         TATS) 2026, Tangier, Morocco. PMLR: Volume 300.              ensure sublinear regret, since this is just the usual lin-
+                                         Copyright 2026 by the author(s).
+                                                                                                      ear bandits setting. Thus, we are typically interested
+                    Parameter-Free Dynamic Regret for Unconstrained Linear Bandits
+
+
+in algorithms which make dynamic regret guarantees         “tune” hyperparameters on-the-fly. Such hyperparam-
+that gracefully adapt to some measure of complexity        eter tuning arguments have been attempted by sev-
+or variability of the comparator sequence. The clas-       eral prior works using sophisticated mixture-of-experts
+sic way to quantify the variability of the comparator      style arguments (Agarwal et al., 2017; Marinov & Zim-
+sequence is via its path-length:                           mert, 2021; Luo
+                                                                         √ et al., 2022), but have only achieved
+                                                           the optimal ST dependence by leveraging a priori
+                      T
+                      X                                    knowledge of ST . We expect that our approach might
+               PT =         ∥ut−1 − ut ∥ ,                 also find applications in other settings where bandit-
+                      t=2                                  over-bandit ensemble strategies have failed in the past.
+which offers a measure of cumulative drift of the com-
+parator sequence. A related measure of variability is      1.2   Related Works
+the switching metric, which more coarsely measures
+the number of times that the comparator changes over       Dynamic regret in online learning. The study of
+time:                                                      dynamic regret was initiated by Herbster & Warmuth
+                      T
+                     X                                     (1998, 2001) in the online regression and classification
+               ST =      I[ut ̸= ut−1 ] .
+                                                           settings. These results were first extended to the more
+                      t=2
+                                                           general setting of online convex optimization (OCO)
+While dynamic or switching regret provides a more          in the seminal work of Zinkevich (2003), where it was
+realistic benchmark for non-stationary environments,       shown that online gradient
+                                                                                √      descent achieves a bound
+it introduces significant challenges. Notably, achiev-     of order O (1 + PT ) T . Yang et al. (2016) improved
+                                                                          p
+ing regret bounds that scale optimally with the com-       the rate to O( (1 + PT )T ) by leveraging prior knowl-
+parator variability in bandit settings has previously      edge of PT , and this bound was later shown to be mini-
+only been achieved using preliminary knowledge of the      max optimal by Zhang et al. (2018), who also provided
+comparator variability or a known upper bound on it        the first algorithm achieving a matching upper bound
+(Agarwal et al., 2017; Marinov & Zimmert, 2021; Luo        without prior knowledge of PT .
+et al., 2022), which is prior knowledge which practi-
+tioners rarely have in practice. Parameter-free meth-      Since then, several
+                                                                            p     works have achieved generaliza-
+ods which eliminate the need for prior knowledge of the    tions of the O( (1 + PT )T ) guarantee by incorporat-
+comparator sequence are relatively well understood         ing more adaptive, data-dependent quantities. These
+in the full-information setting (Zhang et al., 2018;       refinements typically replace the dependence on T de-
+Cutkosky, 2020; Jacobsen & Cutkosky, 2022, 2023;           pendence with terms likePthe cumulative sum of the
+                                                                                                      2
+Zhang et al., 2023; Jacobsen & Cutkosky, 2024), but        squared gradient norms t P     ∥∇ℓt (wt )∥ , or the tem-
+no prior works have successfully achieved parameter-       poral variation of the loss      t supx |ℓt (x) − ℓt−1 (x)|
+free dynamic regret guarantees in the adversarial ban-     (Cutkosky, 2020; Campolongo & Orabona, 2021). Sig-
+dit setting. Under bandit feedback, many of the            nificant effort in recent years has also been dedicated
+parameter-free techniques developed for the full infor-    to also removing boundedness assumptions on the do-
+mation setting are either not directly applicable or re-   main Rd to adapt automatically to maximum com-
+sult in a suboptimal dependence on the time horizon        parator norm maxt ∥ut ∥ (Jacobsen & Cutkosky, 2022,
+and path length.                                           2023; Zhang et al., 2023). Various improvements in
+                                                           adaptivity can also be obtained under additional as-
+                                                           sumptions on the losses such as smoothness (Mokhtari
+1.1   Our Contributions                                    et al., 2016; Zhao et al., 2020; Jacobsen & Cutkosky,
+                                                           2024; Zhao et al., 2024; Jacobsen et al., 2025).
+We obtain
+        p optimal dynamic
+                              regret guarantees of or-
+der Oe d(1 + ST )T against an adaptive adversary           Comparator-adaptive methods. Key to our re-
+without prior knowledge of the number of changes ST ,      sults is the notion of comparator adaptive online learn-
+resolving a long-standing open problem (Marinov &          ing, where the goal is to design algorithms that adapt
+Zimmert, 2021; Luo et al., 2022; Auer et al., 2002).       to the complexity of the comparator sequence (e.g.,
+Key to obtaining this result is a technique for com-       its maximum norm or a measure of its variability)
+bining the guarantees of comparator-adaptive base al-      without requiring prior knowledge about it. In the
+gorithms inspired by a clever result in the full infor-    static comparator setting, this idea has been exten-
+mation setting (Cutkosky, 2019), which we adapt to         sively studied under full-information feedback,
+                                                                                                     √       where
+bandit feedback via a sampling trick. This simple trick    the optimal guarantee RT (u) = O(∥u∥ T ), for any
+enables us to easily combine the outputs of several ban-   u ∈ Rd , can be obtained up to logarithmic terms
+dit algorithms to achieve the best of their respective     (Mcmahan & Streeter, 2012; McMahan & Orabona,
+dynamic regret guarantees, effectively enabling us to      2014; Orabona & Pál, 2016; Cutkosky & Orabona,
+                    Alberto Rumi, Andrew Jacobsen, Nicolò Cesa-Bianchi, Fabio Vitale
+
+
+2018). Notably, Cutkosky (2019) showed that algo-           O(·) hides constant factors and O(·)
+                                                                                            e    hides constant
+rithms making comparator-adaptive guarantees can            and logarithmic factors.
+be easily combined, obtaining regret proportional to
+the best among them; this observation will be cru-          2    Combining Guarantees via Uniform
+cial to our approach in Section 2. In both linear
+and convex settings with bandit feedback, comparator-
+                                                                 Sampling
+adaptive bounds were studied by van der Hoeven et al.
+                                                            Our approach is inspired by a framework for combin-
+(2020) where they consider static regret and propose a
+                                                            ing guarantees of online learning algorithms proposed
+black-box reduction approach, taking inspiration from
+                                                            by Cutkosky (2019) for the simpler Online Covex Op-
+the full-information reduction of Cutkosky & Orabona
+                                                            timization (OCO) setting. The framework applies
+(2018).
+                                                            to a class of algorithms which are adaptive to the
+Dynamic regret with bandit feedback. In the                 norm of√an arbitrary comparator to obtain RT (u) ≤
+bandit setting, the study of the closely-related notion     O(∥u∥
+                                                             e       T ), uniformly over all u ∈ Rd simultaneously
+of switching regret
+               p was initiated by Auer (2002), where        (McMahan & Abernethy, 2013; McMahan & Orabona,
+a bound of O( (1 + ST )T ) was obtained using prior         2014; Orabona & Pál, 2016; Cutkosky & Orabona,
+knowledge of the number of switches ST . The op-            2018). One of the key properties that characterizes
+timal regret bound for the non-stationary stochastic        these comparator-adaptive guarantees is the fact the
+bandit setting without a priori variational knowledge       regret at the origin is constant, i.e., RT (0) = O(1).
+was first obtained in Auer et al. (2018). Interestingly,
+Marinov & Zimmert                                           The key insight from Cutkosky (2019) is that if we have
+                  p (2021) showed the impossibility         N such OCO algorithms A1 , . . . , AN , we can achieve
+of obtaining a O( (1 + ST )T ) bound against adaptive
+adversaries in settings with finite policy classes, leav-   a regret competitive with the best guarantee among
+ing the question open for unconstrained and oblivious       them, RT (u) = O(mini RTAi (u)), by simply adding
+                                                                                                     (i)
+settings.                                                   the iterates together. To see why, let wt denote the
+                                                            output of Ai on round t, and observe that if we play
+More broadly, ensemble and meta-algorithm strate-                 P         (i)
+                                                            wt = i∈[N ] wt , then for any j ∈ [N ] we have
+gies have been proposed to adapt to unknown en-
+vironment parameters in bandits. However, naive                             T
+                                                                            X
+bandit-over-bandit schemes tend to incur significant            RT (u) :=         ⟨ℓt , wt − u⟩
+overhead; for instance, running EXP4 (Auer et al.,                          t=1
+2002) as a meta-algorithm     over EXP3 base learners                     T D              T D
+                                                                                        E XX            E
+                                                                                   (j)              (i)
+                   2
+                                                                         X
+would yield O T /3 regret due to the extra explo-                     =      ℓt , wt − u +    ℓt , wt
+ration needed (Odalric & Munos, 2011; Cheung et al.,                        t=1                          i̸=j t=1
+2019). While these methods are flexible, they often                      A
+                                                                                        X
+                                                                      = RT j (u) +             RTAi (0)
+pay a price in terms of worse regret bounds or higher
+                                                                                        i̸=j
+variance, particularly in dynamic or tuning-free sce-                                           
+                                                                                   A
+narios. A notable example that avoids some of these                   =O          RT j (u) + N       ,
+issues is the CORRAL framework and its extensions
+(Agarwal et al., 2017; Luo et al., 2022; Marinov &          where the last step holds because each algorithm guar-
+Zimmert, 2021), which leverages a carefully-chosen          antees RTAi (0) = O(1). Moreover, since this holds for
+sequence of regularizers at the meta-algorithm level        any j ∈ [N ], it must hold for the best among them.
+which is used to cancel out some of the additional vari-    While the iterate-adding approach is elegant in the
+ance at the base-algorithm level. However, in the con-      full-information OCO setting, it is not directly appli-
+text of adapting to a dynamic comparator
+                                    p         sequence,     cable under bandit feedback. ThePfundamental issue is
+this approach still fails to obtain (1 + ST )T regret                                                   (i)
+                                                            that when playing the sum wt = i∈[N ] wt , the feed-
+unless ST is known a priori, since the hyperparame-                                                         P (i)
+ters of the meta-algorithm itself need to be set with       back observed is only the total feedback ⟨ℓt , i wt ⟩,
+knowledge of ST .                                           making it difficult to give proper feedback to any indi-
+                                                            vidual learner since the observed feedback includes in-
+                                                            cludes contributions from all other learners’ decisions.
+Notation. Without further specifications, the no-           Instead, we make the following observation: if on each
+tation ∥·∥ refers to the Euclidean norm. The dual           round we sample one of the algorithms uniformly at
+norm of w is denoted by ∥w∥∗ = supℓ:∥ℓ∥≤1 ⟨ℓ, w⟩.           random and play only its action on round t, then in
+                                                                                                         P (i)
+Given a norm ∥·∥ and ρ ≥ 0, we denote by Bρ :=              expectation, this is equivalent to playing i wt /N .
+{x : ∥x∥ ≤ ρ} the closed ball of radius ρ, or the unit      As a result, we can still apply nearly the same iterate-
+ball when the radius is not specified. The notation         adding argument outlined above, but we can now ac-
+                          Parameter-Free Dynamic Regret for Unconstrained Linear Bandits
+
+                                                                     "N T          #    " T            #
+Algorithm 1 Uniform Sampling Interface                                X X (i) (i)        X (n)
+                                N                                =E        ℓt , wt
+                                                                            b         −E       ℓt , N ut
+                                                                                               b
+ Input: Base algorithms An n=1                                          i=1 t=1                     t=1
+ for t = 1, . . . , T do                                            " T 
+                                                                     X (n) (n)             T 
+                                                                                         XX             #
+          (i)                                                                                   (i)  (i)
+   Get wt from Ai for all i ∈ [N ]                                =E      ℓt , wt − N ut +
+                                                                          b                    ℓt , wt
+                                                                                               b
+                                                 (I )
+   Sample It ∼ Uniform(N ) and play wt = wt t                           t=1                         i̸=n t=1
+                                                                                                          |       {z       }
+   Receive feedback ϕ(wt , ℓt )                                                                                   A
+                                                                                                               =RT i (0)
+          (i)
+   Send ℓbt = ϕ(wt , ℓt )I {It = i} to Ai for i ∈ [N ]
+                                                                     h                           i
+                                                                  ≤ E RTAn (N u1 , . . . , N uT ) + (N − 1)Gϵ .
+ end for
+
+                                                              The proof is concluded by observing n was arbitrary,
+curately assign feedback since only one learner’s action
+                                                              so we may choose the best n ∈ [N ].
+is played on each round. The main difference from the
+iterate-adding approach is that we need to rescale the
+comparator to account for the 1/N factor that shows
+       P (i)
+up in i wt /N .
+The procedure described above is summarized in Algo-          This theorem illustrates how uniform sampling
+rithm 1 for a generic feedback oracle ϕ, which returns        acts as a rudimentary coordination mechanism for
+a feedback signal ϕ(wt , ℓt ) given the decision wt . This    comparator-adaptive algorithms. Because each learner
+captures first-order feedback when ϕ(wt , ℓt ) = ℓt and       individually adapts to an arbitrary comparator, our
+bandit feedback when ϕ(wt , ℓt ) = ℓt (wt ). To build in-     combined strategy, on average, can be compared
+tuition, we begin with a warm-up result that analyzes         against the performance of any single algorithm in the
+the performance of this strategy in the first-order feed-     collection. As we will see in the following sections,
+back setting.                                                 this mechanism enables us to “tune” hyperparameters
+                                                              on-the-fly, allowing us to adapt to unknown problem
+Proposition 2.1. Let A1 , . . . , AN be online learn-
+                               (i)                            parameters such as the switching number ST without
+ing algorithms and let wt denote the output of Ai             any prior knowledge.
+on round t. Suppose that for all i, Ai guarantees
+           PT         (i)                                     It is important to note that, unlike the iterate-adding
+RTAi (0) = t=1 ft (wt )−ft (0) ≤ Gϵ for any sequence
+of G-Lipschitz linear loss functions f1 , . . . , fT . Then   approach of Cutkosky (2019), this method for combin-
+for any sequence u1 , . . . , uT in Rd , Algorithm 1 guar-    ing guarantees can ends up increasing the comparator
+antees                                                        norm by a factor of N . Therefore, in the context of
+                                                              OCO, the uniform sampling approach is a generally
+  E [RT (u1 , . . . , uT )] ≤                                 a worse option than the iterate-adding approach. In-
+                        h                            i        deed, this trick is primarily of interest in settings where
+       (N − 1)ϵG + min E RTAn (N u1 , . . . , N uT )          the iterate-adding adding approach would complicate
+                          n∈[N ]
+                                                              feedback, such as partial-feedback settings where the
+where RTAn (N u1 , . . . , N uT ) denotes the dynamic re-     iterate adding approach makes individual loss estima-
+                                      (n)                     tion difficult.
+gret of An played against losses ℓb = ℓt I {It = n}.
+                                          t
+
+
+Proof. For all t ≥ 1, let Ft−1 be the σ-algebra
+generated by the history up to the start of round
+                                                              3    Linear Bandits
+            (n)
+t. Let ℓbt        = I {It = n} ℓt , and note that wt =
+P                  (i)                                        Recall from the previous section that the key property
+   i I {It = i} w t . Observe that for any n ∈ [N ] we
+can bound the expected dynamic regret by                      that we need to apply the uniform sampling strategy
+                                                              (Algorithm 1) is that the base algorithms Ai guarantee
+                                                              a comparator-adaptive property, RT (0) = O(1). To
+                            " T                 #
+  h                    i     X
+E RT (u1 , . . . , uT ) = E      ⟨ℓt , wt − ut ⟩              obtain guarantees of this form in the bandit setting,
+     " T                          #
+                                   t=1                        we use a scale/direction decomposition introduced by
+      XD X    N                 E                             van der Hoeven et al. (2020), which adapts a well-
+                            (i)
+   =E    ℓt ,   I {It = i} wt                                 known reduction from the full-information setting to
+         t=1        i=1                                       bandit feedback (Cutkosky & Orabona, 2018). The
+          " T                                    #
+           X             h                 i                  idea is to decompose the action  wt into a scale vt ∈ R
+     −E     ⟨ℓt , ut ⟩ E N I {It = n} Ft−1
+                                                                                          
+                                                              and a direction β t ∈ B = x ∈ Rd : ∥x∥ ≤ 1 , which
+        t=1            |         {z        }                  will be learned by separate online learning algorithms.
+                                         =1
+                               Alberto Rumi, Andrew Jacobsen, Nicolò Cesa-Bianchi, Fabio Vitale
+
+
+Algorithm 2 Scale / Direction Decomposition                                  Proposition 3.1. Pick N base algorithms implement-
+                                                                                                                                  (n)
+(van der Hoeven et al., 2020)                                                ing Algorithm 2, where each scale learner AV is
+                                                                                                                         (n)
+  Input: Scale learner AV , direction learner AB                             over
+                                                                                 R and each direction learner AB is over B =
+                                                                                    d
+  for t = 1, . . . , T do                                                      x ∈ R : ∥x∥ ≤ 1 . Suppose that for any sequence
+    Get scale prediction vt from AV and direction pre-                       of G-Lipschitz linear losses f1 , . . . , fT over R and for
+                                                                                                                                       (n)
+    diction β t from AB                                                                                         (n)                A
+                                                                             any ϵ > 0, the regret of AV satisfies RT V (0) =
+    Play wt = vt β t                                                         PT          (n)
+                                                                                t=1 ft (vt ) − ft (0) ≤ Gϵ . Then, for any n ∈ [N ]
+    Observe ⟨wt , ℓt ⟩ and compute gt = ⟨wt , ℓt ⟩ /vt
+                                                                             and any sequence u1 , . . . , uT in Rd , Algorithm 1 guar-
+    Send ⟨ℓt , β t ⟩ = ⟨ℓt , wt ⟩ /vt to AB as the feedback
+                                                                             antees
+    on round t
+    Send v 7→ ⟨ℓt , β t ⟩ v to AV as the tth loss
+                                                                                                                        (n)       
+                                                                                                                          A
+                                                                             E [RT (u1 , . . . , uT )] ≤ (N − 1)Gϵ + E RT V (M N )
+  end for
+                                                                                                                 (n)                
+                                                                                                                   A    u1       uT 
+                                                                                                         + M N E RT B      ,...,        ,
+                             Uniform Sampling                                                                           M        M
+
+                                                                             where M = maxt ∥ut ∥.
+                     A1                ...                AN
+
+           (1)                 (1)                 (N )           (N )       Proof. The result is immediate by applying Proposi-
+       AV                    AB                AV               AB           tion 2.1 followed by the scale / direction decomposi-
+                                                                             tion. For any n ∈ [N ], we have
+Figure 1: Illustration of how the Uniform Sampling                                                             " T                     #
+interface interacts with each base algorithm Ai . Each                                                          X
+base algorithm internally applies the direction and                            E [RT (u1 , . . . , uT )] = E         ⟨ℓt , wt − ut ⟩
+                                                                                                               t=1
+scale decomposition, using its own hyperparameters.                                " T 
+                                                                                    X (n) (n) (n)           #
+                                                                                ≤E      bℓt , β t vt − N ut    + (N − 1)Gϵ
+In particular, observe that for M = maxt ∥ut ∥ we have                                 t=1
+                                                                                   T 
+                                                                                  X                                   
+                                                                                        (n)   (n)    (n)   (n)   (n)
+                               T                                                =E    bℓt , β t     vt − ℓ t , β t
+                                                                                                          b            NM
+                               X
+  RT (u1 . . . uT ) =                ⟨ℓt , wt − ut ⟩                                  t=1
+                                                                                         T 
+                                                                                        X                              
+                               t=1                                                            (n)   (n)          (n)
+       T                                                                             +E     bℓt , β t     N M − ℓt , N ut
+                                                                                                                b
+       X
+   =             ⟨ℓt , β t ⟩ vt − ⟨ℓt , ut ⟩                                                 t=1
+
+       t=1                                                                           + (N − 1)Gϵ
+       T                                       T
+                                                                                                 (n)       
+                                                                                                  A
+                                                                                = (N − 1)Gϵ + E RT V (M N )
+       X                                       X
+   =             ⟨ℓt , β t ⟩ (vt − M ) +M            ⟨ℓt , β t − ut /M ⟩
+       t=1                                     t=1                                          (n)               
+       |                {z            }        |           {z            }                    A   u1       uT 
+                        A
+                   =:RT V (M )
+                                                    A
+                                               =:RT B (u1 /M,...,uT /M )            + M N E RT B     ,...,        .
+                                                                                                  M        M
+
+where we’ve added and subtracted M ⟨ℓt , β t ⟩ in the
+last line. Therefore, in order to ensure the re-                             As observed above, the key insight of van der Hoeven
+quired comparator-adaptive property RT (0) = O(1)                            et al. (2020) is that the feedback received by the scale
+it suffices to provide a scale learner algorithm AV                          learner is actually full-information feedback; indeed,
+which guarantees RTAV (0) = O(1) against the losses                          a scale learner’s loss function v 7→ ⟨ℓt , β t ⟩ v can be
+v 7→ ⟨ℓt , β t ⟩ v. This is a 1-dimensional static re-                       precisely recovered from ⟨ℓt , wt ⟩ = ⟨ℓt , β t ⟩ vt by di-
+gret problem for Online Linear Optimization with                             viding it by the scale vt , so no tricky loss estimation
+full information feedback, so we can apply any of                            is required for the scale learner. Moreover, the scale
+the existing comparator-adaptive algorithms to en-                           learner faces a static regret problem, so overall to meet
+sure this property (Orabona & Pál, 2016; Cutkosky &                         the condition of Proposition 3.1, it will suffice to apply
+Orabona, 2018; Mhammedi & Koolen, 2020; Jacobsen                             any comparator-adaptive OCO algorithm for static re-
+& Cutkosky, 2022). The following proposition then                            gret as the scale learner, leading to a guarantee of the
+                                                                                      A
+                                                                                       (n)                  √
+shows that when applied with the uniform sampling                            form RT V (N M ) = O(N  e M T ). In what follows we
+mechanism from the previous section, we are able to                          choose Jacobsen & Cutkosky (2022, Algorithm 4) for
+obtain a dynamic regret guarantee which matches that                         concreteness, but really any algorithm guaranteeing
+of the best algorithm in the set.                                            RT (0) = O(1) would suffice.
+                       Parameter-Free Dynamic Regret for Unconstrained Linear Bandits
+
+
+All that remains is to provide a √      bandit algorithm         where M = maxt ∥ut ∥. The regret guarantee (Jacob-
+which can guarantee the optimal dST T switching                                                                  (i)
+                                                                 sen & Cutkosky, 2022, Theorem 1) of any of the AV
+regret on the unit-ball when tuned optimally. For                yields
+this, we can apply Luo et al. (2022, Algorithm 2),                                         v                  
+which  guarantees for any sequence u                e T in B =
+                                        e1, . . . , u               (i)      
+                                                                                             uX (i) (it ) 2
+                                                                                             u               
+                                                                     AV
+  x ∈ Rd : ∥x∥ ≤ 1 that                                          E RT (N M ) = O   e M N E t       ℓt , β t
+                                                                                                     b          
+                                                                                                         t
+                                                                                              √
+       h                       i    p                  
+      E RTAB (e            eT ) = O
+              u1 , . . . , u           d(1 + ST )T ,
+                                  e                                                                 
+                                                                                   =O
+                                                                                    e MG NT ,
+
+so long as the hyperparameters
+                      PT              are set optimally          where we’ve used obliviousness of the comparator se-
+in terms of ST =         t=2 I {e
+                                u t − u t−1 }, T , and d.                                       (i )
+                                                                 quence and the facts that β t t ≤ 1 for all t and
+                                      e
+In particular, their approach combines instances of                                                q              
+linear bandit algorithms using a carefully-designed               (i)                                 PT     (i)
+                                                                 ℓt = ℓt I {It = i}, so that E                   2
+                                                                                                       t=1 ∥ℓt ∥∗    ≤
+                                                                 b                                          b
+multi-scale
+   p         meta-algorithm, and obtaining the desired           r
+O(
+ e d(1 + ST )T ) bound requires that the hyperpa-                   PT     h
+                                                                                 2
+                                                                                             i      p
+rameters of the meta-algorithm be set using knowledge                 t=1 E ∥ℓt ∥∗ I {it = i}  ≤ G T /N via Jensen’s
+of ST , which is of course unknown in practice. How-                                               et = u
+                                                                 inequality. Moreover, letting u        M , there is a Si ∈ S
+                                                                                                         t             b
+ever, using our Proposition 3.1 we can effectively guess         such that Sbi ≤ ST ≤ 2Sbi , so applying Luo et al. (2022,
+ST up to a constant factor by running an instance of             Algorithm 2) with hyperparameters set according to
+their algorithm parameterized using Sbn for each Sbn in
+                                                                 Luo et al. (2022, Theorem 1) with S = Sbi yields
+a geometrically-spaced grid of candidates
+                                                                       (i)                          p               
+                                                                          AB
+           S = {2n ∧ 2T, n = 0, 1, . . .} ∪ {0} .         (1)        E RT (e   u1 , . . . , uT ) = O
+                                                                                            e      e G d(1 + ST )T ,
+
+Note that even when Sbi is misspecified, the                     so, combining with the previous display and the regret
+scale/direction decomposition above still ensures that           decomposition from Proposition 3.1
+the overall algorithm has the comparator-adaptive
+property RT (0) = O(1) due to the multiplicative de-                                                       √
+pendence between the regret of the unit-ball learner                E [RT (u1 , . . . , uT )] = O
+                                                                                                e N ϵG + GM N T
+and M = maxt ∥ut ∥ in Proposition 3.1. Moreover,                                                                           !
+since ST ∈ [0, T − 1] for any sequence of compara-                                                       p
+                                                                                              + MNG          d(1 + ST )T
+tors, we know that there is always an Sbn ∈ S satis-
+fying Sbn ≤ ST ≤ 2Sbn while also maintaining N =                                             p           
+O(log (T )). Therefore, we are able to leverage these                                    =O
+                                                                                          e GM d(1 + ST )T ,
+facts to arrive at the following parameter-free dynamic
+regret guarantee.                                                where we’ve observed that N = ⌈log(T ) + 1⌉ and hid-
+                                                                 den poly-logarithmic factors.
+Theorem 3.2. Let S be defined as in Equation (1).
+For all i ∈ {0, . . . , |S|}, let Ai be an instance of
+                                                   (i)           We note that despite the simplicityp of the argument,
+Algorithm 2 such that the direction learner AB be                this result is in fact the first O(
+                                                                                                  e (1 + ST )T ) dynamic
+characterized by Luo et al. (2022, Theorem 1) with               regret bound obtained without prior knowledge of ST
+                             (i)
+S = Sbi ∈ S, and let AV be an instance of Jacobsen &             in non-stochastic linear bandit settings. One might
+Cutkosky (2022, Algorithm 4). Then for any sequence              worry that the result abovepmight contradict exist-
+u1 , . . . , uT in Rd , Algorithm 1 guarantees                   ing impossibility results for (1 + ST )T dynamic re-
+                                     p                         gret against adaptive adversaries.√ Indeed, Marinov &
+     E [RT (u1 , . . . , uT )] = O
+                                 e M G N (1 + ST )T .            Zimmert (2021) show that ST T dynamic regret can
+                                                                 be forced under very general conditions when bandit
+            PT
+where ST = t=2 I {ut ̸= ut−1 }, M = maxt ∥ut ∥, and              feedback is involved. Our result is avoiding this lower
+N = ⌈log2 (T ) + 1⌉.                                             bound in two ways. First, the construction of Marinov
+                                                                 & Zimmert (2021) uses both an adaptive comparator
+Proof. By Proposition 3.1, for any n ∈ [|S|], we have            and an adaptive loss sequence, while our approach ex-
+                                                                 plicitly leverages obliviousness of the comparator se-
+                                                 (i)
+                                                                 quence. Second, the lower bound construction in that
+                              h
+                                                A
+ E [RT (u1 , . . . , uT )] ≤ E (N − 1)Gϵ + RT V (M N )
+                                                                 work is for finite policy classes, which does not capture
+                                    A
+                                      (i) 
+                                            u1       uT  i      the unconstrained linear bandit problem. Intuitively,
+                             + M N RT B        ,...,        .
+                                            M        M           the reason why this distinction is important is that in
+                      Alberto Rumi, Andrew Jacobsen, Nicolò Cesa-Bianchi, Fabio Vitale
+
+
+finite policy class settings one can construct instances         our approach in the previous section. We leave this as
+where choosing the comparator action is strictly bet-            an important direction for follow-up work.
+ter than any other action, leading to a positive gap
+                                                                 Alternatively, one might hope to avoid these consid-
+between the loss of the learner and comparator. As
+                                                                 erations
+                                                                      q by applying Cauchy-Schwarz        inequality to
+such, lower bounds can be constructed by quantifying                                        PT
+how much exploration is needed to identify the optimal           get    E [M 2 (1 + ST )] E[ t=1ℓt ∥2 ]. However, this
+                                                                                               ∥b    ∗
+action, since any rounds of exploration will lead to a           bound fails to be meaningful in general because it
+non-negative addition to the total regret. However, in           decouples the comparator from the loss sequence.
+an unconstrained setting, such gaps generally do not             Indeed, even with perfect loss estimates b   ℓt = ℓt
+hold uniformly, and it is difficult in general to bound          it is easy to define events such that the decoupled
+how much negative regret the learner may accumulate              bound becomes vacuous even for ST = 0 while
+                                                                 r
+by making risky bets. For instance, it is possible for
+                                                                      h            PT          i
+                                                                    E M 2 (1 + ST ) t=1 ∥b
+                                                                                         ℓt ∥2∗ remains sublinear.
+the learner to generate arbitrarily large negative regret
+on any round in which wt is in the same half-plane as
+−ℓt by taking ∥wt ∥ to be large.
+                                                                 4   Discussion
+3.1   On the Role of Obliviousness
+                                                                 In this paper, we propose a remarkably simple ap-
+While our approach in the previous                               proach to tuning the hyperparameters of uncon-
+                                  √ section successfully
+achieves a parameter-free O(   e ST T ) dynamic regret           strained bandit algorithms on-the-fly, enabling adap-
+bound against an adaptive loss sequence, the argument            tivity to problem parameters that cannot be directly
+crucially relies on obliviousness of the comparator se-          observed or estimated, such as the switching number
+quence. Most notably, Proposition 3.1 decomposes the             of the comparator sequence. This leads to the first
+expected dynamic regret in terms of the expected dy-             optimal parameter-free dynamic regret bound for un-
+namic regret of an algorithm applied on the unit-ball,           constrained linear bandits in adversarial settings. We
+M E[RTAB (u1 /M, . . . , uT /M )], but this required mov-        expect that this technique can be applied in other
+ing the expectation passed M = maxt ∥ut ∥. For this,             contexts involving hard-to-estimate quantities, though
+M should at least be chosen obliviously, particularly            it it crucially relies on the scale/direction decomposi-
+so when we only have an expected regret guarantee for            tion discussed in Section 3. Extending this approach
+the direction learner.                                           to more general constrained action sets remains non-
+                                                                 trivial, as irregular geometries can significantly com-
+More generally, the essential difficulty is that any             plicate the decoupling of scale and direction.
+time one hopes to leverage a bound on E[∥b           ℓt ∥2∗ ],
+a comparator-adaptive guarantee will require obliv-              A natural question is whether it is possible to recover
+iousness  of the comparator sequence to bypass the               guarantees that scale with the standard path length
+   √
+M 1 + ST part of the bound. Indeed, suppose we                   PT in linear bandits, instead of the more coarse switch-
+could directly reduce the problem to OLO on the loss             ing guarantees obtained in this work. One possible
+estimates bℓt to obtain                                          approach might be to directly optimize in the action
+                                 v                             space—e.g., via mirror descent—and then construct a
+                                   u
+                                   u          T
+                                              X                  distribution pt such that Ept [w] = wt , playing w ∼ pt .
+  E [RT (u1 , . . . , uT )] ⪅ E M t(1 + ST )    ℓt ∥2∗  .
+                                                ∥b               However, the variance control of such sampling meth-
+                                               t=1               ods remain challenging in the unconstrained setting.
+                                                                 Moreover, as mentioned in Section 3.1, we suspect that
+From here, we might hope to apply Jensen’s inequality            it is possible in the unconstrained linear bandit set-
+to arrive at                                                     ting to remove the oblivious comparator assumption as
+                               v                                 well, resulting in parameter-free dynamic regret guar-
+                               u          T
+                               u          X  h       i           antees against a fully-adaptive adversary, though we
+  E [RT (u1 , . . . , uT )] ⪅ M (1 + ST )
+                               t               ℓt ∥2∗ ,
+                                            E ∥b                 leave this as a direction for future investigation.
+                                           t=1                                                     p
+                              √                                  Lastly, to obtain the desired O( d(1 + ST )T ) bound,
+but this is only valid if M 1 + ST is deterministic.             we had to resort to running a collection of O(log(T ))
+This issue could potentially be overcome by leveraging           instances of the multi-scale corralling algorithm of Luo
+a loss estimate satisfying an almost-sure bound such             et al. (2022), which itself ends up requiring O(T log T )
+as ∥bℓt ∥ = O(d
+             e ∥ℓt ∥), which would obviate the need              per-round computation. We leave as an open ques-
+for an oblivious comparator assumption entirely. We              tion whether the optimal ST dependence can still be
+conjecture that this is indeed possible in unconstrained         obtained using the usual O(d log T ) per-round compu-
+settings, though requires a different construction than          tation obtained in the full-information setting.
+                    Parameter-Free Dynamic Regret for Unconstrained Linear Bandits
+
+
+Acknowledgements                                          Jacobsen, A. and Cutkosky, A. Parameter-free mir-
+                                                            ror descent. In Conference on Learning Theory, pp.
+NCB and AJ acknowledge the financial support from           4160–4211. PMLR, 2022.
+the EU Horizon CL4-2022-HUMAN-02 research and
+innovation action under grant agreement 101120237,        Jacobsen, A. and Cutkosky, A. Unconstrained on-
+project ELIAS (European Lighthouse of AI for Sus-           line learning with unbounded losses. In Krause, A.,
+tainability).                                               Brunskill, E., Cho, K., Engelhardt, B., Sabato, S.,
+                                                            and Scarlett, J. (eds.), Proceedings of the 40th Inter-
+                                                            national Conference on Machine Learning, volume
+References
+                                                            202 of Proceedings of Machine Learning Research,
+Agarwal, A., Luo, H., Neyshabur, B., and Schapire,          pp. 14590–14630. PMLR, 2023.
+  R. E. Corralling a band of bandit algorithms. In        Jacobsen, A. and Cutkosky, A. Online linear regres-
+  Conference on Learning Theory, pp. 12–38. PMLR,           sion in dynamic environments via discounting. In
+  2017.                                                     Proceedings of the 41st International Conference on
+Auer, P. Using confidence bounds for exploitation-          Machine Learning, volume 235 of Proceedings of Ma-
+ exploration trade-offs. Journal of Machine Learning        chine Learning Research, pp. 21083–21120. PMLR,
+ Research, 3(Nov):397–422, 2002.                            2024.
+Auer, P., Cesa-Bianchi, N., Freund, Y., and Schapire,     Jacobsen, A., Rudi, A., Orabona, F., and Cesa-
+ R. E. The nonstochastic multiarmed bandit prob-            Bianchi, N. Dynamic regret reduces to kernelized
+ lem. SIAM journal on computing, 32(1):48–77, 2002.         static regret. In The Thirty-ninth Annual Con-
+                                                            ference on Neural Information Processing Systems,
+Auer, P., Gajane, P., and Ortner, R. Adaptively track-      2025.
+ ing the best arm with an unknown number of dis-
+                                                          Luo, H., Zhang, M., Zhao, P., and Zhou, Z.-H. Cor-
+ tribution changes. In European Workshop on Rein-
+                                                            ralling a larger band of bandits: A case study on
+ forcement Learning, volume 14, pp. 375, 2018.
+                                                            switching regret for linear bandits. In Conference
+Campolongo, N. and Orabona, F. A closer look at tem-        on Learning Theory, pp. 3635–3684. PMLR, 2022.
+  poral variability in dynamic online learning, 2021.     Marinov, T. V. and Zimmert, J. The pareto frontier of
+Cheung, W. C., Simchi-Levi, D., and Zhu, R. Learning       model selection for general contextual bandits, 2021.
+  to optimize under non-stationarity. In The 22nd In-     McMahan, B. and Abernethy, J. Minimax optimal al-
+  ternational Conference on Artificial Intelligence and    gorithms for unconstrained linear optimization. In
+  Statistics, pp. 1079–1087. PMLR, 2019.                   Burges, C. J. C., Bottou, L., Welling, M., Ghahra-
+Cutkosky, A. Combining online learning guarantees.         mani, Z., and Weinberger, K. Q. (eds.), Advances in
+  In Beygelzimer, A. and Hsu, D. (eds.), Proceedings       Neural Information Processing Systems, volume 26.
+  of the Thirty-Second Conference on Learning The-         Curran Associates, Inc., 2013.
+  ory, volume 99 of Proceedings of Machine Learning       Mcmahan, B. and Streeter, M. No-regret algorithms
+  Research, pp. 895–913, Phoenix, USA, 2019. PMLR.         for unconstrained online convex optimization. In
+Cutkosky, A. Parameter-free, dynamic, and strongly-        Pereira, F., Burges, C. J. C., Bottou, L., and Wein-
+  adaptive online learning. In III, H. D. and Singh, A.    berger, K. Q. (eds.), Advances in Neural Informa-
+  (eds.), Proceedings of the 37th International Confer-    tion Processing Systems, volume 25. Curran Asso-
+  ence on Machine Learning, volume 119 of Proceed-         ciates, Inc., 2012.
+  ings of Machine Learning Research, pp. 2250–2259,       McMahan, H. B. and Orabona, F. Unconstrained on-
+  Virtual, 2020. PMLR.                                     line linear learning in hilbert spaces: Minimax al-
+                                                           gorithms and normal approximations. In Balcan,
+Cutkosky, A. and Orabona, F. Black-box reductions
+                                                           M. F., Feldman, V., and Szepesvári, C. (eds.), Pro-
+  for parameter-free online learning in banach spaces.
+                                                           ceedings of The 27th Conference on Learning The-
+  In Conference On Learning Theory, pp. 1493–1529.
+                                                           ory, volume 35 of Proceedings of Machine Learning
+  PMLR, 2018.
+                                                           Research, pp. 1020–1039, Barcelona, Spain, 13–15
+Herbster, M. and Warmuth, M. K. Tracking the best          Jun 2014. PMLR.
+  regressor. In Proceedings of the eleventh annual con-
+                                                          Mhammedi, Z. and Koolen, W. M. Lipschitz and
+  ference on Computational learning theory, pp. 24–
+                                                           comparator-norm adaptivity in online learning. In
+  31, 1998.
+                                                           Abernethy, J. and Agarwal, S. (eds.), Proceedings of
+Herbster, M. and Warmuth, M. K. Tracking the best          Thirty Third Conference on Learning Theory, vol-
+  linear predictor. Journal of Machine Learning Re-        ume 125 of Proceedings of Machine Learning Re-
+  search, 1(281-309):10–1162, 2001.                        search, pp. 2858–2887. PMLR, 09–12 Jul 2020.
+                   Alberto Rumi, Andrew Jacobsen, Nicolò Cesa-Bianchi, Fabio Vitale
+
+
+Mokhtari, A., Shahrampour, S., Jadbabaie, A., and
+ Ribeiro, A. Online optimization in dynamic envi-
+ ronments: Improved regret rates for strongly con-
+ vex problems. In 2016 IEEE 55th Conference on
+ Decision and Control (CDC), pp. 7195–7201. IEEE,
+ 2016.
+Odalric, M. and Munos, R. Adaptive bandits: Towards
+ the best history-dependent strategy. In Proceedings
+ of the Fourteenth International Conference on Arti-
+ ficial Intelligence and Statistics, pp. 570–578. JMLR
+ Workshop and Conference Proceedings, 2011.
+Orabona, F. A modern introduction to online learning.
+  CoRR, abs/1912.13213, 2019.
+Orabona, F. and Pál, D. Coin betting and parameter-
+  free online learning. Advances in Neural Information
+  Processing Systems, 29, 2016.
+Shalev-Shwartz, S. et al. Online learning and online
+  convex optimization. Foundations and Trends® in
+  Machine Learning, 4(2):107–194, 2012.
+van der Hoeven, D., Cutkosky, A., and Luo,
+  H. Comparator-adaptive convex bandits. CoRR,
+  abs/2007.08448, 2020.
+Yang, T., Zhang, L., Jin, R., and Yi, J. Tracking
+  slowly moving clairvoyant: Optimal dynamic regret
+  of online learning with true and noisy gradient. In
+  International Conference on Machine Learning, pp.
+  449–457. PMLR, 2016.
+Zhang, L., Lu, S., and Zhou, Z.-H. Adaptive online
+  learning in dynamic environments. Advances in neu-
+  ral information processing systems, 31, 2018.
+Zhang, Z., Cutkosky, A., and Paschalidis, Y. Uncon-
+  strained dynamic regret via sparse coding. In Oh,
+  A., Naumann, T., Globerson, A., Saenko, K., Hardt,
+  M., and Levine, S. (eds.), Advances in Neural Infor-
+  mation Processing Systems, volume 36, pp. 74636–
+  74670. Curran Associates, Inc., 2023.
+Zhao, P., Zhang, Y.-J., Zhang, L., and Zhou, Z.-H.
+  Dynamic regret of convex and smooth functions. In
+  Larochelle, H., Ranzato, M., Hadsell, R., Balcan,
+  M. F., and Lin, H. (eds.), Advances in Neural Infor-
+  mation Processing Systems, volume 33, pp. 12510–
+  12520. Curran Associates, Inc., 2020.
+Zhao, P., Zhang, Y.-J., Zhang, L., and Zhou, Z.-
+  H. Adaptivity and non-stationarity: Problem-
+  dependent dynamic regret for online convex opti-
+  mization. Journal of Machine Learning Research,
+  25(98):1–52, 2024.
+Zinkevich, M. Online convex programming and gen-
+  eralized infinitesimal gradient ascent. In Proceed-
+  ings of the 20th international conference on machine
+  learning (icml-03), pp. 928–936, 2003.
+

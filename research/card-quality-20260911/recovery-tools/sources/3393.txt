@@ -1,0 +1,2766 @@
+Non-Disjoint Promise Problems from
+Meta-Computational View of
+Pseudorandom Generator Constructions
+Shuichi Hirahara
+National Institute of Informatics, Tokyo, Japan
+s_hirahara@nii.ac.jp
+
+      Abstract
+The standard notion of promise problem is a pair of disjoint sets of instances, each of which is
+regarded as Yes and No instances, respectively, and the task of solving a promise problem is to
+distinguish these two sets of instances. In this paper, we introduce a set of new promise problems
+which are conjectured to be non-disjoint, and prove that hardness of these “non-disjoint” promise
+problems gives rise to the existence of hitting set generators (and vice versa). We do this by presenting
+a general principle which converts any black-box construction of a pseudorandom generator into
+the existence of a hitting set generator whose security is based on hardness of some “non-disjoint”
+promise problem (via a non-black-box security reduction).
+    Applying the principle to cryptographic pseudorandom generators, we introduce
+The Gap(KSAT vs K) Problem: Given a string x and a parameter s, distinguish whether the
+    polynomial-time-bounded SAT-oracle Kolmogorov complexity of x is at most s, or the polynomial-
+    time-bounded Kolmogorov complexity of x (without SAT oracle) is at least s + O(log |x|).
+If Gap(KSAT vs K) is NP-hard, then the worst-case and average-case complexity of PH is equivalent.
+Under the plausible assumption that ENP =     6 E, the promise problem is non-disjoint. These results
+generalize the non-black-box worst-case to average-case reductions of Hirahara [31] and improve the
+approximation error from O(  e √n) to O(log n).
+    Applying the principle to complexity-theoretic pseudorandom generators, we introduce a family of
+Meta-computational Circuit Lower-bound Problems (MCLPs), which are problems of distinguishing
+the truth tables of explicit functions from hard functions. Our results generalize the hardness versus
+randomness framework and identify problems whose circuit lower bounds characterize the existence
+of hitting set generators. For example, we introduce
+The E vs SIZE(2o(n) ) Problem: Given the truth table of a function f , distinguish whether f is
+    computable in exponential time or requires exponential-size circuits to compute.
+A nearly-linear AC0 ◦ XOR circuit size lower bound for this promise problem is equivalent to the
+existence of a logarithmic-seed-length hitting set generator for AC0 ◦ XOR. Under the plausible
+assumption that E 6⊆ SIZE(2o(n) ), the promise problem is non-disjoint (and thus the minimum
+circuit size is infinity). This is the first result that provides the exact characterization of the
+existence of a hitting set generator secure against C by the worst-case lower bound against C for
+a circuit class C = AC0 ◦ XOR ⊆ TC0 . In addition, we prove that a nearly-linear size lower bound
+against co-nondeterministic read-once branching programs for some “non-disjoint” promise problem
+is sufficient for resolving RL = L.
+    We also establish the equivalence between the existence of a derandomization algorithm for
+uniform algorithms and a uniform lower bound for a problem of approximating Levin’s Kt-complexity.
+
+2012 ACM Subject Classification Theory of computation → Computational complexity and cryp-
+tography; Theory of computation → Pseudorandomness and derandomization
+
+Keywords and phrases meta-complexity, pseudorandom generator, hitting set generator
+
+Digital Object Identifier 10.4230/LIPIcs.CCC.2020.20
+
+Funding This work was supported by ACT-I, JST and JSPS KAKENHI Grant Number 18H04090.
+
+Acknowledgements I thank Rahul Santhanam for helpful discussion and anonymous reviewers for
+helpful comments.
+            © Shuichi Hirahara;
+            licensed under Creative Commons License CC-BY
+35th Computational Complexity Conference (CCC 2020).
+Editor: Shubhangi Saraf; Article No. 20; pp. 20:1–20:47
+                   Leibniz International Proceedings in Informatics
+                   Schloss Dagstuhl – Leibniz-Zentrum für Informatik, Dagstuhl Publishing, Germany
+20:2   Meta-Computational View of PRG Constructions
+
+
+        1     Introduction
+       A promise problem, introduced by Even, Selman, and Yacobi [18], is a pair of disjoint sets
+       (ΠYes , ΠNo ) that are regarded as the sets of Yes and No instances, respectively. The problem
+       is regarded as a problem whose instances are “promised” to come from ΠYes ∪ΠNo . Specifically,
+       an algorithm A is said to solve a promise problem (ΠYes , ΠNo ) if A accepts any instance
+       x ∈ ΠYes and rejects any instance x ∈ ΠNo ; the behavior of A on any “unpromised” instance
+       x 6∈ ΠYes ∪ ΠNo can be arbitrary. The notion of promise problem is crucial for formalizing
+       several important concepts and theorems in complexity theory. A canonical example is the
+       unique satisfiability problem (1SAT, UNSAT), where 1SAT is the set of formulas that has a
+       unique satisfying assignment, and UNSAT is the set of unsatisfiable formulas. The promise
+       problem is a standard Promise-UP-complete problem, and the celebrated theorem of Valiant
+       and Vazirani [70] states that it is in fact NP-hard under randomized reductions. The reader
+       is referred to the survey of Goldreich [23] for more background on promise problems.
+           Usually, it is required that ΠYes and ΠNo are disjoint, i.e., ΠYes ∩ ΠNo = ∅. The reason
+       is that if there exists an instance x ∈ ΠYes ∩ ΠNo , then no algorithm can solve the promise
+       problem (ΠYes , ΠNo ). Indeed, if there were an algorithm A that solves (ΠYes , ΠNo ), then
+       A must accept x and simultaneously reject x, which is impossible. For this reason, every
+       definition of promise problems considered before is, to the best of our knowledge, always
+       disjoint.
+           In this paper, we introduce a set of new promise problems which are conjectured to be
+       non-disjoint. We will demonstrate that these “non-disjoint” promise problems are worth
+       investigating, by showing that hardness results for our promise problems have important
+       consequences in complexity theory. The fact that the promise problems are conjectured to be
+       non-disjoint means that solving promise problems are conjectured to be impossible, no matter
+       how long an algorithm is allowed to run. Surprisingly, our results show that if one can prove
+       mild hardness results of computing “non-disjoint” promise problems, which is conjectured to
+       be impossible, then one can resolve important open questions of complexity theory.
+           To be more specific, we consider open questions of whether there exists an explicit hitting
+       set generator. A hitting set generator (HSG) G = {Gn : {0, 1}s(n) → {0, 1}n }n∈N secure
+       against a class C of algorithms is a family of functions Gn such that any algorithm A ∈ C
+       that accepts at least a half of the n-bit strings must accept a string Gn (z) for some seed
+       z ∈ {0, 1}s(n) for all large n ∈ N. The existence of a secure hitting set generator makes it
+       possible to derandomize any one-sided-error C-randomized algorithm, by simply trying all
+       possible s(n)-bit seeds z and using G(z) as a source of randomness. A stronger notion called
+       a pseudorandom generator (PRG) enables us to derandomize two-sided-error randomized
+       algorithms.
+
+       1.1    Meta-Computational View of PRG Constructions
+       A standard approach for constructing pseudorandom generators is to use the hardness
+       versus randomness framework developed in, e.g., [72, 8, 53, 7, 38, 40, 63, 44]. One of the
+       landmark results of Impagliazzo and Wigderson [40] states that if there exists a function
+       in E = DTIME(2O(n) ) that is not computable by a circuit of size 2αn for some constant
+       α > 0, then there exists a logarithmic-seed-length pseudorandom generator secure against
+       linear-size circuits (and, in particular, P = BPP follows). In general, such a result is proved by
+       using a black-box pseudorandom generator construction G(-) that converts any hard function
+                                                                                      αn
+       f 6∈ SIZE(2o(n) ) to a pseudorandom generator Gf : {0, 1}O(n) → {0, 1}2 secure against
+       circuits of size 2αn , where α > 0 is some constant.
+S. Hirahara                                                                                          20:3
+
+
+    The underlying theme of this paper is to view black-box PRG constructions from a
+meta-computational perspective. Usually, f is regarded as a fixed hard function such as
+f 6∈ SIZE(2o(n) ). Instead, here we regard f as an input to some “non-disjoint” promise problem,
+and regard a black-box PRG construction G(-) as a reduction that proves the security of
+some (universal) hitting set generator based on the hardness of the “non-disjoint” promise
+problem. This new perspective can be applied to arbitrary black-box PRG constructions,
+and it gives rise to a “non-disjoint” promise problem associated with the black-box PRG
+construction. For example, the pseudorandom generator construction of [40] induces the
+E vs SIZE(2o(n) ) problem, which is the problem of distinguishing whether f ∈ E/O(n) or
+f 6∈ SIZE(2o(n) ), given the truth table of a function f .
+    There are two types of a pseudorandom generator. One is a cryptographic PRG, which
+is computable in polynomial time in its seed length. This notion is useful for building
+secure cryptographic primitives. We present in Section 1.2 “non-disjoint” promise problems
+whose hardness gives rise to a cryptographic hitting set generator. In particular, finding
+a non-disjoint witness of the promise problem implies the average-case hardness of PH,
+which provides a new approach for establishing the equivalence between the worst-case and
+average-case complexity of PH. The other is a complexity-theoretic PRG, which is allowed
+to be computed in time exponential in its seed length. This notion is sufficient for the
+purpose of derandomizing randomized algorithms. In Section 1.3, we generalize the hardness
+versus randomness framework by using the meta-computational view of black-box PRG
+constructions, and establish the equivalence between circuit lower bounds for “non-disjoint”
+promise problems and the existence of hitting set generators. Sections 1.2 and 1.3 can be
+read independently.
+
+1.2    Worst-Case versus Average-Case Complexity of PH
+Understanding average-case complexity is a fundamental question in complexity theory.
+Average-case hardness of NP is a prerequisite for building secure cryptographic primitives,
+such as one-way functions and cryptographic pseudorandom generators. Indeed, it is not
+hard to see that if there exists a polynomial-time-computable hitting set generator G, then
+checking whether a given string is in the image of G is a problem in NP that is hard on
+average (in the errorless sense). In this section, we present a new approach for proving the
+average-case hardness of NP, by implicitly constructing a cryptographic hitting set generator.
+    A fundamental open question in the theory of average-case complexity, pioneered by [48],
+is to establish the equivalence between the worst-case and average-case complexity of NP.
+
+I Open Question 1. Does P 6= NP imply DistNP 6⊆ AvgP?
+
+Here DistNP 6⊆ AvgP is an average-case analogue of NP 6= P. Open Question 1 asks whether
+the worst-case hardness of NP implies that NP is hard on random instances generated
+efficiently. The reader is referred to the survey of Bogdanov and Trevisan [9] for background
+on average-case complexity.
+     For large enough complexity classes such as PSPACE and EXP, there is a general technique
+for converting any worst-case hard function f to some two-sided-error average-case hard
+function Enc(f ) based on error-correcting codes [63, 66]. Here, the encoded function Enc(f )
+is computable in PSPACE given oracle access to f ; thus, the worst-case and average-case
+complexity of such large complexity classes are known to be equivalent. Viola [71] showed
+limits of such an approach: Enc(f ) cannot be computed in the polynomial-time hierarchy
+PHf ; thus, the proof technique of using error-correcting codes is not sufficient to resolve
+Open Question 1 as well as the following weaker open question:
+
+
+
+                                                                                                   CCC 2020
+20:4   Meta-Computational View of PRG Constructions
+
+
+       I Open Question 2. Does PH 6= P (or, equivalently, P 6= NP) imply DistPH 6⊆ AvgP?
+
+       Note that Open Question 2 is an easier question than Open Question 1, since PH = P is
+       known to be equivalent to NP = P.
+           There are significant obstacles for resolving Open Questions 1 and 2. One is the relativiz-
+       ation barrier due to Impagliazzo [39]. Another is the limits of black-box reductions due to
+       Feigenbaum and Fortnow [19] and Bogdanov and Trevisan [9].
+           Recently, a non-black-box worst-case to average-case reduction that is not subject to
+       the latter barrier was presented in [31]. The reduction shows that solving the problem
+       GapMINKT of approximating polynomial-time-bounded Kolmogorov complexity in the
+       worst-case sense can be reduced to solving MINKT on average. For an integer t ∈ N and
+       an oracle A, a t-time-bounded A-oracle Kolmogorov complexity Kt,A (x) of a finite string x
+       is defined as the shortest length of a program that prints x in t steps with oracle access to
+       A (see Section 2 for a precise definition). The promise problem
+                                                                     p GapMINKT = (ΠYes , ΠNo )
+       asks for approximating Kt (x) within an additive error of O(e Kt (x)), and is formally defined
+       as follows: ΠYes consists of (x, 1s , 1t ) such that Kt (x) ≤ s; and ΠNo consists of (x, 1s , 1t )
+                                        e √s).
+       such that Kpoly(|x|,t) (x) > s + O(
+           The result of [31] can be seen as providing an approach for establishing the equivalence
+       between worst-case and average-case complexity of NP; indeed, proving NP-hardness of
+       GapMINKT is sufficient for resolving Open Question 1. However, the approximation error
+        e √s) caused by the reduction of [31] is not optimal, which makes the question of proving
+       O(
+       NP-hardness of GapMINKT potentially harder.
+
+       1.2.1     Gap(KA vs K)
+       We herein introduce the following promise problem.
+
+       I Definition 3. For an oracle A and an approximation quality τ : N × N → N, the problem
+       Gapτ (KA vs K) is defined as the following promise problem (ΠYes , ΠNo ).
+
+          ΠYes := { (x, 1s , 1t ) | Kt,A (x) ≤ s },
+           ΠNo := { (x, 1s , 1t ) | Kτ (|x|,t) (x) > s + log τ (|x|, t) }.
+
+       By default, we assume that τ is some polynomial and write Gap(KA vs K) ∈ P if there exists
+       some polynomial τ such that Gapτ (KA vs K) ∈ P.
+
+          In this paper, we prove
+
+       I Theorem 4. Let A be any oracle. If DistNPA ⊆ AvgP, then Gap(KA vs K) ∈ P.
+
+           An immediate corollary of Theorem 4 is an improvement of the reduction of [31], by
+       setting A := ∅. In particular, in order to resolve Open Question 1, it suffices to prove
+       NP-hardness of approximating Kt (x) within an additive error of log τ (|x|, t) given (x, 1t ) as
+       input, for any polynomial τ . A key insight for reducing the approximation error is that
+       there are two main sources of the approximation error in the reduction of [31]: One comes
+       from fixing a random coin flip sequence, which we remove by using the pseudorandom
+       generator construction of Buhrman, Fortnow, and Pavan [11] under the assumption that
+       DistNP ⊆ AvgP. The other comes from the advice complexity of a black-box pseudorandom
+       generator construction, which we reduce by using a “k-wise direct product generator” whose
+       advice complexity is small [32].
+S. Hirahara                                                                                                 20:5
+
+
+    More surprisingly, the promise problem is conjectured to be non-disjoint for A := SAT.
+That is, it is conjectured to be impossible for any algorithm to solve Gap(KSAT vs K)
+– no matter how long the algorithm is allowed to run. Nevertheless, Theorem 4 shows
+that under the assumption that PH is easy on average, there exists a polynomial-time
+algorithm for solving Gap(KSAT vs K). Taking its contrapositive, this means that, in order to
+resolve DistPH 6⊆ AvgP, it suffices to prove a super-polynomial time lower bound for solving
+Gap(KSAT vs K), whose time complexity is conjectured to be infinity (in the sense that there
+exists no algorithm that can compute the promise problem).
+    We now clarify why Gap(KSAT vs K) is conjectured to be non-disjoint. Under the plausible
+assumption that ENP 6= E, it is not hard to see that there are infinitely many strings x such
+that x is simultaneously a Yes and No instance; here, the string x is defined as the truth
+table of the characteristic function of L ∈ ENP \ E/O(n) (see Proposition 24).
+    Another corollary of Theorem 4 is that under the assumption that DistPH ⊆ AvgP, any
+string x that can be compressed with SAT oracle in polynomial time can be also compressed
+without any oracle. Formally:
+
+I Corollary 5. If DistPH ⊆ AvgP, then there exists a polynomial τ such that
+
+     Kτ (|x|,t) (x) ≤ Kt,SAT (x) + log τ (|x|, t)
+
+for any x ∈ {0, 1}∗ and t ∈ N.
+
+Proof. Under the assumption, Gap(KSAT vs K) can be solved by some algorithm. Thus
+Gap(KSAT vs K) problem must be disjoint, from which the result follows immediately. J
+
+    Corollary 5 provides a new approach for resolving Open Question 2. In order to prove
+DistPH 6⊆ AvgP under the assumption that P 6= NP, it suffices to find a string x that can
+be compressed with SAT oracle but cannot be compressed without SAT oracle. In fact, it
+suffices to find such a string x under the stronger assumption that NP 6⊆ P/poly. This is
+because Pavan, Santhanam, and Vinodchandran [57] proved NP 6⊆ P/poly if Open Question 2
+is negative.
+    More importantly, Theorem 4 suggests a more reasonable approach to Open Question 2.
+Note that finding a string x compressible with SAT oracle but incompressible without any
+oracle corresponds to proving the non-disjointness of Gap(KSAT vs K); this amounts to
+proving the time complexity of solving Gap(KSAT vs K) is infinity. Theorem 4 suggests
+that it suffices to prove that a polynomial-time algorithm cannot find a difference between
+compressible strings under SAT oracle and incompressible strings without any oracle, under
+the worst-case hardness assumption of NP. In particular, it suffices to prove NP-hardness of
+Gap(KSAT vs K).
+
+I Corollary 6 (A new approach for Open Question 2). Suppose that the Gap(KSAT vs K)
+problem is “NP-hard under randomized reductions”1 in the sense that
+
+     NP 6⊆ BPP       =⇒      Gap(KSAT vs K) 6∈ P.
+
+Then, Open Question 2 is positive; that is,
+
+     DistPH 6⊆ AvgP       ⇐⇒       PH 6= P.
+
+1
+    Here we use the weak notion of “NP-hardness” in order to strengthen the result. Corollary 6 remains
+    true even if one interprets NP-hardness as a randomized reduction from NP.
+
+
+
+
+                                                                                                          CCC 2020
+20:6   Meta-Computational View of PRG Constructions
+
+
+           In a typical proof of NP-hardness of a disjoint promise problem Π = (ΠYes , ΠNo ), one
+       needs to carefully design a reduction R from SAT to Π that “preserves” a structure of
+       SAT; i.e., any formula ϕ ∈ SAT is mapped to R(ϕ) ∈ ΠYes and any formula ϕ ∈ UNSAT is
+       mapped to R(ϕ) ∈ ΠNo . The task of proving NP-hardness of Gap(KSAT vs K) is potentially
+       much easier, because it suffices to find a reduction R that may not preserve a structure
+       of SAT; in principle, R(ϕ) can be a fixed input x that is in the intersection of Yes and
+       No instances of Gap(KSAT vs K) . It is worth mentioning that proving NP-hardness of
+       Gap(KSAT vs K) is easier than proving NP-hardness of GapMINKT since GapMINKT is
+       reducible to Gap(KSAT vs K) via an identity map.
+
+       1.2.2    Non-NP-Hardness Results Do Not Apply
+       A line of work presented evidence that NP-hardness of MINKT is not likely to be established
+       under deterministic reductions (e.g., [45, 51, 36, 35]). For example, it is not hard to see that
+       the proof technique of Murray and Williams [51] (who proved a similar result for MCSP)
+       can be extended to the case of GapMINKT.
+
+       I Theorem 7 (Essentially in [51]; cf. [32]). If GapMINKT is NP-hard under many-one
+       deterministic reductions, then EXP 6= ZPP.
+
+       This result suggests that establishing NP-hardness of GapMINKT under deterministic reduc-
+       tions is a challenging task. In contrast, we observe that a similar “non-NP-hardness” result
+       cannot be applied to a non-disjoint promise problem.
+
+       I Proposition 8. Assume that NP-hardness of Gap(KSAT vs K) under many-one reductions
+       implies EXP 6= ZPP. Then, EXP 6= ZPP holds unconditionally.
+
+       The reason is that Gap(KSAT vs K) is well defined only if EXP 6= ZPP. More formally:
+
+       Proof. There are two cases. Either Gap(KSAT vs K) is disjoint or not disjoint. In the former
+       case, by Proposition 24, we have ENP = E; thus EXP = EXPNP = ZPEXP 6= ZPP. In the
+       latter case, there exists a string x that is simultaneously a Yes and No instance. A reduction
+       that always maps to x defines a many-one reduction from any problem to Gap(KSAT vs K);
+       thus, EXP 6= ZPP follows from the assumption.                                                J
+
+           In light of Proposition 8, we leave as an interesting open question whether there is any
+       barrier explaining the difficulty of proving NP-hardness of the non-disjoint promise problem.
+       We mention that GapMINKTSAT , which is equivalent to Gap(KSAT vs KSAT ), is known to be
+       DistNP-hard [32]. In particular, since Gap(KSAT vs KSAT ) is reducible to Gap(KSAT vs K)
+       via an identity map, the latter is also DistNP-hard. Therefore, in order to present a barrier
+       for proving NP-hardness of Gap(KSAT vs K), one must exploit a property that holds for NP
+       but does not hold for DistNP (unless the notion of reducibility is strong).
+
+       1.2.3    Gap(F vs F −1 ): Meta-Computational View of HILL’s PRG
+       We also propose another approach towards Open Question 1, by introducing a promise
+       problem which asks for distinguishing whether a given function is computable by small
+       circuits, or cannot be inverted by small circuits. Specifically, for an approximation quality τ ,
+       we define the promise problem Gapτ (F vs F −1 ) as follows. Given a size parameter s ∈ N
+       and an integer n ∈ N and random access to a function F : {0, 1}n → {0, 1}n , the task is to
+       distinguish the following two cases:
+       Yes: F is computable by a circuit of size s.
+       No: F cannot be inverted on average by any F -oracle circuit of size τ (n, s).
+S. Hirahara                                                                                         20:7
+
+
+    We show that “NP-hardness” of Gapτ (F vs F −1 ) for every polynomial τ is enough for
+resolving Open Question 1. More specifically, we prove
+
+I Theorem 9. If DistNP ⊆ AvgP, then there exist a polynomial τ and a coRP-type randomized
+algorithm that solves Gapτ (F vs F −1 ) on input (n, s) in time poly(n, s). In particular, Open
+Question 1 is true if Gapτ (F vs F −1 ) is “NP-hard” for every polynomial τ in the following
+sense: NP ⊆ BPP follows from the assumption that Gapτ (F vs F −1 ) admits a coRP-type
+algorithm.
+
+This is proved by viewing the black-box PRG construction based on any one-way function,
+which is given by Håstad, Impagliazzo, Levin, and Luby [29], from the meta-computational
+perspective.
+   It is easy to observe that Gap(F vs F −1 ) is non-disjoint under the existence of a one-
+way function, which is one of the most standard cryptographic primitives. Thus, it is
+widely believed that Gap(F vs F −1 ) is impossible to solve. Nevertheless, NP-hardness of
+Gap(F vs F −1 ) is sufficient for resolving Open Question 1.
+
+1.3    Meta-computational Circuit Lower-bound Problems; MCLPs
+We now turn our attention to complexity-theoretic hitting set generators. A standard approach
+for constructing complexity-theoretic pseudorandom generators is to use the hardness versus
+randomness framework, which reduces the task of constructing a pseudorandom generator to
+the task of finding an explicit hard function, such as f ∈ E \ SIZE(2o(n) ).
+    It is, however, a widely accepted fact that proving a circuit size lower bound for an
+explicit function is extremely hard. Here by an explicit function, we mean that a function is
+computable in E = DTIME(2O(n) ). It is an open question whether there exists an exponential-
+time-computable function f ∈ E that cannot be computed by any circuit of size 4n (cf. [20]).
+On the other hand, a simple counting argument shows that most functions f : {0, 1}n → {0, 1}
+cannot be computed by circuits of size 2αn for any constant α < 1.
+    Why is it so difficult to prove a circuit lower bound for an explicit function? We propose
+to view this question from a meta-computational perspective. The fact that it is difficult
+for human beings to show that an explicit function cannot be computed by small circuits
+suggests that it should be also difficult for algorithms to analyze a circuit lower bound. Our
+results indicate that if we can make this intuition formal, then we get breakthrough results
+in complexity theory.
+    Specifically, we herein introduce a family of new computational problems, which we
+call Meta-computational Circuit Lower-bound Problems (MCLPs). These problems ask for
+distinguishing the truth table of explicit functions from hard functions. For example, we
+propose the following promise problem:
+The E vs SIZE(2o(n) ) Problem (informal)
+    Given the truth table of a function f : {0, 1}n → {0, 1}, distinguish whether f ∈ E/O(n)
+    or f 6∈ SIZE(2o(n) ).
+Before defining the problem formally, let us first observe that the E vs SIZE(2o(n) ) problem
+is closely related to the open question of whether E 6⊆ SIZE(2o(n) ). Indeed, it is not hard
+to show that E/O(n) 6⊆ SIZE(2o(n) ) if and only if E 6⊆ SIZE(2o(n) ) by regarding an advice
+string as a part of input. Therefore, the E vs SIZE(2o(n) ) problem is non-disjoint under the
+standard circuit lower bound assumption that E 6⊆ SIZE(2o(n) ).
+    We now define the problem formally. According to the standard notion of advice [42],
+the complexity class E/O(n) is defined as a subset of functions f : {0, 1}∗ → {0, 1} that are
+defined on all the strings of any length. Thus, “f ∈ E/O(n)” does not make sense for a
+
+
+
+                                                                                                  CCC 2020
+20:8   Meta-Computational View of PRG Constructions
+
+
+       function f : {0, 1}n → {0, 1}. Instead, we interpret advice by using the notion of Levin’s
+       resource-bounded Kolmogorov complexity [47] so that the notion of advice is meaningful
+       for a finite function f : {0, 1}n → {0, 1}. For a string x ∈ {0, 1}∗ , let Kt(x) denote the
+       Kt-complexity of a string x, which is defined as the minimum of |M | + log t over all the
+       programs M that output x in time t; here, |M | denotes the description length of M . The
+       E vs SIZE(2o(n) ) problem is formally defined as follows.
+
+       I Definition 10. For any functions t, s : N → N, let (ΠYes (t(n)), ΠNo (s(n))) denote the
+       promise problem defined as
+                                n
+          ΠtYes := { f ∈ {0, 1}2 | Kt(f ) ≤ log t(n), n ∈ N },
+                                n
+           ΠsNo := { f ∈ {0, 1}2 | size(f ) > s(n), n ∈ N }.
+
+       Here, we identity a function f : {0, 1}n → {0, 1} with its truth table representation f ∈
+              n
+       {0, 1}2 , and size(f ) denotes the minimum size of a circuit that computes f .
+           The E vs SIZE(2o(n) ) problem is defined as the family {(ΠYes (2cn ), ΠNo (2αn ))}c,α>0 of
+       the promise problems. A family {Π} of problems is said to be solved by a class C and denoted
+       by {Π} ∈ C if every problem in the family is solved by some algorithm in C.
+
+           The idea behind Definition 10 is that the complexity class E/O(n) can be characterized
+       as the class of the functions f = {fn : {0, 1}n → {0, 1}}n∈N such that, for some constant c,
+       for all large n ∈ N, Kt(fn ) ≤ cn holds. Indeed, f ∈ E/O(n) means that the truth table of fn
+       can be described by a Turing machine of description length O(n) in time 2O(n) for all large n.
+       The relationship between complexity classes with advice and resource-bounded Kolmogorov
+       complexity will be explained in detail in Section 4.2, where we interpret “DTIME(t(n))/a(n)”
+       as a subset of functions f : {0, 1}n → {0, 1}.
+
+       1.3.1    Meta-Computational View of the Hardness vs Randomness
+                Framework
+       We show that a nearly-linear-size AC0 ◦ XOR circuit size lower bound for solving the E vs
+       SIZE(2o(n) ) problem exactly characterizes the existence of a hitting set generator secure
+       against AC0 ◦ XOR.
+
+       I Theorem 11. The following (Items 1 to 4) are equivalent.
+        1. There exists a hitting set generator G = {Gn : {0, 1}O(log n) → {0, 1}n }n∈N computable in
+           time nO(1) and secure against linear-size AC0 ◦ XOR circuits.
+        2. For all large N ∈ N, there exists no AC0 ◦ XOR circuit of size N 1+o(1) that computes the
+           E vs SIZE(2o(n) ) problem, where N = 2n denotes the input length.
+       The condition can be equivalently stated without referring to the “non-disjoint” promise prob-
+       lem. Let MKtP[O(log N ),N o(1) ] denote the family of the promise problems MKtP[c log N,N α ]
+       for constants c, α > 0, where, for functions s, t : N → N, MKtP[s(N ), t(N )] denotes the prom-
+       ise problem of distinguishing strings x such that Kt(x) ≤ s(|x|) and strings x such that
+       Kt(x) > t(|x|). Then, the following are equivalent as well.
+        3. For all large N ∈ N, there exists no AC0 ◦ XOR circuit of size N 1+o(1) that computes
+           MKtP[O(log N ), N o(1) ].
+        4. For any constant k ∈ N, for all large N ∈ N, there exists no AC0 ◦ XOR circuit of size
+           N k that computes MKtP[O(log N ), N o(1) ].
+
+           Observe that Item 1 of Theorem 11 implies a strongly exponential AC0 circuit lower bound
+       for E, which also implies that EXP 6⊆ NC1 (see, e.g., [3, 55, 26]). These are long-standing
+       open questions with the state of the art being Håstad’s lower bounds [28]. Theorem 11
+S. Hirahara                                                                                                  20:9
+
+
+shows that, in order to improve the state-of-the-art lower bound, it is sufficient to prove
+a nearly-linear AC0 ◦ XOR lower bound for the E vs SIZE(2o(n) ) problem. In contrast, the
+minimum circuit for computing the E vs SIZE(2o(n) ) problem is infinity under the standard
+circuit lower bound assumption that E 6⊆ SIZE(2o(n) ).
+     It is instructive to compare our results with the hardness versus randomness framework.
+In order to obtain a hitting set generator in the latter framework, we need to find an explicit
+function that is hard for small circuits to compute. In our framework, finding an explicit
+hard function corresponds to proving that the minimum circuit size for computing MCLPs is
+infinity (or, in other words, proving that there exists no circuit of any size that computes
+MCLPs2 ). Our results significantly weaken the assumption needed to obtain a hitting set
+generator: It suffices to show that a nearly-linear circuit cannot find the difference between
+an explicit function and a hard function.
+     Our results can be also stated based on the case analysis. There are two cases. (1)
+When the circuit lower bound that E 6⊆ SIZE(2o(n) ) holds, the work of [40] already implies
+the existence of a pseudorandom generator. (2) Even if the circuit lower bound does fail,
+Theorem 11 shows that a very modest lower bound for the E vs SIZE(2o(n) ) problem (which
+is a disjoint promise problem under the assumption) implies the existence of a hitting set
+generator. In either case, we obtain a hitting set generator. Our results generalize the
+hardness versus randomness framework in this sense.
+     Previously, based on the hardness versus randomness framework, it is known that E 6⊆ C
+is equivalent to the existence of a pseudorandom generator secure against C for a sufficiently
+large class C (see, e.g., [22]). However, in the previous approach, one needs to transform a
+worst-case C-circuit lower bound to an average-case C-circuit lower bound; thus C needs to
+be a sufficiently large so that it can perform local decoding, which requires the majority gate
+[61]. For any circuit class C smaller than TC0 , it was not clear whether the existence of a
+hitting set generator secure against C is equivalent to some worst-case C-circuit lower bound.
+Theorem 11 establishes the first equivalence for the circuit class C = AC0 ◦ XOR, which is
+smaller than TC0 [59].
+     Our results can be stated without the non-standard notion of promise problem,
+as in Items 3 and 4 of Theorem 11. Indeed, any promise problem in the family
+MKtP[O(log N ), N o(1) ] asks for approximating the Kt-complexity of a given string, and
+it is always a disjoint promise problem. In our terminology, MKtP[O(log N ), N o(1) ] is equival-
+                             o(n)                                               o(n)
+ent to the E vs DTIME(22 )/2o(n) problem. Since SIZE(2o(n) ) ⊆ DTIME(22 )/2o(n) , one
+                                        o(n)
+can observe that the E vs DTIME(22 )/2o(n) problem is reducible to the E vs SIZE(2o(n) )
+problem via an identity map, which explains the implication from Item 3 to Item 2 in
+Theorem 11.
+     We mention in passing that it is not hard to prove an AC0 lower bound for
+MKtP[O(log N ), N o(1) ] (i.e., without the bottom XOR gates) by using the pseudorandom
+restriction method as in [34, 17, 14]. (See Appendix B for a proof.)
+
+I Proposition 12. For any constants α < 1, k, d ∈ N, there exists a constant c such that
+
+     MKtP[c log N, N α ] 6∈ i.o.AC0d (N k ).
+
+
+
+2
+    This should be compared with the fact that any disjoint promise problem can be computed by a circuit
+    of size O(2n /n) on inputs of length n.
+
+
+
+
+                                                                                                           CCC 2020
+20:10   Meta-Computational View of PRG Constructions
+
+
+            For any classes C, D of functions, one can define the C vs D problem. A particularly
+                                         g0 (2o(n) ; 1 − 2−o(n) ) problem, where D(s;
+        interesting problem is the E vs AC                                       e δ) denotes the
+                                                     2
+        class of functions that can be computed by a D-circuit of size s on at least a (1 − δ)
+        fraction of inputs. We prove that, if nearly-linear-size AC0 circuits cannot distinguish an
+        explicit function from a function that cannot be approximated by small AC0 circuits, then
+        a logarithmic-seed-length hitting set generator can be obtained. (Moreover, the converse
+        direction is easy to prove.)
+
+        I Theorem 13. The following are equivalent.
+                    g0 (2o(n) ; 1 − 2−o(n) ) problem cannot be computed by AC0 circuits of size
+        1. The E vs AC              2
+           N 1+o(1) for all large N = 2n .
+        2. There exists a hitting set generator G = {Gn : {0, 1}O(log n) → {0, 1}n }n∈N computable in
+           time nO(1) and secure against linear-size AC0 circuits.
+        3. MKtP[O(log N ), N − 1] 6∈ i.o.AC0 (N 1+β ) for some constant β > 0.
+        4. MKtP[O(log N ), N − 1] 6∈ i.o.AC0 (N k ) for any constant k.
+
+            An interesting aspect of Theorem 13 is its self-referential nature; intuitively, Item 1
+        means that AC0 circuits cannot analyze AC0 circuits itself. Note that self-reference is crucial
+        for proving, e.g., time hierarchy theorems for uniform computational models. Theorem 13
+        provides an analogue in a non-uniform circuit model.
+            Why do we consider “non-disjoint” promise problems, despite the fact that Theorems 11
+        and 13 can be stated by using only the standard notions?3 First, Theorem 11 is obtained by
+        viewing (a variant of) the black-box PRG construction of Impagliazzo and Wigderson [40]
+        from a meta-computational perspective; thus, it is natural to state Theorem 11 as a connection
+        between the existence of a hitting set generator and a lower bound for the E vs SIZE(2o(n) )
+        problem. Second, an identity map reduces MKtP[O(log N ), N o(1) ] to the E vs SIZE(2o(n) )
+        problem, and thus it is easier to prove a lower bound for the latter problem. Third, the known
+        worst-case-and-average-case equivalence between E ⊆ SIZE(2o(n) ) and E ⊆ SIZE(2] o(n) ; 1 −
+                                                                                                   2
+        2−o(n) ) [63] can be naturally regarded as a reduction from the E vs SIZE(2o(n) ) problem
+                      ] o(n) ; 1 − 2−o(n) ) problem. Indeed, Theorem 13 is proved by viewing the
+        to the E vs SIZE(2       2
+        Nisan–Wigderson pseudorandom generator from a meta-computational perspective, and
+        then Theorem 13 is translated into Theorem 11 by using the worst-case-and-average-case
+        equivalence.
+            We also present a potential approach for resolving the RL = L question. Here, RL
+        is the complexity class of languages that can be solved by a one-sided-error randomized
+        O(log n)-space Turing machine that reads its random tape only once. A canonical approach
+        for proving RL = L is to construct a log-space-computable hitting set generator of seed length
+        O(log n) secure against O(n)-size read-once branching programs. A state-of-the-art result
+        is the pseudorandom generator of seed length O(log2 n) given by Nisan [52] for read-once
+        (known-order) oblivious branching programs, and the pseudorandom generator of seed length
+        O(log3 n) given by Forbes and Kelley [21] for read-once unknown-order oblivious branching
+        programs.4
+
+
+        3
+          We also mention that the non-disjointness itself can provide new consequences, such as Corollaries 5
+          and 16.
+        4
+          In the area of unconditional derandomization of space-bounded randomized algorithms, it is common to
+          assume that a branching program is oblivious and reads the input in the fixed order. Here, we do not
+          assume these properties.
+S. Hirahara                                                                                           20:11
+
+
+    We show that a hitting set generator of seed length O(log n) can be constructed if
+nearly-linear-size read-once co-nondeterministic branching programs cannot distinguish
+linear-space-computable functions from hard functions.
+ITheorem 62. Suppose that there exist some constants α, β > 0 such that the DSPACE(n) vs
+ g O(αn) ; 2−αn ) problem cannot be computed by read-once co-nondeterministic branching
+SIZE(2
+programs of size N 1+β for all large input lengths N = 2n ∈ N. Then there exists a hitting set
+generator G = {Gn : {0, 1}O(log n) → {0, 1}n }n∈N computable in O(log n) space and secure
+against linear-size read-once branching programs (and, in particular, RL = L follows).
+    Theorem 62 can be compared with the result of Klivans and van Melkebeek [44], which
+shows the existence of a pseudorandom generator secure against branching programs under
+the assumption that DSPACE(n) requires a circuit of size 2Ω(n) . Under the same assumption,
+by using a worst-case-to-average-case reduction for DSPACE(n), it can be shown that the
+                 ] αn ; δ) problem is non-disjoint for any sufficiently small δ ≥ 0 (cf.
+DSPACE(n) vs SIZE(2
+Proposition 43). In this case, the minimum size of a co-nondeterministic branching program
+for computing the MCLP is infinity; thus, Theorem 62 generalizes the result of [44].
+    It should be noted that limits of the computational power of read-once non-deterministic
+branching programs are well understood. For example, Borodin, Razborov, and Smolensky [10]
+presented an explicit function that cannot be computed by any read-k-times nondeterministic
+branching program of size 2o(n) for any constant k. Theorem 62 shows that, in order to resolve
+RL = L, it suffices to similarly analyze the read-once co-nondeterministic branching program
+size lower bound for computing the MCLP. This approach could be useful; by using the
+Nechiporuck method, it can be shown that neither nondeterministic nor co-nondeterministic
+branching programs of size o(N 1.5 / log N ) can compute MKtP [16], which is a much more
+general lower bound than read-k-times nondeterministic branching programs.
+    We also mention that a partial converse of Theorem 62 is easy to prove: If there exists a log-
+space-computable hitting set generator secure against linear-size read-once nondeterministic
+branching programs, then the DSPACE(n) vs SIZE(2 ] αn ; δ) problem cannot be computed by
+a read-once co-nondeterministic branching programs of size N k , where N = 2n and k is
+an arbitrary constant. More generally, any results showing the existence of a hitting set
+generator secure against C must entail a coC-lower bound for MCLPs (cf. Proposition 54).
+
+1.3.2    Non-trivial Derandomization and Lower Bounds for MKtP
+Our proof techniques can be also applied to uniform algorithms. We consider the question
+of whether
+       √
+            one-sided-error uniform algorithms can be non-trivially derandomized in time
+2n−ω( n log n) . We say that an algorithm A is a derandomization algorithm for DTIME(t(n))
+if, for any machine M running in time t(n), A takes 1n and a description of M as in-
+put and outputs y ∈ {0, 1}n such that M (y) = 1 for infinitely many n ∈ N such that
+Prx∼{0,1}n [M (x) = 1] ≥ 12 . Unlike the standard notion of derandomization algorithm for
+non-uniform computational models, the description length of M is at most a constant; thus,
+our notion of derandomization algorithm is essentially equivalent to the existence of a hitting
+set generator secure against DTIME(t(n)). Applying our proof techniques to this setting, we
+establish the following equivalence between the existence of a derandomization algorithm for
+uniform algorithms and a lower bound for approximating Kt complexity.
+
+I Theorem 14. For any constant 0 <  < 1, the following are √equivalent:
+1. There √exists a derandomization algorithm for DTIME(2O( N log N ) ) that runs in time
+   2N −ω( N log N )√
+                   .                              √
+2. MKtP[N − ω( N log  √  N ), N − 1] 6∈ DTIME(2O(√
+                                                    N log N )
+                                                                ).
+                                            O(   N  log N )
+3. MKtP[N , N + ω( N  log N )] 6∈ DTIME(2                     ).
+
+                                                                                                     CCC 2020
+20:12   Meta-Computational View of PRG Constructions
+
+
+           Usually, the time complexity is measured with respect to the input √ size. Our result,
+        however, suggests that the time complexity of MKtP[s(N ), s(N ) + ωe ( N )] is well captured
+        by the size parameter s(N ) rather than the input size N : Indeed, Theorem 14 implies that
+                              √                         √
+                                                            
+           MKtP[N  , N  + ω( N  log N )] ∈ DTIME(2O( N log N ) )
+
+        is equivalent to
+                              √                        √
+                                                         δ
+           MKtP[N δ , N δ + ω( N δ log N )] ∈ DTIME(2O( N log N ) )
+
+        for any 0 < , δ < 1.
+            Theorem 14 highlights the importance of a lower bound for MKtP. In fact, it is a long-
+        standing open question whether MKtP 6∈ P, despite the fact that MKtP is an EXP-complete
+        problem under non-uniform reductions [2]. Towards resolving the open question, we show
+        that some promise problem can be solved in coRP under the assumption that MKtP ∈ P.
+
+        I Theorem 15. Assume that MKtP ∈ P. Then, there exists a coRP-algorithm that solves
+        the Kt vs Kt problem, which is defined as follows: Given a string x ∈ {0, 1}∗ of length n
+                                                                               √
+        and a parameter s ∈ N, distinguish whether Kt(x) ≤ s or Kt (x) ≥ s + O( s log n + log2 n),
+        where t = poly(n).
+
+        Using the disjointness of the Kt vs Kt problem and setting s := Kt(x), we obtain
+
+        I Corollary 16. If MKtP ∈ P, then Kt (x) ≤ Kt(x) + O( Kt(x) log n + log2 n) for any
+                                                                   p
+
+        x ∈ {0, 1}n and any t ≥ poly(n).
+
+           Since Kt(x) ≤ Kpoly(n) (x) + O(log n) holds unconditionally, Corollary 16 shows that Kt(x)
+        and Kpoly(n) (x) are close to each other under the assumption that MKtP ∈ P. We mention
+        that the problem of computing Kt(n) (x) given x ∈ {0, 1}n cannot be computed in polynomial
+        time when t(n) = nω(1) [32].
+
+        1.3.3    Related Work: Minimum Circuit Size Problem
+        The definitions of MCLPs are inspired by the Minimum Circuit Size Problem (MCSP). While
+        the history of MCSP is said to date back to as early as 1950s [64], its importance was not
+        widely recognized until Kabanets and Cai [41] named the problem as MCSP and investigated
+        it based on the natural proof framework of Razborov and Rudich [60]. The task of MCSP is
+        to decide whether there exists a size-s circuit that computes f , given the truth table of a
+        function f : {0, 1}n → {0, 1} and a size parameter s ∈ N. It turned out that MCSP is one of
+        the central computational problems in relation to wide research areas of complexity theory,
+        including circuit lower bounds [60], learning theory [13], and cryptography [60, 2, 4, 31].
+            Over the last twenty years of the study of MCSP, it has been recognized that MCSP
+        lacks one desirable mathematical property – monotonicity with respect to an underlying
+        computational model. MCSP can be defined for any circuit classes C; for example, C-MCSP
+        stands for a version of MCSP where the task is to find the minimum C-circuit size; MCSPA
+        stands for the minimum A-oracle circuit size problem. We are tempted to conjecture
+        that, as a computational model becomes stronger, the corresponding minimization problem
+        becomes harder; e.g., MCSPA should be harder than MCSP for any oracle A. However,
+        this is not the case – Hirahara and Watanabe [35] showed that there exists an oracle
+        A such that MCSP 6≤pT MCSPA unless MCSP ∈ P. Moreover, DNF-MCSP [49, 3] and
+        (DNF ◦ XOR)-MCSP [33] are known to be NP-complete, whereas NP-completeness of MCSP
+        is a long-standing open question.
+S. Hirahara                                                                                           20:13
+
+
+    Why does the monotonicity of MCSP fail? C-MCSP can be regarded as a special case of
+the C vs D problem where C = D. It is easy to observe that the C vs D problem is reducible
+to the C0 vs D0 problem via an identity map if C ⊆ C0 and D ⊇ D0 ; thus, MCLPs have
+monotonicity properties in this sense. In contrast, the monotonicity property of MCLPs fails
+when C = D ⊆ C0 = D0 , which corresponds to the case of MCSP.
+    In an attempt to remedy the monotonicity issue, Hirahara and Santhanam [34] observed
+that average-case complexity of MCSP is monotone increasing. Carmosino, Impagliazzo,
+Kabanets, and Kolokolova [13] implicitly showed that the complexity of MCSP is monotone
+increasing under non-black-box reductions.
+    In contrast, MCLPs incorporate the monotonicity property in the definition itself, which
+makes a mathematical theory cleaner. For example, recall that it can be shown that
+                                      ] o(n) ; 1 − 2−o(n) ) by using error-correcting codes [63].
+E 6⊆ SIZE(2o(n) ) if and only if E 6⊆ SIZE(2   2
+Viewing this equivalence from a meta-computational perspective, it can be interpreted as
+                                                                         ] o(n) ; 1 − 2−o(n) )
+an efficient reduction from the E vs SIZE(2o(n) ) problem to the E vs SIZE(2         2
+problem (cf. Theorem 59). A similar reduction was proved for MCSP under the assumption
+that EXP ⊆ P/poly [14]; finding such a reduction for MCSP requires certain creativity,
+whereas working with the definition of MCLPs makes it trivial to find the reduction.
+
+
+1.3.4    Related Work: Hardness Magnification
+A recent line of work [55, 54, 50, 15, 14] exhibit surprising phenomena, which are termed
+as “hardness magnification phenomena.” Oliveira, Santhanam, and Pich [55, 54] showed
+that very weak lower bounds for MCSP and related problems are sufficient for resolving
+long-standing open questions about circuit lower bounds, such as EXP 6⊆ NC1 . A surprising
+aspect of hardness magnification phenomena is that, as argued in [6, 55], the argument does
+not seem to be subject to the natural proof barrier of Razborov and Rudich [60], which is
+one of the major obstacles of complexity theory. Our results provide an interpretation of
+hardness magnification phenomena from the perspective of a construction of a hitting set
+generator.
+     It is worthwhile to point out that our reductions have very similar structures to hardness
+magnification phenomena. For example, it was shown in [55, 54] that, for a parameter
+s = s(N ), the problem MKtP[s, s + O(log N )] can be solved by an ANDO(N ) ◦ Dpoly(s) ◦ XOR
+circuit, where Dpoly(s) is an oracle gate computable in EXP that takes an input of length poly(s).
+This reduction shows that EXP ⊆ P/poly implies MKtP[s, s + O(log N )] ∈ SIZE(N · poly(s)).
+Taking its contrapositive, it can be interpreted as a hardness magnification phenomenon: for
+s(N )  N , a (seemingly) weak lower bound MKtP[s, s + O(log N )] 6∈ SIZE(N · poly(s)) can
+be “hardness magnified” to a strong circuit lower bound EXP 6⊆ P/poly.
+     Theorem 61 has exactly the same structure with the reduction mentioned above. Given a
+circuit D that avoids a hitting set generator, we construct a nearly-linear-size ANDO(N ) ◦
+D ◦ XOR circuit that computes the E vs SIZE(2o(n) ) problem. Thus, our reductions are as
+efficient as the reductions presented in the line of work of hardness magnification phenomena.
+     More importantly, our results significantly strengthen the consequences of hardness
+magnification: Not only circuit lower bounds, but also hitting set generators can be obtained.
+This is especially significant for the case of read-once branching programs. Since there is
+already an exponential size lower bound for read-once branching programs [10], it does not
+make sense to try to hardness-magnify a lower bound for read-once branching programs.
+In contrast, our results (Theorem 62) indicate that a nearly-linear lower bound for co-
+nondeterministic read-once branching programs is enough for resolving RL = L.
+
+
+
+                                                                                                     CCC 2020
+20:14   Meta-Computational View of PRG Constructions
+
+
+            An intriguing question about hardness magnification is this: By using hardness magni-
+        fication phenomena, can we prove any new consequences, such as circuit lower bounds or
+        derandomization? Theorem 62 adds a new computational model, i.e., co-nondeterministic
+        read-once branching programs, for exploring this question.
+            Chen, Hirahara, Oliveira, Pich, Rajgopal, and Santhanam [14] proposed a barrier for
+        the question, termed as a “locality barrier.” Briefly speaking, the idea there is to regard
+        hardness magnification phenomena as a (black-box) reduction to oracles with small fan-in,
+        and then to show that most circuit lower bound proofs can be extended to rule out such
+        a reduction; thus, such a circuit lower bound proof technique cannot be combined with
+        hardness magnification phenomena. A salient feature of our reductions is that our reductions
+        are non-black-box in the sense that we exploit the efficiency of oracles; the non-black-box
+        property appears in the definition of No instances of the C vs D problem. Therefore, our
+        results provide a potential approach for bypassing the locality barrier: Try to develop a
+        circuit lower bound proof technique that crucially exploits the structure of the No instances
+        of the C vs D problem. The existing circuit lower bound proof techniques for MCSP and
+        related problems fail to exploit such a structure.
+
+
+        1.4    Proof Techniques: Meta-Computational View of PRG
+               Constructions
+        All of our results are given by a single principle – that views any black-box pseudorandom
+        generator construction from a meta-computational perspective. The differences among our
+        theorems simply originate from the fact that we use a different black-box pseudorandom
+        generator construction. The underlying principle is this:
+
+           Any black-box construction of a pseudorandom generator Gf based on a hard function
+           f 6∈ R gives rise to a non-black-box security reduction for a hitting set generator
+           based on the hardness of a non-disjoint promise problem (e.g., the E vs R problem).
+
+            For the purpose of exposition, we take a specific PRG construction of Impagliazzo and
+        Wigderson [40], and explain the connection between the PRG construction and the E vs
+        SIZE(2o(n) ) problem. The theorem of [40] states that E 6⊆ i.o.SIZE(2o(n) ) implies the existence
+        of a pseudorandom generator. The PRG construction is a black-box pseudorandom generator
+        construction Gf based on a hard function f 6∈ SIZE(2o(n) ) in the following sense.
+        Explicitness. Gf (z) is computable in polynomial time given the truth table of f and a seed z.
+        Security. If there exists a function D that distinguishes the output distribution of Gf (-)
+            from the uniform distribution, then f ∈ SIZED (2o(n) ).
+        Here, by “black-box”, we mean that the security of the PRG is proved by a (black-box)
+        reduction, i.e., the security reduction works for every function D. In contrast, we say that a
+        reduction is non-black-box if the reduction may not be correct when an oracle is inefficient.
+        This is in the same spirit with the non-black-box reduction of [31], which overcomes the
+        black-box reduction barrier of Bogdanov and Trevisan [9]. We explain below how a black-box
+        PRG construction gives rise to a non-black-box security reduction of a hitting set generator.
+            The goal is to construct some secure hitting set generator H = {Hm : {0, 1}O(log m) →
+        {0, 1}m }m∈N . As a choice of H, we simply take a “universal” hitting set generator: Let U be
+        a universal Turing machine, i.e., a machine that simulates every Turing machine efficiently.
+        Then we define Hm (z) to be the output of U on input z if U halts in 2|z| steps, where
+        z ∈ {0, 1}O(log m) . The choice of H is universal, in the sense that the existence of some
+        exponential-time computable HSG implies that H is also secure.
+S. Hirahara                                                                                          20:15
+
+
+    The strategy for proving the security of a hitting set generator H is to regard f as an
+input of the E vs SIZE(2o(n) ) problem, and to view the black-box PRG construction Gf as a
+(non-black-box) reduction from the E vs SIZE(2o(n) ) problem to the task of avoiding H.
+    We claim that H is a hitting set generator secure against linear-size circuits, under the
+assumption that the E vs SIZE(2o(n) ) problem cannot be solved by small circuits. To this
+end, we present a reduction from the task of solving the E vs SIZE(2o(n) ) problem to the
+task of “avoiding” H. That is, if H is not secure, then there exists a linear-size circuit D
+that avoids H, i.e., every image of H is rejected by D whereas D accepts at least a half of
+all inputs. A randomized reduction R for solving the E vs SIZE(2o(n) ) problem is extremely
+simple:
+ A randomized algorithm R for solving the E vs SIZE(2o(n) ) problem with D oracle
+     Given f as an input, pick a random seed z of Gf , and accept if and only if D(Gf (z)) = 0.
+
+    The correctness of the reduction R can be proved as follows. Assume that f is a Yes
+instance of the E vs SIZE(2o(n) ) problem; in other words, this means that Kt(f ) ≤ O(log |f |) =
+O(n). Since Gf is efficiently computable, it follows that Kt(Gf (z)) ≤ O(n) for every seed
+z ∈ {0, 1}O(n) . By using the property of the universal hitting set generator Hm and choosing
+m large enough, it can be observed that Gf (z) is in the image of Hm ; thus Gf (z) is rejected
+by D.
+    Conversely, we prove that any No instance of the E vs SIZE(2o(n) ) problem is rejected
+by the algorithm R with high probability. Intuitively, this is because of the fact that if f
+is a hard function, then D cannot distinguish Gf (-) from the uniform distribution. More
+formally, we claim the contrapositive. Assume that D rejects Gf (z) with high probability,
+say, at least 43 . This means that
+
+                         1
+   Pr[D(Gf (z)) = 1] ≤     .
+      z                  4
+
+On the other hand, since D avoids H, we have Prw [D(w) = 1] ≥ 21 . Therefore, D distinguishes
+the distribution of Gf from the uniform distribution with advantage 14 ; by the black-box
+security proof of Gf , we obtain that f ∈ SIZED (2o(n) ). Since D is a linear-size circuit,
+we conclude that f ∈ SIZE(2o(n) ), which means that f is not a No instance of the E vs
+SIZE(2o(n) ) problem. Note here that we rely on the efficiency of D, which makes the security
+proof of the HSG H non-black-box.
+    We conclude that there exists a randomized circuit for computing the E vs SIZE(2o(n) )
+problem. By using a standard trick of Adleman [1], the randomness of the circuit can be
+fixed, and obtain a deterministic circuit that computes the E vs SIZE(2o(n) ) problem.
+    Note that the proof above shows a generic connection between a black-box pseudorandom
+generator construction and a “non-disjoint” promise problem. The efficiency of the security
+reduction depends on the choice of a black-box PRG construction. In the rest of this paper,
+we present some of the instantiations of the proof ideas above based on several specific
+constructions of PRGs; however, we emphasize that our reductions are not limited to those
+specific instantiations, and new black-box PRG constructions can lead to a more efficient
+reduction and a “non-disjoint” promise problem that is easy to analyze.
+
+1.5       Perspective: Meta-Computational View of Complexity Theory
+More broadly, we propose to view complexity theory from a meta-computational perspective.
+    In order to explain the view, it is helpful to regard an algorithm that tries to solve MCLPs
+as a malicious prover that tries to falsify a circuit lower bound. To be more specific, consider
+the E vs SIZE(2o(n) ) problem. As we explained earlier, the existence of any algorithm (of
+
+
+                                                                                                    CCC 2020
+20:16   Meta-Computational View of PRG Constructions
+
+
+        any complexity) that solves the E vs SIZE(2o(n) ) problem implies that E ⊆ SIZE(2o(n) ), and
+        moreover the converse direction is also true. In this sense, any algorithm that solves an MCLP
+        can be regarded as an adversary that falsifies circuit lower bounds such as E 6⊆ SIZE(2o(n) ).
+             Complexity theory can be regarded as a game between us (i.e., complexity theorists, who
+        try to prove circuit lower bounds) and provers (i.e., algorithms that solve MCLPs). We lose
+        the game if some prover can solve MCLPs (and hence circuit lower bounds fail). We win
+        the game if we find an explicit function whose circuit complexity is high. This is equivalent
+        to finding a witness for the non-disjointness of the E vs SIZE(2o(n) ) problem, and thus it is
+        equivalent to showing that there exists no prover that can solve the MCLP. In other words,
+        prior to our work, we implicitly tried to fight against every prover without any restriction on
+        efficiency.
+             What we showed in this work is that we do not have to fight against every non-efficient
+        prover. Instead, in order to obtain a circuit lower bound (which is implied by the existence
+        of a hitting set generator), it suffices to show that no efficient algorithms such as nearly-
+        linear-size AC0 ◦ XOR circuits can find the difference between explicit functions and hard
+        functions. In principle, it should be easier to prove a nearly-linear circuit size lower bound
+        for some problem when we believe that the problem does not admit any algorithm (because
+        of the non-disjointness). While we have not found any existing method for proving such a
+        lower bound that is sufficient for breakthrough results, we believe that this is simply because
+        of the fact that MCLPs were not investigated explicitly. We leave as an important open
+        question to develop a proof technique to analyze MCLPs.
+
+
+         2      Preliminaries
+
+        2.1     Notation
+        For a Boolean function f : {0, 1}n → {0, 1}, we denote by tt(f ) the truth table of f , i.e.,
+        the concatenation of f (x) for all x ∈ {0, 1}n in the lexicographical order. Conversely, for
+        a string y ∈ {0, 1}N , the function fn(y) : {0, 1}dlog N e → {0, 1} is defined as fn(y)(i) :=
+        (the ith bit of y) if i ≤ N and fn(y)(i) := 0 otherwise, where i ∈ [2dlog N e ] is identified with
+        a binary representation in {0, 1}dlog N e . For a string x ∈ {0, 1}∗ , we denote by size(x) the
+        minimum circuit size for computing the Boolean function fn(x) : {0, 1}dlog |x|e → {0, 1}. We
+        often identify a string x with its function version fn(x). For a parameter δ, we denote by
+         ize(x; δ) the minimum size of a circuit C such that fn(x)(y) = C(y) on at least a (1 − δ)
+        sg
+        fraction of inputs y.
+            For a function f : {0, 1}n → {0, 1} and an integer k ∈ N, we denote by f k : ({0, 1}n )k →
+        {0, 1}k the direct product of f . We denote by f ⊕k : ({0, 1}n )k → {0, 1} the function ⊕k ◦ f k ,
+        where ⊕k is the parity function on k-bit inputs.
+
+
+        2.2     Pseudorandomness
+        Let G : {0, 1}d → {0, 1}m and D : {0, 1}m → {0, 1} be functions. For an  > 0, we say that
+        D -distinguishes the output distribution of G(-) from the uniform distribution if
+
+               Pr       [D(G(z)) = 1] −     Pr       [D(w) = 1] ≥ 
+             z∼{0,1}d                     w∼{0,1}m
+
+
+        In this case, we refer D as a -distinguisher for G. Conversely, G is said to -fool D if D is not
+        an -distinguisher for G. Similarly, we say that D -avoids G if Prw∼{0,1}m [D(w) = 1] ≥ 
+        and D(G(z)) = 0 for every z ∈ {0, 1}d . By default, we assume that  := 12 .
+S. Hirahara                                                                                         20:17
+
+
+    For a circuit class C and functions s : N → N and  : N → [0, 1], a family of functions
+G = {G : {0, 1}s(n) → {0, 1}n }n∈N is said to be a pseudorandom generator that -fools C if,
+for all large n ∈ N and any circuit C ∈ C of n inputs, G (n)-fools C. We say that G is a
+hitting set generator secure against C if for all large n ∈ N, there is no circuit D ∈ C on n
+inputs that avoids Gn .
+
+2.3     Circuits
+We measure circuit size by the number of gates (except for the input gates). For a circuit type
+                                           e δ) the class of functions f : {0, 1}n → {0, 1}
+C and s ∈ N and δ ∈ [0, 1], we denote by C(s;
+such that there exists a circuit of size s such that Prx∼{0,1}n [f (x) = C(x)] ≥ 1 − δ. We
+                                                                               ] δ) and
+               e 0). For the standard circuit class, we use the notation SIZE(s;
+define C(s) := C(s;
+SIZE(s).
+
+2.4     Time-Bounded Kolmogorov Complexity
+We fix an efficient universal Turing machine U . Time-bounded Kolmogorov complexity is
+defined as follows.
+I Definition 17 (Time-bounded Kolmogorov Complexity). The t-time-bounded A-oracle
+Kolmogorov complexity of a string x ∈ {0, 1}∗ is defined as
+     Kt,A (x) := { |d| | U A outputs x in t steps on input d },
+where A is an oracle and t ∈ N.
+
+ 3      Meta-Computational View of Cryptographic PRG Constructions
+In this section, we provide a meta-computational view of cryptographic pseudorandom
+generator constructions.
+
+3.1     Gap(KSAT vs K)
+We present a proof of the following result.
+I Reminder of Theorem 4. Let A be any oracle. If DistNPA ⊆ AvgP, then Gap(KA vs K) ∈ P.
+
+
+   At the core of the proof of Theorem 4 is to use a black-box PRG construction whose
+advice complexity is small. Following [32], we observe that a k-wise direct product generator,
+which is one of the simplest constructions of pseudorandom generators, has small advice
+complexity.
+I Theorem 18 (Direct Product Generator [32]). For any parameters k, ` ∈ N and  > 0, there
+                             (-)
+exist an oracle algorithm DPk : {0, 1}d → {0, 1}d+k that takes an oracle f : {0, 1}` → {0, 1}
+and a reconstruction algorithm Rec such that, for any f : {0, 1}` → {0, 1} and any -
+distinguisher D : {0, 1}d+k → {0, 1} for DPfk , there exists an advice function A : {0, 1}r →
+{0, 1}a such that
+            h                                       i   
+       Pr r ∀z ∈ {0, 1}` , RecD (z; s, A(s)) = f (z) ≥     ,
+    s∼{0,1}                                            2k
+where A is computable by a D-oracle circuit of size poly(k/, 2` ), the seed length d is at most
+O((` + log(k/)) · k), the advice complexity a is at most k + O(log(k/)), the randomness
+complexity r is at most O(d), and Rec is computable in time poly(k/, 2` ).
+
+
+
+                                                                                                   CCC 2020
+20:18   Meta-Computational View of PRG Constructions
+
+
+           For the proof of Theorem 18, we make use of the following list-decodable error-correcting
+        code, which can be constructed by concatenating a Reed-Solomon code with an Hadamard
+        code.
+
+        I Lemma 19 (List-Decodable Error-Correcting Code; cf. [62, 46]). There exists a function
+        Enc such that:
+        1. Enc(x; N, ) outputs a string of length N   b = poly(N, 1/) for any x ∈ {0, 1}N , and is
+           computable in time poly(N, 1/).
+        2. There exists a deterministic algorithm Dec(-; N, ) running in time poly(N, 1/) such
+           that, given any r ∈ {0, 1}Nb , outputs a list of all the strings x ∈ {0, 1}N such that
+           Dist(r, Enc(x; N, )) ≤ 21 − , and the size of the list is at most poly(1/).
+
+        Proof Sketch of Theorem 18. We describe the pseudorandom generator construction DPfk ,
+        which we call a k-wise direct product generator. Let Enc denote the error-correcting code
+        of Lemma 19, and let fˆ: {0, 1}b̀ → {0, 1} be the function specified by the truth table
+        Enc(f ; 2` , 0 := /2k) ∈ {0, 1}2 , where `b = O(` + log(k/)). The pseudorandom generator
+                                          b̀
+
+        construction Gf : {0, 1}b̀k → {0, 1}b̀k+k is defined as
+                                k
+
+            Gfk (z 1 , · · · , z k ) := (z 1 , · · · , z k , fb(z 1 ), · · · , fb(z k ))
+                                         k
+        for (z 1 , · · · , z k ) ∈ {0, 1}b̀ , and d := `k.
+                                                       b
+            Since the security proof of DPfk can be proved by using a standard hybrid argument (see,
+        e.g, [53, 69]), we only provide a proof sketch. Assume that D satisfies
+               h                                                    i
+            Pr D(z 1 , · · · , z k , fb(z 1 ), · · · , fb(z k )) = 1 − Pr D(z 1 , · · · , z k , b1 , · · · , bk ) = 1 ≥ .
+                                                                                                                    
+             z̄                                                                     z̄,b
+
+        For any i ∈ {0, · · · , k}, define the ith hybrid distribution Hi as the distribution of
+
+            (z 1 , · · · , z k , fb(z 1 ), · · · , fb(z i ), bi+1 , · · · , bk ),
+                                                k
+        where z̄ = (z 1 , · · · , z k ) ∼ {0, 1}b̀ and bi+1 , · · · , bk ∼ {0, 1}. By this definition, H0 is
+        identically distributed with the uniform distribution, and Hk is an identical distribution with
+        DPfk (x1 , · · · , xk ). Therefore,
+                                                        
+              E [D(Hi ) − D(Hi−1 )] ≥                     .
+            i∼[k]                                       k
+             x̄,b
+
+            By an averaging argument, we obtain
+                             "                                                             #
+                                                                                                   
+                         Pr                         E       [D(Hi ) − D(Hi−1 )] ≥              ≥      .               (1)
+                        i∼[k],b
+                                               z i ∼{0,1}b̀
+                                                                                  2k               2k
+            z 1 ,··· ,z i−1 ,z i+1 ,··· ,z k
+
+
+             Consider the following deterministic algorithm RecD                  0 (z; s, A0 (s)): The coin flip sequence
+        s is regarded as i ∼ [k], z , · · · , z , z , · · · , z ∼ {0, 1}b̀, and b ∼ {0, 1}k . We set
+                                          1            i−1 i+1                 k
+
+        z i := z and A0 (s) := (fb(z 1 ), · · · , fb(z i−1 ), bi , · · · , bk ). Then, the output of RecD  0 is defined as
+        D(z̄, A0 (s)) ⊕ 1 ⊕ bi .
+             By a standard calculation, it follows from Equation (1) that
+
+                                         b(z) ≥ 1 + 
+                h                               i
+             Pr RecD0 (z, s, A 0 (s)) = f
+              z                                        2 2k
+S. Hirahara                                                                                                  20:19
+
+
+with probability at least /2k over the random choice of s = (i, z [k]\{i} , b). By evaluating
+RecD                                                             0
+   0 (z, s, A0 (s)) for every z ∈ {0, 1} , we obtain a string f ∈ {0, 1}
+                                        b̀                                  2b̀
+                                                                                that encodes a
+function that agrees with fb on at least a (1/2 + /2k)-fraction of inputs.
+    The final reconstruction algorithm RecD (z; s, A(s)) runs the decoding algorithm
+Dec(f 0 ; 2` , /2k) of Lemma 19, and obtains a list of strings f1 , · · · , fL . We define the
+advice function A as A(s) := (A0 (s), j), where j ∈ [L] is an index such that fj coincides with
+the truth table of f . The algorithm RecD (z; s, A(s)) outputs the zth position of fj .
+    The advice complexity is at most |A0 (-)| + log L = k + O(log(k/)). Moreover, it is easy
+to observe that the advice function A(s) can be computed in time poly(k/, 2` ), given s as
+input and oracle access to f and D. By hard-wiring f into a circuit, the advice function A
+can be computed by a D-oracle circuit of size poly(k/, 2` ).                                J
+
+   One of important ingredients of the proof for Theorem 4 is a pseudorandom generator
+constructed by Buhrman, Fortnow, and Pavan [11].
+
+I Lemma 20 (Buhrman, Fortnow, and Pavan [11]). If DistNP ⊆ AvgP, then there exist
+a constant c and a pseudorandom generator G = {Gn : {0, 1}c log n → {0, 1}n }n∈N that
+(1/n)-fools size-n circuits.
+
+   Another ingredient is the fact that DistNPA ⊆ AvgP implies that a dense subset of
+A-oracle time-bounded Kolmogorov-random strings can be rejected in polynomial time.
+
+I Lemma 21 ([31]). Assume that DistNPA ⊆ AvgP. Then, there exists a polynomial-time
+algorithm M such that
+1. M (x, 1t ) = 1 for every x such that Kt,A (x) < |x| − 1, and
+2. Prx∼{0,1}n [M (x, 1t ) = 0] ≥ 14 for every n ∈ N and every t ∈ N.
+
+   Now we are ready to prove Theorem 4.
+
+Proof of Theorem 4. Under the assumption that DistNPA ⊆ AvgP, we have the secure
+pseudorandom generator G = {Gm : {0, 1}c0 log m → {0, 1}m }m∈N of Lemma 20. In partic-
+ular, Promise-BPP = Promise-P; thus it suffices to present a randomized polynomial-time
+algorithm M1 for computing Gapτ (KA vs K) for some polynomial τ .
+    Fix any input (x, 1s , 1t ), where x ∈ {0, 1}∗ is a string of length n ∈ N and s, t ∈ N. Take
+                                           fn(x)
+the k-wise direct product generator DPk          : {0, 1}d → {0, 1}d+k of Theorem 18, where k is
+some parameter chosen later and  := 18 . Let M0 be the polynomial-time algorithm M of
+Lemma 21. Let τ0 be some polynomial chosen later.
+    The randomized algorithm M1 operates as follows. On input (x, 1s , 1t ), M1 samples a
+                                                                                     fn(x)       0
+string z̄ ∼ {0, 1}d uniformly at random. Then, M1 simulates M0 on input (DPk (z̄), 1t ),
+where t0 := τ0 (n, t), and accepts if and only if M0 accepts. (That is, M1 (x, 1s , 1t ) is defined
+              fn(x)       0
+to be M0 (DPk (z̄), 1t ) for a random z̄ ∼ {0, 1}d .)
+    We claim the correctness of the algorithm M1 below.
+
+B Claim 22.
+1. If Kt,A (x) ≤ s, then M1 (x, 1s , 1t ) accepts with probability 1.
+2. If Kτ (n,t) (x) > s + log τ (n, t), then M1 (x, 1s , 1t ) rejects with probability at least 18 .
+                                                                                 fn(x)
+   We claim the first item. Fix any z̄ ∈ {0, 1}d . Since the output DPk (z̄) of the direct
+product generator can be described by n, k ∈ N, the seed z̄ ∈ {0, 1}d and the program for
+describing x of size Kt,A (x) in time t0 = τ0 (n, t), where τ0 is some polynomial, it holds that
+      0       fn(x)
+   Kt ,A (DPk         (z̄)) ≤ d + Kt,A (x) + c1 log n,                                                (2)
+
+
+
+
+                                                                                                            CCC 2020
+20:20   Meta-Computational View of PRG Constructions
+
+
+        for some constant c1 . We set k := s + c1 log n + 2. Note that under the assumption that
+                                                                                         fn(x)
+        Kt,A (x) ≤ s, Equation (2) is less than d+k −1. Therefore, by Lemma 21, M0 (DPk (z̄)) = 1
+                             d
+        for every z̄ ∈ {0, 1} ; thus M1 accepts.
+            We claim the second item, by proving its contrapositive. Assume that M1 (x, 1s , 1t ) rejects
+        with probability less than 18 . This means that
+                      h                       i 1
+                              fn(x)
+               Pr       M0 (DPk (z̄), 1t ) = 0 < .
+            z̄∼{0,1}d                             8
+        On the other hand, by Lemma 21, we also have
+                                         1
+                         M0 (w, 1t ) = 0 ≥ .
+                        
+                 Pr
+             w∼{0,1}d+k                   4
+        Therefore,
+                                                             h                               i 1
+                                                                       fn(x)
+                           M0 (w, 1t ) = 0 −                                   (z̄), 1t ) = 0 ≥ .
+                                         
+                 Pr                                 Pr           M0 (DPk
+             w∼{0,1}d+k                          z̄∼{0,1}d                                     8
+        By the property of the reconstruction algorithm Rec of Theorem 18, there exists an advice
+        function A0 : {0, 1}r → {0, 1}a such that
+                   h                               t
+                                                                               i   1
+              Pr r ∀z ∈ {0, 1}dlog ne , Rec¬M0 (-,1 ) (z; ρ, A0 (ρ)) = fn(x)(z) ≥     ,       (3)
+           ρ∼{0,1}                                                                16k
+        where the advice complexity a is at most k + O(log(k/)) = s + O(log(nk/)). Now we
+        derandomize the random choice of ρ of Equation (3) by using the secure pseudorandom
+        generator G. That is, we argue that ρ can be replaced with G(ρ0 ) for some short ρ0 , which
+        enables us to obtain a short description for x. To this end, we define a statistical test
+        T : {0, 1}r → {0, 1} that checks the condition of Equation (3) as follows:
+                                                                           t
+             T (ρ) = 1      ⇐⇒        ∀z ∈ {0, 1}dlog ne , Rec¬M0 (-,1 ) (z; ρ, A0 (ρ)) = fn(x)(z),
+
+        for each ρ ∈ {0, 1}r .
+            We claim that T can be computed by a small circuit. Indeed, by Theorem 18, the advice
+        function A0 can be computed by a M0 (-, 1t )-oracle circuit of size poly(k, n), and Rec can be
+        computed in time poly(k, n) ≤ poly(n) with oracle access to M0 (-, 1t ).5 The oracle M0 (-, 1t )
+        can be simulated by a circuit of size poly(d + k, t) ≤ poly(n, t). Overall, T is computable by
+        a circuit of size m := poly(n, t); here we take m large enough so that m ≥ r and m > 16k.
+            Now we replace the random bits ρ ∈ {0, 1}r with the first r bits of the pseudorandom
+                                                                                1
+        sequence Gm (ρ0 ). By Equation (3), we have Prρ∼{0,1}r [T (ρ) = 1] ≥ 16k   . It follows from the
+        property of Gm that
+
+                   Pr            [T (G(ρ0 )) = 1] > 0.
+             ρ0 ∼{0,1}c0 log m
+
+        In particular, there exists a seed ρ0 ∈ {0, 1}c0 log m such that T (G(ρ0 )) = 1.
+            We are ready to present the algorithm for describing x. In order to describe x, it takes as
+        a description n, t, m ∈ N, the seed ρ0 ∈ {0, 1}c0 log m , and the advice string α := A0 (G(ρ0 )) ∈
+        {0, 1}a . Since T (G(ρ0 )) = 1, the string x can be obtained by concatenating the output of
+                    t
+        Rec¬M0 (-,1 ) (z; G(ρ0 ), α) for all z ∈ [n]. The running time of this procedure can be bounded
+        by τ1 (n, t) for some polynomial τ1 . Therefore,
+
+             Kτ1 (n,t) (x) ≤ a + c0 log m + O(log nt) ≤ s + O(log nt).
+
+
+        5
+            We may assume without loss of generality that k := s + O(log n) = O(n), as otherwise we trivially have
+            Kt,A (x) ≤ s.
+S. Hirahara                                                                                               20:21
+
+
+In particular, by choosing a polynomial τ large enough, we have
+   Kτ (n,t) (x) ≤ Kτ1 (n,t) (x) ≤ s + log τ (n, t).
+This completes the proof of Claim 22.
+   Since M1 is a one-sided-error algorithm, the success probability can be amplified by
+repeating the computation of M1 for independent random coin flips. We thus conclude that
+Gapτ (KA vs K) is in Promise-BPP = Promise-P.                                         J
+
+  Let Σk SAT denote the canonical Σpk -complete problem. By using the disjointness of
+Gap(KΣk SAT vs K), we immediately obtain the following.
+I Corollary 23. If DistPH ⊆ AvgP, then for any constant k ∈ N, there exists a polynomial τ
+such that Kτ (|x|,t) (x) ≤ Kt,Σk SAT (x) + log τ (|x|, t) for any x ∈ {0, 1}∗ and t ∈ N.
+Proof. Let A := Σk SAT. By Theorem 4, under the assumption that DistNPA ⊆ DistPH ⊆
+AvgP, there exists an algorithm M such that M (x, 1s , 1t ) = 1 for every x such that Kt,A (x) ≤ s
+and M (x, 1s , 1t ) = 0 for every x such that Kτ (|x|,t) (x) > s + c log |x|, for any s ∈ N and
+t ∈ N. In particular, the set of Yes and that of No instances are disjoint, as otherwise we
+have 0 = M (x, 1s , 1t ) = 1 for some instance (x, 1s , 1t ), which is a contradiction. For any
+x ∈ {0, 1}∗ and t ∈ N, define s := Kt,A (x); then we obtain that Kpoly(|x|,t) (x) ≤ s+log τ (|x|, t)
+by the disjointness.                                                                             J
+
+   An important corollary is that NP-hardness of Gap(KΣk SAT vs K) is sufficient for proving
+an equivalence between worst-case and average-case complexity of PH.
+I Restatement of Corollary 6.          Assume that Gap(KΣk SAT vs K) is “NP-hard” for some
+k ∈ N in the sense that
+   NP 6⊆ BPP       =⇒     Gap(KΣk SAT vs K) 6∈ P.
+Then,
+   DistPH 6⊆ AvgP       ⇐⇒       PH 6= P.
+
+
+
+Proof. It is obvious that PH = P implies that DistPH ⊆ AvgP. Thus we prove the converse
+direction. Assume that DistPH ⊆ AvgP. By Theorem 4, we obtain Gap(KΣk SAT vs K) ∈ P
+for any constant k ∈ N. By the assumption, we have NP ⊆ BPP; moreover, by Lemma 20, we
+also have BPP = P. Therefore, it follows that NP = P, which is equivalent to PH = P. J
+
+   Under the plausible assumption that ENP 6= E, we observe that Gap(KSAT vs K) is
+non-disjoint.
+I Proposition 24. If ENP 6= E, then, for some polynomial τ0 and any polynomial τ , there are
+infinitely many strings x such that Kt,SAT (x) = O(log |x|) and Kτ (|x|) (x) > log τ (|x|), where
+t := τ0 (|x|).
+Proof. By [12], the assumption is equivalent to ENP 6⊆ E/O(n). Take a language L ∈
+ENP \ E/O(n). For each n ∈ N, define xn to be the truth table of length 2n that encodes
+the characteristic function of L ∩ {0, 1}n . Since xn can be described in τ0 (|xn |) = poly(|xn |)
+time given n ∈ N and oracle access to SAT, we have Kt,SAT (x) = O(log |xn |). On the other
+hand, if Kτ (|xn |) (xn ) ≤ log τ (|xn |) for all large n ∈ N, there exists an advice string of length
+log τ (|xn |) = O(n) that makes it possible to compute L∩{0, 1}n in time poly(τ (|xn |)) = 2O(n) ,
+which contradicts L 6∈ E/O(n).                                                                      J
+
+
+
+                                                                                                         CCC 2020
+20:22   Meta-Computational View of PRG Constructions
+
+
+           Finally, we observe that the complexity of Gap(KSAT vs K) is closely related to the
+        complexity of MINKT.
+        I Proposition 25. For any polynomial τ , the following hold.
+           Gapτ (K vs K) is reducible to Gapτ (KSAT vs K) via an identity map.
+           If Gapτ (KSAT vs K) is disjoint, then Gapτ (KSAT vs K) is reducible to MINKT; in
+           particular, Gapτ (KSAT vs K) ∈ NP.
+        Proof. The first item is obvious because Kt,SAT (x) ≤ Kt (x) for any t ∈ N and x ∈ {0, 1}∗ .
+        For the second item, let (ΠYes , ΠNo ) denote Gapτ (KSAT vs K). Since (ΠNo , ΠNo ) is a problem
+        of checking whether Kτ (|x|,t) (x) ≤ s + log τ (|x|, t) given (x, 1s , 1t ) as input, it is reducible
+        to MINKT. In particular, (ΠYes , ΠNo ) ∈ NP holds as well under the assumption that it is
+        disjoint.                                                                                          J
+
+        3.2      Gap(F vs F −1 ): PRG Construction from One-Way Functions
+        Håstad, Impagliazzo, Levin, and Luby [29] showed that a cryptographic pseudorandom
+        generator can be constructed from any one-way function. In this section, we view the
+        black-box PRG construction from a meta-computational perspective, which leads us to the
+        promise problem Gap(F vs F −1 ), which is a problem of asking whether a given function f
+        is computable by a small circuit or f is hard to invert by any small circuit. Here we assume
+        that the function f : {0, 1}n → {0, 1}n is given as oracle, and we focus on an algorithm that
+        runs in time poly(n). In other words, we consider a sublinear-time algorithm that is given
+        random access to the truth table of f .
+        I Definition 26. For a function τ : N × N → N, Gapτ (F vs F −1 ) is a promise problem
+        (ΠYes , ΠNo ) defined as follows. The input consists of a size parameter s ∈ N, an integer
+        n ∈ N, and black-box access to a function f : {0, 1}n → {0, 1}n .
+           The set ΠYes consists of inputs (n, s, f ) such that size(f ) ≤ s.
+           The set ΠNo consists of inputs (n, s, f ) such that, for any oracle circuit C of size τ (n, s),
+                                                   1
+                   Pr n C f (f (x)) ∈ f −1 (f (x)) < .
+                         
+                 x∼{0,1}                            2
+        I Theorem 27. If DistNP ⊆ AvgP, then there exist a polynomial τ and a coRP-type ran-
+        domized algorithm M that solves Gapτ (F vs F −1 ) = (ΠYes , ΠNo ) on input (n, s) in time
+        poly(n, s). That is, M is a randomized oracle algorithm such that
+        1. PrM [M f (n, s) = 1] = 1 for every (n, s, f ) ∈ ΠYes ,
+        2. PrM [M f (n, s) = 0] ≥ 12 for every (n, s, f ) ∈ ΠNo , and
+        3. M f (n, s) runs in time poly(n, s).
+           For the proof, we make use of the following black-box construction of a pseudorandom
+        generator based on any one-way function.
+        I Lemma 28 (A black-box PRG Construction from Any OWF [29]). There exists a polynomial
+        d = d(n) such that, for a parameter m ∈ N, there exists a polynomial-time oracle algorithm
+          (-)
+        Gm : {0, 1}d(n) → {0, 1}m that takes a function f : {0, 1}n → {0, 1}n and there exists an
+        oracle algorithm R such that, for any function D : {0, 1}m → {0, 1}, if m > d and
+                                                                      1
+               Pr n D(Gf (z)) = 1 −
+                                
+                                            Pr         [D(w) = 1] ≥     ,
+           z∼{0,1}                       w∼{0,1}m                     8
+        then
+                                                 1
+            Pr [Rf,D (f (x)) ∈ f −1 (f (x))] ≥     .
+           x,R                                   2
+                                 (-)
+        The running time of Gm and R is at most poly(n, m).
+S. Hirahara                                                                                                  20:23
+
+
+Proof Sketch. Since a weakly one-way function exists if and only if a strongly one-way
+function exists ([72]), it suffices to present a reduction that inverts f with probability at
+least 1/poly(n, m). (To be more specific, we first amplify the hardness of f by taking a
+direct product f t (x1 , · · · , xt ) := (f (x1 ), · · · , f (xt )), where t is some appropriately chosen
+parameter, and then apply the HILL construction to f t described below.)
+    We invoke the pseudorandom generator construction GfHILL of Håstad, Impagliazzo, Levin,
+and Luby [29] based on f . They presented a security reduction R such that if there exists a
+function D that distinguishes GfHILL from the uniform distribution, then an oracle algorithm
+Rf,D (f (x)) can compute an element in f −1 (f (x)) with probability at least 1/poly(n, m) over
+the choice of x ∼ {0, 1}n and the internal randomness of R.                                             J
+
+Proof of Theorem 27. Let G(-) be the black-box pseudorandom generator construction of
+Lemma 28, and let R be the security reduction of Lemma 28.
+    Under the assumption that DistNP ⊆ AvgP, by Lemma 21, there exists a polynomial-
+time algorithm M such that M (x, 1t ) = 1 for every x such that Kt (x) < |x| − 1, and
+Prx∼{0,1}n [M (x, 1t ) = 0] ≥ 14 for every n ∈ N and every t ∈ N.
+    The algorithm M 0 for computing Gap(F vs F −1 ) is defined as follows. Let f : {0, 1}n →
+{0, 1}n and s ∈ N be inputs. Define m := p(n, s) for some polynomial p chosen later. Pick a
+random z ∈ {0, 1}n . Then M 0 accepts if and only if M (Gfm (z), 1t ) accepts for a sufficiently
+large t = poly(n, s).
+    We claim the correctness of M 0 below.
+B Claim 29.
+1. M 0 accepts any f such that size(f
+                                    ) ≤ s with probability   1.
+2. M 0 rejects any f such that Prx C f (f (x)) ∈ f −1 (f (x)) < 12 with probability at least 18 .
+    We claim that any f such that size(f ) ≤ s is accepted by the algorithm M 0 . Indeed,
+since f is computable by some circuit of size s and Gfm is polynomial-time-computable, the
+output of the generator Gfm (z) can be described by using the description of the circuit of
+size s, the seed z of length d(n), and n, m ∈ N in polynomial time; thus, for a sufficiently
+large t = poly(n, s),
+
+   Kt (Gfm (z)) ≤ d(n) + O(s)
+                         e    + O(log n).
+
+Choosing m = p(n, s) large enough, this is bounded by m − 2. Thus M 0 accepts.
+  Conversely, suppose that the algorithm M 0 accepts with probability at least 78 . This
+means that
+                               7
+     Pr n M (Gfm (z), 1t ) = 1 ≥ .
+           
+  z∼{0,1}                        8
+On the other hand, by Lemma 21, we have
+                         3
+     Pr m M (w, 1t ) = 1 ≤ .
+           
+   w∼{0,1}                4
+
+Therefore, M (-, 1t ) is a distinguisher for Gfm . It follows from the property of the security
+reduction R that
+       h        t
+                                        i 1
+   Pr Rf,M (-,1 ) (f (x)) ∈ f −1 (f (x)) ≥ .
+   x,R                                      2
+By fixing the internal randomness of R and simulating the polynomial-time algorithm
+         t
+Rf,M (-,1 ) by a polynomial-size circuit C f , we conclude that f can be inverted by the oracle
+circuit C f of size poly(n, s) =: τ (n, s). Thus f is not a No instance of Gapτ (F vs F −1 ). J
+
+
+
+                                                                                                            CCC 2020
+20:24   Meta-Computational View of PRG Constructions
+
+
+        I Remark 30. In fact, the assumption that DistNP ⊆ AvgP of Theorem 27 can be weakened
+        to the assumption that there exists a P-natural property useful against SIZE(2o(n) ) (which
+        is essentially equivalent to an errorless heuristic algorithm for MCSP [34, 31]). Indeed,
+        as in [2, 60, 5], the pseudorandom function generator construction of [25] can be used to
+        construct a black-box pseudorandom generator Gf based on a one-way function f that satisfies
+        size(Gf (z)) ≤ poly(|z|, log |Gf (z)|) for any seed z ∈ {0, 1}d ; such a pseudorandom generator
+        Gf can be distinguished from the uniform distribution by using the natural property.
+            We now explain that Gap(F vs F −1 ) is conjectured to be non-disjoint. An auxiliary-input
+        one-way function (AIOWF) f = {fx : {0, 1}p(|x|) → {0, 1}q(|x|) }x∈{0,1}∗ is a polynomial-time-
+        computable function such that, for some infinite set I, for any non-uniform polynomial-time
+        algorithm A, Pry A(x, fx (y)) ∈ fx−1 (fx (y)) < 1/nω(1) for all large n ∈ N and any x ∈ I.
+                                                     
+
+        This is a weaker cryptographic primitive than a one-way function (i.e., the existence of a
+        one-way function implies that of an auxiliary-input one-way function). Ostrovsky [56] showed
+        that non-triviality of SZK implies the existence of an auxiliary-input one-way function. (see
+        also [68]). We observe that the existence of an auxiliary-input one-way function implies the
+        non-disjointness of Gap(F vs F −1 ).
+
+        I Proposition 31. If there exists an auxiliary-input one-way function f = {fx : {0, 1}p(|x|) →
+        {0, 1}q(|x|) }x∈{0,1}∗ , then, for any polynomial τ , Gapτ (F vs F −1 ) is non-disjoint.
+
+        Proof. Take an infinite set I ⊆ {0, 1}∗ that is hard for polynomial-size circuits to invert
+        {fx }x∈I . Since f is polynomial-time-computable, size(fx ) ≤ nc for some constant c, where
+        n = |x|. We set the size parameter s := nc . On the other hand, by the property of AIOWF,
+        for any circuit A of size τ (n, s), it holds that
+                                             1
+             Pr A(x, fx (y)) ∈ fx−1 (fx (y)) < ,
+               
+             y                                2
+
+        for a sufficiently large x ∈ I. This means that fx is a Yes and No instance of Gapτ (F vs F −1 ).
+                                                                                                     J
+
+           An immediate corollary of Theorem 27 and Proposition 31 is that the existence of AIOWF
+        implies DistNP 6⊆ AvgP (which is already shown in [31]). An interesting open question is to
+        prove “NP-hardness” of Gap(F vs F −1 ), which has the following important consequence:
+
+        I Corollary 32. If, for any polynomial τ , it is “NP-hard” to solve Gapτ (F vs F −1 ) in time
+        poly(n, s), then the worst-case and average-case complexity of NP is equivalent in the sense
+        that P 6= NP iff DistNP 6⊆ AvgP.
+
+        Proof. The assumption that Gap(F vs F −1 ) is “NP-hard” means that, for any polynomial
+        τ , if there exists a coRP-type algorithm that solves Gapτ (F vs F −1 ) on input (n, s) in time
+        poly(n, s), then NP ⊆ BPP. If DistNP ⊆ AvgP, then Theorem 27 implies that there exists
+        some polynomial τ such that Gapτ (F vs F −1 ) can be solved by a coRP-type algorithm in
+        time poly(n, s). By the assumption, we obtain NP ⊆ BPP = P, where the last equality is
+        from Lemma 20.                                                                                J
+
+         4      Meta-Computational View of Complexity-Theoretic PRG
+                Constructions
+        We now turn our attention to a meta-computational view of complexity-theoretic PRG
+        constructions.
+S. Hirahara                                                                                            20:25
+
+
+4.1    Universal Hitting Set Generators and Kolmogorov Complexity
+We review the notion of KS- and Kt-complexity and present definitions of universal hitting set
+generators. The notion of KS-complexity was introduced in [2] as a space-bounded analogue
+of Kt-complexity. Here we slightly modify the definition and add an additive term of +2 so
+that a result about a universal hitting set generator becomes cleaner.
+
+I Definition 33. For a string x ∈ {0, 1}∗ , the KS complexity of x is defined as
+
+   KS(x) := min{ |d| + s + 2 | U d (i) outputs xi in space s for every i ∈ [|x| + 1] }.
+
+Here xi denotes the ith bit of x for i ∈ [|x|], and x|x|+1 := ⊥.
+
+We consider the following universal hitting set generator.
+
+I Definition 34 (Universal Space-Bounded Hitting Set Generator). For a function s : N → N,
+define HSs = {HSsn : {0, 1}s(n) → {0, 1}n }n∈N as the function computed by the following
+algorithm: If the input is of the form 1t 0d01a for some t, a ∈ N and d ∈ {0, 1}∗ , HSsn
+simulates U d (i) using at most t space, for every i ∈ [n + 1]. If every simulation succeeds
+and U d (i) ∈ {0, 1} for i ∈ [n] and U d (n + 1) = ⊥, then output U d (1) · · · U d (n). Otherwise,
+output 0n .
+
+The hitting set generator HS is universal in the sense that, if there exists a hitting set
+generator G of seed length s(n) that is computable in s(n) space, then HSO(s) n   is also a
+hitting set generator. This observation immediately follows from the following property.
+
+I Proposition 35 (Universality of HS). For every function s : N → N and n ∈ N, the image
+of HSsn contains every string x ∈ {0, 1}n such that KS(x) ≤ s(n). Moreover, HSsn can be
+computed in O(s(n) + log n) space.
+
+Proof. Consider any string x of length n such that KS(x) ≤ s(n). By the definition of KS
+complexity, there exists a description d ∈ {0, 1}∗ such that U d (i) outputs xi using at most
+t space for every i ∈ [n + 1], where |d| + t + 2 ≤ s(n). By the definition of HSsn , we have
+HSsn (1t 0d01a ) = x for a := s(n) − t − |d| − 2 ≥ 0.                                      J
+
+   We recall Levin’s resource-bounded Kolmogorov complexity and define a time-bounded
+version of a universal hitting set generator.
+
+I Definition 36 ([47]). For a string x ∈ {0, 1}∗ , Levin’s Kt complexity of x is defined as
+
+   Kt(x) := min{ |d| + t + 2 | U d (i) outputs xi in time 2t for every i ∈ [|x| + 1] }.
+
+I Definition 37 (Universal Time-Bounded Hitting Set Generator). For a function s : N → N,
+define Hts = {Htsn : {0, 1}s(n) → {0, 1}n }n∈N as the function computed by the following
+algorithm: If the input is of the form 1t 0d01a for some t, a ∈ N and d ∈ {0, 1}∗ , Htsn simulates
+U d (i) for 2t time, for every i ∈ [n + 1]. If every simulation succeeds and U d (i) ∈ {0, 1} for
+i ∈ [n] and U d (n + 1) = ⊥, then output U d (1) · · · U d (n). Otherwise, output 0n .
+
+I Proposition 38 (Universality of Ht). For every function s : N → N and n ∈ N, the image
+of Htsn contains every string x ∈ {0, 1}n such that Kt(x) ≤ s(n). Moreover, the range of Htsn
+can be enumerated in time O(2e s(n)+log n ).
+
+
+
+
+                                                                                                      CCC 2020
+20:26   Meta-Computational View of PRG Constructions
+
+
+        4.2      Advice and Resource-Bounded Kolmogorov Complexity
+        In order to define meta-computational circuit lower-bound problems, we modify the standard
+        notion of advice. Usually, a complexity class with advice such as E/O(n) is defined as a
+        subset of functions f : {0, 1}∗ → {0, 1} that are defined on all the strings of any length. Here,
+        for any n ∈ N, we define “DTIME(2O(n) )/n O(n)” as a subset of functions f : {0, 1}n → {0, 1},
+        where the superscript n in “/n ” is appended in order to emphasize that it depends on n.
+        I Definition 39. For any integers t, a, n ∈ N, we denote by DTIME(t)/n a the class of
+        functions f : {0, 1}n → {0, 1} such that there exists a Turing machine M whose description
+        length is a and that outputs f (x) on input x ∈ {0, 1}n in time t. Similarly, let DSPACE(t)/n a
+        denote the class of functions f : {0, 1}n → {0, 1} such that there exists a Turing machine M
+        whose description length is a and that outputs f (x) on input x ∈ {0, 1}n in space t.
+             This definition is slightly different from the standard notion of complexity classes with
+        advice, but these are essentially the same. In order to clarify the difference, for functions
+        t, a : N → N, let DTIME(t)/KL a denote the complexity class DTIME(t) with a-bit advice
+        strings in the standard sense of Karp and Lipton [42].6 That is, a function f : {0, 1}∗ → {0, 1}
+        is in DTIME(t)/KL a if and only if there exists a Turing machine M such that, for any n ∈ N,
+        there exists an advice string αn ∈ {0, 1}a(n) such that M outputs f (x) on input (x, αn ) in
+        time t(n) for every x ∈ {0, 1}n . Then, the advice “/n ” and the Karp–Lipton advice “/KL ”
+        are equivalent in the following sense.
+        I Fact 40. For any functions t, a : N → N and any family of functions f = {fn : {0, 1}n →
+        {0, 1}}n∈N (which is identified with a function f : {0, 1}∗ → {0, 1}), the following are equival-
+        ent.
+        1. There exists a constant c such that f ∈ DTIME(t0 )/KL a0 , where t0 (n) := t(n)c + c and
+            a0 (n) := c · a(n) + c.
+        2. There exists a constant c such that, for any n ∈ N, fn ∈ DTIME(t(n)c + c)/n c · a(n) + c.
+        Proof Sketch. If f ∈ DTIME(t0 )/KL a0 , then there exists a machine M that takes an advice
+        string αn on inputs of length n. For each n ∈ N, define Mn to be the machine that, on
+        input x, simulates M on input (x, αn ); the description length of Mn is at most O(|αn |),
+        and thus fn ∈ DTIME(t(n)O(1) )/n O(a(n)). Conversely, if, for any n ∈ N, there exists a
+        Turing machine Mn whose description length is O(a(n)), then a universal Turing machine U
+        witnesses f ∈ DTIME(t0 )/KL a0 .                                                        J
+
+           The advice “/n ” is equivalent to Kt-complexity up to a constant factor in the following
+        sense.
+        I Fact 41. For any function t : N → N such that t(n) ≥ n and for any family of functions
+        f = {fn : {0, 1}n → {0, 1}}n∈N , the following are equivalent.
+        1. fn ∈ DTIME(t(n)O(1) )/n O(log t(n)) for all large n ∈ N.
+        2. Kt(fn ) = O(log t(n)) for all large n ∈ N.
+
+
+        4.3      Meta-computational Circuit Lower-bound Problems (MCLPs)
+        We define promise problems of distinguishing the truth table of explicit functions (e.g.,
+        computable in DTIME(2cn )/n cn) from the truth table of hard functions (e.g., that cannot be
+        computed in SIZE(2n )). We call these Meta-computational Circuit Lower-bound Problems
+        (MCLPs).
+
+
+        6
+            It is also common to use the notation DTIME(t(n))/KL a(n), where n is an indeterminate.
+S. Hirahara                                                                                          20:27
+
+
+I Definition 42 (Meta-computational Circuit Lower-bound Problems; MCLPs). Let E, D be
+families of functions. The E vs D problem is defined as the following promise problem
+(ΠYes , ΠNo ).
+
+   ΠYes := { tt(f ) | f ∈ E },
+    ΠNo := { tt(f ) | f 6∈ D }.
+
+We will mainly consider a non-uniform computational model for computing the E vs D
+problem; for N ∈ N, we denote by (E vs D)N the problem restricted to the input length of N .
+   We denote by (E vs D) a family of problems {Ec vs D}c∈N , where
+          [
+   Ec :=     DTIME(2cn )/n cn.
+           n∈N
+
+For a circuit class C, we say that (E vs D) ∈ i.o.C(s(N )) if, for every constant c, there exists
+a family of C-circuits {CN }N ∈N of size s(N ) such that CN solves the promise problem (Ec vs
+D)N for infinitely many N . We also denote by E vs SIZE(2o(n) ) a family of problems
+{Ec vs SIZE(2αn )}c∈N,α>0 .                 
+    Similarly, DSPACE(n) vs SIZE(2o(n) ) denotes the family
+    (                                      )
+      [
+                        n              αn
+          DSPACE(cn)/ cn vs SIZE(2 )                 .
+     n∈N                                    c∈N,α>0
+
+
+    The definition of the E vs SIZE(2o(n) ) problem given here is slightly different from
+Definition 10 given earlier. In Definition 10, we defined the E vs SIZE(2o(n) ) problem by
+using the notion of Kt-complexity; however, these definitions are essentially equivalent in
+light of Fact 41.                                          
+    We justify the notation of DSPACE(n) vs SIZE(2o(n) ) below. One can observe that
+the open question of whether DSPACE(n) 6⊆ i.o.SIZE(2o(n) ) is closely related to the
+DSPACE(n) vs SIZE(2o(n) ) problem.
+
+I Proposition 43. The following are equivalent.
+1. DSPACE(n) 6⊆ i.o.SIZE(2n ) for some constant  > 0.
+2. No circuit can solve the DSPACE(n) vs SIZE(2o(n) ) problem for all large n ∈ N.
+                                            g o(n) ; 1 − 2−o(n) ) problem for all large n ∈ N.
+3. No circuit can solve the DSPACE(n) vs SIZE(2      2
+4. There exist some constants c ∈ N, α > 0 such that, for all large n ∈ N, there exists a
+                                                                         g αn ; 1 −2−αn ).
+   function f : {0, 1}n → {0, 1} such that f ∈ DSPACE(cn)/n cn and f 6∈ SIZE(2      2
+
+Proof. First, observe that Item 3 is equivalent to Item 4 by the definition. We claim that
+Item 1 implies Item 4. By using a locally-decodable error-correcting code, it can be shown
+                                              ] αn ; 1 − 2−αn ) for some constant α > 0
+that Item 1 is equivalent to DSPACE(n) 6⊆ i.o.SIZE(2    2
+                                                   ] αn ; 1 − 2−αn ). For each n ∈ N, let
+(cf. [63, 44]). Take a problem L ∈ DSPACE(n) \ i.o.SIZE(2       2
+fn : {0, 1}n → {0, 1} be the characteristic function of L∩{0, 1}n . Then, there exists a constant
+                                                                    ] αn ; 1 − 2−αn ), which
+c such that, for all large n ∈ N, fn ∈ DSPACE(cn)/n cn and fn 6∈ SIZE(2        2
+completes the proof of Item 4. It is immediate from the definition that Item 4 implies Item 2.
+    We claim that Item 2 implies Item 1. Let f = {fn : {0, 1}n → {0, 1}}n∈N be a family
+of functions such that fn ∈ DSPACE(cn)/n cn and fn 6∈ SIZE(2αn ) for all large n ∈ N. In
+particular, for all large n ∈ N, there exists some machine Mn of description length cn that
+computes fn (x) on input x ∈ {0, 1}n in space cn. Let L ⊆ {0, 1}∗ be a language such
+that (x, M ) ∈ L if and only if the description length of a Turing machine M is c|x| and M
+
+
+
+                                                                                                    CCC 2020
+20:28   Meta-Computational View of PRG Constructions
+
+
+        accepts x in space c|x|. It is clear that L ∈ DSPACE(n). Moreover, for all large n ∈ N, the
+        characteristic function of { x ∈ {0, 1}n | (x, Mn ) ∈ L } is equal to fn ; thus, it requires circuits
+        of size 2αn . Therefore, L 6∈ i.o.SIZE(2αn/(c+1) ).                                                J
+
+           It is also possible to define MCLPs whose non-disjointness characterizes other circuit
+        lower bounds. For example, the EXP/poly vs SIZE(2o(n) ) problem defined as
+           (                                    )
+              [             c
+                  DTIME(2n )/n nc vs SIZE(2αn )
+              n∈N                                     c∈N,α>0
+
+
+        is non-disjoint if and only if EXP/poly 6⊆ SIZE(2o(n) ).
+
+        4.4    MCLPs from HSG Constructions
+        We formalize the notion of black-box PRG and HSG construction and then we present a
+        general connection between black-box PRG and HSG constructions and meta-computational
+        circuit lower bound problems.
+
+        I Definition 44 (Black-Box PRG and HSG Construction). Let G(-) : {0, 1}d → {0, 1}m be an
+        oracle algorithm that expects an oracle of the form f : {0, 1}` → {0, 1}. Let C be a circuit
+        class and R(-) be an oracle circuit class. The algorithm G is referred to as a black-box
+        C-pseudorandom generator (resp. C-hitting set generator) construction with R-reconstruction
+        and error parameter  if the following hold.
+        C-Construction For any seed z ∈ {0, 1}d , there exists a C-circuit that takes tt(f ) as input
+            and outputs Gf (z).
+        R-Reconstruction For any function f : {0, 1}` → {0, 1} and any function D : {0, 1}m →
+            {0, 1}, if D is an -distinguisher for Gf (resp. D -avoids Gf ), then f ∈ RD .
+
+           We now present a generic connection between MCLPs and HSG constructions.
+
+        I Theorem 45. Let G(-) : {0, 1}s → {0, 1}m be a black-box C-construction with R-reconstruc-
+        tion that takes a function f : {0, 1}n → {0, 1}. Define N := 2n . Let H : {0, 1}d → {0, 1}m
+        be a function such that Gf (z) ∈ Im(H) for every f ∈ E and every z ∈ {0, 1}d . Let
+        D : {0, 1}m → {0, 1} be any function that -avoids H. Then, the following hold.
+         1. If Gf is a HSG construction with error parameter , then (E vs RD )N ∈ AND2s ◦ NOT ◦
+            D ◦ C.
+         2. If Gf is a PRG construction with error parameter /2, then (E vs RD )N ∈ ANDO(N/) ◦
+            NOT ◦ D ◦ C.
+
+        Proof. Let G(-) be a HSG construction with error parameter . We first present a randomized
+        circuit for solving (E vs RD ) on inputs of length N . Let          n
+                                                                 f : {0, 1} → {0, 1} denote an input.
+                                                            f
+        Consider a circuit D1 such that D1 (f ; z) := D G (z) , where z is an auxiliary input (that
+        will be regarded as non-deterministic bits or random bits). We claim that D1 can solve (E vs
+        D) co-nondeterministically.
+
+        B Claim 46.
+        1. If f ∈ E, then D1 (f ; z) = 0 for every z ∈ {0, 1}s .
+        2. If f 6∈ RD , then D1 (f ; z) = 1 for some z ∈ {0, 1}s .
+        Suppose that f is a Yes instance of (E vs D), that is, f ∈ E. By the assumption, we have
+        Gf (z) ∈ Im(H). Therefore, by the property of D, we obtain D1 (f ; z) = D Gf (z) = 0.
+S. Hirahara                                                                                             20:29
+
+                                             
+    Conversely, suppose that D Gf (z) = 0 for every z ∈ {0, 1}s . This means that D -avoids
+Gf . By the reconstruction property of Gf , we obtain        f ∈ RD . Taking its contrapositive, it
+follows that if f 6∈ R then D1 (f ; z) = D G (z) = 1 for some z ∈ {0, 1}s . This completes
+                        D                            f
+
+the proof of Claim 46.
+                                                          V
+    Now consider a circuit D2 defined as D2 (f ) := z∈{0,1}s ¬D1 (f ; z). Then, it follows from
+Claim 46 that the circuit D2 solves (E vs RD ) on inputs of length N .
+    We move on to the case when G(-) is a PRG construction. In this case, we claim
+that the second item of Claim 46 can be strengthened to the following: If f 6∈ RD , then
+Prz∼{0,1}s [D1 (f ; z) = 1] ≥ 2 . We prove the contrapositive of this claim. Assume that
+Prz∼{0,1}s [D1 (f ; z) = 1] < 2 . Since D -avoids H, we have Prw∼{0,1}m [D(w) = 1] ≥ .
+Therefore, D 2 -distinguishes Gf (-) from the uniform distribution; by the reconstruction of
+G(-) , we obtain f ∈ RD , as desired.
+    Therefore, D1 (-; z) is a one-sided-error randomized circuit that computes (E vs RD )
+with probability at least /2. Now define a randomized circuit D20 such that D20 (f ) :=
+Vk                                                 s
+  i=1 ¬D1 (f ; zi ), where z1 , · · · , zk ∼ {0, 1} are chosen independently and k is a parameter
+chosen later. Then, it is easy to see that D20 (f ) = 1 for any f ∈ E; on the other hand, for any
+f 6∈ RD , D20 (f ) = 1 with probability at most (1 − /2)k , which is less than 2−N by choosing
+k = O(N/) large enough. By using a union bound, one can hardwire random bits in D20 as
+in Adleman’s trick [1], and obtain a deterministic AND ◦ NOT ◦ D ◦ C circuit that computes
+(E vs RD ).                                                                                       J
+
+4.5    The Nisan–Wigderson Generator
+The pseudorandom generator construction of Nisan and Wigderson [53] is particularly efficient.
+Indeed, each output bit of the Nisan–Wigderson generator depends on only 1 bit of the truth
+table of a candidate hard function.
+I Theorem 47 (Nisan–Wigderson Pseudorandom Generator Construction). For every con-
+stant γ > 0 and any `, m ∈ N, there exists a C-pseudorandom generator construction
+G(-) : {0, 1}d → {0, 1}m with R-reconstruction and error parameter  that takes a function
+f : {0, 1}` → {0, 1} such that
+    d = O(`), m ≤ 2` ,
+    C = NC01 , and
+    RD = D^   ◦ AC0 (m · 2γ` ; 1 −  ).
+                  2          2    m
+Moreover, the output Gf (z) of the PRG can be computed in space O(`) given a function f
+and a seed z as input.
+   We first recall the construction of the Nisan–Wigderson generator. In order to have a
+space-efficient algorithm for computing the Nisan–Wigderson generator, we use the following
+construction of a combinatorial design.
+I Lemma 48 (Klivans and van Melkebeek [44], Viola [71]). For every constant γ > 0, for any
+` ∈ N, there exist `-sized subsets S1 , · · · , S2` of [d] for some d = O(`) such that
+1. |Si ∩ Sj | ≤ γ · ` for every distinct i, j ∈ [2` ], and
+2. S1 , · · · , S2` can be constructed in space O(`).
+    A nearly disjoint generator ND is defined based on the design.
+I Definition 49. For a string z ∈ {0, 1}d and a subset S ⊆ [d] of indices, zS denotes the
+string obtained by concatenating the ith bit zi of z for every i ∈ S. For `-sized subsets
+S = {S1 , · · · , Sm } of [d], define a nearly disjoint generator ND : {0, 1}d → ({0, 1}` )m as
+ND(z) := (zS1 , · · · , zSm ) for every z ∈ {0, 1}d .
+
+
+
+                                                                                                       CCC 2020
+20:30   Meta-Computational View of PRG Constructions
+
+
+           Using the nearly disjoint generator, the Nisan–Wigderson generator is defined as follows.
+
+        I Definition 50 (Nisan–Wigderson generator [53]). For a Boolean function f : {0, 1}` →
+        {0, 1} and for `-sized subsets S = {S1 , · · · , Sm } of [d], the Nisan–Wigderson generator
+        NWf : {0, 1}d → {0, 1}m is defined as
+
+           NWf (z) := f m ◦ ND(z) = f (zS1 ) · · · f (zSm ).
+
+            It was shown in [53] that the pseudorandom generator construction is secure in the
+        following sense.
+
+        I Lemma 51 (Security of the Nisan–Wigderson Generator [53]). For any functions T: {0, 1}m →
+        {0, 1} and f : {0, 1}` → {0, 1}, for any  > 0, if
+                                            h               i
+               Pr m [T (w) = 1] − Pr         T (NWf (z)) = 1 ≥ ,
+           w∼{0,1}                   z∼{0,1}d
+
+
+        then there exists a one-query depth-2 oracle circuit C ∈ AC02 of size O(m · 2γ` ) such that
+                        T            1 
+              Pr        C (x) = f (x) ≥ + .
+           x∼{0,1}`                    2 m
+
+        Proof of Theorem 47. We use the Nisan–Wigderson generator NW(-) defined in Defini-
+        tion 50 (i.e., we define G(-) := NW(-) ). NW(-) is an NC01 -PRG construction because each bit
+        of NWf (z) for any fixed seed z is equal to one bit of the truth table of f . The R-reconstruction
+        property of NW(-) follows from Lemma 51.                                                         J
+
+        4.6    Meta-Computational View of the Nisan–Wigderson Generator
+        Using the Nisan–Wigderson generator construction, we present a general connection between
+        the existence of hitting set generators and lower bounds for meta-computational circuit lower-
+        bound problems. We consider any family of circuits that is closed under taking projections
+        in the following sense.
+
+        I Definition 52. A class C of circuits is said to be closed under taking projections if, for any
+        s ∈ N, for every size-s circuit C ∈ C of n inputs, a circuit C 0 defined as C 0 (x1 , · · · , xn ) =
+        C(xσ(1) , · · · , xσ(n) ) for some function σ : [n] → [n] can be simulated by a size-s C-circuit.
+
+        I Theorem 53. Let C be any circuit class that is closed under taking projections. Suppose
+                    ◦ AC0 (2αn ; 1 − 2−αn )) 6∈ i.o.AND ◦ NOT ◦ C(N 1+β ) for some constants α, β > 0.
+        that (E vs C^       2    2
+        Then, there exists a hitting set generator G = {Gn : {0, 1}O(log n) → {0, 1}n }n∈N computable
+        in time nO(1) and secure against linear-size C circuits.
+
+        Proof. We prove the contrapositive. Assume that, for every function s(m) = O(log m),
+        there exists a linear-size C circuit D that avoids the universal hitting set generator Htsm
+        for infinitely many m ∈ N. Given arbitrary constants c, α, β > 0, we will choose a small
+        constant γ > 0, and define s(m) := c0 log m/γ for some large constant c0 . Then using D
+        that avoids Htsm , we present a AND ◦ NOT ◦ C-circuit of size N 1+β that solves the Ec vs
+        C^◦ AC0 (2αn ; 1 − 2−αn ) problem.
+               2        2
+           Let f : {0, 1}n → {0, 1} denote the input of the MCLP. We use the Nisan–Wigderson
+        generator construction NWf : {0, 1}d → {0, 1}m of Theorem 47, where d = O(n), m = 2γn ,
+        and  := 1 . By Theorem 47, this is a black-box NC0 -PRG construction with AC
+                   4                                           1
+                                                                                   g0 (22γn ; 1 − 1 )
+                                                                                            2       2   4m
+        reconstruction.
+S. Hirahara                                                                                         20:31
+
+
+   In order to apply Theorem 45, we claim that NWf (z) ∈ Im(Htsm ) for every f ∈ Ec and
+every z ∈ {0, 1}d . By Theorem 47, the output NWf (z) can be described by using a seed z
+and a description for x in time N O(1) , and thus
+
+   Kt(NWf (z)) ≤ |z| + Kt(f ) + O(log N ) = O(n).
+
+In particular, for a large enough constant c0 , we have
+
+   Kt(NWf (z)) ≤ c0 n = s(m),
+
+By the universality of Htsm (Proposition 38) we obtain that NWf (z) ∈ Im(Htsm ).
+   By applying Theorem 45, we have (E vs D^
+                                          c   ◦ AC0 (22γn ; 1 − 1 )) ∈ AND
+                                                      2        2   4m N        ◦NOT◦D ◦
+                                                                                O(N )
+  0                                       γn                         ^    0 O(γn) 1      1
+NC1 . Since D is a C-circuit of size m = 2 , it follows that (Ec vs C ◦ AC2 (2    ; 2 − 4m ))N ∈
+                       1+γ                                                     1/γ
+AND ◦ NOT ◦ C(O(N      )). Note that this holds for infinitely many N = m        . By choosing
+γ small enough depending on α, β, the result follows.                                       J
+
+   We observe that the converse direction also holds. In particular, for any circuit class
+C ⊆ P/poly such that C is closed under taking projections and AND ◦ NOT ◦ C = C, our
+reductions in fact establish the equivalence between the existence of a hitting set generator
+                                                   ] o(n) ; 1 − 2−o(n) ) problem.
+secure against C and a C-lower bound for the E vs SIZE(2       2
+
+I Proposition 54 (Converse of Theorem 53). Let C be any circuit complexity class. Suppose
+that there exists a hitting set generator G = {Gn : {0, 1}O(log n) → {0, 1}n }n∈N computable in
+time nO(1) and secure against linear-size C circuits. Then, for any
+                                                                  constant k ∈ N, for all suf-
+                                                                                            
+                                                     k
+ficiently large N ∈ N, no NOT ◦ C circuit of size N can solve E vs SIZE(2g αn ; 1 − 2−αn )
+                                                                                   2
+                                                                                              N
+for α := 1/4 nor MKtP[O(log N ), N − 1] on input length N .
+                                                                        ] αn ; 1 − 2−αn ))
+Proof. We first observe that MKtP[O(log N ),N −1] is reducible to (E vs SIZE(2    2
+                                              ] αn ; 1 − 2−αn ). Since the truth table of
+via an identity map: Take any function f ∈ SIZE(2       2
+                                                         N
+                                                               
+f can be described by a circuit of size N α and log ≤N/2−N 1−α   bits of information in time
+N O(1) , the Kt-complexity of tt(f ) is at most
+   e α ) + N · H2 (1/2 − N −α ) + O(log N ) ≤ N − Ω(N 1−2α ),
+   O(N
+
+which is much smaller than N − 1. Therefore, it suffices to prove the result only for
+MKtP[O(log N ), N − 1].
+    We prove the contrapositive. Suppose that, for some constant k ∈ N, for any constant c,
+for infinitely many N ∈ N, there exists a NOT ◦ C circuit of size N k that solves the promise
+problem MKtP[c log N, N − 1]. Consider any family of functions G = {Gm : {0, 1}d log m →
+{0, 1}m }m∈N computable in time md for a constant d. Let c := 4kd, and take a NOT ◦ C
+circuit ¬C of size N k that solves MKtP[c log N, N − 1] on inputs of length N .
+    We regard C as a circuit that takes m := N k input bits by ignoring m − N input bits, and
+in what follows we claim that the linear-size circuit C avoids Gm . For a string w ∈ {0, 1}m ,
+denote by wN the first N bits of w.
+    Let z ∈ {0, 1}d log m be any seed of G. Since G(z)N can be described by N ∈ N and
+z ∈ {0, 1}d log m in time md , its Kt complexity is
+
+   Kt(G(z)N ) ≤ log N + |z| + d log m + o(log m) ≤ 4kd log N,
+
+which means that G(z)N is a Yes instance of MKtP[c log N, N − 1] and thus G(z) is rejected
+by C.
+
+
+
+                                                                                                   CCC 2020
+20:32   Meta-Computational View of PRG Constructions
+
+
+           Now consider a string w ∼ {0, 1}m chosen uniformly at random. By a standard counting
+        argument, Kt(wN ) ≥ N − 1 with probability at least 12 ; thus C accepts at least a half of all
+        inputs. Therefore, the function G is not secure against C.                                   J
+
+            Applying Theorem 53 to depth-d circuits C := AC0d , we obtain the following.
+                                                                        ^0
+        I Corollary 55. Let d be a constant. Suppose that (E vs AC       d+2 (2  ; 2 − 2−αn )) 6∈
+                                                                               αn 1
+              0
+        i.o.ACd+1 (N 1+β ) for some constants α, β > 0. Then, there exists a hitting set gener-
+        ator G = {Gn : {0, 1}O(log n) → {0, 1}n }n∈N computable in time nO(1) and secure against
+        linear-size AC0d circuits.
+
+        This means that, in order to obtain a nearly optimal hitting set generator for AC0d , it suffices
+        to prove that nearly-linear-size AC0d+1 circuits cannot distinguish the truth tables of functions
+        in E/O(n) from the truth tables of functions that cannot be approximated by AC0d+2 circuits.
+            We present a proof of Theorem 13.
+        I Restatement of Theorem 13. The following are equivalent.
+        1. For any constants d, d0 , there exists a constant β > 0 such that
+
+                      g0 (2o(n) ; 1 − 2−o(n) )) 6∈ i.o.AC0 (N 1+β ).
+                (E vs AC d0                              d
+                                  2
+        2. For any constant d, there exists a hitting set generator G = {Gn : {0, 1}O(log n) →
+           {0, 1}n }n∈N computable in time nO(1) and secure against linear-size AC0d circuits.
+        3. For any constant d, there exist constants c, β > 0 such that
+
+                MKtP[c log N, N − 1] 6∈ i.o.AC0d (N 1+β ).
+
+        4. For any constants d, k, there exists a constant c > 0 such that
+
+                MKtP[c log N, N − 1] 6∈ i.o.AC0d (N k ).
+
+
+        Proof of Theorem 13. Item 1 =⇒ Item 2 follows from Corollary 55. Item 2 =⇒ Item 4
+        follows from Proposition 54. Item 4 =⇒ Item 3 is obvious. Item 3 =⇒ Item 1 holds because
+                                           g0 (2o(n) ; 1 −2−o(n) ) has Kt complexity less than N −1. J
+        the truth table of any function in AC           2
+
+
+        4.7     Hardness Amplification and MCLPs
+        The main advantage of studying MCLPs is that hardness amplification can be naturally
+        regarded as a reduction between two different MCLPs. In this section, we present such
+        reductions.
+           Impagliazzo and Wigderson [40] gave a derandomized hardness amplification theorem.
+        We use the following generalized version of their result.
+
+        I Theorem 56 (Derandomized hardness amplification). Let γ > 0 be an arbitrary constant.
+        There exists a hardness amplification procedure Amp that takes a function f : {0, 1}n → {0, 1}
+        and parameters δ,  > 0, and returns a Boolean function Ampf,δ : {0, 1}O(n+log(1/)) → {0, 1}
+        satisfying the following:
+        1. If sgize(Ampf,δ ; 1/2 − ) ≤ s, then sg
+                                                  ize(f ; δ) ≤ s · poly(1/, 1/δ).
+        2. For any fixed y ∈ {0, 1}O(n+log(1/)) , there exist strings v1 , · · · , vk ∈ {0, 1}n for some
+            k = O(log(1/)/δ) such that Ampf,δ (y) = f (v1 ) ⊕ · · · ⊕ f (vk ). Moreover, if y is distributed
+            uniformly at random, for each i ∈ [k], vi is distributed uniformly at random.
+        3. Ampf,δ (y) can be computed in O(n + log(1/δ) + log(1/)) space, given f, y,  and δ as an
+            input.
+S. Hirahara                                                                                             20:33
+
+
+Theorem 56 slightly differs from derandomized hardness amplification theorems of [40, 30] in
+that we are also interested in the case when the hardness parameter δ is o(1), which is not
+required in a standard application of derandomized hardness amplification theorems. We
+defer a proof of Theorem 56 to Appendix A.
+   Using Theorem 56, we give a reduction among different MCLPs.
+
+I Theorem 57. For any constants α, δ > 0, for all sufficiently small β > 0, there exists a
+                                                                      g βn ; 1 − 2−βn )).
+                                                 g αn ; δ)) to (E vs SIZE(2
+XORO(β log N ) -computable reduction from (E vs SIZE(2                        2
+
+Proof. The reduction is to simply take the hardness amplification procedure Amp of The-
+orem 56. Specifically, given the truth table of a function f : {0, 1}n → {0, 1}, the reduction
+                                                 0
+maps f to the truth table of Ampf,δ : {0, 1}n → {0, 1}, where  := 2−βn and n0 = O(n). By
+the second item of Theorem 56, each output of the reduction is computable by a XOR of k
+bits, where k = O(log(1/)/δ) = O(βn).
+    We claim the correctness of the reduction. Suppose that Kt(f ) ≤ O(log N ). Then, by
+the third item of Theorem 56, we obtain that Kt(Ampf,δ ) ≤ O(log N ).
+                                  ] αn ; δ); that is, sg
+    Conversely, suppose that f 6∈ SIZE(2                   ize(f ; δ) > 2αn > 2βn · poly(1/, 1/δ),
+where the last inequality holds by choosing β > 0 small enough. By the first item of
+Theorem 56, we obtain that sg   ize(Ampf,δ ; 12 − 2−βn ) > 2βn , which implies that Ampf,δ 6∈
+        0 0         0 0
+] β n ; 1 − 2−β n ) for some constant β 0 > 0.
+SIZE(2                                                                                          J
+               2
+
+
+   Applying the reduction of Theorem 57 to Corollary 55, we obtain the following.
+
+I Corollary 58. Let d ∈ N, δ > 0 be constants. Suppose that (E vs SIZE(2 g αn ; δ)) 6∈
+i.o.AC0d+2 (N 1+β ) for some constants α, β > 0. Then, there exists a hitting set gener-
+ator G = {Gn : {0, 1}O(log n) → {0, 1}n }n∈N computable in time nO(1) and secure against
+linear-size AC0d circuits.
+
+Proof. We prove the contrapositive. Under the assumption that no hitting set generator
+is secure against AC0 , it follows from Corollary 55 that (E vs AC
+                       d
+                                                                ^  0
+                                                                     (2βn ; 1 − 2−βn )) ∈
+                                                                           d+2       2
+i.o.AC0d+1 (N 1+γ ) for any constants β, γ > 0. Our goal is to prove that (E vs SIZE(2
+                                                                                     ] αn ; δ)) ∈
+       0      1+η
+i.o.ACd+2 (N      ) for any constants α, η > 0.
+    Fix any constants α, η > 0. By Theorem 57, there exists a XORO(βn) -computable reduction
+                                    ^ 0
+            ] αn ; δ)) to (E vs AC
+from (E vs SIZE(2                      d+2 (2βn ; 1 − 2−βn )), for all sufficiently small β > 0. The
+                                                 2
+latter problem can be solved by an AC0d+1 (N 1+γ ). Thus we obtain an AC0d+1 (N 1+γ )◦XORO(βn)
+circuit that computes the former problem. Since XORO(βn) can be computed by a depth-2
+circuit of size N O(β) , by merging one bottom layer of the AC0d+1 circuit, we obtain a circuit
+in AC0d+2 (N 1+γ+O(β) ) that computes (E vs SIZE(2
+                                               ] αn ; δ)). The result follows by choosing
+β, γ > 0 small enough depending on η > 0.                                                    J
+
+    Note that AC0 circuits are not capable of computing XOR gates of large fan-in. If a
+computational model can compute XOR gates, it is possible to compute a locally-decodable
+error-correcting code. Specifically, we provide an efficient reduction from (E vs SIZE(2o(n) ))
+         ] o(n) ; 1 − 2−o(n) )) that is computable by a single layer of XOR gates.
+to (E vs SIZE(2     2
+
+I Theorem 59 (Reductions by Error-Correcting Codes). For any constants α, γ > 0, for
+all sufficiently small β > 0, there exists a reduction from (E vs SIZE(2αn )) to (E vs
+ g βn ; 1 − 2−βn )) that is computable by one layer of O(N 1+γ ) XOR gates.
+SIZE(2     2
+
+
+
+
+                                                                                                       CCC 2020
+20:34   Meta-Computational View of PRG Constructions
+
+
+        I Lemma 60 (cf. [63, 69, 73]). For any small constant β > 0, for all large n ∈ N, there
+        exists an error-correcting
+                            √        code Encf that encodes a function f : {0, 1}n → {0, 1} as a function
+        Encf : {0, 1}(1+O( β))n → {0, 1} satisfying following:
+                                                    √
+                        ize(Encf ; 12 − 2−βn ) · 2O( βn) .
+         1. size(f ) ≤ sg
+                                           √
+         2. For any fixed y ∈ {0, 1}(1+O( β))n , Encf (y) can be computed by an XOR of some bits of
+            the truth table of f .
+        3. Encf can be computed in time 2O(n) .
+
+        Proof Sketch. We use a Reed-Muller code concatenated with a Hadamard code. The crux
+        is that the length of a codeword of can be made small because the query complexity of
+        local-list-decoding algorithms is allowed to be quite large.
+            Let f : {0, 1}n → {0, 1}. Let Fq be a finite field, where q = 2k for some k. Pick H ⊆ F,
+        and encode any element of {0, 1}n as an element of H t by taking an injection η from {0, 1}n
+        to H t , where t is some large constant chosen later. Let the size |H| of H be 2n/t . Any
+        f : {0, 1}n → {0, 1} can be encoded as a unique low-degree extension fb: Ftq → Fq such that
+        fb and f ◦ η agree on H q . The total degree of fb is at most d := t|H| = t2n/t . We will set
+        q = t2n/t+O(βn) .
+            Then, each alphabet fb(x) in the Reed-Muller code is encoded with a Hadamard code.
+        Namely, Encf (x, y) := hfb(x), yi, where x ∈ Ftq , y ∈ Fk2 and h-, -i denotes the inner
+        product function over F2 . The length of the truth table of Encf is at√ most q t+1 =
+                                                        √
+        O(tt+1 2(n/t+O(βn))(t+1) ). By choosing t := 1/ β, this is bounded by 2(1+O( β))·n .
+            Sudan, Trevisan, and Vadhan [63] gave a local list-decoding     algorithm for the code
+        Encf running in time poly(t, q) that can handle a 12 − (d/q)Ω(1) -fraction of errors, which
+        is more than 12 − 2−βn by choosing q := t2n/t+O(βn) large enough. Given a circuit that
+        approximates Encf on a 12 − 2−βn fraction of inputs, one can apply the local list-decoding
+        algorithm to obtain a circuit√      that computes f on every input; thus we have size(f ) ≤
+         ize(Encf ; 21 − 2−βn ) · 2O( β)n .
+        sg                                                                                         J
+
+
+        Proof of Theorem 59. We apply the error-correcting code Enc of Theorem 59. Specifically,
+                                                                         0
+        given f : {0, 1}n → {0, 1}√as input, we map f to Encf : {0, 1}n → {0, 1}. Since the length of
+                        0
+        tt(Encf ) is 2n = N 1+O( β) and each bit is computable by a XOR of some bits of tt(f ), the
+        reduction is computable by one layer of O(N 1+γ ) XOR gates for all sufficiently small β > 0.
+            We claim the correctness of the reduction. Suppose that Kt(f ) = O(log N ); then, by the
+        third item of Lemma 60, we have Kt(Encf ) = O(log N ).
+            Now suppose that f √       6∈ SIZE(2αn ). By Lemma 60, we have 2αn < size(f ) ≤
+                 f  1
+         ize(Enc ; 2 − 2
+        sg                −βn
+                              ) · 2 O(   βn)
+                                             . Therefore, we obtain that sg    ize(Encf ; 12 − 2−βn ) >
+               √
+        2(α−O( β))n ≥ 2βn , where the last inequality holds by choosing β > 0 small enough.
+                            ] β 0 n0 ; 1 − 2−β 0 n0 ) holds for some constant β 0 > 0.
+        Therefore, Encf 6∈ SIZE(2                                                                     J
+                                          2
+
+
+           Applying the reduction, we obtain the following.
+
+        I Theorem 61. Let d be a constant. Suppose that (E vs SIZE(2αn )) 6∈ i.o.AC0d+1 ◦XOR(N 1+β )
+        for some constants α, β > 0. Then, there exists a hitting set generator G = {Gn :
+        {0, 1}O(log n) → {0, 1}n }n∈N computable in time nO(1) and secure against linear-size AC0d ◦XOR
+        circuits.
+S. Hirahara                                                                                        20:35
+
+
+Proof. We prove the contrapositive. Let α, β > 0 be arbitrary constants. Assuming
+that no hitting set generator is secure against AC0d ◦ XOR, by Theorem 53, we have (E vs
+] α0 n ; 1 − 2−α0 n )) ∈ i.o.AC0d+1 ◦ XOR(N 1+β0 ) for any constants α0 , β0 > 0. By The-
+SIZE(2     2
+                                                    ] α0 n ; 1 − 2−α0 n )) by one layer of
+orem 59, (E vs SIZE(2αn )) is reducible to (E vs SIZE(2                2
+O(N 1+γ ) XOR gates for any constant γ > 0 and any small enough constant α0 > 0. There-
+fore, we obtain a circuit in AC0d+1 ◦ XOR ◦ XOR((N 1+γ )1+β0 ) that computes (E vs SIZE(2αn )).
+By merging the bottom two XOR layers, the circuit can be written as an AC0d+1 ◦ XOR circuit
+of size N 1+γ+β0 +γβ0 .7 The result follows by choosing positive constants γ, β0  β small
+enough.                                                                                     J
+
+    We are now ready to complete a proof of Theorem 11, which establishes the equivalence
+between the existence of a hitting set generator secure against AC0 ◦ XOR and the AC0 ◦ XOR
+circuit lower bound for the E vs SIZE(2o(n) ) problem.
+I Restatement of Theorem 11. The following are equivalent.
+1. For any constant d, there exists a hitting set generator G = {Gn : {0, 1}O(log n) →
+   {0, 1}n }n∈N computable in time nO(1) and secure against linear-size AC0d ◦ XOR circuits.
+2. For any constant d, for some constant β > 0, (E vs SIZE(2o(n) )) 6∈ i.o.AC0d (N 1+β ).
+3. For any constant d, for some constant β > 0, MKtP[O(log N ), N o(1) ] 6∈ i.o.AC0d ◦
+   XOR(N 1+β ).
+4. For any constants d, k ∈ N, MKtP[O(log N ), N o(1) ] 6∈ i.o.AC0d ◦ XOR(N k ).
+
+Proof of Theorem 11. The implications from Item 4 to Item 3 and from Item 3 to Item 2
+are trivial. The implication from Item 2 to Item 1 immediately follows from Theorem 61.
+The implication from Item 1 to Item 4 is a standard approach for showing a lower bound for
+MKtP, and follows from Proposition 54.                                                  J
+
+4.8      KS Complexity and Read-Once Branching Program
+We now turn our attention to KS complexity. This amounts to considering a hitting set
+generator that is computable in a limited amount of space. Applying our proof ideas to the
+case of read-once branching programs, we provide a potential approach for resolving RL = L.
+
+I Theorem 62. There exists a universal constant ρ > 0 satisfying the following. Suppose
+                                                   g αn ; 2−ραn )) cannot be computed by
+that, for some constants α, β > 0, (DSPACE(n) vs SIZE(2
+a read-once co-nondeterministic branching program of size N 1+β for all large input length
+N ∈ N. Then there exists a hitting set generator G = {Gn : {0, 1}O(log n) → {0, 1}n }n∈N
+computable in O(log n) space and secure against linear-size read-once branching programs.
+
+   Since the class of read-once branching programs is not closed under taking several
+reductions presented so far, we provide a self-contained proof below.
+
+Proof. We prove the contrapositive of Theorem 62 for the universal hitting set generator
+HS. Assume that, for every function s(m) = O(log m), there exists a linear-size read-once
+branching program D that avoids HSsm for infinitely many m ∈ N. Given arbitrary constants
+c, α, β > 0, we will choose a small constant γ > 0, and define s(m) := c0 log m/γ for some
+large constant c0 . Then using D that avoids HSsm , we present a coRP-type randomized read-
+                                                                          ] αn ; 2−ραn ))
+once branching program that solves (ΠYes , ΠNo ) := (DSPACE(cn)/n cn vs SIZE(2
+                             n                                     1/γ
+on inputs of length N = 2 , for some sufficiently large N := m . Here, a randomized
+branching program means a probability distribution on branching programs.
+
+
+7
+    Recall that we count the number of gates except for input gates.
+
+
+                                                                                                  CCC 2020
+20:36   Meta-Computational View of PRG Constructions
+
+
+            For simplicity, we first explain a construction of a branching program that may not
+        be read-once. A randomized branching program D0 is defined as follows. Given an input
+        f : {0, 1}n → {0, 1}, set  := 1/4m. Define fe := Ampf,δ : {0, 1}O(log N ) → {0, 1}. Let ` denote
+        the input length of fe, and let d = O(`) = O(n) denote the seed length of the Nisan–Wigderson
+        generator instantiated with `-sized m subsets (Definition 50). Pick z ∼ {0, 1}d and output
+        ¬D(NWfe(z)). This is a randomized branching program because for each fixed z, each bit of
+        NWfe(z) is equal to fe(zS ) for some subset S, and hence by Item 2 of Theorem 56 it is some
+        linear combination of at most k bits of tt(f ), which can be computed by a read-once width-2
+        branching program of size O(k). Thus ¬D(NWfe(z)) can be implemented as a branching
+        program of size O(m · k), by replacing each node of D by the read-once width-2 branching
+        programs that compute some linear combinations of tt(f ).
+           We claim the correctness of the randomized branching program D0 .
+        B Claim 63.
+        1. D0 accepts every f ∈ ΠYes with probability 1.
+        2. For every f ∈ ΠNo , the probability that D0 rejects f is at least 14 .
+        3. The size of D0 is at most N β .
+        Take any Yes instance f ∈ ΠYes . We observe that the output NWfe(z) of the generator has
+        small KS complexity. Indeed,
+
+            KS(NWfe(z)) ≤ |z| + KS(fe) + O(log N ) ≤ KS(f ) + O(log N ),
+
+        where we used Lemma 48 and Item 3 of Theorem 56. In particular, for a large enough
+        constant c0 , we have
+
+            KS(f ) ≤ c0 log N = s(m),
+
+        and thus D(NWfe(z)) = 0 by Proposition 35 and the assumption that D avoids HSsm . This
+        means that the algorithm D0 accepts for every choice of z.
+            Conversely, suppose that the algorithm D0 accepts some input f with probability at least
+        3
+        4 . We claim that f 6∈ Π . The assumption means that Pr [D(NWfe(z)) = 0] ≥ 3 , which
+                                      No                                 z                    4
+                                                    fe           1
+        is equivalent to saying that Prz [D(NW       (z)) = 1] ≤ 4 . On the other hand, since D avoids
+        HSsm , we have Prw [D(w) = 1] ≥ 12 . In particular, we obtain
+                                               1
+            Pr[D(w) = 1] − Pr[D(NWfe(z)) = 1] ≥ .
+            w              z                   4
+        By the security proof of the Nisan–Wigderson generator (Lemma 51), there exists a one-query
+        oracle circuit C of size O(m · 2γ` ) such that
+                                          1  1
+              Pr       [C D (y) = fe(y)] ≥ +   .
+            y∼{0,1}`                      2 4m
+        Now replacing the oracle gate of C with a circuit that simulates D, we obtain a circuit of size
+        mO(1) + m · N O(γ) . By the property of Amp,δ (Item 1 of Theorem 56), we obtain another
+        circuit C 0 of size mO(1) · N O(γ) · (1/δ)O(1) such that
+
+              Pr       [C 0 (x) = f (x)] ≥ 1 − δ.
+            x∼{0,1}n
+
+
+        Choosing δ := N −γ , we obtain that sg
+                                             ize(f ; N −γ ) ≤ N O(γ) , where γ > 0 is an arbitrary small
+        constant. This completes the proof of the second item of Claim 63, by choosing γ small
+        enough so that O(γ) < α.
+S. Hirahara                                                                                             20:37
+
+
+   Recall that the size of D0 is O(m · k). Here k is the parameter from Theorem 56 and
+k = O(log(1/)/δ) = N O(γ) . Thus the size of D0 is at most N O(γ) ≤ N β , by choosing γ
+small enough so that O(γ) ≤ β. This completes the proof of Claim 63.
+   Now we modify the construction of D0 in order to obtain a read-once branching program
+D . The branching program D (NWfe(z)) may read some x-th bit of the input tt(f ) twice
+  1                              0
+
+only if there exists a pair of distinct indices (i, j) such that the ith bit of NWfe(z) and the
+jth bit of NWfe(z) are linear combinations of tt(f ) that contain f (x). We say that a coin
+flip z is bad if this happens. To ensure that a coin flip is bad with small probability, we
+take a pairwise independent generator G2 : {0, 1}O(`) → ({0, 1}` )m , and define a modified
+Nisan–Wigderson generator NW0fe := fem ◦ (ND ⊕ G2 ), where ND ⊕ G2 denotes the function
+such that ND ⊕ G2 (u, v) := ND(u) ⊕ G2 (v). Using this modified construction, the read-once
+branching program D is defined as ¬D(NW0fe(z)) if z is not bad, and otherwise defined as
+                       1
+a trivial branching program that outputs 1 always. (Note here that since we deal with a
+non-uniform computation, one does not need to check the badness of z by using a branching
+program.) By the definition, it is obvious that D1 is read-once; hence it remains to claim
+that D1 satisfies the promise of (ΠYes , ΠNo ).
+    As in the case of D , for f ∈ Π , it can be seen that D(NW0fe(z)) = 0 for every z, and
+                           0         Yes
+hence D1 always accepts. (We note that the KS complexity increases by an additive term of
+the input length of G2 , which is O(log N ).) Conversely, we claim that if D1 accepts with
+probability at least 78 , then f 6∈ ΠNo . Assume that Prz [D1 accepts] ≥ 87 . We claim that the
+                                                                            2
+probability that z is bad is small: Fix any distinct indices (i, j) ∈ [m] . Recall that by Item 2
+of Theorem 56 for each fixed y ∈ {0, 1}` , there exist inputs v1i , · · · , vki of f such that fe(y)
+can be written as a linear combination of f (v1i ), · · · , f (vki ), where k = O(log(1/)/δ). Fix
+any indices i0 , j 0 ∈ [k]. Then the probability that vii0 = vjj0 is at most 1/N because of the
+pairwise independence of G2 and each vii0 is uniformly distributed. By the union bound, the
+probability that z is bad is bounded above by (km)2 · 1/N ≤ N O(γ)−1 ≤ 18 , for a sufficiently
+small γ > 0 and a large N ∈ N. Thus we obtain
+
+                                                                3
+      Pr[D(NW0fe(z)) = 0] ≥ Pr[D1 accepts] − Pr[z is bad] ≥       .
+      z                                                         4
+The rest of a proof of the correctness is essentially the same with the case of D0 , observing
+that the security proof of the Nisan–Wigderson generator also works for the modified version
+NW0 .
+    Finally, we convert the randomized read-once branching program D1 of size N β into a
+co-nondeterministic read-once branching program of size N 1+β . This can be done by using
+the standard Adleman’s trick [1]: Specifically, the success probability of D1 can be amplified
+to 1 − 2−N by taking AND of O(N ) independent copies of D1 . By the union bound, there
+exists a good coin flip sequence such that AND of O(N ) copies of D1 solves (ΠYes , ΠNo ) on
+every input of length N . Hard-wiring such a coin flip sequence and simulating the AND
+gate by using a co-nondeterministic computation, we obtain a co-nondeterministic read-once
+branching program of size O(N 1+β ).                                                        J
+
+
+ 5        Non-trivial Derandomization and MKtP
+
+In this section, we provide a characterization of non-trivial derandomization for uniform
+algorithms by a lower bound for MKtP. We start with a formal definition of non-trivial
+derandomization for uniform algorithms.
+
+
+
+                                                                                                       CCC 2020
+20:38   Meta-Computational View of PRG Constructions
+
+
+        I Definition 64 (Non-trivial derandomization). An algorithm A is said to be a derandomization
+        algorithm for DTIME(t(n)) that runs in time s(n) if the following hold. The algorithm takes
+        1n and a description of a machine M and outputs an n-bit string A(1n , M ) ∈ {0, 1}n in
+        time s(n). For any machine M running in time t(n) on inputs of length n ∈ N, there exist
+        infinitely many n ∈ N such that, if Prx∼{0,1}n [M (x) = 1] ≥ 21 , then M (A(1n , M )) = 1.
+                                                                      s
+           In the following, for a function s : N → N, we denote by RKt  the set { x ∈ {0, 1}∗ |
+        Kt(x) ≥ s(|x|) } of Kt-random strings with threshold s. We say that a set R ⊆ {0, 1}∗ is
+        dense if Prx∼{0,1}n [x ∈ R] ≥ 12 for all large n ∈ N.
+
+        I Proposition 65. The following are equivalent for any time-constructible functions t, s such
+        that t(n), s(n) ≥ n.
+         1. There exists a derandomization algorithm for DTIME(t(n)) that runs in time
+            2s(n)+O(log t(n)) .
+                                 s(n)+O(log t(n))
+         2. Any dense subset of RKt               cannot be accepted by any t(n)-time algorithm.
+
+        Proof. (Item 1 =⇒ Item 2) Let A be a derandomization algorithm for DTIME(t(n)). Since
+        A runs in time 2s(n)+O(log t(n)) on input (1n , M ), the Kt-complexity of A(1n , M ) is at most
+        s(n) + O(log t(n)) + |M |.
+            Let M be any t(n)-time algorithm such that Prx∼{0,1}n [M (x) = 1] ≥ 12 for all large
+        n ∈ N. By the property of A, we have M (A(1n , M )) = 1 for infinitely many n. This means
+        that M accepts the string A(1n , M ) that has Kt-complexity at most s(n) + O(log t(n));
+        therefore, M does not accept a dense subset of Kt-random strings.
+            (Item 2 =⇒ Item 1) Let A be the algorithm that takes (1n , M ), enumerates all the
+        strings x whose Kt-complexity is at most s(n) + O(log t(n)), and, for each string x with
+        small Kt-complexity, simulates M on input x; if M accepts x in time t(n), output x and
+        halt. The running time of A is clearly at most 2s(n)+O(log t(n)) . To prove the correctness,
+        assume towards a contradiction that some algorithm M runs in time t(n) and for all large n,
+        Prx∼{0,1}n [M (x) = 1] ≥ 12 and M (A(1n , M )) = 0. The latter condition means that A cannot
+        find a string x that is accepted by M ; thus, M rejects all the strings x whose Kt-complexity
+        is at most s(n) + O(log t(n)). Therefore, M accepts a dense subset of Kt-random strings,
+        which is a contradiction.                                                                    J
+
+        I Theorem 66. Let t, s : N → N be time-constructible functions such that t is non-decreasing
+        and ω(log2 n) ≤ s(n) ≤ n and poly(n) ≤ t(n) for all large n, where poly is some universal
+        polynomial.
+            For any constant c > 0, there exists a √constant c0 such that, if there is a t(n)-time
+                                                n−c n log n
+                                          √ of RKt
+        algorithm that accepts a dense subset               , then the following promise problem can
+        be solved in DTIME(O(t(2s(n)) · 2 s(n) log n )) ∩ coRTIME(O(t(2s(n)))).
+        Yes: strings x such that Kt(x) ≤ s, where s := s(|x|).
+                                  0            √
+        No: strings x such that Kt (x) > s + c0 s log n, where s := s(|x|) and t0 = t(2s) · poly(|x|).
+
+        I Lemma 67 (cf. [31]). For any d, m ≤ n,  > 0, there exists a black-box pseudorandom
+        generator construction Gx : {0, 1}d → {0, 1}m that takes a string x ∈ {0, 1}n and satisfies the
+        following.
+        1. For any -distinguisher T : {0, 1}m → {0, 1} for Gx , it holds that
+
+               Kt,T (x) ≤ exp(`2 /d) · m + d + O(log(n/)),
+
+           where ` = O(log n) and t = poly(n, 1/).
+        2. Gx (z) is computable in time poly(n, 1/).
+S. Hirahara                                                                                    20:39
+
+
+Proof Sketch. The pseudorandom generator construction Gx is defined as Gx (z) :=
+NWEnc(x) (z) for any z ∈ {0, 1}d , where NW is the Nisan–Wigderson generator [53] that is
+instantiated with the weak design of [58] and the function whose truth table is Enc(x) as a
+candidate hard function.                                                                 J
+
+Proof of Theorem 66. Fix n ∈ N and an input x ∈ {0, 1}n . For simplicity, let s := s(n).
+                √
+Define d := s log n. Since s(n) = ω(log2 n), we have 4cd ≤ s for a sufficiently large n.
+Set m√ := s + 4cd ≤ 2s. Let D be the t(n)-time algorithm that accepts a dense subset of
+  n−c n log n
+RKt           .
+    We claim that there exists a coRP-type algorithm A that uses d random bits and solves
+the promise problem. The algorithm A operates as follows. Pick a random seed z ∈ {0, 1}d ,
+and accept if and only if D(Gx (z)) = 0, where the output length of Gx is set to be m. This
+runs in time t(m) + poly(n) ≤ O(t(2s)) and can be derandomized in time O(t(2s)) · 2d by
+exhaustively trying all the random bits.
+    It remains to prove the correctness of the algorithm A. Assume that Kt(x) ≤ s. Then,
+since Gx (z) is computable in polynomial time, for any z ∈ {0, 1}d , we have
+                                                                 √
+   Kt(Gx (z)) ≤ d + s + O(log n) ≤ s + 2d ≤ s + 4cd − 2cd < m − c m log n,
+                                                     √           √
+where, in the last
+              √
+                   inequality, we used the fact that m log n ≤ 2s log n < 2d. Therefore,
+           m−c m log m
+Gx (z) 6∈ RKt          , which is rejected by D; hence, A accepts.
+    Conversely, assume that the probability that A accepts is at least 34 . This means that
+
+                                   3
+      Pr      [D(Gx (z)) = 0] ≥      .
+   z∼{0,1}d                        4
+
+Since we have
+                             1
+         Pr m [D(w) = 0] ≤     ,
+   w∼{0,1}                   2
+
+D is a distinguisher for Gx . By the security of Lemma 67, we obtain that, for t0 :=
+poly(n) · t(m),
+     0
+   Kt (x) ≤ exp(`2 /d) · m + O(log n)
+            ≤ (1 + 2`2 /d) · (s + 4cd) + O(log n)
+                     √
+            ≤ s + O( s log n),
+                                     √
+which can be bounded above by s + c0 s log n by choosing a large enough constant c0 . Thus,
+x is not a No instance of the promise problem. Taking the contrapositive, we conclude that
+any No instance x is rejected by A with probability at least 41 .                        J
+
+   In the special case when t(n) = nO(1) , Theorem 66 implies that the Kt vs Kt problem
+can be solved in coRP.
+
+Proof Sketch of Theorem 15. We claim that the Kt vs Kt problem can be solved in coRP
+under the assumption that MKtP ∈ P. We use the same proof of Theorem 66 for t(n) = nO(1)
+when the parameter s = ω(log2 n); when s = O(log2 n), we set d := `2 and m := O(d)
+as in [31].                                                                           J
+
+
+
+
+                                                                                              CCC 2020
+20:40   Meta-Computational View of PRG Constructions
+
+
+        I Restatement of Theorem 14. For any constant 0 <  < 1, the following are equivalent.
+        1. For some √c1 , for any large c2 , there √exists no derandomization algorithm for
+           DTIME(2c1 n log n ) that runs in time 2n−c2 n log n .
+                                                                                         √
+        2. For some c1 , for any large c2 , there
+                                             √    exists an algorithm running in time 2c1 n log n that
+                                       n−c n log n
+           accepts a dense subset of RKt 2          .
+                                                          √                           √
+        3. For some c1 , for any large c2 , MKtP[n − c2 n log n, n − 1] ∈ DTIME(2c√1 n log n ).
+                                                              √                        
+        4. For some c1 , for any large c2 , MKtP[n , n + c2 n log n] ∈ DTIME(2c1 n log n ).
+
+
+
+        Proof. (Item 1 ⇐⇒ Item 2) This equivalence follows from Proposition           √
+                                                                                           65.
+                                                                                    c1 n log n
+             (Item 2 =⇒ Item 4) We apply√Theorem 66 for t(n) := 2                              and s(n) := n .
+                                                    s log n
+        Then we obtain a DTIME(O(t(2s)) · 2                 )-algorithm A that distinguishes Yes instances
+                                                                              0                √
+        x such that Kt(x) ≤ s from No instances x such that Kt (x) > s + c02 s log n, where
+        t0 = t(2s) ·√poly(n) and √c02 is some constant. We choose a constant c01 large enough so that
+                                 0
+        O(t(2s))·2 s log n ≤ 2c1 s log n , which bounds from above the running time of the algorithm A.
+                                              √
+             We claim that MKtP[s, s + c002 s log n] is also solved by A for any sufficiently large c002 .
+                                                              √                              0
+        Take any string x such that Kt(x) ≥ s + c002 s log n. Since Kt(x) ≤ Kt (x) + O(log t0 ) ≤
+           0             √                           0              √               √                 √
+        Kt (x)+O(c1 s log n), it follows that Kt (x) ≥ s+c002 s log n−O(c1 s log n) > s+c02 s log n,
+        where the last inequality holds for any sufficiently large c002 ; thus, x is rejected by A.
+             (Item 4 =⇒ Item 3) By the assumption, there exists a constant√c1 such that, for
+        all √large c2 , there exists an algorithm A that solves MKtP[n , n + c2 n log n] in time
+               
+        2c1 n log n . Define c01 := c1 /. For all √   large c02 , we construct an algorithm B that solves
+                       0
+                         √                        c01 n log n
+        MKtP[n − c2 n log n, n − 1] in time 2                  . The algorithm B takes an input x of length
+                                                                          √
+        n and simulates √A on input x10m−n−1√
+                                                      for m   :=
+                                                              √
+                                                                  (n − 2c2 n log n)1/ . The running time of
+                                                            0
+        B is at most 2c1 m log m ≤ 2c1 /· m log n = 2c1 m log n .
+             It remains to prove the correctness of B. Take any x ∈ {0, 1}n such that Kt(x) ≤
+                 √                                                        √
+        n − c02 n log n. Then we have Kt(x10m−n−1 ) ≤ n − c02 n log n + O(log n) ≤ m for any
+        large c2 ; thus B accepts x. Conversely, take any x such that Kt(x) ≥ n −           √ 1. Then we have
+                                                         √
+        Kt(x10m−n−1 ) ≥ n − O(log n) = m + 2c2 n log n − O(log n) ≥ m + c2 m log n; thus, B
+        rejects.
+             (Item 3 =⇒ Item 2) This immediately follows from           √
+                                                                           the fact that the complement of
+                         √                                          n−c n log n+1
+        MKtP[n − c2 n log n, n − 1] is a dense subset of RKt 2                    .                        J
+
+
+              References
+         1    Leonard M. Adleman. Two Theorems on Random Polynomial Time. In FOCS, pages 75–83,
+              1978. doi:10.1109/SFCS.1978.37.
+         2    Eric Allender, Harry Buhrman, Michal Koucký, Dieter van Melkebeek, and Detlef Ronneburger.
+              Power from Random Strings. SIAM J. Comput., 35(6):1467–1493, 2006. doi:10.1137/
+              050628994.
+         3    Eric Allender, Lisa Hellerstein, Paul McCabe, Toniann Pitassi, and Michael E. Saks. Minimizing
+              Disjunctive Normal Form Formulas and AC0 Circuits Given a Truth Table. SIAM J. Comput.,
+              38(1):63–84, 2008. doi:10.1137/060664537.
+         4    Eric Allender and Shuichi Hirahara. New Insights on the (Non-)Hardness of Circuit Minimiza-
+              tion and Related Problems. In MFCS, pages 54:1–54:14, 2017. doi:10.4230/LIPIcs.MFCS.
+              2017.54.
+         5    Eric Allender and Shuichi Hirahara. New Insights on the (Non-)Hardness of Circuit Minimiza-
+              tion and Related Problems. TOCT, 11(4):27:1–27:27, 2019. doi:10.1145/3349616.
+         6    Eric Allender and Michal Koucký. Amplifying lower bounds by means of self-reducibility. J.
+              ACM, 57(3):14:1–14:36, 2010. doi:10.1145/1706591.1706594.
+S. Hirahara                                                                                           20:41
+
+
+ 7   László Babai, Lance Fortnow, Noam Nisan, and Avi Wigderson. BPP Has Subexponential
+     Time Simulations Unless EXPTIME has Publishable Proofs. Computational Complexity,
+     3:307–318, 1993. doi:10.1007/BF01275486.
+ 8   Manuel Blum and Silvio Micali. How to Generate Cryptographically Strong Sequences of
+     Pseudo-Random Bits. SIAM J. Comput., 13(4):850–864, 1984. doi:10.1137/0213053.
+ 9   Andrej Bogdanov and Luca Trevisan. On Worst-Case to Average-Case Reductions for NP
+     Problems. SIAM J. Comput., 36(4):1119–1159, 2006. doi:10.1137/S0097539705446974.
+10   Allan Borodin, Alexander A. Razborov, and Roman Smolensky. On Lower Bounds for
+     Read-K-Times Branching Programs. Computational Complexity, 3:1–18, 1993. doi:10.1007/
+     BF01200404.
+11   Harry Buhrman, Lance Fortnow, and Aduri Pavan. Some Results on Derandomization. Theory
+     Comput. Syst., 38(2):211–227, 2005. doi:10.1007/s00224-004-1194-y.
+12   Harry Buhrman and Steven Homer. Superpolynomial Circuits, Almost Sparse Oracles and the
+     Exponential Hierarchy. In FSTTCS, pages 116–127, 1992. doi:10.1007/3-540-56287-7_99.
+13   Marco L. Carmosino, Russell Impagliazzo, Valentine Kabanets, and Antonina Kolokolova.
+     Learning Algorithms from Natural Proofs. In CCC, pages 10:1–10:24, 2016. doi:10.4230/
+     LIPIcs.CCC.2016.10.
+14   Lijie Chen, Shuichi Hirahara, Igor Carboni Oliveira, Ján Pich, Ninad Rajgopal, and Rahul
+     Santhanam. Beyond Natural Proofs: Hardness Magnification and Locality. In ITCS, pages
+     70:1–70:48, 2020. doi:10.4230/LIPIcs.ITCS.2020.70.
+15   Lijie Chen, Ce Jin, and R. Ryan Williams. Hardness Magnification for all Sparse NP Languages.
+     In FOCS, pages 1240–1255, 2019. doi:10.1109/FOCS.2019.00077.
+16   Mahdi Cheraghchi, Shuichi Hirahara, Dimitrios Myrisiotis, and Yuichi Yoshida. One-Tape
+     Turing Machine and Branching Program Lower Bounds for MCSP. manuscript, 2020.
+17   Mahdi Cheraghchi, Valentine Kabanets, Zhenjian Lu, and Dimitrios Myrisiotis. Circuit Lower
+     Bounds for MCSP from Local Pseudorandom Generators. In ICALP, pages 39:1–39:14, 2019.
+     doi:10.4230/LIPIcs.ICALP.2019.39.
+18   Shimon Even, Alan L. Selman, and Yacov Yacobi. The Complexity of Promise Problems with
+     Applications to Public-Key Cryptography. Information and Control, 61(2):159–173, 1984.
+     doi:10.1016/S0019-9958(84)80056-X.
+19   Joan Feigenbaum and Lance Fortnow. Random-Self-Reducibility of Complete Sets. SIAM J.
+     Comput., 22(5):994–1005, 1993. doi:10.1137/0222061.
+20   Magnus Gausdal Find, Alexander Golovnev, Edward A. Hirsch, and Alexander S. Kulikov. A
+     Better-Than-3n Lower Bound for the Circuit Complexity of an Explicit Function. In FOCS,
+     pages 89–98, 2016. doi:10.1109/FOCS.2016.19.
+21   Michael A. Forbes and Zander Kelley. Pseudorandom Generators for Read-Once Branching
+     Programs, in Any Order. In FOCS, pages 946–955, 2018. doi:10.1109/FOCS.2018.00093.
+22   Lance Fortnow. Comparing Notions of Full Derandomization. In CCC, pages 28–34, 2001.
+     doi:10.1109/CCC.2001.933869.
+23   Oded Goldreich. On Promise Problems: A Survey. In Theoretical Computer Science, Essays
+     in Memory of Shimon Even, pages 254–290, 2006. doi:10.1007/11685654_12.
+24   Oded Goldreich. A Sample of Samplers: A Computational Perspective on Sampling. In
+     Studies in Complexity and Cryptography. Miscellanea on the Interplay between Randomness
+     and Computation, pages 302–332. Springer, 2011. doi:10.1007/978-3-642-22670-0_24.
+25   Oded Goldreich, Shafi Goldwasser, and Silvio Micali. How to construct random functions. J.
+     ACM, 33(4):792–807, 1986. doi:10.1145/6490.6503.
+26   Oded Goldreich and Avi Wigderson. On the Size of Depth-Three Boolean Circuits for
+     Computing Multilinear Functions. Electronic Colloquium on Computational Complexity
+     (ECCC), 20:43, 2013. URL: http://eccc.hpi-web.de/report/2013/043.
+27   Oded Goldreich and Avi Wigderson. On derandomizing algorithms that err extremely rarely.
+     In STOC, pages 109–118, 2014. doi:10.1145/2591796.2591808.
+28   Johan Håstad. Computational limitations of small-depth circuits. PhD thesis, MIT, 1986.
+
+
+
+
+                                                                                                     CCC 2020
+20:42   Meta-Computational View of PRG Constructions
+
+
+        29   Johan Håstad, Russell Impagliazzo, Leonid A. Levin, and Michael Luby. A Pseudorandom
+             Generator from any One-way Function. SIAM J. Comput., 28(4):1364–1396, 1999. doi:
+             10.1137/S0097539793244708.
+        30   Alexander Healy, Salil P. Vadhan, and Emanuele Viola. Using Nondeterminism to Amplify
+             Hardness. SIAM J. Comput., 35(4):903–931, 2006. doi:10.1137/S0097539705447281.
+        31   Shuichi Hirahara. Non-black-box Worst-case to Average-case Reductions within NP. In FOCS,
+             pages 247–258, 2018.
+        32   Shuichi Hirahara. Unexpected Hardness Results for Kolmogorov Complexity Under Uniform
+             Reductions. To appear in STOC’20, 2020.
+        33   Shuichi Hirahara, Igor Carboni Oliveira, and Rahul Santhanam. NP-hardness of Minimum
+             Circuit Size Problem for OR-AND-MOD Circuits. In CCC, pages 5:1–5:31, 2018. doi:
+             10.4230/LIPIcs.CCC.2018.5.
+        34   Shuichi Hirahara and Rahul Santhanam. On the Average-Case Complexity of MCSP and Its
+             Variants. In CCC, pages 7:1–7:20, 2017. doi:10.4230/LIPIcs.CCC.2017.7.
+        35   Shuichi Hirahara and Osamu Watanabe. Limits of Minimum Circuit Size Problem as Oracle.
+             In CCC, pages 18:1–18:20, 2016. doi:10.4230/LIPIcs.CCC.2016.18.
+        36   John M. Hitchcock and Aduri Pavan. On the NP-Completeness of the Minimum Circuit Size
+             Problem. In FSTTCS, pages 236–245, 2015. doi:10.4230/LIPIcs.FSTTCS.2015.236.
+        37   Russell Impagliazzo. A Personal View of Average-Case Complexity. In Proceedings of the
+             Structure in Complexity Theory Conference, pages 134–147, 1995. doi:10.1109/SCT.1995.
+             514853.
+        38   Russell Impagliazzo. Hard-Core Distributions for Somewhat Hard Problems. In FOCS, pages
+             538–545, 1995. doi:10.1109/SFCS.1995.492584.
+        39   Russell Impagliazzo. Relativized Separations of Worst-Case and Average-Case Complexities
+             for NP. In CCC, pages 104–114, 2011. doi:10.1109/CCC.2011.34.
+        40   Russell Impagliazzo and Avi Wigderson. P = BPP if E Requires Exponential Circuits:
+             Derandomizing the XOR Lemma. In STOC, pages 220–229, 1997. doi:10.1145/258533.
+             258590.
+        41   Valentine Kabanets and Jin-yi Cai. Circuit minimization problem. In STOC, pages 73–79,
+             2000. doi:10.1145/335305.335314.
+        42   Richard M. Karp and Richard J. Lipton. Turing machines that take advice. L’Enseignement
+             Mathématique, 28:191–209, 1982.
+        43   Adam R. Klivans and Rocco A. Servedio. Boosting and Hard-Core Set Construction. Machine
+             Learning, 51(3):217–238, 2003. doi:10.1023/A:1022949332276.
+        44   Adam R. Klivans and Dieter van Melkebeek. Graph Nonisomorphism Has Subexponential Size
+             Proofs Unless the Polynomial-Time Hierarchy Collapses. SIAM J. Comput., 31(5):1501–1526,
+             2002. doi:10.1137/S0097539700389652.
+        45   Ker-I Ko. On the Complexity of Learning Minimum Time-Bounded Turing Machines. SIAM
+             J. Comput., 20(5):962–986, 1991. doi:10.1137/0220059.
+        46   Ravi Kumar and D. Sivakumar. Proofs, Codes, and Polynomial-Time Reducibilities. In CCC,
+             pages 46–53, 1999. doi:10.1109/CCC.1999.766261.
+        47   Leonid A. Levin. Randomness Conservation Inequalities; Information and Independence
+             in Mathematical Theories. Information and Control, 61(1):15–37, 1984. doi:10.1016/
+             S0019-9958(84)80060-1.
+        48   Leonid A. Levin. Average Case Complete Problems. SIAM J. Comput., 15(1):285–286, 1986.
+             doi:10.1137/0215020.
+        49   William J Masek. Some NP-complete set covering problems. Unpublished manuscript, 1979.
+        50   Dylan M. McKay, Cody D. Murray, and R. Ryan Williams. Weak lower bounds on resource-
+             bounded compression imply strong separations of complexity classes. In STOC, pages 1215–
+             1225, 2019. doi:10.1145/3313276.3316396.
+        51   Cody D. Murray and R. Ryan Williams. On the (Non) NP-Hardness of Computing Circuit
+             Complexity. Theory of Computing, 13(1):1–22, 2017. doi:10.4086/toc.2017.v013a004.
+S. Hirahara                                                                                          20:43
+
+
+52   Noam Nisan. Pseudorandom generators for space-bounded computation. Combinatorica,
+     12(4):449–461, 1992. doi:10.1007/BF01305237.
+53   Noam Nisan and Avi Wigderson. Hardness vs Randomness. J. Comput. Syst. Sci., 49(2):149–
+     167, 1994. doi:10.1016/S0022-0000(05)80043-1.
+54   Igor Carboni Oliveira, Ján Pich, and Rahul Santhanam. Hardness Magnification near State-Of-
+     The-Art Lower Bounds. In CCC, pages 27:1–27:29, 2019. doi:10.4230/LIPIcs.CCC.2019.27.
+55   Igor Carboni Oliveira and Rahul Santhanam. Hardness Magnification for Natural Problems.
+     In FOCS, pages 65–76, 2018.
+56   Rafail Ostrovsky. One-Way Functions, Hard on Average Problems, and Statistical Zero-
+     Knowledge Proofs. In Proceedings of the Structure in Complexity Theory Conference, pages
+     133–138, 1991. doi:10.1109/SCT.1991.160253.
+57   Aduri Pavan, Rahul Santhanam, and N. V. Vinodchandran. Some Results on Average-
+     Case Hardness Within the Polynomial Hierarchy. In FSTTCS, pages 188–199, 2006. doi:
+     10.1007/11944836_19.
+58   Ran Raz, Omer Reingold, and Salil P. Vadhan. Extracting all the Randomness and Reducing
+     the Error in Trevisan’s Extractors. J. Comput. Syst. Sci., 65(1):97–128, 2002. doi:10.1006/
+     jcss.2002.1824.
+59   Alexander Razborov. Lower bounds on the size of bounded depth circuits over a complete
+     basis with logical addition. Mathematical notes of the Academy of Sciences of the USSR,
+     41(4):333–338, 1987. doi:10.1007/BF01137685.
+60   Alexander A. Razborov and Steven Rudich. Natural Proofs. J. Comput. Syst. Sci., 55(1):24–35,
+     1997. doi:10.1006/jcss.1997.1494.
+61   Ronen Shaltiel and Emanuele Viola. Hardness Amplification Proofs Require Majority. SIAM
+     J. Comput., 39(7):3122–3154, 2010. doi:10.1137/080735096.
+62   Madhu Sudan. Decoding of Reed Solomon Codes beyond the Error-Correction Bound. J.
+     Complexity, 13(1):180–193, 1997. doi:10.1006/jcom.1997.0439.
+63   Madhu Sudan, Luca Trevisan, and Salil P. Vadhan. Pseudorandom Generators without the
+     XOR Lemma. J. Comput. Syst. Sci., 62(2):236–266, 2001. doi:10.1006/jcss.2000.1730.
+64   Boris A. Trakhtenbrot. A Survey of Russian Approaches to Perebor (Brute-Force Searches)
+     Algorithms. IEEE Annals of the History of Computing, 6(4):384–400, 1984. doi:10.1109/
+     MAHC.1984.10036.
+65   Luca Trevisan. List-Decoding Using The XOR Lemma. In FOCS, pages 126–135, 2003.
+     doi:10.1109/SFCS.2003.1238187.
+66   Luca Trevisan and Salil P. Vadhan. Pseudorandomness and Average-Case Complexity
+     Via Uniform Reductions. Computational Complexity, 16(4):331–364, 2007. doi:10.1007/
+     s00037-007-0233-x.
+67   Luca Trevisan and Tongke Xue. A Derandomized Switching Lemma and an Improved
+     Derandomization of AC0. In CCC, pages 242–247, 2013. doi:10.1109/CCC.2013.32.
+68   Salil P. Vadhan. An Unconditional Study of Computational Zero Knowledge. SIAM J. Comput.,
+     36(4):1160–1214, 2006. doi:10.1137/S0097539705447207.
+69   Salil P. Vadhan. Pseudorandomness. Foundations and Trends in Theoretical Computer Science,
+     7(1-3):1–336, 2012. doi:10.1561/0400000010.
+70   Leslie G. Valiant and Vijay V. Vazirani. NP is as Easy as Detecting Unique Solutions. Theor.
+     Comput. Sci., 47(3):85–93, 1986. doi:10.1016/0304-3975(86)90135-0.
+71   Emanuele Viola. The complexity of constructing pseudorandom generators from hard functions.
+     Computational Complexity, 13(3-4):147–188, 2005. doi:10.1007/s00037-004-0187-1.
+72   Andrew Chi-Chih Yao. Theory and Applications of Trapdoor Functions (Extended Abstract).
+     In FOCS, pages 80–91, 1982. doi:10.1109/SFCS.1982.45.
+73   Sergey Yekhanin. Locally Decodable Codes. Foundations and Trends in Theoretical Computer
+     Science, 6(3):139–255, 2012. doi:10.1561/0400000030.
+
+
+
+
+                                                                                                    CCC 2020
+20:44   Meta-Computational View of PRG Constructions
+
+
+         A       Derandomized Hardness Amplification Theorem
+        We review a simplified proof of derandomized hardness amplification given by Healy, Vadhan
+        and Viola [30], and observe that the parameter shown in Theorem 56 can be achieved by
+        slightly modifying the construction.
+        ITheorem 56 (Derandomized hardness amplification). Let γ > 0 be an arbitrary constant.
+        There exists a hardness amplification procedure Amp that takes a function f : {0, 1}n → {0, 1}
+        and parameters δ,  > 0, and returns a Boolean function Ampf,δ : {0, 1}O(n+log(1/)) → {0, 1}
+        satisfying the following:
+        1. If sgize(Ampf,δ ; 1/2 − ) ≤ s, then sg
+                                                  ize(f ; δ) ≤ s · poly(1/, 1/δ).
+        2. For any fixed y ∈ {0, 1}O(n+log(1/)) , there exist strings v1 , · · · , vk ∈ {0, 1}n for some
+            k = O(log(1/)/δ) such that Ampf,δ (y) = f (v1 ) ⊕ · · · ⊕ f (vk ). Moreover, if y is distributed
+            uniformly at random, for each i ∈ [k], vi is distributed uniformly at random.
+        3. Ampf,δ (y) can be computed in O(n + log(1/δ) + log(1/)) space, given f, y,  and δ as an
+            input.
+
+            First, we explain the construction of our hardness amplification procedure. The construc-
+        tion is a XOR of the nearly disjoint generator ND and a hitter Hit (cf. [24]). In fact, we need
+        a slightly generalized version of a hitter, for which we show that the same construction of [24]
+        suffices. We note that in the previous works [40, 30], an expander walk was used instead of
+        Hit; this does not give us a nearly optimal construction of a hitter when δ is not a constant.
+        I Lemma 68. There exists a “hitter” Hit such that, given parameters n ∈ N, , δ > 0, a
+        function Hitn,,δ : {0, 1}O(n+log(1/)) → ({0, 1}n )kn,,δ takes a seed of length O(n + log(1/))
+        and outputs a list L of kn,,δ = O(log(1/)/δ) strings of length n such that, for any subsets
+        H1 , · · · , Hkn,,δ ⊆ {0, 1}n of size ≥ δ2n , with probability at least 1 − , there exists an index
+        i ∈ [kn,,δ ] such that the ith string in the list L is in Hi . Moreover, KS(L) ≤ O(n + log(1/)).
+        Proof Sketch. We observe that the construction of [24, Appendix C] satisfies the requirement
+        of Lemma 68. The construction is as follows: First, we take a pairwise independent generator
+        G2 : {0, 1}O(n) → ({0, 1}n )O(1/δ) . By Chebyshev’s inequality, with probability at least 12 over
+        the choice of a seed r ∈ {0, 1}O(n) , G2 hits some Hi , · · · , Hi+O(1/δ) , where i is an arbitrary
+        index. Now we take an explicit construction of a constant-degree expander on 2O(n) vertices,
+        and generate a random walk v1 , · · · , v` of length ` = O(log(1/)) over {0, 1}O(n) , which takes
+        random bits of length O(n + log(1/)). The output of Hit is defined as the concatenation of
+        G2 (v1 ), · · · , G2 (v` ). The correctness follows by using the Expander Random Walk Theorem
+        [24, Theorem A.4].                                                                               J
+
+        I Definition 69. Let f be a function f : {0, 1}n → {0, 1}, and , δ > 0 be arbitrary para-
+        meters. Let k := kn,,δ . Let ND : {0, 1}O(n) → ({0, 1}n )k be the nearly disjoint generator
+        (Definition 49) defined with the design of Lemma 48. We define a generator
+             IWn,,δ : {0, 1}O(n+log(1/)) → ({0, 1}n )k
+        as
+             IWn,,δ (x, y) := ND(x) ⊕ Hit(y).
+        Then we define a hardness amplified version
+             Ampf,δ : {0, 1}O(n+log(1/)) → {0, 1}
+
+        of f as the function Ampf,δ := f ⊕k ◦ IWn,,δ .
+S. Hirahara                                                                                         20:45
+
+
+    We proceed to a proof of Theorem 56. Recall several notions from [30]. For a subset
+H ⊆ {0, 1}n (which is supposed to be a hard-core set) and a function f : {0, 1}n → {0, 1},
+we consider a probabilistic function fH : {0, 1}n → {0, 1}, i.e., a distribution over a Boolean
+function, defined as follows: For each x ∈ H, the value fH (x) is defined as a random bit
+chosen uniformly at random and independently; For each x ∈ {0, 1}n \ H, the value fH (x) is
+defined as f (x). Assuming that H is indeed a hard-core set for f , the distributions (x, f (x))
+and (x, fH (x)) where x ∼ {0, 1}n are computationally indistinguishable. Indeed:
+I Proposition 70 (cf. [65]). Let H ⊆ {0, 1}n be an arbitrary subset, f : {0, 1}n → {0, 1} be
+an arbitrary function, and  > 0 be an arbitrary parameter. If
+      Pr      [A(x, f (x)) = 1] −     Pr       [A(x, fH (x)) = 1] ≥ ,
+   x∼{0,1}n                         x∼{0,1}n
+
+for some function A : {0, 1}n+1 → {0, 1}, then there exists a one-query oracle circuit of size
+O(1) such that
+                          1    
+    Pr [C A (x) = f (x)] ≥  + .
+   x∼H                    2 δ
+   For a probabilistic function h : {0, 1}n → {0, 1}, the expected bias of h is defined as
+   ExpBias[h] :=        E       [Bias(h(x))],
+                     x∼{0,1}n
+
+where Bias(h(x)) is defined as |Prh [h(x) = 0] − Prh [h(x) = 1]|. It was shown in [30] that the
+                                                                                      ⊕k
+hardness of f ⊕k ◦ G(z) is essentially characterized by the expected bias of ExpBias[fH  ◦ IW],
+using a property of the nearly disjoint generator ND.
+I Lemma 71 ([30, Lemma 5.2 and Lemma 5.12]). Let g be an arbitrary probabilistic function,
+and  > 0 be arbitrary parameters. Suppose that there exists a function A such that
+                                 1 1                       
+   Pr[A(z) = f ⊕k ◦ IW(z)] ≥ + ExpBias[g ⊕k ◦ IW] +
+    z                            2 2                       2
+Then there exists a one-query oracle circuit C of size O(k · 2γn ) such that
+                                        
+   E[C A (x, f (x)) − C A (x, g(x))] ≥    ,
+   x                                   2k
+where γ > 0 is an arbitrary constant of Lemma 48.
+   We will apply Lemma 71 for g := fH . By using a property of the hitter, we show that
+the expected bias of fH is small whenever a hard-core set H is large enough.
+I Lemma 72. Let , δ > 0 be arbitrary parameters, and H ⊆ {0, 1}n be a subset of size at
+                                            ⊕k
+least δ2n . Let k := kn,,δ . Then ExpBias[fH  ◦ IWn,,δ ] ≤ 
+Proof. The idea is that when a hitter hits a hard-core set H, the expected bias becomes
+0. More specifically, recall that IW(x, y) is defined as ND(x) ⊕ Hitn,,δ (y). Fix any x, and
+define Hi as a shifted version of H: namely, Hi := ND(x)i ⊕ H := { ND(x)i ⊕ h | h ∈ H }
+for every i ∈ [k]. We apply Lemma 68 for H1 , · · · , Hk . Since |Hi | = |H| ≥ δ2n for
+every i ∈ [k], by the property of the hitter, there exists some index i ∈ [k] such that
+Hitn,,δ (y)i ∈ Hi = ND(x)i ⊕ H with probability at least 1 −  over the choice of y. In this
+case, IWn,,δ (x, y)i = ND(x)i ⊕ Hitn,,δ (y)i ∈ H, and hence the bias of fH (IWn,,δ (x, y)) is
+exactly 0. Therefore,
+              ⊕k
+     ExpBias[fH  ◦ IWn,,δ ]
+              ⊕k
+                                 
+   = Pr Bias(fH ◦ IWn,,δ (x, y))
+      x,y
+
+   ≤ Pr [ IWn,,δ (x, y)i 6∈ H for every i ∈ [k] ] ≤                                         J
+      x,y
+
+
+
+
+                                                                                                   CCC 2020
+20:46   Meta-Computational View of PRG Constructions
+
+
+             Now we combine Proposition 70 and Lemmas 71 and 72 and obtain the following:
+
+        I Corollary 73. Let n ∈ N and , δ > 0. Let H ⊆ {0, 1}n be an arbitrary subset of size at
+        least δ2n . If some function A satisfies
+                                                   1
+             Pr[A(z) = f ⊕k ◦ IWn,,δ (z)] ≥         +
+             z                                     2
+        then there exists a one-query oracle circuit C of size O(k · 2γn ) such that,
+                                        1   
+             Pr [C A (x) = f (x)] ≥       +   .
+             x∼H                        2 2δk
+           At this point, we make use of Impagliazzo’s hard-core lemma [37]. Equivalently, one can
+        view it as a boosting algorithm (cf. [43]).
+
+        I Lemma 74 (cf. [37, 43]). Under the condition of Corollary 73, there exists an oracle circuit
+        C of size O(k · 2γn ) · poly(k/) such that
+
+                 Pr     [C A (x) = f (x)] ≥ 1 − δ.
+             x∼{0,1}n
+
+             Now we take any circuit A of size s such that
+                                          1
+             Pr[A(z) = Ampf,δ (z)] ≥       + .
+             z                            2
+        By using Corollary 73 and Lemma 74 and replacing each oracle gate by a circuit A, we obtain
+        a circuit C of size O(k · 2γn ) · poly(k/) · s such that
+
+                 Pr     [C(x) = f (x)] ≥ 1 − δ.
+             x∼{0,1}n
+
+        This completes the proof of Theorem 56.
+
+         B       AC0 Lower Bounds for MKtP
+        In this section, we prove that there exists no constant-depth fixed-polynomial-size circuit that
+        computes MKtP[O(log N ), N o(1) ] (Proposition 12). Previously, [14] used the pseudorandom
+        restriction of Trevisan and Xue [67] to obtain AC0 lower bounds for MKtP[polylogN ]. Here
+        we make use of a polynomial-time-computable pseudorandom restriction that shrinks AC0
+        circuits, which enables us to prove a lower bound for MKtP[O(log N )]. The following lemma
+        is proved in the context of quantified derandomization.
+
+        I Lemma 75 (Goldreich and Wigderson [27]). For any constants α < 1 and d ∈ N and
+        any polynomials p, q, there exists a constant k and a polynomial-time algorithm of O(log n)
+        randomness complexity that produces restrictions on n variables such that the following
+        conditions hold:
+         1. The number of undetermined variables in each restriction is at least 2nα .
+         2. For any n-input circuit of depth d and size at most p(n), with probability at least 1−1/q(n),
+            the corresponding restricted circuit depends on at most k variables.
+
+        Proof of Proposition 12. Fix any polynomial p and a depth d. We claim that, for some
+        constant c > 0, there exists no depth-d circuit of size p(n) that computes MKtP[c log n, nα ]
+        for all large n. Assume, towards a contradiction, that there exists a depth-d circuit C of size
+        p(n) that computes MKtP[c log n, nα ]. We use Lemma 75 for q ≡ 2. Then, there exists a
+S. Hirahara                                                                                         20:47
+
+
+polynomial-time algorithm that produces a pseudorandom restriction ρ that shrinks C to a
+circuit of size k = O(1) with probability at least 12 . Fix one pseudorandom restriction ρ such
+that the restricted circuit Cρ is a constant-size circuit.
+    We claim that C does not compute MKtP[c log n, nα ]. Let σ be the restriction that fixes
+k variables on which Cρ depend to 0. Consider 0n ◦ ρ = 0n ◦ σ ◦ ρ, i.e., the string obtained by
+fixing undetermined variables in ρ to 0. Since ρ is generated by a polynomial-time algorithm,
+there exists a constant c such that Kt(0n ◦ ρ) ≤ c log n. Thus, 0n ◦ σ ◦ ρ is a Yes instance of
+MKtP[c log n, nα ]. Since Cσ◦ρ is a constant circuit, we have 1 = Cσ◦ρ (0n ) = Cσ◦ρ (x) for
+any x ∈ {0, 1}n . However, for a random x ∈ {0, 1}n , by a simple counting argument, it holds
+that Kt(x ◦ σ ◦ ρ) ≥ 2nα − k − 1 > nα with high probability. Therefore, x ◦ σ ◦ ρ is a No
+instance of MKtP[c log n, nα ] for some x, which is a contradiction.                          J
+
+
+
+
+                                                                                                   CCC 2020
+

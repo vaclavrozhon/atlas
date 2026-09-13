@@ -1,0 +1,1561 @@
+                                                Regret–Oracle Complexity Tradeoffs in Agnostic Online
+                                                                     Learning
+                                                            Idan Attias *          Steve Hanneke†              Arvind Ramaswami‡
+
+                                                                                         May 11, 2026
+
+
+                                                                                             Abstract
+arXiv:2605.07155v1 [cs.LG] 8 May 2026
+
+
+
+
+                                                   Agnostic online learning is classically solved via a reduction to the realizable setting, utilizing
+                                               Littlestone’s Standard Optimal Algorithm (SOA) as a base learner. However, the SOA is compu-
+                                               tationally intractable to execute even for a single round. To overcome this barrier, recent work in
+                                               oracle-efﬁcient online learning replaces the SOA with a realizable base learner that accesses the
+                                               concept class exclusively through an ofﬂine empirical risk minimization (ERM) oracle. While such
+                                               agnostic learners achieve near-optimal expected regret, they suffer from a doubly-exponential ora-
+                                                                          O(d )
+                                               cle complexity of O T 2 LD , where dLD is the Littlestone dimension and T is the number of
+                                               rounds. In this work, we signiﬁcantly improve this oracle complexity while relying on an even
+                                               weaker primitive: a weak-consistency oracle, which merely decides whether a given labeled dataset
+                                               is realizable. At the core of our approach is an adaptive and dynamic agnostic-to-realizable reduc-
+                                               tion that actively prunes non-realizable label sequences on the ﬂy. By using the VC dimension (dVC )
+                                               to bound the number of dynamically maintained active paths, our algorithm reduces the total query
+                                               complexity down to O(T dVC +1 ) while perfectly preserving near-optimal expected regret. Crucially,
+                                               this dynamic pruning also yields a memory reduction over the standard reduction. Furthermore, we
+                                               formally quantify the regret–oracle complexity tradeoff, providing upper bounds that smoothly inter-
+                                               polate between restricted query budgets and attainable expected√ regret. We complement these with
+                                               lower bounds proving that any learner restricted to Q = o( T ) queries must suffer an expected
+                                               regret of Ω(T /Q).
+
+
+                                        1 Introduction
+                                        Online learning is a fundamental framework for sequential prediction. On each round, the learner ob-
+                                        serves an instance, predicts a label, and then observes the true label, incurring a loss. The primary goal
+                                        is to minimize regret: the learner’s excess cumulative loss relative to the best concept in the class in hind-
+                                        sight [CBL06, SS+ 12, MRT12, SSBD14]. This framework captures a broad range of learning problems
+                                        and has become a central tool in optimization, game theory, and sequential decision-making.
+                                             A growing line of work investigates whether online learning can be implemented efﬁciently using
+                                        only ofﬂine optimization primitives. Ofﬂine-oracle models have successfully yielded computationally
+                                        efﬁcient algorithms across a broad range of decision-making problems [KV05, DHK+ 11, AHK+ 14,
+                                        SKS16, HK16, FR20, DHL+ 20, SLX22, HHSY22, HRS24, BRS24]. In such models, the learner does
+                                        not manipulate the concept class directly; instead, it interacts with the class through an oracle, typically
+                                        an empirical risk minimization (ERM) oracle. This perspective is particularly natural, as ERM is the
+                                        foundational optimization primitive underlying much of statistical learning1 .
+                                             We focus on standard binary online classiﬁcation with the 0-1 loss over a general, possibly inﬁnite,
+                                        concept class C. In the realizable setting, Littlestone’s Standard Optimal Algorithm (SOA) perfectly
+                                           * Institutefor Data, Econometrics, Algorithms, and Learning (IDEAL), hosted               by   UIC    and     TTIC;
+                                        idanattias88@gmail.com.
+                                          †
+                                            Department of Computer Science, Purdue University; steve.hanneke@gmail.com.
+                                          ‡
+                                            Department of Computer Science, Purdue University; ramaswa4@purdue.edu.
+                                          1
+                                            For a comprehensive literature review, see Section A.
+
+
+                                                                                                 1
+characterizes online learnability via the Littlestone dimension, dLD [Lit88]. In the agnostic setting,
+   √ the sequence of labels may be arbitrary, Ben-David et al. [BDPSS09] established a regret bound of
+where
+O( T dLD log T ) by reducing the agnostic problem to the realizable one using the SOA as a subroutine,
+where√T is the number of rounds. Alon et al. [ABED+ 21] later proved a tight optimal regret bound
+of O( T dLD ), highlighting the fact that the Littlestone dimension deﬁnitively characterizes agnostic
+online learnability.
+     While these algorithms achieve optimal regret, they are computationally intractable in general. Exe-
+cuting the SOA requires repeatedly computing the Littlestone dimension of restricted subclasses, a task
+known to be intractable to approximate within a constant factor even when the concept class and the
+set of features are ﬁnite [FL98, MR17, Man22]. Moreover, Hasrati and Ben-David [HBD23] demon-
+strated that there exist recursively enumerable representable classes with a ﬁnite Littlestone dimension
+for which no computable SOA exists at all. This computational barrier motivates the oracle-efﬁcient
+framework formalized by Assos et al. [AAD+ 23] and Kozachinskiy and Steifer [KS24]. In this model,
+the online learner accesses the concept class exclusively through an ofﬂine ERM oracle: given a labeled
+dataset, the oracle returns a concept minimizing the empirical error.
+     The central question is therefore: What regret is achievable in agnostic online learning when the
+learner is restricted to ofﬂine oracle access, and how many oracle calls are necessary? In the realizable
+setting, an exponential mistake bound in dLD is attainable using ERM access, and such an exponential
+dependence is unavoidable for ERM oracles [AAD+ 23, AHR25,   √      KS24]. Translating this to the agnostic
+setting, prior reductions achieve near-optimal regret Õ T · 2 LD ) , but suffer from a staggering
+                                                                    O(d
+                                     O(d  )
+oracle query complexity of O T 2 LD . While originally analyzed with a full ERM oracle, the core
+mechanisms of these reductions can be adapted to use a weak consistency oracle2 [AHR25]. This weaker
+primitive merely decides whether a labeled sample is realizable (i.e., it solves a decision problem rather
+than an optimization one), and has recently been shown to sufﬁce for efﬁcient PAC learning without
+requiring the full power of ERM [DG24].
+     Our work demonstrates that this doubly-exponential oracle complexity is not inherent. The key
+structural observation is that standard agnostic-to-realizable reduction obliviously maintains a multitude
+of pseudo-label histories that are strictly impossible for the underlying class C to produce. To overcome
+this, we introduce an adaptive and dynamic reduction that continuously issues weak-consistency queries
+to prune unrealizable histories the exact moment they arise. By Sauer’s Lemma, the number of realizable
+labelings of the ﬁrst t observed instances is strictly bounded by O(tdVC ), where dVC is the VC dimension.
+This shows that while the Littlestone dimension dictates the information-theoretic price (regret) of online
+classiﬁcation, it does not dictate the computational cost, which can be bounded by an arbitrarily smaller
+quantity: the VC dimension.
+
+Our Contributions. We summarize our main contributions in Figure 1, mapping the Pareto frontier
+between the total number of weak-consistency oracle (Deﬁnition 2.1) queries and the attainable expected
+regret, compared to previously known results. Our technical contributions are as follows:
+1. A general agnostic-to-realizable reduction via dynamic pruning (Section 4). We design a novel
+   reduction (Algorithm 2) that seamlessly wraps any deterministic realizable base learner having a
+   mistake bound M . Instead of suffering the computational blowup caused by explicitly maintaining
+   all possible mistake schedules O(T M ) [BDPSS09], our dynamic-pruning mechanism reduces the
+   active state space, maintaining at most O(tdVC ) active paths per round t. This structural improvement
+   yields three immediate consequences:
+
+                                                                                √ learners (M =
+    • Total Oracle Efﬁciency: When instantiated with existing oracle-efﬁcient base
+      2O(dLD ) ), our reduction matches their near-optimal expected regret of Õ T · 2O(dLD ) . Cru-
+                                                               O(d  )
+      cially, it improves the total query complexity from O T 2 LD required by prior work down to
+   2
+     In [AHR25], the algorithm relying on a weak consistency oracle is proven for the realizable case but can be adapted to the
+agnostic setting as well.
+
+
+
+                                                              2
+           just O(T dVC +1 ). Since dVC ≤ dLD (and can be arbitrarily smaller), this constitutes an exponential
+           to double-exponential reduction in dimension dependence.
+       • Improved Memory Bound: Even independently of oracle restrictions, when wrapping the √     Standard
+         Optimal Algorithm (M = dLD ), our reduction achieves the minimax optimal regret of Õ( T dLD ).
+         While the standard reduction must explicitly track a tree of O(T dLD ) experts, our active pruning
+         compresses the memory by maintaining only O(tdVC ) paths per round t.
+       • Instance-Dependent Bound: By adaptively tuning the learning rate  √ based on the empirically  best
+         active path, we achieve a ﬁrst-order expected regret bound of O L∗ M log T + M log T , where
+         L∗ is the true optimal loss in hindsight. This interpolates between the fully adversarial regime and
+         the realizable setting.
+2. The regret–query tradeoff (Section 4.1). We formally map the tradeoff between the available ora-
+   cle query budget and the attainable expected regret. We prove that for any interpolation parameter
+   c ∈ (0, 1), there exists an online learner requiring at most    1+cdVC ) total oracle queries while guar-
+                                                     1−c/2
+                                                           √ O(T            
+   anteeing an expected regret bounded by O T                dLD + M log T . This smoothly interpolates
+   between the low-query regime, yielding larger but still strictly sublinear regret, and the high-query
+   regime, where our main reduction achieves near-optimal regret.
+3. A query-budget lower bound (Section 5). We prove that a heavy dependence on the oracle budget is
+   information-theoretically unavoidable in the low-query regime. Even √
+                                                                       for elementary concept classes
+   with Littlestone dimension dLD = 1, any learner restricted to Q = o( T ) queries to an ERM oracle
+                        √ regret of Ω(T /Q). This strictly improves upon prior lower bounds [AHR25]
+   must suffer an expected
+   in the constrained o( T ) query
+                               √ regime, formally showing that any constant-query learner must suffer
+   linear regret (as opposed to T in previous work).
+
+      Expected Regret
+
+                                         Open Gap
+                                     (Unknown Regime)
+                O(T )
+
+                                                               Tradeoff Frontier
+                            Query-Budget Lower Bound             (Theorem 4.5)
+                                                                                        Achievable Region
+                                    Ω(T /Q)                                              (Upper Bounds)
+                                  (Theorem 5.1)
+                                                                              Algorithm 2      Prior Upper Bound
+      √
+                                                                             (Corollary 4.2)   [AHR25, AAD+ 23]
+                        
+ Õ       T · 2O(dLD)
+                                                   Prior √
+                                                         Lower Bound
+                                                                 
+                                                      Ω T · 2dLD
+                                                        [AHR25]    Exp. / Double-Exp. Query Reduction
+                                           Impossible Region
+                                                                           (Maintains identical near-optimal regret)
+                                            (Lower Bounds)
+
+                                                                                                                       Total Oracle Queries Q
+                                       √                                                                        
+                                     O( T )            O(T )                  O(T dVC +1 )             O(d
+                                                                                                  O T 2 LD
+                                                                                                           )
+
+
+
+
+Figure 1: Expected regret vs. total oracle queries tradeoff. Our results are marked in green, whereas
+previous results appear in orange. The yellow region highlights an intriguing open question. We believe
+that closing this gap will require fundamentally new ideas, namely, a new algorithm for agnostic online
+learning that does not rely on this reduction and can be implemented efﬁciently using oracle calls.
+
+
+
+2 The Learning Model: Agnostic Online Learning with Ofﬂine Oracle
+  Access
+We start with a deﬁnition of the online learning model where the interaction of the learner with the
+concept class is done only through an oracle. This is in contrast to the standard online model, where
+
+                                                                       3
+the learner knows the concept class in advance. The learning protocol is a sequential game between a
+learner and an adversary. Let C ⊂ {0, 1}X be a concept class, where X is the instance space and {0, 1}
+is the label space. Let F be a family of concept classes, known to the learner (e.g., classes with ﬁnite
+Littlestone dimension dLD ), such that C is an unknown concept class from F chosen by the adversary.
+Suppose the learner only has oracle access to C via an oracle O. The sequential game proceeds for T
+rounds, as follows. For each t ∈ [T ]:
+
+   1. The adversary chooses (xt , yt ) ∈ X × {0, 1}.
+
+   2. The learner observes xt , picks a distribution ∆t ∈ ∆({0, 1}), and predicts ŷt ∼ ∆t .
+
+   3. The adversary reveals yt ∈ {0, 1} and the learner suffers a loss I[ŷt 6= yt ].
+
+Let Ht−1 denote the history (transcript) prior to round t, including all past examples, predictions, and
+oracle queries and responses. Unless stated otherwise, the adversary is adaptive: it may choose (xt , yt )
+as a possibly randomized function of Ht−1 , independent of the learner’s internal randomness for round
+t. At the start of the round, only the instance xt is revealed to the learner.
+    No realizability assumption is made in the agnostic setting. The regret of algorithm A with respect
+to C is deﬁned as
+                                          X T                    X T
+                          RegT (A; C) =       1[ŷt 6= yt ] − min 1[c(xt ) 6= yt ].
+                                                            c∈C
+                                         t=1                      t=1
+
+For adaptive adversaries, both terms are evaluated on the transcript before taking expectation. Thus an
+adaptive expected-regret guarantee RT means
+
+                                   sup    sup    E [RegT (A; C)] ≤ RT ,
+                                   C∈F Adv∈Aad
+
+where Aad denotes the class of adaptive adversaries described above, and the expectation is with respect
+to both the learner’s randomness and any randomness of the adversary.
+    Let NT (A) be the (random) total number of oracle calls that A makes to O(C) over rounds 1, . . . , T .
+We use NT for this realized query count and
+
+                                    QT (A) = sup      sup     E [NT (A)]
+                                                C∈F Adv∈Aad
+
+for the worst-case expected query complexity.
+
+Deﬁnition 2.1 (Oracle Types) We deﬁne the two oracles that are used in this paper. Let C be the concept
+class we have access to.
+
+• “Weak Consistency”: Given any sequence S = ((xi , yi ))ni=1 ∈ (X × {0, 1})n , the Weak Consistency
+  Oracle returns “realizable" if there exists some c ∈ C consistent with S. Otherwise, it returns “not
+  realizable". This is the oracle used for the upper bounds in this paper (Theorem 4.1, Theorem 4.5).
+
+• (“Agnostic") ERM: Given any sequence S = ((xi , yi ))ni=1             n
+                                                         P ∈ (X ×{0, 1}) , the Agnostic ERM Oracle
+  returns a a concept with the minimal error: argminc∈C (x,y)∈S I[c(x) 6= y]. This oracle is used for
+  the lower bound in Theorem 5.1.
+
+    Other variants of ERM oracles were deﬁned in [AHR25], such as a restricted ERM oracle (which is
+applied only to the observed data throughout the interaction) and a realizable ERM oracle (which returns
+a concept only for realizable datasets), neither of which is used in our work. Note that our lower bound
+holds for the strongest form of such an ERM oracle. See [AHR25] for the precise deﬁnitions of these
+oracle models. Other terminology (VC dimension and Littlestone dimension) is deﬁned in Section B.
+
+
+
+
+                                                      4
+3 Background: Agnostic to Realizable Reduction and its Suboptimality
+Before presenting our oracle-efﬁcient algorithm, we rigorously formalize the classic information-theoretic
+reduction from agnostic to realizable online learning established by [BDPSS09] (see Algorithm 1). De-
+tailing this algorithm is essential for isolating the source of its computational barrier and for clarifying
+how the weak consistency oracle enables us to perfectly simulate and prune unrealizable experts in the
+construction.
+     Let A denote a deterministic algorithm that makes at most M mistakes on any sequence of data
+strictly realizable by some c ∈ C. The reduction treats A as a black box and simulates a massive
+ensemble of online “experts.” The goal of each expert is to perfectly output the sequence of labels
+generated by the unknown optimal concept c∗ ∈ C. Because c∗ belongs to C, its label sequence is
+strictly realizable. Thus, if the base learner A were to learn from the labels of c∗ , it would be guaranteed
+to make at most M prediction mistakes. Each expert attempts to perfectly simulate c∗ by guessing the
+exact subset of rounds where these mistakes occur.
+     Formally, an expert is uniquely parameterized by a mistake schedule: a binary vector I ∈ {0, 1}T
+subject to the sparsity constraint kIk1 ≤ M . The t-th coordinate of this vector, It ∈ {0, 1}, acts as an
+instruction for the expert at round t: if It = 1, the expert assumes its internal base learner AI is about
+to make a mistakePM(i.e.,T disagree
+                                    with c∗ ), and forcibly ﬂips its prediction. The total number of valid
+experts is N = j=0 j = O(T M ).
+
+Algorithm 1 Agnostic-to-Realizable Reduction [BDPSS09]
+Subroutines: Base learner A for the realizable setting that makes at most M mistakes.             P      T
+Initialize: (i) A uniform probability distribution over all valid mistake schedules. Let N = M       j=0 j
+be the total number of valid experts. For all I ∈ {0, 1}T such that kIk1 ≤ M , set the initial weight
+w0 (I) = N1 . (ii) Initialize a separate instance of the base learner AI for each expert. (iii) Let η denote
+the learning rate.
+For t = 1, 2, . . . , T :
+
+   1. Receive xt ∈ X .
+
+   2. Expert Predictions. For each schedule I:
+
+         (a) Query internal base learner to get prediction pt (I) = AI (xt ).
+         (b) Generate pseudo-label: vt (I) = pt (I) ⊕ It .
+             (If It = 1, the expert assumes AI ’s prediction is wrong and ﬂips it).
+
+                                                                    P ŷt = 1 with probability
+   3. Predict: Run Hedge (Exponential Weights) over the experts. Predict
+                                                                                I:vt (I)=1 wt−1 (I)
+       proportional to the sum of weights of experts predicting 1: Pt (1) =       P
+                                                                                     I wt−1 (I)
+
+   4. Update: Observe true label yt .
+
+         (a) Update weights for each I: wt (I) = wt−1 (I) · exp(−η · I[vt (I) 6= yt ]).
+         (b) Advance base learners: Feed (xt , vt (I)) to AI as the “true” label.
+
+     To play the agnostic game, the algorithm runs Hedge over this entire pool of experts. The statistical
+guarantee of this reduction relies on the survival of the Optimal Expert. For the optimal hypothesis
+c∗ ∈ C in hindsight, let I ∗ be the exact rounds where A disagrees with c∗ (xt ). Since tracking c∗
+generates the strictly realizable sequence v ∗ = (c∗ (x1 ), . . . , c∗ (xT )), the base learner is guaranteed
+to make ≤ M mistakes. Thus, kI ∗ k1 ≤ M . p        The expert parameterized by I ∗ ﬂawlessly tracks c∗ ,
+guaranteeing an expected agnostic regret of O( M T log(T )). The base learner is chosen to be the
+Standard Optimal Algorithm (SOA), which achieves the optimal mistake bound of dLD in the realizable
+setting, and the resulting agnostic regret bound is near-optimal.
+
+                                                      5
+Bottleneck 1: unrealizable experts and Sauer’s Lemma. The reduction is oblivious to the structure
+of the concept class C. Consequently, it maintains every pseudo-label sequence v1:t containing at most
+dLD mistakes, each corresponding to a labeling (dichotomy) over the observed points x1 , . . . , xt . By
+Sauer’s Lemma, the number of realizable dichotomies induced by C on any set of t points is bounded
+by O(tdVC ). This means that plenty of the O(T dLD ) sequences tracked by the standard reduction are
+unrealizable experts – labelings that could never be produced by any actual hypothesis in the class.
+
+Bottleneck 2: SOA intractability and large oracle complexity. A second fundamental limitation
+lies in the computational intractability of the SOA itself. Executing the SOA requires computing the
+Littlestone dimension at each round, a task known to be computationally hard even when the concept
+class and feature space are ﬁnite [MR17, Man22]. Consequently, a natural computational model relying
+solely on calls to an ofﬂine Empirical Risk Minimization (ERM) oracle has been proposed [AAD+ 23,
+KS24, AHR25]. For such oracle-based
+                              √         learners, the best achievable realizable mistake bound is Ω(2dLD ),
+                                    d
+and an expected regret of Ω( T 2 ) in the agnostic case [AHR25]. However, achieving this regret
+                                     LD
+                                                                   d
+using the reduction in Algorithm 1 requires maintaining O(T 2 LD ) active experts, which inherently
+                              O(d  )
+demands an intractable O(T 2 LD ) ERM oracle calls per round [AAD+ 23]. Our main goal is to reduce
+signiﬁcantly this oracle complexity.
+
+Bypassing the bottlenecks. This establishes the core motivation of our work. By utilizing an ofﬂine
+ERM oracle, or formally, a strictly weaker weak consistency oracle (Deﬁnition 2.1), to actively verify
+realizability and dynamically prune impossible dichotomies, we bypass both bottlenecks simultaneously.
+First, at any round t, we collapse the active memory footprint of the reduction from O(T dLD ) down to
+the true capacity of the class, O(tdVC )3 . Second, when using an oracle-efﬁcient realizable base learner,
+                                                                   O(d   )                     
+this active pruning reduces the total oracle complexity from O T 2 LD down to O T dVC +1 .
+
+
+4 Adaptive Dynamic Expert Pruning Tree
+In this section, we demonstrate that if the learner is granted access to an ofﬂine optimization oracle
+that checks whether a dataset is strictly realizable in C, namely a weak consistency oracle, the double-
+exponential tracking tree of Algorithm 1 can be signiﬁcantly improved. This leads to a substantial
+reduction in the total number of ofﬂine oracle calls compared to [AAD+ 23], by using even a weaker
+oracle, and also shows that the memory requirements of the general reduction can be improved.
+
+Algorithm Overview. Our ADEPT reduction (Algorithm 2) bypasses the O(T M ) combinatorial ex-
+plosion by shifting the tracking mechanism from abstract mistake schedules to explicitly tracking valid
+label preﬁxes. At each round t, we propose binary extensions u = v ◦ b for each active parent preﬁx
+v ∈ Vt−1 and apply two ﬁltering mechanisms to shrink the state space. First, realizability pruning
+queries the weak consistency oracle: if a sequence u contradicts the concept class C, it evaluates to
+UNREALIZABLE and is discarded. By Sauer’s Lemma, this dynamically bounds the active tree width
+to O(tdVC ) paths. Second, mistake pruning simulates the internal base learner A along each surviving
+path. If a sequence exhausts the learner’s guaranteed mistake budget (i.e., k(u) > M ), it is permanently
+pruned. Crucially, because the true optimal hypothesis c∗ ∈ C is strictly realizable and bounded by M
+mistakes, its true sequence of labels is guaranteed to safely survive both ﬁlters.
+     To safely run Hedge (Exponential Weights) over this dynamically pruned active set Vt , we must
+account for the varying “future capacity” of each path. An active preﬁx u ∈ Vt represents a bundle of
+full-length experts as in Algorithm 1, sharing the exact same history up to time t. To assign each preﬁx
+the weight it would receive under Algorithm 1, we deﬁne the combinatorial weight of a sequence u as
+   3
+     Here and throughout, this memory comparison refers to the number of maintained high-level expert states, equivalently
+active realizable pseudo-label preﬁxes; the raw implementation memory is obtained by multiplying this active-state count by
+the per-preﬁx state size of the chosen realizable learner, as captured by SA (t) in Theorem 4.1.
+
+
+                                                            6
+           PM −k(u) T −t
+Wt (u) =      j=0        j . This counts the exact combinatorial volume of valid future paths extend-
+ing from u. By scaling the standard Hedge update by this future capacity, yielding the unnormalized
+weight wt (u) = Wt (u) · exp(−ηLt−1 (v)), our aggregated prediction outputs the identical probability
+distribution as explicitly running Hedge over the full O(T M ) global experts. Consequently, our reduc-
+tion inherits optimal expected agnostic regret guarantees while operating strictly within the bounded
+O(tdVC ) memory footprint.
+
+Algorithm 2 Adaptive Dynamic Expert Pruning Tree (ADEPT)
+Subroutines: Base learner A for the realizable setting that makes at most M mistakes, weak consistency
+oracle.
+Initialize: (i) Active set of pseudo-label preﬁxes: V0 = {∅}, (ii) Base learner mistake counts:
+                                                                                          q k(∅) = 0,
+                                                                                                   8M ln(eT /M )
+(iii) True cumulative losses against observed labels: L0 (∅) = 0, (iv) Learning rate: η =               T        .
+For t = 1, 2, . . . , T :
+
+   1. Receive instance xt ∈ X . Initialize the next active set Vt = ∅.
+
+   2. For each active parent preﬁx v = (v1 , . . . , vt−1 ) ∈ Vt−1 :
+
+       (a) Base Learner Step: Get prediction pt = A(v, xt ).
+       (b) For each proposed extension bit b ∈ {0, 1}:
+              i. Let u = v ◦ b denote the proposed sequence.
+             ii. Realizability Pruning: Query the weak consistency oracle on the dataset:
+                                             
+                                        S = (x1 , v1 ), . . . , (xt−1 , vt−1 ), (xt , b)
+
+             iii. If the oracle returns UNREALIZABLE, discard extension u and continue.
+              iv. Mistake Update: Set k(u) = k(v) + I[b 6= pt ].
+               v. If k(u) ≤ M :
+                     • Add u to Vt .
+                                                    PM −k(u) T −t
+                     • Algorithm 1 Weight: Wt (u) = j=0          j .
+                     • Hedge Weight: wt (u) = Wt (u) · exp(−ηLt−1 (v)).
+                                                                                    P
+                                                                                        u∈Vt :ut =1 wt (u)
+   3. Predict: Output ŷt ∈ {0, 1}, predicting 1 with probability: Pt (ŷt = 1) =       P
+                                                                                          u∈Vt wt (u)
+
+
+   4. Update: Observe true label yt . For each active sequence u ∈ Vt , set: Lt (u) = Lt−1 (u1:t−1 ) +
+      I[ut 6= yt ].
+
+
+    We formally present our main theorem characterizing the general efﬁciency of our algorithm.
+
+Theorem 4.1 (Main Theorem: Regret, Memory, and Computational Guarantees) Let C be a con-
+cept class with VC dimension dVC . Let A be a deterministic base learner for the realizable setting that
+makes at most M mistakes on any strictly realizable sequence, requires SA (t) memory per state, and
+makes QA (t) queries to a weak consistency oracle per round. Against any adaptively chosen adversarial
+sequence of length T , the ADEPT reduction (Algorithm 2) guarantees:
+                                                           √             
+• Regret: An expected regret bounded by E[RegretT ] ≤ O T · M log T .
+• Memory Complexity: A dynamically bounded active tree size of at most O(tdVC ) valid paths at any
+                                                           
+  round t, yielding a global memory of size O tdVC ·SA (t) .
+• Query Complexity: At most O tdVC · (1 + QA (t)) total queries to the weak consistency oracle per
+  round.
+
+
+
+
+                                                      7
+Consequences of the Main Theorem. The structural decoupling of the mistake bound (M ) and the
+capacity of the concept class (dVC ) in Theorem 4.1 yields the following consequences for agnostic online
+learning. First, instantiating the base learner with an oracle-efﬁcient realizable algorithm signiﬁcantly
+reduces the total number of oracle calls required in the agnostic setting.
+Corollary 4.2 (Total Oracle Efﬁciency) Let A be the oracle-efﬁcient realizable learner of [AHR25,
+                                                                                      O(d   )
+AAD+ 23], which guarantees M = 2O(dLD ) . While Algorithm 1 requires O T 2 LD oracle                  calls,
+Algorithm 2 (ADEPT) uses O(t     dVC +1 ) weak consistency calls per round (and O T       dVC  +1   overall),
+                                   √               
+while achieving the same regret Õ T · 2   O(dLD )  , which is near-optimal for an oracle-based algorithm.
+Since dVC ≤ dLD (and can be arbitrarily smaller), the improvement is at least exponential and can be
+double exponential in the dimension for some classes.
+ Second, even when focusing purely on the minimax optimal regret, our reduction provides an exponen-
+tial memory reduction over Algorithm 1.
+Corollary 4.3 (Memory Efﬁciency via SOA) Let A be the Standard Optimal Algorithm (SOA) [Lit88],
+                                                                                               dLD )
+achieving the optimal realizable mistake bound M = dLD . Algorithm
+                                                         √        1 must explicitly track O(T
+experts. Algorithm 2 (ADEPT) matches the near-optimal Õ T · dLD expected regret while maintain-
+ing only O(tdVC ) active paths per round.
+ Finally, our reduction can be made instance-dependent by simply adaptively tuning the learning rates.
+                                                                p
+Corollary 4.4 (Instance-Dependent Bound) Setting ηt ∝ 1/ L∗t−1 + 1, where L∗t−1 = minu∈Vt−1 Lt−1 (u1:t−1 )
+is the
+     √ tracked empirical loss ofthe best active path, achieves a ﬁrst-order expected regret
+O L∗ · M log T + M log T , where L∗ is the true optimal loss in hindsight. This interpolates be-
+                                                               √
+tween fully adversarial environments (L∗ ∝ T , yielding Õ( T · M ) regret) and the realizable setting
+(L∗ = 0, bounding the total mistakes by O(M log T ), which recovers the base learner’s realizable
+guarantee up to a logarithmic factor).
+The full proofs appear in Section C.
+Proof Sketch of Theorem 4.1 The proof proceeds in the following technical steps:
+     One-Sided Telescoping via Pascal’s Identity: We ﬁrst establish that the combinatorial future capacity
+weights obey the one-sided relation Wt−1 (v) ≥ Wt (v ◦ 0) + Wt (v ◦ 1), where inactive extensions are
+assigned weight 0. Pascal’s identity gives equality for the two unpruned theoretical extensions; after
+realizability or mistake-budget pruning, one of the extensions v◦b may be inactive, so only the inequality
+is guaranteed. This is sufﬁcient for the potential argument, since pruning can only remove nonnegative
+mass from the active tree.                                P
+     Regret Preservation under Pruning: Let Zt = u∈Vt Wt (u) exp(−ηLt (u)) be the Hedge potential
+function (the total weight of all active paths) at the end of round t. In standard analysis, the algo-
+rithm’s cumulative loss is upper-bounded by tracking the decay of this potential function. Let Zt′ =
+P
+    u∈Vt Wt (u) exp(−ηLt−1 (u1:t−1 )) be the intermediate potential function before observing yt . When
+our algorithm dynamically prunes branches, it discards strictly positive probability mass, which guaran-
+tees that the intermediate mass strictly shrinks (Zt′ ≤ Zt−1 ). Since a smaller potential function tightens
+the theoretical upper bound on the algorithm’s loss, maintaining fewer experts can only improve, and
+never harm, the algorithmic regret (provided the optimal expert is not discarded). Letting ℓt = P(ŷt 6=
+yt ) denote the expected prediction loss of the algorithm, applying Hoeffding’s Lemma to the prediction
+distribution yields the standard recursive relation Zt ≤ Zt′ exp(−ηℓt + η 2/8) ≤ Zt−1 exp(−ηℓt +       2
+                                                                                                      η /8).
+                                                                                    PT
+Telescoping this to T yields the algorithmic upper bound: ZT ≤ Z0 exp −η t=1 ℓt + T η 2 /8 .
+     Survival of the Optimal Hypothesis: Let c∗ = arg minh∈C LT (h) be the optimal hypothesis in hind-
+sight, and let v ∗ = (c∗ (x1 ), . . . , c∗ (xT )) be its corresponding sequence of predictions. By deﬁnition,
+their cumulative losses are identical: LT (v ∗ ) = LT (c∗ ). Because c∗ ∈ C, the sequence v ∗ is strictly
+realizable and will never be pruned by the weak consistency oracle. Furthermore, because A guaran-
+tees ≤ M mistakes on realizable data, v ∗ never exceeds the mistake budget. Thus, v ∗ ∈ VT . Since
+
+                                                     8
+               
+WT (v ∗ ) = 00 = 1, we can strictly lower-bound the ﬁnal potential by the weight of this single sur-
+viving sequence: ZT ≥ WT (v ∗ ) exp(−ηLT (v ∗ )) = exp(−ηLT (c∗ )). Comparing this lower bound
+with the upper bound on Zt from the previous step, √   noting the initial state is bounded Z0 ≤ (eT /M )M ,
+rearrangement with optimally tuned η yields the O( T · M log T ) expected regret.
+    Active Tree Width Is Bounded via Sauer’s Lemma: Finally, we bound the per-round complexity. At
+the start of round t, the active set Vt−1 contains only pseudo-label preﬁxes that are strictly realizable
+over the previously observed
+                       P VC t−1instances
+                                        x1:t−1 . By Sauer’s Lemma, the number of such dichotomies is
+bounded by |Vt−1 | ≤ di=0       i   =  O(t dVC ). In Step 2 of the algorithm, we query the base learner once
+
+per active parent, and propose exactly 2 binary extensions, executing exactly 2|Vt−1 | weak consistency
+queries. Summing these directly caps the total per-round query complexity at O(tdVC · (1 + QA (t))),
+completing the proof.                                                                                     
+
+
+4.1 Tradeoffs between Oracle Calls and Regret
+                                   √
+While the above result achieves T -type regret (for constant Littlestone dimension) using O(T dVC )
+ERM queries, it is possible to further reduce the query complexity at the cost of worse, yet still sublinear,
+regret.
+
+Theorem 4.5 (Oracle-Regret Tradeoff) Let C be a concept class with Littlestone dimension dLD and
+VC dimension dVC , and let M be the mistake bound for the realizable base learner of ADEPT. For every
+c ∈ (0, 1), there exists a   randomized online learner such that, against any adaptive adversary over
+                                 1−c/2
+                                       p
+T rounds, E[RegT ] ≤ O T                  dLD + (M + 1) log(eT ) , and the learner makes O T 1+cdVC
+weak-consistency oracle calls in total.
+                                                                   √
+ This gives a continuous interpolation between the full-query Õ( T ) regime and lower-query algorithms
+with larger, but still sublinear, regret exponents. The idea to prove it is based on the adversarial uniform
+laws of large numbers [ABED+ 21], from which one can (informally) show that given an algorithm that
+has average regret α when restricted to a subsample of ǫ12 indices will have average regret α + O(ǫ) on
+the entire sequence. Details can be found in Section D.
+
+
+5 Lower Bounds for Tradeoffs between Oracle Calls and Regret
+                                                                          √
+We next state a query-budget lower bound showing any learner must incur ω( T ) regret.
+
+Theorem 5.1 (Lower Bound for Bounded Query Algorithms with an ERM oracle) For every integer
+d ≥ 1, there exists a family Fd of concept classes with VC dimension and Littlestone dimension equal to
+d such that the following holds. For any horizon T and query budget Q, against an adaptive adversary,
+every randomized online learner that makes
+                                        n      at omost Q total queries to an ERM oracle (Deﬁnition 2.1)
+suffers expected regret at least T2 min 1, Q+1d
+                                                    −Q   . Consequently, whenever d ≤ Q + 1 and Q =
+  √                                              2
+o( dT ), the learner suffers expected regret Ω dT  Q .
+
+    In particular, for d = 1 and for any ǫ ∈ (0, 21 ), a learner that uses Q ≤ T 1/2−ǫ ERM queries incurs
+expected regret Ω(T 1/2+ǫ ). If the number of queries is bounded by an absolute constant independent
+of T , then the regret is linear. This lower bound is complementary to [AHR25]. Their result gives a
+dimension-dependent lower bound that applies even  √ to learners making an arbitrarily large ﬁnite number
+of ERM queries: some classes require regret Ω( T 2dLD ). By contrast, Theorem   √ 5.1 is a query-budget
+lower bound: already √  for classes with dLD = 1, any learner using Q = o( T ) ERM queries suffers
+regret Ω(T /Q) = ω( T ). Thus, our bound is stronger in the low-query regime, whereas [AHR25]
+applies beyond this regime.
+    Hazan and Koren [HK16] prove √      a related lower bound in the ﬁnite N -expert optimizable-oracle
+model: vanishing regret requires Ω( e N ) total computation in the worst case. Their result does not
+
+                                                     9
+directly subsume ours, since it is a total-runtime lower bound, whereas our lower bound isolates the
+number of ERM-oracle calls and leaves computation between calls uncharged. Thus the two results
+address related computational barriers under different complexity measures.
+                                             L: Query     L: Query                                        L: Query     L: Query
+                                           (Adv: Reset) (Adv: Reset)                                    (Adv: Reset) (Adv: Reset)
+
+
+
+                              Phase 0                            Phase i∗ (Largest Positive Mass)                                      Phase Q
+                         Fresh Blocks B1 , B2
+                                                    ···                Fresh Blocks B2i∗ +1 , B2i∗ +2
+                                                                                                                 ···           Fresh Blocks B2Q+1 , B2Q+2
+
+                                                                                                                                                            Time t
+             Learner                                ···                                                          ···
+                           ∼ 1/2 Error                                        ∼ 1/2 Error                                            ∼ 1/2 Error
+        Best Expert
+ (Hypothesis h2i∗ +1 )                              ···                                                          ···
+                             Predicts 0                                  Perfect on Phase i∗                                          Predicts 0
+
+Figure 2: Illustration of the adaptive reset lower bound. The adversary uses two fresh hidden blocks in
+each phase and starts a new phase whenever the learner spends an ERM query. Thus non-query rounds
+cost the learner expected loss 1/2. In hindsight, the best singleton selects the phase with the most
+positive examples and predicts 0 elsewhere, saving at least a 1/(Q + 1) fraction of the total positive
+mass.
+
+
+Proof Sketch of Theorem 5.1 For simplicity, we just outline the proof for dLD = 1, which can be
+generalized to general Littlestone classes – see Section E for details. It sufﬁces to consider the following
+subfamily of dLD = 1 classes. For a countable partition P of X into inﬁnite blocks, let CP = {1B :
+B ∈ P}. These block-singleton classes have Littlestone dimension 1: one point can be shattered, but
+after observing a positive label, the target block is ﬁxed.
+    The adversary runs phases. In each phase it uses a fresh hidden pair of blocks B2i+1 , B2i+2 , labels
+fresh points from B2i+1 by 1 and fresh points from B2i+2 by 0, and starts a new phase whenever the
+learner queries. By symmetry, on every non-query round the learner has no information about whether
+the current fresh point lies in B2i+1 or B2i+2 , so its expected loss is 1/2. Giving the learner zero loss on
+query rounds, E[Lalg ] ≥ T −Q 2 .                                         P
+    Let Pi be the number of positive examples in phase i, let P = i Pi , and let m ≤ Q + 1 be the
+number of phases. The best singleton chooses the positive block of the phase i⋆ with largest Pi , so the
+                                                              P       Q
+loss of the best concept is at most P − maxi Pi ≤ P − m          ≤ Q+1    P . Since E[P ] = T /2, taking the
+                                                         √
+difference gives expected regret Ω(T /Q) for Q = o( T ).                                                   
+
+
+
+References
+ [AAD+ 23] Angelos Assos, Idan Attias, Yuval Dagan, Constantinos Daskalakis, and Maxwell K
+           Fishelson. Online learning and solving inﬁnite games with an erm oracle. In The Thirty
+           Sixth Annual Conference on Learning Theory, pages 274–324. PMLR, 2023.
+
+[ABED+ 21] Noga Alon, Omri Ben-Eliezer, Yuval Dagan, Shay Moran, Moni Naor, and Eylon Yogev.
+           Adversarial laws of large numbers and optimal regret in online classiﬁcation. In Proceed-
+           ings of the 53rd annual ACM SIGACT symposium on theory of computing, pages 447–455,
+           2021.
+
+ [ACBG02] Peter Auer, Nicolo Cesa-Bianchi, and Claudio Gentile. Adaptive and self-conﬁdent on-
+          line learning algorithms. Journal of Computer and System Sciences, 64(1):48–75, 2002.
+
+ [AHK+ 14] Alekh Agarwal, Daniel Hsu, Satyen Kale, John Langford, Lihong Li, and Robert Schapire.
+           Taming the monster: A fast and simple algorithm for contextual bandits. In International
+           conference on machine learning, pages 1638–1646. PMLR, 2014.
+
+
+                                                                                10
+  [AHR25] Idan Attias, Steve Hanneke, and Arvind Ramaswami. Tradeoffs between mistakes and erm
+          oracle calls in online and transductive online learning. Advances in Neural Information
+          Processing Systems, 39, 2025.
+[BDPSS09] Shai Ben-David, Dávid Pál, and Shai Shalev-Shwartz. Agnostic online learning. In COLT,
+          volume 3, page 1, 2009.
+
+  [BRS24] Adam Block, Alexander Rakhlin, and Abhishek Shetty. On the performance of empiri-
+          cal risk minimization with smoothed data. In The Thirty Seventh Annual Conference on
+          Learning Theory, pages 596–629. PMLR, 2024.
+  [CBL06] Nicolo Cesa-Bianchi and Gábor Lugosi. Prediction, learning, and games. Cambridge
+          university press, 2006.
+[CBMS07] Nicolo Cesa-Bianchi, Yishay Mansour, and Gilles Stoltz. Improved second-order bounds
+         for prediction with expert advice. Machine Learning, 66(2):321–352, 2007.
+   [DG24] Constantinos Daskalakis and Noah Golowich. Is efﬁcient pac learning possible with an
+          oracle that responds. In The Thirty Seventh Annual Conference on Learning Theory, pages
+          1263–1307. PMLR, 2024.
+
+[DHK+ 11] Miroslav Dudik, Daniel Hsu, Satyen Kale, Nikos Karampatziakis, John Langford, Lev
+          Reyzin, and Tong Zhang. Efﬁcient optimal learning for contextual bandits. arXiv preprint
+          arXiv:1106.2369, 2011.
+
+[DHL+ 20] Miroslav Dudík, Nika Haghtalab, Haipeng Luo, Robert E Schapire, Vasilis Syrgkanis, and
+          Jennifer Wortman Vaughan. Oracle-efﬁcient online learning and auction design. Journal
+          of the ACM (JACM), 67(5):1–57, 2020.
+    [FL98] Moti Frances and Ami Litman. Optimal mistake bound learning is hard. Information and
+           Computation, 144(1):66–82, 1998.
+    [FR20] Dylan Foster and Alexander Rakhlin. Beyond ucb: Optimal and efﬁcient contextual ban-
+           dits with regression oracles. In International conference on machine learning, pages 3199–
+           3210. PMLR, 2020.
+  [HBD23] Niki Hasrati and Shai Ben-David. On computable online learning. In International Con-
+          ference on Algorithmic Learning Theory, pages 707–725. PMLR, 2023.
+
+[HHSY22] Nika Haghtalab, Yanjun Han, Abhishek Shetty, and Kunhe Yang. Oracle-efﬁcient online
+         learning for beyond worst-case adversaries. arXiv preprint arXiv:2202.08549, 2022.
+   [HK16] Elad Hazan and Tomer Koren. The computational power of optimization in online learning.
+          In Proceedings of the forty-eighth annual ACM symposium on Theory of Computing, pages
+          128–141, 2016.
+  [HRS24] Nika Haghtalab, Tim Roughgarden, and Abhishek Shetty. Smoothed analysis with adap-
+          tive adversaries. Journal of the ACM, 71(3):1–34, 2024.
+    [KS24] Alexander Kozachinskiy and Tomasz Steifer. Simple online learning with consistent or-
+           acle. In The Thirty Seventh Annual Conference on Learning Theory, pages 3241–3256.
+           PMLR, 2024.
+
+   [KV05] Adam Kalai and Santosh Vempala. Efﬁcient algorithms for online decision problems.
+          Journal of Computer and System Sciences, 71(3):291–307, 2005.
+
+    [Lit88] Nick Littlestone. Learning quickly when irrelevant attributes abound: A new linear-
+            threshold algorithm. Machine learning, 2:285–318, 1988.
+
+                                                11
+ [Man22] Pasin Manurangsi. Improved inapproximability of vc dimension and littlestone’s dimen-
+         sion via (unbalanced) biclique. arXiv preprint arXiv:2211.01443, 2022.
+
+  [MR17] Pasin Manurangsi and Aviad Rubinstein. Inapproximability of vc dimension and little-
+         stone’s dimension. In Conference on Learning Theory, pages 1432–1460. PMLR, 2017.
+
+[MRT12] Mehryar Mohri, A Rostamizadeh, and A Talwalkar. Foundations of machine learning, ser.
+        adaptive computation and machine learning, 2012.
+
+ [SKS16] Vasilis Syrgkanis, Akshay Krishnamurthy, and Robert Schapire. Efﬁcient algorithms for
+         adversarial contextual learning. In International Conference on Machine Learning, pages
+         2159–2168. PMLR, 2016.
+
+ [SLX22] David Simchi-Levi and Yunzong Xu. Bypassing the monster: A faster and simpler optimal
+         algorithm for contextual bandits under realizability. Mathematics of Operations Research,
+         47(3):1904–1931, 2022.
+
+ [SS+ 12] Shai Shalev-Shwartz et al. Online learning and online convex optimization. Foundations
+          and Trends® in Machine Learning, 4(2):107–194, 2012.
+
+[SSBD14] Shai Shalev-Shwartz and Shai Ben-David. Understanding machine learning: From theory
+         to algorithms. Cambridge university press, 2014.
+
+  [VC71] VN Vapnik and A Ya Chervonenkis. On the uniform convergence of relative frequencies of
+         events to their probabilities. Theory of Probability and its Applications, 16(2):264, 1971.
+
+
+
+
+                                               12
+A    Additional Related Work
+Oracle-Efﬁcient Online Learning. Oracle-efﬁcient methods establish a powerful framework for ad-
+dressing the computational challenges of online learning. This provides an alternative to the fact that
+standard online learning can be computationally intractable [FL98, HBD23]. Assos et al. [AAD+ 23]
+and Kozachinskiy et al. [KS24] studied the online learnability of concept classes with ﬁnite Littlestone
+dimension using the ERM oracle. In addition, the partial-information setting, speciﬁcally contextual
+bandits, has been explored using regression oracles [FR20, SLX22] and the ERM oracle [SKS16].
+     Theoretical limitations of oracle-efﬁcient online learning have also been investigated. Hazan and
+Koren [HK16] considered prediction with a ﬁnite set of N experts in an oracle model where a black-box
+optimizer returns√the empirical leader for any history. They gave a vanishing-regret algorithm with total
+running time O(e N ), and proved a matching lower bound up to logarithmic factors on the total running
+time in this oracle model. Thus their result is best viewed as a runtime separation between ofﬂine
+optimization and adversarial online learning for ﬁnite expert classes, rather than as a lower bound on
+the number of ERM-oracle calls. For ﬁnite classes whose size N is exponential in a relevant dimension
+parameter, this corresponds to an exponential dependence on that parameter; however, their lower bound
+is formulated in terms of N and total runtime.
+     Recent work of Attias et al. [AHR25] is closer to the oracle-access model considered here. They
+study online and transductive online learning when the learner interacts with the concept class only
+through ERM or weak-consistency oracles, and evaluate both mistakes/regret and oracle calls. In the
+standard online setting with ERM access, they show that ﬁnite oracle access cannot avoid  √ exponential-
+                                              d
+in-dLD mistake/regret bounds, including Ω(2 ) mistakes in the realizable case and Ω( T 2dLD ) regret
+                                               LD
+
+in the agnostic case. Our lower bounds are complementary: they are stated directly as query-budget
+tradeoffs, and apply even to classes with very small Littlestone dimension. Altogether, these ﬁndings
+underscore that ofﬂine optimization oracles do not, by themselves, remove the sequential or oracle-query
+complexity of fully adversarial online learning.
+     A separate line of work develops FTPL-style oracle-efﬁcient algorithms for structured online deci-
+sion problems. Kalai and Vempala [KV05], Dudík et al. [DHL+ 20], and Syrgkanis et al. [SKS16] use
+ofﬂine optimization oracles together with problem-speciﬁc structure. These oracles are stronger than the
+weak consistency access considered here: in contextual learning, for example, the ofﬂine oracle returns
+a policy minimizing cumulative cost-sensitive loss on an arbitrary history, rather than merely deciding
+whether a labeled sample is realizable.
+     Syrgkanis et al. [SKS16] studied oracle-efﬁcient algorithms for adversarial contextual learning. Their
+FTPL-style algorithms access the policy class through an ofﬂine policy-optimization oracle and obtain
+sublinear regret for ﬁnite policy classes under additional structure: either in the transductive setting,
+where the learner knows the context set in advance, or in a non-transductive setting with a small sep-
+arator. They also extend the transductive contextual-experts guarantee to inﬁnite classes of bounded
+Natarajan dimension, using a Sauer–Shelah-type ﬁnite-projection argument. In the binary case, this
+gives a transductive upper bound for VC classes. This ﬁnite-projection idea is related to the transductive
+weak-oracle results of Attias et al. [AHR25], but the oracle models differ: Syrgkanis et al. assume a
+more powerful optimization oracle over policies and losses, while Attias et al. show that, in the trans-
+ductive binary setting, the induced labelings can be recovered using weak consistency queries. Our work
+uses the same weak-consistency perspective in the fully online agnostic setting.
+     This VC/Natarajan guarantee is inherently transductive. They show that in fully online adaptive
+settings, ﬁnite VC dimension alone is insufﬁcient: even a VC-dimension-one threshold class can force
+linear regret. Our work is complementary. We assume ﬁnite Littlestone dimension, the relevant con-
+dition for fully online learnability, and use VC dimension only to bound the number of oracle-veriﬁed
+realizable preﬁxes maintained by the algorithm.
+     Complementary work obtains oracle efﬁciency under beyond-worst-case assumptions on the adver-
+sary. Haghtalab et al. [HHSY22] gave oracle-efﬁcient algorithms for smoothed online learning, where
+the adversary’s instance distributions have bounded density relative to a base measure, and obtained
+
+
+                                                    13
+regret bounds depending on the VC/pseudo-dimension and the smoothness parameter. Related work
+of Block et al. [BRS24] shows that repeated ERM succeeds for well-speciﬁed smooth data, with error
+controlled by the usual statistical complexity of the class. These results show that smoothness can make
+VC-type complexity sufﬁcient for efﬁcient online learning. Our work is orthogonal: we allow fully ad-
+versarial instance sequences, assume ﬁnite Littlestone dimension for online learnability, and study the
+oracle-query complexity of achieving agnostic regret guarantees.
+
+Weak Consistency Oracles. Daskalakis et al. [DG24] introduced the weak consistency oracle as a
+weaker alternative to ERM in distributional learning: given a labeled sample, the oracle only reports
+whether the sample is realizable by the class. They showed that this oracle sufﬁces for realizable PAC
+learning of any binary VC class with polynomial sample and oracle complexity, and extended the frame-
+work to agnostic learning, multiclass classiﬁcation, regression, and partial concept classes.
+    Weak consistency access has also been studied in online learning. Attias et al. [AHR25] showed that
+realizable online learning algorithms based on ERM access can be simulated using weak consistency
+queries, and studied related query/mistake tradeoffs in online and transductive online models. Our work
+continues this line in the fully online agnostic setting, using weak consistency queries to obtain no-regret
+guarantees whose oracle complexity is controlled by combinatorial parameters of the class.
+
+
+B Additional Preliminaries
+Deﬁnition B.1 (Littlestone Dimension [Lit88]) Given a concept class C, a d-depth Littlestone tree is
+a set of xy : y ∈ Y t , t ∈ {0, d − 1} ⊂ X (interpreting Y 0 = {()}, where for all y1 , y2 , . . . , yd ∈ Y,
+there’s a c ∈ C such that (c(x() ), c(xy1 ), c(xy1:2 ), . . . , c(xy1:(d−1) )) = (y1 , y2 , . . . , yd ). The Littlestone
+dimension of C is the maximum n such that there exists a Littlestone tree of depth n.
+
+Deﬁnition B.2 (VC Dimension [VC71]) Given a concept class C, a set of n points x1 , . . . , xn ⊂ X is
+shattered if {(c(x1 ), . . . , c(xn )) : c ∈ C} = {0, 1}n . The VC dimension of C is the largest n such that
+there exist n shattered points in X .
+
+
+
+C     Proofs for Section 4
+The proof of Theorem 4.1 proceeds by decomposing the analysis into four lemmas. First, we establish
+that the combinatorial future capacity (the weight assigned by Algorithm 1 [BDPSS09]) telescopes ex-
+actly over valid extensions (Lemma C.1). Next, we prove that dynamically pruning unrealizable paths
+strictly improves the standard Hedge potential function (Lemma C.2). We then demonstrate that the true
+optimal hypothesis survives all pruning steps (Lemma C.3), yielding the near-optimal regret bound. Fi-
+nally, we bound the memory and computational complexity via VC theory (Lemma C.4). We conclude
+the section by combining these lemmas to prove the main theorem.
+
+Lemma C.1 (One-Sided Telescoping via Pascal’s Identity) For any active preﬁx v ∈ Vt−1 , adopt
+the convention that Wt (v ◦ b) = 0 whenever the extension v ◦ b is inactive (for example, because it is
+pruned by the weak consistency oracle or exceeds the mistake budget). Then the total combinatorial
+future weight of the surviving extensions is at most the weight of v:
+
+                                       Wt−1 (v) ≥ Wt (v ◦ 0) + Wt (v ◦ 1).
+
+
+
+Proof Let pt = A(v, xt ) ∈ {0, 1} be the base learner’s prediction. First ignore realizability pruning and
+consider the two formal extensions b = pt and b = 1 − pt . For the extension matching the base learner
+
+
+                                                          14
+(b = pt ), no mistake is charged, so k(v ◦ pt ) = k(v). For the extension differing from the base learner
+(b = 1 − pt ), exactly one mistake is charged, so k(v ◦ (1 − pt )) = k(v) + 1.
+    Assume ﬁrst that k(v) < M , and write W   ft for the unpruned formal branch weights. Summing the
+combinatorial weights of these two formal branches yields:
+                                                         M −k(v)          M −k(v)−1
+                                                            X        T −t      X T − t 
+              ft (v ◦ pt ) + W
+              W              ft (v ◦ (1 − pt )) =                          +             .
+                                                                       j              j
+                                                            j=0                 j=0
+                             h                       i
+                              n    n                n+1
+To apply Pascal’s Identity j + j−1     =             j      , we extract the j = 0 term from the ﬁrst summation
+and re-index the second summation:
+                                MX
+                                   −k(v)        MX
+                                                   −k(v)       
+                           T −t            T −t            T −t
+                   =             +               +
+                             0               j             j−1
+                                        j=1                       j=1
+                                MX
+                                   −k(v)              
+                           T −t             T −t     T −t
+                   =             +                +
+                             0                j      j−1
+                                        j=1
+                                 MX
+                                    −k(v)         MX
+                                                     −k(v)        
+                           T −t+1           T −t+1          T −t+1
+                   =              +                =                 .
+                              0                j               j
+                                              j=1                         j=0
+
+This ﬁnal expression is exactly Wt−1 (v). For the boundary case where k(v) = M , the mistaken formal
+branch
+  T −t
+        1 − pt has k = M + 1 and contributes
+                                            T −t+1
+                                                    weight 0, while the matching branch pt contributes
+    0   =  1, again matching  W  t−1 (v) =     0    = 1.
+      Thus, Pascal’s identity gives equality for the two formal, unpruned extensions. In the actual active
+tree, however, an extension v ◦ b might be inactive and therefore assigned weight 0; this can happen, for
+example, if the weak consistency oracle prunes it. Since making an extension inactive only removes a
+nonnegative term from the formal sum, the surviving active extensions satisfy
+
+                                    Wt−1 (v) ≥ Wt (v ◦ 0) + Wt (v ◦ 1).
+
+                                                                                                             
+                                                                    P
+Lemma C.2 (Regret Preservation under Pruning) Let Zt =                u∈Vt Wt (u) exp(−ηLt (u)) be the
+potential
+        Pat round t. Let ℓ t= P(ŷ t 6
+                                       = y t ) be the algorithm’s expected loss at round t. Then ZT ≤
+                T      T η2
+Z0 exp −η t=1 ℓt + 8 .
+
+
+                   P
+Proof Let Zt =       v∈Vt Wt (v) exp(−ηLt (v)). In round t, before the true label yt is revealed, the
+normalizer of the surviving active set Vt is:
+                                       X
+                                Zt′ =       Wt (u) exp(−ηLt−1 (u1:t−1 )).
+                                          u∈Vt
+
+Since Vt contains only the strictly realizable subset of all possible binary extensions from Vt−1 , and
+weights are non-negative, Lemma C.1 guarantees:
+                               X
+                       Zt′ ≤         (Wt (v ◦ 0) + Wt (v ◦ 1)) exp(−ηLt−1 (v))
+                                 v∈Vt−1
+                                   X
+                             ≤            Wt−1 (v) exp(−ηLt−1 (v))
+                                 v∈Vt−1
+
+                             = Zt−1 .
+
+
+                                                            15
+Thus, pruning can only strictly decrease the normalizer: Zt′ ≤ Zt−1 .
+    The algorithm predicts ŷt using the probability distributionP Pt deﬁned over Vt , proportional to
+wt (u) = Wt (u) exp(−ηLt−1 (u1:t−1 )). Notice that Zt′ =            u∈Vt wt (u) is exactly the normalizer of
+this distribution. After observing yt , the loss of branch u is ℓt (u) = I[ut 6= yt ] ∈ {0, 1}. The expected
+                                P
+loss of the algorithm is ℓt = u∈Vt wZ      t (u)
+                                              ′ ℓt (u). Viewing the branch loss ℓt (u) as a random variable
+                                              t
+drawn from Pt , Hoeffding’s Lemma for distributions bounded in [0, 1] guarantees:
+                X wt (u)                                                                    
+                                                                                       η2
+                           exp(−ηℓt (u)) = Eu∼Pt exp(−ηℓt (u)) ≤ exp −ηℓt +                    .
+                      Zt′                                                                 8
+              u∈Vt
+
+Multiplying by Zt′ and noting that wt (u) exp(−ηℓt (u)) = Wt (u) exp(−ηLt (u)) = Zt gives the updated
+potential Zt :                                                            
+                                ′               η2                        η2
+                       Zt ≤ Zt exp −ηℓt +            ≤ Zt−1 exp −ηℓt +         .
+                                                8                         8
+                                                                            P               2
+                                                                                               
+Telescoping this inequality iteratively from t = 1 to T yields ZT ≤ Z0 exp −η Tt=1 ℓt + T 8η . 
+
+
+Lemma C.3 √(Survival of the
+                         Optimal Expert) The algorithm achieves an expected agnostic regret
+bound of O T · M log T against any hypothesis in C.
+
+
+
+Proof Let c∗ = arg minh∈C LT (h) be the true optimal hypothesis in hindsight. The optimal comparison
+pseudo-label sequence is deﬁned as v ∗ = (c∗ (x1 ), . . . , c∗ (xT )). Since c∗ belongs to the concept class
+C, the sequence v ∗ is exactly the labeling produced by a valid hypothesis on the data sequence. Conse-
+                                     ∗ is strictly realizable on x , and the weak consistency oracle will
+quently, at any round t, the preﬁx v1:t                             1:t
+never return UNREALIZABLE when queried on v1:t        ∗ . Furthermore, because A guarantees at most M
+
+mistakes on any realizable sequence, the number of disagreements between A and c∗ is bounded by M .
+           ∗ ) ≤ M for all t.
+Thus, k(v1:t
+    Therefore, the preﬁx v ∗ never triggers the realizability or the mistake-bound pruning conditions,
+ensuring v ∗ ∈ VT . Since v ∗ survives, we can lower bound the ﬁnal potential. At the ﬁnal round
+(t = T ), the remaining future capacity of the tree is zero (T − T = 0). By the deﬁnition of the binomial
+               0           0
+coefﬁcient, 0 = 1 and j = 0 for all j ≥ 1. Since the optimal sequence never exceeds the mistake
+budget (k(v ∗ ) ≤ M ), the summation safely includes the j = 0 term and perfectly collapses:
+
+                                        M −k(v∗ )            
+                                          X        0           0
+                                  ∗
+                            WT (v ) =                       =     + 0 + · · · = 1.
+                                                   j           0
+                                           j=0
+
+    Furthermore, because v ∗ is exactly the sequence of predictions generated by the true optimal hy-
+pothesis c∗ , its empirical cumulative loss is identically LT (v ∗ ) = LT (c∗ ). Since v ∗ is guaranteed to
+survive pruning and all terms in the potential ZT are non-negative, we can cleanly lower-bound the ﬁnal
+potential by the weight of this single surviving sequence:
+                 X
+        ZT =         WT (u) exp(−ηLT (u)) ≥ WT (v ∗ ) exp(−ηLT (v ∗ )) = 1 · exp(−ηLT (c∗ )).
+               u∈VT
+
+The initial normalizer is the sum of all combinatorial paths bounded by M mistakes:
+                                             M  
+                                             X                          M
+                                                T                   eT
+                                      Z0 =                  ≤                 .
+                                                   j                M
+                                             j=0
+
+
+
+
+                                                       16
+              PT
+Let Lalgo =    t=1 ℓt . Combining the upper bound from on Zt from Lemma C.2 with the lower bound
+yields:
+                                                       M                            
+                                       ∗           eT                          T η2
+                         exp(−ηLT (c )) ≤                        exp −ηLalgo +             .
+                                                   M                            8
+Taking the logarithm and rearranging terms:
+
+                                                        M ln(eT /M ) ηT
+                                Lalgo − LT (c∗ ) ≤                  +   .
+                                                             η        8
+                                             q
+                                                 8M ln(eT /M )
+Substituting the optimal learning rate η =            T        yields the expected regret bound:
+                                       s                        
+                                           1                eT            p              
+                       E[RegretT ] ≤         T M ln                  =O        T · M log T .
+                                           2                M
+
+                                                                                                       
+
+Lemma C.4 (Active Tree Width Is Bounded via Sauer’s Lemma) At round t, the active set size |Vt−1 |
+is bounded by O(tdVC ), and the algorithm issues a total of O(tdVC ) queries to the weak consistency
+oracle for realizability pruning.
+
+
+
+Proof At the beginning of round t, the active set Vt−1 contains only pseudo-label sequences v of length
+t − 1. By the construction of the algorithm, a sequence v is only added to Vt−1 if the oracle veriﬁed
+it was strictly realizable on the data sequence x1:t−1 . Therefore, every element v ∈ Vt−1 corresponds
+to a distinct dichotomy over x1:t−1 that can be realized by at least one hypothesis in C. Thus, Vt−1 is
+precisely a subset of the projection of C onto the points (x1 , . . . , xt−1 ).
+    By Sauer’s Lemma, the maximum number of realizable dichotomies on any sequence of t − 1 points
+by a class with VC dimension dVC is strictly bounded by:
+                                               dVC 
+                                               X         
+                                                     t−1
+                                   |Vt−1 | ≤                         = O(tdVC ).
+                                                            i
+                                               i=0
+
+This structurally bounds the number of experts maintained in memory to O(tdVC ). In round t, for each
+preﬁx in Vt−1 , the reduction proposes exactly 2 extensions (b ∈ {0, 1}) and queries the weak consistency
+oracle once for each. Thus, the total number of oracle calls incurred by the adaptive reduction is exactly
+2|Vt−1 | ≤ O(tdVC ). When incorporating the base learner A making QA (t) queries per state, the total
+global bound on oracle queries becomes O(tdVC · (1 + QA (t))).                                          
+
+Proof of Theorem 4.1 The theoretical guarantees of the reduction follow immediately from combin-
+                        √ By Lemma C.3, the algorithm’s expected regret against any hypothesis
+ing the preceding lemmas.
+in C is bounded by O( T · M log T ), which provides the optimal statistical bound. Simultaneously,
+Lemma C.4 ensures that the geometric pruning successfully bounds the space complexity and the per-
+round oracle query complexity to O(tdVC · (1 + QA (t))). Combining these statistical and structural
+guarantees establishes the complete statement of Theorem 4.1.                                    
+
+Proof of Corollary 4.2 The regret bound follows by substituting the realizable mistake bound M =
+2O(dLD ) into the regret part of Theorem 4.1. For the query bound, we use the special form of the weak-
+consistency queries rather than applying the black-box query bound of Theorem 4.1.
+   Fix a round t. By construction, every active preﬁx v ∈ Vt−1 is a realizable labeling of the previously
+observed points x1:t−1 . For the realizable learner used here, when it is run from such a preﬁx on the
+
+                                                        17
+current instance xt , every weak-consistency query is to the active preﬁx itself or to one of its two one-
+step extensions,                                                        
+                            (x1 , v1 ), . . . , (xt−1 , vt−1 ), (xt , b) , b ∈ {0, 1}.
+The active preﬁx has already been certiﬁed realizable, and repeated calls to the same labeled sample are
+charged only once. Hence the number of new distinct oracle inputs on round t is at most 2|Vt−1 |. By
+Sauer’s Lemma,
+                                           dVC 
+                                           X           
+                                                  t−1
+                                 |Vt−1 | ≤                = O(tdVC ),
+                                                    i
+                                               i=0
+
+so the round-t query cost is O(tdVC ). Summing over rounds gives
+                                       T
+                                       X
+                                             O(tdVC ) = O(T dVC +1 ).
+                                       t=1
+
+                                                                                                         
+
+Proof of Corollary 4.3 The Standard Optimal Algorithm (SOA) [Lit88] guarantees a realizable mis-
+take bound of M = dLD . Substituting
+                              √       M = dLD into√the statistical bound of Theorem 4.1 yields an
+expected agnostic regret of O( T · dLD log T ) = Õ( T · dLD ). The spatial bounding mechanism of
+Theorem 4.1 depends only on the VC dimension dVC and not on M , strictly preserving the O(tdVC )
+dynamic memory footprint.                                                                      
+
+Proof of Corollary 4.4 The classical reduction of Algorithm 1 constructs an explicit ensemble of ab-
+stract experts. Each expert E represents a ﬁxed mistake schedule for the internal base learner over the T
+rounds. Since the base learner has a realizable mistake bound of M , the total number of valid experts is
+bounded by:
+                                            M  
+                                            X            M
+                                                 T        eT
+                                      N=              ≤          .
+                                                 j        M
+                                              j=0
+
+Let E denote this abstract set of N experts.
+    In the adaptive exponential-weights form used here, the unnormalized weight of an expert E ∈ E
+before predicting at time t is exactly exp(−ηt Lt−1 (E)), where Lt−1 (E) is the cumulative prediction
+loss of the expert against the true labels y1:t−1 . In our active tree, a child sequence u ∈ Vt represents a
+massive bundle of full, T -round experts that share the exact same sequence of pseudo-label predictions
+up to time t. Thus, every full expert E extending the preﬁx u has the exact same empirical loss on the
+past history: Lt−1 (E) = Lt−1 (u1:t−1 ).
+    Consequently, the total probability mass over the bundle of experts extending u factors out alge-
+braically:          X                                                               X
+                                                                               
+                            exp − ηt Lt−1 (E) = exp − ηt Lt−1 (u1:t−1 )                    1.
+               E extending u                                                  E extending u
+                         P
+The combinatorial sum E extending u 1 is exactly the number of valid future mistake schedules remaining
+for this speciﬁc path. This is precisely the weight (representing the future capacity) computed natively
+                              PM −k(u) T −t
+by our algorithm: Wt (u) = j=0              j , where k(u) is the number of mistakes the internal base
+learner has made when tracking the sequence u.
+    Because the combinatorial weight Wt (u) is independent of the learning rate ηt , updating the learning
+rate dynamically at each round perfectly preserves the exact marginalization. Therefore, our geometri-
+cally pruned tree outputs the same predictive distribution as the explicit adaptive Exponential Weights
+algorithm over E, with experts deleted once their induced pseudo-label preﬁx is pruned.
+
+
+
+
+                                                     18
+  By standard analysis of n
+                          adaptive
+                                q Exponential
+                                        o     Weights tuned to the empirical best loss [ACBG02,
+                                   ln N
+CBMS07], setting ηt = min 1/2, L∗ +1 guarantees an expected regret over the ﬁnite expert class
+                                         t−1
+E bounded by:                                        √                 
+                                   E[RegretT ] ≤ O        L∗ ln N + ln N ,
+
+where L∗ is the loss of the optimal expert E ∗ ∈ E. Because dynamically pruning unrealizable branches
+strictly removes invalid experts, it only decreases the Hedge potential function (as formally shown in
+Lemma C.2), which strictly improves the standard potential-based upper bound on the algorithm’s loss,
+so the above regret bound holds here too. As proven in Lemma C.3, there exists an expert in E that
+perfectly tracks the optimal hypothesis c∗ ∈ C, meaning L∗ is bounded by the true loss of c∗ .
+     Substituting ln N ≤ M ln(eT /M ) = O(M log T ) directly yields the claimed statistical bound. 
+
+
+
+D     Proof of Theorem 4.5
+To prove the theorem, we use tools from [ABED+ 21] about adversarial laws of large numbers to analyze
+how an algorithm run on a subsample still performs well on the entire sequence, and we state their results
+here for completeness. The setting is as follows:
+    Given a domain X, an adversary and sampler spend T rounds as follows:
+    For t = 1 . . . T ,
+
+    • The adversary presents a point xt ∈ X.
+
+    • The sampler decides whether or not the point should be in the sample.
+
+    • The sampler’s decision is revealed to the adversary.
+
+    We also adopt the deﬁnition of an ǫ-approximation from [ABED+ 21], as follows:
+
+Deﬁnition D.1 (ǫ-approximation) Let z̄ = (z1 , . . . , zT ) be a sequence in Z, let I ⊆ [T ] be a sampled
+set of indices, and let s̄ = (zt )t∈I be the corresponding subsequence. For a set system E ⊆ 2Z , we say
+that s̄ is an ǫ-approximation of z̄ with respect to E if
+                                                     T
+                                  1 X             1X
+                             sup      1[zt ∈ E] −       1[zt ∈ E] ≤ ǫ.
+                             E∈E |I|   t∈I
+                                                  T t=1
+
+Equivalently, the empirical frequency of every set E ∈ E on the sample uniformly approximates its
+frequency on the full adversarial stream.
+
+    For a set system E ⊆ 2Z , we deﬁne Ldim(E) to be the Littlestone dimension of the associated binary
+class
+                                      {1E : E ∈ E} ⊆ {0, 1}Z .
+    We use the following theorem of [ABED+21].
+
+Lemma D.2 (Adversarial ULLN, [ABED+ 21]) Let E ⊆ 2Z have Littlestone dimension d. There is a
+universal constant C > 0 such that, for every ǫ, δ ∈ (0, 1), a uniform sample of size
+
+                                                   d + log(1/δ)
+                                             k≥C
+                                                        ǫ2
+is an ǫ-approximation to any adversarially generated stream z̄ = (z1 , . . . , zT ) with probability at least
+1 − δ.
+
+
+
+
+                                                     19
+    We will now apply this to our setting, where the “adversary” corresponds to the instances xt , the
+predictions of the learner ŷt and the true labels yt , and the “sampler” corresponds to the timesteps
+where the learner changes their state. The idea is that predicting on T points (where some of them are
+in a sample), and only updating the state of the learner if it was in the sample, will allow the regret
+guarantees from a smaller sample to extend to the entire sequence. This is formalized via the following
+deﬁnition:
+
+Deﬁnition D.3 (Sample-Blind Lazy Simulation) An online learner A is a sample-blind lazy simulation
+of a k-round learner B if it uses a random sampled set I ⊆ [T ], |I| = k, and satisﬁes:
+
+   1. Before predicting at time t, A does not know whether t ∈ I.
+
+   2. A’s internal copy of B is updated only after rounds t ∈ I.
+
+   3. On the sampled rounds, the internal state and predictions coincide with running B on the sampled
+      subsequence (xt , yt )t∈I in chronological order.
+
+     Below, we describe the precise lazy version of ADEPT used in the subsampling argument. A subtlety
+is that ADEPT uses oracle calls while constructing its prediction: before predicting, it tentatively extends
+every active preﬁx, queries the oracle to remove unrealizable extensions, computes the corresponding
+mistake counters and weights, and only then predicts from the resulting weighted active set. Thus, in
+the lazy simulation, these computations must be performed speculatively on every round. If the round
+is sampled, we commit the tentative state; otherwise, we discard it and revert to the previous committed
+state. The rollback affects only the learner’s internal state; oracle calls made during the speculative
+prediction are still counted.
+
+Lazy rollback version of ADEPT. Let K ≤ T be the desired number of sampled updates. We run
+ADEPT internally as a K-round algorithm. Thus the BPSS future-capacity weights and the learning rate
+are computed with horizon K, not horizon T . Let
+
+                                           I ⊆ [T ],        |I| = K,
+
+be a uniformly random sampled set. The prediction rule is not allowed to inspect whether t ∈ I before
+predicting.
+    The learner maintains a committed ADEPT state after the sampled rounds observed so far. Let
+
+                                         rt = |I ∩ {1, . . . , t − 1}|
+
+be the number of committed sampled updates before round t. The committed state consists of the active
+set Vrt , the mistake counters k(v) for v ∈ Vrt , and the true-loss counters Lrt (v).
+    At full-horizon round t:
+
+   1. The learner receives xt .
+
+   2. Starting from the committed state at internal time rt , the learner performs a speculative ADEPT
+      prediction step on xt . That is, it runs Steps 1–3 of Algorithm 2 as if xt were the next internal
+      ADEPT round, namely round rt + 1 of a K-round execution:
+
+        (a) initialize a tentative next active set Vrtmp
+                                                     t +1
+                                                          = ∅;
+       (b) for every active preﬁx v ∈ Vrt and every proposed extension bit b ∈ {0, 1}, query the weak
+           consistency oracle on the labeled sequence consisting of the committed sampled history
+           encoded by v, together with the proposed pair (xt , b);
+        (c) discard unrealizable extensions;
+
+
+
+                                                       20
+       (d) for surviving extensions u = v ◦ b, compute the speculative mistake counter
+
+                                            ktmp (u) = k(v) + 1[b 6= A(v, xt )];
+
+            discard u if ktmp (u) > M ;
+        (e) assign the speculative Algorithm 1 weight
+                                                      M −k tmp (u)                   
+                                                           X             K − (rt + 1)
+                                      Wrt +1 (u) =                                      ,
+                                                                              j
+                                                           j=0
+
+            and the speculative Hedge weight
+
+                                       wrt +1 (u) = Wrt +1 (u) exp(−ηLrt (v)).
+
+   3. The learner predicts using the same distribution as ADEPT would use at internal round rt + 1:
+                                                P
+                                                  u∈Vrtmp   :urt +1 =1 wrt +1 (u)
+                                                       t +1
+                                  P(ŷt = 1) =      P                             .
+                                                      u∈V tmp wrt +1 (u)
+                                                                 rt +1
+
+
+      This prediction is made before the learner observes whether t ∈ I.
+
+   4. After the prediction, the learner observes yt and the sampling bit 1[t ∈ I].
+
+   5. If t ∈ I, the learner commits the tentative ADEPT transition by performing Step 4 of Algorithm 2:
+
+                     Lrt +1 (u) = Lrt (parent(u)) + 1[urt +1 6= yt ]             for all u ∈ Vrtmp
+                                                                                               t +1
+                                                                                                    .
+
+      The committed state is set to
+                                                   Vrt +1 = Vrtmp
+                                                              t +1
+                                                                   .
+
+           / I, the learner discards Vrtmp
+   6. If t ∈                           t +1
+                                            , all speculative mistake counters, all speculative weights, and
+      any speculative base-learner computations. The committed state remains exactly the previous
+      state at internal time rt .
+
+    It’s clear that the above algorithm is a sample-blind lazy simulation, since it predicts (steps 2 and 3)
+before determining if xt was in the sample. Furthermore, if xt was not in the sample, it reverts its state
+to what it originally was (step 6). Furthermore, the state of the algorithm on the K steps corresponding
+to I exactly matches what the state would be if T = K and I is equal to all the instances.
+    To adapt AULLN [ABED+ 21] to a sample-blind lazy simulation, for each round, consider the
+augmented item zt = (xt , yt , ŷt ) ∈ X × {0, 1} × {0, 1}. Deﬁne the augmented loss class as EA =
+{Eh : h ∈ C} ∪ {Ealg } where
+
+                        Eh = {(x, y, ŷ) : h(x) 6= y} , Ealg = {(x, y, ŷ) : ŷ 6= y}
+
+Lemma D.4 (Augmented AULLN) Given a class C with Littlestone dimension dLD , let A be a sample-
+blind lazy simulation of a learner with
+                                                          
+                                            dLD + log(1/δ)
+                                      k=O                    .
+                                                  ǫ2
+
+rounds. Then, with probability at least 1 − δ,
+                                                                 T
+                                 1X             1X
+                            sup     1[zt ∈ E] −    1[zt ∈ E] ≤ ǫ.
+                            E∈EA k    t∈S
+                                                T
+                                                             t=1
+
+
+                                                      21
+Proof First, we show that EA has Littlestone dimension at most dLD +1. First, the subclass {Eh : h ∈ C}
+has Littlestone dimension equal to that of C – the y-coordinate only ﬂips the branch labels at a node, and
+the ŷ-coordinate is ignored. Adding the single concept Ealg can only increase the Littlestone dimension
+by 1 (otherwise, there’s a shattered tree with depth dLD + 2, implying that C has a shattered tree with
+depth dLD + 1).
+    Directly applying Lemma D.2 gives that an ǫ-approximation of EA holds with probability at least
+1 − δ, so the result follows.                                                                           
+
+Lemma D.5 (Regret Transfer) Let A be a sample-blind lazy simulation of a k-round learner B, and
+let I ⊆ [T ] be the sampled index set. Suppose I is an ǫ-approximation for the augmented class EA from
+Lemma D.4. Then
+                                      1                1
+                                        RegT (A) ≤ RegI (A) + 2ǫ
+                                     T                 k
+where
+                                     X T                     T
+                                                             X
+                        RegT (A) =       1[ŷt 6= yt ] − inf   1[h(xt ) 6= yt ], and
+                                                              h∈C
+                                       t=1                          t=1
+                                        X                             X
+                          RegI (A) =           1[ŷt 6= yt ] − inf             1[h(xt ) 6= yt ].
+                                                                h∈C
+                                         t∈I                             t∈I
+
+                              PT                                    P
+Proof First deﬁne LT (E) =       t=1   1[zt ∈ E], LI (E) =               t∈I   1[zt ∈ E]
+   Then, it holds that
+
+                                    X    T                X              T
+                       1
+                         RegT (A) =   1[ŷt 6= yt ] − inf   1[h(xt ) 6= yt ]
+                       T                              h∈C
+                                        t=1                           t=1
+                                        1                   1
+                                      = LT (Ealg ) − inf LT (Eh )
+                                        T               h∈C T
+                                                                               
+                                          1                        1
+                                      ≤     LI (Ealg ) + ǫ − inf     LI (Eh ) − ǫ
+                                          k                   h∈C k
+                                        1                  1
+                                      = LI (Ealg ) − inf LI (Eh ) + 2ǫ
+                                        k              h∈C k
+                                        1
+                                      = RegI (A) + 2ǫ.
+                                        k
+                                                                                                        
+
+Proof of Theorem 4.5 Fix c ∈ (0, 1) and set
+
+                                                   K = ⌊T c ⌋.
+
+Run the sample-blind lazy rollback simulation described above, using a uniformly random sampled set
+I ⊆ [T ] of size K, and use the K-round version of ADEPT as the internal learner. Let M denote the
+realizable mistake bound of the base learner used inside ADEPT. Since the simulation is sample-blind,
+Lemma D.4 applies to the augmented stream
+
+                                                 zt = (xt , yt , ŷt )
+
+even against an adaptive adversary.
+   Choose δ = (eT )−1 and                          r
+                                                       dLD + log(eT )
+                                         ǫ = C0                       ,
+                                                            K
+
+
+                                                         22
+for a sufﬁciently large universal constant C0 . If ǫ ≥ 1, then the desired regret bound follows from the
+trivial bound RegT (A) ≤ T , after increasing the implicit constant. Hence assume ǫ < 1.
+     Let G be the event that the sampled subsequence is an ǫ-approximation for the augmented class EA .
+By Lemma D.4, P(G) ≥ 1 − δ. On G, Lemma D.5 gives
+                                                  T
+                                   RegT (A) ≤       RegI (A) + 2ǫT.
+                                                  K
+On the sampled rounds, the lazy simulation coincides exactly with running ADEPT on the sampled
+subsequence. Therefore, by Theorem 4.1 with horizon K,
+                                              p              
+                              E RegI (A) ≤ O        KM log(eK) .
+
+Using the preceding display on G, the trivial upper bound RegT (A) ≤ T on Gc , and |RegI (A)| ≤ K,
+we get
+                           T          
+            E[RegT (A)] ≤    E RegI (A) + 2ǫT + O (δT )
+                           K    r           !         r                  !
+                                  M log(eK)               dLD + log(eT )
+                         ≤O T                 +O T                         + O (δT )
+                                      K                        K
+                                r                        !
+                                  dLD + (M + 1) log(eT )
+                         ≤O T
+                                           K
+                                   p                       
+                         ≤ O T 1−c/2 dLD + (M + 1) log(eT ) ,
+
+where we used K ≍ T c , K ≤ T , and δT ≤ 1.
+    It remains to bound the number of weak-consistency oracle calls. At any external round, the com-
+mitted internal history has length at most K. Hence the active set used in the speculative ADEPT step
+consists only of realizable labelings of at most K points, and Sauer’s Lemma gives
+                                            dVC  
+                                            X                  
+                                                 K
+                                   |V | ≤              = O K dVC .
+                                                  i
+                                            i=0
+
+Each active preﬁx produces two candidate extensions and therefore requires only a constant number of
+weak-consistency queries, assuming the internal realizable learner has no more than constant additional
+weak-consistency query cost per prediction. Thus each external round uses O K dVC weak-consistency
+oracle calls, and the total number of calls is
+                                                                     
+                             O T K dVC ≤ O T (T c )dVC = O T 1+cdVC .
+
+This proves the claimed oracle–regret tradeoff.
+                                                                                                      
+
+
+
+E Proof of Theorem 5.1
+It is useful to interpret Theorem 5.1 as evidence for a separation between the dimensions governing
+computation and regret. The lower bound construction has dVC = dLD = d, but the parameter that
+appears on the query-complexity
+                    √             side is naturally viewed as the VC dimension: in the regime dVC ≤
+Q + 1 and Q = o( dVC T ), the theorem gives
+                                                             
+                                                        dLD T
+                                       E[RegT ] ≥ Ω             .
+                                                          Q
+
+                                                      23
+Thus, in the low-query regime, the regret forced by a restricted oracle budget grows with the number
+of VC degrees of freedom that the learner must distinguish through queries. This is consistent with our
+upper bounds: the regret term is controlled by the realizable mistake
+                                                                    √ bound, and in particular by the
+Littlestone dimension when the base learner is SOA, yielding O(  e T dLD ) regret; whereas the number
+of oracle-veriﬁed realizable preﬁxes maintained by ADEPT is controlled by Sauer’s lemma and hence
+by dVC , leading to oracle complexity polynomial in T with exponent depending on dVC . Informally,
+Littlestone dimension governs the statistical price of adversarial online prediction, while VC dimension
+governs the oracle/computational price.
+
+Proof We formally prove the lower bound for d = 1, i.e.
+
+                                                          T      Q
+                                      E[RegT ] ≥                − .
+                                                       2(Q + 1)  2
+
+    Let the instance space be partitioned into inﬁnitely many disjoint inﬁnite blocks
+
+                                                 B1 , B2 , . . . .
+
+For every j ≥ 1, deﬁne the block singleton hj (x) = 1[x ∈ Bj ], and let C = {hj : j ≥ 1}. This class
+has Littlestone dimension equal to 1.
+     The adversary proceeds in phases 0, . . . , Q. In phase i, the adversary uses the two blocks B2i+1 and
+B2i+2 and labels examples according to the hypothesis h2i+1 . That is, on each round of phase i, the
+adversary independently chooses a fresh point from B2i+1 with probability 1/2, in which case the label
+is 1, and chooses a fresh point from B2i+2 with probability 1/2, in which case the label is 0.
+     The phase changes only when the learner makes an oracle query. More precisely, the adversary starts
+in phase 0. Whenever the learner makes at least one oracle query on a round, the adversary ends the
+current phase after that round and moves to the next phase. Since the learner makes at most Q queries,
+the adversary uses at most Q + 1 phases.
+     We may assume that every queried round causes zero loss for the learner. This only makes the
+learner stronger and therefore can only weaken the lower bound. On a round in which the learner does
+not query, the current point is fresh, and the learner has no oracle information distinguishing whether it
+lies in the positive block B2i+1 or the negative block B2i+2 of the current phase. Thus, conditioned on
+the learner’s transcript before prediction, the label on any non-query round is an unbiased bit. Hence the
+learner’s expected loss on every non-query round is 1/2.
+     Let R be the number of rounds on which the learner makes at least one query. Since the total number
+of queries is at most Q, we have R ≤ Q. Therefore the learner’s expected loss satisﬁes
+
+                                                  T − E[R]   T −Q
+                                    E[Lalg ] ≥             ≥      .
+                                                     2         2
+    It remains to upper bound the loss of the best expert in hindsight. For each phase i ∈ {0, . . . , Q},
+let Pi denote the number of positive examples in phase i, namely the number of examples drawn from
+B2i+1 . Let
+                                                   XQ
+                                              P =      Pi
+                                                         i=0
+
+be the total number of positive examples over the entire sequence. Since every round is positive with
+probability 1/2, regardless of the adaptively chosen phase lengths,
+
+                                                               T
+                                                 E[P ] =         .
+                                                               2
+   Now ﬁx a phase i. The expert h2i+1 is correct on every example in phase i, because the labels in that
+phase are generated exactly according to h2i+1 . On every other phase, all examples lie outside B2i+1 , so
+
+
+                                                       24
+h2i+1 predicts 0. Therefore, outside phase i, this expert makes mistakes exactly on the positive examples.
+Its total loss is
+                                                  P − Pi .
+Thus the loss of the best expert in hindsight is at most
+                                         min (P − Pi ) = P −                   max      Pi .
+                                    i∈{0,...,Q}                           i∈{0,...,Q}
+
+Using the deterministic inequality
+                                                                    Q
+                                                          1 X       P
+                                         max      Pi ≥        Pi =     ,
+                                   i∈{0,...,Q}           Q+1       Q+1
+                                                                    i=0
+we get
+                                   T
+                                   X                                      P     Q
+                             inf         1[h(xt ) 6= yt ] ≤ P −              =     P.
+                             h∈C
+                                   t=1
+                                                                         Q+1   Q+1
+Taking expectations gives
+                         "         T
+                                                          #
+                                   X                                Q           Q  T
+                        E inf            1[h(xt ) 6= yt ] ≤            E[P ] =    · .
+                           h∈C
+                                   t=1
+                                                                   Q+1         Q+1 2
+    Combining the learner lower bound with the comparator upper bound,
+                                                 "     T
+                                                                          #
+                                                      X
+                          E[RegT ] = E[Lalg ] − E inf     1[h(xt ) 6= yt ]
+                                                                   h∈C
+                                                                         t=1
+                                            T −Q      Q    T
+                                          ≥       −      ·
+                                              2      Q+1 2
+                                               T      Q
+                                          =          − .
+                                            2(Q + 1)  2
+as desired.
+    To extend the argument to general d, replace the block-singleton class by the class of unions of at
+most d blocks:                                                        
+                                              [                         
+                        Cd = x 7→ 1 x ∈          Bj  : S ⊆ N, |S| ≤ d .
+                                                                        
+                                                         j∈S
+
+This class has VC dimension and Littlestone dimension exactly d. The adversary uses the same phase
+construction as above, so the learner’s loss lower bound remains E[Lalg ] ≥ (T − Q)/2. The only change
+is the hindsight comparator: a concept in Cd can now select the positive blocks from the d phases with
+the largest positive mass. If m ≤ Q + 1 is the number of phases and Pi is the number of positive
+examples in phase i, then (deﬁning Topd as the indices of the d largest values in P )
+                             X                                         
+                                                 d                   d
+                                  Pi ≥ min 1,         P ≥ min 1,            P,
+                                                 m                  Q+1
+                           i∈Topd
+             P
+where P = i Pi . Hence the best comparator has expected loss at most
+                                                          
+                                                        d       T
+                                         1 − min 1,               .
+                                                      Q+1       2
+Combining this with the learner lower bound gives
+                                                         
+                                              T        d     Q
+                                    E[RegT ] ≥ min 1,       − ,
+                                              2       Q+1    2
+as claimed.
+                                                                                                       
+
+
+                                                              25
+

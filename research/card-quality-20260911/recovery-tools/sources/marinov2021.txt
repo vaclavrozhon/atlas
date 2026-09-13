@@ -1,0 +1,1417 @@
+                                                          The Pareto Frontier of model selection
+                                                             for general Contextual Bandits
+
+
+                                                               Teodor Marinov∗                                 Julian Zimmert
+                                                               Google Research                                Google Research
+arXiv:2110.13282v1 [cs.LG] 25 Oct 2021
+
+
+
+
+                                                            tvmarinov@google.com                            zimmert@google.com
+
+
+
+                                                                                           Abstract
+                                                     Recent progress in model selection raises the question of the fundamental limits
+                                                     of these techniques. Under specific scrutiny has been model selection for gen-
+                                                     eral contextual bandits with nested policy classes, resulting in a COLT2020 open
+                                                     problem. It asks whether it is possible to obtain simultaneously the optimal single
+                                                     algorithm guarantees over all policies in a nested sequence of policy classes, or if
+                                                     otherwise this is possible for a trade-off α ∈ [ 21 , 1) between complexity term and
+                                                     time: ln(|Πm |)1−α T α . We give a disappointing answer to this question. Even
+                                                     in the purely stochastic regime, the desired results are unobtainable. We present
+                                                     a Pareto frontier of up to logarithmic factors matching upper and lower bounds,
+                                                     thereby proving that an increase in the complexity term ln(|Πm |) independent
+                                                     of T is unavoidable for general policy classes. As a side result, we also resolve
+                                                     a COLT2016 open problem concerning second-order bounds in full-information
+                                                     games.
+
+
+                                         1 Introduction
+                                         Contextual multi-armed bandits are a fundamental problem in online learning [Auer et al., 2002,
+                                         Langford and Zhang, 2007, Chu et al., 2011, Abbasi-Yadkori et al., 2011]. The contextual bandit
+                                         problem proceeds as a repeated game between a learner and an adversary. At every round of the
+                                         game the adversary prepares a pair of a context and a loss over an action space, the learner ob-
+                                         serves the context and selects an action from the action space and then observes only the loss of the
+                                         selected action. The goal of the learner is to minimize their cumulative loss. The performance mea-
+                                         sure, known as regret, is the difference between the learner’s cumulative loss and the smallest loss of
+                                         a fixed policy, belonging to an apriori determined policy class, mapping contexts to actions. Given
+                                         a single contextual bandit instance with finite sized policy class,
+                                                                                                         p the well-known Exp4 algorithm
+                                         [Auer et al., 2002] achieves the optimal regret bound of O( KT ln(|Π|). Regret guarantees de-
+                                         grade with the complexity of the policy class, therefore a a learner might want to leverage “guesses”
+                                         about the optimal policy. Given policy classes Π1 ⊂ · · · ⊂ ΠM , a learner would ideally suffer re-
+                                         gret scaling only with the complexity of Πm∗ , the smallest policy class containing the optimal policy
+                                         π ∗ . While these kind of results are obtainable in full-information games, in which the learner gets
+                                         to observe the loss for all actions, they are impossible for multi-armed bandits [Lattimore, 2015].
+                                         In some aspects, contextual bandits are an intermediate setting between full-information and multi-
+                                         armed bandits and it is unknown if model selection is possible. Foster et al. [2020b] stated model
+                                         selection in contextual bandits as a relevant open problem in COLT2020. Any positive result for
+                                         model selection in contextual bandits would imply a general way to treat multi-armed bandits with
+                                         a switching baseline. Furthermore any negative result is conjectured to implicate negative results
+                                         on another unresolved open problem on second order bounds for full-information games [Freund,
+                                         2016].
+                                            ∗
+                                                Author was at Johns Hopkins University during part of this work.
+
+
+                                         35th Conference on Neural Information Processing Systems (NeurIPS 2021).
+In this paper, we give a fairly complete answer to the questions above.
+
+       P.1 We provide a Pareto frontier of upper bounds for model selection in contextual bandits with
+           finite sized policy classes.
+       P.2 We present matching lower bounds that shows that our upper bounds are tight, thereby
+           resolve the motivating open problems [Foster et al., 2020b].
+       P.3 We present a novel impossibility result for adapting to the number of switch points under
+           adaptive adversaries [Besbes et al., 2014].
+       P.4 We negatively resolve an open problem on second order bounds for full-information
+           [Freund, 2016].
+
+Related work. A problem closely related to contextual bandits with finite policy classes are linear
+contextual bandits. Model selection in linear contextual bandit problems has recently received sig-
+nificant attention, however none of these resuls transfer to the finite policy case. In the linear bandits
+problem the m-th policy class is a subset of Rdm and the losses ℓt,π(x) , π ∈ Πm are linear, that is
+ℓt,π(x) = hθm , φm (x, π(x))i + ξ. Here φm : X × A → Rdm is a feature embedding mapping from
+context-action pairs into Rdm , ξ is mean-zero sub-Gaussian noise with variance proxy equal to one
+and θm ∈ Rdm is an unknown parameter.
+Foster et al. [2019] assume the contexts are also drawn from an unknown distribution x ∼
+D and propose an algorithm which does not incur more than Õ( γ13 (i∗ T )2/3 (M di∗ )1/3 ),
+where γ 3 P is the smallest eigenvalue of the covariance matrix of feature embeddings Σ =
+          1                                ⊤
+Ex∼D M          a∈A φM (x, a)φM (x, a)       . Pacchiano et al. [2020b] propose a different approach
+                                                                                         √
+based on the corralling algorithm  √    of Agarwal   et al. [2017] which enjoys a Õ(di∗ T ) regret bound
+for finite action sets and Õ(d2i∗ T ) bound for arbitrary action sets A. Later, Pacchiano et al. [2020a]
+design an algorithm which enjoys a gap-dependent guarantee under the assumption that all of the
+miss-specified models have regret Ri (t) ≥√∆t, ∀t ∈ [T ]. Under such an assumption, the authors
+                                                            4
+recover a regret bounds of the order Õ(d√      i∗ T + di∗ /∆)   √for arbitrary action sets. Cutkosky et al.
+[2020] also manage to recover the O(di∗ T ) and O(d2i∗ T ) bounds for the model selection prob-
+lems
+    through     their corralling   algorithm. Ghosh et al. [2021] propose an algorithm which enjoys
+      d2M     √        
+Õ γ 4.65 + dm∗ T in the finite arm setting, where γ = min{|θm∗ ,i | : |θm∗ ,i | > 0} is the small-
+est, in absolute value,
+                   √      entry of θm∗ . Their  √ algorithm also enjoys a similar guarantee for arbitrary
+action sets with dm∗ T replaced by dm√        ∗   T . Zhu and Nowak [2021] show that it is impossible to
+achieve the desired regret guarantees of dm∗ T without additional assumptions by showing a result
+similar to the one of Lattimore [2015]. The work of Lattimore   √       [2015] states that in the stochastic
+multi-armed √  bandit  problem   it is impossible  to achieve    T  regret to a fixed arm, without suffering
+at least K T regret to a different arm.
+Chatterji et al. [2020] study the problem of selecting between an algorithm for the linear contextual
+bandit problem and the simple stochastic multi-armed bandit problem, that is they aim to achieve si-
+multaneously a regret guarantee which is instance-dependent optimal for the stochastic multi-armed
+bandit problem and optimal for the finite arm stochastic linear bandit problem. The proposed results
+only hold under additional assumptions. More generally, the study of the corralling problem, in
+which we are presented with multiple bandit algorithms and would like to perform as well as the
+best one, was initiated by Agarwal et al. [2017]. Other works which fall into the corralling frame-
+work are that of Foster et al. [2020a] who study the miss-specified linear contextual bandit problem,
+that is the observed losses are linear up to some unknown ǫ miss-specification, and the work of
+Arora et al. [2021] who study the corralling problem for multi-armed stochastic bandit algorithms.
+Our work also shows an impossibility result for the stochastic bandit problem with non-stationary re-
+wards. Auer [2002] first investigates the problem under the assumption
+                                                                 √      that there are L distributional
+changes throughout the game and gives an algorithm with a Õ( KLT ) dynamic regret2 bound, un-
+der the assumption that L is known. Auer et al. [2019] achieves similar regret guarantees without
+assuming that the number if switches (or changes) of the distribution is known. A different measure-
+                                                                          PT
+ment of switches is the total variation of changes in distribution VT = t=2 kE[ℓt ] − E[ℓt−1 ]k∞ .
+   2
+       In dynamic regret the comparator is the best action for the current distribution.
+
+
+                                                          2
+            General CB           Upper bound                        Lower bound
+                                               √                                   q
+            adaptive        O(max{C, ln |Π
+                                         C
+                                           m|
+                                              } M KT )         Ω(max{C, ln |Π
+                                                                            C
+                                                                              m|
+                                                                                 }    KT
+                                                                                     ln(K) )
+            adversary
+                                               √                                    √
+            oblivious       O(max{C, ln |Π
+                                         C
+                                           m|
+                                              } M KT )           Ω(max{C, ln |Π
+                                                                              C
+                                                                                m|
+                                                                                   } T)
+            adversary /
+            stochastic
+
+            S-switch               Upper bound                     Lower bound
+                                             √                                √
+            adaptive          Õ(max{C, SC } KT )              Ω(max{C, SC } KT )
+            adversary              √                                    √
+            oblivious          Õ( SKT + T 3/4 )                    Ω( SKT )
+            adversary                 √                                 √
+            stochastic             Õ( SKT )                        Ω( SKT )
+Table 1: Overview of our results. Our novel contributions are in bold; lower bounds only hold if the
+expressions are not exceeding Θ(T ). The stochastic/oblivious lower bounds hold only for proper
+algorithms.
+
+
+
+                                                                  1/3
+Multiple works give dynamic regret bounds of the order Õ(VT T 2/3 ) (hiding dependence on the
+size of the policy class) when VT is known, including for extensions of the multi-armed bandit
+problem like contextual bandits and linear contextual bandits [Besbes et al., 2014, Luo et al., 2018,
+Besbes et al., 2015, Wei et al., 2017]. Cheung et al. [2019], Zhao et al. [2020] further show algo-
+                                                                     1/4
+rithms which enjoy a parameter free regret bound of the order Õ(VT T 3/4 ) (hiding dependence on
+dimensionality) for the linear bandits problem. The lower bound in Table 1 might seem to contradict
+such results. In Section 5.1 we carefully explain why this is not the case.
+Finally, our lower bounds apply to the problem of devising an algorithm which simultaneously
+enjoys a second order bound over any fraction of experts. Cesa-Bianchi et al. [2007] first inves-
+tigate the problem of second order bounds for the experts problem, in which the proposed al-
+gorithm maintains a distribution pt over the set of K experts, during every round of the game.
+Theqexperts are assumed to have stochastic losses ℓt and the work shows an algorithm with
+      PT
+Õ(      t=1 Vi∼pt [ℓt,i ] log K) regret guarantee. Chaudhuri et al. [2009], Chernov and Vovk [2010],
+Luo and Schapire [2015], Koolen and Van Erven [2015] study a different experts problem in which
+the comparator class for the regret changes from the best expert in hindsight to the uniform distri-
+bution over the bestp ⌊ǫK⌋ experts for an arbitrary positive ǫ. The above works propose algorithms
+which achieve a Õ( T log(1/ǫ)) regret bound for all ǫ simultaneously. Freund [2016] asks if there
+exists an algorithm which enjoys
+                               q     both guarantees at the same time, that is, does there exist an algo-
+                                PT
+rithm with regret bound Õ(        t=1 Vi∼pt [ℓt,i ] log(1/ǫ)) which holds simultaneously for all positive
+ǫ.
+
+
+Notation. For any N ∈ N, [N ] denotes the set {1, . . . , N }. Õ notation hides poly-logarithmic
+factors in the horizon T and the number of arms K but not in the size of the policy classes |Πm |.
+
+
+
+2 Problem setting
+
+We consider the contextual bandit problem with general policy classes of finite size. There are K
+arms and nested policy classes (Πm )Mm=1 , where a policy π ∈ Πm , π : X → [K] is a mapping from
+an arbitrary context space X into the set of K arms. The game is played for T rounds and at any
+time t, the agent observes a context xt ∈ X , selects arm At ∈ [K] and observes the loss ℓt,At from
+an otherwise unobserved loss vector ℓt ∈ [K]. We measure an algorithm’s performance in terms of
+pseudo-regret, which is the expected cumulative regret of the player against following a fixed policy
+
+                                                    3
+in hindsight
+                                                   " T                   #
+                                                    X
+                            Reg(T, Π) = max E             ℓt,At − ℓt,π(xt ) .
+                                           π∈Π
+                                                    t=1
+
+Environments. We distinguish between stochastic environments and oblivious or adaptive adver-
+saries. In stochastic environments, there are unknown distribution PX , Q such that xt ∼ PX and
+ℓt ∼ Q(·|xt ) are i.i.d. samples. In the adversarial regime, the distributions can change over time, i.e.
+xt ∼ PX ,t , ℓt ∼ Qt (·|xt ). When the choices are fixed at the beginning of the game, the adversary
+is called oblivious, while an adaptive adversary can chose PX ,t , Qt based on all observations up to
+time t − 1.
+Often the stochastic-adversarial hybrid problem has been studied with adversarially chosen context
+but stochastic losses. In our work, all upper bounds hold in the stronger notion where both the losses
+and the contexts are adaptive, while the lower bounds hold for the weaker notion where only the
+contexts are adaptive.
+
+Open problem [Foster et al., 2020b]. The regret upper bounds  p    for all regimes introduced above
+for a fixed policy class Π of finite size are of the order Õ( ln(|Π|)KT ) and can be achieved by
+the Exp4 algorithm [Auer et al., 2002]. The question asked by Foster et al. [2020b]: For a nested
+sequence of policies Π1 ⊂ Π2 ⊂ · · · ⊂ ΠM , is there a universal α ∈ [ 21 , 1) such that a regret bound
+of
+                       Reg(T, Πm ) = PolyLog(K, M )Õ ln(|Πm |)1−α T α
+                                                                               
+                                                                                                     (1)
+is obtainable for all m ∈ [M ] simultaneously?
+W.l.o.g. we can assume that M = O(ln ln(|ΠM |)) = O(ln(T )). Otherwise we take a subset of
+policy classes that includes ΠM and where two consequent policy classes at least square in size.
+Due to nestedness, any guarantees on this subset of models imply up to constants the same bounds
+on the full set.
+
+S-switch A motivating example for studying nested policy classes is the S-switch problem. The
+context is simply xt = t ∈ [T ] and the set of policies is given by
+                                      ( T −1                        )
+                                            X
+                               ΠS = π           I{πt 6= πt+1 } ≤ S ,
+                                            t=1
+
+the set of policies that changes its action not more than S many times. Any positive result for
+contextual bandits with finite sized policy classes would provide algorithms that adapt to the number
+of switch points, since ln |ΠS | = Õ(S). To make clear what problem we are considering, we are
+using RegSW (T, S) to denote the regret in the switching problem.
+Next, we define the class of proper algorithms which choose their policy at every time step t indepen-
+dently of context xt . Restricting our attention to such algorithms greatly reduces the technicalities
+for lower bound proofs in the non-adaptive regimes. The lower bound for this class of algorithms is
+also at the core of the argument for adaptive (improper) algorithms in stochastic environments.
+Definition 1. We call an algorithm proper, if at any time t, the algorithm follows the recommenda-
+tion of a policy πit ∈ ΠM , and if the choice of it by the algorithm, is independent of the context
+xt .
+
+Example. EXP4 is proper.
+The properness assumption intuitively allows us to reduce the model selection problem to a bandit-
+like problem in the space of all policies ΠM . We give more details in Section 4.2 and Appendix B.3.
+
+3 Upper bounds
+In this section, we generalize the Hedged-FTRL algorithm
+                                                    √     [Foster et al., 2020a] to obtain an upper
+bound for model selection over a large collection of T regret algorithms.
+
+                                                   4
+Theorem 1. For any C > 0, we can tune Hedged-FTRL over a selection of M instances of EXP4
+operating on policy classes Π1 , . . . ΠM , such that the following regret bound holds uniformly over
+all m ∈ [M ]
+                                                         ln |Πm | √
+                                                                         
+                       Reg(T, Πm ) = Õ max C,                       M KT .
+                                                             C
+
+Hedged-FTRL. (α, R)-hedged FTRL, intro-
+duced in Foster et al. [2020a], is a type of Follow Input: α, R, β, T op, (Basei )M     i=1
+the Regularized Leader (FTRL) algorithm which for t = 1, . . . , T do
+is used as a corralling algorithm [Agarwal et al.,         Get Mt , qt,Mt from T op
+2017]. At every round t, the algorithm chooses             Let BaseMt play the next round and
+to play one of M base algorithms (Basei )M       i=1 .       receive At
+Base algorithm i is selected with probability              Play At and observe ℓt,At
+qt,i , where qt ∈ ∆M−1 is a distribution over              Update BaseMt with ℓt,At /qt,Mt
+base algorithms determined by the FTRL rule                Update T op with (Mt , ℓt )
+qt = arg minq∈∆M −1 hq, Lt − Bt i + F (q)/η,               if qt+1 would violate Eq. (2) then
+where Lt ∈ RM    + is the sum of the loss vectors               Bias losses by bt to ensure Eq. (2).
+                   t−1
+(eMs ℓs,As /qs,Ms )s=1 , F : ∆  M−1
+                                       → R is the          end
+potential induced by the α-Tsallis entropy, η is end
+a step size determined by the problem parameters and BtAlgorithmis a special1:bias
+                                                                              HedgedtermFTRL
+                                                                                         which we now
+explain. Define ρ−1 t,m =  min{β  m , mins∈[t] qs,m }, and initialize B 0,m  =  ρ α
+                                                                                  1,m R m . Here ρt is a
+vector which tracks the variance of the loss estimators, R is a vector with regret upper bounds for
+the base algorithms, and β ≤ q1 is a threshold depending on the base algorithms. At any time t,
+after selecting base algorithm Mt to play the current action, the top (corralling) algorithm observes
+its loss and gives as feedback an important weighted loss to the selected base, Mt . Whenever the
+base played at round t would satisfy ρt+1,Mt > ρt,Mt , the loss fed to the top algorithm is adjusted
+with a bias bt,Mt , such that the cumulative biases track the quantity ρα    t+1,m Rm . This has been
+shown to be always possible [Foster et al., 2020a]. The condition for adjusting the biases reads
+                                                  t
+                                                  X
+                            ∀m ∈ [M ] : B0,m +          bs,m = ρα
+                                                                t+1,m Rm .                          (2)
+                                                  s=1
+
+The condition in Equation 2 is motivated in a similar way to the stability condition in the
+work of Agarwal et al. [2017]. Algorithm 1 constructs an unbiased estimator for the loss vector,
+eMt ℓt,At /qt,Mt , and updates each base algorithm accordingly. A similar update is present in the
+C ORRAL algorithm Agarwal et al. [2017] in which each of the base learners also receives an impor-
+tance weighted loss. The regret of the base learners is assumed to scale with the variance of the
+importance weighted losses. This assumption is natural and in practice holds for all bandit or expert
+algorithms. The scaling of the regret, however, must be appropriately bounded as Agarwal et al.
+[2017] show, otherwise no corralling or model selection guarantees are possible. Formally, the fol-
+lowing stability property is required. If an algorithm B enjoys a regret bound R under environment
+V with loss sequence (ℓt )Tt=1 , then the algorithm is (α, R)-stable if it enjoys a regret bound of the
+                                             ′
+order E[ρα                                                                          T
+           max ]R under the environment V of importance weighted losses (ℓ̂t )t=1 , where ρmax is
+the maximum variance of the T losses and the expectation is taken with respect to any randomness
+in B. Essentially allpbandit and expert algorithms used in practice are (α, R)-stable with α ≤ 1/2,
+e.g., Exp4 is (1/2, KT ln(|Π|))-stable. The bias terms in Algorithm 1 intuitively cancel the addi-
+tional variance introduced by the importance weighted losses and this is why we require the biases
+to satisfy Equation 2.
+                                                                                   √
+Theorem 2. Given a collection of base algorithms (Bm )M     m=1 which are (1/2, Cm T )-stable, that
+is
+                                                             √       p
+                         ∀m ∈ [M ] : RegImp (T, Bm ) ≤ E[ ρT m ] Cm T ,
+                                                                                       √
+and any C ≥ 0, then the regret of (1/2, R, β)-hedged Tsallis-Inf with Rm = Cm T , βm =
+               2
+ 1           C
+M max{1, Cm } satisfies a simultaneous regret of
+
+                                                            Cm √             √
+                                                               
+                   ∀m ∈ [M ] : Reg(T, Bm ) ≤ 2 max C,               M T + 2M T .
+                                                             C
+
+                                                   5
+The analysis follows closely the proof of Foster et al. [2020a] and is postponed to Appendix A.
+Theorem 2 recovers the bounds of Pacchiano et al. [2020b] for model selection in linear bandits, but
+holds in more general settings including adaptive adversaries in both contexts and losses. It neither
+requires nestedness of the policies nor that the policies operate on the same action or context space.
+
+Proof of Theorem 1. The EXP4 algorithm initialized with policy class Πm satisfies the condition of
+Theorem 2 with Cm = O(ln |Πm |), as shown in Agarwal et al. [2017]. Hence Theorem 1 is a direct
+corollary of Theorem 2.
+
+4 Lower bounds
+We present lower bounds that match the upper bounds from Section 3 up to logarithmic factors,
+thereby proving a tight Pareto frontier of worst-case regret guarantees in model selection for contex-
+tual bandits.
+In the first part of this section, we consider a special instance of S-switch with adaptive adversary.
+The proof technique based on Pinsker’s inequality is folklore and leads to the following theorem.
+Theorem 3. For any K ≥ 3, sufficiently large T , and any algorithm with regret guarantee
+                                                            √
+                                      RegSW (T, 1) = O(C KT ) ,
+there exists for any number of switches S = Ω(C2 ) a stochastic bandit problem such that
+                                                        S√
+                                                                
+                           RegSW (T, S) = Ω min            KT , T      .
+                                                        C
+This bound holds even when the agent is informed about the number of switches up to time t.
+
+Since this bound holds even when the agent is informed about when a switch occurs, we can restrict
+the policy class to policies that only switch arms whenever the agent is informed about a switch in
+                                                                                                  S
+the environment. This as a contextual bandit problem with context X =[S +n1] and |ΠS | = Θ(K   o )
+                                                                                 ln |ΠS |
+                                                                                          √
+policies. Hence Theorem 3 implies a lower bound of Reg(T, ΠS ) = Ω min C ln(K) KT , T               .
+In the second part of the section, we consider the stochastic regime. Our lower bound construction is
+non-standard and relies on bounding the total variation between problem instances directly without
+the use of Pinsker’s inequality.
+Theorem 4. There exist policy classes Π1 ⊂ Π2 3 with |Π2 | = Ω(C2 ), such that if the regret of a
+proper algorithm is upper bounded in any environment by
+                                                           √
+                                       Reg(T, Π1 ) = O(C T ) ,
+then there exists an environment such that
+                                                    ln |Π2 | √
+                                                             
+                             Reg(T, Π2 ) = Ω max C,            T .
+                                                       C
+
+These theorems directly provide negative answers to [Foster et al., 2020b].
+Corollary 1. There is no α ∈ [ 21 , 1) that satisfies the regret guarantee of open problem (1) for any
+algorithm in the adaptive adversarial regime or any proper algorithm in the stochastic case.
+
+Proof. By Theorems 3 and 4, for any α > 0 there exists K =√3, M = 2, |Π1 | = 1, |Π2 | =
+                                                           1
+Θ(exp(T α )). Assume that Reg(T, Π1 ) ≤ CT T α = CT T α− 2 T , where CT = PolyLog(T ).
+Hence by Theorem 3 and Theorem 4 there exist environments where
+                                              Tα √
+                                                      
+                        Reg(T, Π2 ) = Ω            1 T = Ω̃ (T ) .
+                                          CT T α− 2
+
+   3
+     In Foster et al. [2020b] open problem 2, they ask about model based contextual bandit with realizability.
+Our lower bound is providing an instance of that.
+
+
+                                                      6
+Finally, we disprove the open problem in the stochastic case for any algorithm.
+Theorem 5. No algorithm (proper or improper) can satisfy the requirements of open problem (1)
+for all stochastic environments.
+
+We present the high level proof ideas in the following subsections and the detailed proof in Ap-
+pendix B.
+
+4.1 Adaptive adversary: S-switch(∆) Problem
+
+We present the adaptive environment in which model selection fails and the proof of Theorem 3.
+The adversary switches the reward distribution up to S many times, thereby segmenting the time
+into S + 1 phases (1, . . . , τ1 , τ1 + 1, . . . , τ2 , . . . , τS , . . . T ). We denote xt ∈ [S + 1] as the counter
+of phases and assume the agent is given this information. For each phase xt ∈ [S], the adversary
+selects an optimal arm (a∗s )Ss=1 uniformly at random among the first K − 1 arms. If xt ≤ S, the
+losses are i.i.d. Bernoulli random variables with means
+                                                                for i ∈ [K − 1] \ {a∗xt }
+                                                
+                                                    0
+                                         1 
+                             E[ℓt,i ] = − ∆                     for i = a∗xt
+                                         2 7
+                                                    8∆          for i = K .
+In phase S + 1, all losses are 0 until the end of the game. The adversary decides on the switching
+points based on an adaptive strategy. A switch from phase s < S + 1 to s + 1 occurs when the player
+                       K−1
+has played Nmax = ⌈ 192∆   2 ⌉ times an arm in [K − 1] in phase s. We can see this problem either as a
+
+special case of S-switch problem, or alternatively as a contextual bandit problem with |ΠS | = K S+1
+policies.
+The lower bound proof for S-switch(∆) relies on the following Lemma, which is proven in Ap-
+pendix B.
+Lemma 1. Let an agent interact with a K − 1 ≥ 2 armed bandit problem with centered Bernoulli
+                                            1
+losses and randomized best arm of gap ∆ ≤ 8√  3
+                                                for an adaptive number of time steps N . If the
+                             K−1                 1
+probability of N ≥ Nmax = ⌈ 192∆ 2 ⌉ is at least 2 , then the regret after Nmax time-steps conditioned
+on the event N ≥ Nmax is lower bounded by
+                                                         ∆
+                                               Reg ≥       Nmax .
+                                                         4
+
+Informally, this Lemma says that conditioned on transitioning from phase s to phase s + 1, the agent
+has suffered regret Ω(∆ Nmax ) against arm K during phase s.
+
+Informal proof of Theorem 3. The adversary’s strategy is designed in a way such that at each phase
+s ∈ [S] it only allows the player’s strategy to interact with the environment just enough times
+to discover the best action a∗s . Then a new phase begins to prevent the player from exploiting
+knowledge of a∗s . This ensures by Lemma 1 that the player suffers regret at least Ω(∆Nmax ) during
+each completed phase. If an agent proceeds finding a∗s for all phases s ∈ [S], then the regret against
+the non-switching baseline is RegSW (T, 1) = O(∆ Nmax S). By the assumption on the maximum
+regret of RegSW (T, 1) and an appropriate choice of Nmax and ∆, we can ensure that the agent must
+fail to discover all a∗s with constant probability, thus incurs regret at least RegSW (T, S) = Ω(∆T )
+against the optimal S-switch baseline. Tuning ∆ and Nmax yield the desired theorem. The formal
+argument with explicit choice of ∆ is found in Appendix B.
+
+4.2 Stochastic lower bound
+
+We now present the stochastic environment used for the impossibility results in Theorems 4 and 5.
+There are k + 1 environments (Ei )ki=0 with Π2 = {πi |i ∈ [k] ∪ {0}} policies and Π1 = {π0 }. In all
+environments, we have K = 3 and π0 always chooses action 3, while (πi )ki=1 are playing an action
+from {1, 2} uniformly at random. (In other words, the context is X = {1, 2}k with xt sampled
+uniformly at random and πi (x) = xi .)
+
+                                                         7
+In each environment, the losses of actions {1, 2} at any time step satisfy ℓt,1 = 1 − ℓt,2 , which are
+conditioned on xt independent Bernoulli random variables, with mean
+                                         1                                        1
+             EE0 [ℓt,1 ] = EE0 [ℓt,2 ] =       and ∀i ∈ [k] : EEi [ℓt,πi (xt ) ] = (1 − ∆) .
+                                         2                                        2
+Action 3 gives a constant loss of 21 − 41 ∆ in all environments.
+Let us unwrap these definitions. Playing either action 1 or action 2, which we call revealing actions,
+yields full-information of all random variables at time t due to the dependence of ℓt,1 = 1 − ℓt,2 and
+the non-randomness of ℓt,3 . On the other hand, playing action 3 allows only to observe xt , which
+has the same distribution in all environments, hence there is no information gained at all.
+Wepknow from full-information lower bounds that for optimal tuning of the gap, one suffers
+Ω( ln(k)T ) regret in the policy class Π2 , due to the difficulty of identifying the optimal arm.
+For a smaller regret in policy class Π1 , one needs to confirm or reject the hypothesis E0 faster than
+it takes to identify the optimal arm. Existing techniques do not answer the question whether this is
+possible, and our main contribution of this section is to show that the hardness of rejecting E0 is of
+the same order as identifying the exact environment.
+For the remaining section, it will be useful to consider a reparametrization of the random variables.
+Let zt ∈ {0, 1}k be the losses incurred by the policies (πi )ki=1 : zt,i = ℓt,πi (xt ) . We can easily see
+that zt together with xt,1 is sufficient to uniquely determine ℓt and xt . Furthermore, zt is always a
+vector of independent Bernoulli random variables, which are independent of xt,1 4 . In environments
+(Ei )ki=1 , the i-th component is a biased Bernoulli, while all other components have mean 12 . In E0 ,
+no component is biased. As before, xt,1 does not provide any information since its distribution
+conditioned on zt is identical in all environments (see Lemma 4 in Appendix B for a formal proof).
+Under this reparameterization and ignoring non-informative bits of randomness, the problem of dis-
+tinguishing E0 from {Ei }ki=1 now looks as follows. For time steps t = 1, . . . , T , decide whether to
+play a revealing action and observe zt (potentially by taking xt into account). Use observed (zτn )N
+                                                                                                   n=1
+to distinguish between the environments. Proper algorithms simplify the problem even further, be-
+cause selecting πit independently of xt implies that the decision of observing zt is also independent
+of xt (any policy except π0 allows to observe zt under any context). Hence for proper algorithms, we
+can reason directly about how many samples zt are required to distinguish between environments.
+This problem bears similarity to the property testing of dictator functions [Balcan et al., 2012] and
+sparse linear regression [Ingster et al., 2010]5 , however, there is no clear way to apply such results
+to our setting.
+The following lemma shows the difficulty of testing for hypothesis E0 .
+Lemma 2. Let ∆ ≤ 14 , k ≥ e20 + 1, N ≤ ⌊ ln(k−1)                2       1
+                                                 20∆2 ⌋ and ∆ N ≥ 2 . If the algorithm chooses
+whether to reveal zt independently of xt and if the total times zt is revealed is bounded by N a.s.
+then for any measurable event E it holds that
+                                                           17       1
+                            min PEi (E) − PE0 (E) ≤ √            ≤ .
+                            i∈[k]
+                                                        4
+                                                          k−1       4
+The proof of Lemma 2 is deferred to Appendix B.3. The high level idea is to directly bound the TV
+between mini∈[k] PEi and PE0 over the space of outcomes of (ztn )N  n=1 by utilizing Berry-Essen’s
+inequality instead of going through Pinsker’s inequality. This step is key to achieve a dependence
+on k in the bound.
+For readers familiar with lower bound proofs for bandits and full-information, this Lemma should
+                          p For a T -round full-information game, it tells us that we can bias a
+not come at a huge surprise.
+single arm up to ∆ = Ω( ln(k)/T     p), without this being detectable. This directly recovers the well
+known lower bound of ∆T = Ω( ln(k)T ) for full-information via the argument used for bandit
+lower bounds. However, this result goes beyond what is known in the literature. We not only show
+that one cannot reliably detect the biased arm, but that one cannot even reliably detect whether any
+biased arm is present at all. This property is the key to showing the lower bound of Theorem 4.
+   4
+     We want to emphasize that zt is only independent of xt,1 , not independent of the full vector xt .
+   5
+     The setting of [Ingster et al., 2010] is different from our setting as they consider an asymptotic regime
+where both feature sparsity and dimensionality of the problem go to infinity, while for us the sparsity is fixed to
+one.
+
+
+                                                        8
+Informal proof of Theorem 4. Under environment E0 , observing zt for n time-steps incurs a regret of
+RegE0 (T, Π1 ) = Ω(∆n). Using the assumption on the regret RegE0 (T, Π1 ) and Markov inequality,
+we obtain an upper bound N on the expected number of observations, which holds with probability
+1
+2 . We can construct an algorithm A that never observes more than N samples, by following algo-
+rithm A until it played N times a revealing action and then commits to policy π0 (action 3). Since
+the algorithm A is proper, we can define Z = (zτi )N   i=1 as the observed z’s during time τi where
+the algorithm plays a revealing action. For the revealed information generated by A, we tune the
+remaining parameters such that the conditions of Lemma 2 are satisfied. Let E be the event that A
+plays exactly N times a revealing action (i.e. A plays at least N time the revealing action), then E
+happens with probability 1 − Ω(1) under mini∈[k] PEi (E). Thus, there exists an environment i ∈ [k]
+such that A plays less than N times an action in {1, 2} with constant probability, which incurs regret
+of RegEi (T, Π2 ) = Ω(∆T ). The theorem follows from tuning ∆ and N , which is done formally in
+Appendix B.
+
+Improper algorithms. Even though we are not able to extend the lower bound proof uniformly
+over all values C and k to improper algorithms, we can still show that no algorithm (proper or
+improper) can solve the open problem (1) for stochastic environments.
+The key is the following generalization of Lemma 2, which is proven in the appendix.
+Lemma 3. Let ∆ ≤ 14 , k ≥ e20 + 1, N ≤ ⌊ ln(k−1)          2      1
+                                             20∆2 ⌋ and ∆ N ≥ 2 . If the total number of times zt
+is revealed is bounded by N a.s. then for any measurable event E it holds that
+                                                         17T N
+                                 min PEi (E) − PE0 (E) ≤ √
+                                                         4
+                                                               .
+                                 i∈[k]                     k−1
+This holds even if the agent can take all contexts (xt )Tt=1 and previous observations into account
+when deciding whether to pick a revealing action at any time-step.
+
+Informal proof of Theorem 5. The proof is analogous to Theorem 4, however we use Lemma 3 to
+bound the difference in probability of E under E0 and Ei . The key is to find a tuning such that the
+RHS of Lemma 3 does not exceed 14 . Note that this is of order exp(O(ln(T )N ) − Ω(ln(k))). Let
+∆ = Θ(1), then the requirement on RegE0 (T, Π1 ) yields N = O(T α ). Setting k = Θ(exp(T α+ǫ ))
+for any ǫ ∈ (0, 1 − α), then it follows immediately that the RHS in Lemma 3 goes to 0 for T → ∞.
+Following the same arguments as in Theorem 4, there exists a sufficiently large T up from which
+there always exists an environment (Ei )i∈[k] such that the regret is linear in T , thereby contradicting
+the open problem. The formal proof is deferred to Appendix B
+
+5 Implications
+The relevance of open problem Eq. (1) has been motivated by its potential implications for other
+problems such as the S-switch bandit problem and an unresolved COLT2016 open problem on im-
+proved second order bounds for full-information. Our negative result for Eq. (1) indeed lead to the
+expected insights.
+
+5.1 S-switch
+
+Our lower bound in the adaptive regime shows that adapting to the number of switches is hopeless
+if the timing of the switch points is not independent of the players actions. Any algorithm adaptive
+to the number of switches in the regime with oblivious adversary must break in the adaptive case,
+which rules out bandit over bandit approaches based on importance sampling [Agarwal et al., 2017].
+The successful algorithm proposed in Cheung et al. [2019] is using a bandit over bandit approach
+without importance sampling. Nonetheless, all components have adaptive adversarial guarantees.
+The algorithm splits the time horizon into equal intervals of length L. It initializes EXP3 with ln(T )
+arms, corresponding to a grid of learning rates. For each epoch, the EXP3 top algorithm samples an
+arm and starts a freshly initialized instance of EXP3.S using the learning rate corresponding to the
+selected arm. This instance is run over the full epoch of length L. It collects the accumulated losses
+          PL
+Lsum = t=1 ℓt of the algorithm and feeds the loss Lsum /L to the EXP3 top algorithm.
+
+                                                   9
+If all algorithms in the protocol enjoy guarantees against adaptive adversaries, why do bandit over
+bandit break against adaptive adversaries? Adaptive adversaries are assumed to pick the losses ℓt
+independent of the choice of arm At of the agent at round t. In the bandit over bandit protocol, the
+loss of the arm of the top algorithm dependents on the losses that the selected base suffers in the
+epoch. An adaptive adversary can adapt the losses in the epoch based on the actions of the base
+algorithm, that means the loss ℓt is not chosen independent of the action At . Hence the protocol is
+broken and the adaptive adversarial regret bounds do not hold.
+
+5.2 Second order bounds for full information.
+
+In an unresolved COLT2016 open problem, Freund [2016] asks if it is possible to ensure a regret
+bound of order
+                                    v
+                                     u T                       
+                                     uX                      1
+                         Regε = Õ t       Vi∼pt [ℓt,i ] ln( ) ,                          (3)
+                                        t=1
+                                                             ε
+
+against the best ε proportion of policies simultaneously for all ε. We go even a step further and
+show that the lower bound construction from Section 4.2 directly provides a negative answer for any
+α < 1 to the looser bound
+                                    v u T                               
+                                       uX                              1
+                         Regε = Õ t        (Vi∼pt [ℓt,i ] + T α ) ln( ) .                     (4)
+                                         t=1
+                                                                       ε
+
+Theorem 6. An algorithm satisfying Eq. (4) for α < 1 implies the existence of a proper algorithm
+that violates the lower bound for the counter example in the proof of Theorem 4.
+
+Theorem 6 has the following interpretation. For any fixed α ∈ [0, 1), there is no algorithm which
+                                                                                   PT
+enjoys a regret upper bound as in Equation 3 for all problem instances s.t.           t=1 (Vi∼pt [ℓt,i ]) =
+Θ(T α ). This implies we can p      not hope for a polynomial improvement, in terms of time horizon,
+over the existing bound of Õ( T ln(1/ǫ)). The detailed proof is found in Appendix B. The high
+level idea is to initialize the full-information algorithm satisfying Eq. (4) with a sufficient number of
+copies of the baseline policy π0 and to feed importance weighted losses of the experts (i.e. policies)
+to that algorithm.
+As we mention in Section 1, the case α = 1 is obtainable. Our reduction relates the adaptation
+to variance to the model selection problem. As in Eq. (1), α is the trade-off between time and
+complexity. An algorithm satisfying Eq. (4) with α = 1 merely allows to recover the trivial O(T )
+bound for model selection, and hence does not lead to a contradiction.
+
+6 Conclusion
+We derived the Pareto Frontier of minimax regret for model selection in Contextual bandits. Our
+results have resolved several open problems [Foster et al., 2020b, Freund, 2016].
+
+Acknowledgments and Disclosure of Funding
+We like to thank Haipeng Luo and Yoav Freund for discussions about our lower bound proofs. We
+thank Tor Lattimore for pointing us to the technicalities required for bounding the total variation of
+improper algorithms.
+
+References
+Yasin Abbasi-Yadkori, Dávid Pál, and Csaba Szepesvári. Improved algorithms for linear stochastic
+  bandits. In NIPS, volume 11, pages 2312–2320, 2011.
+Alekh Agarwal, Haipeng Luo, Behnam Neyshabur, and Robert E Schapire. Corralling a band of
+  bandit algorithms. 2017.
+
+                                                   10
+Raman Arora, Teodor Vanislavov Marinov, and Mehryar Mohri. Corralling stochastic bandit algo-
+  rithms. In International Conference on Artificial Intelligence and Statistics, pages 2116–2124.
+  PMLR, 2021.
+Peter Auer. Using confidence bounds for exploitation-exploration trade-offs. Journal of Machine
+  Learning Research, 3(Nov):397–422, 2002.
+Peter Auer, Nicolò Cesa-Bianchi, Yoav Freund, and Robert E Schapire. The nonstochastic multi-
+  armed bandit problem. SIAM journal on computing, 32(1), 2002.
+Peter Auer, Pratik Gajane, and Ronald Ortner. Adaptively tracking the best bandit arm with an
+  unknown number of distribution changes. In Conference on Learning Theory, pages 138–158.
+  PMLR, 2019.
+Maria-Florina Balcan, Eric Blais, Avrim Blum, and Liu Yang. Active property testing. In 2012
+ IEEE 53rd Annual Symposium on Foundations of Computer Science, pages 21–30. IEEE, 2012.
+Omar Besbes, Yonatan Gur, and Assaf Zeevi. Stochastic multi-armed-bandit problem with non-
+ stationary rewards. Advances in neural information processing systems, 27:199–207, 2014.
+Omar Besbes, Yonatan Gur, and Assaf Zeevi. Non-stationary stochastic optimization. Operations
+ research, 63(5):1227–1244, 2015.
+Esseen Carl-Gustav. On the liapunoff limit of error in the theory of probability. Arkiv for matematik,
+  astronomi och fysik, A: 1–19, 1942.
+Nicolo Cesa-Bianchi, Yishay Mansour, and Gilles Stoltz. Improved second-order bounds for predic-
+  tion with expert advice. Machine Learning, 66(2):321–352, 2007.
+Niladri Chatterji, Vidya Muthukumar, and Peter Bartlett. Osom: A simultaneously optimal algo-
+  rithm for multi-armed and linear contextual bandits. In International Conference on Artificial
+  Intelligence and Statistics, pages 1844–1854. PMLR, 2020.
+Kamalika Chaudhuri, Yoav Freund, and Daniel Hsu. A parameter-free hedging algorithm. arXiv
+  preprint arXiv:0903.2851, 2009.
+Alexey Chernov and Vladimir Vovk. Prediction with advice of unknown number of experts. arXiv
+  preprint arXiv:1006.0475, 2010.
+Wang Chi Cheung, David Simchi-Levi, and Ruihao Zhu. Learning to optimize under non-
+ stationarity. In The 22nd International Conference on Artificial Intelligence and Statistics, pages
+ 1079–1087. PMLR, 2019.
+Wei Chu, Lihong Li, Lev Reyzin, and Robert Schapire. Contextual bandits with linear payoff func-
+ tions. In Proceedings of the Fourteenth International Conference on Artificial Intelligence and
+ Statistics, pages 208–214. JMLR Workshop and Conference Proceedings, 2011.
+Ashok Cutkosky, Abhimanyu Das, and Manish Purohit. Upper confidence bounds for combining
+  stochastic bandits. arXiv preprint arXiv:2012.13115, 2020.
+Dylan J Foster, Akshay Krishnamurthy, and Haipeng Luo. Model selection for contextual bandits.
+  arXiv preprint arXiv:1906.00531, 2019.
+Dylan J Foster, Claudio Gentile, Mehryar Mohri, and Julian Zimmert. Adapting to misspecification
+  in contextual bandits. Advances in Neural Information Processing Systems, 33, 2020a.
+Dylan J Foster, Akshay Krishnamurthy, and Haipeng Luo. Open problem: Model selection for
+  contextual bandits. In Conference on Learning Theory, pages 3842–3846. PMLR, 2020b.
+Yoav Freund. Open problem: Second order regret bounds based on scaling time. In Conference on
+  Learning Theory, pages 1651–1654. PMLR, 2016.
+Avishek Ghosh, Abishek Sankararaman, and Ramchandran Kannan. Problem-complexity adaptive
+  model selection for stochastic linear bandits. In International Conference on Artificial Intelligence
+  and Statistics, pages 1396–1404. PMLR, 2021.
+
+                                                  11
+Yuri I Ingster, Alexandre B Tsybakov, and Nicolas Verzelen. Detection boundary in sparse regres-
+  sion. Electronic Journal of Statistics, 4:1476–1526, 2010.
+Wouter M Koolen and Tim Van Erven. Second-order quantile methods for experts and combinatorial
+ games. In Conference on Learning Theory, pages 1155–1175. PMLR, 2015.
+John Langford and Tong Zhang. The epoch-greedy algorithm for contextual multi-armed bandits.
+  Advances in neural information processing systems, 20(1):96–1, 2007.
+Tor Lattimore. The pareto regret frontier for bandits. arXiv preprint arXiv:1511.00048, 2015.
+Haipeng Luo and Robert E Schapire. Achieving all with no parameters: Adaptive normalhedge.
+  arXiv preprint arXiv:1502.05934, 2015.
+Haipeng Luo, Chen-Yu Wei, Alekh Agarwal, and John Langford. Efficient contextual bandits in
+  non-stationary worlds. In Conference On Learning Theory, pages 1739–1776. PMLR, 2018.
+Aldo Pacchiano, Christoph Dann, Claudio Gentile, and Peter Bartlett. Regret bound balancing and
+  elimination for model selection in bandits and rl. arXiv preprint arXiv:2012.13045, 2020a.
+Aldo Pacchiano, My Phan, Yasin Abbasi-Yadkori, Anup Rao, Julian Zimmert, Tor Lattimore, and
+  Csaba Szepesvari. Model selection in contextual stochastic bandit problems. arXiv preprint
+  arXiv:2003.01704, 2020b.
+Ilya Tyurin. New estimates of the convergence rate in the lyapunov theorem. arXiv preprint
+   arXiv:0912.0726, 2009.
+Chen-Yu Wei, Yi-Te Hong, and Chi-Jen Lu. Tracking the best expert in non-stationary stochastic
+  environments. arXiv preprint arXiv:1712.00578, 2017.
+Peng Zhao, Lijun Zhang, Yuan Jiang, and Zhi-Hua Zhou. A simple approach for non-stationary
+  linear bandits. In International Conference on Artificial Intelligence and Statistics, pages 746–
+  755. PMLR, 2020.
+Yinglun Zhu and Robert Nowak. Pareto optimal model selection in linear bandits. arXiv preprint
+  arXiv:2102.06593, 2021.
+Julian Zimmert and Yevgeny Seldin. Tsallis-inf: An optimal algorithm for stochastic and adversarial
+  bandits. Journal of Machine Learning Research, 22(28):1–49, 2021.
+
+
+
+
+                                                12
+Checklist
+
+    1. For all authors...
+
+        (a) Do the main claims made in the abstract and introduction accurately reflect the paper’s
+            contributions and scope? [Yes] Our main regret upper bounds are found in Theorem 1
+            and Theorem 2. Our main lower bounds are found in Theorem 3 and Theorem 4
+            with Corollary 1 solving the COLT2020 open problem and Theorem 6 solving the
+            COLT2016 open problem.
+        (b) Did you describe the limitations of your work? [Yes] See paragraph regarding remov-
+            ing the properness requirement at the end of page 8.
+        (c) Did you discuss any potential negative societal impacts of your work? [N/A] This
+            paper is theoretical in nature and we do not foresee any immediate societal impacts.
+        (d) Have you read the ethics review guidelines and ensured that your paper conforms to
+            them? [Yes]
+
+    2. If you are including theoretical results...
+
+        (a) Did you state the full set of assumptions of all theoretical results? [Yes]
+        (b) Did you include complete proofs of all theoretical results? [Yes] For complete proofs
+            we refer the reader to the appendix.
+
+    3. If you ran experiments...
+
+        (a) Did you include the code, data, and instructions needed to reproduce the main experi-
+            mental results (either in the supplemental material or as a URL)? [N/A]
+        (b) Did you specify all the training details (e.g., data splits, hyperparameters, how they
+            were chosen)? [N/A]
+        (c) Did you report error bars (e.g., with respect to the random seed after running experi-
+            ments multiple times)? [N/A]
+        (d) Did you include the total amount of compute and the type of resources used (e.g., type
+            of GPUs, internal cluster, or cloud provider)? [N/A]
+
+    4. If you are using existing assets (e.g., code, data, models) or curating/releasing new assets...
+
+        (a) If your work uses existing assets, did you cite the creators? [N/A]
+        (b) Did you mention the license of the assets? [N/A]
+        (c) Did you include any new assets either in the supplemental material or as a URL? [N/A]
+
+        (d) Did you discuss whether and how consent was obtained from people whose data
+            you’re using/curating? [N/A]
+        (e) Did you discuss whether the data you are using/curating contains personally identifi-
+            able information or offensive content? [N/A]
+
+    5. If you used crowdsourcing or conducted research with human subjects...
+
+        (a) Did you include the full text of instructions given to participants and screenshots, if
+            applicable? [N/A]
+        (b) Did you describe any potential participant risks, with links to Institutional Review
+            Board (IRB) approvals, if applicable? [N/A]
+        (c) Did you include the estimated hourly wage paid to participants and the total amount
+            spent on participant compensation? [N/A]
+
+                                                 13
+A        Upper bound proofs
+Proof of Theorem 2. Denote with mt the arm that algorithm m would choose if it would be selected
+during round t. We decompose the regret into
+                            " T                     #
+                              X
+      Reg(T, Πm ) = max E         ℓt,At − ℓt,π(xt )
+                            π∈Πm
+                                       t=1
+                                      " T                                           #
+                                       X
+                         = max E             ℓt,At − ℓt,mt + ℓt,mt − ℓt,π(xt )
+                            π∈Πm
+                                       t=1
+                              " T                    #                 " T                                    #
+                               X                                        X I(Mt = m)
+                         =E           ℓt,At − ℓt,mt + max E                                (ℓt,mt − ℓt,π(xt ) )
+                                t=1
+                                                           π∈Πm
+                                                                         t=1
+                                                                                 qt,m
+                              " T                    #
+                               X                        √      p
+                         ≤E           ℓt,At − ℓt,mt + E[ ρT,m ] Cm T ,
+                                t=1
+
+where the last line is by the assumption of the theorem. The first term requires some basic properties
+of FTRL analysis, see e.g. [Zimmert and Seldin, 2021]. Define L̂t = ts=1 ℓ̂t , B̃t = ts=1 bt . For
+                                                                         P              P
+Tsallis-INF with constant learning rate6 η = √1T , we have the following properties
+                                                         M
+                                                         X √
+                                        F (q) = −2          qi
+                                                         i=1
+                                   F̄ ∗ (−L) =       max hq, −Li − η −1 F (q)
+                                                  q∈∆([M])
+
+                                             qt = ∇F̄ ∗ (−(L̂t−1 − B̃t−1 )) .
+The standard FTRL proof (e.g. Zimmert and Seldin [2021]) shows that
+                                                                                    √
+                       ∀t : EMt ∼qt [DF̄ ∗ (−(L̂t − B̃t−1 ), −(L̂t−1 − B̃t−1 ))] ≤ η K.
+
+The first term is
+             " T               #    " T                 #
+              X                      X
+           E      ℓt,At − ℓt,mt = E     hqt − em , ℓ̂t i
+                 t=1                           t=1
+                                              T
+                                             X
+                                       =E            F̄ ∗ (−(L̂t−1 − B̃t−1 )) − F̄ ∗ (−(L̂t − B̃t−1 ))
+                                               t=1
+                                                                                      h     i
+                                       + DF̄ ∗ (−(L̂t − B̃t−1 ), −(L̂t−1 − B̃t−1 )) − E L̂T,m .
+
+Let us consider the terms F̄ ∗ (−(L̂t−1 − B̃t−1 )) and F̄ ∗ (−(L̂t − B̃t−1 )). First, using the definition
+of the conjugate function and qt we know that
+                          F̄ ∗ (−(L̂t−1 − B̃t−1 )) + F̄ (qt ) = hqt , −(L̂t−1 − B̃t−1 )i.
+Further by Young’s inequality it holds that
+                       F̄ ∗ (−(L̂t − B̃t−1 )) + F̄ (qt+1 ) ≥ hqt+1 , −(L̂t − B̃t−1 )i =⇒
+                                 −F̄ ∗ (−(L̂t − B̃t−1 )) ≤ F̄ (qt+1 ) + hqt+1 , L̂t − B̃t−1 i
+The above two displays imply
+                F̄ ∗ (−(L̂t − B̃t )) − F̄ ∗ (−(L̂t − B̃t−1 )) ≤ F̄ (qt+1 ) + hqt+1 , L̂t − B̃t−1 i
+                                                                        − F̄ (qt+1 ) − hqt+1 , L̂t − B̃t i
+                                                                    = hqt+1 , bt i.
+    6
+        The proof can be adapted to time dependent learning rates.
+
+
+                                                               14
+Thus we can bound
+XT                                                                                         T
+                                                                                           X −1
+   F̄ ∗ (−(L̂t−1 − B̃t−1 )) − F̄ ∗ (−(L̂t − B̃t−1 )) ≤ F̄ ∗ (0) − F̄ ∗ (−(L̂T − BT −1 )) +     hqt+1 , bt i
+t=1                                                                                                        t=1
+
+                                                                  ≤ F̄ ∗ (0) − F̄ (em ) + hem , L̂T i − hem , B̃T −1 i
+                                                                           T
+                                                                           X −1
+                                                                       +         hqt+1 , bt i
+                                                                           t=1
+                                                                                                          √
+                                                                  ≤ F̄ ∗ (0) − F̄ (em ) + hem , L̂T i −    ρT,m Rm
+                                                                                                T −1
+                                                                           √          X
+                                                                       +    ρ1,m Rm +   hqt+1 , bt i
+                                                                                                t=1
+                                                                    √
+                                                                     M                   √
+                                                                  ≤     + hem , L̂T i − ρT,m Rm
+                                                                     η
+                                                                                      T −1
+                                                                       √              X
+                                                                     + ρ1,m Rm +          hqt+1 , bt i.
+                                                                                                t=1
+Taking expectation and setting η appropriately we have that
+     " T               #                  " T               #             √
+                             √
+                                                                                
+      X                                     X                    √          M Cm p
+   E      ℓt,At − ℓt,mt ≤ 2 2M T + E            hqt+1 , bt i − E[ ρT,m ] −        Cm T .
+      t=1                                   t=1
+                                                                             C
+
+Finally the final term is
+                            T                      M X
+                                                     T
+                            X                      X                  √         √
+                                  hqt+1 , bt i =              ρ−1
+                                                               t+1,i ( ρt+1,i −  ρt,i )Ri
+                            t=1                    i=1 t=1
+                                                   M Z ∞
+                                                   X
+                                             ≤           √
+                                                                  q −1 dq Ri
+                                                   i=1       βi
+                                                M
+                                               X   Ri   √
+                                             =     √ = C MT .
+                                               i=1
+                                                    βi
+Putting all the bounds together finishes the proof.
+
+B Lower bounds
+B.1   Adaptive adversary lower bound and proof of Theorem 3
+
+Proof of Lemma 1. We denote two environments E0 , E1 . In both environments, we define the ran-
+dom variable A∗ ∈ [K − 1] chosen uniformly at random and obliviously to the agents. In the
+environment E0 , it is not possible to observe any information about A∗ because the losses at any
+time step are sampled i.i.d. ℓt ∼ B( 21 ) independent of the action picked. In environment E1 , the loss
+is still ℓt ∼ B( 12 ) when At 6= A∗ , but differs when At = A∗ . In this case, it is instead drawn accord-
+ing to ℓt ∼ B( 21 − ∆). The agent might interact with the environment for less than Nmax time-steps,
+however we define the probability measures PE0 and PE1 according to exactly Nmax observations of
+the environment. If the agent stops playing at time τ < Nmax , we simply assume the environment
+continues playing random actions until the end of the game.
+Denote Z = I{τ ≥ Nmax } as the indicator of whether the agent plays for sufficiently many time
+steps. The condition in the lemma reads PE1 [Z] ≥ 12 . Since in environment E0 , the agent does not
+receive any information about A∗ , it holds N                  ∗
+                                           P max
+                                             t=1 PE0 (At = A ) = Nmax /(K − 1). Hence by the
+divergence decomposition rule of the KL divergence, we have
+                              N max
+                                                                      3∆2 Nmax
+                                                                
+                               X                        1 1                           1
+           DKL (PE0 ||PE1 ) =       PE0 (At = A∗ ) kl     , −∆ ≤                  ≤     ,
+                               t=1
+                                                        2  2           K  − 1        32
+
+
+                                                              15
+where kl(p, q) denotes the KL-divergence between two Bernoulli distributions with parameters p
+and q respectively and the last inequality follows as
+                                          
+                                 1 1              1
+                            kl     , − ∆ = − ln(1 − 4∆2 ) ≤ 3∆2 .
+                                 2 2              2
+By chaining Pinsker’s inequality, we have
+               PE1 (At = A∗ ∧ Z) ≤ PE0 (At = A∗ ∧ Z) + 2DKL (PE0 ||PE1 )
+                                                      p
+
+                                   PE (Z) p
+                                 = 0       + 2DKL (PE0 ||PE1 )
+                                    K −1
+                                                      
+                                   PE1 (Z)          1    p
+                                 ≤         + 1+            2DKL (PE0 ||PE1 ) .
+                                    K −1          K −1
+Hence
+                                         p                            r
+               ∗     1    (1 + 1/(K − 1)) 2DKL (PE0 ||PE1 )     1       1   3
+ PE1 (At = A | Z) ≤     +                                   ≤      +3      = .
+                    K−1                PE1 (Z)                K −1      16  4
+Finally, using the regret definition and combining everything
+                    "N                      # N
+                       max                         max
+                      X
+                                      ∗
+                                                  X                           1
+       Reg = EE1           I{At 6= A }∆ | Z =          (1 − P(At = A∗ | Z))∆ ≥ ∆ Nmax .
+                      t=1                         t=1
+                                                                              4
+
+
+
+Proof of Theorem 3. Let T = n
+                            xT −1
+                               √
+                                  be the number
+                                           o of switches the agent triggers from the adversary
+                              S K−1      1
+in the game. We set ∆ = min 3072C √ , √
+                                    T 8 3
+                                             , which guarantees
+
+                                         49152C2T
+                                                         
+                                                                T
+                        Nmax = max            2
+                                                   , K − 1    ≤    .
+                                            S                   2S
+The regret is bounded by
+                                           ∆                                     ∆T
+               RegSW (T, S) ≥ P(T 6= S)       (T − S Nmax ) = (1 − P(T = S))          ,
+                                            8                                     16
+since the agent cannot have played the optimal action more than S Nmax times without triggering
+S switches. If the probability of triggering the S’s switch is below 12 , we are done. Otherwise by
+Lemma 1, the regret against a non-switching baseline on arm K is bounded by
+                                                                ∆
+                                 RegSW (T, 1) ≥ P(T = S)          Nmax S .
+                                                                8
+                                                                      √
+                                           p                        8C (K−1)T
+By assumption, we have RegSW (T, 1) ≤ C (K − 1)T , hence P(T = S) ≤ ∆ Nmax S . Plug-
+ging this into the bound above, yields
+                                            !
+                                                                 S√
+                                  p
+                               8C (K − 1)T ∆T
+                                                                        
+                                                   ∆T
+       RegSW (T, S) ≥ 1 −                        ≥    = Ω min      KT , T    .
+                                  ∆ Nmax S    16   32            C
+
+
+
+B.2   Stochastic lower bound for proper algorithms and proof of Theorem 4
+To proof of our key lemma, Lemma 2 we first begin by showing that we can restrict our attention
+only to the outcome space of (zt )N
+                                  t=1 , where zt,i = ℓt,πi (xt ) . This done in the following lemma.
+Lemma 4. For any Ei , i ∈ [k]∪{0} there exist a bijection from (zt = (ℓt,πi (xt ) )ki=1 , xt,1 ) to (ℓt , xt ).
+zt is a collection of independent Bernoulli random variables. The means satisfy
+                                             1
+                                                          if i 6= j
+                                EEi [zt,j ] = 12
+                                               2 (1 − ∆)  otherwise.
+Finally xt,1 is independent of zt .
+
+                                                     16
+Proof. The direction (ℓt , xt ) → (zt , xt,1 ) is given by the definition of zt . The other direction is
+provided by
+                                                             
+                       zt,1       if i = xt,1                  xt,1        if zt,i = zt,1
+              ℓt,i =                             ,     xt,i =
+                       1 − zt,1 otherwise,                     3 − xt,1 otherwise.
+
+To show the independence of zt,i , note that by the data generation process we select zt,i = ℓt,πi (xt )
+in environment i such that it is a Bernoulli with mean 12 (1 − ∆) independent of xt (in environment
+E0 , we sample zt,1 with mean 21 ). Now conditioned on zt,i , the value of zt,j , j 6= i depends on
+whether xt,i = xt,j . xt is a collection of i.i.d. Bernoulli’s with mean 12 , hence zt,j is independent of
+zt,i with mean 12 . We continue with the same argument over all k and show that all components of
+zt are independent with the claimed means. Finally to show that xt,1 is independent of zt , observe
+that we have total symmetry over the arms {1, 2} in our construction. Hence for any environment i,
+we have that
+                                                            1
+            PEi [xt,1 = 1|zt ] = PEi [xt,1 = 2|zt ] =         = PEi [xt,1 = 1] = PEi [xt,1 = 2] .
+                                                            2
+
+
+
+We now recall the Berry-Essen inequality which we will use in the proof of Lemma 2.
+Theorem 7 (Berry-Essen inequality [Carl-Gustav, 1942, Tyurin, 2009]). Let Y1 , . . . , Yn be inde-
+pendent mean zero random variables second  Pn
+                                                moment E[Yi2 ] = σi2 and absolute third moment
+       3                                        Y
+E[|Yi | ] = ρi . If Fn denotes the CDF of √Pi=1
+                                             n
+                                                  i
+                                                    2
+                                                      and Φ denotes the CDF of a standard Gaussian
+                                                   i=1 σi
+variable then it holds that
+                                                                  Pn
+                                                              ρi
+                               sup |Fn (α) − Φ(α)| ≤ C Pn i=1 3/2 ,
+                               α∈R                           2
+                                                      ( i=1 σi )
+where C is some absolute constant upper bounded by 1.
+
+We will also need the following result relating the third central moment of a non-negative random
+variable to the third moment.
+Claim 1. Let X ≥ 0 be a non-negative r.v. with mean µ > 0. Then E[|X − µ|3 ] ≤ 2E[X 3 ].
+
+Proof. From triangle inequality and Jensen’s inequality we have
+                 E[|X − µ|3 ] ≤ E[max{|X|3 , |µ|3 }] ≤ E[X 3 ] + E[X]3 ≤ 2E[X 3 ],
+because X and µ are non-negative.
+
+Finally, we need the following useful TV distance inequalities.
+Lemma 5. For any random variables X, Y (not necessarily independent) over measures P, Q it
+holds that
+                                                         
+           kPX,Y − QX,Y kT V ≤ EX∼PX kPY |X − QY |X kT V + kPX − QX kT V .
+
+
+Proof. Denote sx,y = sign(P(X = x, Y = y) − Q(X = x, Y = y)). We have
+                         X
+   kPX,Y − QX,Y kT V =      sx,y (p(x) · p(y|x) − q(x) · q(y|x))
+                              x,y
+                              X            X                              X
+                          =         p(x)       sx,y (p(y|x) − q(y|x)) +          sx,y (p(x) − q(x))q(y|x) .
+                              x            y                               x,y
+
+Bounding all terms by the abs completes the proof.
+
+                                                      17
+Proof of Lemma 2. Let P = PE0 be the measure induced by the algorithm under environment E0
+            Pk
+and Q = k1 i=1 PEi the mixture of measures induced by the remaining k environments. We have
+for any event E
+                                                            1
+                  min PEi (E) − PE0 (E) ≤ Q(E) − P(E) ≤ kQ − PkT V .
+                  i∈[k]                                     2
+Since the random variables at time t are independent of any previous time step, we can assume that
+the environment samples N i.i.d. full-information samples (Z, X1 ) = ((zs )N                 N
+                                                                                s=1 , (x1,s )s=1 ) and T
+                         T
+i.i.d. contexts Y = (xs )s=1 ahead of time. At any time t, if the agent chooses to play a revealing
+action, he observes the next tuple in (Z, X1 ), while if the agent does not play a revealing action, he
+observes the next element in Y . This construction crucially relies on the agent deciding whether to
+play a revealing action at time t independently of xt . Additional information strictly increases the
+total variation, so we can assume the agent always observes the full collection of random variables
+at the end
+                             kQ − PkT V ≤ kQZ,X1 ,Y − PZ,X1 ,Y kT V .
+Applying Lemma 5 and observing that QX1 ,Y = PX1 ,Y , since the contexts are sampled from the
+same distribution in any environment, we have
+                                                                        
+    kQZ,X1 ,Y − PZ,X1 ,Y kT V ≤ EX1 ,Y ∼Q kQZ|X1 ,Y − PZ|X1 ,Y kT V + kQX1 ,Y − PX1 ,Y kT V
+                               = kQZ − PZ kT V ,
+where the last step follows from independence of Z and X1 , Y . Thus we can restrict the problem to
+bounding the TV over Z.
+Let Ω = {0, 1}k×N be the outcome space of Z, we have
+                 1                   X
+                   kQZ − PZ kT V =        I {Q(Z) > P(Z)} (Q(Z) − P(Z))
+                 2
+                                          Z∈Ω
+                                        PN
+For a fixed outcome Z ∈ Ω, denote ni = t=1 zi,t , the sum of losses of policy πi . We have
+                             N k                N k
+                             1                     1
+        P(Z) = PE0 (Z) =           and PEi (Z) =         (1 − ∆)ni (1 + ∆)N −ni , hence
+                             2                     2
+                  k                       k             n
+                                             1 1−∆ i
+                                               
+                X    1                   X
+        Q(Z) =         PEi (Z) > P(Z) ⇔                    > (1 + ∆)−N .
+                i=1
+                     k                   i=1
+                                             k   1 + ∆
+                     
+Denote κ = ln 1−∆1+∆ . Due to symmetry, for any i ∈ [k]:
+
+                 k                                     k
+                                             !                                       !
+                X                                    X
+                                         −N                                       −N
+          P Ei      exp(nh κ) > k(1 + ∆)       =Q        exp(nh κ) > k(1 + ∆)          ,
+                h=1                                       h=1
+hence
+                            k                                             k
+                                                             !                                           !
+1                           X
+                                                        −N
+                                                                          X
+                                                                                                    −N
+  kQZ − PZ kT V ≤ PE1             exp(nh κ) > k(1 + ∆)           − P E0         exp(nh κ) > k(1 + ∆)
+2
+                            h=1                                           h=1
+                            k                                             k
+                                                             !                                           !
+                            X                                             X
+                                                        −N                                          −N
+                  = P E0          exp(nh κ) ≤ k(1 + ∆)           − P E1         exp(nh κ) ≤ k(1 + ∆)         .
+                            h=1                                           h=1
+
+Next we use the formula for the MGF of a Binomial r.v. B(N, p) given by
+                              E [exp(tκk)] = (p exp(tκ) + (1 − p))N ,
+to compute the expectation, variance and third moment of the r.v. exp(ni κ), where ni either follows
+E0 or E1 . Finally we will use the Berry-Essen inequality. We first compute for m ∈ N
+                                                           N
+                                                  m        m
+                                         (1+∆) +(1−∆)
+                                        
+                                                       m          if i 6= j
+                                                2(1+∆)
+                    EEj [exp(ni mκ)] =           m+1        m+1
+                                                                 N
+                                            (1+∆)     +(1−∆)
+                                        
+                                        
+                                                  2(1+∆)m               otherwise.
+
+
+                                                  18
+By using ∆2 N ≥ ln(k)  1
+                  40 ≥ 2
+                                        1
+                 EE0 [exp(ni κ)] =
+                                   (1 + ∆)N
+                                   (1 + ∆2 )N − 1       ∆2 N           1
+               VarE0 [exp(ni κ)] =                ≥             ≥
+                                     (1 + ∆)2N       (1 + ∆)2N    2(1 + ∆)2N
+                                              N
+                                     1 + 3∆2        exp(3∆2 N )
+                                   
+               EE0 [exp(3ni κ)] =           3
+                                                  ≤             ,
+                                     (1 + ∆)         (1 + ∆)3N
+where we have used the facts that (1 + x)a ≤ exp(ax) and (1 + x)a ≥ 1 + ax, for a ≥ 1. The
+Berry-Essen inequality together with Claim 1 now imply that
+                      " k                           #
+                        X
+                                                 −N      1 8 exp(3N ∆2 )
+                 P E0       exp(κni ) ≤ k(1 + ∆)      ≤ +       √        .
+                        i=1
+                                                         2        k
+
+Next we compute the conditional expectation, variance and third moment for E1 .
+                                                 N
+                                         1 + ∆2
+                                      
+                    EE1 [exp(n1 κ)] =
+                                          1+∆
+                                                   N              2N
+                                         1 + 3∆2            1 + ∆2
+                                      
+                  VarE1 [exp(n1 κ)] =                  −                ≥0
+                                         (1 + ∆)2            1+∆
+                                                        N
+                                         1 + 4∆2 + ∆4           exp(5∆2 N )
+                                      
+                   EE1 [exp(3n1 κ)] =                        ≤
+                                            (1 + ∆)3             (1 + ∆)3N
+                                                     2 N
+                                                ) −1
+Let Yj = exp(κnj ) − EE1 [exp(κnj )], γ = (1+∆
+                                            (1+∆)N
+                                                     . Then we have
+                                                    Pk                                        
+          k
+        X                                                     Y
+                                                          j=1 j                     γ
+ −PE1       exp(κnj ) ≤ k(1 + ∆)−N  = −PE1  qP                       ≤ − qP                   
+                                                       k                        k
+         j=1                                           j=1 Var E1 (Yj )         j=1 Var E1 (Yj )
+                                                                       
+                                                            γ            + 8 exp(5N  ∆2 )
+                                        ≤ −Φ − qP                             √           ,
+                                                        k
+                                                            Var (Y )             k−1
+                                                               j=1       E1   j
+
+where in the inequality we have used the Berry-Essen inequality. To bound the remaining term, we
+have
+                                                  s
+                                    γ               (1 + ∆2 )N − 1
+                                               ≤                     .
+                                                         k−1
+                            qP
+                                 k
+                                  j=1Var (Y )
+                                            E1   j
+                                                                                  !
+                                                                     γ
+Let X be a standard Normal r.v., then to bound −Φ − qPk                               we have
+                                                                j=1 VarE1 (Yj )
+                                                                                   s
+                   γ                                     ≥ 1−
+                                                           γ                               (1 + ∆2 )N − 1
+    Φ − qP                  = P X ≥ q                                                                  ,
+            k                           Pk                  2                                  k−1
+            j=1 VarE1 (Yj )              j=1 VarE1 (Yj )
+
+                  p we decomposed the tail probability into the integral from 0 to ∞ minus the
+where in the inequality
+integral from 0 to γk . Combining the above bounds we have that the TV is bounded by
+1
+  kQZ − PZ kT V ≤ 8 exp(3∆2 N − ln(k)/2) + 8 exp(5∆2 N − ln(k − 1)/2) + exp(∆2 N − ln(k − 1)/2).
+2
+Finally, we use ∆2 N ≤ ⌊ ln(k−1)
+                           20∆2 ⌋ ≤
+                                    ln(k−1)
+                                       20   and k > e20 to obtain
+                  1                                           17   1
+                    kQZ − PZ kT V ≤ 17 exp(− ln(k − 1)/4) = √     ≤ .
+                  2                                         4
+                                                              k−1  4
+
+
+
+                                                     19
+With Lemma 2 we are ready to give the proof of Theorem 4.
+
+                                  1          1 −2
+Proof of Theorem 4. Let c1 = 160    , c2 = 10 c1 . We assume w.l.o.g. that c2 C2 ≤ ln(k) ≤ 21 T . If
+               2
+ln(k) = O(C ), then the regret is lower bounded by the regret of Π1 , if ln(k) = Ω(T ), the optimal
+regret is linear in T anyway. Pick ∆ = min{ c1Cln(k)√
+                                                     T
+                                                                                         ln(k)
+                                                       , 14 }. This choice implies N = ⌊ 20∆        T
+                                                                                             2⌋ ≤ 2 .
+
+Denote N the random number of plays in action {1, 2}, i.e. the number of observations of the full
+information game. The regret in environment E0 is given by
+                                                     ∆       √       c1 ln(k)
+                          RegE0 (T, Π1 ) = EE0 [N ] ≤ C T ≤                   .
+                                                     4                  ∆
+Hence
+                                                c1 ln(k)
+                                   EE0 [N ] ≤ 4           ≤ 80c1 N .
+                                                   ∆2
+Given any algorithm A, we create a modified algorithm A that uses a stopping time to commit to
+action 3 after it played N times action {1, 2}. By Markov inequality, the probability of A hitting the
+stopping time on E0 is bounded by 80c1 ≤ 21 . Denote that event by E. By choice of our constants,
+the conditions for Lemma 2 are met, which implies
+                                                              1 1 3
+                                  PEi∗ (E) := min PEi (E) ≤    + = .
+                                               i∈[k]          2 4 4
+Hence
+                                                                                (        √     )!
+                    1                    1        ∆  ∆T                             ln(k) T
+RegEi∗ (T, Π2 , A) ≥ RegEi∗ (T, Π2 , A) ≥ (T − N ) ≥    = Ω min                             ,T    .
+                    4                    4        4  32                                 C
+
+
+
+B.3   Stochastic lower bound for improper algorithms and proof of Theorem 5
+
+We first show the counterpart to Lemma 2 for improper algorithms. The proof uses Lemma 2 to-
+gether with a sort of a union bound over all possible realizations of time steps at which an improper
+algorithm chooses to observe the full information game.
+
+Proof of Lemma 3. As in the proof of Lemma 2, we denote P = PE0 the measure induced by run-
+                                                      Pk
+ning the algorithm in environment E0 and Q = k1 i=1 PEi the mixture over measures induced by
+environments i ∈ [k]. P and Q are measures over all possible outcomes of the random variables
+Z = (zt )Tt=1 , X = (xt )Tt=1 , T = (τi )N
+                                         i=1 . Let for any subset M ⊂ [T ] denote Z(M ) = (zt )t∈M ,
+then the observations of the algorithms are X, T , Z(T ). We have
+kQX,T ,Z(T ) − PX,T ,Z(T ) kT V
+              X
+ =                            |Q(T = M, Z(M ) = z, X = x) − P(T = M, Z(M ) = z, X = x)|
+    M∈N ,z∈{0,1}N k ,x∈{1,2}T k
+               X                  
+=                                     |Q(T = M |Z(M ) = z, X = x) · Q(Z(M ) = z, X = x)
+    M∈N ,z∈{0,1}N k ,x∈{1,2}T k
+                                                                                                
+                                          − P(T = M |Z(M ) = z, X = x) · P(Z(M ) = z, X = x)|
+               X
+=                                 Q(T = M |Z(M ) = z, X = x)|Q(Z(M ) = z, X = x) − P(Z(M ) = z, X = x)|
+    M∈N ,z∈{0,1}N k ,x∈{1,2}T k
+      X
+≤         kQZ(M),X − PZ(M),X kT V ,
+    M∈N
+
+where we use in the third equality that both measures are induced by the same algorithm and hence
+the conditional probabilities satisfy
+                 Q(T = M |Z(M ) = z, X = x) = P(T = M |Z(M ) = z, X = x) .
+We use Lemma 2 to finish the proof.
+
+                                                       20
+                                                   √
+Proof of Theorem 5. Let ∆ = 14 and N = ⌈32C T ⌉. Following the proof of Theorem 4 we can re-
+duce the problem to a player which plays an algorithm that commits to action 0 after N observations
+of the full game. Using Lemma 3 we can bound
+                                                                       log(k − 1)
+                                                                                  
+                1
+                  kQT ,Z(T ),X − PT ,Z(T ),X kT V ≤ 17 exp N log(T ) −                .
+                2                                                           4
+                                                          √
+It is sufficient to set k = 1 + 68 exp(4(1 + 32C log(T ) T )) to ensure that then 21 kQT ,Z(T ),X −
+PT ,Z(T ),X kT V ≤ 1/4. We can then proceed as in the proof of Theorem 4.
+
+B.4   Impossibility of second order bounds
+Proof of Theorem 6. Given an algorithm A satisfying Eq. (4), we construct the following wrapper.
+Initialize A with Π2 augmented with a total of k copies of π0 . At any time t receive pt ∈ ∆(Π2 )
+(collapsing the copies of π0 ). With probability γ = 3T −1/2+α/2 , play one of the 3 actions uniformly
+at random (we do this by following π0 with probability γ/3 and following π1 with probability 2γ/3,
+ensuring a proper algorithm), otherwise sample πt ∼ pt and play At = πt (xt ). Observe ℓt,At and
+construct loss estimator
+                                         P
+                                           π∈Π2 :π(xt )=At ℓt,At eπ
+                              ℓ̂t =                P                     .
+                                    γ/3 + (1 − γ) π∈Π2 :π(xt )=At pt,π
+
+Finally feed ℓ̂t · γ/3 to A. By construction, the wrapper is proper and the loss range for the base
+algorithm is bounded in [0, 1]. The variance terms encountered by A are
+                                    k
+                                                                                      !2
+                      ℓ̂t,π γ    γ2 X                 I{πi (xt ) = At }ℓt,At
+              Vπ∼pt [         ]≤       pt,πi                 P
+                         3       9 i=0        γ/3 + (1 − γ) j:πi (xt )=πj (xt ) pt,πj
+                                                   γ2
+                            ≤                         P                      ,
+                                9(1 − γ)(γ/3 + (1 − γ) j:πj (xt )=At pt,πj )
+and in expectation over the choice of At , we have
+                                          ℓ̂t,π γ         γ2       2
+                              E[Vπ∼pi [           ]] ≤          K ≤ γ2 .
+                                             3         9(1 − γ)    3
+The regret in environment E0 satisfies due to unbiasedness for selecting the top 1/2 of all policies
+(which are the copies of π0 )
+                 " T                       #                      " T                         #
+                   X                               3(1 − γ)         X
+Reg(T, Π1 ) = E        ℓt,At − ℓ̂t,π0 (xt ) ≤ γT +              E       hpt − u 12 , γ ℓ̂t /3i
+                   t=1
+                                                      γ             t=1
+                                    v     u T                                     
+                      3(1 − γ)  u          X                                                  
+             = γT +             E Õ t            Vπ∼pt [γ ℓ̂t,π /3] + T α ln(2) = Õ T (1+α)/2 ,
+                          γ                  t=1
+
+where the last step is by Jensen’s inequality. Analogously, for any environment Ei , i ∈ [k], we have
+for ǫ = 1/(2k)
+                                                         p             
+                           Reg(T, Π2 ) = Õ T (1+α)/2 + T ln(|Π2 |) .
+
+Following the same argument as in the proof of Corollary 1, an upper bound of Õ(T (1+α)/2 ) implies
+C = Θ̃(T α/2 ), hence by the proof of Theorem 4, we have
+                                       ln(|Π2 |) √
+                                                                          
+                   Reg(T, Π2 ) = Ω̃               T = Ω̃ ln(|Π2 |)T (1−α)/2 .
+                                           C
+This leads to a contradiction for ln(|Π2 |) = Ω(T (1+α)/2 ).
+
+
+
+
+                                                  21
+

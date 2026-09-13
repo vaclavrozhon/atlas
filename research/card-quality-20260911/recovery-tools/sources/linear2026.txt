@@ -1,0 +1,3146 @@
+                                                       Improved Depth-2 Linear Circuits for Disjointness
+                                                             via Quenched Lyapunov Exponents
+                                                                                              Lixi Ye†
+                                                                                 ylx25@mails.tsinghua.edu.cn
+
+                                                                                       September 4, 2026
+arXiv:2603.15565v2 [cs.CC] 3 Sep 2026
+
+
+
+
+                                                                                         Abstract
+                                                              1 1
+                                                                  
+                                                  Let R1 :=          , and write Rn := R1⊗n for the N × N disjointness matrix, where N = 2n .
+                                                              1 0
+                                              We construct new depth-2 linear circuits for Rn : one of size O(N 1.2449 ) and one of maximum
+                                              input-output degree O(N 0.3199 ), improving upon the results of Alman and Li [AL25] (FOCS
+                                              2025), who achieved size O(N 1.2495 ) and degree O(N 1/3 ).
+                                                  In this paper, we develop a number of mechanisms for designing depth-2 linear circuits that
+                                              compute linear transforms represented by Kronecker powers of a general base matrix. For R1 in
+                                              particular, we obtain our refined bounds by expressing a certain recursive circuit construction as
+                                              a random matrix product and analyzing its quenched Lyapunov exponent, a quantity studied
+                                              in the theory of random dynamical systems. Our new upper bounds imply faster deterministic
+                                              algorithms for #OV, more efficient online data structures for the Subset Query and Partial
+                                              Match primitives, and smaller low-depth linear circuits for both disjointness and a class of related
+                                              non-Kronecker-power matrices.
+
+
+
+
+                                        †
+                                            Institute for Interdisciplinary Information Sciences, Tsinghua University, Beijing, China.
+
+
+                                                                                                  1
+Contents
+1 Introduction                                                                                           3
+  1.1   Problem, Results, and Related Work . . . . . . . . . . . . . . . . . . . . . . . . . . .         3
+        1.1.1   Depth-2 Linear Circuits . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      3
+        1.1.2   Asymptotic Size and Degree Constants . . . . . . . . . . . . . . . . . . . . . .         3
+        1.1.3   Main Theorem and Related Work         . . . . . . . . . . . . . . . . . . . . . . . .    4
+  1.2 Technical Overview . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .       6
+  1.3 Applications in Algorithm Design . . . . . . . . . . . . . . . . . . . . . . . . . . . . .         9
+
+2 Transfer Theorems and Circuit Instantiations                                                          10
+  2.1   Computation Trees and Scripted Rebalancing . . . . . . . . . . . . . . . . . . . . . . 11
+                                                         (c)
+  2.2   Nine Circuits for R1 , and c + 2 Circuits for P1       . . . . . . . . . . . . . . . . . . . . . 12
+  2.3 The Size and Degree Transfer Theorems . . . . . . . . . . . . . . . . . . . . . . . . . 15
+        2.3.1   The Size Transfer Theorem . . . . . . . . . . . . . . . . . . . . . . . . . . . . 16
+        2.3.2   The Degree Transfer Theorem . . . . . . . . . . . . . . . . . . . . . . . . . . . 16
+        2.3.3   Instantiation of the Transfer Theorems . . . . . . . . . . . . . . . . . . . . . . 17
+
+3 Lyapunov Exponents and Machine Verification                                                           19
+  3.1   Reducing Mean Log-Degree to a Lyapunov Exponent . . . . . . . . . . . . . . . . . . 20
+  3.2 Toll-and-Potential Certificates and Lattice Envelopes . . . . . . . . . . . . . . . . . . 21
+  3.3   Machine Verification of Our Upper Bounds . . . . . . . . . . . . . . . . . . . . . . . 23
+        3.3.1   Lipschitz Continuity of the Lattice Envelopes . . . . . . . . . . . . . . . . . . 23
+        3.3.2   Machine Verification of Our Upper Bound on σ(R1 ) . . . . . . . . . . . . . . 24
+        3.3.3   Machine Verification of Our Upper Bound on δ(R1 ) . . . . . . . . . . . . . . 26
+
+A Preliminaries                                                                                         29
+  A.1 Circuit Model and Cost Measures . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 29
+  A.2 Sergeev Decompositions in Detail . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 32
+  A.3 From Computation Trees to Circuits . . . . . . . . . . . . . . . . . . . . . . . . . . . 34
+
+B Deferred Proofs                                                                                       36
+  B.1 Proofs of the Theorems in Section 1 . . . . . . . . . . . . . . . . . . . . . . . . . . . 36
+  B.2 Proofs of the Theorems in Section 2 . . . . . . . . . . . . . . . . . . . . . . . . . . . 41
+  B.3 Proofs of the Theorems in Section 3 . . . . . . . . . . . . . . . . . . . . . . . . . . . 46
+
+
+
+
+                                                  2
+1     Introduction
+    The Kronecker product of two matrices A ∈ Matn0 ×m0 and B ∈ Matn1 ×m1 , denoted by A ⊗ B,
+is defined by
+                         (A ⊗ B)[(i0 , i1 ), (j0 , j1 )] := A[i0 , j0 ] · B[i1 , j1 ].
+For k ≥ 1, the k-th Kronecker power of a matrix A is A⊗k := A
+                                                            |
+                                                                  · · ⊗ A}, with the convention
+                                                              ⊗ ·{z
+                                                                     k times
+A⊗0 := [1].
+   We study linear circuits: circuits in which each gate computes a fixed linear combination of its
+input gates, so that the circuit as a whole computes a linear transform. We focus on the following
+question:
+
+    • Fix a base matrix A ∈ Matc0 ×c1 . As k → ∞, how can one design depth-2 linear circuits that
+      compute the linear transform represented by A⊗k , with asymptotically small size or maximum
+      input-output degree?
+
+1.1     Problem, Results, and Related Work
+
+1.1.1    Depth-2 Linear Circuits
+
+    The main object of study in this paper is the depth-2 linear circuit. A depth-2 linear circuit is
+a linear circuit with 2 + 1 = 3 layers: an input layer, a middle layer, and an output layer. Each
+middle gate computes a fixed linear combination of the input gates, and each output gate computes
+a fixed linear combination of the middle gates.
+   If the three layers of a depth-2 linear circuit C have n, r, and m gates, respectively, then C can
+be written as an ordered pair of matrices C = (A, B), where A ∈ Matn×r and B ∈ Matr×m record
+the weights from the input gates to the middle gates and from the middle gates to the output gates,
+respectively.
+   Interpreting the input as a row vector, an input x is transformed as x 7→ xA 7→ xAB. The
+input-output behavior of the circuit is therefore exactly the linear transformation represented by
+the matrix M = AB, and we say that C computes M .
+    For a circuit C = (A, B), its size [JS13] is defined as
+                                      S(C) := nnz(A) + nnz(B),
+and its maximum input-output degree [AL25, Section 3.2], abbreviated as “degree,” is defined as
+                                                                          
+                        D(C) := max max nnz(A[x, ∗]), max nnz(B[∗, y]) .
+                                          x                   y
+
+Here nnz(·) denotes the number of nonzero entries of a matrix or vector; only edges with nonzero
+weight need to be present in the circuit. A detailed discussion of the circuit model appears in
+Section A.1.
+
+1.1.2    Asymptotic Size and Degree Constants
+
+   Let R be a commutative semiring containing 0 and 1, and let Γ ⊆ R be a multiplicatively closed
+                                   (2)
+subset containing 0 and 1. Let CircR,Γ denote the set of all depth-2 linear circuits whose weights
+belong to Γ.
+
+                                                   3
+    For a matrix M ∈ Rn×m , we define its size cost S(M ) and its degree cost D(M ) as the minimum
+                                                                      (2)
+size and the minimum degree, respectively, over all circuits C ∈ CircR,Γ computing M . Formally,
+                SR,Γ (M ) :=           min           S(C),       DR,Γ (M ) :=          min           D(C).
+                                               (2)                                             (2)
+                                C=(A,B)∈CircR,Γ                                 C=(A,B)∈CircR,Γ
+                                    AB=M                                            AB=M
+
+We further define the asymptotic size constant and the asymptotic degree constant [AL25, Section
+3.2] of M as
+                 σR,Γ (M ) := lim SR,Γ (M ⊗n )1/n ,              δR,Γ (M ) := lim DR,Γ (M ⊗n )1/n .
+                                 n→∞                                            n→∞
+
+   Throughout this paper, we deliberately work in the restrictive model R = Z and Γ = {0, ±1}.
+Since R and Γ are fixed, we suppress them from the notation and abbreviate S(M ), D(M ), σ(M ),
+and δ(M ) for SR,Γ (M ), DR,Γ (M ), σR,Γ (M ), and δR,Γ (M ), respectively1 .
+   In this convention, every integer matrix M admits at least one depth-2 linear circuit, and
+the limits defining σ(M ) and δ(M ) exist because both circuit costs are submultiplicative under
+Kronecker products. Indeed, setting
+                                  sn := log2 S(M ⊗n ),           dn := log2 D(M ⊗n ),
+the sequences {sn }n≥1 and {dn }n≥1 are subadditive, so Fekete’s lemma [Fek23] applies to them2 .
+Further details appear in Section A.1.
+
+1.1.3      Main Theorem and Related Work
+
+       Our main theorem is the following.
+                                                                          !
+                                                                      1 1
+Theorem 1.1 (see Theorems 2.8 to 2.10). For R1 =                          , we have
+                                                                      1 0
+
+                           σ(R1 ) < 21.244844 < 2.37,            δ(R1 ) < 20.319866 < 1.25.
+Moreover, for every integer c ≥ 2, let
+                                                            1 0 ··· 0 1
+                                                                                  
+
+                                                         0 1 · · · 0 1
+                                                                              
+                                       (c)
+                                     P1      := Ic    1c = 
+                                                            .. .. . .    . .
+                                                           . .        . .. .. 
+                                                                               
+                                                            0 0 ··· 1 1
+denote the c-ary partial-match incidence matrix. Then
+                                                                         log log c
+                                                                                    
+                                   (c)
+                                σ(P1 ) ≤ c · ψ(log2 c) = c           1+Θ                   ,
+                                                                           log c
+   1
+      Because the elements 0, 1, and −1 can be identified in any field, we have σF,F (M ) ≤ σZ,{0,±1} (M ) and δF,F (M ) ≤
+                                                                                          (c)
+δZ,{0,±1} (M ) for every integer matrix M . Thus our upper bounds for R1 and for P1 hold verbatim, with the same
+numerical constants, over an arbitrary field F.
+    2
+      This phenomenon occurs widely in theoretical computer science and related fields: many important parameters are
+defined by limits of the form limn→∞ (an )1/n , where an is associated with the n-th power of an underlying object. Classic
+examples include the asymptotic tensor rank R      e (T ) := limn→∞ R(T ⊗n )1/n , which captures the matrix multiplication
+                                                  ω
+                                 e (⟨2, 2, 2⟩) = 2 [Str69, CW82], and the Shannon capacity Θ(G) := limn→∞ α(G⊠n )1/n
+exponent through the identity R
+of a graph G [Sha56]. Submultiplicativity or supermultiplicativity guarantees the existence of these limits. Determining
+their values, however, is notoriously difficult, and many such parameters are not even known to be computable.
+
+
+                                                             4
+where ψ(r) denotes the unique root x > 1 of the equation x = 1 + x1r , and
+
+                                                                              1
+                                                    c−1
+                                                                               
+                                       (c)
+                                    δ(P1 ) ≤ c (c−1)+c log2 c = 2 − Θ             .
+                                                                            log c
+                              (2)
+In particular, for P1 := P1 ,
+                                            √
+                            σ(P1 ) ≤ 1 +        5 ≈ 3.236,     δ(P1 ) ≤ 21/3 < 1.26.
+
+    There is a rich history of work on upper bounds for σ(R1√
+                                                            ) and δ(R1 ). The√
+                                                                             starting point is Yates’
+algorithm [Yat37], which in our language gives σ(R1 ) ≤ 6 and δ(R1 ) ≤ 2. Subsequently, for
+σ(R1 ), Jukna and Sergeev [JS13], Alman, Guan, and Padaki [AGP23], Sergeev [Ser22], and Alman
+and Li [AL25] gave successively better upper bounds. For δ(R1 ), Williams [Wil24] gave an upper
+bound on the asymptotic equality rank constant θ(R1 )3 , and hence also on δ(R1 ), while Alman and
+Li [AL25] gave a much better upper bound on δ(R1 ). Tables 1 and 2 summarize this history.
+
+                              Upper bound        Source/Formula             Reference
+                                                 √
+                              21.293               6√                       [Yat37]
+                              21.272             1+ 2                       [JS13]
+                              21.258             order-3 Sergeev            [AGP23]
+                              21.2504            order-15 Sergeev           [Ser22]
+                              21.2495            asymptotic spectrum        [AL25]
+                              21.2449            Lyapunov exponent          this paper
+
+                       Table 1: Historical progression of upper bounds on σ(R1 ).
+
+
+           Upper bound       Source/Formula                                  Reference
+                             √
+           2 0.5
+                               2                                             [Yat37]
+           20.4644           51/5                                            [Wil24]
+           20.4151           4
+                             3                                               [AL25], without hole-fixing
+           20.3333           21/3
+                                                                             [AL25]
+           20.3199           Lyapunov exponent + degree landscape            this paper
+
+                       Table 2: Historical progression of upper bounds on δ(R1 ).
+
+
+   Write Rk := R1⊗k for the k-th Kronecker power of R1 , equivalently the disjointness matrix on
+k-bit vectors.
+   In the remainder of this section, we explain the intuition behind our paper: the limitations we
+observe in prior work, and the new ideas we introduce to address them. Since [AL25] gives the best
+previous upper bounds on both size and degree, we compare our approach with that of [AL25].
+   3                                                                                                         ⊗n 1/n
+    The asymptotic equality rank constant θ(M ) is another asymptotic constant, defined as limn→∞ Q(M   Pq      ) ,
+where Q(M ) denotes the equality rank of M , namely the minimum q admitting a decomposition M = t=1 at E (t)
+                 (t)
+in which each Eij = 1[ft (i) = gt (j)]. It is easy to verify that D(M ) ≤ Q(M ), and hence δ(M ) ≤ θ(M ); see [AL25,
+Propositions 3.1 and 3.2]. The quantity θ(R1 ) is used in [Wil24] not only to obtain algorithms for #OV, but also to
+connect equality-rank lower bounds with exact-threshold circuit lower bounds. As pointed out in [AL25], however, if
+the goal is only to obtain algorithms for #OV, then one may instead work with the smaller quantity δ(R1 ).
+
+
+
+
+                                                         5
+    A direct way to obtain a depth-2 linear circuit computing Rn is to handpick depth-2 linear
+circuits for constant Kronecker powers, which we call base circuits, and simply take their Kronecker
+products.
+    (a) For optimizing size, starting in fact with [JS13], prior works observed that there is a
+construction better than directly taking Kronecker products of base circuits. In the first step,
+using a base circuit for Rd , equivalently a rank-1 decomposition Rd = i Ui ViT , one rewrites Rn as
+                                                                           P
+
+Rn = i Ui ViT ⊗ Rn−d . If for every i we replace Rn−d by the same circuit, this amounts to directly
+       P
+
+taking Kronecker products of several circuits. However, for each i, one can instead choose a different
+circuit for Rn−d , based on the data of Ui and Vi . This selection rule is called rebalancing. The works
+[JS13, AGP23, Ser22] each proposed heuristic selection rules, while the duality theorem of [AL25]
+completely solves the circuit-selection problem.
+    (b) For optimizing degree, when one takes Kronecker products of several base circuits, the
+degrees of most gates in the resulting product circuit concentrate, by Hoeffding’s inequality, around
+the geometric mean of their degrees. However, an exponentially small fraction of gates may have
+degrees exceeding this geometric mean by an exponential factor. The work [AL25] exploits the
+bit-permutation symmetry of the Kronecker-power matrices themselves to compensate for this loss,
+by removing the part lying far outside the concentration window; they call this procedure degree
+uniformization.
+    The reason the present paper can improve on (a) is that prior works did not combine the
+advantages of these two routes. A circuit constructed via the selection rule in (a) may still contain,
+as in (b), many gates whose degrees are far above the median. If degree uniformization can be
+applied to such a circuit, it may noticeably improve both size and degree. However, analyzing the
+degrees of circuits constructed by rebalancing is much harder than for plain Kronecker-product
+circuits, and this degree analysis is one of the core technical contributions of our paper. Since the
+duality theorem of [AL25] characterizes the infimum of the final size over circuits constructed “only
+through rebalancing,” whereas our paper essentially applies degree uniformization once more to
+the final constructed circuit, our construction has the potential to break the lower bound that the
+duality theorem of [AL25] imposes on rebalancing constructions.
+
+
+1.2    Technical Overview
+
+The size and degree transfer theorems. We give a unified approach to the size and degree
+questions via a pair of size and degree transfer theorems. Given a matrix M ∈ Zc0 ×c1 with no
+identically zero row or column, and a collection C of depth-2 linear circuits, each computing
+some positive Kronecker power of M , these theorems output upper bounds on σ(M ) and δ(M ).
+Specifically, for a circuit C = (A, B) computing M ⊗k , let LC (x) := nnz(A[x, ∗]) denote the degree
+of input gate x, and let RC (y) := nnz(B[∗, y]) denote the degree of output gate y. Writing ∆[N ] for
+the set of probability distributions on [N ] := {0, . . . , N − 1}, define
+                                       1
+                              fC (p) :=  EX∼pk log2 LC (X) , p ∈ ∆[c0 ] ,
+                                                          
+                                       k
+                                       1
+                              gC (q) := EY ∼qk log2 RC (Y ) , q ∈ ∆[c1 ] .
+                                                          
+                                       k
+For a pair of probability distributions (p, q) ∈ ∆[c0 ] × ∆[c1 ] , we define the manifestation of C at (p, q)
+as PC (p, q) := (fC (p), gC (q)), viewed as a point in the first quadrant of the Cartesian plane. Fixing
+a pair (p, q), let conv{PC (p, q) : C ∈ C} denote the convex hull of the points PC (p, q) over C ∈ C.
+
+
+                                                     6
+The size transfer theorem then states that
+                                                        (                                                          )
+  σ(M ) ≤ 2ξ(C) ,      ξ(C) :=         max                            min              max{a + Hc0 (p), b + Hc1 (q)} ,
+                                 (p,q)∈∆[c0 ] ×∆[c1 ]       (a,b)∈conv{PC (p,q):C∈C}
+
+
+where Hc0 (p) and Hc1 (q) denote the entropies of p and q in bits. The degree transfer theorem states
+that                                                  (                                 )
+            δ(M ) ≤ 2ϕ(C) ,       ϕ(C) :=               max                     min               max{a, b} .
+                                              (p,q)∈∆[c0 ] ×∆[c1 ]     (a,b)∈conv{PC (p,q):C∈C}
+
+These two theorems are developed in detail in Section 2.3 (Theorems 2.6 and 2.7).
+
+                                                                (c)
+Nine circuits for R1 , and c + 2 circuits for P1 . All of our size and degree results are obtained
+through the size and degree transfer theorems. Specifically, for R1 , we construct nine circuits:
+C0 , C1 , C2 , C3 , C4 , CJ , CS , CR , CRT . Plugging the singleton collection {CJ } into the size transfer
+theorem gives σ(R1 ) < 21.244844 , and plugging the collection C8 := {C0 , C1 , C2 , C3 , C4 , CS , CR , CRT }
+                                                                                  (c)
+into the degree transfer theorem gives δ(R1 ) < 20.319866 . For P1 , we construct c + 2 circuits
+                                                                                                          (c)
+         push , C(0) , . . . , C(c−1) . Plugging {Cpull , Cpush } into the size transfer theorem gives σ(P1 ) ≤
+  ′ , C′
+Cpull            ′              ′                  ′       ′
+
+                                                                                                                  (c)
+c · ψ(log2 c), and plugging {Cpull              (c−1) } into the degree transfer theorem gives δ(P1 ) ≤
+                              ′ , C′ , . . . , C′
+                                   (0)
+     c−1
+                                                                                                        (c)
+c (c−1)+c log2 c . That these two collections yield our claimed upper bounds for P1 is proved in
+Theorem 2.10. By contrast, proving that the two collections above yield our claimed upper bounds
+for R1 is much more difficult. Among the circuits above, CJ , CS , CR , CRT have especially involved
+constructions: they compute R7×1011 , while C0 , C1 , C2 compute R1 , the circuits C3 , C4 compute R2 ,
+                                                           (c)
+and Cpull
+        ′ , C′
+                 push , C(0) , . . . , C(c−1) all compute P1 . For details, see Sections 2.1 and 2.2.
+                         ′              ′
+
+
+
+Computation trees and scripted rebalancing. Recall the first step of rebalancing from
+Section 1.1.3: if a base circuit gives a rank-1 decomposition Rd = i Ui ViT , then Rn = i Ui ViT ⊗
+                                                                   P                      P
+
+Rn−d , and the circuit chosen for the remaining factor Rn−d depends on the leading term Ui ViT .
+Iterating this rule expands the one-step identity into a rooted tree: at an internal node x, one
+attaches a depth-2 linear circuit C(x) computing Rk ; each rank-1 term of C(x) contributes one
+edge to a child; and the subtree below that child defines a circuit for the remaining Kronecker
+power. The circuit defined by the whole tree is therefore the sum, over all root-to-leaf paths, of the
+Kronecker products of the rank-1 terms attached to the edges along that path. This is exactly the
+computation-tree formulation of [AL25, Appendix B]. The circuits CJ , CS , CR , CRT are all defined
+by such computation trees with 1011 + 1 node layers: each internal node uses a circuit computing
+Rk , uniformly with k = 7, and each root-to-leaf path has 1011 edges, so the resulting root circuit
+computes R7×1011 .
+    In [AL25, Appendix B], the choice of C(x) depends only on the accumulated tilt between the
+left and right sides of the rank-1 terms along the root-to-x path, and this tilt is real-valued. In
+this paper, we instead propose scripted rebalancing, which replaces the real-valued tilt with a finite
+state: each node carries a state h ∈ [H], and the circuit attached to the node is I(h), a prescribed
+circuit computing Rk . For a rank-1 term (U, V T ), the state offset is the nearest integer to the
+base-Z logarithm of the ratio of the (1 − β, β)-Bernoulli weight of the nonzero support of V T
+to the (1 − α, α)-Bernoulli weight of the nonzero support of U . The child state is obtained by
+adding this offset to the current state and clamping the result to [0, H − 1]. Thus a parameter set
+(k, H, I, Z, α, β) specifies a finite-state script for building a computation tree. We handpick four
+
+
+                                                                7
+such scripts with k = 7, named Jessica, Sonetto, Regulus, and Regulus Transpose; starting each
+script from root state 0 and running it for 1011 steps produces CJ , CS , CR , CRT , respectively. For
+details, see Sections 2.1 and 2.2.
+
+Reducing mean log-degree to a Lyapunov exponent. It remains to prove that plugging
+{CJ } and C8 into the respective transfer theorems indeed yields the claimed upper bounds on σ(R1 )
+and δ(R1 ).
+   Fix p ∈ [0, 1]. To compute fCJ (Ber(p)), recall what this quantity means: choose an input-gate
+index of CJ whose 7 × 1011 bits are i.i.d. Ber(p), take the base-2 logarithm of its degree, and take
+the expectation. Recall that CJ is defined by a computation tree with 1011 + 1 layers, each step
+consuming a block of 7 bits. We reveal the random input-gate index one block at a time. After
+revealing the first several blocks, we count the nodes in the corresponding layer that are compatible
+with the revealed prefix: namely, those nodes for which the product of the rank-1 terms along the
+root-to-node path has a left vector that is nonzero at the revealed prefix index. Since the subtree
+below any node is determined solely by the node’s state, it suffices to maintain a vector indexed by
+[H], recording, for each state, the number of compatible nodes in the current layer with that state.
+    The layer-to-layer update is therefore linear: the next vector is the current vector multiplied on
+the right by a matrix. Moreover, this matrix depends only on how many of the newly revealed 7 bits
+equal 1. Under the i.i.d. Ber(p) input distribution, this number has distribution Bin(7, p). Hence
+fCJ (Ber(p)) is obtained as follows: start from [1, 0, . . . , 0]; at each of the 1011 steps, independently
+choose a matrix from A0 , . . . , A7 according to Bin(7, p) and multiply the current vector on the right
+by that matrix; finally, take the expected base-2 logarithm of the ℓ1 -norm of the resulting vector
+and divide by 7 × 1011 . The matrices A0 , . . . , A7 are determined by the parameter set alone and can
+be computed from it. For details, see Section 3.1.
+
+Toll-and-potential certificates and machine verification. Consider a collection of matrices
+A0 , . . . , A7 and the distribution Bin(7, p) on them. For the corresponding random matrix product,
+choose a large number of steps, randomly select one matrix at each step to multiply the current
+vector, and take the logarithm of the resulting vector’s ℓ1 -norm divided by the number of steps. As
+the number of steps tends to infinity, this quantity converges almost surely to a fixed value: the
+quenched Lyapunov exponent, a quantity studied in random dynamical systems, especially in the
+multiplicative ergodic theory of random matrix products.
+    Because 1011 is so large, the numerical value of fCJ (Ber(p)) is extremely close to this exponent
+divided by 7. We show that any pair of arrays (a, b) ∈ R(k+1)×(k+1) × R(k+1)×H satisfying certain
+conditions determined by A0 , . . . , A7 , called a valid certificate, gives rise to a polynomial Φ
+                                                                                                  e a (p)
+that upper-bounds the Lyapunov exponent simultaneously for every distribution Bin(7, p). This
+certificate theorem is derived from the Lagrangian dual of the convex program underlying the upper
+bound of Gharavi and Anantharam [GA05].
+    Accordingly, for each circuit family X, we choose a lattice on [0, 1], obtain optimal certificates at
+the lattice points, and assemble a global upper bound ℓX : [0, 1] → R≥0 . For each X, the inequality
+fCX (7m,h) (Ber(p)) ≤ ℓX (p) holds for all m ≥ 1011 , all h ∈ [H], and all p ∈ [0, 1]; moreover, ℓX is
+13-Lipschitz on [0, 1]. These two facts allow us to write two computer programs whose acceptance is
+a sufficient (though not necessary) condition for the desired numerical bounds: ξ({CJ }) < 1.244844
+after plugging {CJ } into the corresponding formula, and ϕ(C8 ) < 0.319866 after plugging C8 into
+the corresponding formula. The implementation is available at https://osf.io/yz4fr/overview?
+view_only=2f77f3a2c69e44a2bb57738e01223149. For details, see Sections 3.2 and 3.3.
+
+                                                    8
+1.3       Applications in Algorithm Design
+                                                                                      (c)
+   In this section, we use our upper bounds on σ(R1 ), δ(R1 ), and δ(P1 ) to derive algorithms and
+data structures for a variety of problems. We work in a word-RAM model4 in which each word is a
+w-bit integer and w ≥ 2 log2 (nd).
+       Our first application is a deterministic offline algorithm for #OV.
+Theorem 1.2 (Deterministic #OV from δ(R1 )). For every ε > 0, there is a deterministic offline
+algorithm that counts the orthogonal pairs between two sets U, V ⊆ {0, 1}d , each of size at most n,
+in O(n · (δ(R1 ) + ε)d ) time using only O(nd) space. In particular, by Theorem 1.1, #OV can be
+solved in O(n · 20.319866d ) = o(n · 2d/3.126 ) = o(n · 1.25d ) time and O(nd) space.
+
+    The proof of Theorem 1.2 appears in Section B.1. This improves on previously known algorithms
+in the regime 1.47 log2 n ≲ d ≲ 3.12 log2 n; see Table 3.
+
+                                                        Up to no(1) factors
+Dimension regime              Descriptive label         Time             Space          Main method
+d = c log2 n with c ≲ 1.47    Logarithmic-           O(n + 2 )  d
+                                                                       O(n + 2 ) d
+                                                                                        Yates’ algorithm
+                              dimensional I
+d = c log2 n with             Logarithmic-         O(n · 2d/3.126 )      O(n)           depth-2 linear circuits (this
+1.47 ≲ c ≲ 3.12               dimensional II                                            paper)
+d = c log2 n with c ≳ 3.12    Logarithmic-          n2−1/O(log c)     n2−1/O(log c)     polynomial method +
+                              dimensional III                                           rectangular matrix
+                                                                                        multiplication
+                                                                                        [AWY15, CW21]
+d = ω(log n) ∩ no(1)          OVC barrier              O(n2 )            O(n)           brute-force pair enumeration
+                              regime
+
+Table 3: Complexity landscape for #OV, using algorithms known to the authors as of June 2026.
+
+   The reduction from #OV to δ(R1 ) without the linear-space requirement is given in [AL25,
+Theorem 7.2], and [Wil24] gives a linear-space reduction from #OV to the asymptotic equality rank
+constant θ(R1 ). Because our reduction targets degree rather than equality rank, ensuring linear
+space requires substantially more technical work.
+   As a second application, we give deterministic online data structures for the Subset Query and
+Partial Match primitives introduced by Charikar, Indyk, and Panigrahy [CIP02], as well as for a
+generalized c-ary Partial Match primitive.
+    In the online Subset Query problem, a database stores binary strings in {0, 1}d and supports
+a stream of insertion and query operations. An insertion adds a string to the database. A query
+specifies a pattern in {0, ∗}d and asks for the number of currently stored strings matching the
+pattern; here a 0 in the query matches only a 0 in the database string, whereas a ∗ matches any
+single symbol.
+   In the online c-ary Partial Match problem, a database stores strings in {0, 1, . . . , c − 1}d and
+supports a stream of insertion and query operations. The setup is the same as for Subset Query,
+   4
+    In our model, only additions, subtractions, and multiplications of w-bit integers, as well as memory accesses by
+w-bit addresses, are assumed to take unit time.
+
+
+                                                         9
+except that a query specifies a pattern in {0, 1, . . . , c − 1, ∗}d . The binary case c = 2 is the Partial
+Match problem defined in [CIP02].
+                                                                                                      
+                                                                                 (c)
+        Indeed, if we label the c rows of the c × (c + 1) matrix P1                    = Ic 1c by the database symbols
+                                                                                                                 (c)
+0, 1, . . . , c − 1, and its c + 1 columns by the query symbols 0, 1, . . . , c − 1, ∗, then P1                        is precisely
+the incidence matrix of the problem.
+                                                                                                                (c)
+Theorem 1.3 (Deterministic Subset Query and Partial Match from δ(R1 ) and δ(P1 )). For every
+ε > 0:
+    1. Subset Query in d dimensions admits an online deterministic data structure in which each
+       insertion or query takes time
+                                          O((δ(R1 ) + ε)d );
+    2. for every fixed integer c ≥ 2, c-ary Partial Match in d dimensions admits an online deterministic
+       data structure in which each insertion or query takes time
+                                                                                c−1
+                                                                                                    d !
+                                            (c)
+                                      O((δ(P1 ) + ε)d ) ≤ O             c   (c−1)+c log2 c     +ε          .
+
+In particular, by Theorem 1.1, these upper bounds are o(1.25d ) for Subset Query, o(1.26d ) for Partial
+Match, o(1.39d ) for 3-ary Partial Match, and o(1.46d ) for 4-ary Partial Match.
+
+        The proof of Theorem 1.3 appears in Section B.1.
+    Finally, via the reductions established in [AL25], we derive smaller low-depth linear circuits for
+disjointness and for a certain class of non-Kronecker-power matrices.
+    For disjointness, Theorem 1.1 implies that the N × N matrix Rn has a depth-2 linear circuit of
+size O(N 1.244844 ), where N = 2n . More generally, applying the reduction of [AL25, Corollary 5.2],
+for every integer h ≥ 1, the matrix Rn has a depth-2h linear circuit of size O(N 1+0.244844/h ).
+        Moreover, for every function f : {0, 1}n → R, define
+                              Mf [x, y] := f (x1 ∨ y1 , . . . , xn ∨ yn ),             x, y ∈ {0, 1}n .
+Applying the reduction of [AL25, Corollary 5.3], for every integer h ≥ 1, the matrix Mf has a
+depth-4h linear circuit over R, with arbitrary real weights allowed, of size O(N 1+0.244844/h ), where
+N = 2n5 .
+
+
+2        Transfer Theorems and Circuit Instantiations
+   Throughout the paper, for every positive integer N ≥ 1, we write [N ] := {0, . . . , N − 1}, and
+we let ∆[N ] denote the set of all probability distributions on [N ]. All entropies, KL divergences,
+Lyapunov exponents, growth rates, and related quantities are measured in bits, that is, using base-2
+logarithms.
+    5
+                                                                                               (−1)∥w−z∥1 f (w). Then
+                                                                                       P
+        Indeed, let g be the upper Möbius transform of f , defined by g(z) :=            w≥z
+                                                                                            ⊗n
+                                                   T                               1     1
+                                     Mf = AΛg A ,         A := [1x≤z ]x,z =                        ,
+                                                                                   0     1
+where Λg is the diagonal matrix with entries g(z). The matrix A coincides, up to a permutation of rows and columns,
+with the Kronecker-power matrix Rn . One may therefore compute the two factors A and AT using the circuits for Rn ,
+and absorb the diagonal factor Λg into an adjacent linear layer. This yields the claimed depth-4h real-weight linear
+circuit for Mf with the same size upper bound.
+
+
+                                                              10
+2.1    Computation Trees and Scripted Rebalancing
+
+   In this section, we formalize the scripted rebalancing described in Section 1.2. Its input is a
+parameter set, and its output is a family of depth-2 linear circuits computing Rn , one for each
+multiple n of k and each initial state.
+   Let k ≥ 1 and H ≥ 1 be integers, let I be a map from [H] to circuits computing Rk , let Z > 1
+be a real number, and let α, β ∈ (0, 1) be real numbers. We call the tuple X = (k, H, I, Z, α, β) a
+parameter set.
+    In our parameter sets, the map I is specified by an ordered pair (c, ι), where c = (c0 , . . . , cL−1 )
+is an integer array satisfying 0 ≤ c0 < · · · < cL−1 ≤ 2k − 1, and ι : [H] → [L] is a map. This
+specification means I(h) = Sk (cι(h) ), the Sergeev circuit of order k with identifier cι(h) ([Ser22];
+[AL25, Section 5.1]).
+   For each identifier c ∈ {0, . . . , 2k −1}, Section A.2 defines a depth-2 linear circuit Sk (c) computing
+Rk with exactly 2k middle gates. Equivalently, Sk (c) provides a rank-1 decomposition of Rk :
+                                     k −1
+                                    2X                                            k −1
+                                                                                 2X
+                         Sk (c) =          (Uc,r , Vc,r
+                                                     T
+                                                        ),      so that Rk =                    T
+                                                                                         Uc,r Vc,r ,
+                                     r=0                                         r=0
+
+where Uc,r and Vc,r are vectors indexed by {0, 1}k . For a vector w indexed by {0, 1}k , set
+
+                          wnnzγ0 ,γ1 (w) :=                  1[wx ̸= 0] (γ0 )k−∥x∥1 (γ1 )∥x∥1 ,
+                                                    X
+
+                                                  x∈{0,1}k
+
+where ∥x∥1 denotes the number of 1-bits of the index x ∈ {0, 1}k . This is the total Bernoulli weight
+of the indices of the nonzero entries of w, with weights γ0 and γ1 assigned to 0-bits and 1-bits,
+respectively.
+   For a rank-1 term (Uc,r , Vc,r
+                               T ), define its raw tilt θ
+                                                         c,r as
+
+                                                             wnnz1−β,β (Vc,r )
+                                                                                 !
+                                       θc,r := logZ                            ,
+                                                             wnnz1−α,α (Uc,r )
+                                                                             j            k
+and define its state offset ∆c,r as the nearest integer ∆c,r := θc,r + 12 . Let
+                                                       
+                                                       0,
+                                                        t < 0,
+                                                       
+                                                       
+                                   clampH (t) := t,     0 ≤ t ≤ H − 1,
+                                                
+                                                H − 1, t > H − 1.
+                                                
+
+
+The circuits CX (n, h), for multiples n of k and states h ∈ [H], are defined recursively by
+
+                                                 CX (0, h) := ([1], [1]),
+
+and, for n ≥ k,
+                        k −1
+                       2X
+        CX (n, h) :=         (Uci ,r , VcTi ,r ) ⊗ CX (n − k, clampH (h + ∆ci ,r )) ,            where i := ι(h).
+                       r=0
+
+Proposition 2.1. For every parameter set X in the above format, every multiple n of k, and every
+state h ∈ [H], the circuit CX (n, h) is a depth-2 linear circuit computing Rn .
+
+                                                              11
+Proof sketch. The circuit CX (n, h) is the root circuit of a computation tree [AL25, Appendix B] for
+the base matrix R1 with total weighted depth n. A detailed proof appears in Section A.3.
+
+   For a k-bit identifier c ∈ {0, . . . , 2k − 1}, put c := 2k − 1 − c, the k-bit complement of c.
+   We next define a transposition operation on parameter sets. If X = (k, H, I, Z, α, β) with
+I = (c, ι), define cT := (cL−1 , . . . , c0 ), ιT (h) := L − 1 − ι(H − 1 − h), I T := (cT , ιT ), and
+XT := (k, H, I T , Z, β, α).
+   It is immediate from the definitions that applying this operation twice returns the original
+parameter set, (XT )T = X; the operation is involutive, as one expects of a transposition.
+    We now claim that the circuit family generated by the transposed parameter set is indeed
+isomorphic to the transpose of the original circuit family. The key ingredient is that Sk (c)T ∼
+                                                                                               = Sk (c);
+see Fact A.2.2.
+Proposition 2.2. Suppose that no raw tilt θc,r appearing in X lies in Z + 12 . Then
+                                               ∼ C T (n, H − 1 − h),
+                                    CX (n, h)T =  X
+                                               ∼ CX (n, H − 1 − h),
+                                   C T (n, h)T =
+                                     X
+
+for every multiple n of k and every h ∈ [H].
+
+   The proof of Theorem 2.2 appears in Section B.2.
+
+                                                                   (c)
+2.2   Nine Circuits for R1 , and c + 2 Circuits for P1
+
+   We now specify the nine circuits C0 , C1 , C2 , C3 , C4 , CJ , CS , CR , CRT announced in Section 1.2.
+   The first five circuits C0 , C1 , C2 , C3 , C4 are defined directly, each as an ordered pair of matrices:
+
+  • C0 := (A0 , B0 ), where                       !                      !
+                                              1 0                  1 1
+                                     A0 =         ,        B0 =        ;
+                                              0 1                  1 0
+  • C1 := (A1 , B1 ), where                       !                      !
+                                              1 1                  1 0
+                                     A1 =         ,        B1 =        ;
+                                              1 0                  0 1
+  • C2 := (A2 , B2 ), where                       !                          !
+                                              1 0                 1 1
+                                    A2 =          ,        B2 =        ;
+                                              1 1                 0 −1
+  • C3 := (A3 , B3 ), where
+                                    1     0   0   0              1       1   1   1
+                                                                              
+                                   0     1   0   1            1       0   0   0
+                              A3 =                ,      B3 =                  ;
+                                                                               
+                                   0     1   1   0            0       1   0   0
+                                    0     1   0   0              0       0   1   0
+  • C4 := (A4 , B4 ), where
+                                    1     1   0   0              1       0   0   0
+                                                                              
+                                   1     0   1   0            0       1   1   1
+                              A4 =                ,      B4 =                  .
+                                                                               
+                                   1     0   0   1            0       0   1   0
+                                    1     0   0   0              0       1   0   0
+
+                                                      12
+       One checks directly that
+                                                                      !
+                                                                1 1
+                                A0 B0 = A1 B1 = A2 B2 =                     = R1 ,
+                                                                1 0
+                                                          1          1      1   1
+                                                                                 
+                                                         1          0      1   0
+                                         A3 B3 = A4 B4 =                         = R2 .
+                                                                                
+                                                         1          1      0   0
+                                                          1          0      0   0
+
+Hence C0 , C1 , C2 are depth-2 linear circuits computing R1 , and C3 , C4 are depth-2 linear circuits
+computing R2 .
+    The remaining four circuits CJ , CS , CR , CRT are obtained by applying scripted rebalancing to
+four parameter sets, named Jessica, Sonetto, Regulus, and Regulus Transpose, which are specified
+in Table 46 . In Table 4, the map ι is specified by its multiplicity array: if the multiplicity array is
+(m0 , . . . , mL−1 ), then ι(h) = i for the unique i ∈ [L] satisfying m0 + · · · + mi−1 ≤ h < m0 + · · · + mi .
+
+  Parameter        Jessica                      Sonetto                         Regulus              Regulus Transpose
+  k                7                            7                               7                    7
+  H                612                          360                             360                  360
+  c                (0, 20, 42, 85, 107, 127)    (0, 21, 42, 85, 106, 127)       (0, 42, 43, 45,      (0, 41, 42, 50,
+                                                                                  77, 85, 86, 127)     82, 84, 85, 127)
+  multiplicities   (14, 22, 270, 270, 22, 14)   (8, 22, 150, 150, 22, 8)        (8, 36, 20, 20,      (8, 44, 64, 160,
+                                                                                  160, 64, 44, 8)      20, 20, 36, 8)
+  Z                21/3                         21/3                            21/3                 21/3
+  α                0.5                          0.38                            0.336                0.414
+  β                0.5                          0.38                            0.414                0.336
+
+                             Table 4: The four parameter sets used in this paper.
+
+
+    One checks that the transpose of Jessica is Jessica itself, the transpose of Sonetto is Sonetto
+itself, and the transposes of Regulus and Regulus Transpose are each other.
+    Moreover, for these four parameter sets, all raw tilts are bounded away from half-integers:
+the smallest absolute distance to the nearest half-integer is approximately 1.33 · 10−3 for Jessica,
+1.71 · 10−2 for Sonetto, and 4.70 · 10−3 for Regulus and Regulus Transpose. Hence Theorem 2.2 gives
+
+                                    CJessica (n, h)T ∼
+                                                     = CJessica (n, 611 − h),
+                                    CSonetto (n, h)T ∼
+                                                     = CSonetto (n, 359 − h),
+                                   CRegulus (n, h)T ∼
+                                                    = CRegulusT (n, 359 − h).
+   6
+     How did we discover these parameter sets? At a high level, we first fix α, β and choose a moderately sized H. We
+then run a bottom-up dynamic program, inspired by [AL25, Appendix B], whose purpose is to choose, for each state
+h ∈ [H], which Sergeev circuit identifier should be used at that state. We run this dynamic program for increasing
+tree depths until the resulting state-to-identifier map stops changing. We then discard the dynamic program itself and
+record the stabilized map I, equivalently the multiplicity array shown in the table, as the parameter set. We do not
+present the definition or technical details of this dynamic program, since they are not relevant to the correctness of
+this paper.
+
+
+
+
+                                                          13
+   We now fix m∗ := 1011 and define the four circuits CJ , CS , CR , CRT by
+                                                        CJ := CJessica (7m∗ , 0),
+                                                        CS := CSonetto (7m∗ , 0),
+                                                        CR := CRegulus (7m∗ , 0),
+                                                       CRT := CRegulusT (7m∗ , 0).
+By Theorem 2.1, the circuits CJ , CS , CR , CRT are depth-2 linear circuits computing R7m∗ = R7·1011 .
+   Finally, recall that for an integer c ≥ 2, the c-ary partial-match incidence matrix is
+                                                                    1 0 ··· 0 1
+                                                                                                
+
+                                                                 0 1 · · · 0 1
+                                                                                      
+                                           (c)
+                                                 = Ic         1c =  . . .
+                                                                           . . ... ... 
+                                       P1                                              .
+                                                                    .. ..
+                                                                   
+                                                                                       
+                                                                    0 0 ··· 1 1
+We specify the c + 2 circuits Cpull push , C(0) , . . . , C(c−1) announced in Section 1.2 in Table 5, where
+                               ′ , C′       ′              ′
+                                                                                    
+                         i and B(i) := Ic − (1c − ei )ei
+A′(i) := Ic + (1c − ei )eT      ′                      T e .
+                                                          i
+
+
+           Circuit                         # middle gates               LC (x)             RC (y)        fC (p)    gC (q)
+                                                                                         (
+                              (c)                                                         1, y ̸= c
+            ′
+           Cpull := (Ic , P1 )                          c                    1                             0      qc log2 c
+                                                                                          c, y = c
+                         (c)
+            ′
+           Cpush := (P1 , Ic+1 )                   c+1                       2                  1          1         0
+                                                                    (                    (
+                                                                        2,    x ̸= i         1, y ̸= i
+            ′
+           C(i) := (A′(i) , B(i)
+                             ′
+                                 )                      c                                                1 − pi   qi log2 c
+                                                                        1,    x=i            c, y = i
+
+                                                 (c)
+Table 5: The c + 2 circuits for P1 , together with their gate degrees and normalized log-degree
+density functions.
+
+   Equivalently, in the language of gates and wires:
+   • in Cpull
+         ′ , middle gate j receives weight 1 from input gate j and sends weight 1 to output gates
+
+     j and c;
+   • in Cpush
+          ′   , for j < c, middle gate j receives weight 1 from input gate j and sends weight 1 to
+     output gate j, while middle gate c receives weight 1 from every input gate and sends weight 1
+     to output gate c;
+   • in C(i)
+         ′ , for j ̸= i, middle gate j receives weight 1 from input gate j, sends weight 1 to output
+
+     gate j, and sends weight −1 to output gate i, while middle gate i receives weight 1 from every
+     input gate and sends weight 1 to output gates i and c.
+                               (c)         (c)              (c)              (c)
+   One checks that Ic P1             = P1        and P1 Ic+1 = P1 . Also, since eT
+                                                                                 i (1c − ei ) = 0 and ei ei = 1,
+                                                                                                       T
+                                                                              
+   A′(i) B(i)
+          ′
+              = Ic + (1c − ei )eT
+                                i                Ic − (1c − ei )eT
+                                                                 i ei
+                                                                                                                                   
+            = Ic − (1c − ei )eT
+                              i + (1c − ei )ei − (1c − ei ) ei (1c − ei ) ei
+                                             T               T             T                              ei + (1c − ei )(eT
+                                                                                                                           i ei )
+                                                                                                     
+                         
+                                     (c)
+            = Ic 1c = P1 .
+                                                              (c)
+Hence all c + 2 circuits indeed compute P1 .
+
+                                                                    14
+2.3       The Size and Degree Transfer Theorems
+
+       For an integer c ≥ 2 and an index x ∈ [c]n , define its normalized frequency array by
+                                           1
+                             freq(x)i :=     · |{j ∈ [n] : xj = i}|,        i = 0, . . . , c − 1,
+                                           n
+so that freq(x) ∈ ∆[c] . For p ∈ freq([c]n ), define the frequency class FCn (p) := {x ∈ [c]n : freq(x) =
+p}.
+       For an integer c ≥ 2 and a probability distribution p = (p0 , . . . , pc−1 ) ∈ ∆[c] , write
+                                                  c−1
+                                    Hc (p) := −         pi log2 pi ,    0 log2 0 := 0.
+                                                  X
+
+                                                  i=0
+
+For p ∈ [0, 1], we also write h(p) := H2 (Ber(p)) = −p log2 p − (1 − p) log2 (1 − p).
+Definition 2.3 (Normalized log-degree density functions). Fix a matrix M ∈ Zc0 ×c1 with no
+identically zero row or column, and index its rows by [c0 ] = {0, . . . , c0 − 1} and its columns by
+[c1 ] = {0, . . . , c1 − 1}.
+   If C = (A, B) is a depth-2 linear circuit computing M ⊗k for some k ≥ 1, let LC (x) := nnz(A[x, ∗])
+denote the degree of input gate x in C, and let RC (y) := nnz(B[∗, y]) denote the degree of output
+gate y in C. Define
+                                        1
+                            fC (p) := EX∼pk log2 LC (X) , p ∈ ∆[c0 ] ,
+                                                          
+                                        k
+                                        1
+                            gC (q) := EY ∼qk log2 RC (Y ) , q ∈ ∆[c1 ] .
+                                                          
+                                        k
+We call fC and gC the left and right normalized log-degree density functions of C, respectively.
+Definition 2.4 (Manifestations of circuits and of finite circuit collections). Let M ∈ Zc0 ×c1 be as
+in Theorem 2.3.
+   If C is a circuit computing M ⊗k for some k ≥ 1, define a map PC from ∆[c0 ] × ∆[c1 ] to the
+Cartesian plane by
+                                  PC (p, q) := (fC (p), gC (q)).
+If C is a finite collection of depth-2 linear circuits, each computing M ⊗k for some possibly different
+k ≥ 1, define a map PC from ∆[c0 ] × ∆[c1 ] to convex polygons7 in the Cartesian plane by
+                                        PC (p, q) := conv{PC (p, q) : C ∈ C},
+the convex hull of the points PC (p, q) over all C ∈ C.
+       We call PC (p, q) and PC (p, q) the manifestations of C and of C at (p, q), respectively.
+Theorem 2.5 (Realization of convex-hull points). Let M ∈ Zc0 ×c1 be as in Theorem 2.3, and let C
+be a finite circuit collection as in Theorem 2.4.
+    For every ε > 0, there exists n0 ≥ 1, depending only on M , C, and ε, such that the following
+holds for every n ≥ n0 . For every (p, q) ∈ freq([c0 ]n ) × freq([c1 ]n ) and every (a, b) ∈ PC (p, q), there
+exists a depth-2 linear circuit En that computes the submatrix M ⊗n [FCn (p), FCn (q)] and satisfies
+                                     LEn (x) ≤ 2(a+ε)n ,           REn (y) ≤ 2(b+ε)n ,
+for every x ∈ FCn (p) and every y ∈ FCn (q).
+   7
+       Including degenerate polygons, such as a single point or a line segment.
+
+
+                                                              15
+Proof sketch. First suppose |C| = 2, say C = {Chi , Clo }. In this case, (a, b) is a convex combination of
+PChi (p, q) and PClo (p, q). We form a Kronecker product of copies of Chi and Clo , assigned to the cor-
+responding fractions of tensor coordinates, and restrict the resulting circuit to M ⊗n [FCn (p), FCn (q)].
+By Hoeffding’s inequality, except for a negligible fraction of the input and output gates, the input-
+                                  2/3                                                   2/3
+gate degrees are at most 2an+n and the output-gate degrees are at most 2bn+n . Removing the
+exceptional gates yields a circuit computing a “broken copy” of M ⊗n [FCn (p), FCn (q)]. Finally, the
+hole-fixing lemma of [AL25] converts this broken copy into a full circuit, increasing the degrees by
+only a subexponential multiplicative factor.
+   For an arbitrary finite collection C, start from (a, b) and move along the ray (a − t, b − t) until
+the boundary of the convex polygon PC (p, q) is reached. The resulting boundary point is a convex
+combination of PCI (p, q) and PCII (p, q) for some CI , CII ∈ C. Applying the two-circuit case to this
+boundary point gives upper bounds at least as strong as those required by the theorem. A detailed
+proof appears in Section B.2.
+
+2.3.1    The Size Transfer Theorem
+
+Theorem 2.6 (Size transfer theorem). Let M ∈ Zc0 ×c1 be as in Theorem 2.3, and let C be any
+finite circuit collection as in Theorem 2.4. Then
+                                                             (                                                         )
+  σ(M ) ≤ 2   ξ(C)
+                     ,     ξ(C) :=          max                           min              max{a + Hc0 (p), b + Hc1 (q)} .
+                                      (p,q)∈∆[c0 ] ×∆[c1 ]    (a,b)∈conv{PC (p,q):C∈C}
+
+
+Proof sketch. Build the circuit piece by piece. For each pair (p, q) ∈ freq([c0 ]n ) × freq([c1 ]n ), choose
+(a, b) ∈ conv{PC (p, q) : C ∈ C} minimizing max{a + Hc0 (p), b + Hc1 (q)}. By Theorem 2.5, there is a
+circuit computing M ⊗n [FCn (p), FCn (q)] with input-gate degrees at most 2(a+ε)n and output-gate
+degrees at most 2(b+ε)n . Glue these circuits together by taking their concatenation sum. There
+are only polynomially many possible pairs of frequency arrays (p, q), and the frequency classes
+satisfy | FCn (p)| ≤ 2Hc0 (p)n and | FCn (q)| ≤ 2Hc1 (q)n . Hence the resulting circuit has size at most
+2(ξ(C)+ε)n+o(n) . Letting n → ∞ and then ε ↓ 0 gives σ(M ) ≤ 2ξ(C) . A full proof appears in
+Section B.2.
+
+    To see how C performs at different pairs of probability distributions (p, q), define
+
+                         ξ(C, p, q) :=              min                 max{a + Hc0 (p), b + Hc1 (q)}.
+                                         (a,b)∈conv{PC (p,q):C∈C}
+
+We call the map (p, q) 7→ ξ(C, p, q) from ∆[c0 ] × ∆[c1 ] to R≥0 the size landscape of C.
+
+2.3.2    The Degree Transfer Theorem
+
+Theorem 2.7 (Degree transfer theorem). Let M ∈ Zc0 ×c1 be as in Theorem 2.3, and let C be any
+finite circuit collection as in Theorem 2.4. Then
+                                                                          (                                      )
+            δ(M ) ≤ 2      ϕ(C)
+                                  ,    ϕ(C) :=               max                       min               max{a, b} .
+                                                   (p,q)∈∆[c0 ] ×∆[c1 ]       (a,b)∈conv{PC (p,q):C∈C}
+
+
+Proof sketch. Build the circuit piece by piece. For each pair (p, q) ∈ freq([c0 ]n ) × freq([c1 ]n ), choose
+(a, b) ∈ conv{PC (p, q) : C ∈ C} minimizing max{a, b}. By Theorem 2.5, there is a circuit computing
+M ⊗n [FCn (p), FCn (q)] with input-gate degrees at most 2(a+ε)n and output-gate degrees at most
+
+                                                                   16
+2(b+ε)n . Glue these circuits together by taking their concatenation sum. A fixed input or output
+gate is involved in only polynomially many summands of the concatenation sum, so the resulting
+circuit has maximum input-output degree at most 2(ϕ(C)+ε)n+o(n) . Letting n → ∞ and then ε ↓ 0
+gives δ(M ) ≤ 2ϕ(C) . A full proof appears in Section B.2.
+
+   To see how C performs at different pairs of probability distributions (p, q), define
+
+                                    ϕ(C, p, q) :=                 min             max{a, b}.
+                                                       (a,b)∈conv{PC (p,q):C∈C}
+
+We call the map (p, q) 7→ ϕ(C, p, q) from ∆[c0 ] × ∆[c1 ] to R≥0 the degree landscape of C.
+
+2.3.3   Instantiation of the Transfer Theorems
+
+    For each of the four circuit families X ∈ {Jessica, Sonetto, Regulus, RegulusT }, Section 3 will
+define a function ℓX : [0, 1] → R≥0 .
+   By Theorem 3.8, with m∗ = 1011 , for every m ≥ m∗ , every h ∈ [H], and every p ∈ [0, 1], we have
+
+                                         fCJessica (7m,h) (Ber(p)) ≤ ℓJessica (p),
+                                         fCSonetto (7m,h) (Ber(p)) ≤ ℓSonetto (p),
+                                        fCRegulus (7m,h) (Ber(p)) ≤ ℓRegulus (p),
+                                       fCRegulusT (7m,h) (Ber(p)) ≤ ℓRegulusT (p).
+
+Combining these bounds with the definitions of CJ , CS , CR , CRT and Theorem 2.2, we obtain, for all
+p, q ∈ [0, 1],
+                    fCJ (Ber(p)) ≤ ℓJessica (p),    gCJ (Ber(q)) ≤ ℓJessica (q),
+                              fCS (Ber(p)) ≤ ℓSonetto (p),             gCS (Ber(q)) ≤ ℓSonetto (q),
+                              fCR (Ber(p)) ≤ ℓRegulus (p),             gCR (Ber(q)) ≤ ℓRegulusT (q),
+                             fCRT (Ber(p)) ≤ ℓRegulusT (p), gCRT (Ber(q)) ≤ ℓRegulus (q).
+
+   We first instantiate the size transfer theorem on the singleton collection {CJ }. By Theorem 2.6,
+                                                                       (                                               )
+              ξ({CJ })
+ σ(R1 ) ≤ 2              ,      ξ({CJ }) =             max                     min           max{a + H2 (p), b + H2 (q)}
+                                             (p,q)∈∆{0,1} ×∆{0,1}        (a,b)∈{PCJ (p,q)}
+                                                   (                                                                       )
+                                         = max          max {fCJ (Ber(p)) + h(p)}, max {gCJ (Ber(q)) + h(q)}
+                                                        p∈[0,1]                               q∈[0,1]
+
+                                         ≤ max {ℓJessica (p) + h(p)}.
+                                             p∈[0,1]
+
+We claim that
+                                         max {ℓJessica (p) + h(p)} < 1.244844.                                             (∗)
+                                        p∈[0,1]
+
+In Section 3.3.2, we define a deterministic program Vsize , the size-inequality verifier, and Theorem 3.9
+proves that if Vsize accepts, then (∗) holds.
+
+Corollary 2.8 (Upper bound on σ(R1 )). σ(R1 ) < 21.244844 .
+
+Proof. This follows from Theorem 3.9 together with the fact that we ran Vsize and it accepts.
+
+                                                                  17
+   For the five circuits C0 , . . . , C4 defined in Section 2.2, a direct computation gives
+
+                             fC0 (Ber(p)) = 0,                    gC0 (Ber(q)) = 1 − q,
+                             fC1 (Ber(p)) = 1 − p,                gC1 (Ber(q)) = 0,
+                             fC2 (Ber(p)) = p,                    gC2 (Ber(q)) = q,
+                             fC3 (Ber(p)) = p(1 − p),             gC3 (Ber(q)) = 21 (1 − q 2 ),
+                             fC4 (Ber(p)) = 12 (1 − p2 ), gC4 (Ber(q)) = q(1 − q).
+
+For the three circuits CS , CR , CRT , the bounds displayed above give
+
+                        fCS (Ber(p)) ≤ ℓSonetto (p),                gCS (Ber(q)) ≤ ℓSonetto (q),
+                        fCR (Ber(p)) ≤ ℓRegulus (p),                gCR (Ber(q)) ≤ ℓRegulusT (q),
+                       fCRT (Ber(p)) ≤ ℓRegulusT (p), gCRT (Ber(q)) ≤ ℓRegulus (q).
+
+Let C8 := {C0 , C1 , C2 , C3 , C4 , CS , CR , CRT } be the collection of eight circuits used in the degree-
+transfer instantiation below.
+   Define eight points in the first quadrant of the Cartesian plane by
+
+                                     Q0 (p, q) := (0, 1 − q),
+                                     Q1 (p, q) := (1 − p, 0),
+                                     Q2 (p, q) := (p, q),
+                                     Q3 (p, q) := (p(1 − p), 12 (1 − q 2 )),
+                                     Q4 (p, q) := ( 12 (1 − p2 ), q(1 − q)),
+                                     Q5 (p, q) := (ℓSonetto (p), ℓSonetto (q)),
+                                     Q6 (p, q) := (ℓRegulus (p), ℓRegulusT (q)),
+                                     Q7 (p, q) := (ℓRegulusT (p), ℓRegulus (q)),
+
+and set
+                                 z(p, q) :=                   min                  max{a, b}.
+                                              (a,b)∈conv{Q0 (p,q),...,Q7 (p,q)}
+
+   We now instantiate the degree transfer theorem on the collection C8 . By Theorem 2.7,
+                                                                         (                                        )
+          δ(R1 ) ≤ 2ϕ(C8 )
+                             ,     ϕ(C8 ) =            max                             min                max{a, b}
+                                               (p,q)∈∆{0,1} ×∆{0,1}          (a,b)∈conv{PC (p,q):C∈C8 }
+
+                                          ≤       max         z(p, q).
+                                               (p,q)∈[0,1]2
+
+We claim that
+                                               max       z(p, q) < 0.319866.                                          (∗∗)
+                                          (p,q)∈[0,1]2
+
+In Section 3.3.3, we define a deterministic program Vdegree , the degree-inequality verifier, and
+Theorem 3.10 proves that if Vdegree accepts, then (∗∗) holds.
+
+Corollary 2.9 (Upper bound on δ(R1 )). δ(R1 ) < 20.319866 .
+
+Proof. This follows from Theorem 3.10 together with the fact that we ran Vdegree and it accepts.
+
+
+                                                               18
+Remark. Examining ℓJessica (p) + h(p) for p ∈ [0, 1], and z(p, q) for (p, q) ∈ [0, 1]2 , reveals concrete
+bottlenecks for future optimization. To improve the upper bound on σ(R1 ), one should design a
+circuit C minimizing fC (Ber(p0 ))+g
+                                  2
+                                     C (Ber(p0 ))
+                                                  near p0 ≈ 0.37. To improve the upper bound on δ(R1 ),
+                                             fC (Ber(p1 ))+gC (Ber(p1 ))
+one should design a circuit C satisfying                  2              < p1 for p1 as small as possible, with
+the relevant range here being p1 ≈ 0.319.
+
+   Finally, we instantiate the size transfer theorem on the collection {Cpull            push } and the degree
+                                                                                    ′ , C′
+
+transfer theorem on the collection {Cpull , C(0) , . . . , C(c−1) }, all defined in Section 2.2.
+                                       ′     ′              ′
+
+
+                                                (c)                (c)
+Theorem 2.10 (Upper bounds on σ(P1 ) and δ(P1 )). For every integer c ≥ 2,
+                                                                                     c−1
+                                  (c)                                    (c)
+                             σ(P1 ) ≤ c · ψ(log2 c),               δ(P1 ) ≤ c (c−1)+c log2 c ,
+
+where ψ(r) denotes the unique root x > 1 of the equation x = 1 + x1r .
+
+                                                                                                           (c)
+Proof sketch. Let x := ψ(log2 c), so that x = 1 + xlog1 2 c . For the upper bound on σ(P1 ), apply
+Theorem 2.6 to {Cpull
+                   ′ , C′
+                         push }. At (p, q), the two manifestation points are (0, qc log2 c) and (1, 0). We
+choose the point (a, b) = (log2 x, (1 − log2 x)qc log2 c) on their line segment. Using the nonnegativity
+of DKL (p∥p∗ ), where p∗ = (1/c, . . . , 1/c), and of DKL (q∥q ∗ ), where qi∗ = 1/(cx) for i < c and qc∗ =
+(x − 1)/x, together with the identity x − 1 = x− log2 c = c− log2 x , we obtain a + Hc (p) ≤ log2 c + log2 x
+and b + Hc+1 (q) ≤ log2 c + log2 x. Hence ξ({Cpull ′ , C′
+                                                         push }) ≤ log2 c + log2 x, and Theorem 2.6 gives
+    (c)
+σ(P1 ) ≤ 2log2 c+log2 x = c · ψ(log2 c).
+                                        (c)
+    For the upper bound on δ(P1 ), apply Theorem 2.7 to {Cpull        ′ , C′ , . . . , C′
+                                                                             (0)          (c−1) }. At (p, q), the
+c + 1 manifestation points are (0, qc log2 c) and (1 − pi , qi log2 c) for i = 0, . . . , c − 1. We choose the
+                                                                                    log2 c                   log2 c
+point of their convex hull obtained from the weights (c−1)+c        c−1
+                                                                       log2 c , (c−1)+c log2 c , . . . , (c−1)+c log2 c .
+Using       i (1 − pi ) = c − 1,  i qi = 1 − qc , and log2 c ≤ c − 1, its left coordinate equals
+          P                      P
+  (c−1) log2 c                                  log2 c                                                    (c−1) log2 c
+(c−1)+c log c and its right coordinate is (c−1)+c log c (c − 1)qc + (log2 c)(1 − qc ) ≤ (c−1)+c log c .
+                                                                                               
+           2                                                   2                                                       2
+                                                                                                      2  (c−1) log c
+                                        (c−1) log2 c                              (c)
+Hence ϕ({Cpull
+          ′ , C′ , . . . , C′
+               (0)          (c−1) }) ≤ (c−1)+c log2 c , and Theorem 2.7 gives δ(P 1   ) ≤ 2 (c−1)+c log2 c =
+
+     c−1
+c (c−1)+c log2 c . A full proof appears in Section B.2.
+
+
+3     Lyapunov Exponents and Machine Verification
+    Let M be a finite collection of nonnegative matrices, and let µ be a probability distribution on
+M. Consider a sequence of independent and identically distributed random matrices A1 , A2 , . . .
+drawn from M according to µ. The associated quenched Lyapunov exponent is defined as the
+almost-sure limit
+                                        1
+                            λ = lim       log2 ∥Am Am−1 · · · A1 ∥1 ,   a.s.
+                                 m→∞ m
+
+The existence of this limit is well established: it is a direct consequence of the Furstenberg–Kesten
+theorem [FK60], and it can also be framed within the broader contexts of Kingman’s subadditive
+ergodic theorem [Kin73] and Oseledets’ multiplicative ergodic theorem [Ose68]. Despite this
+theoretical guarantee of existence, however, computing the exponent λ exactly remains notoriously
+difficult.
+
+
+
+                                                          19
+3.1    Reducing Mean Log-Degree to a Lyapunov Exponent
+
+   Fix a parameter set X = (k, H, I, Z, α, β) in the sense of Section 2.1, and write I = (c, ι).
+   For x ∈ {0, 1}k and u, v ∈ [H], define
+                                  n                                                         o
+                    Nu,v (x) :=   r : Ucι(u) ,r           ̸= 0, clampH u + ∆cι(u) ,r = v             .
+                                                      x
+
+By the bit-permutation symmetry of the Sergeev decompositions, Nu,v (x) depends only on the
+Hamming weight ∥x∥1 . Hence, for each i = 0, . . . , k, we obtain a matrix Ai ∈ ZH×H   ≥0    by setting
+Ai [u, v] := Nu,v (x) for an arbitrary x ∈ {0, 1} with ∥x∥1 = i. We call A0 , . . . , Ak the transition
+                                                 k
+
+matrices of the circuit family generated by X.
+
+Lemma 3.1. The transition matrices A0 , . . . , Ak are well defined.
+
+   The proof of Theorem 3.1 appears in Section B.3.
+
+Proposition 3.2. For every m ≥ 1, every h ∈ [H], and every input-gate index x ∈ {0, 1}km , write
+x as m consecutive k-bit blocks x = (x(1) , . . . , x(m) ), and put it := ∥x(t) ∥1 . Then
+
+                                      LCX (km,h) (x) = eT
+                                                        h Ai1 · · · Aim            .
+                                                                               1
+
+Proof sketch. Recall that CX (km, h) is described by a computation tree with m layers. Intuitively,
+the proposition follows from the following loop invariant: the v-th entry of the row vector eT
+                                                                                             h Ai1 · · · Aim
+equals the number of nodes in layer m with state v for which the product of the rank-1 terms along
+the corresponding root-to-node path has a left vector that is nonzero at the input index x. Summing
+these entries over all final states gives the degree of the input gate x. A detailed proof appears in
+Section B.3.
+
+   For p ∈ [0, 1], let Bin(k, p) denote the binomial distribution on {0, . . . , k}. Averaging Theorem 3.2
+over X ∼ Ber(p)km gives
+                                             1                      h                        i
+                  fCX (km,h) (Ber(p)) =        EI1 ,...,Im ∼Bin(k,p) log2 eT
+                                                                           h AI1 · · · AIm     ,
+                                            km                                             1
+
+since the block Hamming weights I1 , . . . , Im are i.i.d. with law Bin(k, p). Consequently, the m → ∞
+limiting value of k · fCX (km,h) (Ber(p)) is at most the quenched Lyapunov exponent of the random
+matrix product drawn from A0 , . . . , Ak with law Bin(k, p).
+   For the four circuit families used in this paper, the transition matrices can be computed directly
+from the parameter sets; their dimensions and total numbers of nonzero entries are recorded in
+Table 6.
+
+                     Family       Matrix dimension H             Total nonzeros in A0 , . . . , A7
+                     Jessica                              612                                13452
+                     Sonetto                              360                                 6726
+                     Regulus                              360                                 7383
+                     RegulusT                             360                                 6772
+
+      Table 6: Dimensions and sparsity of the transition matrices of the four circuit families.
+
+
+
+                                                            20
+3.2       Toll-and-Potential Certificates and Lattice Envelopes
+
+Definition 3.3 (Toll-and-potential certificates). A toll-and-potential certificate for transition
+matrices A0 , . . . , Ak is an ordered pair (a, b) of arrays a = {ai,j }0≤i,j≤k and b = {bi,u }0≤i≤k, u∈[H] .
+The pair is called an ε-valid certificate if, for every i = 0, . . . , k and every u ∈ [H],
+                                    k H−1
+                                               Aj [u, v] 2−ai,j −bi,u +bj,v ≤ 1 − ε.
+                                    X X
+
+                                    j=0 v=0
+
+
+       For p ∈ [0, 1], write Bin(k, p)i := ki pi (1 − p)k−i , and define the binomial entropy
+                                                
+
+                                       k
+                         Ek (p) := −         Bin(k, p)i log2 Bin(k, p)i ,              0 log2 0 := 0.
+                                       X
+
+                                       i=0
+
+Definition 3.4 (Crude and refined evaluations). For an array a = {ai,j }0≤i,j≤k , define its crude
+evaluation at p by
+                                                k X
+                                                  k
+                                   Φa (p) :=                Bin(k, p)i Bin(k, p)j ai,j ,
+                                                X
+
+                                                i=0 j=0
+
+and its refined evaluation at p by Φ
+                                   e a (p) := 1 (Φa (p) − E (p)).
+                                              k            k
+       For 0 < η ≤ 0.5, define the η-clipped binomial entropy
+                                                    
+                                                              p
+                                                    Ek (η) · η ,
+                                                    
+                                                                            0 ≤ p ≤ η,
+                                  E k,η (p) :=        E (p),
+                                                      k                      η ≤ p ≤ 1 − η,
+                                                    
+                                                    E (η) · 1−p ,
+                                                    
+                                                                             1 − η ≤ p ≤ 1,
+                                                        k          η
+
+
+and define the η-clipped refined evaluation of a by Φ
+                                                    e a,η (p) := 1 (Φa (p) − E (p)).
+                                                                       e
+                                                                 k            k,η
+
+       Since p 7→ Ek (p) is concave on [0, 1] [SO81, §3, Theorem 4], and since Ek (0) = Ek (1) = 0 and
+Ek (1 − η) = Ek (η), concavity gives E k,η (p) ≤ Ek (p) for all p ∈ [0, 1]; consequently, Φ
+                                                                                          e a,η (p) ≥ Φ
+                                                                                                      e a (p).
+                                                                                                            e
+
+Theorem 3.5 (Certificate theorem). Suppose that, for some 0 < ε < 1, the pair (a, b) is an ε-valid
+toll-and-potential certificate for the transition matrices A0 , . . . , Ak of the circuit family generated by
+X. Set
+                                       Γ(b) := max bi,u − min bi,u .
+                                                            i,u              i,u
+
+Then, for every m ≥ 1, every h ∈ [H], and every p ∈ [0, 1],
+                                                                           Γ(b) + m log2 (1 − ε)
+                            fCX (km,h) (Ber(p)) ≤ Φ
+                                                  e a (p) +                                      .
+                                                                                   km
+
+In particular, if m ≥ ⌈Γ(b)/(− log2 (1 − ε))⌉, then fCX (km,h) (Ber(p)) ≤ Φ
+                                                                          e a (p) ≤ Φ
+                                                                                    e a,η (p) uniformly e
+over h and p, for every 0 < η ≤ 0.5.
+
+       The proof of Theorem 3.5 appears in Section B.3.
+   For a fixed p, a smaller value of Φa (p) yields a better upper bound. In fact, minimizing Φa (p)
+subject to (a, b) being a 0-valid certificate is a convex minimization problem8 . In the i.i.d. case, this
+   8
+     The objective is linear in a, and the logarithmic form of each validity constraint is a log-sum-exp inequality in
+affine functions of (a, b).
+
+
+                                                                  21
+convex program is the Lagrangian dual of the convex program of Gharavi and Anantharam [GA05]9 .
+We emphasize, however, that Theorem 3.5 is proved directly in Section B.3, and the correctness of
+[GA05] is not needed for the correctness of this paper.
+Theorem 3.6 (Lattice envelopes). Fix a parameter set X and a finite lattice 0 = p0 < p1 < · · · <
+pL = 1. Fix η and ε with 0 < η ≤ 0.5 and 0 < ε < 1. Suppose that, for each interior lattice point
+pr , r = 1, . . . , L − 1, we are given an ε-valid certificate (a(r) , b(r) ).
+       For notational convenience, introduce formal boundary symbols a(0) and a(L) by declaring
+
+                            Φ
+                            e (0) (p) = Φ
+                                        e (L) (p) := +∞                          for every p ∈ [0, 1].
+                            e               e
+                             a ,η        a ,η
+
+Define ℓX : [0, 1] → R≥0 by
+                                                        
+               ℓX (p) := min Φa(r) ,η (p), Φa(r+1) ,η (p) ,                 p ∈ [pr , pr+1 ),    r = 0, . . . , L − 1,
+                             e
+                             e             e
+                                           e
+
+
+where the last interval is understood to include its right endpoint pL = 1. Let
+
+                                                                          Γ(b(r) )
+                                                                   &                       '
+                                        mX :=           max                           .
+                                                       1≤r≤L−1         − log2 (1 − ε)
+
+Then, for every m ≥ mX , the inequality fCX (km,h) (Ber(p)) ≤ ℓX (p) holds uniformly over h and p.
+       Moreover, if at every interior lattice point pr , r = 1, . . . , L − 1, one has
+                                                                                                
+                                 Φ
+                                 e (r) (pr ) ≤ min Φ
+                                                   e (r−1) (pr ), Φ
+                                                                  e (r+1) (pr ) ,
+                                 e                 e              e
+                                   a ,η              a    ,η        a    ,η
+
+
+then ℓX is continuous on [0, 1]. We refer to these inequalities as the adjacent-certificate conditions.
+
+       The proof of Theorem 3.6 appears in Section B.3.
+    Finally, we define the four lattice envelopes ℓJessica , ℓSonetto , ℓRegulus , and ℓRegulusT by applying
+Theorem 3.6 with η = 0.01 and ε = 10−8 , using the family-specific lattices listed below and the
+certificates stored in the verification repository at https://osf.io/yz4fr/overview?view_only=
+2f77f3a2c69e44a2bb57738e01223149.
+                                        δ
+     In the descriptions below, a −→ b means that the lattice contains all of the points a, a + δ, a +
+2δ, . . . , b.
+       For Jessica, the lattice, consisting of LJessica = 290 subintervals, is given by
+                             0.1       0.01                0.001                0.0001
+                          0 −−→ 0.3 −−−→ 0.34 −−−−→ 0.36 −−−−→ 0.3708
+                             0.00003              0.0001                0.001             0.01   0.1
+                            −−−−−→ 0.372 −−−−→ 0.38 −−−−→ 0.4 −−−→ 0.5 −−→ 1.
+
+For Sonetto, the lattice, consisting of LSonetto = 370 subintervals, is given by
+                                                0.01          0.001               0.01
+                                            0 −−−→ 0.2 −−−−→ 0.5 −−−→ 1.
+
+For Regulus, the lattice, consisting of LRegulus = 208 subintervals, is given by
+                                                0.01          0.001                0.01
+                                        0 −−−→ 0.2 −−−−→ 0.32 −−−→ 1.
+   9
+                                                                                                   λ ≥ λ, and
+                                                                                         λ, proved b
+    For Markovian products of nonnegative matrices, [GA05] defined an auxiliary quantity b
+showed that λ can be expressed as the optimum of a concave maximization problem over a convex polytope.
+            b
+
+
+                                                                   22
+For RegulusT , the lattice, consisting of LRegulusT = 208 subintervals, is given by
+
+                                                0.01             0.001             0.01
+                                             0 −−−→ 0.32 −−−−→ 0.44 −−−→ 1.
+
+In practice, for each circuit family, we modeled a convex program in CVXPY [DB16, AVDB18],
+compiled the model once, and used MOSEK’s exponential-cone solver [DA22] to solve it at each
+interior lattice point. Since the certificates themselves are stored as .txt files and verified directly,
+however, the method used to find them is not relevant to the correctness of this paper.
+
+
+3.3     Machine Verification of Our Upper Bounds
+
+    This section explains how the two claims (∗) and (∗∗) used in Section 2.3.3 are verified. The
+verification uses three deterministic programs: the information inspector I, the size-inequality
+verifier Vsize , and the degree-inequality verifier Vdegree . We prove on paper that if these programs
+accept, then the two inequalities needed for Theorems 2.8 and 2.9 hold; we then run the programs
+and observe that they do accept.
+
+3.3.1    Lipschitz Continuity of the Lattice Envelopes
+
+   Let X be one of the four circuit families, and let {(a(r) , b(r) )}L−1
+                                                                      r=1 be the certificates defining ℓX .
+Since k = 7 for all four parameter sets, we have Φ a ,0.01 (p) = 7 (Φa(r) (p) − E 7,0.01 (p)), where
+                                                                 1
+                                                 e (r)             e
+
+                                                7 X
+                                                  7
+                                                    (r) 7  7 i+j
+                                                         ! !
+                             Φa(r) (p) =                                                (1 − p)14−i−j .
+                                                X
+                                                          ai,j                p
+                                                i=0 j=0
+                                                                   i     j
+
+Equivalently, in Bernstein form,
+
+                           14                                                               min(7,t)  7 7 
+                              (r) 14
+                                    !
+                                                                              (r)                     i t−i  (r)
+             Φa(r) (p) =                        p (1 − p)                    at :=
+                           X                                                                  X
+                                      t                     14−t
+                                 at                                ,                                    14 ai,t−i .
+                           t=0
+                                            t                                            i=max(0,t−7)    t
+
+
+Proposition 3.7 (Lipschitz continuity). For a fixed certificate, the function Φa ,0.01 is Lipschitz
+                                                                              e (r)                              e
+continuous on [0, 1], with Lipschitz constant
+
+                                               1                    E7 (0.01)
+                                                                                                      
+                                                          (r)   (r)
+                             Lip      (r)
+                                            :=   14 max at+1 − at +           .
+                                               7   0≤t<14             0.01
+Moreover, if the adjacent-certificate condition of Theorem 3.6 holds at every interior lattice point,
+then ℓX is Lipschitz continuous on [0, 1] with Lipschitz constant LipX := maxr Lip(r) .
+
+   The proof of Theorem 3.7 appears in Section B.3.
+   For each X ∈ {Jessica, Sonetto, Regulus, RegulusT }, the information inspector I performs the
+                                                                                                                  (r)   (r)   (r)
+                                                                                  (r)                           −ai,j −bi,u +bj,v
+following checks. First, for every r, i, and u, it computes Si,u :=                           j,v Aj [u, v] 2                       . Second,
+                                                                                           P
+                                                          (r)
+for every r and t, it computes the Bernstein coefficient at . Third, at every interior lattice point, it
+checks the adjacent-certificate condition of Theorem 3.6. If any check fails, I rejects immediately.
+
+
+
+
+                                                                   23
+   Running I yields the following global information across all four circuit families:
+                                                       (r)
+                                          max Si,u                0.9999999723
+                                           r,i,u
+                                                       (r)
+                                           max bi,u                    94.3836
+                                               r,i,u
+                                                       (r)
+                                               min bi,u              −89.7364
+                                               r,i,u
+                                         (r)           (r)
+                                max at+1 − at                         3.354664
+                                 r,t
+
+                                          E7 (0.01)                   0.371591
+                                All checks pass?                         True
+
+All numerical values above are truncated to the shown precision, that is, rounded toward zero;
+in particular, each true value is smaller than the displayed value increased by one unit in its last
+displayed digit.
+
+Proposition 3.8. The following two statements hold.
+  1. For each X, the inequality fCX (7m,h) (Ber(p)) ≤ ℓX (p) holds for all m ≥ 1011 , all h ∈ [H], and
+     all p ∈ [0, 1].
+  2. For each X, the function ℓX is 13-Lipschitz on [0, 1].
+
+   The proof of Theorem 3.8 appears in Section B.3.
+
+3.3.2   Machine Verification of Our Upper Bound on σ(R1 )
+
+   The size-inequality verifier Vsize is a deterministic program that establishes, if it accepts, that
+
+                                max {ℓJessica (p) + h(p)} ≤ 1.2448439.
+                               p∈[0,1]
+
+This is stronger than the size inequality (∗) of Section 2.3.3.
+    The program uses the Jessica lattice 0 = p0 < p1 < · · · < pL = 1. It partitions each lattice
+                                                                                                 j
+interval [pi , pi+1 ] into 1000 equal subintervals, with endpoints pi,j := pi + (pi+1 − pi ) · 1000 for
+0 ≤ j ≤ 1000. For each subinterval [a, b], it computes
+
+                     M[a,b] := ℓJessica (b) + 13(b − a) + h(min{max{1/2, a}, b}) .
+
+The program accepts if M[a,b] ≤ 1.2448439 for every such subinterval, and rejects otherwise.
+
+Theorem 3.9 (Soundness of the size-inequality verifier). If Vsize accepts, then the size inequality
+(∗) of Section 2.3.3 holds.
+
+   The proof of Theorem 3.9 appears in Section B.3.
+   We ran Vsize and observed that it accepts. Hence, by Theorem 3.9, the inequality (∗) holds.
+   Figure 1 shows the four lattice envelopes; it also plots ℓJessica (p) + h(p) − 1 against the target
+value 1.2448439 − 1 = 0.2448439.
+
+
+
+
+                                                             24
+Figure 1: The four lattice envelopes, together with ℓJessica (p) + h(p) − 1 plotted against the target
+value 0.2448439.
+
+
+
+
+                                                 25
+3.3.3    Machine Verification of Our Upper Bound on δ(R1 )
+
+   The degree-inequality verifier Vdegree is a deterministic program that establishes, if it accepts,
+that
+                           z(p, q) ≤ 0.3198659       for all p, q ∈ [0, 1].
+This is stronger than the degree inequality (∗∗) of Section 2.3.3.
+   The program defines a Boolean test on a rectangle R = [pmin , pmax ] × [qmin , qmax ] ⊆ [0, 1]2 . At
+recursion depth d, the test proceeds as follows.
+                                                                              
+   1. Sample the 101 × 101 grid (100−i)p100     min +ipmax (100−j)qmin +jqmax
+                                                             ,           100       , for 0 ≤ i, j ≤ 100.
+   2. At each grid point (pi , qj ), form the eight points Qid (pi , qj ) = (xid , yid ) of Section 2.3.3. Initialize
+      Zi,j := minid max{xid , yid }. For every pair 0 ≤ hi < lo ≤ 7, if (xhi − yhi )(xlo − ylo ) < 0 and
+                                                           −yhi
+      (xhi − xlo )(yhi − ylo ) < 0, set t∗ := (xhi −yxhihi)−(x lo −ylo )
+                                                                         and update Zi,j ← min{Zi,j , (1 − t∗ )xhi +
+      t∗ xlo }.                         n                            o
+                                              −pmin qmax −qmin
+   3. Return true if Zi,j + 13 max pmax200           ,      200          ≤ 0.3198659 at every grid point.
+   4. Otherwise, if d = 30, return false. If d ≤ 29, split R in half along the p-axis when d is even
+      and along the q-axis when d is odd, apply the same test to both subrectangles at depth d + 1,
+      and return true exactly when both recursive calls return true.
+The program Vdegree accepts if this test returns true on [0, 1]2 at recursion depth 0.
+
+Theorem 3.10 (Soundness of the degree-inequality verifier). If Vdegree accepts, then the degree
+inequality (∗∗) of Section 2.3.3 holds.
+
+   The proof of Theorem 3.10 appears in Section B.3.
+   We ran Vdegree and observed that it accepts. Hence, by Theorem 3.10, the inequality (∗∗) holds.
+    In this run, the verifier makes 2981 recursive calls, checks 30409181 grid points, and reaches
+maximum recursion depth d = 24. Among all grid points visited, the largest value of z found is
+z(0.3194995117, 0.3202343750) ≈ 0.3198453660. At this point, the best pair of coordinate points is
+(Q2 , Q5 ), corresponding to the two circuits C2 and CS .
+    On a single CPU core of a personal computer, using Python with NumPy, the size-inequality
+verifier Vsize of Section 3.3.2 finishes in about two seconds, while the degree-inequality verifier Vdegree
+of Section 3.3.3 finishes in about half a minute. Both runs are fully deterministic: rerunning them
+reproduces exactly the same statistics and the same reported maximum.
+
+
+
+
+                                                        26
+Figures 2 and 3 show the degree landscape z(p, q) on [0, 1]2 and on [0.25, 0.4]2 , respectively.
+
+
+
+
+                      Figure 2: The degree landscape z(p, q) on [0, 1]2 .
+
+
+
+
+                   Figure 3: The degree landscape z(p, q) on [0.25, 0.4]2 .
+
+
+
+
+                                              27
+   Figures 4 and 5 show which pair of coordinate points attains z(p, q) on [0, 1]2 and on [0.25, 0.4]2 ,
+respectively.
+
+
+
+
+                Figure 4: The pair of coordinate points attaining z(p, q) on [0, 1]2 .
+
+
+
+
+              Figure 5: The pair of coordinate points attaining z(p, q) on [0.25, 0.4]2 .
+
+
+
+                                                  28
+A      Preliminaries
+   This appendix records the circuit model, the Sergeev decompositions, and the computation-tree
+language used throughout the paper.
+
+A.1     Circuit Model and Cost Measures
+
+   In this paper, a depth-2 linear circuit is an ordered pair C = (A, B) of matrices A ∈ Matn×r and
+B ∈ Matr×m , and we say that C computes the n × m matrix M = AB. This definition corresponds
+to depth-2 linear circuits in the following sense:
+    • consider a circuit with three layers, an input layer, a middle layer, and an output layer, having
+      n, r, and m gates, respectively;
+    • each middle gate computes a fixed linear combination of the input gates;
+    • each output gate computes a fixed linear combination of the middle gates;
+    • the matrices A and B record the weights from the input gates to the middle gates and from
+      the middle gates to the output gates, respectively;
+    • since the input-output behavior of the circuit is exactly the linear transformation represented
+      by M = AB, saying that C computes M is justified.
+In this convention, inputs are row vectors: an input x is transformed as x 7→ xA 7→ xAB.
+    For a depth-2 linear circuit C = (A, B), its size is
+                                         S(C) := nnz(A) + nnz(B),
+and its maximum input-output degree is
+                                                                                      
+                        D(C) := max max nnz(A[x, ∗]), max nnz(B[∗, y]) .
+                                                x                   y
+
+These are the conventions of [JS13] and [AL25, Section 3.2].
+   Let R be a commutative semiring containing 0 and 1, and let Γ ⊆ R be a multiplicatively closed
+                                   (2)
+subset containing 0 and 1. Let CircR,Γ denote the set of all depth-2 linear circuits whose weights
+belong to Γ.
+    For a matrix M with entries in R, define
+               SR,Γ (M ) :=        min          S(C),        DR,Γ (M ) :=         min              D(C),
+                                          (2)                                                (2)
+                              C=(A,B)∈CircR,Γ                               C=(A,B)∈CircR,Γ
+                                  AB=M                                          AB=M
+
+with the convention that each minimum is +∞ if no such circuit exists. Also define
+               σR,Γ (M ) := lim SR,Γ (M ⊗n )1/n ,            δR,Γ (M ) := lim DR,Γ (M ⊗n )1/n ,
+                              n→∞                                           n→∞
+
+whenever these limits exist.
+    By [AL25, Theorem 3.1], if F and K are fields with K a field extension of F, then
+                              σF,F (M ) = σK,K (M ),          δF,F (M ) = δK,K (M ).
+
+   In this paper, we use the restrictive model R = Z and Γ = {0, ±1}. Since our constructions use
+only coefficients in {0, ±1}, the corresponding upper bounds on
+                                                                    (c)                (c)
+                        σF,F (R1 ),      δF,F (R1 ),         σF,F (P1 ),      δF,F (P1 )
+
+                                                        29
+also hold, with the same numerical constants, over an arbitrary field F: the elements 0, 1, and −1
+can be identified in F, although possibly 1F = (−1)F in characteristic 2.
+    We define an equivalence relation ∼
+                                      = corresponding to relabeling the middle gates. Formally, two
+circuits (A0 , B0 ) and (A1 , B1 ) with r middle gates each are equivalent, written
+
+                                                 (A0 , B0 ) ∼
+                                                            = (A1 , B1 ),
+
+if and only if there exists an r × r permutation matrix Π such that
+
+                                             A1 = A0 Π,             B1 = Π−1 B0 .
+
+It is straightforward to check that ∼                                   g (2) denote the set of
+                                     = is an equivalence relation. Let CircR,Γ
+                                                                    (2)
+equivalence classes of Circ
+                           (2)       ∼ From now on, we work in Circ
+                               under =.                           g     unless stated otherwise.
+                             R,Γ                                                            R,Γ
+   We define two binary operations on depth-2 linear circuits: concatenation sum and Kronecker
+product.
+
+Concatenation sum. If C = (A, B) and C ′ = (A′ , B ′ ), where A and A′ have the same number
+of rows and B and B ′ have the same number of columns, then their concatenation sum C + C ′ is
+defined as                                          " #!
+                                            h     i B
+                                 C + C ′ := A A′ ,         .
+                                                      B′
+If C computes M and C ′ computes M ′ , then C + C ′ computes M + M ′ , since
+                                                 " #
+                                   h            i B
+                                       A A    ′        = AB + A′ B ′ = M + M ′ .
+                                                 B′
+
+
+Kronecker product. If C = (A, B) and C ′ = (A′ , B ′ ), then their Kronecker product C ⊗ C ′ is
+defined as
+                            C ⊗ C ′ := (A ⊗ A′ , B ⊗ B ′ ).
+If C computes M and C ′ computes M ′ , then C ⊗ C ′ computes M ⊗ M ′ , since, by the mixed-product
+property of the Kronecker product,
+
+                           (A ⊗ A′ )(B ⊗ B ′ ) = (AB) ⊗ (A′ B ′ ) = M ⊗ M ′ .
+
+    Modulo the middle-gate equivalence relation ∼  =, the concatenation sum is associative and
+commutative. The Kronecker product on circuits is associative but not commutative. Finally, ⊗
+distributes over +:
+                           C ⊗ (C ′ + C ′′ ) ∼
+                                             = (C ⊗ C ′ ) + (C ⊗ C ′′ ),
+since                                           "     #!                                    "           #!
+                       h               i       B′          ∼
+                                                                h                      i     B ⊗ B′
+                  A⊗    A′    A′′          ,B⊗             =        A ⊗ A′   A ⊗ A′′       ,                 .
+                                               B ′′                                          B ⊗ B ′′
+
+   We define one unary operation on depth-2 linear circuits: transposition.
+
+
+
+
+                                                               30
+Transposition.     If C = (A, B), then its transposition C T is defined as
+
+                                            C T := (B T , AT ).
+
+If C computes M , then C T computes M T , since
+
+                                         B T AT = (AB)T = M T .
+
+   Each middle gate of a depth-2 linear circuit contributes one rank-1 term: if the middle layer has
+r gates, then
+                                                  r−1
+                                         AB =
+                                                  X
+                                                        A[∗, ℓ]B[ℓ, ∗].
+                                                  ℓ=0
+
+We call (A[∗, ℓ], B[ℓ, ∗]) the ℓ-th rank-1 term of the circuit. Depending on the context, we also regard
+it as a circuit with one middle gate, and we call A[∗, ℓ]B[ℓ, ∗] the corresponding rank-1 matrix. Thus
+the circuit (A, B) and the concatenation sum of its r rank-1 terms are two equivalent viewpoints on
+the same object:
+                                                  r−1
+                                       (A, B) =         (A[∗, ℓ], B[ℓ, ∗]).
+                                                  X
+
+                                                  ℓ=0
+
+We switch between these viewpoints when discussing Sergeev decompositions and computation trees.
+    From now on, we fix R and Γ and suppress them from the notation, writing S(M ), D(M ), σ(M ),
+and δ(M ) for SR,Γ (M ), DR,Γ (M ), σR,Γ (M ), and δR,Γ (M ), respectively. Furthermore, we restrict
+attention to the case in which R has no zero divisors and M admits at least one depth-2 linear
+                                                   (2)
+circuit over (R, Γ); that is, there exists C ∈ CircR,Γ computing M ⊗1 = M . The matrices considered
+                                 (c)
+in this paper, namely R1 and P1 , with R = Z and Γ = {0, ±1}, satisfy these assumptions.
+    Under these assumptions, both the size and the maximum input-output degree are submulti-
+plicative under Kronecker products of matrices.
+
+Lemma A.1. Under the assumptions above, for every matrix M and all integers a, b ≥ 1,
+
+           S(M ⊗(a+b) ) ≤ S(M ⊗a ) S(M ⊗b )         and         D(M ⊗(a+b) ) ≤ D(M ⊗a ) D(M ⊗b ).
+
+Proof. For size, let (Aa , Ba ) and (Ab , Bb ) be size-optimal circuits for M ⊗a and M ⊗b , respectively.
+Their Kronecker product (Aa ⊗ Ab , Ba ⊗ Bb ) computes M ⊗(a+b) , and since R has no zero divisors,
+nnz is multiplicative under Kronecker products. Therefore
+
+                      S(M ⊗(a+b) ) ≤ S((Aa ⊗ Ab , Ba ⊗ Bb ))
+                                   = nnz(Aa ⊗ Ab ) + nnz(Ba ⊗ Bb )
+                                   = nnz(Aa ) nnz(Ab ) + nnz(Ba ) nnz(Bb )
+                                   ≤ (nnz(Aa ) + nnz(Ba ))(nnz(Ab ) + nnz(Bb ))
+                                   = S((Aa , Ba )) S((Ab , Bb ))
+                                   = S(M ⊗a ) S(M ⊗b ).
+
+For the maximum input-output degree, let (Aa , Ba ) and (Ab , Bb ) be degree-optimal circuits for M ⊗a
+
+
+
+
+                                                        31
+and M ⊗b , respectively. Their Kronecker product (Aa ⊗ Ab , Ba ⊗ Bb ) computes M ⊗(a+b) . Therefore
+
+       D(M ⊗(a+b) ) ≤ D((Aa ⊗ Ab , Ba ⊗ Bb ))
+                                n                                                                         o
+                        = max max
+                                ′
+                                  nnz((Aa ⊗ Ab )[(i, i′ ), ∗]), max
+                                                                  ′
+                                                                    nnz((Ba ⊗ Bb )[∗, (j, j ′ )])
+                                    (i,i )                              (j,j )
+                                n                                                                             o
+                                                                  ′
+                        = max max
+                                ′
+                                  nnz(Aa [i, ∗]) nnz(Ab [i , ∗]), max
+                                                                    ′
+                                                                      nnz(Ba [∗, j]) nnz(Bb [∗, j ′ ])
+                                     i,i                                    j,j
+
+                        ≤ D((Aa , Ba )) D((Ab , Bb ))
+                        = D(M ⊗a ) D(M ⊗b ).
+
+This proves the claimed inequalities.
+
+   If M is the zero matrix, we set σ(M ) = δ(M ) = 0.
+   Now assume that M is nonzero. Then M ⊗n is nonzero for every n ≥ 1, so S(M ⊗n ) and D(M ⊗n )
+are positive integers. By Lemma A.1, the sequences
+
+                                       log2 S(M ⊗n )    and           log2 D(M ⊗n )
+
+are subadditive, since the logarithm turns the multiplicative inequalities of Lemma A.1 into additive
+ones. By Fekete’s lemma [Fek23],
+       1                         1                                          1                         1
+ lim       log2 S(M ⊗n ) = inf     log2 S(M ⊗n )        and           lim         log2 D(M ⊗n ) = inf   log2 D(M ⊗n ).
+n→∞ n                        n≥1 n                                    n→∞ n                       n≥1 n
+
+Equivalently, the limits
+
+                          σ(M ) := lim S(M ⊗n )1/n ,             δ(M ) := lim D(M ⊗n )1/n
+                                           n→∞                               n→∞
+
+exist. For every nonzero matrix M , we have σ(M ), δ(M ) ≥ 1.
+
+
+A.2        Sergeev Decompositions in Detail
+
+    Sergeev decompositions ([Ser22]; [AL25, Section 5.1]) are useful rank-1 decompositions of the
+disjointness matrices; in this paper, they serve as the building blocks of the computation trees
+defined in Section 2.1.
+    In this section, for convenience, we index the rows and columns of Rk = (R1 )⊗k by subsets of
+[k], so that
+                                      Rk (S, T ) = 1[S ∩ T = ∅].
+
+   Fix k ≥ 1 and an identifier c ∈ {0, . . . , 2k − 1}. Define the word
+
+                                                               R, the bit of c at weight 2k−1−i is 0,
+                                                           (
+              w(c) := (w0 , . . . , wk−1 , R),     wi :=
+                                                               C, the bit of c at weight 2k−1−i is 1.
+
+For instance, if k = 7 and c = 43 = (0101011)2 , then w(c) = RCRCRCCR. We refer to the final symbol
+R of w(c) as the sentinel.
+   We define Sk (c) as the depth-2 linear circuit obtained by applying the following algorithm to
+the word w(c).
+
+
+                                                           32
+  1. Initialize counters a = 0 and b = 0, and initialize an empty list of rank-1 terms.
+  2. Read the word w(c) from left to right. For each symbol:
+        • if the symbol is R, perform an (R, a, b) step, and then replace a by a + 1;
+        • if the symbol is C, perform a (C, a, b) step, and then replace b by b + 1.
+  3. The algorithm uses only the following two kinds of steps.
+        • An (R, a, b) step appends, for every subset S ⊆ [k] with |S| = a, the rank-1 term (U, V T )
+          to the list, where U is the indicator vector of the row S, and V T is the indicator row
+          vector of the set of columns
+
+                                                      {T ⊆ [k] \ S : |T | ≥ b}.
+
+        • A (C, a, b) step appends, for every subset T ⊆ [k] with |T | = b, the rank-1 term (U, V T )
+          to the list, where V T is the indicator row vector of the column T , and U is the indicator
+          vector of the set of rows
+                                             {S ⊆ [k] \ T : |S| ≥ a}.
+Finally, Sk (c) is defined as the concatenation sum of the 2k appended rank-1 terms.
+
+Fact A.2.1. Every Sk (c) is a depth-2 linear circuit computing Rk , with exactly 2k middle gates.
+
+Proof. Let k0 and k1 denote the numbers of non-sentinel R and C symbols in w(c), respectively, so
+that k0 + k1 = k. The R steps have first counter a = 0, . . . , k0 (including the sentinel), and the C
+steps have second counter b = 0, . . . , k1 − 1. Therefore the number of appended rank-1 terms is
+                        k0                 1 −1
+                                          kX                  k0                 k
+                                  !                   !                 !                     !
+                           k                      k              k                        k
+                                      +                   =                 +                     = 2k ,
+                        X                                     X                  X
+
+                        i=0
+                              i           j=0
+                                                  j           i=0
+                                                                    i           i=k0 +1
+                                                                                          i
+
+where the middle equality uses the symmetry                   k   k 
+                                                              j = k−j .
+   Fix a pair (S, T ) with S, T ⊆ [k], and write s := |S| and t := |T |.
+   If S ∩ T =
+            ̸ ∅, then no appended rank-1 term contributes to the entry (S, T ), since in every
+appended term each row set is disjoint from each column set. Hence the sum is 0 at this entry.
+    If S ∩ T = ∅, then a rank-1 term containing the entry (S, T ) can be appended only in one of the
+following two types of steps:
+  1. an (R, a, b) step with a = s and b ≤ t;
+  2. a (C, a, b) step with a ≤ s and b = t.
+Indeed, for an (R, a, b) step to append a rank-1 term containing (S, T ), the term must be the one
+indexed by the row S, so a = s and b ≤ t; for a (C, a, b) step, the term must be the one indexed by
+the column T , so a ≤ s and b = t.
+   Consider the monotone lattice path traced by the counters (a, b) while scanning w(c): an R
+step moves right and a C step moves up. The path starts at (0, 0) and ends at (k0 + 1, k1 ). Since
+S ∩ T = ∅, we have s + t ≤ k, so the endpoint lies outside the rectangle
+
+                                              {0, . . . , s} × {0, . . . , t}.
+
+Since both counters only increase, the path leaves this rectangle exactly once. If it leaves by an
+R step, then the step has type (R, s, b) with b ≤ t, and the term indexed by the row S contains
+
+
+                                                               33
+(S, T ). If it leaves by a C step, then the step has type (C, a, t) with a ≤ s, and the term indexed
+by the column T contains (S, T ). These are exactly the possible contributing steps, so exactly one
+appended rank-1 term contributes to (S, T ). Hence the sum is 1 at this entry.
+
+      In fact, the transpose of a Sergeev circuit is the Sergeev circuit of the complemented identifier.
+Set
+                                                   c := 2k − 1 − c.
+Since c flips every bit of c, one obtains w(c) from w(c) by swapping every non-sentinel R and C.
+
+Fact A.2.2. For every k ≥ 1 and every c ∈ {0, . . . , 2k − 1},
+
+                                                   Sk (c)T ∼
+                                                           = Sk (c).
+
+Proof. We compare the appended rank-1 terms. In the non-sentinel prefix, passing from c to c
+exchanges R steps and C steps. Consequently, if a non-sentinel step of Sk (c) has counters (a, b), then
+the corresponding step of Sk (c) has counters (b, a).
+      An (R, a, b) step of Sk (c) appends, for each |S| = a, the term
+                                                                       
+                                               1{S} , 1{T ⊆[k]\S: |T |≥b} .
+
+Its transpose is exactly the term appended by the corresponding (C, b, a) step of Sk (c). Similarly,
+every non-sentinel (C, a, b) step of Sk (c) transposes to the corresponding (R, b, a) step of Sk (c).
+   The only remaining step is the final sentinel R. If the non-sentinel prefix of w(c) contains k0
+symbols R and k1 symbols C, then this sentinel appends the terms
+                                                          
+                                         1{S} , 1{[k]\S}          (|S| = k0 ).
+
+In Sk (c), the sentinel counters are (k1 , k0 ), so its sentinel terms are
+                                                          
+                                      1{T } , 1{[k]\T }           (|T | = k1 ).
+
+Taking T = [k] \ S gives exactly the transposed sentinel terms. Hence the two concatenation sums
+agree after transposition, up to relabeling middle gates.
+
+
+A.3      From Computation Trees to Circuits
+
+   In this section, we define computation trees [AL25, Appendix B] and use them to justify the
+recursively defined circuit families of Section 2.1.
+   Fix a base matrix M . A computation tree for M ⊗N is a finite rooted tree with the following
+data:
+   1. each internal node x has attached to it a finite depth-2 linear circuit Cx computing M ⊗nx ,
+      where nx ≥ 1;
+   2. the children of x are in bijection with the rank-1 terms of Cx ;
+   3. if a child corresponds to the rank-1 term r, then the edge to that child has r attached to it
+      and has weight nx ;
+   4. every root-to-leaf path has total edge weight N .
+
+
+                                                          34
+The weighted depth of a node x, denoted depth(x), is the total edge weight on the path from the
+root to x. The remaining weighted depth at x is
+
+                                           Nx := N − depth(x).
+
+The leaves are therefore exactly the nodes with Nx = 0.
+   If r = (U, V T ) is a rank-1 term, write Mat(r) := U V T . Define a depth-2 linear circuit C(x) for
+each node x as follows. If x is a leaf, let
+
+                                              C(x) := ([1], [1]),
+
+the trivial circuit computing M ⊗0 . If x is an internal node, let
+
+                                      C(x) :=
+                                                       X
+                                                             rx,y ⊗ C(y),
+                                                 y∈Ch(x)
+
+where rx,y is the rank-1 term attached to the edge from x to y.
+    By the distributivity of ⊗ over +, the circuit C(x) is the concatenation sum, over all leaves below
+x, of the Kronecker products of the rank-1 terms attached to the edges along the corresponding
+paths.
+Lemma A.3.1. For every node x of a computation tree, the subtree circuit C(x) computes M ⊗Nx .
+In particular, if ρ is the root, then C(ρ) computes M ⊗N .
+
+Proof. We prove the claim by induction from the leaves upward. If x is a leaf, then Nx = 0, and
+C(x) = ([1], [1]) computes M ⊗0 .
+   Now let x be an internal node and assume the claim for its children. Since the children of x are
+indexed by the rank-1 terms of Cx , we may write
+
+                                              Cx =
+                                                        X
+                                                                 rx,y ,
+                                                       y∈Ch(x)
+
+and, because Cx computes M ⊗nx ,
+
+                                                 Mat(rx,y ) = M ⊗nx .
+                                          X
+
+                                      y∈Ch(x)
+
+For every child y, the edge from x to y has weight nx , so Ny = Nx − nx . By the inductive hypothesis,
+C(y) computes M ⊗(Nx −nx ) . Therefore C(x) computes
+                                                                                  
+                                          ⊗(Nx −nx )
+                         Mat(rx,y ) ⊗ M                =                 Mat(rx,y ) ⊗ M ⊗(Nx −nx )
+                 X                                            X
+
+               y∈Ch(x)                                       y∈Ch(x)
+
+                                                       = M ⊗nx ⊗ M ⊗(Nx −nx ) = M ⊗Nx .
+
+This completes the induction, and the statement for the root follows by taking x = ρ.
+
+   Finally, we connect computation trees with the time-homogeneous finite-state construction of
+Section 2.1.
+   Fix a parameter set X = (k, H, I, Z, α, β) with I = (c, ι), a multiple n of k, and an initial state
+h ∈ [H]. Define a computation tree for Rn with the following data:
+
+                                                        35
+    1. each node carries a state in [H], and the root has state h;
+    2. each node of weighted depth less than n is internal; if such a node has state u, then the
+       Sergeev decomposition Sk (cι(u) ) is attached to it;
+    3. the children of a node with state u are in bijection with the rank-1 terms (Ucι(u) ,r , VcTι(u) ,r ) of
+       this Sergeev decomposition; the edge corresponding to the r-th term has this term attached
+       to it and has weight k;
+    4. the child corresponding to the r-th term has state clampH (u + ∆cι(u) ,r ), and the nodes of
+       weighted depth n are leaves.
+Since every edge has weight k and n is a multiple of k, every root-to-leaf path has total edge weight
+n.
+
+Proof of Theorem 2.1. In this computation tree, every internal node has a Sergeev decomposition
+Sk (cι(u) ) attached to it, and by Fact A.2.1, every such Sk (cι(u) ) computes Rk . Since every edge has
+weight k and every root-to-leaf path has total weight n, Lemma A.3.1 shows that the root circuit
+computes Rn .
+    Unfolding the definition of the root circuit yields exactly the recurrence of Section 2.1:
+
+                                                CX (0, u) = ([1], [1]),
+
+and, for every multiple n of k with n ≥ k,
+                         k −1
+                        2X
+          CX (n, u) =         (Uci ,r , VcTi ,r ) ⊗ CX (n − k, clampH (u + ∆ci ,r )) ,   where i = ι(u).
+                        r=0
+
+Therefore CX (n, h) is the root circuit, and hence computes Rn .
+
+
+B      Deferred Proofs
+    This appendix contains the proofs omitted from the main text.
+
+
+B.1     Proofs of the Theorems in Section 1
+
+Proof of Theorem 1.2. If d = 0, then every pair is orthogonal and the answer is simply |U ||V |. We
+assume from now on that d ≥ 1.
+   Write δ := δ(R1 ). By the definition of δ(R1 ), choose an integer b ≥ 1 and a depth-2 linear circuit
+C = (A, B) computing Rb such that, with ∆ := D(C),
+
+                                                   ∆ ≤ (δ + ε/2)b .                                         (B.1)
+
+Moreover, we may choose C so that every middle gate receives at least one nonzero-weight edge
+from an input gate. Let G be the number of middle gates of C. For such a C, we must have ∆ ≥ 2
+and G ≤ 2b ∆10 . Therefore, once ε is fixed, the quantities b, ∆, and G are bounded by constants.
+  10
+     We may first choose C arbitrarily and then remove all middle gates of C receiving no nonzero-weight edge from
+any input gate. This does not change the matrix computed by the circuit and does not increase D(C). Now, since for
+any b ≥ 1 the matrix Rb contains a copy of R1 , and R1 cannot be computed by a depth-2 linear circuit with maximum
+input-output degree at most 1, we have ∆ ≥ 2. Since each input gate has, by definition, at most ∆ edges to middle
+gates, we have G ≤ 2b ∆.
+
+
+                                                           36
+       Next, pad every vector in U and V with trailing zeros until the dimension is
+
+                                                d′ = bm,               m = ⌈d/b⌉.
+
+This does not change orthogonality. The m-fold Kronecker product C ⊗m = (A⊗m , B ⊗m ) computes
+Rd′ . Its middle gates can be indexed by tuples g = (g1 , . . . , gm ) ∈ [G]m . For i, j ∈ {0, 1}b , define
+
+                   L(i) := {g ∈ [G] : A[i, g] ̸= 0},                    R(j) := {g ∈ [G] : B[g, j] ̸= 0},
+
+so that |L(i)|, |R(j)| ≤ ∆.
+                                                ′
+   Write a padded vector x ∈ {0, 1}d as x = (x(1) , . . . , x(m) ), where each x(t) ∈ {0, 1}b , and do the
+same for y. For g = (g1 , . . . , gm ), put
+                                          m                                             m
+                             ax (g) :=          A[x(t) , gt ],          by (g) :=             B[gt , y (t) ].
+                                          Y                                             Y
+
+                                          t=1                                           t=1
+
+Since C ⊗m computes Rd′ , we have Rd′ [x, y] =                     g∈[G]m ax (g)by (g). Hence the answer, namely the
+                                                                 P
+
+desired number of orthogonal pairs, is
+                                                                                          !                    
+
+                        ans =             Rd′ [x, y] =                           ax (g)                by (g) .       (B.2)
+                                X X                              X         X                      X
+
+                                x∈U y∈V                      g∈[G]m        x∈U                    y∈V
+
+
+If ax (g) ̸= 0, then g ∈ L(x(1) ) × · · · × L(x(m) ); if by (g) ̸= 0, then g ∈ R(y (1) ) × · · · × R(y (m) ).
+   The remaining issue is to evaluate (B.2) without storing the two values x∈U ax (g) and
+                                                                                                                    P
+
+  y∈V by (g) for every g ∈ [G] . Choose integers r, s ≥ 0 with r + s = m, and write
+P                             m
+
+
+                                      g = (p, q),               p ∈ [G]r ,       q ∈ [G]s .
+
+We call p the prefix of g and q the suffix of g. For all sufficiently large n, choose s so that
+
+                                Gs ≤ n,               and either ∆s ≥ log2 n or r = 0.                                  (B.3)
+
+One can show that there exists n0 , depending only on ε, such that whenever n ≥ n0 such an s
+exists11 . If n < n0 , we simply run the brute-force O(n2 d) algorithm; since the threshold depends
+only on ε, this is still O(n(δ + ε)d ), because n is then O(1) and δ + ε > 1.
+    Assume first that r > 0. For each x ∈ U , create an iterator over
+
+                                                    L(x(1) ) × · · · × L(x(r) )
+
+in lexicographic order; its current item stores the vector x, the current prefix p, and the coefficient
+                                                                 r
+                                                    αx (p) :=          A[x(t) , pt ].
+                                                                 Y
+
+                                                                 t=1
+
+Similarly, for each y ∈ V , create an iterator over
+
+                                                    R(y (1) ) × · · · × R(y (r) )
+  11
+    One concrete choice is the following. Let s0 = ⌈log2 log2 n⌉. For all sufficiently large n, depending only on G, we
+have Gs0 ≤ n; and since ∆ ≥ 2, we also have ∆s0 ≥ log2 n. If m ≥ s0 , take s = s0 and r = m − s; otherwise take
+s = m and r = 0. This establishes (B.3).
+
+
+                                                                 37
+in lexicographic order; its current item stores the vector y, the current prefix p, and the coefficient
+                                                          r
+                                           βy (p) :=            B[pt , y (t) ].
+                                                          Y
+
+                                                          t=1
+
+Each iterator uses O(d) space.
+    Maintain two min-heaps HL and HR , which store iterators and are keyed by the iterators’ current
+prefixes. Initially, put all iterators associated with vectors in U into HL and all iterators associated
+with vectors in V into HR . We then maintain a global counter sum, initially 0, and merge the two
+sorted streams of prefixes:
+   • if the two heap minima have different prefixes, pop the smaller one, advance its iterator, and
+     reinsert it unless it has ended;
+   • if the two minima have the same prefix p, pop all current iterator items with prefix p from
+     both heaps; after popping each item, advance and reinsert its iterator if possible;
+   • the items popped from HL are exactly those with x ∈ U and p ∈ L(x(1) ) × · · · × L(x(r) ), and
+     the items popped from HR are exactly those with y ∈ V and p ∈ R(y (1) ) × · · · × R(y (r) ).
+For this prefix p, create two temporary maps TL , TR : [G]s → Z, initially zero. For each item popped
+from HL and corresponding to x, enumerate all suffixes
+
+                                       q ∈ L(x(r+1) ) × · · · × L(x(m) )
+
+and perform the update
+                                                                   m
+                              TL [q] ← TL [q] + αx (p)                    A[x(t) , qt−r ].
+                                                                   Y
+
+                                                                 t=r+1
+
+For each item popped from HR and corresponding to y, enumerate all suffixes
+
+                                       q ∈ R(y (r+1) ) × · · · × R(y (m) )
+
+and perform the update
+                                                                   m
+                              TR [q] ← TR [q] + βy (p)                    B[qt−r , y (t) ].
+                                                                   Y
+
+                                                                 t=r+1
+
+Finally, traverse the nonzero entries of TL , add TL [q] TR [q] to the global counter sum, and clear
+both maps.
+   The case r = 0 is handled by the same procedure with the unique empty prefix, but without
+the two heaps: we simply build the two maps once, over all suffixes g ∈ [G]m , and take their dot
+product.
+     We now prove correctness. Fix a processed prefix p. After the two temporary maps have been
+filled, for every q ∈ [G]s we have
+
+                            TL [q] =         ax (p, q),           TR [q] =          by (p, q),
+                                       X                                      X
+
+                                       x∈U                                    y∈V
+
+where terms with zero coefficients contribute zero. Thus the amount added for the prefix p is
+                                                            !                      
+
+                                                   ax (p, q)             by (p, q) ,
+                                  X          X                       X
+
+                                 q∈[G]s      x∈U                    y∈V
+
+
+                                                           38
+which is precisely the contribution to (B.2) of all g = (p, q) with this prefix p. The heap merge
+processes exactly those prefixes that occur on both sides, and all other prefixes contribute zero to
+(B.2). Therefore the final value of sum equals the right-hand side of (B.2), which is the number of
+orthogonal pairs in U × V .
+    We implement the temporary maps as tries over the alphabet [G]. Each suffix q ∈ [G]s has
+length s ≤ m = O(d), so every lookup, insertion, traversal step, or deletion costs O(d) time. Since
+Gs ≤ n, the two tries contain at most O(n) keys at any moment. The two heaps contain at most n
+iterator items each, and for a fixed prefix, each iterator can be popped at most once from a given
+heap, so the temporary popped lists also have size O(n). As each stored item has length O(d), the
+total space usage is O(nd).
+      It remains to bound the running time. The suffix enumerations and trie operations cost
+
+                                      O(nd∆r ∆s ) = O(nd∆m ).
+
+The heap operations and lexicographic prefix comparisons cost
+
+                                            O(nd∆r log n).
+
+If ∆s ≥ log2 n, then this is O(nd∆m ); otherwise r = 0, and the heap part is absent from our
+implementation. Hence the total running time is O(nd∆m ).
+      Using (B.1) and bm ≤ d + b, we obtain
+
+                                d∆m ≤ d(δ + ε/2)bm ≤ d(δ + ε/2)d+b .                           (B.4)
+
+Let
+                                                 δ + ε/2
+                                          λ :=           < 1.
+                                                  δ+ε
+Since dλd ≤ 1/(1 − λ) = 2(δ + ε)/ε for every d ≥ 1, the bound (B.4) is at most K(δ + ε)d for a
+constant K depending only on ε. Therefore O(nd∆m ) = O(n(δ + ε)d ). This proves Theorem 1.2.
+
+Proof of Theorem 1.3. We first prove the Subset Query statement. Again the case d = 0 is trivial,
+so assume d ≥ 1. Following the identification of Section 1.3, we represent a stored binary string by
+the indicator vector x ∈ {0, 1}d of its 1-positions, and a query pattern in {0, ∗}d by the indicator
+vector y ∈ {0, 1}d of its 0-positions. Then x and y match if and only if ⟨x, y⟩ = 0. Thus, if X
+denotes the current multiset of inserted strings, and the rows and columns of Rd are indexed by
+{0, 1}d , the quantity requested by a query is
+
+                                       ans(y) :=           Rd [x, y].
+                                                     X
+
+                                                     x∈X
+
+    Choose b, C = (A, B), ∆, G, and m exactly as in the proof of Theorem 1.2, and pad stored
+strings by trailing 0’s and query patterns by trailing ∗’s. In the vector y of zero-positions, this
+padding again appends zeros. With the same notation ax (g) and by (g) as above, the circuit C ⊗m
+gives                                                      !
+                                 ans(y) =                   ax (g) by (g).                     (B.5)
+                                              X       X
+
+                                            g∈[G]m    x∈X
+
+   The data structure stores a trie-based map g 7→ zg for g ∈ [G]m , where
+
+                                            zg :=         ax (g),
+                                                     X
+
+                                                    x∈X
+
+
+                                                     39
+and missing keys have value 0. To insert x, enumerate
+
+                                         g ∈ L(x(1) ) × · · · × L(x(m) )
+
+and update zg ← zg + ax (g). To answer a query y, enumerate
+
+                                        g ∈ R(y (1) ) × · · · × R(y (m) )
+
+and return the sum       g zg by (g) over the enumerated elements g.
+                     P
+
+    The invariant defining zg holds initially and is preserved by each insertion. Therefore the query
+algorithm returns the right-hand side of (B.5), which is exactly the number of currently stored
+strings matching the query pattern. Each insertion or query enumerates at most ∆m elements of
+[G]m , and each trie operation costs O(m) = O(d) time. As in the final calculation of the proof of
+Theorem 1.2,
+                                    O(d∆m ) = O((δ(R1 ) + ε)d ).
+This proves the claimed online deterministic data structure for Subset Query.
+    We next prove the c-ary Partial Match statement. The case d = 0 is again trivial, so assume
+                                                (c)                                            (c)
+d ≥ 1. Fix an integer c ≥ 2 and write δc := δ(P1 ). As observed in Section 1.3, the matrix (P1 )⊗d
+is precisely the incidence matrix of d-dimensional c-ary Partial Match. It remains to apply the same
+Kronecker-product data-structure argument to this base matrix.
+                                                                                        (c)
+   Choose b ≥ 1 and a depth-2 linear circuit C = (A, B) computing (P1 )⊗b such that
+
+                                          ∆ := D(C) ≤ (δc + ε/2)b .
+
+After deleting the middle gates not reached from the input layer, let G be the number of remaining
+middle gates. Since A has cb rows, we have G ≤ cb ∆, and b, ∆, and G are constants depending only
+on c and ε.
+   Pad database strings by trailing 0’s and query patterns by trailing ∗’s until the dimension is
+d′ = bm; the additional coordinates always contribute a factor 1 to the partial-match incidence
+value. Define L(i), R(j), ax (g), and by (g) by the same formulas as before, now with
+
+                            i ∈ {0, . . . , c − 1}b   and     j ∈ {0, . . . , c − 1, ∗}b .
+
+The same trie-based data structure maintains
+
+                                                zg =         ax (g),
+                                                       X
+
+                                                       x∈X
+
+updates these values on insertion, and answers a query y by returning the sum g zg by (g) over the
+                                                                                              P
+
+enumerated elements g ∈ R(y (1) ) × · · · × R(y (m) ). Correctness follows from the same substitution
+                         (c)   ′
+into the expansion of (P1 )⊗d [x, y] through C ⊗m .
+   Each operation costs O(d∆m ), which is O((δc + ε)d ) by the same absorption calculation as above.
+                                   (c)
+Substituting the upper bound on δ(P1 ) from Theorem 2.10 gives the displayed c-ary Partial Match
+running time.
+   Finally, the numerical “in particular” statements of Theorem 1.3 follow by choosing ε > 0 small
+enough. This completes the proof of Theorem 1.3.
+
+
+
+                                                        40
+B.2      Proofs of the Theorems in Section 2
+
+Proof of Theorem 2.2. Throughout this proof, circuit identities are understood modulo the middle-
+gate equivalence relation ∼
+                          = of Section A.1.
+     Let X = (k, H, I, Z, α, β) and XT = (k, H, I T , Z, β, α). Fix h ∈ [H], and set h̄ := H − 1 − h and
+i := ι(h). Then ιT (h̄) = L − 1 − ι(H − 1 − h̄) = L − 1 − i. Since cT = (cL−1 , . . . , c0 ), it follows that
+I T (h̄) = Sk (ci ). By Fact A.2.2, Sk (ci )T ∼
+                                              = Sk (ci ). Relabel the middle      gates of Sk (ci ) according to
+this equivalence, so that Sk (ci ) = r (Uci ,r , VcTi ,r ) and Sk (ci ) = r (Vci ,r , UcTi ,r ).
+                                     P                                   P
+
+   If the raw tilt of (Uci ,r , VcTi ,r ) in X is θci ,r , then the raw tilt of the corresponding term (Vci ,r , UcTi ,r )
+in XT is
+                                                 wnnz1−α,α (Uci ,r )
+                                                                      !
+                                          logZ                          = −θci ,r .
+                                                 wnnz1−β,β (Vci ,r )
+                                       j                   k       j           k
+               / Z + 12 , we have −θci ,r + 12 = − θci ,r + 12 . Hence, if the state offset of (Uci ,r , VcTi ,r )
+Because θci ,r ∈
+is ∆ci ,r , then the state offset of (Vci ,r , UcTi ,r ) is −∆ci ,r .
+    Moreover, for every integer ∆ and every h ∈ [H], the definition of clampH gives
+                             H − 1 − clampH (h + ∆) = clampH (H − 1 − h − ∆).
+Indeed, if h + ∆ < 0, then both sides equal H − 1; if 0 ≤ h + ∆ ≤ H − 1, then both sides equal
+H − 1 − h − ∆; and if h + ∆ > H − 1, then both sides equal 0.
+   We therefore obtain the following key fact: for every h ∈ [H] and every r, if the rank-1 term
+indexed by r in I(h) sends the state h to hr := clampH (h + ∆ci ,r ), then the corresponding rank-1
+term indexed by r in I T (h̄) sends the state h̄ to H − 1 − hr .
+    Using this fact, we prove the first identity of Theorem 2.2 by induction on n/k. For n = 0, both
+sides equal the trivial circuit ([1], [1]). Now suppose n ≥ k. By the recurrence defining CX and the
+inductive hypothesis,
+                                         k                                   T
+                                         2X −1
+                           CX (n, h)T ∼
+                                      =      (Uc ,r , V T ) ⊗ CX (n − k, hr )
+                                                               i   ci ,r
+                                                  r=0
+                                                k −1
+                                               2X
+                                           ∼
+                                           =           (Vci ,r , UcTi ,r ) ⊗ CX (n − k, hr )T
+                                               r=0
+                                                k −1
+                                               2X
+                                           ∼
+                                           =           (Vci ,r , UcTi ,r ) ⊗ CXT (n − k, H − 1 − hr ).
+                                               r=0
+
+On the other hand, the recurrence defining CXT , together with the key fact above, gives
+                                                k −1
+                                               2X
+                           CXT (n, h̄) ∼
+                                       =             (Vci ,r , UcTi ,r ) ⊗ CXT (n − k, H − 1 − hr ).
+                                               r=0
+
+Therefore CX (n, h)T ∼
+                     = CXT (n, H − 1 − h) for every multiple n of k and every h ∈ [H].
+    Finally, the raw tilts appearing in XT are the negatives of those appearing in X, so none of them
+lies in Z + 12 . We may therefore apply the first identity to XT , obtaining
+
+                           CXT (n, h)T ∼
+                                       = C(XT )T (n, H − 1 − h) = CX (n, H − 1 − h).
+This proves the second identity of Theorem 2.2.
+
+                                                                   41
+   We next state and prove the hole-fixing lemma, which is the combinatorial engine behind
+Theorem 2.5. It is a quantitative variant of the hole-fixing lemma of [AL25].
+Lemma (Hole-fixing). Let X ⊆ [c0 ]n and Y ⊆ [c1 ]n be two frequency classes, and set N :=
+M ⊗n [X, Y ]. For 0 < η ≤ 0.1, suppose that a depth-2 linear circuit C = (A, B) computes an η-
+broken copy of N , in the sense that there exist subsets Xbad ⊆ X and Ybad ⊆ Y with |Xbad | ≤ η|X|
+and |Ybad | ≤ η|Y | such that C is defined on (X \Xbad )×(Y \Ybad ) and computes N [X \Xbad , Y \Ybad ].
+If C has input-gate degrees at most DL and output-gate degrees at most DR , then there is a depth-2
+linear circuit computing N with input-gate degrees at most KDL and output-gate degrees at most
+KDR , where
+
+              K := 2(|X||Y |)α(η) ,         α(η) := −1/ log2 (4η),        so that (4η)α(η) = 1/2.
+
+Proof. Let Sn denote the group of permutations of [n]. For π ∈ Sn , define (π · x)t := xπ−1 (t) for
+x ∈ [c0 ]n , and similarly (π · y)t := yπ−1 (t) for y ∈ [c1 ]n . One checks that these are group actions, that
+they preserve frequency classes, and that they act transitively on each frequency class. Moreover,
+M ⊗n [π · x, π · y] = M ⊗n [x, y].
+   Let C = (A, B) be the circuit assumed in the lemma. For π ∈ Sn , U ⊆ X, and V ⊆ Y , define
+another circuit C(π, U, V ) := (A′ , B ′ ) on (U \ π −1 Xbad ) × (V \ π −1 Ybad ), with the same number of
+middle gates as C, by setting A′ [x, r] := A[π · x, r] for every x ∈ U \ π −1 Xbad and every middle-gate
+index r, and B ′ [r, y] := B[r, π · y] for every y ∈ V \ π −1 Ybad and every middle-gate index r. Then
+C(π, U, V ) computes N [U \ π −1 Xbad , V \ π −1 Ybad ].
+    We prove by induction on a + b the following claim: for all integers a, b ≥ 0, whenever S ⊆ X and
+T ⊆ Y satisfy |S| ≤ a and |T | ≤ b, the submatrix N [S, T ] can be computed by a concatenation sum
+of at most F (a, b) := max{0, 2(ab)α(η) − 1} circuits of the form C(π, U, V ), after adding dummy
+gates with no wires so that each of these circuits is defined on S × T .
+    The case a = 0 or b = 0 is immediate, since an empty concatenation sum computes a zero matrix.
+Now assume a, b ≥ 1, and put a1 := ⌊4ηa⌋ and b1 := ⌊4ηb⌋; since 4η < 1, we have a1 < a and b1 < b.
+Choose π ∈ Sn uniformly at random. By transitivity, Eπ [|S ∩ π −1 Xbad |] = |S||Xbad |/|X| ≤ η|S|.
+Hence Markov’s inequality gives |S ∩ π −1 Xbad | ≤ 4η|S| with probability at least 3/4; since this
+quantity is an integer and |S| ≤ a, the bound implies |S ∩ π −1 Xbad | ≤ a1 . Similarly, with probability
+at least 3/4, we have |T ∩ π −1 Ybad | ≤ b1 . By the union bound, a uniformly random π satisfies both
+conditions with probability at least 1/2; in particular, some π ∈ Sn satisfies both.
+   Fix such a π, and put S0 := S \ π −1 Xbad , T0 := T \ π −1 Ybad , S1 := S \ S0 , and T1 := T \ T0 .
+Then |S1 | ≤ a1 and |T1 | ≤ b1 . The single circuit C(π, S0 , T0 ) computes N [S0 , T0 ]. Since
+
+                 N [S, T ] = N [S0 , T ] + N [S1 , T ] = (N [S0 , T0 ] + N [S0 , T1 ]) + N [S1 , T ]
+
+as block decompositions, we can construct a circuit computing N [S, T ] by applying the inductive
+hypothesis to N [S1 , T ] and N [S0 , T1 ], and then taking the concatenation sum of C(π, S0 , T0 ), the
+circuits obtained for N [S1 , T ], and the circuits obtained for N [S0 , T1 ]. It remains to check that
+
+                            1 + F (a1 , b) + F (a, b1 ) ≤ F (a, b) = 2(ab)α(η) − 1.
+
+If a1 , b1 ≥ 1, then, using a1 ≤ 4ηa, b1 ≤ 4ηb, and (4η)α(η) = 1/2,
+
+                          1 + F (a1 , b) + F (a, b1 ) = 2(a1 b)α(η) + 2(ab1 )α(η) − 1
+                                                      ≤ 4(4η)α(η) (ab)α(η) − 1
+                                                      = 2(ab)α(η) − 1.
+
+                                                         42
+If a1 = 0 and b1 ≥ 1, then 1 + F (a1 , b) + F (a, b1 ) = 2(ab1 )α(η) ≤ (ab)α(η) ≤ 2(ab)α(η) − 1, where the
+first inequality uses b1 ≤ 4ηb and (4η)α(η) = 1/2, and the second uses ab ≥ 1. The case a1 ≥ 1 and
+b1 = 0 is symmetric. If a1 = b1 = 0, then 1 + F (a1 , b) + F (a, b1 ) = 1 ≤ 2(ab)α(η) − 1, again since
+ab ≥ 1. Thus the desired inequality holds in all cases, and the induction proves the claim.
+   Finally, apply the claim with S = X, T = Y , a = |X|, and b = |Y |. This yields a concatenation
+sum of at most F (|X|, |Y |) ≤ K circuits of the form C(π, U, V ) computing N . Each summand has
+input-gate degrees at most DL and output-gate degrees at most DR , and adding dummy gates with
+no wires does not increase these degrees. Hence the concatenation sum has input-gate degrees at
+most KDL and output-gate degrees at most KDR . This proves the lemma.
+
+Proof of Theorem 2.5. We first prove the case |C| = 2. Let C = {Chi , Clo }, where Chi computes
+M ⊗khi and Clo computes M ⊗klo . In this case, PC (p, q) is the line segment between PChi (p, q) and
+PClo (p, q), so there exists κ ∈ [0, 1] with (a, b) = κPChi (p, q) + (1 − κ)PClo (p, q).
+   Recall that R = Z and Γ = {0, ±1}. Choose a padding circuit Cpad = (Apad , Bpad ) with
+middle gates indexed by triples (x, y, s), where 1 ≤ s ≤ |M [x, y]|, such that Apad [x, (x, y, s)] = 1,
+Bpad [(x, y, s), y] = sgn(M [x, y]), and all other entries are 0. This circuit computes M , and
+                                     n                                                           o
+                D(Cpad ) ≤ max max                     |M [x, y]|, max                   |M [x, y]| ≤         |M [x, y]|.
+                                                   X                           X                        X
+                                         x                                y
+                                                   y                             x                      x,y
+
+
+     For an integer n ≥ 0, set thi := ⌊κn/khi ⌋, tlo := ⌊(1 − κ)n/klo ⌋, and r := n − thi khi − tlo klo . Then
+thi khi ≤ κn, tlo klo ≤ (1 − κ)n, and 0 ≤ r < khi + klo . Let
+                                                      ⊗thi    ⊗tlo    ⊗r
+                                               Dn := Chi   ⊗ Clo   ⊗ Cpad .
+
+Then Dn computes (M ⊗khi )⊗thi ⊗ (M ⊗klo )⊗tlo ⊗ M ⊗r = M ⊗n .
+   Let X ∼ pn and Y ∼ q n . Since M has no identically zero row or column, M ⊗r has no identically
+zero row or column for any r ≥ 1. Hence, in any circuit computing a Kronecker power of M , every
+input gate and every output gate has degree at least 1, since otherwise the corresponding row or
+column of the computed matrix would be identically zero. All logarithms of degrees appearing
+below are therefore nonnegative.
+   Decompose X into the blocks used by the Kronecker product defining Dn . Then log2 LDn (X) is
+a sum of independent, uniformly bounded random variables:
+                               thi                               tlo                             r
+            log2 LDn (X) =           log2 LChi (Xihi ) +               log2 LClo (Xjlo ) +             log2 LCpad (Xℓpad ),
+                               X                                 X                               X
+
+                               i=1                               j=1                             ℓ=1
+
+where Xihi ∼ pkhi , Xjlo ∼ pklo , and Xℓpad ∼ p, all independently. An analogous formula holds for
+log2 RDn (Y ). By the definitions of fC and gC ,
+
+                    E[log2 LDn (X)] ≤ thi khi fChi (p) + tlo klo fClo (p) + O(1) ≤ an + O(1),
+
+and similarly E[log2 RDn (Y )] ≤ bn + O(1), where the O(1) constants depend only on M , Chi , and
+Clo .
+    By Hoeffding’s inequality, there exist constants ρ > 0 and n0 , depending only on M , Chi , and
+Clo , such that, for every n ≥ n0 ,
+                h                        2/3
+                                               i           1/3
+                                                                                     h                        2/3
+                                                                                                                    i        1/3
+            Pr n LDn (X) > 2an+n                   ≤ 2−ρn        ,            Prn RDn (Y ) > 2bn+n                      ≤ 2−ρn     .
+          X∼p                                                             Y ∼q
+
+
+                                                                     43
+       Recall that, for every p ∈ freq([c0 ]n ), we have PrX∼pn [X ∈ FCn (p)] ≥ (n + 1)−c0 12 .
+                                                                                                      2/3                 1/3
+   Thus, the fraction of input indices x ∈ FCn (p) with LDn (x) > 2an+n is at most (n+1)c0 2−ρn ,
+                                                                                    2/3
+and similarly the fraction of output indices y ∈ FCn (q) with RDn (y) > 2bn+n           is at most
+                 1/3
+(n + 1) 2
+        c 1   −ρn    . Let Xbad and Ybad denote these two exceptional sets, and put ηn := (n +
+                   1/3
+1)max{c0 ,c1 } 2−ρn . Choose n1 ≥ n0 such that ηn ≤ 0.1 for all n ≥ n1 .
+    For n ≥ n1 , restricting Dn to (FCn (p) \ Xbad ) × (FCn (q) \ Ybad ) gives an ηn -broken copy of
+                                                                     2/3
+M ⊗n [FCn (p), FCn (q)] whose input-gate degrees are at most 2an+n and whose output-gate degrees
+                   2/3
+are at most 2bn+n . Applying the hole-fixing lemma to this broken copy with η = ηn , we construct
+a circuit for M ⊗n [FCn (p), FCn (q)]. Since | FCn (p)|| FCn (q)| ≤ (c0 c1 )n , choose n2 ≥ n1 such that,
+for every n ≥ n2 ,
+                                                   1                            2
+                        α(ηn ) =                                         ≤         .
+                                 ρn − max{c0 , c1 } log2 (n + 1) − 2
+                                    1/3                                     ρn1/3
+Then, for every n ≥ n2 ,
+                                                                                2 log2 (c0 c1 ) 2/3         2/3
+                                                                           1+                  n
+                           K = 2(| FCn (p)|| FCn (q)|)α(ηn ) ≤ 2                      ρ               ≤ 2Cn       ,
+
+where C depends only on M , Chi , and Clo . Hence the constructed circuit has input-gate degrees
+                     2/3                                            2/3
+at most 2an+(1+C)n and output-gate degrees at most 2bn+(1+C)n . Given ε from the theorem,
+choose n3 ≥ n2 such that (1 + C)n2/3 ≤ εn for every n ≥ n3 . This proves the required upper bounds
+in the case |C| = 2.
+    Now consider a general finite collection C. Fix (p, q) and (a, b) ∈ PC (p, q). Move from (a, b)
+in the direction (−1, −1) until reaching the boundary of PC (p, q), and call the endpoint (a′ , b′ );
+then a′ ≤ a and b′ ≤ b. Since PC (p, q) is the convex hull of finitely many points, (a′ , b′ ) lies on a
+boundary line segment whose endpoints are PCI (p, q) and PCII (p, q) for some CI , CII ∈ C, where we
+allow CI = CII . Let n4 be the maximum of the two-circuit thresholds n3 over the finitely many
+choices of CI , CII ∈ C. Applying the two-circuit case to CI and CII gives, for every n ≥ n4 , a circuit
+                                     ′                                         ′
+with input-gate degrees at most 2(a +ε)n and output-gate degrees at most 2(b +ε)n ; these are at most
+2(a+ε)n and 2(b+ε)n , respectively. This proves Theorem 2.5.
+
+Proof of Theorem 2.6. Fix ε > 0, and let n4 be the threshold of Theorem 2.5 for M , C, and slack
+ε/2.
+       In this proof, we use the fact that | FCn (p)| ≤ 2Hc0 (p)n and | FCn (q)| ≤ 2Hc1 (q)n13 .
+  12
+       Let Z = (Z0 , . . . , Zc0 −1 ) be the count vector of X ∼ pn . For any possible count vector m,
+                                                                                     0 −1
+                                                                                    cY
+                                                                       n
+                                          Pr[Z = m] =                                        pm i
+                                                                                              i .
+                                                             m0 , . . . , mc0 −1
+                                                                                      i=0
+
+We claim that Pr[Z = m] ≤ Pr[Z = np] for every m =     ̸ np. If Pr[Z = m] = 0, this is trivial. Otherwise, mi = 0
+whenever pi = 0. Since m ̸= np, choose indices i, j with mi > npi and mj < npj ; then pi , pj > 0. Moving one unit
+from coordinate i to coordinate j multiplies the probability by
+                                                        mi     pj
+                                                             ·    ≥ 1,
+                                                       mj + 1 pi
+because mi > npi and mj + 1 ≤ npj . At each such step P   the probability does not decrease, and the process reaches np
+after finitely many steps, because each step decreases        i
+                                                                |mi − npi | by 2. Hence Pr[Z = m] ≤ Pr[Z = np]. Since
+there are at most (n + 1)c0 possible count vectors, we conclude Pr[X ∈ FCn (p)] ≥ (n + 1)−c0Q   .
+  13
+     Let p ∈ freq([c]n ). Under the product distribution pn , every x ∈ FCn (p) has probability i:p >0 pnp
+                                                                                                        i
+                                                                                                           i
+                                                                                                             = 2−Hc (p)n .
+                                                                                                                      i
+Since the total probability of FCn (p) is at most 1, we get | FCn (p)| 2−Hc (p)n ≤ 1, and hence | FCn (p)| ≤ 2Hc (p)n .
+Applying this with c = c0 and c = c1 proves the two stated bounds.
+
+
+                                                                 44
+    For every n ≥ n4 , we enumerate all pairs (p, q) ∈ freq([c0 ]n ) × freq([c1 ]n ), choose for each (p, q)
+a point (ap,q , bp,q ) ∈ PC (p, q) minimizing max{a + Hc0 (p), b + Hc1 (q)}, and apply Theorem 2.5 with
+slack ε/2 to obtain a circuit Ep,q computing M ⊗n [FCn (p), FCn (q)] such that
+
+                       LEp,q (x) ≤ 2(ap,q +ε/2)n           and        REp,q (y) ≤ 2(bp,q +ε/2)n
+
+for every x ∈ FCn (p) and every y ∈ FCn (q). Then
+
+                         S(Ep,q ) ≤ | FCn (p)| 2(ap,q +ε/2)n + | FCn (q)| 2(bp,q +ε/2)n
+                                  ≤ 2(ap,q +Hc0 (p)+ε/2)n + 2(bp,q +Hc1 (q)+ε/2)n
+                                  ≤ 2(ξ(C)+ε/2)n+1 .
+
+    Finally, take the concatenation sum of all the circuits Ep,q , after adding dummy gates with
+no wires so that each of them is defined on [c0 ]n × [c1 ]n . This gives a circuit computing M ⊗n .
+Since the number of possible pairs (p, q) is at most (n + 1)c0 +c1 , this circuit has size at most
+(n + 1)c0 +c1 2(ξ(C)+ε/2)n+1 .
+     Choose n5 ≥ n4 such that this quantity is at most 2(ξ(C)+ε)n for all n ≥ n5 . Thus S(M ⊗n ) ≤
+2 (ξ(C)+ε)n for all n ≥ n5 , whence σ(M ) ≤ 2ξ(C)+ε . Letting ε ↓ 0 proves σ(M ) ≤ 2ξ(C) .
+
+Proof of Theorem 2.7. Fix ε > 0, and let n4 be the threshold of Theorem 2.5 for M , C, and slack
+ε/2.
+    For every n ≥ n4 , we enumerate all pairs (p, q) ∈ freq([c0 ]n ) × freq([c1 ]n ), choose for each (p, q) a
+point (ap,q , bp,q ) ∈ PC (p, q) minimizing max{a, b}, and apply Theorem 2.5 with slack ε/2 to obtain
+a circuit Ep,q computing M ⊗n [FCn (p), FCn (q)] such that
+
+                       LEp,q (x) ≤ 2(ap,q +ε/2)n           and        REp,q (y) ≤ 2(bp,q +ε/2)n
+
+for every x ∈ FCn (p) and every y ∈ FCn (q). Then
+                                           n                                o
+                       D(Ep,q ) ≤ max 2(ap,q +ε/2)n , 2(bp,q +ε/2)n ≤ 2(ϕ(C)+ε/2)n .
+
+Finally, take the concatenation sum of all the circuits Ep,q , after adding dummy gates with no wires
+so that each of them is defined on [c0 ]n × [c1 ]n . This gives a circuit computing M ⊗n . For a fixed
+input gate x ∈ [c0 ]n , only the circuits Efreq(x),q can contribute wires to x, so the degree of x is at
+most (n + 1)c1 2(ϕ(C)+ε/2)n . Similarly, every output-gate degree is at most (n + 1)c0 2(ϕ(C)+ε/2)n .
+    Choose n5 ≥ n4 such that both quantities are at most 2(ϕ(C)+ε)n for all n ≥ n5 . Thus D(M ⊗n ) ≤
+2(ϕ(C)+ε)n for all n ≥ n5 , whence δ(M ) ≤ 2ϕ(C)+ε . Letting ε ↓ 0 proves δ(M ) ≤ 2ϕ(C) .
+
+Proof of Theorem 2.10. The circuits Cpull
+                                        ′ , C′
+                                              push , C(0) , . . . , C(c−1) and their normalized log-degree
+                                                      ′              ′
+
+density functions are given in Section 2.2. Let x := ψ(log2 c), so that x = 1 + xlog1 2 c and 1 < x < 2.
+                                         (c)
+    For the upper bound on σ(P1 ), apply Theorem 2.6 to {Cpull          ′ , C′
+                                                                              push }. At (p, q), the two
+manifestation points are (0, qc log2 c) and (1, 0). Since 0 < log2 x < 1, the point (a, b) := (log2 x, (1 −
+log2 x)qc log2 c) lies on the line segment between these two manifestations.
+    We first prove a + Hc (p) ≤ log2 c + log2 x directly. Let p∗ be the uniform probability vector,
+p∗i = 1/c for 0 ≤ i < c. By the nonnegativity of the KL divergence,
+                                               c−1
+                                     ∗                         pi
+                           DKL (p∥p ) =              pi log2       = −Hc (p) + log2 c ≥ 0.
+                                               X
+
+                                               i=0
+                                                               p∗i
+
+                                                               45
+Hence Hc (p) ≤ log2 c, and since a = log2 x, we get a + Hc (p) ≤ log2 c + log2 x.
+    We next prove b + Hc+1 (q) ≤ log2 c + log2 x directly. Let q ∗ be the probability vector proportional
+to (1, . . . , 1, c(x − 1)), so that qi∗ = 1/(cx) for 0 ≤ i < c and qc∗ = (x − 1)/x. By the nonnegativity
+of the KL divergence,
+                                        c
+                                                         qi
+                     DKL (q∥q ∗ ) =           qi log2        = −Hc+1 (q) − qc log2 (c(x − 1)) + log2 (cx) ≥ 0.
+                                        X
+
+                                        i=0
+                                                         qi∗
+
+Since x − 1 = x− log2 c = c− log2 x , we have c(x − 1) = c1−log2 x . Hence
+
+                                            b + Hc+1 (q) = Hc+1 (q) + (1 − log2 x)qc log2 c
+                                                             = Hc+1 (q) + qc log2 (c1−log2 x )
+                                                             = Hc+1 (q) + qc log2 (c(x − 1))
+                                                             ≤ log2 (cx)
+                                                             = log2 c + log2 x.
+                                                                                              (c)
+Hence ξ({Cpull push }) ≤ log2 c+log2 x, and Theorem 2.6 yields σ(P1 ) ≤ 2
+          ′ , C′                                                         log2 c+log2 x = c·ψ(log c).
+                                                                                                2
+                                                   (c)
+   For the upper bound on δ(P1 ), apply Theorem 2.7 to {Cpull        ′ , C′ , . . . , C′
+                                                                           (0)          (c−1) }. At (p, q), the
+c + 1 manifestation points are (0, qc log2 c) and (1 − pi , qi log2 c) for i = 0, . . . , c − 1. Consider the
+                                                                            log2 c
+convex combination with weight (c−1)+c c−1
+                                          log2 c on Cpull and weight (c−1)+c log2 c on each C(i) . Its left
+                                                      ′                                             ′
+
+coordinate is
+                                             c−1
+                               log2 c                          (c − 1) log2 c
+                                                 (1 − pi ) =
+                                             X
+                                                                                 ,
+                         (c − 1) + c log2 c i=0              (c − 1) + c log2 c
+using        i (1 − pi ) = c − 1. Its right coordinate is
+          P
+
+                                              c−1
+         (c − 1)qc log2 c      (log2 c)2                     log2 c
+                          +                       qi =                    (c − 1)qc + (log2 c)(1 − qc ) ,
+                                              X                                                        
+        (c − 1) + c log2 c (c − 1) + c log2 c i=0      (c − 1) + c log2 c
+
+using     i qi = 1 − qc . Since log2 c ≤ c − 1 for every integer c ≥ 2, the right coordinate is at most
+          P
+ (c−1) log2 c
+(c−1)+c log2 c .
+                                                                      (c−1) log2 c                                (c)
+      Hence ϕ({Cpull
+                ′ , C′ , . . . , C′
+                     (0)          (c−1) })                   ≤       (c−1)+c log2 c ,   and Theorem 2.7 yields δ(P1 )   ≤
+     (c−1) log2 c             c−1
+2   (c−1)+c log2 c   = c (c−1)+c log2 c .
+                                                                 (c)
+      Together with the upper bound on σ(P1 ), this proves the theorem.
+
+
+B.3         Proofs of the Theorems in Section 3
+
+Proof of Theorem 3.1. It suffices to show that, for fixed u, v ∈ [H], the quantity
+                                               n                                                      o
+                              Nu,v (x) =         r : Ucι(u) ,r           ̸= 0, clampH u + ∆cι(u) ,r = v
+                                                                     x
+
+depends only on the Hamming weight ∥x∥1 , and not on x itself.
+   Fix u and v, and write c := cι(u) . Let x, y ∈ {0, 1}k have the same Hamming weight. Identifying
+x and y with subsets of [k], choose a permutation π ∈ Sk with πx = y.
+      Define a bijection τπ : {0, . . . , 2k − 1} → {0, . . . , 2k − 1} on the rank-1 terms of Sk (c) as follows:
+
+                                                                           46
+   1. if the rank-1 term indexed by r is appended in an (R, a, b) step and is indexed by a subset
+      S ⊆ [k] with |S| = a, then τπ (r) is the term appended in the same (R, a, b) step and indexed
+      by πS;
+   2. if the rank-1 term indexed by r is appended in a (C, a, b) step and is indexed by a subset
+      T ⊆ [k] with |T | = b, then τπ (r) is the term appended in the same (C, a, b) step and indexed
+      by πT .
+Since |πS| = |S| and |πT | = |T |, the map τπ is well defined, and its inverse is τπ−1 .
+    By the definition of the appended rank-1 terms in the Sergeev decomposition, this bijection
+satisfies
+                                                                                     
+             Uc,τπ (r)            = (Uc,r )z                and             Vc,τπ (r)            = (Vc,r )z      for every z ∈ {0, 1}k .
+                             πz                                                             πz
+
+Indeed, in an (R, a, b) step, the term indexed by S has U equal to the indicator vector of the row S,
+and V equal to the indicator vector of the columns T ⊆ [k] \ S with |T | ≥ b. Replacing S by πS
+gives the term indexed by πS; moreover, πz = πS if and only if z = S, while πz ⊆ [k] \ πS and
+|πz| ≥ b if and only if z ⊆ [k] \ S and |z| ≥ b. The (C, a, b) case is the same argument with the roles
+of rows and columns interchanged.
+    In particular, both vectors of τπ (r) have the same numbers of nonzero entries at each Hamming
+weight as those of r, so the raw tilts coincide: θc,τπ (r) = θc,r . Using y = πx and the definition of the
+state offset, we conclude that, for every r = 0, . . . , 2k − 1,
+                                                   
+                                        Uc,τπ (r)           ̸= 0 ⇐⇒ (Uc,r )x ̸= 0,                     ∆c,τπ (r) = ∆c,r .
+                                                        y
+
+It follows that clampH (u + ∆c,τπ (r) ) = v if and only if clampH (u + ∆c,r ) = v.
+   Thus r 7→ τπ (r) is a bijection between the set counted by Nu,v (x) and the set counted by Nu,v (y),
+so Nu,v (x) = Nu,v (y) whenever ∥x∥1 = ∥y∥1 .
+    Hence Nu,v (x) depends only on ∥x∥1 , and consequently Ai [u, v] is independent of the choice
+of x with ∥x∥1 = i. Since all entries are nonnegative integers, each Ai is a well-defined matrix in
+  ≥0 .
+ZH×H
+
+Proof of Theorem 3.2. Expand CX (km, h) using the computation tree associated with the recursive
+definition of CX . Each root-to-leaf path has m layers, and at layer t it chooses one rank-1 term
+(Ucι(ut−1 ) ,rt , VcTι(u ) ,rt ) from the Sergeev decomposition assigned to the current state ut−1 , where
+                    t−1
+                                                                                                                 
+                                           u0 = h,                 ut = clampH ut−1 + ∆cι(ut−1 ) ,rt .
+
+By the distributivity of ⊗ over the concatenation sum, this path contributes one rank-1 term to the
+concatenation-sum expansion of CX (km, h), whose left vector is
+
+                                               Ucι(u0 ) ,r1 ⊗ Ucι(u1 ) ,r2 ⊗ · · · ⊗ Ucι(um−1 ) ,rm .
+
+Therefore, for x = (x(1) , . . . , x(m) ) ∈ {0, 1}km , the middle gate corresponding to this path is counted
+by LCX (km,h) (x) if and only if
+                                                              
+                                            Ucι(ut−1 ) ,rt                ̸= 0     for every t = 1, . . . , m.
+                                                                   x(t)
+
+Thus LCX (km,h) (x) is exactly the number of root-to-leaf paths whose rank-1 terms have left vectors
+nonzero on the respective blocks x(1) , . . . , x(m) ; we call such paths valid.
+
+                                                                                 47
+                                                                                                  
+   Now fix a final state v ∈ [H]. We claim that eT
+                                                 h Ai1 · · · Aim                                           counts the valid paths ending in
+                                                                                                       v
+state v, where it = ∥x(t) ∥1 . Indeed, expanding the matrix product gives
+                                          
+                                                   =                  Ai1 [h, u1 ] Ai2 [u1 , u2 ] · · · Aim [um−1 , v].
+                                                          X
+                       eT
+                        h Ai1 · · · Aim
+                                               v
+                                                       u1 ,...,um−1
+
+By definition, Ai [u, w] is the number of rank-1 choices r at state u that both send the state to w and
+have left vector nonzero at any fixed k-bit input of Hamming weight i. Since it = ∥x(t) ∥1 , the entry
+Ait [ut−1 , ut ] counts exactly the admissible choices of rt for the transition ut−1 → ut . Thus, along a
+fixed state sequence h = u0 , u1 , . . . , um = v, the product counts the admissible choices of r1 , . . . , rm ,
+and summing over the intermediate states yields all valid paths ending at v. This proves the claim.
+   Finally, the entries of eT
+                            h Ai1 · · · Aim are nonnegative, so its ℓ1 -norm is the sum of its entries:
+                                                                           X                              
+                                       eT
+                                        h Ai1 · · · Aim               =           eT
+                                                                                   h Ai1 · · · Aim                 .
+                                                                 1                                             v
+                                                                          v∈[H]
+
+The right-hand side counts all valid root-to-leaf paths, after summing over the final state. As shown
+above, this is exactly the number of middle gates adjacent to the input gate x in CX (km, h), namely
+LCX (km,h) (x). Therefore LCX (km,h) (x) = eT
+                                            h Ai1 · · · Aim .                        1
+
+Proof of Theorem 3.5. Fix m ≥ 1, h ∈ [H], and p ∈ [0, 1]. Put Pi := Bin(k, p)i , and let I1 , . . . , Im
+be independent random variables with Pr[It = i] = Pi .
+   For a sequence s = (i1 , . . . , im ), set
+
+                                                       D(s) := eT
+                                                                h Ai1 · · · Aim                .
+                                                                                           1
+
+By Theorem 3.2, for every input-gate index whose consecutive k-bit blocks have Hamming weights
+i1 , . . . , im , the quantity D(s) is the degree of that input gate in CX (km, h).
+   Temporarily fix an auxiliary initial index i0 ∈ {0, . . . , k}, to be chosen later. Since (a, b) is an
+ε-valid toll-and-potential certificate, for every i ∈ {0, . . . , k} and every u ∈ [H],
+                                           k H−1
+                                                         Aj [u, v] 2−ai,j −bi,u +bj,v ≤ 1 − ε.                                        (B.6)
+                                           X X
+
+                                           j=0 v=0
+
+Iterating (B.6) for m steps, starting from (i0 , h), gives
+                                      m                                Pm
+                                            Ait [ut−1 , ut ] 2−               a
+                                                                                          2−bi0 ,h +bim ,um ≤ (1 − ε)m ,
+                  X          X        Y
+                                                                           t=1 it−1 ,it
+
+                i1 ,...,im u1 ,...,um t=1
+
+where u0 := h. By the definition of Γ(b), we have 2−bi0 ,h +bim ,um ≥ 2−Γ(b) . Using this lower bound,
+then summing over the state sequences and applying the definition of D(s), we obtain
+                                                   Pm
+                                           2−          a
+                                                                     D(i1 , . . . , im ) ≤ 2Γ(b) (1 − ε)m .                           (B.7)
+                                X
+                                                    t=1 it−1 ,it
+
+                              i1 ,...,im
+
+
+   Let q(s) := mt=1 Pit , and let Ωp := {s : q(s) > 0}. Since all summands in (B.7) are nonnegative,
+                 Q
+
+the same inequality holds after restricting the sum to Ωp . For s ∈ Ωp , write
+                                                                      Pm
+                                                       Xs := 2−              a
+                                                                          t=1 it−1 ,it   D(s).
+
+                                                                          48
+Let S = (I1 , . . . , Im ), so that S ∼ q. Then
+                            XS              Xs
+                                                               
+                                =                                     =          Xs ≤ 2Γ(b) (1 − ε)m .
+                                   X                                       X
+                      ES∼q            q(s)
+                           q(S)   s∈Ω
+                                           q(s)                           s∈Ωp
+                                                   p
+
+
+Jensen’s inequality for the concave function log2 gives
+                                      XS                         XS
+                                                                     
+                   ES∼q log2                     ≤ log2    ES∼q                  ≤ Γ(b) + m log2 (1 − ε).
+                                     q(S)                       q(S)
+Expanding the logarithm, and using ES∼q [log2 q(S)] = −mEk (p), we obtain
+                                                   "m            #
+               ES∼q [log2 D(S)] ≤ ES∼q                    aIt−1 ,It − mEk (p) + Γ(b) + m log2 (1 − ε),               (B.8)
+                                                    X
+
+                                                    t=1
+
+where I0 := i0 .
+    We now choose the auxiliary index i0 . For i ∈ {0, . . . , k}, set νi (p) :=                   j=0 Pj ai,j , and choose
+                                                                                                  Pk
+
+i0 to minimize νi (p). Then
+                                             k                   k X
+                                                                   k
+                             νi0 (p) ≤             Pi νi (p) =             Pi Pj ai,j = Φa (p).
+                                             X                   X
+
+                                             i=0                 i=0 j=0
+
+Since I1 , . . . , Im are independent and identically distributed with law Bin(k, p),
+                                 "m                #
+                                           aIt−1 ,It = νi0 (p) + (m − 1)Φa (p) ≤ mΦa (p).
+                                  X
+                         ES∼q
+                                     t=1
+
+Substituting this upper bound into (B.8) and dividing by km gives
+                            1                    e a (p) + Γ(b) + m log2 (1 − ε) .
+                              ES∼q [log2 D(S)] ≤ Φ
+                           km                                      km
+By Theorem 3.2 and the definition of fCX (km,h) , the left-hand side equals fCX (km,h) (Ber(p)). This
+proves the first claim.
+   If m ≥ ⌈Γ(b)/(− log2 (1−ε))⌉, then Γ(b)+m log2 (1−ε) ≤ 0, and hence fCX (km,h) (Ber(p)) ≤ Φ
+                                                                                             e a (p).
+
+Finally, E k,η (p) ≤ Ek (p) for every 0 < η ≤ 0.5, so Φ
+                                                      e a (p) ≤ Φ
+                                                                e a,η (p). This proves the theorem.
+                                                                                 e
+
+
+Proof of Theorem 3.6. For r = 1, . . . , L − 1, write Fr (p) := Φ
+                                                                e (r) (p), and set F0 (p) = FL (p) := +∞
+                                                                                 e
+                                                                 a ,η
+for all p ∈ [0, 1].
+   By Theorem 3.5, if m ≥ ⌈Γ(b(r) )/(− log2 (1 − ε))⌉, then, for every h and every p,
+
+                            fCX (km,h) (Ber(p)) ≤ Φ
+                                                  e (r) (p) ≤ Φ
+                                                              e (r) (p) = Fr (p).
+                                                                           e
+                                                   a           a ,η
+
+Since m ≥ mX , this inequality holds for every r = 1, . . . , L − 1.
+    Now fix p ∈ [0, 1], and choose r such that p ∈ [pr , pr+1 ), with the last interval understood to
+include pL = 1. By definition, ℓX (p) = min{Fr (p), Fr+1 (p)}.
+    If r = 0, then F0 (p) = +∞, so ℓX (p) = F1 (p). If r = L−1, then FL (p) = +∞, so ℓX (p) = FL−1 (p).
+In all remaining cases, both Fr and Fr+1 correspond to interior certificates. In every case, therefore,
+the upper bound above gives
+
+                            fCX (km,h) (Ber(p)) ≤ min{Fr (p), Fr+1 (p)} = ℓX (p).
+
+                                                                 49
+It follows that, for every m ≥ mX , the inequality fCX (km,h) (Ber(p)) ≤ ℓX (p) holds uniformly over h
+and p.
+   It remains to prove the continuity claim. For each r = 1, . . . , L − 1, the function Fr is continuous
+on [0, 1], since Φa(r) is a polynomial in p and E k,η is continuous. Hence ℓX is continuous on each
+open interval (pr , pr+1 ), being the minimum of two continuous functions there.
+   It remains to check the lattice points. Let pr be an interior lattice point. The left limit
+of ℓX at pr is min{Fr−1 (pr ), Fr (pr )}, while the value of ℓX at pr and its right limit are both
+min{Fr (pr ), Fr+1 (pr )}. By the adjacent-certificate condition,
+
+                                   Fr (pr ) ≤ min{Fr−1 (pr ), Fr+1 (pr )},
+
+so both minima equal Fr (pr ). Hence the left limit, the right limit, and the value of ℓX agree at every
+interior lattice point. Continuity at 0 and 1 follows from the continuity of F1 and FL−1 , respectively.
+   Consequently, ℓX is continuous on [0, 1], and the theorem follows.
+
+Proof of Theorem 3.7. Fix a certificate a(r) , and abbreviate
+                                                             1                         
+                           Fr (p) := Φa ,0.01 (p) =             Φa(r) (p) − E 7,0.01 (p) .
+                                      e
+                                     e (r)
+                                                             7
+By the Bernstein-form expression of Section 3.3.1,
+                                                  14
+                                                     (r) 14
+                                                           !
+                                  Φa(r) (p) =                         p (1 − p)14−t .
+                                                  X
+                                                             t
+                                                        at
+                                                  t=0
+                                                                  t
+
+The derivative formula for Bernstein polynomials gives
+                                            13               13
+                                                                            !
+                         d                        (r)    (r)
+                            Φa(r) (p) = 14                        pt (1 − p)13−t .
+                                           X
+                                                 at+1 − at
+                         dp                t=0
+                                                                t
+
+Since the Bernstein basis polynomials 13t p (1 − p)
+                                           t        13−t , t = 0, . . . , 13, are nonnegative and sum to 1,
+                                              
+
+it follows that
+                      d                         (r)     (r)
+                         Φa(r) (p) ≤ 14 max at+1 − at              for all p ∈ [0, 1].
+                      dp               0≤t<14
+
+Thus Φa(r) is Lipschitz on [0, 1] with this constant.
+   For the clipped entropy term, take η = 0.01. The function E 7,η is linear on [0, η] and on [1 − η, 1],
+with slopes E7η(η) and − E7η(η) , and it equals E7 on [η, 1 − η]. Since E7 is concave, symmetric about
+1/2, and satisfies E7 (0) = E7 (1) = 0, we have 0 ≤ E7′ (p) ≤ E7η(η) for η ≤ p ≤ 1/2, while symmetry
+gives |E7′ (p)| ≤ E7η(η) for 1/2 ≤ p ≤ 1 − η. Hence E 7,η is E7η(η) -Lipschitz on [0, 1].
+   Therefore Fr = 71 (Φa(r) − E 7,η ) is Lipschitz on [0, 1] with constant
+
+                                      1                    E7 (0.01)
+                                                                                       
+                                                 (r)   (r)
+                           Lip(r) =     14 max at+1 − at +           .                               (B.9)
+                                      7   0≤t<14             0.01
+This proves the first claim.
+    Now assume that the adjacent-certificate condition of Theorem 3.6 holds at every interior
+lattice point. On each lattice interval [pr , pr+1 ], the envelope ℓX is the minimum of two functions
+
+
+                                                             50
+among the Fr ’s. Since the minimum of two L-Lipschitz functions is again L-Lipschitz, setting
+LipX := maxr Lip(r) shows that ℓX is LipX -Lipschitz on each individual lattice interval.
+   By Theorem 3.6, the adjacent-certificate condition implies that ℓX is continuous at every lattice
+point. Therefore, for any p < q, splitting the interval [p, q] at the finitely many lattice points it
+crosses gives                                               
+                             |ℓX (q) − ℓX (p)| ≤ max Lip(r) (q − p).
+                                                          r
+
+Thus ℓX is Lipschitz continuous on [0, 1] with Lipschitz constant LipX = maxr Lip(r) . This proves
+the proposition.
+
+Proof of Theorem 3.8. We first prove the uniform upper bound on the mean log-degree. Since the re-
+                                                                                (r)
+ported values are truncated toward zero, the inspector output implies maxr,i,u Si,u < 0.9999999724 <
+1 − 10−8 . Thus every stored certificate is 10−8 -valid.
+   The inspector output also implies Γ(b(r) ) < 94.3837 + 89.7365 < 200 for every stored certificate.
+                                                 (r) )
+Since − log2 (1 − 10−8 ) > 10−8 , we get − logΓ(b
+                                               (1−10−8 )
+                                                         < 2 · 1010 < 1011 . Hence
+                                                 2
+
+
+                                                Γ(b(r) )
+                                             &                          '
+                                  mX = max                    < 1011
+                                        r  − log2 (1 − 10−8 )
+
+for each of the four circuit families X.
+   The functions ℓX were defined by applying Theorem 3.6 with k = 7, η = 0.01, and ε = 10−8 .
+Therefore, for every m ≥ 1011 , every h ∈ [H], and every p ∈ [0, 1], we have fCX (7m,h) (Ber(p)) ≤ ℓX (p).
+This proves the first claim.
+   We next prove the 13-Lipschitz continuity. Again by the truncation convention, the inspector
+                       (r)    (r)
+output implies maxr,t at+1 − at < 3.355 and E7 (0.01) < 0.372. Therefore, by (B.9),
+
+                                  1              0.372                84.17
+                                                             
+                       Lip(r) <     14 · 3.355 +                  =         < 12.03 < 13.
+                                  7              0.01                   7
+The inspector also checks all adjacent-certificate conditions and reports that all checks pass. Hence,
+by Theorem 3.7, each lattice envelope ℓX is 13-Lipschitz. This proves the proposition.
+
+Proof of Theorem 3.9. Assume that Vsize accepts. We prove that
+
+                                   max {ℓJessica (p) + h(p)} < 1.244844.
+                                  p∈[0,1]
+
+
+   By Theorem 3.8, the function ℓJessica is 13-Lipschitz. Let [a, b] be one of the subintervals checked
+by the verifier, and let p ∈ [a, b]. Then
+
+                     ℓJessica (p) ≤ ℓJessica (b) + 13(b − p) ≤ ℓJessica (b) + 13(b − a).
+
+    Now consider the entropy term. The binary entropy function satisfies h′ (p) = log2 1−p
+                                                                                        p , so h is
+increasing on [0, 1/2], decreasing on [1/2, 1], and maximized at 1/2. Hence the maximum of h over
+the interval [a, b] is attained at min{max{1/2, a}, b}, and therefore h(p) ≤ h(min{max{1/2, a}, b}).
+   Combining the two inequalities gives
+
+            ℓJessica (p) + h(p) ≤ ℓJessica (b) + 13(b − a) + h(min{max{1/2, a}, b}) = M[a,b] .
+
+                                                     51
+Since Vsize accepts, it has verified that M[a,b] ≤ 1.2448439 for every subinterval [a, b]. The subintervals
+cover [0, 1], so ℓJessica (p) + h(p) ≤ 1.2448439 for every p ∈ [0, 1]. Therefore
+
+                            max {ℓJessica (p) + h(p)} ≤ 1.2448439 < 1.244844,
+                           p∈[0,1]
+
+which is exactly the size inequality (∗).
+
+Proof of Theorem 3.10. Assume that Vdegree accepts. We prove that
+
+                                           max         z(p, q) < 0.319866.
+                                        (p,q)∈[0,1]2
+
+We first prove that z is 13-Lipschitz with respect to the ℓ∞ -metric.
+    By Theorem 3.8, the functions ℓSonetto , ℓRegulus , and ℓRegulusT are all 13-Lipschitz on [0, 1]. The
+remaining coordinate functions appearing in Q0 , . . . , Q4 , namely 0, 1 − q, 1 − p, p, q, p(1 − p),
+2 (1 − q ), 2 (1 − p ), and q(1 − q), are all 1-Lipschitz on [0, 1], and hence also 13-Lipschitz.
+1       2   1       2
+
+  Thus, for every id ∈ {0, . . . , 7}, we have ∥Qid (p, q) − Qid (p′ , q ′ )∥∞ ≤ 13 max{|p − p′ |, |q − q ′ |}.
+Choose a convex combination
+                                                       7
+                                           ′   ′
+                                         (a , b ) =           wid Qid (p′ , q ′ )
+                                                       X
+
+                                                       id=0
+
+attaining z(p′ , q ′ ), where w id ≥ 0 and     id wid = 1. Using the same weights at (p, q), define
+                                               P
+
+(a, b) := 7id=0 wid Qid (p, q). Then (a, b) ∈ conv{Q0 (p, q), . . . , Q7 (p, q)}, and each coordinate of (a, b)
+          P
+
+differs from the corresponding coordinate of (a′ , b′ ) by at most 13 max{|p − p′ |, |q − q ′ |}. Hence
+
+                             z(p, q) ≤ max{a, b}
+                                     ≤ max{a′ , b′ } + 13 max{|p − p′ |, |q − q ′ |}
+                                     = z(p′ , q ′ ) + 13 max{|p − p′ |, |q − q ′ |}.
+
+Interchanging (p, q) and (p′ , q ′ ) gives the reverse inequality, and together they yield
+
+                             |z(p, q) − z(p′ , q ′ )| ≤ 13 max{|p − p′ |, |q − q ′ |}.                 (B.10)
+
+   Now consider any rectangle R = [pmin , pmax ] × [qmin , qmax ] on which the verifier returns true at
+Step 3. Let
+                                         pmax − pmin qmax − qmin
+                                                                     
+                          ∆R := max                    ,                .
+                                             200              200
+The verifier samples the 101 × 101 grid in R, so for every point (p, q) ∈ R, there is a sampled grid
+point (pi , qj ) with max{|p − pi |, |q − qj |} ≤ ∆R . Therefore, by (B.10), z(p, q) ≤ z(pi , qj ) + 13∆R .
+   At the grid point (pi , qj ), the quantity Zi,j is defined as the smallest value of max{x, y} among
+the candidates tested by the verifier, namely the eight vertices Qid (pi , qj ) and the two-vertex convex
+combinations considered in Step 2. All of these candidates lie in conv{Q0 (pi , qj ), . . . , Q7 (pi , qj )}.
+Since z(pi , qj ) minimizes max{x, y} over the whole convex hull, minimizing only over this smaller
+candidate list cannot yield a smaller value. Hence z(pi , qj ) ≤ Zi,j .
+   Since the verifier returned true at Step 3 on R, it verified that Zi,j + 13∆R ≤ 0.3198659 at every
+sampled grid point. Thus, for every (p, q) ∈ R,
+
+                         z(p, q) ≤ z(pi , qj ) + 13∆R ≤ Zi,j + 13∆R ≤ 0.3198659.
+
+
+                                                          52
+    Finally, since Vdegree accepts on [0, 1]2 , its recursive procedure covers the whole square by
+rectangles on which the Step 3 test returns true. Every point of [0, 1]2 therefore satisfies z(p, q) ≤
+0.3198659, and consequently
+
+                                max         z(p, q) ≤ 0.3198659 < 0.319866,
+                             (p,q)∈[0,1]2
+
+which is exactly the degree inequality (∗∗).
+
+
+References
+[AGP23]    Josh Alman, Yunfeng Guan, and Ashwin Padaki. Smaller Low-Depth Circuits for
+           Kronecker Powers. In Proceedings of the Annual ACM-SIAM Symposium on Discrete
+           Algorithms (SODA), pp. 4159–4187, 2023.
+
+[AL25]     Josh Alman and Baitian Li. Kronecker Powers, Orthogonal Vectors, and the Asymptotic
+           Spectrum. In Proceedings of the IEEE Annual Symposium on Foundations of Computer
+           Science (FOCS), pp. 1411–1441, 2025. arXiv:2509.14489.
+
+[AVDB18] Akshay Agrawal, Robin Verschueren, Steven Diamond, and Stephen Boyd. A Rewriting
+         System for Convex Optimization Problems. Journal of Control and Decision, 5(1):42–60,
+         2018.
+
+[AWY15] Amir Abboud, R. Ryan Williams, and Huacheng Yu. More Applications of the Polynomial
+        Method to Algorithm Design. In Proceedings of the Annual ACM-SIAM Symposium on
+        Discrete Algorithms (SODA), pp. 218–230, 2015.
+
+[CIP02]    Moses Charikar, Piotr Indyk, and Rina Panigrahy. New Algorithms for Subset Query, Par-
+           tial Match, Orthogonal Range Searching, and Related Problems. In Automata, Languages
+           and Programming (ICALP), Lecture Notes in Computer Science 2380, pp. 451–462,
+           2002.
+
+[CW21]     Timothy M. Chan and R. Ryan Williams. Deterministic APSP, Orthogonal Vectors, and
+           More: Quickly Derandomizing Razborov–Smolensky. ACM Transactions on Algorithms
+           (TALG), 17(1):1–14, 2021.
+
+[CW82]     Don Coppersmith and Shmuel Winograd. On the Asymptotic Complexity of Matrix
+           Multiplication. SIAM Journal on Computing (SICOMP), 11(3):472–492, 1982.
+
+[DA22]     Joachim Dahl and Erling D. Andersen. A Primal-Dual Interior-Point Algorithm for
+           Nonsymmetric Exponential Cone Optimization. Mathematical Programming, 194(1–
+           2):341–370, 2022.
+
+[DB16]     Steven Diamond and Stephen Boyd. CVXPY: A Python-Embedded Modeling Language
+           for Convex Optimization. Journal of Machine Learning Research, 17(83):1–5, 2016.
+
+[Fek23]    Michael Fekete. Über die Verteilung der Wurzeln bei gewissen algebraischen Gleichungen
+           mit ganzzahligen Koeffizienten. Mathematische Zeitschrift, 17:228–249, 1923.
+
+[FK60]     Harry Furstenberg and Harry Kesten. Products of Random Matrices. The Annals of
+           Mathematical Statistics, 31(2):457–469, 1960.
+
+
+                                                     53
+[GA05]    Reza Gharavi and Venkat Anantharam. An Upper Bound for the Largest Lyapunov
+          Exponent of a Markovian Product of Nonnegative Matrices. Theoretical Computer Science
+          (TCS), 332(1–3):543–557, 2005.
+
+[JS13]    Stasys Jukna and Igor Sergeev. Complexity of Linear Boolean Operators. Foundations
+          and Trends in Theoretical Computer Science (FnT-TCS), 9(1):1–123, 2013.
+
+[Kin73]   J. F. C. Kingman. Subadditive Ergodic Theory. The Annals of Probability, 1(6):883–899,
+          1973.
+
+[Ose68]   V. I. Oseledets. A Multiplicative Ergodic Theorem: Characteristic Ljapunov Exponents
+          of Dynamical Systems. Transactions of the Moscow Mathematical Society, 19:197–231,
+          1968.
+
+[Ser22]   Igor S. Sergeev. Notes on the Complexity of Coverings for Kronecker Powers of Symmetric
+          Matrices. arXiv:2212.01776, 2022.
+
+[Sha56]   Claude E. Shannon. The Zero Error Capacity of a Noisy Channel. IRE Transactions on
+          Information Theory, 2(3):8–19, 1956.
+
+[SO81]    Lawrence A. Shepp and Ingram Olkin. Entropy of the Sum of Independent Bernoulli
+          Random Variables and of the Multinomial Distribution. In Contributions to Probability,
+          pp. 201–206. Academic Press, 1981.
+
+[Str69]   Volker Strassen. Gaussian Elimination Is Not Optimal. Numerische Mathematik, 13:354–
+          356, 1969.
+
+[Wil24]   R. Ryan Williams. The Orthogonal Vectors Conjecture and Non-Uniform Circuit Lower
+          Bounds. In Proceedings of the IEEE Annual Symposium on Foundations of Computer
+          Science (FOCS), pp. 1372–1387, 2024.
+
+[Yat37]   Frank Yates. The Design and Analysis of Factorial Experiments. Technical Communica-
+          tion No. 35, Imperial Bureau of Soil Science, 1937.
+
+
+
+
+                                              54
+

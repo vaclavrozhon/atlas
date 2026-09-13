@@ -1,0 +1,873 @@
+Impossibility of Sketching of the 3D
+Transportation Metric with Quadratic Cost∗
+Alexandr Andoni†1 , Assaf Naor‡2 , and Ofer Neiman§3
+
+1       Computer Science Department, Columbia University, New York, NY, USA
+        andoni@cs.columbia.edu
+2       Mathematics Department, Princeton University, Princeton, NJ, USA
+        naor@math.princeton.edu
+3       Department of Computer Science, Ben-Gurion University of the Negev, Be’er
+        Sheva, Israel
+        neimano@cs.bgu.ac.il
+
+
+        Abstract
+Transportation cost metrics, also known as the Wasserstein distances Wp , are a natural choice
+for defining distances between two pointsets, or distributions, and have been applied in numer-
+ous fields. From the computational perspective, there has been an intensive research effort for
+understanding the Wp metrics over Rk , with work on the W1 metric (a.k.a earth mover distance)
+being most successful in terms of theoretical guarantees. However, the W2 metric, also known
+as the root-mean square (RMS) bipartite matching distance, is often a more suitable choice in
+many application areas, e.g. in graphics. Yet, the geometry of this metric space is currently
+poorly understood, and efficient algorithms have been elusive. For example, there are no known
+non-trivial algorithms for nearest-neighbor search or sketching for this metric.
+    In this paper we take the first step towards explaining the lack of efficient algorithms for
+the W2 metric, even over the three-dimensional Euclidean space R3 . We prove that there are
+no meaningful embeddings of W2 over R3 into a wide class of normed spaces, as well as that
+there are no efficient sketching algorithms for W2 over R3 achieving constant approximation. For
+                                                                                          √
+example, our results imply that: 1) any embedding into L1 must incur a distortion of Ω( log n)
+for pointsets of size n equipped   with the W2 metric; and 2) any sketching algorithm of size s
+                √        √ 
+must incur Ω log n/ s approximation. Our results follow from a more general statement,
+asserting that W2 over R3 contains the 1/2-snowflake of all finite metric spaces with a uniformly
+bounded distortion. These are the first non-embeddability/non-sketchability results for W2 .
+
+1998 ACM Subject Classification F.2.2 Nonnumerical Algorithms and Problems – Geometrical
+problems and computations
+
+Keywords and phrases Transportation metric, embedding, snowflake, sketching
+
+Digital Object Identifier 10.4230/LIPIcs.ICALP.2016.83
+
+
+    1    Introduction
+Transportation metrics provide a natural distance on sets of points, or probability measures
+more generally, and as such have applications in numerous fields, such as computer science, as
+
+
+∗
+  An extended version of this paper is available at http://arxiv.org/abs/1509.08677. The present
+  paper contains some material that is not covered in that version.
+†
+  A. A. was supported in part by the NSF.
+‡
+  A. N. was supported in part by the BSF, the Packard Foundation and the Simons Foundation.
+§
+  O. N. was supported in part by the ISF and the European Union’s Seventh Framework Programme.
+             © Alexandr Andoni, Assaf Naor, and Ofer Neiman;
+                                                                                                       EA
+
+
+
+
+             licensed under Creative Commons License CC-BY
+                                                                                                       TC S
+
+
+
+
+43rd International Colloquium on Automata, Languages, and Programming (ICALP 2016).
+Editors: Ioannis Chatzigiannakis, Michael Mitzenmacher, Yuval Rabani, and Davide Sangiorgi;
+Article No. 83; pp. 83:1–83:14
+                     Leibniz International Proceedings in Informatics
+                     Schloss Dagstuhl – Leibniz-Zentrum für Informatik, Dagstuhl Publishing, Germany
+83:2   Impossibility of Sketching of the 3D Transportation Metric with Quadratic Cost
+
+
+       well as statistical physics, mathematical economics, automated control, shape optimization,
+       applied probability, partial differential equations, metric geometry and many more, see
+       [44, 39]. These metrics are also known as Wasserstein distance, Kantorovich-Rubinstein
+       distance, Prokhorov distance, or the earth mover distance. We now recall basic notation
+       and terminology from the theory of transportation cost metrics [57]. For a metric space
+       (X, dX ) and p ∈ R(0, ∞), let Pp (X) denote the space of all (Borel) probability measures µ
+       on X satisfying X dX (x, x0 )p dµ(x) < ∞ for some (hence all) x0 ∈ X. The Wasserstein-p
+       distance between µ, ν ∈ Pp (X) is then
+                                      ZZ                                p1
+                    def
+          Wp (µ, ν) =       inf                   dX (x, y)p dπ(x, y)          ,
+                          π∈Π(µ,ν)          X×X
+
+       where Π(µ, ν) is the set of all couplings (matchings) π between (µ, ν) on X, i.e., probability
+       measures π on X × X such that µ(A) = π(A × X) and ν(A) = π(X × A) for every A ⊆ X.
+       Wp on Pp (X) is a metric whenever p ⩾ 1. Here we consider the classic setting of X being Rk ,
+       for k ⩾ 2, endowed with the standard Euclidean distance.
+           In computer science, the transportation metrics on Rk play an important role in computer
+       vision [58, 46, 21, 22, 28, 42, 38, 33], machine learning [20], information retrieval [45], and
+       mechanism design [16], among others. For example, an image can be represented as a set
+       of pixels in a color space R3 ; the transportation cost between such sets yields an accurate
+       measure of dissimilarity between color characteristics of the images [47, 25].
+           These applications motivated a lot of research into the computational properties of
+       transportation metrics. In particular, typical problems are to develop efficient algorithms
+       for: computing the distance between two pointsets (finitely-supported measures), nearest
+       neighbor search under these metrics, as well as problems in the streaming and sketching
+       context.
+           So far, most of the rigorous algorithmic results have been developed for the W1 metric,
+       often refered to as the Earth Mover Distance (EMD). There is a long line of work on
+       approximation algorithms for computing EMD between two pointsets in Rk [55, 2, 56, 1,
+       24, 49], culminating in a near-linear time algorithm achieving a (1 + ε)-approximation
+       [50, 3, 7]. Nearest neighbor search algorithms all proceed via either embedding EMD into L1
+       or sketching. Understanding the embeddability of EMD over Rk into L1 is a well-known open
+       problem [30], and the best distortion is currently known [14, 25, 26, 37, 5] to be between
+                                 √
+       O(k log n) and Ω(k + log n) for pointsets in [n]k = {1, 2, . . . n}k . Similarly, designing
+       sketching algorithms for EMD over Rk is also a well-known open problem [40, 41]. Some
+       of the sketching bounds for W1 follow from the aforementioned L1 embeddings, and some
+       others are proved directly [4, 6].
+           Yet, in a number of applications the Wasserstein-2 distance W2 is a more natural distance
+       than Wasserstein-1 (EMD), and indeed other communities have paid more attention to W2
+       [53]. Specifically, W2 (a.k.a., root-mean square bipartite matching distance) corresponds to
+       the “`2 error” between two pointsets, in contrast to the “`1 error” measured by W1 ; as such
+       they have better regularity properties and also have a differential interpretation [53]. See
+       [34, 18] for a further discussion of why using W2 gives results of a better quality than W1 . W2
+       is used in graphics [51, 52, 54, 53], for shape interpolation [12], for barycenter computation
+       [15, 11], shape reconstruction [19], blue noise generation [18], triangulations [34], among
+       others.
+           Surprisingly, the algorithmic results for W2 have been much more elusive. The best
+       algorithms for computing W2 distance between two pointsets follow from [43, 3], who obtain
+       Õ(n2 ) time for exact and Õ(n3/2 ) for approximate computation (in contrast to the near-linear
+A. Andoni, A. Naor, and O. Neiman                                                                     83:3
+
+
+time algorithms for W1 ). Beyond these results, there are no known non-trivial algorithms
+for embedding, nearest neighbor search, or sketching for W2 ! This discrepancy raises the
+question of why there has been such a dire lack of progress on algorithms for W2 .
+    Here we address this question by proving the first explicit lower bounds for W2 over R3 ,
+establishing that it is a very rich space that cannot be represented faithfully even with weak
+guarantees in a large class of normed spaces (that includes all Lq spaces for finite q, and
+much more). In particular, focusing on W2 on measures over R3 supported on at most n
+                           √
+points, we show that Ω( log n) distortion is required for either: 1) embedding of W2 into
+L1 , and 2) constant-size sketching. To contrast these results to those known for W1 over the
+same set of measures, while W1 has a similar non-embeddability into L1 [37], it does not
+translate into sketching lower bounds. In fact, it was only recently established [6] that the
+approximation for sketching W1 must be super-constant (without giving an explicit bound).
+Besides stronger sketching lower bounds, our results for W2 are stronger than any known
+W1 non-embeddability results since they apply to a larger class of Banach space targets
+(nontrivial type), and also rule out embeddings that are much weaker than bi-Lipschitz, like
+coarse embeddings. Finally, our results also apply to Wp space for p ∈ (1, 2), yielding a
+Ω((log n)1/p ) distortion lower bound, which is asymptotically stronger than the distortion
+lower bound known for embedding W1 into L1 .
+    Our results apply to measures over R3 only, and the validity of analogous results for
+measures over R2 remains an open question. The only progress has been obtained in the
+forthcoming work [8], where the authors establish the first lower bound for embedding W2 (R2 )
+into L1 , showing that the distortion goes to infinity (without an explicit bound). However,
+[8] does not yield the full strength of our results in terms of ruling out embeddings into
+spaces with nontrivial type, as well as, say, coarse embeddings.
+
+1.1    Main Results
+We now present our results on non-existence of good embedding and sketching methods for
+W2 over R3 . We then show that these results follow from a more general principle: that W2
+over R3 is snowflake-universal, and hence, say, we can embed the square-root of a shortest
+path metric on an expander graph into it with distortion arbitrarily close to 1. Our results
+apply to all Wp for p > 1, but not to W1 .
+
+Non-embeddability results. We now introduce the standard notion of embeddings.
+I Definition 1. Fix two metric spaces (X, dX ) and (Y, dY ), and D ∈ [1, ∞]. A mapping
+f : X → Y is an embedding with distortion at most D if there exists s ∈ (0, ∞) such that
+every x, y ∈ X satisfy s · dX (x, y) ⩽ dY (f (x), f (y)) ⩽ Ds · dX (x, y). The infimum over those
+D ∈ [1, ∞] for which this holds true is called the distortion of f and is denoted dist(f ).
+If there exists a mapping f : X → Y with distortion at most D then we say that (X, dX )
+embeds with distortion D into (Y, dY ). The infimum of dist(f ) over all f : X → Y is denoted
+c(Y,dY ) (X, dX ), or cY (X) if the metrics are clear from the context.
+   We prove the following theorem.
+I Theorem 2. For any fixed p ∈ (1, ∞) and n ∈ N, consider the metric space X consisting
+of all the measures on R3 that are supported on at most n points, equipped with the Wp
+metric. Then any embedding of X into L1 must incur distortion Ω(((p − 1) log n)1/p ).
+                          √
+    Theorem 2 implies a Ω( log n) approximation for any algorithmic approach proceeding
+via embedding W2 over measures on R3 whose support is of size at most n into L1 . While
+
+
+
+                                                                                                    ICALP 2016
+83:4   Impossibility of Sketching of the 3D Transportation Metric with Quadratic Cost
+
+
+       embedding into L1 is a common algorithmic technique for high-dimensional metric spaces, it
+       is not the only one. In particular, despite non-embeddability into L1 , a metric could admit a
+       better embedding into, say, L1/2 , which would imply efficient sketches and nearest neighbor
+       search algorithms. We rule out such weaker embeddings as well.
+           In fact, our work actually yields impossibility results that are much stronger than the
+       bi-Lipschitz nonembeddability statement that corresponds to Theorem 2. Our most general
+       results are contained in the full version of this paper, but here is one illustrative example.
+       Let X be either L1 or a Banach space of nontrivial type.1 Then for p ∈ (1, ∞) there do not
+       exist any nondecreasing functions α, β : [0, ∞) → [0, ∞) with limt→∞ α(t) = ∞ for which
+       there is a mapping f : Pp (R3 ) → X that satisfies
+
+            ∀ µ, ν ∈ Pp (R3 ),        α(Wp (µ, ν)) ⩽ kf (µ) − f (ν)kX ⩽ β(Wp (µ, ν)).
+
+       Theorem 2 corresponds to the special case when the function α, β are linear and X is L1 . In
+       common metric geometry jargon, the above statement asserts that Pp (R3 ) fails to admit a
+       coarse embedding into any normed space of nontrivial type.
+
+       Sketching. We can also state our results using the language of the sketching algorithms.
+       The notion of sketching is defined as follows [48].
+
+       I Definition 3. Fix a metric (X, dX ), and approximation D ⩾ 1. We say (X, dX ) has
+       sketching complexity s ⩾ 1 if, for any threshold r > 0, there exists a distribution over sketching
+       maps sk : X → {0, 1}s and reconstruction algorithms R : {0, 1}s × {0, 1}s → {close, far},
+       satisfying the following. For any x, y ∈ X, with at least 2/3 probability of success:
+           if dX (x, y) ⩽ r, then R(sk(x), sk(y)) = close;
+           if dX (x, y) > Dr, then R(sk(x), sk(y)) = far.
+
+            We are now ready to state our sketching lower bound for Wp for p > 1.
+
+       I Theorem 4. Fix p ∈ (1, ∞) and let n, s ∈ N. Consider the metric space X consisting of
+       all the measures on R3 that are supported on at most n points, equipped with the Wp metric.
+       Then any sketching algorithm
+                                    for X with   sketching complexity s must have an approximation
+                                          1/p 
+                              (p−1) log n
+       guarantee of D = Ω         s              .
+
+           We note that, for comparison, standard `1 , `2 metrics have constant sketching complexity
+       [27, 48, 9]. Also, for W1 over R3 (or R2 ), the only known lower bound is that Ds = ω(1),
+       shown recently in [6], based on [37].
+
+       Snowflake universality. Our results follow from a more general phenomenon, captured by
+       the following theorem.
+
+       I Theorem 5. If p ∈ (1, ∞) then for every finite metric space (X, dX ) we have
+                               1 
+                                p
+            c(Pp (R3 ),Wp ) X, dX   = 1.
+
+
+       1
+           The correct class of Banach spaces here could even be all those Banach spaces that do not contain
+           every finite metric space with distortion arbitrarily close to 1, but currently this stronger version of the
+           ensuing statement holds true conditionally on a well-known open question in metric geometry; see the
+           full version of this paper for more details.
+A. Andoni, A. Naor, and O. Neiman                                                                                83:5
+
+
+    For a metric space (X, dX ) and θ ∈ (0, 1], the metric space (X, dθX ) is commonly called
+the θ-snowflake of (X, dX ); see e.g. [17]. Thus Theorem 5 asserts that the θ-snowflake of any
+finite metric space (X, dX ) embeds with distortion 1 + ε into Pp (R3 ) for every ε ∈ (0, ∞) and
+θ ∈ (0, 1/p].2 Our techniques fall short of proving a longstanding conjecture of Bourgain [13],
+who asked whether (P1 (R2 ), W1 ) is not universal (i.e., does not contain all finite metrics).3
+Bourgain proved in [13] that (P1 (`1 ), W1 ) is universal (despite the fact that `1 is not universal),
+but it remains an intriguing open question to determine whether or not (P1 (Rk ), W1 ) is
+universal for any finite k ∈ N, the case k = 2 being most challenging.
+    Theorem 6 below implies that Theorem 5 is sharp if p ∈ (1, 2], and yields a nontrivial,
+though probably non-sharp, restriction on the embeddability of snowflakes into Pp (R3 ) also
+for p ∈ (2, ∞).
+
+I Theorem 6. For arbitrarily large n ∈ N there exists an n-point metric space (Xn , dXn )
+such that for every α ∈ (0, 1] we have
+                                 (            1
+                          α        (log n)α− p     if p ∈ (1, 2],
+   c(Pp (R3 ),Wp ) (Xn , dXn ) &              1
+                                           α+ p −1
+                                   (log n)         if p ∈ (2, ∞).
+
+Here, and in what follows, we use standard asymptotic notation, i.e., for a, b ∈ [0, ∞) the
+notation a & b (respectively a . b) stands for a ⩾ cb (respectively a ⩽ cb) for some universal
+constant c ∈ (0, ∞). The notation a  b stands for (a . b) ∧ (b . a).
+    The rest of the paper is organized as follows. We give the proof of Theorem 5 in Section 2,
+and its consequences, Theorem 2 and 4, in Section 2.1. We then present some future research
+directions suggested by our results in Section 3. We defer the proof of Theorem 6 to the full
+version.
+
+
+    2   Proof of Theorem 5
+To establish the theorem, we will construct an explicit embedding of an n-point metric into
+W2 (R3 ). In what follows fix n ∈ N and an n-point metric space (X, dX ).
+    We start by presenting the intuition behind the construction. In particular, let us demon-
+strate a fundamental difference between W1 and Wp for p > 1 for a simple transportation
+instance. We will exploit this construction in our embedding. Fix a positive integer k, and
+consider the optimal transport between the sets A = {0, k1 , k2 , . . . , k−1             1 2
+                                                                           k } and B = { k , k , . . . , 1}.
+While under the W1 metric the optimal cost is simply 1, under Wp the optimal transport would
+                                                           P
+                                                                   k         1/p
+                                                                           1 p
+send every x ∈ A to x + k1 ∈ B, which incurs a cost of             i=1 k           = k 1/p−1 −−−−→ 0.
+                                                                                                  k→∞
+Note that for any 0 ⩽ ε < 1, we can increase the transport cost to ε by introducing
+a “gap” of size εk. E.g., for some i, define A = {0, k1 , . . . , ki , i+εk
+                                                                         k ,
+                                                                             i+εk+1
+                                                                                k   , . . . , k−1
+                                                                                               k } and
+B = A r {0} ∪ {1}. Then the optimal transport cost under Wp would be
+
+                p       k−εk
+                           X        p !1/p
+            εk                   1
+                      +                        −−−−→ ε .
+             k            i=1
+                                 k             k→∞
+
+
+
+
+2
+  Formally, Theorem 5 makes this assertion when θ = 1/p, but for general θ ∈ (0, 1/p] one can then apply
+  Theorem 5 to the metric space (X, dθpX ) to deduce the seemingly more general statement.
+3
+  Bourgain actually formulated this question as asking whether a certain Banach space (namely, the dual
+  of the Lipschitz functions on the square [0, 1]2 ) has finite Rademacher cotype, but this is equivalent to
+  the above formulation.
+
+
+
+
+                                                                                                               ICALP 2016
+83:6   Impossibility of Sketching of the 3D Transportation Metric with Quadratic Cost
+
+
+           We shall use the fact that any graph, in particular the complete graph, can be realized
+       in R3 , so that if every edge is represented by a wire, there are no wire crossings (except at
+       vertices). Imagine that each wire is replaced by a set of points with distances 1/k between
+       neighboring points. We then introduce a gap of length proportional to dX (u, v)1/p on the
+       wire connecting u and v. The embedding of u ∈ X will be into a uniform measure over
+       the point realizing u, and all the points in all the wires. Then the transport from u to
+       v must move the mass at u to the mass of v. By the simple example above, this can be
+       done at cost proportional to dX (u, v)1/p , when k is sufficiently large. The trickier part is
+       showing no better transport exist. To this end, we require that all the wires are sufficiently
+       far apart, so any transport plan that does not move along the wires will have a huge cost.
+       Finally, the triangle inequality ensures that the cost of a plan using the wires between the
+       points u = u0 , u1 , . . . , uq = v is at least dX (u, v)1/p (this is the reason why we make the gaps
+       proportional to the p-th roots).
+           We now proceed with the formal proof of the theorem. Write X = {x1 , . . . , xn } and fix
+       φ : {1, . . . , n} × {1, . . . , n} → {1, . . . , n2 } to be an arbitrary bijection between {1, . . . , n} ×
+       {1, . . . , n} and {1, . . . , n2 }. Below it will be convenient to use the following notation.
+              def                       1               def                   1
+           m = min dX (x, y) p              and     M = max dX (x, y) p .                                      (1)
+                    x,y∈X                                     x,y∈X
+                     x6=y
+
+           Fix K ∈ N. Denoting the standard basis of R3 by e1 = (1, 0, 0), e2 = (0, 1, 0), e3 = (0, 0, 1),
+       for every i, j ∈ {1, . . . , n} with i < j define five families of points in R3 by setting for
+       s ∈ {0, . . . , K},
+                       def M i     M φ(i, j)s
+           Q1s (i, j) =          e1 +         e2 ,                                                             (2)
+                          m          mK
+                      def M i      M φ(i, j)       Ms
+           Q2s (i, j) =       e1 +           e2 +     e3 ,                                                     (3)
+                          m           m            mK
+
+                                                                       1
+                       def M (s(j − i) + Ki) + (K − s)dX (xi , xj ) p             M φ(i, j)      M
+           Q3s (i, j) =                                                    e1 +             e2 +   e3 ,        (4)
+                                              mK                                     m           m
+                       def M j     M φ(i, j)      M (K − s)
+           Q4s (i, j) =       e1 +           e2 +           e3 ,                                               (5)
+                          m           m              mK
+                      def M j      M (K − s)φ(i, j)
+           Q5s (i, j) =       e1 +                  e2 .                                                       (6)
+                          m              mK
+       Then Q1K (i, j) = Q20 (i, j), Q3K (i, j) = Q40 (i, j) and Q4K (i, j) = Q50 (i, j), so the total number
+       of points thus obtained equals 5(K + 1) − 3 = 5K + 2.
+           Define B ⊆ R3 by setting
+             def
+                    [
+           B =             Bij ,                                                                          (7)
+                    i,j∈{1,...,n}
+                        i<j
+
+       where for every i, j ∈ {1, . . . , n} with i < j we write
+                 K
+               def
+                 [
+           Bij =
+                    1
+                    Qs (i, j), Q2s (i, j), Q3s (i, j), Q4s (i, j), Q5s (i, j) .                                (8)
+                      s=0
+
+       Hence |Bij | = 5K + 2. We also define C ⊆ R3 by
+                                                
+            def        Mi
+          C = Br          e1 : i ∈ {1, . . . , n} .                                                            (9)
+                       m
+A. Andoni, A. Naor, and O. Neiman                                                                                   83:7
+
+
+
+
+    Figure 1 A schematic depiction of the embedding f : X → Pp (R3 ) for a four-point metric space
+(X, dX ) = ({x1 , x2 , x3 , x4 }, dX ). Here the x-axis is the horizontal direction, the z-axis is the vertical
+direction and the y-axis is perpendicular to the page plane. Recall that m and M are defined in (1).
+
+
+Note that by (2) we have (M i/m)e1 = Q10 (i, j) if i, j ∈ {1, . . . , n} satisfy i < j, and by (6) we
+have (M i/m)e1 = Q5K (`, i) if `, i ∈ {1, . . . , n} satisfy ` < i. Thus C corresponds to removing
+from B those points that lie on the x-axis. In what follows, we denote N = |C| + 1. Finally,
+for every i ∈ {1, . . . , n} we define Ci ⊆ R3 by
+                         
+       def      Mi
+    Ci = C ∪           e1 .                                                                      (10)
+                 m
+Hence |Ci | = N . Our embedding f : X → Pp (R3 ) will be given by
+                                 def 1
+                                       X
+   ∀ j ∈ {1, . . . , n}, f (xj ) =       δu ,                                                             (11)
+                                     N
+                                            u∈Cj
+
+where, as usual, δu is the point mass at u. Thus f (xj ) is the uniform probability measure
+over Cj . A schematic depiction of the above construction appears in Figure 1 below.
+   Lemma 7 below estimates the distortion of f , proving Theorem 5.
+I Lemma 7. Fix ε ∈ (0, 1) and p ∈ (1, ∞). Let f : X → Pp (R3 ) be the mapping appearing
+                                                                          1/p
+in (11), considered as a mapping from the snowflaked metric space (X, dX ) to the metric
+            3
+space (Pp (R ), Wp ). Then, recalling the definitions of m and M in (1), we have
+                     1
+           5M p n2p p−1
+         
+    K⩾                    =⇒ dist(f ) ⩽ 1 + ε.                                      (12)
+            pmp ε
+Proof. We shall show that under the assumption on K that appears in (12) we have
+                                        1                                                    1
+                            dX (xi , xj ) p                                        dX (xi , xj ) p
+ ∀ i, j ∈ {1, . . . , n},                   ⩽ W p (f (x i ), f (x j )) ⩽ (1 + ε)                   , (13)
+                              mp N                                                   mp N
+where we recall that we defined N to be equal to |C| + 1 for C given in (9). Clearly (13)
+implies that dist(f ) ⩽ 1 + ε, as required.
+   To prove the right hand inequality in (13), suppose that i, j ∈ {1, . . . , n} satisfy i < j
+and consider the coupling π ∈ Π(f (xi ), f (xj )) given by
+           X 5 K−1                                                        
+     def 1
+                 X                                                X
+   π =                δ t                + δ(Q2 (i,j),Q3 (i,j)) +   δ(u,u) ,               (14)
+         N t=1 s=0 (Qs (i,j),Qs+1 (i,j))
+                                t
+                                                K      0
+                                                                        u∈CrBij
+
+
+
+
+                                                                                                                  ICALP 2016
+83:8   Impossibility of Sketching of the 3D Transportation Metric with Quadratic Cost
+
+
+       where for (14) recall (8) and (9). The meaning of (14) is simple: the supports of f (xi ) and
+       f (xj ) equal Ci and Cj , respectively, where we recall (10). Note that Ci r Cj = {Q10 (i, j)} and
+       Cj r Ci = {Q5K (i, j)}, where we recall (2) and (6). So, the coupling π in (14) corresponds to
+       shifting the points in Bij from the support of f (xi ) to the support of f (xj ) while keeping
+       the points in C r Bij unchanged.
+           Now, recalling the definitions (2), (3), (4), (5) and (6),
+                                      ZZ
+          Wp (f (xi ), f (xj ))p ⩽                  kx − ykp2 dπ(x, y)
+                                           R3 ×R3
+                                            5 K−1
+                                      1 XX                                p   kQ2K (i, j) − Q30 (i, j)kp2
+                                  =             Qts (i, j) − Qts+1 (i, j) 2 +                             . (15)
+                                      N t=1 s=0                                           N
+
+       Note that if s ∈ {0, . . . , K − 1} then by (2), (3), (5), (6) we have
+
+                                                            M φ(i, j)   M n2
+          t ∈ {1, 5} =⇒       Qts (i, j) − Qts+1 (i, j) 2 =           ⩽      ,
+                                                             mK         mK
+                                                            M
+          t ∈ {2, 4} =⇒       Qts (i, j) − Qts+1 (i, j) 2 =     .                                          (16)
+                                                            mK
+       Also, by (3) and (4) we have
+                                                           1
+                                             dX (xi , xj ) p
+            Q2K (i, j) − Q30 (i, j) 2 =                      .                                             (17)
+                                                  m
+       Finally, by (4) for every s ∈ {0, . . . , K − 1} we have
+                                                                         1
+                                               M (j − i) dX (xi , xj ) p   Mn
+            Q3s (i, j) − Q3s+1 (i, j) 2 =               −                ⩽    ,                            (18)
+                                                 mK          mK            mK
+       where we used the fact that M (j − i) − dX (xi , xj )1/p ⩾ 0, which holds true by the definition
+       of M in (1) because j − i ⩾ 1. A substitution of (16), (17) and (18) into (15) yields the
+       estimate
+                                                          p
+                                  dX (xi , xj ) 5K M n2
+                                                   
+                              p
+          Wp (f (xi ), f (xj )) ⩽              +
+                                    mp N         N   mK
+                                                   5M p n2p
+                                                                 
+                                                                    dX (xi , xj )            dX (xi , xj )
+                                       = 1 + p−1                                  ⩽ (1 + pε)               ,
+                                                 K  dX (xi , xj )     mp N                     mp N
+
+       where we used the fact that by the definition of m in (1) we have mp ⩽ dX (xi , xj ), and the
+       lower bound on K that is assumed in (12). This implies the right hand inequality in (13)
+       because 1 + pε ⩽ (1 + ε)p .
+          Passing now to the proof of the left hand inequality in (13), we need to prove that for
+       every i, j ∈ {1, . . . , n} with i < j we have
+                                           ZZ
+                                                                         dX (xi , xj )
+          ∀ π ∈ Π(f (xi ), f (xj )),                kx − ykp2 dπ(x, y) ⩾               .        (19)
+                                              3
+                                             R ×R 3                        mp N
+
+       Note that we still did not use the triangle inequality for dX , but this will be used in the proof
+       of (19). Also, the reason why we are dealing with Pp (R3 ) rather than Pp (R2 ) will become
+       clear in the ensuing argument.
+           Recall that the measures f (xi ) and f (xj ) are uniformly distributed over sets of the same
+       size, and their supports Ci and Cj (respectively) satisfy Ci 4Cj = {(M i/m)e1 , (M j/m)e1 }.
+A. Andoni, A. Naor, and O. Neiman                                                                           83:9
+
+
+Since the set of all doubly stochastic matrices is the convex hull of the permutation matrices,
+and every permutation is a product of disjoint cycles, it follows that it suffices to establish the
+                                PL
+validity of (19) when π = N1 `=1 δ(u`−1 ,u` ) for some L ∈ {1, . . . , n} and u1 , . . . uL−1 ∈ C,
+where we set u0 = (M i/m)e1 and uL = (M j/m)e1 . With this notation, our goal is to show
+that
+          L
+      1 X                  dX (xi , xj )
+          ku` − u`−1 kp2 ⩾               .                                                        (20)
+      N                      mp N
+         `=1
+
+                                                                    def
+   For every a ∈ {1, . . . , n} define Sa ⊆ R3 by Sa = S1a ∪ S2a , where
+                n K
+        def
+                [ [
+   S1a =                       Q1s (a, b), Q2s (a, b) ,
+                    
+                                                                                                  (21)
+              b=a+1 s=0
+
+and
+              a−1 K
+        def
+              [ [
+   S2a =                     Q3s (c, a), Q4s (c, a), Q5s (c, a) .
+                         
+                                                                                                  (22)
+               c=1 s=0
+
+Thus, recalling (7), the sets S1 , . . . , Sn form a partition of B and a ∈ Sa for every a ∈
+{1, . . . , n}. For every ` ∈ {0, . . . , L} let a(`) be the unique element of {1, . . . , n} for which
+u` ∈ Sa(`) . Then a(0) = i and a(L) = j. The left hand side of (20) can be bounded from
+below as follows
+          L                                 L
+      1 X                  1 X
+          ku` − u`−1 kp2 ⩾       min ku − vkp2 .                                                  (23)
+      N                    N   u∈Sa(`−1)
+         `=1                               `=1 v∈S
+                                                   a(`)
+
+
+
+   We shall show that
+                                                                             dX (xa , xb )
+   ∀ a, b ∈ {1, . . . , n}, ∀(u, v) ∈ Sa × Sb ,                ku − vkp2 ⩾                 .      (24)
+                                                                                 mp
+The validity of (24) implies the required estimate (20) because, by (23), it follows from (24)
+and the triangle inequality for dX that
+        L                   L                    
+      1 X             p   1 X dX xa(`−1) , xa(`)     dX (xi , xj )
+          ku` − u`−1 k2 ⩾                          ⩾               .
+      N                   N         mp                 mp N
+         `=1                               `=1
+
+    It remains to justify (24). Suppose that a, b ∈ {1, . . . , n} satisfy a < b and (u, v) ∈ Sa × Sb .
+Write u = Qts (c, d) and v = Qτσ (γ, δ) for some s, σ ∈ {0, . . . , K}, t, τ ∈ {1, . . . , 5} and
+c, d, γ, δ ∈ {1, . . . , n}.
+    We shall check below, via a direct case analysis, that the absolute value of one of the
+three coordinates of u − v is either at least M/m or at least dX (xa , xb )1/p /m. Since by the
+definition of M in (1) we have M ⩾ dX (xa , xb )1/p , this assertion will imply (24).
+    Suppose first that t, τ ∈ {1, 2, 4, 5}. By comparing (21), (22) with (2), (3), (4), (5)
+we see that hu, e1 i = M a/m and hv, e1 i = M b/m. Since b − a ⩾ 1, this implies that
+hu − v, e1 i ⩾ M/m, as required.
+    If t = τ = 3 then by (22) we necessarily have d = a and δ = b. Hence (c, d) 6= (γ, δ) and
+therefore |φ(c, d) − φ(γ, δ)| ⩾ 1, since φ is a bijection between {1, . . . , n} × {1, . . . , n} and
+{1, . . . , n2 }. By (4) we therefore have |hu − v, e2 i| ⩾ M/m, as required.
+
+
+
+                                                                                                          ICALP 2016
+83:10   Impossibility of Sketching of the 3D Transportation Metric with Quadratic Cost
+
+
+            It remains to treat the case t 6= τ and 3 ∈ {t, τ }. If {t, τ } ⊆ {1, 3, 5} then by contrasting (4)
+        with (2) and (6) we see that the third coordinate of one of the vectors u, v vanishes while the
+        third coordinate of the other vector equals M/m. Therefore |hu − v, e3 i| ⩾ M/m, as required.
+        The only remaining case is {t, τ } ⊆ {2, 3, 4}. In this case |hu−v, e2 i| = M |φ(c, d)−φ(γ, δ)|/m,
+        by (4), (3), (5). So, if (c, d) 6= (γ, δ) then |φ(c, d) − φ(γ, δ)| ⩾ 1, and we are done. We
+        may therefore assume that c = γ and d = δ. Observe that by (22) if {t, τ } = {3, 4} then
+        {d, δ} = {a, b}, which contradicts d = δ. So, we also necessarily have {t, τ } = {2, 3}, in which
+        case, since a < b, by (21) and (22) we see that c = γ = a and d = δ = b. By interchanging
+        the labels s and σ if necessary, we may assume that u = Q2σ (a, b) and v = Q3s (a, b). By (3)
+        and (4) we therefore have
+                                                                           1
+                              M (s(b − a) + Ka) (K − s)dX (xa , xb ) p       Ma
+             hv − u, e1 i =                      +                        −
+                                     mK                       mK             m
+                                                          1                               1                 1
+                                            dX (xa , xb ) p   sM (b − a) − sdX (xa , xb ) p   dX (xa , xb ) p
+                                         =                  +                               ⩾                 ,
+                                                 m                       mK                        m
+        where we used the fact that by (1) we have M ⩾ dX (xa , xb )1/p , and that b − a ⩾ 1. This
+        concludes the verification of the remaining case of (24), and hence the proof of Lemma 7 is
+        complete.                                                                                J
+
+        2.1      Implications: Theorems 2 and 4
+        Theorem 2 follows from the fact that the shortest path metric on an expander graph on N
+        nodes has Ω(log N ) distortion lower bound for embedding it into L1 [29]. Note that in the
+                                                                                            1
+                                                                                  p 2p  p−1
+        proof above we obtain measures supported on n points where n ⩽ N O(1) · 5MpmNp          for
+        a 1 + ε = 2 approximation. Hence, any embedding of Wp on R3 pointsets of size n into L1
+        has a distortion lower bound of Ω((log N )1/p ) = Ω(((p − 1) log n)1/p ).
+             Similarly, Theorem 4 follows by considering X to be the N -point subset of
+        (P1 ({0, 1}O(log N ) ), W1 ) introduced in [26, Section 3]. Any sketching algorithm for this metric
+        X requires Ω( logs N ) approximation for sketching complexity s [5, Theorem4.1]. Since we can
+                                                                                                       1/p 
+                                                                                            (p−1) log n
+        embed X into the square of W2 with constant distortion, we obtain a Ω                   s
+        approximation lower bound for any Wp sketch with sketching complexity s.
+
+         3       Future Directions
+        As discussed in the Introduction, it seems plausible that Theorem 5 and Theorem 6 are not
+        sharp when p ∈ (2, ∞). Specifically, we conjecture that there exist Dp ∈ [1, ∞) such that for
+        every finite metric space (X, dX ) we have
+                     p 
+           cPp (R3 ) X, dX ⩽ Dp .                                                               (25)
+
+        Perhaps (25) even holds true with Dp = 1. Since L2 admits an isometric embedding into Lp
+        (see e.g. [59]), the perceived analogy between Wasserstein p spaces and Lp spaces makes it
+        natural to ask whether or not (P2 (R3 ), W2 ) admits a bi-Lipschitz embedding into (Pp (R3 ), Wp ).
+        If the answer to this question were positive then (25) would hold true by virtue of the case
+        p = 2 of Theorem 5. We also conjecture that the lower bound of Theorem 6 could be
+        improved when p > 2 to state that for arbitrarily large n ∈ N there exists an n-point metric
+        space (Y, dY ) such that for every α ∈ (1/2, 1],
+                                                   1
+             c(Pp (R3 ),Wp ) (Y, dα
+                                  Y ) &p (log n)
+                                                α− 2
+                                                     .                                                      (26)
+A. Andoni, A. Naor, and O. Neiman                                                                  83:11
+
+
+It was shown in [36] that Lp has Markov type 2 for every p ∈ (2, ∞). We therefore ask
+whether or not (Pp (R3 ), Wp ) has Markov type 2 for every p ∈ (2, ∞). A positive answer to
+this question would imply that the lower bound (26) is indeed achievable. For this purpose
+it would also suffice to show that for every p ∈ (2, ∞) and k ∈ N we have
+
+     Mp ((Pp (R3 ), Wp ); 2k ) .p 2k( 2 − p ) .
+                                        1   1
+                                                                                          (27)
+
+Proving (27) may be easier than proving that M2 (Pp (R3 ), Wp ) < ∞, since the former involves
+arguing about the pth powers of Wasserstein p distances while the latter involves arguing
+                                                                     √
+about Wasserstein p distances squared. Note that Mp (Lp ; m) . pm1/2−1/p by [36] (see
+also [35, Theorem 4.3]), so the Lp -version of (27) is indeed valid.
+    Another natural direction to pursue concerns with the distortion of embedding finite
+metric spaces into Wasserstein spaces.
+
+I Question 1. Is it true that for p ∈ (1, 2] and n ∈ N every n-point metric space (X, dX )
+satisfies
+                                  1
+     cPp (R3 ) (X) .p (log n)1− p ?
+
+A positive answer to Question (1) would resolve the metric cotype dichotomy problem [31]
+(see the full version for more details). We believe that Question 1 is an especially intriguing
+challenge in embedding theory (for a concrete and natural target space) because a positive
+answer would require an interesting new construction, and a negative answer would require
+devising a new bi-Lipschitz invariant that would serve as an obstruction for embeddings into
+Wasserstein spaces.
+                                                                                        √
+    Focusing for concreteness on the case p = 2, Question 1 asks whether cP2 (R3 ) (X) . log n
+for every n-point metric space (X, dX ). Note that Theorem 5 implies that (X, dX ) embeds
+into P2 (X) with distortion at most the square root of the aspect ratio of (X, dX ), i.e.,
+                               v
+                               u diam(X, d )
+                                             X
+    c(P2 (R3 ),W2 ) (X, dX ) ⩽ t                    ,                                      (28)
+                               u
+                                 minx,y∈X dX (x, y)
+                                         x6=y
+
+but we are asking here for the largest possible growth rate of the distortion of X into P2 (X)
+in terms of the cardinality of X. While for certain embedding results there are standard
+methods (see e.g. [10, 23, 32]) for replacing the dependence on the aspect ratio of a finite
+metric space by a dependence on its cardinality, these methods do not seem to apply to our
+embedding in (28). See the full version for further discussion.
+
+       References
+ 1     Pankaj Agarwal and Kasturi Varadarajan. A near-linear constant-factor approximation
+       for euclidean bipartite matching? In Proceedings of the Twentieth Annual Symposium
+       on Computational Geometry, SCG’04, pages 247–252, New York, NY, USA, 2004. ACM.
+       doi:10.1145/997817.997856.
+ 2     Pankaj K. Agarwal, Alon Efrat, and Micha Sharir. Vertical decomposition of shallow
+       levels in 3-dimensional arrangements and its applications. SIAM Journal on Computing,
+       29(3):912–953, 2000.
+ 3     Pankaj K. Agarwal and R. Sharathkumar. Approximation algorithms for bipartite matching
+       with metric and geometric costs. In Proceedings of the 46th Annual ACM Symposium
+       on Theory of Computing, STOC’14, pages 555–564, New York, NY, USA, 2014. ACM.
+       doi:10.1145/2591796.2591844.
+
+
+
+
+                                                                                                  ICALP 2016
+83:12   Impossibility of Sketching of the 3D Transportation Metric with Quadratic Cost
+
+
+         4   Alexandr Andoni, Khanh Do Ba, Piotr Indyk, and David Woodruff. Efficient sketches for
+             Earth-Mover Distance, with applications. In Proceedings of the Symposium on Foundations
+             of Computer Science (FOCS), 2009.
+         5   Alexandr Andoni, Piotr Indyk, and Robert Krauthgamer. Earth mover distance over high-
+             dimensional spaces. In Proceedings of the ACM-SIAM Symposium on Discrete Algorithms
+             (SODA), pages 343–352, 2008. Previously ECCC Report TR07-048.
+         6   Alexandr Andoni, Robert Krauthgamer, and Ilya Razenshteyn. Sketching and embed-
+             ding are equivalent for norms. In Proceedings of the Symposium on Theory of Computing
+             (STOC), 2015. Full version at http://arxiv.org/abs/1411.2577.
+         7   Alexandr Andoni, Aleksandar Nikolov, Krzysztof Onak, and Grigory Yaroslavtsev. Parallel
+             algorithms for geometric graph problems. In Proceedings of the Symposium on Theory
+             of Computing (STOC), 2014. Full version at http://arxiv.org/abs/1401.0042. doi:
+             10.1145/2591796.2591805.
+         8   T. Austin and A. Naor. On the bi-Lipschitz structure of Wasserstein spaces. In preparation,
+             2016.
+         9   Ziv Bar-Yossef, T. S. Jayram, Ravi Kumar, and D. Sivakumar. An information statistics
+             approach to data stream and communication complexity. J. Comput. Syst. Sci., 68(4):702–
+             732, 2004. Previously in FOCS’02.
+        10   Yair Bartal. Probabilistic approximation of metric spaces and its algorithmic applications.
+             In 37th Annual Symposium on Foundations of Computer Science (Burlington, VT, 1996),
+             pages 184–193. IEEE Comput. Soc. Press, Los Alamitos, CA, 1996. doi:10.1109/SFCS.
+             1996.548477.
+        11   Nicolas Bonneel, Julien Rabin, Gabriel Peyré, and Hanspeter Pfister. Sliced and radon
+             wasserstein barycenters of measures. Journal of Mathematical Imaging and Vision,
+             51(1):22–45, 2015.
+        12   Nicolas Bonneel, Michiel Van De Panne, Sylvain Paris, and Wolfgang Heidrich. Dis-
+             placement interpolation using lagrangian mass transport. ACM Transactions on Graphics
+             (TOG), 30(6):158, 2011.
+        13   J. Bourgain. The metrical interpretation of superreflexivity in Banach spaces. Israel J.
+             Math., 56(2):222–230, 1986. doi:10.1007/BF02766125.
+        14   Moses Charikar. Similarity estimation techniques from rounding. In Proceedings of the
+             Symposium on Theory of Computing (STOC), pages 380–388, 2002.
+        15   Marco Cuturi and Arnaud Doucet. Fast computation of wasserstein barycenters. In Pro-
+             ceedings of The 31st International Conference on Machine Learning, pages 685–693, 2014.
+        16   Constantinos Daskalakis, Alan Deckelbaum, and Christos Tzamos. Mechanism design via
+             optimal transport. In Proc. of the 14th ACM Conf. on Electronic Commerce, EC’13, pages
+             269–286, New York, NY, USA, 2013. ACM. doi:10.1145/2482540.2482593.
+        17   Guy David and Stephen Semmes. Fractured fractals and broken dreams, volume 7 of Oxford
+             Lecture Series in Mathematics and its Applications. The Clarendon Press, Oxford University
+             Press, New York, 1997. Self-similar geometry through metric and measure.
+        18   Fernando de Goes, Katherine Breeden, Victor Ostromoukhov, and Mathieu Desbrun. Blue
+             noise through optimal transport. ACM Transactions on Graphics (TOG), 31(6):171, 2012.
+        19   Fernando De Goes, David Cohen-Steiner, Pierre Alliez, and Mathieu Desbrun. An optimal
+             transport approach to robust reconstruction and simplification of 2d shapes. Computer
+             Graphics Forum, 30(5):1593–1602, 2011.
+        20   Norm Ferns, Pablo Samuel Castro, Doina Precup, and Prakash Panangaden. Methods for
+             computing state similarity in markov decision processes. In UAI’06, Proc. of the 22nd Conf.
+             in Uncertainty in Artificial Intelligence, Cambridge, MA, USA, July 13-16, 2006, 2006.
+A. Andoni, A. Naor, and O. Neiman                                                                 83:13
+
+
+21   Kristen Grauman and Trevor Darrell. The pyramid match kernel: Discriminative classific-
+     ation with sets of image features. In Proceedings of the IEEE International Conference on
+     Computer Vision (ICCV), Beijing, China, October 2005.
+22   Kristen Grauman and Trevor Darrell. Approximate correspondences in high dimensions.
+     In Proceedings of Advances in Neural Information Processing Systems (NIPS), 2006.
+23   Sariel Har-Peled and Manor Mendel. Fast construction of nets in low-dimensional metrics
+     and their applications. SIAM J. Comput., 35(5):1148–1184 (electronic), 2006. doi:10.
+     1137/S0097539704446281.
+24   Piotr Indyk. A near linear time constant factor approximation for euclidean bichromatic
+     matching (cost). In Proceedings of the ACM-SIAM Symposium on Discrete Algorithms
+     (SODA), 2007.
+25   Piotr Indyk and Nitin Thaper. Fast color image retrieval via embeddings. Workshop on
+     Statistical and Computational Theories of Vision (at ICCV), 2003.
+26   Subhash Khot and Assaf Naor. Nonembeddability theorems via Fourier analysis. Math.
+     Ann., 334(4):821–852, 2006. doi:10.1007/s00208-005-0745-0.
+27   Eyal Kushilevitz, Rafail Ostrovsky, and Yuval Rabani. Efficient search for approximate
+     nearest neighbor in high dimensional spaces. SIAM J. Comput., 30(2):457–474, 2000. Pre-
+     liminary version appeared in STOC’98.
+28   Svetlana Lazebnik, Cordelia Schmid, and Jean Ponce. Beyond bags of features: Spatial
+     pyramid matching for recognizing natural scene categories. In Proceedings of the IEEE
+     Conference on Computer Vision and Pattern Recognition, 2006.
+29   N. Linial, E. London, and Y. Rabinovich. The geometry of graphs and some of its al-
+     gorithmic applications. Combinatorica, 15(2):215–245, 1995.
+30   Jiří Matoušek and Assaf Naor. Open problems on embeddings of finite metric spaces,
+     August 2011. Available at http://kam.mff.cuni.cz/~matousek/metrop.ps.
+31   Manor Mendel and Assaf Naor. Metric cotype. Ann. of Math. (2), 168(1):247–298, 2008.
+     doi:10.4007/annals.2008.168.247.
+32   Manor Mendel and Assaf Naor. Maximum gradient embeddings and monotone clustering.
+     Combinatorica, 30(5):581–615, 2010. doi:10.1007/s00493-010-2302-z.
+33   David M. Mount, Nathan S. Netanyahu, and San Ratanasanya. New approaches to robust,
+     point-based image registration. In Jacqueline Le Moigne, Nathan S. Netanyahu, and Ro-
+     ger D. Eastman, editors, Image Registration for Remote Sensing, pages 179–199. Cambridge
+     University Press, 2011. Cambridge Books Online. doi:10.1017/CBO9780511777684.009.
+34   Patrick Mullen, Pooran Memari, Fernando de Goes, and Mathieu Desbrun. Hot: Hodge-
+     optimized triangulations. ACM Transactions on Graphics (TOG), 30(4):103, 2011.
+35   Assaf Naor. Comparison of metric spectral gaps. Anal. Geom. Metr. Spaces, 2:1–52, 2014.
+     doi:10.2478/agms-2014-0001.
+36   Assaf Naor, Yuval Peres, Oded Schramm, and Scott Sheffield. Markov chains in smooth
+     Banach spaces and Gromov-hyperbolic metric spaces. Duke Math. J., 134(1):165–197, 2006.
+     doi:10.1215/S0012-7094-06-13415-4.
+37   Assaf Naor and Gideon Schechtman. Planar earthmover is not in L1 . SIAM J. Comput.
+     (SICOMP), 37(3):804–826, 2007. An extended abstract appeared in FOCS’06.
+38   Kangyu Ni, Xavier Bresson, Tony F. Chan, and Selim Esedoglu. Local histogram based
+     segmentation using the wasserstein distance. International Journal of Computer Vision,
+     84(1):97–111, 2009. doi:10.1007/s11263-009-0234-0.
+39   Yann Ollivier, Herve Pajot, and Cedric Villani. Optimal Transport, Theory and Applica-
+     tions. Cambridge University Press, New York, NY, USA, 2014.
+40   List of open problems in sublinear algorithms: Problem 7. http://sublinear.info/7.
+41   List of open problems in sublinear algorithms: Problem 49. http://sublinear.info/49.
+
+
+
+
+                                                                                                 ICALP 2016
+83:14   Impossibility of Sketching of the 3D Transportation Metric with Quadratic Cost
+
+
+        42   Ofir Pele and Michael Werman. Fast and robust earth mover’s distances. In IEEE 12th
+             International Conference on Computer Vision, ICCV 2009, Kyoto, Japan, September 27 –
+             October 4, 2009, pages 460–467, 2009. doi:10.1109/ICCV.2009.5459199.
+        43   Jeff M. Phillips and Pankaj K. Agarwal. On bipartite matching under the RMS distance. In
+             Proceedings of the 18th Annual Canadian Conference on Computational Geometry, CCCG
+             2006, August 14-16, 2006, Queen’s University, Ontario, Canada, 2006. URL: http://www.
+             cs.queensu.ca/cccg/papers/cccg37.pdf.
+        44   Svetlozar T. Rachev and Ludger Rüschendorf. Mass transportation problems. Vol. I. Prob-
+             ability and its Applications (New York). Springer-Verlag, New York, 1998. Theory.
+        45   Yossi Rubner, Carlo Tomasi, and Leonidas J. Guibas. A metric for distributions with
+             applications to image databases. In ICCV, pages 59–66, 1998.
+        46   Yossi Rubner, Carlo Tomasi, and Leonidas J. Guibas. The earth mover’s distance as a
+             metric for image retrieval. Int. J. Comput. Vision, 40(2):99–121, November 2000. doi:
+             10.1023/A:1026543900054.
+        47   Yossi Rubner, Carlo Tomasi, and Leonidas J. Guibas. The earth mover’s distance as a
+             metric for image retrieval. International Journal of Computer Vision, 40(2):99–121, 2000.
+        48   Michael Saks and Xiaodong Sun. Space lower bounds for distance approximation in the
+             data stream model. In Proceedings of the Symposium on Theory of Computing (STOC),
+             pages 360–369, 2002. doi:10.1145/509907.509963.
+        49   R. Sharathkumar and Pankaj K. Agarwal. Algorithms for the transportation problem in
+             geometric settings. In Proceedings of the ACM-SIAM Symposium on Discrete Algorithms
+             (SODA), pages 306–317, 2012.
+        50   R. Sharathkumar and Pankaj K. Agarwal. A near-linear time approximation algorithm for
+             geometric bipartite matching. In Proceedings of the Symposium on Theory of Computing
+             (STOC), pages 385–394, 2012.
+        51   Justin Solomon, Fernando de Goes, Gabriel Peyré, Marco Cuturi, Adrian Butscher, Andy
+             Nguyen, Tao Du, and Leonidas Guibas. Convolutional wasserstein distances: Efficient
+             optimal transportation on geometric domains. ACM Trans. Graph., 34(4):66:1–66:11, July
+             2015. In SIGGRAPH’15. doi:10.1145/2766963.
+        52   Justin Solomon, Leonidas Guibas, and Adrian Butscher. Dirichlet energy for analysis and
+             synthesis of soft maps. Computer Graphics Forum, 32(5):197–206, 2013.
+        53   Justin Solomon, Raif Rustamov, Leonidas Guibas, and Adrian Butscher. Earth mover’s
+             distances on discrete surfaces. ACM Trans. Graph., 33(4):67:1–67:12, July 2014. doi:
+             10.1145/2601097.2601175.
+        54   Justin Solomon, Raif Rustamov, Leonidas Guibas, and Adrian Butscher. Wasserstein
+             propagation for semi-supervised learning. In Proceedings of The 31st International Confer-
+             ence on Machine Learning, pages 306–314, 2014.
+        55   Pravin M. Vaidya. Geometry helps in matching. SIAM Journal on Computing, 18(6):1201–
+             1225, 1989.
+        56   Kasturi R. Varadarajan and Pankaj K. Agarwal. Approximation algorithms for bipartite
+             and non-bipartite matching in the plane. In Proc. of the 10th annual ACM-SIAM Symp.
+             on Discrete algorithms, pages 805–814. SIAM, 1999.
+        57   Cédric Villani. Topics in optimal transportation, volume 58 of Graduate Studies in Math-
+             ematics. American Mathematical Society, Providence, RI, 2003.
+        58   Michael Werman, Shmuel Peleg, and Azriel Rosenfeld. A distance metric for multidimen-
+             sional histograms. Computer Vision, Graphics, and Image Processing, 32(3):328–336, 1985.
+             doi:10.1016/0734-189X(85)90055-6.
+        59   P. Wojtaszczyk. Banach spaces for analysts, volume 25 of Cambridge Studies in Ad-
+             vanced Mathematics. Cambridge University Press, Cambridge, 1991. doi:10.1017/
+             CBO9780511608735.
+

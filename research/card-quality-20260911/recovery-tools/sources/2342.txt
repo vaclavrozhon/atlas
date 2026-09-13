@@ -1,0 +1,1256 @@
+Low-Depth Arithmetic Circuit Lower Bounds:
+Bypassing Set-Multilinearization
+Prashanth Amireddy #
+Harvard University, Cambridge, MA, USA
+Ankit Garg #
+Microsoft Research, Bangalore, India
+Neeraj Kayal #
+Microsoft Research, Bangalore, India
+Chandan Saha #
+Indian Institute of Science, Bangalore, India
+Bhargav Thankey #
+Indian Institute of Science, Bangalore, India
+
+      Abstract
+A recent breakthrough work of Limaye, Srinivasan and Tavenas [29] proved superpolynomial lower
+bounds for low-depth arithmetic circuits via a “hardness escalation” approach: they proved lower
+bounds for low-depth set-multilinear circuits and then lifted the bounds to low-depth general circuits.
+In this work, we prove superpolynomial lower bounds for low-depth circuits by bypassing the hardness
+escalation, i.e., the set-multilinearization, step. As set-multilinearization comes with an exponential
+blow-up in circuit size, our direct proof opens up the possibility of proving an exponential lower
+bound for low-depth homogeneous circuits by evading a crucial bottleneck. Our bounds hold for
+the iterated matrix multiplication and the Nisan-Wigderson design polynomials. We also define
+a subclass of unrestricted depth homogeneous formulas which we call unique parse tree (UPT)
+formulas, and prove superpolynomial lower bounds for these. This significantly generalizes the
+superpolynomial lower bounds for regular formulas [6, 19].
+
+2012 ACM Subject Classification Theory of computation → Algebraic complexity theory
+
+Keywords and phrases arithmetic circuits, low-depth circuits, lower bounds, shifted partials
+
+Digital Object Identifier 10.4230/LIPIcs.ICALP.2023.12
+
+Category Track A: Algorithms, Complexity and Games
+
+Related Version Full Version: https://eccc.weizmann.ac.il/report/2022/151/
+
+Funding Prashanth Amireddy: Supported in part by a Simons Investigator Award and NSF Award
+CCF 2152413 to Madhu Sudan. A part of this work was done while the author was a research fellow
+at Microsoft Research, India.
+Chandan Saha: Partially supported by a MATRICS grant of the Science and Engineering Research
+Board, DST, India.
+Bhargav Thankey: Supported by the Prime Minister’s Research Fellowship, India.
+
+Acknowledgements We would like to thank the anonymous reviewers for their valuable feedback.
+
+
+ 1      Introduction
+Arithmetic circuits are a natural model for computing polynomials using the basic operations
+of addition and multiplication. One of the most fundamental questions about arithmetic
+circuits is about finding a family of explicit polynomials (if they exist) that cannot be
+computed by polynomial-sized arithmetic circuits. The existence of such explicit polynomials
+was conjectured by Valiant in 1979 [40] and is the famed VP vs VNP conjecture. Arithmetic
+            © Prashanth Amireddy, Ankit Garg, Neeraj Kayal, Chandan Saha, and Bhargav Thankey;
+                                                                                                     EA
+
+
+
+
+            licensed under Creative Commons License CC-BY 4.0
+                                                                                                     TC S
+
+
+
+
+50th International Colloquium on Automata, Languages, and Programming (ICALP 2023).
+Editors: Kousha Etessami, Uriel Feige, and Gabriele Puppis; Article No. 12; pp. 12:1–12:20
+                   Leibniz International Proceedings in Informatics
+                   Schloss Dagstuhl – Leibniz-Zentrum für Informatik, Dagstuhl Publishing, Germany
+12:2   Low-Depth Arithmetic Circuit Lower Bounds: Bypassing Set-Multilinearization
+
+
+       circuit lower bounds are expected to be easier than Boolean circuit lower bounds. Among
+       many reasons, one is due to the phenomenon of depth reduction. Arithmetic circuits can be
+       converted into low-depth circuits preserving the output polynomial and not blowing up the
+       size too much [1, 10, 22, 39, 41]. Due to this, strong enough lower bounds even for restrictive
+       models of computation like depth-3 circuits or homogeneous depth-4 circuits can lead to
+       superpolynomial arithmetic circuit lower bounds.
+           Arithmetic formulas are an important subclass of arithmetic circuits where the out-degree
+       of every gate is at most 1. For constant-depth, formulas and circuits are polynomially
+       related. Also, all our results deal with formulas. So we will only refer to formulas from
+       here on. We consider (families of) polynomials having degree at most polynomial in n,
+       the number of variables. One of the first results studying low-depth arithmetic formulas
+       was that of [32], who proved lower bounds for homogeneous depth-3 formulas. Progress on
+       homogeneous formula lower bound was stalled for a while, and then various lower bounds for
+       homogeneous depth-4 formulas were proven in a series of works [6, 9, 13, 14, 19, 25, 26]. There
+       was limited progress for higher-depth formulas, and lower bounds remained open even for
+       depth-5 formulas. In a recent breakthrough work, [29] proved superpolynomial lower bounds
+                                                                                                c
+       for constant-depth arithmetic formulas. Their lower bounds are of the form nΩ(log(n) ∆ ) for
+       a constant 0 < c∆ < 1 depending on the depth ∆ of the formula. The following two open
+       problems naturally emerge out of their work.
+       ▶ Open Problem 1. Prove superpolynomial lower bounds for general formulas or even
+       homogeneous formulas. (A formula is homogeneous if every gate computes a homogeneous
+       polynomial.)
+       ▶ Open Problem 2. Prove exponential lower bounds for constant-depth arithmetic formulas.
+       This is interesting even for homogeneous depth-5 formulas.
+           Towards answering Open Problems 1.1 and 1.2, let us examine the lower bound proof in
+       [29] at a high level. Their proof has two main steps: First, they reduce the problem of proving
+       lower bounds for low-depth formulas to the problem of proving lower bounds for low-depth
+       set-multilinear formulas; set-multilinear formulas are special homogeneous formulas with
+       an underlying partition of the variables into subsets. [29] calls such reductions “hardness
+       escalation”. Second, they use an interesting adaptation of the rank of the partial derivatives
+       matrix measure [31] to prove a lower bound for low-depth set-multilinear formulas. They call
+       this measure relative rank (relrk). The effectiveness of the relrk measure crucially depends on
+       a certain “imbalance” between the sizes of the sets used to define set-multilinear polynomials.
+       The proof in [29] raises two natural questions:
+       Question 1: Can we bypass the hardness escalation, i.e., the set-multilinearization, step?
+       Question 2: Can we design a measure that exploits some weakness of homogeneous (but
+         not necessarily set-multilinear) formulas directly?
+
+
+       Motivations for studying Question 1. Set-multilinear circuits form a natural circuit class
+       as most interesting polynomial families, such as the determinant, permanent, iterated matrix
+       multiplication, etc., are set-multilinear. However, set-multilinearization comes with an
+       exponential blow up in size – a homogeneous, depth-∆ formula computing a set-multilinear
+       polynomial of degree d can be converted to a set-multilinear formula of depth ∆ and size
+       dO(d) · s (see [29]). So, an exponential lower bound for low-depth set-multilinear formulas
+       does not imply an exponential lower bound for low-depth homogeneous formulas since we
+       are restricted to work with d ≤ logloglogn n . Indeed, it is possible to strengthen and refine the
+       argument in [29] to get an exponential lower bound for low-depth set-multilinear formulas
+       (see [2]). An approach that evades the hardness escalation step, which is a critical bottleneck,
+P. Amireddy, A. Garg, N. Kayal, C. Saha, and B. Thankey                                               12:3
+
+
+and directly works with homogeneous formulas has the potential to avoid the dO(d) loss and
+give an exponential lower bound for low-depth homogeneous formulas. For instance, the
+direct arguments in [14,26] yield exponential lower bounds for homogeneous depth-4 formulas.
+If we go via the hardness escalation approach, we get a quasi-polynomial lower bound for
+the same model. Besides, a direct argument can also be used to prove lower bounds for
+polynomials that do not have a non-trivial set-multilinear component, see the full version
+of this article [2] for more details. The hardness escalation approach of [29] can not yield
+such a lower bound. Furthermore, it is conceivable that a direct argument can also be used
+to obtain functional lower bounds for low-depth formulas which might be useful in proof
+complexity.
+
+Motivations for studying Question 2. Typical measures used for proving lower bounds for
+arithmetic circuits include the partial derivatives measure (PD) [32,38], the rank of the partial
+derivatives matrix measure (a.k.a. evaluation dimension) [31, 34, 36], the shifted partials
+measure (SP) and its variants [9,14,19], the affine projections of partials measure (APP) [7,15],
+etc. All these measures are defined for any polynomial, which is not necessarily set-multilinear.
+Whereas the relrk measure used in [29], although very effective, is defined for set-multilinear
+polynomials. Measures such as PD, SP, and APP have the geometrically appealing property
+that they are invariant under the application of invertible linear transformations on the
+variables. Since low-depth formulas, as well as low-depth homogeneous formulas, are closed
+under linear transformations, it is natural to look for measures that do not blow up much
+on applying linear transformations. Another important motivation for studying Question 2
+is to learn low-depth homogeneous formulas. While the “hardness escalation” paradigm of
+reducing to the set-multilinear case works for proving lower bounds, it is not clear how to
+exploit it to design learning algorithms for low-depth formulas. Lower bounds for arithmetic
+circuits are intimately connected to learning [5, 7, 18, 42]. Hence if we have a lower bound
+measure that directly exploits the weakness of low-depth homogeneous formulas, it opens up
+the possibility of new learning algorithms for such models.
+
+1.1    Our results
+We answer Questions 1 and 2 by giving a direct lower bound for low-depth homogeneous
+formulas via the SP measure which was used in the series of works on homogeneous depth-4
+exponential lower bounds. While our proof also yields lower bounds only in the low-degree
+setting, the hope is that it could potentially lead to a stronger lower bound in the future.
+    Consider the shifted partials measure: SPk,ℓ (f ) := dim⟨xℓ · ∂ k (f )⟩, where f is a poly-
+nomial. That is, SPk,ℓ (f ) is the dimension of the space spanned by the polynomials ob-
+tained by multiplying degree ℓ monomials to partial derivatives of f of order k. Also,
+for convenience, let us denote by M (n, k) := n+k−1   k     the number of monomials of de-
+gree k in n variables. Then note that for a homogeneous polynomial f of degree d,
+SPk,ℓ (f ) ≤ min{M (n, k)M (n, ℓ), M (n, d − k + ℓ)}.
+    We show that for polynomials computed by low-depth homogeneous formulas, the shifted
+partials measure with an appropriate setting of k and ℓ is substantially smaller than the
+above upper bound. At the same time, we exhibit explicit “hard” polynomials for which the
+shifted partials measure is close to the above bound, hence yielding a lower bound.
+▶ Theorem 3 (Lower bound for low-depth homogeneous formulas via shifted partials). Let C be
+a homogeneous formula of size s and product-depth ∆ that computes a polynomial of degree d
+in n variables. Then for appropriate values of k and ℓ,
+                  s 2O(d)
+   SPk,ℓ (C) ≤       1−∆        min{M (n, k)M (n, ℓ), M (n, d − k + ℓ)}.
+                 nΩ(d2      )
+
+
+                                                                                                    ICALP 2023
+12:4   Low-Depth Arithmetic Circuit Lower Bounds: Bypassing Set-Multilinearization
+
+
+       At the same time, there are homogeneous polynomials f of degree d in n variables (e.g., an
+       appropriate projection of iterated matrix multiplication polynomial, Nisan-Wigderson design
+       polynomial, etc.) such that
+
+            SPk,ℓ (f ) ≥ 2−O(d) min{M (n, k)M (n, ℓ), M (n, d − k + ℓ)}.
+                                             1−∆
+                                         Ω(d2    )
+       This gives a lower bound of n 2O(d)           on the size of homogeneous product-depth ∆ formulas
+       for f .
+       ▶ Remark 4.
+       1. At the end of this section, we briefly remark why it is surprising that we are able to
+          obtain the above lower bound using shifted partials. We also show that the lower bound
+          can be derived using the affine projections of partials (APP) measure (Lemma 19).
+       2. The above lower bound is slightly better than the bound of [29]. Instead of the dO(d) loss
+          incurred due to converting homogeneous to set-multilinear formulas, our analysis incurs a
+          2O(d) loss; in fact, this loss can be brought down to 2O(k) , but we ignore this distinction
+          as we set k = Θ(d) in the analysis. So, for example, for homogeneous product-depth 2
+          formulas, our superpolynomial lower bound continues to hold for a higher degree (log2 (n)
+                                  2
+          vs (log(n)/ log log(n)) in [29]). While the improvement may be insignificant, this hints
+          at something interesting going on with the direct approach (see Section 1.2).
+           Lower bounds for general-depth arithmetic formulas are expected to be easier than
+       arithmetic circuit lower bounds. However, despite several approaches and attempts (e.g. via
+       tensor rank lower bounds [35]), we still do not have superpolynomial arithmetic formula
+       lower bounds. There has been some success though in proving lower bounds for some natural
+       restricted models (apart from the depth restrictions considered above). For example, [19]
+       considered the model of regular arithmetic formulas. These are formulas which consist of
+       alternating layers of addition (+) and multiplication (×) gates such that the fanin of all gates
+       in any fixed layer is the same. This is a natural model and the best-known formulas for many
+       interesting polynomial families like determinant, permanent, iterated matrix multiplication,
+       etc. are all regular. [19] proved a superpolynomial lower bound on the size of regular formulas
+       for an explicit polynomial and later [6] proved a tight lower bound for the iterated matrix
+       multiplication polynomial.
+           We prove superpolynomial lower bounds for a more general model.1 Consider a model
+       of homogeneous arithmetic formulas consisting of alternating layers of addition (+) and
+       multiplication (×) gates such that the fanin of all addition gates can be arbitrary but fanin
+       of product gates in any fixed layer is the same. We call these product-regular. We prove
+       super-polynomial lower bounds for homogeneous product-regular formulas. Previously we
+       did not know of lower bounds for even a much simpler model where the fanins of all the
+       product gates are fixed to 2.
+           In fact, we prove lower bounds for an even more general model which we call Unique Parse
+       Tree (UPT) formulas. A parse tree of a formula is a tree where for every + gate, one picks
+       exactly one child and for every product gate, we pick all the children. Then we “short circuit”
+       all the addition gates. Parse trees capture the way monomials are generated in a formula.
+       We say that a formula is UPT if all its parse trees are isomorphic. A product-regular formula
+       is clearly UPT. In the theorem below, IM Mn,log n is the iterated multiplication polynomial
+       of degree log n.
+
+
+       1
+           The model in [6, 19] allowed slight non-homogeneity with the formal degree upper bounded by a small
+           constant times the actual degree. However, we only work with homogeneous formulas.
+P. Amireddy, A. Garg, N. Kayal, C. Saha, and B. Thankey                                                            12:5
+
+
+▶ Theorem 5. Any UPT formula computing IM Mn,log(n) has size at least nΩ(log log(n)) . A
+similar lower bound holds for the Nisan-Wigderson design polynomial.
+
+▶ Remark 6.
+1. While homogeneous product-regular formulas are restricted to compute polynomials
+   with only certain degrees (e.g., higher product-depth cannot compute prime degrees),
+   homogeneous UPT formulas do not suffer from this restriction.
+2. While this result (which is obtained using the SP and the APP measures) could possibly
+   also be obtained by defining a similar model in the set-multilinear world, proving a lower
+   bound there and then transporting it back to the homogeneous world, our framework has
+   fewer number of moving parts and hence makes it easier to derive such results.
+
+
+Challenges to using the SP measure. Let us remark briefly why it is surprising that we
+are able to prove low-depth lower bounds via shifted partials. [8, 37] showed that the PD
+                                                  d
+measure of the polynomial (x21 + · · · + x2n ) 2 is the maximum possible when the order of
+                                                                 d
+derivatives, k, is at most d2 . Notice that (x21 + · · · + x2n ) 2 can be computed by a homogeneous
+depth-4 formula of size O(nd). So, it is not possible to prove super-polynomial lower bounds
+for low-depth homogeneous formulas using the PD measure as it is. One may ask if the
+SP measure also has a similar limitation. Some of the finer separation results in [23, 24]
+indicate that the SP measure (and some of its variants) can be fairly large for homogeneous
+depth-4 and depth-5 formulas for the choices of k used in prior work. Also, the exponential
+lower bounds for homogeneous depth-4 circuits in [14, 26] use random restrictions along with
+a variant of the SP measure. It is not clear how to leverage random restrictions for even
+homogeneous depth-5 circuits – this is also pointed out in [29]. Fortunately, [23, 24] do not
+rule out the possibility of using SP for all choices of parameters, like, say, k ≈ d2 , to prove
+lower bounds for low-depth homogeneous formulas. But, the original intuition from algebraic
+geometry that led to the development of the SP measure (see [9] Section 2.1) breaks down
+completely when k is so large (see [2]). Despite these apparent hurdles, and to our surprise,
+we overcome these challenges and are able to use SP with k ≈ d2 to prove super-polynomial
+lower bounds for low-depth homogeneous formulas. To the best of our knowledge, no previous
+work uses SP with this high a value of k.
+
+
+1.2      Techniques and proof overview
+In this section, we explain the proof idea and compare it with that in [29]. A lot of lower
+bounds in arithmetic complexity follow the following outline.
+
+
+Step 1: Depth reduction. One first shows that if f (x) is computed by a small circuit
+from some restricted subclass of circuits, then there is a corresponding subclass of depth-4
+circuits such that f (x) is also computed by a relatively small circuit from this subclass2 .
+                                                 Ps Qti
+The resulting subclass is of the form: f (x) = i=1 j=1        Qi,j . Usually there are simple
+restrictions on the degrees of Qi,j ’s. For example, they could be upper bounded by some
+number.
+
+
+2
+    Some major results in the area such as [29, 33] did not originally proceed via a depth reduction but
+    instead analysed formulas directly. These results can however be restated as first doing a depth reduction
+    and then applying the appropriate measure.
+
+
+
+
+                                                                                                                 ICALP 2023
+12:6   Low-Depth Arithmetic Circuit Lower Bounds: Bypassing Set-Multilinearization
+
+
+       Step 2: Employing a suitable set of linear maps. Let F[x]=d be the space of homogeneous
+       polynomials of degree d, W be a suitable vector space, and Lin(F[x]=d , W ) be the space of
+       linear maps from F[x]=d to W . We choose a suitable set of linear maps L ⊆ Lin(F[x]=d , W )
+       that define a complexity measure µL (f ) := dim(L(f )), where L(f ) := ⟨{L(f ) : L ∈ L}⟩.
+                                                                                            Qt
+           We would like to choose L so that it identifies some weakness of the terms j=1 Qj in
+                                            Q         
+                                               t
+       the depth-4 circuit. That is, µL        j=1 Qj should be much smaller than µL (f ) for a generic
+       f . For e.g., if Qj ’s are all
+                                   Qlinear polynomials,
+                                                        we can choose L to be the partial derivatives of
+                                       t           t
+                                                        n+k−1
+                                                               
+       order k, ∂ k . Then, µL            Q
+                                       j=1 j   ≤   k   ≪   k     which is the value for a generic f (for
+       k ≤ t/2). This is the basis of the homogeneous depth-3 formula lower bound in [32].
+            For proving lower bounds for bounded bottom fan-in depth-4 circuits (i.e., when degree
+       of Qj ’s is upper bounded by some number), [9, 13] introduced the SP measure and used the
+       linear maps L = xℓ · ∂ k . The main insight in their proof was that if we apply a partial
+                                    Qt
+       derivative of order k on j=1 Qj and use the product rule, then at least t − k of the Qj ’s
+       remain untouched. This structure can then be exploited by the shifts to get a lower bound.
+       This intuition however completely breaks down for k ≥ t (see [2]). Due to this, progress
+       remain stalled for higher depth arithmetic circuit lower bounds via SP.
+            In a major breakthrough, [29] gets around the above obstacle by working with set-
+       multilinear circuits which entails working with polynomials over d sets of variables (x1 , . . . , xd ),
+       |xi | = n. Let us use the shorthand xS = (xi )i∈S . The products they deal with are of the
+              Qt
+       form j=1 Qj (xSj ), where S1 , S2 , . . . , St form a partition of [d]. The set of linear maps they
+       use are L = Π ◦ ∂xA for a subset A ⊆ [d]. Here, Π is a map that sets n − n0 variables in
+       each Qof the variable sets in x[d]\A to 0. They observe (for the appropriate choice of n0 ) that
+                t                          |A|
+       µL       j=1 Qj (xSj ) ≤ 1
+                                     Pt n           .   imbalancej
+                                           22     j=1
+
+          Here, imbalancej = ||A ∩ Sj | log(n) − |Sj \A| log(n0 )|. For the appropriate choice of n0 ,
+       a generic set-multilinear f satisfies µL (f ) = n|A| , so that lower bound (on the number of
+                                                                        Pt
+       summands) obtained is exponential in the total imbalance j=1 imbalancej . [29] observe
+       that this quantity is somewhat large for the depth-4 circuits that they consider.
+          The core of the above derivatives-based argument allows us to unravel some structure in
+                                                 Qt
+       partial derivatives of order k applied on j=1 Qj for values of k ≫ t. We use this to derive
+                                                                     Qt
+       a structure for the partial derivative space of a product j=1 Qj (x). Consider a partial
+       derivative operator of order k indexed by a multiset α of size k. Using the chain rule,
+               t
+               Y                       X                                    t
+                                                                            Y
+          ∂α         Qj =                                     cα
+                                                               α1 ,...,αt         ∂αj Qj
+               j=1
+                                           Pt                               j=1
+                            α1 ,...,αt :              αi =α
+                                                i=1
+
+
+                                                                   Qt
+       for appropriate constants cα  α1 ,...,αt ’s. In the product  j=1 ∂αj Qj , we can try to club terms
+       into two groups depending on if the size of |αj | is small or large. It turns out that the right
+       threshold for |αj | is k deg(Qj )/d (i.e., if we divide the order of the derivatives proportional
+                                                                                                P
+       to the degrees of the terms). Let S := {j : |αj | ≤ k deg(Qj )/d}. Define k0 := j∈S |αj |
+                  P                                                                       Qt
+       and ℓ0 := j∈S (deg(Qj ) − |αj |). Notice that we can write the product j=1 ∂αj Qj as
+         Q                                                            Qt
+       P j∈S ∂αj Qj , for a degree ℓ0 polynomial P . Hence, ∂α j=1 Qj is a sum of terms of this
+       form. While it is not immediate (due to the condition on αj ’s in S), with a bit more work,
+       one can combine the product of partials into a single partial.
+           What can we say about k0 and ℓ0 ? It turns out that the quantity that comes up in the
+                               k                              k
+       calculations is k0 + d−k  ℓ0 and it satisfies k0 + d−k   ℓ0 ≤ k. Note that k0 is between 0 and k,
+       and ℓ0 between 0 and d − k. So the normalization brings ℓ0 to the right “scale”.
+P. Amireddy, A. Garg, N. Kayal, C. Saha, and B. Thankey                                                                12:7
+
+
+   It turns out we can give a better bound in terms of a quantity we call residue defined as
+                                                     t
+                                    1               X       k
+   residuek (d1 , . . . , dt ) :=     · min             kj − · dj .
+                                    2 k1 ,...,kt ∈Z j=1     d
+
+and having the property that:
+                                                                                                      k
+▶ Proposition 7. Let k0 and ℓ0 be defined as above.                                       Then, k0 + d−k ℓ0 ≤ k −
+residuek (d1 , . . . , dt ), where dj = deg(Qj ).
+
+We want to spread the derivatives equally among all terms but cannot due to integrality issues.
+The residue captures this quantitatively and as described below, is what gives us our lower
+bounds. While the proof in [29] also relies on an integrality issue, there it originates from an
+imbalance between the sizes of the variable sets involved in a set-multilinear partition (as the
+map Π sets some variables in certain sets to 0). In contrast, we show that the integrality issue
+arising directly from the derivatives can be leveraged without involving set-multilinearity.
+In this sense, our approach is conceptually direct and simpler. Combined with the above
+                                                                                     Qt
+discussion, we get the following structural lemma about the derivative space of j=1 Qj .
+
+▶ Lemma 8.
+                                                                         *                          +
+                                                X                                            Y
+    ∂ k (Q1 · · · Qt ) ⊆                                                     xℓ0 · ∂ k0           Qj  .
+                                S⊆[t], k0 ∈[0..k], ℓ0 ∈[0..(d−k)],                           j∈S
+                                     k
+                               k0 + d−k ·ℓ0 ≤ k−residuek (d1 ,...,dt )
+
+
+   Now we have the choice to utilize the above structure using an additional set of linear
+maps. Both shifts and projections give similar lower bounds, so let us explain shifts here.
+Note that there is an intriguing possibility of getting even better lower bounds (in terms of
+dependence on d) using other sets of linear maps! From the above structural result, we have
+                                                         *                    +
+                                       X                                  Y
+    xℓ · ∂ k (Q1 · · · Qt ) ⊆                              xℓ+ℓ0 · ∂ k0    Qj  .
+                                      S⊆[t], k0 ∈[0..k], ℓ0 ∈[0..(d−k)],                            j∈S
+                                           k
+                                     k0 + d−k ·ℓ0 ≤ k−residuek (d1 ,...,dt )
+
+
+Thus we can upper bound,
+
+   SPk,ℓ ((Q1 · · · Qt )) ≤ 2t · d2 ·                        max                        M (n, k0 ) · M (n, ℓ0 + ℓ)
+                                                            k0 ,ℓ0 ≥0
+                                                  k
+                                            k0 + d−k ·ℓ0   ≤ k−residuek (d1 ,...,dt )
+
+                       2O(d)
+    ≤ 2t · d2                             min{M (n, k)M (n, ℓ), M (n, d − k + ℓ)},
+                nresiduek (d1 ,...,dt )
+where the second inequality follows from elementary calculations.
+   Now to upper bound the shifted partial dimension of polynomials computed by low-depth
+formulas, we give a decomposition for such formulas into sums of products of polynomials
+(Lemma 16) where the degree sequences are carefully chosen so that that the residues can be
+simultaneously lower bounded for all the terms (Lemma 17). While in a different context,
+these calculations do bear similarity with related calculations in [29].
+
+Step 3: Lower bounding dim(L(f )) for an explicit f . As a last step, one shows that
+for some explicit candidate hard polynomial dim(L(f )) is large and thereby obtains a lower
+bound. This is another step where bypassing set-multilinearity helps as one is not constrained
+
+
+
+                                                                                                                     ICALP 2023
+12:8   Low-Depth Arithmetic Circuit Lower Bounds: Bypassing Set-Multilinearization
+
+
+       to pick a set-multilinear hard polynomial. Indeed, using a straightforward analysis we show
+       that the APP measure is high for an explicit non-set-multilinear polynomial (see Remark 23).
+       We also show that the measures are high for more standard polynomial families such as the
+       iterated matrix multiplication polynomials and the Nisan-Wigderson design polynomials.
+
+       Application to UPT formulas. We observe here that for the subclass of homogeneous
+       formulas that we call UPT formulas, one can do a depth-reduction to obtain a depth-4
+       formula in which all the summands have the same factorization pattern (i.e. the sequence
+       of degrees of the factors in all the summands is that same) - see Lemma 30. We further
+       observe (Lemma 31) that for any fixed sequence of degrees, there exists a suitable value of
+       the parameter k such that the residue is sufficiently large. This gives us the superpolynomial
+       lower bound for UPT formulas as stated in Theorem 5.
+           Despite the conceptual directness and simplicity of our approach, in bypassing set-
+       multilinearity, some of the calculations in the analysis become evidently more involved than
+       that in [29]. This is primarily due to the delicate choice of parameters in ratios involving
+       binomial coefficients; this is also the case in several prior exponential lower bound proofs
+       using SP and its variants [14, 16, 26]. Nevertheless, we think that by circumventing a critical
+       bottleneck, the analysis opens up the possibility of an exponential lower bound for low-depth
+       arithmetic circuits. Some of the ideas may indeed yield stronger bounds in the future.
+
+       Organization. After describing preliminaries in Section 2, we present a structural theorem
+       about the derivative space of a product of homogeneous polynomials in Section 3. This
+       result is then directly used to upper bound both the SP and APP measures of a product of
+       polynomials. Using this result and a decomposition result for low-depth formulas, we obtain
+       lower bounds for low-depth formulas in Section 4. Finally, we prove lower bounds for UPT
+       formulas in Section 5.
+
+        2      Preliminaries
+       In this section, we give the essential notations and definitions necessary to follow the article.
+           Let a, b, c be real numbers. Then we define the sets [a..b] := {x ∈ Z : x ∈ [a, b]} and
+       [a] := [1..a]. For a constant c ≥ 1 and b ≥ 0, we say a ≈c b if a ∈ [b/c, b]. We write a ≈ b
+       if a ≈c b for some (unspecified) constant c. All logarithms have base 2 unless specified
+       otherwise. We denote the fractional part of a by {a} := a − ⌊a⌋ and the nearest integer of
+       a by ⌊a⌉. The following quantity will be crucially used in the proofs of our lower bounds.
+       Here we think of d1 , . . . , dt as degrees of certain homogeneous polynomials, d as the degree
+       of the product of those polynomials, and k is the order of partial derivatives used for the
+       complexity measures.
+                                                                                                          t
+                                                                                                          P
+       ▶ Definition 9 (residue). For non-negative integers d1 , . . . , dt such that d :=                       di ≥ 1 and
+                                                                                                          i=1
+                                                                                      t
+       k ∈ [0..(d − 1)], we define residuek (d1 , . . . , dt ) := 12 ·                       ki − kd · di .
+                                                                                      P
+                                                                            min
+                                                                         k1 ,...,kt ∈Z i=1
+
+       The factor of half has been included in the definition just to make the statements of some
+                                                                                                   k
+       of the lemmas in our analysis simple. It is easy        that residuek (d1 , . . . , dt ) ≤ 2 . The
+                                                        kto show
+       minimum is attained when for all i ∈ [t], ki = d · di . When we use residue in the analysis
+       of complexity measures, we would also have the following additional constraints that ki ≥ 0
+       and ki ≤ di , k1 + · · · + kn = k, where k shall be the order of derivatives. As the value of
+       residue can not decrease when we impose these constraints, we omit them.
+P. Amireddy, A. Garg, N. Kayal, C. Saha, and B. Thankey                                                      12:9
+
+
+   Let n and n0 be positive integers. Define variable sets x := {x1 , . . . , xn } and
+z := {z1 , . . . , zn0 }. For a monic monomial m and a P ∈ F[x], we define ∂m P ∈ F[x]
+to be the polynomial obtained by successively taking partial derivatives with respect
+to all the variables of m (counted with their multiplicities). For an integer ℓ ≥ 0,
+xℓ := {x1 e1 · · · xn en : e1 , . . . , en ∈ Z≥0 and
+                                                     P
+                                                     i∈[n] ei = ℓ}. For an integer k ≥ 0 and
+P ∈ F[x], ∂ k P := ∂m P : m ∈ xk . For a P ∈ F[x], a map L : x → ⟨z⟩, and
+S ⊆ F[x], πL (P ) ∈ F[z] and πL (S) ⊆ F[z] are defined as πL (P ) := P (L(x1 ), . . . , L(xn ))
+and πL (S) := {πL (P ) : P ∈ S}, respectively.
+   For S, T ⊆ F[x], S · T := {P · Q : P ∈ S and Q ∈ T } and S + T := {P + Q : P ∈
+S and Q ∈ T }. For a S ⊆ F[x], we define its span as ⟨S⟩ ⊆ F[x] to be the set of all
+polynomials which can be expressed as F-linear combinations of elements in S. For a
+S ⊆ F[x], its dimension, denoted by dim S, refers to the maximum number of linearly
+independent polynomials in S. We can now define the complexity measures for polynomials
+that we use to prove our lower bounds: the shifted partials (SP) measure and the affine
+projections of partials (APP) measure.
+
+▶ Definition 10 (SP and APP measures). For a polynomial P ∈ F[x], non-negative in-
+                                                        ℓ   k
+tegers k, ℓ, and n0 ∈
+                     [n], we define SPk,ℓ (P ) := dim x · ∂ P and APPk,n0 (P ) :=
+                  k
+  max dim πL ∂ P .
+L:x→⟨z⟩
+
+SP and APP are sub-additive. APP is related to the skewed partials and relrk measures used
+in [15] and [29], respectively. For a comparison, see [2].
+    Next, we define a subclass of homogeneous formulas which we call UPT formulas 3 .
+
+▶ Definition 11. A homogeneous formula C is said to be a unique-parse-tree formula if all
+of its parse trees are isomorphic to each other as directed graphs.
+
+    For a UPT formula C, we define its canonical parse tree to be some fixed tree among all
+the parse trees (this is a binary tree without loss of generality). For a detailed definition of
+(canonical) parse tree, we refer the reader to the full version of this article [2].
+
+Iterated Matrix Multiplication. The iterated matrix multiplication, IM Mn,d is a polynomial
+in N = d·n2 variables defined as the (1, 1)-th entry of the matrix product of d many n × n
+matrices whose entries are distinct variables. To prove a lower bound for IM M , we analyze
+the SP and APP for a projection of IM M , Pw that was introduced in [29].
+
+▶ Definition 12 (Word polynomial Pw [29]). Given a word w = (w1 , . . . , wd ) ∈ Zd , let x(w)
+be a tuple of d pairwise disjoint sets of variables (x1 (w), . . . , xd (w)) with |xi (w)| = 2|wi | for
+all i ∈ [d]. xi (w) will be called negative if wi < 0 and positive otherwise. As the set sizes
+are powers of 2, we can map the variables in a set xi (w) to Boolean strings of length |wi |.
+                    ∗
+Let σ : x → {0, 1} be such a mapping.4 We extend the definition of σ from variables to
+set-multilinear monomials as follows: Let X = x1 · · · xr be a set-multilinear monomial where
+xi ∈ xϕ(i) (w) and ϕ : [r] → [d] be an increasing function. Then, we define a Boolean string
+σ(X) := σ(x1 ) ◦ · · · ◦ σ(xr ), where ◦ denotes the concatenation of bits. Let M+ (w) and
+M− (w) denote the set of all (monic) set-multilinear monomials over all the positive sets
+
+
+3
+  Our definition for UPT formulas is more general than the model considered in a recent paper by Limaye,
+  Srinivasan and Tavenas [30] as we do not impose set-multilinearity.
+4
+  Note that σ may map a variable from xi (w) and a variable from xj (w) to the same string if i ̸= j.
+
+
+
+
+                                                                                                           ICALP 2023
+12:10   Low-Depth Arithmetic Circuit Lower Bounds: Bypassing Set-Multilinearization
+
+
+        and all the negative sets, respectively. For two Boolean strings a, b, we say a ∼ b if a is a
+        prefix of b or vice versa. For a word w, the corresponding word polynomial Pw is defined as
+                           P
+        Pw :=                          m+ · m− .
+                  m+ ∈M+ (w), m− ∈M− (w)
+                      σ(m+ ) ∼ σ(m− )
+
+            We will make use of the following lemma from [29] which shows that computing IM M
+        is at least as hard as computing Pw . For this, we recall the notion of unbiased-ness of
+        w = (w1 , . . . , wd ) from [29] – we say that w is h-unbiased if maxi∈[d] |w1 + · · · + wi | ≤ h.
+        ▶ Lemma 13 (Lemma 7 in [29]). Let w ∈ [−h..h]d be h-unbiased. If for some n ≥ 2h ,
+        IM Mn,d has a formula C of product-depth5 ∆ and size s, then Pw has a formula C ′ of
+        product-depth at most ∆ and size at most s. Moreover, if C is homogeneous, then so is C ′
+        and if C is UPT, then so is C ′ with the same canonical parse tree.6
+
+        Nisan-Wigderson design polynomial. For a prime power q and d ∈ N, let x =
+        {x1,1 , . . . , x1,q ,
+        . . . , xd,1 , . . . , xd,q }. For any k ∈ [d], the Nisan-Wigderson design polynomial on qd variables,
+        denoted by N Wq,d,k or simply N W , is defined as follows:
+                                     X       Y
+               N Wq,d,k =                        xi,h(i) .
+                          h(z)∈Fq [z]:   i∈[d]
+                           deg(h)<k
+
+        The IM M and the N W polynomials, and their variants, have been extensively used to prove
+        various circuit lower bounds [3, 4, 11, 14, 16, 19–21, 23, 26, 27, 29, 32].
+
+            3     Structure of the space of partials of a product
+        In this section, we bound the partial derivative space of a product of homogeneous polynomials.
+        In the following lemma, we show that the space of k-th order partial derivatives of a product
+        of polynomials is contained in a sum of shifted partial spaces with shift ℓ0 and order of
+                                        k
+        derivatives k0 such that k0 + d−k   · ℓ0 is “small”. Using this lemma, we upper bound the SP
+        and APP measures of a product of homogeneous polynomials. These bounds are then used
+        in Sections 4 and 5 for proving lower bounds for low-depth homogeneous formulas and UPT
+        formulas respectively. Missing proofs from this section can be found in the full version of
+        this article [2],
+        ▶ Lemma 14 (Upper bounding the partials of a product). Let n and t be positive integers
+        and Q1 , . . . , Qt be non-constant, homogeneous polynomials in F[x] with degrees d1 , . . . , dt
+                                                   t
+                                                   P
+        respectively. Let d := deg(Q1 · · · Qt ) =   di and k < d be a non-negative integer. Then,
+                                                           i=1
+                                                                               *                                 !+
+                                                      X                                               Y
+                 k                                                                     ℓ0        k0
+                ∂ (Q1 · · · Qt ) ⊆                                                 x        ·∂              Qi        .
+                                      S⊆[t], k0 ∈[0..k], ℓ0 ∈[0..(d−k)],                              i∈S
+                                           k
+                                     k0 + d−k ·ℓ0 ≤ k−residuek (d1 ,...,dt )
+
+
+
+        We now use the above lemma to upper bound the shifted partials and affine projections of
+        partials measures of a product of polynomials.
+
+
+        5
+          The product-depth of a formula is the maximum number of product gates on any path from the root to
+          a leaf in the formula.
+        6
+          Although the lemma in [29] is stated for set-multilinear circuits, it also applies to homogeneous formulas
+          and UPT formulas (albeit with a mild blow-up in size) by the same argument.
+P. Amireddy, A. Garg, N. Kayal, C. Saha, and B. Thankey                                                      12:11
+
+
+▶ Lemma 15 (Upper bounding SP and APP of a product). Let Q = Q1 · · · Qt be a homogeneous
+polynomial in F[x1 , . . . , xn ] of degree d = d1 + · · · + dt ≥ 1, where Qi is homogeneous and
+di := deg(Qi ) for i ∈ [t]. Then, for any non-negative integers k < d, ℓ ≥ 0, and n0 ≤ n,
+1.
+
+       SPk,ℓ (Q) ≤ 2t · d2 ·                      max                    M (n, k0 ) · M (n, ℓ0 + ℓ),
+                                             k0 ,ℓ0 ≥0
+                                     k
+                               k0 + d−k ·ℓ0 ≤ k−residuek (d1 ,...,dt )
+
+
+2.
+
+       APPk,n0 (Q) ≤ 2t · d2 ·                      max                        M (n, k0 ) · M (n0 , ℓ0 ).
+                                                   k0 ,ℓ0 ≥0
+                                         k
+                                   k0 + d−k ·ℓ0   ≤ k−residuek (d1 ,...,dt )
+
+
+
+
+ 4     Lower bound for low-depth homogeneous formulas
+In this section, we present a superpolynomial lower bound for “low-depth” homogeneous
+formulas computing the IM M and N W polynomials. We begin by proving a structural
+result for homogeneous formulas. Missing proofs from this section can be found in the full
+version of this article [2].
+
+4.1    Decomposition of low-depth formulas
+We show that any homogeneous formula can be decomposed as a sum of products of
+homogeneous polynomials of lower degrees, where the number of summands is bounded by
+the number of gates in the original formula. The decomposition lemma given below bears
+some resemblance to a decomposition of homogeneous formulas in [12]. In the decomposition
+in [12], the degrees of the factors of every summand roughly form a geometric sequence, and
+hence each summand is a product of a “large” number of factors. Here we show that each
+summand has “many” low-degree factors. While the lower bound argument in [29] does not
+explicitly make use of such a decomposition, their inductive argument can be formulated as a
+depth-reduction or decomposition lemma (with slightly different thresholds for the degrees).
+
+▶ Lemma 16 (Decomposition of low-depth formulas). Suppose C is a homogeneous formula
+of product-depth ∆ ≥ 1 computing a homogeneous polynomial in F[x1 , . . . , xn ] of degree at
+least d > 0. Then, there exist homogeneous polynomials {Qi,j }i,j in F[x1 , . . . , xn ] such that
+         Ps
+ 1. C =     Qi,1 · · · Qi,ti , for some s ≤ size(C), and
+         i=1
+2. for all i ∈ [s], either
+                                              1−∆
+       |{j ∈ [ti ] : deg(Qi,j ) = 1}| ≥ d2            , or
+        n                             1−δ
+                                          o      1−δ
+         j ∈ [ti ] : deg(Qi,j ) ≈2 d2       ≥ d2     − 1 , for some δ ∈ [2..∆].
+
+
+
+4.2    Low-depth formulas have high residue
+The following lemma gives us a value for the order of derivatives k with respect to which
+low-depth formulas yield high residue. Its proof uses Lemma 16.
+
+
+
+                                                                                                            ICALP 2023
+12:12   Low-Depth Arithmetic Circuit Lower Bounds: Bypassing Set-Multilinearization
+
+
+        ▶ Lemma 17 (Low-depth formulas have high residue). Suppose C is a homogeneous formula
+                                                                                                   1−∆
+        of product-depth ∆ ≥ 1 computing a polynomial in F[x1 , . . . , xn ] of degree d, where d2      =
+        ω(1). Then, there exist homogeneous polynomials {Qi,j }i,j in F[x1 , . . . , xn ] such that C =
+        Ps
+            Qi,1 · · · Qi,ti , for some s ≤ size(C). Fixing an arbitrary i ∈ [s], let t := ti and define
+        i=1                                                                 1−∆                j      k
+                                                                                                    α·d
+        dj := deg(Qi,j ) for j ∈ [t]. Then, residuek (d1 , . . . , dt ) ≥ Ω d2     , where k := 1+α      ,
+              ∆−1
+              P (−1)ν                  j   1−∆
+                                               k
+        α :=         τ 2ν −1
+                             , and τ := d2       .
+              ν=0
+
+
+
+        4.3    High residue implies lower bounds
+        For a “random” homogeneous degree-d polynomial in F[x1 , . . . , xn ], if the shift ℓ is not
+        too large, we expect the SP measure to be close to the maximum number of operators
+        used to construct the shifted partials space, i.e., M (n, k) · M (n, ℓ). Explicit examples of
+        such polynomials are given in Section 4.4. In the lemma below, we derive a lower bound
+        corresponding to the decompositions established above. The main step is to show that the
+        SP measure of a high-residue-decomposition is small.
+                                                                                  s
+                                                                                  P
+        ▶ Lemma 18 (High residue implies lower bounds). Let P =                         Qi,1 · · · Qi,ti be a
+                                                                                  i=1
+        homogeneous n-variate polynomial of degree d where {Qi,j }i,j are homogeneous and
+                                                                                                  j k
+        SPk,ℓ (P ) ≥ 2−O(d) · M (n, k) · M (n, ℓ) for some 1 ≤ k < d2 , n0 ≤ n and ℓ = n·d         n0
+                                                    k
+                                                  n d−k
+        such that d ≤ n0 ≈ 2(d − k)· k                  . If there is a γ > 0 such that for all i ∈ [s],
+                                                                           Ω(γ)
+        residuek (deg(Qi,1 ), . . . , deg(Qi,ti )) ≥ γ, then s ≥ 2−O(d) nd       .
+
+           We state an analogous lemma with APP instead of SP.
+                                                                                           s
+                                                                                           P
+        ▶ Lemma 19 (High residue implies lower bounds, using APP). Let P =                       Qi,1 · · · Qi,ti
+                                                                                           i=1
+        be a homogeneous n-variate polynomial of degree d where {Qi,j }i,j are homogeneous
+        and APPk,n0 (P ) ≥ 2−O(d) · M (n, k) for some 1 ≤ k < d2 , n0 ≤ n such that
+                                           k
+        d ≤ n0 ≈ 2(d − k). nk d−k . If there is a γ > 0 such that for all i ∈ [s],
+                                                                             Ω(γ)
+        residuek (deg(Qi,1 ), . . . , deg(Qi,ti )) ≥ γ, then s ≥ 2−O(d) · nd       .
+
+        ▶ Remark 20. In the above lemmas, although our lower bound appears as 2−O(d) ·nΩ(γ) ,
+        similar calculations actually give a lower bound of 2−O(k) ·nΩ(γ) for any choice of k and an
+        appropriate choice of ℓ (or n0 in the case of APP). We do not differentiate between the
+        two, as for our applications (i.e., low-depth circuits and UPT formulas), the value of k we
+        choose is Θ(d). Moreover, we observe that the factor of 2−O(k) in our lower bounds is likely
+        unavoidable for any choice of k and ℓ (or n0 in the case of APP) using our current estimates
+        for the complexity measures. We refer the reader to the full version of this article [2] for more
+        details.
+
+
+        4.4    The hard polynomials
+        We shall prove our lower bound for the word polynomial Pw introduced in [29] as well as for
+        the Nisan-Wigderson design polynomial. In order to do this, we show that the SP and APP
+        measures of Pw and the SP measure of N W are large for suitable choices of k, ℓ and n0 .
+P. Amireddy, A. Garg, N. Kayal, C. Saha, and B. Thankey                                                       12:13
+
+
+▶ Lemma 21 (Pw as a hard polynomial). For integers h, d such that h > 100        j and k any
+      d d
+k ∈ 30  , 2 , there exists an h-unbiased word w ∈ [−h..h]d , integers n0 ≤ n, ℓ = n·d
+                                                                                    n0   such
+                         k
+that n0 ≈ 2(d−k)· nk d−k and the following bounds hold: SPk,ℓ (Pw ) ≥ 2−O(d)·M (n, k)·M (n, ℓ)
+                      
+
+and APPk,n0 (Pw ) ≥ 2−O(d) ·M (n, k). Here n refers to the number of variables in Pw , i.e.,
+n = i∈[d] 2|wi | .
+     P
+
+    The following lemma shows that the SP measure of the Nisan-Wigderson design polynomial
+is “large” for k as high as Θ(d), if ℓ is chosen suitably.
+                                                                                            2
+                                                                               1       log n
+▶ Lemma 22 (N W as a hard polynomial). For n, d ∈ N such that 120 ≤ d ≤ 150                     ,
+                                         n         n                         h log log n√ i
+                                                                                   d d
+let q be the largest prime number between 2d and d . For parameters k ∈ 30           , 2 − 8d
+         j 2k                            k
+                                      d−k
+and ℓ = qd                           qd
+           n0 , where n0 = 2(d − k)· k      ,SPk,ℓ (N Wq,d,k ) ≥ 2−O(d) · M (qd, k) · M (qd, ℓ).
+
+▶ Remark 23. An advantage of directly analysing the complexity measures for homogeneous
+formulas instead of for set-multilinear formulas is that our hard polynomial need not be set
+multilinear. In the full version of this article [2], we describe an explicit non set-multilinear
+polynomial P (in VNP) with a large APP measure; the construction is similar to a polynomial
+in [7]. The proof that APP of P is large is considerably simpler than the proofs of the above
+lemmas.
+
+
+4.5    Putting everything together: the low-depth lower bound
+▶ Theorem 24 (Low-depth homogeneous formula lower bound for IM M ). For any d, n, ∆ such
+that n = ω(d), any homogeneous formula of product-depth
+                                                        at most ∆ computing IM Mn,d
+                                                       1−∆
+                                                   Ω d2
+                                    −O(d)
+over any field F has size at least
+                                 2       ·n                  . In particular, when d = O(log n), we
+                                21−∆
+                         Ω d
+get a lower bound of n                 .
+
+▶ Theorem 25 (Low-depth homogeneous formula lower bound for N W ). Let n, d, ∆ be positive
+integers. If ∆ = 1, let d = n1−ϵ for any constant ϵ > 0 and k = d−1         2   . Otherwise, let
+                    2          j 1−∆ k     ∆−1       ν
+                                                                  j     k
+      1      log n                               (−1)               α·d
+                        , let τ = d2
+                                             P
+d ≤ 150    log log n                    ,α=      τ 2ν −1
+                                                         , and k = 1+α   . In both cases, let q be
+                                n     n  ν=0
+the largest prime between 2d and d . Then, any homogeneous formula         of  product-depth at
+                                                                                    1−∆
+                                                                             Ω d2
+most ∆ computing N Wq,d,k over any field F has size at least 2−O(d)·n                   . In particular,
+                                                            21−∆
+                                                      Ω d
+when d = O(log n), we get a lower bound of n                       .
+
+▶ Remark 26. Notice that in the above theorem, as k depends on the product-depth ∆, the
+polynomial N Wq,d,k may be different for different values of ∆. However, much like in [19],
+there is a way to “stitch” all the different N W polynomials for different values of ∆ into a
+single polynomial P such          homogeneous formula of product-depth ∆ computing P
+                           that any
+                                  1−∆
+                               Ω d2
+                   −O(d)
+has size at least 2        n               . See Theorem 34 for more details.
+    In [29], the authors showed how to convert a circuit of product-depth ∆ computing a
+homogeneous polynomial to a homogeneous formula of product-depth 2∆ without much
+increase in the size. Combining Lemma 11 from [29] with Theorems 24 and 25, we get:
+
+
+
+
+                                                                                                             ICALP 2023
+12:14   Low-Depth Arithmetic Circuit Lower Bounds: Bypassing Set-Multilinearization
+
+
+        ▶ Corollary 27 (Low-depth circuit lower bound for IM M ). For any positive integers d, n, ∆
+        such that n = ω(d), any circuit of product-depth at most ∆ computing IM M   n,d over any
+                                                                                                          1−2∆
+                                                                                                        d2
+                                                                                                    Ω      ∆
+                                                                                        −O(d)
+        field F with characteristic 0 or more than d has size at least 2                    ·n
+                                                                                              1−2∆
+                                                                                                                      .
+                                                                                               d2
+                                                                                          Ω         ∆
+                In particular, when d = O(log n), we get a lower bound of n                                 .
+
+        ▶ Corollary 28 (Low-depth circuit lower bound for N W ). Let n, d,∆ be positive integers.
+        If ∆ = 1, let d = n1−ϵ for any constant ϵ > 0 and k = d−1                2   . Otherwise, let d ≤
+                      2            j 1−∆ k        ∆−1
+                                                     P (−1)   ν
+                                                                         j     k
+          1    log n                                                       α·d
+         150 log log n    , let τ = d2       ,α=        τ 2ν −1
+                                                                , and k = 1+α   . In both cases, let q be the
+                                             n  ν=0  n 
+        largest prime number between 2d and d . Then, any circuit of product-depth at most
+        ∆ computing  N W     q,d,k over any field F of characteristic 0 or more than d has size at least
+                                1−2∆
+                             d2
+                         Ω       ∆
+            −O(d)
+        2           ·n                 .                                                               
+                                                                                                 1−2∆
+                                                                                               d2
+                                                                                          Ω       ∆
+                In particular, when d = O(log n), we get a lower bound of n                                 .
+
+           We note that our lower bounds quantitatively improve on the original homogeneous
+        formula lower bound of [29]
+                                 in terms
+                                        of the dependence on the degree. While [29] gives a
+                                                    ∆ −1
+                                           Ω d1/2
+        lower bound of dO(−d) ·n                               (as the conversion from homogeneous to set-multilinear
+                                                                                                            
+                                                                                                                       1−∆
+                                                                                                                Ω d2
+                                                                    O(d)                        −O(d)
+        formulas increases the size by a factor of d ), our lower bound is 2     ·n           . Thus,
+        we get slight improvement both in the multiplicative factor (from dO(d) to 2O(d) ) and in the
+                                           1               1
+        exponent of n (from d 2∆ −1 to d 2(∆−1) ). We point out what these improvements mean for
+        smaller depths: For ∆ = 2, our lower bound for homogeneous formulas computing IM M is
+        superpolynomial as long as d ≤ ϵ · log2 n for a small
+                                                           enough    positive
+                                                                                constant ϵ, whereas the
+                                                                         2
+                                                                log n
+        lower bound in [29] does not work beyond d = O        log log n     . In particular, we obtain a
+        lower bound of nΩ(log n) for the size of homogeneous depth-5 formulas computing IM Mn,d
+                                                                                                 1/4
+        when d = Θ(log2 n). Finally, for ∆ = 3 and d ≤ ϵ · log4/3 n, we get a lower bound of nΩ(d ) ,
+                            1/7
+        as compared to nΩ(d ) from [29].
+
+
+            5       Lower bound for unique-parse-tree formulas
+
+        In this section, we show that UPT formulas computing IM M must have a “large” size. We
+        begin by giving a decomposition for such formulas. Missing proofs from this section can be
+        found in the full version of this article [2].
+
+
+        5.1         Decomposition of UPT formulas
+        In order to upper bound the SP (or APP) measure of a UPT formula, we need certain results
+        about binary trees and UPT formulas. For a given canonical parse tree T with d leaves, we
+        define its degree sequence (d1 , . . . , dt ) using the function Deg-seq described in Algorithm 1.
+            We prove the following lemma in the full version of this article [2]. The idea here is to
+        “break” the tree at various nodes so that the successive sizes of the smaller trees are far from
+        each other.
+P. Amireddy, A. Garg, N. Kayal, C. Saha, and B. Thankey                                                    12:15
+
+
+      Algorithm 1 Degree sequence of a right-heavy binary tree.
+ 1: function Deg-seq(T )
+ 2:    v0 ← root node of T .
+ 3:    if v0 is a leaf then
+ 4:        return (1).
+ 5:    end if
+ 6:    d ← leaves(v0 ), i ← 0.
+ 7:    while vi is not a leaf do
+ 8:        vi+1 ← right child of vi , i ← i + 1.
+ 9:    end while
+10:    v ← vj corresponding to the largest index j such that leaves(vj ) > d3 .
+11:    d1 ← d − leaves(v).
+12:    return (d1 , Deg-seq(Tv )).
+13: end function
+
+
+
+▶ Lemma 29. For a given canonical parse tree T with d ≥ 1 leaves, let (d1 , . . . , dt ) :=
+                                                                                         P i
+Deg-seq(T ), where the function Deg-seq is given in Algorithm 1. Also let ei := d −          dj
+                                                                                         j=1
+                                                                     
+for i ∈ [t] and e0 := d. Then, for all i ∈ [t − 1], ei ∈ ei−1
+                                                           3 ,
+                                                               2·ei−1
+                                                                  3     . Additionally, dt = 1,
+et = 0, and log3 d + 1 ≤ t ≤ log3/2 d + 1.
+
+    As mentioned in Section 4.1, it was shown in [12] that a homogeneous formula can be
+expressed as a “small” sum of products of homogeneous polynomials such that in each
+summand, the degrees of the factors roughly form a geometric sequence. We observe that this
+result can be strengthened for UPT formulas; in particular, we show that for UPT formulas,
+the “degree sequences” of all the summands are identical.
+
+▶ Lemma 30 (Log-product decomposition of UPT formulas). Let f ∈ F[x] be a homogeneous
+polynomial of degree d ≥ 1 computed by a UPT formula C with canonical parse tree T (C). Let
+(d1 , . . . , dt ) := Deg-seq(T (C)). Then there exist an integer s ≤ size(C) and homogeneous
+polynomials {Qi,j }i,j where deg(Qi,j ) = dj for i ∈ [s], j ∈ [t], such that
+
+            s
+            X
+      f=          Qi,1 · · · Qi,t .
+            i=1
+
+
+5.2       UPT formulas have high residue
+Now we show that there exists a value of k that has high residue with respect to the degrees
+of the factors given by the above log-product lemma.
+
+▶ Lemma 31 (High residue for a degree sequence). For any given canonical parse tree T with
+d ≥ 1 leaves, let (d1 , . . . , dt ) := Deg-seq(T ) and k := Upt-K(d1 , . . . , dt ) where the function
+Upt-K is described in Algorithm 2. Then
+
+                                      log3 d − 10
+      residuek (d1 , . . . , dt ) ≥               .
+                                          216
+
+
+
+
+                                                                                                          ICALP 2023
+12:16   Low-Depth Arithmetic Circuit Lower Bounds: Bypassing Set-Multilinearization
+
+
+              Algorithm 2 The value of k for a given sequence of degrees.
+         1: function Upt-K(d1 , . . . , dt )
+                  /* Returns k which shall be the order of derivatives for the SP and APP measures. */
+         2:      d = d1 + · · · + dt .
+         3:      for i ∈ [0..t] do
+                                  i
+                                  P
+         4:          ei ← d −           dj .
+                                  j=1
+         5:      end for
+                       log d−1 
+         6:      m←        3
+                            3
+                                  .
+                                            /* Defining a function J : [3m] → [t − 2]. */
+         7:      for i ∈ [3m] do 
+         8:          J (i) ← min j ∈ [0..t] : ej ≤ 3i .
+         9:      end for
+        10:      (a1 , . . . , am ) ← undefined.
+        11:      for i ∈ [m] do
+        12:          j ← J(3i).        
+                              i−1
+                              P ap
+        13:          b0 ←           33p
+                                               · dj+1 .
+                              p=1
+                   /* b1 defined
+                                below is 
+                                          not used in the algorithm but will be useful in the analysis. */
+                              i−1
+                              P ap
+        14:          b1 ←           33p
+                                          + 313i      · dj+1 .
+                              p=1
+                                  1      17
+                                             
+        15:         if {b0 } ∈ 18 , 18 then
+        16:             ai ← 0.
+        17:         else
+        18:             ai ← 1.
+        19:         end if
+        20:      end for
+                       m
+                       P ap
+        21:      α←         33p
+                      p=1
+        22:    k ← ⌊α · d⌋
+        23:    return k.
+        24: end function
+
+
+
+        5.3      Putting everything together: the UPT formula lower bound
+        In this section, we state our lower bounds for UPT formulas.
+
+        ▶ Theorem 32 (UPT formula lower bound for IM M ). For n ∈ N and d ≤ ϵ · log n · log log n,
+        where ϵ > 0 is a small enough constant, any UPT formula computing IM Mn,d over any field
+        F has size nΩ(log d) .
+
+        ▶ Remark 33. The above theorem can also be derived by using the complexity measure
+        studied in [29] along with the observation that the unbounded-depth set-multilinearization
+        due to [35] (which increases the size by a factor of 2O(d) ) preserves parse trees.
+              We also get an analogous theorem for a polynomial related to the N W polynomial.
+
+        ▶ Theorem 34. Let n ∈ N, d ≤ ϵ · log n · log log
+                                                         n, where
+                                                                   ϵ > 0 is a small enough constant,
+                                                      n         n
+        and q be the largest prime number between 2d and d . Then, any UPT formula computing
+              ⌈d/2⌉
+                P
+        P =           yi · N Wq,d,i (where the y variables are distinct from the x variables), over any
+               i=⌊d/30⌋
+        field F has size nΩ(log d) .
+P. Amireddy, A. Garg, N. Kayal, C. Saha, and B. Thankey                                               12:17
+
+
+ 6     Conclusion
+Recently, [29] made remarkable progress on arithmetic circuit lower bounds by giving the
+first super-polynomial lower bound for low-depth formulas. They achieve this by a hardness
+escalation approach via set-multilinearization. But, set-multilinearization is an inherently
+expensive process that seems to restrict us from obtaining an exponential lower bound for even
+homogeneous low-depth formulas. In this work, we take the vital first step of sidestepping
+set-multilinearization and showing a super-polynomial lower bound for low-depth formulas
+via a direct approach. A direct approach does not seem to incur an inherent exponential
+loss. So, it might be possible to prove stronger lower bounds for low-depth homogeneous
+formulas or other related models using this approach or an adaptation of it.
+
+
+Problem 1. Prove exponential lower bounds for low-depth homogeneous arithmetic formulas.
+Prove exponential lower bounds for low-depth, multi-r-ic formulas.
+A formula is said to be multi-r-ic, if the formal degree of every gate with respect to every
+variable is at most r [17, 21]. The UPT formula lower bound proved in this work is for
+formulas computing polynomials of degree at most O(log n · log log n). It would be interesting
+to increase the range of degrees for which our bound works. In the non-commutative setting,
+exponential lower bounds are known for formulas with exponentially many parse trees [28].
+
+
+Problem 2. Prove an nΩ(log d) lower bound for UPT formulas for d = nO(1) . Prove a
+superpolynomial lower bound for formulas with “many” parse trees.
+Our work also raises the prospect of learning low-depth homogeneous formulas given black-box
+access using the “learning from lower bounds” paradigm proposed in [7, 18].
+
+
+Problem 3. Obtain learning algorithms for random low-depth homogeneous formulas.
+To upper bound SP or APP of a homogeneous formula C, we first show in Section 3 that the
+space of partial derivatives of C has some structure and then exploit this structure using
+shifts or affine projections. There might be a better way to exploit this structure, say by
+going modulo an appropriately chosen ideal or using random restrictions along with shifts as
+done in [14, 26]. Exploring this possibility is also an interesting direction for future work.
+
+
+     References
+ 1   Manindra Agrawal and V. Vinay. Arithmetic Circuits: A Chasm at Depth Four. In 49th
+     Annual IEEE Symposium on Foundations of Computer Science, FOCS 2008, October 25-28,
+     2008, Philadelphia, PA, USA, pages 67–75. IEEE Computer Society, 2008.
+ 2   Prashanth Amireddy, Ankit Garg, Neeraj Kayal, Chandan Saha, and Bhargav Thankey.
+     Low-depth arithmetic circuit lower bounds via shifted partials. Electron. Colloquium Comput.
+     Complex., TR22-151, 2022. URL: https://eccc.weizmann.ac.il/report/2022/151.
+ 3   Suryajith Chillara, Nutan Limaye, and Srikanth Srinivasan. Small-depth multilinear formula
+     lower bounds for iterated matrix multiplication with applications. SIAM J. Comput., 48(1):70–
+     92, 2019. Conference version appeared in the proceedings of STACS 2018. doi:10.1137/
+     18M1191567.
+ 4   Michael A. Forbes, Mrinal Kumar, and Ramprasad Saptharishi. Functional lower bounds
+     for arithmetic circuits and connections to boolean circuit complexity. In 31st Conference
+     on Computational Complexity, CCC 2016, May 29 to June 1, 2016, Tokyo, Japan, pages
+     33:1–33:19, 2016.
+
+
+
+
+                                                                                                     ICALP 2023
+12:18   Low-Depth Arithmetic Circuit Lower Bounds: Bypassing Set-Multilinearization
+
+
+         5   Lance Fortnow and Adam R. Klivans. Efficient learning algorithms yield circuit lower bounds.
+             J. Comput. Syst. Sci., 75(1):27–36, 2009.
+         6   Hervé Fournier, Nutan Limaye, Guillaume Malod, and Srikanth Srinivasan. Lower Bounds for
+             Depth-4 Formulas Computing Iterated Matrix Multiplication. SIAM J. Comput., 44(5):1173–
+             1201, 2015. Conference version appeared in the proceedings of STOC 2014.
+         7   Ankit Garg, Neeraj Kayal, and Chandan Saha. Learning sums of powers of low-degree
+             polynomials in the non-degenerate case. In Sandy Irani, editor, 61st IEEE Annual Symposium
+             on Foundations of Computer Science, FOCS 2020, Durham, NC, USA, November 16-19, 2020,
+             pages 889–899. IEEE, 2020.
+         8   Fulvio Gesmundo and Joseph M. Landsberg. Explicit polynomial sequences with maximal
+             spaces of partial derivatives and a question of k. mulmuley. Theory Comput., 15:1–24, 2019.
+             doi:10.4086/toc.2019.v015a003.
+         9   Ankit Gupta, Pritish Kamath, Neeraj Kayal, and Ramprasad Saptharishi. Approaching the
+             Chasm at Depth Four. J. ACM, 61(6):33:1–33:16, 2014. Conference version appeared in the
+             proceedings of CCC 2013.
+        10   Ankit Gupta, Pritish Kamath, Neeraj Kayal, and Ramprasad Saptharishi. Arithmetic Circuits:
+             A Chasm at Depth 3. SIAM J. Comput., 45(3):1064–1079, 2016. Conference version appeared
+             in the proceedings of FOCS 2013.
+        11   Nikhil Gupta, Chandan Saha, and Bhargav Thankey. A super-quadratic lower bound for
+             depth four arithmetic circuits. In Shubhangi Saraf, editor, 35th Computational Complexity
+             Conference, CCC 2020, July 28-31, 2020, Saarbrücken, Germany (Virtual Conference), volume
+             169 of LIPIcs, pages 23:1–23:31. Schloss Dagstuhl - Leibniz-Zentrum für Informatik, 2020.
+             doi:10.4230/LIPIcs.CCC.2020.23.
+        12   Pavel Hrubes and Amir Yehudayoff. Homogeneous formulas and symmetric polynomials.
+             Comput. Complex., 20(3):559–578, 2011. doi:10.1007/s00037-011-0007-3.
+        13   Neeraj Kayal. An exponential lower bound for the sum of powers of bounded degree polynomials.
+             Electronic Colloquium on Computational Complexity (ECCC), 19:81, 2012. URL: http:
+             //eccc.hpi-web.de/report/2012/081.
+        14   Neeraj Kayal, Nutan Limaye, Chandan Saha, and Srikanth Srinivasan. An Exponential Lower
+             Bound for Homogeneous Depth Four Arithmetic Formulas. SIAM J. Comput., 46(1):307–335,
+             2017. Conference version appeared in the proceedings of FOCS 2014.
+        15   Neeraj Kayal, Vineet Nair, and Chandan Saha. Separation Between Read-once Oblivious
+             Algebraic Branching Programs (ROABPs) and Multilinear Depth-three Circuits. ACM Trans.
+             Comput. Theory, 12(1):2:1–2:27, 2020. Conference version appeared in the proceedings of
+             STACS 2016.
+        16   Neeraj Kayal and Chandan Saha. Lower Bounds for Depth-Three Arithmetic Circuits with
+             small bottom fanin. Computational Complexity, 25(2):419–454, 2016. Conference version
+             appeared in the proceedings of CCC 2015.
+        17   Neeraj Kayal and Chandan Saha. Multi-k-ic depth three circuit lower bound. Theory Comput.
+             Syst., 61(4):1237–1251, 2017. The conference version appeared in the proceedings of STACS,
+             2015. doi:10.1007/s00224-016-9742-9.
+        18   Neeraj Kayal and Chandan Saha. Reconstruction of non-degenerate homogeneous depth three
+             circuits. In Moses Charikar and Edith Cohen, editors, Proceedings of the 51st Annual ACM
+             SIGACT Symposium on Theory of Computing, STOC 2019, Phoenix, AZ, USA, June 23-26,
+             2019, pages 413–424. ACM, 2019.
+        19   Neeraj Kayal, Chandan Saha, and Ramprasad Saptharishi. A super-polynomial lower bound
+             for regular arithmetic formulas. In Symposium on Theory of Computing, STOC 2014, New
+             York, NY, USA, May 31 - June 03, 2014, pages 146–153, 2014.
+        20   Neeraj Kayal, Chandan Saha, and Sébastien Tavenas. An Almost Cubic Lower Bound for
+             Depth Three Arithmetic Circuits. In 43rd International Colloquium on Automata, Languages,
+             and Programming, ICALP 2016, July 11-15, 2016, Rome, Italy, pages 33:1–33:15, 2016.
+P. Amireddy, A. Garg, N. Kayal, C. Saha, and B. Thankey                                                12:19
+
+
+21   Neeraj Kayal, Chandan Saha, and Sébastien Tavenas. On the size of homogeneous and of
+     depth four formulas with low individual degree. In Proceedings of the 48th Annual ACM
+     SIGACT Symposium on Theory of Computing, STOC 2016, Cambridge, MA, USA, June
+     18-21, 2016, pages 626–632, 2016.
+22   Pascal Koiran. Arithmetic circuits: The chasm at depth four gets wider. Theor. Comput. Sci.,
+     448:56–65, 2012.
+23   Mrinal Kumar and Ramprasad Saptharishi. The computational power of depth five arithmetic
+     circuits. SIAM J. Comput., 48(1):144–180, 2019. doi:10.1137/18M1173319.
+24   Mrinal Kumar and Shubhangi Saraf. The limits of depth reduction for arithmetic formulas:
+     it’s all about the top fan-in. In Symposium on Theory of Computing, STOC 2014, New York,
+     NY, USA, May 31 - June 03, 2014, pages 136–145, 2014.
+25   Mrinal Kumar and Shubhangi Saraf. Superpolynomial lower bounds for general homogeneous
+     depth 4 arithmetic circuits. In Automata, Languages, and Programming - 41st International
+     Colloquium, ICALP 2014, Copenhagen, Denmark, July 8-11, 2014, Proceedings, Part I, pages
+     751–762, 2014.
+26   Mrinal Kumar and Shubhangi Saraf. On the Power of Homogeneous Depth 4 Arithmetic
+     Circuits. SIAM J. Comput., 46(1):336–387, 2017. Conference version appeared in the
+     proceedings of FOCS 2014.
+27   Deepanshu Kush and Shubhangi Saraf. Improved low-depth set-multilinear circuit lower
+     bounds. In Shachar Lovett, editor, 37th Computational Complexity Conference, CCC 2022,
+     July 20-23, 2022, Philadelphia, PA, USA, volume 234 of LIPIcs, pages 38:1–38:16. Schloss
+     Dagstuhl - Leibniz-Zentrum für Informatik, 2022. doi:10.4230/LIPIcs.CCC.2022.38.
+28   Guillaume Lagarde, Nutan Limaye, and Srikanth Srinivasan. Lower Bounds and PIT for
+     Non-commutative Arithmetic Circuits with Restricted Parse Trees. Computational Complexity,
+     28(3):471–542, 2019.
+29   Nutan Limaye, Srikanth Srinivasan, and Sébastien Tavenas. Superpolynomial Lower Bounds
+     Against Low-Depth Algebraic Circuits. In 62nd IEEE Annual Symposium on Foundations of
+     Computer Science, FOCS 2021, Denver, CO, USA, February 7-10, 2022, pages 804–814. IEEE,
+     2021. A full version of the paper can be found at https://eccc.weizmann.ac.il/report/
+     2021/081.
+30   Nutan Limaye, Srikanth Srinivasan, and Sébastien Tavenas. On the partial derivative method
+     applied to lopsided set-multilinear polynomials. In Shachar Lovett, editor, 37th Computational
+     Complexity Conference, CCC 2022, July 20-23, 2022, Philadelphia, PA, USA, volume 234
+     of LIPIcs, pages 32:1–32:23. Schloss Dagstuhl - Leibniz-Zentrum für Informatik, 2022. doi:
+     10.4230/LIPIcs.CCC.2022.32.
+31   Noam Nisan. Lower Bounds for Non-Commutative Computation (Extended Abstract). In
+     Cris Koutsougeras and Jeffrey Scott Vitter, editors, Proceedings of the 23rd Annual ACM
+     Symposium on Theory of Computing, May 5-8, 1991, New Orleans, Louisiana, USA, pages
+     410–418. ACM, 1991.
+32   Noam Nisan and Avi Wigderson. Lower Bounds on Arithmetic Circuits Via Partial Derivatives.
+     Computational Complexity, 6(3):217–234, 1997. Conference version appeared in the proceedings
+     of FOCS 1995.
+33   Ran Raz. On the Complexity of Matrix Product. SIAM J. Comput., 32(5):1356–1369, 2003.
+     Conference version appeared in the proceedings of STOC 2002.
+34   Ran Raz. Separation of Multilinear Circuit and Formula Size. Theory of Computing, 2(6):121–
+     135, 2006. Conference version appeared in the proceedings of FOCS 2004.
+35   Ran Raz. Tensor-Rank and Lower Bounds for Arithmetic Formulas. J. ACM, 60(6):40:1–40:15,
+     2013. Conference version appeared in the proceedings of STOC 2010.
+36   Ran Raz and Amir Yehudayoff. Lower Bounds and Separations for Constant Depth Multilinear
+     Circuits. Computational Complexity, 18(2):171–207, 2009. Conference version appeared in the
+     proceedings of CCC 2008.
+37   Bruce Reznick. Sums of even powers of real linear forms. Memoirs of the AMS, 96:463, 1992.
+
+
+
+
+                                                                                                      ICALP 2023
+12:20   Low-Depth Arithmetic Circuit Lower Bounds: Bypassing Set-Multilinearization
+
+
+        38   Amir Shpilka and Avi Wigderson. Depth-3 arithmetic circuits over fields of characteristic zero.
+             Computational Complexity, 10(1):1–27, 2001. Conference version appeared in the proceedings
+             of CCC 1999.
+        39   Sébastien Tavenas. Improved bounds for reduction to depth 4 and depth 3. Inf. Comput.,
+             240:2–11, 2015. Conference version appeared in the proceedings of MFCS 2013.
+        40   Leslie G. Valiant. Completeness Classes in Algebra. In Proceedings of the 11h Annual ACM
+             Symposium on Theory of Computing, April 30 - May 2, 1979, Atlanta, Georgia, USA, pages
+             249–261, 1979.
+        41   Leslie G. Valiant, Sven Skyum, S. Berkowitz, and Charles Rackoff. Fast Parallel Computation
+             of Polynomials Using Few Processors. SIAM J. Comput., 12(4):641–644, 1983.
+        42   Ilya Volkovich. A Guide to Learning Arithmetic Circuits. In Proceedings of the 29th Conference
+             on Learning Theory, COLT 2016, New York, USA, June 23-26, 2016, pages 1540–1561, 2016.
+

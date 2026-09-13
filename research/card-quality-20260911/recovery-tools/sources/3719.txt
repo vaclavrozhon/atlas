@@ -1,0 +1,1591 @@
+A Fine-Grained Analogue of Schaefer’s Theorem
+in P: Dichotomy of ∃k ∀-Quantified First-Order
+Graph Properties
+Karl Bringmann
+Max Planck Institute for Informatics, Saarland Informatics Campus (SIC), Saarbrücken, Germany
+Nick Fischer
+Max Planck Institute for Informatics, Saarbrücken Graduate School of Computer Science,
+Saarbrücken, Germany
+Marvin Künnemann
+Max Planck Institute for Informatics, Saarland Informatics Campus (SIC), Saarbrücken, Germany
+
+       Abstract
+An important class of problems in logics and database theory is given by fixing a first-order
+property ψ over a relational structure, and considering the model-checking problem for ψ. Recently,
+Gao, Impagliazzo, Kolokolova, and Williams (SODA 2017) identified this class as fundamental
+for the theory of fine-grained complexity in P, by showing that the (Sparse) Orthogonal Vectors
+problem is complete for this class under fine-grained reductions. This raises the question whether
+fine-grained complexity can yield a precise understanding of all first-order model-checking problems.
+Specifically, can we determine, for any fixed first-order property ψ, the exponent of the optimal
+running time O(mcψ ), where m denotes the number of tuples in the relational structure?
+    Towards answering this question, in this work we give a dichotomy for the class of ∃k ∀-quantified
+graph properties. For every such property ψ, we either give a polynomial-time improvement over
+the baseline O(mk )-time algorithm or show that it requires time mk−o(1) under the hypothesis that
+MAX-3-SAT has no O((2 − ε)n )-time algorithm. More precisely, we define a hardness parameter
+h = H(ψ) such that ψ can be decided in time O(mk−ε ) if h ≤ 2 and requires time mk−o(1) for
+h ≥ 3 unless the h-uniform HyperClique hypothesis fails. This unveils a natural hardness
+hierarchy within first-order properties: for any h ≥ 3, we show that there exists a ∃k ∀-quantified
+graph property ψ with hardness H(ψ) = h that is solvable in time O(mk−ε ) if and only if the
+h-uniform HyperClique hypothesis fails. Finally, we give more precise upper and lower bounds
+for an exemplary class of formulas with k = 3 and extend our classification to a counting dichotomy.
+
+2012 ACM Subject Classification Theory of computation → Problems, reductions and completeness
+
+Keywords and phrases Fine-grained Complexity, Hardness in P, Hyperclique Conjecture, Constrained
+Triangle Detection
+
+Digital Object Identifier 10.4230/LIPIcs.CCC.2019.31
+
+
+
+ 1       Introduction
+One of the most expressive problems in complexity theory is the model-checking problem for
+first-order definable properties over relational structures. Any such property can be written
+as a formula of the form
+
+     (Q1 x1 ) . . . (Qk xk ) φ(x1 , . . . , xk ),
+
+where Qi ∈ {∃, ∀}, φ is an arbitrary Boolean formula defined over an arbitrary set of predicates
+and the relational structure is given by explicitly listing all tuples defining the predicates.
+This problem encompasses, e.g., the hugely diverse set of constraint satisfaction problems and
+
+           © Karl Bringmann, Nick Fischer, and Marvin Künnemann;
+           licensed under Creative Commons License CC-BY
+34th Computational Complexity Conference (CCC 2019).
+Editor: Amir Shpilka; Article No. 31; pp. 31:1–31:27
+                  Leibniz International Proceedings in Informatics
+                  Schloss Dagstuhl – Leibniz-Zentrum für Informatik, Dagstuhl Publishing, Germany
+31:2    A Fine-Grained Analogue of Schaefer’s Theorem in P
+
+
+       it is fundamental for database theory as query evaluation problem over relational structures.
+       In this context, the relational structure is a relational database and the first-order definable
+       property corresponds to queries to the database, see, e.g., [9] for an overview.
+            Given its expressiveness, it is no surprise that the complexity of this problem has been
+       extensively studied under various angles: Among others, one distinguishes between the
+       combined complexity (where both the first-order property and the relational structure are
+       part of the input) and the data complexity (where the first-order property is fixed and the
+       input only contains the relational structure) [54]. After classical works covered various aspects
+       of these complexities (see, e.g., [31, 10, 30, 44]), later research turned towards parameterized
+       analyses of such problems, see, e.g., [55, 37, 50] and the overview in [40, Section 4.3]. In this
+       work, we pursue an even finer-grained complexity analysis of the data complexity of bounded-
+       variable formulas, which capture a rich complexity landscape of low-degree polynomial-time
+       problems [58, 41].
+            Consider the following examples for first-order properties, where the relational structure
+       consists of the binary edge relation E(x, x0 ) over vertices in V , defining an (undirected)
+       graph G:
+          Triangle: (∃x1 ∈ V ) (∃x2 ∈ V ) (∃x3 ∈ V ) (E(x1 , x2 ) ∧ E(x2 , x3 ) ∧ E(x3 , x1 ))
+          (determine whether G contains a triangle)
+          TwinFree: (∀x1 ∈ V ) (∀x2 ∈ V ) (∃x3 ∈ V ) (E(x1 , x2 ) ∨ (E(x1 , x3 ) 6↔ E(x2 , x3 )))
+          (determine whether G contains no adjacent vertices x1 , x2 sharing the same neighborhood)
+       Such properties are called graph properties. Another example for a graph property (although
+       we do not call the binary relation “edges” in this case) is a version of the Hitting Set
+       problem, in which we are given an explicitly represented set family S = {S1 , . . . , Sn } over
+       some universe U . The explicit representation here is a list of tuples fulfilling the relation
+       s ∈ Si , i ∈ {1, . . . , n}:
+          HittingSet: (∃H ∈ S) (∀S ∈ S) (∃u ∈ U ) (u ∈ H ∧ u ∈ S)
+          (determine whether there is some input set H that hits all (other) input sets)
+
+           A simple baseline algorithm solves the model-checking problem for any first-order formula
+       in prenex normal form with (k + 1) quantifiers in time O(mk ), where m denotes the size of
+       the relational structure (i.e.,
+                                    √ the number of tuples satisfying the relations). This has recently
+       been improved to mk /2Ω( log m) [41]. However, we can surpass this bound significantly
+       for specific formulas. In particular, TwinFree has a simple O(m)-time algorithm [42]
+                                                     2ω
+       and Triangle can be solved in time O(m ω+1 ) = O(m1.41 ) [12] (where ω ≤ 2.373 denotes
+       the matrix multiplication exponent),
+                                     √         while for HittingSet we do not know of any faster
+       algorithm than the m2 /2Ω( log m) -solution of Gao et al. [41] (in fact, this barrier has been
+       used as a hardness assumption in its own right [6]). This raises the question: How can we
+       determine the constant cψ > 0 in the optimal running time mcψ ±o(1) for specific formulas ψ?
+       In particular, when is a close-to-baseline time mk±o(1) the best possible?
+
+       1.1    Complete Problem: (Sparse) k-OV
+       Remarkable progress to this question has been made by Gao, Impagliazzo, Kolokolova, and
+       Williams [41]. In the sense of admitting polynomial improvements over the O(mk )-baseline,
+       they identified the following problem as complete for the class of model-checking problems for
+       (k+1)-quantifier formulas: (here, the input is a (k+1)-partite graph G = (X1 ]· · ·]Xk ]Y, E))
+
+          Sparse k-OV: (∃x1 ∈ X1 ) . . . (∃xk ∈ Xk ) (∀y ∈ Y ) (E(x1 , y) ∨ . . . ∨ E(xk , y))
+    K. Bringmann, N. Fischer, and M. Künnemann                                                                      31:3
+
+
+   More precisely, Gao et al. show that Sparse k-OV has an O(mk−ε )-time algorithm for
+some constant ε > 0 if and only if for all (k + 1)-quantifier formulas in prenex normal form,
+                                                             0
+the model-checking problem can be solved in time O(mk−ε ) for some constant ε0 > 0. This
+identifies Sparse k-OV as one of the hardest problems in this class of problems.
+   Note that Sparse k-OV is a sparsely represented variant1 of the following problem:
+
+I Problem 1 (k-OV). Given k sets of 0-1 vectors A1 , . . . , Ak ⊆ {0, 1}d , where |Ai | = n,
+                                                                        Qk
+determine whether there is a tuple a1 ∈ A1 , . . . , ak ∈ Ak such that i=1 ai [`] = 0 for
+all ` ∈ [d].
+
+    It is conjectured that for any constant k, k-OV cannot be solved in time O(nk−ε poly(d))
+for any constant ε > 0, which is called the k-OV conjecture. Assuming this lower bound only
+for k = 2 is known simply as OV conjecture – this has been used as a hardness assumption
+for a number of conditional lower bounds in the quadratic-time regime [52, 18, 8, 13, 4, 20,
+14, 6, 19, 21, 59, 2]. Likewise, the stronger k-OV conjecture has found uses to derive further
+polynomial-time lower bounds of different degree [51, 4, 1, 15, 48].
+    For almost a decade, the main support for the k-OV hypothesis was given by a reduction by
+Williams [57] using the so-called split-and-list technique to show that the Strong Exponential
+Time Hypothesis [45] implies the k-OV hypothesis. Only recently, Abboud et al. [5] show
+that the OV hypothesis is also implied by the weighted k-Clique hypothesis. Interestingly,
+the work by Gao et al. [41] gives additional evidence, as they show that existence of an
+O(nk−ε poly(d))-time algorithm for k-OV for constant ε > 0 is equivalent to the existence
+                0
+of an O(mk−ε )-time model-checking algorithm for all (k + 1)-quantifier formulas in prenex
+normal form for some constant ε0 > 0. The study of first-order properties is thus tightly
+connected to the study of hardness and structure within P. In particular, our aim is to
+understand which properties make a first-order formula expressive enough to capture the
+hardest model-checking problems, i.e., Sparse k-OV, and which properties make a first-order
+formula easier to evaluate.
+
+1.2      Classification à la Schaefer
+Our questions ask for fine-grained analogues of classical results in computational complexity
+theory. Specifically, consider the case of Boolean constraint satisfaction problems (CSPs). As
+each Boolean CSP is in NP, Cook’s theorem establishes that every CSP reduces to 3-SAT.
+Schaefer’s Theorem [53] proves a dichotomy for reductions in the reverse direction: Assuming
+P 6= NP, every Boolean CSP either is polynomial-time solvable or requires superpolynomial
+time via a reduction from 3-SAT.
+    Translated to our setting, where first-order properties correspond to the class NP, Gao
+et al. give an analogue of Cook’s Theorem: They give a fine-grained reduction from the
+model-checking problem of any (k + 1)-quantifier first-order formula to Sparse k-OV. This
+raises the question:
+
+              Can we give a dichotomy analogous to Schaefer’s classification, i.e.,
+        for each such formula either give an O(mk−ε )-time algorithm or show “Sparse
+                                       k-OV-hardness”?
+
+
+1
+    To see the correspondence, let the vertex sets Xi , i ∈ {1, . . . , k} represent the vector sets Ai , let Y
+    denote the dimensions {1, . . . , d} and let the binary relation E(xi , y) with xi ∈ Xi and y ∈ Y hold
+    if and only if xi [y] = 1. We call this representation sparse as the relational structure only lists the
+    1-entries of the k-OV instance.
+
+
+
+
+                                                                                                                  CCC 2019
+31:4       A Fine-Grained Analogue of Schaefer’s Theorem in P
+
+
+           Our aim in this work is to initiate the investigation of such fine-grained classifications
+       into hardest and easier first-order properties. Note that in the case of CSPs over finite
+       domains, this line of research proved to be an effort requiring four decades of research in
+       complexity, logic and algebra (see e.g., [34] for an early overview and the surveys [32, 25]
+       for an introduction to the algebraic approach). In particular, after Schaefer’s classification
+       of the Boolean domain, Feder and Vardi raised the dichotomy conjecture that such a
+       dichotomy also exists for CSPs over arbitrary finite domains [38, 39]. After a series of works
+       developing an algebraic view on CSPs [47, 46, 26], and classifications of larger classes of
+       CSPs (e.g., [43, 22, 23]), only very recently, Bulatov [24] and Zhuk [60] could finally resolve
+       the conjecture.
+           Given the close connection to CSPs, we do not expect a full dichotomy for bounded-
+       quantifier first-order properties to be within immediate reach of current techniques – thus,
+       we focus on expressive fragments first. In particular, we focus on formulas with the quantifier
+       structure ∃k ∀, as it is the quantifier structure of the known complete problem Sparse k-OV
+       (in fact, under a nondeterministic variant of SETH, ∃k ∀ and the symmetric ∀k ∃ are the
+       only quantifier structure containing complete problems for first-order properties [28]). Note
+       also that this quantifier structure is analogous to the quantifier structure for CSP solvability
+       (existential quantifiers for variable assignments and a universal quantifier to check that all
+       constraints are satisfied; this correspondence is best illustrated by Williams’ split-and-list
+       reduction from CNF satisfiability to OV [57]). We leave the remaining quantifier structures
+       (analogous to the classification of quantified CSPs [53, 35, 34]) to be addressed in future work.
+
+       1.3       Further Related Work
+       Note that related work in database theory gives further flavors of fine-grained dichotomies
+       for first-order properties: For the related setting of query enumeration, Bagan, Durand and
+       Grandjean [16] classify each acyclic conjunctive query as either admitting constant-delay
+       enumeration following linear-time precomputation or as hard under the assumption that
+       Boolean matrix multiplication requires superquadratic time. This classification was recently
+       extended to incorporate functional dependencies between attributes [27]. Further work gives
+       fine-grained dichotomies under the OMv and OV hypotheses for dynamic databases [17].
+
+       1.4       Our Results
+       Our main result is a dichotomy for ∃k ∀-quantified formulas over graphs under a plausible
+       assumption about the complexity of MAX-3-SAT. Formally, ∃k ∀-quantified first-order graph
+       properties are formulas of the form
+
+             ψ = (∃x1 ∈ X1 ) . . . (∃xk ∈ Xk ) (∀y ∈ Y ) φ(x1 , . . . , xk , y),                     (1)
+
+       where φ is an arbitrary Boolean formula defined over the atoms E(v, v 0 ) with v, v 0 ∈
+       {x1 , . . . , xk , y} and v 6= v 0 . Let MC(ψ) denote the corresponding model-checking problem:
+       Check whether ψ holds for a given a (k + 1)-partite2 graph with vertex parts X1 , . . . , Xk , Y .
+
+       I Theorem 1 (Dichotomy). For any ∃k ∀-quantified graph property ψ, deciding MC(ψ) either
+       requires time mk−o(1) under the assumption that MAX-3-SAT has no O((2 − ε)n )-time
+       algorithm for any ε > 0, or we give an O(mk−ε )-time algorithm for some ε > 0.
+
+
+       2
+           A discussion on this assumption follows in Section 2.
+    K. Bringmann, N. Fischer, and M. Künnemann                                                              31:5
+
+
+    In fact, we base our hardness results even on the weaker 3-uniform HyperClique
+assumption as introduced in [5, 49]. Formally, the h-uniform HyperClique hypothesis
+states for any parameter h ≥ 3:
+I Hypothesis (h-uniform HyperClique). For no ε > 0 and k ≥ h + 1, there is an
+O(nk−ε )-time algorithm for detecting a k-clique in h-uniform hypergraphs.
+We defer a discussion of the plausibility of the MAX-3-SAT and h-uniform HyperClique
+hypotheses to Section 2.2 and the detailed treatment in [49, Section 7].
+    Beyond Theorem 1, we gain deeper insights into the complexity landscape of first-order
+graph properties. In particular, we expose a fine-grained hardness hierarchy purely depending
+on a hardness parameter h = H(ψ) which we define below (illustrated in Figure 1): if
+h = k, then a lower bound of mk−o(1) can be derived from the k-OV conjecture, and thereby
+from SETH. On the other extreme, if h ≤ 2, we give O(mk−ε )-time algorithms (for some
+ε > 0) – here, the difference between hardness 1 and 2 is precisely whether or not fast matrix
+multiplication techniques are likely to be necessary. For the remaining cases of 3 ≤ h < k,
+we can derive a lower bound of mk−o(1) under the 3-uniform HyperClique conjecture.
+In fact, we obtain increasing levels of hardness, as the lower bound for hardness-h formulas
+follows from the h-uniform HyperClique conjecture.
+    For the definition of our hardness parameter, it turns out that the decisive information is
+given by the atoms E(xi , y) for some existentially quantified variable xi and the universally
+quantified y. Specifically, consider the formula φ0 obtained by setting all atoms E(xi , xj ), 1 ≤
+i < j ≤ k in φ to false. Observe that we can view φ0 as a Boolean function {0, 1}k → {0, 1}
+which maps the values (E(x1 , y), . . . , E(xk , y)) to a truth value. The hardness h of ψ is
+then given by the following hardness parameter H(φ0 ). To state its definition, we need the
+following notation: For a propositional formula f (z1 , . . . , zk ) and an index set I ⊆ [k], an
+I-restriction of f is a formula obtained from f after substituting all variables zi , i ∈ I, by
+constant values from {0, 1}.
+I Definition 2. We
+               [k]
+                    call a propositional formula f (z1 , . . . , zk ) h-hard, 0 ≤ h ≤ k, if, for any
+index set I ∈ k−h   , there exists some I-restriction of f with exactly one falsifying assignment.
+Further define the hardness H(ψ) as the maximum number h for which ψ is h-hard (for
+constant-valued f , we set H(f ) = 0).
+Intuitively, H(f ) is the largest arity k such that whenever we fix an arbitrary subset of all
+but k variables, we can still obtain a “k-OV-like” function (a function with only a single
+falsifying assignment) as a restriction.
+    The following theorem is a fine-grained version of our dichotomy in Theorem 1.
+I Theorem 3 (Hardness levels). For a first-order property ψ as in (1), let φ0 : {0, 1}k → {0, 1}
+denote the formula obtained from φ by replacing all occurrences of E(xi , xj ) by false. We
+call H(ψ) := H(φ0 ) the hardness of ψ. For h = H(ψ), it holds that
+    If h ≤ 1, then MC(ψ) is decidable in time O(mk−ε ) for some ε > 0 combinatorially3 .
+    If h ≤ 2 < k, then MC(ψ) is decidable in time O(mk−ε ) for some ε > 0 using fast matrix
+    multiplication. (Furthermore, MC(ψ) cannot be decided by a combinatorial O(mk−ε )-time
+    algorithm unless the combinatorial k-Clique hypothesis4 is false.)
+
+
+3
+  Informally, by combinatorial algorithms we mean algorithms that do not rely on algebraic methods like
+  fast matrix multiplication [3].
+4
+  The ωcombinatorial k-Clique hypothesis as stated in, e.g., [3, 49] postulates that – even though an
+  O(n 3 k )-time algorithm is known for k-Clique – no such polynomial improvement over the naïve O(nk )
+  solution can be achieved by a combinatorial algorithm.
+
+
+
+
+                                                                                                          CCC 2019
+31:6    A Fine-Grained Analogue of Schaefer’s Theorem in P
+
+
+
+                                                                                        mk−o(1) -hard
+          h=5                                                                           under k-OV,
+
+
+
+
+                                                                                   ·
+                                                                                 ··
+                                                                                        SETH
+
+          h=4                                                                           mk−o(1) -
+
+
+
+
+                                                                                   ·
+                                                                                 ··
+                                                                                        hard under
+                                                                                        h-uniform
+          h=3                                                                     ···   HyperClique
+
+                                                                                        decidable in
+          h=2                        Lemma 14            Lifting Lemma            ···   time O(mk−ε )
+                                                                                        using fast MM
+                                                                                        decidable in
+          h≤1      Lemma 11                     Lifting Lemma                     ···   time O(mk−ε )
+                      k=2               k=3               k=4               k=5
+
+          Figure 1 Visualizes the hardness of MC(ψ) for ∃k ∀-quantified graph properties ψ of hardness
+       h = H(ψ). The green-hatched areas designate instances that allow polynomial improvements over
+       the baseline algorithm, while the red regions turn out to be provably hard.
+
+
+          If 3 ≤ h ≤ k, then MC(ψ) cannot be decided in time O(mk−ε ) for any ε > 0 unless the
+          h-uniform HyperClique hypothesis fails.
+          If h = k, then MC(ψ) cannot be decided in time O(mk−ε ) for any ε > 0 unless the k-OV
+          hypothesis fails.
+          Note that under the plausible assumption that h-uniform HyperClique gets strictly
+       harder for increasing arity h, our classification exposes increasing levels of hardness within
+       the first-order graph properties. This claim is substantiated by the following observation
+       (whose proof is deferred to the full version of the paper).
+       I Proposition 4. Let h ≥ 3. There exist k > h, ε > 0, and an ∃k ∀ graph property ψ of
+       hardness h that can be decided in time O(mk−ε ) if and only if the h-uniform HyperClique
+       hypothesis fails.
+          To give a specific illustration of our results, consider the first-order property TwinFree.
+       By negating the formula, we obtain an equivalent graph property as in (1) where φ0 is the
+       constant false formula. As such, our classification yields that TwinFree is decidable in time
+       O(m2−ε ) (in fact, it is even decidable by an O(m)-time algorithm [42]).
+          Another interesting family of examples is the following k-Not-All-Equal Problem.
+       I Example 5. Let NAE(z1 , . . . , zk ) be falsified only by the all-zero or all-one assignment.
+       The k-Not-All-Equal (k-NAE) problem is given by the query
+
+          (∃x1 ∈ X1 ) . . . (∃xk ∈ Xk ) (∀y ∈ Y ) NAE(E(x1 , y), . . . , E(xk , y)).
+
+       It is easy to check that H(k-NAE) = k − 1. Thus, by Theorem 3,
+           2-NAE is decidable in time O(m2−ε ) for some ε > 0.
+           (In fact, we give an O(m)-time algorithm.)
+           3-NAE is decidable in time O(m3−ε ) for some ε > 0 using fast matrix multiplication,
+           k-NAE takes time mk−o(1) for any k > 3 unless the (k − 1)-uniform HyperClique
+           hypothesis fails.
+          Finally, we extend our results and discuss further directions in Section 7: In particular,
+       we extend Theorem 3 to a counting dichotomy. Furthermore, we give tighter bounds on the
+       running time exponent for properties that admit polynomial improvements over the baseline,
+       using k = 3 as a case study.
+ K. Bringmann, N. Fischer, and M. Künnemann                                                                  31:7
+
+
+1.5      Outline
+After setting up notation and detailing the hardness assumptions used in this work in
+Section 2, we give a technical overview of our proof and introduce our main algorithmic
+tools in Section 3. Following the outline described in Section 3, we prove our main result in
+Sections 4, 5 and 6. Finally, we discuss our extensions and give an outlook for future work in
+Section 7. The proofs of our extensions are deferred to the full version of this paper.
+
+ 2       Preliminaries
+
+                                                             k, let [k] := {1, . . . , k}. By ] we
+Let us clarify some notation first. For a non-negative integer
+                                                          I
+denote the disjoint union of sets and for any set I, by k we address the set of all k-element
+subsets of I. For a 0-1 vector x, we write x̄ for the complement of x and kxk to denote the
+Hamming weight (that is, the `1 -norm) of x. Occasionally, we apply bit-wise binary operations
+to vectors understood as component-wise application. We further employ the Iverson bracket
+notation, that is, we write [P ] to denote the truth value of a proposition P . Let f (z1 , . . . , zk )
+be a propositional formula and let I ⊆ [k]. For any assignment α : I → {0, 1}, we write f |α
+to denote the formula obtained from f after substituting zi by αi , for all i ∈ I. Finally, by
+ω ≤ 2.373 we denote the exponent of matrix multiplication.
+
+2.1      Model-Checking
+A relational structure consists of n objects and predicates of arbitrary arity relating these
+objects. These predicates are explicitly given as lists of records; let m denote the total
+number of such facts. Without loss of generality we assume n ≤ O(m) by ignoring objects
+not occurring in any relation. A first-order property is given by a quantified formula
+
+     (Q1 x1 ) . . . (Qk xk ) φ(x1 , . . . , xk ),
+
+where each quantifier Qi ∈ {∃, ∀} ranges over all objects of the relational structure. The
+proposition φ is allowed to contain Boolean connectives and its atoms are given by predicates
+relating the quantified objects. The problem MC(ψ) of checking whether a fixed first-order
+property ψ holds on a given sparse structure is called the model-checking problem (or query
+evaluation problem) for ψ.
+    In this paper, we consider a fragment that we call ∃k ∀-quantified graph properties: Here
+the input is a (k + 1)-partite graph G = (X1 ] · · · ] Xk ] Y, E) and the task is to model-check
+the fixed formula
+
+     ψ = (∃x1 ∈ X1 ) . . . (∃xk ∈ Xk ) (∀y ∈ Y ) φ(x1 , . . . , xk , y),
+
+where φ is an arbitrary Boolean formula formed from a single edge predicate E of arity 2
+(i.e., the atoms of φ are of the form E(v, v 0 ) with v, v 0 ∈ {x1 , . . . , xk , y}). We assume the
+edge predicate to be symmetric (i.e., G to be a symmetric graph). We adopt the convention
+that xi (respectively y) ranges over Xi (respectively Y ) and therefore omit to explicit state
+membership xi ∈ Xi when it is clear from the context. Borrowing the notation from the
+definition of Sparse OV, we let d := |Y | denote the number of objects in the range of the
+universally quantified variable. Since MC(ψ) is solvable in time O(m) for k ≤ 2, we assume
+throughout the paper that k ≥ 2.
+     Let us explicitly highlight a subtle point: An alternative natural formalization of graph
+properties would be to omit the assumption that the given graph is (k +1)-partite. This alters
+the flavor of model-checking problems slightly: While all of our upper bounds would also
+
+
+
+                                                                                                           CCC 2019
+31:8       A Fine-Grained Analogue of Schaefer’s Theorem in P
+
+
+       hold for this alternative formulation (by replicating the vertex set), the assumption cannot
+       be neglected for the lower bounds. In fact, there exist examples of first-order properties
+       that we prove hard if each quantifier ranges over its own part, and which turn out as easy if
+       instead each quantifier ranges over the whole vertex set.5 We leave open an investigation of
+       this alternative formulation for future work.
+
+       2.2       Hardness Assumptions
+       We briefly collect the hardness assumptions used in our classification result.
+       I Hypothesis (k-OV). For no k and ε > 0, k-OV on n vectors with dimension d can be
+       solved in time O(nk−ε poly d).
+       The fastest known algorithm solves k-OV in time n2−Ω(1/ log(d/ log n)) [7, 29]. On the hardness
+       side, the k-OV hypothesis is implied by SETH [57], the weighted k-Clique hypothesis [5],
+       and the hypothesis that not all (k + 1)-quantifier first-order properties can be solved in time
+       O(mk−ε ) [41]. We remark that we use the moderate-dimensional k-OV hypothesis here (in
+       fact, SETH even implies a stronger version postulating hardness just above logarithmic
+       dimension).
+            The most important hypothesis for this work concerns the HyperClique problem: Given
+       an h-uniform hypergraph H, the h-uniform k-HyperClique problem asks to find vertices
+       v1 , . . . , vk ∈ V (H) so that any size-h subset of {v1 , . . . , vk } is contained in E(H). This gives
+       rise to the following hypothesis for any h ≥ 3.
+       I Hypothesis (h-uniform HyperClique). For no ε > 0 and k ≥ h + 1, there is an
+       O(nk−ε )-time algorithm for h-uniform k-HyperClique.
+       The restriction h ≥ 3 is indeed essential: The 2-uniform k-HyperClique problem – i.e., the
+       k-Clique problem on ordinary graphs – is known to admit faster solutions. Lincoln et al. [49]
+       provides a detailed analysis on why to believe that the h ≥ 3 case should be significantly
+       harder: As a main argument, any improvement over the O(nk )-time k-Clique algorithm
+       traces back to fast matrix multiplication, however, Strassen-like algebraic techniques can
+       provably not be applied to the HyperClique setting [49]. Moreover, there is a reduction
+       from MAX-3-SAT to h-uniform k-HyperClique (h ≥ 3), showing that the h-uniform
+       HyperClique conjecture is entailed by the following MAX-3-SAT hypothesis, which is the
+       simplest justification for our hardness results.
+           Specifically, consider the MAX-3-SAT problem, which asks, given a 3-SAT instance, to
+       find an assignment maximizing the number of satisfied clauses.
+       I Hypothesis (MAX-3-SAT). For all ε > 0, MAX-3-SAT cannot be solved in time
+       O((2 − ε)n ).
+       The currently fastest known algorithm for MAX-3-SAT runs in time 2n−o(n) [11]. This
+       assumption implies both the 3-uniform k-HyperClique [49] and the OV [5] hypotheses,
+       and thus provides the currently easiest barrier for algorithmic improvements upon formulas
+       that we classify as hard.
+
+       5
+                                                                              Wk
+           Consider the property ψ = (∃x1 ∈ V ) . . . (∃xk ∈ V ) (∀y ∈ V ) i=1 E(xi , y), which is equivalent to the
+           k-Dominating Set problem. It is easy to see that MC(ψ) can be decided in time O(mk−1 ): For any
+           solution (x1 , . . . , xk ), there must exist one “heavy” vertex xi dominating at least n/k vertices y. However,
+           there can be at most O(m/n) many such vertices xi . It is feasible to explicitly enumerate all heavy
+           vertices and solve the remaining k-quantifier problem in O(nk−2 m) time using the baseline algorithm.
+           The total running time is O(m/n · nk−2 m) = O(mk−1 ). However, if the quantifiers of ψ range over
+           separate sets X1 , . . . , Xk , Y , then deciding MC(ψ) requires time mk−o(1) (Theorem 3).
+ K. Bringmann, N. Fischer, and M. Künnemann                                                                     31:9
+
+
+ 3       Technical Overview
+To prove our result, we introduce the following type of ∃k ∀-quantified graph properties, in
+which we interpret the input graph G = (V = (X1 ] · · · ] Xk ] Y ), E) as sets of vectors
+X1 , . . . , Xk , by setting
+                            the entry xi [y] ∈ {0, 1} to be 1 if and only if the edge (xi , y) is present
+in G, i.e, xi [y] = E(xi , y) (for any xi ∈ Xi , i ∈ [k], and y ∈ Y ). For any Boolean function
+φ : {0, 1}k → {0, 1}, we define the corresponding Vector Problem VP(φ)
+
+     (∃x1 ∈ X1 ) . . . (∃xk ∈ Xk ) (∀y ∈ Y ) φ(x1 [y], . . . , xk [y]).
+
+Intuitively, Vector Problems are a proper subclass of ∃k ∀-quantified graph properties, since
+the latter additionally considers the edges E(xi , xj ). Note that Sparse k-OV coincides with
+                               Wk
+VP(φ) for φ(z1 , . . . , zk ) = i=1 z¯i ; in particular, this function only has a single falsifying
+assignment.
+    We prove our main dichotomy (Theorems 1 and 3) by first proving an analogous dichotomy
+for Vector Problems (see Theorem 6) and then showing an equivalence between Vector
+problems and general ∃k ∀-quantified graph properties (see Theorem 7).
+    For the first step, we show that the complexity of a Vector Problem VP(φ) is determined
+by the parameter H(φ) as defined in Definition 2:
+I Theorem 6. Let φ be a k-variable formula of hardness h = H(φ).
+    If h ≤ 1, then VP(φ) is decidable in time O(mk−1 ) combinatorially.
+    If h ≤ 2 < k, then VP(φ) is decidable in time O(mk−ε ) for some ε > 0 using fast matrix
+   multiplication. (Furthermore, VP(φ) cannot be decided by a combinatorial O(mk−ε )-time
+   algorithm unless the combinatorial k-clique hypothesis is false.)
+    If 3 ≤ h ≤ k, then VP(φ) cannot be solved in time O(mk−ε ) for any ε > 0 unless the
+    h-uniform HyperClique hypothesis fails.
+    If h = k, then VP(φ) cannot be solved in time O(mk−ε ) for any ε > 0 unless the k-OV
+   hypothesis fails.
+This result is established as follows (see Figure 1 for an illustration). On the algorithmic
+side, we show that:
+1. For any 2-variable formula φ of hardness 1, VP(φ) can be solved in time O(m) (Sec-
+   tion 4.1).
+2. For any 3-variable formula φ of hardness 2, VP(φ) can be solved in time O(m3−ε ) for
+   some ε > 0 (Section 4.2). This is our technically most demanding contribution, for which
+   we introduce a framework of Constrained Triangle problems solvable in subcubic time
+   (Section 3.1).
+3. These algorithms can be lifted to higher number of variables k (Section 4.3). The idea is
+   to brute force over all but 2 or 3 variables and to apply the algorithms above. However,
+   these algorithms are not directly applicable, since the brute-forcing step does not reduce
+   to solving a single VP(φ) instance, but to solving a mixture of VP(φi ) instances for
+   a constant number of formulas φ1 , . . . , φ` . To overcome this issue, we consider Hybrid
+   Vector Problems VP(Φ) for a set of formulas Φ and show that our algorithms from above
+   apply whenever max{H(φ) | φ ∈ Φ} ≤ 1 or 2, respectively. This extension to Hybrid
+   Vector Problems is made possible by the generality of our Constrained Triangle framework
+   that allows for a surprisingly simple combination of constraints for different formulas.
+    On the hardness side, for any k-variable hardness-h formula φ, we give a fine-grained reduc-
+tion from finding a k 0 -clique in h-uniform hypergraphs to the model-checking problem for φ,
+where k 0 is a sufficiently large constant. Intuitively (and somewhat oversimplified), the vari-
+ables x1 , . . . , xk choose a k-clique in a k-partite hypergraph and the (∀y) φ(x1 [y], . . . , xk [y])-
+part verifies that (x1 , . . . , xk ) indeed forms a clique. To this end, y ranges over the non-edges
+
+                                                                                                              CCC 2019
+31:10    A Fine-Grained Analogue of Schaefer’s Theorem in P
+
+
+        of the hypergraph and verifies that the vertices v1 , . . . , vh of such a non-edge are not included
+        in x1 , . . . , xk . Specifically, let J denote the parts containing v1 , . . . , vk . Then by our hardness
+        definition, we find a way to assign values to xi [y] for all xi ∈ Xi with i ∈ [k] \ J such that we
+        can exclude exactly the vertices v1 , . . . , vh by finding suitable values for xi [y] for all i ∈ Xi
+        with i ∈ J. The proof is given in Section 5.
+           In the second step, we extend our classification from Vector Problems to all ∃k ∀ graph
+        properties by the following equivalence.
+        I Theorem 7. Let ψ = (∃x1 ) . . . (∃xk ) (∀y) φ(x1 , . . . , xk , y) be an ∃k ∀ graph property and
+        let φ0 denote the formula φ after substituting each predicate E(xi , xj ) by false.
+            If MC(ψ) is decidable in time T (m), then VP(φ0 ) is decidable in time O(T (m)).
+            If VP(φ0 ) is decidable in time O(mk−ε ) for some ε > 0, then MC(ψ) is decidable in time
+                    0
+            O(mk−ε ) for some ε0 > 0.
+        For an intuition for the proof of the non-trivial direction from general properties to Vector
+        Problems, let us call (x1 , . . . , xk ) a solution if (∀y ∈ Y ) φ(x1 , . . . , xk , y) holds. We reduce
+        the problem of detecting a solution (x1 , . . . , xk ) such that for some 1 ≤ i < j ≤ k, the edge
+        E(xi , xj ) is present to the problem of counting triangles in a (sparse) graph. The remaining
+        solutions almost correspond to solutions of the Vector Problem φ0 – however, we need to
+        additionally ensure that no edge E(xi , xj ) is present in such a solution. We overcome this
+        technical issue using a counting argument that there are few solutions with at least one edge
+        E(xi , xj ) present.
+            Theorems 1 and 3 then follow by combining Theorem 6 and 7.
+
+        3.1     Constrained Triangles Framework
+        Let us detail our main algorithmic tool in advance. We develop a convenient framework to
+        detect triangles subject to an arbitrary combination of some well-behaved constraints. We
+        achieve subcubic-time algorithms by employing fast matrix multiplication in combination
+        with a careful constraint-specific analysis.
+            The problem of detecting three pairwise adjacent vertices in a tripartite graph G =
+        (V1 ] V2 ] V3 , E), is referred to as Triangle. It serves us as a combinatorial intermediate
+        problem that immediately benefits from the significantly improved running time of fast matrix
+        multiplication over the O(n3 )-time naïve approach. However, Triangle is of relatively little
+        expressiveness as the only way to encode information into a Triangle instance is to customize
+        the edge set E. We therefore strengthen Triangle by allowing certain constraints to further
+        restrict the set of feasible solutions (v1 , v2 , v3 ). Specifically, we make use of two types
+        of constraints:
+        Sum: For edge weights w : E → Z, where e∈E |w(e)| ≤ O(n2 ), and a target t ∈ Z, we
+                                                           P
+
+            require that w(v1 , v2 ) + w(v2 , v3 ) + w(v3 , v1 ) = t.
+        Equal: For edge weights w : E → Z, we require that w(v1 , v2 ) = w(v1 , v3 ).
+        This prepares us to introduce Constrained Triangle problems in an inductive fashion: As
+        the base case, Triangle is viewed as a Constrained Triangle problem. In addition, for
+        any Constrained Triangle problem ∆ and any constraint C ∈ {Sum, Equal}, by ∆[C] we
+        understand the Constrained Triangle problem which is – on top of all constraints restricting
+        ∆ – constrained by C. We remark that each constraint features its own weight function
+        (which is given as part of the input), so in particular an instance of the Constrained Triangle
+        problem Triangle[C1 ] · · · [Cr ] is equipped with r weight functions corresponding to the
+        respective Sum and Equal constraints Ci .
+ K. Bringmann, N. Fischer, and M. Künnemann                                                            31:11
+
+
+    Arguably, Constrained Triangle problems seem to be a convenient “interface” to the
+algorithmic power of fast matrix multiplication, as we can specifically tailor constraints
+in the desired manner. Indeed, even subject to any constant number of Sum and Equal
+constraints, finding triangles remains subcubic.
+
+I Lemma 8. Let ∆ be a Constrained Triangle problem. Then ∆ can be decided in time
+O(n3−ε ) for some ε > 0.
+
+The proof of Lemma 8 is by induction on the structure of ∆; we consider the three possible
+cases below in Fact 1, Lemma 9 and Lemma 10. A crucial observation which we will exploit
+often, is that for any Constrained Triangle problem ∆, given (v1 , v2 , v3 ), we can test in
+constant time whether (v1 , v2 , v3 ) is a solution of ∆.
+    By applying fast (Boolean) matrix multiplication, it is well-known that Triangle is
+decidable in subcubic time:
+
+I Fact 1. Triangle is decidable in time O(nω ).
+
+This settles the induction base. In the following two lemmas, we assume efficient algorithms
+for ∆ and aim to find algorithms for ∆[Sum] and ∆[Equal], respectively.
+    We focus on ∆[Sum] first. Note that the restriction e∈E |w(e)| ≤ O(n2 ) is indeed
+                                                            P
+
+necessary: For unbounded weights, the problem of finding an exact-weight triangle is not
+known and in fact conjectured not to be decidable significantly faster than O(n3 ) [56].
+Nevertheless, under this condition we achieve an efficient ∆[Sum] algorithm:
+
+I Lemma 9. If ∆ is decidable in time O(n3−ε ) for some ε > 0, then ∆[Sum] is decidable in
+           0
+time O(n3−ε ) for some ε0 > 0.
+
+Proof. We call an edge large-weight if its weight exceeds nδ in absolute value (where δ is yet
+to be fixed) and small-weight otherwise. Our first step is to eliminate all large-weight edges.
+By assumption, since e∈E |w(e)| ≤ O(n2 ), there can be at most O(n2 /nδ ) = O(n2−δ ) many
+                      P
+
+such edges. Thus, it is feasible to enumerate all large-weight edges (xi , xj ) and all vertices x`
+in the remaining part X` , for all distinct i, j, `. For each triple considered in that way, we
+explicitly check that
+   (xi , xj , x` ) forms a triangle, and
+   (xi , xj , x` ) satisfies all constraints of ∆, and
+   w(xi , xj ) + w(xj , x` ) + w(x` , xi ) = t.
+Since all these tests run in constant time, this whole step takes time O(n2−δ · n) = O(n3−δ ).
+We accept if a solution was found, and otherwise continue by safely removing all large-weight
+edges from the graph.
+    So from now on, we can assume that all remaining edges are small-weight. For any
+combination of weights w12 , w23 , w31 ∈ {−nδ , . . . , nδ } summing exactly to t, we create a ∆
+instance that only includes edges (vi , vj ) of the weight w(vi , vj ) = wij . We proceed to solve
+all these instances and report if a solution was found. By construction, any solution to an
+instance created in that way satisfies all constraints of ∆ and the additional Sum constraint.
+    Solving a single ∆ subinstance takes time O(n3−ε ) by assumption. There are O(n2δ )
+many combinations of weights w12 , w23 , w31 ∈ {−nδ , . . . , nδ } with w12 + w23 + w31 = t, so
+we need time O(n2δ · n3−ε ) = O(n3+2δ−ε ) to solve all instances. By setting δ := 3ε , the
+claim follows.                                                                                  J
+
+I Lemma 10. If ∆ is decidable in time O(n3−ε ) for some ε > 0, then ∆[Equal] is decidable
+              0
+in time O(n3−ε ) for some ε0 > 0.
+
+
+
+                                                                                                      CCC 2019
+31:12    A Fine-Grained Analogue of Schaefer’s Theorem in P
+
+
+        Proof. For any vertex v1 ∈ V1 , we define degi (v1 ) as the number of edges of weight i incident
+        to v1 . First, we enumerate all edges (v1 , v3 ), and if degw(v1 ,v3 ) (v1 ) ≤ n1−δ (where δ is a
+        parameter to be chosen later), then enumerate all edges (v1 , v2 ) of the same weight w(v1 , v3 ).
+        When finding a triple (v1 , v2 , v3 ) forming a triangle and fulfilling all constrained imposed by ∆,
+        we accept. Otherwise, we can safely remove all edges (v1 , v3 ) where degw(v1 ,v3 ) (v1 ) ≤ n1−δ .
+        We can similarly remove all edges (v1 , v2 ) with degw(v1 ,v2 ) (v1 ) ≤ n1−δ . So we can assume
+        that for all weights i, and all vertices v1 , degi (v1 ) is either 0 or at least n1−δ . This step takes
+        time O(n2 · n1−δ ) = O(n3−δ ).
+           Since each vertex v1 is incident to at most n edges, each v1 can be incident to edges of at
+        most n/n1−δ = nδ different weights; we denote these weights by w1v1 , . . . , wnv1δ in an arbitrary
+        order. Our strategy is as follows: We create nδ many ∆ instances, where the i-th instance
+        contains, for each vertex v1 , only those edges incident to v1 which are of weight wiv1 . Notice
+        that in each instance, all edges incident to one fixed v1 are of the same weight, even though
+        edges incident to different v1 ’s are in general of different weights. In this way, we can now
+        simultaneously search for all triangles (v1 , v2 , v3 ) satisfying ∆’s constraints and satisfying
+        w(v1 , v2 ) = w(v1 , v3 ) = wiv1 . Solving all instances takes time O(nδ · n3−ε ) = O(n3+δ−ε ),
+        under the assumption that ∆ can be solved in time O(n3−ε ).
+           In total, the running time is bounded by O(n3−δ + n3+δ−ε ), which is subcubic, namely
+                ε
+        O(n3− 2 ), for δ := 2ε .                                                                             J
+
+
+         4       Algorithmic Results
+        In this section, we show the algorithmic part of Theorem 6. In particular, we show that for
+        an k-variable hardness-h formula φ the Vector Problem VP(φ) is easy if k = 2 and h ≤ 1
+        (Section 4.1), or if k = 3 and h ≤ 2 (Section 4.2). In fact, for both scenarios, we demonstrate
+        how to solve the following more general version of Vector Problems that discriminates among
+        dimensions in such a way that we can assert different formulas φ for different dimensions.
+            For a set of k-variable formulas Φ, and given a sparse structure over the vertex set
+        X1 ] . . . ] Xk ] Y , where each dimension y ∈ Y is associated to a formula φy ∈ Φ, the Hybrid
+        Vector Problem VP(Φ) is to check
+
+             (∃x1 ∈ X1 ) . . . (∃xk ∈ Xk ) (∀y ∈ Y ) φy (x1 [y], . . . , xk [y]).
+
+        Our hardness notion is generalized to sets of formulas Φ by H(Φ) := max{H(φ) : φ ∈ Φ}.
+        (Observe that we could equivalently define Hybrid Vector Problems as Vector Problems
+        tolerating a multi-valued unary predicate on Y .)
+
+        4.1      Algorithms for k = 2
+        We first introduce a useful tool: partition refinement [42]. There exists a (simple) data
+                                                                                              U
+        structure which, once initialized with a universe U , explicitly maintains a partition P P of
+        U . It supports an operation Refine(S) that splits each part P into P ∩ S and P \ S and
+        runs in time O(|S|). In addition, we can always query, for each universe element u ∈ U , its
+        current part P (with u ∈ P ) and iterate over all elements in P in time O(|P |).
+        I Lemma 11. Let Φ be a set of 2-variable formulas of hardness H(Φ) ≤ 1. Then VP(Φ) is
+        decidable in time O(m).
+        Proof. Let φ ∈ Φ. We first prove that VP(φ) is linear-time decidable, and later show the
+        same for VP(Φ). Since we consider k = 2 variables, we have a function φ : {0, 1}2 → {0, 1}.
+        We exhaustively discriminate all possible shapes of φ:
+ K. Bringmann, N. Fischer, and M. Künnemann                                                                    31:13
+
+
+Case 0: φ has 0 or 4 satisfying assignments. Then VP(φ) is constantly rejecting or ac-
+   cepting and trivially decidable.
+Case 1: φ has 1 satisfying assignment. Then φ is of the shape φ(z1 , z2 ) = φ1 (z1 ) ∧ φ2 (z2 ).
+   Deciding VP(φ) is equivalent to asserting the satisfiability of (∃x1 ) (∀y) φ1 (x1 [y]) and
+  (∃x2 ) (∀y) φ2 (x2 [y]) separately, which we do by removing all vectors x1 and x2 violating
+  (∀y) φ1 (x1 [y]) and (∀y) φ2 (x2 [y]), respectively. Focus on the former problem: We first
+   precompute all values kx1 k by iterating over the edge set once. Then we exclude all
+   vectors x1 with kx1 k < d in case that φ1 (z1 ) = z1 or kx1 k > 0 in case that φ1 (z1 ) = z̄1 .
+   In the remaining cases φ1 (z1 ) = true and φ1 (z1 ) = false we keep all or no vectors x1 ,
+   respectively.
+Case 2: φ has 2 satisfying assignments.
+Case 2a: φ(z1 , z2 ) = (z1 ↔ z2 ). Our algorithm relies on the partition refinement tech-
+   nique: Initialize the partition refinement structure with U = X1 ] X2 . Then, for each
+   y ∈ Y , invoke Refine(N (y)), where N (y) ⊆ X1 ] X2 denotes the neighborhood of y. We
+   claim two vectors x1 and x2 lie in the same partition if and only if (∀y) x1 [y] ↔ x2 [y].
+   Indeed, assume that x1 and x2 are equal (as vectors). Then for any dimension y ∈ Y , we
+   have x1 ∈ N (y) if and only if x2 ∈ N (y). Hence, there exists no entry y ∈ Y separating
+   x1 from x2 . On the other hand, if x1 [y] ↔ x2 [y] does not hold for some y ∈ Y , then
+   x1 ∈ N (y) but x2 6∈ N (y) (or vice versa), so N (y) splits any part containing both x1 and
+                                        P
+   x2 . This approach takes time y∈Y O(|N (y)|) = O(m) for the refinement steps and time
+   P
+      P O(|P |) ≤ O(n) (where P ranges over all parts) to ultimately check whether some
+   pair (x1 , x2 ) was not separated.
+Case 2b: φ(z1 , z2 ) = z1 ⊕ z2 . Our goal is to reduce to the Case 2a by transforming all
+   vectors x1 , x2 into x01 , x02 in such a way that we have x1 [y]⊕x2 [y] if and only if x01 [y]↔x02 [y],
+   for all y ∈ Y . The naive way to achieve this is to negate all vectors x2 ∈ X2 ; however, we
+   then potentially increase the total number of 1-entries inordinately, so that we do not
+   obtain an O(m)-time algorithm. We circumvent this issue as follows. Let us call a vector
+   x heavy if kxk > d/2, and light otherwise. Observe that in any solution (x1 , x2 ), we must
+   have that precisely one of x1 and x2 is heavy (assuming without loss of generality that d
+   is odd). Now, assign x0i := xi if xi is light and x0i := x̄i otherwise. Then, for any solution
+  (x1 , x2 ), where, say, x1 is heavy, (x01 , x02 ) = (x̄1 , x2 ) is a solution of VP(x01 ↔x02 ). The other
+   direction is not immediate as there could exist light vectors x1 , x2 with x01 = x1 = x2 = x02 .
+   To avoid these false positives, we introduce a fresh dimension y with x01 [y] = [x1 is heavy]
+   and x02 [y] = [x2 is light], for all vectors x1 , x2 . In doing so, we achieve that for any
+   solution (x01 , x02 ) exactly one of the vectors x1 , x2 is heavy.
+   It remains to bound the running time of the complementations. Since there exist at most
+   O(m/d) heavy vectors, and complementing a single vector takes time O(d), this step
+   takes time O(m/d · d) = O(m). Furthermore, notice that m cannot increase by replacing
+   heavy vectors with light ones.
+Case 3: φ has 3 satisfying assignments. Then φ would have exactly one falsifying assign-
+   ment, so it would have hardness 2. Since φ has hardness at most 1 by assumption, this
+   case cannot occur.
+     To arrive at an algorithm solving the hybrid problem, we take a close look at the preceding
+arguments: Either VP(φ) reduces to an instance of VP(z1 ↔ z2 ) over the original vertex set
+(Case 2) or we remove certain vertices and accept if afterwards both parts X1 and X2 are
+still non-empty (Cases 0 and 1). In the same way, we can solve the Hybrid Vector Problem
+VP(Φ): For all formulas φ ∈ Φ falling into the latter category, we identify and remove all bad
+vertices x1 and x2 . Then, for all remaining φ ∈ Φ, we invoke the reduction to VP(z1 ↔ z2 )
+and concatenate all vectors corresponding to the same vertex xi . Finally, it remains to solve
+the combined VP(z1 ↔ z2 ) instance as shown in Case 2a.                                       J
+
+                                                                                                              CCC 2019
+31:14    A Fine-Grained Analogue of Schaefer’s Theorem in P
+
+
+        4.2     Algorithms for k = 3
+        Next, we will show that, for k = 3, any Vector Problem of hardness at most 2 reduces to a
+        Constrained Triangle problem ∆. The reduction is always of the following form: Given a
+        VP(φ) instance G with vertices V (G) = X1 ] X2 ] X3 ] Y , the corresponding Constrained
+        Triangle instance is a graph G0 over the vertex set V (G0 ) = X1 ] X2 ] X3 . Moreover, we
+        wish to satisfy that, for all (x1 , x2 , x3 ):
+            (∀y) φ(x1 [y], x2 [y], x3 [y]) ⇐⇒ (x1 , x2 , x3 ) is a solution of ∆ on G0 .
+        To this end, the following sections describe how to encode φ by Equal and Sum constraints
+        step-by-step. More precisely, each constraint “covers” a pair of falsifying assignments
+        of φ. Let (α1 , β 1 ), . . . , (αr , β r ) be pairs of falsifying assignments of φ containing each
+        falsifying assignment at least once. Then we reduce VP(φ) to a Constrained Triangle
+        problem ∆ = Triangle[C1 ] · · · [Cr ] with Ci ∈ {Equal, Sum} such that for all i and for all
+        (x1 , x2 , x3 ):
+            (∀y) (x1 [y], x2 [y], x3 [y]) 6∈ {αi , β i } ⇐⇒ (x1 , x2 , x3 ) satisfies the constraint Ci .
+        Note that we indeed need the restriction H(φ) ≤ 2, since we can only cover the falsifying
+        assignments of φ by pairs (αi , β i ) if φ does not have exactly one falsifying assignment.
+            Recall that in Section 3.1, we measured the complexity of Constrained Triangles in terms
+        of the number of vertices n. By viewing G0 as a graph of m vertices (by potentially adding
+        isolated nodes), we obtain algorithms whose running time solely depends on m. Furthermore,
+        in the special case of Sum constraints, we thereby allow a total edge weight of up to O(m2 )
+        instead of O(n2 ).
+
+        4.2.1      Equal Constraints
+        We start by covering falsifying assignments α, β of Hamming distance 2 using Equal
+        constraints.
+        I Lemma 12. Let α, β ∈ {0, 1}3 be of Hamming distance 2. In time Õ(m2 ), we can determine
+        the edge weights of an Equal constraint C such that (∀y) (x1 [y], x2 [y], x3 [y]) 6∈ {α, β} holds
+        if and only if (x1 , x2 , x3 ) satisfies C.
+        Proof. Let α = (α1 , α2 , α3 ) and β = (β1 , β2 , β3 ). Without loss of generality, we assume that
+        α equals β exactly in the first position. An Equal constraint is employed as follows by
+        choosing each weight to be a dimension-d bit-vector (for the moment). Let w(x1 , x2 )[y] := 1
+        if and only if (x1 [y], x2 [y]) = (α1 , α2 ) and analogously let w(x1 , x3 )[y] := 1 if and only if
+        (x1 [y], x3 [y]) = (β1 , β3 ).
+             Let y be arbitrary. It is easy to check that we have w(x1 , x2 )[y] 6= w(x1 , x3 )[y] if and only
+        if (x1 [y], x2 [y], x3 [y]) ∈ {α, β}. Indeed, suppose that 1 = w(x1 , x2 )[y] 6= w(x1 , x3 )[y] = 0. By
+        our choice of w(x1 , x2 ), we must have x1 [y] = α1 and x2 [y] = α2 . But w(x1 , x3 )[y] = 0, hence
+        x3 [y] = β̄3 = α3 . In summary: (x1 [y], x2 [y], x3 [y]) = α. Symmetrically, 0 = w(x1 , x2 )[y] 6=
+        w(x1 , x3 )[y] = 1 entails (x1 [y], x2 [y], x3 [y]) = β. The converse direction is immediate.
+             However, computing the vectors w(x1 , xi ) explicitly would take time O(m3 ), since there
+        are O(m2 ) weights and each vector is of dimension d = O(m). We therefore employ the
+        following succinct computation and compression:
+         1. Compute all weights w(x1 , xi ), i = 2, 3, stored in run-length encoding. That is, for each
+             weight w(x1 , xi ) we store a sequence of numbers RLE(w(x1 , xi )) := `1 `2 · · · `r indicating
+             the positions of 0-1 alternations in w(x1 , xi ), i.e., w(x1 , xi ) = 0`1 1`2 · · · 0`r−1 1`r written
+             as a bit-string.
+ K. Bringmann, N. Fischer, and M. Künnemann                                                                              31:15
+
+
+2. Interpret the run-length encoded weight vectors as strings, sort these strings to combine
+   equal weight vectors, and replace every weight vector by its rank in the resulting sorted
+   sequence. This replaces each weight vector by a number in {0, . . . , O(m2 )} so that two
+   edges share the same label if and only if their weights are equal.
+
+To implement the first step, we identify Y with [d] in an arbitrary order. Fix some i = 2, 3 and
+some edge (x1 , xi ) and let a 0-1 alternation occur at y, i.e. w(x1 , xi )[y] 6= w(x1 , xi )[y + 1]. We
+observe that, for any choice of α, β, at least one of the entries x1 [y], xi [y], x1 [y + 1] or xi [y + 1]
+is 1. Thus, it is feasible to explicitly consider all “event points” y with x1 [y] = 1 or xi [y] = 1
+in increasing order. Whenever an alternation is detected at w(x1 , xi )[y − 1] or w(x1 , xi )[y]
+we appropriately append the run-length encoding of w(x1 , xi ). For a fixed pair (x1 , xi ), this
+                                                                          P
+approach takes time O(kx1 k + kxi k). In total, we obtain time x1 ,xi O(kx1 k + kxi k) =
+O(n2 + m2 ) = O(m2 ). By the same argument, it follows that the total length of all run-length
+encoding x1 ,xi |RLE(w(x1 , xi ))| is bounded by O(m2 ).
+           P
+
+    In spirit, the proof ends here. However, in requiring the edge labels of Equal constraints
+to be integers instead of arbitrary objects (here, vectors in run-length encoding), we did not
+have to worry about the bit-size of the edge weights in Section 3.1. So our second step is to
+associate all vectors w(x1 , xi ) with integers in {0, . . . , O(m2 )}. We interpret each run-length
+encoded weight RLE(w(x1 , xi )) := `1 `2 · · · `r as a string of length r over alphabet Σ = [d].
+We sort these strings, which leaves all equal weights as contiguous intervals in the sorted
+sequence. Finally, we replace each weight by its rank in this sorted sequence (i.e., by the
+number of distinct weights preceding it in the sorted sequence). It is well-known that M
+strings of total length N over an alphabet of size poly(N ) can be sorted in time Õ(N ) using
+tries. This yields time Õ(m2 ) in our application.                                                     J
+
+
+4.2.2     Sum Constraints
+It remains to cover falsifying assignments α, β of odd Hamming distance, for which we will
+use Sum constraints. We start with some useful observations.
+    We aim to check whether some vectors (x1 , . . . , xk ) satisfy (∀y) φ(x1 [y], . . . , xk [y]). Say φ
+is falsified only by the all-ones input. Then, clearly, it is sufficient to check that there exists
+no vertex y connected to all vertices x1 , . . . , xk – we call such a configuration a [k]-star. More
+generally, by an I-star, I ⊆ [k], we understand a subgraph centered at a vertex y ∈ Y such
+                                                                                                V
+that all edges (xi , y), i ∈ I, are present. Notice that, for any vectors (x1 , . . . , xk ), k i∈I xi k
+exactly counts the number of I-stars. So, in the above example of φ, we can decide whether
+                                                                             Vk
+(∀y) (x1 [y], . . . , xk [y]) by checking whether the number of [k]-stars k i=1 xi k equals zero.
+    But what about other formulas φ? For each falsifying assignment α ∈ {0, 1}k , the obvious
+                                     Vk
+generalization is to require k i=1 xα      i k = 0; here, and for the remainder of this section, we
+                                            i
+
+         1                 0
+write x := x and x := x̄. The following observations suggest how to transform an arbitrary
+                                                                    V
+expression of this form into a linear combination of terms k i∈I xi k without complemented
+occurrences:
+
+I Observation 1. For all vectors x, x0 , kx ∧ x̄0 k = kxk − kx ∧ x0 k.
+
+By induction, we obtain the following generalization:
+                                                             Vk             P              |I|
+                                                                                                        V
+I Observation 2. For all vectors x, x1 , . . . , xk , kx ∧    i=1 x̄i k =     I⊆[k] (−1)         kx ∧       i∈I xi k.
+                                                             V
+Thus, if we could precompute the number of I-stars k              i∈I xi k, then we could efficiently test
+whether (∀y) φ(x1 [y], . . . , xk [y]) holds:
+
+
+
+                                                                                                                        CCC 2019
+31:16    A Fine-Grained Analogue of Schaefer’s Theorem in P
+
+                                                                                      V
+        I Observation 3. Given vertices (x1 , . . . , xk ) and the number of I-stars k i∈I xi k for all
+        I ⊆ [k], for any formula φ we can decide in constant time whether (∀y) φ(x1 [y], . . . , xk [y]).
+
+        As an example, consider the 3-Not-All-Equal problem VP(NAE), where NAE(x1 , x2 , x3 )
+        has two falsifying assignments: 111 and 000. Equivalently, we could require that the triple
+        (x1 , x2 , x3 ) satisfies kx1 ∧ x2 ∧ x3 k = 0 and kx̄1 ∧ x̄2 ∧ x̄3 k = 0. By Observation 2, the second
+        equation is rewritten in an inclusion-exclusion fashion as
+
+            d − kx1 k − kx2 k − kx3 k + kx1 ∧ x2 k + kx1 ∧ x3 k + kx2 ∧ x3 k − kx1 ∧ x2 ∧ x3 k = 0
+                     V
+        (here, d = k i∈∅ xi k).
+            However, even though we can efficiently determine all values k i∈I xi k in time O(m|I| ),
+                                                                                    V
+                       Vk
+        computing k i=1 xi k is infeasible if we want to beat the baseline algorithm. Therefore,
+        our next algorithm makes use of another trick: When combining two equations – as in the
+        NAE example – we can sometimes exploit cancellations to decide instances without actually
+                      Vk
+        computing k i=1 xi k: Because the Hamming weight of all vectors is always non-negative,
+        instead of testing kx1 ∧ x2 ∧ x3 k = 0 and kx̄1 ∧ x̄2 ∧ x̄3 k = 0, we can equivalently test whether
+        kx1 ∧ x2 ∧ x3 k + kx̄1 ∧ x̄2 ∧ x̄3 k = 0. By expanding kx̄1 ∧ x̄2 ∧ x̄3 k as above, the kx1 ∧ x2 ∧ x3 k
+        term cancels and it suffices to know the numbers of all I-stars, for I ( [3].
+
+        I Lemma 13. Let α, β ∈ {0, 1}3 be of odd Hamming distance. In time O(m2 ), we can
+        determine the edge weights of a Sum constraint C such that (∀y) (x1 [y], x2 [y], x3 [y]) 6∈ {α, β}
+        holds if and only if (x1 , x2 , x3 ) satisfies C.
+
+        Proof. Let α = (α1 , α2 , α3 ) and β = (β1 , β2 , β3 ). Without loss of generality, we may assume
+        that, for some i∗ ∈ {1, 3}, αi 6= βi for all i ≤ i∗ and αi = βi for all i > i∗ .
+           As argued before, any triple (x1 , x2 , x3 ) satisfies (∀y) (x1 [y], x2 [y], x3 [y]) 6∈ {α, β} if and
+                                                                 β1   β2      β3
+        only if (x1 , x2 , x3 ) satisfies kxα    α2   α3
+                                            1 ∧ x2 ∧ x3 k = kx1 ∧ x2 ∧ x3 k = 0. Since both sides of
+                                             1
+
+
+        the left equation are always non-negative, we can equivalently demand that their sum be
+        zero. This condition simplifies to:
+                                       β1    β2     β3
+        0 = kxα      α2      α3
+               1 ∧ x2 ∧ x3 k + kx1 ∧ x2 ∧ x3 k
+                1
+
+               ^             ^               ^             ^
+          = k(    xα
+                   i
+                     i
+                       ) ∧ (    x αi
+                                  i  )k + k(    x αi
+                                                  i  ) ∧ (   x̄α i
+                                                               i )k
+                i>i∗             i≤i∗               i>i∗          i≤i∗
+                 ^                ^                X                  ^            ^
+          = k(          xα
+                         i )∧(
+                          i
+                                        xαi
+                                         i )k +          (−1)|I| k(       xα
+                                                                           i )∧(
+                                                                            i
+                                                                                         xα i
+                                                                                          i )k   Observation 2
+                i>i∗          i≤i∗                I⊆[i∗ ]         i>i∗             i∈I
+               X                  ^               ^
+          =          (−1)|I| k(         xα
+                                         i )∧(
+                                          i
+                                                        xα i
+                                                         i )k.                                        i∗ is odd
+              I([i∗ ]            i>i∗             i∈I
+
+
+        Notice that (possibly after applying Observation 2 again to get rid of complemented occur-
+        rences) this expression is a weighted sum of values d, kx1 k, kx2 k, kx3 k, kx1 ∧ x2 k, kx1 ∧ x3 k
+        and kx2 ∧ x3 k. In particular, the problematic term kx1 ∧ x2 ∧ x3 k canceled in the equation
+        above due to i∗ being an odd number. In summary, we can express the above constraint by
+             P           V
+        0 = I([3] λI k i∈I xi k for some constants λI .
+                                                V                            V
+            It is easy to compute the values k i∈I xi k for all I ( [3]: k i∈∅ xi k = d is a constant
+        and each number kxi k is obtained by once enumerating all edges between Xi and Y . Any
+        value kxi ∧ xj k is determined in time O(m2 ) by iterating over all pairs of edges between Xi
+        and Y , and between Xj and Y , respectively. Finally, we annotate each edge of the Sum
+        constraint accordingly. To this end, each edge (xi , xj ) is labeled with the contribution of
+ K. Bringmann, N. Fischer, and M. Künnemann                                                                  31:17
+
+
+kxi ∧ xj k and additionally, we distribute the node-weights kx1 k, kx2 k and kx3 k to the edges:
+
+    w(x1 , x2 ) := λ{1,2} kx1 ∧ x2 k + λ{1} kx1 k,
+    w(x2 , x3 ) := λ{2,3} kx2 ∧ x3 k + λ{2} kx2 k,
+    w(x3 , x1 ) := λ{3,1} kx3 ∧ x1 k + λ{3} kx3 k.
+
+The target t is set to −λ∅ d.
+    It is left to show that e∈E |w(e)| ≤ O(m2 ) as in the definition of Sum. It is clear that
+                           P
+
+kx1 k, kx2 k and kx3 k only account for O(m). Each edge (xi , y) contributes to at most m
+values kxi ∧ xj k, thus xi ,xj kxi ∧ xj k ≤ O(m2 ). The values λI are fixed constants depending
+                        P
+
+only on α, β.                                                                                J
+
+
+4.2.3     Combined Algorithm for k = 3
+By combining the previous reductions from VP(φ) to Constrained Triangle problems, we
+find the desired algorithm for 3-variable Vector Problems of hardness at most 2:
+
+I Lemma 14. Let Φ be a set of 3-variable formulas of hardness H(Φ) ≤ 2. Then VP(Φ) is
+decidable in time O(m3−ε ) for some ε > 0 using fast matrix multiplication.
+
+Proof. Let φ ∈ Φ. Given an VP(φ) instance, we can obtain an equivalent Constrained
+Triangle formulation by covering each pair of falsifying assignments by an Equal or Sum
+constraint using Lemmas 12 and 13 (any pair of distinct 3-variable assignments is either of
+Hamming distance 2 or of odd Hamming distance).
+    The hybrid problem VP(Φ) is now solved by rephrasing each subproblem VP(φ), φ ∈ Φ,
+as a Constrained Triangle problem Triangle[C1φ ] · · · [Crφφ ] with Ciφ ∈ {Equal, Sum}, and
+by “stacking” all constraints. Since Φ = {φ1 , . . . , φ` } is of constant size, we are left to solve an
+instance of Triangle[C1φ1 ] · · · [Crφφ11 ] · · · [C1φ` ] · · · [Crφφ` ]. Lemma 8 yields an O(m3−ε )-time
+                                                                      `
+algorithm for some ε > 0 for any constant number of adjunct Equal and Sum constraints. J
+
+
+4.3     Algorithms for Arbitrary k
+For large k, we will tackle Vector Problems by first brute-forcing over a number of variables
+before solving the remaining k 0 = 2 or k 0 = 3 problem. To this end, we establish the following
+lemmas in order to lift fast algorithms from fewer quantifiers to more quantifiers:
+
+I Lemma 15. Let φ be a k-variable formula. Then, for any k 0 ≤ k, there exists some
+       [k]
+I 0 ∈ k−k  0 such that for any I 0 -restriction φ0 of φ we have H(φ0 ) ≤ H(φ).
+
+Proof. Let h = H(φ). The statement is clear for k 0 ≤ h, so suppose h < k 0 ≤ k. From
+                                                                              [k]
+H(φ) < h + 1, it follows by definition that there exists some I ∈ k−h−1             such that any
+                                                                                                 I
+I-restriction φ0 of φ has not exactly one falsifying assignment. Choose an arbitrary I 0 ∈ k−k     0
+
+and let φ0 be any I 0 -restriction of φ. Then any (I \ I 0 )-restriction of φ0 has not exactly one
+falsifying assignment. Hence, H(φ0 ) < k 0 − |I \ I 0 | = k 0 − (k − h − 1) + (k − k 0 ) = h + 1 and
+thus H(φ0 ) ≤ h = H(φ).                                                                            J
+
+I Lemma 16 (Lifting). Let k 0 ≤ k, let φ be a k-variable formula and let Φ0 contain all
+k 0 -variable formulas φ0 of hardness H(φ0 ) ≤ H(φ). If VP(Φ0 ) is decidable in time T (m),
+                                         0
+then VP(φ) is decidable in time O(mk−k T (m)).
+
+
+
+                                                                                                            CCC 2019
+31:18    A Fine-Grained Analogue of Schaefer’s Theorem in P
+
+
+        Proof. The idea is to appropriately brute-force over k − k 0 variables x1 , . . . , xk−k0 and use
+        the VP(Φ0 ) algorithm to decide the remaining instance. Here, it is crucial that we can indeed
+        solve the Hybrid Vector Problem! This is because we have to specialize φ to the values of the
+        brute-forced vectors (x1 , . . . , xk−k0 ), however, in general (x1 [y], . . . , xk−k0 [y]) takes different
+        values for different y’s, so we have to instantiate φ “per dimension”. This leads to queries
+        allowing several formulas φy – exactly as permitted by Hybrid Vector Problems.
+            More formally, by Lemma 15, there exists some index set I 0 of size k − k 0 , such that any
+        I -restriction φ0 of φ satisfies H(φ0 ) ≤ H(φ). By interchanging the order of the existential
+         0
+                                                                                                                0
+        variables, we can assume that I 0 = {1, . . . , k − k 0 }. Our first step is to enumerate all nk −k
+        choices for the first k − k 0 variables (x1 , . . . , xk−k0 ); fix such a tuple (x1 , . . . , xk−k0 ). It
+        remains to solve the problem
+
+             (∃xk−k0 +1 ) . . . (∃xk ) (∀y) φy (xk−k0 +1 [y], . . . , xk [y]),
+
+        where φy denotes the I 0 -restriction of φ(x1 [y], . . . , xk [y]) in which all occurrences of x1 [y], . . . ,
+        xk−k0 [y] are fixed as specified by the brute-forced vectors x1 , . . . , xk−k0 . In other words, we
+                                                                                   S
+        are left to solve a Hybrid Vector Problem over the formula set y {φy }. Recall that φy is an
+        I 0 -restriction of φ, and therefore, as guaranteed by Lemma 15, H(φy ) ≤ H(φ). Thus φy ∈ Φ0 ,
+        by the definition of Φ0 . By the assumption that we can solve VP(Φ0 ) in time T (m), the total
+                                    0                                            0
+        running time is O(nk−k T (m)), which is bounded by O(mk−k T (m)).                                          J
+
+        By the Lifting Lemma, we conclude the following consequences of Lemma 11 and Lemma 14.
+        This concludes the algorithmic part of Theorem 6.
+
+        I Corollary 17. Let φ be a k-variable formula of hardness H(φ) ≤ 1. Then VP(φ) is
+        decidable in time O(mk−1 ).
+
+        I Corollary 18. Let φ be a k-variable formula of hardness H(φ) ≤ 2 < k. Then VP(φ) is
+        decidable in time O(mk−ε ) for some ε > 0 using fast matrix multiplication.
+
+         5       Hardness Results
+        In this section, we prove the hardness part of Theorem 6, see Lemmas 19 and 20, below.
+            Let φ be a k-variable formula with exactly one falsifying assignment, or equivalently, let φ
+        be of hardness H(φ) = k. The model-checking query (∃x1 ) . . . (∃xk ) (∀y) φ(x1 [y], . . . , xk [y]) –
+        that is, VP(φ) – is equivalent to the k-Orthogonal Vectors problem with respect to polynomial
+        improvements over the O(mk )-time baseline algorithm as shown by Gao et al. [41] (the
+        authors of [41] refer to Vector Problems of hardness k as Basic Problems). This shows the
+        k-OV hardness part of Theorem 6:
+
+        I Lemma 19 ([41, Lemma 1.1, Lemma 5.1]). Let H(φ) = k. If VP(φ) is decidable in time
+                                                                      0
+        O(mk−ε ) for some ε > 0, then k-OV is decidable in time O(nk−ε poly d) for some ε0 > 0.
+
+             It remains to show the HyperClique hardness. Recall that given a k-partite h-uniform
+        hypergraph (V1 ] . . . ] Vk , E), the h-uniform k-HyperClique problem asks to find vertices
+        (v1 , . . . , vk ) ∈ V1 × . . . × Vk , so that any h vertices in {v1 , . . . , vk } form a hyperedge in E.
+
+        I Lemma 20. Let φ be a k-variable formula and let 2 ≤ h ≤ H(φ). If VP(φ) is decidable
+        in time O(mk−ε ) for some ε > 0, then the h-uniform HyperClique hypothesis fails.
+
+        For h ≥ 3, Lemma 20 shows the hardness part of Theorem 6. Moreover, the special case
+        h = 2 is also informative: The 2-uniform k-HyperClique problem is simply the k-Clique
+                                                                                             ωk
+        problems on ordinary graphs. It is well-known that k-Clique can be solved in time O(n 3 )
+ K. Bringmann, N. Fischer, and M. Künnemann                                                                                          31:19
+
+
+using fast matrix multiplication. However, no combinatorial solution which is significantly
+faster than the O(nk )-time exhaustive search approach is known. The combinatorial k-
+Clique hypothesis speculates that no polynomial improvement is possible without relying
+on algebraic methods [3], which in turn, confirms the need to fall back on fast matrix
+multiplication in Lemma 14.
+
+
+Proof. We will fix k 0 = k 0 (k, h, ε) later such that k divides k 0 . Given an h-uniform
+k 0 -HyperClique instance G0 , we can assume that G0 is k 0 -partite by copying the ver-
+tex set k 0 times and by keeping only edges spanned between distinct copies. So let
+V (G0 ) = V1,1    0
+                      ] . . . ] V1,k 0                      0            0
+                                        0 /k ] . . . ] Vk,1 ] . . . ] Vk,k 0 /k . We proceed in a split-and-list fashion:
+
+First, we split V (G0 ) into the k parts Vi0 := Vi,1                  0              0
+                                                                         ] . . . ] Vi,k 0 /k . Then, for i = 1, . . . , k, we let
+
+Xi ⊆ Vi,1 × . . . × Vi,k0 /k be all tuples of vertices that form an h-uniform clique in G0 . We
+            0                   0
+                                                                               0
+refer to the elements of Xi as bundles. Let Y ⊆ V (G                       h
+                                                                                 )
+                                                                                   contain all non-edges of G0 . We say a
+vertex bundle xi ∈ Xi avoids a non-edge y ∈ Y if not all vertices in y ∩ Vi0 are contained in xi .
+     Our next step is to assign the entries xi [y], for all xi ∈ Xi and y ∈ Y . Let y =
+{v1 , . . . , vh } ∈ Y and collect all indices J = {j : vi ∈ Vj0 for some i ∈ [h]}. Since φ is of
+hardness H(φ) ≥ h, it holds for all index sets I of size at least k − h that there exists an
+I-restriction φ0 of φ having exactly one falsifying assignment. Picking I = [k] \ J, there exists
+an I-restriction φ0 = φ|α , for some α : I → {0, 1}, such that φ0 is falsified only by a single
+assignment β : J → {0, 1}. For all i ∈ I and all vectors xi ∈ Xi , we define xi [y] := αi . For all
+j ∈ J and all vectors xj ∈ Xj , we define xj [y] := β̄j if xj avoids y, and xj [y] := βj otherwise.
+     We claim that there exists a tuple of vectors (x1 , . . . , xk ) with (∀y ∈ Y ) φ(x1 [y], . . . , xk [y])
+if and only if G0 contains a k 0 -hyperclique. Suppose there exists some k 0 -hyperclique
+(v1,1 , . . . , v1,k0 /k , . . . , vk,1 , . . . , vk,k0 /k ) in G0 . Since each tuple (vi,1 , . . . , vi,k0 /k ) by itself forms
+a hyperclique, we have that xi := (vi,1 , . . . , vi,k0 /k ) ∈ Xi . We aim to prove that (x1 , . . . , xk )
+satisfies φ(x1 [y], . . . , xk [y]) for all y ∈ Y . Let y ∈ Y be arbitrary, and let J, I, α and β as
+above. After plugging in all values xi [y] = αi for i ∈ I, there remains only one falsifying
+assignment of φ(x1 [y], . . . , xk [y]), given by β. Since we started from a hyperclique, xj must
+avoid y for some j ∈ J, and thus xj = β̄j for some j ∈ J. The vectors (x1 , . . . , xk ) thus
+satisfy φ(x1 [y], . . . , xk [y]), for any y. The converse argument is essentially symmetric. This
+finishes the correctness proof.
+                                                                                                             0
+     Finally, we turn to the running time analysis. Observe that |Xi | ≤ O(nk /k ) for all i and
+                                                                                                               0
+|Y | ≤ O(nh ). Furthermore, constructing the Xi ’s and Y takes time O(nk /k ). Assigning
+                                                                              0
+the entries xi [y] takes time O( i |Xi | · |Y |) = O(nk /k+h ). In particular, it follows that the
+                                                   P
+                                                                  0
+number of edges is bounded by m ≤ O(nk /k+h ). By assumption, solving VP(φ) is in time
+O(mk−ε ) for some ε > 0. Hence, in total we solve h-uniform k 0 -HyperClique in time
+         0                                                                                        0
+O(n(k /k+h)(k−ε) ). By setting k 0 ≥ hk 2 /ε this is bounded by O(nk −hε ), contradicting the
+h-uniform HyperClique hypothesis.                                                                                              J
+
+
+We remark that for h = k, Lemma 20 can also be derived in an alternative way: Abboud et
+al. [5] show that the k-OV hypothesis is implied by the h-uniform HyperClique hypothesis
+for all h ≥ 3. So all we need to do is combine Lemma 19 with that reduction:
+
+I Lemma 21 ([5]). If k-OV is decidable in time O(nk−ε poly d) for some ε > 0, then, for
+any h, the h-uniform HyperClique hypothesis fails.
+
+This finishes the proof of Theorem 6.
+
+
+
+                                                                                                                                    CCC 2019
+31:20    A Fine-Grained Analogue of Schaefer’s Theorem in P
+
+
+         6     Equivalence of Vector Problems and ∃k ∀ Graph Properties
+        This section is devoted to proving that Vector Problems VP(φ) capture the core difficulty of
+        model-checking ∃k ∀ graph properties. Specifically, we will prove Theorem 7, which together
+        with Theorem 6 proves Theorems 1 and 3.
+        I Theorem 7 (Restated). Let ψ = (∃x1 ) . . . (∃xk ) (∀y) φ(x1 , . . . , xk , y) be an ∃k ∀ graph
+        property and let φ0 denote the formula φ after substituting each predicate E(xi , xj ) by false.
+           If MC(ψ) is decidable in time T (m), then VP(φ0 ) is decidable in time O(T (m)).
+           If VP(φ0 ) is decidable in time O(mk−ε ) for some ε > 0, then MC(ψ) is decidable in time
+                   0
+           O(mk−ε ) for some ε0 > 0.
+        Recall that ∃k ∀ graph properties are strictly more general than Vector Problems in the sense
+        that graph properties are sensitive to edges E(xi , xj ). We will continue to interchangeably
+        interpret the xi ’s as vertices and vectors depending on the context. For the remainder of
+        this section, let ψ, φ and φ0 be as in Theorem 7.
+             We start by demonstrating the following preliminary lemma:
+                                                                        6 I ⊆ [k]
+                                                                                   
+        I Lemma 22. Given a set of two-element subsets ∅ =                       2 , we say that vertices
+        (x1 , . . . , xk ) respect I if for any i < j we have E(xi , xj ) if and only if {i, j} ∈ I. We
+                                       Vk                                                               1
+        can compute the values k i=1 xi k for all vectors (x1 , . . . , xk ) respecting I in time O(mk− 2 ).
+        Proof. Since I is non-empty, there exists at least some element {i, j} ∈ I. We start by
+        brute-forcing over all k − 2 vectors x` , ` 6∈ {i, j}. As in the statement, we only care about the
+        combinations that respect I. In the same manner, we only keep the vertices xi , xj consistent
+        with I. In particular, for all xi , xj overcoming this step, (xi , xj ) indeed forms an edge. It is
+                                                                            3
+        enough to compute kxi ∧ xj k for these (xi , xj ) in time O(m 2 ), because thereby we achieve
+                                       k−2 32             k− 12
+        a total running time of O(n         m ) = O(m           ). In other words, we are left to count, for
+        each pair (xi , xj ), the number of triangles containing (xi , xj ) in the remaining graph with
+        partitions Xi , Xj and Y . For the sake of completeness, we proceed to sketch the well-known
+        procedure of counting triangles in sparse tripartite graphs [12].
+            We call a vertex heavy if it is of degree at least mδ (where δ is yet to be fixed), and
+        light otherwise. All light vertices can be eliminated as follows: Enumerate all edges {u, v}
+        and if v is light, then further iterate over all edges {v, w} such that u, v and w stem from
+        different partitions. Remember each triangle found in that manner and remove all light
+        vertices afterwards. This step accounts for O(m · mδ ) = O(m1+δ ) time.
+            The remaining graph consists only of heavy vertices, and, since there are only m edges, at
+        most O(m/mδ ) = O(m1−δ ) such. We may apply the naïve algorithm by explicitly considering
+        each triple of vertices. This step takes time O(m3(1−δ) ), so in total the algorithm runs in
+        time O(m1+δ + m3(1−δ) ). The claim follows by setting δ := 12 .
+            We remark that using fast matrix multiplication to solve the instance including only heavy
+                                                                                                   2ω
+        vertices, we can achieve a slightly faster algorithm running in total time O(mk−2+ ω+1 ). J
+
+        Proof of Theorem 7. The first part is easy to see: The Vector Problem VP(φ0 ) constitutes
+        a special case of model-checking ψ.
+           So let us focus on the second part. For a set I ⊆ [k]
+                                                                       
+                                                                     2 , let φI denote φ after substituting
+        each predicate E(xi , xj ) by true if {i, j} ∈ I and by false otherwise. In particular, φ∅ = φ0 .
+        Furthermore, we define
+                                                                                                            
+                                    ^                                  
+         ψI := (∃x1 ) . . . (∃xk )              E(xi , xj ) ↔ {i, j} ∈ I  ∧ (∀y) φI (x1 [y], . . . , xk [y]) .
+                                                                                                               
+                                      {i,j}∈([k]
+                                              2 )
+ K. Bringmann, N. Fischer, and M. Künnemann                                                               31:21
+
+                          W
+Then clearly ψ = I⊆([k]) ψI . So we can check the satisfiability of ψ by separately model-
+                                2
+checking all properties ψI .
+                                                                           1
+     We claim that model-checking ψI for any I 6= ∅ is in time O(mk− 2 ): Observation 3 shows
+                                                                          V
+how to test, for a fixed tuple (x1 , . . . , xk ) and given the values k j∈J xj k for all J ⊆ [k],
+whether it holds that (∀y) φI (x1 [y], . . . , xk [y]). We thus start by precomputing all values
+  V
+k j∈J xj k for all sets J ( [k]. To this end, enumerate all |J|-tuples of edges between Xj
+and Y , j ∈ J; this step takes time O(mk−1 ). Using Lemma 22 we can further precompute
+                                                                             1
+k j∈[k] xj k for all vertices (x1 , . . . , xk ) respecting I in time O(mk− 2 ). Together, we now
+  V
+             V
+know k j∈J xj k for all J and all vertices (x1 , . . . , xk ) respecting I. Hence, it suffices to
+enumerate all vertices (x1 , . . . , xk ) respecting I and to test as in Observation 3 whether
+(∀y) φI (x1 [y], . . . , xk [y]) holds (this check takes constant time). Since there are at most
+                                                                                                  1
+O(mk−1 ) many tuples (x1 , . . . , xk ) respecting I, the running time is dominated by O(mk− 2 ).
+     It remains to find a model-checking procedure for ψ∅ , i.e., for I = ∅. Note that MC(ψ∅ )
+is not directly equivalent to VP(φ∅ ), since an arbitrary solution (x1 , . . . , xk ) of φ∅ does not
+necessarily meet the condition that none of the edges (xi , xj ) are present. The following
+reduction enforces this constraint.
+     Consider a given MC(ψ∅ ) instance G over the vertex partitions X1 , . . . , Xk and Y and
+let δ > 0 be a parameter to be fixed later. We call a vertex xi heavy if it is of degree ≥ mδ ,
+and light otherwise. The first step is to eliminate all heavy vertices; there can exist at most
+O(m/mδ ) = O(m1−δ ) many such vertices. By interchanging the order of the existential
+quantifiers, we can always assume that x1 is heavy and solve the remaining problem over
+X2 , . . . , Xk in time O(mk−1 ) using the model-checking baseline algorithm. If a solution
+(x1 , . . . , xk ) is found in that manner, we accept. It thus takes time O(mk−δ ) to safely remove
+all heavy vertices.
+     Next, partition each set Xi into several groups Xi,1 , . . . , Xi,g such that the total degree
+of all vectors is bounded by mδ ≤ xi ∈Xi,j deg(xi ) ≤ 2mδ , for all groups Xi,j , except for
+                                            P
+
+possibly the last non-empty groups. This is implemented by greedily inserting vectors into
+Xi,j until its total degree exceeds mδ . As each vector inserted in that way is light, we can
+overshoot by at most mδ . It follows that g ≤ O(m/mδ ) = O(m1−δ ).
+     We assume that VP(φ0 ) = VP(φ∅ ) is decidable in time O(mk−ε ) for some ε > 0. Then
+we continue as follows:
+
+1. For all combinations (j1 , . . . , jk ) ∈ [g]k , solve the Vector Problem VP(φ∅ ) with input
+   X1,j1 , . . . , Xk,jk . If we find a solution, we call (j1 , . . . , jk ) a successful combination.
+2. If there are more than mk−1 successful combinations, we accept.
+3. Otherwise, for any successful combination (j1 , . . . , jk ), solve MC(ψ∅ ) using the baseline
+   algorithm on X1,j1 , . . . , Xk,jk and accept iff one of these invocations accepted.
+
+    We claim the above algorithm is correct. First of all, any solution (x1 , . . . , xk ) of MC(ψ∅ )
+is also a solution of VP(φ∅ ). It is therefore safe to only consider those subinstances in step 3
+for which we received a positive output in step 1. It remains to argue why step 2 is correct.
+How many tuples (x1 , . . . , xk ) can be solutions of VP(φ∅ ) but not of MC(ψ∅ )? At most
+mnk−2 ≤ mk−1 , since at least one edge (xi , xj ) must exist for any such tuple. Thus, if
+we witness > mk−1 solutions of VP(φ∅ ), among these there exists at least one solution of
+MC(ψ∅ ) by guarantee.
+    Finally, let us bound the running time of the above algorithm. Recall that removing
+heavy vertices accounts for O(mk−δ ) time. In step 1, the VP(φ∅ ) algorithm is applied g k =
+O(mk−δk ) times on instances of size O(mδ ), which takes time O(mk−δk+δ(k−ε) ) = O(mk−δε ).
+Step 3 becomes relevant only if there are at most mk−1 successful combinations. For any
+
+
+
+                                                                                                         CCC 2019
+31:22       A Fine-Grained Analogue of Schaefer’s Theorem in P
+
+
+        such combination, the model-checking baseline algorithm takes time O((mδ )k ) = O(mδk ). In
+        total, our running time is O(mk−δ + mk−δε + mk−1+δk ). By picking δ so that 0 < δ < k1 ,
+        the claim follows.
+           This finishes the proof of Theorem 7, and thus completes the proof of our main result. J
+
+            7    Extensions and Outlook
+        Beyond our results of Theorems 1 and 3, we discuss several natural directions for extensions,
+        present first results along these lines and give open problems for future work. In particular,
+        we extend our results to a counting dichotomy and investigate the optimal exponent of
+        low-complexity properties.
+
+        7.1      Determining the Optimal Exponent for Low-Complexity Properties
+        For the optimal exponent cψ for any ∃k ∀-quantified graph property ψ, Theorems 1 and 3
+        establish either a (conditionally) tight value of cψ = k or an upper bound of cψ < k. This
+        begs the question: Can we obtain the (conditionally) exact value on cψ also in the latter case?
+            As an interesting exemplary case, we study Vector Problems (∃x1 ∈ X1 ) (∃x2 ∈ X2 ) (∃x3 ∈
+        X3 ) (∀y ∈ Y ) φ(x1 [y], x2 [y], x3 [y]) where φ is symmetric, i.e., φ(x1 , x2 , x3 ) is invariant under
+        interchanging the variables’ order. Equivalently, φ is symmetric if its output depends only
+        on the number of 1-inputs. We therefore identify a 3-variable symmetric formula with its
+        symmetric type, a zero-based length-4 string t ∈ {0, 1}4 where ti = 1 exactly if φ holds true
+        on all inputs of i 1’s and (3 − i) 0’s.
+            For symmetric formulas φ, we find a more immediate criterion to read off the hardness
+        H(φ). Namely, H(φ) equals the maximum number h, such that 1h 0 or 01h is a substring6
+        of φ’s symmetric type (and H(φ) = 0 if neither constitutes a substring).
+        I Theorem 7. Let φ(x1 , x2 , x3 ) be symmetric. The complexity of VP(φ) is as stated in
+        Table 1.
+        We prove Theorem 7 in the full version of this paper. As detailed there (and illustrated by
+        Table 1), already in this exemplary case some interesting gaps remain and offer potential
+        starting points for future work.
+
+        7.2      Counting Classification
+        For first-order graph properties with our quantifier structure ∃k ∀, it is natural to ask if
+        we can count the number of its witnesses. Specifically, for a given property ψ = (∃x1 ∈
+        X1 ) . . . (∃xk ∈ Xk ) (∀y ∈ Y ) φ(x1 , . . . , xk , y), we might ask to output the number of tuples
+        (x1 , . . . , xk ) such that (∀y) φ(x1 , . . . , xk , y) holds (instead of merely detecting existence of at
+        least one such tuple) – we call this problem the counting model-checking problem #MC(ψ).
+        Especially in the context of database queries, one often would like to report this number
+        or even enumerate all such tuples. Indeed, related work [36] considers such questions for
+        more general quantifier structures, but under other restrictions on the formulas and when
+        the running time is measured in terms of the number of objects n rather than m.
+             Note that the analogous question for Boolean constraint satisfaction properties is resolved:
+        For every Boolean CSP, we can either count the number of solutions in polynomial-time, or
+        this task is #P-complete [33]. In our case, this dichotomy is a surprisingly simple consequence
+        of our techniques. In particular, we achieve the same dichotomy as for the decision version.
+
+
+        6
+            A contiguous sequence of characters within φ’s symmetric type
+ K. Bringmann, N. Fischer, and M. Künnemann                                                           31:23
+
+
+   Table 1 Lists all symmetric 3-variable formulas φ and the complexities of the respective Vector
+Problems VP(φ).
+
+      hardness H(φ)     symmetric type of φ         upper bound              lower bound
+
+           0                    0000                   trivial                  trivial
+           0                    1111                   trivial                  trivial
+
+           1                0001, 1000                O(m)                      Ω(m)
+           1                0010, 0100                O(m2 )                    Ω(m)
+           1                0101, 1010                O(m2 )            m2−o(1) under 3-XOR
+           1                   1001                   O(m)                      Ω(m)
+
+           2                0011, 1100                 O(mω )          mω−o(1) under k-Clique
+                                                          3+ω
+           2                   0110                 Õ(m 2 )           mω−o(1) under k-Clique
+                                                          9+ω
+           2                1011, 1101              O(m 4 )            mω−o(1) under k-Clique
+                                                          √
+           3                0111, 1110             m3 /2Ω( log m)        m3−o(1) under 3-OV
+
+
+
+I Theorem 7. Let ψ be an ∃k ∀ graph property of hardness h = H(ψ).
+     If h ≤ 1, then #MC(ψ) is solvable in time O(mk−ε ) for some ε > 0 combinatorially.
+     If h ≤ 2 < k, then #MC(ψ) is solvable in time O(mk−ε ) for some ε > 0 using fast matrix
+     multiplication. (Furthermore, #MC(ψ) cannot be solved by a combinatorial O(mk−ε )-time
+     algorithm unless the combinatorial k-Clique hypothesis is false.)
+     If 3 ≤ h ≤ k, then #MC(ψ) cannot be solved in time O(mk−ε ) for any ε > 0 unless the
+     h-uniform HyperClique hypothesis fails.
+     If h = k, then #MC(ψ) cannot be solved in time O(mk−ε ) for any ε > 0 unless the k-OV
+     hypothesis fails.
+We defer the proof of this theorem to the full version of this paper.
+
+
+
+7.3     Open Problems
+Among the natural remaining challenges is, first and foremost, the following: Can we
+generalize or strengthen our dichotomy to larger fragments of first-order properties?
+    Specifically, one direction is to extend our results beyond graph properties: Allowing
+more than a single predicate or allowing a single predicate of higher arity already yields
+further very expressive classes. While our algorithmic techniques conveniently generalize,
+unfortunately, they do not yet seem to be sufficient to establish a complete dichotomy.
+   A second direction is to investigate other quantifier structures than ∃k ∀ (and the equivalent
+ k
+∀ ∃). Note that establishing such a dichotomy might require different plausible hardness
+assumptions than the ones used in this work – in particular, it follows from the work of
+Carmosino et al. [28] that any such hardness assumption must have a lower nondeterministic
+and co-nondeterministic complexity than its deterministic complexity.
+   Finally, it is interesting to explore whether Proposition 4 can be strengthened: In
+particular, assume that for some hardness level h ≥ 3, there is an algorithm that allows us
+to detect a k-clique in h-uniform hypergraphs in time O(nk−ε ) for all k ≥ h + 1. Can we
+                                                                0
+then solve all hardness-h ∃k ∀ graph properties in time O(mk−ε )?
+
+
+
+
+                                                                                                     CCC 2019
+31:24   A Fine-Grained Analogue of Schaefer’s Theorem in P
+
+
+             References
+         1   Amir Abboud, Arturs Backurs, Karl Bringmann, and Marvin Künnemann. Fine-Grained
+             Complexity of Analyzing Compressed Data: Quantifying Improvements over Decompress-and-
+             Solve. In Proceedings of the 2017 IEEE 58th Annual Symposium on Foundations of Computer
+             Science, FOCS ’17, pages 192–203, 2017. doi:10.1109/FOCS.2017.26.
+         2   Amir Abboud, Arturs Backurs, Thomas Dueholm Hansen, Virginia Vassilevska Williams, and
+             Or Zamir. Subtree Isomorphism Revisited. ACM Trans. Algorithms, 14(3):27:1–27:23, 2018.
+             doi:10.1145/3093239.
+         3   Amir Abboud, Arturs Backurs, and Virginia Vassilevska Williams. If the Current Clique
+             Algorithms Are Optimal, So is Valiant’s Parser. In Proceedings of the 2015 IEEE 56th
+             Annual Symposium on Foundations of Computer Science, FOCS ’15, pages 98–117, 2015.
+             doi:10.1109/FOCS.2015.16.
+         4   Amir Abboud, Arturs Backurs, and Virginia Vassilevska Williams. Tight Hardness Results
+             for LCS and Other Sequence Similarity Measures. In Proceedings of the 2015 IEEE 56th
+             Annual Symposium on Foundations of Computer Science, FOCS ’15, pages 59–78, 2015.
+             doi:10.1109/FOCS.2015.14.
+         5   Amir Abboud, Karl Bringmann, Holger Dell, and Jesper Nederlof. More Consequences of
+             Falsifying SETH and the Orthogonal Vectors Conjecture. In Proceedings of the 50th Annual
+             ACM SIGACT Symposium on Theory of Computing, STOC 2018, pages 253–266. ACM, 2018.
+             doi:10.1145/3188745.3188938.
+         6   Amir Abboud, Virginia Vassilevska Williams, and Joshua R. Wang. Approximation and
+             Fixed Parameter Subquadratic Algorithms for Radius and Diameter in Sparse Graphs. In
+             Proceedings of the 26th Annual ACM-SIAM Symposium on Discrete Algorithms, SODA ’16,
+             pages 377–391, 2016. doi:10.1137/1.9781611974331.ch28.
+         7   Amir Abboud, Ryan Williams, and Huacheng Yu. More Applications of the Polynomial
+             Method to Algorithm Design. In Proceedings of the 26th Annual ACM-SIAM Symposium on
+             Discrete Algorithms, SODA ’15, pages 218–230, 2015. URL: http://dl.acm.org/citation.
+             cfm?id=2722129.2722146.
+         8   Amir Abboud, Virginia Vassilevska Williams, and Oren Weimann. Consequences of Faster
+             Alignment of Sequences. In Javier Esparza, Pierre Fraigniaud, Thore Husfeldt, and Elias
+             Koutsoupias, editors, Automata, Languages, and Programming, pages 39–51. Springer Berlin
+             Heidelberg, 2014.
+         9   Serge Abiteboul, Richard Hull, and Victor Vianu, editors. Foundations of Databases: The
+             Logical Level. Addison-Wesley Longman Publishing Co., Inc., 1st edition, 1995.
+        10   Alfred V. Aho, Yehoshua Sagiv, and Jeffrey D. Ullman. Equivalences Among Relational
+             Expressions. SIAM J. Comput., 8(2):218–246, 1979. doi:10.1137/0208017.
+        11   Josh Alman, Timothy M. Chan, and R. Ryan Williams. Polynomial Representations of
+             Threshold Functions and Algorithmic Applications. In Proceedings of the 2016 IEEE 57th
+             Annual Symposium on Foundations of Computer Science, FOCS ’16, pages 467–476, 2016.
+             doi:10.1109/FOCS.2016.57.
+        12   Noga Alon, Raphael Yuster, and Uri Zwick. Finding and Counting Given Length Cycles.
+             Algorithmica, 17(3):209–223, 1997. doi:10.1007/BF02523189.
+        13   Arturs Backurs and Piotr Indyk. Edit Distance cannot be computed in strongly subquadratic
+             time (unless SETH is false). In Proceedings of the 47th Annual ACM SIGACT Symposium on
+             Theory of Computing, STOC 2015, pages 51–58. ACM, 2015. doi:10.1145/2746539.2746612.
+        14   Arturs Backurs and Piotr Indyk. Which Regular Expression Patterns Are Hard to Match? In
+             Proceedings of the 2016 IEEE 57th Annual Symposium on Foundations of Computer Science,
+             FOCS ’16, pages 457–466, 2016. doi:10.1109/FOCS.2016.56.
+        15   Arturs Backurs, Liam Roditty, Gilad Segal, Virginia Vassilevska Williams, and Nicole Wein.
+             Towards tight approximation bounds for graph diameter and eccentricities. In Proceedings
+             of the 50th Annual ACM SIGACT Symposium on Theory of Computing, STOC 2018, pages
+             267–280, 2018. doi:10.1145/3188745.3188950.
+K. Bringmann, N. Fischer, and M. Künnemann                                                          31:25
+
+
+16   Guillaume Bagan, Arnaud Durand, and Etienne Grandjean. On Acyclic Conjunctive Queries
+     and Constant Delay Enumeration. In Jacques Duparc and Thomas A. Henzinger, editors,
+     Computer Science Logic, pages 208–222. Springer Berlin Heidelberg, 2007.
+17   Christoph Berkholz, Jens Keppeler, and Nicole Schweikardt. Answering Conjunctive Queries
+     Under Updates. In Proceedings of the 36th ACM SIGMOD-SIGACT-SIGAI Symposium on
+     Principles of Database Systems, PODS ’17, pages 303–318. ACM, 2017. doi:10.1145/3034786.
+     3034789.
+18   Karl Bringmann. Why Walking the Dog Takes Time: Fréchet Distance Has No Strongly
+     Subquadratic Algorithms Unless SETH Fails. In Proceedings of the 2014 IEEE 55th Annual
+     Symposium on Foundations of Computer Science, FOCS ’14, pages 661–670, 2014. doi:
+     10.1109/FOCS.2014.76.
+19   Karl Bringmann, Allan Grønlund, and Kasper Green Larsen. A Dichotomy for Regular
+     Expression Membership Testing. In Proceedings of the 2017 IEEE 58th Annual Symposium on
+     Foundations of Computer Science, FOCS ’17, pages 307–318, 2017. doi:10.1109/FOCS.2017.
+     36.
+20   Karl Bringmann and Marvin Künnemann. Quadratic Conditional Lower Bounds for String
+     Problems and Dynamic Time Warping. In Proceedings of the 2015 IEEE 56th Annual
+     Symposium on Foundations of Computer Science, FOCS ’15, pages 79–97, 2015. doi:10.1109/
+     FOCS.2015.15.
+21   Karl Bringmann and Marvin Künnemann. Multivariate Fine-Grained Complexity of Longest
+     Common Subsequence. In Proceedings of the 29th Annual ACM-SIAM Symposium on Discrete
+     Algorithms, SODA ’18, pages 1216–1235, 2018. doi:10.1137/1.9781611975031.79.
+22   Andrei A. Bulatov. A Dichotomy Theorem for Constraints on a Three-Element Set. In
+     Proceedings of the 2002 IEEE 43rd Annual Symposium on Foundations of Computer Science,
+     FOCS ’02, pages 649–658, 2002. doi:10.1109/SFCS.2002.1181990.
+23   Andrei A. Bulatov. Tractable conservative Constraint Satisfaction Problems. In 18th IEEE
+     Symposium on Logic in Computer Science, page 321, 2003. doi:10.1109/LICS.2003.1210072.
+24   Andrei A. Bulatov. A Dichotomy Theorem for Nonuniform CSPs. In Proceedings of the 2017
+     IEEE 58th Annual Symposium on Foundations of Computer Science, FOCS ’17, pages 319–330,
+     2017. doi:10.1109/FOCS.2017.37.
+25   Andrei A. Bulatov. Constraint satisfaction problems: complexity and algorithms. SIGLOG
+     News, 5(4):4–24, 2018. doi:10.1145/3292048.3292050.
+26   Andrei A. Bulatov, Peter Jeavons, and Andrei A. Krokhin. Classifying the Complexity of
+     Constraints Using Finite Algebras. SIAM J. Comput., 34(3):720–742, 2005. doi:10.1137/
+     S0097539700376676.
+27   Nofar Carmeli and Markus Kröll. Enumeration Complexity of Conjunctive Queries with
+     Functional Dependencies. In ICDT, volume 98 of LIPIcs, pages 11:1–11:17. Schloss Dagstuhl -
+     Leibniz-Zentrum fuer Informatik, 2018.
+28   Marco L. Carmosino, Jiawei Gao, Russell Impagliazzo, Ivan Mihajlin, Ramamohan Paturi, and
+     Stefan Schneider. Nondeterministic Extensions of the Strong Exponential Time Hypothesis and
+     Consequences for Non-reducibility. In Proceedings of the 2016 ACM Conference on Innovations
+     in Theoretical Computer Science, pages 261–270, 2016. doi:10.1145/2840728.2840746.
+29   Timothy M. Chan and Ryan Williams. Deterministic APSP, Orthogonal Vectors, and More:
+     Quickly Derandomizing Razborov-Smolensky. In Proceedings of the 27th Annual ACM-
+     SIAM Symposium on Discrete Algorithms, SODA ’16, pages 1246–1255, 2016. URL: http:
+     //dl.acm.org/citation.cfm?id=2884435.2884522.
+30   Ashok K. Chandra and David Harel. Structure and Complexity of Relational Queries. J.
+     Comput. Syst. Sci., 25(1):99–128, 1982. doi:10.1016/0022-0000(82)90012-5.
+31   Ashok K. Chandra and Philip M. Merlin. Optimal Implementation of Conjunctive Queries
+     in Relational Data Bases. In Proceedings of the 9th Annual ACM SIGACT Symposium on
+     Theory of Computing, STOC 1977, pages 77–90, 1977. doi:10.1145/800105.803397.
+
+
+
+
+                                                                                                   CCC 2019
+31:26   A Fine-Grained Analogue of Schaefer’s Theorem in P
+
+
+        32   Hubie Chen. A rendezvous of logic, complexity, and algebra. SIGACT News, 37(4):85–114,
+             2006. doi:10.1145/1189056.1189076.
+        33   Nadia Creignou and Miki Hermann. Complexity of Generalized Satisfiability Counting
+             Problems. Inf. Comput., 125(1):1–12, 1996. doi:10.1006/inco.1996.0016.
+        34   Nadia Creignou, Sanjeev Khanna, and Madhu Sudan. Complexity classifications of Boolean
+             Constraint Satisfaction problems. SIAM, 2001. doi:10.1137/1.9780898718546.
+        35   Víctor Dalmau. Some dichotomy theorems on constant free Boolean formulas. Technical
+             Report LSI-97-43-R, Departament LSI, Universitat Politècnica de Catalunya, 1997.
+        36   Holger Dell, Marc Roth, and Philip Wellnitz. Counting Answers to Existential Questions.
+             arXiv e-prints, February 2019. arXiv:1902.04960.
+        37   Rodney G. Downey, Michael R. Fellows, and Udayan Taylor. The Parameterized Complexity
+             of Relational Database Queries and an Improved Characterization of W[1]. In First Conference
+             of the Centre for Discrete Mathematics and Theoretical Computer Science, pages 194–213,
+             1996.
+        38   Tomás Feder and Moshe Y. Vardi. Monotone monadic SNP and constraint satisfaction. In
+             Proceedings of the 25th Annual ACM SIGACT Symposium on Theory of Computing, STOC
+             1993, pages 612–622, 1993. doi:10.1145/167088.167245.
+        39   Tomás Feder and Moshe Y. Vardi. The Computational Structure of Monotone Monadic SNP
+             and Constraint Satisfaction: A Study through Datalog and Group Theory. SIAM J. Comput.,
+             28(1):57–104, 1998. doi:10.1137/S0097539794266766.
+        40   Jörg Flum and Martin Grohe. Parameterized Complexity Theory. Texts in Theoretical
+             Computer Science. An EATCS Series. Springer, 2006. doi:10.1007/3-540-29953-X.
+        41   Jiawei Gao, Russell Impagliazzo, Antonina Kolokolova, and Ryan Williams. Completeness for
+             First-order Properties on Sparse Structures with Algorithmic Applications. In Proceedings of
+             the 28th Annual ACM-SIAM Symposium on Discrete Algorithms, SODA ’17, pages 2162–2181,
+             2017. URL: http://dl.acm.org/citation.cfm?id=3039686.3039827.
+        42   Michel Habib, Christophe Paul, and Laurent Viennot. A Synthesis on Partition Refinement:
+             A Useful Routine for Strings, Graphs, Boolean Matrices and Automata. In STACS 98,
+             15th Annual Symposium on Theoretical Aspects of Computer Science, pages 25–38, 1998.
+             doi:10.1007/BFb0028546.
+        43   Pavol Hell and Jaroslav Nesetril. On the complexity of H -coloring. J. Comb. Theory, Ser. B,
+             48(1):92–110, 1990. doi:10.1016/0095-8956(90)90132-J.
+        44   Neil Immerman. Upper and Lower Bounds for First Order Expressibility. J. Comput. Syst.
+             Sci., 25(1):76–98, 1982. doi:10.1016/0022-0000(82)90011-3.
+        45   Russell Impagliazzo and Ramamohan Paturi. On the Complexity of k-SAT. J. Comput. Syst.
+             Sci., 62(2):367–375, 2001. doi:10.1006/jcss.2000.1727.
+        46   Peter Jeavons. On the Algebraic Structure of Combinatorial Problems. Theor. Comput. Sci.,
+             200(1-2):185–204, 1998. doi:10.1016/S0304-3975(97)00230-2.
+        47   Peter Jeavons, David A. Cohen, and Marc Gyssens. Closure properties of constraints. J. ACM,
+             44(4):527–548, 1997. doi:10.1145/263867.263489.
+        48   Robert Krauthgamer and Ohad Trabelsi. Conditional Lower Bounds for All-Pairs Max-Flow.
+             ACM Trans. Algorithms, 14(4):42:1–42:15, 2018. doi:10.1145/3212510.
+        49   Andrea Lincoln, Virginia Vassilevska Williams, and Ryan Williams. Tight Hardness for
+             Shortest Cycles and Paths in Sparse Graphs. In Proceedings of the 29th Annual ACM-
+             SIAM Symposium on Discrete Algorithms, SODA ’18, pages 1236–1252, 2018. URL: http:
+             //dl.acm.org/citation.cfm?id=3174304.3175350.
+        50   Christos H. Papadimitriou and Mihalis Yannakakis. On the Complexity of Database Queries.
+             J. Comput. Syst. Sci., 58(3):407–427, 1999. doi:10.1006/jcss.1999.1626.
+        51   Mihai Patrascu and Ryan Williams. On the Possibility of Faster SAT Algorithms. In
+             Proceedings of the 21st Annual ACM-SIAM Symposium on Discrete Algorithms, SODA ’10,
+             pages 1065–1075, 2010. doi:10.1137/1.9781611973075.86.
+K. Bringmann, N. Fischer, and M. Künnemann                                                         31:27
+
+
+52   Liam Roditty and Virginia Vassilevska Williams. Fast approximation algorithms for the
+     diameter and radius of sparse graphs. In Proceedings of the 45th Annual ACM SIGACT
+     Symposium on Theory of Computing, STOC 2013, pages 515–524, 2013. doi:10.1145/2488608.
+     2488673.
+53   Thomas J. Schaefer. The Complexity of Satisfiability Problems. In Proceedings of the 10th
+     Annual ACM SIGACT Symposium on Theory of Computing, STOC 1978, pages 216–226, 1978.
+     doi:10.1145/800133.804350.
+54   Moshe Y. Vardi. The Complexity of Relational Query Languages (Extended Abstract). In
+     Proceedings of the 14th Annual ACM SIGACT Symposium on Theory of Computing, STOC
+     1982, pages 137–146, 1982. doi:10.1145/800070.802186.
+55   Moshe Y. Vardi. On the Complexity of Bounded-Variable Queries. In Proceedings of the
+     14th ACM SIGACT-SIGMOD-SIGART Symposium on Principles of Database Systems, pages
+     266–276, 1995. doi:10.1145/212433.212474.
+56   Virginia Vassilevska and Ryan Williams. Finding, Minimizing, and Counting Weighted
+     Subgraphs. In Proceedings of the 41st Annual ACM SIGACT Symposium on Theory of
+     Computing, STOC 2009, pages 455–464. ACM, 2009. doi:10.1145/1536414.1536477.
+57   Ryan Williams. A New Algorithm for Optimal 2-constraint Satisfaction and Its Implications.
+     Theor. Comput. Sci., 348(2):357–365, December 2005. doi:10.1016/j.tcs.2005.09.023.
+58   Ryan Williams. Faster decision of first-order graph properties. In Joint Meeting of the
+     23rd EACSL Annual Conference on Computer Science Logic (CSL) and the 29th Annual
+     ACM/IEEE Symposium on Logic in Computer Science (LICS), pages 80:1–80:6, 2014. doi:
+     10.1145/2603088.2603121.
+59   Ryan Williams. On the Difference Between Closest, Furthest, and Orthogonal Pairs: Nearly-
+     Linear vs Barely-Subquadratic Complexity. In Proceedings of the 29th Annual ACM-SIAM
+     Symposium on Discrete Algorithms, SODA ’18, pages 1207–1215, 2018. doi:10.1137/1.
+     9781611975031.78.
+60   Dmitriy Zhuk. A Proof of CSP Dichotomy Conjecture. In Proceedings of the 2017 IEEE 58th
+     Annual Symposium on Foundations of Computer Science, FOCS ’17, pages 331–342, 2017.
+     doi:10.1109/FOCS.2017.38.
+
+
+
+
+                                                                                                  CCC 2019
+

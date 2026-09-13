@@ -1,0 +1,1984 @@
+Journal of Machine Learning Research 21 (2020) 1-31                          Submitted 9/19; Published 01/20
+
+
+
+
+               Lower Bounds for Parallel and Randomized
+                        Convex Optimization∗
+
+Jelena Diakonikolas                                                                jelena@cs.wisc.edu
+Department of Computer Sciences,
+University of Wisconsin-Madison
+1210 W. Dayton Street
+Madison, WI 53706, USA
+Cristóbal Guzmán                                                    crguzmanp@mat.uc.cl
+Institute for Mathematical and Computational Engineering,
+Faculty of Mathematics and School of Engineering,
+Millennium Nucleus Center for the Discovery of Structures in Complex Data,
+Pontificia Universidad Católica de Chile
+Vicuña Mackenna 4860, Santiago, 7820436, Chile
+
+
+Editor: Ohad Shamir
+
+
+                                                Abstract
+     We study the question of whether parallelization in the exploration of the feasible set can
+     be used to speed up convex optimization, in the local oracle model of computation and in
+     the high-dimensional regime. We show that the answer is negative for both deterministic
+     and randomized algorithms applied to essentially any of the interesting geometries and
+     nonsmooth, weakly-smooth, or smooth objective functions. In particular, we show that it
+     is not possible to obtain a polylogarithmic (in the sequential complexity of the problem)
+     number of parallel rounds with a polynomial (in the dimension) number of queries per
+     round. In the majority of these settings and when the dimension of the space is polynomial
+     in the inverse target accuracy, our lower bounds match the oracle complexity of sequential
+     convex optimization, up to at most a logarithmic factor in the dimension, which makes
+     them (nearly) tight. Another conceptual contribution of our work is in providing a general
+     and streamlined framework for proving lower bounds in the setting of parallel convex opti-
+     mization. Prior to our work, lower bounds for parallel convex optimization algorithms were
+     only known in a small fraction of the settings considered in this paper, mainly applying to
+     Euclidean (`2 ) and `∞ spaces.
+     Keywords: lower bounds, convex optimization, parallel algorithms, randomized algo-
+     rithms, non-Euclidean optimization
+
+
+1. Introduction
+Given the scale of modern data sets resulting in extremely large problem instances, an
+attractive approach to reducing the time required for performing computational tasks is via
+parallelization. Indeed, many classical discrete optimization problems are well-known to be
+solvable in polylogarithmic number of rounds of parallel computation, with polynomially-
+bounded number of processors.
+∗. The authors are ordered alphabetically.
+
+
+©2020 Jelena Diakonikolas and Cristóbal Guzmán.
+License: CC-BY 4.0, see https://creativecommons.org/licenses/by/4.0/. Attribution requirements are provided
+at http://jmlr.org/papers/v21/19-771.html.
+                                    Diakonikolas and Guzmán
+
+
+
+
+    When it comes to convex optimization, parallelization is in general highly beneficial
+in computing local function information (at a single point from the feasible set), such as
+its gradient or Hessian, and can generally be exploited to improve the performance of
+optimization algorithms. However, a natural barrier for further speedups is parallelizing
+the exploration of the feasible set. This leads to the following question:
+    Is it possible to reduce the complexity of convex optimization via parallelization?
+The notion of complexity considered in this paper is the local oracle complexity, and it
+is defined as the number of adaptive rounds over which an algorithm needs to query an
+arbitrary oracle providing local information about the function before reaching a solution
+with a specified accuracy. Examples of local function information include its value, gradient,
+Hessian, or a Taylor approximation at the queried point from the feasible set. Most of
+the commonly used optimization methods, such as, e.g., gradient descent, mirror descent,
+Newton’s method, the ellipsoid method, Frank-Wolfe, and Nesterov’s accelerated method,
+all work in this local oracle model.
+    The study of parallel oracle complexity of convex optimization was initiated by Ne-
+mirovski (1994). In this work, it was shown that for deterministic nonsmooth Lipschitz-
+continuous optimization over the `∞ ball, it is not possible to attain polylogarithmic parallel
+round complexity with polynomially many processors. Since the work of Nemirovski (1994)
+and until very recently, there was no further progress in obtaining lower bounds for other
+settings, such as, e.g., the setting of randomized algorithms and weakly/strongly smooth
+optimization over more general feasible sets.
+    Very recently, motivated by the applications in online learning, local differential privacy,
+and adaptive data analysis, lower bounds for parallel convex optimization over the Euclidean
+space have been obtained (Smith et al., 2017; Balkanski and Singer, 2018; Woodworth et al.,
+2018; Duchi et al., 2018). Our main result shows that it is not possible to improve the
+oracle complexity of convex optimization via parallelization, for deterministic or randomized
+algorithms, different levels of smoothness, and essentially any of the interesting geometries—
+general `p spaces for p ∈ [1, ∞], together with their matrix spectral analogues, known as
+Schatten spaces, Schp . The resulting lower bounds are robust to enlargements of the feasible
+set, and thus apply in the unconstrained case as well. This is a much more general setting
+than previously addressed in the literature. The general `p settings considered in this
+paper are of fundamental interest. For example, `1 -setups naturally appear in sparsity-
+oriented learning applications; Sch1 (a.k.a. nuclear norm) appears in matrix completion
+problems (Nesterov and Nemirovski, 2013); finally, smooth `∞ -setups have been used in the
+design of fast algorithms for network flow problems (Lee et al., 2013; Kelner et al., 2014;
+Sherman, 2017).
+
+1.1. Our Results
+Our results rule out the possibility of improvements by parallelization, showing that, in
+high dimensions, sequential methods are already optimal for any amount of parallelization
+that is polynomial in the dimension.1 Our approach is to provide a generic lower bound
+1. Ruling out parallelization via an exponential number of queries is unlikely, since such a high number of
+   queries would, in general, allow an algorithm to construct an ε-net over the feasible set and choose the
+   best point from it.
+
+
+                                                    2
+         Lower Bounds for Parallel and Randomized Convex Optimization
+
+
+
+
+     Function
+                      p=1             1<p<2                             2≤p<∞                           p=∞
+       class
+    Nonsmooth                                                                                                        1 (∗)
+                      Ω 12                 Ω ε12                          Ω ε1p
+                                                                                                
+                                                                                                          ε2 d
+      (κ = 0)           ε3
+                                                                                               Ω       ln(dK/γ)
+                                                                                                                        3
+
+
+     Smooth           
+                          1
+                                         
+                                              1
+                                                                  
+                                                                               1
+                                                                                                          
+                                                                                                                  1
+                                                                                                                        
+      (κ = 1)     Ω           2       Ω            2           Ω                      p                Ω       ln(d)ε
+                       ln(d)ε 5            ln(d)ε 5                    min{p,ln(d)}ε p+2
+
+
+Table 1: High probability lower bounds for parallel convex optimization, in the `dp and Schdp
+         setups. Here, d denotes the dimension, ε denotes the accuracy, K denotes the
+         number of parallel queries per round, and 1 − γ denotes the confidence. Except
+         for (∗), the high dimensional regime requires d = Ω(poly(1/ε, ln(K/γ))).
+
+
+
+for parallel oracle algorithms and use reductions between different classes of optimization
+problems. Below, ε > 0 is the target accuracy, K is the number of parallel queries per
+round, and d is the dimension.
+
+Theorem 1 (Informal) Unless K is exponentially large in the dimension d, any (possibly
+randomized) algorithm working in the local oracle model and querying up to K points per
+round, when applied to the following classes of convex optimization problems over `p balls
+and Schp balls:
+   • Nonsmooth (Lipschitz-continuous) minimization for 1 < p < ∞, d = Ω(poly( εp+p/(p−1)
+                                                                                  1
+                                                                                         ));
+
+   • Smooth (Lipschitz-continuous gradient) minimization for 2 ≤ p ≤ ∞, d = Ω(poly( 1ε ));
+
+   • Weakly-smooth (Hölder-continuous gradient) minimization for 2 ≤ p ≤ ∞, d =
+     Ω(poly( 1ε ))
+takes asymptotically at least as many rounds to reach an ε-approximate solution as it would
+take without any parallelization, up to, at most, a 1/ln(d) factor.
+
+As mentioned before, our result easily extends to unconstrained optimization over `p normed
+spaces. The small subset of the possible cases not included in the theorem are off by
+small factors and are still very informative: they rule out the possibility of any significant
+improvement in the round complexity via parallelization (see Table 1 and the discussions
+in Sections 1.2 and 3).
+     To present the results in a unified manner, we use the definition of weakly-smooth
+functions, i.e., functions with κ-Hölder-continuous gradient, which interpolates between the
+classes of nonsmooth (κ = 0) and smooth functions (κ = 1) (see Section 1.4 for a precise
+definition). These two special cases are summarized in Table 1. For the precise statements
+encompassing the weakly-smooth cases (κ ∈ (0, 1)) as well as the specific high-dimensional
+regime for d, see Section 3.
+     The largest gap obtained by our results is in the nonsmooth `1 -setup. Here, the Ω(1/ε2/3 )
+bound comes from a reduction from the `∞ case, which explains the discontinuity in the
+first row of the table. Further, it is impossible to apply the same strategy to this setup as
+in the other `p -setups, due to the loss of concentration on the `1 -ball (see the discussion in
+
+                                                           3
+                                 Diakonikolas and Guzmán
+
+
+
+
+Section 3.1.1). Finally, we also provide lower bounds for nonstandard `q /`p setups, where
+the function is regular w.r.t. k · kp , while the feasible set is an `q -ball. Nonstandard settings
+allow for more flexible exploitation of the feasible set geometry and function regularity;
+examples and applications include the dual of sparse PCA (d’Aspremont, 2008, Section 4.1)
+and optimization formulations for sampling strategies in linear inverse problems (Boyer
+et al., 2014, Section 4.2.2.). For a description of the state of the art on the complexity of
+nonstandard settings we refer to the open problem of Guzmán (2015). For these nonstandard
+settings, we obtain lower bounds of the following type: given any p, q such that 1 ≤ p < q
+and the radius of the `q ball is 1/d1/p−1/q (so that the `q ball can be inscribed in the unit
+`p ball), the lower bound matches the lower bound of the standard `p setting from Table 1.
+As a special case, this result gives an Ω( ε12 ) lower bound for nonsmooth `1 minimization
+over any `q -ball with q > 1 that is inscribed in the unit `1 -ball. In our view, this example
+provides strong evidence towards stronger lower bounds for the standard `1 -setting.
+
+
+1.2. Overview of the Techniques
+
+A principled approach to establish lower complexity bounds for convex optimization (see,
+e.g., Nemirovsky and Yudin 1983; Guzmán and Nemirovski 2015; Woodworth et al. 2018;
+Balkanski and Singer 2018) is to construct a family of convex functions defined as the
+maximum of affine functions. Each affine function fi is defined by its direction vector zi
+and offset δi . Examples of the direction vectors that are typically used in these works include
+signed orthant vectors, signed Hadamard bases, uniform vectors from the unit sphere and
+scaled Rademacher sequences. At an intuitive level, a careful choice of these affine functions
+prevents any algorithm from learning more than one direction vector zi per adaptive round.
+At the same time, an appropriately chosen set of affine functions ensures that the algorithm
+needs to learn all of the vectors zi before being able to construct an ε-approximate solution.
+We take the same approach in this paper.
+
+    Most relevant to our work are the recent lower bounds for parallel convex optimization
+over Euclidean (`2 ) spaces (Balkanski and Singer, 2018; Woodworth et al., 2018; Bubeck
+et al., 2019), which are tight in the large-scale regime. In these works, the argument about
+learning one vector zi at a time is derived by an appropriate concentration inequality,
+while the upper bound on the optimal objective value is obtained from a good candidate
+solution, built as a combination of the random vectors. However, there is no obvious way of
+generalizing the lower bounds for the Euclidean setting to the more general `p geometries.
+For example, in the `p -setup for p > 2, these arguments only lead to a lower bound of
+Ω(1/ε2 ), which is far from the sequential complexity Θ(1/εp ). On the other hand, the use
+of relationships between the `p norms leads to uninformative lower bounds. In particular,
+for p ∈ [1, 2), the appropriate application of inequalities relating `p norms needs to be
+done for both feasible sets (relating k · kp and k · k2 ) and the Lipschitz (or smoothness)
+                                                     p
+constants (relating k · kp∗ and k · k2 , where p∗ = p−1 ). Unless p ≈ 2, this approach leads to a
+degradation in the lower bound by a polynomial factor in d. For example, if `2 case is used
+to infer a lower bound for the `1 setup, the resulting lower bound would be of the order
+                   √
+1/(dε2 ) and 1/(d ε), for nonsmooth and smooth cases, respectively. Such quantities are
+                                                                          √
+not only far from the sequential lower bounds Ω(ln(d)/ε2 ) and Ω(1/ ε) for the nonsmooth
+
+                                                4
+         Lower Bounds for Parallel and Randomized Convex Optimization
+
+
+
+
+and smooth settings, respectively, but they are also uninformative: the existing parallel
+lower bounds for the `2 setup only apply in the high-dimensional regime d = Ω(poly(1/ε)).
+    Our lower bounds are based on families of random vectors z1 , . . . , zM which: (i) satisfy
+concentration along their marginals, so the “learning one vector per round” argument ap-
+plies; and (ii) lead to a large negative optimal value via a minimax duality argument. Each
+particular regime requires different constructions of the random vectors that we describe in
+Section 3. However, all lower bounds are obtained from a general result (Theorem 3) that
+shows that (i) and (ii) suffice to get a lower bound for parallel convex optimization and
+completely streamlines the analysis.
+
+1.3. Related Work
+As mentioned earlier, until very recently, the literature on black-box parallel convex opti-
+mization was extremely scarce. Here we summarize the main lines of related work.
+Worst-case Lower Bounds for Sequential Convex Optimization. Classical theory of (sequen-
+tial) oracle complexity in optimization was developed by Nemirovsky and Yudin (1983).
+This work provides sharp worst-case lower bounds for nonsmooth optimization, and a sub-
+optimal (and rather technical) lower bound for randomized algorithms, for `p settings, where
+1 ≤ p ≤ ∞. Smooth convex optimization in this work is addressed by lower bounding the
+oracle complexity of convex quadratic optimization, which only applies to deterministic
+algorithms and the `2 setup. Nearly-tight lower bounds for deterministic non-Euclidean
+smooth convex optimization were obtained only recently (Guzmán and Nemirovski, 2015),
+mostly by the use of a smoothing of hard nonsmooth families. It is worth mentioning that
+none of these lower bounds are robust to parallelization. Further, prior to our work, there
+were no known lower bounds against sequential (K = 1) randomized algorithms in the gen-
+eral setting of weakly and strongly smooth minimization over `p spaces. The only exception
+is the lower bound for (strongly) smooth minimization over the Euclidean (`2 ) space, due
+to Woodworth and Srebro (2016).
+Parallel Convex Optimization. The study of parallel oracle complexity in convex optimiza-
+                                                                                       1
+                                                                                 d
+tion was initiated by Nemirovski (1994), where a worst-case lower bound Ω ( ln(2Kd)  ) 3 ln( 1ε )
+on the complexity in the `∞ -setup was proved. The argument from this work is based on a
+sequential use of the probabilistic method to generate the subgradients of a hard instance
+and applies to an arbitrary dimension beyond a fixed constant. The author conjectured that
+this lower bound is suboptimal, which still remains an open problem. The construction of
+the hard instance family from this work is in fact the starting point for our approach, which
+we adapted to apply to more general geometries and randomized algorithms.
+    More recently, several lower bounds have been obtained for various settings of parallel
+convex optimization, but all applying only to either box (`∞ -ball) or `2 -ball constrained
+Euclidean spaces. In particular, Smith et al. (2017) showed that poly-log in 1/ε oracle
+complexity is not possible with polynomially-many in d parallel queries for nonsmooth
+Lipschitz-continuous minimization. This bound was further improved by Duchi et al. (2018),
+in the context of stochastic minimization with either Lipschitz-continuous or smooth and
+strongly convex objectives.
+    Tight lower bounds in the Euclidean setup have been obtained by Woodworth et al.
+(2018) and Balkanski and Singer (2018). Both of these works provide a tight lower bound
+
+                                               5
+                                  Diakonikolas and Guzmán
+
+
+
+
+Ω(1/ε2 ) for randomized algorithms and nonsmooth Lipschitz objectives, when the dimension
+is sufficiently high (polynomial in 1/ε, which is similar to our setting). The work of Balkanski
+and Singer (2018) further considers strongly convex Lipschitz objectives. While this setting
+is not considered in our work, we note that it is possible to incorporate it in our framework
+using the ideas from Srebro and Sridharan (2012). To obtain lower bounds that apply
+against randomized algorithms, Balkanski and Singer (2018) use an intricate adaptivity
+argument. Our lower bound is based on a more direct application of the probabilistic
+method, and is arguably simpler.
+    The work of Woodworth et al. (2018) further considered an extension to stochastic
+and smooth objectives. However, the “statistical term” used in their argument comes
+from a typical minimax estimation
+                              √         bound, and its accuracy can, in fact, be reduced by
+parallelization at a rate 1/ N , where N is the total number of queries. Their construction
+of subgradients for the hard function is based on random vectors from the unit sphere; our
+use of Rademacher sequences makes the analysis simpler and more broadly applicable. On
+the other hand, Woodworth et al. (2018) also provide lower bounds for (non-local) prox
+oracles, which are not considered in this paper.
+    The high-dimensional regime for the `2 setup (i.e., where an Ω(1/ε2 ) parallel lower
+bound applies) has been recently improved to d = Ω(1/ε4 ) by Bubeck et al. (2019), by
+an application of a novel random wall function construction. They also showed that for
+d = o(1/ε4 ) (i.e., in the low-dimensional regime) strict improvements on parallel complexity
+can be obtained via accelerated randomized smoothing, improving upon a similar positive
+result for low-dimensional regime due to Duchi et al. (2012).
+Adaptive Data Analysis. In a separate line of work, there has been significant progress
+in understanding adaptivity in data analysis, with the goal of preventing overfitting. The
+typical learning model used in this framework is the Statistical Query (SQ) model, which
+applies to stochastic convex optimization (Feldman et al., 2017). In this literature, it was
+proved that, given a data set of size n, the number of adaptive SQs that can be accurately
+answered is Θ̃(n2 ), and this is achieved by an application of results from differential pri-
+vacy (Dwork et al., 2015; Steinke and Ullman, 2015). Negative results in this literature do
+not translate to general convex optimization; however, our negative results rule out specific
+approaches to improve the sample complexity of stochastic convex optimization.
+
+1.4. Notation and Preliminaries
+We now introduce the definitions and notation that are needed to formally state our results.
+
+1.4.1. Vector Spaces and Classes of Functions
+Let (E, k · k) be a d-dimensional normed vector space, where d < ∞. We denote vectors
+in this space by bold letters, e.g., x, y, etc., and by (E∗ , k · k∗ ) its dual space. We use the
+bracket notation hz, xi to denote the evaluation of the linear functional z ∈ E∗ at a point
+x ∈ E; in particular, kzk∗ = supkxk≤1 hz, xi. We denote the ball of E centered at x and of
+radius r by Bk·k (x, r), and the unit ball by Bk·k := Bk·k (0, 1). Our most important case of
+study is the space `dp = (Rd , k · kp ), where 1 ≤ p ≤ ∞. For simplicity, in this case we use
+the notation Bpd (x, r) := Bk·kp (x, r). The dual space of `dp is isometrically isomorphic to `dp∗ ,
+where p∗ = p/(p − 1); in this case, the bracket is just the standard inner product in Rd .
+
+                                                 6
+          Lower Bounds for Parallel and Randomized Convex Optimization
+
+
+
+
+Another important example is the case of Schatten spaces: Schdp = (Rd×d , k · kSch,p ). Here,
+for any X ∈ Rd×d , kXkSch,p = ( di=1 σi (X)p )1/p , where σ1 (X), . . . , σd (X) are the singular
+                                 P
+values of X.
+                      κ
+    Given 0 ≤ κ ≤ 1, F(E,k·k) (µ) denotes the class of convex functions f : E → R such that
+
+                       k∇f (y) − ∇f (x)k∗ ≤ µky − xkκ                  (∀x, y ∈ E),                     (1)
+
+where ∇f (x) ∈ ∂f (x) is any subgradient of f at x. To clarify this definition, let us
+provide some useful examples: (i) κ = 0 corresponds to bounded variation of subgradients,
+k∇f (x) − ∇f (y)k∗ ≤ µ. This class contains all µ/2-Lipschitz convex functions, but is
+also invariant under affine perturbations;2 (ii) κ ∈ (0, 1) corresponds to Hölder continuous
+gradients, k∇f (y) − ∇f (x)k∗ ≤ µky − xkκ ; and (iii) κ = 1 corresponds to Lipschitz-
+continuity of the gradient, k∇f (y) − ∇f (x)k∗ ≤ µky − xk.
+
+1.4.2. Optimization Problems, Algorithms, and Oracles
+We consider convex programs of the form
+
+                                          min{f (x) : x ∈ X },
+
+where f : E → R is a convex function from a given class of objectives F (such as the ones
+described above), and X ⊆ E is convex and closed. We denote by f ∗ the optimal value of
+the problem. Our goal is, given an accuracy ε > 0, to find an ε-solution; i.e., an x ∈ X
+such that f (x) − f ∗ ≤ ε.
+    We study complexity of convex optimization in the oracle model of computation. In
+this model, the algorithm queries points from the feasible set X , and it obtains partial
+information about the objective via a local oracle O. Given objective f ∈ F, and a query
+x ∈ X , we denote the oracle answer by Of (x) (when f is clear from the context we omit it
+from the notation). We say that an oracle O is local if given two functions f, g : E → R such
+that f ≡ g in the neighborhood of some point x ∈ X , it must be that Of (x) = Og (x). An
+important example of a local oracle is the gradient over the class Fk·k   κ (µ), with 0 < κ ≤ 1.3
+
+    In the K-parallel setting of convex optimization (Nemirovski, 1994), an algorithm works
+in rounds. At every round, it performs a batch of queries X t = {xt1 , . . . , xtK }, for xtk ∈
+X (∀k ∈ [K]), where we have used the shorthand notation k ∈ [K] to denote k ∈
+{1, . . . , K}. Given the queries, the local oracle O replies with a batch of answers: Of (X t ) :=
+(Of (xt1 ), . . . , Of (xtK )).
+    The algorithm may work adaptively over rounds: every batch of queries may depend on
+queries and answers from previous rounds:
+
+                   X t+1 = U t+1 (X 1 , Of (X 1 ), . . . , X t , Of (X t ))   (∀t ≥ 1),                 (2)
+
+where the first round of queries X 1 = U 1 (∅) is instance-independent (the algorithm has no
+specific information about f at the beginning). Functions (U t )t≥1 , may be deterministic
+2. Our lower bounds for nonsmooth optimization are in fact given by classes of Lipschitz convex functions,
+   but to keep the notation unified we use (1) instead.
+3. When κ = 0, not every subgradient oracle is local. However, this is a reasonable assumption for black-box
+   algorithms (e.g., when we cannot access a dual formulation or smoothing of the objective).
+
+
+                                                      7
+                                Diakonikolas and Guzmán
+
+
+
+
+or randomized, and this would characterize the deterministic or randomized nature of the
+algorithm. We are interested in the effect of parallelization on the complexity of convex
+optimization in the described oracle model. Notice that K = 1 corresponds to the traditional
+notion of (sequential) oracle complexity.
+
+1.4.3. Notion of Complexity
+Let O be a local oracle for a class of functions F, and let AK (O) be the class of K-parallel
+deterministic algorithms interacting with oracle O. Given ε > 0, f ∈ F, and A ∈ AK (O),
+define the running time T (A, f, ε) as the minimum number of rounds before algorithm
+A finds an ε-solution. The notion of complexity used in this work is known as the high
+probability complexity, defined as:
+
+        ComplγHP (F, X , K, ε) =    sup      inf      inf{τ : Pf ∼F [T (A, f, ε) ≤ τ ] ≥ γ},
+                                               K
+                                   F ∈∆(F ) A∈A (O)
+
+where γ ∈ (0, 1) is a confidence parameter and ∆(F) is the set of probability distributions
+over the class of functions F. The high probability complexity subsumes other well-known
+notions of complexity, including distributional, randomized, and worst-case, in the local ora-
+cle model. More details about the relationship between these different notions of complexity
+can be found in the work of Braun et al. (2017).
+
+1.4.4. Additional Background
+Additional background and statements of several useful definitions and facts that are im-
+portant for our analysis are provided in Appendix A.
+
+1.5. Organization of the Paper
+Section 2 provides a general lower bound that is the technical backbone of all the results
+in this paper. Section 3 then overviews the applications of this result in the general `p
+setups. Section 4 provides lower bounds for some nonstandard `q /`p setups. We conclude
+in Section 5.
+
+2. General Complexity Bound
+To prove the claimed complexity results from the introduction, we work with a suitably
+chosen class of random nonsmooth Lipschitz-continuous problem instances. The results for
+the classes of problems with higher order of smoothness are established (mostly) through
+the use of smoothing maps. In particular, we make use of the following definition of locally
+smoothable spaces:
+Definition 2 A space (E, k · k) is said to be (κ, η, r, µ)-locally smoothable if there exists a
+mapping
+                                    0
+                            S : F(E,k·k)               κ
+                                          (1) → F(E,k·k)     (µ)
+                                                                  ,
+                                      f        7→ Sf
+referred to as the local smoothing, such that:
+  (i) kf − Sf k∞ ≤ η; and
+
+                                                 8
+         Lower Bounds for Parallel and Randomized Convex Optimization
+
+
+
+
+                 0
+ (ii) if f, g ∈ F(E,k·k) (1) and x ∈ E are such that f |Bk·k (x,2r) ≡ g|Bk·k (x,2r) then
+                                       Sf |Bk·k (x,r) ≡ Sg|Bk·k (x,r) .
+
+Namely, a space (E, k · k) is (κ, η, r, µ)-locally smoothable if there exists a mapping S that
+maps all nonsmooth functions to functions in F(E,k·k)κ    (µ), such that a function f and its
+map Sf do not differ by more than η when evaluated at any point from E, and the map
+preserves the equivalence of functions over r-neighborhoods of points from E. The last
+property is crucial to argue about the behavior of a local oracle.
+   The following theorem is the backbone of all the results from this paper: all complexity
+bounds will be obtained as its applications.
+Theorem 3 Let (E, k · k) be a normed space, let X ⊇ Bk·k be a closed and convex set, and
+let ε > 0 and µ > 0. Suppose that there exist a positive integer M , independent random
+vectors z1 , . . . , zM supported on Bk·k∗ , α > 0, and 0 < γ < 1/2, such that, if we define
+       q
+δ̄ = 16 ln(MαK/γ) , we have:
+ (a) (E, k · k) is (κ, η, r, µ̄)-locally smoothable, with µ̄ > 0, 0 < r ≤ δ̄/8, and η ≤ εµ̄/[4µ];
+                                   i
+                   P                          
+ (b) P inf λ∈∆M         i∈[M ] λi z ∗ ≤ 4εµ̄/µ ≤ γ;
+ (c) For any i ∈ [M ], x ∈ Bk·k , and δ > 0
+               P[ zi , x ≥ δ] ≤ exp{−αδ 2 }        and      P[hzi , xi ≤ −δ] ≤ exp{−αδ 2 };
+
+ (d) δ̄ ≤ εµ̄/[M µ].
+                                                κ
+Then, the high probability complexity of class F(E,k·k) (µ) on X satisfies
+                                   2γ   κ
+                              ComplHP (F(E,k·k) (µ), X , K, ε) ≥ M.
+Remark 4 The assumption X ⊇ Bk·k can be substituted by X being only full-dimensional
+                                                                                     κ
+(possibly with a loss in the lower bound). Given a lower bound for problem class F(E,k·k)  (µ)
+and domain X , we can immediately obtain lower bounds for rescalings of the feasible set,
+                                     κ
+RX , where R > 0. Indeed, if f ∈ F(E,k·k)                              κ
+                                           (µ) then g(x) := f (Rx) ∈ F(E,k·k) (Rκ+1 µ), by the
+chain rule. Since local oracles and queries are also in one-to-one correspondence, we have
+           Compl2γ   κ                              2γ   κ
+                HP (F(E,k·k) (µ), RX , K, ε) = ComplHP (F(E,k·k) (R
+                                                                    κ+1
+                                                                        µ), X , K, ε).
+Further, X can be centered at zero by a simple translation. This allows us to translate
+and rescale any full-dimensional convex body so that it contains Bk·k . Finally, even the
+full-dimensionality can be relaxed, by considering the linear span of X .
+Remark 5 In some cases, it is of interest to consider domains which are vastly different
+from the unit ball, thus, the rescalings proposed in the previous remark would lead to weak
+lower bounds. We can avoid this in the case where X is compact, obtaining the same
+conclusion as in Theorem 3, by replacing Assumption (b) by
+                                                         i
+                                          P                          
+                    P minλ∈∆M maxx∈X          i∈[M ] λi z , x ≤ 4εµ̄/µ ≤ γ.             (b’)
+To do this, we simply omit the norm term in the definition of F (see Eq. (3) below), and
+the proof follows analogously. We will see some applications of this different version of the
+result in Section 4.
+
+                                                  9
+                                 Diakonikolas and Guzmán
+
+
+
+
+2.1. Proof of Theorem 3
+To prove Theorem 3, we need to build a distribution over F(E,k·k) κ    (1) such that any K-
+parallel deterministic algorithm interacting with a local oracle on X needs M rounds to
+reach an ε solution, with probability 1 − 2γ. We propose a family of objectives as follows.
+Given z1 , . . . , zM as in the theorem, consider the problem (P) min{F (x) : x ∈ X }, where:
+
+                    µ       n1                           1                 o
+                                max zi , · − iδ̄ , k · k − (3(1 + r) + M δ̄) (x),
+                                               
+         F (x) :=      S max                                                                    (3)
+                    µ̄        2 i∈[M ]                    2
+                      κ (µ) surely. Observe that, since kzi k ≤ 1, for all i:
+By construction, F ∈ Fk·k                                    ∗
+
+(O1 ) When kxk ≤ 1 + 2r, it must be
+
+                         1                         1
+                           max zi , x − iδ̄ ≥ kxk − (3(1 + r) + M δ̄);
+                                          
+                         2 i∈[M ]                  2
+
+      i.e., within the unit ball, F is only determined by its left term.
+(O2 ) When kxk ≥ 3(1 + r) + (M − 1)δ̄, it must be
+
+                         1                         1
+                           max zi , x − iδ̄ ≤ kxk − (3(1 + r) − M δ̄);
+                                          
+                         2 i∈[M ]                  2
+
+      i.e., outside the ball of radius 3(1 + r) + (M − 1)δ̄ ≤ 4,4 F is only determined by the
+      norm term (and not by z1 , . . . , zM ).
+
+In particular, the resulting optimization problem is inf-compact.
+    We claim that any K-parallel deterministic algorithm that works in M rounds, with
+probability 1 − 2γ, will fail to query a point with optimality gap less than ε. This suffices
+to prove the theorem. The proof consists of three parts: (i) establishing an upper bound
+on the minimum value F ∗ of (3), which holds with probability 1 − γ, S        (ii) establishing a
+lower bound on the value of the algorithm’s output min{F (x) : x ∈ t∈[M ] X t }, which
+holds with probabilityS 1 − γ, and (iii) combining (i) and (ii) to show that the optimality gap
+min{F (x) − F ∗ : x ∈ t∈[M ] X t } of the best solution found by the algorithm in M rounds
+is higher than ε, with probability 1 − 2γ.
+
+2.1.1. Upper Bound on the Optimum
+The upper bound on F ∗ is obtained based on Assumptions (b) of Theorem 3, as follows.
+                                       i
+                         P                       
+Lemma 6 If P inf λ∈∆M       i∈[M ] λi z ∗ ≤ 4εµ̄/µ ≤ γ;, then
+
+                            P[F ∗ ≤ −2ε + (η − δ̄/2)µ/µ̄] ≥ 1 − γ,
+
+where F ∗ = minx∈X F (x) for F (x) defined in (3), and S is a smoothing map that satisfies
+the assumptions from Theorem 3.
+4. From Assumption (b) we may assume that 4µ̄ε/µ ≤ 1, and then using the bounds on r and δ̄ from (a)
+   and (d), we get the bound.
+
+
+                                                10
+         Lower Bounds for Parallel and Randomized Convex Optimization
+
+
+
+
+Proof Observe first that:
+             µ             n1                             1                o
+       F ∗ ≤ min S max          max zi , · − iδ̄ , k · k − (3(1 + r) + M δ̄) (x)
+                                               
+             µ̄ x∈X           2 i∈[M ]                     2
+             µ           n 1           i
+                                                         1                o   
+           ≤ min max          max z , x − iδ̄ , kxk − (3(1 + r) + M δ̄) + η
+             µ̄ x∈X         2 i∈[M ]                      2
+              µ                          µ
+           ≤       min max zi , x + (η − δ̄/2),
+             2µ̄ kxk≤1 i∈[M ]              µ̄
+
+where we have used Property (i) from the definition of local smoothing, Property (O1 ) (to
+assert that the maximum is achieved by the left term), and X ⊇ Bk·k .
+    The rest of the proof is a simple corollary of minimax duality. In particular,
+                                                                     *              +
+                                         X                             X
+                    i                              i                            i
+        min max z , x = min max               λi z , x = max min            λi z , x ,
+       kxk≤1 i∈[M ]            kxk≤1 λ∈∆M                   λ∈∆M kxk≤1
+                                             i∈[M ]                       i∈[M ]
+
+where at the last step we used the minimax theorem. Finally,
+                                          m
+                                                     !
+                        ∗      µ         X
+                                                 i        µ
+                      F ≤−         min       λi z      +     (2η − δ̄),
+                              2µ̄ λ∈∆M             ∗     2µ̄
+                                                 i=1
+
+and it remains to apply the assumption from the statement of the lemma.
+
+
+
+2.1.2. Lower Bound on the Algorithm’s Output
+Lower bound on the algorithm’s output requires more technical work and is based on show-
+ing that, at every round t, w.h.p., the algorithm can only learn z1 , . . . , zt and (aside from
+implicit bounds) has no information about zt+1 , . . . zM . Then, due to Assumption (c) of
+Theorem 3, w.h.p., none of the queried points up to round M can align well with vector
+zM , which will allow us to show that for all the queried points x up to round M , F (x) is
+Ω(ε)-far from the optimum F ∗ .
+    In the following, we denote the history of the algorithm-oracle interaction until round
+t − 1 as Π<t := (X s , OF (X s ))s<t . We also define the following events
+                    n                δ̄ o n i      δ̄       o             \
+       E t (x) :=       zt , x > −       ∩  z , x < (∀i > t) , and E t :=     E t (x),
+                                     4             4                        t
+                                                                             x∈X
+
+where δ̄ is defined as in Theorem 2. Further, we define the “good history” events by:
+                                         \
+                                  E <t := {E s : s < t}.
+                                                        <1
+To      making vacuous statements, we take E to be the entire probability space, so that
+  avoid
+    <1
+P E     = 1. Recall that, based on Observation (O2 ), when we prove our claim, it suffices
+to focus on vectors within the ball of radius 4. For this reason, given a batch of queries
+                                                               t
+X t = {xt1 , . . . , xtK }, we define its relevant queries as X = X t ∩ Bk·k (0, 4).
+    We first prove that, conditionally on E <t , X t is a deterministic function of {zi }i<t .
+
+                                                      11
+                                 Diakonikolas and Guzmán
+
+
+
+                                                                                     t
+Proposition 7 Let t ∈ [M −1] and suppose event E t holds. Then, for all x ∈ X +Bk·k (0, r),
+F (x) is fully determined by vectors zi with i ≤ t, i.e.,
+
+                    1      n1                           1                 o
+                               max zi , · − iδ̄ , k · k − (3(1 + r) + M δ̄) (x).
+                                              
+          F (x) =     S max
+                    µ        2 i∈[t]                     2
+
+Moreover, conditionally on E <t , X t is a deterministic function of {zi }i<t .
+                                                                                 t
+Proof Let f (x) = maxi∈[M ] zi , x − iδ̄ . We will show that for any xtk ∈ X and x such
+                                           
+
+that kx − xtk k ≤ 2r, we have f (x) = g(x), where g(x) = maxi∈[t] zi , x − iδ̄ (notice that
+g only includes zi for i ∈ [t]). The first part of the proposition is then obtained from Part
+(ii) of Definition 2.
+     To prove the claim, notice that since kzi k∗ ≤ 1, we have:
+
+                      zi , x ≤ zi , xtk + kx − xtk k · kzi k∗ ≤ zi , xtk + 2r.
+
+Similarly, zi , xtk ≤ zi , x + kx − xtk k · kzi k∗ ≤ zi , x + 2r.
+   Further, by the definition of E t , and since 2r ≤ δ̄/4 (by Assumption (a)),
+
+                                                                 δ̄
+                     zi , x − iδ̄ ≤ zi , xtk + 2r − (t + 1)δ̄ <     − (t + 1)δ̄
+                                                                 2
+                                 < zt , xtk    − 2r − tδ ≤ zt , x − tδ̄.
+
+    For the second part of the proposition, first observe that X t = U t (Π<t ), where U t is a
+deterministic function; thus it suffices to prove that, conditionally on E <t , Π<t is a determin-
+istic function of {zi }i<t . We prove the last claim by induction on t. For the base case, Π<1 is
+empty, thus the property trivially holds. For the inductive step, suppose that conditionally
+on E <t , Π<t is a deterministic function of {zi }i<t . Now notice that X t = U t (Π<t ), thus it
+is a deterministic function of {zi }i<t . On the other hand, the first part of the proposition
+guarantees that under E t , F |X t +B (0,r) is a deterministic function of {zi }i≤t ; this proves
+                                     k·k
+that (X t , OF (X t )) is a deterministic function of {zi }i≤t . Finally, combining this with the
+induction hypothesis, Π<t+1 = (Π<t , (X t , OF (X t ))) is a deterministic function of {zi }i<t+1 ,
+proving the inductive step, and thus the result.
+
+
+    The last result shows that, under E <t , X t is predictable w.r.t. {zi }i<t . This means
+that conditionally on the history and event E <t , X t is fixed. This is key to leverage the
+randomness of {zi }i≥t for the t-th batch of queries. However, there is still a problem: Con-
+ditionally on E <t , the distribution of {zi }i≥t is different than when there is no conditioning
+(as E <t itself depends on {zi }i≥t ). In the next lemma we show that, similar as in Carmon
+et al. (2017); Woodworth et al. (2018), even after sequential conditioning, the distribution
+of {zi }i≥t remains sufficiently well-concentrated to carry out the lower bound strategy.
+
+Lemma 8 Under Assumptions (a) and (c) from Theorem 2, we have:
+                               h \      i
+                             P       E t ≥ 1 − γ.
+                                           t∈[M ]
+
+
+                                                    12
+          Lower Bounds for Parallel and Randomized Convex Optimization
+
+
+
+
+Proof To simplify the notation, let zi<t denote {zi }i<t . First observe that, for any 1 ≤ t ≤
+M , by the law of total probability:
+                                  Z
+                    t c  <t
+                                     P[(E t )c | E <t , zi<t = ξ] dP zi<t = ξ|E <t
+                                                                                  
+               P[(E ) | E ] =
+                                                    ξ
+
+
+   On the other hand, by the previous proposition, X t is a deterministic function of zi<t ,
+conditionally on E <t . Recall that:
+                        n                                                 o
+                                 t
+               (E t )c = ∃x ∈ X : zt , x < −δ̄/4 or (∃i > t) zi , x > δ̄/4 .
+
+To simplify the notation, denote:
+                          n                                               o
+           (E t )c t   = ∃x ∈ X : zt , x < −δ̄/4 or (∃i > t) zi , x > δ̄/4 .
+                 {X →X}
+
+Therefore, we further have:
+                      Z                                  h                                i 
+            t c  <t
+                                                        P (E t )c          E <t , zi<t = ξ dP zi<t = ξ|E <t ,
+                                                                                                           
+       P[(E ) | E ] ≤       sup                                     t
+                                                                  {X →X}
+                                 ξ X⊆Bk·k (0,4),
+                                     |X|≤K
+
+                                         t
+where we have used that X is conditionally deterministic. Now that X is fixed, we can use
+the union bound as follows:
+
+      P[(E t )c | E <t ]
+             Z                       h                                     i
+      ≤K             sup         P           zt , x < −δ̄/4 E <t , zi<t = ξ dP[zi<t = ξ|E <t ]
+              ξ x∈Bk·k (0,4)
+                         Z                                  h                                i
+       + (M − 1)K                    sup         max P          zj , x > δ̄/4 E <t , zi<t = ξ dP[zi<t = ξ|E <t ].
+                           ξ x∈Bk·k (0,4) j>t
+
+
+Observe for the first integral in the last expression that we can write:
+      Z              h                               i
+            sup P zt , x < −δ̄/4 E <t , zi<t = ξ dP[zi<t = ξ|E <t ]
+        ξ x∈Bk·k (0,4)
+
+                                               zt , x < −δ̄/4, E <t |zi<t = ξ
+                             Z                                               
+                                                    P
+                                                                                dP zi<t = ξ|E <t
+                                                                                                
+                         =       sup                   <t
+                                                             i<t
+                                                                     
+                            ξ x∈Bk·k (0,4)           P E |z = ξ
+                                           P z , x < −δ̄/4, E <t |zi<t = ξ
+                           Z                 t                               
+                                                                                dP zi<t = ξ
+                                                                                           
+                         =       sup                        <t 
+                            ξ x∈Bk·k (0,4)               P E
+                                           P z , x < −δ̄/4|zi<t = ξ
+                           Z                 t                         
+                                                                          dP zi<t = ξ
+                                                                                     
+                         ≤       sup                     <t 
+                            ξ x∈Bk·k (0,4)             P E
+                                              t                
+                           supx∈Bk·k (0,4) P z , x < −δ̄/4
+                         =                                        ,
+                                           P E <t
+                                                 
+
+
+                                                                    13
+                                        Diakonikolas and Guzmán
+
+
+
+
+where we have used the Bayes rule in the second equality. Applying the same arguments
+to the second integral, we finally have:
+
+                                                       δ̄                  δ̄
+      t c <t  M K supx∈Bk·k (0,4) max P zt , x < − 4 , maxj>t P zj , x > 4
+                                                                          
+    P (E ) | E ≤
+                                              P[E <t ]
+                 M K exp{−αδ̄ 2 /256}      γ
+               ≤          <t          ≤          .
+                       P[E ]            P[E <t ]
+
+Inductively, each E <t happens with non-zero probability, as P E <1 = 1 and γ < 1.
+                                                                  
+
+   We conclude the proof by conditioning:
+                                 hT         i
+             h \           i    P t∈[M ] E t h \ i        h        i h    i
+         P            Et       = hT         iP     E t = P E M E <M P E <M ≥ 1 − γ.
+             t∈[M ]             P t<M E t      t<M
+
+
+
+
+   Finally, Lemma 8 and Proposition 7 imply the following lower bound on the algorithm’s
+output:
+                   h                            δ̄µ  1      2η i
+                 P       min       F (xtk ) ≥ −         +M +       ≥ 1 − γ,          (4)
+                     t∈[M ], k∈[K]              2µ̄ 4         δ̄
+
+as, when all events {E t : t ∈ [M ]} hold simultaneously (and, in particular, when event E M
+holds), we have, by the definitions of these events and the random problem instance (3),
+that:
+                                      µ     n
+                                                                          t
+                                                                            o ηµ
+                min       F (xtk ) ≥     min zM , x − M δ̄ : x ∈ ∪t∈[M ] X −
+             t∈[M ],k∈[K]            2µ̄                                       µ̄
+                                           δ̄µ    δ̄µ ηµ
+                                      ≥−       −M     −    .
+                                           8µ̄    2µ̄   µ̄
+
+2.1.3. Bounding the Optimality Gap
+To complete the proof of Theorem 3, it remains to combine the results from the last two
+subsections and argue that, w.p. 1 − γ, the optimality gap of any solution output by the
+algorithm is higher than ε.
+                                                                                       ∗
+Remaining Proof of Theorem 3. Applying Lemma 6, with probability             1 − γ, F ≤ −2ε +
+                                                                        δ̄µ 1        2η
+(η − δ̄/2)µ/µ̄. From Eq. (4), w.p. 1 − γ, mint∈[M ], k∈[K] F (xtk ) ≥ − 2µ̄  4 + M + δ̄ . Hence,
+with probability 1 − 2γ,
+
+                                                              δ̄µ     3  2ηµ
+                               min    F (xtk ) − F ∗ ≥ 2ε −         M−    −    > ε,
+                      t∈[M ], k∈[K]                           2µ̄      4    µ̄
+
+as, by the theorem assumptions, δ̄ ≤ εµ̄/[M µ] and η ≤ εµ̄/[4µ].                              
+
+                                                       14
+         Lower Bounds for Parallel and Randomized Convex Optimization
+
+
+
+
+3. Lower Bounds for Parallel Convex Optimization over `p Balls
+In this section, we show how the general complexity bound from Theorem 3 can be applied
+to obtain several lower bounds for parallel convex optimization. Our main case of study
+will be `dp spaces. For convenience, we will also restrict ourselves to R = µ = 1, though our
+results can be directly applied to obtain bounds for general radius and regularity constant
+(see Remark 4).
+    In what follows, we will prove several lower bounds for `p -setups. Interestingly, we can
+obtain analog lower bounds for Schatten spaces. This follows by simply noting that the
+restriction of the Schatten norm to diagonal matrices coincides with k · kp , and therefore
+we can embed Bpd , as well as F`κd (1) through this restriction (for more details, we refer
+                                  p
+the reader to Guzmán and Nemirovski 2015). This embedding has a quadratic cost in the
+large-scale regime; in particular, it remains polynomial in 1/ε and ln(K/γ).
+
+3.1. Nonsmooth Optimization
+To apply Theorem 3 in the nonsmooth case, we do not need to apply any smoothing at
+all. This is formally stated as “any normed space is (0, 0, 0, 1)-locally smoothable,” and
+its consequence is that Assumption (a) of the theorem is automatically satisfied. Thus,
+it suffices to construct a probability distribution over zi ’s that under suitable constraints
+on α and the number of rounds M satisfies Assumptions (b) and (c) from the theorem.
+Assumption (d) simply constrains M by M ≤ δ̄ε .
+    Let ri denote an independent (over i) d-dimensional vector of independent Rademacher
+entries (i.e., a vector whose entries take values ±1 w.p. 1/2, independently of each other).
+Let IiL denote the d × d diagonal matrix, whose L ≤ d diagonal entries take value 1, while
+the remaining entries are zero. The positions of the non-zero entries on the diagonal of IiL
+will, in general, depend on i, and will be specified later. Given p ≥ 1, vectors zi ∈ Bpd∗ are
+then defined as:
+                                               1
+                                        zi = 1/p∗ IiL ri .                                 (5)
+                                             L
+
+3.1.1. Bounds for 1 ≤ p ≤ 2
+                                                                   ∗
+When p ∈ [1, 2], it suffices to choose L = d, so that zi = d−1/p ri . We start by proving
+                                                                            ∗
+a lower bound that applies in the regime when d = Ω(poly(log(K/γ), 1/εp )). Hence the
+bound deteriorates as p tends to one, and, in particular, does not apply to the case when
+p = 1. However, we will later show (see Section 4) that it is possible to derive a high-
+dimensional lower bound for the same function class over the `q ball inscribed in the `1
+ball, for any q > 1. Further, we will show lower bounds for the `1 setting which are
+polynomial in 1/ε by reduction from the `∞ setting (see Theorem 15). Finally, to justify
+these alternative approaches, we note that it is unlikely to directly apply Theorem 3 and
+obtain an informative lower bound for the `1 setup (see the discussion at the end of this
+subsection).
+    The following lemma gives a sufficient condition for Assumption (b) from Theorem 3 to
+hold. Its proof is provided in Appendix B.
+
+
+
+                                             15
+                                              Diakonikolas and Guzmán
+
+
+
+
+Lemma 9 Let 1 < p ≤ 2, q ≥ p, and let z1 , . . . , zM be chosen according to Eq. (5), where
+                                                       n     1     cq d − ln(1/γ) o
+                                            M ≤ min              ,                 ,
+                                                           200ε2       ln(3/ε)
+
+and cq > 0 is a constant that only depends on q. Then, for all γ ∈ (1/poly(d), 1) :
+                                       h           1           X                             i
+                                   P       min                         λ i zi           ≤ 4ε   ≤ γ.
+                                           λ∈∆M d1/p−1/q                          q   ∗
+                                                              i∈[M ]
+
+    To obtain the claimed lower bound for the nonsmooth case, we only need to establish the
+concentration of inner products within the feasible domain. When p > 1, this is obtained
+as a simple application of Hoeffding’s Inequality. These two facts provide the claimed lower
+bound.
+                                                                     1
+Theorem 10 Let 1 < p ≤ 2 and X ⊇ Bpd . Let ε ∈ (0, 1/2) and γ ∈ ( poly(d) , 1). Then:
+                                                                                                      ∗
+                                                                              n     1       εd1/p    o
+                     ComplγHP (F`0d (1), X , K, ε) ≥ M := min                          ,              .
+                                                                                  200ε2 32 ln(M K/γ)
+                                                                                          p
+                                    p
+
+
+
+Proof We verify the conditions of Theorem 3. Recall that in the nonsmooth case condition
+(a) is automatically satisfied. Property (b) is obtained from Lemma 9 (with p = q), which
+requires bounding M according to the lemma. For (c), by a direct application of Hoeffding’s
+Inequality, for all x ∈ Bpd
+                                                                          ∗                       ∗
+                              P[hzi , xi > δ] = P[hri , xi > d1/p δ] ≤ exp{−d2/p δ 2 }.
+                                                       ∗
+In particular, we have that α = d2/p suffices
+                                         q to satisfy Assumption (c). Assumption
+(d) holds as long as M ≤ ε/δ̄. As δ̄ = 16 ln(MαK/γ) , it is sufficient to require: M ≤
+        ∗
+εd1/p       √      1
+  32                      .
+                ln(M K/γ)
+
+
+
+Remark 11 Even though M is implicitly defined in Theorem 10, an explicit definition for
+M can be obtained by using a looser bound ln(dK/γ) instead of ln(M K/γ). We keep this
+definition to highlight the large scale regime for d. In particular, the high-dimensional regime
+                                                       1/p∗
+is determined by solving for d the inequality √εd                  1
+                                                               ≥ 200ε 2.
+                                                                32     ln(M K/γ)
+
+We can conclude from Theorem 10 that as long as d is “sufficiently large” (namely, as long
+             p               p ∗
+as d = Ω( ln(K/(εγ))/ε3 )), any ε-approximate K-parallel algorithm takes Ω(1/ε2 )
+iterations, which is asymptotically optimal—this bound is tight in the sequential case (when
+K = 1) and is thus unimprovable (Nemirovsky and Yudin, 1983).
+    Unfortunately, this lower bound becomes uninformative when p∗ = Ω(ln d); and, in
+particular, when p = 1. This is not merely an artifact of the specific arguments we used
+to satisfy the assumptions of Theorem 3; the whole construction breaks in the `1 case and
+the “hard instance” from its proof can be learned with one round of polynomially-many
+
+                                                                16
+          Lower Bounds for Parallel and Randomized Convex Optimization
+
+
+
+
+queries, with high probability. To see this,5 partition the coordinates {1, ..., d} into sets
+S1 , ..., Sbd/(2 log(M ))c , each with 2 log(M ) of the coordinates. For each of the sets Sj , consider
+all possible queries with uniform weights                                      2
+                                          2
+                                             d and observe that there are M such queries. Thus,
+the total number of queries is M 2 log(M ) , which is polynomial in d and M.
+                                                                              1
+    Further, note that due to Assumption (d) from Theorem 3 it holds δ̄ < 2 log(M ) , as
+                                            M
+otherwise we would need to have 2 log         M < ε, which is uninformative. Thus, if one of the
+chosen queries x has the same signs on its non-zero coordinates as exactly one of the zi s,
+then that zi is the subgradient returned by the local oracle. It follows that for the algorithm
+to learn all of the zi s, it suffices that no two zi s have the same signs on all of the coordinate
+subsets S1 , ..., Sbd/(2 log(M ))c . Fix one coordinate subset Sj . The probability that there are
+                                            (M )!   2
+                                                        1 6
+no two zi s whose signs match on Sj is (M 2 −M )!M 2M
+                                                      > M . Thus, the probability that for
+at least one of the coordinate subsets Sj no two zi s have the same signs is greater than
+                                       d
+          1 bd/(2 log M )c        −
+1 − (1 − M  )              ≥ 1 − e M log M .
+    Finally, we note that other choices of vectors zi would encounter similar problems in the
+lower bound argument. On one hand, large `∞ norm of vectors zi is needed for certifying an
+upper bound of −Ω(ε) on the optimum (Section 2.1.1). On the other, this large `∞ norm
+makes it easier for the algorithm to uncover all vectors zi , similarly as in the discussion
+above. Hence, it appears unlikely that any direct extension of our techniques, or any other
+techniques for proving lower bounds that we are aware of, would lead to lower bounds of
+          e 12 ) for the `1 setting. However, we will show in Theorem 15 that it is possible
+the form Ω(   ε
+to obtain a lower bound that is polynomial in 1/ε, by application of embedding techniques.
+
+3.1.2. Bounds for p ≥ 2
+It is possible to extend Lemma 9 to the case of p ≥ 2. However, due to the upper bound on
+M from Lemma 9, the best dimension-independent lower bound on the number of queries
+we could obtain in this setting would be of the order 1/ε2 . Given that in the sequential
+setting the best dimension-independent lower bound is Ω(1/εp ), we need a stronger result
+than what we obtained in Lemma 9.
+     This is achieved through a different construction of zi ’s, where these vectors are no
+longer supported on all d coordinates, but only on L < d of them; moreover, we will choose
+their supports to be disjoint. The construction is as follows. Let {Ji }M       i=1 be a collection
+                                                                           0
+of subsets of {1, . . . , d} such that |Ji | = L and Ji ∩ Ji0 = ∅, ∀i 6= i (here, we assume that
+d ≥ M L). Set IiL = diag(1Ji ), i.e., the (j, j) element of the diagonal matrix IiL is 1 if j ∈ Ji
+                                                               1
+and 0 otherwise. From eqn. (5), zi is defined as zi = L1/p          i i           i
+                                                                 ∗ IL r , where (rj )i∈[M ],j∈[d] is an
+
+independent Rademacher sequence.
+     Our next result addresses the nonsmooth p ≥ 2 case, by a direct application of Theorem 3
+to our construction above. More details are provided in Appendix B.
+
+Theorem 12 Let p ≥ 2, X ⊇ Bpd , and ε ∈ (0, 1/2), γ ∈ (1/poly(d), 1). Then:
+                                                        n 1      ε2/3  d     1/3 o
+           ComplγHP (F`κd (1), X , K, ε) ≥ M := min            ,                    .
+                         p                               (4ε)p    8 ln(M K/γ)
+5. The following argument is based on private communication with Daniel Kane.
+6. This follows by the same argument as in the birthday problem.
+
+
+                                                  17
+                                  Diakonikolas and Guzmán
+
+
+
+
+     In particular, the required number of queries to reach an ε-approximate solution is
+Ω( ε1p ), as long as d = Ω( ln(K/γ)+p ln(1/ε)
+                                 ε3p+2 
+                                              ). When p → ∞, the right term in the definition of
+                                                   d
+                                                       1/3 
+M dominates, and we have M = Ω ε2/3 ln(dK/γ)                  , which, for constant ε, matches the
+best known bound for deterministic algorithms in this setting, due to Nemirovski (1994).
+
+3.2. Smooth and Weakly Smooth Optimization
+To apply Theorem 3 and obtain lower bounds for (weakly) smooth classes of functions, we
+need to design an appropriate local smoothing. This is indeed possible for p ≥ 2, as we
+show below.
+
+
+Remark 13 Let 2 ≤ p ≤ ∞, d ∈ N, and 0 ≤ κ ≤ 1. Then, for any η > 0, the space
+`dp = (Rd , k · kp ) is (κ, η, η, µ)-locally smoothable when µ = 21−κ ( min{p,ln
+                                                                            η
+                                                                                 d} κ
+                                                                                   ) . We prove this
+in the Appendix A, following Guzmán and Nemirovski (2015).
+
+  Our next result addresses the smooth `dp -setup when p ≥ 2. Its proof is provided in
+Appendix B.
+
+Theorem 14 Let p ≥ 2, X ⊇ Bpd , and ε ∈ (0, 1/2), γ ∈ (1/poly(d), 1). Then:
+                                                                                  p
+                                                                 1            
+     ComplγHP (F`κd (1), X , K, ε) ≥ M := min
+                                                                                1+κ(1+p)
+                                                     3+4κ                   κ
+                                                                                         ,
+                  p                                2      ε (min{p, ln(d)})
+                                                                                  2(1+p) 
+                                       d            1+3p+2κ(1+p)
+                                                                               κ
+                                                                                    1+κ(1+p)
+                                                  2     1+p      min{p, ln(d)} ε             .
+                                 29 ln(M K/γ)
+
+The bound from Theorem 14 may be difficult to read, so let us point out a few notable
+special cases:
+
+   • When κ = 0, p → ∞, the bound is uninformative, and one should instead use The-
+     orem 12. This is a consequence of the particular choice of L in the proof, and its
+     dependence on κ.
+                                                                3
+                                                                   
+   • When κ ∈ (0, 1], p → ∞, if d = Ω (ln( K
+                                           γ ) + 1
+                                                 κ ln( 1
+                                                       ε ))( 1 κ
+                                                             ε )                  1
+                                                                     , then M = ln(d)      1
+                                                                                      ( 23+4κ ε
+                                                                                                )1/κ ,
+                                     1
+     which is tight up to a factor ln(d) and achieved for K = 1 by the Frank-Wolfe
+     method (Frank and Wolfe, 1956).
+   • When κ = 0, p < ∞, and d = Ω (ln(K/γ) + p ln(1/ε))( 1ε )3p+2 , then M = ( 8ε
+                                                                                1 p
+                                                                 
+                                                                                  ) ,
+     which is achieved for K = 1 by the Mirror-Descent method (Nemirovsky and Yudin,
+     1983).
+   • When κ = 1, p < ∞, and d = Ω max{(ln(K/γ) + ln(1/ε))( 1ε )3 , exp(p)} , then
+                                                                             
+                      p
+              1
+      M = ( 128pε ) p+2 . These bounds are unimprovable and are achieved for K = 1
+      by the Nemirovski-Nesterov accelerated method (Nemirovskii and Nesterov, 1985;
+      d’Aspremont et al., 2018).
+
+                                                 18
+          Lower Bounds for Parallel and Randomized Convex Optimization
+
+
+
+
+3.2.1. `p Setups, for 1 ≤ p < 2
+Unfortunately, the smoothing approach is not immediately applicable when 1 ≤ p < 2, due
+to the fact that there are no known regularizers for an infimal convolution smoothing. This
+is related to the fact that these spaces are not 2-uniformly smooth (Ball et al., 1994) which
+leads to a natural barrier for the approach. However, this difficulty has been circumvented
+by Guzmán and Nemirovski (2015), where lower bounds in this regime are shown by a
+reduction from the p = ∞ case, specifically through a linear embedding of problem classes.
+We follow the same approach, and provide its proof in Appendix B.
+                                                                         1
+Theorem 15 Let 1 ≤ p ≤ 2, 0 < κ ≤ 1, X ⊇ Bpd , ε ∈ (0, 1/2), γ ∈ ( poly(d)   , 1). Then, there
+                                              l              2κ       6 m
+exist constants ν, cκ > 0, such that if d ≥ ν1 2(ln(νdK/γ)) 3+2κ 1ε 3+2κ , then:
+                                                                   
+
+
+                                                                 cκ          1 2
+            ComplγHP (F`κd (1), X , K, ε) ≥ M :=
+                                                                                3+2κ
+                                                                                     .
+                         p                            ln(1/ε) + κ ln ln(dK/γ) ε
+
+    Let us consider some special cases of the bound from Theorem 15. Suppose that d is
+sufficiently high-dimensional so that the theorem applies (note that d = Ω(ln(dK/γ)ε−2 )
+suffices). When κ = 1, then M = Ω( ln(1/ε)+ln1 ln(dK/γ) ( 1ε )2/5 ). This bound does not match
+                                 √
+the sequential complexity Θ(1/ ε) of this problem—apart from the logarithmic factors, the
+exponent in 1/ε is off by 1/10. This is a direct consequence of the right term in Theorem 14
+not being large enough for p → ∞, as the bound in Theorem 15 is obtained from this case.
+Further improvements of this term would also improve the bound for the nonsmooth `∞ case
+of Nemirovski (1994) for, at least, some regimes of ε. Similarly, when κ = 0, the exponent
+in 1/ε is 2/3, which is off by additive 4/3 from the sequential complexity of this setting.
+This is aligned with the intuition that smooth lower bounds have a milder high-dimensional
+regime than nonsmooth ones (which holds in the sequential case). This way, the embedding
+approach is stronger on higher levels of smoothness.
+    The main difficulty in obtaining tighter bounds in these regimes (`∞ and its implica-
+tions on smooth and weakly-smooth p ∈ [1, 2) settings) is in relaxing Assumption (d) from
+Theorem 3. It seems unlikely that this would be possible without completely changing the
+hard instance used in its proof (as Assumption (d) is crucially used in bounding below the
+optimality gap), and would likely require a fundamentally different approach from the one
+used here. The only work where such a relaxation has been obtained is due to Bubeck
+et al. (2019); however, their approach seems to heavily rely on Euclidean structure, and it
+is unclear how to extend this idea to the `∞ setup.
+
+4. Lower Bounds for Nonstandard `q /`p Settings
+In this section, we show that it is possible to use our proof technique to obtain lower
+bounds for nonstandard `q /`p setups; i.e., classes of problems with objective functions that
+are regular w.r.t. k · kp , and with feasible sets given by Bqd . As a special case of these results,
+we get that the parallel complexity of nonsmooth `1 optimization over any `q ball inscribed
+in the `1 ball, where q is bounded away from one, is Ω( ε12 ) (Theorem 16). Recall that we
+were not able to obtain such a result for q = 1. It is an interesting open question whether
+the special structure of the `1 -ball is beneficial for gaining from parallelization.
+
+                                                 19
+                                      Diakonikolas and Guzmán
+
+
+
+
+Theorem 16 Let ε ∈ (0, 1/2), γ ∈ (1/poly(d), 1), p ∈ [1, 2], and q > p. Then:
+
+                                                                                 n     1          εα1/2   o
+       ComplγHP (F`0d (1), Bqd (1/d1/p−1/q ), K, ε) ≥ M := min                             , c             ,
+                                                                                     200ε2
+                                                                                               p
+                      p
+                                                                                                ln(M K/γ)
+
+where c > 0 is a constant that only depends on q, α = d2−2/q if q ≤ 2, and α = d, if q > 2.
+
+Proof As before, we will prove this result as an application of Theorem 3. Let ri be
+                                                                   1
+an independent standard Rademacher sequence in Rd and zi = d1/p         i
+                                                                     ∗ r . Assumption (a) is
+
+automatically satisfied since κ = 0. From Remark 5, we will verify Assumption (b’); indeed,
+
+                                      D X                  E       1                            X
+                 min           max                λi zi , x = − 1/p−1/q min                              λ i zi        ,
+           x∈Bq (1/d1/p−1/q ) λ∈∆M                             d       λ∈∆M                                       q∗
+                                         i∈[M ]                                                 i∈[M ]
+
+             q
+where q ∗ = q−1 . Moreover, applying Lemma 9:
+
+                               h             1         X                            i
+                           P       min                          λ i zi         ≤ 4ε   ≤ γ,
+                                   λ∈∆M d1/p−1/q                         q   ∗
+                                                       i∈[M ]
+
+                  n                        o
+                        1    c d−ln(1/γ)
+for any M ≤ min       200ε2
+                            , q ln(3/ε)     , where cq > 0 is a constant that only depends on q.
+   On the other hand, the concentration required in Assumption (c) is satisfied for any
+x ∈ Bqd (1/d1/p−1/q ) by Hoeffding:
+                                                               (
+                                             2/p∗               exp{−d2−2/q δ 2 },                   if q ≤ 2
+           P[hzi , xi > δ] ≤ exp{−δ 2 d             /kxk22 } ≤
+                                                                exp{−dδ 2 },                         if q > 2.
+
+                                                                                                                           ∗
+ Indeed, in the case q ≤ 2, we have kxk2 ≤ kxkq ≤ d1/q−1/p ; therefore, δ 2 d2/p /kxk2 ≥
+d2−2/q δ 2 . In the case q > 2, we bound kxk2 ≤ d1/2−1/q kxkq ≤ d1/2−1/p , which gives
+        ∗
+δ 2 d2/p /kxk2 ≥ dδ 2 . This way, we can choose α =qd2−2/q if q ≤ 2 and α = d, if q > 2.
+Finally, Assumption (d) is satisfied for M ≤ δε = 16
+                                                   ε     α
+                                                     ln(M K/γ) , completing the proof.
+
+
+
+
+Theorem 17 Let ε ∈ (0, 1/2), γ ∈ (1/poly(d), 1), p > 2, and q > p. Then:
+                                                                                nc
+                                                                                   1
+                                                                                                  ε2 d   1/3 o
+      ComplγHP (F`0d (1), Bqd (1/d1/p−1/q ), K, ε) ≥ M := min                        , c2                       ,
+                    p                                                             εp            ln(M K/γ)
+
+where c1 , c2 are absolute constants.
+
+The proof is a simple extension of the case p = q (proof of Theorem 12), where it suffices to
+apply the same duality argument as in the proof of Theorem 16 and use q > p and L ≤ d
+in the proofs of supporting lemmas. It is omitted for brevity.
+
+                                                        20
+         Lower Bounds for Parallel and Randomized Convex Optimization
+
+
+
+
+5. Conclusion
+
+This paper rules out the possibility of significantly improving the complexity of convex
+optimization via parallelization in the exploration of the feasible set with polynomially-
+bounded (in the dimension) number of queries per round, for essentially all interesting
+geometries and classes of functions with different levels of smoothness, and in the high-
+dimensional regime. Most of the obtained lower bounds match the sequential complexity
+of these problems, up to, at most, a logarithmic factor in the dimension, and are, thus,
+(nearly) tight.
+   However, our bounds are not known to be tight in the nonsmooth and weakly-smooth
+`1 and `∞ settings. In the standard `1 setting, as discussed in Section 3, it is unclear
+how to apply Theorem 3. Similarly, it is unclear how to apply any of the other existing
+proof techniques to this case. To obtain a nontrivial lower bound for the `1 case, we use
+a reduction from the `∞ case. The tightest lower bound known for the `∞ case is due
+                                               d
+to Nemirovski (1994) and it amounts to Ω(( ln(dK)  )1/3 ln(1/ε)). If this lower bound was
+                     d
+improved to Ω(( ln(dK)   ) ln(1/ε)) as conjectured by Nemirovski (1994), then a nearly tight
+                    1
+lower bound of Ω( ε2 ) for the `1 case would immediately follow using the same reduction as
+in our work. However, it is an open question whether such lower bounds are possible, or if `1
+and `∞ setups are more amenable to efficient parallel optimization. Further, our bounds only
+apply to the high-dimensional setting, where d = Ω(1/poly(ε)). For the low-dimensional
+setting, it was recently shown that, at least in the nonsmooth Euclidean setting, it is possible
+to reduce the number of parallel rounds by using polynomially-many local oracle queries
+per round (Bubeck et al., 2019; Duchi et al., 2012). It is an open question whether it is
+possible to obtain similar results for other `p and Schp setups.
+
+
+Acknowledgments
+
+ Part of this work was done while JD was visiting Simons Institute for the Theory of
+Computing and while she was a postdoctoral researcher at Boston University. JD was
+partially supported by the NSF grant #CCF-1740855. CG was partially supported by the
+FONDECYT project 11160939, and the Millennium Science Initiative of the Ministry of
+Economy, Development, and Tourism, grant “Millennium Nucleus Center for the Discovery
+of Structures in Complex Data.”
+    We thank Adam Smith for pointing out the importance of lower bounds in parallel
+convex optimization from the local differential privacy perspective, for his useful comments
+and insights that led to this work, and for many useful discussions. We also thank Ilias
+Diakonikolas for sharing his expertise on anticoncentration, as well as Yossi Arjevani, Nicolas
+Casabianca, Vitaly Feldman, and José Verschae for valuable discussions and comments
+regarding this work. An earlier version of this paper made an incorrect use of the orthogonal
+splittings of `p spaces, which has since been corrected. We thank Boris Kashin for pointing
+out this issue. We also thank John Duchi who pointed out imprecise conditioning in the
+proof of Lemma 8, which has since been corrected, using, in part, a fix suggested by him.
+Finally, we thank Daniel Kane for providing us with an argument for why the lower bound
+
+                                              21
+                                Diakonikolas and Guzmán
+
+
+
+
+strategy from Theorem 3 breaks in the case of nonsmooth `1 optimization, and for allowing
+us to include it in this paper.
+
+Appendix A. Additional Background
+For completeness, this section provides additional background and statements of some
+known facts that are used in the proofs of our lower bounds.
+
+A.1. Notions of Complexity in the Local Oracle Model
+The worst-case oracle complexity is defined as:
+
+                      ComplWC (F, X , K, ε) =         inf     sup T (A, f, ε).
+                                                   A∈AK (O) f ∈F
+
+For the case of randomized algorithms, it can be shown (Nemirovsky and Yudin, 1983)
+that the complexity is equivalent to the one obtained from the expected running time over
+mixtures of deterministic algorithms. Thus, we can define the randomized oracle complexity
+as:
+                 ComplR (F, X , K, ε) =      inf    sup EA∼R [T (A, f, ε)],
+                                           R∈∆(AK (O)) f ∈F
+
+where ∆(B) is the set of probability distributions on the set B.
+   An even weaker notion is the distributional oracle complexity, defined as
+
+                  ComplD (F, X , K, ε) =    sup         inf    Ef ∼F [T (A, f, ε)].
+                                                       K
+                                           F ∈∆(F ) A∈A (O)
+
+In this case, it is important to note that lower bounds cannot be obtained from adversarial
+choices of f , as the probability distribution on instances F must be set before the algorithm
+is chosen. It is easily seen that:
+
+           ComplD (F, X , K, ε) ≤ ComplR (F, X , K, ε) ≤ ComplWC (F, X , K, ε).
+
+   Finally, given 0 < γ < 1, high probability complexity is defined as:
+
+        ComplγHP (F, X , K, ε) =    sup      inf      inf{τ : Pf ∼F [T (A, f, ε) ≤ τ ] ≥ γ}.
+                                               K
+                                   F ∈∆(F ) A∈A (O)
+
+A lower bound on the high probability complexity with confidence parameter γ gives a lower
+bound on the distributional complexity, by the law of total probability
+
+                    ComplD (F, X , K, ε) ≥ (1 − γ)ComplγHP (F, X , K, ε).
+
+All lower bounds in this work are for high probability complexity, with γ = 1/poly(d).
+
+A.2. Geometry of `p Spaces
+In the proof of Theorem 15, we make use Dvoretzky’s Theorem, on the existence of nearly
+Euclidean sections of the k · kp ball (for the full description and proof, see Pisier 1989,
+Theorem 4.15). Here we state a concise version with what is needed for our results.
+
+                                               22
+         Lower Bounds for Parallel and Randomized Convex Optimization
+
+
+
+
+Theorem 18 (Dvoretzky) There exists a universal constant 0 < α < 1 such that for any
+d > 1, there exists a subspace F ⊆ Rd of dimension at most αd and an ellipsoid E ⊆ F such
+that
+                                    1
+                                      E ⊆ Bpd ∩ F ⊆ E.
+                                    2
+
+A.3. Smoothings
+Proposition 19 Let 2 ≤ p ≤ ∞, d ∈ N, and 0 ≤ κ ≤ 1. Then, for any η > 0, the space
+`dp = (Rd , k · kp ) is (κ, η, η, µ)-locally smoothable when µ = 21−κ (min{p, ln d}/η)κ .
+
+Proof First, we use the fact (Guzmán and Nemirovski, 2015, Proposition 1) that `dp is
+(1, η, η, µ)-locally smoothable with parameter µ̃ = min{p, ln d}/η. This can be achieved by
+infimal convolution smoothing
+
+                      Sf (x) =      inf   [f (x + h) + φ(h)]   (∀x ∈ Rd ),
+                                 h∈Bp (0,η)
+
+
+where φ(x) = 2kxk2r with r = min{p, 3 ln d} as a regularizer. Furthermore, in this reference
+it is proved that if f is a 1-Lipschitz function, then not only Sf ∈ F`1d (µ) but also Sf is
+                                                                             p
+1-Lipschitz as well; therefore, the following two inequalities hold for any x, y ∈ Rd
+
+                                 k∇f (x) − ∇f (y)k1−κ
+                                                  ∗   ≤ 21−κ
+                                   k∇f (x) − ∇f (y)kκ∗ ≤ µ̃κ ,
+
+and multiplying these inequalities, we obtain k∇f (x) − ∇f (y)k∗ ≤ 21−κ µ̃κ = µ.
+
+
+
+A.4. Deviation Bounds
+Here we state some specific probabilistic deviation bounds that we need for our results. The
+first one is the left-sided Bernstein inequality (Wainwright, 2019, Chapter 2).
+
+Theorem 20 (Left-Sided Bernstein Inequality) Let Y1 , . . . , Yn be nonnegative inde-
+pendent random variables, with finite second moment. Then, for any δ > 0,
+                        n
+                      hX                      i     n      nδ 2      o
+                  P        (Yk − E[Yk ]) ≤ −nδ ≤ exp − 2 Pn       2
+                                                                      .
+                       k=1                             n  k=1 E[Yk ]
+
+
+  We also remind the reader of the Khintchine inequality, which provides bounds for Lp
+moments of Rademacher sequences (see, e.g., Haagerup 1981).
+
+Theorem 21 (Khintchine) Let 0 < p < ∞. There exist constants cp , c0p > 0 such that
+for any x1 , . . . , xL ∈ R, and r1 , . . . , rL a Rademacher sequence
+                                        L
+                                      X        p 1/p
+                            cp kxk2 ≤ E   ri xi        ≤ c0p kxk2 .
+                                              i=1
+
+
+                                                    23
+                                    Diakonikolas and Guzmán
+
+
+
+
+A.5. Packings and Cardinality of ε-Nets
+To show that it is possible to satisfy the assumption of Lemma 6 in the proof of Theorem 3,
+we will frequently rely on the following simple lemma, which follows by constructing an
+(ε/M )-net w.r.t. `M
+                   ∞ of the simplex, ∆M .
+                                    PM               i        ≤ (c + 1)ε ≤ γ 0 for ε ∈ (0, 1), c > 0, and
+                                                                         
+Lemma 22 If, ∀λ ∈ ∆M , P                   i=1 λi z       ∗
+γ 0 ∈ (0, 1), then:
+                                             M
+                                             X                    3 M 0
+                                                    λi zi ∗ ≤ cε ≤
+                              
+                             P min                                      γ.
+                                  λ∈∆M                              ε
+                                             i=1
+
+Proof The proof follows by constructing an (ε/M )-net Γ w.r.t. the `∞ norm. In particular,
+let Γ be a discrete set of points from ∆M . To apply the argument, we need to establish
+that:
+                                 XM               M
+                                                  X
+                           inf       λi z i
+                                            − inf
+                                               0
+                                                      λ0i zi  ≤ ε.                     (6)
+                           λ∈∆M                      ∗        λ ∈Γ                        ∗
+                                     i=1                                  i=1
+
+For (6) to hold, it suffices to show that for every λ ∈ ∆M , there exists λ0 ∈ Γ such that
+
+                                    M
+                                    X                          M
+                                                               X
+                                           λ0i zi         ≤              λi zi       + ε.
+                                                    ∗                            ∗
+                                     i=1                           i=1
+
+By the triangle inequality,
+
+                     M
+                     X                     M
+                                           X                             M
+                                                                         X
+                           λ0i zi ∗ −            λ i zi ∗ ≤                    (λ0i − λi )zi ∗
+                     i=1                   i=1                           i=1
+                                                               ≤ M kλ − λ0 k∞ max kzi k∗
+                                                                                              i∈[M ]
+                                                                                      0
+                                                               ≤ M kλ − λ k∞ ,
+
+as zi ∈ Bk·k∗ . Hence, it suffices to have kλ − λ0 k∞ ≤ ε/M.
+    Define the discrete set ((ε/M )-net) Γ to be the set of vectors λ0 such that ∀j ∈
+                        −1
+{1, ..., M } : λ0j = nj M       , where nj ≥ 0, ∀M, and M
+                                                          P           M 
+                          ε                                  j=1 nj =  ε . Clearly, for any
+                              0                       0
+λ ∈ ∆M , we can choose λ ∈ Γ such that kλ − λ k∞ ≤ ε/M. Applying the union bound
+over λ0 ∈ Γ and using the lemma assumption:
+                                        M
+                                         X                                        
+                            P inf
+                               0
+                                                 λ0i zi       ≤ (c + 1)ε ≤ |Γ|γ 0 .
+                                  λ ∈Γ                    ∗
+                                           i=1
+
+
+The size of the ε-net Γ can be bounded by |Γ| = d ε M
+                                                    e+M  ≤ 3 M using the standard stars
+                                                 M
+
+                                                            ε
+and bars combinatorial argument. To complete the proof, it remains to apply the bound
+from Eq. (6).
+
+
+
+                                                              24
+          Lower Bounds for Parallel and Randomized Convex Optimization
+
+
+
+
+Appendix B. Omitted Proofs from Section 3
+B.1. Nonsmooth Optimization for 1 ≤ p ≤ 2
+Lemma 23 Let 1 < p ≤ 2, q ≥ p, and let z1 , . . . , zM be chosen according to Eq. (5), where
+                                                   n       1     cq d − ln(1/γ) o
+                                  M ≤ min                      ,                 ,
+                                                         200ε2       ln(3/ε)
+and cq > 0 is a constant that only depends on q. Then, for all γ ∈ (1/poly(d), 1) :
+                          h          1     X                i
+                        P min 1/p−1/q           λi zi ∗ ≤ 4ε ≤ γ.
+                            λ∈∆M d                    q
+                                                                i∈[M ]
+
+                                                     ∗                              q∗
+                                         λ i zi
+Proof By the choice of zi ’s, k i∈[M ] d1/p−1/q   kqq∗ = d1 j∈[d]                 i
+                                P                            P     P
+                                                                              λ r
+                                                                        i∈[M ] i j     . Hence, using
+Lemma 22, it suffices to show that:
+                            h1 X X                 q∗          ∗
+                                                                 i
+                           P               λi rji      ≤ (ε0 )q ≤ γ 0 ,
+                              d
+                                       j∈[d] i∈[M ]
+
+for ε0 = 5ε and sufficiently small γ 0 (namely, for γ 0 ≤ ( 3ε )M γ).
+                               q∗
+                             i
+                P
+    Let Yj :=            λ r
+                  i∈[M ] i j      , for j ∈ [d], and notice that Yj ’s are nonnegative and i.i.d.
+Moreover, by Khintchine’s Inequality, there exist constants c, c0 such that:
+                                         q∗    X q∗ /2               ∗
+                                                             = ckλkq2
+                              X
+               E[Y1 ] = E         λi rji    ≥c       λ2i
+                                     i∈[M ]                              i∈[M ]
+                                                         2q ∗             X             2q∗ /2            ∗
+                                                                                                   = c0 kλk2q
+                                      X
+                  E[Y12 ] = E                   λi rji          ≤ c0               λ2i                     2 .
+                                     i∈[M ]                               i∈[M ]
+                       √
+In particular, c ≥ 1/ 2 and c0 is a constant that only depends on q ∗ (Haagerup, 1981),
+which is finite, as q ≥ p > 1, by the lemma assumptions. Therefore, by the left-sided
+Bernstein’s Inequality (Theorem 20) for any 0 < η < c :
+                                                             ∗
+                                                               !
+                                                     2 kλk2q            dη 2
+            h1 X                                                            
+                                   q ∗
+                                       i          dη      2
+          P         Yj ≤ (c − η)kλk2     ≤ exp −            ∗    = exp − 0 .
+             d
+                j∈[d]
+                                                  2c0 kλk2q
+                                                          2
+                                                                        2c
+                                √
+As λ ∈ ∆M , it must be kλk2 ≥ 1/ M . Choosing η = c/2, we have (c − η)kλk2 ≥ 2√12M ≥
+5ε = ε0 , and it follows that:
+               h1 X       X                q∗              ∗
+                                                                i         dc2       d 
+              P                   λi rji        ≤ (ε0 )q            ≤ exp − 0 ≤ exp −      .
+                d                                                          8c         16c0
+                   j∈[d] i∈[M ]
+
+To complete the proof, it suffices to have d ≥ 16c0 (ln(1/γ) + M ln(3/ε)) . This is clearly
+                          0 )−ln(1/γ)
+satisfied for M ≤ d/(16cln(3/ε)       from the lemma’s assumptions.
+
+
+
+                                                                    25
+                                         Diakonikolas and Guzmán
+
+
+
+
+B.2. Smooth, Weakly Smooth, and Nonsmooth Optimization for p ≥ 2
+We start by showing that, under suitable constraints on M and L, Assumptions (b) and (c)
+from Theorem 3 are satisfied. This will suffice to apply Theorem 3 in the case of nonsmooth
+optimization (i.e., for S being a (0, 0, 0, 1)-local smoothing). To obtain results in the smooth
+and weakly smooth settings, we will then show how to satisfy the remaining assumptions
+for a suitable local smoothing.
+    In terms of Assumption (b), we can in fact obtain a much stronger result than needed
+in Theorem 3:
+
+Lemma 40 Let p ≥ 2, ε ∈ (0, 1), µ̄ > 0, zi ’s chosen as described in Section 3.1.2 and:
+                                                                1 p
+                                                        M≤
+                                                                  4µ̄ε
+
+then:                                h                  X                      i
+                                 P       min                  λ i zi   ∗
+                                                                         ≤ 4µ̄ε  = 0.
+                                         λ∈∆M                          p
+                                                     i∈[M ]
+
+Proof Let λ ∈ ∆M be fixed. Observe that, since zi ’s have disjoint support            (each zi is
+supported on Ji such that |Ji | = L and Ji ∩ Ji0 = ∅ for all i 6= i0 ), vector i∈[M ] λi zi is such
+                                                                              P
+
+that its coordinates indexed by j ∈ Ji (L of them) are equal to λi zji , ∀i ∈ [M ]. Therefore,
+using the definition of zi (Equation 5):
+                                          p∗        X                        1    p ∗            ∗
+                                                                                             = kλkpp∗ .
+                        X
+                                 λi zi          =             L · λi       1/p∗
+                                          p   ∗                            L
+                        i∈[M ]                      i∈[M ]
+
+By the relationship between `p norms and the definition of λ, we have that 1 = kλk1 ≤
+M 1/p kλkp∗ . Hence:
+                          X
+                               λi zi ∗ = kλkp∗ ≥ M −1/p ≥ 4µ̄ε.
+                                                    p
+                                 i∈[M ]
+
+Since this holds for all λ ∈ ∆M surely, the proof is complete.
+
+
+   For Assumption (c), we have the following (simple) lemma:
+
+Lemma 41 Let p ≥ 2 and zi ’s chosen as described in Section 3.1.2, then:
+                                                     Lδ 2 
+              P[ zi , x ≥ δ] = P[ zi , x ≤ −δ] ≤ exp −                                            (∀x ∈ Bpd ).
+                                                       2
+Proof By the definition of zi and Hoeffding’s Inequality, ∀x ∈ X :
+                                                    hX                    ∗
+                                                                            i
+               P[ zi , x > δ] = P[ zi , x < −δ] = P        rji xj > δL1/p
+                                                                                   j∈Ji
+                                                                                   ∗
+                                                                              L2/p δ 2 
+                                                                       ≤ exp − P          .
+                                                                              2 j∈Ji xj 2
+
+
+                                                               26
+          Lower Bounds for Parallel and Randomized Convex Optimization
+
+
+
+
+As |Ji | = L, by the relations between `p norms,
+                               X                                 X
+                           (          xj 2 )1/2 ≤ L1/2−1/p (             xj p )1/p ≤ L1/2−1/p .
+                               j∈Ji                              j∈Ji
+
+Thus, it follows that:
+                                                                                ∗
+                   i                           i
+                                                                          L2/p δ 2         Lδ 2 
+              P[ z , x > δ] = P[ z , x < −δ] ≤                           −            = exp  −       .
+                                                                           2L1−2/p             2
+
+
+To obtain the result for the nonsmooth case, we can take µ̄ = 1 and apply Theorem 3, as
+follows.
+
+Theorem 12 Let p ≥ 2, X ⊇ Bpd , and ε ∈ (0, 1/2), γ ∈ (1/poly(d), 1). Then:
+
+                                                                         n 1      ε2/3  d     1/3 o
+           ComplγHP (F`κd (1), X , K, ε) ≥ M := min                             ,                    .
+                           p                                              (4ε)p    8 ln(M K/γ)
+                                                           1
+Proof For Lemma 40 to apply, it suffices to have M ≤ (4ε)    p , as in the nonsmooth case
+                                                                               q
+µ = 1. Lemma 41 implies that it suffices to set α = L/2 = d/(2M ). As δ̄ = 16 ln(MαK/γ) ,
+to satisfy Assumption (d) from Theorem 3 (which requires δ̄ ≤ ε/M ), it suffices to have:
+                                        s
+                                      ε          d
+                               M≤                       ,
+                                     16 2M ln(M K/γ)
+
+                                2/3
+                                                     1/3
+or, equivalently: M ≤ ε 8                     d
+                                          ln(M K/γ)          , as claimed.
+
+
+    To obtain lower bounds for the κ-weakly smooth case (where κ ∈ [0, 1]; κ = 0 is the
+nonsmooth case from the above and κ = 1 is the standard notion of smoothness), we need to,
+in addition to using Lemmas 40 and 41, choose an appropriate local smoothing that satisfies
+the remaining conditions from Theorem 3. By doing so, we can obtain the following result.
+
+Theorem 14 Let p ≥ 2, X ⊇ Bpd , and ε ∈ (0, 1/2), γ ∈ (1/poly(d), 1). Then:
+                                                                                                 p
+                                                                                1           
+     ComplγHP (F`κd (1), X , K, ε) ≥ M := min
+                                                                                              1+κ(1+p)
+                                                                                                       ,
+                       p                                          23+4κ ε (min{p, ln(d)})κ
+                                                                                                2(1+p) 
+                                                      d            1+3p+2κ(1+p)
+                                                                                             κ
+                                                                                                  1+κ(1+p)
+                                                                 2     1+p      min{p, ln(d)} ε            .
+                                            29 ln(M K/γ)
+
+Proof From Remark 13 we have that `dp is (κ, η, η, µ̄)-locally smoothable (observe here that
+r = η) for any 0 ≤ κ ≤ 1, as long as µ̄ = 21−κ (min{p, ln(d)}/η)κ .
+    Let η = δ̄/8. Denote µ̃ = 21−κ (8 min{p, ln(d)})κ , so that µ̄ = δ̄µ̃κ . To satisfy Assumptions
+(a) and (d), we need to have δ̄ ≤ min{2εµ̄, εµ̄/M }, and it suffices to enforce M ≤ µ̄ε    δ̄
+                                                                                                  εµ̃
+                                                                                              = δ̄1+κ .
+
+                                                                27
+                                  Diakonikolas and Guzmán
+
+
+
+
+To satisfy Assumption (c), by Lemma 41 we can choose α = L2 , which leads to the following
+bound on M :
+                                   εµ̃        L      1+κ
+                                                        2
+                             M ≤ 4(1+κ)                    .                           (7)
+                                 2       2 ln(M K/γ)
+To satisfy the remaining assumption from Theorem 3 (Assumption (b)), we need to impose
+the following constraint on M (from Lemma 40):
+                                 κ p  2(2κ−1)  
+                         1 p                                       − pκ
+                           
+                                   δ̄       2       p       L          2
+                M≤            =         =                                          (8)
+                       4µ̄ε       4εµ̃        εµ̃      2 ln(M K/γ)
+
+The right-hand sides of the inequalities in Equations (7) and (8) are equal when
+                                                                2/[1+κ(p+1)]
+                              9                          4
+                        L = 2 ln(M K/γ) ·
+                                                     (4µ̃ε)p+1
+
+and, thus, we make this choice for L. As d ≥ M L, we also need to satisfy M ≤ d/L, finally
+leading to the claimed bound:
+                       (           p                                2(1+p)
+                                                                               )
+                             1      1+κ(1+p)        d       p
+                                                                      1+κ(1+p)
+             M ≤ min                         , 9            4 1+p µ̃ε
+                          41+κ µ̃ε             2 ln(M K/γ)
+
+The rest of the proof follows by using µ̃ = 21+2κ (min{p, ln(d)})κ in the last equation.
+
+
+
+B.3. Smooth and Weakly Smooth Optimization for 1 ≤ p ≤ 2
+                                                                         1
+Theorem 15 Let 1 ≤ p ≤ 2, 0 < κ ≤ 1, X ⊇ Bpd , ε ∈ (0, 1/2), γ ∈ ( poly(d)   , 1). Then, there
+                                              l              2κ       6 m
+exist constants ν, cκ > 0, such that if d ≥ ν1 2(ln(νdK/γ)) 3+2κ 1ε 3+2κ , then:
+                                                                   
+
+
+                                                                  cκ          1 2
+           ComplγHP (F`κd (1), X , K, ε) ≥ M :=
+                                                                                 3+2κ
+                                                                                      .
+                        p                              ln(1/ε) + κ ln ln(dK/γ) ε
+
+Proof [Proof Sketch] By Dvoretzky’s Theorem (see Appendix A), there exists a universal
+constant ν > 0 such that for any T ≤ νd there exists a subspace F ⊆ Rd of dimension T ,
+and a centered ellipsoid E ⊆ F , such that
+                                         1
+                                           E ⊆ F ∩ Bpd ⊆ E.                                (9)
+                                         2
+By an application of the Hahn-Banach theorem,         we can certify that there exist vectors
+ 1           T   d
+                                             P        i    2
+g , . . . , g ∈ Bp∗ , such that E = {x ∈ F :  i∈[T ] g , x   ≤ 1}.
+                                           d             T
+    Consider now linear mapping G : (R , k · kp ) 7→ (R , k · k∞ ) such that
+
+                                  Gx := ( g 1 , x , . . . , g T , x ),
+
+and notice that by the previous paragraph the operator norm of G is upper bounded by 1.
+We observe that:
+
+                                                  28
+            Lower Bounds for Parallel and Randomized Convex Optimization
+
+
+
+
+      • For any f ∈ F`κT (µ), function f˜ := f ◦ G belongs to F`κd (µ). In other words, the whole
+                        ∞                                                  p
+        function class F`κT (µ) can be obtained from F`κd (µ) through the linear embedding G.
+                            ∞                                   p
+
+      • We claim that any local oracle for the class {f˜ : f ∈ F`κT (µ)} can be obtained from a
+                                                                      ∞
+        local oracle for the class F`κd (µ) (for a proof of this claim, see Guzmán and Nemirovski
+                                     p
+        2015, Appendix C).
+      • From (9), the set Y = GBpd is such that 2√1 T B∞
+                                                       T ⊆ 1 BT ⊆ Y ⊆ BT .
+                                                           2 2         2
+
+From these facts, we can conclude that the oracle complexity over X with function class
+F`κd (1) is at least the one obtained in the embedded space Y with the respective embedded
+  p
+function class F`κT (1), thus
+                   ∞
+
+
+             ComplγHP (F`κd (1), X , K, ε) ≥ ComplγHP (F`κT (1), Y, K, ε)
+                            p                                   ∞
+                                                      γ
+                                                                                          √
+                                                                T
+                                          ≥ ComplHP (F`κT (1), B∞ (0, 1/[2                    T ]), K, ε)
+                                                        ∞
+
+                  √
+Denote ε0 = 2ε T . By Theorem 14 applied to p = ∞, together with Remark 4, we get that
+it is sufficient to require, as long as T ≤ νd, that:
+
+                                                  T ln2 (T )
+                                                                           
+                            1  1 1/κ                           3+2κ 0 2/κ
+                                                                        
+              M = min                        , 9               2     ε
+                          ln(T ) 23+4κ ε0      2 ln(νdK/γ)
+                                                      T ln2 (T )              √ 2/κ
+                                                                                    
+                            1         1     1/κ
+                                                                      2(2+κ)
+                 = min                    √       , 9               2        ε T      .
+                          ln(T ) 24(1+κ) ε T        2 ln(νdK/γ)
+
+In the last expression, the left term in the minimum is lower whenever:
+
+                                                   2κ
+                                                           1  8(2+3κ)  1         6
+                                                                    3+2κ           3+2κ
+                         T ln2 T ≥ (29 ln(dK/γ)) 3+2κ                                     ,
+                                                            2                  ε
+and it suffices to choose:
+                                   
+                                                  2κ
+                                                      1 6 
+                                                         3+2κ
+                                T = 2(ln(νdK/γ)) 3+2κ         .
+                                                       ε
+
+Under this choice, as long as d ≥ T /ν, the oracle complexity is lower bounded by:
+
+                                                cκ          1 2
+                                                               3+2κ
+                                M=                                  ,
+                                     ln(1/ε) + κ ln ln(dK/γ) ε
+
+where cκ is an absolute constant that only depends on κ, as claimed.
+
+
+
+References
+E. Balkanski and Y. Singer.    Parallelization does not accelerate convex optimiza-
+  tion: Adaptivity lower bounds for non-smooth convex minimization. arXiv preprint
+  arXiv:1808.03880, 2018.
+
+                                                 29
+                               Diakonikolas and Guzmán
+
+
+
+
+K. Ball, E. Carlen, and E. Lieb. Sharp uniform convexity and smoothness inequalities for
+  trace norms. Inventiones mathematicae, 115(1):463–482, 1994.
+
+C. Boyer, P. Weiss, and J. Bigot. An algorithm for variable density sampling with block-
+  constrained acquisition. SIAM Journal on Imaging Sciences, 7(2):1080–1107, May 2014.
+
+G. Braun, C. Guzman, and S. Pokutta. Lower bounds on the oracle complexity of nonsmooth
+  convex optimization via information theory. IEEE Trans. Information Theory, 63(7):
+  4709–4724, 2017.
+
+S. Bubeck, Q. Jiang, Y. Lee, Y. Li, and A. Sidford. Complexity of highly parallel non-smooth
+   convex optimization. arXiv preprint arXiv:1906.10655, 2019.
+
+Y. Carmon, J. Duchi, O. Hinder, and A. Sidford. Lower bounds for finding stationary points
+  I. arXiv preprint arXiv:1710.11606, 2017.
+
+A. d’Aspremont. Smooth optimization with approximate gradient. SIAM Journal on Op-
+  timization, 19(3):1171–1183, 2008.
+
+A. d’Aspremont, C. Guzmán, and M. Jaggi. Optimal affine-invariant smooth minimization
+  algorithms. SIAM Journal on Optimization, 28(3):2384–2405, 2018.
+
+J. Duchi, P. Bartlett, and M. Wainwright. Randomized smoothing for stochastic optimiza-
+   tion. SIAM Journal on Optimization, 22(2):674–701, 2012.
+
+J. Duchi, F. Ruan, and C. Yun. Minimax bounds on stochastic batched convex optimization.
+   In Proc. COLT’18, 2018.
+
+C. Dwork, V. Feldman, M. Hardt, T. Pitassi, O. Reingold, and A. Roth. Preserving statis-
+  tical validity in adaptive data analysis. In Proc. ACM STOC’15, 2015.
+
+V. Feldman, C. Guzman, and S. Vempala. Statistical query algorithms for mean vector
+  estimation and stochastic convex optimization. In Proc. ACM-SIAM SODA’17, 2017.
+
+M. Frank and P. Wolfe. An algorithm for quadratic programming. Naval Research Logistics
+ Quarterly, 3:95–110, 1956.
+
+C. Guzmán. Open problem: The oracle complexity of smooth convex optimization in
+  nonstandard settings. In Proc. COLT’15, 2015.
+
+C. Guzmán and A. Nemirovski. On lower complexity bounds for large-scale smooth convex
+  optimization. Journal of Complexity, 31(1):1 – 14, 2015.
+
+U. Haagerup. The best constants in the Khintchine inequality. Studia Mathematica, 70:
+  231–283, 1981.
+
+J. Kelner, Y. Lee, L. Orecchia, and A. Sidford. An almost-linear-time algorithm for approx-
+   imate max flow in undirected graphs, and its multicommodity generalizations. In Proc.
+   ACM-SIAM SODA’14, 2014.
+
+                                            30
+         Lower Bounds for Parallel and Randomized Convex Optimization
+
+
+
+
+Y. Lee, S. Rao, and N. Srivastava. A new approach to computing maximum flows using
+  electrical flows. In Proc. ACM STOC’13, 2013.
+
+A. Nemirovski. On parallel complexity of nonsmooth convex optimization. Journal of
+  Complexity, 10(4):451–463, 1994.
+
+A. Nemirovskii and Y. Nesterov. Optimal methods of smooth convex optimization (in
+  Russian). Zh. Vychisl. Mat. i Mat. Fiz., 25(3):356–369, 1985.
+
+A. Nemirovsky and D. Yudin. Problem complexity and method efficiency in optimization.
+  Wiley-Interscience, 1983. ISBN 0 471 10345 4.
+
+Y. Nesterov and A. Nemirovski. On First-Order Algorithms for `1 /Nuclear Norm Mini-
+  mization. Acta Numerica, 22, 4 2013.
+
+G. Pisier. The Volume of Convex Bodies and Banach Space Geometry. Cambridge University
+  Press, 1 edition, 1989.
+
+J. Sherman. Area-convexity, l∞ regularization, and undirected multicommodity flow. In
+   Proc. ACM STOC’17, 2017.
+
+A. Smith, A. Thakurta, and J. Upadhyay. Is interaction necessary for distributed private
+  learning? In Proc. IEEE SP’17, 2017.
+
+N. Srebro and K. Sridharan. On convex optimization, fat shattering and learning. Unpub-
+  lished, 2012. URL http://ttic.uchicago.edu/~karthik/optfat.pdf.
+
+T. Steinke and J. Ullman. Interactive fingerprinting codes and the hardness of preventing
+  false discovery. In Proc. COLT’15, 2015.
+
+M. Wainwright. High-Dimensional Statistics: A Non-Asymptotic Viewpoint, volume 48
+ of Cambridge Series in Statistical and Probabilistic Mathematics. Cambridge University
+ Press, 2019.
+
+B. Woodworth and N. Srebro. Tight complexity bounds for optimizing composite objectives.
+  In Proc. NIPS’16, 2016.
+
+B. Woodworth, J. Wang, A. Smith, B. McMahan, and N. Srebro. Graph oracle models,
+  lower bounds, and gaps for parallel stochastic optimization. In Proc. NeurIPS’18, 2018.
+
+
+
+
+                                           31
+

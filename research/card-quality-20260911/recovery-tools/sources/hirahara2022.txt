@@ -1,0 +1,2517 @@
+Symmetry of Information from Meta-Complexity
+Shuichi Hirahara #
+National Institute of Informatics, Tokyo, Japan
+
+
+      Abstract
+Symmetry of information for time-bounded Kolmogorov complexity is a hypothetical inequality that
+relates time-bounded Kolmogorov complexity and its conditional analogue. In 1992, Longpré and
+Watanabe showed that symmetry of information holds if NP is easy in the worst case, which has
+been the state of the art over the last three decades. In this paper, we significantly improve this
+result by showing that symmetry of information holds under the weaker assumption that NP is
+easy on average. In fact, our proof techniques are applicable to any resource-bounded Kolmogorov
+complexity and enable proving symmetry of information from an efficient algorithm that computes
+resource-bounded Kolmogorov complexity.
+    We demonstrate the significance of our proof techniques by presenting two applications. First, us-
+ing that symmetry of information does not hold for Levin’s Kt-complexity, we prove that randomized
+Kt-complexity cannot be computed in time 2o(n) on inputs of length n, which improves the previous
+quasi-polynomial lower bound of Oliveira (ICALP 2019). Our proof implements Kolmogorov’s
+insightful approach to the P versus NP problem in the case of randomized Kt-complexity. Second,
+we consider the question of excluding Heuristica, i.e., a world in which NP is easy on average but
+NP ≠ P, from Impagliazzo’s five worlds: Using symmetry of information, we prove that Heuristica is
+excluded if the problem of approximating time-bounded conditional Kolmogorov complexity Kt (x | y)
+up to some additive error is NP-hard for t ≫ |y|. We complement this result by proving NP-hardness
+of approximating sublinear-time-bounded conditional Kolmogorov complexity up to a multiplicative
+                            O(1)
+factor of |x|1/(log log |x|)     for t ≪ |y|. Our NP-hardness proof presents a new connection between
+sublinear-time-bounded conditional Kolmogorov complexity and a secret sharing scheme.
+
+2012 ACM Subject Classification Theory of computation → Complexity classes; Theory of compu-
+tation → Pseudorandomness and derandomization
+
+Keywords and phrases resource-bounded Kolmogorov complexity, average-case complexity, pseudor-
+andomness, hardness of approximation, unconditional lower bound
+
+Digital Object Identifier 10.4230/LIPIcs.CCC.2022.26
+
+Funding JST, PRESTO Grant Number JPMJPR2024, Japan.
+
+Acknowledgements I thank Mikito Nanashima for helpful discussion, Rahul Santhanam for raising
+the question of finding an equivalent notion of the weak universal heuristic scheme, which inspired
+Lemma 7.5, and anonymous reviewers for strongly inspiring me to include Appendix A.1.
+
+
+ 1      Introduction
+One of the basic facts in information theory is symmetry of mutual information: For two
+random variables X and Y , the mutual information I(X : Y ) is symmetric: I(X : Y ) = I(Y :
+X). In terms of Shannon entropy H(-), this equality is equivalent to
+
+     H(Y ) − H(Y | X) = H(X) − H(X | Y ).
+
+    An alternative way of measuring the amount of information is to use Kolmogorov com-
+plexity. The Kolmogorov complexity K(x) of a finite string x ∈ {0, 1}∗ is defined to be the
+length of a shortest program that prints x. While Shannon entropy can measure the average
+amount of information in a collection of strings, the notion of Kolmogorov complexity enables
+
+
+            © Shuichi Hirahara;
+            licensed under Creative Commons License CC-BY 4.0
+37th Computational Complexity Conference (CCC 2022).
+Editor: Shachar Lovett; Article No. 26; pp. 26:1–26:41
+                   Leibniz International Proceedings in Informatics
+                   Schloss Dagstuhl – Leibniz-Zentrum für Informatik, Dagstuhl Publishing, Germany
+26:2   Symmetry of Information from Meta-Complexity
+
+
+       quantifying the amount of information in an individual string, thereby giving a finer notion
+       than Shannon entropy. Kolmogorov complexity has had fundamental impacts on theoretical
+       computer science [55].
+          Kolmogorov and Levin [74] established a fundamental property of Kolmogorov complexity:
+       Symmetry of information for Kolmogorov complexity states that
+
+           K(y) − K(y | x) = K(x) − K(x | y) ± O(log(|x| + |y|))                                              (1)
+
+       for any strings x and y ∈ {0, 1}∗ . Here, K(x | y) denotes the conditional Kolmogorov
+       complexity of x given y, i.e., the length of a shortest program that prints x given y as input.
+           One disadvantage of Kolmogorov complexity, which was already noted in the seminal
+       paper of Kolmogorov [51], is that K(x) does not take into account the complexity of generating
+       the string x. Kolmogorov suggested considering t-time-bounded Kolmogorov complexity,
+       denoted by Kt (x), which is the shortest size of a program that prints x in time t. According
+       to Levin [52], as early as 1967 Kolmogorov suggested time-bounded versions of symmetry of
+       information as an interesting avenue of research. We consider the following time-bounded
+       version of symmetry of information.1
+
+       ▶ Definition 1.1. Symmetry of information for time-bounded Kolmogorov complexity (SoI)
+       refers to the following hypothesis: There exists a polynomial p such that for any strings
+       x ∈ {0, 1}∗ and y ∈ {0, 1}∗ , for every t ≥ |x| + |y|,
+
+           Kp(t) (x | y) + Kp(t) (y) − log p(t) ≤ Kt (x, y).                                                (SoI)
+
+       Throughout this paper, we refer to this hypothesis as SoI.
+
+           Note that Kt (x, y) ≤ Kt/4 (y | x) + Kt/4 (x) + O(1) unconditionally holds for all large
+       t because strings x and y can be computed by running a program of length Kt/4 (x) that
+       outputs x in time t/4 and a program of length Kt/4 (y | x) that takes x as input and outputs
+       y in time t/4.2 Consequently, SoI implies that
+
+           Kp(t) (x | y) + Kp(t) (y) ≤ Kt/4 (y | x) + Kt/4 (x) + O(log t),
+
+       which is a natural time-bounded analogue of Equation (1).
+           The original Kolmogorov–Levin proof of Equation (1) is based on an exhaustive search
+       of all strings of a given length. By applying the original proof to a space-bounded setting,
+       symmetry of information for space-bounded Kolmogorov complexity was proved by Longpré
+       and Mocas [57]. Interestingly, as is repeatedly stated by Levin (e.g., in [53, 19, 54]), even before
+       the notion of NP-completeness was formalized, Kolmogorov envisioned that investigating
+       symmetry of information for time-bounded Kolmogorov complexity would be a good approach
+       toward P ̸= NP. To quote [53],
+
+              “this information symmetry theorem may be a good test case to prove that for
+           some tasks exhaustive search cannot be avoided (in today’s terms, P ̸= NP).”
+
+
+       1
+         Previous works [57, 58] studied a slightly different version called polynomial-time-bounded symmetry of
+         information, in which the time bound t of SoI is fixed to an arbitrary polynomial. SoI is stronger than
+         polynomial-time-bounded symmetry of information, which makes Theorem 1.2 stronger. Moreover, it is
+         not hard to observe that the results of [57, 58] hold for SoI. We also mention that our version of SoI is
+         useful to show worst-case-to-average-case connections; see Section 7.
+       2
+         For our definition of time-bounded Kolmogorov complexity (Definition 3.1), there is a larger overhead
+         of the simulation of the programs. For simplicity, we ignore this minor issue in this introduction.
+S. Hirahara                                                                                                      26:3
+
+
+    In 1992, Longpré and Watanabe [58]3 showed that P = NP implies SoI, and that SoI
+implies the non-existence of one-way functions. Their results can be seen as formalizing
+Kolmogorov’s insightful approach to P ̸= NP: Finding a single sequence of pairs (x, y)
+of strings that violates SoI implies P ̸= NP! Despite the rich literature on Kolmogorov
+complexity [55], providing an exact characterization of SoI remains elusive. In fact, it has
+been a long-standing open question to improve the results of [58] over the last three decades.
+    In this work, we improve the result of [58] by showing that SoI holds under the weaker
+assumption that NP is easy on average.
+
+▶ Theorem 1.2. If DistNP ⊆ AvgP, then SoI holds.
+
+Here, the statement DistNP ⊆ AvgP means that for every language L in NP and for every
+polynomial-time samplable distribution D,4 there exists an errorless heuristic scheme that
+solves L on inputs sampled from D; we refer the reader to the survey of Bogdanov and
+Trevisan [16] for background on average-case complexity theory.
+    We find Theorem 1.2 surprising: The assumption of Theorem 1.2 is that NP is easy on
+most instances, whereas SoI is an inequality for every pair of strings x and y; thus, it is
+natural to expect that SoI is related to the worst-case complexity of some problem. Indeed,
+we show that SoI is closely related to the worst-case complexity of GapMINKT, which is the
+problem of approximating time-bounded Kolmogorov complexity. We also show that, under
+the plausible assumption that E requires exponential-size circuits, SoI is sandwiched between
+the existence of an errorless heuristic scheme (AvgP) for computing Kt (-) and the existence
+of an error-prone heuristic scheme (HeurP) for computing Kt (-), thereby narrowing SoI.
+
+▶ Theorem 1.3 (informal; see Theorem 8.2 for the formal version). Assume that E ̸⊆
+i.o.SIZE(2ϵn ) for some constant ϵ > 0. In the following list, we have 1 ⇐⇒ 2 =⇒ 3
+=⇒ 4 and 3 =⇒ 5.
+ 1. GapMINKT ∈ P.
+ 2. For every polynomial-time samplable distribution D and for all sufficiently large polyno-
+    mials t, there exists an errorless heuristic scheme that computes Kt(n) (x) for a random
+    input x ∼ Dn .
+ 3. SoI holds.
+ 4. For every polynomial-time samplable distribution D and for all sufficiently large polyno-
+    mials t, there exists an error-prone heuristic scheme that computes Kt(n) (x) for a random
+    input x ∼ Dn .
+ 5. Gapτ MINKT ∈ DTIME(2O(n/ log n) ) for some function τ (n, t) = 2O(n/ log n) .
+
+    The difference between errorless and error-prone heuristics is as follows: Error-prone
+heuristics compute a problem on most instances but are allowed to output a wrong answer.
+Errorless heuristics also compute a problem on most instances; in addition, they must output
+either a correct answer or a special failure symbol “⊥”. Hirahara and Santhanam [38]
+showed the equivalence between errorless and error-prone average-case complexities of any
+problem that admits an instance checker in the sense of Blum and Kannan [15]. In particular,
+Theorem 1.3 implies that SoI is exactly characterized by the worst-case complexity of
+GapMINKT if time-bounded Kolmogorov complexity admits an instance checker (and E
+requires exponential-size circuits). Whether an instance checker can be constructed or not is
+an interesting open question.
+
+
+3
+    The conference version of [58] was presented in ISAAC 1992.
+4
+    In fact, even if we restrict the distribution D to {U, T }, the statement remains the same. Here, U
+    denotes the uniform distribution and T denotes the tally distribution supported only on {1}∗ . This is a
+    consequence of the theorems of Impagliazzo and Levin [45], Buhrman et al. [18]; see [35].
+
+
+                                                                                                               CCC 2022
+26:4   Symmetry of Information from Meta-Complexity
+
+
+           Previously, under the assumption that DistNP ⊆ AvgP, [35] showed weak symmetry
+       of information, which states that |x| + Kpoly(t) (y) − O(log t) ≤ Kt (x, y) holds with high
+       probability over x ∼ {0, 1}n uniformly chosen at random. Our proof is largely inspired by the
+       proof of weak symmetry of information. In fact, it is “not hard” to prove Theorem 1.2 itself
+       using the proof techniques developed in [35]5 . Independently of this work, Goldberg and
+       Kabanets [28] proved Theorem 1.2 using the same proof techniques and used it to provide
+       an alternative proof of main results of [35].6
+           Our main contribution is to develop more general proof techniques that are applicable
+       to any resource-bounded Kolmogorov complexity and to demonstrate their significance: In
+       general, for any (randomized) resource-bounded Kolmogorov complexity Kµ(-), we show that
+       symmetry of information for Kµ(-) follows from an efficient algorithm that computes Kµ(-).
+       Since symmetry of information is a fundamental property of Kolmogorov complexity, we expect
+       that our new proof techniques will have a variety of applications in future. In the following
+       two subsections, we present two specific applications that concern two central questions of
+       computational complexity theory: (1) P ̸= NP and (2) P ̸= NP =⇒ DistNP ̸⊆ AvgP.
+
+       1.1     Kolmogorov’s Approach to the P versus NP Problem
+       Is Kolmogorov’s approach to the P versus NP problem an illusion made in the premature
+       era of theoretical computer science? We present strong evidence that this is not the case:
+       Using our new proof techniques of proving symmetry of information, we demonstrate that
+       Kolmogorov’s insightful approach is indeed useful to prove lower bounds! Specifically, we
+       consider a randomized version of Levin’s Kt-complexity. The randomized Kt-complexity of a
+       string x, denoted by rKt(x), is defined as the minimum of |M | + log t over all the randomized
+       programs M that print x with probability at least 23 in time t [62]. Let GapMrKtP be the
+       promise problem of approximating rKt(x) on input x up to an additive error of O(log |x|).
+       Using an exhaustive search, it is easy to observe that GapMrKtP ∈ pr-BPTIME(2O(n) ). We
+       prove that this exhaustive search cannot be avoided.
+
+       ▶ Theorem 1.4. GapMrKtP ̸∈ i.o.BPTIME(2ϵn ) for some constant ϵ > 0.
+
+           The proof of Theorem 1.4 is given by implementing Kolmogorov’s approach in the case
+       of rKt: Ronneburger [66] proved that symmetry of information for Levin’s Kt-complexity
+       does not hold. Using this result, we observe that symmetry of information for rKt is also
+       false (conditionally). Then, using our proof techniques, we prove symmetry of information
+       for rKt from an efficient hypothetical algorithm that computes GapMrKtP, which leads to a
+       contradiction.
+                                                                            O(1)
+                                                                                 n
+           Previously, Oliveira [62] proved GapMrKtP ̸∈ pr-BPTIME(2log             ) using a different
+       proof technique. Theorem 1.4 improves this result in the following two respects:7
+                                                                    O(1)
+                                                                         n
+       1. The lower bound is improved from a quasi-polynomial 2log         to a strongly exponential
+           2ϵn , which is optimal up to a constant exponent.
+       2. Our lower bound works against algorithms that are correct infinitely often (i.o.).
+
+
+       5
+         if the feasibility of proving Theorem 1.2 is given as advice; see Appendix A.1 for more comments.
+       6
+         Independently, we also find a similar alternative proof; see Section 7.
+       7
+         A caveat is that our lower bound is applicable to BPP, i.e., randomized algorithms that satisfy the
+         promise of BPP-type algorithms over all the inputs, whereas the lower bound of [62] is also applicable
+         to pr-BPP. In this respect, these two lower bounds are incomparable. We leave an open problem of
+         improving our lower bound to i.o.pr-BPTIME(2ϵn ). However, we note that BPP = P = pr-BPP under
+         the plausible assumption that E requires exponential-size circuits [46], in which case there is no difference
+         between the two lower bounds.
+S. Hirahara                                                                                                      26:5
+
+
+     The fact that Theorem 1.4 improves the previous state-of-the-art result of [62] indicates
+the significance of the new approach of proving lower bounds via symmetry of information.
+[34] developed yet another proof technique of showing lower bounds for resource-bounded
+Kolmogorov complexity and showed that Kt(|x|) (x) cannot be computed in polynomial time
+if t(n) = nω(1) . Interestingly, this previous proof technique does not seem to be applicable to
+the setting of Theorem 1.4,8 which suggests the “novelty” of Kolmogorov’s approach.
+     Why was Kolmogorov’s approach not implemented before? Previously, the only proof
+technique of proving symmetry of information was due to Kolmogorov and Levin [74]; for
+example, the aforementioned work of Longpré and Watanabe [58] showed symmetry of
+information from a hypothetical efficient algorithm that computes some problem in PH, by
+applying the original Kolmogorov–Levin proof to the resource-bounded case. It was not known
+if symmetry of information can be proved from an efficient algorithm that computes resource-
+bounded Kolmogorov complexity. Our general proof techniques of showing symmetry of
+information from efficient algorithms make it possible to implement Kolmogorov’s insightful
+approach, for the first time. Our results demonstrate the significance of Kolmogorov’s
+approach and hint that it may indeed lead to the resolution of the P versus NP problem in
+future.
+
+1.2     Toward Excluding Heuristica
+One of the central open questions in computational complexity theory is to show the
+equivalence between the worst-case and average-case complexities of NP, e.g., P = NP ⇐⇒
+DistNP ⊆ AvgP. Equivalently, this question is well known as whether Heuristica can be
+excluded from Impagliazzo’s five possible worlds [43]. Heuristica is a hypothetical world
+in which P ̸= NP and DistNP ⊆ AvgP. There are at least three types of results explaining
+the difficulty of excluding Heuristica: Standard proof techniques for relating worst-case
+and average-case complexities, such as black-box nonadaptive reductions [23, 17], hardness
+amplification procedures [73, 72], and relativizing proof techniques [44, 36], are known to
+be incapable of excluding Heuristica. To make progress on this central problem, we need to
+develop new types of proof techniques that are not subject to any of these technical barriers.
+    Recently, several new proof techniques of analyzing average-case complexity have been
+developed based on meta-complexity. Meta-complexity refers to the complexity of a problem
+that asks for complexity. One representative example of meta-computational problems is
+MINKT [50], which asks to compute Kt (x) given (x, 1t ) as input. [31] developed a non-black-
+box reduction technique that goes beyond the limits of black-box reductions presented by
+Feigenbaum and Fortnow [23], Bogdanov and Trevisan [17], and showed GapMINKT ∈ P if
+DistNP ⊆ AvgP. Informally, GapMINKT is the problem of approximating the time-bounded
+Kolmogorov complexity Kt (x) up to an additive error of O(log t) on input (x, 1t ).9 As
+a consequence, Heuristica can be excluded if GapMINKT is NP-hard. Subsequently, [35]
+developed proof techniques that simultaneously overcome the limits of black-box reductions
+[23, 17] and the impossibility of hardness amplification procedures [73, 72], and proved
+(among other results) that DistNP ̸⊆ AvgP follows from the worst-case assumption that
+UP ̸⊆ DTIME(2O(n/ log n) ). The next goal along this research line is to develop a proof
+
+
+8
+  By combining the infinitely-often pseudo-deterministic subexponential-time algorithm of Oliveira and
+                                                                                     O(1)
+                                                                                          n
+  Santhanam [63] with [34], it is possible to prove GapMrKtP ̸∈ pr-BPTIME(2log              ). However, this
+  ends up with essentially the same proof as [62].
+9
+  More precisely, GapMINKT is the problem of computing a value v such that Kp(t) (x) − log p(t) ≤ v ≤
+  Kt (x) on input (x, 1t ) such that |x| ≥ t, where p is some polynomial; see Fact 3.4.
+
+
+
+
+                                                                                                               CCC 2022
+26:6   Symmetry of Information from Meta-Complexity
+
+
+       technique that overcomes the limits of relativizing barriers, for which quantitatively tight
+       results are known: Building on the work of Impagliazzo [44], Hirahara and Nanashima [36]
+       showed that a relativizing proof technique is incapable of improving the time complexity
+       2O(n/ log n) achieved in [35] to 2o(n/ log n) . Chen et al. [20] bypassed this relativization
+                       √ that NTIME[n] is hard on average for quasi-linear-time algorithms if
+       barrier by showing
+                               n log n
+       UP ̸⊆ DTIME 2                     . To make further progress, we would need to develop a proof
+       technique that overcomes 10 the relativization barrier.
+           In search of non-relativizing proof techniques, we review another line of research on
+       meta-complexity. A long-standing open question on meta-complexity, which dates back to as
+       early as the 1960s [69, 8], is to prove NP-hardness of meta-computational problems, such as
+       MINKT. Recently, there has been substantial progress on this question in a line of research
+       [7, 37, 40, 42, 41, 56, 4]. A salient feature of the proof techniques developed in this line of
+       research is that these are apparently non-relativizing. Specifically, Ko [50] constructed an
+       oracle under which NP ̸= P but GapMINKT is easy, thereby showing that a relativizing
+       proof technique is incapable of showing NP-hardness of GapMINKT. In contrast, building
+       on the work of Ilango [40], Allender et al. [4], Liu and Pass [56] showed NP-hardness of the
+       problem of computing sublinear-time-bounded conditional Kolmogorov complexity, which we
+       denote by MINcKT (“c” stands for “conditional”).
+           Toward excluding Heuristica, we aim at combining the two lines of research reviewed above.
+       One interpretation of SoI is an approximate equality between time-bounded conditional
+       Kolmogorov complexity and its unconditional version. Specifically, SoI implies that
+
+            Kp(t) (x | y) ≤ Kt (x, y) − Kp(t) (y) + O(log t) ≤ Kt/4 (x | y) + Kt/4 (y) − Kp(t) (y) + O(log t).
+                                                               = Kt/4 (x | y) + cdt/4,p(t) (y) + O(log t).       (2)
+
+       Here, cds,t (y) := Ks (y) − Kt (y) is called the (s, t)-time-bounded computational depth of y
+       [9, 35] and is known to be small for most strings y [9, 11] (see Lemma 8.4 for a formal
+                                                                                         ′
+       statement). Equation (2) means that the conditional Kolmogorov complexity Kt (x | y) can
+       be approximated up to an additive error of cdt/4,p(t) (y) + O(log t) for some t′ ∈ [t/4, p(t)]
+       if time-bounded Kolmogorov complexity can be efficiently computed.11 In other words,
+       SoI enables reducing the problem of approximating conditional Kolmogorov complexity to
+       the problem of approximating unconditional Kolmogorov complexity; i.e., GapMINcKT is
+       reducible to GapMINKT. As a consequence of Theorem 1.2, we generalize the approach
+       of [31] for excluding Heuristica as follows:
+
+       ▶ Theorem 1.5. If Gapτ MINcKT is NP-hard under randomized reductions for every polyno-
+       mial τ , then Heuristica does not exist; that is, DistNP ⊆ AvgP if and only if P = NP. Here,
+       the problem Gapτ MINcKT asks to compute an integer k ∈ N such that
+
+            Kτ (|x|,|y|,t) (x | y) − log τ (|x|, |y|, t) ≤ k ≤ Kt (x | y) + cdt,τ (|x|,|y|,t) (y)
+
+       on input (x, y, 1t ).
+
+
+       10
+          We say that a proof technique A overcomes a barrier B if A proves a statement S such that proof
+          techniques subject to B are incapable of proving S. The results of [20] do not necessarily overcome the
+          relativization barriers of [44, 36] because the conclusion that NTIME[n] is hard on average is weaker
+          than DistNP ̸⊆ AvgP.
+       11
+          It is unlikely that the additive error term cdt/4,p(t) (y) can be improved by using relativizing proof
+          techniques; see Remark 6.4.
+S. Hirahara                                                                                                    26:7
+
+
+    More generally, our proof techniques provide a general approach of reducing conditional
+resource-bounded Kolmogorov complexity Kµ(- | -) to its unconditional analogue Kµ(-) for
+every resource-bounded Kolmogorov complexity Kµ: Using a hypothetical efficient algorithm
+that computes Kµ(-), we prove symmetry of information for Kµ. Then, we use symmetry of
+information to reduce conditional complexity Kµ(- | -) to Kµ(-).
+    Next, we investigate whether Gapτ MINcKT can be proved to be NP-hard. Building on
+the proof techniques developed in [40, 4, 56], we prove NP-hardness of Gapτ MINcKT if the
+approximation parameter τ (|x|, |y|, t) is sublinear in |y|, e.g., τ (|x|, |y|, t) ≤ |x|O(1) · |y|0.99 ·
+tO(1) .
+▶ Theorem 1.6 (informal; see Theorem 6.6 for the formal version). Let c > 1 be an arbitrary
+constant. Let τ : N3 → N be a function such that τ (n, m, t) ≤ nc · m1−1/c · tc for all large n, m,
+and t ∈ N. Then, Gapτ MINcKT is NP-hard under randomized polynomial-time reductions.
+                                                                                   1/(log log |x|)O(1)
+Moreover, it is NP-hard to approximate Kt (x | y) to within a factor of |x|                              .
+   The contributions of Theorem 1.6 are two-fold.
+1. We improve an inapproximability factor. Most previous hardness proofs in the literature
+   [7, 37, 40, 42, 41, 56, 4] reduce the set cover problem to meta-computational problems.
+   In particular, the inapproximability factor obtained in [4, 56] is at most O(log |x|). Our
+                                      1/(log log |x|)O(1)
+   inapproximability factor |x|                is a nearly exponential improvement and is close
+   to the trivial upper bound of |x|. In addition, we prove the NP-hardness of approximating
+   Kt (x | y) even when there is an additive error term cdt,τ (|x|,|y|,t) (y).
+   Our strong inapproximability is not only a quantitative improvement but also a qualitative
+   improvement. In fact, the two previous results [4, 56] prove NP-hardness of two different
+   versions of conditional Kolmogorov complexity, McKTP and MINcKT. Here, McKTP
+   is the problem of computing the KT-complexity of x given y, i.e., the minimum of
+   |M | + t over all programs M that compute x given y as input in time t. Because of
+   the previous weak inapproximability, these two results are proved by different proofs.
+   Our inapproximability is strong enough to prove NP-hardness of McKTP and MINcKT
+   simultaneously.
+2. We present a new connection between a secret sharing scheme and sublinear-time-bounded
+   conditional Kolmogorov complexity. This new connection abstracts essential proof ideas
+   implicitly developed in the line of research and enables us to provide a streamlined proof.
+
+
+Perspective
+How should we interpret our results? Optimistically, our results indicate that excluding
+Heuristica might be reachable by combining current proof techniques. We are not aware
+of any technical barrier that suggests Theorems 1.5 and 1.6 cannot inherently be matched.
+It is currently plausible that all the technical barriers to excluding Heuristica that we are
+aware of ([23, 17, 73, 72, 44, 36]) can be overcame in this way. Pessimistically, our results
+can be understood as indicating the difference between sublinear-time-bounded Kolmogorov
+complexity and time-bounded Kolmogorov complexity. However, we emphasize that the fact
+that Theorems 1.2 and 1.5 do not work for sublinear-time bounded Kolmogorov complexity is
+not an inherent limitation of our proof techniques. Our proof techniques make it possible to
+prove symmetry of information even for some version of sublinear-time bounded Kolmogorov
+complexity with error [25] by using a pseudorandom generator construction from average-case
+hardness. Whether there is a technical barrier that explains the inherent difficulty of the
+current approach remains to be explored.12
+
+
+12
+     A candidate is the limits of oracle-independent reductions of [39].
+
+                                                                                                             CCC 2022
+26:8   Symmetry of Information from Meta-Complexity
+
+
+       1.3     Related Work
+       Symmetry of Information
+
+       Lee and Romashchenko [52] unconditionally showed that for every polynomial p, for some
+       polynomial q, for any strings x and y of length n,
+
+            KAMDq(n) (x | y) + KAMDq(n) (y) − O(log3 n) ≤ Kp(n) (x, y).
+
+       Here, KAMD denotes an Arthur–Merlin variant of distinguishing Kolmogorov complexity.
+       Consequently, symmetry of information holds up to an additive error of O(log3 n) under the
+                         ′
+       assumption that Kq (n) (x | y) ≤ KAMDq(n) (x | y) + O(log n) holds for any strings x and y.
+       They also showed that this assumption is in fact equivalent to P = NP and hence gave no
+       improvement over the conditional result of [58].
+
+
+       Symmetry of Information and Hardness
+
+       Symmetry of information is used to show hardness results for Kolmogorov complexity [34].
+       Similarly, an inequality analogous to SoI is used to show NP-hardness of a multi-output variant
+       of MCSP [42]. The Minimum Circuit Size Problem (MCSP [47]) is the meta-computational
+       problem that asks to compute the size of a minimum circuit that computes a given function
+       f : {0, 1}n → {0, 1} represented as the truth table of length 2n . Ilango [40] showed that a
+       conditional variant of MCSP is NP-hard under randomized reductions. Subsequently, Ilango
+       et al. [42] proved NP-hardness of a multi-output variant of MCSP. Their proof is based
+       on an inequality reminiscent of SoI, which enables translating the hardness result for the
+       conditional variant of MCSP [40] to an unconditional variant.
+
+
+       The Shortest Vector Problem
+
+       The complexity landscape about GapMINcKT is reminiscent of the shortest vector problem
+       GapSVP. If “approximation factors” are small, then GapMINcKT and GapSVP are NP-
+       hard [30]. If “approximation factors” are large, then these problems admit worst-case-
+       to-average-case connections. However, there are fundamental differences: On one hand,
+       GapSVP is known to be in NP ∩ coNP for a large approximation factor [29, 1] and thus is
+       unlikely to be NP-hard. Moreover, this phenomenon is inherent: The limits of black-box
+       reductions presented by Bogdanov and Trevisan [17] show that any problem reducible to
+       DistNP by nonadaptive black-box reductions must be in NP/poly ∩ coNP/poly. The worst-
+       case-to-average-case connections presented for GapSVP are given by black-box reductions
+       [2, 60] and thus subject to this barrier. On the other hand, the worst-case-to-average-case
+       connection for GapMINcKT (Theorem 1.5) is not subject to the barrier of [17] since it
+       is proved by a non-black-box reduction, i.e., a reduction that exploits the efficiency of a
+       hypothetical heuristic algorithm for DistNP. There is no evidence against NP-hardness of
+       Gapτ MINcKT for any large polynomial τ ; on the contrary, the NP-hardness of Gapτ MINcKT
+       for sublinear-time-bounded functions τ can be seen as supporting evidence.
+
+
+        2      Proof Techniques
+
+       In this section, we outline our proof techniques.
+S. Hirahara                                                                                                 26:9
+
+
+2.1         Symmetry of Information in Heuristica
+We first sketch a proof of Theorem 1.2, which shows SoI in Heuristica. In doing so, we
+present a general technique of proving symmetry of information from any efficient algorithm
+that computes resource-bounded Kolmogorov complexity and any pseudorandom generator
+construction. We need two lemmas from previous work, which we review below.
+   Our proof of Theorem 1.2 is based on the meta-complexity of time-bounded Kolmogorov
+complexity: We crucially use the fact that time-bounded Kolmogorov complexity can be
+approximated in Heuristica.
+
+▶ Lemma 2.1 ([31, 33]). If DistNP ⊆ AvgP, then GapMINKT ∈ P.
+
+This result makes it possible to approximate Kt (x). For the purpose of exposition, we
+assume below that there exists an algorithm which, on input (x, t), computes Kt (x) exactly
+in time poly(|x|, t). It is worth emphasizing that our proof deviates from the original
+Kolmogorov–Levin proof in this respect: Our proof is “meta-computational” in that we use
+GapMINKT ∈ P, whereas the Kolmogorov–Levin proof cannot be “meta-computational”
+since the resource-unbounded Kolmogorov complexity K(-) cannot be computed in finite
+time steps.
+    The second lemma is the reconstruction property of a k-wise direct product generator [34],
+which turned out to be a fundamental tool for analyzing Kolmogorov complexity [33, 65, 32,
+35]. A k-wise direct product generator DPk : {0, 1}n × {0, 1}nk → {0, 1}nk+k is defined as
+follows:
+
+   DPk (x; z) := (z 1 , . . . , z k , ⟨z 1 , x⟩, . . . , ⟨z k , x⟩)
+
+for every x ∈ {0, 1}n and every z = (z 1 , . . . , z k ) ∈ ({0, 1}n )k , where ⟨x, y⟩ denotes the inner
+                                                                     Pn
+product of x and y ∈ {0, 1}n over GF(2), i.e., ⟨x, y⟩ := ( i=1 xi yi ) mod 2. The k-wise
+direct product generator DPk (x; -) is a pseudorandom generator secure against an algorithm
+D if K(x | D) > k + O(log |x|). More formally, we have the following property:
+
+▶ Lemma 2.2 (Deterministic Reconstruction for DPk ; see [35]). Assume that E ̸⊆ i.o.SIZE(2ϵn )
+for some constant ϵ > 0. Then, there exists a polynomial p such that, for every n ∈ N,
+x ∈ {0, 1}n , parameters k, ϵ−1 , s ∈ N, and for every randomized circuit D of size s such that
+
+      Pr [D(DPk (x; z); r) = 1] − Pr [D(w; r) = 1] ≥ ϵ,
+      z,r                                  w,r
+
+
+where z ∼ {0, 1}nk , w ∼ {0, 1}nk+k , and r ∼ {0, 1}s , it holds that
+
+   Kp(ns/ϵ) (x | D) ≤ k + log p(ns/ϵ).
+
+The assumption of Lemma 2.2 is satisfied in Heuristica, as Buhrman et al. [18] showed that
+E ̸⊆ i.o.SIZE(2ϵn ) for some constant ϵ > 0 if DistNP ⊆ AvgP. We mention in passing that the
+proof of Lemma 2.1 also uses Lemma 2.2.
+    Now, we sketch the proof of SoI from an efficient algorithm that computes Kt (-) and the
+pseudorandom generator construction DP(-; -). Fix strings x ∈ {0, 1}n and y ∈ {0, 1}m and
+an integer t ≥ n + m. We claim
+
+   Kq(t) (x | y) + Kq(t) (y) − log q(t) ≤ Kt (x, y)
+
+for some universal polynomial q. The proof is given by analyzing the following three values
+for z ∼ {0, 1}nk , w ∼ {0, 1}nk+k , z ′ ∼ {0, 1}mℓ , and w′ ∼ {0, 1}mℓ+ℓ :
+
+
+
+                                                                                                          CCC 2022
+26:10   Symmetry of Information from Meta-Complexity
+
+              ′
+           Kt (     DPk (x; z), DPℓ (y; z ′ ) ),
+             ′
+           Kt (        w,       DPℓ (y; z ′ ) ),
+             ′
+           Kt (        w,          w′         ),
+
+        where t′ , k, and ℓ are parameters chosen later.
+           First, by a standard counting argument, we have
+              ′
+           Kt (w, w′ ) ≈ |w| + |w′ |                                                                     (3)
+
+        with high probability over the random choice of w and w′ .
+           Next, by the contrapositive of Lemma 2.2, DPℓ (y; -) is a pseudorandom generator secure
+        against uniform algorithms if ℓ ≪ Kp(t) (y), where p is some polynomial; thus, we obtain
+              ′                        ′
+           Kt (w, DPℓ (y; z ′ )) ≈ Kt (w, w′ ).                                                          (4)
+
+        In more detail, consider a randomized circuit D that takes w′ as input as well as random bits
+                                    ′
+        w and checks whether Kt (w, w′ ) ≥ θ for a threshold θ. By Lemma 2.2, if D can distinguishes
+        DPℓ (y; z ′ ) and w′ , we would get Kp(t) (y) ≤ ℓ + log p(t). We choose ℓ := Kp(t) (y) − log p(t) − 1
+        so that this inequality does not hold. Equation (4) follows from the fact that D cannot
+        distinguish the pseudorandom distribution DPℓ (y; z ′ ) from the uniform distribution w′ .
+            By combining Equations (3) and (4), we conclude that
+              ′
+           Kt (w, DPℓ (y; z ′ )) ≳ |w| + |w′ | = |z| + k + |z ′ | + ℓ ≈ |z| + k + |z ′ | + Kp(t) (y)     (5)
+
+        with high probability over the random choice of w and z ′ .
+           On the other hand, observe that for some t′ := poly(t),
+              ′
+           Kt (DPk (x; z), DPℓ (y; z ′ )) ≤ Kt (x, y) + |z| + |z ′ | + O(log n)                          (6)
+
+        holds because the strings DPk (x; z) and DPℓ (y; z ′ ) can be computed from k, ℓ, z, z ′ , and a
+        program of size Kt (x, y) that outputs (x, y) in time t.
+            Comparing Equations (5) and (6), for a sufficiently large k := Kt (x, y)−Kp(t) (y)+O(log t),
+                                                    ′
+        there exists a threshold θ′ such that Kt (w, DPℓ (y; z ′ )) ≥ θ′ with high probability over the
+                                                   ′
+        random choice of w and z ′ , whereas Kt (DPk (x; z), DPℓ (y; z ′ )) < θ′ for every z and z ′ . Let
+        Dy be a randomized circuit that takes an input w and random bits z ′ and checks whether
+          ′
+        Kt (w, DPℓ (y; z ′ )) < θ′ . Then, we obtain
+
+           1 = Pr′ [Dy (DPk (x; z); z ′ ) = 1] ≫ Pr′ [Dy (w; z ′ ) = 1] ≈ 0
+                  z,z                              w,z
+
+        Using Lemma 2.2, we obtain
+
+           Kpoly(t) (x | Dy ) ≤ k + O(log t) = Kt (x, y) − Kp(t) (y) + O(log t).
+
+        Since the circuit Dy can be efficiently constructed from y, we have Kt (Dy | y) ≤ O(log t). It
+        follows that for some large polynomial q,
+
+           Kq(t) (x | y) ≤ Kt (x | Dy ) + Kt (Dy | y) + O(1) ≤ Kt (x, y) − Kp(t) (y) + O(log t)
+
+        as desired. This completes the proof of Theorem 1.2, except that the circuits D and Dy must
+        carefully be defined using an algorithm for GapMINKT. A complete proof can be found
+        in Section 4. We also present a simple proof of Theorem 1.2 based on weak symmetry of
+        information of [35] in Appendix A and clarify that the techniques of proving Theorem 1.2
+        were already developed in [35].
+S. Hirahara                                                                                       26:11
+
+
+2.2    Lower Bounds for rKt via Kolmogorov’s Approach
+Observe the generality of the proof technique described in Section 2.1: The only two
+ingredients of the proof of symmetry of information are (1) a hypothetical algorithm that
+computes resource-bounded Kolmogorov complexity and (2) a pseudorandom generator
+construction. The same proof strategy can be applied to any resource-bounded Kolmogorov
+complexity; the tightness of the resulting SoI is determined by the advice complexity of a
+pseudorandom generator construction.
+    We review the notion of pseudorandom generator construction and its advice complexity.
+A pseudorandom generator construction G : {0, 1}n × {0, 1}d → {0, 1}m is an efficiently
+computable function that has a (randomized) reconstruction procedure R with the following
+property: For every x ∈ {0, 1}n , if an oracle D distinguishes the output distribution G(x; -)
+from the uniform distribution, then there exists an advice string α ∈ {0, 1}a such that the
+randomized algorithm R outputs x given α as advice with high probability. The length a
+of the advice string is referred to as the advice complexity of G. Trevisan and Vadhan [71]
+showed that the advice complexity a is always at least m − d − 3. In the case of the k-wise
+direct product generator DPk (x; -), the advice complexity is k + O(log n), which is close to
+the lower bound of m − d − 3 = k − 3. The fact that the additive term of SoI is O(log t)
+comes from the nearly optimal advice complexity of DPk (x; -). The disadvantage of DPk ,
+however, is that the seed length d = nk is too large, which prevents us from obtaining the
+tight lower bound of Theorem 1.4.
+    There are several different constructions of pseudorandom generators in the literature
+(e.g., [70, 64, 68, 34]). For example, the pseudorandom generator construction G of Raz et al.
+[64] satisfies the following properties: The advice complexity of G is at most m + O(log3 n).
+In particular, if some t-time algorithm distinguishes the output distribution G(x; -) from the
+uniform distribution, then rKt(x) ≤ m + O(log3 n) + O(log t). Moreover, the seed length d
+is O(log3 n), which is small enough for our application.
+   Now, we sketch the proof of Theorem 1.4. For simplicity, we claim that the problem
+MrKtP of computing rKt exactly cannot be solved in time 2o(n) . Toward a contradiction,
+assume MrKtP ∈ BPTIME(2o(n) ). Applying the general proof technique of Section 2.1 to (1)
+the algorithm that computes MrKtP and (2) the pseudorandom generator construction G,
+we obtain symmetry of information for rKt:
+
+   rKt(x | y) + rKt(y) ≤ rKt(x, y) + O(log3 n) + o(n)
+
+for any strings x and y of length n (Lemma 5.6). Next, we construct a pair (x, y) that
+violates this symmetry of information. Ronneburger [66] constructed such a pair in the case
+of Kt-complexity. We apply the same proof idea to the case of rKt-complexity. The pair (x, y)
+is constructed as follows: Exhaustively search a string y ∈ {0, 1}n such that rKt(y) ≥ n in
+time 2n+o(n) . Next, exhaustively search a string x ∈ {0, 1}n such that rKt(x, y) ≥ 2n − o(n)
+in time 2n+o(n) . The existence of such a string x is guaranteed by symmetry of information
+because rKt(x | y) + rKt(y) ≥ 2n holds for a string x such that rKt(x | y) ≥ n. Overall, the
+pair (x, y) is constructed in time
+
+   2n+o(n) + 2n+o(n) = 2n+o(n) ,
+
+However, by the definition of rKt, we obtain rKt(x, y) ≤ O(log n) + log 2n+o(n) ≤ n + o(n),
+which contradicts the lower bound of rKt(x, y). We present the details in Section 5.
+
+
+
+                                                                                                 CCC 2022
+26:12   Symmetry of Information from Meta-Complexity
+
+
+        2.3       Secret Sharing Schemes and Sublinear-Time-Bounded Conditional
+                  Kolmogorov Complexity
+        We now present a new connection between a secret sharing scheme and sublinear-time-
+        bounded conditional Kolmogorov complexity.
+             To do so, however, we first need to clarify the definition of Kt (x | y) for sublinear-time
+        bounds t (i.e., t ≪ |x| and t ≪ |y|). For the standard computational model of Turing
+        machines, it takes at least |y| time steps just to read the entire input y. To define sublinear-
+        time-bounded Kolmogorov complexity in a meaningful way, we assume that algorithms are
+        given random access to each bit of y; in other words, the input y is given as the oracle that,
+        on query i ∈ {1, . . . , |y|, |y| + 1}, answers the i-th bit of y if i ≤ |y| and a special stop symbol
+        “⊥” if i = |y| + 1. Similarly, it takes at least |x| steps for a Turing machine to output all the
+        bits of x; instead, we assume that an algorithm is given an index i ∈ {1, . . . , |x|, |x| + 1} as
+        input and is asked to compute the i-th bit of x if i ≤ |x| and “⊥” if i = |x| + 1. This notion
+        of sublinear-time-bounded Kolmogorov complexity is standard in the literature (e.g., [3, 32]).
+        See Section 3 for the formal definition.
+             Next, we review the notion of secret sharing scheme. A secret sharing scheme, introduced
+        by Blakley [14], Shamir [67], is an algorithm that shares a secret among n parties so that
+        any authorized set of parties can reconstruct the secret but no unauthorized set of parties
+        can obtain any information about the secret. Specifically, let A ⊆ 2[n] be an access structure,
+        i.e., a monotone collection of subsets of [n]. We say that a pair (Share, Rec) of algorithms is
+        a secret sharing scheme for A if it satisfies the following two properties:
+        Correctness: For a secret x ∈ {0, 1}∗ and an authorized set T ∈ A of parties,
+
+                  Rec(Share(x)T ) = x,
+
+           where Share(x)T denotes the set of shares that are shared to some party i ∈ T .
+        Perfect Privacy: For an unauthorized set T ̸∈ A of parties, X and Share(X)T are statistically
+           independent for every random variable X.
+        We refer the reader to the survey of Beimel [12] for more background on secret sharing
+        schemes.
+           We present a generic reduction that takes an arbitrary secret sharing scheme and reduces
+        the problem of computing the minimum size of an authorized set to sublinear-time-bounded
+        conditional Kolmogorov complexity.
+
+        ▷ Claim 2.3 (informal; see Theorem 6.14 for the formal version). Let A = {Aφ }φ∈{0,1}∗ be
+        a family of access structures for which there exists an efficient secret sharing scheme. Let
+        w(Aφ ) := minT ∈Aφ |T |. Then, there is a randomized polynomial-time reduction that takes
+        φ as input and outputs (x, y, t, λ) such that
+
+              w(Aφ ) · λ ≈ Kt (x | y),
+
+        where t ≪ |y|.
+
+        Benaloh and Leichter [13] showed that for any monotone formula φ, there exists an efficient
+        secret sharing scheme for the access structure Aφ represented by φ.13 Applying their secret
+        sharing scheme to Claim 2.3, we obtain a reduction from the Minimum Monotone Satisfying
+
+
+        13
+             More generally, Karchmer and Wigderson [49] showed that the access structure represented by any
+             monotone span program admits an efficient secret sharing scheme.
+S. Hirahara                                                                                                  26:13
+
+
+Assignment (MMSA) problem to GapMINcKT. MMSA is known to be hard to approximate
+                          1/(log log |φ|)O(1)
+within a factor of |φ|                  even for depth-3 monotone formulas14 [22, 21], which
+will complete the proof of Theorem 1.6.
+    We now sketch a proof for Claim 2.3. Here is an outline of the reduction, which generalizes
+the reduction presented by [4, 56]: We share a random string x ∼ {0, 1}ℓ among n parties
+using a secret sharing scheme (Shareφ , Recφ ) for Aφ . Let (s1 , . . . , sn ) := Shareφ (x), where
+si is the share of the i-th party. Randomly choose k1 , . . . , kn ∼ {0, 1}λ , which are called
+“keys”. We define an oracle y ′ : {0, 1}λ → {0, 1}m such that y ′ (ki ) := si and y ′ (k) := 0m if
+                                      λ
+k ̸∈ {ki | i ∈ [n]}. Let y ∈ {0, 1}m·2 denote the truth table of y ′ , i.e., the concatenation of
+the values of y(k) for all the inputs k ∈ {0, 1}λ in lexicographical order. We claim that for
+some time bound t,
+
+      Kt (x | y) ≲ w(Aφ ) · λ + |φ|                                                                   (7)
+
+and that
+
+      Kt (x | y) ≳ w(Aφ ) · λ.                                                                        (8)
+
+It is easy to see Equation (7): Let T ∈ Aφ be an authorized set of parties. Consider an oracle
+program that, given oracle access to y, takes the set {ki ∈ {0, 1}λ | i ∈ T } as input, queries ki
+to the oracle y and obtains the i-th share si = y ′ (ki ) for all i ∈ T , and then reconstructs the
+secret x = Recφ ({si | i ∈ T }). The size of this program is at most approximately |T | · λ + |φ|.
+To see (8), assume, toward a contradiction, that there exists an oracle program M of size
+≪ w(Aφ ) · λ such that M prints x in time t given oracle access to y. Since t ≪ |y| and
+k1 , . . . , kn are chosen randomly, it can be shown that the program M of size |M | can read at
+most approximately |M |/λ shares from y. The intuition behind this is that the i-th share
+si cannot be accessed without knowing the i-th key ki , which must be hard-wired in the
+program M . Let T be the set of indices i ∈ [n] such that the i-th share si is read by M .
+Then, we have |T | ≲ |M |/λ ≪ w(Aφ ), which implies that T ̸∈ Aφ . However, by the perfect
+privacy of the secret sharing scheme, it is not possible to reconstruct x from {si | i ∈ T },
+which is a contradiction.
+     There are two issues in the proof sketch above. First, it can be the case that w(Aφ )·λ ≪ |φ|,
+in which case Equation (7) is too loose. Second, we need to show that an additive error
+term cdt,τ (|x|,|y|,t) (y) is small compared to w(Aφ ) · λ. Fortunately, there is a simple trick
+that simultaneously fixes these two issues: Share D independent secrets x1 , . . . , xD ∼ {0, 1}ℓ
+among n parties, construct oracles y 1 , . . . , y D for each secret, and reduce φ to (x, y, t, Dλ)
+for x := (x1 , . . . , xD ) and y := (y 1 , . . . , y D ). Then we get
+
+                     1                             |φ|
+      w(Aφ ) · λ ≲     · Kt (x | y) ≲ w(Aφ ) · λ +     ,
+                     D                              D
+whose last term is negligible for a large enough D. This fixes the first issue. Moreover, it
+can be shown that the “amortized” computational depth D     1
+                                                              · cdt (y) goes to 0 as D increases,
+which fixes the second issue.
+    Finally, we explain the relationship between our reduction and the previous reductions
+in [40, 4, 56]. Previously, the set cover problem was reduced to MINcKT and a conditional
+variant of MCSP by implicitly using a secret sharing scheme that can share a random
+string and satisfies the imperfect privacy. Specifically, let S1 , · · · , Sn ⊆ [m] be an instance
+
+
+14
+     It is worth mentioning that MMSA for depth-2 monotone formulas corresponds to the set cover problem.
+
+
+
+
+                                                                                                            CCC 2022
+26:14   Symmetry of Information from Meta-Complexity
+
+
+        of the set cover problem. Let A be the collection of the sets T ⊆ [n] that form a cover;
+             S
+        i.e., i∈T Si = [m]. Then, in [40, 4, 56], the following secret sharing scheme for A was
+        implicitly used: For a secret x = (x1 , . . . , xm ) ∼ ({0, 1}ℓ )m , the i-th share si is defined
+        to be {xj | j ∈ Si } for each i ∈ [n]. This secret sharing scheme satisfies correctness, i.e.,
+        the property that x can be reconstructed from sT := {si | i ∈ T } for any authorized set
+        T ∈ A; it also satisfies imperfect privacy in the sense that, for any unauthorized set T ̸∈ A,
+        there exists j ∈ [m] \ i∈T Si such that no information about xj is leaked from sT . Our
+                                S
+
+        generalized reduction abstracts the essential ideas developed in [40, 4, 56] and would be
+        useful for making further progress on the final goal of proving NP-hardness of GapMINKT
+        and excluding Heuristica.
+
+        Organization
+        In Section 4, we present a formal proof of SoI in Heuristica. In Section 5, we prove the
+        lower bound for rKt. In Section 6, we examine the complexity of conditional Kolmogorov
+        complexity. In Section 7, we present an application of SoI to average-case complexity. In
+        Section 8, we present several statements that follow from SoI.
+
+         3       Preliminaries
+        Notation
+        [n] denotes {1, . . . , n}. For a function p : N → N and i ∈ N, the function p(i) : N → N is
+        recursively defined as follows: p(0) (n) := n and p(i+1) (n) := p(i) (p(n)) for every n ∈ N.
+
+        Kolmogorov Complexity
+        For a string x ∈ {0, 1}∗ and an index i ∈ N, let xi denote the i-th bit of x if i ≤ |x| and
+        ⊥ if i > |x|. We fix an efficient universal Turing machine U . Time-bounded Kolmogorov
+        complexity is formally defined as follows.
+
+        ▶ Definition 3.1 (Time-bounded Kolmogorov complexity). For strings x, y ∈ {0, 1}∗ , a time
+        bound t ∈ N ∪ {∞}, and an oracle A, the A-oracle t-time-bounded Kolmogorov complexity of
+        x given y is defined as
+             t,A                  A,y,d
+                             
+             K   (x | y) := min |d| U     outputs xi on input i in time t for every i ∈ [1, . . . , |x| + 1] .
+
+        Here, U A,y,d indicates that the universal Turing machine is given oracle access to A and each
+        bit of y and d ∈ {0, 1}∗ . We omit the superscript A if A = ∅, the superscript t if t = ∞, and
+        “ | y” if y is the empty string.
+
+             A simple counting argument implies the following basic fact of Kolmogorov-randomness.
+
+        ▶ Fact 3.2. For any integer s ≥ 1 and any string y ∈ {0, 1}∗ , the number of strings
+        x ∈ {0, 1}∗ such that K(x | y) < s is less than 2s .
+                                                                      Ps−1
+        Proof. The number of programs of length less than s is at most i=0 2i < 2s .      ◀
+
+        ▶ Definition 3.3 ([50, 33]). For a polynomial τ : N → N, let
+
+          ΠYes := (x, 1t , 1s ) Kt (x) ≤ s ,
+                   
+                   n                                               o
+           ΠNo := (x, 1t , 1s ) Kτ (|x|,t) (x) > s + log τ (|x|, t) .
+S. Hirahara                                                                                         26:15
+
+
+We define Gapτ MINKT to be the promise problem (ΠYes , ΠNo ). We say that GapMINKT ∈ P
+if there exists some polynomial τ such that Gapτ MINKT ∈ P.
+
+     The problem GapMINKT can be equivalently formulated as follows.
+
+▶ Fact 3.4 ([35]). The following are equivalent.
+1. GapMINKT ∈ P.
+2. There exist a polynomial-time algorithm Ke and a polynomial p such that
+
+          Kp(t) (x) − log p(t) ≤ K(x,
+                                 e    1t ) ≤ Kt (x)
+
+     for every string x ∈ {0, 1}∗ and every integer t ≥ |x|.
+
+     We recall the notion of time-bounded computational depth.
+
+▶ Definition 3.5 (Time-Bounded Computational Depth [9, 35]). For time bounds s ∈ N and
+t ∈ N ∪ {∞} and a string x ∈ {0, 1}∗ , the (s, t)-time-bounded computational depth of x is
+defined as
+
+     cds,t (x) := Ks (x) − Kt (x).
+
+We omit the superscript t if t = ∞.
+
+ 4        Symmetry of Information from Average-Case Easiness of NP
+In this section, we present a formal proof of Theorem 1.2. In fact, under a plausible
+assumption that E requires exponential-size circuits to compute, we prove that SoI follows
+from an approximation algorithm for time-bounded Kolmogorov complexity.
+
+▶ Theorem 4.1. If GapMINKT ∈ P and E ̸⊆ i.o.SIZE(2ϵn ) for some constant ϵ > 0, then
+SoI holds.
+
+     Theorem 4.1 immediately implies Theorem 1.2.
+
+Proof of Theorem 1.2. It is known that the two hypotheses of Theorem 4.1 are implied
+by the assumption that NP is easy on average: Buhrman et al. [18] showed that E ̸⊆
+                ϵn
+T
+  ϵ>0 i.o.SIZE(2 ) if DistNP ⊆ AvgP; We also have GapMINKT ∈ P if DistNP ⊆ AvgP by
+Lemma 2.1.                                                                         ◀
+
+     We now present the formal proof of Theorem 4.1.
+
+Proof of Theorem 4.1. Let K e be the polynomial-time algorithm of Fact 3.4 which satisfies
+the property that there exists a polynomial p such that for every x ∈ {0, 1}∗ and every
+t ≥ |x|,
+
+     Kp(t) (x) − log p(t) ≤ K(x;
+                            e    1t ) ≤ Kt (x)                                               (9)
+
+Fix strings x ∈ {0, 1}n and y ∈ {0, 1}m and an integer t ≥ n + m. The proof of SoI is given
+by analyzing the following three values for z ∼ {0, 1}nk , w ∼ {0, 1}nk+k , z ′ ∼ {0, 1}mℓ , and
+w′ ∼ {0, 1}mℓ+ℓ :
+                                         ′
+     K(
+     e     DPk (x; z), DPℓ (y; z ′ ) ; 1t ),
+                                         ′
+     K(
+     e        w,       DPℓ (y; z ′ ) ; 1t ),
+                                         ′
+     K(
+     e        w,          w′         ; 1t ),
+
+where t′ = tO(1) , k ≈ Kt (x, y) − ℓ, and ℓ ≈ Kpoly(t) (y) are parameters chosen later.
+
+                                                                                                   CCC 2022
+26:16   Symmetry of Information from Meta-Complexity
+
+
+            First, observe that Fact 3.2 implies that K(w, w′ ) ≥ |w| + |w′ | − 2 with probability at
+        least 43 . Let θ := |w| + |w′ | − 2 − log p(t′ ); using Equation (9), we obtain
+                h            ′
+                                   i 3
+            Pr ′ K(w,
+                  e   w′ ; 1t ) ≥ θ ≥ .                                                                (10)
+           w,w                       4
+                                                  ′
+           Next, we set the parameter ℓ to Kp (t) (y) − log p′ (t) − 1, where p′ is some large polynomial.
+        Consider a randomized circuit D that takes w′ as input as well as random bits w and
+                                             ′
+        outputs 1 if and only if K(w,
+                                 e    w′ ; 1t ) ≥ θ. By the contrapositive of Lemma 2.2, DPℓ (y; -) is a
+        pseudorandom generator secure against D; i.e., D cannot distinguish DPℓ (y; z ′ ) and w′ in
+        the sense that
+                h                     ′
+                                            i      h            ′
+                                                                      i 1
+            Pr′ K(w,
+                  e  DPℓ (y; z ′ ); 1t ) ≥ θ − Pr ′ K(w,
+                                                     e   w′ ; 1t ) ≥ θ < ,
+            w,z                               w,w                       4
+
+        which, together with Equation (10), implies that
+               h                     ′
+                                           i 1
+           Pr′ K(w,
+                 e  DPℓ (y; z ′ ); 1t ) ≥ θ ≥ .
+           w,z                               2
+                                                       ′                                    ′
+            Finally, we compare K(w,
+                                 e    DPℓ (y; z ′ ); 1t ) with K(DP
+                                                               e                       ′    t
+                                                                    k (x; z), DPℓ (y; z ); 1 ). On one hand,
+                                   ′     ′
+        since |w| = |z| + k and |w | = |z | + ℓ, we have
+               h                     ′
+                                                                               i 1
+           Pr′ K(w,
+                 e  DPℓ (y; z ′ ); 1t ) ≥ |z| + |z ′ | + k + ℓ − 2 − log p(t′ ) ≥ .                    (11)
+           w,z                                                                   2
+
+        On the other hand, observe that for some t′ := poly(t),
+                                 ′    t′    t′                     ′      t                 ′
+          K(DPk (x; z), DPℓ (y; z ); 1 ) ≤ K (DPk (x; z), DPℓ (y; z )) ≤ K (x, y) + |z| + |z | + O(log n)
+          e
+
+        holds because the strings DPk (x; z) and DPℓ (y; z ′ ) can be computed from k, ℓ, z, z ′ , and a
+        program of size Kt (x, y) that outputs (x, y) in time t. We now set k := Kt (x, y) − ℓ + O(log t)
+        so that
+               h                                                                     i
+                                         ′    t′           ′                       ′
+            Pr′ K(DP  k (x; z), DPℓ (y; z ); 1 ) < |z| + |z | + k + ℓ − 2 − log p(t ) = 1.           (12)
+                 e
+           z,z
+
+
+           Let Dy be a randomized circuit that takes an input w and random bits z ′ and outputs 1 if
+                                          ′
+        and only if K(w,
+                    e    DPℓ (y; z ′ ); 1t ) < |z|+|z ′ |+k +ℓ−2−log p(t′ ). It follows from Equations (11)
+        and (12) that
+
+                                                                            1  1
+            Pr [Dy (DPk (x; z); z ′ ) = 1] − Pr′ [Dy (w; z ′ ) = 1] ≥ 1 −     = .
+           z,z ′                            w,z                             2  2
+
+        Using Lemma 2.2, we obtain
+                                                                ′
+           Kpoly(t) (x | Dy ) ≤ k + O(log t) = Kt (x, y) − Kp (t) (y) + O(log t).
+
+        It follows that for some large polynomial q,
+                                                                                    ′
+           Kq(t) (x | y) ≤ Kt (x | Dy ) + Kt (Dy | y) + O(1) ≤ Kt (x, y) − Kp (t) (y) + O(log t)
+                                                                ≤ Kt (x, y) − Kq(t) (y) + log q(t)
+
+        as desired.                                                                                      ◀
+S. Hirahara                                                                                       26:17
+
+
+ 5        A Lower Bound for Randomized Kt Complexity
+Here, we implement Kolmogorov’s insightful approach to the P versus NP problem for
+randomized Kt complexity. We recall the formal definition of rKt, which was introduced
+by Oliveira [62].
+▶ Definition 5.1 ([62]). For every x ∈ {0, 1}∗ and every λ ∈ [0, 1], the randomized time-
+bounded Kolmogorov complexity rKtλ (x) of x is defined as
+                                                                                 
+   rKtλ (x | y) := min |d| + ⌈log t⌉  Pr t [ U (d, y, r) outputs x in time t ] ≥ λ .
+                                             r∼{0,1}
+
+We omit the subscript “λ” if λ = 23 and “| y” if y is the empty string. The language MrKtP
+is defined as
+
+     MrKtP := {(x, 1s ) | rKt(x) ≤ s}.
+
+     The definition of rKtλ is robust with respect to a choice of λ.
+▶ Lemma 5.2 (Lu and Oliveira [59]). For all x ∈ {0, 1}∗ and λ ∈ (0, 1],
+
+     rKt(x) ≤ rKtλ (x) + O(log(1/λ)).
+
+     For simplicity, we first prove the following weaker lower bound than Theorem 1.4.
+▶ Theorem 5.3. There exists a constant ϵ > 0 such that MrKtP ̸∈ BPTIME(2ϵn ).
+    In what follows, let ϵ > 0 be a sufficiently small positive constant. The O notation below
+does not depend on ϵ. We say that a pseudo-deterministic algorithm M computes y on input
+x [27] if
+                          2
+     Pr [M (x) = y] ≥       ,
+     M                    3
+where the probability is taken over an internal coin flip sequence of the randomized algorithm
+M . We use the following pseudorandom generator construction.
+▶ Lemma 5.4 (see the proof of [32, Theorem 4.7]). For all sufficiently large n, m ∈ N such
+that m ≤ 2n, there exists a triple (G, A, R(-) ) such that
+
+         G : {0, 1}n × {0, 1}d → {0, 1}m ,
+         A : {0, 1}n × {0, 1}d → {0, 1}m ,
+     R(-) : {0, 1}m × {0, 1}d × {0, 1}r → ({0, 1}n )L ,
+
+and for every x ∈ {0, 1}n and any D : {0, 1}m → {0, 1} such that
+                                                                                   1
+           Pr        [D(G(x; z); w′ ) = 1] −        Pr         [D(w; w′ ) = 1] ≥     ,
+        z∼{0,1}d                                w∼{0,1}m                           m
+     w′ ∼{0,1}O(m)                             w′ ∼{0,1}O(m)
+
+it holds that
+                                                1
+       Pr r x ∈ RD (A(x, z), z, w) ≥
+                                 
+                                                   .
+     w∼{0,1}                                   2m2
+     z∼{0,1}d
+
+Here, we have d = O(log3 n), r = O(m), and L = poly(m). Moreover, G and A can be
+computed in time poly(n) and RD can be computed in time poly(n) with oracle access to D.
+
+
+
+                                                                                                 CCC 2022
+26:18   Symmetry of Information from Meta-Complexity
+
+
+        Proof Sketch. The construction is given by the improvement of Trevisan’s extractor [70]
+        given by Raz et al. [64]. Specifically, we encode x using a list-decodable error-correcting code
+        and regard the encoding of x as the truth table of a hard function f . Then, the pseudorandom
+        generator construction G is defined as the Nisan–Wigderson generator [61] instantiated with
+        the function f and the weak design of [64]. ([32, Theorem 4.7] is stated as a black-box hitting
+        set generator construction; however, it is easy to observe that the construction actually
+        provides a pseudorandom generator construction, which is a stronger object.)                  ◀
+
+        ▶ Corollary 5.5. Under the same hypothesis of Lemma 5.4, it holds that
+
+           rKtD (x) ≤ m + O(log3 n).
+
+        Proof. By an averaging argument, there exists a string z ∈ {0, 1}d such that
+                                             1
+           Pr x ∈ RD (A(x, z), z, w) ≥
+                                   
+                                                .
+            w                               2m2
+        Let α := A(x, z) ∈ {0, 1}m . The string x can be described by the following pseudo-
+        deterministic algorithm M : M takes the advice string α ∈ {0, 1}m and z ∈ {0, 1}d as input,
+        picks w ∼ {0, 1}r randomly, and outputs a random element of RD (α, z, w). Since the list
+        size is at most L = poly(m), the probability that the output of M is equal to x is at least
+                1     1
+        λ := 2m   2 · L . Therefore, we obtain rKtλ (x) ≤ m + d + O(log n). The result follows from
+
+        Lemma 5.2.                                                                                ◀
+
+        ▶ Lemma 5.6. If MrKtP ∈ BPTIME(2ϵn ), then for all sufficiently large n ∈ N and any
+        strings x ∈ {0, 1}n and y ∈ {0, 1}n , it holds that
+
+           rKt(x | y) + rKt(y) ≤ rKt(x, y) + O(ϵn).
+
+        Proof. We may assume without loss of generality that rKt(y) ≫ log3 n. Let m and m′ be
+                                                                                                       ′
+        parameters chosen later. Let G : {0, 1}n × {0, 1}d → {0, 1}m and G′ : {0, 1}n × {0, 1}d →
+                 ′
+        {0, 1}m be the pseudorandom generator construction of Lemma 5.4 with parameters m and
+        m′ , respectively.
+                                             ′
+            Fix z ∈ {0, 1}d and z ′ ∈ {0, 1}d . Since the strings (G(x; z), G′ (y; z ′ )) can be described
+        by z, z ′ , and a program that computes (x, y), we obtain
+
+           rKt(G(x; z), G′ (y; z ′ )) ≤ rKt(x, y) + |z| + |z ′ | + O(log n) = rKt(x, y) + O(log3 n).   (13)
+                                                      ′
+            Pick w ∼ {0, 1}m and z ′ ∼ {0, 1}d randomly. We claim that rKt(w, G′ (y; z ′ )) ≥
+        |w| + |w′ | − O(log n) with high probability. Toward a contradiction, assume that
+                                                                    1
+            Pr′ [rKt(w, G′ (y; z ′ )) < |w| + |w′ | − O(log n)] ≥     .
+           w,z                                                      2
+        By Fact 3.2, we have
+
+            Pr [rKt(w, w′ ) ≥ |w| + |w′ | − O(log n)] ≥ 1 − o(1).
+           w,w′
+
+
+        We define an oracle D so that D(w′ ; w) := 1 if and only if rKt(w, w′ ) < |w| + |w′ | − O(log n).
+        Then, the two inequalities above show that D distinguishes the output distribution of G′ (y; -)
+        from the uniform distribution. By Corollary 5.5, we obtain
+
+           rKtD (y) ≤ m′ + O(log3 n).
+S. Hirahara                                                                                        26:19
+
+
+Using the assumption that MrKtP ∈ BPTIME(2ϵn ), the oracle D can be computed by a
+                                          ′
+randomized algorithm running in time 2O(ϵm ) . It follows that
+
+   rKt(y) ≤ m′ + O(ϵm′ ) = (1 + O(ϵ)) · m′ .
+
+We choose m′ so that this inequality does not hold; that is,
+
+   m′ := (1 − O(ϵ)) · rKt(y).
+
+Then, we obtain a contradiction and conclude that
+                                                      1
+    Pr [rKt(w, G′ (y; z ′ )) ≥ m + m′ − O(log n)] ≥     .                                 (14)
+   w,z ′                                              2
+
+   Define Dy to be an oracle such that Dy (w; z ′ ) := 1 if and only if rKt(w, G′ (y; z ′ )) ≤
+rKt(x, y) + O(log3 n). By Equations (14) and (13), Dy distinguishes the output distribution
+of G(x; -) from the uniform distribution if
+
+   m + m′ − O(log n) ≥ rKt(x, y) + O(log3 n).
+
+We define m := rKt(x, y) − m′ + O(log3 n) so that this inequality holds. By Corollary 5.5,
+we obtain
+
+   rKtDy (x) ≤ m + O(log3 n).
+
+Since the oracle Dy can be computed in time 2O(ϵm) given y as hard-wired input, we conclude
+that
+
+   rKt(x | y) ≤ m + O(ϵm).
+              ≤ rKt(x, y) − m′ + O(ϵn).
+              ≤ rKt(x, y) − (1 − O(ϵ)) · rKt(y) + O(ϵn).
+              ≤ rKt(x, y) − rKt(y) + O(ϵn).                                                 ◀
+
+Proof of Theorem 5.3. The outline of the proof is as follows: First, we find a string y ∈
+{0, 1}n such that rKt(y) ≥ n by an exhaustive search over all strings y ∈ {0, 1}n . Next, we
+find a string x ∈ {0, 1}n such that rKt(x, y) ≥ 2n − O(ϵn) by an exhaustive search over all
+strings x ∈ {0, 1}n . The existence of such a string x is guaranteed by Lemma 5.6. Finally,
+we observe that the pair (x, y) can be pseudo-deterministically computed in time 2n+O(ϵn) ,
+which contradicts the lower bound on rKt(x, y). Details follow.
+    Using the assumption that MrKtP ∈ BPTIME(2ϵn ), let M be the randomized algorithm
+that computes rKt(y) on input y of length n in time 2O(ϵn) with probability at least 1 − 2−2n .
+Fix n ∈ N. Let yn be the lexicographically first string y ∈ {0, 1}n such that rKt(y) ≥ n.
+Note that the existence of such a string yn is guaranteed by Fact 3.2.
+    We claim that there exists a pseudo-deterministic algorithm M1 that computes yn on
+input n ∈ N in time 2n+O(ϵn) . For all strings y ∈ {0, 1}n in lexicographical order, the
+algorithm M1 tests whether rKt(y) ≥ n using M , and outputs the first string y that passes
+this test. Since the error probability of M is at most 2−2n , by a union bound, the algorithm
+M1 computes yn pseudo-deterministically with probability 1 − 2−n . The running time of M1
+is at most 2n+O(ϵn) .
+    Next, let xn be the lexicographically first string x ∈ {0, 1}n such that
+
+   rKt(x, yn ) ≥ 2n − c · ϵn,                                                             (15)
+
+
+
+                                                                                                  CCC 2022
+26:20   Symmetry of Information from Meta-Complexity
+
+
+        where c is a large constant to be chosen independently of ϵ. We prove that xn is well defined,
+        i.e., there exists a string x ∈ {0, 1}n such that rKt(x, yn ) ≥ 2n − c · ϵn. By Fact 3.2, there
+        exists a string x ∈ {0, 1}n such that rKt(x | y) ≥ n. By Lemma 5.6,
+
+           rKt(x, y) + O(ϵn) ≥ rKt(x | y) + rKt(y) ≥ 2n.
+
+        Choosing a large constant c, we obtain rKt(x, y) ≥ 2n − c · ϵn, as desired.
+            We claim that there exists a pseudo-deterministic algorithm M2 that computes xn given yn
+        as input in time 2n+O(ϵn) . For all strings x ∈ {0, 1}n in lexicographical order, the algorithm
+        M2 tests whether rKt(x, yn ) ≥ 2n − c · ϵn using M , and outputs the first string x that passes
+        this test. Using a union bound, the error probability of M2 is bounded by 2−n . The running
+        time of M2 is at most 2n+O(ϵn) .
+            Finally, by combining the algorithms M1 and M2 , we obtain an algorithm that computes
+        (xn , yn ) pseudo-deterministically in time 2n+O(ϵn) . By the definition of rKt, this implies that
+
+           rKt(xn , yn ) ≤ n + O(ϵn).
+
+        We also have rKt(xn , yn ) ≥ 2n − O(ϵn) by Equation (15). Therefore, we obtain 2n − O(ϵn) ≤
+        n + O(ϵn), which is a contradiction for a sufficiently small constant ϵ > 0.              ◀
+
+           We observe that MrKtP is in the exponential-time variant of PP.
+
+        ▶ Proposition 5.7. MrKtP ∈ PEXP.
+
+        Proof. Since PP is closed under truth-table reductions [26], it suffices to show that MrKtP
+        is reducible to PP via an exponential-time truth-table reduction. Let (x, 1s ) be an input
+        such that x ∈ {0, 1}n and s ∈ N. For each string d ∈ {0, 1}∗ of length at most s, we ask the
+        PP oracle whether U (d, r) outputs x in time t for at least a 23 -fraction of r ∈ {0, 1}t , where
+        t := 2s−|d| . We accept the input (x, 1s ) if and only if a positive answer is returned from the
+        oracle.                                                                                        ◀
+
+            We expect that Theorem 5.3 can be extended to a lower bound against PP-type
+        algorithms. However, the original motivation of Oliveira [62] is to study a gap ver-
+        sion of MrKtP, for which the upper bound of pr-BPE can be proved. Specifically, let
+        GapMrKtP denote the promise problem (ΠYes , ΠNo ) such that ΠYes = {(x, s) | rKt(x) ≤ s}
+        and ΠNo = {(x, s) | rKt(x) > s + c log |x|}, where c is a sufficiently large constant. One can
+        observe GapMrKtP ∈ pr-BPE [62]. Theorem 5.3 can be extended to this promise problem:
+
+        ▶ Theorem 5.8 (Theorem 1.4, restated). GapMrKtP ̸∈ i.o.BPTIME(2ϵn ) for some constant
+        ϵ > 0.
+
+            Here, abusing a notation, for a class C of languages, we say that a promise problem Π ∈ C
+        if there exists a language L ∈ C such that ΠYes ⊆ L ⊆ {0, 1}∗ \ ΠNo for (ΠYes , ΠNo ) = Π.
+        The lower bound of Theorem 5.8 does work against a bounded probabilistic algorithm that
+        satisfies the promise of BPP-type algorithms over all the inputs. In contrast, the upper bound
+        pr-BPE = pr-BPTIME(2O(n) ) holds only for an algorithm that may not satisfy the promise
+        of BPP-type algorithms for some inputs. This leaves a qualitative gap between the lower
+        bound and the upper bound on GapMrKtP; closing this gap is an interesting open question.
+        We note, however, that there is no gap under the plausible assumption that E ̸⊆ i.o.SIZE(2ϵn )
+        for some constant ϵ > 0, in which case pr-BPP = P = BPP [46].
+S. Hirahara                                                                                             26:21
+
+
+Proof of Theorem 5.8. The proof is essentially the same with Theorem 5.3. We only explain
+how to modify the proof of Theorem 5.3.
+    Toward a contradiction, we assume the existence of a randomized algorithm M that
+computes some language L infinitely often, where L is a language consistent with GapMrKtP.
+For all large n ∈ N and every x ∈ {0, 1}n and s ∈ [n], we assume that the binary encoding
+of (x, s) is exactly equal to m(n), where m(n) = Θ(n) is some function. This ensures that
+for infinitely many n ∈ N, the algorithm M computes L correctly on input (x, s) for every
+x ∈ {0, 1}n and every s ∈ [n].
+    First, we explain how to extend the lower bound of Theorem 5.3 to the infinitely-often
+version. Let n be the length of xn ∈ {0, 1}n and yn ∈ {0, 1}n constructed in the proof of
+Theorem 5.3. By inspection, in the proof of Theorem 5.3, we use the algorithm M on inputs
+of length at most n′ , where n′ = O(n). Any input x of length less than n′ can be padded to
+                                                      ′
+an input of length n′ by mapping x to x′ := x1n −|x| . This ensures that the length of any
+input to M that we use in the proof is exactly equal to n′ . Moreover, the correctness of the
+proof remains unchanged because rKt(x) = rKt(x′ ) ± O(log n).
+    Second, we explain how to deal with the promise problem. In the proof of Theorem 5.3,
+we exhaustively search the lexicographically first string yn ∈ {0, 1}n such that rKt(yn ) ≥ n.
+Instead, we search the lexicographically first string yn ∈ {0, 1}n such that (yn , n−2c·log n) ̸∈ L.
+Since L ⊆ {0, 1}∗ \ ΠNo , this ensures that rKt(yn ) ≥ n − c log n. Similarly, we search the
+lexicographically first string xn ∈ {0, 1}n such that ((xn , yn ), 2n − O(ϵn)) ̸∈ L. This ensures
+that rKt(xn , yn ) ≥ 2n − O(ϵn). Since the language L can be decided by the randomized
+algorithm M , we can compute the pair (xn , yn ) pseudo-deterministically in time 2n+O(ϵn) .
+This is a contradiction.                                                                          ◀
+
+ 6      The Complexity of Conditional Kolmogorov Complexity
+In this section, we examine the complexity of the problem GapMINcKT of approximating
+time-bounded conditional Kolmogorov complexity.
+▶ Definition 6.1. For a polynomial τ : N3 → N, we define the promise problem Gapτ MINcKT
+to be (ΠYes , ΠNo ) such that
+              n                                                    o
+    ΠYes := (x, y, 1t , 1s ) Kt (x | y) ≤ s − cdt,τ (|x|,|y|,t) (y) ,
+              n                                                              o
+     ΠNo := (x, y, 1t , 1s ) Kτ (|x|,|y|,t) (x | y) > s + log τ (|x|, |y|, t) .
+
+6.1     Approximating Conditional Kolmogorov Complexity in Heuristica
+We observe that SoI enables reducing GapMINcKT to GapMINKT.
+▶ Proposition 6.2. Assume that SoI holds. If GapMINKT ∈ P, then there exists a polynomial
+τ : N3 → N such that Gapτ MINcKT ∈ P.
+Proof. Let K
+           e be the polynomial-time algorithm of Fact 3.4 such that for some polynomial p,
+
+     Kp(t) (x) − log p(t) ≤ K(x,
+                            e    1t ) ≤ Kt (x)
+
+for every string x ∈ {0, 1}∗ and every integer t ≥ |x|. Applying this inequality to xy and y,
+we obtain
+
+     Kp(t) (xy) − log p(t) ≤ K(xy,
+                             e     1t ) ≤ Kt (xy),
+      Kp(t) (y) − log p(t) ≤ K(y,
+                             e 1t ) ≤ Kt (y)
+
+
+
+
+                                                                                                       CCC 2022
+26:22   Symmetry of Information from Meta-Complexity
+
+
+        for every t ≥ |x| + |y|. Using these inequalities, we next analyze K(xy,
+                                                                           e               e 1p(3) (t) ).
+                                                                                 1p(t) ) − K(y,
+        On one hand, we have
+
+            K(xy,
+            e               e 1p(3) (t) ) ≤ Kp(t) (xy) − Kp(4) (t) (y) + log p(4) (t)
+                  1p(t) ) − K(y,
+                                                                                              (4)
+                                           ≤ Kt (x | y) + Kt (y) + O(1) − Kp                        (t)
+                                                                                                          (y) + log p(4) (t)
+                                                                        (4)
+                                           = Kt (x | y) + cdt,p               (t)
+                                                                                    (y) + log p(4) (t) + O(1).
+
+        On the other hand, we have
+
+            K(xy,
+            e               e 1p(3) (t) ) ≥ Kp(2) (t) (xy) − log p(2) (t) − Kp(3) (t) (y)
+                  1p(t) ) − K(y,
+                                                  (3)
+                                           ≥ Kp         (t)
+                                                              (x | y) − 2 log p(3) (t),
+
+        where the last inequality follows from SoI.
+            We now set τ (n, m, t) := p(4) (t + n + m) so that p(4) (t) ≤ τ (|x|, |y|, t) for any x, y ∈ {0, 1}∗
+                                                                                     ′
+        and t ∈ N. Define an algorithm B so that B(x, y, 1t ) := K(xy,   e                  e 1p(3) (t′ ) ) − 1 ·
+                                                                                1p(t ) ) − K(y,               2
+        log τ (n, m, t), where t′ := max{|x| + |y|, t}. Then, we have
+
+            Kτ (n,m,t) (x | y) − log τ (n, m, t) ≤ B(x, y, 1t ) ≤ Kt (x | y) + cdt,τ (n,m,t) (y)
+
+        for n := |x| and m := |y|.
+            In order to show that Gapτ MINcKT ∈ P, consider an algorithm M such that M accepts
+        an input (x, y, 1t , 1s ) if and only if B(x, y, 1t ) ≤ s. It is easy to see that M accepts every
+        Yes instance and rejects every No instance of Gapτ MINcKT.                                     ◀
+
+        ▶ Corollary 6.3. If DistNP ⊆ AvgP, then Gapτ MINcKT ∈ P for some polynomial τ .
+
+        Proof. This immediately follows from Proposition 6.2, Theorem 1.2, , and Lemma 2.1                                     ◀
+
+            As a consequence, Heuristica can be excluded if GapMINcKT is NP-hard under random-
+        ized reductions.
+
+        Proof of Theorem 1.5. Assume that DistNP ⊆ AvgP. By Corollary 6.3, there exists a
+        polynomial τ such that Gapτ MINcKT ∈ P. By the NP-hardness assumption, we obtain
+        NP ⊆ BPP = P, where the last equality follows from the theorem of Buhrman et al. [18]. ◀
+
+        ▶ Remark 6.4 (On the optimality of the additive error). Generalizing Corollary 6.3, it holds
+        that DistΣp2 ⊆ AvgP implies that GapMINcKTNP ∈ P, where GapMINcKTNP is an NP-oracle
+        version of GapMINcKT which asks to approximate Kt,SAT (x | y) within an additive error
+        cdt,p(t) (y)+O(log t). Below, we informally argue that a relativizing proof technique is unlikely
+        to improve the error term cdt,p(t) (y) of GapMINcKTNP : In [34], NP-hardness of MINcKTNP
+        was proved. The NP-hardness reduction in fact shows that for every L ∈ NP, an instance
+        y for L can be reduced to the problem of approximating Kt,NP (x | y) up to an additive
+        error ∆ in time 2O(∆+log |y|) . In particular, applying this reduction to GapMINcKTNP , L
+                                      t,p(t)
+        can be solved in time 2O(cd          (y)+log |y|+log t)
+                                                                on input (y, 1t ) if GapMINcKTNP ∈ P. This
+        induces a universal heuristic scheme for L, which yields an algorithm that solves L in time
+        2O(n/ log n) (see Section 7). Now, if Kt,SAT (x | y) could be approximated with an additive
+        error o(cdt,p(t) (y)) under the assumption that DistΣp2 ⊆ AvgP, then we would obtain an
+        improved algorithm that solves every language L ∈ NP in time 2o(n/ log n) , which contradicts
+        the relativization barrier of [36].
+S. Hirahara                                                                                                     26:23
+
+
+6.2       NP-Hardness of Sublinear-Time-Bounded Conditional Kolmogorov
+          Complexity
+We now show that Gapτ MINcKT is NP-hard under randomized reductions if τ (|x|, |y|, t) is
+sublinear in the length of y. In fact, we prove that it is NP-hard to approximate Kt (x | y) to
+                          1/(log log |x|)O(1)
+within a factor of |x|                          . We define a version of GapMINcKT that incorporates a
+multiplicative factor as follows.
+
+▶ Definition 6.5. For a polynomial τ : N3 → N and a function σ : N → N, we define the
+promise problem Gapτ,σ MINcKT to be (ΠYes , ΠNo ) such that
+             n                                                       o
+      ΠYes := (x, y, 1t , 1s ) Kt (x | y) ≤ s − cdt,τ (|x|,|y|,t) (y) ,
+             n                                                                         o
+      ΠNo := (x, y, 1t , 1s ) Kτ (|x|,|y|,t) (x | y) > σ(|x|) · s + log τ (|x|, |y|, t) .
+
+Note that Gapτ,1 MINcKT = Gapτ MINcKT is trivially reducible to Gapτ,σ MINcKT for
+                                                                                     1/(log log |x|)O(1)
+every σ ≥ 1. We show that Gapτ,σ MINcKT is NP-hard for σ(|x|) = |x|                                        .
+
+▶ Theorem 6.6. Let c > 1 be an arbitrary constant and τ : N3 → N be a function such that
+τ (n, m, t) ≤ nc · m1−1/c · tc for all large n, m, and t ∈ N. Then, Gapτ,σ MINcKT is NP-hard
+under one-query randomized polynomial-time reductions for some function σ : N → N such
+                          O(1)
+that σ(n) = n1/(log log n)     .
+
+6.2.1        Secret Sharing Scheme
+We review the notion of secret sharing scheme below.
+
+▶ Definition 6.7 (Access Structure). An access structure A ⊆ 2[n] is a “monotone” collection
+of subsets of [n]; that is, for every T ⊇ S ∈ A, we have T ∈ A. The minimum weight of A is
+defined to be w(A) := min{|T | | T ∈ A}.
+
+    We will prove that there is a generic reduction from the problem of estimating the weight
+of access structures A to GapMINcKT if there exists an efficient secret sharing scheme for A.
+
+▶ Definition 6.8 (Secret Sharing [12]). A secret sharing scheme for A is a pair (Share, Rec) of
+a randomized algorithm Share and a deterministic algorithm Rec with the following properties
+for every ℓ ∈ N:
+1. Correctness: For every T ∈ A and for every string x ∈ {0, 1}ℓ , any output of Share(x) is
+    a sequence (y1 , . . . , yn ) of n strings that satisfies
+
+          Rec(yT ) = x,
+
+   where yT := {(i, yi ) | i ∈ T }.
+2. Privacy: For every T ̸∈ A and for every random variable X on {0, 1}ℓ , the random
+   variables X and Share(X)T are statistically independent.
+
+      We observe that the privacy condition can be stated in terms of Kolmogorov complexity.15
+
+
+
+15
+     We mention in passing that Kolmogorov complexity-theoretic versions of privacy conditions are studied
+     in, e.g., [10, 48].
+
+
+
+
+                                                                                                               CCC 2022
+26:24   Symmetry of Information from Meta-Complexity
+
+
+        ▶ Lemma 6.9. Let (Share, Rec) be a secret sharing scheme for an access structure A over
+        [n]. Then, for every ℓ and k ∈ N, it holds that
+                                                  
+            Pr min K(X | Share(X)T ) ≥ ℓ − n − k ≥ 1 − 2−k ,
+                T ̸∈A
+
+        where X is the uniform distribution over {0, 1}ℓ and the probability is taken over X as well
+        as the internal randomness of Share.
+        Proof. Fix an arbitrary subset T ̸∈ A of [n]. Let yT ∈ supp(Share(X)T ) be an outcome of
+        Share(X)T . By Fact 3.2, we obtain
+
+           Pr [K(X | yT ) < ℓ − n − k] ≤ 2−n−k .
+
+        By the privacy of the secret sharing scheme, the random variables X and Share(X)T are
+        statistically independent. By averaging the inequality above over all yT ∈ supp(Share(X)T ),
+        we obtain
+
+           Pr [K(X | Share(X)T ) < ℓ − n − k] ≤ 2−n−k .
+
+        Finally, we take the union bound over all subsets T ̸∈ A and conclude that
+
+           Pr [∃T ̸∈ A, K(X | Share(X)T ) < ℓ − n − k] ≤ 2−k .                                           ◀
+
+           The “efficiency” of a secret sharing scheme is defined as follows.
+        ▶ Definition 6.10. A family A = {Aφ }φ∈{0,1}∗ of access structures is said to admit efficient
+        secret sharing schemes if there exists a pair (Share, Rec) of a randomized polynomial-time
+        algorithm Share and a deterministic polynomial-time algorithm Rec such that for every φ ∈
+        {0, 1}∗ , the pair (Share(φ, -), Rec(φ, -)) is a secret sharing scheme for the access structure Aφ .
+           Benaloh and Leichter [13] showed that access structures represented by monotone formulas
+        admit efficient secret sharing schemes.
+        ▶ Lemma 6.11 ([13]). Let A := {Aφ }φ∈{0,1}∗ be the family of access structures Aφ := {T ⊆
+        [n] | φ(χT ) = 1}, where φ is a monotone formula on n variables and χT ∈ {0, 1}n denotes
+        the characteristic vector of T ⊆ [n]. Then, A admits efficient secret sharing schemes.
+
+        6.2.2     Minimum Monotone Satisfying Assignment
+        In order to prove Theorem 6.6, we reduce the Minimum Monotone Satisfying Assignment
+        (MMSA) problem to GapMINcKT.
+        ▶ Definition 6.12 (Minimum Monotone Satisfying Assignment; MMSA). For a monotone
+                                                                                          Pn
+        formula φ on n variables, the weight of an assignment α ∈ {0, 1}n is defined to be i=1 αi .
+        Let MMSA(φ) denote the minimum weight of α ∈ {0, 1}n such that φ(α) = 1.
+            Observe that MMSA(φ) = w(Aφ ) for the family A of access structures of Lemma 6.11.
+        It is known that MMSA is NP-hard to approximate:
+                                                                              O(1)
+        ▶ Lemma 6.13 ([22, 21]). For some function g(n) = n1/(log log n)  , it is NP-hard to solve
+        the promise problem Gapg MMSA = (ΠYes , ΠNo ) defined as follows:
+
+           ΠYes := {(φ, s) | MMSA(φ) ≤ s},
+            ΠNo := {(φ, s) | MMSA(φ) > s · g(|φ|)},
+
+        where |φ| denotes the length of the binary string that represents φ.
+S. Hirahara                                                                                                         26:25
+
+
+Proof Sketch. Dinur and Safra [22] presented a polynomial-time reduction from any con-
+straint satisfaction problem (CSP) to Gapg MMSA with the following property: Let ψ be an
+instance of the CSP. Let (φ, s) be the output of the reduction. Let D be the arity of ψ. If ψ is
+satisfiable, then MMSA(φ) ≤ s. If there is no assignment satisfying a 1/ 2(2Dg)D fraction
+of the constraints of ψ, then MMSA(φ) > s · g, where g is an arbitrary parameter. Dinur et al.
+[21] showed that it is NP-hard to decide whether a given CSP with n variables and of arity
+D = (log log n)O(1) is satisfiable or every assignment satisfies at most a 1/poly(n) fraction
+of the constraints. Combining these two hardness results, we conclude that Gapg MMSA is
+                                                        O(1)
+NP-hard, where g ≥ poly(n)1/D · D−D ≥ n1/(log log n)           .                                              ◀
+
+
+6.2.3    A Generic Connection from Secret Sharing Schemes
+We now formally state a generic reduction that reduces the problem of estimating the weight
+of access structures to GapMINcKT.
+
+▶ Theorem 6.14. Let A = {Aφ }φ∈{0,1}∗ be a family of access structures that admits efficient
+secret sharing schemes. Let τ : N3 → N be a function such that t ≤ τ (n, m, t) ≤ nc · m1−1/c · tc
+for some constant c > 1. Then, there exists a randomized polynomial-time algorithm R that
+takes φ ∈ {0, 1}∗ as input and outputs x, y ∈ {0, 1}∗ and t, ρ ∈ N such that
+    ρ                        ′
+       · w(Aφ ) + log t′ ≤ Kt (x | y) ≤ Kt (x | y) ≤ ρ · w(Aφ ) − cdt (y)
+    8c
+holds with probability at least 1 − o(1) over the internal randomness of R, where t′ :=
+τ (|x|, |y|, t).
+
+   It is easy to observe that this reduction implies NP-hardness of GapMINcKT.
+
+Proof of Theorem 6.6. Let A = {Aφ }φ be the family of access structures for monotone
+formulas given in Lemma 6.11. Let R be the reduction of Theorem 6.14. Consider a
+                                                                                               ′
+reduction R′ that reduces an instance (φ, s) of Gapg MMSA to an instance (x, y, 1t , 1s ) of
+Gapτ MINcKT such that (x, y, t, ρ) := R(φ) and s′ := s · ρ.
+   Let (ΠYes , ΠNo ) := Gapg MMSA. We claim below that the reduction R′ reduces
+Gapg MMSA to Gapτ,σ MINcKT for some σ, which implies NP-hardness of Gapτ,σ MINcKT
+by Lemma 6.13. If (φ, s) ∈ ΠYes , then w(Aφ ) = MMSA(φ) ≤ s. By the properties of
+                                                                                               ′
+R, with high probability, it holds that Kt (x | y) ≤ ρ · w(Aφ ) − cdt (y) ≤ s′ − cdt,t (y),
+                                 ′
+which implies that (x, y, 1t , 1s ) is a Yes instance of Gapτ,σ MINcKT. If (φ, s) ∈ ΠNo , then
+w(Aφ ) = MMSA(φ) > g(|φ|) · s. Also by the properties of R, with high probability, it holds
+       ′
+                                                                                    t s′
+                  ρ
+that Kt (x | y) ≥ 8c ·w(Aφ )+log t′ > g(|φ|)    ′      ′
+                                          8c ·s +log t , which implies that (x, y, 1 , 1 ) is a No
+                                                                   1/(log log |φ|)O(1)       1/(log log |x|)O(1)
+instance of Gapτ,σ MINcKT for some σ(|x|) := g(|φ|)
+                                                 8c ≥ |φ|                                ≥ |x|                 ,
+where the last inequality follows from the fact that |φ| ≥ |x|Ω(1) .                                          ◀
+
+    It remains to prove Theorem 6.14. To show that the additive error cdt (y) is relatively
+small, we use the fact that for D independent random samples y 1 , . . . , y D from a distribution
+D samplable by polynomial-size circuits, the amortized time-bounded Kolmogorov complexity
+of y 1 , . . . , y D approaches the entropy of D asymptotically.
+
+▶ Lemma 6.15 ([6, 5]). Let D = {Dx }x∈{0,1}∗ be a family of distributions sampled by circuits
+of size poly(|x|). Then, there exist a polynomial p and a constant δ > 0 such that for every
+x ∈ {0, 1}∗ and for every D ≥ p(|x|),
+
+
+
+                                                                                                                   CCC 2022
+26:26   Symmetry of Information from Meta-Complexity
+
+
+            1                                      1
+               · Kt (y 1 , . . . , y D ) ≤ H(Dx ) + · D−δ ,
+            D                                      2
+              1                                     1
+                 · K(y , . . . , y ) ≥ H(Dx ) − · D−δ
+                        1            D
+             D                                      2
+        holds with probability at least 1 − 2−|x| over a random choice of D independent samples
+        y 1 , . . . , y D from Dx , where t := p(|x|).
+
+        This lemma immediately implies that the computational depth of independent samples from
+        Dx is small.
+
+        ▶ Corollary 6.16. Under the same assumptions as Lemma 6.15, with probability at least
+        1 − 2−|x| over a random choice of D independent samples y 1 , . . . , y D from Dx , it holds that
+
+            cdt (y 1 , . . . , y D ) ≤ D1−δ .
+
+        Proof. It follows from Lemma 6.15 that
+
+            cdt (y 1 , . . . , y D ) = Kt (y 1 , . . . , y D ) − K(y 1 , . . . , y D ) ≤ D1−δ .                     ◀
+
+            We are now ready to prove Theorem 6.14.
+
+        Proof of Theorem 6.14. Fix an input φ ∈ {0, 1}∗ . Let n be the number of parties in the
+        access structure Aφ . Let λ = O(log |φ|), t, and ℓ be parameters chosen later.
+            We first define a family D = {Dφ }φ∈{0,1}∗ of distributions by using the following sampling
+        procedure: Choose x ∼ {0, 1}ℓ uniformly at random. Let (s1 , . . . , sn ) := Share(φ, x) and let
+        m be the length of each share; i.e., m := |si |. Pick k1 , . . . , kn ∼ {0, 1}λ randomly. We define
+                                    λ
+        a string y ∈ {0, 1}2 ·m , which we identify with a function y : {0, 1}λ → {0, 1}m : For every
+        q ∈ {0, 1}λ , let y(q) := si if q = ki for some i ∈ [n] and let y(q) := 0m otherwise. Note that
+        y is not well defined if (ki )i∈[n] is not pairwise distinct; however, we will show that y is well
+        defined with high probability. The output of the sampling procedure is defined as (x, y, k, s),
+        where k := (k1 , . . . , kn ) and s := (s1 , . . . , sn ).
+            The algorithm R operates as follows: For a given input φ ∈ {0, 1}∗ , pick D in-
+        dependent samples (x1 , y 1 , k 1 , s1 ), . . . , (xD , y D , k D , sD ) from Dφ . Let x := (x1 , . . . , xD ),
+        y := (y 1 , . . . , y D ), and ρ := 2λD. The output of R is defined to be (x, y, t, ρ).
+            Below, we prove the correctness of R using a sequence of claims. Let k := (kid | i ∈ [n], d ∈
+        [D]) and let s := (sdi | i ∈ [n], d ∈ [D]). We first observe that k is Kolmogorov-random with
+        high probability:
+
+        ▷ Claim 6.17. With probability at least 1 − o(1), it holds that
+
+            K(k | s) ≥ nDλ − log n.                                                                              (16)
+
+        Proof. Since k = (kid )i∈[n],d∈[D] is uniformly distributed over ({0, 1}λ )nD and independent of
+        s, the claim follows from Fact 3.2.                                                           ◁
+
+        ▷ Claim 6.18. If Equation (16) holds, then k = (kid )i∈[n],d∈[D] is pairwise distinct and hence
+        y is well defined.
+                                                                                  ′
+        Proof. If there exists (i, d) ̸= (i′ , d′ ) such that kid = kid′ , then k can be described by a program
+        of size nDλ − λ + O(log nD). Choosing a large enough λ = O(log |φ|), this implies that
+        K(k) ≤ nDλ − λ + O(log nD) < nDλ − log n, which contradicts Equation (16).                            ◁
+
+            Below, we assume that Equation (16) holds. We prove an upper bound of Kt (x | y).
+S. Hirahara                                                                                           26:27
+
+
+▷ Claim 6.19. Kt (x | y) ≤ ρ · w(Aφ ) − cdt (y) holds with probability at least 1 − o(1).
+
+Proof. Let T ∈ Aφ be a minimum authorized set of parties such that |T | = w(Aφ ). We
+present an oracle program M y that                                d        ℓ
+                                 d takes an index d and outputs x ∈ {0, 1} as follows: M
+                                                                                          y
+
+
+ d d ∈ [D] as
+takes           input and T , ki i ∈ T, d ∈ [D] and φ as hard-wired input, computes
+ si i ∈ T = y d (ki ) i ∈ T by making queries to the oracle y, and outputs Rec(φ, sdT ),
+which is equal to xd by the correctness of a secret sharing scheme and the assumption that
+T ∈ Aφ . The size of the oracle machine M is at most
+
+   O(|T | · log n) + |T | · D · λ + |φ| + O(log D) ≤ 2λD · w(Aφ ) − D1−δ ,
+
+where δ > 0 is the constant from Corollary 6.16 and this inequality follows by choosing
+sufficiently large D ≥ poly(|φ|). Applying Corollary 6.16 to the distribution of y, we obtain
+cdt (y) ≤ D1−δ with probability at least 1 − o(1); thus, |M | ≤ ρ · w(Aφ ) − cdt (y). The running
+time of M is at most poly(|φ|), which is independent of λ. We choose t so that this running
+time is at most t.                                                                             ◁
+
+   The remainder of the proof is devoted to proving the lower bound.
+                       ρ                                 ′
+▷ Claim 6.20. Let θ := 8c · w(Aφ ) + log t′ . Then, Kt (x | y) ≥ θ with probability at least
+1 − o(1).
+
+   We first clarify the condition of random variables under which the claim holds. Let
+ [D]\{d}        ′
+s[n]     := (sdi | i ∈ [n], d′ ∈ [D] \ {d}).
+
+▷ Claim 6.21. With probability at least 1 − o(1), it holds that for every unauthorized set
+T ̸∈ Aφ of parties and for every d ∈ [D],
+                         
+               [D]\{d}
+   K xd sdT , s[n]     , k ≥ ℓ − n − 2 log D.                                                (17)
+
+                                                                              [D]\{d}
+Proof. Fix d ∈ [D]. Since the random variable xd is independent of s[n]                 and k, by
+Lemma 6.9,
+                              
+                    [D]\{d}
+    min K xd sdT , s[n]     , k ≥ ℓ − n − 2 log D
+   T ̸∈Aφ
+
+
+holds with probability at least 1 − D12 . The claim follows by taking a union bound over all
+d ∈ [D].                                                                                  ◁
+                                                                         ′
+   In what follows, we assume Equations (16) and (17) and prove Kt (x | y) ≥ θ, which will
+                                                                                ′
+complete the proof of Claim 6.20. Assume, by way of contradiction, that Kt (x | y) < θ. Let
+M ∈ {0, 1}∗ be the description of an oracle program such that |M | ≤ θ + O(log ℓ) and M y (d)
+outputs xd ∈ {0, 1}ℓ in time t′′ := t′ ℓ for every d ∈ [D]; the machine M can be constructed
+                                    ′
+from a program that witnesses Kt (x | y) < θ. For each d ∈ [D], let T (M, d) be the set of
+indices i ∈ [n] such that some bit of y d (kid ) ∈ {0, 1}m is queried during the computation of
+M y (d).
+                                                                                PD
+▷ Claim 6.22. Let M be an oracle program that runs in time t′′ and let α :=        d=1 |T (M, d)|.
+Then,
+
+   K(k | s) ≤ |M | + (nD − α) · λ + α · (log t′′ + log nD) + O(log nD).
+
+
+
+                                                                                                     CCC 2022
+26:28   Symmetry of Information from Meta-Complexity
+
+
+        Proof. By the definition of T (M, d), for every i ∈ T (M, d), there exists a time step ti,d ∈ [t′′ ]
+        such that M y makes a query kid to the oracle y on input d ∈ [D]. To describe k given s,
+        consider the following program M ′ : M ′ takes
+
+               {(i, d, ti,d ) ∈ [n] × [D] × [t′′ ] | i ∈ T (M, d)},
+                d
+                ki ∈ {0, 1}λ (i, d) ∈ [n] × [D], i ̸∈ T (M, d) ,
+
+        and M as input and simulates M y on input d for every d ∈ [D]. At the time step ti,d of the
+        simulation of M y (d) for some i ∈ T (M, d), M ′ reads the query kid that M y (d) makes to the
+        oracle y d and answers the query with sdi . M ′ continues the simulation until the time step t′′ ,
+        at which point M ′ knows kid for every i ∈ T (M, d). Finally, M ′ outputs k. The input of M ′
+        can be encoded as a string of length α · (log t′′ + log nD) + (nD − α) · λ + |M | + O(log nD).
+                                                                                                      ◁
+
+        It follows from Claim 6.22 and Equation (16) that
+
+               nDλ − log n ≤ |M | + (nD − α) · λ + α · (log t′′ + log nD) + O(log nD),
+
+        which can be simplified to
+
+               (λ − log t′′ − log nD) · α ≤ |M | + O(log nD).                                              (18)
+
+        Since t′′ /ℓ = t′ = τ (|x|, |y|, t) ≤ |x|c · |y|1−1/c · tc ≤ 2(1−1/c)·λ · (D · |φ| · ℓ · m)O(c) , we may
+        choose λ = O(log |φ|) large enough so that t′′ ≤ 2(1−1/2c)·λ−log nD . Then, by Equation (18),
+        we obtain
+                    2c                        4c                    ρ
+               α≤      · (|M | + O(log nD)) <    · (θ − log t′ ) =    · w(Aφ ) = D · w(Aφ ),
+                    λ                         λ                    2λ
+        where the second inequality follows from |M | + O(log nD) ≤ θ + O(log nDℓt′ ) < 2θ.16 It
+        follows that there exists d ∈ [D] such that |T (M, d)| ≤ α/D < w(Aφ ), which implies that
+
+               T (M, d) ̸∈ Aφ .
+
+        By Equation (17), we obtain
+                                       
+                             [D]\{d}
+           K xd sdT (M,d) , s[n]     , k ≥ ℓ − n − 2 log D.
+
+        However, this contradicts the following claim.
+        ▷ Claim 6.23. Let M be an oracle program such that M y (d) outputs xd for every d ∈ [D].
+        Then, for every d ∈ [D], it holds that
+                                       
+                             [D]\{d}
+           K xd sdT (M,d) , s[n]     , k ≤ |M | + O(log D).
+                                                                                 
+        Proof. Since M y (d) outputs xd without making any query in kid i ∈ [n] \ T (M, d) , we
+                                                                        ′      ′
+        can define another oracle z = (z 1 , . . . , z D ) such that z d := y d for every d′ ∈ [D] \ {d} and
+        z d (kid ) := sdi for every i ∈ T (M, d) and z d (k) := 0m otherwise, so that there is no difference
+        between y and z on inputs queried by M y (d); therefore, we obtain xd = M y (d) = M z (d).
+        The claim follows by observing that the oracle z can be constructed from M , d ∈ [D], sdT (M,d) ,
+         [D]\{d}
+        s[n]        , and k.                                                                                 ◁
+
+
+        16
+             We may assume without loss of generality that w(Aφ ) ≥ 1; then, we have θ ≥ Ω(ρ) ≥ Ω(D), which can
+             be assumed to be larger than logarithmic terms.
+S. Hirahara                                                                                          26:29
+
+
+We conclude that ℓ−n−2 log D ≤ |M |+O(log D) ≤ O(θ) ≤ O(nλD), which is a contradiction
+by letting ℓ ≫ O(nλD). This completes the proof of Claim 6.20.                       ◀
+
+▶ Remark 6.24. It is not hard to observe that our NP-hardness hardness reduction also
+proves the NP-hardness of McKTP [4] because the upper bound of Claim 6.19 also holds for
+KT(x | y).
+
+ 7      A Simple Proof for Worst-Case to Average-Case Connections
+In this section, using SoI, we present an alternative proof of the connection from the worst-case
+complexity of the polynomial hierarchy PH to the average-case complexity of PH.
+
+▶ Theorem 7.1 ([35]). DistPH ⊆ AvgP implies that PH ⊆ DTIME(2O(n/ log n) ).
+
+   One important component of the proof of Theorem 7.1 is the notion of universal heuristic
+scheme.
+
+▶ Definition 7.2 (Universal Heuristic Scheme [35]). A (strong) universal heuristic scheme for
+a language L is a pair (S, C) of polynomial-time algorithms such that, for some polynomial
+p, for any n ∈ N, any t ≥ p(n), and any x ∈ {0, 1}n ,
+1. if cdt,p(t) (x) ≤ k, then C(x, 1t , 1k ) = 1, and
+                                           k
+2. if C(x, 1t , 1k ) = 1, then S(x, 1t , 12 ) = L(x).
+S and C are referred to as a solver and a checker, respectively.
+
+     A strong universal heuristic scheme enables the construction of an efficient algorithm:
+
+▶ Lemma 7.3 ([35]). For every language L, if there exists a strong universal heuristic scheme
+for L, then L ∈ DTIME(2O(n/ log n) ).
+
+    Our goal is to construct a strong universal heuristic scheme for every language in PH. To
+this end, we introduce a weaker version of a universal heuristic scheme:
+
+▶ Definition 7.4. A weak universal heuristic scheme for a language L is a polynomial-time
+algorithm S such that, for some polynomial p, for any n ∈ N, any t ≥ p(n), and any
+                                                    k
+x ∈ {0, 1}n , if cdt,p(t) (x) ≤ k, then S(x, 1t , 12 ) = L(x).
+
+   We observe that weak and strong universal heuristic schemes are in fact equivalent in
+Heuristica.
+
+▶ Lemma 7.5. If GapMINKT ∈ P, the following are equivalent for every language L.
+1. There exists a strong universal heuristic scheme for L.
+2. There exists a weak universal heuristic scheme for L.
+Under the assumption that DistNP ⊆ AvgP, [35] showed the equivalence between the existence
+of a strong universal heuristic scheme for L and {L}×PSamp ⊆ AvgP P, where AvgP P denotes
+the class of distributional problems solvable by algorithms whose running time is bounded
+above by some polynomial-time-computable average-case polynomial-time bound. Lemma 7.5
+adds a new equivalent statement to this.
+
+Proof of Lemma 7.5.
+strong → weak. For a strong universal heuristic scheme (S, C), the solver S satisfies the
+    definition of a weak universal heuristic scheme.
+weak → strong. The idea of constructing a checker is to estimate the time-bounded compu-
+    tational depth of an input by using an algorithm for GapMINKT.
+
+
+
+                                                                                                    CCC 2022
+26:30   Symmetry of Information from Meta-Complexity
+
+
+            Let S be a weak universal heuristic scheme for L and let p be the polynomial in Defini-
+                      e be the polynomial-time algorithm of Fact 3.4 such that for every x ∈ {0, 1}∗
+        tion 7.4. Let K
+        and every t ≥ |x|,17
+
+              Kp(t) (x) − log p(t) ≤ K(x,
+                                     e    1t ) ≤ Kt (x).
+
+        Observe that
+                           (2)                                                (2)                     (3)
+              cdp(t),p           (t)
+                                       (x) − log p(t) ≤ K(x,
+                                                        e    1t ) − K(x,
+                                                                    e    1p         (t)
+                                                                                          ) ≤ cdt,p         (t)
+                                                                                                                  (x) + log p(3) (t).   (19)
+                                                                                                        (2)
+            We define a checker C as follows: C(x, 1t , 1k ) = 1 if and only if K(x, e    1t ) − K(x,
+                                                                                                   e  1p (t) ) ≤
+                                                                        k                       k′
+        k + log p(3) (t). We define a solver S ′ so that S ′ (x, 1t , 12 ) := S ′ (x, 1p(t) , 12 ), where k ′ :=
+        k + log p(t) + log p(3) (t).
+            Below, we claim that (S ′ , C) is a strong universal heuristic scheme by showing that it
+        satisfies the two properties of Definition 7.2.
+                    (3)
+        1. If cdt,p (t) (x) ≤ k, then by the upper bound of Equation (19), we have C(x, 1t , 1k ) = 1.
+        2. If C(x, 1t , 1k ) = 1, then by the definition of C and by the lower bound of Equation (19),
+                                (2)
+            we obtain cdp(t),p (t) (x) ≤ k + log p(t) + log p(3) (t) = k ′ . It follows from the property of
+                                                            k                      k′
+            the weak heuristic scheme S that S ′ (x, 1t , 12 ) = S(x, 1p(t) , 12 ) = L(x).                     ◀
+
+          The following lemma shows that any string that can be efficiently compressed with some
+        PH oracle can also be compressed without the oracle if DistPH ⊆ AvgP.
+
+        ▶ Lemma 7.6 ([33]). Let A be an oracle. Assume that DistNPA ⊆ AvgP. Then, there exists
+        a polynomial p such that, for every x ∈ {0, 1}∗ and every t ≥ |x|,
+
+              Kp(t) (x) ≤ Kt,A (x) + log p(t).
+
+              We now use SoI to construct a weak universal heuristic scheme for every language in PH.
+
+        ▶ Lemma 7.7. Let k ∈ N. If DistΣpk+1 ⊆ AvgP, then for every language L ∈ Σpk , there exists
+        a weak universal heuristic scheme for L.
+
+        Proof. We prove this by induction on k ∈ N. The base case (k = 0) is trivial because every
+        language L ∈ Σp0 = P admits a weak universal heuristic scheme. Let k ≥ 1. Let V be a
+        language in Πpk−1 such that x ∈ L if and only if V (x, y) = 1 for some y ∈ {0, 1}poly(|x|) . For
+        every x ∈ L, let yx be the lexicographically first string y such that V (x, y) = 1. The following
+        claim is the key to the construction of a weak universal heuristic scheme.
+
+        ▷ Claim 7.8. There exists a polynomial q such that for every x ∈ L and every t ≥ |x|,
+
+              Kq(t) (yx | x) ≤ cdt,q(t) (x) + log q(t).
+
+        Proof. By a standard search-to-decision reduction, yx can be computed from x in polynomial
+        time with oracle access to some oracle A in Σpk ; thus, it follows that
+                   (2)
+              Kp         (t)
+                               (yx , x) ≤ Kp(t),A (yx , x) + log p(2) (t) ≤ Kt (x) + log p(2) (t) + O(1),
+
+        where the first inequality follows from Lemma 7.6.
+
+
+        17
+             We may assume without loss of generality that the polynomial p in Fact 3.4 is the same polynomial
+             with Definition 7.4.
+S. Hirahara                                                                                                   26:31
+
+
+   We claim that Kq(t) (yx | x) ≤ cdt,q(t) (x) + log q(t) for some polynomial q. Note that SoI
+holds because of Theorem 1.2. Using SoI, we obtain
+        (3)                         (2)                              (3)
+   Kp         (t)
+                    (yx | x) ≤ Kp         (t)
+                                                (yx , x) − Kp              (t)
+                                                                                 (x) + log p(3) (t)
+                                                      (3)
+                            ≤ Kt (x) − Kp                   (t)
+                                                                  (x) + O(log p(3) (t))
+                                      (3)
+                            = cdt,p         (t)
+                                                    (x) + O(log p(3) (t)),
+
+                                                                                                      O(1)
+where the first inequality follows from SoI. The claim follows by letting q(t) := p(3) (t)               .
+                                                                                                        ◁
+
+    By the induction hypothesis, there exists a weak universal heuristic scheme S for V . Let
+p be the polynomial in Definition 7.4.
+    We now present a weak universal heuristic scheme S ′ for L: The algorithm S ′ takes
+           k
+(x, 1t , 12 ) as input and computes the set Y of strings y ∈ {0, 1}∗ such that there exists a
+program of length at most k + log q(t) that takes x as input and outputs y in time q(t).
+Equivalently, we define
+       n                                         o
+   Y := y ∈ {0, 1}∗ Kq(t) (y | x) ≤ k + log q(t).
+
+Note that |Y | ≤ 2k+log q(t)+1 and Y can be computed in time poly(|x|, t, 2k ). The algorithm
+                                                                               ′    k′
+S ′ outputs 1 if and only if there exists a string y ∈ Y such that S((x, y), 1t , 12 ) = 1, where
+t′ = tO(1) and k ′ = O(k + log t) are parameters chosen later. Clearly, S ′ is a polynomial-time
+algorithm.
+      We claim the correctness of S ′ . Let q ′ be a polynomial chosen later. Assume that
+    t,q ′ (t)
+cd            (x) ≤ k. We claim that for some parameter t′ = q(t)O(1) and for every y ∈ Y , the
+(t , p(t ))-time-bounded computational depth of (x, y) is at most k ′ , which will imply that
+  ′        ′
+
+the output of the weak universal heuristic scheme S is correct on input (x, y). For every
+y ∈ Y , we have
+        ′       ′                                                                     ′
+   cdt ,p(t ) (x, y) ≤ Kq(t) (x) + Kq(t) (y | x) − Kp(t ) (x, y) + O(1)
+                                                ′
+                          ≤ cdq(t),2p(t ) (x) + k + log q(t) + O(1)
+                          ≤ 2k + log q(t) + O(1) =: k ′ ,
+
+where the first inequality follows from the definition of time-bounded computational depth,
+                                                          ′            ′
+the second inequality follows from the fact that K2p(t ) (x) ≤ Kp(t ) (x, y) + O(1) and y ∈ Y ,
+                                                                          ′            ′
+and the third inequality follows from the assumption that cdq(t),2p(t ) (x) ≤ cdt,q (t) (x) ≤ k,
+where we define q ′ (t) := 2p(t′ ). By the correctness of the weak universal heuristic scheme
+                            ′  k′
+S, we obtain S((x, y), 1t , 12 ) = V (x, y). If x ∈ L, Claim 7.8 implies that yx ∈ Y ; thus,
+                      ′    k′
+we have S((x, yx ), 1t , 12 ) = V (x, yx ) = 1, which implies that S ′ outputs 1. If x ̸∈ L, then
+                                                             ′    k′
+V (x, y) = 0 for every string y; thus, we obtain S((x, y), 1t , 12 ) = V (x, y) = 0, which implies
+that S ′ outputs 0.                                                                             ◀
+
+Proof of Theorem 7.1. By Lemma 7.7, every language L ∈ PH admits a weak universal
+heuristic scheme. By Lemmas 2.1 and 7.5, the weak universal heuristic scheme can be
+converted into a strong universal heuristic scheme. Finally, using Lemma 7.3, we obtain
+L ∈ DTIME(2O(n/ log n) ).                                                            ◀
+
+
+
+                                                                                                             CCC 2022
+26:32   Symmetry of Information from Meta-Complexity
+
+
+         8        What Is Implied by Symmetry of Information?
+        Toward giving an exact characterization of SoI, we investigate what SoI implies. We show
+        that SoI is sandwiched between the existence of errorless heuristic schemes (denoted by
+        AvgP) for MINKT and the existence of error-prone heuristic schemes (denoted by HeurP)
+        for MINKT under the plausible assumption that E requires exponential-sized circuits. We
+        start with the definition of error-prone and errorless heuristic schemes.
+
+         ▶ Definition 8.1. For a function t : N → N and a family D = {Dn }n∈N of distributions, an
+        algorithm A is said to be an error-prone heuristic scheme for Kt (-) with respect to D if for
+        every n ∈ N and every δ −1 ∈ N,
+         1. A(x; n, δ) halts in time poly(n/δ) for every x ∈ supp(Dn ).
+                                          
+         2. Prx∼Dn A(x; n, δ) ̸= Kt(n) (x) ≤ δ.
+        If A satisfies the additional condition that
+                              
+        resume A(x; n, δ) ∈ Kt(n) (x), ⊥ for every x ∈ supp(Dn ),
+        then A is said to be an errorless heuristic scheme for Kt (-) with respect to D. We write
+        (Kt (-), D) ∈ AvgP and (Kt (-), D) ∈ HeurP if there exists an errorless heuristic scheme and
+        an error-prone heuristic scheme for Kt (-) with respect to D, respectively.
+
+        Definition 8.1 is different from the standard definition given in [16] in the following two
+        respects.
+        1. The classes AvgP and HeurP are usually defined as the class of decision problems; here, we
+           require that heuristic algorithms output an integer Kt(n) (x) ∈ N on input x ∈ supp(Dn ).
+        2. The output Kt(n) (x) of the distributional problem (Kt (-), D) depends on the size para-
+           meter n.18
+        We mention that it is possible to state Theorem 8.2 below using only the standard definitions,
+        though the statement becomes somewhat awkward; see Footnote 19. We now state the main
+        result of this section.
+
+        ▶ Theorem 8.2. Assume that E ̸⊆ i.o.SIZE(2ϵn ) for some constant ϵ > 0. In the following
+        list, we have 1 ⇐⇒ 2 =⇒ 3 =⇒ 4 and 3 =⇒ 5.
+         1. GapMINKT ∈ P.
+         2. For every D ∈ PSamp, there exists a polynomial t0 such that (Kt (-), D) ∈ AvgP for every
+             polynomial t ≥ t0 .19
+         3. SoI holds.
+         4. For every D ∈ PSamp, there exists a polynomial t0 such that (Kt (-), D) ∈ HeurP for
+             every polynomial t ≥ t0 .
+         5. Gapτ MINKT ∈ DTIME(2O(n/ log n) ) for some function τ (n, t) = 2O(n/ log n) .
+        Here, PSamp denotes the class of families D = {Dn }n∈N of distributions such that there
+        exists a randomized polynomial-time algorithm S such that the distribution induced by S(1n )
+        is identical to Dn .
+            Longpré and Watanabe [58] showed that SoI implies that Kt (-) admits an error-prone
+        heuristic scheme with respect to the uniform distribution. Theorem 8.2 extends their result
+        to an arbitrary polynomial-time samplable distribution. To prove this, we need the following
+        result from [58].
+
+
+        18
+           The output does not depend on the size parameter n in the special case that n = |x| for every
+           x ∈ supp(Dn ).
+        19
+           This statement can be equivalently
+                                               stated as the statement that (MINKT, Dt ) ∈ AvgP, where MINKT
+           is the language defined as (x, 1 , 1 ) Kt (x) ≤ s and Dt denotes the family {Dn
+                                           t s                                             t
+                                                                                             }n∈N of distributions
+                        t
+             such that Dn is the distribution that picks (x, 1s ) ∼ Dn and outputs a sample (x, 1t(n) , 1s ).
+S. Hirahara                                                                                            26:33
+
+
+▶ Lemma 8.3 ([58]). If SoI holds, then there exist a polynomial p and a polynomial-time
+algorithm M such that for every x ∈ {0, 1}∗ and every t ≥ p(|x|) such that cdt,p(t) (x) ≤ k, on
+                 k
+input (x, 1t , 12 ), M outputs the lexicographically first program of length Kt (x) that outputs
+x in time t.
+
+Interestingly, this was proved even before the notion of computational depth was introduced
+by Antunes et al. [9]. Lemma 8.3 is reminiscent of a weak universal heuristic scheme for
+the search version of MINKT; however, it does not satisfy the definition of a weak universal
+heuristic scheme in that the parameter t cannot be chosen independently of the instance of
+MINKT. For completeness, we present the proof of Lemma 8.3.
+
+Proof. Let x ∈ {0, 1}∗ , t ∈ N, and k ∈ N be given inputs. Let dx,t ∈ {0, 1}∗ be the
+lexicographically first program of length Kt (x) that outputs x in time t. By SoI, for some
+polynomial p, we have
+
+   Kp(2t) (dx,t | x) ≤ K2t (dx,t , x) − Kp(2t) (x) + log p(2t)
+                    ≤ |dx,t | + O(1) − Kp(2t) (x) + log p(2t) = cdt,p(2t) (x) + log p(2t) + O(1),
+
+where the last inequality holds because (dx,t , x) can be computed from the description dx,t
+of the program. Consequently, there exists a polynomial q such that
+
+   Kq(t) (dx,t | x) ≤ cdt,q(t) (x) + log q(t).                                                 (20)
+                                                                     k
+    We now describe the algorithm M : Given an input (x, 1t , 12 ) such that cdt,q(t) (x) ≤ k,
+the algorithm M computes the set Y of strings d ∈ {0, 1}∗ such that Kq(t) (d | x) ≤ k + log q(t)
+and the program described by d outputs x in time t. The set Y can be computed in time
+poly(|x|, t, 2k ) by enumerating all the programs of length at most k + log q(t) that take x as
+input. Let s := min{|d| | d ∈ Y }. The algorithm M outputs the lexicographically first string
+d ∈ Y ∩ {0, 1}s .
+                                                          k
+    To see the correctness of M , fix an input (x, 1t , 12 ) such that cdt,q(t) (x) ≤ k. We claim
+that M outputs dx,t . Observe that s ≥ Kt (x) by the definition of Kt (x). Moreover, it follows
+from Equation (20) that dx,t ∈ Y ; hence, we obtain s ≤ |dx,t | = Kt (x). Since s = Kt (x), the
+lexicographically first string d ∈ Y ∩ {0, 1}s is equal to dx,t .                               ◀
+
+    Under a plausible derandomization hypothesis, Antunes and Fortnow [11] showed that if
+a string x is drawn from a polynomial-time samplable distribution, then the computational
+depth of x is small with high probability. The same conclusion holds under SoI.
+
+▶ Lemma 8.4 (see [35, Theorem 9.6 and Corollary 9.8]). If SoI holds, then for every D =
+{Dn }n∈N ∈ PSamp, there exists a polynomial t such that for every n ∈ N,
+        h            i
+    Pr cdt(n) (x) > k ≤ 2−k+log t(n) .
+   x∼Dn
+
+▶ Theorem 8.5. If SoI holds, then for every D ∈ PSamp, there exist a polynomial t and an
+error-prone heuristic scheme for Kt (-) with respect to D.
+
+Proof. Let M be the polynomial-time algorithm and p be the polynomial of Lemma 8.3. Let
+t0 be the polynomial of Lemma 8.4.
+    We describe an error-prone heuristic scheme A: The algorithm A takes (x; n, δ) as input,
+where x is sampled from Dn and δ −1 ∈ N is an error parameter. Let k := log(1/δ) + log t0 (n).
+                                                                                k
+The algorithm A outputs the length of the program computed by M (x, 1t(n) , 12 ). Clearly,
+the algorithm A runs in time poly(n/δ).
+
+
+
+                                                                                                      CCC 2022
+26:34   Symmetry of Information from Meta-Complexity
+
+
+           We claim the correctness of A, i.e., for every n ∈ N and every δ −1 ∈ N,
+                h                     i
+            Pr A(x; n, δ) ̸= Kt(n) (x) ≤ δ.
+            x∼Dn
+
+
+        By the property of M , the algorithm M fails to output a program of size Kt(n) (x) on input
+                      k
+        (x, 1t(n) , 12 ) only if cdt(n),p(t(n)) (x) > k, which implies that cdt0 (n) (x) ≥ cdt(n) (x) > k. By
+        Lemma 8.4, this happens with probability at most 2−k+log t0 (n) ≤ δ. We conclude that the
+        probability that A(x; n, δ) ̸= Kt(n) (x) is at most δ, as desired.                                  ◀
+
+            Next, we present an errorless heuristic version of Theorem 8.5.
+
+        ▶ Theorem 8.6. If SoI holds and GapMINKT ∈ P, then for every D ∈ PSamp, there exist
+        a polynomial t and an errorless heuristic scheme for Kt (-) with respect to D.
+
+        Proof. The proof is similar to that of Theorem 8.5, except that we use the algorithm for
+        GapMINKT to translate the error-prone algorithm of Theorem 8.5 to an errorless algorithm
+        in a way similar to Lemma 7.5.
+            Let p be the larger of the polynomial of Lemma 8.3 and the polynomial of Fact 3.4. Let
+        C be the checker defined in the proof of Lemma 7.5, which satisfies the following properties:
+        For every x ∈ {0, 1}∗ and every t ≥ |x| and every t ∈ N,
+                    (3)
+         1. if cdt,p (t) (x) ≤ k, then C(x, 1t , 1k ) = 1, and
+                                                (2)
+         2. if C(x, 1t , 1k ) = 1, then cdp(t),p (t) (x) ≤ k + log p(t) + log p(3) (t).
+           We now describe an errorless heuristic scheme A: The algorithm A takes (x; n, δ) as
+        input. Let t := t(n) and k := log(1/δ) + log t. The algorithm A outputs the special failure
+        symbol ⊥ if C(x, 1t , 1k ) = 0. Otherwise, A outputs the length of the program computed by
+                        k′
+        M (x, 1p(t) , 12 ), where we define k ′ := k + log p(t) + log p(3) (t). Clearly, the algorithm A
+        runs in time poly(n/δ).
+           To prove the correctness of A, we first show that A is errorless. For every n ∈ N and
+        every x ∈ supp(Dn ), we claim
+
+            A(x; n, δ) ∈ {Kt (x), ⊥}
+
+        by considering the following two cases: (1) If the checker C outputs 0, then by definition, A
+                                                                                          (2)
+        outputs ⊥. (2) Otherwise, we have C(x, 1t , 1k ) = 1, which implies that cdp(t),p (t) (x) ≤ k ′ .
+        In the latter case, by the properties of M , the output of A is equal to Kt (x).
+            Next, we show that the failure probability of A is at most δ. Observe that A fails only if
+                                                            (3)
+        C(x, t, 1k ) = 0, which implies that cdt (x) ≥ cdt,p (t) (x) > k. This happens with probability
+        at most 2−k+log t ≤ δ by Lemma 8.4. We conclude that
+
+             Pr [A(x; n, δ) = ⊥] ≤ δ.                                                                     ◀
+            x∼Dn
+
+            Finally, we construct a slightly sub-exponential-time algorithm for GapMINKT from SoI.
+
+        ▶ Theorem 8.7. If SoI holds, then for every constant δ > 0, there exists an algorithm M that,
+                                                   1−δ
+        on input (x, t) such that |x| ≤ t ≤ 2|x| , outputs a program of length Kt (x) that outputs x
+        in time t′ , where t′ = 2O(|x|/ log |x|) . The algorithm M runs in time 2O(|x|/ log |x|) on input
+        (x, t).
+
+            In particular, the length of the program d computed by M on input (x, t) satisfies that
+              ′
+            Kt (x) ≤ |d| ≤ Kt (x).                                                                      (21)
+S. Hirahara                                                                                              26:35
+
+
+Proof of Theorem 8.7. Let M be the algorithm and p be the polynomial from Lemma 8.3.
+Fix a string x ∈ {0, 1}∗ of length n and an integer t ∈ N. Following [35], we consider the
+following telescoping sum:
+     I
+                 (i−1)
+                         (t),p(i) (t)                 (I)
+     X
+           cdp                          (x) = cdt,p         (t)
+                                                                  (x) ≤ n + O(1) ≤ 2n,
+     i=1
+
+where I is a parameter chosen later. By taking the minimum term on the left-hand side,
+there exists an index i ∈ [I] such that
+           (i−1)
+                   (t),p(i) (t)
+     cdp                          (x) ≤ 2n/I.                                                   (22)
+
+    We define an algorithm M ′ as follows. Given (x, t) as input, let t0 := max{t, p(n)} and
+                                                                                     2n/I
+ti := p(i) (t0 ) for every i ∈ [I]. Let di be the program computed by M (x, 1ti , 12      ) for every
+i ∈ [I]. The algorithm M ′ outputs the shortest program di that outputs x in time ti .
+    The running time of M ′ is at most
+                                     I                             I   1−δ
+     poly(tI , 22n/I ) ≤ tc · 2O(n/I) ≤ 2O(c ·n                              +n/I)
+                                                                                     ,
+
+where c is some universal constant. By letting I := ϵ log n for a sufficiently small constant
+ϵ > 0, the running time can be bounded by 2O(n/ log n) .
+    We prove the correctness of M ′ . Let i∗ be the index that satisfies Equation (22). Then,
+by the correctness of M , the program di∗ prints x in time ti∗ and |di∗ | = Kti∗ (x). This
+means that the output of M ′ is well defined. Let di be the program computed by M ′ . By the
+definition of M ′ , we have |di | ≤ |di∗ | = Kti∗ (x) ≤ Kt (x). Moreover, the program di prints x
+in time ti ≤ tI .                                                                              ◀
+
+Proof of Theorem 8.2. The implication from Item 2 to 1 is proved in [33]. Theorems 4.1
+and 8.6 prove the implication from Item 1 to 2. Theorem 4.1 proves the implication from
+Item 1 to 3. Theorem 8.5 proves the implication from Item 3 to 4.
+    The implication from Item 3 to 5 easily follows from Theorem 8.7: We describe a 2O(n/ log n) -
+time algorithm that solves Gapτ MINKT. Given an instance (x, 1t , 1s ) of Gapτ MINKT, if
+t ≤ |x|2 , then we use the search algorithm M of Theorem 8.7 and output 1 if and only if
+the length of the program computed by M (x, t) is at most s. The search algorithm M runs
+in time 2O(|x|/ log |x|) . If t > |x|2 , then we use a trivial exhaustive search to find a shortest
+program that prints x in time t; this exhaustive search runs in time 2O(|x|) · tO(1) . In both
+cases, the algorithm runs in time 2O(n/ log n) , where n denotes the length Θ(|x| + t) of the
+instance (x, 1t , 1s ). The correctness of the algorithm follows from Equation (21).             ◀
+
+       References
+ 1     Dorit Aharonov and Oded Regev. Lattice problems in NP ∩ coNP. J. ACM, 52(5):749–765,
+       2005. doi:10.1145/1089023.1089025.
+ 2     Miklós Ajtai. Generating Hard Instances of Lattice Problems (Extended Abstract). In
+       Proceedings of the Symposium on the Theory of Computing (STOC), pages 99–108, 1996.
+       doi:10.1145/237814.237838.
+ 3     Eric Allender, Harry Buhrman, Michal Koucký, Dieter van Melkebeek, and Detlef Ronneburger.
+       Power from Random Strings. SIAM J. Comput., 35(6):1467–1493, 2006. doi:10.1137/
+       050628994.
+ 4     Eric Allender, Mahdi Cheraghchi, Dimitrios Myrisiotis, Harsha Tirumala, and Ilya Volkovich.
+       One-Way Functions and a Conditional Variant of MKTP. In Proceedings of the Foundations
+       of Software Technology and Theoretical Computer Science (FSTTCS), pages 7:1–7:19, 2021.
+       doi:10.4230/LIPIcs.FSTTCS.2021.7.
+
+
+
+
+                                                                                                        CCC 2022
+26:36   Symmetry of Information from Meta-Complexity
+
+
+         5   Eric Allender, John Gouwar, Shuichi Hirahara, and Caleb Robelle. Cryptographic Hard-
+             ness Under Projections for Time-Bounded Kolmogorov Complexity. In Proceedings of the
+             International Symposium on Algorithms and Computation (ISAAC), pages 54:1–54:17, 2021.
+             doi:10.4230/LIPIcs.ISAAC.2021.54.
+         6   Eric Allender, Joshua A. Grochow, Dieter van Melkebeek, Cristopher Moore, and Andrew
+             Morgan. Minimum Circuit Size, Graph Isomorphism, and Related Problems. SIAM J. Comput.,
+             47(4):1339–1372, 2018. doi:10.1137/17M1157970.
+         7   Eric Allender, Lisa Hellerstein, Paul McCabe, Toniann Pitassi, and Michael E. Saks. Minimizing
+             Disjunctive Normal Form Formulas and AC0 Circuits Given a Truth Table. SIAM J. Comput.,
+             38(1):63–84, 2008. doi:10.1137/060664537.
+         8   Eric Allender, Michal Koucký, Detlef Ronneburger, and Sambuddha Roy. The pervasive reach
+             of resource-bounded Kolmogorov complexity in computational complexity theory. J. Comput.
+             Syst. Sci., 77(1):14–40, 2011. doi:10.1016/j.jcss.2010.06.004.
+         9   Luis Antunes, Lance Fortnow, Dieter van Melkebeek, and N. V. Vinodchandran. Computational
+             depth: Concept and applications. Theor. Comput. Sci., 354(3):391–404, 2006. doi:10.1016/
+             j.tcs.2005.11.033.
+        10   Luis Antunes, Sophie Laplante, Alexandre Pinto, and Liliana C. M. Salvador. Cryptographic
+             Security of Individual Instances. In Proceedings of Information Theoretic Security (ICITS),
+             pages 195–210, 2007. doi:10.1007/978-3-642-10230-1_17.
+        11   Luis Filipe Coelho Antunes and Lance Fortnow. Worst-Case Running Times for Average-Case
+             Algorithms. In Proceedings of the Conference on Computational Complexity (CCC), pages
+             298–303, 2009. doi:10.1109/CCC.2009.12.
+        12   Amos Beimel. Secret-Sharing Schemes: A Survey. In The Third International Workshop on
+             Coding and Cryptology (IWCC), pages 11–46, 2011. doi:10.1007/978-3-642-20901-7_2.
+        13   Josh Cohen Benaloh and Jerry Leichter. Generalized Secret Sharing and Monotone Functions.
+             In Proceedings of the International Cryptology Conference (CRYPTO), pages 27–35, 1988.
+             doi:10.1007/0-387-34799-2_3.
+        14   George Robert Blakley. Safeguarding cryptographic keys. In International Workshop on
+             Managing Requirements Knowledge (MARK), pages 313–318, 1979. doi:10.1109/MARK.1979.
+             8817296.
+        15   Manuel Blum and Sampath Kannan. Designing Programs that Check Their Work. J. ACM,
+             42(1):269–291, 1995. doi:10.1145/200836.200880.
+        16   Andrej Bogdanov and Luca Trevisan. Average-Case Complexity. Foundations and Trends in
+             Theoretical Computer Science, 2(1), 2006. doi:10.1561/0400000004.
+        17   Andrej Bogdanov and Luca Trevisan. On Worst-Case to Average-Case Reductions for NP
+             Problems. SIAM J. Comput., 36(4):1119–1159, 2006. doi:10.1137/S0097539705446974.
+        18   Harry Buhrman, Lance Fortnow, and Aduri Pavan. Some Results on Derandomization. Theory
+             Comput. Syst., 38(2):211–227, 2005. doi:10.1007/s00224-004-1194-y.
+        19   Harry Buhrman and Elvira Mayordomo. An Excursion to the Kolmogorov Random Strings.
+             J. Comput. Syst. Sci., 54(3):393–399, 1997. doi:10.1006/jcss.1997.1484.
+        20   Lijie Chen, Shuichi Hirahara, and Neekon Vafa. Average-case Hardness of NP and PH
+             from Worst-case Fine-grained Assumptions. In Proceedings of the Innovations in Theoretical
+             Computer Science Conference (ITCS), pages 67:1–67:17, 2022.
+        21   Irit Dinur, Prahladh Harsha, and Guy Kindler. Polynomially Low Error PCPs with polyloglog
+             n Queries via Modular Composition. In Proceedings of the Symposium on Theory of Computing
+             (STOC), pages 267–276, 2015. doi:10.1145/2746539.2746630.
+        22   Irit Dinur and Shmuel Safra. On the hardness of approximating label-cover. Inf. Process.
+             Lett., 89(5):247–254, 2004. doi:10.1016/j.ipl.2003.11.007.
+        23   Joan Feigenbaum and Lance Fortnow. Random-Self-Reducibility of Complete Sets. SIAM J.
+             Comput., 22(5):994–1005, 1993. doi:10.1137/0222061.
+        24   Lance Fortnow and Martin Kummer. On Resource-Bounded Instance Complexity. Theor.
+             Comput. Sci., 161(1&2):123–140, 1996. doi:10.1016/0304-3975(95)00097-6.
+S. Hirahara                                                                                          26:37
+
+
+25   Lance Fortnow, Troy Lee, and Nikolai K. Vereshchagin. Kolmogorov Complexity with Error. In
+     STACS 2006, 23rd Annual Symposium on Theoretical Aspects of Computer Science, Marseille,
+     France, February 23-25, 2006, Proceedings, pages 137–148, 2006. doi:10.1007/11672142_10.
+26   Lance Fortnow and Nick Reingold. PP is Closed Under Truth-Table Reductions. Inf. Comput.,
+     124(1):1–6, 1996. doi:10.1006/inco.1996.0001.
+27   Eran Gat and Shafi Goldwasser. Probabilistic Search Algorithms with Unique Answers and
+     Their Cryptographic Applications. Electron. Colloquium Comput. Complex., page 136, 2011.
+     URL: https://eccc.weizmann.ac.il/report/2011/136.
+28   Halley Goldberg and Valentine Kabanets. A Simpler Proof of the Worst-Case to Average-Case
+     Reduction for Polynomial Hierarchy via Symmetry of Information. Electronic Colloquium on
+     Computational Complexity (ECCC), 007, 2022.
+29   Oded Goldreich and Shafi Goldwasser. On the Limits of Nonapproximability of Lattice
+     Problems. J. Comput. Syst. Sci., 60(3):540–563, 2000. doi:10.1006/jcss.1999.1686.
+30   Ishay Haviv and Oded Regev. Tensor-based Hardness of the Shortest Vector Problem to
+     within Almost Polynomial Factors. Theory of Computing, 8(1):513–531, 2012. doi:10.4086/
+     toc.2012.v008a023.
+31   Shuichi Hirahara. Non-black-box Worst-case to Average-case Reductions within NP. In
+     Proceedings of the Symposium on Foundations of Computer Science (FOCS), pages 247–258,
+     2018.
+32   Shuichi Hirahara. Characterizing Average-Case Complexity of PH by Worst-Case Meta-
+     Complexity. In Proceedings of the Symposium on Foundations of Computer Science (FOCS),
+     pages 50–60, 2020.
+33   Shuichi Hirahara. Non-Disjoint Promise Problems from Meta-Computational View of Pseudor-
+     andom Generator Constructions. In Proceedings of the Computational Complexity Conference
+     (CCC), pages 20:1–20:47, 2020. doi:10.4230/LIPIcs.CCC.2020.20.
+34   Shuichi Hirahara. Unexpected hardness results for Kolmogorov complexity under uniform
+     reductions. In Proceedings of the Symposium on Theory of Computing (STOC), pages 1038–
+     1051, 2020. doi:10.1145/3357713.3384251.
+35   Shuichi Hirahara. Average-case hardness of NP from exponential worst-case hardness assump-
+     tions. In Proceedings of the Symposium on Theory of Computing (STOC), pages 292–302,
+     2021. doi:10.1145/3406325.3451065.
+36   Shuichi Hirahara and Mikito Nanashima. On Worst-Case Learning in Relativized Heuristica.
+     In Proceedings of the Symposium on Foundations of Computer Science (FOCS), 2021.
+37   Shuichi Hirahara, Igor Carboni Oliveira, and Rahul Santhanam. NP-hardness of Minimum
+     Circuit Size Problem for OR-AND-MOD Circuits. In Proceedings of the Computational
+     Complexity Conference (CCC), pages 5:1–5:31, 2018. doi:10.4230/LIPIcs.CCC.2018.5.
+38   Shuichi Hirahara and Rahul Santhanam. Errorless versus Error-prone Average-case Complexity.
+     In Proceedings of the Innovations in Theoretical Computer Science Conference (ITCS), pages
+     38:1–38:23, 2022.
+39   Shuichi Hirahara and Osamu Watanabe. Limits of Minimum Circuit Size Problem as Oracle.
+     In Proceedings of the Conference on Computational Complexity (CCC), pages 18:1–18:20, 2016.
+     doi:10.4230/LIPIcs.CCC.2016.18.
+40   Rahul Ilango. Approaching MCSP from Above and Below: Hardness for a Conditional Variant
+     and AC0 [p]. In Proceedings of the Innovations in Theoretical Computer Science Conference
+     (ITCS), pages 34:1–34:26, 2020. doi:10.4230/LIPIcs.ITCS.2020.34.
+41   Rahul Ilango. Constant Depth Formula and Partial Function Versions of MCSP are Hard. In
+     Proceedings of the Symposium on Foundations of Computer Science (FOCS), pages 424–433,
+     2020.
+42   Rahul Ilango, Bruno Loff, and Igor Carboni Oliveira. NP-Hardness of Circuit Minimization for
+     Multi-Output Functions. In Proceedings of the Computational Complexity Conference (CCC),
+     pages 22:1–22:36, 2020. doi:10.4230/LIPIcs.CCC.2020.22.
+
+
+
+
+                                                                                                    CCC 2022
+26:38   Symmetry of Information from Meta-Complexity
+
+
+        43   Russell Impagliazzo. A Personal View of Average-Case Complexity. In Proceedings of the
+             Structure in Complexity Theory Conference, pages 134–147, 1995. doi:10.1109/SCT.1995.
+             514853.
+        44   Russell Impagliazzo. Relativized Separations of Worst-Case and Average-Case Complexities
+             for NP. In Proceedings of the Conference on Computational Complexity (CCC), pages 104–114,
+             2011. doi:10.1109/CCC.2011.34.
+        45   Russell Impagliazzo and Leonid A. Levin. No Better Ways to Generate Hard NP Instances
+             than Picking Uniformly at Random. In Proceedings of the Symposium on Foundations of
+             Computer Science (FOCS), pages 812–821, 1990. doi:10.1109/FSCS.1990.89604.
+        46   Russell Impagliazzo and Avi Wigderson. P = BPP if E Requires Exponential Circuits:
+             Derandomizing the XOR Lemma. In Proceedings of the Symposium on the Theory of Computing
+             (STOC), pages 220–229, 1997. doi:10.1145/258533.258590.
+        47   Valentine Kabanets and Jin-yi Cai. Circuit minimization problem. In Proceedings of the
+             Symposium on Theory of Computing (STOC), pages 73–79, 2000. doi:10.1145/335305.
+             335314.
+        48   Tarik Kaced. Almost-perfect secret sharing. In Proceedings of the International Symposium
+             on Information Theory (ISIT), pages 1603–1607, 2011. doi:10.1109/ISIT.2011.6033816.
+        49   Mauricio Karchmer and Avi Wigderson. On Span Programs. In Proceedings of the Structure
+             in Complexity Theory Conference, pages 102–111, 1993. doi:10.1109/SCT.1993.336536.
+        50   Ker-I Ko. On the Complexity of Learning Minimum Time-Bounded Turing Machines. SIAM
+             J. Comput., 20(5):962–986, 1991. doi:10.1137/0220059.
+        51   Andrei N Kolmogorov. Three approaches to the quantitative definition of information. Problems
+             of information transmission, 1(1):1–7, 1965.
+        52   Troy Lee and Andrei E. Romashchenko. Resource bounded symmetry of information revisited.
+             Theor. Comput. Sci., 345(2-3):386–405, 2005. doi:10.1016/j.tcs.2005.07.017.
+        53   Leonid A. Levin. The Tale of One-Way Functions. Probl. Inf. Transm., 39(1):92–103, 2003.
+             doi:10.1023/A:1023634616182.
+        54   Leonid A. Levin. How do we succeed in tasks like proving Fermat’s Theorem or predicting
+             the Higgs boson?, 2021. An invited talk given at STOC 2021. The transcript is available at
+             https://www.cs.bu.edu/fac/lnd/expo/stoc21/txt.pdf.
+        55   Ming Li and Paul M. B. Vitányi. An Introduction to Kolmogorov Complexity and Its
+             Applications, Third Edition. Texts in Computer Science. Springer, 2008. doi:10.1007/
+             978-0-387-49820-1.
+        56   Yanyi Liu and Rafael Pass. On One-way Functions from NP-Complete Problems. Electron.
+             Colloquium Comput. Complex., 28:59, 2021. URL: https://eccc.weizmann.ac.il/report/
+             2021/059.
+        57   Luc Longpré and Sarah Mocas. Symmetry of Information and One-Way Functions. Inf.
+             Process. Lett., 46(2):95–100, 1993. doi:10.1016/0020-0190(93)90204-M.
+        58   Luc Longpré and Osamu Watanabe. On Symmetry of Information and Polynomial Time
+             Invertibility. Inf. Comput., 121(1):14–22, 1995. doi:10.1006/inco.1995.1120.
+        59   Zhenjian Lu and Igor Carboni Oliveira. An Efficient Coding Theorem via Probabilistic
+             Representations and Its Applications. In Proceedings of the International Colloquium on
+             Automata, Languages, and Programming (ICALP), pages 94:1–94:20, 2021. doi:10.4230/
+             LIPIcs.ICALP.2021.94.
+        60   Daniele Micciancio and Oded Regev. Worst-Case to Average-Case Reductions Based on Gaus-
+             sian Measures. SIAM J. Comput., 37(1):267–302, 2007. doi:10.1137/S0097539705447360.
+        61   Noam Nisan and Avi Wigderson. Hardness vs Randomness. J. Comput. Syst. Sci., 49(2):149–
+             167, 1994. doi:10.1016/S0022-0000(05)80043-1.
+        62   Igor Carboni Oliveira. Randomness and Intractability in Kolmogorov Complexity. In Proceed-
+             ings of the International Colloquium on Automata, Languages, and Programming (ICALP),
+             pages 32:1–32:14, 2019. doi:10.4230/LIPIcs.ICALP.2019.32.
+S. Hirahara                                                                                           26:39
+
+
+63     Igor Carboni Oliveira and Rahul Santhanam. Pseudodeterministic constructions in subex-
+       ponential time. In Proceedings of the Symposium on Theory of Computing (STOC), pages
+       665–677, 2017. doi:10.1145/3055399.3055500.
+64     Ran Raz, Omer Reingold, and Salil P. Vadhan. Extracting all the Randomness and Reducing
+       the Error in Trevisan’s Extractors. J. Comput. Syst. Sci., 65(1):97–128, 2002. doi:10.1006/
+       jcss.2002.1824.
+65     Hanlin Ren and Rahul Santhanam. Hardness of KT Characterizes Parallel Cryptography.
+       In Proceedings of the Computational Complexity Conference (CCC), pages 35:1–35:58, 2021.
+       doi:10.4230/LIPIcs.CCC.2021.35.
+66     Detlef Ronneburger. Kolmogorov Complexity and Derandomization. PhD thesis, Rutgers
+       UniversityDept. of Computer Science Laboratory for Computer Sci. Research Hill Center, NJ,
+       USA, 2004.
+67     Adi Shamir. How to Share a Secret. Commun. ACM, 22(11):612–613, 1979. doi:10.1145/
+       359168.359176.
+68     Amnon Ta-Shma, Christopher Umans, and David Zuckerman. Lossless Condensers, Un-
+       balanced Expanders, And Extractors. Combinatorica, 27(2):213–240, 2007. doi:10.1007/
+       s00493-007-0053-2.
+69     Boris A. Trakhtenbrot. A Survey of Russian Approaches to Perebor (Brute-Force Searches)
+       Algorithms. IEEE Annals of the History of Computing, 6(4):384–400, 1984. doi:10.1109/
+       MAHC.1984.10036.
+70     Luca Trevisan. Extractors and pseudorandom generators. J. ACM, 48(4):860–879, 2001.
+       doi:10.1145/502090.502099.
+71     Luca Trevisan and Salil P. Vadhan. Pseudorandomness and Average-Case Complexity
+       Via Uniform Reductions. Computational Complexity, 16(4):331–364, 2007. doi:10.1007/
+       s00037-007-0233-x.
+72     Emanuele Viola. On Constructing Parallel Pseudorandom Generators from One-Way Functions.
+       In Proceedings of the Conference on Computational Complexity (CCC), pages 183–197, 2005.
+       doi:10.1109/CCC.2005.16.
+73     Emanuele Viola. The complexity of constructing pseudorandom generators from hard functions.
+       Computational Complexity, 13(3-4):147–188, 2005. doi:10.1007/s00037-004-0187-1.
+74     AK Zvonkin and LA Levin. The complexity of finite objects and the algorithmic concepts of
+       randomness and information. UMN (Russian Math. Surveys), 25(6):83–124, 1970.
+
+
+ A       Symmetry of Information from Weak Symmetry of Information
+In this appendix, we present a simple proof of SoI based on weak symmetry of information.
+Weak symmetry of information is formally stated as follows:
+
+▶ Lemma A.1 (Weak Symmetry of Information [35]). If GapMINKT ∈ P and E ̸⊆ i.o.SIZE(2ϵn )
+for some constant ϵ > 0, then there exists a polynomial p such that, for any n, m ∈ N, any
+t ≥ n + m, any ϵ > 0, and any x ∈ {0, 1}n ,
+            h                                      i
+      Pr m Kt (x, w) ≥ Kp(t/ϵ) (x) + m − log p(t/ϵ) ≥ 1 − ϵ.
+     w∼{0,1}
+
+
+
+Alternative Proof of Theorem 4.1. Let M be an algorithm for Gapτ MINKT, where τ is
+some polynomial. Fix x, y ∈ {0, 1}∗ , and t ∈ N such that t ≥ |x| + |y|. Let n := |x|. We
+prove SoI by analyzing the behavior of
+                           ′
+     M (DPk (x; z) · y, 1t , 1s )
+
+
+
+
+                                                                                                     CCC 2022
+26:40   Symmetry of Information from Meta-Complexity
+
+
+        over a random choice of z ∼ {0, 1}nk , where k, s and t′ are parameters chosen later. To
+        this end, we first compare the time-bounded Kolmogorov complexity of DPk (x; z) · y with
+        that of w · y for random choices of z ∼ {0, 1}nk and w ∼ {0, 1}nk+k : On one hand, since
+        DPk (x; z) · y can be described by z, k ≤ O(t), and a program that outputs (x, y), we have
+                 ′
+            Kt (DPk (x; z) · y) ≤ Kt (x, y) + |z| + log t′ ,                                                  (23)
+
+        where t′ = poly(t) is some polynomial. On the other hand, by Lemma A.1, there exists a
+        polynomial p0 such that
+                 ′              ′
+            Kt (w · y) ≥ Kp0 (t ) (y) + |w| − log p0 (t′ )                                                    (24)
+
+        with probability at least 21 over a random choice of w ∼ {0, 1}nk+k .
+            Comparing Equations (23) and (24), when k is sufficiently large, the output distribution
+        of DPk (x; -) can be distinguished from the uniform distribution by using the algorithm M .
+        In more detail, let s := Kt (x, y) + |z| + log t′ , which is the right-hand side of Equation (23).
+                                   ′
+        Let k := Kt (x, y) − Kp0 (t ) (y) + log p0 (t′ ) + log t′ + log τ (n′ , t′ ) + 1 so that the right-hand side
+        of Equation (24) is greater than s + log τ (n′ , t′ ), where n′ := |w| + |y|. Then, Equation (23)
+        implies that DPk (x; z) · y is a Yes instance of Gapτ MINKT; thus, we obtain
+               h                      ′
+                                                i
+            Pr M (DPk (x; z) · y, 1t , 1s ) = 1 = 1.
+             z
+
+        Equation (24) implies that w · y is a No instance of Gapτ MINKT with probability at least
+        1
+        2 ; thus, we obtain
+              h            ′
+                                      i 1
+            Pr M (w · y, 1t , 1s ) = 1 ≤ .
+            w                           2
+                                                                  ′
+        Define a circuit Dy so that Dy (w) := M (w · y, 1t , 1s ) for every input w ∈ {0, 1}nk+k ; then,
+        it follows that
+                                                                1
+            Pr [Dy (DPk (x; z)) = 1] − Pr [Dy (w) = 1] ≥          ,
+             z                            w                     2
+        which, by Lemma 2.2, implies that
+
+            Kp1 (t) (x | Dy ) ≤ k + log p1 (t)
+
+        for some polynomial p1 . Finally, observe that the circuit Dy can be described by using
+        y ∈ {0, 1}∗ , n, k, t′ , and s ∈ N as well as an O(1)-size program for M ; therefore, we obtain
+                                                                                              ′
+            Kp1 (t) (x | y) ≤ Kt (x | Dy ) + O(log t) ≤ k + O(log t) ≤ Kt (x, y) − Kp0 (t ) (y) + O(log t).
+
+        By choosing a large enough polynomial p, it follows that
+
+            Kp(t) (x | y) + Kp(t) (y) ≤ Kt (x, y) + log p(t).                                                    ◀
+
+        A.1          Why Was Symmetry of Information Not Proved Before?
+        The alternative proof of Theorem 1.2 is reminiscent of the lemma of [35] that constructs
+        a universal heuristic scheme from an algorithm for Gap(KPH vs K). In retrospect, the
+        proof techniques for Theorem 1.2 were already developed in [35]. It is natural to ask why
+        Theorem 1.2 was not proved in [35]. The reason is that previous results suggested the
+        infeasibility of proving Theorem 1.2, as we explain below.
+S. Hirahara                                                                                                    26:41
+
+
+   Weak symmetry of information is implicitly proved in [33] under the strong assumption
+that DistPH ⊆ AvgP. Specifically, [33] showed that if DistPH ⊆ AvgP, then
+
+      Kpoly(t) (x) ≤ Kt,PH (x) + O(log t)
+
+for every x ∈ {0, 1}∗ and every t ≥ |x|.20 That is, the PH-oracle time-bounded Kolmogorov
+complexity of x is approximately equal to Kt (x). By using the Kolmogorov–Levin proof of
+symmetry of information (as in [58]), it can be shown that
+
+      Kpoly(t),PH (y | x) + Kpoly(t),PH (x) ≤ Kt (x, y) + O(log t).
+
+Now, for a random y ∼ {0, 1}m , we have Kpoly(t),PH (y | x) ≈ |y| by Fact 3.2. Therefore, we
+obtain weak symmetry of information:
+
+      |y| + Kpoly(t) (x) ≤ Kt (x, y) + O(log t)
+
+holds with high probability over a random choice of y ∼ {0, 1}m .
+    One may be tempted to try to prove symmetry of information by extending the result
+of [33] to
+
+      Kpoly(t) (x | y) ≤ Kt,PH (x | y) + O(log t)                                                     (25)
+
+under the assumption that DistPH ⊆ AvgP. However, this statement is in fact equivalent
+to the equivalence between the average-case easiness of PH and the worst-case easiness of
+PH (i.e., P = PH ⇐⇒ DistPH ⊆ AvgP) [52, 24], which is a long-standing open question and
+cannot be proved by relativizing proof techniques [44, 36]. These results suggest the difficulty
+of proving symmetry of information because it relates conditional Kolmogorov complexity
+and unconditional Kolmogorov complexity, which previously seemed to imply Equation (25).
+    [35] proved DistPH ⊆ AvgP =⇒ PH ⊆ DTIME(2O(n/ log n) ), which is the first non-trivial
+worst-case-to-average-case connection of PH. [35] also proved weak symmetry of information
+under the weaker assumption that DistNP ⊆ AvgP than [33]. What was overlooked in [35] is
+that symmetry of information does not necessarily imply Equation (25). In fact, under the
+assumption that DistPH ⊆ AvgP, SoI implies a weaker statement that
+
+      Kpoly(t) (x | y) ≤ Kt,PH (x | y) + cdt,poly(t) (y) + O(log t).                                  (26)
+
+This statement looks quite similar to Equation (25), especially because the computational
+depth of y is small for most strings y (Lemma 8.4). Although Equation (26) is not sufficient
+to obtain P = PH, it does suffice to prove PH ⊆ DTIME(2O(n/ log n) ), which provides the
+alternative proof of the main results of [35] presented in Section 7. The fact that SoI provides
+the worst-case-to-average-case connections indicates the importance of SoI in average-case
+complexity theory.
+
+
+
+
+20
+     Kt,PH (x) is an informal notation that represents the A-oracle t-time-bounded Kolmogorov complexity of
+     x for an oracle A ∈ PH. The statement is true for every oracle A ∈ PH.
+
+
+
+
+                                                                                                              CCC 2022
+

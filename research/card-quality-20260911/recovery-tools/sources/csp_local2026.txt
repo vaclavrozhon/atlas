@@ -1,0 +1,1648 @@
+Local Algorithms and the Failure of Log-Depth
+Quantum Advantage on Sparse Random CSPs
+Antares Chen #
+University of Chicago, IL, USA
+Neng Huang #
+University of Michigan, Ann Arbor, MI, USA
+Kunal Marwaha #
+University of Chicago, IL, USA
+      Abstract
+We construct and analyze a message-passing algorithm for random constraint satisfaction problems
+(CSPs) at large clause density, generalizing work of El Alaoui, Montanari, and Sellke for Maximum
+Cut [3] through a connection between random CSPs and mean-field Ising spin glasses [1, 55].
+For CSPs with even predicates, the algorithm asymptotically solves a stochastic optimal control
+problem dual to an extended Parisi variational principle. This gives an optimal fraction of satisfied
+constraints among algorithms obstructed by the branching overlap gap property of Huang and
+Sellke [50], notably including the Quantum Approximate Optimization Algorithm and all quantum
+circuits on a bounded-degree architecture of up to ϵ · log n depth [24].
+
+2012 ACM Subject Classification Theory of computation → Randomness, geometry and discrete
+structures; Theory of computation → Design and analysis of algorithms
+
+Keywords and phrases Random CSP, message-passing algorithm
+
+Digital Object Identifier 10.4230/LIPIcs.APPROX/RANDOM.2026.78
+
+Category RANDOM
+
+Related Version Full Version: https://arxiv.org/abs/2310.01563
+
+
+ 1      Introduction
+Today’s quantum computers are starting to show signs of advantage over classical machines.
+Many people are seeking to use this technology in a practical application as soon as possible.
+One such area is combinatorial optimization: even though the problems are NP-hard,
+optimization has incredible value to the contemporary world. This industry is also eager to
+experiment with quantum computers, perhaps because rigorous worst-case analysis is not
+always relevant.
+    The most popular quantum protocol for classical optimization is the Quantum Approximate
+Optimization Algorithm (QAOA), proposed in [34]. Given an optimization problem, the
+protocol associates a qubit to each variable, and evolves a quantum state to a near-ground
+state of the problem, depending on choice of hyperparameters. The QAOA has also sparked
+the interest of theorists, characterizing the protocol’s performance on canonical problems, and
+debating whether it is any more powerful than existing classical algorithms (e.g. [9, 45, 11]).
+    One key property of the QAOA is its locality: at each layer of the algorithm, a qubit
+interacts only with qubits associated with adjacent variables in the optimization problem.
+Locality is known to limit the QAOA up to logarithmic circuit depth when the optimization
+problem is sparse [32, 33]. This limitation is due to a phenomenon known as the overlap gap
+property (OGP), a type of clustering behavior of near-optimal solutions [44]. Notably, this is
+an average-case property of many random optimization problems. Recent formulations of the
+OGP have led to quantitative obstructions for broad families of algorithms, both quantum
+and classical [21, 24, 50].
+           © Antares Chen, Neng Huang, and Kunal Marwaha;
+           licensed under Creative Commons License CC-BY 4.0
+Approximation, Randomization, and Combinatorial Optimization. Algorithms and Techniques
+(APPROX/RANDOM 2026).
+Editors: Mohit Singh and Tom Gur; Article No. 78; pp. 78:1–78:26
+                  Leibniz International Proceedings in Informatics
+                  Schloss Dagstuhl – Leibniz-Zentrum für Informatik, Dagstuhl Publishing, Germany
+78:2   Local Algorithms and Sparse Random CSPs
+
+
+           In this work, we show that with high probability over a large family of sparse optimization
+       problems, there is an optimal algorithm among those obstructed by the OGP. Furthermore,
+       this algorithm is classical, so there can be no quantum advantage by the QAOA up to
+       logarithmic depth. In fact, this no-go result extends to logarithmic-depth quantum circuits
+       on fixed, bounded-degree architectures, such as the brickwork circuits [18] used in random
+       circuit sampling [15]. This is the strongest average-case result known to the authors regarding
+       quantum advantage in classical optimization.
+           Our algorithm is related to the theory of message-passing used in random inference
+       problems [13], and inspired by rich connections to statistical physics models such as the
+       mean-field spin glass [82]. The parameters of the algorithm are chosen by solving a stochastic
+       control problem dual to a problem determining the quantitative barrier of the OGP, as
+       pioneered in [1, 50]. In particular, our algorithm extends work of [3], and uses a sparse-
+       to-dense connection observed in e.g. [26, 55]. The performance of the algorithm, like that
+       of [68, 1, 3, 79], is dependent on a technical condition (Assumption 1) which we explain in
+       the text.
+
+       1.1      Background
+       We study Constraint Satisfaction Problems (CSPs). A CSP instance consists of n variables
+       and a set of constraints associated with a predicate f : {±1}r → {0, 1}.
+       ▶ Definition 1 (Instance of a random CSP). Consider a function f : {±1}r → {0, 1}. Fix a
+       constant α > 0. A random CSP instance I over n variables {xi }i∈[n] and m = α · n clauses
+       is generated by the following procedure: For each i = 1, . . . , m, draw i1 , . . . , ir uniformly i.i.d
+       from [n], draw r random signs ϵi1 , . . . , ϵir uniformly i.i.d from {±1}, and add the constraint
+                                                           def
+       e to E(I), where e describes the clause fe (xe ) = f (ϵi1 xi1 , . . . , ϵir xir ). A clause is satisfied if
+       it evaluates to 1.
+       We denote this random model as CSPf (α). We are interested in the best satisfying fraction
+       (i.e. largest fraction of clauses satisfied by some assignment in {±1}n ) an algorithm can
+       achieve as n → ∞ when α is a very large constant, i.e. so that instances of CSPf (α) are
+       typically unsatisfiable. This value is related to the rich literature of mean-field Ising spin
+       glasses. We summarize some relevant results, especially drawing on [1, 3, 55]. Let U denote
+       the following set of functions:
+                                                                                Z 1             
+            U = µ : [0, 1) → R≥0 : µ is non-decreasing, right-continuous, and
+              def
+                                                                                     µ(t) dt < ∞ .
+                                                                                               0
+
+       Given a univariate polynomial ξ : R → R with non-negative coefficients, define the functional
+       Pξ : U → R given by
+                                 Z 1
+                              1
+                                     ξ ′′ (t) · t · µ(t) dt ,
+                  def µ
+           Pξ (µ) = Φ (0, 0) − ·
+                              2 0
+       where Φµ : [0, 1) × R → R is a solution of the following partial differential equation:1
+                         ξ ′′ (t)  µ                            2 
+          Φµt (t, x) = −         · Φxx (t, x) + µ(t) · Φµx (t, x)     ∀t ∈ [0, 1), ∀x ∈ R ,
+                            2                                                                   (1.1)
+          Φµ (1, x) = |x|                                             ∀x ∈ R .
+       Pξ is known as the Parisi functional, while Equation (1.1) are known as the Parisi equa-
+                                                            def
+       tions [73]. Let the infimum of Pξ be defined as OPTξ = inf µ∈ U Pξ (µ).
+
+
+       1
+           For the multivariable function Φµ (t, x), we use subscripts to denote partial derivatives.
+A. Chen, N. Huang, and K. Marwaha                                                                                     78:3
+
+
+▶ Theorem 2 ([6, 53]). Consider any polynomial ξ with non-negative coefficients. Then
+OPTξ is achieved by some unique µ ∈ U.
+
+Surprisingly, the maximum satisfying fraction of a typical instance I ∼ CSPf (α) is related
+to OPTξ :
+
+▶ Theorem 3 ([55, Corollary 1.2], building on [73, 85, 70, 71, 26, 80, 72]). Consider I ∼
+CSPf (α). With high probability as n → ∞, the maximum satisfying fraction of I is2
+                          
+          OPTξ          1
+  E[f ] + √ + oα √            ,
+            α            α
+             def   Pr        =j 2 j
+where ξ(s) =        j=1 ∥f     ∥ s , and ∥f =j ∥2 is the Fourier weight of f at degree j.
+
+We also know that some algorithms are quantitatively obstructed due to the geometry of the
+solution space.
+
+▶ Definition 4 (Overlap-concentrated algorithm, [50, Definition 2.1]). A deterministic algorithm
+A is overlap-concentrated with respect to a random family of problems F if the following
+is true for every t ∈ [0, 1] and constant δ > 0: Draw two instances I1 , I2 ∼ F that are
+t-correlated.3 Let A(I) be the assignment in {±1}n that A generates on instance I. Then
+the event
+    1
+      ⟨A(I1 ), A(I2 )⟩ − E [⟨A(I1 ), A(I2 )⟩] ≤ δ                                                         (1.2)
+    n                   I1 ,I2
+
+occurs with high probability over choice of I1 , I2 .
+
+    For example, local algorithms in the factors of i.i.d. model and certain quantum circuits
+up to logarithmic depth [55] are overlap-concentrated on CSPf (α). A randomized algorithm
+is overlap-concentrated if the w.h.p. statement and the expectation in Equation (1.2) also
+vary over the algorithm’s internal randomness.
+    We briefly explain the intuition of why Definition 4 prevents algorithms from succeeding
+on certain optimization problems; see [40] for more detail. Suppose the optimal assignments
+are clustered; i.e. they are “needles in the haystack”. Then random instances will have
+“needles” in random locations in the solution space. But for t ∈ [0, 1], consider instances
+I2 (t) that are t-correlated with the initial instance I1 . If the algorithm A is successful, the
+correlation n1 EI2 (t) [⟨A(I1 ), A(I2 (t))⟩] measures the correlation of these “needles” (i.e. good
+assignments), and so it varies smoothly from 0 to 1 as t goes from 0 to 1. The overlap-
+concentrated property is a bound on the variance of this quantity, meaning that with high
+probability over {I2 (t)}t∈[0,1] , the quantity n1 ⟨A(I1 ), A(I2 (t))⟩ varies smoothly with t from 0
+to 1. But this is not possible on problems that exhibit an overlap gap property (OGP)4 across
+pairs of instances; so A cannot be successful at locating the “needles” or good assignments.
+    There is an emerging literature generalizing the overlap gap property with increasingly
+strong quantitative obstructions [44, 21, 43, 50]. We use the branching OGP of [50], which
+gives the strongest quantitative bounds of algorithms known on spin glasses and random
+CSPs [55].
+
+
+2
+  Following [26], we use ox (g(x)) to mean the value is at most some function κ(n, x) satisfying κ(n,x)g(x) → 0
+  as n → ∞, then x → ∞.
+3
+  Instances I1 , I2 are t-correlated if a t fraction of constraints are identical, and the rest are independent;
+  see also [55, Definition 6.1].
+4
+  An overlap gap property exists when an inner product, for example n1 ⟨A(I1 ), A(I2 )⟩, is forbidden to
+  take values within a certain range [a, b].
+
+
+
+                                                                                                                   APPROX/RANDOM 2026
+78:4   Local Algorithms and Sparse Random CSPs
+
+
+          Given a polynomial ξ with non-negative coefficients, let Lξ denote the following set of
+       functions:
+                                                                                                         Z 1                      
+           Lξ =          µ : [0, 1) → R≥0 : µ is right-continuous, ∥ξ ′′ µ∥TV[0,t] < ∞ ∀t ∈ [0, 1), and         ξ ′′ (t)µ(t) dt < ∞ .
+               def
+
+                                                                                                           0
+
+       Here, TV[a, b] over an interval [a, b] is the total variance over partitions:
+                      def
+                                           X
+          ∥f ∥TV[a,b] = sup     sup             |f (ti ) − f (ti−1 )| .
+                                   n a≤t0 <···<tn ≤b
+                                                       i∈[n]
+
+       Furthermore, the definition of Pξ over U can be naturally extended to Lξ , with infimum
+                     def
+            ALGξ = inf Pξ (µ) .                                                                                                 (1.3)
+                            µ∈Lξ
+
+       Since Lξ ⊇ U, we have ALGξ ≤ OPTξ . It turns out that all overlap-concentrated algorithms
+       over CSPf (α) are with high probability obstructed to some ALGξ :
+       ▶ Theorem 5 ([55, Corollary 6.10]). Choose any even predicate f . For all ϵ > 0 there is
+       α0 > 0 such that the following is true: For all α ≥ α0 , for every overlap-concentrated
+       algorithm A over CSPf (α), and with high probability over instances I ∼ CSPf (α) as n → ∞,
+       A returns an assignment to I with satisfying fraction at most
+                  ALGξ + ϵ
+            E[f ] +   √    ,
+                        α
+                  def Pr
+       where ξ(s) = j=1 ∥f =j ∥2 sj , and ∥f =j ∥2 is the Fourier weight of f at degree j.
+       Note that if ALGξ ̸= OPTξ , then these overlap-concentrated algorithms are obstructed from
+       reaching the optimal solution for typical instances of CSPf (α).
+
+       1.2      Statement of results
+       The main result of our work is that there is an optimal algorithm among overlap-concentrated
+       algorithms over CSPf (α), subject to a technical condition. This matches analogous results
+       for Ising spin glasses [1], and for multi-species spherical spin glasses [84, 48].
+       ▶ Assumption 1 (Proposed in [79, Remark 1.7]). For any polynomial ξ with non-negative
+       coefficients and where ξ ′′ (0) ̸= 0,5 ALGξ is achieved by some µ∗ ∈ Lξ . That is, the minimizer
+       of Equation (1.3) exists.
+       We include Assumption 1 because our algorithm uses the minimizer µ∗ . As noted in [1,
+       journal version, Remark 2.4], Assumption 1 should not have a major impact on the algorithm’s
+       performance, since by an informal continuity argument, using a near-minimizer µ     e∗ ∈ Lξ
+       instead of µ∗ incurs negligible error. We further discuss this in Section 5.
+       ▶ Theorem 6. Suppose Assumption 1 holds. Choose any predicate f without linear-weight
+       terms; i.e. ∥f =1 ∥2 = 0. For all ϵ > 0 there is α0 > 0 such that the following is true: For
+       all α ≥ α0 , there exists a randomized algorithm A such that A is overlap-concentrated
+       over CSPf (α), and with high probability over both instances I ∼ CSPf (α) and internal
+       randomness of A as n → ∞, A returns an assignment to I with satisfying fraction at least
+                  ALGξ − ϵ
+            E[f ] +   √    ,
+                        α
+                  def Pr
+       where ξ(s) = j=1 ∥f =j ∥2 sj , and ∥f =j ∥2 is the Fourier weight of f at degree j.
+
+
+       5
+           It is shown in [79] that ALGξ is not achieved by any µ ∈ Lξ when ξ ′′ (0) = 0. See also Remark 14.
+A. Chen, N. Huang, and K. Marwaha                                                                      78:5
+
+
+This is analogous to work of [1], which proves a similar result for mean-field spin glasses. This
+also extends the algorithm of [3], which studies Maximum Cut on random regular graphs.
+In fact, all of these algorithms are related to the Approximate Message Passing (AMP)
+framework, popularized by the results of [13]; see [7] for a recent survey. It was suspected
+that such an algorithm could be written down for CSPf (α) [55, 41].
+    One immediate impact of this result is in quantum computing. In the gate-based circuit
+model, many quantum circuits are overlap-concentrated for instances of CSPf (α) of depth up
+to c · log n for some c [24]. This work implies that such quantum circuits, even up to c · log n
+depth, cannot outperform classical algorithms on typical instances of a random CSP.
+
+▶ Corollary 7 (Failure of quantum advantage). Suppose Assumption 1 holds. Choose any
+even predicate f . For all ϵ > 0 there exist α0 > 0 and c : R>0 → R>0 such that the
+following is true: For all α ≥ α0 , and with high probability over instances I ∼ CSPf (α)
+as n → ∞, no quantum circuit with depth up to c(α) · log n that applies 2-local gates on a
+fixed, bounded-degree architecture can produce an assignment with satisfying fraction that
+outperforms classical algorithms by more than √ϵα .
+
+Even until now, the promise of quantum advantage for optimization problems has been
+unclear. Multiple times, improved analyses of the Quantum Approximate Optimization
+Algorithm (QAOA) [34] suggesting a such an advantage [35, 88, 77, 11] led to better classical
+algorithms [9, 45, 63, 8, 3]. This work shows that for the QAOA and many other quantum
+circuits up to logarithmic depth, there can be no quantum advantage on random CSPs with
+even predicates of sufficiently large clause density. Note that unlike related work on the
+QAOA [32, 12, 4], this rules out quantum advantage regardless of the presence of overlap
+gap phenomena.
+    We remark on the technical condition of even predicates. This can likely be removed with
+two steps. First, the obstruction of overlap-concentrated algorithms only applies to even
+predicates. New techniques to prove OGPs for spherical spin glasses [47] can possibly be
+ported to all Ising spin glasses; these results would immediately transfer to random instances
+of CSPf (α) via [55]. Second, the algorithm we analyze applies when predicates have no
+linear-weight terms; adjustments taken in [79] will likely generalize this algorithm. These
+steps would extend Corollary 7 to all predicates f .
+    Previous works noting limitations of logarithmic-depth quantum algorithms on sparse
+random optimization problems [32, 33, 24] also rely on the concept of overlap gap property.
+As in [1, 48], this work shows the existence of a family of random optimization problems
+with an optimal algorithm up to the OGP barrier. All of the optimal algorithms are classical,
+which hints that quantum algorithms that cannot pass the OGP barrier offer no additional
+power for classical optimization in general.
+
+1.3      Proof overview
+Our proof builds on a number of other works, especially [68, 1, 3]. We outline the proof here.
+Due to the page limit, some proofs in this paper are deferred to the full version.
+    In Section 2, we define our model of CSP and describe the algorithm. Instead of CSPf (α),
+we run the algorithm on a CSP whose associated constraint hypergraph is locally a regular
+hypertree.6 This algorithm runs in iterations, where on each iteration, every vertex recomputes
+its value using information from adjacent vertices; we parameterize this algorithm by the
+functions (two per iteration number) that recompute each vertex’s value.
+
+
+6
+    In the hypergraph, the variables are vertices and the constraints are hyperedges.
+
+
+
+                                                                                                    APPROX/RANDOM 2026
+78:6   Local Algorithms and Sparse Random CSPs
+
+
+           Table 1 List of important terms used in the analysis of message-passing algorithms for mean-field
+       spin glasses and random CSPs. Terms in the first row asymptotically approach independent Gaussians
+       after applying state evolution, and so constitute the Brownian motion (up to normalization) in the
+       stochastic picture.
+
+             Term                                              [68]   [1]             [3]   (our work)
+             Brownian motion (asymptotically independent)      u      ∆               u     u
+             sum of Brownian motions                           –      z               –     w
+             nonlinearity controller                           x      x               x     x
+             value of spin                                     z      m = f (. . .)   z     z
+
+
+           We can already study the performance of the parameterized algorithm, analyzing how
+       information propagates locally through the hypertree. In Section 3, we generalize a set of
+       σ-algebras from [3] to describe this behavior. This allows us to analyze the correlation of
+       a variable from the algorithm with any other variable from a particular σ-algebra. With
+       these tools in hand, we simplify the expected performance of the parameterized algorithm,
+       deferring some detailed calculations to the full version of this paper.
+           We then show how the algorithm, with the right choice of parameters, solves a stochastic
+       optimal control problem that is dual to the minimization problem in Equation (1.3).
+        1. First, we show that with high probability as α → ∞, the intermediate values in the
+           algorithm are asymptotically Gaussian. We prove this in Section 4 with an argument
+           known as state evolution. Notably, this argument works for sparse models (as in [3]), and
+           for message-passing on hypergraphs, where some values are products of Gaussians. This
+           allows us to study quantities in the algorithm output as discrete stochastic processes.
+        2. Then, we take the number of iterations to a very large constant while proportionally
+           decreasing the step size. Under this process, each discrete stochastic process asymptotically
+           approximates a continuous stochastic process. In Section 5, we show how to choose the
+           optimal parameters. We also show that rounding the algorithm’s output to a value in
+           {±1}n does not meaningfully affect its performance.
+
+           This work extends [3] in a spiritually similar way that [1] extends [68]; roughly, we extend
+       from graphs to hypergraphs. This requires more involved calculations and in some cases
+       new arguments. For example, we require a more complicated proof of state evolution, since
+       the messages in our algorithm are not Gaussian at fixed degree. Furthermore, our proof of
+       rounding is new, since we cannot rely on spectral statistics of random graphs. Finally, our
+       analysis uses an additional symmetry we call index-regularity (defined in Section 2) which,
+       to the best of our knowledge, does not come up in prior work. We show that enforcing this
+       symmetry has negligible effect (proof deferred to the full version of the paper) and use this
+       symmetry to simplify some of our analysis.
+           There are a number of quantities to keep track of. We annotate the important symbols in
+       Table 1. Following notation in [3], we typically use lowercase for a quantity in the algorithm
+       (e.g. uℓi→a ), uppercase with step size δ for a discrete stochastic process (e.g. Uℓδ ), and
+       uppercase with time t for a continuous stochastic process (e.g. Ut ).
+
+       1.4     Related work
+       Approximate Message Passing. Approximate Message Passing (AMP) is an algorithmic
+       framework used to design locally computable, iterative methods for a variety of high-
+       dimensional statistical inference and recovery tasks [61, 76, 67, 64, 10]. Many of the ideas
+A. Chen, N. Huang, and K. Marwaha                                                                     78:7
+
+
+motivating AMP originate from the study of belief propagation, an iterative method rediscov-
+ered multiple times in different scientific contexts; see [65, 58] for a broader history. AMP
+was first introduced in the context of compressed sensing and signal recovery [29, 57], partly
+inspired by the use of structured priors in decoding low-density parity check codes [75, 69]. In
+spin glass theory, AMP is synonymous with computing the fixed points of a certain Thouless–
+Anderson–Palmer (TAP) free energy functional [87, 59, 90, 22, 23]. In fact, our algorithm is
+inspired by similar connections between the TAP equations and belief propagation [66, 65].
+    A beneficial feature of AMP is that one can rigorously analyze the asymptotic behavior
+of statistics in the framework. This is typically done through the use of state evolution
+statements [14, 13]: laws of large numbers which dictate the behavior of such statistics when
+the dimension in the problem approaches infinity. This has been subsequently used to compute
+approximate ground states of both Ising and spherical mean-field spin glasses [68, 1, 47],
+as well as Max-Cut on random sparse graphs [3, 19]. See the surveys of [38, 7] for further
+discussion on AMP and its variants. See also [78, 52, 54] for connections to the sum-of-squares
+hierarchy.
+
+
+Ising spin glasses and CSPs. Although mean-field spin glasses with Ising spins were proposed
+as mathematical models of materials [82], their connection to combinatorial optimization
+has been observed for some time [39, 66]. More recently, a correspondence has emerged
+between Ising spin glasses and sparse random CSPs at large enough clause density; this
+started with relating the supremum of the two models [26, 80, 72]. This supremum was
+calculated using a novel heuristic argument known as “replica symmetry breaking” [73], and
+proven to be correct in [85, 70] (see also [71]). Moreover, the duality preserves a phenomenon
+known as overlap gap [44], a generalization of solution clustering that obstructs certain
+algorithms; see [21, 43, 42, 24, 50, 55, 49], and the expositions of [40, 46]. Notably, a strong
+version of overlap gap phenomena [50, 47, 48] is connected to the message-passing algorithms
+of [68, 1, 3], and this work. Other topics at the intersection of spin glasses and CSPs include
+approximating partition functions (e.g. [83]), sampling from Gibbs measures (e.g. [2, 51]),
+and computing thresholds for random CSPs (e.g. [27, 28]).
+
+
+Quantum algorithms for classical optimization. Recent demonstrations of quantum advan-
+tage (e.g. [5, 91]) have led to increased excitement around using contemporary (i.e. NISQ [74])
+quantum computers for a practically relevant problem. Although classical optimization is
+such a problem, quantum algorithms here are not proven to have any benefit over classical al-
+gorithms. The most popular proposal is the Quantum Approximate Optimization Algorithm
+(QAOA) [34]. Earlier suggestions of quantum advantage with the QAOA [35, 88, 77, 89]
+led to better classical algorithms [9, 45, 63, 8]; note that all of these comparisons were for
+very small circuit depth. Recently, [36, 11, 12] find an expression for the performance of the
+QAOA on spin glasses and sparse CSPs at any constant depth. For some problems, this is
+competitive with known classical algorithms; see [37, 16].
+    The QAOA is a local algorithm. It was noted that this feature can limit its performance [32,
+33]. The authors in [24] unify definitions of quantum and classical local algorithms to show
+that the QAOA is obstructed by overlap gap phenomena on sparse problems. Because of this,
+[3] rules out quantum advantage through ϵ · log n-depth QAOA on random regular Max-Cut
+instances of large degree (up to Assumption 1); our work generalizes this fact to CSPs with
+even predicates. Regardless of theory, there are many recent demonstrations of the QAOA
+on state-of-the-art quantum computing systems; see for example [31, 81, 62]. It is also known
+that the QAOA can solve satisfiability faster than brute force [17]; see also [25] for a related
+
+
+
+                                                                                                   APPROX/RANDOM 2026
+78:8   Local Algorithms and Sparse Random CSPs
+
+
+       protocol with a more-than-quadratic improvement. Some quantum algorithms for machine
+       learning are known to provide no quantum advantage [86]. Very recently, [56] proposed a
+       quantum algorithm for classical optimization, but we do not yet know if it gives a quantum
+       advantage.
+
+           2    Local algorithms for sparse CSPs
+       A CSP instance has an implicit directed hypergraph, with variables as vertices and constraints
+       as hyperedges.
+       ▶ Definition 8 (Directed hypergraph of a CSP). Consider a r-uniform CSP instance I with n
+       variables and constraints E(I), where each constraint e ∈ E(I) involves r (ordered) variables
+       in [n]. Then I is associated with the directed hypergraph with vertices [n] and hyperedges
+       E(I); i.e. G([n], E(I)).
+       We consider a hyperedge directed when the involved vertices are ordered. For example,
+       if constraint e involves vertices {v1 , v2 , v3 } in order [2, 3, 1], then the associated directed
+       hyperedge is [v2 , v3 , v1 ]. We denote this ordered list as ∂e. We often refer to the CSP instance
+       by its hypergraph. The instance is fully specified by its hypergraph, the CSP function f ,
+       and the (ordered) randomness [ϵe1 , . . . , ϵer ] on each constraint e ∈ E(I). For each variable i,
+       we use ∂i to denote the set of constraints i participates in.
+           The factor graph of a hypergraph G(V, E) is a bipartite graph of order |V | + |E|, with
+       edges between each hyperedge e ∈ E and each vertex in ∂e. For more information on the
+       factor graph formalism, see [60]. Let Bi (ℓ) be the induced subgraph of G given by the ℓ-local
+       neighborhood around vertex i ∈ V .7
+       ▶ Definition 9. A finite hypergraph G(V, E) is (ℓ, ϵ)-locally treelike if the factor graph of
+       Bi (ℓ + 1) is isomorphic to a tree for at least (1 − ϵ) · n vertices i ∈ V .
+       This definition is a generalization of locally treelike graphs used in [3]; see Figure 1 for an
+       illustration.
+           Every message-passing algorithm is contained in the model of local algorithms presented
+       in [24]. In this model, the value associated with each variable is uniquely determined by its
+       local neighborhood.
+       ▶ Definition 10 (Generic p-local algorithms, [24, Definition 3.1]). Consider a randomized
+       algorithm A that inputs a r-uniform hypergraph G(V, E) and outputs a label in an alphabet Σ
+       to each vertex in the graph, i.e. A(G) ∈ ΣV . Then A is generic p-local if for any set S ⊆ V ,
+       the following conditions hold:
+        1. (Local distribution determination) The joint marginal distribution of (A(G)v )v∈S is
+           identical to that of (A(G′ )v )v∈S , where G′ = v∈S Bv (p).
+                                                          S
+
+        2. (Local independence) A(G)v is statistically independent of A(G)v′ over all vertices
+           v′ ∈
+              / Bv (2p).
+       This model also includes the Quantum Approximate Optimization Algorithm [34] on typical
+       instances of CSPf (α). In fact, any depth-p quantum circuit with a fixed architecture of
+       bounded degree can be seen as generic p-local by including the architecture in the input
+       hypergraph. [24] proves that for all p ≤ c(α) · log n, generic p-local algorithms are overlap-
+       concentrated over instances of CSPf (α) with high probability as n → ∞.
+
+
+       7
+           Note that we define distance as the number of hypergraph vertices in the shortest path; vertices that
+           share a hyperedge are distance 1 apart.
+A. Chen, N. Huang, and K. Marwaha                                                                                      78:9
+
+
+
+
+   Figure 1 Factor graph of the hypergraph with vertices {i1 , . . . , i9 } and hyperedges {a, b, c, d}.
+Note that this hypergraph is locally treelike.
+
+
+
+    In our analysis, we make some convenient modifications to the input. First, since our
+algorithm is local and the instances are locally treelike on all but a negligible fraction
+of vertices8 , we analyze the algorithm on an instance which is locally a hypertree, i.e. a
+hypergraph whose factor graph is a tree. We also make the hypergraph regular, by embedding
+our instance of CSPf (α) in a locally treelike d-regular instance with d = r · α + oα (1).
+    On hypergraphs, we need one additional property, which we call index-regular. Here, we
+mean that for each ι ∈ [r], each variable is used in index ι of a constraint the same number
+of times.
+
+
+▶ Definition 11 (d-index-regular CSP). Consider a (r-uniform) CSP instance I with n
+variables and constraints E(I), such that each constraint e ∈ E(I) has associated variables
+∂e = [ve,1 , . . . , ve,r ]. Then I is d-index-regular if every variable v ∈ [n] is involved in
+d constraints, and moreover, for each ι ∈ [r], v is the ιth -indexed variable in exactly dr
+constraints.
+
+
+   We describe our choice of algorithm in Figure 2. This involves some notation we describe
+here. A function that depends on zero inputs is a constant; i.e. A0i = F0 and A0i→a = F→,0 .
+For any scalar quantity that depends on vertex, a bolded version represents a vector quantity.
+                                                ℓ
+For example, given ∂a = [i1 , . . . , ir ], z∂a→a    is the ordered list [ziℓ1 →a , . . . , ziℓr →a
+                                                                                                 
+                                                                                                            ℓ
+                                                                                                    ], and z∂a is
+                   ℓ             ℓ                 L                   V                       L         L
+the ordered list [zi1 , . . . , zir ]. Similarly, z is the vector in R such that z i = zi .
+
+
+
+
+8
+    In particular, for any finite ℓ, with high probability our instances are (ℓ, ϵ)-locally treelike for some ϵ,
+    where ϵ → 0 as n → ∞.
+
+
+
+
+                                                                                                                    APPROX/RANDOM 2026
+78:10   Local Algorithms and Sparse Random CSPs
+
+
+
+            Input: The timestep δ > 0, and a d-index-regular hypergraph with girth at least
+            2L + 2, where L = ⌊ 1δ ⌋.
+            Parameters: The CSP function f : {±1}r → {0, 1}, constant K > 0, and nonlineari-
+            ties
+
+                  F→,ℓ : Rℓ → [−K, K] ℓ=0,...,L−1      Fℓ : Rℓ → [−K, K] ℓ=0,...,L−1
+                                                    
+
+
+           Algorithm:
+           1. Initialize the following:
+                a. zi0 ∼ N (0, δ) for all i ∈ V and zi→a
+                                                     0
+                                                         = zi0 for all i ∈ ∂a and a ∈ E.
+                      0                         0
+                b. wi = 0 for all i ∈ V and wi→a = 0 for all i ∈ ∂a and a ∈ E.
+            2. For each iteration ℓ = 0, . . . , L − 1:                                       
+                 a. Let Aℓi→a = F→,ℓ u1i→a , . . . , uℓi→a , and let Aℓi = Fℓ u1i , . . . , uℓi .
+                 b. For each factor a ∈ E and involved variable i ∈ ∂a, compute:
+
+                          ℓ+1          1     X
+                                                            ℓ
+                         wi→a =√           ·       Di;b f (z∂b→b )
+                                      d − 1 b∈∂i\a
+
+                          uℓ+1    ℓ+1    ℓ
+                           i→a = wi→a − wi→a
+                                            ℓ+1
+                                            X
+                           ℓ+1
+                          zi→a    0
+                               = zi→a +            As−1    s
+                                                    i→a · ui→a
+                                            s=1
+
+                  c. For each variable i ∈ V , compute:
+                                  1 X
+                         wiℓ+1 = √ ·               ℓ
+                                          Di;b f (z∂b→b )
+                                   d b∈∂i
+                          uℓ+1
+                           i   = wiℓ+1 − wiℓ
+                                          ℓ+1
+                                          X
+                          ziℓ+1 = zi0 +         As−1
+                                                 i   · usi
+                                          s=1
+
+
+                      every i ∈ V , output 1 with probability pi and −1 with probability 1 − pi ,
+            Output: For
+                     1
+                     
+                             if ziL ≥ 1,
+                           1+ziL
+           where pi =       2       if |ziL | < 1,
+                         
+                                    if ziL ≤ −1.
+                         
+                         0
+
+
+           Figure 2 Description of the message-passing algorithm.
+
+
+
+           Our analysis makes extensive use of the partial derivative operator. For any factor a and
+        variable j ∈ ∂a, let Dj;a f be the partial derivative of f at the coordinate ι such that j is
+        the ιth coordinate of ∂a. For example, if ∂a = [k, i, j] and f (x1 , x2 , x3 ) = x1 x2 + x2 x3 , then
+        Dk;a f (x1 , x2 , x3 ) = x2 and Di;a f (x1 , x2 , x3 ) = x1 + x3 . Note the following:
+
+        ▶ Remark 12. Since the domain of f is {±1}r , f has a representation as a multilinear
+        polynomial. As a result, for all factors b and variables i ∈ ∂b, Di;b f is independent of the
+        entry with the same coordinate as i in ∂b.
+A. Chen, N. Huang, and K. Marwaha                                                                                78:11
+
+
+        We additionally require the nonlinearities to satisfy the following two properties:
+
+▶ Property 1 (Similar node and node-to-factor evolution). For every ℓ ≥ 0, variable i, factor
+                                                       1
+a ∈ ∂i, and m ∈ N, we have E[|Aℓi − Aℓi→a |m ] = Od ( dm/2 ).
+
+▶ Property 2 (Normalization of second moment). For every ℓ ≥ 0, variable i, and factor
+                                                                  ′     ′
+                                                   , where νℓ = ξ (ℓδ)−ξr((ℓ−1)δ) , and ξ is defined
+                                                δ             def
+a ∈ ∂i, we have E[(Aℓi )2 ] = E[(Aℓi→a )2 ] = νℓ+1
+as in Theorem 6.
+
+   In Section 5, we show how to choose the nonlinearities based on Equation (1.1), and show
+that our choice indeed satisfies Property 1 and Property 2.
+▶ Remark 13. Our analysis of the algorithm above holds even if the CSP predicate depends
+on factor a, so long as the absolute value of each Fourier component is fixed (this implies
+that all fa are associated with the same ξ). For example, this implies that the algorithm
+achieves the same value for every choice of signs {ϵi,ι }i∈[n],ι∈[r] in Definition 1.
+▶ Remark 14. If ∥f =2 ∥ = 0, the associated ξ does not satisfy ξ ′′ (0) ̸= 0 as in Assumption 1.
+We handle this case via the following argument. First, it can be shown that ALGξ is
+continuous in each coefficient of ξ using an explicit form of the Parisi functional and the fact
+that ALGξ ≥ 0 [1, Proposition 4.1]. Then, we can add a small quadratic term to f , and run
+the algorithm on the perturbed instance. The error produced by this perturbation may be
+absorbed in the ϵ of Theorem 6.
+
+    3      Independence claims
+Given random variables {X1 , . . . , Xk }, let σ(X1 , . . . , Xk ) = σ({X1 , . . . , Xk }) be the σ-algebra
+generated by {X1 , . . . , Xk }. For an introduction to σ-algebra and related concepts, see for
+example [30].
+    Consider the algorithm in Figure 2. For every 0 ≤ ℓ ≤ L,9 variable v, and factor a ∈ ∂v,
+we’ll reuse the notation Bv (ℓ) as the set of nodes of distance10 at most ℓ from v in the
+corresponding hypergraph. We define the set Bv→a (ℓ) as the set of nodes of distance at most
+ℓ from v, excluding nodes that reach v through the factor a. We define
+           def                                             def
+        Gvℓ = σ                                      ℓ
+                   0                                             0               
+                   zi | i ∈ Bv (ℓ) ,                Gv→a =σ        zi | i ∈ Bv→a (ℓ) .
+
+    Intuitively, these Gvℓ algebras are the random variables determined by the initial Gaussian
+variables in the radius-ℓ neighborhood around v; here, ℓ is a distance. We formalize a series
+of information-theoretic claims using these σ-algebras, similar to [3, Lemma 2.2]. See also an
+illustration in Figure 3.
+    The first fact about independence informally says that node-to-factor messages never use
+information on “the other side” of the factor; once information goes across a, it never comes
+back.
+
+▶ Lemma 15. For every 0 ≤ ℓ1 , ℓ2 ≤ L, distinct variables i, j, and factors a ∈ ∂i, b ∈ ∂j, if
+                                                                           ℓ1         ℓ2
+every path of length at most 2L from i to j goes through a and b, then Gi→a    and Gj→b   are
+independent.
+
+
+9
+   Recall that because the instance has girth at least 2L + 2, all local neighborhoods of radius up to L are
+   treelike.
+10
+   Once again, we consider distance of i and j as the number of nodes required to pass from i to j; the
+   factors are not counted.
+
+
+
+
+                                                                                                               APPROX/RANDOM 2026
+78:12   Local Algorithms and Sparse Random CSPs
+
+
+
+
+           Figure 3 An illustration of σ-algebras on the hypertree. Since the path from i4 to i5
+        goes through factor b, Giℓ4 →b and Giℓ5 →b are independent by Lemma 15. In addition, Giℓ+1
+                                                                                                3 →a
+                                                                                                     =
+                              
+        σ Gi03 Giℓ4 →b Giℓ5 →b by Lemma 16.
+              S       S
+
+
+
+        Lemma 15 holds even if the factors are the same, i.e. a = b. We refer to this case as
+        Lemma 15 around factor a.
+           The next fact concerns the geometry of local neighborhoods. It allows us to decompose
+        each σ-algebra into σ-algebras with distance reduced by one, which is handy for induction.
+
+        ▶ Lemma 16. For every 1 ≤ ℓ ≤ L, variable i, and factor a ∈ ∂i, we have
+                                                                               
+                            [                                        [      [
+                                  ℓ−1                                          ℓ−1 
+           Giℓ = σ Gi→a
+                     ℓ
+                         ∪     Gj→a      ,       ℓ
+                                                 Gi→a  = σ Gi0 ∪              Gv→b    .
+                                   j∈∂a\i                                      b∈∂i\a v∈∂b\i
+
+
+        The next statement sorts quantities appearing in the algorithm (Figure 2) into appropriate
+        σ-algebras. It proves the intuition that messages at iteration number ℓ are determined by
+        the local neighborhood of distance at most ℓ:
+
+        ▶ Lemma 17. For every 1 ≤ ℓ ≤ L, variable i, and factor a, we have uℓi→a , wi→a
+                                                                                    ℓ      ℓ
+                                                                                        , zi→a    ℓ
+                                                                                               ∈ Gi→a
+        and uℓi , wiℓ , ziℓ ∈ Giℓ .
+
+        Lemma 17 implies that the ℓth node message at variable i is determined by the initial
+        Gaussian variables in the radius-ℓ neighborhood around i. Note that the node-to-factor
+        message uℓi→a is not influenced by Gaussians at nodes that pass through a to reach i.
+           Next, we prove that messages at node i and iteration number ℓ + 1 are uncorrelated with
+        the initial Gaussians in the radius-ℓ neighborhood around i. Put another way, the “extra
+        randomness” at distance ℓ + 1 removes any correlation with Giℓ . To do this, we show that
+        the messages {uℓj→b }j∈∂b\i are uncorrelated with each other, conditioned on Giℓ .11
+
+
+        11
+             This is subtle. Although {uℓj→b }j∈∂b\i are independent by Lemma 15 around factor b, independence
+             does not imply conditional independence.
+A. Chen, N. Huang, and K. Marwaha                                                                      78:13
+
+
+▶ Lemma 18. Choose any variable i, factor b ∈ ∂i, and 1 ≤ ℓ ≤ L. Choose also sj ≥ 0 for
+every j ∈ ∂b\i. Then
+                          
+        Y                      Y  h              i
+   E       (uℓj→b )sj Giℓ  =   E (uℓj→b )sj Giℓ .
+         j∈∂b\i                       j∈∂b\i
+
+                                                                            ℓ+1   ℓ
+                                                                                     
+▶ Lemma  19.
+        ℓ+1 Choose
+                   any variable i, factor a ∈ ∂i, and 0 ≤ ℓ ≤ L−1. Then E  ui→a G i   =
+               ℓ
+0 and E ui    Gi = 0.
+
+▶  Corollary 20. Fix     any variable i, factor b ∈ ∂i, and 0 ≤ ℓ ≤ L.                     Then
+                                   ℓ−1
+           ℓ
+                       
+E Di;b f (z∂b→b ) | Giℓ = Di;b f (z∂b→b ) if ℓ ≥ 1 and 0 otherwise.
+
+3.1      Simplifying the main sum
+What is the average value achieved by the algorithm? By linearity, we can look at the value
+                            L                      0
+of any factor a; i.e. E[f (z∂a )]. Note that E[f (z∂a )] = f (0, . . . , 0) = E[f ], and
+                                    L−1
+                                    X
+            L             0                     ℓ+1            ℓ
+                                                                    
+      E[f (z∂a )] = E[f (z∂a )] +         E[f (z∂a  )] − E[f (z∂a )]
+                                    ℓ=0
+                              L−1
+                              X
+                                          ℓ+1            ℓ
+                                                              
+                  = E[f ] +         E[f (z∂a  )] − E[f (z∂a )] .
+                              ℓ=0
+
+                                              ℓ+1            ℓ
+It suffices to compute the difference E[f (z∂a    )] − E[f (z∂a )] for every 0 ≤ ℓ ≤ L − 1. We use
+the Fourier expansion of f to express this as a sum of differences of monomials.
+    First, we simplify terms of the form usi i Yisi −1 v∈∂a\i Yvsv , which we encounter along the
+                                                      Q
+
+way. This relies on the following consequence of the monotone class theorem:
+
+▶ Lemma 21 (e.g. [30, Theorem 5.2.2], [3, Lemma 2.3]). Let {F1 , . . . , Fm , A} be a set of
+                      def
+σ-algebras so that F = σ(F1 , . . . , Fm ) ⊆ A. Choose a random variable X ∈ A,12 and
+suppose for any Y1 ∈ F1 , . . . , Ym ∈ Fm , E[XY1 . . . Ym ] = 0 when the expectation exists. Then
+E[XY ] = 0 (when the expectation exists) for every Y ∈ F.
+
+As a result, to show an expectation is zero, we may replace a variable in σ-algebra F with a
+product of variables from σ-algebras that cover F.
+
+▶ Lemma 22 (Generalization of [3, Lemma 2.5]). Choose factor a, integers sv ≥ 0 for v ∈ ∂a,
+and let Yvsv ∈ Gvsv . Let i ∈ ∂a be such that si + 1 ≥ sv for all v ∈ ∂a. Then
+     "                   #        "                                                 #
+                              1
+                           = √ E Di;a f (z∂a→a ) − 1[si ≥1] Di;a f (z∂a→a )
+               Y                                                            Y sv
+        si +1         sv                    si                       si −1
+   E ui            Yv                                                            Yv   ,
+              v∈∂a
+                               d                                            v∈∂a
+
+where 1[x≥y] = 1 if x ≥ y and 0 otherwise.
+
+▶ Proposition 23. Fix 0 ≤ ℓ ≤ L − 1, factor a, and S ⊆ ∂a. Then
+                                                 
+                                                             
+       Y
+           ℓ+1 
+                      Y
+                         ℓ
+                               X
+                                        ℓ ℓ+1
+                                                Y
+                                                     ℓ       1
+   E    zj      −E    zj =      E Ai ui ·
+                                                   zj + Od     .                            (3.1)
+                                                              d
+         j∈S                  j∈S         i∈S              j∈S\i
+
+
+12
+     X ∈ A means that σ(X) ⊆ A.
+
+
+
+
+                                                                                                     APPROX/RANDOM 2026
+78:14   Local Algorithms and Sparse Random CSPs
+
+
+        ▶ Corollary 24. Choose 0 ≤ ℓ ≤ L − 1 and factor a. Then
+                                                                            
+                   ℓ+1
+                                ℓ
+                                       X  ℓ ℓ+1           ℓ
+                                                                           1
+              E f (z∂a  ) − E f (z∂a ) = E Ai ui · Di;a f (z∂a ) + Od          .
+                                                                            d
+                                                     i∈∂a
+
+            We simplify this expression further, assuming the algorithm’s node and node-to-factor
+        nonlinearities are similar (Property 1). We choose nonlinearities exhibiting this property
+        in Section 5.
+
+        ▶ Proposition 25. Assume Property 1. Let 0 ≤ ℓ ≤ L − 1, a be a factor, and i ∈ ∂a. Then
+                                                                              
+            1 X         ℓ+1
+                                    ℓ
+                                             r 1 X  ℓ ℓ+1 2                1
+                   E f (z∂a ) − E f (z∂a ) = √ ·         E Ai (ui ) + Od           .
+           αn                                   d  n                           d
+              a∈E                                    i∈V
+
+        By these propositions, we get the following:
+
+        ▶ Theorem 26. Assume Property 1. Fix a constant L ≥ 1. Then
+                                            L−1
+                                                                  !       
+            1 X       L
+                                      r    X 1X 
+                                                        ℓ  ℓ+1 2
+                                                                         1
+                 E f (z∂a ) = E[f ] + √   ·         E Ai (ui )      + Od     .
+           αn                           d       n                         d
+                  a∈E                                       ℓ=0   i∈V
+
+
+
+         4        State evolution for message-passing on hypergraphs
+        So far, we’ve shown that the value of the algorithm takes a simple form (i.e. Theorem 26).
+        From here, we prove a state evolution statement: with some weak conditions on the non-
+        linearities (Property 2), we analyze the asymptotic behavior of statistics of the algorithm.
+        State evolution as applied to AMP first appeared in [13]; this was inspired by a proof in
+        a paper computing the fixed points of the TAP equations for the Sherrington–Kirkpatrick
+        model [14]. Since then, state evolution has been used in AMP algorithms applied to a variety
+        of tasks; see for example [38].
+            Here, we consider functions of the messages {uℓi→a }ℓ∈[L] (or {uℓi }ℓ∈[L] ) that are pseudo-
+        Lipschitz:
+
+        ▶ Definition 27. Fix s > 0. We say that a given function ψ : Rs → R is pseudo-Lipschitz if
+        there exists a constant C > 0 such that
+                                                
+            |ψ(x) − ψ(y)| ≤ C · 1 + ∥x∥ + ∥y∥ · ∥x − y∥ ,
+
+        for every x, y ∈ Rs .
+
+        As d → ∞, the expected value of a pseudo-Lipschitz function ψ with messages {uℓi→a }ℓ∈[L]
+        (or {uℓi }ℓ∈[L] ) as input approaches the expected value of ψ with independent Gaussians as
+        input.
+
+        ▶ Definition 28. For any predicate f : {±1}r → {0, 1}, let ξ be defined as in Theorem 6.
+        For any ℓ ≥ 1, define the quantity13
+
+                 def   ξ ′ (ℓδ) − ξ ′ ((ℓ − 1)δ)
+              νℓ =                               .
+                                   r
+
+
+        13
+             Note this is the same parameter νℓ in Property 2.
+A. Chen, N. Huang, and K. Marwaha                                                                  78:15
+
+
+▶ Theorem 29. Assume Property 2. Then for any pseudo-Lipschitz function ψ : Rℓ → R,
+variable i, factor a ∈ ∂i, 1 ≤ ℓ ≤ L, we have
+
+    E ψ(u1i→a , . . . , uℓi→a ) = E [ψ(U1 , . . . , Uℓ )] + od (1) ,
+                              
+                                                                               (4.1)
+                 1          ℓ
+                              
+         E ψ(ui , . . . , ui ) = E [ψ(U1 , . . . , Uℓ )] + od (1) ,            (4.2)
+
+where Us ∼ N (0, νs ) independently.
+
+Theorem 29 is inspired by the state evolution statement in [3]. These statements are for
+sparse problems, and so do not require a correction term to ensure variables remain Gaussian
+(often named the Onsager correction). In [3], the messages {uℓi→a }ℓ∈[L] are Gaussian even at
+fixed degree! In our algorithm, this is not the case for arbitrary predicates f ; we must take
+additional care showing that these quantities are close to Gaussian.
+    We defer the proof of Theorem 29 to the full version of the paper. As a quick overview of
+the proof, we first establish that given Property 2, uℓi→a is close to the Gaussian N (0, νℓ )
+when d → ∞, independently of Giℓ−1 . Then, we show that pseudo-Lipschitz functions are
+smooth enough so that an input uℓi→a may be exchanged with an independent Gaussian
+input, and use this argument inductively to finish the proof.
+    Given Theorem 29, we may convert each spin {ziℓ }0≤ℓ≤L to a certain Gaussian process.
+In Section 5, we do exactly this, and choose the nonlinearities {Aℓi }0≤ℓ≤L to maximize the
+expression in Theorem 26 (subject to |ziL | ≤ 1).
+
+ 5          Choosing the nonlinearities
+We now design the nonlinearities to maximize Theorem 26. In light of Section 4, we consider
+                                                             def Pr
+the stochastic optimal control problem of [1]. Define ξ(s) = j=1 ∥f =j ∥2 sj . Consider any
+µ ∈ Lξ , and Φµ chosen as in Equation (1.1). Define the stochastic differential equation14
+                                     p
+   dXt = ξ ′′ (t)µ(t)Φµx (t, Xt )dt + ξ ′′ (t)dBt , X0 = 0 ,                            (5.1)
+
+along with associated martingale
+         Z tp
+   Zt =       ξ ′′ (s)Φµxx (s, Xs )dBs .                                                 (5.2)
+              0
+
+We now crucially use Assumption 1. Let µ∗ ∈ L be the minimizer of Equation (1.3).
+
+▶ Lemma 30 ([1, Theorem 3]). Suppose Assumption 1 holds. Then for every ϵ > 0, there
+exists η > 0 such that
+    Z 1−η
+          ξ ′′ (t) E[Φµxx∗ (t, Xt )]dt ≥ ALGξ − ϵ .
+        0
+
+For mean-field spin glasses, Parisi predicted that the minimizer of inf µ∈ U Pξ (µ) led to
+the correct description of the ground state. While this was true, uniqueness (Theorem 2)
+required a stochastic representation of the minimization problem. Later, [68, 1] formulated
+an algorithm whose optimal value can be written as a stochastic optimal control problem
+dual to Equation (1.3). Surprisingly, the study of overlap gap phenomena is also linked to
+Equation (1.3) [50, 55], so this algorithm is optimal among a broad family.15
+
+
+14
+     Here, (Bt )t≥0 is standard Brownian motion.
+15
+     This is the family of overlap-concentrated algorithms; see Definition 4.
+
+
+
+
+                                                                                                 APPROX/RANDOM 2026
+78:16   Local Algorithms and Sparse Random CSPs
+
+
+            In a sense, the optimal message-passing algorithm updates its local information in a
+        way concordant with the Parisi minimizer µ∗ , assuming that µ∗ exists. Nonetheless, even
+        if Assumption 1 is false, we informally argue that this algorithm succeeds. Since Φµx and
+        Φµxx are continuous in µ (e.g., [20, Theorem 4]), using a near-minimizer µ
+                                                                                 e∗ of Equation (1.3)
+        changes the value in Lemma 30 by a negligible amount, which can be absorbed into the
+        choice of ϵ. Furthermore, µe∗ can be precomputed, since finding µ  e∗ is a task required only
+        once per CSP predicate f , not once per run of the algorithm. Mathematizing this argument,
+        however, is a valuable open problem; see [1, Section 6].
+            In this section, we prove that the algorithm achieves a value affine to Lemma 30 after
+        taking two sets of limits.
+
+        5.1    A finite difference equation
+        Consider discrete versions of Equations (5.1) and (5.2). Choose δ > 0, and consider
+        independent standard Gaussians {B1 , B2 , . . . }. Then consider the finite difference
+                                                              p
+             δ
+           Xℓ+1 − Xℓδ = ξ ′′ (δℓ)µ∗ (δℓ)Φµx ∗ (δℓ, Xℓδ ) · δ + ξ ′ (δ(ℓ + 1)) − ξ ′ (δℓ) · Bℓ+1 X0δ = 0 ,
+                                                                                                      (5.3)
+             δ      δ
+                         p                                µ       δ                               δ
+            Zℓ+1 − Zℓ = ξ ′ (δ(ℓ + 1)) − ξ ′ (δℓ) · Φxx∗ (δℓ, Xℓ ) · Bℓ+1                       Z0 = 0 .
+                                                                                                      (5.4)
+
+        The variables are named suggestively. By Section 4, the messages uℓi→a , uℓi behave as
+        independent Gaussians as d → ∞, which we use to imitate Bℓ above. To this end, we define
+        the sequences
+                                                                      √
+            xℓ+1
+             i   = xℓi + ξ ′′ (δℓ)µ∗ (δℓ)Φµx ∗ (δℓ, xℓi ) · δ +
+                                                       r · uℓ+1
+                                                            i                             x0i = 0 ,
+                          ′′
+                                                            √
+           xi→a = xi→a + ξ (δℓ)µ∗ (δℓ)Φx (δℓ, xi→a ) · δ + r · uℓ+1
+            ℓ+1    ℓ                   µ∗      ℓ
+                                                                i→a                    x0i→a = 0 .
+
+           We show that in the limit d → ∞, the messages {uℓi , uℓi→a } behave as stochastic input
+        to Equations (5.3) and (5.4). Note that Φµx (t, x) and Φµxx (t, x) are Lipschitz in x, since all
+        x-derivatives are of Φµx (t, x) are bounded:
+
+        ▶ Lemma 31 ([1, Lemma 6.4]). For every µ ∈ L, ϵ > 0, and j ≥ 2, there exists K =
+        K(µ, j, ϵ) > 0 such that the j th derivative in x of Φµ is within [−K, K] for all t ∈ [0, 1 − ϵ]
+                                       ∂j   µ
+        and x ∈ R. In other words, | ∂x  j Φ (t, x)| ≤ K for all t ∈ [0, 1 − ϵ] and x ∈ R.
+
+
+        By induction and using Lemma 31, xℓi and Φµxx∗ (t, xℓi ), and xℓi→a and Φµxx∗ (t, xℓi→a ) are Lipschitz
+        in the messages {usi }s≤ℓ and {usi→a }s≤ℓ , respectively. So we can apply Theorem 29:
+
+        ▶ Proposition 32. Assume Property 2. Choose 1 ≤ ℓ ≤ L and any variable i. Then for
+        every integer k ≥ 1, we have
+
+           E[Φµxx∗ (δℓ, xℓi )k ] = E[Φµxx∗ (δℓ, Xℓδ )k ] + od (1) .
+
+        We now choose the nonlinearities:
+                                 s
+                                                           δ
+                  Aℓi = Φµxx∗ (δℓ, xℓi ) ·                                   ,                           (5.5)
+                                                 νℓ+1 · E[Φµxx∗ (t, xℓi )2 ]
+                                             s
+                                                             δ
+           Aℓi→a = Φµxx∗ (δℓ, xℓi→a ) ·                                        .                         (5.6)
+                                                 νℓ+1 · E[Φµxx∗ (t, xℓi→a )2 ]
+A. Chen, N. Huang, and K. Marwaha                                                                     78:17
+
+
+   These nonlinearities behave as we promised earlier. First of all, by Lemma 31, the
+nonlinearities are uniformly bounded for all d (presumed in Figure 2). Furthermore, by
+construction, the second moment of the nonlinearities satisfy Property 2. Finally, the
+nonlinearities do satisfy Property 1:
+
+▶ Proposition 33. Equations (5.5) and (5.6) satisfy Property 1. That is, for every m ∈ N,
+                                    1
+we have E[|Aℓi − Aℓi→a |m ] = Od ( dm/2 ).
+
+   Note that with this choice of nonlinearities, the value of the spin z ℓ differs slightly from
+Equation (5.4) in the large degree limit. By Figure 2, the spin value evolves as
+                         √
+     δ       δ             δ · Φµxx∗ (δℓ, Xℓδ )
+   Zℓ+1 − Zℓ = Bℓ+1 · q
+   e       e                                    , Ze0δ ∼ N (0, δ) .
+                               µ∗          δ  2
+                          E[Φxx (δℓ, Xℓ ) ]
+
+However, the difference between Zℓδ and Z
+                                        eδ is inconsequential for small enough δ:
+                                         ℓ
+
+▶ Proposition 34 ([1, Equation 5.7]). Suppose Assumption 1 holds. Then there exist δ0 , C > 0
+such that for every δ < δ0 and ℓ < 1δ , we have
+
+       ξ ′ ((ℓ + 1)δ) − ξ ′ (ℓδ)                                √
+                                 · E[Φµxx∗ (δℓ, Xℓδ )2 ] − 1 ≤ C δ .
+                   δ
+
+5.2       Achieving the extended Parisi value
+Here we show that Theorem 26 achieves a value affine to ALGξ , the infimum of a Parisi
+minimization problem. First, note that the expectation E[Aℓi (uℓ+1
+                                                               i   )2 ] can be simplified at
+large degree:
+
+▶ Proposition 35. For every variable i and 0 ≤ ℓ ≤ L − 1, we have
+                                               
+                                             1
+   E Aℓi (uℓ+1
+                2
+                                ℓ
+           i   )     − νℓ+1 · E  A i = Od   √     .
+                                              d
+      After the large degree limit, we take a second limit sending the timestep to 0; i.e. δ → 0
+or 1δ → ∞. As a result, the finite difference describing xℓi , xℓi→a converges to Equation (5.1),
+and the finite difference describing ziℓ , zi→a
+                                            ℓ
+                                                converges to Equation (5.2). We bound the error
+                                                                   16
+when making this approximation, using a statement from [1]:
+
+▶ Proposition 36 ([1, Proposition 5.3], see also [3, Proposition 4.8]). Suppose Assumption 1
+holds. Then there exists a coupling between (Xt , Zt )t≥0 and (Xℓδ , Z  eδ )ℓ∈N and a constant
+                                                                         ℓ
+                                                       1
+C > 0 such that for every small enough δ and ℓ ≤ δ , we have E[|Xδℓ − Xℓδ |2 ] ≤ Cδ and
+E[|Zδℓ − Zeℓδ |2 ] ≤ Cδ.
+
+      We are now in a position to simplify Theorem 26:
+
+▶ Theorem 37. Suppose Assumption 1 holds. Then for all ϵ > 0, there exist d0 ∈ N and
+δ0 > 0 such that for all d ≥ d0 and 0 < δ ≤ δ0 ,
+
+        1 X     L
+                               ALGξ − ϵ
+           E f (z∂a ) ≥ E[f ] +   √      .
+       αn                           α
+           a∈E
+
+
+16
+     The curious reader may refer to Table 1 to convert between the notation here and in [1].
+
+
+
+
+                                                                                                    APPROX/RANDOM 2026
+78:18   Local Algorithms and Sparse Random CSPs
+
+
+        Proof. Recall that α = dr is the clause density. By Theorem 26 and Proposition 35, we have
+
+                                                       L−1
+                                                                              !       
+                1 X     L
+                                        r X                   1X          ℓ        1
+                   E f (z∂a ) = E[f ] + √ ·                       νℓ+1 · E Ai   + Od     .
+               αn                         d                    n                      d
+                  a∈E                                   ℓ=0       i∈V
+
+                    def
+        Let ∆ℓ,i = νℓ+1 · E[Aℓi ]. At large enough d, Proposition 32 and Proposition 34 imply the
+        following for all i:17
+                                               √            √
+            ∆ℓ,i = νℓ+1 · E[Φµxx∗ (δℓ, Xℓδ )] · r(1 + O δ1 ( δ)) + od (1) .
+
+        By definition of νℓ+1 ,
+
+                       ξ ′ (δ(ℓ + 1)) − ξ ′ (δℓ)                                    √
+              ∆ℓ,i =              √              · E[Φµxx∗ (δℓ, Xℓδ )] · (1 + O δ1 ( δ)) + od (1) .
+                                    r
+
+        By Proposition 36 and Lipschitzness of Φµxx∗ (t, x) in x, using the continuous Xδℓ introduces
+        multiplicative error:
+
+                       ξ ′ (δ(ℓ + 1)) − ξ ′ (δℓ)                                    √
+              ∆ℓ,i =              √              · E[Φµxx∗ (δℓ, Xδℓ )] · (1 + O δ1 ( δ))2 + od (1) .
+                                    r
+
+        Putting it all together,
+                  1 X     L
+                                
+                     E f (z∂a )
+                 αn
+                     a∈E
+                              L−1
+                                               !           
+                         r X 1X                             1
+              = E[f ] + √ ·                ∆ℓ,i + Od
+                          d ℓ=0 n i∈V                       d
+                        r L−1
+                                                                                                 √
+                                                                                                                 
+                          r X ′                                                                               1
+              = E[f ] +     ·      (ξ (δ(ℓ + 1)) − ξ ′ (δℓ)) · E[Φµxx∗ (δℓ, Xδℓ )] · (1 + O δ1 ( δ))2 + od √
+                          d                                                                                    d
+                               ℓ=0
+                              L−1                                                                           
+                         1 X ′                                                                            1
+              = E[f ] + √ ·        (ξ (δ(ℓ + 1)) − ξ ′ (δℓ)) · E[Φµxx∗ (δℓ, Xδℓ )] · (1 + o δ1 (1)) + od √      .
+                          α                                                                                d
+                              ℓ=0
+
+        Applying Lemma 30 with large enough d and small enough δ proves the result.                               ◀
+
+        5.3       Rounding
+        We have nearly achieved our objective. However, the entries of z L are continuous, not in
+        {±1}. We account for this by rounding each entry of z L without significant impact to the
+        value of the algorithm.
+           Let trnc : R → [−1, 1] be the truncation function, defined by
+                        
+                         −1         if x < −1,
+              trnc(x) =   x          if − 1 ≤ x ≤ 1,
+                        
+                          1          if x > 1.
+
+        We use a randomized rounding procedure R that acts independently on each vertex i: it
+                                                1+trnc(ziL )                           1−trnc(ziL )
+        outputs +1 at vertex i with probability     2        , and −1 with probability     2        . The
+
+
+        17
+             Note that an error bound in Proposition 32 could improve the scaling beyond od (1).
+A. Chen, N. Huang, and K. Marwaha                                                                         78:19
+
+
+average value of the algorithm is unchanged when replacing trnc(z L ) with R(z L ).18 This is
+because averaging over the randomness in R, we have for every set S ⊆ V ,
+     "           #
+       Y             Y
+   E      R(ziL ) =      trnc(ziL ) .
+          i∈S                 i∈S
+
+We also compare the average value of the algorithm when replacing z L with trnc(z L ); i.e.
+                                L              L
+the average value of E[f (trnc(z∂a ))] − E[f (z∂a )] across factors a. Intuitively, trnc has no
+                              L
+effect because each entry of z is almost surely bounded by 1 after taking the limits d → ∞
+and δ → 0:
+▶ Lemma 38 ([1, Lemma 6.2 and 6.5]). Suppose Assumption 1 holds with minimizer µ∗ ∈ L,
+and consider the martingale Zt in Equation (5.2) corresponding to µ∗ . Then for all t ∈ [0, 1],
+|Zt | ≤ 1 almost surely.
+                                             L              L
+For each factor a, the difference E[f (trnc(z∂a ))] − E[f (z∂a )] can be split into at most 2r
+terms of the form
+     "                !            !#
+        Y                  Y
+   E        trnc(ziL ) −       ziL    ,
+            i∈S                       i∈S
+
+for some set S ⊆ ∂a where |S| ≥ 2 (since f has no linear terms). We show that each of these
+terms is at most δ · Od ( √1d ), where δ is the timestep of the algorithm.
+    Arbitrarily order the elements of set S; then the above term can be written as
+        "                !              !#
+            Y                     Y
+                      L               L
+      E         trnc(zi ) −         zi
+                 i∈S                        i∈S
+                                                                                 
+          |S|                                                            |S|
+                       κ−1
+                                        !
+          X            Y                                                 Y
+                                   L                                             L 
+                                                                
+      =         E           trnc(zS[ι] )     trnc(zS[κ] ) − zS[κ]             zS[ι] .
+          κ=1          ι=1                                              ι=κ+1
+
+We show that the average value of such terms across factors a is negligible with d as n → ∞.
+
+
+▶ Proposition 39. For every integer L ≥ 1, clause a, and disjoint subsets T1 , T2 ⊆ ∂a such
+that T1 ∪ T2 ̸= ∅, we have
+                                                           !2         
+         Y Y                      Y      Y                           1
+    E          ziL    trnc(ziL ) −     L
+                                       zi→a            L
+                                                 trnc(zi→a )  = Od           .
+                                                                         d
+                i∈T1         i∈T2                 i∈T1       i∈T2
+
+▶ Proposition 40. Fix an integer L ≥ 1 and variable i. For each a ∈ ∂i, fix disjoint subsets
+T1,a , T2,a ⊆ ∂a\i with T1,a ∪ T2,a ̸= ∅. Then
+                                                           
+                                                                    E[(ziL − trnc(ziL ))2 ]1/2
+                                                                                              
+            L         L    1 X Y
+                                          L
+                                             Y
+                                                         L 
+     E (zi − trnc(zi )) ·
+                                        zj        trnc(zj ) = Od             √                  .
+                           d                                                    d
+                             a∈∂i j∈T1,a    j∈T2,a
+
+      Although this is enough to show that the difference
+       1 X               L              L
+                                                     1
+              E[f (trnc(z∂a ))] − E[f (z∂a )] = Od ( √ ),
+      αn                                               d
+         a∈E
+
+we want this quantity to be negligible even among terms of size Od ( √1d ). We show this as
+the timestep δ also goes to 0.
+
+
+18
+     For convenience, we use the notation trnc(z L ) or R(z L ) to apply trnc or R entrywise on z L .
+
+
+
+                                                                                                        APPROX/RANDOM 2026
+78:20   Local Algorithms and Sparse Random CSPs
+
+
+        ▶ Proposition 41. Suppose Assumption 1 holds. Then for every integer L ≥ 1, there is a C
+        such that
+            1X
+                  E[(ziL − trnc(ziL ))2 ] ≤ Cδ + od (1) .
+            n
+               i∈V
+
+                                                                        def
+        Proof. Consider the pseudo-Lipschitz function ψ(x) = (x − trnc(x))2 . By Theorem 29,
+
+             E[ψ(ziL )] = E[ψ(ZeLδ )] + od (1) .
+
+        We consider the behavior as δ goes to zero. Since ψ is bounded by a quadratic function,
+
+             E[ψ(ZeLδ )] ≤ E[|ψ(ZδL )|] + E[|ZeLδ − ZδL |2 ] .
+
+        The first term is zero by Lemma 38. The statement follows by Proposition 36.                 ◀
+
+        We combine these statements with Theorem 37 to achieve our goal:
+        ▶ Theorem 42. Suppose Assumption 1 holds. Fix a factor a. Then for all ϵ > 0, there exist
+        d0 ∈ N and δ0 > 0 such that for all d ≥ d0 and 0 < δ ≤ δ0 ,
+              1 X       L
+                                        ALGξ − ϵ
+                 E f (R(z∂a )) ≥ E[f ] +   √      .
+             αn                              α
+                 a∈E
+
+        We conclude this section by showing the value of the algorithm concentrates around its mean.
+        This implies that the algorithm is not only good on average, but it finds a good solution
+        with high probability as n → ∞.
+        ▶ Proposition 43 (Generalization of [3, Lemma 4.10]). Fix a integer L ≥ 1. Then there exists
+        a constant C such that for all t ≥ 0,
+                                                        !
+                 1 X                                                2
+                        f (R(z∂a )) − E[f (R(z∂a ))] ≥ t ≤ Ce−nt /(2C) .
+                              L                L
+                                                    
+            P
+                αn
+                       a∈E
+
+        Proof. Partition the nodes of the graph G into C = C(L) sets {W1 , . . . , WC } such that any
+                                                                                          L
+                                                                         P
+        two nodes i, j ∈ Wq have distance at least 2L + 3. Then the value a∈E f (R(z∂a      )) − E[f ]
+        can be split into C sums as in
+                                                                                   C
+               def
+                     X
+                                 L
+                                               1X         X                    1X
+             ∆=            f (R(z∂a )) − E[f ] =   R(ziL )              L
+                                                             Di;a f (R(z∂a )) =       ∆ι ,
+                                                 r                              r ι=1
+                     a∈E                            i∈V          a∈∂i
+
+                 def P
+        where ∆ι = i∈Wι R(ziL ) a∈∂i Di;a f (R(z∂aL
+                                   P
+                                                    )). By a union bound, P((∆ − E[∆]) ≥ tαn) ≤
+        PC
+          ι=1 P((∆ ι − E[∆ι ]) ≥ tdn/C). Since each ∆ ι is a           n independent
+                                                             sum of up to            variables
+                                                                              2               2
+        each bounded by d, this probability is at most C exp − (tdn/C)
+                                                                 8nd2
+                                                                                            nt
+                                                                                  = C exp − 8C 2 .   ◀
+
+
+         6      Open questions
+        The first challenge is to either prove Assumption 1, or mathematize the continuity argument
+        that using a near-minimizer µ   e∗ ∈ Lξ in the algorithm incurs negligible error. This would
+        address the chief concern of Corollary 7.
+            As mentioned before, our algorithm assumes the CSP predicate f has no linear terms;
+        e.g. f cannot represent k-SAT. We expect that a preprocessing step fixes this issue, similar
+        to [79]’s improvement to [1].
+A. Chen, N. Huang, and K. Marwaha                                                                      78:21
+
+
+    Current techniques obstructing overlap-concentrated algorithms [50, 55] are restricted to
+even Ising spin glasses and CSP predicates f . However, a recent technique [47] on spherical
+spin glasses seems to circumvent this issue. Applying this technique to Ising spin glasses
+could lead to obstructions beyond even models, which automatically transfer to CSPf (α)
+by [55]. We suspect that message-passing is optimal among overlap-concentrated algorithms
+for all Ising spin glasses and CSP predicates f .
+    Furthermore, this work deepens a curious connection between CSPf (α) and Ising spin
+glasses [26, 55]. For example, this algorithm and the one in [1] are very similar, and achieve the
+same performance up to affine shift. In fact, the same is true for the QAOA for any constant
+depth and choice of hyperparameters [11, 12]! (This is known for monomial predicates f but
+likely extends to all predicates.) Perhaps there is a way to characterize the equivalence in
+energy landscape that explains why some algorithms “can’t see the difference” between the
+two models. This equivalence extends beyond overlap gap phenomena, which are defined
+only at near-optimal energies.
+    It seems that understanding optimal algorithms for CSPf (α) without asymptotics in α
+requires new techniques.
+
+
+      References
+ 1   Ahmed El Alaoui, Andrea Montanari, and Mark Sellke. Optimization of mean-field spin
+     glasses. The Annals of Probability, 49(6):2922–2960, 2021. arXiv:2001.00904.
+ 2   Ahmed El Alaoui, Andrea Montanari, and Mark Sellke. Sampling from the sherrington-
+     kirkpatrick gibbs measure via algorithmic stochastic localization. In 2022 IEEE 63rd Annual
+     Symposium on Foundations of Computer Science (FOCS), pages 323–334. IEEE, 2022. doi:
+     10.1109/FOCS54457.2022.00038.
+ 3   Ahmed El Alaoui, Andrea Montanari, and Mark Sellke. Local algorithms for maximum cut and
+     minimum bisection on locally treelike regular graphs of large degree, 2023. arXiv:2111.06813.
+ 4   Anurag Anshu and Tony Metger. Concentration bounds for quantum states and limitations
+     on the QAOA from polynomial approximations. Quantum, 7:999, May 2023. doi:10.22331/
+     q-2023-05-11-999.
+ 5   Frank Arute, Kunal Arya, Ryan Babbush, Dave Bacon, Joseph C. Bardin, Rami Barends,
+     Rupak Biswas, Sergio Boixo, Fernando G. S. L. Brandao, David A. Buell, Brian Burkett,
+     Yu Chen, Zijun Chen, Ben Chiaro, Roberto Collins, William Courtney, Andrew Dunsworth,
+     Edward Farhi, Brooks Foxen, Austin Fowler, Craig Gidney, Marissa Giustina, Rob Graff,
+     Keith Guerin, Steve Habegger, Matthew P. Harrigan, Michael J. Hartmann, Alan Ho, Markus
+     Hoffmann, Trent Huang, Travis S. Humble, Sergei V. Isakov, Evan Jeffrey, Zhang Jiang,
+     Dvir Kafri, Kostyantyn Kechedzhi, Julian Kelly, Paul V. Klimov, Sergey Knysh, Alexander
+     Korotkov, Fedor Kostritsa, David Landhuis, Mike Lindmark, Erik Lucero, Dmitry Lyakh,
+     Salvatore Mandrà, Jarrod R. McClean, Matthew McEwen, Anthony Megrant, Xiao Mi,
+     Kristel Michielsen, Masoud Mohseni, Josh Mutus, Ofer Naaman, Matthew Neeley, Charles
+     Neill, Murphy Yuezhen Niu, Eric Ostby, Andre Petukhov, John C. Platt, Chris Quintana,
+     Eleanor G. Rieffel, Pedram Roushan, Nicholas C. Rubin, Daniel Sank, Kevin J. Satzinger,
+     Vadim Smelyanskiy, Kevin J. Sung, Matthew D. Trevithick, Amit Vainsencher, Benjamin
+     Villalonga, Theodore White, Z. Jamie Yao, Ping Yeh, Adam Zalcman, Hartmut Neven, and
+     John M. Martinis. Quantum supremacy using a programmable superconducting processor.
+     Nature, 574(7779):505–510, October 2019. doi:10.1038/s41586-019-1666-5.
+ 6   Antonio Auffinger and Wei-Kuo Chen. Parisi formula for the ground state energy in the mixed
+     p-spin model. The Annals of Probability, 45(6B):4617–4631, 2017. arXiv:1606.05335.
+ 7   Antonio Auffinger, Andrea Montanari, and Eliran Subag. Optimization of random high-
+     dimensional functions: Structure and algorithms. In Patrick Charbonneau, Enzo Marinari,
+     Giorgio Parisi, Federico Ricci-Tersenghi, Gabriele Sicuro, Francesco Zamponi, and Marc
+     Mézard, editors, Spin Glass Theory and Far Beyond: Replica Symmetry Breaking After 40
+     Years, chapter 29. World Scientific, 2023. arXiv:2206.10217.
+
+
+                                                                                                     APPROX/RANDOM 2026
+78:22   Local Algorithms and Sparse Random CSPs
+
+
+         8   Boaz Barak and Kunal Marwaha. Classical algorithms and quantum limitations for maximum
+             cut on high-girth graphs. In 13th Innovations in Theoretical Computer Science Conference
+             (ITCS 2022), 2022. doi:10.4230/LIPIcs.ITCS.2022.14.
+         9   Boaz Barak, Ankur Moitra, Ryan O’Donnell, Prasad Raghavendra, Oded Regev, David Steurer,
+             Luca Trevisan, Aravindan Vijayaraghavan, David Witmer, and John Wright. Beating the
+             random assignment on constraint satisfaction problems of bounded degree. In APPROX/RAN-
+             DOM 2015, pages 110–123, 2015. arXiv:1505.03424.
+        10   Aseem Baranwal, Kimon Fountoulakis, and Aukosh Jagannath. Optimality of message-passing
+             architectures for sparse graphs. Advances in Neural Information Processing Systems, 36:40320–
+             40341, 2023. doi:10.48550/arXiv.2305.10391.
+        11   Joao Basso, Edward Farhi, Kunal Marwaha, Benjamin Villalonga, and Leo Zhou. The
+             Quantum Approximate Optimization Algorithm at high depth for MaxCut on large-girth
+             regular graphs and the Sherrington-Kirkpatrick model. In 17th Conference on the Theory of
+             Quantum Computation, Communication and Cryptography, 2022. arXiv:2110.14206.
+        12   Joao Basso, David Gamarnik, Song Mei, and Leo Zhou. Performance and limitations of the
+             QAOA at constant levels on large sparse hypergraphs and spin glass models. In 2022 IEEE
+             63rd Annual Symposium on Foundations of Computer Science (FOCS). IEEE, October 2022.
+             doi:10.1109/focs54457.2022.00039.
+        13   Mohsen Bayati and Andrea Montanari. The dynamics of message passing on dense graphs, with
+             applications to compressed sensing. IEEE Transactions on Information Theory, 57(2):764–785,
+             2011. arXiv:1001.3448.
+        14   Erwin Bolthausen. An iterative construction of solutions of the TAP equations for the
+             Sherrington-Kirkpatrick model. Communications in Mathematical Physics, 325(1):333–366,
+             2014. arXiv:1201.2891.
+        15   Adam Bouland, Bill Fefferman, Chinmay Nirkhe, and Umesh Vazirani. On the complexity
+             and verification of quantum random circuit sampling. Nature Physics, 15(2):159–163, October
+             2018. doi:10.1038/s41567-018-0318-2.
+        16   Sami Boulebnane, Abid Khan, Minzhao Liu, Jeffrey Larson, Dylan Herman, Ruslan Shaydulin,
+             and Marco Pistoia. Evidence that the Quantum Approximate Optimization Algorithm
+             optimizes the Sherrington-Kirkpatrick model efficiently in the average case, 2025. arXiv:
+             2505.07929.
+        17   Sami Boulebnane and Ashley Montanaro. Predicting parameters for the Quantum Approximate
+             Optimization Algorithm for MAX-CUT from the infinite-size limit, 2021. arXiv:2110.10685.
+        18   Anne Broadbent, Joseph Fitzsimons, and Elham Kashefi. Universal blind quantum computation.
+             In 2009 50th Annual IEEE Symposium on Foundations of Computer Science. IEEE, October
+             2009. doi:10.1109/focs.2009.36.
+        19   Houssam El Cheairi and David Gamarnik. Algorithmic universality, low-degree polynomials,
+             and Max-Cut in sparse random graphs, 2024. doi:10.48550/arXiv.2412.18014.
+        20   Wei Kuo Chen. Variational representations for the Parisi functional and the two-dimensional
+             Guerra-Talagrand bound. Annals of Probability, 45(6):3929–3966, 2017. arXiv:1501.06635.
+        21   Wei-Kuo Chen, David Gamarnik, Dmitry Panchenko, and Mustazee Rahman. Suboptimality
+             of local algorithms for a class of max-cut problems. The Annals of Probability, 47(3):1587–1618,
+             2019. arXiv:1707.05386.
+        22   Wei-Kuo Chen and Dmitry Panchenko. On the TAP free energy in the mixed p-spin models.
+             Communications in Mathematical Physics, 362:219–252, 2018. arXiv:1709.03468.
+        23   Wei-Kuo Chen, Dmitry Panchenko, and Eliran Subag. Generalized TAP free energy. Commu-
+             nications on Pure and Applied Mathematics, 76(7):1329–1415, 2023. arXiv:1812.05066.
+        24   Chi-Ning Chou, Peter J Love, Juspreet Singh Sandhu, and Jonathan Shi. Limitations of local
+             quantum algorithms on random MAX-k-XOR and beyond. In 49th International Colloquium on
+             Automata, Languages, and Programming (ICALP 2022), 2022. doi:10.4230/LIPIcs.ICALP.
+             2022.41.
+A. Chen, N. Huang, and K. Marwaha                                                                       78:23
+
+
+25   Alexander M Dalzell, Nicola Pancotti, Earl T Campbell, and Fernando GSL Brandão. Mind
+     the gap: Achieving a super-Grover quantum speedup by jumping to the end. In Proceedings
+     of the 55th Annual ACM Symposium on Theory of Computing, pages 1131–1144, 2023. arXiv:
+     2212.01513.
+26   Amir Dembo, Andrea Montanari, and Subhabrata Sen. Extremal cuts of sparse random graphs.
+     The Annals of Probability, 45(2):1190–1217, March 2017. doi:10.1214/15-AOP1084.
+27   Jian Ding, Allan Sly, and Nike Sun. Maximum independent sets on random regular graphs.
+     Acta Mathematica, 217:263–340, 2016. arXiv:1310.4787.
+28   Jian Ding, Allan Sly, and Nike Sun. Proof of the satisfiability conjecture for large k. Annals
+     of Mathematics, 196(1):1–388, 2022. arXiv:1411.0650.
+29   David L Donoho, Arian Maleki, and Andrea Montanari. Message-passing algorithms for
+     compressed sensing. Proceedings of the National Academy of Sciences, 106(45):18914–18919,
+     2009. arXiv:0907.3574.
+30   Richard Durrett. Probability: Theory and Examples. Cambridge University Press, fifth edition,
+     2019. doi:10.1017/9781108591034.
+31   Sepehr Ebadi, Alexander Keesling, Madelyn Cain, Tout T Wang, Harry Levine, Dolev Bluvstein,
+     Giulia Semeghini, Ahmed Omran, J-G Liu, Rhine Samajdar, et al. Quantum optimization of
+     maximum independent set using rydberg atom arrays. Science, 376(6598):1209–1215, 2022.
+     arXiv:2202.09372.
+32   Edward Farhi, David Gamarnik, and Sam Gutmann. The Quantum Approximate Optimization
+     Algorithm needs to see the whole graph: A typical case, 2020. arXiv:2004.09002.
+33   Edward Farhi, David Gamarnik, and Sam Gutmann. The Quantum Approximate Optimization
+     Algorithm needs to see the whole graph: Worst case examples, 2020. arXiv:2005.08747.
+34   Edward Farhi, Jeffrey Goldstone, and Sam Gutmann. A Quantum Approximate Optimization
+     Algorithm, 2014. arXiv:1411.4028.
+35   Edward Farhi, Jeffrey Goldstone, and Sam Gutmann. A Quantum Approximate Optimization
+     Algorithm applied to a bounded occurrence constraint problem, 2015. arXiv:1412.6062.
+36   Edward Farhi, Jeffrey Goldstone, Sam Gutmann, and Leo Zhou. The Quantum Approximate
+     Optimization Algorithm and the Sherrington-Kirkpatrick model at infinite size. Quantum,
+     6:759, July 2022. doi:10.22331/q-2022-07-07-759.
+37   Edward Farhi, Sam Gutmann, Daniel Ranard, and Benjamin Villalonga. Lower bounding the
+     MaxCut of high girth 3-regular graphs using the QAOA, 2025. doi:10.48550/arXiv.2503.
+     12789.
+38   Oliver Y Feng, Ramji Venkataramanan, Cynthia Rush, and Richard J Samworth. A unifying
+     tutorial on approximate message passing. Foundations and Trends® in Machine Learning,
+     15(4):335–536, 2022. arXiv:2105.02180.
+39   Yaotian Fu and Philip W. Anderson. Application of statistical mechanics to NP-complete
+     problems in combinatorial optimisation. Journal of Physics A: Mathematical and General,
+     19(9):1605–1620, June 1986. doi:10.1088/0305-4470/19/9/033.
+40   David Gamarnik. The overlap gap property: A topological barrier to optimizing over random
+     structures. Proceedings of the National Academy of Sciences, 118(41), October 2021. doi:
+     10.1073/pnas.2108492118.
+41   David Gamarnik. Barriers for the performance of graph neural networks (gnn) in discrete
+     random structures. a comment, 2023. arXiv:2306.02555.
+42   David Gamarnik, Aukosh Jagannath, and Alexander S. Wein. Circuit lower bounds for the
+     p-spin optimization problem, 2021. arXiv:2109.01342.
+43   David Gamarnik, Aukosh Jagannath, and Alexander S Wein. Hardness of random optimization
+     problems for boolean circuits, low-degree polynomials, and Langevin dynamics. SIAM Journal
+     on Computing, 53(1):1–46, 2024. arXiv:2004.12063.
+44   David Gamarnik and Madhu Sudan. Limits of local algorithms over sparse random graphs.
+     In Proceedings of the 5th conference on Innovations in Theoretical Computer Science, pages
+     369–376, 2014. arXiv:1304.1831.
+
+
+
+
+                                                                                                      APPROX/RANDOM 2026
+78:24   Local Algorithms and Sparse Random CSPs
+
+
+        45   M. B. Hastings. Classical and quantum bounded depth approximation algorithms, 2019.
+             arXiv:1905.07047.
+        46   Brice Huang. Computational Hardness in Random Optimization Problems from the Overlap
+             Gap Property. Master’s thesis, Massachusetts Institute of Technology, 2022. URL: https:
+             //dspace.mit.edu/handle/1721.1/143164.
+        47   Brice Huang and Mark Sellke. Algorithmic threshold for multi-species spherical spin glasses,
+             2023. doi:10.48550/arXiv.2303.12172.
+        48   Brice Huang and Mark Sellke. Optimization algorithms for multi-species spherical spin glasses.
+             Journal of Statistical Physics, 191(2):29, 2024. arXiv:2308.09672.
+        49   Brice Huang and Mark Sellke. Strong low degree hardness for stable local optima in spin
+             glasses, 2025. doi:10.48550/arXiv.2501.06427.
+        50   Brice Huang and Mark Sellke. Tight Lipschitz hardness for optimizing mean field spin glasses.
+             Communications on Pure and Applied Mathematics, 78(1):60–119, 2025. arXiv:2110.07847.
+        51   Neng Huang, Will Perkins, and Aaron Potechin. Hardness of sampling for the anti-ferromagnetic
+             Ising model on random graphs, 2024. doi:10.48550/arXiv.2409.03974.
+        52   Misha Ivkov and Tselil Schramm. Semidefinite programs simulate approximate message passing
+             robustly. In Proceedings of the 56th Annual ACM Symposium on Theory of Computing, pages
+             348–357, 2024. arXiv:2311.09017.
+        53   Aukosh Jagannath and Ian Tobasco. A dynamic programming approach to the Parisi functional.
+             Proceedings of the American Mathematical Society, 144(7):3135–3150, December 2015. doi:
+             10.1090/proc/12968.
+        54   David Jekel, Juspreet Singh Sandhu, and Jonathan Shi. Potential Hessian ascent: The
+             Sherrington-Kirkpatrick model. In Proceedings of the 2025 Annual ACM-SIAM Symposium
+             on Discrete Algorithms (SODA), pages 5307–5387. SIAM, 2025. arXiv:2408.02360.
+        55   Chris Jones, Kunal Marwaha, Juspreet Singh Sandhu, and Jonathan Shi. Random Max-CSPs
+             inherit algorithmic hardness from spin glasses. In 14th Innovations in Theoretical Computer
+             Science Conference (ITCS 2023), 2023. doi:10.4230/LIPIcs.ITCS.2023.77.
+        56   Stephen P Jordan, Noah Shutty, Mary Wootters, Adam Zalcman, Alexander Schmidhuber,
+             Robbie King, Sergei V Isakov, Tanuj Khattar, and Ryan Babbush. Optimization by decoded
+             quantum interferometry, 2024. arXiv:2408.08292.
+        57   Yoshiyuki Kabashima. A CDMA multiuser detection algorithm on the basis of belief
+             propagation. Journal of Physics A: Mathematical and General, 36(43):11111, 2003. doi:
+             10.1088/0305-4470/36/43/030.
+        58   Daphne Koller and Nir Friedman. Probabilistic Graphical Models: Principles and Techniques.
+             MIT press, 2009. URL: https://dl.acm.org/doi/abs/10.5555/1795555.
+        59   Florent Krzakala, Marc Mézard, Francois Sausset, Yifan Sun, and Lenka Zdeborová. Prob-
+             abilistic reconstruction in compressed sensing: Algorithms, phase diagrams, and threshold
+             achieving matrices. Journal of Statistical Mechanics: Theory and Experiment, 2012(08):P08009,
+             2012. arXiv:1206.3953.
+        60   Frank R Kschischang, Brendan J Frey, and H-A Loeliger. Factor graphs and the sum-
+             product algorithm. IEEE Transactions on information theory, 47(2):498–519, 2001. doi:
+             10.1109/18.910572.
+        61   Thibault Lesieur, Florent Krzakala, and Lenka Zdeborová. Constrained low-rank matrix
+             estimation: Phase transitions, approximate message passing and applications. Journal of
+             Statistical Mechanics: Theory and Experiment, 2017(7):073403, 2017. arXiv:1701.00858.
+        62   Filip B Maciejewski, Stuart Hadfield, Benjamin Hall, Mark Hodson, Maxime Dupont, Bram
+             Evert, James Sud, M Sohaib Alam, Zhihui Wang, Stephen Jeffrey, et al. Design and execution
+             of quantum circuits using tens of superconducting qubits and thousands of gates for dense
+             Ising optimization problems. Physical Review Applied, 22(4):044074, 2024. arXiv:2308.12423.
+        63   Kunal Marwaha. Local classical MAX-CUT algorithm outperforms p=2 QAOA on high-girth
+             regular graphs. Quantum, 5:437, April 2021. doi:10.22331/q-2021-04-20-437.
+A. Chen, N. Huang, and K. Marwaha                                                                             78:25
+
+
+64   Sohir Maskey, Ron Levie, Yunseok Lee, and Gitta Kutyniok. Generalization analysis of
+     message passing neural networks on large random graphs. Advances in neural information
+     processing systems, 35:4805–4817, 2022. arXiv:2202.00645.
+65   Marc Mézard and Andrea Montanari. Information, Physics, and Computation. Oxford
+     University Press, 2009. doi:10.1093/acprof:oso/9780198570837.001.0001.
+66   Marc Mézard, Giorgio Parisi, and Miguel Angel Virasoro. Spin Glass Theory and Beyond: An
+     Introduction to the Replica Method and Its Applications, volume 9. World Scientific Publishing
+     Company, 1987. doi:10.1142/0271.
+67   Marco Mondelli and Ramji Venkataramanan. Approximate message passing with spectral
+     initialization for generalized linear models. In International Conference on Artificial Intelligence
+     and Statistics, pages 397–405. PMLR, 2021. arXiv:2010.03460.
+68   Andrea Montanari. Optimization of the Sherrington-Kirkpatrick Hamiltonian. SIAM Journal
+     on Computing, 2021. arXiv:1812.10897.
+69   Andrea Montanari, Yonina C. Eldar, and Gitta Kutyniok. Graphical models concepts in
+     compressed sensing. Compressed Sensing, pages 394–438, 2012. arXiv:1011.4328.
+70   Dmitry Panchenko. The Parisi ultrametricity conjecture. Annals of Mathematics, pages
+     383–393, 2013. arXiv:1112.1003.
+71   Dmitry Panchenko. The Sherrington-Kirkpatrick Model. Springer Science & Business Media,
+     2013. doi:10.1007/978-1-4614-6289-7.
+72   Dmitry Panchenko. On the k-sat model with large number of clauses. Random Structures &
+     Algorithms, 52(3):536–542, 2018. arXiv:1608.06256.
+73   Giorgio Parisi. Infinite number of order parameters for spin-glasses. Phys. Rev. Lett., 43:1754–
+     1756, December 1979. doi:10.1103/PhysRevLett.43.1754.
+74   John Preskill. Quantum computing in the NISQ era and beyond. Quantum, 2:79, August
+     2018. doi:10.22331/q-2018-08-06-79.
+75   Tom Richardson and Ruediger Urbanke. Modern Coding Theory. Cambridge University Press,
+     2008. doi:10.1017/CBO9780511791338.
+76   Cynthia Rush, Adam Greig, and Ramji Venkataramanan. Capacity-achieving sparse superpo-
+     sition codes via approximate message passing decoding. IEEE Transactions on Information
+     Theory, 63(3):1476–1500, 2017. arXiv:1501.05892.
+77   Ciarán Ryan-Anderson. Quantum Algorithms, Architecture, and Error Correction. PhD thesis,
+     The University of New Mexico, 2018. arXiv:1812.04735.
+78   Juspreet Singh Sandhu and Jonathan Shi. Sum-of-squares & Gaussian processes I: Certification,
+     2024. arXiv:2401.14383.
+79   Mark Sellke. Optimizing mean field spin glasses with external field. Electronic Journal of
+     Probability, 29:1–47, 2024. arXiv:2105.03506.
+80   Subhabrata Sen. Optimization on sparse random hypergraphs and spin glasses. Random
+     Structures & Algorithms, 53(3):504–536, 2018. doi:10.1002/rsa.20774.
+81   Ruslan Shaydulin and Marco Pistoia. Qaoa with n · p ≥ 200. In 2023 IEEE International
+     Conference on Quantum Computing and Engineering (QCE), volume 1, pages 1074–1077.
+     IEEE, 2023. arXiv:2303.02064.
+82   David Sherrington and Scott Kirkpatrick. Solvable model of a spin-glass. Physical Review
+     Letters, 35(26):1792, 1975. doi:10.1103/PhysRevLett.35.1792.
+83   Allan Sly and Nike Sun. The computational hardness of counting in two-spin models on
+     d-regular graphs. In 2012 IEEE 53rd Annual Symposium on Foundations of Computer Science,
+     pages 361–369. IEEE, 2012. arXiv:1203.2602.
+84   Eliran Subag. Following the ground states of full-RSB spherical spin glasses. Communications
+     on Pure and Applied Mathematics, 74(5):1021–1044, 2021. arXiv:1812.04588.
+85   Michel Talagrand. The Parisi formula. Annals of Mathematics, pages 221–263, 2006. URL:
+     https://www.jstor.org/stable/20159953.
+86   Ewin Tang. Dequantizing algorithms to understand quantum advantage in machine learning.
+     Nature Reviews Physics, 4:692–693, 2022. doi:10.1038/s42254-022-00511-w.
+
+
+
+
+                                                                                                            APPROX/RANDOM 2026
+78:26   Local Algorithms and Sparse Random CSPs
+
+
+        87   David J Thouless, Philip W Anderson, and Robert G Palmer. Solution of ‘solvable model of a
+             spin glass’. Philosophical Magazine, 35(3):593–601, 1977. doi:10.1080/14786437708235992.
+        88   Zhihui Wang, Stuart Hadfield, Zhang Jiang, and Eleanor G. Rieffel. Quantum approximate
+             optimization algorithm for MaxCut: A fermionic view. Phys. Rev. A, 97:022304, February
+             2018. doi:10.1103/PhysRevA.97.022304.
+        89   Jonathan Wurtz and Peter Love. MaxCut Quantum Approximate Optimization Algorithm
+             performance guarantees for p>1. Physical Review A, 103(4), April 2021. doi:10.1103/
+             physreva.103.042612.
+        90   Lenka Zdeborová and Florent Krzakala. Statistical physics of inference: Thresholds and
+             algorithms. Advances in Physics, 65(5):453–552, 2016. arXiv:1511.02476.
+        91   Han-Sen Zhong, Hui Wang, Yu-Hao Deng, Ming-Cheng Chen, Li-Chao Peng, Yi-Han Luo,
+             Jian Qin, Dian Wu, Xing Ding, Yi Hu, Peng Hu, Xiao-Yan Yang, Wei-Jun Zhang, Hao Li,
+             Yuxuan Li, Xiao Jiang, Lin Gan, Guangwen Yang, Lixing You, Zhen Wang, Li Li, Nai-Le Liu,
+             Chao-Yang Lu, and Jian-Wei Pan. Quantum computational advantage using photons. Science,
+             370(6523):1460–1463, 2020. doi:10.1126/science.abe8770.
+

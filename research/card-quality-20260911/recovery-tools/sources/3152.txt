@@ -1,0 +1,1429 @@
+What’s Decidable About (Atomic) Polymorphism?
+Paolo Pistone # Ñ
+University of Bologna, Italy
+
+Luca Tranchini # Ñ
+Eberhard Karls Universität Tübingen, Germany
+
+
+      Abstract
+Due to the undecidability of most type-related properties of System F like type inhabitation or
+type checking, restricted polymorphic systems have been widely investigated (the most well-known
+being ML-polymorphism). In this paper we investigate System Fat, or atomic System F, a very
+weak predicative fragment of System F whose typable terms coincide with the simply typable ones.
+We show that the type-checking problem for Fat is decidable and we propose an algorithm which
+sheds some new light on the source of undecidability in full System F. Moreover, we investigate free
+theorems and contextual equivalence in this fragment, and we show that the latter, unlike in the
+simply typed lambda-calculus, is undecidable.
+
+2012 ACM Subject Classification Theory of computation Ñ Type theory; Theory of computation
+Ñ Higher order logic
+
+Keywords and phrases Atomic System F, Predicative Polymorphism, ML-Polymorphism, Type-
+Checking, Contextual Equivalence, Free Theorems
+
+Digital Object Identifier 10.4230/LIPIcs.FSCD.2021.27
+
+Related Version Full Version: https://arxiv.org/abs/2105.00748
+
+Funding Luca Tranchini: DFG TR1112/4-1 “Falsity and Refutation. On the negative side of logic”
+
+
+ 1      Introduction
+
+Polymorphism has been a central topic in programming language theory since the late sixties.
+Today, most general purpose programming languages employ some kind of polymorphism. At
+the same time, under the Curry-Howard correspondence, quantification over types corresponds
+to quantification over propositions, that is, to second-order logic. In particular, System
+F, the archetypical type system for polymorphism, can be seen as a proof-system for (the
+ñ, @-fragment of) second-order intuitionistic logic.
+    In spite of the numerous applications of polymorphism, practically all interesting type-
+related properties of (Curry-style) System F (e.g. type checking, type inhabitation, etc.)
+are undecidable, making this language impractical for any reasonable implementation. This
+is one of the reasons why a wide literature has investigated more manageable subsystems
+of System F. Notably, ML-polymorphism [41, 42, 40] has found much success due to its
+decidable type-checking.
+    Another direction of research was that of investigating predicative subsystems of System F
+[32, 33, 34, 6]. In particular, the so-called finitely stratified polymorphism [33] yields a
+stratification of System F through a sequence of predicative systems pFn qnPN of growing
+expressive power (notably, F0 is the simply typed λ-calculus STλC, and ML-polymorphism
+coincides with the rank-1 part of F1 ). Yet, in spite of such limitations, type checking becomes
+undecidable already at level 1 of this hierarchy [18].
+    Could one tell exactly at which point, in the range from the simply typed λ-calculus and
+ML to full System F, the type-related properties of polymorphism become undecidable?
+
+            © Paolo Pistone and Luca Tranchini;
+            licensed under Creative Commons License CC-BY 4.0
+6th International Conference on Formal Structures for Computation and Deduction (FSCD 2021).
+Editor: Naoki Kobayashi; Article No. 27; pp. 27:1–27:23
+                   Leibniz International Proceedings in Informatics
+                   Schloss Dagstuhl – Leibniz-Zentrum für Informatik, Dagstuhl Publishing, Germany
+27:2   What’s Decidable About (Atomic) Polymorphism?
+
+
+                           F0 “ STλC             Fat               ML                F1                  F
+                TI        decidable [59]   undecidable [52]       open         undecidable [57]   undecidable [37]
+               TC         decidable [25]     decidable        decidable [40]   undecidable [18]   undecidable [64]
+                T         decidable [25]     decidable        decidable [40]   undecidable [18]   undecidable [64]
+               CE
+         (for numerical   decidable [44]     decidable        undecidable       undecidable        undecidable˚
+           functions)
+               CE
+                          decidable [44]    undecidable       undecidable       undecidable       undecidable˚˚
+              (full)
+
+            Figure 1 Decidable and undecidable properties of System F and some predicative fragments (in
+       bold the properties established in the present paper).
+       ˚
+         : easy consequence of Rice’s theorem and the typability of all primitive recursive functions in F
+       (see also Remark 18).
+       ˚˚
+           : consequence of the undecidability of (CE) for numerical functions.
+
+
+
+       Atomic Polymorphism. In more recent times Ferreira et al. have undertaken the investiga-
+       tion of what can be seen as the least expressive predicative fragment of F, System Fat , or
+       atomic System F [12, 11, 13, 15, 16, 10, 9]. The predicative restriction of Fat is such that
+       a universally quantified type @X.A can be instantiated solely with an atomic type, i.e. a
+       type variable. In this way Fat sits in between level 0 (i.e. STλC) and level 1 of the finitely
+       stratified hierarchy. Actually, Fat can be seen as a type refinement system (in the sense
+       of [39]) of STλC, since all terms typable in Fat are simply typable (cf. Lemma 7).
+           In spite of its very limited expressive power, Ferreira et al. have shown that, thanks to
+       polymorphism, Fat enjoys some proof-theoretic properties that STλC lacks. In particular,
+       they defined a predicative variant of the usual encoding of sum and product types inside
+       F, yielding an embedding of intuitionistic propositional logic inside Fat . However, while
+       propositional logic is decidable, provability in second-order propositional intuitionistic logic,
+       even with the atomic restriction, is undecidable [56]. This argument (as recently observed
+       in [52]) can be extended to show that the type inhabitation property, which is decidable for
+       STλC, is undecidable for Fat .
+
+
+       Contributions
+
+       In this paper we investigate the following type-related properties of System Fat :
+
+            Type inhabitation (TI):            given A, is there t such that $ t : A?
+            Type-checking (TC):                given Γ, A, t, does Γ $ t : A?
+            Typability (T):                    given Γ, t, is there A such that Γ $ t : A?
+            Contextual equivalence (CE):       given A, t, u such that $ t, u : A, do Crts and Crus reduce
+                                               to the same Boolean, for all context Cr s : A ñ Bool?
+
+       In Fig. 1 we sum up what is already known and what is established in this paper (in bold)
+       about such properties in predicative fragments of System F. Our main results are that in
+       Fat (TC) and (T) are both decidable, and that (CE) is decidable if one restricts oneself to
+       numerical functions, and undecidable in the general case.
+           Several decidability properties of Fat are tight, meaning that they all fail already for F1 .
+       In these cases, our arguments can be used to shed some new insights on the broader question
+       of understanding where the source of undecidability for such properties in full System F lies.
+P. Pistone and L. Tranchini                                                                                     27:3
+
+
+Plan of the paper
+After recalling the syntax of F and its fragment in Curry-style and Church-style, we address
+the properties (TI), (TC), (T) and (CE).
+
+Type Inhabitation. In Section 3 we shortly discuss the undecidability of (TI), by showing
+how the argument in [57] for System F applies to Fat too. This argument yields an encoding
+inside Fat of an undecidable fragment of first-order intuitionistic logic. We also observe that
+Fat is actually equivalent to a first-order system, namely to the ñ, @-fragment 1Monñ,@ of
+first-order monadic intuitionistic logic in a language with a unique monadic predicate. To
+our knowledge, the undecidability of 1Monñ,@ has not been previously observed (although
+some slightly more expressive fragments - e.g. including a primitive disjunction [19] or finitely
+many monadic predicates [54] - have been proven undecidable).
+
+Type-Checking and Typability. In Section 4 we consider the type-checking problem. The
+undecidability of (TC) for System F was established by Wells in [64], and was later extended
+to all predicative systems Fn , for n ą 0 [18]. In all these cases this result was obtained
+by reducing an undecidable variant of second-order unification (SOU) to the type-checking
+problem. On the other hand, the decidability of (TC) for ML (and F0 “ STλC) is based
+on the famous Hindley-Milner algorithm [40], which reduces this problem to first-order
+unification (FOU), which is decidable.
+     The fundamental source of undecidability of SOU is the presence of cyclic dependences
+between second order variables, expressed in the simplest case by equations of the form
+Xptq “ f pv1 , . . . , vk´1 , Xpuq, vk`1 , . . . , vn q. In fact, acyclic SOU is decidable [36]. When type-
+checking polymorphic programs, such cyclic dependencies are generated by self-applications,
+i.e. terms of the form λ⃗x.xt1 . . . tk´1 xtk`1 . . . tn . In fact, in this case the type @X.A assigned
+to the variable x must satisfy a cyclic equation of the form
+
+    ArX ÞÑ C1 s “ B1 ñ . . . ñ Bk´1 ñ ArX ÞÑ C2 s ñ Bk`1 ñ . . . ñ Bn
+
+(where C1 , C2 are suitable type instantiations of X). By constrast, no term containing a
+self-application can be typed in STλC, since cyclic equations cannot be solved by FOU.
+    Since the terms typable in Fat can also be typed in STλC (cf. Lemma 7), it follows
+that self-applications cannot be typed in Fat either. Using this observation, we describe
+a type-checking algorithm for Fat which works in two phases: first, it checks (using FOU)
+the presence of cyclic dependencies, and returns failure if it detects one; then, if phase 1
+succeeds, it applies (a suitable variant of) acyclic SOU to decide type-checking. From the
+decidability of (TC), we deduce the decidability of (T) by a standard argument (see [4]).
+
+Contextual Equivalence. Studying the typable terms of Fat might not seem very interesting
+from a computational viewpoint, as these terms are already typable in STλC. However,
+due to the presence of some form of polymorphism, investigating programs in Fat can
+be interesting for equational reasoning, as we do in Sections 5 and 6. In standard type
+systems, beyond the standard notions of program equivalence arising from the operational
+semantics (i.e. βη-equivalence), there may exist several other congruences arising from either
+denotational models or from some notion of contextual equivalence. In STλC, it is well-known
+that »βη coincides with the congruence induced by any infinite extensional model [58], as well
+as with several notions of contextual equivalence (see [5], [7]). In polymorphic type systems
+the picture is rather different, since βη-equivalence is usually weaker than the congruences
+
+
+
+                                                                                                              FSCD 2021
+27:4   What’s Decidable About (Atomic) Polymorphism?
+
+
+       arising from extensional models (see [3, 23]), and also weaker than standard notions of
+       contextual equivalence. Moreover, while βη-equivalence is decidable, contextual equivalence
+       is undecidable. Since in many practical situations (see [62, 1]) it is more convenient to reason
+       up to notions of equivalence stronger than βη-equivalence, several techniques to compute
+       (approximations of) contextual equivalence have been investigated, e.g. free theorems [63],
+       parametricity [53], and dinaturality [3].
+           Our investigation of contextual equivalence starts in Section 5 with an exploration of
+       equational reasoning in Fat using free theorems. We show that the predicative encodings
+       of sum and product types of Ferreira et al. produce products and coproducts in Fat in
+       the categorical sense, provided terms are considered up to (CE) (a fact which is known
+       to hold in F for the usual, impredicative, encodings [23, 61]). We then investigate (CE)
+       for typable numerical functions. Using the fact that the primitive recursive functions are
+       uniquely defined in System F up to (CE), we show that (CE) for the representable numerical
+       functions is decidable in Fat , and undecidable in ML. Such results rely on the observation
+       that (CE) becomes undecidable as soon as some super-polynomial function (like bounded
+       multiplication) becomes representable. From this it can be deduced that (CE) is undecidable
+       in all fragments Fn , for n ą 0, of the finitely stratified hierarchy as well.
+           Finally, in Section 6 we establish that (CE) is undecidable also in Fat , by showing that the
+       type inhabitation problem for a suitable extension of Fat can be reduced to it. This result,
+       together with the previous ones, shows that there is no hope to get a decidable contextual
+       equivalence for polymorphic programs through a predicative restriction, and one has rather
+       to look for other kinds of restrictions (see for instance [49]).
+
+        2      Predicative Polymorphism and System Fat
+       The systems we consider in this paper are all restrictions of usual Church-style and Curry-style
+       System F. The types are defined in both cases by the grammar
+
+            A, B ::“ X | A ñ B | @X.A
+
+       starting from a countable set Var2 of type variables X1 , X2 , . . . . The terms of Church-style
+       System F are defined by the grammar below:
+
+            tA , uA ::“ xA | pλxA .tB qAñB | tBñA uB | pΛX.tA q@X.A | pt@X.A CqArC{Xs
+
+       For readability, we will often omit type annotations, when these can be guessed from the
+       context. The terms of Curry-style System F are standard λ-terms, with typing rules defined
+       as in Fig. 2, where Γ indicates a partial function from term variables to types with a finite
+       support, and by X R FVpΓq we indicate that X does not occur free in any type in ImpΓq.
+       We call the type C occurring in pt@X.A CqArC{Xs and in the rule @E in Fig. 2 the witness of
+       the type instantiation.
+           We indicate term contexts (i.e. terms with a hole r s) as Cr s, Dr s. Moreover, we let
+       Cr s : A $ B be a shorthand for x ÞÑ A $ Crxs : B.
+           System F is impredicative: any type can figure as a witness. In particular, one can
+       construct “circular” instantiations, in which a term of type @X.A is instantiated with the
+       same type as witness. A predicative fragment of System F is one in which witnesses are
+       restricted in such a way to avoid such circular instantiations.
+           We will focus on three predicative fragments of System F, both in Church- and Curry-style.
+       The first is System F1 , which is the fragment of F in which witnesses are quantifier-free.
+       The second is System Fat , which is the fragment of F in which witnesses are atomic, that is,
+P. Pistone and L. Tranchini                                                                           27:5
+
+
+
+                                Γpxq “ A
+                                         Var
+                                Γ$x:A
+
+      Γ, x ÞÑ A $ t : B               Γ$t:AñB        Γ$u:A
+                        Abs                                Appl
+      Γ $ λx.t : A ñ B                     Γ $ tu : B
+
+           Γ$t:B       X R FVpΓq                 Γ $ t : @X.A
+                                 @I                            @E
+              Γ $ t : @X.A                      Γ $ t : ArC{Xs
+
+   Figure 2 Typing rules for Curry-style System F.
+
+
+type variables. The third is system ML [41, 40], which essentially coincides with the rank 1
+fragment of F1 . For any type A, the rank rpAq is the maximum number of nesting between
+ñ and @, and is defined inductively by rpXq “ 0, rpA ñ Bq “ maxtrpAq ` 1, rpBqu and
+rp@X1 . . . Xn .Aq “ rpAq ` 1 (where n ą 0 and A does not start with a quantifier). To define
+ML (since type-checking is decidable in ML, we limit ourselves to Curry-style) one first has
+to enrich the set of λ-terms with the let-constructor, and add a rule
+    Γ, x ÞÑ A $ t : B       Γ$u:A
+                                  let
+          Γ $ let x be u in t : B
+ML is the fragment of the resulting system in which typing rules only contain judgements
+Γ $ t : A, where rpAq ď 1 and for all B P ImpΓq, rpBq ď 1.
+   Observe that in F1 one can encode let x be u in t by pλx.tqu, so that the rule above
+becomes derivable. This is not possible in ML, due to the rank restriction.
+
+Impredicative and Predicative Encodings.        It is well-known that sum and product types
+can be encoded inside System F by letting
+   A r̀ B “ @X.pA ñ Xq ñ pB ñ Xq ñ X
+   A r̂ B “ @X.pA ñ B ñ Xq ñ X
+where the type variable X is fresh. The encoding of term constructors ιi p¨q, x¨, ¨y and term
+destructors CaseC p¨, xA .¨, xB .¨q and πi p¨q is given (in Church-style) by:
+    ι1 ptq “ ΛX.λf AñX .λg BñX .f t           CaseC pt, xA .u, xB .vq “ tCpλxA .uqpλxB .vq
+    ι2 ptq “ ΛX.λf AñX .λg BñX .gt                             π1 ptq “ tAλxA .λy B .x
+   xt, uy “ ΛX.λf AñBñX .f tu                                  π2 ptq “ tBλxA .λy B .y
+At the level of provability, the encoding is faithful: a type is inhabited in the extension
+of System F with sum and product types iff the encoded type is inhabited in System F.
+Moreover, the encoding of r̀ satisfies the disjunction property: A r̀ B is inhabited iff either A
+or B are inhabited.
+    At the level of conversions, the encoding translates β-reduction step for sum and product
+types into (finite sequences of) β-reduction steps in F. On the other hand, the η-rules for
+sums and products are not translated by the β- and η- rules of System F. Yet, the equivalence
+generated by β- and η-rules is preserved by contextual equivalence in System F (more on this
+in Section 5).
+    The encoding of sum and product types is impredicative: the encoding of term destructors
+requires witnesses of arbitrary complexity. Notably, given a term t of type A r̀ B, the term
+              A          B
+CaseA`Br pt, x .ι1 pxq, x .ι2 pxqq, of type A r̀ B, has a circular instantiation of A r̀ B.
+
+
+
+
+                                                                                                    FSCD 2021
+27:6   What’s Decidable About (Atomic) Polymorphism?
+
+
+           In [12], and more recently in [9] some alternative, predicative, encodings were defined
+       having System Fat as target. The fundamental observation is that the unrestricted @E rule
+       is derivable from the restricted one for the types of the form A r̀ B and A r̂ B (the authors
+       call this phenomenon instantiation overflow). In fact, for any type C of System F one can
+       define contexts IO`                                                 ˆ
+                         C r s : A B $ pA ñ Cq ñ pB ñ Cq ñ C and IOC r s : A B $ pA ñ B ñ
+                                  r̀                                              r̂
+       Cq ñ C by induction on C:
+
+                IO`         ˆ
+                  X r s “ IOX r s “ r sX
+                              AñC1 ñC2
+            IO`
+              C1 ñC2 r s “ λf          .λg BñC1 ñC2 .λy C1 .IO`        A         B
+                                                              C2 r spλz .f zyqpλz .gzyq
+                              AñBñC1 ñC2
+            IOˆ
+              C1 ñC2 r s “ λf            .λy C1 .IO`        A   B
+                                                   C2 r spλz .λw .f zwyq
+                                     1            1
+                               Añ@Y.C
+             IO`
+               @Y.C 1 r s “ λf        .λg Añ@Y.C .ΛY.IO`         A          B
+                                                       C 1 r spλz .f zY qpλz .gzY q
+                                         1
+                               AñBñ@Y.C                 A   B
+             IOˆ
+               @Y.C 1 r s “ λf          .ΛY.IO`
+                                              C 1 r spλz .λw .f zwY q
+
+
+       One can thus encode the type destructors as for F, but replacing the type application xC in
+       CaseC pt, xA .u, xB .vq with either IO`            ˆ
+                                               C rxs or IOC rxs.
+           At the level of provability, this embedding is faithful when restricted to simple types, i.e. for
+       the intuitionistic propositional calculus (see [13]): a simple type (possibly containing finite
+       sums and products) is inhabited iff its encoding is inhabited in Fat . However, faithfulness does
+       not hold for the extension of Fat with sum and product types (see [47]). In particular, one can
+       construct types C, D of F such that C r̀ D is inhabited in Fat while C ` D is not inhabited in
+       the extension of Fat with sums and products. This also implies that the disjunction property
+       fails for C r̀ D in Fat , since neither C nor D are inhabited.
+           Interestingly, at the level of conversions, this encoding is stronger than the usual one: it
+       translates not only β-reductions, but also the permutative conversions and a restricted form
+       of η-conversion for sums, into sequences of β and η-reductions of Fat (see [11, 14, 9]).
+
+
+        3      Type Inhabitation
+       In this section we discuss type inhabitation in the systems Fat and F1 . We briefly recall the
+       undecidability argument for (TI) in System F from [57], and observe that this applies to Fat
+       (a more detailed reconstruction can be found in [52]).
+            The argument in [57] (which was later simplified in [8]) is based on an embedding inside
+       F of an undecidable fragment of first-order logic. We recall the argument in a few more
+       details, so that it will be clear that the same argument shows the undecidability of type
+       inhabitation in both Fat and F1 .
+            Let Dyadñ,@ indicate the ñ, @-fragment of intuitionistic first-order logic in a language
+       with no function symbol and a finite number of at most binary relation symbols. We consider
+       sequents of the form Γ $ K where Γ consists of three type of assumptions:
+          i. atomic formulas different from K;
+         ii. closed formulas of the form @⃗     α.pφ1 ñ . . . ñ φn ñ ψq, where φ1 , . . . , φn , ψ are atomic
+             formulas and each variable in ψ occurs in some the φi ;
+        iii. closed formulas of the form @αp@βpppα, βq ñ Kq ñ Kq.
+       The problem of checking if a sequent Γ $ K as above is deducible in Dyadñ,@ is undecidable
+       ([57], Theorem 8.8.2).
+            We fix a finite number of distinguished type variables:
+            for each relation symbol p, three variables p1 , p2 , p3 ;
+            five more variables ♠, ‚, ˝1 , ˝2 , ‹.
+P. Pistone and L. Tranchini                                                                                27:7
+
+
+We let, for any type A, A‚ :“ A ñ ‚, and we define, for all types A, B:
+
+       pAB “ pA‚ ñ p1 q ñ pB ‚ ñ p2 q ñ p3
+   ppA, Bq “ pAB ñ ‹
+
+For any type A, we let UpAq be the set of all types pA‚ ñ pi q ñ ˝1 , A‚ ñ ˝2 , where
+i “ 1, 2. Given a finite list of types A1 , . . . , An , we let UpA1 , . . . , An q ñ B be a shorthand
+                                                                   Ť
+for C1 ñ . . . ñ Ck ñ B, where C1 , . . . , Ck are the types in i UpAi q.
+    Each formula φ of Dyadñ,@ is translated into a type φ as follows:
+
+   ppαi , αj q “ ppXi , Xj q    K“♠
+      φñψ“φñψ
+                 ⃗ i .pUpXi q ñ φq
+       @αi .φ “ @X
+
+   One can easily check the following by induction:
+
+▶ Proposition 1. If φ1 , . . . , φn $ φ is provable in Dyadñ,@ and αi1 , . . . , αik are the vari-
+ables that occur in FVpφq but not in FVpφ1 , . . . , φn q, then x1 ÞÑ φ1 , . . . , xn ÞÑ φn , ⃗y ÞÑ
+UpXi1 , . . . , Xik q $ t : φ holds in Fat for some term t.
+
+   The less trivial part is the following:
+
+▶ Theorem 2 ([57], Theorem 11.6.14). For all formulas φ1 , . . . , φn satisfying i-iii, if x1 ÞÑ
+φ1 , . . . , xn ÞÑ φn $ t : ♠ is deducible in System F, then φ1 , . . . , φn $ K is provable in
+Dyadñ,@ .
+
+   Since Fat and F1 are both fragments of F, we can freely substitute them for System F in
+the statement of Theorem 2. Then, together with Proposition 1 we deduce:
+
+▶ Corollary 3. (TI) is undecidable in both Fat and F1 .
+
+▶ Remark 4. Although Fat and F1 are both undecidable, they are not equivalent at the level
+of provability. For instance, the type p@X.X ñ Y q ñ pZ ñ Zq ñ Y is inhabited in F1 (by
+the term λx@X.XñY .λy ZñZ .xpZ ñ Zqy), but not in Fat (as easily seen by a proof-search
+argument).
+▶ Remark 5. The undecidability of the atomic fragment of (full) second-order intuitionistic
+logic has been known since (at least) [56]. However, from this one cannot deduce the
+undecidability of Fat , due to the fact that disjunction is not faithfully definable in Fat (see
+also [47]).
+▶ Remark 6. It is not difficult to see that System Fat is equivalent to a first-order system,
+namely to the ñ, @-fragment 1Monñ,@ of monadic first-order intuitionistic logic in the
+language with no function symbol and a unique monadic predicate. The equivalence is given
+by an obvious bijection between formulas and types given by ppαz   i q “ Xi , φ ñ ψ “ φ
+                                                                              {        p ñ ψp
+and @αi .φ “ @Xi .φ.
+     {            p Hence, a consequence of Corollary 3 is that provability in 1Monñ,@
+is undecidable. Provability in extensions of 1Monñ,@ with either finitely many monadic
+predicates, or with disjunction, is known to be undecidable [19, 18]. To the best of our
+knowledge, the undecidability of 1Monñ,@ has not been observed before.
+
+
+
+
+                                                                                                         FSCD 2021
+27:8   What’s Decidable About (Atomic) Polymorphism?
+
+
+        4     Typability and Type-checking
+
+       In usual implementations of polymorphic type systems the Church-style type discipline is
+       generally considered inconvenient, due to the heavy amount of type annotations. Instead,
+       Curry-style languages, for which a compiler can (either completely or partially) reconstruct
+       type annotations, are generally preferred (two standard examples are the languages ML and
+       Haskell). This is the reason why type-checking algorithms for polymorphic type systems in
+       Curry-style (or in some variants of Curry-style with partial type annotations [45]) have been
+       extensively investigated [24, 26, 64, 18].
+           However, while ML admits a decidable type checking in Curry-style (a main reason for
+       its success), type checking has been shown to be undecidable for System F and most of its
+       variants (including the predicative system F1 [18]), making the Curry-style version of such
+       systems impractical for implementation.
+           For the simply typed λ-calculus (and crucially also for ML), the type-checking problem
+       can be reduced to first-order unification (FOU), that is, to the problem of unifying first-order
+       terms (in a language with a unique binary function symbol corresponding to ñ). Typically,
+       an application tu : b will produce a first-order equation of the form at “ au ñ b, where at , au
+       are variables indicating the type of t and the type of u, respectively. As FOU is decidable,
+       this suffices to show that type-checking is decidable in this case.
+           In the case of full polymorphism FOU is not sufficient to solve type-checking. In fact,
+       already in F1 one can type terms, like e.g. λx.xx, which contain self-applications. Using
+       FOU, λx.xx yields the unsolvable equation ax “ ax ñ b, so it is not typable in either STλC
+       or ML. To type-check System F programs one can replace FOU with either semi-unification
+       [24, 26] or second order unification (SOU) [45, 18]. Here we focus on the latter: in SOU
+       one tries to unify equations involving terms constructed from first-order variables a, b, c, . . .
+       as well as second order variables F, G, . . . . For instance, the term λx.xx above yields the
+       equations
+
+            Fa “ pFbq ñ G                                                                            (1)
+
+       where @X.FX indicates the type of x, and the variables a, b encode the possible witnesses which
+       permit to type xx (in Church-style one could indicate this with λx@X.FX .ppxaqFa pxbqFb qG , so
+       that Eq. (1) is precisely what is needed to make the typing correct). A (non-unique) solution
+       to Eq. (1) is obtained by F ÞÑ λx.x, G ÞÑ Z, a ÞÑ Y ñ Z, b ÞÑ Y .
+           Unfortunately, SOU is undecidable [22]. Moreover, one can encode restricted (but still
+       undecidable) variants of SOU in the type checking problem for F1 [18], showing that (TC)
+       is undecidable for F1 . A fundamental ingredient of these undecidability arguments is the
+       appeal to variable cycles (see the discussion in [36]) like the one in Eq. (1), that is, to
+       unification problems from which one can deduce equations of the form Fa1 . . . an “ urFs,
+       that is, equating a second-order variable F with some term containing F itself.
+           Conversely, acyclic SOU, that is, the problem of unifying SOU problems containing no
+       variable cycles, is decidable [36]. These observations can be used to show that type-checking
+       is actually decidable in Fat . In fact, a fundamental property of Fat (and a reason for its
+       very limited expressive power) is that any term typable in Fat is already typable in the
+       simply-typed λ-calculus. Indeed, the following is easily checked by induction:
+
+       ▶ Lemma 7. If Γ $ t : A is derivable in the Curry-style Fat , then |Γ| $ t : |A| is derivable
+       in the simply typed λ-calculus, where |A| is defined by |X| “ o, |A ñ B| “ |A| ñ |B|,
+       |@X.A| “ |A|, and |Γ|pxq “ |Γpxq|.
+P. Pistone and L. Tranchini                                                                              27:9
+
+
+    An immediate consequence of Lemma 7 is that one cannot type λx.xx in Fat and, more
+generally, that any λ-term that would give rise to a variable cycle cannot be typed in Fat .
+Observe that the converse does not hold: from the fact that |Γ| $ t : |A| holds, one cannot
+deduce Γ $ t : A (take for instance t “ x, Γpxq “ X and A “ @X.X).
+    However, these observations suggest that type checking for Fat can be decided by reasoning
+in two phases: to check if Γ $ t : A is derivable in Fat , first check if |Γ| $ t : |A| is derivable
+in STλC using FOU; if this first step fails, then the original problem must fail; if the first step
+succeeds, then the original type-checking problem for Fat yields an instance of (a suitable
+variant of) acyclic SOU, which must be decidable. By reasoning in this way, one can thus
+establish:
+▶ Theorem 8. (TC) for Curry-style Fat is decidable.
+    In App. A (and more in detail in [50]) we describe the decision algorithm for type-checking
+in Fat , which is based on a variant of second-order unification, that we call Fat -unification.
+The fundamental idea is to consider SOU problems in a language with first-order sequence
+variables a, b, . . . and two kinds of second-order variables: projection variables α, β, . . .
+and second-order variables F, G, . . . . The intuition is that a term of the form αa1 . . . an
+describes a (skolemized) witness; since the witnesses in Fat are type variables, solving for
+α means associating it with either a constant function or a projection. Instead, a term of
+the form Fa1 . . . an stands for the application of suitable witnesses a1 , . . . , an to some type
+F, hence solving for F means associating it with some function λX1 . . . Xn .ApX1 , . . . , Xn q,
+where ApX1 , . . . , Xn q is some type expression parametric on the type variable X1 , . . . , Xn .
+Hence, for example, checking if Γ $ xy : @Z.Z holds in Fat , where Γpxq “ @X.X ñ X and
+Γpyq “ @Y.Y , yields the equations
+
+       FX “ X ñ X                                             GY “ Y
+     FpαZq “ GpβZq ñ HZ                                       HZ “ Z
+
+which admit the solution F ÞÑ λX.X ñ X, G, H ÞÑ λX.X and α, β ÞÑ λX.X. Instead,
+checking if Γ $ xy : @Z.Z, where now Γpxq “ @X.X ñ X and Γpyq “ Y , yields the equations
+
+       FX “ X ñ X                                            G“Y
+     FpαZq “ G ñ HZ                                        HZ “ Z
+
+which have no solution (since one can deduce Z “ HZ “ Y ), showing that (TC) fails in this
+case (although |Γ| $ xy : |@Z.Z| holds in the simply typed λ-calculus).
+    From the decidability of (TC) one can deduce the decidability of (T) by a standard
+argument: we can reduce (T) to (TC) by showing that a type A such that Γ $ t : A holds
+exists iff Γ $ pλxy.yqt : @X.X ñ X holds. In fact, if Γ $ t : A holds in Fat , then from
+Γ $ λxy.y : A ñ @X.pX ñ Xq we deduce Γ $ pλxy.yqt : @X.X ñ X. Conversely, from
+Γ $ pλxy.yqt : @X.X ñ X, we deduce that there exists a type A such that Γ $ λxy.y : A ñ
+pX ñ Xq and Γ $ t : A holds.
+▶ Corollary 9. (T) for Curry-style Fat is decidable.
+
+
+ 5     Equational Reasoning in System Fat
+As a consequence of Lemma 7 from the previous section, all terms which are typable in
+Curry-style Fat are simply typable. In other words, Fat can be seen as a type refinement
+system for STλC, in the sense of [39]. In particular, as we show below, the numerical
+functions which can be typed in Fat are precisely the simply typable ones (i.e. the so-called
+extended polynomials [55, 16]).
+
+                                                                                                       FSCD 2021
+27:10   What’s Decidable About (Atomic) Polymorphism?
+
+
+            For this reason, investigating the typable terms of Fat might seem not very interesting
+        from a computational viewpoint. However, in this section we show that studying such terms
+        can be interesting for equational reasoning. In fact, similarly to System F, standard notions
+        of contextual equivalence for Fat are stronger than βη-equivalence, and one can exploit
+        well-known techniques, like the free theorems [63], to compute equivalences of Fat -typable
+        terms (which do not hold when viewing these terms as typed in STλC).
+            We first recall two standard notions of contextual equivalence:
+
+        ▶ Notation 10. We let Bool “ @X.X ñ X ñ X and Nat “ @X.pX ñ Xq ñ pX ñ Xq. We
+        let t “ λxy.x and f “ λxy.y indicate the two normal forms of type Bool, and for all n P N,
+        we let n “ λf x.pf qn x indicate the n-th Church numeral.
+
+        ▶ Definition 11 (contextual equivalence). Let F ˚ P tFat , ML, F1 , Fu. For all closed terms
+        t, u of type A in F ˚ , we let
+                ˚
+           t »F                                                  ˚
+              Bool u : A iff for any context Cr s : A $ Bool in F , Crts »βη Crus;
+           t »F ˚                                              ˚
+              Nat u : A iff for any context Cr s : A $ Nat in F , Crts »βη Crus.
+
+                                      ˚          ˚
+            It is easily seen that »F          F                                        ˚
+                                    Bool and »Nat are congruences of the terms of F . Moreover,
+        in System F these two congruences coincide, due to the fact that the identity relation
+        id : Nat ñ Nat ñ Bool is typable. Since this function is also typable in ML, the same holds
+        for ML and F1 . On the other hand, since the identity relation is not simply typable, we can
+        deduce (see Lemma 16 below) that it is not typable in Fat . For this reason the congruences
+        »F           Fat
+          Bool and »Nat must be treated separately in this case. In what follows we will mostly focus
+           at
+
+
+        on the latter, since the former identifies distinct normal forms of type Nat, which is not
+        convenient for obvious computational reasons.
+        ▶ Remark 12. The typability of the identity relation id implies that any extensional model
+        of F must be infinite, since for all n P N, the interpretations of n and n ` 1 cannot
+        coincide. Instead, it is not difficult to construct an extensional model of Fat in which
+        any type is interpreted by a finite set (to give an idea, let Ck be a collection of sets of
+        cardinality bounded by a fixed k P N; one can let then JXK P Ck , A ñ B “ JBKJAK and
+                   ś
+        J@X.AK “ SPCk JAKrX ÞÑ Ss).
+            The so-called free theorems are a class of syntactic equations for typable terms which
+        can be justified by relying on either relational parametricity [53] or dinaturality [3]. We let
+        t « u : A indicate that t, u have type A in System F, and that the equivalence t » u can be
+        deduced using β-, η-rules, standard congruence rules (i.e. reflexivity, symmetry, transitivity
+        and context closure), as well as instances of free theorems for System F.
+            Free theorems can be used to deduce contextual equivalence of Fat -terms, thanks to the
+        following:
+
+        ▶ Lemma 13 (free theorems in Fat ). Let t, u be terms of type A in Fat . If t « u : A, where
+        t, u are seen as terms of System F, then t »F
+                                                    Nat u : A.
+                                                      at
+
+
+
+
+        Proof. From t « u : A it follows t »F                 F
+                                            Nat u : A, since »Nat is the coarsest congruence not
+        equating normal forms of type Nat. From t »Nat u : A we deduce t »F
+                                                     F
+                                                                              Nat u : A, since any
+                                                                               at
+
+
+        context in Fat is a context in F.                                                       ◀
+
+
+           We discuss below two applications of free theorems to study (CE) in Fat .
+P. Pistone and L. Tranchini                                                                        27:11
+
+
+Categorical Products and Coproducts. As mentioned in Section 2, the usual encoding of
+products and coproducts in System F preserves β-equivalence but not η-equivalence. For this
+reason, the encodings of ˆ and ` do not form categorical products and coproducts in System
+F up to βη-equivalence (more precisely, in the syntactic category in which objects are the
+types of System F and arrows are the typable terms up to »βη ). Instead, it is well-known
+[51, 23, 61] that η-equivalence of ˆ and ` is preserved in System F up to free theorems:
+hence ˆ and ` do form categorical products and coproducts in System F up to »F        Nat (more
+precisely, in the syntactic category whose arrows are the typable terms up to »F   Nat ).
+    In a similar way, the predicative encodings of ˆ and ` in Fat , although preserving some
+restricted case of η-equivalence, still do not form categorical products and coproducts in Fat
+up to »βη . We will show that they similarly do form categorical products and coproducts in
+Fat up to »F Nat , as a consequence of the application of free theorems.
+               at
+
+
+    For simplicity, we here only consider the case of `. However, our argument scales
+straightforwardly to the encoding of all finite polynomial types, i.e. of all types of the form
+řk śki
+  i“1    j“1 Aij (see the [47] for a more detailed discussion).
+    The fundamental step is showing that the impredicative and predicative encodings are
+equivalent up to free theorems:
+▶ Lemma 14. For all types A, B, C and terms x ÞÑ A $ u : C and x ÞÑ B $ v : C, the
+equivalence IO`
+              C ryspλx.uqpλx.vq « CaseC py, x.u, x.vq : C holds in System F.
+
+Proof. The free theorem associated with the type A r̀ B is the schematic equation
+                                      ”                         ı
+   CaseE pt1 , x.Crt2 s, x.Crt3 sq « C CaseD pt1 , x.t2 , x.t3 q                           (2)
+
+where $ t1 : A r̀ B, x ÞÑ A $ t2 : D, x ÞÑ B $ t2 : D and Cr s : D $ E. In fact, this equation
+is an instance of the dinaturality condition for the type A r̀ B (see [51, 23, 49]).
+    We argue by induction on C:
+    if C “ Y , then IO`C ryspλx.uqpλx.vq “ yY pλx.uqpλx.vq “ CaseC py, x.u, x.vq;
+    if C “ C1 ñ C2 , then
+                                 ´                                 ¯
+        IO`
+          C ryspλx.uqpλx.vq  “     λf gz.IO`
+                                           C2 ryspλx.f xzqpλx.gxzq  pλx.uqpλx.vq
+                             [I.H.]
+                                    ´                               ¯
+                               « λf gz.CaseC2 py, x.f xz, x.gxzq pλx.uqpλx.vq
+                           »β λz.CaseC2 py, x.uz, x.vzq
+                                ´                   ¯
+                           « λz. CaseC py, x.u, x.vq z
+                           »η CaseC py, x.u, x.vq
+
+   where in the penultimate step we applied Eq. (2) with the context Cr s “ r sz : C $ C2 .
+   if C “ @Z.C 1 , then
+                               ´                                ¯
+       IO`                             `
+         C ryspλx.uqpλx.vq “ λf g.ΛZ.IOC 1 ryspλx.f xZqpλx.gxZq pλx.uqpλx.vq
+
+                           [I.H.]
+                                  ´                              ¯
+                             « λf g.ΛZ.CaseC 1 py, x.f xZ, x.gxZq pλx.uqpλx.vq
+                           »β ΛZ.CaseC 1 py, x.uZ, x.vZq
+                                ´                    ¯
+                           « ΛZ. CaseC py, x.u, x.vq Z
+                           »η CaseC py, x.u, x.vq
+
+   where in the penultimate step we applied Eq. (2) with the context Cr s “ r sZ : C $ C 1 . ◀
+
+
+
+                                                                                                  FSCD 2021
+27:12   What’s Decidable About (Atomic) Polymorphism?
+
+
+        ▶ Proposition 15. A r̀ B is a categorical coproduct in Fat up to »F
+                                                                          Nat .
+                                                                            at
+
+
+
+        Proof. It suffices to check that the η-rule of the coproduct (see [29]) holds in Fat . By
+        translating this rule in F one obtains the equation
+
+           y « CaseA`B
+                    r py, x.ι1 pxq, x.ι2 pxqq : A r̀ B
+
+        which holds in F up to free theorems (see [51, 23, 61]). Using Lemma 14 we thus deduce
+        that y « IO` r ryspλx.ι1 pxqqpλx.ι2 pxqq : A B holds in F, and by Lemma 13 we deduce
+                    A`B
+                                                      r̀
+           Fat   `
+        y »Nat IO r ryspλx.ι1 pxqqpλx.ι2 pxqq : A r̀ B.
+                  A`B
+                                                                                            ◀
+
+        Numerical Functions. We now consider the representable numerical functions, that is, the
+        closed typable terms of type Nat ñ . . . ñ Nat ñ Nat. In this case we can strengthen Lemma
+        7 as follows:
+
+        ▶ Lemma 16. For any β-normal λ-term t, $ t : Nat ñ . . . ñ Nat ñ Nat holds in Curry-style
+        Fat iff $ t : |Nat| ñ . . . ñ |Nat| ñ |Nat| holds in STλC.
+
+        Proof. One direction follows from Lemma 7. For the converse one, let t (which we can
+        suppose w.l.o.g. to be of the form λx1 . . . xk .u) be such that $ t : |Nat| ñ . . . ñ |Nat| ñ |Nat|.
+        By letting NatrXs “ pX ñ Xq ñ pX ñ Xq we deduce that txi ÞÑ NatrXsu $ u : NatrXs
+        holds in Fat , and thus that txi ÞÑ Natu $ u : NatrXs holds too, from which we conclude
+        $ u : Nat ñ . . . ñ Nat ñ Nat.                                                                    ◀
+
+            A consequence of Lemma 16 is that the representable numerical functions in Fat are
+        precisely the extended polynomials, i.e. the smallest class of functions arising from projections,
+        constant functions, addition, multiplication and the iszero function. Instead, it is well-
+        known that the predecessor function (which is not an extended polynomial) is typable in
+        ML [17] and, more generally, the representable functions of ML are included in the class E3
+        of the Grzegorczyk hierarchy [33].
+            Still, in both STλC and Fat the same extended polynomial can be represented by
+        different normal forms. For instance the two normal forms λxyf z.xpyf qz and λxyf z.ypxf qz
+        (encoding the algorithms n, m ÞÑ loooooomoooooon
+                                           m ` ¨ ¨ ¨ ` m and n, m ÞÑ looooomooooon
+                                                                        n ` ¨ ¨ ¨ ` n) both represent the
+                                                n times                     m times
+        multiplication function.
+            In System F, one can show that all primitive recursive functions are uniquely defined up
+        to free theorems, that is, that for any two terms t, u representing the same primitive recursive
+        function, one can prove t « u (see [48], Section 7.5). Using Lemma 13 we deduce then:
+
+        ▶ Lemma 17. For all t, u : Nat ñ . . . ñ Nat ñ Nat in F˚ P tFat , ML, F1 , Fu, if for all
+                                                                            ˚
+        p1 , . . . , pk P N, tp1 . . . pk »βη up1 . . . pk : Nat, then t »F
+                                                                          Nat u.
+
+        ▶ Remark 18. From Lemma 17 and the fact that all primitive recursive functions are typable
+        in F, one can deduce that »F
+                                   Nat for numerical functions is undecidable in F as a consequence
+        of Rice’s theorem.
+           The problem EqC of deciding f “ g, where f, g belong to some subclass C of the primitive
+        recursive functions, is well-investigated. In particular, it is known that:
+           if C is the class of extended polynomials, then EqC is decidable [38];
+           if C contains projections, constants, +, ˆ and bounded multiplication, then EqC is
+           undecidable [31].
+
+           From these facts, using Lemma 17, we deduce then:
+P. Pistone and L. Tranchini                                                                                           27:13
+
+
+▶ Proposition 19.
+  (i) The problem of deciding »FNat over numerical functions in Fat is decidable.
+                                 at
+
+                               F˚
+ (ii) The problem of deciding »Nat over numerical functions in F˚ P tML, F1 u is undecidable.
+
+Proof. (i) is immediate from Lemma 16 and Lemma 17. To prove (ii) it suffices to show that
+the representable functions in ML are closed under bounded multiplication. We show this
+fact in detail in [50], App. B.                                                         ◀
+
+     An immediate corollary is that (CE) is undecidable in both ML and F1 .
+
+ 6      Contextual Equivalence is Undecidable
+In this section we show that the congruences »F              Fat
+                                                   Nat and »Bool are both undecidable. To do this,
+                                                    at
+
+
+we will reduce the type inhabitation problem for a suitable extension of Fat to contextual
+equivalence. We discuss in some detail the undecidability argument for »F       Bool , while the (very
+                                                                                 at
+
+                           Fat
+similar) argument for »Nat can be found in [50], App. C.
+    Let F♣at be the extension of Fat with new a type constant ♣ and a new term constant
+‹ : ♣. It is not difficult to see that the undecidability argument for (TI) from Section 3 also
+applies to F♣ at .
+    Let Jr : @X.X ñ X and Id :“ ΛX.λx.x be the unique closed β-normal term of type J.              r
+                                                                            ♣
+    The fundamental idea will be to construct, for each type A of Fat , two terms tA , uA of
+             r ñ Bool (where A˚ “ Y ñ ArY {♣s, for some fresh Y ), such that tA »Fat uA
+type pA˚ r̀ Jq                                                                                 Bool
+holds in Fat iff A is inhabited in F♣   at .
+    Let us fix a type A of F♣                                                     ˚
+                             at , a variable Y not occurring free in A, and let A “ Y ñ ArY {♣s.
+We let uA , vA be the terms below:
+
+     uA “ λx.f          vA “ λx.IO`
+                                  Bool r spλx.tqpλx.f q
+
+
+    First observe that if there exists some term t such that $ t : A holds in F♣      at , then
+we can construct a context Kr s : pA˚ r̀ Jq   r ñ Bool $ Bool separating uA and vA : let
+t˚ “ λy.try{‹s, so that $ t˚ : A˚ and let Kr s “ r spι1 pt˚ qq. We then have KruA s »β f and
+KrvA s »β IO`          ˚                           ˚
+            Bool rι1 pt qspλx.tqpλx.f q »βη pλx.tqt »β t.
+    The difficult part is to show that if A is not provable in F♣   at , then no context Kr s :
+   ˚ r̀ r
+pA Jq ñ Bool $ Bool can separate uA and vA . We will establish this fact by analyzing all
+possible β-normal term contexts of type pA˚ r̀ Jq  r ñ Bool $ Bool.
+    In the following, for a term context Kr s, we let Kr s : A $Γ B be a shorthand for
+Γ, x ÞÑ A $ Kr s : B (where we suppose that Γ is not defined on x).
+    We let G1 -G4 be the families of term contexts defined by mutual recursion as shown in
+Fig. 3, and typed according to the contexts below
+     Γ “ tx1 ÞÑ Z1 , x11 ÞÑ Z1 , . . . , xp ÞÑ Zp , x1p ÞÑ Zp u   Θ “ tw1 ÞÑ W1 , . . . , wq ÞÑ Wq u
+                    ˚                       ˚
+     ∆ “ ty1 ÞÑ A ñ Y1 , . . . , yr ÞÑ A ñ Yr u                              r ñ Y1 , . . . , zr ÞÑ J
+                                                                  Σ “ tz1 ÞÑ J                      r ñ Yr u   (3)
+
+ for some p, q, r P N and variables Z1 , . . . , Zp , W1 , . . . , Wq , Y1 , . . . , Yr pairwise distinct and
+disjoint from A.
+    It can be checked that none of these contexts can separate uA and vA (see [50]):
+
+▶ Lemma 20.
+1. For all Cr s P G1 , CruA s »βη CrvA s.
+2. If Dr s P G2 , then DruA s »βη DrvA s »βη zi Id.
+3. If Er s P G3 , then EruA s »βη ErvA s.
+4. If Fr s P G4 , then FruA s »βη FrvA s »βη wi .
+
+
+                                                                                                                     FSCD 2021
+27:14   What’s Decidable About (Atomic) Polymorphism?
+
+
+
+              G1 :       Cr s ::“ xi | x1i | Er sZj Cr sCr s                     r ñ Bool $Γ,Θ,∆,Σ Zj
+                                                                        : pA˚ r̀ Jq
+              G2 :       Dr s ::“ zi pΛW.λw.Fr sq | Er sYi Dr sDr s              r ñ Bool $Γ,Θ,∆,Σ Yi
+                                                                        : pA˚ r̀ Jq
+              G3 :       Er s ::“ t | f | r spΛY.λy.λz.Dr sq                     r ñ Bool $Γ,Θ,∆,Σ Bool
+                                                                        : pA˚ r̀ Jq
+              G4 :       Fr s ::“ w | Er sWi Fr sFr s                            r ñ Bool $Γ,Θ,∆,Σ Wi
+                                                                        : pA˚ r̀ Jq
+
+            Figure 3 Contexts G1 -G4 .
+
+
+            The key ingredient is a lemma stating that, when A is not inhabited in F♣
+                                                                                    at , the families
+        of contexts G1 -G4 can be used to generate all possible term contexts.
+
+        ▶ Lemma 21. Let Kr s : pA˚ r̀ Jq r ñ Bool $x1 ÞÑZ,x11 ÞÑZ Z be a β-normal term context. If A
+        is not inhabited in F♣
+                             at , then Kr s P G1 .
+
+        Proof. We will prove the following claim: either there exists contexts Γ, Θ, ∆, Σ as in Eq. (3),
+        for some p, q, r P N and variables Z1 , . . . , Zp , W1 , . . . , Wq , Y1 , . . . , Yr pairwise distinct and
+        disjoint from A, and a context Hr s : pA˚ r̀ Jq     r ñ Bool $Γ,Θ,∆,Σ A˚ , or Kr s P G1 . If the main
+        claim is true we can deduce the statement of the lemma as follows: suppose Kr s R G1 ; then
+        let θ be the substitution sending all variables in Γ, Θ, ∆, Σ plus Y onto ♣ and being the
+        identity on all other variables. Then Hθr s : pp♣ ñ Aq r̀ Jq         r ñ Bool $Γθ,Θθ,∆θ,Σθ : ♣ ñ A.
+        Then we have Γθ, Θθ, ∆θ, Σθ $ t : A, where t “ Hθrλx.ts‹ and we can conclude that $ t1 : A
+        holds, where t1 is obtained from t by substituting the variables in Γ and Θ by ‹ and those in
+        ∆ and Σ by λx.‹.
+            Let us prove the main claim. Suppose by contradiction that for no Γ, Θ, ∆, Σ there exists
+        a context Hr s : pA˚ r̀ Jqr ñ Bool $Γ,Θ,∆,Σ A˚ . We will show by simultaneous induction the
+        following claims:
+         1. for all Γ, Θ, ∆, Σ as above, if Kr s : pA˚ r̀ Jq   r ñ Bool $Γ,Θ,∆,Σ Zi , then Kr s P G1 ;
+         2. for all Γ, Θ, ∆, Σ as above, if Kr s : pA Jq ñ Bool $Γ,Θ,∆,Σ Yi , then Kr s P G2 ;
+                                                          ˚ r̀ r
+
+         3. for all Γ, Θ, ∆, Σ as above, if Kr s : pA˚ r̀ Jq       r ñ Bool $Γ,Θ,∆,Σ Bool and Kr s is an
+            elimination context, then Kr s P G3 ;
+         4. for all Γ, Θ, ∆, Σ as above, if Kr s : pA˚ r̀ Jq   r ñ Bool $Γ,Θ,∆,Σ Wi , then Kr s P G4 .
+        The main claim then follows from 1. by taking Γ “ tx ÞÑ Z, x1 ÞÑ Zu and Θ “ ∆ “ Σ “ H.
+            We argue for each case separately:
+         1. There exist two possibilities for Kr s:
+            a. Kr s “ xi (resp. “ x1i ), hence Kr s P G1 ;
+            b. Kr s “ K1 r sZK1 r sK2 r s, where K1 r s : pA˚ r̀ Jq     r ñ Bool $Γ,Θ,∆,Σ Bool and Ki r s :
+                  ˚ r̀ r                 Γ,Θ,∆,Σ                      1
+               pA Jq ñ Bool $                     Z, and where K r s is an elimination context. By the
+                                                 1
+               induction hypothesis then K r s P G3 , Ki r s P G1 , hence Kr s P G1 .
+         2. There exist three possibilities for Dr s:
+                                                       r ñ Bool $Γ,Θ,∆,Σ A˚ , but this case is excluded by
+            a. Kr s “ yi K1 r s, where K1 r s : pA˚ r̀ Jq
+               the hypothesis;
+            b. Kr s “ zi pΛW.λw.K1 r sq, where K1 r s : pA˚ r̀ Jq   r ñ Bool $Γ,ΘYtwÞÑW u,∆,Σ W and where
+               W does not occur in Γ, Θ, ∆, Σ. By the induction hypothesis then K1 r s P G4 , hence
+               Kr s P G2 ;
+                                                                   r ñ Bool $Γ,Θ,∆,Σ Bool, Ki r s : pA˚ r̀ Jq
+            c. Kr s “ K1 r sYi K1 r sK2 r s, where K1 r s : pA˚ r̀ Jq                                          r ñ
+                        Γ,Θ,∆,Σ              1
+               Bool $            Yi , and K r s is an elimination context. By the induction hypothesis this
+               implies K1 r s P G3 and Ki P G2 , so we can conclude Kr s P G2 .
+P. Pistone and L. Tranchini                                                                           27:15
+
+
+3. If Kr s is an elimination context, then it must be Kr s “ xK1 r s, where K1 r s : pA˚ r̀ Jq
+                                                                                            r ñ
+           ΓYtx1 ÞÑZ 1 ,x2 ÞÑZ 2 u,Θ,∆,Σ
+   Bool $                                 ˚ r̀ r
+                                         A J. Moreover, K must be of the form ΛY.λy.λz.K2 r s,
+                                                           1
+                                                     1    2           ˚
+   where K r s : pA Jq ñ Bool $ΓYtx1 ÞÑZ ,x2 ÞÑZ u,Θ,∆YtyÞÑA ñY u,ΣYtzÞÑJñY u Y , and
+             2           ˚ r̀ r                                                    r
+
+   where Y is distinct from all variables in Γ Y tx1 ÞÑ Z 1 , x2 ÞÑ Z 2 u, Θ, ∆, Σ; then by the
+   induction hypothesis we deduce K2 r s P G2 , and thus Kr s P G3 .
+4. There are two possible cases:
+   a. Kr s “ wi , hence Kr s P G4 ;
+                                                    r ñ Bool $Γ,Θ,∆,Σ Bool, Ki r s : pA˚ r̀ Jq
+   b. Kr s “ K1 r sWi K1 K2 , where K1 r s : pA˚ r̀ Jq                                      r ñ
+               Γ,Θ,∆,Σ               1
+      Bool $             Wi and K r s is an elimination context. By the induction hypothesis this
+                 1
+      implies K r s P G3 and Ki P G4 , whence Kr s P G4 .                                      ◀
+                                                      ♣
+▶ Proposition 22. uA fiF
+                       Bool vA iff A is inhabited in Fat .
+                        at
+
+
+
+
+Proof. We only need to show one side of the statement: suppose A is not inhabited in
+F♣
+ at . Any context Kr s : pA
+                             ˚ r̀ r
+                                  Jq ñ Bool $ Bool can be written, up to η-equivalence, as
+                                              r ñ Bool $x1 ÞÑZ,x2 ÞÑZ Bool. As we can suppose
+Kr s “ ΛZ.λx1 x2 .K r s, with K1 r s : pA˚ r̀ Jq
+                   1
+
+Kr s to be β-normal, by Lemma 21, it must be K1 r s P G1 . Hence, by Lemma 20 we deduce
+that KruA s »βη KrvA s.                                                                    ◀
+
+▶ Theorem 23. The congruences »F         Fat
+                               Bool and »Nat are both undecidable.
+                                 at
+
+
+
+
+ 7     Conclusion
+Related works. The literature on ML-polymorphism, both at theoretical and applicative
+level, is vast. Several extensions of ML to account for first-class polymorphism while retaining
+a decidable type-checking have been investigated, mostly following two directions: first,
+that of considering type systems with explicit type annotations (as the system PolyML [20]);
+second, that of encoding first-class polymorphism in a ML-style system by means of coercions
+(as in System Fc [60] or in MLF [30]). In the last case, coherently with our discussion of
+FOU and SOU, the price to pay to remain decidable is that self-applications of λ-abstracted
+variables must come with explicit type annotations. This approach is currently followed in
+the design of the Haskell compiler, which supports first-class polymorphism.
+    Predicative restrictions of System F and their expressive power have been also largely
+investigated [32, 33, 6]. For example, the numerical functions representable in Leivant’s finitely
+stratified polymorphism are precisely those at the third level of Grzegorczyk’s hierarchy
+[33], and transfinitely stratified systems have been shown to represent all primitive recursive
+functions [6]. In [34] a system with expressive power comparable to System Fat is shown to
+characterize the polytime functions.
+    Research by Ferreira and her collaborators on System Fat has mostly focused on predicative
+translations of intuitionistic logic and their reduction properties [12, 11, 10]. As mentioned
+before, these translations rely on the observation that for certain types the unrestricted
+@E-rule is admissible in Fat . The characterization of the class of types satisfying this property
+is an open problem (a partial characterization is described in [46]).
+    Another way to obtain interesting subsystems of System F is by restricting the class of
+types which can be universally quantified (instead of the admissible witnesses). For instance,
+the system in [2] forbids quantifier nestings, while the system in [35] only allows quantification
+@X.A when X occurs at depth at most 2 in A (i.e. when X occurs at most twice to the left
+of an implication). Interestingly, both systems have the expressive power of Gödel’s System
+T (which is not a first-order system).
+
+
+
+                                                                                                     FSCD 2021
+27:16   What’s Decidable About (Atomic) Polymorphism?
+
+
+            Another kind of restrictions on the shape of types have been investigated by the authors
+        in [49], motivated by ideas from the categorical semantics of polymorphism [3]. The two
+        resulting fragments Λ2κď0 , Λ2κď1 are equivalent, respectively, to the simply typed λ-calculus
+        with finite sums and products, and to its extension with least and greatest fixpoints (in
+        particular, (CE) is decidable in Λ2κď0 ).
+            Finally, polymorphism in linear type systems has been investigated too. Interestingly,
+        (TI) [28, 27] and (CE) [43] remain undecidable even in this case.
+
+        Future work. The main interest we found in investigating Fat was to shed some new light
+        on the source of undecidability of type-related properties for full System F. Yet, one might
+        well ask whether the decidability of type-checking makes Fat a reasonable candidate for
+        implementations. Admittedly, our decision algorithm, which was only oriented to prove
+        decidability, is not very practical: checking failure is coNP with respect to the number of type
+        symbols. Yet, it does not seems unlikely that more optimized algorithms can be developed.
+             By the way, given that the terms typable in Fat are simply typable, would an implemen-
+        tation of atomic polymorphism be interesting at all? In contrast with ML, type-checking
+        atomically polymorphic programs is decidable at any rank. One could thus investigate
+        extensions of ML with first class atomic polymorphism (realistically, in presence of other
+        type constructors like e.g. some restricted version of dependent types, see [65]).
+             A more interesting direction, suggested by our decision algorithm, would be to investigate
+        systems with full, impredicative, polymorphism, but obeying some condition ensuring acyclic-
+        ity, so that TC (based on SOU) remains decidable. One would thus retain some advantages
+        of first-class polymorphism (e.g. the modularity/genericity of programs) while admitting
+        self-applications only in “ML-style” (or with explicit type annotations, as in MLF [30]). For
+        instance, a way to ensure acycliclity might be to require that a polymorphic λ-abstracted
+        variable be used in an affine way, i.e. at most once.
+
+
+             References
+         1   Amal Ahmed, Dustin Jamner, Jeremy G. Siek, and Philip Wadler. Theorems for free for free:
+             parametricity, with and without types. In Proceedings of the ACM on Programming Languages,
+             volume 1 of ICFP, page Article No. 39, New York, 2017.
+         2   Thorsten Altenkirch and Thierry Coquand. A finitary subsystem of the polymorphic λ-calculus.
+             In Samson Abramsky, editor, Typed Lambda Calculi and Applications, pages 22–28, Berlin,
+             Heidelberg, 2001. Springer Berlin Heidelberg.
+         3   E.S. Bainbridge, Peter J. Freyd, Andre Scedrov, and Philip J. Scott. Functorial polymorphism.
+             Theoretical Computer Science, 70:35–64, 1990.
+         4   Henk Barendregt. Lambda calculi with types. In Handbook of Logic in Computer Science,
+             pages 117–309. Oxford University Press, 1992.
+         5   Henk Barendregt, Wil Dekkers, and Richard Statman. Lambda calculus with types. Perspectives
+             in Logic. Cambridge University Press, 2013.
+         6   Norman Danner and Daniel Leivant. Stratified polymorphism and primitive recursion. Mathe-
+             matical Structures in Computer Science, 9(4):507–522, 1999.
+         7   Kosta Došen and Zoran Petrić. The typed Böhm theorem. Electronic Notes in Theoretical
+             Computer Science, 50(2):117–129, 2001.
+         8   Andrej Dudenhefner and Jakob Rehof. A simpler undecidability proof for system F inhabitation.
+             In TYPES 2018, pages 2:1–2:11, 2018.
+         9   José Espírito Santo and Gilda Ferreira. A refined interpretation of intuitionistic logic
+             by means of atomic polymorphism. Studia Logica, 108(3):477–507, 2020. doi:10.1007/
+             s11225-019-09858-1.
+P. Pistone and L. Tranchini                                                                             27:17
+
+
+10   José Espírito Santo and Gilda Ferreira. The Russell-Prawitz embedding and the atomization
+     of universal instantiation. Logic Journal of the IGPL, July 2020. jzaa025.
+11   Fernando Ferreira and Gilda Ferreira. Commuting conversions vs. the standard conversions of
+     the "good" connectives. Studia Logica, 92(1):63–84, 2009.
+12   Fernando Ferreira and Gilda Ferreira. Atomic polymorphism. Journal of Symbolic Logic,
+     78(1):260–274, 2013.
+13   Fernando Ferreira and Gilda Ferreira. The faithfulness of Fat: a proof-theoretic proof. Studia
+     Logica, 103(6):1303–1311, 2015.
+14   Gilda Ferreira. η-conversions of IPC implemented in atomic F. Logic Journal of the IGPL,
+     25(2):115–130, June 2016.
+15   Gilda Ferreira and Bruno Dinis. Instantiation overflow. Reports on Mathematical Logic,
+     51:15–33, 2016.
+16   Gilda Ferreira and Vasco T Vasconcelos. The computational content of atomic polymorphism.
+     Logic Journal of the IGPL, 27(5):625–638, December 2018.
+17   Steven Fortune, Daniel Leivant, and Michael O’Donnell. The expressiveness of simple and
+     second-order type structures. Journal of the ACM, 30(1):151–185, 1983.
+18   Ken-etsu Fujita and Aleksy Schubert. The undecidability of type related problems in the type-
+     free style system F with finitely stratified polymorphic types. Information and Computation,
+     218:69–87, 2012.
+19   Dov M. Gabbay. Semantical Investigations in Heyting’s Intuitionistic Logic, volume 148.
+     Springer Science + Business, Dordrecht, 1981.
+20   Jacques Garrigue and Didier Rémy. Extending ml with semi-explicit higher-order polymorphism.
+     In Martín Abadi and Takayasu Ito, editors, Theoretical Aspects of Computer Software, pages
+     20–46, Berlin, Heidelberg, 1997. Springer Berlin Heidelberg.
+21   Paola Giannini and Simona Ronchi Della Rocca. Characterization of typings in polymorphic
+     type discipline. In Proceedings of the 3-th Annual IEEE Symposium on Logic in Computer
+     Science, pages 61–70, Edinburgh, 1988.
+22   Warren D. Goldfarb. The undecidability of the second-order unification problem. Theoretical
+     Computer Science, 13(2):225–230, 1981.
+23   Ryu Hasegawa. Categorical data types in parametric polymorphism. Mathematical Structures
+     in Computer Science, 4(1):71–109, 2009.
+24   Fritz Henglein. Polymorphic type inference and semi-unification. PhD thesis, The State
+     University of New Jersey, 1989.
+25   Roger J. Hindley. The principal type scheme of an object in combinatory logic. Transactions
+     of the American Mathematical Society, 146:29–60, 1069.
+26   Assaf J. Kfoury, Jerzy Tiuryn, and Paweł Urzyczyn. The undecidability of the semi-unification
+     problem. Information and Computation, 102(1):83–101, 1993.
+27   Yves Lafont. The undecidability of second order linear logic without exponentials. The Journal
+     of Symbolic Logic, 61(02):541–548, 1996. doi:10.2307/2275674.
+28   Yves Lafont and Andre Scedrov. The Undecidability of Second Order Multiplicative Linear
+     Logic. Information and Computation, 125(1):46–51, 1996. doi:10.1006/inco.1996.0019.
+29   Joachim Lambek and Philip J. Scott. Introduction to higher order categorical logic. Cambridge
+     Studies in Advanced Mathematics. Cambridge University Press, 1988.
+30   Didier Le Botlan and Didier Rémy. Mlf: Raising ml to the power of system f. In Proc. of the
+     International Conference on Functional Programming (ICFP ’03), pages 27–38, 2003.
+31   R. D. Lee. Decidable classes of recursive equations. PhD thesis, University of Leicester, 1969.
+32   Daniel Leivant. Stratified polymorphism. In LICS ’89. Proceedings of the 4th Annual Symposium
+     on Logic in Computer Science. IEEE, 1989.
+33   Daniel Leivant. Finitely stratified polymorphism. Information and Computation, 93(1):93–113,
+     1991.
+34   Daniel Leivant. A foundational delineation of Poly-time. Information and Computation,
+     110(2):391–420, 1994.
+
+
+
+
+                                                                                                       FSCD 2021
+27:18   What’s Decidable About (Atomic) Polymorphism?
+
+
+        35   Daniel Leivant. Peano’s lambda calculus: the functional abstraction implicit in arithmetic.
+             In Logic, meaning and computation, Essays in Memory of Alonzo Church, volume 305 of
+             Synthese Library, Studies in Epistemology, Logic, Methodology and Philosophy of Science,
+             pages 313–329. Springer Netherlands, 2001.
+        36   Jordi Levy. Decidable and undecidable second-order unification problems. In Tobias Nipkow,
+             editor, Rewriting Techniques and Applications, pages 47–60, Berlin, Heidelberg, 1998. Springer
+             Berlin Heidelberg.
+        37   M. H. Löb. Embedding first order predicate logic in fragments of intuitionistic logic. Journal
+             of Symbolic Logic, 41:705–718, 1976.
+        38   Jan Małolepszy, Małgorzata Moczurad, and Marek Zaionc. Schwichtenberg-style lambda
+             definability is undecidable. In Philippe de Groote and J. Roger Hindley, editors, Typed Lambda
+             Calculi and Applications, pages 267–283, Berlin, Heidelberg, 1997. Springer Berlin Heidelberg.
+        39   Paul-André Melliès and Noam Zeilberger. Functors are type refinement systems. In Proceedings
+             of the 42nd Annual ACM SIGPLAN-SIGACT Symposium on Principles of Programming
+             Languages, POPL ’15, pages 3–16, New York, NY, USA, 2015. Association for Computing
+             Machinery.
+        40   R. Milner and L. Damas. The principal type schemes for functional programs. In Symposium
+             on Principles of Programming Languages, ACM, 1982.
+        41   Robin Milner. A theory of type polymorphism in programming. Journal of Computer and
+             System Science, 17(3):248–375, 1978.
+        42   Robin Milner. The standard ml core language. Polymorphism, 2(2), 1985.
+        43   Le Than Dung Nguyen, Paolo Pistone, Thomas Seiller, and Lorenzo Tortora de Falco. Finite
+             semantics of polymorphism, complexity and the expressive power of type fixpoints, 2019. URL:
+             https://hal.archives-ouvertes.fr/hal-01979009.
+        44   Vincent Padovani. Filtrage d’ordre supérieur. PhD thesis, Université Paris 7, 1996.
+        45   Frank Pfenning. On the undecidability of partial polymorphic type reconstruction. Fundamenta
+             Informaticae, 19(1-2):185–199, 1993.
+        46   Paolo Pistone. Proof nets and the instantiation overflow property, 2018. arXiv:1803.09297.
+        47   Paolo Pistone and Luca Tranchini. The naturality of natural deduction II. some remarks on
+             atomic polymorphism, 2020. arXiv:1908.11353.
+        48   Paolo Pistone and Luca Tranchini. The Yoneda Reduction of Polymorphic Types (extended
+             version), 2020. arXiv:1907.03481.
+        49   Paolo Pistone and Luca Tranchini. The Yoneda Reduction of Polymorphic Types. In Christel
+             Baier and Jean Goubault-Larrecq, editors, 29th EACSL Annual Conference on Computer
+             Science Logic (CSL 2021), volume 183 of Leibniz International Proceedings in Informatics
+             (LIPIcs), pages 35:1–35:22, Dagstuhl, Germany, 2021. Schloss Dagstuhl–Leibniz-Zentrum für
+             Informatik.
+        50   Paolo Pistone and Luca Tranchini. What’s decidable about (atomic) polymorphism?, 2021.
+             Available at arXiv:2105.00748.
+        51   Gordon Plotkin and Martin Abadi. A logic for parametric polymorphism. In TLCA ’93,
+             International Conference on Typed Lambda Calculi and Applications, volume 664 of Lecture
+             Notes in Computer Science, pages 361–375. Springer Berlin Heidelberg, 1993.
+        52   M Clarence Protin. Type inhabitation of atomic polymorphism is undecidable. Journal of
+             Logic and Computation, January 2021. exaa090.
+        53   John C. Reynolds. Types, abstraction and parametric polymorphism. In R.E.A. Mason, editor,
+             Information Processing ’83, pages 513–523. North-Holland, 1983.
+        54   Aleksy Schubert, Paweł Urzyczyn, and Konrad Zdanowski. On the Mints hierarchy in first-order
+             intuitionistic logic. Logical Methods in Computer Science, 12(4:11):1–25, 2016.
+        55   Helmut Schwichtenberg. Definierbare funktionen im λ-kalkül mit typen. Archiv für mathema-
+             tische Logik und Grundlagenforschung, 17(3):113–114, 1975.
+        56   S. K. Sobolev. The intuitionistic propositional calculus with quantifiers. Mathematical Notes
+             of the Academy of Sciences of the USSR, 22(528-532), 1977.
+P. Pistone and L. Tranchini                                                                                        27:19
+
+
+57     Morten Heine Sorensen and Pawel Urzyczyn. Lectures on the Curry-Howard isomorphism,
+       volume 149 of Studies in logic and the foundations of mathematics. Elsevier Science, 2006.
+58     R. Statman. Completeness, invariance and λ-definability. The Journal of Symbolic Logic,
+       47(1):17–26, 1982.
+59     Richard Statman. intuitionistic propositional logic is polynomial-space complete. Theoretical
+       Computer Science, 9(1):67–72, 1979.
+60     Marin Sulzmann, Manuel M. T. Chakravarty, Simon Peyton Jones, and Kevin Donnelly.
+       System f with type equality coercions. In TLDI ’07 Proceedings of the 2007 ACM SIGPLAN
+       Internatinal workshop in Types in languages design and implementation, pages 53–66. ACM
+       New York, 2007.
+61     Luca Tranchini, Paolo Pistone, and Mattia Petrolo. The naturality of natural deduction.
+       Studia Logica, https://doi.org/10.1007/s11225-017-9772-6, 2017.
+62     J. Voigtländer. Proving correctness via free theorems: the caser of the destroy/build-rule. In
+       Proceedings of the ACM SIGPLAN symposium on Partial Evaluation and Semantics-Based
+       Program Manipulation, pages 13–20, New York, 2008. ACM press.
+63     Philip Wadler. Theorems for free! In Proceedings of the fourth international conference on
+       functinoal programming languages and computer architecture - FPCA ’89, 1989.
+64     J. B. Wells. Typability and type checking in System F are equivalent and undecidable. Annals
+       of Pure and Applied Logic, 98:111–156, 1998.
+65     Hongwei Xi and Frank Pfenning. Dependent types in practical programming. In Proceedings
+       of the 26th ACM SIGPLAN-SIGACT Symposium on Principles of Programming Languages,
+       POPL ’99, pages 214–227, New York, NY, USA, 1999. Association for Computing Machinery.
+
+
+ A       Fat -unification
+In this section we describe a decidable unification problem, that we call Fat -unification, and
+we show that this problem captures type-checking for Fat .
+
+A decidable second-order unification problem. We consider a second-order language
+composed of three different sorts of variables: sequence variables a, b, c, . . . , projection
+variables αn , β n , γ n , . . . and second-order variables Fn , Gn , . . . (where in the last two cases n
+indicates the arity of the variable). The language includes expressions of three sorts, noted
+x˚y, ˚ and T p˚q; the expressions of each type are defined by the grammars below:
+
+     a, b, c ::“ xX1 . . . Xn y | a | αn a1 . . . an                           psort x˚yq
+                        l       n
+      ϕ, ψ ::“ X | π paq | F a1 . . . an | Φ ñ Ψ                                  psort ˚q
+      Φ, Ψ ::“ @a.ϕ                                                          psort T p˚qq
+
+    A Fat -unification problem is a pair pU, Eq, where U is a set of equations of the form
+ϕ “ ψ between expressions of type ˚, and E is a set of constraints of the form pα : aq or
+pa : kq, where k P N.
+    Given a Fat -unification problem pU, Eq, for all projection variable αn occurring in U , let
+degpαq indicate the maximum l such that π l pαn a1 . . . an q occurs in U .
+    A substitution for a Fat -unification problem pU, Eq is given by the following data:
+    for each sequence variable a, a natural number kaS P N;
+    for each projection variable αn , a pair pkαS , Spαqq made of a natural number kαS ě
+    degpαq and a sequence Spαq “ xSpαq1 , . . . , SpαqkαS y, where Spαqi is either of the form
+    λx1 . . . . .xn .X or of the form λx1 . . . . .xn .π l pxj q, where l is such that, whenever αn a1 . . . an
+    occurs in U , l ď kaSj ;
+
+
+
+                                                                                                                  FSCD 2021
+27:20   What’s Decidable About (Atomic) Polymorphism?
+
+
+           for each second-order variable Fn , a function SpFq of the form λρ1 . . . . .ρn .Apρ1 , . . . , ρn q,
+           where Apρ1 , . . . , ρn q is given by the grammar
+
+               A, B ::“ X | π l pρi q | A ñ B | @X.A
+
+           with i P t1, . . . , nu and l being such that, if Fn a1 . . . an occurs in U , then l ď kaSi (where
+           kaS is k if a “ xX1 , . . . , Xk y, is kaS if a “ a, and is kαS if a “ αr a1 . . . ar ).
+
+            Given a substitution S, we define (1) for any expression a of sort x˚y, a sequence Spaq of
+        type variables, (2) for any expression ϕ of sort ˚, a type Spϕq, and (3) for any expression Φ
+        of sort T p˚q, a type SpΦq as follows:
+            if a “ a, Spaq is an arbitrary sequence of pairwise distinct variables xSpaq1 , . . . , Spaqka y
+            (chosen in such a way that if a ‰ b, Spaq and Spbq are disjoint);
+            if a “ xX1 , . . . , Xr y, then Spaq “ xX1 , . . . , Xr y;
+            if a “ αn a1 . . . an , then Spaq “ xU1 , . . . , UkαS y where for all i ď kαS :
+                if Spαqi “ λ⃗x.X, then Ui “ X;
+                if Spαqi “ λ⃗x.π l pxj q, then Ui “ Spaj ql ;
+            if ϕ “ X, then Spϕq “ X;
+            if ϕ “ π l paq, then Spϕq “ Spaql ;
+            if ϕ “ Fa1 . . . an , and SpFq “ λ⃗  ρ.A, then Spϕq “ Arπ l pρi q ÞÑ Spai ql s;
+            if ϕ “ Φ ñ Ψ, then Spϕq “ SpΦq ñ SpΨq;
+            if Φ “ @a.ϕ, then SpΦq “ @Spaq.Spϕq.
+
+           A substitution S for pU, Eq is a unifier of pU, Eq if the following hold:
+        1. for any equation ϕ “ ψ P U , Spϕq “ Spψq holds;
+        2. for any constraint of the form α : a P E, kaS “ kαS ;
+        3. for any constraint of the form a : k P E, kaS “ k.
+
+           We let Fat-unification indicate the problem of finding a unifier for a Fat -unification
+        problem. The rest of this subsection is devoted to establish the following:
+
+        ▶ Theorem 24. Fat-unification is decidable.
+
+           A Fat -unification problem pU, Eq is in normal form if if contains no equation of the form
+        Φ1 ñ Ψ1 “ Φ2 ñ Ψ2 . Any unification problem can be put in normal form by repeatedly
+        applying the following simplification rule:
+
+            U ` tp@a1 .ϕ1 q Ñ p@b1 .ψ1 q “ p@a2 .ϕ2 q Ñ p@b2 .ψ2 qu
+              `                           ˘“                  ‰
+                U ` tϕ1 “ ϕ2 , ψ1 “ ψ2 u a2 ÞÑ a1 , b2 ÞÑ b1
+
+            Given a Fat -unification problem in normal form pU, Eq, we say that an equation ϕ “ ψ
+        can be deduced from U if ϕ “ ψ can be deduced from a finite set of equations in U by applying
+        standard first-order equality rules. We say that two second-order variables F, G are equivalent
+        (noted F » G) if an equation of the form Fa1 . . . an “ Gb1 . . . bn can be deduced from U ; we
+        say that F is connected with G (noted F ⇝ G) if an equation of the form Fa1 . . . an “ Φ ñ Ψ,
+        where U occurs in Φ ñ Ψ, can be deduced from U . We say that pU, Eq has a variable cycle
+                                                              »    »       »    »             »
+        if there exist variables F1 , . . . , Fk such that F1 ⇝ F2 ⇝ . . . ⇝ Fn ⇝ F1 (where F ⇝ G means
+        that F is connected with some variable equivalent to G).
+
+        ▶ Lemma 25. Let pU, Eq be a unification problem in normal form. If pU, Eq has a variable
+        cycle, then it has no solution.
+P. Pistone and L. Tranchini                                                                                   27:21
+
+
+Proof. To prove the lemma we show that any unification problem pU, Eq yields a first-
+order unification problem U ˚ and that any unifier of pU, Eq yields a unifier of U ˚ . For
+the translation, we fix a constant c, and we associate any second-order variable F with a
+first-order variable xF ; any expression is translated into a first order expression by:
+            a˚ “ c
+   Fn a1 . . . an “ xF
+    pΦ ñ Ψq˚ “ Φ˚ ñ Ψ˚
+      p@a.ϕq˚ “ ϕ˚
+    We finally let U ˚ “ tϕ˚ “ ψ ˚ | ϕ “ ψ P U u. Observe that if F » G in U , then xF “ xG
+in U ˚ , and if F ⇝ G in U , then U ˚ contains an equation of the form xF “ t ñ u, where xG
+occurs in t ñ u. Hence a variable cycle in pU, Eq induces a variable cycle in U ˚ .
+    For any substitution S for pU, Eq, we define a first-order substitution S ˚ as follows: given
+λ⃗ρ.A we define A˚ by X ˚ “ c, pπ l pρi qq˚ “ c, pA ñ Bq˚ “ A˚ ñ B ˚ and p@X.Aq˚ “ A˚ .
+We let then S ˚ pxF q “ SpFq˚ .
+    One can easily check that if S is a unifier for pU, Eq, then S ˚ is a unifier of U ˚ . As
+a consequence, if pU, Eq has a variable cycle, so does U ˚ , and by well-known facts about
+first-order unification, U ˚ has no unifier, and so neither pU, Eq does.                       ◀
+
+   Let us call a unification problem pU, Eq simple if it contains no expression of the form
+Φ ñ Ψ. If pU, Eq has no variable cycle, then it can be reduced to a simple unification problem
+by applying the following rules:
+    U ` tX “ Φ ñ Ψu                                       U ` tπ l paq “ Φ ñ Ψu
+        tX “ Y u                                                tX “ Y u
+
+     U ` tFn a11 . . . a1n “ p@c1 .ϕ1 q ñ p@d1 .ψ1 q, . . . , Fn ar1 . . . arn “ p@cr .ϕr q ñ p@dr .ψr qu
+     ”                                  ı " Fn`1 a1 . . . a1 c “ ϕ , . . . , Fn`1 ar . . . ar c “ ϕ *
+       n⃗       n`1
+                       ⃗       n`1
+                                   ⃗          1     1          n 1         1       1     1        n r    r
+    U F a ÞÑ pF1 ac ñ F2 adq ` n`1
+                                            F2 a11 . . . a1n d1 “ ψ1 , . . . , Fn`12    ar
+                                                                                         1 . . . ar
+                                                                                                    d
+                                                                                                  n r “ ψr
+
+Where in the first two rules Y is any type variable distinct from X, and in the last rule we
+suppose that U contains no equation of the form Fn a1 . . . an “ Φ ñ Ψ. Observe that, by
+acycliclity, F cannot occur in either ϕi or ψi . One can argue by induction on the well-founded
+           »
+preorder ⇝ that all terms of the form Φ ñ Ψ can be eliminated by applying a finite number
+of instances of the rules above.
+    The last step to ensure decidability is showing (1) that all solutions to a Fat -unification
+problem pU, Eq can be generated algorithmically and (2) that one can suppose that, if a
+solution exists at all, this can be found within a finite search-space (that is, one in which
+only projections π l paq, with l less than some fixed value K depending on the size of pU, Eq,
+occur). Step (2) ensures that, if a solution is not found after a finite search, one can conclude
+that no solution exists at all. These are the two ingredients of the proof of the proposition
+below, which is shown in detail in [50].
+▶ Proposition 26. There is an algorithm that generates all unifiers of a simple unification
+problem, if there exists any, and returns failure otherwise.
+
+Type-checking Fat by second-order unification. A type-checking problem is a triple pΓ, t, Aq
+where Γ is a term context, t is a λ-term with F V ptq Ď Γ and A is a type. A Fat -solution
+of a type-checking problem is a type derivation in Fat of Γ $ t : A. We wish to prove the
+following:
+
+
+
+                                                                                                             FSCD 2021
+27:22   What’s Decidable About (Atomic) Polymorphism?
+
+
+
+              Γpxq “ A      AĺB                                     Γ, x ÞÑ A $ t : B
+                                ⃗ R F V pΓq
+                                X                                                     ⃗ R F V pΓq
+                                                                                      X
+                          ⃗
+                 Γ $ x : @X : B                                               ⃗
+                                                                  Γ $ λx.t : @X.A  ñB
+
+              Γ$t:AñB     Γ$u:A                       BĺC ⃗
+                                                          X R F V pΓq
+                              ⃗
+                    Γ $ tu : @X.C
+
+           Figure 4 Synthetic typing rules for Curry-style Fat .
+
+
+        ▶ Theorem 27. For any type-checking problem pΓ, t, Aq, there exists a Fat -unification problem
+        VpΓ, t, Aq such that pΓ, t, Aq has a solution in Fat iff VpΓ, t, Aq has a unifier.
+
+            The first step is to associate with each term t finite sets of sequence variables, projection
+        variables and second-order variables as follows (we suppose that no variable occurs both free
+        and bound in t, and that any bound variable is bound exactly once):
+
+           with each variable x in t, we associate two sequence variables ax , bx , a projection variable
+           αx1 , and two second-order variables F1x , G1x ;
+           with each subterm of t of the form uv, we similarly associate two sequence variables
+                                              1
+           auv , buv , a projection variable αuv and two second-order variables F2uv , G1uv ;
+           with each subterm of t of the form λx.u, we associate a sequence variable bλx.u , and a
+           second order variable G1λx.t .
+
+           Given a set of equations U and a sequence variable a not occurring in U , we let U a be
+        the set of equations obtained by replacing all terms αn a1 . . . an by αn`1 a1 . . . an a and all
+        term Fn a1 . . . an by Fn`1 a1 . . . an a.
+           We define a set of equations Uptq, by induction on t as follows:
+           Upxq is formed by the equation
+
+               Fx pαx bx q “ Gx bx
+
+           Upλx.tq is formed by Uptqbλx.t plus the equations
+
+               Gλx.t bλx.t “ p@ax .Fx ax⃗bbλx.t q ñ @bt .Gt bt bλx.t
+
+           Uptuq is formed by Uptqbtu , Upuqbtu plus the equations:
+
+                       Gt bt btu “ p@bu .Gu bu btu q ñ p@atu .Ftu atu btu q
+               Ftu pαtu btu qbtu “ Gtu btu
+
+        We let VpΓ, t, Aq “ pUpΓ, t, Aq, EpΓ, t, Aqq, where UpΓ, t, Aq is the union of Uptq and all
+        equations @ax .Fx ax “ Γpxq and @bt .Gt bt “ A. EpΓ, t, Aq is formed by all constraints of
+        the form pαx : ax q and pαtu : bt q, as well as all constraints of the form pax : kq, where
+        Γpxq “ @X1 . . . Xk .C, all constraints of the form pbu : 0q where t contains a subterm of the
+        form uv, and the constraint pbt , hq, where A “ @X1 . . . Xh .A1 .
+            To show that solving VpΓ, t, Aq is equivalent to checking if Γ $ t : A, as in [21], we first
+        define synthetic typing rules for Curry-style Fat as shown in Fig. 4, where A ĺ B holds when
+        A “ @X1 . . . Xn .A and B “ ArX1 ÞÑ Y1 , . . . , Xn ÞÑ Yn s.
+            One can check by induction on t that a synthetic type derivation of Γ $ t : A yields
+        a unifier of VpΓ, t, Aq. Conversely, we show that from a unifier S for VpΓ, t, Aq we can
+        construct a synthetic typing derivation of Γ $ t : A. We argue by induction on t:
+P. Pistone and L. Tranchini                                                                                                                                27:23
+
+
+   if t “ x, then we have Γpxq “ @X1 . . . XN .SpFx qX,      ⃗ where N “ kaS , A “
+                                                                                     x
+                       ⃗ , where P “ k , and moreover, SpFx qpSpαx q1 Y
+   @Y1 . . . YP .SpGx qY              S                                ⃗ q . . . pSpαx qN Y
+                                                                                          ⃗q “
+                                      bx
+           ⃗                       S     S                             ⃗
+   SpGx qY (using the fact that kαx “ kax “ N ). Observe that pSpαx qj Y q is a variable, and
+   we deduce then that Γpxq ĺ SpGx qY  ⃗ ; since we can suppose that Y
+                                                                     ⃗ does not occur in Γ,
+   we deduce then that
+                 ⃗
+         Γpxq “ @X.SpF    ⃗
+                       x qX
+                               ⃗
+                              @X.SpF   ⃗         ⃗
+                                    x qX ĺ SpGx qY
+                                                   ⃗ R F V pΓq
+                                                   Y
+                           Γ$x:A
+   if t “ λx.u, then we have that A “ @X1 . . . XN .A1 ñ A2 , where A1 “
+                       ⃗X
+   @Y1 . . . YP .SpFx qY ⃗ and A2 “ @Z1 . . . ZQ .SpGu qZ
+                                                        ⃗ X,
+                                                          ⃗ N “ k S , P “ kaS , Q “ k S
+                                                                   bλx.u         x         bu
+   and where we can suppose that the Xi do not occur free in Γ; since Uptq “ Upuqbλx.t we
+   deduce that S unifies VpΓ Y tx : A1 u, u, A2 qq. By I.H. we deduce then the existence of a
+   type derivation of Γ, x : A1 $ u : A2 , and since the Xi do not occur in Γ we finally have
+
+                [I.H.]
+         Γ, x : A1 $ u : A2
+                            ⃗ R F V pΓq
+                            X
+              Γ$t:A
+
+   if t        “     uv,       then we have that A                   “                          ⃗
+                                                                           @X1 . . . XN .SpGuv qX,
+   SpGu qX⃗      “                          ⃗ Xq
+                       p@Y1 . . . YP .SpGv qY ⃗    ñ                           ⃗ Xq
+                                                         p@Z1 . . . ZQ .SpFuv qZ ⃗     and that
+                    ⃗                    ⃗  ⃗          ⃗
+   SpFuv qpSpαuv q1 Xq . . . pSpαuv qN XqX “ SpGuv qX, where N “ kbuv , P “ kbSu and
+                                                                             S
+
+   Q “ kaSuv , and where we use the fact that kbSu “ 0. Moreover, for any choice of the vari-
+         ⃗ we have that S unifies VpΓ, u, p@Y1 . . . YP .SpGv qY
+   ables X,                                                     ⃗ Xq⃗ ñ @Z1 . . . ZQ .SpFuv qZ
+                                                                                             ⃗ Xq
+                                                                                                ⃗
+                                    ⃗  ⃗                 ⃗
+   and VpΓ, v, @Y1 . . . YP .SpGu qY Xq; by choosing the X so that they do not occur free in Γ,
+   using the I.H. and the fact that kαSuv “ kaSuv “ Q, we deduce then
+                              [I.H.]                                             [I.H.]
+                                ⃗ Xq
+   Γ $ u : p@Y1 . . . YP .SpGqv Y ⃗ ñ p@Z1 . . . ZQ .SpFuv qZ
+                                                            ⃗ Xq
+                                                              ⃗                                 ⃗X
+                                                                    Γ $ v : @Y1 . . . YP .SpGv qY ⃗                        ⃗X
+                                                                                                      @Z1 . . . ZQ .SpFuv qZ ⃗ ĺ SpGuv qX
+                                                                                                                                        ⃗
+                                                                                                                                            ⃗ R F V pΓq
+                                                                                                                                            X
+                                                                   Γ$t:A
+
+
+
+
+                                                                                                                                                          FSCD 2021
+

@@ -1,0 +1,1652 @@
+                                                 Does Preprocessing help in Fast Sequence Comparisons?
+                                                          Elazar Goldenberg∗              Aviad Rubinstein†              Barna Saha‡
+arXiv:2108.09115v1 [cs.DS] 20 Aug 2021
+
+
+
+
+                                                                                            Abstract
+                                                  We study edit distance computation with preprocessing: the preprocessing algorithm acts on
+                                               each string separately, and then the query algorithm takes as input the two preprocessed strings.
+                                               This model is inspired by scenarios where we would like to compute edit distance between many
+                                               pairs in the same pool of strings.
+                                                  Our results include:
+                                               Permutation-LCS If the LCS between two permutations has length n − k, we can compute
+                                                   it exactly with O(n log(n)) preprocessing and O(k log(n)) query time.
+                                               Small edit distance For general strings, if their edit distance is at most k, we can compute
+                                                   it exactly with O(n log(n)) preprocessing and O(k 2 log(n)) query time.
+                                               Approximate edit distance For the most general input, we can approximate the edit dis-
+                                                   tance to within factor (7+o(1)) with preprocessing time Õ(n2 ) and query time Õ(n1.5+o(1) ).
+                                                   All of these results significantly improve over the state of the art in edit distance computation
+                                               without preprocessing. Interestingly, by combining ideas from our algorithms with preprocess-
+                                               ing, we provide new improved results for approximating edit distance without preprocessing in
+                                               subquadratic time.
+
+                                           ∗
+                                             The Academic College of Tel Aviv-Yaffo. Email: elazargo@mta.ac.il
+                                           †
+                                             Stanford University. Email: aviad@cs.stanford.edu
+                                           ‡
+                                             University of California Berkeley. Work partially supported by an NSF CAREER Award 1652303, NSF HDR
+                                         TRIPODS Grant 1934846 and an Alfred P. Sloan Fellowship. Email: barnas@berkeley.edu
+1    Introduction
+Edit distance (aka Levenshtein distance) [Lev66] and longest common subsequence are widely used
+distance measures between pairs of strings, over some alphabet Σ. They find applications in
+several fields like computational biology, pattern recognition, text processing, information retrieval
+and many more. The edit distance between A and B, denoted by ED(A, B), is defined as the
+minimum number of character insertions, deletions, and substitutions needed for converting A into
+B. The longest common subsequence of A and B, denoted by LCS(A, B), is defined as the longest
+subsequence common to A and B. A simple dynamic program solves this problem in quadratic time.
+Moreover under reasonable hardness assumptions like SETH and BP-SETH no real subquadratic
+time algorithm for these problems exists [BK15, BI18, AHWW16, AB18].
+    While dealing with huge amounts of data (such as DNA chains, enormous storage, etc.),
+quadratic-time algorithms are unaffordable. This raised an active and extensive line of work on
+moving from quadratic-time exact computation towards (near)-linear time for approximation algo-
+rithms [BEK+ 03, BJKK04, BES06, AO12, AKO10, BEG+ 18, CDG+ 18, CGKK18, And19, BR19,
+KS19, HSSS19, HRS19, RSSS19, RS19], and even designing sub-linear time algorithms for special
+cases such as restriction on the distance between the input sequences [BEK+ 03, AO12, GKS19] or
+permutations [CK06, AN10, SS17, NRRS19, BCLW19, RSSS19].
+    In many of these applications, a large number of very long strings from a database must be
+compared among each other (such as comparative genomics, comparing text corpora for documents
+similarity etc.). For example, in string similarity join, which is a fundamental problem in databases,
+one needs to find all pairs of strings (e.g., genome sequences) in a database that are close with respect
+to edit distance [BZ16].This in particular motivates developing sub-linear time algorithms. But,
+unfortunately even under strong assumptions, the known guarantees for sub-linear time algorithms
+(including recent works by the authors) are unsatisfactory. For example, recent work [GKS19]
+requires Θ( nk + k3 )-time, and with a highly non-trivial algorithm can barely distinguish between
+edit distance k and k2 . Even when the strings are both permutations and k-close to each other,
+                                                             √
+[AN10]’s nearly-optimal algorithm runs in time Õ( nk + n) and still only approximates the edit
+distance (to within some large constant factor). In part this is due to strong lower bounds: for
+example, when the edit distance is k ≪ n, in order to have any chance of observing any difference
+between the strings, the algorithm must see Ω( nk ) characters.
+    Our main contribution is a simple and natural augmentation to the standard model:
+preprocessing. Formally, we consider two parties that preprocess each input string independently,
+and then in a query phase they jointly (approximately) compute an optimal alignment. Because
+the preprocessing of the two strings is done independently, (i) the same preprocessing of one string
+can be useful for many comparisons, and (ii) the preprocessing step can be fully parallelized in any
+distributed system.
+    In this paper we raise the question of whether preprocessing the input can accelerate the compu-
+tation of the edit distance between input strings and computing their longest common subsequence.
+We affirmatively answer these questions by providing several algorithms that beat the state of the
+art algorithms where no preprocessing is allowed. Our results include faster algorithms for the
+tasks of exact computation of edit distance and permutation LCS. We also provide a better trade
+off between running time and approximation factor for edit distance approximation.
+    We note in particular that when the preprocessing runs in near-linear time (as is the case with
+all our sublinear-time algorithms), it is essentially for free in the sense that it is barely more than it
+took to record and store the inputs in the first place. Even when preprocessing takes super-linear
+time, it could be much more cost-effective to have it when dealing with large number of strings.
+Preprocessing captures a middle ground between (i) aforementioned works on (approximate) edit
+
+
+                                                    1
+distance between two long strings; and (ii) works on approximate closest pair or nearest neighbor
+among a large number of short strings [ADG+ 03, Ind04, CK06, OR07, LDHO14, ARW17, Rub18b,
+CGL+ 19]. Our preprocessing algorithms are most appealing when both the length and number of
+strings are large.
+    Preprocessing is also closely related to sketching [BZ16, BJKK04]. With an efficient sketching
+algorithm, we can preprocess a string to compute a small-sized sketch and then only compare the
+sketches during querying. The state of the art result in edit distance sketching has a preprocessing
+time of Õ(nk2 ) and query time of poly(k log n) [BZ16]. Our algorithms get significantly better trade-
+offs. There are numerous works on related but different models such as computing embedding of
+edit distance [ADG+ 03, OR07, CK06, CGK16], document exchange protocols [Jow12, BZ16, Hae19]
+and error-correcting codes for insertions and deletions [BGZ16, HRS19, Hae19].
+
+Contributions.
+In the preprocessing model we provide much faster and simpleralgorithms that output much better
+alignments:
+
+Permutation-LCS If the LCS between two permutations has length n − k, we can compute
+    it exactly with O(n log(n)) preprocessing and O(k log(n)) query time. Contrast this result
+                                 √
+    with [AN10] where in Õ( nk + n), the ulam distance can be approximated to within a large
+    constant factor.
+
+Small edit distance For general strings, if their edit distance is at most k, we can compute it
+    exactly with O(n log(n)) preprocessing and O(k2 log(n)) query time. Contrast this result
+    with [GKS19] where in Õ( nk + k3 ) time, one can distinguish if edit distance is below k or
+    above Θ(k2 ).
+
+Approximate edit distance For the most general input, we can approximate the edit distance
+    to within factor (7 + o(1)) with preprocessing time O(n2 log(n)) and query time O(n1.5+o(1) ).
+    Contrast this result with [And19] where a f (ǫ)-approximation for edit distance can be com-
+    puted in time O(n1.5+ǫ ) (f (ǫ) goes to infinity as ǫ decreases).
+
+What if we only preprocess one string? This setting is much harder, but we can still beat
+   state of the art without preprocessing, namely distinguish k vs 3k2 with Õ(n) preprocessing
+   and Õ(n/k + k2 ) query time.
+
+    These strong improvements run contrary to the fine-grained complexity rule of thumb that
+preprocessing inputs does not help [WW18]. We also formalize a few conditional hardness results
+establishing limitations of preprocessing for fast string alignment:
+
+Exact alignment We show that assuming (BP)-SETH, even after arbitrary polynomial-time pre-
+    processing, computing edit distance or LCS exactly requires near-quadratic query time.
+
+Approximate edit-distance We show that if we can α-approximate edit distance in truly-subquadratic
+    query time with arbitrary polynomial preprocessing, then we can also (α + o(1))-approximate
+    it in truly-subquadratic time without preprocessing (currently not known for any α < 3).
+
+We remark that another related hardness result is known for the case where we only preprocess
+one string: Abboud and Vassilevska-Williams show that, assuming a nonuniform variant of SETH,
+even polynomial space (exponential time) preprocessing doesn’t help to break the near-quadratic
+time barrier [AW19].
+
+                                                  2
+Approximate edit-distance without preprocessing Interestingly, using our algorithms with
+    preprocessing (for small and large edit distance regime), we give the fastest algorithm for
+    approximating edit distance within 3+ǫ approximation without preprocessing. Our algorithm
+    runs in Õ(n1.6+o(1) ) time whereas the best running time so far was Õ(n1.69+o(1) ) [And19].
+
+More context on our results
+Below we explain how the parameters in our results compare to existing literature without prepro-
+cessing. We note that another feature of our algorithms is that they are all relatively simple. Even
+our most technically involved contribution, the algorithm for general edit distance, is significantly
+simpler than related literature (e.g. [BR19, KS19, RSSS19]).
+
+Permutation-LCS Our O(k log(n)) query time is most closely related to (and inspired by) the
+classic O(n log(n)) for longest increasing subsequence (LIS) without preprocessing. Note that for
+exact computation, even after arbitrary preprocessing Ω(k) bits of communication are necessary,
+so our running time is tight up to the log(n) factor. Contrasting to [AN10], we get exact result as
+                                                                                 √
+opposed to approximation and significantly better query time bounds for k = O( n).
+
+Small edit distance Our O(k2 log(n))-time algorithm is most closely related to (and inspired
+by) a classic Õ(n + k2 )-time algorithm without preprocessing. Note that our near-n2 SETH-lower-
+bound for general edit distance with preprocessing extends to k2 SETH-lower-bound by a trivial
+padding argument (see also [BK18]). Hence our running time is near-tight assuming (BP)-SETH.
+Contrasting to [GKS19], we again get exact result and better query time bound for all regimes of
+k, even when we allow single string preprocessing.
+
+               Table 1: Taxonomy of Algorithms Approximating Edit Distance
+    Authors      Time          Approximation Factor comments
+    [CDG+ 18]    O(n1.714 )    3+ǫ 1
+    [And19]      Õ(n1.69 )    3+ǫ
+    This paper   Õ(n 1.6+ǫ  ) 3+ǫ
+    [And19]      Õ(n1.5+ǫ )   f1 (δ)
+    This paper   Õ(n 1.5+ǫ  ) 7+ǫ                  using Õ(n2 )-time preprocessing
+    [KS19, BR19] Õ(n1+δ )     f2 (δ)               +n1−f3 (δ) additive error
+
+
+Approximate edit distance This result is most closely related to (and inspired by) recent
+subquadratic time approximation algorithms for edit distance [BEG+ 18, CDG+ 18, And19, BR19,
+KS19]. Here, the state of the art results include a (3+ǫ)-approximation in Õ(n12/7 ) time [CDG+ 18]
+and later improvement to time Õ(n1.69 ) [And19], f (ǫ)-approximation in time O(n1.5+ǫ ) [And19],
+or f ′ (ǫ)-approximation in time O(n1+ǫ ) when the true edit distance is large [BR19, KS19] (here
+f, f ′ are functions that go to infinity as ǫ decreases). While the improvement is not as dramatic
+as for sublinear algorithms, after near-quadratic preprocessing, our algorithm is clearly faster
+than [CDG+ 18, And19] (n1.5 vs n1.69 ), while obtaining much better approximation guarantees
+than [And19, BR19, KS19] (7 + ǫ vs f (ǫ)). Interestingly, this algorithm combines ideas from afore-
+mentioned recent advances on approximate edit distance computation [BEG+ 18, CDG+ 18, Rub18a,
+   1
+     The original paper [CDG+ 18] reported an approximation factor of 1680, but the authors confirmed that the
+approximation factor can be brought down to 3 + ǫ.
+
+
+                                                      3
+BR19], together with our algorithm for small edit distance computation with preprocessing. Even
+more surprisingly, by combining ideas from our algorithms with preprocessing, we design the fastest
+3 + ǫ approximation algorithm for edit distance without any preprocessing.
+
+1.1   Open problems
+We now describe a couple of exciting directions for future work
+
+Preprocess one string: An appealing variant of our preprocessing model is when only one of
+the string is preprocessed. (This is motivated by a scenario where a single reference string is com-
+pared to many strings that are only used once.) For sublinear algorithms, we are able to get some
+improvement over state of the art, but the Ω(n/k) lower bound from communication complexity
+continues to hold here. With subquadratic algorithms on the other hand, our preprocessing algo-
+rithm has a natural variant that could be applied to only one string. But so far we are unable to use
+it to obtain significant improvement over no-preprocessing approximate edit distance algorithms.
+
+Open Question 1. What is the complexity of approximate edit distance after preprocessing one
+of the strings?
+
+Approximate edit distance in sub-linear time A natural question is whether we can combine
+ideas from our exact Õ(k2 )-time algorithm for small edit distance together with the O(n1.5+o(1) )-
+time approximation algorithm for general edit distance to approximate small edit distance in truly
+sub-k2 time. Alternatively, it may be possible to show unconditional lower bounds (e.g. via
+communication complexity) for approximate edit distance in this regime.
+
+Open Question 2. What is the complexity of approximate edit distance with preprocessing when
+k ≪ n?
+
+Beyond string alignment? As discussed before, preprocessing is particularly appealing when it
+runs in near-linear time and the queries run in sub-linear time. In the context of string alignment,
+there is a very natural notion of preprocessing where each string is preprocessed separately. An
+interesting, open-ended direction is to identify other problems in sub-linear algorithms where one
+can define preprocessing models that are both natural and allow for significant improvements.
+
+Open Question 3. Define preprocessing models for other problems in sub-linear algorithms that
+are both natural and allow for significant improvements.
+
+
+2     Small Ulam distance
+In this section, we prove Theorem 1 where with preprocessing we can compute ulam distance
+(bounded by k) exactly in time O(k log(n)).
+
+Theorem 1 (Permutation-LCS). Given two permutations X, Y of {1, . . . , n} with a common string
+of length at least n − k, we can compute their LCS exactly with O(n log(n))-time preprocessing and
+O(k log(n))-time joint processing.
+
+Claim 2 (Structure of close permutations). If two permutations X, Y of {1, . . . , n} share a common
+string of length at least n − k, then they can be partitioned into O(k) contiguous blocks such that
+each block of Y has an identical block in Y .
+
+
+                                                 4
+Proof. The shared common string can be partitioned into at most k + 1 blocks that are contiguous
+for X, and similarly for Y . The coarsest refinement of both partitions is contiguous on both X and
+Y and uses at most 2k + 1 blocks.
+
+Algorithm description
+The preprocessing algorithm (Algorithm 1) constructs log(n) + 1 hash tables. The ℓ-th hash table
+corresponds to window size 2ℓ ; we use a rolling hash function (e.g. Rabin fingerprint) to construct
+a hash table of all contiguous substrings of X of length 2ℓ in time O(n).
+    Algorithm 2 finds the partition into blocks guaranteed in Claim 2. At each iteration of the
+algorithm, it finds the longest contiguous substring of X, starting from XStart that has an identical
+contiguous substring in Y . Using the prestored hashes, this is done in time O(log(n)).
+    Finally, given the partition into blocks, we just have to solve a heaviest increasing substring
+problem on the O(k) blocks (with weights corresponding to block lengths). This can be done in
+time O(k log(k)) using a standard generalization of the classic LIS algorithm (e.g. [JV92]). We
+provide pseudocode in Algorithm 3 for completeness.
+    In the pseudocode below we sometimes abuse notation and think of X,Y as functions from
+indices to characters, and similarly, we use Y−1 to denote the inverse of this function (i.e. given a
+character it returns its index in Y .
+
+ Algorithm 1: Preprocess(X)
+ 1 n ← length(X)
+ 2 for ℓ = 0 . . . log(n) do
+ 3     H[ℓ] ← Rolling hash of X with window of length 2ℓ
+ 4   return H
+
+
+
+
+                                                 5
+ Algorithm 2: Algorithm Compress iteratively finds maximal blocks [XStart...XEnd] in
+ X that have a matching maximal block [YStart...YEnd] in Y. At each iteration it first
+ exponentially increases the variable ℓ until ℓ := ⌊log2 (XEnd − XStart)⌋; it then binary
+ searches for the exact length of the block.
+1    Algorithm: Compress(X, HX , Y, HY )
+2  n ← length(X)
+3  XStart ← 0
+ 4 XBlocks ← ∅
+
+ 5 while XStart < n do
+ 6    YStart ← Y −1 (X(XStart)) ;         // XStart,YStart = respective starts of next block
+ 7    ℓ←1
+ 8    while ℓ < log(n) do
+ 9        if HX [ℓ][XStart] ∈
+                            / HY [ℓ] then
+10            break
+11          ℓ←ℓ+1
+12      XEnd ← XStart + 2ℓ
+13      YEnd ← YStart + 2ℓ
+14      while ℓ > 0 do
+15         ℓ←ℓ−1
+16         if HX [ℓ][XEnd] == HY [ℓ][YEnd] then
+17             XEnd ← XEnd + 2ℓ
+18             YEnd ← YEnd + 2ℓ
+
+19      XBlocks ← XBlocks ∪ (XStart, XEnd − XStart)
+20      XStart ← XEnd + 1
+21   return XBlocks
+
+
+
+ Algorithm 3: Algorithm HIS maintains data structure (balanced binary search tree)
+ Pareto, which stores the total weight and Y-index of the last character of each common
+ substring of X and Y. The data structure is maintained sorted by Y-index, and we only keep
+ common substrings that are pareto-optimal (in the sense that we want common substrings
+ that are heavier but end on lower Y-index).
+1    Algorithm: HIS(XBlocks,Y)
+2  k ← length(XBlocks)
+3  Pareto ← new balanced binary search tree
+ 4 Pareto.insert(0, 0)
+ 5 for i = 1 . . . k do
+
+       /* Add the next block to Pareto:                                                       */
+ 6     newY ← Y −1 (Xblock[i].start)
+ 7     prevY ← Pareto.prev(newY).Y
+ 8     prevWeight ← Pareto.prev(newY).weight
+ 9     newWeight ← prevWeight + Xblock.weight
+10     Pareto.insert(newY,newWeight)
+       /* Remove old blocks that are no longer pareto-optimal:                                */
+11     while newWeight ≥ Pareto.next(newY).weight do
+12         Pareto.next(newY).delete()
+
+13   return Pareto.max().weight
+
+
+
+                                                  6
+3    Small Edit Distance
+In this section, we prove our result on small edit distance, when the edit distance is bounded by k.
+In particular, we prove Theorem 3.
+
+Theorem 3 (Small-EDIT). Given two strings A = a1 a2 ..an and B = b1 b2 ..bn of length n over
+alphabet Σ, and a bound on their edit distance, ED(A, B) ≤ k, we can compute their edit distance
+exactly with O(n log (n))-time preprocessing and O(k 2 log (n))-time joint processing.
+
+    We first recall an algorithm developed in [Ukk85, LMS98, LV88, Mye86] that computes edit
+distance in O(n + k2 ) time.
+
+Warm-up: An O(n + k2 ) algorithm for Edit Distance.
+The well-known dynamic programming algorithm computes an (n+1)×(n+1) edit-distance matrix
+D[0...n][0...n] where entry D[i, j] is the edit distance, ED(Ai , B j ) between the prefixes A[1, i] and
+B[1, j] of A and B, where A[1, i] = a1 a2 ...ai and B[1, j] = b1 b2 ...bj . The following is well-known
+and easy to verify coupled with the boundary condition D[i, 0] = D[0, i] = i for all i ∈ [0, n].
+   For all i, j ∈ [0, n]
+                                     
+                                      D[i − 1, j] + 1                  if i > 0;
+                       D[i, j] = min    D[i, j − 1] + 1                 if j > 0;
+                                     
+                                        D[i − 1, j − 1] + 1(ai 6= bj ) if i, j > 0.
+
+    The computation cost for this dynamic programming is O(n2 ). To obtain a significant cost
+saving when ED(A, B) ≤ k << n, the O(n + k 2 ) algorithm works as follows. It computes the
+entries of D in a greedy order, computing first the entries with value 0, 1, 2, ...k respectively. Let
+diagonal d of matrix D, denotes all D[i, j] such that j = i + d. Therefore, the entries with values
+in [0, k] are located within diagonals [−k, k]. Now since the entries in each diagonal of D are
+non-decreasing, it is enough to identify for every d ∈ [−k, k], and for all h ∈ [0, k], the last entry
+of diagonal d with value h. The rest of the entries can be inferred automatically. Hence, we are
+overall interested in identifying at most (2k + 1) ∗ k such points. The O(n + k2 ) algorithm shows
+how building a suffix tree over a combined string A$B (where $ is a special symbol not in Σ) helps
+identify each of these points in O(1) time, thus achieving the desired time complexity.
+    Let Lh (d) = max{i : D[i, i + d] = h}. The h-wave is defined by Lh = hLh (−k), ..., Lh (k)i.
+Therefore, the algorithm computes Lh for h = 0, ..k in the increasing order of h until a wave e is
+computed such that Le (0) = n (in that case ED(A, B) = e), or the wave Lk is computed in the
+case the algorithm is thresholded by k. Given Lh−1 , we can compute Lh as follows.
+    Define
+                              Equal(i, d) = max (q | A[i, q] = B[i + d, q])
+                                             q≥i
+
+Then, L0 (0) = Equal(0, 0) and
+                           
+                            Equal(Lh−1 (d) + 1, d)      if h − 1 ≥ 0;
+               h
+              L (d) = max     Equal(Lh−1 (d − 1), d)     if d − 1 ≥ −k, h − 1 ≥ 0;
+                           
+                              Equal(Lh−1 (d + 1) + 1, d) if d + 1, h + 1 ≤ k.
+
+   Using a suffix tree of the combined string A$B, any Equal(i, d) query can be answered in O(1)
+time. Next, we show that it is possible to preprocess each A and B separately so that even then
+each Equal(i, d) query can be implemented in O(log n) time.
+
+                                                   7
+Preprocessing Algorithm
+The preprocessing algorithm (Algorithm 1) constructs log(n) + 1 hash tables just like in Section 2.
+The ℓ-th hash table corresponds to window size 2ℓ ; we use a rolling hash function (e.g. Rabin
+fingerprint) to construct a hash table of all contiguous substrings of X of length 2ℓ in time O(n).
+Since there are log n + 1 levels, the overall preprocessing time is O(n log n). Let HA [ℓ] store all the
+hashes for windows of length 2ℓ of A and similarly HB [ℓ] stores all the hashes for windows of length
+2ℓ of B.
+
+Answering Equal(i, d) in O(log n) time
+Equal(i, d) queries can be implemented by doing a simple binary search over the presorted hashes
+in O(log n) time. The pseudocode is given below. Suppose Equal(i, d) = q. The first While loop
+(line 5-8) identifies the smallest ℓ ≥ 0 such that q < 2ℓ . The next While loop does a binary search
+for q between i + 2ℓ−1 to i + 2ℓ .
+
+    Algorithm 4: Equal(i, d, A, HA , B, HB )
+ 1 n ← length(A)
+ 2 AStart ← i, BStart ← i + d
+ 3 ℓ ← 0
+
+ 4 while ℓ < log(n) do
+ 5    if HA [ℓ][AStart] 6= HB [ℓ][BStart] then
+ 6        break
+ 7       ℓ←ℓ+1
+ 8 AStart ← i + 2ℓ−1 , BStart ← i + d + 2ℓ−1
+                ℓ                        ℓ
+ 9 AEnd ← i + 2 − 1, BEnd ← i + d + 2 − 1
+          (AEnd−AStart+1)
+10 Mid ←
+                  2
+11 while M id ≥ 1 do
+12    if HA [Mid][AStart] == HB [Mid][BStart] then
+13        AStart ← AStart + M id, BStart ← BStart + M id
+14       else
+15           AEnd ← AEnd − M id − 1, BEnd ← BEnd − M id − 1
+16       Mid ← (AEnd−AStart+1)
+                     2
+17   return AEnd
+
+
+    Implementing Equal(i, d) query in O(log n) time together with the correctness proof of O(n+k2 )
+algorithm leads to Theorem 3.
+
+
+4      Preprocessing a Single String: Answering Gap Edit Distance in
+       Sublinear Time
+In this section, we design an algorithm that given two strings A and B, preprocess only one string,
+say B. During the query phase, the string A is provided, and a query algorithm must answer
+whether ED(A, B) ≤ k or ED(A, B) ≥ 2k2 . We give an algorithm for this quadratic gap-edit
+distance problem that runs in Õ( nk + k2 ) time. Therefore, the algorithm achieves a sublinear query
+time whenever k ≤ n1/2 and k ≥polylog n. Note that this problem was recently studied in [GKS19]
+without any preprocessing. They achieve a running time bound of Õ( nk + k3 ).
+
+
+                                                   8
+4.1    Preprocessing Algorithm
+                                                                                                     2
+Given Y ∈ Σn , we sample each index in [1, n] uniformly at random with probability logk n . Let
+S = {i1 , i2 , ..., is } denote the sampled indices. Create the following substrings
+
+                       B d = bi1 +d bi2 +d ...bis +d , ∀d = −k, −k + 1, .., 0, ...., k − 1, k.
+
+   By a standard application of the Chernoff bound, we can assume with probability at least 1− n13 ,
+                                                 2
+the number of sampled indices s = Θ( n log  k
+                                               n
+                                                 ).
+    The preprocessing algorithm constructs log(s) + 1 hash tables just like in Section 3, but for
+each B d , d ∈ [−k, k]. The ℓ-th hash table corresponds to window size 2ℓ of B d . Since there are
+log s + 1 levels, the overall preprocessing time is O(k ∗ nk log2 n log s)=Õ(n) with probability 1 − n13 .
+Let HB d [ℓ] store all the hashes for windows of length 2ℓ of B d for d = [−k, k].
+
+
+
+4.2    Query Algorithm
+Given A ∈ Σn . We create a sampled substring AS = ai1 ai2 ....ais . We construct log(s) + 1 hash
+tables for AS . Again, the ℓ-th hash table corresponds to window size 2ℓ of AS . Since there are
+log s + 1 levels, the overall time to compute the hashes of AS is O( nk log2 n log s) = Õ( nk ) with
+probability 1 − n13 . Let HA [ℓ] store all the hashes for windows of length 2ℓ of AS
+    We now define an approximate Equal(i, d), Approx-Equal(i, d) query as follows. Let n(i) ≥ i
+be the nearest index to i present in S. Define
+
+                    Approx-Equal(i, d) = max (q | q ∈ S, XS [n(i), q] = Y d [n(i), q])
+                                                q≥i
+
+   We now run the same algorithm from Section 3 except that we replace Equal(i, d) with
+Approx-Equal(i, d). Let us use L̂h to denote the h-wave computed by using Approx-Equal(i, d) for
+h ∈ [0, k] and d ∈ [−k, k]. If the algorithm computes L̂h (0) ≥ n for h ≤ k, the algorithm returns
+YES. Else, it returns NO.
+   Clearly, the running time of the algorithm is Õ( nk + k2 ). We now show that the algorithm solves
+the quadratic gap problem.
+
+Analysis When comparing a symbol xi with yj , if they do not match, we call it a ’mismatch’.
+The following is an easy lemma which shows we cannot miss too many mismatches due to sampling.
+
+Lemma 4. Given i ∈ [1, n] and d ∈ [−k, k], let i′ ≥ i be the smallest index such that xi xi+1 ..., xi′
+and yi+d yi+1+d ...yi′ +d have at least k′ = logk n mismatches. Let i ≤ j1 , j2 , ..., jk′ = i′ be the indices
+such that xjh 6= yjh + d. Define a bad event B(i, d) to be the event that none of these k ′ mismatch
+indices are sampled. Then P rob(Bad(i, d)) ≤ 1 − n13 . Moreover, all bad events are avoided with
+probability at least 1 − n1 .
+                                                       2
+Proof. Since the sampling probability is Θ( logk n ), the expected number of points sampled from
+j1 , j2 , .., jk′ is Θ(log n). Now, by the Chernoff bound, the probability that none of them are sampled
+can be made to be 1 − n13 (by choosing the constants in the sampling probability appropriately).
+      Then by a union bound over all i ∈ [1, n] and d ∈ [−k, k], with probability ≥ 1 − n1 none of the
+bad events Bad(i, d) happen.
+
+    Therefore, we can assume all bad events are avoided. The above lemma leads to the following
+direct corollary.
+
+
+                                                           9
+                                                                             d [ℓ][i] then a a
+Corollary 5. For all i ∈ S, ℓ ∈ [0, log s+1] and d ∈ [−k, k] if HA [ℓ][i] = HB              i i+1 ..., ai+2ℓ
+                                            k
+and bi+d bi+1+d ...bi+d+2ℓ have less than log n mismatches.
+Proof. Take any i and d. Since Bad(i, d) did not happen, if ai ai+1 ..., ai+2ℓ and bi+d bi+1+d ...bi+d+2ℓ
+had at least logk n mismatches, we would have HA [ℓ][i] 6= HB
+                                                            d [ℓ][i]
+
+
+    Using the above corollary, we can now show that Approx-Equal(i, d) is a good approximation
+of Equal(i, d).
+Lemma 6. If Approx-Equal(i, d) = q then ai ai+1 ....aq and bi+d bi+d+1 ...bq+d have strictly less than
+2k mismatches.
+                                               2
+Proof. Since the sampling probability is logk n , (n(i) − i) ≤ logk n with high probability (we assume
+k ≥ polylog n).
+   Now A[n(i), q] can be decomposed into at most log s + 1 ≤ log n + 1 intervals each of length
+that is a power of two. Moreover for each of these intervals the computed hashes HA and HB      d must
+                                                                                   k
+match. Therefore, each of these at most log n + 1 intervals can have at most log n mismatches from
+Corollary 5. Thus the total number of mismatches is strictly less than (n(i) − i) + (log n + 1) logk n =
+      2k
+k + log n ≤ 2k.
+
+   In order to complete our analysis, we now compare the h-waves computed by the exact algorithm
+from Section 3 and approximate h-waves computed by using Approx-Equal(i, d).
+Lemma 7 (Completeness). ∀h ∈ [0, k] and d ∈ [−k, k], L̂h (d) ≥ Lh (d). Therefore, if ED(A, B) ≤
+k, then the algorithm will return YES.
+Proof. The proof follows simply by induction since Approx-Equal(i, d) ≥ Equal(i, d).
+
+Lemma 8 (Soundness). ∀h ∈ [0, k] and d ∈ [−k, k], L̂h (d) ≤ L2k(h+1) (d). Therefore, if ED(A, B) >
+2k2 + 2k, then the algorithm will return NO.
+Proof. The proof is again by induction. Observe that L̂0 (0) = Approx-Equal(0, 0). From Lemma 6,
+B[0, L̂0 (0)] and B[0, L̂0 (0)] can have at most 2k mismatches. Therefore, L2k (0) ≥ L̂0 (0). Suppose
+the result is true for 0, 1, .., h − 1 for all diagonals ∈ [−k, k] and upto diagonal d − 1 for h. Let us
+consider L̂h (d). Recall the definition of L̂h (d).
+                           
+                            Approx-Equal(L̂h−1 (d) + 1, d)          if h − 1 ≥ 0;
+              h                                   h−1
+            L̂ (d) = max      Approx-Equal(L̂ (d − 1), d)            if d − 1 ≥ −k, h − 1 ≥ 0;
+                                                 h−1
+                              Approx-Equal(L̂ (d + 1) + 1, d) if d + 1, h + 1 ≤ k.
+
+Let us consider the first expression, Approx-Equal(L̂h−1 (d) + 1, d). By the induction hypothe-
+sis, L̂h−1 (d) ≤ L2kh (d). There must be a mismatch at row L̂h−1 (d) + 1. The number of mis-
+matches in Approx-Equal(L̂h−1 (d) + 1, d) is at most 2k − 1 mismatches. Therefore, L2k(h+1) (d) ≥
+Approx-Equal(L̂h−1 (d) + 1, d). Similarly, for the other two expressions.
+                                                  2                             2
+    Therefore, if ED(A, B) > 2k2 + 2k, then L2k +2k (0) < n. Then L̂k (0) ≤ L2k +2k (0) < n, the
+algorithm aborts and declares NO.
+
+   Hence, we get the following theorem.
+Theorem 9 (Small-EDIT-Single-Preprocessing). Given two strings A = a1 a2 ..an and, B =
+b1 b2 ...bn of length n over alphabet Σ, we can answer if ED(A, B) ≤ k or ED(X, Y ) > 3k2 with
+probability at least 1 − n1 by preprocessing only a single string in Õ(n)-time and with a query time
+of Õ( nk + k2 ).
+
+                                                    10
+5     Large edit distance, 7 + ǫ-approx
+In this section we prove our result for the large edit distance regime. Our main result is a 7 + o(1)
+                                   3
+approximation for ED(A, B) in n 2 +o(1) query time. We are allowed to preprocess each A and B
+separately and spend ∼ n2 time in overall preprocessing.
+Remark (Estimating the distance vs computing an alignment). For simplicity of presentation, we
+write our algorithms as merely estimating the distance. It is straightforward with standard tech-
+niques to modify them to output the alignment as well in roughly the same running time.
+
+Organization of this section In Subsection 5.1 we give a bird’s eye overview of the main
+technical elements of our algorithm. Subsection 5.2 formally describes the decomposition of the
+strings into windows, Subsection 5.3 is a standard dynamic programming for computing an optimal
+window-compatible matching from pairwise distances. Our main contribution is in Subsection 5.4
+which describes the algorithm for learning the close-window graph.
+
+5.1   High Level Description of the Algorithm
+The basic divide-and-conquer framework for approximate edit distance
+The algorithm builds upon the recent progress on approximating edit distance in subquadratic time
+using divide-and-conquer algorithms [BEG+ 18, CDG+ 18, And19, BR19, KS19, RSSS19], along
+with our small-edit-distance algorithm from Section 3. We decompose the strings A and B into
+contiguous substrings called windows. These windows can be overlapping and have variable lengths.
+Up to an (1 + o(1))-factor approximation, we can now wlog restrict our attention to matchings of
+A to B that are “window-compatible”, i.e. they respect the partition to windows (see Lemma 10).
+    If we (approximately) knew all the pairwise distances between windows, a standard DP would
+find an (approximately) optimal window-compatible matching efficiently (Lemma 12). Computing
+the pairwise distances is further reduced to (approximately) learning the bipartite close-window
+graph, where a pair of A- and B-windows are neighbors if their pairwise edit distance is below an
+appropriate threshold τ .
+    The goal is now to approximately learn the close-window graph while computing as few window-
+window distances as possible. With this in mind, we classify the windows as either dense (high-
+degree in the close window graph), or sparse. We use by-now-standard separate subroutines to
+handle each kind of windows.
+
+Further details of our algorithm
+The density of a window can be estimated by computing its edit distance to a small sample of its
+potential neighbors. To obtain optimal tradeoff between parameters, we cannot afford even this
+small sample to classify windows as dense or sparse. Here we deviate from previous works and
+estimate the density on-the-fly. That is each window is assumed to be sparse by default, and only
+when it is selected as a special “seed” for the sparse subroutine, we estimate its degree and move
+it to the dense subroutine if necessary. (In fact, an originally dense window can lose many of its
+neighbors and become sparse by the time it is selected; this does not hurt our analysis.)
+    The main sparse subroutine proceeds by recursively narrowing down the set of relevant candi-
+date neighbors. Even though sparse windows take part in multiple levels of recursion, the loss in
+approximation from each level of the sparse subroutine is negligible, so it continues to be negligible
+in aggregate. The dense subroutine incurs the main loss in approximation due to the use of triangle
+
+
+                                                 11
+inequality. Fortunately, each dense window can only contributes to one level of the entire recursion
+and thus the overall approximation factor remains bounded.
+    When we compute the edit distance between pairs of windows, we do it exactly using our algo-
+rithm from Section 3. This algorithm is very efficient when the windows are close, but its running
+time may be as slow as quadratic in the window size when the distance is large. We remark
+that three recent approximate edit distance algorithms [And19, BR19, KS19] also use the basic
+divide-and-conquer framework, yet manage to obtain comparable or faster running times without
+preprocessing. Those algorithms compute window-window distances by recursively applying an ap-
+proximate edit distance algorithm; while this improves efficiency, the approximation factor explodes
+exponentially in the depth of the recursion.
+
+5.2   Decomposition into Variable Sized Windows
+Parameters Settings. We divide the strings A, B into windows, equivalently contiguous sub-
+strings. We use d and t to denote the window width and the number of windows of A respectively.
+Fix d = n1/4 and t = nd = n3/4 throughout the presentation.
+     Let ǫ > 0 be an arbitrarily small constant (or slightly sub-constant), such that we would like
+to obtain a (7 + O(ǫ))-approximation in O(n3/2+O(ǫ) )-time. The windows in B will vary in width.
+Moreover, they can be overlapping where the amount of overlap will be controlled by a parameter
+τ which is the relative ED threshold between a pair of windows. We will vary τ geometrically, and
+for each value of τ , we will compute a set of windows B τ . Let tτ denote the number of windows of
+B τ . We will have tτ = O( ǫτnd ).
+
+Choice of Windows. The choice of windows play a crucial role in our overall algorithm design.
+For the string A, partition A into disjoint windows of width d denoted by A.
+
+                           A = {A[1, d], A[d + 1, 2d], . . . , A[n − d + 1, n]}
+                                                                                  2
+    We now compute the windows of B. Let us take τ = {0, d1 , (1+ǫ)
+                                                                 d ,
+                                                                     (1+ǫ)
+                                                                       d , ..., 1}. For each value
+                                    τ                          τ
+of τ , we compute a set of windows B . Finally, we set B = ∪τ B to denote all computed windows
+of B.
+    For τ = 0, take hτ = d, and lτ = d. For τ = d1 , take hτ = d + 1, lτ = d − 1. In general, for
+         j
+τ = (1+ǫ)
+      d , j ≥ 1, take hτ = ⌊d + (1 + ǫ)
+                                       j−1 ⌋ and l = ⌊d − (1 + ǫ)j−1 ⌋.
+                                                  τ
+   Set γτ = max (1, ⌊ǫτ d⌋). Define
+
+                   Hτ := {B[1, hτ ), B[γτ + 1, γτ + hτ ), B[2γτ + 1, 2γτ + hτ ], ....}
+
+
+                    Lτ := {B[1, lτ ), B[γτ + 1, γτ + lτ ), B[2γτ + 1, 2γτ + lτ ], ...}
+    Finally, Bτ = Hτ ∪ Lτ , that is Bτ consists of intervals of length hτ and lτ starting at every γτ
+grid points.
+    For window a ∈ A (similarly for windows in B), let s(a) denote the starting index of a (e.g.,
+s(A[1, d]) = 1) and let e(a) denote index the the last index of a (e(A[1, d]) = d). This completes
+the description of the windows.
+    Note that overall we create t = nd windows of A and tτ = O( γnτ ).
+
+
+
+
+                                                   12
+Mapping between windows. We say that a mapping µ : A → B ∪ {⊥} between windows
+is monotone if for all a, a′ ∈ A such that µ(a), µ(a′ ) 6=⊥ and s(a) ≤ s(a′ ) we also have that
+s(µ(a)) ≤ s(µ(a′ )) and e(µ(a)) ≤ e(µ(a′ )). Setting µ(a) =⊥ represents deleting a from the string.
+As such, we define ED(a, ⊥) = d for all windows a.
+    By abuse of notation, we let µ ⊂ A denote the set of A-windows such that µ(a) 6=⊥. For a ∈ µ,
+let a.next denote the window a′ ∈ µ immediately after a (note that next depends on the mapping
+µ). If a is the last window in µ, we define a.next :=⊥. We define a.prev in the analogous way.
+    For a monotone mapping µ we define its edit distance as:
+
+
+                               X                     n
+                                                     X
+                     ED(µ) =         ED(a, µ(a)) +         #{a s.t. i ∈ µ(a)} − 1
+                               a∈A                   i=1
+
+The first term is just sum of the edit distances between matched windows. To understand the
+second term, notice that for each i we expect it to appear in the image µ(a) of exactly 1 window.
+The second term sums the difference between the number of appearances of i and 1; it is a penalty
+for either overlap of windows (requiring deletions) or excessive spacing (requiring insertions).
+    The next lemma asserts that the cost of a minimal monotone mappings provides a good ap-
+proximation for the actual edit distance between the input strings A, B.
+
+Lemma 10. Let A, B ∈ Σn , then the following holds:
+
+  1. For every monotone mapping µ : A → B ∪ {⊥} we have: ED(µ) ≥ ED(A, B).
+
+  2. There exists a monotone mapping µ : A → B ∪ {⊥} satisfying: ED(µ) ≤ (1 + 8ǫ) ED(A, B).
+
+Proof. (Part 1.) Using µ we construct an explicit mapping from A to B. For each window, a ∈ A,
+transform the characters of a in A into µ(a). If µ(a) =⊥, then delete all the characters of a.
+Finally, if a is not the last window, µ(a) 6=⊥ and e(µ(a)) − s(µ(a.next)) > 0 then delete that many
+characters from the end of µ(a).
+   Let µ(A) be the currently transformed string. Then, by construction
+                               X                       X
+              ED(A, µ(A)) ≤       ED(a, µ(a)) +                 [#{a s.t. i ∈ µ(a)} − 1]
+                            a∈A                i:#{a s.t. i∈µ(a)}≥1
+
+Here the second term counts for all indices of B that are counted more than once in µ.
+   Furthermore, since we deleted any overlaps between µ(a)s, we have µ(A) as a subsequence of
+B. Thus,                                           X
+              ED(µ(A), B) = |B − µ(A)| =                     [1 − #{a s.t. i ∈ µ(a)}]
+                                             i:#{a s.t. i∈µ(a)}=0
+
+Here we account for all indices of B that are not counted in µ.
+   Putting the above two inequalities together and using the triangle inequality, we get
+
+                        ED(A, B) ≤ ED(A, µ(A)) + ED(µ(A), B) = ED(µ)
+
+   (Part 2.) Consider the optimal sequence of edits from A to B. This can be viewed as ℓ
+substitutions of characters of A, k deletions of characters, and then k insertions, where 2k + ℓ =
+ED(A, B). Let A′ be the subsequence of characters of A which are either untouched or substituted
+to match a character in B. Let B ′ be the corresponding subsequence of B. Let µ′ : A′ → B ′ be the
+monotone correspondence between the characters of these solution.
+
+                                                 13
+    We now construct a mapping µ̂ : A → B ∪ {⊥} that will have low cost. µ̂ may not be monotone.
+Finally, we will convert µ̂ into a monotone mapping µ by negligibly increasing the cost, thus overall
+getting a good mapping. For each a ∈ A, if a ∩ A′ = ∅, then set µ̂(a) =⊥. For each window a ∈ A
+which nontrivially intersects A′ , let ia be the first index of µ′ (a ∩ A′ ). Similarly, let ja be the last
+index of µ′ (a ∩ A′ ). Note that ia.next > j.a for all a with µ̂(a) 6=⊥ .
+    Let ka denote the number of indices of a that are deleted and ℓa denote the number of indices
+of a that are substituted. Let ma denote the number of indices in B between ia and ja that are
+not mapped from any indices of A in a ∩ A′ by µ̂. Then, it must hold that if (ja − ia + 1) ≥ d then
+ma ≥ [(ja − ia + 1) − d] + ka . If (ja − ia + 1) < d then ka ≥ [d − (ja − ia + 1)] + ma .
+                                        j−1                                 j
+    When (ja − ia + 1) ≥ d, if (1+ǫ)  d     ≤ [(ja − ia + 1) − d] < (1+ǫ)d    (note that such a j always
+                                                                                     j−1
+exists). Set µ̂(a) to be the right-most interval in Hτ , τ = (1+ǫ) d    , that contains µ′ (A[i]). In that
+                                                     j−1
+case, the length of the interval µ̂(a) is d + (1 + ǫ) .
+                                                           j−1                               j
+    On the other hand, if (ja − ia + 1) < d and (1+ǫ)   d      ≤ [d − (ja − ia + 1)] < (1+ǫ)
+                                                                                           d   (note that
+such a j always exists). Set µ̂(a) to be the right-most interval in Lτ that contains µ′ (A[i]). In that
+case, the length of the interval µ̂(a) is d − (1 + ǫ)j−1 .
+    Note that (ia − s(µ̂(a))) ≤ ǫτ d. We get
+
+
+      ED(a, µ̂(a)) ≤ ma + ka + la +                  ǫ(1 + ǫ)j−1                +             2(s(µ(a)) − ia )
+                     |   {z     }                    | {z }                                   |     {z      }
+                         True edits         Due to error in length estimation        Shift due to the choice of grid points
+
+                    ≤ (1 + 3ǫ)τ d.
+
+    Now note that, for all a ∈ A, ja < ia.next . Let ra = (ia − s(µ(a))). Thus, we have |e(µ̂(a)) −
+s(µ̂(a.next))| ≤ |ra − ra.next | + M (ja , ia.next ) where M (ja , ia.next ) are the number of symbols of B in
+between ja and ia.next . Note that, in ED(A, B), all these symbols, M (ja , ia.next ), are deleted from
+B or equivalently inserted in A. If ra ≥ ra.next then we charge |ra − ra.next | to a. Else, we charge it
+to a.next. Note that when |ra − ra.next | is charged to a then |ra − ra.next | ≤ ra ≤ ǫ(ma + ka + la ).
+    Hence we obtain
+                                      X                       n
+                                                              X
+                        ED(µ̂) =            ED(a, µ̂(a)) +          #{a s.t. i ∈ µ̂(a)} − 1
+                                      a∈A                     i=1
+                                                                    X
+                                ≤ (1 + 3ǫ) ED(A, B) +                          4ra
+                                                                  a,µ̂(a)6=⊥
+
+                                ≤ (1 + 7ǫ) ED(A, B)
+
+    It is possible that µ̂ may not be monotone. In particular, this can happen if ra.next > ra so
+that s(µ̂(a.next)) comes before s(µ̂(a)). In this situation, we simple set µ(a) =⊥ by paying at
+most ra.next . In more details, we start with µ = µ̂. We iterate over a ∈ cA in increasing order
+of s(a), whenever we encounter a window a such that s(µ̂(a)) < s(µ̂(a.prev)), we find all a′ with
+s(a′ ) < s(a) but s(µ̂(a)) < s(µ̂(a′ )), we set µ(a′ ) =⊥ by paying an extra edit cost of ra .
+    Thus                                         X
+                          ED(µ) ≤ ED(µ̂) +              ra ≤ (1 + 8ǫ) ED(A, B).
+                                                     a,µ̂(a)6=⊥
+
+   This completes the proof.
+
+
+
+
+                                                           14
+Low-Skew Mapping.            A monotone mapping µ : A → B is said to have skew at most D if for all
+a, a′ ∈ A we have:
+                        1
+                          |s(a) − s(a′ )| ≤ |s(µ(a)) − s(µ(a′ ))| ≤ D|s(a) − s(a′ )|
+                        D
+We next show that any monotone mapping µ can be transformed into a low-skew mapping with
+D = 1ǫ with negligible loss. Along with Lemma 10, this ensures there exists a near-optimal low-skew
+mapping, which we will exploit in our algorithm design.
+
+Lemma 11. For every monotone mapping µ : A → B ∪ {⊥}, and for every ǫ > 0, there exists a
+monotone mapping µ′ : A → B ∪ {⊥} such that: ED(µ′ ) ≤ (1 + 2ǫ) ED(µ) and µ′ has a skew that
+is at most 1/ǫ.
+
+Proof. Consider D = 1ǫ . Let S ⊂ A × A be the set of all pairs (a1 , a2 ) which have more than
+1
+ǫ skew, and let s(a1 ) ≤ s(a2 ). We put a partial ordering on S such that (a1 , a2 ) 4 (a3 , a4 ) if
+s(a3 ) ≤ s(a1 ) ≤ s(a2 ) ≤ s(a4 ). Let S ′ ⊆ S be the set of pairs that are maximal with respect to this
+relation.
+    We also say (a1 , a2 ) is disjoint from (a3 , a4 ) if either s(a2 ) ≤ s(a3 ) or s(a4 ) ≤ s(a1 ). We now
+build a set of pair-wise disjoint elements from S by repeatedly picking a maximal element and
+discarding all elements in S that intersects it. Let us call this set T . Label the elements of T
+by (a1 , a2 ), (a3 , a4 ), ...., (a2k−1 , a2k ) such that s(a1 ) ≤ s(a2 ) ≤ · · · ≤ s(a2k−1 ) ≤ s(a2k ). For all
+windows a such that s(a2i−1 ) ≤ a < s(a2i ), set µ′ (a) =⊥. Otherwise, keep µ′ (a) = µ(a). Note that
+µ′ has skew at most 1ǫ since for each (a, a′ ) ∈ S, either µ′ (a) =⊥ or µ′ (a′ ) =⊥. We now show that
+ED(µ′ ) ≤ (1 + ǫ) ED(µ). Pick (a1 , a2 ) ∈ T . If |s(µ(a1 )) − s(µ(a2 ))| ≥ 1ǫ |s(a1 ) − s(a2 )|, then
+
+         ED(A[s(a1 ), s(a2 )), B[µ(s(a1 )), µ(s(a2 ))) ≥ |s(µ(a1 )) − s(µ(a2 ))| − |s(a1 ) − s(a2 )|
+                                                                           1
+                                                       ≥ |s(a1 ) − s(a2 )|( − 1)
+                                                                           ǫ
+On the other hand, by setting for every a ∈ A with s(a1 ) ≤ s(a) < s(a2 ), µ′ (a) =⊥, we pay an edit
+cost of at most
+                                                                        ǫ
+ED(A[s(a1 ), s(a2 )), B[µ(s(a1 )), µ(s(a2 )))+|s(a1 )−s(a2 )| ≤ (1+        ) ED(A[s(a1 ), s(a2 )), B[µ(s(a1 )), µ(s(a2 ))).
+                                                                       1−ǫ
+Note that the edit cost of µ restricted to the substring A[s(a1 ), s(a2 )) is only higher than
+ED(A[s(a1 ), s(a2 )), B[µ(s(a1 )), µ(s(a2 ))) due to possible double-counting indices which are part
+of consecutive windows within the interval [s(a1 ), s(a2 )) that overlap under µ.
+    If |s(µ(a1 )) − s(µ(a2 ))| ≥ ǫ|s(a1 ) − s(a2 )|, then again, we have
+
+         ED(A[s(a1 ), s(a2 )), B[µ(s(a1 )), µ(s(a2 ))) ≥ |s(a1 ) − s(a2 )| − |s(µ(a1 )) − s(µ(a2 ))|
+                                                        ≥ (1 − ǫ)|s(a1 ) − s(a2 )|.
+
+On the other hand, by setting for every a ∈ A with s(a1 ) ≤ s(a) < s(a2 ), µ′ (a) =⊥, we pay an edit
+cost of at most
+
+                   ED(A[s(a1 ), s(a2 )), B[µ(s(a1 )), µ(s(a2 ))) + |s(µ(a1 )) − s(µ(a2 ))|
+                    ≤ ED(A[s(a1 ), s(a2 )), B[µ(s(a1 )), µ(s(a2 ))) + ǫ|s(a1 ) − s(a2 )|
+                            ǫ
+                    ≤ (1 +     ) ED(A[s(a1 ), s(a2 )), B[µ(s(a1 )), µ(s(a2 ))).
+                           1−ǫ
+
+
+                                                      15
+   Now, going over all disjoint (a2i−1 , a2i ) ∈ T , we get for ǫ ≤ 12
+                                               ǫ
+                          ED(µ′ ) ≤ (1 +            ) ED(µ) ≤ (1 + 2ǫ) ED(µ).
+                                            (1 − ǫ)
+
+This completes the proof.
+
+   Low-skew mapping will play an impartial role in our algorithm design and analysis.
+
+5.3   Reduction to estimating window costs.
+Let E : A × B → {0, . . . , d} be an estimate of the edit distance such that E(a, b) ≥ ED(a, b) for all
+a ∈ A, b ∈ B. Given a monotone mapping µ : A → B ∪ {⊥}, we define its cost with respect to E as
+follows:
+
+                                   X                    n
+                                                        X
+                       EDE (µ) =         E(a, µ(a)) +         #{a s.t. i ∈ µ(a)} − 1
+                                   a∈A                  i=1
+
+    We define ED(E) as the minimal cost EDE (µ) over all monotone mappings.
+    Now, given such an estimation the next lemma (combining ideas from [Ukk85] and [BEG+ 18])
+asserts that one can efficiently compute ED(E).
+    Instead of computing ED(E) directly, we pick a threshold ∆, and verify whether ED(E) ≤ ∆.
+Indeed, if we can answer whether ED(E) ≤ ∆, or ED(E) > (7+o(1))∆ efficiently, then by increasing
+the threshold by an (1 + ǫ) factor each time, we will be able to compute ED(E) within a (7 + o(1))
+approximation in log1+ǫ n iterations.
+
+Lemma 12 (Reduction to estimating window costs). Given an estimate E, one can compute ED(E)
+           2
+in O( 1ǫ nd2 log n)-time.
+                                                                                 γ
+Proof. Pick a threshold ∆. Set γ = ∆d                             τ
+                                        n . If γτ ≤ γ, then from B pick every ⌊ γτ ⌋ windows so that
+                                               τ
+gap between two consecutive windows in B is ≥ γ − 1 for all τ . Therefore, the total number of
+windows that we consider in B is O( nγ ).
+    For window w, we let e(w) denote the index of the last character of w; for a set W, e(W)
+denotes the set of last indices. For i ∈ e(W), we let i.prev := max{i′ ∈ e(W) ∪ {0} ∧ i′ < i} denote
+the index of the previous finish in W (or 0 if such an index does not exist).
+    We abuse notation and let ED(i, j) denote the minimum cost of alignment ending at i, j using
+estimates E. Following [Ukk85] we use dynamic programming to fill a table of ED(i, j) for every
+pair i, j ∈ e(A) × e(B) such that |i − j| ≤ 10∆. Notice that the number of such pairs is bounded
+by:
+                                                                2
+                                     10∆          n n ∆            n
+                              |A||B|       =O      · ·       =O        .                         (1)
+                                      n           d γ n            d2
+
+    For boundary conditions, we define ED(i, j) = ∞ whenever |i − j| > 10∆, and ED(i, 0) =
+ED(0, i) = i.
+    Consider a pair i, j such that e(a) = i (notice that there may be Oǫ (1) B-windows ending at
+j). The cost ED(i, j) of alignment ending at i, j is given by taking the minimum of:
+
+   • Cost of deleting the last A-window: i − i.prev + ED(i.prev, j);
+
+   • Cost of deleting the last several B-characters: j − j.prev + ED(i.prev, j); and
+
+
+                                                    16
+                                                     n                                o
+    • Cost of using a last pair of windows: mine(b)=j E(a, b) + ED(s(a) − 1, s(b) − 1) .
+                                                                                                              2
+  Notice that the runtime of our algorithm is dominated by the number of pairs 1, aka it is O( nd2 ).
+Now, considering all choices of ∆, we get the required running time.
+
+
+5.4    Close-window graphs and the preprocessing phase
+For subset of windows C we define the graph GC,τ as follows: The vertex set equals C. The pair
+(c, c′ ) is connected by an edge if ED(c, c′ ) ≤ τ d. For a substring z ∈ Σd , we denote by N C,τ (z) the
+set of all windows c ∈ C satisfying ED(c, z) ≤ τ d. The windows in N C,τ (z) will also be referred to
+as the τ -neighbors of c in C, and |N C,τ (z)| as its degree in C. When it is clear from the context,
+we will often omit τ , and simply use the terms such as neighbors and degree of c. We will abuse
+notation and also use this definition for z ∈  / C.
+
+Preprocessing Phase algorithm. The preprocessing algorithm crucially uses the algorithm
+for computing small edit distance with preprocessing from Section 3. In the preprocessing phase,
+                                                           i
+strings A and B are processed separately. Let τ ∈ {0, (1+ǫ)
+                                                        d } for i = [0.. log (1+ǫ) d].
+
+
+Preprocessing A. For each τ , the preprocessing algorithm computes the graph GA,τ . The
+                                                                                2
+number of windows of A is nd . Hence, the preprocessing time over all τ is O( nd2 d2 ) = O(n2 ).
+
+Preprocessing B. The preprocessing algorithm computes GBτ ,τ for each τ . By the preprocessing
+algorithm of Section 3, we can process entire B in O(n log n) time so that the computation of τ d-
+thresholded edit distance between any pair of windows can be run in O(τ 2 d2 log n) time.
+    Note that for a given τ , the gap between two consecutive windows in B is γτ = max (1, ⌊ǫτ d⌋).
+Therefore, when τ = 0, the number of windows is O(n2 ), but for every pair of windows, edit distance
+computation time is O(1). For τ > 0, the number of windows is O( ǫτnd ). Hence, the computation
+                2                         2
+time is O( ǫ2 τn2 d2 τ 2 d2 log n) = O( nǫ2 ). Thus, over all τ , the total preprocessing time for B is Õǫ (n2 ).
+
+5.5    Query Phase algorithm
+The input to the query phase algorithm is the two strings, as well as the close-window graphs
+computed in the preprocessing phase. The output is an estimate data structure that can answer
+E : A × B → R+ queries in O(log(n)) time. We implicitly initialize E(a, b) ← ∞ for all pairs (a, b).
+                                             i
+    We consider all choices of τ ∈ {0, (1+ǫ)
+                                           d } for i = [0.. log (1+ǫ) d]. For τ we run the following
+algorithm that attempts to discover the pairs of windows a, b ∈ A × B τ of edit distance at most τ .
+The estimate algorithm has some false negatives, and it may also have false positives whose true
+edit distance is up to 7τ . The estimate can be fed into the DP in Section 5.3.
+    Recall that tτ := |B τ | denote the number of windows in B τ , and tτ = ǫτnd .
+                                                               4/3+o(1)
+   For each value of τ , the algorithm below uses O(tτ         ) queries to edit distance of pairs of
+windows of length O(d) of the form is ED(a, b) < τ d. Using the algorithm from Theorem 3, each
+query can be answered in Õ(d2 τ 2 ) time. Hence the total run time is given by
+                                                    
+                                O tτ4/3+o(1) · d2 τ 2 = O(n3/2+o(1) ).
+
+
+
+
+                                                       17
+Initialization: Covered windows Initially, all windows are uncovered. Intuitively, we say that
+a window is covered when we have upper bounded the edit distance to its relevant neighbors in B τ .
+
+A: Intervals
+                                           1/3+ǫ                                      1/3+ǫ   2/3−ǫ
+Consider a partition of [n] into tτ      contiguous intervals of length n/tτ     ≤ tτ      · d. For A
+                                                                                 2/3−ǫ
+we define the A-interval IA corresponding to interval I ⊂ [n] as the set of ≤ tτ       windows with
+indices in I. Therefore, for A-windows they are either entirely contained in the interval or don’t
+intersect it. For B, we let I/ǫ denote a 1/ǫ-factor expansion of I (i.e. the interval of length |I|/ǫ
+centered at I)2 . We define the B τ -interval IBτ to be the set of windows that intersect I/ǫ. When
+clear from context we sometimes just call IA , IBτ intervals.
+
+B: Sampling seeds
+For each A-interval IA , if less than log2 (n) windows in IA remain uncovered, we simply find all of
+their τ -neighbors in B τ using Õ(tτ ) queries and mark them covered. Otherwise we sample log2 (n)
+                                                                                   τ          1/3
+uncovered windows from IA . For each sampled window a, we test whether |N B ,τ (a)| & tτ . This
+                       2/3
+is done by sampling tτ log2 (n) windows b ∈ B τ and querying ED(a, b) for each. (We account for
+those queries later, depending on whether a is dense or sparse.)
+    If more than log2 (n)/2 of the samples belong to N B,τ (a) then a is declared dense, otherwise it is
+sparse. If the window is dense we process it as described below, after which it is a covered window
+and no longer a good sample. We then continue to sample (in random order) other uncovered
+windows from the same IA until: If the number of sparse windows sampled so far is smaller than
+log2 (n), we stop sampling whenever we see log2 (n) consecutive covered windows. Otherwise (the
+number of observed sparse sampled windows is at least log2 (n)), we stop sampling after querying
+log2 (n) consecutive windows which are all either sparse or covered.
+Remark. Therefore, if we keep discovering dense windows, we process it as in Step C, the window
+gets covered, and we keep on sampling more uncovered windows.
+
+C: Dense windows
+                                                                       τ
+Suppose that a is dense; choose (arbitrarily) b ∈ N B ,τ (a) among those discovered during Step B
+                                                                          τ
+while processing a. For each windows-pair a′ ∈ N A,2τ (a) and b′ ∈ N B ,4τ (b), whose estimate has
+not been computed yet, the algorithm sets E(a′ , b′ ) ← 7τ . This is done abstractly by pointing each
+                                                                                         τ
+a′ to a, b′ to b and marking that ED(a, b) ≤ τ . Observe that the sets N A,2τ (a), N B ,4τ (b) have
+already been computed during the preprocessing phase. We mark each window in the set N A,2τ (a)
+as covered.
+
+Approximation: Observe that every a′ ∈ N A,2τ (a) is indeed covered in the sense that by triangle
+inequality, for every b′′ ∈ N B,τ (a′ )
+
+                               ED(b, b′′ ) ≤ ED(b′′ , a′ ) + ED(a′ , a) + ED(a, b) ≤ 4τ,              (2)
+
+and hence N B,τ (a′ ) ⊆ N B,4τ (b). Similarly, by triangle inequality for every b′ ∈ N B,4τ (b) and
+a′ ∈ N B,2τ (a), we have that
+
+                               ED(a′ , b′ ) ≤ ED(a′ , a) + ED(a, b) + ED(b, b′ ) ≤ 7τ.                (3)
+  2
+      For example, if I = [20, 30] then its 3-expansion is [10, 40].
+
+
+
+                                                             18
+Complexity: Notice that if the (B τ , τ )-neighborhoods of two dense windows (or one dense and
+one sparse) a and a′ intersect, then when we process one of them as dense we will cover both. Hence
+                                                       2/3                              2/3
+we only need to run the dense subroutine at most tτ times. Each run requires Õ(tτ ) queries,
+                                                                    4/3
+and hence in total over the entire τ -th iteration we only need Õ(tτ ) queries.
+
+D: Sparse windows
+For each interval IA , out of the set of windows a ∈ IA which were declared sparse, we pick at
+random a set S(IA ) of size log2 (n). For every window in S(IA ), we query its entire (B τ , τ )-
+                                                                                        1/3
+neighborhood using tτ queries. For each interval IA we record the union of all Õ(tτ ) intervals Ic Bτ
+that contain any (B τ , τ )-neighbors of any of the sparse samples a ∈ S(IA ). We call these B-windows
+the relevant windows for the windows in IA . We henceforth no longer look to match windows from
+IA to irrelevant B-windows. Note that in a low-skew mapping (for more precise statement, see
+Lemma 14), windows in IA cannot be mapped to any irrelevant B-windows under that mapping.
+                              1/3+ǫ                                       4/3+ǫ
+(Hence in total across all tτ       intervals the sparse samples take Õ(tτ     ) queries.)
+
+Approximation: Recall that by Lemma 10 and Lemma 11, there is a low-skew monotone map-
+ping that approximates the optimal transformation to within (1 + ǫ)-factor. For any low-skew
+monotone mapping µ, the entire interval IA is mapped to a single B τ -interval IBτ . Suppose that
+(1 − ǫ)-fraction of the sparse windows in IA are mapped to B τ -windows (or ⊥) of distance greater
+than τ . Then we can safely discard the τ -edges for the remaining ǫ-fraction of sparse windows with
+negligible loss in approximation factor. Hence in total we pay only (1 + O(ǫ))-factor in approxima-
+tion for sparse windows. Otherwise, w.h.p. at least one of the samples has a (B τ , τ )-neighbor in
+IBτ . For more details, see Lemma 14.
+                                                               
+                                                     1/3  2/3−ǫ
+Complexity:     Each uncovered A-window has only Õ tτ · tτ       = Õ(t1−ǫ
+                                                                        τ ) relevant windows.
+
+
+Recursion
+We recurse on Parts A-D of the algorithm, with the following modifications for the ℓ-th level of the
+recursion.
+                                                 1/3+(ℓ+1)ǫ
+   • We increase the number of intervals to tτ                , and their size decreases accordingly to
+         2/3−(ℓ+1)ǫ
+     Õ(tτ          ).
+
+   • We only sample relevant windows when we estimate degrees. The degree-threshold for a
+                                                  1/3
+     window to be considered “dense” remains tτ . Notice that a window may be dense with
+     respect to the entire graph, but sparse with respect to its relevant windows.
+
+   • Once we discover a dense window, we run Part C without regard to relevant/irrelevant win-
+     dows. In particular the calculation of total number of queries spent on dense windows is
+     global for the entire τ -th iteration of the algorithm, including recursion.
+
+   • For each sparse sample, we only compute the                    τ
+                                             restriction of its (B , τ )-neighborhood torelevant
+                                                                                             4/3+ǫ
+     windows. Hence we only spend Õ t1−ℓǫτ     queries for each sample, or a total of Õ tτ
+     queries across all intervals.
+
+   • The relevant windows for the next level of recursion are a (strict) subset of the relevant
+     windows in the current level.
+
+                                                 19
+   The recursion continues until each interval has less than log2 (n) windows, after which all win-
+dows are covered.
+   We now summarize the approximation factor and the complexity of the query algorithm.
+
+Lemma 13 (Time Complexity). Let A, B ∈ Σn . Then running time of the query phase is bounded
+by: Õǫ (n3/2+ǫ ).
+
+Proof. Fix τ . By the complexity analysis of Step C, the total number of queries required to cover
+                                                     4/3
+dense windows over all the recursion steps is Õ(tτ ).
+                                                                  1/3+(ℓ+1)ǫ
+     On the ℓ-th level of recursion, the number of intervals is tτ           . For every interval, we pick
+              2
+at most log n sparse windows, and query all relevant windows. The number of relevant windows is
+Õ(t1−ℓǫ
+     τ   ). Therefore, on the ℓ-th level of recursion, the number of queries spent on sparse windows
+    4/3+ǫ
+is tτ     . Since the number of levels of recursion is at most 1ǫ + 1, the total number of queries spent
+                            4/3+ǫ
+on sparse windows is O( tτ ǫ ).
+   Computing τ d-thresholded edit distance between pairs of windows requires time Õ(τ 2 d2 ) (using
+our algorithm from Section 3). Therefore, the time complexity for a given τ over all dense and
+                        4/3+ǫ 2 2         3/2+ǫ
+sparse windows is Õ( tτ ǫ τ d ) = Õ( nǫ7/4 ).
+   Since, the number of choices of τ is O( logǫ n ) and the time to run the DP from Section 5.3 is
+                                                               3/2+ǫ
+O( 1ǫ n3/2 log n) , the overall total time complexity is Õ( nǫ15/4 ).
+
+Lemma 14 (Approximation). Let A, B ∈ Σn . Let E : A × B → R+ be the cost function produced
+during the query phase. Then with probability at least 1 − n1 , we have:
+
+                                        ED(E) ≤ (7 + ǫ) ED(A, B).
+
+Proof. Note that if we can construct E : A × B → {0, . . . , d} such that ED(a, b) ≤ E(a, b) ≤
+7 ED(a, b), then using the DP algorithm from Section 5.3 and employing Lemma 10, we get a
+7 + o(1) approximation for ED(A, B). Moreover, by Lemma 11, it is only required to compute all
+the edges of E with the above accuracy which an optimum low-skew monotone mapping µ would
+use. Fix such a mapping µ.
+    We prove that for the first level of the recursion, for each interval I ∈ IA it is either the case
+that there exists a sparse window a such that: µ(a) ∈ N Bτ ,τ (a), or that the covered dense windows
+provide a good approximation for the edges used by µ. Indeed, fix I ∈ IA , the proof proceeds by
+case analysis.
+    Case 1: Suppose that there exists τ such that at least ǫ-fraction of a ∈ IA , are such that
+µ(a) ∈ N Bτ ,τ (a) and a is τ -sparse.
+    In this case, with high probability the algorithm will eventually pick a window a ∈ IA such
+that µ(a) ∈ N Bτ ,τ (a) and a is τ -sparse. Consider the set IcBτ recorded by the algorithm. Since
+                                                       c
+µ is a low-skew mapping, one of the intervals IB ∈ IB is such that all the edges (a, µ(a)) where
+                                                         τ
+
+a ∈ IA , are such that µ(a) ∈ IB , and hence declared relevant. Therefore, in further iterations of
+the algorithm these edges will be assigned with the required approximation guarantee.
+    Case 2: Suppose that for all τ at most ǫ-fraction of a ∈ IA , are such that µ(a) ∈ N Bτ ,τ (a) and
+a is τ -sparse.
+    In this case we may fail to detect all the edges (a, µ(a)), where µ(a) ∈ N Bτ ,τ (a) and a is τ -
+sparse. Nevertheless, in that case, even if we map all these edges to ⊥, we only lose a (1 + ǫ) factor
+in the edit distance. As for the rest of the windows a ∈ IA , we claim that with high probability for
+at least 1 − ǫ of the windows a we have: E(a, µ(a)) ≤ 7 ED(a, µ(a)).
+
+
+                                                     20
+    Indeed, observe that whenever the algorithm completes step B, then it is the case that with
+high probability all but at most ǫ-fraction of dense windows are already covered. If this is the case,
+then for each covered window a ∈ IA we have: E(a, µ(a)) ≤ 7 ED(a, µ(a)). For the rest we have
+no guarantee on E(a, µ(a)). However, even if we map all these edges to ⊥, we only lose a (1 + ǫ)
+factor in the edit distance. The claim follows.
+
+    We therefore have the following theorem.
+
+Theorem 15. Given two strings A, B ∈ Σn , we can approximate ED(A, B) within 7 + o(1) ap-
+proximation with probability at least 1 − n1 with a preprocessing time of Õǫ (n2 ) and query time of
+Õǫ (n3/2+o(1) ).
+
+
+6    No preprocessing: 3 + o(1)-approx in n1.6+o(1) time
+In this section we introduce our (3 + o(1))-approximation algorithm for edit distance that runs
+in time n1.6+o(1) without preprocessing. At a high level, it is similar to other recent traingle-
+inequality based approximation algorithms for edit distance. In particular, the previous state of
+the art algorithm by Andoni [And19] obtains a similar result when the edit distance is large (near-
+linear), but we can give an overall faster algorithm using the sublinear algorithm for small edit
+distance with preprocessing (Section 3). The preprocessing cost is negligble when we apply it once
+to each window, and use the sublinear algorithm to compute the distances of many pairs.
+
+Theorem 16 (Approximate edit distance without preprocessing).
+     Given two strings A, B ∈ Σn , we can approximate ED(A, B) within 3 + o(1) approximation in
+Õǫ (n1.6+o(1) ) time with probability at least 1 − n1 .
+
+High level idea The algorithm enumerates over various thresholds τ . For each value of τ ,
+the algorithm first marks all the A-windows as τ -uncovered. Then, it uses sampling to estimate
+the degree of each A window, and classifies them as sparse or dense. It handles sparse windows
+similarly to Section 5. As for the dense windows, if there are few of them, it exhaustively finds
+their (B, τ )-neighbors. Otherwise, it sparsifies the set of uncovered dense windows as follows. It
+enumerates over the set of B windows: For each such a window b it estimates its degree with respect
+to uncovered dense windows. If the degree is large, then it computes N A,2τ (b), N B,τ (b), marks that
+the relative distance between pairs in N A,2τ (b) × N B,τ (b) as upper bounded by 3τ . It then moves
+each uncovered dense window in N A,2τ (b) to the set of covered windows. In such a way, since we
+remove the neighborhood of dense B-windows, we show that the number of uncovered dense A-
+windows decreases significantly. We recurse on the sparsification phase; each iteration uses a smaller
+degree threshold for dense B-windows and handles fewer remaining uncovered dense A-windows.
+
+Similarities to Section 5 Algorithm Similar to Section 5 and other recent approximation
+algorithms, we partition the input strings into windows, and consider the close-window graph
+where two windows share an edge if they are close in edit distance. We handle high-degree (“dense”)
+windows using triangle inequality, and low-degree (“sparse”) by iteratively focusing on narrowing
+intervals.
+
+Main technical difference compared to Section 5 Algorithm A subtle technicality of
+this algorithm is that in the sparsification phase, we can remove B-windows of high degree,
+and all their A-neighbors. This suffices to ensure that the remaining A-windows are sparse on
+
+
+                                                 21
+average. However, the analysis of the sparse case, crucially relies on every window being sparse.
+By Markov’s inequality, once we decrease the average degree of the A-window at most t−ǫ -fraction
+of them remain overly-dense. We can thus recurse on all the B-windows and the t−ǫ -fraction
+overly-dense A-windows, again removing the highest-degree B-windows. After O(1/ǫ) iterations,
+all the dense A-windows have been removed.
+
+   As in Section 5, we repeat the following steps for every τ in a multiplicative-(1 + ǫ)-net.
+
+Parameters and notation
+Following the notation of Section 5.2, we set the base window length to d = n0.2 , and the number
+of A-windows is t = n0.8 ; the number of windows in Bτ is tτ = Oǫ (t/τ ). Our algorithm will use
+ 3/2+o(1)
+tτ        queries, each in time Õ(d2 τ 2 ), as well as the DP from Lemma 12. Hence the total running
+time is given by
+                                                     n2 
+                              Õ tτ3/2+o(1) · d2 τ 2 + 2 = Õ(n1.6+o(1) ).                          (4)
+                                                      d
+    Our sparsification phase (Steps A-2 and B below) works in iterations, where in each iteration
+we cover the edges of the form (a, b) where b is a high degree vertex. In more detail, the algorithm
+iteratively identifies B-windows with high degree. At the first iteration, the degree threshold is
+           1/2
+deg1 := tτ , and it decreases by tǫτ in each subsequent iteration. I.e. at the g-th iteration it is
+          1/2−(g−1)ǫ
+degg := tτ           .
+    We maintain a partition of A into three subsets: A = ASparse ∪ ABad ∪ ACovered . Initially,
+|ABad | ≤ |A| = t ≤ tτ . In each iteration of the sparsification phase, windows from ABad are moved
+to ACovered . The upper bound on |ABad | decreases by tǫτ -factor in each iteration.
+
+Step A: Estimating density of A-windows
+                              1/2−ǫ
+For each a ∈ A, we sample tτ          log2 (n) Bτ -windows b at random and query ED(b, a). We place
+a in ABad if at least 21 log2 (n) of the samples are within edit distance τ . Otherwise, we place it in
+ASparse and ignore it until Step C of the algorithm.
+
+                                1/2                                                   3/2
+Complexity:      We spend Õ(tτ ) queries for each a ∈ ABad , hence a total of Õ(tτ ).
+
+Step B-g. An iteration of the sparsification phase
+In each iteration of the sparsification phase, we enumerate over the Bτ -windows. For each window
+                                                                                     | log2 (n)
+b that has not already been marked dense in previous iterations, we sample |ABaddeg             ABad -
+                                                                                            g
+windows a at random and query ED(b, a). We say that b is dense if at least 12 log2 (n) of the
+samples are within edit distance τ .
+    If b is dense, we query its entire N ABad ,τ (b), N Bτ ,2τ (b) neighborhoods. We (implicitly) add
+edges with cost 3τ for every pair in N ABad ,τ (b) × N Bτ ,2τ (b), and move the windows in N ABad ,τ (b)
+to ACovered .
+                                                             1/2
+    If the number of ABad windows becomes at most tτ at any point, we exhaustively find all
+their neighbors in Bτ and move them to ACovered .
+
+
+
+
+                                                  22
+Approximation By triangle inequality, every pair of windows in N ABad ,τ (b) × N Bτ ,2τ (b) has edit
+distance at most 3τ . Notice also that by triangle inequality N Bτ ,τ (N ABad ,τ (b)) ⊆ N Bτ ,2τ (b), i.e. we
+have discovered all the (Bτ , τ )-neighbors of all the ACovered -windows.
+
+Complexity: We maintain the bound that at the beginning of the g-th iteration, |ABad | =
+   1−(g−1)        1/2                                                1/2
+O(tτ       ) = O(tτ degg ). Hence, similarly to Step A, we spend Õ(tτ ) queries for estimating
+                                                       3/2
+the degree of each b ∈ Bτ , for a total of Õ(tτ ).
+   Every time we discover a dense b, we query its edit distance to ≤ t + tτ windows, and decrease
+by Ω(degg ) the number of remaining ABad -windows. Recall that we start the g-th iteration with at
+             1−(g−1)ǫ          1/2                                                                           1/2
+most O(tτ               ) = O(tτ     degg ) ABad -windows. Hence in total this step requires O((t+tτ )·tτ ) =
+       3/2
+O(tτ ) queries.
+
+The sparsification phase: iterating over Step B-g
+We iteratively apply Step B-g O(1/ǫ) times. At the end of the g-th iteration, every remaining Bτ -
+                             1/2−(g−1)ǫ
+window has at most degg = tτ            remaining (ABad , τ )-neighbors. Hence the total number of
+                                      3/2−(g−1)ǫ                                     1/2+ǫ
+τ -close pairs in Bτ × ABad is tτ                  . Since every ABad window has Ω(tτ        ) (Bτ , τ )-neighbors3 ,
+                             1−(g)ǫ
+we have that |ABad | = O(tτ         ).
+
+Step C. Sparse windows
+We process the ASparse -windows as in the sparse case in Section 5 (for completeness, we spell out
+the details below). This algorithm is somewhat simpler than Section 5 since we already determined
+in advance which windows are sparse and which are dense.
+
+                                                                          1/2+2ǫ
+Intervals (first iteration): Consider a partition of [n] into tτ         contiguous intervals of length
+    1/2+2ǫ     1/2−2ǫ
+n/tτ       ≤ tτ       · d. For A we define the A-interval IA corresponding to interval I ⊂ [n] as
+               1/2−2ǫ
+the set of ≤ tτ       windows with indices in I. Therefore, for A-windows they are either entirely
+contained in the interval or don’t intersect it. For B, we let I/ǫ denote a 1/ǫ-factor expansion of
+I (i.e. the interval of length |I|/ǫ centered at I)4 . We define the B τ -interval IBτ to be the set of
+windows that intersect I/ǫ. When clear from context we sometimes just call IA , IBτ intervals.
+
+Sparse subroutine (first iteration): For each interval IA , if at most log2 (n) of its windows
+are sparse, we simply query their entire (B τ , τ )-neighborhoods. Otherwise, we sample a random
+set S(IA ) of log2 (n) windows from IA ∩ ASparse . For every window in S(IA ), we query its entire
+                                                                                              1/2+ǫ
+(B τ , τ )-neighborhood using tτ queries. For each interval IA we record the union of all Õ(tτ     )
+             c                     τ
+intervals IBτ that contain any (B , τ )-neighbors of any of the sparse samples a ∈ S(IA ). We call
+these B-windows the relevant windows for the windows in IA . We henceforth no longer look to
+match windows from IA to irrelevant B-windows. Note that in a low-skew mapping, if at least one
+of the samples is matched, then windows in IA cannot be mapped to any irrelevant B-windows
+under that mapping.
+   3
+    Notice that the number of remaining neighbors for a ∈ ABad does not change during the run of the sparsification
+phase, since once any of a’s neighbors is declared dense, we move a to ACovered .
+  4
+    For example, if I = [20, 30] then its 3-expansion is [10, 40].
+
+
+
+
+                                                             23
+Approximation (first iteration): Recall that by Lemma 10 and Lemma 11, there is a low-skew
+monotone mapping that approximates the optimal transformation to within (1 + O(ǫ))-factor. For
+any low-skew monotone mapping µ, the entire interval IA is mapped to a single B τ -interval IBτ .
+Suppose that (1 − ǫ)-fraction of the sparse windows in IA are mapped to B τ -windows (or ⊥) of
+distance greater than τ . Then we can safely discard the τ -edges for the remaining ǫ-fraction of
+sparse windows with negligible loss in approximation factor. Hence in total we pay only (1 + O(ǫ))-
+factor in approximation for sparse windows. Otherwise, w.h.p. at least one of the samples has a
+(B τ , τ )-neighbor in IBτ .
+                                                                               
+                                                                1/2+ǫ    1/2−2ǫ
+Complexity (first iteration): Each sparse A-window has only Õ tτ     · tτ        = Õ(t1−ǫ
+                                                                                        τ )
+                                    1/2+2ǫ                                                3/2+ǫ
+relevant windows. Since there are tτ         A-intervals, we spend use a total of Õ(tτ           ) queries.
+
+Recursion     We recurse on the sparse subroutine, with the following modifications for the ℓ-th
+iteration.
+                                                   1/2+(ℓ+2)ǫ
+    • We increase the number of intervals to tτ                 , and their size decreases accordingly to
+          1/2−(ℓ+2)ǫ
+      Õ(tτ          ).
+
+    • For each sparse sample, we only compute the                    τ
+                                              restriction of its (B , τ )-neighborhood torelevant
+                                                                                              3/2+ǫ
+      windows. Hence we only spend Õ tτ1−ℓǫ queries for each sample, or a total of Õ tτ
+      queries across all intervals.
+
+    • The relevant windows for the next level of recursion are a (strict) subset of the relevant
+      windows in the current level.
+
+The recursion continues until each interval has less than log2 (n) sparse windows, after which we
+can simply query the distance of every remaining sparse window to all its relevant Bτ -windows.
+
+Completing the proof of Theorem 16
+                                                                                  3/2+ǫ
+As we argued above, the algorithm finds a (3 + ǫ)-approximation using Õ(tτ               ) queries. Taking
+ǫ to be slightly sub-constant completes the proof of Theorem 16.
+
+
+7    Hardness
+In this section we formalize, in the context of (approximate) edit distance, the folklore intuition
+(based on [WW18]) that polynomial preprocessing can not circumvent fine-grained complexity lower
+bounds. In Subsection 7.1 we show that known fine-grained complexity hardness results for exact
+edit distance and related problems extend to accommodate polynomial preprocessing.
+    In Subsection 7.2 we consider the problem of edit distance approximation. There are essen-
+tially no conditional hardness results for this problem, and in fact recent work obtained a truly-
+subquadratic constant factor approximation algorithm [CDG+ 18]. Improving this factor, and in
+particular obtaining a truly-subquadratic (1 + ǫ)-approximation factor, is perhaps the most impor-
+tant open problem in this area. There are evidences that providing 1 + o(1)-factor approximation
+might be hard, as it implies new circuit lower bounds [AB17]. Theorem 20 shows that essentially
+any approximation factor that is obtained with polynomial preprocessing can also be obtained
+without it. Note that this holds unconditionally, even if (BP)-SETH is false.
+
+
+                                                   24
+7.1   SETH-hardness of exact string alignment with preprocessing
+The Strong Exponential Time Hypothesis is an (extreme) strengthening of P 6= NP postulating that
+k-SAT on n variables requires 2(1−δk )n time. Building on [AHWW16], we can prove our hardness
+based on the milder BP-SETH which replaces k-CNF with a branching program:
+Hypothesis 1 (BP-SETH). Given a branching program over n variables of width W and length T
+such that T W = 2o(n) , deciding whether it has a satisfying assignment requires time 2(1−o(1))n time.
+Theorem 17 (BP-SETH hardness).
+    Unless BP-SETH is false, there is no algorithm that preprocesses two input strings in polynomial
+time and then computes their (edit distance / longest common subsequence / dynamic time warping)
+in truly-subquadratic time.
+Remark. We remark that unlike with k-SAT, it is plausible that the brute-force algorithm for BP-
+SAT is optimal to within poly(n) factors, and in fact better algorithms would imply new circuit lower
+bounds ([AHWW16] and references therein). Under a corresponding strengthening of BP-SETH
+one can show that string alignment with preprocessing requires N 2 /polylog(N ) time.
+    The proof of Theorem 17 builds on alignment gadgets and normalized vector gadgets (NVG)
+from previous works on SETH and BP-SETH hardness of string alignment [BI18, BK15, AHWW16].
+Each NVG represents a half-assignment to the branching program, and the alignment gadgets define
+a composition of the NVGs into two long strings. Here we deviate from typical SETH-hardness
+proofs of sequence similarity, and use a divide-and-conquer approach of [WW18] to construct two
+larger sets of shorter strings. This allows us to reuse the preprocessing of each shorter string when
+we compare every pair to look for a satisfying assignment (aka a satisfying pair of half-assignments).
+    Below we use dist() to refer to the distance under the relevant similarity measure (edit distance
+/ longest common subsequence / dynamic time warping); for longest common subsequence we use
+the “co-LCS” (edit-distance-without-substitutions) distance dist(A, B) := n − LCS(A, B).
+
+Normalized Vector Gadgets
+Given a BP ϕ of width W and length T , normalized vector gadgets (NVG) map half assignments
+a, b ∈ {0, 1}n/2 into strings such that:
+                                            (
+                                             cT if assignment (a ◦ b) satisfies ϕ;
+                 dist(NVGA (a), NVGB (b)) =                                        ,
+                                             cF otherwise
+where cT < cF are integers that depend on W, T .
+Lemma 18 (Normalized Vector Gadgets [AHWW16]).
+    Given a BP of width W and length T , we can construct NVGs of length T O(log(W ) )) for all half
+assignments a, b ∈ {0, 1}n/2 in time 2n/2 · T O(log(W ) )).
+
+Alignment Gadgets
+Consider two ordered sets of strings A, B of cardinalities nA < nB , respectively. An alignment µ is
+a monotone partial mapping from A to B ∪ {⊥}. An alignment µ is structured if it maps the i-th
+string in A to the i + ∆ string in B for some fixed shift ∆ and for all a ∈ A.
+    The cost of a mapping µ is defined by:
+                                                   X
+                                  cost(µ, A, B) :=    dist(a, µ(a)).
+                                                  a∈A
+
+
+                                                 25
+Here dist(a, ⊥) := maxa′ ∈A,b∈B dist(a′ , b).
+    An alignment gadget is a mapping from A, B into respective strings GAA (A), GAB (B) such that
+for some parameter cGA = c(nA , nB ):
+
+      min        cost(µ, A, B) ≤ dist(GAA (A), GAB (B)) + cGA ≤           min              cost(µ, A, B).   (5)
+   alignment µ                                                    structured alignment µ
+
+Lemma 19 (Alignment gadgets [BK15]).
+    Edit distance, LCS (with binary alphabet), and Dynamic Time Warping admit alignment gadgets
+that can be computed in linear time.
+
+Completing the proof of BP-SETH-hardness
+Proof of Theorem 17. Suppose that we have an algorithm that computes dist() for strings of length
+N with preprocessing time O(N t ) and query time O(N 2−ǫ ). Given a BP over n = 2 log2 (N )
+variables, we construct all its normalized vector gadgets in near-linear time as in Lemma 18.
+    We partition the A-NVGs into 2(1−1/t)n subsets A1 , . . . A2(1−1/t)n of size 2n/t each (and likewise
+for B). For each subset Ai , we construct its alignment gadget Ai of size Õ(N 1/t ). For Bj , let Bj
+be constructed by the alignment gadget for the set repeated twice. If no pair of half-assignments
+corresponding to Ai × Bj satisfies the BP, then every pair of NVGs is at distance cF , and by (5)
+the distance of Ai , Bj will be dF := 2n/t cF − cGA . If there is a satisfying pair, then the structured
+alignment that matches the corresponding NVGs will have cost at most
+
+                                  dT := cT + (2n/t − 1)cF − cGA < dF .
+                                                                     
+    We preprocess all the strings in total time Õ N 1−1/t ·(N 1/t )t = Õ(N 2−1/t ). Finally, we compute
+                                                                                            
+the distance between all (N 1−1/t )2 pairs in time O N 2−2/t · (N 1/t )2−ǫ = O N 2−2ǫ/t . The BP is
+satisfiable iff at least one of the pairs is at distance at most dT .
+
+7.2    Preprocessing doesn’t help for approximate ED in truly-subquadratic time
+Theorem 20 (Hardness of Approximation).
+   If there is an α-approximation algorithm for edit distance that runs in polynomial preprocessing
+time and truly-subquadratic query time, then there is an (α + o(1))-approximation algorithm that
+runs in truly-subquadratic time with no preprocessing.
+
+   The proof combines the divide-and-conquer steps from our approximate edit distance algorithm
+(Section 5) with that of [WW18] (see also last step in the proof of Theorem 17).
+
+Proof. Suppose that there exists an algorithm that computes an α-approximation of edit distance
+using O(nt )-preprocessing and O(n2−ǫ )-query time. First, we assume wlog that the true edit
+distance is k = ω(n1−1/2t ), otherwise we can solve the problem in time O(n2−1/t ) using the algorithm
+of [LMS98]. In particular, we can henceforth neglect additive errors of O(n1−1/2t ).
+    Using the notation of Section 5.2, we decompose the strings into windows with base width
+d := n1/t . The A-windows have no overlap, and for the B-windows we consider B τ for τ = n−1/2t .
+Hence we have Õ(n1−1/t ) A-windows and Õ(n1−1/2t ) B-windows,     all of length
+                                                                                  O(n1/t ).
+    We preprocess all the windows in time Õ n1−1/2t · (n1/t )t = Õ n2−1/2t .
+    We then run the α-approximate edit distance algorithm on pairs of windows. By the argument
+of [Ukk85], it suffices to only compute the distances between pairs of windows whose starting
+points are within ±k far apart. In particular for every A-window, we only need to compute the
+
+
+                                                   26
+                                                                                               
+edit distance to Õ(n1−1/t ) B-windows. In total we spend Õ (n1−1/t )2 · (n1/t )2−ǫ = Õ n2−ǫ/t time
+on this phase.
+    Given the α-approximate window-window distance estimates, we aggregate them in time
+Õ(n2−2/t ) using Lemma 12. Thus we obtain an α-approximation to the optimal window-compatible
+matching, which by Lemma 10, is an (α + o(1))-approximation to the edit distance.
+
+
+References
+[AB17]       Amir Abboud and Arturs Backurs. Towards hardness of approximation for polynomial
+             time problems. In 8th Innovations in Theoretical Computer Science Conference, ITCS
+             2017, January 9-11, 2017, Berkeley, CA, USA, pages 11:1–11:26, 2017.
+
+[AB18]       Amir Abboud and Karl Bringmann. Tighter connections between formula-sat and
+             shaving logs. In 45th International Colloquium on Automata, Languages, and Pro-
+             gramming, ICALP 2018, July 9-13, 2018, Prague, Czech Republic, pages 8:1–8:18,
+             2018.
+
+[ADG+ 03]    Alexandr Andoni, Michel Deza, Anupam Gupta, Piotr Indyk, and Sofya Raskhod-
+             nikova. Lower bounds for embedding edit distance into normed spaces. In Proceedings
+             of the Fourteenth Annual ACM-SIAM Symposium on Discrete Algorithms, January
+             12-14, 2003, Baltimore, Maryland, USA., pages 523–526, 2003.
+
+[AHWW16] Amir Abboud, Thomas Dueholm Hansen, Virginia Vassilevska Williams, and Ryan
+         Williams. Simulating branching programs with edit distance and friends: or: a polylog
+         shaved is a lower bound made. In Proceedings of the 48th Annual ACM SIGACT
+         Symposium on Theory of Computing, STOC 2016, Cambridge, MA, USA, June 18-
+         21, 2016, pages 375–388, 2016.
+
+[AKO10]      Alexandr Andoni, Robert Krauthgamer, and Krzysztof Onak. Polylogarithmic ap-
+             proximation for edit distance and the asymmetric query complexity. In 51th Annual
+             IEEE Symposium on Foundations of Computer Science, FOCS 2010, October 23-26,
+             2010, Las Vegas, Nevada, USA, pages 377–386, 2010.
+
+[AN10]       Alexandr Andoni and Huy L. Nguyen. Near-optimal sublinear time algorithms for
+             ulam distance. In Proceedings of the Twenty-First Annual ACM-SIAM Symposium on
+             Discrete Algorithms, SODA 2010, Austin, Texas, USA, January 17-19, 2010, pages
+             76–86, 2010.
+
+[And19]      Alexandr Andoni. Simpler constant-factor approximation to edit distance problems,
+             2019. In preparation.
+
+[AO12]       Alexandr Andoni and Krzysztof Onak. Approximating edit distance in near-linear
+             time. SIAM J. Comput., 41(6):1635–1648, 2012.
+
+[ARW17]      Amir Abboud, Aviad Rubinstein, and R. Ryan Williams. Distributed PCP theorems
+             for hardness of approximation in P. In 58th IEEE Annual Symposium on Foundations
+             of Computer Science, FOCS 2017, Berkeley, CA, USA, October 15-17, 2017, pages
+             25–36, 2017.
+
+[AW19]       Amir Abboud and Virginia Vassilevska Williams, 2019. Personal communication.
+
+
+                                                 27
+[BCLW19]    Omri Ben-Eliezer, Clément L. Canonne, Shoham Letzter, and Erik Waingarten. Find-
+            ing monotone patterns in sublinear time. CoRR, abs/1910.01749, 2019.
+
+[BEG+ 18]   Mahdi Boroujeni, Soheil Ehsani, Mohammad Ghodsi, Mohammad Taghi Hajiaghayi,
+            and Saeed Seddighin. Approximating edit distance in truly subquadratic time: Quan-
+            tum and mapreduce. In Proceedings of the Twenty-Ninth Annual ACM-SIAM Sym-
+            posium on Discrete Algorithms, SODA 2018, New Orleans, LA, USA, January 7-10,
+            2018, pages 1170–1189, 2018.
+
+[BEK+ 03]   Tugkan Batu, Funda Ergün, Joe Kilian, Avner Magen, Sofya Raskhodnikova, Ronitt
+            Rubinfeld, and Rahul Sami. A sublinear algorithm for weakly approximating edit
+            distance. In Proceedings of the 35th Annual ACM Symposium on Theory of Computing,
+            June 9-11, 2003, San Diego, CA, USA, pages 316–324, 2003.
+
+[BES06]     Tugkan Batu, Funda Ergün, and Süleyman Cenk Sahinalp. Oblivious string embed-
+            dings and edit distance approximations. In Proceedings of the Seventeenth Annual
+            ACM-SIAM Symposium on Discrete Algorithms, SODA 2006, Miami, Florida, USA,
+            January 22-26, 2006, pages 792–801, 2006.
+
+[BGZ16]     Joshua Brakensiek, Venkatesan Guruswami, and Samuel Zbarsky. Efficient low-
+            redundancy codes for correcting multiple deletions. In Proceedings of the Twenty-
+            seventh Annual ACM-SIAM Symposium on Discrete Algorithms, SODA ’16, 2016.
+
+[BI18]      Arturs Backurs and Piotr Indyk. Edit distance cannot be computed in strongly sub-
+            quadratic time (unless SETH is false). SIAM J. Comput., 47(3):1087–1097, 2018.
+
+[BJKK04]    Ziv Bar-Yossef, T. S. Jayram, Robert Krauthgamer, and Ravi Kumar. Approximating
+            edit distance efficiently. In 45th Symposium on Foundations of Computer Science
+            (FOCS 2004), 17-19 October 2004, Rome, Italy, Proceedings, pages 550–559, 2004.
+
+[BK15]      Karl Bringmann and Marvin Künnemann. Quadratic conditional lower bounds for
+            string problems and dynamic time warping. In IEEE 56th Annual Symposium on
+            Foundations of Computer Science, FOCS 2015, Berkeley, CA, USA, 17-20 October,
+            2015, pages 79–97, 2015.
+
+[BK18]      Karl Bringmann and Marvin Künnemann. Multivariate fine-grained complexity of
+            longest common subsequence. In Proceedings of the Twenty-Ninth Annual ACM-SIAM
+            Symposium on Discrete Algorithms, SODA 2018, New Orleans, LA, USA, January 7-
+            10, 2018, pages 1216–1235, 2018.
+
+[BR19]      Joshua Brakensiek and Aviad Rubinstein. Constant-factor approximation of near-
+            linear edit distance in near-linear time. CoRR, abs/1904.05390, 2019.
+
+[BZ16]      Djamal Belazzougui and Qin Zhang. Edit distance: Sketching, streaming, and docu-
+            ment exchange. In IEEE 57th Annual Symposium on Foundations of Computer Sci-
+            ence, FOCS 2016, 9-11 October 2016, Hyatt Regency, New Brunswick, New Jersey,
+            USA, pages 51–60, 2016.
+
+[CDG+ 18]   Diptarka Chakraborty, Debarati Das, Elazar Goldenberg, Michal Koucký, and
+            Michael E. Saks. Approximating edit distance within constant factor in truly sub-
+            quadratic time. In 59th IEEE Annual Symposium on Foundations of Computer Sci-
+            ence, FOCS 2018, Paris, France, October 7-9, 2018, pages 979–990, 2018.
+
+                                             28
+[CGK16]     Diptarka Chakraborty, Elazar Goldenberg, and Michal Koucký. Streaming algorithms
+            for embedding and computing edit distance in the low distance regime. In Proceedings
+            of the 48th Annual ACM SIGACT Symposium on Theory of Computing, STOC 2016,
+            Cambridge, MA, USA, June 18-21, 2016, pages 712–725, 2016.
+
+[CGKK18] Moses Charikar, Ofir Geri, Michael P. Kim, and William Kuszmaul. On estimating
+         edit distance: Alignment, dimension reduction, and embeddings. In 45th International
+         Colloquium on Automata, Languages, and Programming, ICALP 2018, July 9-13,
+         2018, Prague, Czech Republic, pages 34:1–34:14, 2018.
+
+[CGL+ 19]   Lijie Chen, Shafi Goldwasser, Kaifeng Lyu, Guy N. Rothblum, and Aviad Rubinstein.
+            Fine-grained complexity meets IP = PSPACE. In Proceedings of the Thirtieth Annual
+            ACM-SIAM Symposium on Discrete Algorithms, SODA 2019, San Diego, California,
+            USA, January 6-9, 2019, pages 1–20, 2019.
+
+[CK06]      Moses Charikar and Robert Krauthgamer. Embedding the ulam metric into l 1 . Theory
+            of Computing, 2(11):207–224, 2006.
+
+[GKS19]     Elazar Goldenberg, Robert Krauthgamer, and Barna Saha. Sublinear algorithms for
+            gap edit distance. FOCS, abs/1910.00901, 2019.
+
+[Hae19]     Bernhard Haeupler. Optimal document exchange and new codes for insertions and
+            deletions. In 60th IEEE Annual Symposium on Foundations of Computer Science,
+            FOCS, 2019.
+
+[HRS19]     Bernhard Haeupler, Aviad Rubinstein, and Amirbehshad Shahrasbi. Near-linear time
+            insertion-deletion codes and (1+ǫ)-approximating edit distance via indexing. In Pro-
+            ceedings of the 51st Annual ACM SIGACT Symposium on Theory of Computing,
+            STOC 2019, Phoenix, AZ, USA, June 23-26, 2019., pages 697–708, 2019.
+
+[HSSS19]    MohammadTaghi Hajiaghayi, Masoud Seddighin, Saeed Seddighin, and Xiaorui Sun.
+                                                             √
+            Approximating LCS in linear time: Beating the n barrier. In Proceedings of the
+            Thirtieth Annual ACM-SIAM Symposium on Discrete Algorithms, SODA 2019, San
+            Diego, California, USA, January 6-9, 2019, pages 1181–1200, 2019.
+
+[Ind04]     Piotr Indyk. Approximate nearest neighbor under edit distance via product metrics. In
+            Proceedings of the Fifteenth Annual ACM-SIAM Symposium on Discrete Algorithms,
+            SODA 2004, New Orleans, Louisiana, USA, January 11-14, 2004, pages 646–650,
+            2004.
+
+[Jow12]     Hossein Jowhari. Efficient communication protocols for deciding edit distance. In
+            Proceedings of the 20th Annual European Conference on Algorithms, ESA’12, pages
+            648–658, 2012.
+
+[JV92]      Guy Jacobson and Kiem-Phong Vo. Heaviest increasing/common subsequence prob-
+            lems. In Combinatorial Pattern Matching, Third Annual Symposium, CPM 92, Tuc-
+            son, Arizona, USA, April 29 - May 1, 1992, Proceedings, pages 52–66, 1992.
+
+[KS19]      Michal Koucký and Michael E. Saks. Constant factor approximations to edit distance
+            on far input pairs in nearly linear time. CoRR, abs/1904.05459, 2019.
+
+
+
+                                              29
+[LDHO14]   Wei Lu, Xiaoyong Du, Marios Hadjieleftheriou, and Beng Chin Ooi. Efficiently sup-
+           porting edit distance based string similarity search using B $ˆ+$-trees. IEEE Trans.
+           Knowl. Data Eng., 26(12):2983–2996, 2014.
+
+[Lev66]    VI Levenshtein. Binary Codes Capable of Correcting Deletions, Insertions and Rever-
+           sals. Soviet Physics Doklady, 10:707, 1966.
+
+[LMS98]    Gad M. Landau, Eugene W. Myers, and Jeanette P. Schmidt. Incremental string
+           comparison. SIAM J. Comput., 27(2):557–582, 1998.
+
+[LV88]     Gad M. Landau and Uzi Vishkin. Fast string matching with k differences. J. Comput.
+           Syst. Sci., 37(1):63–78, 1988.
+
+[Mye86]    Eugene W. Myers. An O(ND) difference algorithm and its variations. Algorithmica,
+           1(2):251–266, 1986.
+
+[NRRS19]   Ilan Newman, Yuri Rabinovich, Deepak Rajendraprasad, and Christian Sohler. Testing
+           for forbidden order patterns in an array. Random Struct. Algorithms, 55(2):402–426,
+           2019.
+
+[OR07]     Rafail Ostrovsky and Yuval Rabani. Low distortion embeddings for edit distance. J.
+           ACM, 54(5):23, 2007.
+
+[RS19]     Aviad Rubinstein and Zhao Song. Reducing approximate longest common subsequence
+           to approximate edit distance. CoRR, abs/1904.05451, 2019.
+
+[RSSS19]   Aviad Rubinstein, Saeed Seddighin, Zhao Song, and Xiaorui Sun. Approximation
+           algorithms for LCS and LIS with truly improved running times. In FOCS 2019, 2019.
+           To appear.
+
+[Rub18a]   Aviad      Rubinstein.              Approximating     edit      distance.
+           https://theorydish.blog/2018/07/20/approximating-edit-distance/, 2018.
+
+[Rub18b]   Aviad Rubinstein. Hardness of approximate nearest neighbor search. In Proceedings
+           of the 50th Annual ACM SIGACT Symposium on Theory of Computing, STOC 2018,
+           Los Angeles, CA, USA, June 25-29, 2018, pages 1260–1268, 2018.
+
+[SS17]     Michael E. Saks and C. Seshadhri. Estimating the longest increasing sequence in
+           polylogarithmic time. SIAM J. Comput., 46(2):774–823, 2017.
+
+[Ukk85]    Esko Ukkonen. Algorithms for approximate string matching. Information and Control,
+           64(1-3):100–118, 1985.
+
+[WW18]     Virginia Vassilevska Williams and R. Ryan Williams. Subcubic equivalences between
+           path, matrix, and triangle problems. J. ACM, 65(5):27:1–27:38, 2018.
+
+
+
+
+                                             30
+

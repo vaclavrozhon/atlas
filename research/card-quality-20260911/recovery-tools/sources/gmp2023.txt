@@ -1,0 +1,1145 @@
+                                                        Generalized Unrelated Machine Scheduling Problem
+                                                                     Shichuan Deng∗                  Jian Li†            Yuval Rabani‡
+                                                                                            February 15, 2022
+arXiv:2202.06292v1 [cs.DS] 13 Feb 2022
+
+
+
+
+                                                                                                   Abstract
+                                                    We study the generalized load-balancing (GLB) problem, where we are given n jobs, each of which
+                                                needs to be assigned to one of m unrelated machines with processing times {pij }. Under a job assignment
+                                                σ, the load of each machine i is ψi (pi [σ]) where ψi : Rn → R≥0 is a symmetric monotone norm and pi [σ]
+                                                is the n-dimensional vector {pij · 1[σ(j) = i]}j∈[n] . Our goal is to minimize the generalized makespan
+                                                φ(load(σ)), where φ : Rm → R≥0 is another symmetric monotone norm and load(σ) is the m-dimensional
+                                                machine load vector. This problem significantly generalizes many classic optimization problems, e.g.,
+                                                makespan minimization, set cover, minimum-norm load-balancing, etc.
+                                                    We obtain a polynomial time randomized algorithm that achieves an approximation factor of O(log n),
+                                                matching the lower bound of set cover up to constant factor. We achieve this by rounding a novel con-
+                                                figuration LP relaxation with exponential number of variables. To approximately solve the configuration
+                                                LP, we design an approximate separation oracle for its dual program. In particular, the separation oracle
+                                                can be reduced to the norm minimization with a linear constraint (NormLin) problem and we devise a
+                                                polynomial time approximation scheme (PTAS) for it, which may be of independent interest.
+
+
+                                         1      Introduction
+                                         In the generalized load-balancing (GLB) problem, we are given a set M of m unrelated machines, a set J of
+                                         n jobs. Let pij > 0 be the processing time of job j ∈ J on machine i ∈ M, and we denote pi = {pij }j∈J .
+                                         Suppose σ : J → M is an assignment of all jobs to machines. Under assignment σ, we use pi [σ] to denote
+                                         the n-dimensional vector {pij · 1[σ(j) = i]}j∈J (i.e., we zero out all entries of pi that are not assigned to i).
+                                         The load of machine i is define to be loadi (σ) = ψi (pi [σ]), where ψi : Rn → R≥0 is a symmetric monotone
+                                         norm1 for each i ∈ M, called the inner norms. We define the generalized makespan of assignment σ as
+                                         Φ(σ) = φ(load(σ)) where load(σ) = {loadi (σ)}i∈M ∈ Rm      ≥0 (called the load vector) and φ : R
+                                                                                                                                             m
+                                                                                                                                                → R≥0 is
+                                         another symmetric monotone norm, called the outer norm. Our goal is to find an assignment σ such that
+                                         the generalized makespan Φ(σ) is minimized.
+                                             Many special cases of GLB have been studied in the setting of unrelated machine scheduling. The classic
+                                         makespan minimization problem is one such example, where φ = L∞ and ψi = L1 for each i ∈ M. For
+                                         any α < 3/2, there is no α-approximation algorithm for makespan minimization unless P = NP [21], while
+                                         improving the current best approximation ratio of 2 [21, 26] remains a longstanding open problem. Several
+                                         variants of makespan minimization with the objective being the general Lp norm of the load vector (i.e.,
+                                         φ = Lp and ψi = L1 ) have also been studied extensively. Constant approximations are known [1, 5, 19, 24],
+                                         with better-than-two factors depending on p. Recently, Chakrabarty and Swamy [10] proposed the minimum-
+                                         norm load-balancing (MinNormLB) problem, which significantly generalizes makespan minimization and its
+                                         Lp norm variants. In MinNormLB the outer norm can be a general symmetric monotone norm, but each
+                                         inner norm is still ψi = L1 . They provided an LP-based constant factor approximation algorithm. The
+                                             ∗ IIIS, Tsinghua University, China. Email: dsc15@mails.tsinghua.edu.cn
+                                             † IIIS, Tsinghua University, China. Email: lijian83@mail.tsinghua.edu.cn
+                                             ‡ The Hebrew University of Jerusalem, Israel. Email: yrabani@cs.huji.ac.il
+                                           1 Recall ψ : RX → R                                                                                                   X
+                                                                 ≥0 is a norm if: (i) ψ(u) = 0 if and only if u = 0, (ii) ψ(u + v) ≤ ψ(u) + ψ(v) for all u, v ∈ R , (iii)
+                                         ψ(θu) = |θ|ψ(u) for all u ∈ R , θ ∈ R. A norm ψ is monotone if ψ(u) ≤ ψ(v) for all 0 ≤ u ≤ v, and symmetric if ψ(u) = ψ(u0 )
+                                                                       X
+
+                                         for any permutation u0 of u.
+
+
+
+
+                                                                                                        1
+approximation factor was subsequently improved to (4 + ) in [11], and the current best result is a (2 + )-
+approximation [17], almost matching the best-known guarantee for makespan minimization.
+    Although the outer norm has been studied extensively, the inner norm has received relatively less attention
+except the L1 case. However, other inner norms can be naturally motivated. One example is the L∞ norm,
+which can model the RAM size lower bound for each machine, if we view the job sizes {pij } as RAM size
+requirements and process the assigned jobs sequentially. Other Lp norms may be used for minimizing average
+latency [5], energy efficient scheduling [24], etc.
+    Before stating our results for GLB, we discuss a line of closely related problems. Here the load of machine
+i is defined by a submodular set function mapping the assigned jobs σ −1 (i) to a scalar. Svitkina and
+Fleischer [28] study this problem where the outer norm isp   φ = L∞ and show that there is no polynomial √ time
+algorithm that can achieve an approximation ratio of o( n/ log n). They also provide a factor O( n log n)
+approximation algorithm. When φ = L1 , the problem is known as the minimum submodular-cost allocation
+problem [12], and admits a tight O(log n)-approximation, with set cover being its special case [29]. This
+result implies a nontrivial approximation for the following setting of GLB. Let Topk be the top-k norm
+defined as follows: for any vector u ≥ 0, Topk (u) outputs the sum of the k largest entries in u. For each
+J ⊆ J , define pi [J] = {pij · 1[j ∈ J]}j∈J . It is easy to verify that f (J) = Topki (pi [J]) is a submodular
+set function for each ki ∈ [n] and pi ≥ 0. Thus, GLB with φ = L1 and ψi = Topki can be reduced to the
+minimum submodular-cost allocation problem and we readily obtain an O(log n)-approximation using the
+result in [29].
+    However, the reduction above does not work for general symmetric monotone inner norm ψi , since a
+general symmetric monotone norm does not necessarily induce a submodular set function. For example, let
+ψi (u) = max{2 Top1 (u) , Top3 (u)}, and pi = 1n (all processing time pij = 1). It is easy to see that ψi
+is indeed a symmetric monotone norm. However, assigning job-sets {j1 }, {j1 , j}, {j1 , j2 }, {j1 , j2 , j} incurs
+loads 2, 2, 2, 3, respectively. The property of diminishing marginal returns (see, e.g., [14]) is violated and the
+function f (J) = ψi (pi [J]) is not submodular.
+
+1.1    Our Contributions
+Motivated by the recent progress on unrelated machine scheduling problems with more general objectives,
+we study GLB systematically with different combinations of inner norms and outer norms. A summary of
+known and new results can be found in Figure 1.
+    The first natural question is whether it is possible to obtain constant factor approximation algorithms for
+GLB with general outer and inner norms. However, it is not difficult to see an Ω(log n) lower bound for GLB,
+even when ψi = L∞ and φ is simply the L1 norm, via reduction from the unweighted set cover problem.
+Formally, in an unweighted set cover instance, we are given a familySof m subsets S = {S1 , S2 , . . . , Sm } of
+[n], and the goal to find I ⊆ [m] with minimum cardinality such that i∈I Si = [n]. We identify m machines
+with [m] and n jobs with [n]. For each machine i ∈ [m] and job j ∈ [n], define the job size pij = 1 if j ∈ Si ,
+and ∞ if j ∈ / Si . The inner norms are ψi = L∞ for each i ∈ M, and the outer norm φ is simply the L1
+norm. It is easy to verify that, any assignment σ with a finite generalized makespan Φ(σ) corresponds to a
+solution Iσ = {i ∈ [m] : σ −1 (i) 6= ∅} to the set cover instance with the same objective, and vice versa. Using
+the NP-hardness of approximating set cover [13], we obtain the following theorem.
+Theorem 1. For every fixed constant  > 0, it is NP-hard to approximate GLB within a factor of (1−) ln n,
+even when φ = L1 and ψi = L∞ for each i ∈ M.
+   On the positive side, we show, somewhat surprisingly, that GLB with general inner and outer norms,
+admits an O(log n) factor approximation algorithm, almost matching the approximability of set cover, a
+very special case of GLB. This is the main technical result of this paper.
+Theorem 2. There exists a polynomial time randomized algorithm for GLB that, with high probability,
+outputs an O(log n)-approximate solution.
+
+    We also study another special case. In particular, we obtain an LP-based (3 + )-approximation for the
+special case where the outer norm φ is L∞ , and the inner norm is ψi = Topki , ki ∈ [n] for each machine
+i ∈ M. We provide details of this algorithm (Theorem 13) in the appendix.
+
+
+                                                        2
+            Machine load                 Generalized makespan (outer norm φ)
+            (inner norm ψi )      L1 (SUM)        L∞ (MAX)            SymMonNorm
+                                                       LB: 3/2 [21];               LB: 3/2 [21];
+           L1 (SUM)               trivial
+                                                       UB: 2 [21, 26]              UB: 2 +  [17]
+           L∞ (MAX)               LB: (1 − ) ln n     trivial
+                                    (Theorem 1);       LB: 3/2 [21]; UB: 3 +      LB: (1 − ) ln n
+           Topki norm             UB: O(log n) [29]                                  (Theorem 1);
+                                                         (Theorem 13)
+                                  LB: (1 − ) ln n                                 UB: O(log n)
+                                                       LB: 3/2 [21];
+           SymMonNorm               (Theorem 1);                                    (Theorem 2)
+                                  UB: O(log n) (Theorem 2)
+
+Figure 1: A summary of GLB cases with different objectives, where n is the number of given jobs. LB (lower
+bound) represents known inapproximability results, and UB (upper bound) represents current approximation
+guarantees. SymMonNorm refers to symmetric monotone norms.
+
+
+    Overview of our algorithm for Theorem 2. We devise a randomized rounding algorithm based on
+a novel configuration LP. A configuration is an arbitrary set of jobs. We create variables xi,J ∈ [0, 1] for
+each i ∈ M and J ⊆ J , indicating whether J is the configuration of i. Our goal is to obtain a fractional
+                       J
+solution x ∈ [0, 1]M×2 , such that its generalized makespan is bounded by some unknown optimal solution.
+To this end, using a standard technique (see, e.g., [10, 17]), we guess a logarithmic number of constraints,
+also referred to as “budget constraints”, and guarantee that at least one such guess produces a feasible LP
+that leads to a good approximate solution. We also add various ingredients to facilitate the later rounding
+procedure, by restricting the support size of vertex solutions, and including parameters to tighten and relax
+the constraints.
+    Though the number of variables is exponential, there are only a polynomial number of constraints, thus we
+consider solving its dual. Unfortunately, the dual constraints are difficult to separate exactly, so we consider
+approximate separation on another parameterized linear program Q, and employ the following round-or-cut
+framework, which has recently been a powerful tool in the design of approximation algorithms (see, e.g.,
+[2, 8, 9]): Suppose given any candidate dual solution y, we either find a violated constraint of Q, or certify
+that another differently parameterized program Q0 is feasible, then the ellipsoid algorithm, in polynomial
+time, either concludes that Q is infeasible, or that Q0 is feasible. By establishing an equivalence between
+the feasibility of Q (also Q0 ) and the original relaxation, and enumerating all possible Q, we can solve the
+primal relaxation up to a constant accuracy.
+    We use randomized rounding on the primal solution similar to weighted set cover (see, e.g., [30]), and as-
+sign all jobs with high probability. At this junction, we isolate two factors that affect the final approximation
+guarantee. The first arises from assigning multiple distinct configurations to the same machine, incurring a
+proportional approximation factor. The second comes from the violation of budget constraints in the primal
+relaxation by the integral solution, and the approximation ratio is proportional to the maximum factor of
+violation. These two factors add up to O(log n) in the rounding analysis, yielding our main result.
+    Finally, we highlight a useful subroutine for the so-called norm minimization with a linear constraint
+(NormLin) problem, which we employ in the approximate separation oracle. Roughly speaking, NormLin gen-
+eralizes the min-cost version of the knapsack problem with a value lower bound, using a symmetric monotone
+norm objective (see Section 4 for the precise definition). We devise a polynomial time approximation scheme
+(PTAS) for NormLin. To the best of our knowledge, this is the first known approximation algorithm for this
+problem, which may be useful in other context. Svitkina and Fleischer [28] consider
+                                                                                 p      a similar problem, where
+the objective is a submodular set function. They show a lower bound of Ω( n/ log n) (for any bi-criteria
+approximation), even for monotone submodular functions and 0-1 values.
+
+
+
+
+                                                       3
+1.2    Related Work
+In a closely related simultaneous optimization problem, one seeks a job assignment incurring a load vector
+that simultaneously approximates all optimums under different outer norms. Though no simultaneous α-
+approximate solutions exist for unrelated machines for any constant α, even for simple ψi = L1 inner norms
+[6], Alon et al. [1] give an algorithm in the case of restricted assignment (i.e., each job has a fixed size but
+can only be assigned to a subset of machines) and unit-size jobs, which is simultaneously optimal for all Lp
+norms. Azar et al. [6] extend this result to a simultaneous 2-approximation for all Lp norms under restricted
+assignment. This is generalized to a simultaneous 2-approximation (again in the restricted assignment
+setting) for all symmetric monotone norms by Goel and Meyerson [16].
+    Another relevant result is the generalized machine activation problem introduced by Li and Khuller [22],
+where a machine activation cost is incurred for each machine i, by applying a non-decreasing, piece-wise linear
+function ωi : R≥0 → R≥0 on the sum of job sizes assigned to i. They achieve a bi-criteria approximation
+guarantee on fractional solutions, and obtain various almost-tight application results.
+    The configuration LP is used in many allocation/assignment optimization problems, for example, the
+Santa Claus problem and fair allocation of indivisible goods [3, 4, 7, 15], and restricted scheduling on
+unrelated machines [18, 27].
+
+1.3    Organization
+We start by stating some notations and preliminaries in Section 2. In Section 3, we present our main LP-
+rounding algorithm, and the proof of Theorem 2. We provide the details of the approximate separation
+oracle in Section 4. Finally, we provide a constant factor approximation algorithm for a special case of GLB
+in the appendix.
+
+
+2     Preliminaries
+Throughout this paper, for vector u ∈ RX                  ↓
+                                             ≥0 , define u as the non-increasingly sorted version of u, and
+u[S] = {uj · 1[j ∈ S]}j∈X for each S ⊆ X . Let Topk : RX → R≥0 be the top-k norm that returns the sum
+of the k largest absolute values of entries in any vector, k ≤ |X |. Denote [n] as the set of positive integers
+no larger than n ∈ Z, and a+ = max{a, 0}, a ∈ R.
+
+Claim 3. ([17]). For each n-dimensional vector u ≥ 0 and k ∈ [n], one has
+                    n                   o
+                               (uj − t)+ = ku↓k +     (uj − u↓k )+ ,
+                           X                       X
+    Topk (u) = min kt +
+                  t≥0
+                             j∈[n]                     j∈[n]
+
+i.e., the minimum is attained at the k-th largest entry of u.
+    The following lemma is due to Goel and Meyerson [16].
+Lemma 4. ([16]). If u, v ∈ RX ≥0 and α ≥ 0 satisfy Topk (u) ≤ α · Topk (v) for each k ≤ |X |, one has
+ψ(u) ≤ α · ψ(v) for any symmetric monotone norm ψ : RX → R≥0 .
+    We need the following Chernoff bounds.
+Lemma 5. (Chernoff   Pbounds  (see, e.g., [25])).
+                                               PnLet X1 , . . . , Xn be independent Bernoulli variables with
+                      n
+E[Xi ] = pi . Let X = i=1 Xi and µ = E[X] = i=1 pi . For ν ≥ 6µ, one has Pr[X ≥ ν] ≤ 2−ν .
+
+
+3     The Generalized Load Balancing Problem
+In this section, we study GLB and prove Theorem 2. For clarity of presentation, we have not optimized the
+constant factors.
+
+
+
+
+                                                       4
+3.1        The Configuration LP
+Our algorithm is based on rounding polynomial many configuration LPs. In each configuration LP, instead of
+using the natural xij variables to indicate the job assignment, e.g., [21, 26], we create variables xi,J ∈ [0, 1]
+for each i ∈ M and J ⊆ J , indicating whether J is the set of jobs assigned to i. Similar configuration
+variables have been used in other allocation/assignment optimization problems [3, 4, 7, 15, 18, 27].
+    Fix an unknown optimal assignment σ ? : J → M. Let o = load(σ ? ) ∈ Rm            ≥0 be the optimal load
+vector and opt = φ(o) be the optimal objective thereof. We need to guess certain characteristics of the
+optimal solution (we will show there are polynomial many possible guesses), and for each guess we write a
+configuration LP P-LB(R, λ, τ ). Here R, λ, τ are the parameters we need to adjust, and we explain them
+later.
+    We first explain constraints (P-LB .1), which can be used to bound the φ-norm. Using Lemma 4, to obtain
+an O(log n)-approximate solution, it suffices to obtain a load vector load(σ) ∈ Rm ≥0 such that Topk (load(σ))
+is bounded by O(log n) · Topk (o) for each k ∈ [m]. Rather than bounding the top-k norms for each k, we use
+the trick developed in [10, 17], focusing on a subset of geometrically-placed indexes of [m], e.g., all integer
+powers of 2 smaller than m. Let POS ⊆ [m] be this index subset (which we define formally later). Our LP
+seeks a fractional solution that (roughly) has Topk norm at most Topk (o) for each k ∈ POS.
+
+
+          min                                                        0                              (P-LB(R, λ, τ ))
+                                                               +
+                                  X
+          s.t.          kρk +             (h(ψi (J)/τ ) − ρk ) xi,J ≤ Topk (~
+                                                                            %)         ∀k ∈ POS           (P-LB .1)
+                                i∈M,J⊆J
+                                                           X
+                                                                   xi,J ≤ 1   ∀i ∈ M                      (P-LB .2)
+                                                           J⊆J
+                                                         X
+                                                                   xi,J ≥ λ   ∀j ∈ J                      (P-LB .3)
+                                                      i∈M,J3j
+                                                       X
+                                                                   xi,J ≤ 0                               (P-LB .4)
+                                                  (i,J):ψi (J)>τ
+                                                        X
+                                                                   xi,J ≤ n                               (P-LB .5)
+                                                     i∈M,J⊆J
+
+                                                                     x ≥ 0.
+
+     To write linear constraints on such Topk norms, we utilize Claim 3 and work with close estimates of
+o↓k , k ∈ POS, denoted by vector R = {ρk }k∈POS ∈ RPOS           ≥0 (formally defined later). With a slight abuse
+of  notation,  denote  ψ i (J) = ψ i (p i [J]) as the ψ i -norm of assigning job-set J to machine i. We use kρk +
+                            +
+P
+   i∈M,J⊆J (ψi (J)−ρk ) xi,J to represent the Topk norm of LP solution x. We also use a certain “expansion”
+~ ∈ Rm
+%      ≥0 of {ρk }k∈POS (proposed in [17]) as an upper bound vector, as shown in constraint (P-LB .1).
+     We need another important ingredient, that is to tighten the above-mentioned Topk norm constraints by
+rounding up each ψi (J) to the nearest value in R. Let h : R≥0 → R≥0 be this round-up function determined
+by R (See Fig. 2). Though this may create an unbounded gap between h(ψi (J)) and ψi (J), the new LP is
+still feasible under suitable parameters. This rounding-up process is technically useful in our final analysis
+of randomized rounding.
+     The configuration LP is parameterized by R (therefore %       ~ and h are also determined), a constant 0 ≤ λ ≤ 1
+and a parameter τ ≥ 1. As explained above, the constraints (P-LB .1) are for bounding Topk norms. Note
+that each ψi (J) is scaled by τ −1 ≤ 1, due to our approximate procedure of solving the LP (see Section 3.2).
+(P-LB .2) says each machine can be selected to an extent of at most 1. (P-LB .3) says each job needs to be
+assigned to an extent of at least λ ≤ 1, relaxed again because of our approximate procedure. In (P-LB .4),
+each assignment (i, J) that incurs a cost larger than τ is set to 0 (similar to the parametric pruning trick
+used in classic unrelated machine scheduling problems [21, 26]). In (P-LB .5), the total extent of assignment
+over all possible (i, J) is at most n, because there are only n jobs. This constraint, together with (P-LB .2),
+further limits the support size of vertex solutions, which will be crucial for optimizing our approximation
+ratio. We also have the obvious constraints x ≥ 0.
+
+
+                                                           5
+       ϱ
+       ⃗                                                                 y
+
+                                                                      20
+ 2−1
+ 2−2                                                                 2−1
+                                                                     2−2
+ 2−4                                                                                   h(x)
+                                                                     2−4
+
+
+
+
+                                                                                       y=x
+2−10
+                                                                      −10
+                                                                     2
+
+
+       ρ1 ρ2   ρ4           ρ8                      ρ16                       2−10               2−4   2−2 2−1 20   x
+
+    ~ ∈ R16
+(a) %    ≥0 , where the entries are non-increasing and rep-         (b) The round-up function h. The axes are both
+resented using rectangles with unit width.                          in logarithmic scale.
+
+Figure 2: An example when m = 16 and POS = {1, 2, 4, 8, 16}.                         Here our guess is R =
+(2−1 , 2−2 , 2−4 , 2−4 , 2−10 ), which induces its expansion %
+                                                             ~ and the corresponding round-up function h.
+
+
+    The guessing step. We need some additional notations. Let POS = {min{2s , m} : s ∈ Z≥0 }. We have
+1, m ∈ POS, POS ⊆ [m] and |POS| ≤ log2 m + 2. For each k ∈ [m], define next(k) as the smallest number in
+POS that is larger than k, and next(m) = m + 1; prev(k) as the largest number in POS that is smaller than
+k, and prev(1) = 0.
+    Recall σ ? is an optimal assignment. We guess the machine i? with the largest loadi? (σ ? ), and the job
+j = arg maxσ? (j)=i? pi? j (i.e., j ? is the job assigned to machine i? with largest processing time). Assume
+ ?
+
+w.l.o.g. that ψi? ({j ? }) = 1/n. Since the norms are monotone, one has loadi (σ ? ) ≤ ψi? (pi? j ? · 1n ) ≤
+n · ψi? (pi? j ? · ej ? ) = n · ψi? ({j ? }) = 1 for each i ∈ M, where ej ? is the zero vector except that the j ? -th
+coordinate is 1. Thus, we can assume o ∈ [0, 1]m in the following discussion. In the remainder of this section,
+we assume i? and j ? are correctly guessed (it is easy to see there are only polynomial number of possible
+guesses).
+    We now guess a non-increasing vector R = {ρk }k∈POS ∈ RPOS        ≥0 , where
+
+  (i) each ρk is an integer power of 2 in [1/(2mn), 1],
+
+ (ii) there are at most log2 n + 4 distinct entries in R.
+The length is |POS| = O(log m) and the number of possible values is the number of integer powers of 2
+in [1/(2mn), 1], which is O(log(mn)). The number of such possible non-increasing vectors is at most the
+number of natural number (i.e., Z≥0 ) solutions to the simple equation n1 + n2 + · · · + nO(log(mn)) = O(log m),
+thus O(log(mn))
+                 
+        O(log m)
+                   ≤ 2O(log(mn)) = (mn)O(1) .
+    We do not make any additional assumptions on R for now. For each R, we define a non-increasing vector
+~ ∈ Rm
+%     ≥0 as its expansion (similar to [17]), and a non-decreasing function h : R≥0 → R≥0 satisfying h(x) ≥ x
+for x ≥ 0 (see Fig. 2 for an example), where
+                                              
+                                              min{t ∈ R : t ≥ x} x ≤ max{t ∈ R}
+               ρk       k ∈ POS
+      %
+      ~k =                            h(x) =              1           x ∈ (max{t ∈ R}, 1]
+               ρprev(k) k ∈/ POS,
+                                                         x            x > 1.
+                                              
+
+
+
+   The dual program. The number of variables in P-LB(R, λ, τ ) is exponential but the number of
+constraints is polynomial, thus we consider its dual as follows, and try to solve it using the ellipsoid method.
+
+
+                                                          6
+The dual variables are {rk }k∈POS , {yi }i∈M , {zj }j∈J , s, t.
+              X                             X            X
+     max −         (Topk (~%) − kρk ) rk −       yi + λ        zj − nt                                         (D-LB(R, λ, τ ))
+                  k∈POS                               i∈M         j∈J
+                                                             +
+               X                    X
+        s.t.         zj − yi −           (h(ψi (J)/τ ) − ρk ) rk ≤ s · 1[ψi (J) > τ ] + t     ∀i ∈ M, J ⊆ J
+               j∈J               k∈POS
+
+               r, s, t, y, z ≥ 0.
+
+    It is unclear how to separate the dual constraints exactly. We transform D-LB(R, λ, τ ) into another
+feasibility problem that is easier to deal with. We observe the following: if P-LB(R, λ, τ ) is feasible, the
+optimum of D-LB(R, λ, τ ) is also zero. Because the dual program has a trivial zero solution and the con-
+straints are scale-invariant (i.e., if (r, s, t, y, z) is feasible, (cr, cs, ct, cy, cz) is feasible for any c ≥ 0), it either
+has optimum zero or is unbounded. Thus P-LB(R, λ, τ ) is feasible if and only if D-LB(R, λ, τ ) is bounded,
+which is equivalent to the following polytope being empty.
+       n
+         (r, s, t, y, z) ≥ 0                                                                                    (Q(R, λ, τ ))
+            X                              X            X
+       −           (Topk (~%) − kρk ) rk −      yi + λ       zj − nt ≥ 1;
+          k∈POS                                i∈M          j∈J
+                                                                                                          o
+                                                                        +
+                                               X                                  X
+       − yi ≤ s · 1[ψi (J) > τ ] + t +                (h(ψi (J)/τ ) − ρk ) rk −         zj , ∀i ∈ M, J ⊆ J .
+                                              k∈POS                               j∈J
+
+Observation 6. P-LB(R, λ, τ ) is feasible if and only if Q(R, λ, τ ) is empty.
+
+3.2     Rounding and Analysis
+Next, we employ a round-or-cut argument, similar to [2]. Intuitively speaking, we run the ellipsoid algorithm
+on a particular Q(R, λ, τ ). In each iteration, we either find a separating hyperplane, or directly certify that
+another Q(R, λ0 , τ 0 ) is non-empty, which implies that P-LB(R, λ0 , τ 0 ) is infeasible by Observation 6. We
+then pick R properly so that the latter cannot happen, therefore certify in polynomial time that Q(R, λ, τ )
+is indeed empty. This in turn helps us to efficiently compute a feasible solution to P-LB(R, λ, τ ).
+    For clarity of presentation, we focus on two sets of parameters in the remainder of this section, (λ, τ ) ∈
+{(1/2, 3/2), (1, 1)}. We emphasize that this only affects the constant factors in the final analysis. We need
+the following core lemma on an approximate separation oracle for Q(R, 1/2, 3/2), and defer its proof to
+Section 4. The rest of this section is dedicated to the proof of our main theorem.
+Lemma 7. Fix R. There exists a polynomial time algorithm that, given (r, s, t, y, z) ≥ 0, either outputs a
+violated constraint in Q(R, 1/2, 3/2), or certifies that Q(R, 1, 1) is non-empty.
+Proof of Theorem 2. We enumerate all possible estimates R. Consider the choice of R = {ρk }k∈POS such
+that the following holds,
+  (i) ρk ∈ [o↓k , 2o↓k ) for k ∈ POS s.t. o↓k ≥ o↓1 /(2m),
+                        ↓
+ (ii) ρk = 2dlog2 (o1 /(2m))e ∈ [o↓1 /(2m), o↓1 /m] for k ∈ POS s.t. o↓k < o↓1 /(2m).
+    Notice that such a vector is uniquely determined by o. We denote it by R? = {ρ?k }k∈POS . We show that
+our exhaustive search is guaranteed to run procedures on R? . First, according to our initial guesses, one has
+o↓1 ≥ ψi? ({j ? }) = 1/n, o↓1 ≤ 1, therefore (recall that each number in R? is an integer power of 2) ρ?1 ≤ 1,
+ρ?k ≥ o↓1 /(2m) ≥ 1/(2mn) for each k ∈ POS, all falling into our guessing range [1/(2mn), 1]. Then, there
+are at most n non-zero entries in o, since the number of jobs is n. Hence, for k ∈ POS and k > n, one has
+o↓k = 0, and the number of distinct entries indexed by POS ∩ [n] is at most log2 n + 3. This implies that the
+number of distinct entries in R? is at most log2 n + 4. Suppose R = R? in what follows.
+    For a starting point (r, s, t, y, z), we repeatedly call the separation oracle in Lemma 7 and use the ellipsoid
+algorithm to modify the solution. If the oracle always returns a violated constraint as a separating hyperplane,
+
+
+                                                                   7
+we eventually obtain that, for a polynomial-sized subset H ⊆ M × 2J , the following polytope is empty,
+     n
+       (r, s, t, y, z) ≥ 0                                                                     (QH (R, 1/2, 3/2))
+          X                               X       1X
+      −          (Topk (~%) − kρk ) rk −     yi +        zj − nt ≥ 1;
+                                                  2
+        k∈POS                            i∈M        j∈J
+                                                                                            o
+                                                                    +
+                                           X                              X
+      − yi ≤ s · 1[ψi (J) > 3/2] + t +          (h(2ψi (J)/3) − ρk ) rk −   zj , ∀(i, J) ∈ H .
+                                          k∈POS                            j∈J
+
+Following a similar argument as Observation 6, by removing constraints in D-LB(R, 1/2, 3/2) that are indexed
+by M × 2J \ H and obtaining a polynomial-sized LP D-LBH (R, 1/2, 3/2), the latter is bounded. Thus, its
+dual P-LBH (R, 1/2, 3/2) is feasible with a polynomial number of variables indexed by H. We directly solve
+P-LBH (R, 1/2, 3/2) and obtain a vertex solution x̂. It is easy to see that x̂ is feasible to P-LB(R, 1/2, 3/2),
+because P-LBH (R, 1/2, 3/2) can be obtained from P-LB(R, 1/2, 3/2) by eliminating all variables that are
+NOT indexed by H.
+    We look at the tight constraints at x̂ among (P-LB .2) and (P-LB .5). If m ≤ n, the number is at most
+m + 1; if m > n, the number of tight ones in (P-LB .2) is at most n, otherwise (P-LB .5) is violated. Hence
+there are at most min{m, n} + 1 tight constraints among them at x̂. Since there are at most log2 n + 4
+distinct entries in R hence (P-LB .1), the total number of non-trivial tight constraints at x̂ is at most 3n + 5,
+and the support size of x̂ is at most 3n + 5 (see, e.g., [20]). Denote the support of x̂ by Ĥ ⊆ H.
+    Another possibility is that, in some iteration of the ellipsoid algorithm, the oracle certifies that Q(R, 1, 1)
+is non-empty, and P-LB(R, 1, 1) is infeasible due to Observation 6. We show that this is impossible given
+the choice of R = R? . Indeed, we first notice the following.
+  (i) for k ∈ POS, since ρk ∈ R and ρk ≥ o↓k , we have %
+                                                       ~k = ρk ≥ h(o↓k ),
+
+      ~k = ρprev(k) ≥ h(o↓prev(k) ) ≥ h(o↓k ) when k ∈
+ (ii) %                                              / POS,
+
+thus %~ and h(o↓ ) (apply h element-wise) are both non-increasing and %
+                                                                      ~ ≥ h(o↓ ). From the optimal assignment
+σ ? : J → M, we let x?i,J = 1 if J = {j : σ ? (j) = i} and 0 otherwise. Fix k ∈ POS in (P-LB .1) of
+                                                                                             +
+P-LB(R, 1, 1). The LHS at x? is kρk + s∈[m] (h(o↓s ) − ρk )+ ≤ kρk + s∈[m] (~
+                                           P                               P
+                                                                                    %s − ρk ) = Topk (~%) , via
+                                                 ↓
+Claim 3, the definition of % ~, and that %
+                                         ~ ≥ h(o ) is non-increasing. Other constraints in P-LB(R, 1, 1) are
+easily satisfied by x? . Therefore P-LB(R, 1, 1) must be feasible, a contradiction.
+    In conclusion, when R = R? , we obtain a feasible solution x̂ to P-LB(R, 1/2, 3/2) with support size
+|Ĥ| ≤ 3n + 5. We proceed to use randomized rounding to obtain a feasible assignment of jobs. Let I ← ∅
+and T = d6 ln ne. For each t = 1, . . . , T and each (i, J) ∈ Ĥ, set I ← I ∪ {(i, J)} independently with
+probability x̂i,J .
+                                                                P
+   The Machine Duplicates. For each i ∈ M, we have                  J:(i,J)∈Ĥ x̂i,J ≤ 1 using the constraint
+(P-LB .2). Therefore for the number of appearances of i in I, one has
+                              X                           X
+     E[|{J : (i, J) ∈ I}|] =       1 − (1 − x̂i,J )T ≤ T        x̂i,J ≤ T,
+                             J:(i,J)∈Ĥ                       J:(i,J)∈Ĥ
+
+
+using Bernoulli’s inequality. Hence, using Chernoff bound in Lemma 5, on random variables 1[(i, J) ∈
+I], (i, J) ∈ Ĥ, one has
+                                                               
+                                           X
+       Pr[|{J : (i, J) ∈ I}| > 6T ] = Pr    1[(i, J) ∈ I] > 6T  ≤ 2−6T ≤ 1/(n24 ).              (1)
+                                           J:(i,J)∈Ĥ
+
+
+Note that since |Ĥ| ≤ 3n + 5, at most 3n + 5 machines can possibly have a non-zero number of appearances
+in I. For any other machine i, we always have |{J : (i, J) ∈ I}| = 0.
+
+
+
+                                                        8
+    The Coverage of Jobs. For each j ∈ J , the probability of it not being contained in any selected J
+in I is
+        Y                    Y
+             (1 − x̂i,J )T ≤       exp(−T x̂i,J )
+     (i,J)∈Ĥ:J3j                    (i,J)∈Ĥ:J3j
+                                                        X           
+                                  = exp − T                     x̂i,J ≤ exp(−T /2) ≤ 1/n3 ,                 (2)
+                                                (i,J)∈Ĥ:J3j
+                                           P
+where we use (P-LB .3) and obtain             (i,J)∈Ĥ:J3j x̂i,J ≥ 1/2 in the penultimate inequality.
+
+
+    The Norm Constraints. According to (P-LB .4), x̂i,J > 0 implies ψi (J) ≤ 3/2 thus h(2ψi (J)/3) ≤
+h(1) = 1. Define subsets Ĥt = {(i, J) ∈ Ĥ : h(2ψi (J)/3) = 2t } where t = 0 or 2t is an entry in R. Let the
+subsets be indexed by t ∈ PWR ⊆ Z≤0 , then |PWR| ≤ log2 n + 5 since there are at most log2 n + 4 distinct
+                 S
+entries in R, and t∈PWR Ĥt = Ĥ because h(2ψi (J)/3) ≤ 1 for each (i, J) ∈ Ĥ. For each t ∈ PWR, we define
+a random variable Yt = |Ĥt ∩ I| and obtain
+                X                           X
+      E[Yt ] =       1 − (1 − x̂i,J )T ≤ T        x̂i,J ,
+                (i,J)∈Ĥt                           (i,J)∈Ĥt
+
+via Bernoulli’s inequality. Using Markov’s inequality, with probability at least 1/2, one has Yt ≤ 2E[Yt ].
+Since these (at most) log2 n + 5 random variables {Yt : t ∈ PWR} are independent, there is a probability at
+least 1/(32n) that Yt ≤ 2E[Yt ] for all t ∈ PWR. Suppose this happens. Then for each k ∈ POS, because x̂
+satisfies (P-LB .1), we have
+         X                            X       X                  X
+             (h(2ψi (J)/3) − ρk )+ =               (2t − ρk )+ =      Yt · (2t − ρk )+
+      (i,J)∈I                              t∈PWR (i,J)∈I∩Ĥt                   t∈PWR
+           X                                   X          X
+                             t      +                                     t   +
+      ≤           2E[Yt ](2 − ρk ) ≤ 2T                          x̂i,J (2 − ρk ) ≤ 2T (Topk (~
+                                                                                             %) − kρk ) .   (3)
+          t∈PWR                              t∈PWR (i,J)∈Ĥt
+
+
+    Putting it all together. Using (1)(2)(3) and the union bound, for large enough n, with probability
+at least 1/(32n) − (3n + 5)/(n24 ) − 1/n2 ≥ 1/(64n), the following facts hold:
+ (a) for each i ∈ M, |{J : (i, J) ∈ I}| ≤ 6T ≤ 38 ln n,
+ (b) for each j ∈ J , ∃(i, J) ∈ I s.t. j ∈ J,
+                         P                         +
+ (c) for each k ∈ POS, (i,J)∈I (h(2ψi (J)/3) − ρk ) ≤ 14 ln n (Topk (~
+                                                                     %) − kρk ).
+
+    We repeat the randomized rounding 64n times, and boost the success probability to at least 1 − (1 −
+1/(64n))64n ≥ 1 − e−1 ≥ 0.6. Suppose (a)(b)(c) hold in the rest of thisSsection. Next, S    we merge all
+configurations that are identified with the same machine in I, that is, Ji ← J:(i,J)∈I J and i∈M Ji = J
+according to (b). We only merge O(log n) configurations for each machine using (a). We also have the
+following subadditivity
+
+     ψi (J1 ) + ψi (J2 ) ≥ ψi (pi [J1 ] + pi [J2 ]) ≥ ψi (pi [J1 ∪ J2 ]) = ψi (J1 ∪ J2 ),
+
+from the triangle inequality on the norm ψi , and s+ + t+ ≥ (s + t)+ for any s, t ∈ R. Since h(x) ≥ x for all
+x ≥ 0, one has for each k ∈ POS,
+                                                                                            +
+                                       +
+      X                                      X     X
+          (2ψi (Ji )/3 − 38 ln n · ρk ) ≤(a)            2ψi (J)/3 − |{J : (i, J) ∈ I}| · ρk 
+      i∈M                                               i∈M   J:(i,J)∈I
+                                                    +
+          X       X
+      ≤                     (h(2ψi (J)/3) − ρk ) ≤(c) 14 ln n (Topk (~
+                                                                     %) − kρk ) .
+          i∈M J:(i,J)∈I
+
+
+
+                                                                   9
+    Define a vector v ∈ Rm
+                         ≥0 where vi = ψi (Ji ) for each i ∈ M. For each k ∈ POS, via Claim 3, we have
+                                          X
+      Topk (v) ≤ k · (57 ln n · ρk ) +          (ψi (Ji ) − 57 ln n · ρk )+
+                                          i∈M
+                ≤ 57 ln n · kρk + 21 ln n (Topk (~
+                                                 %) − kρk ) ≤ 57 ln n · Topk (~
+                                                                              %) .
+
+    Then for k ∈
+               / POS, one has k < next(k) < 2k and thus
+
+      Topk (v) ≤ Topnext(k) (v) ≤ 57 ln n · Topnext(k) (~
+                                                        %) ≤ 114 ln n · Topk (~
+                                                                              %) ,
+
+and the two inequalities above show that φ(v) ≤ O(log n) · φ(~
+                                                             %) using Lemma 4. By our initial assumption
+            ?                   ↓   ↓
+that R = R , we have % ~k ≤ 2ok + o1 /m for each k ∈ POS, and we now compare φ(~%) and opt = φ(o). First
+for k ∈ POS, because %~ is non-increasing, we have
+                   X               X
+      Topk (~
+            %) =            %
+                            ~s +          %
+                                          ~s + %
+                                               ~k
+                  s<k,s∈POS        s<k,s∈POS
+                                        /
+
+                                                                               o↓1
+                                                      o↓prev(s) + 2o↓k + k ·
+                       X                    X
+               ≤2               o↓s + 2
+                                                                               m
+                    s<k,s∈POS             s<k,s∈POS
+                                               /
+
+               ≤ o↓1 + 2o↓k + 2
+                                     X
+                                                (next(s) − s)o↓s
+                                  s<k,s∈POS
+
+               ≤ o↓1 + 2o↓k + 2o↓1 + 2
+                                                 X
+                                                           2(s − prev(s))o↓s
+                                           1<s<k,s∈POS
+
+                                                                 o↓s0 = 4 Topk (o) ,
+                       X                                  X
+               ≤4               (s − prev(s))o↓s ≤ 4
+                    s≤k,s∈POS                            s0 ≤k
+
+
+where we use that o↓ is non-increasing, and next(k) − k ≤ 2(k − prev(k)) for each k ∈ POS, by definition of
+POS. Then for k ∈
+                / POS, likewise we obtain
+
+      Topk (~
+            %) ≤ Topnext(k) (~
+                             %) ≤ 4 Topnext(k) (o) ≤ 8 Topk (o) ,
+
+whence it follows  S that φ(~
+                            %) ≤ 8φ(o) by Lemma 4 again, and φ(v) ≤ O(log n) · φ(o). Since the norms are
+monotone and i∈M Ji = J , any assignment induced by these subsets reveals the same approximation ratio.
+That is, one can easily obtain a job assignment σ : J → M such that σ −1 (i) ⊆ Ji for each i ∈ M, thus
+pi [σ] ≤ pi [Ji ] and
+
+      Φ(σ) = φ({ψi (pi [σ])}i∈M ) ≤ φ({ψi (pi [Ji ])}i∈M ) = φ(v) ≤ O(log n) · opt.
+
+
+4     The Approximate Separation Oracle
+In this section, we provide details of the claimed separation oracle in Lemma 7. As a useful subroutine, we
+consider the following norm minimization with a linear constraint problem and obtain a PTAS, which may
+be of independent interest.
+Definition 8. (NormLin). Given a symmetric monotone norm ψ : Rn → R≥0 , two non-negative n-
+dimensional vectors
+                 P p = {pj }j∈[n] , z = {zj }j∈[n] , and a non-negative real number Z, the goal is to find
+J ⊆ [n] such that j∈J zj ≥ Z, so as to minimize ψ(p[J]).
+Theorem 9. There exists a polynomial time approximation scheme for NormLin.
+    We first show the separation oracle in Section 4.1, then prove Theorem 9 in Section 4.2.
+
+
+
+
+                                                                  10
+4.1     Proof of Lemma 7
+Fix the solution (r, s, t, y, z). If it violates the first constraint in Q(R, 1/2, 3/2), we directly choose it as a
+separating hyperplane. If not, we try to approximately verify the second set of constraints, which is the crux
+of this lemma.
+    We noticeP that, for each such constraint, the LHS is determined by i, and the RHS is determined by
+ψi (J) and j∈J zj . Therefore, we consider a surrogate optimization           P    problem as follows: for each Z ≥ 0,
+we want to check whether there exist i ∈ M, J ⊆ J such that j∈J zj ≥ Z, ψi (J) is minimized, and the
+corresponding constraint in Q(R, 1/2, 3/2) is violated. Unfortunately, there are an exponential number of
+possible values for Z, so we can only consider a small subset of approximate values.
+    Fix i ∈ M. We enumerate the largest variable zj in the chosen set j ∈ J, and consider           Pminimizing ψi (J)
+restricted to jobs J≤j := {j 0 ∈ J : zj 0 ≤ zj }. After we fix zj , the possible values of j∈J zj fall in the
+interval [zj , nzj ], so we enumerate Z ∈ {zj , 2zj , 4zj , . . . , 2s zj }, where
+                                                                               P s ∈ Z is the smallest integer such that
+2s ≥ n. The problem now becomes to minimize ψi (J) subject to j∈J zj ≥ Z and J ⊆ J≤j .
+    This is an instance of NormLin. By Theorem   P       9, for each sub-problem above, if it is feasible w.r.t. Z,
+in polynomial time we obtain J such that j∈J zj ≥ Z and ψi (J) is at most 3/2 times the optimum. If,
+among the output solutions, there exist i, J that violate the said constraint in Q(R, 1/2, 3/2), we output
+the corresponding separating hyperplane; otherwise, though the optimization above is approximate, we still
+certify the following,
+                                          X                         +      1X
+      −yi ≤ s · 1[ψi (J) > 1] + t +             (h(ψi (J)) − ρk ) rk −        zj , ∀i ∈ M, J ⊆ J .                           (*)
+                                                                           2
+                                        k∈POS                                  j∈J
+
+   To see this, for the sake of contradiction, suppose
+                                                     P there exist i, J that violate (*). When we enumerate
+the correct j = arg maxj 0 ∈J {zj 0 } and Z such that j∈J zjP∈ [Z, 2Z), since J is a feasible solution in this
+case, according to our supposition, we obtain J 0 such that j∈J 0 zj ≥ Z and ψi (J 0 ) ≤ 3ψi (J)/2. But using
+the assumption of violating (*), one has
+
+                                  X   ψi (J 0 )        +      X
+      s · 1[ψi (J 0 ) > 3/2] + t +       h           − ρk    rk −       zj
+                                              3/2
+                                 k∈POS                            j∈J 0
+                                                        +
+                                  X
+       ≤ s · 1[ψi (J) > 1] + t +       (h(ψi (J)) − ρk ) rk − Z
+                                     k∈POS
+                                      X                      +          1X
+       ≤ s · 1[ψi (J) > 1] + t +             (h(ψi (J)) − ρk ) rk −        zj < −yi ,
+                                                                        2
+                                     k∈POS                               j∈J
+
+violating this constraint in Q(R, 1/2, 3/2), and we should output this hyperplane defined by (i, J 0 ) in the
+first place, which is a contradiction.
+    Let (r0 , s0 , t0 , y 0 , z 0 ) = (r, s, t, y, z/2). Since by now the first constraint in Q(R, 1/2, 3/2) must be satisfied
+by (r, s, t, y, z), using (*), it is easy to verify that (r0 , s0 , t0 , y 0 , z 0 ) satisfies all the constraints in Q(R, 1, 1),
+hence it is non-empty.
+
+4.2     Norm Minimization with a Linear Constraint
+W.l.o.g., assume p > 0, otherwise the problem can be easily reduced to such an instance. We fix a small
+constant  ∈ (0, 1/2] and round each pj up to its nearest integer power of 1 +  and solve the new instance.
+This causes us to lose a factor of at most 1 +  in the objective since ψ is a monotone norm. Fix an unknown
+optimal solution J ? to the modified instance with o = p[J ? ] and ψ(o) ≤ (1 + )opt, where opt ≥ 0 is the
+optimum in the original instance.
+    To obtain a solution J with objective ψ(p[J]) bounded by (1 + O())ψ(o), we use the same technique as
+in Section 3 and consider the Topk norms of p[J]. As before, we start with some guessing procedures similar
+to Section 3.1, but with several subtle differences for obtaining a PTAS. Note that we abuse some of the
+notations in Section 3.1 for convenience. They play very similar roles, but may be defined slightly differently
+from those in Section 3.
+
+
+
+                                                               11
+    Guessing the optimum. We guess the largest pj1 , j1 ∈ J ? , the largest zj2 , j2 ∈ J ? , and suppose
+w.l.o.g. that o↓1 = pj1 = 1, zj2 = 1. We assume j1 , j2 are correctly guessed in the sequel (it is easy to see
+there are only polynomial number of possible choices).
+    Define indexes POS ⊆ [n] iteratively as follows [17]: Set POS ← {1}. Whenever n ∈    / POS, choose the
+current largest t ∈ POS and add d(1 + )te to POS but no larger than n, i.e.,
+
+     POS ← POS ∪ {min{n, d(1 + ) max{t ∈ POS}e}},
+
+and it is easy to verify |POS| = O(log1+ n). For each k ∈ [n], define next(k) as the smallest number in POS
+that is larger than k, and next(n) = n + 1; prev(k) as the largest number in POS that is smaller than k, and
+prev(1) = 0. Using POS, we guess the following.
+
+ (1) A non-increasing vector R = {ρk }k∈POS ∈ RPOS
+                                               ≥0 such that each entry is a non-positive integer power
+     of (1 + ), and
+
+       (i) ρk = o↓k for k ∈ POS s.t. o↓k ≥ /n,
+      (ii) ρk = (1 + )dlog1+ (/n)e for k ∈ POS s.t. o↓k < /n.
+     Since |POS| = O(log1+ n) and the number of possible values is O(log1+ (n/)), the number of such
+                               O(log1+ (n/))
+     non-increasing vectors is O(log      n)
+                                                ≤ 2O(log1+ (n/)) = (n/)O(1/) , using a basic counting method
+                                       1+
+
+     as before. We use exhaustive search and assume R is correct w.r.t. o↓ in what follows. Define a
+     non-decreasing function h : R≥0 → R≥0 where
+                  
+                     min{t ∈ R : t ≥ x} x ≤ max{t ∈ R}
+          h(x) =
+                             x          x > max{t ∈ R}.
+
+     We notice that h(x) ≥ x holds for any x ≥ 0, and h(x) ≤ 1 for each x ≤ 1 since ρ1 = o↓1 = 1 is the
+     largest entry in R according to our guesses.
+ (2) We start with PWR ← ∅. Given R and h, for each s ∈ Z such that (1 + )s ∈ R, PWR ← PWR ∪ {s}.
+     We have PWR ⊆ Z≤0 since o↓1 = 1 and thus R ⊆ [0, 1]POS .
+     Define a partition C = {Ct : t = −1, 0, . . . , d1/e} of PWR as follows: For each s ∈ PWR, guess
+     whether the number of indexes in J ? (i.e., the optimum) such that h(pj ) = (1 + )s is > d1/e. If
+     so, C−1 ← C−1 ∪ {s}; otherwise, guess 0 ≤ t ≤ d1/e as this number and Ct ← Ct ∪ {s}. Since
+     |PWR| ≤ |POS| = O(log1+ n) and there are d1/e + 2 classes, the number of possible partitions is at
+                                 −1
+     most (1/)O(log1+ n) = nO( log(1/)) . We use exhaustive search and assume C is correct w.r.t. J ? in
+     what follows.
+    We use R to construct an entry-wise upper bound for o, using which we write linear constraints and
+bound the Topk norms of an LP solution, k ∈ POS; h is a round-up function that naturally classifies [n]
+into O(log1+ n) classes according to h(pj ), j ∈ [n]. Crucially, we use C to guess the number of selected
+indexes of each class in the optimum J ? , and only attempt to exactly match the numbers for those classes
+with a selected cardinality ≤ d1/e. That is, if a class contains > d1/e indexes in J ? , it is added to C−1 .
+This “meta-classification” of classes is useful in our analysis of the approximation factor for deterministic
+rounding.
+    Similar as before, we define a non-increasing expansion vector % ~ ∈ Rn≥0 , where %
+                                                                                      ~k = ρk if k ∈ POS, and
+                                          ↓
+%
+~k = ρprev(k) if k ∈
+                   / POS. Since ρk ≥ ok for each k ∈ POS and ρk ∈ R, it follows that %        ~k = ρk ≥ h(o↓k )
+                                      ↓             ↓
+when k ∈ POS, %   ~k = ρprev(k) ≥ h(oprev(k) ) ≥ h(ok ) for each k ∈
+                                                                   / POS and thus %  ~ ≥ h(o↓ ). We need the
+following result. The lemma is implied by Lemma 2.7 in [17], and we provide the proof in Appendix A for
+completeness.
+
+Lemma 10. (Lemma 2.7, [17]). ψ(~
+                               %) ≤ (1 + 11)ψ(o).
+
+
+
+
+                                                       12
+    LP relaxation. The following relaxation uses the variable xj ≥ 0 to represent the extent we include
+j ∈ [n] in the solution. Similar to our main relaxation P-LB(R, λ, τ ), it attempts to bound the norm objective
+via (NLin. 1), using Topk norms and Lemma 4. We also have constraints (NLin. 3), (NLin. 4) that restrict
+the number of indexes selected in the classes {j ∈ [n] : h(pj ) = (1 + )s }, s ∈ PWR, as mentioned above.
+
+      min                                          0                                                               (NLin)
+                      X
+       s.t.               (h(pj ) − ρk )+ xj ≤ Topk (~
+                                                     %) − kρk                      ∀k ∈ POS                      (NLin. 1)
+                     j∈[n]
+                                      X
+                                             zj xj ≥ Z                                                           (NLin. 2)
+                                     j∈[n]
+                                   X
+                                               xj = t                              ∀s ∈ Ct , 0 ≤ t ≤ d1/e       (NLin. 3)
+                             j:h(pj )=(1+)s
+                                   X
+                                               xj ≥ 1 + d1/e                      ∀s ∈ C−1                      (NLin. 4)
+                             j:h(pj )=(1+)s
+
+                                               xj = 0                              ∀j s.t. pj > 1 or zj > 1      (NLin. 5)
+                                                               [n]
+                                                   x ∈ [0, 1] .
+
+Claim 11. NLin is feasible.
+Proof. Set x?j = 1 if j ∈ J ? and zero otherwise. It is easy to see that all but the first set of constraints are
+satisfied by x? . For (NLin. 1), we fix k ∈ POS. The LHS is
+                                                             +
+       X                      X                  X
+           (h(o↓s ) − ρk )+ ≤     % s − ρk ) + =
+                                 (~                (~
+                                                    %s − ρk ) = Topk (~%) − kρk ,
+      s∈[n]                       s∈[n]                      s≤k
+
+
+where we use h(o↓ ) ≤ %
+                      ~, %
+                         ~k = ρk and the fact that %
+                                                   ~ is non-increasing.
+Proof of Theorem 9. Using Claim 11, we obtain a feasible solution x̄. Our rounding method is very            S simple.
+Let J ← ∅. For each s ∈ PWR, define the partial support Js = {j ∈ [n] : h(pj ) = (1+)s , x̄j > 0}. s∈PWR Js
+is the entire support of x̄ by (NLin. 5), ρ1 = o↓1 = 1 and definition of h. We have the following cases.
+                                                                               P
+   (i) If s ∈ Ct for some 0 ≤ t ≤ d1/e, using (NLin. 3) one has                 j∈Js x̄j = t and thus |Js | ≥ t. We
+                             0
+       choose
+       P         t indexes
+                       P   Js  ⊆   J s that have the  largest z j values and set J ← J ∪ Js0 . It is easy to verify that
+           j∈Js0 zj ≥   j∈Js zj x̄j .
+
+                                                      P                                       lP          m
+  (ii) If s ∈ C−1 , using (NLin. 4) one has                  x̄
+                                                        j∈Js j    ≥  1 + d1/e and   |J s | ≥          x̄
+                                                                                                 j∈Js j . We choose
+       lP            m
+                                 0                                                            0
+             j∈Js x̄j indexes Js ⊆ Js that have the largest zj values and set J ← J ∪ Js . It is easy to verify that
+                           l             m
+       |Js0 |/ j∈Js x̄j =
+              P              P              P                                                   P           P
+                                j∈Js x̄j /    j∈Js x̄j ≤ (2 + d1/e)/(1 + d1/e) ≤ 1 + , and    j∈J 0 zj ≥  sj∈Js zj x̄j .
+
+   Using (NLin. 2), it immediately follows that
+     X        X X             X X                 X
+        zj =             zj ≥            zj x̄j =   zj x̄j ≥ Z,
+      j∈J       s∈PWR j∈Js0          s∈PWR j∈Js                    j∈[n]
+
+showing that J is a feasible solution. For the objective, we fix k ∈ POS. One has
+     X                      X X                        X
+        (h(pj ) − ρk )+ =            (h(pj ) − ρk )+ =      |Js0 |((1 + )s − ρk )+
+      j∈J                        s∈PWR j∈Js0                               s∈PWR
+                                  X                    X
+                             ≤            (1 + )          ((1 + )s − ρk )+ x̄j
+                                 s∈PWR              j∈Js
+                                           X
+                             = (1 + )             (h(pj ) − ρk )+ x̄j ≤ (1 + ) (Topk (~
+                                                                                        %) − kρk ) ,
+                                           j∈[n]
+
+
+
+                                                                           13
+where we use (NLin. 1) in the last inequality. Using h(x) ≥ x and Claim 3, for each k ∈ POS,
+                           X                          X
+     Topk (p[J]) ≤ kρk +       (p[J]s − ρk )+ ≤ kρk +    (h(pj ) − ρk )+
+                           s∈[n]                        j∈J
+
+                  ≤ kρk + (1 + ) (Topk (~
+                                         %) − kρk ) ≤ (1 + ) Topk (~
+                                                                    %) .                                          (4)
+
+   Then for k ∈
+              / POS, by considering prev(k) and the iterative definition of POS, we have (k − 1)(1 + ) > k,
+thus k > 1 + 1/, and next(k) < 1 + (1 + )k ≤ (1 + 2)k. Since p[J]↓ and %      ~ are non-increasing, and
+k < next(k) < (1 + 2)k, using (4) we have
+
+     Topk (p[J]) ≤ Topnext(k) (p[J]) ≤ (1 + ) Topnext(k) (~
+                                                           %) ≤ (1 + 5) Topk (~
+                                                                               %) ,                               (5)
+
+thus from (4)(5) and Lemma 4, Lemma 10, it follows that
+
+     ψ(p[J]) ≤ (1 + 5)ψ(~
+                         %) ≤ (1 + 71)ψ(o) ≤ (1 + 143)opt.
+                                                                            −1
+                                                                                 log(1/))
+Finally, it is easy to see that the running time of the algorithm is (n/)O(                , which is determined by
+our guessing procedure.
+
+
+5    Conclusion and Future Directions
+In this work, we systematically study the approximation algorithms for GLB with general inner and outer
+norms. We propose a randomized polynomial time algorithm with logarithmic approximation factor, match-
+ing the lower bound up to constant. For certain special case that generalizes classic makespan minimization,
+we develop a constant factor approximation algorithm.
+    We propose some interesting future directions. Note the Ω(log n) lower bound in Theorem 1 does not
+necessarily hold for special cases with outer norm φ = L∞ and arbitrary symmetric monotone inner norms.
+Hence, there is a gap of log n between the known lower bound and our result (see Fig. 1), which is an
+interesting open question. Other natural inner and outer objectives are also worth studying, e.g., submodular
+set functions [28, 29], piece-wise linear functions [22], etc.
+
+
+References
+ [1] Noga Alon, Yossi Azar, Gerhard J. Woeginger, and Tal Yadid. Approximation schemes for scheduling
+     on parallel machines. Journal of Scheduling, 1(1):55–66, 1998. doi:https://doi.org/10.1002/(SICI)
+     1099-1425(199806)1:1<55::AID-JOS2>3.0.CO;2-J.
+ [2] Georg Anegg, Haris Angelidakis, Adam Kurpisz, and Rico Zenklusen. A technique for obtaining true
+     approximations for k-center with covering constraints. In Integer Programming and Combinatorial
+     Optimization - 21st International Conference, volume 12125 of Lecture Notes in Computer Science,
+     pages 52–65, 2020. doi:10.1007/978-3-030-45771-6\_5.
+ [3] Arash Asadpour, Uriel Feige, and Amin Saberi. Santa claus meets hypergraph matchings. ACM Trans.
+     Algorithms, 8(3):24:1–24:9, 2012. doi:10.1145/2229163.2229168.
+
+ [4] Arash Asadpour and Amin Saberi. An approximation algorithm for max-min fair allocation of indivisible
+     goods. SIAM J. Comput., 39(7):2970–2989, 2010. doi:10.1137/080723491.
+ [5] Yossi Azar and Amir Epstein. Convex programming for scheduling unrelated parallel machines. In
+     Proceedings of the 37th Annual ACM Symposium on Theory of Computing, pages 331–337, 2005. doi:
+     10.1145/1060590.1060639.
+ [6] Yossi Azar, Leah Epstein, Yossi Richter, and Gerhard J. Woeginger. All-norm approximation algorithms.
+     J. Algorithms, 52(2):120–133, 2004. doi:10.1016/j.jalgor.2004.02.003.
+
+
+
+                                                       14
+ [7] Nikhil Bansal and Maxim Sviridenko. The santa claus problem. In Proceedings of the 38th Annual ACM
+     Symposium on Theory of Computing, pages 31–40, 2006. doi:10.1145/1132516.1132522.
+ [8] Robert D. Carr, Lisa Fleischer, Vitus J. Leung, and Cynthia A. Phillips. Strengthening integrality gaps
+     for capacitated network design and covering problems. In Proceedings of the Eleventh Annual ACM-
+     SIAM Symposium on Discrete Algorithms, pages 106–115, 2000. URL: http://dl.acm.org/citation.
+     cfm?id=338219.338241.
+ [9] Deeparnab Chakrabarty and Maryam Negahbani. Generalized center problems with outliers. In 45th
+     International Colloquium on Automata, Languages, and Programming, volume 107 of LIPIcs, pages
+     30:1–30:14, 2018. doi:10.4230/LIPIcs.ICALP.2018.30.
+
+[10] Deeparnab Chakrabarty and Chaitanya Swamy. Approximation algorithms for minimum norm and
+     ordered optimization problems. In Proceedings of the 51st Annual ACM SIGACT Symposium on Theory
+     of Computing, pages 126–137, 2019. doi:10.1145/3313276.3316322.
+[11] Deeparnab Chakrabarty and Chaitanya Swamy. Simpler and better algorithms for minimum-norm load
+     balancing. In 27th Annual European Symposium on Algorithms, volume 144 of LIPIcs, pages 27:1–27:12,
+     2019. doi:10.4230/LIPIcs.ESA.2019.27.
+[12] Chandra Chekuri and Alina Ene. Submodular cost allocation problem and applications. In Automata,
+     Languages and Programming - 38th International Colloquium, volume 6755 of Lecture Notes in Computer
+     Science, pages 354–366, 2011. doi:10.1007/978-3-642-22006-7\_30.
+[13] Irit Dinur and David Steurer. Analytical approach to parallel repetition. In Symposium on Theory of
+     Computing, pages 624–633, 2014. doi:10.1145/2591796.2591884.
+[14] Jack R. Edmonds. Submodular functions, matroids, and certain polyhedra. In Combinatorial Opti-
+     mization - Eureka, You Shrink!, volume 2570 of Lecture Notes in Computer Science, pages 11–26, 2001.
+     doi:10.1007/3-540-36478-1\_2.
+
+[15] Uriel Feige. On allocations that maximize fairness. In Proceedings of the Nineteenth Annual ACM-SIAM
+     Symposium on Discrete Algorithms, pages 287–293, 2008. URL: http://dl.acm.org/citation.cfm?
+     id=1347082.1347114.
+[16] Ashish Goel and Adam Meyerson. Simultaneous optimization via approximate majorization for concave
+     profits or convex costs. Algorithmica, 44(4):301–323, 2006. doi:10.1007/s00453-005-1177-7.
+
+[17] Sharat Ibrahimpur and Chaitanya Swamy. Minimum-norm load balancing is (almost) as easy as minimiz-
+     ing makespan. In 48th International Colloquium on Automata, Languages, and Programming, volume
+     198 of LIPIcs, pages 81:1–81:20, 2021. doi:10.4230/LIPIcs.ICALP.2021.81.
+[18] Klaus Jansen and Lars Rohwedder. On the configuration-LP of the restricted assignment problem.
+     In Proceedings of the Twenty-Eighth Annual ACM-SIAM Symposium on Discrete Algorithms, pages
+     2670–2678, 2017. doi:10.1137/1.9781611974782.176.
+[19] V. S. Anil Kumar, Madhav V. Marathe, Srinivasan Parthasarathy, and Aravind Srinivasan. A unified
+     approach to scheduling on unrelated parallel machines. J. ACM, 56(5):28:1–28:31, 2009. doi:10.1145/
+     1552285.1552289.
+[20] Lap Chi Lau, Ramamoorthi Ravi, and Mohit Singh. Iterative methods in combinatorial optimization,
+     volume 46. Cambridge University Press, 2011.
+[21] Jan Karel Lenstra, David B. Shmoys, and Éva Tardos. Approximation algorithms for scheduling unre-
+     lated parallel machines. Math. Program., 46:259–271, 1990. doi:10.1007/BF01585745.
+[22] Jian Li and Samir Khuller. Generalized machine activation problems. In Proceedings of the Twenty-
+     Second Annual ACM-SIAM Symposium on Discrete Algorithms, pages 80–94, 2011. doi:10.1137/1.
+     9781611973082.7.
+
+
+                                                    15
+[23] László Lovász and Michael D Plummer. Matching theory, volume 367. American Mathematical Soc.,
+     2009.
+[24] Konstantin Makarychev and Maxim Sviridenko. Solving optimization problems with diseconomies of
+     scale via decoupling. J. ACM, 65(6):42:1–42:27, 2018. doi:10.1145/3266140.
+
+[25] Michael Mitzenmacher and Eli Upfal. Probability and Computing: Randomized Algorithms and Proba-
+     bilistic Analysis. Cambridge University Press, 2005. doi:10.1017/CBO9780511813603.
+[26] David B. Shmoys and Éva Tardos. An approximation algorithm for the generalized assignment problem.
+     Math. Program., 62:461–474, 1993. doi:10.1007/BF01585178.
+[27] Ola Svensson. Santa claus schedules jobs on unrelated machines. SIAM J. Comput., 41(5):1318–1341,
+     2012. doi:10.1137/110851201.
+[28] Zoya Svitkina and Lisa Fleischer. Submodular approximation: Sampling-based algorithms and lower
+     bounds. SIAM J. Comput., 40(6):1715–1737, 2011. doi:10.1137/100783352.
+[29] Zoya Svitkina and Éva Tardos. Facility location with hierarchical facility costs. ACM Trans. Algorithms,
+     6(2):37:1–37:22, 2010. doi:10.1145/1721837.1721853.
+[30] Vijay V. Vazirani. Approximation algorithms. Springer, 2001. URL: http://www.springer.com/
+     computer/theoretical+computer+science/book/978-3-540-65367-7.
+
+
+A     Proof of Lemma 10
+By our guesses, we have ρk = o↓k if o↓k ≥ /n and ρk = (1 + )dlog1+ (/n)e otherwise. For each k ∈ POS, one
+then has ρk ≤ o↓k + 2/n and
+
+                                                                    2
+                                                  o↓prev(s) + k ·
+                    X                     X
+     Topk (~
+           %) ≤               o↓s +
+                                                                    n
+                  s≤k,s∈POS           s<k,s∈POS
+                                           /
+
+               ≤ 2 + o↓k +
+                                 X
+                                           (next(s) − s)o↓s
+                              s<k,s∈POS
+
+               = 2 + ko↓k +                (next(s) − 1)(o↓s − o↓next(s) )
+                                      X
+
+                               s<k,s∈POS
+
+               ≤ 2 + (1 + )ko↓k +                   (1 + )s · (o↓s − o↓next(s) )
+                                             X
+
+                                          s<k,s∈POS
+                                      X
+               = 2 + (1 + )                 (s − prev(s))o↓s
+                                s≤k,s∈POS
+
+                                        o↓s0 ≤ (1 + 3) Topk (o) ,
+                                X
+               ≤ 2 + (1 + )                                                                              (6)
+                                s0 ≤k
+
+
+where we use next(s) − 1 ≤ (1 + )s for each s ∈ POS, and the fact that o↓ is non-increasing. The last
+inequality is due to Topk (o) ≥ o↓1 = 1.
+    For each k ∈/ POS, by the iterative definition of POS, it follows that (1 + )(k − 1) ≥ (1 + )prev(k) > k,
+thus k > 1 + 1/ and next(k) < (1 + )k + 1 ≤ (1 + 2)k. Using (6) we have just proved and the fact that
+~, o↓ are both non-increasing, we have
+%
+
+     Topk (~
+           %) ≤ Topnext(k) (~
+                            %) ≤ (1 + 3) Topnext(k) (o) ≤ (1 + 11) Topk (o) ,
+
+where we use next(k) ≤ (1 + 2)k in the last inequality. Lemma 4 gives the desired result.
+
+
+
+
+                                                                16
+B      A Simpler Special Case
+In this section, we consider a special case of GLB, where each inner norm ψi = Topki , ki ∈ [n] (recall for
+u ≥ 0, Topki (u) returns the sum of largest ki entries in u), and the outer norm φ = L∞ . We call it the
+GLB-MaxTopK problem.
+    For any fixed  > 0, we devise a deterministic (3 + )-approximation for GLB-MaxTopK. Analogous to
+previous algorithms, we set out to guessing the values at different indexes of the optimal assignment, but
+with slight modifications.
+    Fix a small  > 0. Define POS ⊆ [n] iteratively as in the PTAS in Theorem 9 for NormLin, as well
+as next, prev. Instead of optimizing Topki norm for machine i, we consider Topki0 norm, where ki0 = ki if
+ki ∈ POS and ki0 = prev(ki ) otherwise. Notice by the iterative definition of POS, if ki ∈    / POS, one has
+ki0 < ki < (1 + )prev(ki ) = (1 + )ki0 .
+    Likewise, let σ ? : J → M be an unknown optimal assignment with optimum opt ≥ 0, and o ∈ Rn≥0
+be defined in a subtly different way: for each k ∈ [n], let ok be the maximum k-th largest job size among
+machines that has ki0 ≥ k, that is, ok = maxi∈M:ki0 ≥k pi [σ ? ]↓k (if there are no such machines or jobs, it
+is 0). It is easy to see that, since the assigned job-size vectors are non-increasingly sorted and the sets
+{i : ki0 ≥ k} are (inclusion-wise) non-increasing in k, o is a non-increasing vector. We guess P = {ρk }k∈POS
+as a non-increasing vector of integer powers of 1 +  such that
+
+  (i) ρk ∈ [ok , (1 + )ok ) if ok ≥ o1 /n,
+
+ (ii) ρk = (1 + )dlog1+ (o1 /n)e otherwise.
+   As before, after we guess the exact value of o1 and fix it, there are at most (n/)O(1/) such vectors.
+Suppose o1 > 0 and all other guesses are correct in the sequel. It follows that ρ1 ≤ (1 + )o1 ≤ (1 + )opt
+and for each i ∈ M,
+
+  (i) if oki0 ≥ o1 /n, we have ki0 ρki0 ≤ (1 + )ki0 oki0 . Because in the optimal solution, there exists a machine
+      i0 ∈ M such that ki00 ≥ ki0 and its ki0 -th largest assigned job size is oki0 , i0 has a Topki0 norm at least
+      ki0 oki0 . Combined with ki0 ≥ ki00 ≥ ki0 , one has ki0 ρki0 ≤ (1 + ) Topki0 (pi0 [σ ? ]) ≤ (1 + ) Topki0 (pi0 [σ ? ]) ≤
+      (1 + )opt;
+
+ (ii) otherwise, we have ρki0 = (1 + )dlog1+ (o1 /n)e ≤ 2o1 /n, thus ki0 ρki0 ≤ 2o1 ≤ 2 · opt.
+    Consider the following relaxation where xij ≥ 0 represents the extent we assign job j to machine i.
+
+      min                                                                      r                                     (M-Top)
+                                                     X
+       s.t.                                                (pij − ρki0 )+ xij ≤ r        ∀i ∈ M                    (M-Top .1)
+                                                     j∈J
+                                                                     X
+                                                                          xij = 1 ∀j ∈ J                           (M-Top .2)
+                                                                    i∈M
+                                                                          xij = 0 pij > ρ1                         (M-Top .3)
+                                                                               x ≥ 0.
+
+Lemma 12. M-Top has optimum at most opt.
+Proof. Define an integral solution x? ∈ {0, 1}M×J according to the optimal assignment σ ? and let r? = opt.
+It suffices to show that (x? , r? ) satisfies (M-Top .1). For each i ∈ M, because ρki0 ≥ oki0 , we have
+      X                                X                            X
+            (pij − ρki0 )+ x?ij =             (pij − ρki0 )+ ≤                 (pij − oki0 )+ .
+      j∈J                           j∈σ ?−1 (i)                  j∈σ ?−1 (i)
+
+
+    Since the ki0 -th largest job assigned to i has size at most oki0 by definition, the above sum has at most
+ki non-zero entries, thus at most Topki0 (pi [σ ? ]). The lemma now follows since ki0 ≤ ki and Topki0 (pi [σ ? ]) ≤
+ 0
+
+Topki (pi [σ ? ]) ≤ opt.
+
+
+                                                                    17
+    We solve M-Top and obtain a solution (x̄, r̄), and r̄ ≤ opt by Lemma 12. Using the classic rounding
+algorithm by Shmoys and Tardos [26] (based on the original job sizes pij ), we obtainl an integral
+                                                                                               m   assignment
+            M×J
+                         P                                                            P
+x̂ ∈ {0, 1}     such that i x̂ij = 1 for each job j. More precisely, make ni :=          j x̄ij copies of each
+machine i; in non-increasing order of pij , fractionally assign the jobs {j : x̄ij > 0} to the same extent, and
+sequentially on the copies of i, such that the first ni − 1 copies are all assigned exactly unit mass of jobs.
+We then use standard methods [23] and round the resulting fractional matching to an arbitrary integral
+matching x̂, and each job is matched due to (M-Top .2).
+    Since we assign the jobs in non-increasing order of pij to the copies, it follows that for the t-th copy it
+of machine i, t ≥ 2, the assigned job size under x̂ is at most the average job size on it−1 under x̄. Each
+assigned job size is at most ρ1 due to (M-Top .3). Hence for each machine i, the Topki0 norm must be attained
+over its ki0 foremost copies {i1 , . . . , iki0 }, which is at most ρ1 + t≤k0 j pit j x̄it j . Using simple subadditivity
+                                                                        P       P
+                                                                              i
+(s + t)+ ≤ s+ + t+ and that each machine copy is assigned to an extent of at most 1, this is in turn bounded
+by
+                      XX                                              X
+      ρ1 + ki0 ρki0 +       (pit j − ρki0 )+ x̄it j ≤ ρ1 + ki0 ρki0 +   (pij − ρki0 )+ x̄ij
+                    t≤ki0   j                                    j∈J
+
+                                                ≤ (2 + 2)opt + r̄ ≤ (3 + 2)opt.
+
+   Finally using ki ≤ (1 + )ki0 , the Topki norm is bounded by (1 + )(3 + 2)opt ≤ (3 + 7)opt, whence we
+obtain the following theorem.
+Theorem 13. For each  > 0, there exists a deterministic (3+)-approximation algorithm for GLB-MaxTopK
+with running time (n/)O(1/) · poly(m, n).
+
+
+
+
+                                                           18
+

@@ -1,0 +1,2410 @@
+                                         On Hardness Assumptions Needed for “Extreme High-End” PRGs
+                                                          and Fast Derandomization
+                                                                        Ronen Shaltiel∗               Emanuele Viola†
+arXiv:2311.11663v1 [cs.CC] 20 Nov 2023
+
+
+
+
+                                                                                     November 21, 2023
+
+
+                                                                                           Abstract
+                                                   The hardness vs. randomness paradigm aims to explicitly construct pseudorandom generators
+                                               G : {0, 1}r → {0, 1}m that fool circuits of size m, assuming the existence of explicit hard
+                                               functions. A “high-end PRG” with seed length r = O(log m) (implying BPP=P) was achieved in
+                                               a seminal work of Impagliazzo and Wigderson (STOC 1997), assuming the high-end hardness
+                                               assumption: there exist constants 0 < β < 1 < B, and functions computable in time 2B·n that
+                                               cannot be computed by circuits of size 2β·n .
+                                                   Recently, motivated by fast derandomization of randomized algorithms, Doron et al. (FOCS
+                                               2020) and Chen and Tell (STOC 2021), construct “extreme high-end PRGs” with seed length
+                                               r = (1 + o(1)) · log m, under qualitatively stronger assumptions.
+                                                   We study whether extreme high-end PRGs can be constructed from the following scaled
+                                               version of the assumption which we call the extreme high-end hardness assumption, and
+                                               in which β = 1 − o(1) and B = 1 + o(1). We give a partial negative answer:
+                                                  • Doron et al. compose a PEG (pseudo-entropy generator) with an extractor. The PEG
+                                                    is based on a hardness assumption for MA-type circuits. We show that black-box PEG
+                                                    constructions from the extreme high-end hardness assumption must have large seed
+                                                    length (and so cannot be used to obtain extreme high-end PRGs by applying an extractor).
+                                                    To prove this, we establish a new property of (general) black-box PRG constructions from
+                                                    hard functions: it is possible to fix many output bits of the construction while fixing few bits
+                                                    of the hard function. This property distinguishes PRG constructions from typical extractor
+                                                    constructions, and this may explain why it is difficult to design PRG constructions.
+                                                                                                                                     Ω(1)
+                                                  • Chen and Tell compose two PRGs: G1 : {0, 1}(1+o(1))·log m → {0, 1}r2 =m           and G2 :
+                                                    {0, 1}r2 → {0, 1}m. The first PRG is based on the extreme high-end hardness as-
+                                                    sumption, and the second PRG needs to run in time m1+o(1) , and is based on one way
+                                                    functions. We show that in black-box proofs of hardness amplification to 21 + 1/m, reduc-
+                                                    tions must make Ω(m) queries, even in the extreme high-end. Known PRG constructions
+                                                    from hard functions are black-box and use (or imply) hardness amplification, and so cannot
+                                                    be used to construct a PRG G2 from the extreme high-end hardness assumption.
+                                                    The new feature of our hardness amplification result is that it applies even to the extreme
+                                                    high-end setting of parameters, whereas past work does not. Our techniques also improve
+                                                    recent lower bounds of Ron-Zewi, Shaltiel and Varma (ITCS 2021) on the number of
+                                                    queries of local list-decoding algorithms.
+                                            ∗
+                                              Department of computer science, University of Haifa. E-mail: ronen@cs.haifa.ac.il. This research was sup-
+                                         ported by ISF grants 1628/17 and 1006/23.
+                                            †
+                                              Khoury College of Computer Sciences, Northeastern University, E-mail: viola@ccs.neu.edu. Supported by NSF
+                                         CCF award 1813930 and NSF CCF award 2114116.
+1       Introduction
+1.1     Background
+The hardness vs. randomness paradigm (initiated in [Yao82, BM84, NW94] and followed up by
+a long sequence of work [BFNW93, Imp95, IW97, STV01, KvM02, MV05, ISW99, ISW06, SU05,
+Uma03, Uma09, SU06, AIKS16, DMOZ20, CT21b, CT21a]) aims to explicitly construct pseudo-
+random generators (PRGs) from explicit hard functions.
+
+Definition 1.1 (PRGs). A function G : {0, 1}r → {0, 1}m is an ǫ-PRG for a function D : {0, 1}m →
+{0, 1}, if
+                          | Pr[D(G(Ur )) = 1] − Pr[D(Um ) = 1]| ≤ ǫ.
+G is an ǫ-PRG for a class D of functions D : {0, 1}m → {0, 1}, if for every D in D, G is an ǫ-PRG
+for D. If we omit ǫ or D, the default choices are ǫ = 1/10, and D is the class of circuits of size m.
+
+   Explicit pseudorandom generators have many applications in computer science. The signature
+application of PRGs is to derandomize randomized algorithms (by running the algorithm using all
+outputs of the PRG). This is quantitatively specified in the proposition below.
+
+Proposition 1.2 (standard). If G : {0, 1}r → {0, 1}m is a PRG, then every randomized algorithm
+running in time m can be simulated by a deterministic algorithm in time Timeall (G) + 2r · m, where
+Timeall (G) is the time it takes to compute the output of G on all 2r inputs, and is obviously upper
+bounded by 2r · Time(G), where Time(G) is the time it takes to compute G on a given input.
+
+High-end PRGs that imply BPP=P. A corollary of Proposition 1.2 is that a PRG G :
+{0, 1}r=O(log m) → {0, 1}m with Time(G) = poly(m) implies that BPP=P.1
+    Such PRGs are often referred to as “high-end PRGs”. Historically, this name aims to distinguish
+them from weaker ”low-end PRGs” which have r = mo(1) , and Time(G) = 2O(r) , which in turn
+imply the weaker conclusion that BPP is in subexponential time, see [ISW06, SU05] for a discussion.
+
+Extreme high-end PRGs and fast derandomization. Recently, Doron et al. [DMOZ20]
+asked whether it is possible to obtain a faster derandomization. Here, the goal is to show that a
+randomized algorithm running in time m can be simulated by a deterministic algorithm running in
+time O(mc ) for the smallest possible constant c.
+    The time of the deterministic simulation of Theorem 1.2 depends on both the seed length r,
+and Timeall (G). Note that even if we take r to the extreme2 , and have a PRG with r = 1 · log m,
+then the time of the simulation is at least 2r · m = m2 . This time can be achieved if furthermore,
+Timeall (G) = O(2r · m) = O(m2 ) (which follows if Time(G) = O(m)). This means that we can
+hope to achieve c = 2 (that is, a quadratic time simulation) if we have such PRGs, which we will
+call “extreme high-end” PRGs.
+
+Definition 1.3 (Extreme high-end PRGs). G : {0, 1}r → {0, 1}m is an extreme high-end PRG if:
+    1
+     Note that in this range of parameters there is no reason to distinguish between Time(G) and Timeall (G), as
+Timeall (G) = poly(m) if and only if Time(G) = poly(m), and this is why past work is stated in terms of Time(G)
+and not Timeall (G).
+   2
+     A PRG must have r ≥ log m − O(log log m) as otherwise, a circuit of size m could be hardwired with prefixes of
+length r + 1 for all 2r pseudorandom strings, and distinguish a uniform string from a pseudorandom string.
+
+
+                                                        1
+ Pseudorandomness: G is a PRG with seed length r = (1 + o(1)) · log m.
+ Explicitness: Timeall (G) = m2+o(1) (which follows if Time(G) = m1+o(1) ).
+
+    These parameters are chosen so that an extreme high-end PRG implies that randomized algo-
+rithms running in time m can be simulated deterministically in time m2+o(1) .
+    There are reasons to think that this quadratic slowdown is the best possible if one seeks the
+smallest possible c such that every randomized algorithm running in time m can be simulated deter-
+ministic time mc . More precisely, the problem of “univariate identity testing” is in BPTIME(Õ(n))
+but not in DTIME(n2−o(1) ), under certain assumptions on “fine grained complexity” introduced by
+Carmosino et al. [CGI+ 16]. See [DMOZ20] for details and a discussion.
+    We remark that this lower bound still allows a deterministic simulation that runs in time
+O(m · n) (where n is the input length) and a simulation that approaches this time bound was
+obtained by Chen and Tell [CT21b] under certain hardness assumptions. See [CT21b] for details
+and a discussion.
+
+Hardness implied by PRGs. PRGs immediately imply circuit lower bounds that are beyond
+our current ability. Consequently, constructing explicit PRGs, requires circuit lower bounds (namely
+the existence of explicit functions that cannot be computed by small circuits). In particular, high-
+end PRGs imply the existence of functions f : {0, 1}ℓ → {0, 1} which cannot be computed by
+circuits of size 2Ω(ℓ) , and Time(f ) = 2O(ℓ) .3
+
+1.1.1    The Impagliazzo-Wigderson (high-end) hardness assumption
+The goal of the hardness vs. randomness program is to construct PRGs based on lower bounds
+that are as strong (or almost as strong) as the ones implied by the PRG. A major milestone in this
+program was achieved by Impagliazzo and Wigderson [IW97].
+
+Theorem 1.4 ([IW97]). A high-end PRG follows from the following assumption:
+
+ The high-end hardness assumption: There exist constants 0 < β < 1 < B, and a function
+    f : {0, 1}ℓ → {0, 1} that satisfies:
+        Hardness: f cannot be computed by circuits of size 2β·ℓ .
+        Explicitness: Time(f ) ≤ 2B·ℓ .
+
+   Theorem 1.4 converts hardness into pseudorandomness at close to the “correct rate” (as in the
+converse direction) if one does not care about the precise values of the constants β, B, and the
+constant hidden in the O(·) notation in the seed length of the high-end PRG.
+
+1.1.2    Scaling the Impagliazzo-Wigderson assumption to the extreme high-end
+In the case of extreme high-end PRGs, we insist on seed length r ≈ 1 · log m and the constants
+β, B from the The high-end hardness assumption do matter. Assuming that we don’t expect
+to “improve” the hardness of the assumed explicit hard function, we must have β ≥ 1 − o(1) and
+   3
+    More specifically, Impagliazzo, Shaltiel and Wigderson [ISW99] showed that if G : {0, 1}r → {0, 1}m is a PRG
+then for ℓ = r + 1, there is a function f : {0, 1}ℓ → {0, 1} (defined by checking whether an input of length ℓ is a prefix
+of an output of G) such that f cannot be computed by circuits of size m, and Timeall (f ) ≈ Timeall (G). Note that
+Timeall (f ) = 2O(ℓ) iff Time(f ) = 2O(ℓ) .
+
+
+                                                            2
+B ≤ 1 + o(1). Thus, imitating the approach of Impagliazzo and Wigderson [IW97] for the extreme
+high-end, leads to the following open problem.
+
+Open Problem 1.5. Show that an extreme high-end PRG follows from the following assumption:
+
+ The extreme high-end hardness assumption: There exists a function f : {0, 1}ℓ → {0, 1}
+    that satisfies:
+          Hardness: f cannot be computed by circuits of size 2(1−o(1))·ℓ .
+          Explicitness: Time(f ) ≤ 2(1+o(1))·ℓ .4
+
+    The proof techniques of Impagliazzo and Wigderson [IW97] (as well as of later works [STV01,
+SU05, Uma03]) do not solve Open Problem 1.5. As we explain in Section 1.2.4, these proofs rely on
+the “hybrid argument” of [Yao82, GM84], and even assuming the extreme high-end hardness
+assumption, one can at best obtain a PRG G : {0, 1}r → {0, 1}m with seed length r ≥ A · log m,
+where A > 3, and actual proofs do worse.
+
+Recent work on extreme high-end PRGs. Recently, Doron et al. [DMOZ20], and Chen
+and Tell [CT21b] gave conditional constructions of extreme high-end PRGs, however, in both cases
+the assumption used is stronger than the extreme high-end hardness assumption. We will
+elaborate on these results later on.5 An incomparable assumption was very recently used by Chen
+and Tell [CT21a] for constructing “targeted PRGs” (which are weaker than PRGs and yet suffice
+for derandomizing randomized algorithms).
+
+Goals of this paper. In this paper, we investigate the problem of constructing explicit PRGs
+from explicit hard functions, focusing on open problem 1.5. More specifically, we investigate the
+power of “black-box proofs” that convert explicit hard functions into PRGs and related objects.
+We show limitations on certain recent approaches to solve Open Problem 1.5, and hope that this
+may help to point us in the direction of better constructions. A secondary goal of this paper is to
+survey recent work and point out the relationship between parameters, and potential barriers for
+improvement.
+
+1.2      Black-box proofs
+1.2.1      Black-box proofs for PRG constructions and hardness amplification
+A black-box proof that converts hard functions into PRGs consists of two parts:
+
+       • A construction map. This is a map that given a candidate function f : {0, 1}ℓ → {0, 1}
+         produces a candidate PRG Con(f ). (To avoid clutter, we will denote the function Con(f ) by
+         Conf : {0, 1}r → {0, 1}m ).
+   4
+     In the case of the extreme high-end, it does make sense to distinguish between Time(f ) and Timeall (f ), and one
+can consider starting from a weaker explicitness condition in which it is required that Timeall (f ) ≤ 2(2+o(1))·ℓ .
+   5
+     Both these papers aim for a slightly weaker goal. Rather than requiring a single PRG with seed length r =
+(1 + o(1)) · log m and explicitness m1+o(1) as in Definition 1.3, their constructions show that for every γ > 0 there
+exists a PRG with seed length r = (1 + γ) · log m and explicitness m1+γ . We will not distinguish these two goals in
+the informal discussion in the introduction.
+
+
+
+
+                                                          3
+   • A reduction establishing the correctness of the construction. This is an oracle procedure Red(·)
+     which given oracle access to an adversary D that breaks the security of Conf , implements an
+     adversary C that breaks the security of f .
+
+As we explain in Section 1.2.3, because of their combinatorial properties, reductions of this type
+must be nonuniform and receive a “nonuniform advice string” α (that may depend on the candidate
+function f and the adversary D). This is reflected in the formal definition below.
+    We will consider “black-box A ⇒ B proofs” for several other choices of primitives A, B (and not
+just hard functions and PRGs). One such primitive is functions that are hard on average (meaning
+that small circuits cannot compute f correctly with high probability on a uniformly chosen input).
+Such functions can serve both as A and B in black-box A ⇒ B proofs. In order to capture all
+various scenarios in one definition, we will use a terminology that will describe a primitive by what
+it means to “break the security” of the primitive.
+
+Definition 1.6. Let Fn,m denote the set of all functions from n bits to m bits.
+
+   • For G ∈ Fr,m and D ∈ Fm,1 , we say that D ǫ-PRG-breaks G, if G is not an ǫ-PRG for D.
+   • For f, C ∈ Fℓ,1 , we say that C ρ-hard-function-breaks f , if Prx←Uℓ [C(x) = f (x)] ≥ ρ. We say
+     that C hard-function-breaks f if C 1-hard-function-breaks f (meaning that C = f ). We say
+     that f is a ρ-hard-function for C if C does not ρ-hard-function-breaks f .
+
+   A ρ-hard-function for circuits of a certain size, is an average-case hard function, and the case
+where ρ = 1 captures the previously considered notion of worst-case hard functions.
+   We now formally define black-box ρ-hard-function ⇒ ǫ-PRG, and ρ-hard-function ⇒ ρ′ -hard-function
+proofs.
+
+Definition 1.7 (Black-box proofs). Given parameters ℓ, r, m, a, ρ, ǫ (resp. ℓ, ℓ′ , a, ρ, ρ′ ) a black-box
+ρ-hard-function ⇒ ǫ-PRG proof (resp. a black-box ρ-hard-function ⇒ ρ′ -hard-function proof) is a pair
+(Con, Red) of:
+
+   • A construction map Con : Fℓ,1 → Fr,m (resp. Con : Fℓ,1 → Fℓ′ ,1 ). (We use Conf to denote
+     the function Con(f )).
+   • An oracle procedure Red(·) (x, α) such that:
+        For every f ∈ Fℓ,1 and for every D ∈ Fm,1 such that D ǫ-PRG-breaks Conf
+            (resp. for every D ∈ Fℓ′ ,1 such that D ρ′ -hard-function-breaks Conf ),
+        there exists α ∈ {0, 1}a , such that the function C ∈ Fℓ,1 defined by C(x) = RedD (x, α),
+            ρ-hard-function-breaks f .
+
+If we omit ρ, we mean ρ = 1. If we omit ǫ, we mean ǫ = 1/10. We say that Red makes q queries,
+if for every D ∈ Fm,1 , α ∈ {0, 1}a , and x ∈ {0, 1}ℓ , RedD (x, α) makes at most q oracle queries.
+
+1.2.2    Parameters of black-box proofs
+To the best of our knowledge all hardness vs. randomness proofs of PRG constructions are black-
+box (or rely on components which are black-box). In a black-box proof, the advice length a and
+the number of queries q determine the “hardness loss” in the tradeoff. More specifically:
+
+
+
+
+                                                    4
+Proposition 1.8 (Number of queries determines hardness loss in black-box proofs). Let (Con, Red)
+be a black-box hard-function ⇒ PRG (resp. hard-function ⇒ ρ′ -hard-function) proof in which Red
+makes q queries, and has advice length a. If we start from a function f : {0, 1}ℓ → {0, 1} that
+cannot be computed by circuits of size s, and apply the black-box proof, one can at best obtain that
+Conf is a PRG (resp. ρ′ -hard-function) for circuits of size m ≤ s−a   s
+                                                                  q ≤ q.
+
+    Loosely speaking, Proposition 1.8 follows because, when measuring the size s of the circuit
+C = RedD (·, α) that is implied by the reduction for a circuit D of size m, then this circuit is of size
+q · m + a. This gives that s ≥ q · m + a, implying the proposition.
+    Every function f : {0, 1}ℓ → {0, 1} has circuits of size 2ℓ . This means that in order for reductions
+to be useful in transforming hard-functions into PRGs (or average case hard functions) they must
+                  2ℓ −a
+make q ≤ s−a                                                               ℓ
+           m ≤ m queries, and are useless for this purpose, if q ≥ 2 . Moreover, in the extreme
+                                                           s      ℓ
+high-end, m = 2(1−o(1))·ℓ and so it is critical that q ≤ m   ≤ 2m = 2o(ℓ) = mo(1) ≪ m.
+
+Our notion of black-box does not guarantee explicitness. We place no limitation on the
+map Con, and so, the notion of black-box that we use, does not enforce that if f can be computed
+efficiently, then Conf can be computed efficiently. This notion of black-box does not imply the
+explicitness of the constructed function Conf . We make this choice, because we want to show
+impossibility results on black-box proofs, and this choice makes our results stronger.6 We also
+remark that the terms ”black-box” and “non-black-box” are used to mean many different things in
+the literature.7
+
+Parameters for black-box proofs for the extreme high-end. As a consequence of Propo-
+sition 1.8, if we assume the extreme high-end hardness assumption, to obtain an extreme
+high-end PRG (as in Open Problem 1.5) using a black-box hard-function ⇒ PRG proof, we first
+need to solve the following open problem:
+Open Problem 1.9. Does there exist a black-box hard-function ⇒ PRG proof with:
+ Seed length: r = (1 + o(1)) · ℓ. (Any black-box proof must have r ≥ ℓ).
+ Output length: m = 2(1−o(1))·ℓ . (Any black-box proof must have m ≤ 2ℓ ).
+ Advice string length: a = m1+o(1) = 2(1−o(1))·ℓ . (Any black-box proof must have a ≥ m).
+ Number of queries: q = mo(1) = 2o(ℓ) .
+    We stress again that a positive answer to Open Problem 1.9 is a necessary condition for using a
+black-box proofs to construct an extreme high-end PRG from the extreme high-end hardness
+assumption, however, it is not a sufficient condition.
+    We do not know whether black-box hard-function ⇒ PRG proofs as in Open Problem 1.9 exist.8
+In Section 1.3 we show obstacles on certain approaches to design a black-box hard-function ⇒ PRG
+    6
+      One way to preserve efficiency is to require that there is an oracle machine A(·) (in some complexity class) such
+that for every f ∈ Fℓ,1 , Af implements Conf . See e.g., [Vio05].
+    7
+      For example, sometimes the term “non-black-box” is used to denote a deterministic simulation of randomized
+algorithms that is tailored for the specific input supplied to the algorithm. This notion is used for example in the
+recent work of Chen and Tell [CT21a] which constructs “targeted-PRGs” that are targeted to the given input, and
+is unrelated to the notion of “black-box” used here.
+    8
+      In fact, the only known lower bound on black-box ρ-hard-function ⇒ ǫ-PRG proofs by Shaltiel, Grinberg and
+Viola [GSV18] shows that if a ≤ 2ν·ℓ for some constant ν > 0, and ρ < 1 − 2−ℓ is sufficiently larger than 12 + ǫ
+then q ≥ Ω( log(1/(1−ρ))
+                   ǫ2
+                         ). In the case of interest where ρ = 1 and ǫ is constant, this gives a weak bound of q ≥ Ω(ℓ),
+
+
+                                                          5
+proof, meeting the parameters of Open Problem 1.9. More specifically, we show that certain
+approaches cannot yield reductions with few queries. Before we describe our results, we give more
+background on black-box proofs.
+
+1.2.3    Black-box proofs as codes, extractors, and other applications
+Black-boxness is often helpful in PRG constructions (as demonstrated in [NW94, KvM02, MV05,
+SU05]) as such proofs readily extend to other computational models (e.g, bounded depth circuits,
+or nondeterministic circuits). There are other motivations to study black-box proofs (in addition
+to PRG constructions and hardness amplification). In fact, in the connections and applications
+below, the “black-boxness” of the proofs is crucial and helpful.
+
+List-decodable codes. Following Sudan, Trevisan and Vadhan [STV01], a Black-box hard-function ⇒
+                                                                               ℓ          ℓ′
+ρ′ -hard-function proof (Con, Red) yields a “list-decodable code” E : {0, 1}2 → {0, 1}2 , defined
+by E(f )y = Conf (y). A consequence of lower bounds on the rate of such codes is that ℓ′ ≥
+ℓ + 2 · log(1/ρ′ ), and that a ≥ 2 · log(1/ρ′ ). Viewing the reduction as a “list” of 2a procedures
+(one for every advice string α ∈ {0, 1}a ) yields a variant of a “local list-decoding algorithm” for
+the defined code, with the same number of queries. Techniques developed for black-box proofs
+[SV10, GSV18, AASY16] have been useful in proving lower bounds on the number of queries of
+such codes [RSV21].
+
+Randomness Extractors: Following Trevisan [Tre01], a black-box hard-function ⇒ ǫ-PRG proof
+                                                       ℓ
+(Con, Red) yields a “randomness extractor” E : {0, 1}2 × {0, 1}r → {0, 1}m , defined by E(f, y) =
+Conf (y), and extracting randomness from sources with min-entropy k = a + log(1/ǫ) + O(1). A
+consequence of lower bounds on extractors [RTS00] is that r ≥ ℓ + 2 · log(1/ǫ), and that a ≥
+m + log(1/ǫ) − O(1). Continuing the analogy of the previous item, the reduction can be viewed as
+a local list-decoding algorithm for an “extractor-code” [TZ04]. Local list-decoding algorithms for
+(standard) codes, and for extractor-codes are closely related to “hard-core bits” for cryptographic
+primitives (see e.g. [RSV21] for a discussion).
+
+Other applications. In recent years, black-box hard-function ⇒ PRG proofs have found numer-
+ous applications in areas that are not directly related to pseudorandomness, and rely on “black-
+boxness”. Some examples are: Learning and compression algorithms (Carmosino et al. [CIKK16]
+and subsequent work), worst-case to average-case reductions within NP (Hirahara [Hir18] and sub-
+sequent work), and Kolmogorov Complexity (Allender et al. [ABK+ 06] and subsequent work).
+
+1.2.4    Black-box proofs and the hybrid argument
+The hybrid argument cannot be used in the extreme high-end. Most known black-box
+hard-function ⇒ PRG proofs in the literature rely on hardness amplification in order to use the
+hybrid argument of [Yao82, GM84]. That is, to achieve an ǫ-PRG, the construction is a sequence of
+two black-box proofs: hard-function ⇒ ( 21 + mǫ )-hard-function ⇒ ǫ-PRG. Thus, even for constant ǫ,
+
+and even this does not apply in the extreme high-end where a = 2(1−o(1))·ℓ . Moreover, if we start from average-case
+hardness, it is open to prove that q > 1 for a black-box ρ-hard-function ⇒ ǫ-PRG proofs with ρ ≤ 12 + ǫ, even for
+small a.
+
+
+
+                                                         6
+hardness amplification must be performed to ρ′ ≤ ( 12 + m   1
+                                                              ). By the bounds in Section 1.2.3, in
+the first step, a function f1 with input length ℓ must be transformed into a function f ′ with input
+length ℓ′ ≥ ℓ + 2 · log ρ1′ ≥ ℓ + 2 log m. The final PRG construction will have seed length r ≥ ℓ′ ≥
+ℓ+2 log m ≥ 3 log m. This is too large in the extreme high end, where we want r = (1+o(1))·log m.
+
+The hybrid argument suffices for the high-end. We remark that taking ℓ′ = O(ℓ + log m)
+and r = O(ℓ′ ) does suffice for the (non-extreme) high-end, and this is how known constructions for
+the high-end [IW97, STV01, SU05, Uma03] are achieved.9
+
+1.3     Our Results
+We show that certain approaches cannot yield a black-box hard-function ⇒ PRG proof with the
+parameters of Open Problem 1.9, and therefore cannot be used to solve Open Problem 1.5. Our
+results are summarized in Table 1 and Table 2.
+
+                              Table 1: Black-box proofs for PRGs and PEGs
+   Result                     Type                      Range                    Condition                     Bound
+  [GSV18]            hard-function ⇒ ǫ-PRG             a≤2   ν·ℓ
+                                                                                                             q ≥ Ω( ǫℓ2 )
+                                                                             ℓ
+ Thm 1.11       hard-function ⇒ ǫ-PRG, constant ǫ     a ≤ ν · 2ℓ    ∃j = o( 2ℓ ) : Fixj (Con) > a + j · ℓ)     q ≥ 2ℓ
+ Thm 1.14       hard-function ⇒ ǫ-PEG, constant ǫ     a ≤ ν · 2ℓ           r < ℓ − log ℓ − O(1)                q ≥ 2ℓ
+   [IW97]       hard-function ⇒ ǫ-PRG, constant ǫ      a ≤ 2ν·ℓ                                              q ≤ mΘ(1)
+
+
+
+
+                           Table 2: Black-box proofs for hardness amplification
+       Result                               Type                              Range             Bound
+    [GSV18]                hard-function ⇒ ( 12 + ǫ)-hard-function           a≤2   ν·ℓ
+                                                                                              q ≥ Ω( ǫℓ2 )
+    Thm 1.15               hard-function ⇒ ( 12 + ǫ)-hard-function          a ≤ ν · 2ℓ        q ≥ Ω( 1ǫ )
+    Thm 1.15         hard-function ⇒ ( 21 + ǫ)-hard-function, constant ǫ    a ≤ ν · 2ℓ    q ≥ Ω(ℓ − log(2a))
+ [IW97, STV01]             hard-function ⇒ ( 12 + ǫ)-hard-function          a ≤ ν · 2ℓ       q ≤ poly( ℓǫ )
+In both tables above the first three lines are lower bounds, while the last line is an upper bound, and
+0 < ν ≤ 12 is some constant.
+
+
+
+1.3.1    Limitations on constructions of black-box hard-function ⇒ PRG proofs
+We show that for any black-box hard-function ⇒ PRG proof (Con, Red), if Red makes q ≤ 2ℓ queries,
+then Con must be structured in a way that allows “fixing many outputs, with small information
+cost”. More precisely, we introduce a measure Fixj (Con) defined to be the minimal number h, so
+   9
+    More specifically, hardness amplification can be performed (by a black-box proof) using “local list-decodable
+codes” [STV01], and the second ( 21 + m  ǫ
+                                           )-hard-function ⇒ PRG step is done using the Nisan-Wigderson generator
+[NW94], which is a black-box proof. Shaltiel and Umans [SU05] and Umans [Uma03] gave an alternative direct
+transformation from worst-case hard function into PRGs which achieves a better seed length in the “low-end”.
+However, as it also relies on the hybrid argument (and implies hardness amplification), it cannot achieve the extreme
+high-end.
+
+
+
+                                                         7
+that when F is chosen at random from Fℓ,1 , it is possible to fix j outputs of ConF , while reducing
+the information about F by only h bits of information.
+
+Definition 1.10 (The cost of fixing j outputs). Given Con : Fℓ,1 → Fr,m we define Fixj (Con) to
+be the minimal number h such that there exist j distinct outputs z1 , . . . , zj ∈ {0, 1}m such that:
+
+                        Pr [∀i ∈ [j] : ∃yi ∈ {0, 1}r s.t. ConF (yi ) = zi ] ≥ 2−h .
+                      F ←Fℓ,1
+
+    We show that if Red makes a small number q of queries, then for every j that is not too large,
+Fixj (Con) ≤ a + j · (log q + O(1)). Loosely speaking, this means that after a “fixed cost” of a bits
+of information, a large number of outputs of ConF can be fixed at the cost of roughly log q bits of
+information about F , per m-bit output. This is stated formally below:
+
+Theorem 1.11. There exists a constant ν > 0 such that for every ρ-hard-function ⇒ ǫ-PRG proof
+(Con, Red) with parameters ℓ, r, m, a ≤ ν · 2ℓ , ǫ ≤ 1 − 2r−m , ρ > 0.51, if Red makes q ≤ 2ℓ queries,
+                         ℓ
+then for every j ≤ ν · 2ℓ ,
+
+                      Fixj (Con) ≤ a + j · (log q + O(1)) ≤ a + j · (ℓ + O(1)).
+
+    Previous limitations on the number of queries for reductions in black-box proofs (of any type)
+do not apply when a ≥ 2ℓ/2 and therefore are unapplicable in the extreme high-end
+    We stress that Theorem 1.11 is unrelated to the “hybrid argument” and applies even for con-
+structions where the correctness of the reduction does not rely on the hybrid argument. Moreover,
+the result applies for the whole range of parameters, and regardless of the choices of seed length
+and output length. See Section 3.1 for a more general statement and a discussion.
+    In the next section we use Theorem 1.11 to show limitations on the “PEG + extractor” approach
+of [DMOZ20].
+
+Distinction between black-box PRGs and typical extractors. Following Trevisan [Tre01]
+(see discussion in Section 1.2.3) we know that construction maps for black-box hard-function ⇒ PRG
+proofs are extractors (regardless of the number of queries used by the reduction). In fact, extractors
+and black-box proofs are essentially equivalent if we do not restrict the number of queries made by
+the reduction.
+    It is standard that if we choose a construction map Con at random, it will be an extractor.
+Nevertheless, we show that it is unlikely that a random construction map Con will have Fixj (Con) ≤
+a + j · ℓ (for relevant values of j). This implies that:
+
+Theorem 1.12 (informal). It is unlikely that a random construction map (which is an extractor
+w.h.p) will have a “useful” reduction with q < 2ℓ .
+
+    More details, and a precise statement is given in Section 3.1.2. This demonstrates that requiring
+a construction to have q < 2ℓ and be useful for PRGs (and not just for extractors) places limitations
+on the structure of the construction.
+
+Our interpretation. Our interpretation of Theorem 1.11 is that in order to enable the reduction
+to make few queries, the construction must “create a backdoor” and introduce correlations between
+different outputs. These correlations are “slightly harmful” to the goal of being an extractor. More
+
+                                                   8
+precisely, having low Fixj (Con) means that there is a source distribution with min-entropy that
+is very high (only lacking Fixj (Con) bits of information) on which j outputs of the extractor are
+fixed. This will violate the extractor guarantee if j is close to 2r (but is possible for j ≪ 2r which
+is the case in Theorem 1.11).
+    Theorems 1.11 and 1.12 suggest that it is more difficult to design PRG constructions than ex-
+tractors. In Section 3.1.3 we review the known hard-function ⇒ PRG constructions in the literature
+(the Nisan-Wigderson PRG [NW94] and the Shaltiel-Umans PRG [SU05, Uma03]) observing how
+they achieve low Fixj (Con) in the high-end, and why they do not achieve this in the extreme high-
+end. We hope that understanding conditions that hard-function ⇒ PRG constructions must satisfy,
+may point us to new constructions that may be applicable in the extreme high-end.
+
+Technique. We consider a “distinguisher” Df : {0, 1}m → {0, 1} that answers one iff its input
+is an output of Conf . For every function f ∈ Fℓ,1 , as Df PRG-breaks Conf , by Definition 1.7,
+there must exist α ∈ {0, 1}a such that the function C(x) = RedDf (x, α) satisfies C = f . However,
+Df only answers one on 2r out of the possible 2m queries. If Red does not ask such “interesting
+queries”, then it obtains no information on f , and cannot hope to reconstruct every f ∈ Fℓ,1 .
+    How does Red know to ask interesting queries? The advice string α (that depends on f ) may
+give Red information about interesting queries. However, the information in the advice string is
+limited by its length a, and we show that if Red is able to find interesting queries for many choices
+of f ∈ Fℓ,1 and x ∈ {0, 1}ℓ , then after this “fixed cost” of a bits of information, it is still difficult
+for Red to find interesting queries, unless the construction Con is set up so that many interesting
+queries (that is, outputs of Conf ) have low information, giving that Fixj (Con) ≤ a+j ·(log q +O(1))
+for many values of j). The precise details are given in Section 3.
+
+1.3.2    Limitations on the “PEG + Extractor” approach of [DMOZ20]
+Doron et al. [DMOZ20] showed how to construct extreme high end PRGs from a strengthening of
+the extreme high-end hardness assumption of Open Problem 1.5. More specifically, rather
+than only assuming that f cannot be computed by circuits of size 2(1−o(1))·ℓ , it is assumed that
+this holds even for circuits that are allowed to use nondeterminism and randomness (and can be
+thought of as a nonuniform analog of the class MA). This assumption is significantly stronger then
+the extreme high-end hardness assumption (although, still plausible).
+
+The PEG + extractor approach. The approach of [DMOZ20] is to construct a pseudo-entropy
+generator (PEGs) (for a specific notion of “computational entropy” suggested in [BSW03]). This
+type of PEG can be thought of as a weak notion of PRGs, that is only guaranteed to fool tests
+that accept a very small fraction of the 2m inputs:
+
+Definition 1.13 (PEGs). A function G : {0, 1}r → {0, 1}m is a (k, ǫ)-PEG for a function D :
+{0, 1}m → {0, 1}, if Pr[D(Um ) = 1] ≤ 2k−m then Pr[D(G(Ur )) = 1] − Pr[D(Um ) = 1] ≤ ǫ. We say
+that D (k, ǫ)-PEG-breaks G, if G is not an ǫ-PEG for D.10
+  10
+    We remark that the requirement that Pr[D(G(Ur )) = 1] − Pr[D(Um ) = 1] ≤ ǫ is sometimes replaced by the
+stronger requirement that Pr[D(G(Ur )) = 1] ≤ ǫ, or following [BSW03], by the requirement that Pr[D(G(Ur )) =
+1] ≤ Pr[D(Um ) = 1] · 2m−k + ǫ which is stronger still, if we replace ǫ by ǫ′ = ǫ/2 and k by k′ = k + log(1/ǫ′ ). We are
+interested in proving limitations on PEG and so taking a weak definition only makes our results stronger (especially
+as we are interested in constant ǫ and k ≪ m and the distinction between k, ǫ and k′ , ǫ′ is immaterial).
+
+
+
+                                                           9
+   More specifically, when given a function f : {0, 1}ℓ → {0, 1} (which is hard against the stronger
+model of circuits equipped with nondeterminism and randomness) the construction of [DMOZ20]
+works in two steps:
+                                                                                                            (1−o(1))·ℓ
+   1. PEG: Use the hard function to construct a PEG PEG : {0, 1}rPEG =o(ℓ) → {0, 1}mPEG =2
+      for kPEG = 2(1−o(1))·ℓ .
+                                                                                               (1−o(1))·ℓ
+   2. Extractor: Use an explicit extractor EXT : {0, 1}mPEG ×{0, 1}rEXT =(1+o(1))·ℓ → {0, 1}m=2
+      with entropy threshold kPEG (such explicit constructions are known unconditionally).
+The final PRG G : {0, 1}r=rPEG +rEXT → {0, 1}m is obtained by interpreting a string y ∈ {0, 1}r as
+two strings y1 ∈ {0, 1}rPEG and y2 ∈ {0, 1}rEXT , and setting G(y) = EXT(PEG(y1 ), y2 ).
+
+The seed length of a PEG. The final seed length of G is r = rPEG + rEXT . Using lower bounds
+on the seed length of extractors [RTS00], it follow that rEXT ≥ log(mPEG − kPEG ) ≥ (1 − o(1)) · ℓ.
+Therefore, in order to achieve r = (1 + o(1)) · ℓ (as is the case in the extreme high-end) it is crucial
+to use a PEG with seed length rPEG = o(ℓ). (We note that unlike PRGs, PEGs can potentially
+achieve r = o(log m), whereas, as noted earlier, PRGs must have r ≥ log m − O(log log m)).
+    Summing up, the construction of Doron et al. [DMOZ20] relies on the observation that PEGs
+are weaker objects than PRGs (and are therefore easier to construct) and that PEGs may have
+seed length that is significantly shorter than PRGs, so that summing the two seed lengths can still
+yield an almost optimal seed length.
+
+Impossibility for black-box hard-function ⇒ PEG proofs. We show an obstacle on this ap-
+proach when starting from the extreme high-end assumption of Open Problem 1.5. More
+specifically, we show that black-box hard-function ⇒ PEG proofs with r < ℓ − log(ℓ) that make
+q ≤ 2ℓ queries, do not exist.
+   This means that the seed length of each of the two steps must be roughly ℓ and so the total
+seed length of a PEG + extractor must be at least
+           rPRG = rPEG + rEXT ≥ (ℓ − o(1)) + (ℓ − o(1)) = 2ℓ − o(1) > (2 − o(1)) · log m,
+showing an obstacle for achieving extreme high-end PRGs with this approach. This is stated
+formally in the next theorem.
+Theorem 1.14 (Impossibility of black-box PEGs with r < log m). There exists a constant ν > 0
+such that for every black-box ρ-hard-function ⇒ (k, ǫ)-PEG proof (Con, Red) with parameters ℓ, r <
+k, m, a ≤ ν · 2ℓ , ǫ ≤ 1 − 2r−m , ρ ≥ 0.51 such that Red makes q ≤ 2ℓ queries, it follows that:11
+                                              r ≥ ℓ − log ℓ − O(1).
+   Summing up, Theorem 1.14 shows that black-box proofs cannot be used to solve Open Prob-
+lem 1.5 using the PEG + extractor approach of Doron et al. [DMOZ20].12
+  11
+      We have not yet formally defined the notion of ρ-hard-function ⇒ (k, ǫ)-PEG proof. However, this definition is
+obtained by simply replacing “PRG-break” with “PEG-break” in Definition 1.7. For completeness, we give the full
+definition in Section 3.2.
+   12
+      In light of Theorem 1.14 one may ask how Doron et al. [DMOZ20] construct their PEG. Is their proof non-
+black-box? The answer is that their proof is black-box, but it allows the reduction Red to use nondeterminism and
+randomness (and it is this ability that enables the reduction to make few queries). The cost of using these resources
+is that the reduction only contradicts the hardness of f if it is assumed to be hard even for circuits equipped with
+these resources. See e.g., Applebaum et al. [AASY16] for a discussion on nondeterministic reductions.
+
+
+                                                         10
+Consequences of Theorem 1.14 for “quantified derandomization”. The notion of PEGs
+in Definition 1.13 is closely related to “quantified derandomization” (introduced by Goldreich and
+Wigderson [GW14], see survey article by Tell [Tel21]). Quantified derandomization is concerned
+with derandomizing algorithms that err on very few (say less than 2k ) of the possible 2m values of
+their m random bits. This means that PEGs are exactly the type of PRGs that are suitable for
+this derandomization (see [DMOZ20, Tel21] for a discussion).
+    Consequently, Theorem 1.14 can also be viewed as a limitation on black-box proofs that obtain
+PRGs with very short seed for quantified derandomization, starting from the extreme high-end
+hardness assumption.
+
+Technique. Theorem 1.14 follows from Theorem 1.11 (noting that Theorem 1.11 also applies
+to PEGs). Loosely speaking, if r is small, then the number of outputs of Con is small, and it is
+impossible for Fixj (Con) to be small for large values of j, ruling out black-box proofs in which r is
+small.
+
+1.3.3   Lower bounds on black-box hardness amplification at the extreme high-end
+Grinberg, Shaltiel and Viola [GSV18] (continuing a line of previous work [Vio06, SV10, AS14])
+proved a lower bound of q ≥ Ω( ǫℓ2 ) on the number of queries in reductions for black-box hard-function ⇒
+( 12 + ǫ)-hard-function proofs (a.k.a. hardness amplification). By Proposition 1.8, such bounds imply
+that using black-box proofs to convert a function f on ℓ bits, that cannot be computed by size s
+into one that is average case hard for circuits of size m, one must have m ≤ s−a        s
+                                                                                   q ≤ q which means
+that such transformation “lose a factor q in the hardness”.
+     In this paper we prove a lower bound of q ≥ Ω( 1ǫ ), which is quantitatively weaker than that
+of [GSV18], but unlike [GSV18] it applies in the extreme high-end. That is, our result allows
+a = 2(1−o(1))·ℓ whereas [GSV18] (as well as all previous bounds) only works if a ≤ 2ν·ℓ for some
+constant ν > 0. (It is open to match the bound of [GSV18] for large a).
+Theorem 1.15 (Lower bounds on black-box hardness amplification at the extreme high-end). Let
+(Con, Red) be a hard-function ⇒ ( 12 + ǫ)-hard-function proof with parameters ℓ, ℓ′ , a, ρ = 1, ρ′ = 12 +ǫ.
+       1                                  2ℓ
+If ǫ ≤ 10 , ℓ′ ≥ log(1/ǫ) + Ω(1) and a ≤ 10  then Red must make at least q queries for
+                                                                 
+                                                1
+                                 q ≥ max Ω         , Ω (ℓ − log(2a)) .
+                                                ǫ
+    To the best of our knowledge, Theorem 1.15 is the first bound on the number of queries in
+black-box hardness amplification that applies for a ≥ 2ℓ/2 and to the extreme high-end.
+    Using Proposition 1.8, Theorem 1.15 implies that even if one starts from the extreme high-
+end hardness assumption, then to obtain a ( 12 + m      1
+                                                          )-hard-function for circuits of size m (and
+apply the hybrid argument as explained in Section 1.2.4) there must be a “hardness loss”, and
+       ℓ    ℓ
+m ≤ 2q ≤ 2m , implying that m ≤ 2ℓ/2 .
+    Note that this limitation applies regardless of the length ℓ′ of the input length of Conf . This
+means that a black-box hard-function ⇒ PRG proof that relies on hardness amplification and the
+                                                 1
+hybrid argument (that is: hard-function ⇒ ( 21 + m )-hard-function ⇒ PRG) must have m ≤ 2ℓ/2 , and
+this holds even if the seed length r of the PRG is large.
+    In the next section we show that a similar argument also gives limitations on using hardness
+amplification together with the “PRG composition” approach of Chen and Tell [CT21b].
+
+                                                    11
+Technique. The work of [GSV18] (as well as previous work in this area) relied on information
+theoretic techniques that break down for large a. Indeed, the proof of Theorem 1.15 uses a different
+argument. This argument builds on ideas of Applebaum et al. [AASY16] which connect the number
+of queries required by a reduction (or in the case of [RSV21] a local list-decoding algorithm) to
+the success that small size, constant depth circuits have in solving the “coin problem” (that is
+distinguishing a sequence of independent tosses of an unbiased coin from a sequence of independent
+tosses of a slightly biased coin). The proofs of [AASY16, RSV21] do not work for a ≥ 2ℓ/2 and our
+results are obtained by proving tighter bounds on depth 3 circuits for specific versions of the coin
+problem that come up in the argument. The proof is given in Section 4. As a consequence, we
+also improve the bounds of [RSV21] on the number of queries of local list-decoding algorithms, see
+Section 5 for details.
+
+1.3.4     The hybrid argument and the “PRG composition” approach of [CT21b]
+Chen and Tell [CT21b] construct extreme high end PRGs if, in addition to the extreme high-end
+hardness assumption of Open Problem 1.5, one also assumes the existence of one-way functions
+(OWFs). The existence of OWFs is a standard and widely believed assumption in cryptography.
+Nevertheless, OWFs (or more generally cryptography) are not known to be implied by extreme
+high-end PRGs (or other PRGs in complexity theory). Assuming OWFs does not seem necessary.
+
+The PRG composition approach. Chen and Tell [CT21b] start from a hard function f :
+{0, 1}ℓ → {0, 1} given by the extreme high-end hardness assumption. Their PRG G :
+                          (1−o(1))·ℓ
+{0, 1}(1+o(1))·ℓ → {0, 1}2           is obtained by PRG composition, namely G(y) = G2 (G1 (y)) where:
+                                                Ω(ℓ)
+   1. G1 : {0, 1}(1+o(1))·ℓ → {0, 1}m1 =2      is a PRG against circuits of size 2(1−o(1))·ℓ that is con-
+      structed from the extreme high-end hardness assumption using hardness amplification,
+      the Nisan-Wigderson PRG, and the hybrid argument.13
+                        Ω(ℓ)              (1−o(1))·ℓ
+   2. G2 : {0, 1}m1 =2       → {0, 1}m=2             is a PRG with modest stretch (polynomial rather
+      than exponential) that suffices to push the output length from m1 = 2Ω(ℓ) to m = 2(1−o(1))·ℓ .
+      Nevertheless, for the composition to be a PRG, it is crucial that G2 can be computed in time
+      2(1−o(1))·ℓ (that is in almost linear time in its output length m).14 Such PRGs indeed follow
+      from the existence of OWFs [HILL99].
+
+   A natural question is whether it is possible to construct the PRG G2 from the extreme
+high-end hardness assumption. This will remove the need for OWFs.
+   PRGs with polynomial stretch follow from this assumption (and even from weaker versions like
+the high-end hardness assumption or “low-end” versions). This is good news, as it shows that
+hardness amplification and the hybrid argument can yield sufficient stretch in this case.
+  13
+      More precisely, the cost of the hybrid argument (explained in Section 1.2.4) is measured in terms of the output
+length m (even if the PRG fools circuits of larger size, as is the case here). This means, that the goal of fooling circuits
+of size 2(1−o(1))·ℓ can be achieved by known black-box proofs (in the same manner explained in Section 1.2.4) from
+the extreme high-end hardness assumption for PRGs that output m1 = 2Ω(ℓ) bits, rather than m = 2(1−o(1))·ℓ
+bits.
+   14
+      This requirement is necessary as in the composition one needs to consider a distinguisher for G1 that runs G2 as
+a procedure, and G1 cannot fool circuits of size larger than 2ℓ . We also remark that in contrast to cryptography, in
+hardness vs. randomness, efficiency of components is rarely used in proving security of the final primitive, and this
+is one such rare instance.
+
+
+
+                                                            12
+    The issue is that the PRGs constructed by these methods do not run in time that is nearly
+linear in their output length m (and instead run in time mc where c > 2). This means that they
+are unsuitable for the PRG composition approach (and this is why [CT21b] relies on OWFs).
+
+Our results. Theorem 1.15 implies that PRGs (even with modest stretch) cannot run in nearly
+linear time, if they are obtained using black-box hardness amplification and the hybrid argument,
+assuming the extreme high-end hardness assumption. This implies that if we only assume
+the extreme high-end hardness assumption (and do not assume the existence of OWFs)
+then current techniques cannot yield the PRG G2 required by the PRG composition.
+    More precisely, we have already seen in Section 1.3.3 that in order to do a hybrid argument
+                                                                                            1
+for output length m, one needs a hardness amplification result that amplifies to below 12 + m , and
+                                         ℓ
+that Theorem 1.15 implies that m ≤ 2 2 . This holds in the extreme high-end, regardless of the
+relationship between r and m. In particular, it also holds when trying to construct PRGs with
+modest stretch like G2 , assuming the extreme high-end hardness assumption. On the other
+hand, assuming that computing the average-case hard function Conf takes at least the time it takes
+to compute the worst-case hard function f , and recalling that f cannot be computed by circuits
+of size 2(1−o(1))·ℓ , we conclude that Conf cannot be computed in time 2(1−o(1))·ℓ (which is at least
+m2−o(1) ).
+    Summing up, after performing hardness amplification, there must be at least a quadratic gap
+between the time it takes to compute Conf , and the circuit size for which it is hard on average.
+This gap is inherited by the final PRG G2 . Consequently, G2 cannot run in time smaller than
+m2−o(1) , and in particular, there is in obstacle for obtaining PRGs that run in time nearly linear
+in m, using these techniques (even if the stretch is modest).
+    This shows an obstacle for using current techniques (that rely on hardness amplification and
+the hybrid argument) to apply the PRG composition approach of [CT21b] assuming only the
+extreme high-end hardness assumption. This partially explains why [CT21b] need the addi-
+tional assumption that OWFs exist in order to construct the PRG G2 .
+
+1.4   Organization of this paper
+In Section 2 we define some notation, and cite some previous work that we use. In Section 3 we
+prove our results on black-box proofs for PRGs and PEGs (Theorem 1.11 and Theorem 1.14). In
+Section 4 we prove our results on hardness amplification (Theorem 1.15). In Section 5 we use
+the methodology devised for Theorem 1.15 to improve the lower bounds of Ron-Zewi, Shaltiel and
+Varma [RSV21] on the number of queries of decoders for locally decodable codes. In Section 6 we
+mention some open problems.
+
+
+2     Preliminaries
+Distributions and Random Variables. We use X ← D to denote the experiment in which
+X is chosen from distribution D. For a set A we use X ← A to denote the experiment in which
+X is chosen uniformly from A. Two distributions X, Y over the same finite domain are ǫ-close if
+for every event A, | Pr[X ∈ A] − Pr[Y ∈ A]| ≤ ǫ. For a distribution X over {0, 1}n , we define
+                            1
+H∞ (X) = minx∈{0,1}n log Pr[X=x] .
+
+
+
+                                                 13
+   For 0 ≤ p ≤ 1, we use Unp to denote the distribution of n i.i.d. random variables, where each one
+                                                    1/2
+has probability p to be one. We use Un to denote Un (the uniform distributions on n bit strings).
+
+Hamming distance and weight. For two strings x, y ∈ {0, 1}n we use dist(x, y) to denote the
+relative Hamming distance between x and y, namely, dist(x, y) = | {i ∈ [n] : xi 6= yi } |/n. We use
+weight(x) to denote the absolute Hamming weight, namely weight(x) = | {i ∈ [n] : xi 6= yi } |.
+
+Restrictions. We use the standard notion of random restrictions. Namely, a restriction ρ : [n] →
+{0, 1, ∗} restricts some of the variables of a function f : {0, 1}n → {0, 1}.
+    We use Select(ρ) to denote the subset of free variables, Free(ρ) to denote the number of free
+variables, and Assign(ρ) to be the value of the assigned variables. This is stated formally in the
+next definition.
+
+Definition 2.1 (Restrictions). A restriction of n variables is a function ρ : [n] → {0, 1, ∗}. We
+define Select(ρ) = {i : ρ(i) = ∗}, Free(ρ) = | Select(ρ)|, and Assign(ρ) ∈ {0, 1}n−Free(ρ) by enumer-
+ating the fixed elements (i1 < . . . < in−Free(ρ) ) = [n] \ Select(ρ) and defining Assign(ρ)j = ρ(ij ).
+    Given a function f : {0, 1}n → {0, 1} and a restriction ρ : [n] → {0, 1, ∗}, and x ∈ {0, 1}Free(ρ)
+we define Fillρ (x) ∈ {0, 1}n as follows: Let i1 < . . . < iFree(ρ) be the indices on which ρ outputs ‘∗’,
+                                                 
+                                                     xj ,  ∃j s.t. i = ij
+                                  Fillρ (x)i =
+                                                     ρ(i), otherwise
+
+Given f : {0, 1}n → {0, 1}, we define fρ : {0, 1}Free(ρ) → {0, 1} by
+
+                                          fρ (x) = f (Fillρ (x)).
+
+    We use Rnp to denote the set of restrictions with p · n unrestricted variables. A formal definition
+is given below.
+
+Definition 2.2 (The class Rnp ). For 0 ≤ p ≤ 1, let Rnp denote the set of restrictions ρ : [n] → {0, 1, ∗}
+with Free(ρ) = p · n.
+
+   We use the following switching lemma due to Hastad [Hås86]. The specific version used here,
+appears in Beame’s primer [Bea94].
+
+Theorem 2.3. [Hås86, Bea94] Let C be a q-CNF over n variables. For every 0 ≤ p ≤ 1, the
+probability over choosing ρ ← Rnp that Cρ does not have a decision tree of height h is at most
+(7 · p · q)h .
+
+
+3    Limitations on black-box proofs for PRGs and PEGs
+In this section we discuss our main results on black-box proofs for PRGs and PEGs (Theorem 1.11
+and Theorem 1.14). In Section 3.1 we discuss Theorem 1.11, and in Section 3.2 we discuss Theorem
+1.14. The proofs of both these Theorems is given in Section 3.3.
+
+
+
+
+                                                       14
+3.1     Limitations on constructions of black-box hard-function ⇒ PRG proofs
+In this section we restate Theorem 1.11 and discuss its consequences and interpretation. In Section
+3.1.1 we restate Theorem 1.11 and discuss its interpretation. In Section 3.1.2 we show that a corol-
+lary of Theorem 1.11 is that PRG constructions must differ from typical extractor constructions,
+giving a precise statement of Theorem 1.12. In Section 3.1.3 revisit the Nisan-Wigderson PRG
+[NW94] and the Shaltiel-Umans PRG [SU05, Uma03] and discuss them from the perspective of
+Theorem 1.11.
+
+3.1.1    A general statement of Theorem 1.11
+Review of the setup of Theorem 1.11. Theorem 1.11 shows that for any black-box hard-function ⇒
+PRG proof (Con, Red), if Red is useful, and makes q ≤ 2ℓ queries, then Con must be structured in a
+way that allows “fixing many outputs, with small information cost”. This is measured by Fixj (Con)
+from Definition 1.10, which defines Fixj (Con) to be the minimal number h, so that when F is cho-
+sen at random from Fℓ,1 , it is possible to fix j outputs of ConF , while only reducing h bits of
+information about F .
+    Theorem 1.11 shows that in order for Red to be useful and have q ≤ 2ℓ , it must be that for
+many sufficiently large choices of j, Fixj (Con) ≤ a + j · (log q + O(1)). This means that after a
+“fixed cost” of a bits of information, a large number of outputs of ConF can be fixed at the cost of
+log q + O(1) bits of information about F , per output.
+
+A more general statement. The following theorem is a generalized version of Theorem 1.11
+which also allows the parameter ρ (measuring how hard on average is the function we start from)
+to be very close to 21 , and then the amortized cost log q + O(1), is replaced by log ρ−q 1 .
+                                                                                        2
+
+
+Theorem 3.1. Let (Con, Red) be a black-box ρ-hard-function ⇒ ǫ-PRG proof for parameters ℓ, r, m, a, ǫ, ρ
+such that Red makes at most q ≤ 2ℓ queries. If ρ = 12 + η, η ≥ 2−ℓ , ǫ ≤ 1 − 2r−m , and a ≤ ν · η 2 · 2ℓ
+                                                                  2   ℓ
+for some sufficiently small constant ν > 0, then for jmax = ν · η ℓ·2 , and every j ≤ jmax ,
+
+                                                                  4
+                                 Fixj (Con) ≤ a + j · (log q + log ).
+                                                                  η
+    Theorem 1.11 immediately follows from Theorem 3.1 by setting ρ = 0.51. Theorem 3.1 is proven
+in Section 3.3.
+
+A discussion of the parameters of Theorem 3.1. The parameters in Theorems 1.11 and
+Theorem 3.1 are applicable even for very large a, and therefore Theorem 3.1 applies in the extreme
+high-end (where a = 2(1−o(1))·ℓ ) as well as in less challenging ranges such as the high-end (where
+a = 2ν·ℓ for a constant ν > 0) and the low-end (where a = poly(ℓ)). We stress that to the best
+of our knowledge, previous limitations on the number of queries of a black-box reduction (of any
+kind) did not apply for a ≥ 2ℓ/2 and in particular, for the extreme high-end. See Section 4 for
+a discussion on past lower bounds on the number of queries by reductions for black-box hardness
+amplification proofs.
+    Furthermore, Theorems 1.11 and Theorem 3.1 make no assumption on the stretch (namely, the
+relationship between r and m) of the constructed PRG, and apply even when the stretch is very
+
+
+                                                  15
+small, and m is only slightly larger than r. In addition, the theorem applies even when ǫ is very
+large, and approaches one (rather than zero).
+    Finally, Theorem 3.1 applies even when η = 21 − ρ is very small (say η = 2−Ω(ℓ) ) and even for
+black-box hard-function ⇒ PRG proofs like the Nisan-Wigderson PRG, which are only known to
+work when η is very small. See Section 3.1.3 for a discussion of the Nisan-Wigderson PRG.
+
+3.1.2   black-box PRGs are different than typical extractors
+In this section we prove Theorem 1.12 which loosely states that a random construction Con for a
+black-box hard-function ⇒ PRG proof is likely to be an extractor, but unlikely to be useful when
+transforming hard functions into PRGs.
+
+Formal connection between extractors and black-box hard-function ⇒ PRG proofs. It
+is well known following Trevisan’s breakthrough construction [Tre01] (and as explained in Section
+1.2.3) that black-box hard-function ⇒ PRG proofs, are closely related to randomness extractors. Let
+us formally specify this connection. We start with a formal definition of randomness extractors.
+
+Definition 3.2 (extractors). A function E : {0, 1}n × {0, 1}r → {0, 1}m is a (k, ǫ)-extractor if for
+every distribution X over {0, 1}n , with H∞ (X) ≥ k, E(X, Ur ) is ǫ-close to Um .
+
+   In order to compare function E : {0, 1}n × {0, 1}r → {0, 1}m to functions Con : Fℓ,1 → Fr,m we
+use the following notation.
+
+Definition 3.3 (Constructions and extractors). A string f ∈ {0, 1}n can be viewed as a function
+f : {0, 1}log n → {0, 1} by f (i) = fi . This also applies in the other direction, allowing a function
+                                                          ℓ
+f : {0, 1}ℓ → {0, 1} to be viewed as a string f ∈ {0, 1}2 .
+    Given a function E : {0, 1}n × {0, 1}r → {0, 1}m , we define ℓ = log n, and ConE : Fℓ,1 → Fr,m
+where ConE            r
+            f : {0, 1} → {0, 1}
+                                 m is defined by ConE (y) = E(f, y). This also applies in the other
+                                                     f
+                                                                                 ℓ
+direction, where a function Con : Fℓ,1 → Fr,m induces a function E : {0, 1}n=2 × {0, 1}r → {0, 1}m
+by E(f, y) = Conf (y).
+
+    With this notation, extractors and black-box hard-function ⇒ PRG proofs, are essentially equiv-
+alent. This is stated in the following standard proposition which shows that the two notions are
+roughly equivalent for a ≈ k.
+
+Proposition 3.4 (Extractors are essentially equivalent to black-box hard-function ⇒ PRG proofs).
+Let E : {0, 1}n × {0, 1}r → {0, 1}m , and let ℓ = log n.
+
+  1. If ConE can be matched with an oracle procedure Red(·) such that the pair (ConE , Red) is a
+     black-box hard-function ⇒ ǫ-PRG proof with advice length a, then E is a (k, 2ǫ)-extractor, for
+     k = a + log(1/ǫ) + 1.
+
+  2. If E is a (k, ǫ)-extractor then there exists an oracle procedure Red(·) such that the pair
+     (ConE , Red) is a black-box hard-function ⇒ ǫ-PRG proof with advice length a = k + 1.
+
+
+
+
+                                                 16
+Reductions must make few queries to be useful. Note however, that in order to be useful
+for PRG construction, a black-box hard-function ⇒ PRG proof must have a reduction Red that
+make few queries. In particular, as can be seen in Proposition 1.8, the reduction is useless if it
+                                                 ℓ
+makes q ≥ 2ℓ queries (and even if it makes q ≥ 2 m−a queries).
+    The equivalence of Proposition 3.4 does not mention the number of queries (which can be as
+large as 2m ). In other words, a black-box hard-function ⇒ PRG proof is an extractor even when
+the number of queries is very large, but it must have q ≪ 2ℓ in order to be useful when converting
+hard functions into PRGs.
+
+A typical extractor is not a useful PRG construction. We now show that for a wide range
+of parameters ℓ, r, m and a (and in particular for the parameters that correspond to the high-end
+and the extreme high-end) if we choose a function E : {0, 1}n × {0, 1}r → {0, 1}m uniformly at
+random then:
+
+   • It is unlikely that construction ConE (associated with E) has small Fixj (ConE ), and therefore,
+     by Theorem 1.11, it is unlikely that ConE can be matched with a reduction Red that makes
+     q ≤ 2ℓ queries.
+
+   • However, a standard argument shows that it is likely that E is an extractor, and therefore,
+     by Proposition 3.4, it is likely that ConE can be matched with a reduction Red (although Red
+     may make q = 2m queries).
+
+As explained in Section 1.3.1, this can be interpreted as saying that PRG constructions must be
+quite different than typical extractor constructions in order to allow the existence of a reduction
+that makes few queries.
+   A formal and quantitative version of this is stated in the next definition and theorem.
+
+Definition 3.5 (Random construction). Let E ← RndEℓ,r,m denote the experiment in which a
+                      ℓ
+function E : {0, 1}n=2 × {0, 1}r → {0, 1}m is chosen uniformly from the set of all such functions.
+
+Theorem 3.6. Let ℓ, r, m, a, ǫ be parameters such that m ≥ 2r and the following holds:
+
+ Parameters that allow E to be an extractor: r ≥ ℓ+2 log(1/ǫ)+O(1), 2ℓ ≥ a ≥ m+2 log(1/ǫ)+O(1),
+     and ǫ ≤ 12 .
+                                                                             ℓ
+ Parameters that prevent fixing seeds: a + j · ℓ ≤ min(j · (m − r) − O(1), 22 ).
+
+In the experiment E ← RndEℓ,r,m the following items hold:
+                                                                                      2ℓ /2
+   • For every j > 4, the probability that Fixj (ConE ) ≤ a + j · ℓ is smaller than 2−2       .
+     Consequently (by Theorem 1.11) the probability that ConE can be matched with an oracle
+                                                                      2ℓ /2
+     procedure Red(·) that makes q < 2ℓ queries, is smaller than 2−2          .
+
+   • The probability that E is an (a + O(1), ǫ) extractor is larger than 1 − o(1). Consequently (by
+     Proposition 3.4) the probability that ConE can be matched with an oracle procedure Red(·) with
+     advice length a + O(1) is larger than 1 − o(1).
+
+
+
+
+                                                 17
+The parameters in Theorem 3.6. We stress that Theorem 3.6 applies for a wide range of
+parameters including the extreme high-end, and the high-end. Furthermore, Theorem 3.6 does not
+require that m is much larger than r and applies even when the stretch is small. Furthermore, the
+                                     2ℓ /2
+probability in the first item is 2−2    which is quite small. We also note that the requirement that
+a + j · ℓ is small are very mild in the following sense:
+   • For every j it is obvious that Fixj (Con) ≤ j · m, as the amount of information in j outputs is
+     at most j · m. We are only requiring that a + j · ℓ ≤ j · (m − r) − O(1) which is quite close to
+     the obvious bound.
+                                                                                                    ℓ
+   • The total amount of information in f is at most 2ℓ . We are only requiring that a + j · ℓ ≤ 22
+     which is quite close to the obvious bound.
+Proof. (of Theorem 3.6) The second item is a standard calculation which can be found for example
+in [RTS00]. Therefore, we will only prove the first item. Within this proof, unless otherwise
+specified, all probabilities are regarding the experiment E ← RndEℓ,r,m .
+    For a fixed set S ⊆ {0, 1}n of size K = 2n−(a+j·ℓ) and a sequence z̄ = (z1 , . . . , zj ) of distinct
+elements in {0, 1}m , let AS,z̄ denote the event that for every f ∈ S, there exist y1 , . . . , yj ∈ {0, 1}r
+such that for all i ∈ [j], E(f, yi ) = zi . This definition is made so that:
+                                                            n
+                                        E                    2
+                           Pr[Fixj (Con ) ≤ a + j · ℓ] ≤         · 2m·j · Pr[AS,z̄ ],
+                                                             K
+where the latter expression is obtained by a union bound over all choices of S and z̄. For every
+such S and z̄, and for every f ∈ S, let AS,z̄,f denote the event that there exist y1 , . . . , yj ∈ {0, 1}r
+such that for all i ∈ [j], E(f, yi ) = zi . For every f ∈ S, by a union bound over all choices of
+y1 , . . . , yj ∈ {0, 1}r ,
+                                       Pr[AS,z̄,f ] ≤ 2r·j · 2−m·j .
+These events are independent for the K different choices of f ∈ S, and therefore, the probability
+of their conjunction is the product of their individual probabilities.
+                                                        K
+                              Pr[AS,z̄ ] ≤ 2r·j · 2−m·j    = 2−j·K·(m−r) .
+We conclude that:
+                                                      n
+                                                      2
+                      Pr[Fixj (ConE ) ≤ a + j · ℓ] ≤      · 2m·j · 2−j·K·(m−r)
+                                                      K
+                                                      n K
+                                                      2 ·e
+                                                   ≤            · 2m·j · 2−j·K·(m−r)
+                                                        K
+            ℓ
+Let v = 22 /2 . In order to show that this probability is smaller than 2−v it is sufficient to show
+that:
+       n K
+   1. 2K·e    · 2−j·K·(m−r) ≤ 2−2v , and
+   2. 2m·j ≤ 2v .
+These two conditions follow by the requirements of the theorem. More specifically, the requirement
+                      ℓ                    ℓ
+that a + j · ℓ ≤ 22 gives that K ≥ 22 /2 ≥ v. This gives that the first condition follows if
+a + j · ℓ ≤ j · (m − r) − O(1) which is one of the requirements of the theorem.
+                                                                      ℓ
+    The second condition follows because by our requirement j ≤ 22 and m ≤ 2ℓ . Therefore for
+                                ℓ
+sufficiently large ℓ, m · j ≤ 22 /2 = v,
+
+                                                    18
+3.1.3   Revisiting the Nisan-Wigderson PRG and the Shaltiel-Umans PRG
+As surveyed in Section 1.2.4 there are only two known constructions of black-box hard-function ⇒
+PRG proofs in the literature, where Red is useful and makes q queries, for q that can be significantly
+less than 2ℓ . These are the Nisan-Wigderson PRG [NW94] and an additional construction is due
+to Shaltiel and Umans [SU05] and Umans [Uma03].
+    The former is more versatile, and has many additional applications, mainly because its reduction
+requires less computational resources, and makes less queries. The latter has advantages over the
+Nisan-Wigderson PRG as it allows to achieve r = O(ℓ) even for small values of a (like a = poly(ℓ),
+which corresponds to “low-end” PRGs).
+    Nevertheless, as explained in Section 1.2.4, both these approaches rely on hardness amplification
+and the hybrid argument, preventing them from achieving the extreme high-end.
+    Theorem 1.11 and 3.1 show that in any black-box proof with q ≤ 2ℓ , even one that does not
+rely on the hybrid argument, Fixj (Con) must be small. Let us review how the known PRGs achieve
+this.
+
+The Nisan-Wigderson PRG. The Nisan-Wigderson PRG is a black-box ( 12 + mǫ )-hard-function ⇒
+ǫ-PRG proof (ConN W , RedN W ) with parameters ℓ, r, m, a, ρ = 21 + mǫ and ǫ, such that Red makes
+a single query. This means that the Nisan-Wigderson PRG is applicable in the extreme high-end,
+when starting from a ( 21 + mǫ )-hard-function. As explained in Section 1.3.3 current hardness ampli-
+fication techniques are not applicable for m ≥ 2ℓ/2 . This means that they cannot be used in the
+extreme high-end, even if we are willing to allow large seed length r.
+    By Theorem 3.1, we have that:
+
+                                 Fixj (ConN W ) ≤ a + j · (log m + O(1)),
+
+for constant ǫ > 0, and many values of m and j. Let us review how ConN W achieves this.
+    The construction ConN W is defined using a “design”, namely a collection S1 , . . . , Sm ⊆ [r] such
+that for every i ∈ [m], |Si | = ℓ, and then for every f ∈ Fℓ,1 , ConN      f
+                                                                              W
+                                                                                : {0, 1}r → {0, 1}m is defined
+by
+                                   ConN
+                                      f
+                                        W
+                                          (x) = f (x|S1 ), . . . , f (x|Sm ).
+                                                                                    NW
+Another version that is often considered is a “seed extending” version Conf (x) = x, ConN       f
+                                                                                                  W
+                                                                                                    (x)
+that outputs m + r bits. The analysis of [NW94] shows that the parameter a is determined by the
+sizes of pairwise intersections of sets in the design. More specifically, using an improved analysis by
+Raz, Reingold and Vadhan [RRV02] (for a condition called “weak design”) it follows that taking
+                                    XX
+                              a=             2|Si′ ∩Si | ≤ m · 2maxi6=i′ |Si ∩Si′ | ,
+                                    i∈[m] i′ 6=i
+
+
+suffices to obtain a reduction RedN W which makes a single query.
+    The weak design property can be used to show that for every 1 ≤ j ≤ 2ℓ ,
+                                                        NW
+                                            Fixj (Con        ) ≤ a + j.
+
+Loosely speaking, this is because the NW proof shows that for every i, after fixing a bits of
+information about f , we have that for every value of x|[r]\Si , all m − 1 output bits of the form
+
+                                                        19
+f (x|Si′ ) for i′ 6= i are completely determined as a function of x|Si . This means that for every value
+of x|Si , the only output bit that is not yet fixed is f (x|Si ), which can be fixed paying only one bit
+of information.
+    If we were to beat the hybrid argument, and construct a new black-box hard-function ⇒ PRG
+proof that works directly from worst-case hard functions, we would have to come close to this behav-
+ior, and we hope that understanding this property may point us to new constructions, potentially
+utilizing the ability to ask a small number of queries (but more than just one query).
+
+The Shaltiel-Umans PRG. The Shaltiel-Umans PRG is a black-box hard-function ⇒ PRG
+proof (ConSU , RedSU ) with parameters ℓ, r, m, a, ρ = 1 and ǫ = 10
+                                                                  1
+                                                                    , such that Red makes q = mO(1)
+queries.
+    Unlike the Nisan-Wigderson PRG, the Shaltiel-Umans PRG is stated for ρ = 1 (starting from
+worst-case hard functions). Nevertheless, the Shaltiel-Umans PRG builds on the hardness amplifi-
+cation techniques of Sudan, Trevisan and Vadhan [STV01] and makes q ≥ m queries. Furthermore,
+it implies hardness amplification to 12 + m1
+                                             . This means that it is not applicable at the extreme
+high-end.
+    By Theorem 3.1, we have that:
+
+                                   Fixj (ConSU ) ≤ a + j · (O(log m)),
+
+for many values of m and j.
+    Let us review how ConSU achieves this. The construction ConSU    f   relies on (a carefully cho-
+                                 1     1
+sen) black-box hard-function ⇒ ( 2 + m )-hard-function proof (which has additional structure). This
+hardness amplification construction converts the worst-case hard function f : {0, 1}ℓ → {0, 1} into
+                                           ′
+an average case hard function f ′ : {0, 1}ℓ → {0, 1}.
+    The PRG construction is then defined by setting r = ℓ′ and defining:
+
+                      ConSU       ′      ′         ′                    ′ (m−1)
+                         f (x) = f (x), f (g(x)), f (g(g(x))), . . . , f (g     (x),
+                 ′           ′
+where g : {0, 1}ℓ → {0, 1}ℓ is some specific function. Another version that is often considered is a
+                              SU
+“seed extending” version Conf (x) = x, ConSU f (x) that outputs m + r bits.
+                                               ′
+   This means that for every seed x ∈ {0, 1}ℓ if we consider the ℓ “consecutive” seeds,
+
+                                      g(x), g(g(x)), . . . , g (m−1) (x),
+
+all the outputs of ConSU                                              ′
+                      f on these seeds, depend only on the values of f on g(x), g(g(x)), . . . , g
+                                                                                                   (2m) (x).
+                                   SU
+This means that m outputs of Conf can be fixed at the cost of fixing 2m bits of f ′ . In particular,
+for j = a we get that j = a outputs of Conf can be fixed at the total cost of 2a = a + j · 1 bits
+of information about f . This means that after paying a fixed cost of a, a outputs can be fixed at
+amortized cost of one bit of information per output. This can be used to show that:
+                                                    SU
+                                        Fixa (Con        ) ≤ a + a · 1.
+
+Again, if we were to beat the hybrid argument, and construct a new black-box hard-function ⇒ PRG
+proof that works directly from worst-case hard functions, we may hope to take this understanding,
+hoping to somehow avoid paying the price of hardness amplification to extremely hard on average
+functions.
+
+                                                      20
+3.2     Limitations on the “PEG + Extractor” approach of [DMOZ20]
+In this section we restate Theorem 1.14 and discuss its consequences and interpretation.
+
+3.2.1    Limitation on black-box hard-function ⇒ PEG constructions with short seed
+Review of the setup of Theorem 1.14. Theorem 1.11 shows that for any black-box hard-function ⇒
+PEG proof (Con, Red), if Red is useful, and makes q ≤ 2ℓ queries, then r ≥ (1 − o(1)) · ℓ ≥
+(1 − o(1)) · log m. As explained in Section 1.3.2, this shows that the “PEG + extractor” approach
+of [DMOZ20] cannot be used to obtain an extreme high-end PRG from the extreme high-end
+hardness assumption if the PEG is constructed by a black-box hard-function ⇒ PEG proof.
+
+Formal definition of black-box hard-function ⇒ PEG proofs. In the introduction, we did not
+give a formal definition of black-box hard-function ⇒ PEG proofs (and only explained how these
+are defined in relation to black-box hard-function ⇒ PRG proofs. We therefore start with a formal
+definition.
+
+Definition 3.7 (Black-box hard-function ⇒ PEG proof). Given parameters ℓ, r, m, a, k, ǫ, ρ a black-
+box ρ-hard-function ⇒ (k, ǫ)-PEG proof is a pair (Con, Red) of:
+
+   • A construction map Con : Fℓ,1 → Fr,m .
+   • An oracle procedure Red(·) (x, α) such that for every f ∈ Fℓ,1 and for every D ∈ Fm,1 such that
+     D (k, ǫ)-PEG-breaks Conf , there exists α ∈ {0, 1}a such that the function C ∈ Fℓ,1 defined by
+     C(x) = RedD (x, α), ρ-hard-function-breaks f .
+
+If we omit ρ, we mean ρ = 1. If we omit ǫ, we mean ǫ = 1/10. We say that Red makes q queries,
+if for every D ∈ Fm,1 , α ∈ {0, 1}a , and x ∈ {0, 1}ℓ , RedD (x, α) makes at most q oracle queries.
+
+A more general statement. The following Theorem is a generalized version of Theorem 1.14
+which also allows the parameter ρ (measuring how hard on average is the function we start from)
+to be very close to 21 .
+
+Theorem 3.8. There exists constants ν > 0 and c > 1 such that for every black-box ρ-hard-function ⇒
+(k, ǫ)-PEG proof (Con, Red) with parameters ℓ, r, m, a, k, ǫ, ρ such that
+                                                               1
+                                     r < ℓ − log ℓ − 2 · log     − c.
+                                                               η
+
+If ρ = 21 + η, η ≥ 2−ℓ , k > r, ǫ ≤ 1 − 2r−m , and a ≤ ν · η 2 · 2ℓ , then Red must make at least q > 2ℓ
+queries.
+
+A discussion of the parameters of Theorem 3.8. The parameters in Theorems 1.14 and
+Theorem 3.8 are applicable even for very large a, and therefore Theorem 3.1 applies in the extreme
+high-end (where a = 2(1−o(1))·ℓ ) as well as in less challenging ranges such as the high-end (where
+a = 2ν·ℓ for a constant ν > 0) and the low-end (where a = poly(ℓ)). We stress once again that to
+the best of our knowledge, no known lower bound on the number of queries of a black-box reduction
+(of any kind) applies in the extreme high-end. See Section 4 for a discussion on past lower bounds
+on the number of queries by reductions for black-box hardness amplification proofs.
+
+                                                  21
+    We also note that the requirements on the parameters in Theorem 3.8 are quite mild. We allow
+ǫ to approach one (rather than zero) and k to approach r (rather than m). For ρ = 1 (namely,
+starting from a worst-case hard functions) we have that η = 21 and the theorem works even for
+a = Ω(2ℓ ).
+
+3.3     Proofs of Theorem 3.1 and Theorem 3.8
+In this section we prove Theorem 3.1 and Theorem 3.8 (which in turn imply Theorem 1.11 and
+Theorem 1.14). Both Theorems will follow from the following theorem (which can be seen as a
+version of Theorem 3.1 for PEGs).
+
+Theorem 3.9. There exists a constant ν > 0 such that for every black-box ρ-hard-function ⇒
+(k, ǫ)-PEG proof (Con, Red) with parameters ℓ, r, m, a, k, ǫ, ρ such that Red makes at most q ≤ 2ℓ
+                                                                                                    2 ℓ
+queries. If ρ = 21 + η, η ≥ 2−ℓ , k > r, ǫ ≤ 1 − 2r−m , and a ≤ ν · η 2 · 2ℓ , then for jmax = ν · η ℓ·2 ,
+and every j ≤ jmax ,
+                                                                   4
+                                  Fixj (Con) ≤ a + j · (log q + log ).
+                                                                   η
+The proof of Theorem 3.9 is given in Section 3.3.1.
+
+Theorem 3.1 follows from Theorem 3.9. Loosely speaking, this follows because any PRG
+is also a PEG, and therefore limitations on PEGs also hold for PRGs. More formally, any
+black-box ρ-hard-function ⇒ ǫ-PRG proof (Con, Red) in which ǫ = 1 − 2r−m is also a black-box
+ρ-hard-function ⇒ (k, ǫ)-PEG proof for k = r. Theorem 3.9 applies for the latter, and therefore also
+applies for the former, proving Theorem 3.1.
+
+Theorem 3.8 follows from Theorem 3.9. The conditions in Theorem 3.8 satisfy the conditions
+of Theorem 3.9 except for the requirement made in Theorem 3.9 that q ≤ 2ℓ . Therefore, under
+the conditions of Theorem 3.9 we can apply Theorem 3.9 and conclude that either q > 2ℓ or
+                                                               2 ℓ
+the conclusion of Theorem 3.9 holds and for jmax = ν · η ℓ·2 , and every j ≤ jmax , Fixj (Con) ≤
+a + j · (log q + log η4 ). However, the latter option cannot happen. This is because by the restriction
+on r, we get that 2r < jmax . As the number of outputs of Conf is 2r < jmax , it is impossible to fix
+jmax distinct outputs, and so Fixj (Con) is undefined and can be viewed as infinity. Consequently,
+it can’t be the case that Fixj (Con) is smaller than some finite quantity. We conclude that q > 2ℓ .
+
+3.3.1    Proof of Theorem 3.9
+In this section we prove Theorem 3.9. We assume the assumption of Theorem 3.9, namely that
+(Con, Red) is a black-box ρ-hard-function ⇒ (k, ǫ)-PEG proof that satisfies the conditions of The-
+orem 3.9. We first define a simple distinguisher that answers one iff its input is a pseudorandom
+string.
+
+Definition 3.10 (The simple distinguisher). For every f ∈ Fℓ,1 we define Df : {0, 1}m → {0, 1}
+by:
+                                   1, ∃y ∈ {0, 1}r s.t. Conf (y) = z
+                                 
+                        Df (z) =
+                                   0, otherwise
+Claim 3.11. There exists α′ ∈ {0, 1}a and A0 ⊆ Fℓ,1 such that:
+
+                                                   22
+  1. PrF ←Fℓ,1 [F ∈ A0 ] ≥ 2−a .
+
+  2. For every f ∈ A0 , the function Cf : {0, 1}ℓ → {0, 1} defined by Cf (x) = RedDf (x, α′ ), satisfies
+     that Cf ρ-hard-function-breaks the function f .
+
+Proof. For every f ∈ Fℓ,1 , Pr[Df (Conf (Ur )) = 1] = 1, and Pr[Df (Um ) = 1] ≤ 2r−m . Therefore,
+Df (k, ǫ) − PEG-breaks Conf if k > r and ǫ ≥ 1 − 2r−m , which is assumed in the statement of
+Theorem 3.9. By the definition of black-box ρ-hard-function ⇒ (k, ǫ)-PEG proof, we have that
+for every f ∈ Fℓ,1 , as Df (k, ǫ)-PEG-breaks Conf , there exists α ∈ {0, 1}a such that the function
+C ∈ Fℓ,1 defined by C(x) = RedD (x, α), ρ-hard-function-breaks f . Therefore, by averaging, there
+exists α′ ∈ {0, 1}a that works for a 2−a fraction of the functions f ∈ Fℓ,1 , and let A0 denote the
+subset of all functions f ∈ Fℓ,1 for which α′ works.
+
+    We will now define a function C : {0, 1}ℓ → {0, 1} (that does not depend on f ) with the hope
+of showing that if the conclusion of Theorem 3.9 does not hold, then C(x) simulates RedDf (x, α′ )
+quite well for “some” choices of f ∈ Fℓ,1 and x ∈ {0, 1}ℓ .
+
+Definition 3.12. For every x ∈ {0, 1}ℓ , we define z1x , . . . , zqx ∈ {0, 1}m as follows: We consider an
+invocation of Red(·) (x, α′ ) in which all queries are answered by zero, and for 1 ≤ i ≤ q, let zix denote
+the j’th query made by Red(x, α′ ) in this invocation. Let C(x) denote the output of Red(x, α′ ) in
+this invocation.
+
+   Note that z1x , . . . , zqx ∈ {0, 1}m do not depend on the choice of the function D given to Red as
+oracle. We will be interested in the case that Red gets oracle access to the function Df , for some
+f ∈ Fℓ,1 . Note that for every f ∈ Fℓ,1 , z1x is the first query made by RedDf (x, α′ ), and for i > 1, zix
+may be different than the i’th query made by RedDf (x, α′ )), as the reduction is allowed to make
+adaptive queries. Nevertheless, the following obviously holds:
+
+Claim 3.13. For every f ∈ Fℓ,1 and every x ∈ {0, 1}ℓ , if Df (z1x ) = . . . = Df (zqx ) = 0 then
+C(x) = RedDf (x, α′ ).
+
+     By definition, for every f ∈ Fℓ,1 , we have that the number of z ∈ {0, 1}m on which Df answers
+one is small (at most 2r ). We will say that a z ∈ {0, 1}m is weak with respect to some A ⊆ Fℓ,1 , if
+it is likely that Df (z) = 1 when f is chosen uniformly in A.
+
+Definition 3.14. We say that z ∈ {0, 1}m is t-weak with respect to a set A ⊆ Fℓ,1 if
+
+                                         Pr [DF (z) = 1] ≥ 2−t .
+                                        F ←A
+
+    We will now consider an iterative process in which we will iteratively fix outputs z of Con that
+are weak.
+    More precisely, we set t = log 4·q
+                                    η and consider the following iterative process. We start with
+the set A0 that we already obtained, and W0 = ∅. We will maintain the following invariant:
+
+Invariant: At step j we maintain that:
+
+        1. PrF ←Fℓ,1 [F ∈ Aj ] ≥ 2−(a+jt) .
+        2. Aj ⊆ A0 .
+        3. |Wj | = j.
+
+                                                    23
+        4. For every z ∈ Wj and every f ∈ Aj , Df (z) = 1.
+
+    Note that this invariant indeed holds for j = 0. At step 0 < j < jmax we do the following:
+If there does not exist a z 6∈ Wj−1 that is t-weak with respect to Aj−1 then the process stops.
+Otherwise, if there exists z 6∈ Wj−1 that is t-weak with respect to Aj−1 , we define:
+
+   • Wj = Wj−1 ∪ {z}.
+   • Aj = {f ∈ Aj−1 : Df (z) = 1}.
+
+We observe that the invariant is indeed kept throughout this process.
+
+Claim 3.15. For every j ≤ jmax for which the process has not yet stopped, the invariant above
+holds.
+
+Proof. This is obvious for the second, third and fourth items. The first item follows because for
+every j if the process did not stop before step j, then Aj exists, and we have that:
+
+                      Pr [F ∈ Aj ] =         Pr [F ∈ Aj |F ∈ Aj−1 ] ·        Pr [F ∈ Aj−1 ]
+                    F ←Fℓ,1                F ←Fℓ,1                         F ←Fℓ,1
+
+                                       ≥     Pr      [F ∈ Aj ] · 2−(a+(j−1)·t)
+                                           F ←Aj−1
+
+                                       ≥ 2−t · 2−(a+(j−1)·t)
+                                       ≥ 2−(a+j·t) ,
+
+where the third line is using t-weakness.
+
+Claim 3.16. If the process stops at some j ∗ < jmax , then there exists A ⊆ A0 such that:
+                                   ∗
+   1. PrF ←Fℓ,1 [F ∈ A] ≥ 2−(a+j ·t)+1 .
+
+   2. PrF ←A,X∈{0,1}ℓ [C(X) = F (X)] ≥ 12 + η2 .
+
+Proof. If the process stopped at some j ∗ < jmax , then there does not exist a z 6∈ Wj ∗ that is t-weak
+with respect to Aj ∗ . This in particular means that for every x ∈ {0, 1}ℓ , z1x , . . . , zqx are not t-weak
+with respect to Aj ∗ and therefore, by a union bound:
+                                                                                 η
+                                Pr [∃i ∈ [q] : DF (zix ) = 1] ≤ q · 2−t ≤          ,
+                              F ←Aj ∗                                            4
+
+which means that:
+                                                                      η
+                                   Pr [∀i ∈ [q] : DF (zix ) = 0] ≥ 1 − ,
+                                 F ←Aj ∗                              4
+by Claim 3.13 we conclude that for every x ∈ {0, 1}ℓ ,
+                                                                   η
+                                   Pr [C(x) = RedDF (x, α′ )] ≥ 1 − .
+                                 F ←Aj ∗                           4
+
+For every x ∈ {0, 1}ℓ , let Vx denote the random variable (over the probability space of F ← Aj ∗ )
+defined by:
+                                          1, C(x) 6= RedDF (x, α′ )
+                                       
+                                 Vx =
+                                          0, otherwise
+
+                                                          24
+                                                             ℓ η
+          P
+Let V =       x∈{0,1}ℓ Vx . It follows that EF ←Aj ∗ [V ] ≤ 2 · 4 . By Markov’s inequality we have that:
+
+                                                            η   1
+                                                Pr [V > 2ℓ · ] < .
+                                              F ←Aj ∗       2   2
+
+Let A = f ∈ Aj ∗ : V ≤ 2ℓ · η2 . It follows that:
+       
+
+                                                 1                          ∗
+                            Pr [F ∈ A] ≥           · Pr [F ∈ Aj ∗ ] ≥ 2−(a+j ·t)+1 .
+                          F ←Fℓ,1                2 F ←Fℓ,1
+
+For every f ∈ A, we have that the fraction of inputs x ∈ {0, 1}ℓ on which Vx (f ) = 1 (meaning that
+C(x) 6= RedDf (x, α′ )) is V 2(fℓ ) ≤ η2 . This means that when we choose both F ← A and X ← {0, 1}ℓ
+independently, we have that:
+                                                                                η
+                                         Pr       [C(X) 6= RedDF (X, α′ )] ≤      .
+                               F ←A,X←{0,1}ℓ                                    2
+On the other hand, as A ⊆ Aj ∗ ⊆ A0 , by Claim 3.11 we have that for every f ∈ A, the function
+Cf : {0, 1}ℓ → {0, 1} defined by Cf (x) = RedDf (x, α′ ), satisfies that Cf ρ-hard-function-breaks the
+function f . This means that for every f ∈ A,
+
+                                         Pr     [RedDf (X, α′ ) = f (X)] ≥ ρ.
+                                     X←{0,1}ℓ
+
+This means that when we choose both F ← A and X ← {0, 1}ℓ independently, we have that:
+
+                                         Pr       [RedDF (X, α′ ) = F (X)] ≥ ρ.
+                                F ←A,X←{0,1}ℓ
+
+Putting things together, we have that:
+                                                                       η  1 η
+                                    Pr         [C(X) = F (X)] ≥ ρ −      = + .
+                            F ←A,X←{0,1}ℓ                              2  2 2
+
+
+   However, the next claim shows that if A is a large set, it is unlikely that a single function C is
+a good approximation to F ← A.
+Claim 3.17. For every A ⊆ Fℓ,1 , and every function C : {0, 1}ℓ → {0, 1}, if PrF ←Fℓ,1 [F ∈ A] ≥
+2−∆ then                                                       r       !
+                                                       1         ∆+ℓ
+                            Pr      [C(X) = F (X)] = + O                 .
+                      F ←A,X←{0,1}ℓ                    2           2ℓ
+                                                          q     
+                                                             ∆+ℓ
+Proof. For the purpose of contradiction we will set λ = Ω     2ℓ  , and assume that
+
+                                                                       1
+                                          Pr        [C(X) = F (X)] ≥     + λ.
+                                    F ←A,X←{0,1}ℓ                      2
+By an averaging argument, it follows that:
+                                                        
+                                                     1 λ    λ
+                         Pr       Pr [C(X) = F (X)] ≥ +    ≥ .
+                        F ←A X←{0,1}ℓ                2 2    2
+
+                                                        25
+Let A′ ⊆ A be the subset defined as follows:
+                                                                               
+                         ′                                          1 λ
+                       A = f ∈A:         Pr         [C(X) = f (X)] ≥ +              .
+                                           X←{0,1}ℓ                 2 2
+
+It follows that |A′ | ≥ λ2 · |A|. For every function C ∈ Fℓ,1 , the number of f ∈ Fℓ,1 such that
+                                                                                        ℓ
+PrX←{0,1}ℓ [C(X) = f (X)] ≥ 21 + λ2 is bounded by the size of a Hamming ball in {0, 1}2 that is
+                                                                    1       ℓ            2   ℓ
+of radius ( 12 − λ2 ) · 2ℓ . The latter quantity is bounded by 2H( 2 −λ/2)·2 ≤ 2(1−O(λ ))·2 where H(·) is
+Shannon’s binary entropy function, and using the fact that H( 12 − λ) = 1 − O(λ2 ). We conclude
+that there exists a constant c > 1 such that:
+                   2          2         2   ℓ        1           2   ℓ    ℓ     2 ℓ
+           |A| ≤     · |A′ | ≤ · 2(1−c·λ )·2 = 2log( λ )+1+(1−c·λ )·2 = 22 −(c·λ ·2 −log(1/λ)−1) .
+                   λ          λ
+                             ℓ
+We also have that |A| ≥
+                      q22 −∆, and so we conclude that ∆ > c · λ2 · 2ℓ − log(1/λ) − 1. This gives a
+                             ∆+ℓ
+contradiction if λ = Ω        2ℓ
+                                   .
+
+Putting Claim 3.16 and Claim 3.17 together, we get that:
+
+Claim 3.18. The iterative process does not stop until j = jmax .
+
+Proof. By Claim 3.16 and Claim 3.17, we conclude that if the process stops at some j ∗ < jmax then
+there exists a constant c > 1 such that:
+                                         r
+                                  1        a + j∗ · t + ℓ  1 η
+                                    +c·           ℓ
+                                                          ≥ + ,
+                                  2             2          2 2
+
+Recalling that t = log 4q
+                       η this gives that:
+
+                                                       2ℓ ·η 2
+                                                η        4c −a−ℓ
+                                             q ≥ ·2          j∗
+                                                4
+                                                       2ℓ ·η 2
+                                                 η    5c
+                                               ≥ · 2 j∗
+                                                 4
+                                               > 2ℓ ,
+
+where the first inequality follows because we have that a ≤ ν · η 2 · 2ℓ , and we can choose the
+constant ν > 0 to be sufficiently small. The second inequality follows because η ≥ 2−ℓ , and
+                  2 ℓ
+j ∗ ≤ jmax ≤ ν · η ℓ·2 , and we can choose ν > 0 to be sufficiently small.
+    Therefore, as we are assuming that q ≤ 2ℓ , it is a contradiction if the process stops at some
+j ∗ < jmax .
+
+    As the process did not stop at any j < jmax , then for every j ≤ jmax , the sets Aj , Wj are
+defined, and by Claim 3.15 they maintain the invariant.
+    By the invariant, for every j ≤ jmax we conclude that for every z ∈ Wj and every f ∈ Aj ,
+Df (z) = 1 (meaning that there exists y ∈ {0, 1}r such that z is an output of Conf ). By the
+invariant, we know that |Wj | = j therefore, if we denote the elements of Wj by z1 , . . . , zj ∈ {0, 1}m
+
+
+
+                                                     26
+we conclude that for every f ∈ Aj , and every i ∈ [j] there exists yi ∈ {0, 1}r (that may depend on
+f ) such that Conf (yi ) = zi . From the invariant, we also have that:
+                                                            −(a+j·(log q+log η4 ))
+                             Pr [F ∈ Aj ] ≥ 2−(a+j·t) = 2                            .
+                          F ←Fℓ,1
+
+Putting everything together we get that:
+                                                                          −(a+j·(log q+log η4 ))
+                 Pr [∀i ∈ [j] : ∃yi ∈ {0, 1}r s.t. ConF (yi ) = zi ] ≥ 2                           ,
+               F ←Fℓ,1
+
+which gives that for every j ≤ jmax , Fixj (Con) ≤ a + j · (log q + log η4 ). This proves Theorem 3.9.
+
+
+4     Limitations on black-box hardness amplification at the extreme
+      high-end
+In this section we prove Theorem 1.15 showing that reductions for black-box hard-function ⇒
+( 21 + ǫ)-hard-function proofs must make many queries, even at the extreme high-end. Theorem 1.15
+is a combination of two lower bounds, stated next:
+Theorem 4.1 (Lower bound in terms of ǫ). If (Con, Red) is a hard-function ⇒ ( 12 + ǫ)-hard-function
+                                                                    2ℓ
+proof with parameters ℓ, ℓ′ , a, ρ = 1, ρ′ = 21 + ǫ, satisfying a ≤ 10 and ℓ′ ≥ log ǫ12 + Ω(1) then Red
+                            1
+must make at least q = Ω( ǫ ) queries.
+Theorem 4.2 (Lower bound in terms of ℓ). If (Con, Red) is a hard-function ⇒ ( 12 + ǫ)-hard-function
+                                                                    1
+proof with parameters ℓ, ℓ′ , a, ρ = 1, ρ′ = 21 + ǫ, satisfying ǫ ≤ 10 , and ℓ′ ≥ log ǫ12 + Ω(1) then Red
+must make at least q ≥ ℓ−log(2a)
+                           3     queries
+   A quantitatively better lower bound of q = Ω( ǫℓ2 ) was proven by Grinberg, Shaltiel and Viola
+[GSV18] for the case that a ≤ 2ν·ℓ for some constant ν > 0. Theorems 4.1 and Theorem 4.2 achieve
+a smaller bound on q, but apply in the extreme high-end (where a = 2(1−o(1))·ℓ ) all the way up to
+     2ℓ
+a = 10  . This is especially significant in the case of Theorem 4.1 which (as we explained in detail in
+Section 1.3.4) can be used to show limitations on the PRG composition of Chen and Tell [CT21b].
+
+Roadmap for this section. Both Theorem 4.1 and Theorem 4.2 will be proven by first connect-
+ing a black-box reduction to a depth 3 circuit for a version of the “coin problem”. This connection
+is stated and proven in Section 4.1. The proofs of Theorem 4.1 and Theorem 4.2 show that such a
+depth 3 circuit must have large q. These proofs are given in Section 4.2 and Section 4.3.
+
+4.1   Reductions as depth 3 circuits
+The proof of Theorem 4.1 and Theorem 4.2 rely on the following lemma, which is inspired by an
+argument of Applebaum et al. [AASY16] (see also [RSV21]) and relates black-box reductions to
+constant depth circuits.
+Lemma 4.3 (Reduction to circuit). Let (Con, Red) be a black-box hard-function ⇒ ( 21 + ǫ)-hard-function
+proof with parameters ℓ, ℓ′ , a, ρ = 1, ρ′ = 21 +ǫ, such that Red makes q queries. For every α ∈ {0, 1}a ,
+                                                              ′
+there exists a q-CNF C α with 2q+ℓ clauses, over n = 2ℓ variables, such that for C = α∈{0,1}a C α ,
+                                                                                           W
+we have that:
+
+                                                   27
+                           ℓ
+   • Pr[C(Un )] ≤ 2−(2 −a) .
+   • For every x ∈ {0, 1}n such that weight(x) ≤ ( 12 − ǫ) · n, C(x) = 1.
+                                                                   ′
+Proof. We will view a string z of length n = 2ℓ , as a function z ∈ Fℓ′ ,1 and vice-versa, by
+z(y) = zy . The proof of [AASY16] (and the proof presented here) makes use of an idea originating in
+[Vio06, SV10] (and credited to Madhu Sudan) that the reduction must succeed if given oracle access
+to Conf ⊕ z for a string z with weight(z) ≤ n · ( 21 − ǫ) (as such an oracle ( 12 + ǫ)-hard-function-breaks
+Conf ), but cannot succeed when given oracle access to Conf ⊕ z for z ← Un (as z “wipes out” the
+information in Conf ). This will translate into the two conditions in the lemma. Details follow:
+    For every f ∈ Fℓ,1 , α ∈ {0, 1}a and x ∈ {0, 1}ℓ , we define Cf,α,x : {0, 1}n → {0, 1} as follows:
+                                   Cf,α,x (z) = 1 iff RedConf ⊕z (x, α) = f (x).
+We have that Red makes at most q queries, and this implies that for every f and α, the function
+Cf,α can be computed by a decision tree with height q. Therefore, it can be computed by a q-CNF
+with 2q clauses. For every f ∈ Fℓ,1 , and α ∈ {0, 1}a we define Cf,α : {0, 1}n → {0, 1} as follows:
+                         Cf,α (z) = 1 iff ∀x ∈ {0, 1}ℓ , RedConf ⊕z (x, α) = f (x).
+By definition for every f and α, Cf,α (x) = x∈{0,1}ℓ Cf,α,x . This means that Cf,α is an AND of 2ℓ
+                                              V
+
+q-CNFs with 2q clauses, and overall, it can be computed by a q-CNF with 2q+ℓ clauses. For every
+f ∈ Fℓ,1 , we define Cf : {0, 1}n → {0, 1} as follows:
+                  Cf,α (z) = 1 iff ∃α ∈ {0, 1}a , s.t. ∀x ∈ {0, 1}ℓ , RedConf ⊕z (x, α) = f (x).
+This gives that for every f ∈ Fℓ,1 , Cf is an OR of 2a q-CNFs with 2q+ℓ clauses.
+    Furthermore, by the definition of black-box hard-function ⇒ ( 12 + ǫ)-hard-function proof, for
+every f ∈ Fℓ,1 , if weight(z) ≤ ( 12 − ǫ) · n, then the function Conf ⊕ z, 21 + ǫ-hard-function-breaks
+breaks Conf . This in turn implies (by Definition 1.7) that there exists α ∈ {0, 1}a such that for
+every x ∈ {0, 1}ℓ , RedConf ⊕z (x) = f (x), meaning that Cf (z) = 1. This means that for every choice
+of f ∈ Fℓ,1 , Cf satisfies the second item.
+    We will now show that there exists an f ∈ Fℓ,1 such that Cf satisfies the first item. For a
+uniformly chosen z ← Un , we have that for every f ∈ Fℓ,1 , Conf ⊕ z is distributed uniformly over
+{0, 1}n , and contains no information about f . It follows that:
+       Pr         [Cf (z) = 1] =         Pr         [∃α ∈ {0, 1}a , s.t. ∀x ∈ {0, 1}ℓ , RedConf ⊕z (x, α) = f (x)]
+  f ←Fℓ,1 ,z←Un                    F ←Fℓ,1 ,z←Un
+
+                               =         Pr        [∃α ∈ {0, 1}a , s.t. ∀x ∈ {0, 1}ℓ , Redz (x, α) = f (x)]
+                                   f ←Fℓ,1 ,z←Un
+                                                                                         ∗
+                               ≤ P rf ←Fℓ,1 [∃α ∈ {0, 1}a , s.t. ∀x ∈ {0, 1}ℓ , Redz (x, α) = f (x)],
+for some z ∗ ∈ {0, 1}n which maximizes the success probability. We can therefore continue and
+obtain that:
+                                                                                             ∗
+            Pr         [Cf (z) = 1] ≤      Pr [∃α ∈ {0, 1}a , s.t. ∀x ∈ {0, 1}ℓ , Redz (x, α) = f (x), ]
+       f ←Fℓ,1 ,z←Un                     F ←Fℓ,1
+                                                                          ∗
+                                           X
+                                     ≤           Pr [∀x ∈ {0, 1}ℓ , Redz (x, α) = f (x)]
+                                                    f ←Fℓ,1
+                                         α∈{0,1}a
+                                               1
+                                     ≤ 2a ·       ,
+                                              22ℓ
+
+                                                              28
+where the penultimate inequality follows by a union bound, and the last inequality follows because
+for every x ∈ {0, 1}ℓ ,
+                                            ∗                1
+                                   Pr [Redz (x, α) = f (x)] = ,
+                                 f ←Fℓ,1                     2
+and these events are independent for the 2ℓ choices of x ∈ {0, 1}ℓ . Finally, by averaging, we conclude
+that there exists f ∈ Fℓ,1 such that:
+                                                             ℓ
+                                      Pr [Cf (z) = 1] ≤ 2−(2 −a) .
+                                    z←Un
+
+The final function C will be this function Cf which indeed satisfies the properties in the conclusion
+of the lemma.
+
+4.2     Proof of Theorem 4.1
+In this section we prove Theorem 4.1. We split the proof into two parts, specified in Lemma 4.4
+and Lemma 4.5 below. This splitting will allow us to use Lemma 4.5 in the application to lower
+bounds on local list-decoding in Section 5.
+
+Lemma 4.4. Assume the conditions of Theorem
+                                         W 4.1. For   every α ∈ {0, 1}a , there exists a q-CNF
+ α          ℓ ′                                     α           ǫ
+C over n = 2 variables, such that for C = α∈{0,1}a C , and p = 10 :
+                            ℓ
+   • Pr[C(Un ) = 1] ≤ 2−(2 −a) .
+   • Prρ←Rnp [Prx←U 1/3 [C(Fillρ (x)) = 1] ≥ 0.99] ≥ 0.99.
+                     n·p
+
+
+   The next lemma shows that under (a weak form) of the conclusion of Lemma 4.4, if a is slightly
+smaller than 2ℓ then q = Ω( 1ǫ ).
+
+Lemma 4.5. Let C be a circuit such that C = α∈{0,1}a C α , where for each α ∈ {0, 1}a , C α is a
+                                              W
+                                  ǫ
+q-CNF over n variables. Let p = 10  and assume that:
+                            ℓ
+   • Pr[C(Unh) = 1] ≤ 2−(2 −a) .                i
+   • Prρ←Rnp Prx←U 1/3 [C(Fillρ (x)) = 1] ≥ 0.01 ≥ 0.01.
+                      n·p
+         2 ℓ
+   • a ≤ 10 .
+
+Then q ≥ 1000
+           ǫ .
+
+    Together, Lemma 4.4 and Lemma 4.5 imply Theorem 4.1. The proofs of Lemma 4.4 and Lemma
+4.5 are given in Sections 4.2.1 and 4.2.2.
+
+4.2.1    Proof of Lemma 4.4
+We first apply Lemma 4.3 and obtain that for every α ∈ {0, 1}a , there exists a q-CNF C α over
+      ′
+n = 2ℓ variables, such that:
+                                ℓ
+   • Pr[C α (Un ) = 1] ≤ 2−(2 −a) .
+   • For every x ∈ {0, 1}n such that weight(x) ≤ ( 12 − ǫ) · n, there exists α ∈ {0, 1}a such that
+     C α (x) = 1.
+
+
+                                                  29
+   When choosing ρ ← Rnp we expect that n1 · | {i : ρ(i) = 1} | = 21 − 2p . Therefore, by a Chernoff
+bound:
+                          1                      1                        2
+                     Pr [ · | {i : ρ(i) = 1} | ≥ − 0.49 · p]· ≤ 2−Ω(p ·n) ,
+                    ρ←Rnp n                      2
+                                                                                       ′
+which is smaller than 0.01, by the assumption that ℓ′ ≥ log ǫ12 + Ω(1), and n = 2ℓ . If this event
+occurs, then for every x ∈ {0, 1}n·p ,
+                                              1
+                         weight(Fillρ (x)) ≤ ( − 0.49 · p) · n + weight(x).
+                                              2
+This means that if weight(x) ≤ 0.34 · p · n, then
+                                             1                            1
+                    weight(Fillρ (x)) ≤ n · ( − (0.49 − 0.34) · p) ≤ n · ( − ǫ),
+                                             2                            2
+                            ǫ
+By our assumption that p ≤ 10 . Applying a Chernoff bound, we conclude that:
+
+                               Pr [weight(x) ≥ 0.34 · p · n] ≤ 2−Ω(pn) ,
+                                 1/3
+                             x←Un·p
+
+                                                                                   ′
+which is smaller than 0.01 by the assumption that ℓ′ ≥ log ǫ12 + Ω(1), and n = 2ℓ .
+
+4.2.2   Proof of Lemma 4.5
+We want to show that following a random restriction, each C α is a low height decision tree.
+Claim 4.6. If q < 1000
+                    ǫ  then there exists a restriction ρ : [n] → {0, 1, ∗} with Free(ρ) = n · p such
+that:
+   • For every α ∈ {0, 1}a , Cρα is a decision tree of height a.
+                            ℓ
+   • Pr[Cρ (Un ) = 1] ≤ 2−(2 −a−10) .
+             1/3
+   • Pr[Cρ (Un ) = 1] ≥ 0.01.
+Proof. We will show that when choosing ρ ← Rnp there is a positive probability to obtain a ρ that
+satisfies all three items. This will follow by a union bound in which we show that the probability
+that each of the items does not hold is small.
+    For the first item, we note that by Theorem 2.3 for every α ∈ {0, 1}a , the probability over
+ρ ← Rnp that Cρα does not have a decision tree of height a, is at most (7 · p · q)a ≤ (7/100)a . By
+a union bound over the 2a choices of α ∈ {0, 1}a , the probability over ρ ← Rnp that there exists
+α ∈ {0, 1}a such that Cρα does not have a decision tree of height a, is at most 0.001.
+                                                                                               ℓ
+    For the second item, we recall that by Lemma 4.4 we have that: Pr[C(Un ) = 1] ≤ 2−(2 −a) .
+Therefore, by Markov’s in equality we conclude that with probability at least 0.999 over ρ ← Rnp :
+                                                         ℓ          ℓ
+                          Pr[Cρ (Un ) = 1] ≤ 1000 · 2−(2 −a) ≤ 2−(2 −a−10) .
+
+Finally, by the second item in Lemma 4.4 we have that with probability at least 0.01 over ρ ← Rnp :
+
+                                       Pr[Cρ (Un1/3 ) = 1] ≥ 0.01
+
+Overall, by a union bound with probability at least 1 − (0.99 + 0.001 + 0.001) > 0 over ρ ← Rnp , we
+obtain a ρ that satisfies all three conditions.
+
+                                                    30
+   Let ρ be the restriction guaranteed by the claim. We can view Cρ as Cρ = α∈{0,1}a Cρα . This
+                                                                              W
+means that Cρ is an OR of 2a decision trees of height a. Each such decision tree can be replaced
+by an a-DNF with 2a clauses, and overall, we get that Cρ is an a-DNF with 22a clauses. This gives
+that:
+
+Claim 4.7. If q < 1000
+                    ǫ  then there exists an a-DNF C ′ with p · n variables and 22a clauses such
+that:
+                                ℓ
+   • Pr[C ′ (Up·n ) = 1] ≤ 2−(2 −a−10) .
+              1/3
+   • Pr[C ′ (Up·n ) = 1] ≥ 0.01.
+
+   This means that one of the 22a clauses of C ′ must satisfy the following:
+
+Claim 4.8. If q < 1000
+                    ǫ then there exists a DNF clause C̄ over t ≤ a literals such that:
+                            ℓ
+   • Pr[C̄(Ut ) = 1] ≤ 2−(2 −a−10) .
+            1/3
+   • Pr[C̄(Ut ) = 1] ≥ 0.01
+                         22a
+                             ≥ 2−(2a+10) .
+
+   We are now ready to prove Lemma 4.5. We assume for the purpose of contradiction that
+q < 1000
+      ǫ and show that Claim 4.8 yields a contradiction. This is because a DNF clause over t ≤ a
+                                           1/3
+literals cannot distinguish Ut from Ut with the parameters stated in Claim 4.8.
+                                 1/3
+    More precisely, as under Ut , every literal evaluates to one with probability that is upper
+bounded by 2/3, we conclude that:
+                                                               t
+                                               1/3             2
+                                        Pr[C̄(Ut ) = 1] ≤          .
+                                                               3
+
+Under Ut , every literal evaluates to one with probability half. Therefore,
+                                                          t
+                                                          1
+                                       Pr[C̄(Ut ) = 1] =      .
+                                                          2
+
+By Claim 4.8 it follows that:
+                                 t         2 t
+                                                    2−(2a+10)
+                                               
+                                 4           3                     2ℓ −3a−20
+                                     =           ≥     ℓ −a−10) = 2          .
+                                 3           1 t   2−(2
+                                               
+                                             2
+
+which gives that:
+                                                  2ℓ − 3a − 20   2ℓ
+                                        a≥t≥                   >    ,
+                                                      log 43     10
+                              2     ℓ
+using the assumption that a ≤ 10 , and the lemma follows.
+
+4.3   Proof of Theorem 4.2
+In this section we prove Theorem 4.2. We first apply Lemma 4.3 and obtain that for every α ∈
+      a                                                         ′
+{0,
+W 1} , there   exists a q-CNF C α with 2q+ℓ clauses, over n = 2ℓ variables, such that for C =
+            α
+  α∈{0,1}a C , we have that:
+
+
+
+                                                      31
+                            ℓ
+   • Pr[C(Un ) = 1] ≤ 2−(2 −a) .
+   • For every x ∈ {0, 1}n such that weight(x) ≤ ( 12 − ǫ) · n, there exists α ∈ {0, 1}a such that
+     C α (x) = 1.
+
+As there are 2a such CNFs, it follows that one of them satisfies:
+
+Claim 4.9. There exists α ∈ {0, 1}a such that:
+                                ℓ
+   • Pr[C α (Un ) = 1] ≤ 2−(2 −a) .
+              1/3
+   • Pr[C α (Un ) = 1] ≥ 2−(a+1) .
+
+Proof. The first item follows because the top gate of C is an OR gate. For the second item, by a
+                                               1
+Chernoff bound, and our assumption that ǫ ≤ 10   :
+
+                                              1                    1
+                             Pr [weight(x) ≤ ( − ǫ) · n] ≤ 2−Ω(n) ≤ ,
+                           x←Un
+                               1/3            2                    2
+
+meaning that:
+                                                         1
+                                          Pr [C(x) = 1] ≥ ,
+                                        x←Un
+                                            1/3          2
+and by averaging, there exists α ∈ {0, 1}a such that:
+                                                              1
+                                       Pr [C α (x) = 1] ≥          .
+                                         1/3
+                                      x←Un                  2 · 2a
+
+
+
+   Let C0 = C α that is guaranteed by Claim 4.9. We will start from C0 and will iteratively apply
+the following lemma (which is proven in Section 4.3.1).
+                                                                       1/3
+Lemma 4.10. For every v-CNF D over m variables, if Pr[D(Um ) = 1] ≥ 2−w then there exists
+a restriction ρ : [m] → {0, 1, ∗} with Free(ρ) = m′ = m − w · 4v , such that:
+
+   • Dρ is a (v − 1)-CNF over m′ variables.
+                                              v
+   • Pr[Dρ (Um′ ) = 1] ≤ Pr[D(Um ) = 1] · 2w·4 .
+              1/3               1/3
+   • Pr[Dρ (Um′ ) = 1] ≥ Pr[D(Um ) = 1].
+
+    More precisely, at every step i > 0, we apply Lemma 4.10 with w = a + 1 on D = Ci−1 , and
+set Ci = Dρ . We use mi to denote the input length of Ci . We will maintain the following invariant
+(and note that this indeed holds for i = 0).
+
+Invariant: At step i the following hold:
+        • Ci is a (q − i)-CNF.
+        • Pr[Ci (Umi ) = 1] ≤ 2−(2 −a−i·(a+1)·4 ) .
+                                  ℓ            q
+
+                   1/3
+        • Pr[Ci (Umi ) = 1] ≥ 2−(a+1) .
+
+   It immediately follows that this invariant holds for every i ≤ q. This means that at the
+conclusion of this process, for i = q we have that:
+
+                                                   32
+   • Cm is a constant.
+   • Pr[Cq (Umq ) = 1] ≤ 2−(2 −a−q·(a+1)·4 ) .
+                             ℓ            q
+
+
+              1/3
+   • Pr[Cq (Umq ) = 1] ≥ 2−(a+1) .
+Therefore, by the third item, it must be that Cm is the constant one, and by the second item it
+must be that:
+                                     2−(2 −a−q·(a+1)·4 ) ≥ 1.
+                                         ℓ            q
+
+
+
+which implies that:
+                                                 ℓ − log(a + 1)
+                                          q≥                    .
+                                                        3
+
+4.3.1   Proof of Lemma 4.10
+In this section, we prove Lemma 4.10. We first observe that if a v-CNF does not have many clauses
+that have disjoint variables, then there must be a small “cover” (namely, a set of variables such
+that each clause contains a variable from the cover).
+Proposition 4.11. In every v-CNF D, if there does not exist t clauses with disjoint variables,
+then there is a subset S of s = (t − 1) · v variables, such that every clause of D contains a variable
+in S.
+Proof. We go over the clauses one by one, staring with an empty S. Every time the current clause
+does not contain a variable from S, we mark the current clause, and add its variables to S. Every
+time we mark a clause, its variables are disjoint from all variables of previously marked clauses. By
+our assumption, we mark at most t − 1 clauses, and so when we conclude the size of S is at most
+(t − 1) · v.
+                                                                      1/3
+Lemma 4.12. For every v-CNF D over m variables, if Pr[D(Um ) = 1] ≥ 2−w then there exists
+a set S of size s = w · 4v variables such that every clause of D contains at least one variable in S.
+Proof. If there does not exists a set S with the required properties, then by Proposition 4.11, D
+                                                        1/3
+has t = vs clauses that have disjoint variables. Under Um , each literal of D has probability
+                                                                                      v      at least
+1/3 to evaluate to zero. This gives that each clause has probability at most 1 − 13 to evaluate
+                                                                                                 v t
+to one. Consequently, the probability that t disjoint clauses evaluate to one is at most 1 − 13        ,
+implying that:
+                                              v t
+                            1/3                  1          −v        −v
+                    Pr[D(Um ) = 1] ≤ 1 −               ≤ e−3 ·t < e−4 ·s ≤ 2−w .
+                                                 3
+and we get a contradiction.
+
+    We are ready to prove Lemma 4.10. By Lemma 4.12 there exists a set S of size s = w · 4v
+variables such that every clause of D contains at least one variable in S. Let A be the set of all
+restrictions that fix the variables in S, while leaving the other variables free. More precisely,
+
+                            A = {ρ : [m] → {0, 1, ∗} : ρ(i) 6= ∗ iff i ∈ S} .
+
+We will show that there exists a ρ ∈ A that satisfies the guarantees of Lemma 4.10 with positive
+probability.
+
+                                                     33
+    The first item of Lemma 4.10 holds for every ρ ∈ A. This is because every clause of D has a
+variable in S and following the restriction, each clause is over at most v − 1 variables.
+                                                                                                v
+    The second item of Lemma 4.10 also holds for    every ρ ∈ A. For every choice y ∈ {0, 1}w·4 of
+the restricted bits in ρ, let Eρ,y denote the event X|[n]\Select(ρ) = y . For every ρ ∈ A we have
+that:
+
+                            Pr[Dρ [D(Um′ ) = 1] =      Pr [D(X) = 1|Eρ,y ]
+                                                    X←Um
+                                                    PrX←Um [D(X) = 1]
+                                                ≤
+                                                      PrX←Um [Eρ,y ]
+                                                                          v
+                                                = Pr[D(Um ) = 1] · 2w·4 .
+                                                                                          v
+The third item follows because by averaging, there exists ρ ∈ A and y ∈ {0, 1}w·4 such that
+Assign(ρ) = y and:
+                           Pr [D(X) = 1|Eρ,y ] ≥ Pr [D(X) = 1],
+                                1/3                             1/3
+                           X←Um                           X←Um
+
+For this choice of ρ and y, we have that
+                                      1/3
+                          Pr[Dρ (Um′ ) = 1] =    Pr       [D(X) = 1|X ∈ Eρ,y ]
+                                                    1/3
+                                                X←Um
+                                            ≥    Pr       [D(X) = 1]
+                                                    1/3
+                                                X←Um
+                                                          1/3
+                                            = Pr[D(Um′ ) = 1].
+
+This concludes the proof of Lemma 4.10.
+
+
+5     Improved lower bounds for local list-decoding algorithms
+In this section we show that the techniques developed in Section 4 can be used to get an improved
+lower bounds on the number of queries of local list-decoding algorithms. In Section 5.1 we review
+the definition of locally list-decodable codes, and local decoding algorithms. In Section 5.2 we state
+our improved bound and compare it to previous work. In Section 5.3 we prove the improved bound.
+
+5.1   Definition of locally list-decodable codes
+List-decodable codes are a natural extension of (uniquely decodable) error-correcting codes, as it
+allows (list) decoding for error regimes where unique decoding is impossible. This is an extensively
+studied area; see [Gur06] for a survey. In this paper, we will be interested in list-decoding of binary
+codes.
+
+Definition 5.1 (List-decodable code). For a function Enc : {0, 1}k → {0, 1}n , and w ∈ {0, 1}n ,
+we define                           n                                  o
+                      ListEnc
+                          α   (w) =   m ∈ {0, 1}k
+                                                  : dist(Enc(m), w) ≤ α  .
+
+We say that Enc is (α, L)-list-decodable if for every w ∈ {0, 1}n , | ListEnc
+                                                                          α (w)| ≤ L.
+
+
+
+
+                                                  34
+    The task of algorithmic list-decoding is to produce the list ListEncα (w) on input w ∈ {0, 1} .
+                                                                                                   n
+
+    Local unique decoding algorithms are algorithms that given an index i ∈ [k], make few oracle
+queries to w, and reproduce the bit mi (with high probability over the choice of their random
+coins), where m denotes the unique codeword close to w. This notion of local decoding has many
+connections and applications in computer science and mathematics [Yek12].
+    We will be interested in local list-decoding algorithms that receive oracle access to a received
+word w ∈ {0, 1}n , as well as inputs i ∈ [k] and j ∈ [L]. We will require that for every m ∈ ListEnc
+                                                                                                 α (w),
+with high probability, there exists a j ∈ [L] such that for every i ∈ [k], when Dec receives oracle
+access to w and inputs i, j, it produces mi with high probability over its choice of random coins.
+This motivates the next definition.
+Definition 5.2 (Randomized local computation). We say that a procedure P (i, r) locally computes
+a string m ∈ {0, 1}k with error δ, if for every i ∈ [k], Pr[P (i, R) = mi ] ≥ 1−δ (where the probability
+is over a uniform choice of the “string of random coins” R).
+   The definition of local list-decoders considers an algorithmic scenario that works in two steps:
+   • At the first step (which can be thought of as a preprocessing step) the local list-decoder Dec
+     is given oracle access to w and an index j ∈ [L]. It tosses random coins (which we denote by
+     r shared ).
+
+   • At the second step, the decoder receives the additional index i ∈ [k], and tosses additional
+     coins r.
+
+   • It is required that for every w ∈ {0, 1}n and m ∈ ListEnc  α (w), with probability 2/3 over the
+     choice of the shared coins r shared , there exists j ∈ [L] such that when the local list-decoder
+     receives j, it locally computes m (using its “non-shared” coins r). The definition uses two
+     types of random coins because the coins r shared are “shared” between different choices of
+     i ∈ [k] and allow different i’s to “coordinate”. The coins r, are chosen independently for
+     different choices of i ∈ [k].
+   This is formally stated in the next definition.
+Definition 5.3 (Local list-decoder). Let Enc : {0, 1}k → {0, 1}n be a function. An (α, L, q, δ)-
+local list-decoder (LLD) for Enc is an oracle procedure Dec(·) that receives oracle access to a word
+w ∈ {0, 1}n , and makes at most q calls to the oracle. The procedure Dec also receives inputs:
+   • i ∈ [k] : The index of the symbol that it needs to decode.
+
+   • j ∈ [L] : An index to the list.
+
+   • Two strings r shared , r that are used as random coins.
+It is required that for every w ∈ {0, 1}n , and for every m ∈ ListEncα (w), with probability at least 2/3
+over choosing a uniform string r   shared , there exists j ∈ [L] such that the procedure
+
+                                Pw,j,rshared (i, r) = Decw (i, j, r shared , r)
+
+locally computes m with error δ. If we omit δ, then we mean δ = 1/3.
+See [RSV21] for a discussion on the generality of this definition, and on past work in this area.
+
+                                                      35
+5.2    Our Results
+Ron-Zewi, Shaltiel and Varma [RSV21] showed lower bounds on the number of queries of local list
+decoders. We use our improved techniques to prove the following theorem.
+Theorem 5.4 (Improved lower bounds for small ǫ). There exist constants c1 , c2 > 1 such that for
+            k
+every L ≤ 2 20 , δ < 13 , n ≥ cǫ22 , and every ( 12 − ǫ, L, q, δ)-local list-decoder for Enc : {0, 1}k → {0, 1}n ,
+                         1
+we have that q ≥ c1 ·log(k)·ǫ .
+
+The previous bounds of [RSV21] come in two forms:
+                   0.9             1
+    • For L ≤ 2k         and ǫ ≥ kΩ(1) , [RSV21] obtain tight bounds (up to constants), showing that:
+      q = Ω( log(1/δ)
+                ǫ2
+                      ).
+    • If these conditions are not met (and in particular, if ǫ is smaller than 1/k), [RSV21] obtain
+      weaker bounds, showing that if δ < 13 , q = Ω( √ǫ·log
+                                                        1
+                                                            k
+                                                              ) − O(log L).
+
+    Theorem 5.4 improves upon the second item above (although it does not match the optimal
+                                                                        √
+bound of the first item). More specifically, Theorem 5.4 replaces ǫ with ǫ, and does not have the
+additive term of “−O(log L)”.
+    Not surprisingly, these improvements directly correspond to “the extreme high-end”. Making
+                                                                                     1−o(1)
+this analogy, (namely, setting L = 2a , and k = 2ℓ ) we have that for L = 2k                , previous work
+                                     1
+does not give any bound if ǫ ≥ k1.9    , and in particular for ǫ ≈ k1 . In contrast, Theorem 5.4 gives a
+bound that is Ω( log1k·ǫ ), which is not far from the known upper bound of O( ǫ12 ), and is polynomially
+related to the upper bound for ǫ ≤ log12 k .
+
+5.3    Proof of Theorem 5.4
+In this section we prove Theorem 5.4. The proof uses a similar approach as that of [RSV21] (which
+is in turn based on [AASY16]) to transform an LLD into a depth 3 circuit for a certain problem.
+(We make stronger requirements on the circuit, and therefore, need to redo the reduction, taking
+care to obtain these stronger requirements). Once we obtain a depth 3 circuit, we use Lemma 4.5
+to show improved lower bounds. Details follow:
+                                  k
+     We assume that L ≤ 2 20 , and n ≥ cǫ22 . Our goal is to prove lower bounds on the number of
+queries q of ( 21 −ǫ, L, q, δ)-local list-decoders for δ < 31 . It is possible to amplify the error probability
+δ from 1/3 to 1/20k as follows: After choosing the random string r shared , we choose e = O(log k)
+independent uniform strings r1 , . . . , re , and apply Dec(·) (i, j, rℓ , r shared ) for all choices of ℓ ∈ [e].
+We then output the majority vote of the individual e outputs. It is standard that this gives a
+( 21 − ǫ, q ′ = O(q · log k), L, 1/20k)-LLD for Enc : {0, 1}k → {0, 1}n .
+                                                          ǫ
+     We plan to reduce to Lemma 4.5, and set p = 10          (as in that lemma). Our next step is to fix the
+random coins of the decoder, and obtain a deterministic decoder Dec which succeeds in a specific
+experiment in which: a message m ← {0, 1}k is chosen uniformly, and a “noise string” z is chosen
+                                                                            1/3
+by choosing ρ ← Rnp and filling the unrestricted variables with Up·n . Finally, a “received word” w
+is obtained by w = Enc(m) ⊕ z. This is defined formally below:
+Definition 5.5 (The experiment RNSY). We consider the following experiment (which we denote
+by RNSY): The experiment works in two steps. The first step (denoted RNSY1 ) works as follows:
+    • A message m ← {0, 1}k is chosen uniformly.
+
+                                                       36
+   • A restriction ρ ← Rpn is chosen uniformly.
+
+The second step is defined for a fixed m ∈ {0, 1}k and ρ ∈ Rpn . It is denoted by RNSY2 (m, ρ) and
+works as follows:
+                                     1/3
+   • A string z is chosen from Up·n .
+   • We define x = Fillρ (z).
+   • We define w = Enc(m) ⊕ x.
+
+We use (m, ρ, z, w) ← RNSY to denote m, ρ, z, w which are sampled by the two steps of this exper-
+iment.
+
+    The next lemma fixes the coins of the local-decoder, making it deterministic. It is similar in
+spirit to Proposition 3.1 in [RSV21], except that the experiment RNSY that we use is different and
+more complicated than the one used in [RSV21].
+
+Lemma 5.6. There exists a constant c > 1 such that if n ≥ ǫc2 and Dec is a ( 12 − ǫ, L, q, δ)-local
+                                                                                                (·)
+list-decoder for a function Enc : {0, 1}k → {0, 1}n then there exists an oracle procedure Dec (i, j)
+receiving i ∈ [k], j ∈ [L], and making q queries to a string w ∈ {0, 1}n , such that with probability at
+least 0.51 over choosing (m, ρ) ← RNSY1 , we have that with probability at least 0.01 over choosing
+(z, w) ← RNSY2 (m, ρ), there exists j ∈ [L] such that
+                                             w
+                                    Pr [Dec (i, j) = mi ] ≥ 1 − 10 · δ.
+                                   i←[k]
+
+
+Proof. Let Dec denote an LLD for Enc. When choosing ρ ← Rnp we expect that n1 ·| {i : ρ(i) = 1} | =
+1   p
+2 − 2 . Therefore, by a Chernoff bound:
+
+                             1                       1                    2
+                         Pr n [· | {i : ρ(i) = 1} | ≥ − 0.49 · p]· ≤ 2−Ω(p ·n) ,
+                        ρ←Rp n                       2
+
+which is smaller than 0.01, by our assumption that n is sufficiently larger than 1/ǫ2 . If this event
+occurs, then for every z ∈ {0, 1}n·p ,
+                                               1
+                          weight(Fillρ (z)) ≤ ( − 0.49 · p) · n + weight(z).
+                                               2
+This means that if weight(z) ≤ 0.34 · p · n, then
+                                              1                            1
+                     weight(Fillρ (z)) ≤ n · ( − (0.49 − 0.34) · p) ≤ n · ( − ǫ),
+                                              2                            2
+                            ǫ
+By our assumption that p ≤ 10 . Applying a Chernoff bound, we conclude that:
+
+                                  Pr [weight(z) ≥ 0.34 · p · n] ≤ 2−Ω(pn) ,
+                                    1/3
+                              z←Un·p
+
+
+which is smaller than 0.01 by the assumption that n is sufficiently larger than 1/ǫ2 .
+   Overall, this means that for γ = 0.02, with probability at least 1−γ over choosing (m, ρ, z, w) ←
+RNSY, we have that dist(Enc(m), w) ≤ 12 − ǫ, meaning that m ∈ ListEnc  1
+                                                                         −ǫ
+                                                                            (w). By the definition of
+                                                                              2
+
+
+
+                                                    37
+LLD, this gives that whenever this occurs, with probability at least 2/3 over the choice of r shared ,
+there exists j ∈ [L] such that the procedure Pw,j,rshared (i, r) = Decw (i, j, r shared , r) locally computes
+m with error δ.
+    Let E1 be the experiment in which (m, ρ, z, w) ← RNSY and r shared be an independent uniform
+string. It follows that:
+                                                                                                           2
+                     Pr[∃j ∈ [L] : Pw,j,rshared locally computes m with error δ] ≥                           − γ.
+                     E1                                                                                    3
+   By averaging, there exists a fixed string r̂ shared such that:
+                                                                                                               2
+                     Pr [∃j ∈ [L] : Pw,j,r̂shared locally computes m with error δ] ≥                             − γ.
+                 RNSY                                                                                          3
+    Let S denote the set of quadruples (m, ρ, z, w) in the support of RNSY for which the event
+above occurs. For every such quadruple, we have that there exists a j ∈ [L] for which Pw,j,r̂shared
+locally computes m with error δ. Let f be a mapping that given a quadruple (m, ρ, z, w) ∈ S,
+produces such a j ∈ [L]. This means that:
+                                                                                                           2
+                      Pr [Pw,f (m,ρ,z,w),r̂shared locally computes m with error δ] ≥                         − γ.
+                     RNSY                                                                                  3
+                 ′
+   Let RNSY be the experiment in which (m, ρ, z, w) ← (RNSY |(m, ρ, z, w) ∈ S). Namely, we
+choose (m, ρ, z, w) from the experiment RNSY, conditioned on the event that (m, ρ, z, w) ∈ S.
+   Let E2 be the experiment in which we choose independently a random string r, i ← [k] and
+(m, ρ, z, w) ← RNSY′ . We obtain that:
+
+                                   Pr[Decw (i, f (m, ρ, z, w), r̂ shared , r) = mi ] ≥ 1 − δ,
+                                    E2
+
+since Pw,f (m,ρ,z,w),r̂shared computes correctly each coordinate mi with probability at least 1 − δ over
+the choice of r.
+    By averaging, there exists a fixed string r̂ such that:
+
+                                   Pr                    [Decw (i, f (m, ρ, z, w), r̂ shared , r̂) = mi ] ≥ 1 − δ.
+                     (m,ρ,z,w)←RNSY′ ,i←[k]
+
+   By Markov’s inequality:
+                                                                                                              
+                                                           w                       shared                                1
+                          Pr                      Pr [Dec (i, f (m, ρ, z, w), r̂            , r̂) 6= mi ] ≥ 10δ ≤          .
+                (m,ρ,z,w)←RNSY           ′       i←[k]                                                                  10
+            w
+   Let Dec (i, j) = Decw (i, j, r̂ shared , r̂). We obtain that:
+
+                                                               w                                                 9
+                               Pr                  [ Pr [Dec (i, f (m, ρ, z, w)) = mi ] > 1 − 10δ] >               .
+                     (m,ρ,z,w)←RNSY′ i←[k]                                                                      10
+   Which gives that:
+                                                                                                            
+                                                   w                                                    2               9
+                Pr                 Pr [Dec (i, f (m, ρ, z, w)) = mi ] > 1 − 10δ >                         −γ       ·      > 0.55.
+       (m,ρ,z,w)←RNSY i←[k]                                                                             3              10
+
+
+
+                                                                        38
+   Let A denote the event:
+                                                                                     
+                                                w
+                           A=         Pr [Dec (i, f (m, ρ, z, w)) = mi ] > 1 − 10δ ,
+                                  i←[k]
+
+so that we have that:
+                                                     Pr          [A] > 0.55.
+                                              (m,ρ,z,w)←RNSY
+
+By the definition of the two steps of RNSY, and an averaging argument this gives that:
+                                                                      
+                             Pr             Pr       [A] > 0.51] > 0.01 .
+                           (m,ρ)←RNSY 1         (z,w)←RNSY2 (m,w)
+
+This concludes the proof.
+
+   Applying Lemma 5.6 on the ( 21 − ǫ, q ′ = O(q log k), L, 1/20k)-LLD that we have previously
+obtained, gives the following corollary:
+                                                                 (·)
+Claim 5.7. There exists an oracle procedure Dec (i, j) receiving i ∈ [k], j ∈ [L], and making
+q ′ = O(q ·log k) queries to a string w ∈ {0, 1}n , such that with probability at least 0.51 over choosing
+(m, ρ) ← RNSY1 , we have that with probability at least 0.01 over choosing (z, w) ← RNSY2 (m, ρ),
+                                                        w
+there exists j ∈ [L] such that for every i ← [k], Dec (i, j) = mi .
+
+Proof. This follows directly from Lemma 5.6, noticing that a statement of the form:
+
+                                                    w                           1
+                                          Pr [Dec (i, j) = mi ] ≥ 1 −             ,
+                                        i←[k]                                  2k
+                                          w
+implies that for every i ← [k], Dec (i, j) = mi .
+
+   We can use this (in a similar way to Lemma 4.3) to argue that:
+
+Claim 5.8. Let a = log L + 100 andWlet ℓ = log k. For every α ∈ {0, 1}a , there exists a q-CNF C α
+                                                            ǫ
+over n variables, such that for C = α∈{0,1}a C α , and p = 10 :
+                              ℓ
+   • Pr[C(Un ) = 1] ≤ 2−(2 −a) .
+   • Prρ←Rnp [Prz←U 1/3 [C(Fillρ (z)) = 1] ≥ 0.01] ≥ 0.01.
+                     n·p
+
+
+Proof. The proof is essentially identical to that of Lemma 4.3. More precisely, the message m ∈
+                                       ℓ
+{0, 1}k plays the role of f ∈ {0, 1}2 , the index i ∈ [k] plays the role of x ∈ {0, 1}ℓ , and the index
+j ∈ [L], plays the role of α ∈ {0, 1}a . The argument in the proof of Lemma 4.3 shows that for every
+m ∈ {0, 1}k , there exists a circuit Cm of the required form such that:
+                                                        ℓ
+   • Prm←{0,1}k ,x←{0,1}n [Cm (x) = 1] ≤ 2−(2 −a) .
+   • With probability at least 0.51 over choosing (m, ρ) ← RNSY1 , we have that with probability
+     at least 0.01 over choosing (z, w) ← RNSY 2 (m, ρ), we have that Cm (x) = 1, for x = Fillρ (z)
+     (as in experiment RNSY).
+
+By applying Markov’s inequality on each one of the two items, we can obtain that:
+
+
+                                                            39
+                h                              ℓ
+                                                       i
+    • Prm←{0,1}k Prx←{0,1}n [Cm (x) = 1] ≤ 2−(2 −a−100) ≥ 1 − 2−100 .
+    • With probability at least 0.1 over choosing m ← {0, 1}k , we have that with probability at
+      least 0.01 over choosing ρ ← Rnp , we have that with probability at least 0.01 over choosing
+      (z, w) ← RNSY2 (m, ρ), we have that Cm (x) = 1, for x = Fillρ (z).
+
+This allows to do a union bound, and obtain that there exists m ∈ {0, 1}k such that setting C = Cm ,
+meets the conclusion of Claim 5.8.
+
+     We are finally ready to prove Theorem 5.4. Using Lemma 4.5 we conclude that assuming
+           2ℓ
+a + 100 ≤ 10  (which for sufficiently large k, follows by our assumption that L ≤ 2k/20 ) we get that
+      1000                            1
+q ′ ≥ ǫ which gives that q = Ω( ǫ·log   k ), as required.
+
+
+6    Conclusion and Open Problems
+The most interesting open problem is Open Problem 1.5. We hope that Theorem 1.11 may help to
+point us to new constructions.
+   However, it is possible that the answer to Open Problem 1.9 is negative, showing that black-box
+proofs cannot be used to solve Open Problem 1.5. Is this the case? If it is, can we show this?
+   Easier problems towards showing a negative answer to Open Problem 1.9 are:
+
+    • Is it true that in any black-box hard-function ⇒ PRG proof, the number of queries q ≥ m or
+      even q ≥ m2 ? A positive answer will show that the cost of the hybrid argument (in terms of
+      the number queries used by the reduction) is unavoidable in black-box hard-function ⇒ PRG
+      proofs.
+    • We don’t know whether a super-constant number of queries is necessary for constant ǫ. Can
+      we show a super-constant lower bound on the number of queries of a reduction for a black-box
+      hard-function ⇒ PRG proof?
+    • In fact, we don’t even know to show a q > 1 lower bound for black-box ρ-hard-function ⇒
+      ǫ-PRG proof for constant ǫ, and ρ = 21 + ǫ. Can we show this?
+    • In all cases above, the question is open even for small values of a (that do not apply in the
+      extreme high-end).
+
+    Another approach to hardness vs. randomness was very recently suggested by Chen and Tell
+[CT21a]. They use an assumption which is less standard, and incomparable to the extreme
+high-end hardness assumption to construct “target PRGs” which are weaker than PRGs, but
+suffice for fast derandomization of randomized algorithms. It is interesting to investigate the power
+of this approach. For more details on this approach and exciting recent developments in this area,
+see the survey paper [CT23].
+    Finally, another open problem is to further improve our lower bounds on the number of queries
+for reductions for black-box hardness amplification. More specifically, our improved lower bounds
+for hardness amplification apply in the extreme high-end, but are not tight. We only get q ≥
+max(Ω(ℓ), Ω( 1ǫ )), whereas the known upper bounds give q = O( ǫℓ2 ). Can we prove a matching lower
+bound that applies in the extreme high-end? (namely, for a = 2(1−o(1))·ℓ ). Such lower bounds were
+given by [GSV18] for the high-end, namely for a ≤ 2ν·ℓ for a constant ν > 0.
+
+
+
+
+                                                 40
+Acknowledgements
+We are grateful to anonymous referees for very helpful comments and suggestions.
+
+
+References
+[AASY16] B. Applebaum, S. Artemenko, R. Shaltiel, and G. Yang. Incompressible functions,
+         relative-error extractors, and the power of nondeterministic reductions. Computational
+         Complexity, 25(2):349–418, 2016.
+
+[ABK+ 06] E. Allender, H. Buhrman, M. Koucký, D. van Melkebeek, and D. Ronneburger. Power
+          from random strings. SIAM J. Comput., 35(6):1467–1493, 2006.
+
+[AIKS16]    S. Artemenko, R. Impagliazzo, V. Kabanets, and R. Shaltiel. Pseudorandomness when
+            the odds are against you. In 31st Conference on Computational Complexity, pages
+            9:1–9:35, 2016.
+
+[AS14]      S. Artemenko and R. Shaltiel. Lower bounds on the query complexity of non-uniform
+            and adaptive reductions showing hardness amplification. Computational Complexity,
+            23(1):43–83, 2014.
+
+[Bea94]     P. Beame. A switching lemma primer. Technical Report UW-CSE-95-07-01, University
+            of Washington, 1994.
+
+[BFNW93] L. Babai, L. Fortnow, N. Nisan, and A. Wigderson. Bpp has subexponential time
+         simulations unless exptime has publishable proofs. Computational Complexity, 3:307–
+         318, 1993.
+
+[BM84]      M. Blum and S. Micali. How to generate cryptographically strong sequences of pseudo-
+            random bits. SIAM Journal on Computing, 13(4):850–864, November 1984.
+
+[BSW03]     B. Barak, R. Shaltiel, and A. Wigderson. Computational analogues of entropy. In
+            RANDOM-APPROX, pages 200–215, 2003.
+
+[CGI+ 16]   M. L. Carmosino, J. Gao, R. Impagliazzo, I. Mihajlin, R. Paturi, and S. Schneider. Non-
+            deterministic extensions of the strong exponential time hypothesis and consequences
+            for non-reducibility. In Proceedings of the 2016 ACM Conference on Innovations in
+            Theoretical Computer Science, ITCS, pages 261–270, 2016.
+
+[CIKK16] M. L. Carmosino, R. Impagliazzo, V. Kabanets, and A. Kolokolova. Learning algorithms
+         from natural proofs. In Ran Raz, editor, 31st Conference on Computational Complexity,
+         CCC, volume 50 of LIPIcs, pages 10:1–10:24. Schloss Dagstuhl - Leibniz-Zentrum für
+         Informatik, 2016.
+
+[CT21a]     L. Chen and R. Tell. Hardness vs randomness, revised: Uniform, non-black-box, and
+            instance-wise. In 62nd IEEE Annual Symposium on Foundations of Computer Science,
+            FOCS, pages 125–136, 2021.
+
+
+
+
+                                                41
+[CT21b]    L. Chen and R. Tell. Simple and fast derandomization from very hard functions:
+           eliminating randomness at almost no cost. In STOC ’21: 53rd Annual ACM SIGACT
+           Symposium on Theory of Computing, pages 283–291. ACM, 2021.
+
+[CT23]     L. Chen and R. Tell. New ways of studying the BPP = P conjecture. Electron.
+           Colloquium Comput. Complex., 2023.
+
+[DMOZ20] D. Doron, D. Moshkovitz, J. Oh, and D. Zuckerman. Nearly optimal pseudorandomness
+         from hardness. In 61st IEEE Annual Symposium on Foundations of Computer Science,
+         FOCS, pages 1057–1068. IEEE, 2020.
+
+[GM84]     S. Goldwasser and S. Micali. Probabilistic encryption. Journal of Computer and System
+           Sciences, 28(2):270–299, April 1984. Preliminary version appeared in STOC’ 82.
+
+[GSV18]    A. Grinberg, R. Shaltiel, and E. Viola. Indistinguishability by adaptive procedures
+           with advice, and lower bounds on hardness amplification proofs. In 59th IEEE Annual
+           Symposium on Foundations of Computer Science, FOCS, pages 956–966, 2018.
+
+[Gur06]    V. Guruswami. Algorithmic results in list decoding. Foundations and Trends in Theo-
+           retical Computer Science, 2(2), 2006.
+
+[GW14]     O. Goldreich and A. Wigderson. On derandomizing algorithms that err extremely
+           rarely. In Symposium on Theory of Computing, STOC, pages 109–118. ACM, 2014.
+
+[Hås86]   J. Håstad. Almost optimal lower bounds for small depth circuits. In STOC, pages 6–20,
+           1986.
+
+[HILL99]   J. Håstad, R. Impagliazzo, L. A. Levin, and M. Luby. A pseudorandom generator from
+           any one-way function. SIAM J. Comput., 28(4):1364–1396, 1999.
+
+[Hir18]    S. Hirahara. Non-black-box worst-case to average-case reductions within NP. In 59th
+           IEEE Annual Symposium on Foundations of Computer Science, FOCS, pages 247–258,
+           2018.
+
+[Imp95]    R. Impagliazzo. Hard-core distributions for somewhat hard problems. In FOCS, pages
+           538–545, 1995.
+
+[ISW99]    R. Impagliazzo, R. Shaltiel, and A. Wigderson. Near-optimal conversion of hardness
+           into pseudo-randomness. In FOCS, pages 181–190, 1999.
+
+[ISW06]    R. Impagliazzo, R. Shaltiel, and A. Wigderson. Reducing the seed length in the nisan-
+           wigderson generator. Combinatorica, 26(6):647–681, 2006.
+
+[IW97]     R. Impagliazzo and A. Wigderson. P = BPP if E requires exponential circuits: De-
+           randomizing the XOR lemma. In STOC, pages 220–229, 1997.
+
+[KvM02]    A. Klivans and D. van Melkebeek. Graph nonisomorphism has subexponential size
+           proofs unless the polynomial-time hierarchy collapses. SIAM J. Comput., 31(5):1501–
+           1526, 2002.
+
+
+
+                                              42
+[MV05]    P. Bro Miltersen and N. V. Vinodchandran. Derandomizing arthur-merlin games using
+          hitting sets. Computational Complexity, 14(3):256–279, 2005.
+
+[NW94]    N. Nisan and A. Wigderson. Hardness vs. randomness. JCSS: Journal of Computer
+          and System Sciences, 49, 1994.
+
+[RRV02]   R. Raz, O. Reingold, and S. P. Vadhan. Extracting all the randomness and reducing
+          the error in trevisan’s extractors. J. Comput. Syst. Sci., 65(1):97–128, 2002.
+
+[RSV21]   N. Ron-Zewi, R. Shaltiel, and Nithin Varma. Query complexity lower bounds for local
+          list-decoding and hard-core predicates (even for small rate and huge lists). In 12th
+          Innovations in Theoretical Computer Science Conference, ITCS, volume 185 of LIPIcs,
+          pages 33:1–33:18. Schloss Dagstuhl - Leibniz-Zentrum für Informatik, 2021.
+
+[RTS00]   J. Radhakrishnan and A. Ta-Shma. Bounds for dispersers, extractors, and depth-two
+          superconcentrators. SIAM Journal on Discrete Mathematics, 13(1):2–24, 2000.
+
+[STV01]   M. Sudan, L. Trevisan, and S. P. Vadhan. Pseudorandom generators without the xor
+          lemma. J. Comput. Syst. Sci., 62(2):236–266, 2001.
+
+[SU05]    R. Shaltiel and C. Umans. Simple extractors for all min-entropies and a new pseudo-
+          random generator. J. ACM, 52(2):172–216, 2005.
+
+[SU06]    R. Shaltiel and C. Umans. Pseudorandomness for approximate counting and sampling.
+          Computational Complexity, 15(4):298–341, 2006.
+
+[SV10]    R. Shaltiel and E. Viola. Hardness amplification proofs require majority. SIAM J.
+          Comput., 39(7):3122–3154, 2010.
+
+[Tel21]   R. Tell. How to find water in the ocean: A survey on quantified derandomization.
+          Electron. Colloquium Comput. Complex., page 120, 2021.
+
+[Tre01]   L. Trevisan. Extractors and pseudorandom generators. Journal of the ACM, 48, 2001.
+
+[TZ04]    A. Ta-Shma and D. Zuckerman. Extractor codes. IEEE Trans. Information Theory,
+          50(12):3015–3025, 2004.
+
+[Uma03]   C. Umans. Pseudo-random generators for all hardnesses. Journal of Computer and
+          System Sciences, 67:419–440, 2003.
+
+[Uma09]   C. Umans. Reconstructive dispersers and hitting set generators.        Algorithmica,
+          55(1):134–156, 2009.
+
+[Vio05]   E. Viola. The complexity of constructing pseudorandom generators from hard functions.
+          Computational Complexity, 13(3-4):147–188, 2005.
+
+[Vio06]   E. Viola. The Complexity of Hardness Amplification and Derandomization. PhD thesis,
+          Harvard University, 2006. http://www.eccc.uni-trier.de/eccc.
+
+[Yao82]   A. C. Yao. Theory and applications of trapdoor functions (extended abstract). In
+          FOCS, pages 80–91, 1982.
+
+
+                                             43
+[Yek12]   S. Yekhanin. Locally decodable codes. Found. Trends Theor. Comput. Sci., 6(3):139–
+          255, 2012.
+
+
+
+
+                                            44
+

@@ -1,0 +1,1771 @@
+Journal of Machine Learning Research 23 (2022) 1-33                               Submitted 3/22; Revised 12/22; Published 12/22
+
+
+
+
+                             On Batch Teaching Without Collusion∗
+
+Shaun Fallat                                                                              SHAUN . FALLAT @ UREGINA . CA
+Department of Mathematics and Statistics, University of Regina
+
+David Kirkpatrick                                                                                       KIRK @ CS . UBC . CA
+Department of Computer Science, University of British Columbia
+
+Hans U. Simon                                                                                   HSIMON @ MPI - INF. MPG . DE
+Max Planck Institute for Informatics
+
+Abolghasem Soltani                                                                               ASOLTANI @ UREGINA . CA
+Department of Computer Science, University of Regina
+
+
+Sandra Zilles                                                                                    ZILLES @ CS . UREGINA . CA
+Department of Computer Science, University of Regina
+
+
+Editor: Daniel Hsu
+
+
+                                                         Abstract
+          Formal models of learning from teachers need to respect certain criteria to avoid collusion. The
+     most commonly accepted notion of collusion-avoidance was proposed by Goldman and Mathias
+     (1996), and various teaching models obeying their criterion have been studied. For each model M
+     and each concept class C, a parameter M -TD(C) refers to the teaching dimension of concept class
+     C in model M —defined to be the number of examples required for teaching a concept, in the worst
+     case over all concepts in C.
+          This paper introduces a new model of teaching, called no-clash teaching, together with the
+     corresponding parameter NCTD(C). No-clash teaching is provably optimal in the strong sense
+     that, given any concept class C and any model M obeying Goldman and Mathias’s collusion-
+     avoidance criterion, one obtains NCTD(C) ≤ M -TD(C). We also study a corresponding notion
+     NCTD+ for the case of learning from positive data only, establish useful bounds on NCTD and
+     NCTD+ , and discuss relations of these parameters to other complexity parameters of interest in
+     computational learning theory.
+          We further argue that Goldman and Mathias’s collusion-avoidance criterion may in some set-
+     tings be too weak in that it admits certain forms of interaction between teacher and learner that
+     could be considered collusion in practice. Therefore, we introduce a strictly stronger notion of
+     collusion-avoidance and demonstrate that the well-studied notion of Preference-based Teaching is
+     optimal among all teaching schemes that are strongly collusion-avoiding on all finite subsets of a
+     given concept class.
+     Keywords: machine teaching, collusion-freeness, VC dimension, teaching dimension, sample
+     compression
+ ∗. Some of the material in this paper appeared in preliminary form in (Kirkpatrick et al., 2019)
+
+
+
+
+c 2022 Shaun Fallat, David Kirkpatrick, Hans U. Simon, Abolghasem Soltani, and Sandra Zilles.
+License: CC-BY 4.0, see https://creativecommons.org/licenses/by/4.0/. Attribution requirements are provided at
+http://jmlr.org/papers/v23/22-0330.html.
+                       FALLAT, K IRKPATRICK , S IMON , S OLTANI , AND Z ILLES
+
+
+
+
+1. Introduction
+Models of machine learning from carefully chosen examples, i.e., from teachers, have gained in-
+creased interest in recent years, due to various application areas, such as robotics (Argall et al.,
+2009), trustworthy AI (Zhu et al., 2018), and pedagogy (Shafto et al., 2014). Machine teaching
+is also related to inverse reinforcement learning (Ho et al., 2016), to sample compression (Moran
+et al., 2015; Doliwa et al., 2014), and to curriculum learning (Bengio et al., 2009).
+     The paper at hand is concerned with abstract notions of teaching, as studied in computational
+learning theory. In particular, it assumes that the learning problem is given by a fixed concept class
+C, of which an unknown target concept C is chosen and has to be identified by a learner from partial
+information about C. A teacher and a learner are viewed as two mappings defined on the basis
+of the given concept class C. The teacher compresses each concept C in C into a set or sequence
+of correctly labelled examples, i.e., of pairs (x, C(x)), where x is an element of the underlying
+domain and C(x) is a binary label indicating whether or not x belongs to C. The learner in return is
+presented with a set or sequence of such labelled examples and outputs a concept in C. By contrast
+with models of learning from randomly chosen examples, the examples presented to the learner are
+more helpful, as the teacher is assumed to be benevolent.
+     A variety of formal models of teaching have been proposed in the literature, for example, the
+classical teaching dimension model (Goldman and Kearns, 1995), the optimal teacher model (Bal-
+bach, 2008), recursive teaching (Zilles et al., 2011), or preference-based teaching (Gao et al., 2017).
+In each of these models, the teacher mapping T assigns a finite set T (C) of correctly labelled ex-
+amples to a concept C in a concept class C in a way that the learner can reconstruct C from T (C).
+In particular, they are models of batch teaching, i.e., of teaching and learning using sets of labeled
+examples, and stand in contrast with models of sequential teaching (Mansouri et al., 2019), in which
+concepts are encoded in sequences of examples.
+     An interesting variant of all of these models is obtained when disallowing negative examples in
+teaching. Learning from positive examples only has been studied extensively in the computational
+learning theory literature, see, e.g., (Denis, 2001; Angluin, 1980) and is motivated by studies on
+language acquisition (Wexler and Culicover, 1980) or, more recently, by problems of learning user
+preferences from a user’s interactions with, say, an e-commerce system (Schwab et al., 2000), as
+well as by problems in bioinformatics (Wang et al., 2006).
+     Intuitively, unfair collusion between the teacher and the learner should not be allowed in any
+formal model of teaching. For example, one would not want the teacher and learner to agree on
+a total order over the domain and a total order over the concept class and then to simply use the
+ith instance in the domain for teaching the ith concept, irrespective of the actual structure of the
+concept class. However, there is no general definition of what constitutes collusion, and of what
+constitutes desirable or undesirable forms of learning. In this manuscript, we focus on two notions
+of collusion-avoidance. The first, which we refer to as weak collusion-avoidance, is the property
+proposed by Goldman and Mathias (1996) that has served as a foundation for a majority of the
+teaching models studied in the literature. The second, more restrictive, notion we refer to as strong
+collusion-avoidance. In a nutshell, weak collusion-avoidance demands of a teacher mapping T that
+it admits a learner L that is persistent in the sense that L(S) = C for all sets S of labelled examples
+that include T (C) and are consistent with C. (In other words, adding more information about C
+to T (C) will not divert the learner to a different hypothesis.) Strong collusion-avoidance on a set
+
+
+
+
+                                                  2
+                            O N BATCH T EACHING W ITHOUT C OLLUSION
+
+
+
+
+C of concepts demands that, in addition, the teacher mapping T admits a unique injective learner
+mapping L on T (C) such that L(T (C)) ⊆ C.
+    Most existing abstract models of machine teaching are known to satisfy the Goldman-Mathias
+(weak) collusion-avoidance criterion. Historically, some of these models were designed in order to
+overcome weaknesses of the previous models. For example, the optimal teacher model by Balbach
+(2008) is designed to overcome limitations of the classical teaching dimension model, and was
+likewise superseded by the recursive teaching model (Zilles et al., 2011). The latter again failed
+to capture teachability of many interesting infinite concept classes, which gave rise to the model
+of preference-based teaching (Gao et al., 2017). Each model strictly dominates the previous one
+in terms of the teaching complexity, i.e., the worst-case number of examples needed for teaching
+a concept in the underlying concept class C. In this context, one quite natural question has been
+ignored in the literature to date: what is the smallest teaching complexity that can be achieved
+while respecting the Goldman-Mathias’s collusion-avoidance criterion? This is one of the central
+questions addressed in this paper.
+
+1.1 Overview of Results
+Our first contribution is the formal definition of a teaching model that has, for every concept class
+C, the provably smallest teaching complexity among all teaching models that satisfy the Goldman-
+Mathias collusion-avoidance criterion. We call this model no-clash teaching, since its core property,
+which turns out to be characteristic for the Goldman-Mathias collusion-avoidance criterion, requires
+that no pair of concepts are consistent with the union of their teaching sets. A similar property was
+used once in the literature in the context of sample compression schemes (Kuzmin and Warmuth,
+2007), and dubbed the non-clashing property.
+    For example, consider a concept class (i.e., set system) CA over the instance space {0, 1, 2, 3},
+consisting of the four concepts of the form {i, (i + 1) mod 4} for 0 ≤ i ≤ 3. Then no-clash
+teaching is possible by assigning the singleton set {(i, 1)} (interpreted as the information “i belongs
+to the target concept”) as a teaching set to the concept {i, (i + 1) mod 4}; no two distinct concepts
+are consistent with the union of their assigned teaching sets. Thus, in the no-clash setting, each
+concept in CA can be taught with a single example. By comparison, consider the classical teaching
+dimension model, in which a teaching set for a given concept is required to be inconsistent with all
+other concepts in the concept class (Goldman and Kearns, 1995). It is not hard to see that, under
+such constraints, no concept in CA can be taught with a single example; a smallest teaching set for
+concept {i, (i + 1) mod 4} would then be {(i, 1), ((i + 1) mod 4, 1)}.
+    We call the worst-case number of examples needed for non-clashing teaching of any concept C
+in a given concept class C the no-clash teaching dimension of C, abbreviated NCTD(C), and we
+study a variant NCTD+ (C) in which teaching uses only positive examples. In the example above,
+NCTD(CA ) = NCTD+ (CA ) = 1, while the classical teaching dimension is 2.
+    As additional examples consider the infinite concept classes CB (respectively, CB + , CB − ) over
+the real numbers consisting of concepts which are half-open (respectively, closed, fully open) in-
+tervals of the form [x, x + 1) (respectively, [x, x + 1], (x, x + 1)), where x ∈ R. In the classical
+teaching dimension model no concept in CB can be taught with finitely many examples. However,
+both CB + and CB − have finite classical teaching dimension (two and three, respectively). In the
+no-clash setting, concepts in all three classes can be taught with just a single example.
+
+
+
+
+                                                  3
+                           FALLAT, K IRKPATRICK , S IMON , S OLTANI , AND Z ILLES
+
+
+
+
+     The value NCTD(C) being the smallest teaching complexity parameter of C satisfying the
+Goldman-Mathias collusion-avoidance criterion makes it interesting for several reasons.
+     (1) NCTD represents the limit of data efficiency in teaching when respecting Goldman and
+Mathias’s weak notion of collusion-avoidance. Therefore the study of NCTD has the potential to
+further our understanding how collusion-avoidance constrains teaching. It will also serve to compare
+other notions of collusion-avoidance (see, e.g., (Zilles et al., 2011)) to that of Goldman and Mathias.
+     (2) An open question in computational learning theory is whether the VC-dimension (VCD),
+(Vapnik and Chervonenkis, 1971), which characterizes the sample complexity of learning from
+randomly chosen examples, also characterizes teaching complexity for some reasonable notion of
+batch teaching. Over the past decade, the first strong connections between batch teaching and VCD
+were established, culminating in an upper bound on the recursive teaching dimension (RTD) that
+is quadratic in VCD (Hu et al., 2017), but it remains open whether this bound can be improved to
+be linear in VCD. Obviously, now NCTD is a much stronger candidate for a linear relationship
+with VCD than RTD is. In fact, there is no concept class known yet for which NCTD exceeds
+VCD. The only known teaching complexity notion that is bounded from above by VCD (and also
+the only one known to be bounded from above by a function linear in VCD) stems from a model of
+sequential teaching and was introduced by Mansouri et al. (2019). Thus, NCTD is to date the only
+known candidate for a batch teaching parameter that has an upper bound in O(VCD).
+     (3) The problem of relating teaching complexity to VCD is connected to the long-standing open
+problem of determining whether VCD is an upper bound on the size of the smallest possible sample
+compression scheme (Littlestone and Warmuth, 1986; Floyd and Warmuth, 1995) of a concept class.
+Some interesting relations between sample compression and teaching have been established for
+RTD (Moran et al., 2015; Doliwa et al., 2014; Darnstädt et al., 2016). The study of NCTD can
+potentially strengthen such relations.
+     To sum up, our new notion of non-clashing teaching, while respecting the Goldman-Mathias
+collusion-avoidance criterion, is of relevance to the study of important problems in computational
+learning theory.
+     Interestingly, non-clashing teaching also reveals a weakness of Goldman and Mathias’s no-
+tion of collusion-avoidance. Consider for example the concept class CA from above, i.e., the class
+consisting of the concepts {i, (i + 1) mod 4}, 0 ≤ i ≤ 3, over the instance space {0, 1, 2, 3}.
+As stated above, an optimal non-clashing teacher is obtained when assigning the singleton set
+{(i, 1)} to the concept {i, (i + 1) mod 4}. Now it is not hard to see that the mapping that assigns
+{((i + 1) mod 4, 1)} to the concept {i, (i + 1) mod 4} is also an optimal non-clashing teacher for
+CA . A learner will first have to disambiguate between various potential teachers in order to be able
+to successfully decode a given teaching set. Arguably, the information exchange required for this
+disambiguation could be considered some form of collusion—in particular, a form of collusion not
+forbidden by Goldman-Mathias collusion-avoidance.
+     This is where the stronger notion of collusion-avoidance comes into play. For a teacher T over
+finite concept class C, it stipulates that no alternate teacher for C has the same range as T .1 A major
+result is that the preference-based teaching dimension (PBTD, (Gao et al., 2017)), which is a well-
+known complexity parameter of batch teaching and coincides with RTD on finite concept classes, is
+exactly the complexity of teacher mappings that are strongly collusion-avoiding on all finite subsets
+of the given concept class.
+ 1. For infinite concept classes, the definition is just slightly more involved—see Section 5.
+
+
+
+                                                            4
+                            O N BATCH T EACHING W ITHOUT C OLLUSION
+
+
+
+
+    Thus, two major contributions of our paper are (i) to characterize the optimal complexity of
+weakly collusion-avoiding teaching by introducing non-clashing teaching, and (ii) to address weak-
+nesses of this notion by introducing strong collusion-avoidance, which in turn serves as a character-
+ization of preference-based teaching (and, in the finite case, of recursive teaching).
+
+1.2 A Guide to What Follows
+Section 2 provides background on formal models of teaching that satisfy the weak (Goldman-
+Mathias) collusion-avoidance criterion, together with their associated teaching complexity (teaching
+dimension) parameters. This motivates the question: what is the most permissive (and hence lowest
+complexity) teaching model that satisfies the weak collusion avoidance constraints.
+    This is answered in Section 3 with the introduction of non-clashing teaching and its associated
+teaching complexity parameter NCTD. Some the basic properties of this complexity parameter,
+including lower bounds, are developed within Subsection 3.2. Section 4 explores the relationship
+between non-clashing teaching and other learning-theoretic notions, including VC-dimension and
+sample compression.
+    Section 5 introduces strong collusion avoidance and establishes its close relationship with pref-
+erence-based teaching.
+    Finally, Section 6 revisits all of the formal teaching notions that we have considered, includ-
+ing non-clashing teaching, under the unifying frameworks of constrained preferences, constrained
+bipartite matchings, and broadened recursion.
+
+2. Preliminaries
+Given a domain X , a concept over X is a subset C ⊆ X . We usually denote by C a concept class
+over X , i.e., a set of concepts over X . Implicitly, we identify a concept C over X with a mapping
+C : X → {0, 1}, where C(x) = 1 iff x ∈ C.
+
+Definition 1 A labelled example is a pair (x, `) ∈ X × {0, 1}. An example with the label ` = 1
+is a positive example, while ` = 0 is the label of a negative example. Let S be any finite set of
+labelled examples over X , and C any concept class over X . Then S and concept C ∈ C are said to
+be (mutually) consistent, if for every pair (x, `) ∈ S, ` = C(x). If S is consistent with at least one
+concept in C then S is called a C-sample.
+
+    Intuitively, the notion of teaching refers to compressing any concept C in a given concept class
+C to a C-sample consistent with C, by means of an invertible mapping.
+
+Definition 2 (Teacher Mapping) Let C be a concept class over a domain X . A teacher mapping
+for C is an injective mapping T from C to the set of C-samples such that, for all C ∈ C, T (C)
+is consistent with C. The order of T on C, denoted by ord(T, C), is then defined by ord(T, C) =
+max{|T (C)| | C ∈ C}. A teacher mapping T is called positive on C if T (C) ⊆ X × {1} for all
+C ∈ C.
+
+Definition 3 (Learner Mapping) A learner mapping for C is a partial function L on the set of C-
+samples to concepts in C such that if L is defined on S then S is consistent with L(S). A learner
+mapping L is persistent on C if, for any C-sample S in the domain of L and any superset S 0 of
+
+
+                                                  5
+                           FALLAT, K IRKPATRICK , S IMON , S OLTANI , AND Z ILLES
+
+
+
+
+S that is consistent with L(S), L(S 0 ) = L(S).2 A learner mapping L for C, forms a successful
+teacher-learner pair with the teacher mapping T on the subset C 0 ⊆ C if L(T (C)) = C, for all
+C ∈ C0.
+
+     While there is no objective measure of how “reasonable” a formal model of teaching is, the
+literature offers some notions of what constitutes an “acceptable” model of teaching, i.e., one in
+which the teacher and learner do not collude. So far, the property of collusion-avoidance that found
+the most positive resonance in the literature is the one defined by Goldman and Mathias. Intuitively,
+Goldman and Mathias’s criterion captures the idea that a learner conjecturing concept C will not
+change its mind when given additional information consistent with C.
+
+Definition 4 (Weak Collusion-Avoidance (Goldman and Mathias, 1996)) A teacher mapping T
+for a concept class C is said to be weakly collusion-avoiding on C if there exists a persistent learner
+mapping L that forms a successful teacher-learner pair with T on C.
+
+Remark 5 This definition deliberately does not require the persistent learner mapping L to be de-
+fined on all C-samples. For illustration, consider the concept class P2 , the power set over a domain
+{x1 , x2 } of size 2. This class has a teacher mapping T satisfying the weak collusion-avoidance
+property, with ord(T, P2 ) = 1; for example, T can map the empty concept to {(x1 , 0)}, the concept
+{x1 } to {(x2 , 0)}, the concept {x2 } to {(x2 , 1)}, and finally the concept {x1 , x2 } to {(x2 , 1)}. A
+persistent learner can form a successful teacher-learner pair with this teacher if it is not required to
+produce an output on the empty sample.
+     By contrast, weakly collusion-avoiding teaching of P2 is no longer possible with an order of
+1 if, in addition, the persistent mapping L is required to be defined on all C-samples. To see this,
+suppose, without loss of generality, that a persistent learner L for P2 returns the empty concept on
+input of the empty sample. When fed {(x1 , 0)} or {(x2 , 0)}, this learner would have to output the
+empty concept as well, to be successful with a weakly collusion-avoiding teacher. Hence, L would
+need to see at least the example (x1 , 1) to output the concept {x1 }, and it would need to see at least
+{(x2 , 1)} to output the concept {x2 }. Thus, at least one of the three concepts {x1 }, {x2 }, {x1 , x2 }
+would need to be taught using two examples, for L to allow for weakly collusion-avoiding teaching.
+
+    In the following we describe a natural normal form for teacher mappings that satisfy the weakly
+collusion-avoiding property. A teacher mapping T 0 is said to be an extension of T if T (C) ⊆ T 0 (C)
+holds for every C ∈ C. Clearly, if T 0 is an extension of T and T is weakly collusion-avoiding then
+so to is T 0 . It follows immediately that:
+
+Proposition 6 If teacher mapping T is weakly collusion-avoiding then there is a weakly collusion-
+avoiding teacher mapping T 0 for which |T 0 (C)| = ord(T, C), for all C ∈ C.
+                                                                                          (k)
+    We will find it helpful to exploit this normal form as follows: if BC.X denotes the bipartite
+graph, with vertices associated with elements of C (black vertices) and C-samples of size k over X
+(white vertices), and an edge from Ci ∈ C to C-sample Sj whenever Ci is consistent with Sj , then
+any weakly collusion-avoiding teacher mapping of order k can be expressed as a matching in the
+                  (k)
+bipartite graph BC.X that saturates all of the black vertices.
+ 2. In the context of recursion-theoretic learning theory (Lange et al., 2008), persistent learner mappings are sometimes
+    called conservative.
+
+
+                                                           6
+                                O N BATCH T EACHING W ITHOUT C OLLUSION
+
+
+
+
+2.1 Definitive Teaching
+The first model of teaching that was proposed in the literature required from a teacher mapping
+T that the concept C ∈ C be the only concept in C that is consistent with T (C), for any C ∈ C
+(Shinohara and Miyano, 1991; Goldman and Kearns, 1995). This led to the definition of the well-
+known teaching dimension3 parameter. The following presents this definition in a modified, but
+equivalent, form:
+
+Definition 7 (DTD (Shinohara and Miyano, 1991; Goldman and Kearns, 1995)) Fix a concept
+class C over a domain X , and let C ∈ C be a concept. A definitive teaching set for C (with
+respect to the concept class C) is a C-sample S for which C is the only consistent concept in C. By
+DT(k) (C) we denote the subset of C consisting of concepts with definitive teaching sets (with respect
+to C) of size at most k. The definitive teaching dimension of C, denoted DTD(C), is then defined as
+min{k | DT(k) (C) = C} (with DTD(C) = ∞ if, for every k, there is some concept whose smallest
+definitive teaching set S has size greater than k). Further, we define
+
+                                  DTDmin (C) = min{k | DT(k) (C) 6= ∅} .
+
+The positive definitive teaching dimension of C, denoted by DTD+ (C), is defined analogously to
+DTD(C), where the sets S are required to contain only positive examples.
+
+     As we have already seen, there is no relationship between the size of a concept class and its
+definitive teaching dimension: clearly there exist uncountably large concept classes C, each with
+uncountably many elements, with DTD(C) = 1. It is not hard to construct concept classes for
+which DTD+ is an arbitrarily large multiple of DTD, for example the set of concepts that include
+all but one instance from the underlying domain.
+     For example, let CD be a concept class over a domain X of exactly m elements, containing the
+empty concept, all singleton concepts over X , and no other concepts (Goldman and Kearns, 1995).
+Then DT(1) (CD ) consists of all of the singleton concepts, since {(x, 1)} serves as a teaching set
+for {x}. However, DTD(CD ) = m, since any set of up to m − 1 negative examples is consistent
+with some singleton concept and hence any teaching set for the empty concept must include all m
+negative examples. Similarly, the concept class CE over N, containing the empty concept and all
+singleton concepts, but no others, has DTD(CE ) = ∞.
+     Note that implicit in the definition above is the existence of a weakly collusion-avoiding teacher
+mapping T of order at most DTD(C).
+
+2.2 Recursive Teaching
+As mentioned in the introduction, several relaxations of the notion of definitive teaching have been
+proposed in the literature.
+    The RTD, short for “recursive teaching dimension”, is a well-studied teaching parameter defined
+by Zilles et al. (2011). It is determined by removing from the concept class C all those concepts
+that admit definitive teaching sets of size DTDmin and then recursing on the remaining concepts.
+The largest DTDmin value thus encountered is the RTD. The following provides an equivalent
+definition to that of Zilles et al. (2011):
+ 3. In the following, in order to avoid confusion with other notions of teaching dimension, we have chosen to refer to
+    this notion as the definitive teaching dimension.
+
+
+                                                          7
+                       FALLAT, K IRKPATRICK , S IMON , S OLTANI , AND Z ILLES
+
+
+
+                                                                           (k)
+Definition 8 (RTD) Let C be a concept class. The largest subset RTr (C) of C for which a re-
+cursive teacher mapping, using C-samples of size at most k, can be formulated with at most r
+                                          (k)                                      (k)
+recursive steps, is defined as follows: RT0 (C) = DT(k) (C) and for all i ∈ N, RTi+1 (C) =
+   (k)                      (k)
+RTi (C) ∪ DT(k) (C \ RTi (C)).
+       (k)                (k)
+Let RT∗ (C) = ∪r≥0 RTr (C). The recursive teaching dimension of C, denoted RTD(C) is defined
+               (k)
+as min{k | RT∗ (C) = C}.
+The positive recursive teaching dimension of C, denoted by RTD+ (C), is defined analogously, when
+the C-samples are required to contain only positive examples.
+                                              (k)
+     Note that implicit in the definition of RT∗ (C) is the existence of a weakly collusion-avoiding
+                                                                              (k)
+teacher mapping T , called a minimum depth recursive teaching plan for RT∗ (C) of order k, that
+                                                (k)
+assigns to each element of C ∈ DT(k) (C \ RTi (C)) a definitive teaching set for C with respect to
+        (k)
+C \ RTi (C), of size at most k.
+     As with DTD, it is not hard to construct concept classes for which RTD+ is an arbitrarily
+large multiple of RTD. Further, it should be clear from the definition that, for all k, DT(k) (C) =
+    (k)           (k)
+RT0 (C) ⊆ RT∗ (C), and hence RTD(C) ≤ DTD(C). In fact, RTD+ (CD ) = RTD+ (CE ) = 1,
+illustrating the fact that, for some concept classes, RTD+ can be an arbitrarily small fraction of
+DTD. If we define the concept classes CF = {{i, i + 1} | i ∈ N} and CG = {{i, i + 1} | i ∈ Z}, as
+well as CF + = CF ∪ {∅} and CG+ = CG ∪ {∅}, it is straightforward to confirm that RTD(CF ) = 1,
+RTD(CG ) = 2, and RTD(CF + ) = RTD(CG+ ) = ∞. Note, however, that if we generalize the
+notion of recursive teaching to 2-recursive teaching in which maximal size recursive teaching sets
+are taught in successive rounds, then the recursive teaching dimension of the concept class CF + is
+reduced to 1.
+
+2.3 Preference-Based Teaching
+In the model of preference-based teaching, a preference relation  on C, known to both the teacher
+and the learner, is used to reduce the size of teaching sets. As with the recursive teaching model,
+a concept C need not be be the only concept consistent with its teaching set T (C); to resolve
+ambiguity, C is chosen by the learner as the unique most preferred concept in C that is consistent
+with T (C). While it is natural to express preferences among concepts using a strict order on C, in
+order to ensure that the teacher mapping T is injective, it suffices that the preference relation  is
+asymmetric on C .
+    Let C be a concept class over a domain X and  any asymmetric binary relation on C. We say
+that concept C is preferred over concept C 0 (with respect to ), if C  C 0 . A -distinguished
+teaching set for C over C is a C-sample S such that
+
+   1. S is consistent with C, and
+
+   2. C  C 0 for all C 0 ∈ C \ {C} such that S is consistent with C 0 .
+
+We define the set PBT(k) (C, ) to be the set of all concepts C ∈ C that have a -distinguished
+teaching set of size at most k over C. The preference-based teaching dimension of C with respect to
+, denoted by PBTD(C, ), is given by min{k | PBT(k) (C, ) = C}.
+
+
+
+                                                    8
+                            O N BATCH T EACHING W ITHOUT C OLLUSION
+
+
+
+
+Definition 9 (PBTD (Gao et al., 2017)) Let C be a concept class. The preference-based teaching
+dimension of C, denoted by PBTD(C), is defined by
+
+         PBTD(C) = min{PBTD(C, ) | ⊆ C × C and  forms a strict order on C} .
+
+The positive preference-based teaching dimension of C, denoted by PBTD+ (C), is defined analo-
+gously to PBTD(C), where the sets S are required to contain only positive examples.
+
+     Note that implicit in the definition of PBT(k) (C, ) is the existence of a weakly collusion-
+avoiding teacher mapping T on PBT(k) (C, ) that has order at most k.
+     The following property is crucial when relating PBTD and RTD. Its proof, only a slight gen-
+eralization of the proof by Gao et al. (2017) for the case of finite concept classes (cf. Lemma 7),
+asserts essentially that any “least preferred” concept must be taught definitively. Recall that a strict
+order on C is well-founded if for every element of C ∈ C the descending chains starting from C are
+all finite. We say that a strict order on C is strongly well-founded if for every element of C ∈ C the
+descending chains starting from C are all bounded in length by some constant (depending on C).
+
+Proposition 10 (Gao et al. (2017)) Let C be any concept class and  any binary relation that forms
+a well-founded strict order over C. Then, PBTD(C, ) ≥ DTDmin (C) and PBTD+ (C, ) ≥
+DTDmin + (C).
+
+     It follows immediately that if  is a strongly well-founded strict order, then PBTD(C, ) ≥
+RTD(C).
+     On the other hand, suppose C is any concept class and k is the binary relation on C in
+                                            (k)                  (k)
+which C 0 k C if and only if C ∈ RTr (C) and C 0 ∈ RTr0 (C) for some r0 < r. Then it
+                                                                                       (k)
+is straightforward to confirm that (i) k is a strongly well-founded strict order on RT∗ (C), and
+         (k)
+(ii) RT∗ (C) ⊆ PBT(k) (C, k ). Hence, if RTD(C) = k then PBTD(C, k ) ≤ RTD(C) and
+PBTD (C, k ) ≤ RTD+
+         +
+                         ∗ (C).
+     It was shown in Gao et al. (2017) (cf. Corollary 9) that if C is a finite concept class, then
+PBTD(C) and RTD(C) coincide, as do PBTD+ (C) and RTD+ (C). From the remarks above, it
+follows immediately that the same relationships hold, even if C is infinite, provided PBTD(C) =
+PBTD(C, ), for some strongly well-founded strict order  on C (cf. Lemma 8, in Gao et al.
+(2017)).
+
+Proposition 11 (Gao et al. (2017)) If PBTD(C) = PBTD(C, ), for some strongly well-founded
+strict order  on C, then PBTD(C) = RTD(C). (Similarly for PBTD+ (C) and RTD+ (C).)
+
+    Note that the concept class CB , described in the introduction, has DTD(CB ) = RTD(CB ) = ∞
+but PBTD+ (CB ) = 1. In addition, for the concept classes CF + and CG+ defined above, it is
+straightforward to confirm that PBTD+ (CF + ) = PBTD+ (CG+ ) = 1. These illustrate the fact that
+PBTD+ can be an arbitrarily small fraction of RTD.
+
+3. The Limit of Weakly Collusion-Avoiding Teaching
+As we have already noted, teacher-learner pairs following the classical teaching dimension model,
+the recursive teaching model, or the preference-based teaching model are all collusion-avoiding
+
+                                                   9
+                       FALLAT, K IRKPATRICK , S IMON , S OLTANI , AND Z ILLES
+
+
+
+
+according to the weak (Goldman-Mathias) criterion (cf. Definition 4). Of these models, the classical
+teaching dimension model is the one imposing the most constraints on the mapping T , followed
+by recursive teaching, and preference-based teaching in that order. Consequently, the “teaching
+complexity” among these models is lowest for preference-based teaching; if every concept in a
+concept class C can be taught with at most k examples in any of these models, then every concept
+in C can be taught with at most k examples in the preference-based model.
+    One could still argue that the preference-based model is unnecessarily constraining. Preference-
+based teaching of a concept class C relies on a preference relation that induces a strict order on C.
+However, this strict order is used by the learner only after the teaching set has been communicated,
+since the learner chooses the unique most preferred concept among those consistent with the set of
+examples provided by the teacher. One might consider loosening the constraints by, for example,
+demanding only that the set of concepts consistent with any chosen teaching set be ordered under
+the chosen preference relation (rather than requiring acyclic preferences over the whole concept
+class). In the same vein, one could relax more conditions—every relaxation might result in a more
+powerful model of teaching satisfying the weakly collusion-avoiding criterion. In fact, we have
+already seen in Remark 5 that weakly collusion-avoiding teachers of order 1 exist for the powerset
+P2 on two elements, while clearly PBTD(P2 ) = 2.
+    In the following, we will define the provably most powerful model of teaching that is collusion-
+avoiding as defined in Definition 4.
+
+3.1 Non-clashing Teaching
+Before we define this model formally, we introduce a crucial property that was originally proposed
+by Kuzmin and Warmuth (2007) in the context of unlabeled sample compression.
+
+Definition 12 (Non-Clashing Teacher) Let C be a concept class and T be a teacher mapping on
+C. We say that T is non-clashing (on C) if there are no two distinct C, C 0 ∈ C such that both T (C)
+is consistent with C 0 and T (C 0 ) is consistent with C.
+
+     Prior to Kuzmin and Warmuth (2007), de la Higuera (1997) used the non-clashing property
+in the context of grammatical inference, with the added constraint that the size of the sample sets
+(i.e., of the sets T (C) in our definition) be bounded from above by a polynomial in the size of the
+underlying representation of C, which in de la Higuera’s work would be a generator or an acceptor
+for a formal language. It turns out that, for a teacher mapping T , the non-clashing property coincides
+with the weak collusion-avoidance criterion:
+
+Theorem 13 Let C be a concept class over the instance space X . Let T be a teacher mapping on
+C. Then the following two conditions are equivalent:
+
+   1. T is non-clashing on C.
+
+   2. T satisfies the weak collusion-avoidance criterion on C.
+
+Proof In essence, the proof is the same as that used by de la Higuera (1997) for a similar statement.
+    First, suppose T is a non-clashing teacher mapping, and define L as follows. Given any set S
+of labelled examples as input, L returns an arbitrary concept C ∈ C such that T (C) ⊆ S and C is
+consistent with S. If no such concept exists then L is undefined on S.
+
+                                                  10
+                            O N BATCH T EACHING W ITHOUT C OLLUSION
+
+
+
+
+    Suppose there is some concept C ∈ C such that a given set S of labelled examples is consistent
+with C and contains T (C). We claim that then such C is uniquely determined. For if there were
+two distinct concepts C, C 0 ∈ C consistent with S such that T (C) ∪ T (C 0 ) ⊆ S, then T (C 0 ), being
+a subset of S, would be consistent with C and, likewise, T (C) would be consistent with C 0 —in
+contradiction to the non-clashing property of T . From the definition of L, it then follows that T
+satisfies the weak collusion-avoidance criterion.
+    Second, suppose T is a teacher mapping and there is a mapping L witnessing the fact that T
+satisfies the weak collusion-avoidance criterion, i.e., for all C ∈ C, we have L(S) = L(T (C)) = C
+whenever S is consistent with C and contains T (C). To see that T is non-clashing, suppose two con-
+cepts C, C 0 ∈ C are both consistent with T (C)∪T (C 0 ). Then C = L(T (C)) = L(T (C)∪T (C 0 )) =
+L(T (C 0 )) = C 0 .
+
+
+    Consequently, teaching with non-clashing teacher mappings is, in terms of the worst-case num-
+ber of examples required, the most efficient model that satisfies the weak collusion-avoidance crite-
+rion. Hence we define the notion of no-clash teaching dimension as follows:
+
+Definition 14 (NCTD) Let C be a concept class over the instance space X . Let T be a teacher
+mapping on C of order k. Denote by NCT(k) (C, T ) the largest subset C 0 ⊂ C such that T is non-
+clashing on C 0 . The No-Clash Teaching Dimension of C with respect to T , denoted by NCTD(C, T ),
+is defined as min{k | NCT(k) (C, T ) = C}. Finally, the No-Clash Teaching Dimension of C, denoted
+NCTD(C), is defined by
+
+         NCTD(C) = min{NCTD(C, T ) | T is a non-clashing teacher mapping for C} .
+
+    It is immediate from Theorem 13 that NCTD(C) corresponds to the order of the minimum order
+teaching mapping T that satisfies the weak collusion-avoidance criterion.
+    As with earlier teaching notions, it is natural to study a variant of non-clashing teaching that
+uses positive examples only.
+
+Definition 15 (NCTD+ ) Let C be a concept class over the domain X . We define NCTD+ (C) =
+min{ord(T, C) | T is a positive non-clashing teacher mapping for C}.
+
+    Furthermore, for finite concept classes, it will be helpful to have the notion of average no-clash
+teaching dimension:
+
+Definition 16 (NCTDavg ) Let C be a finite concept class. The Average No-Clash Teaching Dimen-
+sion of C, denoted by NCTDavg (C), is defined as
+                         (                                                            )
+                             1 X
+      NCTDavg (C) = min              |T (C)| T is a non-clashing teacher mapping for C .
+                           |C|
+                                  C∈C
+
+Remark 17 It follows immediately from the pigeonhole principle that
+
+                                   NCTD(C) ≥ dNCTDavg (C)e .
+
+
+
+                                                  11
+                       FALLAT, K IRKPATRICK , S IMON , S OLTANI , AND Z ILLES
+
+
+
+
+3.2 Properties of NCTD and NCTD+
+Since NCTD refers to the optimal teaching complexity among those studied in this paper, and char-
+acterizes the complexity of teaching without collusion in the weaker sense (as defined by Goldman
+and Mathias), we will now turn to a deeper study of this parameter.
+
+3.2.1 L OWER B OUNDS ON NCTD AND NCTD+
+To establish lower bounds on NCTD and NCTD+ for finite concept classes,       we first show that
+NCTD(C) must be at least as large as the smallest d satisfying |C| ≤ 2d |Xd | . This bound actually
+applies to any teacher mapping that uses teaching sets of size at most d. A similar statement then
+follows for NCTD+ . In fact, we prove a slightly stronger result, replacing |X | with a potentially
+smaller value:
+
+Definition 18 We define XT ⊆ X as the set of instances that are part of a labelled example in a
+teaching set T (C) for some C ∈ C. Moreover, we define
+
+ X(C) = min{|XT | : T is a non-clashing teacher mapping for C with ord(C, T ) = NCTD(C)} .
+
+    Intuitively, X(C) is the smallest number of instances that must be employed by any optimal non-
+clashing teacher mapping for C. Likewise, we define X + (C) for positive non-clashing teaching.
+
+Theorem 19 Let C be any concept class.
+
+   1. If NCTD(C) = d, then |C| ≤ 2d X(C)
+                                        
+                                     d    .
+                                       Pd       X + (C)
+   2. If NCTD+ (C) = d, then |C| ≤
+                                                        
+                                          i=0      i    .
+
+Proof To prove statement 1, let X 0 be a subset of size X(C) of X . Let C 7→ T (C) ⊆ X 0 × {0, 1}
+be a consistent and non-clashing mapping which witnesses that NCTD(C) = d, and let L be the
+mapping such that L(T (C)) = C for all C ∈ C. By Proposition 6, one may assume without loss
+of generality that |T (C)| = d for all C ∈ C. Since T is an injective mapping and there are only
+2d X(C)
+        
+     d    labelled teaching sets at our disposal, the claim follows.
+    Statement 2 is proven analogously, taking into consideration that, in the NCTD+ case, we do
+not have an analogous statement to Proposition 6, since a concept does not in general contain d or
+more elements. Note that the formula has no factors 2i since there are no options for labelling the
+instances in any set T (C).
+
+
+   We will next establish a useful lower bound on NCTD(C), as well as as a related lower bound
+on NCTD+ (C), based on the number of neighbors of any concept in C.
+
+Definition 20 (One-Inclusion Graph (Haussler et al., 1994)) Let C be a concept class over a do-
+main X . The one-inclusion graph G(C) is the (undirected) graph given by the vertex set C and the
+edge set {(C, C 0 ) | |C∆C 0 | = 1} , where C∆C 0 := (C \ C 0 ) ∪ (C 0 \ C). Any edge (C, C 0 ) in this
+graph is labeled with the unique element x ∈ X for which C(x) 6= C 0 (x).
+
+
+
+
+                                                   12
+                             O N BATCH T EACHING W ITHOUT C OLLUSION
+
+
+
+
+    A concept C 0 ∈ C is a neighbor of concept C ∈ C if (C, C 0 ) is an edge of G(C). If C 0 ⊆ C then
+the degree of C ∈ C 0 , with respect to C 0 , denoted as degC 0 (C), is defined as the number of neighbors
+of C in the subgraph of G(C) induced on the vertices in C 0 . The average induced degree of concepts
+in the subset C 0 ⊆ C is then denoted by
+                                                     1 X
+                                 degavg (C 0 ) :=          ·   degC 0 (C) .
+                                                    |C 0 |   0
+                                                          C∈C
+
+The dominance of C ∈ C, denoted as domC (C), is defined as the number of smaller neighbors of
+C in C, i.e. neighbors that contain exactly one fewer instance than C.
+
+Theorem 21 Every concept class C over a finite domain satisfies (i) NCTDavg (C) ≥ 12 · degavg (C)
+and (ii) NCTD(C) ≥ maxC 0 ⊆C d 21 · degavg (C 0 )e.
+
+Proof For assertion (i), let T be any non-clashing teacher mapping for C. If C1 and C2 , both in C 0 ,
+are neighbors, and C1 (x) 6= C  2 (x), then at least one of the sets T (C1 ), T (C2 ) must contain x. We
+obtain C∈C 0 |T (C)| ≥ 21 · C∈C 0 degC 0 C) = |C 0 | · 21 · degavg (C 0 ). Assertion (ii) is immediate
+       P                      P
+from (i), by Remark 17.
+
+
+
+Theorem 22 Every concept class C over a finite domain satisfies
+
+                                   NCTD+ (C) ≥ max domC (C) .
+                                                       C∈C
+
+Proof If the smaller neighbor C 0 of C ∈ C differs from C on instance xi , then (xi , 1) must be used
+in teaching C. Hence, every C ∈ C must have a positive teaching set of size at least domC (C).
+
+
+    Although the lower bounds in Theorems 21 and 22 are not expected to be attained very often,
+the following Remark shows that they are sometimes tight:
+
+Remark 23 Let Pm be the powerset over the domain {x1 , . . . , xm }. Since every concept in Pm
+has degree m, clearly degavg (Pm ) = m. It follows from Theorem 21 that NCTDavg (Pm ) ≥ m/2
+and hence NCTD(Pm ) ≥ dm/2e. Furthermore, since domPm ({x1 , . . . , xm }) = m, it follows
+from Theorem 22 that NCTD+ (Pm ) ≥ m. But the positive mapping T that maps S ∈ Pm to
+S × {1} is trivially non-clashing, and hence NCTD+ (Pm ) = m and NCTDavg (Pm ) = m/2.
+By Remark 5, we have NCTD(P2 ) = 1. As we shall see in Theorem 29, this generalizes to
+NCTD(Pm ) = dm/2e.
+    We note that the maximum degree of a concept in C is in general not an upper bound on
+NCTD(C). For example, if we consider the concept class C consisting of subsets of size k of some
+domain of size n, then all concepts in C have degree zero yet, for n sufficiently large, NCTD(C) = k
+(since for large enough n the size of C exceeds the number of possible teaching sets in a normal-form
+teaching mapping T for C with ord(T, C) < k.)
+    The degree lower bounds for NCTDavg and NCTD in Theorem 21 can be generalized by taking
+into consideration the fact that all concept pairs, not just neighbours need to be distinguished by their
+teaching sets. Specifically, if we construct the complete graph on the set of concepts C and (i) label
+
+                                                     13
+                          FALLAT, K IRKPATRICK , S IMON , S OLTANI , AND Z ILLES
+
+
+
+
+the edge joining concept C and concept C 0 with C∆C 0 , and (ii) label each concept C by its teaching
+set T (C) then the no-clash condition requires that each edge label C∆C 0 must intersect the union
+of the labels of its endpoints T (C) ∪ T (C 0 ).
+     Thus NCTD(C) corresponds to the minimum, over all such labelings, of the maximum size
+vertex label used. We can lower bound NCTDavg (and hence NCTD) by observing a lower bound
+on the total size of the vertex labels (teaching sets). One such bound arises by choosing a subset
+C 0 of C and a subset M of the edges joining vertices in C 0 . If the labels of the edges in M are all
+incidence-disjoint, meaning they do not intersect the labels of incident edges in M , then each edge
+in M creates a demand on the labels of its endpoints that cannot be satisfied by a vertex label that is
+used to satisfy the demand of any other edge in M . Hence,
+
+Theorem 24 If C 0 ⊆ C and M is any subset of the edges joining vertices in C 0 whose associated
+labels are incidence-disjoint, then NCTDavg (C) ≥ |M |/|C 0 | and (ii) NCTD(C) ≥ d|M |/|C 0 |e.
+
+Note that this generalizes Theorem 21 since the edges joining neighbors have labels that are inci-
+dence disjoint. It is easy to construct examples, such as the set {a11 , a12 } × {a21 , a22 } × . . . × {ak1 , ak2 }
+(or the set of all subsets of a fixed size k) for which Theorem 21 gives only a trivial lower bound,
+yet an optimal lower bound (of k) follows easily from Theorem 24.
+
+3.2.2 S UB -A DDITIVITY OF NCTD AND NCTD+
+In this section, we will show that the NCTD is sub-additive with respect to the free combination of
+concept classes. As an application of this result, we will determine the NCTD of the powerset over
+any finite domain X . While the powerset is a rather special concept class, knowing its NCTD will
+turn out useful to obtain a variety of further results.
+
+Definition 25 (Free Combination of Concept Classes) Let C1 and C2 be concept classes over dis-
+joint domains X1 and X2 , respectively. Then the free combination C1 t C2 of C1 and C2 is a concept
+class over the domain X1 ∪ X2 defined by C1 t C2 = {C1 ∪ C2 | C1 ∈ C1 and C2 ∈ C2 }.
+
+Lemma 26 Let C = C1 tC2 be the free combination of C1 and C2 . Moreover, for i = 1, 2, let Ti be a
+non-clashing mapping for Ci . Then, for T (C1 tC2 ) defined by setting T (C1 ∪C2 ) = T1 (C1 )∪T2 (C2 ),
+we have that T is a non-clashing teacher mapping for C1 tC2 . Moreover, as witnessed by T , NCTD
+acts sub-additively on t, i.e.,
+
+                             NCTD(C1 t C2 ) ≤ NCTD(C1 ) + NCTD(C2 ) .                                           (1)
+
+Proof Suppose that concepts Ci1 , Cj1 ∈ C1 and Ci2 , Cj2 ∈ C2 give rise to distinct concepts Ci1 ∪Ci2
+and Cj1 ∪ Cj2 ∈ C1 t C2 that clash under T . (Without loss of generality we can assume that
+i1 6= j1 .) Then Cj1 ∪ Cj2 is consistent with T1 (Ci1 ) ∪ T2 (Ci2 ) and Ci1 ∪ Ci2 is consistent with
+T1 (Cj1 ) ∪ T2 (Cj2 ). Hence Cj1 is consistent with T1 (Ci1 ) and Ci1 is consistent with T1 (Cj1 ), that
+is concepts Ci1 and Cj1 in C1 clash under the mapping T1 .
+
+
+As we shall see NCTD sometimes acts strictly sub-additively on t; in particular, the composition
+of optimal mappings for C1 and C2 is not necessarily an optimal mapping for C1 t C2 . In contrast,
+ANCTD acts additively on t:
+
+
+                                                        14
+                             O N BATCH T EACHING W ITHOUT C OLLUSION
+
+
+
+
+Lemma 27 Let C = C1 tC2 be the free combination of C1 and C2 . Moreover, for i = 1, 2, let Ti be a
+non-clashing mapping for Ci . Then, for T (C1 tC2 ) defined by setting T (C1 ∪C2 ) = T1 (C1 )∪T2 (C2 ),
+we have that T is a non-clashing teacher mapping for C1 t C2 . Moreover, as witnessed by T ,
+NCTDavg acts additively on t, i.e.,
+                      NCTDavg (C1 t C2 ) = NCTDavg (C1 ) + NCTDavg (C2 ) .                            (2)
+
+Proof The proof of Lemma 26 above shows that ANCTD acts sub-additively on t, that is
+NCTDavg (C1 t C2 ) ≤ NCTDavg (C1 ) + NCTDavg (C2 ). It remains to show that
+                      NCTDavg (C1 t C2 ) ≥ NCTDavg (C1 ) + NCTDavg (C2 ) .                            (3)
+To this end, let X1 (resp. X2 ) be the domain of concept class C1 (resp.        C2 ) and suppose that T is
+                                                                          1 P
+a non-clashing teacher mapping on C such that NCTDavg (C) = |C| C∈C |T (C)|. The following
+calculation makes use of the fact, for every fixed choice of C2 ∈ C2 , the mapping C1 7→ T (C1 ∪
+C2 ) ∩ X1 is a non-clashing teacher mapping on C1 (and an analogous remark holds, for reasons of
+symmetry, when the roles of C1 and C2 are exchanged):
+                                           1        X X
+                 NCTDavg (C) =                                   |T (C1 ∪ C2 |)
+                                     |C1 | · |C2 |
+                                                   C1 ∈C1 C2 ∈C2
+                                                                                    
+                                       1 X  1 X
+                                 =                               |T (C1 ∪ C2 ) ∩ X1 |
+                                     |C2 |           |C1 |
+                                           C∈C2            C∈C1
+                                                                                        
+                                           1 X  1 X
+                                      +                              |T (C1 ∪ C2 ) ∩ X2 |
+                                         |C1 |           |C2 |
+                                               C∈C1         C∈C2
+                                  ≥ NCTDavg (C1 ) + NCTDavg (C2 ) .
+
+
+
+
+Remark 28 In Lemma 26, if T1 and T2 are positive non-clashing mappings, then the same proof
+shows that T (a positive non-clashing mapping) witnesses the fact that NCTD+ also acts sub-
+additively on t, i.e.,
+                        NCTD+ (C1 t C2 ) ≤ NCTD+ (C1 ) + NCTD+ (C2 ) .                                (4)
+Furthermore, since t is associative, it follows immediately that, for any concept class C, if C k :=
+C1 t . . . t Ck , where Ci := {C × {i}| C ∈ C} for i = 1, . . . , k, then
+                                  NCTDavg (C k ) = k · NCTDavg (C)                                    (5)
+and
+                NCTD(C k ) ≤ k · NCTD(C) and NCTD+ (C k ) ≤ k · NCTD+ (C) .                           (6)
+
+   We have already seen, in Remark 23, that NCTDavg (Pm ) = m/2, NCTD+ (Pm ) = m and
+NCTD(Pm ) ≥ dm/2e, where Pm denotes the powerset over the domain {x1 , . . . , xm }. The sub-
+additivity results above can be applied in order to determine NCTD(Pm ) exactly as well.
+
+                                                   15
+                        FALLAT, K IRKPATRICK , S IMON , S OLTANI , AND Z ILLES
+
+
+
+
+Theorem 29 Let Pm be the powerset over the domain {x1 , . . . , xm }. Then NCTD(Pm ) = dm/2e.
+
+Proof It remains to show that NCTD(Pm ) ≤ dm/2e. It suffices to verify this upper bound for
+                                                m/2
+even m. But, when m is even, NCTD(Pm ) = NCTD(P2 ) ≤ m/2 follows from (6) and the fact
+that NCTD(P2 ) = 1 (cf. Remark 23).
+
+
+     Since the NCTD of any concept class over a domain X is trivially upper bounded by the NCTD
+of the powerset over X , this result in particular implies that d|X |/2e is an upper bound on the NCTD
+of any concept class over a domain X .
+     A further consequence of Theorem 29 is that NCTD is sometimes strictly subadditive with
+respect to the operation of free combination, i.e., that inequality (1) is sometimes strict. An example
+for that is the free combination Pm t Pm of two copies of Pm for odd m. Since the domain of
+Pm t Pm has size 2m, we obtain NCTD(Pm t Pm ) = m, while NCTD(Pm ) + NCTD(Pm ) =
+2d m        m+1
+    2 e = 2 2 = m + 1.
+     Another situation (that we will exploit later) where NCTD+ acts strictly additively on t, is
+captured in the following:
+Lemma 30 Let Pm be the powerset over the domain {x1 , . . . , xm } and let C be a concept class
+with domain X disjoint from {x1 , . . . , xm }. Then,
+
+                        NCTD+ (Pm t C) = NCTD+ (Pm ) + NCTD+ (C) .
+
+Proof By (4) it suffices to show that NCTD+ (Pm t C) ≥ NCTD+ (Pm ) + NCTD+ (C). Theo-
+rem 22 implies that, for each Ci ∈ C, any positive non-clashing mapping T for Pm t C must use
+m = NCTD+ (Pm ) examples from {x1 , . . . , xm } to teach the single concept {x1 , . . . , xm } t Ci
+within the concept class Pm t Ci . So the only way that T could use fewer than m + NCTD+ (C)
+examples in total for each concept in {x1 , . . . , xm } t C is if each such concept is taught with exactly
+m examples from {x1 , . . . , xm }, and hence fewer than NCTD+ (C) examples from X , a contradic-
+tion.
+
+
+    Furthermore, it is easily seen that the average degree acts additively on t:
+
+Lemma 31 Let C1 and C2 be concept classes over disjoint and finite domains. Then the following
+holds:
+                      degavg (C1 t C2 ) = degavg (C1 ) + degavg (C2 ) .                    (7)
+
+Proof Let C := C1 t C2 . The concepts in C that are neighbors of C1 ∪ C2 ∈ C are precisely the
+concepts of the form C1 ∪ C20 or C10 ∪ C2 where C20 is a neighbor of C2 in C2 and C10 is a neighbor
+of C1 in C1 . Hence
+                          degC (C1 ∪ C2 ) = degC1 (C1 ) + degC2 (C2 ) .
+Moreover |C| = |C1 | · |C2 |. It follows that
+ X               X X                                        X                       X
+    degC (C) =                    degC (C1 ∪ C2 ) = |C2 | ·   degC1 (C1 ) + |C1 | ·   degC2 (C2 ) .
+ C∈C               C1 ∈C1 C2 ∈C2                          C1 ∈C1                      C2 ∈C2
+
+Division by |C1 | · |C2 | immediately yields (7).
+
+                                                    16
+                           O N BATCH T EACHING W ITHOUT C OLLUSION
+
+
+
+
+   The free combination of classes with a tight degree lower bound is again a class with a tight
+degree lower bound:
+
+Corollary 32 Let C1 and C2 be two concept classes over disjoint and finite domains, and let C =
+C1 t C2 . Then NCTD(Ci ) = 12 · degavg (Ci ) for i = 1, 2 implies that NCTD(C) = 12 · degavg (C).
+
+Proof The assertion is evident from the chain of inequalities:
+             (1)                               1                 1               (7) 1
+ NCTD(C) ≤ NCTD(C1 ) + NCTD(C2 ) =               · degavg (C1 ) + · degavg (C2 ) = · degavg (C)
+                                               2                 2                   2
+and Theorem 21.
+
+
+
+4. Relation Between NCTD and Other Learning-theoretic Parameters
+In this section, we set NCTD in relation to PBTD and VCD, as well as to the smallest possible
+size of a sample compression scheme for a given concept class.
+    While most of the statements made in this section are immediate consequences of known results
+on PBTD and VCD, we consider it worthwhile gathering these results for the sake of providing a
+complete picture of how NCTD relates to other important complexity parameters. Moreover, we
+provide non-trivial new results towards the so far unresolved question of how large the gap between
+NCTD and PBTD can be.
+
+4.1 PBTD
+While we have already seen that
+
+                    NCTD(C) ≤ PBTD(C) and NCTD+ (C) ≤ PBTD+ (C) ,
+
+for any concept class C, it is far more intricate to determine the ratios by which the individual
+parameters in these inequalities can differ.
+
+4.1.1 E XAMPLES OF C ONCEPT C LASSES WITH NCTD < PBTD
+The inequality NCTD(C) ≤ PBTD(C) is sometimes strict, as witnessed by Theorem 29, which
+states that NCTD(Pm ) = dm/2e. By comparison, PBTD(Pm ) = m. In particular, this yields a
+family of concept classes of strictly increasing NCTD for which PBTD exceeds NCTD by a factor
+of 2. The fact that the inequality NCTD+ (C) ≤ PBTD+ (C) is sometimes strict is witnessed by
+the simple class CA described in the introduction, with NCTD+ (CA ) = 1. Since no concept in CA
+has a positive teaching set of size 1, Proposition 10 implies PBTD+ (CA ) = 2. In particular, these
+examples witness that Proposition 10 does not hold for non-clashing teaching.
+    Appendix A shows two interesting examples of concept classes for which NCTD+ equals 1
+while PBTD equals 3. The main result of this subsection is that Sylvester-Hadamard matrices can
+be used to define a natural family of finite concept classes, for which PBTD and DTDmin exceed
+NCTD by a factor of at least 4.
+
+
+                                                17
+                       FALLAT, K IRKPATRICK , S IMON , S OLTANI , AND Z ILLES
+
+
+
+
+Example 1 In this example, as usual, we associate a binary matrix with a concept class in which the
+rows are concepts and the columns are instances. Sylvester’s standard construction of Hadamard
+matrices (with zeroes replacing the -1 entries) can then be used to construct concept classes of
+interest to our study.
+    Define the 1 × 1-matrix H0 to consist of only the entry 1. In general, for n ∈ N \ {0}, define the
+2n × 2n -matrix Hn as                                   
+                                          Hn−1 Hn−1
+                                                            ,
+                                          Hn−1 H n−1
+where H results from H by flipping every 1 to a 0 and vice versa.
+   It is well known that Hm+n = Hm ⊗ Hn , where ⊗ denotes the Kronecker product (where 0
+operates as −1).
+
+    The recursive structure of Hn , n > 0, makes possible a straightforward inductive proof of the
+following:
+
+Observation 33 If we consider the 2n−1 rows Yi of Hn that contain a fixed value (0 or 1) in column
+i > 1 then there is an associated set of 2n−1 columns Xi such that the entries belonging to rows Yi
+and columns Xi form either Hn−1 or H n−1 . It follows immediately from this that if we fix the value
+of any s < n instances then provided there is at least one consistent concept there must be at least
+2n−s consistent concepts. Hence, DTDmin (Hn ) = n.
+
+   Note that the rows of a Sylvester-Hadamard matrix are called Walsh functions, and are an
+equivalent representation of parity functions. In particular, the concept class consisting of the
+rows of Hn is equivalent to the class Πn of parity functions over the domain Xn = {0, 1}n , i.e.,
+Πn = {χw | w ∈ {0, 1}n } where, for every x ∈ {0, 1}n ,
+
+                             χw (x) = hw, xi = w1 x1 ⊕ . . . ⊕ wn xn .
+
+Here ⊕ denotes addition modulo 2 and h·, ·i denotes the inner product modulo 2. This equivalence
+can be exploited to show that, for all n ≥ 1, we have NCTD(H4n ) ≤ n.
+
+Theorem 34 For all n ≥ 1, we have NCTD(H4n ) ≤ n.
+
+Proof We will show that NCTD(Π4n ) ≤ n.
+   Fix a teaching mapping
+                                  χu 7→ {(ũ, χu (ũ))}                                           (8)
+which witnesses that NCTD(Π4 ) = 1. Such a mapping exists; an example is given in Table 1.
+   A vector ū ∈ X4n can be decomposed into vectors u1 , . . . , un ∈ X4 . Let T be the teacher
+mapping which assigns to χū the instances
+
+                                 (ũ1 , 0, . . . , 0), . . . , (0, . . . , 0, ũn )
+
+together with their χū -labels. Consider another parity function χv̄ 6= χū and its teaching set con-
+sisting of the instances
+                                  (ṽ1 , 0, . . . , 0), . . . , (0, . . . , 0, ṽn )
+
+
+                                                        18
+                                  O N BATCH T EACHING W ITHOUT C OLLUSION
+
+
+
+
+and their χv̄ -labels. Suppose that χv̄ is consistent with the teaching set of χū . Fix some j ∈ [n]
+such that uj 6= vj . It follows that
+         χvj (ũj ) = χv̄ (0, . . . , 0, ũj , 0, . . . , 0) = χū (0, . . . , 0, ũj , 0, . . . , 0) = χuj (ũj ) .
+Since (8) is a teacher mapping that witnesses NCTD(Π4 ) = 1, it follows that
+                                                χuj (ṽj ) 6= χvj (ṽj ) .
+Hence
+         χū (0, . . . , 0, ṽj , 0, . . . , 0) = χuj (ṽj ) 6= χvj (ṽj ) = χv̄ (0, . . . , 0, ṽj , 0, . . . , 0) ,
+which shows that χū is not consistent with the teaching set of χv̄ . Thus T is a valid teacher mapping
+of order n in the no-clash model, which concludes the proof.
+
+
+         x1     x2     x3    x4     x5     x6     x7     x8        x9   x10     x11     x12     x13      x14     x15    x16
+  C1     1      1      1     1      1      1      1      1         1     1       1       1       1        1       1      1
+  C2     1      0      1     0      1      0      1      0         1     0       1       0       1        0       1      0
+  C3     1      1      0     0      1      1      0      0         1     1       0       0       1        1       0      0
+  C4     1      0      0     1      1      0      0      1         1     0       0       1       1        0       0      1
+  C5     1      1      1     1      0      0      0      0         1     1       1       1       0        0       0      0
+  C6     1      0      1     0      0      1      0      1         1     0       1       0       0        1       0      1
+  C7     1      1      0     0      0      0      1      1         1     1       0       0       0        0       1      1
+  C8     1      0      0     1      0      1      1      0         1     0       0       1       0        1       1      0
+  C9     1      1      1     1      1      1      1      1         0     0       0       0       0        0       0      0
+  C10    1      0      1     0      1      0      1      0         0     1       0       1       0        1       0      1
+  C11    1      1      0     0      1      1      0      0         0     0       1       1       0        0       1      1
+  C12    1      0      0     1      1      0      0      1         0     1       1       0       0        1       1      0
+  C13    1      1      1     1      0      0      0      0         0     0       0       0       1        1       1      1
+  C14    1      0      1     0      0      1      0      1         0     1       0       1       1        0       1      0
+  C15    1      1      0     0      0      0      1      1         0     0       1       1       1        1       0      0
+  C16    1      0      0     1      0      1      1      0         0     1       1       0       1        0       0      1
+
+Table 1: The concept class H4 (= Π4 ) with a non-clashing teacher mapping of order 1 shown
+         with highlighted entries. Note that the subset {x9 . . . , x16 } of domain instances is already
+         sufficient for defining this non-clashing teacher. In particular, the “right half” of the matrix
+         H4 yields a concept class of 16 instances over a domain of size 8 for which PBTD equals
+         4 while NCTD equals 1.
+
+
+
+Corollary 35 For all n ∈ N, we have PBTD(Hn ) = n, while NCTD(H4n ) ≤ n.
+
+   Recently, a family of concept classes was constructed for which the gap between NCTD and
+PBTD becomes unbounded (Simon, 2022). However, the natural examples provided here may
+provide further insights into the intricate relationship between these two parameters under certain
+constraints on the structure of the underlying concept class.
+
+                                                              19
+                          FALLAT, K IRKPATRICK , S IMON , S OLTANI , AND Z ILLES
+
+
+
+
+4.1.2 S HORTEST-PATH -C LOSED C ONCEPT C LASSES
+The notion of one-inclusion graph (Haussler et al., 1994) is helpful in studying teaching complexity
+parameters, since, for any so-called shortest-path-closed concept class C, the one-inclusion graph
+provides a simple representation of all smallest definitive teaching sets of any concept in C.
+    Recall from Definition 20 that the one-inclusion graph G(C) of a concept class C is the (undi-
+rected) graph given by the vertex set C and the edge set {(C, C 0 ) | |C∆C 0 | = 1} , where C∆C 0 :=
+(C \ C 0 ) ∪ (C 0 \ C).
+
+Definition 36 (Shortest-Path-Closed Concept Class) Suppose that edge (C, C 0 ) in G(C) is la-
+beled with the unique element x ∈ X for which C(x) 6= C 0 (x). The concept class C is called
+shortest-path-closed if, for any k and any two concepts C, C 0 ∈ C with |C∆C 0 | = k, there is a path
+of length k in G(C) from C to C 0 .
+
+    It is obvious that Pm , the powerset over the domain {x1 , . . . , xm }, is shortest-path-closed.
+    As noted by Doliwa et al. (2014), in a shortest-path-closed class, the set of edge labels incident
+to any concept C corresponds to the unique smallest definitive teaching set of C. Now consider
+a non-clashing teacher mapping T on a shortest-path-closed class C. Since no two concepts can
+be consistent with one another’s teaching sets, for every edge (C, C 0 ) in G(C), at least one of the
+concepts C, C 0 must use the label of (C, C 0 ) in its teaching set under T .
+    The following simple characterization of shortest-path-closed classes whose NCTD equals 1
+follows directly:
+
+Theorem 37 Let C be shortest-path-closed. Then the following statements are equivalent:
+
+   1. NCTD(C) = 1;
+
+   2. The one-inclusion graph G(C) corresponding to C has at most one cycle.
+
+Proof (Sketch) If G(C) has more than one cycle then, following iterated removal of vertices of
+degree one, which preserves the property of being shortest path closed, the resulting graph has
+minimum degree 2. Since the resulting graph has average degree greater than 2 (otherwise, since it
+must be connected, it is a simple cycle), it follows, by Theorem 21, that NCTD(C) > 1.
+     If G(C) is acyclic, then it is a tree; this implies RTD(C) = 1 (Doliwa et al., 2014), and thus
+clearly NCTD(C) = 1.
+     If G(C) has exactly one cycle, then this cycle has even length, and each edge label occurring
+on the cycle occurs exactly twice. Shortest-path-closedness further implies that the two occur-
+rences of any edge label on the cycle are directly opposite to one another, i.e., there are instances
+x1 , . . . , xk ∈ X and a vertex C0 on the cycle, such that the edge labels following the cycle in one
+direction, starting from C0 , occur in order x1 , . . . , xk , x1 , . . . , xk . Note that any vertex on the cycle
+may also be the root of a subtree of G(C). Shortest-path-closedness can again be used to show that
+(i) none of the instances x1 , . . . , xk occur as edge labels in any of these subtrees; and (ii) every
+instance x ∈ X \ {x1 , . . . , xk } occurs at most once as an edge label in G(C). Now a non-clashing
+teacher mapping of order 1 can be defined as follows. First, all edges on the cycle are directed away
+from C0 in the direction of the edge labeled x1 incident to C0 . Then C0 is taught with (x1 , C0 (x1 )),
+and subsequent concepts on the directed cycle are taught with the instance of their outgoing edge,
+labeled accordingly. (Clearly, the two occurrences of any instance xi , for 1 ≤ i ≤ k, occur with
+
+                                                       20
+                              O N BATCH T EACHING W ITHOUT C OLLUSION
+
+
+
+
+opposite binary labels in the corresponding teaching sets.) Second, every non-root concept C in a
+subtree is taught using only the pair (x, C(x)), where x is the label of the edge pointing from C in
+the direction of the root of the tree containing C. It is easy to verify that this teacher mapping is
+non-clashing. Thus NCTD(C) = 1.
+
+
+
+Corollary 38 Let C be a shortest-path-closed concept class. If NCTD(C) = 1, then RTD(C) ≤ 2.
+
+Proof (Sketch.) We know from Theorem 37 that G(C) has at most one cycle. If G(C) has no cycle,
+then a result by Doliwa et al. (2014) implies that RTD(C) = 1. If G(C) has a cycle, then each
+vertex not on that cycle belongs to a tree; using the same result by Doliwa et al. (2014), we can
+assign (recursive) teaching sets of size 1 to all non-root vertices of any sub-tree of G(C). Finally,
+only the vertices on the cycle remain. These all have degree 2, i.e., definitive teaching sets of size 2
+with respect to the class of all concepts on the cycle. Thus RTD(C) = 2.
+
+
+
+4.2 VCD
+It is well known that for any k ∈ N, k ≥ 1, there exists a finite concept class C such that
+DTD+ (C) = DTD(C) = 1 and VCD(C) = k (Goldman and Kearns, 1995). Hence, trivially,
+VCD cannot be upper-bounded by a function that depends only on NCTD.
+     Hu et al. (2017) proved that, when VCD(C) = d, the recursive teaching dimension of C is no
+larger than 39.3752 · d2 − 3.6330 · d. Obviously, the same upper bound applies to NCTD, i.e.,
+NCTD(C) is upper-bounded by a function quadratic in VCD(C).
+     So far, there is no concept class for which NCTD is known to exceed VCD. Note that any
+such concept class would have to fulfill PBTD > VCD as well. We tested those classes for which
+PBTD > VCD is known from the literature, but found that all of them satisfy NCTD ≤ VCD.
+     As an example, here we present “Warmuth’s class.” This concept class, shown in Table 2,
+was communicated by Manfred Warmuth and proven by Darnstädt et al. (2016) to be the smallest
+concept class for which PBTD exceeds VCD. In particular, VCD(CW ) = 2 while PBTD(CW ) = 3.
+
+                         x1     x2   x3   x4   x5              x1   x2   x3   x4   x5
+                   C1    1      0    0    0    1         C10   1    0    1    0    1
+                   C2    1      1    0    0    0         C20   1    1    0    1    0
+                   C3    0      1    1    0    0         C30   0    1    1    0    1
+                   C4    0      0    1    1    0         C40   1    0    1    1    0
+                   C5    0      0    0    1    1         C50   0    1    0    1    1
+
+Table 2: Warmuth’s class CW , with the highlighted entries (in bold) corresponding to the images of
+         a positive non-clashing teacher mapping. The domain of this class is {x1 , . . . , x5 }, and it
+         contains 10 concepts, named C1 through C5 and C10 through C50 .
+
+
+
+Proposition 39 NCTD(CW ) = NCTD+ (CW ) = 2.
+
+
+                                                    21
+                        FALLAT, K IRKPATRICK , S IMON , S OLTANI , AND Z ILLES
+
+
+
+
+Proof The highlighted labels in Table 2 correspond to a positive non-clashing mapping for CW ,
+which immediately shows that NCTD+ (CW ) ≤ 2 and thus NCTD(CW ) ≤ 2. To show that
+NCTD(CW ) ≥ 2, suppose by way of contradiction that NCTD(CW ) = 1. Then there is a non-
+clashing teacher mapping T that assigns every concept in CW a teaching set of size 1.
+      Since C1 and C10 differ only on the instance x3 , the mapping T must fulfill either T (C1 ) =
+{(x3 , 0)} or T (C10 ) = {(x3 , 1)}.
+      Case 1. T (C1 ) = {(x3 , 0)}. Since C2 is consistent with T (C1 ), the teaching set for C2 must be
+inconsistent with C1 . In particular, T (C2 ) 6= {(x4 , 0)}. This implies T (C20 ) = {(x4 , 1)}, since x4
+is the only instance on which C2 and C20 disagree. By an analogous argument concerning C5 and
+C50 , one obtains T (C50 ) = {(x2 , 1)}. Now T has a clash on C20 and C50 , which is a contradiction.
+      Case 2. T (C10 ) = {(x3 , 1)}. One argues as in Case 1, with C30 and C40 in place of C2 and C5 ,
+yielding T (C3 ) = {(x5 , 0)} and T (C4 ) = {x1 , 0)}. This is a clash, resulting in a contradiction.
+      As both cases result in a contradiction, we have NCTD(CW ) > 1 and thus NCTD(CW ) = 2.
+Since NCTD+ is an upper bound on NCTD, we also have NCTD+ (CW ) = 2.
+
+
+    While the general relationship between the parameters NCTD and VCD remains open, it turns
+out that NCTD(C) is upper-bounded by VCD(C) when C is a finite maximum class. For a finite
+instance space X , a concept      C of VC dimension d is called maximum if its size |C| meets
+                              class
+Sauer’s upper bound di=0 |Xi | (Sauer, 1972) with equality. Recently, Chalopin et al. (2022)
+                      P
+showed that every finite maximum class C admits a so-called representation map, i.e., a function
+r that maps every concept in C to a set of at most d(= VCD(C)) instances, in a way that no two
+distinct concepts C, C 0 ∈ C both agree on all the instances in r(C) ∪ r(C 0 ). By definition, any
+representation map is, translated into our setting, simply a non-clashing teacher mapping of order
+d for C. Therefore, the result by Chalopin et al. implies that NCTD(C) ≤ VCD(C) for finite
+maximum C.
+
+4.3 A Note on Sample Compression
+Intuitively, a sample compression scheme (Littlestone and Warmuth, 1986) for a (possibly infinite)
+concept class C provides a lossless compression of every set S of labeled examples for any concept
+in C in the form of a subset of S. It was proven that the existence of a finite upper bound on the
+size of the compression sets is equivalent to PAC-learnability, i.e., to finite VC-dimension (Moran
+and Yehudayoff, 2016; Littlestone and Warmuth, 1986). Open for over 30 years now is the question
+how closely such an upper bound can be related to the VC-dimension.
+    Formally, a sample compression scheme of size k for a concept class C over X is a pair (f, g)
+of mappings, where, for every sample set S consistent with some concept C ∈ C, (i) f maps S to a
+subset f (S) ⊆ S with |f (S)| ≤ k; and (ii) g(f (S)) maps the compressed set to a concept C 0 over
+X (not necessarily in C) that is consistent with S. By CN(C) we denote the size of the smallest-size
+sample compression scheme for C. The open question then is whether CN(C) is upper-bounded by
+(a function linear in) VCD(C).
+    Some connections between sample compression and teaching have been established in the liter-
+ature (Doliwa et al., 2014; Darnstädt et al., 2016). The non-clashing property bears some similarities
+to sample compression and has in fact been used in the context of unlabelled sample compression
+(in which f (S) is an unlabelled set) (Kuzmin and Warmuth, 2007; Chalopin et al., 2022). It is thus
+
+
+
+                                                   22
+                              O N BATCH T EACHING W ITHOUT C OLLUSION
+
+
+
+
+natural to ask whether CN is an immediate upper or lower bound on NCTD. Using results from the
+literature, this question is answered negatively in a straightforward manner.
+
+Proposition 40
+
+   1. For every k ∈ N, k ≥ 1, there is a concept class C such that NCTD(C) = PBTD(C) = 1
+      but CN(C) > k.
+
+   2. Let Pm be the powerset over a domain of size m, where m ≥ 5 is odd. Then CN(Pm ) <
+      NCTD(Pm ) and 2CN(Pm ) < PBTD(Pm ).
+
+Proof Statement 1 is due to the existence of a concept class C with NCTD(C) = DTD(C) = 1
+and VCD(C) = 5k, see also Goldman and Kearns (1995). The fact that CN(C) > k follows from
+a result by Floyd and Warmuth (1995) that states that no concept class of VC-dimension d has a
+sample compression scheme of size at most d5 .
+    Statement 2 follows from the obvious fact that PBTD(Pm ) = m, in combination with Theo-
+rem 29, as well as with a result4 by Darnstädt et al. (2016) that shows CN(Pm ) ≤ b m
+                                                                                     2 c, for any
+m ≥ 4.
+
+
+     Note that the compression function f in a sample compression scheme for C trivially induces a
+teacher mapping Tf defined by Tf (C) = f ({(x, C(x)) | x ∈ X}). The decompression mapping
+g then satisfies g(Tf (C)) = C for all C ∈ C. Hence (Tf , g) is a successful teacher-learner pair.
+Proposition 40.2 now states that there are concept classes for which the teacher-learner pairs (Tf , g)
+induced by any optimal sample compression scheme necessarily display collusion. In other words,
+optimal sample compression yields collusive teaching. An interesting problem is to find more ex-
+amples of concept classes for which optimal sample compression yields collusive teachers and to
+determine necessary or sufficient conditions on the structure of such classes. Moreover, at present
+we do not know how large the gap between sample compression scheme size and NCTD can be.
+     As mentioned above, representation maps, which were proposed by Kuzmin and Warmuth
+(2007) and Chalopin et al. (2022), yield non-clashing teacher mappings. Clearly, in an unlabelled
+compression scheme, the representation map that compresses any concept in a class C to a subset
+of X must be injective, so that any two concepts in C remain distinguishable after compression. In
+other words, the non-clashing teacher mappings induced by representation maps are repetition-free,
+i.e., they do not map any two distinct concepts C, C 0 ∈ C to labelled samples T (C), T (C 0 ) for
+which
+
+                                              6 {x ∈ X | (x, l0 ) ∈ T (C 0 ) for some l0 ∈ {0, 1}} .
+ {x ∈ X | (x, l) ∈ T (C) for some l ∈ {0, 1}} =
+
+Requiring no-clash teacher mappings to be repetition-free would be a limitation, as the example of
+the powerset over any set of m instances, m ≥ 2, shows. In this case, no-clash teaching can be done
+with teacher mappings of order d m 2 e, but it is not hard to see that the best possible repetition-free
+no-clash teacher mapping is of order m.
+ 4. When m = 5k for some k ≥ 1, Darnstädt et al. (2016) even show that CN(Pm ) ≤ 2k; hence there is a family of
+    concept classes with CN < NCTD for which the gap between CN and NCTD grows linearly with the size of the
+    instance space.
+
+
+
+
+                                                      23
+                        FALLAT, K IRKPATRICK , S IMON , S OLTANI , AND Z ILLES
+
+
+
+
+5. Strongly Collusion-Avoiding Teaching
+Non-clashing teaching, while satisfying weak collusion-avoidance, displays a property that might
+be undesirable in practical settings, namely that a concept class may have two distinct non-clashing
+teacher mappings with exactly the same range. For example, consider the concept class CG =
+{{i, i + 1} | i ∈ Z} and the teacher mappings T1 and T2 defined by T1 ({i, i + 1}) = {(i, 1)} and
+T2 ({i, i + 1}) = {(i + 1, 1)}. Clearly both mappings are non-clashing and of order 1. However,
+the range of T1 is equal to the range of T2 , and yet T1 and T2 are distinct; in fact there is not even
+a single concept that these two teachers teach the same way. A learner, to be successful, will have
+to disambiguate between these two teachers, which could intuitively be considered some form of
+collusion.
+    For infinite concept classes, even preference-based teaching admits this kind of ambiguity. Con-
+sider for example the concept classes CF = {{i, i + 1} | i ∈ N} and CG = {{i, i + 1} | i ∈ Z}
+which were already introduced above. There are multiple preference-based teacher mappings real-
+izing PBTD(CF ) = 1 and PBTD(CG ) = 1—in the latter case with identical ranges.
+    We are motivated to consider a strengthened notion of collusion avoidance that rules out this
+kind of ambiguity by insisting that teacher mappings have a unique inverse (restricted to their range).
+More precisely,
+
+Definition 41 (Strong Collusion-Avoidance) Let C be a concept class over a domain X and T a
+teacher mapping for C. The teacher mapping T is strongly collusion-avoiding on a subset C 0 of C,
+if there does not exist a different teacher mapping T 0 for C with T (C 0 ) ⊆ T 0 (C 0 ).
+
+Remark 42 Note that (i) the concept class {[x, x + 1) | x ∈ Q} admits a teacher mapping of order
+1 that is strongly collusion-avoiding on all finite subsets, but no finite order teacher mapping that is
+strongly collusion-avoiding on the full class; and more generally (ii) if there exists a subset C 0 ⊆ C
+such that no concept in C 0 has a definitive teaching set (with respect to C 0 ) of size k, then there is no
+teacher mapping of order k that is strongly collusion-avoiding on C 0 .
+    We now state the main result of this section.
+
+Theorem 43 Let C be any concept class. There is a teacher mapping of order k that is strongly
+collusion-avoiding on all finite subsets of C if and only if PBTD(C) ≤ k.
+                                        (k)
+Proof Consider the bipartite graph BC,X , with elements of C (black vertices) and C-samples of size
+k over X (white vertices), and an edge from Ci ∈ C to Sj whenever Ci is consistent with Sj . (Recall
+                                                                                              (k)
+that any normal-form teacher mapping T of order k can be viewed as a matching MT in BC,X that
+saturates all of the black vertices and a subset of the white vertices.)
+    Suppose that the teacher mapping T of order k is strongly collusion-avoiding on all finite subsets
+                                                                                                  (k)
+of C. Let T denote the relation on C in which C T C 0 if there is an alternating path in BC,X ,
+from the vertex corresponding to C to the vertex corresponding to C 0 , starting with an edge of M .
+                                                                                                   (k)
+Then T is a strict order on C, since the vertices of C belonging to any alternating cycle in BC,X
+would correspond to a finite subset of of C on which T is not strongly collusion-avoiding. Hence,
+T (C) provides a T -distinguished teaching set for C, and so PBT(k) (C, T ) = C, which implies
+PBTD(C) ≤ k.
+    On the other hand, suppose that PBTD(C) ≤ k, i.e., PBT(k) (C, ) = C for some strict order
+, and let T be a teacher mapping that assigns a -distinguished teaching set to each element of
+
+                                                    24
+                             O N BATCH T EACHING W ITHOUT C OLLUSION
+
+
+
+
+C. Let C 0 be any finite subset of C and suppose that T 0 is another teacher mapping on C that has
+                                                      (k)
+T 0 (C 0 ) = T (C 0 ). Then there must be a cycle in BC,X , restricted to vertices associated with C 0 and
+T (C 0 ), that alternates edges in the matching M associated with T and the matching M 0 associated
+with T 0 . But since any vertex C 0 reached by an alternating path starting at a vertex C in C 0 using an
+edge of M must satisfy C  C 0 (by the transitivity of ), a contradiction. Hence, no such mapping
+T 0 exists, and thus T is a strongly collusion-avoiding teacher mapping of order k on all finite subsets
+of C.
+
+
+   An immediate corollary is that, for finite concept classes, recursive teaching realizes the optimal
+complexity of strongly-collusion avoiding teaching:
+
+Corollary 44 Let C be any finite concept class. There is a teacher mapping of order k that is
+strongly collusion-avoiding on all of C if and only if RTD(C) ≤ k.
+
+    Recall that the concept class CF + = CF ∪ {∅} has RTD(CF + ) = ∞. Nevertheless, the teacher
+mapping T of order 1 in which T ({i, i + 1}) = (i, 1) and T (∅) = ∅ is strongly collusion-avoiding
+on all of CF + . It follows that Corollary 44 does not extend to all infinite concept classes.
+    Nevertheless, an argument similar to that used in the proof of Theorem 43 shows that there is a
+teacher mapping of order k that is strongly collusion-avoiding on all of C if and only if there is a
+well-founded strict order  on C such that PBT(k) (C, ) = C.
+
+Theorem 45 Let C be any concept class. There is a teacher mapping of order k that is strongly
+collusion-avoiding on all of C if and only if there is a well-founded strict order  on C such that
+PBT(k) (C, ) = C.
+                                               (k)
+Proof Consider again the bipartite graph BC,X . Suppose that the teacher mapping T of order k is
+strongly collusion-avoiding on all of C. Let T denote the relation on C in which C T C 0 if there
+                             (k)
+is an alternating path in BC,X , from the vertex corresponding to C to the vertex corresponding to
+C 0 , starting with an edge of the matching MT . Since the vertices of C belonging to any alternating
+              (k)
+cycle in BC,X would correspond to a finite subset of of C on which T is not strongly collusion-
+avoiding (since replacing the matched edges on such a cycle with the unmatched edges would give
+rise to a new teacher mapping with the same range as T ), it follows that T is a strict order on C
+with PBT(k) (C, ) = C. Furthermore, let C ∈ C be any concept, and suppose there is an infinite
+                                   (k)
+alternating path P from C in BC,X starting with the edge of MT that saturates C. If there is an
+                                       (k)
+infinite alternating path from C in BC,X starting with an unmatched edge, let P 0 be any such path.
+                                                             (k)
+Alternatively, let P 0 be any alternating path from C in BC,X starting with an unmatched edge and
+ending at an unsaturated white vertex. In either case, replacing matched edges with unmatched
+edges in the alternating path formed by concatenating P and P 0 would give rise to a new teacher
+mapping T 0 whose range contains the range of T . Since T is strongly collusion-avoiding on all of
+C, there can be no such path P , and so T is also well-founded.
+     On the other hand, suppose that PBT(k) (C, ) = C for some well-founded strict order , and
+let T be a teacher mapping of order k that assigns a -distinguished teaching set to each element
+of C. Suppose that T 0 is another teacher mapping of order k on C that has T 0 (C) ⊆ T (C), and let
+C 0 = {C ∈ C | T 0 (C) 6= T (C)}.
+
+                                                     25
+                       FALLAT, K IRKPATRICK , S IMON , S OLTANI , AND Z ILLES
+
+
+
+                                          (k)
+   Let C ∈ C 0 and consider paths in BC,X starting at C and alternating edges from MT and MT 0 .
+Since  is well-founded all such paths that start with an edge of MT are finite in length. Thus any
+such path must contain an alternating cycle, contradicting the fact that  is a strict order on C.
+   Hence, no such teacher mapping T 0 exists, and thus T is strongly collusion-avoiding on all of C.
+
+
+
+
+6. Unifying Characterizations of Collusion-Avoiding Teaching Notions
+6.1 Constrained Preference-Based Teaching and Matchings
+The frameworks of preference-based teaching and bipartite matching provide natural and comple-
+mentary bases for understanding the differences between the various forms of batch teaching dis-
+cussed in earlier sections.
+
+6.1.1 C ONSTRAINED P REFERENCES
+Let  be any relation on C. For any C ∈ C, denote by -preferredk (C) the set of C-samples of size
+k that form -distinguished teaching sets for C. The relation  is an order k teacher-basis for C if
+-preferredk (C) 6= ∅, for all C ∈ C. Associated with any order k teacher-basis  for C is a family
+of order k teacher mappings in which each concept C is mapped to an element of -preferredk (C).
+     Suppose that  is an order k teacher basis for C and T is any teacher mapping associated with
+. Then
+(i) if  is asymmetric, then T is non-clashing (equivalently, weakly collusion-free) teacher map-
+ping, so NCTD(C) ≤ k (cf. Theorem 13);
+(ii) if  is acyclic, then T is a preference-based teacher mapping, so PBTD(C) ≤ k;
+(iii) if  is well-founded, then T is a strongly collusion-free teacher mapping (cf. Theorem 45);
+(iv) if  is strongly well-founded, then T is a recursive teacher mapping, so RTD(C) ≤ k (cf.
+Proposition 11); and
+(v) if  is empty, then T is a definitive teacher mapping.
+     Note that for finite concept classes, implications (ii), (iii), and (iv) collapse to:
+(vi) if  is acyclic, then T is a recursive teacher mapping.
+     In the context of these characterizations, it should be noted that our paper is not the first to
+express teaching models by means of preference relations. Mansouri et al. (2019) formulated a
+framework of sequential teaching with preference relations. Depending on the constraints on the
+preference relation, this framework permits the re-expression of various notions of batch teaching
+studied in our paper, at least for concept classes over finite domains.
+
+6.1.2 C ONSTRAINED M ATCHINGS
+                                            (k)
+Consider once more the bipartite graph BC,X , with elements of C (black vertices) and C-samples of
+size k over X (white vertices), and an edge from Ci ∈ C to Sj whenever Ci is consistent with Sj .
+Recall that if T is any order k teacher mapping (in normal form) for C, then there is an associated
+                        (k)                            (k)
+full matching MT in BC,X . Any full matching M in BC,cX induces a transitive relation M on C,
+                                                                      (k)
+where C  C 0 if there is an alternating path with respect to M in BC,cX , from C to C 0 , starting with
+an edge of M .
+
+
+                                                  26
+                                 O N BATCH T EACHING W ITHOUT C OLLUSION
+
+
+
+
+     Suppose that T is any order k teacher mapping (in normal form) for C. Then
+(i) if NCTD(C) ≤ k is certified by the non-clashing mapping T , then MT is asymmetric (equiva-
+          (k)
+lently, BC,cX contains no alternating cycle of length 4 with respect to MT );
+(ii) if PBTD(C) ≤ k is certified by the preference-based teacher mapping T , then MT is a strict
+                              (k)
+order on C (equivalently, BC,cX contains no alternating cycle with respect to MT , i.e. MT is a
+uniquely restricted matching (Golumbic et al., 2001); cf. Theorem 43);
+(iii) if T is strongly collusion-free, then MT is a well-founded strict-order on C (equivalently,
+  (k)
+BC,cX contains no unbounded alternating path with respect to MT );
+(iv) if RTD(C) ≤ k is certified by the recursive teacher mapping T , then MT is a strongly well-
+                                                                                           (k)
+founded strict-order on C (equivalently, every alternating path with respect to MT in BC,cX , starting
+from a concept C, is bounded in length by some constant (depending on C); and
+(v) if if RTD(C) ≤ k is certified by the recursive teacher mapping T , then MT is empty (equiva-
+                                                         (k)
+lently, the matching MT is an induced matching in BC,cX ).
+     Note that for finite concept classes, implications (ii), (iii), and (iv) collapse to:
+(vi) if RTD(C) ≤ k is certified by the recursive teacher mapping T , then MT is a strict order on C
+                  (k)
+(equivalently, BC,cX contains no alternating cycle with respect to MT .
+     These characterizations in terms of constrained bipartite matching problems have implications
+on the computational complexity of decision problems relating to teaching complexity parameters;
+the interested reader is referred to (Kirkpatrick et al., 2019) for more details.
+
+6.2 Broadened Recursion
+Recall, from Subsection 2.2, that the notion of Recursive Teaching, which involves the iterative
+removal of maximal Definitive Teaching sets, has a natural generalization involving the iterative
+removal of Recursive Teaching sets.
+    In Recursive Teaching, in the first iteration, one removes all concepts with smallest definitive
+teaching dimension from the concept class. In the next iteration, one removes all concepts with
+smallest definitive teaching dimension from the remainder of the concept class. This process is
+repeated for as long as there are concepts remaining.
+    We can now view Recursive Teaching as the first layer of a hierarchy of teaching notions. In
+the (d + 1)st layer, one again proceeds iteratively, always removing all concepts with smallest “dth
+layer recursive teaching dimension”.
+    We make this notion of Doubly-Recursive Teaching more precise in the following:
+                                                           (k)
+Definition 46 Let C be a concept class and let 2-RT0,∗ (C) = DT(k) (C). For all i, d ∈ N define
+                                             (k)                 (k)
+                                       2-RTd+1,0 (C) = 2-RTd,∗ (C)
+and
+                           (k)                 (k)                (k)         (k)
+                   2-RTd+1,i+1 (C) = 2-RTd+1,i (C) ∪ 2-RTd,∗ (C \ 2-RTd+1,i (C))
+             (k)                       (k)
+where 2-RTd+1,∗ (C) = ∪i≥0 2-RTd+1,i (C).
+
+                     (k)                                  (k)           (k)                 (k)
+      Note that 2-RT0,∗ (C) = DT(k) (C) and 2-RT1,i (C) = RTi (C) (and hence 2-RT1,∗ (C) =
+   (k)                                       (k)
+RT∗ (C)), for all C. Furthermore, 2-RTd,∗ (C) = ∅ if and only if DT(k) (C) = ∅. It is straightfor-
+
+                                                     27
+                       FALLAT, K IRKPATRICK , S IMON , S OLTANI , AND Z ILLES
+
+
+
+                           (1)
+ward to confirm that 2-RT2,∗ (CF + ) = CF + , that is CF + has a teaching mapping of order 1, realized
+by a doubly-recursive scheme of depth 2. More generally, the same is true of the concept class
+CH2 which consists of infinitely many infinite size concepts (over the ground set 2NxN ) given by
+CH2 = {Si,j | i, j ∈ N}, where Si,j = {{(j, i), (j + 1, i)} ∪ N × {i + 1}}. The reader should have
+                                                                                        d
+no difficulty generalizing the concept class CH2 to a class CHd (over the ground set 2N ) and to note
+that CHd has a teaching mapping of order 1, realized by a doubly-recursive scheme of depth d, but
+no finite order teacher mapping using doubly-recursive schemes of depth less than d.
+                                                                          (k)
+    Observe that the teacher mapping implicit in the definition of 2-RTd,∗ (C) is strongly collusion-
+avoiding. This is an immediate consequence of the fact that every 2-recursive teaching plan is
+made up of a succession of maximal size recursive teaching sets, which themselves are made up
+of a succession of definitive teaching sets. However, there exist concept classes C with strongly
+                                                                   (k)
+collusion-avoiding teacher mappings of order k for which 2-RTd,∗ (C) 6= C, for all d ≥ 0.
+
+7. Conclusions
+No-clash teaching represents the limit of data efficiency that can be achieved in batch teaching
+settings obeying Goldman and Mathias’s criterion for collusion-avoidance. Therefore, it is the sole
+most promising such teaching model to shed light on two open problems in computational learning
+theory, namely (i) to find a teaching complexity parameter that is upper-bounded by a function linear
+in VCD, and (ii) to help establish new results towards an upper bound on the size of smallest sample
+compression schemes that is linear in VCD. If any teaching model that satisfies the weak collusion-
+avoiding criterion yields a complexity upper-bounded by (a function linear in) VCD, then no-clash
+teaching does. Likewise, if any such teaching model is powerful enough to compress concepts as
+effectively as sample compression schemes do, then no-clash teaching is. The most fundamental
+open question resulting from our paper is probably whether NCTD is upper-bounded by VCD in
+general.
+     An interesting related question is how NCTD relates to PBTD and RTD. With the parity
+functions, we have found a family of concept classes for which PBTD and RTD exceed NCTD by
+a factor of four, but so far we have not found a family of concept classes for which PBTD and RTD
+exceed any function linear in NCTD. Whether or not such a family exists is another open problem.
+     Our paper also raises the question how various notions of collusion-avoidance constrain the
+interaction between teacher and learner and thus affect the teaching complexity. We have demon-
+strated that weak collusion-avoidance is a defining property of non-clashing teaching, as is strong
+collusion-avoidance for preference-based teaching. Likewise, other notions of collusion-avoidance
+may give rise to new teaching models or characterize existing teaching complexity notions. In this
+sense, our results might be a stepping stone for a broader study on collusion-avoidance in teaching.
+
+
+Acknowledgments
+
+The authors acknowledge funding from the Natural Sciences and Engineering Research Council
+of Canada (NSERC) in the Discovery Grants program, application numbers RGPIN–2019-03934
+(Shaun Fallat), 22R83583 (David Kirkpatrick), and RGPIN–2017-05336 (Sandra Zilles). Sandra
+Zilles also received funding through the NSERC Canada Research Chairs program and through
+
+
+
+                                                 28
+                              O N BATCH T EACHING W ITHOUT C OLLUSION
+
+
+
+
+the Canada CIFAR AI Chairs program, as an Affiliate Chair with the Alberta Machine Intelligence
+Institute (Amii).
+
+Appendix A. Examples of Concept Classes Satisfying NCTD = 1 and PBTD = 3
+Example 2 The concept class C3/1 shown in Table 3 satisfies NCTD+ (C3/1 ) = 1, as witnessed
+by the entries highlighted in bold corresponding to non-clashing teaching sets. Consequently, one
+also obtains NCTD(C3/1 ) = 1. By contrast, we have PBTD(C3/1 ) ≥ 3, which can be verified by
+observing that every labeled pair of instances occurs in two concepts in C3/1 .
+    When restricting this concept class to the instances x1 through x4 , as shown in Table 4, the
+RTD (and thus PBTD) remains 3. While NCTD+ increases to 2, one still obtains an NCTD of 1,
+again witnessed by the highlighted entries.
+
+
+                                     x1    x2    x3    x4    x5    x6    x7    x8
+                              C1     1     1     0     1     0     1     0     0
+                              C2     0     1     0     0     0     1     1     1
+                              C3     1     1     1     0     0     0     0     1
+                              C4     0     1     1     1     0     0     1     0
+                              C5     1     0     1     1     1     0     0     0
+                              C6     0     0     0     1     1     1     1     0
+                              C7     0     0     1     0     1     0     1     1
+                              C8     1     0     0     0     1     1     0     1
+
+          Table 3: The concept class C3/1 with NCTD+ (C3/1 ) = 1 and PBTD(C3/1 ) = 3.
+
+
+                                                 x1    x2    x3    x4
+                                          C1     1     1     0     1
+                                          C2     0     1     0     0
+                                          C3     1     1     1     0
+                                          C4     0     1     1     1
+                                          C5     1     0     1     1
+                                          C6     0     0     0     1
+                                          C7     0     0     1     0
+                                          C8     1     0     0     0
+
+Table 4: The concept class C3/1 restricted to the first four instances, which results in an NCTD of
+         1 and a PBTD of 3.
+
+
+     One can argue that any finite concept class with NCTD = 1 and PBTD = 3 must have at
+least eight concepts and four instances: If a concept class has seven or fewer concepts, then its
+VC-dimension is at most 2, and a simple argument will show that its PBTD is at most 2 as well.5
+If it has only three instances, yet eight concepts, it is the powerset and thus has an NCTD of 2.
+ 5. The smallest concept class for which PBTD exceeds VCD has 10 concepts (Doliwa et al., 2014).
+
+
+                                                       29
+                        FALLAT, K IRKPATRICK , S IMON , S OLTANI , AND Z ILLES
+
+
+
+
+Thus, C3/1 restricted to the first four instances is a smallest concept class with NCTD = 1 and
+PBTD = 3.
+    An additional example of a concept class with NCTD = 1 and PBTD = 3 that is interesting
+due to its connection with the theory of combinatorial designs, is the so-called Kummer configura-
+tion.
+Example 3 The Kummer configuration is a configuration of 16 points and 16 planes such that
+(i) each point lies on exactly 6 planes,
+(ii) each plane contains exactly 6 of the points,
+(iii) each pair of planes intersects in exactly 2 of the points, and
+(iv) and each pair of points is contained in exactly two of the planes.
+     As described by Assmus and Sardi 1981, this configuration can be interpreted as a concept class
+CK of 16 concepts over 16 instances. Each Kummer instance (point) can be thought of as a pair
+(i, j) for 0 ≤ i, j ≤ 3, while each Kummer concept (plane) Ca,b for 0 ≤ a, b ≤ 3 contains the three
+instances (a, ) for  6= b as well as the three instances (ı, b) for ı 6= a. (See Figure 1 (left) for an
+illustration of the Kummer concept C1,1 .)
+
+
+
+
+              Figure 1: The Kummer concept C1,1 (left) and teacher mapping (right)
+
+     It is easy to see that each Kummer concept can be uniquely determined by three labelled in-
+stances: for example, Ci,j is uniquely determined by the set
+{((i, j), −), ((i + 1) mod 4, j), +), ((i, (j + 1) mod 4), +)}. Furthermore, no two labelled in-
+stances suffice, since (i) every pair of positively labelled instances is consistent with two concepts,
+and (ii) every other pair of labelled instances is consistent with zero or (at least) two concepts.
+Thus, PBTD(CK ) = DTD(CK ) = 3.
+     To see that NCTD+ (CK ) = 1 we define a symmetric matching between concepts and instances
+(if T ((Ci,j ) = (i0 , j 0 ) then T ((Ci0 ,j 0 ) = (i, j)). One such matching is represented in Figure 1
+(right), with the edge corresponding to the symmetric pair T ((C1,1 ) = (1, 3) and T ((C1,3 ) = (1, 1)
+highlighted in bold. That this mapping is non-clashing follows as an immediate consequence of the
+fact that no two edges span the same rows or columns.
+
+References
+Dana Angluin. Inductive inference of formal languages from positive data. Information and Control,
+  45(2):117–135, 1980.
+Brenna Argall, Sonia Chernova, Manuela M. Veloso, and Brett Browning. A survey of robot learn-
+  ing from demonstration. Robotics and Autonomous Systems, 57(5):469–483, 2009.
+
+                                                   30
+                          O N BATCH T EACHING W ITHOUT C OLLUSION
+
+
+
+
+Edward F. Assmus and J.E.Ñovillo Sardi. Generalized steiner systems of type 3-(v,4,6,1). In Pro-
+  ceedings of the Finite Geometries and Designs Conference, pages 16–21. Cambridge University
+  Press, 1981.
+
+Frank Balbach. Measuring teachability using variants of the teaching dimension. Theoretical Com-
+  puter Science, 397(1–3):94–113, 2008.
+
+Yoshua Bengio, Jérôme Louradour, Ronan Collobert, and Jason Weston. Curriculum learning. In
+  Proceedings of the 26th Annual International Conference on Machine Learning (ICML), pages
+  41–48, 2009.
+
+Jérémie Chalopin, Victor Chepoi, Shay Moran, and Manfred K. Warmuth. Unlabeled sample com-
+    pression schemes and corner peelings for ample and maximum classes. Journal of Computer and
+    System Sciences, 127:1–28, 2022.
+
+Malte Darnstädt, Thorsten Kiss, Hans Ulrich Simon, and Sandra Zilles.       Order compression
+ schemes. Theoretical Computer Science, 620:73–90, 2016.
+
+Colin de la Higuera. Characteristic sets for polynomial grammatical inference. Machine Learning,
+  27(2):125–138, 1997.
+
+François Denis. Learning regular languages from simple positive examples. Machine Learning, 44
+  (1/2):37–66, 2001.
+
+Thorsten Doliwa, Gaojian Fan, Hans Ulrich Simon, and Sandra Zilles. Recursive teaching di-
+  mension, VC-dimension and sample compression. Journal of Machine Learning Research, 15:
+  3107–3131, 2014.
+
+Sally Floyd and Manfred Warmuth. Sample compression, learnability, and the Vapnik-Chervonenkis
+  dimension. Machine Learning, 21(3):1–36, 1995.
+
+Ziyuan Gao, Christoph Ries, Hans Ulrich Simon, and Sandra Zilles. Preference-based teaching.
+  Journal of Machine Learning Research, 18(31):1–32, 2017.
+
+Sally A. Goldman and Michael J. Kearns. On the complexity of teaching. Journal of Computer and
+  System Sciences, 50(1):20–31, 1995.
+
+Sally A. Goldman and H. David Mathias. Teaching a smarter learner. Journal of Computer and
+  System Sciences, 52(2):255–267, 1996.
+
+Martin C. Golumbic, Tirza Hirst, and Moshe Lewenstein. Uniquely restricted matchings. Algorith-
+ mica, 31(2):139–154, 2001.
+
+David Haussler, Nick Littlestone, and Manfred K. Warmuth. Predicting {0, 1} functions on ran-
+  domly drawn points. Information and Computation, 115(2):284–293, 1994.
+
+Mark K Ho, Michael Littman, James MacGlashan, Fiery Cushman, and Joseph L Austerweil. Show-
+ ing versus doing: Teaching by demonstration. In Advances in Neural Information Processing
+ Systems 29 (NIPS), pages 3027–3035. 2016.
+
+
+
+                                               31
+                      FALLAT, K IRKPATRICK , S IMON , S OLTANI , AND Z ILLES
+
+
+
+
+Lunjia Hu, Ruihan Wu, Tianhong Li, and Liwei Wang. Quadratic upper bound for recursive teaching
+  dimension of finite VC classes. In Proceedings of the 30th Conference on Learning Theory
+  (COLT), pages 1147–1156, 2017.
+
+David Kirkpatrick, Hans U. Simon, and Sandra Zilles. Optimal collusion-free teaching. In Proceed-
+  ings of the 34th International Conference on Algorithmic Learning Theory (ALT), volume 98,
+  pages 506–528, 2019.
+
+Dima Kuzmin and Manfred K. Warmuth. Unlabeled compression schemes for maximum classes.
+  Journal of Machine Learning Research, 8:2047–2081, 2007.
+
+Steffen Lange, Thomas Zeugmann, and Sandra Zilles. Learning indexed families of recursive lan-
+  guages from positive data: A survey. Theoretical Computer Science, 397(1-3):194–232, 2008.
+
+Nick Littlestone and Manfred K. Warmuth. Relating data compression and learnability. Technical
+  Report, UC Santa Cruz, 1986.
+
+Farnam Mansouri, Yuxin Chen, Ara Vartanian, Jerry Zhu, and Adish Singla. Preference-based batch
+  and sequential teaching: Towards a unified view of models. In Advances in Neural Information
+  Processing Systems (NeurIPS) 32, pages 9199–9209, 2019.
+
+Shay Moran and Amir Yehudayoff. Sample compression schemes for VC classes. Journal of the
+  ACM, 63(3):21:1–21:10, 2016.
+
+Shay Moran, Amir Shpilka, Avi Wigderson, and Amir Yehudayoff. Teaching and compressing for
+  low VC-dimension. CoRR, abs/1502.06187, 2015.
+
+Norbert Sauer. On the density of families of sets. Journal of Combinatorial Theory, Series A, 13
+  (1):145–147, 1972.
+
+Ingo Schwab, Wolfgang Pohl, and Ivan Koychev. Learning to recommend from positive evidence.
+  In Proceedings of the 5th International Conference on Intelligent User Interfaces (IUI), pages
+  241–247, 2000.
+
+Patrick Shafto, Noah D. Goodman, and Thomas L. Griffiths. A rational account of pedagogical
+  reasoning: Teaching by, and learning from, examples. Cognitive Psychology, 71:55–89, 2014.
+
+Ayumi Shinohara and Satoru Miyano. Teachability in computational learning. New Generation
+  Computing, 8:337–348, 1991.
+
+Hans Ulrich Simon. Minimum tournaments with the strong sk -property and implications for teach-
+  ing. CoRR, abs/2205.08357, 2022.
+
+Vladimir N. Vapnik and Alexey Ya. Chervonenkis. On the uniform convergence of relative frequen-
+  cies of events to their probabilities. Theory of Probability and its Applications, 16(2):264–280,
+  1971.
+
+Chunlin Wang, Chris H. Q. Ding, Richard F. Meraz, and Stephen R. Holbrook. Psol: a positive
+  sample only learning algorithm for finding non-coding RNA genes. Bioinformatics, 22(21):2590–
+  2596, 2006.
+
+                                                32
+                          O N BATCH T EACHING W ITHOUT C OLLUSION
+
+
+
+
+Kenneth Wexler and Peter W. Culicover. Formal Principles of Language Acquisition. MIT Press,
+  1980.
+
+Xiaojin Zhu, Adish Singla, Sandra Zilles, and Anna N. Rafferty. An overview of machine teaching.
+  CoRR, abs/1801.05927, 2018.
+
+Sandra Zilles, Steffen Lange, Robert Holte, and Martin Zinkevich. Models of cooperative teaching
+  and learning. Journal of Machine Learning Research, 12:349–384, 2011.
+
+
+
+
+                                              33
+

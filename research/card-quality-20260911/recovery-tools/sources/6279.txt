@@ -1,0 +1,828 @@
+Guarded Kleene Algebra with Tests:
+Coequations, Coinduction, and Completeness
+Todd Schmid # Ñ
+Department of Computer Science, University College London, UK
+Tobias Kappé #
+Department of Computer Science, Cornell University, Ithaca, NY, USA
+Dexter Kozen # Ñ
+Department of Computer Science, Cornell University, Ithaca, NY, USA
+Alexandra Silva # Ñ
+Department of Computer Science, University College London, UK
+
+      Abstract
+Guarded Kleene Algebra with Tests (GKAT) is an efficient fragment of KAT, as it allows for
+almost linear decidability of equivalence. In this paper, we study the (co)algebraic properties of
+GKAT. Our initial focus is on the fragment that can distinguish between unsuccessful programs
+performing different actions, by omitting the so-called early termination axiom. We develop an
+operational (coalgebraic) and denotational (algebraic) semantics and show that they coincide. We
+then characterize the behaviors of GKAT expressions in this semantics, leading to a coequation that
+captures the covariety of automata corresponding to these behaviors. Finally, we prove that the
+axioms of the reduced fragment are sound and complete w.r.t. the semantics, and then build on this
+result to recover a semantics that is sound and complete w.r.t. the full set of axioms.
+
+2012 ACM Subject Classification Theory of computation Ñ Program reasoning
+
+Keywords and phrases Kleene algebra, program equivalence, completeness, coequations
+
+Digital Object Identifier 10.4230/LIPIcs.ICALP.2021.142
+
+Category Track B: Automata, Logic, Semantics, and Theory of Programming
+
+Related Version Full Version: https://arxiv.org/abs/2102.08286
+
+Funding Tobias Kappé: DARPA grant HR001120C0107 (Pronto)
+Dexter Kozen: NSF grant CCF-2008083
+Alexandra Silva: ERC Consolidator Grant AutoProbe (101002697) and a Royal Society Wolfson
+Fellowship
+
+
+ 1      Introduction
+Kleene algebra with tests (KAT) [17] was introduced in the early 90’s as an extension of Kleene
+algebra (KA), the algebra of regular expressions. The core idea of the extension was simple:
+consider regular languages over a two-sorted alphabet, in which one sort represents Boolean
+tests and the other denotes basic program actions. This seemingly simple extension enables
+an important application for regular languages in reasoning about imperative programs with
+basic control flow structures like branches (if -then-else) and loops (while). KAT largely
+inherited the properties of KA: a language model [22], a Kleene theorem [19], a sound and
+complete axiomatization [22], and a pspace decision procedure for equivalence [8].
+    In 2014, a specialized KAT called NetKAT [4] was proposed to program software-defined
+networks. NetKAT was later extended with a probabilistic choice operator that enabled the
+modelling of randomized protocols [9]. Interestingly, there exists a decision procedure for
+NetKAT program equivalence that enables practical verification of reachability in networks
+            © Todd Schmid, Tobias Kappé, Dexter Kozen, and Alexandra Silva;
+                                                                                                     EA
+
+
+
+
+            licensed under Creative Commons License CC-BY 4.0
+                                                                                                     TC S
+
+
+
+
+48th International Colloquium on Automata, Languages, and Programming (ICALP 2021).
+Editors: Nikhil Bansal, Emanuela Merelli, and James Worrell; Article No. 142; pp. 142:1–142:14
+                   Leibniz International Proceedings in Informatics
+                   Schloss Dagstuhl – Leibniz-Zentrum für Informatik, Dagstuhl Publishing, Germany
+142:2   GKAT: Coequations, Coinduction, and Completeness
+
+
+        with thousands of nodes and links, which seems to scale almost linearly despite the pspace-
+        completeness of this problem [10, 35]. This raised the question: do practical NetKAT programs
+        belong to a fragment of KAT that has more favorable properties than the full language?
+            Recently, this question was answered positively [34], in the form of Guarded Kleene
+        Algebra with Tests (GKAT), a fragment of KAT obtained by adding a Boolean guard to
+        the non-deterministic choice and iteration operators so that they correspond exactly to the
+        standard if-then-else and while constructs. GKAT is expressive enough to capture all
+        programs used in network verification while allowing for almost linear time1 decidability of
+        equivalence, thereby explaining the experimental results observed in NetKAT.
+            The use of GKAT as a framework for program analysis also raises further questions
+        about recovering the properties of KAT on the level of GKAT. Is there a class of automata
+        that provides a Kleene theorem? Is there a sound and complete axiomatization of GKAT
+        equivalence? The original paper [34] gave incomplete answers to these questions. First,
+        it proposed a class of well-nested automata that can be used to describe the semantics of
+        all GKAT programs, but left open whether this class covered all automata that accept the
+        behaviors of GKAT programs. Second, GKAT was axiomatized under the assumption of early
+        termination: intuitively, referring to a semantics of imperative programs where programs
+        that fail immediately are equated to programs that fail eventually. This semantics, though
+        useful, is too coarse in contexts where program behavior prior to failure matters.
+            In this paper, we take a new perspective on the semantics of GKAT programs and
+        their corresponding automata, using coequations. Coequations provide the right tool to
+        characterize fragments of languages as they enable a precise way to remove unwanted traces.
+        We are then able to give a precise characterization of the behaviors of GKAT programs and
+        prove a completeness theorem for each of the fragments of interest.
+
+
+        Our contributions. In a nutshell, the contributions of this paper are the following:
+        1. We give a denotational model for GKAT without early termination by representing
+           the behavior as a certain kind of tree. This allows us to design two coequations: one
+           characterizing the behaviors denoted by GKAT expressions, and another capturing only
+           the behaviors of GKAT expressions that terminate early.
+        2. We obtain two completeness results for GKAT: one for the model of the previous item
+           and the axiomatization of [34] without the early termination axiom; and building on this,
+           another for the full axiomatization. The former is new; the latter provides an alternative
+           proof to the completeness theorem presented in [34].
+        3. A concrete example of a well-nested GKAT automaton with a non-well-nested quotient.
+           This settles an open question of [34] and closes the door on an alternative proof of
+           completeness based on well-nested automata.
+
+
+            2    Guarded Kleene Algebra with Tests
+
+        At its heart, Guarded Kleene Algebra with Tests (GKAT) is an algebraic theory of imperative
+        programs. Expressions in GKAT are concise formulas for while programs [23], which are built
+        inductively from actions and tests with sequential composition and the classic programming
+        constructs of branches and loops: if b then e else f and while b do e.
+
+
+        1
+            Opnαpnqq, where αpnq is the inverse of Ackermann’s function
+T. Schmid, T. Kappé, D. Kozen, and A. Silva                                                                  142:3
+
+
+Union Axioms                         Sequence Axioms                 Loop Axioms
+U1.         e `b e ” e                S1. pe ¨ f q ¨ g ” e ¨ pf ¨ gq  W1.    epbq ” e ¨ epbq `b 1
+U2.        e `b f ” f `b̄ e           S2.       0¨e ” 0               W2. pceqpbq ” pe `c 1qpbq
+U3. pe `b f q `c g ” e `b^c pf `c gq S3.        e¨0 ” 0                     Epeq ” 0 g ” eg `b f
+U4.        e `b f ” b ¨ e `b f        S4. 1 ¨ e ” e; S5. e ” e ¨ 1 W3.
+U5. e ¨ g `b f ¨ g ” pe `b f q ¨ g    S6.        b¨c ” b^c                        g ” epbq ¨ f
+
+
+   Figure 1 Axioms for GKAT-expressions. Here, e, f, g P Exp and b, c P BExp.
+
+
+   Formally, these expressions are drawn from a two-sorted language of tests and programs.
+The tests are built from a finite set of primitive tests T , as follows:
+
+   BExp Q b, c ::“ 0 | 1 | t P T | b̄ | b ^ c | b _ c.
+
+Here, 0 and 1 are understood as the constant tests false and true respectively, b̄ denotes
+the negation of b, and ^ and _ are conjunction and disjunction, respectively. We will use
+A to denote the set of atomic tests (or just atoms), Boolean expressions of the form
+d1 ^ ¨ ¨ ¨ ^ dl , where di P tti , t̄i u for each i ď l and tti | i ď lu is a fixed enumeration of T . It
+is well known that any b P BExp can be written equivalently as the disjunction of the atoms
+a P A that imply b under the laws of Boolean algebra. We will often identify each Boolean
+expression b P BExp with this set of atoms and write b Ď A or a P b.
+    Programs are built from tests and a finite set of primitive programs or actions Σ,
+disjoint from T . Formally, programs are generated by the grammar
+
+   Exp Q e, f ::“ b P BExp | p P Σ | e ¨ f | e `b f | epbq
+
+Here, a test b abbreviates the statement assert b, the operator ¨ is sequential composition,
+e `b f is shorthand for if b then e else f and epbq is shorthand for while b do e.
+    GKAT programs satisfy standard properties of imperative programs. For instance, swap-
+ping the branches of an if-then-else construct should not make a difference, provided that
+we also negate the condition; that is, the semantics of e `b f should coincide with that of
+f `b e. The rules in Figure 1 axiomatize equivalences between programs. Together with the
+axioms of Boolean algebra, these generate a congruence ” on Exp.
+    Some remarks are in order for axiom W3. The right-hand premise states that an expression
+g has some self-similarity in the sense that it is equivalent to checking whether b holds, in
+which case it runs e followed by recursing at g, and otherwise running f . Intuitively, this
+says that g is loop-like, matching the conclusion that g is equivalent to epbq ¨ f . However,
+this conclusion may not make sense when based on just the second premise. Specifically, if
+we choose e, f , g and b to be 1, we can show that the premise holds and derive 1 ” 1p1q ¨ 1,
+which is to say that assert true is equivalent to (while true do assert true); assert true.
+Intuitively, this should be false: the first program terminates successfully and immediately,
+but the second program does not. The problem is that the loop body does not perform any
+actions that affect the state and make progress towards the end of the loop.
+    This is remedied by the left-hand premise, which distinguishes loop bodies that can accept
+immediately from those that cannot. It plays the same role as the empty word property in
+Salomaa’s axiomatization of the algebra of regular events [31]. Formally, given e P Exp, the
+Boolean expression Epeq is defined inductively by setting Eppq “ 0, Epbq “ b, and
+
+   Epe ¨ f q “ Epeq ^ Epf q        Epe `b f q “ pb ^ Epeqq _ pb̄ ^ Epf qq         Epepbq q “ b̄
+
+
+
+
+                                                                                                            ICALP 2021
+142:4   GKAT: Coequations, Coinduction, and Completeness
+
+
+        We call e productive if Epeq ” 0. Axioms W2 and W3 are analogues of Salomaa’s axioms
+        A11 and R2 [31]. Specifically, W2 says that non-productive loop iterations do not contribute
+        to the semantics. This allows the use of W3 to reason about loops in general, for instance to
+        prove epbq ” epbq ¨ b, which says that the loop condition is false when a loop ends [34].
+            Axiom S3 identifies a program that fails eventually with the program that fails immediately.
+        As a consequence, ” cannot distinguish between processes that loop forever, like pp1q and q p1q ,
+        even though they perform different actions [34]. Consequently, GKAT can be seen as a theory
+        of computation schemata, i.e., programs that need to halt successfully to be meaningful.
+            In contrast, it is also useful to be able to reason about process schemata, i.e., programs
+        that perform meaningful tasks, even when they do not terminate successfully. To this end,
+        we define the reduced congruence ”0 generated by the axioms of Figure 1 except S3.
+            Let rr´ss : Exp Ñ S be a semantics of GKAT. We say that rr´ss is sound w.r.t. ” if for
+        all e, f P Exp with e ” f , it holds that rress “ rrf ss. Similarly, rr´ss is sound w.r.t. ”0 if
+        e ”0 f implies that rress “ rrf ss.
+            Since ” encodes common program laws, one might wonder whether there is a single
+        interpretation in which programs are related by ” if and only if they have the same image.
+        Such an interpretation is called free w.r.t. ”. This question is not just of theoretical
+        interest: a free interpretation can help decide whether programs are provably equivalent, and
+        hence the same under any sound interpretation, by checking whether their free semantics
+        coincide. Naturally, the same question can be asked for ”0 : is there a semantics that is free
+        w.r.t. ”0 , i.e., where e ”0 f if and only if e and f have the same interpretation?
+            The remainder of this paper is organized as follows. In Section 3, we describe the
+        operational structure for GKAT expressions in terms of GKAT-automata, as in [34]. In
+        Section 4, we provide an explicit construction of a GKAT-automaton in which all other
+        automata can be uniquely interpreted. We then build a semantics that is sound w.r.t. ”0
+        in Section 5. In Section 6 we relate our coequational description of GKAT expressions to
+        the well-nested GKAT-automata of [34]. In Section 7, we prove that this semantics is in
+        fact complete w.r.t. ”0 and, building on this, obtain a semantics that is complete w.r.t. ”.
+        Omitted proofs are included in the extended version [32].
+
+         3     An operational model: GKAT-automata
+        In this section we discuss the small-step operational model for GKAT programs from [34]. The
+        operational perspective provides us with the tools to describe a semantics that is complete
+        w.r.t. ”0 and paves the way to a decision procedure.
+            We can think of a GKAT-program as a machine that evolves as it reads a string of atomic
+        tests. Depending on the most recently observed atomic test, the program either accepts,
+        rejects, or emits an action label and changes to a new state. For example, feeding if b do p
+        else q an atomic test a P b causes it to perform the action p and then terminate successfully.
+        ▶ Definition 3.1. A GKAT-automaton [34, 23] is a pair X “ pX, δq, where X is a set
+        of states and δ : X ˆ A Ñ 2 ` Σ ˆ X is a transition function. We use x Ý        a|p   1
+                                                                                        ÝÑX x as
+                                      1
+        a notation for δpx, aq “ pp, x q. Similarly, x ñX a denotes that δpx, aq “ 1, and x ÓX a
+        denotes that δpx, aq “ 0. We drop the subscript X when the automaton is clear from context.
+        Intuitively, X represents the states of an abstract machine running a GKAT program, with
+        dynamics encoded in δ. When the machine is in state x P X and observes a P A, there are
+                                                                                           a|p x1 , it
+        three possibilities: if x Ó a, the machine rejects; if x ñ a, it accepts; and if x Ý
+                                                                                           ÝÑ
+        performs the action p followed by a transition to the state x1 .
+T. Schmid, T. Kappé, D. Kozen, and A. Silva                                                                                                  142:5
+
+
+
+   aPb                      aPb           eña       a P b̄            f ña     aPb                  a|p e1
+                                                                                                   eÝ           a P b̄         a|p f 1
+                                                                                                                              fÝ
+                                                                                                    ÝÑ                         ÝÑ
+  bña        a|p 1
+            pÝ               e `b f ñ a                   e `b f ñ a                       a|p e1
+                                                                                    e `b f Ý                                a|p f 1
+                                                                                                                     e `b f Ý
+             ÝÑ                                                                            ÝÑ                               ÝÑ
+
+         eña         f ña         eña             a|p f 1
+                                                 fÝ                    a|p e1
+                                                                      eÝ                     aPb            a|p e1
+                                                                                                           eÝ                a P b̄
+                                                  ÝÑ                   ÝÑ                                   ÝÑ
+                                                     1                         1
+          e¨f ña                             a|p f
+                                         e¨f Ý
+                                             ÝÑ
+                                                                     a|p e ¨ f
+                                                                 e¨f Ý
+                                                                     ÝÑ                      epbq a|p       1
+                                                                                                       ÝÝÑ e ¨ e
+                                                                                                                pbq
+                                                                                                                         epbq
+                                                                                                                                ña
+
+   Figure 2 The transition structure of E. Here, e, e1 , f, f 1 P Exp, b Ď A, a P A, and p P Σ.
+Transitions that are not explicitly defined above are assumed to be failed termination.
+
+
+▶ Remark 3.2. The reader familiar with coalgebra will recognize that GKAT-automata are
+                                                     A
+precisely coalgebras for the functor G “ p2 ` Σ ˆ Idq [34]. Indeed, the notions relating to
+GKAT-automata, such as homomorphism, bisimulation, and semantics to follow are precisely
+those that arise from G as prescribed by universal coalgebra [27].
+    We can impose an automaton structure on Exp yielding the syntactic GKAT-automaton
+E “ pExp, Dq, where D is the transition map given by Brzozowski derivatives [34] as specified
+in Figure 2. For instance, the operational behavior of ppbq as a state of E could be drawn as
+follows, where x Ý b|p y denotes that x a|p y for every a P b and rejecting transitions x Ó a
+                   ÝÑ                   ÝÝÑ
+are left implicit:
+
+                                  b |p                                                                                                (1)
+               pbq   b |p         pbq
+    b̄     p                1¨p             b̄
+
+The operational structure of E is connected to ”0 as follows.
+
+▶ Theorem 3.3 (Fundamental theorem of GKAT). For any e P Exp, e ”0 1 `Epeq Dpeq where
+                                                                      $
+                ă                                    ă                &0
+                                                                      ’        ˜                   ¸     if b “ 0,
+   Dpeq “               pa ¨ ea           and                  ea “                 Ř
+                                                         aPb          %ea `a
+                                                                      ’                      ea1         some a P b, otherwise.
+               e a|pa ea                                                           a1 Pbza
+                ÝÝÝÑ
+
+The generalized guarded union above is well defined, in that the order of atoms does not
+matter up to ”0 . See [34] for more details about the generalised guarded union.
+    States of GKAT-automata have the same behavior if reading the same sequence of atoms
+leads to the same sequence of actions, acceptance, or rejection. This happens when one state
+mimics the moves of the other, performing the same actions in response to the same stimuli.
+For instance, consider the GKAT-automaton in (1): the behavior of ppbq can be replicated by
+the behavior of 1 ¨ ppbq , in that both either consume an a P b̄ and terminate or consume a P b
+and emit p before transitioning to 1 ¨ ppbq . This can be made precise.
+
+▶ Definition 3.4. Let R Ď X ˆ Y be a relation between the state spaces of GKAT-automata
+X and Y. Then R is a bisimulation if for any px, yq P R and a P A,
+(1) x ÓX a if and only if y ÓY a; and (2) x ñX a if and only if y ñY a; and
+         a|p
+(3) if x Ý       1        a|q    1           1      1                   1 1
+          ÝÑX x and y ÝÝÑY y for some x and y , then p “ q and px , y q P R.
+   If a pair of states px, yq P X ˆ Y is contained in a bisimulation, we say that x and y are
+bisimilar. If a bisimulation R is the graph of a function φ : X Ñ Y , we write φ : X Ñ Y
+and call φ a GKAT-automaton homomorphism [27].
+
+   Indeed, bisimulations are designed to formally witness behavioral equivalence. We use
+the term behavior as a synonym for the phrase bisimilarity (equivalence) class.
+
+
+
+                                                                                                                                            ICALP 2021
+142:6   GKAT: Coequations, Coinduction, and Completeness
+
+
+         4      The final GKAT-automaton
+        One way of assigning semantics to GKAT expressions is to find a sufficiently large GKAT-
+        automaton Z that contains the behavior of every other GKAT-automaton. In this section,
+        we provide a concrete explicit description of such a “semantic” GKAT-automaton – this is a
+        crucial step towards being able to devise a completeness proof.
+            Concretely, Z represents the behavior of a state as a tree that holds information about
+        acceptance, rejection, and transitions to other states (which are subtrees). Essentially, this
+        tree is an unfolding of the transition graph from that state.
+            We describe these trees using partial functions. Let us write A` for the set of all non-
+        empty words consisting of atoms. The state space Z of Z is the set of all partial functions
+        t : A` á 2 ` Σ with A Ď domptq, such that the following hold for all a P A and x P A` .
+             w P domptq tpwq P Σ                w P domptq tpwq P 2
+                 wa P domptq                        wx R domptq
+        The transition structure of Z is defined by the inferences
+             tpaq “ 0            tpaq “ 1               tpaq “ p P Σ
+               tÓa                tña                  a|p λw.tpawq
+                                                      tÝ
+                                                       ÝÑ
+        When tpwq P Σ, we will write Bw t for λu.tpwuq. We can think of t P Z as a tree where the
+        root has leaves for atoms a P A with tpaq “ 1, and a subtree for every a P A with tpaq P Σ.
+        ▶ Remark 4.1. Trees correspond to deterministic (possibly infinite) guarded languages [34, 23].
+                                                                                      ˚              ω
+        More precisely, every tree can be identified with a language L Ď pA ¨ Σq ¨ A Y pA ¨ Σq
+        satisfying (i) if wapσ, waqσ 1 P L, then p “ q; and (ii) if wa P L, then wapσ R L for any pσ.
+        We forgo a description in terms of guarded languages in favor of trees because these trees
+        have the constraint about determinism built in.
+           A node of t is a word w P A˚ such that either w “ ϵ (the empty word), or w P domptq
+        and tpwq P Σ. We write Nodeptq for the set of nodes of t. A subtree of t is a tree t1 such
+        that t1 “ Bw t for some w P Nodeptq. A leaf of t is a word w P domptq such that tpwq P 2.
+           Next, we specialize Definition 3.4 to Z (c.f. [28, Theorem 3.1]).
+        ▶ Lemma 4.2. R Ď Z ˆ Z is a bisimulation on Z iff for any pt, sq P R and a P A,
+        (1) tpaq “ spaq; and (2) if either Ba t or Ba s is defined, then both are defined and pBa t, Ba sq P R.
+             We can now prove that bisimilar trees in Z coincide.
+        ▶ Lemma 4.3 (Coinduction). If s, t P Z are bisimilar, then s “ t.
+            Thus, to show that two trees are equal, it suffices to demonstrate a bisimulation that
+        relates them. This proof method is called coinduction. We can also use Lemma 4.2 to
+        define algebraic operations on Z, and such definitions are said to be coinductive. Many of
+        the results in the sequel are argued using coinduction, and many of the constructions are
+        coinductive. With this in mind, we are now ready to prove that Z contains every behavior
+        that can be represented by a GKAT-automaton, as follows.
+        ▶ Theorem 4.4. Z is the final GKAT-automaton. In other words, for every GKAT-automaton
+        X , there exists a unique GKAT-automaton homomorphism !X from X to Z.
+           Given a GKAT-automaton X , the unique map !X assigns a tree from Z to each of its
+        states. In particular, recalling that the syntactic GKAT-automaton E has Exp as its set of
+        states, !E is a semantics of GKAT programs in terms of trees. The following lemma states
+        that bisimulation is sound and complete with respect to this semantics.
+        ▶ Lemma 4.5. States x and x1 of a GKAT-automaton X are bisimilar iff !X pxq “ !X px1 q.
+T. Schmid, T. Kappé, D. Kozen, and A. Silva                                                          142:7
+
+
+ 5       Trees form an algebra
+So far, we have seen that the behavior of a GKAT-program is naturally interpreted as a
+certain kind of tree, and that each such tree is the state of the final GKAT-automaton Z.
+In this section, we show that the trees in Z can themselves be manipulated and combined
+using the programming constructs of GKAT. These operations satisfy all of the axioms that
+build ”0 , but fail the early-termination axiom S3. This gives rise to an inductive semantics
+of GKAT-programs rr´ss : Exp Ñ Z that is sound w.r.t. ”0 . As a matter of fact, we will see
+that rr´ss coincides with the unique GKAT-automaton homomorphism !E : Exp Ñ Z.
+     We begin by interpreting the tests. Given b Ď A, we define rrbss as the characteristic
+function of b as a subset of A` , i.e., rrbss paq “ 1 if a P b, and rrbss paq “ 0 otherwise.
+     On the other hand, primitive action symbols denote programs that perform an action in
+one step and then terminate successfully in the next. For p P Σ, this behavior is described
+by the unique tree rrpss such that rrpss paq “ p and Ba rrpss “ rr1ss for any a P A. When context
+can disambiguate, we write b in place of rrbss and p in place of rrpss.
+     Each operation is defined using a behavioral differential equation (BDE) consisting
+of a set of initial conditions tpaq “ ξa P 2`Σ indexed by a P A and a set of step equations
+Ba t “ sa indexed by the a P A with tpaq P Σ. This is possible because every BDE describes
+a unique automaton, which (by Theorem 4.4) has a unique interpretation in Z [28]. Each
+BDE below can be read more or less directly from Figure 2.
+     The first operation that we interpret in Z is sequential composition. For any s, t P Z, the
+tree s ¨ t models sequential composition of programs by replacing each non-zero leaf of s by
+the nodal subtree of t given by the corresponding atomic test. This can formally be defined
+as the unique operation satisfying the following behavioral differential equation.
+                    #                                               #
+                     tpaq     if spaq “ 1,                           Ba t       if spaq “ 1,
+     ps ¨ tqpaq “                                    Ba ps ¨ tq “
+                     spaq     otherwise                              Ba s ¨ t   otherwise.
+
+Here, Ba s ¨ t “ pBa sq ¨ t. Using this operation, we define rre ¨ f ss “ rress ¨ rrf ss.
+   To interpret the guarded union operation, define `b to be the unique operation such that
+                     #                                                #
+                      spaq       if a P b,                             Ba s     if a P b,
+     ps `b tqpaq “                                   Ba ps `b tq “
+                       tpaq      otherwise                              Ba t    otherwise.
+
+As before, we define rre `b f ss “ rress `b rrf ss.
+    Finally, we interpret the guarded exponential operation. Following Figure 2, tpbq can be
+defined as the unique tree satisfying
+               $
+               &1
+               ’            if a R b,
+     tpbq paq “ tpaq        if a P b and tpaq P Σ,           Ba ptpbq q “ Ba t ¨ tpbq
+               ’
+               %
+                0           otherwise.
+                                         ““ ‰‰      pbq
+Similar to the other operators, we set epbq “ rress . This completes our definition of the
+algebraic homomorphism rr´ss : Exp Ñ Z.
+    As it happens, rr´ss is also a GKAT automaton homomorphism from E to Z. By uniqueness
+of such homomorphisms (Theorem 4.4), we can conclude that rr´ss and !E are the same.
+
+▶ Proposition 5.1. For any e P Exp, rress “ !E peq.
+
+   This allows us to treat the algebraic and coalgebraic semantics as synonymous. Using
+Lemma 4.5, we can then show soundness w.r.t. ”0 by arguing that ”0 is a bisimulation on E.
+
+
+
+                                                                                                    ICALP 2021
+142:8   GKAT: Coequations, Coinduction, and Completeness
+
+
+                                                      b|p
+                                          b̄   v0            v1    b
+                                                      b̄|q
+
+             Figure 3 A GKAT-automaton without GKAT behaviors.
+
+
+        ▶ Theorem 5.2. The semantics rr´ss is sound w.r.t. ”0 .
+
+            On the other hand, Z does not satisfy S3. For instance, rrp ¨ 0ss ‰ rr0ss for any p P Σ. We
+        will adapt the model to overcome this in Section 7.3.
+
+         6      Well-nested automata and nested behavior
+        Not all behaviors expressible in terms of finite GKAT-automata occur in E. For example, the
+        two-state automaton in Figure 3 fails to exhibit any behavior of the form rress, with e P Exp,
+        when b, b̄ ‰ 0. This is proven in the extended version [32] where we show that no branch
+        of a GKAT behavior can accept both b and b̄ infinitely often. For another example, see [23],
+        where a particular three-state automaton is shown to exhibit no GKAT behavior.
+            Intuitively, both of the examples above fail to exhibit the behaviors of GKAT programs
+        because GKAT lacks a goto-statement that allows control to transfer to an arbitrary position
+        in the program; instead, GKAT automata corresponding to GKAT expressions are structured
+        by branches and loops. The question then arises: can we characterize the “shapes” of
+        automata whose behavior is goto-free, i.e., described by a GKAT expression?
+            In [34], the authors proposed the class of well-nested GKAT automata, consisting of
+        automata built inductively by applying a series of operations designed to mimic the structural
+        effects of loops. It was shown that the behavior of every GKAT expression can be described by
+        some well-nested automaton. Moreover, they proved that the class of well-nested automata
+        constitutes a sufficient condition: the behavior of a well-nested GKAT automaton is described
+        by a GKAT expression. Whether this condition is also necessary, i.e., whether every automaton
+        with behavior corresponding to a GKAT expression is well-nested, was left open.
+            Thus, a positive answer to the latter question amounts to showing that every GKAT
+        automaton whose behavior is the same as a well-nested GKAT automaton is itself well-nested.
+        Such a class of automata closed under behavioral equivalence is known as a covariety. Covari-
+        eties have desirable structural properties. In particular, they are closed under homomorphic
+        images [27, 12, 3]. Unfortunately, well-nested automata do not satisfy this property: we
+        have found a well-nested automaton whose homomorphic image is not well-nested, depicted
+        in Figure 4. In other words, there exists a non-well-nested automaton whose behavior is
+        still described by a GKAT expression. This also closes the door on a simpler approach to
+        completeness described in [34].
+            Thus, well-nested automata do not constitute a characterization of the GKAT automata
+        that correspond to GKAT expressions. To obtain such a characterization, we take a slightly
+        different approach: rather than describing shapes of these automata, we describe the shapes
+        of the trees that they denote. We refer to a set of trees U Ď Z as a coequation, and treat it
+        as a predicate: a GKAT-automaton X satisfies U, written X |ù U, if every behavior present
+        in X appears in U – in other words, if !X factors through U. We write CovpUq to denote the
+        class of all GKAT-automata that satisfy U. It is easily shown that CovpUq is a covariety.
+            The coequation that we give to describe the covariety of automata whose behavior
+        corresponds to a GKAT expression is driven by the intuition behind well-nested automata:
+        the trees in this coequation are built using compositions that enforce while-like behavior,
+T. Schmid, T. Kappé, D. Kozen, and A. Silva                                                                142:9
+
+
+                                            a3                               a0
+                           a0 , a 1    v0           v1               v4               v5     a2 , a 3
+
+                                  a2        a2                                   a1        a1
+
+                           a0 , a 1    v2           v3               v6               v7     a2 , a 3
+                                            a3                               a0
+
+   Figure 4 As depicted, this automaton is well-nested. However, identifying v1 with v4 , and v3
+with v6 , we obtain an automaton that is not well-nested.
+
+
+and do not permit the construction of goto-like behavior. To this end, we need to define a
+new continuation operation, as follows. Given s, t P Z, the continuation s ▷ t of s along t
+is the unique tree satisfying the behavioral differential equation
+                  #                                                       #
+                   tpaq     if spaq “ 1,                                   Ba t ▷ t        if spaq “ 1,
+   ps ▷ tqpaq “                                          Ba ps ▷ tq “
+                   spaq     otherwise                                        Ba s ▷ t      otherwise.
+
+Intuitively, s ▷ t is the tree that attaches infinitely many copies of t to s. This operation
+can be thought of as the dual to Kleene’s original ˚-operation [16], which loops on its first
+argument some number of times before continuing in the second.
+
+▶ Definition 6.1. The nesting coequation W is the smallest subset of Z containing the
+discrete coequation D :“ trrbss | b Ď Au and closed under the nesting rules below:
+
+    t, s P W p@a P Aq tpaq P Σ ùñ Ba t P W                             t, s P W
+   t¨sPW                       tPW                                    t▷sPW
+
+The first and third nesting rules say that W is closed under composition and continuation;
+the second rule says that integrals over nested trees are nested.
+    It is not too hard to see that W is a subautomaton of Z. In other words, if t P W, then
+the derivatives of t are in W as well. In fact, W is a subalgebra of Z in that it is closed under
+the operations of GKAT. This can be seen from the following observations: first, Ba p “ 1
+for all a P A, so p P W for any p P Σ by the second nesting rule. Second, W is closed under
+sequential composition by definition. Third, if s, t P W and b Ď A, then every derivative
+of s `b t is either a derivative of s or a derivative of t. Lastly, closure under the guarded
+exponential is a consequence of the identity
+
+   tpbq “ 1 ▷ pt̃ `b 1q,
+                                                    Ř
+                                 where      t̃ :“                   pa ¨ t a .
+                                                        t a|pa ta
+                                                         ÝÝÝÑ
+This identity can be shown to hold for all t P Z and b Ď A using a coinductive argument. It
+follows that the nesting coequation contains the image of rr´ss. A similar argument can be
+used to establish the reverse containment as well, which leads to the following.
+
+▶ Proposition 6.2. W is the set of GKAT program behaviors, i.e, W “ trress | e P Expu.
+
+   Proposition 6.2 characterizes W as the the set of behavioral patterns exhibited by GKAT
+expressions: the states of a GKAT-automaton X behave like GKAT programs if and only if
+X satisfies W, or, in other words, if X can be found in the covariety CovpWq. Since every
+well-nested automaton has the behavior of some GKAT expression [34], it must satisfy W.
+
+▶ Proposition 6.3. Well-nested GKAT-automata satisfy the nesting coequation.
+
+
+
+
+                                                                                                          ICALP 2021
+142:10 GKAT: Coequations, Coinduction, and Completeness
+
+
+        7      Completeness
+
+       This section contains two completeness theorems for GKAT . As in [34], we need to assume
+       that W3 is generalized to arbitrary (linear) systems of equations. This uniqueness axiom,
+       discussed in Section 7.1, will allow us to prove that the semantics rr´ss from Section 5 is
+       free with respect to ”0 – that is, rress “ rrf ss implies e ”0 f – in Section 7.2. This will then
+       provide an alternative route to completeness for GKAT in Section 7.3.
+
+
+       7.1     Uniqueness of solutions for Salomaa systems
+       In part, W3 from Figure 1 ensures that the equation g ” e ¨ g `b f with indeterminate g
+       has at most one solution in Exp{”0 for any e, f P Exp under the condition that e denotes a
+       productive program. In fact, we could have stated the axiom this way from the beginning,
+       as W1 provides the existence of a solution to this equation (even without the restriction on
+       productivity). As we will see, the uniqueness axiom makes a more general statement than
+       W3 about systems of equations with an arbitrary number of indeterminates.
+
+       ▶ Definition 7.1. A system of (n left-affine) equations is a sequence of n equations
+       of the form xi “ ei1 ¨ x1 `bi1 ¨ ¨ ¨ `bipn´1q ein ¨ xn `bi n ci , indexed by i ď n, such that (1) xi
+       is an indeterminate variable; (2) pbij qjďn is a sequence of disjoint Boolean expressions,
+       i.e. bij ^ bik ” 0 for any j ‰ k; (3) ci is a Boolean expression disjoint from bij for all j ď n;
+       and (4) eij is a GKAT expression for any j ď n.
+             Given any congruence ”     9 satisfying the axioms of ”0 , a solution in Exp{”     9 to such a
+       system is an n-tuple of GKAT expressions pgi qiďn such that the equivalence gi ”       9 ei1 ¨ g1 `bi1
+       ¨ ¨ ¨ `bipn´1q ein ¨ gn `bin ci holds for all i ď n.
+
+       For example, the equation in the premise of W3 is a system of one left-affine equation, and
+       the conclusion prescribes a unique solution (in Exp{”0 ) to the premise. Every finite GKAT-
+       automaton X gives rise to a system of equations with variables indexed by X “ txi | i ď nu
+       and coefficients indexed by the transition map, as follows:
+
+                       ă
+            eij “                pa   ci “ ta P A | xi ñ au                            a|p x u.
+                                                                     bij “ ta P A | xi Ý
+                                                                                       ÝÑ j
+                    xi a|pa xj
+                      ÝÝÝÑ
+
+       Solving this system of equations uncovers the GKAT-constructs the automaton implements.
+            The uniqueness axiom states that certain systems of equations, like the one in the premise
+       of W3, admit at most one solution. Choosing which systems the axiom should apply to
+       must be done carefully for the same reason that necessitates the side-condition on W3.
+       Crucially, we require that the system have productive coefficients, i.e. Epeij q ” 0 for all
+       i, j ď n, to admit a unique solution. As this condition is analogous to Salomaa’s empty word
+       property [31], a system of equations with productive coefficients is called Salomaa [34]. The
+       uniqueness axiom (for ”)    9 states that every Salomaa system of equations has at most one
+       solution in Exp{”.9 It is sound with respect to the semantics rr´ss from Section 5.
+
+       ▶ Theorem 7.2. For any i, j ď n, let sij P Z satisfy sij paq ‰ 1 for any a P A, pbij qj‰n be a
+       sequence of disjoint Boolean expressions for any i ď n, and ci Ď A be disjoint from bij for
+       each i ď n. The system of equations xi “ si1 ¨ t1 `bi1 ¨ ¨ ¨ `bipn´1q sin ¨ tn `bin ci , indexed by
+       i ď n has a unique solution in Z n .
+T. Schmid, T. Kappé, D. Kozen, and A. Silva                                                         142:11
+
+
+7.2       Completeness with respect to ”0
+Next, we present a completeness theorem w.r.t. ”0 . We have already seen that the behavior
+of a program takes the form of a tree, and that the programming constructs of GKAT apply
+to trees in such a way that equivalence up to the axioms of ”0 is preserved (Theorem 5.2).
+The completeness theorem in this section shows that up to ”0 -equivalence, GKAT programs
+can be identified with the trees they denote.
+
+▶ Theorem 7.3 (Completeness for ”0 ). Assume the uniqueness axiom for ”0 and let
+e, f P Exp. If rress “ rrf ss, then e ”0 f .
+
+Proof sketch. Since rress “ rrf ss, e and f are bisimilar as expressions. This bisimulation gives
+rise to a Salomaa system of equations, which can be shown to admit both the derivatives of
+e and f as solutions. By the unique solutions axiom, it then follows that e ”0 f .             ◀
+
+7.3       Completeness with respect to ”
+Having found a semantics that is sound and complete w.r.t. ”0 , we proceed to extend
+this result to find a semantics that is sound and complete w.r.t. ”. Recall that the only
+difference between these equivalences was S3, which equates programs that fail eventually
+with programs that fail immediately. To coarsen our semantics, we need an operation on
+labelled trees that forces early termination in case an accepting state cannot be reached.
+▶ Definition 7.4. We say t P Z is dead when for all w P domptq it holds that tpwq ‰ 1. The
+normalization operator is defined coinductively, as follows:
+             #
+      ^       0      tpaq P Σ ^ Ba t is dead,
+   t paq “                                           Ba pt^ q “ pBa tq^ .
+              tpaq   otherwise
+
+▶ Example 7.5. Normalizing the tree rrp `b p ¨ 0ss prunes the branch corresponding to b̄,
+since it has no accepting leaves. This yields the tree rrb ¨ pss.
+
+    We can compose the normalization operator with the semantics rr´ss to obtain a new
+               ^
+semantics rr´ss , which replaces dead subtrees with early termination. Composing normal-
+                                                                                     ^
+ization with the earlier semantics of GKAT, we obtain the normalized semantics rr´ss .
+This semantics is sound w.r.t. ”.
+                                            ^    ^
+▶ Proposition 7.6. If e ” f , then rress “ rrf ss .
+
+   For the corresponding completeness property, we need a way of “normalizing” a given
+expression in Exp. The following observation gives us a way to do this.
+
+▶ Lemma 7.7. W is closed under normalization.
+                                                                                 ^
+   When e P Exp, we have that rress P W. Moreover, by the above, rress P W, which
+                                                         ^
+means that there is an e1 P Exp such that rre1 ss “ rress . We write e^ for this normalized
+expression. As it turns out, we can derive the equivalence e^ ” e from the uniqueness
+axiom for ”. This gives an alternative proof of the completeness result of [34] that highlights
+the role of coequational methods in reasoning about failure modes.
+                                                                                ^        ^
+▶ Corollary 7.8 ([34]). Assume the uniqueness axiom for ” and ”0 . If rress “ rrf ss , then
+e ” f.
+                       ^         ^
+Proof sketch. If rress “ rrf ss , then rre^ ss “ rrf ^ ss. By completeness of ”0 w.r.t. rr´ss, we
+can then derive that e ” e^ ”0 f ^ ” f , and since ”0 is contained in ”, also e ” f .           ◀
+
+
+
+                                                                                                    ICALP 2021
+142:12 GKAT: Coequations, Coinduction, and Completeness
+
+
+           By normalizing the trees in W, we obtain the coequation W^ “ tt^ | t P Wu. This co-
+       equation precisely characterizes GKAT programs with forced early termination. In particular,
+                                                                                 ^
+       since W^ Ď W, neither state in Figure 3 has a semantics described by rress for some e P Exp.
+
+
+        8     Related work
+       This paper builds on [34], where GKAT was proposed together with a language semantics based
+       on guarded strings [15] and an axiomatization closely related to Salomaa’s axiomatization of
+       regular expressions based on unique fixpoints [31]. Note that the language of propositional
+       while programs from [23, 20] is closely related to GKAT in terms of semantics, although the
+       compact syntax and axiomatization were only introduced in [34].
+           Some GKAT-automata have behavior that does not correspond to any GKAT expression,
+       such as the example in [23]. The upshot is that the Böhm-Jacopini theorem [6, 13], which
+       states that every deterministic flowchart corresponds to a while program, does not hold
+       propositionally, i.e., when we abstract from the meaning of individual actions and tests [23].
+           In contrast with [34, 23], our work provides a precise characterization of the behaviors
+       denoted by GKAT programs using trees. In other words, we characterize the image of the
+       semantic map inside the space of all behaviors. This explicit characterization was essential
+       for proving completeness of the full theory of GKAT, including the early termination axiom.
+       KAT equivalence without early termination has been investigated by Mamouras [24].
+           Brzozowski derivatives [7] appear in the completeness proof of KA [18, 21, 14]. We were
+       more directly inspired by Silva’s coalgebraic analogues of Brzozowski derivatives used in
+       the context of completeness [33]. Rutten [28] and Pavlovic and Escardo [26] document the
+       connection between the differential calculus of analysis and coalgebraic derivatives.
+           Coequations have appeared in the coalgebra literature in a variety of contexts, e.g. [3, 1,
+       5, 29, 30], and notably in the proof of generalized Eilenberg theorems [36, 2]. The use of
+       coequations in completeness proofs is, as far as we are aware, new.
+
+
+        9     Discussion
+       GKAT was introduced in [23] under the name propositional while programs and extensively
+       studied in [34] as an algebraic framework to reason about simple imperative programs. We
+       presented a new perspective on the theory of GKAT, which allowed us to isolate a fragment of
+       the original axiomatization that captures the purely behavioral properties of GKAT programs.
+       We solved an open problem from [34], providing a proof that well-nested automata are
+       not closed under homomorphisms, thereby making it unlikely that these automata can be
+       used in a completeness proof that does not rely on uniqueness axioms. Finally, we proved
+       completeness for the full theory, respecting the early-termination property, in which programs
+       that fail immediately are equated with programs that fail eventually.
+           There are several directions for future work that are worth investigating. First, it was
+       conjectured in [34] that the uniqueness axiom follows from the other axioms of GKAT. This
+       remains open, but at the time of writing we think this conjecture might be false. Secondly,
+       the technique we use, based on coequations, can serve as basis for a general approach to
+       completeness proofs. We plan to investigate other difficult problems where our technique
+       might apply. Of particular interest is an open problem posed by Milner in [25], which consists
+       of showing that a certain set of axioms are complete w.r.t. bisimulation equivalence for
+       regular expressions. Recently, Grabmeyer and Fokkink [11] provided a partial solution. We
+       believe our technique can simplify their proofs and shed further light on Milner’s problem.
+T. Schmid, T. Kappé, D. Kozen, and A. Silva                                                            142:13
+
+
+    We have chosen to adopt the axiomatization from [34], which can be described as a
+Salomaa-style axiomatization – the loop is a unique fixpoint satisfying a side condition on
+termination. We would like to generalize the results of the present paper to an axiomatization
+in which the loop is a least fixpoint w.r.t. an order. The challenge is that there is no natural
+order in the language because the ` of Kleene Algebra has been replaced by `b . However,
+we hope to devise an order ď directly on expressions and extend the characterizations that
+we have to the new setting. This new axiomatization would have the advantage of being
+algebraic (that is, sound under arbitrary substitution), which makes it more suitable for
+verification purposes as the number of models of the language would increase.
+
+
+     References
+ 1   Jirí Adámek. A logic of coequations. In CSL, pages 70–86, 2005. doi:10.1007/11538363_7.
+ 2   Jirí Adámek, Stefan Milius, Robert S. R. Myers, and Henning Urbat. Generalized Eilenberg
+     theorem: Varieties of languages in a category. ACM Trans. Comput. Log., 20(1):3:1–3:47, 2019.
+     doi:10.1145/3276771.
+ 3   Jirí Adámek and Hans-E. Porst. On varieties and covarieties in a category. Math. Struct.
+     Comput. Sci., 13(2):201–232, 2003. doi:10.1017/S0960129502003882.
+ 4   Carolyn Jane Anderson, Nate Foster, Arjun Guha, Jean-Baptiste Jeannin, Dexter Kozen, Cole
+     Schlesinger, and David Walker. NetKAT: semantic foundations for networks. In POPL, pages
+     113–126, 2014. doi:10.1145/2535838.2535862.
+ 5   Adolfo Ballester-Bolinches, Enric Cosme-Llópez, and Jan J. M. M. Rutten. The dual equivalence
+     of equations and coequations for automata. Inf. Comput., 244:49–75, 2015. doi:10.1016/j.
+     ic.2015.08.001.
+ 6   Corrado Böhm and Giuseppe Jacopini. Flow diagrams, Turing machines and languages with
+     only two formation rules. Commun. ACM, 9(5):366–371, 1966. doi:10.1145/355592.365646.
+ 7   Janusz A. Brzozowski. Derivatives of regular expressions. J. ACM, 11(4):481–494, 1964.
+     doi:10.1145/321239.321249.
+ 8   Ernie Cohen, Dexter Kozen, and Frederick Smith. The complexity of Kleene algebra with tests.
+     Technical Report TR96-1598, Cornell University, July 1996. URL: https://hdl.handle.net/
+     1813/7253.
+ 9   Nate Foster, Dexter Kozen, Konstantinos Mamouras, Mark Reitblatt, and Alexandra Silva.
+     Probabilistic NetKAT. In ESOP, pages 282–309, 2016. doi:10.1007/978-3-662-49498-1_12.
+10   Nate Foster, Dexter Kozen, Matthew Milano, Alexandra Silva, and Laure Thompson. A
+     coalgebraic decision procedure for NetKAT. In POPL, pages 343–355, 2015. doi:10.1145/
+     2676726.2677011.
+11   Clemens Grabmayer and Wan J. Fokkink. A complete proof system for 1-free regular expressions
+     modulo bisimilarity. In LICS, pages 465–478, 2020. doi:10.1145/3373718.3394744.
+12   H. Gumm. Elements of the general theory of coalgebras, 2000.
+13   David Harel. On folk theorems. Commun. ACM, 23(7):379–389, 1980. doi:10.1145/358886.
+     358892.
+14   Bart Jacobs. A bialgebraic review of deterministic automata, regular expressions and languages.
+     In Algebra, Meaning, and Computation, Essays Dedicated to Joseph A. Goguen on the Occasion
+     of His 65th Birthday, pages 375–404, 2006. doi:10.1007/11780274_20.
+15   Donald M. Kaplan. Regular expressions and the equivalence of programs. J. Comput. Syst.
+     Sci., 3(4):361–386, 1969. doi:10.1016/S0022-0000(69)80027-9.
+16   Stephen C. Kleene. Representation of events in nerve nets and finite automata. In Claude E.
+     Shannon and John McCarthy, editors, Automata Studies, pages 3–41. Princeton University
+     Press, 1956.
+17   Dexter Kozen. Kleene algebra with tests and commutativity conditions. In TACAS, pages
+     14–33, 1996. doi:10.1007/3-540-61042-1_35.
+
+
+
+
+                                                                                                       ICALP 2021
+142:14 GKAT: Coequations, Coinduction, and Completeness
+
+
+       18   Dexter Kozen. Myhill-Nerode relations on automatic systems and the completeness of Kleene
+            algebra. In STACS, pages 27–38, 2001. doi:10.1007/3-540-44693-1_3.
+       19   Dexter Kozen. Automata on guarded strings and applications. Matematica Contemporanea,
+            24:117–139, 2003.
+       20   Dexter Kozen. Nonlocal flow of control and Kleene algebra with tests. In LICS, pages 105–117,
+            2008. doi:10.1109/LICS.2008.32.
+       21   Dexter Kozen. On the coalgebraic theory of Kleene algebra with tests. In Can Başkent,
+            Lawrence S. Moss, and Ramaswamy Ramanujam, editors, Rohit Parikh on Logic, Language
+            and Society, volume 11 of Outstanding Contributions to Logic, pages 279–298. Springer, 2017.
+            doi:10.1007/978-3-319-47843-2_15.
+       22   Dexter Kozen and Frederick Smith. Kleene algebra with tests: Completeness and decidability.
+            In CSL, pages 244–259, 1996. doi:10.1007/3-540-63172-0_43.
+       23   Dexter Kozen and Wei-Lung Dustin Tseng. The Böhm-Jacopini theorem is false, propositionally.
+            In MPC, pages 177–192, 2008. doi:10.1007/978-3-540-70594-9_11.
+       24   Konstantinos Mamouras. Equational theories of abnormal termination based on Kleene
+            algebra. In FOSSACS, volume 10203 of Lecture Notes in Computer Science, pages 88–105,
+            2017. doi:10.1007/978-3-662-54458-7_6.
+       25   Robin Milner. A complete inference system for a class of regular behaviours. J. Comput. Syst.
+            Sci., 28(3):439–466, 1984. doi:10.1016/0022-0000(84)90023-0.
+       26   Dusko Pavlovic and Martín Hötzel Escardó. Calculus in coinductive form. In LICS, pages
+            408–417, 1998. doi:10.1109/LICS.1998.705675.
+       27   Jan J. M. M. Rutten. Universal coalgebra: a theory of systems. Theor. Comput. Sci.,
+            249(1):3–80, 2000. doi:10.1016/S0304-3975(00)00056-6.
+       28   Jan J. M. M. Rutten. Behavioural differential equations: a coinductive calculus of
+            streams, automata, and power series. Theor. Comput. Sci., 308(1-3):1–53, 2003. doi:
+            10.1016/S0304-3975(02)00895-2.
+       29   Julian Salamanca, Adolfo Ballester-Bolinches, Marcello M. Bonsangue, Enric Cosme-Llópez,
+            and Jan J. M. M. Rutten. Regular varieties of automata and coequations. In MPC, pages
+            224–237, 2015. doi:10.1007/978-3-319-19797-5_11.
+       30   Julian Salamanca, Marcello M. Bonsangue, and Jurriaan Rot. Duality of equations and
+            coequations via contravariant adjunctions. In Ichiro Hasuo, editor, CMCS, pages 73–93, 2016.
+            doi:10.1007/978-3-319-40370-0_6.
+       31   Arto Salomaa. Two complete axiom systems for the algebra of regular events. J. ACM,
+            13(1):158–169, 1966. doi:10.1145/321312.321326.
+       32   Todd Schmid, Tobias Kappé, Dexter Kozen, and Alexandra Silva. Guarded Kleene algebra
+            with tests: Coequations, coinduction, and completeness, 2021. arXiv:2102.08286.
+       33   Alexandra Silva. Kleene coalgebra. PhD thesis, Radboud University, Nijmegen, 2010. URL:
+            https://hdl.handle.net/2066/83205.
+       34   Steffen Smolka, Nate Foster, Justin Hsu, Tobias Kappé, Dexter Kozen, and Alexandra Silva.
+            Guarded Kleene algebra with tests: Verification of uninterpreted programs in nearly linear
+            time. In POPL, 2020. doi:10.1145/3371129.
+       35   Steffen Smolka, Praveen Kumar, David M. Kahn, Nate Foster, Justin Hsu, Dexter Kozen, and
+            Alexandra Silva. Scalable verification of probabilistic networks. In PLDI, pages 190–203, 2019.
+            doi:10.1145/3314221.3314639.
+       36   Henning Urbat, Jirí Adámek, Liang-Ting Chen, and Stefan Milius. Eilenberg theorems for
+            free. In MFCS, 2017. doi:10.4230/LIPIcs.MFCS.2017.43.
+

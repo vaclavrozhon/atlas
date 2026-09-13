@@ -1,0 +1,1013 @@
+                                                Improved Additive Approximation Algorithms for APSP
+                                              Ce Jin∗      Yael Kirkpatrick†        Michał Stawarz‡          Virginia Vassilevska Williams§
+
+                                                                                         Abstract
+                                                   The All-Pairs Shortest Paths (APSP) is a foundational problem in theoretical computer
+                                               science. Approximating APSP in undirected unweighted graphs has been studied for many
+arXiv:2511.04775v1 [cs.DS] 6 Nov 2025
+
+
+
+
+                                               years, beginning with the work of Dor, Halperin and Zwick [SICOMP’01]. Many recent works
+                                               have attempted to improve these original algorithms using the algebraic tools of fast matrix
+                                               multiplication. We improve on these results for the following problems.
+                                                   For +2-approximate APSP, the state-of-the-art algorithm runs in O(n2.259 ) time [Dürr, IPL
+                                               2023; Deng, Kirkpatrick, Rong, Vassilevska Williams, and Zhong, ICALP 2022]. We give an
+                                               improved algorithm in O(n2.2255 ) time.
+                                                   For +4 and +6-approximate APSP, we achieve time complexities O(n2.1462 ) and O(n2.1026 )
+                                               respectively, improving the previous O(n2.155 ) and O(n2.103 ) achieved by [Saha and Ye, SODA
+                                               2024].
+                                                   In contrast to previous works, we do not use the big hammer of bounded-difference (min, +)-
+                                               product algorithms. Instead, our algorithms are based on a simple technique that decomposes
+                                               the input graph into a small number of clusters of constant diameter and a remainder of low
+                                               degree vertices, which could be of independent interest in the study of shortest paths problems.
+                                               We then use only standard fast matrix multiplication to obtain our improvements.
+
+
+
+
+                                          ∗
+                                             MIT, cejin@mit.edu, supported by the Jane Street Graduate Research Fellowship, NSF grant CCF-2330048,
+                                        and a Simons Investigator Award.
+                                           †
+                                             MIT, yaelkirk@mit.edu, supported by NSF Grant No 2141064.
+                                           ‡
+                                             ETH Zurich, m.casi321@gmail.com.
+                                           §
+                                             MIT, virgi@mit.edu, supported by NSF Grant CCF-2330048, BSF Grant 2020356 and a Simons Investigator
+                                        Award.
+1       Introduction
+All-Pairs Shortest Paths (APSP) is a fundamental problem in computer science: given an edge-
+weighted graph G = (V, E) with |V | = n vertices, for every pair of vertices u, v ∈ V , compute their
+distance d(u, v) in the graph G. The textbook Floyd–Warshall algorithm
+                                                                     √          solves APSP in O(n3 )
+time. The state-of-the-art algorithm by Williams runs in n /2   3 Ω(   log n) time [Wil18]. A central
+hypothesis in fine-grained complexity asserts that no O(n )-time algorithms can solve APSP in
+                                                           3−ε
+
+edge-weighted graphs, for any ε > 0 (see [Vas18]).
+    For unweighted graphs, better algorithms for APSP are known. Seidel [Sei95] gave an algorithm
+for undirected unweighted APSP in O(n   e ω ) time, where 2 ≤ ω < 2.3714 is the exponent of fast
+square matrix multiplication [ADV 25]. There are also subcubic time APSP algorithms for directed
+                                    +
+
+unweighted graphs, and more generally for graphs with small integer weights; see e.g., [AGM97,
+SZ99, Zwi02].
+    In this paper, we focus on undirected unweighted APSP. There remains a gap between Seidel’s
+ e ω ) time and the ideal O(n
+O(n                         e 2 ) time complexity (which would be nearly optimal). This gap can
+be explained by the Boolean Matrix Multiplication (BMM) hypothesis from fine-grained complexity,
+which asserts that multiplying two n × n matrices over the Boolean semi-ring cannot be solved in
+O(nω−ε ) time, for any ε > 01 . Since APSP in undirected unweighted graphs is known to be at
+least as hard2 as BMM [ACIM99], this suggests that Seidel’s O(ne ω ) time complexity is likely nearly
+optimal.
+    Motivated by this situation, many works in the literature have considered approximate APSP in
+order to bypass this hardness. In this paper, we focus on additive approximation: in an unweighted
+undirected graph G = (V, E), the +C-APSP problem asks to compute distance estimates d(u,       ˜ v)
+                                                          ˜ v) ≤ d(u, v) + C always holds. It is
+for every pair of vertices u, v ∈ V , so that d(u, v) ≤ d(u,
+known that +1-APSP is still as hard as BMM [ACIM99], so +2 is the smallest additive error that
+allows improvement over Seidel’s O(n
+                                   e ω ) time complexity. Dor, Halperin and Zwick [DHZ00] gave a
+combinatorial algorithm3 for +2-APSP in O(n  e 7/3 ) time, which is faster than Seidel’s exact APSP
+algorithm (for the current value of ω). Over two decades later, Deng, Kirkpatrick, Rong, Vassilevska
+Williams, and Zhong [DKR+ 22] improved the time complexity to O(n2.2867 ). Their key idea was
+to use Euler tours to design a black-box reduction to the bounded-difference (min, +)-product
+problem, which is known to have sub-cubic time algorithms [BGSV19, CDXZ22].4 Dürr [Dür23]
+further improved the +2-APSP time complexity to O(n2.259 ) by developing faster algorithms for
+rectangular bounded-difference (min, +)-product.
+    For +2k-APSP (k ≥ 2), Dor, Halperin and Zwick [DHZ00] gave faster combinatorial algorithms
+                    1
+             e 2+ 3k−1 ) time. Saha and Ye [SY24] improved [DHZ00]’s +2k-APSP algorithms by
+running in O(n
+refining the Euler-tour idea of [DKR+ 22] and the original analysis of [DHZ00]. (See Table 1.)
+    1
+     This hypothesis makes sense if ω > 2.
+    2
+     It is in fact equivalent to BMM.
+   3
+     As is typical in the literature, we informally refer to algorithms that do not use fast matrix multiplication as
+combinatorial algorithms.
+   4
+     More specifically, [DKR+ 22] used fast algorithms that compute the (min, +)-product C[i, j] = mink {A[i, k] +
+B[k, j]} of two input integer matrices A, B, where A is column bounded-difference, i.e., |A[i, j] − A[i + 1, j]| ≤ O(1)
+for all valid (i, j)’s, and B is row bounded-difference, i.e., |B[i, j] − B[i, j + 1]| ≤ O(1) for all valid (i, j)’s.
+
+
+
+
+                                                          1
+1.1   New Results
+In this paper, we give improved algorithms for +2, +4, and +6-APSP. In addition to quantitative
+improvements, our algorithms also simplify previous approaches in the sense that we no longer
+need to invoke the big hammer of bounded-difference (min, +)-product algorithms. We prove the
+following two theorems.
+Theorem 1.1. +2-APSP in an n-node unweighted undirected graph can be solved by a randomized
+algorithm in O(n2.22548 ) time.
+   Our algorithm for Theorem 1.1 uses rectangular matrix multiplication. If one only uses square
+                                                                          ω−1
+matrix multiplication, the running time of Theorem 1.1 √           e 2+ ω+3 ). Thus, the running
+                                                         would be O(n
+time will beat Seidel’s O(n
+                        e ω ) time bound as long as ω > 5 ≈ 2.236.
+   If ω = 2, our running time would be O(n e 2.2 ). In contrast, Dürr’s [Dür23] algorithm runs in
+      ω−1
+ e 2+ 2ω ) time in terms of ω and hence if ω = 2, its running time would be O(n
+O(n                                                                             e 2.25 ) and thus
+would still be slower than ours even with optimal matrix multiplication bounds.
+Theorem 1.2. +2k-APSP in an n-node unweighted undirected graph can be solved by a determin-
+istic algorithm in O(n2+x/(k+1) ) time, when x is the solution to 1 + x = ω(1 − k−1                k
+                                                                                    k+1 x, 1 − x, k+1 x).
+(See the definition of the rectangular matrix multiplication exponent ω(·, ·, ·) in Section 2.)
+    The result statement of Saha and Ye [SY24] differs from ours only in the equation defining x.
+Theirs has the form 1 + 2x = ω(1 − k−1
+                                    k+1 x, 1 − x, 1 − k+1 x), where the difference from ours appears
+                                                      k−2
+
+in boldface.
+    The result of Theorem 1.2 gives a faster algorithm than the combinatorial +2k-approximation
+of Dor, Halperin and Zwick [DHZ00] for every k. Our algorithm uses only matrix multiplication,
+without the more complex algebraic tools used in the work of Saha and Ye [SY24]. However, the
+running time is faster than the best known one of Saha and Ye only for k = 2, 3 (additive +4
+and +6 approximation). The results are summarized in Table 1, where all running times (ours
+and prior work) are computed using the code of [Bra] updated with the newest rectangular matrix
+multiplication bounds [ADV+ 25].
+
+                               +2k-Additive Approximation for APSP
+                  2k     [DHZ00] (combinatorial) [Dür23] [SY24] This work
+                   2         n2+1/3 ≤ n2.334     n2.25899             n2.22548
+                   4              n2.2                     n2.15492   n2.14613
+                   6             n 2.125                   n 2.102926 n2.102595
+                   8        n2+1/11 ≤ n2.0910              n2.077270  n2.079072
+
+                       Table 1: Comparison with previous results for +2k-APSP.
+
+
+1.2   Further Related Works
+A closely related problem is multiplicative approximate APSP. In unweighted undirected graphs, an
++2-approximation for APSP automatically yields 2-multiplicative approximation, so it is an easier
+problem. The fastest known algorithm for 2-multiplicative approximate APSP runs in O(n2.0319 )
+time [DFK+ 24, SY24], improving the previous O(n   e 2.25 )-time algorithm by [Rod23]. The main open
+question in this line of research is to achieve O(n2+o(1) ) time for 2-multiplicative approximate APSP.
+See [Gup25] for very recent progress on this question.
+
+                                                   2
+1.3    Technical Overview
+For a few decades, the +2k-approximate APSP algorithm of Dor, Halperin, and Zwick [DHZ00]
+was the fastest known additive APSP approximation. The core idea of this algorithm is selecting a
+series of degree thresholds 1 = d0 < d1 < d2 < . . . < dk and sampling hitting sets S1 , . . . , Sk of size
+|Si | = Õ(n/di ) that hit the neighborhoods of all vertices of degree ≥ di , for every i.
+     We first compute the distances out of every vertex in the smallest hitting set Sk , to compute a
+                             ˜ v) = d(u, v) for any u ∈ Sk , v ∈ V . Next, we compute the distances
+correct distance estimate d(u,
+out of every vertex in Sk−1 . However, we can’t afford to use the full edge set, so instead we only
+search on the edge set Ek−1 , consisting of edges adjacent to vertices of degree < dk and an edge from
+every vertex of degree ≥ dk to a neighbor in Sk . Additionally, when running Dijkstra’s algorithm
+from a vertex u, we include edges from u to every vertex v ∈ Sk weighted by the current distance
+estimate computed between them in the previous round.
+     Now, for any u ∈ Sk−1 , v ∈ V , if the shortest path between them contains only vertices of
+                     ˜ v) = d(u, v) since the entire shortest path between them was included in the
+degree < dk , then d(u,
+Dijkstra search. Otherwise, let w be the last vertex on the path from u to v of degree ≥ dk . There
+exists a vertex s ∈ Sk such that (s, w) ∈ Ek−1 . Thus, since the path from w to v is also included in
+Ek−1 , our search out of u considers the path u → s → w ⇝ v of weight d(u,    ˜ s) + 1 + d(w, v). Since
+s ∈ Sk we have that d(u,˜ s) = d(u, s) ≤ d(u, w) + 1 and conclude that d(u,˜ v) ≤ d(u, v) + 2.
+     We can now iterate this idea. We run Dijkstra’s out of every vertex u ∈ Sk−2 on the edge set
+Ek−2 consisting of edges adjacent to vertices of degree < dk−1 and edges connecting vertices of
+degree ≥ dk−1 to a neighbor of their in Sk−1 , in addition to an edge out of u to every vertex v
+weighted by the current best distance estimate between the pair. The same argument shows that
+all distance estimates computed out of Sk−2 will be within +4 of the true distance. Repeating this
+argument grows the additive error by +2 with every iteration, resulting in a +2k error for distances
+computed out of S0 = V .
+     Balancing the degree thresholds gives a running time of O(n   e 2−1/(k+1) m1/(k+1) ), which is the
+best known running time for sparse approximate APSP. However, for dense graphs Dor, Halperin
+and Zwick introduce additional edges to the graph search that improve the additive approximation
+to < 2k, while keeping a running time of O(n e 2+1/(k+1) ).
+     Recent work has sought to improve the dense approximate APSP algorithm using fast matrix
+multiplication. Deng et al. [DKR+ 22] noted that for a +2-approximation, we can avoid running
+Dijkstra’s out of V = Sk−1 by considering two cases. For pairs of vertices such that the shortest path
+between them contains only vertices of degree < d1 , run the sparse approximate APSP algorithm
+of Dor, Halperin and Zwick. For the remaining pairs, they show how to compute the distances out
+of S1 in O(n
+           e 2 ) time and then compute d(u,˜ v) = mins∈S d(u, s) + d(s, v) ≤ d(u, x) + 2 using the
+                                                             1
+(min, +) product.
+     In general, the (min, +)-product (likely) cannot be solved polynomially faster than brute force,
+as it is equivalent to the APSP problem. However, the authors of [DKR+ 22] showed that one can
+sort the vertices of the graph in a way (based on the Euler tour of a spanning tree) that the resulting
+matrices are column/row-bounded-difference matrices. For such matrices, there exists a subcubic
+time algorithm for computing their (min, +)-product. The following work of Dürr [Dür23] used
+faster rectangular (min, +)-product to speed up the +2 additive approximation.
+     Saha and Ye [SY24] used this same idea to improve the general +2k-approximation. Their
+algorithm replaces the first two stages of Dijkstra’s searches with a call to sparse approximate
+APSP and a (min, +)-product of the matrices representing the distances between Sk−1 , Sk and
+
+
+                                                    3
+Sk , Sk−2 .
+     In this paper, we introduce a new way to speed up the (min, +)-product computation. Instead
+of using the subcubic, but still considerably slow and complicated, bounded-difference (min, +)-
+product, we reduce the problem to a (min, +)-product with entries bounded by a constant. Due to
+a standard reduction (e.g. [SZ99]), such a product can be computed in fast matrix multiplication
+time.
+     To achieve this, we introduce a new graph decomposition technique which decomposes the graph
+into a small number of clusters of constant diameter and a remainder of low degree vertices. We then
+compute the (min,+)-product on each cluster independently. As all vertices in the cluster are within
+constant distance of each other, we can shift the values of the corresponding distance matrix such
+that the resulting matrix is bounded by a constant. This allows us to compute distances between
+pairs of vertices in the clusters. To extend our approximation to the vertices in the remainder, we
+run a sparse graph search out of every vertex on just the low degree edges adjacent to vertices in
+the remainder.
+
+1.4   Organization
+In Section 2 we prove the general decomposition lemma which we will later use in all of our al-
+gorithms. In Section 3 we prove Theorem 1.1 in two stages, beginning with a slower, simpler,
+‘warm up’ algorithm that already beats the current state of the art algorithm for +2-APSP. Finally,
+in Section 4 we prove Theorem 1.2 by extending the simpler algorithm of Section 3 to a general
++2k-approximation. We conclude with open questions in Section 5.
+
+
+2     Preliminaries
+Let [n] = {1, 2, . . . , n}. Let G = (V, E) be an undirected graph and U ⊆ V be a vertex subset.
+Let G[U ] denote the subgraph of G induced by U . Let degG (u) denote the degree of vertex u in
+graph G. Let dG (u, v) denote the distance between vertices u and v in graph G, and let PG (u, v)
+denote the shortest path from u to v, including the endpoints u, v (if more than one shortest path
+exists, for convenience we pick one that maximizes maxx∈PG (u,v) degG (x)). Let diamG (U ) denote
+the (weak) diameter of the vertex subset U , defined as diamG (U ) = maxu,v∈U dG (u, v). We omit
+the subscript G and simply write deg(u), diam(U ), d(u, v) and P (u, v) when the underlying graph
+G is clear from the context.
+    For a path P , let |P | denote the length of P (in unweighted graphs, |P | equals the number of
+edges in P ).
+                                   ˜ v) an additive +C-approximation if for every pair u, v ∈ V the
+    We call a distance estimate d(u,
+                               ˜
+estimate satisfies d(u, v) ≤ d(u, v) ≤ d(u, v) + C.
+    In our algorithms we use the following (combinatorial) algorithm for sparse additive approximate
+APSP by Dor, Halperin, and Zwick [DHZ00].
+
+Lemma 2.1 ([DHZ00]). +2k-Approximate APSP on an n-node m-edge unweighted undirected graph
+                 e 2−1/(k+1) m1/(k+1) ) time.
+can be solved in O(n
+
+    We will use this lemma on paths containing vertices of bounded degree, in which case we obtain
+the following corollary by considering the O(nd) edges adjacent to vertices of degree ≤ d.
+
+
+
+                                                 4
+Corollary 2.2. +2k-Approximate APSP between pairs of points such that a shortest path between
+                                                       e 2 d1/(k+1) ) time.
+them uses only vertices of degree ≤ d can be solved in O(n
+
+   A standard tool used in these algorithms is the hitting set, as defined in the following lemma.
+
+Lemma 2.3 (Hitting set, e.g., [ACIM99, Theorem 2.7]). Given an n-node undirected graph G =
+(V, E) and a degree threshold 1 ≤ d ≤ n, one can deterministically construct in O(n2 ) time a hitting
+set S ⊆ V of size O( n log n
+                        d ) such that every node u ∈ V of degree at least d in G is adjacent to some
+s ∈ S.
+
+    Let MM(n1 , n2 , n3 ) denote the time complexity of multiplying an n1 × n2 matrix by an n2 × n3
+matrix. We denote by ω(γ1 , γ2 , γ3 ) the exponent of MM(nγ1 , nγ2 , nγ3 ), i.e. the minimum value c
+such that the product of an nγ1 × nγ2 matrix by an nγ2 × nγ3 matrix can be computed in O(nc+ε )
+time for any ε > 0.
+    A common matrix product used in shortest path computation is the (min, +)-product, defined
+as follows.
+
+Definition 2.4 ((min, +)-matrix product). The (min, +)-product of two matrices A, B is defined
+as C = A ⋆ B where C[i, j] := mink A[i, k] + B[k, j].
+
+   When the entries of the matrices are bounded by an integer L, a standard method which encodes
+the entries as polynomials of degree O(L) allows to compute their (min, +)-product in fast matrix
+multiplication time (see e.g. [SZ99]).
+
+Lemma 2.5 ([SZ99]). Given an n1 × n2 matrix A and an n2 × n3 matrix B such that entries of both
+matrices are in {0, 1, . . . , L, ∞}, computing C = A ⋆ B can be done in time O(L
+                                                                              e · MM(n1 , n2 , n3 )).
+
+2.1   A Decomposition Lemma
+Next, we prove the following decomposition lemma, which is a key component in our new approx-
+imation algorithms. The lemma shows that for any threshold d we can decompose our graph into
+disjoint clusters of size greater than d with constant diameter. The remaining vertices that are
+not assigned to clusters will all have degree smaller than d. While the decomposition itself is quite
+simple, the bounded diameter of the resulting clusters making up the graph is crucial in allowing
+for faster computation of their approximate shortest paths.
+
+Lemma 2.6. Let 1 ≤ d ≤ n. Given an m-edge undirected unweightedSgraph G = (V, E), in O(m)
+time we can deterministically decompose V into a disjoint union R ∪ hi=1 Hi such that:
+   • |Hi | > d for all i ∈ [h].
+   • diam(Hi ) := maxu,v∈Hi dG (u, v) ≤ 4 for all i ∈ [h].
+   • degG (u) < d for all u ∈ R.
+
+Proof. We begin constructing the clusters iteratively. Initialize U = V . While there exists u ∈ U
+such that degG[U ] (u) ≥ d, create a new cluster Hi′ containing u and all of u’s neighbors in U . Remove
+the vertices of Hi′ from U and iterate until no vertex in G[U ] has degree ≥ d and we have created
+h clusters H1′ , . . . , Hh′ . Note that by taking Hi′ to be the neighborhood of a high degree vertex we
+guarantee that |Hi′ | > d and diam(Hi′ ) ≤ 2.
+
+
+
+                                                   5
+    Next, beginning with i = 1 and iterating over the clusters, we define Hi′′ to be the vertices in U
+that are adjacent to a vertex in Hi′ , and remove Hi′′ from U . We return Hi := Hi′ ∪ Hi′′ and set R
+to be the remaining vertices in U at the end of this process.
+    When we can no longer create new clusters at the first stage, we have that every vertex u ∈ U
+has < d neighbors in U . Thus, for every u ∈ U , if degG (u) ≥ d, it must have a neighbor in Hi′ for
+some i ∈ [h] and so this vertex will have been added to Hi′′ and removed from U . We conclude that
+all vertices u ∈ R have degree degG (u) < d. Finally, since diam(Hi′ ) ≤ 2 and all vertices in Hi′′
+are adjacent to Hi′ we have that diam(Hi ) ≤ 4 for every i ∈ [h]. Since |Hi′ | > d we also have that
+|Hi | > d.
+
+2.2    A Min-Plus Lemma
+Lastly, we prove the following lemma about computing the (min, +) product of a matrix representing
+the distances from a set of low diameter.
+
+Lemma 2.7. Let integer parameter L ≥ 1. Given input matrices A ∈ Zn1 ×n2 and B ∈ Zn2 ×n3 such
+that |B[k, j] − B[k, j ′ ]| ≤ L for all k ∈ [n2 ] and all j, j ′ ∈ [n3 ], we can compute the (min, +)-product
+of A and B in O(Le · MM(n1 , n2 , n3 )) time.
+
+Proof. For k ∈ [n2 ], let ∆k := minj∈[n3 ] B[k, j], and define matrix B ′ ∈ Zn2 ×n3 by B ′ [k, j] :=
+B[k, j] − ∆k . Then, all entries of B ′ are in {0, 1, . . . , L}. Define matrix A′ ∈ Zn1 ×n2 by A′ [i, k] :=
+A[i, k] + ∆k . Then the (min, +)-product of A and B equals the (min, +)-product of A′ and B ′ , so
+it suffices to compute the latter (and we denote the answer by C ∈ Zn1 ×n3 ).
+    For i ∈ [n1 ], let mi := mink∈[n2 ] A′ [i, k]. Then, since 0 ≤ B ′ [k, j] ≤ L, we have C[i, j] =
+mink∈[n2 ] {A′ [i, k] + B ′ [k, j]} ∈ [mi , mi + L] for all i, j. Thus, if A′ [i, k0 ] > mi + L, then A′ [i, k0 ]
+is useless since A′ [i, k0 ] + B ′ [k0 , j] > C[i, j] for all j, so we can replace the entry A′ [i, k0 ] by +∞
+without changing the (min, +)-product of A′ and B ′ . Then, every entry A′ [i, k] is either +∞ or in
+[mi , mi + L]. Define the matrix A′′ ∈ Zn1 ×n2 by A′′ [i, k] := A′ [i, k] − mi ∈ {0, 1, . . . , L, +∞}. We
+compute the (min, +)-product C ′′ between A′′ ∈ {0, 1, . . . , L, +∞}n1 ×n2 and B ′ ∈ {0, 1, . . . , L}n2 ×n3
+in O(L
+    e · MM(n1 , n2 , n3 )) time using Lemma 2.5.
+    Finally, return the answer matrix C[i, j] = C ′′ [i, j] + mi .
+
+
+3     Faster +2-Approximate APSP
+3.1    A Warm-Up Algorithm
+Now we describe our algorithms for computing +2-Approximate APSP based on the decomposition
+given in Lemma 2.6. In this section we present a warm-up algorithm (Corollary 3.2) which already
+improves over the state-of-the-art algorithms [DKR+ 22, Dür23]. In the next section we will give
+further improvement using more technical ideas.
+    We use a standard argument (which was also used in [DKR+ 22, Dür23]) that assumes the nodes
+on the (true) shortest paths under consideration have maximum degree Θ(D). More specifically, we
+will prove the following main lemma:
+
+Lemma 3.1. Let G = (V, E) be an n-vertex undirected unweighted graph, and parameter 1 ≤ D ≤ n.
+Let dD (u, v) denote the minimum length of any (not necessarily simple) path P from u to v such that
+
+
+
+                                                       6
+maxx∈P deg(x) ∈ [D, 2D]. We can compute distance estimates d(u,    ˜ v) such that d(u, v) ≤ d(u,
+                                                                                            ˜ v) ≤
+                                       2
+dD (u, v) + 2 holds for all (u, v) ∈ V , by a deterministic algorithm with time complexity
+                                                          n o
+                                           n
+                                              2    n
+                                 e min n d + MM n, , d
+                                 O                                     .
+                                     1≤d<D         d          D
+
+   We analyze the overall time complexity for +2-Approximate APSP obtained from Lemma 3.1:
+
+Corollary 3.2 (Warm-Up +2-APSP). +2-Approximate APSP has a deterministic algorithm in
+O(n2.2548 ) time.
+
+Proof. We enumerate 1 ≤ D ≤ n that are powers of two, and compute distance estimates d(u,      ˜ v) ∈
+[d(u, v), d(u, v) + 2] for pairs (u, v) satisfying maxx∈P (u,v) deg(x) ∈ [D, 2D] (note that dD (u, v) =
+d(u, v) holds for such u, v). Finally we combine the answers across all D. Then, for given D, we
+can without loss of generality assume the input graph has maximum degree at most 2D, and hence
+number of edges at most Dn. We run either Lemma 3.1 or Corollary 2.2 (whichever      √     is faster) to
+compute the distance estimates. The time complexity of Corollary 2.2 is O(n     e 2 D). The overall
+time complexity for +2-APSP is thus
+                                           √
+                                                                    n o
+                                         2
+                                                     n
+                                                       2      n
+                     O max min n D, min n d + MM n, , d
+                      e                                                            .
+                          1≤D≤n                1≤d<D          d          D
+
+Using current fastest algorithms for rectangular matrix multiplication [ADV+ 25], the time complex-
+ity can be bounded by n2.2548 [Bra].
+    If we only use square matrix multiplication, then in the above expression it is optimal to pick
+d = (n/D)1/(4−ω) ≤ n/D, so the time complexity becomes
+            √                                               √                             1
+O(max
+e     min{n2 D, n2 d + nd · (n/d)( D
+                                   n
+                                     /d)dω }) = O(max
+                                                e     min{n2 D, n2 ( D
+                                                                     n 1/(4−ω)
+                                                                       )            e 2+ 6−ω ).
+                                                                               }) = O(n
+    D                                                   D
+
+
+
+
+   Now we describe our algorithm for given degree parameter D:
+
+Proof of Lemma 3.1. Without loss of generality, we can assume the input graph G = (V, E) has
+maximum degree at most 2D, and hence number of edges m ≤ Dn.
+   Deterministically construct a hitting set (Lemma 2.3) S ⊂ V of size O( n log n
+                                                                              D ) such that every
+x ∈ V with deg(x) ≥ D is adjacent to some vertex sx ∈ S. Thus, if dD (u, v) is realized by the path
+P which connects u, v and contains a vertex x of degree deg(x) ≥ D, then
+
+ d(u, v) ≤ min{d(u, s) + d(s, v)} ≤ d(u, sx ) + d(sx , v) ≤ d(u, x) + 1 + d(x, v) + 1 = dD (u, v) + 2. (1)
+           s∈S
+
+We run BFS from every s ∈ S on G to compute d(s, u) for all (s, u) ∈ S × V , in total time
+O(|S|m) ≤ O(n/D)
+             e              e 2 ).
+                    · Dn = O(n
+    Let 1 ≤ d < D be a tunable     parameter. Run Lemma 2.6 with parameter d, and obtain the
+vertex partition V = R ∪ hi=1 Hi , where each cluster Hi has size |Hi | ≥ d and (weak) diameter
+                           S
+diam(Hi ) ≤ 4. For convenience, we assume without loss of generality that |Hi | ≤ 2d for all i (by
+possibly breaking larger clusters into smaller ones, which does not increase their weak diameter),
+and we still have h = O(n/d) clusters in total.
+
+
+                                                    7
+                                     ˜ Hi ] as the (min, +) product between the distance matrices
+    For each cluster Hi , we compute d[V,
+d[V, S] and d[S, Hi ] using Lemma 2.7. Note that the parameter L in Lemma 2.7 can be bounded
+using the triangle inequality by L = maxs∈S,v,v′ ∈Hi |d(s, v) − d(s, v ′ )| ≤ maxs∈S,v,v′ ∈Hi d(v, v ′ ) =
+diam(Hi ) ≤ O(1). Thus, the total time for invoking Lemma 2.7 over all h = O(n/d) clusters is
+                       n
+                                                           e n MM(n, n/D, d) .
+                                                                              
+                     O      ·Oe L · MM(|V |, |S|, |Hi |) = O
+                         d                                     d
+
+By Equation (1), d(v,˜ h) (i.e., the (v, h)-th entry in the (min, +)-product between d[V, S] and
+d[S, Hi ]) is a +2-approximation    of dD (v, h), so we have already computed the desired answers
+for pairs (v, h) ∈ V × hi=1 Hi . It remains to compute answers for the pairs (v, r) ∈ V × R.
+                      S
+    We enumerate each v ∈ V , and compute answers for the pairs v × R using the following lemma:
+Lemma 3.3. For v ∈ V , suppose for all w ∈ V \ R we know distance estimates d(v,˜ w) such that
+          ˜                                                                               ˜ w)
+d(v, w) ≤ d(v, w) ≤ dD (v, w) + 2. Then, in O(nd) time, we can compute distance estimates d(v,
+                                            e
+                    ˜ w) ≤ dD (v, w) + 2, for all w ∈ V .
+such that d(v, w) ≤ d(v,
+
+Proof. Define a (weighted) auxiliary graph Gv on the same vertex set V as follows:
+    • For every r ∈ R, include all         P the neighboring edges of r into Gv . Since degG (r) < d by
+      Lemma 2.6, we have added r∈R degG (r) ≤ |R|d ≤ nd edges.
+    • For every h ∈ hi=1 Hi , add an edge into Gv between v and h with edge weight d(v,                 ˜ h). This
+                            S
+      step adds only ≤ n edges to Gv .
+Then, use Dijkstra’s algorithm to compute the distances from v to all vertices on Gv in O(|E(G        e        v )|) =
+                                                                        ˜
+O(nd) time, and return these results as our distance estimates d(v, r) for all r ∈ R. By construction
+ e
+of Gv , it is clear that dGv (v, r) does not underestimate the true distance dG (v, r), so it remains to
+prove that they achieve +2-approximation.
+    Suppose dD (v, r) is realized by the path P from v to r with maxx∈P deg(x) ≥ D. If all vertices
+on P are contained in R, then by construction of Gv , all edges on the path P (v, r) are included in Gv ,
+so dGv (v, r) ≤ dD (v, r) < dD (v, r)+2 as claimed. It remains to consider the case where P is not fully
+contained in R. Let h be the last vertex on P such that h ∈         / R (we know h exists and h ̸= r ∈ R).
+Let r1 , r2 , . . . , r be the vertices after h on the path P . Then, r1 , r2 , . . . , r ∈ R by definition of h. By
+construction of Gv , this means the edges on the suffix Phr = h → r1 → r2 → · · · → r of the path P
+are included in Gv . Since Gv also contains edge (v, h) of weight d(v,      ˜ h), we obtain
+
+                                ˜ h) + |Phr | ≤ (dD (v, h) + 2) + |Phr | ≤ dD (v, r) + 2
+                   dGv (v, r) ≤ d(v,
+
+as desired, where the second inequality follows from the input assumption and h ∈ V \R, and the last
+inequality is justified as follows: Recall maxx∈P deg(x) ∈ [D, 2D], whereas the vertices after h on
+path P , namely r1 , r2 , . . . , r, all belong to R and hence have degree < d < D. Therefore, the prefix
+v ⇝ h of the path P contains a node of degree in [D, 2D], which implies dD (v, h) ≤ dD (v, r) − |Phr |
+as required.
+
+    The total time of applying the above Lemma 3.3 for all v ∈ V is O(n
+                                                                    e 2 d). This finishes the proof
+of Lemma 3.1.
+
+
+
+
+                                                          8
+3.2    A Faster Algorithm
+In the previous algorithm, we separately computed the (min, +)-product between d[V, S] and d[S, Hi ]
+for every cluster Hi . In this section, we obtain a speed-up by considering all clusters together.
+More specifically, the
+                     Shfirst step of our improved
+                                          Sh      algorithm is to efficiently compute the (min, +)-
+product between d[ i=1 Hi , S] and d[S, i=1 Hi ]. This step uses the technique of false positives
+mod prime, which was also a crucial ingredient in the state-of-the-art bounded-difference (min, +)-
+product algorithm [CDXZ22]. This step can be formalized as the following technical lemma:
+Lemma 3.4. Let integer parameter L ≥ 1. Let A ∈ Zhd×s , B ∈ Zs×hd be input matrices with entries
+in [−U, U ]. Partition the indices i ∈ {1, 2, . . . , hd} into h contiguous groups each of size d (so that
+i belongs to the ⌈i/d⌉-th group).
+    Suppose |A[i, k] − A[i′ , k]| ≤ L holds for all k ∈ [s] and all i, i′ in the same group, and |B[k, j] −
+B[k, j ′ ]| ≤ L holds for all k ∈ [s] and all j, j ′ in the same group.
+    Then, for any parameter q ≥ 1, we can compute the (min, +)-product of A and B by a randomized
+algorithm in time complexity
+                    e h2 s + qL · MM(hd, s, hd) + h2 L · MM(d, s/q, d) · poly log(U ).
+                                                                            
+                    O
+
+Proof. Throughout, we use the shorthand î = ⌈i/d⌉ and ĵ = ⌈j/d⌉ to denote the groups that contain
+indices i and j respectively.
+     Let C ∈ Zhd×hd denote the (min, +)-product of A and B which we want to compute. We first
+efficiently compute an O(L)-additive approximation of C as follows: Define matrix A′ ∈ Zh×s by
+                                           $                   %
+                                           A′ [î, k] :=    1
+                                                            L       min         A[i, k] ,
+                                                                (î−1)d<i≤îd
+
+and define matrix A′′ ∈ Zhd×s by
+
+                                             A′′ [i, k] := A[i, k] − L · A′ [î, k].                                     (2)
+
+Then, observe that the input assumption on A implies
+
+                                                       0 ≤ A′′ [i, k] < 2L                                               (3)
+
+for all i ∈ [hd] and k ∈ [s]. We define matrices B ′ ∈ Zs×h and B ′′ ∈ Zs×hd analogously with
+
+                                            B ′′ [k, j] := B[k, j] − L · B ′ [k, ĵ],                                    (4)
+
+and
+                                                       0 ≤ B ′′ [k, j] < 2L                                              (5)
+for all k ∈ [s], j ∈ [hd]. We compute C ′ ∈ Zh×h as the (min, +)-product of A′ , B ′ by brute force
+in time O(h2 s). From Equations (3) and (5) we can observe that C ′ provides an O(L)-additive
+approximation of the true (min, +)-product C in the sense that
+
+                                              0 ≤ C[i, j] − L · C ′ [î, ĵ] < 4L                                        (6)
+
+holds for all i, j ∈ [hd]. Thus, if k is a witness for C[i, j] (i.e., A[i, k] + B[k, j] = C[i, j]), then
+                                                    1
+        A′ [î, k] + B ′ [k, ĵ] − C ′ [î, ĵ] =     −A′′ [i, k] − B ′′ [k, j] + A[i, k] + B[k, j] − L · C ′ [î, ĵ]
+                                                    L
+
+                                                                  9
+                                             1
+                                           =    −A′′ [i, k] − B ′′ [k, j] + C[i, j] − L · C ′ [î, ĵ]
+                                             L
+                                           < 4,                                                                (7)
+
+where the last step follows from Equations (3), (5) and (6).
+   Pick a random prime p ∈ Θ(q log U ). Define an hd × s matrix Ã where each entry is a bivariate
+monomial defined as
+                                                 ′                ′′
+                                   Ã[i, k] := xA [î,k] mod p y A [i,k] ,
+which has x-degree less than p = O(q log U ) and y-degree less than 2L (by Equation (3)). Define
+s × hd matrix B̃ analogously. Compute hd × hd matrix C̃ as the product of Ã and B̃ via Fast Matrix
+Multiplication and FFT (e.g., [SZ99]) in O(MM(hd,
+                                         e                s, hd) · (q log U ) · (2L)) time, so
+                                          ′        ′                 ′′      ′′
+                                    X
+                         C̃[i, j] =    x(A [î,k]+B [k,ĵ]) mod p y A [i,k]+B [k,j] .
+                                          k∈[s]
+
+  Recall every witness k for C[i, j] satisfies Equation (7). In particular, k satisfies the following
+mod-p version of Equation (7):
+
+                           A′ [î, k] + B ′ [k, ĵ] ∈ C ′ [î, ĵ] + {−3, . . . , 3}   (mod p).                (8)
+
+Hence k contributes a term in the polynomial C̃[i, j] with x-degree in C ′ [î, ĵ]+{−3, . . . , 3} (mod p).
+We say a triple (î, k, ĵ) ∈ [h] × [s] × [h] is a false positive if it does not satisfy Equation (7), but
+satisfies Equation (8). Then, for every (i, j) ∈ [hd] × [hd], compute the polynomial
+                                                        ′        ′                 ′′      ′′
+                                       X
+                  C̃[i, j] −                         x(A [î,k]+B [k,ĵ]) mod p y A [i,k]+B [k,j] .      (9)
+                              k:(î,k,ĵ) is a false positive
+
+We describe how to compute these polynomials later.
+                                                                                      ′  ′′
+      Consider each (i, j) ∈ [hd] × [hd]. We enumerate every non-zero xc y c term in the polynomial
+Equation (9) that satisfies c′ ∈ C ′ [î, ĵ] + {−3, . . . , 3} (mod p). Then, this term must originate
+                    ′         ′            ′′     ′′
+from some x(A [î,k]+B [k,ĵ]) mod p y A [i,k]+B [k,j] where A′ [î, k] + B ′ [k, ĵ] equals the unique integer in
+C ′ [î, ĵ] + {−3, . . . , 3} that is congruent to c′ modulo p (since the contribution from false positives
+has been removed), and A′′ [i, k] + B ′′ [k, j] = c′′ . Then, the corresponding value of A[i, k] + B[k, j]
+can be recovered via Equations (2) and (4) as
+
+                    A[i, k] + B[k, j] = L · (A′ [î, k] + B ′ [k, ĵ]) + (A′′ [i, k] + B ′′ [k, j]),
+
+and we use it to update the candidate answer for C[i, j]. This algorithm correctly computes all
+C[i, j] since all potential witnesses k for each C[i, j] have been considered.
+    Now it remains to analyze the total time complexity for computing the polynomial in Equa-
+tion (9) for all (i, j) ∈ [hd] × [hd]; since the first term C̃[i, j] is already computed, we focus on
+computing the second term (summation over k) in Equation (9). For î, ĵ ∈ [h], r ∈ {−3, . . . , 3},
+define set (which can be computed in O(h2 s) time by brute force enumeration)
+               n                                                                                                 o
+    Fî,ĵ,r := k ∈ [s] : (î, k, ĵ) is a false positive and A′ [î, k] + B ′ [k, ĵ] ≡ C ′ [î, ĵ] + r (mod p) .
+
+
+
+
+                                                                10
+Fix (î, ĵ) ∈ [h] × [h]. The second term in Equation (9) for any (i, j) ∈ ((î − 1)d, îd] × ((ĵ − 1)d, ĵd]
+can be written as
+                                          ′                      ′′          ′′
+                                X                           X
+                                       x(C [î,ĵ]+r) mod p   y A [i,k] · y B [k,j] .
+                             r∈{−3,...,3}                  k∈Fî,ĵ,r
+
+We can compute this for all (i, j) ∈ ((î − 1)d, îd] × ((ĵ − 1)d, ĵd] using matrix multiplications of
+dimension d×|Fî,ĵ,r |×d for r ∈ {−3, . . . , 3} where each entry is a degree-O(L) univariate polynomial
+in y, in time                          |F |, d) · L). Note that k ∈ F           holds only if p is a prime
+              P
+                            O(MM(d,
+                             e
+                  r∈{−3,...,3}            î,ĵ,r                             î,ĵ,r
+factor of the non-zero integer A [î, k] + B [k, ĵ] − C [î, ĵ] − r, which happens with probability (over
+                                ′                ′      ′
+
+random prime p ∈ Θ(q log U )) at most O(1/q) by the prime number theorem.                  Hence, by linearity
+of expectation and Markov’s inequality, for fixed (î, ĵ) ∈ [h]2 , we have r∈{−3,...,3} |Fî,ĵ,r | = O(s/q)
+                                                                                  P
+with ≥ 0.99 success probability. In this successful case, the time for computing Equation (9) (which
+then allows to compute C[i, j]) for all (i, j) ∈ ((î − 1)d, îd] × ((ĵ − 1)d, ĵd] becomes O(MM(d,
+                                                                                             e        s/q, d) ·
+L). The total time over all (î, ĵ) ∈ [h] is O(h MM(d, s/q, d) · L). We repeat the whole process
+                                          2     e     2
+
+O(log h) times with independent random primes p, so that with high probability every (î, ĵ) ∈ [h]2
+is successful at least once.
+    The total time is O(h
+                        e 2 s + MM(hd, s, hd) · (q log U ) · (2L) + h2 MM(d, s/q, d) · L) as claimed.
+
+    Now we use Lemma 3.4 to prove the following lemma:
+
+Lemma 3.5. Let G = (V, E) be an n-vertex undirected unweighted graph, and parameter 1 ≤ D ≤ n.
+Let dD (u, v) denote the minimum length of any (not necessarily simple) path P from u to v such that
+maxx∈P deg(x) ∈ [D, 2D]. We can compute distance estimates d(u,  ˜ v) such that d(u, v) ≤ d(u,
+                                                                                           ˜ v) ≤
+                                2
+dD (u, v) + 2 for all (u, v) ∈ V , by a randomized algorithm with time complexity
+                                n 2 n            n   n 2                    
+                            2                                                    n
+         Oe     min        n d+        ·   + q · MM n, , n +          · MM d,      ,d      .
+             1≤d<D,q≥1             d     D              D         d             Dq
+
+Proof sketch. The first few steps are identical to the proof of Lemma 3.1: We have a hitting set
+S ⊂ V of size |S| =ShO(n/D) and we compute d(s, u) for all (s, u) ∈ S × V . We obtain the vertex
+                      e
+partition V = R ∪ i=1 Hi where |Hi | = Θ(d), diam(Hi ) = L = O(1) and maxr∈R deg(r) ≤ d. Here
+1 ≤ d < D and h = O(n/d).
+   Then, we use Lemma 3.4 to compute the (min, +)-product of the distance matrices d[ hi=1 Hi , S]
+                                                                                     S
+         Sh
+and d[S, i=1 Hi ]. The time complexity of Lemma 3.4 is (where q ≥ 1 is a tunable parameter)
+                                                                       
+                        n  2 n             n   n 2                n
+                  Oe        ·   + q · MM n, , n +            · MM d,     ,d   .
+                        d     D               D          d           Dq
+
+    We now have +2-approximation of dD (u, v) for all (u, v) ∈ hi=1 Hi × hi=1 Hi = (V \R)×(V \R).
+                                                              S         S
+Based on these answers, use Lemma 3.3 to obtain +2-approximation of dD (u, v) for all (u, v) ∈
+V × (V \ R), in total time O(n
+                           e 2 d), in an analogous way to the last part of the proof of Lemma 3.1.
+Then, based on these answers, again use Lemma 3.3 to obtain +2-approximation of dD (u, v) for all
+(u, v) ∈ V × V in total time O(n
+                             e 2 d).
+
+    Finally we analyze the overall time complexity obtained from Lemma 3.5:
+
+
+
+
+                                                      11
+Proof of Theorem 1.1. As before, we enumerate 1 ≤ D ≤ n that are powers of two, and compute
+                      ˜ v) ∈ [d(u, v), d(u, v) + 2] for pairs (u, v) satisfying maxx∈P (u,v) deg(x) ∈
+distance estimates d(u,
+[D, 2D] (note that dD (u, v) = d(u, v) holds for such u, v). Finally we combine the answers across all
+D. Then, for given D, we can without loss of generality assume the input graph has maximum degree
+at most 2D, and hence number of edges at most O(Dn). We run either Lemma 3.5 or Corollary 2.2
+(whichever
+       √    is faster) to compute the distance estimates. The time complexity of Corollary 2.2 is
+O(n D). The overall time complexity for +2-APSP is thus
+ e   2
+
+
+                     √
+                                          n 2 n              n   n 2                     
+                   2                   2                                                       n
+O max min n D, min
+ e                                   n d+          ·   + q · MM n, , n +            · MM d,      ,d     .
+     1≤D≤n               1≤d<D,q≥1            d      D               D         d              Dq
+
+    We first show how to set the parameters d and q in terms of D when we only use square matrix
+multiplication. We will show that we can set d and q such that n ≥ Ddq. If this is the case, for
+fixed D, the running time becomes
+                        √                                      nω       n3
+                                             n 2 n                       
+                      2                  2
+                min n D, min           n d+         ·    + q · ω−2 +             .
+                            1≤d<D,q≥1           d     D       D      Dd3−ω q
+                                                 3−ω
+   Now, assuming that n ≥ Dd, set q = ( Dd   n
+                                               ) 2 to balance the latter two terms in the running
+time above. Verify that with this setting of q, Dd
+                                                n
+                                                    ≥ q, as needed.
+   The time complexity is now
+                              √                     n3     n3+ω 1/2 
+                                        
+                            2                2
+                     min n D, min n d + 2 +                                 .
+                                   1≤d<D           d D      Dω−1 d3−ω
+
+                       3
+                                                                         1/2                ω−1
+                                                                n3+ω
+   Note that n2 d ≥ dn2 D iff d ≥ (n/D)1/3 , and n2 d ≥       Dω−1 d3−ω
+                                                                                 iff d ≥ (n/D) 5−ω ≥ (n/D)1/3 .
+                                                              ω−1
+Hence to minimize the running time, we set d = (n/D) 5−ω which gives us a running time of
+                                     n √                ω−1
+                                                            o
+                                 min n2 D, n2 · (n/D) 5−ω .
+
+   We verify that this setting of d also gives us that n ≥ Ddq, as desired.
+   Finally, the running time is the maximum over all D ≤ n of the above quantity. The worst-case
+                                   √                    ω−1                    2ω−2
+running time is achieved when n2 D = n2 · (n/D) 5−ω , i.e. when D = n ω+3 . Thus, the final
+                                               ω−1
+runtime for +2 APSP in terms of ω is O(ne 2+ ω+3 ).
+   For the current value of ω, ω < 2.371339 [ADV+ 25], the bound is n2.25531√ . As ω goes to 2 the
+runtime goes to n2.2 , and the exponent 2 + ω−1
+                                             ω+3   is smaller than ω if ω >  5 ≈ 2.236.
+   To bound the running time using rectangular matrix multiplication we proceed as follows. Let
+D = nb , d = nδ , q = nz and minimize
+
+           max{2 + b/2, 2 + δ, 3 − 2δ − b, z + ω(1, 1 − b, 1), 2 − 2δ + ω(δ, 1 − z − b, δ)}.
+
+   We use the code of [Bra] updated with the newest rectangular matrix multiplication bounds
+[ADV+ 25] and obtain that b = 0.45095703, δ = 0.22547851, z = 0.15981814 gives running time
+O(n2.225479 ).
+
+
+
+
+                                                  12
+4    Faster +2k-Approximate APSP
+In this section we use the clustering technique introduced in Section 2.1 to construct a new algorithm
+for +2k-approximate APSP, resulting in a faster runtime for +4 and +6-approximate APSP. We
+note that for additive error of +8 and up this approach is no longer faster than that of Saha and
+Ye [SY24]. We prove Theorem 1.2.
+
+Theorem 1.2. +2k-APSP in an n-node unweighted undirected graph can be solved by a determin-
+istic algorithm in O(n2+x/(k+1) ) time, when x is the solution to 1 + x = ω(1 − k−1                k
+                                                                                    k+1 x, 1 − x, k+1 x).
+(See the definition of the rectangular matrix multiplication exponent ω(·, ·, ·) in Section 2.)
+
+   Using standard techniques as explained in Corollary 3.2, we can assume the maximum degree
+on the true shortest path is Θ(D). We will use the following generalization of Lemma 3.1.
+
+Lemma 4.1. Let G = (V, E) be an n-vertex undirected unweighted graph, U ⊂ V and parameter
+1 ≤ D ≤ n. Denote dD (u, v) as the minimum length of any (not necessarily simple) path P from
+u to v such that maxx∈P deg(x) ∈ [D, 2D]. We can compute distance estimates d(u,˜ v) such that
+           ˜
+d(u, v) ≤ d(u, v) ≤ dD (u, v) + 2 for all u ∈ U, v ∈ V , by a deterministic algorithm with time
+complexity                                                        
+                                     n         n           n o
+                          O min |U | · nd + MM |U |, , d
+                           e                                         .
+                               1≤d<D           d            D
+   The proof of this lemma follows directly from the proof of Lemma 3.1, by restricting the (min, +)-
+products and graph search to the subset U .
+   Next, assuming we have computed a +2-approximation for distances out of a hitting set U
+which hits the neighborhood of all vertices of degree ≥ δ, we use the following lemma to extend
+these estimates to a +2k-approximation to all distances.
+
+Lemma 4.2. Let G = (V, E) be an n-vertex undirected unweighted graph and parameters 1 ≤ δ ≤
+D ≤ n. Let U ⊂ V be a hitting set of size |U | = O(n/δ)
+                                                    e      for the neighborhoods of vertices of degree
+                                   ˜
+≥ δ. Given distance estimates d(u, v) such that d(u, v) ≤ d(u,  ˜ v) ≤ dD (u, v) + 2 for every pair
+                                                    ˜ v) such that d(u, v) ≤ d(u,
+u ∈ U, v ∈ V , we can compute distance estimates d(u,                         ˜ v) ≤ dD (u, v) + 2k
+for all u, v ∈ V , by a deterministic algorithm with time complexity
+
+                                            O(n2 δ 1/(k−1) ).
+
+Proof. Without loss of generality, assume G has maximum degree at most 2D. Define the degree
+thresholds 1 = d0 < d1 < . . . < dk−1 = δ by di = δ i/(k−1) . For every 1 ≤ i ≤ k − 2, deterministically
+construct a hitting set Si of size |Si | = O(n/d
+                                           e    i ) that hits the neighborhoods of all vertices of degree
+≥ di (Lemma 2.3). Set Sk−1 = U , and S0 = V . For every 0 ≤ i ≤ k − 2, define the edge set Ei to
+include all edges adjacent to vertices of degree < di+1 . For every vertex v of degree ≥ di+1 , include
+in Ei an edge connecting v to an arbitrary neighbor in Si+1 .
+    Recall that we initially have distance estimates d(u,˜ v) between u ∈ U, v ∈ V ; initialize d(u,
+                                                                                                   ˜ v)
+to +∞ for the remaining pairs. Beginning with i = k − 2 and going down to i = 0, run the following
+Dijkstra’s searches. For every vertex u ∈ Si , add an edge from u to every v ∈ V of weight d(u,   ˜ v).
+Run Dijkstra’s algorithm out of u on the union of these edges and the edge set Ei . Update d˜ with
+the new distances computed.
+
+
+
+                                                   13
+   Note that |Ei | = O(n · δ (i+1)/(k−1) ) and so running |Si | Dijkstra’s searches (where 0 ≤ i ≤ k − 2)
+takes total time
+                                             n                                       
+                                                        (i+1)/(k−1)           2 1/(k−1)
+                O(|Si | · (n + |Ei |)) = O i/(k−1) · nδ
+                 e                       e                            =O n δ
+                                                                         e                .
+                                             δ
+Assuming k = O(1), the total runtime of running all the searches is O(n
+                                                                    e 2 δ 1/(k−1) ). We are left to
+prove the bound on the approximation error. We do so using the following inductive claim.
+                                                 ˜ v) ≤ dD (u, v)+2(k −i) for every u ∈ Si , v ∈ V .
+Claim 4.3. After searching out of Si , d(u, v) ≤ d(u,
+
+Proof. All distances computed in the Dijkstra’s searches stem from true paths in the graph, so we
+              ˜ v) ≥ d(u, v). We now show the upper bound inductively.
+always have d(u,
+    For i = k − 1 we do not perform a search out of Sk−1 = U but rather use the provided distance
+                                        ˜ v) ≤ dD (u, v) + 2 = dD (u, v) + 2(k − i) as required.
+estimates that are guaranteed to have d(u,
+    Now, for 0 ≤ i ≤ k − 2, assuming the claim holds for Si+1 , consider a vertex pair u ∈ Si , v ∈ V ,
+and the path P from u to v that realizes dD (u, v) with maxx∈P deg(x) ∈ [D, 2D]. Let w be the
+closest vertex to v on P with deg(w) ≥ di+1 and let s ∈ Si+1 be a neighbor of w such that (s, w) ∈ Ei .
+    Since maxx∈P deg(x) ∈ [D, 2D], whereas all vertices beyond w on P have degree < di+1 ≤
+dk−1 = δ ≤ D, we have that maxx∈Puw deg(x) ∈ [D, 2D], where Puw denotes the prefix of P up
+to node w. Appending node s to Puw yields a path from u to s which has a highest degree in
+[D, 2D] and has length |Puw | + 1 = dD (u, v) − d(w, v) + 1. Hence, dD (u, s) ≤ dD (u, v) − d(w, v) + 1.
+Since s ∈ Si+1 , by the inductive hypothesis we conclude d(u,  ˜ s) ≤ dD (u, s) + 2(k − i − 1) ≤
+dD (u, v) − d(w, v) + 1 + 2(k − i − 1).
+    When running Dijkstra’s out of u ∈ Si we have an edge from u to s of weight d(u,   ˜ s). Further-
+more, the edge (w, s) ∈ Ei , and the suffix of the path P from w to v is contained in Ei . Therefore,
+˜ v) ≤ d(u,
+d(u,   ˜ s)+1+d(w, v) ≤ dD (u, v)−d(w, v)+1+2(k −i−1)+1+d(w, v) = dD (u, v)+2(k −i),
+
+which proves the claim.
+                                                              ˜ v) ≤ dD (u, v) + 2k for every pair
+    Thus, after running Dijkstra’s out of V = S0 we have that d(u,
+of vertices u, v ∈ V .
+
+   We can now combine Lemma 4.1, Lemma 4.2 and Corollary 2.2 to prove Theorem 1.2.
+
+Proof of Theorem 1.2. Enumerate over 1 ≤ D ≤ n that are powers of two and compute distance
+           ˜ v) ∈ [d(u, v), d(u, v) + 2k] for pairs u, v satisfying maxx∈P (u,v) deg(x) ∈ [D, 2D] (note
+estimates d(u,
+that dD (u, v) = d(u, v) holds for such u, v). Finally we combine the answers across all values of D
+by taking the minimum value of d(u, ˜ v) computed for every pair, since we are guaranteed that for
+all values of D, the estimate computed is an upper bound to the true distance.
+    Thus, for a given D, we can assume the given input graph has maximum degree at most 2D. We
+can compute our distance estimate in one of the following two ways. First, we can use Corollary 2.2
+                                     1
+              ˜ v) in time Õ(n2 D k+1 ).
+to compute d(u,
+    Otherwise,   we can set a parameter δ ≤ D and deterministically construct a hitting set U of size
+Õ nδ that hits the neighborhood of all vertices of degree ≥ δ via Lemma 2.3. Using Lemma 4.1,
+      
+                              ˜ v) such that d(u, v) ≤ d(u,
+compute distance estimates d(u,                           ˜ v) ≤ dD (u, v) + 2 for every u ∈ U, v ∈ V .
+Next, use Lemma 4.2 to extend these distance estimates to +2k-approximation for all pairs u, v ∈ V
+                 1
+in time Õ(n2 δ k−1 ).
+
+                                                   14
+    For every D, we can pick the faster of these two options. In total, our runtime comes out to
+                                                     2               n n 
+                              2 k+11       1
+                                       2 k−1            n d n
+             Õ max min n D          ,n δ     + min          + MM         , ,d        .
+                1≤D≤n                           1≤d≤D     δ     d        δ D
+   This expression is maximized when the two runtimes are equal, at which point let 0 ≤ x ≤ 1 be
+                                k−1              k
+such that D = Θ(nx ). Set δ = n k+1 x and d = n k+1 x to obtain a running time of
+                                                         k−1
+                             1           k
+                                                                       k
+                                                                            
+                      Oe n2+ k+1 x + n1− k+1 x MM n1− k+1 x , n1−x , n k+1 x .
+
+    To minimize this expression, we find the value of x for which
+                                                                           
+                         1              k               k−1             k
+                   2+        x=1−          x+ω 1−            x, 1 − x,     x .
+                       k+1            k+1               k+1            k+1
+
+Equivalently 1+x = ω(1− k+1
+                        k−1          k
+                            x, 1−x, k+1 x). Thus, we obtain a +2k-approximate APSP algorithm
+                         1
+running in time Õ(n2+ k+1 x ) for the value of x satisfying 1 + x = ω(1 − k−1            k
+                                                                           k+1 x, 1 − x, k+1 x).
+
+
+5    Open Problems
+A major open question is whether +2-approximate APSP can be solved in n2+o(1) time. However
+this is unknown even for the much easier 2-multiplicative approximate APSP problem, which can be
+solved in slightly superquadratic time using fast matrix multiplication techniques [DFK+ 24, SY24].
+    The work of Dor, Halperin and Zwick [DHZ00] showed an Õ(n2 ) time algorithm for a + log n
+approximate APSP. It remains open to determine if there exists a constant C such that +C-
+approximate APSP can be solved in n2+o(1) time. One can also ask, can we solve +2-approximate
+APSP in O(ne f (ω) ) time, where function f (ω) satisfies f (ω) < ω for all possible values of ω > 2? In
+other words, is +2-approximate APSP easier than matrix multiplication?
+    In the scope of this work, we note that our +2k-approximation algorithm follows the idea of
+the sparse approximate APSP algorithm of [DHZ00] in that it computes all distances out of each
+hitting set. In reality, for the next step of the algorithm we are only interested in distances between
+a hitting set Si and the next hitting set Si−1 . The dense approximate APSP algorithm of [DHZ00]
+makes use of this distinction to speed up their sparse algorithm. The work of Saha and Ye [SY24]
+also makes use of this fact when computing the bounded-difference (min, +)-product between these
+hitting sets. However, in order to make use of this fact in our setting we would need to be able
+to adapt our decomposition lemma (Lemma 2.6) to decompose a subset of the graph, and not the
+entire vertex set. It remains open to determine if such a decomposition is possible.
+
+
+References
+[ACIM99] Donald Aingworth, Chandra Chekuri, Piotr Indyk, and Rajeev Motwani. Fast estimation
+         of diameter and shortest paths (without matrix multiplication). SIAM J. Comput.,
+         28(4):1167–1181, 1999. doi:10.1137/S0097539796303421. 1, 5
+
+[ADV+ 25] Josh Alman, Ran Duan, Virginia Vassilevska Williams, Yinzhan Xu, Zixuan Xu, and
+          Renfei Zhou. More asymmetry yields faster matrix multiplication. In Proceedings of
+
+
+                                                  15
+           the 2025 Annual ACM-SIAM Symposium on Discrete Algorithms, SODA 2025, New
+           Orleans, LA, USA, January 12-15, 2025, pages 2005–2039. SIAM, 2025. doi:10.1137/
+           1.9781611978322.63. 1, 2, 7, 12
+
+[AGM97]    Noga Alon, Zvi Galil, and Oded Margalit. On the exponent of the all pairs shortest path
+           problem. J. Comput. Syst. Sci., 54(2):255–262, 1997. doi:10.1006/JCSS.1997.1388. 1
+
+[BGSV19] Karl Bringmann, Fabrizio Grandoni, Barna Saha, and Virginia Vassilevska Williams.
+         Truly subcubic algorithms for language edit distance and RNA folding via fast bounded-
+         difference min-plus product. SIAM J. Comput., 48(2):481–512, 2019. doi:10.1137/
+         17M112720X. 1
+
+[Bra]      Jan van den Brand. Complexity term balancer. www.ocf.berkeley.edu/~vdbrand/
+           complexity/. Tool to balance complexity terms depending on fast matrix multiplication.
+           2, 7, 12
+
+[CDXZ22] Shucheng Chi, Ran Duan, Tianle Xie, and Tianyi Zhang. Faster min-plus product for
+         monotone instances. In STOC ’22: 54th Annual ACM SIGACT Symposium on Theory
+         of Computing, pages 1529–1542. ACM, 2022. doi:10.1145/3519935.3520057. 1, 9
+
+[DFK+ 24] Michal Dory, Sebastian Forster, Yael Kirkpatrick, Yasamin Nazari, Virginia Vassilevska
+          Williams, and Tijn de Vos. Fast 2-approximate all-pairs shortest paths. In Pro-
+          ceedings of the 2024 ACM-SIAM Symposium on Discrete Algorithms, SODA 2024,
+          Alexandria, VA, USA, January 7-10, 2024, pages 4728–4757. SIAM, 2024. doi:
+          10.1137/1.9781611977912.169. 2, 15
+
+[DHZ00]    Dorit Dor, Shay Halperin, and Uri Zwick. All-pairs almost shortest paths. SIAM
+           Journal on Computing, 29(5):1740–1759, 2000. Announced at FOCS 1996. doi:
+           10.1137/S0097539797327908. 1, 2, 3, 4, 15
+
+[DKR+ 22] Mingyang Deng, Yael Kirkpatrick, Victor Rong, Virginia Vassilevska Williams, and
+          Ziqian Zhong. New additive approximations for shortest paths and cycles. In 49th
+          International Colloquium on Automata, Languages, and Programming, ICALP 2022,
+          July 4-8, 2022, Paris, France, volume 229 of LIPIcs, pages 50:1–50:10. Schloss Dagstuhl
+          - Leibniz-Zentrum für Informatik, 2022. doi:10.4230/LIPIcs.ICALP.2022.50. 1, 3, 6
+
+[Dür23]    Anita Dürr. Improved bounds for rectangular monotone min-plus product and applica-
+           tions. Inf. Process. Lett., 181:106358, 2023. doi:10.1016/J.IPL.2023.106358. 1, 2, 3,
+           6
+
+[Gup25]    Manoj Gupta. Improved 2-approximate shortest paths for close vertex pairs. CoRR,
+           abs/2507.19859, 2025. arXiv:2507.19859. 2
+
+[Rod23]    Liam Roditty. New algorithms for all pairs approximate shortest paths. In Proceedings of
+           the 55th Annual ACM Symposium on Theory of Computing, STOC 2023, Orlando, FL,
+           USA, June 20-23, 2023, pages 309–320. ACM, 2023. doi:10.1145/3564246.3585197.
+           2
+
+
+
+
+                                                16
+[Sei95]   Raimund Seidel. On the all-pairs-shortest-path problem in unweighted undirected
+          graphs. J. Comput. Syst. Sci., 51(3):400–403, 1995. doi:10.1006/JCSS.1995.1078.
+          1
+
+[SY24]    Barna Saha and Christopher Ye. Faster approximate all pairs shortest paths. In Pro-
+          ceedings of the 2024 ACM-SIAM Symposium on Discrete Algorithms, SODA 2024,
+          Alexandria, VA, USA, January 7-10, 2024, pages 4758–4827. SIAM, 2024. doi:
+          10.1137/1.9781611977912.170. 1, 2, 3, 13, 15
+
+[SZ99]    Avi Shoshan and Uri Zwick. All pairs shortest paths in undirected graphs with integer
+          weights. In 40th Annual Symposium on Foundations of Computer Science, FOCS 1999,
+          New York, NY, USA, October 17-18, 1999, pages 605–615. IEEE Computer Society,
+          1999. doi:10.1109/SFFCS.1999.814635. 1, 4, 5, 10
+
+[Vas18]   Virginia Vassilevska Williams. On some fine-grained questions in algorithms and com-
+          plexity. In Proceedings of the international congress of mathematicians: Rio de janeiro
+          2018, pages 3447–3487. World Scientific, 2018. 1
+
+[Wil18]   R. Ryan Williams. Faster all-pairs shortest paths via circuit complexity. SIAM J.
+          Comput., 47(5):1965–1985, 2018. doi:10.1137/15M1024524. 1
+
+[Zwi02]   Uri Zwick. All pairs shortest paths using bridging sets and rectangular matrix multipli-
+          cation. J. ACM, 49(3):289–317, 2002. doi:10.1145/567112.567114. 1
+
+
+
+
+                                               17
+

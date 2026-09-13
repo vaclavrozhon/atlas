@@ -1,0 +1,1056 @@
+Isomorphism Testing Parameterized by Genus and
+Beyond
+Daniel Neuen #
+CISPA Helmholtz Center for Information Security,
+Saarland Informatics Campus, Saarbrücken, Germany
+
+        Abstract
+                                                                                          4
+We present an isomorphism test for graphs of Euler genus g running in time 2O(g log g) nO(1) . Our
+algorithm provides the first explicit upper bound on the dependence on g for an fpt isomorphism
+test parameterized by the Euler genus of the input graphs. The only previous fpt algorithm runs in
+time f (g)n for some function f (Kawarabayashi 2015). Actually, our algorithm even works when the
+input graphs only exclude K3,h as a minor. For such graphs, no fpt isomorphism test was known
+before.
+    The algorithm builds on an elegant combination of simple group-theoretic, combinatorial, and
+graph-theoretic approaches. In particular, we introduce (t, k)-WL-bounded graphs which provide a
+powerful tool to combine group-theoretic techniques with the standard Weisfeiler-Leman algorithm.
+This concept may be of independent interest.
+
+2012 ACM Subject Classification Theory of computation → Fixed parameter tractability; Theory
+of computation → Graph algorithms analysis; Mathematics of computing → Graphs and surfaces
+
+Keywords and phrases graph isomorphism, fixed-parameter tractability, Euler genus, Weisfeiler-
+Leman algorithm
+
+Digital Object Identifier 10.4230/LIPIcs.ESA.2021.72
+
+Related Version Full Version: https://arxiv.org/abs/2106.14869
+
+Funding Research supported by the European Research Council (ERC) consolidator grant No. 725978
+SYSTEMATICGRAPH.
+
+
+    1    Introduction
+Determining the computational complexity of the Graph Isomorphism Problem is a long-
+standing open question in theoretical computer science (see, e.g., [13]). The problem is
+easily seen to be contained in NP, but it is neither known to be in PTIME nor known to be
+NP-complete. In a breakthrough result, Babai [1] recently obtained a quasipolynomial-time
+algorithm for testing isomorphism of graphs (i.e., an algorithm running in time nO((log n) )
+                                                                                                 c
+
+
+where n denotes the number of vertices of the input graphs, and c is a constant),√     achieving
+                                                                               O( n/ log n)
+the first improvement over the previous best algorithm running in time n                    [3] in
+over three decades. However, it remains wide open whether GI can be solved in polynomial
+time.
+     In this work, we are concerned with the parameterized complexity of isomorphism testing.
+While polynomial-time isomorphism tests are known for a large variety of restricted graph
+classes (see, e.g., [4, 7, 9, 11, 18, 24]), for several important structural parameters such as
+maximum degree or the Hadwiger number1 , it is still unknown whether isomorphism testing
+is fixed-parameter tractable (i.e., whether there is an isomorphism algorithm running in time
+f (k)nO(1) where k denotes the graph parameter in question, n the number of vertices of the
+
+
+1
+    The Hadwiger number of a graph G is the maximum number h such that Kh is a minor of G.
+            © Daniel Neuen;
+            licensed under Creative Commons License CC-BY 4.0
+29th Annual European Symposium on Algorithms (ESA 2021).
+Editors: Petra Mutzel, Rasmus Pagh, and Grzegorz Herman; Article No. 72; pp. 72:1–72:18
+                   Leibniz International Proceedings in Informatics
+                   Schloss Dagstuhl – Leibniz-Zentrum für Informatik, Dagstuhl Publishing, Germany
+72:2   Isomorphism Testing Parameterized by Genus and Beyond
+
+
+       input graphs, and f is some function). On the other hand, there has also been significant
+       progress in recent years. In 2015, Lokshtanov et al. [17] obtained the first fpt isomorphism
+       test parameterized by the tree-width k of the input graph running in time 2O(k log k) n5 . This
+                                                                                        5
+
+
+       algorithm was later improved by Grohe et al. [8] to a running time of 2O(k·(log k) ) n3 (for
+                                                                                              c
+
+
+       some constant c). In the same year, Kawarabayashi [14] obtained the first fpt isomorphism
+       test parameterized by the Euler genus g of the input graph running time f (g)n for some
+       function f . While Kawarabayashi’s algorithm achieves optimal dependence on the number
+       of vertices of the input graphs, it is also extremely complicated and it provides no explicit
+       upper bound on the function f . Indeed, the algorithm spans over multiple papers [14, 15, 16]
+       and builds on several deep structural results for graphs of bounded genus.
+           In this work, we present an alternative isomorphism test for graphs of Euler genus g
+       running in time 2O(g log g) nO(1) . In contrast to Kawarabayashi’s algorithm, our algorithm
+                             4
+
+
+       does not require any deep graph-theoretic insights, but rather builds on an elegant combination
+       of well-established and simple group-theoretic, combinatorial, and graph-theoretic ideas. In
+       particular, this enables us to provide the first explicit upper bound on the dependence on
+       g for an fpt isomorphism test. Actually, the only property our algorithm exploits is that
+       graphs of genus g exclude K3,h as a minor for h ≥ 4g + 3 [25]. In other words, our main
+       result is an fpt isomorphism test for graphs excluding K3,h as a minor.
+
+       ▶ Theorem 1. The Graph Isomorphism Problem for graphs excluding K3,h as a minor can
+       be solved in time 2O(h log h) nO(1) .
+                             4
+
+
+
+
+            For this class of graphs, the best existing algorithm runs in time nO((log h) ) for some
+                                                                                          c
+
+
+       constant c [21], and no fpt isomorphism test was known prior to this work.
+            For the algorithm, we combine different approaches to the Graph Isomorphism Problem.
+       On a high-level, our algorithm follows a simple decomposition strategy which decomposes
+       the input graph G into pieces such that the interplay between the pieces is simple. The main
+       idea is to define the pieces in such a way that, after fixing a small number of vertices, the
+       automorphism group of G restricted to a piece D ⊆ V (G) is similar to the automorphism
+       group of a graph of maximum degree 3. This allows us to test isomorphism between
+       the pieces using the group-theoretic graph isomorphism machinery dating back to Luks’s
+       polynomial-time isomorphism test for graphs of bounded maximum degree [18].
+            In order to capture the restrictions on the automorphism group, we introduce the notion of
+       (t, k)-WL-bounded graphs which generalize so-called t-CR-bounded graphs. The class of t-CR-
+       bounded graphs was originally defined by Ponomarenko [23] and was recently rediscovered in
+       [21, 10, 22] in a series of works eventually leading to an algorithm testing isomorphism of
+       graphs excluding Kh as a topological subgraph in time nO((log h) ) . Intuitively speaking, a
+                                                                           c
+
+
+       graph G is t-CR-bounded if an initially uniform vertex-coloring χ can be turned into a discrete
+       coloring (i.e., a coloring where every vertex has its own color) by repeatedly (a) applying
+       the standard Color Refinement algorithm, and (b) splitting all color classes of size at most
+       t. We define (t, k)-WL-bounded graphs in the same way, but replace the Color Refinement
+       algorithm by the well-known Weisfeiler-Leman algorithm of dimension k (see, e.g., [5, 12]).
+       Maybe surprisingly, this natural extension of t-CR-bounded has not been considered so far in
+       the literature, and we start by building a polynomial-time isomorphism test for such graphs
+       using the group-theoretic methods developed by Luks [18] as well as a simple extension due
+       to Miller [20]. Actually, it turns out that isomorphism of (t, k)-WL-bounded graphs can even
+       be tested in time nO(k·(log t) ) using recent extensions [21] of Babai’s quasipolynomial-time
+                                      c
+
+
+       isomorphism test. However, since we only apply these methods for t = k = 2, there is no
+       need for our algorithm to rely on such sophisticated subroutines.
+D. Neuen                                                                                                   72:3
+
+
+     Now, as the main structural insight, we prove that each 3-connected graph G that
+excludes K3,h as a minor admits (after fixing 3 vertices) an isomorphism-invariant rooted tree
+decomposition (T, β) such that the adhesion width (i.e., the maximal intersection between
+two bags) is bounded by h. Additionally, each bag β(t), t ∈ V (T ), can be equipped with a set
+γ(t) ⊆ β(t) of size |γ(t)| ≤ h4 such that, after fixing all vertices in γ(t), G restricted to β(t) is
+(2, 2)-WL-bounded. Given such a decomposition, isomorphisms can be computed by a simple
+bottom-up dynamic programming strategy along the tree decompositions. For each bag,
+isomorphism is tested by first individualizing all vertices from γ(t) at an additional factor of
+|γ(t)|! = 2O(h log h) in the running time. Following the individualization of these vertices, our
+              4
+
+
+algorithm can then simply rely on a polynomial-time isomorphism test for (2, 2)-WL-bounded
+graphs. Here, we incorporate the partial solutions computed in the subtree below the current
+bag via a simple gadget construction.
+     To compute the decomposition (T, β), we also build on the notion of (2, 2)-WL-bounded
+graphs. Given a set X ⊆ V (G), we define the (2, 2)-closure to be the set D = clG       2,2 (X) of all
+vertices appearing in a singleton color class after artificially individualizing all vertices from
+X, and performing the (2, 2)-WL procedure. As one of the main technical contributions,
+we can show that the interplay between D and its complement in G is simple (assuming
+G excludes K3,h as a minor). To be more precise, building on various properties of the
+2-dimensional Weisfeiler-Leman algorithm, we show that |NG (Z)| < h for every connected
+component Z of G − D. This allows us to choose D = clG        2,2 (X) as the root bag of (T, β) for
+some carefully chosen set X, and obtain the decomposition (T, β) by recursion.
+
+
+ 2     Preliminaries
+
+2.1    Graphs
+A graph is a pair G = (V (G), E(G)) consisting of a vertex set V (G) and an edge set E(G).
+All graphs considered in this paper are finite and simple (i.e., they contain no loops or
+multiple edges). Moreover, unless explicitly stated otherwise, all graphs are undirected. For
+an undirected graph G and v, w ∈ V (G), we write vw as a shorthand for {v, w} ∈ E(G).
+The neighborhood of a vertex v ∈ V (G) is denoted by NG (v). The degree of v, denoted by
+degG (v), is the number of edges incident with v, i.e., degG (v) = |NG (v)|. For X ⊆ V (G), we
+                    S
+define NG (X) := ( v∈X NG (v)) \ X. If the graph G is clear from context, we usually omit
+the index and simply write N (v), deg(v) and N (X). We write Kℓ,h to denote the complete
+bipartite graph on ℓ vertices on the left side and h vertices on the right side. For two sets
+A, B ⊆ V (G), we denote by EG (A, B) := {vw ∈ E(G) | v ∈ A, w ∈ B}. Also, G[A, B]
+denotes the graph with vertex set A ∪ B and edge set EG (A, B). Moreover, G[A] := G[A, A]
+denotes the induced subgraph on A, and G − A the subgraph induced by the complement
+of A, that is, the graph G − A := G[V (G) \ A]. For F ⊆ E(G), we also define G − F to be
+the graph obtained from G by removing all edges contained in F (the vertex set remains
+unchanged). A graph H is a subgraph of G, denoted by H ⊆ G, if V (H) ⊆ V (G) and
+E(H) ⊆ E(G). A graph H is a minor of G if H can be obtained from G by deleting vertices
+and edges, as well as contracting edges. The graph G excludes H as a minor if it does not
+have a minor isomorphic to H.
+    An isomorphism from G to a graph H is a bijection φ : V (G) → V (H) that respects
+the edge relation, that is, for all v, w ∈ V (G), it holds that vw ∈ E(G) if and only if
+φ(v)φ(w) ∈ E(H). Two graphs G and H are isomorphic, written G ∼               = H, if there is
+an isomorphism from G to H. We write φ : G ∼       = H to denote that φ is an isomorphism
+
+
+
+
+                                                                                                         ESA 2021
+72:4   Isomorphism Testing Parameterized by Genus and Beyond
+
+
+       from G to H. Also, Iso(G, H) denotes the set of all isomorphisms from G to H. The
+       automorphism group of G is Aut(G) := Iso(G, G). Observe that, if Iso(G, H) ̸= ∅, it holds
+       that Iso(G, H) = Aut(G)φ := {γφ | γ ∈ Aut(G)} for every isomorphism φ ∈ Iso(G, H).
+           A vertex-colored graph is a tuple (G, χV ) where G is a graph and χV : V (G) → C is a
+       mapping into some set C of colors, called vertex-coloring. Similarly, an arc-colored graph is a
+       tuple (G, χE ), where G is a graph and χE : {(u, v) | {u, v} ∈ E(G)} → C is a mapping into
+       some color set C, called arc-coloring. Observe that colors are assigned to directed edges, i.e.,
+       the directed edge (v, w) may obtain a different color than (w, v). We also consider vertex-
+       and arc-colored graphs (G, χV , χE ) where χV is a vertex-coloring and χE is an arc-coloring.
+       Typically, C is chosen to be an initial segment [n] := {1, . . . , n} of the natural numbers. To
+       be more precise, we generally assume that there is a linear order on the set of all potential
+       colors which, for example, allows us to identify a minimal color appearing in a graph in a
+       unique way. Isomorphisms between vertex- and arc-colored graphs have to respect the colors
+       of the vertices and arcs.
+
+
+       2.2     Weisfeiler-Leman Algorithm
+       The Weisfeiler-Leman algorithm, originally introduced by Weisfeiler and Leman in its 2-
+       dimensional version [28], forms one of the most fundamental subroutines in the context of
+       isomorphism testing.
+            Let χ1 , χ2 : V k → C be colorings of k-tuples, where C is a finite set of colors. We say χ1
+       refines χ2 , denoted χ1 ⪯ χ2 , if χ1 (v̄) = χ1 (w̄) implies χ2 (v̄) = χ2 (w̄) for all v̄, w̄ ∈ V k . The
+       colorings χ1 and χ2 are equivalent, denoted χ1 ≡ χ2 , if χ1 ⪯ χ2 and χ2 ⪯ χ1 .
+            We describe the k-dimensional Weisfeiler-Leman algorithm (k-WL) for all k ≥ 1. For an
+       input graph G let χk(0) [G] : (V (G))k → C be the coloring where each tuple is colored with the
+       isomorphism type of its underlying ordered subgraph. More precisely, χk(0) [G](v1 , . . . , vk ) =
+       χk(0) [G](v1′ , . . . , vk′ ) if and only if, for all i, j ∈ [k], it holds that vi = vj ⇔ vi′ = vj′ and
+       vi vj ∈ E(G) ⇔ vi′ vj′ ∈ E(G). If the graph is equipped with a coloring the initial coloring
+       χk(0) [G] also takes the input coloring into account. More precisely, for a vertex-coloring χV ,
+       it additionally holds that χV (vi ) = χV (vi′ ) for all i ∈ [k]. And for an arc-coloring χE , it is
+       the case that χE (vi , vj ) = χE (vi′ , vj′ ) for all i, j ∈ [k] such that vi vj ∈ E(G).
+            We then recursively define the coloring χk(i) [G] obtained after i rounds of the algorithm.
+                                                                                                    
+       For k ≥ 2 and v̄ = (v1 , . . . , vk ) ∈ (V (G))k let χk(i+1) [G](v̄) := χk(i) [G](v̄), Mi (v̄) where
+                        nn                                                           oo
+                             χk(i) [G](v̄[w/1]), . . . , χk(i) [G](v̄[w/k]) w ∈ V (G)
+                                                                           
+           Mi (v̄) :=
+
+       and v̄[w/i] := (v1 , . . . , vi−1 , w, vi+1 , . . . , vk ) is the tuple obtained from v̄ by replacing the i-th
+       entry by w (and {{. . . }} denotes a multiset). For k = 1 the definition            is similar, but we only
+                                                 1                        1
+       iterate over neighbors of v, i.e., χ(i+1) [G](v) := χ(i) [G](v), Mi (v) where
+                        nn                       oo
+           Mi (v) :=      χ1(i) [G](w) w ∈ NG (v) .
+
+       By definition, χk(i+1) [G] ⪯ χk(i) [G] for all i ≥ 0. Hence, there is a minimal i∞ such that
+       χk(i∞ ) [G] ≡ χk(i∞ +1) [G] and for this i∞ the coloring χkWL[G] := χk(i∞ ) [G] is the k-stable coloring
+       of G. The k-dimensional Weisfeiler-Leman algorithm takes as input a (vertex- or arc-)colored
+       graph G and returns (a coloring that is equivalent to) χkWL[G]. This can be implemented in
+       time O(nk+1 log n) (see [12]).
+D. Neuen                                                                                                           72:5
+
+
+2.3      Group Theory
+We introduce the group-theoretic notions required in this work. We refer to [26, 6] for further
+background.
+
+Permutation groups. A permutation group acting on a set Ω is a subgroup Γ ≤ Sym(Ω) of
+the symmetric group. The size of the permutation domain Ω is called the degree of Γ. If
+Ω = [n], then we also write Sn instead of Sym(Ω). For γ ∈ Γ and α ∈ Ω we denote by αγ
+the image of α under the permutation γ. For A ⊆ Ω and γ ∈ Γ let Aγ := {αγ | α ∈ A}. The
+set A is Γ-invariant if Aγ = A for all γ ∈ Γ. For a partition P of Ω let P γ := {Aγ | A ∈ P}.
+Observe that P γ is again a partition of Γ. We say P is Γ-invariant if P γ = P for all γ ∈ Γ.
+    For A ⊆ Ω and a bijection θ : Ω → Ω′ we denote by θ[A] the restriction of θ to the domain
+A. For a Γ-invariant set A ⊆ Ω, we denote by Γ[A] := {γ[A] | γ ∈ Γ} the induced action of Γ
+on A, i.e., the group obtained from Γ by restricting all permutations to A. More generally, for
+every set Λ of bijections with domain Ω, we denote by Λ[A] := {θ[A] | θ ∈ Λ}. Similarly, for a
+partition P of Ω, we denote by θ[P] : P → P ′ the mapping defined via θ(A) := {θ(α) | α ∈ A}
+for all A ∈ P. As before, Λ[P] := {θ[P] | θ ∈ Λ}.
+
+Groups with restricted composition factors. We shall be interested in a particular subclass
+of permutation groups, namely groups with restricted composition factors. Let Γ be a group.
+A subnormal series is a sequence of subgroups Γ = Γ0 ≥ Γ1 ≥ · · · ≥ Γk = {id} such that Γi is
+a normal subgroup of Γi−1 for all i ∈ [k]. The length of the series is k and the groups Γi−1 /Γi
+are the factor groups of the series, i ∈ [k]. A composition series is a strictly decreasing
+subnormal series of maximal length. For every finite group Γ all composition series have the
+same family (considered as a multiset) of factor groups (cf. [26]). A composition factor of a
+finite group Γ is a factor group of a composition series of Γ.
+▶ Definition 2. For d ≥ 2 let Γ
+                              b d denote the class of all groups Γ for which every composition
+factor of Γ is isomorphic to a subgroup of Sd . A group Γ is a Γ b d -group if it is contained in
+the class Γd .
+          b
+
+    Let us point out the fact that there are two similar classes of groups usually referred by
+Γd in the literature. The first is the class denoted by Γ
+                                                        b d here originally introduced by Luks
+[18], while the second one, for example used in [2], in particular allows composition factors
+that are simple groups of Lie type of bounded dimension.
+
+Group-Theoretic Tools for Isomorphism Testing. In this work, the central group-theoretic
+subroutine is an isomorphism test for hypergraphs where the input group is a Γ      b d -group. Two
+hypergraphs H1 = (V1 , E1 ) and H2 = (V2 , E2 ) are isomorphic if there is a bijection φ : V1 → V2
+such that E ∈ E1 if and only if E φ ∈ E2 for all E ∈ 2V1 (where E φ := {φ(v) | v ∈ E} and
+2V1 denotes the power set of V1 ). We write φ : H1 ∼  = H2 to denote that φ is an isomorphism
+from H1 to H2 . Consistent with previous notation, we denote by Iso(H1 , H2 ) the set of
+isomorphisms from H1 to H2 . More generally, for Γ ≤ Sym(V1 ) and a bijection θ : V1 → V2 ,
+we define IsoΓθ (H1 , H2 ) := {φ ∈ Γθ | φ : H1 ∼
+                                               = H2 }. In this work, we define the Hypergraph
+Isomorphism Problem to take as input two hypergraphs H1 = (V1 , E1 ) and H2 = (V2 , E2 ), a
+group Γ ≤ Sym(V1 ) and a bijection θ : V1 → V2 , and the goal is to compute a representation2
+of IsoΓθ (H1 , H2 ). The following algorithm forms a crucial subroutine.
+
+
+2
+    While IsoΓθ (H1 , H2 ) may be exponentially large, it can be represented by a single isomorphism
+    φ ∈ IsoΓθ (H1 , H2 ) and a generating set for AutΓ (H1 ) := IsoΓ (H1 , H1 ). For general background on how
+    to perform computations on permutation groups, I refer to [27].
+
+
+
+                                                                                                                 ESA 2021
+72:6   Isomorphism Testing Parameterized by Genus and Beyond
+
+
+       ▶ Theorem 3 (Miller [20]). Let H1 = (V1 , E1 ) and H2 = (V2 , E2 ) be two hypergraphs and
+       let Γ ≤ Sym(V1 ) be a Γ
+                             b d -group and θ : V1 → V2 a bijection. Then IsoΓθ (H1 , H2 ) can be
+       computed in time (n + m)O(d) where n := |V1 | and m := |E1 |.
+       ▶ Theorem 4 (Neuen [21]). Let H1 = (V1 , E1 ) and H2 = (V2 , E2 ) be two hypergraphs and
+       let Γ ≤ Sym(V1 ) be a Γ
+                             b d -group and θ : V1 → V2 a bijection. Then IsoΓθ (H1 , H2 ) can be
+       computed in time (n + m)O((log d) ) for some constant c where n := |V1 | and m := |E1 |.
+                                        c
+
+
+
+
+           Observe that both algorithms given by the two theorems tackle the same problem. The
+       second algorithm is asymptotically much faster, but it is also much more complicated and
+       the constant factors in the exponent of the running time are likely to be much higher. Since
+       this paper only applies either theorem for d = 2, it seems to be preferable to use the first
+       algorithm. Indeed, the first result is a simple extension of Luks’s well-known isomorphism
+       test for bounded-degree graphs [18], and thus the underlying algorithm is fairly simple. For
+       all these reasons, we mostly build on Theorem 3. However, for future applications of the
+       techniques presented in this work, it might be necessary to build on Theorem 4 to benefit
+       from the improved run time bound. For this reason, we shall provide variants of our results
+       building on Theorem 4 wherever appropriate.
+
+        3       Allowing Weisfeiler and Leman to Split Small Color Classes
+       In this section, we introduce the concept of (t, k)-WL-bounded graphs and provide a
+       polynomial-time isomorphism test for such graphs for all constant values of t and k. The
+       final fpt isomorphism test for graphs excluding K3,h as a minor builds on this subroutine for
+       t = k = 2.
+           The concept of (t, k)-WL-bounded graphs is a natural extension of t-CR-bounded graphs
+       which were already introduced by Ponomarenko in the late 1980’s [23] and which were
+       recently rediscovered in [21, 10, 22]. Intuitively speaking, a graph G is t-CR-bounded, t ∈ N,
+       if an initially uniform vertex-coloring χ (i.e., all vertices receive the same color) can be turned
+       into the discrete coloring (i.e., each vertex has its own color) by repeatedly
+           performing the Color Refinement algorithm (expressed by the letters “CR”), and
+           taking a color class [v]χ := {w ∈ V (G) | χ(w) = χ(v)} of size |[v]χ | ≤ t and assigning
+           each vertex from the class its own color.
+            A very natural extension of this idea to replace the Color Refinement algorithm by the
+       Weisfeiler-Leman algorithm for some fixed dimension k. This leads us to the notion of
+       (t, k)-WL-bounded graphs (the letters “CR” are replaced by “k-WL”). In particular, (t, 1)-
+       WL-bounded graphs are exactly the t-CR-bounded graphs. Maybe surprisingly, it seems that
+       this simple extension has not been considered so far in the literature.
+       ▶ Definition 5. A vertex- and arc-colored graph G = (V, E, χV , χE ) is (t, k)-WL-bounded if
+       the sequence (χi )i≥0 reaches a discrete coloring where χ0 := χV ,
+            χ2i+1 (v) := χkWL[V, E, χ2i , χE ](v, . . . , v)
+       and
+                           (
+                               (v, 1)           if |[v]χ2i+1 | ≤ t
+            χ2i+2 (v) :=
+                               (χ2i+1 (v), 0)   otherwise
+       for all i ≥ 0.
+           Also, for the minimal i∞ ≥ 0 such that χi∞ ≡ χi∞ +1 , we refer to χi∞ as the (t, k)-WL-
+       stable coloring of G and denote it by χ(t,k)-WL [G].
+D. Neuen                                                                                                                  72:7
+
+
+    At this point, the reader may wonder why (χi )i≥0 is chosen as a sequence of vertex-
+colorings and not a sequence of colorings of k-tuples of vertices (since k-WL also colors
+k-tuples of vertices). While such a variant certainly makes sense, it still leads to the same
+class of graphs. Let G be a graph and let χ := χkWL[G]. The main insight is that, if there is
+some color c ∈ im(χ) for which |χ−1 (c)| ≤ t, then there is also a color c′ ∈ im(χ) for which
+|χ−1 (c′ )| ≤ t and χ−1 (c′ ) ⊆ {(v, . . . , v) | v ∈ V (G)}. In other words, one can not achieve any
+additional splitting of color classes by also considering non-diagonal color classes.
+    We also need to extend several notions related to t-CR-bounded graphs. Let G be a
+graph and let X ⊆ V (G) be a set of vertices. Let χ∗V : V (G) → C be the vertex-coloring
+obtained from individualizing all vertices in the set X, i.e., χ∗V (v) := (v, 1) for v ∈ X and
+χ∗V (v) := (0, 0) for v ∈ V (G) \ X. Let χ := χ(t,k)-WL [G, χ∗V ] denote the (t, k)-WL-stable
+coloring with respect to the input graph (G, χ∗V ). We define the (t, k)-closure of the set X
+(with respect to G) to be the set
+        clG
+          t,k (X) := {v ∈ V (G) | |[v]χ | = 1} .
+
+Observe that X ⊆ clG                                                            G
+                             t,k (X). For v1 , . . . , vℓ ∈ V (G) we also use clt,k (v1 , . . . , vℓ ) as a shorthand
+      G
+for clt,k ({v1 , . . . , vℓ }). If the input graph is equipped with a vertex- or arc-coloring, all
+definitions are extended in the natural way.
+    Now, we concern ourselves with designing a polynomial-time isomorphism test for (t, k)-
+WL-bounded graphs. Actually, we shall prove a slightly stronger result which turns out
+to be useful later on. The main idea for the algorithm is to build a reduction to the
+isomorphism problem for (t, 1)-WL-bounded graphs for which such results are already known
+[23, 21]. Indeed, isomorphism of (t, 1)-WL-bounded graphs can be reduced to the Hypergraph
+Isomorphism Problem for Γ          b t -groups. Since one may be interested in using different subroutines
+for solving the Hypergraph Isomorphism Problem for Γ                   b t -groups (see the discussion at the
+end of Section 2.3), the main result is stated via an oracle for the Hypergraph Isomorphism
+Problem on Γ    b t -groups.
+▶ Theorem 6. Let G1 , G2 be two vertex- and arc-colored graphs and let χi := χ(t,k)-WL [Gi ].
+Also let Pi = {[v]χi | v ∈ V (Gi )} be the partition into color classes of χi . Then P1φ = P2 for
+all φ ∈ Iso(G1 , G2 ).
+    Moreover, using oracle access to the Hypergraph Isomorphism Problem for Γ       b t -groups, in
+       O(k)
+time n      one can compute a Γt -group Γ ≤ Sym(P1 ) and a bijection θ : P1 → P2 such that
+                                  b
+
+        Iso(G1 , G2 )[P1 ] ⊆ Γθ.
+In particular, Aut(G1 )[P1 ] ∈ Γ
+                               bt .
+▶ Corollary 7. Let G1 , G2 be two (t, k)-WL-bounded graphs. Then a representation for
+Iso(G1 , G2 ) can be computed in time nO(k·(log t) ) for some absolute constant c.
+                                                  c
+
+
+
+
+    4      Structure Theory and Small Color Classes
+Having established the necessary tools, we can now turn to the isomorphism test for graphs
+excluding K3,h as a minor. We start by giving a high-level overview on the algorithm.
+The main idea is to build on the isomorphism test for (2, 2)-WL-bounded graphs described
+in the last section. Let G1 and G2 be two (vertex- and arc-colored) graphs that exclude
+K3,h as a minor. Using well-known reduction techniques building on isomorphism-invariant
+decompositions into triconnected3 components (see, e.g., [11]), we may assume without loss
+of generality that G1 and G2 are 3-connected.
+
+3
+    A triconnected component is either 3-connected or a cycle.
+
+
+                                                                                                                        ESA 2021
+72:8   Isomorphism Testing Parameterized by Genus and Beyond
+
+
+           The algorithm starts by individualizing three vertices. To be more precise, the algorithm
+       picks three distinct vertices v1 , v2 , v3 ∈ V (G1 ) and iterates over all choices of potential images
+       w1 , w2 , w3 ∈ V (G2 ) under some isomorphism between G1 and G2 . Let X1 := {v1 , v2 , v3 }
+       and X2 := {w1 , w2 , w3 }. Also, let Di := clG   2,2 (Xi ) denote the (2, 2)-closure of Xi , i ∈ {1, 2}.
+                                                          i
+
+
+       Observe that Di is defined in an isomorphism-invariant manner given the initial choice of Xi .
+       Building on Theorems 3 and 6 it can be checked in polynomial time whether G1 and G2 are
+       isomorphic restricted to the sets D1 and D2 .
+           Now, the central idea is to follow a decomposition strategy. Let Z1i , . . . , Zℓi denote the
+       vertex sets of the connected components of Gi − Di , and let Sji := NGi (Zji ) for j ∈ [ℓ] and
+       i ∈ {1, 2}. We recursively compute isomorphisms between all pairs of graphs Gi [Zji ∪ Sji ] for
+       all j ∈ [ℓ] and i ∈ {1, 2}. To be able to determine whether all these partial isomorphisms can
+       be combined into a global isomorphism, the crucial insight is that |Sji | < h for all j ∈ [ℓ] and
+       i ∈ {1, 2}.
+
+
+       ▶ Lemma 8. Let G be a graph that excludes K3,h as a minor. Also let X ⊆ V (G) and define
+       D := clG
+              2,2 (X). Let Z be a connected component of G − D. Then |NG (Z)| < h.
+
+
+
+           Indeed, this lemma forms one of the main technical contributions of the paper. I remark
+       that similar statements are exploited in [10, 21, 22] eventually leading to an isomorphism test
+       running in time nO((log h) ) for all graphs excluding Kh as a topological subgraph. However,
+                                 c
+
+
+       all these variants require the (t, k)-closure to be taken for non-constant values of t (i.e.,
+       t = Ω(h)). For the design of an fpt-algorithm, this is infeasible since we can only afford to
+       apply Theorem 6 for constant values of t and k (since Di might be equal to V (Gi )).
+            The lemma above implies that the interplay between Di and V (Gi ) \ Di is simple which
+       allows for a dynamic programming approach. To be more precise, we can recursively list
+                                                                      ′     ′        ′
+       all elements of the set Iso((Gi [Zji ∪ Sji ], Sji ), (Gi′ [Zji′ ∪ Sji ′ ], Sji ′ ))[Sji ] for all j, j ′ ∈ [ℓ] and
+                                                                 ′
+       i, i′ ∈ {1, 2} (i.e., we list all bijections σ : Sji → Sji ′ that can be extended to an isomorphism
+       between the corresponding subgraphs). To incorporate this information, we extend the graph
+       Gi [Di ] by simple gadgets obtaining graphs Hi that are (2, 2)-WL-bounded and such that
+       G1 =  ∼ G2 if and only if H1 =    ∼ H2 . (For technical reasons, the algorithm does not exactly
+       implement this strategy, but closely follows the general idea.)
+           In order to realize this recursive strategy, it remains to ensure that the algorithm makes
+       progress when performing a recursive call. Actually, this turns out to be a non-trivial task.
+       Indeed, it may happen that Di = Xi , there is only a single component Z1i of Gi − Di , and
+       NGi (Z1i ) = Di . To circumvent this problem, the idea is to compute an isomorphism-invariant
+       extension γ(Xi ) ⊋ Xi such that |γ(Xi )| ≤ h4 . Assuming such an extension can be computed,
+       we simply extend the set Xi until the algorithm arrives in a situation where the recursive
+       scheme discussed above makes progress. Observe that this is guaranteed to happen as soon
+       as |Xi | ≥ h building on Lemma 8. Also note that we can still artificially individualize all
+       vertices from Xi at a cost of 2O(h log h) (since any isomorphism can only map vertices from
+                                           4
+
+
+       X1 to vertices from X2 ).
+           To compute the extension, we exploit the fact that Gi is (h − 1, 1)-WL-bounded by [21,
+       Corollary 24] (after individualizing 3 vertices). Simply speaking, for every choice of three
+       distinct vertices in Xi , after individualizing these vertices and performing the 1-dimensional
+       Weisfeiler-Leman algorithm, we can identify a color class of size at most h − 1 to be added
+       to the set Xi . Overall, assuming |Xi | ≤ h, this gives an extension γ(Xi ) of size at most
+       h + h3 (h − 1) ≤ h4 .
+D. Neuen                                                                                                        72:9
+
+
+   This completes the description of the general strategy. In the following sections, we
+provide more detailed arguments. We first provide a sketch on the proof of Lemma 8 in
+the next section. Afterwards, we compute the entire decompositions of the input graphs in
+Section 6. Finally, the dynamic programming strategy along the computed decompositions is
+implemented in Section 7.
+
+
+ 5      Finding Disjoint and Connected Subgraphs
+In this section, we give some details on the proof of Lemma 8. Let us start by introducing
+some additional notation for the 2-dimensional Weisfeiler-Leman algorithm.
+    Let G be a graph and let χ := χ2WL[G] be the coloring computed by the 2-dimensional
+Weisfeiler-Leman algorithm. We denote by CV = CV (G, χ) := {χ(v, v) | v ∈ V (G)} the set
+of vertex colors under the coloring χ. Also, for c ∈ CV , Vc := {v ∈ V (G) | χ(v, v) = c}
+denotes the set of all vertices of color c. Moreover, we define the graph G[[χ]] with vertex set
+V (G[[χ]]) := CV (G, χ) and edges E(G[[χ]]) := {c1 c2 | ∃v1 ∈ Vc1 , v2 ∈ Vc2 : v1 v2 ∈ E(G)}.
+    The next lemma builds the main technical step in the proof of Lemma 8.
+
+▶ Lemma 9. Let G be a graph and let χ be a 2-stable coloring. Suppose that G[[χ]] is
+connected and |Vc | ≥ 3 for every c ∈ CV . Then there are vertex-disjoint, connected subgraphs
+H1 , H2 , H3 ⊆ G such that V (Hr ) ∩ Vc ̸= ∅ for all r ∈ {1, 2, 3} and c ∈ CV .
+
+Proof Idea. Let F be a spanning tree of G[[χ]] and fix an arbitrary root node c0 ∈ V (F ) = CV .
+On a high-level, the graphs H1 , H2 , H3 are constructed in a top-to-bottom fashion along the
+tree F . To start, let us select three arbitrary distinct vertices v1 , v2 , v3 ∈ Vc0 and add vr
+to the graph Hr . Now, let d be a color which is already covered (i.e., Vd ∩ Hr ̸= ∅ for all
+r ∈ {1, 2, 3}), and let c be a child of d which is not covered. Consider the graph G[Vd , Vc ]. Let
+vr ∈ Vd ∩ V (Hr ) for r ∈ {1, 2, 3}. If there are vertices w1 , w2 , w3 ∈ Vc such that vr wr ∈ E(G)
+then we can simply add vertex wr as well as the edge vr wr to Hr in order to cover the color
+class Vc . Assuming we can always find such vertices, this strategy can be repeated going
+down the tree F until all color classes are covered.
+     So suppose that there are no such vertices w1 , w2 , w3 . By Hall’s Marriage Theorem, this
+means there is a set V ′ ⊆ {v1 , v2 , v3 } such that |N (V ′ ) ∩ Vc | < |V ′ |. Since χ is 2-stable, we
+get that |N (v) ∩ Vc | = |N (v ′ ) ∩ Vc | for all v, v ′ ∈ Vd . Together, this means there is some
+δ ∈ {1, 2} such that |N (v) ∩ Vc | = δ for all v ∈ Vd .
+     First, suppose that δ = 1. Then G[Vd , Vc ] is isomorphic to a disjoint union of ℓ stars
+K1,h , for some ℓ ≥ 3 and h ≥ 2. In this situation, it is possible to contract the connected
+components of G[Vd , Vc ] to single vertices, and proceed by induction. At this point, we
+crucially exploit that using the 2-dimensional Weisfeiler-Leman algorithm allows us to show
+that all color classes in the contracted graph still have size at least 3 (such a statement
+is not true when using the Color Refinement algorithm). By induction, we obtain graphs
+H1′ , H2′ , H3′ . To obtain the original graphs, we simply uncontract any contracted vertices
+contained in H1′ , H2′ , H3′ .
+     In the other case, we have δ = 2. Let us partition Vd into c-twin-classes where vertices
+v, v ′ ∈ Vd are declared to be c-twins if N (v) ∩ Vc = N (v ′ ) ∩ Vc . If there are at least 3 twin-
+classes, then it is again possible to contract the twin-classes to single vertices and proceed
+by induction. Here, the crucial observation is that the c-twin-classes are non-trivial since
+|N (V ′ ) ∩ Vc | < |V ′ | for some set V ′ ⊆ {v1 , v2 , v3 }. The critical case occurs if there are exactly
+2 twin-classes meaning that G[Vd , Vc ] is isomorphic to a disjoint union of 2 copies of K2,h ,
+for some h ≥ 3 (in this case |Vc | = 4). Now, the basic idea is to ensure that v1 , v2 , v3 cover
+
+
+
+                                                                                                              ESA 2021
+72:10   Isomorphism Testing Parameterized by Genus and Beyond
+
+
+        both connected components (which means there are vertices w1 , w2 , w3 as above). However,
+        this additional requirement comes with severe additional complications. First, information
+        of this type needs to be propagated up the tree (i.e., vertices in the root color class may
+        already need to be chosen appropriately to avoid problematic situations later on). But much
+        more problematically, each child of c may add a different restriction which all need to be
+        met at the same time. Here, we again crucially rely on the 2-dimensional Weisfeiler-Leman
+        algorithm to show that all requirements can indeed be met at the same time. Unfortunately,
+        this comes at the price that each vertex of Vd has to be contained in one of the graphs Hr ,
+        r ∈ {1, 2, 3} (this allows us to choose different triples (v1 , v2 , v3 ) for different children of d).
+        To ensure that Hr remains connected, we introduce a second type of restriction that is passed
+        down the tree, and which ensures that all vertices from Vd , which are added to Hr , end up
+        in the same connected component of Hr . By carefully implementing the induction, it can be
+        shown that all these additional requirements can indeed by realized.                                ◀
+
+        Proof of Lemma 8. Let χ be a 2-stable coloring such that |[v]χ | = 1 for all v ∈ D and
+        |[w]χ | ≥ 3 for all w ∈ V (G) \ D. Suppose towards a contradiction that |NG (Z)| ≥ h, and
+        pick v1 , . . . , vh ∈ NG (Z) to be distinct vertices. Let C := {χ(v, v) | v ∈ Z} be the set of
+        vertex colors appearing in the set Z. Note that (G[[χ]])[C] is connected, and |Vc | ≥ 3 for all
+        c ∈ C. Let W := {w ∈ V (G) | χ(w, w) ∈ C}. Observe that W ∩ D = ∅. By Lemma 9, there
+        are connected, vertex-disjoint subgraphs H1 , H2 , H3 ⊆ G[W ] such that V (Hr ) ∩ Vc =        ̸ ∅ for
+        all r ∈ {1, 2, 3} and c ∈ C.
+            Now let i ∈ [h]. Since vi ∈ NG (Z) there is some vertex wi ∈ Z ⊆ W such that
+        vi wi ∈ E(G). Let ci := χ(wi , wi ). Observe that ci ∈ C. Also, Vci ⊆ NG (vi ) since |[vi ]χ | = 1
+        and χ is 2-stable. This implies that NG (vi ) ∩ V (Hr ) ̸= ∅ for all r ∈ {1, 2, 3}, because
+        V (Hr ) ∩ Vci =   ̸ ∅. But this results in a minor isomorphic to K3,h with vertices v1 , . . . , vh on
+        the right side, and vertices V (H1 ), V (H2 ), V (H3 ) on the left side.                             ◀
+
+           Besides Lemma 8, we also require a second tool which is used to define the extension sets
+        γ(Xi ) which we needed to ensure the recursive algorithm makes progress.
+
+        ▶ Lemma 10. Let G be a graph that excludes K3,h as a minor. Also let X ⊆ V (G) and
+        define D := clG
+                      h−1,1 (X). Let Z be a connected component of G − D. Then |NG (Z)| < 3.
+
+           The lemma essentially follows from [21, Lemma 23]. For the sake of completeness and
+        due to its simplicity, a complete proof is still given below.
+
+        Proof. Let χ be a 1-stable coloring such that |[v]χ | = 1 for all v ∈ D and |[w]χ | ≥ h for all
+        w ∈ V (G)\D. Suppose towards a contradiction that |NG (Z)| ≥ 3, and pick v1 , v2 , v3 ∈ NG (Z)
+        to be distinct vertices. Let C := {χ(v) | v ∈ Z}, and define H to be the graph with V (H) := C
+        and
+
+           E(H) := {c1 c2 | ∃v1 ∈ χ−1 (c1 ), v2 ∈ χ−1 (v2 ) : v1 v2 ∈ E(G)}.
+
+        Let T be a spanning tree of H. Also, for each i ∈ {1, 2, 3}, fix a color ci ∈ C such that
+        NG (vi ) ∩ χ−1 (ci ) ̸= ∅. Let T ′ be the induced subtree obtained from T by repeatedly removing
+        all leaves distinct from c1 , c2 , c3 . Finally, let T ′′ be the tree obtained from T ′ by adding
+        three fresh vertices v1 , v2 , v3 where vi is connected to ci . Observe that v1 , v2 , v3 are precisely
+        the leaves of T ′′ . Now, T ′′ contains a unique node c of degree three (possibly c = ci for
+        some i ∈ {1, 2, 3}). Observe that |χ−1 (c)| ≥ h. We define Ci to be the set of all internal
+        vertices which appear on the unique path from vi to c in the tree T ′′ . Finally, define
+        Ui := {vi } ∪ c′ ∈Ci χ−1 (c′ ).
+                      S
+D. Neuen                                                                                                     72:11
+
+
+    Since χ is 1-stable and |[vi ]χ | = 1 we get that G[Ui ] is connected for all i ∈ {1, 2, 3}. Also,
+EG (Ui , {w}) ̸= ∅ for all w ∈ χ−1 (c) and i ∈ {1, 2, 3}. But this provides a minor isomorphic
+to K3,h with vertices U1 , U2 , U3 on the left side and the vertices from χ−1 (c) on the right
+side.                                                                                               ◀
+
+
+ 6     A Decomposition Theorem
+
+Next, we use the insights gained in the last section to prove a decomposition theorem for
+graphs that exclude K3,h as a minor. In the following, all tree decompositions are rooted,
+i.e., there is a designated root node and we generally assume all edges to be directed away
+from the root.
+
+▶ Theorem 11. Let h ≥ 3. Let G be a 3-connected graph, and suppose S ⊆ V (G) such that
+(A) G − E(S, S) excludes K3,h as a minor,
+(B) 3 ≤ |S| ≤ h,
+(C) G − S is connected, and
+(D) S = NG (V (G) \ S).
+Then there is a (rooted) tree decomposition (T, β) of G, a function γ : V (T ) → 2V (G) , and a
+vertex-coloring λ such that
+   (I) |V (T )| ≤ 2 · |V (G)|,
+  (II) the adhesion width of (T, β) is at most h − 1,
+ (III) for every t ∈ V (T ) with children t1 , . . . , tℓ , one of the following options holds:
+       a. β(t) ∩ β(ti ) ̸= β(t) ∩ β(tj ) for all distinct i, j ∈ [ℓ], or
+       b. β(t) = β(t) ∩ β(ti ) for all i ∈ [ℓ],
+ (IV) S ⊊ γ(r) where r denotes the root of T ,
+  (V) |γ(t)| ≤ h4 for every t ∈ V (T ),
+ (VI) β(t) ∩ β(s) ⊆ γ(t) ⊆ β(t) for all t ∈ V (T ) \ {r}, where s denotes the parent of t, and
+                 (G,λ)
+(VII) β(t) ⊆ cl2,2 (γ(t)) for all t ∈ V (T ).
+Moreover, the decomposition (T, β), the function γ, and the coloring λ can be computed in
+polynomial time, and the output is isomorphism-invariant with respect to (G, S, h).
+
+Proof. We give an inductive construction for the tree decomposition (T, β) as well as the
+function γ and the coloring λ. We start by arguing how to compute the set γ(r).
+
+▷ Claim 12. Let v1 , v2 , v3 ∈ S be three distinct vertices, and define χ := χ1WL[G, S, v1 , v2 , v3 ].
+Then there exists some v ∈ V (G) \ S such that |[v]χ | < h.
+
+Proof. Let H := (G − (S \ {v1 , v2 , v3 })) − E({v1 , v2 , v3 }, {v1 , v2 , v3 }). It is easy to see that
+χ|V (H) is 1-stable for the graph H. Observe that H − {v1 , v2 , v3 } = G − S is connected.
+Suppose there is no vertex v ∈ V (G)\S such that |[v]χ | < h. Then χ is (h−1)-CR-stable which
+implies that clGh−1,1 (v1 , v2 , v3 ) = {v1 , v2 , v3 }. On the other hand, Z := V (H) \ {v1 , v2 , v3 }
+induces a connected component of H − {v1 , v2 , v3 }, and NH (Z) = {v1 , v2 , v3 } since S =
+NG (V (G) \ S). But this contradicts Lemma 10.                                                         ◁
+
+    Let v1 , v2 , v3 ∈ S be distinct. We define χ[v1 , v2 , v3 ] := χ1WL[G, S, v1 , v2 , v3 ]. Also, let
+c[v1 , v2 , v3 ] denote the unique color such that
+1. c[v1 , v2 , v3 ] ∈
+                    / {χ[v1 , v2 , v3 ](v) | v ∈ S}, and
+2. |(χ[v1 , v2 , v3 ])−1 (c[v1 , v2 , v3 ])| ≤ h − 1
+
+
+
+                                                                                                            ESA 2021
+72:12   Isomorphism Testing Parameterized by Genus and Beyond
+
+
+        and which is minimal with respect to the linear order on the colors in the image of χ[v1 , v2 , v3 ].
+        Let γ(v1 , v2 , v3 ) := (χ[v1 , v2 , v3 ])−1 (c[v1 , v2 , v3 ]). Observe that γ(v1 , v2 , v3 ) is defined in an
+        isomorphism-invariant manner given (G, S, h, v1 , v2 , v3 ). Now, define
+                                  [
+           γ(r) := S ∪                           γ(v1 , v2 , v3 ).
+                          v1 ,v2 ,v3 ∈S distinct
+
+        Clearly, γ(r) is defined in an isomorphism-invariant manner given (G, S, h). Moreover,
+
+             |γ(r)| ≤ |S| + |S|3 · (h − 1) ≤ |S|3 · h ≤ h4 .
+
+        Finally, define β(r) := clG    2,2 (γ(r)).
+             Let Z1 , . . . , Zℓ be the connected components of G − β(r). Also, let Si := NG (Zi ) and Gi
+        be the graph obtained from G[Si ∪ Zi ] by turning Si into a clique, i ∈ [ℓ]. We have |Si | < h
+        by Lemma 8. Also, |Si | ≥ 3 and Gi is 3-connected since G is 3-connected. Clearly, Gi − Si
+        is connected and Si = NGi (V (Gi ) \ Si ). Finally, Gi − E(Si , Si ) excludes K3,h as a minor
+        because G − E(S, S) excludes K3,h as a minor.
+             We wish to apply the induction hypothesis to the triples (Gi , Si , h). If |V (Gi )| = |V (G)|
+        then ℓ = 1 and S ⊊ Si . In this case the algorithm still makes progress since the size of S can
+        be increased at most h − 3 times.
+             By the induction hypothesis, there are tree decompositions (Ti , βi ) of Gi and functions
+        γi : V (Ti ) → 2V (Gi ) satisfying Properties I - VII. We define (T, β) to be the tree decomposition
+        where T is obtained from the disjoint union of T1 , . . . , Tℓ by adding a fresh root vertex r
+        which is connected to the root vertices of T1 , . . . , Tℓ . Also, β(r) is defined as above and
+        β(t) := βi (t) for all t ∈ V (Ti ) and i ∈ [ℓ]. Finally, γ(r) is again defined as above, and
+        γ(t) := γi (t) for all t ∈ V (Ti ) and i ∈ [ℓ].
+             The algorithm clearly runs in polynomial time and the output is isomorphism-invariant
+        (the coloring λ is defined below). We need to verify that Properties I - VII are satisfied.
+        Using the comments above and the induction hypothesis, it is easy to verify that Properties
+        II, IV, V and VI are satisfied.
+                                                                (G ,λ)            (G,λ)
+             For Property VII it suffices to ensure that cl2,2i (γ(t)) ⊆ cl2,2 (γ(t)). Towards this
+        end, it suffices to ensure that λ(v) ̸= λ(w) for all v ∈ β(r) and w ∈ V (G) \ β(r). To ensure
+        this property holds on all levels of the tree, we can simply define λ(v) := {distT (r, t) | t ∈
+        V (T ), v ∈ β(t)}.
+             Next, we modify the tree decomposition in order to ensure Property III. Consider a node
+        t ∈ V (T ) with children t1 , . . . , tℓ . We say that ti ∼ tj if β(t) ∩ β(ti ) = β(t) ∩ β(tj ). Let
+        A1 , . . . , Ak be the equivalence classes of the equivalence relation ∼. For every i ∈ [k] we
+        introduce a fresh node si . Now, every tj ∈ Ai becomes a child of si and si becomes a child
+        of t. Finally, we set β(si ) = γ(si ) := β(t) ∩ β(tj ) for some tj ∈ Ai . Observe that after this
+        modification, Properties II and IV - VII still hold.
+             Finally, it remains to verify Property I. Before the modification described in the last
+        paragraph, we have that |V (T )| ≤ |V (G)|. Since the modification process at most doubles
+        the number of nodes in T , the bound follows.                                                      ◀
+
+         7      An FPT Isomorphism Test for Graphs of Small Genus
+        Building on the decomposition theorem given in the last section, we can now prove the main
+        result of this paper.
+        ▶ Theorem 13. Let G1 , G2 be two (vertex- and arc-colored) graphs that exclude K3,h as a
+        minor. Then one can decide whether G1 is isomorphic to G2 in time 2O(h log h) nO(1) .
+                                                                                4
+D. Neuen                                                                                                       72:13
+
+
+Proof Idea. Suppose Gi = (V (Gi ), E(Gi ), χiV , χiE ) for i ∈ {1, 2}. Using standard reduction
+techniques (see, e.g., [11]) we may assume without loss generality that G1 and G2 are 3-
+connected. Pick an arbitrary set S1 ⊆ V (G1 ) such that |S1 | = 3 and G1 −S1 is connected. For
+every S2 ⊆ V (G2 ) such that |S2 | = 3 and G2 − S2 is connected, the algorithm tests whether
+there is an isomorphism φ : G1 ∼                   φ
+                                = G2 such that S1 = S2 . Observe that Si = NGi (V (Gi ) \ Si )
+for both i ∈ {1, 2} since G1 and G2 are 3-connected. This implies that the triple (Gi , Si , h)
+satisfies the requirements of Theorem 11. Let (Ti , βi ) be the tree decomposition, γi : V (Ti ) →
+2V (Gi ) be the function, and λi be the vertex-coloring computed by Theorem 11 on input
+(Gi , Si , h).
+    Now, the basic idea is compute isomorphisms between (G1 , S1 ) and (G2 , S2 ) using dynamic
+programming along the tree decompositions. More precisely, we aim at recursively computing
+the set
+
+    Λ := Iso((G1 , λ1 , S1 ), (G2 , λ1 , S2 ))[S1 ]
+
+(here, Iso((G1 , λ1 , S1 ), (G2 , λ1 , S2 )) denotes the set of isomorphisms φ : G1 ∼       = G2 which
+additionally respect the vertex-colorings λi and satisfy S1φ = S2 ). Throughout the recursive
+algorithm, we maintain the property that |Si | ≤ h. Also, we may assume without loss of
+generality that Si is λi -invariant (otherwise, we replace λi by λ′i defined via λ′i (v) := (1, λi (v))
+for all v ∈ Si , and λ′i (v) := (0, λi (v)) for all v ∈ V (Gi ) \ Si ).
+     Let ri denote the root node of Ti . Let ℓ denote the number of children of ri in
+the tree Ti (if the number of children is not the same, the algorithm concludes that
+Iso((G1 , λ1 , S1 ), (G2 , λ1 , S2 )) = ∅). Let ti1 , . . . , tiℓ be the children of ri in Ti , i ∈ {1, 2}.
+For i ∈ {1, 2} and j ∈ [ℓ] let Vji denote the set of vertices appearing in bags below (and
+including) tij . Also let Sji := βi (ri ) ∩ βi (tij ) be the adhesion set to the j-th child, and define
+Gij := Gi [Vji ]. Finally, let Tji denote the subtree of Ti rooted at node tij , and βji := βi |V (Tji ) ,
+γji := γi |V (Tji ) and λij := λi |Vji .
+     For every i, i′ ∈ {1, 2}, and every j, j ′ ∈ [ℓ], the algorithm recursively computes the set
+        ′                                 ′    ′     ′
+    Λi,i            i    i    i      i      i      i       i
+     j,j ′ := Iso((Gj , λj , Sj ), (Gj ′ , λj ′ , Sj ′ ))[Sj ].
+
+We argue how to compute the set Λ. Building on Theorem 11, Item III, we may assume that
+(a) Sji ̸= Sji ′ for all distinct j, j ′ ∈ [ℓ] and i ∈ {1, 2}, or
+(b) β(ri ) = Sji for all j ∈ [ℓ] and i ∈ {1, 2}
+(if r1 and r2 do not satisfy the same option, then Iso((G1 , λ1 , S1 ), (G2 , λ1 , S2 )) = ∅).
+     We first cover Option b. In this case |β(ri )| = |Sji | ≤ h − 1 by Theorem 11, Item II. The
+algorithm iterates over all bijections σ : β(r1 ) → β(r2 ). Now,
+
+    σ ∈ Iso((G1 , λ1 , S1 ), (G2 , λ1 , S2 ))[β(r1 )]         ⇔   ∃ρ ∈ Sym([ℓ]) ∀j ∈ [ℓ] : σ ∈ Λ1,2
+                                                                                                j,ρ(j) .
+
+To test whether σ satisfies the right-hand side condition, the algorithm constructs an auxiliary
+graph Hσ with vertex set V (Hσ ) := {1, 2} × [ℓ] and edge set
+
+    E(Hσ ) := {(1, j)(2, j ′ ) | σ ∈ Λ1,2
+                                      j,j ′ }.
+
+Observe that Hσ is bipartite with bipartition ({1} × [ℓ], {2} × [ℓ]). Now,
+
+    σ ∈ Iso((G1 , λ1 , S1 ), (G2 , λ1 , S2 ))[β(r1 )]         ⇔   Hσ has a perfect matching.
+
+It is well-known that the latter can be checked in polynomial time. This completes the
+description of the algorithm in case Option b is satisfied.
+
+
+
+                                                                                                              ESA 2021
+72:14   Isomorphism Testing Parameterized by Genus and Beyond
+
+
+           Next, suppose Option a is satisfied. Here, the central idea is to construct auxiliary vertex-
+        and arc-colored graphs Hi = (V (Hi ), E(Hi ), µiV , µiE ) and sets Ai ⊆ V (Hi ) such that
+        1. βi (ri ) ⊆ Ai and Ai ⊆ clH  i
+                                     2,2 (γi (ri )), and
+        2. Iso(H1 , H2 )[S1 ] = Iso(H1 [A1 ], H2 [A2 ])[S1 ] = Λ.
+        Towards this end, we set
+
+            V (Hi ) := V (Gi ) ⊎ {(Sji , γ) | j ∈ [ℓ], γ ∈ Λi,i
+                                                            j,j }
+
+        and
+
+            E(Hi ) := E(Gi ) ∪ {(Sji , γ)v | j ∈ [ℓ], γ ∈ Λi,i        i
+                                                           j,j , v ∈ Sj }.
+
+        Also, we set
+
+            Ai := β(ri ) ∪ {(Sji , γ) | j ∈ [ℓ], γ ∈ Λi,i
+                                                      j,j }.
+
+        The main idea is to use the additional vertices attached to the set Sji to encode the isomorphism
+        type of the graph (Gij , λij , Sji ). This information is encoded by the vertex- and arc-coloring
+                                  ′
+        building on sets Λi,i                                      i
+                          j,j ′ already computed above. Let S := {Sj | i ∈ {1, 2}, j ∈ [ℓ]}, and define
+                  ′           ′
+        Sji ∼ Sji ′ if Λi,i   ̸ ∅. Observe that ∼ is an equivalence relation. Let {P1 , . . . , Pk } be the
+                        j,j ′ =
+        partition of S into the equivalence classes. We set
+
+            µiV (v) := (0, χiV (v), λi (v))
+
+        for all v ∈ Si ,
+
+            µiV (v) := (1, χiV (v), λi (v))
+
+        for all v ∈ γi (ri ) \ Si ,
+
+            µiV (v) := (2, χiV (v), λi (v))
+
+        for all v ∈ βi (ri ) \ γi (ri ),
+
+            µiV (v) := (3, χiV (v), λi (v))
+
+        for all v ∈ V (Gi ) \ βi (ri ), and
+
+            µiV (Sji , γ) := (4, q, q)
+
+        for all q ∈ [k], Sji ∈ Pq , and γ ∈ Λi,i
+                                             j,j . For every q ∈ [k] fix some i(q) ∈ {1, 2} and j(q) ∈ [ℓ]
+                       i(q)
+        such that Sj(q) ∈ Pq (i.e., for each equivalence class, the algorithm fixes one representative).
+                                                                           i(q),i         i(q)
+        Also, for every q ∈ [k] and Sji ∈ Pq , fix a bijection σji ∈ Λj(q),j such that σj(q) is the identity
+                                                                    i(q)
+        mapping. Finally, for q ∈ [k], fix a numbering Sj(q) = {uq1 , . . . , uqs(q) }.
+          With this, we are ready to define the arc-coloring µiE . First, we set
+
+            µiE (v, w) := (0, χiE (v, w))
+
+        for all vw ∈ E(Gi ). Next, consider an edge (Sji , γ)v where j ∈ [ℓ], γ ∈ Λi,i            i
+                                                                                   j,j , and v ∈ Sj .
+                   i
+        Suppose Sj ∈ Pq . We set
+
+            µiE (v, (Sji , γ)) = µiE ((Sji , γ), v) := (1, c)
+
+        for the unique c ∈ [s(q)] such that
+                        i
+            v = (uqc )σj γ .
+D. Neuen                                                                                                        72:15
+
+
+   This completes the description of the graphs Hi and the sets Ai , i ∈ {1, 2}. It can be
+checked that Properties 1 and 2 are satisfied (see the full version for details).
+   Now, recall that the algorithm aims at computing the set Λ. Building on Property 2,
+we can simply compute Iso(H1 [A1 ], H2 [A2 ])[S1 ]. Towards this end, the algorithm iterates
+through all bijections τ : γ1 (r1 ) → γ2 (r2 ), and wishes to test whether there is an isomorphism
+φ ∈ Iso(H1 [A1 ], H2 [A2 ]) such that φ[γ1 (r1 )] = τ . Note that, since γi (ri ) is µiV -invariant, it
+now suffices to solve this latter problem.
+    So fix a bijection τ : γ1 (r1 ) → γ2 (r2 ) (if |γ1 (r1 )| =
+                                                              ̸ |γ2 (r2 )| then the algorithm returns
+               ∗
+Λ = ∅). Let µ1 (v) :=                                ∗
+                      (1, v) for all v ∈ γ1 (r1 ), µ1 (v)  :=  (0, µ1V ) for all v ∈ V (H1 ) \ γ1 (r1 ), and
+µ2 (v) := (1, τ (v)) for all v ∈ γ2 (r2 ) and µ2 (v) := (0, µ2V ) for all v ∈ V (H2 ) \ γ2 (r2 ).
+ ∗             −1                                 ∗
+
+    Intuitively speaking, µ∗1 and µ∗2 are obtained from µ1V and µ2V by individualizing all
+vertices from γ1 (r1 ) and γr (r2 ) according to the bijection τ . Now, we can apply Theorem 6
+on input graph H1∗ = (H1 , µ∗1 ) and H2∗ = (H2 , µ∗2 ), and parameters t = k := 2.
+    Building on Property 1, we obtain a Γ   b 2 -group Γ ≤ Sym(A1 ) and a bijection θ : A1 → A2
+such that Iso(H [A1 ], H [A2 ]) ⊆ Γθ. Now, we can determine whether H ∗ [A1 ] ∼
+                  ∗
+                   1
+                           ∗
+                             2                                                         = H ∗ [A2 ]
+                                                                                         1           2
+using Theorem 3. Using Property 2, this provides the answer to whether τ [S1 ] ∈ Λ (recall
+that S1 ⊆ γ1 (r1 ) by Theorem 11, Items IV and VI).
+   Overall, this completes the description of the algorithm. It only remains to analyse its
+running time. Let n denote the number of vertices of G1 and G2 .
+    The algorithm iterates over at most n3 choices for the initial set S2 , and computes the
+decompositions (Ti , βi ), the functions γi , and the colorings λi in polynomial time. For the
+dynamic programming tables, the algorithm needs to compute O(n2 ) many Λ-sets (using
+Theorem 11, Item I), each of which contains at most h! = 2O(h log h) many elements by
+Theorem 11, Item II. Hence, it remains to analyse the time required to compute the set Λ
+               ′
+                                                                         O(h log h) O(1)
+given the Λi,i
+           j,j ′ -sets. For Option b, this can clearly be done in time 2           n     .
+    So consider Option a. The graph Hi can clearly be computed in time polynomial in its
+size. We have that |V (Hi )| = 2O(h log h) n. Afterwards, the algorithm iterates over |γ1 (r1 )|!
+many bijections τ . By Theorem 11, Item V, we have that |γ1 (r1 )|! = 2O(h log h) . For each
+                                                                             4
+
+
+bijection, the algorithm then requires polynomial computation time by Theorems 6 and 3.
+Overall, this proves the bound on the running time.                                           ◀
+
+
+▶ Remark 14. The algorithm from the last theorem can be extended in two directions. First,
+if one of the input graphs does not exclude K3,h as a minor, it can modified to either correctly
+conclude that G1 has a minor isomorphic to K3,h , or to correctly decide whether G1 is
+isomorphic to G2 . Indeed, the only part of the algorithm that exploits that the input graphs
+do not have minor isomorphic to K3,h is the computation of the tree decompositions (Ti , βi )
+from Theorem 11. In turn, this theorem only exploits forbidden minors via Lemmas 8 and 10.
+An algorithm can easily detect if one of the implications of those two statements is violated,
+in which case it can infer the existence of a minor K3,h .
+   Secondly, using standard reduction techniques (see, e.g., [19]), one can also compute a
+representation of the set of all isomorphisms Iso(G1 , G2 ) in the same time.
+
+    Since every graph of Euler genus g excludes K3,4g+3 as a minor [25], we obtain the
+following corollary.
+
+▶ Corollary 15. Let G1 , G2 be two (vertex- and arc-colored) graphs of Euler genus at most g.
+Then one can decide whether G1 is isomorphic to G2 in time 2O(g log g) nO(1) .
+                                                                   4
+
+
+
+
+                                                                                                               ESA 2021
+72:16   Isomorphism Testing Parameterized by Genus and Beyond
+
+
+         8     Conclusion
+        We presented an isomorphism test for graphs excluding K3,h as a minor running in time
+        2O(h log h) nO(1) . For this, we provided a polynomial-time isomorphism algorithm for (t, k)-
+             4
+
+
+        WL-bounded graphs and argued that graphs excluding K3,h as a minor can be decomposed
+        into parts that are (2, 2)-WL-bounded after individualizing a small number of vertices.
+            Still, several questions remain open. Probably one of the most important questions in the
+        area is whether isomorphism testing for graphs excluding Kh as a minor is fixed-parameter
+        tractable with parameter h. As graphs of bounded genus form an important subclass of
+        graphs excluding Kh as a minor, the techniques developed in this paper might also prove
+        helpful in resolving this question.
+            As an intermediate step, one can also ask for an isomorphism test for graphs excluding
+        Kℓ,h as a minor running in time f (h, ℓ)ng(ℓ) for some functions f, g. Observe that this paper
+        provides such an algorithm for ℓ = 3. Indeed, combining ideas from [10, 22] with the approach
+        taken in this paper, it seems the only hurdle towards such an algorithm is a generalization
+        of Lemma 9. Given a connected graph G for which |Vc | ≥ ℓ for all c ∈ CV (G, χ2WL[G]), is
+        it always possible to find vertex-disjoint, connected subgraphs H1 , . . . , Hℓ ⊆ G such that
+        V (Hr ) ∩ Vc ̸= ∅ for all r ∈ [ℓ] and c ∈ CV (G, χ2WL[G])?
+            As another intermediate problem, one can also consider the class Gh of all graphs G for
+        which there is a set X ⊆ V (G) of size |X| ≤ h such that G − X is planar. Is isomorphism
+        testing fixed-parameter tractable on Gh parameterized by h?
+
+
+             References
+         1   László Babai. Graph isomorphism in quasipolynomial time [extended abstract]. In Daniel
+             Wichs and Yishay Mansour, editors, Proceedings of the 48th Annual ACM SIGACT Symposium
+             on Theory of Computing, STOC 2016, Cambridge, MA, USA, June 18-21, 2016, pages 684–697.
+             ACM, 2016. doi:10.1145/2897518.2897542.
+         2   László Babai, Peter J. Cameron, and Péter P. Pálfy. On the orders of primitive groups with
+             restricted nonabelian composition factors. J. Algebra, 79(1):161–168, 1982. doi:10.1016/
+             0021-8693(82)90323-4.
+         3   László Babai, William M. Kantor, and Eugene M. Luks. Computational complexity and the
+             classification of finite simple groups. In 24th Annual Symposium on Foundations of Computer
+             Science, Tucson, Arizona, USA, 7-9 November 1983, pages 162–171. IEEE Computer Society,
+             1983. doi:10.1109/SFCS.1983.10.
+         4   Hans L. Bodlaender. Polynomial algorithms for graph isomorphism and chromatic index on
+             partial k-trees. J. Algorithms, 11(4):631–643, 1990. doi:10.1016/0196-6774(90)90013-5.
+         5   Jin-yi Cai, Martin Fürer, and Neil Immerman. An optimal lower bound on the number of
+             variables for graph identification. Comb., 12(4):389–410, 1992. doi:10.1007/BF01305232.
+         6   John D. Dixon and Brian Mortimer. Permutation Groups, volume 163 of Graduate Texts in
+             Mathematics. Springer-Verlag, New York, 1996. doi:10.1007/978-1-4612-0731-3.
+         7   Martin Grohe and Dániel Marx. Structure theorem and isomorphism test for graphs with
+             excluded topological subgraphs. SIAM J. Comput., 44(1):114–159, 2015. doi:10.1137/
+             120892234.
+         8   Martin Grohe, Daniel Neuen, Pascal Schweitzer, and Daniel Wiebking. An improved iso-
+             morphism test for bounded-tree-width graphs. ACM Trans. Algorithms, 16(3):34:1–34:31,
+             2020. doi:10.1145/3382082.
+         9   Martin Grohe and Pascal Schweitzer. Isomorphism testing for graphs of bounded rank width.
+             In Venkatesan Guruswami, editor, IEEE 56th Annual Symposium on Foundations of Computer
+             Science, FOCS 2015, Berkeley, CA, USA, 17-20 October, 2015, pages 1010–1029. IEEE
+             Computer Society, 2015. doi:10.1109/FOCS.2015.66.
+D. Neuen                                                                                                 72:17
+
+
+10   Martin Grohe, Daniel Wiebking, and Daniel Neuen. Isomorphism testing for graphs excluding
+     small minors. In 61st IEEE Annual Symposium on Foundations of Computer Science, FOCS
+     2020, Durham, NC, USA, November 16-19, 2020, pages 625–636. IEEE, 2020. doi:10.1109/
+     FOCS46700.2020.00064.
+11   John E. Hopcroft and Robert Endre Tarjan. Isomorphism of planar graphs. In Raymond E.
+     Miller and James W. Thatcher, editors, Proceedings of a symposium on the Complexity of
+     Computer Computations, held March 20-22, 1972, at the IBM Thomas J. Watson Research
+     Center, Yorktown Heights, New York, USA, The IBM Research Symposia Series, pages 131–152.
+     Plenum Press, New York, 1972. doi:10.1007/978-1-4684-2001-2_13.
+12   Neil Immerman and Eric Lander. Describing graphs: A first-order approach to graph can-
+     onization. In Alan L. Selman, editor, Complexity Theory Retrospective: In Honor of Juris
+     Hartmanis on the Occasion of His Sixtieth Birthday, July 5, 1988, pages 59–81. Springer New
+     York, New York, NY, 1990. doi:10.1007/978-1-4612-4478-3_5.
+13   Richard M. Karp. Reducibility among combinatorial problems. In Raymond E. Miller and
+     James W. Thatcher, editors, Proceedings of a symposium on the Complexity of Computer
+     Computations, held March 20-22, 1972, at the IBM Thomas J. Watson Research Center,
+     Yorktown Heights, New York, USA, The IBM Research Symposia Series, pages 85–103. Plenum
+     Press, New York, 1972. doi:10.1007/978-1-4684-2001-2_9.
+14   Ken-ichi Kawarabayashi. Graph isomorphism for bounded genus graphs in linear time. CoRR,
+     abs/1511.02460, 2015. arXiv:1511.02460.
+15   Ken-ichi Kawarabayashi and Bojan Mohar. Graph and map isomorphism and all polyhedral
+     embeddings in linear time. In Cynthia Dwork, editor, Proceedings of the 40th Annual ACM
+     Symposium on Theory of Computing, Victoria, British Columbia, Canada, May 17-20, 2008,
+     pages 471–480. ACM, 2008. doi:10.1145/1374376.1374443.
+16   Ken-ichi Kawarabayashi, Bojan Mohar, Roman Nedela, and Peter Zeman. Automorphism
+     groups of maps in linear time. CoRR, abs/2008.01616, 2020. arXiv:2008.01616.
+17   Daniel Lokshtanov, Marcin Pilipczuk, Michal Pilipczuk, and Saket Saurabh. Fixed-parameter
+     tractable canonization and isomorphism test for graphs of bounded treewidth. SIAM J.
+     Comput., 46(1):161–189, 2017. doi:10.1137/140999980.
+18   Eugene M. Luks. Isomorphism of graphs of bounded valence can be tested in polynomial time.
+     J. Comput. Syst. Sci., 25(1):42–65, 1982. doi:10.1016/0022-0000(82)90009-5.
+19   Rudolf Mathon. A note on the graph isomorphism counting problem. Inf. Process. Lett.,
+     8(3):131–132, 1979. doi:10.1016/0020-0190(79)90004-8.
+20   Gary L. Miller. Isomorphism of graphs which are pairwise k-separable. Inf. Control., 56(1/2):21–
+     33, 1983. doi:10.1016/S0019-9958(83)80048-5.
+21   Daniel Neuen. Hypergraph isomorphism for groups with restricted composition factors. In
+     Artur Czumaj, Anuj Dawar, and Emanuela Merelli, editors, 47th International Colloquium
+     on Automata, Languages, and Programming, ICALP 2020, July 8-11, 2020, Saarbrücken,
+     Germany (Virtual Conference), volume 168 of LIPIcs, pages 88:1–88:19. Schloss Dagstuhl -
+     Leibniz-Zentrum für Informatik, 2020. doi:10.4230/LIPIcs.ICALP.2020.88.
+22   Daniel Neuen. Isomorphism testing for graphs excluding small topological subgraphs. CoRR,
+     abs/2011.14730, 2020. arXiv:2011.14730.
+23   Ilia N. Ponomarenko. The isomorphism problem for classes of graphs. Dokl. Akad. Nauk SSSR,
+     304(3):552–556, 1989.
+24   Ilia N. Ponomarenko. The isomorphism problem for classes of graphs closed under contraction.
+     Journal of Soviet Mathematics, 55(2):1621–1643, June 1991. doi:10.1007/BF01098279.
+25   Gerhard Ringel. Das geschlecht des vollständigen paaren graphen. Abhandlungen aus dem
+     Mathematischen Seminar der Universität Hamburg, 28(3):139–150, October 1965. doi:10.
+     1007/BF02993245.
+26   Joseph J. Rotman. An Introduction to the Theory of Groups, volume 148 of Graduate
+     Texts in Mathematics. Springer-Verlag, New York, fourth edition, 1995. doi:10.1007/
+     978-1-4612-4176-8.
+
+
+
+
+                                                                                                        ESA 2021
+72:18   Isomorphism Testing Parameterized by Genus and Beyond
+
+
+        27   Ákos Seress. Permutation Group Algorithms, volume 152 of Cambridge Tracts in Mathematics.
+             Cambridge University Press, Cambridge, 2003. doi:10.1017/CBO9780511546549.
+        28   Boris Weisfeiler and Andrei Leman. The reduction of a graph to canonical form and the
+             algebra which appears therein. NTI, Series 2, 1968. English translation by Grigory Ryabov
+             available at https://www.iti.zcu.cz/wl2018/pdf/wl_paper_translation.pdf.
+

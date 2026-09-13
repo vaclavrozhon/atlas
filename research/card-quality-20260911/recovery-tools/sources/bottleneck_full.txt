@@ -1,0 +1,2040 @@
+The Bottleneck Complexity of Secure Multiparty
+Computation
+Elette Boyle1 , Abhishek Jain2 , Manoj Prabhakaran3 , and Ching-Hua Yu4
+
+1       IDC Herzliya, elette.boyle@idc.ac.il
+2       Johns Hopkins University, abhishek@cs.jhu.edu
+3       Indian Institute of Technology Bombay, mp@cse.iitb.ac.in
+4       University of Illinois at Urbana-Champaign, cyu17@illinois.edu
+
+
+         Abstract
+In this work, we initiate the study of bottleneck complexity as a new communication efficiency measure
+for secure multiparty computation (MPC). Roughly, the bottleneck complexity of an MPC protocol is
+defined as the maximum communication complexity required by any party within the protocol execution.
+    We observe that even without security, bottleneck communication complexity is an interesting meas-
+ure of communication complexity for (distributed) functions and propose it as a fundamental area to
+explore. While achieving O(n) bottleneck complexity (where n is the number of parties) is straightfor-
+ward, we show that: (1) achieving sublinear bottleneck complexity is not always possible, even when no
+security is required. (2) On the other hand, several useful classes of functions do have o(n) bottleneck
+complexity, when no security is required.
+    Our main positive result is a compiler that transforms any (possibly insecure) efficient protocol with
+fixed communication-pattern for computing any functionality into a secure MPC protocol while pre-
+serving the bottleneck complexity of the underlying protocol (up to security parameter overhead). Given
+our compiler, an efficient protocol for any function f with sublinear bottleneck complexity can be trans-
+formed into an MPC protocol for f with the same bottleneck complexity.
+    Along the way, we build cryptographic primitives – incremental fully-homomorphic encryption, suc-
+cinct non-interactive arguments of knowledge with ID-based simulation-extractability property and veri-
+fiable protocol execution – that may be of independent interest.
+
+Digital Object Identifier 10.4230/LIPIcs.ICALP.2018.
+
+
+    1     Introduction
+Secure multi-party computation (MPC) [42, 24] is a fundamental notion in cryptography, enabling a
+collection of mutually distrusting parties to jointly evaluate a function on their private inputs while
+revealing nothing beyond the function output. In the past decades, a great deal of research has been
+dedicated to the design and optimization of efficient MPC protocols.
+    In this work, we study one fundamental metric of MPC efficiency: the required communication
+between parties. In particular, we focus on the communication complexity of MPC in large-scale
+settings, where the number of participants is significant.
+    In nearly all existing works in MPC literature, the communication complexity goal has been to
+minimize the total communication of the protocol across all n parties. However, for many important
+applications, such as peer-to-peer computations between lightweight devices,1 total costs (such as
+total communication) are only secondarily indicative of the feasibility of the computation, as opposed
+to the primary issue of per-party cost. Indeed, while a total communication bound L implies average
+per-party communication of the protocol is L/n, the computation may demand a subset of the parties
+
+
+1
+    For example, optimizing navigation routes based on traffic information contributed by the cell phones of drivers on
+    the road, without revealing the locations of individual users.
+                © Elette Boyle, Abhishek Jain, Manoj Prabhakaran, and Ching-Hua Yu;
+                                                                                                                    EA
+
+
+
+
+                licensed under Creative Commons License CC-BY
+                                                                                                                     TC S
+
+
+
+
+45th International Colloquium on Automata, Languages, and Programming (ICALP 2018).
+Editors: Ioannis Chatzigiannakis, Christos Kaklamanis, Daniel Marx, and Don Sannella; Article No. ; pp. :1–:35
+                         Leibniz International Proceedings in Informatics
+                         Schloss Dagstuhl – Leibniz-Zentrum für Informatik, Dagstuhl Publishing, Germany
+XX:2   The Bottleneck Complexity of Secure Multiparty Computation
+
+
+       to each communicate as much as Θ(L). When all parties contribute input to the computation, then
+       L ≥ n, meaning these parties must bear communication proportional to the total number of parties.
+       In large-scale distributed settings, or when the protocol participants are lightweight devices, such a
+       requirement could be prohibitive.
+       New efficiency measure: (MPC) Bottleneck Complexity. To address these concerns, we initiate
+       the study of bottleneck complexity of MPC. The bottleneck complexity of a protocol Π is defined as
+       the maximum communication required by any party within the protocol execution. One may further
+       specialize this to incoming versus outgoing communication. The MPC bottleneck complexity of a
+       (distributed) function is the minimum possible bottleneck complexity of a secure MPC protocol for
+       the function. In this work, our goal is to explore this notion as a complexity measure for distributed
+       computations, and to develop secure protocols with low bottleneck complexity.
+           Bottleneck complexity addresses certain (practically important) aspects ignored by standard
+       communication complexity. For instance, if two messages are transmitted in two different parts of a
+       network, say A → B and C → D, they would be delivered faster than two messages sent to/from
+       the same party, say A → B and C → B. While both have same total communication, the latter has
+       higher bottleneck communication.
+       Bottleneck Complexity without Security. Before studying bottleneck communication complexity
+       for secure protocols, we first consider this measure for arbitrary protocols without any security
+       considerations. Indeed, this already forms an interesting measure of complexity for (distributed)
+       functions, and we propose it as a fundamental area to explore. As in the case of total communication
+       complexity (which coincides with bottleneck complexity for the case of 2 parties), there is a trivial
+       upper bound of O(n) bottleneck complexity for any n-party functionality (with boolean inputs), where
+       all parties simply send their input to a central party who computes the functionality. On the other hand,
+       in many functions, bottleneck complexity brings out structures that total communication complexity
+       overlooks. For instance, in computing say the XOR or AND of n bits, total communication complexity
+       is Θ(n), but the bottleneck complexity is O(1). These functions naturally allow for incremental
+       computation along a chain, in which each party receives and sends a single bit. Indeed, there is a large
+       class of useful functions which have protocols with low bottleneck complexity, as discussed below.
+            However, a priori it is not clear whether all functions can be computed in a similar manner. This
+       brings us to the first question considered in this work:
+                                 Can all functions be computed (without security)
+                                     with sublinear bottleneck complexity?
+       For concreteness, we may consider n-party functions, with n inputs (one for each party) each k bits
+       long, and a single-bit output. Because of the trivial O(nk) upper bound on total communication
+       complexity for any such function (as discussed above), each party on average needs only to commu-
+       nicate O(k) bits. But in this protocol, the communication complexity of the central party—and thus
+       bottleneck complexity of the protocol—is (n − 1)k bits. Surprisingly, we show that this is the best
+       one can ask for, for general functions. That is, there exist n-party functionalities with k-bit inputs for
+       which the bottleneck complexity is Ω(nk).
+       I Theorem 1. (Informal.) There exist n-party functions with k-bit input for each party that have
+       bottleneck complexity close to that in the trivial upperbound, namely (n − 1)k.
+       Our proof is based on a counting argument, and quantifies over possibly inefficient functions too. In-
+       terestingly, giving an explicit efficient function f with such a lower bound will require a breakthrough
+       in complexity theory, as it would imply an Ω(n2 ) lower bound on the circuit size of computing f .
+       (We discuss this connection below.)
+       Functions with Low Bottleneck Complexity. Despite the above lower bound, there is a large class
+       of interesting functions which do have sublinear bottleneck complexity. One simple but widely
+E. Boyle, A. Jain, M. Prabhakaran, C. Yu                                                                                       XX:3
+
+
+applicable example is addition in a finite group: the sum of n group elements distributed among n
+parties can be aggregated bottom-up (and then disseminated top-down) using a constant-degree tree,
+with every party communicating O(d) group elements, where d is its degree in the tree.2
+     A wider class of functions are obtained from the literature on streaming algorithms [22, 31].
+Indeed, any streaming algorithm with a small memory and a small number of passes corresponds
+to a low bottleneck complexity function. (Here, we refer to the actual function that the streaming
+algorithm computes, which may in fact be an approximation to some other desired function.) This is
+because we can design a protocol which passes around the state of the streaming algorithm from one
+party to the next, in the order in which their inputs are to be presented to the algorithm.
+     On the other hand, low bottleneck complexity protocols appear to be much more general than
+streaming algorithms. Indeed, observe that the low bottleneck complexity protocol described above
+has a very special communication structure of a chain (or multi-pass cycle). We leave it as an open
+problem to separate these two notions – i.e., find functions which have low bottleneck complexity
+protocols, but do not have low-memory streaming algorithms.
+     Finally, we note that, any n-input function with a constant fan-in circuit of subquadratic size
+(i.e., o(n2 ) gates) has a sublinear bottleneck complexity protocol. To see this, first we note that
+such a circuit can be made to have constant fan-out as well, by increasing the circuit size by a
+constant factor.3 Then, a sublinear bottleneck complexity protocol can be obtained from the circuit by
+partitioning all the o(n2 ) gates roughly equally among the n parties, and letting the parties evaluate
+the gates assigned to them, communicating with each other when wires cross party boundaries. The
+communication incurred by each party is bounded by the number of wires incident on all the gates it
+is assigned, which is o(n).
+MPC Bottleneck complexity. We next turn our attention to achieving low bottleneck complexity
+for secure computation of functionalities. We focus on the general setting where up to n − 1 out of
+n parties can be corrupted. As a baseline, we observe that the MPC protocol of Dodis et al. [19]
+based on “additive-spooky encryption” can be easily adapted to obtain generic secure computation
+with O(n) bottleneck complexity (where O(n) hides factors of the security parameter). Therefore,
+as in the insecure setting, we focus on constructing MPC protocols with sublinear o(n) bottleneck
+complexity.
+    Specifically, we ask the question:
+                     If a function f can be computed with bottleneck complexity L,
+                    can it be computed securely with the same bottleneck complexity,
+                        up to a multiplicative overhead of the security parameter?
+    We note that the goal of sublinear bottleneck complexity is strictly stronger than the recently
+studied problem of MPC with sublinear communication locality [8]. The locality of a protocol is
+the maximum number of other parties that any party must communicate with during the course of
+the protocol. It is easy to see that sublinear bottleneck complexity directly implies sublinear locality
+(since sending/receiving o(n) bits means that a party can only communicate with o(n) neighbors);
+however, as locality does not place any requirements on the number of bits communicated by a party,
+the converse is not true. Indeed, without security requirements, every function has an O(1)-local
+
+
+2
+  If the group is not abelian, the tree used should be such that its in-order traversal should result in the parties to be
+  ordered in the same way their inputs are ordered in the sum being computed.
+3
+  Given a gate with fan-out d > 2, consider the depth-1 tree T rooted that gate with d leaves being the gates to which
+  its outputs are connected. T can be replaced by an equivalent binary tree T 0 with the same root and leaves, and d − 2
+  new internal nodes. The new internal nodes of T 0 can be “charged” to the leaves of T . On doing this for all gates in
+  the circuit, each gate gets charged at most as many times as its fan-in. Since each gate in the original circuit has
+  constant fan-in, this transformation increases the circuit size by at most a constant factor.
+
+
+
+
+                                                                                                                             ICALP 2018
+XX:4   The Bottleneck Complexity of Secure Multiparty Computation
+
+
+       protocol, which is not the case for bottleneck complexity.
+           We show a general compiler which transforms any (possibly insecure) efficient multi-party
+       protocol Π for computing a function f into a protocol Π0 for securely computing f , preserving the
+       per-party communication and computation requirements up to O(λc ) factors in the security parameter
+       λ for small constant c. The original protocol Π can have an arbitrary communication pattern; however,
+       we require that this pattern must be fixed a priori (independent of inputs) and known to all parties.
+       Our compiler additionally preserves the topology of communication graph of Π (and in particular,
+       preserves locality).
+       I Theorem 2. (Informal.) There is a transformation which maps any (possibly insecure) efficient
+       protocol with fixed-communication-pattern for an n-party distributed function f into a secure MPC
+       protocol for f with asymptotically (as a function of n) the same communication and computational
+       requirements per party, and using the same communication graph as the original protocol.
+           The main tools underlying the result include a new notion of incremental fully homomorphic
+       encryption, which we show can be instantiated from the Learning With Errors (LWE) assumption
+       via [23], as well as zero-knowledge succinct non-interactive arguments of knowledge (ZK-SNARK)
+       [2] with a “ID-based” simulation-extractability property [39, 40]. We rely on a setup that includes a
+       common random string and a (bare) public-key infrastructure, where all the n parties have deposited
+       keys for themselves, and which all the parties can access for free. The setup can be reused for any
+       number of executions.
+       Our Contributions. To summarize, our main contributions in this work are as follows:
+          We introduce a new measure of per-party communication complexity for (distibuted) functions,
+          called bottleneck complexity.
+          We demonstrate the existence of n-party functions with k bits of input for each party, that have
+          bottleneck complexity Θ(nk). Showing an explicit function with Ω(n) bottleneck complexity will
+          require showing an explicit function with Ω(n2 ) circuit size complexity. On the other hand, we
+          observe that many useful classes of functions do have o(n) bottleneck complexity.
+          We show a general transformation from arbitrary efficient protocols to secure MPC protocols (in a
+          model with public setup) that asymptotically (as a function of n) preserves the communication and
+          computational requirements per party, and preserves the same communication graph.
+          As part of our transformation, we introduce cryptographic primitives—Incremental FHE, Verifi-
+          able Protocol Execution—and give a construction of ZK-SNARKs with an ID-based simulation-
+          extractability property. These may be of independent interest.
+
+       We expand on the transformation in the following section.
+
+       1.1    Our Techniques
+       We describe the main ideas underlying our positive result: the bottleneck-complexity-preserving
+       transformation from arbitrary protocols to secure ones.
+           At a high-level, we follow an intuitive outline for our compiler: (1) We first compile an insecure
+       protocol into a protocol that is secure against semi-honest (or honest-but-curious) adversaries using
+       fully homomorphic encryption (FHE). (2) We then use zero-knowledge succinct arguments of
+       knowledge (ZK-SNARKs) to compile it into a protocol that is (standalone) secure against malicious
+       adversaries. However, we run into several technical challenges along the way, requiring us to develop
+       stronger guarantees for FHE and SNARKs, as well as some other new ideas. We elaborate on these
+       challenges and our solutions below.
+       Semi-honest Security. A natural starting idea to obtain semi-honest security is to execute an
+       “encrypted” version of the underlying (insecure) protocol by using FHE. Once the parties have the
+E. Boyle, A. Jain, M. Prabhakaran, C. Yu                                                                               XX:5
+
+
+encrypted output, they execute the FHE decryption process to learn the output. The immediate
+problem with implementing this idea in the multiparty setting is which key must we use for encryption
+and decryption. If a single party knows the (entire) decryption key, then we cannot guarantee security.
+    To address this problem, two approaches have been developed in the literature: threshold FHE [1],
+where the parties jointly generate a public key for an FHE scheme such that each party only knows a
+share of the decryption key, and multi-key FHE [29], where each party has its own public and secret
+key pair and FHE evaluation can be performed over ciphertexts computed w.r.t. different public keys.
+    While these approaches have been shown to suffice for constructing round-efficient MPC protocols,
+they are not directly applicable to our setting. This is for two reasons:
+
+    Threshold FHE and multi-key FHE systems are defined in the broadcast model of communication
+    where each party gets to see the messages sent by all the other parties. In contrast, our setting is
+    inherently point-to-point, where a party only communicates with its neighbors in the communica-
+    tion graph of the underlying insecure protocol. Indeed, in order to maintain sublinear bottleneck
+    complexity, we cannot afford each party to communicate with all the other parties.
+    Further, in all known solutions for threshold FHE [1] and multi-key FHE [29, 13, 34, 10, 36], the
+    size of one or more protocol messages of each party grows at least linearly with the number of
+    parties. This directly violates our sublinear bottleneck complexity requirement.
+
+    To address these issues, we define and implement a new notion of incremental FHE (IFHE).
+Roughly, an IFHE scheme is defined similarly to threshold FHE, with the following key strengthened
+requirements: a “joint” public key can be computed by incrementally combining shares provided
+by different parties in an arbitrary order. Similarly, a ciphertext w.r.t. the joint public key can be
+decrypted by incrementally combining partial decryption shares provided by parties in an arbitrary
+order. Crucially, the intermediate keys and partial decryption values must be succinct.
+    We construct an IFHE scheme with appropriate security guarantees based on the Gentry-Sahai-
+Waters FHE scheme [23]. Using IFHE, we are able to directly compile an insecure protocol into a
+semi-honest secure protocol. In fact, this protocol can withstand a slightly stronger adversary – called
+a semi-malicious adversary [1] – which is allowed to maliciously choose its random tape. This will be
+crucially exploited in the next step, because without it, one will need to enforce honest random-tapes
+for all the parties (using n-way coin-tossing-in-the-well) which would incur Ω(n) communication
+already.
+From Semi-Malicious to Malicious Security. A natural approach to achieve security against mali-
+cious adversaries is to use the GMW paradigm [24]. Roughly, in the GMW compiler, each party first
+commits to its input and random tape. Later, whenever a party sends a message of a semi-malicious
+protocol,4 it also proves in ZK to all the other parties that it is behaving correctly w.r.t. the committed
+input and random tape.
+    The GMW commit-and-prove methodology is problematic in our setting since we cannot allow
+a party to talk to all other parties (directly or indirectly through the other nodes). Yet, in order to
+achieve security, each honest party must verify not just that its neighbors behave correctly, but that all
+corrupt parties (many of whom may not directly interact with any honest party) behaved honestly. A
+priori, these may seem to be contradictory goals.
+    We address all of these challenges by presenting a new generic compiler for Verifiable Protocol
+Execution (VPE), modeled as a functionality Fvpe . Our protocol Πvpe for implementing Fvpe asymp-
+totically preserves the per-party communication and computational complexity (up to a multiplicative
+factor polynomial in the security parameter) of the underlying semi-malicious protocol. We construct
+
+
+4
+    The standard GMW compiler is defined for semi-honest protocols and also involves a coin-tossing step. Here, we
+    consider a natural variant that works for semi-malicious protocols.
+
+
+
+
+                                                                                                                     ICALP 2018
+XX:6   The Bottleneck Complexity of Secure Multiparty Computation
+
+
+       Πvpe from two main ingredients: (1) a new commitment protocol that allows the parties to compute
+       a succinct “aggregate” commitment over the inputs and randomness of all of the parties. (2) ZK-
+       SNARKs with a strong extraction property as well as simulation-soundness to ensure that adversary
+       cannot prove false statements even upon receiving simulated proofs. We refer the reader to technical
+       sections for details on our commitment protocol. Here, we discuss our use of ZK-SNARKs.
+       ID-Based Simulation-Extractable ZK-SNARKs. We rely on ZK-SNARKs to let parties provide
+       not just proofs of correctly computing their own messages, but also of having verified previous proofs
+       recursively. This use of SNARKs for recursive verification resembles prior work on proof-carrying
+       data [12, 3]. The key difference is that proof-carrying data only addresses correctness of computation,
+       whereas in our setting, we are also concerned with privacy. In particular, in order to argue security, we
+       also require these proofs to be simulation-sound with extractability (or simply simulation-extractable),
+       which presents a significant additional challenge.
+           The core challenge in constructing simulation-extractable ZK-SNARKs (SE-ZK-SNARKs) arises
+       from the inherent limitation that extraction from the adversary must be non-black-box (since the size
+       of the extracted witness is larger than the proof itself), but the adversary receives simulated proofs
+       which he cannot directly produce on his own. Indeed, for this reason SE-ZK-SNARKs are impossible
+       to achieve with strong universal composability (UC) security [27]. To reduce the security of an
+       SE-ZK-SNARK construction to an underlying knowledge assumption (such as standard SNARKs),
+       one must thus either (a) start with an assumption that guarantees non-black-box extraction even in the
+       presence of an oracle (which can be problematic [20]), or (b) somehow in the reduction be able to
+       provide the code to answer the adversary’s simulated proof queries, without voiding the reduction by
+       including the simulation trapdoor itself.
+           Two recent works have presented constructions of SE-ZK-SNARKs, each adopting a different
+       approach. Groth and Maller [25] embody approach (a), constructing full SE-ZK-SNARKs from a new
+       specific pairing-based knowledge assumption which assumes extraction in the presence of black-box
+       access to an oracle with the trapdoor. Alternatively, Garman et al. [21] take approach (b), basing
+       their construction on standard SNARKs; however, their construction is only applicable to a restricted
+       security model where the statements on which the adversarial prover requests simulated proofs are
+       fixed in advance (in which case these proofs can be hardcoded in the reduction). The case where the
+       adversary’s queries are chosen adaptively as a function of previously simulated proofs (which we
+       need for our transformation) is not currently addressed in this setting.
+           We provide a new solution for handling adaptive queries, without relying upon oracle-based
+       assumptions as in [25]. We consider an ID-based notion of SE-ZK-SNARK, where each proof is
+       generated with respect to an identity (chosen from a set of identities that are fixed in advance). In
+       our definition, the adversary must fix a set ID∗ of “honest” identities in advance and can then receive
+       simulated proofs on adaptively chosen statements w.r.t. identities from this set. It must then come up
+       with an accepting proof for a new statement w.r.t. an identity id ∈   / ID∗ .
+           We show how to transform any SNARK argument system into an ID-based SE-ZK-SNARK by
+       relying on only standard cryptographic assumptions. Very roughly, in our construction, it is possible
+       to “puncture” the trapdoor trap for the CRS w.r.t. an identity set ID∗ . A punctured trapdoor trapID∗
+       can only be used to simulate the proofs w.r.t. identities id ∈ ID∗ , but cannot be used to simulate proofs
+                            / ID∗ . Using such a punctured trapdoor, we are able to successfully implement
+       w.r.t. identities id ∈
+       approach (b) in the adaptive setting. We implement this idea by using identity-based signatures, which
+       can be readily constructed using certificate chains from a standard signature scheme.
+           Ultimately, we obtain recursively verifiable ID-based SE-SNARKs generically from signatures
+       and (standard) SNARKs with an “additive extraction overhead.” While the latter is a relatively strong
+       requirement, such primitives have been considered in prior work [14, 3] and appears to be as justified
+       as the standard SNARK assumption.
+E. Boyle, A. Jain, M. Prabhakaran, C. Yu                                                                        XX:7
+
+
+1.2    Related Work
+Communication complexity models. The vast majority of study in communication complexity
+(c.f. [28]) focuses on the setting of only two parties, in which case the total and bottleneck complexities
+of protocols align (asymptotically). In the multi-party setting, several models are considered regarding
+how the input to f begins initially distributed among the players. The most common such models are
+the “number-on-forehead” model, in which parties begin holding all inputs except their own, and the
+model considered in this work (as is standard in MPC), frequently known as the “number in hand”
+model, where each party begins with his own input. In all cases, the “communication complexity”
+within the given model refers to the total communication of all parties.
+Communication complexity of MPC. Communication complexity of secure multiparty computation
+(MPC) has been extensively studied over the years. Communication complexity preserving compilers
+from insecure to secure protocols were introduced in the 2-party setting by [35]. The setting of MPC
+with many parties was first predominantly considered in the line of work on scalable MPC [15, 16].
+Here the focus was on optimizing the complexity as a function of the circuit size |C|, and the resulting
+n-party protocols have per-party communication Õ(|C|/n)+poly(n). Some of these works explicitly
+achieve load-balancing (e.g., [18, 7]), a goal similar in spirit to bottleneck complexity, where the
+complexity of the protocol is evenly distributed across the parties. To the best of our knowledge,
+however, the poly(n) term in the per-party communication complexity is Ω(n) in all works aside
+from [43], which achieves Õ(|C|/n) amortized per-party communication but Õ(|C|/n+n) bottleneck
+complexity (due to its dependence on [11]).
+Communication Locality. A related notion to bottleneck complexity is communication locality [8].
+The locality of a party is the number of total other parties it must communicate with throughout the
+protocol, and the locality of the protocol is the worst case locality of any party. In [8], Boyle et al.
+studied locality in secure MPC and showed (based on various computational assumptions) that any
+efficiently computable function has a polylog(n)-locality secure MPC protocol.
+Lower bounds on MPC communication complexity. As discussed, lower bounds on standard
+multi-party communication complexity cannot directly imply meaningful lower bounds on bottleneck
+complexity, as no such bound can exceed Ω(n) (attainable by all parties sending their input to a single
+party), but this implies only a bound of Ω(1) bottleneck complexity. For secure computation, in [17],
+Damgård et al. showed that securely evaluating a circuit of m multiplication gates requires Ω(n2 m)
+total communication in the information-theoretic security setting. This implies a super-linear lower
+bound for bottleneck complexity in their setting. We note, however, that their lower bound does not
+apply to us, as we consider computational security, and further, their lower bound does not apply to
+the setting where the number of parties is larger than the security parameter.
+
+ 2     Preliminaries and Definitions
+By x ∈R Znq we denote that x is uniformly sampled from Znq , and by x ← D we denote that x
+                                          c
+is sampled from a distribution D. By u we denote computational indistinguishability. We denote
+an N -party additive secret sharing of x ∈ Zq by [x]N  q . That is, each Pi owns xi ∈ Zq such that
+     P
+x = i∈[N ] xi . When it is clear, we write [x] for brevity.
+Communication Model. We consider a synchronous network among n parties, P1 , · · · , Pn , that
+allows secure communication between (some) pairs of parties; the channels are authenticated and
+leak nothing except the number of bits in each message.
+    An n-party protocol π in this model is a “next-message function,” that takes as input the round
+number t, two identities i, j ∈ [n] and the view of Pi , and outputs the message from Pi to Pj in round
+t. The view of a party consists of its input, random-tape, and all the messages received in prior rounds
+
+
+
+                                                                                                              ICALP 2018
+XX:8   The Bottleneck Complexity of Secure Multiparty Computation
+
+
+       of the protocol. If the next-message function is invoked with the keyword out instead of a receiver,
+       π generates the output for the “sender” (for simplicity, we shall restrict ourselves to protocols that
+       produce output only on termination).
+           We shall require that in a protocol, the message on any edge (i, j) at any round t is encoded using
+       a prefix-free code that is agreed up on between the sender and the receiver. Adopting this model
+       precludes communication by not sending any bits.5
+       Security for MPC. We use a standard simulation-based security definition for MPC protocols in the
+       standalone security model. We consider two notions of corruptions: (1) active adversaries, who may
+       arbitrarily deviate from the protocol strategy, and (2) semi-malicious adversaries, who follow the
+       protocol instructions but may choose their random tapes arbitrarily. Both of these adversaries can
+       abort the execution whenever they choose. We refer the reader to Appendix A for further details.
+
+
+       2.1       Bottleneck Complexity
+       We introduce a new per-party communication metric for distributed computations.
+       I Definition 3 (Bottleneck Complexity of Protocol). The individual communication complexity
+       of a party Pi in an n-party protocol π, denoted as CC i (π), is the expected number of bits sent or
+       received by Pi in an execution of π, with worst-case inputs.
+           The bottleneck complexity (BC) of an n-party protocol π is the worst-case communication
+       complexity of any party. That is, BC(π) = maxi∈[n] CC i (π).
+       I Definition 4 (Bottleneck Complexity of Function). The bottleneck complexity of an n-input
+       function f is the minimum value of BC(π) when quantified over all n-party distributed protocols π
+       which correctly evaluate f .
+          Analogously, we define the MPC bottleneck complexity of f as the minimum BC(π) quantified
+       over all n-party protocols π which securely evaluate f .
+
+       Admissible Protocols. We will show techniques that transform general (insecure) protocols to secure
+       ones. Here we define the required minimal assumption of the original protocols, which we refer to
+       as admissibility. Roughly, a protocol is admissible if its next-message function is polynomial-time
+       computable and it has a fixed communication pattern.
+           Below Z+ denotes the set of non-negative integers.
+       I Definition 5 (Admissible Protocol). Let f be a polynomial function, k be a security parameter,
+       and let π = {π1 , ..., πn } be a possibly randomized n-party protocol, where πi is a next message
+       function of Pi . Let x = {x1 , ..., xn } and r = {r1 , ..., rn } be the input set and the random string
+                                              t∈[T ]
+       set respectively. Denote mti,j (x, r) i,j∈[n] as the set of the messages generated by π(x, r), and let
+       |mti,j (x, r)| ∈ [0, f (k)] be the length of message from Pi to Pj at time t.6 We say π is admissible if
+       it satisfies the following two conditions:
+
+       - Polynomial-Time Computable: For each i, next-message function πi is expressed by a circuit
+          of fixed polynomial-size in |xi | + |ri |, with a universally bounded depth.
+
+
+       5
+           While one may argue that it is reasonable to allow zero-cost communication in this manner, it can be abused to
+           communicate large amounts of information at the cost of a single bit, by using a large number of rounds. Further,
+           such signalling cannot be used if multiple such protocols are executed concurrently. Also, practically, the prefix-free
+           communication is more amenable to implementing a synchronous model over an asynchronous network, as delays
+           will not be mistaken for shorter (or empty) messages.                                      
+                                                                                                 t∈[t−1]
+       6
+           Precisely, for each i ∈ [n], t ∈ [T ], {mi,j (x, r)}tj∈[n] ← πi xi , ri , {mj,i (x, r)}j∈[n]
+E. Boyle, A. Jain, M. Prabhakaran, C. Yu                                                                        XX:9
+
+
+- Fixed Communication Pattern: A protocol π is said to have a fixed communication pattern if,
+    irrespective of the input and random-tapes of the parties, the total number of rounds tmax is fixed
+    and there is a function len : [tmax ] × [n] × [n] → Z+ that maps (t, i, j) to the length of message
+    (possibly 0) from Pi to Pj at round t as determined by π for any view of Pi .
+
+    Note that above we allow randomized protocols, as some interesting low bottleneck complexity
+protocols (e.g., those derived from streaming algorithms) tend to be randomized.
+
+
+ 3      Lowerbound on Bottleneck Complexity of Distributed Functions
+In this section we show that for most functions f on n inputs (each input could be as short as 1 bit,
+and the output a single bit delivered to a single party), for any distributed computation protocol π
+that implements f , the (incoming) bottleneck complexity BC(π) is at least n − O(log n) bits. In
+fact, this holds true even without any security requirement. This is tight in the sense that, even with
+a security requirement, there is a protocol in which only one party has individual communication
+complexity Ω(n), and all others have communication proportional to their inputs and outputs (with a
+multiplicative overhead independent of the number of parties).
+    This is somewhat surprising since many interesting functions do have protocols with constant
+communication complexity. As mentioned before, any (possibly randomized) function which has
+a streaming algorithm or a sub-quadratic sized circuit (with small fan-in gates) gives rise to low
+botteleneck complexity protocols.
+    To show our lower-bound, we need to therefore rely on functions with roughly a quadratic lower-
+bound on circuit size. Given the current lack of explicit examples of such functions, we present
+an existential result, and leave it as a conjecture that there are n-bit input boolean functions with
+polynomial sized circuits with bottleneck communication complexity of Ω̃(n). For simplicity, we
+discuss the case of perfectly correct protocols, but as we shall point out, a small constant probability
+of error does not change the result significantly. This result says that there is a function (in fact, most
+functions) such that the best bottleneck complexity is almost achieved by the trivial protocol, in which
+one party receives the inputs of all the other n − 1 parties and carries out the computation locally.
+I Theorem 6. ∃f : {0, 1}k×n → {0, 1} such that any n-party, each with k bits input, distributed
+computation protocol that computes f correctly will have at least one party receiving at least
+(n − 1)k − O(log nk) bits in the worst-case.
+     We provide the proof in Appendix B.
+
+
+ 4      Incremental FHE
+We define and implement a new notion of incremental FHE (IFHE), which is used within our main
+positive result. We start by providing syntax and security definitions for IFHE in Section 4.1. Next,
+we recall some preliminaries and the Gentry-Sahai-Waters (GSW) FHE scheme [23] in Appendix
+A.4. We describe our construction of IFHE in Section 4.2.
+
+4.1     Definitions
+(Leveled) Fully Homomorphic Encryption. A fully homomorphic encryption (FHE) scheme con-
+sists of algorithms (K EYGEN, E NCRYPT, E VAL, D ECRYPT), where (K EYGEN, E NCRYPT, D ECRYPT)
+constitute a semantically secure public-key encryption scheme, and E VAL refers to the homomorphic
+evaluation algorithm on ciphertexts. An `-leveled FHE scheme supports homomorphic evaluation of
+circuits of depth at most `.
+
+
+
+                                                                                                              ICALP 2018
+XX:10   The Bottleneck Complexity of Secure Multiparty Computation
+
+
+        Incremental FHE. An IFHE scheme is defined similarly to threshold FHE [1], with the following
+        key modifications: a “joint” public key can be computed by incrementally combining shares provided
+        by different parties in an arbitrary order. Similarly, a ciphertext w.r.t. the joint public key can be
+        decrypted by incrementally combining partial decryption shares provided by parties in an arbitrary
+        order. Crucially, the intermediate keys and partial decryption values must be succinct.
+            For technical reasons, it is convenient to describe the joint decryption procedure via three sub-
+        algorithms: A procedure P RE D EC which pre-processes a homomorphically evaluated ciphertext to be
+        safe for joint decryption; PART D EC run by each individual party on a ciphertext (with his share of the
+        secret key) to generate his contribution toward the decryption; and C OMBINE D EC which combines
+        the outputs of PART D EC from each party for a given ciphertext to reconstruct the final decrypted
+        output. In addition to standard semantic security, we also require the output of PART D EC to hide
+        information about the secret key share that was used; this is captured by the Simulatability of Partial
+        Decryption property below.
+            We proceed to give a formal definition.
+        I Definition 7 (Incremental FHE). An incremental fully homomorphic encryption (IFHE) scheme
+        is an FHE scheme with an additional algorithm IFHE.C OMBINE K EYS and with D ECRYPT replaced
+        by three algorithms IFHE.P RE D EC, IFHE.PART D EC and IFHE.C OMBINE D EC. By PKS we denote
+        a combined public key of a subset S ⊆ [n] of parties. Particularly, PK{i} = PKi is generated by Pi
+        using the algorithm K EYGEN, and PK = PK[n] is the final public key. Similarly, by vS we denote a
+        combined decryption, and by vi when S = {i}. For the completeness of notations, let PKS and vS be
+        empty strings when S = ∅. We describe the syntax of the four algorithms as follows:
+
+           IFHE.C OMBINE K EYS(PKS , PKT ): On input 2 combined public keys PKS , PKT , where S ∩ T = ∅,
+           output a combined public key PKS∪T .
+           IFHE.P RE D EC(PK, C): On input a final public key PK and a ciphertext C, sample a public random
+           R, and output a re-randomized ciphertext C0 of the same plaintext.
+           IFHE.PART D EC(PK, SKi , C): On input a final public key PK, ith secret key SKi , ciphertext C,
+           output a partial decryption vi .
+           IFHE.C OMBINE D EC(vS , vT ): On input 2 partial decryptions vS , vT , where S∩T = ∅, if |S∪T | <
+           n, output a partial decryption vS∪T ; otherwise, output a plaintext y as the final decryption.
+
+        Also, we require the following additional properties:
+
+        Efficiency: There are polynomials poly1 (·), poly2 (·) such that for any security parameter λ and
+            any S ⊆ [n], S 6= ∅, |PKS | = poly1 (λ) and |vS | = poly2 (λ).
+        Correctness: Given a set of plaintexts and a circuit to evaluate, the correctness of IFHE says that
+            the FHE evaluation of the circuit over the ciphertexts can always be decrypted to the correct value,
+            where the ciphertexts are encryption of plaintexts using a single combined public key.
+            Furthermore, by “Incremental” FHE, we mean that the final combined public key as well as the
+            final combined decryption can be formed in an arbitrary incremental manner. We defer the formal
+            definition of correctness to Appendix C.
+        Semantic security under Combined Keys (against Semi-Malicious Adversary): Given the
+            parameters prepared in the initial setup, the (corrupted) parties {Pj }j6=i , instead of using random
+            strings to compute {PKi , SKi }j6=i , can use an arbitrary string to generate {PKi , SKi }j6=i . Then
+            as long as an honest party generates (PKi , SKi ) independently, the encryption using the final
+            combined public key (PK[n] , SK[n] ) is semantically secure.
+            Formally, consider the following experiment:
+           1. (params) ← S ETUP(1λ , 1d )
+E. Boyle, A. Jain, M. Prabhakaran, C. Yu                                                                          XX:11
+
+
+   2. ∀j 6= i, Adv computes (PKj , SKj ) according to K EYGEN(params) but replaces the randomly
+      sampled string by a chosen one. Then Adv computes a combined key PK[n]\{i} according to
+      C OMBINE K EYS, picks x ∈ {0, 1} and sends (PK[n]\{i} , x) to the challenger.
+   3. The challenger computes (PKi , SKi ) ← K EYGEN(params), PK ← C OMBINE K EYS(PKi ,
+                                                   $
+       PK [n]\{i} ), and chooses a random bit β ← {0, 1}.
+         If β = 0, it computes C = E NCRYPT(PK, 0).
+         Else, it computes C = E NCRYPT(PK, x).
+      And it sends C to Adv.
+   4. Finally Adv outputs a bit β 0 .
+   We say that the IFHE scheme has semantic security under combined keys if the advantage
+   Pr[β 0 = β] − 1/2 is negligible in the security parameter λ.
+Simulatability of Partial Decryption: Let x ∈ {0, 1} be an input plaintext and C0 be an IFHE
+   encryption of x. There exists a PPT simulator S IM which, given the combined public key PK,
+   ciphertext C0 , a plaintext output y, an index i ∈ [n] and all but the i-th key {skj }j∈[n]\{i} ,
+   produces a simulated partial decryption vi0 computationally close to the honestly generated value
+   vi :
+        n           o c n          o
+               0 0              0
+          PK, C , vi ≈ PK , C , vi ,
+
+
+   where vi ← IFHE.PART D EC(PK, SKi , C0 ) and vi0 ← S IM(PK, {SKj }j∈[n]\{i} , y, C0 ).
+
+4.2    Construction of IFHE
+We present an IFHE scheme building on the FHE scheme of Gentry et al. [23]. The S ETUP, K EYGEN,
+E NCRYPT, and E VAL parts are the same as those of [23], while C OMBINE K EYS, P RE D EC, PART D EC
+and C OMBINE D EC parts are new. The algorithms are described as follows:
+
+An IFHE scheme.
+  Setup: (params) ← IFHE.S ETUP(1λ , 1d ). Same as GSW, where params = (q, n, m, χ, Bχ , B).
+  Key Generation: (PKi , SKi ) ← IFHE.K EYGEN(params). Same as GSW, where PKi = (B, bi ) and
+  SK i = ti ≡ (−si , 1).
+
+  Combining Keys: PKS∪T ← IFHE.C OMBINE K EYS(PKS , PKT )
+  On input PKS = (B, bS ) and PKS = (B, bT ), output PKS∪T = (B, bS + bT ). Particularly PK[n] is
+  abbreviated as PK or a matrix A.
+  Encryption: Ci ← IFHE.E NCRYPT(PK, xi ). Same as GSW.
+  Evaluation: C ← IFHE.E VAL(C1 , ..., Cτ ; f ). Same as GSW.
+  Preparing Decryption: C0 ← IFHE.P RE D EC(PKi , C)
+  On input PK = A and C ∈ Zn×m
+                             q   , sample a public random matrix R in {0, 1}m×m and output C0 =
+  C + AR.
+  Partial Decryption: vi ← IFHE.PART D EC(PKi , SKi , C0 )
+  On input PK = A, SKi ≡ ti ≡ (−si , 1), and C0 ∈ Zn×m       q   , sample e0i ← χm , set t0i = ti if i = 1 and
+  t0i = (−si , 0) if i > 1, and output vi = (t0i C0 − e0i )G−1 (wT ), where w = (0, ..., 0, dq/2e) ∈ Zn
+                                                                                                      q.
+
+  Combining Decryption: IFHE.C OMBINE D EC(vS , vT )
+  On input two partial decryptions vS , vT with S ∩ T = ∅, compute a partial
+                                                                       j decryption
+                                                                             m      vS∪T = vS + vT .
+                                                                              v
+  For |S ∪ T | < n, output vS∪T ; for |S ∪ T | = n, output a plaintext y =   q/2
+                                                                                   .
+
+
+   In Appendix C.1, we show this scheme fullfils the required properties described in Section 4.1.
+
+
+
+                                                                                                                 ICALP 2018
+XX:12   The Bottleneck Complexity of Secure Multiparty Computation
+
+
+        Syntax Extension. For ease of use, we extend the syntax of IFHE.JoinKeys for combining several
+        public keys and the syntax of IFHE.C OMBINE D EC for combining several partial decryptions at one
+        time.
+
+          Combining Keys: PKS1 ∪,...,∪S` ← IFHE.C OMBINE K EYS(PKS1 , . . . , PKS` )
+          On input PKS1 , . . . , PKS` , where S1 , . . . , S` ⊆ [n] are disjoint, compute PKS1 ∪S2 , PK(S1 ∪S2 )∪S3 ,
+          . . . , PK(S1 ∪,...,∪S`−1 )∪S` incrementally and finally output PKS1 ∪,...,∪S` .
+                                                                    P`
+          (Alternatively, in our scheme PKS1 ∪,...,∪S` = (B, i=1 bSi ).)
+          Combining Decryption: vS1 ∪,...,∪S` ← IFHE.C OMBINE D EC(vS1 , . . . , vS` )
+          On input partial decryptions vS1 , . . . , vS` , where S1 , . . . , S` ⊆ [n] are disjoint„ compute a partial
+          decryption vS1 ∪S2 , v(S1 ∪S2 )∪S3 , . . . , v(S1 ∪,...∪S`−1 )∪S` , and finally if S1 ∪ . . . ∪ S` ⊂ [n] output
+          vS1 ∪...∪S` ; otherwise, a plaintext.
+                                                                  P`
+          (Alternatively in our scheme  j vmS1 ∪,...∪S` =           i=1 vSi , and for S1 ∪ . . . ∪ S` ⊂ [n], output
+                                             v
+             vS1 ∪...∪S` ; otherwise, y =   q/2   .)
+
+
+
+         5       Summary of Further Results
+
+        Due to space limitations we defer the remaining technical sections to the appendix.
+            We begin in Appendix D by demonstrating how to convert an arbitrary admissible multi-party
+        distributed protocol Π (as per Definition 5) for computing a function f to a protocol Πsm for
+        computing f secure against semi-malicious adversaries, while preserving per-party computation and
+        communication. Note that as per Definition 5 the communication pattern of the starting protocol Π
+        can be arbitrary, but we require that it be fixed (i.e., not data dependent).
+        I Theorem 8. Let IFHE be an incremental FHE scheme, and Π be an n-party protocol for
+        evaluating a function f with fixed communication pattern. Then there exists a protocol Πsm that
+        securely evaluates f against up to (n − 1) semi-malicious corruptions, preserving the per-party
+        computation and communication requirements of Π up to poly(λ) multiplicative factors (independent
+        of the number of parties n). Moreover, the communication pattern of Πsm is identical to that of Π
+        plus two additional traversals of a communication spanning tree of Π.
+            At a very high level, the parties will run a one-pass protocol to (incrementally) construct a joint
+        key for the incremental FHE scheme, then execute the original protocol Π underneath FHE encryption,
+        and finally run one more pass to (incrementally) decrypt. See details and proof in Appendix D.
+            Next, we give a general compiler to transform the above protocol into a maliciously-secure MPC
+        protocol, while preserving the bottleneck complexity. Our compiler relies upon multiple cryptographic
+        ingredients, most notably, ID-based simulation-extractable succinct non-interactive arguments of
+        knowledge (ZK-SNARKs) – a notion that we define and construct in this work (see Appendix E.1).
+        I Theorem 9. Let Πsm be an MPC protocol that securely evaluates a functionality f against semi-
+        malicious corruptions, as in Theorem 21. Then, assuming the existence of an ID-based simulation-
+        extractable succinct non-interactive arguments of knowledge, non-interactive commitment schemes
+        and a family of collision-resistant hash functions, there exists a compiler that transforms Πsm into
+        another MPC protocol Π in the (bare) public-key and common reference string model such that Π
+        computes the same functionality f and preserves the per-party computation and communication of
+        Πsm up to poly(λ) multiplicative factors (independent of the number of parties n).
+            The construction of this compiler is given in Appendix E. We prove the security of the compiler
+        in Appendix ??.
+E. Boyle, A. Jain, M. Prabhakaran, C. Yu                                                                  XX:13
+
+
+     References
+ 1   Gilad Asharov, Abhishek Jain, Adriana López-Alt, Eran Tromer, Vinod Vaikuntanathan, and Daniel
+     Wichs. Multiparty computation with low communication, computation and interaction via threshold
+     fhe. In EUROCRYPT, pages 483–501, 2012.
+ 2   Nir Bitansky, Ran Canetti, Alessandro Chiesa, and Eran Tromer. From extractable collision res-
+     istance to succinct non-interactive arguments of knowledge, and back again. In Innovations in
+     Theoretical Computer Science 2012, Cambridge, MA, USA, January 8-10, 2012, pages 326–349,
+     2012.
+ 3   Nir Bitansky, Ran Canetti, Alessandro Chiesa, and Eran Tromer. Recursive composition and boot-
+     strapping for SNARKS and proof-carrying data. In Symposium on Theory of Computing Confer-
+     ence, STOC’13, Palo Alto, CA, USA, June 1-4, 2013, pages 111–120, 2013.
+ 4   Nir Bitansky, Ran Canetti, Omer Paneth, and Alon Rosen. On the existence of extractable one-way
+     functions. In Symposium on Theory of Computing, STOC 2014, New York, NY, USA, May 31 - June
+     03, 2014, pages 505–514, 2014.
+ 5   Alexandra Boldyreva. Threshold signatures, multisignatures and blind signatures based on the
+     gap-diffie-hellman-group signature scheme. In Public Key Cryptography, pages 31–46, 2003.
+ 6   Dan Boneh, Craig Gentry, Ben Lynn, and Hovav Shacham. Aggregate and verifiably encrypted
+     signatures from bilinear maps. In EUROCRYPT, pages 416–432, 2003.
+ 7   Elette Boyle, Kai-Min Chung, and Rafael Pass. Large-scale secure computation: Multi-party com-
+     putation for (parallel) RAM programs. In Advances in Cryptology - CRYPTO 2015 - 35th Annual
+     Cryptology Conference, Santa Barbara, CA, USA, August 16-20, 2015, Proceedings, Part II, pages
+     742–762, 2015.
+ 8   Elette Boyle, Shafi Goldwasser, and Stefano Tessaro. Communication locality in secure multi-
+     party computation: how to run sublinear algorithms in a distributed setting. In Proceeding TCC’13
+     Proceedings of the 10th theory of cryptography conference on Theory of Cryptography, pages 356–
+     376, 2013.
+ 9   Elette Boyle and Rafael Pass. Limits of extractability assumptions with distributional auxiliary
+     input. In Advances in Cryptology - ASIACRYPT 2015 - 21st International Conference on the Theory
+     and Application of Cryptology and Information Security, Part II, pages 236–261, 2015.
+10   Zvika Brakerski and Renen Perlman. Lattice-based fully dynamic multi-key FHE with short cipher-
+     texts. In Advances in Cryptology - CRYPTO 2016 - 36th Annual International Cryptology Confer-
+     ence, Santa Barbara, CA, USA, August 14-18, 2016, Proceedings, Part I, pages 190–213, 2016.
+11   Nicolas Braud-Santoni, Rachid Guerraoui, and Florian Huc. Fast byzantine agreement. In ACM
+     Symposium on Principles of Distributed Computing, PODC ’13, Montreal, QC, Canada, July 22-24,
+     2013, pages 57–64, 2013.
+12   Alessandro Chiesa and Eran Tromer. Proof-carrying data and hearsay arguments from signature
+     cards. In Innovations in Computer Science - ICS 2010, Tsinghua University, Beijing, China, Janu-
+     ary 5-7, 2010. Proceedings, pages 310–331, 2010.
+13   Michael Clear and Ciaran McGoldrick. Multi-identity and multi-key leveled FHE from learning
+     with errors. In Advances in Cryptology - CRYPTO 2015 - 35th Annual Cryptology Conference,
+     Santa Barbara, CA, USA, August 16-20, 2015, Proceedings, Part II, pages 630–656, 2015.
+14   Ivan Damgård, Sebastian Faust, and Carmit Hazay. Secure two-party computation with low com-
+     munication. In Theory of Cryptography - 9th Theory of Cryptography Conference, TCC 2012,
+     Taormina, Sicily, Italy, March 19-21, 2012. Proceedings, pages 54–74, 2012.
+15   Ivan Damgård and Yuval Ishai. Scalable secure multiparty computation. In Advances in Cryptology
+     - CRYPTO 2006, 26th Annual International Cryptology Conference, Santa Barbara, California,
+     USA, August 20-24, 2006, Proceedings, pages 501–520, 2006.
+16   Ivan Damgård, Yuval Ishai, Mikkel Krøigaard, Jesper Buus Nielsen, and Adam D. Smith. Scal-
+     able multiparty computation with nearly optimal work and resilience. In Advances in Cryptology
+
+
+
+
+                                                                                                         ICALP 2018
+XX:14   The Bottleneck Complexity of Secure Multiparty Computation
+
+
+             - CRYPTO 2008, 28th Annual International Cryptology Conference, Santa Barbara, CA, USA, Au-
+             gust 17-21, 2008. Proceedings, pages 241–261, 2008.
+        17   Ivan Damgård, Jesper Buus Nielsen, Antigoni Polychroniadou, and Michael Raskin. On the com-
+             munication required for unconditionally secure multiplication. In Crypto’16, pages 459–488, 2016.
+        18   Varsha Dani, Valerie King, Mahnush Movahedi, and Jared Saia. Quorums quicken queries: Ef-
+             ficient asynchronous secure multiparty computation. In Distributed Computing and Networking -
+             15th International Conference, ICDCN 2014, Coimbatore, India, January 4-7, 2014. Proceedings,
+             pages 242–256, 2014.
+        19   Yevgeniy Dodis, Shai Halevi, Ron D. Rothblum, and Daniel Wichs. Spooky encryption and its
+             applications. In Advances in Cryptology - CRYPTO 2016 - 36th Annual International Cryptology
+             Conference, Santa Barbara, CA, USA, August 14-18, 2016, Proceedings, Part III, pages 93–122,
+             2016.
+        20   Dario Fiore and Anca Nitulescu. On the (in)security of snarks in the presence of oracles. In
+             Theory of Cryptography - 14th International Conference, TCC 2016-B, Beijing, China, October 31
+             - November 3, 2016, Proceedings, Part I, pages 108–138, 2016.
+        21   Christina Garman, Matthew Green, and Ian Miers. Accountable privacy for decentralized anonym-
+             ous payments. In Financial Cryptography and Data Security - 20th International Conference, FC
+             2016, Christ Church, Barbados, February 22-26, 2016, Revised Selected Papers, pages 81–98,
+             2016.
+        22   Minos N. Garofalakis, Johannes Gehrke, and Rajeev Rastogi, editors. Data Stream Manage-
+             ment - Processing High-Speed Data Streams. Data-Centric Systems and Applications. Springer,
+             2016. URL: http://dx.doi.org/10.1007/978-3-540-28608-0, doi:10.1007/
+             978-3-540-28608-0.
+        23   Craig Gentry, Amit Sahai, and Brent Waters. Homomorphic encryption from learning with errors:
+             Conceptually-simpler, asymptotically-faster, attribute-based. In Crypto’13, pages 75–92, 2013.
+        24   Oded Goldreich, Silvio Micali, and Avi Wigderson. How to play any mental game. In STOC, 1987.
+        25   Jens Groth and Mary Maller. Snarky signatures: Minimal signatures of knowledge from simulation-
+             extractable snarks. In Advances in Cryptology - CRYPTO 2017 - 37th Annual International Crypto-
+             logy Conference, Santa Barbara, CA, USA, August 20-24, 2017, Proceedings, Part II, pages 581–
+             612, 2017.
+        26   Iftach Haitner, Yuval Ishai, Eyal Kushilevitz, Yehuda Lindell, and Erez Petrank. Black-box con-
+             structions of protocols for secure computation. SIAM J. Comput., 40(2):225–266, 2011.
+        27   Ahmed E. Kosba, Zhichao Zhao, Andrew Miller, Yi Qian, T.-H. Hubert Chan, Charalampos Papam-
+             anthou, Rafael Pass, Abhi Shelat, and Elaine Shi. How to use snarks in universally composable
+             protocols. IACR Cryptology ePrint Archive, 2015:1093, 2015. URL: http://eprint.iacr.
+             org/2015/1093.
+        28   Eyal Kushilevitz and Noam Nisan. Communication complexity. Cambridge University Press, 1997.
+        29   Adriana López-Alt, Eran Tromer, and Vinod Vaikuntanathan. On-the-fly multiparty computation
+             on the cloud via multikey fully homomorphic encryption. In Proceedings of the 44th Symposium
+             on Theory of Computing Conference, STOC 2012, New York, NY, USA, May 19 - 22, 2012, pages
+             1219–1234, 2012.
+        30   Steve Lu, Rafail Ostrovsky, Amit Sahai, Hovav Shacham, and Brent Waters. Sequential aggregate
+             signatures and multisignatures without random oracles. In EUROCRYPT, pages 465–485, 2006.
+        31   Andrew McGregor. Graph stream algorithms: a survey. SIGMOD Record, 43:9–20, 2014.
+        32   Silvio Micali, Kazuo Ohta, and Leonid Reyzin. Accountable-subgroup multisignatures: extended
+             abstract. In ACM Conference on Computer and Communications Security, pages 245–254, 2001.
+        33   Daniele Micciancio and Chris Peikert. Trapdoors for lattices: Simpler, tighter, faster, smaller. In
+             Advances in Cryptology - EUROCRYPT 2012 - 31st Annual International Conference on the Theory
+             and Applications of Cryptographic Techniques, Cambridge, UK, April 15-19, 2012. Proceedings,
+             pages 700–718, 2012.
+E. Boyle, A. Jain, M. Prabhakaran, C. Yu                                                                   XX:15
+
+
+34    Pratyay Mukherjee and Daniel Wichs. Two round multiparty computation via multi-key FHE. In
+      Advances in Cryptology - EUROCRYPT 2016 - 35th Annual International Conference on the Theory
+      and Applications of Cryptographic Techniques, Vienna, Austria, May 8-12, 2016, Proceedings, Part
+      II, pages 735–763, 2016.
+35    Moni Naor and Kobbi Nissim. Communication preserving protocols for secure function evaluation.
+      In Proceedings on 33rd Annual ACM Symposium on Theory of Computing (STOC), pages 590–599,
+      2001.
+36    Chris Peikert and Sina Shiehian. Multi-key FHE from lwe, revisited. In Theory of Cryptography
+      - 14th International Conference, TCC 2016-B, Beijing, China, October 31 - November 3, 2016,
+      Proceedings, Part II, pages 217–238, 2016.
+37    Oded Regev. On lattices, learning with errors, random linear codes, and cryptography. In Pro-
+      ceedings of the 37th Annual ACM Symposium on Theory of Computing, Baltimore, MD, USA, May
+      22-24, 2005, pages 84–93, 2005.
+38    John Rompel. One-way functions are necessary and sufficient for secure signatures. In Proceed-
+      ings of the 22nd Annual ACM Symposium on Theory of Computing, May 13-17, 1990, Baltimore,
+      Maryland, USA, pages 387–394, 1990.
+39    Amit Sahai. Non-malleable non-interactive zero knowledge and adaptive chosen-ciphertext security.
+      In 40th Annual Symposium on Foundations of Computer Science, FOCS ’99, 17-18 October, 1999,
+      New York, NY, USA, pages 543–553, 1999.
+40    Alfredo De Santis, Giovanni Di Crescenzo, Rafail Ostrovsky, Giuseppe Persiano, and Amit Sahai.
+      Robust non-interactive zero knowledge. In Advances in Cryptology - CRYPTO 2001, 21st Annual
+      International Cryptology Conference, Santa Barbara, California, USA, August 19-23, 2001, Pro-
+      ceedings, pages 566–598, 2001.
+41    Brent Waters. Efficient identity-based encryption without random oracles. In EUROCRYPT, pages
+      114–127, 2005.
+42    Andrew Chi-Chih Yao. Protocols for secure computations (extended abstract). In 23rd Annual
+      Symposium on Foundations of Computer Science, Chicago, Illinois, USA, 3-5 November 1982,
+      pages 160–164, 1982.
+43    Mahdi Zamani, Mahnush Movahedi, and Jared Saia. Millions of millionaires: Multiparty computa-
+      tion in large networks. IACR Cryptology ePrint Archive, 2014:149, 2014.
+
+
+ A     Additional Background
+
+A.1     Security of MPC
+Stand-Alone Security.We use a standard simulation-based security definition for MPC protocols.
+However, our protocols are not UC-secure (due to their reliance on SNARKs). An appropriate
+model of simulation-based security in this case is the so-called standalone security model. This
+is essentially the model of [24], but we present it as a restriction to the UC security definition.
+Specifically, we define a standalone environment to be one which initiates a single session (of Π of
+F), and does not communicate with the adversary until all the honest parties terminate. That is, a
+standalone environment can only interact with the adversary prior to the start of the protocol, and
+after it terminates.
+    We say that a protocol Π is a standalone-secure protocol for a functionality F if it UC-securely
+realizes F (with selective abort) when restricted to standalone environments. Here, in the ideal model,
+the adversary is allowed to cause individual honest parties to abort, after obtaining the outputs for
+the corrupt parties. We point out that the definition of UC-security allows a non-black-box simulator
+that depends on the adversary. (Unlike in UC-security, existence of a simulator in the standalone
+setting does not imply the existence of a black-box simulator. In UC-security, one may replace the
+adversary with a dummy adversary which interacts with the actual adversary which is kept inside the
+
+
+
+                                                                                                          ICALP 2018
+XX:16   The Bottleneck Complexity of Secure Multiparty Computation
+
+
+        environment; in the standalone setting the dummy adversary cannot interact with the environment
+        during the protocol execution.)
+        Semi-Malicious Security for MPC. Intuitively, a semi-malicious adversary is one who follows the
+        protocol specification (similar to a semi-honest adversary), but who may choose its input and “random”
+        coins for the protocol following any arbitrary PPT strategy. These values may depend (efficiently) on
+        any public setup information such as a CRS or PKI, but must be chosen before the protocol execution
+        begins. Once it has chosen these values, it must follow the protocol as specified, given the chosen
+        input, and using the chosen coins in place of the random coins. We allow the adversary to also abort
+        communication with individual parties at any point in the protocol (which, in our protocols, will
+        invariably result in the honest party aborting).
+            We remark that a collection of similar but non-identical notions of semi-malicious adversaries
+        have been considered in prior works (e.g., [26, 1]), but with varied requirements on when the adversary
+        must commit to his choice of input/random. We observe that the notion we consider is relatively
+        weak, where all such information is chosen before protocol execution.
+            More formally, a semi-malicious adversary Adv is modeled as an interactive Turing machine
+        (ITM) which, in addition to the standard tapes, has a special auxiliary tape. At the start of the protocol,
+        A selects for each corrupted party Pi an input xi and randomness ri (which may depend on the
+        original inputs of corrupted parties and public setup information), and writes xi , ri to its special input
+        auxiliary tape. Adv then honestly follows the protocol specification for the corrupt parties given this
+        input and random tape. At each round, it can also choose any honest party to abort the execution.
+            We say that a protocol Π evaluating a function f is semi-malicious secure if it is a standalone
+        secure protocol, but restricted to PPT semi-malicious adversaries.
+
+        A.2      Multisignatures
+        In a multisignature scheme, a single short object—the multisignature—can take the place of n
+        signatures by n signers, all on the same message.7 The first formal treatment of multisignatures was
+        given by Micali, Ohta, and Reyzin [32]. We consider a variant of the Micali-Ohta-Reyzin model
+        due to Boldyreva [5], as presented in [30]. In this model, the adversary is given a single challenge
+        verification key VK, and a signing oracle for that key. His goal is to output a forged multisignature σ ∗
+        on a message m∗ under keys VK1 , ..., VK` , where at least one of these keys is a challenge verification
+        key (wlog, VK1 ). For the forgery to be nontrivial, the adversary must not have queried the signing
+        oracle at m∗ .
+            For simplicity, we present a slightly weaker version of the security definition achieved by [30],
+        which suffices for our application.8
+        I Definition 10. A multisignature scheme is a tuple of algorithms
+
+        KeyGen(1k ): Key generation algorithm. Outputs a secret signing key SK together with correspond-
+           ing public verification key VK.
+        Sign(SK, m): Standard signing algorithm, with respect to message m and single signing key SK.
+        Combine({VKi , σi }`i=1 , m): Takes as input a collection of signatures (or multisignatures) and
+           outputs a combined multisignature, with respect to the union of verification keys.
+        MultiVer({VKi }`i=1 , m, σ): Verifies multisignature σ with respect to the collection of verification
+           keys {VKi }`i=1 . Outputs 0 or 1.
+
+
+        7
+          Note that multisignatures are a special case of aggregate signatures [6], which in contrast allow combining signatures
+          from n different parties on n different messages.
+        8
+          The security game in [30] also allows the adversary the power to choose verification keys on behalf of corrupted
+          parties, as long as he also provides certification that the keys were properly generated.
+E. Boyle, A. Jain, M. Prabhakaran, C. Yu                                                                      XX:17
+
+
+that satisfies the following properties:
+
+Correctness: For any message m, any collection of honestly generated signatures {σi ← SignSKi (m)}i∈I
+   on m (for I ⊂ [n]), the combined multisignature formed by σ̄ ← Combine({VKi , σi }i∈I , m)
+  will properly verify with overwhelming probability: Pr[1 ← MultiVer({VKi }i∈I , m, σ̄)] ≥
+  1 − negl(k).
+Unforgeability: For any PPT adversary A, the probability that the challenger outputs 1 when
+   interacting with A in the following game is negligible in the security parameter k:
+      Setup. The challenger samples n pulic key-secret key pairs, (VKi , SKi ) ← KeyGen(1k ) for each
+       i ∈ [n], and gives A all verification keys {VKi }i∈[n] . A selects a proper subset M ⊂ [n]
+       (corresponding to parties to corrupt) and receives the corresponding set of secret signing keys
+       {SKi }i∈M .
+      Signing queries. A may make polynomially many adaptive signature queries, of the form
+       (m, VKi ). For each such query, the challenger responds with a signature σ ← SignSKi (m) on
+       message m with respect to the corresponding signing key SKi .
+      Output. A outputs a triple (σ̄ ∗ , m∗ , {VKi }i∈S ), where σ̄ ∗ is an alleged forgery multisignature
+       on message m∗ with respect to a subset of verification keys S ⊂ [n]. The challenger outputs 1
+       if at least one of the provided verification keys VKi corresponds to a challenge (honest party)
+       key, the message m∗ was not queried to the signature oracle with this verification key VKi , and
+       the provided forgery σ ∗ is a valid multisignature: i.e., 1 ← MultiVer({VKi }i∈S , m∗ , σ ∗ ).
+
+    The following theorem follows from a combination of the (standard) signature scheme of Waters
+[41] together with a transformation from this scheme to a multisignature scheme due to Lu et. al. [30].
+I Theorem 11 ([30]). There exists a secure multisignature scheme with signature size poly(k)
+(independent of message length and number of potential signers), based on the Bilinear Computational
+Diffie-Hellman assumption.
+    For convenience of notation, we shall use a multisignature scheme also as a normal signature
+scheme. In that case, we shall write MS.Verify(VKi , m, σ) instead of MS.MultiVer({VKi }, m, σ) to
+indicate that the set of keys involved is singleton.
+I Remark. We note that in our constructions, we can instantiate a multisignature scheme with a
+simulation-extractable zero-knowledge SNARK with additive overhead (defined below) and standard
+signatures.
+
+A.3     Succinct Non-Interactive Arguments of Knowledge
+We consider succinct non-interactive arguments of knowledge (SNARKs) with adaptive soundness.
+Our treatment follows that of Bitansky et al. [2]. We focus attention to publicly verifiable succinct
+arguments. Due to recent results demonstrating implausibility of SNARKs with respect to arbitrary
+worst-case auxiliary input (e.g., [4, 9]), we consider a definition parameterized with respect to a
+particular auxiliary input distribution Z.
+I Definition 12 (Z-auxiliary input SNARK). A triple of algorithms (crsGen, Prove, Verify) is a
+publicly verifiable, adaptively sound succinct non-interactive argument of knowledge (SNARK) for
+the relation R with respect to auxiliary input distribution Z if the following conditions are satisfied
+for security parameter λ:
+   Completeness: For any (x, w) ∈ R,
+
+       Pr[crs ← crsGen(1λ ); π ← Prove(x, w, crs) : Verify(x, π, crs) = 1] = 1.
+
+   In addition, Prove(x, w, crs) runs in time poly(λ, |x|, t).
+
+
+
+                                                                                                             ICALP 2018
+XX:18   The Bottleneck Complexity of Secure Multiparty Computation
+
+
+           Succinctness: The length of the proof π output by Prove(x, w, crs), as well as the running time of
+           Verify(x, π, crs), is bounded by p(λ, |X|), where p is a universal polynomial that does not depend
+           on R. In addition, crsGen(1λ ) runs in time poly(λ): in particular, crs is of length poly(λ).
+           Adaptive Argument of Knowledge: For any non-uniform polynomial-size prover P ∗ there exists
+           a polynomial-size extractor EP ∗ , such that for all sufficiently large λ ∈ N and auxiliary input
+           z ← Z, it holds that
+
+               Pr[z ← Z; crs ← crsGen(1λ ); (x, π) ← P ∗ (z, crs); (x, π, w) ← EP ∗ (z, crs) :
+                                                           Verify(x, π, crs) = 1 ∧ w ∈
+                                                                                     / R(x)] ≤ negl(λ).
+
+        Extraction with Additive Overhead. We also consider SNARKs where the extractor incurs only an
+        additive overhead in the running time of the adversarial prover. A Z-auxiliary-input SNARK is said
+        to satisfy the additive overhead extraction property if there exists a polynomial p such that for all
+        polynomial time P ∗ , there exists an EP ∗ as in Definition 12, such that for all z in the support of Z
+        and all crs in the support of crsGen,
+
+                                    RT(EP ∗ (z, crs)) ≤ p(λ) + RT(P ∗ (z, crs)),
+
+        where RT(A) denotes the running time of an algorithm A.
+
+        A.4     GSW FHE Scheme
+        We follow the notation of [34] throughout this section. We start by recalling some preliminary
+        definitions and then present the FHE scheme of Gentry, Sahai and Waters [23]. We use their FHE
+        scheme as a key building block in our IFHE scheme.
+        LWE assumption. We first recall the learning with errors assumption [37].
+        I Definition 13 (LWE Hardness Assumption). Let λ be a security parameter, χ = χ(λ) be a
+        distribution of small values over Z, n = n(λ) and q = q(λ) be polynomials of λ, and m = O(n log q).
+               $              $    (n−1)×m                                                 c
+        Let s ← Zn−1
+                 q   , B ← Zq                , e ← χ, and b = sB + e. Then (B, b) u (B0 , b0 ), where
+                   $
+        (B0 , b0 ) ← Zn×m
+                      q   .
+
+        Public Short Preimage Matrix. We state a useful fact from [33] that is used in the GSW FHE
+        scheme.
+        I Lemma 14 ([33]). For any m ≥ n(blog qc + 1), there is a gadget matrix G ∈ Zn×m q  and
+                                             −1                      0           n×m0    −1
+        an efficient deterministic function G (·) such that for any m , any M ∈ Zq    , G (M) ∈
+                    0
+        {0, 1}m×m , and GG−1 (M) = M.
+           In the GSW scheme, the function G−1 (·) is called BitDecomp and multiplication by G is the
+        BitDecomp−1 operation. For our purposes, we do not need their implementation details.
+        GSW Construction. We now proceed to describe the GSW FHE scheme.
+
+           Setup: (params) ← GSW.Setup(1λ , 1d )
+           Choose a lattice with dimension parameters n = n(λ, d), Bχ -bounded error distribution χ =
+           χ(λ, d) and a modulus q such that LWEn−1,q,χ,Bχ holds. Choose m = O(n log q). Finally, choose
+           a random matrix B ∈ Zqn−1×m . Output params = (q, n, m, χ, Bχ , B).
+           Key Generation: (PK, SK) ← GSW.Keygen(params)
+           We separately describe two sub-algorithms to compute secret-key and public-key respectively:
+                                                 $
+              GSW.SKGen(params): Sample s ← Zn−1
+                                             q   . Set t = (−s, 1) ∈ Znq and output SK = t.
+E. Boyle, A. Jain, M. Prabhakaran, C. Yu                                                               XX:19
+
+
+     GSW.PKGen(params, SK): Parse SK = (−s, 1) ∈ Znq . Sample e ← χm . Set b = sB+e ∈ Zm
+                                                                                       q
+              
+              B
+     and A =     ∈ Zn×m
+                    q   . Output PK = A.
+              b
+  Encryption: C ← GSW.Encrypt(PK, x)
+                                                                       $
+  On input a message x ∈ {0, 1}, choose a short random matrix R ← {0, 1}m×m and compute
+  C = AR + xG ∈ Zn×m q   . Output C as the ciphertext.
+  Decryption: x0 ← GSW.Decrypt(SK, C)
+                                                                    −1
+  On input a ciphertext C ∈ Zn×m and secret                            T
+                                      j mkey SK = t, compute v = tCG (w ), where
+  w = [0, . . . , dq/2e] ∈ Zn . Output x0 =    v
+                                              q/2   .
+  On input two ciphertexts C1 , C2 ∈ Zn×m
+                                      q   , we define homomorphic addition and multiplication:
+
+     GSW.Add(C1 , C2 ): Output C1 + C2 ∈ Zn×m
+                                          q   .
+     Output the matrix product C1 G−1 (C2 ) ∈ Zqn×m .
+
+  This allows computation of a NAND gate homomorphically by outputting G − C1 G−1 (C2 ).
+
+   The following theorem is proved in [23].
+I Theorem 15. The scheme described above is a secure (leveled) FHE scheme under the LWEn−1,q,χ,Bχ
+assumption.
+    Note that tA = e ≈ 0 since e is a small error. For correctness, v = t(AR + xG)G−1 (wT ) ≈
+xtwT = xdq/2e since R and G−1 wT are composed of 0, 1 values. Hence by checking whether
+v is closer to 0 or dq/2e, we can recover x ∈ {0, 1}. Let C1 and C2 be encryptions of x1 and x2
+respectively. Then, C+ = C1 + C2 is such that tC+ ≈ (x1 + x2 )tG and C× = C1 G−1 (C2 ) is
+such that tC× ≈ (x1 x2 )tG.
+    For security, since A is uniformly random over Zn×mq   , by leftover hash lemma, for a suitable
+m = O(n log q), AR is statistically uniform, so as C = AR + xG.
+Key Homomorphic Properties of GSW Scheme. We now show that the GSW scheme satisfies a
+useful key-homomorphic property, which makes it particularly amenable to convert into a threshold
+scheme. In particular, we keep the matrix B fixed, then the sum of two key pairs (computed using B)
+gives a new valid key pair.
+I Claim 1. Let t1 = (−s1 , 1) and t2 = (−s2 , 1) be two secret keys. Let B ∈ Zqn−1×m be a random
+                                                                  
+                                                                   B
+matrix and let e1 and e2 be two error vectors. Further, let A1 =       = GSW.PKGen(t1 ; B; e1 ) and
+                                                                   b1
+                                                                
+        B                                                     B
+A2 =         = GSW.PKGen(t2 ; B; e2 ). Then, A =                     = GSW.PKGen(t1 + t2 ; B; e1 +
+        b2                                                 b1 + b2
+e2 ).
+
+                                                        
+                                                        
+                                                  B
+Proof. We have: A1 = GSW.PKGen(t1 ; B; e1 ) =             and A2 = GSW.PKGen(t2 ; B; e2 ) =
+                                              s1 B + e1
+          
+     B
+            . Then,
+ s2 B + e2
+
+                                                
+               B                    B
+      A=             =                               = GSW.PKGen(t1 + t2 , B, e1 + e2 )
+            b1 + b2    (s1 + s2 ) · B + (e1 + e2 )
+
+                                                                                                 J
+
+
+
+                                                                                                      ICALP 2018
+XX:20   The Bottleneck Complexity of Secure Multiparty Computation
+
+
+         B         Proof of Theorem 6
+        Proof. We establish our lower bound using a counting argument. Consider any (possibly randomized)
+        protocol for computing f . Since we assume perfect correctness, we can fix the random-tapes to yield
+        the smallest bottle-neck communication complexity, and derive a deterministic protocol.
+            Consider the “input transcript” of a party to include all the messages it received from all the
+        parties, through out the protocol. Given our requirement that the messages in each link is encoded
+        using prefix-free codes, such an input transcript can be parsed into the sequence of messages mti,j
+        received by Pj (for all t, j). The same holds for the output transcript for each party.
+            Now, the behavior of each party Pi is fully specified as a function of its input and its input
+        transcript. That is, the protocol π is completely specified by the set of functions {πi }i∈[n] each of
+        which maps an input xi and an input transcript to an output transcripts (not all such functions may
+        correspond to valid protocols, as they may violate causality and let outgoing messages depend on
+        future incoming messages; but all protocols yield such a set of functions).
+            Suppose the incoming communication foe each party for the protocol is d bits. Then the outgoing
+        communication for each party is at most nd bits. Thus, each πi can be written as a function from
+                                              d+k
+        {0, 1}d+k to {0, 1}nd . There are 22 ×nd such functions. Since a protocol is a combination of n
+        such functions, we have:
+                                                                        d+k
+                                                                              ×nd×n
+             Number of protocols with bottle-neck at most d ≤ 22                      .
+                                                                                            nk
+             On the other hand, the total number of boolean functions from nk is 22 . Hence,
+                  d+k                  nk
+                        ×nd×n
+             22                 ≥ 22        =⇒ d + k + log(n2 d) ≥ nk
+                                            =⇒ d + k + log(n3 k) ≥ nk                     assuming d ≤ nk
+                                            =⇒ d                                 ≥ (n − 1)k − 3 log(nk)
+
+        Thus, if d ≤ nk, then d ≥ (n − 1)k − 3 log(nk). That is, d ≥ (n − 1)k − O(log nk).                   J
+
+        I Remark. If we allow a small constant probability of error, by an averaging argument we can fix
+        the randomness of the parties so that the resulting deterministic protocol will evaluate the function
+        correctly in most of the domain. That is, it evaluates a function whose truth table has a small hamming
+        distance from the original function. The calculation above can be repeated with each protocol
+                                   nk
+        accounting for at most 2c2 functions for a constant c < 1, leading to d ≥ (n − 1)k − O(log(nk −
+              1
+        log( 1−c ))).
+
+
+         C         Formal Definition of Correctness for IFHE Scheme
+
+        Correctness: Given a set of plaintexts and a circuit to evaluate, the correctness of IFHE says that the
+        FHE evaluation of the circuit over the ciphertexts can always be decrypted to the correct value, where
+        the ciphertexts are encryption of plaintexts using a single combined public key.
+             Furthermore, by “Incremental” FHE, we mean that the final combined public key as well as
+        the final combined decryption can be form in an arbitrary incremental manner. That is, a PKi can
+        first combine with any other PKj to form a combined key PK{i,j} , and PK{i,j} can then combine
+        with any other PKk to form PK{i,j,k} or with PK{k,`} to form PK{i,j,k,`} . The final PK[n] should
+        work for all possible combining orders as long as it collects PK1 , ..., PKn , and it is similar for the
+        combining decryption. We will use a binary tree to describe the combining order and particularly
+        use tree0 to describe the combing public key and tree0 the combing decryption. For b = 0 and
+        1, treeb contains N b nodes {Sib }i∈[N b ] , including a root S1b . Because the number of leaves equals
+E. Boyle, A. Jain, M. Prabhakaran, C. Yu                                                                    XX:21
+
+
+n, we have N b = O(n). For brevity, we will name a node by its index, and denote the parent of
+the i-th node by parent(i). Also, w.l.o.g., assume each node i has two children, and particularly
+parent(2) = parent(3) = 1.
+I Definition 16 (Correctness). For any sequence of plaintexts x1 , . . . , xn and circuit f of depth
+bounded by d, and for all b = 0, 1, and for any S1b , ...SN     b
+                                                                  b ∈ 2
+                                                                        [n]
+                                                                            such that S1b = [n], for all
+           b
+j ∈ leaves , |Sj | = 1, and for all i, j, k with i 6= j and k = parent(i) = parent(j), Sib ∩ Sjb = ∅ and
+                 b
+
+Sib ∪ Sjb = Skb , let EXP.IFHE be the following experiment of an IFHE scheme:
+
+1. params ← IFHE.S ETUP(1λ , 1d ).
+2. ∀i ∈ [n], (PKi , SKi ) ← IFHE.K EYGEN(params).
+3. ∀i, j, k ∈ N 0 with i 6= j and k = parent(i) = parent(j),
+   PK S 0 ← IFHE.C OMBINE K EYS ( PKS 0 , PKS 0 ).
+        i                                2i    2i+1
+4. ∀i ∈ [n], Ci ← IFHE.E NCRYPT(PK, xi ).
+5. C ← IFHE.E VAL(C1 , . . . , Cn , f ).
+6. C 0 ← IFHE.P RE D EC(PK, C).
+7. ∀i ∈ [n], vi ← IFHE.PART D EC(PK, C0 , SKi ).
+8. ∀i, j, k ∈ N 1 with i 6= j and parent(i) = parent(j) = k 6= 1,
+   vSk1 ← IFHE.C OMBINE D EC(vSi1 , vSj1 ).
+9. Output y ← IFHE.C OMBINE D EC(vS21 , vS31 ).
+
+   Then the correctness for the scheme holds if and only if
+
+   Pr[EXP.IFHE({xi }i∈[n]] ; f ; {Sib }i∈[N b ] , b ∈ {0, 1}) = f (x1 , ..., xn )] = 1.
+
+
+C.1     Proof of Security
+I Lemma 17 (Efficiency). For the IFHE scheme, there are polynomial functions poly1 (·), poly2 (·)
+such that for any security parameter λ and any S ⊆ [n], S 6= ∅, |PKS | = poly1 (λ) and |vS | =
+poly2 (λ).
+Proof sketch: This is ascribed to the key homomorphism property as in GSW. Specifically, according
+to the scheme, for all S, T ⊂ [n], PKS∪T = (B, bS + bT ), where bS + bT is just addition over
+Zq , so |PKS∪T | = |PKS | = |PKT |. Similarly, vS∪T = vS + vT is also addition over Zq so |vS∪T | =
+|vS | = |vT |. Thus, for all S ⊆ [n], S 6= ∅, |PKS | = |PK1 | = poly1 (λ) and |vS | = |v1 | = poly2 (λ)
+for some polynomial poly1 and poly2 .                                                                
+
+I Lemma 18 (Correctness). The IFHE scheme satisfies the correctness. (See Appendix C for a
+formal definition of correctness)
+Proof sketch: Recall that A = PK[n] , ti = SKi = (−si , 1) and bi = si B + ei . Let t =
+    Pn
+(− i=1 si , 1). First, for combining keys, because PKS∪T = (B, bS + bT ) for all disjoint S and T ,
+                   Pn                        Pn
+we have A = (B, i=1 b{i} ). Thus, tA = i=1 ei ≈ 0.
+    Second, suppose for now f (x) = x so the FHE evaluation is trivial.
+    Then in the decryption preparation, we re-randomize the ciphertext with a public random R and
+so C0 = C + AR = AR0 + xG for some small matrix R0 .
+    Finally for combining decryption, since vS∪T = vS + vT , vi = (t0i C + e0i )G−1 (wT ) and
+Pn 0           Pn
+   i=1 ti = (−    1 si , 1) = t, we have:
+
+                              n               n            n
+                                                                  !
+                             X               X             X
+v[n] + t00 CG−1 (wT ) =     (   t0i )AR0 + x(   t0i )G + (   e0i ) G−1 (wT ) ≈ xtwT = xdq/2e.
+                              i=1                i=1            i=1
+
+
+
+
+                                                                                                           ICALP 2018
+XX:22   The Bottleneck Complexity of Secure Multiparty Computation
+
+
+        Hence by checking whether this value is close to 0 or dq/2e, we can recover x ∈ {0, 1} with
+        probability 1.
+            For general circuit f , since the encryption is the same of GSW, by a similar demonstration of the
+        homomorphism for GSW, the homomorphism property also holds for the IFHE scheme. Therefore
+        putting them together, we have:
+
+                       Pr[EXP.IFHE({xi }i∈[τ ] ; f ; {Sib }i∈[2n −1],b∈{0,1} ) = f (x1 , ..., xτ )] = 1.
+
+                                                                                                                                            
+
+        I Lemma 19 (Semantic Security under Combined Keys). The IFHE scheme is secure under
+        combined keys.
+        Proof sketch: From K EYGEN, the joint distribution PKi = (B, bi ) is computationally indistin-
+        guishable from a uniformly random matrix by the LWE hardness assumption and so is PK =
+        A = (B, bi + b0 ) for any b0 = j6=i bj which is generated independently of bi . Consequently
+                                       P
+                                                                             $
+        C ← GSW.Encrypt(PK, x) = AR + xG, where R ← {0, 1}m×m . By the leftover hash lemma,
+        AR is computationally indistinguishable from a uniformly random matrix, and so is C (Otherwise
+        there is a polynomial-time approach to distinguish (B, bi ) from random.)                   
+
+        I Lemma 20 (Simulatability of Partial Decryption). For the IFHE scheme, given the output y,
+        the ciphertext C0 , all but the i-th key {SKj }j∈[n]\{i} , the partial decryption yi is simulatable.
+        Proof sketch: According to the scheme, after P RE D EC, C0 = C + AR = AR0 + yG for some
+                                                                      Pn
+        small matrix R0 . Recall PK = A = (B, b), where b = i=1 si B + ei , and SKi = ti = (−si , 1).
+        Let t00 = (0n−1 , 1), and recall t01 = t1 and t0i = (−si , 0) for i > 1.
+            First, for i > 1, vi = (t0i C0 − e0i )G−1 (wT ) = −(si BR0 + e0i )G−1 (wT ), and for i = 1,
+        consider v1 − t00 C0 G−1 (wT ) = ((t01 − t00 )C0 − e01 )G−1 (wT ) = −(s1 BR0 + e01 )G−1 (wT ).
+                                                 c                        c
+        Note that the distribution (BR0 , vi ) ∼ = (B0 , b0 G−1 (wT )) ∼ = (BR0 , v1 − t0 C0 G−1 (wT )), where
+                                                                                                           0
+                  $
+        (B0 , b0 ) ← Zn×m
+                       q     by the LWE assumption.
+             Let t−1 = (− j6=1 sj , 0) and t−i = (− j6=i sj , 1) for i 6= 1. Sample ẽ ← χm . Then we
+                             P                          P
+
+        construct vi0 = y · 2q − (t−i C0 + ẽ)G−1 (wT ) for all i.
+             Note that for i 6= 1, vi0 = y · 2q − (si BR0 + ẽ + yt−i G)G−1 (wT ), and for i = 1, vi0 −
+        t00 C0 G−1 (wT ) = y · 2q − (si BR0 + ẽ + yt00 G)G−1 (wT ). Since yt−i GG−1 (wT ) = yt00 wT =
+        y · 2q , we have vi0 = −(si BR0 + ẽ)G−1 (wT ) for i 6= 1 and v10 − t00 C0 G−1 (wT ) = −(s1 BR0 +
+        ẽ)G−1 (wT ). By LWE assumption, the distribution
+                                       c                                 c
+                          (BR0 , vi0 ) ∼
+                                       = (B00 , b00 G−1 (wT )) ∼
+                                                               = (BR0 , v10 − t00 C0 G−1 (wT )),
+                           $
+        where (B00 , b00 ) ← Zn×m
+                              q   .                     P                                                        P
+                                                                   t0j )C0 G−1 (wT )                   (vi0 +(          t0j )C0 G−1 (wT )
+                                                                                                                                         
+                                  c                (vi +(
+             Thus, for all i, vi ∼
+                                 = vi0 , and                j6=i
+                                                                   q/2                     = y =                 j6=i
+                                                                                                                        q/2                     ,
+                                               c
+        together implying {A, C0 , R, vi } ∼
+                                           = {A, C0 , R, vi0 }.
+                                                                                                                                            
+
+
+         D       Semi-Malicious Protocol
+        In this section, we demonstrate how to convert an arbitrary admissible multi-party distributed protocol
+        Π (as per Definition 5) for computing a function f to a protocol Πsm for computing f secure
+        against semi-malicious adversaries, while preserving the per-party computation and communication
+E. Boyle, A. Jain, M. Prabhakaran, C. Yu                                                                            XX:23
+
+
+requirements of Π up to poly(λ) multiplicative factors, independent of the number of parties n. In
+fact, aside from two additional phases where information is communicated along a spanning tree of
+the communication network induced by Π, our protocol mimics the precise communication patterns
+of Π.
+     The communication pattern of the starting protocol Π can be arbitrary, but we require that it be
+fixed and known a priori (i.e., not data dependent). The same assumption is made for (a bound on)
+the message length on each active communication channel in each round. We assume without loss of
+generality that the output of Π is precisely the evaluation of f on parties’ inputs and no additional
+information.
+     For simplicity of exposition, we present the transformation for deterministic protocols Π; however,
+as discussed below, our solution can be extended to handle randomized protocols via a simple coin
+tossing procedure, leveraging the fact that while the semi-malicious adversary can arbitrarily choose
+his “randomness,” he must commit to these values before the protocol begins.
+     Let Π be a protocol defined by deterministic next-message function with the following syntax:
+(µi,1 , . . . , µi,n ) = NextMsg(i, t, xi , Transc(i, r−1)), where: i is the relevant party id, t is the present
+round number, xi is party i’s secret input (including secret randomness), Transc(i, t − 1) denotes
+the entire transcript held by party i after the previous round t − 1, and (µi,1 , . . . , µi,n ) denote the
+respective messages to be sent by party i to respective parties 1, . . . , n in this round (where µi,j = ∅
+if no message is to be sent from i to j).
+     Assume a given spanning tree tree over the underlying network graph induced by Π. Let
+depth(tree) = d. Denote P1 as the party at the root (level 0), chldrn(j) be the children set of a party
+Pj , and parent(j) be the parent of Pj in tree. For i ∈ [n], let desc(i) denote the set of all descendants
+of i in the tree.
+     The protocol Πsm takes place in three phases, as described below.
+
+Semi-Malicious Pattern-Preserving Protocol Πsm
+    Let the underlying protocol Π be defined by next-message function NextMsg.
+Setup
+    1. params ← IFHE.S ETUP(1λ , 1d )
+    2. All parties receive params as a common random string.
+Phase 1: Key setup
+    1. For ` = d, . . . , 0: For every i ∈ [n] for which Pi is at level ` of tree,
+        a. Aggregate public keys:
+               i. Denote the received public keys (if any) as {PKdesc(j) }j∈chldrn(i) .
+              ii. Generate a IFHE key pair: (PKi , SKi ) ← IFHE.K EYGEN(params).
+             iii. Combine keys: PKdesc(i) ← IFHE.C OMBINE K EYS(PKi , {PKdesc(j) }j∈chldrn(i) ).
+        b. Aggregate randomness values (used to rerandomize output ciphertext):
+               i. Denote the received random strings (if any) as {randj }j∈chldrn(i) .
+                                                              λ
+              ii. Sample a random string: randi ← {0, 1}    L.
+             iii. Combine random values: randdesc(i) =          j∈chldrn(i)
+                                                                            randj .
+        c. If ` = 0 (i.e., root node), let PK := PKdesc(i) and r := randdesc(i) .
+        d. Else, if ` 6= 0, send PKdesc(i) to parent node parent(i).
+    2. For ` = 0, . . . , d − 1: For every i ∈ [n] for which Pi is at level ` of tree,
+        a. Let PK be the key received from parent parent(i). Send PK to all children, {Pj |j ∈ chldrn(i)}.
+Phase 2: Computation Each party Pi performs the following.
+                  \ 0) ← ∅.
+    1. Initialize Transc(i,
+    2. Encrypt input under joint key: x̂i ← IFHE.E NCRYPT(PK, xi ).
+    3. For each round t = 1, . . . , rounds of the original protocol, do:
+
+
+
+
+                                                                                                                   ICALP 2018
+XX:24   The Bottleneck Complexity of Secure Multiparty Computation
+
+
+                                               \ t) ← Transc(i,
+               a. Update transcript: Let Transc(i,              \ t − 1) ∪ {(j, t, µ̂j,i )}j∈[n] , where µ̂j,i denotes the
+                  (encrypted) message sent from Pj to Pi in the previous round (empty if no such message exists).
+               b. Homomorphically evaluate the next-message function:
+                  (µ̂i,1 , . . . , µ̂i,n ) ← IFHE.E VAL(x̂i , Transc(i,
+                                                              \ t); NextMsg(i, t, ·, ·, ·)).
+               c. For each j ∈ [n] that Pi sends a message to in this round t
+           4. Let ŷ denote the final evaluated ciphertext held by the root party, corresponding to an encryption of the
+              desired evaluation output.
+              Root party rerandomizes using rand: i.e., ŷ ← IFHE.P RE D EC(PK, C; rand).
+        Phase 3: Decryption
+           1. For ` = 0, . . . , d − 1: For every i ∈ [n] for which Pi is at level ` of tree,
+               a. Let ŷ be the ciphertext received from parent parent(i). Forward ŷ to all children, {Pj |j ∈
+                  chldrn(i)}.
+           2. For ` = d, . . . , 0: For every i ∈ [n] for which Pi is at level ` of tree,
+              a. Denote the received partially decrypted ciphertexts as {ŷdesc(j) }j∈chldrn(i) .
+              b. Compute own contribution of decryption: ŷi ← IFHE.PART D EC(PK, SKi , ŷ).
+              c. Combine decryptions: ŷdesc(i) ← IFHE.C OMBINE D EC(ŷi , {ŷdesc(j) }j∈chldrn(i) ).
+              d. If ` 6= 0 (i.e., not root node), send PKdesc(i) to parent node parent(i).
+           3. Root party P1 : Output y := ŷdesc(0) .
+
+
+
+        I Theorem 21. Let IFHE be an incremental FHE scheme, and Π be an n-party protocol for
+        evaluating a function f with fixed communication pattern. Then the protocol Πsm securely evaluates
+        f against semi-malicious corruptions, preserving the per-party computation and communication
+        requirements of Π up to poly(λ) multiplicative factors (independent of the number of parties n).
+        Moreover, the communication pattern of Πsm is identical to that of Π plus two additional traversals
+        of a communication spanning tree of Π.
+        I Remark (Handling randomized protocols Π). Our transformation can be modified to support
+        randomized protocols Π while increasing per-party communication (additively) by only poly(λ),
+        by adding the following “coin tossing” procedure. At the conclusion of the key setup phase, each
+        party Pi samples and encrypts a random λ-bit string si under the joint IFHE key. These values
+        are incrementally aggregated up to the root of the communication spanning tree to a ciphertext ŝ
+                 L
+        of s :=     i∈[n] si , which is then communicated back along the tree to all leaves. In each future
+        round, parties homomorphically evaluate the NextMsg function of Π, using (encrypted) randomness
+        generated by homomorphically evaluating a pseudo-random function on the (encrypted) seed ŝ.
+            We now proceed to prove the Theorem 21. The proof takes two main hybrid steps: First, simulating
+        the output computation by relying on the simulatability of partial secryption property of the IFHE.
+        Once this takes place, no knowledge of the honest parties’ secret key shares is required. In the next
+        step, we can thus replace the honest parties’ inputs with encryptions of 0 by relying on the semantic
+        security of the IFHE under combined keys.
+
+        D.1    Proof of Security of Semi-Malicious MPC Protocol
+        In this section, we prove Theorem 21.
+            The communication pattern of Πsm follows by inspection: Phases 1 and 3 each induce a single
+        traversal of the communication spanning tree; Phase 2 directly matches the communication pattern of
+        Π. The per-party computation and communication in Phases 1 and 3 are each poly(λ). The costs in
+        Phase 2 correspond directly to those of Π, except that all computation is performed via homomorphic
+        evaluation, and all communication is sent in encrypted form. Thus both metrics have multiplicative
+        overhead poly(λ).
+E. Boyle, A. Jain, M. Prabhakaran, C. Yu                                                                         XX:25
+
+
+    We proceed to prove semi-malicious security of Πsm . Let Adv be an arbitrary non-uniform
+polynomial-time semi-malicious adversary corrupting a set of parties M ⊆ {P1 , . . . , Pn }. We
+demonstrate the existence of an ideal-world simulator Sim corrupting the same set of parties M , such
+that for any input vector ~x, for any auxiliary input z ∈ {0, 1}∗ , it holds that:
+                   n                         o
+                            f        λ                                   λ
+                                                   ≈c REALΠ
+                                                        
+                     IDEAL Sim,M (1 , ~x, z)                   Adv,M (1 , ~x, z) λ∈N .
+                                               λ∈N
+
+    Consider the following simulator Sim(1λ , {xi }Pi ∈M , y, z), where y =f (x1 , . . . , xn ) is the output
+received from the ideal functionality.
+
+1. Setup: Sim generates honestly executes IFHE setup.
+2. Phase 1 (Key Setup): Sim honestly emulates the actions of honest parties.
+3. Phase 2 (Computation): Sim honestly emulates the actions of honest parties, with the following
+   exception: In Step 2, for each honest party Pi ∈ / M , instead of encrypting the (unknown) input
+                                                                    d i ← IFHE.E NCRYPT(PK, 0) of
+   and randomness of Pi , Sim instead generates encryptions x̂i , rand
+   zero.
+4. Phase 3 (Decryption): Sim honestly emulates the actions of honest parties, except that the partial
+   decryption values ŷi of honest parties are instead generated in the following manner. For all but
+   one honest party Pi∗ , evaluate the partial decryption ŷi of Pi honestly. For Pi∗ , do the following.
+   Let ŷ denote the final evaluated ciphertext (known to Sim since it is sent to all parties). For
+   each corrupt party Pj , determine his secret key SKj by reading off the appropriate region of Pj ’s
+   committed random tape. Then, Sim simulates the partial decryption ŷi∗ of Pi∗ (see Definition 7),
+   given the values of (y, ŷ, {SKj }j∈[n]\{i∗ } ).
+
+    We prove indistinguishability of the simulated experiment via the following sequence of hybrids.
+For each hybrid ` ∈ {0, 1, 2}, denote by Hyb`Adv,M (1λ , ~x, z) the distribution on the inputs and outputs
+of all parties within the Hybrid ` experiment.
+
+Hybrid 0: Real World.
+Hybrid 1: (Simulatability of partial decryption.) Same as Hybrid 0, except that the partial decryption
+  values ŷi of honest parties in Phase 3 are instead generated as done by Sim.
+    I Claim 2. For every non-uniform polynomial-time Adv, input vector ~x, and auxiliary input z,
+                         c
+    Hyb0    (1λ , ~x, z) ∼
+        Adv,M            = Hyb1   (1λ , ~x, z).
+                                 Adv,M
+
+
+    Proof. The values ŷi for honest parties i 6= i∗ are identically distributed. Note that the evaluated
+                                                          L
+    ciphertext ŷ is rerandomized by the value rand = j∈[n] randj . Since Adv is semi-malicious,
+    the choice of randj for corrupt parties Pj were made independently of the honestly sampled
+    randi∗ , meaning that rand is uniformly distributed. The claim thus follows directly from IFHE
+    simulatability of partial decryption.                                                              J
+
+Hybrid 2: (Semantic security under combined keys.) Simulated experiment. Namely, same as
+  Hybrid 1, except that the encryptions generated in Step 2 on behalf of honest parties are replaced
+  by encryptions of zero.
+    I Claim 3. For every non-uniform polynomial-time Adv, input vector ~x, and auxiliary input z,
+                         c
+    Hyb1    (1λ , ~x, z) ∼
+        Adv,M            = Hyb2   (1λ , ~x, z).
+                                 Adv,M
+
+
+    Proof. Note that already in Hybrid 1 all information about the contribution SKi∗ of party Pi∗ to
+    the joint secret key SK is removed. The claim thus follows directly by IFHE semantic security
+    under combined keys.                                                                          J
+
+
+
+                                                                                                                ICALP 2018
+XX:26   The Bottleneck Complexity of Secure Multiparty Computation
+
+
+         E     From Semi-Malicious to Malicious Security
+
+        In this section we describe how to compile a semi-malicious secure protocol into an actively secure
+        protocol, with the same communication graph. Our compiler relies on common reference string
+        (CRS) and a (bare) public-key setup.
+        Building Blocks. We use the following cryptographic primitives in our compiler:
+
+          A simulation-extractable succinct non-interactive zero-knowledge argument (SE-ZK-SNARK)
+          for a polynomial-time computable relation. Unlike recent works such as [25, 21], our notion of
+          SE-ZK-SNARK is identity-based, where each proof is generated w.r.t. an identity.
+          A multisignature scheme (MS.KeyGen, MS.Sign, MS.Combine, MS.MultiVer) for implementing
+          the (bare) public-key setup in our construction. In our setting, we can instantiate a multisignature
+          scheme with a SE-ZK-SNARK with additive overhead together with standard signatures.
+          A non-interactive perfectly binding commitment scheme C OM.
+          A family of collision-resistant hash functions H ASH FAMILY.
+
+        We refer the reader to Appendix A for the definitions of SNARKs and multisignatures. Below, we
+        present our definition and construction of ID-based SE-ZK-SNARK.
+
+
+        E.1    ID-Based SE-ZK-SNARK
+        For reasons as discussed in Section 1.1, we consider an ID-based notion of SE-ZK-SNARK, where
+        each proof is generated with respect to an identity (chosen from a set of identities that are fixed in
+        advance). Proofs for multiple statements can be computed w.r.t. the same identity. Crucially, in
+        our definition of simulation-extractability, the adversary must fix a set ID∗ of “honest” identities
+        in advance and can then receive simulated proofs on adaptively chosen statements w.r.t. identities
+        from this set. It must then come up with an accepting proof for a new statement x w.r.t. an identity
+           / ID∗ . We require the existence of a non-black-box extractor who can extract a valid witness for x
+        id ∈
+        from such an adversary.
+             We show how to transform any SNARK argument system into an ID-based SE-ZK-SNARK by
+        relying on only standard cryptographic assumptions. Very roughly, in our construction, it is possible
+        to “puncture” the trapdoor trap for the CRS w.r.t. an identity set ID∗ . A punctured trapdoor trapID∗
+        can only be used to simulate the proofs w.r.t. identities id ∈ ID∗ , but cannot be used to simulate
+        proofs w.r.t. identities id ∈/ ID∗ . Using such a punctured trapdoor, we are able to construct an
+        extractor while still simulating proofs to the adversary. Specifically, in order to extract from an
+        adversarial prover P ∗ , we consider an augmented code M that consists of the simulator algorithm
+        S with a punctured trapdoor trapID∗ hardwired in its description, together with the code of prover
+        P ∗ . Any proof requested by the prover P ∗ w.r.t. an identity id ∈ ID∗ can be computed by S using
+        the punctured trapdoor. However, since the cheating prover must produce a proof w.r.t. an identity
+           / ID∗ , we can still successfully extract from M by using the SNARK extractor.
+        id ∈
+        Definition. We now present our definition of ID-based SE-ZK-SNARK. Our definition is paramet-
+        rized w.r.t. an identity set ID. For our application of SE-ZK-SNARK to actively secure MPC, it
+        suffices to work with polynomial-sized identity sets. Below, the prover and verifier algorithms Prove
+        and Verify are extended to receive an identity as an additional input.
+        I Definition 22 (ID-Based SE-ZK-SNARK). A SNARK system (crsGen, Prove, Verify) for a
+        relation R with respect to auxiliary input distribution Z is said to be a SE-ZK-SNARK with respect
+        to identity set ID if there exists a PPT simulator S = (S1 , S2 , S3 ) such that the following holds:
+E. Boyle, A. Jain, M. Prabhakaran, C. Yu                                                                      XX:27
+
+
+   Computational Zero-Knowledge: For every (x, w) ∈ R and every id ∈ ID,
+                                                      c
+                                     (crs, id, x, π) ≈ (crs0 , id, x, π 0 ),
+
+   where crs ← crsGen(1λ ), π ← Prove(crs, x, w, id), (crs0 , trap) ← S1 (1λ ), trapid ← S2 (trap, id)
+   and π 0 ← S3 (crs0 , id, trapid , x).
+   Simulation-Sound Extractability: There is a negligible function negl such that, for any non-
+   uniform PPT prover P , there exists a polynomial-size extractor EP , such that Pr[out = 0] ≤
+   negl(λ), where the random variable out is the output of the following experiment:
+   1. (crs, trap) ← S1 (1λ )
+   2. z ← Z
+   3. ID∗ ← P (z, crs) s.t. ID∗ ⊂ ID and |ID∗ | = poly(λ).
+   4. trapid∗ ← S2 (trap, id∗ ), for every id∗ ∈ ID∗ .
+                               ~ ID∗ ), where trap
+   5. (id, x, π) ← P (z, crs, trap              ~ ID∗ = {trapid∗ }id∗ ∈ID∗ .
+   6. (id, x, π, w) ← EP (z, crs).
+   7. Output 0 iff:
+                                / ID∗ ∧ Verify(x, π, crs, id) = 1 ∧ (x, w) ∈
+                             id ∈                                            / R.
+
+I Remark. In our definition of simulation-extractability, we provide the cheating prover P with a
+                    ~ ID∗ that is “punctured” at the identity set ID∗ . Using this special trapdoor, the
+special trapdoor trap
+cheating prover can compute simulated proofs for arbitrary statements w.r.t. any identity id ∈ ID∗
+on its own. The correctness of a punctured trapdoor is captured in our definition of computational
+zero-knowledge.
+    One could alternatively consider a weaker definition of simulation-extractability where instead of
+giving a punctured trapdoor to the cheating prover, we only provide him oracle access to the simulator
+algorithm that uses the trapdoor to simulate proofs w.r.t. identities id ∈ ID∗ on statements chosen
+adaptively by the cheating prover. Clearly, Definition 22 implies this weaker definition. We choose to
+work with Definition 22 as it enables easier proof of security for our actively secure MPC protocol
+discussed later in this section.
+Construction. We construct an ID-based SE-ZK-SNARK system (crsGen, Prove, Verify) for any
+NP language L and identity set ID. We will use the following two ingredients: (1) a witness-
+indistinguishable SNARK system (crsGen0 , Prove0 , Verify0 ) for an NP language L0 (described be-
+low), and (2) an identity-based signature scheme (Setup, Keygen, Sign, Verify) which can be readily
+constructed using certificate chains from a standard digital signature scheme, which can in turn be
+based on one-way functions [38].
+
+   crsGen(1λ ): On input a security parameter, compute crs0 ← crsGen0 (1λ ) and (msk, mvk) ←
+   Setup(1λ ). Output crs = (crs0 , mvk).
+   Prove(crs, id, x, w): On input a crs crs = (crs0 , mvk), identity id, statement x and witness w,
+   compute a proof π 0 ← Prove0 (crs, x0 , w) for the statement x0 = (x, id, mvk) s.t. x0 ∈ L0 iff:
+     x ∈ L, or
+     ∃σ s.t. Verify(mvk, id, x, σ) = 1.
+   Here, the prover uses the witness w to prove the first part of the statement x0 . Output π = π 0 .
+   Verify(crs, id, x, π): On input a crs crs = (crs0 , mvk), identity id, statement x and proof π, compute
+   and output Verify0 (crs0 , x0 , π) where x0 = (x, id, mvk).
+
+I Theorem 23 (ID-Based SE-ZK-SNARK). Assuming the existence of one-way functions and a
+witness-indistinguishable SNARK system for NP, the proposed construction is an ID-Based SE-ZK-
+SNARK for any NP relation.
+
+
+
+                                                                                                             ICALP 2018
+XX:28   The Bottleneck Complexity of Secure Multiparty Computation
+
+
+            We start by describing the simulator S = (S1 , S2 , S3 ):
+
+           S1 (1λ ): On input a security parameter, compute:
+              crs0 ← crsGen0 (1λ )
+              (msk, mvk) ← Setup(1λ )
+          Output (crs = crs0 , mvk) and trap = msk.
+          S2 (trap, id): On input a master trapdoor trap = msk and identity id, compute and output a
+          “punctured” trapdoor trapid = skid ← Keygen(msk, id).
+          S3 (crs, id, trapid , x): On input a crs crs = (crs0 , mvk), identity id, trapdoor trapid = SKid and
+          statement x, compute:
+              A signature σ ← Sign(SKid , x) on message x using the signing key SKid for identity id.
+              A proof π 0 ← Prove0 (crs0 , x0 , σ) for the statement x0 (defined as above) using σ as a witness
+              for the second part of x0 .
+           Output π 0 .
+
+            Now, note that the crs computed by S1 is identically distributed to the crs computed by the honest
+        algorithm crsGen. Further, for any identity id and statement x ∈ L, the only difference between
+        a proof computed via Prove and S2 is that the former computes a proof for statement x0 (defined
+        as above) using a witness for the first part of x0 , while S3 uses a witness for the second part of x0 .
+        However, from the witness indistinguishability property of (crsGen0 , Prove0 , Verify0 ), it follows that
+        these proofs are computationally indistinguishable.
+             We next argue the simulation-sound extractability of our construction. For any cheating prover
+        P , our extractor EP is the same as defined for the proof system (crsGen0 , Prove0 , Verify0 ). From the
+        correctness of EP , we know that if P outputs an accepting proof π for any statement x w.r.t. identity
+        id, then except with negligible probability, EP outputs a witness w∗ s.t. either (x, w∗ ) = (x, w) ∈ R
+        or w∗ = σ s.t. Verify(mvk, id, x, σ). From the security of identity-based signatures, however, the
+        latter case can only happen with negligible probability.
+        I Remark. In our transformation in the next subsection, we will in fact require the proof system for
+        a set of NP relations {R1 , · · · , RN }, that can be efficiently evaluated given the index of the relation.
+        These relations can be combined into a single “super-relation” R which consists of ((i, x), w) such
+        that (x, w) ∈ Ri , and use a SE-ZK-SNARK system for this relation R. For the sake of readability, the
+        proof and verification for a statement of the form (i, x) with respect to an identity id will be indicated
+        as Proveid                           id
+                  Ri (x, w; crs) and VerifyRi (x, π, crs).
+
+
+        E.2     Verifiable Protocol Execution
+        To abstract out the compiler, we present a “Verifiable Protocol Execution” functionality Fvpe (paramet-
+        rized by a protocol ρ which is to be verifiably executed) and present a protocol Πvpe (also parametrized
+        by ρ) that standalone securely realizes Fvpe against active corruption. Then, in Appendix E.4 we show
+        that a semi-malicious protocol can be readily turned into a protocol secure against active corruption,
+        using Πvpe .
+            First, for any semi-malicious protocol ρ, we define the functionality Fvpe hρi which accepts the
+        inputs for ρ from all the parties; also it accepts the randomness for the corrupt parties from the
+        adversary, and uniformly samples the randomness for the honest parties. Then it executes the protocol
+        ρ honestly using these inputs and randomness. At each round, if no party issues “abort” it sends the
+        messages generated by the execution to the parties to which the messages are addressed. Formally we
+        define Fvpe hρi as follows:
+E. Boyle, A. Jain, M. Prabhakaran, C. Yu                                                                                 XX:29
+
+
+I Definition 24 (Functionality Fvpe ). The functionality Fvpe hρi, parametrized by a semi-malicious
+protocol ρ, is defined as follows:
+
+1. For each i ∈ [n], if Pi is honest, receive input xi from Pi and sample a (sufficiently long) bit
+   string si uniformly at random; else receive (xi , si ) from the adversary. Let x       bi = (xi , si ).
+2. Internally run ρ among virtual parties P̃1 , . . . , P̃n , with inputs x
+                                                                          b1 , . . . , x
+                                                                                       bn respectively. At each
+   round τ of this execution carry out the following:
+      a. If Pj is corrupt, and in ρ, P̃i sends a message to P̃j , then forward the message to Pj .
+      b. If the adversary sends (ABORT, i), send ABORT to Pi , and also terminate P̃i in the internal
+         execution of ρ.
+      c. If P̃i produces an output yi , send yi to Pi .
+
+E.3       Protocol Πvpe
+For any protocol ρ, the protocol Πvpe hρi implements Fvpe hρi (stand-alone) securely against active
+corruption. As described below, Πvpe hρi has a setup phase (to create a common reference string), and
+consists of two phases: an input commitment phase and an execution phase. ρ itself may include a
+setup phase ρ.S ETUP to create a common reference string. ρ is required to have an a priori determined
+communication pattern, indicating which parties send messages to which parties in each round (and
+how many rounds T there are in total). Let in(i, τ ) denote the set of all j such that at round τ ,
+ρ requires Pj to send a message to Pi . We write ρ(t; (i, j); {mτk,i }τ <t,k∈in(i,τ ) , x
+                                                                                        bi ) to denote the
+message (possibly empty) that Pi should send to Pj at round t, computed from its own input and
+randomness x  bi and the messages mτk,i it received in all previous rounds τ < t. Also, we write
+             τ
+ρ(out; i; {mk,i }τ ≤T,k∈in(i,τ ) ) to indicate the output to be produced by Pi at the end of the protocol.
+Setup. The setup contains four parts: the setup of the PKI environment, A hash function H ASH
+sampled from a hash family H ASH FAMILY(1λ ), the common random strings that will be used in the
+SE-ZK-SNARK system, and the setup of ρ (if any). Formally, (params) ← Πvpe hρi.S ETUP(1λ , 1d ),
+where params are
+     {VKi , SKi }i∈[n] ← MS.KeyGen(1λ ),
+                H ASH ← H ASH FAMILY(1λ ),
+                   crs ← SNARK.crsGen(1λ ),
+             paramsρ ← ρ.S ETUP(1λ , 1d )
+
+
+Commitment Phase. The goal of this phase is to construct a short, globally known commitment to
+the inputs and random-tapes in ρ, for all the parties. This phase uses a (fixed, arbitrary) subgraph T
+of the communication graph of ρ, which forms a rooted spanning tree.9 This phase consists of two
+passes up and down the tree, starting from the leaves. In the first upward pass, the parties essentially
+use a Merkle-tree to commit to x  bi = (xi , si ) for all i ∈ [n] (using a hash function included in the
+setup). Along with the hash value, each party also includes a SE-ZK-SNARK proof of correctness
+in its message to its parent in the tree; correspondingly, each party verifies the the proofs from its
+children, and also includes this proof in its input to the hash function. Recall that the SE-ZK-SNARK
+proofs are associated with an identity; all the proofs used in our protocol shall use the prover’s index
+as the identity. The relation proven to one’s parent includes the fact that the proofs from the children
+verified. Though the relations are recursively defined, as we shall see, the complexity of the relations
+will not grow exponentially with depth, as the relation at a node will depend only on the complexity
+
+
+9
+    We require the communication graph of ρ to be connected and that all parties know this graph (and spanning tree).
+
+
+
+
+                                                                                                                        ICALP 2018
+XX:30   The Bottleneck Complexity of Secure Multiparty Computation
+
+
+        of verifying a SE-ZK-SNARK proof for the relations at its children, and not on computing those
+        relations themselves.
+            This is followed by a downward pass starting from the root, where the final aggregated commit-
+        ment α is sent to all the nodes. Here again, the messages are accompanied by appropriate proofs.
+        At the end of this pass, the honest parties are assured that the commitment they have received in-
+        cludes their own input and randomness; however, it is possible that the inputs from the other parties
+        are not correctly included.10 To address this, we make one more pair of up and down passes, in
+        which a multi-signature of the commitment is created and passed back to all the parties. Verifying
+        this multi-signature assures the honest parties that all the honest parties have received the same
+        commitment.
+
+        T is a spanning tree over the set of nodes [n]. chldrn(j) denotes the set of children of j, and parent(j) is the
+        parent of j (j other than root) in T . W.l.o.g, we assume that the indices of the nodes are sorted such that the root
+        is 1 and for all j > 1, parent(j) < j. The party at node j is denoted by Pj .
+             All messages are assumed to contain a header uniquely identifying its role in the protocol (corresponding to
+        the variable name and indices in the description below).
+        Commitment Phase of Πvpe hρi. The commitment phase uses SE-ZK-SNARKs for sets of NP relations Rjup
+        and Rjdown (with j denoting the prover’s index for the former and the receiver’s for the latter), defined recursively
+        as follows. Here, all the proofs will use the prover’s index as the identity.
+        • (φ, w) ∈ Rjup , for j ∈ leaves(T ), iff φ = (crs, c), w = (x    b, r), c = C OM(x  b; r), where leaves(T ) denotes the
+        set of leaves of T .
+        • (φ, w) ∈ Rjup , for j 6∈ leaves(T ), j 6= 1 (i.e., not the root), iff φ = (crs, c) and w = (xb, {ck , βk }k∈chldrn(j) , r)
+                                                                                                   k
+        s.t. c = C OM(H ASH({ck }k∈chldrn(j) ), x b; r)) and ∀k ∈ chldrn(j), SNARK.VerifyRup ((crs, ck ), βk , crs) = 1.
+                                                                                                     k
+        • (φ, w) ∈ Rjdown , for j ∈ chldrn(1) (i.e., children of root), iff φ = (crs, c, α), w = (x
+                                                                                                  b, {c` , β` }`∈chldrn(1) , r)
+        s.t. c = cj , α = C OM(H ASH({c` }`∈chldrn(1) ), x b; r)), and SNARK.Verify`Rup ((crs, c` ), β` , crs) = 1, ∀` ∈
+                                                                                               `
+        chldrn(1) \ {j}
+        • (φ, w) ∈ Rjdown , for j 6∈ chldrn(1), j 6= 1, iff φ = (crs, c, α), w = (x b, {c` }`∈chldrn(parent(j)) , r, c0 , γ) s.t.
+                  0                                                            parent(i)
+                                                    b; r)), and SNARK.VerifyRdown ((crs, c0 , α), γ, crs) = 1, where
+        c = cj , c = C OM(H ASH({c` }`∈chldrn(1) ), x
+                                                                                         i
+        i = parent(j).
+            Below, for the sake of brevity, instead of specifying π ← SNARK.Proveid R (crs, x, w), we often leave
+        w implicit and say that π is a proof that x ∈ L[R] with respect to the identity id. (Here L[R] = {x |
+        ∃w s.t. (x, w) ∈ R}.)
+        1. Aggregate Commitments with Proofs.
+             a. For j = n to 1, Pj proceeds as follows: If j is not a leaf, first it receives (ck , βk ) from each k ∈ chldrn(j)
+                and asserts that SNARK.VerifykRup ((crs, ck ), βk , crs) = 1. Then, Pj samples rj and computes cj =
+                                                      k
+                C OM(H ASH({ck }k∈chldrn(j) ), x
+                                               bj ; rj ). Then:
+                   Pj , for j > 1, sends (cj , βj ) to Pparent(j) , where βj is a proof that (crs, cj ) ∈ L[Rjup ], with associated
+                   identity j (prover’s index).
+                   P1 sends, ∀k ∈ chldrn(1), sends Pk (α, σk , γk ) where α = c1 where11 σk ← MS.Sign(SK1 , ck ),
+                   and γk is a proof that (crs, ck , α) ∈ L[Rkdown ], with identity 1.
+        2. Distribute the Aggregated Commitment with Proofs. Above, children of the root leaf already received α
+           from the root, P1 .
+             a. For j = 2 to n, Pj receives (α, σj , γj ) from Pparent(j) , and asserts that MS.verify(VKparent(j) , cj , σj ) =
+                                      parent(j)
+                1, and SNARK.VerifyRdown (φ, γj , crs) = 1, where φ = (crs, cj , α) if j ∈ chldrn(1) and φ = (crs, α)
+                                          j
+
+
+
+
+        10
+           One could have hashed signed inputs to assure each honest party that all honest parties’ inputs are correctly included
+           in the commitment; however, this leaves room for the adversary to supply the honest parties with commitments
+           which have inconsistent inputs for the corrupt parties. The next pass handles both these issues together.
+        11
+           Here a normal signature, instead of a multi-signature suffices. We overload MS to keep the setup shorter.
+E. Boyle, A. Jain, M. Prabhakaran, C. Yu                                                                                        XX:31
+
+
+        otherwise. If the verification succeeds, it sends (α, σk , γk ) to Pk for each k ∈ chldrn(j), where
+        σk ← MS.Sign(SKj , ck ), and γk is a proof that (crs, α) ∈ L[Rkdown ], with identity j.
+3. Create the Multisignature.
+    a. For j = n to 2, Pj sends a combined multisignature σj = MS.Combine({VKi , σi }i∈chldrn(j) ∪
+       {VKj , σj0 }, α) to parent(j), where σj0 = MS.Sign(SKj , α).
+    b. P1 computes a final combined multisignature
+       σ = MS.Combine({VKi , σi }i∈chldrn(1) ∪ {VK1 , σ10 }, α), where σ10 = MS.Sign(SK1 , α).
+4. Verify the Multisignature.
+    a. ∀k ∈ chldrn(1), P1 sends σ to Pk .
+    b. For j = 2 to n, Pj receives σ from Pparent(j) and checks if MS.MultiVer({VK` }`∈[n] , α, σ) = 1. If so,
+       it sends σ to Pk , ∀k ∈ chldrn(j); otherwise, Pj aborts.
+
+
+Execution Phase In each round, each party Pi sends messages to its outgoing neighbors in the
+round according the semi-malicious protocol ρ. Meanwhile, similar to the recursive proofs in the
+commitment phase, Pi also sends a proof showing that 1) Pi computes the message honestly using
+the input committed in the first phase and the messages it receives so far, 2) it computes an aggregated
+commitment of its input as well as its children’ commits, 3) it verifies the final aggregated commit α
+4) it verifies the proofs that the messages received so far all follow ρ honestly.
+     Therefore, by the (additive-overhead) extraction of the SE-ZK-SNARK, the proofs are recursively
+(computationally) bound to its previous proofs that according to the computation path of the protocol
+and finally bound to the input. The input is then bound to the final combined commitment that has
+been multisigned by all the parties in the first phase. Hence we can argue that, unless the collision
+resistance of the hash function, the soundness of the commitment scheme, the unforgeability of the
+multisignature scheme, or the extractionability of the SE-ZK-SNARK scheme fails, the corrupt parties
+cannot deviate from the protocol without triggering an abort.
+                                                   ρ
+     The proofs in the protocol are for relations Ri,j,t corresponding to proving that a message from Pi
+               th
+to Pj in the t step is correctly computed according to the input and randomness x   bi that Pi committed
+during the first phase of the protocol and the messages received during the protocol (with proofs,
+which have been verified by Pi ). This is formalized below.
+                                                                                                                      ρ
+Recall that in(i, τ ) denotes the set of all j such that at round τ , ρ requires Pj to send a message to Pi . Ri,j,t      is
+defined as follows:
+                ρ
+                                                                                                                  
+• (φ, w) ∈ Ri,j,t      iff φ = (crs, α, m), w = x      b, h, r, γ, c, σ, {mτk,i , θk,i
+                                                                                   τ      τ
+                                                                                       , δk,i }τ ∈[t−1],k∈in(i,τ ) such that
+                                                 
+m = ρ t; (i, j); {mτk,i }τ ∈[t−1],k∈in(i,τ ) ; x
+                                               b , c = C OM(h, x b; r), and
+                         MS.verify(VKparent(i) , c, σ) = 1
+                         MS.verify(VKk , mτk,i , θk,i
+                                                  τ
+                                                      )=1
+                              parent(i)
+          SNARK.VerifyRdown ((crs, c, α), γ, crs) = 1
+                               i
+
+    SNARK.VerifykRρ            ((crs, α, mτk,i ), δk,i
+                                                   τ
+                                                       , crs) = 1             ∀τ ∈ [t − 1], k ∈ in(i, τ ).
+                       k,i,τ
+
+(Note that the last condition is absent for t = 1.)
+Execution Phase of Πvpe hρi. For each round t, Pi and Pj , where i ∈ in(j, t):
+                                                                                                         ρ
+1. Pi computes mti,j = ρ(t; (i, j); {mτk,i }τ ∈[t−1],k∈in(i,τ ) , x                  t
+                                                                  bi ), and a proof δi,j that mti,j ∈ L[Ri,j,t ] with
+                                                             t           t
+   respect to the identity i. It also computes a signature θi,j on mi,j using its signing key SKi . Then it sends
+   (mti,j , θi,j
+             t      t
+                 , δi,j ) to Pj .
+2. For each j ∈ in(i, t), Pi receives (mtj,i , δj,i
+                                                t
+                                                    ) from Pj , defines φ = (crs, α, mtj,i ), and asserts that
+               j           t
+   SNARK.VerifyRρ (φ, δj,i , crs) = 1.
+                      j,i,t
+
+   If this is the last round of the protocol, Pi computes and outputs yi = ρ(out, i; {mτk,i }τ ∈[t−1],k∈in(i,τ ) , x
+                                                                                                                   bi ).
+
+
+
+                                                                                                                               ICALP 2018
+XX:32   The Bottleneck Complexity of Secure Multiparty Computation
+
+
+
+            We prove the security in Appendix E.5.
+
+        E.4     Using VPE To Compile From Semi-Malicious to Malicious
+                Security
+        If ρ is a semi-malicious secure protocol for a secure function evaluation functionality F, then there is
+        a simple standalone secure protocol for F in the the Fvpe hρi-hybrid model: the honest parties will
+        simply send their inputs for F to Fvpe hρi, and output the outputs received back (or ABORT). The
+        security of the protocol follows from the fact that Fvpe hρiensures semi-malicious behavior from the
+        adversary in the ρ execution. Indeed, the only actions allowed for the adversary in Fvpe hρi– choosing
+        an input and randomness for each corrupt party, followed by aborting communication with an honest
+        party at any point – is allowed by the semi-malicious adversary model.
+            Further, the above compiler continues to be secure even if we replace Fvpe hρi with a protocol
+        Πvpe hρi that standalone securely realizes Fvpe hρi. While typically UC security is required for such
+        composition, note that only a single session of Fvpe hρi is invoked above. Formally, a simulator Sim∗
+        for the final protocol in the F ideal model is constructed as follows: Given an adversary Adv, first we
+        define the (non-black-box) simulator SimAdv for Πvpe hρi to obtain a hybrid execution in the Fvpe hρi,
+        with Sim as the adversary. Since Fvpe hρi is internally running ρ with virtual parties Pi , we “open
+        it up” and combine the execution of {P̃i }i∈C with SimAdv to define a new adversary Adv0 , which is
+        simply a semi-malicious adversary for ρ. Then we use the semi-malicious security of ρ to obtain the
+        final simulator Sim∗ .
+
+        E.5     Security of the VPE Protocol
+        The goal is to show that the environment’s view (which includes the adversary’s view, along with
+        the honest parties’ inputs and outputs) in the real world is indistinguisable from its view in the ideal
+        world of Ff , when using an appropriately defined simulator.
+            To prove the security under the active corruption, we define five hybrids, where the first hybrid
+        denotes the real world execution and the last hybrid denotes the simulator in the ideal world. Let
+        x
+        bi = (xi , si ) be the input of Pi and its private random string si , and let yi be the output of Pi at the
+        end of the execution. Every message in Πvpe hρi from Pi to Pj is of the form (µti,j , πi,j  t
+                                                                                                      ), where t is
+                               t                                                                  t
+        the round number, πi,j is a SE-ZK-SNARK proof about a statement involving crs, µi,j and possibly
+        α (which is part of a message µτj,i for a round τ during the commitment phase). The π component is
+        absent in the messages sent during the multi-signature phase of the commitment phase. Here, the µ
+        components are computed with no reference to the π components in any of the messages.
+            For each i = 0, · · · , 4, let H YBRIDi be the view of the (stand-alone) environment in the experi-
+        ments summarized below.
+
+        1. H YBRID0 is the environment’s view in the execution of Πvpe hρi in the real world. The environ-
+           ment’s view includes the setup, all the messages received by the adversary during the protocol
+           execution, as well as the honest parties’ inputs and outputs {(xi , yi )}i∈H from this execution.
+        2. H YBRID1 is generated by the same experiment as H YBRID0 with the following modification: the
+           simulator (Sim1 , Sim2 , Sim3 ) is used to generate the SE-ZK-SNARK scheme’s setup crs as well
+                              t
+           as all the proofs πi,j given by the honest parties i ∈ H.
+                                                                                                                 c
+           It directly follows from the zero-knowledge property of SE-ZK-SNARK that H YBRID0 ≈
+           H YBRID1 .
+        3. H YBRID2 is generated by the same experiment as H YBRID1 with the following modification: In
+           the commitment phase, for each j ∈ H, Pj uses a commitment to a dummy string as cj . (Note
+E. Boyle, A. Jain, M. Prabhakaran, C. Yu                                                                      XX:33
+
+
+   that in this hybrid the proofs are already generated by a simulator; the simulator takes cj as an
+   input, and does not need the message or randomness used to generate cj .)
+                                                              c
+   From the hiding property of C OM, we have H YBRID1 ≈ H YBRID2 .
+4. H YBRID3 is in the Fvpe hρi-hybrid model, with a non-blackbox simulator Sim interacting with the
+   adversary Adv and the functionality Fvpe hρi. The details of Sim are shown in Figure 1. Briefly, it
+   behaves as follows:
+      Sim simulates the commitment phase execution of the honest parties in H YBRID2 faithfully (as
+      it no more depends on their inputs).
+      It uses an extractor for SE-ZK-SNARK system to extract the corrupt parties’ inputs and ran-
+      domness for ρ from the commitment phase, and forwards it to Fvpe hρi.
+      It continues with the simulation of the execution phase using the honest parties’ messages
+      received from Fvpe hρi, by adding simulated proofs to them. In this phase Sim simply verifies
+                       t
+      all the proofs πi,j sent by each corrupt party Pi to any honest party Pj , and if any verification
+      fails, it sends (ABORT, j) to Fvpe hρi.
+                                                                  c
+   To complete the proof, we need to argue that H YBRID2 ≈ H YBRID3 .
+
+Extraction from a Tree of Proofs. We describe an efficient procedure to extract witnesses from a
+“tree of proofs,” when the proofs are given using a SE-ZK-SNARK system with additive polynomial
+overhead extraction. Consider a rooted tree Q, with an NP relation Ru associated with each node u of
+the tree such that (φ, w) ∈ Ru only if φ = (crs, x) and for all v ∈ chldrn(u), VerifyRv (φv , πv , crs) =
+1 (additional conditions may be included), where φv = fv (φ, w), πv ) = gv (φ, w) for some efficiently
+computable functions fv , gv . Our goal is to extract a consistent set of witnesses wv for all the nodes v
+in the tree, from an adversary who gives a proof πv0 for a statement φv0 , where v0 is the root of the
+tree, such that (i) if u = parent(v), then (φv , wv ) ∈ Rv , where, for v 6= v0 , φv = fv (φu , wu ) with
+u = parent(v).
+     We consider an adversary who is given an auxiliary input z ← Z, a simulated CRS crs, and also
+a set of trapdoors trapID∗ for a set of identities ID∗ (for simplicity we consider an a priori fixed set
+ID∗ , which suffices for our purposes). For brevity, we omit identities and trapID∗ from the description
+below, with the understanding that all the proofs are with respect to specific identities (associated
+with the nodes) that are not contained in ID∗ . We shall define a set of machines Av , Ev for each node
+in the tree Q as follows. Each Av will be defined as a PPT machine that will output a statement-proof
+pair (φv , πv ) for the relation Rv , and Ev is the extractor guaranteed to exist by Definition 12, such
+that RT(Ev ) ≤ RT(Av ) + p(λ).
+     Av0 is the original adversary Adv which, given inputs (z, crs) and a random tape rv0 outputs
+(φv0 , πv0 ). For all other nodes v in Q we inductively define Av as follows, in terms of Au and
+Eu , where u = parent(v): It takes an input (z, crs) and a random tape rv = ru ||rv , (length
+of rv to be bounded below), such and runs Eu (z, crs, ru ; rv ) to obtain (φu , πu , wu ), and outputs
+(φv , πv ) = (fv (φu , wu ), gv (φu , wu )).
+     We point out that, thanks to the additive overhead extraction property, Av remains a polynomial
+time adversary. Let q = p + q0 be a polynomial where p is as in the definition of additive overhead
+extraction, and q0 is an upperbound on the time needed to compute fv and gv for any node in the
+tree (q is fixed independent of the adversary). Inductively, suppose that for a node u at a depth
+d, RT(Au ) ≤ RT(Av0 ) + dq(λ) (base case being d = 0 for u = v0 ). If v is a child of u, then
+RT(Av ) ≤ RT(Eu ) + q0 (λ) ≤ RT(Au ) + p(λ) + q0 (λ) ≤ RT(Av0 ) + (d + 1)q(λ), by the definition
+of Av , the additive overhead guarantee, and the inductive assumption and the definition of q. Also,
+w.l.o.g, we keep the length of the random tapes (for Eu and Av ) upperbounded by the running time
+of the machines.
+
+
+
+                                                                                                             ICALP 2018
+XX:34   The Bottleneck Complexity of Secure Multiparty Computation
+
+
+             Our final extraction procedure consists of Eu hardwired for all nodes u in Q. On input (z, crs, r)
+        it sets rv0 = r (where v0 is the root of Q), samples rv of the appropriate lengths for each node v,
+        defines rv to be the concatenation of ru for all ancestors u of v in Q, and runs Eu (z, crs, ru ; rv ) to
+        obtain wu for each node u. If the proof system used is a Z-auxiliary input SE-ZK-SNARK for the
+        set of relations {Rv } for nodes v in a polynomially large relation-tree Q, then by a union bound, the
+        probability that a PPT adversary Adv, given (z, crs) and trapID∗ as above, outputs (φ, π) that verifies
+        with respect to an id 6∈ ID∗ , but the above procedure fails to recover a consistent set of witnesses for
+        all nodes is negligible.
+                    c
+        H YBRID2 ≈ H YBRID3 . We briefly sketch the argument that the view of the environment in H YBRID3
+        is indistinguisable from that in H YBRID2 . The main idea is to ensure that if the proofs and signatures
+        sent by a corrupt parties to an honest party during the execution phase verify, then the accompanying
+        message should match what the functionality Fvpe hρi would generate and send to the honest party in
+        that round.
+             To argue this, we shall use the tree extractor from above again on trees of proofs from corrupt
+                                                                            ρ
+        parties to honest parties, this time with relations of the form Ri,j,t   at the root and consisting of nodes
+                       ρ              down       0       0
+        of the form Ri0 ,j 0 ,t0 and Ri0 (with i ∈ C, t < t). The extracted witnesses include purported values
+        of xbi0 and set of messages from honest parties (possibly the empty set) that are “connected to” mti,j
+        in ρ (as well as (simulated) proofs accompanying those messages). The messages from the honest
+        parties must exactly be the ones that the simulator forwarded from Fvpe hρi, by the unforgeability of
+        the signatures.
+             We shall also argue that the extracted values x bi0 from the corrupt parties by this extractor must be
+        same ones as extracted by Sim in the commitment step. This relies on unforgeability of signatures
+        used during the commitment phase.
+             Recall the forest obtained from T by deleting the honest parties’ nodes. First consider a corrupt
+        party i0 that appears in a tree in that forest which is rooted at i∗ 6= 1. In this case, the value x       bi0
+        extracted (from the commitment phase as well as the execution phase) is related to ci , the aggregated
+                                                                                                    ∗
+
+        commitment sent by Pi∗ to its parent (which is an honest party). Due to the unforgeability of the
+        signature on ci∗ , in all the extractions, x
+                                                   bi0 will be related to the same value of ci∗ . Further, due to the
+        binding of C OM and the collision-resistance of H ASH, the value of x     bi0 itself should be the same in all
+        extractions.
+             This does not cover the possibility that if the root is corrupt, it could partition the honest parties
+        into two sets and run independent executions of ρ with them (which is not allowed in the ideal world).
+        It is to prevent this that we use a multi-signature in the commitment phase. Consider a corrupt party
+        i0 in a tree T1 in the forest of corrupt parties, where T1 is rooted at 1, the root of T (T1 exists only
+        if 1 itself was corrupt). In this case xbi0 extracted during the commitment phase is bound to α. We
+        defined the input extraction (in Figure 1) using an arbitrary honest party Pk such that in T , k is
+        adjacent to a leaf of T1 . But the unforgeability of the multi-signature ensures that all honest parties
+        must agree on the same α. Hence, during the execution phase again, the extracted x            bi0 is bound to
+        the same α, no matter which honest party is the receiver. As before, due to the binding of C OM and
+        collision-resistance of H ASH, this ensures that the value of x   bi0 itself is the same in all extractions.
+E. Boyle, A. Jain, M. Prabhakaran, C. Yu                                                                            XX:35
+
+
+
+
+ Commitment Phase. Sim interacts with the corrupt parties on behalf of the honest parties {Pi }i∈H ,
+ acccording to the H YBRID2 experiment. During the commitment phase it simply executes the honest
+ parties in H YBRID2 faithfully as this execution does not depend on their inputs.
+ If any of the proofs βi (i ∈ C, parent(i) ∈ H) or γj (parent(j) ∈ C, j ∈ H) fails to verify during the
+ commitment phase, the corresponding simulated honest party aborts and does not contribute to the
+ multi-signature. In this case Sim will send (ABORT, i) for all i ∈ H after the commitment phase is
+ over, and will stop the simulation.
+ Input Extraction. If the commitment phase completes with all the proofs βi and γj supplied by the
+ adversary being accepted, Sim will try to extract the inputs x        bi for all i ∈ C, using the tree extractor
+ (described earlier), as follows.
+ Let T be the tree used for aggregating the commitments. At the end of the commitment phase, Sim
+ considers the forest obtained by deleting the set of nodes H from T . Each tree in this forest is denoted
+ as Ti , where i is the root of that tree. For each tree Ti for i 6= 1, proceed as follows: redefine the
+ output of the adversary to be just the proof and the statement for the relation Riup (i.e., ((crs, ci ), βi )),
+ and the auxiliary input Zi to be all the messages sent to the corrupt parties by Sim (on behalf of honest
+ parties) prior to that, as well as the common reference string of Πvpe hρi; define the relation-tree with
+ Rjup for all j in Ti , rooted at Riup , and invoke the tree extractor for this relation tree and this adversary,
+ with auxiliary input Zi . If the extraction succeeds, it yields witnesses for all the proofs βj for all j in
+ Ti , and in particular, xbj for all parties j in Ti . If P1 is corrupt we define an adversary which outputs a
+ statement (crs, ck , α) and a proof γk for the relation Rkdown , where Pk is an (arbitrary) honest party
+ adjacent to a leaf of T1 . We define a relation-tree as follows: it consists of Rjdown for all j in the path
+ from k to 1 (the root) and Rjup for all j ∈ T1 (except j = 1); this tree is rooted at Rkdown . Then we
+ invoke the tree-extractor for the adversary with respect to this relation-tree, with auxiliary input Z1
+ which includes all the messages Sim sent to it till it produced the output. If successful, the extraction
+ obtains the witnesses for all the proofs γj for all j in the path from parent(k) till the root, and for all
+ the proofs βj for all j in T1 (except j = 1). The witness for γj for j ∈ chldrn(1) includes x        b1 and the
+ witnesses for βj include x   bj for all other j in T1 .
+ If all the extractions are successful, Sim forwards the inputs x        bj for all corrupt parties Pj obtained
+ above are forwarded to Fvpe hρi.
+ Execution Phase. Sim simulates the execution phase using the honest parties’ messages received
+ from Fvpe hρi at each round, by adding simulated proofs to them. Also Sim faithfully verifies all the
+                                   t
+ signatures (ci , σi ) and proofs δi,j sent by each corrupt party Pi to any honest party Pj , and if any
+ verification fails, it sends (ABORT, j) to Fvpe hρi.
+
+   Figure 1 Simulator Sim used in the H YBRID3 (ideal execution of Fvpe hρi) for proving the security of
+Πvpe hρi.
+
+
+
+
+                                                                                                                ICALP 2018
+

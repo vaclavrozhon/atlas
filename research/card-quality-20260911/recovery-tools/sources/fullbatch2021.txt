@@ -1,0 +1,1587 @@
+                                                                             Never Go Full Batch
+                                                                     (in Stochastic Convex Optimization)
+
+                                                           Idan Amir∗           Yair Carmon†           Tomer Koren‡            Roi Livni§
+arXiv:2107.00469v1 [math.OC] 29 Jun 2021
+
+
+
+
+                                                                                            July 2, 2021
+
+
+
+                                                                                              Abstract
+                                                       We study the generalization performance of full-batch optimization algorithms for stochastic
+                                                   convex optimization: these are first-order methods that only access the exact gradient of the
+                                                   empirical risk (rather than gradients with respect to individual data points), that include a
+                                                   wide range of algorithms such as gradient descent, mirror descent, and their regularized and/or
+                                                   accelerated variants. We provide a new separation result showing that, while algorithms such
+                                                   as stochastic gradient descent can generalize and optimize the population risk to within ε af-
+                                                   ter O(1/ε2 ) iterations, full-batch methods either need at least Ω(1/ε4 ) iterations or exhibit a
+                                                   dimension-dependent sample complexity.
+
+
+                                           1       Introduction
+                                           Stochastic Convex Optimization (SCO) is a fundamental problem that received considerable at-
+                                           tention from the machine learning community in recent years [26, 14, 3, 10, 1]. In this problem,
+                                           we assume a learner that is provided with a finite sample of convex functions drawn i.i.d. from
+                                           an unknown distribution. The learner’s goal is to minimize the expected function. Owing to its
+                                           simplicity, it serves as an almost ideal theoretical model for studying generalization properties of
+                                           optimization algorithms ubiquitous in practice, particularly first-order methods which utilize only
+                                           first derivatives of the loss rather than higher-order ones.
+                                                One prominent approach for SCO—and learning more broadly—is to consider the empirical risk
+                                           (the average objective over the sample) and apply a first-order optimization algorithm to minimize
+                                           it. The problem of learning is then decoupled into controlling the optimization error over the
+                                           empirical risk (training error) and bounding the difference between the empirical error and the
+                                           expected error (generalization error).
+                                                In convex optimization, the convergence of different first-order methods has been researched
+                                           extensively for many years (e.g., [24, 23, 4]), and we currently have a very good understanding of
+                                           this setting in terms of upper as well lower bounds on worst-case complexity. However, in SCO
+                                           where the generalization error must also be taken into account, our understanding is still lacking.
+                                           In fact, this is one of the few theoretical learning models where the optimization method affects not
+                                           only the optimization error but also the generalization error (distinctively from models such as PAC
+                                           learning and generalized linear models). In particular, it has been shown [26, 14] that some minima
+                                               ∗
+                                                 Department of Electrical Engineering, Tel Aviv University; idanamir@mail.tau.ac.il.
+                                               †
+                                                 Blavatnik School of Computer Science, Tel Aviv University; ycarmon@tauex.tau.ac.il .
+                                               ‡
+                                                 Blavatnik School of Computer Science, Tel Aviv University and Google Research; tkoren@tauex.tau.ac.il.
+                                               §
+                                                 Department of Electrical Engineering, Tel Aviv University; rlivni@tauex.tau.ac.il.
+
+
+                                                                                                  1
+of the empirical risk may obtain large generalization error, while other minima have a vanishingly
+small generalization error. To put differently, learning in SCO is not only a question of minimizing
+the empirical risk, but also a question of how one minimizes it. However, the results of [26, 14] leave
+open the question of whether concrete optimization also have different generalization properties.
+    Towards better understanding, Amir et al. [1] recently studied the generalization properties
+of full-batch gradient descent (GD), where each step is taken with respect to the gradient of the
+empirical risk. For GD (and a regularized variant thereof), they gave a lower bound on the general-
+ization error as a function of iteration number, which is strictly larger than the well-known optimal
+rate obtained by stochastic gradient descent (SGD), where each step is taken with respect to the
+gradient at a sampled example. Notably, the lower bound of [1] precisely matches the dimension-
+independent stability-based upper bound recently shown for full-batch GD by Bassily et al. [3].
+The separation between full-batch GD and SGD is the first evidence that not only abstract Em-
+pirical Risk Minimizers may fail to generalize in SCO, but in fact also basic methods such as GD
+could be prone to such overfitting. A natural question is, then, whether overfitting is inherent to
+full-batch algorithms, that minimize the objective only through access to the exact empirical risk,
+or whether this suboptimality can be remedied by adding regularization, noise, smoothing, or any
+other mechanism for improving the generalization of GD.
+    In this work we present and analyze a model of full-batch optimization algorithms for SCO.
+Namely, we focus on algorithms that access the empirical risk only via a first-order oracle that
+computes the exact (full-batch) gradient of the empirical loss, rather than directly accessing gradi-
+ents with respect to individual samples. Our main result provides a negative answer to the question
+above by significantly generalizing and extending the result of Amir et al. [1]: we show that any
+optimization method that uses full-batch gradients needs at least Ω(1/ε4 ) iterations to minimize the
+expected loss to within ε error. This is in contrast with the empirical loss, which can be minimized
+with only O(1/ε2 ) steps.
+    Comparing SGD and GD in terms of the sample size n, we see that SGD converges to an
+                                       √
+optimal generalization error of O(1/ n) after O(n) iterations, whereas a full-batch method must
+                                                      √
+perform Ω(n2 ) iterations to achieve the same O(1/ n) test error. We emphasize that we account
+here for the oracle complexity, which coincides with the iteration complexity in the case of gradient
+methods. In terms of individual gradients calculations, while SGD uses at most O(n) gradient
+calculations (one sample per iteration), a full-batch method will perform Ω(n3 ) calculations (n
+samples per iteration).
+    The above result is applicable to a wide family of full-batch learning algorithms: regularized
+GD (with any data-independent regularization function), noisy GD, GD with line-search or adap-
+tive step sizes, GD with momentum, proximal methods, coordinate methods, and many more.
+Taken together with upper bound of Bassily et al. [3], we obtain a sharp rate of Θ(1/ε4 ) for the
+generalization-complexity of full-batch methods. Surprisingly, this rate is achieved by standard GD
+(with an unusual step-size choice of η = Θ(ε3 )), and it cannot be improved by adding regularization
+of any sort, nor by adding noise or any other form of implicit/explicit bias.
+
+1.1   Related work
+This work extends and generalizes the results of Amir et al. [1] who proved generalization lower
+bounds for GD (and a specific instance of regularized GD). Our work shows that in fact any full-
+batch method will suffer from similar lower bounds. Our construction builds upon the one used in
+[1], which in turn builds upon previous constructions [3, 26]. However, our arguments and proofs
+here are more challenging, as we need to reason about a general family of algorithms, and not about
+a specific algorithm whose trajectory can be analyzed directly. Our developments also build on
+
+
+                                                  2
+ideas from the literature on oracle complexity lower bounds in optimization [23, 24, 28, 7, 11, 8].
+In particular, we first prove our result in the simplified setting of algorithms constrained to the
+span of observed gradients [23, 24] and subsequently lift it to general algorithms using a random
+high-dimensional embedding technique proposed by Woodworth and Srebro [28] and later refined
+in [7, 11]. However, while these works lower bound what we call the empirical risk, we lower
+bound the generalization error. This requires us to develop a somewhat different argument for how
+the span of the gradients evolve during the optimization: in prior work, the algorithm learns the
+component of the solution coordinate by coordinate, whereas in our work the true (generalizing)
+solution is present in the observed gradients from the first query, but spurious sampling artifacts
+drown it out.
+    Empirical studies (outside of the scope of SCO) support the claim that generalization capabil-
+ities degrade with the increase of the batch size. Specifically, Zhu et al. [31] indicates that SGD
+outperforms GD in terms of generalization. The works of Keskar et al. [20] and Hoffer et al. [18]
+exhibit a similar phenomenon in which small-batch SGD generalizes better than large-batch SGD
+with the same iteration budget. We provide the first theoretical evidence for this phenomenon for
+convex losses. Several theoretical studies explore the convergence of stochastic methods that use
+mini-batches [9, 21, 29]. Note that this setting differs from ours, as they assume access to mini-
+batches sampled without replacement whereas full-batch means we reuse the same (full) batch with
+each gradient step. The work of Wu et al. [30] also explores the separation between GD and SGD
+and interprets mini-batch SGD as a noisy version of GD. They propose a modified algorithm with
+noise injected to the full-batch gradients. Interestingly, the noise production requires access to the
+sample-points. Our work shows that (in SCO) this is unavoidable: namely, no data-independent
+noise can be used to improve generalization.
+    Several other works study the generalization performance of GD [27, 15, 19, 22]. The work of
+Soudry et al. [27], for example, examines GD on unregularized logistic regression problems. They
+show that, in the limit, GD converges to a well-generalizing solution by arguing about the bias
+of the algorithm. Interestingly, both our and their results require slow-training, beyond what is
+required for empirical error optimization. Another work that highlights the slow convergence of GD
+is that of Bassily et al. [3]. They were the first to address uniform stability of (non-smooth) GD and
+SGD, and provided tight bounds. Stability entails generalization, hence our results lead to stability
+lower bounds for any full-batch method. Consequently, we extend the lower bounds for GD in the
+work of Bassily et al. [3] to a wider class. It might be thought that the instability argument of
+Bassily et al. [3] can be used to obtain similar generalization lower bounds—however, we note that
+their techniques also prove instability of SGD (which does generalize). Hence, instability does not
+immediately imply, in this setting, lack of generalization.
+    Finally, we note that under smoothness and strong convexity, it is well known that improved
+rates can be obtained. Specifically, using the stability bound of Bousquet and Elisseeff [5] one can
+                                                            √
+show that we can achieve generalization error of O(1/ n) after O(n) iterations if the population
+risk is O(1)-strongly convex. The arguments of Hardt et al. [17] imply generalization bound to
+                                            √
+instances where every sample risk is O( n) smooth. Our result implies that, even though these
+special families of functions enjoy appealing learning rates, in general it is impossible to obtain
+better rates by strong-convexifying or smoothing problem instances via first-order full-batch oracle
+queries.
+
+
+
+
+                                                  3
+2    Problem Setup and Main Results
+We study the standard setting of stochastic convex optimization. In this setting, a learning problem
+is specified by a fixed domain W ⊆ Rd in d-dimensional Euclidean space, and a loss function
+f : W × Z → R, which is both convex and L-Lipschitz with respect to its first argument (that is,
+for any z ∈ Z the function f (w; z) is L-Lipschitz and convex with respect to w). In particular,
+throughout the paper, our construction consists of 1-Lipschitz functions and we will focus on a
+fixed domain W defined to be the unit Euclidean ball in Rd , namely W = {w : kwk2 ≤ 1}.
+    We also assume that there exists an unknown distribution D over parameters z and the goal of
+the learner is to optimize the true risk (or true loss, or population risk ) defined as follows:
+                                        F (w) := E [f (w; z)],                                     (1)
+                                                   z∼D
+
+We assume that a sample S = {z1 , . . . , zn } is drawn from the distribution D, and the learner has
+to output wS ∈ W (the exact access the learner has to the sample, and how wS may depend on
+S is discussed below). We require the solution to be ε-optimal in expectation for some parameter
+ε > 0, i.e.,
+                                  E n[F (wS )] − min ⋆
+                                                         F (w⋆ ) ≤ ε.
+                                  S∼D               w ∈W
+    As discussed, the standard setting assumes that the learner has direct access to the i.i.d. sample,
+as well as to the gradients of the loss function (i.e., a first-order oracle). In this work, though, we
+focus on a specific family full-batch methods. Hence, the optimization process is described as
+follows: First, an i.i.d. sample S = (z1 , . . . , zn ) is drawn from D. Then, the learner is provided
+with access only to the empirical risk via a full-batch first-order oracle which we define next.
+
+Full-batch first-order oracle. Consider a fixed sample S = (z1 , . . . , zn ) of size n, drawn i.i.d.
+from D. The empirical risk over the sample S is
+                                                        n
+                                                   1X
+                                        FS (w) =      f (w; zi ).
+                                                   n
+                                                     i=1
+
+Then, a full-batch first-order oracle is a procedure that, given input w ∈ W, outputs
+                                     O(w) := (∇FS (w); F (w)).
+where ∇FS (w) is an empirical risk sub-gradient of the form
+                                                        n
+                                               1X
+                                     ∇FS (w) =    ∇f (w; zi ),                                     (2)
+                                               n
+                                                     i=1
+
+and each sub-gradient ∇f (w, zi ) is computed by the oracle as a function of w and zi (that is,
+independently of zj for j 6= i).
+    We emphasize that the sample is fixed throughout the optimization, so that the oracle computes
+the gradient of the same empirical risk function at every call, hence the name full-batch. Note that
+the subgradient with respect to a single data point, i.e., ∇f (w; zi ), is not accessible through this
+oracle, which only returns the average gradient over the sample S.
+    Notice that our definition above is slightly narrower than a general sub-gradient oracle for the
+empirical risk due to the requirement that the sub-gradients ∇f (w, zi ) are chosen independently of
+zj for j 6= i – since we provide here with a lower bound, this restriction strengthens our result. We
+make this restriction to avoid some degenerate constructions (that in fact can even be used to fail
+SGD if the gradient at zi may depend on the whole sample), which are of no practical implications.
+
+                                                    4
+Full-batch first-order algorithm. A full-batch (first-order) method is naturally defined as any
+algorithm that has access to the optimization objective—namely the empirical risk FS —only via the
+full-batch first order oracle. In particular, if wt is the t’th query of the algorithm to the full-batch
+oracle then wt has to be of the form
+
+                                    wt = Qt (O(w0 ), . . . , O(wt−1 )),                             (3)
+
+where Qt : (Rd+1 )t → W is a fixed (possibly randomized) mapping. At the end of the process
+the algorithm outputs wS . We study the algorithm’s oracle complexity, which is the number of
+iterations T the algorithm performs before halting. Therefore, we assume without loss of generality
+that wS = wT , i.e., the algorithm’s output is its T ’th query.
+
+2.1   Main result
+In this section we establish our main result, which provides a generalization lower-bound for full-
+batch first order algorithms. The complete proof is provided in Section 5.
+
+Theorem 1. Let ε > 0 and n, T ∈ N; there exists d = poly(2n , T, 1/ε) such that the following holds.
+For any full-batch first-order algorithm with oracle complexity at most T , there exists a 1-Lipschitz
+convex function f (w; z) in W, the unit-ball in Rd , and a distribution D over Z such that, for some
+universal constant c > 0:
+                                                                        √
+                                           F (w⋆ ) + ε + Ω min 1 − cε2 T , 0 .
+                                                                              
+                       E [F (wS )] ≥ min
+                                       ⋆
+                                                                                                   (4)
+                     S∼D n            w ∈W
+
+    An immediate consequence of Theorem 1 is that in order to obtain less than ε true risk we need
+at least T = Ω(1/ε4 ) iterations.
+    For simplicity, we state and prove the lower bound in Theorem 1 for the class of first-order full-
+batch algorithms defined above. However, our constructions readily generalize to local full-batch
+oracles that provide a complete description of FS in an arbitrarily small neighborhood of the query
+point [23, 16]. Such oracles subsume second-order oracles, and consequently our generalization
+lower bounds hold also for second-order full-batch algorithms.
+
+2.2   Discussion
+Theorem 1 suggests that full-batch first-order algorithms are inferior to other types of first-order
+algorithms that operate with access to individual examples, such as SGD. Importantly, this sepa-
+ration is achieved not in terms of the optimization performance but in terms of the generalization
+performance. In light of this result, we next discuss and revisit the role of the optimization algo-
+rithm in the context of SCO. In particular, we wish to discuss the implications to what are perhaps
+the two most prominent full-batch optimization methods, GD and regularzied-GD, and in turn
+compare them.
+
+Gradient descent. Perhaps the simplest example of a full-batch method is (projected) GD: GD
+is an iterative algorithm that at each iteration performs an update step
+
+                                    wt = ΠW [wt−1 − η∇FS (wt )],
+
+where W is a convex P   set on which we project the iterated step. The output of GD is normally
+taken to be wS = T1       wt (or a randomly chosen wt ). Notice, that each step requires one call
+to a full batch oracle, and a single projection operation. The convergence analysis of GD to the
+
+                                                    5
+optimal solution of the empirical risk has been widely studied. Specifically, if n is the sample-size,
+                                 √
+it is known that with η = O(1/ n) and T = O(n), GD converges to a minimizer of FS that is
+      √
+O(1/ n)-sub optimal. For the exact variant of GD depicted above, the generalization performance
+was analyzed in the work of Amir et al. [1] that showed that with T = O(n) steps, GD will suffer
+      √
+Ω(1/ 4 n) generalization error. Theorem 1 extends the above result to any variant of GD (dynamic
+learning-rate, noisy GD, normalized GD, etc.).
+
+Regularized gradient descent. We would also like to discuss the implication of Theorem 1
+with respect to regularized variants of GD that operate on the regularized empirical risk
+
+                                           F̂ (w) = λr(w) + FS (w).
+
+The main motivation of introducing the regularization term r is to avoid overfitting, and a popular
+choice for r is the Euclidean norm r(w) = kwk22 . This choice leads to the following update rule for
+GD:
+                            wt+1 = ΠW [(1 − ηt ) · (2λwt ) − ηt ∇FS (wt )] ,
+Again, this update can be implemented using a single first-order full-batch oracle call that computes
+the quantity ∇FS (wt ). More generally, for any data-independent r, GD on F̂ is a full-batch
+algorithm1 . When r is the Euclidean norm, the minimizer of F̂ is known to enjoy (with choice
+          √                                            √
+λ = O(1/ n)), an optimal generalization error of O(1/ n) [5, 26]. This demonstrates the power of
+regularization and how it can provably induce generalization. Nevertheless, Theorem 1 still applies
+to any optimization method over F̂ . Since optimization of F̂ (the regularized empirical risk) to
+     √
+O(1/ n)-precision can be done via a full-batch method, and with less than O(n) calls, we observe
+that there are methods that minimize the regularized-empirical risk but, due to Theorem 1 do not
+reach the optimal generalization error.
+
+The role of regularization. Finally, in light of Theorem 1 let us compare the different variants
+of GD and regularized GD that do generalize well, in order to sharpen our understanding of the
+role of regularization in generalization. The conclusion of Theorem 1 is that any full-batch method
+that generalizes well performs at least O(n2 ) steps. For regularized GD, with ℓ2 regularization,
+O(n2 ) are indeed sufficient. In particular, with O(n2 ) iterations we can find a solution that has
+                                                                                       √
+O(1/n) empirical error. Any such solution would enjoy a generalization error of O(1/ n) [26]. For
+                                                                                          √
+GD, Bassily et al. [3] showed that O(n2 ) iterations would also suffice to achieve O(1/ n) error.
+This is achieved by tuning the learning rate to η = O(1/n3/2 ). Notice that this improvement does
+not require any type of added regularization.
+    To summarize, both GD and regularized GD with optimal parameters require Θ(n2 ) iterations
+                             √
+to attain the optimal O(1/ n) generalization error. Overall then, explicitly adding regularization
+is not necessary nor does it improve the convergence rate. One might be tempted to believe
+that tuning the learning rate in GD induces implicitly some sort of regularization. For example,
+one might imagine that GD can be biased towards minimal norm solution, which might explain
+redundancy of regularizing by this norm. However, this turns out also to be false: Dauber et al. [10]
+showed how GD (with any reasonable choice of learning rate) can diverge from the minimal norm
+solution. In fact, for any regularization term r, one can find examples where GD does not converge
+to the regularized solution. Thus, even though GD and regularized-GD are comparable algorithms
+in terms of generalization and oracle complexity, they are distinct in terms of the solutions they
+select.
+   1
+     Note that we are not concerned with the computational cost of computing ∇r(wt ) since it does not factor into
+oracle complexity.
+
+
+                                                        6
+3     Technical Overview
+In this section we give an overview of our construction and approach towards proving Theorem 1.
+For the sake of exposition, we will describe here a slightly simpler construction which proves the
+main result only for algorithms that remain in the span of the gradients. In more detail, let us
+examine the family of iterative algorithms of the form
+
+                          wt ∈ span{∇FS (w0 ), ∇FS (w1 ), . . . , ∇FS (wt−1 )} ∩ W,               (5)
+
+where W is the unit ball and ∇FS (wt ) is full-batch oracle response to query wt as defined in (2)
+above. Well-studied algorithms such as GD and GD with standard ℓ2 norm regularization fall into
+this category of algorithms.
+    To extend the lower bound to algorithms not restricted the gradient span we refine the simpler
+construction and apply well-established techniques of random embedding in high-dimensional space.
+We discuss these modifications briefly in the end of this section and provide the full details in
+Sections 4 and 5 below.
+
+3.1    A simpler construction
+Let us fix n, d ≥ 1 and parameters z = (α, ε, γ) ∈ {0, 1}d × R × R2 = Z, such that α ∈ {0, 1}d ,
+ε > 0 and γ1 , γ2 > 0. Define the hard instance f(6) : Rd+2 × Z → R as follows:
+
+                      f(6) (w; (α, ε, γ)) = gγ (w; α) + γ1 vα · w + εw · ed+2 + r(w),             (6)
+
+where gγ , vα and r are
+                                                                   (
+                     qP
+                                     2
+                                                                       0        a ≥ −γ2 ;
+    • gγ (w; α) :=        i∈[d] α(i)hγ (w(i))   with   hγ (a) :=
+                                                                       a + γ2   a < −γ2 ,
+
+    • r(w) := max{0, maxi∈[d+1] {w(i)}},
+               
+                   1
+               − 2n if α(i) = 0;
+               
+    • vα (i) := +1    if α(i) = 1;
+               
+                 0    if i ∈ {d + 1, d + 2},
+               
+
+and ed+2 is the (d + 2)’th standard basis vector. The distribution we will consider is uniform over
+α. That is, we draw α ∈ {0, 1}d uniformly at random and pick the function f(6) (w; (α, ε, γ)).
+    The parameters γ1 and γ2 of the construction should be thought of as arbitrarily small. In
+particular, the term γ1 vα · w in Eq. (6) should be thought of as negligible, and the first term, gγ ,
+is roughly                                 sX
+                               gγ (w; α) ≈      α(i)(max{−w(i), 0})2 .
+                                                 i∈d
+
+Another useful property of the construction is the population risk F (w) = Ez∼D f(6) (w; z) is min-
+imized at w⋆ ≈ −ed+2 , with expected loss F (w⋆ ) ≈ −ε. However, as we will see, the choice of
+the perturbation vector vα and the term r(w) hinder the learner from observing this coordinate
+and; the first Ω(ε−4 queries are constrained to a linear subspace where all the points have a high
+generalization error due to the expectation of the first term gγ .
+
+
+
+                                                       7
+3.2    Analysis
+We next state the main lemmas we use, with proofs deferred to Appendix A. Given a sample S,
+                   1 P
+let us denote v̄ = n α∈S vα , and
+
+                                span1 {u1 , u2 , . . .} := span{u1 , u2 , . . .} ∩ W.
+
+Additionally, given a fixed sample we write
+
+                                  I(S) = {i : α(i) = 0 ∀α ∈ S} ∪ {d + 1}
+
+for the set of coordinates i ∈ [d] such that α(i) = 0 for every α in the sample S, plus the coordinate
+d + 1.
+
+Lemma 2. Let γ1 ≤ 2T     1
+                           , γ2 = 2γε1 , and suppose that the sample S satisfies |I(S)| > T . Then there
+exists a first-order full-batch oracle such that for any algorithm that adheres to
+
+                           wt ∈ span1 ∇FS (w0 ), ∇FS (w1 ), . . . , ∇FS (wt−1 ) ,
+                                         
+                                                                                                     (7)
+
+with respect to f (w; (α, ε, γ)) defined in Eq. (6), we have
+                                         n                 o
+                             wt ∈ span1 γ1 v̄ + εed+2 + ei for all t ∈ [T ],
+                                    i∈It (S)
+
+where It (S) is the set of the t + 1 largest coordinates in I(S).
+
+   We next observe that in any span of the form {γ1 v̄ + εed+2 + ei }i∈IT (S) such that |IT (S)| ≤ T ,
+we cannot find a solution with better risk than 0. On the other hand, note that for w̄ = −ed+2 , we
+have that
+                                      f(6) (w̄; (α, ε, γ)) = −ε.
+In other words, our lower bound stems from the following result:
+                                                    √                          √
+Lemma 3. For sufficiently small γ1 ≤ 2nεγ2 , γ2 ≤ ε/ 4T , and any vector kv̄k ≤ d, any output
+
+                                      wS ∈ span1 {γ1 v̄ + εed+2 + ei },
+                                               i∈IT (S)
+
+satisfies
+                    1
+                        sX                                      n       √     o 1
+                                h2γ (wS (i)) + εwS (ed+2 ) ≥ min 1 − 2ε2 T , 0 − ε.                 (8)
+                    2                                                           2
+                        i∈[d]
+
+
+Lower bound proof sketch for span-restricted algorithms of the form (5). First, observe
+that the probability of an arbitrary index i to satisfy α(i) = 0 for all α ∈ S is (1/2)n . Therefore,
+|I(S)| − 1, the number of indexes that hold this from the possible d, is distributed as a binomial
+with d experiments and success probability p = 2−n . Using elementary probability arguments one
+can show that for sufficiently large d we have |I(S)| > T with high probability; see Claim 1 in the
+appendix. This implies that the conditions of Lemmas 2 and 3 hold w.h.p. To conclude, we relate
+the LHS of Eq. (8) to the expected risk
+
+        F (w) = E [f(6) (w; (α, ε, γ))] = E [gγ (w; α)] + γ1 · E [vα ] · w + εw · ed+2 + r(w).
+                α∼D                            α∼D                      α∼D
+
+
+                                                          8
+As gγ (w; α) is convex w.r.t. α (since α(i) = α2 (i)) we can apply Jensen’s inequality with Eα∼D [α(i)] =
+1
+2 to obtain:
+
+                                                       1
+                                                           sX
+                                   E [gγ (wS ; α)] ≥               h2γ (wS (i)).
+                                  α∼D                  2
+                                                           i∈[d]
+
+
+Applying the Cauchy-Schwarz inequality to the second term while also using the facts that kvα k ≤
+√
+  d and that wS is in the unit ball, we get:
+                                                                   √
+                         γ1 E [vα ] · w ≥ −γ1 E [kvα k · kwk] ≥ −γ1 d.
+                               α∼D                 α∼D
+
+For sufficiently small γ1 this term is negligible, and since r(w) ≥ 0 we get that the expected risk is
+approximately the LHS term in Eq. (8). Lastly, recalling that F (−ed+2 ) = −ε we get that
+                                            1       n       √     o
+                       F (wS ) − min F (w) ≥ ε + min 1 − 2ε2 T , 0 w.h.p.
+                                 w∈W        2
+The same lower bound (up to a constant) also hods in expectation by the the law of total expec-
+tation. Our distribution is supported on 5-Lipschitz convex functions, so that re-parametrizing
+ 1
+10 ε → ε as well as f(6) yields the claimed lower bound (4) for the case of span-restricted algo-
+rithms.                                                                                        
+
+3.3    Handling general full-batch algorithms
+The above construction establishes an Ω(1/ε4 ) oracle complexity lower bound on any algorithm
+whose iterates lie in the span of the previous gradients. While this covers a large class of algorithms,
+techniques like preconditioning [12], coordinate methods [25] and randomized smoothing [13] do
+not satisfy this assumption. In fact, a trivial algorithm that always outputs −ed+2 will solve the
+hard instance (6) in a single iteration.
+    To address general algorithms, we employ a well-established technique in optimization lower
+bounds [28, 7, 11] wherein we embed a hard instance f (w; z) for span-constrained algorithms in a
+                                                                                                         ′
+random high-dimensional space. More concretely, we draw a random orthogonal matrix U ∈ Rd ×d
+(U ⊤ U = Id×d ) and consider the d′ > d-dimensional      instance fU (w; z) = f (U ⊤ w; z) along with its
+corresponding empirical objective FS,U (w) = n1 i∈[n] fU (w; zi ). Roughly speaking, we show that
+                                                     P
+for a general algorithm operating with the appropriate subgradient oracle for FS,U the iterate wt
+is approximately in the span of {∇FS,U (w0 ), . . . , ∇FS,U (wt−1 )} in the sense that the component of
+wt outside that span is nearly orthogonal to the columns of U . Consequently, the response of the
+oracle to the query wt at iteration t is, with high probability, identical to the information it would
+return if queried with the projection of wt to the span of the previously observed gradients. This
+reduces, in a sense, the problem back to the span-restricted setting described above.
+    For the embedding technique to work, we must robustify the hard instance construction so
+that small perturbations around points in the span of previous gradients do not “leak” addi-
+tional information about the embedding U . To do that we make a fairly standard modifica-
+tion to the component r(w) in (6) (known as Nemirovski’s function [11, 6]), replacing it with
+max{0, maxi∈[d] {w(i) + iγ ′ }, w(d + 1) + γ ′′ }, where γ ′ , γ ′′ are small offset coefficients that go to
+zero as the embedding dimension d′ tends to infinity. We provide the full construction and the
+proof of Theorem 1 in Sections 4 and 5.
+
+
+
+
+                                                       9
+4      The Full Construction
+As explained above, the key difference between the simplified construction f(6) and the full con-
+struction with which we prove Theorem 1 is that we modify the Nemirvoski function term r(w) in
+order to make it robust to queries that are nearly within a certain linear subspace. In particular,
+we bias the different terms in the maximization defining r(w) so as to control the index of the co-
+ordinate attaining the maximum. For ease of reference, we now provide a self-contained definition
+of our full construction with the modified Nemirovski function.
+    Fix n, d ≥ 1 and parameters z = (α, ε, γ) ∈ {0, 1}d × R × R3 = Z are such that α ∈ {0, 1}d ,
+ε > 0 and γ1 , γ2 , γ3 > 0. Define the hard instance f(9) : Rd+2 × Z → R as follows:
+
+                      f(9) (w; (α, ε, γ)) = gγ (w; α) + γ1 vα · w + εw · ed+2 + r(w),               (9)
+
+where gγ , vα and r are
+                                                          (
+                    qP
+                                  2
+                                                           0             a ≥ −γ2 ;
+     • gγ (w; α) :=    i∈[d] α(i)hγ (w(i)) with hγ (a) :=
+                                                           a + γ2 a < −γ2 ,
+                                                            (
+                                                              i · γ4dn
+                                                                    1 γ3
+                                                                           if i ∈ [d];
+     • r(w) := max{0, maxi∈[d+1] {w(i) + σi }} with σi :=
+                                                              2γ3          if i = d + 1.
+                 
+                     1
+                 − 2n if α(i) = 0;
+                 
+     • vα (i) := +1     if α(i) = 1;
+                 
+                   0    if i ∈ {d + 1, d + 2},
+                 
+
+and ei is the i’th standard basis vector in Rd+2 . We consider a distribution D over α that is
+distributed uniformly over {0, 1}d ; that is, we draw α ∈ {0, 1}d uniformly at random and pick the
+function f(9) (w; (α, ε, γ)). The rest of the parameters are set throughout the proof as follows:
+                                          εγ2        ε        ε
+                                   γ1 =       , γ2 = √ , γ3 = .                                    (10)
+                                           4        T d      16
+                                                                                                √
+   With this choice of distribution D as well our choice of parameters we obtain, since kvα k ≤ d
+and by our choice of γ1 (as well as Jensen’s inequality and r(·) ≥ 0):
+                            h                 i 1sX                               ε
+              F (w) = E f(9) (w; (α, ε, γ)) ≥             h2γ (w(i)) + εw(d + 2) − .           (11)
+                       α∼D                        2                               4
+                                                         i∈[d]
+
+
+Notice that we also have that for a choice w⋆ = −ed+2 , since r(w⋆ ) = 2γ3 :
+                                                         ε    7ε
+                                        F (w⋆ ) = −ε +     =−                                      (12)
+                                                         8    8
+     Our development makes frequent use of the following notation from Section 3:
+                                                                                            1X
+    I(S) = {i : α(i) = 0 ∀α ∈ S} ∪ {d + 1}, It (S) = t largest elements in I(S), and v̄ =      vα .
+                                                                                            n
+                                                                                             α∈S
+
+   We begin with the following lemma, which is a robust version of Lemma 2 in Section 3. The
+proof is provided in Appendix B.1.
+
+                                                    10
+Lemma 4. Suppose that w0 = 0. Consider f(9) (w; (α, ε, γ)) with parameters as in Eq. (10). Suppose
+S is a sample such that |I(S)| > t + 1. Assume that w is such that
+
+                                               w = wt + q,
+
+where
+                                 n              o                nγ γ γ o
+                                                                   2    1 3
+                   wt ∈ span1 γ1 v̄ + εed+2 + ei , and kqk∞ ≤ min    ,      .                      (13)
+                        i∈It (S)                                  3    16dn
+
+Then,
+                                      ∇FS (w) = γ1 v̄ + εed+2 + ei ,
+for some i ∈ It+1 (S), where It (S) is the set of the t + 1 largest coordinates in I(S).
+
+    The following corollary states that the gradient oracle’s answers are resilient to small perturba-
+tion of the query (as long as they are in vicinity of the “right” subspace): the proof is provided in
+Appendix B.2:
+
+Corollary 5. Assume that w is such that
+
+                                               w = wt + q,
+
+where
+                             n               o             1    nγ γ γ o
+                                                                  2    1 3
+                wt ∈ span1 γ1 v̄ + εed+2 + ei , and kqk∞ ≤ √ min    ,      .                       (14)
+                     i∈It (S)                             4 d    3    16dn
+
+Then,
+                        ∇FS (w) = ∇FS (Πt+1 (w)),             FS (w) = FS (Πt+1 (w)),
+where Πt is a projection onto spani∈It (S) {γ1 v̄ + εed+2 + ei }.
+
+
+5    Proof of Theorem 1
+To prove Theorem 1 we embed the construction of Section 4 into a random, higher-dimensional
+space. More formally, let f(9) (w; z) be as in Eq. (9), and, for d2 ≥ d, let U ∈ Rd2 ×d be an orthogonal
+matrix, i.e., such that U ⊤ U = Id×d . We consider then the objective function over Rd2 :
+
+                                    fU (w; z) = f(9) (U ⊤ w; (α, ε, γ)).
+
+Given a sample S we use the notation
+                                                          n
+                                                   1X
+                                      FS,U (w) =      fU (w; zi ),                                 (15)
+                                                   n
+                                                      i=1
+
+for the empirical error and
+                                    FU (w) = E [fU (w; (α, ε, γ))],                                (16)
+                                               α∼D
+
+for the expected error, where, as before, D is such that the coordinates of α are i.i.d. Bernoulli(1/2)
+and the parameters γ1 , γ2 , γ3 are fixed as in Eq. (10). We start with the following claim:
+
+
+                                                     11
+Lemma 6. Fix a deterministic full-batch first-order algorithm, and a sample S such that |I(S)| >
+2T . Let U ∈ Rd2 ×d be a random orthogonal matrix, then for some
+                                                            3 2
+                                          n                  d Tn
+                            d = O((T + 1)2 ) and d2 = Õ             ,
+                                                               ε6
+
+we have that with probability at least 0.99 (over the draw of U ):
+                                                  n       √      o 1
+                         FU (wS ) − FU (w⋆ ) ≥ min 1 − 2ε2 2T , 0 + ε,                          (17)
+                                                                   8
+where FU is as in Eq. (16).
+
+   Before we proceed with the proof of Lemma 6, we explain how Theorem 1 follows. Fix a full-
+batch algorithm A and let D be a distribution as in Lemma 6. Let XU,S,ξ be an indicator for the
+event that Eq. (17) holds, where U is the random orthogonal matrix, S is the sample and ξ is the
+random seed of the algorithm A, which is independent of U and S. Then by Lemma 6 we have that
+                                                        
+                               E E[XU,S,ξ ] | |I(S)| > 2T > 0.99.                           (18)
+                                S,ξ U
+
+The next claim follows a standard concentration inequality and shows that the event |I(S)| > 2T
+is indeed probable; the proof is provided in Section 5.2.
+
+Claim 1. Suppose d ≥ max{16, 4T }2n . Then with probability at least 3/4, it holds that |I(S)| > 2T .
+
+   From Claim 1 and Eq. (18), we can conclude that:
+
+                                         E E[XU,S,ξ ] > 2/3.
+                                         S,ξ U
+
+By changing order of expectation we conclude that there exists a matrix U such that w.p. at least
+2/3 (over the sample S as well as the random bits of the algorithm A) the lower bound (17) holds.
+Theorem 1 now follows from
+                                                  √                                √
+                                                         o 1 i 2
+                    ⋆
+                           h            n
+                                                2
+                                                                         n
+                                                                                 2
+                                                                                           o   1
+  [F
+E U S(w  )] − FU (w   ) ≥    X
+                          E U,S,ξ   min   1 − 2ε    2T , 0 +   ε ≥   min   1 − 2ε    2T , 0  + ε.
+                                                             8     3                          12
+
+We are left with proving Claim 1 and Lemma 6, which we do in Sections 5.1 and 5.2.
+
+5.1   Proof of Lemma 6
+We start by defining inductively a chain of algorithms A0 , . . . AT act as intermediaries between A
+and a full-batch first order oracle for FS . At should be thought of as an arbitrator between A and
+                                                              (t)
+the oracle, where at each iteration i, it receives a query wi from A, submits some query to the
+                                          (t)
+oracle, and returns some answer OAt (wi ) to A (not necessarily the oracle’s answer). We will build
+the chain A0 , . . . AT in such a way that A0 ≡ A, while AT forces queries to stay in the span of the
+gradients. We will then relate the error of A0 to the error of AT by bounding the probabilities that
+they observe different information from the oracle.
+   We formally define At is as follows.
+
+
+
+
+                                                 12
+                                                                             (t)                                            (t)
+   • For each i ≤ t, algorithm At receives the query point wi , then the algorithm defines vi                                     =
+               (t)
+     Π2i (U ⊤ wi ), where Πi ∈ R(d+2)×(d+2) is the Euclidean projection onto
+
+                                                     span1 {γ1 v̄ + εed+2 + ej }.
+                                                    j∈Ii (S)
+
+                                                                 (t)
+      The algorithm then inputs the query vi to a full-batch first-order oracle for FS , receives
+             (t)       (t)
+      (∇FS (vi ), FS (vi )) and provides A with
+                     (t)                    (t)            (t)                         (t)                       (t)
+              OAt (wi ) = (U ∇FS (vi ), FS (vi )) = (U ∇FS (Π2i (U ⊤ wi )), FS (Π2i (U ⊤ wi ))).
+
+   • For i > t, algorithm At behaves like a standard full-batch oracle. Namely, it receives a
+             (t)         (t)      (t)                                             (t)       (t)
+     query wi , defines vi = U ⊤ wi , queries the oracle with it, receives (∇FS (vi ), FS (vi )) and
+     provides A with
+                             (t)                     (t)               (t)              (t)                (t)
+                    OAt (wi ) = (U ∇FS (vi ), FS (vi )) = (U ∇FS (U ⊤ wi ), FS (U ⊤ wi )).
+
+     Notice that A0 is the algorithm A interacting with a valid full-batch first order oracle for FS,U
+defined in Eq. (15). In particular, at each iteration A0 provides, as required from a full-batch
+first-order oracle:
+                           (0)      1X                (0)      1X                  (0)
+              U ∇FS (U ⊤ wi ) = U ·       ∇f(9) (U ⊤ wi ; z) =       U ∇f(9) (U ⊤ wi ; z)
+                                    n                          n
+                                                  z∈S                            z∈S
+                                       1X       (0)              (0)
+                                     =    ∇fU (wi ; z) = ∇FS,U (wi ).
+                                       n
+                                           z∈S
+
+    At the other extreme the algorithm AT is an algorithm that only queries points in
+
+                                                  span1 {γ1 v̄ + εed+2 + ei }.
+                                             i∈I2T (S)
+
+                                                                                                    (T )
+We obtain then, by Lemma 3 as well as Eqs. (11) and (12) that for every vi :
+                                   (T )            (T )
+                       FU (U vi ) = F (vi )
+                                    1 X 2 (T )                         ε
+                                      s
+                                                            (T )
+                                  ≥         hγ (vi (j)) + εvi · ed+2 −                                                 (Eq. (11))
+                                    2                                  4
+                                                   j∈[d]
+                                                n        √     o 3
+                                          ≥ min 1 − 2ε2 2T , 0 − ε                                                (Lemma 3)
+                                                                   4
+                                                               n       √      o 1
+                                          ≥ FU (−U ed+2 ) + min 1 − 2ε2 2T , 0 + ε.                                    (Eq. (12))
+                                                                                8
+                                                                                              (t)
+    Denote by Pt the probability that algorithm At outputs a sequence vi                            such that for some i:
+
+                                  (t)
+                                                          n       √      o 1
+                           FU (U vi ) − F (−U ed+2 ) ≥ min 1 − 2ε2 2T , 0 + ε.                                              (19)
+                                                                           8
+In particular, we have argued so far that Pt = 0.
+    Next, for two vectors v, v ′ , let us write v ≡ v ′ if
+
+                                    ∇FS (v) = ∇FS (v ′ ), and FS (v) = FS (v ′ ).
+
+                                                                       13
+                                                                                        (t−1)               (t−1)    (t)
+Now, suppose we run At , At−1 and we observe at step t a vector wt       such that vt      ≡ vt .
+Notice that in that case the output of At and the output of At−1 is completely identical. Indeed,
+up to step t the two algorithms are identical and at step t they provide the same response to A
+(and after that they again behave identically). Thus,
+                                                                 (t−1)         (t)
+                                          PT ≥ Dt−1 − Pr(vt              6≡ vt ).
+
+Rearranging terms and iteratively applying the formula above we obtain:
+                         T
+                                    (t−1)       (t)
+                         X
+           P0 ≤ PT +            Pr(vt       6≡ vt )
+                          t=1
+                  T
+                                  (t)                 (t)
+                  X
+              ≤         Pr(U ⊤ wt 6≡ Π2t U ⊤ wt )
+                  t=1
+                  T
+                                                                     ε3
+                                                                             
+                                                     (t)
+                  X
+                                                ⊤
+              ≤         Pr k(1 − Π2t−1 )U           wt )k∞ ≥                      .             (Corollary 5 & Eq. (10))
+                                                                 212 d2 T n
+                  t=1
+
+   The result now follows from the next lemma, whose proof we deter to Appendix C.
+
+Lemma 7. Let Sk be a fixed k-dimensional subspace in Rd1 . Let U ∈ Rd2 ×d1 , d2 ≥ d1 be a random
+orthogonal matrix. Let Π ∈ Rd1 ×d1 be the orthogonal projection on Sk . Let w be a random unit
+vector that is deterministic conditional on U Π. Then
+                                                                              d1 c 2
+                                Pr(k(1 − Π)U ⊤ wk∞ > c) ≤ 2d2 e− 2 ·(d2 −k+1) .
+
+   To apply the lemma, we set:
+
+                                        St = spani∈It (S) {γ1 v̄ + εed+2 + ei },
+
+                                    (t)
+and we want to show that wt is deterministic conditional on U Π2t−1 . To see that, note that
+                                                       (t)                        (t)           (t)
+throughout the interaction between A and At , given wi with i < t, At calculates vi = Π2i U ⊤ wi =
+               (t)                  (t)
+Π2i Π2t−1 U ⊤ wi = Π2i (U Π2t−1 )⊤ wi , which is determined given U Π2t−1 . In turn, At returns to A
+the vector:
+                                                     (t)
+                                            U ∇FS (vi ).
+                        (t)                                   (t)
+By Lemma 4, since vi ∈ S2i we have that ∇FS (vi ) ∈ S2i+1 ⊆ S2t−1 , for i < t, hence:
+                                                      (t)                         (t)
+                                          U ∇FS (vi ) = U Π2t−1 ∇FS (vi ).
+                                          (t)                                               (t)
+Which is again determined by vi and U Π2t−1 . We conclude that wt                                 is deterministic if we
+condition on U Π2t−1 . Overall we obtain:
+                                                            d3 T 2 n2
+                                            P0 ≤ 2T d2 e− 225 ε6 ·(d2 −2T ) .
+   Thus, for some                       3 2 2                 3 2 2
+                                        d T n                   d T n
+                                d2 ≤ O     6
+                                               log(T d2 ) = Õ          ,
+                                          ε                       ε6
+we obtain that A = A0 satisfies Eq. (17) with probability at least 0.99.
+
+                                                            14
+5.2   Proof of Claim 1
+The probability that a given index i ∈ [d] is such that α(i) = 0 for all α ∈ Spis 2−n . Thus, the
+expected number of such indices is µ = 2−n d and the standard deviation is σ = 2−n (1 − 2−n )d ≤
+√
+  µ. By an application of Chebyshev’s inequality we obtain
+
+                 Pr(|I(S)| ≤ 2T ) ≤ Pr(|I(S)| ≤ 12 µ)                                  (d ≥ 4T · 2n )
+                                                     √
+                                  ≤ Pr(|I(S)| ≤ µ − 2 µ)                    (µ ≥ 16 for d ≥ 16 · 2n )
+                                                                                               √
+                                  ≤ Pr(|I(S)| ≤ µ − 2σ)                                   (σ ≤ µ)
+                                  ≤ 41 .                                  (Chebyshev’s inequality)
+
+Acknowledgements
+This work has received support from the Israeli Science Foundation (ISF) grant no. 2549/19 and
+grant no. 2188/20, from the Len Blavatnik and the Blavatnik Family foundation, from the Yandex
+Initiative in Machine Learning, and from an unrestricted gift from Google. Any opinions, findings,
+and conclusions or recommendations expressed in this work are those of the author(s) and do not
+necessarily reflect the views of Google.
+
+
+References
+ [1] I. Amir, T. Koren, and R. Livni. SGD generalizes better than GD (and regularization doesn’t
+     help). In Conference on Learning Theory, 2021. 1, 2, 6
+
+ [2] K. Ball et al. An elementary introduction to modern convex geometry. Flavors of Geometry,
+     31:1–58, 1997. 26
+
+ [3] R. Bassily, V. Feldman, C. Guzmán, and K. Talwar. Stability of stochastic gradient descent
+     on nonsmooth convex losses. In Advances in Neural Information Processing Systems, 2020. 1,
+     2, 3, 6
+
+ [4] L. Bottou, F. E. Curtis, and J. Nocedal. Optimization methods for large-scale machine learning.
+     SIAM Review, 60(2):223–311, 2018. 1
+
+ [5] O. Bousquet and A. Elisseeff. Stability and generalization. Journal of Machine Learning
+     Research, 2:499–526, 2002. 3, 6
+
+ [6] S. Bubeck, Q. Jiang, Y. T. Lee, Y. Li, A. Sidford, et al. Complexity of highly parallel non-
+     smooth convex optimization. Advances in Neural Information Processing Systems, 2019. 9
+
+ [7] Y. Carmon, J. C. Duchi, O. Hinder, and A. Sidford. Lower bounds for finding stationary
+     points I. Mathematical Programming, pages 1–50, 2019. 3, 9
+
+ [8] Y. Carmon, A. Jambulapati, Q. Jiang, Y. Jin, Y. T. Lee, A. Sidford, and K. Tian. Acceleration
+     with a ball optimization oracle. In Advances in Neural Information Processing Systems, 2020.
+     3
+
+ [9] A. Cotter, O. Shamir, N. Srebro, and K. Sridharan. Better mini-batch algorithms via ac-
+     celerated gradient methods. In Advances in Neural Information Processing Systems, 2011.
+     3
+
+
+                                                15
+[10] A. Dauber, M. Feder, T. Koren, and R. Livni. Can implicit bias explain generalization?
+     stochastic convex optimization as a case study. In Advances in Neural Information Processing
+     Systems, 2020. 1, 6
+
+[11] J. Diakonikolas and C. Guzmán. Lower bounds for parallel and randomized convex optimiza-
+     tion. In Conference on Learning Theory, 2019. 3, 9
+
+[12] J. Duchi, E. Hazan, and Y. Singer. Adaptive subgradient methods for online learning and
+     stochastic optimization. Journal of Machine Learning Research, 12(7), 2011. 9
+
+[13] J. C. Duchi, P. L. Bartlett, and M. J. Wainwright. Randomized smoothing for stochastic
+     optimization. SIAM Journal on Optimization, 22(2):674–701, 2012. 9
+
+[14] V. Feldman. Generalization of ERM in stochastic convex optimization: The dimension strikes
+     back. In Advances in Neural Information Processing Systems, 2016. 1, 2
+
+[15] S. Gunasekar, J. D. Lee, N. Srebro, and D. Soudry. Implicit bias of gradient descent on linear
+     convolutional networks. Advances in Neural Information Processing Systems, 2018. 3
+
+[16] C. Guzmán and A. Nemirovski. On lower complexity bounds for large-scale smooth convex
+     optimization. Journal of Complexity, 31(1):1–14, 2015. 5
+
+[17] M. Hardt, B. Recht, and Y. Singer. Train faster, generalize better: Stability of stochastic
+     gradient descent. In International Conference on Machine Learning, 2016. 3
+
+[18] E. Hoffer, I. Hubara, and D. Soudry. Train longer, generalize better: closing the generalization
+     gap in large batch training of neural networks. In I. Guyon, U. von Luxburg, S. Bengio, H. M.
+     Wallach, R. Fergus, S. V. N. Vishwanathan, and R. Garnett, editors, Advances in Neural
+     Information Processing Systems, 2017. 3
+
+[19] Z. Ji and M. Telgarsky. The implicit bias of gradient descent on nonseparable data. In
+     Conference on Learning Theory, 2019. 3
+
+[20] N. S. Keskar, D. Mudigere, J. Nocedal, M. Smelyanskiy, and P. T. P. Tang. On large-batch
+     training for deep learning: Generalization gap and sharp minima. In International Conference
+     on Learning Representations, 2017. 3
+
+[21] M. Li, T. Zhang, Y. Chen, and A. J. Smola. Efficient mini-batch training for stochastic
+     optimization. In S. A. Macskassy, C. Perlich, J. Leskovec, W. Wang, and R. Ghani, editors,
+     International Conference on Knowledge Discovery and Data Mining, 2014. 3
+
+[22] Y. Li, E. X. Fang, H. Xu, and T. Zhao. Implicit bias of gradient descent based adversarial
+     training on separable data. In International Conference on Learning Representations, 2019. 3
+
+[23] A. S. Nemirovski and D. B. Yudin. Problem complexity and method efficiency in optimization.
+     1983. 1, 3, 5
+
+[24] Y. Nesterov. Introductory lectures on convex optimization: A basic course, volume 87. Springer,
+     2003. 1, 3
+
+[25] Y. Nesterov. Efficiency of coordinate descent methods on huge-scale optimization problems.
+     SIAM Journal on Optimization, 22(2):341–362, 2012. 9
+
+
+
+                                                 16
+[26] S. Shalev-Shwartz, O. Shamir, N. Srebro, and K. Sridharan. Stochastic convex optimization.
+     In Conference on Learning Theory, 2009. 1, 2, 6
+
+[27] D. Soudry, E. Hoffer, M. S. Nacson, S. Gunasekar, and N. Srebro. The implicit bias of gradient
+     descent on separable data. The Journal of Machine Learning Research, 19(1):2822–2878, 2018.
+     3
+
+[28] B. Woodworth and N. Srebro. Tight complexity bounds for optimizing composite objectives.
+     In Advances in Neural Information Processing Systems, 2016. 3, 9
+
+[29] B. Woodworth, J. Wang, A. Smith, B. McMahan, and N. Srebro. Graph oracle models, lower
+     bounds, and gaps for parallel stochastic optimization. In Advances in Neural Information
+     Processing Systems, 2018. 3
+
+[30] J. Wu, W. Hu, H. Xiong, J. Huan, V. Braverman, and Z. Zhu. On the noisy gradient descent
+     that generalizes as sgd. In International Conference on Machine Learning, 2020. 3
+
+[31] Z. Zhu, J. Wu, B. Yu, L. Wu, and J. Ma. The anisotropic noise in stochastic gradient descent:
+     Its behavior of escaping from sharp minima and regularization effects. In K. Chaudhuri and
+     R. Salakhutdinov, editors, International Conference on Machine Learning, 2019. 3
+
+
+
+
+Appendix
+A     Proofs for Section 3
+A.1    Proof of Lemma 2
+To define the first-order full-batch oracle fulfilling the lemma, it suffices to define a sub-gradient
+oracle for the functions r(w) = max{0, maxi∈[d+1] {w(i)}} and gγ (all the other components of the
+construction are differentiable). To that end, when maxi∈[d+1] {w(i)} ≥ 0 we let ∇r(w) = eiw
+where iw is the largest index for which r(w) = w(iw ); when maxi∈[d+1] {w(i)} < 0 the function is
+differntiable with ∇r(w) = 0. For, gγ , we simply set ∇gγ (w, α) = 0 for any w where gγ (w, α) is
+not differentiable.                    n                  o
+    We prove that wt ∈ span1 i∈It (S) γ1 v̄ + εed+2 + ei for all t ≤ T by induction on t. The base
+case t = 0 is trivial since w0 = 0 is the only vector in the span of the empty set. Moreover, we have
+                                           1X
+                   ∇FS (w0 ) = ∇FS (0) =      ∇gγ (0; α) + γ1 v̄ + εed+2 + ∇r(0)
+                                           n
+                                             α∈S
+                                        = γ1 v̄ + εed+2 + ∇r(0)                      (∇gγ (0; α) = 0)
+                                        = γ1 v̄ + εed+2 + ed+1 .                      (∇r(0) = ed+1 )
+                                                         n                  o
+For the induction step we assume that wt ∈ span1 i∈It (S) γ1 v̄ + εed+2 + ei . Therefore wt takes
+the form:
+                                     X                          
+                               wt =       βi γ1 v̄ + εed+2 + ei .                            (20)
+                                       i∈It (S)
+
+
+
+
+                                                   17
+                                                                                  1
+for some βi ∈ R. Observe    that v̄(i) = 0 for i ∈ {d + 1, d + 2}, and v̄(i) = − 2n for any i ∈ I(S), and
+                   1
+                                                                   P
+also that v̄(i) ∈ 2n , 1 for i ∈
+                               / {I(S) ∪ {d + 2}}. Denote β̄ = i∈It (S) βi , therefore
+                                    γ
+                                   
+                                    − 2n1 β̄ + βi   if i ∈ It (S) \ {d + 1};
+                                        γ1
+                                   
+                                   − 2n β̄          if i ∈ I(S) \ It (S);
+                                   
+                                   
+                                   
+                           wt (i) = γ1 v̄(i)β̄       if i ∈
+                                                          / {I(S) ∪ {d + 2}};                             (21)
+                                   
+                                     βi              if i = d + 1;
+                                   
+                                   
+                                   
+                                   
+                                   
+                                     εβ̄             if i = d + 2.
+                                   
+
+Consider then the sub-gradient at wt ,
+                                     1X
+                       ∇FS (wt ) =      ∇gγ (wt ; α) + γ1 v̄ + εed+2 + ∇r(wt ).                           (22)
+                                     n
+                                       α∈S
+
+We examine the first and last terms in Eq. (22). For the first term we present the following claim:
+Claim 2. Suppose wt is of the form (20). For sufficiently small γ1 ≤ εγ22 we have
+                                            1X
+                                               ∇gγ (wt ; α) = 0.
+                                            n
+                                             α∈S
+
+Proof. Since α(i) = 0 for i ∈ I(S) we get,
+                                                                                        
+                   1X                1X 
+                                          s                    X
+                      ∇gγ (wt ; α) =   ∇                                   α(i)h2γ (wt (i)).             (23)
+                   n                 n
+                     α∈S                     α∈S          i∈{I(S)∪{d+2}}
+                                                           /
+
+Assume that γ1 ≤ εγ22 implies wt (i) > −γ2 for i ∈   / {I(S) ∪ {d + 2}}. Given the assumption, note
+that hγ (wt (i)) = 0 for any wt (i) ≥ −γ2 , then together with Eq. (23) we conclude the claim. We
+proceed by proving that this assumption holds.
+    Using Eq. (21) implies that wt (i) = γ1 v̄(i)β̄ for i ∈ / {I(S) ∪ {d + 2}}. Observe that for β̄ ≥ 0
+it follows immediately that wt (i) ≥ 0 > −γ2 . Then, for β̄ < 0, we assume by contradiction that
+wt (i) ≤ −γ2 for some i ∈/ {I(S) ∪ {d + 2}}. Therefore, we get that γ1 v̄(i)β̄ ≤ −γ2 , or alternatively
+that
+                                                       γ2
+                                             β̄ ≤ −           .                                     (24)
+                                                     γ1 v̄(i)
+
+In addition, from Eq. (21) it is clear that
+
+                         kwt k ≥ kεβ̄ed+2 k                                                        (Eq. (21))
+                               = ε(−β̄)                                                               (β̄ < 0)
+                                   εγ2
+                               ≥                                                                   (Eq. (24))
+                                 γ1 v̄(i)
+                                 εγ2                                           1
+                               ≥                                   (v̄(i) ∈ ( 2n , 1] for i ∈
+                                                                                            / {I(S) ∪ {d + 2}})
+                                  γ1
+                               ≥ 2.                                                                (γ1 ≤ εγ22 )
+
+However, we have kwt k2 ≤ 1 since the domain W is the unit Euclidean ball.                                  
+   For the last term in Eq. (22), we use the claim below:
+
+                                                     18
+                                                                  1
+Claim 3. Suppose wt is of the form (20). For |I(S)| > T and γ1 ≤ 2T we get that
+
+                                               ∇r(wt ) = ei ,
+
+for some i ∈ It+1 (S).
+
+Proof. First, note that ∇r(wt ) = ei for some i ∈ I(S) implies i ∈ It+1 (S), because wt (i) = wt (j)
+for every i, j ∈ I(S) \ It (S), and therefore our choice of r(w) guarantees that either i⋆ ∈ It (S) or
+i⋆ is the largest element in I(S) \ It (S); both cases imply i⋆ ∈ It+1 (S). To show that ∇r(wt ) = ei
+for some i ∈ I(S), we split the analysis to two cases.
+
+Case 1: β̄ ≥ 0. Observe that if βi = 0 for all i ∈ It (S), then wt = 0 which coincides with the
+base of the induction. Assume that not all βi = 0. Then, we next show that for sufficiently small
+      1
+γ1 ≤ 2T  we get that
+
+                                      i⋆ := arg max{wt (i)} ∈ I(S).                                 (25)
+                                              i∈[d+1]
+
+
+    To see that Eq. (25) holds, note that since β̄ ≥ 0, then for i′ = arg maxi∈It (S) βi we have that
+βi′ > 0. Observe that γ1 v̄(i)β̄ ≤ γ1 β̄ for i ∈
+                                               / {I(S) ∪ {d + 2}} due to the fact that v̄(i) ≤ 1. Suppose
+β̄ > 0, so that for any i ∈
+                          / {I(S) ∪ {d + 2}}, again by Eq. (21)
+
+
+                     wt (i) = γ1 v̄(i)β̄ ≤ γ1 β̄ = 2γ1 β̄ − γ1 β̄
+                                                   1       γ1                                        1
+                                                 < β̄ −        β̄                             (γ1 ≤ 2T )
+                                                   T       2n
+                                                       1          γ1
+                                                 ≤          β̄ −     β̄               (|It (S)| ≤ t ≤ T )
+                                                   |It (S)|       2n
+                                                       1       X          γ1
+                                                 =                   βj −    β̄
+                                                   |It (S)|               2n
+                                                             j∈It (S)
+                                                                  γ1
+                                                ≤ max βj −           β̄
+                                                  j∈It (S)        2n
+                                                          γ1
+                                                = βi′ −      β̄
+                                                          2n
+                                                = wt (i′ ).
+
+And therefore i⋆ ∈ I(S). Similarly, when β̄ = 0 it follows immediately that for any i ∈
+                                                                                      / {I(S) ∪
+{d + 2}} we get
+
+                                         wt (i) = 0 < βi′ = wt (i′ ),
+
+which implies again that i⋆ ∈ I(S); our choice of ∇r(w) guarantees that ∇r(wt ) = ei⋆ .
+
+Case 2: β̄ < 0.    From Eq. (21), note that since wt (i) < 0 for i ∈
+                                                                   / {I(S) ∪ {d + 2}}, then
+
+                                      i⋆ := arg max{wt (i)} ∈ I(S),                                 (26)
+                                              i∈[d+1]
+
+as long as I(S)\It (S) 6= ∅ (Namely, t < |I(S)|). This is justified by the assumption that |I(S)| > T .
+Therefore, ∇r(wt ) = ei for some i ∈ I(S).                                                          
+
+                                                        19
+   Combining both observations in Claims 2 and 3 and plugging it into Eq. (22) we obtain,
+
+                                     ∇FS (wt ) = γ1 v̄ + εed+2 + ei ,
+
+for some i ∈ It+1 (S). We conclude that,
+                                     
+                         wt+1 ∈ span ∇FS (w0 ), ∇FS (w1 ), . . . , ∇FS (wt )
+                                             
+                              = spani∈It+1(S) γ1 v̄ + εed+2 + ei ,
+                                                                        
+as wt ∈ span ∇FS (w0 ), ∇FS (w1 ), . . . , ∇FS (wt−1 )     = spani∈It (S) γ1 v̄ + εed+2 + ei . This com-
+pletes the induction.
+
+A.2    Proof of Lemma 3
+By assumption, for some sequence {βi }i∈It (S) where βi ∈ R, the algorithm output wS takes the
+form
+                                      X                           
+                             wS =            βi γ1 v̄ + εed+2 + ei .
+                                        i∈IT (S)
+
+Observe that the solution wS must remain in the unit ball, thus
+                                     X
+                                   ε       βi ≤ kwS k2 ≤ 1.                                              (27)
+                                        i∈IT (S)
+
+
+Denote IT− = {i ∈ IT (S) : βi ≤ 0} as the non-positive subset in IT (S). Recalling that v̄ · ed+2 = 0,
+we have
+                1 X 2                              1 X 2
+                  s                                  s
+                        hγ (wS (i)) + εwS · ed+2 =         hγ (wS (i)) + ε2 β̄
+                2                                  2
+                     i∈[d]                               −
+                                                           i∈IT
+                                                       1
+                                                           sX                          X
+                                                   ≥               h2γ (wS (i)) + ε2           βi
+                                                       2
+                                                           i∈IT−                       i∈IT−
+                                                       1
+                                                           sX                            X
+                                                   ≥               h2γ (βi + γ2 ) + ε2           βi .    (28)
+                                                       2
+                                                           i∈IT−                         i∈IT−
+
+
+Where the last inequality holds since h2 γ(·) is non-increasing, together with Eq. (27) and the fact
+that γ1 ≤ 2nεγ2
+                                      γ1 X                    γ1
+                        wS (i) = βi −             βj ≤ βi +       ≤ βi + γ2 ,
+                                      2n                     2nε
+                                            j∈IT (S)
+
+
+for i ∈ IT− \ {d + 1}. Clearly, this also holds for i = d + 1, as wS (d + 1) = βd+1 ≤ βd+1 + γ2 . Using
+the reverse triangle inequality, and the observations that |IT− | ≤ T and that |hγ (a) − a| ≤ γ2 for
+any a ≤ γ2 , we get
+  sX                       sX                 sX                                    sX            √
+          h2γ (βi + γ2 ) ≥      (βi + γ2 )2 −       (hγ (βi + γ2 ) − (βi + γ2 ))2 ≥     βi2 − 2γ2 T .
+    i∈IT−                    i∈IT−             i∈IT−                                             i∈IT−
+
+
+
+
+                                                   20
+Plugging this into Eq. (28),
+           1 X 2
+             s
+                                              1 X 2
+                                                s           X         √
+                   hγ (wS (i)) + εwS · ed+2 ≥       βi + ε2    βi − γ2 T
+           2                                  2
+               i∈[d]                              −
+                                                         i∈IT−
+                                                                     i∈IT
+                                                    1 √ s X       1                        √
+                                               ≥   − ε2 T      βi2 − ε,              (γ2 ≤ ε/ 4T )
+                                                 2           −
+                                                                    2
+                                                                    i∈IT
+                                               √
+where the second inequality follows from kuk1 ≤ dkuk2 and |IT− | ≤ T . To conclude, note that
+
+                                            γ1 X
+                           s X
+                                      βi2 −       βi ≤ kwS k2 ≤ 1,
+                                            2n
+                              i∈IT (S)               i∈IT (S)
+
+and we obtain the required result for γ1 ≤ 2nε.
+
+
+B     Proofs for Section 5
+B.1    Proof of Lemma 4
+The proof mirrors that of Lemma 2 and comprises of using induction on t to show for any t ≤ T
+and w as in Eq. (13), we have ∇FS (w) = γ1 v̄ + εed+2 + ei for i ∈ It+1 (S). As in the proof of
+Lemma 2, we choose a sub-gradient oracle for r(w) such that all sub-gradients are standard basis
+vectors, and if multiple coordinate achieve the maximum defining r, the largest one is selected.
+   The basis of the induction is t = 0, where we observe that for kqk∞ ≤ γ2 /3 we have that
+∇gγ (q; α) = 0. Note that kqk∞ ≤ γ3 /3 for γ1 < 8n  3 , and therefore ∇r(q) = ed+1 due to the fact
+that σi + γ3 /3 < σd+1 − γ3 /3 for any i ∈ [d]. Hence
+                                    1X
+                        ∇FS (w) =      ∇gγ (q; α) + γ1 v̄ + εed+2 + ∇r(q)
+                                    n
+                                         α∈S
+                                 = γ1 v̄ + εed+2 + ∇r(q)                            (∇gγ (q; α) = 0)
+                                 = γ1 v̄ + εed+2 + ed+1                             (∇r(q) = ed+1 )
+                                 = ∇FS (w0 ).                                              (w0 = 0)
+                                                         n                  o
+For the induction step we assume that wt ∈ span1 i∈It (S) γ1 v̄ + εed+2 + ei . Therefore wt takes
+the form
+                                     X                          
+                               wt =       βi γ1 v̄ + εed+2 + ei .
+                                         i∈It (S)
+
+                                                                                 1
+for some βi ∈ R. Observe    that v̄(i) = 0 for i ∈ {d + 1, d + 2},
+                                                                Pthat v̄(i) = − 2n for any i ∈ I(S),
+                  1
+                       
+and that v̄(i) ∈ 2n , 1 for i ∈
+                              / {I(S) ∪ {d + 2}}. Denote β̄ = i∈It (S) βi , therefore
+                                   γ
+                                    − 1 β̄ + βi          if i ∈ It (S) \ {d + 1};
+                                   2n
+                                  
+                                  
+                                       γ1
+                                  − 2n β̄               if i ∈ I(S) \ It (S);
+                                  
+                                  
+                                  
+                          wt (i) = γ1 v̄(i)β̄            if i ∈
+                                                              / {I(S) ∪ {d + 2}};              (29)
+                                  
+                                    βi                   if i = d + 1;
+                                  
+                                  
+                                  
+                                  
+                                  
+                                    εβ̄                  if i = d + 2.
+                                  
+
+
+                                                         21
+Consider then the gradient at wt ,
+                                       1X
+                         ∇FS (wt ) =      ∇gγ (wt ; α) + γ1 v̄ + εed+2 + ∇r(wt ).                              (30)
+                                       n
+                                         α∈S
+
+We examine the first and last terms in Eq. (30). For the first term we repeat and modify the
+analysis in Claim 2 to handle the noise vector q.
+Claim 4. Suppose that w = wt + q where wt satisfies Eq. (20) and kqk∞ ≤ γ2 /3. Then, we have
+                               1X                1X
+                                  ∇gγ (wt ; α) =    ∇gγ (w; α) = 0.
+                               n                 n
+                                 α∈S                       α∈S
+
+Proof. Since α(i) = 0 for i ∈ I(S) we get,
+                                                                                           
+                   1X                1X 
+                                          s                      X
+                      ∇gγ (wt ; α) =   ∇                                  α(i)h2γ (wt (i)).                   (31)
+                   n                 n
+                     α∈S                       α∈S         i∈{I(S)∪d+2}
+                                                            /
+
+Assume that γ1 ≤ εγ22 implies wt (i) > −γ2 /2 for i ∈/ {I(S) ∪ {d + 2}}. Under this assumption we
+also have wt (i) + q(i) > −γ2 /2 − γ2 /3 > −γ2 , and hence, since hγ (w) = 0 for any w ≥ −γ2 , then
+together with Eq. (31) we conclude the claim. From here the proof continues as in Claim 2.
+                                                                                                  
+    For the last term in Eq. (30), we use the following claim, which is the noise-robust counterpart
+of Claim 3.
+Claim 5. Suppose that w = wt + q where wt satisfies Eq. (20), kqk∞ ≤ γ8n
+                                                                      1 γ3
+                                                                           and |I(S)| > t. Then
+
+                                                 ∇r(w) = ei ,
+
+for some i ∈ It+1 (S).
+Proof. For the proof, we will show that there is always i⋆ ∈ I(S) such that:
+                                                                                  γ1 γ3
+                           wt (i⋆ ) + σi⋆ >       max          {wt (i) + σi } +         .                      (32)
+                                              i∈{I(S)∪{d+2}}
+                                               /                                   4n
+
+Combined with the assumption kqk∞ ≤ γ8n      1 γ3
+                                                  , we immediately conclude that ∇r(wt + q) = ei′ for
+some i ∈ I(S). We may further conclude that i′ ∈ It+1 (S), because wt (i) = wt (j) for every
+        ′
+
+i, j ∈ I(S) \ It (S), and therefore our choice of r(w) guarantees that either. We now turn to show
+Eq. (32) following the lines of the proof of Claim 3 but taking the noise vector q into account. We
+split the analysis to five cases.
+
+Case 1a: β̄ > 0 and βd+1 + γ3 ≥ γ1 β̄.          By Eq. (29), for any i ∈
+                                                                       / {I(S) ∪ {d + 2}} we have
+
+                   wt (d + 1) + σd+1 = βd+1 + 2γ3
+                                        ≥ γ1 v̄(i)β̄ + γ3                           (v̄(i) ≤ 1 for any i ∈ [d + 1])
+                                                       γ1 γ3
+                                        > γ1 v̄(i)β̄ +                                                  (γ1 < 2n)
+                                                        2n
+                                                          γ1 γ3
+                                        ≥ wt (i) + σi +         ,                                      (σi ≤ γ4n
+                                                                                                              1 γ3
+                                                                                                                   )
+                                                           4n
+so Eq. (32) holds with i⋆ = d + 1.
+
+                                                      22
+                                                       1
+Case 1b: β̄ > 0 and βd+1 + γ3 < γ1 β̄.      For γ1 ≤ 4T  ≤ 1 we get,
+                                                             X
+                               βd+1 + γ3 < γ1 β̄ ≤ βd+1 +            βi .
+                                                               i∈It (S)\{d+1}
+
+In other words,
+                                                       X
+                                           γ3 <                    βi .                                     (33)
+                                                  i∈It (S)\{d+1}
+
+Thus, for any, i ∈
+                 / {I(S) ∪ {d + 2}}:
+                          γ1 γ3                    γ1 γ3 γ3 γ1
+            wt (i) + σi +       = γ1 v̄(i)β̄ + i ·      +
+                           4n                      4dn    4n
+                                           γ1 γ3
+                                ≤ γ1 β̄ +                                                  (v̄(i) ≤ 1 and i ≤ d)
+                                             2n
+                                            γ3
+                                ≤ γ1 β̄ +                                                             (γ1 ≤ Tn )
+                                           2T
+                                              1        X
+                                < 2γ1 β̄ +                   βj − γ1 β̄                              (Eq. (33))
+                                             2T
+                                                  j∈It (S)\{d+1}
+                                      1       1        X                  γ1                     1
+                                 <      β̄ +                       βj −      β̄           (γ1 ≤ 4T and β̄ > 0)
+                                     2T      2T                           2n
+                                                  j∈It (S)\{d+1}
+                                   1              1                     γ1
+                                 ≤     max βj +          max       βj −    β̄                (|It (S)| ≤ T )
+                                   2 j∈It (S)     2 j∈It (S)\{d+1}      2n
+                                            γ1
+                                 ≤ βi′ −       β̄                                 (i′ := arg maxi∈It (S) βi )
+                                           2n
+                                 ≤ wt (i′ ) + σi′                             (σi ≥ 0 for any i ∈ [d + 1])
+
+Case 2: β̄ ≤ −γ3 . For any i′ ∈ I(S) \ It (S) (non-empty by the assumption |I(S)| > t) and for
+any i ∈
+      / {I(S) ∪ {d + 2}} we have
+                                     γ1          γ1 γ3
+                 wt (i′ ) + σi′ = − β̄ + i′ ·                                              (Eq. (29))
+                                    2n            4dn
+                                  γ1 γ3
+                                >                                                         (β̄ ≤ −γ3 )
+                                   2n
+                                               γ1 γ3
+                                ≥ γ1 v̄(i)β̄ +               (v̄(i) > 0 for i ∈
+                                                                              / {I(S) ∪ {d + 2}})
+                                                2n
+                                               γ1 γ3 γ1 γ3
+                                = γ1 v̄(i)β̄ +       +
+                                                4n        4n
+                                                  γ1 γ3
+                                ≥ wt (i) + σi +         .                    (σi = i · γ4dn
+                                                                                         1 γ3
+                                                                                              ≤ γ4n
+                                                                                                 1 γ3
+                                                                                                      )
+                                                   4n
+
+Case 3a: −γ3 < β̄ ≤ 0 and βd+1 > − 32 γ3 .         For any i ∈
+                                                             / {I(S) ∪ {d + 2}} we get,
+                wt (d + 1) + σd+1 = βd+1 + 2γ3                                                       (Eq. (29))
+                                    1
+                                  > γ3                                                          (βd+1 > − 32 γ3 )
+                                    2
+                                                 1
+                                  ≥ γ1 v̄(i)β̄ + γ3                         (v̄(i) > 0 for i ∈
+                                                                                             / {I(S) ∪ {d + 2}})
+                                                 2
+                                                 γ1 γ3
+                                  ≥ γ1 v̄(i)β̄ +       ,                                               (γ1 ≤ n)
+                                                  2n
+and Eq. (32) holds as in the previous case.
+
+                                                      23
+Case 3b: −γ3 < β̄ ≤ 0 and βd+1 ≤ − 23 γ3 .           Note that this case implies
+                                            γ3           X
+                                               <                     βi .                                    (34)
+                                            2
+                                                    i∈It (S)\{d+1}
+
+                                                                γ3        γ3
+Hence, there exists i′ ∈ It (S) \ {d + 1} such that βi′ > 2(|It (S)|−1) ≥ 2T and we get that for any
+i∈
+ / {I(S) ∪ {d + 2}},
+                                           γ1            γ1 γ3
+                  wt (i′ ) + σi′ = βi′ −      β̄ + i′ ·                                                (Eq. (29))
+                                           2n            2dn
+                                   γ3                                                              γ3
+                                 >                                                          (βi′ > 2T and β̄ ≤ 0)
+                                   2T
+                                                 γ3
+                                 ≥ γ1 v̄(i)β̄ +                             (v̄(i) > 0 for i ∈
+                                                                                             / {I(S) ∪ {d + 2}})
+                                                 2T
+                                                 γ1 γ3
+                                 ≥ γ1 v̄(i)β̄ +        ,                                                (γ1 ≤ Tn )
+                                                  2n
+and Eq. (32) holds as in the previous two cases.                                                                
+
+   Combining both observations in Claims 4 and 5 and plugging it into Eq. (30) we obtain,
+
+                                       ∇FS (w) = γ1 v̄ + εed+2 + ei ,
+
+for some i ∈ It+1 (S).
+
+B.2    Proof of Corollary 5
+We assume w = wt + q with wt as in Lemma 4 and some q yet to be defined. By standard vector
+decomposition we know that Πt+1 (w) can be expressed as
+
+                                              Πt+1 (w) = wt + q̃,                                            (35)
+
+for some q̃. Observe that,
+
+                     kq̃k∞ ≤ kq̃k2                                                                  (k·k∞ ≤ k·k2 )
+                             = kΠt+1 (w) − wt k2                                                       (Eq. (35))
+                             ≤ kΠt+1 (w) − wk2 + kw − wt k2                                  (triangle inequality)
+                             ≤ 2kw − wt k2                                     (kΠt+1 (w) − wk2 ≤ kwt − wk2 )
+                             = 2kqk2                                                                (w = wt + q)
+                                √                                                      √
+                             ≤ 2 d + 2kqk∞ .                                 (kuk2 ≤       dkuk∞ for any u ∈ Rd )
+
+Thus, for Πt+1 (w) to satisfy the conditions of Lemma 4 in Eq. (13) it suffices that
+                                             1     nγ γ γ o
+                                                     2   1 3
+                                      kqk∞ ≤ √ min     ,     .
+                                            4 d     3 8dn
+
+In this case, we can apply Lemma 4 on Πt+1 (w) and get that
+
+                                   ∇FS (Πt+1 (w)) = γ1 v̄ + εed+2 + ei ,
+
+
+
+
+                                                        24
+for some i ∈ It+1 (S). Denote this index by i⋆Π , then by the definition of ∇FS (Πt+1 (w)) it holds
+                           i⋆Π = arg max{γ1 v̄ + εed+2 + ei · Πt+1 (w) + σi }
+                                 i∈It+1 (S)
+
+                              = arg max{(γ1 v̄ + εed+2 + ei ) · Πt+1 (w) + σi },
+                                 i∈It+1 (S)
+
+where the last equality is trivial since γ1 v̄ + εed+2 is independent of the argument i we try to
+maximize. On the other hand, applying again Lemma 4 on w = wt + q we get,
+                                        ∇FS (w) = γ1 v̄ + εed+2 + ei⋆ ,
+for some i⋆ ∈ It+1 (S). Similarly to i⋆Π we have
+                               i⋆ = arg max {(γ1 v̄ + εed+2 + ei ) · w + σi }.
+                                      i∈It+1 (S)
+
+Observe that by orthogonal vector decomposition we get that w = Πt+1 (w) + w⊥ were w⊥ is
+orthogonal to Πt+1 (w). Therefore, (γ1 v̄ + εed+2 + ei ) · w⊥ = 0 for any i ∈ It+1 (S). Consequently
+we have,
+                        i⋆ = i⋆Π = arg max{(γ1 v̄ + εed+2 + ei ) · Πt+1 (w) + σi }.                      (36)
+                                     i∈It+1 (S)
+
+And this implies that ∇FS (w) = ∇FS (Πt+1 (w)). In addition, from the proof of Claim 5 in Lemma 4
+we deduce that gγ (w; α) = gγ (Πt+1 (w); α) = 0 for α ∈ S. Also from Eq. (36) we know that
+r(w) = wi⋆ + σi⋆ and i⋆ = i⋆Π ∈ It+1 (S). Therefore,
+                          1X
+                 FS (w) =       gγ (w; α) + γ1 v̄ · w + εed+2 · w + r(w)
+                          n
+                               α∈S
+                          = (γ1 v̄ + εed+2 + ei⋆Π ) · w + σi⋆Π
+                          = (γ1 v̄ + εed+2 + ei⋆Π ) · Πt+1 (w) + σi⋆Π                 (w = Πt+1 (w) + w⊥ )
+                          = FS (Πt+1 (w)).
+
+
+C     Proof of Lemma 7
+Let [s1 , . . . sk ] be an orthonormal basis for Sk , and [sk+1 , . . . , sd ] an orthonormal basis of Sk⊥ the
+orthogonal subpace of Sk , and S be a matrix whose ith column is si . Note that S and S ⊤ are both
+orthogonal matrices, i.e., S ⊤ S = SS ⊤ = I. Now consider the following process of generating an
+orthogonal matrix U : we pick a random orthogonal matrix Ũ ∈ Rd2 ×d , and then let U = Ũ S ⊤ .
+Notice that because random orthogonal matrices are invariant to multiplication by an orthogonal
+matrix then U is indeed a random orthogonal matrix.
+   Next, note that the matrix U Π determines the first k columns of Ũ . Specifically, for each i ≤ k:
+                                     U Πsi = U si = Ũ S ⊤ si = Ũ ei = Ũi .                            (37)
+Also note that
+                  k(1 − Π)U ⊤ wk∞ = kSS ⊤ (1 − Π)S Ũ ⊤ wk∞
+                                       ≤ kSS ⊤ (1 − Π)S Ũ ⊤ wk2
+                                       ≤ kS ⊤ (1 − Π)S Ũ ⊤ wk2                    (S is orthogonal matrix)
+                                         √
+                                       ≤ dkS ⊤ (1 − Π)S Ũ ⊤ wk∞ .
+
+
+                                                       25
+   Now we consider the matrix Q = Ũ S ⊤ (1 − Π)S, and we want to calculate its columns. Observe
+that for i ≤ k we have that
+
+                        Qi = Qei = Ũ S ⊤ (1 − Π)Sei = Ũ S ⊤ (1 − Π)si = 0.
+
+and for i > k:
+                        Qi = Qei = Ũ S ⊤ (1 − Π)Sei = Ũ S ⊤ si = Ũ ei = Ũi .
+In particular we have that
+                                                (
+                                                    0        i≤k
+                                      (Qw)i =
+                                                    Ũi⊤ w   i > k.
+Thus, conditioning on U Π = V , we have that for the fixed vector w, by Eq. (37):
+                                                          
+                     ⊤           ⊤         c
+              Pr kS (1 − Π)S Ũ wk∞ > √ | Ũ Π = V
+                                             d
+                                                                                 
+                              ⊤           ⊤           c
+                     = Pr kS (1 − Π)S Ũ wk∞ > √ | Ũi = V si , i = 1, . . . , k
+                                                       d
+                                                                              
+                                    ⊤           c
+                     = Pr max{kQ wk∞ } > √ | Ũi = V si , i = 1, . . . , k
+                            j>k                  d
+                                                                            
+                                    ⊤        c
+                     = Pr max{|Ũj w|} > √ | Ũi = V si , i = 1, . . . , k
+                            j>k               d
+                         d2                                                
+                        X
+                                    ⊤       c
+                     ≤       Pr |Ũj w| > √ | Ũi = V si , i = 1, . . . , k
+                       j=k+1
+                                             d
+                                                                           
+                                 ⊤         c
+                     ≤ d2 Pr |Ũk+1 w|} > √ | Ũi = V si , i = 1, . . . , k
+                                            d
+
+where the last equality is due to symmetry. Since Ũk+1 is sampled uniformly from the sphere
+orthogonal to Ũ1 , . . . , Ũk and w is determined by them, we may apply a standard concentration
+inequality for the inner product of a randomly sampled vector in Rd2 −k against a constant vector
+kwk ≤ 1 [see, e.g., 2, Lemma 2.2], yielding
+                                                                 
+                                       c                                 c2
+                  Pr |Ũk+1 w| > √ | Ũi = V si , i = 1, . . . , k ≤ 2e− 2d ·(d2 −k+1) .
+                              ⊤
+                                        d
+Taking expectation over V , we conclude the proof.
+
+
+
+
+                                                    26
+

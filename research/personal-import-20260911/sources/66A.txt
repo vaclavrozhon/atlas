@@ -1,0 +1,676 @@
+                    Settling the Polynomial Learnability of Mixtures of Gaussians
+
+
+                           Ankur Moitra∗                                                      Gregory Valiant†
+            Electrical Engineering and Computer Science                        Electrical Engineering and Computer Science
+                Massachusetts Institute of Technology                                University of California, Berkeley
+                        Cambridge, MA 02139                                                 Berkeley, CA 94720
+                           moitra@mit.edu                                                 gvaliant@cs.berkeley.edu
+
+
+
+   Abstract—Given data drawn from a mixture of multivariate                 (or disprove the existence of) an efficient algorithm for this
+Gaussians, a basic problem is to accurately estimate the                    task [2], [11], [32], [1], [5], [3]. In this paper, we settle this
+mixture parameters. We give an algorithm for this problem                   problem: We give an algorithm for the problem of accurately
+that has running time and data requirements polynomial in
+the dimension and the inverse of the desired accuracy, with                 estimating the parameters of the mixture which has running
+provably minimal assumptions on the Gaussians. As a simple                  time and data requirements polynomial in the dimension
+consequence of our learning algorithm, we we give the first                 and the inverse of the desired accuracy, with provably
+polynomial time algorithm for proper density estimation for                 minimal assumptions on the Gaussians (specifically, that the
+mixtures of k Gaussians that needs no assumptions on the                    mixing weights and the statistical distance between each
+mixture. It was open whether proper density estimation was
+even statistically possible (with no assumptions) given only                pair of components are each bounded away from zero).
+polynomially many samples, let alone whether it could be                    We give a more precise definition for the learning problem
+computationally efficient.                                                  in Section I-B. In fact, our estimate (on a component
+   The building blocks of our algorithm are based on the work               by component basis) converges at in inverse polynomial
+(Kalai et al, STOC 2010) [17] that gives an efficient algorithm             rate in a statistical sense to the true components of the
+for learning mixtures of two Gaussians by considering a
+series of projections down to one dimension, and applying the               mixture, and such statistical guarantees are much stronger
+method of moments to each univariate projection. A major                    than additive guarantees on the accuracy of the recovered
+technical hurdle in [17] is showing that one can efficiently                parameters. These statistical guarantees are invariant under
+learn univariate mixtures of two Gaussians. In contrast, because            affine transformations and hence give guarantees even when
+pathological scenarios can arise when considering projections               an affine transformation is applied to the data before it is
+of mixtures of more than two Gaussians, the bulk of the work
+in this paper concerns how to leverage a weaker algorithm for               given to us.
+learning univariate mixtures (of many Gaussians) to learn in                   As a simple consequence of our learning algorithm, we
+high dimensions. Our algorithm employs hierarchical clustering              give the first polynomial time algorithm for proper density
+and rescaling, together with methods for backtracking and                   estimation for mixtures of k Gaussians without any assump-
+recovering from the failures that can occur in our univariate               tions on the mixture. It was open whether such an algorithm
+algorithm.
+   Finally, while the running time and data requirements of our             was even information theoretically possible.
+algorithm depend exponentially on the number of Gaussians                      In the remainder of this section, we briefly summarize
+in the mixture, we prove that such a dependence is necessary.               previous work on this problem, formally state our main
+  Keywords-learning; Gaussians; method of moments; mixture                  result, and then discuss the differences between learning
+models;                                                                     mixtures of two Gaussians, and mixtures of many Gaussians.
+                                                                            Additionally, we give a high-level outline of the main struc-
+                        I. I NTRODUCTION                                    ture of our algorithm. We first define a Gaussian Mixture
+   Given access to random samples generated from a mixture                  Model (GMM).
+of (multivariate) Gaussians, the algorithmic problem of                        Consider a set of k different multinormal distributions,
+learning the parameters of the underlying distribution is of                where each component is characterized by a mean µi ∈ Rn ,
+fundamental importance in physics, biology, geology, social                 and covariance matrix Σi ∈ Rn×n . Given a vector of k
+sciences – any area in which such finite mixture models                     nonnegative weights w,  ~ summing to one, we define the
+arise (see [23], [30]). Starting with Dasgupta [9], a series                associated Gaussian Mixture Model (GMM) to be the distri-
+of work in theoretical computer science has sought to find                  bution that results from choosing a component i according to
+                                                                                             ~ and then taking a sample from N (µi , Σi ).
+                                                                            the distribution w,
+  ∗ This research was supported in part by a Fannie and John Hertz
+Foundation Fellowship.                                                      A. A Brief History
+  † This research was supported in part by an NSF Graduate Research
+Fellowship. Part of this work was done while visiting Microsoft Research,      The most popular solution for recovering reasonable es-
+New England.                                                                timates of the components of GMMs in practice is the EM
+algorithm given by Dempster, Laird and Rubin [12]. This             tion condition) for the special case of axis-aligned GMMs
+algorithm is a local-search heuristic that converges to a           (GMMs where each component has principle coordinates
+set of parameters that locally maximizes the probability of         aligned with the coordinate axes).
+generated the observed samples. However, the EM algorithm              Belkin and Sinha [3] showed that one can efficiently learn
+is a heuristic, and makes no guarantees about converging to         each component in the special case that all components
+an estimate that is close to the true parameters. Worse still,      are identical spherical Gaussians. Contemporaneous to our
+the EM algorithm (even for univariate mixtures of just two          work, Belkin and Sinha [4] show the existence of an efficient
+Gaussians) has been observed to converge very slowly (see           algorithm for learning mixtures of k Gaussians that only
+Redner and Walker for a thorough treatment [26]).                   requires that the smallest additive gap in the true parameters
+   In order to even hope for an algorithm (not necessarily          of the mixture be at most polynomially smaller than the
+even polynomial time), we would need a uniqueness prop-             desired precision. Most similar to the present work is the
+erty – that two distinct mixtures of Gaussians must have            recent work of Kalai et al [17], which gives a learning
+different probability density functions. Teicher [29] demon-        algorithm for the case of mixtures of two Gaussians with
+strated that a mixture of Gaussians can be uniquely identified      no separation assumptions.
+(up to a relabeling of the components) by considering the
+probability density function at points sufficiently far from the    B. Main Results
+centers (in the tails). However, such a result sheds little light
+                                                                       In this section we state our main results. We first consider
+on the rate of convergence of an estimator: If distinguishing
+                                                                    what it means to “accurately recover the mixture com-
+Gaussian mixtures really required analyzing the tails of the
+                                                                    ponents.” We denote D(F, F 0 ) as the statistical distance
+distribution, then we would require an enormous number of
+                                                                    between F and F 0 . We provide a formal definition of
+data samples!
+                                                                    statistical distance in Section II-A.
+   Dasgupta [9] introduced theoretical computer science to
+the algorithmic problem of provably recovering good es-
+                                                                                P Given two n-dimensionalPGMMs of k Gaus-
+                                                                    Definition 1.
+timates for the parameters in polynomial time (and poly-            sians, F = i wi N (µi , Σi ) and F̂ = i ŵi N (µ̂i , Σ̂i ), we
+nomial sample complexity). His technique is based on                call F̂ an -close estimate for F if there is permutation
+projecting data down to a randomly chosen low-dimensional           function π : [k] → [k] such that for all i ∈ [k]
+subspace and finding an accurate clustering from the low-
+                                                                      •   |wi − ŵπ(i) | ≤ 
+dimensional data. Given enough sample points that are all
+                                                                      •   D(N (µi , Σi ), N (µ̂π(i) , Σ̂π(i) )) ≤ ,
+accurately clustered, the empirical means and co-variances
+of each cluster will be a good estimate for the actual                 Note that the above definition of an -close estimate
+parameters of the corresponding component. Arora and                is affine invariant. This is more natural than defining a
+Kannan [2] extended these ideas to work in the much                 good estimate in terms of additive errors in the parameters,
+more general setting in which the co-variances of each              since in general, even estimating the mean of an arbitrary
+Gaussian component could be arbitrary, and not necessarily          Gaussian to some fixed additive precision is impossible
+almost spherical as in [9]. Yet both of these techniques are        without restrictions on the covariance, as scaling the data
+based on a concentration of measure phenomenon which                will scale the error as well.
+critically needs the assumption that the centers of the                Before discussing our results, we first state three obvious
+components before a random projection are separated by              lowerPbounds for learning an -close estimate of a GMM
+at least Ω(n1/4 ) times the largest variance. Vempala and                   k
+                                                                    F = i=1 wi Fi . These examples will motivate our defintion
+Wong [32] and Achlioptas and McSherry [1] introduced                of -statistically learnable.
+the use of spectral techniques, and were able to overcome
+                                                                      1) Permuting the order of the components does not change
+this barrier by choosing a subspace on which to project
+                                                                         the resulting density, so we can only hope to recover
+based on large principle components rather than choosing
+                                                                         the parameter set, {(w1 , µ1 , Σ1 ), . . . , (wk , µk , Σk )}.
+a subspace randomly. Brubaker and Vempala [5] later gave
+                                                                      2) We require at least Ω(1/ mini (wi )) samples to esti-
+the first affine-invariant algorithm for learning mixtures of
+                                                                         mate the parameters, since we need at least this many
+Gaussians, again based on clustering.
+                                                                         samples to ensure that we have seen, with reasonable
+   The above approaches for provably learning good es-
+                                                                         probability, even just one sample from each component.
+timates each require at the very least that the statistical
+                                                                      3) If Fi = Fj , then it is impossible to accurately estimate
+overlap (i.e. one minus the statistical distance) between each
+                                                                         wi , and in general we require at least Ω(1/D(Fi , Fj ))
+pair of components is sub-constant. Yet the range in which
+                                                                         samples to estimate wi , where D(Fi , Fj ) denotes the
+our learning algorithms will work only requires that the
+                                                                         statistical distance between the two distributions.
+statistical overlap be bounded away from one. Recently,                                                     P
+Felman et al [13] gave a polynomial time algorithm for the          Definition 2. We call a GMM F = i wi Fi -statistically
+related problem of density estimation (without any separa-          learnable if mini wi ≥  and mini6=j D(Fi , Fj ) ≥ .
+   Given just this provably necessary condition that F be -             Pksamples from F , there is an algorithm that outputs
+                                                                   pendent
+statistically learnable, we will be able to efficiently learn an   F̂ = i=1 ŵi F̂i such that with probability at least 1 − δ
+-close estimate to F . We can now state our main theorem:         over the randomization in the algorithm and in selecting the
+                                                                   samples, D(F, F̂ ) ≤ . Additionally, the running time and
+Theorem 1. Given any n dimensional mixture of k Gaus-
+                                                                   data requirements of our algorithm (for any fixed k) are
+sians F that is -statistically learnable, there is an algorithm
+                                                                   polynomial in n, 1 , and 1δ .
+that, with probability at least 1 − δ, outputs an -close
+estimate F̂ and the running time and data requirements of             The above algorithm depends exponentially on k 3 because
+our algorithm (for any fixed k) are polynomial in n, 1 , and      it uses the algorithm in Theorem 1 as a subroutine. Yet
+1
+δ.                                                                 the problem of learning an -close estimate is harder than
+   Throughout this paper, we favor clarity of proof and            performing density estimation. In fact, our lower bound for
+exposition above optimization of runtime. Since our main           algorithms which learn an -close estimate is not a lower
+goal is show that these problems can be solved in polynomial       bound for density estimation - if there are two mixtures of
+time, we make very little effort to optimize the exponent.         k Gaussians, F and F 0 , for which D(F, F 0 ) is exponentially
+Our algorithms are polynomial in the dimension, the inverse        small (in k) either one is a good statistical estimate as
+of the success probability, and the inverse of the target          a distribution for the other. It remains a very interesting
+accuracy for any fixed number of k Gaussians. However, the         open problem to understand if proper density estimation for
+dependence on k is severe: the degree of our polynomials           mixtures of k Gaussians can be performed in poly(n, k, 1 )
+is Θ(k 3 ). Note that the exponent in the result due to Belkin     samples (with no assumptions on the mixture).
+and Sinha [4] is only guaranteed to be bounded for bounded            The second corollary that we obtain from Theorem 1 is
+k. In Section VI, we give a natural construction of two            for clustering. To define the problem of clustering, suppose
+GMMs F, F 0 of k components that are each 1/k-statistically        that during the data sampling process, for each sample point
+learnable, for which F is not even a 1/4-close estimate of F 0     xi ∈ Rn , a hidden label yi ∈ {1, . . . , k} called the ground
+and yet D(F, F 0 ) ≤ e−k . We would require an exponential         truth is generated based upon which component the point
+in k number of samples to even distinguish the two mixtures        was sampled from. A clustering algorithm takes as input m
+in this example from each other. This demonstrates that            points and outputs a classifier C : Rn → {1, . . . , k}. The
+exponential dependence on k is inevitable when learning            error of a classifier is the minimum, over all label permuta-
+mixtures of k Gaussians. We give a formal statement in             tions, of the probability that the permuted label agrees with
+Theorem 14.                                                        the ground truth. Given the mixture parameters, it is easy to
+C. Applications                                                    see that the optimal clustering algorithm will simply assign
+   We can leverage our main theorem to show that we can            a label to each point based on which component has the
+efficiently perform proper density estimation for arbitrary        largest posterior probability. We also obtain the following
+GMMs. By proper density estimation, we will require that           corollary:
+our algorithm returns an estimate distribution that is a mix-
+                                                                   Corollary 3. For any nP≥ 1, , δ > 0, and any n-
+ture of at most k Gaussians, in addition to the guarantee that                                    k
+                                                                   dimensional GMM F =            i=1 wi Fi , given access to in-
+our estimate distribution be statistically close as a mixture to
+                                                                   dependent samples from an -statistically learnable mixture
+to the true mixture. For density estimation—as opposed to
+                                                                   F of k Gaussians, there is an algorithm that outputs a
+parameter recovery—we do not need the components in our
+                                                                   classifier C such that with probability at least 1 − δ over the
+estimate to be close to the actual components. For example,
+                                                                   randomization in the algorithm and in selecting the samples,
+if one component Fi in the mixture has negligible mixing
+                                                                   the error of C is at most  larger than the error of the
+weight, then our estimate can be statistically close as a
+                                                                   optimal classifier COP T . Additionally, the running time and
+distribution to the true distribution even if no component
+                                                                   data requirements of our algorithm (for any fixed k) are
+in our estimate is statistically close to Fi . Similarly, if
+                                                                   polynomial in n, 1 , and 1δ .
+two components Fi and Fj are only negligibly statistically
+different from each other, in our estimate we can merge these
+                                                                      We will not describe the proofs of these corollaries in
+two components into a single component and our estimate
+                                                                   detail, because the proofs follow from the main theorem
+can still be statistically close to the true mixture.
+                                                                   in a nearly identical manner to which the corresponding
+   For these reasons, we can perform density estimation
+                                                                   corollaries for mixtures of two Gaussians in [17] followed
+efficiently without the restriction that F be -statistically
+                                                                   from the main theorem of [17]. Rather, our emphasis in this
+learnable, which was required as an assumption for the
+                                                                   paper is on the problem of learning an -close estimate, and
+learning algorithm in Theorem 1.
+                                                                   we use these corollaries to support the claim that the goal
+                     n ≥ 1, , δ > 0, and any n-
+Corollary 2. For any P                                             of learning an -close estimate is a strong goal that contains
+                      k
+dimensional GMM F = i=1 wi Fi , given access to inde-              many other well-studied learning results as corollaries.
+                                                                   3 ). Let Pr [F ] denote the projection of the mixture F onto
+                                                                   the direction r.
+                                                                      The final component—the Parameter Recovery Lemma—
+                                                                   states that, given a Gaussian G in n dimensions, if one has
+                                                                   extremely accurate estimates (say to within some 1 ) of the
+                                                                   mean and variance of G projected onto n2 sufficiently dis-
+                                                                   tinct directions (directions that differ by at least 2 >> 1 )
+                                                                   one can accurately recover the multi-dimensional parameters
+                                                                   of G.
+                                                                      Given these three pieces, the high-level algorithm for
+                                                                   learning mixtures of two Gaussians is straight-forward:
+                                                                     1) Pick a random unit vector r.
+                                                                     2) Pick n2 vectors r1 , . . . , rn2 , that are “close” to r, say
+Figure 1.  A challenging mixture of three Gaussians to learn: A          |ri − r| ≈ 2 .
+projection onto a randomly chosen direction usually looks like a     3) For each i = 1, . . . , n2 , learn extremely accu-
+mixture of two Gaussians.                                                rate (to accuracy 1 << 2 ) univariate parameters
+                                                                         wi , µi , σi , µ0i , σi0 for the projection of the mixture onto
+                                                                         the vector ri .
+D. Hurdles to Moving Beyond Two Gaussians
+                                                                     4) Since |ri − rj | ≈ 2 , the parameters of Pri [F1 ] and
+   This work leverages several key ideas initially presented             Prj [F1 ] must be very close - i.e. much closer than
+in [17] which gave an efficient algorithm for learning mix-              3 . By the Random Projection Lemma, |µi − µ0i | +
+tures of two Gaussians, with provably minimal assumptions.                           2
+                                                                         |σi2 − σi0 | >> 3 so we can accurately match up
+Nevertheless, additional high-level insights and technical               which estimate parameters across different projections
+details were required to extend the previous work to give an             come from the same component. We can then apply
+efficient learning algorithm for mixtures of many Gaussians,             the Parameter Recovery Lemma to obtain accurate
+again with provably minimal assumptions. In this section                 multidimensional estimates of the parameters of each
+we briefly summarize the algorithm for learning mixtures of              component.
+two Gaussians given in [17], and then describe the hurdles
+                                                                      Some of the above ideas are immediately applicable to
+to extending it to the general case. This discussion will
+                                                                   the problem of learning mixtures of many Gaussians: we
+provide insights and motivate the high-level structure of the
+                                                                   can clearly use the Parameter Recovery Lemma without
+algorithm presented in this paper, as well as clarify which
+                                                                   modification. Additionally, we prove a generalization of the
+components of the proof are new, and which are straight-
+                                                                   1-d Learnability Lemma for mixtures of many Gaussians,
+forward adaptations of ideas from [17].
+                                                                   provided each pair of components has non-negligible statis-
+   Throughout this discussion, it will be helpful to refer to
+                                                                   tical distance (which, while technically tedious, employs the
+parameters 1 , 2 , 3 , which are polynomially related to each
+                                                                   key idea from [17] of “deconvolving” by a suitably chosen
+other, and satisfy 1 << 2 << 3 .
+                                                                   Gaussian). Given this extension, if we were given a mixture
+   There are three key components to the proof that mixtures
+                                                                   of k Gaussians in isotropic position, and were guaranteed
+of two Gaussians can be learned efficiently: the 1-d Learn-
+                                                                   that the projection onto some vector r resulted in a univariate
+ability Lemma, the Random Projection Lemma, and the
+                                                                   mixture of Gaussians for which all pairs of components
+Parameter Recovery Lemma. The 1-d Learnability Lemma
+                                                                   either had reasonably different means or reasonably different
+states that given a mixture of two univariate Gaussians
+                                                                   variances, then we could piece together the parts more-
+whose two components have nonnegligible statistical dis-
+                                                                   or-less as in the case of mixtures of two Gaussians. For
+tance, one can efficiently recover accurate estimates of the
+                                                                   example, this would be the case if we assumed the desired
+parameters of the mixture. It is worth noting that in the
+                                                                   precision was polynomially smaller than the additive gap in
+univariate case, saying that the statistical distance between
+                                                                   parameters.
+two Gaussians is non-negligible is ”usually” equivalent to
+                                                                      Unfortunately, however, the Random Projection Lemma,
+saying that the two sets of parameters are non-negligibly
+                                                                   ceases to hold in the general setting of mixtures of more
+different, i.e. |µ − µ0 | + |σ 2 − σ 02 | is non-negligible .
+                                                                   than two Gaussians. There are simple mixtures that are -
+   The Random Projection Lemma states that given an n-
+                                                                   statistically learnable and are in isotropic position, but with
+dimensional -statistically learnable mixture of two Gaus-
+                                                                   high probability, the projection onto a randomly chosen unit
+sians which is in isotropic position, (with high probability
+                                                                   vector r yields a distribution that is extremely close to a
+over the choice of a random unit vector r) the projection
+                                                                   univariate mixture of two Gaussians. See Figure 1.
+of the mixture onto r will yield a univariate mixture of two
+Gaussians that have nonnegligible statistical distance (say          How can we recover an n-dimensional estimate that is a
+mixture of k Gaussians if, in all univariate projections, we       two dark/skinny Gaussians at the current scale. We need to
+see what appears to be a mixture of k 0 < k components?            cluster out the samples generated by these two Gaussians, so
+                                                                   that we can focus on just these two components and choose
+      II. A LGORITHM O UTLINE AND D EFINITIONS                     the right scale at which to distinguish between them.
+                                                                      In order to cluster out these two Gaussians, we need to
+    In this section, we explain the high-level structure of our    first learn a direction in which the two Gaussians have small
+algorithm. Our algorithm uses a similar approach to [17],          variance. This is precisely why we first learn an estimate
+in which the method of moments is applied to a series              mixture of two Gaussians (that is additively close to the true
+of univariate projections of the mixtures, from which the          mixtures) – we can use this estimate to find a direction to
+high-dimensional parameters are then reconstructed. This           project onto so that we can cluster out these two components.
+approach, however, is used many times within a larger
+recursive scheme that uses hierarchical clustering, and at         A. Definitions
+intermediate stages of our algorithm an estimate mixture of        Definition 3. Given two probability distributions f (x), g(x)
+k 0 ≤ k Gaussians is maintained.                                   on <n we can define the statistical distance between these
+                                                                   distributions as
+   How can an estimate mixture that has the wrong number                                        Z
+of components be useful as an intermediate step?                                              1
+                                                                             D(f (x), g(x)) =       |f (x) − g(x)|dx
+                                                                                              2 <n
+   We will say that a component F̂i in our estimate is
+                                                                     We will also be interested in a related notion of the
+additively close to some set of components in the true
+                                                                   parameter distance between two univariate Gaussians:
+mixture if it is additively close (in terms of parameter
+distance) to each component in the set, and additionally           Definition 4. Given two univariate Gaussians, F1 =
+mixing weight ŵi of F̂i is close to the aggregate mixing          N (µ1 , σ12 ), F2 = N (µ2 , σ22 ) we define the parameter dis-
+weight of all the components in the set. At an intermediate        tance as
+stage, our estimate will be additively close to some partition
+(into k 0 sets) of the components in the true mixture.                         Dp (F1 , F2 ) = |µ1 − µ2 | + |σ12 − σ22 |
+
+   How do we make progress when one component in the                  In general, the parameter distance and the statistical
+estimate mixture corresponds to a set of more than one             distance between two univariate Gaussians can be unrelated.
+component in the true mixture?                                     There are pairs of univariate Gaussians with arbitrarily small
+                                                                   parameter distance, and yet statistical distance close to 1,
+   We show that the only way in which we end up with               and there are pairs of univariate Gaussians with arbitrarily
+several of the original components corresponding to one            small statistical distance, and yet arbitrarily large parameter
+of the recovered estimated components is if this estimate          distances. But these scenarios can only occur if the variances
+component has an extremely small variance in some di-              can be arbitrarily small or arbitrarily large. In many instances
+rection — i.e. the minimum eigenvalue of the covariance            in this paper, we will have reasonable upper and lower
+matrix is extremely small. But in this case we can use this        bounds on the variances and this will allow us to move back
+estimate productively: By projecting the samples onto the          and forth from statistical distance and parameter distance.
+corresponding eigenvector, we will be able to accurately              As we noted, there are simple examples of an -
+cluster the sample points in a manner consistent with some         statistically learnable mixture of three Gaussians which as
+partition of the original clusters. Thus (with high probability)   a distribution is in isotropic position, but for which with
+each cluster will now consist of samples that come from            overwhelming probability in a projection onto a randomly
+some mixture of k 00 < k components. We note that our              chosen direction r, there will be some pair of univariate
+algorithm actually works given just an upper bound on              Gaussians that are arbitrarily close in parameter distance. In
+the number of components, and so we can now apply our              such a case, we must relax the goal of returning an accurate
+algorithm recursively to each of the clusters.                     estimate which is a mixture of three Gaussians – Instead, our
+   Eventually we reach a base case in which the set of sample      univariate algorithm will return a mixture which has only
+points given to our algorithm has been generated by a single       two components but is still in some sense a good estimate
+Gaussian, and we can detect this condition. In this case           for the parameters of the projected mixture. To formalize this
+the empirical mean and empirical co-variance of the sample         notion, we introduce what we call an -correct sub-division.
+points will be a statistically good estimate to the underlying
+Gaussian that generated the samples.                               Definition       5. Given a GMM of k Gaussians, F =
+                                                                                      σi2 ) and a GMM of k 0 ≤ k Gaussians F̂ =
+                                                                   P
+   To illustrate the approach, consider the toy example of         Pi    w i N (µ i ,
+                                                                                        2
+the mixture of three Gaussians given in Figure 1. In this              i ŵi N (µ̂i , σ̂i ), we call F̂ an -correct subdivision of F
+example, we will need to learn an intermediate mixture of          if there is a function π : [k] → [k 0 ] that is onto and
+                                                                                     P
+two Gaussians. This is because we cannot distinguish the              • ∀j∈[k0 ] |       i|π(i)=j wi − ŵj | ≤ 
+  •   ∀i∈[k] Dp (Fi , F̂π(i) ) ≤                                                Definition 6. We will call the pair F, F 0 -standard if
+   When considering high-dimensional mixtures, we replace                        σi2 , σi02 ≤ 1 and if  satisfies:
+the above parameter distance by kµi − µ̂π(i) k + kΣi −                             • wi , wi0 ∈ [, 1]
+Σ̂π(i) kF ≤ , where kkF denotes the Frobenius norm.                               • |µi |, |µ0i | ≤ 1
+                                                                                                        2     2              0     0        02     02
+                                                                                   • |µi − µj | + |σi − σj | ≥  and |µi − µj | + |σi − σj | ≥ 
+   Notationally, we will write (F̂ , π) ∈ D (F ) as shorthand                       for all i 6= j 
+for the statement that F̂ is an -correct subdivision for F                                         P              0                 0            2     02
+                                                                                                                                                              
+                                                                                   •  ≤ minπ             |w i − w      | + |µ i − µ      | +  |σ   − σ     |
+                                                                                                                                                        π(i) ,
+and π is the (onto) function from k to k 0 that groups F into                                          i           π(i)              π(i)        i
+
+F̂ as above.                                                                         where the minimization is taken over all mappings
+   Note that this definition, unlike the definition for an                           π : {1, . . . , n} → {1, . . . , k}.
+-close estimate, uses parameter distance as opposed to                            Let Mi [F ] = Ex∼F [xi ] i.e. Mi [F ] is the ith raw moment
+statistical distance.                                                            of the distribution F .
+
+        III. A ROBUST U NIVARIATE A LGORITHM                                     Theorem 4. There is a constant c > 0 such that, for any
+                                                                                 -standard F, F 0 and any  < c,
+   In this section, we give a learning algorithm for univariate
+mixtures of Gaussians that will be the building block for                                        max      |Mi (F ) − Mi (F 0 )| ≥ O(k)
+our learning algorithm in n-dimensions. Unlike in the case                                   i≤2(n+k−1)
+of [17], the input to our univariate algorithm will not
+necessarily be a mixture of Gaussians for which all pairwise                        We note that it is known that there are distinct mixtures
+parameter distances are reasonably large. Instead, it could                      of k Gaussians that can match exactly on the first linearly
+happen that we are given a mixture of (say) three Gaussians                      (in k) many raw moments.
+so that some pair has arbitrarily small parameter distance.                         Given the polynomially robust identifiability guaranteed
+   In the case in which we are guaranteed that all pairwise                      by the above theorem, and simple concentration bounds
+parameter distances are reasonably large, we can iterate                         on the ith sample moment, it is easy to see that a brute-
+the technical ideas in [17] to give an inductive proof that                      force search over a set of candidate parameter sets will
+a simple brute force search algorithm will return a good                         yield an efficient algorithm that recovers the parameters
+estimate with the correct number of components. We call this                     for a univariate mixture of Gaussians whose components
+algorithm the BASIC U NIVARIATE A LGORITHM. From this,                           have pairwise parameter distance at least : roughly, the
+we build a G ENERAL U NIVARIATE A LGORITHM that will                             BASIC U NIVARIATE A LGORITHM will take a polynomial
+return a good estimate regardless of the parameter distances,                    number of samples, compute the first 4k−2 sample moments
+although in order to do so we will need to relax the notion                      empirically, and compare those with the first 4k−2 moments
+of a good estimate to something weaker: the algorithm will                       (which are computed analytically) of each of the candidate
+return an -correct subdivision, and in this case the algorithm                  parameter sets in a grid search. The algorithm then returns
+can return an estimate with strictly fewer components as                         the parameter set whose moments most closely match the
+long as this estimate is consistent with some partition of the                   empirical moments. Theorem 4 guarantees that if the first
+original mixture.                                                                4k − 2 sample moments very closely match those of the
+                                                                                 chosen parameter set, then the parameter set must be nearly
+A. Polynomially Robust Identifiability                                           accurate. To conclude the proof, we argue that a polynomial-
+                                                                                 sized set of candidate parameters suffices to guarantee that
+                                                                                 at least one set of parameters will yield analytic moments
+   In this section, we show that we can efficiently learn the
+                                                                                 very close to the emprical moments. We state the corollary
+parameters of univariate mixtures of Gaussians, provided
+                                                                                 below, and defer the details of the algorithm and the proof
+that the components of the mixture have nonnegligible
+                                                                                 of its correctness to the full version of our paper.
+pairwise parameter distances. We emphasize again that this
+algorithm will return the correct number of components,                          Corollary 5. Suppose we    Pkare given access            to independent
+                                                                                                                                     2
+because it is run with precision fine enough that all pairs                      samples from a GMM             i=1    w i N (µi , σi  , x) with mean 0
+of components look different. We refer to this algorithm as                      and variance in the interval [1/2, 2], where wi ≥ , and
+the BASIC U NIVARIATE A LGORITHM. Such an algorithm                              |µi − µj | + |σi2 − σj2 | ≥ . There is an algorithm that, for
+will follow easily from Theorem 4—the polynomially robust                        any fixed k, has runtime and sample complexity at most
+identifiability of univariate mixtures. Throughout this section                  poly( 1 , 1δ ) and with probability at least 1 − δ will output
+we will consider two univariate mixtures of Gaussians:                           mixture parameters ŵi , µ̂i , σ̂i 2 , so that there is a permutation
+          n                                      k                               π : [k] → [k] and for each i = 1, . . . , k:
+          X                                      X
+F (x) =         wi N (µi , σi2 , x), F 0 (x) =         wi0 N (µ0i , σi02 , x).
+          i=1                                    i=1                               |wi − ŵπ(i) | ≤ ,     |µi − µ̂π(i) | ≤ ,     |σi2 − σ̂π(i)
+                                                                                                                                            2
+                                                                                                                                                 |≤
+B. The G ENERAL U NIVARIATE A LGORITHM                              the n-dimensional mixture F onto many close-by directions,
+    In this section we seek to extend the BASIC U NIVARIATE         and run the G ENERAL U NIVARIATE A LGORITHM on each
+A LGORITHM of Corollary 5 to the general setting of a               projection. This is also how the algorithm in [17] is able to
+univariate mixture of k Gaussians without any requirements          recover good additive estimates in n-dimensions. However
+that the components have significant pair-wise parameter dis-       we will have to cope with the additional complication
+tance. In particular, given some target accuracy , and access      that our univariate algorithm (the G ENERAL U NIVARIATE
+to independent samples from a mixture F of k univariate             A LGORITHM) does not necessarily return an estimate that
+Gaussians, we want to efficiently compute a mixture F 0 of          is a mixture of k Gaussians.
+k 0 ≤ k Gaussians that is an -correct subdivision of F.               We explain in detail how the algorithm in [17] is able to
+    We say that a mixture is in near isotropic position if the      obtain additive approximation guarantees in n-dimensions,
+mean is zero and the variance is between 21 and 2.                  building on a univariate algorithm for learning mixtures
+                                                                    of two Gaussians: Let Pr [F ] denote the univariate mixture
+Proposition 6. There is an algorithm which, given , δ > 0,         that results from projecting F onto direction r. Let 3 >>
+P access to2 a GMM of at most k Gaussians, F =
+and                                                                 2 >> 1 . Given any -statistically learnable mixture of
+    i wi N (µi , σi ) that is in near isotropic position and sat-   two Gaussians in n-dimensions that is in isotropic position,
+isfies wi ≥  (for any fixed k) has runtime and sample              with high probability the parameter distance between the two
+complexity at most poly( 1 , 1δ ) and with probability at least    univariate Gaussians in Pr [F ] that result from projecting on
+1 − δ will output a GMM of k 0 ≤ k Gaussians F̂ that is an          a randomly chosen direction r will be at least 3 .
+-correct subdivision of F .
+                                                                       Then given such a direction r, we can choose n2 different
+   The critical insight in building up such a G ENERAL              directions rx,y each of which are 2 -close to r (i.e. kr −
+U NIVARIATE A LGORITHM is that if two components are                rx,y k ≈ 2 ). We can bound how much the mean and variance
+actually close enough (in statistical distance), then because       of a component in Pu [F ] can change as we vary the direction
+the BASIC U NIVARIATE A LGORITHM only requires a poly-              u from r to rx,y , and this will imply that for 2 << 3 ,
+nomial number of samples, these two components will look            we can consistently pair up estimates recovered from each
+(to our algorithm) as if they were a single Gaussian. So            projection, so that for each component we have n2 different
+given a target precision 1 for the BASIC U NIVARIATE               estimates of the projected mean and variance corresponding
+A LGORITHM, there is some window that describes whether             to the n2 different directions. Each of these estimates are
+or not the algorithm will work correctly: If all pairwise           accurate to within 1 (i.e. this is the target precision that is
+parameter distances are either sufficiently large or suffi-         given to the univariate algorithm).
+ciently small, then the BASIC U NIVARIATE A LGORITHM                   Note that Pr [N (µ, Σ)] = N (rT µ, rT Σr) and so for
+will behave as if it were given sample access to a mixture          any Gaussian, an estimate for the projected mean and the
+that actually does meet the requirements of the algorithm.          projected variance on a direction r gives a linear constraint
+Groups of components for which all pairs are very close             on the mean vector µ and the co-variance matrix Σ. Taking
+in parameter distance will look roughly the same as if we           the union of these linear constraints on µ and Σ for each
+were to replace the entire group with a singe, appropriately        of the n2 directions, we obtain a system of constraints for
+chosen Gaussian. And all pairs of groups will be sufficiently       µ and Σ which has condition number poly( 12 , n) [17]. As
+different in parameter distance that the BASIC U NIVARIATE          a result, if 1 << 2 then the precision is much finer than
+A LGORITHM will be able to tell them apart.                         the condition number of the system of linear constraints on
+   However, when there is some parameter distance that              µ, Σ and we can back-solve to obtain additively accurate
+falls inside the BASIC U NIVARIATE A LGORITHM’s win-                estimates for µ and Σ in n-dimensions. We can directly use
+dow, we are not guaranteed that the BASIC U NIVARIATE               the bound on the condition number given in [17]:
+A LGORITHM will fail safely. The idea, then, is to use
+many disjoint windows (each of which corresponds to                 Lemma 7. [17] Let 2 , 1 > 0. Suppose |m0 − µ · r|,|mij −
+running the BASIC U NIVARIATE A LGORITHM with some                  µ · rij |, |v 0 − rT Σr|,|v ij − (rij )T Σrij | are all at most 1 .
+target precision). If we choose enough such windows, each           Then there is an algorithm that√ outputs µ̂ ∈ Rn and Σ̂ ∈
+pairwise parameter distance can only corrupt a single run of        Rn×n such that kµ̂ − µk < 12 n , and kΣ̂ − ΣkF ≤ 6n         2
+                                                                                                                                      1
+                                                                                                                                        .
+                                                                                                                                     2
+the BASIC U NIVARIATE A LGORITHM so a majority of the               Furthermore, Σ̂  0 and Σ̂ is symmetric.
+computations will be correct. We defer the algorithm and
+proof of correctness to the full version of our paper.                 The algorithm to which this lemma refers is given [17]
+                                                                    and in the full version of our paper.
+                 IV. PARTITION P URSUIT                                The G ENERAL U NIVARIATE A LGORITHM does not al-
+  In this section we demonstrate how to use the G EN -              ways return a mixture of k Gaussians, and can return a
+ERAL U NIVARIATE A LGORITHM to obtain good additive                 mixture F̂ u of k 0 < k Gaussians provided that this mixture
+approximations in n-dimensions. Roughly, we will project            is an 1 -correct subdivision of Pu [F ] (for some direction
+u). But what if we consider two close-by directions, u and         then the statistical distance between these two Gaussians can
+v and the number of Gaussians in the estimate F̂ u differs         be arbitrarily close to 1.
+from the number of Gaussians in the estimate F̂ v ?                   The high-level idea is that if the estimate F̂ returned by
+   The key insight is that if we choose some direction r,          PARTITION P URSUIT is not -close to F (but F̂ is an 1 -
+and close-by directions rx,y , we can ensure that if we see a      correct subdivision of F for 1 << ), then it must be the
+different number of components in some close by direction,         case that some component F̂i of F̂ has a co-variance matrix
+we will see strictly more. In such a case, if on some direction    Σ̂i with the property that for some direction v, v T Σ̂i v is very
+v we see strictly more components than for direction u, we         small. We can then use this direction v to make progress: If
+can just restart our algorithm on direction v, throwing out        we project the mixture F onto v, we will be able to cluster
+all information we have observed so afar. But we have made         accurately. There will be some partition of the components
+progress because we have seen more components.                     in F into two disjoint, non-empty sets of components S, T
+   Suppose we reach a state in which in each (close by)            and some clustering scheme that can accurately clusters
+direction, we observe mixtures of k 0 Gaussians. In each           points sampled from F into points that originated from a
+projection, the set of Gaussians in our estimate corresponds       component in S and points that originated from a component
+to a partition of the original mixture. Suppose every pair of      in T . We show that we can accurately cluster enough sample
+Gaussians in every projection has a large parameter distance       points into such sets so that we can then recursively run our
+(say 3 ) and if all directions are sufficiently close (say        learning algorithm on each of the two sets of samples, which
+2 << 3 ), then the partitions (of the true components) to        now each correspond to samples from a mixture of strictly
+which each estimate corresponds must be the same across            fewer components.
+different directions. This is only true when the number of            The main technical challenge is in showing that if there is
+Gaussians in each estimate is exactly the same. We can             some component of F̂ with a small enough variance in some
+finally apply the above bound on the condition number to           direction v, then we can accurately cluster points sampled
+obtain a multidimensional mixture of k 0 ≤ k Gaussians that        from F (obviously provided that F̂ is additively close to
+is an -correct sub-division for F - i.e. is close to some         F ). Given this, our main result follows almost immediately
+partition of F .                                                   from an inductive argument.
+   We state our main proposition in this section, and defer
+the algorithm and proof to the full version of our paper.          A. How to Cluster
+Proposition 8. Given access to an -statistically learnable          Here we formalize the notion of a clustering scheme.
+GMM F of at most k Gaussians which as a mixture is                 Additionally, we state the key lemmas that will be useful
+in isotropic position, the PARTITION P URSUIT A LGORITHM           in showing that if F̂ is not an -close estimate to F , we
+(for any fixed k) has runtime and sample complexity at most        can use F̂ to construct a good clustering scheme that makes
+poly( 1 , 1δ ) and with probability at least 1 − δ will output    progress on our learning problem.
+an -correct sub-division F̂ and if F has more than one            Definition 7. We will call A, B ⊂ <n a clustering scheme
+component, F̂ also has more than one component.                    if A ∩ B = ∅
+            V. C LUSTERING AND R ECURSION                          Definition 8. For A ⊂ <n , we will write P [Fi , A] to denote
+                                                                   P rx∼Fi [x ∈ A] - i.e. the probability that a randomly chosen
+   In this section, we give an efficient algorithm for learning
+                                                                   sample from Fi is in the set A.
+an estimate F̂ that is -close to the actual mixture F .
+PARTITION P URSUIT assumes that the mixture F is in                   The intuition is clearest in the case of mixtures of two
+isotropic position, and even though F is not necessarily           Gaussians: Suppose one of the components, say F̂1 , had
+in isotropic position, we can first take enough samples to         small variance on direction v. If the entire mixture is in
+compute a transformation that places the mixture F in nearly       isotropic position, then the variance of the mixture when
+isotropic position and then applying this transformation to        projected onto direction v is 1. This can only happen if
+each sample from the oracle.                                       either the difference in projected means |v T (µ̂1 − µ̂2 )| is a
+   The main technical challenge in this section is actually        constant or the variance of F̂2 on direction v is a constant.
+what to do when the mixture F̂ returned by PARTITION               In the first case, we can choose an interval around each
+P URSUIT is a good additive approximation to F (i.e. it is an      projected (estimate) mean v T µ̂1 and v T µ̂2 so that with high
+1 -correct subdivision with 1 << ), but is not -close to the   probability, any point sampled from F1 is contained in the
+mixture F . This can only happen if there is a component in        interval around v T µ̂1 and similarly for F2 .
+F that has a very small variance in some direction (because           If, instead, the variance of F2 when projected onto v
+otherwise additive guarantees yield statistical guarantees).       is a constant, then again a small interval around the point
+Consider for example, two univariate Gaussians N (0, γ) and        v T µ̂1 will contain most samples from F1 , but because the
+N (0, γ + 1 ). Even if 1 is very small, if γ is much smaller,    maximum density of v T F2 is never large and the interval
+around v T µ̂1 is very short, with high probability samples                The above two lemmas serve as the building blocks of the
+from F2 will not be contained in the interval. This idea is             following proposition, which, guarantees that our algorithm
+the basis of our clustering lemmas. Although there will be              will either accurately recover an estimate mixture, or will
+additional complications when the mixture contains more                 be able to successfully partition the mixture and accurately
+than two Gaussians, the intuition is close to the same.                 cluster the set of samples. We defer the proof of the above
+   Let (F̂ , π) ∈ D1 (F ). Suppose also that F̂ is a mixture           lemma to the full version of our paper.
+of k 0 components.
+                                                                        Proposition 13. Given access to an -statistically learnable
+Lemma 9. Suppose that√ for some direction v, for all i:                 GMM F of at most k Gaussians which as a mixture is in
+                                
+v T Σ̂i v ≤ 2 , for 1 ≤ 232 . If there is some bi-partition          isotropic position, there is an algorithm that (for any fixed k)
+                                                      √
+                                                     3 
+S ⊂ [k 0 ] s.t. ∀i∈S,j∈[k0 ]−S |v T µ̂i − v T µ̂j | ≥ 3 2 then there   has runtime and sample complexity at most poly( 1 , 1δ ) and
+is a clustering scheme (A, B) (based only on F̂ ) so that               with probability at least 1 − δ will output either an -close
+for all i ∈ S, j ∈ π −1 (i), P [Fi , A] ≥ 1 − 3 and for all            statistical estimate F̂ for F , or returns a clustering scheme
+i∈/ S, j ∈ π −1 (i), P r[Fi , B] ≥ 1 − 3 .                             A, B such that there is some bipartition S ⊂ [k] such that
+                                                                        for all i ∈ S, j ∈ π −1 (i), P [Fi , A] ≥ 1 − 3 and for all
+   This lemma corresponds to the first case in the above                i∈/ S, j ∈ π −1 (i), P r[Fi , B] ≥ 1 − 3 . And also S, [k] − S
+thought exercise when there is some bi-partition of the                 are both non-emtpy.
+components so that all pairs of projected means across the
+bi-partition are reasonably separated.                                  C. Recursion
+
+Lemma 10. Suppose there is some direction v and some                       Our learning algorithm will work recursively; given a set
+i ∈ [k 0 ] such that: v T Σ̂i v ≤ m , for m >> 1 . If there is       of samples that come from a mixture of at most k 0 Gaussian
+some bi-partition S ⊂ [k 0 ] s.t.                                       components, we put the samples into isotropic position and
+                                                                        run the algorithm of Proposition 13, which will either return
+                      mini∈S v T Σ̂i v             1                    an -close estimate, or a nontrivial clustering (A, B) of the
+                                               ≥
+                max(maxj ∈S T
+                         / v Σ̂j v, m )           t                   samples that respects some bipartition of the components
+                                                                        of the mixture. We will choose the parameters such that the
+(and t << 33 ) then there is a clustering scheme A, B such
+                                                                        clustering error is so small that, with high probability, we can
+that for all i ∈ S, j ∈ π −1 (i), P [Fi , A] ≥ 1 − 3 and for all
+                                                                        recursively run the algorithm on subsamples from the two
+i∈/ S, j ∈ π −1 (i), P r[Fi , B] ≥ 1 − 3 .
+                                                                        clusters A and B. Each set of samples can then be viewed
+   This lemma corresponds to the second case, when there                as coming from a mixture of strictly fewer components than
+is some bi-partition of the components so that one side of              the original set of samples. How do we know when we are
+the bi-partition has projected variances that are much larger           done? As a consequence of Lemma 12, if we put the mixture
+than the other. The proofs of these lemmas are given in the             into roughly isotropic position then project onto a random
+full version of our paper.                                              vector, with high probability the G ENERAL U NIVARIATE
+                                                                        A LGORITHM will return a single component if, and only if
+B. Making Progress when there is a Small Variance
+                                                                        the high-dimensional mixture actually consisted of a single
+   We state a lemma from [17] which formalizes the intuition            component.
+that if there is no component in F̂ has small variance in any              Our main theorem now follows by induction on the
+direction, then F̂ is a good statistical estimate to F :                upper bound on the number of components in our mixture–
+Lemma 11. [17] Suppose kµ̂i −µi k ≤ 1 , kΣ̂i −Σi kF ≤ 1 ,             essentially verifying that the recursive structure of our algo-
+and |ŵi − wi | ≤ 1 , if either kΣ−1      1        −1
+                                   i k2 ≤ 2m or kΣ̂i k2 ≤
+                                                                        rithm is correct. We defer the proof to the full version.
+                                     2
+ 1
+2m   then D(F̂i , Fi )2 ≤ 2n
+                            m + 2m .
+                               1   1
+                                                                        Theorem 1. Given an n dimensional mixture of k Gaussians
+                                                                        F that is -statistically learnable, there is an algorithm that,
+   Additionally, we argue that if we have an -statistically
+                                                                        with probability at least 1 − δ, outputs an -close estimate F̂
+learnable mixture of at least two components, that is in
+                                                                        and the running time and data requirements of our algorithm
+isotropic position, then it must be the case that there
+                                                                        (for any fixed k) are polynomial in n, 1 , and 1δ .
+are at least two components whose parameters differ non-
+negligibly on a random projection.                                       VI. E XPONENTIAL D EPENDENCE ON k IS I NEVITABLE
+Lemma 12. [Isotropic Projection Lemma]    P Given a mixture                We also give a lower bound, showing that exponential
+of k n-Dimensional Gaussians F =            i wi Fi which is            dependence on the number of components is necessary for
+in isotropic position and is -statistically learnable, with            learning -close estimates, even for mixtures in just one
+probability ≥ 1−δ over a randomly chosen direction u, there             dimension. We show this by giving a simple construction
+is some pair of Gaussians Fi , Fj s.t. Dp (Pu [Fi ], Pu [Fj ]) ≥        of two univariate distributions, D1 , D2 that are 1/(2m)-
+ 5 δ 2
+50n2 .                                                                  standard. Specifically, each distribution is a mixture of at
+most m Gaussians, the weight of each component in each                [13] J. Feldman, R. A. Servedio, and R. O’Donnell. PAC learning
+mixture is at least 1/(2m), and the parameter distance be-                axis-aligned mixtures of Gaussians with no separation assump-
+tween the distributions is at least 1/(2m), but ||D1 −D2 ||1 ≤            tion. In COLT, pages 20–34, 2006.
+e−m/30 for sufficiently large m. The   √ construction hinges          [14] A. A. Giannopoulos and V. D. Milman. Concentration
+on the inverse exponential (in k ≈ m) statistical distance                property on probability spaces. Adv. Math., 156:77–106, 2000.
+between N (0, 2), and a mixture of infinitely many Gaussians          [15] P. J. Huber. Projection pursuit. Ann. Statist. 13:435–475,
+of unit variance whose components are centered at multiples               1985.
+of 1/k, where the weight assigned to the component centered
+                                                                      [16] R. A. Hummel and B. C. Gidas. Zero crossings and the Heat
+at i/k is given by N (0, 1, i/k). Verifying this claim is an              Equation. Technical Report Number 111, Courant Institute of
+exercise in Fourier analysis. We then modify the example                  Mathematical Sciences at NYU, 1984.
+slightly so that it meets the conditions of being 1/(4k 2 + 2)-
+                                                                      [17] A. T. Kalai, A. Moitra, and G. Valiant. Efficiently learning
+standard.
+                                                                          mixtures of two Gaussians. In STOC, 2010, to appear.
+Theorem 14. There exists a pair D1 , D2 of 1/(4k 2 + 2)-              [18] R. Kannan, H. Salmasian, and S. Vempala. The spectral
+standard distributions that are each mixtures of k 2 + 1                  method for general mixture models. SIAM J. Comput.,
+Gaussians such that                                                       38(3):1141–1156, 2008.
+                                            2
+                 ||D1 − D2 ||1 ≤ 11ke−k /24 .                         [19] M. J. Kearns, Y. Mansour, D. Ron, R. Rubinfeld, R. E.
+                                                                          Schapire, and L. Sellie. On the learnability of discrete
+                    ACKNOWLEDGMENT                                        distributions. In STOC, pages 273–282, 1994.
+  We are indebted to Adam Tauman Kalai, for introducing               [20] L. Leindler. On a certain converse of Hölder’s Inequality ii.
+us to this beautiful line of research, and for all his insights,          Acta Sci. Math. Szeged, 33:217–223, 1972.
+encouragement, and practical jokes.
+                                                                      [21] B. Lindsay. Mixture models: theory, geometry and applica-
+                         R EFERENCES                                      tions. American Statistical Association, 1995.
+[1] D. Achlioptas and F. McSherry. On spectral learning of            [22] L. Lovász and S. Vempala. The geometry of logconcave func-
+    mixtures of distributions. In COLT, pages 458–469, 2005.              tions and sampling algorithms. Random Struct. Algorithms,
+                                                                          30(3):307–358, 2007.
+[2] S. Arora and R. Kannan. Learning mixtures of arbitrary
+    Gaussians. In STOC, pages 247–257, 2001.                          [23] G.J. McLachan and D. Peel, Finite Mixture Models (2009),
+                                                                          Wiley.
+[3] M. Belkin and K. Sinha. Learning Gaussian mixtures with
+    arbitrary separation. In COLT, 2010, to appear.                   [24] K. Pearson. Contributions to the mathematical theory of
+                                                                          evolution. Phil. Trans. R. Soc. Lond. A, 1894.
+[4] M. Belkin and K. Sinha. Polynomial learning of distribution
+    families. In FOCS, 2010, this proceedings.                        [25] A. Prékopa. Logarithmic concave measures and functions.
+                                                                          Acta. Sci. Math. Szeged, 34:335–343, 1973.
+[5] S. C. Brubaker and S. Vempala. Isotropic PCA and affine-
+    invariant clustering. In FOCS, pages 551–560, 2008.               [26] R. A. Redner and H. F. Walker. Mixture densities, maximum
+                                                                          likelihood and the EM algorithm. SIAM Rev. , 26(2):195-239,
+[6] K. Chaudhuri and S. Rao. Learning mixtures of product                 1984.
+    distributions using correlations and independence. In COLT,
+    pages 9–20, 2008.                                                 [27] M. Rudelson. Random vectors in the isotropic position. J.
+                                                                          Funct. Anal, 164:60–72, 1999.
+[7] K. Chaudhuri and S. Rao. Beyond Gaussians: Spectral methods
+    for learning mixtures of heavy-tailed distributions. In COLT,     [28] M. Rudelson and R. Vershynin. Sampling from large ma-
+    pages 21–32, 2008.                                                    trices: An approach through geometric functional analysis. J.
+                                                                          ACM, 54(4): 2007.
+[8] A. Dasgupta, J. Hopcroft, J. Kleinberg, and M. Sandler. On
+    learning mixtures of heavy-tailed distributions. In FOCS, pages   [29] H. Teicher. Identifiability of mixtures. Ann. Math. Statist.,
+    491–500, 2005.                                                        32(1):244–248, 1961.
+[9] S. Dasgupta. Learning mixtures of Gaussians. In FOCS, pages       [30] D.M. Titterington, A.F.M. Smith, and U.E. Makov. Statistical
+    634–644, 1999.                                                        analysis of finite mixture distributions (1985), Wiley.
+[10] S. Dasgupta, A. T. Kalai, and C. Monteleoni. Analysis of         [31] L. Valiant. A theory of the learnable.         Comm. ACM,
+    perceptron-based active learning. In COLT, pages 249–263,             27(11):1134–1142, 1984.
+    2005.
+                                                                      [32] S. Vempala and G. Wang. A spectral algorithm for learning
+[11] S. Dasgupta and L. J. Schulman. A two-round variant of EM            mixture models. J. Comput. Syst. Sci., 68(4):841–860, 2004.
+    for Gaussian mixtures. In UAI, pages 152–159, 2000.
+                                                                      [33] C. F. J. Wu. On the convergence properties of the EM
+[12] A. P. Dempster, N. M. Laird, and D. B. Rubin. Maximum                Algorithm. Ann. Stat., 11(1):95–103, 1983.
+    likelihood from incomplete data via the EM Algorithm. J. Roy.
+    Statist. Soc. Ser. B, 39:1–38, 1977.
+

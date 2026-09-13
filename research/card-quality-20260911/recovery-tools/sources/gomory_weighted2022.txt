@@ -1,0 +1,2702 @@
+                                                     Breaking the Cubic Barrier for All-Pairs Max-Flow:
+                                                        Gomory-Hu Tree in Nearly Quadratic Time
+                                               Amir Abboud∗           Robert Krauthgamer†              Jason Li‡        Debmalya Panigrahi§
+                                                                    Thatchaphol Saranurak¶                 Ohad Trabelsi‖
+arXiv:2111.04958v3 [cs.DS] 3 Aug 2022
+
+
+
+
+                                                                                       August 5, 2022
+
+
+
+                                                                                           Abstract
+                                                   In 1961, Gomory and    Hu showed that the All-Pairs Max-Flow problem of computing the
+                                               max-flow between all n2 pairs of vertices in an undirected graph can be solved using only n − 1
+                                               calls to any (single-pair) max-flow algorithm. Even assuming a linear-time max-flow algorithm,
+                                               this yields a running time of O(mn), which is O(n3 ) when m = Θ(n2 ). While subsequent work
+                                               has improved this bound for various special graph classes, no subcubic-time algorithm has been
+                                               obtained in the last 60 years for general graphs. We break this longstanding barrier by giving
+                                               an Õ(n2 )-time algorithm on general, weighted graphs. Combined with a popular complexity
+                                               assumption, we establish a counter-intuitive separation: all-pairs max-flows are strictly easier
+                                               to compute than all-pairs shortest-paths.
+                                                   Our algorithm produces a cut-equivalent tree, known as the Gomory-Hu tree, from which
+                                               the max-flow value for any pair can be retrieved in near-constant time. For unweighted graphs,
+                                               we refine our techniques further to produce a Gomory-Hu tree in the time of a poly-logarithmic
+                                               number of calls to any max-flow algorithm. This shows an equivalence between the all-pairs and
+                                               single-pair max-flow problems, and is optimal up to poly-logarithmic factors. Using the recently
+                                               announced m1+o(1) -time max-flow algorithm (Chen et al., March 2022), our Gomory-Hu tree
+                                               algorithm for unweighted graphs also runs in m1+o(1) -time.
+
+
+                                               Historical note: The first version of this paper (arXiv:2111.04958) titled “Gomory-Hu Tree
+                                               in Subcubic Time” (Nov. 9, 2021) broke the cubic barrier but only claimed a time bound of
+                                               Õ(n2.875 ). The second version (Nov. 30, 2021) optimized one of the ingredients (Section 2)
+                                               and gave the Õ(n2 ) time bound. The latter optimization was discovered independently by
+                                               Zhang [Zha21].
+
+                                           ∗
+                                             Weizmann Institute of Science. Supported by an Alon scholarship and a research grant from the Center for New
+                                        Scientists at the Weizmann Institute of Science. Email: amir.abboud@weizmann.ac.il
+                                           †
+                                             Weizmann Institute of Science. Work partially supported by ONR Award N00014-18-1-2364, the Israel Science
+                                        Foundation grant #1086/18, the Weizmann Data Science Research Center, and a Minerva Foundation grant. Email:
+                                        robert.krauthgamer@weizmann.ac.il
+                                           ‡
+                                             Simons Institute for the Theory of Computing, University of California, Berkeley. Email: jmli@cs.cmu.edu
+                                           §
+                                             Duke University. Supported in part by NSF Awards CCF-1750140 (CAREER) and CCF-1955703, and ARO
+                                        Award W911NF2110230. Email: debmalya@cs.duke.edu
+                                           ¶
+                                             University of Michigan, Ann Arbor. Email: thsa@umich.edu
+                                           ‖
+                                             University of Michigan, Ann Arbor. Work partially supported by the NSF Grant CCF-1815316, and by the NWO
+                                        VICI grant 639.023.812. Email: ohadt@umich.edu
+Contents
+1 Introduction                                                                                       1
+  1.1 Related Work . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   3
+  1.2 Overview of Techniques . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     4
+
+2 Single-Source Mincuts Given a Guide Tree                                                           7
+  2.1 Correctness . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 10
+  2.2 Running Time . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 13
+
+3 Constructing Guide Trees                                                                           15
+  3.1 Steiner-Subgraph Packing vs Steiner Mincut . . . . . . . . . . . . . . . . . . . . . . .       18
+  3.2 (2 + )-approximate Steiner-Subgraph Packing . . . . . . . . . . . . . . . . . . . . .         19
+      3.2.1 Algorithm Based on Multiplicative Weight Update . . . . . . . . . . . . . . .            19
+      3.2.2 Efficient Implementation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     22
+
+4 Decremental (2 + )-approximate Minimum Steiner Subgraphs                                          22
+  4.1 The Helper Graph . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     24
+  4.2 Maintaining the Helper Graph Dynamically: A Reduction to SSSP . . . . . . . . . .              27
+      4.2.1 The Basic Construction . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .       28
+      4.2.2 The Full Construction . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      32
+
+5 Conclusion                                                                                         36
+
+A Reduction to Single-Source Terminal Mincuts Given a Promise                                        42
+  A.1 Additional Preliminaries . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   44
+  A.2 A Single Recursive Step . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    45
+  A.3 The Gomory-Hu Tree Algorithm . . . . . . . . . . . . . . . . . . . . . . . . . . . . .         47
+1        Introduction
+The edge connectivity of a pair of vertices s, t in an undirected graph is defined as the minimum
+weight of edges whose removal disconnects s and t in the graph. Such a set of edges is called an
+(s, t) mincut, and by duality, its value is equal to that of an (s, t) max-flow. Consequently, the edge
+connectivity of a vertex pair is obtained by running a max-flow        algorithm, and by extension, the
+                                                              n
+edge connectivity for all vertex pairs can be obtained by 2 = Θ(n2 ) calls to a max-flow algorithm.
+                                                                
+
+(Throughout, n and m denote the number of vertices and edges in the input graph G = (V, E, w),
+where w : E → Z0+ maps edges to non-negative integer weights. We denote the maximum edge
+weight by W .)
+
+Definition 1.1 (The All-Pairs Max-Flow (APMF) Problem). Given an undirected edge-weighted
+graph, return the edge connectivity of all pairs of vertices.
+
+    Remarkably, Gomory and Hu [GH61] showed in a seminal work in 1961 that one can do a lot
+better than this naı̈ve algorithm. In particular, they introduced the notion of a cut tree (later called
+Gomory-Hu tree, which we abbreviate as GHtree) to show that n − 1 max-flow calls suffice for
+finding the edge connectivity of all vertex pairs.
+
+Theorem 1.2 (Gomory-Hu (1961)). For any undirected edge-weighted graph G = (V, E), there is
+a cut tree (or GHtree), which is defined as a tree T on the same set of vertices V such that for
+all pairs of vertices s, t ∈ V , the (s, t) mincut in T is also an (s, t) mincut in G and has the same
+cut value. Moreover, such a tree can be computed using n − 1 max-flow calls.1
+
+    Since their work, substantial effort has gone into obtaining better GHtree algorithms, and
+faster algorithms are now known for many restricted graph classes, including unweighted graphs [BHKP07,
+KL15, AKT21b], simple graphs [AKT21c, AKT21a, LPS21, Zha22, AKT22], planar graphs [BSW15],
+surface-embedded graphs [BENW16], bounded treewidth graphs [ACZ98, AKT20], and so on (see
+Table 1 and the survey [Pan16]). Indeed, GHtree algorithms are part of standard textbooks in
+combinatorial optimization (e.g., [AMO93, CCPS97, Sch03]) and have numerous applications in
+diverse areas such as networks [Hu74], image processing [WL93], and optimization [PR82]. They
+have also inspired entire research directions as the first example of a sparse representation of graph
+cuts, the first non-trivial global min-cut algorithm, the first use of submodular minimization in
+graphs, and so forth.
+    In spite of this attention, Gomory and Hu’s 60-year-old algorithm has remained the state of
+the art for constructing a GHtree in general, weighted graphs (or equivalently for APMF, due to
+known reductions [AKT20, LPS21] showing that any APMF algorithm must essentially construct a
+GHtree). Even if we assume an optimal O(m)-time max-flow algorithm, the Gomory-Hu algorithm
+takes O(mn) time, which is O(n3 ) when m = Θ(n2 ). Breaking this cubic barrier for the GHtree
+problem has been one of the outstanding open questions in the graph algorithms literature.
+    In this paper, we break this longstanding barrier by giving a GHtree algorithm that runs in
+Õ(n2 )-time for general, weighted graphs.
+
+Theorem 1.3. There is a randomized Monte Carlo algorithm for the GHtree (and APMF)
+problems that runs in Õ(n2 ) time in general, weighted graphs.
+    1
+        These max-flow calls are on graphs that are contractions of G, and thus no larger than G.
+
+
+
+
+                                                            1
+Remarks: 1. As noted earlier (and similar to state-of-the-art max-flow algorithms), we assume
+throughout the paper that edge weights are integers in the range {1, 2, . . . , W }. Throughout, the
+notation Õ(·) hides poly-logarithmic factors in n and W .
+2. Our result is unconditional, i.e., it does not need to assume a (near/almost) linear-time max-flow
+algorithm. We note that concurrent to our work, an almost-linear time max-flow algorithm has been
+announced [CKL+ 22]. Our improvement of the running time of GHtree/APMF is independent of
+this result: even with this result, the best GHtree/APMF bound was m1+o(1) n which is between
+n2+o(1) and n3+o(1) depending on the value of m, and we improve it to Õ(n2 ). Moreover, we stress
+that we do not need any recent advancement in max-flow algorithms for breaking the cubic barrier:
+even using the classic Goldberg-Rao max-flow algorithm [GR98] in our (combinatorial) algorithm
+solves GHtree/APMF in subcubic time.
+    Our techniques also improve the bounds known for the GHtree problem in unweighted graphs,
+and even for simple graphs. For unweighted graphs, the best previous results were Õ(mn) obtained
+by Bhalgat et al. [BHKP07] and by Karger and Levine [KL15], and an incomparable result that
+                                    √
+reduces the GHtree problem to O( m) max-flow calls [AKT21b]. There has recently been much
+interest and progress on GHtree in simple graphs as well [AKT21c, AKT21a, LPS21, Zha22,
+AKT22], with the current best running time being (m + n1.9 )1+o(1) .
+    We give a reduction of the GHtree problem in unweighted graphs to polylog(n) calls of any
+max-flow algorithm. Note that this reduction is nearly optimal (i.e., up to the poly-log factor)
+since the all-pairs max-flow problem is at least as hard as finding a single-pair max-flow. Using the
+recent m1+o(1) -time max-flow algorithm [CKL+ 22], this yields a running time of m1+o(1) for the
+GHtree problem in unweighted graphs.
+
+Theorem 1.4. There is a randomized Monte Carlo algorithm for the GHtree problem that runs
+in m1+o(1) time in unweighted graphs.
+
+APMF vs APSP. Our results deliver a surprising message to a primordial question in graph
+algorithms: What is easier to compute, shortest paths or max-flows? Ignoring no(1) factors, the
+single-pair versions are both solvable in linear-time and therefore equally easy; albeit, the shortest
+path algorithm [Dij59] is classical, elementary, and fits on a single page, whereas the max-flow
+algorithm [CKL+ 22] is very recent, highly non-elementary, and requires more than a hundred
+pages to describe and analyze. This and nearly all other evidence had supported the consensus
+that max-flows are at least as hard as (if not strictly harder than) shortest paths, and perhaps this
+can be established by looking at the more general all-pairs versions: APMF and APSP (All-Pairs
+Shortest-Paths). Much effort had gone into proving this belief (APMF ≥ APSP) using the tools
+of fine-grained complexity [AVY15, KT18, AGI+ 19, AKT21b, AKT20], with limited success: it was
+shown that (under popular assumptions) APMF is strictly harder than APSP in directed graphs,
+but the more natural undirected setting remained open. The first doubts against the consensus
+were raised in the aforementioned n2+o(1) algorithms for APMF in simple (unweighted ) graphs that
+go below the nω bound of APSP [Sei95] (where 2 ≤ ω < 2.37286 [AW21] denotes the fast matrix
+multiplication exponent). But if, as many experts believe, ω = 2 + o(1) then the only conclusion is
+that APMF and APSP are equally easy in simple graphs. In general (weighted ) graphs, however,
+one of the central conjectures of fine-grained complexity states that the cubic bound for APSP
+cannot be broken (even if ω = 2). Under this “APSP Conjecture”, Theorem 1.3 proves that
+APMF is strictly easier than APSP! Alternatively, if one still believes that APMF ≥ APSP, then
+
+
+                                                  2
+ Restriction                 Running time                 Reference
+ General                    (n − 1) · T (n, m)            Gomory and Hu [GH61]
+ Bounded Treewidth*                Õ(n)                  Arikati, Chaudhuri, and Zaroliagis [ACZ98]
+ Unweighted                      Õ(mn)                   Karger and Levine [KL15]
+ Unweighted                      Õ(mn)                   Bhalgat, Hariharan, Kavitha, and Panigrahi [BHKP07]
+ Planar                            Õ(n)                  Borradaile, Sankowski, and Wulff-Nilsen [BSW15]
+ Bounded Genus                     Õ(n)                  Borradaile, Eppstein, Nayyeri, and Wulff-Nilsen [BENW16]
+                              √
+ Unweighted                Õ( m) · T (n, m)              Abboud, Krauthgamer, and Trabelsi [AKT21b]
+ (1 + )-Approx*                  Õ(n2 )                 Abboud, Krauthgamer, and Trabelsi [AKT20]
+ Bounded Treewidth                 Õ(n)                  Abboud, Krauthgamer, and Trabelsi [AKT20]
+ Simple                          Õ(n2.5 )                Abboud, Krauthgamer, and Trabelsi [AKT21c]
+ (1 + )-Approx           polylog(n) · T (n, m)           Li and Panigrahi [LP21]
+ Simple                           Õ(n2 )                 † Abboud, Krauthgamer, and Trabelsi [AKT21a]
+ Simple                           Õ(n2 )                 † Li, Panigrahi, and Saranurak [LPS21]
+                                       1
+ Simple                          Õ(n2 8 )                † Zhang [Zha22]
+ Simple                       Õ(m + n1.9 )               Abboud, Krauthgamer, and Trabelsi [AKT22]
+ General                            Õ(n2 )               Theorem 1.3
+                       1+o(1)
+ Unweighted           m         + polylog(n) · T (n, m)   Theorem 1.4
+
+
+Table 1: Algorithms for constructing a data-structure that answers s, t-min-cut queries in Õ(1)
+time (listed chronologically). Except for those marked with *, they all also produce a Gomory-
+Hu tree. T (n, m) denotes the time to compute s, t-max-flow in an undirected graph, which using
+Chen et al. [CKL+ 22] is m1+o(1) . The three results marked with † were obtained concurrently and
+independently of each other.
+
+
+our paper provides strong evidence against the APSP Conjecture and against the validity of the
+dozens of lower bounds that are based upon it (e.g., [RZ04, WW18, AW14, AGW15, Sah15, AD16,
+BGMW20]) or upon stronger forms of it (e.g., [BT17, BDT16, CMWW19, ACK20, GMW21]).
+
+1.1    Related Work
+Algorithms. Before this work, the time complexity of constructing a Gomory-Hu tree in general
+graphs has improved over the years only due to improvements in max-flow algorithms. An alterna-
+tive algorithm for the problem was discovered by Gusfield [Gus90], where the n−1 max-flow queries
+are made on the original graph (instead of on contracted graphs). This algorithm has the same
+worst-case time complexity as Gomory-Hu’s, but may perform better in practice [GT01]. Many
+faster algorithms are known for special graph classes or when allowing a (1 + )-approximation, see
+Table 1 for a summary. Moreover, a few heuristic ideas for getting a subcubic complexity in social
+networks and web graphs have been investigated [AIS+ 16].
+
+Hardness Results. The attempts at proving conditional lower bounds for All-Pairs Max-Flow
+have only succeeded in the harder settings of directed graphs [KT18, AGI+ 19] or undirected graphs
+with vertex weights [AKT21b], where Gomory–Hu trees cannot even exist [May62, Jel63, HL07]. In
+particular, SETH gives an n3−o(1) lower bound for weighted sparse directed graphs [KT18] and the
+4-Clique conjecture gives an nω+1−o(1) lower bound for unweighted dense directed graphs [AGI+ 19].
+
+
+
+
+                                                          3
+Applications. Gomory-Hu trees have appeared in many application domains. We mention a few
+examples: in mathematical optimization for the b-matching problem [PR82] (and that have been
+used in a breakthrough NC algorithm for perfect matching in planar graphs [AV20]); in computer
+vision [WL93], leading to the graph cuts paradigm; in telecommunications [Hu74] where there is
+interest in characterizing which graphs have a Gomory-Hu tree that is a subgraph [KV12, NS18].
+The question of how the Gomory-Hu tree changes with the graph has arisen in applications such as
+energy and finance and has also been investigated, e.g. [Elm64, PQ80, BBDF06, HW13, BGK20].
+
+1.2      Overview of Techniques
+We now introduce the main technical ingredients used in our algorithm, and explain how to put
+them together to prove Theorem 1.3 and Theorem 1.4.
+
+Notation. In this paper, a graph G is an undirected graph G = (V, E, w) with edge weights
+w(e) ∈ {1, 2, . . . , W } for all e ∈ E. If w(e) = 1 for all e P
+                                                               ∈ E, we say that G is unweighted. The
+total weight of an edge set E 0 ⊆ E is defined as w(E 0 ) = e∈E 0 w(e). For a cut (S, V \ S), we also
+refer to a side S of this cut as a cut. The value of cut S is denoted δ(S) = w(E(S, V \ S)). For any
+two vertices a, b, we say that S is an (a, b)-cut if |S ∩ {a, b}| = 1. An (a, b)-mincut is an (a, b)-cut
+of minimum value, and we denote its value by λ(a, b).
+
+Reduction to Single-Source Minimum Cuts. The classic Gomory-Hu approach to solving
+APMF is to recursively solve (s, t) mincut problems on graphs obtained by contracting portions
+of the input graph. This leads to n − 1 max-flow calls on graphs that cumulatively have O(mn)
+edges. Recent work [AKT20] has shown that replacing (s, t) mincuts by a more powerful gadget of
+single-source mincuts reduces the cumulative size of the contracted graphs to only Õ(m). But, how
+do we solve the single-source mincuts problem? Prior to our work, a subcubic algorithm was only
+known for simple graphs [AKT21c, AKT21a, LPS21, Zha22, AKT22]. Unfortunately, if applied to
+non-simple graphs, these algorithms become incorrect, and not just inefficient.
+    Conceptually, our main contribution is to give an Õ(n2 )-time algorithm for the single source
+mincuts problem in general weighted graphs. For technical reasons, however, we will further restrict
+this problem in two ways: (1) the algorithm (for the single-source problem) only needs to return
+the values λ(s, t) for some terminals t ∈ U \ {s}, and (2) the mincut values λ(s, t) for the terminals
+t ∈ U \ {s} are guaranteed to be within a 1.1-factor of each other.2
+    We now state a reduction from GHtree to this restricted single-source problem. Let U ⊆ V
+be a set of terminal vertices. The U -Steiner connectivity/mincut is λ(U ) = mina,b∈U λ(a, b). The
+restricted single-source problem is defined below.
+
+Problem 1.5 (Single-Source Terminal Mincuts). The input is a graph G = (V, E, w), a terminal
+set U ⊆ V and a source terminal s ∈ U with the promise that for all t ∈ U \ {s}, we have
+λ(U ) ≤ λ(s, t) ≤ 1.1λ(U ). The goal is to determine the value of λ(s, t) for each terminal t ∈ U \{s}.
+
+   The reduction has two high-level steps. First, we reduce the single-source terminal mincuts
+problem without the promise that λ(s, t) ∈ [λ(U ), 1.1λ(U )] (we define this as Problem A.1 in Ap-
+pendix A) to the corresponding problem with the promise (i.e., Problem 1.5) by calling an approx-
+imate single-source mincuts algorithm of Li and Panigrahi [LP21]. Then, we use a reduction from
+  2
+      The value 1.1 is arbitrary and can be replaced by any suitably small constant greater than 1.
+
+
+                                                           4
+Gomory-Hu tree to the single-source terminal mincuts without the promise (i.e., Problem A.1) that
+was presented by Li [Li21].3 We present both steps of the reduction in Appendix A.
+
+Lemma 1.6 (Reduction to Single-Source Terminal Mincuts). There is a randomized algorithm
+that computes a GHtree of an input graph by making calls to max-flow and single-source terminal
+mincuts (with the promise, i.e., Problem 1.5) on graphs with a total of Õ(n) vertices and Õ(m)
+edges, and runs for Õ(m) time outside of these calls.
+
+Guide Trees. The main challenge, thus, is to solve single-source terminal mincuts (Problem 1.5)
+faster than n − 1 max-flow calls. Let us step back and think of a simpler problem: the global mincut
+problem. In a beautiful paper, Karger [Kar00] gave a two-step recipe for solving this problem by
+using the duality between cuts and tree packings. First, by packing a maximum set of edge-disjoint
+spanning trees in a graph and sampling one of them uniformly at random, the algorithm obtains
+a spanning tree that, with high probability, 2-respects the global mincut, meaning that only two
+edges from the tree cross the cut. Second, a simple linear-time dynamic program computes the
+minimum value cut that 2-respects the tree. Can we use this approach?
+    Clearly, we cannot hope to pack λ(U ) disjoint spanning trees since the global mincut value could
+be much less than λ(U ). But what about Steiner trees? A tree T is called a U -Steiner tree if it
+spans U , i.e., U ⊆ V (T ). When U is clear from the context, we write Steiner instead of U -Steiner.
+    First, we define the k-respecting property for Steiner trees.
+
+Definition 1.7 (k-respecting). Let A ⊆ V be a cut in G = (V, E, w). Let T be a tree on (some
+subset of) vertices in V . We say that the tree T k-respects the cut A (and vice versa) if T contains
+at most k edges with exactly one endpoint in A.
+
+   Using this notion of k-respecting Steiner trees, we can now define a collection of guide trees
+that is analogous to a packing of spanning trees.
+
+Definition 1.8 (Guide Trees). For a graph G and set of terminals U ⊆ V with a source s ∈ U , a
+collection of U -Steiner trees T1 , . . . , Th is called a k-respecting set of guide trees, or in short guide
+trees, if for every t ∈ U \ {s}, at least one tree Ti k-respects some (s, t)-mincut in G.
+
+       Two questions immediately arise:
+
+   1. Can we actually obtain such k-respecting guide trees, for a small k (and h)?
+
+   2. Can guide trees be used to speed up the single-source mincuts algorithm?
+
+    The first question can be solved in a way that is conceptually (but not technically) similar
+to Karger’s algorithm for global mincut. We first prove, using classical tools in graph theory
+(namely, Mader’s splitting-off theorem [Mad78], and Nash-Williams [NW61] and Tutte’s [Tut61]
+tree packing) that there exists a packing with λ(U )/2 edge-disjoint Steiner trees. Then, we use the
+width-independent Multiplicative Weights Update (MWU) framework [GK07, Fle00, AHK12] to
+pack a near-optimal number of Steiner trees using Õ(m) calls to an (approximation) algorithm for
+the minimum Steiner tree problem. For the latter, we use Mehlhorn’s 2-approximation algorithm
+[Meh88] that runs in Õ(m) time, giving a packing of λ(U )/4 Steiner trees in Õ(m2 ) time. To speed
+   3
+    The actual reduction is slightly stronger in the sense that it only requires a “verification” version of single-source
+terminal mincuts, but we omit that detail for simplicity.
+
+
+                                                            5
+this up, we compute the packing in a (1 + )-cut-sparsifier of G (e.g., [BK15]), which effectively
+reduces m to Õ(n) for this step. Overall, this gives an Õ(n2 )-time algorithm for constructing
+4-respecting guide trees.
+    We note that our improved running time for unweighted graphs comes from replacing this
+algorithm for constructing guide trees by a more complicated algorithm. Specifically, we show that
+all of the Õ(m) calls to (approximate) minimum Steiner tree during the MWU algorithm can be
+handled in a total of m1+o(1) time using a novel dynamic data structure that relies on (1) a non-
+trivial adaptation of Mehlhorn’s reduction from minimum Steiner tree to Single-Source Shortest
+Paths and (2) a recent dynamic algorithm for the latter problem [BGS22]. This achieves running
+time m1+o(1) compared with Õ(n2 ) for unweighted graphs.
+    We summarize the construction of guide trees in the next theorem, which we prove in Section 3.
+(The new dynamic data structure that is used in the improvement for unweighted graphs is given
+in Section 4.)
+
+Theorem 1.9 (Constructing Guide Trees). There is a randomized algorithm that, given a graph
+G = (V, E, w), a terminal set U ⊆ V and a source terminal s ∈ U , with the guarantee that for all
+t ∈ U \ {s}, λ(U ) ≤ λ(s, t) ≤ 1.1λ(U ), computes a 4-respecting set of O(log n) guide trees. The
+algorithm takes Õ(n2 ) time on weighted graphs (i.e., when w(e) ∈ {1, 2, . . . , W } for all e ∈ E) and
+m1+o(1) time on unweighted graphs (i.e., when w(e) = 1 for all e ∈ E).
+
+    But, how do guide trees help? In the case of global mincuts, the tree is spanning, hence every
+k tree edges define a partition of V , and also a cut in G. Therefore, once the k-respecting property
+has been achieved, finding the best k-respecting cut is a search over at most nk cuts for any given
+tree, and can be done using dynamic programming for small k [Kar00]. In contrast, specifying the
+k tree-edges that are cut leaves an exponential number of possibilities when T is a Steiner tree
+based on which side of the cut the vertices not in T appear on. In fact, in the extreme case where
+the Steiner tree is a single edge between two terminals s and t, computing the 1-respecting mincut
+is as hard as computing (s, t)-mincut.
+    We devise a recursive strategy to solve the problem of obtaining k-respecting (s, t)-mincuts.
+First, we root the tree T at a centroid, and recurse in each subtree (containing at most half as
+many vertices). We show that this preserves the k-respecting property for (s, t)-mincuts. However,
+in general, this is too expensive since the entire graph G is being used in each recursive call, and
+there can be many subtrees (and a correspondingly large number of recursive calls). Nevertheless,
+we show that this strategy can be made efficient when all the cut edges are in the same subtree by
+an application of the Isolating Cuts Lemma from [LP20, AKT21c].
+    This leaves us with the case that the cut edges are spread across multiple subtrees. Here, we
+use a different recursive strategy. We use random sampling of the subtrees to reduce the number
+of cut edges, and then make recursive calls with smaller values of k. Note that this effectively
+turns our challenge in working with Steiner trees vis-à-vis spanning trees into an advantage; if we
+were working on spanning trees, sampling and removing subtrees would have violated the spanning
+property. This strategy works directly when there exists at least one cut edge in a subtree other
+than those containing s and t; then, with constant probability, we remove this subtree but not the
+ones containing s, t to reduce k by at least 1. The more tricky situation is if the cut edges are only
+in the subtrees of s and t; this requires a more intricate procedure involving a careful relabeling of
+the source vertex s using a Cut Threshold Lemma from [LP21].
+    The algorithm is presented in detail in Section 2, and we state here its guarantees.
+
+
+                                                   6
+Theorem 1.10 (Single-Source Mincuts given a Guide Tree). Let G = (V, E, w) be a weighted
+graph, let T be a tree defined on (some subset of ) vertices in V , and let s be a vertex in T . For
+any fixed integer k ≥ 2, there is a Monte-Carlo algorithm that finds, for each vertex t 6= s in T ,
+a value λ̃(t) ≥ λ(s, t) such that λ̃(t) = λ(s, t) if T is k-respecting an (s, t)-mincut. The algorithm
+takes m1+o(1) time.
+
+Remarks: The algorithm in Theorem 1.10 calls max-flow on instances of maximum number of
+m edges and n vertices and total number of Õ(m) edges and Õ(n) vertices, and spends Õ(m) time
+outside these calls. The number of logarithmic factors hidden in the Õ(·) depends on k. Note that
+the running time of the algorithm is m1+o(1) even when G is a weighted graph.
+
+Putting it all together: Proof of Theorem 1.3 and Theorem 1.4 The three ingredients
+above suffice to prove our main theorems. By Lemma 1.6, it suffices to solve the single-source
+mincut problem (Problem 1.5). Given an instance of Problem 1.5 on a graph G with terminal set
+U , we use Theorem 1.9 to obtain a 4-respecting set of O(log n) guide trees. We call the algorithm in
+Theorem 1.10 for each of the O(log n) trees separately and keep, for each t ∈ U \ {s}, the minimum
+λ̃(s, t) found over all the O(log n) trees.
+    The running time of the final algorithm equals that of max-flow calls on graphs with at most
+O(m) edges and O(n) vertices each, and total number of Õ(m) edges and Õ(n) vertices. In addition,
+the algorithm takes Õ(n2 ) time outside of these calls (in Theorem 1.9); in unweighted graphs, the
+additional time is only m1+o(1) .
+
+
+2    Single-Source Mincuts Given a Guide Tree
+In this section, we present our single-source mincut algorithm (SSMC) given a guide tree, which
+proves Theorem 1.10.
+    Before describing the algorithm, we state two tools we will need. The first is the Isolating-Cuts
+procedure introduced by Li and Panigrahi [LP20] and independently by Abboud, Krauthgamer,
+and Trabelsi [AKT21c]. (Within a short time span, this has found several interesting applications
+[LP21, CQ21, MN21, LNP+ 21, AKT21a, LPS21, Zha22, AKT22, CLP22].)
+    Recall that for a vertex set S ⊆ V , δ(S) denotes the total weight of edges with exactly one
+endpoint in S (i.e., the value of the cut (S, V \ S)). For any two disjoint vertex sets A, B ⊆ V , we
+say that S is an (A, B)-cut if A ⊆ S and B ∩ S = ∅ or B ⊆ S and A ∩ S = ∅. In other words, the
+cut S “separates” the vertex sets A and B. We say that S is an (A, B)-mincut if it is an (A, B)-cut
+of minimum value, and let λ(A, B) denote the value of an (A, B)-mincut. As described earlier, if
+A and B are singleton sets, say A = {a} and B = {b}, then we use the shortcut (a, b)-mincut to
+denote an (A, B)-mincut, and use λ(a, b) to denote the value of an (a, b)-mincut.
+    We now state the isolating cuts lemma from [LP20, AKT21c]:
+
+Lemma 2.1 (Isolating Cuts Lemma: Theorem 2.2 in [LP20], also follows from Lemma 3.4 in
+[AKT21c]). There is an algorithm that, given a graph G = (V, E, w) and a collection U of disjoint
+terminal sets U1 , . . . , Uh ⊆ V , computes a (Ui , ∪j6=i Uj )-mincut for every Ui ∈ U. The algorithm
+calls max-flow on graphs that cumulatively contain O(m log h) edges and O(n log h) vertices, and
+spends Õ(m) time outside these calls.
+
+
+
+                                                  7
+Remark: The isolating cuts lemma stated above slightly generalizes the corresponding statement
+from [LP20, AKT21c]. In the previous versions, each of the sets U1 , U2 , . . . , Uh is a distinct singleton
+vertex in V . The generalization to disjoint sets of vertices is trivial because we can contract each
+set Ui for i ∈ [h] and then apply the original isolating cuts lemma to this contracted graph to obtain
+Lemma 2.1.
+    We call each (Ui , ∪j6=i Uj )-mincut Si a minimum isolating cut because it “isolates” Ui from the
+rest of the terminal sets, using a cut of minimum size. The advantage of this lemma is that it
+essentially only costs O(log h) max-flow calls, which is an exponential improvement over the naı̈ve
+strategy of running h max-flow calls, one for each Ui .
+    The next tool is the Cut-Threshold procedure of Li and Panigrahi, which has been used earlier
+in the approximate Gomory-Hu tree problem [LP21] and in edge connectivity augmentation and
+splitting off algorithms [CLP22].
+
+Lemma 2.2 (Cut-Threshold Lemma: Theorem 1.6 in [LP21]). There is a randomized, Monte-
+Carlo algorithm that, given a graph G = (V, E, w), a vertex s ∈ V , and a threshold λ, computes all
+vertices v ∈ V with λ(s, v) ≤ λ (recall that λ(s, v) is the size of an (s, v)-mincut). The algorithm
+calls max-flow on graphs that cumulatively contain Õ(m) edges and Õ(n) vertices, and spends Õ(m)
+time outside these calls.
+
+   We use the Cut-Threshold lemma to obtain the following lemma, which is an important com-
+ponent of our final algorithm.
+
+Lemma 2.3. For any subset U ⊆ V of vertices and a vertex s ∈    / U , there is a randomized, Monte-
+Carlo algorithm that computes λmax = max{λ(s, t) : t ∈ U } as well as all vertices t ∈ U attaining
+this maximum, i.e., the vertex set arg maxt∈U {λ(s, t)}. The algorithm calls max-flow on graphs
+that cumulatively contain Õ(m) edges and Õ(n) vertices, and spends Õ(m) time outside these calls.
+
+Proof. We binary search for the value of λmax . For a given estimate λ, we call the Cut-Threshold
+Lemma (Lemma 2.2) with this value of λ; if the procedure returns a set containing all vertices
+in U , then we know λmax ≤ λ; otherwise, we have λmax > λ. A simple binary search recovers
+the exact value of λmax in O(log nW ) iterations since edge weights are integers in {1, 2, . . . , W }.
+Finally, we call the Cut-Threshold Lemma with λ = λmax − 1; we remove the vertices returned by
+this procedure from U to obtain all vertices t ∈ U satisfying λ(s, t) = λmax . For the running time
+bound, note that by Lemma 2.2, each iteration of the binary search calls max-flow on graphs that
+cumulatively contain Õ(n) vertices and Õ(m) edges, and uses Õ(m) time outside these calls.
+
+The SSMC Algorithm. Having introduced the main tools, we are now ready to present our
+SSMC algorithm (see Figure 1). The input to the algorithm is a graph G = (V, E, w) containing
+a specified vertex s, a (guide) tree T containing s, and a positive integer k. The algorithm is a
+recursive algorithm, and although the guide tree initially only contains vertices in V , there will be
+additional vertices (not in V ) that are introduced into the guide tree in subsequent recursive calls.
+To distinguish between these two types of vertices, we define R(T ) as the subset of vertices of T
+that are in V , and call these real vertices. We call the vertices of T that are not in V fake vertices.
+   We extend the definition of k-respecting (i.e., Definition 1.7) to fake vertices as follows:
+
+Definition 2.4 (Generalized k-respecting). Let A ⊆ V be a cut in G = (V, E, w). Let T be a tree
+on (some subset of) vertices in V as well as additional vertices not in V . We say that T k-respects
+
+
+                                                     8
+cut A (and vice versa) if there exists a set FA of fake vertices such that T contains at most k edges
+with exactly one endpoint in A ∪ FA ; we say that such edges are cut by A ∪ FA .
+
+       We also note that even if all the vertices in T are real vertices, T may not be a subgraph of G.
+
+    Recall that our goal is to obtain a value λ̃(t) ≥ λ(s, t) for every terminal t ∈ U \ {s} such that
+if an (s, t)-mincut k-respects T , then λ̃(t) = λ(s, t). We will actually compute λ̃(t) for every real
+vertex t ∈ R(T ) \ {s}; clearly, this suffices since the input Steiner tree (i.e., at the top level of the
+recursion) spans all the vertices in U .
+    The algorithm maintains estimates λ̃(t) of the mincut values λ(s, t) for all t ∈ R(T ) \ {s}.
+The values λ̃(t) are initialized to ∞, and whenever we compute an (s, t)-cut in the graph, we
+“update” λ̃(t) by replacing λ̃(t) with the value of the (s, t)-cut if it is lower. Formally, we define
+Update(t, x) : λ̃(t) ← min(λ̃(t), x).
+    We describe the algorithm below. The reader should use the illustration in Figure 1 as a visual
+description of each step of the algorithm.
+
+   1. First, we describe a base case. If |R(T )| is less than some fixed constant, then we simply
+      compute the (s, t)-mincut in G separately for each t ∈ R(T ) \ {s} using |R(T )| − 1 = O(1)
+      max-flow calls, and run Update(t, λ(s, t)).
+
+         From now on, assume that |R(T )| is larger than some (large enough) constant.4
+
+   2. Let c be a centroid of the tree T , defined in the following manner: c is a (possibly fake) vertex
+      in T such that if we root T at c, then each subtree rooted at a child of c has at most |R(T )|/2
+      real vertices.5
+
+         If c ∈ R(T ) and s 6= c, then compute an (s, c)-mincut in G (whose value is denoted λ) using
+         a max-flow call and run Update(c, λ(s, c)).
+
+   3. Root T at c and let u1 , . . . , u` be the children of c. For each i ∈ [`], let Ti be the subtree
+      rooted at ui . Recall that R(Ti ) denotes the set of real vertices in the respective subtrees Ti
+      for i ∈ [`]. (For technical reasons, we ignore subtrees Ti that do not contain any real vertex.)
+      Use Lemma 2.1 to compute minimum isolating cuts in G with the following terminal sets: (1)
+      Ui = R(Ti ) for i ∈ [`]. (2) If c ∈ R(T ), then we add an additional set U`+1 = {c}. Note that
+      ∪i Ui = R(T ) irrespective of whether c ∈ R(T ) or not.
+
+         Let Si ⊆ V be the (Ui , R(T ) \ Ui )-mincut in G obtained from Lemma 2.1. We ignore S`+1 (if
+         it exists) and proceed with the remaining sets Si for i ∈ [`] in the next step.
+
+   4. For each i ∈ [`], define Gi as the graph G with V \ Si contracted to a single vertex. Now,
+      there are two cases. In the first case, we have s ∈ V \ Si . Then, the contracted vertex for
+      V \ Si is labeled the new s in graph Gi . Correspondingly, define Ti0 as the tree Ti with an
+      added edge (s, ui ) (recall that ui is the root of Ti ). In the second case, we have s ∈ Si . Then,
+      assign a new label ci to the contracted vertex for V \ Si in Gi . In this case, define Ti0 as the
+   4
+    For example, the constant 10 is more than enough.
+   5
+    A centroid always exists by the following simple argument: take the (real or fake) vertex of T of maximum depth
+whose subtree rooted at T has at least |R(T )|/2 real vertices. By construction, this vertex is a centroid of T , and it
+can be found in time linear in the number of vertices in the tree using a simple dynamic program.
+
+
+
+                                                           9
+      tree Ti with an added edge (ci , ui ), and keep the identity of vertex s unchanged since it is in
+      Ti . (Note that if s = c, the only difference is that the second case does not happen for any
+      i ∈ [`].)
+      In both cases above, make recursive calls (Gi , Ti0 , k) for all i ∈ [`]. Call Update(t, λ0 (s, t))
+      for all t ∈ R(Ti ) \ {s} where the recursive call returns the value λ0 (s, t) for the variable λ̃(t).
+      Furthermore, if s ∈ Si , call Update(t, λ0 (s, ci )) for all t ∈ R(T ) \ R(Ti ) where the recursive
+      call returns the value λ0 (s, ci ) for the variable λ̃(ci ).
+      If k = 1, then we terminate the algorithm at this point, so from now on, assume that k > 1.
+  5. Sample each subtree Ti independently with probability 1/2 except the subtree containing s (if
+     it exists), which is sampled with probability 1. (If c = s, then there is no subtree containing
+     s, and all subtrees are sampled with probability 1/2.) Let T (5) be the tree T with all (vertices
+     of) non-sampled subtrees deleted. Recursively call (G, T (5) , k − 1) and update λ̃(t) for all
+     t ∈ R(T (5) ). (Note that R(T (5) ) denotes the set of real vertices in tree T (5) . Moreover, by
+     the sampling procedure, s is always in R(T (5) ) and hence, the recursion is valid.) Repeat this
+     step for O(log n) independent sampling trials.
+  6. Execute this step only if s 6= c, and let Ts be the subtree from step (3) containing s. Using
+     Lemma 2.3, compute the value λmax = max{λ(s, t) : t ∈ R(T ) \ R(Ts )}, as well as all vertices
+     t ∈ R(T ) \ R(Ts ) attaining this maximum. Update λ̃(t) = λmax for all such t, and arbitrarily
+     select one such t to be labeled s0 . Let T (6) be the tree T with (the vertices of) subtree Ts
+     removed. Recursively call (G, T (6) , k − 1) where s0 is treated as the new s, and update λ̃(t)
+     for all t ∈ R(T (6) ).
+
+
+2.1   Correctness
+First, we show a standard (uncrossing) property of mincuts.
+Lemma 2.5. Let G = (V, E, w) be a weighted, undirected graph with vertex subset U ⊆ V . For any
+subsets ∅ ( X ⊆ X 0 ( U and an (X 0 , U \ X 0 )-mincut A0 ⊆ V of G, there is an (X, U \ X)-mincut
+A ⊆ V of G satisfying A ⊆ A0 .
+Proof. Consider any (X, U \ X)-mincut A ( A0 . We claim that A ∩ A0 is also an (X, U \ X)-
+mincut of G. First, note that (A ∪ A0 ) ∩ U = X 0 , so A ∪ A0 is an (X 0 , U \ X 0 )-cut. Since A0 is an
+(X 0 , U \ X 0 )-mincut, we have
+                                        δ(A ∪ A0 ) ≥ δ(A0 ).
+                                δ(A) + δ(A0 ) ≥ δ(A ∪ A0 ) + δ(A ∩ A0 ).
+Combining the two inequalities gives δ(A ∩ A0 ) ≤ δ(A). Now, since X ⊆ X 0 ⊆ A0 , we have
+X ∩ (A \ A0 ) = ∅. Since X ⊆ A, it must be that X ⊆ A ∩ A0 . So, A ∩ A0 is an (X, U \ X)-cut. Since
+δ(A ∩ A0 ) ≤ δ(A), it follows that A ∩ A0 is an (X, U \ X)-mincut, which completes the proof.
+
+    Now, we proceed to establish correctness of the SSMC algorithm. Note that λ̃(t) starts with
+the value ∞, and every time we run Update(t, x), we have that x is the value of some (s, t)-cut
+in G. Naturally, this would suggest that our estimate λ̃(t) is always an upper bound on the true
+value λ(s, t). However, this is not immediately clear because the vertex s may be relabeled in a
+recursive call from step (6). The lemma below shows that this relabeling is not an issue.
+
+                                                    10
+                                                                                  𝒄                                                  𝒄
+
+
+                                                                  𝒖𝟏        𝒖𝟐             𝒖𝟑        𝒖𝟒           𝒖𝟏          𝒖𝟐              𝒖𝟑        𝒖𝟒
+                                                       𝑻𝟏                                       𝑻𝟒                                                 𝑻𝟒
+                                                                       𝑻𝟐             𝑻𝟑                     𝑻𝟏         𝑻𝟐               𝑻𝟑
+                                                       = 𝑻𝒔
+
+                                                           𝑠                                                  𝑠
+
+
+
+ Step 1:                                               Step 2:                                            Step 3:
+ If 𝑇 = 𝑂 1 then compute 𝑠, 𝑡 -mincut in 𝐺             If 𝑐 ≠ 𝑠 then compute 𝑠, 𝑐 -mincut in 𝐺.           Run Isolating Cuts on 𝑅 𝑇𝑖 𝑖 ∪ 𝑐 .
+ for each 𝑡 ∈ 𝑉 𝑇 ∖ 𝑠 .                                                                                   Let 𝑆𝑖 𝑖 be the resulting cuts.
+
+
+
+    𝑠 ≔ 𝑉 ∖ 𝑆4             𝒄             𝑐1 ≔ 𝑉 ∖ 𝑆1      subsample               𝒄                                                  𝒄
+
+
+            𝒖𝟏        𝒖𝟐            𝒖𝟑        𝒖𝟒                  𝒖𝟏        𝒖𝟐                       𝒖𝟒           𝒖𝟏          𝒖𝟐              𝒖𝟑        𝒖𝟒
+                                                                                           𝒖𝟑
+                                         𝑻𝟒            𝑻𝟏                                       𝑻𝟒         𝑻𝟏                                      𝑻𝟒
+ 𝑻𝟏              𝑻𝟐            𝑻𝟑                                      𝑻𝟐             𝑻𝟑                                𝑻𝟐               𝑻𝟑
+                                                       = 𝑻𝒔                                                = 𝑻𝒔
+ = 𝑻𝒔
+
+        𝑠                                                     𝑠                                               𝑠                               𝑠′
+
+
+Step 4:
+∀𝑖: If 𝑠 ∈ 𝑉 ∖ 𝑆𝑖 , contract 𝑉 ∖ 𝑆𝑖 and call it 𝑠.    Step 5:                                             Step 6:
+Otherwise, contract 𝑉 ∖ 𝑆𝑖 and call it 𝑐𝑖 .           Let 𝑇 5 ⊆ 𝑇 be a subtree where each 𝑇𝑖 ≠ 𝑇𝑠 is      Set 𝑠 ′ ≔ arg max 𝑚𝑖𝑛𝑐𝑢𝑡 𝑠, 𝑡 : 𝑡 ∉ 𝑉 𝑇𝑠 .
+                                                                                                                          t
+Call 𝐺𝑖 , 𝑇𝑖 ∪ 𝑒 , 𝑘 , for 𝑒 = 𝑠, 𝑢𝑖 or 𝑒 = 𝑐𝑖 , 𝑢𝑖 , subsampled w.p. 1/2.                                Call G, T ∖ 𝑇𝑠 , 𝑘 − 1 .
+correspondingly.                                      Call 𝐺, 𝑇 5 , 𝑘 − 1 .
+
+
+
+Figure 1: An illustration of the steps inside a recursive iteration of the SSMC algorithm. We
+assume that the centroid c has four children in T and that all tree vertices are real; in particular
+c ∈ R(T ), which simplifies some of the steps. Graph vertices that are not spanned by T are
+represented by gray dots. The gray areas in Step 4 refer to contracted subsets, and the scissors
+symbol in Steps 5 and 6 means we remove the subtree.
+
+
+Lemma 2.6 (Upper bound). For any instance (G = (V, E, w), T, k) and a vertex t ∈ R(T ), the
+output value λ̃(t) is at least λ(s, t).
+
+Proof. If λ̃(t) is updated on Step (1) or Step (2), then we have λ̃(t) ≥ λ(s, t) because the updated
+value corresponds to a valid (s, t)-cut. Suppose now that λ̃(t) is updated on Step (4), and let Ti
+be the subtree containing t. By construction of Gi , we either contract a set containing s (namely,
+V \ Si ) into a vertex labeled the new s, or we contract a set not containing s (namely, V \ Si
+again) into a vertex (not labeled the new s). In both cases, any (s, t)-cut of graph Gi , with the
+contraction “reversed”, is a valid (s, t)-cut in the original graph G. It follows that the (s, t)-mincut
+value λGi (s, t)6 in Gi is at least the value λG (s, t) in G. By induction, the output of the recursive
+call (Gi , Ti0 , k) is at least λGi (s, t) ≥ λG (s, t), as promised.
+    If λ̃(s, t) is updated on Step (5), then since the graph G remains unchanged, the value λ(s, t) is
+also unchanged, and we have λ̃(t) ≥ λ(s, t) by induction. The most interesting case is when λ̃(s, t)
+is updated on Step (6). Here, by the choice of s0 , we have λ(s, s0 ) ≥ λ(s, t). Next, observe that
+λ(s0 , t) ≥ min{λ(s, s0 ), λ(s, t)} holds because the (s0 , t)-mincut is either an (s, t)-cut or an (s0 , s)-cut
+depending on whether s is on the side of s0 or the side of t. Combining the two previous inequalities
+   6
+       λGi (s, t) is the value of an (s, t)-mincut in graph Gi .
+
+
+
+                                                                                 11
+gives λ(s0 , t) ≥ λ(s, t), and by induction, the output of the recursive call (G, T (6) , k − 1) is at least
+λ(s0 , t) ≥ λ(s, t), as promised.
+
+   The lemma above establishes the condition λ̃(t) ≥ λ(s, t) of Theorem 1.10. It remains to show
+equality when T is k-respecting an (s, t)-mincut, which we prove below.
+
+Lemma 2.7 (Equality). Consider an instance (G = (V, E, w), T, k) and a vertex t ∈ R(T ) such
+that there is an (s, t)-mincut in G that k-respects T . Then, the value λ̃(t) computed by the algorithm
+equals λ(s, t) w.h.p.
+
+Proof. Consider an (s, t)-mincut C in G that k-respects T . First, if the centroid c is the vertex t,
+then the mincut computation in Step (2) correctly recovers λ(s, t). Otherwise, let Tt be the subtree
+containing t. We have a few cases based on the locations of the edges in T that cross the cut C,
+which we call the cut edges. Note that there is at least one cut edge along the (s, t) path in T , and
+it is incident to (the vertices of) either Tt or the subtree Ts containing s. (If c = s and there is no
+subtree Ts containing s, then at least one cut edge must be incident on some vertex in Tt .)
+
+                        𝒄                                                      𝒄                                                    𝒄
+ 𝑠 ≔ 𝑉 ∖ 𝑆𝑡                                             subsample
+       𝒖𝟏          𝒖𝟐            𝒖𝟑          𝒖ℓ             𝒖𝟏           𝒖𝟐             𝒖𝟑              𝒖ℓ          𝒖𝟏         𝒖𝟐        𝒖𝟑          𝒖ℓ
+𝑻𝟏                                                  𝑻𝟏                                                       𝑻𝟏
+              𝑻𝟐            𝑻𝟑        𝑻ℓ                            𝑻𝟐             𝑻𝟑        𝑻ℓ                           𝑻𝟐        𝑻𝟑        𝑻ℓ
+= 𝑻𝒔                                                = 𝑻𝒔                                                     = 𝑻𝒔
+                                      = 𝑻𝒕                                                   = 𝑻𝒕                                             = 𝑻𝒕
+
+   𝑠                                                    𝑠                                                       𝑠                        𝑠′
+                                         𝑡                                                          𝑡                                                     𝑡
+
+
+
+  Case 1: All cut-edges are in 𝑇𝑡 :               Case 2: There exists a cut-edge outside of 𝑇𝑠 ∪ 𝑇𝑡 : Case 3: There exists a cut-edge in 𝑇𝑠 :
+  - Call 𝐺𝑡 , 𝑇𝑡′ , 𝑘 ; step 4.                   - Subsample each 𝑇 ′ ≠ 𝑇𝑠 w.p. 1/2 and repeat        - Set 𝑠 ′ ≔ arg max 𝑚𝑖𝑛𝑐𝑢𝑡 𝑠, 𝑡 : 𝑡 ∉ 𝑉 𝑇𝑠
+                                                                                                                        t
+                                                    𝑂 log 𝑛 times; step 5.                               and remove 𝑇 ; step 6.
+                                                                                                                         𝑠
+              ෍ 𝑓 𝑚𝑖 , 𝑛𝑖 , 𝑡/2, 𝑘
+               𝑖                                                 𝑂 log 𝑛 ⋅ 𝑓 𝑚, 𝑛, 𝑡, 𝑘 − 1                              𝑂෨ 𝑚 + 𝑓 𝑚, 𝑛, 𝑡, 𝑘 − 1
+
+
+Figure 2: An illustration of the different cases, which part of our algorithm deals with them, and
+the corresponding running time. Here, vertices in the side of s are depicted by blue dots, vertices
+in the side of t by red dots, and cut edges by dashed lines. The gray area refers to a contracted
+subset, and the scissors symbol means we remove the subtree. Observe that whenever the latter
+happens, we get rid of at least one cut edge.
+
+    The first case (Case 1 in Figure 2) is that all the cut edges are incident to the vertices of a single
+subtree Tj , which must be either Tt or Ts (if the latter exists). Then, there is a side A ∈ {C, V \ C}
+of the (s, t)-mincut C whose vertices in R(T ) are all in R(Tj ); in other words, A∩R(T ) = A∩R(Tj ).
+Note that A is an (A ∩ R(Tj ), R(T ) \ (A ∩ R(Tj )))-mincut since if there were a smaller such cut,
+then that would also be a smaller (s, t)-cut, which contradicts that A is an (s, t)-mincut. Also,
+by construction, Sj is a (R(Tj ), R(T ) \ R(Tj ))-mincut. We now apply Lemma 2.5 on parameters
+U = R(T ), A = A, X = A ∩ R(Tj ), A0 = Sj , and X 0 = R(Tj ). The lemma implies that there is
+an (A ∩ R(Tj ), R(T ) \ (A ∩ R(Tj )))-mincut Ã ⊆ Sj , and this cut survives in the contracted graph
+Gj . Since Ã is an (s, t)-cut of the same value as A, we conclude that Ã is also an (s, t)-mincut.
+Finally, we argue that Ã also k-respects the tree Tj0 in the recursive instance. By definition, since
+A k-respects T , there exists a set FA of fake vertices such that T contains at most k edges cut by
+A ∪ FA . Since A and Ã agree on vertices in R(Tj ), tree T also contains at most k edges cut by
+
+
+                                                                              12
+Ã ∪ FA (it is the exact same set of edges). Define FÃ = FA ∩ V (Tj ), and from Ã ∩ R(T ) ⊆ R(Tj ), we
+observe that tree Tj contains at most k edges cut by Ã ∩ FÃ (it is all edges from before, restricted
+to tree Tj ). Furthermore, the new edge (s, uj ) or (cj , uj ) added to Tj0 is cut by Ã ∪ FÃ if and only
+if the edge (c, uj ) of T is cut by Ã ∪ FA . It follows that at most k edges of Tj0 are cut by Ã ∪ FÃ .
+Thus, the lemma statement is satisfied on recursive call (Gj , Tj0 , k) of Step (4), and the algorithm
+recovers λ(s, t) w.h.p.
+    In the rest of the proof, we assume that the edges of T cut by A∪FA are incident to (the vertices
+of) at least two subtrees. Suppose first (Case 2 in Figure 2) that a cut edge is incident to some
+subtree Tj that is not Tt or Ts (or only Tt , if s = c and Ts does not exist). In each independent trial
+of Step (5), we sample Tt but not Tj with constant probability. In this case, since Tj is discarded in
+the construction of T (5) , the (s, t)-mincut C (k − 1)-respects the resulting tree T (5) . Over O(log n)
+independent trials, this happens w.h.p., and the algorithm correctly recovers λ(s, t) w.h.p.
+    We are left with the case (Case 3 in Figure 2) that all edges of T cut by A ∪ FA are incident
+to subtrees Tt and Ts . Note that Ts must exist since if s = c and Case 2 does not happen, we
+would be in Case 1. Furthermore, Ts 6= Tt , because otherwise, we would either be in Case 1 (if all
+cut edges are incident on Tt = Ts ) or in Case 2 (if there is at least one cut edge incident on some
+Tj 6= Tt = Ts ).
+    Since Ts 6= Tt , we have t ∈    / R(Ts ), i.e., t ∈ R(T ) \ R(Ts ). If λ(s, t) = λmax (where λmax
+is as defined in Step (6)), then Step (6) sets λ(s, t) = λmax correctly. Otherwise, we must have
+λ(s, t) < λmax . In this case, we claim that the vertex s0 (that has the property λ(s, s0 ) = λmax
+in Step (6) of the algorithm) satisfies λ(s0 , t) = λ(s, t). To prove this claim, we first observe that
+s0 must appear on the s-side of the (s, t)-mincut C. Otherwise, if s0 is on the t-side, then C is
+an (s, s0 )-cut of value λ(s, t) < λmax , contradicting the guarantee λ(s, s0 ) = λmax . It follows that
+λ(s0 , t) ≤ λ(s, t). Next, observe that s must appear on the s0 -side of the (s0 , t)-mincut C 0 . Otherwise,
+if s is on the t-side, then C 0 is an (s, s0 )-cut of value λ(s0 , t) ≤ λ(s, t) < λmax , contradicting the
+guarantee λ(s, s0 ) = λmax . It follows that λ(s, t) ≤ λ(s0 , t), which proves the claim λ(s, t) = λ(s0 , t).
+    Consider again the (s, t)-mincut C. Since s0 is on the s-side of the (s, t)-mincut C, if we swap
+the locations of s and s0 in T , then C still k-respects the modified tree, and the edges of the tree
+that cross the cut are the same (except that s and s0 swap places on the edges). In particular, the
+subtree Ts with s replaced by s0 has at least one cut edge. By removing this modified subtree Ts ,
+we arrive at the tree T (6) in Step (6), and the (s, t)-mincut C must (k − 1)-respect T (6) . So, the
+recursive call (G, T (6) , k − 1) recovers λ(s0 , t) w.h.p., which equals λ(s, t) by the claim above.
+    This concludes all cases, and hence the proof of Lemma 2.7.
+
+2.2    Running Time
+Lemma 2.8 (Running time). For any fixed integer k ≥ 1, the algorithm calls max-flow on instances
+of at most n vertices and m edges each, and a total of Õ(n) vertices and Õ(m) edges. Moreover,
+these max-flow calls dominate the running time.
+
+    We first bound the total number of vertices across all recursive instances, then use the same
+technique to also bound the total number of edges.
+    We use the following notation for any recursive call: r = |R(T )| and n represents the number of
+vertices in G including contracted vertices, i.e., vertices resulting from the contraction on Step (4)
+of any previous instance. (Since the original instance has no contracted vertex, the initial value of
+n is just the number of vertices in the input graph.) The function f (n, r, k) represents an upper
+
+                                                     13
+bound on the total number of vertices among all max-flow calls that occur, starting from a single
+input instance with parameters n, r, k (and including max-flows called inside recursive instances).
+     Fix an instance with parameters n, r, k. For each i, let ni represent the number of vertices in
+Gi , and let ri = |R(Ti )|. Now observe that
+       P`
+   1.    i=1 (ni − 1) = n − 1 since the sets Si are disjoint by the guarantee of Lemma 2.1, and
+
+   2. ri ≤ r/2 for each i ∈ [`] by the fact that c is a centroid.
+
+We now consider the individual steps of the recursive SSMC algorithm.
+
+   1. The algorithm calls a single max-flow in step (2), and then in step (3), it calls Lemma 2.1,
+      which in turn calls max-flows on a total of O(n log `) vertices. In total, this is O(n log `)
+      vertices among the max-flow calls.
+
+   2. In step (4), the algorithm makes recursive calls on trees Ti0 containing ri + 1 real vertices each,
+      and graphs Gi containing ni vertices
+                                       P     each, so the total number of vertices in the max-flow
+      calls in the recursion is at most i∈[`] f (ni , ri + 1, k).
+
+   3. In step (5), the algorithm makes O(log n) independent calls to an instance where k decreases
+      by 1. So, this step contributes at most O(log n) · f (n, r, k − 1).
+
+   4. In step (6), the algorithm calls Lemma 2.3, which in turn calls max-flows on a total of Õ(n)
+      vertices, followed by a recursive call on an instance where k decreases by 1. In total, this step
+      contributes at most Õ(n) + f (n, r, k − 1).
+
+We may assume that f (n, r, k) is monotone non-decreasing in all three parameters, which gives us
+the recursive formula
+                               X
+   f (n, r, k) ≤ O(n log `) +        f (ni , ri + 1, k) + O(log n) · f (n, r, k − 1) + Õ(n) + f (n, r, k − 1) .
+                 | {z }                                   |           {z           } |             {z           }
+                               i∈[`]
+                 steps (2),(3) |          {z          }     step (5), only for k>1       step (6), only for k>1
+                                          step (4)
+
+
+We now claim that f (n, r, k) solves to Õ(n) for any constant k, where the number of polylog
+terms depends on k. For k = 1, the recursive formula f (n, t, 1) solves to O(n log2 t). This is
+because ri + 1 ≤ r/2 + 1 ≤ 23 r for all i ∈ [`] limits the recursive depth to O(log t).7 And, since
+P`
+   i=1 (ni − 1) = n − 1, the sum of f (·) in any recursive level is O(n log t). For larger k, note that if
+we assume that f (n, r, k − 1) ≤ Õ(n), then we also obtain f (n, r, k) ≤ Õ(n), where the Õ(·) hides
+more logarithmic factors. The claim then follows by induction on k. (Note that the polylogarithmic
+dependency on k is f (n, r, k) = n(log n)O(k) .)
+    We now bound the total number of edges. We use the following notation in any recursive call:
+as earlier, r = |R(T )| and n represents the number of vertices in G including contracted vertices.
+In addition, m0 represents n plus the number of edges in G not incident to a contracted vertex.
+(Since the original instance has no contracted vertex, the initial value of m0 is just the number
+of vertices plus the number of edges in the input graph.) The function g(m0 , n, r, k) represents an
+upper bound on f (n, r, k) plus the total number of edges not incident to contracted vertices among
+all max-flow calls that occur, starting from a single input instance with parameters m0 , n, r, k (and
+   7
+       Here, we have used the assumption that r is larger than some constant, e.g. 10.
+
+
+                                                           14
+including max-flows called inside recursive instances). This then implies a bound on the total
+number of edges over all max-flow calls, including those incident to contracted vertices, by the
+following argument. Each recursive instance has at most O(log |R(T )|) contracted vertices, since
+each contraction in Step (4) decreases |R(T )| by a constant factor. So the total number of edges
+incident to contracted vertices is at most the total number of vertices times O(log |R(T )|), which
+is at most f (n, r, k) · O(log n) ≤ g(m0 , n, r, k) · O(log n). So from now on, we only focus on edges
+not incident to contracted vertices.
+    Fix an instance with parameters m0 , n, r, k. For each i, let ni represent the number of vertices
+in Gi , let m0i represent the number of edges in Gi not incident to a contracted vertex, and let
+ri = |R(Ti )|. Once again, observe that `i=1 (ni − 1) = n − 1 and ri ≤ r/2 for each i ∈ [`]. This
+                                             P
+
+time, we also have `i=1 m0i ≤ m0 by the following explanation: Lemma 2.1 guarantees that the
+                       P
+vertex sets Si are disjoint, and the edges of each Gi not incident to a contracted vertex have both
+endpoints in Si , and are therefore disjoint over all i. We may assume that g(m, n, r, k) is monotone
+non-decreasing in all four parameters, which gives us the recursive formula
+                                                 X
+          g(m0 , n, r, k) ≤ O((m + n) log `) +         g(mi , ni , ri , k) + O(log n) · g(m, n, r, k − 1)
+                            |       {z       }                               |             {z           }
+                                                 i∈[`]
+                               steps (2),(3)     |        {z             }       step (5), only for k>1
+                                                    step (4)
+
+                                                                 + Õ(m) + g(m, n, r, k − 1) .
+                                                                   |         {z            }
+                                                                       step (6), only for k>1
+
+
+    Similar to the solution for f (n, r, k), we now have that g(m, n, r, k) solves to Õ(m + n) for any
+constant k by the same inductive argument. (Once again, the polylogarithmic dependency on k is
+f (n, r, k) = (m + n)(log n)O(k) .)
+    Since the graph never increases in size throughout the recursion, each max-flow call is on a
+graph with at most as many vertices and edges as the original input graph. Finally, we claim that
+the max-flow calls dominate the running time of the algorithm. In particular, finding the centroid
+of T on step (2) can be done in time in the size of the tree (see the footnote at step (2)), which is
+dominated by the single max-flow call on the same step. This finishes the proof of Lemma 2.8.
+
+
+3    Constructing Guide Trees
+In this section, we show how to obtain guide trees that prove Theorem 1.9. Our algorithm is based
+on the notion of a Steiner subgraph packing, as described next.
+
+Definition 3.1. Let G = (V, E, w) be an undirected edge-weighted graph with a set of terminals
+U ⊆ V . A subgraph H of G is said to be a U -Steiner subgraph (or simply a Steiner subgraph if the
+terminal set U is unambiguous from the context) if all the terminals are connected in H. In this
+case, we also call H a terminal-spanning subgraph of G.
+
+Definition 3.2. A U -Steiner-subgraph packing P is a collection of U -Steiner subgraphs H1 , . . . , Hk ,
+where each subgraph Hi is assigned a value val(Hi ) > 0. If all val(Hi ) are integral, we say that
+P is an integral packing. Throughout, a packing is assumed to be fractional (which means that it
+does not have to be integral), unless specified otherwise. The value of the packing P is the total
+
+
+
+                                                   15
+                                                         P
+value of all its Steiner subgraphs, denoted val(P) =       H∈P val(H). We say that P is feasible if
+                                                X
+                                  ∀e ∈ E,               val(H) ≤ w(e).
+                                             H∈P:e∈H
+
+   To understand this definition, think of w(e) as the “capacity” of e; then, this condition means
+that the total value of all Steiner subgraphs H ∈ P that “use” edge e does not exceed its capacity
+w(e). A Steiner-tree packing is a packing P where each subgraph H ∈ P is a tree.
+   Denote by pack(U ) the maximum value of a feasible U -Steiner-subgraph packing in G. The
+next two lemmas show a close connection between Steiner-subgraph packing pack(U ) and U -Steiner
+mincut λ(U ), and that the former problem admits a (2 + )-approximation algorithm.
+
+Lemma 3.3. For every graph G with terminal set U , we have λ(U )/2 ≤ pack(U ) ≤ λ(U ).
+
+Lemma 3.4. There is a deterministic algorithm that, given  ∈ (0, 1/2), a graph G = (V, E, w), and
+a terminal set U ⊆ V , returns a U -Steiner-subgraph packing P of value val(P) ≥ pack(U )/(2 + )
+in Õ(m2 /2 ) time, and in the case of unweighted G in m1+o(1) /2 time.
+
+   We prove Lemmas 3.3 and 3.4 in Sections 3.1 and 3.2, respectively. Assuming these lemmas,
+we immediately obtain the following.
+
+Corollary 3.5. There is a deterministic algorithm that, given  ∈ (0, 1/2) and a graph G =
+(V, E, w) with m edges and terminal set U ⊆ V , returns a U -Steiner subgraph packing P of value
+val(P) ≥ λ(U )/(4 + ) in Õ(m2 /2 ) time, and in the case of unweighted G in m1+o(1) /2 time.
+
+Algorithm for constructing guide trees.           Given Corollary 3.5, we can now prove Theorem 1.9.
+
+Proof of Theorem 1.9. Fix 0 = 1/60 (or another sufficiently small 0 > 0). The construction of
+guide trees is described in Algorithm 1. To analyze this algorithm, let P be the packing computed
+in line 5. Consider t ∈ U \ {s}, and let (St , V \ St ) be a minimum s, t-cut in G. Denote by
+w(St , V \ St ) the total edge-weight of this cut in G, and by w0 (St , V \ St ) the total edge-weight of
+the cut in G0 between these same vertices.
+
+ Algorithm 1: An algorithm for constructing guide trees
+ input : Undirected graph G = (V, E, w) (weighted or unweighted) and terminal set U ⊆ V
+ output: A collection of guide trees for U
+   1 if G is weighted then then
+    2     compute for it a (1 ± 0 )-cut-sparsifier G0 using [BK15] and 0 = 1/60, thus G0 has
+           m = Õ(n/20 ) edges
+   3 else
+    4     let G0 ← G
+   5 compute a packing P for G0 by applying Corollary 3.5
+   6 sample 300 ln n subgraphs from P, each drawn independently from the distribution
+      {val(H)/val(P)}H∈P
+   7 compute any Steiner tree of each sampled subgraph, and report these trees
+
+
+
+
+                                                   16
+   Consider first an unweighted input G. Then, the computation in line 5 is applied to G0 =
+G. By combining Corollary 3.5 and the promise in the single source terminal mincuts problem
+(Problem 1.5) that λG (s, t) ≤ 1.1λ(U ), 8 we get that
+
+                                              λ(U )      λG (s, t)    w0 (St , V \ St )
+                                 val(P) ≥            ≥              =                   .                       (1)
+                                              4 + 0   1.1(4 + 0 )    1.1(4 + 0 )
+
+   If the input graph G is weighted, then the bound in (1) applies to the cut-sparsifier G0 of G,
+and we get that
+
+               λG0 (s, t)    (1 − 0 ) · w(St , V \ St )   (1 − 0 ) · w0 (St , V \ St )   w0 (St , V \ St )
+  val(P) ≥                 ≥                             ≥                               ≥                   . (2)
+              1.1(4 + 0 )         1.1(4 + 0 )              1.1(4 + 0 )(1 + 0 )         1.1(4 + 300 )
+
+We remark that now the packing P contains subgraphs of the sparsifier G0 and not of G, but it will
+not pose any issue.
+   In both cases we have the weaker inequality
+
+                                                           w0 (St , V \ St )
+                                                val(P) ≥                     .                                  (3)
+                                                           1.1(4 + 300 )
+
+Let Et0 be the set of edges in the cut (St , V \ St ) in G0 (depending on the case, G0 is either G or the
+sparsifier). Let P≤4 ⊆ P be the subset of all Steiner subgraphs H ∈ P whose intersection with Et0
+is at most 4 edges, and let Ft be the event that no subgraph from P≤4 is sampled in line 6. Then
+
+                                        Pr[Ft ] = (1 − val(P≤4 )/val(P))300 ln n
+                                                ≤ n−300·val(P≤4 )/val(P) .                                      (4)
+
+    Similarly to Karger’s paper [Kar00], define xH to be one less than the number of edges of H that
+crosses the cut Et0 , and observe that xH is always a non-negative integer (because U is connected in
+H). Since P is a packing, every edge of Et0 appears in at most one subgraph of P, and consequently,
+            X                        X
+                val(H)(xH + 1) ≤         w(e) = w0 (St , V \ St )
+            H∈P                             e∈Et0
+                       X                                         X
+              =⇒           val(H)xH ≤ w0 (St , V \ St ) −            val(H) = w0 (St , V \ St ) − val(P).
+                   H∈P                                         H∈P
+
+Observe that for a random H̄ ∈ P drawn as in line 6,
+                                 X            val(H)   w0 (St , V \ St )
+                  EH̄ [xH̄ ] =         xH ·          ≤                   − 1 ≤ 1.1(4 + 300 ) − 1,
+                                              val(P)       val(P)
+                                 H∈P
+
+where the last inequality is by (3). By Markov’s inequality,
+
+                                                        1.1(4 + 300 ) − 1
+                                       Pr[xH̄ ≥ 4] ≤                       ≤ 0.99.
+                                       H̄                       4
+   8
+    For a graph G , λG0 (s, t) denotes the value of an (s, t)-mincut in G0 , and recall that λ(U ) is the value of a
+                   0
+
+U -Steiner mincut in G.
+
+
+
+                                                            17
+Observe that val(P≤4 )/val(P) = PrH̄ [xH̄ < 4] ≥ 0.01, and so by plugging into (4) we get that
+Pr[Ft ] ≤ 1/n3 . Finally, by a union bound we have that with high probability, for every t ∈ U \ {s},
+at least one of the subgraphs that are sampled in line 6 of the algorithm 4-respects the cut Et0 ,9 and
+thus at least one of the trees reported by the algorithm 4-respects Et0 . Furthermore, since the cut
+Et0 in G0 has the exact same bipartition of V as the (s, t)-mincut in G, the reported tree mentioned
+above 4-respects also the (s, t)-mincut in G (recall that Definition 1.7 refers to a cut as a bipartition
+of V ).
+     Finally, computing a Steiner tree of a Steiner subgraph in Line 7 only takes linear time, and so
+the running time is dominated by line 5 and thus it is bounded by Õ(n2 /2 ) for weighted graphs
+and by m1+o(1) /2 for unweighted graphs, and by fixing a small  > 0, we can write these as Õ(n2 )
+and m1+o(1) , respectively. This concludes the proof of Theorem 1.9.
+
+3.1    Steiner-Subgraph Packing vs Steiner Mincut
+In this section, we prove Lemma 3.3, i.e., that λ(U )/2 ≤ pack(U ) ≤ λ(U ).
+    We start with the second inequality pack(U ) ≤ λ(U ), which is easier. Let P be a U -Steiner-
+subgraph packing, and let S ⊂ V be a Steiner min-cut of U . Then for every Steiner subgraph
+H ∈ P, by definition |EH (S, V \ S)| ≥ 1.10 By the feasibility of P, for every e ∈ E we have
+P
+  H∈P:e∈H val(H) ≤ w(e). Putting these together, we conclude that
+                                        X                X
+                            val(P) =         val(H) ≤          val(H) · |EH (S, V \ S)|
+                                       H∈P               H∈P
+                                                              X            X
+                                                     =                           val(H)
+                                                         e∈EG (S,V \S) H∈P:e∈H
+                                                              X
+                                                     ≤                   w(e) = λ(U ).
+                                                         e∈EG (S,V \S)
+
+    To establish the first inequality λ(U )/2 ≤ pack(U ), we need to show that one can always pack
+into G Steiner subgraphs of total value (at least) λ(U )/2. This packing bound actually follows from
+more general theorems of Bang-Jensen et al. [BFJ95] and Bhalgat et al. [BHKP07, BCH+ 08], but
+we give a simple self-contained proof here.
+    First note that we can assume, only for sake of analysis, that the graph is an unweighted multi-
+graph (by replacing each edge by parallel edges of unit weight) and that every vertex has an even
+degree (by appropriate scaling). (In what follows, we will obtain an integral packing but undoing
+the scaling step possibly converts it into a fractional packing.)
+    We use the following classic result due to Mader [Mad78].
+
+Theorem 3.6. Let G = (V ∪ {s}, E) be an undirected unweighted multi-graph where every vertex
+has an even degree.11 Then, there exists a pair of edges (u, s) and (v, s) incident on s that can be
+split off, i.e., replaced by their shortcut edge (u, v), while preserving the x − y edge connectivity for
+all pairs of vertices x, y ∈ V .
+   9
+     Strictly speaking, Definition 1.7 defines 4-respecting only relative to a tree T , but the same wording extends
+immediately to any graph T (not necessarily a tree).
+  10
+     For any graph G0 , the set of edges in the cut (S, V \ S) is denoted EG0 (S, V \ S).
+  11
+     In the original theorem of Mader, the only restriction is that the degree of s cannot be equal to 3. But, for our
+purposes, it suffices to assume that every vertex has even degree.
+
+
+                                                         18
+    By applying Theorem 3.6 repeatedly on edges incident on s, we can isolate the vertex s. Iterating
+further, we can isolate any subset of vertices while preserving the pairwise edge connectivities of all
+the remaining vertices. We thus isolate all the non-terminal vertices, and then delete these isolated
+vertices to obtain a graph G(U ) only on the terminal vertices U . Observe that edges in G(U )
+represent edge-disjoint paths in G. We also claim that the global edge connectivity of G(U ) is at
+least λ(U ). Indeed, the global edge connectivity of G(U ) equals the minimum of all its pairwise
+edge connectivities, which are all preserved from G, and it is clear that in G all pairwise edge
+connectivities are at least λ(U ).
+    Next, we shall use the following classic theorem of Nash-Williams [NW61] and Tutte [Tut61] to
+pack edge-disjoint spanning trees in G(U ).
+
+Theorem 3.7. Let G = (V, E) be an undirected unweighted multi-graph with global edge connectivity
+λ0 . Then, G contains at least λ0 /2 edge-disjoint spanning trees.
+
+    Now we apply this theorem to our graph G(U ), to pack in it (at least) λ(U )/2 edge-disjoint
+spanning trees, and then replace each edge in these spanning trees of G(U ) by its corresponding
+path in G. These paths are edge-disjoint as well, hence the corresponding subgraphs are edge-
+disjoint in G. This yields a set of (at least) λ(U )/2 edge-disjoint U -spanning subgraphs in G, which
+completes the proof of Lemma 3.3.
+
+3.2     (2 + )-approximate Steiner-Subgraph Packing
+In this section, we provide a (2 + )-approximation algorithm for fractionally packing Steiner sub-
+graphs, proving Lemma 3.4. The technique is a standard application of the width-independent
+multiplicative weight update (MWU) framework [GK07, Fle00, AHK12]. We provide the proofs
+for completeness, following closely the presentation from [CS21].
+    We start by describing, in Section 3.2.1, an algorithm based on the multiplicative weight up-
+date framework, and we bound its number of iterations, also called “augmentations”. Then, in
+Section 3.2.2, we show how to implement these augmentations efficiently by using either a static
+(2 + )-approximation algorithm by Mehlhorn [Meh88], or in unweighted graphs, by using a decre-
+mental (2 + )-approximation algorithm from Theorem 4.1.
+
+3.2.1    Algorithm Based on Multiplicative Weight Update
+Let the input be an edge-weighted graph G = (V, E, w) with n vertices, m edges, and terminal set
+U ⊆ V . Denote by H the set of all U -Steiner subgraphs. The algorithm maintains ` P ∈ RE>0 , which
+                              12
+we refer to as edge lengths. The total length of a subgraph H is defined as `(H) = e∈E(H) `(e).
+A U -Steiner subgraph H is said to have γ-approximate minimum `-length if its length satisfies
+`(H) ≤ γ · minH 0 ∈H `(H 0 ). Our algorithm below for packing Steiner subgraphs assumes access to a
+procedure that computes a γ-approximate minimum `-length Steiner subgraph.
+
+Lemma 3.8. The scaled-down packing P computed by Algorithm 2 is feasible.
+                                                                                   P
+Proof. Given a packing P, if we define the “flow” (or load) on an edge e as f (e) = H∈P,e∈H val(H),
+then we need to show that f (e) ≤ w(e) for all e ∈ E. (This terminology highlights the analogy
+  12
+     Multiplicative weight update algorithms usually maintain “weights” on edges of the input graph. We use here
+instead the terminology of edge lengths, because G already has edge weights (that can be viewed as capacities).
+
+
+
+                                                      19
+ Algorithm 2: A (γ + O())-approximation algorithm for Steiner subgraph packing
+ input : Undirected edge-weighted graph G = (V, E, w), terminal set U ⊆ V , and accuracy
+         parameter 0 <  < 1
+ output: Feasible U -Steiner subgraph packing P
+    1 let P ← ∅ and δ ← (2m)−1/
+    2 let `(e) ← δ/w(e) for all e ∈ E
+              P
+    3 while     e∈E w(e)`(e) < 1 do
+    4     let H ← a γ-approximate minimum `-length U -Steiner subgraph
+    5     let v ← min{w(e) : e ∈ E(H)}
+    6     add H with val(H) ← v into the packing P
+                               v
+    7     let `(e) ← `(e)(1 + w(e) ) for all e ∈ E(H)
+                                                                     1+
+    8 return a scaled-down packing P, where val(H) ← val(H)/ log1+ ( δ ) for all H ∈ P
+
+
+
+
+with packing flow paths and thinking of w(e) as the capacity of e.) Consider the computation
+of P before scaling it down in line 8. Whenever an iteration adds some H into the packing P
+(in line 6), it effectively increases the flow f (e) additively by v = a · w(e) for some 0 ≤ a ≤ 1,
+and the corresponding length `(e) is increased multiplicatively by 1 + a ≥ (1 + )a (in line 7).
+Observe that initially `(e) = δ/w(e) and at the end `(e) < (1 + )/w(e) (because prior to the last
+iteration w(e)`(e) < 1), thus over the course of the execution, `(e) grows multiplicatively by at most
+(1 + )/δ = (1 + )log1+ ((1+)/δ) , implying that at the end of the execution, f (e) ≤ w(e) · log1+ ( 1+
+                                                                                                          δ ).
+Hence, scaling down P by factor log1+ ( 1+    δ ) in line 8 makes this packing  feasible.
+
+    We call each iteration in the while loop of Algorithm 2 an augmentation and say that an edge
+e ∈ E participates in the augmentation if e is contained in the Steiner subgraph H of that iteration
+(in line 4). The next lemma is used to bound the total running time.
+
+Lemma 3.9.
+
+(a). If G is unweighted, then each edge e ∈ E participates in at most Õ(1/2 ) augmentations.
+
+ (b). There are at most Õ(m/2 ) augmentations.
+
+Proof. (a) Fix e ∈ E. In every augmentation, v ≥ 1 because G is unweighted. So whenever e
+participates in an augmentation, `(e) is increased by factor 1 + . Since `(e) = δ/w(e) initially
+and `(e) < (1 + )/w(e) at the end, e can participate in at most log1+ ( 1+       1     1         1
+                                                                           δ ) = O(  log δ ) = Õ( 2 )
+augmentations.
+   (b) By the choice of v in each augmentation, at least one edge e has its length `(e) increased
+by factor 1 + . For every edge e ∈ E, initially `(e) = δ/w(e) and at the end `(e) < (1 + )/w(e),
+and thus the total number of augmentations is bounded by m log1+ ( 1+δ ) = Õ(m/ ).
+                                                                                      2
+
+
+Lemma 3.10. The scaled-down packing P is a (γ +O())-approximate U -Steiner subgraph packing.
+
+Proof. We first write
+                 P an LP for the U -Steiner subgraph packing problem and its dual LP, using our
+notation `(H) = e∈E(H) `(e).
+
+
+
+
+                                                     20
+   (P LP )      P                                       (D LP ) P
+    max P          H∈H val(H)                            min          e∈E w(e)`(e)
+     s.t.     H∈H:e∈H val(H) ≤ w(e)        ∀e ∈ E         s.t.                  `(H) ≥ 1 ∀H ∈ H
+                       val(H) ≥      0     ∀H ∈ H                                `(e) ≥ 0 ∀e ∈ E
+                    P
+    Denote D(`) = e∈E w(e)`(e), and let α(`) = minH∈H `(H) be the length of the minimum `-
+length U -Steiner subgraph. Let `i be the edge-length function ` after i executions of the while loop
+(and by convention i = 0 refers to just before entering the loop). For brevity, denote D(i) = D(`i )
+and α(i) = α(`i ). We also denote by Hi the Steiner subgraph found in the i-th iteration and by vi
+the value of Hi ∈ P (before scaling down). Observe that
+                                                                v              
+                                                                    i
+                              X                    X
+                       D(i) =     w(e)`i−1 (e) +        w(e)           · `i−1 (e)
+                                                                w(e)
+                               e∈E                 e∈E(Hi )
+
+                            = D(i − 1) + vi · `i−1 (Hi ).
+Since Hi is a γ-approximate minimum `i−1 -length U -Steiner subgraph,
+                                 D(i) ≤ D(i − 1) + vi γ · α(i − 1).
+Observe that the optimal value of the dual LP D LP can be written as OPT = min` D(`)/α(`), and
+thus
+                               D(i) ≤ D(i − 1) + γvi D(i − 1)/OPT
+                                     ≤ D(i − 1) · eγvi /OPT .
+Let t be the index of the last iteration, then D(t) ≥ 1. Since D(0) ≤ 2δm, we get
+                                                         Pt
+                                 1 ≤ D(t) ≤ 2δm · eγ         i=1 vi /OPT   .
+                                                               Pt
+Taking a logarithm from both sides, and denoting val =            i=1 vi , we get
+
+                                       val · γ
+                                                ≥ ln(1/(2δm)).                                 (5)
+                                        OPT
+     Notice that val is exactly the value of P before scaling down in line 8. By Lemma 3.8,
+the scaled-down packing is a feasible solution for the primal P LP , and thus by weak duality
+val/ log1+ ( 1+
+               δ ) ≤ OPT. Thus, to prove that it achieves (γ + O())-approximation, it suffices to
+                              1−O()
+show that val/ log1+ ( 1+
+                         δ )≥   γ    · OPT. And indeed, using (5) and the fact that δ = (2m)−1/ ,
+                  
+i.e., 2m = (1/δ) , we have
+                          val/ log1+ ( 1+
+                                         δ )   ln(1/(2δm))        1
+                                             ≥             ·
+                                OPT                 γ       log1+ ( 1+
+                                                                       δ )
+                                                ln(1/δ) − ln(2m) ln(1 + )
+                                            =                   ·
+                                                       γ         ln( 1+
+                                                                       δ )
+                                                (1 − ) ln(1/δ) ln(1 + )
+                                            ≥                  ·
+                                                      γ         ln( 1+
+                                                                      δ )
+                                                1 − O()
+                                            ≥            ,
+                                                   γ
+where the last inequality holds because ln(1 + ) ≥  − 2 /2 and ln( 1+
+                                                                       δ ) ≤ (1 + ) ln(1/δ).
+
+
+                                                   21
+3.2.2   Efficient Implementation
+In this section, we complete the proofs of Lemma 3.4 by providing an efficient implementation of
+Algorithm 2 from Section 3.2.1.
+
+Õ(m2 /2 )-time Algorithms for General Graphs. In line 4 of Algorithm 2, we invoke the
+algorithm of Mehlhorn [Meh88] for 2-approximation of the minimum-length Steiner tree (it clearly
+approximates also the minimum-length Steiner subgraph, because an optimal Steiner subgraph is
+always a tree). Each invocation runs in time O(m+n log n), which subsumes the time complexity of
+other steps in a single iteration of the while loop. There are Õ(m/2 ) iterations by Lemma 3.9(a),
+hence the total running time is Õ(m2 /2 ). The packing P produced as output is a (2 + O())-
+approximate solution by Lemma 3.10.
+
+m1+o(1) /2 -time Algorithms for Unweighted Graphs. In unweighted graphs, we obtain an
+almost-linear time by invoking the data structure D from Theorem 4.1, which is a dynamic algo-
+rithm that maintains a graph G under edge-weight increases and can report a (2 + )-approximate
+minimum-length Steiner subgraph. Then in line 4 of Algorithm 2, we query D to obtain a graph
+H, and in line 7 we instruct D to update the edge lengths. The packing P produced as output is
+again an (2 + O())-approximate solution by Lemma 3.10, and it only remains to analyze the total
+running time.
+    A small technical issue is that D maintains a graph whose edge lengths are integers in the range
+{1, . . . , W }. Our edge lengths `(e) lie in the range [(2m)−1/ , (1 + )], which can be scaled to the
+range [ 1 , 1 (1 + )(2m)1/ ]. Each update to D is further rounded upwards to the next integer, and
+thus we can use W = d 1 (1 + )(2m)1/ e. The rounding increases edge lengths multiplicatively by
+at most 1 + , and thus each reported subgraph achieves (2 + O())-approximation with respect to
+the unrounded lengths. We can prevent the rounding error from accumulating, by maintaining a
+table of the exact lengths of each edge (separately from D), and using this non-rounded value when
+computing the edge’s new length in line 7.
+    The overall running time is dominated by the time spent by updates and queries to the data
+structure D. By Lemma 3.9(a), each edge participates in at most Õ(1/2 ) augmentations and
+thus appears in at most Õ(1/2 ) different Steiner subgraphs H. As each iteration updates only
+the lengths of edges inP     its subgraph H, the total number of edge-length updates, over the entire
+execution, is at most          H∈P  |E(H)| = Õ(m/2 ). By Theorem 4.1, the total update time of D
+is mno(1) logO(1) W + O( H∈P |E(H)|) = mno(1) /2 . Lastly, D returns each Steiner subgraph
+                               P
+
+H in time |E(H)| · no(1) logO(1) W , and therefore the total time of all queries is H∈P |E(H)| ·
+                                                                                         P
+
+no(1) logO(1) W = mno(1) /2 . Thus, the overall running time is mno(1) /2 .
+
+
+4    Decremental (2 + )-approximate Minimum Steiner Subgraphs
+The goal of this section is to establish an algorithm for maintaining a (2 + )-approximate minimum
+Steiner subgraph with no(1) amortized time per weight-increase update, and no(1) output-sensitive
+query time. In this paper, the main application of this algorithm is in proving Theorem 1.9:
+fractionally packing ≥ λ(U )/(4 + ) U -Steiner-subgraphs in an unweighted graph with U -Steiner
+mincut λ(U ) in almost-linear time. More specifically, this result gets used inside the MWU frame-
+work (Lemma 3.4). However, it can also be viewed as a result of independent interest: obtaining
+
+
+                                                  22
+an almost-optimal algorithm for a classic problem in the decremental (weight-increase) setting. To
+be consistent with Section 3.2.1 we refer to the edge-weights as lengths. A key feature of this new
+algorithm is that it is deterministic, and therefore works in an adaptive-adversary setting (such as
+MWU).
+
+Theorem 4.1 (Decremental Approximate Minimum Steiner Subgraph). For any constant  > 0,
+there is a deterministic data-structure that maintains a graph G = (V, E, ` : E → [L]) with terminals
+U ⊆ V under a sequence of updates (edge-length-increase only) in total m · no(1) · logO(1) L + O(y)
+time, and can, at any time, produce a (2 + )-approximate minimum `-length U -Steiner subgraph
+H of G in time m0 · no(1) · logO(1) L where m0 is the number of edges in the subgraph it outputs.
+
+   At a high-level, there are two distinct steps for establishing this result:
+
+   1. A reduction to decremental Single-Source Shortest Paths (SSSP). It is well-known
+      that a 2-approximation for Steiner Tree can be obtained by computing the Minimum Spanning
+      Tree (MST) of a helper graph H. This helper graph is simply the complete distance graph
+      of the terminals, and (naively) requires Ω(mn) time to compute. The MST of H then gets
+      expanded into a Steiner subgraph of G. Mehlhorn’s algorithm achieves a 2-approximation in
+      Õ(m) time by further reducing the problem to an SSSP computation, by seeking the MST of
+      a slightly different helper graph H. At a high-level, our plan is to design a dynamic version
+      of Mehlhorn’s algorithm.
+
+   2. An almost-optimal decremental algorithm for (1 + )-SSSP. The challenge with the
+      above reduction is in the difficult task of maintaining the SSSP information that is required
+      to construct the helper graph H while the input graph G is changing. Roughly speaking, we
+      succeed in doing that, while paying an additional (1 + ) factor, due to a recent decremental
+      (1 + )-SSSP deterministic algorithm by Bernstein, Gutenberg, and Saranurak [BGS22] with
+      no(1) · logO(1) L time per update.
+
+     Thus, the plan is as follows. Let G(i) be the graph G after the ith update. Using a decremen-
+tal (1 + )-SSSP algorithm we maintain a helper graph H (i) . Then, using a fully-dynamic MST
+algorithm we maintain the MST of H (i) . Whenever there is a query, we output a Steiner subgraph
+S (i) of G(i) by querying for the MST of H (i) and expanding it into S (i) . Notably, whereas G(i) is
+obtained from G(i−1) in a decremental fashion, i.e. only via increasing edge-lengths, the updates to
+the helper graph can be both decremental and incremental. As a result, we need to maintain the
+MST in a fully-dynamic setting, which can be done in polylog(n) update time with a deterministic
+algorithm [HdLT01]. This is schematically described in Figure 3.
+     Realizing this plan, however, involves several lower-level challenges. First of all, the construction
+of the helper graph from Mehlhorn’s algorithm needs to be modified in order to prevent the number
+of changes to H from being much larger than the number of changes to G. (Otherwise, each edge
+update in G could result in Ω(n) edge changes in H.) This is presented in Section 4.2. Second,
+the new construction of a helper graph has slightly different properties than Mehlhorn’s which we
+state and analyze next in Section 4.1. And finally, the reduction requires additional features from
+the (1 + )-SSSP data-structure that were not explicitly stated in previous work. We explain how
+they can be achieved (with minor modifications) in the discussion below Lemma 4.10.
+
+
+
+
+                                                   23
+             Reduction a-la Mehlhorn using           Fully-Dynamic                 Extension using
+              Decremental 1 + 𝜀 -SSSP                     MST                 Decremental 1 + 𝜀 -SSSP
+
+
+            𝐺𝑖                           𝐻𝑖                           𝑇𝑖                            𝑆𝑖
+                                      Helper Graph                    𝑀𝑆𝑇 𝐻                    Steiner−Subgraph(G)
+
+
+
+                                                     Multiplicative
+                                                     Weight Update
+
+           𝐺 𝑖+1
+
+Figure 3: A diagram representing how an approximate minimum Steiner subrgaph is produced by
+our algorithm (inside an iteration of the MWU framework for packing Steiner subgraphs).
+
+4.1   The Helper Graph
+We begin by describing what properties the helper graph H should have, and by proving that they
+suffice for the MST of H to yield a (2 + )-approximate U -Steiner tree for G. The algorithm for
+dynamically maintaining a helper graph with these properties is discussed later on. Note that we
+will have a helper graph H (i) of G(i) in each step i, but the properties we describe in this section
+are indifferent to the step and to the fact that we are in a dynamic environment; therefore we will
+drop the (i) superscript in this subsection.
+    The starting point of both our helper graph and Mehlhorn’s original construction is the well-
+known fact that an MST of the complete distance graph of the terminals is a 2-approximation to
+the Steiner tree.
+Lemma 4.2 ([HR92, TM80, KMB81, Ple81]). Let G = (V, E, ` : E → [L]) be a graph with
+terminals U ⊆ V , and let H ∗ = (U, EH , `H : EH → [2nL]) be the distance graph of the terminals,
+i.e. ∀t1 , t2 ∈ U : `H ∗ (t1 , t2 ) = dG (t1 , t2 ). Then, the MST of H has length at most 2 times the
+minimum U -Steiner tree of G.
+   The issue with this helper graph H ∗ is in the complexity of computing (and maintaining) it.
+Mehlhorn’s fast algorithm is based on the observation that a different helper graph, that can be
+viewed as a proxy towards H ∗ , suffices to get a 2-approximation. The exact property of a helper
+graph that Mehlhorn’s algorithm is based on is stated in the next lemma. (The analysis of our
+helper graph will not use this Lemma; we only include it for context.)
+Lemma 4.3 ([Meh88]). Let G = (V, E, ` : E → [L]) be a graph with terminals U ⊆ V , and let
+H = (U, EH , `H : EH → [2nL]) be a weighted graph such that for each edge (x, y) ∈ E there exists
+an edge (tx , ty ) ∈ EH , where tx and ty are the closest terminals to x and y (respectively), of length
+dG (tx , x) + `G (x, y) + dG (y, ty ). Then, the MST of H has length at most 2 times the minimum
+U -Steiner tree of G.
+    Notice that a pair of vertices in H may have many parallel edges between them with different
+lengths. (See Figure 4 for an illustration.)
+    As an intermediate step towards defining the properties of our actual helper graph, we consider
+the following approximate version of Mehlhorn’s definition. We say that tx is a (1 + )-closest
+terminal to x iff dG (x, tx ) ≤ (1 + ) · dG (x, t) for all t ∈ U .
+
+                                                             24
+    Terminal Distance Graph 𝐻 ∗                        Mehlhorn’s 𝐻                                  Our 𝐻
+
+
+
+
+         𝑡
+                                                  t𝑥
+                         𝑡′
+
+                                                                          t𝑦                   𝑥
+                                                                                                             𝑦
+
+
+                                          𝑥
+
+                                                       y
+
+
+
+Figure 4: An illustration of the different kinds of helper graphs discussed in this paper. Dashed
+lines represent edges in G, and curves represent paths in G.
+
+
+Lemma 4.4. Let G = (V, E, ` : E → [L]) be a graph with terminals U ⊆ V , and let H =
+(U, EH , `H : EH → [2nL]) be a graph such that: (1) for each vertex x ∈ V there is a unique
+terminal tx ∈ U assigned to x, where tx is a (1 + )-closest terminal to x, and (2) for each edge
+(x, y) ∈ E there exists an edge (tx , ty ) ∈ EH of length ≤ (1 + ) · (dG (tx , x) + `G (x, y) + dG (y, ty )).
+Then, the MST of H has length at most 2(1 + )2 times the minimum U -Steiner tree of G.
+
+Proof. Let T ∗ be an MST of the ideal helper graph H ∗ (the complete distance graph of the ter-
+minals). We will prove that there exists an MST T of our helper graph H with length `H (T ) ≤
+(1 + )2 · `H ∗ (T ∗ ). Then by Lemma 4.2 we get that the MST of H has length at most 2(1 + )2
+times the minimum U -Steiner tree of G.
+    We describe a process that modifies T ∗ by replacing its edges with edges from H while keeping it
+a terminal spanning tree and while only increasing its length by (1 + )2 (see Figure 5). Specifically,
+each edge e ∈ T ∗ gets replaced by an edge e0 ∈ H of length `H (e0 ) ≤ (1 + )2 · `H ∗ (e). We will do
+this replacement as long as there is an edge in T ∗ that is not in H, or is in H but has a different
+length than it does in H ∗ .
+    Let e = (t1 , t2 ) ∈ T ∗ be such an edge, and let v1 , . . . , vp be a shortest path from t1 to t2 in G
+with total length dG (t1 , t2 ) = `H ∗ (t1 , t2 ). The removal of e from T ∗ disconnects the tree into two
+components, call them t1 ∈ T1 and t2 ∈ T2 . Let i ∈ [p] be such that tvi ∈ T1 but tvi+1 ∈ T2 . Such
+an i must exist because tv1 = t1 ∈ T1 and tvp = t2 ∈ T2 .
+    Consider the edge e0 = (tvi , tvi+1 ) ∈ H that follows from the edge (vi , vi+1 ) by the assumptions
+on the helper graph H. Replacing e with e0 keeps T ∗ a terminal spanning tree. It only remains to
+bound the difference in lengths:
+
+                     `H (e0 ) ≤ (1 + ) · (dG (tvi , vi ) + `G (vi , vi+1 ) + dG (vi+1 , tvi+1 )).
+
+Since tvi is a (1 + )-closest terminal to vi we know that dG (tvi , vi ) ≤ (1 + ) · dG (t1 , vi ) and similarly
+
+
+                                                           25
+                                          𝑻𝟏             𝑡𝑣𝑖
+
+
+                                                                                𝑒′ ∈ 𝐻
+
+                                             𝑡1
+                                                         𝑣𝑖
+                                                          𝑣𝑖+1
+                                            𝑒 ∈ 𝑇∗
+
+                                                    𝑡2
+
+
+
+                                                         𝑻𝟐          𝑡𝑣𝑖+1
+
+Figure 5: An illustration representing the process of replacing edges from T ∗ by edges from H.
+Here, e ∈ T ∗ is replaced with e0 ∈ H. Gray curves represent paths, the red curve represents the
+shortest t1 t2 -path in G, and blue arrows represent the length charging.
+
+
+dG (vi+1 , tvi+1 ) ≤ (1 + ) · dG (vi+1 , t2 ). Therefore,
+
+                        `H (e0 ) ≤ (1 + )2 · (dG (t1 , vi ) + `G (vi , vi+1 ) + dG (vi+1 , t2 ))
+
+                                  = (1 + )2 · dG (t1 , t2 ) = (1 + )2 · `H ∗ (e).
+
+
+    Our actual helper graph, described next, differs from Mehlhorn’s not only in the fact that it is
+approximate, but more importantly, it is a graph on the entire vertex set V rather than just the
+terminals. This is done for efficiency; the (admittedly vague) intuition is as follows. Updating each
+edge of H after each update to G is too costly because the closest (or even the (1 + )-closest)
+terminal to a vertex might change very frequently. But one can observe that most of these frequent
+changes are not important for the MST; there is usually a parallel edge that was not affected and
+whose length is within (1 + ) of the new edges that we would want to add. Figuring out which
+changes in H are important and which are not does not seem tractable. Instead, our new idea is
+to make the update only in a helper graph that is, on the one hand, much closer to G than to
+Mehlhorn’s helper graph (and therefore doesn’t change too frequently), and on the other hand, has
+the same MST up to (1 + ) as Mehlhorn’s. In other words, the idea is to let the MST algorithm
+do the work of figuring out which edges are relevant.
+    The properties that our actual helper graph will satisfy are described in the following lemma. In
+words, each terminal t has a disjoint component Ct in H of vertices that can be reached from t with
+distance 0 (due to edges of length zero in H). The components morally represent the approximate
+Voronoi cells of the terminals. And instead of demanding that each edge (x, y) of the original graph
+
+
+                                                           26
+be represented by an edge (tx , ty ) between the two corresponding terminals in the helper graph, we
+only demand that there be some edge (x0 , y 0 ) between the two corresponding components (where
+x0 , y 0 need not be terminals).
+
+Lemma 4.5. Let G = (V, E, ` : E → [L]) be a graph with terminals U ⊆ V , and let H =
+(VH , EH , `H : EH → [2nL] ∪ {0}) be a weighted graph satisfying the following properties:
+
+   • for each vertex x ∈ VH there is a unique terminal tx ∈ U such that dH (x, tx ) = 0,
+
+   • for each edge (x, y) ∈ E there exists an edge (x0 , y 0 ) ∈ EH with dH (x0 , tx ) = 0 and dH (y 0 , ty ) =
+     0, where tx and ty are (1 + )-closest terminals to x and y in G (respectively), of length
+     `H (x0 , y 0 ) ≤ (1 + ) · (dG (tx , x) + `G (x, y) + dG (y, ty )).
+
+Then, the MST of H has length at most 2(1 + )2 times the minimum U -Steiner tree of G.
+
+Proof. For each terminal t ∈ U let Ct = {x ∈ VH : dH (t, x) = 0} be the component of vertices at
+distance zero to t. By the assumption on H, the sets {Ct }t∈U form a partition of VH . Let H̄ be
+the graph obtained from H by contracting each Ct into a single vertex. It immediately follows that
+H̄ is a helper graph that satisfies requirements of Lemma 4.4 above, and therefore the MST of H̄
+has length at most 2(1 + )2 times the minimum U -Steiner tree of G. But any MST of H̄ can be
+expanded into an MST of H with the same length, by taking a zero-length spanning tree for each
+component Ct ; the shortest path tree rooted at t is such a tree.
+
+4.2   Maintaining the Helper Graph Dynamically: A Reduction to SSSP
+The main technical result towards proving Theorem 4.1 is an algorithm for maintaining a helper
+graph with the properties required by Lemma 4.5.
+
+Lemma 4.6. Given a graph G = (V, E, ` : E → [L]) with terminal set U ⊆ V and a sequence
+of length-increase updates, it is possible to maintain a helper graph H = (VH , EH , `H : EH →
+[2nL] ∪ {0}) satisfying the properties in Lemma 4.5 with a deterministic algorithm such that:
+
+   • The total time is m · no(1) · logO(1) L, and
+
+   • The recourse, i.e. number of edge-length changes to H throughout the sequence, is m · no(1) ·
+     logO(1) L.
+
+   • Given an MST of H of total length mst(H) it is possible to produce a U -Steiner subgraph of
+     G of total length ≤ (1 + ) · mst(H), in time m0 · no(1) · logO(1) L where m0 is the number of
+     edges in the subgraph.
+
+   This lemma is proved in the next sections. But first, let us explain how Theorem 4.1 follows
+from it.
+
+Proof of Theorem 4.1. Let G be the input graph that is undergoing a sequence of length-increase
+updates; let G(i) be the graph after the ith update. We use the algorithm in Lemma 4.6 to maintain
+a helper graph H as G changes; let H (i) be the helper graph after the ith update. We use the fully-
+dynamic MST algorithm by Holm et al. [HdLT01], with H as the input, to (explicitly) maintain an
+MST of H as G changes. If after the ith update, there is a query asking for a U -Steiner subgraph for
+G(i) , we first inspect the MST data-structure to obtain an MST T (i) of H (i) . We use the algorithm
+
+                                                     27
+in Lemma 4.6 again to expand the MST T (i) into a U -Steiner subgraph S (i) of G(i) . If the total
+length of the MST is x then the total length of the Steiner subgraph is ≤ (1 + ) · x, and therefore,
+since the helper graph satisfies the properties of Lemma 4.5, we get that S (i) is a 2(1+)3 -minimum
+U -Steiner subgraph for G(i) .
+    The running time for maintaining the helper graph H is m · no(1) · logO(1) L. To bound the
+running time of the MST algorithm we first need to bound the number of updates we make to H
+(not G) because H is the input graph to the MST algorithm. This number of updates is exactly
+the recourse and it is bounded by m · no(1) · logO(1) L. The MST algorithm [HdLT01] has polylog(n)
+amortized update time (and is deterministic) and therefore it can support this number of updates
+in a total of m · no(1) · logO(1) L time as well. Finally, the time to produce the U -Steiner subgraph is
+m0 ·no(1) ·logO(1) L where m0 is the number of edges in the subgraph, as required by Theorem 4.1.
+
+4.2.1   The Basic Construction
+In order to understand our final construction of the helper graph H, it is helpful to first see a
+simplified version that works assuming an SSSP data-structure with (slightly) stronger properties
+than currently achievable.
+    Let us first briefly overview how a decremental SSSP data-structure works, to clarify the context
+of some of the notation below. Naturally, the idea is to maintain a shortest-path tree rooted at the
+source s. For efficiency, it is desirable that the tree’s depth be small. For this reason, the data-
+structures (e.g. [HKN14, BGS22]) typically use a hopset: by adding a set Ehopset of m · no(1) edges
+to the graph, it is guaranteed that there exist a path from s to any v that is (1 + )-shortest-path
+and that only uses no(1) edges; namely, it has only no(1) hops. A hopset-edge e ∈ Ehopset typically
+has a length that corresponds to the shortest path distance between its endpoints, and therefore
+the distance in the new graph is never shorter than the original distance. The data-structure then
+maintains an approximate shortest-path tree Thopset on the graph with the hopset, of depth no(1) ,
+which can be done efficiently. The distances that it reports are exactly the distances in this tree.
+Proposition 4.7. Suppose that there is a deterministic data-structure that given a graph G =
+(V, E, ` : E → [L]) and a single-source s ∈ V , that undergoes a sequence of edge-length-increase
+updates, and supports the following operations in m · no(1) · logO(1) L total time:
+                                         ˜ v) for each v ∈ V , such that d(s, v) ≤ d(s,
+   • Explicitly maintains an estimate d(s,                                           ˜ v) ≤ (1 +
+                                                                                             ˜ v)
+     ) · d(s, v). In particular, can report after each update, all vertices v ∈ V such that d(s,
+     increased by a ≥ (1 + ) factor (since the last time v was reported).
+                                                                ˜ v) = dT
+   • Explicitly maintains a tree Thopset rooted at s, such that d(s,               (s, v) for all v ∈ V .
+                                                                            hopset
+     An edge of the tree is either from E or from a set of hopset-edges Ehopset ⊆ V × V . In
+     particular, can report after each update, all edges that are added or removed from Thopset .
+Moreover, it holds that each hopset-edge e = (u, v) ∈ Ehopset of length w is associated with a u, v-
+path πe in G of length w. And that the number of times an edge e ∈ E may appear on a single
+root-to-leaf path in Thopset , either as an edge e ∈ E or as an edge e ∈ πe0 on the path of a hopset-edge
+e0 ∈ Ehopset , is no(1) . Additionally, the data-structure supports the following query:
+   • Given a hopset-edge e and an integer k ≥ 1, can return the first (or last) k edges of πe in
+     time k · no(1) · logO(1) L.
+Then Lemma 4.6 holds.
+
+                                                   28
+    The main difference between the requirements of Proposition 4.7 and the features of the existing
+(1 + )-SSSP algorithm is simply that the data-structure explicitly maintains O(log n) trees instead
+of one, and the ith tree is only guaranteed to approximate to within (1 + ) the distances d(s, v)
+when they are in the range [γ i−1 , γ i ] (for some γ ≥ 2). Another minor gap is that the hopsets
+use auxiliary vertices, in addition to the shortcut edges. These gaps will be handled in the next
+subsection. For now, let us see how to obtain Proposition 4.7.
+
+Proof of Proposition 4.7. We start off with a trick similar to the way Mehlhorn’s algorithm reduces
+the problem of computing the closest terminal to each vertex (i.e. the Voronoi cell of each terminal)
+to an SSSP problem. Let G0 be the graph obtained from G = (V, EG , `G : EG → [L]) by adding
+a super-source s∗ that is connected with edges of length 0 to all terminals U ⊆ V (see Figure 6).
+Consequently, for any vertex v ∈ V , dG0 (s∗ , v) = mint∈U dG (t, v), and moreover v belongs to the
+
+                                                       𝑠∗
+
+
+
+
+                       𝑡1                     𝑡2                  𝑡3                    𝑡𝑙
+
+
+
+                                                   𝑣
+                            𝑥
+
+                                          𝑦
+
+
+
+
+Figure 6: An illustration representing H in the basic construction. Here, dG0 (s∗ , v) =
+mint∈U dG (t, v) = dG (t2 , v). Furthermore, the green edge (x, y) ∈ H has length that is the sum of
+the gray curves.
+
+subtree rooted at arg mint∈U dG (t, v) in the SSSP-tree rooted at s∗ . Note that this can be achieved
+without really using edges of length 0 by simply contracting all terminals into one vertex and calling
+it s∗ .13 We will run the (1 + )-SSSP data-structure in the statement on G0 with s∗ as the source.
+Note that it is trivial to transform the length-increase sequence of updates to G into a sequence
+                                                    ˜ ∗ , v) be the tree and estimates maintained by
+of length-increase updates on G0 . Let Thopset and d(s
+the data-structure.
+
+Maintaining a helper graph The helper graph H = (V, EH , `H : EH → [2nL] ∪ {0}) is defined
+                          ˜ ∗ , v) as follows. Note that the vertex set of H is the same as G’s; in our
+based on G, Thopset and d(s
+full construction (in the next subsection) there will be additional vertices. There are two kinds of
+edges in H:
+  13
+    The description below assumes we do add the zero-length edges. In the full construction in the next subsection
+we do in fact need to use the contractions, and so the arguments differ in minor ways.
+
+
+
+
+                                                       29
+       • Green edges: for each edge (x, y) ∈ EG we add an edge (x, y) to EH with length
+                                                    ˜ ∗ , x) + `G (x, y) + d(s
+                                       `H (x, y) := d(s                    ˜ ∗ , y).
+
+         A green edge gets updated whenever: (1) the length `G (x, y) gets updated and is more than
+         (1 + ) times the value used in the current `H (x, y), or (2) the data-structure reports that
+         ˜ ∗ , x) or d(s
+         d(s         ˜ ∗ , y) is increased by a ≥ (1 + ) factor.
+
+       • Red edges: for each edge (x, y) ∈ E(Thopset ) we add an edge (x, y) of length 0 to EH .14 A red
+         edge gets updated whenever the tree Thopset changes. If an edge is removed from the tree,
+         the red edge is removed (i.e. the length is increased from 0 to infinity),15 and if a new edge
+         is added to the tree we add an edge of length zero to H.
+
+The recourse of the helper graph The data-structure will not only maintain the helper graph
+H described above, but it will also feed it into a dynamic MST algorithm and explicitly maintain
+an MST of H. For this to be efficient, we must argue that the total number of updates we make to
+H is small. The running time of the data-structure is upper bounded by m · no(1) · logO(1) L, and
+since it stores the tree Thopset explicitly, this is also an upper bound on the total number of changes
+to Thopset . Whenever a red edge is updated it is because the corresponding edge was updated in
+Thopset ; this can happen m · no(1) · logO(1) L times. A green edge (x, y) is updated either when the
+corresponding edge in G has its length increase by at least a (1 + ) factor, or when d(s      ˜ ∗ , x) or
+˜ ∗ , y) increase by ≥ (1 + ). Since the lengths and estimates are upper bounded by nL, they
+d(s
+can only increase by a (1 + ) factor O(log nL) times. Each time an estimate d(s       ˜ ∗ , x) increases
+we would update P degG (x) edges in H. Thus, the total number of updates to the green edges is
+O(m log n) + x∈V degG (x) · O(log nL) = O(m log nL). It follows that the running time and total
+number of updates to H is m · no(1) · logO(1) L.
+
+The properties of the helper graph Next, let us prove that H satisfies the two properties in
+Lemma 4.5. For that, it is helpful to establish the following claims.
+Claim 4.8. In the tree Thopset the root s∗ has all of the terminals in U as children.
+
+Proof. Suppose for contradiction that t1 ∈ U is in the subtree of terminal t2 ∈ U . Then it must
+follow that d(s˜ ∗ , t1 ) = dT        (s∗ , t1 ) = 0+dThopset (t2 , t1 ) > 0 because all edges that are not adjacent
+                              hopset
+     ∗       0
+to s in G have non-zero length. On the other hand, dG0 (s∗ , t1 ) = 0, contradicting the fact that
+ ˜ ∗ , t1 ) ≤ (1 + ) · dG0 (s∗ , t1 ).
+d(s
+
+    The first of the two properties in Lemma 4.5 now follows. In the tree Thopset , each vertex
+x ∈ V \ U appears in the subtree of exactly one terminal tx ∈ U and, due to the red edges, has
+distance dH (x, tx ) = 0. For all other terminals t0 6= tx ∈ U the path from t0 to x must use a green
+edge of length > 0.
+                             ˜ ∗ , x) ≤ (1 + ) · mint∈U dG (t, x). Moreover, if x is in the subtree of
+Claim 4.9. For all x ∈ V , d(s
+terminal tx ∈ U then tx is a (1 + )-closest terminal to x.
+  14
+       The zero-length edges between s∗ and each terminal in T are exempted, since s∗ does not exist in H.
+  15
+       Notably, these are the only incremental updates that we do.
+
+
+
+
+                                                          30
+Proof. The first part follows from the fact that dG0 (s∗ , x) = mint∈U dG (t, x), and the guarantee
+                                                                                  ˜ ∗ , x) ≤ (1 + ) ·
+on the estimates. For the second part note that dG (tx , x) ≤ dThopset (tx , x) = d(s
+mint∈U dG (t, x); thus, tx is a (1 + )-closest terminal to x.
+
+    To prove the second property, let (x, y) ∈ E be an edge in G; we will show that the green edge
+(x, y) ∈ EH satisfies the requirement.16 Let tx and ty be such that dH (x, tx ) = 0 and dH (y, ty ) = 0.
+By the above claim, we know that tx and ty are (1 + )-closest terminals to x and y (respectively)
+in G. Finally, we can upper bound the length of the green edge (x, y) in H by
+                             ˜ ∗ , x) + `G (x, y) + d(s
+                 `H (x, y) = d(s                    ˜ ∗ , y) = d(t
+                                                               ˜ x , x) + `G (x, y) + d(t
+                                                                                      ˜ y , y)
+
+                                 ≤ (1 + ) · (dG (tx , x) + `G (x, y) + dG (y, ty )).
+
+Expanding an MST of H into a U -Steiner subgraph of G By the above we know that the
+length of an MST of H is a (2 + )-approximation to the minimum length of a Steiner subgraph of
+G. So if our goal was only to maintain an approximation to the length of a Steiner-Tree, we would
+just use the length of a given MST of H and be done. Alas, for our applications the data-structure
+must return the subgraph itself, which is more complicated. The process of (efficiently) expanding
+an MST into a Steiner subgraph is as follows.
+    For a terminal t ∈ U we define t’s component (or subtree or Voronoi cell) to be the set of
+vertices {x ∈ V : dH (t, x) = 0} that are connected by red edges to t. Pick an arbitrary terminal
+t1 ∈ U as a starting point. We will construct a Steiner Subgraph S 0 by starting from S 0 = {t1 } and
+iteratively adding paths (in G) to it. Let U 0 ⊆ U be the set of terminals that are spanned by S 0 ;
+initially U 0 = {t1 }. In each step, we pick an arbitrary green edge of the MST that has an endpoint
+in one of the components of the terminals in U 0 . Let e = (x, y) be such an edge, and let tx , ty
+be the two terminals such that x, y are in their components (respectively). First, note that such
+an edge must exist as long as U 0 6= U (or else the MST does not span the entire graph). Second,
+note that tx ∈ U 0 but ty ∈    / U 0 (otherwise there would be a cycle in the MST). We would like to
+          0
+add to S : (1) a path from tx to x, (2) the edge (x, y), and (3) a path from y to ty . This would
+connect ty to tx and therefore add ty to U 0 . And we would like to have that the total length of (1)
++ (2) + (3) is at most `H (x, y). Ignoring certain subtle details, this can be done by observing that
+`H (x, y) = dThopset (tx , x) + `G (x, y) + dThopset (ty , y) and the distances in Thopset come from paths in
+G. Namely, we can scan the path from tx to x in Thopset and, whenever we encounter an edge from
+E we simply add it to S 0 , while if we encounter an edge e ∈ Ehopset we ask the data-structure to
+expand it into the path πe and add πe to S 0 . If we do this, the total length of the final Steiner
+Subgraph S 0 will be exactly mst(H).
+    The subtle issue with the above is that the total running time for outputting a Steiner Subgraph
+with m0 edges may not be m0 · no(1) · logO(1) L even though every time the data-structure reports
+an edge it only costs no(1) · logO(1) L time. Indeed, if m00 edges are reported throughout the above
+process, we only spend m00 · no(1) · logO(1) L time, but due to edges being repeated many times, the
+number of edges that we finally output m0 could be much smaller than m00 .17 To resolve this issue
+we use a more careful process that uses the ability of the data-structure to list only the first or last
+  16
+      That is, we prove the property with x = x0 and y = y 0 . This will not be the case in the full construction in the
+next subsection.
+   17
+      While the total length from the repetitions is still within our budget of mst(H), the MWU framework does not
+allow us to spend more than no(1) · logO(1) L time on an edge we output, even if it is being repeated many times in
+the output.
+
+
+                                                          31
+k edges on a path πe at cost only k · no(1) · logO(1) L; it turns out that if we see an edge that we
+have already seen, we can stop expanding πe .
+   In more details, the step for expanding a green edge (x, y) is as follows. We start from ty (rather
+than tx ) and scan the tree down to y. When we see an edge e ∈ E we check if it is already in S 0 :
+
+   • If it is not in S 0 we add it to a set S(x,y) of edges that will be added to S 0 at the end of the
+     step.
+
+   • If e happens to already be in S 0 , then we stop, add all edges in S(x,y) to S 0 , and finish the
+     step of edge (x, y). This makes sense because the edges in S(x,y) form a path from ty to e ∈ S 0
+     and all of S 0 is connected to tx ∈ U 0 , so we have accomplished the goal of connecting ty to tx
+     (at a potentially cheaper length than `H (x, y)).
+
+And when we see an edge e ∈ Ehopset we do the following for each k = 2i , i = 1, . . . , log |πe |: ask the
+data-structure to report the first (closest to ty ) k edges of πe , call them e1 , . . . , ek ∈ E, and check
+if they are already in S 0 :
+
+   • If none of them are in S 0 we add them to the set S(x,y) of edges that will be added to S 0 at
+     the end of the step.
+
+   • Otherwise, let ei be the first (closest to ty ) reported edge that is already in S 0 . We stop the
+     step, add all edges in S(x,y) ∪ {e1 , . . . , ei−1 } to S 0 , and finish the step of edge (x, y). The edges
+     in S(x,y) ∪ {e1 , . . . , ei−1 } form a path from ty to ei ∈ S 0 and therefore to tx , so we are done.
+
+If we reach y without stopping, we continue on to the edge (x, y). Again, we check if it is already in
+S 0 ; if not we add it to S(x,y) , if it is, we stop and add all of S(x,y) into S 0 . Similarly, after reaching
+x we continue by scanning the tree up to tx . When encountering an edge from E or Ehopset we do
+the exact steps above to decide if we should add it to S(x,y) or stop. If we reach the tx without
+stopping, we add all of S(x,y) into S 0 and finish the step.
+      We claim that the total time for the above process is m0 · no(1) · logO(1) L where m0 is the number
+of distinct edges that end up in S 0 . Consider the step corresponding to an edge (x, y), and let e∗
+be the first edge on the corresponding path from ty to tx (the one closest to ty ) that is already in
+S 0 before the step. Let e1 , . . . , ei be the i edges that come before e∗ on the path, and let m∗ ≤ i
+be the number of distinct edges among them; note that the step ends up adding m∗ new edges to
+S 0 and our goal is to bound its running time by m∗ · no(1) · logO(1) L. By the assumption on the
+data-structure, each edge can appear only no(1) times on a root-to-leaf path in Thopset , and therefore
+m∗ ≥ i/no(1) . Due to the repeated doubling of k in the above process, each edge might get reported
+an additional O(log n) times, and more importantly, the number of edges e0 that come after e∗ on
+the path and that the data-structure reports (but do not end up in S 0 ) is ≤ 2i. Therefore, the total
+time can be upper bounded by O(i log n) · no(1) · logO(1) L = m∗ · no(1) · logO(1) L.
+
+
+4.2.2    The Full Construction
+We are now ready to present our actual construction. The proof is heavily based on the proof of
+the simpler construction above.
+
+
+
+
+                                                      32
+                             𝑠∗
+
+
+
+      1
+                  𝑡1         𝑡2        𝑡3
+     𝑇ℎ𝑜𝑝𝑠𝑒𝑡
+                                                                          𝑡1
+
+                             𝑠∗
+
+                                                                                               𝑡2
+                  𝑡1         𝑡2        𝑡3
+      2
+     𝑇ℎ𝑜𝑝𝑠𝑒𝑡
+
+
+
+                             𝑠∗
+
+                                                                                     𝑡3
+                  𝑡1         𝑡2        𝑡3
+      𝑙
+     𝑇ℎ𝑜𝑝𝑠𝑒𝑡
+
+
+
+
+Figure 7: An illustration representing how the O(log n) approximate SSSP trees maintained by the
+dynamic algorithm are combined in our helper graph.
+
+
+Lemma 4.10. Suppose that for any constant  > 0, there is a deterministic data-structure that
+given a graph G = (V, E, ` : E → [L]) and a source s ∈ V , that undergoes a sequence of edge-length-
+increase updates of length U , and supports the following operations in m · no(1) · logO(1) L + O(U )
+total time. There is a parameter 2 ≤ γ ≤ no(1) such that, for each i ∈ [logγ nL]:
+   • Explicitly maintains an estimate d˜i (s, v) for each v ∈ V , such that d(s, v) ≤ d˜i (s, v) and if
+     d(s, v) ∈ [γ i−1 , γ i ] then d˜i (s, v) ≤ (1 + ) · d(s, v). In particular, can report after each update,
+     all vertices v ∈ V such that d˜i (s, v) increased.
+   • Explicitly maintains a graph H̃ i where H̃ i is not a subgraph of G and V (H̃ i ) contains all
+     vertices of G but also a set C i of auxiliary vertices, which forms an independent set in H̃ i .
+     For any pair of regular vertices u, v ∈ V , if (u, v) ∈ E(H̃ i ) has length w or there is an
+     auxiliary vertex c ∈ C i such that (u, c), (c, v) ∈ E(H̃ i ) is a 2-path of length w, then there is
+     an associated u, v-path πu,v in G of length between w and (1 + ) · w. Although πu,v is not a
+     simple path, each edge e in G may appear at most β = no(1) times in πu,v .
+   • Explicitly maintains a tree Thopset
+                                      i    rooted at s in H̃ i of depth no(1) , such that d˜i (s, v) =
+     dT i     (s, v) for all v ∈ V . In particular, can report after each update, all edges that are
+       hopset
+     added or removed from Thopset .
+Additionally, the data-structure supports the following query:
+   • For each path πu,v in H̃ i , given an integer k ≥ 1, can return the first (or last) k edges of πu,v
+     in time k · no(1) · logO(1) L.
+
+                                                     33
+    Then Lemma 4.6 holds.
+
+     A data-structure with the above requirements indeed exists by the recent work of Bernstein et
+al. [BGS22]. Since this exact formulation was not explicitly stated in [BGS22], let us point out how
+to obtain it. In Section III.5 of [BGS22], there are logγ nL distance scales of the data structures
+where γ ∈ (2, no(1) ). For each scale i, the objects in Lemma 4.6, such as the estimates d˜i (v) for all
+v, are maintained by the ApxBallπ data structure described in Sections II.5 and III.3 of [BGS22].
+H̃ i is called an emulator in Definition II.5.2 in [BGS22]. A vertex c ∈ C i corresponds to a core (see
+                                             i
+Definition II.2.8 of [BGS22]). The tree Thopset     is the Monotone Even-Shiloach tree maintained by
+             π
+ApxBall as described in Section II.5.2.
+     The only guarantee which was implicit in [BGS22] is the last bullet point about returning the
+first/last k edges in the path πu,v in k · no(1) · logO(1) L time. This guarantee follows by inspecting
+Algorithm 7 of [BGS22]. When the algorithm needs to report the whole path πu,v , it does so
+by recursively querying the data structure starting from the largest distance scale to the smallest
+distance scale. More precisely, the path πu,v is represented by a hierarchical tree of depth logγ nL
+whose leaves correspond to edges of πu,v and internal vertices correspond to subpaths of πu,v . Each
+internal vertex has no(1) children ordered according to the ordering of the edges in the path. Now,
+when we query only for the first k edges in the path, the algorithm would resemble the situation
+when we have a balanced binary search tree and we want to list the first k leaves of this tree.
+For our setting, the tree has logγ nL depth and each vertex has no(1) children. By recursively
+querying the multi-level data structures in this way, we will obtain the first k edges of the path in
+k · no(1) · logO(1) L time.
+
+Proof. The proof follows along the lines of the proof of Proposition 4.7 but with a few modifications.
+As before, we apply the data-structure on the graph G0 that is obtained from G by adding a
+super-source s∗ that represents all terminals in T . Rather than adding zero-length edges between
+each t ∈ U and s∗ we contract all terminals into a single vertex and call it s∗ . Note that each
+edge (s∗ , x) in G0 can be traced back to an edge (t, x) for some t ∈ U . Let Thopset    1               a
+                                                                                              , . . . , Thopset
+and d˜1 (s∗ , v), . . . , d˜a (s∗ , v) be the trees and estimates maintained by the data-structure, where
+a = logγ nL = no(1) logO(1) L.
+
+Maintaining a helper graph The helper graph H = (VH , EH , wH : EH → [2nL] ∪ {0}) is
+                                  i
+defined based on G, the trees Thopset    and estimates d˜i (s∗ , v) as follows. For each vertex x ∈ V \ U
+                           1          a
+in G we create a copies {x , . . . , x } in VH . A terminal vertex t ∈ U ⊆ V however only has one
+copy t ∈ VH . Moreover, we add all auxiliary vertices in C i for all i to VH . There are two kinds of
+edges in H:
+
+   • Green edges: for each edge (x, y) ∈ EG we add a2 edges (xi , y j ) to EH , for all i, j ∈ [a], and
+     set their length to
+                             `H (xi , y j ) := d˜i (s∗ , x) + `G (x, y) + d˜j (s∗ , y).
+      A green edge gets updated whenever: (1) the length `G (x, y) gets updated and is more than
+      (1 + ) times the value used in the current `H (xi , y j ), or (2) the data-structure reports that
+      d˜i (s∗ , x) or d˜j (s∗ , y) increased by a ≥ (1 + ) factor.
+
+   • Red edges: for each edge (x, y) ∈ E(Thopset
+                                           i     ) for some i ∈ [a] we add an edge (xi , y i ) of length
+     0 to EH . If one of x or y is s , suppose w.l.o.g. that it is x, then we trace the edge (s∗ , y)
+                                    ∗
+
+
+
+                                                      34
+         back to an edge (t, x) ∈ E and we add an edge (t, y i ) of length 0 to EH . A red edge gets
+                                      i
+         updated whenever the tree Thopset  changes. If an edge is removed from the tree, the red edge
+         is removed (i.e. the length is increased from 0 to infinity),18 and if a new edge is added to
+         the tree we add an edge of length zero to H.
+
+       (See Figure 7 for an illustration.)
+
+The recourse of the helper graph The m · no(1) · logO(1) L upper bound on the total running
+time and recourse of maintaining H follows exactly as in the simpler construction above, with the
+exception that there is an additional a2 = no(1) logO(1) L factor due to the number of times an edge
+is copied.
+
+The properties of the helper graph Next, let us prove that H satisfies the two properties in
+Lemma 4.5.
+     For the first property, consider any vertex xi ∈ VH , for some x ∈ V \ U , and our goal is to prove
+that there is exactly one terminal tx ∈ U such that dH (xi , tx ) = 0. First, observe that the only red
+edges that are adjacent to a vertex xi come from edges in the tree Thopseti     . Let e = (s∗ , u) be the
+first edge on the path from s∗ to xi in Thopset
+                                           i    . This edge can be traced back to an edge (tx , u) ∈ E
+where tx ∈ U . Due to the red edges, we will have dH (xi , tx ) = 0. On the other hand, since Thopset
+                                                                                                    i
+
+is a tree, there cannot be any other path from xi to s∗ and consequently there will not be any other
+terminal t0 ∈ U with a red path to xi (via edges from Thopseti    ). The only other way that t0 could
+                                                                                                              j
+potentially reach xi with a red path is if t0 could reach tx via edges from some other Thopset                         and
+                                         i
+then use the red path from tx to x . However, by construction, any red path between two terminals
+                                            j
+implies a loop in one of the trees Thopset       – a contradiction.
+    To prove the second property, let (x, y) ∈ E be an edge in G, and let i, j ∈ [a] be such that
+dG0 (s∗ , x) ∈ [γ i−1 , γ i ] and dG0 (s∗ , y) ∈ [γ j−1 , γ j ]. Consequently, d˜i (s∗ , x) ≤ (1 + ) · dG0 (s∗ , x)
+and d˜j (s∗ , y) ≤ (1 + ) · dG0 (s∗ , y). We will show that the green edge (xi , y j ) ∈ EH satisfies the
+requirement. Let tx and ty be such that dH (xi , tx ) = 0 and dH (y j , ty ) = 0. By an argument
+similar to Claim 4.9 from before, we know that tx and ty are (1 + )-closest terminals to x and y
+(respectively) in G. This is because dG (tx , x) ≤ dT i                 (tx , x) = d˜i (s∗ , x) ≤ (1 + ) · dG0 (s∗ , x) =
+                                                                 hopset
+
+(1 + ) · mint∈U dG (t, x), and similarly dG (ty , y) ≤ d˜j (s∗ , y) ≤ (1 + ) · mint∈U dG (t, y). Finally, we
+can upper bound the length of the green edge (xi , y j ) in H by
+
+         `H (xi , y j ) = d˜i (s∗ , x) + `G (x, y) + d˜j (s∗ , y) ≤ (1 + ) · (dG0 (s∗ , x) + `G (x, y) + dG0 (s∗ , y))
+
+                                    ≤ (1 + ) · (dG (tx , x) + `G (x, y) + dG (y, ty )).
+
+Expanding an MST of H into a U -Steiner subgraph of G To conclude the proof we point
+out that the process of expanding an MST of H into a Steiner Subgraph of G can be carried out
+in exactly the same way as in the previous subsection, with the minor detail that we have to get
+rid of the auxiliary vertices C i if they are in the MST. By assumption, there are no edges between
+them, so we can simply make the expansion on two-paths in the MST (that skip over auxiliary
+vertices) rather than edges. This expansion of an edge or two-path of length w into a path πu,x in
+  18
+       As before, these are the only incremental update that we do.
+
+
+                                                              35
+G of length up to (1 + ) · w introduces a (1 + ) factor to the total length of the Steiner subgraph
+(that we did not have in the simple construction).
+
+
+5    Conclusion
+In this paper, we broke the longstanding cubic barrier for the GHtree and APMF problems in
+general, weighted graphs. All previous improvements since 1961, were either corollaries of speed-
+ups in (single-pair) max-flow algorithms, or were limited to special graph classes. Assuming the
+APSP Conjecture, a cornerstone of fine-grained complexity, our result disproves the belief that
+computing max-flows is at least as hard as computing shortest-paths.
+    Our algorithm has a running time of Õ(n2 ) which is nearly-optimal for APMF if all n2 max-
+                                                                                             
+
+flow values must be returned. For GHtree in unweighted graphs, our techniques yield an improved
+running time of m1+o(1) . In fact, a succinct representation of all-pairs max-flows can be produced
+in the time of Õ(1) calls to a (single-pair) max-flow algorithm.
+    It is an interesting open question as to whether our techniques can be extended to obtain an
+m1+o(1) -time GHtree algorithm for weighted graphs as well. In particular, the most significant
+challenge is to design a new dynamic Steiner tree subroutine (analogous to the one in Section 4)
+that can be used for packing Steiner trees in weighted graphs in almost-linear time.
+
+
+References
+[ACK20]      A. Abboud, V. Cohen-Addad, and P. N. Klein. New hardness results for planar graph
+             problems in p and an algorithm for sparsest cut. In K. Makarychev, Y. Makarychev,
+             M. Tulsiani, G. Kamath, and J. Chuzhoy, editors, Proccedings of the 52nd Annual
+             ACM SIGACT Symposium on Theory of Computing, STOC 2020, Chicago, IL, USA,
+             June 22-26, 2020, pages 996–1009. ACM, 2020. Available from: https://doi.org/
+             10.1145/3357713.3384310, doi:10.1145/3357713.3384310. 3
+
+[ACZ98]      S. R. Arikati, S. Chaudhuri, and C. D. Zaroliagis. All-pairs min-cut in sparse networks.
+             J. Algorithms, 29(1):82–110, 1998. doi:10.1006/jagm.1998.0961. 1, 3
+
+[AD16]       A. Abboud and S. Dahlgaard. Popular conjectures as a barrier for dynamic planar
+             graph algorithms. In I. Dinur, editor, IEEE 57th Annual Symposium on Foundations of
+             Computer Science, FOCS 2016, 9-11 October 2016, Hyatt Regency, New Brunswick,
+             New Jersey, USA, pages 477–486. IEEE Computer Society, 2016. Available from:
+             https://doi.org/10.1109/FOCS.2016.58, doi:10.1109/FOCS.2016.58. 3
+
+[AGI+ 19]    A. Abboud, L. Georgiadis, G. F. Italiano, R. Krauthgamer, N. Parotsidis, O. Trabelsi,
+             P. Uznanski, and D. Wolleb-Graf. Faster Algorithms for All-Pairs Bounded Min-Cuts.
+             In 46th International Colloquium on Automata, Languages, and Programming (ICALP
+             2019), volume 132, pages 7:1–7:15, 2019. doi:10.4230/LIPIcs.ICALP.2019.7. 2, 3
+
+[AGW15]      A. Abboud, F. Grandoni, and V. V. Williams. Subcubic equivalences between
+             graph centrality problems, APSP and diameter. In P. Indyk, editor, Proceedings
+             of the Twenty-Sixth Annual ACM-SIAM Symposium on Discrete Algorithms, SODA
+             2015, San Diego, CA, USA, January 4-6, 2015, pages 1681–1697. SIAM, 2015.
+
+
+                                                 36
+            Available from: https://doi.org/10.1137/1.9781611973730.112, doi:10.1137/
+            1.9781611973730.112. 3
+[AHK12]     S. Arora, E. Hazan, and S. Kale. The multiplicative weights update method: a meta-
+            algorithm and applications. Theory of Computing, 8(1):121–164, 2012. 5, 19
+[AIS+ 16]   T. Akiba, Y. Iwata, Y. Sameshima, N. Mizuno, and Y. Yano. Cut tree construction
+            from massive graphs. In 2016 IEEE 16th International Conference on Data Mining
+            (ICDM), pages 775–780. IEEE, 2016. 3
+[AKT20]     A. Abboud, R. Krauthgamer, and O. Trabelsi. Cut-equivalent trees are optimal for
+            min-cut queries. In 61st IEEE Annual Symposium on Foundations of Computer Sci-
+            ence, FOCS 2020, pages 105–118, 2020. doi:10.1109/FOCS46700.2020.00019. 1, 2,
+            3, 4, 43, 50
+[AKT21a]    A. Abboud, R. Krauthgamer, and O. Trabelsi. APMF < APSP? Gomory-Hu
+            tree for unweighted graphs in almost-quadratic time. Accepted to FOCS’21, 2021.
+            arXiv:2106.02981. 1, 2, 3, 4, 7
+[AKT21b]    A. Abboud, R. Krauthgamer, and O. Trabelsi. New algorithms and lower bounds
+            for all-pairs max-flow in undirected graphs. Theory of Computing, 17(5):1–27, 2021.
+            doi:10.4086/toc.2021.v017a005. 1, 2, 3
+[AKT21c]    A. Abboud, R. Krauthgamer, and O. Trabelsi. Subcubic algorithms for gomory–
+            hu tree in unweighted graphs. In Proceedings of the 53rd Annual ACM SIGACT
+            Symposium on Theory of Computing, pages 1725–1737, 2021. doi:10.1145/3406325.
+            3451073. 1, 2, 3, 4, 6, 7, 8
+[AKT22]     A. Abboud, R. Krauthgamer, and O. Trabelsi. Friendly cut sparsifiers and faster
+            Gomory-Hu trees. Accepted to SODA’22, 2022. arXiv:2110.15891. 1, 2, 3, 4, 7
+[AMO93]     R. Ahuja, T. Magnanti, and J. Orlin. Network Flows. Prentice Hall, 1993. 1
+[AV20]      N. Anari and V. V. Vazirani. Planar graph perfect matching is in NC. Journal of the
+            ACM, 67(4):1–34, 2020. 4
+[AVY15]     A. Abboud, V. Vassilevska Williams, and H. Yu. Matching triangles and basing
+            hardness on an extremely popular conjecture. In Proc. of 47th STOC, pages 41–50,
+            2015. 2
+[AW14]      A. Abboud and V. V. Williams. Popular conjectures imply strong lower bounds for
+            dynamic problems. In 55th IEEE Annual Symposium on Foundations of Computer
+            Science, FOCS 2014, pages 434–443, 2014. doi:10.1109/FOCS.2014.53. 3
+[AW21]      J. Alman and V. V. Williams. A refined laser method and faster matrix multiplication.
+            In Proceedings of the 2021 ACM-SIAM Symposium on Discrete Algorithms, SODA
+            2021, pages 522–539, 2021. doi:10.1137/1.9781611976465.32. 2
+[BBDF06]    D. Barth, P. Berthomé, M. Diallo, and A. Ferreira. Revisiting parametric multi-
+            terminal problems: Maximum flows, minimum cuts and cut-tree computations. Dis-
+            crete Optimization, 3(3):195–205, 2006. 4
+
+                                              37
+[BCH+ 08]   A. Bhalgat, R. Cole, R. Hariharan, T. Kavitha, and D. Panigrahi. Efficient algo-
+            rithms for Steiner edge connectivity computationand Gomory-Hu tree construction
+            for unweighted graphs. Unpublished full version of [BHKP07], 2008. Available from:
+            http://hariharan-ramesh.com/papers/gohu.pdf. 18
+
+[BDT16]     A. Backurs, N. Dikkala, and C. Tzamos. Tight hardness results for maximum weight
+            rectangles. In I. Chatzigiannakis, M. Mitzenmacher, Y. Rabani, and D. Sangiorgi,
+            editors, 43rd International Colloquium on Automata, Languages, and Programming,
+            ICALP 2016, July 11-15, 2016, Rome, Italy, volume 55 of LIPIcs, pages 81:1–
+            81:13. Schloss Dagstuhl - Leibniz-Zentrum für Informatik, 2016. Available from:
+            https://doi.org/10.4230/LIPIcs.ICALP.2016.81, doi:10.4230/LIPIcs.ICALP.
+            2016.81. 3
+
+[BENW16]    G. Borradaile, D. Eppstein, A. Nayyeri, and C. Wulff-Nilsen. All-pairs minimum cuts
+            in near-linear time for surface-embedded graphs. In 32nd International Symposium
+            on Computational Geometry, volume 51 of SoCG ’16, pages 22:1–22:16, 2016. doi:
+            10.4230/LIPIcs.SoCG.2016.22. 1, 3
+
+[BFJ95]     J. Bang-Jensen, A. Frank, and B. Jackson. Preserving and increasing local edge-
+            connectivity in mixed graphs. SIAM J. Discret. Math., 8(2):155–178, 1995. doi:
+            10.1137/S0036142993226983. 18
+
+[BGK20]     S. Baswana, S. Gupta, and T. Knollmann. Mincut sensitivity data structures for the
+            insertion of an edge. In 28th Annual European Symposium on Algorithms (ESA 2020),
+            2020. 4
+
+[BGMW20] K. Bringmann, P. Gawrychowski, S. Mozes, and O. Weimann. Tree edit distance
+         cannot be computed in strongly subcubic time (unless apsp can). ACM Transactions
+         on Algorithms (TALG), 16(4):1–22, 2020. 3
+
+[BGS22]     A. Bernstein, M. P. Gutenberg, and T. Saranurak. Deterministic decremental sssp
+            and approximate min-cost flow in almost-linear time. In 2021 IEEE 62nd Annual
+            Symposium on Foundations of Computer Science (FOCS), pages 1000–1008. IEEE,
+            2022. 6, 23, 28, 34
+
+[BHKP07]    A. Bhalgat, R. Hariharan, T. Kavitha, and D. Panigrahi. An Õ(mn) Gomory-Hu
+            tree construction algorithm for unweighted graphs. In 39th Annual ACM Symposium
+            on Theory of Computing, STOC’07, pages 605–614, 2007. doi:10.1145/1250790.
+            1250879. 1, 2, 3, 18, 38, 43
+
+[BK15]      A. A. Benczúr and D. R. Karger. Randomized approximation schemes for cuts and
+            flows in capacitated graphs. SIAM J. Comput., 44(2):290–319, 2015. doi:10.1137/
+            070705970. 6, 16
+
+[BSW15]     G. Borradaile, P. Sankowski, and C. Wulff-Nilsen. Min st-cut oracle for planar graphs
+            with near-linear preprocessing time. ACM Trans. Algorithms, 11(3), 2015. doi:
+            10.1145/2684068. 1, 3
+
+
+
+
+                                              38
+[BT17]      A. Backurs and C. Tzamos. Improving viterbi is hard: Better runtimes imply faster
+            clique algorithms. In International Conference on Machine Learning, pages 311–321.
+            PMLR, 2017. 3
+[CCPS97]    W. Cook, W. Cunningham, W. Pulleybank, and A. Schrijver. Combinatorial Opti-
+            mization. Wiley, 1997. 1
+[CKL+ 22]   L. Chen, R. Kyng, Y. P. Liu, R. Peng, M. P. Gutenberg, and S. Sachdeva. Max-
+            imum flow and minimum-cost flow in almost-linear time. CoRR, abs/2203.00671,
+            2022. Available from: https://doi.org/10.48550/arXiv.2203.00671, arXiv:
+            2203.00671, doi:10.48550/arXiv.2203.00671. 2, 3
+[CLP22]     R. Cen, J. Li, and D. Panigrahi. Augmenting edge connectivity via isolating cuts. In
+            Proceedings of the 2021 ACM-SIAM Symposium on Discrete Algorithms, SODA 2022,
+            2022. 7, 8
+[CMWW19] M. Cygan, M. Mucha, K. Wegrzycki, and M. Wlodarczyk. On problems equivalent to
+         (min,+)-convolution. ACM Transactions on Algorithms (TALG), 15(1):1–25, 2019. 3
+[CQ21]      C. Chekuri and K. Quanrud. Isolating cuts,(bi-) submodularity, and faster algorithms
+            for connectivity. In 48th International Colloquium on Automata, Languages, and
+            Programming (ICALP 2021). Schloss Dagstuhl-Leibniz-Zentrum für Informatik, 2021.
+            7
+[CS21]      J. Chuzhoy and T. Saranurak. Deterministic algorithms for decremental shortest paths
+            via layered core decomposition. In Proceedings of the 2021 ACM-SIAM Symposium
+            on Discrete Algorithms (SODA), pages 2478–2496. SIAM, 2021. 19
+[Dij59]     E. W. Dijkstra. A note on two problems in connexion with graphs. Numerische
+            mathematik, 1(1):269–271, 1959. 2
+[Elm64]     S. E. Elmaghraby. Sensitivity analysis of multiterminal flow networks. Operations
+            Research, 12(5):680–688, 1964. 4
+[Fle00]     L. K. Fleischer. Approximating fractional multicommodity flow independent of the
+            number of commodities. SIAM Journal on Discrete Mathematics, 13(4):505–520, 2000.
+            5, 19
+[GH61]      R. E. Gomory and T. C. Hu. Multi-terminal network flows. Journal of the Society
+            for Industrial and Applied Mathematics, 9:551–570, 1961. Available from: http:
+            //www.jstor.org/stable/2098881. 1, 3
+[GK07]      N. Garg and J. Könemann. Faster and simpler algorithms for multicommodity flow
+            and other fractional packing problems. SIAM Journal on Computing, 37(2):630–652,
+            2007. 5, 19
+[GMW21]     P. Gawrychowski, S. Mozes, and O. Weimann. Planar negative k -cycle. In D. Marx, ed-
+            itor, Proceedings of the 2021 ACM-SIAM Symposium on Discrete Algorithms, SODA
+            2021, Virtual Conference, January 10 - 13, 2021, pages 2717–2724. SIAM, 2021.
+            Available from: https://doi.org/10.1137/1.9781611976465.161, doi:10.1137/
+            1.9781611976465.161. 3
+
+                                              39
+[GR98]     A. V. Goldberg and S. Rao. Beyond the flow decomposition barrier.          J. ACM,
+           45(5):783–797, 1998. doi:10.1145/290179.290181. 2
+
+[GT01]     A. V. Goldberg and K. Tsioutsiouliklis. Cut tree algorithms: an experimental study.
+           Journal of Algorithms, 38(1):51–83, 2001. 3
+
+[Gus90]    D. Gusfield. Very simple methods for all pairs network flow analysis. SIAM Journal
+           on Computing, 19(1):143–155, 1990. 3
+
+[HdLT01]   J. Holm, K. de Lichtenberg, and M. Thorup. Poly-logarithmic deterministic fully-
+           dynamic algorithms for connectivity, minimum spanning tree, 2-edge, and biconnectiv-
+           ity. Journal of the ACM (JACM), 48(4):723–760, 2001. doi:10.1145/502090.502095.
+           23, 27, 28
+
+[HKN14]    M. Henzinger, S. Krinninger, and D. Nanongkai. Decremental single-source shortest
+           paths on undirected graphs in near-linear total update time. In 2014 IEEE 55th
+           Annual Symposium on Foundations of Computer Science, pages 146–155. IEEE, 2014.
+           28
+
+[HL07]     R. Hassin and A. Levin. Flow trees for vertex-capacitated networks. Discrete Appl.
+           Math., 155(4):572–578, 2007. doi:10.1016/j.dam.2006.08.012. 3
+
+[HR92]     F. K. Hwang and D. S. Richards. Steiner tree problems. Networks, 22(1):55–89, 1992.
+           doi:10.1002/net.3230220105. 24
+
+[Hu74]     T. C. Hu. Optimum communication spanning trees. SIAM Journal on Computing,
+           3(3):188–195, 1974. doi:10.1137/0203015. 1, 4
+
+[HW13]     T. Hartmann and D. Wagner. Dynamic Gomory–Hu tree construction–fast and simple.
+           arXiv preprint arXiv:1310.0178, 2013. 4
+
+[Jel63]    F. Jelinek. On the maximum number of different entries in the terminal capacity ma-
+           trix of oriented communication nets. IEEE Transactions on Circuit Theory, 10(2):307–
+           308, 1963. doi:10.1109/TCT.1963.1082149. 3
+
+[Kar00]    D. R. Karger. Minimum cuts in near-linear time. Journal of the ACM, 47(1):46–76,
+           2000. 5, 6, 17
+
+[KL15]     D. R. Karger and M. S. Levine. Fast augmenting paths by random sampling from
+           residual graphs. SIAM J. Comput., 44(2):320–339, 2015. doi:10.1137/070705994.
+           1, 2, 3
+
+[KMB81]    L. T. Kou, G. Markowsky, and L. Berman. A fast algorithm for steiner trees.
+           Acta Informatica, 15:141–145, 1981. Available from: https://doi.org/10.1007/
+           BF00288961, doi:10.1007/BF00288961. 24
+
+[KT18]     R. Krauthgamer and O. Trabelsi. Conditional lower bounds for all-pairs max-flow.
+           ACM Trans. Algorithms, 14(4):42:1–42:15, 2018. doi:10.1145/3212510. 2, 3
+
+[KV12]     B. Korte and J. Vygen. Combinatorial optimization, volume 2. Springer, 2012. 4
+
+
+                                             40
+[Li21]      J. Li. Preconditioning and Locality in Algorithm Design. PhD thesis, Carnegie Mellon
+            University, 2021. 5, 44
+
+[LNP+ 21]   J. Li, D. Nanongkai, D. Panigrahi, T. Saranurak, and S. Yingchareonthawornchai.
+            Vertex connectivity in poly-logarithmic max-flows. In Proceedings of the 53rd Annual
+            ACM SIGACT Symposium on Theory of Computing, pages 317–329, 2021. 7
+
+[LP20]      J. Li and D. Panigrahi. Deterministic min-cut in poly-logarithmic max-flows. In 61st
+            IEEE Annual Symposium on Foundations of Computer Science, FOCS 2020, pages
+            85–92, 2020. doi:10.1109/FOCS46700.2020.00017. 6, 7, 8
+
+[LP21]      J. Li and D. Panigrahi. Approximate Gomory-Hu tree is faster than n−1 max-flows. In
+            STOC ’21: 53rd Annual ACM SIGACT Symposium on Theory of Computing, pages
+            1738–1748. ACM, 2021. doi:10.1145/3406325.3451112. 3, 4, 6, 7, 8, 43
+
+[LPS21]     J. Li, D. Panigrahi, and T. Saranurak. A nearly optimal all-pairs min-cuts algorithm
+            in simple graphs. Accepted to FOCS’21, 2021. arXiv:2106.02233. 1, 2, 3, 4, 7
+
+[Mad78]     W. Mader. A reduction method for edge-connectivity in graphs. In B. Bollobás, editor,
+            Advances in Graph Theory, volume 3 of Annals of Discrete Mathematics, pages 145–
+            164. Elsevier, 1978. doi:https://doi.org/10.1016/S0167-5060(08)70504-1. 5,
+            18
+
+[May62]     W. Mayeda. On oriented communication nets. IRE Transactions on Circuit Theory,
+            9(3):261–267, 1962. doi:10.1109/TCT.1962.1086912. 3
+
+[Meh88]     K. Mehlhorn. A faster approximation algorithm for the steiner problem in graphs.
+            Information Processing Letters, 27(3):125–128, 1988. 5, 19, 22, 24
+
+[MN21]      S. Mukhopadhyay and D. Nanongkai. A note on isolating cut lemma for submodular
+            function minimization. arXiv preprint arXiv:2103.15724, 2021. 7
+
+[NS18]      G. Naves and F. B. Shepherd. When do Gomory-Hu subtrees exist? CoRR, 2018.
+            Available from: http://arxiv.org/abs/1807.07331. 4
+
+[NW61]      C. S. A. Nash-Williams. Edge-Disjoint Spanning Trees of Finite Graphs. Journal
+            of the London Mathematical Society, s1-36(1):445–450, 01 1961. doi:10.1112/jlms/
+            s1-36.1.445. 5, 19
+
+[Pan16]     D. Panigrahi. Gomory-Hu trees. In M.-Y. Kao, editor, Encyclopedia of Algorithms,
+            pages 858–861. Springer New York, 2016. doi:10.1007/978-1-4939-2864-4_168. 1
+
+[Ple81]     J. Plesnı́k. The complexity of designing a network with minimum diameter. Networks,
+            11(1):77–85, 1981. Available from: https://doi.org/10.1002/net.3230110110,
+            doi:10.1002/net.3230110110. 24
+
+[PQ80]      J.-C. Picard and M. Queyranne. On the structure of all minimum cuts in a network
+            and applications. In Combinatorial Optimization II, pages 8–16. Springer, 1980. 4
+
+[PR82]      M. W. Padberg and M. R. Rao. Odd minimum cut-sets and b-matchings. Mathematics
+            of Operations Research, 7(1):67–80, 1982. 1, 4
+
+                                               41
+[RZ04]       L. Roditty and U. Zwick. On dynamic shortest paths problems. In European Sympo-
+             sium on Algorithms, pages 580–591. Springer, 2004. 3
+
+[Sah15]      B. Saha. Language edit distance and maximum likelihood parsing of stochastic gram-
+             mars: Faster algorithms and connection to fundamental graph problems. In V. Gu-
+             ruswami, editor, IEEE 56th Annual Symposium on Foundations of Computer Sci-
+             ence, FOCS 2015, Berkeley, CA, USA, 17-20 October, 2015, pages 118–135. IEEE
+             Computer Society, 2015. Available from: https://doi.org/10.1109/FOCS.2015.17,
+             doi:10.1109/FOCS.2015.17. 3
+
+[Sch03]      A. Schrijver. Combinatorial Optimization. Springer, 2003. 1
+
+[Sei95]      R. Seidel. On the all-pairs-shortest-path problem in unweighted undirected graphs.
+             Journal of computer and system sciences, 51(3):400–403, 1995. 2
+
+[TM80]       H. Takahashi and A. Matsuyama. An approximate solution for the Steiner problem
+             in graphs. Math. Japon., 24(6):573–577, 1979/80. 24
+
+[Tut61]      W. T. Tutte. On the Problem of Decomposing a Graph into n Connected Factors.
+             Journal of the London Mathematical Society, s1-36(1):221–230, 01 1961. doi:10.
+             1112/jlms/s1-36.1.221. 5, 19
+
+[WL93]       Z. Wu and R. Leahy. An optimal graph theoretic approach to data clustering: Theory
+             and its application to image segmentation. IEEE transactions on pattern analysis and
+             machine intelligence, 15(11):1101–1113, 1993. 1, 4
+
+[WW18]       V. V. Williams and R. R. Williams. Subcubic equivalences between path, matrix, and
+             triangle problems. J. ACM, 65(5):27:1–27:38, 2018. doi:10.1145/3186893. 3
+
+[Zha21]      T. Zhang. Gomory-Hu trees in quadratic time. arXiv preprint arXiv:2112.01042,
+             2021.
+
+[Zha22]      T. Zhang. Faster Cut-Equivalent Trees in Simple Graphs. In 49th International Collo-
+             quium on Automata, Languages, and Programming (ICALP 2022), volume 229 of Leib-
+             niz International Proceedings in Informatics (LIPIcs), pages 109:1–109:18, Dagstuhl,
+             Germany, 2022. arXiv:2106.03305, doi:10.4230/LIPIcs.ICALP.2022.109. 1, 2, 3,
+             4, 7
+
+
+A     Reduction to Single-Source Terminal Mincuts Given a Promise
+In this section, we present the reduction of Lemma 1.6, restated below.
+
+Lemma 1.6 (Reduction to Single-Source Terminal Mincuts). There is a randomized algorithm
+that computes a GHtree of an input graph by making calls to max-flow and single-source terminal
+mincuts (with the promise, i.e., Problem 1.5) on graphs with a total of Õ(n) vertices and Õ(m)
+edges, and runs for Õ(m) time outside of these calls.
+
+    Before giving the formal reduction, let us give a high-level description. The original Gomory-Hu
+algorithm is a reduction to n − 1 max-flow calls. At a high-level, it starts with all vertices in one
+
+                                                 42
+super-vertex V 0 = V and recursively bi-partitions V 0 ⊆ V , until V 0 contains only one vertex. In
+any recursive step, the input to the algorithm is the set V 0 ⊆ V (called terminals) and a graph G0
+that is formed from contracting sets of vertices in the input graph G in previous recursive steps.
+In the current step, the algorithm picks an arbitrary pair of vertices s, t ∈ V 0 and computes an
+(s, t)-mincut in G0 . Then, it creates two recursive subproblems, where in each subproblem, one
+side of the (s, t)-mincut cut is retained uncontracted and the other side is contracted into a single
+vertex. The new V 0 in a subproblem comprises the vertices in V 0 on the uncontracted side.
+     The contractions serve to enforce consistency between the cuts, so that we end up with a
+tree structure of cuts. But, recent work has shown that these contractions also help with efficiency.
+Suppose that instead of an arbitrary s, t pair (which can lead to unbalanced cuts and large recursive
+depth), we split using single-source mincuts from a random pivot s ∈ V 0 to all other terminals
+V 0 \ {s}. It turns out that with sufficiently high probability, the cuts from the random pivot to
+many other terminals only contain at most (say) 0.9-fraction of the vertices in V 0 , and splitting
+according to all these cuts (instead of into two) leads to recursion whose depth is bounded by
+O(log n).
+     Effectively, this gives a reduction from GHtree to the single-source mincuts problem, with only
+a multiplicative polylog(n) overhead in the running time. The random-pivot idea was first used by
+Bhalgat et al. [BHKP07] but the first general reduction to single-source mincuts is by Abboud et al.
+[AKT20]. We use a refined reduction that has two additional features: (1) the algorithm (for the
+single-source problem) only needs to return the values of the cuts rather than the cuts themselves
+(and in fact, it is given estimates and only needs to decide if they are correct), and (2) the mincut
+values between any pair of terminals in the graph are guaranteed to be within a (say) 1.1-factor
+from each other (the so called “promise”). The first restriction only serves to simplify our new
+algorithm, while the second is more important for our new ideas to work. This is encapsulated in
+Lemma 1.6 which we prove below.
+     As discussed in the overview, we first remove the “promise” condition from the single source
+terminal mincuts problem (Problem 1.5). To be precise, we first formally define the single source
+terminal mincuts problem without the promise.
+Problem A.1 (Single-Source Terminal Mincuts (without Promise)). The input is a graph G =
+(V, E, w), a terminal set U ⊆ V and a source terminal s ∈ U . The goal is to determine the value
+of λ(s, t) for each terminal t ∈ U \ {s}.
+   We also require the approximate single-source mincuts algorithm of [LP21], stated below, which
+we use as a black box.
+Theorem A.2 (Theorem 1.7 of [LP21]). Let G = (V, E, w) be a graph, let s ∈ V , and let  > 0 be
+a constant. There is an algorithm that outputs, for each vertex v ∈ V \ {s}, a (1 + )-approximation
+of λ(s, v), and runs in Õ(m log ∆) time plus polylog(n) · log ∆ calls to max-flow on O(n)-vertex,
+O(m)-edge graphs, where ∆ is the ratio of maximum to minimum edge weights.
+   We now present the reduction that removes the promise.
+Lemma A.3. There is a randomized algorithm for the unconditional Single-Source Terminal Min-
+cuts problem (Problem A.1) that makes calls to the promise version of the Single-Source Terminal
+Mincuts problem (Problem 1.5) on graphs with a total of O(n log(nW )) vertices and O(m log(nW ))
+edges. Outside of these calls, the algorithm takes Õ(m log W ) time plus polylog(n) · log W calls to
+max-flow on O(n)-vertex, O(m)-edge graphs.
+
+                                                 43
+Proof. Call Theorem A.2 with  = 0.01; note that ∆ ≤ W since the input graph is integer-
+weighted with maximum weight W . Let λ̃(s, v) be the computed approximations, which satisfy
+  1
+1+ λ(s, v) ≤ λ̃(s, v) ≤ (1 + )λ(s, v). For each integer i, let Vi ⊆ V \ {s} be all vertices v ∈ V \ {s}
+with (1 + )i ≤ λ̃(s, v) < (1 + )i+1 . Note that Vi is nonempty for only O(log(nW )) many integers
+                                           1
+i, since λ̃(s, v) must be in the range [ 1+ , (1 + )mW ].
+     We first claim that for each i, the terminal set Ui = {s}∪Vi satisfies the promise of Problem 1.5,
+namely that for all t ∈ Vi , we have λ(Ui ) ≤ λ(s, t) ≤ 1.1λ(Ui ). To prove this claim, note that for
+each v ∈ Vi ,
+                1              1
+(1 + )i−1 =       (1 + )i ≤     λ̃(s, v) ≤ λ(s, v) ≤ (1 + )λ̃(s, v) < (1 + )(1 + )i+1 = (1 + )i+2 ,
+               1+            1+
+
+so all λ(s, v) values are in the range [(1 + )i−1 , (1 + )i+3 ]. Moreover, we must have λ(Ui ) ≥
+(1 + )i−1 since the Steiner mincut of Ui is an (s, v)-mincut for some v ∈ Ui . It follows that
+λ(s, v) ≤ (1 + )3 λ(Ui ) ≤ 1.1λ(Ui ) by the choice  = 0.01, concluding the claim.
+   Since each terminal set Ui satisfies the promise condition of Problem 1.5, we can run an algorithm
+that solves Problem 1.5 to determine the values λ(s, v) for all v ∈ Vi . Since the sets Vi partition
+V \ {s}, we have correctly computed all values of λ(s, v).
+
+   For the remainder of this section, we reduce Gomory-Hu tree to the unconditional Single-Source
+Terminal Mincuts (Problem A.1). The reduction is virtually identical to Section 4.5 of [Li21], and
+we include it for the sake of completeness.
+
+Theorem A.4. There is a randomized algorithm that outputs a Gomory-Hu tree of a weighted,
+undirected graph w.h.p. It makes calls to the unconditional Single-Source Terminal Mincuts problem
+(Problem A.1) on graphs with a total of Õ(n) vertices and Õ(m) edges. It also calls max-flow on
+graphs with a total of Õ(n) vertices and Õ(m) edges, and runs for Õ(m) time outside of these calls.
+
+    The precise Gomory-Hu tree algorithm that proves Theorem A.4 is described in Algorithm GHTree
+a few pages down.
+
+A.1    Additional Preliminaries
+For this section, we need to formally define a generalization of Gomory-Hu trees called Gomory-Hu
+Steiner trees that are more amenable to our recursive structure.
+
+Definition A.5 (Gomory-Hu Steiner tree). Given a graph G = (V, E, w) and a set of terminals
+U ⊆ V , the Gomory-Hu Steiner tree is a weighted tree T on the vertices U , together with a function
+f : V → U , such that
+
+   • For all s, t ∈ U , consider the minimum-weight edge (u, v) on the unique s–t path in T . Let
+     U 0 be the vertices of the connected component of T − (u, v) containing s. Then, the set
+     f −1 (U 0 ) ⊆ V is an (s, t)-mincut, and its value is wT (u, v).
+
+  In our analysis, we use the notion of a minimal mincut and a rooted minimal Gomory-Hu tree.
+We define these next.
+
+Definition A.6 (Minimal (s, t)-mincut). A minimal (s, t)-mincut is an (s, t)-mincut whose side
+S ⊆ V containing s is vertex-minimal.
+
+                                                   44
+Definition A.7 (Rooted minimal Gomory-Hu Steiner tree). Given a graph G = (V, E, w) and a
+set of terminals U ⊆ V , a rooted minimal Gomory-Hu Steiner tree is a Gomory-Hu Steiner tree on
+U , rooted at some vertex r ∈ U , with the following additional property:
+
+ (∗) For all t ∈ U \ {r}, consider the minimum-weight edge (u, v) on the unique r − t path in T ;
+     if there are multiple minimum weight edges, let (u, v) denote the one that is closest to t. Let
+     U 0 be the vertices of the connected component of T − (u, v) containing r. Then, f −1 (U 0 ) ⊆ V
+     is a minimal (r, t)-mincut, and its value is wT (u, v).
+
+   The following theorem establishes the existence of a rooted minimal Gomory-Hu Steiner tree
+rooted at any given vertex.
+
+Theorem A.8. For any graph G = (V, E, w), terminals U ⊆ V , and root r ∈ U , there exists a
+rooted minimal Gomory-Hu Steiner tree rooted at r.
+
+Proof. Let  > 0 be a small enough weight, and let G0 be the graph G with an additional edge
+(r, v) of weight  added for each v ∈ V \ {r}. (If the edge (r, v) already exists in G, then increase
+its weight by  instead.) If  > 0 is small enough, then for all t ∈ V \ {r} and S ⊆ V , if S is an
+(r, t)-mincut in G0 , then S is an (r, t)-mincut in G.
+     Let (T 0 , f ) be a Gomory-Hu Steiner tree for G0 . We claim that it is essentially a minimal
+Gomory-Hu Steiner tree for G, except that its edge weights need to be recomputed as mincuts in
+G and not G0 . More formally, let T be the tree T 0 with the following edge re-weighting: for each
+edge (u, v) in T , take a connected component U 0 of T − (u, v) and reset the edge weight of (u, v) to
+be δG (f −1 (U 0 )) and not δG0 (f −1 (U 0 )). We now claim that (T, f ) is a minimal Steiner Gomory-Hu
+tree for G.
+     We first show that (T, f ) is a Gomory-Hu Steiner tree for G. Fix s, t ∈ U , let (u, v) be the
+minimum-weight edge on the s–t path in T 0 , and let U 0 be the vertices of the connected component
+of T 0 − (u, v) containing s. Since (T 0 , f ) is a Gomory-Hu Steiner tree for G0 , we have that f −1 (U 0 )
+is an (s, t)-mincut in G0 . If  > 0 is small enough, then by our argument from before, f −1 (U 0 ) is
+also an (s, t)-mincut in G. By our edge re-weighting of T , the edge (u, v) has the correct weight.
+Moreover, (u, v) is the minimum-weight edge on the s–t path in T , since a smaller weight edge
+would contradict the fact that f −1 (U 0 ) is an (s, t)-mincut.
+     We now show the additional property (∗) that makes (T, f ) a minimal Gomory-Hu Steiner tree.
+Fix t ∈ U \ {r}, and let (u, v) and U 0 be defined as in (∗), i.e., (u, v) is the minimum-weight edge
+(u, v) on the r − t path that is closest to t, and U 0 is the vertices of the connected component of
+T − (u, v) containing r. Since (T, f ) is a Gomory-Hu Steiner tree for G, we have that f −1 (U 0 ) is
+an (r, t)-mincut of value wT (u, v). Suppose for contradiction that f −1 (U 0 ) is not a minimal (r, t)-
+mincut. Then, there exists S ( f −1 (U 0 ) such that S is also an (r, t)-mincut. By construction of
+G0 , δG0 S = δG S + |S| and δG0 (f −1 (U 0 )) = δG (f −1 (U 0 )) + |f −1 (U 0 )|. We have δG S = δG (f −1 (U 0 ))
+and |S| < |f −1 (U 0 )|, so δG0 S < δG0 (f −1 (U 0 )). In other words, f −1 (U 0 ) is not an (r, t)-mincut in G0 ,
+contradicting the fact that (T 0 , f ) is a Gomory-Hu Steiner tree for G0 . Therefore, property (∗) is
+satisfied, concluding the proof.
+
+A.2     A Single Recursive Step
+Before we present Algorithm GHTree, we first consider the subprocedure GHTreeStep that it
+uses on each recursive step.
+
+
+                                                        45
+ Algorithm 3: GHTreeStep(G = (V, E, w), s, U )
+      1. Initialize R0 ← U and D ← ∅
+
+      2. For all i from 0 to blg |U |c do:
+
+          (a) Call the Isolating Cuts Lemma (Lemma 2.1) on the singleton sets {v} for v ∈ Ri ,
+              obtaining disjoint sets Svi (the minimal (v, Ri \ v)-mincut) for each v ∈ Ri .
+          (b) Call Problem A.1 on graph G and source s.
+          (c) Let Di ⊆ Ri be the union of Svi ∩ U over all v ∈ Ri \ {s} satisfying δSvi = λ(s, v) and
+              |Svi ∩ U | ≤ |U |/2
+          (d) Ri+1 ← subsample of Ri where each vertex in Ri \ {s} is sampled independently with
+              probability 1/2, and s is sampled with probability 1
+
+      3. Return the largest set Di and the corresponding sets Svi over all v ∈ Ri \ {s} satisfying the
+         conditions in line 2c
+
+
+
+    Let D = D0 ∪D1 ∪· · ·∪Dblg |U |c be the union of the sets Di as defined in Algorithm GHTreeStep.
+Let D∗ be all vertices v ∈ U \ {s} for which there exists an (s, v)-mincut whose v side has at most
+|U |/2 vertices in U . We now claim that D covers a large fraction of vertices in D∗ in expectation.
+Lemma A.9. E[|D ∩ D∗ |] = Ω(|D∗ |/ log |U |).
+Proof. Consider a rooted minimal Steiner Gomory-Hu tree T of G on terminals U rooted at s,
+which exists by Theorem A.8. For each vertex v ∈ U \ {s}, let r(v) be defined as the child vertex
+of the lowest weight edge on the path from v to s in T . If there are multiple lowest weight edges,
+choose the one with the maximum depth.
+    For each vertex v ∈ D∗ , consider the subtree rooted at v, define Uv to be the vertices in the
+subtree, and define nv as the number of vertices in the subtree. We say that a vertex v ∈ D∗ is
+active if v ∈ Ri for i = blg nr(v) c. In addition, if Ur(v) ∩ Ri = {v}, then we say that v hits all of
+the vertices in Ur(v) (including itself); see Figure 8. In particular, in order for v to hit any other
+vertex, it must be active. For completeness, we say that any vertex in U \ D∗ is not active and
+does not hit any vertex.
+    To prove that E[|D|] ≥ Ω(|D∗ |/ log |U |), we will show that
+ (a) each vertex u that is hit is in D,
+
+ (b) the total number of pairs (u, v) for which v ∈ D∗ hits u is at least c|D∗ | in expectation for
+     some small enough constant c > 0, and
+
+ (c) each vertex u is hit by at most blg |U |c + 1 vertices.
+    For (a), consider the vertex v that hits u. By definition, for i = blg nr(v) c, we have Ur(v) ∩ Ri =
+{v}, so f −1 (Ur(v) ) is a (v, Ri \ {v})-cut. By the definition of r(v), we have that f −1 (Ur(v) ) is a
+(v, s)-mincut. On the other hand, we have that Svi is a (v, Ri \ {v})-mincut, so in particular, it is
+a (v, s)-cut. It follows that f −1 (Ur(v) ) and Svi are both (v, s)-mincuts and (v, Ri \ v)-mincuts, and
+δSvi = λ(s, v) ≤ W . Since T is a minimal Gomory-Hu Steiner tree, we must have f −1 (Ur(v) ) ⊆ Svi .
+
+                                                  46
+                                                              Ur(v)
+                                                          r(v)
+
+
+
+
+                                                          v      u
+
+
+Figure 8: Let i = blg nr(v) c = blg 7c = 2, and let the red vertices be those sampled in R2 . Vertex v
+is active and hits u because v is the only vertex in Ur(v) that is red.
+
+
+Since Svi is the minimal (v, Ri \{v})-mincut, it is also the minimal (v, s)-mincut, so Svi ⊆ f −1 (Ur(v) ).
+It follows that f −1 (Ur(v) ) = Svi . Since f −1 (Ur(v) ) is the minimal (v, s)-mincut and v ∈ D∗ , we must
+have |f −1 (Ur(v) ) ∩ U | ≤ z, so in particular, |Svi ∩ U | = |f −1 (Ur(v) ) ∩ U | ≤ z. Therefore, the vertex
+v satisfies all the conditions of line 2c. Moreover, since u ∈ Ur(v) ⊆ f −1 (Ur(v) ) = Svi , vertex u is
+added to D in the set Svi ∩ U .
+    For (b), for i = blg nr(v) c, we have v ∈ Ri with probability exactly 1/2i = Θ(1/nr(v) ), and
+with probability Ω(1), no other vertex in Ur(v) joins Ri . Therefore, v is active with probability
+Ω(1/nr(v) ). Conditioned on v being active, it hits exactly nr(v) many vertices. It follows that v hits
+Ω(1) vertices in expectation.
+    For (c), since the isolating cuts Svi over v ∈ Ri are disjoint for each i, each vertex is hit at most
+once on each iteration i. Since there are blg |U |c + 1 many iterations, the property follows.
+    Finally, we show why properties (a) to (c) imply E[|D∩D∗ |] ≥ Ω(|D∗ |/ log |U |). By property (b),
+the number of times some vertex hits another vertex is Ω(|D∗ |) in expectation. Since each vertex
+is hit at most O(log |U |) times by property (c), there are at least Ω(|D∗ |/ log |U |) vertices hit in
+expectation, all of which are included in D by property (a).
+
+    The corollary below immediately follows. Note that the sets Svi output by the algorithm are
+disjoint, which we require in the recursive GH tree algorithm.
+
+Corollary A.10. The largest set Di returned by GHTreeStep satisfies E[|Di ∩D∗ |] = Ω(|D∗ |/ log2 |U |).
+
+A.3    The Gomory-Hu Tree Algorithm
+The Gomory-Hu tree algorithm is presented in GHTree, which uses GHTreeStep as a subpro-
+cedure on each recursive step.
+
+Correctness. Algorithm GHTree has the same recursive structure as Gomory and Hu’s original
+algorithm, except that it computes multiple mincuts on each step. Therefore, correctness of the
+algorithm follows similarly to their analysis. For completeness, we include it below.
+
+                                                     47
+Algorithm 4: GHTree(G = (V, E, w), U )
+    1. s ← uniformly random vertex in U
+
+    2. Call GHTreeStep(G, s, U ) to obtain Di and the sets Svi (so that Di =                    Svi ∩ U )
+                                                                                            S
+
+
+
+    3. For each set Svi do:                               . Construct recursive graphs and apply recursion
+
+         (a) Let Gv be the graph G with vertices V \ Svi contracted to a single vertex xv                   . Svi are
+             disjoint
+         (b) Let Uv ← Svi ∩ U
+         (c) If |Uv | > 1, then recursively set (Tv , fv ) ← GHTree(Gv , Uv )
+
+    4. Let Glarge be the graph G with (disjoint) vertex sets Svi contracted to single vertices yv for
+       all v ∈ Di
+
+    5. Let Ularge ← U \ Di
+
+    6. If |Uv | > 1, then recursively set (Tlarge , flarge ) ← GHTree(Glarge , Ularge )
+
+    7. Combine (Tlarge , flarge ) and {(Tv , fv ) : v ∈ Di } into (T, f ) according to Combine
+
+    8. Return (T, f )
+
+
+
+
+Algorithm 5: Combine((Tlarge , flarge ), {(Tv , fv ) : v ∈ Ri })
+                                                                                                            i
+                                                                       S
+   1: Construct T by starting with the disjoint union Tlarge ∪          v∈Ri Tv and, for each v ∈ R , adding
+      an edge between fv (xv ) ∈ Uv and flarge (yv ) ∈ Ularge of weight δG Svi
+   2: Construct f : V → U by f (v 0 ) = flarge (v 0 ) if v 0 ∈ Ularge and f (v 0 ) = fv (v 0 ) if v 0 ∈ Uv for some
+      v ∈ Ri
+   3: return (T, f )
+
+
+
+
+                                                    48
+Lemma A.11. Algorithm GHTree(G = (V, E, w), U ) outputs a Gomory-Hu Steiner tree.
+
+    To prove Lemma A.11, we first introduce a helper lemma.
+
+Lemma A.12. For any distinct vertices p, q ∈ Ularge , we have λGlarge (p, q) = λG (p, q). The same
+holds with Ularge and Glarge replaced by Uv and Gv for any v ∈ Di .
+
+Proof. Since Glarge is a contraction of G, we have λGlarge (p, q) ≥ λG (p, q). To show the reverse
+inequality, fix any (p, q)-mincut in G, and let S be one side of the mincut. We show that for each
+v ∈ Ri , either Svi ⊆ S or Svi ⊆ V \ S. Assuming this, the cut E(S, V \ S) stays intact when the sets
+Svi are contracted to form Glarge , so λGlarge (p, q) ≤ δS = λG (p, q).
+    Consider any v ∈ Ri , and suppose first that v ∈ S. Then, Svi ∩ S is still a (v, Ri \ v)-cut, and
+  i
+Sv ∪ S is still a (p, q)-cut. By the submodularity of cuts,
+
+                                  δG Svi + δG S ≥ δG (Svi ∪ S) + δG (Svi ∩ S).
+
+In particular, Svi ∩ S must be a minimum (v, Ri \ v)-cut. Since Svi is the minimal (v, Ri \ v)-mincut,
+it follows that Svi ∩ S = Svi , or equivalently, Svi ⊆ S.
+    Suppose now that v ∈  / S. In this case, we can swap p and q, and swap S and V \ S, and repeat
+the above argument to get Svi ⊆ V \ S.
+    The argument for Uv and Gv is identical, and we skip the details.
+
+Proof (Lemma A.11). We apply induction on |U |. By induction, the recursive outputs (Tlarge , flarge )
+and (Tv , fv ) are Gomory-Hu Steiner trees. By definition, this means that for all x, y ∈ Ularge and the
+minimum-weight edge (u, u0 ) on the x–y path in Tlarge , letting Ularge0     ⊆ Ularge be the vertices of the
+                                        0                                 −1       0
+connected component of Tlarge −(u, u ) containing x, we have that flarge (Ularge       ) is an (s, t)-mincut in
+Glarge with value is wT (u, u ). Define U ⊆ U as the vertices of the connected component of T −(u, u0 )
+                              0           0
+                                                                                               −1
+containing x. By construction of (T, f ) (lines 1 and 2), the set f −1 (U 0 ) is simply flarge        0
+                                                                                                  (Ularge ) with
+                                      i                                  −1     0
+the vertex xlarge replaced by V \ Slarge in the case that xlarge ∈ f (U ). Since Glarge is simply G
+                                                                               −1       0
+                       i
+with all vertices V \Slarge  contracted to xlarge , we conclude that δGlarge (flarge (Ularge )) = δG (f −1 (U 0 )).
+By Lemma A.12, we have λG (x, y) = λGlarge (x, y) are equal, so δG (f −1 (U 0 )) is an (x, y)-mincut in
+G. In other words, the Gomory-Hu Steiner tree condition for (T, f ) is satisfied for all x, y ∈ Ularge .
+A similar argument handles the case x, y ∈ Uv for some v ∈ Ri .
+     There are two remaining cases: x ∈ Uv and y ∈ Ularge , and x ∈ Uv and y ∈ Uv0 for distinct
+v, v 0 ∈ Ri . Suppose first that x ∈ Uv and y ∈ Ularge . By considering which sides v and s lie on the
+(x, y)-mincut, we have
+
+                               δG S = λ(x, y) ≥ min{λ(x, v), λ(v, s), λ(s, y)}.
+
+We now case on which of the three mincut values λ(x, y) is greater than or equal to.
+
+   1. If λ(x, y) ≥ λ(v, s), then since Svi is a (v, s)-mincut that is also an (x, y)-cut, we have λ(x, y) =
+      λ(v, s). By construction, the edge (fv (xv ), flarge (yv )) of weight δG Svi = δG S is on the x − y
+      path in T . There cannot be edges on the x − t path in T of smaller weight, since each
+      edge corresponds to a (s, t)-cut in G of the same weight. Therefore, (fv (xv ), flarge (yv )) is the
+      minimum-weight edge on the s–t path in T .
+
+
+
+                                                        49
+   2. Suppose now that λ(x, v) ≤ λ(x, y) < λ(v, s). The minimum-weight edge e on the x − v path
+      in Tv has weight λ(x, v). This edge e cannot be on the v − fv (xv ) path in Tv , since otherwise,
+      we would obtain a (v, xv )-cut of value λ(x, v) in Gv , which becomes a (v, s)-cut in G after
+      expanding the contracted vertex xv ; this contradicts our assumption that λ(x, v) < λ(v, s).
+      It follows that e is on the x − fv (xv ) path in Tv which, by construction, is also on the x − y
+      path in T . Once again, the x − y path cannot contain an edge of smaller weight.
+
+   3. The final case λ(s, y) ≤ λ(x, y) < λ(v, s) is symmetric to case 2, except we argue on Tlarge
+      and Glarge instead of Tv and Gv .
+
+    Suppose now that x ∈ Uv and y ∈ Uv0 for distinct v, v 0 ∈ Ri . By considering which sides v, v 0 , s
+lie on the (x, y)-mincut, we have
+
+                         δG S = λ(x, y) ≥ min{λ(x, v), λ(v, s), λ(s, v 0 ), λ(v 0 , y)}.
+
+We now case on which of the four mincut values λ(x, y) is greater than or equal to.
+
+   1. If λ(x, y) ≥ λ(v, s) or λ(x, y) ≥ λ(s, v 0 ), then the argument is the same as case 1 above.
+
+   2. If λ(x, v) ≤ λ(x, y) < λ(v, s) or λ(y, v 0 ) ≤ λ(x, y) < λ(v 0 , s), then the argument is the same
+      as case 2 above.
+
+This concludes all cases, and hence the proof.
+
+Running time.        We now bound the running time of GHTree.
+
+Lemma A.13. W.h.p., the algorithm GHTree has maximum recursion depth O(log3 n).
+
+Proof. By construction, each recursive instance (Gv , Uv ) has |Uv | ≤ |U |/2. We use the following
+lemma from [AKT20].
+Lemma A.14. Suppose the source vertex s ∈ U is chosen uniformly at random. Then, E[|D∗ |] =
+Ω(|U | − 1).
+By Corollary A.10 and Lemma A.14, over the randomness of s and GHTreeStep, we have
+
+                          E[Di ] ≥ Ω(E[|D∗ |]/ log2 |U |) ≥ Ω((|U | − 1)/ log2 |U |),
+
+so the recursive instance (Glarge , Ularge ) satisfies E[|Ularge |] ≤ (1 − 1/ log2 |U |) · (|U | − 1). Therefore,
+each recursive branch either has at most half the vertices in U , or has at most a (1 − 1/ log2 |U |)
+fraction in expectation. It follows that w.h.p., all branches terminate by O(log3 n) recursive calls.
+
+
+Lemma A.15. For a weighted graph G = (V, E, w) and terminals U ⊆ V , GHTree(G, V ) takes
+time Õ(m) plus calls to max-flow on instances with a total of Õ(n) vertices and Õ(m) edges.
+
+Proof. For a given recursion level, consider the instances {(Gi , Ui , Wi )} across that level. By con-
+struction, the terminals Ui partition U . Moreover, the total number of vertices over all Gi is at
+most n + 2(|U | − 1) = O(n) since each branch creates 2 new vertices and there are at most |U | − 1
+branches.
+
+
+                                                       50
+    To bound the total number of edges, define a parent vertex in an instance as a vertex resulting
+from either (1) contracting V \Svi in some previous recursive Gv call, or (2) contracting a component
+containing a parent vertex in some previous recursive call. There are at most O(log n) parent
+vertices: at most O(log n) can be created by (1) since each Gv call decreases |U | by a constant
+factor, and (2) cannot increase the number of parent vertices. Therefore, the total number of edges
+adjacent to parent vertices is at most O(log n) times the number of vertices. Since there are O(n)
+vertices in a given recursion level, the total number of edges adjacent to parent vertices is O(n log n)
+in this level. Next, we bound the number of edges not adjacent to a parent vertex by m. To do
+so, we first show that on each instance, the total number of these edges over all recursive calls
+produced by this instance is at most the total number of such edges in this instance. Let P ⊆ V
+be the parent vertices; then, each Gv call has exactly |E(G[Svi \ P ])| edges not adjacent     to parent
+vertices (in the recursive instance), and the Glarge call has at most |E(G[V \ P ]) \ v E(G[Svi \ P ])|,
+                                                                                       S
+and these sum to |E(G[V \ P ])|, as promised. This implies that the total number of edges not
+adjacent to a parent vertex at the next level is at most the total number at the previous level.
+Since the total number at the first level is m, the bound follows.
+    Therefore, there are O(n) vertices and Õ(m) edges in each recursion level. By Lemma A.13,
+there are O(−1 log4 n) levels, for a total of Õ(n−1 ) vertices and Õ(m−1 ) edges. In particular, the
+instances to the max-flow calls have Õ(n−1 ) vertices and Õ(m−1 ) edges in total.
+
+   Together, Lemma A.11 (correctness) and Lemma A.15 (running time) prove Theorem A.4.
+
+
+
+
+                                                   51
+

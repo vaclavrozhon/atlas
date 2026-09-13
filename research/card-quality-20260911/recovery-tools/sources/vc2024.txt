@@ -1,0 +1,2056 @@
+                                         Parameterized Complexity of Streaming Diameter
+                                         and Connectivity Problems∗
+                                         Jelle J. Oostveen #
+                                         Dept. Information and Computing Sciences, Utrecht University, The Netherlands
+
+                                         Erik Jan van Leeuwen #
+                                         Dept. Information and Computing Sciences, Utrecht University, The Netherlands
+
+                                                 Abstract
+                                         We initiate the investigation of the parameterized complexity of Diameter and Connectivity in
+                                         the streaming paradigm. On the positive end, we show that knowing a vertex cover of size k allows
+                                         for algorithms in the Adjacency List (AL) streaming model whose number of passes is constant
+                                         and memory is O(log n) for any fixed k. Underlying these algorithms is a method to execute a
+                                         breadth-first search in O(k) passes and O(k log n) bits of memory. On the negative end, we show
+arXiv:2207.04872v2 [cs.DS] 18 Jul 2024
+
+
+
+
+                                         that many other parameters lead to lower bounds in the AL model, where Ω(n/p) bits of memory
+                                         is needed for any p-pass algorithm even for constant parameter values. In particular, this holds
+                                         for graphs with a known modulator (deletion set) of constant size to a graph that has no induced
+                                         subgraph isomorphic to a fixed graph H, for most H. For some cases, we can also show one-pass,
+                                         Ω(n log n) bits of memory lower bounds. We also prove a much stronger Ω(n2 /p) lower bound for
+                                         Diameter on bipartite graphs.
+                                             Finally, using the insights we developed into streaming parameterized graph exploration al-
+                                         gorithms, we show a new streaming kernelization algorithm for computing a vertex cover of size k.
+                                         This yields a kernel of 2k vertices (with O(k2 ) edges) produced as a stream in poly(k) passes and
+                                         only O(k log n) bits of memory.
+
+                                         2012 ACM Subject Classification Theory of computation → Parameterized complexity and exact
+                                         algorithms; Theory of computation → Streaming, sublinear and near linear time algorithms; Theory
+                                         of computation → Lower bounds and information complexity
+
+                                         Keywords and phrases Stream, Streaming, Graphs, Parameter, Complexity, Diameter, Connectivity,
+                                         Vertex Cover, Disjointness, Permutation
+
+                                         Funding Jelle J. Oostveen: This author is partially supported by the NWO grant OCENW.KLEIN.114
+                                         (PACAN).
+
+
+                                             1    Introduction
+
+                                         Graph algorithms, such as to compute the diameter of an unweighted graph (Diameter) or
+                                         to determine whether it is connected (Connectivity), often rely on keeping the entire graph
+                                         in (random access) memory. However, very large networks might not fit in memory. Hence,
+                                         graph streaming has been proposed as a paradigm where the graph is inspected through a
+                                         so-called stream, in which its edges appear one by one [40]. To compensate for the assumption
+                                         of limited memory, multiple passes may be made over the stream and computation time is
+                                         assumed to be unlimited. The complexity theory question is which problems remain solvable
+                                         and which problems are hard in such a model, taking into account trade-offs between the
+                                         amount of memory and passes.
+
+
+                                         ∗
+                                             This version of the article has been accepted for publication, after peer review but is not the Version of
+                                             Record and does not reflect post-acceptance improvements, or any corrections. The Version of Record
+                                             is available online at: https://dx.doi.org/10.1007/s00453-024-01246-z. An extended abstract of
+                                             this work appeared in the proceedings of IPEC 2022.
+2   Parameterized Complexity of Streaming Diameter and Connectivity Problems
+
+
+        Many graph streaming problems require Ω(n) bits of memory [35, 36] for a constant
+    number of passes on n-vertex graphs. Any p-pass algorithm for Connectivity needs Ω(n/p)
+    bits of memory [40]. Single pass algorithms for Connectivity or Diameter need Ω(n log n)
+    bits of memory on sparse graphs [52]. A 2-approximation of Diameter requires Ω(n3/2 )
+    bits of memory on weighted graphs [36]. A naive streaming algorithm for Connectivity or
+    Diameter stores the entire graph, using O(m log n) = O(n2 log n) bits and a single pass.
+    For Connectivity, union-find yields a 1-pass, O(n log n) bits of memory, algorithm [46].
+        An intriguing aspect on Diameter and Connectivity is that classic algorithms for them
+    rely on breadth-first search (BFS) or depth-first search (DFS). These seem difficult to execute
+    efficiently in a streaming setting. It was a longstanding open problem to compute a DFS
+    tree using o(n) passes and o(m log n) bits of memory. This barrier was recently broken [45],
+    through an algorithm that uses O(n/k) passes and O(nk log n) bits of memory, for any k.
+    The situation for computing single-source shortest paths seems similar [32], although good
+    approximations exist even on weighted graphs (see e.g. [46, 33]). We do know that DFS
+    algorithms cannot be executed in logarithmic space [50]. In streaming, any BFS algorithm
+    that explores k layers of the BFS tree must use at least k/2 passes or Ω(n1+1/k /(log n)1/k )
+    space [36]. Hence, much remains unexplored when it comes to graph exploration- and graph
+    distance-related streaming problems such as BFS/DFS, Diameter, and Connectivity. In
+    particular, most lower bounds hold for general graphs. As such, a more fine-grained view of
+    the complexity of these problems has so far been lacking.
+        In this paper, we seek to obtain this fine-grained view using parameterized complexity [27].
+    The idea of using parameterized complexity in the streaming setting was first introduced
+    by Fafianie and Kratsch [34] and Chitnis et al. [22]. Many problems are hard in streaming
+    parameterized by their solution size [34, 22, 19]. Crucially, however, deciding whether a graph
+    has a vertex cover of size k has a one-pass, O(k 2 log k log n)-memory kernelization algorithm
+    by Chitnis et al. [20], and a 2k -passes, O(k log n)-memory direct algorithm by Chitnis and
+    Cormode [19]. Bishnu et al. [10] then showed that knowing a vertex cover of size k is
+    useful in solving other deletion problems using p(k) passes and f (k) log n memory, notably
+    H-free deletion; this approach was recently expanded on by Oostveen and van Leeuwen [49].
+    This leads to the more general question how knowing a (small) H-free modulator, that is,
+    a set X such that G − X has no induced subgraph isomorphic to H (note that H = P2 in
+    Vertex Cover [k]1 ), would affect the complexity of streaming problems and of BFS/DFS,
+    Diameter, and Connectivity in particular. We are not aware of any investigations in this
+    direction.
+        An important consideration is the streaming model (see [40, 38, 44, 47] or the survey by
+    McGregor [46]). In the Edge Arrival (EA) model, each edge of the graph appears once in the
+    stream, and the edges appear in some fixed but arbitrary order. Most aforementioned results
+    use this model. In the Vertex Arrival (VA) model the edges arrive grouped per vertex, and
+    an edge is revealed at its endpoint that arrives latest. In the Adjacency List (AL) model
+    the edges also arrive grouped per vertex, but each edge is present for both its endpoints.
+    This means we see each edge twice and when a vertex arrives we immediately see all its
+    adjacencies (rather than some subset dependent on the arrival order, as in the VA model).
+    This model is quite strong, but as we shall see, unavoidable for our positive results. We do
+    not consider dynamic streaming models in this paper, although they do exist. Note that all
+    these streaming models concern edge streams, so even though we may talk about ‘arrival of
+    a vertex’ this really means ‘arrival of the edges incident to a vertex’, and vertices are not
+
+
+    1
+        See Section 2 for the notation.
+J.J. Oostveen and E.J. van Leeuwen                                                               3
+
+
+separately present in the graph stream.
+
+
+Our Contributions The main takeaway from our work is that the vertex cover number
+likely sits right at the frontier of parameters that are helpful in computing Diameter and
+Connectivity. As our main positive result, we show the following.
+
+▶ Theorem 1. Given a graph G as an AL stream and a vertex cover of G of size k in
+memory, Diameter [k] and Connectivity [k] can be solved using O(2k k) passes and
+O(k log n) bits of space or using one pass and O(2k + k log n) bits of space.
+
+    The crux to our approach is to perform a BFS in an efficient manner, using O(k) passes
+and O(k log n) space. Knowledge of a vertex cover is not a restricting assumption, as one may
+be computed using similar memory requirements [20, 19]. We will also show how to extend
+the single-pass result to work without a vertex cover being given, at the cost of increasing
+the memory use to O(4k + k log n) bits of space.
+    As a contrasting result, we will show that in the VA model, even a constant-size vertex
+cover does not help in computing Diameter and Connectivity. Moreover, the bound on
+the vertex cover seems necessary, as we can prove that any p-pass algorithm for Diameter
+requires Ω(n2 /p) bits of memory even on bipartite graphs and any p-pass algorithm for
+Connectivity requires Ω(n/p) bits of memory, both in the AL model. This indicates that
+both the permissive AL model and a low vertex cover number are truly needed.
+    In some cases, we are also able to prove that a single-pass algorithm requires Ω(n log n)
+bits of memory.
+    More broadly, knowledge of being H-free (that is, not having a fixed graph H as an
+induced subgraph) or having an H-free modulator does not help even in the AL model. Here,
+H ̸⊆i G denotes that H is not an induced subgraph of G.
+
+▶ Theorem 2. For any fixed graph H with H ̸⊆i P4 and H ̸= 3P1 , P3 + P1 , P2 + 2P1 , any
+streaming algorithm for Diameter in the AL model that uses p passes over the stream must
+use Ω(n/p) bits of memory even on the class of H-free graphs.
+
+     We note that these results hold for H-free graphs (without the need for a modulator).
+The case when H ⊆i P4 is straightforward to solve with O(log n) bits of memory, as the
+diameter is either 1 or 2 (an induced path of length 3 is a P4 ). If the graph has diameter 1,
+it is a clique. This can be tested in a single pass by counting the number of edges.
+
+▶ Theorem 3. For any fixed graph H with H ̸= P2 + sP1 for s ∈ {0, 1, 2} and H ̸= sP1 for
+s ∈ {1, 2, 3} and any fixed constant k ≥ 3, any streaming algorithm for Diameter in the AL
+model that uses p passes over the stream must use Ω(n/p) bits of memory even on the class
+of graphs G with a given set of vertices X with |X| = k such that G − X is H-free. If G − X
+must be connected and H-free, then additionally H ̸= P3 .
+
+   We note that the case when H = P2 or H = P1 is covered by Theorem 1. Cobipartite
+graphs seem to be a bottleneck class. The cases when H = 2P1 or when H = P3 and G − X
+must be connected lead to a surprising second positive result.
+
+▶ Theorem 4. Given a graph G = (V, E) as an AL stream and a set X ⊆ V of size k in
+memory such that G−X is a disjoint union of ℓ cliques, Diameter [k, ℓ] and Connectivity
+[k, ℓ] can be solved using O(2k kℓ) passes and O((k + ℓ) log n) bits of space or one pass and
+O(2k ℓ + (k + ℓ) log n) bits of space.
+4   Parameterized Complexity of Streaming Diameter and Connectivity Problems
+
+
+        The approach for this result is similar as for Theorem 1. Moreover, we show a comple-
+    mentary lower bound in the VA model, even for ℓ = 1 and constant k.
+        To summarize our results in words, generalizing Theorem 1 using the perspective of
+    an H-free modulator does not seem to lead to a positive result (Theorem 3). Instead,
+    connectivity of the remaining graph after removing the modulator seems crucial. However,
+    this perspective only helps for Theorem 4, while the problem remains hard for most other
+    H-free modulators and even for the seemingly simple case of a modulator to a path (we will
+    show this in Theorem 24). While Theorem 4 would also hint at the possibility of using a
+    modulator to a few components of small diameter, this also leads to hardness (we show this
+    in Corollary 20).
+        We emphasize that all instances of Diameter in our hardness reductions are connected
+    graphs. Hence, the hardness of computing Diameter is separated from the hardness of
+    computing Connectivity.
+        For Connectivity, we also give two broad theorems that knowledge of being H-free or
+    having an H-free modulator does not help even in the AL model.
+
+    ▶ Theorem 5. For any fixed graph H that is not a linear forest containing only paths of
+    length at most 5, any streaming algorithm for Connectivity in the AL model that uses p
+    passes over the stream must use Ω(n/p) bits of memory even on the class of H-free graphs.
+
+    ▶ Theorem 6. For any fixed graph H that is not a linear forest containing only paths of
+    length at most 1 and any fixed constant k ≥ 2, any streaming algorithm for Connectivity
+    in the AL model that uses p passes over the stream must use Ω(n/p) bits of memory even on
+    the class of graphs G with a given set of vertices X with |X| = k such that G − X is H-free.
+
+        Our hardness results for H-free modulators for both Diameter and Connectivity have
+    meaning for several standard graph parameters, we explicitly introduce and mention these
+    parameters in the main body of the paper.
+        As a final result, we use our insights into graph exploration on graphs of bounded vertex
+    cover to show a result on the Vertex Cover problem itself. In particular, a kernel on
+    2k vertices for Vertex Cover [k] can be obtained as a stream in O(k 3 ) passes in the EA
+    model using only O(k log n) bits of memory. In the AL model, the number of passes is
+    only O(k 2 ). This kernel still may have O(k 2 ) edges, which means that saving it in memory
+    would not improve over the result of Chitnis et al. [20] (which uses O(k 2 log k log n) bits of
+    memory), up to logarithmic factors and constants. Indeed, a better kernel seems unlikely to
+    exist [26]. However, the important point is that storing the (partial) kernel in memory is not
+    needed during its computation. Hence, it may be viewed as a possible first step towards a
+    streaming algorithm for Vertex Cover [k] using O(k log n) bits of memory and poly(k)
+    passes, which is an important open problem in the field, see [19]. Our kernel is constructed
+    through a kernel by Buss and Goldsmith [14], and then finding a maximum matching in an
+    auxiliary bipartite graph (following Chen et al. [17]) of bounded size through repeated DFS
+    applications.
+
+    Related work There has been substantial work on the complexity of graph-distance and
+    reachability problems in the streaming setting. For example, Guruswami and Onak [39]
+    showed that any p-pass algorithm needs n1+Ω(1/p) /pO(1) memory when given vertices s, t to
+    test if s, t are at distance at most 2p + 2 in undirected graphs or to test s-t reachability in
+    directed graphs. Further work on directed s-t reachability [6] recently led to a lower bound
+                  √
+    that any o( log n)-pass algorithm needs n2−o(1) bits of memory [18]. Other recent work
+J.J. Oostveen and E.J. van Leeuwen                                                                 5
+
+
+considers p-pass algorithms for ϵ-property testing of connectivity [53, 42, 4], including strong
+memory lower bounds n1−O(ϵ·p) on bounded-degree planar graphs [5]. Further problems in
+graph streaming are extensively discussed and referenced in these works; see also [3].
+    In the non-streaming setting, the Diameter problem can be solved in O(nm) time by
+BFS. There is a lower bound of n2−ϵ for any ϵ > 0 under the Strong Exponential Time
+Hypothesis (SETH) [51]. Parameterizations of Diameter have been studied with parameter
+vertex cover [13], treewidth [1, 43, 13], and other parameters [24, 8], leading to a 2O(k) n1+ϵ
+time algorithm on graphs of treewidth k [13]. Running time 2o(k) n2−ϵ for graphs of treewidth
+k is not possible under SETH [1]. Subquadratic algorithms are known for various hereditary
+graph classes; see e.g. [15, 23, 28, 29, 30, 31, 37] and references in [23].
+
+
+ 2     Preliminaries
+We work on undirected, unweighted graphs. We denote a computational problem A with A [k],
+where [.] denotes the parameterization. A parameter k is an integer given as additional input.
+In parameterized complexity the aim is to find algorithms with running time f (k) · nO(1) ,
+where f is some computable function. This notion was introduced by Downey and Fellows [27],
+and we refer the reader to [25] for more on parameterized complexity. In our setting, our
+aim will be to find streaming algorithms with a space complexity of O(f (k) log n) for some
+computable function f . This space complexity class is dubbed Fixed Parameter Streaming
+by Chitnis and Cormode [19].
+   Diameter is to compute maxs,t∈V d(s, t) where d(s, t) denotes the distance between s
+and t. Connectivity asks to decide whether or not the graph is connected. A twin class
+consists of all vertices with the same open neighbourhood. In a graph with vertex cover size
+k, we have O(2k ) twin classes. For two graphs G, H, G + H denotes their disjoint union.
+We also use 2G to denote G + G; 3G is G + G + G, etc. H ̸⊆i G denotes that H is not an
+induced subgraph of G. A linear forest is a disjoint union of paths. A path on a vertices is
+denoted Pa and has length a − 1.
+
+     Disjn (Disjointness)
+                                          n
+     Input: Alice has a string x ∈ {0, 1} given by x1 x2 . . . xn . Bob has a string
+               n
+     y ∈ {0, 1} given by y1 y2 . . . yn .
+     Question: Bob wants to check if ∃1 ≤ i ≤ n such that xi = yi = 1. (Formally, the
+     answer is NO if this is the case.)
+
+    The communication complexity necessary between Alice and Bob to solve Disjointness
+is well understood, and can be used to prove lower bounds on the memory use of streaming
+algorithms. This was first done by Henzinger et al. [40].
+
+     Permn (Permutation)
+     Input: Alice gets a permutation π : [n] → [n], Bob gets an integer j ∈ [n log n].
+     Question: Is the j-th bit of the concatenation of π(1), π(2), . . . , π(n) equal to 1?
+     That is, is the γ = (j mod log n)-th bit of the image of the ψ = ⌈ logj n ⌉-th index
+     equal to 1?
+
+   The values γ and ψ essentially break j down into the quotient (ψ) and the remainder (γ)
+with divisor log n. In essence, ψ tells us in which ‘block’ of log n bits Bob should look, while
+γ tells us where in a block Bob should look. Let it be clear that ψ ∈ [n] and γ ∈ [log n]. For
+computation, one can compute γ = (j +log n−⌈ logj n ⌉×log n). The problem of Permutation
+was created and applied first to the streaming setting by Sun and Woodruff [52]. The following
+6   Parameterized Complexity of Streaming Diameter and Connectivity Problems
+
+
+    formulations by Bishnu et al. [9] come in very useful.
+
+    ▶ Proposition 7. (Rephrasing of items (ii) of [9, Proposition 5.6]) If we can show a reduction
+    from Disjn to problem Π in streaming model M such that in the reduction, Alice and Bob
+    construct one model-M pass for a streaming algorithm for Π by communicating the memory
+    state of the algorithm only a constant number of times to each other, then any streaming
+    algorithm working in the model M for Π that uses p passes requires Ω(n/p) bits of memory,
+    for any p ∈ N [21, 11, 2].
+
+    ▶ Proposition 8. (Rephrasing of item (iii) of [9, Proposition 5.6]) If we can show a reduction
+    from Permn to a problem Π in the streaming model M such that in the reduction, Alice
+    and Bob construct one model-M pass for a streaming algorithm for Π by communicating
+    the memory state of the algorithm only a constant number of times to each other, then any
+    streaming algorithm working in the model M for Π that uses 1 pass requires Ω(n log n) bits
+    of memory.
+
+     If we can show a reduction from either Disjointness or Permutation, we call a problem
+    ‘hard’, as it does not admit algorithms using only poly-logarithmic memory.
+         Any upper bound for the EA model holds for all models, and an upper bound for the
+    VA model also holds for the AL model. On the other hand, a lower bound in the AL model
+     holds for all models, and a lower bound for the VA model also holds for the EA model.
+
+     3      Upper Bounds for Diameter
+    We give an overview of our upper bound results for Diameter in Table 1. The memory-
+    efficient results rely on executing a BFS on the graph, which is made possible by both the
+    parameter and the use of the AL model. The one-pass results rely on the possibility to save
+    the entire graph in a bounded fashion. Our upper bounds assume the deletion set related to
+    the parameter is given, that is, it is in memory.
+
+     Parameter (k)                Passes     Memory (bits)             Model    Theorem
+     Vertex Cover                 O(2k k)    O(k log n)                AL       11
+                                  1          O(2k + k log n)           AL       12
+     Distance to ℓ cliques        O(2k ℓk)   O((k + ℓ) log n)          AL       15
+                                  1          O(2k ℓ + (k + ℓ) log n)   AL       16
+         Table 1 Overview of the algorithms and their complexity for Diameter and Connectivity.
+
+
+
+
+    ▶ Lemma 9. In a graph with vertex cover size k, any simple path has length at most 2k.
+
+    Proof. Let G be a graph with vertex cover size k. Consider some simple path P in the graph.
+    Any vertex in the independent set of G (i.e. not in the vertex cover) that is on the path P
+    only has neighbours in the vertex cover. Hence, for each vertex in the independent set the
+    path visits, we also visit a vertex in the vertex cover. As the vertex cover has size k, any
+    simple path can visit at most 2k + 1 vertices, as then all vertices in the vertex cover have
+    been visited.                                                                             ◀
+
+    Lemma 9 is useful in that the diameter of such a graph can be at most 2k if the graph is
+    connected. Our algorithm will simulate a BFS for 2k rounds, deciding on the distance of a
+    vertex to all other vertices.
+J.J. Oostveen and E.J. van Leeuwen                                                                  7
+
+
+▶ Lemma 10. Given a graph G as an AL stream with a vertex cover X of size k, we can
+compute the distance from a vertex v to all others using O(k) passes and O(k log n) bits of
+memory.
+
+Proof. We simulate a BFS originating at v for at most 2k rounds on our graph, using a
+pass for each round. Contrary to a normal BFS, we only remember whether we visited the
+vertices in X and their distances, to reduce memory complexity.
+    For every vertex w ∈ X, we save its tentative distance d(w) from v; if this is not yet
+decided, this field has value ∞. Our claim will be that after round i, the value of d(w) for
+vertices w within distance i from v is correct. We initialize the distance of v as d(v) = 0 (we
+store d(v) regardless of whether v ∈ X).
+    Say we are in round i ≥ 1. We execute a pass over the stream. Say we view a vertex
+w ∈ X ∪ {v} in the stream with its adjacencies. If w has a distance of d(w), we update the
+neighbours u of w in X to have distance d(u) = min(d(u), d(w) + 1). If instead we view a
+vertex w ∈ / X ∪ {v} in the stream, we do the following. Locally save all the neighbours and
+look at their distances, and let z be the neighbour with minimum d(z) value. For every
+u ∈ N (w) we update the distance as d(u) = min(d(z) + 2, d(u)). This simulates the distance
+of a path passing through w (note that this may not be the shortest path, but this may be
+resolved by other vertices). Executing this procedure for every vertex of G takes a single
+pass, as by the AL model we see all the adjacencies of a vertex when it arrives in the stream.
+This completes the procedure for round i.
+    Notice that we use only O(k log n) bits of memory during the procedure, and that the
+total number of passes is indeed O(k) as we execute 2k rounds, using one pass each.
+    For the correctness, let us first argue the correctness of the claim after round i, the value
+of d(w) of vertices w ∈ X within distance i from v is correct. We proceed by induction,
+clearly the base case of 0 is correct. Now consider some vertex w at distance i from v.
+Consider a shortest path from v to w. Look at the last vertex on the path before visiting w.
+If this vertex is in X, then by induction, this vertex has a correct distance after round i − 1,
+and so, in round i this vertex will update the distance of w to be i. If this vertex is not in X,
+then it has a neighbour with distance i − 2, which is correct after round i − 2 by induction,
+and so, the vertex not in X will (have) update(d) the distance of w to be i in round i.
+    The correctness of the algorithm now follows from the claim, together with Lemma 9,
+and the fact that we can now output all distances using a single pass by either outputting
+the value of the field d(w) for a vertex w ∈ X, or by looking at all neighbours of a vertex
+w∈ / X and outputting the smallest value +1.                                                   ◀
+
+   Related is a lower bound result by Feigenbaum et al. [36], which says that any BFS
+procedure that explores k layers of the BFS tree must use at least k/2 passes or super-linear
+memory. This indicates that memory- and pass-efficient implementations of BFS, as in
+Lemma 10, are hard to come by.
+   We can now use Lemma 10 to construct an algorithm for finding the diameter of a graph
+parameterized by vertex cover, essentially by executing Lemma 10 for every twin class, which
+considers all options for vertices in the graph.
+
+▶ Theorem 11. Given a graph G as an AL stream with vertex cover X of size k, we can
+solve Diameter [k] in O(2k k) passes and O(k log n) bits of memory.
+
+Proof. We enumerate all the twin classes of the neighbourhood in X of vertices (which we
+can do with k bits), and for each such a class, we find if there is a vertex realizing this
+class in a pass. Then, we call the algorithm of Lemma 10 with this vertex as v. Instead of
+8   Parameterized Complexity of Streaming Diameter and Connectivity Problems
+
+
+    outputting all distances, we are only interested in the largest distance found (which may be
+    +∞). We also call Lemma 10 for every x ∈ X with x as the vertex v. We keep track of the
+    largest distance found over all calls to Lemma 10, and output this value as the diameter.
+        The correctness follows from the correctness of Lemma 10, together with the fact that
+    considering each twin class of the neighbourhood in X combined with all vertices in X
+    actually considers all possible vertices that may occur in G, and so we also consider one of
+    the vertices of the diametric pair in one of these iterations.                            ◀
+
+        We show an alternative one-pass algorithm, by saving the graph as a representation by
+    its twin classes, thereby completing the proof of Theorem 1.
+
+    ▶ Theorem 12. Given a graph G as an AL stream, we can solve Diameter [k] in one pass
+    and O(4k + k log n) bits of memory, or correctly report that a vertex cover of size k does not
+    exist. When a vertex cover of size k is given, the memory use is O(2k + k log n).
+
+    Proof. In our pass, we greedily construct a vertex cover of size 2k by maintaining a maximal
+    matching. If at any point the matching exceeds 2k vertices, we report that no vertex cover
+    of size k exists. We can characterize vertices not in the vertex cover by their adjacencies
+    towards the vertex cover, i.e. the binary string of at most 2k bits with a 1 if the vertex is
+    adjacent. We call this binary string the characterization of a vertex. In the pass, we also keep
+    track of the adjacency matrix of edges within the vertex cover, and the characterization of
+    vertices not in the vertex cover. Seeing a vertex, we either add it to the vertex cover if it has
+    a neighbour that is not in the vertex cover (add that edge to the matching), in which case
+    we can update the edges within the vertex cover. Otherwise, a vertex has only neighbours in
+    the vertex cover, which means we can save its characterization. Any edge in the vertex cover
+    will be registered, as when the second of its two vertices is added to the vertex cover, we will
+    register the presence of this edge. Any edge with one endpoint v not in the vertex cover will
+    be registered when saving the characterization of v, which, at that point in the stream, can
+    only have neighbours in the vertex cover (otherwise it would have been added too).
+        There are only O(22k ) different characterizations of adjacencies to the vertex cover of
+    size 2k, and hence, for each we can save one or two bits whether there is a vertex with this
+    neighbourhood and whether there is more than one. The procedure above can decide such
+    properties locally using O(k log n) bits. The adjacency matrix of the vertex cover takes O(k 2 )
+    bits. So, we can save all this information and the vertex cover itself using O(4k + k log n)
+    bits. When a vertex cover is given, there are only O(2k ) different characterizations and so
+    we use only O(2k + k log n) bits.
+        Next we argue that this information is enough to decide on Diameter. We can use
+    a simple enumeration technique to find the diameter of the graph. To do this, for every
+    pair, we find the distance between them, and keep track of the largest distance found. For a
+    given pair of vertices (given by their adjacencies towards the vertex cover, or a vertex in the
+    vertex cover itself), we can decide on the distance between them using a procedure similar to
+    Lemma 10 but internally instead of making actual passes over the stream.                       ◀
+
+       We have seen all the elements of Theorem 1.
+
+    Proof of Theorem 1. This follows immediately from Theorem 11 and 12.                          ◀
+
+        Next, we show that the idea of simulating a BFS extends to another similar setting, where
+    instead of a bounded vertex cover we have a bounded deletion distance to ℓ cliques. The
+    good thing about cliques is that we need not search in them, the distances in a clique are
+    known if we know the smallest distance to some vertex in the clique. However, we will need
+J.J. Oostveen and E.J. van Leeuwen                                                                  9
+
+
+to save the smallest distance to each clique to propagate distances in the network as different
+vertices in a single clique can have many different adjacencies to the deletion set. This is the
+reason we require a bounded number of cliques.
+
+▶ Lemma 13. In a graph G with deletion distance k to ℓ cliques, any shortest path between
+two vertices is of length at most 3k + 1, if it exists.
+
+Proof. Let G be a graph with deletion distance k to ℓ cliques. Consider some shortest path
+between two vertices v, w. Any vertex on this path that is not v, w in one of the ℓ cliques
+must have as one of its neighbours on the path a vertex in the deletion set. If the path
+contains more than one edge from a single clique, it is not a shortest path. Hence, the path
+has length at most 3k + 1.                                                                ◀
+
+   Lemma 13 indicates that we can use a similar approach in simulating a BFS of bounded
+depth to find distances.
+
+▶ Lemma 14. Given a graph G as an AL stream with deletion distance k to ℓ cliques, with
+the given deletion set X, we can decide on the distance from one vertex v to all others using
+O(k) passes and O((k + ℓ) log n) bits of memory.
+
+Proof. Similar to Lemma 10, we simulate a BFS originating at v of at most 3k + 1 rounds,
+using a pass for each round. We only remember distances for vertices in the deletion set,
+and the smallest distance in each clique. This way the memory complexity remains small.
+    The setup of the algorithm is as follows. For every vertex in the deletion set X, and
+for every clique, we save its distance from v, if this is not yet decided this field has value
++∞. For a clique, this value means the smallest distance from v to some vertex of the clique.
+Let us denote d(w) as the value of this field for a vertex w ∈ X or a clique with which we
+associate a (non-existent) vertex w. Our claim is that after round i, the fields d(w) for w
+within distance i from v are correct. We initialize d(v) = 0, and if it is contained in a clique,
+then set d(w) = 0 for the associated vertex w.
+    Let us describe the workings of a round, say round i ≥ 1. We make a pass over the stream,
+and for each vertex we do the following. If we see a vertex w ∈ X with distance d(w), we
+update the distances of its neighbours u ∈ N (w) as min(d(u), d(w) + 1). If we see a vertex c
+contained in some clique with associated vertex w, we look at its neighbours in N (c) ∩ X. If
+a neighbour u of c has d(u) + 1 ≤ d(w), we update d(w), as c realizes this distance in the
+clique. Therefore, we update the neighbours u ∈ N (c) ∩ X with d(u) = min(d(u), d(w) + 1).
+Otherwise, d(w) is not realized by c, but by another vertex of the clique, and so, we can
+update the neighbours u of c in X with d(u) = min(d(u), d(w) + 2). This concludes what we
+do in a round.
+    Notice that we can always identify which clique a vertex not in X belongs to, as the AL
+stream provides all its neighbours.
+    The correctness of this algorithm quickly follows from the correctness of Lemma 10
+combined with how we handle cliques here, and Lemma 13. Let it also be clear that we use
+O(k) passes and use O((k + ℓ) log n) bits of memory.                                           ◀
+
+   Using Lemma 14 we can decide the diameter of the graph by calling it many times for
+the possible vertices in the graph.
+
+▶ Theorem 15. Given a graph G as an AL stream with deletion distance k to ℓ cliques,
+with the given deletion set X, we can solve Diameter [k, ℓ] using O(2k ℓk) passes and
+O((k + ℓ) log n) bits of memory.
+10   Parameterized Complexity of Streaming Diameter and Connectivity Problems
+
+
+     Proof. We can enumerate all the twin classes of neighbourhoods in X (with k bits), and for
+     each class use a pass to find at most ℓ vertices which realize this neighbourhood in X (at
+     most one from each clique, two vertices from the same clique with the same neighbourhood
+     in X are equivalent). We call the algorithm of Lemma 14 for each of these vertices as v,
+     and also for each of the vertices of X as v. We keep track of the largest distance found, and
+     output it as the diameter after all calls. This results in an algorithm using O(2k ℓ · k) passes
+     and O((k + ℓ) log n) bits of memory.
+        The correctness follows from the correctness of Lemma 14, together with the fact that we
+     consider all vertices as a start node, up to equivalence. This is because we can characterize
+     each vertex by its adjacencies towards X together with the clique it is contained in, which
+     identifies the vertex up to equivalence on the closed neighbourhood.                          ◀
+
+         The performance of the algorithm in Theorem 15 is distinctly worse than that of The-
+     orem 11, however, it does allow for more flexibility in the input in some specific cases. Note
+     that the number of passes especially is exponential in k, but only linear in ℓ, so a graph that
+     is very close to a number of big cliques is well suited to apply this algorithm to.
+         For this setting, there also is a one pass but high memory approach.
+
+     ▶ Theorem 16. Given a graph G as an AL stream with deletion distance k to ℓ cliques, with
+     the given deletion set X, we can solve Diameter [k, ℓ] using one pass and O(2k ℓ+(k+ℓ) log n)
+     bits of memory.
+
+     Proof. The approach here is similar to that of Theorem 12. In our pass, we save the deletion
+     set X and its internal edges. Next to this, every vertex not in X can be characterized by
+     its adjacencies towards X, together with what clique it is in. Therefore, each vertex can be
+     characterized by k + log ℓ bits, and for each option, we save whether we have 0, 1, or more of
+     this vertex (this takes two bits). We need O(ℓ log n) bits to be able to identify which clique
+     a vertex is in, as we can save a representative for each clique and identify a vertex by its
+     adjacency to one of the representatives. We can find this information in our pass because it
+     is an AL stream, and this takes O(2 · 2k+log ℓ + (k + ℓ) log n) = O(2k ℓ + (k + ℓ) log n) bits of
+     memory.
+         To solve Diameter, we now only need to execute a procedure like that in Lemma 14 for
+     every pair of vertices, deciding on the distance between them. The theorem follows.            ◀
+
+        We have now seen all the elements of Theorem 4. We are not aware of any algorithms to
+     compute the parameter distance to ℓ cliques.
+
+     ▶ Theorem 4. Given a graph G = (V, E) as an AL stream and a set X ⊆ V of size k in
+     memory such that G−X is a disjoint union of ℓ cliques, Diameter [k, ℓ] and Connectivity
+     [k, ℓ] can be solved using O(2k kℓ) passes and O((k + ℓ) log n) bits of space or one pass and
+     O(2k ℓ + (k + ℓ) log n) bits of space.
+
+     Proof. This follows immediately from Theorem 15 and 16.                                        ◀
+
+      4     Lower Bounds for Diameter
+     We work with reductions from Disjn , and we construct graphs where Alice controls some of
+     the edges, and Bob controls some of the edges, depending on their respective input of the
+     Disjn problem, and some parts of the graph are fixed. The aim is to create a gap in the
+     diameter of the graph, that is, the answer to Disjn is YES if and only if the diameter is
+     above or below a certain value. The lower bound then follows from Proposition 7. Here n
+J.J. Oostveen and E.J. van Leeuwen                                                                        11
+
+
+      Parameter (k) / Graph class             Size            Bound                     Theorem
+      General and Bipartite Graphs                            (AL, n2 /p, p)-hard       26, 27
+      Vertex Cover                            ≥3              (VA, n/p, p)-hard         17
+      Distance to ℓ cliques                   k ≥ 2, ℓ ≥ 1    (VA, n/p, p)-hard         18
+      FVS, FES                                ≥0              (AL, n/p, p)-hard         22
+                                              ≥0              (AL, n log n, 1)-hard     29
+      Distance to matching                    ≥3              (AL, n/p, p)-hard         20
+      Distance to path                        ≥2              (AL, n/p, p)-hard         24
+                                              ≥2              (AL, n log n, 1)-hard     31
+      Distance to depth ℓ tree                k ≥ 3, ℓ ≥ 2    (AL, n/p, p)-hard         20
+                                              k ≥ 0, ℓ ≥ 5    (AL, n/p, p)-hard         22
+                                              k ≥ 0, ℓ ≥ 7    (AL, n log n, 1)-hard     29
+      Dist. to ℓ comps. of diam. x            k, x ≥ 2        (AL, n/p, p)-hard         20
+      Domination Number                       ≥3              (AL, n/p, p)-hard         20
+      Maximum Degree                          ≥3              (AL, n/p, p)-hard         22
+                                              ≥3              (AL, n log n, 1)-hard     29
+      Split graphs                                            (AL, n/p, p)-hard         25
+   Table 2 An overview of the lower bounds for Diameter, with the parameter (k) on the left.
+These results hold for connected graphs. (M, m, p)-hard means that any algorithm using p passes in
+model M (or weaker) requires Ω(m) bits of memory. FVS stands for Feedback Vertex Set number,
+FEN for Feedback Edge Set number.
+
+
+
+may be the number of vertices in the graph construction, but may also be different (possibly
+forming a different lower bound). Our lower bounds hold for connected graphs. An overview
+of all hardness results for Diameter is given in Table 2.
+    We start by proving simple lower bounds for the VA model when our problem is paramet-
+erized by the vertex cover number, and when our problem is parameterized by the distance
+to ℓ cliques. This shows that we actually need the AL model to achieve the upper bounds in
+Section 3. The constructions are illustrated in Figure 1 and Figure 2. Generally, a-vertices
+(b-vertices) and their incident edges are controlled by Alice (Bob).
+▶ Theorem 17. Any streaming algorithm for Diameter on graphs of vertex cover number
+at least 3 in the VA model that uses p passes over the stream requires Ω(n/p) bits of memory.
+Proof. Let x, y be the input to Disjn of Alice and Bob, respectively. Assume we have a
+streaming algorithm for Diameter in the VA model. We construct a graph as illustrated
+in Figure 1. First Alice reveals to the stream n vertices v1 , . . . , vn with no edges, then she
+reveals the vertex c which is connected to all the n vertices. Now we associate the n vertices
+with the indices of x and y, associate vertex vi with index i. Alice reveals a vertex a, and for
+each index i she reveals an edge between a and vi when the entry at the index i in x is a 1.
+After this, she passes the memory state of the algorithm to Bob. Bob now reveals a vertex b
+and similar to Alice, reveals an edge between b and vi when the entry at index i in y is a 1.
+This completes the construction of the graph, and thus the stream. Let it be clear that this
+is a VA stream that Alice and Bob can construct without knowing input of the other. The
+graph is always connected because if either Alice or Bob has an all-zeroes input, the problem
+of Disjn is trivially solvable (so Disjn is equally hard ignoring this case)2 .
+
+
+2
+    In fact, there are stronger assumptions that one can make while the complexity of Disjn remains the
+12   Parameterized Complexity of Streaming Diameter and Connectivity Problems
+
+
+                                                                         a                     b
+                a                            b
+
+
+
+
+                                                                      v0 v1 v2     ···             vn+1
+                                c
+
+         Figure 1 VA lower bound for diameter with               Figure 2 VA lower bound for diameter with
+     vertex cover size 3, called ‘Simple VA’. The ver-       distance 2 to 1 clique, called ‘Clique VA’. A
+     tices in the middle are indexed 1, . . . , n. An edge   dashed edge is present when the entry at the
+     incident to a (b) is present when the entry of          corresponding index is 1. The vertices inside the
+     Alice (Bob) at the corresponding index is 1. The        grey area form a clique. Hence, deletion distance
+     vertex c ensures the graph is connected.                to a clique is 2 (remove a and b).
+
+
+         We now claim that the diameter of this graph is at most 3 when the answer to Disjn is
+     NO, and otherwise the diameter is 4.
+         Let us assume that the answer to Disjn is NO, that is, there is an index i such that
+     xi = yi = 1. Then clearly, the distances between a, b and c are all 2, by viewing the paths
+     using vi as an intermediate vertex. Hence the diameter is at most 3, which can be formed by
+     some path from e.g. a to vi to c to some vj that is non-adjacent to a.
+         Now assume the answer to Disjn is YES, that is, there is no index i such that xi = yi = 1.
+     Now consider the distance between a and b. To get from a to b, we need to go from a to
+     some vi (which is non-adjacent to b by the assumption), then go to c and to another vj
+     which is adjacent to b (but not a), to go to b. This path has length 4, and must exist by the
+     non-all-zeroes input assumption, and forms a shortest path from a to b in this graph. So the
+     diameter of the graph is 4.
+         In conclusion, we constructed a connected graph of size n + 3 with a vertex cover number
+     of 3 (taking {a, b, c} suffices) that can be given as a VA stream to a streaming algorithm for
+     Diameter to solve the Disjn problem. The theorem follows from Proposition 7.                ◀
+
+
+     ▶ Theorem 18. Any streaming algorithm for Diameter on graphs of distance 2 to ℓ = 1
+     clique in the VA model that uses p passes over the stream requires Ω(n/p) bits of memory.
+
+     Proof. Let x, y be the input to Disjn of Alice and Bob, respectively. Assume we have a
+     streaming algorithm for Diameter in the VA model. We construct a graph as illustrated in
+     Figure 2. Start with a clique on n + 2 vertices, v0 , . . . , vn+1 . Let a, b be two vertices not in
+     the clique, and add the edges (a, v0 ) and (b, vn+1 ). Then, for any i, Alice adds the edge (a, vi )
+     when xi = 1 and Bob adds the edge (b, vi ) when yi = 1. This completes the construction.
+     Alice and Bob construct the VA stream as follows. First Alice reveals v0 , . . . , vn+1 and then
+     reveals a (for which she knows what edges should be present). Then Alice passes the memory
+     of the algorithm to Bob, who reveals b, which completes the stream. Notice that the graph
+     is always connected by the fixed edges (a, v0 ) and (b, vn+1 ).
+         We now claim that the diameter of this graph is 2 when the answer to Disjn is NO, and
+     otherwise the diameter is at least 3.
+
+
+       same, see [16] or [2].
+J.J. Oostveen and E.J. van Leeuwen                                                                      13
+
+
+
+
+                    a                                                          b
+
+
+
+
+                                                   c
+
+      Figure 3 AL lower bound for diameter, called ‘Simple AL’. The edges in the middle are indexed
+1, . . . , n. An edge incident on a (b) is present when the entry of Alice (Bob) at the corresponding
+index is 1. The vertex c ensures the graph is connected.
+
+
+    Let us assume that the answer to Disjn is NO, that is, there is an index i such that
+xi = yi = 1. Notice how the distance between a and b is now 2, because both are connected
+to vi . The distance between any other pair of vertices is also at most 2, because all vertices
+except a and b form a clique.
+    Now assume the answer to Disjn is YES, that is, there is no index i such that xi = yi = 1.
+The shortest path between a and b in this instance must use some edge in the clique, as these
+vertices do not have a common neighbour. Hence, the distance between a and b is at least 3.
+    In conclusion, we constructed a connected graph of size n + 4 with a distance 2 to ℓ = 1
+clique (taking {a, b} suffices) that can be given as a VA stream to a streaming algorithm for
+Diameter to solve the Disjn problem. The theorem follows from Proposition 7.                 ◀
+
+    The lower bounds in Figure 1 and Figure 2 do not work for the AL model because there
+are vertices that may be adjacent to both a and b, so neither Alice nor Bob can produce the
+adjacency list of such a vertex alone. For the ‘Simple VA’ construction, we can ‘fix’ this by
+extending these vertices to edges but this is destructive to the small vertex cover number of
+the construction, see Figure 3. It should be clear that AL reductions require care: the set of
+edges incident to a vertex has to be fully determined when Alice or Bob wants to reveal it.
+▶ Theorem 19. Any streaming algorithm for Diameter that works on the ‘Simple AL’
+construction in the AL model using p passes over the stream requires Ω(n/p) bits of memory.
+Proof. Let x, y be the input to Disjn of Alice and Bob, respectively. We construct a graph
+as illustrated in Figure 3. The graph consist of 2n + 3 vertices. This is a matching M on 2n
+vertices. We make a vertex c adjacent to all vertices of M . Next to this, we have vertices a
+and b of which the adjacencies towards one end of M are dependent on the input of Alice
+and Bob, respectively. An edge between a and ith edge on the ‘left’ side of M is present
+when Alice has a 1 on index i in x. An edge between b and ith edge the ‘right’ side of M is
+present when Bob has a 1 on index i in y. Assuming we have an algorithm that can work on
+this graph, to construct an AL stream for the algorithm, Alice can first reveal a, c, and all
+vertices on the left side of M , then pass the memory of the algorithm to Bob, who reveals
+b and all the vertices on the right side of M . This completes one pass of the stream. The
+graph is always connected because if either Alice or Bob has an all-zeroes input, the problem
+of Disjn is trivially solvable (so Disjn is equally hard ignoring this case).
+    We now claim that the diameter of the ‘Simple AL’ graph is at most 3 when the answer
+to Disjn is NO, and otherwise the diameter is at least 4.
+    Let us assume that the answer to Disjn is NO, that is, there is an index i such that
+xi = yi = 1. Notice that the distance from c to any vertex is at most 2. The distance from a
+14   Parameterized Complexity of Streaming Diameter and Connectivity Problems
+
+
+     to b is 3 by taking the ith matching edge. The distances from a to any other vertex is at
+     most 3 by going through c, and the same holds for b. So the diameter is at most 3.
+         Now assume the answer to Disjn is YES, that is, there is no index i such that xi = yi = 1.
+     Consider the distance between a and b. As there is no index where both have a 1, the shortest
+     path from a to b must use c as an intermediate vertex. But then this path has length at least
+     4. So the diameter is at least 4.
+        We conclude that any algorithm that can solve the Diameter problem on the graph
+     construction ‘Simple AL’ in the AL model in p passes, must use Ω(n/p) bits of memory by
+     Proposition 7.                                                                             ◀
+
+        The following follows from Theorem 19 by observing some properties of the ‘Simple AL’
+     construction in Figure 3.
+
+     ▶ Corollary 20. Any streaming algorithm for Diameter in the AL model that uses p passes
+     over the stream must use Ω(n/p) bits of memory, even on graphs for which the algorithm is
+     given a
+
+     1. Deletion Set to Matching of size at least 3,
+     2. Deletion Set to ℓ components of diameter x of size at least 2, x ≥ 2,
+     3. Dominating Set of size at least 3,
+     4. Deletion Set to a depth ℓ tree of size at least 3, ℓ ≥ 2.
+
+     Proof. The corollary follows from Theorem 19, together with observing that the construction
+     of ‘Simple AL’ is
+
+     1. a matching when removing {a, b, c},
+     2. one component of diameter 2 when removing {a, b},
+     3. dominated by the set of vertices {a, b, c},
+     4. a tree of depth 2 when we add a vertex d adjacent to the left part of M 3 , and remove
+        {a, b, c}.
+
+                                                                                                            ◀
+
+        Next, we construct a lower bound for a special case, when the input graph is a tree, see
+     Figure 4.
+
+     ▶ Theorem 21. Any streaming algorithm for Diameter that works on the ‘Windmill’
+     construction in the AL model using p passes over the stream requires Ω(n/p) bits of memory.
+
+     Proof. Let x, y be the input to Disjn of Alice and Bob, respectively. We construct a graph
+     as illustrated in Figure 4. The graph consist of 5n + 6 vertices. We start with a path P on 6
+     vertices, call the vertex on one of the ends the center. To this center, we will ‘glue’ n gadgets,
+     which may vary depending on the input of Alice and Bob, so associate an index i with each
+     gadget. Each gadget adds 5 vertices to the graph. Let us describe one such gadget. Consider
+     two triplets of vertices ai,1 , ai,2 , ai,3 (Alice) and bi,1 , bi,2 , bi,3 (Bob), and connect ai,3 to bi,1
+     with an edge. For Alice, if the entry at index i is a 0, she inserts the edges (ai,1 , ai,2 ) and
+     (ai,1 , ai,3 ), and if it is a 1, she inserts (ai,1 , ai,2 ) and (ai,2 , ai,3 ). Bob does the same for his
+     triplet. We ‘glue’ this gadget into the graph by identifying ai,1 to be the same vertex as the
+     center vertex in the graph. Assuming we have an algorithm that works on this graph, to
+
+
+     3
+         Notice that adding d does not change any of the distances.
+J.J. Oostveen and E.J. van Leeuwen                                                                     15
+
+
+construct an AL stream containing this graph, Alice first reveals the path P , and all her own
+vertices ai,2 , ai,3 for all i, with all the incident edges. Then she passes the memory of the
+algorithm to Bob who reveals the vertices bi,1 , bi,2 , bi,3 for all i, with all the incident edges.
+This completes one pass of the stream. Notice that the graph is connected.
+    We now claim that the diameter of the ‘Windmill’ graph is at least 10 when the answer
+to Disjn is NO, and otherwise the diameter is at most 9.
+    Let us assume that the answer to Disjn is NO, that is, there is an index i such that
+xi = yi = 1. Then, the distance from the end of the path P to bi,3 is exactly 10, and this is
+the only simple path between these vertices, so it is the shortest path. Hence, the diameter
+is at least 10.
+    Now assume the answer to Disjn is YES, that is, there is no index i such that xi = yi = 1.
+Then, the distance from the center vertex to any other vertex ai,j or bi,j is at most 4, as at
+least one of the triplets for each index forms a tree-like shape and not a path. Therefore, the
+diameter is at most 9, formed by the shortest path from the end of the path P to some bi,3 .
+    We conclude that any algorithm that can solve the Diameter problem on the graph
+construction ‘Windmill’ in the AL model in p passes, must use Ω(n/p) bits of memory by
+Proposition 7.                                                                                   ◀
+
+    The following follows from Theorem 21 by observing properties of the ‘Windmill’ con-
+struction.
+
+▶ Corollary 22. Any streaming algorithm for Diameter in the AL model that uses p passes
+over the stream must use Ω(n/p) bits of memory, even on graphs for which the algorithm is
+given
+
+1. that the input is a bounded depth tree,
+2. that the Maximum Degree is a constant of at least 3.
+
+Proof. The corollary follows from Theorem 21, together with observing that ‘Windmill’ is
+
+1. a bounded depth tree,
+2. a lower bound that still works when we convert the center vertex into a binary tree of
+   depth c = O(log n) and extend the path to size 5 + c accordingly (this makes the diameter
+   distinction to be 9 + 2c or 10 + 2c).
+
+                                                                                                  ◀
+
+                                         ai,1
+
+                           0
+                                                                  A
+                                                ai,3          B
+                                  ai,2
+
+                                                bi,1                   P
+                           1
+
+                                  bi,2                 bi,3
+
+                                         index i
+
+   Figure 4 AL lower bound for diameter consisting of a tree, called ‘Windmill’. The difference in
+an entry 1 or 0 is shown on the left. The gadget for index i combines a 0/1-gadget for Alice and a
+0/1-gadget for Bob. It makes two 1 entries at this index a path of length 5, and a tree structure of
+depth at most 4 otherwise. These n gadgets are then identified at ai,1 and a tail is added.
+16   Parameterized Complexity of Streaming Diameter and Connectivity Problems
+
+
+        Next we look at the case when the input graph is close to a path.
+
+                               a                                                a
+
+
+
+
+                      pi,4          pi,8
+               pi,2          pi,6
+
+
+
+
+                               b
+                                                                                b
+
+
+         Figure 5 AL lower bound for diameter consisting of a path and 2 vertices, called ‘Diamond’.
+     Note that a is connected to b with an edge (indicated with a dashed line here). On the left the
+     gadget for a single index i is shown, where the dotted edges are present when the entry at index i is
+     0 (for Alice incident on a, for Bob incident on b). On the right, the construction is sketched in full.
+
+
+     ▶ Theorem 23. Any streaming algorithm for Diameter that works on the ‘Diamond’
+     construction in the AL model using p passes over the stream requires Ω(n/p) bits of memory.
+
+     Proof. Let x, y be the input to Disjn of Alice and Bob, respectively. We construct a graph
+     as illustrated in Figure 5. We construct a graph on 10n + 3 vertices. We start with two
+     vertices a and b, connected by an edge. Create n + 1 vertices connected to a and b with an
+     edge and label them c0 , . . . cn . We create a gadget for index i between ci−1 and ci for every
+     1 ≤ i ≤ n. For index i, we insert a path Pi = pi,1 , . . . , pi,9 on 9 vertices with pi,1 connected
+     to ci−1 and pi,9 to ci with an edge. The edges (a, pi,2 ) and (a, pi,6 ) are present if and only if
+     xi = 0 for Alice, and the edges (b, pi,4 ) and (b, pi,8 ) are present if and only if yi = 0 for Bob.
+     Assuming we have an algorithm that works on this construction, to construct an AL stream
+     containing this graph, Alice first reveals all vertices except b and pi,4 and pi,8 for all i (the
+     edges are fixed, or the input of Alice decides the edges, for these vertices), then passes the
+     memory state of the algorithm to Bob who reveals exactly b and pi,4 and pi,8 for all i. This
+     completes one pass of the stream. Notice that the graph is connected.
+         We now claim that the diameter of the ‘Diamond’ graph is at least 8 when the answer to
+     Disjn is NO, and otherwise the diameter is at most 7.
+         Let us assume that the answer to Disjn is NO, that is, there is an index i such that
+     xi = yi = 1. Then, consider pi,5 . The distance from this vertex to a or b is exactly 6. So, the
+     distance from pi,5 to some other pj,5 for j ̸= i is at least 8.
+         Now assume the answer to Disjn is YES, that is, there is no index i such that xi = yi = 1.
+     Then for any 1 ≤ i ≤ n and 1 ≤ j ≤ 9 the distance from pi,j to one of either a or b is at most
+     3. So every vertex in the graph has distance at most 3 to either a or b. But then, as a and b
+     are connected with an edge, the diameter must be at most 7.
+         We conclude that any algorithm that can solve the Diameter problem on the graph
+     construction ‘Diamond’ in the AL model in p passes, must use Ω(n/p) bits of memory by
+     Proposition 7.                                                                                    ◀
+
+         The following follows from Theorem 23 by observing properties of the ‘Diamond’ con-
+     struction.
+
+     ▶ Corollary 24. Any streaming algorithm for Diameter in the AL model that uses p passes
+     over the stream must use Ω(n/p) bits of memory, even on graphs for which the algorithm is
+     given a Deletion Set to a path of size at least 2.
+J.J. Oostveen and E.J. van Leeuwen                                                                                       17
+
+
+Proof. The corollary follows from Theorem 23, together with observing that ‘Diamond’ is a
+path when we remove {a, b}.                                                            ◀
+
+
+                          a0n     ···     a02   a01                 b01   b02    ···     b0n
+
+
+
+
+                          an     ···      a2    a1    a0       b0   b1    b2    ···      bn
+
+
+
+
+   Figure 6 AL lower bound for diameter on split graphs, called ‘Split’. Depending on the input,
+some a′i either has an edge to a0 or ai when xi = 0 or 1. The same holds for b′i with yi . The grey
+area forms a clique, and each ai is connected to all b′j where i ̸= j, and the same holds for bi and a′j .
+
+    Next we show that the Diameter problem in the AL model is hard on split graphs.
+
+▶ Theorem 25. Any streaming algorithm for Diameter that works on split graphs in the
+AL model using p passes over the stream requires Ω(n/p) bits of memory.
+
+Proof. Let x, y be the input to Disjn of Alice and Bob, respectively. We construct a graph
+as illustrated in Figure 6. We construct a graph on 4n + 2 vertices. The split graph we
+construct has as a clique on 2n + 2 vertices, let this be the vertices a0 , . . . , an , b0 , . . . , bn .
+The independent set consists of the vertices a′1 , . . . , a′n , b′1 , . . . , b′n . The following edges are
+present regardless of the input: we connect a0 to all b′i , 1 ≤ i ≤ n, and similarly b0 to all
+a′i , 1 ≤ i ≤ n. We also connect each ai to all b′j where j ̸= i for 1 ≤ i ≤ n. Similarly, we
+connect each bi to all a′j where j ̸= i for 1 ≤ i ≤ n. The other edges are input dependent.
+For each index i, the edge (ai , a′i ) is inserted when xi = 1 and otherwise the edge (a0 , a′i )
+is inserted. Similarly, for each i, the edge (bi , b′i ) is inserted when yi = 1 and otherwise the
+edge (b0 , b′i ) is inserted. This completes the construction. Note that it is a split graph as the
+vertices a0 , . . . , an , b0 , . . . , bn form a clique and a′1 , . . . , a′n , b′1 , . . . , b′n form an independent
+set. Assuming we have an algorithm that works on split graphs, to construct an AL stream
+containing this graph, Alice reveals all the a-vertices. Then she passes the memory of the
+algorithm to Bob, who reveals all the b-vertices. This completes one pass of the stream.
+Notice that Alice and Bob do not require information on the input of the other, as only
+input-independent edges connect a-vertices to b-vertices.
+      We claim that the diameter of this graph is at most 2 if the answer to Disjn is YES and
+otherwise the diameter is at least 3.
+      Let us assume the answer to Disjn is NO, that is, there is an index i such that xi = yi = 1.
+Consider the distance between a′i and b′i in this instance. Notice that because xi = yi = 1,
+there is no vertex in the clique connected to both vertices. As both vertices are connected to
+some vertex in the clique, the distance between them must be 3.
+      Now assume the answer to Disjn is YES, that is, there is no index i such that xi = yi = 1.
+We show that the diameter is at most 2. The distance between vertices in the clique is at
+most 1. The distance from any a′i or b′i to some vertex in the clique is at most 2, because
+each a′i or b′i is always connected to at least one vertex in the clique. The distance from
+any a′i to another a′j is 2 because of b0 , similarly, the distance from any b′i to another b′j
+is 2 because of a0 . Let 1 ≤ i, j ≤ n be two (possibly the same) indices, and consider the
+18   Parameterized Complexity of Streaming Diameter and Connectivity Problems
+
+
+     distance between a′i and b′j . If either xi = 0 or yj = 0 then the distance is 2 because of a0 or
+     b0 . Otherwise, both have a 1 at the corresponding index. But then we know that i ̸= j, and
+     so a′i , ai , b′j is a path in the graph of length 2. Hence, the diameter of the graph is at most 2.
+          We conclude that any algorithm that can solve the Diameter problem on split graphs in
+     the AL model in p passes, must use Ω(n/p) bits of memory by Proposition 7.                       ◀
+
+          We can now prove Theorem 2 and Theorem 3. Intuitively, if H contains a cycle or a vertex
+      of degree 3, a modification of ‘Windmill’ is H-free; if H is a linear forest, a modification of
+     ‘Split’ is (almost) H-free.
+
+     ▶ Theorem 2. For any fixed graph H with H ̸⊆i P4 and H =   ̸ 3P1 , P3 + P1 , P2 + 2P1 , any
+     streaming algorithm for Diameter in the AL model that uses p passes over the stream must
+     use Ω(n/p) bits of memory even on the class of H-free graphs.
+
+     Proof. If H contains a cycle as a subgraph, then the result follows from Theorem 21. Hence,
+     we may assume that H does not contain a cycle as a subgraph, and thus is a forest.
+         If H contains a tree with a vertex of degree at least three, then the result follows from a
+     slight modification of Theorem 21. Start from the version of the construction where each
+     vertex has degree at most 3 (per Corollary 22) and let c denote the center vertex. Note that
+     the diametral pair in the construction is the other end v ̸= c of the path P (recall that c
+     is one of its ends) and another leaf of the tree. Hence, we can add edges (which shorten
+     distances) as long as this property is preserved. Consider the tree to be rooted at v. Make
+     the two children of c (which are not on P by the choice of the root) adjacent, and recurse
+     down the tree, consistently making children adjacent if there are two. The resulting graph
+     has no K1,3 as an induced subgraph, and thus is H-free. Hence, we may assume that H also
+     does not contain a vertex of degree at least three, and thus is a linear forest.
+         We now reduce the open cases to just H = 4P1 and H = P4 + P1 and later show hardness
+     for those cases. If H contains a 2P2 as an induced subgraph, then the result follows from
+     Theorem 25, as split graphs are 2P2 -free. Hence, H does not contain 2P2 as an induced
+     subgraph. In particular, we may assume that all paths in H are of length at most 3. If H is
+     the union of a P4 and either at least two other paths or another path of length at least 2,
+     then it contains a 4P1 . In the other cases when H is the union of a P4 and other paths, it
+     is P4 + P2 (which contains a 2P2 , and thus was already excluded) or P4 + P1 . If H is the
+     union of a P3 and at least two other paths, it contains a 4P1 . If H is the union of a P3 and
+     another path of length at least 1, then it contains a 2P2 and thus was already excluded.
+     The case when H is P3 + P1 has been excluded by assumption. Hence, we may assume
+     that H contains only paths of length at most 1. If H contains a P2 , then it cannot contain
+     another P2 , as 2P2 would be an induced subgraph, nor can it be P2 + P1 which is an induced
+     subgraph of P4 , nor can it be P2 + sP1 for s ≥ 2 which is P2 + 2P1 (excluded by assumption)
+     or contains a 4P1 . If H does not contain a P2 , then it is sP1 for some s. However, P1 and
+     2P1 are induced subgraphs of P4 , 3P1 is excluded by assumption, and sP1 for s ≥ 4 contains
+     4P1 as an induced subgraph. Hence, the open cases have been successfully reduced.
+         To tackle the remaining cases, H = 4P1 or H = P4 + P1 , we modify the construction
+     of Theorem 25. Let (C, I) be the split partition implied by the construction. In that
+     construction, it can be readily seen that the vertices a′1 , . . . , a′n can be turned into a clique A′
+     and the vertices b′1 , . . . , b′n can be turned into a clique B ′ without affecting the correctness of
+     the reduction. Observe that the resulting graph is 4P1 -free, as it is a union of three cliques.
+     To see that it is also P4 + P1 -free, note that in any induced subgraph isomorphic to P4 + P1 ,
+     the P4 must contain two consecutive vertices in A′ , say a′i and a′j for some i =        ̸ j, and two
+     consecutive vertices c, c′ in C (the case when it contains two consecutive vertices in B ′ and
+J.J. Oostveen and E.J. van Leeuwen                                                                          19
+
+
+C is symmetric). Note that c, c′ ̸∈ {b0 , b1 , . . . , bn } or c′ (the end of the P4 ) would be adjacent
+to a′i or a′j . Moreover, c, c′ ̸∈ {a0 , a1 , . . . , an }, as they would jointly cover B ′ , leaving no
+room for the P1 . The theorem follows.                                                                 ◀
+
+▶ Theorem 3. For any fixed graph H with H ̸= P2 + sP1 for s ∈ {0, 1, 2} and H ̸= sP1 for
+s ∈ {1, 2, 3} and any fixed constant k ≥ 3, any streaming algorithm for Diameter in the AL
+model that uses p passes over the stream must use Ω(n/p) bits of memory even on the class
+of graphs G with a given set of vertices X with |X| = k such that G − X is H-free. If G − X
+must be connected and H-free, then additionally H ̸= P3 .
+
+Proof. We start with the case when G − X has to be a connected graph. By Theorem 2,
+only the cases when H ⊆i P4 and H = 3P1 , H = P3 + P1 , H = P2 + 2P1 still need to be
+proven.
+    If H is a P4 , then the result follows from Theorem 19, because in that construction for
+some X of size 2, G − X is a union of triangles where the triangles have a single common
+vertex c. Hence, we may assume H has only paths of length at most 2. If H is P3 + P1 ,
+then the result follows again from Theorem 19, because in that construction the vertex c
+is dominating, yet must be in any induced P3 . We also note that by assumption, H =    ̸ P3 .
+Hence, we may assume H only has paths of length at most 1. These cases are all resolved by
+assumption.
+    In case G − X does not have to be connected, the only relevant case is when H = P3 . In
+that case, the result follows from Theorem 19, because in that construction for some X of
+size 3, G − X is a matching.                                                              ◀
+
+    We can also prove a quadratic bound for general graphs; see Figure 7 for the construction.
+
+▶ Theorem 26. Any streaming algorithm for Diameter on general (dense) graphs in the
+AL model using p passes over the stream requires Ω(n2 /p) bits of memory.
+
+Proof. Let N = n2 . Let x, y be the input to DisjN of Alice and Bob, respectively. We
+construct a graph as illustrated in Figure 7. We construct a graph on 7n + 2 vertices, but
+O(n2 ) edges. The input of Alice and Bob will control the edges in a bipartite graph each. Let
+a1 , . . . an and a′1 , . . . , a′n be the bipartite graph A for Alice. Alice now views her input x as
+an adjacency matrix for the n2 potential edges in A, but inverse, so an edge is present if and
+only if the corresponding entry is a 0. We also add a (universal) vertex uA which we connect
+to all vertices in A. For Bob, do the same with vertices b1 , . . . , bn and b′1 , . . . , b′n forming a
+bipartite graph B. Bob also views his input y as an adjacency matrix (in exactly the same
+order as Alice!) for the n2 potential edges in B, but inverse, so an edge is present if and only
+if the corresponding entry is a 0. We also add a vertex uB which we connect to all vertices in
+B. To complete the construction, we create a set S of n vertices s1 , . . . , sn and we connect
+si to ai and bi for each 1 ≤ i ≤ n. Then, we also create a set T of 2n vertices t1 , . . . , tn and
+t′1 , . . . , t′n , where we connect t′i with ti and a′i and b′i . This completes the construction. Given
+an algorithm which works on such a graph, Alice and Bob can construct an AL stream by
+having Alice first reveal all vertices in S, A, T and uA with their incident edges, then passing
+the memory state to Bob who reveals all vertices in B and uB with their incident edges.
+This completes one pass of the stream. Notice that the graph is connected.
+       We now claim that the diameter of this construction is at least 5 when the answer to
+DisjN is NO, and otherwise the diameter is at most 4.
+       Let us assume that the answer to Disjn is NO, that is, there is an index i′ such that
+xi′ = yi′ = 1. Let i, j be the pair of indices such that the edges (ai , a′j ) and (bi , b′j ) are
+decided by xi′ and yi′ respectively. In this case, both these edges are not present in the
+20   Parameterized Complexity of Streaming Diameter and Connectivity Problems
+
+
+                                               A              S                B
+                                        a01   Alice a1       s1      b1    Bob      b01
+                                                             s2
+
+
+
+
+                                        a0n             an   sn      bn            b0n
+
+                                                   uA                     uB
+
+                                                             t01
+
+
+
+
+                                        T
+                                              t1
+                                                              t0n
+                                              t2
+
+
+
+                                              tn
+
+
+
+         Figure 7 AL lower bound for diameter where Alice and Bob have n2 bits but the graph has O(n)
+     vertices. The bits are seen as an adjacency matrix in the bipartite graphs A and B, identically: the
+     red edge a′i to aj in A is the same index as the red edge bj to b′i in B. Edges are present when the
+     entry is a 0. Then, each si , tj pair can discern whether or not at least one of the edges ai to a′j or bi
+     to b′j is present, hence deciding whether or not both Alice and Bob have a 1 at that entry.
+
+
+     graph. Hence, the shortest path from si to tj must use either uA or uB , or use at least 3
+     edges in A or B (because A and B are bipartite graphs). Hence, the distance from si to tj
+     must be at least 5.
+         Now assume the answer to Disjn is YES, that is, there is no index i′ such that xi′ = yi′ = 1.
+     Then, for every 1 ≤ i, j ≤ n pair there exists a path from si to tj of length 4, because either
+     or both of the edges (ai , a′j ), (bi , b′j ) are present in the graph. One can check that all other
+     distances are at most 4 as well4 .
+         We conclude that any algorithm that can solve the Diameter problem on general
+     (dense) graphs in the AL model in p passes, must use Ω(N/p) = Ω(n2 /p) bits of memory by
+     Proposition 7.                                                                                    ◀
+
+        Splitting up uA and uB into two vertices each, and making the tails from t′i to ti at least
+     three edges longer for each i makes the lower bound work for bipartite graphs.
+
+     ▶ Corollary 27. Any streaming algorithm for Diameter on bipartite graphs in the AL model
+     using p passes over the stream requires Ω(n2 /p) bits of memory.
+
+     Proof. The proof follows from adjusting the construction in Theorem 26. If we split up uA
+     and uB into two vertices uA , u′A and uB , u′B each and have each only connect to one side of
+     A, B respectively, the graph construction forms a bipartite graph. To make the diameter
+     distinction still work, we have to extend the paths in T such that the distance from ti to t′i
+
+
+     4
+         If the reader is not convinced, notice that we could always extend the tails ti , t′i to consist of a longer
+         path, making paths other that those that originate from T negligible.
+J.J. Oostveen and E.J. van Leeuwen                                                                           21
+
+
+is at least 4 (this makes the diameter always be formed by a si , tj -path and not some other
+path).                                                                                     ◀
+
+4.1     Permutation lower bounds
+In this section, we extend the list of our lower bounds by showing some reductions from
+Permn , which prove lower bounds for 1-pass algorithms, showing that they must use
+Ω(n log n) bits. In particular, we show that there are constructions similar to the ‘Windmill’
+and ‘Diamond’ constructions from the previous section that work for the Permutation
+problem.
+                                                              t8
+
+
+
+
+                                                              t1
+
+
+                                                                               ui,1
+                       Bob
+                                                                                      ui,3
+                                                                    ui,2              ui,4
+
+                     Alice
+
+                                                                               vi,4
+                                                                               vi,1
+
+                       Bob
+                                                                        vi,2      vi,3
+
+    Figure 8 Construction we call ‘Windmill-Perm’. First we have a tail t1 . . . t8 . On the top Bob
+places the 1-construction only for the ψ-th index (blue edges, top). On the bottom Bob places
+the 1-construction when the γ-th bit of i is 1 (blue edges, bottom). Alice attaches ui,4 to vπ(i),4
+(red edges, middle). The dotted segments are not edges, this is for ease of representation only, i.e.
+ui,1 = t1 for every i.
+
+
+▶ Theorem 28. Any streaming algorithm for Diameter that works on the ‘Windmill-Perm’
+construction in the AL model using 1 pass over the stream requires Ω(n log n) bits of memory.
+Proof. Let π, j be the input to Permn , and let γ and ψ be the values associated with j (see
+the definition of Permn ). We create a graph construction called ‘Windmill-Perm’ on 7n + 8
+vertices, see Figure 8. Start with a path t = t1 , . . . , t8 on 8 vertices. For each index i, let
+ui,1 , ui,2 , ui,3 and vi,1 , vi,2 , vi,3 be two triplets. If i is the ψ-th index, Bob inserts the edges
+(ui,1 , ui,2 ) and (ui,2 , ui,3 ), otherwise, Bob inserts the edges (ui,1 , ui,2 ) and (ui,1 , ui,3 ). For
+the other triplet, if the γ-th bit of i is a 1, Bob inserts the edges (vi,1 , vi,2 ) and (vi,2 , vi,3 ),
+and otherwise Bob inserts the edges (vi,1 , vi,2 ) and (vi,1 , vi,3 ). Now add two vertices ui,4
+and vi,4 and the edges (ui,3 , ui,4 ) and (vi,4 , vi,1 ). Now Alice inserts edges depending on her
+22   Parameterized Complexity of Streaming Diameter and Connectivity Problems
+
+
+     permutation π. For each i, Alice inserts the edge (ui,4 , vπ(i),4 ), i.e. the first triplet of index i
+     gets connected to the second triplet of index π(i). We complete the construction by ‘glueing’
+     the vertices ui,1 onto t1 , these are the same vertex. Notice that this is a connected graph
+     because a permutation is a bijective function. Given a streaming algorithm that works on
+     such a graph, Alice and Bob can construct an AL stream corresponding to this graph by
+     having Alice first reveal the vertices ui,4 , vi,4 for each i (and their edges, which Alice knows),
+     and then passing the memory state of the algorithm to Bob who reveals the rest of the
+     vertices and their edges. This completes one pass of the stream.
+         We now claim that the diameter of this graph is at least 14 when the answer to Permn
+     is YES, and otherwise the diameter is at most 13.
+         Assume the answer to Permn is YES, that is, the γ-th bit of the image of the ψ-th index
+     under π is 1. The triplet uψ,1 , uψ,2 , uψ,3 must have the edges (uψ,1 , uψ,2 ) and (uψ,2 , uψ,3 ) by
+     construction. Then the edge (uψ,4 , uπ(ψ),4 ) is present because of Alice, and this leads to a
+     triplet with the edges (vπ(ψ),1 , vπ(ψ),2 ) and (vπ(ψ),2 , vπ(ψ),3 ) by the assumption that this is
+     a YES instance. Therefore, the distance from vπ(ψ),3 to t8 is 14, and so the diameter is at
+     least 14.
+         Now assume that the answer to Permn is NO, that is, the γ-th bit of the image of the
+     ψ-th index under π is not 1. As the ψ-th index is the only u-triplet that forms a path and
+     not a tree, and by the assumption the v-triplet it is connected to does not have the shape of
+     a path, the distance from all vertices (except t8 ) to t1 is at most 6. Hence, the diameter is at
+     most 13 because t8 lies at distance 7 from t1 .
+         We conclude that any 1-pass algorithm in the AL model that can solve the Diameter
+     problem on the ‘Windmill-Perm’ construction, must use Ω(n log n) bits of memory by
+     Proposition 8.                                                                                      ◀
+
+     ▶ Corollary 29. Any streaming algorithm for Diameter in the AL model that uses 1 pass
+     over the stream must use Ω(n log n) bits of memory, even on graphs for which the algorithm
+     is given
+
+     1. that the input is a bounded depth tree,
+     2. that the Maximum Degree is a constant of at least 3.
+
+     Proof. The corollary follows from Theorem 28 together with observing that ‘Windmill-Perm’
+     is
+
+     1. a tree of constant depth,
+     2. a lower bound construction that still works if we extend t1 to a binary tree and extend the
+        tail t to consist of 8 + log n vertices (this makes the diameter distinction to be between
+        13 + 2 log n and 14 + 2 log n).
+
+                                                                                                            ◀
+
+         Next we show a similar adaptation of the ‘Diamond’ construction.
+
+     ▶ Theorem 30. Any streaming algorithm for Diameter that works on the ‘Diamond-Perm’
+     construction in the AL model using 1 pass over the stream requires Ω(n log n) bits of memory.
+
+     Proof. Let π, j be the input to Permn , and let γ and ψ be the values associated with j (see
+     the definition of Permn ). We create a graph construction called ‘Diamond-Perm’ on 14n + 3
+     vertices, see Figure 9. The construction starts of with two vertices b, b′ connected with an edge.
+     We then add n + 1 vertices c0 , . . . , cn each of which we connect to both b and b′ . For each
+     index i we do the following. We create four (disjoint) paths (ui,1 , ui,2 , ui,3 ), (ui,4 , ui,5 , ui,6 ),
+J.J. Oostveen and E.J. van Leeuwen                                                                                              23
+
+
+
+
+                                                                                 b′
+
+
+
+
+                         ui,1          ui,3                                 ui,4             ui,6
+                                ui,2                                                  ui,5
+                                                                            ai
+                  ci                                    vπ(i),2                                           vπ(i),5        ci+1
+                                              vπ(i),1             vπ(i),3                       vπ(i),4        vπ(i),6
+
+
+
+
+                                                                                 b
+
+
+
+    Figure 9 An adaptation for permutation of the ‘Diamond’ construction, called ‘Diamond-Perm’.
+Blue dashed edges are present in the 0-case for Bob. Alice attaches top and bottom halves to each
+other with the bold red edges, depending on π. The vertices b and b′ are connected with an edge, as
+indicated by the dashed-dotted lines.
+24   Parameterized Complexity of Streaming Diameter and Connectivity Problems
+
+
+     (vi,1 , vi,2 , vi,3 ), and (vi,4 , vi,5 , vi,6 ). If i is not the ψ-th index, Bob inserts the edges (b′ , ui,2 )
+     and (b′ , ui,5 ). If the γ-th bit of i is a 0, Bob inserts the edges (b, vi,2 ) and (b, vi,5 ). The
+     rest of the edges depend on the permutation of Alice. For each i, Alice creates the vertex
+     ai and inserts the edges (ci−1 , ui,1 ), (ui,3 , vπ(i),1 ), (vπ(i),3 , ai ), (ai , ui,4 ), (ui,6 , vπ(i),4 ), and
+     (vπ(i),6 , ci+1 ). Notice that, ignoring b, b′ , this graph forms a path, as a permutation is a
+     bijective function. This completes the construction. Given a streaming algorithm that works
+     on this construction, Alice and Bob can produce an AL stream by having Alice reveal the
+     vertices c0 , . . . , cn , and ai , ui,1 , ui,3 , vi,1 , vi,3 , ui,4 , ui,6 , vi,4 , vi,6 for every 1 ≤ i ≤ n. Then she
+     passes the memory state of the algorithm to Bob who reveals the rest of the vertices including
+     b, b′ . This completes one pass of the stream.
+          We now claim that the diameter of this graph is at least 10 when the answer to Permn
+     is YES, and otherwise the diameter is at most 9.
+          Assume the answer to Permn is YES, that is, the γ-th bit of the image of the ψ-th index
+     under π is 1. Consider aψ . The edges (b′ , uψ,2 ) and (b′ , uψ,5 ) are not present by construction.
+     Also, the edges (b, vπ(ψ),2 ) and (b, vπ(ψ),5 ) are not present by construction. Therefore, the
+     distance from aψ to b and b′ is 8. Then, the diameter is at least 10 because there are always
+     vertices at distance at least 2 from both b and b′ .
+          Now assume that the answer to Permn is NO, that is, the γ-th bit of the image of the
+     ψ-th index under π is not 1. Then, for every 1 ≤ i ≤ n between ci−1 and ci either or both
+     of the edge pairs (b′ , ui,2 ), (b′ , ui,5 ) and (b, vπ(i),2 ), (b, vπ(i),5 ) must be present, because the
+     edges (b′ , ui,2 ), (b′ , ui,5 ) are only absent for the ψ-th index, and the γ-th bit under the image
+     of π is not a 1. Hence, the distance from any vertex to one of b or b′ is at most 4. As b and
+     b′ are connected with an edge, the diameter is at most 9.
+          We conclude that any 1-pass algorithm in the AL model that can solve the Diameter
+     problem on the ‘Diamond-Perm’ construction, must use Ω(n log n) bits of memory by
+     Proposition 8.                                                                                                       ◀
+
+     ▶ Corollary 31. Any streaming algorithm for Diameter in the AL model that uses 1 pass
+     over the stream must use Ω(n log n) bits of memory, even on graphs for which the algorithm
+     is given a Deletion Set to a path of size at least 2.
+
+     Proof. The corollary follows from Theorem 30, together with observing that ‘Diamond-Perm’
+     is a path when we remove {b, b′ }.                                                     ◀
+
+      5       Connectivity
+     In this section, we show results for Connectivity. Connectivity is an easier problem
+     than Diameter, that is, solving Diameter solves Connectivity as well, but not the other
+     way around. Hence, lower bounds in this section also imply lower bounds for Diameter (in
+     non-connected graphs). In general graphs, a single pass, O(n log n) bits of memory algorithm
+     exists by maintaining connected components in a Disjoint Set data structure [46], which
+     is optimal in general graphs [52]. The interesting part about Connectivity is that some
+     graph classes admit fairly trivial algorithms by a counting argument. For example, if the
+     input is a forest, we can decide on Connectivity by counting the number of edges, which
+     is a 1-pass, O(log n) bits of memory, algorithm. An overview of the results in this section is
+     given in Table 3.
+         The following upper bounds follow from applications of the Disjoint Set data structure.
+
+     ▶ Observation 32. Given a graph G as an AL stream with vertex cover number k, we can
+     solve Connectivity [k] in 1 pass and O(k log n) bits of memory.
+J.J. Oostveen and E.J. van Leeuwen                                                                      25
+
+
+ Parameter (k) / Graph class       Size    Bound                                                       Thm
+ General Graphs                            (EA, n log n, 1)-str. by Disjoint Set data structure [46]   -
+                                           (EA, n log n, 1)-hard by Sun and Woodruff [52]              -
+ Vertex Cover Number                ≥0     (AL, k log n, 1)-str.: Disjoint Set on Vertex Cover         32
+                                    ≥2     (VA, n/p, p)-hard by Henzinger et al. [40]                  -
+ Distance to ℓ cliques              ≥0     (AL, (k + ℓ) log n, 1)-str.: Disjoint Set data structure    33
+ FVS                                =0     (EA, log n, 1)-str. by counting.                            -
+                                    ≥1     (AL, n/p, p)-hard                                           35
+ FES                                ≥0     (EA, log n, 1)-str. by counting.                            -
+ Distance to matching               ≥2     (AL, n/p, p)-hard                                           35
+ Distance to path                   ≥0     (EA, k log n, 1)-str. by checking connection to path        -
+ Distance to depth ℓ tree           ≥0     (EA, k log n, 1)-str. by checking connection to tree        -
+ Domination Number                  ≥2     (AL, n/p, p)-hard                                           35
+ Distance to Chordal                ≥1     (AL, n/p, p)-hard                                           35
+ Maximum Degree                     ≥2     (AL, n/p, p)-hard, (AL, n log n, 1)-hard                    36, 39
+ Bipartite Graphs                          (AL, n/p, p)-hard, (AL, n log n, 1)-hard                    36, 39
+ Interval Graphs                           (VA, n/p, p)-hard                                           37
+ Split graphs                              (EA, n/p, p)-str. by finding degree 0 vertex                -
+                                           (VA, n/p, p)-hard                                           38
+   Table 3 Overview of the results for Connectivity. All hardness results listed here are through
+reductions from Disjointness. (M, m, p)-hard means that any algorithm using p passes in model
+M (or weaker) requires Ω(m) bits of memory. (M, m, p)-str. means that there is an algorithm
+that uses p passes in model M (or stronger) using O(m) bits of memory. FVS stands for Feedback
+Vertex Set number, FEN for Feedback Edge Set number. We state most upper bounds only as
+observations.
+
+
+
+Proof. When the vertex cover is known, we can keep track of a Disjoint Set data structure
+on the k vertices of the vertex cover. Seeing any vertex that connects two or more vertices of
+the vertex cover in the stream translates directly to taking the union of the corresponding
+sets in the data structure. If at the end of the stream the data structure contains only one
+set and we have not seen a degree-0 vertex, the graph is connected.
+    When the vertex cover is not given, and only its size, we can greedily maintain an
+approximate vertex cover of size at most 2k by maintaining a maximal matching, while
+executing the above procedure on this set.                                                  ◀
+
+▶ Observation 33. Given a graph G as an AL stream with a deletion set X of size k to ℓ
+cliques, we can solve Connectivity [k, ℓ] in 1 pass and O((k + ℓ) log n) bits of memory.
+
+Proof. We use a Disjoint Set data structure on all vertices in X and a representative vertex
+for each clique, say the lowest numbered vertex of that clique. The space used by the data
+structure is O((k + ℓ) log n) bits. For a vertex in X we only process the edges to other vertices
+in X in the data structure. For a vertex in a clique (∈/ X) we register the edges to vertices in
+X and its lowest number neighbour ∈    / X. This takes at most (k + 1) log n bits, and is enough
+to take unions in the data structure corresponding to the connections seen by this vertex.
+    At the end of the stream, if the data structure contains only one set, the graph is
+connected.                                                                                     ◀
+
+   Next is a simple lower bound for the AL model.
+26   Parameterized Complexity of Streaming Diameter and Connectivity Problems
+
+
+
+
+                        a                                                        b
+
+
+
+
+        Figure 10 AL lower bound for connectivity, called ‘Simple AL-Conn’. On contrary to the similar
+     diameter lower bound, edges are present when the corresponding entry is a 0.
+
+
+     ▶ Theorem 34. Any streaming algorithm for Connectivity that works on the ‘Simple
+     AL-Conn’ construction in the AL model using p passes over the stream requires Ω(n/p) bits
+     of memory.
+     Proof. Let x, y be the input to Disjn of Alice and Bob, respectively. We construct a graph
+     as illustrated in Figure 10. Let M be a matching on n + 1 edges, and associate each edge with
+     an index 1 ≤ i ≤ n. Now we add two vertices a, b of Alice and Bob respectively, and connect
+     a and b to the (n + 1)-th edge. The edge from a to the i-th edge in M is present if and only
+     if xi = 0, for all 1 ≤ i ≤ n. The same happens for b, where the edge from b to the i-th edge
+     in M is present if and only if yi = 0, for all 1 ≤ i ≤ n. This completes the construction,
+     it has 2n + 4 vertices. Given a streaming algorithm that works on a family including this
+     construction, Alice and Bob construct the AL stream as follows. First, Alice reveals a and
+     the vertices on the left of M . Then she passes the memory state of the algorithm to Bob
+     who reveals b and the vertices on the right of M , which completes one pass of the stream.
+         We now claim that the graph is connected if and only if the answer to Disjn is YES.
+         Let us assume that the answer to Disjn is NO, that is, there is an index i such that
+     xi = yi = 1. Then clearly the i-th edge is not connected to the rest of the graph (which
+     includes a and b).
+         Now assume the answer to Disjn is YES, that is, there is no index i such that xi = yi = 1.
+     Notice that there is always a path from a to b via the (n + 1)-th edge of M . Furthermore, by
+     the assumption, for each index 1 ≤ i ≤ n either Alice or Bob (or both) has a 0, which means
+     the i-th edge is connected to either a or b. Hence, the graph is connected.
+         We conclude that any algorithm that can solve the Connectivity problem on the graph
+     construction ‘Simple AL-Conn’ in the AL model in p passes, must use Ω(n/p) bits of memory
+     by Proposition 7.                                                                          ◀
+
+        The following follows from Theorem 34 by observing properties of the ‘Simple AL-Conn’
+     construction.
+     ▶ Corollary 35. Any streaming algorithm for Connectivity in the AL model that uses
+     p passes over the stream must use Ω(n/p) bits of memory, even on graphs for which the
+     algorithm is given a
+        Feedback Vertex Set of size at least 1,
+        Deletion Set to Matching of size at least 2,
+        Dominating Set of size at least 2.
+     Proof. The corollary follows from Theorem 34, together with observing that the construction
+     of ‘Simple AL-Conn’ is
+        a forest when removing {a},
+J.J. Oostveen and E.J. van Leeuwen                                                                                         27
+
+
+     a matching when removing {a, b},
+     dominated by the set of vertices {a, b}.
+
+                                                                                                                     ◀
+
+    An interesting lower bound is for a unique case: graphs of maximum degree 2. We
+mentioned that for a forest we have a simple counting algorithm for Connectivity, so the
+hardness must be for some graph which consists of one or more cycles. Although Theorem 34
+implies Connectivity is hard for graphs with a Feedback Vertex Set of constant size, we
+now show that in the specific case of maximum degree 2-graphs, the problem is still hard,
+see Figure 11 for an illustration of the construction. We note that this reduction is similar to
+the problem tackled by Verbin and Yu [53] and Assadi et al. [4], but our result is slightly
+stronger in this setting, as it concerns a distinction between 1 or 2 disjoint cycles.
+
+a0            ai,1             ai,4                                                                              an+1
+                        0                                0                                 1
+
+
+                ai,2        ai,3
+                        i                              i+1                               i+2
+                bi,2        bi,3
+
+
+
+b0           bi,1       0          bi,4                  1                                 1                     bn+1
+
+    Figure 11 AL lower bound for connectivity, called ‘Cycles’. The graph consists of one or multiple
+cycles depending on the output of Disjn . The black edges are always present. The red (blue) edges
+between a-vertices (b-vertices) are controlled by Alice (Bob) and are in a crossing (horizontal) or
+vertical configuration depending on whether the i-th entry of Alice (Bob) is 0 or 1.
+
+
+▶ Theorem 36. Any streaming algorithm for Connectivity that works on graphs of
+maximum degree 2 in the AL model using p passes over the stream requires Ω(n/p) bits of
+memory.
+
+Proof. Let x, y be the input to Disjn of Alice and Bob, respectively. We create a construction
+as shown in Figure 11. We create a graph on 8n + 4 vertices. Associate 8 vertices ai,1 , . . . , ai,4
+and bi,1 , . . . , bi,4 with each index i. Let us call the remaining four vertices a0 , b0 , an+1 , bn+1 ,
+and insert the edges (a0 , b0 ) and (an+1 , bn+1 ). Then for each index i, we do the following.
+Insert the edges (ai,2 , bi,2 ), (ai,3 , bi,3 ), (ai,1 , ai−1,4 ), (bi,1 , bi−1,4 ), (ai,4 , ai+1,1 ), (bi,4 , bi+1,1 ),
+where ai−1,4 , bi−1,4 are replaced with a0 , b0 when i = 1, and ai+1,1 , bi+1,1 are replaced with
+an+1 , bn+1 when i = n. These are all the fixed edges. For each i, Alice also inserts (ai,1 , ai,3 )
+and (ai,2 , ai,4 ) when xi = 0 or inserts (ai,1 , ai,2 ) and (ai,3 , ai,4 ) when xi = 1. Bob inserts
+(bi,1 , bi,4 ) and (bi,2 , bi,3 ) when yi = 0, or inserts (bi,1 , bi,2 ) and (bi,3 , bi,4 ) when yi = 1. This
+completes the construction. Given an algorithm that works on a family including this
+construction, Alice and Bob construct an AL stream as follows. First, Alice reveals the
+vertices a0 , an+1 and ai,k for all 1 ≤ i ≤ n, 1 ≤ k ≤ 4, then passes the memory state to Bob
+who reveals the vertices b0 , bn+1 and bi,k for all 1 ≤ i ≤ n, 1 ≤ k ≤ 4. This completes one
+pass of the stream. Notice that Alice and Bob do not need information about the input of
+the other to do this, as there are only fixed edges between a- and b-vertices. Also notice that
+this graph always consists of (a disjoint union of) one or more cycles regardless of the input
+to Disjn , as every vertex in the graph has degree 2.
+28   Parameterized Complexity of Streaming Diameter and Connectivity Problems
+
+
+         We now claim that the graph is connected if and only if the answer to Disjn is YES.
+         Let us assume that the answer to Disjn is NO, that is, there is an index i such that
+     xi = yi = 1. It is easy to see that there is no path between ai,1 and either ai,4 or bi,4 ,
+     and similarly, there is no path between bi,1 and either ai,4 or bi,4 . Hence the graph is not
+     connected.
+         Now assume the answer to Disjn is YES, that is, there is no index i such that xi = yi = 1.
+     We will construct a simple path from a0 to either an+1 or bn+1 . If this succeeds, then the
+     graph must be a single cycle, as we can continue to the other of an+1 or bn+1 and walk the
+     other way to b0 , never crossing the first path because every vertex has degree 2. These two
+     paths together with the edges (a0 , b0 ), (an+1 , bn+1 ) form a single cycle. Starting at a0 , we
+     can view a path going ‘right’, crossing each index i step by step. At an ai,1 , there are only
+     two possible cases: either we walk through ai,2 , ai,3 , bi,2 , bi,3 in some order and end in ai,4 ,
+     or we have a path to bi,4 (using only vertices of index i). In both cases, we can advance to
+     the next i. At an bi,1 , there are also only two cases: either there is an edge to bi,4 or there is
+     a path through bi,2 , ai,2 to ai,4 . In both cases, we can advance to the next i. Hence, we can
+     find a path walking through each i advancing to the next, which must mean we end up in
+     either an+1 or bn+1 , and we are done.
+         We conclude that any algorithm that can solve the Connectivity problem on the graph
+     construction ‘Cycles’ in the AL model in p passes, must use Ω(n/p) bits of memory by
+     Proposition 7.                                                                                   ◀
+
+        We note that we can make the result of Theorem 36 (and 39) hold for bipartite graphs of
+     maximum degree 2 by subdividing every edge, making the graph odd cycle-free, and thus
+     bipartite.
+        The proofs of Theorems 5 and 6 follow.
+     ▶ Theorem 5. For any fixed graph H that is not a linear forest containing only paths of
+     length at most 5, any streaming algorithm for Connectivity in the AL model that uses p
+     passes over the stream must use Ω(n/p) bits of memory even on the class of H-free graphs.
+     Proof. If H contains a cycle of length not equal to 6 as a subgraph, then the result follows
+     from Theorem 34, because that construction is Cℓ -free for any ℓ =  ̸ 6. By subdividing the
+     middle (matching) edges, the construction can be made Cℓ -free for any fixed ℓ > 2. Hence,
+     we may assume that H does not contain a cycle and thus is a forest. If H contains a vertex
+     of degree at least 3, then the result follows from Theorem 36, because that construction
+     has maximum degree 2. Hence, we may assume that H is a linear forest. If H contains a
+     P7 , then the result follows from a slight adaptation of the construction of Theorem 34. By
+     making the vertices a and b of that construction adjacent, the resulting graph cannot have a
+     P7 as an induced subgraph, while not affecting the correctness of the construction.       ◀
+
+     ▶ Theorem 6. For any fixed graph H that is not a linear forest containing only paths of
+     length at most 1 and any fixed constant k ≥ 2, any streaming algorithm for Connectivity
+     in the AL model that uses p passes over the stream must use Ω(n/p) bits of memory even on
+     the class of graphs G with a given set of vertices X with |X| = k such that G − X is H-free.
+     Proof. This is an immediate corollary of Theorem 34. In that construction, after removing
+     vertices a and b, the remainder is a disjoint union of P2 ’s.                          ◀
+
+        Interval and split graphs are hard in the VA model, see Figures 12 and 13.
+     ▶ Theorem 37. Any streaming algorithm for Connectivity that works on interval graphs
+     in the VA model using p passes over the stream requires Ω(n/p) bits of memory.
+J.J. Oostveen and E.J. van Leeuwen                                                                               29
+
+
+                ai                                                            v1 v2     ···       vn
+                                           ai
+     ui                    vi
+
+
+
+                                                     bi
+
+                bi                                                               a            b
+
+     Figure 12 VA lower bound for connectivity on interval
+ graphs, called ‘Interval’. We see the gadget for index i,             Figure 13 VA lower bound for con-
+ where the dotted lines are present when the corresponding         nectivity on split graphs, called ‘Split-
+ value is 0. In essence, the intervals ai and bi are short         Conn’. The dashed edges towards vi
+ or long depending on the input of Alice and Bob. The n            are present when there is a 0 at index
+ gadgets are placed consecutively.                                 i.
+
+
+Proof. Let x, y be the input to Disjn of Alice and Bob, respectively. We create a construction
+as shown in Figure 12. We create an interval graph on 4n vertices. For each i, we create the
+vertices ui , vi , ai , bi . We insert the edges (ui , ai ), (vi , bi ), and (vi−1 , ui ) (for i = 1 we do not
+insert this last edge). Alice inserts the edge (ai , vi ) if and only if xi = 0. Bob inserts the edges
+(bi , ui ) and (bi , ai ) if and only if yi = 0. This completes the construction. Notice that this is
+an interval graph, as illustrated by the interval representation of index i in Figure 12. Given
+an algorithm that works on a family including this construction, Alice and Bob construct an
+VA stream as follows. First, Alice reveals all vertices ui , ai , vi (and the edges between them)
+for each i. Then she passes the memory of the algorithm to Bob who reveals each bi . This
+completes one pass of the stream. Notice that Alice does not need to know the input of Bob
+for Disjn , and neither does Bob have to know the input of Alice, as it is a VA stream.
+      We now claim that the graph is connected if and only if the answer to Disjn is YES.
+      Let us assume that the answer to Disjn is NO, that is, there is an index i such that
+xi = yi = 1. Then clearly, there is no path between ui and vi , and so the graph is not
+connected.
+      Now assume the answer to Disjn is YES, that is, there is no index i such that xi = yi = 1.
+Now we claim that there is a path from u1 to vn using every ui and vi , and hence the graph
+is connected. Indeed, if there is such a path then the graph is connected, as each ai and
+bi are always adjacent to ui and vi , respectively. There is such a path because, for each
+1 ≤ i ≤ n at least one of the edges (ui , bi ) or (ai , vi ) is present, creating a path between ui
+and vi . Combining these paths for each i gives us the path we were looking for, as the edges
+(vi−1 , ui ) exist for each 2 ≤ i ≤ n.
+      We conclude that any algorithm that can solve the Connectivity problem on the graph
+construction ‘Interval’ in the VA model in p passes, must use Ω(n/p) bits of memory by
+Proposition 7.                                                                                              ◀
+
+
+▶ Theorem 38. Any streaming algorithm for Connectivity that works on split graphs in
+the VA model using p passes over the stream requires Ω(n/p) bits of memory.
+
+Proof. Let x, y be the input to Disjn of Alice and Bob, respectively. We create a construction
+as shown in Figure 13. We create an split graph on n + 2 vertices. Let v1 , . . . , vn be n vertices
+in the independent set. Let a, b be two vertices that form the clique. Alice inserts the edges
+(a, vi ) when xi = 0, and Bob inserts the edges (b, vi ) when yi = 0, for each 1 ≤ i ≤ n. This
+completes the construction. Given an algorithm that works on the construction, Alice and
+Bob construct a VA stream as follows. First, Alice reveals v1 , . . . , vn (without edges at this
+30   Parameterized Complexity of Streaming Diameter and Connectivity Problems
+
+
+     a0              ai,1 bi,1                 bi,4 ai,4                                                           an+1
+                                       0                           0                            1
+
+                      bi,2             i          bi,3
+                     ai,2                         ai,3           i+1                         i+2
+
+
+                  a0π(i),2                        a0π(i),3
+                                     π(i)
+                  b0π(i),2                        b0π(i),3      π(i + 1)                   π(i + 2)
+
+
+
+     a00         a0π(i),1 b0π(i),1     0    b0π(i),4 a0π(i),4      1                            1                   a0n+1
+
+         Figure 14 AL permutation lower bound for connectivity, called ‘Cycles-Perm’. The graph consists
+     of one or multiple cycles depending on the input of Permn . Red edges between a-vertices are
+     controlled by Alice, blue edges between b-vertices by Bob.
+
+
+     point) and then reveals a. She then passes the memory of the algorithm to Bob, who reveals
+     b, which completes one pass of the stream.
+         It can be easily seen that there is an isolated vertex if and only if there is an index i such
+     that xi = yi = 1. Split graphs are connected if and only if there is no isolated vertex.
+         We conclude that any algorithm that can solve the Connectivity problem on split
+     graphs in the VA model in p passes, must use Ω(n/p) bits of memory by Proposition 7. ◀
+
+         For split graphs, in any model, Connectivity admits a one-pass, O(n) bits of memory
+     algorithm by counting if there is a vertex of degree 0 (and so also for any p a p-pass algorithm
+     using O(n/p) bits by splitting up the work in p parts)5 . If there can be no isolated vertices,
+     then a split graph is always connected.
+
+     5.1        Permutation Lower Bound
+     As an additional result, we give another reduction for graphs of maximum degree 2. Sun
+     and Woodruff [52] have already shown a Permutation lower bound for Connectivity in
+     general graphs. We show that the ‘Cycles’ construction can be extended to lower bounds
+     using the Permn problem, showing hardness for graphs of maximum degree 2.
+
+     ▶ Theorem 39. Any streaming algorithm for Connectivity that works on graphs of
+     maximum degree 2 in the AL model using 1 pass over the stream requires Ω(n log n) bits of
+     memory.
+
+     Proof. Essentially, we adapt the construction of Theorem 36 to work for Permn . Let
+     π, j be the input to Permn , and let γ and ψ be the values associated with j (see the
+     definition of Permn ). We construct a graph on 16n + 4 vertices, consisting of one or
+     more cycles. For each index i, we create the vertices ai,1 , ai,2 , ai,3 , ai,4 , a′i,1 , a′i,2 , a′i,3 , a′i,4 and
+     bi,1 , bi,2 , bi,3 , bi,4 , b′i,1 , b′i,2 , b′i,3 , b′i,4 , where we connect the each a-vertex with its corresponding
+     b-vertex (i.e. (a′i,2 , b′i,2 ) is an edge). Next to this, we also create 4 vertices a0 , a′0 , an+1 , an+1 ,
+     where (a0 , a′0 ) and (an+1 , a′n+1 ) are edges. The rest of the edges are dependent on the input
+     to Permn . For an index i, if it is the ψ-th index, Bob inserts the edges (bi,1 , bi,2 ) and
+     (bi,3 , bi,4 ). If it is not the ψ-th index, Bob inserts the edges (bi,1 , bi,3 ) and (bi,2 , bi,4 ). Also,
+
+
+     5
+           This assumes the vertices are labelled 1 . . . n and do not have arbitrary labels.
+J.J. Oostveen and E.J. van Leeuwen                                                                                     31
+
+
+ for an index i, if its γ-th bit is a 1, Bob inserts the edges (b′i,1 , b′i,2 ) and (b′i,3 , b′i,4 ). If the
+ γ-th bit is a 0, Bob inserts the edges (b′i,1 , b′i,4 ) and (b′i,2 , b′i,3 ). Alice links ‘the top’ of i with
+‘the bottom’ of π(i). For each index i, Alice inserts the following edges, (ai−1,4 , ai,1 ) (or
+(a0 , ai,1 ) when i = 1), (ai,4 , ai+1,4 ) (or (ai,4 , an+1 ) when i = n), (ai,2 , a′π(i),2 ), (ai,3 , a′π(i),3 ),
+(a′π(i−1),4 , a′π(i),1 ) (or (a′0 , a′π(i),1 ) when π(i) = 1), (a′π(i),4 , a′π(i+1),4 ) (or (a′π(i),4 , a′n+1 ) when
+ π(i) = n).6 This concludes the construction. The graph consists of one or more cycles
+ because every vertex has degree 2. Given an algorithm that works on a family including
+ this construction, Alice and Bob construct an AL stream as follows. First, Alice reveals
+ all a-vertices, then passes the memory of the algorithm to Bob, who reveals all b-vertices,
+which completes one pass of the stream. This is correct, as a-vertices are only connected to
+ b-vertices with edges independent of the input to Disjn .
+     We claim that the graph is not connected if and only if the answer to Permn is YES. The
+ graph is not connected if and only if there is an index i such that ‘the top’ and ‘the bottom’
+ are both a 1-construction. This can only be the case when an index i is the ψ-th index on
+‘the top’, and the γ-th bit is a 1 on ‘the bottom’. However, ‘the bottom’ corresponds to the
+ index π(i) because of the edges of Alice, which means that the γ-th bit of the image under π
+ of ψ is a 1. Hence, this occurs if and only if the answer to Permn is YES.
+     We conclude that any 1-pass algorithm in the AL model that can solve the Connectivity
+ problem on graphs of maximum degree 2, must use Ω(n log n) bits of memory by Proposition 8.
+                                                                                                                   ◀
+
+   The results of Theorem 39 also holds for bipartite graphs of degree 2. To see this,
+subdivide every edge, making the graph odd cycle-free, and thus bipartite.
+
+    6   Vertex Cover kernelization
+In this section7 , we parameterize the Vertex Cover problem by the solution size k. We
+now show how our insights into parameterized, streaming graph exploration can aid in
+producing a new kernelization algorithm for Vertex Cover [k]. The basis for our result is a
+well-known kernel for the Vertex Cover [k] problem of Buss and Goldsmith [14], consisting
+of O(k 2 ) edges. Constructing this kernel is simple: find all vertices with degree bigger than
+k, and remove them from the graph, and decrease the parameter with the number of vertices
+removed, say to k ′ . Then, there is no solution if there are more than k · k ′ edges. Therefore,
+we have a kernel consisting of O(k 2 ) edges. We are able to achieve this same kernel in the AL
+model, as counting the degree of a vertex is possible in this model. Interestingly, we do not
+require O(k 2 log n) bits of memory to produce a stream corresponding to the kernel of O(k 2 )
+edges. This result is also possible in the EA model, by allowing vertices up to degree 2k.
+
+▶ Theorem 40. Given a graph G as an AL stream, we can make an AL stream corresponding
+to an O(k 2 )-edge kernel for the Vertex Cover [k] problem using two passes and O(k log n)
+bits of memory. When we work with an EA stream, we can make an EA stream corresponding
+to an O(k 2 )-edge kernel using four passes and O(k log n) bits of memory.
+
+Proof. Let G be a graph, with n vertices and m edges, given as an AL stream, and let k be
+the solution size parameter for the Vertex Cover [k] problem. Note that we can count
+
+
+6
+  We note that formally, we insert many edges twice, but this is to make the description more under-
+  standable. Alice does not actually insert these edges twice.
+7
+  This section is based on the master thesis “Parameterized Algorithms in a Streaming Setting” by the
+  first author.
+32   Parameterized Complexity of Streaming Diameter and Connectivity Problems
+
+
+     the degree of every vertex when it appears in the stream, as we are given all adjacencies of a
+     vertex consecutively. Therefore, in one pass over the stream we can count the degree of every
+     vertex, and save each vertex with a degree bigger than k in a set S, as long as |S| ≤ k. In
+     this same pass, we keep track of two more counters: the total number of edges in the stream
+     m′ (which is 2m), and the number of unique edges we remove r. We find r by incrementing
+     a local (to a vertex) counter r′ when we see edges towards vertices not in S, and add r′ to r
+                                                ′
+     if we decide to add the vertex to S. If m2 − r > k · (k − |S|), return NO. Otherwise, make a
+     pass over the stream, and output only those edges between vertices not in S.
+         The output must be an AL stream, as we only remove edges from an AL stream to
+     produce it. Let is also be clear that we use two passes over the stream.
+         The set S takes O(k log n) bits of memory, as finding more than k vertices will result
+     in returning NO. Counting the total number of edges takes O(log m) = O(log n) bits of
+     space, and other constant number of counters are the same size or smaller. Therefore, this
+     procedure uses O(k log n) bits of memory.
+         The behaviour of this procedure is equivalent of the kernelization algorithm of Buss and
+     Goldsmith [14], as it finds exactly those vertices with degree higher than k, and ‘removes’
+     them by adding them to S and ignoring edges incident to them in the output. Checking
+     the instance size is done correctly, as the new parameter k ′ is equivalent to k − |S|, and the
+                                                                  ′
+     number of remaining edges is equal to m − r, which is m2 − r. The value of r is counted
+     correctly because we only count unique edges by ignoring those towards vertices already in
+     S. Therefore, this kernelization procedure is correct.
+         For the case of the EA stream, we essentially do the same as in the AL model, but in
+     this model we end up with a slightly larger kernel. In our first pass, we greedily construct a
+     vertex cover X of size 2k or conclude that there is no solution to Vertex Cover [k]. Now,
+     we know that all vertices not in X must have degree at most 2k. So, in the second pass we
+     count the degree of all vertices in X, and if a degree exceeds 2k we the add vertex to S. This
+     takes only O(k log n) bits of memory. If at some point |S| > k we also stop and conclude
+     there is no solution to Vertex Cover [k], as all vertices of degree at least 2k must be in
+     any solution. In a third pass, we count the total number m of edges in the stream, and the
+     number of unique edges we remove r (this is not possible during the second pass because we
+     might count edges double when it has both endpoints in S). Now if m − r > 2k · (k − |S|),
+     we can conclude there is no solution to Vertex Cover [k], as each vertex has maximum
+     degree 2k.
+         Now to output the kernel as an EA stream, we make a fourth pass and only output those
+     edges not incident to vertices in S. In this procedure we only use O(k log n) bits of memory
+     for counting and X. The resulting kernel has at most 2k · (k − |S|) = O(k 2 ) edges.         ◀
+
+         Next, we show how to use Theorem 40 to produce a kernel of even smaller size, using only
+     O(k log n) bits of memory. This requires Theorem 40 to convert the original graph stream
+     into the kernel input for the next theorem, which only increases the number of passes by a
+     factor 2 or 4 (we have to apply Theorem 40 every time the other procedure uses a pass).
+         Chen et al. [17] show a way to convert the kernel of Buss and Goldsmith into a 2k-vertex
+     kernel for Vertex Cover [k], using the NT-Theorem by Nemhauser and Trotter [48].
+     We will adapt this method in the streaming setting, and give a concise description of this
+     procedure below. The following theorem, as formulated this way by Chen et al. [17], is due
+     to Nemhauser and Trotter [48] and Bar-Yehuda and Even [7].
+                                                       √
+     ▶ Proposition 41 (NT-Theorem). There is an O( nm) time algorithm that, given a graph
+     G of n vertices and m edges, constructs two disjoint subsets C0 and V0 of vertices in G such
+J.J. Oostveen and E.J. van Leeuwen                                                                       33
+
+
+that
+
+(1) The union of any minimum vertex cover of G[V0 ] and C0 forms a minimum vertex cover
+    for G.
+(2) Any minimum vertex cover of G[V0 ] contains at least |V0 |/2 vertices.
+
+    The proof of the NT-Theorem by Bar-Yehuda and Even [7] shows us how to do find V0
+and C0 for any arbitrary graph G. One creates a bipartite graph B from G by making two
+copies of all vertices V, V ′ , and an edge (x, y) in G translates to the edges (x, y ′ ), (x′ , y) in
+B. One then finds a maximum matching M of B to find a minimum vertex cover of B, as
+described by Bondy and Murty [12, Page 74, Theorem 5.3]. Let us shortly go over what
+it entails. If our bipartite graph has vertex sets V, V ′ and a maximum matching M , then
+we can find a minimum vertex cover X with |X| = |M | in the following manner. Denote
+all unmatched vertices in V with U , and let Z ⊆ V ∪ V ′ be the set of vertices connected
+to U with an M -alternating path (a path such that edges in M and not in M alternate).
+Denoting S = Z ∩ V and T = Z ∩ V ′ , then X is given by X = (V \ S) ∪ T . Now, the set C0
+is given by all vertices v ∈ G for which both v, v ′ ∈ B are contained in X, and V0 contains
+the vertices v ∈ G for which exactly one of v, v ′ ∈ B is contained in X.
+    Chen et al. [17] describe how to use the above procedure to get a smaller kernel from the
+kernel by Buss and Goldsmith [14]. Start with G as the kernel by Buss and Goldsmith [14],
+and execute the above procedure to find the sets C0 and V0 in G. Then, the kernel is given
+by G′ = G[V0 ] with new parameter value k ′ = k1 − |C0 |, where k1 is the parameter value of
+the kernel by Buss and Goldsmith. Chen et al. [17] show that G′ has at most 2k vertices
+and is a kernel with parameter value k ′ .
+    We now show how to execute this procedure in the streaming setting, both in the AL and
+EA models. Note that in the EA model, Theorem 40 yields a kernel which is not exactly the
+kernel by Buss and Goldsmith, but still has O(k 2 ) edges. This property is sufficient for the
+above procedure to work, even though it is not exactly the kernel by Buss and Goldsmith.
+
+▶ Lemma 42. Given a graph G as a stream in model AL or EA, we can produce a stream in
+the same model corresponding to the Phase 1 bipartite graph B of [7, Algorithm NT] using
+two passes and O(log n) bits of memory.
+
+Proof. Given a graph G = (V, E), Phase 1 of [7, Algorithm NT] asks for the bipartite graph
+B with vertex sets V, V ′ and edges EB such that V ′ = {v ′ | v ∈ V } and EB = {(x, y ′ ) |
+(x, y) ∈ E}. This is essentially two copies of all vertices and each edge in the original graph
+makes two edges, between the corresponding (original,copy)-pairs.
+    The process of creating a stream corresponding to B is quite simple: first we use a pass
+and, for every edge (x, y), we output (x, y ′ ), and then we use another pass and, for every
+edge (x, y), we output (x′ , y). If the input is an EA stream, then the output must be as well,
+as no edge is output twice. If the input stream is an AL stream, the output must be an AL
+stream too, as we are consistent in which copy of the vertex we address. That is, the output
+AL stream first reveals all vertices in V and then all those in V ′ . All adjacencies of these
+vertices are present in the stream, as all the adjacencies were present in the input stream.
+    We can see that this uses two passes and O(log n) bits of memory (to remember what
+pass we are in, and to read an edge). It is trivial that the bipartite graph B is constructed
+correctly, as for every edge (x, y) we output the edges (x, y ′ ) and (x′ , y).               ◀
+
+   Before we continue to find the maximum matching in such a graph B produced by
+Lemma 42, we need a few observations to restrict the size of the matching we want to find.
+From the conversion to a 2k kernel by Chen et al. [17], we can conclude that for the sets
+34   Parameterized Complexity of Streaming Diameter and Connectivity Problems
+
+
+     C0 and V0 of the NT-Theorem it must hold that |V0 | ≤ 2k − 2|C0 | (as this shows the kernel
+     size). But then it must also be that |V0 | + |C0 | ≤ 2k, and V0 and C0 together include all
+     vertices in the found minimum vertex cover in B. So, the maximum matching M of B we
+     search for has size O(k).
+         To find the maximum matching we execute a DFS procedure, which can be done with
+     surprising efficiency in this restricted bipartite setting.
+     ▶ Theorem 43. Given a bipartite graph B as an AL stream with O(k 2 ) vertices, we can
+     find a maximum matching of size at most O(k) using O(k 2 ) passes and O(k log n) bits of
+     memory. For the EA model this can be done in O(k 3 ) passes.
+     Proof. We first use a pass to find a maximal matching M in the graph. This can be done
+     in a single pass because we can construct a maximal matching in a greedy manner, picking
+     every edge that appears in the stream for which both vertices are unmatched.
+         Then, we iteratively find an M -augmenting path P (a path starting and ending in a
+     unmatched vertices, alternating between edges in and not in M ), and improve the matching
+     by switching all edges on P (i.e., remove from M the edges on P in M , and add to M the
+     edges on P not in M ). Note that any such P has length O(k), as otherwise M would exceed
+     size O(k). It is known that a matching M in a bipartite graph is maximum when there is no
+     M -augmenting path [41]. We can also find an M -augmenting path only O(k) times, as the
+     size of the matching increases by at least 1 for each M -augmenting path.
+         Let us now describe how we find an M -augmenting path, given some matching M of size
+     O(k). We find M -augmenting paths by executing a Depth First Search (DFS) from each
+     unmatched vertex. Note that we alternate between traversing edges in M and not in M
+     in this search. In contrary to a normal DFS, we do not save which vertices we visited, as
+     this would cost too much memory. Instead, we mark edges in M as visited, together with
+     the vertex from which we started the search. If an edge e ∈ M has been visited once in the
+     search tree, there is no need to visit it again, as the search that visited e would have found
+     an M -augmenting path containing e if it exists. Let us discuss the exact details on the size
+     of the search tree and recursion.
+         As any M -augmenting path has length at most O(k), the depth of the search tree is also
+     O(k). Looking at any vertex, it might have O(k 2 ) neighbours in the given bipartite graph.
+     However, only O(k) of its neighbours can be in M . As visiting an unmatched vertex must end
+     the M -augmenting path, the search tree size is only increased by visiting matched vertices.
+     Therefore, the search comes down to the following process. From the initial unmatched
+     vertex, we can explore to at most O(k) vertices (those in the matching) or any unmatched
+     vertex which would end the search. If we explore to a matched vertex, the next step must
+     traverse the edge in the matching to make an M -augmenting path, which is deterministic.
+     Then we again can explore to O(k) matched vertices, or any unmatched vertex which would
+     end the search. This process continues. As we only visit each matched vertex at most once,
+     we can see that the number of vertices the search visits is bounded by O(k). In each node
+     along the currently active path of the search tree, we can keep a counter with value O(k 2 )
+     (using O(log(k 2 )) = O(log k) bits) to keep track of what edge we consider next. These
+     counters take up O(k · log k) = O(k log n) space. In any node, if we wish to consider the next
+     edge incident to a vertex v with a counter value x, we inspect the x-th edge incident to v
+     in the stream. If it turns out we cannot visit that vertex (have already visited it), we can
+     increment the counter and find the next edge to consider in the same pass (as the (x + 1)-th
+     edge incident to v must be later in the stream than the x-th edge incident to v). Therefore,
+     finding the next edge to visit in the search only takes a single pass. Notice that we return to
+     nodes in the search tree at most O(k) times in total, because only visiting matched vertices
+J.J. Oostveen and E.J. van Leeuwen                                                                 35
+
+
+can result in a ‘failed’ search recursion. So, a search that visits all matched vertices uses
+O(k) passes, and this is the maximum number of passes for a single search.
+    We start our search at most once from each unmatched vertex that has at least one
+edge (for which we can keep another counter to keep track), which means we do at most
+O(k 2 ) searches. However, for each of these searches we start from different vertices, we still
+keep saved the set of visited matched vertices. If a search from a vertex visits a matched
+vertex and does not find an M -augmenting path, then neither will a search from a different
+vertex by visiting that matched vertex again. In particular, this is because the graph is
+bipartite, because, when we start from an unmatched vertex on e.g. the ‘right’ side, we have
+to end on an unmatched vertex on the ‘left’ side, while all vertices we visit on the path are
+matched vertices. So, the current path does not interfere with the ability to successfully find
+an endpoint, which makes another search visiting the same matched edge have exactly the
+same result. Having to do O(k 2 ) searches would indicate that we need to use O(k 2 ) passes,
+at least one for every search. However, in the AL model, if we consider the x-th vertex, and
+in the pass we use for it, we do no successful visit to a vertex (all adjacencies are matched
+and already visited), then in the same pass we can consider the (x + 1)-th vertex, because all
+edges incident to the (x + 1)-th vertex in the stream appear later than the edges incident
+to the x-th vertex in the stream. Hence, in the AL model, over all O(k 2 ) starting vertices,
+we only use O(k) passes, because only (partially) successful searches increase the number of
+passes, and we can only visit O(k) vertices in total. In the EA model, we require at least
+one pass for each vertex we want to start searching from, and so the total number of passes
+is O(k 2 ).
+    We conclude that with O(k) passes in the AL model, and O(k 2 ) passes in the EA model,
+and O(k log n) bits of memory we can execute a DFS to find an M -augmenting path (if it
+exists).
+    As mentioned, we can search for an M -augmenting path only O(k) times, as the existence
+of more M -augmenting paths would result in returning NO. Therefore, we can find a maximum
+matching in B using O(k 2 ) passes and O(k log n) bits of memory in the AL model. In the
+EA model, we require O(k 3 ) passes to accomplish this.                                       ◀
+
+   Next, we show how to convert such a maximum matching as found by Theorem 43 into a
+minimum vertex cover for B, as asked by [7, Algorithm NT], for which we can use a DFS
+procedure as in Theorem 43 as a subroutine.
+
+▶ Lemma 44. Given a bipartite graph B as an AL stream and a maximum matching M of
+size O(k), we can find a minimum vertex cover X for B with |X| = |M |, using O(k) passes
+and O(k log n) bits of memory. For the EA model, this takes O(k 2 ) passes.
+
+Proof. We adapt a theorem by Bondy and Murty [12, Page 74, Theorem 5.3] to the streaming
+setting to achieve this lemma. Let us repeat again what it entails. If our bipartite graph has
+vertex sets V, V ′ and a maximum matching M , then we can find a minimum vertex cover X
+with |X| = |M | in the following manner. Denote all unmatched vertices in V with U , and
+let Z ⊆ V ∪ V ′ be the set of vertices connected to U with an M -alternating path (a path
+such that edges in M and not in M alternate). If S = Z ∩ V and T = Z ∩ V ′ , then X is
+given by X = (V \ S) ∪ T .
+    As T ⊆ X and |X| = |M |, we can find and save T by executing a DFS procedure just like
+in Theorem 43, without exceeding O(k log n) bits of memory. This takes O(k) passes in the
+AL model and O(k 2 ) passes in the EA model, and O(k log n) bits of memory. Also, V \ S
+must only contain matched vertices, as U ⊆ S. Therefore, in the same DFS procedure to find
+T , we can also save for every matched vertex in V if it is reachable through an M -alternating
+36   Parameterized Complexity of Streaming Diameter and Connectivity Problems
+
+
+     path. Then V \ S is simply given by all matched vertices in M for which we did not save
+     that they were reachable. We conclude that we can find X, the minimum vertex cover such
+     that |X| = |M |, in O(k) passes (AL model) or O(k 2 ) passes (EA model) and O(k log n) bits
+     of memory.                                                                               ◀
+
+        The final result is as follows, which consists of putting the original stream through each
+     step for every time we require a pass, i.e. the number of passes of each of the parts of this
+     theorem combine in a multiplicative fashion.
+
+     ▶ Theorem 45. Given a graph G as an AL stream, we can produce a kernel of size 2k for
+     the Vertex Cover [k] problem using O(k 2 ) passes and O(k log n) bits of memory. In the
+     EA model, this procedure takes O(k 3 ) passes.
+
+     Proof. We execute Theorem 43 on the stream produced by applying Theorem 40 and then
+     Lemma 42 on the input stream (we have to apply these transformations every time that we
+     require a pass). Notice that these applications increase the number of passes by a constant
+     factor. On the result of Theorem 43 we apply Lemma 44 to obtain a minimum vertex cover
+     for the specific bipartite graph B. Now, C0 contains the vertices v for which both v, v ′ ∈ B
+     are contained in the minimum vertex cover of B, and V0 contains the vertices v where either
+     v, v ′ ∈ B is contained in the minimum vertex cover of B, but not both. Finding C0 and
+     V0 from B and its minimum vertex cover requires no passes over the stream, as they are
+     simply given by analysing the minimum vertex cover of B. These sets C0 and V0 are exactly
+     the sets in the NT-Theorem (Proposition 41). The kernel by Chen et al. [17] is given by
+     G′ = G[V0 ], which we can find with a pass (we can output the kernel as a stream), and
+     parameter k ′ = k1 − |C0 |, where k1 is the parameter after application of Theorem 40. All in
+     all, this process takes O(k 2 ) (AL) or O(k 3 ) (EA) passes and O(k log n) bits of memory. ◀
+
+
+      7      Conclusion
+     We studied the complexity of Diameter and Connectivity in the streaming model, from
+     a parameterized point of view. In particular, we considered the viewpoint of an H-free
+     modulator, showing that a vertex cover or a modulator to the disjoint union of ℓ cliques
+     effectively forms the frontier of memory- and pass-efficient streaming algorithms. Both
+     problems remain hard for almost all other H-free modulators of constant size (often even of
+     size 0). We believe that this forms an interesting starting point for further investigations
+     into which other graph classes or parameters might be useful when computing Diameter
+     and Connectivity in the streaming model.
+         On the basis of our work, we propose four concrete open questions:
+
+          What is the streaming complexity of computing Distance to ℓ Cliques? On the
+          converse of Vertex Cover [k], we are not aware of any algorithms to compute this
+          parameter, even though it is helpful in computing Diameter and Connectivity.
+          Are there algorithms or lower bounds for Diameter or Connectivity in the AL model
+          for interval graphs?
+          Assuming isolated vertices are allowed in the graph, can we solve Connectivity in the
+          AL model on split graphs using O(log n) bits of memory?
+          Is there a streaming algorithm for Vertex Cover [k] using O(poly(k)) passes and
+          O(poly(k, log n)) bits of memory, or can it be shown that one cannot exist? This result
+          would be relevant in combination with our kernel.
+J.J. Oostveen and E.J. van Leeuwen                                                                   37
+
+
+     References
+ 1   A. Abboud, V. V. Williams, and J. R. Wang. Approximation and fixed parameter subquadratic
+     algorithms for radius and diameter in sparse graphs. In Proc. SODA 2016, pages 377–391.
+     SIAM, 2016.
+ 2   D. Agarwal, A. McGregor, J. M. Phillips, S. Venkatasubramanian, and Z. Zhu. Spatial scan
+     statistics: approximations and performance study. In Proc. SIGKDD 2006, pages 24–33. ACM,
+     2006.
+ 3   S. Assadi, Y. Chen, and S. Khanna. Polynomial pass lower bounds for graph streaming
+     algorithms. CoRR, abs/1904.04720, 2019.
+ 4   S. Assadi, G. Kol, R. R. Saxena, and H. Yu. Multi-pass graph streaming lower bounds for
+     cycle counting, max-cut, matching size, and other problems. In Proc. FOCS 2020, pages
+     354–364. IEEE, 2020.
+ 5   S. Assadi and V. N. Graph streaming lower bounds for parameter estimation and property
+     testing via a streaming XOR lemma. In Proc. STOC 2021, pages 612–625. ACM, 2021.
+ 6   S. Assadi and R. Raz. Near-quadratic lower bounds for two-pass graph streaming algorithms.
+     In Proc. FOCS 2020, pages 342–353. IEEE, 2020.
+ 7   R. Bar-Yehuda and S. Even. A local-ratio theorem for approximating the weighted vertex
+     cover problem. In Proc. WG 1983, pages 17–28. Universitätsverlag Rudolf Trauner, Linz, 1983.
+ 8   M. Bentert and A. Nichterlein. Parameterized complexity of diameter. In Proc. CIAC 2019,
+     volume 11485 of LNCS, pages 50–61. Springer, 2019.
+ 9   A. Bishnu, A. Ghosh, S. Kolay, G. Mishra, and S. Saurabh. Fixed-parameter tractability of
+     graph deletion problems over data streams. CoRR, abs/1906.05458, 2019.
+10   A. Bishnu, A. Ghosh, S. Kolay, G. Mishra, and S. Saurabh. Fixed parameter tractability of
+     graph deletion problems over data streams. In Proc. COCOON 2020, volume 12273 of LNCS,
+     pages 652–663. Springer, 2020.
+11   A. Bishnu, A. Ghosh, G. Mishra, and S. Sen. On the streaming complexity of fundamental
+     geometric problems. CoRR, abs/1803.06875, 2018.
+12   J. A. Bondy and U. S. R. Murty. Graph Theory with Applications. Macmillan Education UK,
+     1976.
+13   K. Bringmann, T. Husfeldt, and M. Magnusson. Multivariate analysis of orthogonal range
+     searching and graph distances. Algorithmica, 82(8):2292–2315, 2020.
+14   J. F. Buss and J. Goldsmith. Nondeterminism within P. SIAM J. Comput., 22(3):560–572,
+     1993.
+15   S. Cabello. Subquadratic algorithms for the diameter and the sum of pairwise distances in
+     planar graphs. ACM Trans. Algorithms, 15(2):21:1–21:38, 2019.
+16   A. Chakrabarti, S. Khot, and X. Sun. Near-optimal lower bounds on the multi-party commu-
+     nication complexity of set disjointness. In Proc. CCC 2003, pages 107–117. IEEE, 2003.
+17   J. Chen, I. A. Kanj, and W. Jia. Vertex cover: Further observations and further improvements.
+     Journal of Algorithms, 41(2):280 – 301, 2001.
+18   L. Chen, G. Kol, D. Paramonov, R. R. Saxena, Z. Song, and H. Yu. Almost optimal super-
+     constant-pass streaming lower bounds for reachability. In Proc. STOC 2021, pages 570–583.
+     ACM, 2021.
+19   R. Chitnis and G. Cormode. Towards a theory of parameterized streaming algorithms. In
+     Proc. IPEC 2019, volume 148 of LIPIcs, pages 7:1–7:15. Schloss Dagstuhl - Leibniz-Zentrum
+     für Informatik, 2019.
+20   R. Chitnis, G. Cormode, H. Esfandiari, M. T. Hajiaghayi, A. McGregor, M. Monemizadeh,
+     and S. Vorotnikova. Kernelization via sampling with applications to finding matchings and
+     related problems in dynamic graph streams. In Proc. SODA 2016, pages 1326–1344. SIAM,
+     2016.
+21   R. H. Chitnis, G. Cormode, H. Esfandiari, M. Hajiaghayi, and M. Monemizadeh. Brief
+     announcement: New streaming algorithms for parameterized maximal matching & beyond. In
+     Proc. SPAA 2015, pages 56–58. ACM, 2015.
+38   Parameterized Complexity of Streaming Diameter and Connectivity Problems
+
+
+     22   R. H. Chitnis, G. Cormode, M. T. Hajiaghayi, and M. Monemizadeh. Parameterized streaming:
+          Maximal matching and vertex cover. In Proc. SODA 2015, pages 1234–1251. SIAM, 2015.
+     23   D. G. Corneil, F. F. Dragan, M. Habib, and C. Paul. Diameter determination on restricted
+          graph families. Discret. Appl. Math., 113(2-3):143–166, 2001.
+     24   D. Coudert, G. Ducoffe, and A. Popa. Fully polynomial FPT algorithms for some classes of
+          bounded clique-width graphs. ACM Trans. Algorithms, 15(3):33:1–33:57, 2019.
+     25   M. Cygan, F. V. Fomin, L. Kowalik, D. Lokshtanov, D. Marx, M. Pilipczuk, M. Pilipczuk,
+          and S. Saurabh. Parameterized Algorithms. Springer, Cham, 2015.
+     26   H. Dell and D. van Melkebeek. Satisfiability allows no nontrivial sparsification unless the
+          polynomial-time hierarchy collapses. J. ACM, 61(4):23:1–23:27, 2014.
+     27   R. G. Downey and M. R. Fellows. Parameterized Complexity. Monographs in Computer
+          Science. Springer, 1999.
+     28   G. Ducoffe. Beyond helly graphs: The diameter problem on absolute retracts. In Proc. WG
+          2021, volume 12911 of LNCS, pages 321–335. Springer, 2021.
+     29   G. Ducoffe and F. F. Dragan. A story of diameter, radius, and (almost) helly property.
+          Networks, 77(3):435–453, 2021.
+     30   G. Ducoffe, M. Habib, and L. Viennot. Fast diameter computation within split graphs. In
+          Proc. COCOA 2019, volume 11949 of LNCS, pages 155–167. Springer, 2019.
+     31   G. Ducoffe, M. Habib, and L. Viennot. Diameter computation on H -minor free graphs and
+          graphs of bounded (distance) vc-dimension. In Proc. SODA 2020, pages 1905–1922. SIAM,
+          2020.
+     32   M. Elkin. Distributed exact shortest paths in sublinear time. J. ACM, 67(3):15:1–15:36, 2020.
+     33   M. Elkin and C. Trehan. (1 + ϵ)-approximate shortest paths in dynamic streams. CoRR,
+          abs/2107.13309, 2021.
+     34   S. Fafianie and S. Kratsch. Streaming kernelization. In Proc. MFCS 2014, volume 8635 of
+          LNCS, pages 275–286. Springer, 2014.
+     35   J. Feigenbaum, S. Kannan, A. McGregor, S. Suri, and J. Zhang. On graph problems in a
+          semi-streaming model. Theor. Comput. Sci., 348(2-3):207–216, 2005.
+     36   J. Feigenbaum, S. Kannan, A. McGregor, S. Suri, and J. Zhang. Graph distances in the
+          data-stream model. SIAM J. Comput., 38(5):1709–1727, 2008.
+     37   P. Gawrychowski, H. Kaplan, S. Mozes, M. Sharir, and O. Weimann. Voronoi diagrams on
+          planar graphs, and computing the diameter in deterministic õ(n5/3 ) time. SIAM J. Comput.,
+          50(2):509–554, 2021.
+     38   A. Goel, M. Kapralov, and S. Khanna. On the communication and streaming complexity of
+          maximum bipartite matching. In Y. Rabani, editor, Proc. SODA 2012, pages 468–485. SIAM,
+          2012.
+     39   V. Guruswami and K. Onak. Superlinear lower bounds for multipass graph processing.
+          Algorithmica, 76(3):654–683, 2016.
+     40   M. R. Henzinger, P. Raghavan, and S. Rajagopalan. Computing on data streams. In Proc.
+          DIMACS 1998, volume 50 of DIMACS, pages 107–118. DIMACS/AMS, 1998.
+     41   J. E. Hopcroft and R. M. Karp. An n5/2 algorithm for maximum matchings in bipartite
+          graphs. SIAM J. Comput., 2(4):225–231, 1973.
+     42   Z. Huang and P. Peng. Dynamic graph stream algorithms in o(n) space. Algorithmica,
+          81(5):1965–1987, 2019.
+     43   T. Husfeldt. Computing graph distances parameterized by treewidth and diameter. In Proc.
+          IPEC 2016, volume 63 of LIPIcs, pages 16:1–16:11. Schloss Dagstuhl - Leibniz-Zentrum für
+          Informatik, 2016.
+     44   M. Kapralov. Better bounds for matchings in the streaming model. In S. Khanna, editor,
+          Proc. SODA 2013, pages 1679–1697. SIAM, 2013.
+     45   S. Khan and S. K. Mehta. Depth first search in the semi-streaming model. In R. Niedermeier
+          and C. Paul, editors, Proc. STACS 2019, volume 126 of LIPIcs, pages 42:1–42:16. Schloss
+          Dagstuhl - Leibniz-Zentrum für Informatik, 2019.
+J.J. Oostveen and E.J. van Leeuwen                                                                        39
+
+
+46   A. McGregor. Graph stream algorithms: a survey. SIGMOD Rec., 43(1):9–20, 2014.
+47   A. McGregor, S. Vorotnikova, and H. T. Vu. Better algorithms for counting triangles in data
+     streams. In T. Milo and W. Tan, editors, Proc. PODS 2016, pages 401–411. ACM, 2016.
+48   G. L. Nemhauser and L. E. T. Jr. Vertex packings: Structural properties and algorithms.
+     Math. Program., 8(1):232–248, 1975.
+49   J. J. Oostveen and E. J. van Leeuwen. Streaming deletion problems parameterized by vertex
+     cover. In Proc. FCT 2021, volume 12867 of LNCS, pages 413–426. Springer, 2021.
+50   J. H. Reif. Depth-first search is inherently sequential. Inf. Process. Lett., 20(5):229–234, 1985.
+51   L. Roditty and V. V. Williams. Fast approximation algorithms for the diameter and radius of
+     sparse graphs. In Proc. STOC 2013, pages 515–524. ACM, 2013.
+52   X. Sun and D. P. Woodruff. Tight bounds for graph problems in insertion streams. In
+     Proc. APPROX/RANDOM 2015, volume 40 of LIPIcs, pages 435–448. Schloss Dagstuhl -
+     Leibniz-Zentrum für Informatik, 2015.
+53   E. Verbin and W. Yu. The streaming complexity of cycle counting, sorting by reversals, and
+     other problems. In D. Randall, editor, Proc. SODA 2011, pages 11–25. SIAM, 2011.
+

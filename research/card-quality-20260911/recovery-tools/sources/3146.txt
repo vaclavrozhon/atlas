@@ -1,0 +1,1634 @@
+Proceedings of Machine Learning Research vol 134:1–28, 2021              34rd Annual Conference on Learning Theory
+
+
+
+
+    Average-Case Communication Complexity of Statistical Problems
+Cyrus Rashtchian                                                           CRASHTCHIAN @ ENG . UCSD . EDU
+UC San Diego
+David P. Woodruff                                                                DWOODRUF @ CS . CMU . EDU
+Carnegie Mellon University
+Peng Ye                                                                 YEP 17@ MAILS . TSINGHUA . EDU . CN
+Tsinghua University
+Hanlin Zhu                                                                  ZHUHL 17@ TSINGHUA . ORG . CN
+Tsinghua University
+
+
+Editors: Mikhail Belkin and Samory Kpotufe
+
+
+                                                        Abstract
+     We study statistical problems, such as planted clique, its variants, and sparse principal component
+     analysis in the context of average-case communication complexity. Our motivation is to understand
+     the statistical-computational trade-offs in streaming, sketching, and query-based models. Commu-
+     nication complexity is the main tool for proving lower bounds in these models, yet many prior re-
+     sults do not hold in an average-case setting. We provide a general reduction method that preserves
+     the input distribution for problems involving a random graph or matrix with planted structure. Then,
+     we derive two-party and multi-party communication lower bounds for detecting or finding planted
+     cliques, bipartite cliques, and related problems. As a consequence, we obtain new bounds on the
+     query complexity in the edge-probe, vector-matrix-vector, matrix-vector, linear sketching, and F2 -
+     sketching models. Many of these results are nearly tight, and we use our techniques to provide
+     simple proofs of some known lower bounds for the edge-probe model.
+     Keywords: Planted clique, sketching, query complexity, communication complexity
+
+
+1. Introduction
+The planted clique and sparse principal component analysis problems embody an enduring interest
+in computational vs. statistical trade-offs. These problems have the intriguing property that it may
+be easy to detect the presence of planted structure in super-polynomial time. However, it is a central
+open problem to determine whether an efficient solution exists, even though we know that one is
+possible information theoretically (Abbe, 2017; Bandeira et al., 2018; Berthet and Rigollet, 2013;
+Jordan and Mitchell, 2015).
+    The planted clique problem involves distinguishing between two distributions on n-vertex graphs.
+In the first, the graph is generated from the Erdos-Renyi model G(n, 1/2), where each edge is inde-
+pendently present with 1/2 probability. The second distribution G(n, 1/2, k) has a k-clique planted
+in a random subset of k vertices, and the remaining edges exist independently with 1/2 probability.
+From an information theoretic point of view, detection is possible if k ≥ (2 + δ) log2 n for any con-
+stant δ > 0 because the largest clique in a random graph has size (2 + o(1)) log2 n almost surely.
+                                           √
+When the clique is very large, i.e., k  n, many methods can distinguish the two distributions in
+                                                                          √
+polynomial time (and find the planted clique). However, when k = o( n), all known algorithms
+require super-polynomial time (Alon et al., 1998; Arias-Castro and Verzelen, 2014; Dekel et al.,
+2011; Feige and Krauthgamer, 2000; Frieze and Kannan, 2008; Kucera, 1995; Ma et al., 2015).
+
+c 2021 C. Rashtchian, D.P. Woodruff, P. Ye & H. Zhu.
+                                 R ASHTCHIAN W OODRUFF Y E Z HU
+
+
+
+
+     A natural question is to understand the complexity of statistical problems in other models.
+Query-based algorithms form the basis of sublinear time methods for massive graphs (Avrachenkov
+et al., 2014; Leskovec and Faloutsos, 2006; Maiya and Berger-Wolf, 2010; Soundarajan et al., 2017).
+In network monitoring applications, streaming and sketching algorithms are used for real-time data
+analytics when the graph is too large to fit into memory or when the edges arrive over time (Ahmad
+et al., 2017; Gupta et al., 2016). Typical network activity could be modeled as a distribution over
+edge connections, and the presence of some planted subgraph structure could signify anomalous or
+suspicious group behavior (Chandola et al., 2009; Huang and Kasiviswanathan, 2015). This moti-
+vates understanding the query and streaming complexity of detection problems under average-case
+distributions.
+     Rácz and Schiffer consider the edge-probe model, which measures the number of edge existence
+queries to solve a problem (Rácz and Schiffer, 2020); this model is also known as the dense graph
+model (Goldreich, 2017; Goldreich and Ron, 2009; Goldreich et al., 1998). Here, there are no
+                                                                                       √
+computational constraints, making it feasible to study clique detection when k = o( n). Rácz and
+Schiffer show that Θ(ne 2 /k 2 ) edge-probe queries are necessary and sufficient to detect a planted
+k-clique, and they also prove similar bounds for finding the clique (Rácz and Schiffer, 2020). A
+more general model involves linear sketches (Woodruff, 2014). Representing an n × n matrix A
+as a vector vec(A) with n2 entries, a query returns u> vec(A) for a vector u with polynomially-
+bounded entries. A restriction of the sketching model, the uT Mv model, returns u> M v for vectors
+u, v, where M is an unknown matrix (Rashtchian et al., 2020). This specializes the Mv model,
+which returns M v (Sun et al., 2019). These models all generalize edge-probes.
+     Since there are advantages and disadvantages to these various types of queries, it is often worth-
+while to understand the complexity of solving certain problems in each of the models. If an al-
+gorithm can be implemented in a more restricted model, then it may be more useful in practice.
+On the other hand, a lower bound for a more general model would imply the same bound for
+any specialized model. To this end, it is common to prove lower bounds on the communication
+complexity (Kushilevitz and Nisan, 2006; Rao and Yehudayoff, 2020). Then, by showing that a
+query-efficient or space-efficient algorithm can solve a communication problem, lower bounds can
+be derived for the query complexity.
+
+1.1. Our Results
+We provide a general method to encode a communication game as a statistical graph or matrix
+problem while retaining the input distribution. In the next subsection, we provide technical details
+about how to execute this approach. Here, we summarize our query complexity and communication
+                                                                    √
+upper and lower bounds. Throughout, we often assume that k = o( n) because otherwise there is
+often an O(1) query upper bound (see Section 2.2).
+
+   • In Section 3, we provide an alternate proof of the Rácz-Schiffer bound showing that detecting
+     a planted k-clique requires Ω(n2 /k 2 ) edge-probe queries (Rácz and Schiffer, 2020). Then, we
+     investigate whether stronger models are able to succeed with fewer queries. Our most techni-
+                                 e 2 /k 4 ) queries are necessary to detect a planted k-clique in the
+     cal contribution shows that Ω(n
+     linear sketching model (and hence also in the uT Mv model); this appears in Section 5, and it
+     follows from an information complexity argument in Section 4. The linear sketching model
+     is more powerful, in general, than the edge-probe model, and we leave open the question of
+                                       e 2 /k 4 ) or O(n
+     whether the query complexity is Ω(n             e 2 /k 2 ) or somewhere in between.
+
+                                                  2
+           AVERAGE -C ASE C OMMUNICATION C OMPLEXITY OF S TATISTICAL P ROBLEMS
+
+
+
+
+   • We also consider detecting and finding a planted k × k bipartite clique (biclique). When we
+     have to output the planted biclique, we provide nearly tight upper and lower bounds in the Mv
+                            √
+     model. When k = o( n), it is easy to see that O( nk ) Mv queries suffice (Section 2.2), and
+                         n
+     we prove that Ω( k log n ) queries are necessary to find a planted k × k biclique (Section B).
+     We also obtain trade-offs in other query models, depending on the clique size, where we
+     generally consider a planted r × s biclique. We provide an Ω(n  e 2 /(r2 s2 )) lower bound for
+     general linear sketching. To complement this, we exhibit
+                                                            √   an algorithm in the uT Mv model that
+                e 2 /(r2 s)) queries, assuming that r  n log n. Our algorithm borrows ideas
+     uses only O(n
+     from CountSketch (Charikar et al., 2002), as high-degree planted vertices can be considered
+                                                        e 2 /(rs)) lower bound in the edge-probe
+     as `2 heavy hitters. Finally, we give a stronger Ω(n
+     model, which is tight up the logarithmic factors (Section A).
+
+   • We further uncover qualitatively different trade-offs by considering variants of the planted
+     clique detection problem. We investigate the sandwich semi-random version of planted clique
+     from (Feige and Krauthgamer, 2000). In this model, an adversary is allowed to remove
+     some number of edges that are not part of the planted clique. For this variant, we prove
+          e 2 /k 2 ) bits are required and sufficient for a related communication game (Section C).
+     that Θ(n
+     The complexity in the linear sketching model is Θ(n  e 2 /k 2 ), where the upper bound follows
+     from existing algorithms in the edge-probe model. This indicates that any improved algorithm
+     for the usual planted clique problem would require non-trivial algorithmic techniques.
+
+   • Then, we study a promise variant. If the players know that the planted clique occurs in
+     one of O(n2 /k 2 ) edge-disjoint subgraphs, then Θ(n
+                                                        e 2 /k 4 ) bits of communication are both
+     necessary and sufficient for detection (Section D). This shows that the k 4 dependency is tight
+     in this promise variant. While our motivation is technical, related promise problems have
+     been studied for other average-case reductions (Brennan and Bresler, 2020) and for network
+     inference when prior information has been previously obtained (Soundarajan et al., 2017).
+
+   • Finally, we also provide lower bounds for the hidden hubs problem (Kannan and Vempala,
+     2017) (Section E) and for sparse PCA (Berthet and Rigollet, 2013) (Section F).
+
+   • Our edge-probe lower bounds extend to the F2 sketching model, where querying with a vec-
+     tor u returns the value uT vec(A) over F2 , where again A is the adjacency matrix. While we
+     do not know a separation between these models for finding planted structure, the F2 sketch-
+     ing model is a formal generalization of the edge-probe model (using a standard basis vector
+     as the query). Our results also immediately provide upper and lower bounds for streaming
+     algorithms, but we focus on communication and query complexity for brevity.
+
+1.2. Technical Overview
+L OWER B OUNDS IN THE GENERAL LINEAR SKETCHING AND uT Mv MODELS
+We start by describing our lower bound techniques for the planted clique problem. The average case
+notion of our problems makes reductions from standard problems in communication complexity,
+such as multi-player set disjointness, non-trivial, as they do not give us instances from our desired
+distribution. This is unlike existing worst-case clique communication lower bounds (Braverman
+et al., 2018; Halldórsson et al., 2012), which reduce directly from set disjointness.
+
+                                                 3
+                                  R ASHTCHIAN W OODRUFF Y E Z HU
+
+
+
+
+     We instead use a communication complexity model that allows the players to have access to
+shared public randomness, as well as private randomness. Then, we consider a multi-player hypoth-
+esis testing problem, introduced in (Braverman et al., 2016), where each player either receives an
+independent sample from a distribution µ0 or a distribution µ1 and the players would like to decide
+which case they are in. Using a strong data processing inequality, the information cost of such a pro-
+tocol was shown to be Ω(1) if µ0 ≥ 1c µ1 for a constant c > 0, even when information is measured
+with respect to µ0 alone (Braverman et al., 2016). We combine this with the information complexity
+framework of (Bar-Yossef et al., 2004) to prove a direct sum theorem for solving the OR of multiple
+copies of this problem (here, the “OR” of many instances evaluates to true whenever at least one of
+the component instances evaluates to true). We guarantee when the OR evaluates to 1, then exactly
+one copy is from µ1 . We note that Weinstein and Woodruff (Weinstein and Woodruff, 2015) prove a
+distributional result for simultaneous multi-party communication, but this would only apply to non-
+adaptive query algorithms, whereas our results apply even to adaptive query algorithms. Moreover,
+the distributions considered in (Weinstein and Woodruff, 2015) are specific, and not the same as the
+ones we need for our applications, which we now discuss.
+     The main remaining task is to choose distributions µ0 and µ1 so that the resulting multi-copy
+distribution matches that of the planted clique problem. We first use a clique partitioning scheme of
+(Conlon et al., 2014) which although related to results on proving worst-case clique communication
+lower bounds (Braverman et al., 2018; Halldórsson et al., 2012), does not seem to have been used
+before  in this context. This gives us Ω(n2 /k 2 ) edge-disjoint cliques on k vertices each. We have
+ k
+   
+ 2 players, and each is assigned one edge from each clique. We let µ0 be the uniform distribution,
+so that if the OR of the Ω(n2 /k 2 ) instances above is 0, we have a graph from G(n, 1/2). Otherwise
+the OR evaluates to 1 (i.e., the OR being true corresponds to having at least one planted k-clique).
+We let µ1 be the constant distribution with value 1 (i.e., the value is always 1 in these positions),
+and we randomly permute vertex labels, so that in this case we have exactly one planted clique on
+k vertices and otherwise have a G(n, 1/2) instance. By our choice of µ0 and µ1 , this gives us an
+Ω(1) information cost lower bound per copy, an Ω(n2 /k 2 ) lower bound for the OR problem, and an
+Ω̃(n2 /k 4 ) uT Mv query lower bound by simulating each query across Θ(k 2 ) players.
+
+F ROM THE uT Mv TO THE Mv MODEL
+While the above communication game can be applied to the Mv model, it would only give us an
+Ω(n/k 4 ) lower bound. We strengthen this to a nearly optimal Ω(n/k)e        lower bound for the related
+planted bipartite clique (biclique) problem, and where the algorithm is promised to return a k × k
+biclique when it exists (later, we more generally consider r × s bicliques, but for this discussion, we
+let k = r = s). The issue is the algorithm retrieves too much information (Ω(n) bits) with each Mv
+query. To get around this, we only consider inputs when there actually exists a randomly planted
+biclique. Although the distinguishing problem is trivial now (we always have a biclique), since the
+algorithm must return the vertices in the biclique, it still has a non-trivial task.
+     Next, we fix the set of k left vertices in the biclique. They are random and form a valid input
+instance, but they are known to the algorithm. This might seem counterintuitive, as it only helps the
+algorithm. Also, each Mv query only reveals O(k log n) bits of information, and thus we will only
+pay an O(k log n) factor instead of an O(k 2 log n) factor per query, in our query to communication
+simulation. The next idea is to also fix k−1 of the vertices on the right in the biclique; they are again
+random, and so they form a valid input instance, but they are known to the algorithm. Again, this
+might seem counterintuitive, but it helps our analysis because now it gives us n − (k − 1) = Ω(n)
+
+                                                   4
+            AVERAGE -C ASE C OMMUNICATION C OMPLEXITY OF S TATISTICAL P ROBLEMS
+
+
+
+
+possible remaining vertices in the right part, and any of them can be the potential last right vertex.
+This gives us Ω(n) possible cliques rather than Ω(n/k) if we were to partition the right vertices
+into vertex-disjoint bicliques, which we would need in order to have edge-disjoint bicliques, since
+we have already fixed the vertices in the left of the biclique. We show the algorithm needs to reveal
+Ω(n) bits of information to figure out the missing right vertex. Since each player now corresponds to
+a row in this k ×n matrix, when we do the query to communication simulation we obtain an Ω(n/k)
+                                                                                              e
+overall lower bound, losing one factor of k for the number of players, and a factor of O(log n) to
+transmit its dot product with the query vector. The full details are in Section B.
+
+
+1.3. Related Work
+Even though average-case reductions have been studied for many models, there seems to be a gap
+in our understanding for communication complexity. In the context of graph problems, current
+techniques usually construct a hard instance by identifying specific families of graphs that encode
+a communication game. Unfortunately, this does not answer the question of whether the complex-
+ity remains high when we are in a hypothesis testing setting; e.g., MAX - CLIQUE is NP-Hard, but
+distinguishing between G(n, 1/2) or G(n, 1/2, k) for k ≥ (2 + δ) log2 n can be solved in quasi-
+polynomial time by checking all cliques of size O(log n). In the realm of communication complex-
+ity, known results for approximating the size of the maximum clique do not match the distributions
+for the planted clique problem (Braverman et al., 2018; Halldórsson et al., 2012). At a high level,
+we also use a combination of (nearly) covering the graph with subsets of vertices and then reduc-
+ing to a version of set disjointness. However, we invoke a slightly different graph decomposition,
+ensuring that the subsets intersect in at most one vertex, and moreover, the players can use public
+randomness to match the input distribution of the average-case statistical problems.
+     The conjectured hardness of detecting/finding cliques has been used to derive statistical vs. com-
+putational trade-offs for many average-case problems (Brennan and Bresler, 2019; Berthet and
+Rigollet, 2013; Boix-Adserà et al., 2019; Kunisky et al., 2019). Thus, an open direction from our
+work is whether analogous reductions can extend our communication complexity lower bounds to
+other statistical problems (e.g., the stochastic block model) or property testing in the dense graph
+model (Goldreich, 2017). Our study of the promise planted clique problem is inspired by conjec-
+tures regarding the secret linkage of prior information of the planted clique (Brennan and Bresler,
+2020). Recent work studies the query complexity of approximating the maximum clique and/or
+finding the clique in the G(n, 1/2) model (Alweiss et al., 2021; Feige et al., 2020; Mardia et al.,
+2020). Lower bounds for the planted clique problem have been shown for the statistical query
+model (Feldman et al., 2017) and for sum-of-squares (Barak et al., 2019; Meka et al., 2015).
+
+
+2. Preliminaries
+Let [n] = {1, 2, . . . , n}. We use with high probability to mean 1 − O(1/nc ) for a constant c > 0
+and with constant probability to mean at least 9/10. The notation O,
+                                                                   e Ω,
+                                                                      e Θ
+                                                                        e hides polylog(n) factors.
+
+
+2.1. Problems, Games, and Query Models
+For each problem, we define the null hypothesis H0 and the alternate hypothesis H1 . The goal is to
+determine which hypothesis a graph or matrix has been drawn from with constant probability.
+
+                                                  5
+                                 R ASHTCHIAN W OODRUFF Y E Z HU
+
+
+
+
+Table 1: Average-case query complexity for statistical problems (Section 2 has definitions).
+                                                                                      √      We
+                                                       √
+         suppress polylog(n) factors and assume k = o( n), k = Ω(log n) and r = Ω( n log n).
+
+            F2 sketch & edge-probe     Linear sketch & uT Mv                 Mv               Ref.
+
+ PC               e 2 /k2 )
+                  Θ(n                  e 2 /k4 ) O(n
+                                       Ω(n       e 2 /k2 )           Ω(n/k
+                                                                     e     4
+                                                                             ) O(n/k)         Section 3 & 5
+                     2                  2   2 2         2   2         2 2
+ BPC             Θ(n
+                 e   /(rs))          Ω(n
+                                     e   /(r s )) O(n
+                                                  e   /(r s))   Ω(n/(r
+                                                                e      s )) O(n/
+                                                                            e    min(r, s))   Section A
+ F INDBPC         e 2 /k2 )
+                  Θ(n                  e 2 /k4 ) O(n
+                                       Ω(n       e 2 /k2 )                  Θ(n/k)
+                                                                            e                 Section B
+ SRPC             e 2 /k2 )
+                  Θ(n                       e 2 /k2 )
+                                            Θ(n                      Ω(n/k
+                                                                     e     2
+                                                                             ) O(n/k)         Section C
+                  e 2 /k2 )                 e 2 /k4 )                  4          n n2
+ PPC              Θ(n                       Θ(n                  Ω(n/k
+                                                                 e       ) O(min(
+                                                                           e
+                                                                                  k
+                                                                                    , k4 ))   Section D
+ HH          e 2 /k4 ) O(n
+             Ω(n       e 2 /k)          e 2 /k4 ) O(n
+                                        Ω(n        e 2 /k)           Ω(n/k
+                                                                     e     4
+                                                                             ) O(n/k)
+                                                                                e             Section E
+                    2                        4                         4 
+ SCDC             Ω kθ2                     e 2k 4
+                                            Ω   t θ
+                                                                        e 3k 4
+                                                                        Ω    t θ
+                                                                                              Section F
+
+
+
+   • Planted Clique (PC). The input is a graph with n vertices, described as an n × n adjacency
+     matrix A. For H0 each edge occurs with probability 1/2, i.e., A ∼ G(n, 1/2) in the Erdós-
+     Renyi model. For H1 there is a planted k-clique, i.e., a set R is randomly chosen over all
+     size k subsets of [n]; first A ∼ G(n, 1/2), then we set Aij to 1 for all i, j ∈ R with i 6= j.
+
+   • Bipartite Planted Clique (BPC). The input is a bipartite graph with n vertices on each side,
+     described as an n × n matrix A. For H0 each edge occurs with probability 1/2, i.e., each
+     entry of A is sampled from Bernoulli(1/2). For H1 there is an r × s planted biclique, i.e.,
+     two sets R and S are randomly chosen over all size r subsets of [n] and all size s subsets of
+     [n] respectively, and then Aij is set to 1 for all i ∈ R and j ∈ S, and all the remaining entries
+     follow Bernoulli(1/2) independently.
+
+   • Semi-Random Planted Clique (SRPC). The semi-random model was introduced by Blum
+     and Spencer (Blum and Spencer, 1995). There are variants of the semi-random model, and
+     we specifically consider the sandwich model (Feige and Kilian, 1998). In this model, there is
+     an adversary which can remove arbitrary edges outside the planted clique. We describe our
+     hypothesis testing problem as follows:
+
+       H0 : the adversary chooses any graph G∗ such that Gmin ⊆ G∗ ⊆ Gmax , where Gmax is a
+            random graph drawn from G(n, 1/2) and Gmin is the empty graph.
+       H1 : the adversary chooses any graph G∗ such that Gmin ⊆ G∗ ⊆ Gmax , where Gmax is a
+            random graph drawn from G(n, 1/2, k) and Gmin only contains the planted clique.
+
+   • Promise Planted Clique (PPC). There is a fixed and known collection S of subsets of k
+     vertices such that every pair of subsets intersects in at most one vertex. For H0 , the graph
+     is G(n, 1/2) as in the PC problem. For H1 , the planted clique is chosen from S. Clearly,
+                                                               √
+     |S| ≤ n2 /k 2 , and if |S| = Θ(n2 /k 2 ), then k ≤ O( n). The motivation for the PPC
+     problem is that we use a graph decomposition result to define S for some of our reductions
+     (see Section 3). Thus, the PPC problem captures the relative difficulty of the problem when
+     the set of possible cliques is known in advance. From an algorithmic point of view, this makes
+
+                                                  6
+           AVERAGE -C ASE C OMMUNICATION C OMPLEXITY OF S TATISTICAL P ROBLEMS
+
+
+
+
+      the problem trivial. On the other hand, from a query complexity point of view, our upper and
+      lower bounds for sketching algorithms nearly match for the PPC problem.
+
+   • Hidden Hubs (HH). In the hidden hubs model H(n, k, σ0 , σ1 ), an n × n random matrix A
+     is generated as follows (Kannan and Vempala, 2017). First randomly choose a subset S of k
+     rows. Entries in rows outside S are generated from the Gaussian distribution p0 = N (0, σ02 ).
+     For each row in S, choose k entries to be generated from p1 = N (0, σ12 ), and the other n − k
+     entries from p0 . The hypothesis testing problem (HH problem) is to distinguish H0 and H1 ,
+     where H0 is an n × n random matrix with all entries generated from N (0, σ02 ), and H1 is the
+     model H(n, k, σ0 , σ1 ).
+
+   • Sparse Component Detection Challenge (SCDC). We consider the sub-Gaussian version
+     of the Sparse Principal Component Analysis (SPCA) problem, using elements of a known
+     reduction from the PC problem (Berthet and Rigollet, 2013). The           P empirical variance of t
+     vectors X 1 , . . . , X t ∈ Rd in direction v is defined as var(v)
+                                                                    c     = 1t ti=1 (v > X i )2 . Let θ and
+     k be parameters, and let ζ ∈ (0, 1) be a fixed, small constant. We let D0 denote the set of
+     product distributions over t i.i.d. vectors X 1 , . . . , X t ∈ Rd such that for all unit vectors v we
+     have                       "                 r                            #
+                                                      log(2/ζ)        log(2/ζ)
+                             Pr |var(v)
+                                  c      − 1| > 4                  +4             ≤ ζ.                 (2.1)
+                                                           d              d
+      In other words, D0 := {P0 | Eq. (2.1) holds}, and D0 contains, e.g., isotropic distributions.
+      We let D1k,θ denote the set of product distributions over t i.i.d. vectors X 1 , . . . , X t ∈ Rd such
+      that for all unit vectors v with at most k nonzero entries (kvk0 ≤ k), we have
+                         "                          r                                #
+                                                        θk log(2/ζ)        log(2/ζ)
+                     Pr (var(v)
+                            c     − (1 + θ)) < −2                     −4                 ≤ ζ.           (2.2)
+                                                             d                 d
+
+      Similarly, D1k,θ := {P1 | Eq. (2.2) holds}. Then, for the SCDC problem, we define two
+      hypotheses to test; the inputs X 1 , . . . , X t are drawn from P such that
+
+         H0 : X 1 , . . . , X t ∼ P0 ∈ D0             vs.           H1 : X 1 , . . . , X t ∼ P1 ∈ D1k,θ .
+
+      Our goal is to distinguish which family of distributions X 1 , . . . , X t is sampled from. The
+      motivation is that D0 contains N (0, I d ) and D1 contains N (0, I d + θuuT ) when u is a k-
+      sparse unit vector. Hence, this generalizes the spiked covariance model (Berthet et al., 2013;
+      Brennan and Bresler, 2019).
+Communication Games. Throughout we use problem to refer to the detection problems above,
+and we use game to refer to the analogous communication complexity problem. For PC, SRPC,
+and BPC we define the games as follows for t ≥ 2 players. The players receive edge-disjoint
+subgraphs of a graph G such that the union of the edges equals the whole graph. Equivalently,
+the players receive n × n adjacency matrices corresponding to their subset of the edges, and they
+must solve the corresponding problem on the graph defined by the sum of the adjacency matrices
+(which is the adjacency matrix of the whole graph since the edge sets are disjoint). The players are
+promised that G is either drawn from H0 or H1 as in the problems defined above. To succeed, the
+players must determine which distribution G is drawn from with constant probability. For PPC,
+
+                                                     7
+                                  R ASHTCHIAN W OODRUFF Y E Z HU
+
+
+
+
+the only difference is that the players also all know the set S of possible locations for the planted
+clique. For HH, the players instead receive n × n matrices with disjoint supports, where the sum
+of these matrices is drawn from one of the two hypotheses. While many of these games have been
+defined for the union of the graphs, we also make use of an XOR variant for the 2-player version
+of the games. More precisely, Alice and Bob each receive adjacency matrices G1 and G2 , which
+are not necessarily disjoint in the support of their entries. Then, they must solve the corresponding
+problem on the graph G1 ⊕ G2 , where an edge is present in G1 ⊕ G2 if and only if it is present in
+exactly one of G1 or G2 . In other words, we use the XOR of the adjacency matrices. This variant
+will be used for proving F2 sketching lower bounds (which will immediately imply the edge-probe
+lower bounds).
+Query Models. Matrices and vectors have polynomially bounded integer entries. Let vec(A)
+denote the vectorization of an n × n matrix A, i.e., n2 entries listed in a fixed order.
+
+   • Edge-Probe Model. Querying position (i, j) returns Aij .
+
+   • uT Mv Model. Querying with vectors u, v ∈ Rn returns uT Av over R.
+
+   • Mv Model. Querying with a vector v ∈ Rn returns Av over R.
+                                                             2
+   • F2 Sketching Model. Querying with vector u ∈ Fn2 returns uT vec(A) over F2 .
+                                                                  2
+   • Linear Sketching Model. Querying with vector u ∈ Rn returns uT vec(A) over R.
+
+    There is a relationship regarding lower bounds for the Mv model vs. lower bounds for the uT Mv
+or general linear sketching model. In particular, any query in the Mv can be simulated by n queries
+in the linear sketching model (in fact, in the uT Mv model by taking u to be the n standard basis
+vectors one at a time). We often simply state lower bounds for the uT Mv or linear sketching models,
+but using this relationship, we obtain the entries in Table 1 for the Mv model (with the exception of
+the F INDBPC problem, where we obtain a stronger lower bound in Section B).
+Finding vs. Detecting. While we mostly focus on detection problems, we also consider the variant
+where the algorithm should output the planted clique if there is one. We denote this by adding
+Find before the problem name (e.g., for the FindBPC problem/game, the algorithm/protocol should
+output the planted r × s biclique). For many of the models we study, it is straightforward to find
+the clique by using only a factor of polylog(n) more queries than for detection. We describe the
+upper bounds in Section 2.2, and we prove a communication lower bound for the FindBPC game
+in Section B, which implies a lower bound for matrix-vector queries.
+
+2.2. Algorithms for Detecting and Finding
+We review algorithms in the query models listed above. We start with the PC problem, where
+k ≥ 10 log n for simplicity. Previous work on the edge-probe model presents a simple sampling
+algorithm using O((n/k)2 log2 n) queries: choose a subset B of 100(n/k) log n vertices uniformly
+at random, query all pairs in B, and compute the largest clique in this induced subgraph (Rácz and
+Schiffer, 2020). If there is no planted clique, then the largest induced clique has size at most 3 log n
+with high probability; otherwise, there is an induced clique B 0 of size at least 4 log n with high
+probability. To actually find the clique, the next step is to query all neighbors of B 0 , which reveals
+
+                                                   8
+            AVERAGE -C ASE C OMMUNICATION C OMPLEXITY OF S TATISTICAL P ROBLEMS
+
+
+
+
+the whole planted clique using a total of O((n/k)2 log2 n + n log n) edge-probe queries. The same
+general idea leads to algorithms for the SRPC, BPC, and PPC problems as well (for detecting and
+finding).
+     We mention two improvements to the edge-probe algorithm in the uT Mv and Mv models. For
+both models, the query vectors may have bit-complexity O(log n) in each entry. In the uT Mv
+model, we can query all pairs in B by using only O((n/k)2 log n) queries, saving a log n factor (use
+exponentially increasing entries to simulate O(log n) edge-probe queries with one uT Mv query). In
+the Mv model, we can query with an indicator vector to receive all neighbors of a vertex. Again by
+using exponentially increasing entries, we can query O(log n) vertices at a time. Therefore, we can
+query all pairs in B with O(n/k) queries; we can also find the planted k-clique with an additional
+O(k) queries by looking at the shared neighborhood of B 0 .
+                                                              √
+     We also note that a single query suffices when k ≥ c n for a large enough constant c > 1 in
+the uT Mv, Mv, and general linear sketching models. We can use a single query to detect a planted
+k-clique with constant probability  bykcounting  the edges (i.e., ones in the matrix). Indeed, the total
+                               1 n             2 /2 + c0 n when there is a planted clique. Otherwise, it
+number of edges    is at least 2 2  +   2  ≥ n
+is at most 12 n2 + c00 n with constant probability for some c00 < c0 , allowing us to distinguish the two
+                
+                                                         √
+cases. In light of this, we focus on the case of k = o( n) for the remainder of the paper.
+
+2.3. Communication Complexity Preliminaries
+We consider a multi-player communication model, where t ≥ 2 players communicate via a publicly
+shared blackboard (i.e., all players see all messages). The total number of bits written on the black-
+board is the measure of communication. This model generalizes both point-to-point and broadcast
+models, and hence, our lower bounds hold for both the message passing and broadcast settings. We
+let Π denote the collection of all messages written on the blackboard. Abusing notation slightly, we
+use Π for both the protocol and the transcript Π ∈ {0, 1}∗ in bits. The communication cost is the
+length of Π, which we denote as |Π|, in the worst case over the support of the input distribution.
+In other words, we consider the randomized communication complexity (see, e.g., (Rao and Yehu-
+dayoff, 2020)). At the termination of the communication protocol, one of the players must output
+the answer using a function of Π with no constraints on the computation time (e.g., in the games
+defined above, the player should output which of the two distributions the input has been sampled
+from). We consider the success probability of randomized protocols (players have access to both
+public, shared random bits and private random bits). Throughout, the exact success probability will
+not be important, and we consider the randomized communication complexity of solving a problem
+with constant success probability, e.g., 9/10.
+    We use a standard Ω(n) lower bound on the 2-player U NIQUE D ISJOINTNESS game (Kalyana-
+sundaram and Schintger, 1992; Razborov, 1992). Two players each have a bitstring x, y ∈ {0, 1}n .
+They are promised that one of the following two cases holds: either (i) for all i ∈ [n] either xi = 0
+or yi = 0 or both, or (ii) there is a unique i ∈ [n] such that xi = yi = 1 and for all i0 6= i, either
+xi = 0 or yi = 0 or both. The U NIQUE D ISJOINTNESS game is to communicate and determine
+which case they are in.
+
+3. Warm-up: Lower Bound for PC in the Edge-Probe Model
+We present a simple proof demonstrating the main ideas of our reduction method. We first explain
+the graph decomposition, and then we use this to prove a communication lower bound for the XOR
+
+                                                    9
+                                         R ASHTCHIAN W OODRUFF Y E Z HU
+
+
+
+
+version of the PC game in Theorem 4. As a consequence, in Corollary 5, we provide an alternate
+proof of the Rácz-Schiffer lower bound of Ω(n2 /k 2 ) edge-probe queries for the PC problem (Rácz
+and Schiffer, 2020).
+    The key aspect of our communication lower bounds is using a graph decomposition into a set
+of edge-disjoint cliques.1 By ensuring that the cliques are edge-disjoint, while covering most of the
+graph, we can partition edges among the players while preserving the input distribution.
+
+Lemma 1 (Lemma 6.6 in (Conlon et al., 2014)) Let k ≥ 2 and n be positive integers and let
+f (n, k) denote the minimum number of cliques, each on at most
+                                                           k vertices,
+                                                                      needed to clique partition
+                                                               2
+the complete graph Kn . If n > k, then f (n, k) = Θ max (n/k) , n .
+
+Remark 2 (Number of uncovered edges) First, recall that we are interested in the case when
+        √
+k = o( n). In this regime, the above lemma can be strengthened to show that f (n, k) = (1 +
+        n2
+o(1)) k(k−1) , which is essentially best possible (Conlon et al., 2014). In such a clique partition,
+there are Ω(n2 ) edges belonging to cliques of size Ω(k). Indeed, assume there are m      1 cliques
+of size Ω(k) and m2 cliques of size o(k), and observe that m1 + m2 = Θ (n/k)2 . Now if
+there were only o(n2 ) edges belonging to cliques of size Ω(k), then the total number of edges
+would be o(n2 ) + m2 · o(k 2 ) ≤ o(n2 ) + Θ (n/k)2 · o(k 2 ) = o(n2 ), a contradiction. Thus,
+m1 = Ω(n2 )/Θ(k 2 ) = Ω n2 /k 2 .
+
+Remark 3 (Size of cliques) The above lemma only guarantees cliques of size at most k. However,
+by slightly changing constants, we can guarantee Θ(n2 /k 2 ) cliques of size exactly k. Indeed, by
+a standard counting argument, a constant fraction of the cliques must have size at least αk for a
+constant α ∈ (0, 1). Therefore, we apply lemma with k 0 = k/α, and then find Θ(n2 /k 2 ) cliques of
+size exactly k by restricting to the subcliques of the cliques of size k 0 if necessary.
+
+Theorem 4 Any protocol that solves the XOR version of the PC game with constant success prob-
+ability must communicate at least Ω(n2 /k 2 ) bits.
+
+Proof We reduce to the 2-player U NIQUE D ISJOINTNESS game with input length ` = Θ(n2 /k 2 ).
+Let Alice and Bob have inputs x, y ∈ {0, 1}` , respectively. We use x, y to build a random input
+graph G as follows. First, randomly permute the vertex labels. Then, use Lemma 1 to obtain a
+collection S of Θ(n2 /k 2 ) edge-disjoint cliques with k vertices; for each edge not covered by S,
+choose each of them with probability 1/2 independently, call this graph G0 , and give it to Alice
+(see Remark 2 and Remark 3 for details about the number of uncovered edges and the clique size,
+respectively). Index the subgraphs as S = {Z1 , . . . , Z` }. We repeat the following process indepen-
+dently for each i ∈ [`]. Alice and Bob will receive graphs Gi1 and Gi2 based on xi and yi , and these
+graphs will be supported on the vertices of Zi . Color all edges of a k-clique Kki with four colors
+uniformly at random using public randomness. Then,
+    • xi = 0 =⇒ add all edges in Kki with colors 1 or 3 to Gi1
+
+    • xi = 1 =⇒ add all edges in Kki with colors 1 or 2 to Gi1
+
+    • y i = 0 =⇒ add all edges in Kki with colors 1 or 4 to Gi2
+ 1. More formally, a set of edge-disjoint cliques is a collection of subsets of vertices V1 , . . . , V` such that for all i 6= j
+    the subsets Vi and Vj intersect in at most one vertex.
+
+
+                                                              10
+            AVERAGE -C ASE C OMMUNICATION C OMPLEXITY OF S TATISTICAL P ROBLEMS
+
+
+
+
+    • y i = 1 =⇒ add all edges in Kki with colors 3 or 4 to Gi2
+                    S                
+                        `
+Define G = G0 ∪            G
+                        i=1 1
+                             i ⊕ Gi . We claim that if (x , y ) 6= (1, 1) for all i ∈ [`], then G is
+                                    2                         i i
+distributed according to H0 . Each possible edge is included with probability 1/2 either because of
+the random coloring or it is in G0 . Indeed, for each of the three combinations (0, 0), (1, 0), (0, 1),
+exactly two colors of edges end up in Gi1 ⊕ Gi2 . Otherwise, if (xi , yi ) = (1, 1) for some i, then all
+four colors of edges appear in Gi1 ⊕Gi2 , and hence this is the planted clique. By randomly permuting
+the vertices at the beginning (with public randomness), each k-clique is equally likely. A protocol
+solving the XOR version of the PC game also solves U NIQUE D ISJOINTNESS on ` bits and must
+communicate Ω(`) = Ω(n2 /k 2 ) bits.
+
+    Let G1 , G2 denote the adjacency matrices for Alice and Bob, respectively. Assume there is a
+q query algorithm in the F2 sketching model that solves the PC problem with constant probability.
+This can be implemented by having Alice compute her q sketches on G1 and then she sends these
+q bits to Bob. Then, Bob can complete the execution of the algorithm G1 ⊕ G2 locally, and hence,
+solve the XOR version of the PC game. Therefore, q = Ω(n2 /k 2 ) by Theorem 4, and we get the
+following.
+
+Corollary 5 For the PC problem, Ω(n2 /k 2 ) queries in the F2 sketching model are required to
+distinguish H0 and H1 with constant probability.
+
+4. Parameter Estimation Game and Multi-player Communication
+We next prove communication lower bounds that imply query lower bounds for the general linear
+sketching model. While similar results have appeared before (e.g., (Bar-Yossef et al., 2004; Braver-
+man et al., 2016; Weinstein and Woodruff, 2015)), we are unaware of any results that suffice for
+thePdistributional lower bounds that we need for our reductions. The entropy of X is H(X) =
+− x px log2 px . The mutual information is I(X; Y ) = H(X) − H(X|Y ) = H(Y ) − H(Y |X) =
+I(Y ; X).
+
+Definition 6 (Hellinger Distance) Consider two probability distributions f, g : Ω → R. The
+                                                                   R p             2
+square of the Hellinger distance between f and g is h2 (f, g) := 21 Ω
+                                                                               p
+                                                                        f (x) − g(x) dx.
+
+    We consider a version of the multi-party U NIQUE D ISJOINTNESS game, where n players each
+receive an m-dimensional binary vector, and they determine whether there is some coordinate such
+that every player’s vector has a one in this coordinate. We also define an input distribution where
+the vectors are either uniformly random, or there is a planted coordinate that is all ones.
+Parameter Estimation (PE) game. Let B ∈ {0, 1} be a binary variable, and let V ∈ {0, 1}m be
+a random binary vector (the distribution of V will depend on B). When B = 0, then V is the all
+zeros vector. When B = 1, then there is exactly one entry of V equal to 1, and the entry is chosen
+uniformly at random. We define two distributions: µ0 = Bernoulli(1/2) and Bernoulli(1).
+                                                                                           (i)
+Now suppose V = v, and the n players each obtain a vector X (i) ∈ {0, 1}m , where Xj ∼ µvj .
+They need to communicate with each other to determine the value of B with error probability at
+most δ. We assume that m and m n are comparable,
+                                           m         i.e., m = O(nα ) for some constant α > 0. To
+                                                                m
+set notation, let Z ⊂ X  (1)    × X    (2)    × · · · × X (n)     be the set of inputs. The PE game
+
+                                                  11
+                                 R ASHTCHIAN W OODRUFF Y E Z HU
+
+
+
+
+corresponds to computing f : Z → {0, 1}, which outputs B on inputs X (1) , . . . , X (n) , where
+the inputs are drawn from the distribution described above (depending on B). For convenience, let
+                                                      (1)  (2)          (n)
+X = (X (1) , X (2) , . . . , X (n) ), and let X j = (Xj , Xj , . . . , Xj ). Also, let Π ∈ {0, 1}∗ be a
+randomized protocol, where Π(X) is the transcript when the players have X as inputs, and |Π(X)|
+denotes its length in bits. We consider a function g : {0, 1}∗ → {0, 1}, such that when B = 0, then
+g(Π(X)) = 0 with probability at least 1 − δ, and when B = 1, then g(Π(X)) = 1 with probability
+at least 1 − δ, where the randomness is from both the input X and the protocol Π, i.e., the players
+have shared public and also private randomness. In other words, g is the estimator for the parameter
+estimation problem. We provide a lower bound on the information and communication complexity
+of solving the PE game, which will be the basis of several of our results.
+     Next, we recall a standard communication lower bound (see, e.g., (Rao and Yehudayoff, 2020)).
+Proposition 7 For a protocol Π and distribution µ of inputs, maxX 0 ∈supp(µ) |Π(X 0 )| ≥ I(X; Π).
+
+4.1. Direct Sum and Communication Lower Bound
+For distributions µ0 , µ1 over the same sample space, we write µ1 ≤ c · µ0 if the point-wise density
+of µ0 is at most c times larger than µ1 for c > 0. For µ0 , µ1 defined above, we have c = 2 and
+that only a one-sided guarantee is possible (as µ1 has no mass on 0). We use the distributed strong
+data processing inequality (Distributed SDPI). Let β(µ0 , µ1 ) denote the SDPI constant, which is the
+infimum over real β ≥ 0 such that I(B; Π) ≤ β · I(X; Π) where B → X → Π forms a Markov
+chain. This inequality holds with β = 1, which is the data processing inequality. For our results, it
+suffices to take β = 1, but for completeness, we state the stronger version of the following theorem.
+Theorem 8 (Theorem 3.1 in (Braverman et al., 2016)) Suppose µ1 ≤ c · µ0 and β(µ0 , µ1 ) = β.
+Then, c0 (c + 1)β · I(X; Π | B = 0) ≥ h2 (Π|B=0 , Π|B=1 ), where c0 > 0 is an absolute constant.
+The same holds conditioned on B = 1 instead of B = 0.
+    The challenge is to lower bound the information, conditioning on the distribution when B = 0,
+which is the utility of the above theorem. When the protocol is correct with constant probability, the
+Hellinger distance is also a constant (via a standard connection with total variation distance), and
+when β = Θ(1), then Theorem 8 provides an Ω(1) lower bound on the information. This suffices
+for our purposes because we use a direct sum over many instances and only need an Ω(1) lower
+bound on the information to achieve the communication lower bound. We can decompose the PE
+game on m coordinates to a single coordinate, which follows from standard properties of mutual
+information, such as subadditivity, since conditioned on B = 0, all X 1 , . . . , X m are independent
+(see e.g. (Bar-Yossef et al., 2004; Braverman et al., 2016)).
+Lemma 9 Fix the input distribution of X when B = 0. Then,
+                                                  m
+                                                  X
+                              I(X; Π|B = 0) ≥           I(X j ; Π|B = 0).
+                                                  j=1
+
+
+                  P I(X; Π|B = 0) = H(X|B = 0) − H(X|Π, B = 0). Observe that we have
+Proof By definition,
+H(X|B = 0) = m      j=1 H(X j |B = 0)
+                                    Psince given B = 0, all X 1 , . . . , X m are independent. Also,
+                                      m
+by subadditivity, H(X|Π,
+                   Pm    B =   0) ≤       H(X
+                                      j=1 P    j |Π, B = 0). Putting thesePm together, we have that
+                                            m
+I(X; Π|B = 0) ≥ j=1 H(X j |B = 0) − j=1 H(X j |Π, B = 0) = j=1 I(X j ; Π|B = 0).
+
+
+
+                                                  12
+           AVERAGE -C ASE C OMMUNICATION C OMPLEXITY OF S TATISTICAL P ROBLEMS
+
+
+
+
+Theorem 10 Assume that m = poly(n). The communication complexity of the n-player PE game
+on m coordinates with error probability δ is Ω(m) assuming that δ ≤ 1/10.
+
+Proof The single coordinate PE game is that for a specific j ∈ [m] and Vj = vj ∈ {0, 1}, each
+                                                        (i)
+of the n players receives an instance of the variable Xj ∼ µvj for i ∈ [n]. Their task is to
+communicate with each other to determine the value of Vj with error probability at most δ. Let Π
+be a randomized protocol that solves the n-player PE game on m coordinates with error probability
+δ. Our goal is to show that
+
+                            I(X j ; Π|B = 0) = Ω(1)     for all j ∈ [m].                        (4.1)
+
+By Proposition 7 and Lemma 9, we lower bound the communication by
+                                      m
+                                      X
+                  I(X; Π|B = 0) ≥           I(X j ; Π|B = 0) = m · Ω(1) = Ω(m).
+                                      j=1
+
+To show Eq. (4.1), we use Theorem 8. We consider the single coordinate PE game on coordi-
+nate j. We construct a protocol Π0 (X j ) to solve the single coordinate PE game. Our method is
+to construct another random matrix X 0 as follows. Using public randomness, players choose a
+uniformly random j 0 ∈ [m], and let X 0j 0 = X j . For ` 6= j 0 , let X 0` be a random vector where
+each entry is an independent Bernoulli(1/2) variable, sampled by each player independently
+using private randomness. Since m = poly(n), the probability that any X 0` is an all ones vector
+is exponentially small. Then, let Π0 (X j ) = Π(X 0 ). By this construction, when B = Vj , we
+have that Π has the same distribution as Π0 (X j ). Since Π could determine the value of B with
+error probability δ, Π0 (X j ) can also determine the value of Vj with error δ. Thus, by Theorem 8,
+I(X j ; Π|B = 0) = I(X j ; Π0 (X j )|Vj = 0) = Ω(1) for all j ∈ [m], where we use β = 1 and
+c = 2 and that the squared Hellinger distance is Θ(1) since the success probability is a constant.
+
+
+
+5. Planted Clique Lower Bound for Linear Sketching
+Theorem 11 For k = nγ where 0 < γ < 12 , any protocol with Θ(k2 ) players that solves the PC
+game with constant success probability must communicate Ω n2 /k 2 bits.
+
+Proof We reduce from the PE game (Section 4) to the PC game to get hardness of PC from
+hardness of PE. Given a complete graph with n vertices,      by Lemma 1, we can partition most of
+                                                  2   2
+                                                        
+the edges (or equivalently, vertex pairs) by Θ n /k cliques of size k. We consider the PE game
+with k2 players, each having inputs with Θ n2 /k 2 coordinates (i.e., each player is responsible
+                                                       
+
+for one edge in each potential clique). Each Vj corresponds to a clique of size k, and the indicator
+vector for its Θ(k 2 ) edges corresponds to the binary vector X j (using an arbitrary indexing of the
+edges). The uncovered edges can be sampled with a public coin to appear with probability 1/2, and
+they can be given to any player without loss of generality (see Remark 2 and Remark 3 for details
+about the number of uncovered edges and the clique size, respectively). Using public randomness,
+the players randomly relabel all vertices, so that the location of the planted clique is random).
+By this construction, we have the PE to PC translation: B = 0 corresponds to G(n, 1/2) and
+
+                                                  13
+                                 R ASHTCHIAN W OODRUFF Y E Z HU
+
+
+
+
+B = 1 corresponds to G(n, 1/2, k). Hence, the Θ(k 2 ) players can solve the PE game by detecting
+the planted clique. The randomized communication complexity of the PC game is Ω n2 /k 2 .
+                                                                                          
+
+
+    The communication lower bound of the PC game with Θ(k 2 ) players is Ω(n2 /k 2 ). A single
+query in the general linear sketching model can be simulated with O(k 2 log n) bits of communica-
+tion since there are Θ(k 2 ) players. Thus, any algorithm that solves the PC problem with constant
+                               e 2 /k 4 ) queries, and we get the following.
+success probability must use Ω(n
+
+Corollary 12 Let k = nγ where 0 < γ < 1/2. Then, Ω(n   e 2 /k 4 ) general linear sketching queries
+are necessary to solve the PC problem with constant success probability.
+
+6. Conclusion
+Motivated by understanding statistical-computational trade-offs, we addressed a variety of related
+average-case communication complexity problems. To this end, we developed a generic reduction
+technique that preserves the distribution of graph problems that can be defined in terms of planted
+subgraphs. Specifically, we proved new lower bounds for the planted clique problem and three vari-
+ants: the bipartite version, the semi-random version, and the promise version. For the F2 sketching
+model (and edge-probe model as a special case), we obtained tight bounds on the query complexity.
+For the more general linear sketching model, we also proved new lower bounds for these prob-
+lems, and we demonstrated a lower bound for the hidden hubs problem. Finally, we provided lower
+bounds for a variant of the SPCA problem.
+    Looking forward, our techniques may be useful for developing a more general theory of average-
+case communication complexity. Indeed, the next step could be to explore the natural analogues of
+other statistical problems that have been reduced to planted clique (Berthet and Rigollet, 2013;
+Brennan and Bresler, 2019, 2020; Kunisky et al., 2019). A more concrete direction is to close the
+gaps in Table 1. For example, in the linear sketching model we establish that the query complexity
+of the PC problem is between Ω(n  e 2 /k 4 ) and O(n
+                                                 e 2 /k 2 ). Similarly, for the planted r × s biclique
+problem (BPC), the complexity is between Ω(n                      e 2 /(r2 s)) when r  √n log n.
+                                               e 2 /(rs)2 ) and O(n
+Another direction could be to determine a non-linear query model where an upper bound of Θ(n/k 2 )
+                               √
+can be derived when k = o( n) and when the query only reveals O(log n) bits (compared to the
+Mv model, which reveals O(n log n) bits).
+
+Acknowledgments
+D. Woodruff would like to thank NSF grant No. CCF-181584, Office of Naval Research (ONR)
+grant N00014-18-1-256, and a Simons Investigator Award.
+
+
+
+
+                                                 14
+           AVERAGE -C ASE C OMMUNICATION C OMPLEXITY OF S TATISTICAL P ROBLEMS
+
+
+
+
+References
+Emmanuel Abbe. Community detection and stochastic block models: recent developments. The
+ Journal of Machine Learning Research, 18(1):6446–6531, 2017.
+
+Subutai Ahmad, Alexander Lavin, Scott Purdy, and Zuha Agha. Unsupervised real-time anomaly
+  detection for streaming data. Neurocomputing, 262:134 – 147, 2017.
+
+Noga Alon, Michael Krivelevich, and Benny Sudakov. Finding a large hidden clique in a random
+  graph. Random Structures & Algorithms, 13(3-4):457–466, 1998.
+
+Ryan Alweiss, Chady Ben Hamida, Xiaoyu He, and Alexander Moreira. On the subgraph query
+  problem. Combinatorics, Probability and Computing, 30(1):1–16, 2021.
+
+Ery Arias-Castro and Nicolas Verzelen. Community detection in dense random networks. Annals
+  of Statistics, 42(3):940–969, 06 2014.
+
+K. Avrachenkov, N. Litvak, L. Ostroumova Prokhorenkova, and E. Suyargulova. Quick detection
+  of high-degree entities in large directed networks. In Proceedings of the 2014 IEEE International
+  Conference on Data Mining, ICDM ‘14, USA, 2014. IEEE Computer Society.
+
+Afonso S Bandeira, Amelia Perry, and Alexander S Wein. Notes on computational-to-statistical
+  gaps: predictions using statistical physics. Portugaliae Mathematica, 75(2):159–187, 2018.
+
+Ziv Bar-Yossef, Thathachar S Jayram, Ravi Kumar, and D Sivakumar. An information statistics ap-
+  proach to data stream and communication complexity. Journal of Computer and System Sciences,
+  68(4):702–732, 2004.
+
+Boaz Barak, Samuel Hopkins, Jonathan Kelner, Pravesh K Kothari, Ankur Moitra, and Aaron
+  Potechin. A nearly tight sum-of-squares lower bound for the planted clique problem. SIAM
+  Journal on Computing, 48(2):687–735, 2019.
+
+Quentin Berthet and Philippe Rigollet. Complexity theoretic lower bounds for sparse principal
+  component detection. In Conference on Learning Theory, pages 1046–1066, 2013.
+
+Quentin Berthet, Philippe Rigollet, et al. Optimal detection of sparse principal components in high
+  dimension. The Annals of Statistics, 41(4):1780–1815, 2013.
+
+A. Blum and J. Spencer. Coloring random and semi-random k-colorable graphs. Journal of Algo-
+  rithms, 19(2):204 – 234, 1995. ISSN 0196-6774. doi: https://doi.org/10.1006/jagm.1995.1034.
+
+Enric Boix-Adserà, Matthew Brennan, and Guy Bresler. The Average-Case Complexity of Counting
+  Cliques in Erdös-Rényi Hypergraphs. In 2019 IEEE 60th Annual Symposium on Foundations of
+  Computer Science (FOCS), pages 1256–1280. IEEE, 2019.
+
+Mark Braverman, Ankit Garg, Tengyu Ma, Huy L Nguyen, and David P Woodruff. Communication
+ lower bounds for statistical estimation problems via a distributed data processing inequality. In
+ Proceedings of the forty-eighth annual ACM symposium on Theory of Computing, pages 1011–
+ 1020, 2016.
+
+                                                15
+                                R ASHTCHIAN W OODRUFF Y E Z HU
+
+
+
+
+Vladimir Braverman, Zaoxing Liu, Tejasvam Singh, NV Vinodchandran, and Lin F Yang. New
+  bounds for the clique-gap problem using graph decomposition theory. Algorithmica, 80(2):652–
+  667, 2018.
+
+Matthew Brennan and Guy Bresler. Average-case lower bounds for learning sparse mixtures, robust
+ estimation and semirandom adversaries. arXiv preprint arXiv:1908.06130, 2019.
+
+Matthew Brennan and Guy Bresler. Reducibility and statistical-computational gaps from secret
+ leakage. In Conference on Learning Theory, pages 648–847. PMLR, 2020.
+
+Varun Chandola, Arindam Banerjee, and Vipin Kumar. Anomaly detection: A survey. ACM Com-
+  put. Surv., 41(3), July 2009.
+
+Moses Charikar, Kevin Chen, and Martin Farach-Colton. Finding frequent items in data streams. In
+ Proceedings of the 29th International Colloquium on Automata, Languages and Programming,
+ ICALP ’02, page 693–703, Berlin, Heidelberg, 2002. Springer-Verlag.
+
+David Conlon, Jacob Fox, and Benny Sudakov. Short proofs of some extremal results. Combina-
+  torics, Probability & Computing, 23(1):8–28, 2014.
+
+Yael Dekel, Ori Gurel-Gurevich, and Yuval Peres. Finding hidden cliques in linear time with high
+  probability. In 2011 Proceedings of the Eighth Workshop on Analytic Algorithmics and Combi-
+  natorics (ANALCO), pages 67–75. SIAM, 2011.
+
+Uriel Feige and Joe Kilian. Heuristics for finding large independent sets, with applications to col-
+  oring semi-random graphs. In Proceedings of the 39th Annual Symposium on Foundations of
+  Computer Science, FOCS ‘98, page 674. IEEE Computer Society, 1998.
+
+Uriel Feige and Robert Krauthgamer. Finding and certifying a large hidden clique in a semirandom
+  graph. Random Structures & Algorithms, 16(2):195–208, 2000.
+
+Uriel Feige, David Gamarnik, Joe Neeman, Miklós Z Rácz, and Prasad Tetali. Finding cliques using
+  few probes. Random Structures & Algorithms, 56(1):142–153, 2020.
+
+Vitaly Feldman, Elena Grigorescu, Lev Reyzin, Santosh S Vempala, and Ying Xiao. Statistical
+  algorithms and a lower bound for detecting planted cliques. Journal of the ACM (JACM), 64(2):
+  1–37, 2017.
+
+Alan Frieze and Ravi Kannan. A new approach to the planted clique problem. In IARCS Annual
+  Conference on Foundations of Software Technology and Theoretical Computer Science. Schloss
+  Dagstuhl-Leibniz-Zentrum für Informatik, 2008.
+
+Chao Gao, Zongming Ma, Harrison H Zhou, et al. Sparse cca: Adaptive estimation and computa-
+  tional barriers. The Annals of Statistics, 45(5):2074–2101, 2017.
+
+Oded Goldreich. Introduction to property testing. Cambridge University Press, 2017.
+
+Oded Goldreich and Dana Ron. Algorithmic aspects of property testing in the dense graphs model.
+  In Approximation, Randomization, and Combinatorial Optimization. Algorithms and Techniques,
+  pages 520–533. Springer, 2009.
+
+                                                16
+           AVERAGE -C ASE C OMMUNICATION C OMPLEXITY OF S TATISTICAL P ROBLEMS
+
+
+
+
+Oded Goldreich, Shari Goldwasser, and Dana Ron. Property testing and its connection to learning
+  and approximation. Journal of the ACM (JACM), 45(4):653–750, 1998.
+Arpit Gupta, Rüdiger Birkner, Marco Canini, Nick Feamster, Chris Mac-Stoker, and Walter Will-
+  inger. Network monitoring as a streaming analytics problem. In Proceedings of the 15th ACM
+  Workshop on Hot Topics in Networks, HotNets ’16, page 106–112, New York, NY, USA, 2016.
+  Association for Computing Machinery.
+Magnús M Halldórsson, Xiaoming Sun, Mario Szegedy, and Chengu Wang. Streaming and com-
+ munication complexity of clique approximation. In International Colloquium on Automata, Lan-
+ guages, and Programming, pages 449–460. Springer, 2012.
+Hao Huang and Shiva Prasad Kasiviswanathan. Streaming anomaly detection using randomized
+  matrix sketching. Proc. VLDB Endow., 9(3):192–203, November 2015.
+Michael I Jordan and Tom M Mitchell. Machine learning: Trends, perspectives, and prospects.
+ Science, 349(6245):255–260, 2015.
+Bala Kalyanasundaram and Georg Schintger. The probabilistic communication complexity of set
+  intersection. SIAM Journal on Discrete Mathematics, 5(4):545–557, 1992.
+Ravindran Kannan and Santosh Vempala. The hidden hubs problem. In Satyen Kale and Ohad
+  Shamir, editors, Proceedings of the 2017 Conference on Learning Theory, volume 65 of Pro-
+  ceedings of Machine Learning Research, pages 1190–1213, Amsterdam, Netherlands, 07–10 Jul
+  2017. PMLR.
+Ludek Kucera. Expected complexity of graph partitioning problems. Discrete Applied Mathematics,
+  57(2-3):193–212, 1995.
+Dmitriy Kunisky, Alexander S Wein, and Afonso S Bandeira. Notes on computational hard-
+ ness of hypothesis testing: Predictions using the low-degree likelihood ratio. arXiv preprint
+ arXiv:1907.11636, 2019.
+Eyal Kushilevitz and Noam Nisan. Communication Complexity. Cambridge University Press, 2006.
+Jure Leskovec and Christos Faloutsos. Sampling from large graphs. In Proceedings of the 12th ACM
+  SIGKDD International Conference on Knowledge Discovery and Data Mining, page 631–636,
+  2006.
+Zongming Ma, Yihong Wu, et al. Computational barriers in minimax submatrix detection. The
+  Annals of Statistics, 43(3):1089–1116, 2015.
+Arun S. Maiya and Tanya Y. Berger-Wolf. Sampling community structure. In Proceedings of the
+  19th International Conference on World Wide Web, WWW ‘10, page 701–710, 2010.
+Jay Mardia, Hilal Asi, and Kabir Aladin Chandrasekher. Finding planted cliques in sublinear time.
+  arXiv preprint arXiv:2004.12002, 2020.
+Raghu Meka, Aaron Potechin, and Avi Wigderson. Sum-of-squares lower bounds for planted clique.
+  In Proceedings of the forty-seventh annual ACM symposium on Theory of computing, pages 87–
+  96, 2015.
+
+                                               17
+                                  R ASHTCHIAN W OODRUFF Y E Z HU
+
+
+
+
+Miklós Z Rácz and Benjamin Schiffer. Finding a planted clique by adaptive probing. ALEA Latin
+ American Journal of Probability and Mathematical Statistics, 17:775–790, 2020.
+
+Anup Rao and Amir Yehudayoff. Communication Complexity and Applications. Cambridge Uni-
+  versity Press, 2020.
+
+Cyrus Rashtchian, David P Woodruff, and Hanlin Zhu. Vector-Matrix-Vector Queries for Solv-
+  ing Linear Algebra, Statistics, and Graph Problems. In Approximation, Randomization, and
+  Combinatorial Optimization. Algorithms and Techniques (APPROX/RANDOM 2020). Schloss
+  Dagstuhl-Leibniz-Zentrum für Informatik, 2020.
+
+AA Razborov. On the distributional complexity of disjointness. Theoretical Computer Science,
+ 106:385–390, 1992.
+
+Sucheta Soundarajan, Tina Eliassi-Rad, Brian Gallagher, and Ali Pinar. ε-wgx: Adaptive edge
+  probing for enhancing incomplete networks. In Proceedings of the 2017 ACM on Web Science
+  Conference, page 161–170. Association for Computing Machinery, 2017.
+
+Xiaoming Sun, David P Woodruff, Guang Yang, and Jialin Zhang. Querying a matrix through
+  matrix-vector products. In 46th International Colloquium on Automata, Languages, and Pro-
+  gramming (ICALP 2019), 2019.
+
+Omri Weinstein and David P Woodruff. The simultaneous communication of disjointness with
+ applications to data streams. In International Colloquium on Automata, Languages, and Pro-
+ gramming, pages 1082–1093. Springer, 2015.
+
+David P. Woodruff. Sketching as a tool for numerical linear algebra. Foundations and Trends R in
+  Theoretical Computer Science, 10(1–2):1–157, 2014.
+
+
+
+A. Bipartite Planted Clique Detection
+For the BPC problem, we first state the bipartite version of the graph decomposition lemma.
+
+Lemma 13 Given n, r, and s, we can use dn/re · dn/se edge-disjoint bicliques to cover an n × n
+complete bipartite graph. Moreover, bn/rc · bn/sc of them are of size r × s.
+
+Proof Let a = dn/re and b = dn/se. We can partition the vertices on the left side into a sets
+U1 , . . . , Ua so that |U1 | = · · · = |Ua−1 | = r and |Ua | = n − (a − 1)r. Also we can partition
+the vertices on the right side into b sets V1 , . . . , Vb so that |V1 | = · · · = |Vb−1 | = s and |Vb | =
+n − (b − 1)s. The a · b bicliques formed by Ui and Vj for all i, j can cover the whole bipartite graph.
+
+
+    Now we can prove a lower bound using the same strategy as Theorem 11.
+
+Theorem 14 For the BPC problem, suppose rs ≤ n. Then Ω(n    e 2 /(rs)2 ) general linear sketching
+queries are required to distinguish H0 and H1 with constant probability.
+
+                                                   18
+              AVERAGE -C ASE C OMMUNICATION C OMPLEXITY OF S TATISTICAL P ROBLEMS
+
+
+
+
+Proof We use Lemma 13 to randomly partition a complete bipartite graph. Then we consider the
+PE game for rs players, where each player receives bn/rc · bn/sc = Θ(n2 /(rs)) coordinates.
+We reindex the edges (regardless if they exist or not) in each biclique from 1 to rs. The i-th edge
+is present in the j-th biclique if and only if the value player i holds at coordinate j is one. For
+the negligible amount of edges that are not covered by these bicliques (e.g., the subgraphs with
+size other than r × s), we let the graph contain each of them with probability 1/2 using public
+randomness. The communication lower bound of the PE game with Θ(rs) players on Θ(n2 /(rs))
+coordinates is Ω(n2 /(rs)), which implies the same lower bound for the BPC game. A single query
+in the general linear sketching model can be simulated with O(rs log n) bits of communication since
+there are Θ(rs) players. Thus, any algorithm that solves the BPC problem with constant success
+                       e 2 /(r2 s2 )) queries.
+probability must use Ω(n
+                                                        √
+   We also design an algorithm when r is larger than C n log n (w.l.o.g. we suppose r > s) for
+some constant C, to further close the gap between the upper bound and the lower bound.
+                                                  √
+Theorem 15 For the BPC problem, suppose r ≥ C n log n for C > 16. Then there exists an al-
+                                                                     e 2 /(r2 s)) uT Mv queries.
+gorithm which can distinguish H0 and H1 with high probability, using O(n
+
+Proof The algorithm is as follows. We first randomly sample O(n/s)e         columns. If there is a planted
+biclique, then with high probability at least one column that belongs to the planted column will be
+sampled.
+P          We then partition the columns into groups with size r2 /(16n log n) each, and compute
+   i∈S xi for each group S where xi is the P  sum of column i. The algorithm returns 1 (i.e., there is a
+planted biclique) if there is an S such that i∈S xi ≥ n/2 · |S| + r/4. And it returns 0 if there is no
+such S. Since the sum of a group can be computed using one uT Mv query, our algorithm will use
+ e 2 /(r2 s)) uT Mv queries in total.
+O(n
+    We now prove that our algorithm succeeds with high probability. We consider a set S of
+r2 /(16n log n) columns. If S does not contain any columns in the planted biclique, by Hoeffding’s
+                          P                                        2r2 /42       −2 log n = 1/n2 , where
+inequality, we have Pr        i∈S xi − n/2 · |S| ≥ r/4 ≤ exp(− n·|S| ) = e
+                                                                               2
+               P
+P consider i∈S xi as the sum of n|S| random variables with |S| =2 r /(16n log n). Therefore,
+we
+   i∈S xi is less than n/2 · |S| + r/4 with probability at least 1 − 1/n .
+    Now consider the case that S contains at least one planted column. Let U denote the planted
+biclique. Note that the expected value of xi is n/2 + r/2 for i ∈ U . Thus, applying Hoeffding’s
+inequality again we have
+                                                       !
+                                                                              2r2 /42
+        X                                                                                   
+  Pr         xi − n/2 · |S| − r/2 · |S ∩ U | ≤ −r/4 ≤ exp −                                    ≤ 1/n2 .
+                                                                      n · |S| − r · |S ∩ U |
+        i∈S
+      P
+Thus, i∈S xi will be greater than n/2 · |S| + r/2 · |S ∩ U | − r/4 ≥ n/2 · |S| + r/4 with probability
+at least 1 − 1/n2 . A union bound implies that if there is not a planted clique, with high probability
+the sum of each group will be smaller than n/2 · |S| + r/4 simultaneously. Otherwise with high
+probability we can find a group whose sum is larger than n/2 · |S| + r/4. Thus our algorithm can
+output the correct answer with high probability.
+
+    Considering lower bounds on the the query complexity in the F2 sketching model (and hence
+the edge probe model), we obtain a better lower bound for the XOR version of the BPC game.
+
+                                                   19
+                                 R ASHTCHIAN W OODRUFF Y E Z HU
+
+
+
+
+Theorem 16 Any protocol solving the XOR version of the BPC game with constant success proba-
+bility must communicate Ω(n2 /(rs)) bits, and hence, Ω(n2 /(rs)) queries are required to solve the
+BPC problem in the F2 sketching model.
+
+Proof We again use Lemma 13 to randomly partition a complete bipartite graph. Now we consider
+the two-player U NIQUE D ISJOINTNESS game with input length bn/rc · bn/sc. For each edge in
+an r × s biclique we uniformly randomly assign a color among 4 colors. Then we consider the
+bitstrings Alice and Bob hold, and construct graphs G1 and G2 as follows:
+   • If Alice has a 0, add edges with color 1 or 3 in the corresponding biclique to G1 .
+
+   • If Alice has a 1, add edges with color 1 or 2 in the corresponding biclique to G1 .
+
+   • If Bob has a 0, add edges with color 1 or 4 in the corresponding biclique to G2 .
+
+   • If Bob has a 1, add edges with color 3 or 4 in the corresponding biclique to G2 .
+Finally, we construct graph G = G1 ⊕ G2 , namely, an edge occurs in G if and only if it occurs
+in exactly one of G1 and G2 . It can be verified that if Alice and Bob both have a 1 on the same
+position, G will contain the corresponding biclique. Otherwise G will randomly contain each edge
+with probability 1/2. Therefore, we finish the reduction and obtain an Ω(n2 /rs) lower bound.
+
+
+B. Lower Bound for Finding a Planted Biclique
+We consider the FindBPC game, where there may be a planted r × s biclique in an n × n bipartite
+graph, and the goal is to output all vertices of the biclique if it exists. Considering the case when
+r = s = k, the algorithm in Section 2.2 uses O(n/k)
+                                                e        queries to solve the FindBPC problem in the
+Mv model. We provide a nearly-matching lower bound, showing that Ω(n/k)  e       queries are necessary.
+In fact, we can use a similar strategy to obtain both a communication lower bound for the FindBPC
+game and a query complexity lower bound for the FindBPC problem in the Mv model. We combine
+both results in the following theorem.
+
+Theorem 17 Let r and s be parameters that satisfy 3 log n ≤ r ≤ s ≤ n/2.
+   • Any r-player protocol that solves the FindBPC game with constant success probability must
+     communicate Ω (n) bits.
+
+   • Any algorithm that solves the FindBPC problem with constant success probability must use
+     Ω (n/(r log n)) queries in the Mv model.
+
+Proof For the first part of the theorem, we reduce the FindBPC game to a “promise” variant of the
+PE game defined in Section 4. We refer to this variant as FindPE, where the parameter V is always
+set to one, but the players must output the index of the coordinate that is all ones (which is promised
+to exist when V = 1). For consistency with the FindBPC formulation, we let r denote the number
+of players and n denote the length of the vectors given to each player. We assume that r ≥ 3 log n
+so that with high probability the only all ones coordinate is the planted coordinate.
+     First, note that the communication lower bound for the original PE game implies a lower bound
+for FindPE. To see this, we show how a FindPE protocol can solve the PE game with a negligible
+
+                                                  20
+           AVERAGE -C ASE C OMMUNICATION C OMPLEXITY OF S TATISTICAL P ROBLEMS
+
+
+
+
+increase in communication. Given a PE instance, the players run the FindPE algorithm (even in
+the case of V = 0, as long as the protocol aborts if it uses more communication than it would on
+a V = 1 instance). If it outputs the index of a column, the players can sample O(1) bits from this
+column to determine if it is all ones or random. If the FindPE algorithm outputs anything else,
+then we know that V = 0. This requires only O(1) extra bits to succeed with constant probability,
+implying FindPE requires Ω(n) bits of communication.
+     Now we explain the connection to FindBPC. We begin by constructing a random n × n matrix.
+We choose n − r rows uniformly at random, and we independently sample the entries of these rows
+from Bernoulli(1/2). For the remaining r rows, we assign one row to each of the r players.
+Among the n entries of the rows, we choose s − 1 at random, and set all entries to be one in each
+of these chosen rows (e.g., we plant s − 1 all ones columns in the r × n submatrix). Overall, we
+have defined the whole matrix except for n − s + 1 entries in each of the r rows. By using public
+randomness, we can assume that the n2 − r(n − s + 1) entries are known to all players.
+     We embed an instance of the r-player FindPE game in the unset entries, where each player has
+an input vector of size n − s + 1. Since FindPE is a promise variant, we are guaranteed that one
+of the coordinates is one in all r vectors. In particular, the full n × n matrix corresponds to the
+adjacency matrix of a bipartite graph with an r × s planted biclique (e.g., r × s all ones submatrix).
+Using this construction, the players can then execute a protocol for FindBPC. By doing so, they
+reveal the location of the all ones coordinate from the FindPE instance. Therefore, since s ≤ n/2,
+we have that n − s + 1 = Ω(n), and the players must communicate Ω(n) bits, which provides the
+desired lower bound for solving the FindBPC game.
+     Moving on to the second part of the theorem, we can also use the same construction to prove
+a lower bound on the query complexity in the Mv model. The r players build the n × n matrix in
+the same way as before, and the connection to the FindPE game is also the same. The difference
+is that they will now use a protocol for FindBPC that we derive from a query algorithm in the Mv
+model. Recall that the inputs of the r players correspond to an r × n submatrix (and the rest of
+the matrix is known to all the players). Therefore, each query in the Mv model can be simulated
+by communicating O(r log n) bits because the players simply need to evaluate the matrix-vector
+product on the r × n submatrix (each player handles one row). If the query algorithm uses q queries
+to solve the FindBPC problem, then this gives rise to a protocol for this construction that solves
+the FindBPC game (and hence the FindPE game) by communicating q · O(r log n) bits. Thus,
+q = Ω(n/(r log n)) queries are needed to solve the FindBPC problem in the Mv model.
+
+
+
+
+C. Semi-Random Planted Clique
+For the SRPC problem, since the adversary only removes edges outside the planted clique, we
+can use the existing edge-probe upper bound (Theorem 1, (Rácz and Schiffer, 2020)) to obtain the
+following: suppose k ≥ (2 + ε) log n for some constant ε > 0, then there exists an algorithm which
+can distinguish H0 and H1 using O(n e 2 /k 2 ) edge-probe queries (see Section 2.2; the algorithm is
+the same as the standard planted clique problem). We also provide a nearly matching lower bound
+for the corresponding communication game. The key observation is that we can reduce to the 2-
+player U NIQUE D ISJOINTNESS game (instead of k 2 players) because we now have more flexibility
+to remove edges that are not in the planted clique.
+
+                                                 21
+                                  R ASHTCHIAN W OODRUFF Y E Z HU
+
+
+
+
+Theorem 18 Let k = nγ for any γ ∈ (0, 1/2). Any 2-player protocol that solves the SRPC game
+with constant success probability needs to communicate Ω(n2 /k 2 ) bits. Hence, Ω(n2 /(k 2 log n))
+queries are required in the general linear sketching model to solve the SRPC problem.
+
+Proof By Lemma 1, we can partition the complete graph Kn into Θ(n2 /k 2 ) edge-disjoint cliques
+each with size Θ(k). Then we randomly color each edge in these cliques with red or blue with
+equal probability. Now we consider the 2-player U NIQUE D ISJOINTNESS game with input strings
+of length Θ(n2 /k 2 ). Construct a graph G as follows: for each bit, let G contain the red edges in
+the clique if Alice has a 1, and let G contain the blue edges in the clique if Bob has a 1. For those
+edges outside the cliques, each of them occurs with probability 1/2. If there is at most a single 1 in
+every position, then G can be viewed as an instance under H0 . If there is a unique position such that
+both Alice and Bob have a 1, then G can be viewed as an instance under H1 . Thus we reduce the
+2-player set U NIQUE D ISJOINTNESS game (Section 2.3) to our semi-random planted clique, and
+therefore we get an Ω(n2 /k 2 ) lower bound for the SRPC game. For the query lower bound, we can
+simulate a single linear sketch query with O(log n) bits of communication, which implies that any
+algorithm succeeding with constant success probability must use Ω(n2 /(k 2 log n)) queries.
+
+
+D. Promise Planted Clique
+Recall that the PPC problem is a promise variant of the planted clique problem. Here, there is a set
+S of Θ(n2 /k 2 ) possible subsets of vertices that may contain the clique. This information is known
+beforehand, and the goal is determine whether the graph is random or a k-clique has been planted
+in one of the subgraphs in S. We provide nearly matching upper and lower bounds.
+
+Theorem 19 If |S| = Θ(n2 /k 2 ) for the PPC problem, then Θ(n  e 2 /k 4 ) queries are sufficient and
+necessary for constant success probability in the general linear sketching and uT Mv models.
+
+Proof For the lower bound, observe that the proof of Theorem 11 already uses a set S of Θ(n2 /k 2 )
+possible subsets of vertices that may contain the clique (via the graph decomposition result Lemma 1
+and Remark 2). Hence, we can prove a lower bound using the Θ(k 2 )-player version of the PE game
+as before, which requires Ω(n2 /k 2 ) bits of communication. We can simulate each linear sketching
+or uT Mv query with O(k 2 log n) bits since there are Θ(k 2 ) players. Thus, Ω(n2 /(k 4 log n)) queries
+are necessary.
+    For the upper bound, we sketch the idea of a randomized algorithm using the knowledge of S.
+                                              2
+First, randomly choose a subset S 0 of 81 klog n subgraphs uniformly from S. The subgraphs in S 0
+                            2
+contain a total of m = 81 klog n · k2 = Θ(k 4 / log n) edges. We let ai be 1 if the i-th edge exists and
+                                     
+
+be 0 if it does not exist. Then, if S 0 does not contain the planted clique, by Hoeffding’s inequality,
+we have
+                               m
+                                                    !
+                             X
+                                                 2                 k4
+                        Pr        ai − m/2 ≥ k /9 ≤ exp(−             ) ≤ 1/n2 .
+                                                                 81m
+                            i=1
+
+If S 0 contains the planted clique, we have
+            m
+                                                !                      !
+                                                               4
+                               
+            X         k          k                           k
+       Pr       ai −     − (m −    )/2 ≤ −k 2 /9 ≤ exp −         k
+                                                                         ≤ 1/n2 .
+                      2          2
+                                                                   
+            i=1                                          81(m −  2   )
+
+                                                  22
+            AVERAGE -C ASE C OMMUNICATION C OMPLEXITY OF S TATISTICAL P ROBLEMS
+
+
+
+
+Note that k2 + (m − k2 )/2 − k 2 /9 > m/2 + k 2 /9. As a consequence, we can identify whether
+                         
+
+there is a planted clique in S 0 by counting the edges in S 0 using one uT Mv query. Repeating this
+process Θ(n2 /k 2 )/Θ(k 2 / log n) = Θ(n
+                                      e 2 /k 4 ) times, we have that a union bound ensures that one
+                 0
+of the subsets S ⊆ S contains the planted clique with high probability if there is one in the graph.
+
+
+
+
+E. Hidden Hubs
+Our techniques give an Ω(n2 /k 2 ) communication lower bound for a corresponding k 2 -player game,
+                               e 2 /k 4 ) general linear sketching queries for the HH problem (Kan-
+which implies a lower bound of Ω(n
+nan and Vempala, 2017).
+
+Theorem 20 Suppose σ1 ≤ σ0 ≤ cσ1 for some constant c > 0. Any algorithm that solves the HH
+                                                e 2 /k 4 ) queries in the general linear sketching
+game with constant success probability requires Ω(n
+     T
+and u Mv models.
+
+Proof We sketch the slight modification of the proof of Theorem 11 for the HH problem (which
+in turn needs a slight modification of the proof of Theorem 10). First, we let w = bn/kc, and we
+randomly choose w disjoint subsets R1 , . . . , Rw of k rows each (discard the remaining rows if k
+does not divide n). Then, forSrow r in set Ri , we again randomly choose w disjoint sets of k entries
+Tr1 , . . . , Trw and let Uij = r∈Ri Trj . In particular, we have that |Uij | = k 2 .
+     Now we consider a k 2 -player communication game that is a modified “Gaussian version” of the
+PE game from Section 4, where the players have inputs of size w2 each. The modification is that
+instead of binary variables, we consider the distributions µ00 = N (0, σ02 ) and µ01 = N (0, σ12 ), where
+σ0 and σ1 are the parameters of the HH problem. In this way, we construct matrix A so that the
+entries in Uij for i, j ∈ [k] are the values that the k 2 players hold. For the entries not in any Uij we
+generate them according to µ00 . Thus we reduce to the HH game from this k 2 -player communication
+game. The key step of the proof of Theorem 10 provides a lower bound of Ω(1) for the information
+complexity for each coordinate. We can prove the same bound, again by Theorem 8. We continue
+to use β = 1, e.g., the standard data processing inequality.
+     The coordinates in the modified game are drawn from the distributions µ00 and µ01 . Then, we
+                    1          x2                 √ 1            x2
+let f0 (x) = √2πσ       exp(− 2σ 2 ) and f1 (x) =
+                                                   2πσ
+                                                         exp(− 2σ  2 ) be the probability density function
+                   0          0                      1           1
+                                                            2
+of µ00 and µ01 , respectively. Thus ff10 (x)   σ0        x     1     1                σ0
+                                         (x) = σ1 · exp(− 2 ( σ 2 − σ 2 )). Note that σ1 ≤ c, and the
+                                                                1      0
+exponential term is less than 1 since σ1 ≤ σ0 , and so µ01 ≤ cµ00 . Thus, the direct sum argument
+holds (Lemma 9), and we also have an Ω(1) lower bound on the information complexity for each
+coordinate. Hence, the overall proof strategy implies a lower bound of Ω(w2 ) = Ω(n2 /k 2 ) for the
+k 2 -player game.
+     For the query lower bound, we note that each general linear sketching or uT Mv query can be
+simulated with O(k 2 log n) bits of communication as there are k 2 players. Therefore, this shows
+      e 2 /k 4 ) queries are necessary to solve the HH problem.
+that Ω(n
+
+   The algorithm from (Kannan and Vempala, 2017) can be simulated in the query models that we
+consider. The main idea is to randomly sample Θ(n/k)
+                                              e      entries in each row. Then, using these, it is
+known how to distinguish the two hypotheses from the HH problem as long as σ12 > 2σ02 . Hence,
+
+                                                   23
+                                    R ASHTCHIAN W OODRUFF Y E Z HU
+
+
+
+
+in the edge-probe model, we can sample the entries with Θ(n e 2 /k) queries. The same upper bound
+                                                 T
+trivially holds for the linear sketching and u Mv models. In the Mv model, we can sample with
+Θ(n/k)
+e         queries.
+     For the HH problem, we leave open the question of tightening the bounds. We also note that
+                     e 2 /k 2 ) in the statistical query model, depending on σ0 and σ1 (Kannan and
+there is a bound of Θ(n
+Vempala, 2017).
+
+F. Sparse Principal Component Analysis
+We consider the sub-Gaussian version of the SPCA problem, using elements of a known re-
+duction from the PC problem (Berthet and Rigollet, 2013). The empirical variance of t vectors
+X 1 , . . . , X t ∈ Rd in direction v is defined as
+                                                          t
+                                                 1X >
+                                        var(v)
+                                        c      =   (v X i )2 .
+                                                 t
+                                                      i=1
+
+    Let θ and k be parameters, and let ζ ∈ (0, 1) be a fixed, small constant. We let D0 denote the
+set of product distributions over t i.i.d. vectors X 1 , . . . , X t ∈ Rd such that for all unit vectors v we
+have                       "                    r                              #
+                                                   log(2/ζ)           log(2/ζ)
+                        Pr |var(v)
+                              c       − 1| > 4                   +4              ≤ ζ.                    (F.1)
+                                                        d                 d
+
+In other words, D0 := {P0 | Eq. (F.1) holds}, and D0 contains, e.g., isotropic distributions.
+    We let D1k,θ denote the set of product distributions over t i.i.d. vectors X 1 , . . . , X t ∈ Rd such
+that for all unit vectors v with at most k nonzero entries (kvk0 ≤ k), we have
+                      "                          r                             #
+                                                    θk log(2/ζ)       log(2/ζ)
+                   Pr (var(v)
+                         c      − (1 + θ)) < −2                  −4               ≤ ζ.                (F.2)
+                                                         d                d
+
+Similarly, D1k,θ := {P1 | Eq. (F.2) holds}.
+SCDC problem. Define two hypotheses to test; the inputs X 1 , . . . , X t are drawn from P such
+that
+
+       H0 : X 1 , . . . , X t ∼ P0 ∈ D0             vs.           H1 : X 1 , . . . , X t ∼ P1 ∈ D1k,θ .
+
+Our goal is to distinguish between the possible family of distributions that X 1 , X 2 , . . . , X t is
+sampled from. The motivation for this problem is that D0 contains N (0, I d ) and D1 contains
+N (0, I d + θuuT ) when u is a k-sparse unit vector. In other words, this hypothesis testing problem
+is a generalization of the spiked covariance matrix detection problem. Intuitively, θ corresponds to
+the signal strength, and k corresponds to the sparsity of the unknown “high variance” direction of
+the alternate hypothesis distribution. Nonetheless, many known algorithms for the spiked covari-
+ance problem also hold for this more general problem (Berthet and Rigollet, 2013). We note that
+reductions between planted clique and the spiked covariance version are known (Gao et al., 2017),
+but we do not know how to implement these reductions efficiently in our query or communication
+models. Instead, we describe a reduction for the above formulation of the problem.
+
+                                                     24
+             AVERAGE -C ASE C OMMUNICATION C OMPLEXITY OF S TATISTICAL P ROBLEMS
+
+
+
+
+    Let Gm denote the set of graphs on m vertices. With the following reduction, we obtain our
+main theorem for SCDC. We provide the key details and verify that the reduction holds in our query
+models, and we refer to (Berthet and Rigollet, 2013) for the full details about the distributional
+relationships.
+Reduction from PC (Berthet and Rigollet, 2013). For any γ ∈ (0, 1) and a fixed tolerance
+δ ∈ (0, 1/3) (e.g., δ = 5%), given (d, t, k) ∈ Rγ , where
+
+                                      Rγ = R0 ∩ {k ≥ tγ } ∩ {t < d}
+
+and
+                             (                       r                                   )
+                                                         k log(6ed/δ)
+                      R0 =     (d, t, k) ∈ N3+ : 15                   ≤ 1, k ≤ d0.49
+                                                               t
+
+where 0.49 can be replaced by any constant C < 0.5, the randomized reduction bld,t,k,m,κ : G2m 7→
+Rd×t is a procedure defined as follows, where m, κ are positive integers such that t ≤ m < d and
+k ≤ κ ≤ m.
+    For a (2m)-vertex graph G = (V, E), which is an instance of PC problem with a potential
+clique of size κ, we first choose m uniformly random vertices Vleft among 2m vertices, and then
+choose t uniformly random vertices Vright among the remaining m vertices that are not in Vleft .
+Make it a bipartite graph by restricting its edges in E ∩ {Vleft × Vright }. Then, add (d − m)
+new vertices to Vleft and place an edge between every old vertex in Vright and each new vertex
+in Vleft independently with probability 1/2. We relabel the left (resp. right) vertices by a random
+permutation of {1, 2, . . . , d} (resp. {1, 2, . . . , t}). Let G0 = ({1, 2, . . . , d} × {1, 2, . . . , t}, E 0 )
+denote the resulting bipartite graph, and let B denote the d × t adjacency matrix of G0 . Also,
+let η1 , η2 , . . . , ηt ∈ {−1, 1} be t i.i.d. Rademacher random variables that are independent of all
+previous random variables. Define
+                                        (G)
+                                     Xi       = ηi (2B i − 1) ∈ {−1, 1}d ,                                  (F.3)
+
+where B i is the i-th column of B. By all above steps, we finish the reduction
+                                                   (G)        (G)       (G)
+                          bld,t,k,m,κ (G) = (X 1 , X 2 , . . . , X t ) ∈ Rd×t .
+
+    Now that we have described the reduction bl, we explain how to simulate the algorithm. In the
+query models, we will use the public randomness of the algorithm for this randomized reduction.
+We next state a simple, yet general, result, which identifies matrix operations that can be simulated
+in the query models.
+
+Lemma 21 Let X be a matrix that is a transformation of a matrix Y after applying one or more
+of the following operations:
+  (i) insert a row or column into Y ,
+
+ (ii) permute the rows or columns of Y , or
+
+(iii) for field elements a, b, apply φ(y) = ay + b to all entries in a row or column of Y , replacing
+      each entry y with φ(y).
+
+                                                         25
+                                  R ASHTCHIAN W OODRUFF Y E Z HU
+
+
+
+
+Then, for any query to X in the uT Mv, Mv, edge-probe, or linear sketching models, there is a
+deterministic way to perform a single query to Y and simulate the original query to X.
+
+Proof We first explain the simulation for the general linear sketching model; at the end, we mention
+the differences for the other models. Say that the query algorithm wants to learn v T vec(X). Our
+goal is to design a vector w such that v T vec(X) can be computed directly from wT vec(Y ).
+     For (i), assume X is Y after inserting a row (the column case is analogous). The idea is that
+we can compute the contribution from the insertion and add this after querying Y . More precisely,
+let Z be a matrix with a single non-zero row in the position of the inserted row to Y with the
+same entries. Let w be the vector obtained from v by deleting the positions in v corresponding to
+the inserted row. As the algorithm knows v T vec(Z), we have that wT vec(Y ) suffices to compute
+v T vec(X) = wT vec(Y ) + v T vec(Z).
+     For (ii), we can permute the entries of v to obtain w. Precisely, we can determine the permu-
+tation matrix P such that v T vec(X) = v T Pvec(Y ) = (PT v)T vec(Y ) and use the query vector
+w = PT v.
+     Finally, for (iii), first multiply entries in v by a for each position corresponding to the modified
+row or column. Let the resulting query vector be v a . Then, calculate the sum z of entries in v a that
+overlap with the positions in the modified row or column, and add zb to the result of the v a query.
+Overall, by construction we have that v T                        T
+                                              a vec(Y ) + zb = v vec(X).
+     If multiple of these operations are used to transform Y into X, then we can iteratively apply
+the above procedures, i.e., we can simulate any query with a single other query.
+     We have described the simulation for the general linear sketching model. The same strategy
+works for the F2 sketching model. For the edge-probe model, note that a single entry in X depends
+on only a single entry of Y even after any of the three allowed operations. In the uT Mv model,
+the difference for (iii) is that we can rescale rows via the left query vector (or columns via the right
+query vector) by multiplying the relevant entry by a. For the Mv model, the main difference is that
+when we modify a row of Y , we have to compute the contribution to Xv and add this to obtain the
+correct query, similar to (iii) above. Columns in (iii) can be handled by updating the query vector.
+
+
+
+
+Proposition 22 There exists a constant δ ∈ (0, 1) such that the following holds. If there is a query
+algorithm A for the SCDC problem that makes q queries and has success probability 1 − δ, then
+there is a query algorithm A0 for the PC problem that makes q queries and has success probability
+1 − Θ(δ). This holds for algorithms in the uT Mv, Mv, edge-probe, and general linear sketching
+models.
+
+Proof Let A be an algorithm for SCDC in a query model that we consider. Given an instance of
+planted clique, we have a graph G. We can apply the randomized reduction to produce a d×t matrix
+                                  (G)   (G)       (G)
+bl(G) composed of columns (X 1 , X 2 , . . . , X t ). We claim that we can use Lemma 21 to take
+the algorithm A for SCDC and derive an algorithm A0 for the PC problem on G via the procedure
+bl(G). Here, Y corresponds to the adjacency matrix of G and X corresponds to bl(G), the SCDC
+input. First, even though bl is a randomized procedure, we have used the randomness of the query
+algorithm, and hence we know the transformation. The linear transformation in Eq. (F.3) is covered
+by part (iii) of Lemma 21. Then, in the procedure bl(G), we are sampling vertices, permuting
+
+                                                   26
+            AVERAGE -C ASE C OMMUNICATION C OMPLEXITY OF S TATISTICAL P ROBLEMS
+
+
+
+
+vertex labels, and adding edges connected to new vertices in the graph, which are covered by the
+three parts of the lemma.
+     It remains to show that if A has constant success probability for SCDC, then A0 has constant
+success probability for PC. We sketch this argument, since it follows from Theorem 7 and Lemma
+8 in (Berthet and Rigollet, 2013). They work in a more general model, where they consider families
+of statistical tests ψ = {ψd,t,k } for SCDC and tests ξ = {ξm,κ } for PC on 2m-vertex graphs. In our
+models, this corresponds to the query algorithms by considering a test to be a query algorithm that
+queries the matrix and then outputs a binary variable, where 0 corresponds to the null hypothesis,
+and 1 corresponds to the alternate hypothesis.
+                                                     1
+     To state their result, fix α ∈ [1, 2), γ ∈ (0, 4−α ), and define a = 2γ, b = 1 − (2 − α)γ. Their
+result says that for any τ > 0, there exists a constant L > 0, such that the following holds. For
+(d, t, k) ∈ Rγ , there exist κ, m such that (2m)a/2 ≤ τ κ ≤ (2m)b/2 , a random transformation
+bl = {bld,t,k,m,κ }, bld,t,k,m,κ : G2m 7→ Rd×t , and distributions P0 ∈ D0 , P1 ∈ D1k,Lθα such
+that the following holds. For shorthand, we use the notation P0 (f = 1) for a test f to mean the
+probability that the output is 1 when an instance is drawn from P0 , i.e., the error probability of NO
+instances (and analogously for P1 (f = 0)). We also use ∨ to mean max. Then, their Theorem 7
+says that there exists a constant δ such that for any family of tests ψ = {ψd,t,k }, we have
+                                           (G)                     (G)          δ
+     P⊗t                ⊗t
+      0 (ψd,t,k = 1) ∨ P1 (ψd,t,k = 0) ≥ P0 (ξm,κ (G) = 1) ∨ P1 (ξm,κ (G) = 0) − ,
+                                                                                5
+where
+                                                              r
+                                                                kα
+                         ξm,κ = ψd,t,k ◦ bld,t,k,m,κ and θα =       .
+                                                                 t
+
+
+     Using Proposition 22, we see that if we have any query algorithm for SCDC with error proba-
+bility at most δ 0 , then we can derive a query algorithm for PC with error probability at most δ 0 +δ/5.
+In other words, a constant success probability query algorithm for SCDC implies one for PC with
+the same query complexity. This allows us to derive the query complexity lower bounds in the
+following theorem.
+                                                   1
+Theorem 23 Given any α ∈ [1, 2), γ ∈ (0, 4−α         ) and any (d, t, k) ∈ Rγ , for the SCDC problem
+                                                                                         q 
+                                                                          γ                 kα
+with input matrix X = [X 1 , X 2 , · · · , X t ] when d = Θ(t), k = Θ(t ) and θ = Θ          t  , any
+algorithm that succeeds with constant success probability requires
+             
+   • Ωe 2k44 queries in the general linear sketching or uT Mv models,
+          t θ
+         4 
+   • Ωe 3k 4 queries in the Mv model,
+          t θ
+
+   • Ω(k 2 /θ2 ) queries in the edge-probe or F2 sketching models.
+Proof By using the reduction above and applying Proposition 22, we can use an algorithm for
+SCDC to solve the PC problem on m-vertex graphs. Translating
+                                                           qbetween the parameters via the
+                                          1 (2−α)γ 
+                                              −                 k α
+reduction, plugging in k = Θ (tγ ), κ = O t 2   2     ,θ=Θ       t   and t = Θ(m) = Θ(d),
+yields the following query lower bounds:
+
+                                                   27
+                            R ASHTCHIAN W OODRUFF Y E Z HU
+
+
+
+
+                           e 2 /κ4 ) queries for the PC problem in the general linear sketch-
+• Using the lower bound of Ω(m
+           T                       √
+  ing and u Mv models when κ = o( m) from Corollary 12, we get a query lower bound for
+  SCDC of
+       2
+                       m2
+                                                      4γ         4           4 
+        m                            
+                                       2(2−α)γ
+                                                        t            k              k
+    Ω
+    e
+         4
+              = Ω 2−2(2−α)γ = Ω t
+                e                 e               = Ω 2αγ = Ω
+                                                     e           e
+                                                                        2α
+                                                                            =Ω 2 4 ,
+                                                                                e
+        κ           t                                   t             k             t θ
+                                                                           2
+  since m2 = Θ(t2 ) and tγ = Θ (k), and in the final equality, we use that kt2α = Θ   1
+                                                                                           
+                                                                                      θ4
+                                                                                               .
+
+• Using the lower bound of Ω(m/κ
+                            e       4 ) queries for the PC problem in the Mv model when
+        √
+  κ = o( m) (direct corollary of Corollary 12), we get a query lower bound for SCDC of
+                       m                       2         4 
+                                       mt           m             k
+                     Ω 4 =Ω
+                     e            e          =Ω e         =Ω 3 4 ,
+                                                            e
+                         κ             tκ4          tκ4          t θ
+
+  using the above calculations and the fact that m = Θ(t).
+
+• Using the lower bound of Ω(m2 /κ2 ) for the PC problem in the edge-probe and F2 sketching
+                       √
+  models when κ = o( m) from Corollary 5, we get a query lower bound for SCDC of
+        2           2
+                                         t2          t · t2γ        t · k2
+                                                                           2
+          m             t                                                         k
+     Ω     2
+                =Ω        2
+                             = Ω 1−(2−α)γ = Ω           αγ
+                                                               =Ω       α
+                                                                             =Ω        ,
+          κ            κ             t                 t              k           θ2
+
+  where the final equality uses that ktα = Θ θ12 .
+                                                
+
+
+
+
+                                            28
+

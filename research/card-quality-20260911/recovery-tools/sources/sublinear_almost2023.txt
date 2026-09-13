@@ -1,0 +1,2069 @@
+                                                            Almost-Optimal Sublinear Additive Spanners∗
+                                                                             Zihan Tan †              Tianyi Zhang ‡
+
+                                                                                          October 18, 2024
+arXiv:2303.12768v3 [cs.DS] 17 Oct 2024
+
+
+
+
+                                                                                                Abstract
+                                                    Given an undirected unweighted graph G = (V, E) on n vertices and m edges, a subgraph
+                                                H ⊆ G is a spanner of G with stretch function f : R+ → R+ , if for every pair s, t of vertices in
+                                                V , distH (s, t) ≤ f (distG (s, t)). When f (d) = d + o(d), H is called a sublinear additive spanner ;
+                                                when f (d) = d + o(n), H is called an additive spanner, and f (d) − d is usually called the additive
+                                                stretch of H.
+                                                    As our primary result, we show that for any constant δ > 0 and constant integer k ≥ 2, every
+                                                graph on n vertices has a sublinear additive spanner with stretch function f (d) = d + O(d1−1/k )
+                                                          1+ 1+δ 
+                                                and O n 2k+1 −1 edges. When k = 2, this improves upon the previous spanner construction
+                                                with stretch function f (d) = d + O(d1/2 ) and Õ(n1+3/17 ) edges [Chechik, 2013]; for any constant
+                                                integer k ≥ 3, this improves        upon the previous  spanner construction with stretch function
+                                                                                         (3/4)k−2
+                                                                                                  
+                                                                                  1+
+                                                f (d) = d + O(d1−1/k ) and O n         7−2·(3/4)k−2
+                                                                                               edges [Pettie, 2009]. Most importantly, the size
+                                                                                                                1
+                                                                                                          1+        
+                                                of our spanners almost matches the lower bound of Ω n 2k+1 −1 [Abboud, Bodwin, Pettie,
+                                                2017], which holds for all compression schemes achieving the same stretch function.
+                                                    As our second result, we show a new construction of additive spanners with stretch O(n0.403 )
+                                                and Õ(n) edges, which slightly improves upon the previous stretch bound of O(n3/7+ε ) achieved
+                                                by linear-size spanners [Bodwin and Vassilevska Williams, 2016]. An additional advantage of
+                                                our spanner is that it admits a subquadratic construction runtime of Õ(m + n13/7 ), while the
+                                                previous construction in [Bodwin and Vassilevska Williams, 2016] requires all-pairs shortest
+                                                paths computation which takes O(min{mn, n2.373 }) time.
+
+
+
+
+                                           ∗
+                                              Extended abstract appeared in STOC 2023.
+                                            †
+                                              DIMACS, Rutgers University, zihantan1993@gmail.com. This author is supported by a grant to DIMACS from
+                                         the Simons Foundation (820931).
+                                            ‡
+                                              Tel Aviv University, tianyiz21@tauex.tau.ac.il. This author is supported by the European Research Council
+                                         (ERC) under the European Union’s Horizon 2020 research and innovation programme (grant agreement No 803118
+                                         UncertainENV).
+Contents
+1 Introduction                                                                                           1
+  1.1   Our results . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    1
+  1.2   Technical overview . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     3
+        1.2.1   Sublinear additive spanners . . . . . . . . . . . . . . . . . . . . . . . . . . . .      3
+        1.2.2   Pairwise sublinear additive spanners . . . . . . . . . . . . . . . . . . . . . . .       4
+        1.2.3   Additive spanners . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      6
+  1.3   Organization . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     8
+
+2 Preliminaries                                                                                          8
+
+3 Pairwise Sublinear Additive Spanners                                                                   9
+  3.1   Preparation and a subroutine . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .       9
+  3.2   Step 1. Handling large balls . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 11
+  3.3   Step 2. Handling small balls . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 13
+  3.4   Size analysis . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 17
+
+4 Almost Optimal Sublinear Additive Spanners                                                            18
+  4.1   Algorithm description . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 19
+  4.2   Stretch analysis . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 20
+  4.3   Size analysis . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 22
+
+5 Subset Additive Spanners                                                                              23
+  5.1   Algorithm description . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 23
+  5.2   Stretch analysis . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 24
+  5.3   Size and runtime analysis . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 26
+
+6 Linear-Size Additive Spanners in Sub-quadratic Time                                                   27
+  6.1   A subquadratic time algorithm for Õ(n3/7+ε ) additive spanner . . . . . . . . . . . . 27
+        6.1.1   Stretch analysis . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 28
+        6.1.2   Size and runtime analysis . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 31
+  6.2   Completing the proof of Theorem 1.2 . . . . . . . . . . . . . . . . . . . . . . . . . . . 32
+
+A Proof of Lemma 2.2                                                                                    35
+1     Introduction
+Graph spanners are sparse subgraphs that approximately preserve pairwise shortest-path distances.
+Let G = (V, E) be an undirected unweighted graph on n vertices and let f : R+ → R+ be a
+function. We say that a subgraph H ⊆ G is a spanner with stretch function f if for every pair
+s, t ∈ V , distH (s, t) ≤ f (distG (s, t)). The research on spanners focuses on the optimal trade-offs
+between the stretch function f and the sparsity (the number of edges) of the spanner H.
+     One typical case is that we allow f (d) to be significantly greater than d, and such spanners are
+known as multiplicative spanners. It was shown that for every integer k ≥ 1, there always exists a
+subgraph H with O(n1+1/k ) edges and stretch function f (d) = (2k − 1)d [ADD+ 93]. Furthermore,
+this sparsity bound is tight under the Girth Conjecture of Erdös [Erd63].
+     Another typical case is that we restrict f to be very close to d. In particular, f (d) = d + O(1).
+There has been a line of previous work studying the sparsity of spanners with such stretch functions.
+When f (d) = d + 2, it was shown that graph G always has a spanner with O(n3/2 ) edges [ACIM99];
+when f (d) = d + 4, a construction of spanner with Õ(n7/5 ) edges was proposed in [Che13]; when
+f (d) = d + 6, spanners with O(n4/3 ) edges were known to exist by [BKMP10]. For the lower bound
+side, in a recent breakthrough [AB17], it was proved that, for any constant ε > 0, there are graphs
+such that any spanner with O(n4/3−ε ) edges has stretch nΩ(1) . Hence, we already have an almost
+complete understanding of the spanner sparsity when f (d) = d + O(1).
+     Besides the two typical cases mentioned above, much less is known when f lies in intermediate
+regimes. Two notable regimes studied in previous works are the sublinear additive regime where
+f (d) = d + o(d), and the additive regime where f (d) = d + o(n).
+     As for sublinear additive spanners, Thorup and Zwick [TZ06, HP19] were the first to design
+a nontrivial construction of sublinear additive spanners when f (d) = d + O(d1−1/k ) where k ≥ 2
+is a constant integer, and the number of edges in the spanner is bounded by O(n1+1/k ). This
+                                                        k−2  
+                                                 1+ (3/4) k−2
+sparsity bound was later improved to O n 7−2·(3/4)              in [Pet09]. The sparsity bound for the
+special case where k = 2 was subsequently improved to Õ(n20/17 ) by [Che13]. These algorithms
+also work for a non-constant k, but here we only focus on the case where k is a constant, as we are
+mainly interested in the stretch/size dependency on d and n. On the lower bound side, Abboud,
+Bodwin, and Pettie [ABP18] proved that any distance-reporting data structure(including spanners,
+                                                                                              
+                                                                                        1
+                                                                                   1+ k+1        −o(1)
+emulators) achieving stretch f (d) = d + O(d1−1/k ) must have size at least Ω n       2     −1           for
+each constant k ≥ 2, which is also the best known lower bound for spanners. Thus, there still exists
+a large gap between sparsity upper and lower bounds for sublinear additive spanners.
+    For the additive regime where f (d) = d+o(n), the tail term f (d)−d is usually called the additive
+stretch. A natural question is to study the best additive stretch that can be achieved by spanners
+with Õ(n) edges. The first nontrivial construction was given by [Pet09] with an additive stretch
+of O(n9/16 ), which was improved subsequently by [BW15, BW21] to O(n3/7+ε ) for any constant
+ε > 0. On the negative side, the first stretch lower bound of Ω(n1/22 ) was proved in [AB17], and
+later on raised to Ω(n1/7 ) by a sequence of works [HP21, LWWX22, BH22].
+
+1.1   Our results
+Sublinear additive spanners.         Our primary result is the following almost optimal bound on
+sublinear additive spanners.
+Theorem 1.1. For any undirected unweighted graph G = (V, E) on n vertices, given any constant
+δ > 0 and any constant integer k ≥ 2, there exists a sufficiently large constant C = C(k, δ), such
+
+                                                  1
+                                     G on nvertices admits a spanner H ⊆ G with stretch
+that every undirected unweighted graph
+                                               1+δ
+                                           1+ k+1
+function f (d) = d + C · d1−1/k and O n       2   −1       edges.
+                                                                                        1        
+                                                                                   1+       −o(1)
+    This sparsity upper bound almost matches the previous lower bound of Ω n 2k+1 −1
+proved
+      in [ABP18]. Formally, the authors of [ABP18] showed that there exists a constant c =
+     1
+Θ k+1 , such that in some hard examples of input graph G, any spanner with stretch f (d) =
+                                                
+                                      1
+         1−1/(k+1)               1+ k+1    −o(1)
+d+c·d              must have Ω n   2    −1         edges. When the distance value d is larger than
+
+(C/c)k(k+1) which is a constant only dependent on k, the stretch function f (d) = d + C · d1−1/k
+of our spanner construction is always better than the stretch d + c · d1−1/(k+1) in the lower bound
+construction of [ABP18].   Since our sparsity upper bound almost matches the lower bound of
+          1     
+     1+            −o(1)
+Ω n 2k+1 −1         , our construction is almost optimal.
+    The same lower bound in [ABP18] also extends to the more relaxed notion of emulators which
+are graphs defined on the vertex set V but not required to be a subgraph of G. For the sublinear
+additive stretch function f (d) = d + O(d1−1/k ), there are known emulator constructions of size
+              1
+      1+
+O kn 2k+1 −1 by [TZ06, HP19] which matches the lower bound in [ABP18] and ties our new
+bound for spanners. In fact, the emulator lower bound in [ABP18] holds for any form of graph
+metric compression schemes, in the sense that any data structure that answers approximate dis-
+tance queries (regardless of query time) with stretch f (d) = d + c · d1−1/(k+1) for some constant
+                                              1
+                                         1+       −o(1)
+c < 2k1−1/(k+1) must occupy at least n 2k+1 −1           bits of space. Therefore, since our spanner con-
+struction matches the lower bound against any graph metric compression scheme, as our take-home
+message, it means that although spanners are the most restrictive form of compression compared
+to emulators and distance oracles, they are already the most powerful ones.
+    Our construction also directly translates to (1 + ε, β)-mixed spanners with stretch function
+                                         k−1 C k
+f (d) = (1 + ε)d + β when β = (k−1) k k εk−1
+                                                 by AM-GM inequality. Previous works on mixed spanners
+include [EP04] where the authors showed that for every integer κ and ε > 0, every n-vertex graph
+admits a (1 + ε, O(ε−1 log κ)log κ )-spanner of size O(n1+1/κ · O(ε−1 log κ)logκ ), and [TZ06] where the
+                                                                            1
+                                                                       1+
+authors constructed 1 + ε, O(k/ε)k−1 -spanner of size O k · n 2k+1 −1 for any integer k, and
+                                              
+
+[Pet09] where the author showed the construction of (1 + ε, O(log log n/ε)log log n )-spanner of size
+O(n log log(ε−1 log log n)). Among these previous results, the result by [TZ06] and ours provide the
+                                                       1+ 1+δ
+same form of stretch 1 + ε, O(1/εk−1 ) and sparsity n 2k+1 −1 when k is a constant integer, which
+                                      
+
+is proved to be almost optimal by [ABP18].
+
+Additive spanners. Our second result is a slightly improved bound on near-linear size addi-
+tive spanners upon the bound O(n3/7+ε ) of [BW21]. In addition, we show that such a spanner
+can be computed in subquadratic time, while previous constructions in [BW21, BW15] need the
+computation of all-pairs shortest paths in G which takes time O(min{mn, n2.373 }).
+
+Theorem 1.2. For any undirected unweighted graph G = (V, E) on n vertices and m egdges, there
+exists a spanner with O(n0.403 ) additive stretch
+                                                 and Õ(n) edges. Moreover, such a spanner can be
+computed in sub-quadratic time Õ m + n    13/7  .
+
+Remark 1.3. In the above theorem, if we could tolerate an O(mn) construction time of the additive
+spanner, then the size can be made purely linear O(n) with the same additive stretch O(n0.403 ).
+
+
+                                                       2
+1.2     Technical overview
+The basic tool of our algorithms is a clustering algorithm in [BW21]. Let G = (V, E) be the input
+undirected unweighted graph. Roughly speaking, for any radius parameter R, we can decompose
+the graph into a set B of balls that may share vertices, with the following properties.
+
+   • (Radius) The radius of each ball in B is roughly R.
+
+   • (Coverage) The union of all balls in B covers the whole graph G.
+
+   • (Disjointness) The total size of the balls in B is linear in n.
+
+   Next, we will describe how to utilize the above clustering to construct new sublinear additive
+spanners and additive spanners, respectively.
+
+1.2.1    Sublinear additive spanners
+Our starting point is a spanner with stretch function f (d) = d + O(d1/2 ) and Õ(n8/7 ) edges, which
+improves upon the previous sparsity bound of Õ(n20/17 ) in [Che13]. Consider any pair of vertices
+s, t ∈ V , and let π be a shortest path between them of length D. We apply the clustering algorithm
+from [BW21] with radius parameter R = D 1/2 to G, and obtain a set B of balls. Intuitively, by the
+coverage property, and recalling that every ball in B has radius roughly R = D 1/2 , we can choose
+a subset of O(D/R) = O(D 1/2 ) balls from B whose union contains the entire shortest path π. See
+Figure 1 for an illustration.
+
+            B(c0 , r0 )        B(c1 , r1 )                       B(cl−1 , rl−1 )        B(cl , rl )
+
+
+
+        s                 w1                 w2               wl−1                 wl             t
+
+
+
+
+Figure 1: An illustration of a covering of a shortest path π between s, t with at most l = O(D 1/2 )
+balls from B. For simplicity, we assume that, for each index 0 ≤ i ≤ l − 1, the balls B(ci , ri ) and
+B(ci+1 , ri+1 ) share exactly one vertex of π, denoted by wi+1 . We denote s = w0 and t = wl+1 .
+
+    Following the notations in Figure 1, assume the sequence of balls divides the path into subpaths
+{π[wi , wi+1 ]}0≤i≤l . In order to preserve the distance between s, t in G, a simple approach is to plant,
+within each subgraph G[B(ci , ri )], a 6-additive spanner from [BKMP10] with O(|B(ci , ri )|4/3 ) edges.
+Then for each i, distH (wi , wi+1 ) ≤ distG (wi , wi+1 )+6, so distH (s, t)−distG (s, t) ≤ 6(l+1) = O(D 1/2 ).
+If we further assume that each ball in B contains at most n3/7 vertices,            then by the disjointness
+property, the union of all these 6-additive spanners contains at most B(c,r)∈B |B(c, r)|4/3 = O(n8/7 )
+                                                                            P
+
+edges. So we only need to deal with large balls that contain more than n3/7 vertices.
+    A natural approach to handling the large balls is taking a random subset S ⊆ V of 10n4/7 log n
+vertices that hits all large balls with high probability, and try preserving pairwise distances between
+vertices in S, as preserving distances among a subset is conceivably easier than the whole graph. In
+fact, if this can be done, then the distance between all pairs s, t ∈ V is also well-preserved. To see
+why this is true, assume for simplicity that B(c1 , r1 ) and B(cl−1 , rl−1 ) are the first and the last large
+
+                                                      3
+ball, respectively. Then, by construction of S, there exist u ∈ B(c1 , r1 )∩ S and v ∈ B(cl−1 , rl−1 )∩ S,
+and it is easy to verify using triangle inequality that the following path connecting s to t in H has
+length at most distG (s, t) + O(R); the path is the concatenation of (see Figure 2 for an illustration):
+
+• a path from s to w1 in the 6-additive spanner within subgraph G[B(c0 , r0 )]; and similarly a path
+  from t to wl in the 6-additive spanner within subgraph G[B(cl , rl )];
+
+• a path from w1 to u of length at most 2R, as we can afford to add to H a breadth-first search
+  tree of G[B(c1 , r1 )] beforehand; similarly, a path from wl to v of length at most 2R; and
+
+• the shortest path connecting u, v in H.
+
+
+            B(c0 , r0 )        B(c1 , r1 )                       B(cl−1 , rl−1 )        B(cl , rl )
+                                   u                                     v
+
+        s                 w1                 w2              wl−1                  wl             t
+
+
+
+
+Figure 2: If the balls B(c1 , r1 ) and B(cl−1 , rl−1 ) are large, then we can find a short path from s to
+t drawn as the orange wavy lines.
+
+    Therefore, it suffices to construct a spanner that faithfully preserves pairwise distances between
+vertices in S. Consider now a pair s, t of vertices in S. We proceed similarly by first finding a
+sequence of O(D 1/2 ) balls in B that covers the shortest path between s and t, and then computing
+a sparse subgraph Hci ⊆ G[B(ci , ri )] in order to preserve the distance between wi and wi+1 to within
+a constant additive error. Note that we would like that the graph Hci also approximately preserves,
+for other pairs s′ , t′ ∈ S, the distance between their corresponding vertices wj′ , wj+1   ′  . The reason
+that this is easier to achieve is because there are fewer pairs (wi , wi+1 ) assigned to the ball B(ci , ri )
+while processing all pairs in S, as |S| itself is small. More formally, each ball B(ci , ri ) is associated
+with a set Pci ⊆ V × V of demand pairs, and we want to find a spanner Hci ⊆ G[B(ci , ri )] that
+only preserves distances between vertex pairs in Pci . The way we construct Pci is to enumerate all
+pairs s, t ∈ S, find an s-t shortest path and a set of balls that cover it, and if we have used the
+ball B(ci , ri ) in the covering, then add the corresponding pair (wi , wi+1 ) to Pci . In the end, we can
+show that the size of each set Pci is at most |S| = Õ(n4/7 ).
+    This special type of spanners restricted to demand pairs are called pairwise spanners, and has
+been studied in [CGK13, Kav17]. Applying their result in a black-box way, we can construct, for
+each ball G[B(ci , ri )], a subgraph Hci of size O(|B(ci , ri )| · |Pci |1/4 ) preserving distances between
+pairs in Pci up to an additive error of 6. Then, the total size of all Hci is B(c,r)∈B |B(c, r)|·|Pc |1/4 =
+                                                                                 P
+
+Õ(n8/7 ).
+
+1.2.2   Pairwise sublinear additive spanners
+The only missing component towards a sublinear additive spanner with stretch f (d) = d+O(d1−1/k )
+for general k ≥ 2 turns out to be a pairwise spanner with stretch d + O(d1−1/(k−1) ). As the previous
+work on pairwise spanners [CGK13, Kav17] only considered stretch function f (d) = d + Õ(1), we
+
+
+                                                     4
+need to generalize their result for general k. Assume we are given an undirected unweighted graph
+G = (V, E) on n vertices and a set P ⊆ V × V of pairs, and the goal is to find a spanner H ⊆ G
+                         k+1
+with at most Õ(n|P|1/2 ) edges, such that distH (s, t) ≤ f (distG (s, t)) for all (s, t) ∈ P. For the
+purpose of this overview, we assume for simplicity that distG (s, t) = D for all (s, t) ∈ P.
+    The construction of H is inductive on k ≥ 1. Assume we know how to construct such spanners
+for k − 1. First, apply the clustering algorithm from [BW21] with radius R = D 1−1/k to graph G,
+and obtain a set B of balls.
+
+Uniform size. We start by considering a special case, where all balls in B have the same size
+|B(c, r)| = L. By the disjointness property, the number of balls in B is approximately n/L. For each
+pair (s, t) ∈ P, we compute a sequence of D 1/k balls and partition the shortest path connecting s, t,
+in a similar way as illustrated in Figure 1. We wish to inductively build inside each ball G[B(ci , ri )]
+a pairwise spanner with a better stretch d + O(d1−1/(k−1) ); if this is done, then the cumulative error
+along the shortest path connecting s and t is bounded by D 1/k · R1−1/(k−1) = D 1−1/k .
+    In order to apply the inductive hypothesis, we will construct, for each ball B(c, r) ∈ B, a set Pc
+of demand pairs. But if we add, for all i, the pair (wi , wi+1 ) to Pci , then the sets |Pci | may become
+too large (as large as |P|) to construct a spanner for. To circumvent this, we use the approach in
+[Kav17]. Observe that, if we add each pair (wi , wi+1 ) to Pci , then not only the distance between s, t
+is approximately preserved (in this case we call the pair (s, t) settled), but the distances between
+all pairs of ball centers ci , cj are also approximately preserved. Now there are two cases. Let β be
+a parameter to be determined later.
+
+• Case 1. There are at least β · (l + 1) center pairs that were unsettled in H; recall that l + 1 refers
+  to the number of clusters as in Figure 1.
+  Then after adding each (wi , wi+1 ) as a demand pair to Pci , the total number of such center pairs
+  would drop by β · (l + 1). In other words, each new demand pair (wi , wi+1 ) contributes β to the
+  decrease of the number of unsettled center pairs on average.
+
+• Case 2. There are fewer than β · (l + 1) center pairs that were unsettled in H.
+  In this case, we show that there is always a “bridge” that helps settle the pair (s, t). Specifically,
+  we can prove there are indices x ∈ [1, β], z ∈ [β + 1, l + 1 − β], y ∈ [l − β + 2, l + 1] such that center
+  pairs (cx , cz ) and (cz , cy ) were already settled. In this case, adding demand pairs (wi , wi+1 ) to
+  Pci only for i ∈ [1, β] ∪ [l − β + 2, l + 1] would be enough. See Figure 3 for an illustration.
+
+   To summarize, for each pair (s, t) ∈ P, we either add at most 2β demand pairs in total, or add
+a number of demand pairs such that the number of unsettled center pairs decreases by β per pair.
+                                                                  2                   1/2 
+Therefore, the total number of demand pairs is at most β|P| + Ln2 β , which is O n|P|
+                                                                                    L       if we set
+β = |P|n1/2 , and thus the size of sets |Pc | is bounded by |P|1/2 on average. Now apply the inductive
+hypothesis within each ball, and the total size of all these pairwise sublinear spanners is bounded
+               k+1
+by Õ(n|P|1/2 ).
+
+Non-uniform size. In order to provide some intuition for the general case, we consider a slightly
+more general case (compared with the uniform size case) where balls in B have size either L1 or
+L2 , which naturally classify balls in B into level-1 balls and level-2 balls. Similar to the uniform
+size case, we process all pairs (s, t) ∈ P and find the balls that partition the shortest s-t path.
+Assume there are l1 level-1 balls and l2 level-2 balls. To extend the technique from [Kav17], this
+time we only count the number of center pairs separately for each level. For each b ∈ {1, 2}, let Φb
+
+                                                     5
+                          cx                       cz                        cy
+
+
+
+
+   1                      x                         z                        y                     l+1
+
+  add these demand pairs                                                     add these demand pairs
+
+
+
+Figure 3: In this case, we can find a “bridge” that allows us to travel from cx to cz and then to cy
+via a near-shortest path. The orange segments represent new demand pairs assigned to the balls.
+
+
+be the number of unsettled level-b ball center pairs, and let ∆Φb be the number of unsettled level-b
+center pairs along the s-t path. Similarly, we consider the following two cases. (Below β1 , β2 are
+to-be-determined parameters, similar to β in the uniform case.)
+
+• Case 1. ∆Φb ≥ βb · lb for both b ∈ {1, 2}.
+  In this case, by adding, for all i, the pair (wi , wi+1 ) to Pci , on average, Φ1 is decreased by β1 per
+  pair, and Φ2 is decreased by β2 per pair.
+
+• Case 2. (Without loss of generality) ∆Φ1 < β1 · l1 .
+  Similar to the uniform size case, we are able to find a bridge of level-1 ball centers. Specifically,
+  we can prove there are indices x, y, z such that both pairs (cx , cz ) and (cz , cy ) are settled level-1
+  ball centers. In this case, we add demand pairs (wi , wi+1 ) to Pci where B(ci , ri ) is among the
+  first and the last β1 level-1 balls; see Figure 4 for an illustration.
+  Now that we can travel from cx to cy , we need to analyze the stretch for s, cx and cy , t. The idea
+  is to zoom into the intervals [1, x] and [y, l + 1], and recurse. Now, since all the level-1 balls have
+  already been assigned their demand pairs within these two intervals, we have now reduced to the
+  uniform size case within those two intervals [1, x], [y, l + 1].
+
+    Intuitively, in the general case where all balls in B have different sizes, we will first partition
+them into O(1/ε) groups according to their sizes, and then generalize the above approach for two
+ball sizes to multiple ball sizes. In this general setting, every time we go down by one level on the
+recursion tree and zoom into a smaller interval I, we will decrease the number of groups by one;
+that is, there will be one more group whose pairs in this interval I are already purchased by our
+algorithm. The recursion tree will have size 2O(1/ε) and will eventually incur an additional factor
+2O(k/ε) nO(kε) in the sparsity.
+
+1.2.3   Additive spanners
+We now provide an overview for our additive spanner construction. In what follows we will mainly
+highlight the difference between the construction by [BW21] and ours.
+    First, we apply the clustering algorithm from [BW21] with radius R to G and obtain a set B
+of balls. Similar to the construction of sublinear and pairwise additive spanners, while processing
+unsettled pairs of vertices, we will add demand pairs to the corresponding balls that partition their
+
+                                                    6
+                             cx                           cz                          cy
+
+
+
+
+   1                          x                           z                           y                        l+1
+
+  add level-1 demand pairs                                                           add level-1 demand pairs
+
+
+
+Figure 4: Orange segments are covered by level-1 balls, and cyan segments are covered by level-2
+balls; we only add the first and the last β1 level-1 segments as new demand pairs.
+
+                                               √
+shortest paths. It has been shown that O( n) demand pairs can be preserved exactly with O(n)
+                                     √
+edges [CE06], and the bound O( n) cannot be improved, so we need to ensure that each ball B
+collects at most O(|B|1/2 ) demand pairs. On the one hand, the small balls B with |B| ≤ R4/3 can
+be handled using previous work on subset distance preservers [CE06]. On the other hand, for the
+large balls B with |B| ≥ R4/3 , the algorithm in [BW21] placed an O(|B|1/2 ) additive spanner (which
+follows from [BW15]) inside them. This implies that, whenever a new path π passes through a
+ball B, along with the demand pair added to B, at least R4/3 · (R/R2/3 ) = R5/3 new vertices1 are
+settled with B, and so a ball B may collect O(n/R      5/3 ) pairs. When R = n3/7 , a ball B can collect
+                 5/3         2/7          4/3 1/2   ≤ O(|B|1/2 ) demand pairs so that we can still apply
+                                                  
+at most O(n/R ) = O(n ) ≤ O (R )
+the pairwise distance preserver construction from [CE06].
+     We proceed differently. We start by showing via the above framework that any graph G and
+any subset S ⊆ V (G) has an O(|S|3/2 ) additive subset spanner of linear size with respect to S,
+which is a subgraph H ⊆ G, such that for every pair s, s′ ∈ S, distH (s, s′ ) ≤ distG (s, s′ ) + O(|S|3/2 ).
+The algorithm is simple. Set R = |S|3/2 and compute a clustering (we can ignore balls B with
+|B| ≤ (|S|3/2 )4/3 = |S|2 ); iteratively go through all shortest paths connecting pairs in S and buy
+them whenever their endpoints are unsettled. Since whenever a cluster collects a new demand pair,
+it is settled with a new vertex in S, a ball B gets at most |S| = O(|B|1/2 ) demand pairs. Now instead
+of planting a +O(|B|1/2 ) spanner inside each ball, we plant a +O(|S|3/2 ) subset spanner inside each
+ball with respect to its boundary vertices. The stretch between them is now O((|B|/R)3/2 ), which
+is less than |B|1/2 when R4/3 < |B| < R3/2 .
+     To see how much this improves the additive error, consider a canonical scenario where all balls
+have the same size Θ(R4/3 ) which is the threshold for distinguishing small/large balls. Then, a
+subset spanner within a ball B incurs additive error O(R1/2 ). Following the same calculation as
+before, whenever a new path π passes through a ball B, along with the demand pair added to B,
+at least R4/3 · (R/R1/2 ) = R11/6 new vertices will be settled with B, and so B may collect at most
+O(n/R11/6 ) pairs. If we take R = n0.4 , a ball B can collect at most O(n/R11/6 ) = O(n4/15 ) ≤
+O (R4/3 )1/2 ≤ O(|B|1/2 ) demand pairs so that we can still apply the pairwise distance preserver
+construction from [CE06]. In general, we are not lucky enough that all balls have size Θ(R4/3 ),
+   1                                                            √
+     Say π connects vertex s to vertex t. Note that the +O( n) spanners planted inside the balls settled a total of
+               4/3   2/3
+at least R · (R /R ) vertices with s in the balls passed through by π, which we call the prefix of π; and similarly
+they also settled at least R · (R4/3 /R2/3 ) vertices with s in the balls passed through by π, which we call the prefix
+of π. Also note that either the prefix or the suffix must be previously not settled with B and now settled with B, as
+otherwise the pair (s, t) was already settled and we should not take π.
+
+
+                                                          7
+so with some further utilization of the subset spanner, we end up with a slightly worse bound of
+O(n0.403 ).
+
+1.3    Organization
+We start with preliminaries in Section 2. We provide a construction for pairwise additive spanners
+in Section 3, which will be a building block in the proof of Theorem 1.1 which appears in Section 4.
+Next, we show the construction of subset spanners in Section 5, which will be a crucial subroutine
+used in the algorithm of Theorem 1.2. Lastly, we provide the proof of Theorem 1.2 in Section 6.
+
+
+2     Preliminaries
+By default, all logarithms are to the base of 2, and all graphs are undirected and unweighted.
+                                                                                         P
+    Let G = (V, E) be a graph. For a subset S ⊆ V of vertices, we define volG (S) = v∈S degG (v),
+where degG (v) is the degree of v in G. For any pair u, v ∈ V (G), let distG (u, v) be the shortest-path
+distance between u and v in G. For any c ∈ V and r > 0, we define the ball BG (c, r) as the set
+of vertices in G that are at distance at most r from c, namely BG (c, r) = {v ∈ V | distG (c, v) ≤ r};
+r is called the radius of the ball, and we define the boundary of the ball BG (c, r) as B=     G (c, r) =
+{v ∈ V | distG (c, v) = r}. We will sometimes omit the subscript G in the above notations when it
+is clear from context. Let B be a collection of balls. We say that a vertex v is covered by B if v
+belongs to some ball in B. We will use the following lemma, whose proof is a simple implementation
+of the breadth-first search (BFS) algorithm, and is omitted.
+Lemma 2.1. Given a graph G, a vertex c ∈ V (G), and two integers 0 < r1 < r2 < r, we can find
+an integer r1 < d ≤ r2 , such that |B= (c, d) ∪ B= (c, d + 1)| ≤ 2·|B(c,r)|
+                                                                   r2 −r1 , in time O(vol(B(c, r))).
+
+
+Clustering in almost-linear time. One of the building blocks in the construction of +O(n3/7+ε )
+spanner in [BW21] is a clustering procedure, which takes the input graph and computes a collections
+of balls with certain coverage and disjointness properties. We will also use this clustering procedure.
+However, the running time of algorithm for computing such a clustering in [BW21] is a large
+polynomial in n. In order to design a sub-quadratic algorithm for additive spanners, we provide an
+almost-linear time algorithm for computing a clustering with slightly different parameters.
+Lemma 2.2 (Almost-linear time algorithm for Lemma 13 in [BW21]). There is an algorithm, that,
+given any undirected unweighted graph G = (V, E) on n vertices and m edges, any parameter ε > 0,
+and any integer R > 0, computes in time O(mnε /ε) a collection B of balls in G, such that
+    • the radius of each ball B(c, r) ∈ B satisfies that R ≤ r ≤ 210/ε · R;
+    • all vertices in V are covered by B;
+    • the following coverage properties hold:
+           P
+         –    B(c,r)∈B |B(c, r/2)| = O(n/ε);
+         – for each B(c, r) ∈ B, |B(c, 4r)| ≤ nε · |B(c, r/2)|, so                                   1+ε /ε);
+                                                                     P
+                                                                         B(c,r)∈B |B(c, 4r)| = O(n
+                                              ε
+           P
+         –    B(c,r)∈B vol(B(c, 4r)) = O(m · n /ε).
+
+Remark 2.3. Compared to the original statement in [BW21], their    P runtime is O(mn), but they
+have a better bound on sizes. More specifically, they have bounds B(c,r)∈B |B(c, r/2)| = O(n) and
+                            1+ε ) which are smaller than our bounds by a factor of ε.
+P
+  B(c,r)∈B |B(c, 4r)| = O(n
+    The proof of Lemma 2.2 is deferred to Appendix A.
+
+                                                    8
+Consistent paths and distance preservers. Let π be a path and let x, y be two vertices of π.
+We denote by π[x, y] the subpath of π between x and y, and we denote by |π| the number of edges
+in π; we can also define notations π(x, y), π(x, y], π[x, y) in the natural way. Let Π be a collection
+of paths. We say that Π is consistent, if for any pair π1 , π2 ∈ Π, the intersection between π1 and
+π2 is a (possibly empty) subpath of both π1 and π2 .
+    Let P ⊆ V × V be a set of pairs of vertices in G. A subgraph H ⊆ G is a distance preserver of
+G with respect to P, if distH (s, t) = distG (s, t) holds for every (s, t) ∈ P. We will use the following
+previous results on distance preservers and +6 pairwise additive spanners.
+
+Lemma 2.4 ([CE06]). Let G = (V, E) be a graph on n vertices, let P ⊆ V × V be a set of pairs
+of its vertices, and let Π be any consistent collection of paths
+                                                            S in G that contains,       for each pair
+                                                                                     √
+(s, t) ∈ P, a path πs,t connecting s to t. Then |E(Π)| = |E( (s,t)∈P πs,t )| = O(n + n · |P|).
+                                                    p
+     It is also implicit in [CE06] that |E(Π)| = O(n |P|) which will not be used in in our algorithm.
+     We use the following corollary of Lemma 2.4, whose proof is a straightforward implementation
+of the BFS algorithm and the standard edge-weight perturbation technique, and is omitted.
+
+Corollary 2.5. There is an algorithm, that given a graph G on n vertices and m edges, and a subset
+S of its vertices, in time O(m · |S|), computes a consistent collection Π of paths thatScontains, for
+each pair s, t ∈ S, a shortest path πs,t connecting s to t in G, such that |E(Π)| = |E( s,t∈S πs,t)| =
+       √
+O(n + n · |S|2 ).
+
+Lemma 2.6 ([Kav17]). There is an efficient algorithm, that, given any graph G = (V, E) and any
+set P ⊆ V × V of pairs, computes a subgraph H ⊆ G with |E(H)| = O(n|P|1/4 ), such that for every
+pair (s, t) ∈ P, distH (s, t) ≤ distG (s, t) + 6.
+
+
+3     Pairwise Sublinear Additive Spanners
+In this section, we prove the following Lemma 3.1, which will serve as a building block for Theo-
+rem 1.1. Throughout this section, we use the following stretch function f : for any parameter ε > 0
+and any integer k ≥ 1, fk,ε(d) = d + 230k/ε d1−1/k .
+
+Lemma 3.1. For any undirected unweighted graph G = (V, E) on n vertices, any collection P ⊆
+V × V of pairs of its vertices, any integer k ≥ 1 and parameter ε ∈ (0, 0.1), there is a subgraph
+                                   k+1
+H ⊆ G with O(22k/ε n1+10kε |P|1/2 ) edges, such that for every pair (s, t) ∈ P, distH (s, t) ≤
+fk,ε(distG (s, t)).
+
+3.1   Preparation and a subroutine
+We prove Lemma 3.1 by an induction on k. The base case (when k = 1) immediately follows from
+Lemma 2.6. We assume now that Lemma 3.1 is correct for 1, . . . , k − 1. We will design an algorithm
+that computes a pairwise additive spanner required in Lemma 3.1. At a high level, our algorithm
+can be viewed as a combination of the clustering algorithm (Lemma 2.2) from [BW21] and the
+path-buying schemes from[Kav17].
+    For each integer D ∈ 1, 2, 22 , . . . , 2⌊log n⌋ , we will construct a subgraph HD ⊆ G, such that
+for all pairs (s, t) ∈ PSwith D ≤ distG (s, t) < 2D, distHD (s, t) ≤ distG (s, t) + 230k/ε D 1−1/k holds.
+We will then let H = 0≤i≤⌊log n⌋ H2i to finish the construction.
+    We now describe the construction of the subgraph HD . We first apply the algorithm from
+Lemma 2.2 to graph G with parameters R = D 1−1/k and ε; for convenience, we will assume D 1−1/k
+
+
+                                                   9
+is an integer. Let B be the collection of balls we get. We will also iteratively construct, for each ball
+B(c, r) ∈ B, a set Pc ⊆ B(c, 4r) × B(c, 4r) of pairs, which is initially empty. Over the course of the
+algorithm, we maintain the graph HD as the union of the following edges over all balls B(c, r) ∈ B:
+  (i) a BFS tree Tc that is rooted at c and spans all vertices in G[B(c, 4r)];
+ (ii) a pairwise spanner of G[B(c, 4r)] with respect to the set Pc of pairs, with stretch function fk−1,ε
+                                                k+1
+      and size O(22k/ε |B(c, 4r)|1+10kε |Pc |1/2 ), whose existence is guaranteed by the inductive
+      hypothesis. When the sets {Pc } change during our construction algorithm, the graph HD
+      evolves with them.
+    In order to construct the sets {Pc }, we will take a path-buying approach. Specifically, we will
+iteratively find a short path that contains relatively few new edges and “settles” many pairs of
+clusters (by connecting them in a near-optimal way). As the construction of HD is recursive, we
+will distribute the task of “buying this path” to the clusters in B as in [BW21], which requires us
+to first chop up a shortest path into short segments. For this, we need the following subroutine
+called PathPartition, which was initially proposed in [BW21].
+
+Subroutine PathPartition. The input to subrountine PathPartition is a shortest path π connect-
+ing a pair s, t of vertices in a graph G and a collection B of balls that covers all vertices in G, and the
+output is a partitioning of path π as the sequential concatenation of its subpaths π = α1 ◦α2 ◦· · ·◦αl ,
+such that, for each 1 ≤ i ≤ l, if we denote by si , ti the endpoints of αi (so αi = π[si , ti ]), then
+there exists a ball B(ci , ri ) ∈ B, such that si ∈ B(ci , ri ) and ti ∈ B(ci , 2ri ), and we say that the ball
+B(ci , ri ) hosts the subpath αi .
+     We start by directing π from s to t and setting s1 = s. Since s1 is covered by B, there exists a
+ball in B that contains s1 , and we designate this ball as B(c1 , r1 ). We then find the last vertex on π
+that lies in B(c1 , 2r1 ), and designate it as t1 . The first subpath is then defined to be α1 = π[s1 , t1 ].
+We then set s2 = t1 and repeat the process to find subpaths α2 , . . . , αl until all edges are included
+in some subpath; that is, for a general index i ≥ 2, if si 6= t, then find a ball B(ci , ri ) ∈ B containing
+si , and define ti ∈ π(si , t] ∩ B(ci , 2ri ) to be the vertex on π which is closest to t. After that, if ti 6= t,
+assign si+1 = ti and repeat. See Figure 5 for an illustration.
+     We prove the following simple properties of the subroutine.
+Observation 3.2. All balls in {B(ci , ri )}1≤i≤l are distinct.
+Proof. Suppose otherwise that a ball is selected twice by PathPartition, namely (ci , ri ) = (cj , rj ) for
+some 1 ≤ i < j ≤ l. Then, by the algorithm description we have tj ∈ B(cj , 2rj ) = B(ci , 2ri ), which
+contradicts the choice of ti which is the closest-to-t vertex in B(ci , 2ri ) on π.
+Observation 3.3. For each 1 ≤ i ≤ l, the subpath αi is entirely contained in the ball B(ci , 4ri ).
+Proof. From the description of the subroutine, for each 1 ≤ i ≤ l, si ∈ B(ci , ri ) and ti ∈ B(ci , 2ri ).
+Therefore, for every vertex u ∈ π[si , ti ], by triangle inequality:
+      distG (ci , u) ≤ distG (ci , si ) + distG (si , ti ) ≤ distG (ci , si ) + distG (ci , si ) + distG (ci , ti ) ≤ 4ri ,
+which implies that u ∈ B(ci , 4ri ).
+Observation 3.4. Let R be the minimum radius of the balls in B. Then l ≤ |π|/R + 1.
+Proof. It suffices to show that, for each 1 ≤ i < l, |αi | ≥ R. From the algorithm, vertex si belongs
+to the ball B(ci , ri ), and vertex vi is the last vertex on π that lies in the ball B(ci , 2ri ), so if ti 6= t
+then distG (ti , ci ) = 2ri must hold. Therefore, |π[si , ti ]| ≥ distG (ci , ti ) − distG (ci , si ) ≥ 2ri − ri = ri ≥
+R.
+
+                                                              10
+        B(c1 , 2r1 )   B(c2 , 2r2 )        B(c3 , 2r3 )                B(cl−1 , 2rl−1 )   B(cl , 2rl )
+
+
+
+             s         t1                  t2             t3          tl−1           tl         t
+                 α1         α2                    α3                         αl−1          αl
+
+
+
+
+                                      t2                        t3
+                                                  α3
+
+
+                                            B(c3 , r3 )
+
+                                           B(c3 , 2r3 )
+
+
+
+Figure 5: A partitioning of the shortest path π from s to t into subpaths α1 , α2 , . . . , αl by balls in
+B. Note that in general G[B(ci , 2ri )] does not necessarily contain the entire subpath αi .
+
+
+Level of balls. Before we describe the algorithm for constructing the sets {Pc }, we first classify
+all clusters according to their sizes as follows. Recall that we are initially given a set P ⊆ V × V
+of pairs in G. For each integer 1 ≤ i ≤ ⌈1/ε⌉, we say that a ball B(c, r) is at level i if
+
+                              n1−iε / |P| < |B(c, r)| ≤ n1−(i−1)ε / |P|.
+                                     p                             p
+
+
+Denote by Bip  the set of all level-i balls in B. We define the set of level-0 balls as B0 = {B(c, r) |
+|B(c, r)| > n/ |P|}, so B = B0 ∪ B1 ∪ · · · ∪ B⌈1/ε⌉ . A ball from B is called large if it is in B0 , and
+small otherwise. Here is a simple observation.
+
+Observation 3.5. For each 0 ≤ i ≤ ⌈1/ε⌉, |Bi | ≤ O(n(i+1)ε |P|/ε).
+                                                                p
+
+Proof. By Lemma 2.2, B(c,r)∈Bi |B(c, r)| ≤ B(c,r)∈Bi |B(c, 4r)| ≤ O(n1+ε /ε), and since each ball
+                         P                      P
+
+in Bi has size at least n1−iε / |P|, |Bi | ≤ O(n(i+1)ε |P|/ε).
+                               p                       p
+
+
+3.2   Step 1. Handling large balls
+                                                               l p           m
+We first take a uniformly random subset S ⊆ V of size 10 |P| log n . Since each ball in B0
+                     p
+contains at least n/ |P| vertices, with high probability, S intersects all balls in B0 .
+   We now proceed to iteratively construct the sets {Pc } of pairs. Throughout, we maintain, for
+each ball B(c, r) ∈ B, a set Pc of pairs of vertices in B(c, 2r), and another set Uc ⊆ S of vertices in
+
+                                                               11
+V , which are initially empty sets. Intuitively, Uc collects all vertices in S whose distances from the
+ball center c are already preserved by the spanner HD during the algorithm.
+    For every pair s, t of vertices in S, we denote by πs,t an arbitrary shortest path connecting them
+in G, and we compute the set
+
+                         Π = {πs,t | s, t ∈ S, distG (s, t) < 2D + 4 · 210/ε · D 1−1/k }.
+
+      We then process all paths in Π sequentially in an arbitrary order. For each path πs,t ∈ Π, we
+first apply the subroutine PathPartition to it and the collection B of balls, and obtain a partition
+πs,t = α1 ◦ α2 ◦ · · · ◦ αl . For each 1 ≤ i ≤ l, we denote by B(ci , ri ) the ball that hosts the subpath
+αi . If there exists a ball B(ci , ri ) such that s, t ∈ Uci , then we do nothing and move on to the next
+path in Π. Otherwise, for each 1 ≤ i ≤ l, we add both vertices s, t to the set Uci , and add the pair
+(si , ti ) to the set Pci of pairs.
+
+Stretch analysis of Step 1.  We make use of the following simple observation.
+Observation 3.6. At the end of Step 1, for each ball B(c, r) ∈ B, |Pc | ≤ |S| = 10|P|1/2 log n .
+                                                                                             
+
+Proof. By the algorithm description along with Observation 3.2, every time a new pair is added to
+Pc , a new vertex from S is also added to Uc . Since no more  pair will beadded to Pc as long as Uc
+contains all vertices of S, we get that |Pc | ≤ |Uc | ≤ |S| = 10|P|1/2 log n .
+
+   We now show in the following claims that, after the first step, all pairwise distances (in G)
+between vertices in S are well-preserved in HD . Therefore, as the set S hits all balls in B0 with
+high probability, the distance between any pair of vertices from V (B0 ) is also well-preserved.
+Claim 3.7. After a vertex s ∈ S is added to the set Uc for some B(c, r) ∈ B, the following holds:
+
+                             distHD (s, c) ≤ distG (s, c) + 49 · 2(30k−10)/ε · D 1−1/k .
+
+Proof. Assume that the shortest path πs,t was being processed when s was added to Uc , and that
+B(c, r) was B(ci , ri ) under the notation of the subroutine PathPartition. From the algorithm, for
+each 1 ≤ j ≤ l, the pair (sj , tj ) was added to the collection Pcj . From the construction of HD , for
+each 1 ≤ j ≤ l, there exists a path φj in HD from sj to tj , such that:
+                                                                                             1−1/(k−1)
+       |φj | ≤ |αj | + 230(k−1)/ε · |αj |1−1/(k−1) ≤ |αj | + 230(k−1)/ε · 4 · 210/ε · D 1−1/k
+                                                      ≤ |αj | + 4 · 2(30k−20)/ε · D 1−2/k
+
+(we have used the fact that |αj | = distG (sj , tj ) ≤ distG (sj , cj )+distG (tj , cj ) ≤ 4rj ≤ 4·210/ε ·D 1−1/k ).
+Taking a summation over all indices 1 ≤ j ≤ i and using Observation 3.4, we have:
+       distHD (s, ci ) ≤ distHD (ci , ti ) + distHD (s, ti )
+                      ≤ 2 · 210/ε · D 1−1/k + distG (s, ti ) + 48 · 2(30k−10)/ε · D 1−1/k
+                      ≤ 2 · 210/ε · D 1−1/k + (distG (s, ci ) + distG (ci , ti )) + 48 · 2(30k−10)/ε · D 1−1/k
+                      ≤ distG (s, ci ) + 49 · 2(30k−10)/ε · D 1−1/k .
+
+
+Claim 3.8. For any s, t ∈ S such that distG (s, t) < 2D + 4 · 210/ε · D 1−1/k , we have:
+
+                            distHD (s, t) ≤ distG (s, t) + 100 · 2(30k−10)/ε · D 1−1/k .
+
+                                                           12
+Proof. For any such pair of vertices s, t ∈ S, consider the moment when the shortest path πs,t ∈ Π
+was processed and partitioned into subpaths α1 , . . . , αl . We distinguish between the following two
+cases.
+
+• Case 1. There existed an index 1 ≤ i ≤ l such that s, t ∈ Uci at the moment.
+  In this case, from Claim 3.7:
+
+      distHD (s, ci ) ≤ distG (s, ci ) + 49 · 2(30k−10)/ε · D 1−1/k ≤ distG (s, si ) + 50 · 2(30k−10)/ε · D 1−1/k ,
+
+      distHD (ci , t) ≤ distG (ci , t) + 49 · 2(30k−10)/ε · D 1−1/k ≤ distG (si , t) + 50 · 2(30k−10)/ε · D 1−1/k .
+  Summing up these two inequalities finishes the proof.
+
+• Case 2. There did not exist any i such that s, t ∈ Uci at the moment.
+  In this case, for each 1 ≤ j ≤ l, the pair (sj , tj ) was added to the set Pcj . Similar to the proof of
+  Claim 3.7, for each 1 ≤ j ≤ l, there exists a path φj in HD from sj to tj , such that:
+                                                                                               1−1/(k−1)
+         |φj | ≤ |αj | + 230(k−1)/ε · |αj |1−1/(k−1) ≤ |αj | + 230(k−1)/ε · 4 · 210/ε · D 1−1/k
+                                                      ≤ |αj | + 4 · 2(30k−20)/ε · D 1−2/k .
+
+  Taking a summation for all indices 1 ≤ j ≤ l and using Observation 3.4, we get that:
+                                                                                       
+                                                 (30k−20)/ε    1−2/k     1/2     10/ε
+             distHD (s, t) ≤ distG (s, t) + 4 · 2           ·D       · 2D + 4 · 2     +1
+                              ≤ distG (s, t) + 28 · 2(30k−10)/ε · D 1−1/k .
+
+
+
+
+3.3     Step 2. Handling small balls
+We now process all pairs (s, t) ∈ P with D ≤ distG (s, t) < 2D in an arbitrary order. Take any such
+pair (s, t), and compute a shortest path πs,t between them in G. We then apply the subroutine
+PathPartition to it and the collection B of balls, and obtain a partitioning πs,t = α1 ◦ α2 ◦ · · · ◦ αl
+together with the balls {B(ci , ri )}1≤i≤l that host them. However, as the number of pairs (s, t) ∈ P
+with D ≤ distG (s, t) < 2D can be very large, we cannot afford to add the pair (si , ti ) to set Pci for
+all 1 ≤ i ≤ l as in Step 1, and will instead carefully pick a subset of indices in [1, l] to do so.
+
+Basic notations. We will now describe how to choose these indices. This is again done via an
+iterative process. Throughout, we will gradually construct a binary tree T , which initially contains
+a single node, which is the root of T . Each node of the tree is labeled by a subinterval of [1, l].
+Initially, the root of T is labeled with [1, l]. Each index i ∈ [1, l] is either marked active or
+inactive. Initially, all indices are inactive. The algorithm continues to be executed unless for each
+leaf of the tree T , all indices in its associated interval are active. Over the course of the algorithm,
+whenever we mark some index i active, we will simultaneously add the pair (si , ti ) to the set Pci .
+We say that
+     1−jε
+           p an index i ∈ [1, l] 1−(j−1)ε
+                                    is at level
+                                             p j if its corresponding ball B(ci , ri ) is at level j (that is,
+if n      / |P| < |B(ci , ri )| ≤ n         / |P|).
+
+
+
+
+                                                         13
+Path-buying with tree structure T . As a pre-processing step, we first focus on level-0 indices
+(if there are none of them, then we skip the pre-processing). Let i1 , i2 be the smallest and the
+largest level-0 indices, respectively. We add two new nodes to the tree T , connecting each of them
+to the root by an edge. One of the new nodes is labeled by interval [1, i1 − 1], and the other node
+is labeled by interval [i2 + 1, l]. So now the levels of indices on [1, i1 − 1] and [i2 + 1, l] are at least
+1. Here we do not modify the active/inactive status of the indices.
+     We now describe an iteration. We take an arbitrary leaf of the tree T whose associated interval
+contains an inactive index, and denote by I the interval associated with this leaf node. We can
+assume that all levels of I are at least 1. For each 1 ≤ L ≤ ⌈1/ε⌉, let iL                 L            L
+                                                                                      1 < i2 < · · · < ip(L) be all
+level-L indices in the interval I (so the number of level-L indices in I is p(L));        n we will ignore
+                                                                                                      o        the
+superscript L if it is clear from context. Consider the corresponding balls B(ciLa , riLa ) that host
+                                                             
+them. We say that a pair B(ciLa , riLa ), B(ciL , riL ) of balls is tight, if
+                                                      b    b
+                                                                                       
+               distHD (ciLa , ciL ) ≤ distG (ciLa , ciL ) + 3 · 2(30k−20)/ε + 10 · 210/ε · D 1−1/k .
+                                b                     b
+                                                                n            o
+and we denote by q(L) the number of pairs of balls in B(ciLa , riLa ) which are not tight. In addition,
+we define β(L) = n(L+1)ε .
+                              
+
+     We will distinguish between the following two cases.
+
+Case 1. For all 1 ≤ L ≤ ⌈1/ε⌉, p(L) ≤ max{4β(L), 2q(L)/β(L)}. In this case, we activate all
+indices i ∈ I (and along with it add the corresponding pair (si , ti ) to the set Pci and then update
+HD accordingly), and continue to the next iteration. We do not modify the tree T in this iteration.
+Note that, after this iteration, the associated interval of the leaf that we processed in this iteration
+no longer contains any inactive indices, so it will remain as a leaf in T forever.
+
+Case 2. There exists some 1 ≤ L ≤ ⌈1/ε⌉, such that p(L) > max{4β(L), 2q(L)/β(L)}. In
+this case, we activate the β(L) smallest and β(L) largest level-L indices in I (and along with it add
+the corresponding pair (si , ti ) to the set Pci and then update HD accordingly).
+    In order to describe the modification of T in this iteration, we need the following lemma.
+Lemma 3.9. There exists three level-L indices ix , iy , iz ∈ I such that:
+  (i) 1 ≤ x ≤ β(L);
+ (ii) p(L) − β(L) < y ≤ p(L);
+(iii) β(L) < z ≤ p(L) − β(L);
+                                                                                       
+ (iv) the pair (B(cix , rix ), B(ciz , riz )) and the pair B(ciy , riy ), B(ciz , riz ) of balls are both tight.
+Proof. Assume for contradiction that there do not exist such three indices. Consider now any pair
+a, b of indices such that 1 ≤ a ≤ β(L) and β(L) < b ≤ p(L) − β(L). From our assumption, for at
+least one pair of indices (iL    L         L L
+                            a , ib ) and (ib , ip(L)+1−a ), their corresponding balls are not tight. This
+implies that q(L) ≥ (p(L) − 2β(L)) · β(L). Then either p(L) < 4β(L) holds, or q(L) ≥ p(L) · β(L)/2
+holds, a contradiction of the initial assumption of Case 2.
+
+    To complete this iteration, we pick indices ix , iy , iz as in the above lemma. We then add two
+new nodes to the tree T (together with an edge connecting to the leaf) as the child nodes of this
+leaf. Denote I = [i′ , i′′ ], and we label the child nodes with intervals [i′ , ix ] and [iy , i′′ ], respectively.
+This completes the description of an iteration. See Figure 6 for an illustration.
+
+                                                        14
+                                     cix                         ciz                          ciy
+
+
+
+          i′                         ix                             iz                         iy                        i′′
+
+ activate the first β(L) level-L indices                                             activate the last β(L) level-L indices
+
+
+
+Figure 6: The distances between cix , ciz and ciy , ciz are approximately preserved in H; the orange
+segments correspond to level-L indices; a prefix and a suffix of level-L indices are activated in this
+iteration.
+
+Stretch analysis of Step 2. Consider any pair (s, t) ∈ P such that D ≤ distG (s, t) < 2D. Let
+π be the shortest path connecting s to t that was processed in Step 2. We start by showing that,
+in this iteration, the depth of the tree T that we construct is small.
+Observation 3.10. At the end of the iteration of processing π, T has depth at most ⌈1/ε⌉ + 1.
+Proof. The pre-processing step can increase the depth by at most one. From the algorithm descrip-
+tion, it is easy to observe that, as we walk down in any root-to-leaf path in T , in each step, the
+number of levels with inactive indices decreases by one. Hence, the observation follows.
+
+    We are now ready to analyze the stretch (in HD ) of pairs in P.
+Lemma 3.11. For every pair (s, t) ∈ P, distHD (s, t) ≤ distG (s, t) + 230k/ε · D 1−1/k .
+Proof. We will utilize the tree structure of T . Focus on the time when the construction of T was
+completed. For any tree node N , its height is defined to be the maximum depth of the subtree of
+T rooted at N . We first prove the following claim.
+Claim 3.12. For each non-root tree node N with height h and associated interval [i′ , i′′ ],
+
+                   distHD (ci′ , ci′′ ) ≤ distG (ci′ , ci′′ ) + 30 · (2h+1 − 1) · 2(30k−20)/ε · D 1−1/k .
+
+Proof of Claim 3.12. We prove the claim by induction on h. The base case is when h = 0 and N
+is a leaf in T . From the algorithm, for each i ∈ [i′ , i′′ ], the pair (si , ti ) is added into the set Pci .
+Similar to the proof of Claim 3.7, for each i′ ≤ i ≤ i′′ , there exists a path φi in HD , such that
+                                                                                              1−1/(k−1)
+        |φj | ≤ |αj | + 230(k−1)/ε · |αj |1−1/(k−1) ≤ |αj | + 230(k−1)/ε · 4 · 210/ε · D 1−1/k
+                                                         ≤ |αj | + 4 · 2(30k−20)/ε · D 1−2/k .
+
+Taking a summation and using Observation 3.4 (which implies that l < 3D 1/k ),
+
+                           distHD (si′ , ti′′ ) ≤ distG (si′ , ti′′ ) + 12 · 2(30k−20)/ε · D 1−1/k .
+
+By triangle inequality, we have:
+
+distHD (si′ , ti′′ ) ≥ distHD (ci′ , ci′′ )− distHD (ci′ , si′ )− distHD (ci′′ , ti′′ ) ≥ distHD (ci′ , ci′′ )− 3·210/ε D 1−1/k ,
+
+                                                               15
+   distG (si′ , ti′′ ) ≤ distG (ci′ , ci′′ ) + distG (ci′ , si′ ) + distG (ci′′ , ti′′ ) ≤ distG (ci′ , ci′′ ) + 3 · 210/ε D 1−1/k .
+Combining all three inequalities, we have:
+                                                                                           
+                   distHD (ci′ , ci′′ ) ≤ distG (ci′ , ci′′ ) + 12 · 2(30k−20)/ε + 6 · 210/ε · D 1−1/k
+                                        ≤ distG (ci′ , ci′′ ) + 18 · 2(30k−20)/ε · D 1−1/k .
+
+    Assume now that the claim is true for 1, . . . , h − 1. Consider a node N at height h with two
+children N1 , N2 associated with intervals [i′ , ix ] and [iy , i′′ ] respectively. By inductive hypothesis,
+we have:
+                 distH (ci′ , cix ) ≤ distG (ci′ , cix ) + 30 · (2h − 1) · 2(30k−20)/ε · D 1−1/k ,
+                      distH (ci′′ , ciy ) ≤ distG (ci′′ , ciy ) + 30 · (2h − 1) · 2(30k−20)/ε · D 1−1/k .
+From the algorithm, the node N may only grow two children N1 and N2 in Case 2, and in this
+case there exists an index iz such that the pairs (B(cix , rix ), B(ciz , riz )) and (B(ciy , riy ), B(ciz , riz ))
+of balls are both tight. In other words,
+                                                                                       
+                                                                (30k−20)/ε         10/ε
+                distHD (cix , ciz ) ≤ distG (cix , ciz ) + 3 · 2           + 10 · 2       D 1−1/k ,
+                                                                                         
+                   distHD (ciz , ciy ) ≤ distG (ciz , ciy ) + 3 · 2(30k−20)/ε + 10 · 210/ε D 1−1/k .
+
+The sum of the left-hand sides of the above four inequalities is at least distHD (ci′ , ci′′ ), from triangle
+inequality. For their right-hand sides, notice that:
+
+             distG (ci′ , cix ) + distG (cix , ciz ) ≤ (distG (si′ , six ) + distG (ci′ , si′ ) + distG (cix , six ))
+                                                     + (distG (six , siz ) + distG (cix , six ) + distG (ciz , siz ))
+                                                     ≤ distG (si′ , siz ) + 4 · 210/ε · D 1−1/k
+                                                     ≤ distG (ci′ , ciz ) + 6 · 210/ε · D 1−1/k .
+
+Symmetrically, we also have distG (ci′′ , ciy ) + distG (ciy , ciz ) ≤ distG (ci′′ , ciz ) + 6 · 210/ε · D 1−1/k .
+    Note that distG (ci′ , ciz ) + distG (ci′′ , ciz ) ≤ distG (ci′ , ci′′ ) + 2 · 210/ε · D 1−1/k (again by triangle
+inequality). Altogether, we get that:
+
+                    distHD (ci′ , ci′′ ) ≤ distG (ci′ , ci′′ ) + 30 · (2h+1 − 1) · 2(30k−20)/ε · D 1−1/k .
+
+
+
+    Lastly, we consider the root N0 of T . Recall that it is associated with the interval [1, l]. If there
+are no level-0 indices in [1, l], then Claim 3.12 already implies Lemma 3.11. We assume from now
+on that there are level-0 indices in [1, l]. From the algorithm, in the pre-processing step, N0 grows
+two children N1 , N2 associated with intervals [1, i1 − 1] and [i2 + 1, l], respectively, such that i1 , i2
+are the smallest and the largest level-0 indices. By definition of S, there exists v1 , v2 such that
+v1 ∈ (B(ci1 , ri1 ) ∩ S), v2 ∈ (B(ci2 , ri2 ) ∩ S). Notice that distG (v1 , v2 ) ≤ distG (si1 , si2 ) + 4 · 210/ε ·
+D 1−1/k < 2D + 4 · 210/ε · D 1−1/k . Then, from Claim 3.8, we have:
+
+                             distHD (v1 , v2 ) ≤ distG (v1 , v2 ) + 100 · 2(30k−10)/ε D 1−1/k .
+
+    Suppose N1 , N2 have height h1 , h2 ≤ ⌈1/ε⌉ respectively. By Claim 3.12,
+
+                 distHD (c1 , ci1 −1 ) ≤ distG (c1 , ci1 −1 ) + 30 · (2h1 +1 − 1) · 2(30k−20)/ε · D 1−1/k ,
+
+                                                                 16
+                distHD (cl , ci2 +1 ) ≤ distG (cl , ci2 +1 ) + 30 · (2h2 +1 − 1) · 2(30k−20)/ε · D 1−1/k .
+Taking a summation of the left-hand sides of the above three inequalities:
+               distHD (c1 , ci1 −1 ) + distHD (cl , ci2 +1 ) + distHD (v1 , v2 )
+                ≥ distHD (c1 , ci1 −1 ) + distHD (cl , ci2 +1 ) + distHD (ci1 , ci2 ) − 2 · 210/ε · D 1−1/k
+                ≥ distHD (c1 , cl ) − 8 · 210/ε · D 1−1/k
+                ≥ distHD (s, t) − 11 · 210/ε D 1−1/k .
+Taking a summation of their right-hand sides (ignoring the tails for now):
+ distG (c1 , ci1 −1 ) + distG (cl , ci2 +1 ) + distG (v1 , v2 ) ≤ distG (s, si1 −1 ) + (distG (s, c1 ) + distG (ci1 −1 , si1 ))
+                                                              + distG (t, si2 +1 ) + (distG (t, cl ) + distG (si2 +1 , ci2 ))
+                                                              + distG (si1 , si2 ) + (distG (v1 , si1 ) + distG (v2 , si2 ))
+                                                              ≤ distG (s, t) + 9 · 210/ε · D 1−1/k .
+
+Altogether, distHD (s, t) ≤ distG (s, t) + 200 · 2(30k−10)/ε D 1−1/k < distG (s, t) + 230k/ε D 1−1/k ; recall
+that we are assuming ε ∈ (0, 0.1) and so 210/ε > 200.
+
+3.4     Size analysis
+In this subsection, we complete the proof of Lemma 3.1 by showing that the spanner H constructed
+by the algorithm in this section satisfies the desired size bound. We start by proving the following
+claim.
+Claim 3.13. In the end, for each level 1 ≤ i ≤ ⌈1/ε⌉, B(c,r)∈Bi |Pc | ≤ O( ε12 2⌈1/ε⌉ n(i+1)ε |P| log n).
+                                                         P
+
+Proof. By Observation 3.6, all sets Pc P  have size O(|P|1/2 log n) before Step 2 begins. Hence, at
+the time when Step 1 finishes, we have B(c,r)∈Bi |Pc | ≤ O( 1ε n(i+1)ε |P| log n). So, we only need to
+analyze how much |Pc | has increased during Step 2.
+    Define Φi to be the number of pairs of level-i balls that are not tight. So, at the beginning of
+Step 2, we have Φi ≤ |Bi |2 ≤ O(n2(i+1)ε |P|/ε2 ) using Observation 3.5.
+    Consider the iteration in Step 2 when some pair (s, t) ∈ P was being processed, and let T be
+the binary tree constructed
+                    S        in that iteration. Let N be a node of T . If the algorithm added more
+than 4β(i) pairs to B(c,r)∈Bi Pc in the round that N was processed, then it must be through Case
+1 and N would remain
+                  S     a leaf in T till the end. Put in other way, at most 4β(i) pairs were added
+to the collection B(c,r)∈Bi Pc in processing every non-leaf node in T . Consider now a leaf node
+N of T . Using similar analysis in the proof of Claim 3.12, we can show that after the round of
+processing N , every pair of level-i balls that host some segment of the shortest path processed in
+that iteration became tight, and so Φi would S decrease by at least p(i) · β(i)/2; recall that p(i) is the
+number of pairs added to the path collection B(c,r)∈B
+                                                  P     i
+                                                          Pc . Therefore, comparing with the decrease
+in Ψi over the course of the iteration, the sum B(c,r)∈Bi |Pc | increased by at most:
+
+                                             2⌈1/ε⌉+2 · 4β(i) + 2∆Φi /β(i)
+where ∆Φi was the total decrease of Φi in this iteration. Therefore, during Step 2, the total amount
+P
+  B(c,r)∈Bi |Pc | has increased by at most:
+
+                          |P| · 2⌈1/ε⌉+2 · 4β(i) + 8|Bi |2 /β(i) = O(2⌈1/ε⌉ n(i+1)ε |P|/ε2 )
+
+
+
+                                                              17
+                                                                                                              k+1
+Lemma 3.14. In the end, the spanner HD contains at most Õ(22k/ε · n1+(10k−8)ε |P|1/2                               ) edges.
+
+Proof. For level 0, for each ball B(c, r) ∈ B0 , since Pc stays unchanged during Step 2, by Observa-
+tion 3.6, we have |Pc | ≤ O(|P|1/2 log n) at the end of the algorithm. Therefore, by the inductive
+hypothesis on sublinear additive spanners with stretch function fk−1,ε(·), the number of edges added
+to H by balls in B0 is asymptotically (up to an O(log n) factor) bounded by:
+                                                               k                           k+1
+             X
+                    22(k−1)/ε · |B(c, 4r)|1+10(k−1)ε · |Pc |1/2 ≤ Õ(22k n1+(10k−8)ε |P|1/2 ).
+            B(c,r)∈B0
+
+    For each level 1 ≤ i ≤ ⌈1/ε⌉, by the inductive hypothesis on sublinear additive spanners with
+stretch function fk−1,ε(·), the number of edges added to H by balls in Bi is asymptotically (up to
+an O(log n) factor) bounded by:
+                                                                k
+               X
+                     22(k−1)/ε · |B(c, 4r)|1+10(k−1)ε · |Pc |1/2
+              B(c,r)∈Bi
+                                            !1+10(k−1)ε
+                                n1−(i−1)ε                        X                  k
+              ≤ 22(k−1)/ε ·                                ·                |Pc |1/2
+                                 |P|1/2
+                                                               B(c,r)∈Bi
+                                                                  P                     !1/2k
+                            n1−(i−1)ε+10(k−1)ε                        B(c,r)∈Bi |Pc |
+              ≤ 22(k−1)/ε ·                    · |Bi | ·
+                                  |P|1/2                                    |Bi |
+
+                  2(k−1)/ε     n1−(i−1)ε+10(k−1)ε       (i+1)ε    1/2 2
+                                                                            
+                                                                              ⌈1/ε⌉    1/2
+                                                                                           1/2k
+              ≤2             ·                    · O(n        |P| /ε ) · Õ 2      |P|
+                                     |P|1/2
+                                                k+1
+              ≤ Õ(22k/ε · n1+(10k−8)ε |P|1/2         ).
+                                                           k
+where the second inequality uses concavity of x1/2 and Jensen’s inequality, and the third inequality
+                                                                         k
+                                                                1   1 1/2
+uses Claim 3.13, and the last inequality uses the fact that 2 ε −⌈ ε ⌉      > 1/ε2 which holds as
+k ≥ 1 and ε < 0.1. Summing over all different levels 0 ≤ i ≤ ⌈1/ε⌉, we get that |E(HD )| =
+                             k+1
+Õ(22k/ε · n1+(10k−8)ε |P|1/2 ).
+
+    From Lemma 3.14 and by summing over all D ∈ 1, 2, . . . , 2⌊log n⌋ , we get that |E(H)| ≤
+                                                          
+                               k+1                        k+1
+Õ(22k/ε · n1+(10k−8)ε · |P|1/2 ) = O(22k/ε n1+10kε |P|1/2 ), which completes the size analysis by
+induction.
+
+
+4    Almost Optimal Sublinear Additive Spanners
+In this section, we provide the proof of Theorem 1.1. In fact, we will prove the following theorem.
+
+Theorem 4.1. For any undirected unweighted graph G = (V, E) on n vertices,
+                                                                        any parameter
+                                                                                                                   1
+                                                                                                          1+10kε+ k+1
+ε ∈ (0, 0.1) and any integer k ≥ 1, there is a subgraph H ⊆ G with |E(H)| ≤ O n                                  2      −1   ,
+such that for every pair u, v ∈ V (G), distH (u, v) ≤ distG (u, v) + 230k/ε · distG (u, v)1−1/k .
+                                                                    δ
+    Note that, for any constant parameter δ > 0, if we let ε = 10k(2k+1 −1)
+                                                                            , then Theorem 4.1 gives a
+                                                                                                    1+δ
+                                                                      2 k                       1+ k+1
+sublinear spanner with stretch function f (d) = d + 2O(k 2 /δ) · d1−1/k on O(n                    2   −1   ) edges, which
+implies Theorem 1.1.
+
+
+                                                           18
+    In the remainder of this section, we provide the proof of Theorem 4.1 by induction on k, with
+the help of Lemma 3.1. The base case is when k = 1. We note that it was shown by [BKMP10] that
+any undirected unweighted graph admits an +6-additive spanner of size O(n4/3 ), and the base case
+follows from this result. Assume from now on that Theorem 4.1 is true for 1, . . . , (k − 1). Similar
+to Section 3, we denote fk,ε(d) = d + 230k/ε · d1−1/k for brevity.
+    Similar to the algorithm in Section 3, for each D ∈ 1, 2, 22 , . . . , 2⌊log n⌋ , we will construct a
+                                                           
+
+subgraph HD ⊆ G, such that for all pairs s, t ∈ V S   (G) with D ≤ distG (s, t) < 2D, distH (s, t) ≤
+distG (s, t) + O(D 1−1/k ) holds. We will then let H = 0≤i≤⌊log n⌋ H2i to finish the construction. For
+convenience, we assume that D 1−1/k is an integer2 .
+
+4.1       Algorithm description
+We now describe the construction of graph HD . We first apply the algorithm of Lemma 2.2 to G
+with parameters R = D 1−1/k and ε. Let B be the set of balls we obtain. Let Lk be a threshold
+value to be determined later. We say that a ball B(c, r) ∈ B is small if |B(c, r)| ≤ Lk , otherwise we
+say it is large.
+    Similar to the algorithm in Section 3, the spanner HD is the union of the following graphs:
+
+  (i) for each ball B(c, r) ∈ B, a BFS tree that is rooted at c and spans all vertices in G[B(c, 4r)];
+
+ (ii) for each small ball B(c, r) ∈
+                                   B, a spanner of the induced subgraph G[B(c, 4r)], with stretch
+                                                      1+10(k−1)ε+ k1
+                                                           
+         function fk−1,ε and size O |B(c, 4r)|                       2 −1   , whose existence is guaranteed by the
+         inductive hypothesis;
+
+ (iii) for each ball B(c, r) ∈ B, a pairwise spanner with respect to a collection Pc of pairs in
+                                                                                                k
+       B(c, 2r), with stretch function fk−1,ε and size O(22(k−1)/ε |B(c, 4r)|1+10(k−1)ε |Pc |1/2 ), whose
+       existence is guaranteed by the inductive hypothesis; we will guarantee that for each demand
+       pair (s, t) ∈ Pc , any s-t shortest path in G lies in the induced subgraph G[B(c, 4r)]. The
+       construction of sets Pc is iterative and described next.
+                                               l          m
+     Let S be a random subset of V of size 10n   Lk log n   , so with high probability, S intersects all
+large balls in B. We then compute Π = {πs,t | s, t ∈ S, distG (s, t) < 2D + 4 · 210/ε D 1−1/k }, where
+πs,t is an s-t shortest path in G. We now proceed to iteratively construct the sets {Pc } of pairs.
+Throughout, we maintain, for each large ball B(c, r) ∈ B, a set Pc of pairs of vertices in B(c, 2r),
+and another set Uc of vertices in V which intuitively contains all vertices that are “settled with the
+ball B(c, r)”.
+     We then process all paths in Π sequentially in an arbitrary order. For each path πs,t ∈ Π, we
+first apply the subroutine PathPartition to it and the collection B of balls, and obtain a partitioning
+πs,t = α1 ◦ α2 ◦ · · · ◦ αl . For each 1 ≤ i ≤ l, we denote by B(ci , ri ) the ball that hosts the subpath
+αi .
+     If either all the balls B(c1 , r1 ), B(c2 , r2 ), . . . , B(cl , rl ) are small, or there exists a large ball B(ci , ri )
+such that s, t ∈ Uci , then we do nothing and move on to the next path in Π. Otherwise, for each
+large ball B(ci , ri ), we add vertices s, t to set Uci , and add the pair (si , ti ) to set Pc . This completes
+the description of the construction of sets {Pc }, and also finishes the description of the algorithm.
+     Before we proceed to the size and stretch analysis, we prove the following simple observation.
+                                                                                           l          m
+Observation 4.2. In the end, for each ball B(c, r) ∈ B, |Pc | ≤ |S| = 10n                    Lk log n   .
+                                       j      k
+   2
+       Our computation will in fact use D1−1/k . For notational convenience we omit it and just write D1−1/k instead.
+
+
+                                                             19
+                                        m pair is added to Pc , |Uc | also increases by at least one.
+Proof. By the algorithm, eachl time a new
+                                10n
+Therefore |Pc | ≤ |Uc | ≤ |S| = Lk log n .
+
+4.2    Stretch analysis
+The stretch analysis of the algorithm in Section 4 is quite similar to the Step 1 stretch analysis in
+Section 3 (Claim 3.7 and Claim 3.8). We start with the following claims.
+
+Claim 4.3. In the end, for each large ball B(c, r) ∈ B and each vertex s ∈ Uc ,
+
+                               distHD (s, c) ≤ distG (s, c) + 50 · 2(30k−10)/ε D 1−1/k .
+
+Proof. Assume that the shortest path πs,t was being processed when s was added to Uc , and that
+B(c, r) was B(ci , ri ) under the notation of the subroutine PathPartition. Next, we will construct a
+short path from s to c in HD . For each 1 ≤ j < i, consider the shortest path αj = π[sj , tj ] and the
+ball B(cj , rj ). By Observation 3.4, αj lies entirely within G[B(cj , 4rj )]. Let φj be a shortest path
+from sj to tj in HD . We distinguish between the following cases.
+
+• B(cj , rj ) is small.
+  Recall that graph HD contains a sublinear spanner of the induced subgraph G[B(cj , 4rj )] with
+  stretch function fk−1,ε . Therefore,
+                                                                                               1−1/(k−1)
+         |φj | ≤ |αj | + 230(k−1)/ε · |αj |1−1/(k−1) ≤ |αj | + 230(k−1)/ε · 4 · 210/ε · D 1−1/k
+                                                          ≤ |αj | + 4 · 2(30k−20)/ε D 1−2/k .
+
+• B(cj , rj ) is large.
+  From the algorithm description, the pair (sj , tj ) was added to set Pc in this iteration, and αj is
+  contained entirely within G[B(cj , 4rj )] (from Observation 3.4). Therefore,
+
+                                 |φj | ≤ fk−1,ε(|αj |) ≤ |αj | + 4 · 2(30k−20)/ε D 1−2/k .
+
+   As ti−1 = si ∈ B(ci , ri ) holds for every 1 ≤ j < i, we have distG (c, ti−1 ) ≤ r ≤ 210/ε D 1−1/k , and
+therefore
+              Xi−1          i−1 
+                            X                                    Xi−1
+                   |φj | ≤       |αj | + 4 · 2(30k−20)/ε D 1−2/k ≤     |αj | + Oε (D 1−1/k )
+                  j=1           j=1                                           j=1
+
+                             ≤ distG (s, c) + distG (c, ti−1 ) + i · 4 · 2(30k−20)/ε D 1−2/k
+                             < distG (s, c) + 49 · 2(30k−10)/ε D 1−1/k .
+Finally, we let φi be an arbitrary shortest path connecting ti−1 to c in HD . Since HD contains a
+breadth-first search tree rooted at c that spans all vertices in B(c, 4r), |φi | ≤ 4r ≤ 4 · 210/ε D 1−1/k .
+Therefore, ρ = φ1 ◦ φ2 ◦ · · · ◦ φi is a path in HD that connects s and c, and moreover,
+                                            i
+                                            X
+                          distHD (s, c) ≤         |φj | ≤ distG (s, c) + 50 · 2(30k−10)/ε D 1−1/k .
+                                            j=1
+
+
+
+
+                                                              20
+Claim 4.4. For any pair of vertices s, t ∈ S such that distG (s, t) < 2D + 4 · 210/ε D 1−1/k ,
+
+                              distHD (s, t) ≤ distG (s, t) + 101 · 2(30k−10)/ε D 1−1/k .
+
+Proof. For any such pair of vertices s, t ∈ S, consider the moment when the shortest path πs,t ∈ Π
+was processed and partitioned into α1 , . . . , αl . We distinguish between the following two cases.
+• There existed an index 1 ≤ i ≤ l such that s, t ∈ Uci at the moment.
+  In this case, by Claim 4.3, distHD (s, ci ) ≤ distG (s, ci ) + 50 · 2(30k−10)/ε D 1−1/k , and distHD (ci , t) ≤
+  distG (ci , t) + 50 · 2(30k−10)/ε D 1−1/k . By triangle inequality,
+
+           distG (s, ci ) + distG (ci , t) ≤ (distG (s, si ) + distG (si , ci )) + (distG (si , t) + distG (si , ci ))
+                                          ≤ distG (s, t) + 2 · 210/ε D 1−1/k .
+
+  Therefore, distHD (s, t) ≤ distHD (s, ci ) + distHD (ci , t) ≤ distG (s, t) + 101 · 2(30k−10)/ε D 1−1/k .
+
+• There did not exist any i such that s, t ∈ Uci at the moment.
+  In this case, for each 1 ≤ j ≤ l, the pair (sj , tj ) is added to the set Pcj after this iteration.
+  According to the algorithm, in the resulting graph HD , for each 1 ≤ i ≤ l, there is a path φi in
+  HD between si , ti such that |φi | ≤ |αi | + 4 · 2(30k−20)/ε D 1−2/k . By Observation 3.4,
+                                             l
+                                             X               l 
+                                                             X                                  
+                           distHD (s, t) ≤         |φi | ≤      |αi | + 4 · 2(30k−20)/ε D 1−2/k
+                                             i=1             i=1
+                                          ≤ distG (s, t) + 48 · 2(30k−10)/ε D 1−1/k .
+
+
+
+   In the following lemma, we complete the analysis of stretch of the graph HD on pairs of vertices
+in G at distance at most 2D.
+Lemma 4.5. For any pair of vertices s, t ∈ V such that distG (s, t) < 2D, we have:
+
+                                    distHD (s, t) ≤ distG (s, t) + 230k/ε D 1−1/k .
+
+Proof. Let π be an s-t shortest path. We apply the subroutine PathPartition to path π and the set
+B of balls and obtain a partition π = α1 ◦ α2 ◦ · · · ◦ αl and balls B(c1 , r1 ), B(c2 , r2 ), . . . , B(cl , rl ). If
+all these balls are small, note that for each 1 ≤ i ≤ l, the subpath αi lies entirely in G[B(ri , ri )], so
+there exists a path φi in HD , such that
+                                                                                              1−1/(k−1)
+        |φi | ≤ |αi | + 230(k−1)/ε · |αi |1−1/(k−1) ≤ |αi | + 230(k−1)/ε · 4 · 210/ε · D 1−1/k
+                                                       ≤ |αi | + 4 · 2(30k−20)/ε D 1−2/k .
+          l      m
+             |π|
+Since l ≤ D1−1/k   < 2D 1/k +1 < 3D 1/k , we get that distHD (s, t) ≤ distG (s, t)+12·2(30k−20)ε D 1−1/k .
+    Assume from now on that, some ball among B(c1 , r1 ), B(c2 , r2 ), . . . , B(cl , rl ) is large. Let 1 ≤
+x ≤ l be the smallest index of a large ball, and let 1 ≤ y ≤ l be the largest index of a large ball.
+By the hitting set property, there exist u, v ∈ S such that u ∈ B(cx , rx ), v ∈ B(cy , ry ). By triangle
+inequality,
+
+            distG (u, v) ≤ distG (cx , cy ) + distG (cx , u) + distG (cy , v) < 2D + 4 · 210/ε D 1−1/k .
+
+                                                               21
+From Claim 4.4, distHD (u, v) ≤ distG (u, v) + 101 · 2(30k−10)/ε D 1−1/k .
+   For each j ∈ [1, x) ∪ (y, l], since B(cj , rj ) is small, there is a path φj in HD connecting sj to tj ,
+such that
+               |φj | ≤ |αj | + 230(k−1)/ε · |αj |1−1/(k−1) ≤ |αj | + 4 · 2(30k−20)/ε D 1−2/k .
+Then,
+             distHD (s, u) + distHD (v, t) ≤ distG (s, u) + distG (v, t) + 12 · 2(30k−10)/ε D 1−1/k .
+Finally, by triangle inequality,
+             distHD (s, t) ≤ distG (s, u) + distG (u, v) + distG (v, t) + 113 · 2(30k−10)/ε D 1−1/k
+                                  ≤ (distG (s, sx ) + distG (sx , u))
+                                  + (distG (sx , sy ) + distG (sx , u) + distG (sy , v))
+                                  + (distG (sy , t) + distG (v, sy )) + 113 · 2(30k−10)/ε D 1−1/k
+                                  ≤ distG (s, t) + 8 · 210/ε D 1−1/k + 113 · 2(30k−10)/ε D 1−1/k
+                                  ≤ distG (s, t) + 230k/ε D 1−1/k .
+
+
+
+4.3     Size analysis
+From the algorithm, the edge set of HD contains three types of edges that are calculated below.
+(1) For each ball B(c, r) ∈ B, graph HD contains a BFSPtree Tc that is rooted at c and spans all
+                                            |E(Tc )| = |B(c, 4r)| = O(n1+ε /ε).
+                                          P
+    vertices in B(c, 4r). From Lemma 2.2,
+(2) For each small ball B(c, r) ∈ B, graph HD contains a sublinear additive spanner of the subgraph
+                                                                                                            1
+                                                                                              1+10(k−1)ε+
+      G[B(c, 4r)] with stretch function fk−1,ε , which contains O(|B(c, 4r)|       2k −1 ) edges by
+
+      inductive hypothesis. Summing over all small balls, the number of edges in these spanners is
+      at most (ignoring constant factors):
+                                                                                                   1
+                                      X                    1+10(k−1)ε+ k1                         k
+                                                  |B(c, 4r)|            2 −1   ≤ n1+(10k−5)ε · Lk2 −1 .
+                                B(c,r) is small
+
+(3) For each large ball B(c, r) ∈ B, graph HD contains a pairwise sublinear additive spanner of the
+    induced subgraph G[B(c, 4r)] with respect to the set Pc of pairs, with stretch function fk−1,ε .
+    By Lemma 3.1 and Observation 4.2, the number of edges in such a spanner is at most
+                                                                   1!
+                                      2k/ε           1+10(k−1)ε    n 2k
+                                Õ 2       |B(c, 4r)|           ·       .
+                                                                   Lk
+
+      Summing over all large balls, the number of edges in all these spanners is at most
+                                                              
+                                                          1k                            1k
+                  X
+                            2k/ε           1+10(k−1)ε    n  2
+                                                                    2k/ε   1+(10k−5)ε    n 2
+          Õ              2     |B(c, 4r)|           ·        ≤2       n            ·        .
+                                                         Lk                              Lk
+                 B(c,r) is large
+
+                              2k −1
+    Setting Lk = n 2k+1 −1 , the total number of edges over all the above types is at most O(22k/ε ·
+                1
+  1+(10k−5)ε+ k+1
+                                                 1, 2, . . . , 2⌈log n⌉ , we can conclude that |E(H)| ≤
+                                                
+n            2    −1 ). Summing over all D ∈
+                1
+      1+10kε+ k+1
+O(n          2      −1   ).
+
+                                                                22
+5     Subset Additive Spanners
+In this section, we prove the following lemma, which will serve as a building block for Theorem 1.2.
+For a graph G = (V, E), a subgraph H ⊆ G and a subset U ⊆ V , we say that H is a subset spanner
+of G on U with additive error f (n), if for every pair u, u′ ∈ U , distH (u, u′ ) ≤ distG (u, u′ ) + f (n).
+
+Lemma 5.1. For any ε > 0, there is an algorithm that, given an unweighted undirected   graph G on
+n vertices and m edges, and a subset U ⊆ V (G), in time O m |U | + 2O(1/ε) , computes a subset
+                                                                             
+
+spanner H of G on U with additive stretch O(|U |3/2 · nε ), such that |E(H)| = O 2O(1/ε) · n log n .
+                                                                                                  
+
+Remark 5.2. If we do not care about the runtime constraint, then the size of E(H) can be made
+2O(1/ε) n by replacing Lemma 2.2 with the original Lemma 13 from [BW21].
+
+5.1   Algorithm description
+We now describe the algorithm for Lemma 5.1. We first slightly perturb the (unit) weight of each
+edge, such that in the resulting graph, there is a unique shortest path between every pair of
+vertices. When calculating their distances, we ignore this perturbation. It is easy to verify that
+any subset spanner of this resulting graph immediately gives a subset spanner of the original graph
+with the same stretch function. We rename the resulting graph by G.
+    We now describe the algorithm
+                               3/2 for constructing H. We first apply the algorithm  from Lemma 2.2
+                                                                               10
+to G with parameter R = |U |           while replacing ε in Lemma 2.2 with ε log n , and obtain a set B
+                                                                                 2
+                      10/ε  · m log n . Classify balls in B as two categories: (Small) |B(c, r)| ≤ |U |2 ,
+                                     
+of balls in time O 2
+(Large) |B(c, r)| > |U |2 .
+    For each ball B(c, r) ∈ B, we compute a BFS tree P    Tc that is rooted
+                                                                        P at c and spans all vertices in
+B(c, 4r), in time O(vol(B(c, 4r))). From Lemma 2.2, c |E(Tc )| = c |B(c, 4r)| = O 210/ε n log n .
+                                                                                                       
+
+
+Handling small balls. Consider a small ball B(c, r) ∈ B. From Lemma 2.1, we can compute
+in time O(vol(B(c, 4r))) an integer d ∈ [r, 2r] such that |B= (c, d) ∪ B= (c, d + 1)| ≤ 2|B(c, 4r)|/r ≤
+2|B(c, 4r)|/R. Further, denote:
+
+                                 B1 = {B(c, d) | B(c, r) ∈ B is small}.
+
+   We then apply the algorithm from Corollary 2.5 to the induced subgraph G[B(c, 4r)]    S with
+     =          =
+S = B (c, d) ∪ B (c, d + 1), and obtain a collection Πc of shortest paths. We define Lc = π∈Πc π.
+From Corollary 2.5 and Lemma 2.2,
+                                                                                !
+                                                                     |B(c, 4r)| 2
+                  X              X                                 
+                                                     p
+                      |E(Lc )| =    O |B(c, 4r)| + |B(c, 4r)| ·
+                   c              c
+                                                                         R
+                                 X
+                               =    O(215/ε |B(c, 4r)|) = O(225/ε n log n).
+                                    c
+
+
+Handling large balls. We first apply the algorithm from Corollary 2.5 to G with S = U , and
+obtain a collection Π of shortest paths connecting pairs of U . We will then iteratively construct,
+for each large ball B(c, r), a set Uc ⊆ U of vertices. Initially, all sets Uc are empty.
+    We then process all paths in Π sequentially in an arbitrary order. Consider any path πs,t ∈ Π
+from s to t. Then, the algorithm consists of the following steps.
+
+
+
+                                                    23
+(1) Recall that a vertex is covered by B1 if it is contained in some ball in B1 . We first compute the
+    set Σ of all maximal subpaths of πs,t consisting of only vertices covered by B1 , and let Σ′ be
+    the collection of subpaths of πs,t obtained by removing all edges of paths in Σ.
+
+(2) Go over each vertex x on πs,t . Find an arbitrary ball B(cx , rx ) ∋ x. If B(cx , rx ) is large and
+    s, t ∈ Ucx , then we abort and continue on to the next path in Π.
+
+(3) Otherwise, add all paths in Σ′ to the final spanner H, and add s, t to Ucx for each x on πs,t
+    where B(cx , rx ) is large.
+
+5.2     Stretch analysis
+We now show that the graph H obtained by the above algorithm satisfies the properties required
+in Lemma 5.1. Recall that the balls in B were obtained by applying the algorithm from Lemma 2.2
+                                                   10
+to graph G with parameters R = |U |3/2 and ε log
+                                          
+                                                      n . Note that, from Lemma 2.2, the radius of
+                                                                  2
+                                            10
+                                    10/( ε log   )
+each ball in B is at most R · 2              2 n
+                                                     ≤ Rnε , so the radius (diameter, resp) of every ball B(c, 2r)
+is at most 2Rnε (4Rnε , resp).
+
+Definition 5.1. A vertex v is covered at boundary by B1 , if v belongs to the boundary of every
+ball in B1 that contains v.
+
+Claim 5.3. Let s, t be a pair of vertices such that all vertices on the shortest path between them
+are covered by B1 . Then distH (s, t) ≤ distG (s, t) + 8nε · R. Furthermore, if both s and t are covered
+at boundary by B1 , then distH (s, t) = distG (s, t).
+
+Proof. Let π be the shortest path π from s to t such that all vertices in π are covered by B1 . We first
+compute two sequences (u0 , u1 , u2 , . . . , ul−1 ), (v0 , v1 , v2 , . . . , vl−1 ) of vertices in π, such that vertices
+v0 = u0 = s, v1 , u1 , . . . , vl−1 , ul−1 appear on path π from in the direction from s to t in this order,
+and a sequence (B(c1 , r1 ), B(c2 , r2 ), . . . , B(cl , rl )) of small balls in B, such that v0 ∈ B(c1 , d1 ), and
+for all 1 ≤ i ≤ l − 1, vi ∈ B= (ci+1 , di+1 ), ui ∈ B= (ci , di + 1); recall that integers di were computed
+by Lemma 2.1. See Figure 7 for an illustration.
+    This is done via an iterative process described as the following steps.
+
+(1) Start with i = 0 and set u0 = v0 = s. If ui = t then we terminate the process and set l = i + 1.
+      Otherwise, we find the ball in B1 that, among all balls in B1 that intersects π[s, ui ], the one
+      that contains a vertex on π that is closest to t. In other words, if we denote π as (s =
+      w0 , w1 , . . . , wk−1 , wk = t), then we find the ball that intersects π[s, ui ], and, subject to this,
+      contains a vertex wj with the largest index.
+      Note that such a ball always exists; for example, we can take an arbitrary ball in B1 that
+      contains ui , and we can also notice that ui+1 should belong to π(ui , t].
+      We denote this ball by B(ci+1 , di+1 ) and set ui+1 as the last vertex of π that belongs to
+      B(ci+1 , di+1 + 1).
+
+(2) If i ≥ 1, we then let vi be any vertex that belongs to both π[ui−1 , ui ] and B= (ci+1 , di+1 ). We
+    will prove shortly that such vi always exists.
+      Then, increase i ← i + 1 and go to Step (1).
+
+    We now turn to argue the existence of vi .
+
+
+                                                             24
+  B(c1 , d1 + 1)    B(c2 , d2 + 1)       B(c3 , d3 + 1)                      B(cl−1 , dl−1 + 1)      B(cl , dl + 1)
+
+
+
+             s     v1 u 1          v2 u2             u3                             ul−2           ul−1 t
+
+                                                                             vl−2           vl−1
+
+
+
+
+                                    d3            d3 +
+                                            c3            1
+
+                              v2                              u3
+
+
+
+
+              Figure 7: The construction of sequences u1 , u2 , . . . , ul and v1 , v2 , . . . , vl−1 .
+
+
+Claim 5.4. For each i ≥ 1, π[ui−1 , ui ] intersects with B= (ci+1 , di+1 ), and if ui+1 6= t, then ui+1 ∈
+B= (ci+1 , di+1 + 1).
+
+Proof of claim. First, if π[s, ui ] does not intersect B= (ci+1 , di+1 ), as π[s, ui ] intersects B(ci+1 , di+1 ),
+it has to lie entirely within B(ci+1 , di+1 ), a contradiction to the choice of B(c1 , d1 ) and u1 . Therefore,
+π[s, ui ] intersect B= (ci+1 , di+1 ).
+    We now claim any such intersection vi must belong to π[ui−1 , ui ]. Otherwise, if vi belongs to
+π[uj−1 , uj ] for some index 1 ≤ j < i, then earlier when we were determining uj+1 , it should have
+been at least as close to t as ui+1 , a contradiction to the property that ui ∈ (uj , t].
+    Lastly, if ui+1 ∈ B(ci+1 , di+1 ), then the next vertex on path π should also belong to B(ci+1 , di+1 +
+1), a contradiction to the choice of ui+1 .
+
+    It is clear that when the iterative process terminates, ul = t. We now show that for each 2 ≤ i ≤
+l − 1, the subpath π[vi−1 , ui ] is contained in H. Note that vi−1 ∈ B= (ci , di ) and ui ∈ B= (ci , di + 1).
+Since B(ci , ri ) is small, from the algorithm, we have constructed a subgraph Lc in G[B(ci , 4ri )] that
+preserves all-pairs distances between vertices in B= (ci , di ) ∪ B= (ci , di + 1). As the shortest path
+between every pair of vertices is unique, the subpath π[vi−1 , ui ] should be entirely contained in Lc .
+    Lastly, we consider the distance in H between the endpoints s, t of π. From the construction, we
+know that vertices s, u1 ∈ B(c1 , d1 + 1), and vl−1 , t ∈ B(cl , dl + 1). Therefore, distH (s, u1 ) ≤ 4Rnε ,
+and distH (vl−1 , t) ≤ 4Rnε . It follows that distH (s, t) ≤ distG (s, t) + 8Rnε . Furthermore, if both s, t
+are covered at boundary by B1 , then s ∈ B= (c1 , d1 ) and t ∈ B= (cl , dl ). Therefore, the entire path
+π belongs to H, and so distH (s, t) = distG (s, t).
+
+   We now focus on the algorithm for handling large balls. Consider an iteration in which a
+shortest path πs,t is processed for some pair s, t ∈ U . We prove the following claims.
+
+
+                                                              25
+Claim 5.5. Let πs,t [u, v] be a maximal subpath of πs,t consisting of only vertices covered by B1 . If
+u 6= s and v 6= t, then both u, v are covered at boundary by B1 .
+Proof. Assume for contradiction that u belongs to a ball B(c, d − 1) for some small ball B(c, r) ∈ B.
+Let (w, u) be the last edge of subpath πs,t [s, u], then w ∈ B(c, d), and so w is also covered. Therefore,
+πs,t [w, v] should be a covered subpath, which contradicts the maximality of subpath πs,t [u, v].
+
+Claim 5.6. For any large ball B(c, r) and every vertex s ∈ Uc , distH (s, c) ≤ distG (s, c) + 10Rnε .
+Proof. Let πs,t be the shortest path that was processed in the iteration where s was added to Uc .
+By the algorithm, B(c, r) must be referring to some ball B(cx , rx ) for some x ∈ πs,t . As H contains
+a BFS tree that is rooted at c and contains x, and the radius of each ball is at most 2Rnε , it suffices
+to show that distH (s, x) ≤ distG (s, x) + 8Rnε .
+     Recall that path πs,t was partitioned into subpaths in sets Σ and Σ′ . From the algorithm
+description, all subpaths in Σ′ are entirely contained in H. For every subpath πs,t [y, z] of πs,t in Σ,
+if y 6= s, then from Claim 5.3 and Claim 5.5, distH (y, z) = distG (y, z); if y = s, then from Claim 5.3,
+we get that distH (y, z) ≤ distG (y, z) + 8Rnε . Since there is at most one subpath πs,t [y, z] in Σ with
+y = s, the overall additive error caused by subpaths in Σ is at most 8Rnε .
+
+Claim 5.7 (additive error). For every pair s, t ∈ U , distH (s, t) ≤ distG (s, t) + 24Rnε .
+Proof. Consider the iteration when πs,t was processed. If πs,t is entirely covered by B1 , then the
+claim follows from Claim 5.3. If not, then from the algorithm, after this iteration some large ball
+B(c, r) ∈ B intersecting πs,t must have added s, t into its set Uc . Then from Claim 5.6,
+
+                                     distH (s, c) ≤ distG (s, c) + 10Rnε ,
+
+                                      distH (c, t) ≤ distG (c, t) + 10Rnε .
+Let v be an arbitrary vertex in B(c, r) ∩ V (πs,t ). By triangle inequality,
+
+        distG (s, c) + distG (c, t) ≤ distG (s, v) + distG (v, t) + 2 · dist(v, c) ≤ distG (s, t) + 4Rnε .
+
+Altogether, distH (s, t) ≤ distG (s, t) + 24Rnε .
+
+5.3    Size and runtime analysis
+Claim 5.8 (spanner size). |E(H)| = O 2O(1/ε) · n log n .
+                                                      
+
+Proof. It suffices to bound the total number of edges added to H when handling large balls. For
+each large ball B(c, r) ∈ B, let us conceptually construct a set Πc of paths within G[B(c, 4r)] during
+handling large balls.
+    Initially, all sets Πc are empty. When processing a path πs,t ∈ Π, suppose Step (3) is executed.
+Consider the set of large balls {B(cx , rx ) | x ∈ πs,t }. For any ball B(c, r) ∈ {B(cx , rx ) | x ∈ πs,t }, let
+y, z ∈ B(c, r + 1) ∩ πs,t be the first and the last vertex on πs,t. Then, add the subpath πs,t [y, z] to
+Πc . Note that this path πs,t lies entirely in G[B(c, 4r)].
+   We
+    S
+         first show that in the end, all edges added to H for handling large balls is a subset of
+E     B(c,r)∈B is large Πc . When processing a path πs,t ∈ Π, consider any vertex x on a sub-path
+ρ ∈ Σ′ which is not an endpoint of ρ. Then, since x is not covered by B1 , any ball that covers x
+must be large, and in particular B(cx , rx ) should be large. Suppose y, z ∈ B(cx , rx + 1) are the first
+and the last vertex on πs,t. Then, πs,t [y, z] must contain all edges incident on x on ρ. Hence, the
+union of all πs,t [y, z] ranging over all x’s should contain all paths in Σ′ .
+
+                                                       26
+   Next, we show that |Πc | ≤ |U | for any c. In fact, each time we added a new path to Πc , we
+must have added s, t to Uc which increased |Uc |. Since Uc ⊆
+                                                           SU , we know that |Π    c | ≤ |U | in the end.
+   Finally, it suffices to bound the number of edges in E      B(c,r)∈B is large Πc . Using Lemma 2.4,
+we have:                                    p                
+                      E(Πc ) ≤ O |B(c, 4r)| + B(c, 4r) · |Πc | ≤ O (|B(c, 4r)|) .
+
+Hence,
+                                                                     
+                     [                            X                                            
+                                                                                O(1/ε)
+           E                      Πc  ≤ O                    |B(c, 4r)| = O 2
+                                                                                      · n log n .
+               B(c,r)∈B is large            B(c,r)∈B is large
+
+
+
+
+Claim 5.9 (runtime). The runtime of the algorithm is O m |U | + 2O(1/ε) .
+                                                                       
+
+Proof. From Lemma 2.2, computing all the balls in B takes time at most O(210/ε  Pm/ε). From Corol-
+lary 2.5, constructing graphs Lc in all small balls takes time at most O(|U |1/2 c volG (B(c, 4r))) =
+O(|U |1/2 m · 210/ε /ε), and computing the paths in Π takes time O(m|U |). As for the part with large
+balls, the runtime is dominated by scanning all shortest
+                                                        paths πs,t in Π, which takes time at most
+O(n|U |). Overall, the runtime is O m |U | + 2  O(1/ε)   .
+
+
+6     Linear-Size Additive Spanners in Sub-quadratic Time
+In this section we provide the proof of Theorem 1.2. We will first show in Section 6.1 a simple
+subquadratic time algorithm for computing an Õ(n3/7+ε ) additive spanner. Then we will slightly
+modify it to achieve better additive error bound in Section 6.2.
+
+6.1   A subquadratic time algorithm for Õ(n3/7+ε ) additive spanner
+In this subsection, we prove the following theorem, which shows that an additive spanner with the
+current best error (as in [BW21]) can be computed in subquadratic time.
+
+Theorem 6.1. There is an algorithm, that, given any undirected unweighted graph on  n vertices
+and m edges, and any parameter ε > 0, computes a spanner on O 2    O(1/ε) · n log n edges with
+Õ(n3/7+ε ) additive stretch, in time Õ m + 2O(1/ε) · n13/7 .
+                                                            
+
+Remark 6.2. If we do not care about the runtime constraint, then the spanner size can be made
+2O(1/ε) n by replacing Lemma 2.2 with the original Lemma 13 from [BW21].
+
+    We start with the following lemma for a preliminary sparsification of the input graph.
+
+Lemma 6.3. There is an algorithm, that given any graph G and parameter 1 < d < n, computes
+in Õ(m) time an +Õ(n/d) spanner G′ of G with |E(G′ )| ≤ O(nd) edges.
+
+Proof. Graph G′ is simply the union of (i) for each vertex v ∈ V (G) with degG (v) ≤ ⌈d⌉, all incident
+edges of v; and (ii) an O(log n)-multiplicative spanner of G with O(n) edges; such a multiplicative
+spanner can be computed in Õ(m) time as shown in [BS07]. Clearly, graph G′ can be computed in
+Õ(m) time.
+   Consider now any pair s, t ∈ V (G) and let π be an s-t shortest path in G. It is easy to observe
+that at most O(n/d) vertices in π have degree more than d, so the number of edges in E(π) that
+
+                                                      27
+is incident to any degree ≤ d vertex is at most O(n/d). As we have included in G′ an O(log n)-
+multiplicative spanner of G, the distance in G′ between the pair of endpoints of every such edge is
+at most O(log n). Therefore, distG′ (s, t) ≤ distG (s, t) + Õ(n/d).
+
+   We now proceed to describe our algorithm for Lemma 6.10. Similar to Section 5, we assume
+that the (unit) edge weights are slightly perturbed so that for every pair s, t there is a unique
+shortest path connecting them in G (or any subgraph that contains both s and t).
+   As a pre-processing step, if |E(G)| ≥ 10 · n2−3/7 , then we first apply the algorithm from
+Lemma 6.3 to G with d = n1−3/7 , and get graph G′ , so |E(G′ )| = O(n2−3/7 ). If |E(G)| ≤ 10·n2−3/7 ,
+then we simply set G′ = G.
+   We then apply the algorithm from Lemma 2.2 to G′ with parameter R (to be determined later)
+       10
+and ε log
+         2n , and let B be the set of balls we obtain. We say that a ball B(c, r) ∈ B is small if
+|B(c, r)| ≤ R5/3 ; otherwise we say it is large. For each ball B(c, r) ∈ B, we compute a BFS tree Tc
+that
+P is rootedP     at c and spans all vertices in B(c, 4r), in time O(vol(B(c, 4r))). From Lemma 2.2,
+    |E(T                            10/ε n log n).
+  c       c )| =  c |B(c, 4r)| = O(2
+
+
+Handling small balls. Consider a small ball B(c, r) ∈ B. From Lemma 2.1, we can compute
+in time O(vol(B(c, 4r))) an integer d ∈ [r, 2r] such that |B= (c, d) ∪ B= (c, d + 1)| ≤ 2|B(c, 4r)|/r ≤
+2|B(c, 4r)|/R. We denote B1 = {B(c, d) | B(c, r) ∈ B is small}. Then, for each small ball B(c, r),
+apply Lemma 5.1 to compute a subset spanner Lc of G′ [B(c, 4r)] on the set B= (c, d) ∪ B= (c, d + 1).
+
+Handling large balls. Choose a random subset S ⊆ V (G) of size 10R2/3 log n . We then apply
+                                                                          
+
+Lemma 5.1 to compute a subset spanner Ĥ of G′ on S.
+
+The spanner construction.            The output graph H is simply defined to be the union of
+
+    • for each ball B(c, r) ∈ B, the tree Tc ;
+
+    • for each small ball B(c, r) ∈ B, graph Lc ;
+
+    • graph Ĥ.
+
+6.1.1    Stretch analysis
+According to Lemma 6.3, in order to show that H is a +Õ(n3/7+ε ) spanner of G, it suffices to show
+that H is a +Õ(n3/7+ε ) spanner of G′ . For notational convenience, in this subsection we rename
+G′ by G. The following statement, which is a generalization of Claim 5.3, is the key to the stretch
+analysis.
+
+Claim 6.4. Let s, t be a pair of vertices in G and let π be a shortest path connecting them. Then
+there exists (i) a path φ in H connecting s to t; (ii) a sequence of balls B(c1 , r1 ), . . . , B(cl , rl ); (iii)
+two sequences of vertices (u0 = s, u1 , . . . , ul = t) and (v0 = s, v1 , . . . , vl−1 ), and two sequences of
+paths α1 , α2 , . . . , αl , β1 , β2 , . . . , βl , with the following properties.
+
+(a) Vertices u1 , u2 , . . . , ul appear on path π in this order in the direction from s to t.
+
+(b) s ∈ B(c1 , d1 ), t ∈ B(cl , dl + 1), and vi ∈ B= (ci+1 , di+1 ), ui ∈ B= (ci , di + 1), ∀1 ≤ i ≤ l − 1.
+
+(c) For each 1 ≤ i ≤ l, αi is a shortest path in H connecting vi−1 to ui that is entirely contained
+    in G[B(ci , 4ri )], and moreover, vertex vi lies on αi .
+
+
+                                                       28
+(d) For each 1 ≤ i ≤ l − 1, βi = αi [vi−1 , vi ]; and βl = αl .
+                                                                                              
+                                                                                  |B(ci ,ri )|
+(e) φ = β1 ◦ · · · ◦ βl ; and |φ| ≤ distG (s, t) + 15 · Rnε + Õ 215/ε · nε · l−1
+                                                                             P
+                                                                               i=2 R2/3         .
+
+
+  B(c1 , d1 + 1)     B(c2 , d2 + 1)         B(c3 , d3 + 1)                      B(cl−1 , dl−1 + 1)      B(cl , dl + 1)
+
+                   v1              v2                                            vl−2           vl−1
+
+                        u1                 u2               u3                       ul−2            ul−1
+           s                                                                                                  t
+
+
+
+
+                   v1     β2          v2
+                                                        α3
+                                      d3        c3
+                                                                 u3
+                                                     d3 +
+                                                            1
+
+
+
+
+Figure 8: The construction of vertex sequences u1 , u2 , . . . , ul and v1 , v2 , . . . , vl−1 ; the orange paths
+belong to the spanner H.
+
+
+Proof. Start with i = 0. Before iteration i, suppose we have already computed vertices u1 , u2 , . . . , ui ,
+and v1 , v2 , . . . , vi−1 , and paths α1 , α2 , . . . , αi , and paths β1 , β2 , . . . , βi−1 . During the algorithm, keep
+φ = β1 ◦ β2 · · · ◦ βi−1 ◦ αi . So φ is a path in H from s to ui .
+
+(1) If ui = t then we terminate the process and let l = i.
+     Otherwise, find the ball in B1 that, among all balls in B1 that intersects with φ, the one that
+     contains a vertex on π that is closest to t. Note that this ball always exists; for example we
+     can pick an arbitrary one that contains ui .
+     We denote this ball by B(ci+1 , di+1 ) and set ui+1 as the last vertex of π that belongs to
+     B(ci+1 , di+1 + 1).
+
+(2) Next, if i = 0, then let α1 be the shortest path in H from s = v0 to u1 .
+     If i ≥ 1, we then let vi be any vertex that belongs to both αi and B= (ci+1 , di+1 ), and let αi+1
+     be the shortest path from vi to ui+1 in H. Then, define αi+1 to be the shortest path from vi
+     to ui+1 , and βi = αi [vi−1 , vi ]. We will prove shortly the existence of vi .
+     Finally, increase i ← i + 1 and go to Step (1).
+
+    We now argue the existence of vi .
+
+
+                                                                 29
+Claim 6.5. For each i ≥ 1, φ intersects with B= (ci+1 , di+1 ), and the intersection point vi must
+belong to αi . Also, if ui+1 6= t, then ui+1 ∈ B= (ci+1 , di+1 + 1).
+
+Proof of Claim 6.5. First, if φ does not intersect B= (ci+1 , di+1 ), then as φ already intersects with
+B(ci+1 , di+1 ), the path should lie entirely within B(ci+1 , di+1 ), a contradiction with the choice of
+B(c1 , d1 ) and u1 . Therefore, there exists a vertex vi which is an intersection of φ and B= (ci+1 , di+1 ).
+   Second, if vi does not belong to αi but instead belongs to sub-path βj for some index j < i,
+then in an earlier iteration when we were determining uj+1 , uj+1 should be at least as close to t as
+ui+1 , which contradicts the fact that ui+1 ∈ π(uj+1 , t].
+   Third, if ui+1 6= t, while ui+1 ∈ B(ci+1 , di+1 ), then the next vertex of π should also belong to
+B(ci+1 , di+1 + 1), a contradiction to the fact that ui+1 is the closest vertex to t.
+
+   It is easy to verify that properties (a)-(d) hold from the above iterative process. It remains to
+prove property (e), which we do in the next claim.
+Claim 6.6. For each 2 ≤ i ≤ l − 1, |βi | ≤ 5Rnε , and
+                                                                                                               
+                                                                                    15/ε      ε |B(ci , ri )|
+            |βi | ≤ |π[ui−1 , ui ]| + |αi−1 [vi−1 , ui−1 ]| − |αi [vi , ui ]| + Õ 2       ·n ·                     .
+                                                                                                  R2/3
+Proof of Claim 6.6. As the radius of G[B(ci , ri )] is at most Rnε , distH (vi−1 , ui ) ≤ 5Rnε .
+   From the iterative process, vi−1 , ui ∈ B= (ci , di ) ∪ B= (ci , di + 1). If the ball B(ci , ri ) is small,
+then by the construction of subset spanners,
+                                                                                          !
+                                                                   |B(ci , 4ri )| 3/2 ε
+                                                                                 
+                  distH (vi−1 , ui ) ≤ distG (vi−1 , ui ) + Õ                         ·n
+                                                                         R
+                                                                                        
+                                                                 |B(ci , ri )| 15/ε ε
+                                     ≤ distG (vi−1 , ui ) + Õ                · 2    · n   .
+                                                                    R2/3
+
+If B(ci , ri ) is large, then by definition, |B(ci , ri )| ≥ R5/3 , and therefore,
+                                                                                 
+                                                                 |B(ci , ri )| ε
+                               distH (vi−1 , ui ) ≤ 5Rnε ≤ Õ                 · n   .
+                                                                    R2/3
+   Finally, as distH (vi−1 , ui ) = |βi | + |αi [vi , ui ]|, distG (vi−1 , ui ) ≤ |π[ui−1 , ui ]| + |αi−1 [vi−1 , ui−1 ]|.
+The claim now follows by rearranging the terms to yield the inequality.
+
+   Summing all 2 ≤ i ≤ l − 1 for the above claim, and note that |β0 |, |βl | ≤ 5Rnε , |α1 | ≤ 5 · 5Rnε .
+Property (e) now follows.
+
+    Eventually, we are ready to analyze the additive error of any pairs of vertices in V .
+Claim 6.7 (additive error). For every s, t ∈ V , distH (s, t) ≤ distG (s, t) + Õ(Rnε ) + Õ(n1+ε /R4/3 ).
+Proof. Let π be a shortest path between s, t in G. We apply the algorithm from Claim 6.4 to π,
+and obtain a path φ as well as all the other auxiliary sequences, such that:
+                                                                   l−1
+                                                                                   !
+                                                                   X   |B(c ,
+                                                                           i ir )|
+                   |φ| ≤ distG (s, t) + 15 · Rnε + Õ 215/ε · nε ·         2/3
+                                                                                     .
+                                                                   i=2
+                                                                         R
+
+If li=1 |B(ci , ri )| ≤ n/R2/3 , then we are done. Otherwise, let a be the smallest index such that
+  P
+Pa                        2/3 , and let b be the largest index such that
+                                                                         Pl                       2/3 . Then,
+  i=1 |B(ci , ri )| > n/R                                                 i=b |B(ci , ri )| > n/R
+
+
+                                                            30
+by construction of S, with high probability, there exist indices 1 ≤ x ≤ a, b ≤ y ≤ l such that
+B(cx , rx ) ∩ S 6= ∅, B(cy , ry ) ∩ S 6= ∅; we can assume x ≤ y by selecting the smallest choice of x and
+the largest choice of y. Take two vertices s1 ∈ B(cx , rx ) ∩ S and s2 ∈ B(cy , ry ) ∩ S. Since H contains
+a subset spanner Ĥ on S,
+
+                distH (s1 , s2 ) ≤ distG (s1 , s2 ) + Õ(|S|3/2 nε ) ≤ distG (s1 , s2 ) + Õ(Rnε )
+                               ≤ distG (ux , uy ) + distG (ux , s1 ) + distG (uy , s2 ) + Õ(Rnε )
+                               ≤ distG (ux , uy ) + Õ(Rnε ).
+
+   Using similar arguments in the proof of Claim 6.4, we can show that:
+                                                                                 x−1
+                                                                                                     !
+                                                                                 X   |B(ci , ri )|
+                distH (s, ux ) ≤ distG (s, ux ) + 15 · Rnε +      215/ε · nε ·                           ,
+                                                                                 i=2
+                                                                                         R2/3
+                                                                                                    
+                                                                                 l−1
+                                                                                 X   |B(ci , ri )|
+               distH (uy , t) ≤ distG (uy , t) + 15 · Rnε + 215/ε · nε ·                            .
+                                                                              i=y+1
+                                                                                         R2/3
+
+Summing over all three inequalities completes the proof.
+
+   Setting R = n3/7 , the above claim implies that the additive error of H is Õ(n3/7+ε ).
+                   
+
+
+6.1.2   Size and runtime analysis
+Claim 6.8 (spanner size). |E(H)| = 2O(1/ε) · n log n.
+
+Proof. From
+        P Lemma 5.1,       each subset spanner Lc within G[B(c, 4r)] contains 2O(1/ε) |B(c, 4r)| edges,
+and so c |E(Lc )| = 2    O(1/ε) · 2O(1/ε) n log n = 2O(1/ε) n log n. Similarly, the global subset spanner
+Ĥ satisfies that |E(Ĥ)| = 2O(1/ε) n log n. Additionally, c |E(Tc )| = c |B(c, 4r)| = 2O(1/ε) n log n
+                                                              P             P
+edges. Altogether, we get that |E(H)| = 2O(1/ε) · n log n.
+
+Claim 6.9 (runtime). The runtime of the algorithm is Õ(m + |E(G′ )| · 2O(1/ε) · R2/3 ).
+
+Proof. The runtime for computing G′ is Õ(m). From Lemma 2.2, the set B of balls can be computed
+in time 2O(1/ε) · |E(G′ )|. The runtime for computing BFS trees within balls in B is 2O(1/ε) · |E(G′ )|.
+From Lemma 5.1, the runtime for computing subset spanners within small balls is at most
+     X                       
+                                          2|B(c, 4r)|
+                                                       X                                      
+                                 O(1/ε)                                            O(1/ε)    2/3
+        O volG′ (B(c, 4r)) · 2          +               ≤   O volG′ (B(c, 4r)) · 2        ·R
+      c
+                                              R           c
+                                                               ≤ m · 2O(1/ε) · R2/3 .
+
+The claim now follows.
+
+   Since we set R = n3/7 , the above claim implies that the runtime of the algorithm for computing
+                          
+
+H is Õ(m + 2O(1/ε) · n13/7 ), as |E(G′ )| = O(n11/7 ).
+
+
+
+
+                                                        31
+6.2    Completing the proof of Theorem 1.2
+In this subsection, we complete the proof of Theorem 1.2 by slightly modifying the algorithm in
+Section 6.1 and applying the lemma and the algorithm recursively. Specifically, we first prove the
+following lemma.
+                          2/3−ρ
+Lemma 6.10. Let f (ρ) = 4−(19/6)ρ be a function. If there is an algorithm Alg, that given any
+graph G on n vertices and m edges, in time Õ(m + nγ ) computes an +O(nρ ) spanner of G with at
+most Cn edges, such that γ ≥ 1 + (3/2)f (ρ)(1−ρ)
+                                     3/2−ρ       , then for any parameter ε > 0, there is an algorithm
+Alg′ , that given any graph G′ on n vertices and m edges, in time Õ(m + 2O(γ/ε) nγ ) computes an
++O(nε+f (ρ) ) spanner of G′ with 2O(1/ε) · Cn · log n edges.
+
+Remark 6.11. If we do not care about the runtime constraint, then the spanner size of G′ can
+be made O 2O(1/ε) Cn (that is, without the logarithmic factor) by replacing Lemma 2.2 with the
+original Lemma 13 from [BW21].
+
+     We now use Lemma 6.10 to prove Theorem 1.2. We set ε > 0 as a small enough constant. Note
+that Theorem 6.1 in fact gives an algorithm with parameter (γ = 13/7, ρ = 3/7+0.1, C = O(1)) and
+we denote it by Alg0 . We then apply Lemma 6.10 with Alg = Alg0 , and denote by Alg1 the algorithm
+that it produces, so Alg1 has produce an +O(nε+f (ρ) ) spanner. Note that the invariant           √
+                                                                                                           point ρ∗
+                                                     ∗                   ∗     ∗         ∗    15− 54
+of the mapping f (i.e., the value of 0 < ρ < 1 such that f (ρ ) = ρ ) is ρ = 19 = 0.4027....
+We then iteratively apply Lemma 6.10 for K times (where K is a large enough constant such that
+f (f (· · · f (3/7 + 0.1 + ε) · · · ) + ε) + ε < 0.403), and get algorithms Alg2 , . . . , AlgK . It is not hard to
+verify that the property γ ≥ 1 + (3/2)f         (ρ)(1−ρ)
+                                              3/2−ρ      always holds. Eventually, AlgK is the algorithm that
+we return. Note that the additive error of the spanner it produces is +O(n0.403 ), the running time
+is Õ(m + n13/7 · 2O((13/7)·(K/ε)) ), which is Õ(m + n13/7 ) as 1/ε and K are both constants, and the
+size of the spanner it produces is 2O((13/7)·(K/ε)) · Cn logO(K) n = Õ(n).
+     We now sketch the proof of Lemma 6.10, highlighting the difference between the algorithm here
+and the algorithm in Section 6.1.
+
+Proof Sketch of Lemma 6.10. The algorithm for Lemma 6.10 is very similar to the algorithm for
+Theorem 6.1, except for (i) an extra Step 4 below, which is a recursive call of an additive spanner
+algorithm; and (ii) more fine-grained tuning of parameters. We define the function g(ρ) = (3/2)·f (ρ)
+                                                                                            (3/2−ρ) .
+
+
+Step 1.    Sparsify G to get G′ ⊆ G using Lemma 6.3 with d = O(n1−f (ρ) ) and |E(G′ )| = O(n2−f (ρ) ).
+
+                                                                                    ε
+Step 2. Compute a set B of balls using Lemma 2.2 with parameters R = nf (ρ) and 10 log
+                                                                           
+                                                                                       n . We
+                                         g(ρ)
+say that a ball is small if |B(c, r)| ≤ n , otherwise we say it is large.
+
+Step 3. For each small ball B(c, r), we apply Lemma 2.1 to compute an integer d ∈ [r, 2r] such
+that |B= (c, d)∪ B= (c, d+ 1)| ≤ 2|B(c, 4r)|/r ≤ 2|B(c, 4r)|/R, and then apply Lemma 5.1 to compute
+a subset spanner Lc of G′ [B(c, 4r)] on the set B= (c, d) ∪ B= (c, d + 1).
+
+Step 4. For each large ball B(c, r), we apply the algorithm Alg to compute a spanner of G′ [B(c, 4r)]
+with error +O(|B(c, r)|ρ ), that we denote by Lc .
+
+
+
+
+                                                        32
+Step 5. Sample a random subset S ⊆ V (G) of 10R2/3 log n vertices, and apply Lemma 5.1 to
+                                                           
+
+compute a subset spanner Ĥ of G′ on S with additive error O(|S|3/2 · nε ).
+
+   The output graph H is simply defined to be the union of
+   • for each ball B(c, r) ∈ B, a BFS tree Tc that is rooted at c and spans all vertices in B(c, 4r);
+
+   • for each small or large ball B(c, r) ∈ B, graph Lc ;
+   • graph Ĥ.
+   The analysis is almost identical to the analysis in Section 6.1, with the following changes.
+
+Stretch analysis.       In Claim 6.6, the analysis would be changed to
+                                                            (                                              )!
+                                                                    |B(ci , 4ri )| 3/2 ε
+                                                                                  
+         distH (vi−1 , ui ) ≤ distG (vi−1 , ui ) + Õ max                             · n , |B(ci , 4ri )|ρ
+                                                                       nf (ρ)
+                                                                                    
+                                                        |B(ci , ri )| O(1/ε) ε
+                            ≤ distG (vi−1 , ui ) + Õ                 ·2          ·n .
+                                                        n(1−ρ)·g(ρ)
+Consequently, the analysis in Claim 6.7 would be changed to
+                                                                                            x−1
+                                                                                                                !
+                                                                                            X   |B(ci , ri )|
+             distH (s, ux ) ≤ distG (s, ux ) + O(nε+f (ρ) ) + O 2O(1/ε) · nε ·
+                                                                                            i=2
+                                                                                                  n(1−ρ)·g(ρ)
+                                                                                                   2
+                                                                                                         !
+                                                                                             n1− 3 f (ρ)
+                                ≤ distG (s, ux ) + O(nε+f (ρ) ) + O 2O(1/ε) · nε ·
+                                                                                            n(1−ρ)·g(ρ)
+                                ≤ distG (s, ux ) + 2O(1/ε) · nε+f (ρ) .
+
+and similarly we get that distH (uy , t) ≤ distG (uy , t) + 2O(1/ε) · nε+f (ρ) . Therefore, the additive error
+of the algorithm is 2O(1/ε) · nε+f (ρ) .
+
+Size and runtime analysis. Via     similar arguments as in the proof of Claim 6.8, we can show
+that |E(H)| = O 2O(1/ε) · Cn log n . We now analyze the runtime of the algorithm. Ignoring the
+new Step 4, we can show via similar arguments as in the proof of Claim 6.9 that the runtime is
+                          (3/2)f (ρ)(1−ρ)
+                     1+
+Õ(m + 2O(1/ε) · n            3/2−ρ         ). The runtime of Step 4 is
+                      X                                                      
+                                                                          γ
+                                       Õ(volG (B(c, 4r))) + |B(c, 4r)|           = Õ(m + 2O(γ/ε) · nγ ).
+                 c: B(c,r) large
+
+
+As γ ≥ 1 + (3/2)f (ρ)(1−ρ)
+               3/2−ρ       , the runtime of the whole algorithm is Õ(m + 2O(γ/ε) · nγ ).
+
+
+Acknowledgment
+We would like to thank anonymous reviewers for the detailed reading and the helpful comments for
+improving the presentation of this paper, and in particular, for explaining in detail the comparison
+between the previous work [TZ06, HP19, ABP18] and the connection between our results and
+previous results on (1 + ε, β)-spanners.
+
+
+
+                                                             33
+References
+[AB17]     Amir Abboud and Greg Bodwin. The 4/3 additive spanner exponent is tight. Journal
+           of the ACM (JACM), 64(4):1–20, 2017.
+
+[ABP18]    Amir Abboud, Greg Bodwin, and Seth Pettie. A hierarchy of lower bounds for sublinear
+           additive spanners. SIAM Journal on Computing, 47(6):2203–2236, 2018.
+
+[ACIM99]   Donald Aingworth, Chandra Chekuri, Piotr Indyk, and Rajeev Motwani. Fast estima-
+           tion of diameter and shortest paths (without matrix multiplication). SIAM Journal on
+           Computing, 28(4):1167–1181, 1999.
+
+[ADD+ 93] Ingo Althöfer, Gautam Das, David Dobkin, Deborah Joseph, and José Soares. On
+          sparse spanners of weighted graphs. Discrete & Computational Geometry, 9(1):81–100,
+          1993.
+
+[BH22]     Greg Bodwin and Gary Hoppenworth. New additive spanner lower bounds by an
+           unlayered obstacle product. arXiv preprint arXiv:2207.11832, 2022.
+
+[BKMP10] Surender Baswana, Telikepalli Kavitha, Kurt Mehlhorn, and Seth Pettie. Additive
+         spanners and (α, β)-spanners. ACM Transactions on Algorithms (TALG), 7(1):1–26,
+         2010.
+
+[BS07]     Surender Baswana and Sandeep Sen. A simple and linear time randomized algorithm
+           for computing sparse spanners in weighted graphs. Random Structures & Algorithms,
+           30(4):532–563, 2007.
+
+[BW15]     Gregory Bodwin and Virginia Vassilevska Williams. Very sparse additive spanners
+           and emulators. In Proceedings of the 2015 Conference on Innovations in Theoretical
+           Computer Science, pages 377–382, 2015.
+
+[BW21]     Greg Bodwin and Virginia Vassilevska Williams. Better distance preservers and addi-
+           tive spanners. ACM Transactions on Algorithms (TALG), 17(4):1–24, 2021.
+
+[CE06]     Don Coppersmith and Michael Elkin. Sparse sourcewise and pairwise distance pre-
+           servers. SIAM Journal on Discrete Mathematics, 20(2):463–501, 2006.
+
+[CGK13]    Marek Cygan, Fabrizio Grandoni, and Telikepalli Kavitha. On pairwise spanners. arXiv
+           preprint arXiv:1301.1999, 2013.
+
+[Che13]    Shiri Chechik. New additive spanners. In Proceedings of the twenty-fourth annual
+           ACM-SIAM symposium on Discrete algorithms, pages 498–512. SIAM, 2013.
+
+[EP04]     Michael Elkin and David Peleg. (1 + ε, β)-spanner constructions for general graphs.
+           SIAM Journal on Computing, 33(3):608–631, 2004.
+
+[Erd63]    Paul Erdös. Extremal problems in graph theory. Proceedings of the Symposium on
+           Theory of Graphs and its Applications, pages 29–36, 1963.
+
+[HP19]     Shang-En Huang and Seth Pettie. Thorup–Zwick Emulators are Universally Optimal
+           Hopsets. Information Processing Letters, 142:9–13, 2019.
+
+
+
+
+                                             34
+[HP21]       Shang-En Huang and Seth Pettie. Lower bounds on sparse spanners, emulators, and
+             diameter-reducing shortcuts. SIAM Journal on Discrete Mathematics, 35(3):2129–
+             2144, 2021.
+
+[Kav17]      Telikepalli Kavitha. New pairwise spanners. Theory of Computing Systems, 61(4):1011–
+             1036, 2017.
+
+[LWWX22] Kevin Lu, Virginia Vassilevska Williams, Nicole Wein, and Zixuan Xu. Better lower
+         bounds for shortcut sets and additive spanners via an improved alternation product.
+         In Proceedings of the 2022 Annual ACM-SIAM Symposium on Discrete Algorithms
+         (SODA), pages 3311–3331. SIAM, 2022.
+
+[Pet09]      Seth Pettie. Low distortion spanners. ACM Transactions on Algorithms (TALG),
+             6(1):1–22, 2009.
+
+[TZ06]       Mikkel Thorup and Uri Zwick. Spanners and emulators with sublinear distance errors.
+             In Proceedings of the seventeenth annual ACM-SIAM symposium on Discrete algorithm,
+             pages 802–809, 2006.
+
+
+
+
+A     Proof of Lemma 2.2
+Throughout, we use the parameter β = nε .
+    The algorithm iteratively builds the collection B. Initially, B = ∅. The algorithm continues to
+be executed as long as there exists a vertex that is not covered by the collection B. We now describe
+an iteration. First, we pick an arbitrary vertex c that is not covered by the current collection B,
+and add a new ball B(c, r) to B centered at c. Its radius r is determined by the following process:
+
+ (1) Start with r = R.
+
+ (2) Perform breadth-first search from c in G to compute the ball B(c, 4r).
+
+ (3) If |B(c, 4r)| ≤ β · |B(c, r/2)| and vol(B(c, 4r)) ≤ β · vol(B(c, r/2)), then add the ball B(c, r) to
+     B, and terminate the iteration. Otherwise, update r ← 4r and repeat Steps (2) and (3).
+
+    We now proceed to analyze the algorithm. First, it is easy to see that the radius of every ball
+in B at the end of the algorithm is at least R, as the process of determining the radius of each new
+ball start with r = R and only increases r afterwards. Second, from the algorithm, when a new ball
+is added to B, its radius r is determined by an iterative process, where in each round, r is increased
+by a factor of 4 whenever |B(c, 4r)| > β · |B(c, r/2)| or vol(B(c, 4r)) > β · |B(c, r/2)|. As |B(c, 4r)|
+and vol(B(c, 4r)) arebounded  by n and m respectively, the number of times that the radius r is
+increased is at most logβ n + logβ m < 5/ε. Therefore, in the end, r ≤ R · 45/ε = R · 210/ε .
+    We next prove the following observation.
+
+Observation A.1. At the end of the algorithm, for every vertex v ∈ V , there are at most 5/ε balls
+B(c, r) in B, such that distG (c, v) ≤ r/2.
+
+Proof. We first prove the following observation.
+Observation A.2. When a new ball B(c, r) is added to the collection B, for any other ball B(c′ , r ′ )
+in B with B(c′ , r ′ /2) ∩ B(c, r/2) 6= ∅, r ′ ≤ r/4 must hold.
+
+                                                   35
+Proof. Suppose otherwise that r ′ > r/4. As all radius are integral powers of 4, r ′ ≥ r. Therefore,
+distG (c, c′ ) ≤ r ′ /2 + r/2 ≤ r ′ , and so c ∈ B(c′ , r ′ ), which means that c was covered by the collection
+B before the ball B(c, r) is added, a contradiction.
+
+    We say that a vertex v is captured by a ball B(c, r) if distG (c, v) ≤ r/2. From Observation A.2,
+when v is captured by a new ball B(c, r), its radius r is at least 4 times the radius of any other ball
+in B that captures v. As we have shown that the radius of every ball in B is at least R and at most
+R · 45/ε , the number of balls in B that captures v is at most 5/ε.
+
+   From Observation A.1, at the   Pend of the algorithm, each vertex
+                                                               P      in G is occupied
+                                                                                   P by at most
+O(1/ε) balls in B. Therefore,       |B(c, r/2)|
+                                             P ≤ O(n/ε); and      |B(c, 4r)| ≤ β ·    |B(c, r/2)| ≤
+O(n1+ε /ε). Similarly,   vol(B(c, 4r)) ≤ β · vol(B(c, r/2)) ≤ β · O(m/ε) = O(m · nε /ε).
+                       P
+   Finally, note that when we add a ball B(c, r) to B, the running time ofPthe algorithm in
+that iteration is O(vol(B(c, 4r))). Therefore, algorithm terminates in time O      vol(B(c, 4r)) ≤
+O(m · nε /ε).
+
+
+
+
+                                                      36
+

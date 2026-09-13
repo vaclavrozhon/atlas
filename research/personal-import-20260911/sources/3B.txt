@@ -1,0 +1,1173 @@
+                                         Minimization of Symbolic Automata
+
+                                     Loris D’Antoni                                                                 Margus Veanes
+                               University of Pennsylvania                                                         Microsoft Research
+                                lorisdan@cis.upenn.edu                                                           margus@microsoft.com
+
+
+
+
+Abstract                                                                                      is a challenging task. Some classical automata constructions are
+Symbolic Automata extend classical automata by using symbolic                                 extended to SFAs in [26]. For example, the product (intersection)
+alphabets instead of finite ones. Most of the classical automata al-                          M1 ×M2 of two symbolic automata M1 and M2 is computed by
+                                                                                                                                                     ϕ ∧ϕ2
+gorithms rely on the alphabet being finite, and generalizing them to                          building product transitions of the form hp1 , p2 i −−1−−→      hq1 , q2 i
+                                                                                                                      ϕ1            ϕ2
+the symbolic setting is not a trivial task. In this paper we study the                        from transitions p1 −   −→ q1 , p2 −  −→ q2 , in M1 , M2 , where the
+problem of minimizing symbolic automata. We formally define and                               guards ϕ1 and ϕ2 are composed using conjunction and pruned
+prove the basic properties of minimality in the symbolic setting,                             when unsatisfiable. The complexity of such constructions clearly
+and lift classical minimization algorithms (Huffman-Moore’s and                               depends on the complexity of checking satisfiability in the label
+Hopcroft’s algorithms) to symbolic automata. While Hopcroft’s al-                             theory. In this particular case, constructing the product has com-
+gorithm is the fastest known algorithm for DFA minimization, we                               plexity O(f (ℓ)m2 ), where m is the number of transitions, f (l) is
+show how, in the presence of symbolic alphabets, it can incur an                              the cost of checking satisfiability of predicates of size l in the label
+exponential blowup. To address this issue, we introduce a new al-                             theory, and ℓ is the size of the biggest predicate in M1 and M2 .
+gorithm that fully benefits from the symbolic representation of the                               This paper focuses on the problem of minimizing automata over
+alphabet and does not suffer from the exponential blowup. We pro-                             symbolic alphabets and, to the best of our knowledge, it is the first
+vide comprehensive performance evaluation of all the algorithms                               paper that investigates this problem. Minimizing deterministic fi-
+over large benchmarks and against existing state-of-the-art imple-                            nite automata (DFAs) is one of the fundamental concepts in au-
+mentations. The experiments show how the new symbolic algo-                                   tomata theory. It occurs in numerous areas, such as programming
+rithm is faster than previous implementations.                                                languages, text processing, computational linguistics, graphics, etc.
+                                                                                                  Before looking for an algorithm for minimizing SFAs we first
+Categories and Subject Descriptors F.2.2 [Theory of Computa-                                  need to answer a fundamental question: what does it mean for an
+tion]: Automata over infinite objects, Regular languages                                      SFA to be minimal? Intuitively, any two distinct states p and q of
+Keywords        Minimization, Symbolic Automata                                               a minimal SFA must be distinguishable, where two states p and q
+                                                                                              are distinguishable if there exists an input sequence s that starting
+                                                                                              from p leads to a final (non-final) state and starting from q leads to
+1. Introduction                                                                               a non-final (final) state. This notion is similar to DFA minimality.
+Classical automata theory builds on two basic assumptions: there is                               The original algorithms for minimizing DFAs were given by
+a finite state space; and there is a finite alphabet. The topic of this                       Huffman [29], Moore [34], and Hopcroft [27]. Since, all such algo-
+paper is along the line of work challenging the second assumption.                            rithms use iterations over the finite alphabet, they do not immedi-
+Symbolic finite automata (SFAs) are finite state automata in which                            ately extend to the symbolic setting. In the following paragraphs we
+the alphabet is given by a Boolean algebra that may have an infi-                             briefly describe how we extended the classical algorithms to SFAs,
+nite domain, and transitions are labeled with predicates over such                            and how we designed a new minimization algorithm that fully takes
+algebra. Symbolic automata originated from the intent to support                              advantage of the symbolic representation of the alphabet.
+                                                                                                                                     M
+regular expressions in the context of static and dynamic program                                  Our first algorithm is called MinSFA   and takes inspiration from a
+analysis [43]. Lately, they were also used for supporting regular ex-                         reformulation of Moore’s (Huffman’s) algorithm described in [28].
+pressions (modulo label theories) in the context of modern logical                            The key idea from the algorithm in [28] is the following:
+inference engines [9, 42].
+    Most classical automata algorithms view the size k of the alpha-                              if two states p and q are distinguishable, and there exists a
+bet as a constant and use specialized data structures that are opti-                              character a, and transitions δ(a, p′ ) = p and δ(a, q ′ ) = q,
+mized for this view [7]. Therefore, it is not clear if or how such al-                            then p′ and q ′ are distinguishable.
+gorithms would work when the alphabet is infinite. Understanding                              This idea nicely translates to the symbolic setting as:
+how operations over the finite alphabet lift to the symbolic setting
+                                                                                                  if two states p and q are distinguishable, and there exist
+                                                                                                                  ϕ           ψ
+                                                                                                  transitions p′ −→ p and q ′ −
+                                                                                                                              → q such that ϕ∧ψ is satisfiable,
+                                                                                                         ′      ′
+Permission to make digital or hard copies of all or part of this work for personal or             then p and q are distinguishable.
+classroom use is granted without fee provided that copies are not made or distributed
+for profit or commercial advantage and that copies bear this notice and the full citation     Starting with the fact that final and non-final states are distinguish-
+on the first page. Copyrights for components of this work owned by others than ACM            able, we can use a fixpoint computation for grouping states into
+must be honored. Abstracting with credit is permitted. To copy otherwise, or republish,
+to post on servers or to redistribute to lists, requires prior specific permission and/or a
+                                                                                              groups of indistinguishable states. This procedure uses a number
+fee. Request permissions from permissions@acm.org.                                            of iterations that is quadratic in the number of states. Moreover,
+POPL ’14, January 22 - 24 2014, San Diego, CA, USA.                                           each iteration is linear in the number of transitions.
+                                                                                                                        M
+Copyright c 2014 ACM 978-1-4503-2544-8/14/01. . . $15.00.                                        Unfortunately, MinSFA      does not scale in the case of a perfor-
+http://dx.doi.org/10.1145/2535838.2535849                                                     mance critical application described in Section 7.1, where SFAs
+                                      M           H           N
+                                   MinSFA      MinSFA      MinSFA           2. Effective Boolean algebras and SFAs
+ Satisfiability checking, ∧, ∨      X           X           X               We first formally define the notion of effective Boolean algebra and
+           Predicate negation                   X           X               symbolic finite automata. Next, we develop a theory which explains
+         Minterm generation                     X                           what it means for a symbolic finite automata to be minimal.
+Table 1. Summary of operations needed over a given label theory                  An effective Boolean algebra A has components
+in the respective minimization algorithms.                                  (D, Ψ, [[ ]], ⊥, ⊤, ∨, ∧, ¬). D is an r.e. (recursively enumerable)
+                                                                            set of domain elements. Ψ is an r.e. set of predicates closed under
+                                                                            the Boolean connectives and ⊥, ⊤ ∈ Ψ. The denotation function
+end up having thousands of states, and the complexity of MinSFA        M
+                                                                            [[ ]] : Ψ → 2D is r.e. and is such that, [[⊥]] = ∅, [[⊤]] = D, for
+was not acceptable. To this end, we studied a generalization of             all ϕ, ψ ∈ Ψ, [[ϕ ∨ ψ]] = [[ϕ]] ∪ [[ψ]], [[ϕ ∧ ψ]] = [[ϕ]] ∩ [[ψ]], and
+                                     H
+Hopcrofts algorithm, called MinSFA      . Hopcroft’s algorithm is based     [[¬ϕ]] = D \ [[ϕ]]. For ϕ ∈ Ψ, we write IsSat (ϕ) when [[ϕ]] 6= ∅
+on a technique called partition refinement of states, and, with worst       and say that ϕ is satisfiable. A is decidable if IsSat is decidable.
+case complexity O(kn log n) (n = number of states, and k = num-                  The intuition is that such an algebra is represented program-
+ber of alphabet symbols), it is the most efficient algorithm for min-       matically as an API with corresponding methods implementing the
+                                               H
+imizing DFAs. The main idea behind MinSFA         is to subdivide all the   Boolean operations and the denotation function. We are primarily
+labels in the SFA into non-overlapping predicates called minterms.          going to use the following two effective Boolean algebras in the
+Such minterms can then be seen as atomic characters in the sense            examples, but the techniques in the paper are fully generic.
+of classical DFAs, allowing us to use the classical Hopcroft’s al-
+                                                                  H         2BVk is the powerset algebra whose domain is the finite set BVk,
+gorithm over the finite set of minterms. Even though MinSFA          per-
+                                                                               for some k > 0, consisting of all nonnegative integers smaller
+forms well in the aforementioned application, it suffers from an-
+other problem: in the worst case, the number of minterms can be                than 2k , or equivalently, all k-bit bit-vectors. A predicate is rep-
+exponential in the number of edges of the SFA. Moreover, our ex-               resented by a BDD of depth k.1 The Boolean operations corre-
+periments showed that this factor can indeed be observed when                  spond directly to the BDD operations, ⊥ is the BDD represent-
+considering more complex label theories, such as the theory of pairs           ing the empty set. The denotation [[β]] of a BDD β is the set of
+over string × int (§ 6.4).                                                     all integers n such that a binary representation of n corresponds
+    This leads to our main algorithmic contribution in the paper. We           to a solution of β.
+designed MinSFA  N
+                    , a new algorithm for SFA minimization which            SMTσ is the decision procedure for a theory over some sort σ, say
+takes full advantage of the symbolic representation of the input              integers, such as the theory of integer linear arithmetic. This
+                 N
+alphabet. MinSFA     is inspired by the idea of refining the partition of     algebra can be implemented through an interface to an SMT
+the state space used by Hopcroft’s algorithm, but does not require            solver. Ψ contains in this case the set of all formulas ϕ(x) in
+                                                H
+the pre-computation of minterms as in MinSFA      . The key observation       that theory with one fixed free integer variable x. For example,
+is that the set of relevant predicates can be computed locally, rather        a formula (x mod k) = 0, say div k , denotes the set of all
+than using all the transitions of the SFA. While MinSFA     N
+                                                               is similar     numbers divisible by k. Then div 2 ∧ div 3 denotes the set of
+         H                                                                    numbers divisible by six.
+to MinSFA   in terms of state complexity, it does not suffer from the
+exponential complexity related to the minterm computation. In fact,
+                                      H            M                            We can now define symbolic finite automata. Intuitively, a sym-
+in all our experiments, both MinSFA       and MinSFA   are outperformed     bolic finite automaton is a finite automaton over a symbolic al-
+         N
+by MinSFA   .                                                               phabet, where edge labels are replaced by predicates. In order to
+    Table 1 presents a summary of the minimization algorithms,              preserve the classical closure operations (intersection, complement,
+illustrating their dependency on operations over the label theory.          etc.), the predicates must form an effective Boolean algebra.
+    We compared the performance of the three algorithms using: 1)
+the benchmark of randomly generated DFAs presented in [3], 2)               D EFINITION 1. A symbolic finite automaton (SFA) M is a tuple
+the SFAs generated by common regular expressions taken from the             (A, Q, q 0 , F, ∆) where A is an effective Boolean algebra, called
+web, 3) a set of SFAs aimed at showing the exponential minterm              the alphabet, Q is a finite set of states, q 0 ∈ Q is the initial state,
+explosion, 4) a randomly generated set of SFAs over a complex al-           F ⊆ Q is the set of final states, and ∆ ⊆ Q × ΨA × Q is a finite
+phabet theory, and 5) the SFAs generated during the transformation          set of moves or transitions.                                          ⊠
+from Monadic Second Order logic to DFAs [38]. In experiments 2
+and 3 we also compared the performance of our implementation of             Elements of DA are called characters and finite sequences of char-
+      H
+MinSFA    against the implementation of Hopcroft’s algorithm in [3]         acters, elements of DA∗ , are called words; ǫ denotes the empty word.
+and in the brics.automaton [1] library, and we observed similar             A move ρ = (p, ϕ, q) ∈ ∆ is also denoted by p −
+                                                                                                                                ϕ
+                                                                                                                                →M q (or p −
+                                                                                                                                             ϕ
+                                                                                                                                             →q
+performance characteristics that validated our implementation. In           when M is clear), where p is the source state, denoted Src(ρ), q is
+the fifth experiment we compared our results against Mona [22],             the target state, denoted Tgt(ρ), and ϕ is the guard or predicate of
+the state of the art tool for deciding Monadic Second Order logic.          the move, denoted Grd(ρ). A move is feasible if its guard is satisfi-
+                                                                                                                                             ϕ
+Contributions. In summary, our contributions are:                           able. Given a character a ∈ DA , an a-move of M is a move p −    →q
+                                                                                                                   a             a
+ • a formal study of the notion of minimality of SFAs (§2);                 such that a ∈ [[ϕ]], also denoted p −  →M q (or p −  → q when M is
+                                                                            clear). In the following let M = (A, Q, q 0 , F, ∆) be an SFA.
+ • two algorithms for minimizing SFAs based on classical DFA
+   algorithms (§3 and §4);                                                  D EFINITION 2. A word w = a1 a2 · · · ak ∈ DA∗ , is accepted at
+                                                                                                                                     ai
+ • a completely new algorithm for minimizing SFAs together with             state p of M , denoted w ∈ Lp (M ), if there exist pi−1 −→  M pi
+
+   a proof of its correctness (§5);                                         for 1 ≤ i ≤ k, such that p0 = p, and pk ∈ F . The language
+                                                                                                     def
+                                                                            accepted by M is L(M ) = Lq0 (M ).                            ⊠
+ • a comprehensive evaluation of the algorithms using a variety of
+   different benchmarks (§6); and
+                                                                            1 The variable order of the BDD is the reverse bit order of the binary
+ • a description of several concrete applications of such minimiza-         representation of a number, in particular, the most significant bit has the
+   tion algorithms (§7).                                                    lowest ordinal.
+Given a state q ∈ Q, we use the following definitions for the set             exists a bijective mapping between their universes that preserves
+transitions from and to q:                                                    the meaning of all symbols in Σ.
+→
+−       def                      ←−    def
+∆(q) = {ρ ∈ ∆ | Src(ρ) = q}, ∆(q) = {ρ ∈ ∆ | Tgt(ρ) = q}.                     T HEOREM 1. If M and N are minimal SFAs over the same alpha-
+The definitions are lifted to sets in the usual manner. The following         bet A such that L(M ) = L(N ), then M and N are isomorphic
+terminology is used to characterize various key properties of M . A           ΣA -structures.
+state p of M is called partial if there exists a character a for which        Proof : Assume M and N to be minimal SFAs over A such that
+there exist no a-move with source state p.                                    L(M ) = L(N ). We define ı : M ∼
+                                                                                                             = N as follows:
+                                             ϕ       ϕ′
+                                                                                                ∀w ∈ DA∗ (ı(M (w)) = N (w)).
+                                                                                                                     def
+                                 → q, p −→ q ′ ∈ ∆, if IsSat (ϕ ∧
+ • M is deterministic: for all p −
+      ′                      ′
+    ϕ ) then q = q .
+                                                                              To show that ı is well-defined as a function, observe first that all
+ • M is complete: there are no partial states.                                states of M correspond to some w because M is clean. Second,
+                                        ϕ
+                         → q ∈ ∆, p is reachable from q 0 and
+ • M is clean: for all p −                                                    we prove that for all words v and w, if M (v) = M (w) then
+    IsSat (ϕ),                                                                N (v) = N (w). Fix v, w ∈ DA∗ such that M (v) = M (w). Then,
+                                                                              for all u ∈ DA∗ ,
+ • M is normalized: for all p, q ∈ Q, there is at most one move
+    from p to q.                                                                   u ∈ LN(v) (N )             ⇔            v · u ∈ L(N )
+                                                                                                      (by L(M )=L(N))
+ • M is minimal: M is deterministic, complete, clean, normalized,                                             ⇔            v · u ∈ L(M )
+    and for all p, q ∈ Q, p = q if and only if Lp (M ) = Lq (M ).2                                            ⇔            u ∈ LM (v) (M )
+For the special case in which M is deterministic and complete, we                                      (by M (w)=M (v))
+                                                                                                              ⇔            u ∈ LM (w) (M )
+denote the transition function using the function δM : DA × Q →
+                                                     def                                                      ⇔            w · u ∈ L(M )
+Q, such that for all a ∈ DA and p ∈ Q, δM (a, p) = q, where q is
+                       a                                                                              (by L(M )=L(N))
+the state such that p −
+                      →M q. Observe that, because of determinism,                                             ⇔            w · u ∈ L(N )
+       ϕ1            ϕ2
+if p −−→   M q1 , p −−→M q2 , and a ∈ [[ϕ1 ∧ ϕ2 ]], then q1 = q2 .                                            ⇔            u ∈ LN(w) (N )
+Moreover, due to completeness, there exists some q and ϕ such
+that p −
+         ϕ
+         →M q and a ∈ [[ϕ]].                                                  So, LN(v) (N ) = LN(w) (N ), and thus N (v) = N (w) by mini-
+    Determinization of SFAs is always possible and is studied                 mality of N . So, ı is well-defined as a function. By switching the
+in [42]. Completion is straightforward: if M is not complete then             roles of M and N we also get the opposite direction. Thus,
+                                            ⊤
+add a new state q∅ and the self-loop
+                                V       q∅ −→ q∅ , and for each par-              (∗)      ∀v, w ∈ DA∗ (M (v) = M (w) ⇔ N (v) = N (w))
+tial state q add the move (q, ρ∈→    −    ¬Grd(ρ), q∅ ). Observe that
+                                     ∆(q)                                     Next, we show that ı is an isomorphism.
+completion requires negation of predicates.                                       First, we show that ı is bijective: ı is onto because N is clean,
+    Normalization is obvious: if there exist states p and q and               i.e., each state of N corresponds to N (w) for some word w; ı is
+                              ϕ             ψ
+two distinct transitions p −  → q and p −   → q, then replace these           into because if M (v) 6= M (w) then, by (∗), ı(M (v)) = N (v) 6=
+                                          ϕ∨ψ                                 N (w) = ı(M (w)).
+transitions with the single transition p −−−→ q. This does not affect
+Lp (M ) for any p.                                                                Finally, we show that ı is an embedding of M into N, i.e., that
+    We always assume that M is clean. Cleaning amounts to run-                ı preserves all the functions and the relations: for all p ∈ QM ,
+ning a standard forward reachability algorithm that keeps only                p ∈ F̄ M ⇔ ı(p) ∈ F̄ N , and for all p ∈ QM and a ∈ DA ,
+reachable states, and eliminates infeasible moves. Observe that in-           ı(āM (p)) = āN (ı(p)).
+feasible moves p −
+                    ⊥
+                    → q do not add expressiveness and might cause                 Let p ∈ QM . Let w be any word such that p = M (w). Then
+unnecessary state space explosion.                                            p ∈ F̄ M    ⇔    M (w) ∈ F̄ M ⇔ w ∈ L(M ) ⇔ w ∈ L(N )
+    It is important to show that minimality of SFAs is in fact well-
+defined in the sense that minimal SFAs are unique up to renaming                          ⇔    N (w) ∈ F̄ N ⇔ ı(M (w)) ∈ F̄ N ⇔ ı(p) ∈ F̄ N .
+of states and equivalence of predicates. To do so we use the follow-          and, for any a ∈ DA ,
+ing construction.
+    Assume M = (A, Q, q 0 , F, ∆) to be deterministic and com-                   ı(āM (p))   =    ı(āM (M (w))) = ı(δM (a, M (w)))
+plete. Let ΣA denote the first-order language that contains the                               =    ı(M (w · a)) = N (w · a) = δN (a, N (w))
+unary relation symbol F̄ and the unary function symbol ā for each
+a ∈ DA . We define the ΣA -structure of M , denoted by M, to have                             =    āN (N (w)) = āN (ı(M (w))) = āN (ı(p))
+the universe Q, and the interpretation function:                              Thus M and N are isomorphic.                                      ⊠
+               M def                                M     def
+                                                                              The theorem implies that minimal SFAs are unique up to renaming
+          F̄     = F,            ∀ā ∈ ΣA , p ∈ Q (ā (p) = δM (a, p)).
+                                                                              of states and up to equivalence of predicates due to normalization.
+Also, let
+                                                                              D EFINITION 3. Two states p, q ∈ Q are M -equivalent, p ≡M q,
+                                 q0 ,
+                       def
+          M (ǫ)        =                                                      when Lp (M ) = Lq (M ).                                    ⊠
+                                                   for a ∈ DA and w ∈ DA∗ .
+                       def
+   M (w · a)           =         δM (a, M (w))                                We have that ≡M is an equivalence relation. If ≡ is an equivalence
+In other words, M (w) is the state reached in M for the word                  relation over Q, then for q ∈ Q, q/≡ denotes the equivalence class
+w ∈ DA∗ . Recall that two Σ-structures are isomorphic if there                containing q, for X ⊆ Q, X/≡ denotes {q/≡ | q ∈ X}, and M/≡
+                                                                                                      def             0
+                                                                              denotes the SFA M/≡ = (A, Q/≡ , q/≡        , F/≡ , ∆/≡ ) where:
+2 It is sometimes convenient to define minimality over incomplete SFAs, in
+                                                                                     def
+                                                                                                  _
+which case the dead-end state q (q 6= q 0 and Lq (M ) = ∅) is eliminated if    ∆/≡ = {(p/≡ ,            ϕ, q/≡ ) | p, q ∈ Q, ∃ϕ((p, ϕ, q) ∈ ∆)})
+it is present.                                                                                 (p,ϕ,q)∈∆
+Observe that M/≡ is normalized by construction. We need the
+following theorem that shows that minimization of SFAs preserves                        P                      a              R          Q
+their intended semantics.                                                                      P1
+                                                                                                               a             Rc
+T HEOREM 2. Let M be a clean, complete and deterministic SFA.                                  P2
+Then M/≡M is minimal and L(M ) = L(M/≡M ).
+Proof : Let ≡ be ≡M . Clearly, M/≡ is clean and complete because
+                                                         a                          Figure 1. The idea behind an (a, R)-split of a part P .
+M is clean and complete. To show determinism, let p −    →M/≡ q1 ,
+        a
+and p −→M/≡ q2 . Take p1 , p2 ∈ p, q1 ∈ q1 and q2 ∈ q2 such that
+    a                  a                                                          Our implementation of the version of Moore’s algorithm pre-
+p1 −→M q1 and p2 −     →M q2 . Since Lp1 (M ) = Lp2 (M ), and M
+is deterministic, it follows that Lq1 (M ) = Lq2 (M ) i.e., q1 = q2 .         sented above has the following complexity. Given an SFA A, let n
+Thus,                                                                         be the number of states of A, m the number of moves of A, and
+                                                                              ℓ the size of the largest guard appearing in a transition of A (the
+   (∗)      ∀a ∈ DA , p ∈ QM (δM/≡ (a, p/≡ ) = δM (a, p)/≡ ).                 biggest predicate). If the complexity of the alphabet theory for in-
+Minimality of M/≡ follows from the definition. Next, we show by
+                                                                                                                  M
+                                                                              stances of size l is f (l), then MinSFA has complexity O(m2 f (ℓ)),
+induction over the length of w that                                           which is O(n f (ℓ)) assuming normalized A where m is O(n2 ).
+                                                                                            4
+
+
+              (⋆)         ∀w ∈ DA∗ (M (w)/≡ = M/≡ (w))                        4. Hopcroft’s algorithm over symbolic alphabets
+                                    0                  0
+For w = ǫ we have that M (ǫ) = qM     , M/≡ (ǫ) = qM     /≡
+                                                            , and             Hopcroft’s algorithm [27] for minimizing DFAs is based on a tech-
+ 0        0                                                                   nique called partition refinement of states. The symbolic version of
+qM/≡ = (qM )/≡ .
+For w = v · a, where a ∈ DA and v ∈ DA∗ , we have that                        Hopcroft’s algorithm is given in Figure 3. Initially the set of states
+                                                                              is partitioned into two sets: final states and non-final states, i.e.,
+                                              (by (∗))
+M (v · a)/≡         =       δM (a, M (v))/≡     =        δM/≡ (a, M (v)/≡ )   P = {F, Q \ F }. Here we assume that the SFA M is complete and
+                                                                              nontrivial, so that both F and Q \ F are nonempty. The partition
+                (by IH)
+                    =       δM/≡ (a, M/≡ (v)) = M/≡ (v · a).                  P induces the equivalence relation ≡P (or ≡ when P is clear from
+                                                                              the context) over Q, such that Q/≡ = P. At a high level, P is re-
+It follows that, for all words w ∈ DA∗ , w ∈ L(M ) iff M (w) ∈                fined as follows: suppose there exist parts P, R ∈ P and a character
+FM iff M (w)/≡ ∈ FM/≡ iff (by (⋆)) M/≡ (w) ∈ FM/≡ iff                         a ∈ DA such that some a-move from P goes into R, and some a-
+w ∈ L(M/≡ ). Thus L(M ) = L(M/≡ ).                           ⊠                move from P goes into Rc (Q \ R). Then the (a, R)-split of P is
+Theorems 1 and 2 are classical theorems lifted to arbitrary (possibly         the set {P1 , P2 }, where P1 (resp. P2 ) is the set of all p ∈ P from
+infinite) alphabets. Theorem 2 implies that SFAs have equivalent              which there is an a-move into R (resp. Rc ). P is then replaced in P
+minimal forms that, by Theorem 1, are unique up to relabeling of              by P1 and P2 . See Figure 1. The (a, R)-split of P is well-defined
+states, and modulo equivalence of predicates in A. In particular,             by determinism and completeness of M . The following invariant is
+since for all Q and all equivalence relations E over Q, |Q/E | ≤              maintained by splitting.
+|Q|, each equivalent form has minimal number of states.                       L EMMA 1. After each refinement step of P, for all p, q ∈ Q, if
+                                                                              p 6≡ q then Lp (M ) 6= Lq (M ).
+3. Moore’s algorithm over symbolic alphabets                                  Proof : Initially, for p1 ∈ F : ǫ ∈ Lp1 (M ) , and p2 ∈ Q \ F :
+Moore’s minimization algorithm [34] of DFAs (also due to Huff-                ǫ∈ / Lp2 (M ). So, the statement holds for step i = 0. To see that
+man [29]) is commonly known as the standard algorithm. Even                   the statement holds after step i + 1, fix P, R ∈ Pi and a ∈ DA such
+though the classical version of Moore’s algorithm depends on the              that (P1 , P2 ) is the (a, R)-split of P . It is enough to show that, for
+                                                                                                                                                 a
+alphabet being finite, the general idea can be lifted to SFAs as              all p1 ∈ P1 , p2 ∈ P2 , Lp1 (M ) 6= Lp2 (M ). Consider p1 −       → q1
+                                                                                       a
+follows. Given an SFA M , initially, let D be the binary relation             and p2 −→ q2 . Since q1 and q2 belong to distinct parts of Pi , by IH,
+(F × F c ) ∪ (F c × F ), where F c is Q \ F . Compute the fixpoint            there exists a word w such that w ∈ Lq1 (M ) iff w ∈        / Lq2 (M ).
+of D as follows: if hp, qi ∈ D and there exist moves (p′ , ϕ, p) and          Moreover, by determinism of M , we have a · w ∈ Lpj (M )
+(q ′ , ψ, q) where ϕ ∧ ψ is satisfiable3 then add hp′ , q ′ i to D. This      iff w ∈ Lqj (M ) for j ∈ {1, 2}. So, a · w ∈ Lp1 (M ) iff
+process clearly terminates. Upon termination, E = (Q × Q) \ D is              a·w ∈  / Lp2 (M ), and thus Lp1 (M ) 6= Lp2 (M ).                      ⊠
+the equivalence relation ≡M , and the SFA M/E is therefore min-
+                                             M                       M        Assuming a simple iterative refinement loop of P, splitting is
+imal. We refer to this algorithm as MinSFA     . Observe that MinSFA
+                                                                              repeated until no further splits are possible, i.e., until P is finest,
+checks only satisfiability of conjunctions of conditions and does
+                                                                              at which point the following property holds.
+not depend on the full power of the alphabet algebra, in particular
+it does not require the ability to complement predicates (assuming            L EMMA 2. Upon termination of refinement of P, for all p, q ∈ Q,
+the initial completion of M is viewed as a separate preprocessing             if p ≡ q then Lp (M ) = Lq (M ).
+step). This is in contrast with the generalization of Hopcroft’s algo-
+                                                                              Proof : By way of contradiction. Suppose
+rithm discussed in the next section.
+                                                                              (∗) there exists a word x and states p1 ≡ p2 ,
+Complexity. In the finite alphabet case Moore’s algorithm can                     such that x ∈ Lp1 (M ) ⇔ x ∈   / Lp2 (M ).
+be implemented in O(knlog n) (using the approach described
+in [10]), where n is the number of states of the DFA, and k                   Choose w to be a shortest such x. Since w cannot be ǫ (because
+the number of characters in the input alphabet. However, such                 {p1 , p2 } ⊆ F or {p1 , p2 } ⊆ Q \ F ), there are a and v such that
+                                                                                                         ϕ1            ϕ2
+implementation relies on the alphabet being finite.                           a · v = w, and moves p1 −  −→ q1 and p2 − −→ q2 such that a ∈ [[ϕ1 ]]
+                                                                              and a ∈ [[ϕ2 ]]. The choice of q1 and q2 is unique for given a by
+3 In a concrete implementation a dictionary can be used to maintain D         determinism, thus w ∈ Lpi (M ) ⇔ v ∈ Lqi (M ) for i ∈ {1, 2}.
+similar to the case of DFAs [28, Section 3.4].                                So, by (∗), v ∈ Lq1 (M ) ⇔ v ∈ / Lq2 (M ).
+                       def                                                                  H (M = (A, Q, q 0 , F, ∆)) =       def
+1    Minterms A (ψ̄) =                                                              1    MinSFA
+2      tree := new Tree(⊤A , null , null );                                         2      P := {F, Q \ F }; //initial partition
+3    foreach (ψ in ψ̄) tree.Refine(ψ);                                              3      W := {if (|F | ≤ |Q \ F |) then F else Q \ F };
+4      return Leaves(tree); //return the set of all the leaf predicates             4      Ψ := Minterms A ({Grd(ρ) | ρ ∈ ∆}); //compute the minterms
+5 class Tree                                                                        5      while (W 6= ∅) //iterate over unvisited parts
+6    Predicate ϕ; Tree left; Tree right;                                            6        R := choose (W ); W := W \ {R};
+7
+                 def
+       Refine(ψ) =                                                                  7        foreach (ψ in Ψ) //iterate over all minterms
+8        if (IsSat A (ϕ ∧A ψ) and IsSat A (ϕ ∧A ¬A ψ))                              8             S := δ −1 (ψ, R); //all states leading into R for given minterm
+9           if (left = null ) //if the tree is a leaf then split ϕ into two parts   9             while (exists (P in P) where P ∩ S 6= ∅ and P \ S 6= ∅)
+10             left := new Tree(ϕ ∧A ψ,null ,null ); //[[ϕ]] ∩ [[ψ]]                10              hP, W i := Split P,W (P, P ∩ S, P \ S); //split P
+11             right := new Tree(ϕ ∧A ¬A ψ,null ,null ); //[[ϕ]] \ [[ψ]]            11     return M/≡P ;
+12          else left.Refine(ψ); right.Refine(ψ); //refine subtrees recursively     12
+                                                                                                                    def
+                                                                                           Split P,W (P, P1 , P2 ) = hP ′ , W ′ i where
+                                                                                    13     P ′ = (P \ {P }) ∪ {P1 , P2 } //refine P
+        Figure 2. Minterm generation for ψ̄ ⊆ ΨA modulo A.                          14     W ′ = if (P ∈ W ) then (W \ {P }) ∪ {P1 , P2 } //both parts
+                                                                                    15           else W ∪ {if (|P1 | ≤ |P2 |) then P1 else P2 } //smaller part
+    We now have the following contradiction. There are two cases:
+1) if q1 6≡ q2 , say q1 ∈ R and q2 ∈ Rc for some part R, then P is                  Figure 3. Hopcroft’s minimization algorithm lifted to determin-
+not finest because we can split the part P ∈ P such that p1 , p2 ∈ P                istic SFAs. M is assumed to be clean, complete, and nontrivial
+using the (a, R)-split of P . 2) if q1 ≡ q2 then, because |v| < |w|                 (F 6= ∅ and Q \ F 6= ∅).
+and (∗) holds for x = v and q1 , q2 in place of p1 , p2 , it follows that
+w is not the shortest x such that (∗) holds Ψ.                         ⊠
+In addition to the state partition refinement, in the symbolic case,                use Hopcroft’s algorithm. We refer to the resulting algorithm by
+                                                                                         H
+we also use predicate refinement. Predicate refinement builds a set                 MinSFA  . Such an algorithm is shown in Figure 3.
+of minterms. A minterm is a minimal satisfiable Boolean combina-                        Lifting the transition relation to be over minterms is a powerful
+tions of all guards that occur in the SFA. The algorithm is shown                   hammer that can be used to adapt most classical automata algo-
+in Figure 2. It uses a binary tree whose leaves define the partition.               rithms to the symbolic setting. However, one drawback of minterm
+Initially the tree is the leaf ⊤. Each time a predicate ψ is used to re-            generation is that, in the worst case, the number of minterms of an
+fine the tree it may cause splitting of its leaves into finer predicates.           SFA is exponential in the number of guards occurring in the SFA.
+The following example illustrates such minterm generation.                          The following example illustrates a worst case scenario in which,
+                                                                                                                   H
+                                                                                    due to such a problem, MinSFA     runs in exponential time.
+E XAMPLE 1. Consider the alphabet algebra 2BV7 (ASCII charac-
+ters). We use standard regex notation for character classes. Sup-                   E XAMPLE 2. Let the character domain be nonnegative integers
+pose that the following two guards occur in the given SFA: \w                       < 2k . Suppose βi (x) is a predicate that is true for x iff the i’th
+([[\w]] = [[[a-zA-Z0-9_]]]), and \d ([[\d]] = [[[0-9]]]). Then, the                 bit of the binary representation of x is 1, e.g. β3 (8) is true and
+value of tree in Minterms 2BV7 ({\w, \d}) in line 4 in Figure 2 is                  β3 (7) is false. Predicate β3 can be defined as ¬((x&8) = 0),
+either the first of the two trees below if \w is selected first in the              provided that, besides equality, the bitwise-and operator & is a
+loop of line 3, or else the second tree (note that [[\d]] ( [[\w]] so               built-in function symbol of ΨA (e.g., consider the bit-vector theory
+[[\d ∧ \w]] = [[\d]]):                                                              of an SMT solver). Similarly, we may also use the algebra 2BVk ,
+                                                                                    where the size of the concrete BDD representation for βi is linear in
+                         ⊤                ⊤
+              \w         ¬\w       \d          ¬\d                                  k, it has one node that is labeled by i and whose left child (case bit
+ \d            \w ∧ ¬\d              \w ∧ ¬\d                            ¬\w        is 0) is false and whose right child (case bit is 1) is true. The point
+                                                                                    is that predicates are small (essentially constant) in size. Consider
+The minterms are the leaves \d, \w ∧ ¬\d and ¬\w.                           ⊠       the following SFA Mk with such an alphabet A.
+Next, we analyze a property of the set of minterms. Given a predi-                           q0                q1                    q2         qk-1          qk
+                                                                                                       β0                 β1              ···          βk-1
+cate ψ ∈ ΨA and a state p ∈ Q, define:                                                                ¬β0                                              βk-1
+               def                  →
+                                    −                                                                          p1         β1         p2   ···   pk-1
+      δ(ψ, p) = {Tgt(ρ) | ρ ∈ ∆(p), IsSat (Grd(ρ) ∧ ψ)}
+                                    ←
+                                    −
+   δ −1 (ψ, p) = {Src(ρ) | ρ ∈ ∆(p), IsSat (Grd(ρ) ∧ ψ)}
+               def
+                                                                                    Then Minterms (Mk ) = Minterms A ({¬βi , βi }i<k ) = {n̂}n<2k
+                     [
+  δ −1 (ψ, P ) =
+               def
+                         δ −1 (ψ, p) (for P ⊆ Q)                                    has 2k elements, where [[n̂]] = {n}. For example, suppose k = 3,
+                             p∈P
+                                                                                    then [[β2 ∧ ¬β1 ∧ β0 ]] = {5}. The minimal automaton is
+                      def               S
+Let Minterms(M ) = Minterms A ( ρ∈∆ Grd(ρ)). The follow-                                     q0        ⊤       q1         β1         q2   ···   qk-1   βk-1   qk
+ing proposition implies that all characters that occur in one minterm
+are indistinguishable.                                                              The dead-end state q∅ necessary for completion is implicit.                    ⊠
+P ROPOSITION 1. Let M be deterministic and complete. For all
+ψ ∈ Minterms(M ) and p ∈ Q, |δ(ψ, p)| = 1.                                          Complexity. In the finite alphabet case, Hopcroft’s algorithm has
+                                                                                    complexity O(kn log n), where n is the number of states of the
+We can therefore treat δ as a function from Minterms ×Q to Q and                    DFA and k is the number of characters in the input alphabet [27],
+reduce minimization of the SFA to minimization of the DFA with                      assuming k is treated as a constant. It is shown in [31] that if k
+alphabet Minterms and transition function δ. In particular, we can                  is O(n) then the complexity of the algorithm presented in [27] is
+        N (M = (A, Q, q 0 , F, ∆)) =  def                                                                                             Q
+1    MinSFA                                                                                                                               q2′′
+2      P := {F, Q \ F }; //initial partition
+                                                                                          S                            b                  q1
+3      W := {if (|F | ≤ |Q \ F |) then F else Q \ F };
+                                                                                                        p1
+                                                                                                                       a                   q1′
+4      while (W 6= ∅) //main loop                                                                                       b
+5       R := choose (W ); W := W \ {R};                                                                 p′1                               R
+                                                                                                                         a
+                             ←
+                             −                                                                                        a, b                       q2′
+6       S := {Src(τ ) | τ ∈ ∆(R)}; //all states leading into R                                    p′2                                     q2
+          //Γ(p) denotes the set of all characters leading from p ∈ S into R                                          a, b
+                             _                                                             P            p2
+7       Γ := {p 7→                Grd(τ ) | p ∈ S};                                                                (a) ( , R)-split
+                         ←−                                                                                                               Q
+                      τ ∈ ∆(R),Src(τ )=p
+
+8        while (exists (P in P) where P ∩ S 6= ∅ and P \ S 6= ∅)                                                                                 R
+9          hP, W i := Split P,W (P, P ∩ S, P \ S); //( , R)-split                             S                                                  q1
+10       while (exists (P in P) where P ∩ S 6= ∅ and
+                                                                                                                          a, b
+                                                                                                              p1
+11               exists (p1 , p2 in P ) where IsSat (¬(Γ(p1 ) ⇔ Γ(p2 ))))                                                    b
+12         a := choose ([[¬(Γ(p1 ) ⇔ Γ(p2 ))]]);                                                   P                                             q2
+                                                                                                                             a
+13         P1 := {p ∈ P | a ∈ [[Γ(p)]]};                                                                      p2
+14         hP, W i := Split P,W (P, P1 , P \ P1 ); //(a, R)-split                                                  (b) (a, R)-split
+15     return M/≡P ;
+                                                                                                                  N
+                                                                                 Figure 5. Split cases of P in MinSFA . Suppose DA = {a, b}.
+Figure 4. Minimization of deterministic SFAs. M is assumed to
+be clean, complete and nontrivial. Split P,W is defined in Figure 3.
+                                                                               must somehow distinguish at least two states p1 and p2 of P ,
+                                                                               (see Figure 5(b)), so that the split is indeed proper and guarantees
+                                                                               progress.
+O(n3 ), but it is also shown that O(kn log n) complexity can be                     The first loop (lines 8–9) is an optimization that can be omitted
+maintained with a more careful implementation.                                 without sacrificing correctness, provided that for p ∈     / S we let
+                                                                                      def
+    Given an SFA, let n be the number of states, let m be the num-             Γ(p) = ⊥. The conditions P \S 6= ∅ and P ∩S 6= ∅ together imply
+ber of moves, and let ℓ be the size of the largest label (guard) of            that there exist p1 ∈ P ∩ S and p2 ∈ P \ S and thus [[Γ(p1 )]] 6= ∅
+a move. In a normalized SFA there are at most n2 moves. Let µ                  but [[Γ(p2 )]] = ∅, so ¬(Γ(p1 ) ⇔ Γ(p2 )) is satisfiable.
+be the number of minterms of the SFA; µ is bounded by 2m . Each                     The concrete implementation is shown in Figure 6. It differs
+minterm is of the form φ1 ∧ . . . ∧ φm , where each φi is a guard              from the abstract algorithm in that it computes local minterms, and
+or a negated guard, and thus minterms have size O(mℓ). The com-                does not compute any concrete witnesses (the element a is not
+putation of minterms is O(2m f (mℓ)) where f is the complexity                 computed) in the second loop. In the concrete implementation it
+to decide satisfiability of formulas of given size. The rest of the            is important to keep the first loop for the following reasons. One is
+algorithm (after line 4) can be seen as a standard implementation              efficiency, the first loop is cheaper. Second is simplicity, it is useful
+of Hopcroft’s algorithm, where the SFA is first transformed into a             to work with Γ as a dictionary or array whose index set is S, and
+DFA with an alphabet of minterm identifiers where each SFA la-                 it is practical to assume that the invariant P ⊆ S holds during the
+bel has been replaced by identifiers of all relevant minterms. Then            second loop.
+                                                                                                                                        N
+Ψ is viewed as a concrete alphabet (of such minterm identifiers).                   Next, we formally prove the correctness of MinSFA     . The proof
+In the final result, the identifiers are mapped back to minterms and           provides more intuition on how the algorithm works. We then
+the resulting SFA is normalized. The overall complexity is then                provide more details on how the concrete implementation works.
+O(2m f (mℓ) + 2m n log n).                                                                    N                             N
+                                                                               T HEOREM 3. MinSFA (M ) is minimal, and L(MinSFA (M )) =
+                                                                               L(M ).
+5. Minimization without minterm generation
+                                                          H                    Proof : We show first that the invariant of Lemma 1 holds. The
+When inspecting the worst case complexity of MinSFA          , the factor
+                                                                               invariant clearly holds initially. We show that it is preserved by each
+that stands out the most is the exponential blowup caused by the
+                                                                               split (lines 8–9, and lines 10–14).
+predicate refinement (minterm generation). In this section we in-
+                                                                                   First, consider the first splitting loop in Figure 4. Fix R ∈ P
+vestigate a new technique which is based on the symbolic represen-                                            ←−
+tation of the alphabet, and that avoids minterm generation. Figure 4           and let S = {Src(τ ) | τ ∈ ∆(R)}, and choose P ∈ P such that
+shows MinSFA  N
+                , a new minimization algorithm, that does not require          P1 = P ∩ S 6= ∅ and P2 = P \ S 6= ∅. Fix p1 ∈ P1 and p2 ∈ P2 .
+                                                                                                            ϕ1
+predicate refinement.                                                          Then, there is a move p1 −−→      q1 for some q1 ∈ R. Let a ∈ [[ϕ1 ]].
+    The intuition behind MinSFA   N
+                                     is the following: when splitting a        Since p2 ∈  / S and M is complete, for some q2 ∈ Rc there exist
+                                                                                             ϕ2
+partition’s part, it is not necessary to provide the exact witness that        a move p2 −   −→ q2 such that a ∈ [[ϕ2 ]]. The situation is illustrated
+defines the split, instead it is enough to check if some witness (or           in Figure 5(a). By using the invariant, Lq1 (M ) 6= Lq2 (M ), there
+witness set) exists. The main steps are the two inner while loops in           is a word w such that w ∈ Lq1 (M ) ⇔ w ∈        / Lq2 (M ). Thus, by
+Figure 4, they both refine the partition P with respect to R. In the           using the fact that M is deterministic, a · w ∈ Lp1 (M ) ⇔ a · w ∈    /
+first loop (lines 8–9) a part P is split into P ∩ S and P \ S without          Lp2 (M ). Therefore, Lp1 (M ) 6= Lp2 (M ).
+using a fixed witness (see Figure 5(a) where {{p1 , p′1 }, {p2 , p′2 }}            Second, consider the second splitting loop. Fix P and p1 , p2 ∈
+is a ( , R)-split of P , but it is neither an (a, R)-split nor a (b, R)-       P that satisfy the loop condition. All parts in P that intersect with
+split of P ). The second loop (lines 10–14) splits P if there exists           S must be subsets of S due to the first splitting loop, so, since
+some a that produces an (a, R)-split of P . Such an element a                  M is clean, P ⊆ S, IsSat (Γ(p1 )) and IsSat(Γ(p2 )). The condi-
+MinSFA(Automaton<S> fa)                                                  Let w be shortest such x. Since w cannot be ǫ, there exist a and v
+{
+  var fB = new Block(fa.GetFinalStates());                               such that w = a·v. So, there are, by determinism and completeness
+                                                                                                               a              a
+  var nfB = new Block(fa.GetNonFinalStates());                           of M , unique q1 and q2 such that p1 −→ q1 and p2 −  → q2 . It follows
+  var blocks = new Dictionary<int, Block>();                             that v ∈ Lq1 (M ) ⇔ v ∈   / Lq2 (M ). So q1 6≡ q2 or else v satisfies
+  foreach (var q in fa.GetFinalStates()) blocks[q] = fB;
+  foreach (var q in fa.GetNonFinalStates()) blocks[q] = nfB;
+                                                                         (*) and v is shorter that w.
+                                                                                                                      N
+  var W = new BlockStack();                                                  Consider any fixed computation of MinSFA   . It follows from the
+  if (nfB.Count < fB.Count) W.Push(nfB); else W.Push(fB);                definition of Split P,W , that W is always a subset of P and (due
+                                                                         to the first condition of the update to W ), if W ever contains a
+    while (!W.IsEmpty) {
+      var R = W.Pop();
+                                                                         part containing a state q, then W will keep containing a part that
+      var G = ... //Γ in Figure 4                                        contains q until such a part is removed from W in line 5.
+      var S = G.Keys;                                                        Next, we show that the following W -invariant must hold at all
+      var relevant = ... //blocks intersecting with S                    times: for all R ∈ W , q1 ∈ R ⇔ q2 ∈ R. Let {ι, ι̂} = {1, 2}.
+      foreach (var P in relevant){    //lines 8-9 in Figure 4
+         var P1 = ... //P ∩ S
+                                                                         Suppose, by way of contradiction, that at some point in line 5 a part
+         if (P1.Count < P.Count) { //( , R)-split of P                   R is chosen from W such that qι ∈ R, and qι̂ ∈    / R. So, pι ∈ S,
+           foreach (var p in P1) { P.Remove(p); blocks[p] = P1;}         with S as in line 6. We then have two following cases.
+           if (W.Contains(P)) W.Push(P1);
+           else if (P.Count <= P1.Count) W.Push(P);                      1. If pι̂ ∈
+                                                                                   / S, then pι and pι̂ are split apart in the first splitting loop.
+           else W.Push(P1);                                                 This contradicts the fact that p1 ≡ p2 .
+      }}
+      bool iterate = true;                                               2. Assume pι̂ ∈ S and consider the second splitting loop. By
+      while (iterate) {    //lines 10-14 in Figure 4                        choice of the character a above, we know that there exist moves
+         iterate = false;                                                       ϕι              ϕι̂
+         relevant = ... //blocks intersecting with S                        pι −→ qι and pι̂ −→        qι̂ where a ∈ [[ϕι ]] and a ∈ [[ϕι̂ ]]. It fol-
+         foreach (var P in relevant) {                                      lows that a ∈/ [[Γ(pι̂ )]] (because M is deterministic and qι̂ ∈    / R)
+           var P1 = new Block();                                            while a ∈ [[Γ(pι )]]. So a ∈ [[Γ(pι )]] \ [[Γ(pι̂ )]], or, in other
+           var psi = G[P.Current];   //start with some element of P         words, a ∈ [[Γ(pι ) ∧ ¬Γ(pι̂ )]], and therefore IsSat (¬(Γ(pι ) ⇔
+           bool splitterFound = false;
+           P1.Add(P.Current);                                               Γ(pι̂ ))) holds. Consequently, pι and pι̂ end up in distinct parts
+                                                                            upon termination of the second splitting loop. This again con-
+           while (P.MoveNext()) {                                           tradicts the fact that p1 ≡ p2 .
+             var q = P.Current;
+             var phi = G[q];                                             So, initially q1 ∈ F ⇔ q2 ∈ F , or else the initial part of W
+             if (splitterFound) {                                        violates the invariant. But now consider the point when the part
+               if (IsSat(psi & phi)) { P1.Add(q); psi = psi & phi;}
+             } else {
+                                                                         containing both q1 and q2 is split into two parts containing q1 and
+               if (IsSat(psi & !phi)) {                                  q2 respectively. But at this point, at least one of those parts will be
+                 psi = psi & !phi;    //refine the local minterm         added to W by definition of Split P,W . Thus, we have reached the
+                 splitterFound = true;                                   desired contradiction, because the W -invariant is violated at that
+               } else {   //psi implies phi
+                 if (IsSat(phi & !psi)) {
+                                                                         point.
+                                                                                                                               N
+                   P1.Clear(); P1.Add(q);   //set P1 to {q}                 We have shown that, upon termination of MinSFA       (M ), ≡P co-
+                   psi = phi & !psi;   //swap the local minterm          incides with ≡M . It follows from Theorem 2 that M/≡P is minimal
+                   splitterFound = true;                                 and accepts L(M ).                                                   ⊠
+                 } else P1.Add(q);   //psi is equivalent to phi
+           }}}
+           if (P1.Count < P.Count) { //(a, R)-split of P for some a      Implementation. A simplified version of our concrete C# imple-
+                                                                                              N
+             iterate = (iterate || (P.Count > 2));                       mentation of MinSFA     is shown in Figure 6. Parts of a state partition
+             foreach (var p in P1) { P.Remove(p); blocks[p] = P1; }      are represented by mutable sets called blocks, i.e., objects of type
+             if (W.Contains(P)) W.Push(P1);
+             else if (P.Count <= P1.Count) W.Push(P);                    Block, and states are represented by integers. Each block contains
+             else W.Push(P1);                                            a HashSet of states. The search frontier W is maintained as a stack
+    }}}}                                                                 of blocks, and the partition P is an array of blocks, called blocks,
+    ...    //construct the result using blocks and normalize it          that is indexed by states.
+}
+                                                                             The first inner while loop (lines 8–9 in Figure 4) is implemented
+                                                    N
+            Figure 6. Concrete implementation of MinSFA .                by iterating over all blocks P that intersect with S. The content of
+                                                                         block P1 becomes P ∩ S, while the content of block P is updated to
+                                                                         P \ S. Observe that blocks are objects (pointers), thus if W contains
+                                                                         P, after the ( , R)-split it will still contain P as well as the new block
+tion IsSat (¬(Γ(p1 ) ⇔ Γ(p2 ))) means that either IsSat(Γ(p1 ) ∧         P1.
+¬Γ(p2 )) or IsSat(Γ(p2 ) ∧ ¬Γ(p1 )). Assume the former case and              The second inner while loop (lines 10–14 in Figure 4) is im-
+choose a ∈ [[Γ(p1 ) ∧ ¬Γ(p2 )]]. By definition of Γ, we know that        plemented by en efficient encoding of the search for p1 and p2 in
+                    ϕ1
+there is a move p1 −−→ q1 where q1 ∈ R such that a ∈ [[ϕ1 ]]. More-      line 11 of Figure 4. Moreover, no concrete witness a is computed.
+over, since a ∈/ [[Γ(p2 )]], and Γ(p2 ) covers all the characters that   Instead, a “local minterm” (called psi or ψ in Figure 6), is com-
+lead from p2 to R, there must be (by completeness and determin-          puted using Γ. This avoids the use of model generation that is more
+                         ϕ2
+ism of M ) a move p2 −   −→ q2 where q2 ∈ Rc and a ∈ [[ϕ2 ]]. See        expensive than satisfiability checking (i.e. checking if there exists
+Figure 5(b). It follows as above, by using Lq1 (M ) 6= Lq2 (M ),         a model).4 Thus, the implementation does not rely on model gen-
+that Lp1 (M ) 6= Lp2 (M ). Since each step properly refines the          eration. Observe also that the second inner while loop relies on
+partition, Lemma 1 follows.                                              the fact that all remaining (relevant) blocks that intersect with S
+    We now show that Lemma 2 holds. The proof is by way of               must be contained in S due to the first inner loop. The split of P
+contradiction.
+                                                                         4 Although IsSat
+                                                                                             A (ϕ) is formally defined as [[ϕ]]A 6= ∅, satisfiability
+(*) Assume there exists a word x, a part P ∈ P, and two states           checking is a more lightweight operation than actual model generation, in
+    p1 , p2 ∈ P such that x ∈ Lp1 (M ) ⇔ x ∈
+                                           / Lp2 (M ).                   particular, in the context of SMT solvers.
+                                                                          12                                                               25
+then happens with respect to ψ, which, by construction, is a mem-
+
+
+
+
+                                                                               milliseconds
+                                                                                                        10 states
+
+
+
+
+                                                                                                                                                    milliseconds
+                                                                          10                                                                                                   20 states
+ber of Minterms ({Γ(p) | p ∈ P }), so some member a of [[ψ]]               8
+                                                                                                                                           20
+
+
+would have produced the same split.                                        6
+                                                                                                                                           15
+
+                                                                                                                                           10
+                                                                           4
+
+Relation to classical techniques. Implementation of Hopcroft’s             2                                                               5
+
+algorithm is discussed in detail in [7]. In the classical setting, the     0                                                symbols        0                                                symbols
+                                                                               0              10        20        30        40        50            0                     10   20     30    40        50
+notions of blocks and (a, R)-splits are standard, the pair (R, a) is
+called a splitter in classical algorithms, where it plays a key role.     50                                                               120
+
+
+
+
+                                                                                                                                                           milliseconds
+                                                                               milliseconds
+                                                                                                    50 states                                                                  100 states
+The idea of splitting a block into two and keeping only the smaller       40                                                               100
+
+block in the waiting set W is a core classical feature. In the case       30
+                                                                                                                                            80
+                                                                                                                                            60
+of partial DFAs, the algorithms are similar except that W must be         20
+                                                                                                                                            40
+initialized with both F and F c [40].                                     10                                                                20
+    In classical implementations the waiting set W consists of split-      0                                                symbols             0                                           symbols
+ters rather than blocks, where characters have been preselected.               0              10        20        30        40        50                0                 10   20      30   40    50
+
+The same is true for partial DFAs except that only those characters                                               Newk           Hopcroft                                  Moore
+that are relevant for a given block are being used, which is benefi-                               26        32        38
+
+cial for DFAs with sparse transition graphs. In the symbolic setting      Figure 7. Running times on benchmark of randomly generated
+the character selection is indirect and achieved only through the         DFAs. The corresponding SFAs are over the theory of bitvectors
+satisfiability checks using local minterms during the second loop.        and each set of input symbols is represented as a predicate using a
+The alphabet algebra may be infinite in the case of SFAs, this is         binary decision diagram (BDD).
+not possible in the classical setting. As far as we know, the idea
+                                     N
+behind the first inner loop of MinSFA   and the notion of ( , R)-splits
+(recall Figure 5), say free splitters (R, ), have not been studied in
+the classical setting.                                                    4. We minimize randomly generated SFAs over the theory of pairs
+                                                                             of integers and strings. Here, we analyze the performance in the
+                                          N
+Complexity. The complexity of MinSFA         depends on several fac-         case in which the alphabet is infinite; and
+tors, most importantly on the representation of predicates and the
+                                                                          5. We implemented the classical procedure for transforming
+concrete representation of the partition refinement data structure,
+                                                                             Monadic Second Order (MSO) logic formulae into DFAs [38]
+that is explained above.
+                                                                             and measure how the running time of such transformation is af-
+    First of all, observe that each Γ(p) has size at most O(nℓ), and
+                                                                             fected by different minimization algorithms. This last test aims
+the total size of Γ is O(n2 ℓ). Since the split operator always adds         at understanding the performance in the case of very large al-
+to W only the smallest partition, the outer loop is run at most log n        phabets. We also compare our implementation against the tool
+times. The two internal loops have different running times:                  Mona [22], the state of the art library for deciding MSO formu-
+ • the first loop is run at most n times, with an internal complexity        lae.
+   of O(n), due to the split operation, and
+                                                                          All the experiments are run on a 64 bits Intel(R) Xeon(R) 3.60GHz
+ • the second loop is run at most n times, and if the complexity of       processor with 8 GB of RAM memory.
+   the label theory for instances of size l is f (l), the complexity
+   of each iteration is at most O(nf (nℓ)). This is due to the n
+   internal iterations over the current part P. We also notice that       6.1 Small randomly generated DFAs
+   each iteration calls the solver on a predicate of size at most         In [3] the performance of several minimization algorithms are com-
+   O(nℓ).                                                                 pared against a set of randomly generated DFAs. Such benchmark
+                                                                          contains 5 million DFAs with number of states ranging between 5
+We can conclude that MinSFAN
+                              has complexity O(n2 log n · f (nℓ)).
+                                                                          and 1000, and alphabet sizes ranging between 2 and 50. The set
+As we will observe in the next section, the quadratic behavior is not
+                                                                          of DFAs in [3] is uniformly generated at random, and therefore it
+observed in practice.
+                                                                          offers good statistical coverage of the set of all possible DFAs with
+                                                                          such number of states and alphabet sizes.
+                                                                                             N          M              H
+6. Evaluation                                                                 We run MinSFA     , MinSFA    and MinSFA    on such set of DFAs. Fig-
+                                  N        H            M
+                                                                          ure 7 shows the results. For simplicity we only plot the results for
+We evaluate the performance of MinSFA , MinSFA , and MinSFA with          DFAs with 10, 20, 50, and 100 states. Each plot contains the run-
+the following experiments:                                                ning time for each algorithm, where the x axis represents the num-
+1. We minimize the randomly generated DFAs from the bench-                ber of symbols in the alphabet. In [3], Moore’s algorithm is not
+   mark presented in [3]. This experiment analyzes the perfor-            considered and we weren’t therefore able to validate the accuracy
+                                                                                                               M
+   mance in the presence of small finite alphabets and allows us          of our implementation of MinSFA         . However, we were able to repli-
+                                                                                                                                                   H
+   to validate our implementation of MinSFAH
+                                              against the results         cate the behavior of Hopcroft’s algorithm shown [3] using MinSFA            .
+                                                                                                                                 M
+   shown in [3];                                                              Figure 7 shows how the complexity of MinSFA highly depends
+                                                                                                                                        H
+                                                                          on the number of states, while the complexity of MinSFA          is mainly
+2. We minimize the SFAs generated by common regular expres-               affected by the number of input alphabets. We can indeed see that,
+   sions taken from the web. This experiment measures perfor-             already for 100 states, MinSFA   M
+                                                                                                               performs worse than MinSFA H
+                                                                                                                                             . In this
+   mance in the case of typical character alphabets (Unicode);            experiment, for most of the input DFAs the number of minterms
+3. We minimize the SFAs Mk from Example 2 to show the worst               was the same as the number of input symbols.
+                                      H                                                                         N                                   M
+   case exponential behavior of MinSFA   . In this experiment we also         It is not a surprise that MinSFA      is much faster than both MinSFA
+                                                                                     H                    N
+   compare against the brics library, a state-of-the-art automata         and MinSFA    . Indeed, MinSFA     ’s performance seems to be resistant
+   library that uses character ranges as a symbolic representations       to both bigger state space and bigger alphabets. Moreover, for no
+                                                                                              N                          M          H
+   of finite alphabets;                                                   single input MinSFA     is slower than MinSFA     or MinSFA .
+   100                                                                        10000
+
+           seconds
+
+
+
+
+                                                                                      milliseconds
+     10                                                                        1000
+
+                                                                                100
+      1
+                                                                                 10
+    0.1
+                                                                                  1
+                                                                                                                                                           k
+   0.01                                                                               0               5               10       15        20           25       30
+                                                                                0.1
+                                                               states
+ 0.001
+                                                                               0.01
+          10                 100                1000                10000
+0.0001                                                                                               New                   Hopcroft           Moore
+                       New           Hopcroft         Moore
+                                                                                                     brics-Hopcroft        brics-Moore
+
+Figure 8. Running times on regexes from regexlib. Both axes are              Figure 9. Running times on the Mk SFAs of Example 2. The y-
+in log-scale.                                                                axis is in log-scale.
+
+
+6.2 Unicode regular expressions
+                                                                             6.3 Alphabet corner cases
+Next, we compared the performance of different minimization al-
+gorithms over a sample set of 1850 SFAs over the alphabet 2BV16 (of          The next experiment shows the importance of avoiding the minterm
+                                                                                                        H
+Unicode characters) constructed from typical regexes (taken from             generation used by MinSFA    . We consider the SFAs Mk from Exam-
+a public web-site5 of popular regexes). Figure 8 shows the running           ple 2, for values of k ranging between 1 and 31, over the alphabet
+times. The figure clearly shows how MinSFA   N
+                                                is faster than both          2BV32 of 32-bit bit-vectors. Figure 9 shows the running times for
+                                                                                   N        H             M
+     H             M
+MinSFA and MinSFA for every input instance. Moreover, it can be              MinSFA   , MinSFA , and MinSFA  .
+                                                                                                                             H
+                                                           H                     As expected, the performance of MinSFA          degrades exponen-
+appreciated how for bigger state sizes (70-80 states) MinSFA  starts                                                                        H
+                      M                                                      tially. Already for k = 11, minimizing the SFA using MinSFA      took
+outperforming MinSFA .                                                                                                                M         N
+    In all cases, the number of minterms turned out to be smaller            1 second due to minterm generation, while both MinSFA      and MinSFA
+                                                                                                               M
+(by a factor between 2 and 3) than the total number of predicates,           took less than 1ms. For MinSFA the time increased from 1ms to
+                                                                                                                   N
+and the exponential blowup of minterms never occurred. The size              .1sec with k = 31, while for MinSFA      the time remained below 1ms
+of the generated SFAs ranged from 2 states to 15800 states with an           for all the values of k.
+average of 100 states. After the minimization each SFA was 32%                   Similarly to the previous experiment, we also compared the run-
+smaller (number of states) than the original SFA.                            ning time of the sample set against Hopcroft’s and Moore’s mini-
+    The following is a typical regex from the sample set:                    mization algorithm in the brics.autmaton library (version 1.11-
+                                                                             8). For this experiment, we decided to show the brics performance
+  [NS]\d{1,}(\:[0-5]\d){2}.{0,1}\d{0,},[EW]\d{1,}(\:[0-5]\d){2}              in order to appreciate how this particular example causes the num-
+                                                                             ber of ranges to grow exponentially, causing Hopcroft’s algorithm
+The generated SFA uses 16 predicates (such as \d)6 while there               to be very slow. It is interesting to notice that the brics implemen-
+are only 7 minterms (such as [:]). For this regex, the determinized          tation of Moore’s algorithm is also slow. This is again due to the
+SFA has 47 states and the minimized SFA has 23 states.                       alphabet’s blowup caused by the ranges algebra.
+    Since the number of minterms does not blowup, is there a
+                                     N
+performance incentive in using MinSFA    in this context? The answer
+                                                                             6.4 Complex theories
+is yes since the total time used to minimize all 1700 SFAs was
+                                                                                                                     N        H           M
+20 seconds when using MinSFA  H
+                                , and only 0.8 seconds when using            We compare the performance of MinSFA       , MinSFA and MinSFA   over
+      N
+MinSFA , thus showing a 24x speedup.                                         a sample set of 220 randomly generated SFAs over the theory of
+    We also measured the performance of the minimization algo-               pairs over string × int. The guards of each SFAs are conjunctions
+rithm implemented in the brics.automaton library (version 1.11-              of simple predicates over strings and integers. In the theory of
+8) that uses symbolic integer ranges to represent Unicode char-              strings we only allow comparison against a constant string, while
+acters, but does not implement them as a Boolean algebra (since              for integers we generate unary predicates containing +, −, <, =
+ranges are not closed under complement and union). We observed               and integer constants. The set of generated SFAs is created as
+that the brics implementation of Hopcroft’s algorithms is compa-             follows. We first generated a set S of 10 SFAs with at most 10
+rable to our implementation of MinSFAH
+                                       , and for 95% of the regexes          states. For each SFA a ∈ S we also compute the complement, and
+the running times of brics Hopcroft’s algorithm and MinSFA   H
+                                                                were         for every pair a, b ∈ S we compute the union, intersection, and
+at most 5% apart. The trend of MinSFA  H
+                                           in Figure 8 is very simi-         difference of a and b.
+lar to that of the Hopcroft’s implementation in the brics library.               Figure 10 shows the running time of each algorithm for dif-
+We decided not to include the latter in the plot for the following           ferent numbers of states. We first observe how the performance
+                                                                                      H
+reasons: 1) brics is implemented in Java, while our implemen-                of MinSFA   quickly degrades when increasing the number of states.
+tations are all in C#, and 2) in brics, the code corresponding to            This is mainly due to the large number of minterms. Since the pred-
+the minterm computation is not part of the minimization algorithm,           icates are randomly generated, many overlaps are possible and the
+therefore the comparison would not be completely fair (especially            number of minterms grows quickly. Next, we can see how the per-
+                                                                                                M
+for big instances).                                                          formance of MinSFA    is affected by the increasing number of states.
+                                                                                           N
+                                                                             Finally, MinSFA can quickly minimize SFAs with up to 96 states in
+                                                                                                                                        N
+                                                                             less than 1.5 seconds. This experiment shows how MinSFA        is not
+5 http://regexlib.com/                                                                                                    H          M
+                                                                             affected by complex theories, while MinSFA and MinSFA are both
+6 We use standard regex character class notation for character predicates.   impractical in this setting.
+20                                                                                                                                                        1000
+
+
+
+
+                                                                                                                                                                     seconds
+     seconds                                                                 10
+
+
+
+
+                                                                                       seconds
+                                                                                                                                                           100
+                                                                              1                                                                             10
+
+15                                                                           0.1
+                                                                                                                                                             1
+                                                                                                                                                           0.1
+                                                                            0.01
+                                                                                                                                                          0.01
+                                                                                                                                                                                                                  k
+10                                                                         0.001                                                         k               0.001
+                                                                                   2                  8        14     20   26     32    38                       2             8       14         20    26   32   38
+
+                                                                                                                    (a)                                                                     (b)
+
+
+
+
+                                                                                                                                             ds
+ 5
+                                                                           100                                                                           1000
+
+
+
+
+                                                                                                                                                  ands
+
+
+
+
+                                                                                                                                                                     seconds
+                                                                                       seconds
+                                                                             10                                                                           100
+
+ 0                                                           states           1
+                                                                                                                                                           10
+
+                                                                                                                                        k                   1
+     0           20           40           60           80         100      0.1
+                                                                                                                                                           0.1
+                          New         Hopcroft       Moore                 0.01
+                                                                                                                                                          0.01
+                                                                          0.001                                                              k           0.001
+                                                                                                                                                                                                                  k
+Figure 10. Running times for SFAs over the theory String × Int                     2                  8        14     20   26      32    38                      2                 5         8         11    14        17
+
+with 20 seconds timeout.                                                                                            (c)                                                                     (d)
+                                                                                                               Newk             Hopcroft                         Moore                           Mona
+                                                                                                 26       32         38
+6.5 From Monadic Second-Order logic predicates to DFAs                    Figure 11. MSO to DFA running times. The y-axes are in log-
+The relation between regular languages and logic has been exten-          scale.
+sively investigated in the past [38]. Particularly, every regular lan-
+guage can be expressed as a formula in Monadic Second-Order
+logic (MSO) over strings, and vice versa. In the rest of the sec-         c) (∃x1 , . . . , xk . x1 < . . . < xk ∧a(x1 )∧. . .∧a(xk ))∨∃y.c(y),
+tion we assume the alphabet to be a finite set Σ, say {a, b}. The            for k between 2 and 40,
+following is an example of an MSO formula: φ = ∃x.â(x) where             d) ∃x1 , . . . , xk . fk where f2 = (x1 < x2 ∧ a(x1 )) ∨ c(x1 ), and
+â is a unary relation symbol. A string s ∈ Σ∗ is a model of φ,              for n > 2, fn = fn−1 ∧ ((xn−1 < xn ∧ a(xn−1 )) ∨ c(xn−1 )),
+iff there exists a position x in the string with label a. Transform-         for k between 2 and 17.
+ing MSO formulas to automata gives us an algorithm for deciding
+satisfiability of MSO formulas.                                           All the values missing from the graphs are due to the algorithms
+    The procedure for converting an MSO formula into a DFA in-            running out of memory. The figure shows the following behaviors:
+ductively transforms each sub-formula into the corresponding DFA           • for all of the four classes of formulas, the transformation based
+and then combines such DFAs using classical regular language                             N
+                                                                                  on MinSFA  is able to create the DFAs for higher values of k
+operations. The complexity arises from the presence of free vari-                 (number of nested variables) than those supported by Mona;
+ables, that range over positions. For example, in the formula â(x),       • for small instances Mona is faster than our implementation.
+x occurs free. In order to represent such a language, the alpha-
+                                                                                  However for higher values of k our implementation is faster,
+bet Σ is extended with one extra bit to Σ × {0, 1}. The string                                        H         M
+                                                                                  even when using MinSFA or MinSFA ;
+ha, 0ihb, 0iha, 1i over the extended alphabet will then represent
+that the third position of the string aba is assigned to variable x.       • while Mona immediately shows an exponential behavior (very
+Following this intuition, every sub-formula ψ is compiled into a                  steep slope), we couldn’t observe such trend in our implemen-
+DFA over the alphabet Σ × {0, 1}n where n is the number of quan-                  tation; and
+tified variables around ψ. For each existential quantification a pro-           N
+                                                                           • MinSFA                   H
+                                                                                    is faster than MinSFA        M
+                                                                                                          and MinSFA , and it is also less
+jection is performed which leads to a non-deterministic automaton                 memory intensive (it runs out of memory for higher k).
+that must be determinized when a negation on it is performed. This
+means that each quantifier alternation might therefore lead to an ex-     Even though such formulas are only a small benchmark, they are
+ponential blowup, and in general the procedure has non-elementary         quite representative of the kind of inputs that cause Mona’s trans-
+complexity.                                                               formation to be impractical. We believe that the performance im-
+    Despite the non-elementary complexity, practical algorithms           provement of our implementation with respect to Mona is primar-
+that can translate non-trivial MSO formulas are presented in [22].        ily due to a better use of the BDD solver, rather than due to the
+The tool implementing such algorithms is called Mona. The two             minimization algorithm.
+key-features of such algorithms are:
+1. determinizing and minimizing the intermediate DFA at every             7. Applications
+   step in the transformation, and                                        The development of the theory of symbolic automata, including
+2. using BDDs for representing the lifted bit-vector alphabets.           use of minimization, is motivated by several concrete practical
+                                                                          problems. Here we discuss three such applications. In each case
+We implemented the same transformation using the BDD solver               we illustrate what kind of character theory we are working with,
+in our library, and compared the performance using different mini-        the role of minimization, and focus on the benefits of the symbolic
+mization algorithms.                                                      representation.
+    Figure 11 shows the performance of the transformation for dif-
+ferent MSO formulas. The running time for Mona are also shown.            7.1 Regex processing
+The four sub-figures depict the running time for the MSO to DFA           Practical applications of regular expressions or regexes is ubiqui-
+transformation for the following formulas:                                tous. Practical regexes differ from schoolbook regular expressions
+ a) ∃x1 , . . . , xk . x1 < . . . < xk , for k between 2 and 40,          in the following aspects:
+ b) ∃x1 , . . . , xk . x1 < . . . < xk ∧ a(x1 ) ∧ . . . ∧ a(xk ), for k    • they support, besides non-regular features that go beyond capa-
+    between 2 and 40,                                                             bilities of finite state automata representations, constructs such
+    as bounded quantifiers and character classes, that make them               in the number of states (product, union), minimization comes in
+    more appealing (more succinct) than their classical counter-               handy as a tool for reducing the state space size,
+    parts, and                                                                     In this setting we choose a different character theory. We use
+ • the size of the alphabet is 216 due to the widely adopted UTF16             integer linear modular arithmetic (or bit-vector arithmetic of an
+    standard of Unicode characters.                                            SMT solver, in our case Z3 [19]) in place of BDDs. The main
+                                                                               advantage of this choice is that it makes it possible to seamlessly
+As a somewhat unusual example, the regex ^[\uFF10-\uFF19]$                     combine the guards over characters with expressions over yields,
+matches the set of digits in the so-called Wide Latin range of                 i.e. the symbolic outputs of SFT moves. A concrete example of
+                                                                        7
+Unicode. We let the alphabet algebra be 2BV16 . Let the BDD βw                 a yield is the following transformation that takes a character and
+represent all ASCII word characters as the set of character codes              encodes it as a sequence of five other characters:
+{‘0’, . . . , ‘9’, ‘A’, . . . , ‘Z’, ‘ ’, ‘a’, . . . , ‘z’}. We write ‘0’             f:    λx.[‘&’, ‘#’,      (((x ÷ 10) mod 10) + 48),
+for the code 48, ‘a’ for the code 97, etc. Let also βd7 repre-                                                  ((x mod 10) + 48), ‘;’]
+sent the set of all decimal digits {‘0’, . . . , ‘9’} and let β rep-
+resent underscore {‘ ’}. By using the Boolean operations, e.g.,                In general, a yield denotes a function from DA to DA∗ (or to DB
+βw7
+     ∧ ¬(βd7 ∨ β ) represents the set of all upper- and lower-                 when the output alphabet B is different from the input alpha-
+case ASCII letters. As a regex character class it is expressible as            bet A). In the yield above, for example, f (‘a’) is the sequence
+[\w-[\d_\x7F-\uFFFF]].                                                         [‘&’, ‘#’, ‘9’, ‘7’, ‘;’] (or the string "&#97;"). Given f as
+    Regexes are used in many different contexts. A common use of               above, a typical SFT move ρ looks like:
+regexes is as a constraint language over strings for checking pres-                                      (λx.0<x<32)/λx.f (x)
+ence or absence of different patterns, e.g., for security validation of                          ρ:    q −−−−−−−−−−−−−−→ q
+packet headers in network protocols. Another application, is the use
+                                                                               This specific rule happens to be an HtmlEncoder rule for encoding
+of regexes for generating strings that match certain criteria, e.g.,
+                                                                               control characters in state q and remaining in that state. What
+for fuzz testing applications. As another application consider the
+                                                                               is the connection with SFAs and the theory mentioned above?
+password generation problem based on constraints given in form
+                                                                               For analyzing the idempotence of an encoder with such rules, the
+of regexes. Here is a concrete set of constraints adopted in pass-
+                                                                               encoder is sequentially composed with itself. As a result, this leads
+word generation:7                                                              to an SFT with more complex guards and outputs (SFTs are closed
+1. Length is k and characters are in visible ASCII range:                      under composition). When composing the move ρ with itself (i.e.,
+   ^[\x21-\x7E]{k}$                                                            roughly speaking, feeding the five output characters as its inputs
+                                                                               again five times in a row), the guard of the composed rule will
+2. There are at least two letters: [a-zA-Z].*[a-zA-Z]
+                                                                               have sub-conditions such as 0 < (((x ÷ 10) mod 10) + 48) <
+3. There is at least one digit: \d                                             32, which may involve nontrivial arithmetic operations (in this
+4. There is at least one non-word character: \W                                particular case the guard of the composed move will be infeasible).
+                                                                               One of the operations performed during idempotence analysis is
+The smallest feasible value for k is obviously 4. Consider SFAs                checking whether the original SFT and the composed one have
+A1 , A2 , A3 , and A4 for each case and let A be their product. For            the same domain. This reduces to language equivalence of SFAs
+k = 4 the minimized version of A has 12 states, and minimizing                 for which the guards involve arithmetic operations of the above
+                      N        H           M
+A with any of MinSFA     , MinSFA , or MinSFA takes a few ms. When             kind, that are not readily expressible using the earlier BDD based
+                       8
+k is increased to 40, the number of states increases to 444 and                approach. Domain equivalence of two SFTs checks that both the
+                          N          H
+minimizing using MinSFA      or MinSFA  takes respectively 15 and 90           SFTs accept/reject the same input sequences. Maintaining the SFAs
+                 M
+ms, while MinSFA becomes impractical, taking more than 43 sec                  minimal speeds up the equivalence check, and in general provides
+(450x slower).                                                                 a better understanding of the structure of the domain language.
+    The minimal (canonical) form of A plays an important role here.                In general, the alphabet theory may be a Boolean combination
+Together with finiteness of the language accepted by A, minimality             of other decidable theories that are available for example in state-
+is used to guarantee a uniform distribution of the passwords gener-            of-the-art SMT solvers. In the context of sanitizers, encoders, and
+ated from A. Uniformity is achieved by using the canonical form                decoders, the alphabet theory is a combination of lists, tuples, bit-
+of the state graph together with the canonical form of the guards.             vectors and integer linear arithmetic. Lists are used for example to
+While uniform sampling of a ∈ [[ϕ]] is not possible for arbitrary              represent composite characters or characters that represent “looka-
+alphabet theories, it is a well-known feature of BDDs.                         head” [17]. We demonstrated in the evaluation section that, when
+                                                                                                                                    N
+                                                                               the alphabet theory is complex the algorithm MinSFA     outperforms
+7.2 Sanitizer analysis                                                                    H            M
+                                                                               both MinSFA and MinSFA by several orders of magnitude enabling
+Sanitizers are string transformation routines (special purpose en-             analysis of bigger sanitizers/encoders.
+coders) that are extensively used in web applications, in particular
+as the first line of defense against cross site scripting (XSS) attacks.       7.3 Solving Monadic Second Order logic
+There are at least three, semantically very different, string sanitizers       We already anticipated in Section 6.5 how Monadic Second Order
+involved in a single web page: CssEncoder, UrlEncoder, and Htm-                (MSO) logic predicates can be transformed into equivalent DFAs
+lEncoder. A large class of sanitizers (including all the ones men-             using a non-elementary algorithm. Such algorithm also provides a
+tioned above) can be described and analyzed using symbolic finite              decision procedure for MSO.
+state transducers (SFTs) [25]. SFAs are used in that context for cer-              We already discussed how several techniques have been intro-
+tain operations over SFTs, for example for checking domain equiv-              duced by the tool Mona [22] in order to make such transformation
+alence of SFTs [44]. Since several basic operations are quadratic              practical. Keeping the DFA minimal at any step in the transforma-
+                                                                               tion is one of the key techniques. We gave experimental evidence
+7 Recall the standard convention: a regex without the start-anchor ^ matches   of the fact that the new algorithm presented in this paper, and in
+any prefix and a regex without the end-anchor $ matches any suffix.            general the use of symbolic automata, can further move the barrier
+8 Relevant values of k in the above scenario depend on the concrete context,   of solvable MSO formulas, in terms of both formula’s size (number
+but range between 4 and 128                                                    of nested quantifiers) and running times.
+8. Related work                                                           in [21]. Given an input DFA A, a DFA A′ is k-minimal with re-
+DFA Minimization: The classical algorithms for DFA minimiza-              spect to A if it is the smallest DFA that differs from A only on
+tion have been studied and analyzed extensively in several dif-           strings of length smaller or equal than k. This second restriction
+ferent aspects. In particular, Moore’s algorithm is studied in [10]       naturally extends to symbolic automata. A more general notion is
+where it is shown that, by a clever change of data structures, its        that of minimization up to E-equivalence, where given a regular
+complexity can be reduced from O(kn2 ) to O(kn log n). The                language E, the DFA A′ is allowed to differ from A on a set of
+bound O(kn log n) has been shown to be tight for Hopcroft’s al-           strings L ⊆ E [23]. Extending the results of [21, 23] to symbolic
+gorithm [6, 8]. Brzozowski [13] observed that a DFA can be mini-          automata is an interesting open research direction. Relationships
+mized by reversing its transitions, then determinizing, then revers-      between minimality and selection of final states are studied in [35]
+ing its transitions again, and finally determinizing again. However,      where uniform minimality is defined as minimality for any choice
+due to the determinization steps, this procedure is exponential and       of final states.
+we decided not to consider it in this paper. Linear time algorithms       Automata with Predicates: The concept of automata with predi-
+have been studied for minimizing acyclic automata [32, 36] and            cates instead of concrete symbols was first mentioned in [46] and
+automata containing only simple cycles [2]. The book chapter [7]          was first discussed in [41] in the context of natural language pro-
+provides an in-depth study of the state-of-the-art techniques for au-     cessing. A symbolic generalization of Moore’s algorithm was first
+tomata minimization, including the approaches mentioned above             discussed in [43]. To the best of our knowledge, no other minimiza-
+and several other ones. Watson [45] also provides an elegant clas-        tion algorithms have been studied for SFAs. The MONA implemen-
+sification of the classical minimization algorithms based on their        tation [22] provides decision procedures for monadic second-order
+structural properties.                                                    logic, and it relies on a highly-optimized BDD-based representa-
+    In the case of DFAs, it matters whether the DFA to be mini-           tion for automata which has seen extensive engineering effort [30].
+mized is partial (incomplete), because it may be useful to avoid          Therefore, the use of BDDs in the context of automata is not new,
+completion of DFAs with sparse transition graphs. Minimization of         but is used here as an example of a Boolean algebra that seems
+partial DFAs is studied in [5, 39, 40]. In this setting the complex-      particularly well suited for working with Unicode alphabets.
+ity of the algorithm depends on the number of transitions rather
+than on the size of the alphabet, however, in the case of DFAs these      Minimization of Other Automata: The problem of automata
+two quantities are generally related. In contrast, in a normalized        minimization has been investigated in several other settings. A new
+SFA the number of transitions is independent of the alphabet size,        approach for minimizing nondeterministic automata and nondeter-
+and it is at most n2 where n is the number of states. One concrete        ministic Büchi automata has been studied in [33]. The problem
+difference between the minimization algorithms of complete DFAs           of minimizing weighted automata (automata computing functions
+versus partial DFAs is that the initial value of the waiting set W        from strings to a semi-ring) is studied in [20]. Classical minimiza-
+(see Figure 3) for the partial case must contain both the sets F and      tion algorithms are used in this setting, and we hope that the results
+F c [40]. We believe that similar modifications may be applied to         shown in this paper can extend to such domain. The minimization
+      N                                                                   problem has also been studied for timed automata [11] and register
+MinSFA   , even though we expect that in the case of SFAs the benefit
+                                                                          automata [16]. These models are able to represent infinite domains,
+of using partiality might not be as visible. In fact, a complete SFA
+                                                                          but not arbitrary theories. An orthogonal direction is to extend the
+has at most n transitions more than a partial one. Moreover, in the
+                                                                          techniques presented in this paper to minimization of symbolic tree
+case of SFAs, there are different ways for completing an SFA, e.g.,
+                                                                          automata [18].
+one can effectively restrict the alphabet to only those characters that
+are mentioned in the trimmed SFA (SFA without dead-end states)            Other Applications: The problem of learning of symbolic trans-
+prior to completion.                                                      ducers has recently been studied in [12]. Classical automata learn-
+                                                                          ing is based on Angluin’s algorithm [4], which fundamentally relies
+Different Notions of Minimization: A notion of incremental                on DFA minimality. An almost unexplored topic is whether such
+minimization is investigated in [47]. An incremental minimiza-            learning techniques can be extended to SFAs.
+tion algorithm can be halted at any point and produce a partially
+minimal DFA which is equivalent to the starting DFA, and has less         9. Conclusions
+or equal number of states. If the algorithm runs till completion, a
+                                                                          We presented three algorithms for minimizing Symbolic Finite Au-
+minimal DFA is computed. In this paper we did not address in-
+                                                                          tomata (SFAs). We first extended Moore’s algorithm and Hopcroft’s
+cremental computation, however it would be interesting to identify
+                                                                          algorithm to the symbolic setting. We then show that, while in the
+variants of the presented algorithms with such a property. A sim-
+                                                                          classical setting Hopcroft’s algorithm is the fastest known mini-
+ilar idea, based on intermediate computation results, is used for a
+                                                                          mization algorithm, in the presence of symbolic alphabets, it might
+modular minimization algorithm in [14]. An algorithm for building
+                                                                          incur in an exponential blowup. To address this issue, we intro-
+a minimal DFA accepting a given finite set of strings is presented
+                                                                          duced a new minimization algorithm that fully benefits from the
+in [15]. The same paper investigates the problem of “maintaining”
+                                                                          symbolic representation of the alphabet and does not suffer from
+a minimal DFA when applying modification such as node, edge, or
+                                                                          the exponential blowup. The new algorithm is a refinement of
+string deletion and insertion to an already minimal DFA. This class
+                                                                          Hopcroft’s one in which splits are computed locally without hav-
+of problems is called dynamic minimization.
+                                                                          ing to consider the entire input alphabet. The new algorithm can
+    A parallel version of Moore’s algorithm is presented in [37].
+                                                                          also be adopted in the classical setting. Finally, we implemented
+We are not aware of a parallel version of Hopcroft’s algorithm.
+                                                                          all the algorithms and provided experimental evidence that the new
+We leave as an open problem identifying parallel algorithms cor-
+                    H            N                                        minimization algorithm is the most efficient one in practice.
+responding to MinSFA    and MinSFA  .
+    A variant of minimization called hyper-minimization is investi-       Acknowledgments. We thank Marco Almeida for helping us
+gated in [24]. Given an input DFA A, a DFA A′ is hyper minimal            accessing his benchmark of randomly generated DFAs. Loris
+with respect to A if it is the smallest DFA that differs from A only      D’Antoni was supported by the NSF Expeditions in Computing
+on a finite number of strings. In the case of symbolic automata,          award CCF 1138996, and this work was done as part of an intern-
+this definition doesn’t extend naturally due to potentially infinite      ship at Microsoft Research. We also thank the anonymous review-
+alphabet. A less restrictive notion called k-minimization is studied      ers for their insightful comments.
+References                                                                          O. Ibarra, editors, Developments in Language Theory, volume 7410 of
+ [1] BRICS finite state automata utilities. http://www.brics.dk/automaton/.         LNCS, pages 190–201. Springer, 2012.
+
+ [2] J. Almeida and M. Zeitoun. Description and analysis of a bottom-          [24] M. Holzer and A. Maletti. An nlogn algorithm for hyper-minimizing
+                                                                                    a (minimized) deterministic automaton. Theor. Comput. Sci., 411(38-
+     up DFA minimization algorithm. Information Processing Letters,
+     107(2):52–59, 2008.                                                            39):3404–3413, 2010.
+
+ [3] M. Almeida, N. Moreira, and R. Reis. On the performance of automata       [25] P. Hooimeijer, B. Livshits, D. Molnar, P. Saxena, and M. Veanes. Fast
+     minimization algorithms. Technical Report DCC-2007-03, University              and precise sanitizer analysis with Bek. In USENIX Security, August
+     of Porto, 2007.                                                                2011.
+
+ [4] D. Angluin. Learning regular sets from queries and counterexamples.       [26] P. Hooimeijer and M. Veanes. An evaluation of automata algorithms
+     Inf. Comput., 75(2):87–106, 1987.                                              for string analysis. In VMCAI’11, volume 6538 of LNCS, pages 248–
+                                                                                    262. Springer, 2011.
+ [5] M.-P. Béal and M. Crochemore. Minimizing incomplete automata. In
+     Finite-State Methods and Natural Language Processing, 7th Interna-        [27] J. Hopcroft. An nlogn algorithm for minimizing states in a finite au-
+     tional Workshop, pages 9–16, 2008.                                             tomaton. In Z. Kohavi, editor, Theory of machines and computations,
+                                                                                    Proc. Internat. Sympos., Technion, Haifa, 1971, pages 189–196, New
+ [6] J. Berstel, L. Boasson, and O. Carton. Hopcroft’s automaton mini-              York, 1971. Academic Press.
+     mization algorithm and Sturmian words. In DMTCS’2008, pages 355–
+     366, 2008.                                                                [28] J. E. Hopcroft and J. D. Ullman. Introduction to Automata Theory,
+                                                                                    Languages, and Computation. Addison Wesley, 1979.
+ [7] J. Berstel, L. Boasson, O. Carton, and I. Fagnot. Minimization of
+     automata. To appear in Handbook of Automata, 2011.                        [29] D. Huffman. The synthesis of sequential switching circuits. Journal
+                                                                                    of the Franklin Institute, 257(3–4):161–190,275–303, 1954.
+ [8] J. Berstel and O. Carton. On the complexity of Hopcroft’s state
+                                                                               [30] N. Klarlund, A. Møller, and M. I. Schwartzbach. MONA implemen-
+     minimization algorithm. In CIAA’2004, volume 3317, pages 35–44,
+     2004.                                                                          tation secrets. International Journal of Foundations of Computer Sci-
+                                                                                    ence, 13(4):571–586, 2002.
+ [9] N. Bjørner, V. Ganesh, R. Michel, and M. Veanes. An SMT-LIB
+     format for sequences and regular expressions. In P. Fontaine and          [31] T. Knuutila. Re-describing an algorithm by hopcroft. Theor. Comput.
+     A. Goel, editors, SMT’12, pages 76–86, 2012.                                   Sci., 250(1-2):333–363, 2001.
+
+[10] N. Blum. An 0(n log n) implementation of the standard method for          [32] S. L. Krivol. Algorithms for minimization of finite acyclic automata
+     minimizing n-state finite automata. Information Processing Letters,            and pattern matching in terms. Cybernetics, 27:324–331, 1991.
+     57:65–69, 1996.                                                           [33] R. Mayr and L. Clemente. Advanced automata minimization. In
+[11] M. Bojaczyk and S. Lasota. A machine-independent characterization              POPL’13, pages 63–74, 2013.
+     of timed languages. In A. Czumaj, K. Mehlhorn, A. Pitts, and R. Wat-      [34] E. F. Moore. Gedanken-experiments on sequential machines. Au-
+     tenhofer, editors, Automata, Languages, and Programming, volume                tomata studies, Annals of mathematics studies, (34):129–153, 1956.
+     7392 of LNCS, pages 92–103. Springer Berlin Heidelberg, 2012.             [35] A. Restivo and R. Vaglica. Some remarks on automata minimality. In
+[12] M. Botinčan and D. Babić. Sigma*: symbolic learning of input-output          G. Mauri and A. Leporati, editors, DLT’2011, volume 6795 of LNCS,
+     specifications. In POPL ’13, pages 443–456, New York, NY, USA,                 pages 15–27. Springer, 2011.
+     2013. ACM.                                                                [36] D. Revuz. Minimisation of acyclic deterministic automata in linear
+[13] J. A. Brzozowski. Canonical regular expressions and minimal state              time. Theoret. Comput. Sci., 92:181–189, 1992.
+     graphs for definite events. In Proc. Sympos. Math. Theory of Au-          [37] A. Tewari, U. Srivastava, and P. Gupta. A parallel DFA minimization
+     tomata, pages 529–561, New York, 1963.                                         algorithm. In HiPC 2002, volume 2552 of LNCS, pages 34–40.
+[14] D. Bustan. Modular minimization of deterministic finite-state ma-              Springer, 2002.
+     chines. In In 6th International Workshop on Formal Methods for In-        [38] W. Thomas. Languages, automata, and logic. In Handbook of Formal
+     dustrial Critical Systems, pages 163–178, 2001.                                Languages, pages 389–455. Springer, 1996.
+[15] R. C. Carrasco and M. L. Forcada. Incremental construction and            [39] A. Valmari. Fast brief practical DFA minimization.        Information
+     maintenance of minimal finite-state automata. Comput. Linguist.,               Processing Letters, 112:213–217, 2012.
+     28(2):207–216, June 2002.
+                                                                               [40] A. Valmari and P. Lehtinen. Efficient minimization of DFAs with
+[16] S. Cassel, B. Jonsson, F. Howar, and B. Steffen. A succinct canonical          partial transition functions. In S. Albers and P. Weil, editors, STACS
+     register automaton model for data domains with binary relations. In            2008, pages 645–656, Dagstuhl, 2008.
+     S. Chakraborty and M. Mukund, editors, ATVA 2012, volume 7561 of
+     LNCS, pages 57–71. Springer, 2012.                                        [41] G. van Noord and D. Gerdemann. Finite state transducers with predi-
+                                                                                    cates and identities. Grammars, 4(3):263–286, 2001.
+[17] L. D’Antoni and M. Veanes. Equivalence of extended symbolic finite
+                                                                               [42] M. Veanes, N. Bjørner, and L. de Moura. Symbolic automata con-
+     transducers. In N. Sharygina and H. Veith, editors, CAV 2013, volume
+     8044 of LNCS, pages 624–639. Springer, 2013.                                   straint solving. In C. Fermüller and A. Voronkov, editors, LPAR-17,
+                                                                                    volume 6397 of LNCS/ARCoSS, pages 640–654. Springer, 2010.
+[18] L. D’Antoni, M. Veanes, B. Livshits, and D. Molnar. Fast: A
+     transducer-based language for tree manipulation. Technical Report         [43] M. Veanes, P. de Halleux, and N. Tillmann. Rex: Symbolic regular
+     MSR-TR-2012-123, Microsoft Research, November 2012.                            expression explorer. In ICST’10, pages 498–507. IEEE, 2010.
+
+[19] L. de Moura and N. Bjørner. Z3: An Efficient SMT Solver. In               [44] M. Veanes, P. Hooimeijer, B. Livshits, D. Molnar, and N. Bjørner.
+     TACAS’08, LNCS. Springer, 2008.                                                Symbolic finite state transducers: Algorithms and applications. In
+                                                                                    POPL’12, pages 137–150, 2012.
+[20] M. Droste, W. Kuich, and H. Vogler. Handbook of Weighted Automata.
+     Springer Publishing Company, Incorporated, 1st edition, 2009.             [45] B. W. Watson. A taxonomy of finite automata minimization algo-
+                                                                                    rithms. Computing Science Report 93/44, Eindhoven University of
+[21] P. Gawrychowski, A. Jež, and A. Maletti. On minimising automata               Technology, January 1995.
+     with errors. In MFCS’11, pages 327–338, Berlin, Heidelberg, 2011.
+     Springer.                                                                 [46] B. W. Watson. Implementing and using finite automata toolkits. In
+                                                                                    Extended finite state models of language, pages 19–36, New York, NY,
+[22] J. Henriksen, J. Jensen, M. Jørgensen, N. Klarlund, B. Paige, T. Rauhe,        USA, 1999. Cambridge University Press.
+     and A. Sandholm. Mona: Monadic second-order logic in practice. In
+     TACAS ’95, volume 1019 of LNCS. Springer, 1995.                           [47] B. W. Watson and J. Daciuk. An efficient incremental DFA minimiza-
+                                                                                    tion algorithm. Nat. Lang. Eng., 9(1):49–64, Mar. 2003.
+[23] M. Holzer and S. Jakobi. From equivalence to almost-equivalence,
+     and beyond – minimizing automata with errors. In H.-C. Yen and
+

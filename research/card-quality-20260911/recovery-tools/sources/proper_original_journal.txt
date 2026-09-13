@@ -1,0 +1,2139 @@
+Journal of Machine Learning Research 19 (2018) 1-36            Submitted 4/18; Revised 9/18; Published 10/18
+
+
+
+
+                    Optimal Quantum Sample Complexity
+                          of Learning Algorithms
+
+Srinivasan Arunachalam ∗                                                            arunacha@mit.edu
+QuSoft, CWI, Amsterdam, the Netherlands
+Ronald de Wolf †                                                                       rdewolf@cwi.nl
+QuSoft, CWI and University of Amsterdam, the Netherlands
+
+
+Editor: Manfred Warmuth
+
+
+                                                Abstract
+     In learning theory, the VC dimension of a concept class C is the most common way to
+     measure its “richness.” A fundamental result says that the number of examples needed
+     to learn an unknown target concept c ∈ C under an unknown distribution D, is tightly
+     determined by the VC dimension d of the concept class C . Specifically, in the PAC model
+                                          d log(1/δ) 
+                                       Θ     +
+                                           ε      ε
+     examples are necessary and sufficient for a learner to output, with probability 1 − δ, a
+     hypothesis h that is ε-close to the target concept c (measured under D). In the related
+     agnostic model, where the samples need not come from a c ∈ C , we know that
+                                           d     log(1/δ) 
+                                         Θ 2+
+                                            ε        ε2
+     examples are necessary and sufficient to output an hypothesis h ∈ C whose error is at
+     most ε worse than the error of the best concept in C .
+         Here we analyze quantum sample complexity, where each example is a coherent quan-
+     tum state. This model was introduced by Bshouty and Jackson (1999), who showed that
+     quantum examples are more powerful than classical examples in some fixed-distribution
+     settings. However, Atıcı and Servedio (2005), improved by Zhang (2010), showed that
+     in the PAC setting (where the learner has to succeed for every distribution), quantum
+     examples cannot be much more powerful: the required number of quantum examples is
+                      d1−η       log(1/δ) 
+                   Ω        +d+              for arbitrarily small constant η > 0.
+                         ε            ε
+     Our main result is that quantum and classical sample complexity are in fact equal up to
+     constant factors in both the PAC and agnostic models. We give two proof approaches. The
+     first is a fairly simple information-theoretic argument that yields the above two classical
+     bounds and yields the same bounds for quantum sample complexity up to a log(d/ε) factor.
+     We then give a second approach that avoids the log-factor loss, based on analyzing the
+     behavior of the “Pretty Good Measurement” on the quantum state-identification problems
+     that correspond to learning. This shows classical and quantum sample complexity are equal
+     up to constant factors for every concept class C .
+     Keywords: Quantum computing, PAC learning, Sample complexity, Lower bounds
+∗. Supported by ERC Consolidator Grant 615307 QPROGRESS.
+†. Partially supported by ERC Consolidator Grant 615307 QPROGRESS.
+
+
+c 2018 Srinivasan Arunachalam and Ronald de Wolf.
+License: CC-BY 4.0, see https://creativecommons.org/licenses/by/4.0/. Attribution requirements are provided
+at http://jmlr.org/papers/v19/18-195.html.
+                                Arunachalam and de Wolf
+
+
+
+
+1. Introduction
+1.1. Sample complexity and VC dimension
+Machine learning is one of the most successful parts of AI, with impressive practical ap-
+plications in areas ranging from image processing and speech recognition, to even beating
+Go champions. Its theoretical aspects have been deeply studied, revealing beautiful struc-
+ture and mathematical characterizations of when (efficient) learning is or is not possible in
+various settings.
+
+1.1.1. The PAC setting
+Leslie Valiant (1984)’s Probably Approximately Correct (PAC) learning model gives a pre-
+cise complexity-theoretic definition of what it means for a concept class to be (efficiently)
+learnable. For simplicity we will (without loss of generality) focus on concepts that are
+Boolean functions, c : {0, 1}n → {0, 1}. Equivalently, a concept c is a subset of {0, 1}n ,
+namely {x : c(x) = 1}. Let C ⊆ {f : {0, 1}n → {0, 1}} be a concept class. This could for
+example be the class of functions computed by disjunctive normal form (DNF) formulas of
+a certain size, or Boolean circuits or decision trees of a certain depth.
+    The goal of a learning algorithm (the learner) is to probably approximate some unknown
+target concept c ∈ C from random labeled examples. Each labeled example is of the form
+(x, c(x)) where x is distributed according to some unknown distribution D over {0, 1}n .
+After processing a number of such examples (hopefully not too many), the learner outputs
+some hypothesis h. We say that h is ε-approximately correct (w.r.t. the target concept c) if
+its error probability under D is at most ε: Prx∼D [h(x) 6= c(x)] ≤ ε. Note that the learning
+phase and the evaluation phase (i.e., whether a hypothesis is approximately correct) are
+according to the same distribution D—as if the learner is taught and then tested by the
+same teacher. An (ε, δ)-learner for the concept class C is one whose hypothesis is probably
+approximately correct:
+
+      For all target concepts c ∈ C and distributions D:
+      Pr[the learner’s output h is ε-approximately correct] ≥ 1 − δ,
+
+where the probability is over the sequence of examples and the learner’s internal randomness.
+Note that we leave the learner the freedom to output an h which is not in C . If always
+h ∈ C , then the learner is called a proper PAC-learner.
+    Of course, we want the learner to be as efficient as possible. Its sample complexity is the
+worst-case number of examples it uses, and its time complexity is the worst-case running
+time of the learner. In this paper we focus on sample complexity. This allows us to ignore
+technical issues of how the runtime of an algorithm is measured, and in what form the
+hypothesis h is given as output by the learner.
+    The sample complexity of a concept class C is the sample complexity of the most efficient
+learner for C . It is a function of ε, δ, and of course of C itself. One of the most fundamental
+results in learning theory is that the sample complexity of C is tightly determined by a
+combinatorial parameter called the VC dimension of C , due to and named after Vapnik
+and Chervonenkis (1971). The VC dimension of C is the size of the biggest S ⊆ {0, 1}n
+that can be labeled in all 2|S| possible ways by concepts from C : for each sequence of |S|
+
+                                               2
+            Optimal Quantum Sample Complexity of Learning Algorithms
+
+
+
+
+binary labels for the elements of S, there is a c ∈ C that has that labeling.1 Knowing
+this VC dimension (and ε, δ) already tells us the sample complexity of C up to constant
+factors. Blumer et al. (1989) proved that the sample complexity of C is lower bounded by
+Ω(d/ε + log(1/δ)/ε), and they proved an upper bound that was worse by a log(1/ε)-factor.
+In very recent work, Hanneke (2016) (improving on Simon (2015)) got rid of this log(1/ε)-
+factor for PAC learning,2 showing that the lower bound of Blumer et al. is in fact optimal:
+the sample complexity of C in the PAC setting is
+                                       d log(1/δ) 
+                                    Θ     +          .                                  (1)
+                                        ε       ε
+1.1.2. The agnostic setting
+The PAC model assumes that the labeled examples are generated according to a target
+concept c ∈ C . However, in many learning situations that is not a realistic assumption, for
+example when the examples are noisy in some way or when we have no reason to believe
+there is an underlying target concept at all. The agnostic model of learning, introduced
+by Haussler (1992) and Kearns et al. (1994), takes this into account. Here, the examples
+are generated according to a distribution D on {0, 1}n+1 . The error of a specific concept
+c : {0, 1}n → {0, 1} is defined to be errD (c) = Pr(x,b)∼D [c(x) 6= b]. When we are restricted
+to hypotheses in C , we would like to find the hypothesis that minimizes errD (c) over all
+c ∈ C . However, it may require very many examples to do that exactly. In the spirit of the
+PAC model, the goal of the learner is now to output an h ∈ C whose error is at most an
+additive ε worse than that of the best (= lowest-error) concepts in C .
+    Like in the PAC model, the optimal sample complexity of such agnostic learners is
+tightly determined by the VC dimension of C : it is
+                                       d      log(1/δ) 
+                                     Θ 2+                 ,                                (2)
+                                         ε        ε2
+where the lower bound was proven by Vapnik and Chervonenkis (1974) (see also Simon
+(1996)), and the upper bound was proven by Talagrand (1994). Shalev-Shwartz and Ben-
+David (2014) call Eq. (1) and Eq. (2) the “Fundamental Theorem of PAC learning.”
+
+1.2. Our results
+In this paper we are interested in quantum sample complexity. Here a quantum example
+for some concept c : {0, 1}n → {0, 1}, according to some distribution D, corresponds to an
+(n + 1)-qubit state                 X p
+                                            D(x)|x, c(x)i.
+                                      x∈{0,1}n
+
+In other words, instead of a random labeled example, an example is now given by a coherent
+quantum superposition where the square-roots of the probabilities become the amplitudes.3
+1. Such an S is said to be shattered by C .
+2. Hanneke’s learner is not proper, meaning that its hypothesis h is not always in C . It is known that the
+   extra log(1/ε)-factor is sometimes necessary for proper
+                                                       P PAC learners.
+3. We could allow more general quantum examples x∈{0,1}n αx |x, c(x)i, where we only require |αx |2 =
+   D(x). However, that will not affect our results since our lower bounds apply to quantum examples where
+
+
+                                                    3
+                                  Arunachalam and de Wolf
+
+
+
+
+This model was introduced by Bshouty and Jackson (1999), who showed that DNF formulas
+are learnable in polynomial time from quantum examples when D is uniform. For learning
+DNF under the uniform distribution from classical examples, Verbeurgt (1990) gave the
+best upper bound of quasipolynomial time. With the added power of “membership queries,”
+where the learner can actively ask for the label of any x of his choice, DNF formulas are
+known to be learnable in polynomial time under uniform D by a result of Jackson (1997), but
+without membership queries polynomial-time learnability is a longstanding open problem
+(see Daniely and Shalev-Shwartz (2016) for a recent hardness result) .
+    How reasonable are examples that are given as a coherent superposition rather than as
+a random sample? They may seem unreasonable a priori because quantum superpositions
+seem very fragile and are easily collapsed by measurement, but if we accept the “church
+of the larger Hilbert space” view on quantum mechanics, where the universe just evolves
+unitarily without any collapses, then they may become more palatable. It is also possible
+that the quantum examples are generated by some coherent quantum process that acts like
+the teacher.
+    How many quantum examples are needed to learn a concept class C of VC dimension d?
+Since a learner can just measure a quantum example in order to obtain a classical example,
+the upper bounds on classical sample complexity trivially imply the same upper bounds
+on quantum sample complexity. But what about the lower bounds? Are there situations
+where quantum examples are more powerful than classical? Indeed there are. We already
+mentioned the results of Bshouty and Jackson (1999) for learning DNF under the uniform
+distribution without membership queries. Another good example is the learnability of the
+concept class of linear functions over F2 , C = {c(x) = a · x : a ∈ {0, 1}n }, again under the
+uniform distribution D. It is easy to see that a classical learner needs about n examples to
+learn an unknown c ∈ C under this D. However, if we are given one quantum example
+                         X        p                    1     X
+                                      D(x)|x, c(x)i = √             |x, a · xi,
+                       x∈{0,1}n
+                                                        2n x∈{0,1}n
+
+then a small modification of the Bernstein and Vazirani (1997) algorithm can recover a
+(and hence c) with probability 1/2. Hence O(1) quantum examples suffice to learn c exactly,
+with high probability, under the uniform distribution. Atıcı and Servedio (2009) used similar
+ideas to learning k-juntas (concepts depending on only k of their n variables) from quantum
+examples under the uniform distribution. However, PAC learning requires a learner to learn
+c under all possible distributions D, not just the uniform one. The success probability of
+the Bernstein-Vazirani algorithm deteriorates sharply when D is far from uniform, but that
+does not rule out the existence of other quantum learners that use o(n) quantum examples
+and succeed for all D.
+    Our main result in this paper is that quantum examples are not actually more powerful
+than classical labeled examples in the PAC model and in the agnostic model: we prove
+that the lower bounds on classical sample complexity of Eq. (1) and Eq. (2) hold for quan-
+tum examples as well. Accordingly, despite several distribution-specific speedups, quantum
+examples do not significantly reduce sample complexity if we require our learner to work
+   we know the amplitudes are square-rooted probabilities. Adding more degrees of freedom to quantum
+   examples does not make learning easier.
+
+
+                                                    4
+            Optimal Quantum Sample Complexity of Learning Algorithms
+
+
+
+
+for all distributions D. This should be contrasted with the situation when considering the
+time complexity of learning. Servedio and Gortler (2004) considered a concept class (al-
+ready considered in the literature by Kearns and Valiant (1994)) that can be PAC-learned
+in polynomial time by a quantum computer, even with only classical examples, but that
+cannot be PAC-learned in polynomial time by a classical learner unless Blum integers can
+be factored in polynomial time (which is widely believed to be false).
+     Earlier work on quantum sample complexity had already gotten close to extending the
+lower bound of Eq. (1) to PAC learning
+                                 √      from quantum examples. Atıcı and Servedio (2005)
+first proved a lower bound of Ω( d/ε + d + log(1/δ)/ε), which was subsequently improved
+by Zhang (2010) to
+                  d1−η     log(1/δ) 
+                Ω       +d+            for arbitrarily small constant η > 0.                          (3)
+                     ε          ε
+Here we optimize these bounds, removing the η and achieving the optimal lower bound for
+quantum sample complexity in the PAC model (Eq. (1)).
+    We also show that the lower bound (Eq. (2)) for the agnostic model extends to quantum
+examples. As far as we know, in contrast to the PAC model, no earlier results were known
+for quantum sample complexity in the agnostic model.
+    We have two different proof approaches, which we sketch below.
+
+1.2.1. An information-theoretic argument
+In Section 3 we give a fairly intuitive information-theoretic argument that gives optimal
+lower bounds for classical sample complexity, and that gives nearly-optimal lower bounds
+for quantum sample complexity. Let us first see how we can prove the classical PAC lower
+bound of Eq. (1). Suppose S = {s0 , s1 , . . . , sd } is shattered by C (we now assume VC
+dimension d + 1 for ease of notation). Then we can consider a distribution D that puts
+probability 1 − 4ε on s0 and probability 4ε/d on each of s1 , . . . , sd .4 For every possible
+labeling (`1 . . . `d ) ∈ {0, 1}d of s1 , . . . , sd there will be a concept c ∈ C that labels s0 with 0,
+and labels si with `i for all i ∈ {1, . . . , d}. Under D, most examples will be (s0 , 0) and
+hence give us no information when we are learning one of those 2d concepts. Suppose we
+have a learner that ε-approximates c with high probability under this D using T examples.
+Informally, our information-theoretic argument has the following three steps:
+
+   1. In order to ε-approximate c, the learner has to learn the c-labels of at least 3/4
+      of the s1 , . . . , sd (since together these have 4ε of the D-weight, and we want an ε-
+      approximation). As all 2d labelings are possible, the T examples together contain
+      Ω(d) bits of information about c.
+
+   2. T examples give at most T times as much information about c as one example.
+
+   3. One example gives only O(ε) bits of information about c, because it will tell us one of
+      the labels of s1 , . . . , sd only with probability 4ε (and otherwise it just gives c(s0 ) = 0).
+4. We remark that the distributions used here (and later in the agnostic setting) for proving lower bounds
+   on quantum sample complexity have been used in the literature before for analyzing classical sample
+   complexity.
+
+
+                                                   5
+                                   Arunachalam and de Wolf
+
+
+
+
+Putting these steps together implies T = Ω(d/ε).5 This argument for the PAC setting
+is similar to an algorithmic-information argument of Apolloni and Gentile (1998) and an
+information-theoretic argument for variants of the PAC model with noisy examples by Gen-
+tile and Helmbold (2001).
+    As far as we know, this type of reasoning has not yet been applied to the sample
+complexity of agnostic learning. To get good lower bounds there, we consider a set of
+distributions Da , indexed by d-bit string a. These distributions still have the property
+that if a learner gets ε-close to the minimal error, then it will have to learn Ω(d) bits of
+information about the distribution (i.e., about a). Hence the first step of the argument
+remains the same. The second step of our argument also remains the same, and the third
+step shows an upper bound of O(ε2 ) on the amount of information that the learner can get
+from one example. This then implies T = Ω(d/ε2 ). We can also reformulate this for the
+case where we want the expected additional error of the hypothesis over the best classifier
+in C to be at most ε, which is how lower bounds are often stated in learning theory. We
+emphasize that our information-theoretic proof is simpler than the proofs in Anthony and
+Bartlett (2009); Audibert (2009); Shalev-Shwartz and Ben-David (2014); Kontorovich and
+Pinelis (2016).
+    This information-theoretic approach recovers the optimal classical bounds on sample
+complexity, but also generalizes readily to the quantum case where the learner gets T
+quantum examples. To obtain lower bounds on quantum sample complexity we use the same
+distributions D (now corresponding to a coherent quantum state) and basically just need to
+re-analyze the third step of the argument. In the PAC setting we show that one quantum
+example gives at most O(ε log(d/ε)) bits of information about c, and in the agnostic setting
+it gives O(ε2 log(d/ε)) bits. This implies lower bounds on sample complexity that are only
+a logarithmic factor worse than the optimal classical bounds for the PAC setting (Eq. (1))
+and the agnostic setting (Eq. (2)). This is not quite optimal yet, but already better than
+the previous best known lower bound (Eq. (3)). The logarithmic loss in step 3 is actually
+inherent in this information-theoretic argument: in some cases a quantum example can give
+roughly ε log d bits of information about c, for example when c comes from the concept class
+of linear functions.
+
+1.2.2. A state-identification argument
+In order to get rid of the logarithmic factor we then try another proof approach, which
+views learning from quantum examples as a quantum state-identification problem: we are
+given T copies of the quantum example for some concept c and need to ε-approximate c
+from this. In order to render ε-approximation of c equivalent to exact identification of c,
+we use good linear error-correcting codes, restricting to concepts whose d-bit labeling of
+the elements of the shattered set s1 , . . . , sd corresponds to a codeword. We then have 2Ω(d)
+possible concepts, one for each codeword, and need to identify the target concept from a
+quantum state that is the tensor product of T identical quantum examples.
+    State-identification problems have been well studied, and many tools are available for an-
+alyzing them. In particular, the so-called “Pretty Good Measurement” (PGM, also referred
+to as “square root measurement” by Eldar and Forney Jr (2001)) is a specific measurement
+
+5. The other part of the lower bound of Eq. (1) does not depend on d and is fairly easy to prove.
+
+
+                                                   6
+           Optimal Quantum Sample Complexity of Learning Algorithms
+
+
+
+
+that one can always use for state identification, and whose success probability is no more
+than quadratically worse than that of the very best measurement (even better, in our appli-
+cation the PGM is the optimal measurement). In Section 4 we use Fourier analysis to give
+an exact analysis of the average success probability of the PGM on the state-identification
+problems that come from both the PAC and the agnostic model. This analysis could be
+useful in other settings as well. Here it implies that the number of quantum examples, T ,
+is lower bounded by Eq. (1) in the PAC setting, and by Eq. (2) in the agnostic setting.
+     Using the Pretty Good Measurement, we are also able to prove lower bounds for PAC
+learning under random classification noise, which models the real-world situation that the
+learning data can have some errors. Classically in the random classification noise model
+(introduced by Angluin and Laird (1988)), instead of obtaining labeled examples (x, c(x))
+for some unknown c ∈ C , the learner obtains noisy examples (x, bx ), where bx = c(x) with
+probability 1 − η and bx = 1 − c(x) with probability η, for some noise rate η ∈ [0, 1/2).
+Similarly, in the quantum learning model we could naturally define a noisy quantum example
+as an (n + 1)-qubit state
+                      X p                            p
+                             (1 − η)D(x)|x, c(x)i + ηD(x)|x, 1 − c(x)i.
+                  x∈{0,1}n
+
+Using the PGM, we are able to show that the quantum sample complexity of PAC learning
+a concept class C under random classification noise is:
+                                    d          log(1/δ) 
+                             Ω              +              .                      (4)
+                                 (1 − 2η)2 ε (1 − 2η)2 ε
+We remark here that the best known classical sample complexity lower bound (see Simon
+(1996)) under the random classification noise is equal to the quantum sample complexity
+lower bound proven in Eq. (4).
+
+1.3. Related work
+Here we briefly mention related work on quantum learning, referring to our survey Arunacha-
+lam and de Wolf (2017) for more details. In this paper we focus on sample complexity,
+which is a fundamental information-theoretic quantity. Sample complexity concerns a form
+of “passive” learning: the learner gets a number of examples at the start of the process,
+and then has to extract enough information about the target concept from these. We may
+also consider more active learning settings, in particular ones where the learner can make
+membership queries (i.e., learn the label c(x) for any x of his choice). Servedio and Gortler
+(2004) showed that in this setting, classical and quantum complexity are polynomially re-
+lated. They also exhibit an example of a factor-n speed-up from quantum membership
+queries using the Bernstein-Vazirani algorithm. Jackson et al. (2002) showed how quantum
+membership queries can improve Jackson (1997)’s classical algorithm for learning DNF with
+membership queries under the uniform distribution.
+    For quantum exact learning (also referred to as the oracle identification problem in the
+quantum literature), Kothari (2014) resolved a conjecture of Hunziker et al. (2010), that
+states that for any concept class C , the number of quantum membership queries required
+                                            √ |C | ), where γ̂ C is a combinatorial parameter
+to exactly identify a concept c ∈ C is O( log
+                                              γ̂C
+
+
+
+                                             7
+                                Arunachalam and de Wolf
+
+
+
+
+of the concept class C which we shall not define here (see Atıcı and Servedio (2005) for a
+precise definition). Montanaro (2012) showed how low-degree polynomials over a finite field
+can be identified more efficiently using quantum algorithms.
+    In many ways the time complexity of learning is at least as important as the sample com-
+plexity. We already mentioned that Servedio and Gortler (2004) exhibited a concept class
+based on factoring Blum integers that can be learned in quantum polynomial time but not in
+classical polynomial time, unless Blum integers can be factored efficiently. Under the weaker
+(and widely believed) assumption that one-way functions exist, they exhibited a concept
+class that can be learned exactly in polynomial time using quantum membership queries,
+but that takes superpolynomial time to learn from classical membership queries. Gavinsky
+(2012) introduced a model of learning called “Predictive Quantum” (PQ), a variation of
+quantum PAC learning, and exhibited a relational concept class that is polynomial-time
+learnable in PQ, while any “reasonable” classical model requires an exponential number of
+classical examples to learn the concept class.
+     Aı̈meur et al. (2006, 2013) considered a number of quantum algorithms in learning
+contexts such as clustering via minimum spanning tree, divisive clustering, and k-medians,
+using variants of Grover (1996)’s algorithm to improve the time complexity of the analogous
+classical algorithms. Recently, there have been some quantum machine learning algorithms
+based on Harrow et al. (2009)’s algorithm (commonly referred to as the HHL algorithm) for
+solving (in a weak sense) very well-behaved linear systems. However, these algorithms often
+come with some fine print that limits their applicability, and their advantage over classical is
+not always clear. We refer the reader to the fine print by Aaronson (2015) for references and
+caveats. There has also been some work on quantum training of neural networks by Wiebe
+et al. (2016a,b).
+    In addition to learning classical objects such as Boolean functions, one may also study
+the learnability of quantum objects. In particular, Aaronson (2007) studied how well n-qubit
+quantum states can be learned from measurement results. In general, an n-qubit state ρ
+is specified by exp(n) many parameters, and exp(n) measurement results on equally many
+copies of ρ are needed to learn a good approximation of ρ (say, in trace distance). However,
+Aaronson showed an interesting and surprisingly efficient PAC-like result: from O(n) mea-
+surement results, with measurements chosen i.i.d. according to an unknown distribution D
+on the set of all possible two-outcome measurements, we can learn an n-qubit quantum
+state ρe that has roughly the same expectation value as ρ for “most” possible two-outcome
+measurements. In the latter, “most” is again measured under D, just like in the usual PAC
+learning the error of the learner’s hypothesis is evaluated under the same distribution D
+that generated the learner’s examples. Accordingly, O(n) rather than exp(n) measurement
+results suffice to approximately learn an n-qubit state for most practical purposes.
+    The use of Fourier analysis in analyzing the success probability of the Pretty Good
+Measurement in quantum state identification appears in a number of earlier works. By
+considering the dihedral hidden subgroup problem (DHSP) as a state-identification prob-
+lem, Bacon et al. (2006) show that the PGM is the optimal measurement for DHSP and
+prove a lower bound on the sample complexity of Ω(log |G |) for a dihedral group G using
+Fourier analysis. Ambainis and Montanaro (2014) view the “search with wildcard” problem
+as a state-identification problem. Using ideas similar to ours, they show that the (x, y)-th
+entry of the Gram matrix for the ensemble depends on the Hamming distance between x
+
+                                               8
+           Optimal Quantum Sample Complexity of Learning Algorithms
+
+
+
+
+and y, allowing them to use Fourier analysis to obtain an upper bound on the success
+probability of the state-identification problem using the PGM.
+
+1.4. Organization
+In Section 2 we formally define the classical and quantum learning models and introduce the
+Pretty Good Measurement. In Section 3 we prove our information-theoretic lower bounds
+both for classical and quantum learning. In Section 4 we prove an optimal quantum lower
+bound for PAC and agnostic learning by viewing the learning process as a state-identification
+problem. We conclude in Section 5 with a conclusion of the results and some open questions
+for further work.
+
+
+2. Preliminaries
+2.1. Notation
+Let [n] = {1, . . . , n}. For x, y ∈ {0, 1}d , the bit-wise sum x + y is over F2 , the Hamming
+distance dH (x, y) is the number of indices on which x and y differ,P   |x + y| is the Hamming
+weight of the string x + y (which equals dH (x, y)), and x · y = i xi yP      i (where the sum
+is over F2 ). For a vector z ∈ Rd , the norm of z is defined as kzk = ( i zi2 )1/2 . For an
+n-dimensional vector space, the standard basis is denoted by {ei ∈ {0, 1}n : i ∈ [n]}, where
+ei is the vector with a 1 in the i-th coordinate and 0’s elsewhere. We write log for logarithm
+to base 2, and ln for base e. We will often use the bijection between the sets {0, 1}k and
+[2k ] throughout this paper. Let 1[A] be the indicator for an event A, and let δx,y = 1[x=y] .
+We denote random variables in bold, such as A, B.
+     For a Boolean function f : {0, 1}m → {0, 1} and M ∈ Fm×k  2    we define f ◦ M : {0, 1}k →
+{0, 1} as (f ◦ M )(x) := f (M x) (where the matrix-vector product is over F2 ) for all x ∈
+{0, 1}k . For a distribution D : {0, 1}n → [0, 1], let supp(D) = {x ∈ {0, 1}n : D(x) 6= 0}. By
+x ∼ D, we mean x is sampled according to the distribution D, i.e., Pr[X = x] = D(x).
+                                                                 √
+     If M is a √
+               positive √ semidefinite (psd)
+                                           √ matrix, we define M as the√unique psd matrix
+that satisfies M · M = M , and M (i, j) as the (i, j)-th entry of M . For a matrix
+A ∈ Rm×n , we denote the singular values of A by σ1 (A) ≥ σ2 (A) ≥ · · · ≥ σmin{m,n} (A) ≥ 0.
+The spectral norm of A is kAk = maxx∈Rn ,kxk=1 kAxk = σ1 . Given a set of d-dimensional
+vectors U = {u1 , . . . , un } ∈ Rd , the Gram matrix V corresponding to the set U is the n × n
+psd matrix defined as V (i, j) = uti uj for i, j ∈ [n], where uti is the row vector that is the
+transpose of the column vector ui .
+     A technical tool used in our analysis of state-identification problems is Fourier anal-
+ysis on the Boolean cube. We will just introduce the basics of Fourier analysis here, re-
+ferring to O’Donnell (2014) for more. Define the inner product between functions f, g :
+{0, 1}n → R as
+                                    hf, gi = E[f (x) · g(x)]
+                                             x
+
+where the expectation is uniform over x ∈ {0, 1}n . For S ⊆ [n] (equivalently S ∈ {0, 1}n ),
+let χS (x) := (−1)S·x denote the parity of the variables (of x) indexed by the set S. It is
+easy to see that the set of functions {χS }S⊆[n] forms an orthonormal basis for the space of
+
+                                                 9
+                                    Arunachalam and de Wolf
+
+
+
+
+real-valued functions over the Boolean cube. Hence every f can be decomposed as
+                              X
+                      f (x) =     fb(S)(−1)S·x   for all x ∈ {0, 1}n ,
+                                  S⊆[n]
+
+
+where fb(S) = hf, χS i = Ex [f (x) · χS (x)] is called a Fourier coefficient of f .
+
+2.2. Learning in general
+In machine learning, a concept class C over {0, 1}n is a set of concepts c : {0, 1}n → {0, 1}.
+We refer to a concept class C as being trivial if either C contains only one concept, or C
+contains two concepts c0 , c1 with c0 (x) = 1 − c1 (x) for every x ∈ {0, 1}n . For c : {0, 1}n →
+{0, 1}, we will often refer to the tuple (x, c(x)) ∈ {0, 1}n+1 as a labeled example, where c(x)
+is the label of x.
+    A central combinatorial concept in learning is the Vapnik and Chervonenkis (1971)
+dimension, also referred to as the VC dimension. Fix a concept class C over {0, 1}n . A set
+S = {s1 , . . . , st } ⊆ {0, 1}n is said to be shattered by a concept class C if {(c(s1 ), . . . , c(st )) :
+c ∈ C } = {0, 1}t . In other words, for every labeling ` ∈ {0, 1}t , there exists a c ∈ C such
+that (c(s1 ), . . . , c(st )) = `. The VC dimension of a concept class C is the size of the largest
+S ⊆ {0, 1}n that is shattered by C .
+
+2.3. Classical learning models
+In this paper we will be concerned mainly with the PAC (Probably Approximately Cor-
+rect) model of learning introduced by Valiant (1984), and the agnostic model of learning
+introduced by Haussler (1992) and Kearns et al. (1994). For further reading, see standard
+textbooks in computational learning theory such as Kearns and Vazirani (1994); Anthony
+and Bartlett (2009); Shalev-Shwartz and Ben-David (2014).
+    In the classical PAC model, a learner A is given access to a random example oracle
+PEX(c, D) which generates labeled examples of the form (x, c(x)) where x is drawn from an
+unknown distribution D : {0, 1}n → [0, 1] and c ∈ C is the target concept that A is trying
+to learn. For a concept c ∈ C and hypothesis h : {0, 1}n → {0, 1}, we define the error of h
+compared to the target concept c, under D, as errD (h, c) = Prx∼D [h(x) 6= c(x)]. A learning
+algorithm A is an (ε, δ)-PAC learner for C , if the following holds:
+
+      For every c ∈ C and distribution D, given access to the PEX(c, D) oracle:
+      A outputs an h such that errD (h, c) ≤ ε with probability at least 1 − δ.
+
+The sample complexity of A is the maximum number of invocations of the PEX(c, D)
+oracle which the learner makes, over all concepts c ∈ C , distributions D, and the internal
+randomness of the learner. The (ε, δ)-PAC sample complexity of a concept class C is the
+minimum sample complexity over all (ε, δ)-PAC learners for C .
+    Agnostic learning is the following model: for a distribution D : {0, 1}n+1 → [0, 1], a
+learner A is given access to an AEX(D) oracle that generates examples of the form (x, b)
+drawn from the distribution D. We define the error of h : {0, 1}n → {0, 1} under D as
+errD (h) = Pr(x,b)∼D [h(x) 6= b]. When h is restricted to come from a concept class C , the
+minimal error achievable is optD (C ) = minc∈C {errD (c)}. In agnostic learning, a learner A
+
+                                                    10
+             Optimal Quantum Sample Complexity of Learning Algorithms
+
+
+
+
+needs to output a hypothesis h whose error is not much bigger than optD (C ). A learning
+algorithm A is an (ε, δ)-agnostic learner for C if:
+
+      For every distribution D on {0, 1}n+1 , given access to the AEX(D) oracle:
+      A outputs an h ∈ C such that errD (h) ≤ optD (C ) + ε with probability at least
+      1 − δ.
+
+Note that if there is a c ∈ C which perfectly classifies every x with label y for (x, y) ∈
+supp(D), then optD (C ) = 0 and we are in the setting of proper PAC learning. The sample
+complexity of A is the maximum number of invocations of the AEX(c, D) oracle which the
+learner makes, over all distributions D and over the learner’s internal randomness. The
+(ε, δ)-agnostic sample complexity of a concept class C is the minimum sample complexity
+over all (ε, δ)-agnostic learners for C .
+
+2.4. Quantum information theory
+Throughout this paper we will assume the reader is familiar              Pn with the following quan-
+tum terminology. An n-dimensional pure state is |ψi =                        i=1 αi |ii, where |ii is the n-
+dimensional unit vector         that has   a  1 only  at position i, the α i are complex numbers called
+                                                                            ’s
+                                        2
+                            P
+the amplitudes, and i∈[n] |αi | = 1. An n-dimensional mixed state (or density matrix )
+ρ = ni=1 pi |ψi ihψi | is a mixture of pure states |ψ1 i, . . . , |ψn i prepared with probabilities
+        P
+p1 , . . . , pn , respectively. The eigenvalues λ1 , . . . , λn of ρ are non-negative reals and satisfy
+P
+   i∈[n] λi = 1. If ρ is pure (i.e., ρ = |ψihψ| for some |ψi), then one of the eigenvalues is 1
+and the others are 0.
+      To obtain classical information from ρ, one could apply a POVM (positive-operator-
+valued measure) to the state ρ. An m-outcome P                  POVM is specified by a set of positive
+semidefinite matrices {Mi }i∈[m] with the property i Mi = Id. When this POVM is applied
+to the mixed state ρ, the probability of the j-th outcome is given by Tr(Mj ρ).
+                                                           P
+                             P (p1 , . . . , pk ) (where i∈[k] pi = 1), the entropy function is defined
+      For a probability vector
+as H(p1 , . . . , pk ) = − i∈[k] pi log pi . When k = 2, with p1 = p and p2 = 1 − p, we denote
+the binary entropy function as H(p). For a state ρAB on the Hilbert space HA ⊗ HB ,
+we let ρA be the reduced state after taking the partial trace over HB . The entropy of
+a quantum state ρA is defined as S(A) = −Tr(ρA log ρA ). The mutual information is
+defined as I(A : B) = S(A) + S(B) − S(AB), and conditional entropy is defined as
+S(A|B) = S(AB) − S(B). Classical information-theoretic quantities correspond to the
+special case where ρ is a diagonal matrix whose diagonal corresponds to the probability
+distribution of the random variable. Writing ρA in its eigenbasis, it follows that S(A) =
+H(λ1 , . . . , λdim(ρA ) ), where λ1 , . . . , λdim(ρA ) are the eigenvalues of ρ. If ρA is a pure state,
+S(A) = 0.
+
+2.5. Quantum learning models
+The quantum PAC learning model was introduced by Bshouty and Jackson (1999). The
+quantum PAC model is a generalization of the classical PAC model, in which instead of hav-
+ing access to random examples (x, c(x)) from the PEX(c, D) oracle, the learner now has ac-
+cess to superpositions over all (x, c(x)). For an unknown distribution D : {0, 1}n → [0, 1] and
+
+                                                    11
+                               Arunachalam and de Wolf
+
+
+
+
+concept c ∈ C P
+              , a quantum                                       n
+                          p example oracle QPEX(c, D) acts on |0 , 0i and produces a quan-
+tum example      x∈{0,1}n  D(x)|x, c(x)i (we leave QPEX undefined on other basis states).
+A quantum learner is given access to some copies of the state generated by QPEX(c, D)
+and performs a POVM where each outcome is associated with a hypothesis. A learning
+algorithm A is an (ε, δ)-PAC quantum learner for C if:
+     For every c ∈ C and distribution D, given access to the QPEX(c, D) oracle:
+     A outputs an h such that errD (h, c) ≤ ε, with probability at least 1 − δ.
+The sample complexity of A is the maximum number invocations of the QPEX(c, D) oracle,
+maximized over all c ∈ C , distributions D, and the learner’s internal randomness. The (ε, δ)-
+PAC quantum sample complexity of a concept class C is the minimum sample complexity
+over all (ε, δ)-PAC quantum learners for C .
+   We define quantum agnostic learning now. For a joint distribution D : {0, 1}n+1 → [0, 1]
+over the set of examples, the learner
+                                    Phas access to pan QAEX(D) oracle which acts on |0n , 0i
+and produces a quantum example (x,b)∈{0,1}n+1 D(x, b)|x, bi. A learning algorithm A is
+an (ε, δ)-agnostic quantum learner for C if:
+     For every distribution D, given access to the QAEX(D) oracle:
+     A outputs an h ∈ C such that errD (h) ≤ optD (C ) + ε with probability at
+     least 1 − δ.
+The sample complexity of A is the maximum number invocations of the QAEX(D) oracle
+over all distributions D and over the learner’s internal randomness. The (ε, δ)-agnostic
+quantum sample complexity of a concept class C is the minimum sample complexity over
+all (ε, δ)-agnostic quantum learners for C .
+
+2.6. Pretty Good Measurement
+                                                                             P
+Consider an ensemble of d-dimensional states, E = {(pi , |ψi i)}i∈[m] , where i∈[m] pi = 1.
+Suppose we are given an unknown state |ψi i sampled according to the probabilities and we
+are interested in maximizing the average probability of success to identify the state that
+we are given. For a POVM specified by positive semidefinite matrices M = {Mi }i∈[m] , the
+probability of obtaining outcome j equals hψi |Mj |ψi i. The average success probability is
+defined as
+                                         m
+                                         X
+                               PM (E) =      pi hψi |Mi |ψi i.
+                                            i=1
+
+Let P opt (E) = maxM PM (E) denote the optimal average success probability of E, where the
+maximization is over the set of valid m-outcome POVMs.
+   For every ensemble E, the so-called Pretty Good Measurement (PGM) is a specific POVM
+(depending on the ensemble E), which we shall define shortly, that does reasonably well
+against E.
+
+Theorem 1 Let E = {(pi , |ψi i)}i∈[m] be an ensemble of d-dimensional states. Suppose
+P P GM (E) is defined as the average success probability of identifying the states in E using
+the PGM, then we have that
+                              P opt (E)2 ≤ P P GM (E) ≤ P opt (E).
+
+                                              12
+            Optimal Quantum Sample Complexity of Learning Algorithms
+
+
+
+
+Proof The second inequality in the theorem follows because P opt (E) is a maximization
+over all valid POVMs and the first inequality was shown by Barnum and Knill (2002). For
+completeness we give a simple proof of P opt (E)2 ≤ P P GM (E) below (similar to Montanaro
+                     √
+(2007)). Let |ψi0 i = pi |ψi i, and E 0 = {|ψP
+                                             0
+                                             i i : i ∈ [m]} be the set of states in E, renormalized
+to reflect their probabilities. Define ρ = i∈[m] |ψi0 ihψi0 |. The PGM is defined as the set of
+measurement operators {|νi ihνi |}i∈[m] where |νi i = ρ−1/2 |ψi0 i (the inverse square root of ρ is
+taken over its non-zero eigenvalues). We first verify this is a valid POVM:
+                         m
+                         X                              m
+                                                       X                     
+                                |νi ihνi | = ρ−1/2                |ψi0 ihψi0 | ρ−1/2 = Id .
+                         i=1                                i=1
+
+Let G be the Gram matrix for the set E 0 , i.e., G(i, j) = hψi0 |ψj0 i for i, j ∈ [m]. It can be
+             √
+verified that G(i, j) = hψi0 |ρ−1/2 |ψj0 i. Hence
+
+                            X                               X
+             P P GM (E) =           pi |hνi |ψi i|2 =             |hνi |ψi0 i|2
+                            i∈[m]                        i∈[m]
+                                                            X                                X√
+                                                     =            hψi0 |ρ−1/2 |ψi0 i2 =               G(i, i)2 .
+                                                         i∈[m]                             i∈[m]
+
+
+   We now prove P opt (E)2 ≤ P P GM (E). Suppose M is the optimal measurement. Since
+E consists of pure states, by a result of Eldar et al. (2003), we can assume without loss of
+generality that the measurement operators in M are rank-1, so Mi = |µi ihµi | for some |µi i.
+Note that
+                                   X                    X                
+                                                     1/2              1/2
+                    1 = Tr(ρ) = Tr        |µi ihµi |ρ      |µj ihµj |ρ
+                                             i∈[m]                        j∈[m]
+                                         X                                   X                                     (5)
+                                                           1/2        2
+                                    =             |hµi |ρ        |µj i| ≥           hµi |ρ1/2 |µi i2 .
+                                        i,j∈[m]                             i∈[m]
+
+Then, using the Cauchy-Schwarz inequality, we have
+                       X                 X
+           P opt (E) =   |hµi |ψi0 i|2 =   |hµi |ρ1/4 ρ−1/4 |ψi0 i|2
+                        i∈[m]                      i∈[m]
+                                                    X
+                                             ≤             hµi |ρ1/2 |µi ihψi0 |ρ−1/2 |ψi0 i
+                                                   i∈[m]
+                                                   sX                             sX
+                                             ≤                hµi |ρ1/2 |µi i2               hψi0 |ρ−1/2 |ψi0 i2
+                                                      i∈[m]                          i∈[m]
+                                             Eq. (5)
+                                                     sX                      q
+                                               ≤        hψi0 |ρ−1/2 |ψi0 i2 = P P GM (E).
+                                                             i∈[m]
+
+
+
+
+                                                            13
+                                    Arunachalam and de Wolf
+
+
+
+
+    The above shows that for all ensembles E, the PGM for that ensemble is not much
+worse than the optimal measurement. In some cases the PGM is the optimal measurement.
+In particular, an ensemble E is called geometrically uniform if E = {Ui |ϕi : i ∈ [m]} for
+some Abelian group of matrices {Ui }i∈[m] and state |ϕi. Eldar and Forney Jr (2001) showed
+P opt (E) = P P GM (E) for such E.
+
+2.7. Known results and required claims
+The following theorems characterize the sample complexity of classical PAC and agnos-
+tic learning.
+
+Theorem 2 (Blumer et al. (1989); Hanneke           (2016))   Let C be a concept class with
+                                                   d  log(1/δ)
+VC-dim(C ) = d + 1. In the PAC model, Θ ε +               ε      examples are necessary and
+sufficient for a classical (ε, δ)-PAC learner for C .
+
+Theorem 3 (Vapnik and Chervonenkis (1974); Simon (1996); Talagrand                     (1994))
+                                                                                            
+                                                                                   log(1/δ)
+Let C be a concept class with VC-dim(C ) = d. In the agnostic model, Θ ε2 + ε2d
+                                                                                              ex-
+amples are necessary and sufficient for a classical (ε, δ)-agnostic learner for C .
+
+   We will use the following well-known theorem from the theory of error-correcting codes
+(which follows immediately from the Gilbert-Varshamov bound):
+
+Theorem 4 For every sufficiently large integer n, there exists an integer k ∈ [n/4, n] and a
+matrix M ∈ Fn×k
+             2   of rank k, such that the associated [n, k, d]2 linear code {M x : x ∈ {0, 1}k }
+has minimal distance d ≥ n/8.
+
+   We will need the following claims later
+
+Claim 5 Let f : {0, 1}m → R and let M ∈ Fm×k  2   . Then the Fourier coefficients of f ◦ M
+are f ◦ M (Q) = S∈{0,1}m :M t S=Q f (S) for all Q ⊆ [k] (where M t is the transpose of the
+               P
+    \                             b
+matrix M ).
+
+Proof Writing out the Fourier coefficients of f ◦ M
+
+        ◦ M (Q) =
+       f\                E       [(f ◦ M )(z)(−1)Q·z ]
+                      z∈{0,1}k
+                                  h X                            i
+                  =      E                  fb(S)(−1)S·(M z)+Q·z                 (Fourier expansion of f )
+                      z∈{0,1}k
+                                  S∈{0,1}m
+                                                             t
+                        X
+                  =               fb(S)      E       [(−1)(M S+Q)·z ]        (using hS, M zi = hM t S, zi)
+                                          z∈{0,1}k
+                      S∈{0,1}m
+                        X
+                  =               fb(S).                          (using Ez∈{0,1}k (−1)(z1 +z2 )·z = δz1 ,z2 )
+                      S:M t S=Q
+
+
+
+
+                                                        14
+           Optimal Quantum Sample Complexity of Learning Algorithms
+
+
+
+               √                        2
+Claim 6 max{(c/ t)t : t ∈ [1, c2 ]} = ec /(2e) .
+                                           √ t
+Proof The value of t at which the function c/ t is the largest, is obtained by differen-
+tiating the function with respect to t,
+
+                          d  √ t     √        √        
+                             c/ t = (c/ t)t ln(c/ t) − 1/2 .
+                          dt
+
+Equating the derivative to zero we obtain the maxima (the second derivative can be checked
+to be negative) at t = c2 /e.
+
+
+
+Fact 7 For all ε ∈ [0, 1/2] we have H(ε) ≤ O(ε log(1/ε)), and (from the Taylor series)
+
+                             1 − H(1/2 + ε) ≤ 2ε2 / ln 2 + O(ε4 ).
+
+                                                         n
+                                                              ≤ 2nH(k/n) for all k ≤ n and
+                                                          
+Fact 8 For every positive integer n, we have that        k
+Pm n      nH(m/n) for all m ≤ n/2.
+  i=0 i ≤ 2
+
+
+   The following facts are well-known in quantum information theory.
+
+Fact 9 (Kaye et al., 2006, Appendix A.9) Let binary random variable b ∈ {0, 1} be
+uniformly distributed. Suppose an algorithm is given |ψb i (for unknown b) and is re-
+quiredpto guess whether b = 0 or b = 1. It will guess correctly with probability at most
+1    1
+2 + 2   1 − |hψ0 |ψ1 i|2 .
+
+ p Note that if we can distinguish |ψ0 i and |ψ1 i with probability ≥ 1 − δ, then |hψ0 |ψ1 i| ≤
+2 δ(1 − δ).
+
+
+Fact 10 (Subadditivity of quantum entropy): For an arbitrary bipartite state ρAB on the
+Hilbert space HA ⊗ HB , it holds that S(ρAB ) ≤ S(ρA ) + S(ρB ).
+
+3. Information-theoretic lower bounds
+Upper bounds on sample complexity carry over from classical to quantum PAC learning,
+because a quantum example becomes a classical example if we just measure it. Our main
+goal is to show that the lower bounds also carry over. All our lower bounds will involve
+two terms, one that is independent of C and one that is dependent on the VC dimension of
+C . In Section 3.1 we prove the VC-independent part of the lower bounds for the quantum
+setting (which also is a lower bound for the classical setting), in Section 3.2 we present
+an information-theoretic lower bound on sample complexity for PAC learning and agnostic
+learning which yields optimal VC-dependent bounds in the classical case. Using similar
+ideas, in Section 3.3 we obtain near-optimal bounds in the quantum case.
+
+                                              15
+                                 Arunachalam and de Wolf
+
+
+
+
+3.1. VC-independent part of lower bounds
+Lemma 11 (Atıcı and Servedio (2005)) Let C be a non-trivial concept class. For ev-
+ery δ ∈ (0, 1/2), ε ∈ (0, 1/4), a (ε, δ)-PAC quantum learner for C has sample complexity
+Ω( 1ε log 1δ ).
+
+Proof Since C is non-trivial, we may assume there are two concepts c1 , c2 ∈ C defined
+on two inputs {x1 , x2 } as follows c1 (x1 ) = c2 (x1 ) = 0 and c1 (x2 ) = 0, c2 (x2 ) = 1. Consider
+the distribution D(x1 ) = 1 − ε and D(x2 )√= ε. For i ∈ {1, 2}, the state of the algorithm
+                                                               √
+after T queries to QPEX(ci , D) is |ψi i = ( 1 − ε|x1 , 0i + ε|x2 , ci (x2 )i)⊗T . It follows that
+hψ1 |ψ2 i = (1−ε)T . Since the
+                            p success probability of an (ε, δ)-PAC quantum learner is ≥ 1−δ,
+Fact 9 implies hψ1 |ψ2 i ≤ 2 δ(1 − δ). Hence T = Ω( 1ε log 1δ ).
+
+
+Lemma 12 Let C be a non-trivial concept class. For every δ ∈ (0, 1/2), ε ∈ (0, 1/4), a
+(ε, δ)-agnostic quantum learner for C has sample complexity Ω( ε12 log 1δ ).
+
+Proof Since C is non-trivial, we may assume there are two concepts c1 , c2 ∈ C and
+there exists an input x ∈ {0, 1}n such that c1 (x) 6= c2 (x). Consider the two distributions
+D− and D+ defined as follows: D± (x, c1 (x)) = (1 ± ε)/2 and D± (x,          p c2 (x)) = (1 ∓ ε)/2.
+Let |ψ± i be the state after T queries to QAEX(D± ), i.e., |ψ± i = ( (1 ± ε)/2|x, c1 (x)i +
+   (1 ∓ ε)/2|x, c2 (x)i)⊗T . It follows that hψ+ |ψ− i = (1 − ε2 )T /2 . Since the successpprobabil-
+p
+
+ity of an (ε, δ)-agnostic quantum learner is ≥ 1 − δ, Fact 9 implies hψ+ |ψ− i ≤ 2 δ(1 − δ).
+Hence T = Ω( ε12 log 1δ )
+
+
+
+3.2. Information-theoretic lower bounds on sample complexity: classical case
+3.2.1. Optimal lower bound for classical PAC learning
+Theorem 13 Let C be a concept class with VC-dim(C ) = d+1. Then for    every δ ∈ (0,1/2)
+and ε ∈ (0, 1/4), every (ε, δ)-PAC learner for C has sample complexity Ω dε + log(1/δ)
+                                                                                  ε    .
+
+Proof Consider an (ε, δ)-PAC learner for C that uses T examples. The d-independent
+part of the lower bound, T = Ω(log(1/δ)/ε), even holds for quantum examples and was
+proven in Lemma 11. Hence it remains to prove T = Ω(d/ε). It suffices to show this for
+a specific distribution D, defined as follows. Let S = {s0 , s1 , . . . , sd } ⊆ {0, 1}n be some
+(d + 1)-element set shattered by C . Define D(s0 ) = 1 − 4ε and D(si ) = 4ε/d for all i ∈ [d].
+    Because S is shattered by C , for each string a ∈ {0, 1}d , there exists a concept ca ∈ C
+such that ca (s0 ) = 0 and ca (si ) = ai for all i ∈ [d]. We define two correlated random
+variables A and B corresponding to the concept and to the examples, respectively. Let A
+be a random variable that is uniformly distributed over {0, 1}d ; if A = a, let B = B1 . . . BT
+be T i.i.d. examples from ca according to D. We give the following three-step analysis of
+these random variables:
+   1. I(A : B) ≥ (1 − δ)(1 − H(1/4))d − H(δ) = Ω(d).
+      Proof. Let random variable h(B) ∈ {0, 1}d be the hypothesis that the learner produces
+
+                                                16
+          Optimal Quantum Sample Complexity of Learning Algorithms
+
+
+
+
+     (given the examples in B) restricted to the elements s1 , . . . , sd . Note that the error
+     of the hypothesis errD (h(B), cA ) equals dH (A, h(B)) · 4ε/d, because each si where A
+     and h(B) differ contributes D(si ) = 4ε/d to the error. Let Z be the indicator random
+     variable for the event that the error is ≤ ε. If Z = 1, then dH (A, h(B)) ≤ d/4. Since
+     we are analyzing an (ε, δ)-PAC learner, we have Pr[Z = 1] ≥ 1 − δ, and H(Z) ≤ H(δ).
+                                                                                   Pd/4 
+     Given a string h(B) that is d/4-close to A, A ranges over a set of only i=0 di ≤
+     2H(1/4)d possible d-bit strings (using Fact 8), hence
+
+                        H(A | B, Z = 1) ≤ H(A | h(B), Z = 1) ≤ H(1/4)d.
+
+     We now lower bound I(A : B) as follows:
+
+                    I(A : B) = H(A) − H(A | B)
+                              ≥ H(A) − H(A | B, Z) − H(Z)
+                              = H(A) − Pr[Z = 1] · H(A | B, Z = 1)−
+                                          Pr[Z = 0] · H(A | B, Z = 0) − H(Z)
+                              ≥ d − (1 − δ)H(1/4)d − δd − H(δ)
+                              = (1 − δ)(1 − H(1/4))d − H(δ).
+
+  2. I(A : B) ≤ T · I(A : B1 ).
+     Proof. This inequality essentially appeared in (Jain and Zhang, 2009, Lemma 5), we
+     include the proof for completeness.
+                                                        T
+                                                        X
+         I(A : B) = H(B) − H(B | A) = H(B) −                  H(Bi | A)
+                                                        i=1
+                                              T
+                                              X                T
+                                                               X                   T
+                                                                                   X
+                                          ≤         H(Bi ) −         H(Bi | A) =         I(A : Bi ),
+                                              i=1              i=1                 i=1
+
+     where the second equality used independence of the Bi ’s conditioned on A, and the
+     inequality uses Fact 10. Since I(A : Bi ) = I(A : B1 ) for all i, we get the inequality.
+
+  3. I(A : B1 ) = 4ε.
+     Proof. View B1 = (I, L) as consisting of an index I ∈ {0, 1, . . . , d} and a corresponding
+     label L ∈ {0, 1}. With probability 1 − 4ε, (I, L) = (0, 0). For each i ∈ [d], with
+     probability 4ε/d, (I, L) = (i, Ai ). Note that I(A : I) = 0 because I is independent
+     of A; I(A : L | I = 0) = 0; and I(A : L | I = i) = I(Ai : L | I = i) = H(Ai | I =
+     i) − H(Ai | L, I = i) = 1 − 0 = 1 for all i ∈ [d]. We have
+                                                      d
+                                                      X
+           I(A : B1 ) = I(A : I) + I(A : L | I) =            Pr[I = i] · I(A : L | I = i) = 4ε.
+                                                       i=1
+
+
+Combining these three steps implies T = Ω(d/ε).
+
+
+
+                                               17
+                                Arunachalam and de Wolf
+
+
+
+
+3.2.2. Optimal lower bound for classical agnostic learning
+Theorem 14 Let C be a concept class with VC-dim(C ) = d. Then for every       δ ∈ (0, 1/2)  
+and ε ∈ (0, 1/4), every (ε, δ)-agnostic learner for C has sample complexity Ω εd2 + log(1/δ)
+                                                                                       ε2      .
+
+Proof The d-independent part of the lower bound, T = Ω(log(1/δ)/ε2 ), even holds for
+quantum examples and was proven in Lemma 12. For the other part, the proof is similar to
+Theorem 13, as follows. Assume an (ε, δ)-agnostic learner for C that uses T examples. We
+need to prove T = Ω(d/ε2 ). For shattered set S = {s1 , . . . , sd } ⊆ {0, 1}n and a ∈ {0, 1}d ,
+define distribution Da on [d] × {0, 1} by Da (i, `) = (1 + (−1)ai +` 4ε)/2d.
+    Again let random variable A ∈ {0, 1}d be uniformly random, corresponding to the values
+of concept ca on S, and B = B1 . . . BT be T i.i.d. samples from Da . Note that ca is the
+minimal-error concept from C w.r.t. Da , and concept cã has additional error dH (a, ã) · 4ε/d.
+Accordingly, an (ε, δ)-agnostic learner has to produce (from B) an h(B) ∈ {0, 1}d , which,
+with probability at least 1 − δ, is d/4-close to A. Our three-step analysis is very similar to
+Theorem 13; only the third step changes:
+
+  1. I(A : B) ≥ (1 − δ)(1 − H(1/4))d − H(δ) = Ω(d).
+
+  2. I(A : B) ≤ T · I(A : B1 ).
+
+  3. I(A : B1 ) = 1 − H(1/2 + 2ε) = O(ε2 ).
+      Proof. View the Da -distributed random variable B1 = (I, L) as index I ∈ [d] and
+      label L ∈ {0, 1}. The marginal distribution of I is uniform; conditioned on I = i, the
+      bit L equals Ai with probability 1/2 + 2ε. Hence
+
+              I(A : L | I = i) = I(Ai : L | I = i) = H(Ai | I = i) − H(Ai | L, I = i)
+                                                     = 1 − H(1/2 + 2ε).
+
+      Using Fact 7, we have
+                                                        d
+                                                        X
+               I(A : B1 ) = I(A : I) + I(A : L | I) =          Pr[I = i] · I(A : L | I = i)
+                                                         i=1
+                                                      = 1 − H(1/2 + 2ε) = O(ε2 ).
+
+Combining these three steps implies T = Ω(d/ε2 ).
+
+
+    In the theorem below, we optimize the constant in the lower bound of the sample
+complexity in Theorem 14. In learning theory such lower bounds are often stated slightly
+differently. In order to compare the lower bounds, we introduce the following. We first
+define an ε-average agnostic learner for a concept class C as a learner that, given access to
+T samples from an AEX(D) oracle (for some unknown distribution D), needs to output a
+hypothesis hXY (where (X, Y) ∼ DT ) that satisfies
+
+                                E      [errD (hXY )] − optD (C ) ≤ ε.
+                            (X,Y)∼DT
+
+
+                                                18
+           Optimal Quantum Sample Complexity of Learning Algorithms
+
+
+
+
+Lower bounds on the quantity (E(X,Y)∼DT [errD (hXY )] − optD (C )) are generally referred to
+as minimax lower bounds in learning theory. For concept class C , Audibert (2008, 2009)
+showed that there exists a distribution D, such that if the agnostic learner uses T samples
+from AEX(D), then
+                                                               r
+                                                              1 d
+                            E     [errD (hXY )] − optD (C ) ≥      .
+                        (X,Y)∼DT                              6 T
+                                             d
+Equivalently, this is a lower bound of T ≥ 36ε 2 on the sample complexity of an ε-average
+                                                                                   d
+agnostic learner. We obtain a slightly weaker lower bound that is essentially T ≥ 62ε2:
+
+
+Theorem 15 Let C be a concept class with VC-dim(C ) = d. Then for every ε ∈ (0, 1/10],
+there exists 
+             a distribution for
+                               which every ε-average agnostic learner has sample complexity
+         d     1    log(2d+2)
+at least ε2 · 62 −      4d     .
+
+Proof The proof is similar to Theorem 14. Assume an ε-average agnostic learner for C
+that uses T samples. For shattered set S = {s1 , . . . , sd } ⊆ {0, 1}n and a ∈ {0, 1}d , define
+distribution Da on [d] × {0, 1} by Da (i, `) = (1 + (−1)ai +` βε)/2d, for some constant β ≥ 2
+which we shall pick later.
+    Again let random variable A ∈ {0, 1}d be uniformly random, corresponding to the values
+of concept ca on S, and B = B1 . . . BT be T i.i.d. samples from Da . Note that ca is the
+minimal-error concept from C w.r.t. Da , and concept cã has additional error dH (a, ã) · βε/d.
+Accordingly, an ε-average agnostic learner has to produce (from B) an h(B) ∈ {0, 1}d , which
+satisfies EA,B [dH (A, h(B))] ≤ d/β.
+    Our three-step analysis is very similar to Theorem 14; only the first step changes:
+  1. I(A : B) ≥ d(1 − H(1/β)) − log(d + 1).
+      Proof. Define random variable Z = dH (A, h(B)), then E[Z] ≤ d/β.     Note that given
+      a string h(B) that is `-close to A, A ranges over a set of only d` ≤ 2H(`/d)d possible
+                                                                        
+
+      d-bit strings (using Fact 8), hence
+                        H(A | B, Z = `) ≤ H(A | h(B), Z = `) ≤ H(`/d)d.
+      We now lower bound I(A : B):
+               I(A : B) = H(A) − H(A | B)
+                         ≥ H(A) − H(A | B, Z) − H(Z)
+                               d+1
+                               X
+                         =d−          Pr[Z = `] · H(A | B, Z = `) − H(Z)
+                                `=0
+                         ≥d−          E       [H(`/d)d] − log(d + 1)        (since Z ∈ {0, . . . , d})
+                               `∈{0,...,d}
+                                       E [`] 
+                                          `
+                         ≥ d − dH        − log(d + 1)                  (using Jensen’s inequality)
+                                    d
+                         ≥ d − dH(1/β) − log(d + 1),                           (using E[Z] ≤ d/β)
+      where for the third inequality we used the concavity of the binary entropy function to
+      conclude E` [H(`/d)] ≤ H(E` [`]/d), and for the fourth inequality we used that β ≥ 2.
+
+                                                    19
+                               Arunachalam and de Wolf
+
+
+
+
+  2. I(A : B) ≤ T · I(A : B1 ).
+                                        Fact 7
+  3. I(A : B1 ) = 1 − H(1/2 + βε/2) ≤ β 2 ε2 / ln 4 + O(ε4 ).
+
+Combining these three steps implies
+
+                             d ln 4  1 − H(1/β)       log(d + 1) 
+                       T ≥         ·               −                 .
+                               ε2     β 2 + O(ε2 )   β 2 d + O(dε2 )
+                                                                                              
+                                                                                   log(2d+2)
+Using ε ≤ 1/10, β = 4 to optimize this lower bound, we obtain T ≥ εd2 ·       1
+                                                                              62 −     4d          .
+
+
+
+3.3. Information-theoretic lower bounds on sample complexity: quantum case
+Here we will “quantize” the above two classical information-theoretic proofs, yielding lower
+bounds for quantum sample complexity (in both the PAC and the agnostic setting) that
+are tight up to a logarithmic factor.
+
+3.3.1. Near-optimal lower bound for quantum PAC learning
+Theorem 16 Let C be a concept class with VC-dim(C ) = d + 1. Then, for every δ ∈
+       and ε ∈ (0, 1/4),
+(0, 1/2)                     every (ε, δ)-PAC quantum learner for C has sample complex-
+           d       log(1/δ)
+ity Ω ε log(d/ε) +     ε     .
+
+Proof The proof is analogous to Theorem  P 13. We use
+                                                   p the same distribution D, with the
+Bi now being quantum samples: |ψa i = i∈{0,1,...,d} D(si )|i, ca (si )i. The AB-system is
+now in the following classical-quantum state:
+
+                               1      X
+                                               |aiha| ⊗ |ψa ihψa |⊗T .
+                               2d
+                                    a∈{0,1}d
+
+The first two steps of our argument are identical to Theorem 13. We only need to re-analyze
+step 3:
+
+  1. I(A : B) ≥ (1 − δ)(1 − H(1/4))d − H(δ) = Ω(d).
+
+  2. I(A : B) ≤ T · I(A : B1 ).
+
+  3. I(A : B1 ) ≤ H(4ε) + 4ε log(2d) = O(ε log(d/ε)).
+     Proof. Since AB is a classical-quantum state, we have
+
+                        I(A : B1 ) = S(A) + S(B1 ) − S(AB1 ) = S(B1 ),
+
+     where the first equality follows from definition and the second equality uses S(A) = d
+     since  A is uniformly distributed in {0, 1}d , and S(AB1 ) = d since the matrix σ =
+      1 P                                                       d
+     2d    a∈{0,1}d |aiha| ⊗ |ψa ihψa | is block diagonal with 2 rank-1 blocks on the diagonal.
+
+
+                                                  20
+           Optimal Quantum Sample Complexity of Learning Algorithms
+
+
+
+
+     It thus suffices to bound the entropy of the singular values of the reduced state of B1 ,
+     which is
+                                          1 X
+                                     ρ= d            |ψa ihψa |.
+                                         2         d
+                                             a∈{0,1}
+
+     Let σ0 ≥ σ1 ≥ · · · ≥ σ2d ≥ 0 be its singular values. Since ρ is a density matrix, these
+     form a probability distribution. Note that the upper-left entry of the matrix |ψa ihψa | is
+     D(s0 ) = 1−4ε, hence so is the upper-left entry of ρ. This implies σ0 ≥ 1−4ε. Consider
+     sampling a number N ∈ {0, 1, . . . , 2d} according to the σ-distribution. Let Z be the
+     indicator random variable for the event N 6= 0, which has probability 1−σ0 ≤ 4ε. Note
+     that H(N | Z = 0) = 0, because Z = 0 implies N = 0. Also, H(N | Z = 1) ≤ log(2d),
+     because if Z = 1 then N ranges over 2d elements. We now have
+
+              S(ρ) = H(N) = H(N, Z) = H(Z) + H(N | Z)
+                     = H(Z) + Pr[Z = 0] · H(N | Z = 0) + Pr[Z = 1] · H(N | Z = 1)
+                     ≤ H(4ε) + 4ε log(2d)
+                     = O(ε log(d/ε)).                                            (using Fact 7)
+
+                                                    
+                                               d
+Combining these three steps implies T = Ω ε log(d/ε)   .
+
+
+
+3.3.2. Near-optimal lower bound for quantum agnostic learning
+Theorem 17 Let C be a concept class with VC-dim(C ) = d. Then for every δ∈ (0, 1/2),
+ε ∈ (0, 1/4), every (ε, δ)-agnostic quantum learner for C has sample complexity Ω ε2 log(d/ε)
+                                                                                       d
+                                                                                              +
+         
+log(1/δ)
+   ε2
+           .
+
+Proof The proof P is analogousp to Theorem 14, with the Bi now being quantum samples
+for Da , |ψa i = i∈[d],`∈{0,1} Da (i, `)|i, `i. Again we only need to re-analyze step 3:
+
+  1. I(A : B) ≥ (1 − δ)(1 − H(1/4))d − H(δ) = Ω(d).
+
+  2. I(A : B) ≤ T · I(A : B1 ).
+
+  3. I(A : B1 ) = O(ε2 log(d/ε)).
+     Proof of step 3. As in step 3 of the proof of Theorem 16, it suffices to upper bound
+     the entropy of
+                                         1 X
+                                    ρ= d            |ψa ihψa |.
+                                         2        d
+                                             a∈{0,1}
+
+     We lower bound the largest singular value of ρ. Consider |ψi = √12d
+                                                                            P
+                                                                               i∈[d],`∈{0,1} |i, `i.
+
+                  1 X 1 √         √       1 √         √      
+      hψ|ψa i =            1 + 4ε + 1 − 4ε =     1 + 4ε + 1 − 4ε ≥ 1 − 2ε2 − O(ε4 ),
+                  d   2                      2
+                   i∈[d]
+
+
+                                              21
+                                      Arunachalam and de Wolf
+
+
+
+                                                                         √
+      where the last inequality used the Taylor series expansion of 1 + x. This implies
+      that the largest singular value of ρ is at least
+                                    1 X
+                         hψ|ρ|ψi = d            |hψ|ψa i|2 ≥ 1 − 4ε2 − O(ε4 ).
+                                    2         d a∈{0,1}
+
+      We can now finish as in step 3 of the proof of Theorem 16:
+                                                                             Fact 7
+                I(A : B1 ) ≤ S(ρ) ≤ H(4ε2 ) + 4ε2 log(2d) = O(ε2 log(d/ε)).
+                                                     
+                                               d
+Combining these three steps implies T = Ω ε2 log(d/ε)   .
+
+
+
+4. A lower bound by analysis of state identification
+In this section we present a tight lower bound on quantum sample complexity for both
+the PAC and the agnostic learning settings, using ideas from Fourier analysis to analyze
+the performance of the Pretty Good Measurement. The core of both lower bounds is the
+following theorem.
+Theorem 18 For m ≥ 10, let f : {0, 1}m → R be defined as f (z) = (1 − β |z|             T
+                                                                                   m ) for some
+β ∈ (0, 1] and T ∈ [1, m/(e3 β)]. For k ≤ m, let M ∈ Fm×k   2  be a matrix with rank k. Suppose
+       2k ×2k
+A∈R           is defined as A(x, y) = (f ◦ M )(x + y) for x, y ∈ {0, 1}k , then
+                            √
+              √           2 e      β T /2 11T 2 β 2 /m+√T mβ
+                A(x, x) ≤ k/2 1 −           e                     for all x ∈ {0, 1}k .
+                          2          2
+Proof The structure of the proof is to first diagonalize A, relating its eigenvalues
+                                                                                   √      to the
+Fourier coefficients of f . This allows to calculate the diagonal entries of A exactly in
+terms of those Fourier coefficients. We then upper bound those Fourier coefficients using a
+combinatorial argument.
+    We first observe the well-known relation between the eigenvalues of a matrix P defined
+as P (x, y) = g(x + y) for x, y ∈ {0, 1}k , and the Fourier coefficients of g.
+                                                                 k   k
+Claim 19 Suppose g : {0, 1}k → R and P ∈ R2 ×2 is defined as P (x, y) = g(x + y), then
+the eigenvalues of P are {2k gb(Q) : Q ∈ {0, 1}k }.
+                      k    k
+Proof Let H ∈ R2 ×2 be the matrix defined as H(x, y) = (−1)x·y for x, y ∈ {0, 1}k . It is
+easy to see that H −1 (x, y) = (−1)x·y /2k . We now show that H diagonalizes P :
+                     1      X
+ (HP H −1 )(x, y) = k              (−1)z1 ·x+z2 ·y g(z1 + z2 )
+                    2            k
+                           z1 ,z2 ∈{0,1}
+                      1          X
+                  =                           (−1)z1 ·x+z2 ·y gb(Q)(−1)Q·(z1 +z2 ) (Fourier expansion of g)
+                      2k
+                           z1 ,z2 ,Q∈{0,1}k
+                      1        X                 X                           X
+                  =                   gb(Q)                 (−1)(x+Q)·z1                (−1)(y+Q)·z2
+                      2k
+                           Q∈{0,1}k            z1 ∈{0,1}k                  z2 ∈{0,1}k
+
+                  = 2k gb(x)δx,y ,
+
+
+                                                            22
+            Optimal Quantum Sample Complexity of Learning Algorithms
+
+
+
+
+where we used z∈{0,1}k [(−1)(a+b)·z ] = 2k δa,b in the last equality. The eigenvalues of P are
+               P
+
+the diagonal entries, {2k gb(Q) : Q ∈ {0, 1}k }.
+
+                                                    √
+   We now relate the diagonal entries of                A to the Fourier coefficients of f :
+
+Claim 20 For all x ∈ {0, 1}k , we have
+                          √                1       X        s          X
+                              A(x, x) =                                           fb(S).
+                                          2k/2
+                                                 Q∈{0,1}k    S∈{0,1}m :M t S=Q
+
+
+Proof Since A(x, y) = (f ◦ M )(x + y), by Claim 19 it follows that H (as defined in the
+proof of Claim 19) diagonalizes A and the eigenvalues of A are {2k f\
+                                                                    ◦ M (Q) : Q ∈ {0, 1}k }.
+Hence, we have
+                  √       −1
+                                   nq                            o
+                    A = H · diag            ◦ M (Q) : Q ∈ {0, 1}k
+                                        2k f\                        · H,
+                                 √
+and the diagonal entries of     A are
+     √                1       X q          Claim 5               1       X        s        X
+         A(x, x) =                  ◦ M (Q) =
+                                   f\                                                                 fb(S).
+                     2k/2                                       2k/2
+                            Q∈{0,1}k                                   Q∈{0,1}k   S∈{0,1}m :M t S=Q
+
+
+
+
+    In the following lemma, we give an upper bound on the Fourier coefficients of
+                                                                                √ f , which
+in turn (from the claim above) gives an upper bound on the diagonal entries of A.
+
+Lemma 21 For β ∈ (0, 1], the Fourier coefficients of f : {0, 1}m → R defined as f (z) =
+(1 − β |z| T
+       m ) , satisfy
+                             β T  T β q 22T 2 β 2 /m
+           0 ≤ fb(S) ≤ 4e 1 −              e             ,             for all S such that |S| = q.
+                              2      m
+Proof In order to see why the Fourier√coefficients of p f are non-negative, we first define
+              ⊗T
+                                                               P
+the set U = {ux }x∈{0,1}m where ux = 1 − β|0, 0i + β/m i∈[m] |i, xi i. Let V be the
+2m × 2m Gram matrix for the set U . For x, y ∈ {0, 1}m , we have
+                                        m
+                                    β X             T
+     V (x, y) = (u∗x uy )T = 1 − β +       hxi |yi i
+                                     m
+                                       i=1
+                                    β                  T  |x + y| T
+                           = 1 − β + (m − |x + y|) = 1 − β              = f (x + y).
+                                     m                          m
+
+By Claim 19, the eigenvalues of the Gram matrix V are {2m fb(S) : S ∈ {0, 1}m }. Since the
+Gram matrix is psd, its eigenvalues are non-negative, which implies that fb(S) ≥ 0 for all
+S ∈ {0, 1}m .
+
+                                                        23
+                                          Arunachalam and de Wolf
+
+
+
+
+    We now prove the upper bound in the lemma. By definition,
+
+                               |z| T
+                               h             i
+      fb(S) =             E           (−1)S·z
+                                    1−β
+               z∈{0,1}m        m
+                                         m
+                        h   β      β X           T       i                             zi
+                                            (−1)zi (−1)S·z      (since |z| = i∈[m] 1−(−1)
+                                                                                 P
+             =    E        1− +                                                        2    )
+               z∈{0,1}m      2     2m
+                                        i=1
+                T                                    m
+               X     T       β T −`  β `          h X                             i
+             =            1−                    E            (−1)z·(ei1 +···+ei` +S)
+                      `      2         2m z∈{0,1}m
+                  `=0                                                 i1 ,...,i` =1
+               T                                     m
+               X  T      β T −`  β `                 X
+             =        1−                                             1[ei1 +···+ei =S] ,
+                  `      2        2m                                                  `
+                  `=0                                i1 ,...,i` =1
+
+
+using Ez∈{0,1}m [(−1)(z1 +z2 )·z ] = δz1 ,z2 in the last equality.
+    We will use the following claim to upper bound the combinatorial sum in the quan-
+tity above.
+
+
+Claim 22 Fix S ∈ {0, 1}m with Hamming weight |S| = q. For every ` ∈ {q, . . . , T }, we
+have
+                                                     .                     
+           m
+                                       (
+         X                              `! · m(`−q)/2 2(`−q)/2 ((` − q)/2)!   if (` − q) is even
+                   1[ei1 +···+ei =S] ≤
+                                `
+     i1 ,...,i` =1                      0                                     otherwise
+
+Proof Since |S| = q, we can write S = er1 + · · · + erq for distinct r1 , . . . , rq ∈ [m]. There
+are q` ways to pick q indices in (i1 , . . . , i` ) (w.l.o.g. let them be i1 , . . . , iq ) and there are q!
+       
+
+factorial ways to assign (r1 , . . . , rq ) to (i1 , . . . , iq ). It remains to count the number of ways
+that we can assign values to the remaining indices iq+1 , . . . , i` such that eiq+1 + · · · + ei` = 0.
+If ` − q is odd then this number is 0, so from now on assume ` − q is even. We upper bound
+the number of such assignments by partitioning the ` − q indices into pairs and assigning
+the same value to both indices in each pair.
+     We first count the number of ways to partition a set of ` − q indices into subsets of
+                                                                          −1
+size 2. This number is exactly (` − q)! 2(`−q)/2 ((` − q)/2)!                  . Furthermore, there are m
+possible values that can be assigned to the pair of indices in each of the (` − q)/2 subsets
+such that ei + ej = 0 within each subset. Note that assigning m possible values to each pair
+of indices in the (` − q)/2 subsets overcounts, but this rough upper bound is sufficient for
+our purposes.
+     Combining the three arguments, we conclude
+             d                                 
+             X                                 `                         .                    
+                          1[ei1 +···+ei =S] ≤    q! · (` − q)! · m(`−q)/2 2(`−q)/2 ((` − q)/2)! .
+                                       `       q
+          i1 ,...,i` =1
+
+which yields the claim.
+
+
+
+                                                         24
+             Optimal Quantum Sample Complexity of Learning Algorithms
+
+
+
+
+   Continuing with the evaluation of the Fourier coefficient and using the claim above,
+we have
+
+             T                                      m
+             X  T                 β T −`  β `       X
+   fb(S) =                  1−                                      1[ei1 +···+ei =S]
+                      `           2        2m                                      `
+             `=0                                    i1 ,...,i` =1
+             T                                                       ` − q  
+             X  T                 β T −`  β `              .
+        ≤                   1−                   `! · m(`−q)/2 2(`−q)/2         !                             (by Claim 22)
+                      `           2        2m                              2
+             `=q
+                           T             `  m `/2 . ` − q 
+             β T  2 q/2 X T
+                                     β
+        = 1−                    `!                                 !
+             2     m          `    m(2 − β)      2           2
+                                       `=q
+                                   T                    r
+                    β T  2 q/2 X            β           m ` . ` − q                                          T
+                                                                                                                             `! ≤ T ` )
+                                                                                                                         
+        ≤ 1−                                  T·   ·                         !                (since β < 1 and       `
+                      2       m                  m           2         2
+                                       `=q
+                                    T −q
+             β T  2 q/2  T β q X  T β r 1
+             
+        = 1−                √            √                                                        (substituting r ← (` − q))
+             2     m          2m r=0       2m (r/2)!
+                           T −q
+            β T  T β q X  T β r er/2
+        ≤ 1−                    √                                                                       (using n! ≥ (n/e)n )
+             2      m
+                           r=0
+                                  2m (r/2)r/2
+                           T −q √
+            β T  T β q X  eT β r
+        = 1−                    √
+             2      m             mr
+                           r=0
+                            T   √
+            β T  T β q X  eT β r
+        ≤ 1−                    √                                                            (since the summands are ≥ 0)
+             2      m             mr
+                           r=0
+                                       de3 T 2 β 2 /me  √                              T            √eT β r 
+             β T  T β q 
+                                            X            eT β r                       X
+        = 1−                                             √        +                                   √          .
+             2      m                                      mr                                           mr
+                                             r=0                            r=de3 T 2 β 2 /me+1
+
+
+Note that by the assumptions of the theorem, T 2 e3 β 2 /m ≤ T β ≤ T , which allowed us to
+split the sum into two pieces in the last equality. At this point, we upper bound both
+                                                                                    √ pieces
+                                                                                          r
+in the last equation separately. For the first piece, using Claim 6 it follows that √eT
+                                                                                      mr
+                                                                                        β
+                                                                                             is
+maximized at r = dT 2 β 2 /me. Hence we get
+
+                 de3 T 2 β 2 /me  √
+                     X             eT β r    e3 T 2 β 2  dT 2 β 2 /me/2        2 2
+                                  √       ≤ 2+             e               ≤ 2e22T β /m+1 ,                                        (6)
+                                    mr            m
+                     r=0
+
+
+where the first inequality uses Claim 6 and the second inequality uses 2 + x ≤ 2ex for x ≥ 0
+and e3 + 1/2 ≤ 22. For the second piece, we use
+
+             T
+             X               √eT β r               T
+                                                     X                 1 r       T  
+                                                                                   X  1 r              1 − e−T
+                              √        ≤                                       ≤                   =           ≤ 2/3.              (7)
+                                mr                                      e                     e         e−1
+      r=de3 T 2 β 2 /me+1                     r=de3 T 2 β 2 /me+1                      r=1
+
+
+
+                                                             25
+                                  Arunachalam and de Wolf
+
+
+
+
+So we finally get
+                         β T  T β q  22T 2 β 2 /m+1      
+             fb(S) ≤ 1 −                 2e              + 2/3              (using Eq. (6), (7))
+                          2      m
+                           β T  T β q 22T 2 β 2 /m
+                   ≤ 4e 1 −               e                              (since 22T 2 β 2 /m > 0)
+                            2       m
+
+
+The theorem follows by putting together Claim 20 and Lemma 21:
+  √             1    X s            X
+     A(x, x) = k/2                             fb(S)                       (using Claim 20)
+              2
+                   Q∈{0,1}k  S∈{0,1}m :M t S=Q
+
+                1    X           X           q
+             ≤ k/2                             fb(S) (using lower bound from Lemma 21)
+              2           k       m   t
+                   Q∈{0,1} S∈{0,1} :M S=Q
+                1    X q
+             = k/2           fb(S)         (∪Q {S : M t S = Q} = {0, 1}m since rank(M )=k)
+              2           m
+                        S∈{0,1}
+                         m
+                    1   X         X    q
+             =                          fb(S)
+              2k/2 q=0
+                       S∈{0,1}m :|S|=q
+               √                             m  
+              2 e       β T /2 11T 2 β 2 /m X m  T β q/2
+             ≤ k/2 1 −         e                                           (using Lemma 21)
+              2         2                         q      m
+                                             q=0
+               √                                  r
+              2 e      β T /2 11T 2 β 2 /m        T β m
+             = k/2 1 −         e               1+                   (using binomial theorem)
+              2√        2                            m
+              2 e      β T /2 11T 2 β 2 /m+√T mβ
+             ≤ k/2 1 −         e                   .        (using (1 + x)t ≤ ext for x, t ≥ 0)
+              2         2
+
+
+
+
+4.1. Optimal lower bound for quantum PAC learning
+We can now prove our tight lower bound on quantum sample complexity in the PAC model:
+
+Theorem 23 Let C be a concept class with VC-dim(C ) = d + 1, for sufficiently large d.
+                     1/2) and ε ∈ (0, 1/20), every (ε, δ)-PAC quantum learner for C has
+Then for every δ ∈ (0,
+sample complexity Ω dε + 1ε log 1δ .
+
+Proof The d-independent part of the lower bound is Lemma 11. To prove the d-dependent
+part, define a distribution D on a set S = {s0 , . . . , sd } ⊆ {0, 1}n that is shattered by C as
+follows: D(s0 ) = 1 − 20ε and D(si ) = 20ε/d for all i ∈ [d].
+    Now consider a [d, k, r]2 linear code (for k ≥ d/4, distance r ≥ d/8) as shown to exist in
+Theorem 4 with the generator matrix M ∈ Fd×k   2   of rank k. Let {M x : x ∈ {0, 1}k } ⊆ {0, 1}d
+be the set of codewords in this linear code; these satisfy dH (M x, M y) ≥ d/8 whenever x 6= y.
+For each x ∈ {0, 1}k , let cx be a concept defined on the shattered set as: cx (s0 ) = 0 and
+
+                                                26
+             Optimal Quantum Sample Complexity of Learning Algorithms
+
+
+
+
+cx (si ) = (M x)i for all i ∈ [d]. The existence of such concepts in C follows from the fact
+that S is shattered by C . From the distance property of the code, we have Prs∼D [cx (s) 6=
+cy (s)] ≥ 20ε d
+            d 8 = 5ε/2. This in particular implies that an (ε, δ)-PAC quantum learner that
+tries to ε-approximate a concept from {cx : x ∈ {0, 1}k } should successfully identify that
+concept with probability at least 1 − δ.
+     We P now consider
+                    p the following       state-identification problem: for x ∈ {0, 1}k , denote
+|ψx i = i∈{0,...,d} D(si )|si , cx (si )i. Let the (ε, δ)-PAC quantum sample complexity be T .
+Assume T ≤ d/(20e3 ε), since otherwise T ≥ Ω(d/ε) and the theorem follows. Suppose
+the learner has knowledge of the ensemble E = {(2−k , |ψx i⊗T ) : x ∈ {0, 1}k }, and is given
+|ψx i⊗T ∈ E for a uniformly random x. The learner would like to maximize the average
+probability of success to identify the given state. For this problem, we prove a lower bound
+on T using the PGM defined in Section 2.6. In particular, we show that using the PGM,
+if a learner successfully identifies the states in E, then T = Ω(d/ε). Since the PGM is
+the optimal measurement6 that the learner could have performed, the result follows. The
+following lemma makes this lower bound rigorous and will conclude the proof of the theorem.
+
+                                                                                  p
+Lemma 24 For every x ∈ {0, 1}k , let |ψx i =                                       D(si )|si , cx (si )i, and E =
+                                                                 P
+                                                                    i∈{0,...,d}
+{(2−k , |ψx i⊗T ) : x ∈ {0, 1}k }. Then
+
+                                                    4e             2 2
+                                                                            √
+                                P P GM (E) ≤              e8800T ε /d+4 5T dε .
+                                                 2d/4+T ε
+
+    Before we prove the lemma, we first show why it implies the theorem. Since we observed
+above that P opt (E) = P P GM (E), a good learner satisfies P P GM (E) = Ω(1) (say
+                                                                                √ for δ = 1/4),
+which in turn implies (by taking logarithms) that Ω(d + T ε) ≤ O(T 2 ε2 /d + T dε). Hence,
+it follows that
+                                                               √
+                          Ω(max{d, T ε}) ≤ O(min{T 2 ε2 /d, T dε}).
+
+Note that if T ε maximizes the left-hand side, then√d ≤ T ε and hence T ≥ Ω(d/ε). The
+remaining cases are Ω(d) ≤ T 2 ε2 /d and Ω(d) ≤ T dε. Both these statements give us
+T ≥ Ω(d/ε).7 Hence the theorem follows, and it remains to prove Lemma 24:
+Proof Let E 0 = {2−k/2 |ψx i⊗T : x ∈ {0, 1}k } and G be the 2k × 2k Gram matrix for E 0 .
+As we saw in Section 2.6, the success probability of identifying the states in the ensemble
+E using the PGM is
+                                           X √
+                             P P GM (E) =           G(x, x)2 .
+                                                      x∈{0,1}k
+
+
+6. For x ∈ {0, 1}k , define unitary Ucx : |si , bi →P
+                                                    |si , b + cx (sp
+                                                                   i )i for all i ∈ {0, . . . , d}. The ensemble E is
+   generated by applying {Ucx }x∈{0,1}k to |ϕi = i∈{0,...,d} D(si )|si , 0i. View cx = (0, M x) ∈ {0, 1}d+1
+   as a concatenated string where M x is a codeword of the [d, k, r]2 code. Since the 2k codewords of
+   the [d, k, r]2 code form a linear subspace, {Ucx }x∈{0,1}k is an Abelian group. From the discussion in
+   Section 2.6, we conclude that the PGM is the optimal measurement for this state-identification problem.
+7. We made no attempt to optimize the constants here. Also, we remark that this tight lower bound on
+   sample complexity implies that Lemma 21 is tight up to constant factors in the exponent.
+
+
+                                                         27
+                                    Arunachalam and de Wolf
+
+
+
+
+For all x, y ∈ {0, 1}k , the entries of the Gram matrix G can be written as:
+
+                                                         d
+                      1          T   1            20ε X x                    T
+            G(x, y) = k hψx |ψy i = k (1 − 20ε) +           hc (si )|cy (si )i
+                     2              2               d
+                                                        i=1
+                                     1            20ε                         T
+                                   = k (1 − 20ε) +     (d − dH (M x, M y))
+                                    2               d
+                                     1    20ε                T
+                                   = k 1−      dH (M x, M y) ,
+                                    2       d
+
+where M x, M y ∈ {0, 1}d are codewords in the linear code defined earlier. Define f :
+{0, 1}d → R as f (z) = (1 − 20ε     T                                                     k
+                              d |z|) , and let A(x, y) = (f ◦ M )(x + y) for x, y ∈ {0, 1} .
+Note that G = A/2k . Since we assumed T ≤ d/(20e3 ε), we can use Theorem 18 (by choosing
+m = d and β = 20ε) to upper bound the success probability of successfully identifying the
+states in the ensemble E using the PGM.
+                        X √
+          P P GM (E) =         G(x, x)2
+                        x∈{0,1}k
+                        1      X        √
+                    =                       A(x, x)2                         (since G = A/2k )
+                        2k
+                             x∈{0,1}k
+                        4e   β T 22T 2 β 2 /d+2√T dβ
+                    ≤          1−   e                                  (using Theorem 18)
+                     2k       2
+                     4e          T         2 2
+                                                    √
+                    = k 1 − 10ε e8800T ε /d+4 5T dε                 (substituting β = 20ε)
+                     2
+                       4e          2 2
+                                           √
+                    ≤ k+T ε e8800T ε /d+4 5T dε        (using (1 − 10ε)T ≤ e−10εT ≤ 2−εT )
+                     2
+
+
+The lemma follows by observing that k ≥ d/4.
+
+
+
+
+4.2. Optimal lower bound for quantum agnostic learning
+We now use the same approach to obtain a tight lower bound on quantum sample complexity
+in the agnostic setting.
+
+Theorem 25 Let C be a concept class with VC-dim(C ) = d, for sufficiently large d. Then
+                      and ε ∈ (0,1/10), every (ε, δ)-agnostic quantum learner for C has
+for every δ ∈ (0, 1/2)
+sample complexity Ω εd2 + ε12 log 1δ .
+
+Proof The d-independent part of the lower bound is Lemma 12. For the d-dependent term
+in the lower bound, consider a [d, k, r]2 linear code (for k ≥ d/4, distance r ≥ d/8) as shown
+to exist in Theorem 4, with generator matrix M ∈ Fd×k  2   of rank k. Let {M x : x ∈ {0, 1}k } ⊆
+
+                                                       28
+                Optimal Quantum Sample Complexity of Learning Algorithms
+
+
+
+
+{0, 1}d be the set of 2k codewords in this linear code; these satisfy dH (M x, M y) ≥ d/8
+whenever x 6= y. To each codeword x ∈ {0, 1}k we associate a distribution Dx as follows:
+
+                                  11 1               
+                  Dx (si , b) =      + (−1)(M x)i +b α ,              for (i, b) ∈ [d] × {0, 1},
+                                  d 2 2
+
+where S = {s1 , . . . , sd } is a set that is shattered by C , and α is a parameter which we
+shall pick later. Let cx ∈ C be a concept that labels S according to M x ∈ {0, 1}d . The
+existence of such cx ∈ C follows from the fact that S is shattered by C . Note that cx is
+the minimal-error concept in C w.r.t. Dx . A learner that labels S according to some string
+` ∈ {0, 1}d has additional error dH (M x, `) · α/d compared to cx . This in particular implies
+that an (ε, δ)-agnostic quantum learner has to find (with probability at least 1 − δ) an `
+such that dH (M x, `) ≤ dε/α. We pick α = 20ε and we get dH (M x, `) ≤ d/20. However,
+since M x was a codeword of a [d, k, r]2 code with distance r ≥ d/8, finding an ` satisfying
+dH (M x, `) ≤ d/20 is equivalent to identifying M x, and hence x.
+                                                                                   k
+P Now consider     p the following state-identification problem: for x ∈ {0, 1} , let |ψx i =
+   (i,b)∈[d]×{0,1}  Dx (si , b)|si , bi. Let the (ε, δ)-agnostic quantum sample complexity be T .
+Assume T ≤ d/(100e3 ε2 ), since otherwise T ≥ Ω(d/ε2 ) and the theorem follows. Suppose
+the learner has knowledge of the ensemble E = {(2−k , |ψx i⊗T ) : x ∈ {0, 1}k }, and is given
+|ψx i⊗T ∈ E for uniformly random x. The learner would like to maximize the average
+probability of success to identify the given state. For this problem, we prove a lower bound
+on T using the PGM defined in Section 2.6. In particular, we show that using the PGM,
+if a learner successfully identifies the states in E, then T = Ω(d/ε2 ). Since the PGM is
+the optimal measurement8 that the learner could have performed, the result follows. The
+following lemma makes this lower bound rigorous and will conclude the proof of the theorem.
+                                                      p
+Lemma 26 For x ∈ {0, 1}k , let |ψx i = (i,b)∈[d]×{0,1} Dx (si , b)|si , bi, and consider the
+                                             P
+
+ensemble E = {(2−k , |ψx i⊗T ) : x ∈ {0, 1}k }. Then
+                                                                                       √
+                                                4e                      2 4                2
+                          P P GM (E) ≤    (d ln 2)/4+25T ε2
+                                                              e220000T ε /d+20 T dε .
+                                         e
+
+Before we prove the lemma, we first show why it implies the theorem. Since we observed
+above that P opt (E) = P P GM (E), a good learner satisfies P P GM (E) = Ω(1) (say for δ = 1/4),
+which in turn implies
+                                                                √
+                             Ω(max{d, T ε2 }) ≤ O(min{T 2 ε4 /d, T dε2 }).
+
+Like in the proof of Theorem 23, this implies a lower bound of T = Ω(d/ε2 ) and proves the
+theorem. It remains to prove Lemma 26:
+
+8. For x ∈ {0, 1}k , define unitary Ucx =                                   (M x)i
+                                                 P
+                                                     i∈[d] |si ihsi | ⊗ X            , where X is the NOT-gate, so
+       (M x)i
+   X      |bi = |b + (M x)i i for b ∈ {0, 1}. The ensemble E is generated by applying {Ucx }x∈{0,1}k to
+                            q
+   |ϕi = √d (i,b)∈[d]×{0,1} 12 + 12 (−1)b α|si , bi. Since the 2k codewords of the [d, k, r]2 code form a linear
+          1
+             P
+
+   subspace, {Ucx }x∈{0,1}k is an Abelian group. From the discussion in Section 2.6, we conclude that the
+   PGM is the optimal measurement for this state-identification problem.
+
+
+                                                       29
+                                       Arunachalam and de Wolf
+
+
+
+
+Proof Let E 0 = {2−k/2 |ψx i⊗T : x ∈ {0, 1}k } and G be the 2k × 2k Gram matrix for the
+set E 0 . As we saw in Section 2.6, the success probability of identifying the states in the
+ensemble E using the PGM is
+                                             X √
+                              P P GM (E) =          G(x, x)2 .
+                                                       x∈{0,1}k
+
+For all x, y ∈ {0, 1}k , the entries of G can be written as:
+    2k · G(x, y) = hψx |ψy iT
+                        X                q                     T
+                 =                            Dx (i, b)Dy (i, b)
+                        (i,b)∈[d]×{0,1}
+                    1            X            q                                              T
+                =                               (1 + 10ε(−1)(M x)i +b )(1 + 10ε(−1)(M y)i +b )
+                        2d
+                             (i,b)∈[d]×{0,1}
+                    1            X                                        1        X            p          T
+                =                             (1 + 10ε(−1)(M x)i +b ) +                           1 − 100ε2
+                        2d                                                2d
+                                 (i,b):                                            (i,b):
+                             (M x)i =(M y)i                                    (M x)i 6=(M y)i
+                     d − d (M x, M y) √1 − 100ε2                    T
+                            H
+                  =                      +             dH (M x, M y)
+                               d
+                               √                d
+                         1 − 1 − 100ε   2              T
+                  = 1−                     dH (M x, M y) .
+                                 d
+where we used α√= 20ε in the third equality.
+    Let β = 1 − 1 − 100ε2 , which is at most 1 for ε ≤ 1/10. Define f : {0, 1}d → R as
+f (z) = (1 − βd |z|)T , and let A(x, y) = (f ◦ M )(x + y) for x, y ∈ {0, 1}k . Then G = A/2k .
+Note that T ≤ d/(100e3 ε2 ) ≤ d/(e3 β) (the first inequality is by assumption and the second
+inequality follows for ε ≤ 1/10 and β ≤ 1). Since                                 3 2
+                                                      √ we assumed T ≤ d/(100e ε ), we can
+use Theorem 18 (by choosing m = d and β = 1 − 1 − 100ε2 ) to upper bound the success
+probability of identifying the states in the ensemble E:
+                      X √
+     P P GM (E) =             G(x, x)2
+                   x∈{0,1}k
+                   1         X     √
+               =                    A(x, x)2                                                     (since G = A/2k )
+                   2k
+                        x∈{0,1}k
+                   4e  β T 22T 2 β 2 /d+2√T dβ
+               ≤          1−  e                                          (using Theorem 18)
+                2k      2
+                4e     β T 220000T 2 ε4 /d+20√T dε2                   √
+             ≤ k 1−           e                         (using β = 1 − 1 − 100ε2 ≤ 100ε2 )
+                2       2
+                                                 √                   √
+                4e           T          2 4         2
+             ≤ k 1 − 25ε2 e220000T ε /d+20 T dε               (using 1 − 100ε2 ≤ 1 − 50ε2 )
+                2
+                                              √
+                     4e               2 4          2
+             ≤ k ln 2+25T ε2 e220000T ε /d+20 T dε .      (using (1 − x)t ≤ e−xt for x, t ≥ 0)
+                e
+The lemma follows by observing that k ≥ d/4.
+
+
+
+
+                                                         30
+           Optimal Quantum Sample Complexity of Learning Algorithms
+
+
+
+
+4.3. Additional results
+In this section we mention two additional results that can also be obtained using Theorem 18.
+
+4.3.1. Quantum PAC sample complexity under random classification noise
+In the theorem below, we show a lower bound on the quantum PAC sample complexity
+under the random classification noise model with noise rate η. Recall that in this model,
+for every c ∈ C and distribution D, ε, δ > 0, given access to copies of the η-noisy state,
+                    X p                             p
+                            (1 − η)D(x)|x, c(x)i + ηD(x)|x, 1 − c(x)i,
+                   x∈{0,1}n
+
+a (ε, δ)-PAC quantum learner is required to output an hypothesis h such that errD (c, h) ≤ ε
+with probability at least 1 − δ.
+
+Theorem 27 Let C be a concept class with VC-dim(C ) = d + 1, for sufficiently large d.
+Then for every δ ∈ (0, 1/2), ε ∈ (0, 1/20) and η ∈ (0, 1/2), every (ε, δ)-PAC quantum learner
+   C in the PAC setting
+for                        with random classification noise rate η, has sample complexity
+      d        log(1/δ)
+Ω (1−2η)2 ε + (1−2η)2 ε .
+
+   One can use exactly the same proof techniquep     as in Lemma 11 and Theorem 23 to
+prove this, with only the additional inequality 1 − 2 η(1 − η) ≤ (1 − 2η)2 , which holds for
+η ≤ 1/2. We omit the details of the calculation.
+
+4.3.2. Distinguishing codeword states
+Ashley Montanaro (personal communication) alerted us to the following interesting special
+case of our PGM-based result.
+    Consider an [n, k, d]2 linear code {M x : x ∈ {0, 1}k }, where M ∈ Fn×k2     is the rank-k
+generator matrix of the code, k = Ω(n), and distinct codewords have  P Hamming distance at
+least d.9 For every x ∈ {0, 1}k , define a codeword state |ψx i = √1n i∈[n] |i, (M x)i i. These
+states form an example of a quantum fingerprinting scheme considered earlier by Buhrman
+et al. (2001): 2k states whose pairwise inner products are bounded away from 1. How many
+copies do we need to identify one such fingerprint?
+    Let E = {(2−k , |ψx i) : x ∈ {0, 1}k } be an ensemble of codeword states. Consider the
+following task: given T copies of an unknown state drawn uniformly from E, we are required
+to identify the state with probability ≥ 4/5. From Holevo’s theorem one can easily obtain
+a lower bound of T = Ω(k/ log n) copies, since the learner should obtain Ω(k) bits of
+information (i.e., identify k-bit string x with probability ≥ 4/5), while each copy of the
+codeword state gives at most log n bits of information. In the theorem below, we improve
+that Ω(k/ log n) to the optimal Ω(k) for constant-rate codes.
+
+Theorem 28 Let E = {|ψx i = √1n i∈[n] |i, (M x)i i : x ∈ {0, 1}k }, where M ∈ F2n×k is
+                                      P
+
+the generator matrix of an [n, k, d]2 linear code with k = Ω(n). Then Ω(k) copies of an
+9. Note that throughout this paper C was a concept class in {0, 1}n and d was the VC dimension of C .
+   The use of n, d in this section has been changed to conform to the convention in coding theory.
+
+
+                                                31
+                                Arunachalam and de Wolf
+
+
+
+
+unknown state from E (drawn uniformly at random) are necessary to be able to identify that
+state with probability at least 4/5.
+
+   One can use exactly the proof technique of Theorem 23 to prove the theorem. Suppose
+           √ T copies of the unknown codeword state. Assume T ≤ n, since otherwise
+we are given
+T ≥ n ≥ kn and the theorem follows. Observe that the Gram matrix G for E 0 =
+                                                                           T
+{2−k/2 |ψx i⊗T : x ∈ {0, 1}k } can be written as G(x, y) = 21k 1− |M (x+y)|
+                                                                      n     for x, y ∈ {0, 1}k .
+Using Theorem 18 (choosing β = 1 and m = n) to upper bound the success probability of
+successfully identifying the states in the ensemble E using the PGM, we obtain
+                                               4e        2
+                                                               √
+                               P P GM (E) ≤          e22T /n+2 T n .
+                                              2k+T
+As in the proof of Theorem 23, this implies the lower bound of Theorem 28. We omit the
+details of the calculation.
+
+5. Conclusion
+The main result of this paper is that quantum examples give no significant improvement over
+the usual random examples in passive, distribution-independent settings. Of course, these
+negative results do not mean that quantum machine learning is useless. In our introduction
+we already mentioned improvements from quantum examples for learning under the uniform
+distribution; improvements from using quantum membership queries; and improvements in
+time complexity based on quantum algorithms like Grover’s and HHL. Quantum machine
+learning is still in its infancy, and we hope for many more positive results.
+    We end by identifying a number of open questions for future work:
+   • We gave lower bounds on sample complexity for the rather benign random classifica-
+     tion noise. What about other noise models, such as malicious noise?
+   • What is the quantum sample complexity for learning concepts whose range is [k]
+     rather than {0, 1}, for some k > 2? Even the classical sample complexity is not fully
+     determined yet (Shalev-Shwartz and Ben-David, 2014, Section 29.2).
+   • In the introduction we mentioned a few examples of learning under the uniform distri-
+     bution where quantum examples are significantly more powerful than classical exam-
+     ples. Can we find more such examples of quantum improvements in sample complexity
+     in fixed-distribution settings?
+   • Can we find more examples of quantum speed-up in time complexity of learning?
+
+
+Acknowledgments
+
+ We thank Shalev Ben-David, Dmitry Gavinsky, Robin Kothari, Nishant Mehta, Ashley
+Montanaro, Henry Yuen for helpful comments and pointers to the literature. We thank
+Ashley Montanaro for suggesting the additional remark in Section 4.3.2. We also thank the
+anonymous referees from QIP, CCC, and JMLR for their helpful comments.
+
+                                               32
+           Optimal Quantum Sample Complexity of Learning Algorithms
+
+
+
+
+References
+S. Aaronson. The learnability of quantum states. Proceedings of the Royal Society of
+  London, 463(2088), 2007. quant-ph/0608142.
+
+S. Aaronson. Quantum machine learning algorithms: Read the fine print. Nature Physics,
+  11(4):291–293, 2015.
+
+E. Aı̈meur, G. Brassard, and S. Gambs. Machine learning in a quantum world. In Proceed-
+  ings of Advances in Artificial Intelligence, 19th Conference of the Canadian Society for
+  Computational Studies of Intelligence, volume 4013, pages 431–442, 2006.
+
+E. Aı̈meur, G. Brassard, and S. Gambs. Quantum speed-up for unsupervised learning.
+  Machine Learning, 90(2):261–287, 2013.
+
+A. Ambainis and A. Montanaro. Quantum algorithms for search with wildcards and com-
+  binatorial group testing. Quantum Information & Computation, 14(5-6):439–453, 2014.
+  arXiv:1210.1148.
+
+D. Angluin and P. Laird. Learning from noisy examples. Machine Learning, 2(4):343–370,
+  1988.
+
+M. Anthony and P. L. Bartlett. Neural network learning: Theoretical foundations. Cam-
+ bridge University Press, 2009.
+
+B. Apolloni and C. Gentile. Sample size lower bounds in PAC learning by algorithmic
+  complexity theory. Theoretical Computer Science, 209:141–162, 1998.
+
+S. Arunachalam and R. de Wolf. Guest column: A survey of quantum learning theory.
+  SIGACT News, 48(2):41–67, 2017. arxiv:1606.08920.
+
+A. Atıcı and R. Servedio. Improved bounds on quantum learning algorithms. Quantum
+  Information Processing, 4(5):355–386, 2005. quant-ph/0411140.
+
+A. Atıcı and R. Servedio. Quantum algorithms for learning and testing juntas. Quantum
+  Information Processing, 6(5):323–348, 2009. arXiv:0707.3479.
+
+J. Audibert. Fast learning rates in statistical inference through aggregation, 2008. Research
+   Report 06-20, CertisEcole des Ponts. math/0703854.
+
+J. Audibert. Fast learning rates in statistical inference through aggregation. The Annals of
+   Statistics, 37(4):1591–1646, 2009. arXiv:0909.1468v1.
+
+D. Bacon, A. Childs, and W. van Dam. Optimal measurements for the dihedral hidden
+  subgroup problem. Chicago Journal of Theoretical Computer Science, 2006. Earlier
+  version in FOCS’05. quant-ph/0504083.
+
+H. Barnum and E. Knill. Reversing quantum dynamics with near-optimal quantum and clas-
+  sical fidelity. Journal of Mathematical Physics, 43:2097–2106, 2002. quant-ph/0004088.
+
+                                             33
+                             Arunachalam and de Wolf
+
+
+
+
+E. Bernstein and U. Vazirani. Quantum complexity theory. SIAM Journal on Computing,
+  26(5):1411–1473, 1997. Earlier version in STOC’93.
+
+A. Blumer, A. Ehrenfeucht, D. Haussler, and M. K. Warmuth. Learnability and the Vapnik-
+  Chervonenkis dimension. Journal of the ACM, 36(4):929–965, 1989.
+
+N. H. Bshouty and J. C. Jackson. Learning DNF over the uniform distribution using a
+  quantum example oracle. SIAM Journal on Computing, 28(3):1136–1153, 1999. Earlier
+  version in COLT’95.
+
+H. Buhrman, R. Cleve, J. Watrous, and R. de Wolf. Quantum fingerprinting. Physical
+  Review Letters, 87(16), 2001. quant-ph/0102001.
+
+A. Daniely and S. Shalev-Shwartz. Complexity theoretic limitations on learning DNF’s. In
+  Proceedings of the 29th Conference on Learning Theory (COLT’16), 2016.
+
+Y. C. Eldar and G. D. Forney Jr. On quantum detection and the square-root measurement.
+  IEEE Transactions and Information Theory, 47(3):858–872, 2001. quant-ph/0005132.
+
+Y. C. Eldar, A. Megretski, and G. C. Verghese. Designing optimal quantum detectors via
+  semidefinite programming. IEEE Transactions Information Theory, 49(4):1007–1012,
+  2003. quant-ph/0205178.
+
+D. Gavinsky. Quantum predictive learning and communication complexity with single in-
+  put. Quantum Information and Computation, 12(7-8):575–588, 2012. Earlier version in
+  COLT’10. arXiv:0812.3429.
+
+C. Gentile and D. P. Helmbold. Improved lower bounds for learning from noisy examples:
+  An information-theoretic approach. Information and Computation, 166:133–155, 2001.
+
+L. K. Grover. A fast quantum mechanical algorithm for database search. In Proceedings of
+  28th ACM STOC, pages 212–219, 1996. quant-ph/9605043.
+
+S. Hanneke. The optimal sample complexity of PAC learning. Journal of Machine Learning
+   Research, 17(38):1–15, 2016. arXiv:1507.00473.
+
+A. Harrow, A. Hassidim, and S. Lloyd. Quantum algorithm for solving linear systems of
+  equations. Physical Review Letters, 103(15):150502, 2009. arXiv:0811.3171.
+
+D. Haussler. Decision theoretic generalizations of the PAC model for neural net and other
+  learning applications. Information and Computation, 100(1):78–150, 1992.
+
+M. Hunziker, D. A. Meyer, J. Park, J. Pommersheim, and M. Rothstein. The geome-
+ try of quantum learning. Quantum Information Processing, 9(3):321–341, 2010. quant-
+ ph/0309059.
+
+J. C. Jackson. An efficient membership-query algorithm for learning DNF with respect
+  to the uniform distribution. Journal of Computer and System Sciences, 55(3):414–440,
+  1997. Earlier version in FOCS’94.
+
+                                           34
+           Optimal Quantum Sample Complexity of Learning Algorithms
+
+
+
+
+J. C. Jackson, C. Tamon, and T. Yamakami. Quantum DNF learnability revisited. In
+  Proceedings of 8th COCOON, pages 595–604, 2002. quant-ph/0202066.
+
+R. Jain and S. Zhang. New bounds on classical and quantum one-way communication
+  complexity. Theoretical Computer Science, 410(26):2463–2477, 2009. arXiv:0802.4101.
+
+P. Kaye, R. Laflamme, and M. Mosca. An Introduction to Quantum Computing. Oxford
+  University Press, 2006.
+
+M. J. Kearns and L. G. Valiant. Cryptographic limitations on learning Boolean formulae
+ and finite automata. Journal of the ACM, 41(1):67–95, 1994.
+
+M. J. Kearns and U. V. Vazirani. An introduction to computational learning theory. MIT
+ Press, 1994.
+
+M. J. Kearns, R. E. Schapire, and L. Sellie. Toward efficient agnostic learning. Machine
+ Learning, 17(2-3):115–141, 1994. Earlier version in COLT’92.
+
+A. Kontorovich and I. Pinelis. Exact lower bounds for the agnostic probably-approximately-
+  correct (PAC) machine learning model, 2016. Preprint at arxiv:1606.08920.
+
+R. Kothari. An optimal quantum algorithm for the oracle identification problem. In 31st
+  International Symposium on Theoretical Aspects of Computer Science (STACS 2014),
+  pages 482–493, 2014. arXiv:1311.7685.
+
+A. Montanaro. On the distinguishability of random quantum states. Communications in
+  Mathematical Physics, 273(3):619–636, 2007. quant-ph/0607011.
+
+A. Montanaro. The quantum query complexity of learning multilinear polynomials. Infor-
+  mation Processing Letters, 112(11):438–442, 2012. arXiv:1105.3310.
+
+R. O’Donnell. Analysis of Boolean Functions. Cambridge University Press, 2014.
+
+R. Servedio and S. Gortler. Equivalences and separations between quantum and classical
+  learnability. SIAM Journal on Computing, 33(5):1067–1092, 2004. Combines earlier
+  papers from ICALP’01 and CCC’01. quant-ph/0007036.
+
+S. Shalev-Shwartz and S. Ben-David. Understanding machine learning: From theory to
+  algorithms. Cambridge University Press, 2014.
+
+H. U. Simon. General bounds on the number of examples needed for learning probabilistic
+  concepts. Journal of Computer and System Sciences, 52(2):239–254, 1996. Earlier version
+  in COLT’93.
+
+H. U. Simon. An almost optimal PAC algorithm. In Proceedings of the 28th Conference on
+  Learning Theory (COLT), pages 1552–1563, 2015.
+
+M. Talagrand. Sharper bounds for Gaussian and empirical processes. The Annals of Prob-
+ ability, pages 28–76, 1994.
+
+                                           35
+                             Arunachalam and de Wolf
+
+
+
+
+L. Valiant. A theory of the learnable. Communications of the ACM, 27(11):1134–1142,
+  1984.
+
+V. Vapnik and A. Chervonenkis. On the uniform convergence of relative frequencies of
+  events to their probabilities. Theory of Probability & Its Applications, 16(2):264–280,
+  1971.
+
+V. Vapnik and A. Chervonenkis. Theory of pattern recognition. 1974. In Russian.
+
+K. A. Verbeurgt. Learning DNF under the uniform distribution in quasi-polynomial time. In
+  Proceedings of the 3rd Annual Workshop on Computational Learning Theory (COLT’90),
+  pages 314–326, 1990.
+
+N. Wiebe, A. Kapoor, and K. M. Svore. Quantum deep learning. Quantum Information &
+  Computation, 16(7&8):541–587, 2016a. arXiv:1412.3489.
+
+N. Wiebe, A. Kapoor, and K. M. Svore. Quantum perceptron models. In Advances in
+  Neural Information Processing Systems 29: Annual Conference on Neural Information
+  Processing Systems, pages 3999–4007, 2016b. arXiv:1602.04799.
+
+C. Zhang. An improved lower bound on query complexity for quantum PAC learning.
+  Information Processing Letters, 111(1):40–45, 2010.
+
+
+
+
+                                           36
+

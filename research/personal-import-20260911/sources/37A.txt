@@ -1,0 +1,729 @@
+             Twenty Years of Attacks on the RSA Cryptosystem
+                                               Dan Boneh
+                                          dabo@cs.stanford.edu
+
+
+
+
+1 Introduction
+The RSA cryptosystem, invented by Ron Rivest, Adi Shamir, and Len Adleman [21], was rst
+publicized in the August 1977 issue of Scienti c American. The cryptosystem is most commonly
+used for providing privacy and ensuring authenticity of digital data. These days RSA is deployed
+in many commercial systems. It is used by web servers and browsers to secure web trac, it is
+used to ensure privacy and authenticity of Email, it is used to secure remote login sessions, and
+it is at the heart of electronic credit-card payment systems. In short, RSA is frequently used in
+applications where security of digital data is a concern.
+     Since its initial publication, the RSA system has been analyzed for vulnerability by many
+researchers. Although twenty years of research have led to a number of fascinating attacks, none of
+them is devastating. They mostly illustrate the dangers of improper use of RSA. Indeed, securely
+implementing RSA is a nontrivial task. Our goal is to survey some of these attacks and describe
+the underlying mathematical tools they use. Throughout the survey we follow standard naming
+conventions and use Alice and Bob to denote two generic parties wishing to communicate with
+each other. We use Marvin to denote a malicious attacker wishing to eavesdrop or tamper with the
+communication between Alice and Bob.
+     We begin by describing a simpli ed version of RSA encryption. Let N = pq be the product of
+two large primes of the same size (n=2 bits each). A typical size for N is n = 1024 bits, i.e. 309
+decimal digits. Each of the factors is 512 bits. Let e; d be two integers satisfying ed = 1 mod '(N )
+where '(N ) = (p , 1)(q , 1) is the order of the multiplicative group ZN . We call N the RSA
+modulus, e the encryption exponent, and d the decryption exponent. The pair hN; ei is the public
+key. As its name suggests, it is public and is used to encrypt messages. The pair hN; di is called
+the secret key or private key and is known only to the recipient of encrypted messages. The secret
+key enables decryption of ciphertexts.
+     A message is an integer M 2 ZN . To encrypt M , one computes C = M e mod N . To decrypt
+the ciphertext, the legitimate receiver computes C d mod N . Indeed,
+                                        C d = M ed = M (mod N );
+where the last equality follows by Euler's theorem1 . One de nes the RSA function as x 7,!
+xe mod N . If d is given, the function can be easily inverted using the above equality. We refer to d
+as a trapdoor enabling one to invert the function. In this survey we study the diculty of inverting
+  1
+     Our description slightly oversimpli es RSA encryption. In practice, messages are padded prior to encryption
+using some randomness [1]. For instance, a simple (but insucient) padding algorithm may pad a plaintext by
+                                                                                                          M
+
+appending a few random bits to one of the ends prior to encryption. Adding randomness to the encryption process
+is necessary for proper security.
+
+                                                       1
+the RSA function without the trapdoor. We refer to this as breaking RSA. More precisely, given
+the triple hN; e; C i, we ask how hard is it to compute the eth root of C modulo N = pq when the
+factorization of N is unknown. Since ZN is a nite set, one may enumerate all elements of ZN until
+the correct M is found. Unfortunately, this results in an algorithm with running time of order N ,
+namely exponential in the size of its input, which is of the order log2 N . We are interested mostly
+in algorithms with a substantially lower running time, namely on the order of nc where n = log2 N
+and c is some small constant (less than 5, say). Such algorithms often perform well in practice on
+the inputs in question. Throughout the paper we refer to such algorithms as ecient.
+    In this survey we mainly study the RSA function as opposed to the RSA cryptosystem. Loosely
+speaking, the diculty of inverting the RSA function on random inputs implies that given hN; e; C i
+an attacker cannot recover the plaintext M . However, a cryptosystem must resist more subtle
+attacks. If hN; e; C i is given, it should be intractable to recover any information about M . This is
+known as semantic security2 . We do not discuss these subtle attacks, but point out that RSA as
+described above is not semantically secure: given hN; e; C i, one can easily deduce some information
+about the plaintext M (for instance, the Jacobi symbol of M over N can be easily deduced from
+C ). RSA can be made semantically secure by adding randomness to the encryption process [1].
+    The RSA function x 7,! xe mod N is an example of a trapdoor one-way function. It can be easily
+computed, but (as far as we know) cannot be eciently inverted without the trapdoor d except in
+special circumstances. Trapdoor one-way functions can be used for digital signatures [19]. Digital
+signatures provide authenticity and nonrepudiation of electronic legal documents. For instance,
+they are used for signing digital checks or electronic purchase orders. To sign a message M 2 ZN
+using RSA, Alice applies her private key hN; di to M and obtains a signature S = M d mod N .
+Given hM; S i, anyone can verify Alice's signature on M by checking that S e = M mod N . Since
+only Alice can generate S , one may suspect that an adversary cannot forge Alice's signature.
+Unfortunately, things are not so simple; extra measures are needed for proper security. Digital
+signatures are an important application of RSA. Some of the attacks we survey speci cally target
+RSA digital signatures.
+    An RSA key pair is generated by picking two random n2 -bit primes and multiplying them to
+obtain N . Then, for a given encryption exponent e < '(N ), one computes d = e,1 mod '(N )
+using the extended Euclidean algorithm. Since the set of primes is suciently dense, a random
+n -bit prime can be quickly generated by repeatedly picking random n -bit integers and testing each
+ 2                                                                       2
+one for primality using a probabilistic primality test [19].
+
+1.1 Factoring Large Integers
+The rst attack on an RSA public key hN; ei to consider is factoring the modulus N . Given the
+factorization of N , an attacker can easily construct '(N ), from which the decryption exponent
+d = e,1 mod '(N ) can be found. We refer to factoring the modulus as a brute-force attack on
+RSA. Although factoring algorithms have been steadily improving, the current state of the art is
+still far from posing a threat to the security of RSA when RSA is used properly. Factoring large
+integers is one of the most beautiful problems of computational mathematics [18, 20], but it is not
+the topic of this article. For completeness we note that the current fastest
+                                                                           factoring algorithm is
+                                                                                      1=3    2=3
+the General Number Field Sieve. Its running time on n-bit integers is exp (c + o(1))n log n
+for some c < 2. Attacks on RSA that take longer than this time bound are not interesting. These
+  2
+      A source that explains semantic security and gives examples of semantically secure ciphers is [11].
+
+                                                           2
+include attacks such as exhaustive search for M and some older attacks published right after the
+initial publication of RSA.
+    Our objective is to survey attacks on RSA that decrypt messages without directly factoring the
+RSA modulus N . Nevertheless, it is worth noting that some sparse sets of RSA moduli, N = pq,
+can be easily factored. For instance, if p , 1 is a product of prime factors less than B , then N can
+be factored in time less than B 3 . Some implementations explicitly reject primes p for which p , 1
+is a product of small primes.
+    As noted above, if an ecient factoring algorithm exists, then RSA is insecure. The converse is
+a long standing open problem: must one factor N in order to eciently compute eth roots modulo
+N ? Is breaking RSA as hard as factoring? We state the concrete open problem below.
+Open Problem 1 Given integers N and e satisfying gcd(e; '(N )) = 1, de ne the function fe;N :
+ZN ! ZN by fe;N (x) = x1=e mod N . Is there a polynomial-time algorithm A that computes the
+factorization of N given N and access to an \oracle" fe;N (x) for some e?
+    An oracle for f (x) evaluates the function on any input x in unit time. Recently Boneh and
+Venkatesan [6] provided evidence that for small e the answer to the above problem may be \no". In
+other words, for small e there may not exist a polynomial-time reduction from factoring to breaking
+RSA. They do so by showing that in a certain model, a positive answer to the problem for small
+e yields an ecient factoring algorithm. We note that a positive answer to Open Problem 1 gives
+rise to a \chosen ciphertext attack"3 on RSA. Therefore, a negative answer may be welcome.
+    Next we show that exposing the private key d and factoring N are equivalent. Hence there is
+no point in hiding the factorization of N from any party who knows d.
+Fact 1 Let hN; ei be an RSA public key. Given the private key d, one can eciently factor the
+modulus N = pq. Conversely, given the factorization of N , one can eciently recover d.
+Proof A factorization of N yields '(N ). Since e is known, one can recover d. This proves the
+converse statement. We now show that given d one can factor N . Given d, compute k = de , 1. By
+de nition of d and e we know that k is a multiple of '(N ). Since '(N ) is even, k = 2t r with r odd
+and t  1. We have gk = 1 for every g 2 ZN , and therefore gk=2 is a square root of unity modulo N .
+By the Chinese Remainder Theorem, 1 has four square roots modulo N = pq. Two of these square
+roots are 1. The other two are x where x satis es x = 1 mod p and x = ,1 mod q. Using either
+one of these last two square roots, the factorization of N is revealed by computing gcd(x , 1; N ).
+A straightforward argument shows that if g is chosen at random from ZN then with probability
+at least 1=2 (over the choice of g) one of the elements in the sequence gk=2 ; gk=4 ; : : : ; gk=2t mod N
+is a square root of unity that reveals the factorization of N . All elements in the sequence can be
+eciently computed in time O(n3 ) where n = log2 N .                                                    
+
+
+2 Elementary Attacks
+We begin by describing some old elementary attacks. These attacks illustrate blatant misuse of
+RSA. Although many such attacks exist, we give only two examples.
+   3
+     In this context, \chosen ciphertext attack" refers to an attacker Marvin, who is given a public key h i and
+                                                                                                          N; e
+
+access to a black box that decrypts messages of his choice. Marvin succeeds in mounting the chosen ciphertext attack
+if by using the black box he can recover the private key h i.
+                                                         N; d
+
+
+
+
+                                                         3
+2.1 Common Modulus
+To avoid generating a di erent modulus N = pq for each user one may wish to x N once and
+for all. The same N is used by all users. A trusted central authority could provide user i with a
+unique pair ei ; di from which user i forms a public key hN; ei i and a secret key hN; di i.
+    At rst glance this may seem to work: a ciphertext C = M ea mod N intended for Alice cannot
+be decrypted by Bob since Bob does not possess da . However, this is incorrect and the resulting
+system is insecure. By Fact 1 Bob can use his own exponents eb ; db to factor the modulus N . Once
+N is factored Bob can recover Alice's private key da from her public key ea . This observation, due
+to Simmons, shows that an RSA modulus should never be used by more than one entity.
+
+2.2 Blinding
+Let hN; di be Bob's private key and hN; ei be his corresponding public key. Suppose an adversary
+Marvin wants Bob's signature on a message M 2 ZN . Being no fool, Bob refuses to sign M . Marvin
+can try the following: he picks a random r 2 ZN and sets M 0 = re M mod N . He then asks Bob
+to sign the random message M 0 . Bob may be willing to provide his signature S 0 on the innocent-
+looking M 0 . But recall that S 0 = (M 0 )d mod N . Marvin now simply computes S = S 0 =r mod N
+and obtains Bob's signature S on the original M . Indeed,
+                       S e = (S 0 )e =re = (M 0 )ed =re  M 0 =re = M (mod N )
+    This technique, called blinding, enables Marvin to obtain a valid signature on a message of his
+choice by asking Bob to sign a random \blinded" message. Bob has no information as to what
+message he is actually signing. Since most signature schemes apply a \one-way hash" to the message
+M prior to signing [19], the attack is not a serious concern. Although we presented blinding as
+an attack, it is actually a useful property of RSA needed for implementing anonymous digital cash
+(cash that can be used to purchase goods, but does not reveal the identity of the person making
+the purchase).
+
+3 Low Private Exponent
+To reduce decryption time (or signature-generation time), one may wish to use a small value of d
+rather than a random d. Since modular exponentiation takes time linear in log2 d, a small d can
+improve performance by at least a factor of 10 (for a 1024 bit modulus). Unfortunately, a clever
+attack due to M. Wiener [22] shows that a small d results in a total break of the cryptosystem.
+Theorem 2 (M. Wiener) Let N = pq with q < p < 2q. Let d < 31 N 1=4 . Given hN; ei with
+ed = 1 mod '(N ), Marvin can eciently recover d.
+Proof The proof is based on approximations using continued fractions. Since ed = 1 mod '(N ),
+there exists a k such that ed , k'(N ) = 1. Therefore,
+                                           e     k     1
+                                         '(N ) , d = d'(N ) :
+Hence, kd is an approximation of '(eN ) . Although Marvin does not know '(N ), he may use N to
+                                                                 p                           p
+approximate it. Indeed, since '(N ) = N ,p,q +1 and p+q ,1 < 3 N , we have jN ,'(N )j < 3 N .
+                                                4
+Using N in place of '(N ), we obtain:
+                       e , k = ed , k'(N ) , kN + k'(N )
+                       N d                 Nd
+                                                        p
+                             = 1 , k (N , ' (N ))  3 k       3k :
+                                                          N = p
+                                       Nd             Nd     d N
+Now, k'(N ) = ed , 1 < ed. Since e < '(N ), we see that k < d < 31 N 1=4 . Hence we obtain:
+                                        e ,k  1 < 1 :
+                                        N d dN 1=4 2d2
+This is a classic approximation relation. The number of fractions kd with d < N approximating Ne so
+closely is bounded by log2 N . In fact, all such fractions are obtained as convergents of the continued
+fraction expansion of Ne [12, Th. 177]. All one has to do is compute the log N convergents of the
+continued fraction for Ne . One of these will equal kd . Since ed , k'(N ) = 1, we have gcd(k; d) = 1,
+and hence kd is a reduced fraction. This is a linear-time algorithm for recovering the secret key d.
+
+    Since typically N is 1024 bits, it follows that d must be at least 256 bits long in order to avoid
+this attack. This is unfortunate for low-power devices such as \smartcards", where a small d would
+result in big savings. All is not lost however. Wiener describes a number of techniques that enable
+fast decryption and are not susceptible to his attack:
+Large e: Suppose instead of reducing e modulo '(N ), one uses hN; e0 i for the public key, where
+    e0 = e + t  '(N ) for some large t. Clearly e0 can be used in place of e for message encryption.
+    However, when a large value of e is used, the k in the above proof is no longer small. A simple
+    calculation shows that if e0 > N 1:5 then no matter how small d is, the above attack cannot
+    be mounted. Unfortunately, large values of e result in increased encryption time.
+Using CRT: An alternate approach is to use the Chinese Remainder Theorem (CRT). Suppose
+    one chooses d such that both dp = d mod (p , 1) and dq = d mod (q , 1) are small, say
+    128 bits each. Then fast decryption of a ciphertext C can be carried out as follows: rst
+    compute Mp = C dp mod p and Mq = C dq mod q. Then use the CRT to compute the unique
+    value M 2 ZN satisfying M = Mp mod p and M = Mq mod q. The resulting M satis es
+    M = C d mod N as required. The point is that although dp and dq are small, the value of
+    d mod '(N ) can be large, i.e., on the order of '(N ). As a result, the attack of Theorem 2
+    does not apply. We note
+                          , that pif hN;
+                                      p ei is given, there exists an attack enabling an adversary
+    to factor N in time O min( dp ; dq ) . Hence, dp and dq cannot be made too small.
+    We do not know whether either of these methods is secure. All we know is that Wiener's attack
+is ine ective against them. Theorem 2 was recently improved by Boneh and Durfee [4], who show
+that as long as d < N 0:292 , an adversary can eciently recover d from hN; ei. These results show
+that Wiener's bound is not tight. It is likely that the correct bound is d < N 0:5 . At the time of
+this writing, this is an open problem.
+Open Problem 2 Let N = pq and d < N 0:5. If Marvin is given hN; ei with ed = 1 mod '(N )
+and e < '(N ), can he eciently recover d?
+
+                                                  5
+4 Low Public Exponent
+To reduce encryption or signature-veri cation time, it is customary to use a small public exponent
+e. The smallest possible value for e is 3, but to defeat certain attacks the value e = 216 + 1 = 65537
+is recommended. When the value 216 + 1 is used, signature veri cation requires 17 multiplications,
+as opposed to roughly 1000 when a random e  '(N ) is used. Unlike the attack of the previous
+section, attacks that apply when a small e is used are far from a total break.
+
+4.1 Coppersmith's Theorem
+The most powerful attacks on low public exponent RSA are based on a theorem due to Copper-
+smith [7]. Coppersmith's theorem has many applications, only some of which will be covered here.
+The proof uses the LLL lattice basis reduction algorithm [17] as explained below.
+Theorem 3 (Coppersmith)
+                   1 ,
+                                   Let N be an integer and f 2 Z[x] be a monic polynomial of degree
+d. Set X = N for some   0. Then, given hN; f i Marvin can eciently nd all integers
+                   d
+jx0 j < X satisfying f (x0) = 0 mod N . The running time is dominated by the time it takes to run
+the LLL algorithm on a lattice of dimension O(w) with w = min(1=; log2 N ).
+     The theorem provides an algorithm for eciently nding all roots of f modulo N that are
+less than X = N 1=d . As X gets smaller, the algorithm's running time decreases. The theorem's
+strength is its ability to nd small roots of polynomials modulo a composite N . When working
+modulo a prime, there is no reason to use Coppersmith's theorem since other, far better, root- nding
+algorithms exist.
+     We sketch the main ideas behind the proof of Coppersmith's theorem.    P
+                                                                                   We follow a simpli ed
+approach     due to  Howgrave-Graham     [14]. Given a polynomial h ( x ) =   ai xi 2 Z[x], de ne khk2 =
+P
+   i jai j . The proof relies on the following observation.
+          2
+
+
+Lemma 4 Letph(x) 2 Z[x] be a polynomial of degree d and let X be a positive integer. Suppose
+kh(xX )k < N= d. If jx0j < X satis es h(x0 ) = 0 mod N , then h(x0 ) = 0 holds over the integers.
+Proof Observe from the Schwarz inequality that
+                                          aiX i xX                      ai X i xX0
+                                 X            X                i   X          i
+                   jh(x )j =
+                       0       ai xi =  0
+                                                            0
+
+
+                             X         p
+                              ai X i  d kh(xX )k < N:
+Since h(x0 ) = 0 mod N , we conclude that h(x0 ) = 0.                                                 
+    The lemma states that if h is a polynomial with low norm, then all small roots of h mod N are
+also roots of h over the integers. The lemma suggests that to nd a small root x0 of f (x) mod N we
+should look for another polynomial h 2 Z[x] with small norm having the same roots as f modulo
+N . Then x0 will be a root of h over the integers and can be easily found. To do so, we may search
+for a polynomial g 2 Z[x] such that h = gf has low norm, i.e., norm less than N . This amounts to
+searching for an integer linear combination of the polynomials f; xf; x2 f; : : : ; xr f with low norm.
+Unfortunately, most often there is no nontrivial linear combination with suciently small norm.
+
+
+
+                                                   6
+    Coppersmith found a trick to solve the problem: if f (x0 ) = 0 mod N , then f (x0 )k = 0 mod N k
+for any k. More generally, de ne the following polynomials:
+                                          gu;v (x) = N m,v xu f (x)v
+for some prede ned m. Then x0 is a root of gu;v (x) modulo N m for any u  0 and 0  v  m.
+To use Lemma 4 we must nd an integer linear combination h(x) of the polynomials gu;v (x) such
+that h(xX ) has norm less than N m (recall that X is an upper bound on x0 satisfying X  N 1=d ).
+Thanks to the relaxed upper bound on the norm (N m rather than N ), one can show that for
+suciently large m, there always exists a linear combination h(x) satisfying the required bound.
+Once h(x) is found, Lemma 4 implies that it has x0 as a root over the integers. Consequently x0
+can be easily found.
+    It remains to show how to nd h(x) eciently. To do so, we must rst state a few basic facts
+about lattices in Zw. We refer to [17] for a concise introduction to the topic. Let u1 ; : : : ; uw 2 Zw
+be linearly independent vectors. A (full-rank) lattice L spanned by hu1 ; : : : ; uw i is the set of all
+integer linear combinations of u1 ; : : : ; uw . The determinant of L is de ned as the determinant of
+the w  w square matrix whose rows are the vectors u1 ; : : : ; uw .
+    In our case, we view the polynomials gu;v (xX ) as vectors and study the lattice L spanned by
+them. We let v = 0; : : : ; m and u = 0; : : : ; d , 1, and hence the lattice has dimension w = d(m + 1).
+For example, when f is a quadratic monic polynomial and m = 3, the resulting lattice is spanned
+by the rows of the following matrix:
+                                1      x          x2       x3     x4 x5           x6 x7
+               g0;0 (xX ) 2 N 3                                                            3
+
+               g1;0 (xX ) 66        XN 3                                                   7
+                                                                                           7
+               g0;1 (xX ) 6 6          XN       2  2                                     7
+                                                                                           7
+               g1;1 (xX ) 66                       XN    3  2                            7
+                                                                                           7
+               g0;2 (xX ) 6 6                             XN   4                       7
+                                                                                           7
+               g1;2 (xX ) 6  6                                   XN    5               7
+                                                                                           7
+               g0;3 (xX ) 4                                            X     6       5
+               g1;3 (xX )                                                     X    7
+
+
+The entries  correspond to coecients of the polynomials whose value we ignore. All empty
+entries are zero. Since the matrix is triangular, its determinant is the product of the elements on
+the diagonal (which are explicitly given above). Our objective is to nd short vectors in this lattice.
+    A classic result of Hermite states that any lattice L of dimension w contains a nonzero point
+v 2 L whose L2 norm satis es kvk  w det(L)1=w , where w is a constant depending only on w.
+Hermite's bound can be used to show that for large enough m our lattice contains vectors of norm
+less than N m , as required. The question is whether we can eciently construct a short vector in
+L whose length is not much larger than the Hermite bound. The LLL algorithm is an ecient
+algorithm that does precisely that.
+Fact 5 (LLL) Let L be a lattice spanned by hu1 ; : : : ; uw i. When hu1 ; : : : ; uw i are given as input,
+then the LLL algorithm outputs a point v 2 L satisfying
+                                            kvk  2w=4 det(L)1=w :
+The running time for LLL is quartic in the length of the input.
+
+                                                    7
+   The LLL algorithm (named after its inventors L. Lovasz, A. Lenstra, and H. Lenstra Jr.) has
+many applications in both computational number theory and cryptography. Its discovery in 1982
+provided an ecient algorithm for factoring polynomials over the integers and, more generally,
+over number rings. LLL is frequently used to attack various cryptosystems. For instance, many
+cryptosystems based on the \knapsack problem" have been broken using LLL.
+   Using LLL, we can complete the proof of Coppersmith's theorem. To ensure that the vector
+produced by LLL satis es the bound of Lemma 4 we need
+                                                               p
+                                       2w=4 det(L)1=w < N m = w;
+where w = d(m +1) is the dimension of L1 . A routine calculation shows that for large enough m the
+bound is satis ed. Indeed, when X = N d , , it suces to take m = O(k=d) with k = min( 1 ; log N ).
+Consequently, the running time is dominated by running LLL on a lattice of dimension O(k), as
+required.
+    A natural question is whether Coppersmith's theorem can be applied to bivariate and multi-
+variate polynomials. If f (x; y) 2 ZN [x; y] is given for which there exists a root (x0 ; y0 ) with jx0 y0 j
+suitably bounded, can Marvin eciently nd (x0 ; y0 )? Although the same technique appears to
+work for some bivariate polynomials, it is currently an open problem to prove it. As an increasing
+number of results depend on a bivariate extension of Coppersmith's theorem, a rigorous algorithm
+will be very useful.
+Open Problem 3 Find general conditions under which Coppersmith's theorem can be generalized
+to bivariate polynomials.
+
+4.2 Hastad's Broadcast Attack
+As a rst application of Coppersmith's theorem, we present an improvement to an old attack due
+to Hastad [13]. Suppose Bob wishes to send an encrypted message M to a number of parties
+P1 ; P2 ; : : : ; Pk . Each party has its own RSA key hNi ; ei i. We assume M is less than all the Ni 's.
+Naively, to send M , Bob encrypts it using each of the public keys and sends out the ith ciphertext
+to Pi . An attacker Marvin can eavesdrop on the connection out of Bob's sight and collect the k
+transmitted ciphertexts.
+     For simplicity, suppose all public exponents ei are equal to 3. A simple argument shows that
+Marvin can recover M if k  3. Indeed, Marvin obtains C1 ; C2 ; C3 , where
+                  C1 = M 3 mod N1 ; C2 = M 3 mod N2 ; C3 = M 3 mod N3 :
+We may assume that gcd(Ni ; Nj ) = 1 for all i 6= j since otherwise Marvin can factor some of the
+Ni 's. Hence, applying the Chinese Remainder Theorem (CRT) to C1 ; C2 ; C3 gives a C 0 2 ZN1N2N3
+satisfying C 0 = M 3 mod N1 N2 N3 . Since M is less than all the Ni 's, we have M 3 < N1 N2 N3 . Then
+C 0 = M 3 holds over the integers. Thus, Marvin may recover M by computing the real cube root of
+C 0 . More generally, if all public exponents are equal to e, Marvin can recover M as soon as k  e.
+The attack is feasible only when a small e is used.
+    Hastad [13] describes a far stronger attack. To motivate Hastad's result, consider a naive defense
+against the above attack. Rather than broadcasting the encryption of M , Bob could \pad" the
+message prior to encryption. For instance, if M is m bits long, Bob could send Mi = i2m + M
+to party Pi . Since Marvin obtains encryptions of di erent messages, he cannot mount the attack.
+                                                     8
+Unfortunately, Hastad showed that this linear padding is insecure. In fact, he proved that applying
+any xed polynomial to the message prior to encryption does not prevent the attack.
+    Suppose that for each of the participants P1 ; : : : ; Pk , Bob has a xed public polynomial fi 2
+ZNi [x]. To broadcast a message M , Bob sends the encryption of fi (M ) to party Pi . By eavesdrop-
+ping, Marvin learns Ci = fi (M )ei mod Ni for i = 1; : : : ; k. Hastad showed that if enough parties
+are involved, Marvin can recover the plaintext M from all the ciphertexts. The following theorem
+is a stronger version of Hastad's original result.
+Theorem 6 (Hastad) Let N1; : : : Nk be pairwise relatively prime integers and set Nmin = mini (Ni).
+Let gi 2 ZNi [x] be k polynomials of maximum degree d. Suppose there exists a unique M < Nmin
+satisfying
+                             gi (M ) = 0 mod Ni for all i = 1; : : : ; k:
+Under the assumption that k > d, one can eciently nd M given hNi ; gi iki=1 .
+Proof Let N = N1    Nk . We may assume that all gi 's are monic. (Indeed if, for some i,
+the leading coecient of gi is not invertible in ZNi , then the factorization of Ni is exposed.) By
+multiplying each gi by the appropriate power of x, we may assume they all have degree d. Construct
+the polynomial
+                                 k
+                       g(x) = Tigi (x); where Ti = 10 mod
+                              X                                     Nj if i = j
+                               i=1
+                                                                mod Nj if i 6= j:
+The Ti 's are integers known as the Chinese Remainder Coecients. Then g(x) must be monic
+since it is monic modulo all the Ni . Its degree is d. Furthermore, we know that g(M ) = 0 mod N .
+Theorem 6 now follows from Theorem 3 since M < Nmin  N 1=k < N 1=d .                           
+     The theorem shows that a system of univariate equations modulo relatively prime composites
+can be eciently solved, assuming suciently many equations are provided. By setting gi =
+fiei , Ci mod Ni , we see that Marvin can recover M from the given ciphertexts whenever the
+number of parties is at least d, where d is the maximum of ei deg(fi ) over all i = 1; : : : ; k. In
+particular, if all ei 's are equal to e and Bob sends out linearly related messages, then Marvin can
+recover the plaintext as soon as k > e.
+     Hastad's original theorem is weaker than the one stated above. Rather than d polynomials,
+Hastad required d(d + 1)=2 polynomials. Hastad's proof is similar to the proof of Coppersmith's
+theorem described in the previous section. However, Hastad does not use powers of g in the lattice
+and consequently obtains a weaker bound.
+     To conclude this section we note that to properly defend against the broadcast attack above,
+one must use a randomized pad [1] rather than a xed one.
+
+4.3 Franklin-Reiter Related Message Attack
+Franklin and Reiter [8] found a clever attack when Bob sends Alice related encrypted messages
+using the same modulus. Let hN; ei be Alice's public key. Suppose M1 ; M2 2 ZN are two distinct
+messages satisfying M1 = f (M2 ) mod N for some publicly known polynomial f 2 ZN [x]. To send
+M1 and M2 to Alice, Bob may naively encrypt the messages and transmit the resulting ciphertexts
+C1 ; C2 . We show that given C1 ; C2 , Marvin can easily recover M1 ; M2 . Although the attack works
+for any small e, we state the following lemma for e = 3 in order to simplify the proof.
+
+                                                 9
+Lemma 7 (FR) Set e = 3 and let hN; ei be an RSA public key. Let M 6= M 2 ZN satisfy     1       2
+M = f (M ) mod N for some linear polynomial f = ax + b 2 ZN [x] with b =
+  1           2                                                           6 0. Then, given
+hN; e; C ; C ; f i, Marvin can recover M ; M in time quadratic in log N .
+          1   2                               1    2
+
+Proof To keep this part of the proof general, we state it using an arbitrary e (rather than
+restricting to e = 3). Since C1 = M1e mod N , we know that M2 is a root of the polynomial
+g1 (x) = f (x)e , C1 2 ZN [x]. Similarly, M2 is a root of g2(x) = xe , C2 2 ZN [x]. The linear factor
+x , M2 divides both polynomials. Therefore, Marvin may use the Euclidean algorithm4 to compute
+the gcd of g1 and g2 . If the gcd turns out to be linear, M2 is found. The gcd can be computed in
+quadratic time in e and log N .
+    We show that when e = 3 the gcd must be linear. The polynomial x3 , C2 factors modulo
+both p and q into a linear factor and an irreducible quadratic factor (recall that gcd(e; '(N )) = 1
+and hence x3 , C2 has only one root in ZN ). Since g2 cannot divide g1 , the gcd must be linear.
+For e > 3 the gcd is almost always linear. However, for some rare M1 ; M2 , and f , it is possible to
+obtain a nonlinear gcd, in which case the attack fails.                                            
+   For e > 3 the attack takes time quadratic in e. Consequently, it can be applied only when a
+small public exponent e is used. For large e the work in computing the gcd is prohibitive. It is
+an interesting question (though likely to be dicult) to devise such an attack for arbitrary e. In
+particular, can the gcd of g1 and g2 above be found in time polynomial in log e?
+
+4.4 Coppersmith's Short Pad Attack
+The Franklin-Reiter attack might seem a bit arti cial. After all, why should Bob send Alice the
+encryption of related messages? Coppersmith strengthened the attack and proved an important
+result on padding [7].
+     A naive random padding algorithm might pad a plaintext M by appending a few random bits to
+one of the ends. The following attack points out the danger of such simplistic padding. Suppose Bob
+sends a properly-padded encryption of M to Alice. An attacker, Marvin, intercepts the ciphertext
+and prevents it from reaching its destination. Bob notices that Alice did not respond to his message
+and decides to resend M to Alice. He randomly pads M and transmits the resulting ciphertext.
+Marvin now has two ciphertexts corresponding to two encryptions of the same message using two
+di erent random pads. The following theorem shows that although he does not know the pads
+used, Marvin is able to recover the plaintext.
+Theorem 8 Let hN; ei be a public RSA key where N is n-bits long. Set m = bn=e2 c. Let M 2 ZN
+be a message of length at most n , m bits. De ne M1 = 2m M + r1 and M2 = 2m M + r2 , where
+r1 and r2 are distinct integers with 0  r1 ; r2 < 2m . If Marvin is given hN; ei and the encryptions
+C1 ; C2 of M1 ; M2 (but is not given r1 or r2 ), he can eciently recover M .
+Proof De ne g1 (x; y) = xe , C1 and g2 (x; y) = (x + y)e , C2. We know that when y = r2 , r1 ,
+these polynomials have M1 as a common root. In other words,  = r2 , r1 is a root of the \resul-
+tant" h(y) = resx (g1 ; g2 ) 2 ZN [y]. The degree of h is at most e2 . Furthermore, jj < 2m < N 1=e2 .
+Hence,  is a small root of h modulo N , and Marvin can eciently nd it using Coppersmith's
+theorem (Theorem 3). Once  is known, the Franklin-Reiter attack of the previous section can be
+  4
+    Although ZN [ ] is not a Euclidean ring, the standard Euclidean algorithm can still be applied to polynomials in
+                  x
+
+ZN [ ]. One can show that if the algorithm \breaks" in any way, then the factorization of is exposed.
+      x                                                                                   N
+
+
+
+
+                                                        10
+used to recover M2 and consequently M .                                                              
+    When e = 3 the attack can be mounted as long as the pad length is less than 1=9th the message
+length. This is an important result. Note that for the recommended value of e = 65537, the attack
+is useless against standard moduli sizes.
+
+4.5 Partial Key Exposure Attack
+Let hN; di be a private RSA key. Suppose by some means Marvin is able to expose a fraction of
+the bits of d, say a quarter of them. Can he reconstruct the rest of d? Surprisingly, the answer
+is positive when the corresponding
+                              p        public key is small. Recently Boneh, Durfee, and Frankel [5]
+showed that as long as e < N , it is possible to reconstruct all of d from just a fraction of its bits.
+These results illustrate the importance of safeguarding the entire private RSA key.
+Theorem 9 (BDF) Let hN; di be a private RSA key in which N is n bits long. Given the dn=4e
+least signi cant bits of d, Marvin can reconstruct all of d in time linear in e log2 e.
+    The proof relies on yet another beautiful theorem due to Coppersmith [7].
+Theorem 10 (Coppersmith) Let N = pq be an n-bit RSA modulus. Then given the n=4 least
+signi cant bits of p or the n=4 most signi cant bits of p, one can eciently factor N .
+    Theorem 9 readily follows from Theorem 10. In fact, by de nition of e and d, there exists an
+integer k such that
+                                      ed , k(N , p , q + 1) = 1:
+Since d < '(N ), we must have 0 < k  e. Reducing the equation modulo 2n=4 and setting q = N=p,
+we obtain
+                            (ed)p , kp(N , p + 1) + kN = p (mod 2n=4 ):
+Since Marvin is given the n=4 least signi cant bits of d, he knows the value of ed mod 2n=4 . Con-
+sequently, he obtains an equation in k and p. For each of the e possible values of k, Marvin solves
+the quadratic equation in p and obtains a number of candidate values for p mod 2n=4 . For each
+of these candidate values, he runs the algorithm of Theorem 10 to attempt to factor N . One can
+show that the total number of candidate values for p mod 2n=4 is at most e log2 e. Hence after at
+most e log2 e attempts, N will be factored.
+    Theorem 9 is p known as a partial key-exposure attack. Similar attacks exist for larger values of
+e as long as e < N . However the techniques are a bit more complex [5]. It is interesting that
+discrete log-based cryptosystems, such as the ElGamal public key system, do not seem susceptible
+to partial key exposure. Indeed, if gx mod p and a constant fraction of the bits of x are given, there
+is no known polynomial-time algorithm to compute the rest of x.
+    To conclude the section we show that when the encryption exponent e is small, the RSA system
+leaks half the most signi cant bits of the corresponding private key d. To see this, consider once
+again the equation ed , k(N , p , q + 1) = 1 for an integer 0 < k  e. Given k, Marvin may easily
+compute
+                                          db = b(kN + 1)=ec:
+Then                                                     p         p
+                               jdb, dj  k(p + q)=e  3k N=e < 3 N:
+
+                                                  11
+Hence, db is a good approximation for d. The bound shows that, for most d, half the most signi cant
+bits of db are equal to those of d. Since there are only e possible values for k, Marvin can construct
+a small set of size e such that one of the elements in the set is equal to half the most signi cant
+bits of d. The case e = 3 is especially interesting. In this case one can show that always k = 2 and
+hence the system completely leaks half the most signi cant bits of d.
+
+5 Implementation Attacks
+We turn our attention to an entirely di erent class of attacks. Rather than attacking the underlying
+structure of the RSA function, these attacks focus on the implementation of RSA.
+
+5.1 Timing Attacks
+Consider a smartcard that stores a private RSA key. Since the card is tamper resistant, an attacker
+Marvin may not be able to examine its contents and expose the key. However, a clever attack due
+to Kocher [16] shows that by precisely measuring the time it takes the smartcard to perform an
+RSA decryption (or signature), Marvin can quickly discover the private decryption exponent d.
+   We explain how to mount the attack against a simple implementation of RSA using the
+\repeated
+    P
+           squaring algorithm". Let d = dn dn,1 : : : d0 be the binary representation of d (i.e.,
+d = ni=0 2i di with di 2 f0; 1g). The repeated squaring algorithm computes C =QM d mod N , using
+at most 2n modular multiplications. It is based on the observation that C = ni=0 M 2i di mod N .
+The algorithm works as follows:
+      Set z equal to M and C equal to 1. For i = 0; : : : ; n, do these steps:
+      (1) if di = 1 set C equal to C  z mod N ,
+      (2) set z equal to z 2 mod N .
+      At the end, C has the value M d mod N .
+The variable z runs through the set of values M 2i mod N for i = 0; : : : ; n. The variable C \collects"
+the appropriate powers in the set to obtain M d mod N .
+     To mount the attack, Marvin asks the smartcard to generate signatures on a large number of
+random messages M1 ; : : : ; Mk 2 ZN and measures the time Ti it takes the card to generate each of
+the signatures.
+     The attack recovers bits of d one at a time beginning with the least signi cant bit. We know d is
+odd. Thus d0 = 1. Consider the second iteration. Initially z = M 2 mod N and C = M . If d1 = 1,
+the smartcard computes the product C  z = M  M 2 mod N . Otherwise, it does not. Let ti be the
+time it takes the smartcard to compute Mi  Mi2 mod N . The ti 's di er from each other since the
+time to compute Mi  Mi2 mod N depends on the value of Mi (simple modular reduction algorithms
+take a di erent amount of time depending on the value being reduced). Marvin measures the ti 's
+oine (prior to mounting the attack) once he obtains the physical speci cations of the card.
+     Kocher observed that when d1 = 1, the two ensembles fti g and fTi g are correlated. For instance,
+if, for some i; ti is much larger than its expectation, then Ti is also likely to be larger than its
+expectation. On the other hand, if d1 = 0, the two ensembles fti g and fTi g behave as independent
+random variables. By measuring the correlation, Marvin can determine whether d1 is 0 or 1.
+
+                                                  12
+Continuing in this way, he can recover d2 , d3 , and so on. Note that when a low public exponent e
+is used, the partial key exposure attack of the previous section shows that Kocher's timing attack
+need only be employed until a quarter of the bits of d are discovered.
+    There are two ways to defend against the attack. The simplest is to add appropriate delay so
+that modular exponentiation always takes a xed amount of time. The second approach, due to
+Rivest, is based on blinding. Prior to decryption of M the smartcard picks a random r 2 ZN and
+computes M 0 = M  re mod N . It then applies d to M 0 and obtains C 0 = (M 0 )d mod N . Finally,
+the smartcard sets C = C 0 =r mod N . With this approach, the smartcard is applying d to a random
+message M 0 unknown to Marvin. As a result, Marvin cannot mount the attack.
+    Kocher recently discovered another attack along these lines called power cryptanalysis. Kocher
+showed that by precisely measuring the smartcard's power consumption during signature gener-
+ation, Marvin can often easily discover the secret key. As it turns out, during a multi-precision
+multiplication the card's power consumption is higher than normal. By measuring the length of
+high consumption periods, Marvin can easily determine if in a given iteration the card performs
+one or two multiplications, thus exposing the bits of d.
+
+5.2 Random Faults
+Implementations of RSA decryption and signatures frequently use the Chinese Remainder Theorem
+to speed up the computation of M d mod N . Instead of working modulo N , the signer Bob rst
+computes the signatures modulo p and q and then combines the results using the Chinese Remainder
+Theorem. More precisely, Bob rst computes
+                          Cp = M dp mod p       and      Cq = M dq mod q;
+where dp = d mod (p , 1) and dq = d mod (q , 1). He then obtains the signature C by setting
+                                   C = T1 Cp + T2Cq (mod N );
+where                                                                   
+                         T1 = 10 mod     p        and    T        0 mod p :
+                                                          2 =
+                                    mod q                         1 mod q
+The running time of the last CRT step is negligible compared to the two exponentiations. Note that
+p and q are half the length of N . Since simple implementations of multiplication take quadratic time,
+multiplication modulo p is four times faster than modulo N . Furthermore, dp is half the length
+of d and consequently computing M dp mod p is eight times faster than computing M d mod N .
+Overall signature time is thus reduced by a factor of four. Many implementations use this method
+to improve performance.
+    Boneh, DeMillo, and Lipton [3] observed that there is an inherent danger in using the CRT
+method. Suppose that while generating a signature, a glitch on Bob's computer causes it to
+miscalculate in a single instruction. Say, while copying a register from one location to another, one
+of the bits is ipped. (A glitch may be caused by ambient electromagnetic interference or perhaps
+by a rare hardware bug, like the one found in an early version of the Pentium chip.) Given an
+invalid signature, an adversary Marvin can easily factor Bob's modulus N .
+    We present a version of the attack as described by A. K. Lenstra. Suppose a single error
+occurs while Bob is generating a signature. As a result, exactly one of Cp or Cq will be computed
+                                                 13
+incorrectly. Say Cp is correct, but Cbq is not. The resulting signature is Cb = T1 Cp + T2 Cbq . Once
+Marvin receives Cb, he knows it is a false signature since Cbe 6= M mod N . However, notice that
+                           Cbe = M mod p       while     Cbe 6= M mod q:
+As a result, gcd(N; Cbe , M ) exposes a nontrivial factor of N .
+    For the attack to work, Marvin must have full knowledge of M . Namely, we are assuming
+Bob does not use any random padding procedure. Random padding prior to signing defeats the
+attack. A simpler defense is for Bob to check the generated signature before sending it out to the
+world. Checking is especially important when using the CRT speedup method. Random faults are
+hazardous to many cryptographic systems. Many systems, including a non-CRT implementation
+of RSA, can be attacked using random faults [3]. However, these results are far more theoretical.
+
+5.3 Bleichenbacher's Attack on PKCS 1
+Let N be an n-bit RSA modulus and M be an m bit message with m < n. Before applying RSA
+encryption it is natural to pad the message M to n bits by appending random bits to it. An old
+version of a standard known as Public Key Cryptography Standard 1 (PKCS 1) uses this approach.
+After padding, the message looks as follows:
+                         02          Random            00         M
+The resulting message is n bits long and is directly encrypted using RSA. The initial block con-
+taining \02" is 16 bits long and is there to indicate that a random pad has been added to the
+message.
+    When a PKCS 1 message is received by Bob's machine, an application (e.g., a web browser)
+decrypts it, checks the initial block, and strips o the random pad. However, some applications
+check for the \02" initial block and if it is not present they send back an error message saying
+\invalid ciphertext". Bleichenbacher [2] showed that this error message can lead to disastrous
+consequences: using the error message, an attacker Marvin can decrypt ciphertexts of his choice.
+    Suppose Marvin intercepts a ciphertext C intended for Bob and wants to decrypt it. To mount
+the attack, Marvin picks a random r 2 ZN , computes C 0 = rC mod N , and sends C 0 to Bob's
+machine. An application running on Bob's machine receives C 0 and attempts to decrypt it. It
+either responds with an error message or does not respond at all (if C 0 happens to be properly
+formatted). Hence, Marvin learns whether the most signi cant 16 bits of the decryption of C 0 are
+equal to 02. In e ect, Marvin has an oracle that tests for him whether the 16 most signi cant bits
+of the decryption of rC mod N are equal to 02, for any r of his choice. Bleichenbacher showed that
+such an oracle is sucient for decrypting C .
+
+6 Conclusions
+Two decades of research into inverting the RSA function produced some insightful attacks, but no
+devastating attack has ever been found. The attacks discovered so far mainly illustrate the pitfalls
+to be avoided when implementing RSA. At the moment it appears that proper implementations
+can be trusted to provide security in the digital world.
+
+                                                 14
+   We categorized attacks on RSA into four categories: (1) elementary attacks that exploit blatant
+misuse of the system, (2) low private exponent attacks serious enough that a low private exponent
+should never be used, (3) low public exponent attacks, (4) and attacks on the implementation.
+These last attacks illustrate that a study of the underlying mathematical structure is insucient.
+Desmedt and Odlyzko [10], Joye and Quisquater [15] and deJonge and Chaum [9] describe some
+additional attacks. Throughout the paper we observed that many attacks can be defeated by
+properly padding the message prior to encryption or signing.
+
+Acknowledgments
+I thank Susan Landau for encouraging me to write the survey and Tony Knapp for his help in
+editing the manuscript. I am also grateful to Mihir Bellare, Igor Shparlinski, and R. Venkatesan
+for comments on an earlier draft.
+
+References
+ [1] M. Bellare and P. Rogaway. Optimal asymmetric encryption. In EUROCRYPT '94, volume
+     950 of Lecture Notes in Computer Science, pages 92{111. Springer-Verlag, 1994.
+ [2] D. Bleichenbacher. Chosen ciphertext attacks against protocols based on the RSA encryption
+     standard PKCS #1. In CRYPTO '98, volume 1462 of Lecture Notes in Computer Science,
+     pages 1{12. Springer-Verlag, 1998.
+ [3] D. Boneh, R. DeMillo, and R. Lipton. On the importance of checking cryptographic protocols
+     for faults. In EUROCRYPT '97, volume 1233 of Lecture Notes in Computer Science, pages
+     37{51. Springer-Verlag, 1997.
+ [4] D. Boneh and G. Durfee. New results on cryptanalysis of low private exponent RSA. Preprint,
+     1998.
+ [5] D. Boneh, G. Durfee, and Y. Frankel. An attack on RSA given a fraction of the private
+     key bits. In AsiaCrypt '98, volume 1514 of Lecture Notes in Computer Science, pages 25{34.
+     Springer-Verlag, 1998.
+ [6] D. Boneh and R. Venkatesan. Breaking RSA may not be equivalent to factoring. In EURO-
+     CRYPT '98, volume 1403 of Lecture Notes in Computer Science, pages 59{71. Springer-Verlag,
+     1998.
+ [7] D. Coppersmith. Small solutions to polynomial equations, and low exponent RSA vulnerabil-
+     ities. Journal of Cryptology, 10:233{260, 1997.
+ [8] D. Coppersmith, M. Franklin, J. Patarin, and M. Reiter. Low-exponent RSA with related
+     messages. In EUROCRYPT '96, volume 1070 of Lecture Notes in Computer Science, pages
+     1{9. Springer-Verlag, 1996.
+ [9] W. de Jonge and D. Chaum. Attacks on some RSA signatures. In Crypto '85, volume 218 of
+     Lecture Notes in Computer Science, pages 18{27. Springer-Verlag, 1986.
+
+                                               15
+[10] Y. Desmedt and A. Odlyzko. A chosen text attack on the rsa cryptosystem and some discrete
+     logarithm schemes. In CRYPTO '85, Lecture Notes in Computer Science, pages 516{522.
+     Springer-Verlag, 1985.
+[11] S. Goldwasser. The search for provably secure cryptosystems. In Cryptology and computational
+     number theory, volume 42 of Proceedings of the 42nd Symposium in Applied Mathematics.
+     American Mathematical Society, 1990.
+[12] G. H. Hardy and E. M. Wright. An Introduction to the Theory of Numbers. Oxford Clarendon
+     Press, 1975. fourth edition.
+[13] J. Hastad. Solving simultaneous modular equations of low degree. SIAM J. of Computing,
+     17:336{341, 1988.
+[14] N. Howgrave-Graham. Finding small roots of univariate modular equations revisited. In
+     Cryptography and Coding, volume 1355 of Lecture Notes in Computer Science, pages 131{142.
+     Springer-Verlag, 1997.
+[15] M. Joye and J.-J. Quisquater. On the importance of securing your bins: The garbage-man-
+     in-the-middle attack. In 4th ACM Conference on Computer and Communications Security,
+     pages 135{141. ACM Press, 1997.
+[16] P. Kocher. Timing attacks on implementations of Die-Hellman, RSA, DSS, and other sys-
+     tems. In CRYPTO '96, volume 1109 of Lecture Notes in Computer Science, pages 104{113.
+     Springer-Verlag, 1996.
+[17] L. Lovasz. An Algorithmic Theory of Number, Graphs and Convexity. SIAM Publications,
+     1986.
+[18] A. K. Lenstra and H. W. Lenstra, Jr. Algorithms in number theory. In Handbook of Theoret-
+     ical Computer Science (Volume A: Algorithms and Complexity), chapter 12, pages 673{715.
+     Elsevier and MIT Press, 1990.
+[19] A. Menezes, P. van Oorschot, and S. Vanstone. Handbook of Applied Cryptography. CRC,
+     1996.
+[20] C. Pomerance. A tale of two sieves. Notices Amer. Math. Soc., 43:1473{1485, 1996.
+[21] R. L. Rivest, A. Shamir, and L. Adleman. A method for obtaining digital signatures and
+     public key cryptosystems. Commun. of the ACM, 21:120{126, 1978.
+[22] M. Wiener. Cryptanalysis of short RSA secret exponents. IEEE Transactions on Information
+     Theory, 36:553{558, 1990.
+
+
+
+
+                                               16
+

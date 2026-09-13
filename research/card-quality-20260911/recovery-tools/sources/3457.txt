@@ -1,0 +1,1634 @@
+Near-Optimal Erasure List-Decodable Codes
+Avraham Ben-Aroya
+The Blavatnik School of Computer Science, Tel-Aviv University, Israel
+Dean Doron
+Department of Computer Science, Stanford University, CA, US
+ddoron@stanford.edu
+Amnon Ta-Shma
+The Blavatnik School of Computer Science, Tel-Aviv University, Israel
+amnon@tau.ac.il
+
+      Abstract
+A code C ⊆ {0, 1}n̄ is (s, L) erasure list-decodable if for every word w, after erasing any s symbols
+of w, the remaining n̄ − s symbols have at most L possible completions into a codeword of C.
+Non-explicitly, there exist binary ((1 − τ )n̄, L) erasure list-decodable codes with rate approaching τ
+and tiny list-size L = O(log τ1 ). Achieving either of these parameters explicitly is a natural open
+problem (see, e.g., [26, 24, 25]). While partial progress on the problem has been achieved, no prior
+nontrivial explicit construction achieved rate better than Ω(τ 2 ) or list-size smaller than Ω(1/τ ).
+Furthermore, Guruswami showed no linear code can have list-size smaller than Ω(1/τ ) [24]. We
+construct an explicit binary ((1 − τ )n̄, L) erasure list-decodable code having rate τ 1+γ (for any
+constant γ > 0 and small τ ) and list-size poly(log τ1 ), answering simultaneously both questions, and
+exhibiting an explicit non-linear code that provably beats the best possible linear code.
+    The binary erasure list-decoding problem is equivalent to the construction of explicit, low-error,
+strong dispersers outputting one bit with minimal entropy-loss and seed-length. For error ε, no prior
+explicit construction achieved seed-length better than 2 log( 1ε ) or entropy-loss smaller than 2 log( 1ε ),
+which are the best possible parameters for extractors. We explicitly construct an ε-error one-bit
+strong disperser with near-optimal seed-length (1 + γ) log( 1ε ) and entropy-loss O(log log 1ε ).
+    The main ingredient in our construction is a new (and almost-optimal) unbalanced two-source
+extractor. The extractor extracts one bit with constant error from two independent sources, where one
+source has length n and tiny min-entropy O(log log n) and the other source has length O(log n) and
+arbitrarily small constant min-entropy rate. When instantiated as a balanced two-source extractor,
+it improves upon Raz’s extractor [39] in the constant error regime. The construction incorporates
+recent components and ideas from extractor theory with a delicate and novel analysis needed in
+order to solve dependency and error issues that prevented previous papers (such as [27, 9, 13]) from
+achieving the above results.
+
+2012 ACM Subject Classification Theory of computation → Expander graphs and randomness
+extractors; Theory of computation → Error-correcting codes; Theory of computation → Pseudoran-
+domness and derandomization
+
+Keywords and phrases Dispersers, Erasure codes, List decoding, Ramsey graphs, Two-source
+extractors
+
+Digital Object Identifier 10.4230/LIPIcs.CCC.2020.1
+
+Funding Research supported by the Israel science Foundation grant no. 952/18 and by Len Blavatnik
+and the Blavatnik Family foundation.
+
+
+ 1      Introduction
+Extractors and dispersers are important derandomization tools with numerous applications
+                                                                                   n        d
+(see, e.g., [40, 43]). Both extractors and dispersers are hash functions C : {0, 1} × {0, 1} →
+       m                                      n                                 d
+{0, 1} that take an input string x ∈ {0, 1} and an auxiliary seed y ∈ {0, 1} , and output an
+                                               m
+element C(x, y) in a smaller universe {0, 1} where m  n. Both extractors and dispersers
+            © Avraham Ben-Aroya, Dean Doron, and Amnon Ta-Shma;
+            licensed under Creative Commons License CC-BY
+35th Computational Complexity Conference (CCC 2020).
+Editor: Shubhangi Saraf; Article No. 1; pp. 1:1–1:27
+                   Leibniz International Proceedings in Informatics
+                   Schloss Dagstuhl – Leibniz-Zentrum für Informatik, Dagstuhl Publishing, Germany
+1:2   Near-Optimal Erasure List-Decodable Codes
+
+
+      are meant to hash any input distribution X that has some crude uniformity to a nearly
+      uniform distribution. Also, the measure of crude uniformity is the same for both objects:
+      We say a distribution X is a k-source if it has k min-entropy, i.e., the probability of each
+      x ∼ X is at most 2−k .
+          Extractors and dispersers differ in the way they measure the proximity of the output
+      distribution to the uniform distribution: Extractors use the total-variation distance, whereas
+      dispersers use support-size distance (that is, they count the number of elements not in
+      the image of the hash function). Extractors are stronger objects, and, roughly speaking,
+      extractors are needed to derandomize two-sided error algorithms whereas dispersers suffice
+      for one-sided error derandomization.
+                                               n         d          m
+          More formally, a function C : {0, 1} × {0, 1} → {0, 1} is a strong (k, ε) extractor if
+      for any k-source X the output distribution (Ud , C(X, Ud )), containing the seed y along with
+                                                                         d         m
+      output C(x, y), is ε-close to the uniform distribution over {0, 1} × {0, 1} . We say C is a
+      strong (k, ε) disperser if for any k-source X, the support of (Ud , C(X, Ud )) covers at least
+                                         d        m
+      (1 − ε)2d+m elements from {0, 1} × {0, 1} .
+
+      There are two natural parameters measuring the quality of extractors and dispersers:
+      1. Seed length. Both extractors and dispersers use an auxiliary uniform independent
+         source to extract the entropy from the weak source X. The length d of the auxiliary
+         source is called the seed-length. We would like the seed-length to be as small as possible.
+      2. Entropy loss. There are k + d bits of entropy in the system: k bits coming from the
+         k-source X, and d bits from the independent uniform seed. The entropy-loss is k − m,
+         i.e., the difference between the entropy in the input system (including the seed) and the
+         output system (of length d + m).
+
+          As noted, strong dispersers are weaker objects than strong extractors. The interest in
+      dispersers stems from the fact that their parameters can outperform those of extractors.
+      For extractors, [37] showed that every strong extractor requires seed-length d ≥ 2 log( 1ε ) +
+      log(n − k) − O(1) and has an unavoidable entropy-loss of k − m ≥ 2 log( 1ε ) − O(1). Non-
+      explicitly there exist strong extractors with seed-length d ≤ 2 log( 1ε ) + log(n − k) + O(1)
+      and entropy-loss k − m ≤ 2 log( 1ε ) + O(1). For strong dispersers, [37] showed that every
+      strong disperser requires seed-length d ≥ log( 1ε ) + log(n − k) − O(1) and has an unavoidable
+      entropy-loss k − m ≥ log log( 1ε ) − O(1). Again, non-explicitly, there exist strong dispersers
+      with seed-length d ≤ log( 1ε ) + log(n − k) + O(1) and entropy-loss k − m ≤ log log( 1ε ) + O(1)
+      [37, 33].
+          For strong dispersers, even the case of outputting just one bit in a way that outperforms
+      extractor constructions has been widely open. Indeed, Gradwohl et al. [22] noticed that such
+      strong dispersers imply good Ramsey graphs, another problem that withstood many attempts
+      for many years, until the recent breakthrough result of Chattopadhyay and Zuckerman [9].
+          In this paper we go in the reverse direction of that taken in [22]. By using the recent
+      machinery of non-malleable extractors and their connection to two-source extractors [9,
+      7, 15, 28, 29], we construct near-optimal unbalanced two-source extractors (which imply
+      near-optimal unbalanced bipartite Ramsey graphs). We use these extractors to obtain explicit
+      strong dispersers that output a single bit, with near-optimal seed-length and near-optimal
+      entropy-loss.
+
+      I Theorem 1 (see also Theorem 40). For every constant 0 < γ < 1 and ε = n−Ωγ (1) there
+                                                              n       d
+      exists an explicit strong (k, ε) disperser Disp : {0, 1} ×{0, 1} → {0, 1} with d = (1+γ) log( 1ε )
+      and k = Oγ (log log 1ε ).
+A. Ben-Aroya, D. Doron, and A. Ta-Shma                                                                     1:3
+
+
+    We remark that the dependence of the seed-length on the error is (1 + γ) log( 1ε ) < 2 log( 1ε ),
+and the entropy-loss is O(log log 1ε ) < 2 log( 1ε ) and both these bounds are optimal for
+dispersers up to small factors and are impossible for extractors. Most previous disperser
+constructions have not obtained parameters better than the extractors lower bounds, and
+we are only aware of one exception: Meka et al. [33], extending the techniques in [22], gave
+a strong disperser with optimal entropy-loss. However, their construction works only for
+extremely high min-entropy k = n − Θ(1) and has suboptimal seed-length.1
+
+1.1      Erasure List-Decodable Codes
+We now turn our attention to binary list-decodable codes in the erasures model. A code C is
+a set C ⊆ Fn2 . We call elements in Fn2 words and elements in C codewords. Two interesting
+parameters of a code are its redundancy and its noise-resiliency. The redundancy is measured
+by the rate of the code, logn|C| . The noise-resiliency is measured according to the model
+of noise.
+In the errors model: A code C is (τ n, L) list-decodable if for every word w ∈ Fn2 there exist
+    at most L codewords in the Hamming ball of radius τ n around w.
+                                                                                       (1−τ )n
+In the erasures model: A code C is (τ n, L) erasure list-decodable if for every z ∈ F2
+    and every set T ⊆ [n] of size (1 − τ )n, the number of codewords that have z in the
+    coordinates indexed by T is at most L.
+    If C is (τ n, L) list-decodable we can recover from τ n errors in the following sense: Given
+a word w ∈ Fn2 that was obtained by corrupting at most τ n entries of some codeword c, one
+can (perhaps non-efficiently) produce a small set of size L that necessarily contains c.
+    Similarly, if C is (τ n, L) erasure list-decodable we can recover from τ n erasures in the
+                                                 n
+following sense: Given a word w ∈ {0, 1, ?} that was obtained by replacing at most τ n
+entries of some codeword c with the erasure sign ’?’, one can (perhaps non-efficiently) produce
+a small set of size L that necessarily contains c.
+    A strong (k, ε) extractor with one output bit is roughly equivalent to a binary ( 1−ε       d
+                                                                                            2 2 ,
+       k
+L = 2 ) list-decodable code [42]. In the same spirit, Guruswami [25] observed that strong
+dispersers with one output bit can be used to construct erasure list-decodable codes. In
+this paper we complement his argument with the converse statement, showing that erasure
+list-decodable codes are essentially equivalent to strong dispersers with one output bit.
+                            n        d
+Specifically, Disp : {0, 1} × {0, 1} → {0, 1} is a strong (k, ε) disperser if and only if the code
+           n           2d
+C : {0, 1} → {0, 1} defined by C(x)i = Disp(x, i) is ((1 − 2ε)2d , 2k ) erasure list-decodable
+(see Lemma 44).
+    As we can see, for both extractors and dispersers, the seed-length corresponds to the
+rate of the code, 2nd , whereas the entropy-loss corresponds to the list-size of the code. Thus,
+the gap between the seed-lengths of dispersers (which is log( 1ε )) and extractors (which is
+2 log( 1ε )) translates to a difference between rate ε in the erasures model compared with rate
+ε2 in the errors model. Similarly, the gap between the entropy-loss of dispersers (which
+is log log( 1ε )) and extractors (which is 2 log( 1ε )) translates to a difference between list-size
+log( 1ε ) in the erasures model compared with list-size poly( 1ε ) in the errors model. Formally:
+    Non-explicitly there exist binary codes having rate Ω(ε2 ) that are ( 1−ε                    1
+                                                                                    2 · n, poly( ε ))
+    list-decodable and these parameters are tight.
+    Non-explicitly there exist binary codes having rate Ω(ε) that are ((1 − ε)n, O(log 1ε ))
+    erasure list-decodable, and up to a constant multiplicative factor in the list-size these
+    parameters are tight [24].
+
+
+1
+    Specifically, they support min-entropy k = n − c with seed-length O(2c log(1/ε)).
+
+
+                                                                                                        CCC 2020
+1:4   Near-Optimal Erasure List-Decodable Codes
+
+
+           Thus, erasure list-decodable codes can have quadratically better rate and exponentially
+      smaller list-size than list-decodable codes. In fact, Guruswami proved that any linear erasure
+      list-decodable codes must have L = Ω(1/ε) [24], and so the exponential improvement (or any
+      better than polynomial improvement) is necessarily only possible for non-linear constructions.
+           The state of affairs for explicit binary erasure list-decodable codes is similar to that
+      of explicit dispersers. That is, only a few explicit binary erasure list-decodable codes are
+      known to have rate below Ω(ε2 ) or list-size below Ω(1/ε). Guruswami and Indyk [26] gave
+      a probabilistic polynomial-time algorithm that outputs with high probability an erasure
+                                            ε2
+      list-decodable code of rate Ω log(1/ε) and optimal list-size (their construction can be
+      explicitly derandomized when ε is constant). The natural open problem of obtaining erasure
+      list-decodable codes having rate better than ε2 was explicitly mentioned several times, e.g.,
+      in [26, 25]. More concretely, in [23, Open Question 10.2], Guruswami posed the open problem
+      of constructing efficient erasure list-decodable codes of rate ε2−a .
+          Incorporating the above discussion with Theorem 1, we get the best explicit construction
+      to date:
+      I Theorem 2 (see also Theorem 46). For every constant 0 < γ < 1 and ε = n−Ωγ (1) there
+                                                                                              n        n̄
+      exists an explicit ((1 − ε)n̄, L = logOγ (1) 1ε ) erasure list-decodable code C : {0, 1} → {0, 1}
+               1+γ
+      of rate ε    .
+           Thus, Theorem 2 solves Guruswami’s problem for the interesting regime of polynomially
+      small ε. We stress that the codes we present are explicit in the sense that they have explicit
+      encoding, but we do not know whether the codes we construct admit efficient erasure
+      list-decoding algorithms. We also mention that the list-size poly(log 1ε ) achieved by our code
+      is exponentially smaller than the best possible list-size by any linear code.
+
+      1.2    Two-Source Extractors
+                               n           n
+      A function 2Ext : {0, 1} 1 × {0, 1} 2 → {0, 1} is an ((n1 , k1 ), (n2 , k2 ), ε) two-source extractor
+      if for any two independent sources X and Y , where X is an (n1 , k1 ) source and Y is an
+      (n2 , k2 ) source, the output distribution 2Ext(X, Y ) is ε-close to uniform.
+           Often, the two-source extractor terminology is more expressive than the extractor notation,
+                                                   k        d
+      as we explain now. Suppose Ext : {0, 1} × {0, 1} → {0, 1} is a strong (k, ε) extractor. Fix
+      an (n, k) source X, and let εi be the distance of the distribution Ext(X, i) from uniform. By
+      the extractor definition we know that E[εi ] ≤ ε. However, the extractor definition does not
+      distinguish between the case where the ε error occurs because all seeds y ∈ Supp(Y ) have
+      the same error ε, and the case where ε fraction of the seeds have constant error and the rest
+      have none. The situation is different with two-source extractors. Roughly speaking, in an
+                                                                      0
+      ((n, k), (d, d0 ), ε) two-source extractor, there are at most 2d −d bad “seeds” y with distance
+      εy ≥ ε. Thus, the two-source extractor notation allows separating the fraction of bad seeds
+      from the quality of good seeds.
+                                                                                             n         d
+           We would like to explicitly construct a strong (k, ε) disperser Disp : {0, 1} × {0, 1} →
+             m
+      {0, 1} with parameters better than those of (k, ε) extractors. Thus, on the one hand, for
+                                                                    m
+      almost every seed y, Disp(X, y) covers almost all of {0, 1} , and, on the other hand, Disp is
+      not a strong extractor, so for almost every seed y, Disp(X, y) is far from uniform. How can
+      this happen?
+           The situation becomes clearer if we look at strong dispersers with only one additional
+      output bit, i.e., when m = 1. As Disp(X, y) is distributed over one bit, for almost every
+      seed y, Supp(Disp(X, y)) = {0, 1}. Yet, it is possible (even necessary, since Disp is not an
+      extractor) that for many seeds y, Disp(X, y) is ε0 away from uniform for some constant
+      ε0  ε > 0., e.g., when Disp(X, y) has much more weight on 0 than on 1.
+A. Ben-Aroya, D. Doron, and A. Ta-Shma                                                                         1:5
+
+
+    One clean way of capturing this is by using the two-source extractor terminology. We
+are looking for a two-source extractor 2Ext where almost all seeds (except for ε fraction)
+are “good” in the sense that y is good if 2Ext(X, y) covers both 0 and 1. Roughly speaking,
+this amounts to an explicit construction of an ((n, k), (d, d0 ), ε0 ) two-source extractor having
+       0
+ε = 2d −d and any non-trivial error ε0 < 1. Two-source extractors with arbitrary ε0 < 1 are
+also called bipartite Ramsey graphs (see Claim 49).
+    Explicitly constructing two-source extractors (and Ramsey graphs) is a long standing
+and important challenge. A long line of research (e.g., [10, 39, 8, 5, 6]) culminated in
+((n, k), (n, k), ε0 ) two-source extractors supporting poly-log min-entropy [14, 9, 32]. This was
+later improved to k = O(log n logloglogloglogn n ) [7, 15, 28, 29]. However, using the latter two-source
+extractors gives dispersers with suboptimal entropy-loss and long seed, or, equivalently,
+erasure list-decodable codes with large list-size and low rate.
+    Another natural two-source extractor is Raz’s two-source extractor [39]. Raz’s function
+is an ((n, k), (d = O(log nε ), d0 ), εRaz ) two-source extractor that has an unbalanced entropy
+                                                                                                     n
+requirement; the first source is long and very weak (k can be as small as, roughly, log log εRaz       ),
+                                                                    0                            1
+the second source is short and somewhat dense with d ≥ δd, for any constant δ > 2 . The
+fact that k can be very small corresponds to a disperser with small entropy-loss, which
+is good for us. Moreover, d is small, which is again what we want because the length of
+the corresponding erasure list-decodable code is 2d . The error εRaz of Raz’s extractor is
+exponentially-small in min {k, d0 } which is much better than the mere non-trivial error that
+                                                                                           0
+we need. However, the second source must be relatively dense, satisfying dd ≥ 12 . This
+                                                                      0
+implies that the error ε of the disperser is given by 2−d+d and as a consequence d ≥ 2 log( 1ε ).
+    In this paper we show how to explicitly construct the necessary two-source extractor. We
+show:
+
+I Theorem 3 (see also Theorem 27). For every two constants δ, ε0 > 0 and every k ≥
+                                                                                                    n
+Ωδ,ε0 (log log n) there exists an explicit ((n, k), (d, δd), ε0 ) two-source extractor 2Ext : {0, 1} ×
+       d
+{0, 1} → {0, 1} with d = Oδ,ε0 (log n) .
+
+    Theorem 3 is interesting on its own right. The entropy requirement in both sources is
+optimal up to constant factors, as both sources have entropy which is logarithmic in the
+length of the other source. This property is also true for Raz’s extractor. On the negative
+side, Theorem 3 has a large error ε0 , whereas Raz’s extractor has a very small error. On
+the positive side, Raz’s extractor works only when d0 = δd > 0.5d whereas Theorem 3 works
+with d0 = δd for any δ > 0, and it is this feature that gives a disperser construction with
+parameters better than those possible for extractors. Having Theorem 3 immediately gives
+the strong one output bit disperser and the non-linear near-optimal erasure list-decodable
+code discussed above.
+    We also obtain a variant of Theorem 3 that gives a new construction of balanced two-source
+extractors.
+
+I Theorem 4. For every two constants δ, ε0 > 0 and every k ≥ Ωδ,ε0 (log n) there exists an
+                                                                  n        n
+explicit ((n, k), (n, δn), ε0 ) two-source extractor 2Ext : {0, 1} × {0, 1} → {0, 1}.
+
+We see that one source has a minimal entropy requirement of O(log n) while the other has
+arbitrarily small constant entropy rate. Again, this improves upon [39] in terms of entropy
+requirement but is worse in terms of error. Theorem 4 is also incomparable to [29] as there,
+both sources require min-entropy at least O(log n logloglogloglogn n ).
+   Both Theorem 3 and Theorem 4 follow directly from Theorem 27.
+
+
+
+
+                                                                                                            CCC 2020
+1:6   Near-Optimal Erasure List-Decodable Codes
+
+
+      1.3      The Two-Source Extractor Construction
+      We now give an informal presentation of the two-source extractor construction. We try to
+      keep the discussion intuitive, and for that we omit (or ignore) some technical details. We
+      also assume some familiarity with the field, sometimes using notions that will be formally
+      presented in Section 2.
+           The input to the ((n, k), (d, δd), ε0 ) two-source extractor is an (n, k) source X and a
+      (d, δd) source Y , for some 0 < δ < 21 . At a high level, we do the following:
+       1. Increase the entropy rate of Y from δ to, say, 0.7. For that, we use a constant-error
+          condenser. We cannot do it deterministically (because the condenser needs a uniformly
+           random seed) and we still want to keep X fresh. Therefore, we apply the condenser on Y
+           and every possible seed, letting the output of this procedure be a table Y 0 in which each
+           row corresponds to an application with a different seed. The table Y 0 has the guarantee
+           that most of the rows of Y 0 are close to having entropy rate 0.7.
+       2. Next, we would like to transform the dense rows of Y 0 to uniformly random strings. For
+           that, we use Raz’s extractor with the first source X and the rows of Y 0 as (independent)
+           seeds. Call the resulting table Y 00 and note that it is a function of both X and Y . Also
+           note that although it is now guaranteed that a constant fraction of the rows of Y 00 are
+           uniform (Raz’s extractor works with entropy rate above half), it is not guaranteed (and
+           also not true) that the rows of Y 00 are independent of each other.
+       3. Now we wish to break the dependence between the rows of Y 00 so that (ideally) every
+           t of them are uniform and independent (think of t as being poly-logarithmic in the
+           number of rows of Y 00 ). For that, we use a correlation-breaker that outputs one bit. The
+           correlation-breaker requires two independent sources, which we do not have. Instead,
+          we apply it on Y and Y 00 . Call the output table Y 000 . We shall prove that with high
+           probability, Y 000 has many good rows and every t good rows of Y 000 are very close to being
+           uniform and independent.
+       4. Finally, we apply a resilient function f on the bits of Y 000 . The output of our construction
+           is the function’s output f (Y 000 ).
+          The property that we want from f is that it is nearly balanced and that its output cannot
+           be heavily influenced by any small set of bad bits (the bad rows of Y 000 ). We need these
+           properties to hold not only when the “good” bits are perfectly uniform and independent,
+           but also under weaker conditions (e.g., that the good players are t-wise independent).
+
+          Thus, the coarse structure of our construction is essentially the same as many previous
+      two-source extractor constructions. Namely, we use the two-sources to get a non-oblivious
+      bit-fixing source and then apply a resilient function. There are two known approaches how
+      to implement the first step of getting a non-oblivious bit-fixing source from two independent
+      sources. The first approach was developed by Li [27] and uses alternating extraction (or
+      equivalently, correlation breakers).2 The second approach, used by Chattopadhyay and
+      Zuckerman [9], uses a non-malleable extractor combined with a sampler. The second
+      approach is more modular, while the first is more flexible.
+
+
+      2
+          In [27] Li uses three independent sources in his construction. However, Chattopadhyay and Zuckerman
+          [9] remark that their two source extractors could also have been obtained using Li’s approach, once a
+          low-depth, highly resilient function is constructed (as is done in [9]). Thus, we view Li’s construction as
+          a reduction from two independent sources to a non-oblivious bit-fixing source.
+A. Ben-Aroya, D. Doron, and A. Ta-Shma                                                                   1:7
+
+
+    We now elaborate more on how Li obtained the above reduction and compare it with
+our work. The input to Li’s protocol are samples from two independent (n, k = polylog n)
+sources X and Y . The protocol works by applying an extractor E1 to Y , where we enumerate
+over every possible seed of E1 and build a table. Then, each such row is fed as a seed to an
+extractor E2 , applied on the source X. Li then proceeds to use alternating extraction to get
+a non-oblivious bit fixing source. (Eventually, he also uses the lightest-bin protocol to obtain
+a three-source extractor.)
+    Li’s reduction and our construction are very similar, except that:
+    In step (1) we replace E1 with a constant degree condenser, and as a result,
+    In step (2) the role of E2 in our construction is played by a two-source extractor (of Raz).
+   This is necessary because the output of the condenser is only guaranteed to have high
+    min-entropy. Finally,
+    In step (3) a correlation breaker replaces alternating extraction.
+
+    While the change seems small it is essential, and the reason why the problem waited its
+solution for so long. Next, we elaborate on why we use condensers instead of the extractor
+E1 and which condensers should be used.
+    First, we notice that the two-source extractor we are set to construct is different than
+that of [27] and [9]. [27, 9] construct balanced two-source extractors, where each of the two
+sources is weak (an in particular might have densities well below linear) whereas we are set
+to construct a highly non-balanced extractor where one of the sources (the small one) has
+linear density.
+    The key observation of the paper is that in such a situation (where the density of one
+source is linear) the condenser of step (1) has a huge advantage over the extractor E1 since
+the condenser might have constant seed length (hence a constant number of rows in the
+table) independent of the row length, and therefore also independent of n, which is totally
+impossible with extractors. The fact that such explicit condensers exist is a beautiful result
+of [16]. The analysis (done in Section 4.3) critically uses this fact (that the number of
+output rows of the condenser is a constant) in a delicate way to prove the correctness of the
+construction.
+    We also mention that our construction shares steps that are similar to Cohen’s construc-
+tion [12] of three-source extractors. The vital difference is that in [12], a third source is used
+to achieve complete independence between the rows of a table and then a simple parity can
+be applied, even if only one row is close to uniform. Here, we only use two sources.
+    To conclude this part, we discuss the dependence problem (to be explained soon), and
+what aspects of our solution to this problem differ from previous solutions:
+    First, there is the issue of lack of independence between the source Y and the seed
+    Y 00 in item (3) of the construction. To overcome this, we show a conditioning under
+    which Y 00 is still good, Y is independent of Y 00 and even after the conditioning the
+    two sources have enough min-entropy. In recent years, such conditioning methods were
+    very successful in constructing an abundance of primitives (e.g., correlation breakers,
+    independence-preserving mergers and non-malleable extractors, etc.).
+    Next, there is a delicate issue with the errors. The error εcond of the condenser is high
+    (think of it as a constant). In a naive analysis we would argue that each t good rows
+    are ε0 > εcond close to uniform, and therefore the whole table Y 000 is At ε0 -close to a table
+    where the good rows are perfectly t-wise independent, where A is the number of rows in
+    the table Y 000 . However, such an approach is doomed to fail, as necessarily Aεcond > 1.
+    Our solution for this problem is the heart of the argument. We observe that some of the
+    errors in the construction depend on A, the number of rows in the table, while others
+    depend on the row length. In the construction we make sure that A is small (think of it
+
+
+                                                                                                      CCC 2020
+1:8   Near-Optimal Erasure List-Decodable Codes
+
+
+         as a fixed constant) while the row length is unbounded (and, e.g., grows to infinity as n
+         grows to infinity). Thus, we have a natural separation between large errors that depend
+         on the number of rows A, and small errors that depend on the row length. A similar
+         distinction between large and small errors appears in [27].
+         The condenser of step (1) and the resilient function of step (4) incur large errors. Raz’s
+         extractor (step (2)) and the correlation breaker with advice (step (3)) incur small errors
+         that are exponentially-small in the row length. We show that with some constant
+         probability we succeed in step (1), and that once we have succeeded, the errors δ in steps
+         (2) and (3) are so small that At δ is still small, hence Y 000 is close to a table with t-wise
+         independent good players, and so the resilient function in step (4) works (and incurs
+         another constant error). Thus, while the failure probability is high, when we succeed we
+         are exponentially-close to uniform.
+         Notice that the fact that A is a constant (independent of the row length) is crucial for the
+         argument to work, and this is why we resort to using condensers rather than extractors
+         as in previous solutions.
+         Finally, the argument used in the last bullet raises a difficulty regarding the set of good
+         rows. Specifically, in [9], the set of good rows is a function of one of the sources. In our
+         analysis the set of good rows is not just a function of the sources X and Y , but also
+         depends on the specific sample y ∼ Y .
+
+          Indeed, as we said before, this strategy leads to better unbalanced two-source constructions,
+      and consequently to constructions of near-optimal erasure list-decodable codes (with high
+      rate and small list-size), and one output-bit strong dispersers (with almost optimal seed
+      length and entropy requirement) overcoming barriers that stood open for many years without
+      seeing any progress.
+
+
+      1.4    Non-Strong Dispersers
+      Strong dispersers are the focal point of this paper. One may wonder why we insist on the
+      strongness property, and whether the problem becomes easier when the strongness property
+      is dropped.
+
+
+         The answer to the first question is that the strongness property is essential. The
+         equivalence between erasure list-decodable codes and dispersers requires the dispersers to
+         be strong (see Lemma 44, and also notice the correspondence between code coordinates
+         and seeds). Similarly, the connection to Ramsey graphs also requires the disperser to
+         be strong, as already observed by Gradwohl et al. [22]. [22] constructed dispersers that
+         are strong in almost all of the seed, but not strong in some part of the seed, and this
+         drawback is severe enough that none of the applications go through.
+         The answer to the second question is that it is easier to construct non-strong dispersers
+         with good parameters. In the paper we prove that it is possible to output more bits from
+         the source at the expense of being strong in only most of the bits (we are non-strong in
+         only O(1) bits of the seed). We prove:
+         I Theorem 5. For every constant 0 < γ < 1 and ε = n−Ωγ (1) there exists an explicit (k, ε)
+                                n        d          m
+         disperser Disp : {0, 1} × {0, 1} → {0, 1} with d = (1 + γ) log( 1ε ), k ≥ Ωγ (log log 1ε )
+         and m = d + Ωγ (k). The disperser is strong in d − Oγ (1) bits of the seed.
+         We sketch a proof of the above theorem in Section 5.2.
+A. Ben-Aroya, D. Doron, and A. Ta-Shma                                                               1:9
+
+
+1.5     Organization
+The rest of the paper is organized as follows. Section 2 covers the preliminaries and notations
+we use. Section 3 describes the constant degree condenser that is used in step (1). Following
+the above discussion, it is important for us that A, the number of rows in the table, and
+equivalently the seed-length of the condenser, is a constant independent of the row length. In
+that section we show one can combine existing constructions of somewhere-random condensers
+and mergers to achieve that. Next, in Section 4, we describe and analyze the new unbalanced
+two-source extractor. In Section 5 we use the new two-source extractor to obtain near-optimal
+strong seeded dispersers, erasure list-decodable codes and unbalanced Ramsey graphs. We
+conclude with a few open problems in Section 6.
+
+
+ 2      Preliminaries
+
+Throughout the paper we use the convention that lowercase variables are the logarithm (in
+base 2) of their corresponding uppercase variables, e.g., n = log N , d = log D. We denote
+by [A] the set {1, . . . , A}. The density of a set B ⊆ A is ρ(B) = |B|
+                                                                     |A| . We say a function
+f : A → B is explicit if there exists a deterministic polynomial algorithm that runs in time
+poly(log |A|) and computes f .
+
+
+2.1     Random Variables and Min-Entropy
+The statistical distance between two distributions X and Y on the same domain Ω is defined
+as |X − Y | = maxA⊆Ω (Pr[X ∈ A] − Pr[Y ∈ A]). If |X − Y | ≤ ε we say X is ε-close to Y
+and denote it by X ≈ε Y . We denote by Un the random variable distributed uniformly over
+      n
+{0, 1} . We say a random variable is flat if it is uniform over its support.
+    For a function f : Ω1 → Ω2 and a random variable X distributed over Ω1 , f (X) is the
+random variable distributed over Ω2 obtained by choosing x according to X and computing
+f (x). For a set A ⊆ Ω1 , f (A) = {f (x) | x ∈ A}. For every f : Ω1 → Ω2 and two random
+variables X and Y distributed over Ω1 , it holds that |f (X) − f (Y )| ≤ |X − Y |.
+    The min-entropy of a random variable X is defined by
+
+                                       1
+     H∞ (X) =      min       log             .
+                 x∈Supp(X)         Pr[X = x]
+                                                                       n
+A random variable X is an (n, k) source if X is distributed over {0, 1} and has min-entropy
+at least k. When n is clear from the context we sometimes omit it and simply say that X is
+a k-source. Every k-source X can be expressed as a convex combination of flat distributions
+each with min-entropy at least k.
+
+I Definition 6 (average conditional min-entropy). Let X, Y be two random variables. The
+average conditional min-entropy of X given Y is
+                           h             i
+     H̃∞ (X|Y ) = − log Ey∼Y 2−H∞ (X|Y =y) .
+
+     We will use the following simple claim about average conditional min-entropy:
+
+B Claim 7. For any random variables X, Y , H̃∞ (X|Y ) ≥ H∞ (X) − log |Supp(Y )|.
+
+
+
+                                                                                                  CCC 2020
+1:10   Near-Optimal Erasure List-Decodable Codes
+
+
+       2.2     Condensers
+                                                                              n                  d                m
+       I Definition 8 (condenser). A function C : {0, 1} × {0, 1} → {0, 1} is an (n, k) →εcond
+       (m, k 0 ) condenser, if for every (n, k) source X, C(X, Ud ) is εcond -close to an (m, k 0 ) source.
+       If k = δn and k 0 = δ 0 m we say C is a δ →εcond δ 0 condenser.
+                                                        n     d               m
+       I Lemma 9. Suppose C : {0, 1} ×{0, 1} → {0, 1} is an (n, k) →εcond (m, k 0 +d) condenser.
+       Let X be an (n, k) source. Let εi be the minimal distance of C(X, i) to an (m, k 0 ) source.
+       Then, Ei∈{0,1}d [εi ] ≤ εcond .
+
+                                                                      d                                      m
+       Proof. Fix an (n, k) source X. For i ∈ {0, 1} , let Hi ⊆ {0, 1}                                           be the set of “heavy”
+       elements of C(X, i),
+                                                                        
+                                     m                               0
+           Hi =       w ∈ {0, 1}          : Pr [C(x, i) = w] ≥ 2−k            .
+                                           x∈X
+
+
+       The distance of C(X, i) from a k 0 -source is
+                                                        0
+           εi = Pr [C(x, i) ∈ Hi ] − 2−k |Hi |,
+                x∈X
+                                                                                                S
+       by redistributing the mass of the heavy elements. Let H =                                     i∈{0,1}d Hi . Then,
+
+                                                                                            0                0
+           For every w ∈ H, Prx∈X,i∈{0,1}d [C(x, i) = w] ≥ 2−d 2−k = 2−(k +d) , and,
+           it holds that
+                                                                          0
+               εcond =          Pr              [C(x, i) ∈ H] − |H|2−(k +d)
+                                            d
+                           x∈X,i∈{0,1}
+                             X                                                    0
+                       =                 2−d Pr[C(x, i) ∈ H] − |H|2−(k +d)
+                                                x
+                           i∈{0,1}d
+                             X                                           0              X
+                       ≥                 2−d Pr[C(x, i) ∈ Hi ] − 2−(k +d)                        |Hi |
+                                                x
+                           i∈{0,1}d                                                   i∈{0,1}d
+                             X                                     0
+                                                                           
+                       =                 2−d Pr[C(x, i) ∈ Hi ] − 2−k |Hi |
+                                                    x
+                           i∈{0,1}d
+                             X
+                       =                 2−d εi = Ei∈{0,1}d [εi ].                                                                   J
+                                     d
+                           i∈{0,1}
+
+
+
+       2.3     Two-Source Extractors
+                                                                                                         n            n          m
+       I Definition 10 (two-source extractor). A function 2Ext : {0, 1} 1 × {0, 1} 2 → {0, 1} is
+       an ((n1 , k1 ), (n2 , k2 ), ε) two-source extractor if for every two independent sources X1 and X2
+       where X1 is an (n1 , k1 ) source and X2 is an (n2 , k2 ) source, it holds that 2Ext(X1 , X2 ) ≈ε Um .
+       We say that 2Ext is strong if
+
+           (2Ext(X1 , X2 ), X1 ) ≈ε (Um , X1 )
+
+       and
+
+           (2Ext(X1 , X2 ), X2 ) ≈ε (Um , X2 ).
+A. Ben-Aroya, D. Doron, and A. Ta-Shma                                                                       1:11
+
+
+    In our construction, we will use the following two-source extractor:
+I Theorem 11 ([39]). For every constant δRaz > 12 there exist constants c1 = c1 (δRaz ), c2 =
+c2 (δRaz ) > 1 such that for every n1 , k1 , n2 , k2 satisfying
+     k1 ≥ c1 log n2 ,
+     k2 ≥ c2 log n1 ,
+there exists an explicit strong ((n1 , k1 ), (n2 , k2 = δRaz n2 ), εRaz ) two-source extractor
+                 n          n            m
+    Raz : {0, 1} 1 × {0, 1} 2 → {0, 1}
+with m = Ω(min {k1 , k2 }) and εRaz = 2−Ω(m) , where the constants hiding in the asymptotic
+notation may depend on δRaz .
+                                        n           n            m
+B Claim 12. Suppose 2Ext : {0, 1} 1 × {0, 1} 2 → {0, 1} is a strong ((n1 , k1 ), (n2 , k2 ), ε)
+                                                                                   n
+two-source extractor. Let X be an (n, k1 ) source. Call an element y ∈ {0, 1} 2 bad if
+|2Ext(X, y) − Um | > ε, and let BY denote the set of all bad elements. Then, |BY | < 2k2 .
+Proof. Assume towards contradiction that |BY | ≥ 2k2 and let Y be the uniform distribution
+over the set BY . Then, H∞ (Y ) ≥ k2 and so (2Ext(X, Y ), Y ) ≈ε (Um , Y ) which implies that
+      1 X
+              |2Ext(X, y) − Um | ≤ ε.
+    |BY |
+          y∈BY
+
+However, |2Ext(X, y) − Um | > ε for every y ∈ BY , in contradiction.                                 J
+
+2.4    Mergers
+A merger takes as input a list of possibly correlated random variables along with a short
+uniform seed and outputs one random variable which is close to having high min-entropy,
+provided at least one of the input variables has high min-entropy. Formally:
+I Definition 13 (somewhere-random source). A source X = X1 ◦ . . . ◦ XA is an (n, k, (α, β))
+somewhere-random (s.r.) source if there is a random variable I ∈ {0, . . . , A} such that for
+every i ∈ [A], (Xi |I = i) is α-close to an (n, k) source and Pr[I = 0] ≤ β. The variable I is
+called the indicator of source. If α = β = 0 we say X is a (n, k) s.r. source.
+                                                        n          t            m
+I Definition 14 (merger). A function B : ({0, 1} )D ×{0, 1} → {0, 1} is a (k, k 0 , ε) merger,
+if for every (n, k) s.r. source X = X1 ◦ . . . ◦ XA , the output M (X, Ut ) is ε-close to a k 0 -source.
+There are explicit constructions of good mergers. Dvir and Wigderson [17] constructed the
+curve merger and proved that it works with t = O(log nε ). This was further improved in [16]
+who proved that t = O(log D  ε ) suffices. Notice that now t only depends on the number of
+sources D and the requested error ε, but not on the source length n, and this remarkable
+property will be crucial for us. Formally,
+I Theorem 15 ([17, 16]). There exists a constant cDKSS ≥ 1 such that the following holds.
+                                                               n          t        n
+Fix β, δ, ε > 0. There exists an explicit function B : ({0, 1} )D × {0, 1} → {0, 1} that is a
+(k = δn, k 0 = (1 − β)δn, ε) merger, with t = cDKSS · β1 log D
+                                                             ε.
+
+
+2.5    Correlation Breakers with Advice
+                                                                  n         `                 m
+A correlation-breaker with advice is a function CBA : {0, 1} × {0, 1} × [A] → {0, 1} where
+we think of the first input as a weak source, the second as an independent short seed and the
+last as an advice string. Roughly speaking, applying CBA on t possibly correlated seeds with
+t distinct advice strings results in independent random variables. For example, CBA(X, Y, α)
+is (nearly) independent of CBA(X, Y, α0 ) for any α 6= α0 . Formally,
+
+
+
+                                                                                                           CCC 2020
+1:12   Near-Optimal Erasure List-Decodable Codes
+
+
+                                                       n          `                  m
+       I Definition 16. A function CBA : {0, 1} × {0, 1} × [A] → {0, 1} is a (t, k, εCBA )
+                                                                                                        n
+       correlation-breaker with advice if the following holds. If Y is a distribution over {0, 1} ,
+                                                          ` t
+       Z = (Z1 , . . . , Zt ) is a distribution on ({0, 1} ) , H is a random variable and δ > 0 satisfy:
+           Y and Z are independent, conditioned on H,
+           H̃∞ (Y |H) ≥ k + log(1/εCBA ),
+           (Z1 , H) ≈δ (U` , H), and,
+           α1 , . . . , αt ∈ [A] are distinct strings.
+       Then,
+                                                                                               
+                                                   t                                       t
+             CBA(Y, Z1 , α1 ), (CBA(Y, Zi , αi ))i=2 , H ≈δ+2εCBA Um , (CBA(Y, Zi , αi ))i=2 , H .
+
+           We use the following result:
+
+       I Theorem 17 ([13, Theorem 4.12]). There exists a constant cCBA ≥ 1 such that the following
+       holds. Let n, a be integers and εCBA > 0. Then, there exists an explicit (t, kCBA , εCBA )
+       correlation-breaker with advice
+                         n           `
+           CBA : {0, 1} × {0, 1} × [A] → {0, 1}
+                                 n
+       with ` = cCBA · at · log εCBA and kCBA ≥ `.
+
+           In our setting, the number of rows A is a constant independent of n. For this reason we
+       work with a “basic” correlation-breaker, where there is no attempt to optimize the dependence
+       of ` on a. This gives a seed-length which is optimal up to constant multiplicative factors.
+           We also need the following lemma.
+                                                                          m
+       I Lemma 18. Let X1 , . . . , Xt be random variables over {0, 1} . Further suppose that for
+       any i ∈ [t],
+                                         
+            Xi , {Xj }j6=i ≈ε Um , {Xj }j6=i .
+
+       Then, (X1 , . . . , Xt ) ≈tε Utm .
+
+       2.6     Limited Independence and Non-Oblivious Bit-Fixing Sources
+                                                           A
+       I Definition 19. A distribution X over {0, 1} is called (t, γ)-wise independent if the
+                                                                                           A
+       restriction of X to every t coordinates is γ-close to Ut . A source X over {0, 1} is called a
+       (q, t, γ) non-oblivious bit-fixing source if there exists a subset Q ⊆ A of size at most q such
+       that the joint distribution of the bits in A \ Q is (t, γ)-wise independent. The bits in Q are
+       allowed to arbitrarily depend on the bits in A \ Q. If γ = 0 we often say that X is a (q, t)
+       non-oblivious bit-fixing source.
+
+       I Lemma 20 ([3]). A (t, γ)-wise distribution over A bits is (At γ)-close to some t-wise
+       independent distribution.
+
+                                            A                                       A
+       I Definition 21. Let f : {0, 1} → {0, 1}, D a distribution over {0, 1} and Q ⊆ A. Let
+       IQ,D (f ) denote the probability that f is undetermined when the variables outside Q are
+       sampled from D. We define Iq,t,γ (f ) to be the maximum of IQ,D (f ) over all Q ⊆ A of size q
+       and all D that is a (t, γ)-wise independent distribution. We say that f is (t, γ)-independent
+       (q, ε)-resilient if Iq,t,γ (f ) ≤ ε.
+A. Ben-Aroya, D. Doron, and A. Ta-Shma                                                               1:13
+
+
+I Theorem 22 ([9, 32]). For every 0 < γ < 1 there exists a constant cγ ≥ 1 such that for
+                                                      A
+all A > 0 there exists an explicit function f : {0, 1} → {0, 1} with the following property:
+                        4
+    For every t ≥ cγ log A,
+                                                                               A
+    f is almost balanced: For any t-wise independent distribution D on {0, 1} ,
+
+           Pr [f (x) = 1] = 1/2 ± A−1/cγ , and,
+           x∼D
+
+                                          q
+     f is resilient: Iq,t,γ (f ) ≤ cγ · A1−γ .
+
+
+ 3         Constant Degree Condensers
+In this section we prove:
+
+I Theorem 23. For every constant 0 < δ1 < δ2 = 0.7, every s ≥ s0 (δ1 ) and every integer n1
+                                                                                n          d
+and εcond ≥ 2−Ω(n1 ) there exists an explicit δ1 →εcond δ2condenser C : {0, 1} 1 × {0, 1} →
+       n
+{0, 1} 2 with n2 = ( 23 )s n1 and d = 4cDKSS s + log εcond
+                                                       1
+                                                           , where cDKSS is the constant from
+Theorem 15. Note that d is independent of n1 .
+
+    Note that, in particular, for every δ1 > 0 there exists an explicit δ1 →εcond δ2 = 0.7
+                      n        d         n                                   1
+condenser C : {0, 1} 1 × {0, 1} → {0, 1} 2 with n2 = Ω(n1 ) and d = O(log εcond ). However,
+we will need the more precise version that appears in Theorem 23.
+    The proof goes through somewhere-random condensers, so let us first discuss the similar-
+ities and differences between condensers and somewhere-random condensers. We begin with
+the necessary definitions:
+                                                         n         m
+I Definition 24 (s.r. condenser). A function C : {0, 1} → ({0, 1} )A is an (n, k) →ε (m, k 0 )
+s.r. condenser if for every (n, k) source X it holds that C(X) = C(X, 1) ◦ . . . ◦ C(X, A) is
+ε-close to a k 0 s.r. source. If k = δn and k 0 = δm we say C is δ →ε δ 0 s.r. condenser.
+                                                 n   d       m
+    We may take a condenser C : {0, 1} × {0, 1} → {0, 1} and expand it to a table with
+                                                          n          m
+the outputs of all possible seeds, i.e., define S : {0, 1} → ({0, 1} )D , with D = 2d , where
+S(x)i = C(x, i). The condenser property guarantees that for every k-source X, most rows in
+the table are close to having k 0 min-entropy. In contrast, a s.r. condenser is a weaker object,
+because it only guarantees that one row has k 0 entropy (or more precisely that we are in a
+convex combination of such cases).
+    The major question we consider now is the dependence of the degree (2d for condensers
+and A for s.r. condensers) on n, m, k, k 0 and ε. We focus on the case where m = Ω(n),
+k = δn, k 0 = δ 0 m and δ < δ 0 are constants. A priori, we could have expected the degree
+to depend on n and ε, as is indeed the case when m might be arbitrarily small. However,
+remarkably, things are drastically different when m = Ω(n). In this case both condensers and
+s.r. condensers may be of degree that is independent of n and this will be crucial for us. If
+we consider the dependence on the error, then s.r. condensers may have exponentially-small
+error and constant D, whereas the degree of a condenser is at least d ≥ log( 1ε ). Remarkably,
+all of that can be explicitly achieved, as we now explain.
+    The basic building block we use is the following beautiful result of Zuckerman, which is
+based on additive combinatorics:
+
+I Theorem 25 ([45, Theorem 8.3]). For every constant 0 < c < 1 there exists a constant
+α = α(c) such that for every constant δ ≤ c and integer n there exists an explicit function
+                     2
+          n            n
+C : {0, 1} → ({0, 1} 3 )2 that is a δ →ε (1 + α)δ s.r. condenser with ε = 2−Ω(αδn) .
+
+
+                                                                                                   CCC 2020
+1:14   Near-Optimal Erasure List-Decodable Codes
+
+
+           Somewhere-random condensers can be easily composed. Specifically, Barak et al. [5]
+                                      n             n                                             n
+       showed that if C1 : {0, 1} 1 → ({0, 1} 2 )`1 is a δ1 →ε1 δ2 s.r. condenser and C2 : {0, 1} 2 →
+              n3 `2                                                         n1     n3 `1 ·`2
+       ({0, 1} ) a δ2 →ε2 δ3 s.r. condenser then C2 ◦ C1 : {0, 1} → ({0, 1} )                defined by
+       C2 ◦ C1 (x)(i1 ,i2 ) = C2 (C1 (x)i1 )i2 is a δ1 →ε1 +ε2 δ3 s.r. condenser.
+           Composing the s.r condenser of Theorem 25 with itself s times we get an explicit function
+                 n              m
+       C : {0, 1} → ({0, 1} )D with D = 2s and m = ( 23 )s n that is a δ →ε δ 0 s.r. condenser with
+            Ps                i   2 i
+       ε = i=1 2−Ω((1+α) δ( 3 ) n) = 2−Ω(m) and δ 0 ≥ (1 + α(δ 0 ))s δ. Therefore:
+
+       I Lemma 26. For every constants 0 < δ1 < δ2 < 1 there exists a constant s = s(δ1 , δ2 ) and
+                                      n            n
+       an explicit function C : {0, 1} 1 → ({0, 1} 2 )D that is a δ1 →ε δ2 s.r. condenser with D = 2s ,
+              2 s              −Ω(n2 )
+       n2 = ( 3 ) n1 and ε = 2         . Note that D is independent of n and ε.
+
+            Right now, if X is a k-source, the table C(X) has D rows, and, roughly speaking, the
+       guarantee is that one of these rows has density δ 0 . We want to change this to get a condenser,
+       i.e., we are willing to invest a short seed (that is independent of n) and we want to get
+       one output which is close to uniform. (Alternatively, we can write the condenser as a table
+       with one row per seed, the number of rows is independent of n and most rows are close to
+       uniform.) This is exactly what a merger does and applying the merger of Theorem 15 with
+       β = 14 on the s.r. condenser of Lemma 26 (with δ2 close to 1) gives Theorem 23.
+
+
+        4     The Unbalanced Two-Source Extractor Construction
+       The main result of this section is the following two-source extractor.
+
+       I Theorem 27. For every integer n and two constants δ0 , ε0 > 0 there exists a constant c
+       such that for d ≥ c log n and k ≥ c log d there exists an explicit ((n, k), (d, δ0 d), ε0 ) two-source
+                              n        d
+       extractor 2Ext : {0, 1} × {0, 1} → {0, 1}.
+
+          The extractor in the above theorem has constant error, and works when:
+       1. Each source’s entropy is in the order of the logarithm of the length of the other source.
+       2. The shorter source, of length d, has an arbitrarily small constant density δ0 .
+
+          We think of n and d = d(n) as growing parameters while ε0 and δ0 are constants. We
+       use asymptotic notations (such as Ω(·)) to hide constants that are independent of n and d
+       (but may depend on ε0 and δ0 ).
+
+       4.1    The Construction
+       Recall that ε0 is the target error of the extractor 2Ext. The input to 2Ext is a pair (x, y)
+       where x is drawn from an (n, k) source X, and y is drawn from an independent (d, δ0 d)
+       source Y . Our problem is that the y comes from a δ0 d-source for some δ0 < 12 . To overcome
+       this, we do the following:
+           We apply the condenser of Theorem 23 on y to get a table y 0 that is 1-wise 0.7-dense.
+           Notice that the output of this step is a table rather than a single output.
+           We apply Raz’s extractor (Theorem 11) on the table and the input x from the other
+           source to convert the table y 0 to another table y 00 that is 1-wise uniform.
+           We apply the t correlation-breaker with advice of Theorem 17 on y, using the table y 00 as
+           the seed, to get a table y 000 that is t-wise uniform.
+           Finally, we apply the resilient function f of Theorem 22 on the table y 000 to collapse the
+           many rows of the table to a single, close to uniform, output.
+A. Ben-Aroya, D. Doron, and A. Ta-Shma                                                                       1:15
+
+
+     Formally, these steps work as follows:
+
+Condense the short source: We are given δ0 < 21 . Set δ 0 = 0.69 and δ2 = 0.7.
+  By Theorem 23 there exists a constant s0 = s0 (δ0 ) such that for every s ≥ s0 there exists
+  an explicit
+                     d             a             d0
+         C : {0, 1} × {0, 1} → {0, 1}
+                                                                       1
+     that is a δ0 →εcond δ2 = 0.7 condenser with a = 4cDKSS (s + log εcond ) and d0 = ( 32 )s d.
+     We set
+                   1
+         γ=             ,
+               25 cDKSS
+     and this also fixes cγ as in Theorem 22. Notice that γ and cγ are fixed constants
+     independent of all other parameters in our system.
+     Now, choose εcond so that
+               log(3/2)
+            1                4 12 4              1
+                          ≥    2 cγ cDKSS log4       ,                             (1)
+          εcond             δ0                 εcond
+     and also so that εcond ≤ ξ(ε0 , δ0 ), where
+                          (                              )
+                                  ε 2  ε cγ  ε 1/γ
+                             −s0      0        0     0
+        ξ(ε0 , δ0 ) = min 2 ,              ,     ,         .                                         (2)
+                                     8        5    5cγ
+                                    1                                  1
+     Given εcond , we set s = log εcond ≥ s0 , giving a = 8cDKSS log εcond . Note that the degree of
+                            a
+     the condenser, A = 2 , satisfies
+         √                   − 12 log ε 1 +a           − 24 ca     +a
+             εcond A = 2               cond     = 2         DKSS        = A1−2γ .
+
+     Observe that s ≥ s0 and that d0 = Ω(d). Also, notice that (δ2 −δ 0 )d0 = d0 /100 ≥ a = log A
+     for large enough d. Thus, C is a (d, δd) →εcond (d0 , log(A) + δ 0 d0 ) condenser.
+     Define an A × d0 table Y 0 where
+                                       d0
+         Yi0 = C(Y, i) ∈ {0, 1}
+
+   for i = 1, . . . , A.
+1-wise uniformity: Let c1 , c2 be the constants from Theorem 11 for δRaz = 0.6.
+   Notice that δRaz d0 = Ω(d0 ) = Ω(d). Therefore, for a constant c large enough, d ≥ c log n
+   is large enough so that δRaz d0 ≥ c2 log n. We can, in particular, choose c such that in
+   addition c ≥ c1 . Recalling that k ≥ c log d, we have k ≥ c1 log d0 . By Theorem 11, there
+   exists an explicit function
+                         n             d0             d00
+         Raz : {0, 1} × {0, 1}              → {0, 1}
+                                                                           00
+     that is a strong ((n, k), (d0 , δRaz d0 ), εRaz = 2−Ω(d ) ) two-source extractor with d00 =
+     Ω(min {k, δRaz d0 }) = Ω(k).3 Define an A × d00 table Y 00 where
+
+         Yi00 = Raz(X, Yi0 )
+
+     for i = 1, . . . , A.
+
+
+3
+    Although k ≥ c log d we can always assume w.l.o.g. that k = c log d and so k ≤ δRaz d0 = Ω(d).
+
+
+
+
+                                                                                                           CCC 2020
+1:16   Near-Optimal Erasure List-Decodable Codes
+
+
+       t-wise uniformity: Let kCBA = δ08d and εCBA = d1 . Set
+                          s
+                    δ0    3
+              t =             .
+                    4     2
+
+          Notice that for a large enough constant c we have d00 = Ω(k) = Ω(c log d) ≥ cCBA at log εCBA
+                                                                                                   d
+                                                                                                       ,
+          where the latter is the seed-length required by the correlation-breaker from Theorem 17.
+          Also, kCBA = δ08d ≥ d00 for large enough d, as d00 = Ω(k) = Ω(log d). Hence, by Theorem
+          17 there exists an explicit function
+                            d            d00
+              CBA : {0, 1} × {0, 1}            → {0, 1}
+
+          that is a (t, kCBA , εCBA ) correlation-breaker with advice.
+          Define an A × 1 table Y 000 where
+
+              Yi000 = CBA(Y, Yi00 , i)
+
+          for i = 1, . . . , A.
+          Keep in mind that the entropy in Y suffices for CBA since H∞ (Y ) = 8kCBA .
+                                A
+       Collapse: Take f : {0, 1} → {0, 1} to be the (q = A1−2γ , t, εf = cγ A−γ ) resilient function
+          of Theorem 22 and output f (y1000 , . . . , yA
+                                                       000
+                                                           ).
+
+       4.2    Two Subtleties
+       As mentioned in the introduction, there are several delicate issues in the analysis:
+       1. Circular dependence: Y 00 depends on both X and Y , and is used as a seed in the
+          application of the correlation-breaker with advice on Y .
+       2. We need Y 000 to be close to a perfect t-wise independent table, while the correlation-breaker
+          with advice only guarantees that every t good rows are close to uniform. To bridge the
+          gap we need the error to be at least polynomially-small in the number of rows, but some
+          of the steps incur a large constant error.
+
+           To overcome the first issue we show a conditioning under which Y 00 is still good, Y is
+       independent of Y 00 and even after the conditioning the two sources have enough min-entropy.
+           To overcome the second issue we distinguish between large errors that depend on the
+       number of rows A, and small errors that depend on the row length (see Section 1.3 in the
+       introduction). In particular, the errors are of three types:
+           The probability p1 that a value we condition upon is bad. This error is incurred by the
+           condenser and is high (think of it as being a constant).
+           We show that when we condition on a good value, every t good rows in Y 000 are p2 -close
+           to uniform. We then claim that Y 000 as a table is At p2 -close to a table where the good
+           rows are truly t-wise independent (where A is the number of rows in the table Y 000 ). The
+           error p2 is incurred by Raz’s extractor and by the correlation-breaker, and can be made
+           very small if we deal with a source X having enough min-entropy. We make p2 small
+           enough so that At p2 is also small.
+           A third error p3 is incurred by the resilient function f . This error is large, say, a constant,
+           and we are fine with that.
+
+          Note that we cannot just accumulate all errors as At p1 is way larger than 1. Instead, we
+       argue that with a constant probability 1 − p1 , we get extremely close to perfect behavior,
+       and then we get such a small error p2 so that At p2 is also small.
+A. Ben-Aroya, D. Doron, and A. Ta-Shma                                                                             1:17
+
+
+4.3        The Analysis
+Proof of Theorem 27. Fix an (n, k) source X and an independent (d, δd) source Y . We
+decompose the proof into three parts:
+   In the first part we prove that very often (except for a small constant probability) the
+   table Y 00 contains many rows that are marginally close to uniform.
+   Next, we prove that every set of t rows {i, j1 , . . . , jt−1 } in Y 000 are product in the sense
+   that if i is a good row (intuitively meaning that Yi00 is close to uniform) and j1 , . . . , jt−1
+   are t − 1 other rows, then in Y 000 , Yi000 is close to uniform and independent of Yj000
+                                                                                         1
+                                                                                            , . . . , Yj000
+                                                                                                        t−1
+                                                                                                            .
+                                                                                      00
+   This part involves applying a correlation-breaker with advice on Y and Y . In order to
+   ensure that Y and Y 00 are independent, we condition on the values of Y 0 in the t rows
+   {i, j1 , . . . , jt−1 }.
+   Together, except for a small constant probability, there are many good rows, and every t
+   rows of Y 000 are product, hence the table Y 000 is close to a (q, t) non-oblivious bit-fixing
+   source, where every good row is a good bit in the bit-fixing source. Hence, f (Y 000 ) is close
+   to uniform.
+
+Part 1: Often, many rows in Y 0 are good
+Let εi be the minimal distance of C(Y, i) from a δ 0 d0 -source. According to Lemma 9,
+
+    Ei∈[A] [εi ] ≤ εcond .
+                                                  d0
+I Definition 28. We say z ∈ {0, 1} is good if Raz(X, z) is εRaz -close to uniform. Let
+                                                                                      d
+GZ be the set of all good z-s, and BZ the rest. We say i ∈ [A] is good for y ∈ {0, 1} if
+C(y, i) ∈ GZ and bad otherwise. We define a random variable Bi , where the sample space is
+Y , and Bi (y) = 1 if i is bad for y and 0 otherwise.
+                                       0
+   By Claim 12, |BZ| ≤ 2δRaz d . Therefore, in expectation, the number of bad rows for y is
+small:
+                  P             
+B Claim 29. Ey∈Y     i∈[A] Bi (y) ≤ 2εcond A.
+
+Proof. Fix an i ∈ [A]. We have that C(Y, i) is εi -close to some δ 0 d0 = 0.69d0 -source R. Hence:
+
+                                                                               |BZ|                 0
+    Ey [Bi (y)] = Pr [C(y, i) ∈ BZ] ≤ εi + Pr [r ∈ BZ] ≤ εi +                         = εi + 2−0.09d .
+                     y∈Y                                   r∈R                 2δ0 d0
+Thus, for d large enough,
+     hX          i   X                  X            0
+                                                                         0
+  Ey       Bi (y) =       Ey [Bi (y)] ≤   εi + 2−0.09d ≤ εcond A + 2−0.09d A ≤ 2εcond A.C
+       i∈[A]             i∈[A]                     i∈[A]
+                                                                         P                    √
+I Definition 30. We say y ∈ Supp(Y ) has many bad rows if                    i∈[A] Bi (y) ≥       εcond A.
+Denote p1,1 = ε40 .
+
+B Claim 31. Pry∈Y [y has many bad rows] ≤ p1,1 .
+
+Proof. By Markov,
+                                                  P           
+           hX                √             i     E    i Bi (y)     2εcond A     √        ε0
+      Pr         Bi (y) ≥        εcond A       ≤   √             ≤ √         = 2 εcond ≤    ,
+    y∈Y
+             i
+                                                     εcond A         εcond A             4
+
+where the last inequality follows from the fact that εcond ≤ ( ε80 )2 .                                      C
+
+
+
+                                                                                                                 CCC 2020
+1:18   Near-Optimal Erasure List-Decodable Codes
+
+
+       Part 2: The good rows are t-wise independent
+                                                                                                              d
+       We introduce some notations to simplify the expressions in the proof. For y0 ∈ {0, 1}
+                           000              000                                          000
+        000k ∈ [A], let Yk (y0 ) denote (Yk |Y = y0 ). Also, for a set S ⊆ [A], define YS (y0 ) =
+       and
+        Yj (y0 ) j∈S . Denote p2 = εRaz + 2εCBA .
+
+                                                  d
+       I Definition 32. Let y0 ∈ {0, 1} (not necessarily in the support of Y ). Let i ∈ [A] and
+       S ⊆ [A] \ {i} of cardinality t − 1. We say y0 violates the product rule for (i, S) if Bi (y0 ) = 0
+       and
+
+            (Yi000 (y0 ), YS000 (y0 )) 6≈p2 U1 × YS000 (y0 ).
+                                                  d
+       I Definition 33. Let y0 ∈ {0, 1} (not necessarily in the support of Y ). Let i ∈ [A] and
+       S ⊆ [A] \ {i} of cardinality t − 1. We say y0 violates the product rule with distinguisher
+                 t
+       ∆ : {0, 1} → {0, 1} for (i, S) if Bi (y0 ) = 0 and
+
+             Pr[∆ (Yi000 (y0 ), YS000 (y0 )) = 1] − Pr[∆(U1 , YS000 (y0 )) = 1] > p2 .
+
+          Observe that if y0 violates the product rule then there exists some ∆ such that y0 violates
+       the product rule with distinguisher ∆.
+                                                                                         d
+       I Lemma 34. For every i and S as above, the number of y ∈ {0, 1} that violate the product
+                                           t
+       rule for (i, S) is at most 2δ0 d/2+2 .4
+
+       Proof. Suppose the lemma is false for some (i, S). Then, by the pigeonhole principle there
+                                                                     d
+       exists some ∆ such that the number of elements y ∈ {0, 1} that violate the product rule
+       for (i, S) with distinguisher ∆ is at least 2δ0 d/2 . Let BY denote the set of these elements.
+       Identify BY with the uniform distribution over the set BY .
+           Let BYi0 = C(BY, i), BYi00 = Raz(X, BYi0 ) and BYi000 = CBA(BY, BYi00 , i). For a subset
+       T ⊆ [A] Let BYT0 denote the sub-table of BY 0 corresponding to the rows of T , and similarly
+       BYT00 and BYT000 . Since for every y ∈ BY , we have that
+
+            ∆ (BYi000 (y), BYS000 (y)) 6≈p2 ∆(U1 , BYS000 (y)),
+
+       this holds also on average, that is
+
+            ∆ (BYi000 , BYS000 ) 6≈p2 ∆(U1 , BYS000 ).
+
+       Thus, it follows that
+
+              000
+            BYS∪{i} 6≈p2 U1 × BYS000 .                                                                      (3)
+
+                                                                               0
+           On the other hand, when we condition on the values of H = BYS∪{i}       , the conditions
+       for the correlation-breaker with advice hold:
+                        00                               0
+           BY and BYS∪{i}    are independent given H = BYS∪{i} , since H is a function of BY alone,
+                                    0                      00
+           and given that H = BYS∪{i} = h for some h, BYS∪{i}    is a function of X alone.
+
+
+                                                                            t
+       4
+           We could have used an alternative argument that avoids the 22 factor here by a minor deterioration in
+                                                                               t
+           the error of the CBA. However, since the t we use is constant the 22 factor is negligible.
+A. Ben-Aroya, D. Doron, and A. Ta-Shma                                                                  1:19
+
+
+   It holds that
+      H̃∞ (BY |H) ≥ H∞ (BY ) − log(|Supp(H)|)
+                                     δ0 d         δ0 d
+                  = H∞ (BY ) − td0 ≥      − td0 ≥      ,
+                                      2            4
+   because
+                s
+      td0       2     δ0
+          =t·       = .
+       d        3     4
+   Now, since kCBA = δ08d and εCBA = d1 we also have for d large enough,
+                          δ0 d                1
+       H̃∞ (BY |H) ≥           ≥ kCBA + log      .
+                           4                εCBA
+   Bi (y) = 0, hence BYi0 ∈ GZ and BYi00 = Raz(X, BYi0 ) is εRaz -close to uniform.
+   Thus, by the correlation-breaker with advice property,
+                                                                                    
+    CBA(BY, BYi00 , i), CBA(BY, BYj00 , j) j∈S ≈εRaz +2εCBA U1 , CBA(BY, BYj00 , j) j∈S ,
+                                                               
+
+or, equivalently,
+   (BYi000 , BYS000 ) ≈p2 U1 × BYS000 ,
+in contradiction to Equation (3).                                                               J
+                                    d
+I Definition 35. Say y ∈ {0, 1} violates the product rule if it violates it for some i ∈ [A]
+and S ⊆ [A] \ {i} of cardinality t − 1.
+   As H∞ (Y ) ≥ δ0 d, the probability y ∈ Y violates the product rule for a specific (i, S) is
+                 t          t
+                                                  ε0
+at most 2δ0 d/2+2 −δ0 d = 22 −δ0 d/2 . Let p1,2 = 10 . Then, by the union bound, for d large
+enough:
+                                                               t
+I Corollary 36. Pry∈Y [y violates the product rule] ≤ 22 −δ0 d/2 · At ≤ p1,2 .
+
+Part 3: Completing the proof
+I Definition 37. We say y is bad if it has many bad rows or if it violates the product rule.
+If y is not bad we say it is good.
+   Let p1 = p1,1 + p1,2 . Clearly, by Claim 31 and Corollary 36, Pry∈Y [y is bad] ≤ p1 =
+ 1    1
+ 4 + 10  ε0 .
+B Claim 38. Fix any good y ∈ Y . Then, Y 000 (y) is a (q, t, tp2 ) non-oblivious bit-fixing source,
+       √
+for q = εcond A.
+Proof. Let Q(y) ⊆ [A] be the set of bad rows for y. As y does not have many bad rows,
+            P               √
+|Q(y)| = i∈[A] Bi (y) ≤ εcond A = q.
+   Now, fix any set S ⊆ [A] \ Q(y) of cardinality t. Let i ∈ S. As S ⊆ [A] \ Q(y) and i ∈ S
+we have i 6∈ Q(y) and therefore Bi (y) = 0. Also, y does not violate the product rule, hence,
+                         
+     Yi000 (y), YS\{i}
+                 000                 000
+                       (y) ≈p2 U1 × YS\{i} (y).
+
+As this is true for any i ∈ S, by Lemma 18,
+   YS000 (y) ≈tp2 Ut .
+Thus, Y 000 (y) is a (q, t, tp2 ) non-oblivious bit-fixing source.                              C
+
+
+
+                                                                                                      CCC 2020
+1:20   Near-Optimal Erasure List-Decodable Codes
+
+
+           In particular, by Lemma 20, for every good y, Y 000 (y) is tAt p2 -close to a (q, t) non-oblivious
+                                                                        √
+       bit-fixing source. By the choices we have made above q = εcond A ≤ A1−2γ . Equation (1)
+       implies that
+                                  log(3/2)
+                  δ0        1
+            t =                                 ≥ cγ log4 A.
+                  4        εcond
+
+       Using the resiliency of f from Theorem 22 (and the fact that it is almost balanced), the
+       output when y is good is p3 -close to uniform for p3 = tAt p2 + εf + A−1/cγ , where the first
+       term is due to the distance from a t-wise distribution, the second is due to the resiliency and
+       the third is due to the bias of f (see, e.g., Lemma 2.11 in [9]). To that we also have to add
+       the probability p1 that y is not good. To finish the proof we notice that:
+          It holds that
+                                q                   A1−2γ                −γ log ε 1     ε0
+               εf ≤ cγ                  ≤ cγ              = cγ A−γ ≤ cγ 2        cond ≤    ,
+                             A1−γ                   A1−γ                                5
+                               ε0 1/γ
+            because εcond ≤ ( 5cγ
+                                  ) .
+            Also,
+                                    − c1γ log ε 1                      ε0
+               A−1/cγ ≤ 2                      cond   = εcond 1/cγ ≤      ,
+                                                                       5
+            because εcond ≤ ( ε50 )cγ .
+            Finally, tp2 = t(εRaz + 2εCBA ), εRaz = 2−Ω(k) = d−Ω(1) , εCBA = d1 . Thus, tp2 ≤ 4td−Ω(1) .
+            A and t are constants, so for d large enough, tAt p2 ≤ ε50 .
+            Together, the error is at most p1 + p3 ≤ ε0 completing the proof of the theorem.                J
+
+        5      Strong Seeded Dispersers and Friends
+       5.1     Strong Seeded Dispersers
+                                                                               n        d      m
+       I Definition 39 (strong disperser). A function Disp : {0, 1} × {0, 1} → {0, 1}              is a strong
+       (k, ε) disperser, if for every (n, k) source X,
+
+            |Supp((Y, Disp(X, Y )))| > (1 − ε)DM.
+                                                                         d
+       We say Disp is (source) linear if for every y ∈ {0, 1} and every x1 , x2 ∈ Fn2 , Disp(x1 +x2 , y) =
+       Disp(x1 , y) + Disp(x2 , y).
+
+           We are interested in the important special case where m = 1. In this case, non-explicitly,
+       a random function is (w.h.p.) a strong (k, ε) disperser with d = log n + log( 1ε ) + O(1) provided
+       that k ≥ log log( 1ε ) + O(1) [37, 33]. A matching lower bound, up to additive constant factors,
+       was given by [37].
+           Using the translation between strong seeded dispersers and erasure list-decodable codes
+       which we discuss in Section 5.3, Guruswami and Indyk’s result [26] gives a probabilistic
+       polynomial time algorithm that outputs with high probability a strong seeded disperser with
+       seed-length d = 2 log( 1ε ) + log n + log log( 1ε ) and optimal entropy-loss. The construction can
+       be made deterministic, but with running time exponential in 1/ε. See Table 1 for a summary
+       of previous results.
+           Note that as we discuss the one output bit case, the required entropy is essentially the
+       entropy-loss. From Theorem 27 we can derive a better explicit construction of a strong
+       disperser with small error.
+A. Ben-Aroya, D. Doron, and A. Ta-Shma                                                                                   1:21
+
+
+   Table 1 Parameters of strong (k, ε) one-bit dispersers, up to additive O(1) terms. γ is an
+arbitrarily small positive constant.
+
+                                  Required entropy k             Seed length d
+
+  Lower-bound, non-explicit              log log( 1ε )           log( 1ε ) + log n               [37, 33]
+
+  [26]                                   log log( 1ε )       (2 + γ) log( 1ε ) + log n        Constant ε, or
+                                                                                         randomized construction
+
+  This work (Theorem 40)             O(log log 1ε )              (1 + γ) log( 1ε )           poly(1/n) error
+
+
+I Theorem 40. For every constant 0 < γ < 1 there exists a constant c ≥ 1 such that
+                                 c
+for every integer n and ε ≤ n− 1−γ there exists an explicit strong (k, ε) disperser Disp :
+      n        d
+{0, 1} × {0, 1} → {0, 1} where d = (1 + γ) log( 1ε ) and k = c log d.
+                                   γ
+Proof. Set ε0 = 14 and δ0 = 1+γ       . Let c be the constant from Theorem 27 for δ0 and ε0
+and let 2Ext : [N ] × [D] → {0, 1} be the ((n, k), (d, k2 = δ0 d), ε0 ) two-source extractor where
+                                                                                   c
+d = (1 + γ) log( 1ε ) and k = c log d. Notice that d ≥ c log n (because ε ≤ n− 1+γ ) as required.
+Let Disp(x, y) = 2Ext(x, y).
+    Let X ⊆ [N ] be a set of size K and call a value y ∈ [D] b-bad if Disp(X, y) = {b}. It
+follows that the sets of 0-bad y-s and 1-bad y-s are each of size less than K2 . Therefore,
+                                                                              
+                                                                           K2
+|Supp (Ud , Disp(X, Ud )) | > 2K2 +2(D−2K2 ) = 2D−2K2 = 1 −                      2D = (1−ε)2D,
+                                                                             D
+                                     1                   1
+because KD2 = 2−(1−δ0 )d = 2− 1+γ d = 2− log( ε ) = ε.                                                             J
+
+5.2      Non-strong dispersers
+We now prove Theorem 5 and output more bits from the source at the expense of being
+strong in only most of the seed. We construct
+                n             d               d              m
+   Disp : {0, 1} × {0, 1} 1 × {0, 1} 2 → {0, 1} ,
+where we think of d1 and d2 as two parts of the seed. Disp will be strong in the first d1 bits
+of the seed. Using the notations of Section 4 we let
+                                      
+    Disp(x, y, i) = y, Raz(x, C(y, i)) .
+We now prove (in sketch) Theorem 5.
+
+Proof. We adopt the notations of Section 4. In those notations, Disp(X, Y, I) = (Y, YI00 ).
+                                        d
+First note that the length of i ∈ {0, 1} 2 is the logarithm of the number of rows in the table
+  00                                                                               d
+Y which is a = O(1). By Claim 31 we know that for nearly every y ∈ {0, 1} 1 we have
+                        d2
+many values i ∈ {0, 1} such that Raz(X, C(y, i)) is εRaz -close to uniform. In particular, for
+every y that has many good rows, let iy be any such row. Then,
+                                         X
+     |Supp(Disp(X, Ud1 , Ud2 ))| ≥                   |Supp(Disp(X, y, iy ))|
+                                         y has many good rows
+                                                    X                           00
+                                   ≥                             (1 − εRaz )2d .
+                                         y has many good rows
+                                                                                                00
+    The theorem now follows since d00 = Ω(k) and εRaz is smaller than 2−Ω(d ) , which implies
+that we can truncate the output of Raz such that when Raz(X, C(y, i)) is εRaz -close to uniform
+it covers its entire support.                                                                 J
+
+
+
+                                                                                                                       CCC 2020
+1:22   Near-Optimal Erasure List-Decodable Codes
+
+
+           Table 2 Parameters of (n̄, N )2 codes, ((1 − ε)n̄, L) erasure list-decodable, up to constant multi-
+       plicative factors. γ is an arbitrarily small positive constant.
+
+                                            Rate R = n/n̄     List size L
+
+              Lower-bound, non-explicit            ε             log( 1ε )                    [24]
+                                                    2
+                                                   ε
+              [26]                              log(1/ε)
+                                                                 log( 1ε )              Constant ε, or
+                                                                                    randomized construction
+
+              This work (Theorem 46)             ε1+γ         logO(1) ( 1ε )            poly(1/n) error
+
+
+       5.3    Erasure List-Decodable Codes
+                                                             n                 n̄
+       An (n̄, n) (binary) code is a mapping C : {0, 1} → {0, 1} . The code C is linear if C is
+       linear, and is denoted by [n̄, n] . We identify a code with the image of C. For a linear C this
+       image is a linear subspace of Fn̄2 of dimension n. A generator matrix for an [n̄, n] code C is
+       any matrix whose columns form a basis for C. In the erasures noise model, an adversarially
+       chosen subset of the codeword’s symbols are erased and the positions where erasures have
+       occurred are known.
+                                                                                         n̄
+       I Definition 41 (erasure list-decodable code). A code C ⊆ {0, 1} is (s, L) erasure list-
+                                         n̄−s
+       decodable if for every r ∈ {0, 1}      and every set T ⊆ [n̄] of size n̄ − s,
+           
+             c ∈ C c|T = r      < L,
+
+       where c|T denotes the projection of c to the coordinates in T .
+           The following folklore lemma (see, e.g., [24, Lemma 1]) gives an alternative characterization
+       of linear erasure list-decodable codes.
+       I Lemma 42. An [n̄, n]2 linear code C is ((1 − ε)n̄, L) erasure list-decodable if and only if
+       its n̄ × n generator matrix G has the property that every εn̄ × n sub-matrix of G has rank
+       greater than n − log L.
+          Non-explicitly, we have:
+       I Theorem 43 ([24]). For every n and ε > 0, there exists an (n̄, n) binary code that is
+       ((1 − ε)n̄, L)-erasure list-decodable of rate nn̄ = Ω(ε) and L = O(log(1/ε)).
+          See Table 2 for a summary of previous results.
+          Guruswami [25] observed that strong dispersers can be used to construct erasure list-
+       decodable codes. Here we complement his argument, and note that strong dispersers are
+       equivalent to erasure list-decodable codes. Given a function Disp : [N ] × [D] → {0, 1}, we
+                                              n          D
+       consider the (D, n) code CDisp : {0, 1} → {0, 1} defined by CDisp (x)i = Disp(x, i). Note that
+       the code is linear if and only if Disp is linear.
+       I Lemma 44 (following [25, Lemma 12]). The function Disp : [N ] × [D] → {0, 1} is a strong
+       (k, ε) disperser if and only if CDisp is ((1 − 2ε)D, K) erasure list-decodable.
+       Proof. For one direction, assume Disp is a strong (k, ε) disperser. We wish to prove that
+       CDisp is ((1 − 2ε)D, K) erasure list-decodable. Let T = {t1 , . . . , t2εD } ⊆ [D] be an arbitrary
+                                        2εD                                           n
+       set of size 2εD and r ∈ {0, 1}       an arbitrary string. Let XT,r ⊆ {0, 1} denote the set of
+       all the messages x for which CDisp (x)|T = r. Then,
+                                        
+           |Supp (Ud , Disp(XT,r , Ud )) | ≤ |T | · 1 + (D − |T |) · 2 ≤ (1 − ε)2D,
+A. Ben-Aroya, D. Doron, and A. Ta-Shma                                                                1:23
+
+
+where the first inequality follows by considering seeds in T and seeds in [D] \ T . For a seed
+ti ∈ T we have that Disp(XT,r , ti ) is fixed, hence each such seed contributes 1 to the support
+size. For any other seed y, the support size of Disp(XT,r , y) is at most 2. As Disp is a strong
+(k, ε) disperser, we conclude that |XT,r | ≤ K as desired.
+    For the other direction assume Disp is a not a strong (k, ε) disperser. Then, there exists a
+               n                                                  
+set X ⊆ {0, 1} such that |X| ≥ K and |Supp (Ud , Disp(X, Ud )) | ≤ (1−2ε)2D. Note that for
+every y ∈ [D] we have |Supp(Disp(X, y))| ∈ {1, 2}. Therefore, following the above calculation,
+there exists a set T ⊆ D of size at least 2εD such that for each y ∈ T , |Supp(Disp(X, y))| = 1.
+But this means that for every x ∈ X, CDisp (x)|T is the same (punctured) codeword. It follows
+that CDisp is not ((1 − 2ε)D, K) erasure list-decodable.                                      J
+                                n        d
+I Corollary 45. If Disp : {0, 1} ×{0, 1} → {0, 1} is a strong (k, ε) disperser with seed-length
+d = a1 log n + a2 log( 1ε ) + a3 (for some a1 ≥ 1, a2 ≥ 1 and a3 ) then CDisp is a ((1 − 2ε)D, K)
+erasure list-decodable code of rate 2−a3 · n1−a1 · εa2 .
+
+    When ε is much smaller than n1 the dominant factor is determined by a2 . As we mentioned
+earlier (and as Guruswami also notes in [25]) previous explicit constructions for binary codes
+had a2 ≥ 2 (usually inherited from extractor constructions). Our construction is the first to
+get arbitrary close to a2 = 1 and small list-size. Combining Corollary 45 and Theorem 40,
+we obtain:
+
+I Theorem 46. For every constant 0 < γ < 1 there exists a constant c ≥ 1 such that for
+                            c                                          n        ( 1 )1+γ
+every integer n and ε ≤ n− 1−γ there exists an explicit code C : {0, 1} → {0, 1} ε       that is
+               1+γ                   c !
+                1                     1
+     (1 − 2ε)          , (1 + γ) log
+                ε                     ε
+
+erasure list-decodable of rate nε1+γ .
+
+5.4    Ramsey Graphs
+Ramsey theory studies inevitable order that appears in large structures. It was initiated
+by Ramsey [38], who showed that any graph over N = 2n vertices must contain a clique or
+an independent set of size n/2. A graph over N vertices is called K-Ramsey if it contains
+neither a clique nor an independent set of size K. Inaugurating the probabilistic method,
+Erdős [18] showed that there are 2n-Ramsey graphs. He also offered a bounty of $100 for an
+explicit construction of an O(n)-Ramsey graph.
+    Erdős’s challenge initiated a line of beautiful constructions of Ramsey graphs [1, 34,
+19, 11, 20]. The study of pseudorandomness gave a new perspective on Ramsey graphs.
+Specifically, any two-source disperser or extractor gives rise to a bipartite Ramsey graph
+(and hence, also to a non-bipartite Ramsey graph [41]). This connection led to to new
+constructions of Ramsey graph [10, 35, 2, 39, 8, 4, 21, 5, 6, 14, 9, 32, 15, 28] culminating in
+(N, nO(log log n/ log log log n) )-Ramsey graphs [7, 29].
+    In this section we tackle the problem of constructing unbalanced Ramsey graphs.
+
+I Definition 47 (Ramsey graph). A bipartite graph Ram : [N1 ] × [N2 ] → {0, 1} is a (K1 , K2 )
+bipartite Ramsey graph if every K1 × K2 induced subgraph of Ram is neither a bipartite clique
+nor a bipartite independent set.
+
+While it is possible to interpret some pseudorandom objects as unbalanced Ramsey graphs,
+they were less studied explicitly. See Table 3 for a summary of previous results.
+
+
+
+                                                                                                    CCC 2020
+1:24   Near-Optimal Erasure List-Decodable Codes
+
+
+          Table 3 Parameters of (K1 , K2 ) Ramsey graphs in the unbalanced case, [N1 = 2n ] × [N2 ]. c is
+       any large enough constant and γ is an arbitrarily small positive constant.
+
+                                              K1 : N1                      K2 : N2
+                                                                  n
+              Lower-bound                 (c − 1) log n : 2                 n : nc       By [37] and Claim 49
+
+              Non-explicit                 O(c log n) : 2n                  n : nc       Probabilistic method
+
+              [39]                         log   O(1)
+                                                        n:2   n
+                                                                      N20.5+γ : nO(1)   O(1) terms depend on γ
+
+              This work (Theorem 27)       logO(1) n : 2n                 N2γ : nO(1)   O(1) terms depend on γ
+
+
+
+         It is easy to see that a two-source extractor with any nontrivial error is, in fact, a bipartite
+       Ramsey graph, so as a corollary of Theorem 27, we obtain:
+
+       I Corollary 48. For every integer N1 and a constant 0 < δ < 1 there exists a constant
+       c = c(δ) ≥ 1 and an explicit function Ram : [N1 ] × [N2 ] → {0, 1} that is a bipartite
+       (K1 , K2 = N2δ ) Ramsey graph, for N2 = logc N1 and K1 = logc N2 .
+
+          We start with the easy claim that bipartite Ramsey graphs are equivalent to strong
+       one-bit dispersers.
+
+       B Claim 49. If Ram : [N1 ] × [N2 ] → {0, 1} is a (K1 , K2 ) bipartite Ramsey graph then Ram
+       is a strong (k1 , ε ≥ K                                              1
+                             N2 ) disperser with seed-length n2 = k2 + log( ε ). Also, if Ram is a strong
+                               2
+
+                 K2
+       (k1 , ε = 2N2 ) disperser then it is a (K1 , K2 ) bipartite Ramsey graph.
+
+       Proof. The first claim follows from the proof of Theorem 40.
+                                                                                                  K2
+           For the other claim, which was already observed in [22], assume Ram is a (k1 , ε = 2N    2
+                                                                                                      )
+       disperser and assume towards contradiction that it is not a (K1 , K2 = 2εN2 ) bipartite Ramsey
+       graph. Hence, there exist some S ⊆ [N1 ] and T ⊆ [N2 ] so that |S| ≥ K1 and |T | ≥ K2 such
+       that either Ram(S, T ) = {0} or Ram(S, T ) = {1}. Assume w.l.o.g. that Ram(S, T ) = {0}, so
+       for every t ∈ T , (t, 1) ∈
+                                / Supp (Un2 , Ram(S, Un2 )) . But then,
+                                      
+           |Supp (Un2 , Ram(S, Un2 )) | ≤ 2(N2 − |T |) + |T | ≤ (1 − ε)2N2 ,
+
+       a contradiction.                                                                                          C
+
+          As observed in [22], the quality of the Ramsey graph implied by the above theorem
+       crucially depends on the seed-length of the given disperser. Specifically, if the seed-length
+                                                                  √
+       dependence on the error ε is 2 · log( 1ε ) then K2 = 2εN2 > N2 and if it is 1 · log( 1ε ) then K2
+       can be very small.
+          We mention a more frugal way of obtaining Ramsey graphs from linear dispersers. The
+       argument is a straightforward adaptation of an argument of Alon [23, Proposition 10.15].5
+       The parameters we obtain are identical to the above claim (and [22]), except that one side of
+       the graph is scaled down (from N to n) as is its entropy (from K to k).
+                                                    n                 d
+       I Theorem 50. Suppose Disp : {0, 1} × {0, 1} → {0, 1} is a linear strong (K, ε) disperser.
+       Let G be the D ×n generating matrix of the [D, n]2 linear code CDisp . Then, G is a (2εD, k +1)
+       bipartite-Ramsey-graph.
+
+       5
+           Alon’s argument is aimed at obtaining balanced Ramsey graphs, while we are more concerned with the
+           entropy they can handle.
+A. Ben-Aroya, D. Doron, and A. Ta-Shma                                                                     1:25
+
+
+Proof. Assume Disp is a linear strong (K, ε) disperser. By Lemma 44, CDisp is a ((1−2ε)D, K)
+erasure list-decodable code. Assume towards contradiction that G is not a (2εD, k + 1)
+bipartite Ramsey graph. Let M 0 be a monochromatic 2εD × k + 1 sub-matrix of G. Assume
+that M 0 is the all-ones matrix (a similar argument handles the all-zeros matrix). Denote by
+M the 2εD × n sub-matrix of G that is formed by taking the rows of M 0 and all columns of
+G. On the one hand, by Lemma 44 and Lemma 42, rank(M ) > n − log K = n − k. On the
+other hand, as M contains k + 1 columns of rank 1, rank(M ) ≤ n − k, a contradiction. J
+
+    It is natural to ask whether the other direction also holds, namely whether an adjacency
+matrix of a bipartite Ramsey graph is in fact a generating matrix of a linear, erasure
+list-decodable code. Stated differently, whether a low-rank matrix must contain large
+monochromatic rectangles. That question received much attention, as it is tightly related to
+the famous “log-rank conjecture” in communication complexity [30, 36]. Unfortunately, the
+acclaimed unconditional upper bound of Lovett [31] still does not give us a meaningful result.
+
+
+ 6      Concluding Remarks and Open Problems
+     The strong disperser we construct in this paper outputs one bit, and for k = O(log log 1ε ),
+         has O(log log 1ε ) entropy-loss, and,
+         (1 + γ) · log( 1ε ) dependence of the seed-length on the error.
+     It is natural to ask to extend the results of the paper to arbitrarily large values of k,
+     matching (up to multiplicative factors) the non-explicit results.
+     Our dispersers are inherently non-linear, and therefore we also get non-linear erasure
+     list-decodable codes. How can we obtain near optimal linear codes?
+     The erasure list-decodable code we construct is explicit in the sense that the code can be
+     efficiently encoded. Does it also admit an efficient erasure list-decoding algorithm?
+     The seed-length of our strong disperser is c log n + log( 1ε ). Pushing c closer to 1 is an
+     important open problem. In particular it would imply erasure list-decodable codes of
+     near-optimal rate even for relatively large ε. Such a disperser with many output bits can
+     also be used for simulating one-sided error randomized algorithms using weak random
+     sources with nearly linear overhead [44].
+
+
+       References
+ 1    HL Abbott. Lower bounds for some Ramsey numbers. Discrete Mathematics, 2(4):289–293,
+      1972.
+ 2    Noga Alon. The Shannon capacity of a union. Combinatorica, 18(3):301–310, 1998.
+ 3    Noga Alon, Oded Goldreich, and Yishay Mansour. Almost k-wise independence versus k-wise
+      independence. Information Processing Letters, 88(3):107–110, 2003.
+ 4    Boaz Barak. A simple explicit construction of an nõ(log n) -Ramsey graph. arXiv preprint, 2006.
+      arXiv:math/0601651.
+ 5    Boaz Barak, Guy Kindler, Ronen Shaltiel, Benny Sudakov, and Avi Wigderson. Simulating
+      independence: New constructions of condensers, Ramsey graphs, dispersers, and extractors.
+      Journal of the ACM (JACM), 57(4):20, 2010.
+ 6    Boaz Barak, Anup Rao, Ronen Shaltiel, and Avi Wigderson. 2-source dispersers for no(1)
+      entropy, and Ramsey graphs beating the frankl-wilson construction. Annals of Mathematics,
+      176(3):1483–1544, 2012.
+ 7    Avraham Ben-Aroya, Dean Doron, and Amnon Ta-Shma. An efficient reduction from two-
+      source to nonmalleable extractors: achieving near-logarithmic min-entropy. SIAM Journal on
+      Computing, pages STOC17–31–STOC17–49, 2019.
+
+
+
+
+                                                                                                         CCC 2020
+1:26   Near-Optimal Erasure List-Decodable Codes
+
+
+        8   Jean Bourgain. More on the sum-product phenomenon in prime fields and its applications.
+            International Journal of Number Theory, 1(01):1–32, 2005.
+        9   Eshan Chattopadhyay and David Zuckerman. Explicit two-source extractors and resilient
+            functions. Annals of Mathematics, 189(3):653–705, 2019.
+       10   Benny Chor and Oded Goldreich. Unbiased bits from sources of weak randomness and
+            probabilistic communication complexity. SIAM Journal on Computing, 17(2):230–261, 1988.
+       11   Fan RK Chung. A note on constructive methods for Ramsey numbers. Journal of Graph
+            Theory, 5(1):109–113, 1981.
+       12   Gil Cohen. Local correlation breakers and applications to three-source extractors and mergers.
+            SIAM Journal on Computing, 45(4):1297–1338, 2016.
+       13   Gil Cohen. Non-malleable extractors-new tools and improved constructions. In LIPIcs-Leibniz
+            International Proceedings in Informatics, volume 50. Schloss Dagstuhl-Leibniz-Zentrum fuer
+            Informatik, 2016.
+       14   Gil Cohen. Two-source dispersers for polylogarithmic entropy and improved Ramsey graphs.
+            In Proceedings of the 48th Annual ACM Symposium on Theory of Computing (STOC 2016),
+            pages 278–284, 2016.
+       15   Gil Cohen. Two-source extractors for quasi-logarithmic min-entropy and improved privacy
+            amplification protocols. In Electronic Colloquium on Computational Complexity (ECCC),
+            volume 23, page 114, 2016.
+       16   Zeev Dvir, Swastik Kopparty, Shubhangi Saraf, and Madhu Sudan. Extensions to the method
+            of multiplicities, with applications to kakeya sets and mergers. SIAM Journal on Computing,
+            42(6):2305–2328, 2013.
+       17   Zeev Dvir and Avi Wigderson. Kakeya sets, new mergers, and old extractors. SIAM Journal
+            on Computing, 40(3):778–792, 2011.
+       18   Paul Erdös. Some remarks on the theory of graphs. Bulletin of the American Mathematical
+            Society, 53(4):292–294, 1947.
+       19   Peter Frankl. A constructive lower bound for Ramsey numbers. Ars Combinatoria, 3(297-
+            302):28, 1977.
+       20   Peter Frankl and Richard M. Wilson. Intersection theorems with geometric consequences.
+            Combinatorica, 1(4):357–368, 1981.
+       21   Parikshit Gopalan. Constructing Ramsey graphs from boolean function representations. In
+            Proceedings of the 21st Annual IEEE Conference on Computational Complexity (CCC 2006),
+            pages 14–pp, 2006.
+       22   Ronen Gradwohl, Guy Kindler, Omer Reingold, and Amnon Ta-Shma. On the error parameter
+            of dispersers. In Approximation, Randomization and Combinatorial Optimization. Algorithms
+            and Techniques, pages 294–305. Springer, 2005.
+       23   Venkatesan Guruswami. List decoding of error-correcting codes. PhD thesis, Massachusetts
+            Institute of Technology, 2001.
+       24   Venkatesan Guruswami. List decoding from erasures: Bounds and code constructions. IEEE
+            Transactions on Information Theory, 49(11):2826–2833, 2003.
+       25   Venkatesan Guruswami. Better extractors for better codes? In Proceedings of the 36th Annual
+            ACM Symposium on Theory of Computing (STOC 2004), pages 436–444, 2004.
+       26   Venkatesan Guruswami and Piotr Indyk. Near-optimal linear-time codes for unique decoding
+            and new list-decodable codes over smaller alphabets. In Proceedings of the 34th Annual ACM
+            Symposium on Theory of Computing (STOC 2002), pages 812–821, 2002.
+       27   Xin Li. Three-source extractors for polylogarithmic min-entropy. In Proceedings of the 56th
+            Annual IEEE Symposium on Foundations of Computer Science (FOCS 2015), pages 863–882.
+            IEEE, 2015.
+       28   Xin Li. Improved non-malleable extractors, non-malleable codes and independent source
+            extractors. In Proceedings of the 49th Annual ACM Symposium on Theory of Computing
+            (STOC 2017), pages 1144–1156, 2017.
+A. Ben-Aroya, D. Doron, and A. Ta-Shma                                                                 1:27
+
+
+29   Xin Li. Non-malleable extractors and non-malleable codes: Partially optimal constructions. In
+     Proceedings of the 34th Computational Complexity Conference (CCC 2019). Schloss Dagstuhl-
+     Leibniz-Zentrum fuer Informatik, 2019.
+30   Shachar Lovett. Recent advances on the log-rank conjecture in communication complexity.
+     Bulletin of EATCS, 1(112), 2014.
+31   Shachar Lovett. Communication is bounded by root of rank. Journal of the ACM (JACM),
+     63(1):1, 2016.
+32   Raghu Meka. Explicit resilient functions matching Ajtai-Linial. In Proceedings of the Twenty-
+     Eighth Annual ACM-SIAM Symposium on Discrete Algorithms (SODA 2017), pages 1132–1148,
+     2017.
+33   Raghu Meka, Omer Reingold, and Yuan Zhou. Deterministic coupon collection and better
+     strong dispersers. In Approximation, Randomization, and Combinatorial Optimization. Al-
+     gorithms and Techniques (APPROX/RANDOM 2014). Schloss Dagstuhl-Leibniz-Zentrum fuer
+     Informatik, 2014.
+34   Zs Nagy. A constructive estimation of the Ramsey numbers. Mat. Lapok, 23:301–302, 1975.
+35   Moni Naor. Constructing Ramsey graphs from small probability spaces. IBM Research Report
+     RJ, 8810, 1992.
+36   Noam Nisan and Avi Wigderson. On rank vs. communication complexity. Combinatorica,
+     15(4):557–565, 1995.
+37   Jaikumar Radhakrishnan and Amnon Ta-Shma. Bounds for dispersers, extractors, and
+     depth-two superconcentrators. SIAM Journal on Discrete Mathematics, 13(1):2–24, 2000.
+38   FP Ramsey. On a problem of formal logic. Proceedings of the London Mathematical Society,
+     2(1):264–286, 1930.
+39   Ran Raz. Extractors with weak random seeds. In Proceedings of the 37th Annual ACM
+     Symposium on Theory of Computing (STOC 2005), pages 11–20, 2005.
+40   Ronen Shaltiel. Recent developments in explicit constructions of extractors. Bulletin of the
+     EATCS, 77(67-95):10, 2002.
+41   Ronen Shaltiel. An introduction to randomness extractors. In International Colloquium on
+     Automata, Languages, and Programming, pages 21–41. Springer, 2011.
+42   Luca Trevisan. Extractors and pseudorandom generators. Journal of the ACM (JACM),
+     48(4):860–879, 2001.
+43   Avi Wigderson. Randomness extractors – applications and constructions. In IARCS Annual
+     Conference on Foundations of Software Technology and Theoretical Computer Science. Schloss
+     Dagstuhl-Leibniz-Zentrum für Informatik, 2009.
+44   David Zuckerman. Simulating BPP using a general weak random source. Algorithmica,
+     16(4):367–391, 1996.
+45   David Zuckerman. Linear degree extractors and the inapproximability of max clique and
+     chromatic number. Theory of Computing, 3:103–128, 2007.
+
+
+
+
+                                                                                                     CCC 2020
+

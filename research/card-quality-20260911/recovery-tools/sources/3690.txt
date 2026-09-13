@@ -1,0 +1,1255 @@
+Proceedings of Machine Learning Research vol 99:1–22, 2019                  32nd Annual Conference on Learning Theory
+
+
+
+
+ Adaptively Tracking the Best Bandit Arm with an Unknown Number
+                       of Distribution Changes
+
+Peter Auer                                                                           AUER @ UNILEOBEN . AC . AT
+Pratik Gajane                                                            PRATIK . GAJANE @ UNILEOBEN . AC . AT
+Ronald Ortner                                                           RONALD . ORTNER @ UNILEOBEN . AC . AT
+Montanuniversität Leoben
+
+
+
+Editors: Alina Beygelzimer and Daniel Hsu
+
+
+                                                         1 Abstract
+
+     We consider the variant of the stochastic multi-armed bandit problem where the stochastic reward
+     distributions may change abruptly several times. In contrast to previous work, we are able to
+     achieve (nearly) optimal mini-max regret bounds without knowing the number of changes. For this
+     setting, we propose an algorithm called A D S WITCH and provide performance guarantees for the
+     regret evaluated against the optimal non-stationary policy. Our regret bound is the first optimal
+     bound for an algorithm that is not tuned with respect to the number of changes.
+     Keywords: multi-armed stochastic bandits, non-stationary rewards, switching bandits
+
+
+1. Introduction
+The classical multi-armed bandit (MAB) problem is the simplest setting that gives rise to the
+exploration-exploitation dilemma inherent to all reinforcement learning problems (see Bubeck and
+Cesa-Bianchi, 2012, for a survey). In this setup, a learner has access to a number of available ac-
+tions, also called “arms” in reference to the arm of a slot machine or a one-armed bandit. The learner
+has to repeatedly select one of these arms, which yields a reward generated from the unknown re-
+ward process of the selected arm. The learner’s aim is to maximize the sum of the gathered rewards.
+In the usual stochastic MAB problem, the reward process for an arm is assumed to be a distribu-
+tion which remains stationary. In this article, though, we consider the stochastic MAB problem
+with non-stationary reward distributions. Following Garivier and Moulines (2011), we call this the
+switching bandits problem. As a motivation, consider the problem of real-time content optimization
+of websites which aims to serve targeted and relevant content to individuals. In order to do so, the
+website needs to learn which content (represented by an arm of the MAB) the users are most likely
+to be interested in. The user interest in the content of a website (for example, news) is likely to vary
+over time. For additional motivating examples and practical applications of this problem setting,
+see Garivier and Moulines (2011), Hartland et al. (2006), Koulouriotis and Xanthopoulos (2008),
+and the references therein.
+ 1. Some preliminary results have been presented at EWRL 2018 (Auer et al., 2018).
+
+
+
+
+c 2019 P. Auer, P. Gajane & R. Ortner.
+                                           AUER G AJANE O RTNER
+
+
+
+
+1.1. Related work
+Non-stationary MAB problems where reward distributions vary over time have been previously
+studied in the literature. Sometimes, there are additional assumptions on the process generating the
+changes like in the general restless bandits setting (Ortner et al., 2014) or special cases as considered
+by Slivkins and Upfal (2008). In some cases, the learner is allowed to collect additional side-
+information (Yu and Mannor, 2009). For the setting we consider here, several approaches have been
+proposed. These range from modifying algorithms for the standard stochastic MAB setting like
+UCB (Kocsis and Szepesvári, 2006) to evolutionary algorithms (Koulouriotis and Xanthopoulos,
+2008). The algorithm we introduce in this paper has more in common with (Hartland et al., 2006)
+where a change point detection procedure is suggested.
+    We note that algorithms that work in the stochastic as well in the adversarial setting (Bubeck
+and Slivkins, 2012; Seldin and Slivkins, 2014; Auer and Chiang, 2016) usually also need to detect
+changes and are hence related. But the regret for these algorithms is still defined in respect to the
+single best arm, while we are interested in the regret in respect to best arm in each time step.
+    Such regret bounds have already been achieved by Auer et al. (2002) for EXP3.S, a variant of
+EXP3. If the numberof changes L is known in advance, EXP3.S can be tuned to obtain a regret
+               √
+bound of Õ       KLT after T steps, where K is the number of arms. This is mini-max optimal
+in all parameters up to log T factors, which are hidden in the Õ-notation.2 It is worth mentioning
+that EXP3.S works also in the more general adversarial setting, where rewards are not generated
+by distributions but are set arbitrarily. The regret is then defined in respect to the best strategy in
+hindsight that may change the selected arm only a fixed number of times.
+    More recently, Garivier and Moulines (2011) have shown regret bounds for the discounted-UCB
+algorithm of (Kocsis and Szepesvári, 2006) as well as for a sliding window adaptation of UCB.
+Regret bounds for an elimination algorithm with restarts that is similar to our approach have been
+proven by Allesiardo et al. (2017). Algorithms that work even for stochastic contextual bandits
+have been analyzed by Luo et al. (2018). As for EXP3.S, all these algorithms can be tuned to
+obtain bounds optimal with respect to L and T , provided that the number of changes L is known in
+advance.
+    We note that there are also regret bounds that do not depend on the number of changes but the
+total variation of change V (Besbes et al., 2014; Luoet al., 2018). If V is known in advance, these
+algorithms can be tuned to achieve Õ (KV )1/3 T 2/3 regret, which is optimal.
+    In this paper, we propose the algorithm A D S WITCH, which —unlike the mentioned
+approaches— does not need           the number of changes L in advance. Still, we can prove
+                           √to know
+an optimal regret bound Õ    KLT for A D S WITCH.
+
+1.2. Outline
+Section 2 gives the problem statement and our main result. The algorithm A D S WITCH is described
+in Section 3, followed by Section 4, which gives part of the proof of the regret bound. The detailed
+proofs can be found in the appendix.
+ 2. The regret bound cannot be improved even if the gap between the mean reward of the best arm and the mean rewards
+    of the other arms is lower bounded by a constant, say 1/4.
+
+
+
+
+                                                         2
+                              A DAPTIVELY T RACKING THE B EST A RM
+
+
+
+
+2. Problem statement and result
+For notational convenience we assume that all rewards are bounded in [0, 1]. We denote a stochastic
+bandit problem with changing reward distributions by the mean rewards µt (a) of the arms a =
+1, . . . , K at times t = 1, . . . , T . The mean rewards µt (a) are unknown to the algorithm. At each
+time t, an algorithm selects some arm at and receives reward rt with mean E [rt ] = µt (at ). The
+goal of the algorithm is to achieve low expected regret R against an omniscient policy that at each
+time chooses the arm with maximal mean reward,
+                                           T
+                                                            " T           #
+                                          X                   X
+                                     R=      max µt (a) − E       µt (at ) .
+                                           a
+                                     t=1                   t=1
+
+We assume that the horizon T is known, an unknown horizon can be handled by the doubling trick
+(Besson and Kaufmann, 2018).
+   For meaningful results the amount of change in the means µt (a) needs to be taken into account.
+As such a measure of change we consider the total number of changes
+
+                             L = #{1 ≤ t ≤ T |∃a : µt−1 (a) 6= µt (a)}.
+
+(For notational convenience we define µ0 (a) = 0 for all arms a.)       √    
+    As mentioned above, the best known regret bound in terms of L is Õ    KLT (see for example
+Auer et al., 2002), which matches the lower bound up to logarithmic factors. This bound was
+previously achieved for known L. In this paper, we show that the same bound can be achieved
+without knowing L, using an algorithm that adapts to the observed change.
+
+Theorem 1 For a switching bandit problem with K arms, L changes, and horizon T , the expected
+regret of A D S WITCH (introduced in Section 3 below) is upper bounded by
+                                            p
+                                          C KLT log T
+
+for a suitable constant C.
+
+2.1. The difficulty of unknown L and how to deal with it
+In this section, we give some intuition, why it is significantly harder to achieve optimal regret bounds
+when the number of changes is unknown, and how our algorithm deals with this difficulty.
+
+2.1.1. C ALCULATING THE SAMPLING RATE FOR INFERIOR ARMS
+Assume that an algorithm has found an inferior arm a that is ∆-worse than the best arm. Then the
+algorithm has to safeguard against a change of arm a that would make it the best arm. When the
+total number of p changes L is known in advance, then this is easily done by sampling arm a with
+probability p = L/(KT )/∆. When a changep         is detected, then the algorithm restarts.
+    The total cost for this sampling is pT ∆ = LT /K when there is no change (since the algo-
+rithm loses the amount  √of ∆ each time the inferior arm a is sampled). Summing over all inferior
+arms, this contributes KLT to the regret.
+    If arm a changes by amount  > ∆, then (up to logarithmic factors) 1/2 samples from arm a
+are sufficient to detect the change. Thus, because of the sampling rate p, the change is detected after
+
+                                                   3
+                                      AUER G AJANE O RTNER
+
+
+
+                                                                                     p
+      2 ) time steps, and the regret during these time steps is at most /(p2 ) = ∆ KT /L/ <
+1/(p
+p                                                                                 √
+  KT /L. Summing over the changes gives again a contribution to the regret of KLT .
+    The sampling rate p is chosen optimally to trade off the regret caused by sampling and the regret
+until a change is detected, by solving pT ∆K = L/(p∆) for p.
+
+2.1.2. A DAPTING THE SAMPLING RATE IN RESPECT TO THE OBSERVED CHANGES
+If the number of changes L is not known, the sampling rate
+                                                         p p cannot be set so easily. A first attempt
+is to count the number of changes so far, `, and set p` = `/(KT )/∆ accordingly
+                                                                        p           (initially ` = 1).
+But this does not work, since in the beginning the sampling rate p1 = 1/(KT )/∆ is small and
+quick changes will not be detected: Let µ = 1/2 be the mean reward of arm a so far and let ∆ = 1/8
+(the mean reward of the best arm is 5/8). Now let the mean reward of arm a alternate every W steps
+between µ +  and µ −  for  = 1/4. Since arm a is sampled only every 1/p1 ∼ T 1/2 steps, the
+received rewards appear random with mean µ, when W ≤ T 1/4 . Thus no change is detected and
+linear regret in incurred.
+     Increasing the initial sampling rate p1 would allow to detect such changes, but it would also
+increase the sampling cost in the case when there are few changes, such that the optimal regret
+bound is not achieved.
+     The phenomenon of increased regret rates when the number of changes is under- or overesti-
+mated can already been seen in the regret bounds for EXP3.S in (Auer et al., 2002) and its variant
+S HIFT BAND (Auer, 2002, Theorem 2) with the regret bound
+                                      p            p √       
+                                   Õ      L0 + L/ L0      KT ,
+
+where L0 is a tuning parameter, interpreted 
+                                            as an a priori
+                                                      estimate for the number of changes. If
+                                              √
+indeed L = L0 , then the bound becomes Õ       KLT and is optimal. For L0 = 1, the bound is
+   √                                     √                                √        
+Õ L KT and gives linear regret if L ≥ T . For L = 1, the bound gives Õ KL0 T and is
+sub-optimal for large L0 .
+
+2.1.3. C ONSECUTIVE SAMPLING
+The failure to detect changes as described in the previous section is caused by changes between the
+times a sample is drawn for the inferior arm. This can be avoided by drawing consecutive samples:
+Let ` again be the number
+                     p      of changes observed so far. To check for   a change of size  > ∆, with
+probability p =  `/(KT ) the algorithm draws n = Õ 1/2 consecutivesamples. This is
+                                                                                           p
+sufficient to detect a change and the total cost without a change is p T n ∆ = Õ (∆/) `T /K .
+When p  an exponential schedule for the size of the changes  = ∆, 2∆, 4∆, . . . is used, summing
+   √ `T/K over the various  and over the inferior arms gives a total regret contribution of
+(∆/)
+Õ     K`T .
+    The number of steps  p until a change of size  is detected is roughly 1/p such that the
+                                                                                            √ regret
+contribution is /p = KT /`. Summing over all L changes gives a total contribution of KLT .
+    While in the formal analysis several other cases need to be considered —for example there could
+be a change even within a consecutive sample— the main idea of our algorithm is to use consecutive
+sampling as described above, choosing the right probability p to start a consecutive sample of the
+right length n .
+
+                                                  4
+                              A DAPTIVELY T RACKING THE B EST A RM
+
+
+
+
+Algorithm 1 A D S WITCH
+ 1: Input: Time horizon T .
+ 2: Initialization ` ← 0, t ← 0.
+ 3: Start a new episode:
+ 4:   ` ← ` + 1.
+ 5:   Set start of the episode t` ← t + 1.
+ 6:   GOODt+1 = {1, . . . , K}, BADt+1 = {}.
+ 7:   Next time step:
+ 8:      t ← t + 1.
+ 9:      Add checks for bad arms:
+10:         For all a ∈ BADt , andp  all i ≥ 1 with 2−i ≥ ∆   ˜ ` (a)/16,
+11:            with probability 2 −i   `/(KT log T ) add St (a) ← St (a) ∪ (2−i , d22i+1 log T e, t).
+12:      Select an arm:
+13:         Select at = arg mina {τ : a 6∈ {aτ , . . . , at−1 }, a ∈ GOODt ∨ St (a) 6= {}}.
+14:         Receive reward rt .
+15:      Check for changes of good arms:
+16:         If there is a ∈ GOODt and t` ≤ s1 ≤ s2 ≤ t and t` ≤ s ≤ t such that condition (3)
+17:            holds, then start a new episode.
+18:      Check for changes of bad arms:
+19:         If there is a ∈ BADt and t` ≤ s ≤ t such that condition (4) holds,
+20:            then start a new episode.
+21:         For a ∈ BADt , St+1 (a) ← {(, n, s) ∈ St (a) : n[s,t] < n}.
+22:      Evict arms from GOODt :
+23:         BADt+1 = BADt ∪ {a ∈ GOODt |∃s ≥ t` for which (1) holds}.
+24:         For evicted arms a ∈ BADt+1 \ BADt , calculate µ̃` (a) and ∆   ˜ ` (a) according to (2), and
+               set St+1 (a) ← {}.
+25:         GOODt+1 = {1, . . . , K} \ BADt+1 .
+26:      Continue with the next time step.
+
+
+Remark 2 Another approach for dealing with an unknown number of changes L is to run several
+copies of a bandit algorithm (for example EXP3.S) with different tunings, using a master bandit
+algorithm to manage these copies. While typically using a bandit algorithm on top of other bandit
+algorithms
+         p is problematic, the approach
+                                         of Cheung et al. (2019) can be used to achieve the regret
+bound Õ                     1/2
+              KT max{L, T } for unknown L even in the adversarial setting (Luo, 2019). This
+regret bound is optimal for large L but sub-optimal for small L. It is an open problem if optimal
+regret can be achieved in the adversarial setting without knowing L.
+
+3. The adaptive switching algorithm A D S WITCH
+    In this section we describe our algorithm A D S WITCH (depicted as Algorithm 1) for an unknown
+amount of changes. In order to achieve a regret bound that depends on the actual amount of change
+in the mean rewards, the algorithm needs to be able to detect (most of) these changes. At the same
+time, the algorithm cannot probe inferior arms too often without suffering large regret.
+
+
+
+                                                   5
+                                           AUER G AJANE O RTNER
+
+
+
+
+    Our algorithm is essentially an elimination algorithm with restarts and proceeds in episodes
+` = 1, 2, . . .. A new episode starts when the algorithm detects a change in the mean rewards. In
+each episode the arms are partitioned into GOOD and BAD arms. The good arms are those that are
+(so far) statistically indistinguishable from the optimal arm, and the bad arms are those that appear
+significantly worse than the optimal arm.
+    At the start of an episode all arms are good. An arm a is evicted from GOOD at time t, if there
+is sufficient evidence for its suboptimality through the condition3
+                                                                  s
+                                               0                      C1 log T
+                                 max µ̂[s,t] (a ) − µ̂[s,t] (a) >                                 (1)
+                             a0 ∈GOODt                              n[s,t] (a) − 1
+
+for some s in the current episode with n[s,t] ≥ 2. Here µ̂[s,t] (a) denotes the observed mean reward
+for arm a during the time interval [s, t], and n[s,t] (a) is the number of times arm a has been selected
+during this interval,
+                                                                                 1             X
+             n[s,t] (a) = #{s ≤ τ ≤ t : aτ = a},             µ̂[s,t] (a) =                                  rt .
+                                                                             n[s,t] (a)
+                                                                                          τ :s≤τ ≤t,aτ =a
+
+For a suitable constant C1 , condition (1) is a standard confidence bound on the mean rewards.
+    When an arm a is evicted from the good arms in episode `, then its observed mean reward and
+the gap to the arm a0 that caused the eviction, are recorded,
+                                            ˜ ` (a) ← max
+                     µ̃` (a) ← µ̂[s,t] (a), ∆         0
+                                                                       µ̂[s,t] (a0 ) − µ̂[s,t] (a).                (2)
+                                                         a ∈GOODt
+
+These quantities will be used to check for changes in the mean reward of the evicted arm.
+   To check at time t, if a good arm a has changed, we use a condition similar to (1),
+                                                        s                  s
+                                                           2 log T           2 log T
+                        µ̂[s1 ,s2 ] (a) − µ̂[s,t] (a) >                  +                                         (3)
+                                                          n[s1 ,s2 ] (a)     n[s,t] (a)
+
+for some s1 ≤ s2 and s within the current episode.
+     To check for changes of bad arms is more complicated, since these arms can be selected only
+rarely without causing large regret. These checks are done by a variant of consecutive sampling as
+described in Section 2.1.3. We associate each bad arm a with a set St (a) of sampling obligations
+(, n, s) as follows. Each St (a) ⊂ R × N × N is a set of triples (, n, s), where  = 2−i , i ≥ 1, is
+the magnitude of change the algorithm seeks to detect, n = d2(log T )/2 e is the number of samples
+needed for a statistically significant test, and s is the time when the collection of samples has started.
+After having received n rewards from arm a, the sampling obligation is removed from St (a). These
+sampling obligations cause the algorithm to select a bad arm that otherwise would not be selected.
+The test for a change is similar to the check for the good arms: a new episode is started, if for some
+s in the current episode,
+                                                                   s
+                                                       ˜ ` (a)/4 +   2 log T
+                              µ̂[s,t] (a) − µ̃` (a) > ∆                         ,                      (4)
+                                                                     n[s,t] (a)
+
+ 3. The constant C1 in condition (1) needs to be sufficiently large. A suitable value can be derived from the regret
+    analysis.
+
+
+                                                         6
+                               A DAPTIVELY T RACKING THE B EST A RM
+
+
+
+
+comparing the current mean reward with the mean reward when the arm was evicted from the set of
+good arms.
+    To ensure the right amount of checking, at any time t and forp     any  = 2−i ≥ ∆    ˜ ` (a)/16, the
+sampling obligation (, n, t) is added to St (a) with probability  `/(KT log T ). The intuition
+behind the choice of this probability is given in Section 2.1.3.
+    Finally, at time t the algorithm selects the arm at that has been selected least recently among the
+good arms and those bad arms with non-empty sampling obligations St (a). This selects the good
+arms in a round robin fashion and also ensures that almost consecutive samples are generated for
+the bad arms that need to be checked.
+Remark 3 This version of our algorithm is not optimized for runtime but for simpler arguments in
+the regret analysis. The   most expensive step is the check for changes of the good arms, condition (3),
+with runtime O Kt3 in time step t. This time complexity can be significantly reduced, if not
+all intervals [s1 , s2 ] and [s, t] are checked, but only intervals of certain lengths, say 2k log T for
+k = 3, 4, . . . By storing for these lengths the maximal    and minimal values of µ̂[s1 ,s2 ] (a) so far,
+the time complexity can be reduced to O K(log T )2 per time step. The checks of conditions (1)
+and (4) can be treated similarly.
+
+4. Regret analysis
+4.1. Preliminaries
+Lemma 4 (Azuma-Hoeffding inequality) For a martingale difference sequence X1 , . . . , Xn with
+support of size 1 for all Xi ,
+                                 ( n        )
+                                  X
+                               P     Xi ≥ γn ≤ 2 exp{−2γ 2 n}.
+                                    i=1
+
+We denote the number of changes in time interval [s, t] by
+                           L[s, t] = #{s < τ ≤ t|∃a : µτ −1 (a) 6= µτ (a)}.
+Lemma 5 With probability 1 − 2K/T 2 , for all 1 ≤ s ≤ t ≤ T with L[s, t] = 0, and all arms a,
+                                                    s
+                                                      2 log T
+                             µ̂[s,t] (a) − µs (a) <              .
+                                                      n[s,t] (a)
+
+Proof We fix time s and arm a. Let s ≤ τ1 < τ2 < · · · be the times when
+arm a is selected, aτi       = Pa. Then √        Xi = rτi − µτi (a) are martingale differences and
+                                  n
+by Lemma 4 wePget P | √          i=1 Xi | ≥        2n log T     ≤ 2T −4 . By a union bound we get
+                        n
+P ∃n : n ≤ T : | i=1 Xi | ≥ 2n log T ≤ 2T . Thus with probability 1 − 2T −3 we have
+                                                           −3
+
+for all t,
+                                           n[s,t]                             n[s,t]      s
+                                    1      X                           1      X             2 log T
+        µ̂[s,t] (a) − µs (a) =                    [rτi − µs (a)] =                   Xi <              .
+                                n[s,t] (a)                         n[s,t] (a)               n[s,t] (a)
+                                          i=1                             i=1
+
+A union bound over s and a completes the proof.
+Since the error probability 2K/T 2 in Lemma 5 causes only diminishing regret, we assume in all the
+following, that all inequalities of the lemma are satisfied.
+
+                                                    7
+                                        AUER G AJANE O RTNER
+
+
+
+
+Assumption 6 For all 1 ≤ s ≤ t ≤ T with no change between s and t, and all arms a,
+                                                    s
+                                                      2 log T
+                             µ̂[s,t] (a) − µs (a) <              .
+                                                      n[s,t] (a)
+
+4.2. Counting the number of episodes
+The next lemma shows that the algorithm starts a new episode only if there is a change in the current
+episode. We denote by L̃ the total number of episodes. The last episode ends at time T , and for
+notational convenience we define the start time of the next episode by tL̃+1 = T + 1.
+
+Lemma 7 If Assumption 6 holds, then for all episodes ` < L̃, L[t` , t`+1 − 1] > 0.
+Proof The proof is by contradiction, assuming that episode ` is terminated at time t > t` but
+L[t` , t] = 0. We first consider the start of a new episode when condition (3) is met. Then there is an
+arm a and times t` ≤ s1 ≤ s2 ≤ t and t` ≤ s ≤ t with
+                                                          s                  s
+                                                             2 log T           2 log T
+                          µ̂[s1 ,s2 ] (a) − µ̂[s,t] (a) >                  +              .
+                                                            n[s1 ,s2 ] (a)     n[s,t] (a)
+
+Since L[t` , t] = 0 and µs1 (a) = µs (a), this contradicts Assumption 6.
+   Now we consider the start of a new episode when condition (4) is met. Then there is an arm a ∈
+BADt and a time t` ≤ s ≤ t with
+                                                                 s
+                                                     ˜ ` (a)/4 +   2 log T
+                             µ̂[s,t] (a) − µ̃` (a) > ∆                        .
+                                                                   n[s,t] (a)
+
+Let [s0 , t0 ] be the time interval on which the eviction of arm a from the good arms was based in (1).
+Then µ̃` (a) = µ̂[s0 ,t0 ] (a) and
+                                               s                  s
+                                     ˜ ` (a) >    C 1  log   T      2 log T
+                                    ∆                           >4                                  (5)
+                                                 n[s0 ,t0 ] − 1     n[s0 ,t0 ]
+
+for sufficiently large C1 . Together with the above inequality, this contradicts Assumption 6.
+From Lemma 7 we get immediately that the total number of episodes is bounded by the number of
+changes, L̃ ≤ L.
+
+4.3. Properties of the selection rule
+An arm a is eligible at time t, if a ∈ GOODt or a ∈ BADt and St (a) 6= {}. Since the algorithm
+selects the arm that has been selected least recently among the eligible arms, all eligible arms are
+selected almost equally often, the maximal difference being 1. In particular, if arm a has been
+eligible throughout an interval [s, t], then for any arm a0 ,
+
+                                      n[s,t] (a) ≥ n[s,t] (a0 ) − 1.
+
+Furthermore, if an arm a is eligible throughout the interval [s, t], then
+
+                                    n[s,t] (a) ≥ b(t − s + 1)/Kc.
+
+                                                    8
+                                 A DAPTIVELY T RACKING THE B EST A RM
+
+
+
+
+4.4. Dividing episodes into intervals with no change
+In the regret analysis we will rely on time intervals without change. Thus for each episode ` we
+consider all change points β`,1 , . . . , β`,m` in episode `, L[t` , t`+1 − 1] = m` , with
+
+                           t` = β`,0 ≤ β`,1 < . . . < β`,m` < β`,m` +1 = t`+1
+
+and L[β`,i , β`,i+1 − 1] = 0 for i = 0, . . . , m` and L[β`,i − 1, β`,i ] = 1 for i = 1, . . . , m` . We denote
+the intervals with no change by
+                                          I`,i = [β`,i , β`,i+1 − 1]
+for i = 0, . . . , m` . Since each episode is split into at most m` + 1 intervals, over all episodes there
+are at most L + L̃ ≤ 2L such intervals.
+
+4.5. Distinguishing the sources of regret
+In this section we decompose the regret Tt=1 [maxa µt (a) − µt (at )] horizontally and vertically.
+                                        P
+By horizontally we mean the decomposition of the regret
+
+         max µt (a) − µt (at ) = [ max        µt (a) − µt (at )] + [max µt (a) −      max     µt (a)]
+           a                        a∈GOODt                             a           a∈GOODt
+
+into the regret in respect to the best good arm, and the regret of the best good arm in respect to the
+optimal arm. We denote by
+                                          a∗t = arg max µt (a)
+                                                          a
+
+the optimal arm and by
+                                         agt = arg    max      µt (a)
+                                                     a∈GOODt
+
+the best good arm at time t. (If there are several optimal arms, then an arbitrary one can be chosen.)
+    By vertical decomposition we mean the classification of the time steps into several classes,
+depending on the selections of the algorithm. For the regret in respect to the best good arm, we are
+distinguishing the following cases for each episode `:
+
+   1. A good arm is selected by the algorithm,
+
+                                    G`,1 = {t` ≤ t < t`+1 : at ∈ GOODt }.
+
+       The regret in this case is similar to the regret in the stationary bandit problem, when the best
+       arm has not been distinguished yet.
+                                                                                     ˜ `,
+   2. A bad arm is selected, and its regret is not much larger than its eviction gap ∆
+
+                     G`,2 = {t` ≤ t < t`+1 : at ∈ BADt , µt (agt ) − µt (at ) ≤ 4∆
+                                                                                 ˜ ` (at )}.
+
+       The regret in this case is for the effort of checking whether a previously bad arm has become
+       optimal.
+
+
+
+
+                                                      9
+                                       AUER G AJANE O RTNER
+
+
+
+
+   3. A bad arm is selected, its regret is large, and the mean reward is far from the mean reward
+      when it was evicted,
+                   G`,3 = {t` ≤ t < t`+1 : at ∈ BADt , µt (agt ) − µt (at ) > 4∆
+                                                                               ˜ ` (at ),
+                                              µ̃` (at ) − µt (at ) > (µt (agt ) − µt (at ))/2}.
+      In this case the mean reward of the bad arm has decreased significantly, causing larger regret
+      when this arm is selected.
+   4. A bad arm is selected, its regret is large, but the mean reward is relatively close to the mean
+      reward when it was evicted,
+                   G`,4 = {t` ≤ t < t`+1 : at ∈ BADt , µt (agt ) − µt (at ) > 4∆
+                                                                               ˜ ` (at ),
+                                              µ̃` (at ) − µt (at ) ≤ (µt (agt ) − µt (at ))/2}.
+      In this case the best good arm has significantly improved (compared to the time when at was
+      evicted), and additional regret is caused by the resulting larger gap between the best good and
+      the bad arm.
+For the regret of the best good arm in respect to the optimal arm, we distinguish two cases. Obvi-
+ously there is no such regret if the optimal arm is among the good arms.
+   1. The optimal arm is among the bad arms and its mean reward is close to the mean reward when
+      it was evicted,
+                  B`,1 = {t` ≤ t < t`+1 : a∗t ∈ BADt , µt (a∗t ) − µ̃` (a∗t ) ≤ ∆
+                                                                                ˜ ` (a∗t )/2}.
+
+      In this case the mean rewards of the good arms have significantly decreased, causing regret
+      when the algorithm keeps selecting them.
+   2. The optimal arm is among the bad arms and its mean reward is far from the mean reward
+      when it was evicted,
+                  B`,2 = {t` ≤ t < t`+1 : a∗t ∈ BADt , µt (a∗t ) − µ̃` (a∗t ) > ∆
+                                                                                ˜ ` (a∗t )/2}.
+
+      In this case the mean reward of the currently optimal arm may have significantly improved,
+      causing regret when not selected.
+In
+√ the following sections we show that in each of these cases the respective regret is of order
+   KLT log T . Summing over all these cases gives the result of Theorem 1.
+    Because of space constraints we give only brief intuition about the cases t ∈ B`,1 and t ∈ B`,2 .
+Full proofs are provided in the appendix.
+
+4.6. Bounding the regret in respect to agt
+4.6.1. C ASE t ∈ G`,1
+In this case at ∈ GOODt . Let t ∈ I`,i for some interval without change I`,i = [β`,i , β`,i+1 − 1] in
+episode `. Since at ∈ GOODt , at was not evicted at time t − 1, and by (1) we have
+                                                                  s
+                                      g                                  C1 log T
+                      µ̂[β`,i ,t−1] (at ) − µ̂[β`,i ,t−1] (at ) ≤
+                                                                    n[β`,i ,t−1] (at ) − 1
+
+                                                   10
+                                    A DAPTIVELY T RACKING THE B EST A RM
+
+
+
+
+if n[β`,i ,t−1] (at ) ≥ 2. By Assumption 6 we get
+                                                                           s                     s
+                                                                              2 log T                    2 log T
+     µt (agt ) − µt (at ) ≤ µ̂[β`,i ,t−1] (agt ) − µ̂[β`,i ,t−1] (at ) +                      +
+                                                                          n[β`,i ,t−1] (agt )        n[β`,i ,t−1] (at )
+                            s                             s                         s
+                                   C1 log T                      2 log T                     2 log T
+                          ≤                          +                      g +
+                              n[β`,i ,t−1] (at ) − 1         n[β`,i ,t−1] (at )         n[β`,i ,t−1] (at )
+                                              s
+                             p          √                 log T
+                          ≤ ( C1 + 2 2)                                  ,
+                                                 n[β`,i ,t−1] (at ) − 1
+
+since agt and at are both good arms and thus n[β`,i ,t−1] (agt ) ≥ n[β`,i ,t−1] (at ) − 1 (see Section 4.3).
+Summing over t ∈ I`,i ∩ G`,1 with at = a for some arm a gives
+                                                                                                  
+                                                                                n[I`,i ] (a) r
+                                                        √ p                                     1 
+                       [µt (agt ) − µt (at )] ≤ ( C1 + 2 2) log T 2 +
+              X                                  p                               X
+                                                                                               k−1
+                                                                                                   
+        t∈I`,i ∩G`,1 ,at =a                                                                   k=2
+                                                     p      √ p           q            
+                                                  ≤ ( C1 + 2 2) log T 2 + 2 n[I`,i ] (a) .
+
+Since                                             X
+                                                          n[I`,i ] (a) = T
+                                                  `,i,a
+
+and there are at most 2L intervals I`,i , summing over all intervals and all arms gives
+
+                              L̃ X                                      p         
+                                           [µt (agt ) − µt (at )] = O
+                              X
+                                                                          KLT log T .                                     (6)
+                              `=1 t∈G`,1
+
+
+4.6.2. C ASE t ∈ G`,2
+In this case at ∈ BADt and µt (agt ) − µt (at ) ≤ 4∆  ˜ ` (at ). We bound the expected number of times
+that such a bad arm a is selected.
+     A bad arm a is selected at time t, at = a, only if there is (, n, s) ∈ St (a) with s ≤ t and
+n[s,t] (a) < n. We recall that  = 2−i ≥ ∆  ˜ ` (a)/16 for some i ≥ 1, and n = d2(log T )/2 e. Thus
+for t ∈ G`,2 ,
+                                       µt (agt ) − µt (at ) ≤ 64.
+                                                                 p
+Furthermore, (, n, s) is added to Ss (at ) with probability  `/(KT log T ) if a ∈ BADs . Thus the
+expected number of times that a specific bad arm a is selected in episode ` for a specific , is at most
+                                          s
+                                                  `
+                            (t`+1 − t` )                (2(log T )/2 + 1).
+                                             KT log T
+
+Summing over the possible  = 2−i with  ≥ [µt (agt ) − µt (a)]/64 gives
+                                   s                                    
+                                         `             256 log T
+                       (t`+1 − t` )                                 +  1
+                                     KT log T µt (agt ) − µt (a)
+
+                                                              11
+                                          AUER G AJANE O RTNER
+
+
+
+
+as an upper bound on the expected number of times arm a is selected in G`,2 . Summing over all
+arms we get for the respective expected regret
+                                                           s
+                                                                `
+                    [µt (agt ) − µt (at )] ≤ K(t`+1 − t` )
+               X
+                                                                      (256 log T + 1) ,
+                                                             KT log T
+                t∈G`,2
+
+and summing over all episodes gives
+                                                           p         
+                                [µt (agt ) − µt (at )] = O
+                       X X
+                                                             KLT log T .                                   (7)
+                             ` t∈G`,2
+
+
+4.6.3. C ASE t ∈ G`,3
+In this case at ∈ BADt , µt (agt ) − µt (at ) > 4∆
+                                                 ˜ ` (at ), and µ̃` (at ) − µt (at ) > [µt (ag ) − µt (at )]/2.
+                                                                                             t
+Thus the mean reward for arm at is significantly worse than µ̃` (at ). We show that with this con-
+dition, arm at can be selected only a few times in an interval I`,i . This is because otherwise the
+algorithm would detect the change.
+
+4.6.4. C ASE t ∈ G`,4
+                                                 ˜ ` (at ), and µ̃` (at ) − µt (at ) ≤ (µt (ag ) − µt (at ))/2.
+In this case at ∈ BADt , µt (agt ) − µt (at ) > 4∆                                           t
+The major part of the regret contribution comes from the increase of the mean of agt , the best good
+arm. But since this arm is selected often, the change of the reward can be detected quickly by
+condition (3), obtaining the desired regret bound.
+
+4.7. Bounding the regret of µt (agt ) in respect to µt (a∗t )
+4.7.1. C ASE t ∈ B`,1
+                                                     ˜ ` (a∗ )/2. This means that the reward of the bad
+In this case a∗t ∈ BADt and µt (a∗t ) − µ̃` (a∗t ) ≤ ∆     t
+       ∗
+arm at has not changed much, but that the rewards of the good arms have decreased. There are
+basically two cases: (a) The arm a0 that evicted a∗t from the good arms is still a good arm. Then the
+reward of this arm has changed significantly which is detected by condition (3) of the algorithm.
+(b) Arm a0 has also been evicted from the good arms. This case is more complicated, but we can
+show that also in this case the best good arm a∗t has changed significantly.
+
+4.7.2. C ASE t ∈ B`,2
+In this case a∗t is among the bad arms and µt (a∗t ) − µ̃` (a∗t ) > ∆      ˜ ` (a∗ )/2. Since the reward of the
+                                                                                 t
+                        g
+best good arm µt (at ) cannot be much below µ̃` (a∗t ) without causing the start of a new episode,
+µt (a∗t ) − µt (agt ) . µt (a∗t ) − µ̃` (a∗t ).
+    If µt (a∗t ) − µ̃` (a∗t ) is small, then the contribution to the regret is also small and is easily dealt
+with. If µt (a∗t ) − µ̃` (a∗t ) is large, though, then the larger µt (a∗t ) needs to be detected quickly. The
+algorithm needs roughly n = (log T )/2 samples,  ≈ µt (a∗t ) − µ̃` (a∗t ), to detect the change.
+These samples are provided by a sampling obligation p          (, n, s). By the definition of the algorithm,
+such apsampling obligation is added with probability  `/(KT log T ). Thus it takes roughly time
+(1/) KT (log T )/` until the sampling obligation is added and the change
+p                                                                                        pis detected, causing
+   KT (log T )/` regret. Summing over the episodes gives the desired bound KLT (log T ).
+    The actual proof is a bit more complicated, because arms may change during the sampling.
+
+                                                      12
+                              A DAPTIVELY T RACKING THE B EST A RM
+
+
+
+
+5. Conclusion
+Extending the work in (Auer et al., 2018), we have constructed the first algorithm for the stochastic
+multi-armed bandit problem with abrupt changes of the reward distributions that achieves optimal
+regret bounds without knowing the number of changes in advance. The main technical contribution
+is the delicate testing schedule of the apparently inferior arms. This testing is necessary to detect
+when a previously inferior arm becomes the best arm.
+     We note that our algorithm (without any change) also provides optimal regret bounds in terms of
+total variation. These optimal bounds have also been achieved in (Chen et al., 2019), which provides
+also optimal bounds for the more general stochastic contextual bandits setting.
+     Regarding the adversarial bandit setting, it remains an open problem to construct an algorithm
+with optimal regret bounds without a priori tuning in respect to the number of arm changes.
+
+Acknowledgments
+This work has been supported by the Austrian Science Fund (FWF): I 3437-N33 in the framework
+of the CHIST-ERA ERA-NET (DELTA project).
+
+References
+Robin Allesiardo, Raphaël Féraud, and Odalric-Ambrym Maillard. The non-stationary stochastic
+  multi-armed bandit problem. International Journal of Data Science and Analytics, 3(4):267–283,
+  2017.
+
+Peter Auer. Using confidence bounds for exploitation-exploration trade-offs. Journal of Machine
+  Learning Research, 3:397–422, 2002.
+
+Peter Auer and Chao-Kai Chiang. An algorithm with nearly optimal pseudo-regret for both stochas-
+  tic and adversarial bandits. In Proceedings of the 29th Conference on Learning Theory, COLT
+  2016, pages 116–120, 2016.
+
+Peter Auer, Nicolò Cesa-Bianchi, Yoav Freund, and Robert E. Schapire. The nonstochastic multi-
+  armed bandit problem. SIAM Journal on Computing, 32(1):48–77, 2002.
+
+Peter Auer, Pratik Gajane, and Ronald Ortner. Adaptively tracking the best arm with an unknown
+  number of distribution changes. In 14th European Workshop on Reinforcement Learning, EWRL
+  2018, 2018.
+
+Omar Besbes, Yonatan Gur, and Assaf Zeevi. Stochastic multi-armed-bandit problem with non-
+ stationary rewards. In Advances in Neural Information Processing Systems 27, NIPS 2014, pages
+ 199–207, 2014.
+
+Lilian Besson and Emilie Kaufmann. What doubling tricks can and can’t do for multi-armed bandits.
+  CoRR, abs/1803.06971, 2018. URL http://arxiv.org/abs/1803.06971.
+
+Sébastien Bubeck and Nicolò Cesa-Bianchi. Regret analysis of stochastic and nonstochastic multi-
+   armed bandit problems. Foundations and Trends in Machine Learning, 5(1):1–122, 2012.
+
+
+
+                                                 13
+                                     AUER G AJANE O RTNER
+
+
+
+
+Sébastien Bubeck and Aleksandrs Slivkins. The best of both worlds: Stochastic and adversarial
+   bandits. In COLT 2012 - The 25th Annual Conference on Learning Theory, pages 42.1–42.23,
+   2012.
+
+Yifang Chen, Chung-Wei Lee, Haipeng Luo, and Chen-Yu Wei. A new algorithm for non-stationary
+  contextual bandits: Efficient, optimal and parameter-free. In 32nd Annual Conference on Learn-
+  ing Theory (COLT), 2019.
+
+Wang Chi Cheung, David Simchi-Levi, and Ruihao Zhu. Learning to optimize under non-
+ stationarity. In Proceedings of the 22nd International Conference on Artificial Intelligence and
+ Statistics, AISTATS 2019, pages 1079–1087, 2019.
+
+Aurélien Garivier and Eric Moulines. On upper-confidence bound policies for switching bandit
+  problems. In Proceedings of the 22nd International Conference on Algorithmic Learning Theory,
+  ALT 2011, pages 174–188. Springer, 2011.
+
+Cédric Hartland, Sylvain Gelly, Nicolas Baskiotis, Olivier Teytaud, and Michèle Sebag. Multi-
+   armed bandit, dynamic environments and meta-bandits. NIPS-2006 workshop, Online trading
+   between exploration and exploitation, 2006.
+
+Levente Kocsis and Csaba Szepesvári. Discounted UCB. 2nd PASCAL Challenges Workshop, 2006.
+
+Dimitris E. Koulouriotis and A.S. Xanthopoulos. Reinforcement learning and evolutionary algo-
+  rithms for non-stationary multi-armed bandit problems. Applied Mathematics and Computation,
+  196(2):913 – 922, 2008.
+
+Haipeng Luo. Personal communication, 2019.
+
+Haipeng Luo, Chen-Yu Wei, Alekh Agarwal, and John Langford. Efficient contextual bandits in
+  non-stationary worlds. In Proceedings of the 31st Conference On Learning Theory, COLT 2018,
+  pages 1739–1776, 2018.
+
+Ronald Ortner, Daniil Ryabko, Peter Auer, and Rémi Munos. Regret bounds for restless Markov
+  bandits. Theoretical Computer Science, 558:62–76, 2014.
+
+Yevgeny Seldin and Aleksandrs Slivkins. One practical algorithm for both stochastic and adversarial
+  bandits. In Proceedings of the 31st International Conference on Machine Learning, ICML 2014,
+  pages 1287–1295, 2014.
+
+Alex Slivkins and Eli Upfal. Adapting to a changing environment: The Brownian restless bandits.
+  In 21st Conference on Learning Theory, COLT 2008, pages 343–354, 2008.
+
+Jia Yuan Yu and Shie Mannor. Piecewise-stationary bandit problems with side observations. In
+   Proceedings of the 26th Annual International Conference on Machine Learning, ICML 2009,
+   pages 1177–1184, 2009.
+
+
+
+
+                                                14
+                                     A DAPTIVELY T RACKING THE B EST A RM
+
+
+
+
+Appendix A. Some proof details of Section 4.6
+Bounding the regret in respect to (agt )
+A.1. Case t ∈ G`,3
+In this case at ∈ BADt , µt (agt ) − µt (at ) > 4∆      ˜ ` (at ), and µ̃` (at ) − µt (at ) > [µt (ag ) − µt (at )]/2.
+                                                                                                    t
+Thus the mean reward for arm at is significantly worse than µ̃` (at ). We show that with this con-
+dition, arm at can be selected only a few times in an interval I`,i . This is because otherwise the
+algorithm would detect the change.
+    If condition (4) is not triggered, we have for bad arm at and t < t`+1 − 1 that
+                                                                         s
+                                                          ˜ ` (at )/4 +        2 log T
+                           µ̃` (at ) − µ̂[t` ,t] (at ) ≤ ∆                                  .
+                                                                             n[t` ,t] (at )
+
+Using the condition of G`,3 and Assumption 6, we get
+                                              "                                              s                  #
+                                                                                                  2 log T
+     µt (agt ) − µt (at ) < 2[µ̃` (at ) − µt (at )] < 2      µ̃` (at ) − µ̂[t` ,t] (at ) +
+                                                                                                 n[t` ,t] (at )
+                               "                   s                  #                                       s
+                                                        2 log T                                                      2 log T
+                             ˜ ` (at )/4 + 2
+                          ≤2 ∆                                          < [µt (agt ) − µt (at )]/8 + 4
+                                                       n[t` ,t] (at )                                               n[t` ,t] (at )
+
+and by solving for µt (agt ) − µt (at ),
+                                                                    s
+                                                              32         2 log T
+                                       µt (agt ) − µt (at ) <                          .
+                                                              7         n[t` ,t] (at )
+
+Summing over all arms and episodes gives
+                                                                        p         
+                                           [µt (agt ) − µt (at )] = O
+                              X X
+                                                                          KLT log T .                                                (8)
+                                ` t∈G`,3
+
+
+A.2. Case t ∈ G`,4
+In this case at ∈ BADt , µt (agt ) − µt (at ) > 4∆           ˜ ` (at ), and µ̃` (at ) − µt (at ) ≤ (µt (ag ) − µt (at ))/2.
+                                                                                                         t
+We bound the number of times that a bad arm a is selected within an interval without change
+I`,i = [β`,i , β`,i+1 − 1], while the above condition holds. Let [s0 , t0 ] be the interval and a0 be the arm
+that caused the eviction of at from the good arms by condition (1),
+                                                                       s
+                                             0                               C1 log T
+                               µ̂[s0 ,t0 ] (a ) − µ̂[s0 ,t0 ] (at ) >                          ,
+                                                                          n[s0 ,t0 ] (at ) − 1
+
+                                       ˜ ` (at ) = µ̂[s0 ,t0 ] (a0 ) − µ̃` (at ). By the construction of the algorithm
+with µ̃` (at ) = µ̂[s0 ,t0 ] (at ) and ∆
+(see Section 4.3), n[s0 ,t0 ] (at ) ≤ n[s0 ,t0 ] (a0 ) + 1 and n[β`,i ,t] (at ) ≤ n[β`,i ,t] (agt ) + 1 ≤ 2n[β`,i ,t] (agt ).
+
+
+
+
+                                                             15
+                                                    AUER G AJANE O RTNER
+
+
+
+
+By Assumption 6,
+                                                           s
+                                                                 2 log T
+   µ̂[β`,i ,t] (agt ) − µ̂[s0 ,t0 ] (agt ) > µt (agt ) −                         − µ̂[s0 ,t0 ] (a0 )
+                                                               n[β`,i ,t] (agt )
+                                                           s
+                                                           2 log T
+                                       = µt (agt ) −                      − µ̃` (at ) − ∆    ˜ ` (at )
+                                                        n[β`,i ,t] (agt )
+                                                                    s
+                                                                          2 log T
+                                       = [µt (agt ) − µt (at )] −                                                    ˜ ` (at )
+                                                                                          − [µ̃` (at ) − µt (at )] − ∆
+                                                                        n[β`,i ,t] (agt )
+                                                                       s
+                                         1         g                        2 log T
+                                       ≥ [µt (at ) − µt (at )] −                            .
+                                         4                                n[β`,i ,t] (agt )
+For t < t`+1 − 1, we get from condition (3) that
+                                                       s                    s
+                                                           2 log     T           2 log T
+             µ̂[β`,i ,t] (agt ) − µ̂[s0 ,t0 ] (agt ) ≤                g +
+                                                         n[s0 ,t0 ] (at )      n[β`,i ,t] (agt )
+                                                       s                        s
+                                                              2 log T                   2 log T
+                                                     ≤                        +
+                                                         n[s0 ,t0 ] (at ) − 1      n[β`,i ,t] (agt )
+                                                       r                    s
+                                                          2 ˜                   2 log T
+                                                     ≤       ∆` (at ) +
+                                                         C1                   n[β`,i ,t] (agt )
+                                                         r                                  s
+                                                       1    2                                      2 log T
+                                                     ≤          [µt (agt ) − µt (at )] +                           .
+                                                       4 C1                                      n[β`,i ,t] (agt )
+Putting the lower and the upper bound together we find
+                    r                                s                     s
+              1          2         g                       2 log T               4 log T
+                  1−         [µt (at ) − µt (at )] ≤ 2                     ≤2                   .
+              4         C1                               n[β`,i ,t] (agt )     n[β`,i ,t] (at )
+Thus the contribution to the regret for some arm a during I`,i in respect to G`,4 is at most
+                                                           r 
+                                 q                               2
+                               32 (log T )n[I`,i ] (a)    1−          .
+                                                                C1
+Summing over all intervals I`,i and all arms a, we get
+                                                             p           
+                                  [µt (agt ) − µt (at )] = O
+                        X X
+                                                                KLT log T                                                    (9)
+                                    ` t∈G`,4
+
+
+Appendix B. Proof details of Section 4.7
+Bounding the regret of µt (agt ) in respect to µt (a∗t )
+B.1. Case t ∈ B`,1
+                                                     ˜ ` (a∗t )/2. This implies that the mean of the best
+In this case a∗t ∈ BADt and µt (a∗t ) − µ̃` (a∗t ) ≤ ∆
+good arm has dropped significantly. Thus there cannot be too many such steps without detecting the
+change.
+
+                                                                      16
+                                     A DAPTIVELY T RACKING THE B EST A RM
+
+
+
+
+   We consider some interval without change I`,i = [β`,i , β`,i+1 − 1], t ∈ I`,i . Let [s0 , t0 ] be the
+time interval and a0 the arm that caused the eviction of a∗t from the good arms by condition (1),
+                                                                     s
+                                                                          C1 log T
+                            µ̂[s0 ,t0 ] (a0 ) − µ̂[s0 ,t0 ] (a∗t ) >                         .
+                                                                       n[s0 ,t0 ] (a∗t ) − 1
+
+If a0 is not a good arm anymore, a0 6∈ GOODt , then its eviction was caused by some interval [s1 , s2 ]
+and some arm a00 with
+                                                                    s
+                                                                         C1 log T
+                           µ̂[s1 ,s2 ] (a00 ) − µ̂[s1 ,s2 ] (a0 ) >                        .
+                                                                      n[s1 ,s2 ] (a0 ) − 1
+
+Since the episode has not stopped at time s2 , we have by (3),
+    s
+          C1 log T
+                            < µ̂[s1 ,s2 ] (a00 ) − µ̂[s1 ,s2 ] (a0 )
+       n[s1 ,s2 ] (a0 ) − 1
+                            < µ̂[s0 ,t0 ] (a00 ) − µ̂[s0 ,t0 ] (a0 )
+                                      s                           s                         s                      s
+                                               2 log T                    2 log T                    2 log T                2 log T
+                                 +                      00
+                                                               +                      0
+                                                                                          +                   00
+                                                                                                                 +
+                                           n[s1 ,s2 ] (a )            n[s1 ,s2 ] (a )            n[s0 ,t0 ] (a )        n[s0 ,t0 ] (a0 )
+                              s                           s                           s                        s
+                                      2 log T                     2 log T                   2 log T                2 log T
+                            ≤                          +                          +                          +
+                                  n[s1 ,s2 ] (a00 )             n[s1 ,s2 ] (a0 )          n[s0 ,t0 ] (a00 )      n[s0 ,t0 ] (a0 )
+                                s                                    s
+                                            2 log T                            2 log T
+                            ≤2                     0
+                                                               +2
+                                     n[s1 ,s2 ] (a ) − 1                 n[s0 ,t0 ] (a0 ) − 1
+                                 s                                   s
+                              1             C1 log T                            2 log T
+                            ≤                        0
+                                                                +2
+                              2 n[s1 ,s2 ] (a ) − 1                       n[s0 ,t0 ] (a0 ) − 1
+
+for sufficiently large C1 , and therefore
+                                s                        s
+                                      C1 log T                  2 log T
+                                                0
+                                                       ≤4                       ,
+                                   n[s1 ,s2 ] (a ) − 1     n[s0 ,t0 ] (a0 ) − 1
+
+and
+                                                                   64
+                                              n[s0 ,t0 ] (a0 ) ≤      n         (a0 ).
+                                                                   C1 [s1 ,s2 ]
+Since a0 was evicted based on interval [s1 , s2 ] and agt was not, we have
+                                                       s                       s
+                             g                              C   1 log   T            C1 log T
+               µ̂[s1 ,s2 ] (at ) > µ̂[s1 ,s2 ] (a0 ) +                       −                         .
+                                                                      0
+                                                         n[s1 ,s2 ] (a ) − 1     n[s1 ,s2 ] (agt ) − 1
+
+
+
+
+                                                                   17
+                                                     AUER G AJANE O RTNER
+
+
+
+
+Then
+                                        s                                                s                        s
+                                             2 log T                                            2 log T                log T
+     µt (agt ) ≥ µ̂[β`,i ,t] (agt ) −                                         g
+                                                              ≥ µ̂[s1 ,s2 ] (at ) − 2                          − 2
+                                           n[β`,i ,t] (agt )                                 n[β`,i ,t] (agt )      n[s1 ,s2 ] (agt )
+                                         s                                             s
+                                              2 log    T             √                             log T
+              ≥ µ̂[s1 ,s2 ] (a0 ) − 2
+                                                                             p
+                                                          g −( 2+               C1 )
+                                            n[β`,i ,t] (at )                                n[s1 ,s2 ] (agt ) − 1
+                                       s                                               s
+                              0              2 log T               √        p                    log T
+              ≥ µ̂[s0 ,t0 ] (a ) − 2                    g −( 2+               C1 )
+                                           n[β`,i ,t] (at )                               n[s1 ,s2 ] (a0 ) − 2
+                        s                       s
+                                2 log T                 2 log T
+                   −                      0
+                                             −
+                             n[s1 ,s2 ] (a )          n[s0 ,t0 ] (a0 )
+                                       s                               s
+                                                2  log   T                  C2 log T
+              ≥ µ̂[s0 ,t0 ] (a0 ) − 2                   g            −
+                                           n[β`,i ,t] (at ) − 1            n[s0 ,t0 ] (a0 )
+for some suitable constant C2 independent of C1 .
+    Also if a0 is still among the good arms, a0 ∈ GOODt , we get for t < t`+1 − 1, by Assumption 6
+and the checking condition (3), that
+                                               s                                          s                   s
+                                                       2 log  T                               2 log    T         2 log T
+  µt (agt ) ≥ µt (a0 ) ≥ µ̂[β`,i ,t] (a0 ) −                    0
+                                                                   ≥ µ̂[s0 ,t0 ] (a0 ) − 2               0
+                                                                                                            −
+                                                   n[β`,i ,t] (a )                          n[β`,i ,t] (a )     n[s0 ,t0 ] (a0 )
+                                    s                            s
+                            0              2 log T                  2 log T
+            ≥ µ̂[s0 ,t0 ] (a ) − 2                            −
+                                      n[β`,i ,t] (agt ) − 1        n[s0 ,t] (a0 )
+                                    s                            s
+                                           2  log   T               C2 log T
+            ≥ µ̂[s0 ,t0 ] (a0 ) − 2                 g         −                     .
+                                      n[β`,i ,t] (at ) − 1         n[s0 ,t0 ] (a0 )
+Since
+                                                                                                          s
+        µ̂[s0 ,t0 ] (a ) = µ̃` (a∗t ) + ∆
+                   0                                           ˜ ` (a∗ )/2 ≥ µt (a∗ ) + 1
+                                        ˜ ` (a∗ ) ≥ µt (a∗ ) + ∆                                                 C1 log T
+                                              t          t           t            t
+                                                                                                      2       n[s0 ,t0 ] (a∗t ) − 1
+                                            s
+                                     1          C1 log T
+                       ≥ µt (a∗t ) +                             ,
+                                     2          n[s0 ,t0 ] (a0 )
+we get for sufficiently large C1 ,
+                                                s                               s
+                                                          2 log T                           2 log T
+                 µt (a∗t ) − µt (agt ) ≤ 2                                 ≤2                              .
+                                                     n[β`,i ,t] (agt ) − 1          b(t − β`,i + 1)/Kc − 1
+Summing over t ∈ I`,i gives
+                                                                                    q
+                                            [µt (a∗t ) − µt (agt )] ≤ 2K + 4
+                        X
+                                                                                     2K|I`,i | log T
+                             t∈I`,i ∩B`,1
+
+and summing over all intervals gives
+                                                             p         
+                                 [µt (a∗t ) − µt (agt )] = O
+                       X X
+                                                               KLT log T .                                                              (10)
+                                  ` t∈B`,1
+
+
+                                                                     18
+                                        A DAPTIVELY T RACKING THE B EST A RM
+
+
+
+
+B.2. Case t ∈ B`,2
+In this case a∗t is among the bad arms and µt (a∗t ) − µ̃` (a∗t ) > ∆                 ˜ ` (a∗ )/2. We show that the change
+                                                                                              t
+                   ∗
+in the mean of at can be detected relatively quickly.
+    Let t ∈ I`,i . We start by bounding the regret in terms of ∆                         ˜ ` (a∗t ). Let [s0 , t0 ] be the interval
+                   ∗
+through which at was evicted from the good arms. Then, by using (3),
+                                                                                        s
+     ∗           g           ∗            ∗             ∗                      g                2 log T
+µt (at ) − µt (at ) ≤ µt (at ) − µ̃` (at ) + µ̃` (at ) − µ̂[β`,i ,t] (at ) +
+                                                                                            n[β`,i ,t] (agt )
+                                                                                            s                       s
+                                                                                    g              2 log    T            2 log T
+                     ≤ µt (a∗t ) − µ̃` (a∗t ) + µ̂[s0 ,t0 ] (a∗t ) − µ̂[s0 ,t0 ] (at ) +                     g +2
+                                                                                                n[s0 ,t0 ] (at )       n[β`,i ,t] (agt )
+                                                 s                                   s
+                             ∗            ∗                C1 log T                         2 log T
+                     ≤ µt (at ) − µ̃` (at ) +                                  +2
+                                                                   ∗
+                                                    n[s0 ,t0 ] (at ) − 1                 n[β`,i ,t] (agt )
+                                                                    s
+                             ∗            ∗              ∗
+                                                 ˜ ` (at ) + 2              2 log T
+                     ≤ µt (at ) − µ̃` (at ) + ∆
+                                                                         n[β`,i ,t] (agt )
+                                                       s
+                                                                2 log T
+                     ≤ 3[µt (a∗t ) − µ̃` (a∗t )] + 2
+                                                             n[β`,i ,t] (agt )
+
+for sufficiently large C1 .
+    For t ∈ I`,i , let i be the largest  = ∆       ˜ ` (a∗ )/2j such that  ≤ [µt (a∗ ) − µ̃` (a∗ )]/8, and
+                                                           t                            t         t
+ni = d(2 log T )/2i e. Then [µt (a∗t ) − µ̃` (a∗t )] ≤ 16i and the regret is bounded as
+                                                                 s
+                                   ∗            g                     2 log T
+                              µt (at ) − µt (at ) ≤ 48i + 2                          .
+                                                                    n[β`,i ,t] (agt )
+
+Since n[β`,i ,t] (agt ) ≥ b(t − β`,i + 1)/Kc, the overall contribution to the regret of the second term on
+the right hand side is
+                              s
+         X X                      2 log T        X q                          p              
+                            2                g =   O      K|I`,i | log T = O        KLT log T .
+                                n[β`,i ,t] (at )
+            `,i t∈I`,i ∩B`,2                              `,i
+
+                                             p                                         √          
+The overall contribution of small i , i ≤ K(log T )/|I`,i |, is also at most O KLT log T .
+                             p
+Thus we consider only i > K(log T )/|I`,i |.
+   For the first term 48i , we start with considering intervals of small size, |I`,i | < 2Kni . The
+contribution of such an interval is bounded as
+                                                        q
+                     2Kni i ≤ 4K(log T )/i + K ≤ 4 K|I`,i |(log T ) + K.
+                                                    √                   
+Summing over all such intervals gives again O KLT log T .
+    Finally, we consider the contribution of i in large intervals, |I`,i | ≥ 2Kni . If the algorithm
+selects a∗t in the interval I`,i for ni times, ni = n[β`,i ,t] (a∗t ), then by Assumption 6, the conditions
+
+
+
+                                                                  19
+                                           AUER G AJANE O RTNER
+
+
+
+
+                           2(log T )/ni ≤ i ≤ [µt (a∗t ) − µ̃` (a∗t )]/8, we have
+                        p
+of B`,2 , and since
+                                                                 r
+                      ∗           ∗           ∗            ∗       2 log T
+        µ̂[β`,i ,t] (at ) − µ̃` (at ) > µt (at ) − µ̃` (at ) −
+                                                                      ni
+                                                                 r
+                                                                   2 log T
+                                      ≥ µt (a∗t ) − µ̃` (a∗t ) +             − 2i
+                                                                      n
+                                                                   r i                          r
+                                        3         ∗            ∗       2 log T     ˜ ` (at )/4 + 2 log T ,
+                                                                                         ∗
+                                      ≥ [µt (at ) − µ̃` (at )] +                ≥∆
+                                        4                                 ni                        ni
+such that condition (4) for starting a new episode is satisfied. Such selections of arm a∗t are enforced,
+if the algorithm adds the checking obligation (i , ni , s) to Ss (a∗t ) for any β`,i ≤ s ≤ β`,i+1 − Kni .
+     Let J1 , . . . , JN , Jk = [αk , αk+1 − 1], be the partition of [1, T ] into intervals without change.
+Then µs1 (a) = µs2 (a) for s1 , s2 ∈ Jk and any arm a, and µαk (a) 6= µαk+1 (a) for some arm a.
+Note that each I`,i is subset of some Jk , and that the intervals I`,i are random and depend on the
+random rewards observed by the algorithm.
+     We will prove a bound on the total future expected contributions of the i when t ∈ B`,2 and
+t is in a large interval, starting from the current interval I`,i with starting point β`,i . We denote
+this contribution by R`,i which is conditioned on β`,i . Let I`,i ⊆ Jk . We will show by backward
+induction that
+                             L r
+                            X     KT log T       q
+                   R`,i ≤                   + 4 K(log T )(2L − k − `)(T + 1 − β`,i ).
+                                       l
+                         l=`
+
+This is obviously true after all time steps when β`,i = T + 1.
+    Since we are interested only in large intervals, we assume that αk+1 − β`,i ≥ ni . A change
+is detected if a checking obligation   (i , ni , s) is executed, and such a checking obligation is added
+                                                                                 0 within interval I
+                               p
+with probability p` i , p` = `/(KT log T ). Thus the contribution R`,i                              `,i is at
+most
+                                                       
+                αk+1 −β`,i −Kni
+                                                                 1 − (1 − p` i )αk+1 −β`,i −Kni
+                      X                                                                                
+      0                                     h
+    R`,i ≤ i                  (1 − p` i ) + Kni ≤ i                                         + Kni
+                                                                              p` i
+                      h=1
+             1 h                                   i
+         =       1 − (1 − p` i )αk+1 −β`,i −Kni + Kni i
+            p`
+             1 h                                   i
+         ≤       1 − (1 − p` i )αk+1 −β`,i −Kni + 4K(log T )/i .
+            p`
+Let q`,i be the probability that episode ` does not end within I`,i , which means that β`,i+1 = αk+1 .
+Then
+                                    q`,i ≤ (1 − p` i )αk+1 −β`,i −Kni
+
+
+
+
+                                                       20
+                                     A DAPTIVELY T RACKING THE B EST A RM
+
+
+
+
+and by induction
+          0
+  R`,i ≤ R`,i + q`,i R`,i+1 + (1 − q`,i )R`+1,1
+         1                     q                                      q
+       ≤    [1 − q`,i ] + 4q`,i K(log T )(αk+1 − β`,i ) + 4(1 − q`,i ) K(log T )(β`+1,1 − β`,i )
+         p`
+                         L
+              q`,i      X    1
+           +       +
+               p`           pl
+                      l=`+1
+                   p
+           + 4q`,i K(log T )(2L − k − ` − 1)(T + 1 − αk+1 )
+                           q
+           + 4(1 − q`,i ) K(log T )(2L − k − ` − 1)(T + 1 − β`+1,1 )
+             L
+             X 1             q
+        ≤               +4    K(log T )(2L − k − `)(T + 1 − β`,i ),
+                   pl
+             l=`
+        √        √          p
+since       x+       ny ≤    (n + 1)(x + y). The total contribution of long intervals is bounded by
+                                             p             p
+                                  R1,1 ≤ 2    KLT log T + 4 2KLT (log T ),
+
+which concludes the regret analysis.
+
+
+
+
+                                                       21
+

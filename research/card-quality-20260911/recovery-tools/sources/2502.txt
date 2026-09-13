@@ -1,0 +1,1761 @@
+Proceedings of Machine Learning Research vol 195:1–30, 2023               36th Annual Conference on Learning Theory
+
+
+
+
+                    Is Planted Coloring Easier than Planted Clique?
+Pravesh K. Kothari                                                                  PRAVESHK @ CS . CMU . EDU
+Computer Science Department, Carnegie Mellon University
+Santosh S. Vempala                                                                  VEMPALA @ GATECH . EDU
+School of Computer Science, Georgia Tech
+Alexander S. Wein                                                                     ASWEIN @ UCDAVIS . EDU
+Department of Mathematics, University of California, Davis
+Jeff Xu                                                                           JEFFXUSICHAO @ CMU . EDU
+Computer Science Department, Carnegie Mellon University
+
+
+Editors: Gergely Neu and Lorenzo Rosasco
+
+
+                                                        Abstract
+     We study the computational complexity of two related problems: recovering a planted q-coloring
+     in G(n, 1/2), and finding efficiently verifiable witnesses of non-q-colorability (a.k.a. refutations)
+     in G(n, 1/2). Our main results show hardness for both these problems in a restricted-but-powerful
+     class of algorithms based on computing low-degree polynomials in the inputs.
+          The problem of recovering a planted q-coloring is equivalent to recovering q disjoint planted
+     cliques that cover all the vertices — a potentially easier variant of the well-studied planted clique
+     problem. Our first result shows that this variant is as hard as the original planted clique problem
+                                                                                                    √
+     in the low-degree polynomial model of computation: each clique needs to have size k ≫ n for
+     efficient recovery to be possible. For the related variant where the cliques cover a (1 − ϵ)-fraction
+     of the vertices, we also show hardness by reduction from planted clique.
+          Our second result shows that refuting q-colorability of G(n, 1/2) is hard in the low-degree
+     polynomial model when q ≫ n2/3 but easy when q ≲ n1/2 , and we leave closing this gap for future
+     work. Our proof is more subtle than similar results for planted clique and involves constructing a
+     non-standard distribution over q-colorable graphs. We note that while related to several prior works,
+     this is the first work that explicitly formulates refutation problems in the low-degree polynomial
+     model.
+          The proofs of our main results involve showing low-degree hardness of hypothesis testing be-
+     tween an appropriately constructed pair of distributions. For refutation, we show completeness of
+     this approach: in the low-degree model, the refutation task is precisely as hard as the hardest asso-
+     ciated testing problem, i.e., proving hardness of refutation amounts to finding a “hard” distribution.
+     Keywords: Random graphs, coloring, low-degree polynomials, computational complexity
+
+
+1. Introduction
+The planted clique problem, introduced by Jerrum (1992) and Kučera (1995), asks for a polynomial-
+time algorithm to find a clique of size k added to an Erdős–Rényi random graph G(n, 1/2). The
+associated task of refuting the existence of k-cliques in G ∼ G(n, 1/2) asks for a polynomial-time
+algorithm to compute a certificate that can be efficiently verified to infer the absence of a k-clique in
+G. Despite a long line of work, state-of-the-art polynomial-time algorithms for both problems (Alon
+                                         √
+et al., 1998) only succeed when k = Ω( n). In contrast, the clique number of G(n, 1/2) is at most
+⌈2 log2 n⌉ + 1 with high probability and thus, an added clique of any size k > ⌈2 log2 n⌉ + 1
+is uniquely identifiable. A long line of work proving lower bounds in various restricted models
+
+© 2023 P.K. Kothari, S.S. Vempala, A.S. Wein & J. Xu.
+                                   KOTHARI V EMPALA W EIN X U
+
+
+
+
+such as Markov chains (Jerrum, 1992), the Statistical Query model (Feldman et al., 2017), convex
+relaxations (Feige and Krauthgamer, 2003) and in particular the sum-of-squares hierarchy and the
+related low-degree polynomial model of computation (Barak et al., 2016; Hopkins, 2018), suggest
+that the algorithmic threshold for both variants — the smallest k for which efficient algorithms can
+                                                                                    √
+find the added k-clique or refute the existence of a k-clique in G(n, 1/2) — is Ω( n). In the past
+two decades, the hypothesis that no polynomial-time procedure can beat the above guarantees of
+the known algorithms has become a focal point in average-case complexity theory and the root of
+myriad reductions to average-case problems arising in various domains (e.g., Berthet and Rigollet
+(2013); Hajek et al. (2015); Brennan et al. (2018); Kothari and Mehta (2018)).
+
+Two motivating problems: recovery and refutation of q-colorings. In this paper, we study
+the following innocuous-looking (and ostensibly easier than planted clique) question where, in the
+recovery problem, we study the complexity of exactly recovering ≈ n/k disjoint planted k-cliques
+in G ∼ G(n, 1/2), with high success probability. If the disjoint planted cliques cover all the vertices
+of the graph, then the complement of the graph has a planted (n/k)-coloring. Thus, this version
+of our problem is tantamount to studying whether recovering a planted q-coloring in G(n, 1/2)
+is easier than recovering a single planted clique. In the associated refutation problem, the goal is
+to find an algorithm that takes as input a graph G and outputs NO or MAYBE with the guarantee
+that (1) whenever it outputs NO, the graph must not admit a valid q-coloring of its vertices, and (2)
+when G ∼ G(n, 1/2), the algorithm should output NO with probability 1−o(1) over the draw of G.
+For reference, the chromatic number of G(n, 1/2) is Θ(n/ log n) with high probability (see Heckel
+(2018)), so the information-theoretic threshold for refutation is q = Θ(n/ log n). Intuitively, the
+recovery and refutation problems for coloring appear easier than their clique counterparts because
+the planted structure is more prominent and therefore seemingly easier to find (or refute).
+     The relation between the recovery and refutation tasks is somewhat subtle: while these two
+problems appear related, we are not aware of a formal reduction between them in either direction.
+In this paper, we study the recovery and refutation problems separately, and draw attention to the
+fact that rather different methods will be needed to prove lower bounds in the two settings. We
+note that for colorability of sparse random regular graphs, there appears to be a constant-factor gap
+between the recovery and refutation thresholds (Bandeira et al., 2021).
+     We note that for simplicity we consider the exact recovery problem. One can also consider
+various notions of approximate recovery. This tends not to make a difference in our setting because
+once a small fraction of the vertices in a clique are known, it is easy to find the rest by examining
+common neighbors.
+
+Proof strategy: hypothesis testing. One common strategy to understand the complexity of recov-
+ery or refutation is to introduce an auxiliary hypothesis testing task: given a graph G that is sampled
+either from some “null” distribution Q (e.g., G(n, 1/2)) or some “planted” distribution P (e.g., some
+distribution supported on q-colorable graphs), design an efficiently computable statistical test that
+decides which of the two distributions generated a given sample G, with high success probability
+over the draw of G. Note that if there is an efficient refutation algorithm for some distribution Q,
+then we immediately obtain an efficient distinguisher between Q and any distribution P supported
+on q-colorable graphs. Similarly, if there is an efficient recovery algorithm for some distribution P,
+then we immediately obtain a distinguishing algorithm between P and any distribution Q supported
+on non-q-colorable graphs. As a result of this connection, we can conclude:
+
+                                                  2
+                                 I S C OLORING E ASIER THAN C LIQUE ?
+
+
+
+
+  (I) To show computational hardness of exactly recovering a planted q-coloring in a particular
+      planted distribution P, it suffices to construct a null distribution Q such that (i) with high
+      probability, G ∼ Q is not q-colorable and (ii) it is computationally hard to distinguish P from
+      Q.
+
+ (II) To show computational hardness of refuting q-colorability for a particular null distribution
+      Q, it suffices to construct a planted distribution P such that (i) P is supported on q-colorable
+      graphs and (ii) it is computationally hard to distinguish P from Q.
+
+Note that we have flexibility to choose either Q (if studying recovery) or P (if studying refutation).
+We will see later that it can be a non-trivial task to construct the right distribution. It need not be the
+case that the same testing problem arises when studying recovery as when studying refutation.
+     Strategy (II) has been referred to as constructing a computationally quiet planted distribu-
+tion (Bandeira et al., 2020), where “quiet” pertains to the fact that the planted structure’s presence
+cannot be detected by an efficient algorithm. Similarly, strategy (I) corresponds to constructing a
+computationally quiet null distribution.
+     Since proving lower bounds for average-case hypothesis testing problems based on standard
+hardness assumptions is an elusively difficult goal at present (notwithstanding the recent successes
+of Brennan et al. (2018); Brennan and Bresler (2020) that use the hardness of planted clique and
+its variants as a starting point in certain limited settings), we will obtain evidence of hardness for
+testing problems by focusing on a restricted but powerful and well-studied family of tests that we
+next describe.
+
+Low-degree testing. The low-degree polynomial model of hypothesis testing restricts the class
+of tests to be polynomial functions in a natural representation of the input, with the complexity
+of a test captured by the degree of the polynomial. Specifically, viewing graphs as elements of
+          n
+{−1, 1}( 2 ) with a {±1}-indicator of presence or absence of every possible edge, the low-degree
+polynomial tests informally correspond to computing thresholds of arbitrary degree-D polynomi-
+als of the edge-indicator variables. Since degree-D polynomials can be computed (when described
+in the monomial coefficient representation) in time nO(D) , constant-degree tests yield polynomial-
+time distinguishing algorithms. Despite being restricted, these low-degree tests already capture
+tests based on basic statistics of graphs such as edge counts, triangle counts, and more generally
+small subgraph counts (the number of edges in the subgraph corresponds to the degree of the poly-
+nomial). Various spectral methods (e.g., the leading eigenvalue of the adjacency matrix, or some
+other symmetric matrix whose entries are low-degree polynomials of the input variables) can also
+be approximated by polynomial tests of logarithmic degree in the number of variables; see Kunisky
+et al. (2022), Section 4.2.3. As a result, low-degree tests (with degree O(log n)) already capture the
+best known polynomial-time algorithms for a wide variety of high-dimensional statistical testing
+tasks (although we won’t attempt to precisely characterize which tasks here; see e.g. Hopkins et al.
+(2017); Hopkins (2018); Kunisky et al. (2022); Holmgren and Wein (2021); Zadik et al. (2022) for
+discussion). As a result, if we manage to establish that all degree-D tests provably fail to solve a
+particular testing problem for some D = ω(log n), we say the problem is “low-degree hard.” This
+can be viewed as evidence suggesting computational hardness of the hypothesis testing problem.
+This is a widely-applicable and by now, commonly-used framework that originated in a line of
+work on proving lower bounds against the sum-of-squares hierarchy (Barak et al., 2016; Hopkins
+
+                                                    3
+                                   KOTHARI V EMPALA W EIN X U
+
+
+
+
+and Steurer, 2017; Hopkins et al., 2017); see also Hopkins (2018); Kunisky et al. (2022) for further
+exposition.
+Summary of results. Our main results use strategies (I) and (II) described above to shed light
+on the computational complexity of recovery and refutation of q-coloring. The formal models and
+statements are presented in the next section, but here we give a brief overview. Throughout, we will
+implicitly assume an asymptotic regime n → ∞ where other parameters (e.g., q, k) may scale with
+n. We say an event occurs “with high probability (w.h.p.)” if it has probability 1 − o(1) as n → ∞.
+Since our focus is on identifying computational thresholds up to the correct power of n, we use the
+symbol ≪ in our informal discussions to hide factors of no(1) .
+    Our main result for the recovery problem shows that adding ≈ n/k disjoint cliques of size k
+(instead of a single one) does not make the problem of recovering the added planted cliques easier.
+                                                                                     √
+That is, our lower bounds suggest that each added clique needs to be of size ≳ n for efficient
+recovery to be possible.
+    In contrast and perhaps surprisingly, it turns out that adding more cliques makes the problem
+of distinguishing the planted graph from G(n, 1/2) easier, simply by counting the total number of
+edges. This reveals a detection-recovery gap, in contrast to the single planted clique problem (see
+Section 2.1.2).
+    More precisely, our results for recovery are as follows:
+
+    • In the planted partial-coloring model where some fraction of the vertices are colored (equiva-
+      lently, many disjoint planted cliques in G(n, 1/2) that cover at most a (1 − ϵ)-fraction of the
+      graph), we show that:
+                                         √
+        (i) If each clique has size k ≫ n, a simple algorithm can be used to recover them.
+                                          √
+       (ii) If each clique has size k ≪ n, it is computationally hard to recover them assuming
+            the Planted Clique Hypothesis. That is, recovering many planted k-cliques is as hard as
+            recovering a single planted k-clique.
+
+    • In the full planted coloring model (q planted cliques of size k = n/q partitioning the entire
+      graph), we are unable to show hardness via reduction, but instead give an indirect argument
+      that supports the same conclusion as above:
+                                         √
+        (i) If each clique has size k ≫ n, there is again a simple algorithm to recover them.
+                                           √
+       (ii) If each clique has size k ≪ n, we argue that recovery is computationally hard via
+            strategy (I), taking the null distribution Q to be a planted (q + 1)-coloring. In other
+            words, we prove that low-degree tests cannot even distinguish a planted q-colorable
+            graph from a planted (q + 1)-colorable graph. This suggests hardness of recovery via a
+            two-stage argument described in Section 2.1.3.
+
+    For the problem of refuting q-colorability in G(n, 1/2), it is known that a poly-time algorithm
+                           √
+exists when k := n/q ≫ n (Coja-Oghlan, 2005). To explore the complexity of this problem, we
+explicitly formulate the refutation problem in the low-degree polynomial model (for the first time),
+and show the following:
+            √            √
+    • If k ≳ n (i.e., q ≲ n), then there is a low-degree polynomial that refutes q-colorability in
+      G(n, 1/2).
+
+                                                 4
+                               I S C OLORING E ASIER THAN C LIQUE ?
+
+
+
+
+    • If k ≪ n1/3 (i.e., q ≫ n2/3 ), then no low-degree polynomial refutes q-colorability in
+      G(n, 1/2). The proof follows strategy (II) and involves constructing a non-trivial planted
+      distribution P.
+                              √
+    • We conjecture k ∼ n is the true low-degree refutation threshold, and we leave this to
+      future work. One way to improve the lower bound would be to construct a “quieter” planted
+      distribution, i.e., a distribution supported on q-colorable graphs that is low-degree hard to
+                                                     √
+      distinguish from G(n, 1/2) whenever k ≪ n. Our final result is a duality argument showing
+      that in fact, the conjecture is equivalent to the existence of such a planted distribution.
+
+2. Results
+A central concept in this work will be that of hypothesis testing between two high-dimensional
+distributions. We consider two (sequences of) distributions P = Pn and Q = Qn . For us, these
+distributions will always be over n-vertex graphs. We use the following asymptotic notion of suc-
+cessful testing.
+
+Definition 1 (Strong distinguishing) For two distributions Pn and Qn , we say an algorithm An
+strongly distinguishes P and Q if it takes as input a sample drawn from one of the two distributions
+and correctly determines which distribution it came from with probability 1 − o(1) as n → ∞. In
+other words, both type I and type II error probabilities must be o(1).
+
+    We will also be interested in the following class of “low-degree” tests. A degree-D test is simply
+a (multivariate) polynomial in the input variables (or
+                                                      rather a sequence of such polynomials, one for
+each problem size n). In our case, there will be n2 input variables — one for every possible edge
+in an n-vertex graph — taking values in {±1}, where +1 indicates the presence of an edge and −1
+indicates the absence. We use the following standard notion of “success” for a polynomial test.
+
+Definition 2 (Strong/weak separation of distributions) Suppose Pn and Qn are distributions on
+RN for some N = Nn . A polynomial fn : RN → R is said to strongly separate P and Q if, as
+n → ∞,                 s                                       
+                         max Var[f ], Var[f ] = o E[f ] − E[f ] ,
+                                    Q       P               P       Q
+
+and weakly separate P and Q if
+                       s                                      
+                           max Var[f ], Var[f ] = O E[f ] − E[f ] .
+                                    Q       P               P       Q
+
+
+    Note that strong separation implies that P and Q can be strongly distinguished by threshold-
+ing the value of the polynomial f . Weak separation implies that the output of f can be used to
+distinguish better than random guessing; see Bandeira et al. (2022b), Proposition 6.1.
+    In our case, the input variables will take values in {±1} and so the polynomial f can be multi-
+linear without loss of generality.
+    If all degree-D polynomials fail to strongly separate P and Q for some D = ω(log n), we say
+the testing problem is “low-degree hard.” As explained in the introduction, this can be viewed as
+evidence for inherent computational hardness of strong distinguishing.
+
+                                                  5
+                                   KOTHARI V EMPALA W EIN X U
+
+
+
+
+    Proofs that rule out strong or weak separation typically proceed by bounding the advantage,
+defined below:
+                                                           EP [f ]
+                               Adv≤D (P, Q) := sup p                  ,                     (1)
+                                               f ∈R[Y ]≤D   EQ [f 2 ]
+where R[Y ]≤D denotes the set of polynomials RN → R of degree (at most) D. It is well known that
+Adv≤D also admits a characterization as the norm of the low-degree likelihood ratio; see Hopkins
+(2018); Kunisky et al. (2022). If Adv≤D = O(1) then strong separation is impossible, and if
+Adv≤D = 1 + o(1) then weak separation is impossible (see Lemma 22).
+
+2.1. Recovery
+2.1.1. M ODELS
+The primary objective of this section will be to understand the recovery problem in two related
+models for planted coloring and planted partial-coloring. As explained in the introduction, the
+complement of a q-colorable graph is partitioned into q cliques. To fix notation and compare with
+the standard planted clique model, we will take the clique perspective here. Thus we study the
+problem of multiple cliques planted in G(n, 1/2).
+    The first model MC(n, q) (“multiple cliques”) corresponds to a true planted coloring, i.e., the
+cliques partition the entire graph.
+
+Definition 3 In the model MC(n, q), we observe an n-vertex graph where each vertex is indepen-
+dently assigned a uniformly random label from [q] := {1, 2, . . . , q}. Vertices with the same label
+are always connected, and vertices with different label are connected with probability 1/2. Given
+the graph, the goal is to exactly recover the clique partition with probability 1 − o(1) as n → ∞,
+where q = qn may scale with n.
+
+     The next model is a variation for partial coloring, i.e., the cliques do not partition the entire
+graph. In the coloring viewpoint, some fraction of the vertices do not belong to any color class (and
+have no constraints on the colors of their neighbors). One motivation for defining this model is that
+it is a variant of the original model where we will be able to prove a strong form of hardness via
+reduction. For technical convenience, the cliques in this model have exactly the same size, unlike
+MC(n, q).
+
+Definition 4 In the model MC(n, q, δ), we observe an n-vertex graph where (1 − δ)n vertices are
+partitioned into q cliques, each of size exactly k := (1−δ)n/q (which we assume is an integer). Two
+vertices in the same clique are always connected, and all remaining edges occur independently with
+probability 1/2. Given the graph, the goal is to exactly recover the clique partition (and identify the
+non-clique vertices) with probability 1 − o(1) as n → ∞, where the parameters q = qn and δ = δn
+may scale with n.
+
+2.1.2. H ARDNESS OF PLANTED PARTIAL - COLORING VIA REDUCTION
+We now consider the recovery problem in MC(n, q, δ). First, we observe that a simple algorithm
+                                                                                               √
+based on examining degrees and common neighbors can exactly recover the cliques when k ≫ n.
+This matches (up to log factors) the best known algorithms for recovering a single planted k-clique
+in G(n, 1/2).
+
+                                                  6
+                                I S C OLORING E ASIER THAN C LIQUE ?
+
+
+
+                                                                                   √
+Theorem 5 (Upper bound) If q, δ scale with n such that k := (1 − δ)n/q = ω( n log n) then
+there is a polynomial-time algorithm achieving exact recovery w.h.p. in MC(n, q, δ).
+
+Proof We will use the following standard version of Bernstein’s inequality: for independent random
+variables X1 , . . . , Xn satisfying E[Xi ] = 0 and |Xi | ≤ M almost surely, we have for any t ≥ 0 that
+                                n
+                                         !                                       !
+                                                                  1 2
+                               X
+                                                                  2 t
+                         Pr        Xi ≥ t ≤ exp − Pn                       1       .
+                               i=1                         i=1 Var(X  i) + 3 M t
+
+
+    Fix an arbitrary sequence αn = ω(1). The degree di of a non-clique vertex i has        √ a binomial
+distribution di ∼ Bin(n−1, 1/2), which by Bernstein’s inequality satisfies di ≤ n2 +α n log n with
+probability 1−n−ω(1) . On the other hand, a clique vertex √  i has degree di ∼ (k−1)+Bin(n−k, 1/2),
+which by Bernstein’s inequality satisfies di ≥ n+k 2    −  α   n log n with probability 1 − n−ω(1) . By
+                  √ this lets us perfectly classify the non-clique vertices with probability 1 − o(1),
+thresholding degrees,
+provided k = ω( n log n).
+    It remains to partition the clique vertices. If vertices i, j are in different cliques, their number
+of common√neighbors is dij ∼ Bin(2(k − 1), 1/2) + Bin(n − 2k, 1/4), which satisfies dij ≤
+n     k                                       −ω(1) . If vertices i, j instead belong to the same clique,
+ 4 + 2 + α n log n with probability 1 − n
+their number√of common neighbors is dij ∼ (k − 2) + Bin(n − k, 1/4), which satisfies dij ≥
+n     3k                                       −ω(1) . By thresholding common neighbors, this allows
+ 4 + 4 − α n log n with probability 1 − n                                                      √
+us to exactly recover the clique partition with probability 1−o(1), again provided k = ω( n log n).
+
+
+    We next show a matching lower bound: computational hardness of recovering the cliques when
+       √
+k ≪ n. This result will be conditional on the Planted Clique Hypothesis, a conjecture that is
+commonly used as the basis for deducing average-case hardness results. In the planted clique model
+PC(N, K), an N -vertex graph has a clique on K vertices, and all other edges occur independently
+with probability 1/2. The following version of the conjecture appears, for instance, as Conjec-
+ture 2.1 in Brennan et al. (2018).
+
+Conjecture 6 (Planted Clique Hypothesis) If K = KN scales as K ≤ N 1/2−Ω(1) then no se-
+quence of randomized polynomial-time algorithms BN can strongly distinguish (Definition 1) be-
+tween PC(N, K) and G(N, 1/2).
+
+    Assuming this conjecture, we have the following hardness result for MC(n, q, δ).
+
+Theorem 7 (Lower bound) Assume the Planted Clique Hypothesis (Conjecture 6). If q, δ scale
+with n such that k := (1 − δ)n/q satisfies (2 + Ω(1)) log2 n ≤ k ≤ (δn)1/2−Ω(1) then no sequence
+of randomized polynomial-time algorithms An achieves exact recovery w.h.p. in MC(n, q, δ).
+
+The condition (2 + Ω(1)) log2 n ≤ k is natural because 2 log2 n is the size of the maximum clique
+                                                                                            1
+in G(n, 1/2). To satisfy the condition k ≤ (δn)1/2−Ω(1) , it suffices to have k = n 2 −Ω(1) and
+δ = n−o(1) .
+    The reduction which proves Theorem 7 is very simple but (to our knowledge) has not appeared
+before in the literature. Intuitively, the idea is the following: in the multiple cliques model, even if
+
+                                                   7
+                                    KOTHARI V EMPALA W EIN X U
+
+
+
+
+an oracle were to reveal the positions of all cliques but one, the remaining problem is still a hard
+instance of planted clique.
+Proof Let q, δ scale as prescribed. Assume for the sake of contradiction that an algorithm An
+achieves exact recovery in MC(n, q, δ). Let K = k = (1 − δ)n/q and N = K + δn. Note that as
+n → ∞ we have N → ∞ because
+
+                              N ≥ K = k ≥ (2 + Ω(1)) log2 n → ∞,
+
+and also K ≤ N 1/2−Ω(1) because
+                                                  1            1
+                                 K = k ≤ (δn) 2 −Ω(1) ≤ N 2 −Ω(1) .
+
+We will give an algorithm BN achieving strong detection between G(N, 1/2) and PC(N, K), con-
+tradicting the planted clique conjecture.
+     The algorithm BN works as follows. Given an N -vertex graph, add (q − 1)k additional vertices
+(bringing the total to n), partitioned into q − 1 cliques each of size k. Add all other edges (both
+among the new vertices and between the old and new vertices) independently with probability 1/2.
+Now run An on the resulting graph. If it finds q disjoint cliques of size k and one of these cliques
+lies within the original N vertices, output “PC(N, K)”; otherwise, output “G(N, 1/2).”
+     To argue correctness of BN , first suppose the input came from PC(N, K). Then the n-vertex
+graph produced is exactly a sample from MC(n, q, δ), and so An must correctly identify all the
+cliques with probability 1−o(1), leading BN to correctly answer “PC(N, k).” Now suppose instead
+that the input to BN came from G(N, 1/2). Due to the assumption k ≥ (2 + Ω(1)) log2 n ≥
+(2 + Ω(1)) log2 N , with probability 1 − o(1) there is no k-clique within the original N vertices, in
+which case BN must correctly answer “G(N, 1/2).”
+
+
+Remark 8 We note that the Planted Clique Hypothesis also implies hardness of detecting a constant
+                                                      √
+number of planted k-cliques in G(n, 1/2) when k ≪ n. The idea is to first show by reduction
+from planted clique that distinguishing between q planted cliques and (q + 1) planted cliques is
+hard; the reduction is simply to add q new cliques (on new vertices). Then the classical “hybrid
+argument” implies that distinguishing between 0 and q cliques is hard for any constant q. (We thank
+Guy Bresler for pointing out this argument.)
+                                                                                                √
+Detection-recovery gap. In the standard planted clique model (with a single clique), k ∼ n is
+the best known threshold for both efficiently recovering the clique and efficiently “detecting” it, i.e.,
+distinguishing the planted clique model from G(n, 1/2). While we have shown that adding more
+cliques does not make recovery any easier, it certainly does make detection easier. For instance,
+in the extreme case where the cliques cover the whole graph, the total edge count strongly distin-
+guishes MC(n, q) from G(n, 1/2) provided q = o(n). Thus, the multiple cliques problem exhibits
+a “detection-recovery gap” that is not present in the single clique case.
+    We remark that our reduction is a rare (perhaps unique?) example where a detection-recovery
+gap has been established based on the Planted Clique Hypothesis. For instance, the prior work Bren-
+nan et al. (2018) on various planted matrix and graph problems was only able to establish hardness
+of recovery in a regime where detection is easy if reducing from some starting problem (not planted
+clique) that is already conjectured to have a detection-recovery gap. While Cai et al. (2017) claims
+
+                                                      8
+                                    I S C OLORING E ASIER THAN C LIQUE ?
+
+
+
+
+to overcome this by reducing from planted clique to planted submatrix recovery, the argument is
+incorrect.1
+    Finally we note that the notion of a “detection-recovery gap” is arguably somewhat artificial
+in that it assumes we have chosen one “canonical” testing problem to associate with the recovery
+problem (a perspective we are avoiding in this paper). One might expect that the gap can be closed
+by choosing a different null distribution whose total edge count matches that of the planted distri-
+bution. It turns out that closing the gap is not quite this simple, and the challenge of constructing a
+better null distribution plays a key role in the next section.
+
+2.1.3. T ESTING q- COLORABILITY VERSUS (q + ℓ)- COLORABILITY
+The results of the previous section do not quite cover the case of a true coloring, i.e., where the
+                                                                                                   √
+cliques partition the entire graph. In this case, exact recovery remains easy when k := n/q ≫ n,
+                                            √
+and we expect it to be hard when k ≪ n; however, we do not know how to establish this via
+reduction from planted clique. We will instead follow strategy (I) from the introduction: we fix
+P = MC(n, q) and our goal is to design a null distribution Q such that w.h.p. G ∼ Q is not q-
+colorable (or rather, its complement is not), and distinguishing P versus Q is low-degree hard. Once
+we have achieved this goal, this gives an indirect two-stage argument for hardness of recovery: the
+low-degree hardness leads us to conjecture that no poly-time algorithm can distinguish P from Q,
+and this conjecture (if true) formally implies that no poly-time algorithm can recover the cliques in
+P.
+    Perhaps the first natural attempt is to choose Q = G(n, 1/2). However, this will not suffice, as
+G(n, 1/2) is too easy to distinguish from MC(n, q) due to the detection-recovery gap discussed in
+the previous section. Instead, we will choose Q = MC(n, q + 1), which w.h.p. is not q-colorable
+for q ≤ Ω(n/ log n); see Appendix D. We will show that testing P = MC(n, q) versus Q =
+                                                       √
+MC(n, q +1) is low-degree hard when k := n/q ≪ n. As discussed above, this suggests hardness
+                                             √
+of exact recovery in MC(n, q) when k ≪ n.
+    We will in fact consider a slightly more general testing problem: P = MC(n, q) versus Q =
+MC(n, q + ℓ) for some ℓ ≥ 1 (which may scale with n). This generality will not cost us much, and
+we feel it is a question of possible independent interest. The following results establish that (in the
+low-degree framework) this problem is easy when q 2 ≪ ℓn and hard when q 2 ≫ ℓn.
+
+Theorem 9 (Upper bound) If q, ℓ scale with n such that 1 ≤ q < q + ℓ ≤ n and q 2 = o(ℓn)
+then there is a degree-1 polynomial achieving strong separation between P = MC(n, q) and Q =
+MC(n, q + ℓ).
+Theorem 10 (Lower bound) Fix an arbitrary constant ϵ > 0, not depending on n. If q, ℓ scale
+with n such that 1 ≤ q < q + ℓ ≤ n and q 2 ≥ ℓn1+ϵ then there is no degree-o(log n/ log log n)2
+polynomial achieving weak separation between P = MC(n, q) and Q = MC(n, q + ℓ).
+
+Testing planted versus planted. On a technical level, this result differs from nearly all existing
+low-degree lower bounds because here we are testing between two different “planted” distribu-
+tions. In contrast, most prior work has considered testing between some planted distribution and
+ 1. On pg 21-22 of Cai et al. (2017) (arXiv v2), the bootstrapping construction in Eq. (42) does not actually produce
+    an instance of the submatrix model because the entries of the noise matrix are not mutually independent. An issue
+    occurs near the top of pg 22, where pairwise independence does not imply mutual independence. The reduction does
+    show hardness of some non-standard submatrix model where the noise entries are not mutually independent.
+
+
+                                                         9
+                                   KOTHARI V EMPALA W EIN X U
+
+
+
+
+an i.i.d. null distribution, which is much easier to analyze. The first “planted-versus-planted” low-
+degree lower bounds were given recently by Rush et al. (2022), based on a technique developed
+by Schramm and Wein (2022). Our proof is based on similar ideas, but differs from Rush et al.
+(2022) on a technical level; the bounds for dense subgraph problems in Rush et al. (2022) do not
+work when the subgraph is extremely dense (e.g., a clique), and so we use a somewhat different
+variation of the argument.
+     The standard approach to proving low-degree lower bounds is based on relatively straightfor-
+ward moment calculations, but relies heavily on knowing an orthogonal basis of polynomials with
+respect to Q; see Section 2.3 of Hopkins (2018). The key technical challenge in planted-versus-
+planted testing is that, since Q is not a product measure, we do not know such an orthogonal basis
+of polynomials that is convenient to work with. Our Proposition 23 overcomes this, showing that
+it suffices to control certain recursively-defined quantities wα . This generalizes the standard ap-
+proach, as discussed in Remark 24. Similarly to Rush et al. (2022), the quantities wα turn out to
+have a convenient multiplicative property (Lemma 25) which helps in the analysis. The proof of
+Proposition 23 takes an approach first used by Schramm and Wein (2022), where we apply Jensen’s
+inequality to the “signal” but not the “noise,” and then leverage an orthogonal basis of polynomials
+for the i.i.d. “noise.”
+   We note that an alternative form of evidence for hardness of our original recovery problem
+would be to directly formulate a low-degree recovery question in the style of Schramm and Wein
+(2022), but we have chosen to instead investigate the quiet planting approach.
+
+
+
+2.2. Refutation
+
+A common framework for studying the average-case complexity of refutation problems is to prove
+lower bounds against the sum-of-squares (SoS) hierarchy, a powerful class of methods based on
+semi-definite programming. For the problem of refuting q-colorability, a particular SoS formulation
+                             √
+is known to fail when q ≫ n (Kothari and Manohar, 2021); however, it remains open to charac-
+terize the more canonical (and potentially stronger) SoS SDP which has equality constraints instead
+of inequalities (see Section 1.5 of Kothari and Manohar (2021)).
+    In this paper, we formulate an alternative type of refutation lower bound based directly on
+low-degree polynomials, which complements the SoS approach. Some advantages of the new for-
+mulation are its simplicity, and the fact that (unlike SoS) there is no ambiguity in the choice of
+SDP relaxation; we only need to specify how our input is encoded as real-valued variables. To our
+knowledge, there are no formal implications in either direction between SoS lower bounds and our
+new framework. Like SoS, our framework captures spectral methods (as illustrated by the proof of
+Theorem 16 below), a powerful class of refutation algorithms which give the best known poly-time
+algorithms for a wide variety of average-case refutation tasks.
+    We note that some prior work has used low-degree lower bounds to give evidence for hardness
+of refutation, via a two-stage argument that first gives a polynomial-time reduction from a testing
+problem to refutation (Bandeira et al., 2020, 2022a). Our new framework is similar in spirit but
+more direct, as we define for the first time a notion of what it means for a polynomial to solve a
+refutation problem (Definition 11).
+
+                                                 10
+                                I S C OLORING E ASIER THAN C LIQUE ?
+
+
+
+
+2.2.1. F RAMEWORK FOR LOW- DEGREE REFUTATION
+We will now define a notion (Definition 11) of what it means for a polynomial to refute a property
+                                                           n
+R ⊆ RN (e.g., the set of q-colorable graphs X ∈ {±1}( 2 ) ) over a distribution Q (e.g., G(n, 1/2)).
+We will later argue that this definition is reasonable in that it indeed implies a solution to the refu-
+tation problem (Proposition 13). We also illustrate that our definition captures spectral methods, a
+powerful class of refutation algorithms (see the proof of Theorem 16).
+
+Definition 11 (Strong/weak separation of a distribution and property) Suppose Qn is a distri-
+bution on RN for some N = Nn , and suppose R = Rn ⊆ RN . A polynomial fn : RN → R is said
+to strongly separate Q and R if
+
+                          f (X) ≥ 1 ∀X ∈ R             and     E[f 2 ] = o(1),
+                                                               Q
+
+and weakly separate Q and R if
+
+                   f (X) ≥ 1 ∀X ∈ R            and       E[f ] = 0, E[f 2 ] = O(1).
+                                                         Q           Q
+
+
+Remark 12 The requirement EQ [f ] = 0 can optionally be added to the definition of strong sepa-
+ration: if f = fn satisfies the original definition it can be shifted and scaled to satisfy the modified
+one.
+    More generally, one could define   pseparation to mean there exists B = Bn > EQ [f ] such that
+f (X) ≥ B for all X ∈ R, and VarQ [f ] is either o(B − EQ [f ]) (for strong separation) or
+O(B − EQ [f ]) (for weak separation). This is equivalent in the sense that if f = fn satisfies the
+original definition it also satisfies the new one with B = 1, and if f satisfies the new definition it
+can be shifted and scaled to satisfy the original one.
+
+    As we see next, strong and weak separation are natural sufficient conditions for refuting R with
+high probability or constant probability (respectively) by evaluating f .
+
+Proposition 13 Suppose f strongly (or weakly, respectively) separates Q and R. Define a refu-
+tation algorithm that, on input X ∈ RN , outputs NO if f (X) < 1 and outputs MAYBE otherwise.
+Then this algorithm has the guarantee that (1) whenever it outputs NO, X ∈  / R, and (2) when
+X ∼ Q, the output is NO with probability 1 − o(1) (or Ω(1), respectively).
+
+Proof Guarantee (1) is immediate from the property f (X) ≥ 1 for all X ∈ R. For strong separation,
+(2) follows because by Markov’s inequality, E[f 2 ] = o(1) implies that |f (X)| < 1 with probability
+1 − o(1). It remains to verify (2) for weak separation: letting EQ [f 2 ] ≤ C and p := PrQ {f (X) <
+1},
+                                                               √               √                √
+0 = E[f ] ≥ 1·Pr{f ≥ 1}+E[f · 1f <1 ] ≥ (1−p)− E[f 2 ]· p ≥ 1−p−C p ≥ 1−(C +1) p,
+                                                     p
+
+
+implying p ≥ 1/(C + 1)2 .
+
+     In line with strategy (II) from the introduction, one way to rule out strong (or weak) separation
+is to construct a planted distribution and bound the quantity Adv≤D defined in (1).
+
+                                                  11
+                                   KOTHARI V EMPALA W EIN X U
+
+
+
+
+Proposition 14 Suppose that on an infinite subsequence of n values we have a distribution P = Pn
+supported on R. If Adv≤D (P, Q) = O(1) (respectively, 1 + o(1)) for some D = Dn , then no
+degree-D polynomial strongly (resp., weakly) separates Q and R.
+
+Proof Since P is supported on R, the separation condition implies EP [f ] ≥ 1. The proof is now
+nearly identical to that of Lemma 22.
+
+
+Remark 15 We note that for the well-studied problem of refuting a single k-clique in G(n, 1/2),
+existing work implies sharp upper and lower bounds in our new framework. For the lower bound, let
+P be the standard planted k-clique model and combine Proposition 14 with the low-degree analysis
+of planted clique (Hopkins, 2018, Section 2.4) to conclude: if k ≤ n1/2−ϵ for a constant ϵ > 0
+then no degree-o(log n/ log log n)2 polynomial weakly separates G(n, 1/2) from the property of
+                                                                                              √
+containing a k-clique. The upper bound follows from the proof of Theorem 16 below: if k ≥ 2.1 n
+then there is an O(log n)-degree polynomial that strongly separates G(n, 1/2) from the property of
+containing a k-clique.
+
+2.2.2. L OW- DEGREE REFUTATION OF q- COLORABILITY
+We now apply the framework from the previous section to the problem of refuting q-colorability in
+                                                                    n
+G(n, 1/2). Throughout, we represent graphs as elements of {±1}( 2 ) as usual, take Q = G(n, 1/2),
+                       n
+and use Rq ⊆ {±1}( 2 ) to denote the property of q-colorability (i.e., the set of graphs that are q-
+colorable).
+                                                                                                √
+    First, we give an upper bound: low-degree polynomials can refute q-colorability for q ≲ n.
+The proof proceeds by taking a standard spectral refutation algorithm (based on the maximum eigen-
+value of the adjacency matrix) and approximating it by a polynomial.
+                                             √
+Theorem 16 (Upper bound) Suppose q ≤ b n for a constant b < 1/2 (not depending on n).
+Then there exists a constant C = C(b) > 0 and a polynomial f = fn of degree at most C log n that
+strongly separates G(n, 1/2) and Rq .
+
+We also give a lower bound: no low-degree polynomial can refute q-colorability for q ≫ n2/3 . Note
+there is a gap between our upper and lower bounds, and we leave closing this gap as an interesting
+direction for future work.
+
+Theorem 17 (Lower bound) If q ≥ n2/3+ϵ for a constant ϵ > 0, then no degree-o(log n/ log log n)2
+polynomial weakly separates G(n, 1/2) and Rq .
+
+The proof of the lower bound will use Proposition 14, which is a rigorous incarnation of strategy
+(II) from the introduction. In other words, our goal is to construct a planted distribution P supported
+on q-colorable graphs that is hard to distinguish from Q = G(n, 1/2) in the sense Adv≤D (P, Q) =
+1 + o(1).
+     Constructing this planted distribution is non-trivial. The naive choice would be the “canonical”
+planted model MC(n, q) (or rather, its complement), but this is not a good choice because it can be
+easily distinguished from G(n, 1/2) by counting the total number of edges whenever q ≪ n. A
+next attempt is to modify MC(n, q) to have a slightly lower probability for non-clique edges so as
+to correct the total edge count. This gives a quieter planting that is hard to distinguish from Q when
+
+                                                  12
+                                 I S C OLORING E ASIER THAN C LIQUE ?
+
+
+
+
+q ≫ n3/4 , but easy when q ≪ n3/4 by counting signed triangles (each of the n3 triangles in the
+                                                                                  
+
+complete graph counts for +1 if an even number of its edges are present or −1 if an odd number
+are present). Our final construction, defined below, that reaches the threshold q ∼ n2/3 , is more
+complicated and involves planting both cliques and independent sets.
+
+Definition 18 (Quiet planting for q ≫ n2/3 ) Suppose n, q are positive integers. To each of the
+n vertices, independently assign a label (a, b) ∈ [q] × [q] uniformly at random. Conditioned on
+the labels, do the following independently for each pair of distinct vertices {u, v}: denote the two
+vertex labels by (a1 , b1 ) and (a2 , b2 ); if a1 = a2 then do not include the edge (u, v); if a1 ̸= a2 and
+b1 = b2 then include the edge (u, v); otherwise include the edge (u, v) with probability 1/2.
+
+Note that all the vertices with a given a value form an independent set, and thus the distribution is
+supported on q-colorable graphs. Also, the vertices with a given b value nearly form a clique, aside
+from the non-edges required for the independent sets. In the proof of Theorem 17, we show that this
+distribution is low-degree indistinguishable from G(n, 1/2) when q ≫ n2/3 . Our analysis of this
+distribution is tight, as the count of signed 4-cycles distinguishes it from G(n, 1/2) when q ≪ n2/3 .
+    Although we have not proven it, we expect the true threshold for low-degree refutation of col-
+                      √
+orability to be q ∼ n.
+
+Conjecture 19 Fix an arbitrary ϵ > 0, not depending on n. If q ≥ n1/2+ϵ then no degree-D
+polynomial weakly separates Q = G(n, 1/2) and Rq , for some D = ω(log n).
+
+2.2.3. C OMPLETENESS OF THE QUIET PLANTING APPROACH
+A natural approach to prove Conjecture 19 would be to construct a quieter planted distribution P
+                                                                                             √
+that is supported on q-colorable graphs but hard to distinguish from G(n, 1/2) when q ≫ n. One
+might worry, however, that this may not even be possible: conceivably, such a planted distribution
+                                                                            √
+might not exist, even if the true low-degree refutation threshold is at q ∼ n like we expect. If this
+were the case, we would need to find an alternative approach to prove the conjecture without relying
+on quiet planting.
+    We show in high generality that the hypothetical scenario above actually cannot occur: for every
+low-degree hard refutation problem, there is a planted distribution that can be used to prove its hard-
+ness. Put another way, Conjecture 19 is equivalent to the existence of a quiet planted distribution
+          √
+for q ≫ n.
+
+Theorem 20 Fix sequences N = Nn , D = Dn , Q = Qn a distribution on RN , and R = Rn ⊆
+RN . Assume that for each n, Q is supported on a finite set and R is a finite set (but the cardinality
+of these sets may depend on n). The following are equivalent:
+
+  (1) No degree-D polynomial strongly separates Q and R.
+
+  (2) For an infinite subsequence of n values, there exists a distribution P = Pn supported on R
+      such that Adv≤D (P, Q) = O(1).
+
+Similarly, the following are equivalent:
+
+  (1) No degree-D polynomial weakly separates Q and R.
+
+                                                    13
+                                  KOTHARI V EMPALA W EIN X U
+
+
+
+
+  (2) For an infinite subsequence of n values, there exists a distribution P = Pn supported on R
+      such that Adv≤D (P, Q) = 1 + o(1).
+
+Note that we have already shown that (2) implies (1); see Proposition 14. The proof that (1) implies
+(2) uses von Neumann’s min-max principle.
+
+Remark 21 We have assumed supp(Q) and R are finite (the relevant setting for q-coloring) to
+simplify the analytic conditions needed for the min-max principle, but these assumptions can be
+relaxed; see Remark 33.
+
+    Adapted to the context of q-coloring, while formally we do not know whether there exists a low-
+                                                   √
+degree polynomial to refute q-coloring when q ≫ n, it would be surprising in light of the sum-of-
+                                                                     √
+squares lower bound of Kothari and Manohar (2021) for refuting Õ( n)-colorability of G(n, 1/2).
+Hence, we interpret this argument as suggesting the existence of a computationally quiet planted
+                                        √
+q-coloring for G(n, 1/2) when q ≈ n even though we do not know an explicit construction of
+such a distribution. If this construction were known, it may allow for SoS lower bounds in stronger
+SDP formulations to be proved via the pseudo-calibration approach (Barak et al., 2016).
+
+
+Acknowledgments
+P.K.K. was supported by NSF CAREER Award #2047933, Alfred P. Sloan Fellowship and a Google
+Research Scholar Award. S.S.V. was supported in part by NSF awards CCF-2007443 and CCF-
+2106444. Part of this work was done while A.S.W. was with the Algorithms and Randomness
+Center at Georgia Tech, supported by NSF awards CCF-2007443 and CCF-2106444. J.X. was
+supported in part by NSF CAREER Award #2047933.
+    We thank the anonymous reviewers for their helpful comments.
+
+
+References
+Noga Alon, Michael Krivelevich, and Benny Sudakov. Finding a large hidden clique in a random
+  graph. Random Structures & Algorithms, 13(3-4):457–466, 1998.
+
+Afonso Bandeira, Dmitriy Kunisky, and Alexander Wein. Average-case integrality gap for non-
+  negative principal component analysis. In Mathematical and Scientific Machine Learning, pages
+  153–171. PMLR, 2022a.
+
+Afonso S Bandeira and Ramon van Handel. Sharp nonasymptotic bounds on the norm of random
+  matrices with independent entries. Annals of Probability, 44(4):2479–2506, 2016.
+
+Afonso S Bandeira, Dmitriy Kunisky, and Alexander S Wein. Computational hardness of certifying
+  bounds on constrained PCA problems. In 11th Innovations in Theoretical Computer Science
+  Conference (ITCS), volume 151, 2020.
+
+Afonso S Bandeira, Jess Banks, Dmitriy Kunisky, Cristopher Moore, and Alexander S Wein. Spec-
+  tral planting and the hardness of refuting cuts, colorability, and communities in random graphs.
+  In Conference on Learning Theory, pages 410–473. PMLR, 2021.
+
+                                                14
+                             I S C OLORING E ASIER THAN C LIQUE ?
+
+
+
+
+Afonso S Bandeira, Ahmed El Alaoui, Samuel B Hopkins, Alexander S Wein, Tselil Schramm,
+  and Ilias Zadik. The Franz–Parisi criterion and computational trade-offs in high dimensional
+  statistics. In 36th Conference on Neural Information Processing Systems (NeurIPS 2022), 2022b.
+
+Boaz Barak, Samuel B. Hopkins, Jonathan Kelner, Pravesh Kothari, Ankur Moitra, and Aaron
+  Potechin. A nearly tight sum-of-squares lower bound for the planted clique problem. In 2016
+  IEEE 57th Annual Symposium on Foundations of Computer Science (FOCS), pages 428–437,
+  2016. doi: 10.1109/FOCS.2016.53.
+
+Quentin Berthet and Philippe Rigollet. Complexity theoretic lower bounds for sparse principal
+  component detection. In Conference on learning theory, pages 1046–1066. PMLR, 2013.
+
+Matthew Brennan and Guy Bresler. Reducibility and statistical-computational gaps from secret
+ leakage. In Conference on Learning Theory, pages 648–847. PMLR, 2020.
+
+Matthew Brennan, Guy Bresler, and Wasim Huleihel. Reducibility and computational lower bounds
+ for problems with planted sparse structure. In Conference On Learning Theory, pages 48–166.
+ PMLR, 2018.
+
+Tony Cai, Tengyuan Liang, and Alexander Rakhlin. Computational and statistical boundaries for
+  submatrix localization in a large noisy matrix. The Annals of Statistics, 45(4):1403, 2017.
+
+Amin Coja-Oghlan. The Lovász number of random graphs. Comb. Probab. Comput., 14(4):
+ 439–465, 2005. ISSN 0963-5483. doi: 10.1017/S0963548305006826. URL https://doi.
+ org/10.1017/S0963548305006826.
+
+Uriel Feige and Robert Krauthgamer. The probable value of the Lovász–Schrijver relaxations for
+  maximum independent set. SIAM J. Comput., 32(2):345–370, 2003. URL http://dblp.
+  uni-trier.de/db/journals/siamcomp/siamcomp32.html#FeigeK03.
+
+Vitaly Feldman, Elena Grigorescu, Lev Reyzin, Santosh S Vempala, and Ying Xiao. Statistical
+  algorithms and a lower bound for detecting planted cliques. Journal of the ACM (JACM), 64(2):
+  1–37, 2017.
+
+Bruce Hajek, Yihong Wu, and Jiaming Xu. Computational lower bounds for community detection
+  on random graphs. In Conference on Learning Theory, pages 899–928. PMLR, 2015.
+
+Annika Heckel. The chromatic number of dense random graphs. Random Structures & Algorithms,
+  53(1):140–182, 2018.
+
+Justin Holmgren and Alexander S Wein. Counterexamples to the low-degree conjecture. In 12th
+  Innovations in Theoretical Computer Science Conference (ITCS). Schloss Dagstuhl-Leibniz-
+  Zentrum für Informatik, 2021.
+
+Samuel Hopkins. Statistical Inference and the Sum of Squares Method. PhD thesis, Cornell Univer-
+  sity, 2018.
+
+Samuel B Hopkins and David Steurer. Efficient bayesian estimation from few samples: community
+  detection and related problems. In 58th Annual Symposium on Foundations of Computer Science
+  (FOCS), pages 379–390. IEEE, 2017.
+
+                                              15
+                                 KOTHARI V EMPALA W EIN X U
+
+
+
+
+Samuel B Hopkins, Pravesh K Kothari, Aaron Potechin, Prasad Raghavendra, Tselil Schramm, and
+  David Steurer. The power of sum-of-squares for detecting hidden structures. In 58th Annual
+  Symposium on Foundations of Computer Science (FOCS), pages 720–731. IEEE, 2017.
+
+Mark Jerrum. Large cliques elude the metropolis process. Random Struct. Algorithms, 3:347–360,
+ 1992.
+
+Hidetoshi Komiya. Elementary proof for Sion’s minimax theorem. Kodai mathematical journal, 11
+  (1):5–7, 1988.
+
+Pravesh K. Kothari and Peter Manohar. A stress-free sum-of-squares lower bound for coloring.
+  In Proceedings of the 36th Computational Complexity Conference, CCC ’21, Dagstuhl, DEU,
+  2021. Schloss Dagstuhl–Leibniz-Zentrum fuer Informatik. ISBN 9783959771931. doi: 10.4230/
+  LIPIcs.CCC.2021.23. URL https://doi.org/10.4230/LIPIcs.CCC.2021.23.
+
+Pravesh K. Kothari and Ruta Mehta. Sum-of-squares meets nash: Lower bounds for finding
+  any equilibrium. In Proceedings of the 50th Annual ACM SIGACT Symposium on Theory of
+  Computing, STOC 2018, page 1241–1248, New York, NY, USA, 2018. Association for Com-
+  puting Machinery. ISBN 9781450355599. doi: 10.1145/3188745.3188892. URL https:
+  //doi.org/10.1145/3188745.3188892.
+
+Luděk Kučera. Expected complexity of graph partitioning problems. Discrete Applied Mathematics,
+  57(2-3):193–212, 1995.
+
+Dmitriy Kunisky, Alexander S Wein, and Afonso S Bandeira. Notes on computational hardness
+ of hypothesis testing: Predictions using the low-degree likelihood ratio. In ISAAC Congress
+ (International Society for Analysis, its Applications and Computation), pages 1–50. Springer,
+ 2022.
+
+Cynthia Rush, Fiona Skerman, Alexander S Wein, and Dana Yang. Is it easier to count communities
+  than find them? arXiv preprint arXiv:2212.10872, 2022.
+
+Tselil Schramm and Alexander S Wein. Computational barriers to estimation from low-degree
+  polynomials. The Annals of Statistics, 50(3):1833–1858, 2022.
+
+Maurice Sion. On general minimax theorems. Pacific J. Math., 8(4):171–176, 1958.
+
+Ilias Zadik, Min Jae Song, Alexander S Wein, and Joan Bruna. Lattice-based methods surpass sum-
+   of-squares in clustering. In Conference on Learning Theory, pages 1247–1248. PMLR, 2022.
+
+
+
+
+                                               16
+                                     I S C OLORING E ASIER THAN C LIQUE ?
+
+
+
+
+Appendix A. Testing the Number of Cliques
+A.1. Upper Bound
+We restate the theorem for the reader’s convenience.
+
+Theorem 9 (Upper bound) If q, ℓ scale with n such that 1 ≤ q < q + ℓ ≤ n and q 2 = o(ℓn)
+then there is a degree-1 polynomial achieving strong separation between P = MC(n, q) and Q =
+MC(n, q + ℓ).
+
+Proof LetPf be the degree-1 polynomial that counts the total number of signed edges in the graph:
+f (Y ) = 1≤i<j≤n Yij , where recall Yij ∈ {±1}. Using linearity of expectation,
+                                                                 
+                                                                 n 1
+                                                E      f (Y ) =
+                                            Y ∼MC(n,q)           2 q
+
+and so                                               
+                                            n   1   1    n     ℓ
+                     E f (Y ) − E f (Y ) =        −    =            .                                (2)
+                    Y ∼P       Y ∼Q         2   q q+ℓ    2 q(q + ℓ)
+For the second moment,                                        XX
+                                        E         f (Y )2 =                 E[Yij Yi′ j ′ ].
+                                   Y ∼MC(n,q)
+                                                              i<j i′ <j ′
+
+There are a few different terms to consider depending on how the edges (i, j) and (i′ , j ′ ) interact.
+
+    • If (i, j) = (i′ , j ′ ) then E[Yij Yi′ j ′ ] = E[Yij2 ] = 1.
+
+    • If (i, j) and (i′ , j ′ ) have no vertices in common then Yij and Yi′ j ′ are independent, and so
+      E[Yij Yi′ j ′ ] = E[Yij ] E[Yi′ j ′ ] = q12 .
+
+    • If (i, j) and (i′ , j ′ ) have one vertex in common then we again have that Yij and Yi′ j ′ are
+      independent: if say i = i′ then the event that i, j have the same label is independent from
+      the event that i, j ′ have the same label, due to symmetry among the possible labels for i.
+      Therefore E[Yij Yi′ j ′ ] = q12 .
+
+Putting it together,
+                                                          
+                                              2n       n    n       1
+                              E      f (Y ) =     ·1+          −1 · 2
+                          Y ∼MC(n,q)           2       2    2      q
+
+and so
+                                                             2
+                                          n       n    n       1     n 1
+                       Var     f (Y ) =      ·1+          −1 · 2 −
+                  Y ∼MC(n,q)              2        2   2      q      2 q
+                                                  
+                                          n       1
+                                       =      1− 2
+                                          2      q
+                                          
+                                          n
+                                       ≤    .                                                        (3)
+                                          2
+
+
+                                                          17
+                                  KOTHARI V EMPALA W EIN X U
+
+
+
+
+Combining (2) and (3), f achieves strong separation provided
+               s                       
+                    n           n      ℓ                       q    
+                        =o                     ,     i.e.,   q    + 1 = o(n).
+                    2           2 q(q + ℓ)                      ℓ
+
+It therefore suffices to have q = o(n) and q 2 = o(ℓn). Note that q = o(n) is implied by q 2 = o(ℓn)
+together with ℓ ≤ n.
+
+
+A.2. Lower Bound
+We restate the theorem for the reader’s convenience.
+
+Theorem 10 (Lower bound) Fix an arbitrary constant ϵ > 0, not depending on n. If q, ℓ scale
+with n such that 1 ≤ q < q + ℓ ≤ n and q 2 ≥ ℓn1+ϵ then there is no degree-o(log n/ log log n)2
+polynomial achieving weak separation between P = MC(n, q) and Q = MC(n, q + ℓ).
+
+A.2.1. P ROOF OVERVIEW
+We first perform a standard manipulation, showing that it suffices to bound the quantity Adv≤D .
+
+Lemma 22 Let P = Pn and Q = Qn be distributions on RN for some N = Nn . For some
+D = Dn , let R[Y ]≤D denote the set of polynomials RN → R of degree (at most) D. If
+
+                                                      E [f ]
+                        Adv≤D (P, Q) :=      sup     p P        = 1 + o(1),
+                                          f ∈R[Y ]≤D  EQ [f 2 ]
+
+then no degree-D polynomial f : RN → R weakly separates P and Q. Similarly, if Adv≤D (P, Q) =
+O(1) then no degree-D polynomial strongly separates P and Q.
+
+It is always the case that Adv≤D ≥ 1, by taking f = 1.
+Proof Assume for the sake of contradiction that some degree-D polynomial g : RN → R weakly
+separates P and Q. By shifting and scaling, we can assume without loss of generality that EQ [g] = 0
+and EP [g] = 1. For sufficiently large n, weak separation guarantees VarQ [g] = EQ [g 2 ] ≤ C for
+some constant C > 0. Define f = g + C and compute
+                                                                   r
+                         EP [f ]        1+C             1+C           1+C
+                       p           =p               ≥√          =            ,
+                         EQ [f ] 2         2
+                                     EQ [g ] + C 2      C +C  2          C
+
+which is a constant strictly greater than 1, contradicting Adv≤D = 1 + o(1). The proof for strong
+separation is similar, now with C = o(1).
+
+    A key ingredient in the proof will be an upper bound on Adv≤D in the following generic set-
+ting (of which our problem is a special case). Suppose Q takes the form Y = X ∨ Z where
+X, Z ∈ {±1}N with “noise” Z i.i.d. Rademacher and “signal” X having an arbitrary distribution
+                                                                               n
+(independent from Z), and ∨ denotes entrywise maximum. (In our case N = 2 and X is the
+±1-valued indicator for clique edges.)
+
+                                                18
+                               I S C OLORING E ASIER THAN C LIQUE ?
+
+
+
+
+Proposition 23 Suppose Q takes the form Y = X ∨Z as described above and P is any distribution
+on {±1}N . For α, β ⊆ [N ], define
+                                                                  Y
+                                     cα = E [Y α ] := E                 Yi
+                                          Y ∼P             Y ∼P
+                                                                  i∈α
+
+and
+                                      Mβα = Pr(α \ X = β).
+                                                 X
+
+Here and throughout, we abuse notation and use X to refer to the set {i ∈ [N ] : Xi = 1}.
+   Suppose Mαα > 0 for all |α| ≤ D. Then
+                                                          X
+                                      Adv2≤D ≤                     wα2                            (4)
+                                                  α⊆[N ], |α|≤D
+
+where wα is defined recursively by
+                                                       
+                                      1       X
+                                wα =      cα −   wβ Mβα  .
+                                     Mαα
+                                                          β⊊α
+
+No explicit base case is needed for the recursion above, but one can think of w∅ = 1 as the base
+case.
+
+    We pause to give some remarks on the origin of the above formula. The proof (given in Sec-
+tion A.2.4) follows a strategy based on Schramm and Wein (2022): apply Jensen’s inequality to
+X (but not Z) and then the result can be explicitly calculated by solving an upper-triangular linear
+system. The original work Schramm and Wein (2022) gave a similar formula in the setting of es-
+timation, and more recently Rush et al. (2022) was first to demonstrate that related techniques can
+also be used for testing between two “planted” distributions (which is also the setting of the current
+work). In contrast, previous low-degree lower bounds for testing problems had always required the
+“null” distribution Q to have independent coordinates; see the remark below for comparison.
+
+Remark 24 We note that Proposition 23 generalizes a well known formula for low-degree testing
+between “signal” and “pure noise.” Specifically, consider the case where X = −1 so that Q is i.i.d.
+Rademacher, and P is any distribution on {±1}N . In this case Mβα = 1β=α and so Proposition 23
+reduces to the bound
+                                    X               2            Y
+                            2
+                        Adv≤D ≤             E [Y ] , Y α :=
+                                                   α
+                                                                      Yi ,
+                                             Y ∼P
+                                     |α|≤D                                   i∈α
+
+which is standard (and in fact holds with equality); see Section 2.3 of Hopkins (2018).
+
+    Returning to the proof, a more convenient parametrization for wα will be ŵα = Mαα wα . In this
+case, since M∅α = EQ [Y α ], the recurrence can be written as
+
+                                                 ŵ∅ = 1,
+
+                                                     19
+                                          KOTHARI V EMPALA W EIN X U
+
+
+
+                           X           Mβα                       X     Mβα
+        ŵα = cα −               ŵβ       = E[Y α ] − E[Y α ] −   ŵβ                             for |α| ≥ 1.           (5)
+                                       Mββ   P         Q               Mββ
+                           β⊊α                                            ∅⊊β⊊α
+
+The ratio of M ’s can be thought of as a conditional probability:
+
+                            Mβα   PrX (α \ X = β)
+                Rβα :=          =                 = Pr(α \ X = β | β ∩ X = ∅).                                            (6)
+                            Mββ   PrX (β ∩ X = ∅)   X
+
+   From this point onward, we specialize to our testing problem of interest: P = MC(n, q) versus
+Q = MC(n, q + ℓ). As discussed above, our goal is to show Adv≤D = 1 + o(1) by bounding the
+formula in (4). The “1” comes from the α = ∅ term, and we need to show that the rest of the sum is
+o(1).
+   The following property of ŵ will be key to the analysis; it is used crucially in the proof of
+Lemma 28. Note that we can think of α as a subset of edges of the complete graph on n vertices,
+and in this sense we can talk about α being connected or having connected components.
+                                                                                    Qt
+Lemma 25 If α has connected components α1 , . . . , αt then ŵα =                     i=1 ŵαi .
+
+Proof It suffices to prove the claim in the case where α is comprised of two non-empty disjoint edge
+sets α1 , α2 with no vertices in common (i.e., each αi is a union of connected components). Once
+we establish ŵα = ŵα1 ŵα2 in this case, the general statement follows by induction.
+    Note that due to independence across connected components, cα = cα1 cα2 . Any β ⊆ α can
+be uniquely decomposed as β = β1 ∪ β2 with β1 ⊆ α1 and β2 ⊆ α2 . Again by independence,
+Rβα = Rβ1 α1 Rβ2 α2 . We will also need the fact Rαα = 1. We proceed by induction on |α|. If either
+α1 or α2 is empty, the result follows immediately because ŵ∅ = 1. Otherwise, assume by induction
+that ŵβ = ŵβ1 ŵβ2 for any β ⊊ α. We have
+             X
+ŵα = cα −        ŵβ Rβα
+            β⊊α
+                   X                                      X                                        X
+    = cα1 cα2 −            ŵβ1 ŵβ2 Rβ1 α1 Rβ2 α2 −                ŵβ1 ŵα2 Rβ1 α1 Rα2 α2 −               ŵα1 ŵβ2 Rα1 α1 Rβ2 α2
+                  β1 ⊊α1                                 β1 ⊊α1                                  β2 ⊊α2
+                  β2 ⊊α2                                (β2 =α2 )                               (β1 =α1 )
+                                                                   
+                       X                         X                                 X                              X
+    = cα1 cα2 −               ŵβ1 Rβ1 α1            ŵβ2 Rβ2 α2  − ŵα2               ŵβ1 Rβ1 α1 − ŵα1             ŵβ2 Rβ2 α2 .
+                      β1 ⊊α1                   β2 ⊊α2                             β1 ⊊α1                         β2 ⊊α2
+
+Using the recurrence (5), this becomes
+
+         ŵα = cα1 cα2 − (cα1 − ŵα1 )(cα2 − ŵα2 ) − ŵα2 (cα1 − ŵα1 ) − ŵα1 (cα2 − ŵα2 ),
+
+which simplifies to ŵα1 ŵα2 as desired.
+
+
+A.2.2. B OUNDING ŵα
+In the remainder of the proof we need to bound the values wα and plug this into (4). Recall that
+when α is thought of as a graph, |α| is the number of edges. We also define V (α) to be the set of
+vertices of α, i.e., the vertices i ∈ [n] incident to at least one edge of α.
+
+                                                           20
+                                I S C OLORING E ASIER THAN C LIQUE ?
+
+
+
+                                     |α|
+Lemma 26 For any α we have Mαα ≥ 1 − q+ℓ .
+Proof Recall that Mαα is the probability (under Q) that α contains no clique edges. The probability
+that any specific edge is a clique edge is 1/(q + ℓ), so the result follows by a union bound.
+
+Lemma 27 If |α| ≥ 1 and α is connected then
+                                                              ℓ
+                            0 ≤ E[Y α ] − E[Y α ] ≤                    (|V (α)| − 1).
+                                 P           Q             q |V (α)|
+Proof Since α is connected, EP [Y α ] is the probability that all vertices of α are assigned the same
+label in [q] (and similarly for EQ [Y α ]), i.e.,
+                                      |V (α)|−1           |V (α)|−1
+                     α          α        1               1
+                 E[Y ] − E[Y ] =                  −
+                 P         Q             q             q+ℓ
+                                      |V (α)|−1 "             |V (α)|−1 #
+                                         1                  q
+                                  =                 1−
+                                         q                 q+ℓ
+                                      |V (α)|−1 "                 |V (α)|−1 #
+                                         1                        ℓ
+                                  =                 1− 1−
+                                         q                     q+ℓ
+                                      |V (α)|−1                                
+                                         1                        ℓ
+                                  ≤                1− 1−              (|V (α)| − 1)
+                                         q                     q+ℓ
+                                      |V (α)|−1
+                                         1           ℓ
+                                  =                     (|V (α)| − 1)
+                                         q        q+ℓ
+                                          ℓ
+                                  ≤ |V (α)| (|V (α)| − 1).
+                                      q
+
+
+
+Lemma 28 If |α| ≥ 1 then
+                                                 √ !|V (α)|
+                                                   ℓ
+                                  |ŵα | ≤                  (|α| + 1)|α| .
+                                                 q
+
+Proof Proceed by induction on |α|. First consider the case where α is not connected. Write α as the
+union of two non-empty disjoint edge sets α1 , α2 with no vertices in common. By Lemma 25 and
+the induction hypothesis,
+                                        √ !|V (α1 )|                        √ !|V (α2 )|
+                                           ℓ                                  ℓ
+        |ŵα | = |ŵα1 | · |ŵα2 | ≤                  (|α1 | + 1)|α1 | ·                 (|α2 | + 1)|α2 |
+                                         q                                  q
+                    √ !|V (α1 )|+|V (α2 )|
+                       ℓ
+               ≤                             (|α1 | + |α2 | + 1)|α1 |+|α2 |
+                     q
+                    √ !|V (α)|
+                       ℓ
+               =                   (|α| + 1)|α|
+                     q
+
+
+                                                      21
+                                   KOTHARI V EMPALA W EIN X U
+
+
+
+
+as desired.
+    Now consider the case where α is connected. Using (5) and Lemma 27,
+                                  X                               ℓ                         X
+  |ŵα | ≤ E[Y α ] − E[Y α ] +           |ŵβ | · |Rβα | ≤       |V (α)|
+                                                                         (|V (α)| − 1) +           |ŵβ | · |Rβα |.
+           P         Q                                       q
+                                 ∅⊊β⊊α                                                     ∅⊊β⊊α
+
+Using the definition (6) and the connectivity of α, we can deduce (for any ∅ ⊊ β ⊊ α)
+                                            |V (α)|−|V (β)|        |V (α)|−|V (β)|
+                                        1                            1
+                     0 ≤ Rβα ≤                                    ≤                    ,
+                                       q+ℓ                           q
+
+because once we condition on the labels in V (β), each vertex in V (α) \ V (β) has at most one
+possible label that would allow the event α \ X = β to occur. (More formally, any vertex i ∈
+V (α) \ V (β) is connected to some vertex j ∈ V (β) by a path using edges from α \ β. Since every
+edge on this path must be a clique edge in order for α \ X = β to occur, i must have the same label
+as j.) Now using the above bounds and the induction hypothesis,
+                                          √ !|V (β)|                 |V (α)|−|V (β)|
+           ℓ                      X         ℓ                  |β|    1
+|ŵα | ≤ |V (α)| (|V (α)| − 1) +                      (|β| + 1) ·
+         q                                q                           q
+                                 ∅⊊β⊊α
+           √ !|V (α)|                                    
+             ℓ                          X
+       ≤               |V (α)| − 1 +        (|β| + 1)|β|       since |V (α)| ≥ 2 and |V (β)| ≤ |V (α)|
+           q
+                                      ∅⊊β⊊α
+           √ !|V (α)|                |α|−1 
+                                                              
+             ℓ                         X |α|
+       =               |V (α)| − 1 +              (m + 1)m 
+           q                                   m
+                                       m=1
+           √ |V (α)|
+               !       
+                                      |α|−1     
+                                                        
+             ℓ                         X      |α|
+       ≤               |V (α)| − 1 +              |α|m 
+           q                                   m
+                                         m=1
+          √ !|V (α)| h
+            ℓ                                                  i
+     =                 |V (α)| − 1 + (|α| + 1)|α| − 1 − |α||α|                 by the Binomial theorem
+          q
+          √ !|V (α)|
+            ℓ
+     ≤               (|α| + 1)|α| ,
+          q
+
+where the last step used |V (α)| ≤ 2|α| ≤ |α||α| + 1.
+
+
+A.2.3. P UTTING IT TOGETHER
+The rest of the proof is similar to the low-degree analysis of planted clique; see Section 2.4 of Hop-
+kins (2018). We now complete the proof of Theorem 10.
+Proof For any |α| ≤ D, we have from Lemma 26 that
+
+                                              |α|     D
+                             Mαα ≥ 1 −            ≥1−   = 1 − o(1),
+                                             q+ℓ      q
+
+                                                     22
+                                      I S C OLORING E ASIER THAN C LIQUE ?
+
+
+
+
+due to our assumptions on q and D. Applying Proposition 23,
+                     X                X  ŵα 2                                                            X
+           Adv2≤D ≤        wα2 = 1 +                   ≤ 1 + (1 + o(1))                                             ŵα2 .
+                                              Mαα
+                          |α|≤D              1≤|α|≤D                                                      1≤|α|≤D
+
+Since our goal (by Lemma 22) is to show Adv≤D = 1 + o(1), it remains to show
+                                        X
+                                            ŵα2 = o(1).
+                                                 1≤|α|≤D
+
+This follows from Proposition 30 below, using the bound on |ŵα | from Lemma 28 together with the
+assumption q 2 ≥ ℓn1+ϵ .
+
+
+Lemma 29 For integers t ≥ 2 and D ≥ 1, the number of graphs α ⊆ n2 such that |α| ≤ D and
+                                                                      
+                                 2
+|V (α)| = t, is at most nt min{2t , t2D }.
+
+Proof The number of ways to choose t vertices is nt ≤ nt . Once the vertices are chosen, we
+                                                   
+                                                                                   t
+can upper-bound the total number of graphs with ≤ D edges in two different ways: 2(2) ≤ 2t or
+                                                                                          2
+
+  t        D
+             ≤ (t2 )D .
+        
+  2 +1
+
+
+Proposition 30 Suppose there exist fixed constants δ > 0 and C > 0 such that for α ⊆ n2 with
+                                                                                               
+                                                          1
+1 ≤ |α| ≤ D, we have a quantity ϕα bounded by |ϕα | ≤ n− 2 (1+δ)·|V (α)| (|α| + 1)C·|α| . If D = Dn
+satisfies D = o(log n/ log log n)2 then
+                                        X
+                                              ϕ2α = o(1)
+                                                 1≤|α|≤D
+
+as n → ∞.
+
+Proof
+                                                     |V (α)|
+                                                                   ≤ |V (α)|2 ,
+                                                               
+   Using Lemma 29 and the fact |α| ≤                    2
+
+
+                                  2                                     2
+   X                   X                                                              X
+             ϕ2α ≤            nt 2t · n−(1+δ)t (t2 + 1)2Ct +                                      nt t2D · n−(1+δ)t (D + 1)2CD .
+                         √                                                       √
+ 1≤|α|≤D             2≤t≤ D                                                          D≤t≤2D
+
+Consider the first sum on the right-hand side above. The initial term t = 2 is O(n2 · n−2(1+δ) ) =
+o(1), and the ratio between terms t + 1 and t is
+                                                                            2Ct2
+                                                     (t + 1)2 + 1                                         √ O(√D) −δ
+                                                 
+       −δ                                                                                                            1
+   n         2t+1
+            ·2                2
+                    · ((t + 1) + 1)   2C(2t+1)
+                                                                                      ≤ tO(t) n−δ ≤        D     n ≤
+                                                        t2 + 1                                                       2
+                                                                                           2
+                                                                                  log n
+for sufficiently large n, using the assumption D = o                            log log n        . Now consider the second sum.
+                      l√ m
+The initial term t =     D is at most
+                       √ √                           √
+                    n−δ D ( D + 1)2D (D + 1)2CD ≤ n−δ D (D + 1)2(C+1)D = o(1),
+
+                                                                   23
+                                       KOTHARI V EMPALA W EIN X U
+
+
+
+
+and the ratio between terms t + 1 and t is
+                          t + 1 2D               1 2D            √
+                                                 
+                   −δ                    −δ                            1
+                  n ·               ≤n       1+ √     ≤ n−δ · eO( D) ≤
+                            t                     D                    2
+for sufficiently large n.
+
+
+A.2.4. P ROOF OF P ROPOSITION 23
+The proof is similar to the lower bound for planted clique in Schramm and Wein (2022), Section 3.5.
+We give the details here for convenience.
+   Any degree-D polynomial f : {±1}N → R has a unique expansion f (Y ) = α⊆[N ], |α|≤D fˆα Y α .
+                                                                                P
+Write                                         X
+                                 E[f (Y )] =       fˆα E[Y α ] = ⟨c, fˆ⟩
+                                   P                               P
+                                                     |α|≤D
+
+where, recall, the vector c = (cα ) is defined by
+
+                                                     cα = E[Y α ].
+                                                               P
+
+By Jensen’s inequality,
+                                                     2
+                            E[f (Y ) ] ≥ E E f (X ∨ Z) =: E g(Z)2 = ∥ĝ∥2
+                                   2
+                            Q              Z    X                          Z
+
+where
+
+                                g(Z) = E f (X ∨ Z)
+                                       X
+                                        X
+                                     =       fˆα E(X ∨ Z)α
+                                                          X
+                                           |α|≤D
+                                           X               X
+                                       =            fˆα            Z β Pr{α \ X = β}
+                                                                       X
+                                           |α|≤D          0⊆β⊆α
+                                           X          X
+                                       =        Zβ            fˆα Pr{α \ X = β}.
+                                                                   X
+                                            β         α⊇β
+
+In other words, ĝ = M fˆ where, recall, the matrix M = (Mβα ) is defined by
+
+                                       Mβα = 1β⊆α Pr{α \ X = β}.
+                                                              X
+
+Note that M is upper triangular and (by assumption) has positive entries on the diagonal, so M is
+invertible. We have now shown EQ [f ]2 ≥ ∥ĝ∥2 = ∥M fˆ∥2 and so
+
+                                            E [f ]          ⟨c, fˆ⟩       c⊤ M −1 ĝ
+                   Adv≤D =         sup     p P        ≤ sup         = sup            ,
+                                f ∈R[Y ]≤D  EQ [f 2 ]            ˆ
+                                                         fˆ ∥M f ∥     ĝ    ∥ĝ∥
+
+which has optimizer ĝ = (c⊤ M −1 )⊤ , yielding
+
+                                       Adv≤D ≤ ∥c⊤ M −1 ∥ =: ∥w∥
+
+                                                              24
+                                    I S C OLORING E ASIER THAN C LIQUE ?
+
+
+
+
+where w is the solution to w⊤ M = c⊤ . Solving for w using the upper-triangular structure of M
+gives the recurrence                                       
+                                     1         X
+                              wα =         cα −     wβ Mβα  ,                               (7)
+                                   Mαα
+                                                            β⊊α
+
+completing the proof.
+
+Appendix B. Refuting Colorability
+B.1. Upper Bound
+We restate the theorem for the reader’s convenience.
+                                            √
+Theorem 16 (Upper bound) Suppose q ≤ b n for a constant b < 1/2 (not depending on n).
+Then there exists a constant C = C(b) > 0 and a polynomial f = fn of degree at most C log n that
+strongly separates G(n, 1/2) and Rq .
+
+Proof Let A denote the {±1}-valued adjacency matrix of the complement graph, with 0’s on the
+diagonal; if the graph is q-colorable then A has value 1 within each color class. For an integer
+m ≥ 1 to be chosen later, consider the polynomial f (X) = (n/q − 1)−2m Tr(A2m ), which has
+                                            n
+degree 2m in the input variables X ∈ {±1}( 2 ) .
+    First we let X ∈ Rq and aim to show f (X) ≥ 1. Let S ⊆ [n] be the largest color class, so
+|S| ≥ n/q. Let 1S ∈ {0, 1}n denote the indicator vector for S. Letting λmax = λ1 ≥ λ2 ≥ · · · ≥
+λn denote the eigenvalues of A,
+
+                                    1⊤
+                                     S A1S    |S|(|S| − 1)            n
+                           λmax ≥           =              = |S| − 1 ≥ − 1
+                                    ∥1S ∥ 2        |S|                q
+
+and
+                                                n
+                                                X
+                                       λ2m
+                                        max ≤         λ2m
+                                                       i  = Tr(A2m ).
+                                                i=1
+
+Combining these yields Tr(A2m ) ≥ (n/q − 1)2m and so f (X) ≥ 1.
+    It remains to show E[f 2 ] = o(1) when X ∼ G(n, 1/2). Let Y be an n × n symmetric matrix
+where {Yij : i ≤ j} are i.i.d. N (0, 1). By direct expansion and comparison of Rademacher
+moments to Gaussian ones, E[Tr(A2m )2 ] ≤ E[Tr(Y 2m )2 ]. Using ∥Y ∥ to denote the spectral norm
+of Y , the bound in Lemma 2.2 of Bandeira and van Handel (2016) gives
+                                                            √     √
+                      E[Tr(Y 2m )2 ] ≤ E[n2 ∥Y ∥4m ] ≤ n2 (2 n + 2 4m)4m .
+
+Putting it together,
+                               −4m                                        √   √    !4m
+                                         √     √
+                       
+                           n                                            2q( n + 4m)
+           E[f 2 ] ≤         −1     n2 (2 n + 2 4m)4m = n2                              ,
+                           q                                                n−q
+
+which is o(1) under the conditions of the theorem.
+
+
+
+                                                       25
+                                   KOTHARI V EMPALA W EIN X U
+
+
+
+
+B.2. Lower Bound
+We restate the theorem for the reader’s convenience.
+
+Theorem 17 (Lower bound) If q ≥ n2/3+ϵ for a constant ϵ > 0, then no degree-o(log n/ log log n)2
+polynomial weakly separates G(n, 1/2) and Rq .
+
+In light of Proposition 14, our goal is to show Adv≤D (P, Q) = 1 + o(1) where Q = G(n, 1/2)
+                                                   n
+(and Y ∼ Q is encoded by an element of {±1}( 2 ) ) and P is the planted distribution defined in
+Definition 18. Our starting point is the well-known formula from Remark 24:
+                                               X            2
+                                        2                  α
+                                   Adv≤D =            E [Y ] ,
+                                                             Y ∼P
+                                                 |α|≤D
+
+where α ⊆ n2 . We identify α with the graph whose edge set is α, and write V (α) ⊆ [n] for
+                
+
+the vertex set, i.e., the vertices incident to at least one edge in α. Our first step is to bound the
+coefficients λα := EY ∼P [Y α ].
+
+B.2.1. B OUNDING THE COEFFICIENTS
+                                                         n
+                                                         
+Lemma 31 (Bounding λα ) For any graph α ⊆                2       we have
+
+                               |λα | :=    E [Y α ] ≤ O(q −3/4 )|V (α)|
+                                          Y ∼P
+
+where O(·) hides an absolute constant factor.
+                                                                                            Q
+Proof If α = ∪i αi is the decomposition of α into connected components, we have λα = i λαi
+due to independence across components. It therefore suffices to prove the result in the case where
+α is connected.
+    Let c : V (α) → [q] × [q] denote the latent assignment of labels (a, b) to vertices from the
+definition of P (Definition 18). We have
+                                                 X
+                              λα = E E [Y α ] =     Pr[c] · E[Y α |c].
+                                   c Y ∼P|c
+                                                             c
+
+Note that E[Y α |c] = 0 unless every edge in α is either an independent set edge or clique edge in c,
+and in this case,
+                                   E[Y α |c] = (−1)# ind-set edges .
+    As a result, one possible upper bound on |λα | is the probability over c that every edge in α
+is either an ind-set edge or clique edge. We can bound this probability as follows. Recall we are
+assuming α is connected, and explore the vertices of α according to a breadth-first search. The first
+vertex’s label is unconstrained. Each edge that leads to a new vertex must be an ind-set edge or
+clique edge, giving at most 2q possibilities for the new vertex’s label. Since there are q 2 possible
+labels in total, we conclude
+                                        |V (α)|−1  |V (α)|−1
+                                        2q                2
+                               |λα | ≤    2
+                                                      =                                           (8)
+                                        q                 q
+
+                                                    26
+                                 I S C OLORING E ASIER THAN C LIQUE ?
+
+
+
+
+for any connected α.
+    The bound (8) implies the desired result |λα | ≤ O(q −3/4 )|V (α)| provided |V (α)| ≥ 4, as in this
+case we have |V (α)| − 1 ≥ |V (α)| − 14 |V (α)| = 34 |V (α)|. For |V (α)| ≤ 3 we will manually verify
+the result by checking all the possible graphs:
+
+    • If α has no edges then λα = 1.
+
+    • If α is a single edge, the cases to consider for c are {(a, b), (a, b)}, {(a, b), (a, b′ )}, and
+      {(a, b), (a′ , b)} (where a ̸= a′ , b ̸= b′ ). This gives
+                                                               
+                                    1   1           1     1     1
+                             λα = − 2 −          1−     +    1−     = −q −2 .
+                                   q    q           q     q     q
+
+    • If α is a length-2 path then conditioned on any label for the middle vertex, the two edges are
+      independent. Reusing the calculation for the single edge, we have λα = (−q −2 )2 = q −4 .
+
+    • If α is a triangle, we first claim that the only labelings c that contribute to λα are those in
+      which a label (a, b) is repeated. This follows from the symmetry between c and the reversed
+      labeling c where each pair is reversed: (a, b) 7→ (b, a). If c has no repeated labels, c and c
+      contribute the same term but with opposite signs, as every ind-set edge becomes a clique edge
+      and vice versa. In light of this, the remaining cases to consider for c are {(a, b), (a, b), (a, b)},
+      {(a, b), (a, b), (a, b′ )}, and {(a, b), (a, b), (a′ , b)}. This gives
+                                                              
+                              1       1           1       1    1
+                       λα = − 4 − 3 · 3        1−     −3· 3 1−     = O(q −3 ).
+                             q       q            q      q     q
+
+
+We have now verified |λα | ≤ O(q −3/4 )|V (α)| for every connected α. As discussed previously, this
+implies the result for all α.
+
+
+
+B.2.2. P UTTING IT TOGETHER
+We now combine the results from above in order to bound Adv≤D and complete the proof of Theo-
+rem 17.
+Proof Due to our assumption q ≥ n2/3+ϵ , Lemma 31 gives
+                                3 2                       1   3                1
+                 |λα | ≤ O(n− 4 ( 3 +ϵ) )|V (α)| = O(n− 2 − 4 ϵ )|V (α)| ≤ n− 2 (1+ϵ)·|V (α)|
+
+for sufficiently large n. Using Proposition 30, we have for any D = o(log n/ log log n)2 ,
+                                                      X
+                                   Adv2≤D − 1 =               λ2α = o(1).
+                                                    1≤|α|≤D
+
+
+As discussed at the beginning of Section B.2, this completes the proof.
+
+
+
+                                                     27
+                                   KOTHARI V EMPALA W EIN X U
+
+
+
+
+Appendix C. Completeness of Quiet Planting
+In this section, we give a simple argument showing that the absence of a computationally quiet
+planted distribution implies the existence of a low-degree refutation algorithm, in high generality.
+Our proof is elementary and only needs a simple application of von Neumann’s min-max principle.
+We restate the theorem for the reader’s convenience.
+
+Theorem 20 Fix sequences N = Nn , D = Dn , Q = Qn a distribution on RN , and R = Rn ⊆
+RN . Assume that for each n, Q is supported on a finite set and R is a finite set (but the cardinality
+of these sets may depend on n). The following are equivalent:
+
+  (1) No degree-D polynomial strongly separates Q and R.
+
+  (2) For an infinite subsequence of n values, there exists a distribution P = Pn supported on R
+      such that Adv≤D (P, Q) = O(1).
+
+Similarly, the following are equivalent:
+
+  (1) No degree-D polynomial weakly separates Q and R.
+
+  (2) For an infinite subsequence of n values, there exists a distribution P = Pn supported on R
+      such that Adv≤D (P, Q) = 1 + o(1).
+
+Proof Let P denote the space of probability distributions on R. Let F denote the space of degree-D
+polynomials f : RN → R such that EQ [f ] = 0 and EQ [f 2 ] ≤ 1. Consider
+
+                                       valn = inf sup E[f ].                                      (9)
+                                               P∈P f ∈F P
+
+
+By von Neumann’s min-max principle (see below for discussion of the technical conditions re-
+quired), the supremum and infimum can be exchanged:
+
+                              valn = sup inf E[f ] = sup inf f (X).                              (10)
+                                      f ∈F P∈P P        f ∈F X∈R
+
+
+A degree-D polynomial strongly (respectively, weakly) separates Q and R if and only if the value
+of (10) is ω(1) (resp., Ω(1)). The negation of this statement is that valn = O(1) (resp., o(1))
+for an infinite subsequence of n, which from (9) is equivalent to having Pn defined on an infinite
+subsequence such that supf ∈F EP [f ] = O(1) (resp., o(1)). Now the result follows due to the
+identity (supf ∈F EP [f ])2 + 1 = Adv2≤D (P, Q); see Lemma 34 below.
+    It remains to verify the technical conditions for the min-max principle. Formally we use the
+following variant, which is a special case of Sion’s min-max theorem (Sion, 1958; Komiya, 1988).
+
+Theorem 32 Let P be a compact convex subset of a linear topological space and F a convex
+subset of a linear topological space. If ϕ(x, y) is a continuous real-valued function on P × F with
+ϕ(x, ·) concave for all x ∈ P, and ϕ(·, y) convex for all y ∈ F, then minx∈P supy∈F ϕ(x, y) =
+supy∈F minx∈P ϕ(x, y).
+
+                                                   28
+                                 I S C OLORING E ASIER THAN C LIQUE ?
+
+
+
+
+In our setting, the linear topological spaces will simply be Rd for some d. Recall that our choice of
+P is the space of probability distributions on a finite set R = {r1 , r2 , . . . , r|R| }. We can identify
+P with a compact convex subset of R|R| by encoding a distribution P as the vector of probabilities
+(P(r1 ), . . . , P(r|R| )). Recall that our choice of F is the space of degree-D polynomials f : RN →
+R such that EQ [f ] = 0 and EQ [f 2 ] ≤ 1. Letting X = supp(Q) ∪ R = {x1 , . . . , x|X | }, we can
+identify F with a convex subset of R|X | (note that F is not required to be compact) by encoding a
+function f : RN → R as the vector (f (x1 ), . . . , f (x|X | )). Finally, note that ϕ(P, f ) := EP [f ] is
+continuous, convex in P, and concave in f ; in fact, it is linear in both variables. This justifies our
+earlier exchange of inf and sup, completing the proof.
+
+
+Remark 33 Above we have assumed supp(Q) and R are finite to simplify the analytic conditions
+needed for the min-max principle, but these assumptions can be relaxed. For instance, one can
+alternatively assume that Qn is any distribution on RN with all moments finite and that Rn ⊆ RN
+is compact. Since R is compact, the space P of probability distributions on R is compact in the
+weak-* topology.
+
+Lemma 34 supf ∈F EP [f ]2 + 1 = Adv2≤D (P, Q).
+
+Proof If the likelihood ratio LR = dP/dQ exists, this fact follows from standard characteriza-
+tions of these quantities as L2 (Q)-norms of projections of likelihoods (see Section 2.3 of Hopkins
+(2018)); namely, the left-hand side is ∥LR≤D − 1∥2Q + 1 and the right-hand side is ∥LR≤D ∥2Q . We
+also give a self-contained proof below.
+    Recalling the definition of Adv≤D , our goal is to show
+
+                                                               EP [g]2
+                                  sup E[f ]2 + 1 =      sup         2
+                                                                       .
+                                  f ∈F P             g∈R[Y ]≤D EQ [g ]
+
+
+Note that the value 1 is achievable on both sides by taking f = 0 or g = 1. To show “≤,” suppose
+we have f ∈ F such that EP [f ] = a > 0, achieving value a2 + 1 on the left-hand side. Then
+g = f + 1/a achieves the same value a2 + 1 on the right-hand side.
+    To show “≥,” suppose g achieves value b2 > 1 on the right-hand side, and scale g so that
+EQ [g 2 ] = 1 and EP [g] = b > 1. Define ∆ = EQ [g] and note that EQ (g − ∆)2 = 1 − ∆2 ≥ 0
+and EP (g − ∆) = b − ∆ > 0. If ∆ = 1 then the left-hand    √ side is unbounded by taking f to be an
+arbitrary multiple of g − ∆. Otherwise set f = (g − ∆)/ 1 − ∆2 ∈ F and compute the left-hand
+side value
+                                     (b − ∆)2               (b∆ − 1)2
+                        E[f ]2 + 1 =           +  1 =  b2
+                                                          +             ≥ b2 ,
+                        P             1 − ∆2                  1 − ∆2
+completing the proof.
+
+
+
+Appendix D. Planted (q + 1)-coloring is not q-colorable
+Here we work with the complement graph and consider a partition into cliques rather than a coloring.
+Recall the multiple cliques model (Definition 3).
+
+                                                   29
+                                     KOTHARI V EMPALA W EIN X U
+
+
+
+
+Proposition 35 If 1 ≤ q ≤ Ω(n/ log n) then with probability 1 − o(1), MC(n, q + 1) does not
+admit a partition of the vertices into q cliques.
+
+Proof Fix an absolute constant ϵ > 0, to be chosen later. Assume q ≤ cn/ log n for a constant
+c = c(ϵ) > 0 to be chosen later. The proof hinges on 3 basic facts, which hold w.h.p.:
+
+  (i) G(n, 1/2) does not contain the complete bipartite graph Km,m as a subgraph, for m ≥ (2 +
+      ϵ) log2 n.
+                                                                                                    n
+  (ii) Letting S1 , . . . , Sq+1 denote the color classes of MC(n, q + 1), we have |Si | ∈ (1 ± ϵ) q+1
+       for all i ∈ [q + 1].
+                                                                  n
+ (iii) In MC(n, q + 1), any vertex v ∈ Si has at most (1/2 + 2ϵ) q+1 neighbors in Sj , for i ̸= j.
+
+Standard arguments show that (i)–(iii) hold with probability 1 − o(1), and we omit the details. The
+proof of (i) is a first moment calculation (compute the expected number of copies of Km,m and
+apply Markov’s inequality), and the proof of (ii) and (iii) uses Bernstein’s inequality along with a
+union bound.
+     Suppose G ∼ MC(n, q + 1). To complete the proof, it suffices to show that properties (i)–
+(iii) deterministically imply that G has no partition into q cliques (where property (i) applies to
+the underlying random graph G′ ∼ G(n, 1/2) used to generate G, before the q + 1 cliques were
+added). Assume (i)–(iii) hold, and suppose for contradiction that G admits a partition V (G) =
+T1 ⊔ T2 ⊔ · · · ⊔ Tq into cliques.
+     We first claim that for every i ∈ [q], we either have (Case I) |Ti | ≤ 43 · q+1
+                                                                                  n
+                                                                                     or (Case II) for some
+j ∈ [q + 1], Ti ⊆ Sj and |Ti | > 2 |Sj |. To see this, note that if Case I fails then |Ti | > 43 · q+1
+                                      1                                                             n
+                                                                                                        , and
+                                                                                3   n
+so to avoid violating property (i) there must exist j such that |Ti ∩ Sj | ≥ 4 · q+1 − (2 + ϵ) log2 n >
+                 n
+(1/2 + 2ϵ) q+1     . Now property (iii) implies Ti ⊆ Sj . Also, property (ii) implies |Ti | > 12 |Sj |. This
+proves the claim.
+     Using the above claim, we can now construct an injective map ϕ : [q] → [q + 1] such that
+|Ti | ≤ |Sϕ(i) |. First, for i in Case II, set ϕ(i) to be the corresponding j; then for i in Case I,
+set ϕ(i) to beP
+P                  any unused j value. Since some j ∈ [q + 1] is not in the image of ϕ, we have
+    i∈[q] |Ti | <    j∈[q+1] |Sj | = n, a contradiction.
+
+
+
+
+                                                     30
+

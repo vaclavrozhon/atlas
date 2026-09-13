@@ -1,0 +1,974 @@
+Proceedings of Machine Learning Research vol 125:1–17, 2020             33rd Annual Conference on Learning Theory
+
+
+
+
+                           Faster Projection-free Online Learning
+
+Elad Hazan                                                                  EHAZAN @ CS . PRINCETON . EDU
+Princeton University, Google AI Princeton
+Edgar Minasyan                                                               MINASYAN @ PRINCETON . EDU
+Princeton University
+
+
+Editors: Jacob Abernethy and Shivani Agarwal
+
+
+                                                        Abstract
+     In many online learning problems the computational bottleneck for gradient-based methods is the
+     projection operation. For this reason, in many problems the most efficient algorithms are based on
+     the Frank-Wolfe method, which replaces projections by linear optimization. In the general case,
+     however, online projection-free methods require more iterations than projection-based methods:
+     the best known regret bound scales as T 3/4 . Despite significant work on various variants of the
+     Frank-Wolfe method, this bound has remained unchanged for a decade.
+          In this paper we give an efficient projection-free algorithm that guarantees T 2/3 regret for
+     general online convex optimization with smooth cost functions and one linear optimization compu-
+     tation per iteration. As opposed to previous Frank-Wolfe approaches, our algorithm is derived using
+     the Follow-the-Perturbed-Leader method and is analyzed using an online primal-dual framework.
+     Keywords: Online optimization, Frank-Wolfe method, Follow-the-Perturbed-Leader
+
+
+1. Introduction
+In many machine learning problems the decision set is high dimensional or otherwise complex such
+that even convex optimization over the set is not practical. Such is the case, for example, in matrix
+learning problems: performing matrix decomposition for very large problems is computationally
+intensive and super-linear in the sparsity of the input. This renders common algorithms such as
+projected gradient descent infeasible.
+    An alternative methodology which has proven successful in several applications is projection-
+free online learning. In this model, the access of the learner to the decision set is via a linear
+optimization oracle, as opposed to general convex optimization. As an example, linear optimization
+over matrices amounts to eigenvector computations, which can be carried out in time proportional
+to the sparsity of the matrices.
+    We henceforth consider online algorithms that perform one (or more generally a constant num-
+ber) linear optimization and/or gradient evaluation per iteration. The reason is that if we do not
+restrict the number of linear optimizations, we can compute projections up to arbitrary precision
+and run standard projected online gradient descent which attains optimal regret. We restrict the
+number of gradient oracle calls since otherwise, in the stochastic setting, one can evaluate the real
+gradient up to arbitrary precision and run standard offline Frank-Wolfe which attains optimal con-
+vergence rate. This defeats the purpose of creating efficient algorithms.
+
+
+
+
+c 2020 E. Hazan & E. Minasyan.
+                                       FAST PROJECTION - FREE LEARNING
+
+
+
+
+Definition 1 The oracle complexity of a projection-free algorithm is the number of linear opti-
+mizations and gradient evaluations per iteration on average. We say that a projection-free algorithm
+is oracle-efficient if its oracle complexity is constant.
+
+     Oracle-efficient projection-free methods can have a considerable running time advantage for
+certain structured problems in which linear optimization is more efficient than projections. This has
+spurred significant research in recent years on projection-free methods in general and the Frank-
+Wolfe algorithm in particular. However, despite a decade-long search, the best known oracle-
+efficient projection-free online algorithm attains a regret bound that scales as T 3/4 , where T is the
+number of iterations 1 . This method, the Online Frank-Wolfe (OFW) algorithm (Hazan and Kale,
+2012), attains the lowest oracle complexity over all iterations, even if we include projection-free
+methods that are not oracle-efficient.
+     The T 3/4 bound is particularly striking when compared to stochastic projection-free optimiza-
+tion. In this setting, it is possible to obtain T 2/3 regret for smooth stochastic projection-free opti-
+mization by the so-called blocking technique: grouping several game iterations into one and thereby
+changing the√decision less often, and its variants (Merhav et al., 2002; Chen et al., 2018). The opti-
+mal rate of T is more challenging to obtain as given in Lan and Zhou (2016). We are unaware of
+an improvement to the T 3/4 rate in the stochastic non-smooth case.
+
+1.1. Our Results
+Our main result is an efficient randomized algorithm that improves the state-of-the-art in general
+projection-free online optimization with smooth loss functions. The expected regret of this algo-
+rithm scales as T 2/3 , with only one linear optimization computation per iteration. We then extend
+the analysis of this algorithm to show that it attains the same regret bound with high probability.
+Our main results are summarized by the informal statement below, with the exact dependence on
+smoothness and other relevant problem parameters detailed in later sections.
+
+Theorem 2 There exists an efficient algorithm for online convex optimization (see Algorithm 2) with
+smooth loss functions that is projection-free, performs only one linear optimization computation per
+iteration, and guarantees an expected regret of O(T 2/3 ). Furthermore, the algorithm guarantees a
+regret of Õ(T 2/3 log σ1 ) with probability at least 1 − σ.
+
+Techniques. Our algorithm is not based on the Frank-Wolfe method, but rather a version of the
+Follow-the-Perturbed-Leader (FPL) method (Kalai and Vempala, 2005). It was already established
+in Hazan et al. (2016) that a deterministic version of FPL works for online convex optimization.
+This version computes the expected point FPL plays at every iteration. In order to convert this
+algorithm to an efficient projection-free method, two main challenges arise:
+
+   1. Estimating the expectation by sampling FPL points via linear optimization creates time depen-
+      dence between iterations, since the gradient is taken at a point which depends on all previous
+      iterations. This means that a small error in one iteration potentially propagates to all future
+      iterations.
+ 1. We omit the O-notation in the introduction to make the exposition cleaner. In this case, T 3/4 hides constants includ-
+    ing the norm of the gradients, diameter of the decision set, and more. See Hazan et al. (2016) for more details.
+
+
+
+
+                                                            2
+                                    FAST PROJECTION - FREE LEARNING
+
+
+
+
+   2. The number of linear optimization evaluations to estimate the mean of the FPL algorithm up
+      to ε accuracy is O( ε12 ). This dependence is not sufficient to improve the previously best T 3/4
+      regret bound with only constantly many linear optimization computations per iteration.
+
+    To overcome the above issues we require two tools, that are new to the analysis of randomized
+online methods. First, we use the online primal-dual methodology of Shalev-Shwartz and Singer
+(2007a). This allows us to avoid the error-propagation caused by random estimation of the mean,
+and could be a technique of independent interest.
+    The second tool is using the smoothness of the loss functions to leverage not only the estimation
+proximity but also the fact that the estimation is unbiased. This is executed by switching gradients
+at nearby points which are not too far off due to the Lipschitz property of the gradients of smooth
+functions.
+Paper structure. In the next subsection we discuss related work, and then move to describe pre-
+liminaries, including tools necessary for the online primal-dual analysis framework. In section 3, we
+state the main algorithm and formally state our main theorems including precise constants. In sec-
+tion 4 we state the deterministic FPL algorithm and analyze it using the primal-dual framework to
+illustrate its versatility in handling error propagation. We then use unbiased estimation and smooth-
+ness in section 5 to derive the first main theorem. In section 5.1, we provide a reduction of the
+algorithm to the setting of one linear optimization step per iteration. High probability bounds are
+given in detail in section 5.2 and derived in the appendix along with other miscellaneous proofs.
+
+1.2. Related Work
+In recent years the projection-free learning and optimization literature has seen a resurgence of
+results. We separate the related work into the broad categories below.
+Projection-free offline optimization. The starting point for our line of work is the seminal paper
+of Frank and Wolfe (1956), who apply the conditional gradient method for smooth optimization
+over polyhedral sets. This was extended to semi-definite programming in Hazan (2008), and to
+general convex optimization in Jaggi (2013). This algorithm requires βε linear optimization steps to
+find an ε-approximate solution for a β-smooth function, optimal with no other assumptions.
+    A significant advancement in projection-free methods was obtained by Garber and Hazan (2013),
+who give an algorithm that requires only log 1ε linear optimization steps for strongly convex and
+smooth functions over polyhedral sets. Data-dependent bounds for the spectahedron were obtained
+by Garber (2016); Allen-Zhu et al. (2017).
+    Projection-free optimization on non-smooth objective functions is typically performed via var-
+ious smoothing techniques. The optimal complexity of linear optimization calls in this case is ε12
+(Lan, 2013). Several algorithms attain nearly optimal rates as in Lan (2013); Argyriou et al. (2014);
+Pierucci et al. (2014).
+Projection-free online learning. The online variant of the Frank-Wolfe algorithm that applies to
+general online convex optimization was given in Hazan and Kale (2012). This method attains T 3/4
+regret for the general OCO setting, with only one linear optimization step per iteration 2 .
+ 2. If arbitrarily many linear
+                          √ optimization steps are allowed, the projections can be computed and this regret can be
+    improved to optimal T .
+
+
+
+
+                                                        3
+                                 FAST PROJECTION - FREE LEARNING
+
+
+
+
+     For OCO
+           √ over polyhedral sets, an implication of the result of Garber and Hazan (2013) is an
+efficient T regret algorithm with only one linear optimization step per iteration, as well as log T
+regret for strongly convex online optimization. Recently Levy and Krause (2019) give an efficient
+projection-free online learning algorithm
+                                        √ for smooth sets that devises a new fast projection operation
+for such sets and attains the optimal T regret for convex and log T regret for strongly convex
+online optimization.
+     Without further assumptions, the OFW method in Hazan and Kale (2012) attains the best known
+bounds for general online convex optimization. To the best of our knowledge, our T 2/3 regret is the
+first to improve in this general OCO setting for smooth functions.
+Projection-free stochastic optimization. An important application of projection-free optimiza-
+tion is in the context of supervised learning and the optimization problem of empirical risk mini-
+mization. In this setting, there are more techniques that can be applied to further accelerate opti-
+mization, as compared to the online setting, most notably variance reduction.
+    This requires more careful accounting of the actual operations that the algorithms perform,
+including counting the number of full-gradient computations, stochastic gradient evaluations, linear
+optimizations, and projections. There have been a multitude of algorithms suggested that attain
+various tradeoffs of the various computations, and have different merits/caveats. The reader is
+referred to the vast literature on stochastic projection-free methods, including the recent papers of
+Lan and Zhou (2016); Hazan and Luo (2016); Chen et al. (2018); Hassani et al. (2019); Xie et al.
+(2019); Yurtsever et al. (2019); Zhang et al. (2019).
+
+2. Problem Setting
+We consider the online convex optimization framework as an iterative game between a player and an
+adversary. At each iteration t ∈ N, the player chooses an action xt from the constraint set K ⊂ Rd
+of permissible actions while the adversary simultaneously chooses a loss function ft : K → R that
+determines the loss the player will occur for the action xt . The performance metric for such settings
+is the notion of regret – the difference between the cumulative loss suffered throughout T iterations
+of the online game and the overall loss for the best fixed action in hindsight:
+                                        T
+                                        X                      T
+                                                               X
+                                RT =          ft (xt ) − min         ft (x) .                      (1)
+                                                        x∈K
+                                        t=1                    t=1
+
+For a given online algorithm A, we denote RT (A) to be its regret after T iterations. In this work, the
+adversary has no computational or information restrictions as long as it chooses ft simultaneously
+to the player choosing xt , i.e. we operate in the adaptive adversarial setting.
+    Before proceeding to the main results, we formalize several notations and assumptions preserved
+throughout the paper. We discuss our additional/modified assumptions, made for simplicity in the
+analysis, without touching upon the conventional standards established in the community (e.g. see
+Hazan et al.P (2016)). Throughout this work k · k refers to the Euclidean norm, al:k refers to the
+sum al:k = ki=l ai , and B = {v ∈ Rd , kvk ≤ 1} denotes the unit ball. The notation O(·) hides
+absolute constants, and O(·) hides all irrelevant constants, e.g. everything other than T .
+
+Assumption 3 The constrained action set K ⊂ Rd is a convex and compact set. Moreover, all the
+points in the set have bounded norms, i.e. kxk ≤ D, ∀x ∈ K.
+
+
+                                                    4
+                                 FAST PROJECTION - FREE LEARNING
+
+
+
+
+Assumption 4 For each iteration t ∈ N, the loss functions ft : K → R are convex, differentiable
+and have bounded gradient norms ∀x ∈ K, k∇ft (x)k ≤ G.
+
+The convention in OCO is to simply assume a bounded diameter for the set K instead of the norm
+bound. It is, however, straightforward to derive the above formulation: given an arbitrary point in
+the set x0 ∈ K0 consider the shifted set K = {x − x0 | x ∈ K} whose diameter bound implies
+the bounded norms of the points in K; properties such as convexity and compactness are preserved
+through shifts. The convexity and bounded gradient norm assumptions for the loss functions are part
+of the standard throughout literature, while differentiability of the losses is assumed for simplicity
+and can be avoided by using subgradients instead (see Shalev-Shwartz and Singer (2007b)).
+Definition 5 The Fenchel dual of a function f : K → R with domain K ⊂ Rd is defined as
+                             ∀y ∈ Rd ,     f ∗ (y) = sup {hy, xi − f (x)} .                        (2)
+                                                    x∈K
+
+The concept of a Fenchel dual will be crucial in the online primal-dual analysis of the presented
+algorithms. If the function f is convex, then its Fenchel dual f ∗ is also convex, and the Fenchel-
+Moreau theorem gives biconjugacy, i.e. the dual of a dual is equal to the function itself (f ∗ )∗ = f .
+In this case, it is essential to note that f (x) = supy∈Rd {hx, yi − f ∗ (y)} directly implies that
+∇f (x) = arg maxy∈Rd {hx, yi − f ∗ (y)}, which is well-defined, when f is differentiable.
+Linear Optimization Oracle. A linear optimization oracle, along with a value oracle, over the
+constraint set K is provided to the player, defined as
+                 ∀y ∈ Rd ,     OK (y) = arg maxhy, xi,       MK (y) = maxhy, xi .                  (3)
+                                             x∈K                         x∈K
+
+    The reliance on linear optimization is the key motivation of the paper. This work concerns itself
+with the special case of online convex constrained optimization where the operation of projection
+to the set K, as a problem of quadratic optimization, has a significantly higher computational cost
+than the linear optimization. In such cases, the use of the projected
+                                                                √ Online Gradient Descent (OGD)
+(Zinkevich, 2003) that achieves an optimal regret bound O( T ) with respect to T is not always
+preferred to methods that bypass projection and use linear optimization instead. It is worth to notice
+that the existence of only OK (·) is enough since MK (y) = hy, OK (y)i and ∇MK (y) = OK (y).
+Moreover, the function MK (·) is convex and Lipschitz as suggested below.
+Lemma 6 The linear value oracle MK : Rd → R is convex and D-Lipschitz, i.e.
+                    ∀y1 , y2 ∈ Rd ,      |MK (y1 ) − MK (y2 )| ≤ Dky1 − y2 k .                     (4)
+
+3. Algorithm and Main Theorem
+The algorithm we propose is fairly straightforward, and the main hurdle lies in the analysis. The
+seminal work of Kalai and Vempala (2005)
+                                      √     introduces the Follow-the-Perturbed-Leader (FPL) on-
+line algorithm that obtains optimal O( T ) regret for linear loss functions. A more general version
+of FPL that applies expectations over the perturbations at each iteration extends the result to gen-
+eral convex functions (Hazan et al., 2016). Our algorithm mimics the expected FPL replacing the
+computationally expensive expectations with empirical averages of i.i.d. samples. It is presented
+in detail in Algorithm 1. The following theorem states the convergence guarantees for both general
+convex and smooth convex loss functions.
+
+                                                    5
+                                FAST PROJECTION - FREE LEARNING
+
+
+
+
+Algorithm 1 Sampled Follow-the-Perturbed-Leader Algorithm, A1
+  Input: constraint set K, number of rounds T , perturbation parameter δ, number of samples m,
+  linear optimization oracle OK (·)
+  for t = 1 to T do
+     sample vtj ∼ B uniformly for j = 1, . . . , m
+     denote xjt = OK (−∇  ˜ 1:t−1 + 1 · vj ) for j = 1, . . . , m
+                                    δ     t
+                 1 P  m     j
+     play x̃t = m     j=1 x t
+     observe ft , denote ∇˜t = ∇ft (x̃t )
+  end for
+
+
+Theorem 7 Given that the Assumptions 3 and 4 hold, Algorithm 1, for general convex loss func-
+tions, obtains an expected regret of
+               " T           #         T
+                X                     X                                  2GDT
+             E      ft (x̃t ) ≤ min{      ft (x)} + 2D/δ + δDG2 · dT /2 + √     .         (5)
+                t=1
+                                  x∈K
+                                      t=1
+                                                                            m
+
+If the convex loss functions are also β-smooth then the expected regret bound becomes
+               " T            #          T
+                X                       X                                     4βD2 T
+             E       ft (x̃t ) ≤ min{      ft (x)} + 2D/δ + δDG2 · dT /2 +           ,          (6)
+                                  x∈K                                            m
+               t=1                    t=1
+
+where δ and m ≥ 1 are parameters of the algorithm.
+
+Algorithm 2 Online Smooth Projection Free (OSPF) Algorithm, AOSPF
+  Input: constraint set K, number of rounds T , perturbation parameter δ, block size k, linear
+  optimization oracle OK (·)
+  pick arbitrary x0 ∈ K, denote ∇0 = 0
+  for t = 1 to T do
+    if t mod k 6= 0 then
+       play xt = xt−1
+       observe ft , denote ∇t = ∇ft (xt )
+    else
+       sample vt−k+j ∼ B uniformly for j = 1, . . . , k
+       denote xjt = OK (−∇0:t−1 + 1δ · vt−k+j ) for j = 1, . . . , k
+       play xt = k1 kj=1 xjt
+                     P
+       observe ft , denote ∇t = ∇ft (xt )
+    end if
+  end for
+
+                                                            √
+Remark 8 Take the perturbation√  parameter to be δ = 2/(G dT ). Then Algorithm 1 attains ex-
+    √ regret of E[RT√(A1 )] = O( T ) with m = T over general convex losses and E[RT (A1 )] =
+pected
+O( T ) with m = β T over smooth√    convex losses. In particular, this restores the original result
+of the FPL method attaining O( T ) regret with m = 1 sample per iteration for linear, β = 0, loss
+functions shown in Kalai and Vempala (2005).
+
+                                                6
+                                  FAST PROJECTION - FREE LEARNING
+
+
+
+
+    Algorithm 1 does not adhere to our Definition 1 of oracle-efficient methods. Hence, we addi-
+tionally provide a reduction based on a blocking technique (see section 5.1) that is oracle-efficient
+with the following regret guarantees.
+                                                                     √
+Theorem 9 Algorithm 2 as an oracle-efficient method suffers O(GD dT 3/4√      ) expected regret over
+general convex loss functions with blocking size k = T   1/2 and δ = 2/(G√ dT ). In the case of
+smooth convex loss functions, Algorithm 2, named√ AOSPF , attains O(D(G d + βD)T 2/3 ) expected
+regret with blocking size k = T 1/3 and δ = 2/(G dT ).
+
+4. The Case of Unlimited Computation
+In an ideal scenario the player would be given unrestrained computational power along with access
+to the linear optimization
+                   √          oracle. Then the expected FPL method, as a projection-free online algo-
+rithm, attains O( T ) regret bound optimal with respect to T for general convex loss functions. The
+exact algorithm is spelled out in Algorithm 3. The original analysis follows the standard recipe of
+online learning literature coined by Kalai and Vempala (2005): no regret for Be-The-Leader – the
+player suffers no regret if it is hypothetically one step ahead of the adversary, i.e. uses xt+1 for the
+loss function ft ; stability – the predictions of consecutive rounds xt , xt+1 are not too far apart from
+each other (Hazan et al., 2016). We provide an alternative approach developed by Shalev-Shwartz
+and Singer (2007b) based on duality and crucial for the further analysis of Algorithm 1.
+
+Algorithm 3 Expected Follow-the-Perturbed-Leader Algorithm, A3
+  Input: constraint set K, number of rounds T , perturbation parameter δ, linear optimization oracle
+  OK (·)
+  for t = 1 to T do
+    compute xt = Ev∼B [OK (−∇1:t−1 + 1δ · v)]
+    play xt , observe ft , denote ∇t = ∇ft (xt )
+  end for
+
+
+Theorem 10 Given
+              √ that Assumptions 3 and 4 hold, Algorithm
+                                                 √       3 with
+                                                           √ the perturbation parameter
+value δ = 2/(G dT ) suffers regret RT (A3 ) ≤ 2GD dT = O( T ).
+Proof The proof is based on duality when one considers the following optimization problem
+                                                       T
+                                                       X
+                                      min{hδ (x) +           ft (x)},                                (7)
+                                       x∈K
+                                                       t=1
+
+which resembles the loss suffered by the best-in-hindsight fixed action. The dual objective, that is
+to be maximized, can be obtained using Lagrange multipliers and is given by (see Shalev-Shwartz
+and Singer (2007b) for details)
+                                                                   T
+                                                                   X
+                           D(λ1 , . . . , λT ) = −h∗δ (−λ1:T ) −         ft∗ (λt ) .                 (8)
+                                                                   t=1
+
+The term hδ (·) serves as regularization and is defined implicitly through its Fenchel conjugate
+h∗δ (y) = Ev∼B [MK (y + 1δ · v)], a stochastic smoothing of the value oracle, that is δdD-smooth
+according to the following lemma and the fact that MK (·) is D-Lipschitz.
+
+                                                   7
+                                      FAST PROJECTION - FREE LEARNING
+
+
+
+
+Lemma 11 The function ĝ(y) = Ev∼B [g(y + 1δ · v)] is δdL-smooth given g : Rd → R is an
+L-Lipschitz function.
+
+Weak duality implies that the objective (8) is upper bounded by (7) for any values of λt , t =
+1, . . . , T hence the goal is to upper bound the online cumulative loss by (8). To achieve this, take
+λt = ∇t = ∇ft (xt ) for all t ∈ [T ] where the action xt is chosen according to Algorithm 3. De-
+note the incremental difference as ∆t = D(∇1 , . . . , ∇t , 0,
+                                                            P.T. . , 0) − D(∇1 , . . . , ∇t−1 , 0, . . . , 0) and
+notice that the dual can be written as D(∇1 , . . . , ∇T ) = t=1 ∆t + D(0, . . . , 0). For each t ∈ [T ],
+
+          ∆t = − [h∗δ (−∇1:t ) − h∗δ (−∇1:t−1 )] − ft∗ (∇t ) + ft∗ (0) ≥           smoothness of h∗δ (·)
+                                           δdD
+             ≥ h∇t , ∇h∗δ (−∇1:t−1 )i −        k∇t k2 − ft∗ (∇t ) + ft∗ (0) =          definition of xt
+                                            2
+                                        δdD                               δdD
+             = h∇t , xt i − ft∗ (∇t ) −     k∇t k2 + ft∗ (0) = ft (xt ) −     k∇t k2 + ft∗ (0),     (9)
+                                         2                                  2
+where we use the fact that the action xt from Algorithm 3 can alternatively be expressed as xt =
+∇h∗δ (−∇1:t−1 ) and the Fenchel dual identity h∇t , xt i − ft∗ (∇t ) = ft (xt ) for convex ft (·). The
+obtained inequality (9) quantifies how much regret an action contributes at a given iteration t ∈ [T ]
+detached from the rest of the rounds of the game. Such a property of the analysis ends up being
+crucial in P
+           showing the regret bounds further inP    this work. PNote that by definition D(0, . . . , 0) =
+−hδ (0)− t=1 ft (0) which gives the identity t=1 ∆t − Tt=1 ft∗ (0) = D(∇1 , . . . , ∇T )+h∗δ (0).
+   ∗         T    ∗                                   T
+
+Thus, sum up (9) for all t = 1, . . . , T to bound the online cumulative loss is by
+                        T                                                        T
+                        X                                                  δdD   X
+                              ft (xt ) ≤   D(∇1 , . . . , ∇T ) + h∗δ (0) +             k∇t k2 .             (10)
+                                                                          2
+                        t=1                                                      t=1
+                                                                          √
+The bound in (10) along with weak duality are enough to conclude the O( T ) regret bound. All that
+is left are technical details to reach the conclusion using the assumptions of the given setup. First,
+since MK (0) = 0 it implies, by Lipschitzness of MK (·), that |MK ( 1δ · v)| ≤ Dkvk/δ ≤ D/δ
+for any v ∈ B so h∗δ (0) ≤ D/δ. Second, the primal expression in (7) can be related to the best
+loss in hindsight the following way
+                        T
+                        X                             T
+                                                      X                       T
+                                                                              X
+                                                 ∗              ∗
+       min{hδ (x) +           ft (x)} ≤ hδ (x ) +           ft (x ) ≤ min           ft (x) + max hδ (x),    (11)
+       x∈K                                                             x∈K                   x∈K
+                        t=1                           t=1                     t=1
+
+where x∗ is the optimal action in hindsight, i.e. the minimizer of Tt=1 ft (·) over K. Moreover,
+                                                                        P
+notice that for any x ∈ K, y ∈ Rd the expression hx, yi−h∗δ (y) = Ev∼B [hx, yi−maxx0 ∈K hx0 , y +
+1
+δ · vi] can be bounded as follows: for each v ∈ B the expression inside the expectation is bounded
+hx, yi − maxx0 ∈K hx0 , y + 1δ · vi ≤ hx, yi − hx, y + 1δ · vi = hx, − 1δ · vi ≤ kxkkvk/δ ≤ D/δ,
+hence for any x ∈ K the bound hδ (x) ≤ D/δ holds. Finally, according to our assumptions the
+loss gradients are bounded in norm, i.e. k∇t k ≤ G. Combining these properties with (10) along
+with the fact that D(∇1 , . . . , ∇T ) is upper bounded by (7) due to weak duality, we conclude
+ T                      T                                                 T
+ X                      X                                           δdD X                 δdD 2
+       ft (xt ) − min         ft (x) ≤ max hδ (x) + h∗δ (0) +             k∇t k2 ≤ 2D/δ +    G T.
+                 x∈K                       x∈K                       2                     2
+ t=1                    t=1                                              t=1
+
+
+
+                                                            8
+                                       FAST PROJECTION - FREE LEARNING
+
+
+
+                                           √       √
+This yields the regret
+                √      bound RT (A3 ) ≤ 2GD dT = O( T ) with the perturbation parameter
+value δ = 2/(G dT ).
+
+
+Remark 12 It is essential to note how each property given in Assumptions 3 and 4 was used in the
+proof above. The convexity of the constraint set K allows the action xt , as an expectation of points
+in the set K, to be a permissible action as well. Given compactness of K, we interchange the use
+of supremum and maximum of bounded expressions at various points throughout. The norm bound
+D of the set K is used in showing that MK (·) is D-Lipschitz and bounding several regularization
+terms. In terms of the loss functions, the convexity of ft (·), as well as MK (·), allows us to use the
+Fenchel-Moreau theorem (continuity is implied by differentiability) while the gradient norm bound
+is simply used in the last stage of obtaining the regret bound.
+
+5. Oracle Efficiency via Estimation
+The results in section 4 suggest that Algorithm 3 possesses the features desired√in this work – it
+is both online and projection-free – and obtains an optimal regret bound of O( T ). However, it
+is computationally intractable due to the expectation term given in the definition of the action xt .
+In this section, we remedy this issue and explore the scenario where the actions played during the
+game are random estimators of the mean. In particular, we propose to simply take the empirical
+average of m i.i.d. samples instead of the expectation itself as described in Algorithm 1.
+    It is essential to note that Algorithm 1 has a computational efficiency of m · T calls to the linear
+optimization oracle OK (·) as the rest of the computation is negligible in comparison. Given the
+duality approach to analyzing online algorithms demonstrated in the previous section, the sampled
+FPL algorithm can now be analyzed to prove the bounds stated in Theorem 7. In particular, the
+following lemma demonstrates that each estimation from Algorithm 1 contributes to the regret in a
+disjoint fashion, i.e. there is no error propagation through time.
+                                                                                h                      i
+Lemma 13 Suppose the Assumptions 3 and 4 hold and denote x̂t = Ev∼B OK (−∇             ˜ 1:t−1 + 1 · v)
+                                                                                                 δ
+                              ˜ t as defined in Algorithm 1. Then, the regret is bounded as follows
+for all t ∈ [T ] with x̃t and ∇
+                    T
+                    X                        T
+                                             X                      √          T
+                                                                               X
+                          ft (x̃t ) ≤ min{         ft (x)} + 2GD dT +                 ˜ t , x̂t − x̃t i .
+                                                                                     h∇                            (12)
+                                       x∈K
+                    t=1                      t=1                               t=1
+
+Proof Follow the same proof structure as in the proof of Theorem 10 by considering (7), (8) as the
+primal and dual objectives. Consider λt = ∇              ˜ t = ∇ft (x̃t ) and denote the incremental difference as
+∆t = D(∇  ˜ 1, . . . , ∇
+                       ˜ t , 0, . . . , 0) − D(∇
+                                               ˜ 1, . . . , ∇
+                                                            ˜ t−1 , 0, . . . , 0). The main component of the proof is
+showing that ∆t can be roughly seen as an upper bound on the loss ft (x̃t ) suffered at iteration t.
+    First note that the played actions x̃t are not, in fact, unbiased estimators of the original xt ;
+instead denote the expectations by x̂t = Eξt [x̃t ] = Evj [xjt ] where ξt = {vt1 , . . . , vtm } comprises the
+                                                                     t
+randomness used at iteration t ∈ [T ]. For all t > 1, the quantity x̂t is different from xt in that it uses
+the gradients at the points x̃1 , . . . , x̃t−1 instead of x1 , . . . , xt−1 and such difference can potentially
+increase with t. In other words, one is defined as x̂t = ∇h∗δ (−∇                   ˜ 1:t−1 ) while the other is equal to
+xt = ∇h∗δ (−∇1:t−1 ). Hence, the action sequences of x̃1 , . . . , x̃T and x1 , . . . , xT can behave quite
+differently and one cannot analyze the former based on results about the latter. However, the duality
+
+                                                           9
+                                    FAST PROJECTION - FREE LEARNING
+
+
+
+
+approach enables us to directly analyze the actions of Algorithm 1. In particular, lower bound the
+quantity ∆t using the smoothness of h∗δ (·), as done in the proof of Theorem 10:
+                      δdD ˜ 2 ∗ ˜                             δdD ˜ 2 ∗
+       ˜ t , x̂t i−
+ ∆t ≥ h∇                 k∇t k −ft (∇t )+ft∗ (0) = ft (x̃t )−                   ˜ t , x̂t −x̃t i . (13)
+                                                                 k∇t k +ft (0)+h∇
+                       2                                       2
+The obtained inequality (13) resembles the analogous bound (9) in the unlimited computation case
+with the extra term h∇˜ t , x̂t − x̃t i that can be seen as accounting for the estimation error. This shows
+that at a given iteration t ∈ [T ] the additional regret is suffered only at the expense of the current
+action choice, x̃t instead of x̂t , while ignoring the optimality of the previous choices x̃1 , . . . , x̃t−1 .
+We proceed with
+              PT the proof by˜ summing          up (13) for all t = 1, . . . , T and using the following
+                                                                                                  PT     facts:
+                                             ˜
+by definition t=1 ∆t = D(∇1 , . . . , ∇T )−D(0, . . . , 0) and D(0, . . . , 0) = −hδ (0)− t=1 ft∗ (0);
+                                                                                           ∗
+
+as shown before h∗δ (0) ≤ D/δ and ∀x ∈ K, h∗δ (x) ≤ D/δ; according to Assumption 4, for all
+t ∈ [T ], ∀x ∈ K, k∇ft (x)k ≤ G. Combining √           all these properties and choosing the same optimal
+value of the regularization parameter δ = 2/(G dT ) concludes the stated bound (12). The use of
+all the assumptions is identical to that of Theorem 10 and detailed in Remark 12.
+
+   All that remains to reach the conclusions by Theorem 7 is to use Lemma 13 and handle the
+                         ˜ t , x̂t − x̃t i for each t ∈ [T ]. The following claims about smooth functions
+additional regret terms h∇
+and empirical averages of random vectors are necessary for the latter part.
+
+Lemma 14 If f : K → R is a β-smooth function, then the following bound holds for any x, y ∈ K,
+h∇f (y), x − yi ≤ h∇f (x), x − yi + βkx − yk2 .
+
+Lemma 15 Let Z1 , . . . , Zm ∼ Z be i.i.d. samples of a bounded random vector Z ∈ Rd , kZk ≤ D,
+                                     1 Pm                                       2
+                                                                      2   ≤ 4D
+                                                                       
+with mean Z = E[Z]. Denote Z m = m         j=1 Zj , then EZ kZ m − Zk         m .
+
+Proof [Proof
+           p of Theorem 7] First, note  that according to Lemma 15, the following bound Eξt [kx̂t −
+                                    2D
+x̃t k] ≤     Eξt [kx̂t − x̃t k2 ] ≤ √ m
+                                         holds for all t ∈ [T ]. In the case of general convex loss
+functions, use the Cauchy-Schwartz inequality along with the norm bound on the gradients and
+take expectation over the whole randomness in the algorithm ξ1:T in the reverse order ξT , . . . , ξ1 to
+obtain for each t ∈ [T ]
+
+          ˜ t , x̂t − x̃t i] ≤ GEξ [kx̂t − x̃t k] = GEξ                                       2DG
+  Eξ1:T [h∇                       1:t                  1:t−1 [Eξt [kx̂t − x̃t k | ξ1:t−1 ]] ≤
+                                                                                              √           (14)
+                                                                                                m
+Ordering the randomness of the iterations in reverse and taking the expectation conditional on
+ξ1:t−1 is necessary in order to use Lemma 15 since x̂t is a deterministic quantity over ξt only
+when conditioned on the previous randomness ξ1:t−1 . Finally, taking expectation over ξ1:T on
+the bound in (12) and√using (14) for all t = 1, . . . , T concludes the expected regret bound of
+E[RT (A1 )] ≤ 2GD dT + 2DGT       √
+                                    m
+                                         given in detail in (5) for general convex loss functions. It is
+worth to mention that this result did not require any assumptions on how the loss function ft (·) at
+each iteration t ∈ [T ] is chosen by the adversary: in particular, the result holds for the strongest
+adaptive adversarial setting where the adversary can pick ft (·) having knowledge of the previous
+actions by the player, i.e. the randomness ξ1:t−1 . This is true due to the fact that all the terms
+                                                ˜ t , are separated and bound on their own.
+containing the function ft (·) explicitly, e.g. ∇
+    In the case of smooth convex loss functions, a more nuanced approach is taken to achieve an
+improvement on the general result. The key is to replace the gradient ∇        ˜ t at the point x̃t with a
+
+                                                      10
+                                     FAST PROJECTION - FREE LEARNING
+
+
+
+
+quantity independent of ξt and leverage the fact that x̃t is an unbiased estimator of x̂t . Formally,
+given ft (·) is β-smooth note that h∇ ˜ t , x̂t − x̃t i ≤ h∇  ˆ t , x̂t − x̃t i + βkx̂t − x̃t k2 according to Lemma
+14 where ∇  ˆ t = ∇ft (x̂t ) is denoted accordingly. The quantities ft (·) and x̂t both (potentially)
+depend on previous randomness ξ1:t−1 but are deterministic with respect to ξt when conditioned on
+                     ˆ t . Thus, it holds that Eξ [h∇
+ξ1:t−1 , hence so is ∇                                   ˆ t , x̂t − x̃t i | ξ1:t−1 ]] = 0. This fact results in the
+                                                       t
+additional regret having a quadratic dependence on the estimation error instead of linear as before:
+
+           ˜ t , x̂t − x̃t i] ≤ Eξ
+                                       h
+                                              ˆ                               2
+                                                                                         i   4βD2
+   Eξ1:T [h∇                      1:t−1 Eξt [h∇t , x̂t − x̃t i + βkx̂t − x̃t k | ξ1:t−1 ]  ≤      .            (15)
+                                                                                              m
+Use the inequality in (15) for all t ∈ [T ] in order to bound the additional regret term in (12) and
+                                                             √           2T
+conclude the expected regret bound of E[RT (A1 )] ≤ 2GD dT + 4βD        m   given in detail in (6) for
+smooth convex loss functions. Analogous to the general convex case, this regret bound holds in the
+strongest adaptive adversarial setting.
+
+
+5.1. Reduction to OSPF
+                                                  √
+The results given in Theorem 7 indicate O( T ) optimal        √ regret bounds for both convex and smooth
+convex loss functions when taking m = T , and m = β T respectively, as suggested by Remark 8.
+However, m is not simply a parameter of the algorithm: √        it indicates the number of linear optimiza-
+tions per iteration so in T iterations the regret O( T ) is achieved with an overall linear optimization
+complexity of m · T . To avoid such convoluted claims, we instead provide a reduction of Algorithm
+1, named OSPF in the smooth case, to the setting of one linear optimization per iteration that gives
+O(T 2/3 ) and O(T 3/4 ) expected regret for smooth and general convex losses, respectively.
+Proof [Proof of Theorem 9] The reduction follows a simple blocking technique, i.e. grouping
+several rounds of the game into one as detailedPin Algorithm 2. Let T = nk where n, k are assumed
+                                                       i·k
+to be integers for simplicity and denote fi0 = t=(i−1)·k+1          ft , for all i ∈ [n]. Since each fi0 , i ∈ [n]
+contains k losses from the original problem, then the player is allowed k linear optimizations to
+handle a single loss fi0 . Hence, use Algorithm 1 for T = n iterations with m = k samples at each
+iteration to get actions x01 , . . . , x0n and play xt = x0i for all (i − 1) · k + 1 ≤ t ≤ i · k in the
+original setting – call this algorithm A01 . The corresponding constants of the constructed game are
+D0 = D and G0 = G · k since a new loss function constitutes k original losses together. Thus, the
+expected regret bound of A01 for general convex functions, according to Theorem 7, is given by
+
+                                                         2(G · k)Dn      √ √         √
+  E[RT (A01 )] ≤ 2D/δ + δD(G · k)2 · dn/2 +                 √       = 2DG d nk + 2DGn k, (16)
+                                                               k
+                                        √ √
+with the parameter choice of δ = 2/(G d nk). Letting n = k = T 1/2 yields     √ the expected regret
+                                            0             0         √                      3/4
+bound for the oracle-efficient algorithm A1 as E[RT (A1 )] = O( nk + n k) = O(T ) for
+general convex functions. The case of smooth convex functions is handled analogously. Note that
+the A01 algorithm is equivalent to AOSPF given in Algorithm 2. The smoothness parameter of a sum
+of k functions that are β-smooth equals β 0 = β · k. Hence, the expected regret bound of AOSPF for
+smooth convex functions is given by
+
+                                                             4(β · k)D2 n      √ √
+ E[RT (AOSPF )] ≤ 2D/δ + δD(G · k)2 · dn/2 +                              = 2DG d nk + 4βD2 n, (17)
+                                                                   k
+
+                                                        11
+                                FAST PROJECTION - FREE LEARNING
+
+
+
+                                   √ √
+with the same choice of δ = 2/(G d nk). In this case let n = T 2/3 and k = T 1/3 to attain the
+expected regret bound O(T 2/3 ) for AOSPF with one linear optimization per iteration.
+
+
+5.2. High Probability Bounds
+The theoretical guarantees for the main algorithm of this paper, Algorithm 1, have all been in terms
+of expected regret as the performance metric. Even though expected regret is a widely accepted
+metric for online randomized algorithms, one might wonder whether the expectation bound holds
+only due to a balance of large and small chunks of regret or the given result actually holds most
+of the time. To answer this question, we provide high probability bounds on RT (A1 ) asymptot-
+ically equivalent (up to logarithmic factors) to the statements from Theorem 7: these results also
+transfer analogously to the reduction from section√ 5.1. In particular, the following theorem shows
+                                                                √
+that Algorithm√  1 obtains regret RT (A1 ) = O( T ) + Õ(T / m) for general convex losses and
+RT (A1 ) = O( T ) + Õ(βT /m) for smooth convex losses both holding with high probability.
+                                                                                             √
+Theorem 16 Given that the Assumptions 3 and 4 hold and the parameter value is δ = 2/(G dT ),
+the regret of Algorithm 1 for general convex loss functions is w.p. 1 − σ for any σ > 0 bounded by
+               T                     T               √
+               X                   X                      2GDT p
+                   ft (x̃t ) ≤ min{     ft (x)} + 2GD dT + √   · log 2T /σ .                     (18)
+               t=1
+                               x∈K
+                                    t=1
+                                                             m
+If the convex loss functions are also β-smooth, then it is w.p. 1 − σ for any σ > 0 bounded by
+  T                      T              √
+  X                     X                        p             8βD2 T
+        ft (x̃t ) ≤ min{   ft (x)} + 2GD dT + 2GD 2T log 4/σ +        · log 4T /σ . (19)
+                    x∈K                                          m
+  t=1                  t=1
+
+
+6. Discussion
+We have presented an efficient projection-free method for online convex optimization with smooth
+functions that makes only a single linear optimization computation per iteration and achieves regret
+T 2/3 , improving upon the previous bound of T 3/4 .
+    Certain algorithms in the literature make more than one linear optimization computation per
+iteration. To make the comparison to other methods more precise, we need a more refined computa-
+tional metric. Define the following complexity metric for an online projection-free algorithm: let A
+be an online optimization algorithm, and define Tε (A) to be the overall number of gradient oracle
+calls as well as linear optimization calls made until the average regret becomes at most ε.
+    In these terms, we have shown an algorithm with Tε = O( εd3 ) for smooth functions, as compared
+to O( ε14 ) which is the previous best. The dimension dependence is undesirable and prevents direct
+improvements in applications such as Garber and Hazan (2016). However, this dependence is a
+byproduct of FPL and the randomized smoothing technique used in section 4 that works for general
+convex sets. Various smoothing techniques can be appropriate for different sets and their role in FPL
+methods is discussed in Abernethy et al. (2014). We note that our contribution is not the cause of
+the dimension dependence and improving the complexity from ε−4 to ε−3 has remained unknown
+for a long time.
+    It thus remains open to obtain a ε−3 -complexity algorithm for general convex sets that does not
+depend on the dimension, or show that this is impossible. It is also unknown at this time if these
+dependencies on ε, in both the smooth and non-smooth cases, are tight.
+
+                                                 12
+                               FAST PROJECTION - FREE LEARNING
+
+
+
+
+Acknowledgments
+This research was supported in part by Elad Hazan’s NSF grant #1704860.
+
+References
+Jacob Abernethy, Chansoo Lee, Abhinav Sinha, and Ambuj Tewari. Online linear optimiza-
+  tion via smoothing. In Maria Florina Balcan, Vitaly Feldman, and Csaba Szepesvri, editors,
+  Proceedings of The 27th Conference on Learning Theory, volume 35 of Proceedings of Ma-
+  chine Learning Research, pages 807–823, Barcelona, Spain, 13–15 Jun 2014. PMLR. URL
+  http://proceedings.mlr.press/v35/abernethy14.html.
+
+Zeyuan Allen-Zhu, Elad Hazan, Wei Hu, and Yuanzhi Li. Linear convergence of a frank-wolfe type
+  algorithm over trace-norm balls. In Advances in Neural Information Processing Systems, pages
+  6191–6200, 2017.
+
+Andreas Argyriou, Marco Signoretto, and Johan Suykens. Hybrid conditional gradient - smoothing
+  algorithms with applications to sparse and low rank regularization, 2014.
+
+Lin Chen, Christopher Harshaw, Hamed Hassani, and Amin Karbasi. Projection-free online op-
+  timization with stochastic gradient: From convexity to submodularity. In Jennifer Dy and An-
+  dreas Krause, editors, Proceedings of the 35th International Conference on Machine Learning,
+  volume 80 of Proceedings of Machine Learning Research, pages 814–823, Stockholmsmssan,
+  Stockholm Sweden, 10–15 Jul 2018. PMLR. URL http://proceedings.mlr.press/
+  v80/chen18c.html.
+
+Marguerite Frank and Philip Wolfe. An algorithm for quadratic programming. Naval research
+ logistics quarterly, 3(1-2):95–110, 1956.
+
+Dan Garber. Faster projection-free convex optimization over the spectrahedron. In Advances in
+  Neural Information Processing Systems, pages 874–882, 2016.
+
+Dan Garber and Elad Hazan. A linearly convergent conditional gradient algorithm with applications
+  to online and stochastic optimization. arXiv preprint arXiv:1301.4666, 2013.
+
+Dan Garber and Elad Hazan. Sublinear time algorithms for approximate semidefinite programming.
+  Mathematical Programming, 158(1-2):329–361, 2016.
+
+Hamed Hassani, Amin Karbasi, Aryan Mokhtari, and Zebang Shen. Stochastic conditional gradi-
+  ent++, 2019.
+
+Elad Hazan. Sparse approximate solutions to semidefinite programs. In Latin American symposium
+  on theoretical informatics, pages 306–316. Springer, 2008.
+
+Elad Hazan and Satyen Kale. Projection-free online learning. In Proceedings of the 29th Interna-
+  tional Conference on Machine Learning, 2012.
+
+Elad Hazan and Haipeng Luo. Variance-reduced and projection-free stochastic optimization. In
+  International Conference on Machine Learning, pages 1263–1271, 2016.
+
+
+                                               13
+                               FAST PROJECTION - FREE LEARNING
+
+
+
+
+Elad Hazan et al. Introduction to online convex optimization. Foundations and Trends R in Opti-
+  mization, 2(3-4):157–325, 2016.
+
+Martin Jaggi. Revisiting frank-wolfe: Projection-free sparse convex optimization. In Proceedings
+ of the 30th International Conference on Machine Learning, pages 427–435, 2013.
+
+Adam Kalai and Santosh Vempala. Efficient algorithms for online decision problems. Journal of
+  Computer and System Sciences, 71(3):291–307, 2005.
+
+Guanghui Lan. The complexity of large-scale convex programming under a linear optimization
+  oracle, 2013.
+
+Guanghui. Lan and Yi. Zhou. Conditional gradient sliding for convex optimization. SIAM Journal
+  on Optimization, 26(2):1379–1409, 2016. doi: 10.1137/140992382. URL https://doi.
+  org/10.1137/140992382.
+
+Kfir Levy and Andreas Krause. Projection free online learning over smooth sets. In Kamalika
+  Chaudhuri and Masashi Sugiyama, editors, Proceedings of Machine Learning Research, vol-
+  ume 89 of Proceedings of Machine Learning Research, pages 1458–1466. PMLR, 16–18 Apr
+  2019. URL http://proceedings.mlr.press/v89/levy19a.html.
+
+Neri Merhav, Erik Ordentlich, Gadiel Seroussi, and Marcelo J Weinberger. On sequential strategies
+  for loss functions with memory. IEEE Transactions on Information Theory, 48(7):1947–1958,
+  2002.
+
+Federico Pierucci, Zaid Harchaoui, and Jérôme Malick. A smoothing approach for composite con-
+  ditional gradient with nonsmooth loss. Research Report RR-8662, INRIA Grenoble, July 2014.
+  URL https://hal.inria.fr/hal-01096630.
+
+Iosif Pinelis. Optimum bounds for the distributions of martingales in banach spaces. The Annals of
+  Probability, 22(4):1679–1706, 1994. ISSN 00911798.
+
+Shai Shalev-Shwartz and Yoram Singer. A primal-dual perspective of online learning algorithms.
+  Machine Learning, 69(2-3):115–142, 2007a.
+
+Shai Shalev-Shwartz and Yoram Singer. Convex repeated games and fenchel duality. Ma-
+  chine Learning, 2007b. URL https://www.cse.huji.ac.il/˜shais/papers/
+  ShalevSi06_fench_tech.pdf.
+
+Jiahao Xie, Zebang Shen, Chao Zhang, Boyu Wang, and Hui Qian. Efficient projection-free online
+   methods with stochastic recursive gradient, 2019.
+
+Alp Yurtsever, Suvrit Sra, and Volkan Cevher. Conditional gradient methods via stochastic path-
+  integrated differential estimator. In Kamalika Chaudhuri and Ruslan Salakhutdinov, editors, Pro-
+  ceedings of the 36th International Conference on Machine Learning, volume 97 of Proceedings
+  of Machine Learning Research, pages 7282–7291, Long Beach, California, USA, 09–15 Jun
+  2019. PMLR. URL http://proceedings.mlr.press/v97/yurtsever19b.html.
+
+Mingrui Zhang, Zebang Shen, Aryan Mokhtari, Hamed Hassani, and Amin Karbasi. One sample
+ stochastic frank-wolfe, 2019.
+
+                                               14
+                              FAST PROJECTION - FREE LEARNING
+
+
+
+
+Martin Zinkevich. Online convex programming and generalized infinitesimal gradient ascent. In
+ Proceedings of the 20th international conference on machine learning (icml-03), pages 928–936,
+ 2003.
+
+
+
+
+                                              15
+                                    FAST PROJECTION - FREE LEARNING
+
+
+
+
+Appendix A. Proof of the high probability bounds
+This section focuses on regret bound results for Algorithm 1 that hold with high probability. We
+use the following Azuma-type concentration inequality for vector-valued martingales derived as an
+application of the work by Pinelis (1994) to the Euclidean space Rd .
+
+Proposition 17 (Theorem 3.5 in Pinelis (1994)) Let ν1 , . . . , νK ∈ Rd be a vector-valued martin-
+gale difference with respect to {Fk }K
+                                     k=1 such that for all k ∈ [K] it holds that E[νk |Fk−1 ] = 0 and
+kνk k ≤ ck for some ck > 0. Then for any λ > 0
+                             " K            #                            !
+                                X                                λ2
+                          P         νk > λ ≤ 2 exp − PK                                          (20)
+                                k=1
+                                                              2 k=1 c2k
+
+Proof [Proof of Theorem 16] We first obtain proximity of the estimates x̃t to their mean x̂t for all
+t ∈ [T ] that hold with high probability using Proposition
+                                                      Pm 17. Fix an arbitrary t ∈ [T ] and denote
+        1          j
+νj = m (x̂t − xt ) for j = 1, . . . , m. Note that j=1 νj = x̂t − x̃t and for each j ∈ [m] we
+have Evj [νj | vt1:j−1 ] = 0 given the definition of x̂t and i.i.d. uniform samples vtj ∼ B, j ∈ [m].
+         t
+Furthermore, kνj k ≤ 2D/m using triangle inequality     since xjt , x̂t ∈ K given convexity of the
+                                            2D
+                                                 p
+constraint set K. Fix any σ > 0 and let λ = √ m
+                                                · 2 log 2T /σ, then by Proposition 17
+                                       σ
+             Pξt [kx̂t − x̃t k ≥ λ] ≤    =⇒ Pξ1:T [∀t ∈ [T ], kx̂t − x̃t k ≥ λ] ≤ σ               (21)
+                                       T
+where the implication stems from union bound. To conclude the regret bound for general convex
+                                                         ˜ t , x̂t − x̃t i ≤ Gkx̂t − x̃t k to get that
+functions with high probability, use Lemma 13 and apply h∇
+                                 √                  √          2GDT p
+             RT (A1 ) ≤ 2GD dT + λGT = 2GD dT + √                        · 2 log 2T /σ            (22)
+                                                                   m
+holds with probability at least 1 − σ. In the smooth convex case, proceed analogously and apply the
+inequality h∇˜ t , x̂t − x̃t i ≤ h∇  ˆ t , x̂t − x̃t i + βkx̂t − x̃t k2 given by Lemma 14. Fix any σ > 0 and
+denote ζt = h∇ ˆ t , x̂t − x̃t i for all t ∈ [T ]. Notice that {ζt }T is a martingale difference with respect
+                                                                      t=1
+to ξ1:T . Indeed, Eξt [x̃t | ξ1:t−1 ] = x̂t and the quantities ft (·), x̂t , and hence ∇  ˆ t , are deterministic
+given ξ1:t−1 which means that Eξt [ζt | ξ1:t−1 ] = 0. Moreover, they are bounded |ζt | ≤ k∇                ˆ tk ·
+kx̂t − x̃t k ≤ 2GD p       = ct using Cauchy-Schwartz inequality, triangle inequality and convexity of
+K. Letting γ = 2GD 2T log 4/σ Azuma’s inequality yields
+                                  " T                 #                            !
+                                    X                                       γ2
+                          Pξ1:T           ζt ≥ γ ≤ 2 exp − PT                        = σ/2                  (23)
+                                                                        2      c 2
+                                    t=1                                     t=1 t
+
+Combine (23) and the already obtained (21) with σ 0 = σ/2, and corresponding λ0 , to conclude the
+regret bound for smooth convex functions using union bound and the Lemma 13 to obtain that
+                   √                             √                           8βD2 T
+RT (A1 ) ≤ 2GD dT + γ + β(λ0 )2 T = 2GD dT + 2GD 2T log 4/σ +
+                                                            p
+                                                                                    · log 4T /σ
+                                                                               m
+holds with probability at least 1 − σ. This finishes the proof of Theorem 16. The bound in
+(19) implies, following the same logic as in section 5.1, that the regret bound RT (AOSPF ) =
+Õ(T 2/3 log 1/σ) holds with high probability 1 − σ.
+
+
+                                                       16
+                                      FAST PROJECTION - FREE LEARNING
+
+
+
+
+Appendix B. Miscellaneous proofs
+Proof [Proof of Lemma 6] To show convexity, consider arbitrary y1 , y2 ∈ Rd and λ > 0, denote
+y12 = λy1 + (1 − λ)y2 . Then
+    MK (y12 ) = hy12 , x∗ i = λhy1 , x∗ i + (1 − λ)hy2 , x∗ i ≤ λMK (y1 ) + (1 − λ)MK (y2 )
+Next, fix arbitrary y1 , y2 ∈ Rd and suppose w.l.o.g. that MK (y1 ) ≥ MK (y2 ). Then
+     MK (y1 ) − MK (y2 ) = hy1 , OK (y1 )i − hy2 , OK (y2 )i
+                                ≤ hy1 , OK (y1 )i − hy2 , OK (y1 )i
+                               = hOK (y1 ), y1 − y2 i ≤ kOK (y1 )kky1 − y2 k ≤ Dky1 − y2 k
+where the first inequality follows from the definition of OK (y2 ) while the rest is achieved using the
+Cauchy-Schwarz inequality and the norm bound of the constraint set K.
+
+Proof [Proof of Lemma 11] According to Stokes’ theorem, the gradient of the smoothed function
+ĝ(·) can be written as                                    
+                                                      1
+                             ∇ĝ(y) = δdEv∼S g(y + v)v
+                                                      δ
+where S = {v ∈ Rd , kvk = 1} denotes the unit sphere, the boundary of B. Then for arbitrary
+y1 , y2 ∈ Rd
+                                                               
+                                            1               1
+      k∇ĝ(y1 ) − ∇ĝ(y2 )k = δd Ev∼S g(y1 + v)v − g(y2 + v)v        ≤ δdLky1 − y2 k
+                                            δ               δ
+using linearity of expectation, Jensen’s inequality and the Lipschitz property of g(·). It follows that
+ĝ(·) is a δdL-smooth function.
+
+Proof [Proof of Lemma 14] The function f : K → R being β-smooth is equivalent to its gradient
+being β-Lipschitz, hence
+             h∇f (y) − ∇f (x), x − yi ≤ k∇f (y) − ∇f (x)k · kx − yk ≤ βkx − yk2
+The desired inequality follows from the result above.
+
+Proof [Proof of Lemma 15] Given that kZk ≤ D and Z = E[Z] we have that kZk ≤ D and
+kZ − Zk ≤ kZk + kZk ≤ 2D. Hence, by linearity of expectation and linearity of variance for
+independent random variables we obtain
+                        " d                    # d
+                          X                      X
+                 2                           2
+  EZ [kZ m − Zk ] = EZ       (Z m (i) − Z(i)) =    EZi [(Z m (i) − Z(i))2 ] =
+                               i=1                           i=1
+                        d                         d          m                           d
+                        X                         X     1    X                        1 X
+                    =         VarZi (Z m (i)) =                    VarZi (Zj (i)) =       VarZi (Z(i)) =
+                                                        m2                            m
+                        i=1                       i=1        j=1                        i=1
+                            d
+                        1   X                                 1                  4D2
+                    =               EZi [(Z(i) − Z(i))2 ] =     EZ [kZ − Zk2 ] ≤
+                        m                                     m                   m
+                              i=1
+
+
+
+
+                                                        17
+

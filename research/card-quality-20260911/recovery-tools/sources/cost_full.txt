@@ -1,0 +1,1314 @@
+                                               Efficient Black-Box Reductions for Separable Cost Sharing
+                                                   Tobias Harks∗           Martin Hoefer†           Anja Huber‡            Manuel Surek§
+
+
+
+                                                                                          Abstract
+                                                 In cost sharing games with delays, a set of agents jointly allocates a finite subset of resources.
+                                             Each resource has a fixed cost that has to be shared by the players, and each agent has a non-
+                                             shareable player-specific delay for each resource. A prominent example is uncapacitated facility
+                                             location (UFL), where facilities need to be opened (at a shareable cost) and clients want to
+arXiv:1802.10351v1 [cs.GT] 28 Feb 2018
+
+
+
+
+                                             connect to opened facilities. Each client pays a cost share and his non-shareable physical connec-
+                                             tion cost. Given any profile of subsets allocated by the agents, a separable cost sharing protocol
+                                             determines cost shares that satisfy budget balance on every resource and separability over the
+                                             resources. Moreover, a separable protocol guarantees existence of pure Nash equilibria in the
+                                             induced strategic game for the agents.
+                                                 In this paper, we study separable cost sharing protocols in several general combinatorial do-
+                                             mains. We provide black-box reductions to reduce the design of a separable cost-sharing protocol
+                                             to the design of an approximation algorithm for the underlying cost minimization problem. In
+                                             this way, we obtain new separable cost-sharing protocols in games based on arbitrary player-
+                                             specific matroids, single-source connection games without delays, and connection games on n-
+                                             series-parallel graphs with delays. All these reductions are efficiently computable – given an
+                                             initial allocation profile, we obtain a cheaper profile and separable cost shares turning the profile
+                                             into a pure Nash equilibrium. Hence, in these domains any approximation algorithm can be used
+                                             to obtain a separable cost sharing protocol with a price of stability bounded by the approximation
+                                             factor.
+
+
+
+
+                                         ∗
+                                           Universität Augsburg, Institut für Mathematik, Germany. tobias.harks@math.uni-augsburg.de
+                                         †
+                                           Goethe University Frankfurt, Institute of Computer Science, Germany. mhoefer@cs.uni-frankfurt.de
+                                         ‡
+                                           Universität Augsburg, Institut für Mathematik, Germany. anja.huber@math.uni-augsburg.de
+                                         §
+                                           Universität Augsburg, Institut für Mathematik, Germany. manuel.surek@math.uni-augsburg.de
+
+
+
+
+                                                                                               1
+1    Introduction
+Cost sharing is a fundamental task in networks with strategic agents and has attracted a large amount
+of interest in algorithmic game theory. Traditionally, cost sharing has been studied in a cooperative
+sense, i.e., in the form of cooperative games or mechanism design. Many of these approaches treat
+cost in a non-separable way and return a single, global cost share for each agent. In contrast,
+when agents jointly design a resource infrastructure in large networks, it is much more desirable
+to provide algorithms and protocols for separable cost sharing that specify which agent needs to
+pay how much to each resource. Here the natural approach are strategic cost sharing games with
+n players that allocate subsets of m resources. Each resource generates a cost depending on the
+subset of players allocating it. A protocol determines a cost share for each resource and each player
+using it. In addition to separability, there are further natural desiderata for such protocols, such as
+budget-balance (distribute exactly the arising cost of each resource) and existence of a pure Nash
+equilibrium (PNE), i.e., allow the resulting game to stabilize.
+    Perhaps the most prominent such protocol is the fair-share protocol, in which the cost of each
+resource is allocated in equal shares to the players using it. This approach has been studied intensively
+(see our discussion below), but there are several significant drawbacks. It can be PLS-hard to find [50]
+a PNE, even in connection games on undirected networks. The price of stability (PoS), i.e., the total
+cost of the best Nash equilibrium compared to the cost of the optimal allocation, can be as large as
+Ω(log n) [5, 17], even though much better solutions can often be found in polynomial time.
+    In this paper, we study a slight generalization of cost sharing games, where every resource has a
+shareable cost component and a non-shareable player-specific delay component. The shareable cost
+needs to be shared by the players using it, the non-shareable player-specific delay represents, e.g.,
+a physical delay and is thus unavoidable. This setting arises in several relevant scenarios, such as
+uncapacitated facility location (UFL) [36]. Here players share the monetary cost of opened facilities
+but additionally experience delays measured by the distance to the closest open facility. Another
+important example appears in network design, where players jointly buy edges of a graph to connect
+their terminals. Besides the monetary cost for buying edges, each player experiences player-specific
+delays on the chosen paths. In such a distributed network environment, it is not clear a priori if an
+optimal solution can be stable – i.e., if the shareable costs can be distributed among the players in
+a separable way so that players do not want to deviate from it. This question leads directly to the
+design of protocols that distribute the costs in order to induce stable and good-quality solutions of
+the resulting strategic game.
+    Our results are three polynomial-time black-box reductions for the price of stability of separable
+cost sharing protocols in combinatorial resource allocation problems. Our domains represent broad
+generalizations of UFL – arbitrary, player-specific matroids, single-source connection games without
+delays, and connection games on undirected n-series-parallel graphs with delays. In each of these
+domains, we take as input an arbitrary profile and efficiently turn it into a cheaper profile and a
+sharing of the shareable costs such that it is a Nash equilibrium. Our protocols are polynomial-time
+in several ways. Firstly, the games we study are succinctly represented. In matroids, we assume that
+strategies are represented implicitly via an independence oracle. For connection games on graphs,
+the strategies of each player are a set of paths, which is implicitly specified by terminal vertices of
+the player and the graph structure. The cost sharing protocol is represented by a strategy profile S
+and a sharing of the shareable costs arising in S on each resource. While in principle the protocol
+must specify a sharing of the costs for all of the other (possibly exponentially many) strategy profiles,
+one can do so implicitly by a simple lexicographic assignment rule. It guarantees that the profile S
+becomes a PNE. As such, starting from an arbitrary initial profile S ′ , we can give in polynomial time
+the Nash equilibrium profile S, the cost shares for S, and the assignment rule for cost shares in the
+other profiles. Hence, if S ′ is polynomial-time computable, then both protocol and Nash equilibrium
+S are both polynomial-time computable and polynomial-space representable.
+
+
+
+                                                   2
+1.1   Our Results
+We present several new polynomial-time black-box reductions for separable cost sharing protocols
+with small price of stability (PoS). We study three domains that represent broad generalizations of the
+uncapacitated facility location problem. In each domain, we devise an efficient black-box reduction
+that takes as input an arbitrary strategy profile and computes a new profile of lower cost together
+with a separable cost sharing protocol inducing the cheaper profile as a PNE. Thus, any polynomial-
+time α-approximation of the social cost can be turned into a separable cost sharing protocol with
+PoS at most α.
+
+Matroidal Set Systems. In Section 3 we provide a black-box reduction for matroidal set systems.
+Our results even apply to the broad class of subadditive cost functions that include fixed costs and
+discrete concave costs even with weighted players as a special case. Here we assume access to a value
+oracle for the subadditive cost function for each resource. Matroidal set systems with player-specific
+delays include uncapacitated facility location as a special case, since these correspond to matroid
+games, where each player has a uniform rank 1 matroid. For metric UFL, there is for instance a
+1.488-approximation algorithm [44] using ideas of a previous 1.5-approximation algorithm [11]. This
+leads to a separable cost sharing protocol with PoS of 1.488. Also, the existing hardness results for
+UFL carry over to the design of separable cost sharing protocols, and for metric UFL there is a lower
+bound of 1.46 [31].
+
+Connection Games with Fixed Costs. In Section 4 we consider cost sharing games on graphs,
+where the set systems correspond to paths connecting a player-specific source with a player-specific
+terminal. The underlying optimization problem is Steiner forest. For multi-terminal connection
+games without delays, we observe that a simple greedy algorithm for the underlying Steiner forest
+problem combined with the idea of Prim-Sharing [17] yields a separable protocol in polynomial time.
+Since the greedy algorithm has recently been shown to provide a constant-factor approximation [32],
+the protocol yields a constant PoS.
+    For single-source multi-terminal connection games we again provide a polynomial-time black-box
+reduction. Our result improves significantly over the existing Prim-Sharing [17] with a price of stabil-
+ity of 2. We obtain separable protocols based on any approximation algorithm for Steiner tree, such
+as, e.g., the classic 1.55-approximation algorithm [48], or the celebrated recent 1.39-approximation
+algorithm [12]. Our black-box reduction continues to hold even for directed graphs, where we can use
+any algorithm for the Directed Steiner Tree problem [15], or games based on the (directed or undi-
+rected) Group Steiner Tree problem [16, 26]. Similarly, all lower bounds on approximation hardness
+translate to the price of stability of polynomial-time computable separable protocols.
+
+Connection Games with Delays. Finally, in Section 5 we study multi-terminal connection games
+with delays and fixed costs. For directed graphs, an optimal Steiner forest is not enforceable by a
+separable cost sharing protocol, even for two players [17]. Very recently, a similar result was shown
+even for two-player games on undirected graphs [34]. Thus, for general graphs, we cannot expect
+separable protocols with optimal or close-to-optimal equilibria, or (efficient) black-box reductions. We
+introduce a class of so-called n-series-parallel graphs, which allows to obtain a black-box reduction in
+polynomial time. The transformation directly implies that the n-series-parallel graphs always admit
+a separable cost sharing protocol inducing an optimal Steiner forest as an equilibrium.
+    The reduction also applies to discrete-concave cost functions and player-specific delays, however,
+we do not know if polynomial running time is guaranteed. n-series-parallel graphs have treewidth
+at most 2, thus, for fixed edge costs and no delays, it is possible to compute efficiently even an
+optimal Steiner forest [7]. Hence, in this case we obtain a separable protocol with PoS of 1 in
+polynomial time. We finally demonstrate that the specific setting of n-series-parallel graphs is in
+
+
+
+                                                   3
+some sense necessary: Even for generalized series-parallel graphs we give a counterexample showing
+that a black-box reduction is impossible to achieve.
+
+1.2    Preliminaries and Related Work
+Cooperative cost sharing games have been studied over the last decades for a variety of combinatorial
+optimization problems, such as minimum spanning tree [10], Steiner tree [29, 30, 45, 51], facility
+location [28], vertex cover [22], and many more. Cooperative cost sharing games have interesting
+implications for (group-)strategyproof cost sharing mechanisms [40, 41, 46, 47]. For Bayesian cost-
+sharing mechanisms there even exist efficient black-box reductions from algorithm to mechanism
+design [27]. A major difference to our work is that cooperative cost sharing is not separable.
+    The most prominent example of a separable cost sharing protocol is the fair-share protocol, in
+which the cost of each resource is divided in equal shares among the players that allocate it. This
+protocol is also anonymous, and it implies that the resulting game is a congestion game [49]. It
+guarantees the smallest price of stability within a class of anonymous protocols [17]. The fair-share
+protocol has attracted a serious amount of research interest over the last decade [1, 5, 8, 33], espe-
+cially the notorious open problem of a constant price of stability for connection games in undirected
+graphs [9, 23, 25, 42, 43]. However, as a significant drawback, outside of the domain of undirected
+connection games the price of stability is often as large as Ω(log n). Moreover, computing a PNE is
+PLS-hard, even for undirected connection games [50].
+    More general separable protocols have been studied mostly in terms of the price of anarchy, e.g.,
+for scheduling (or matroid games) [6, 13, 19, 24, 52] or single-source network design with [20, 21] and
+without uncertainty [17]. The best result here is a price of anarchy (and stability) of 2 via Prim-
+Sharing [17], a protocol inspired by Prim’s MST algorithm. A protocol with logarithmic price of
+stability was shown for capacitated UFL games [36].
+    We note here that separable protocols with low PoS can be obtained using results for cost sharing
+games with so-called arbitrary sharing. In cost sharing games with arbitrary sharing, each agent
+i ∈ N specifies as strategy a set Si of allocated resources and a payment
+                                                                      P pi,e for every resource e ∈ E.
+A resource e ∈ E is bought if the total P  payments exceed the costs i pi,e ≥ ce (S). The private cost
+of player i is the sum of all payments e pi,e if all resources e ∈ Si are bought, and ∞ otherwise.
+Note that for games with fixed costs ce (S) = ce , one usually drops the explicit allocation Si from
+the strategy of a player. Instead, each playerP i ∈ N simply specifies strategic payments pi,e for each
+e ∈ E. Then the private cost of player i is e pi,e if payments suffice to buy at least one feasible set
+in Si , and ∞ otherwise. The following proposition is an interesting, straightforward insight. It has
+been observed before in the special case of single-source connection games [17, Proposition 6.5].
+
+Proposition 1. If for a cost sharing model, the non-cooperative game with arbitrary sharing has
+a pure Nash equilibrium, then there is a separable cost sharing protocol with the same pure Nash
+equilibrium.
+
+Proof. It is easy to see that in a PNE (S, p) for a game with arbitrary sharing, every player i ∈ N
+contributes only to resources from one feasible set Si ∈ Si . Moreover, the cost of every resource is
+exactly paid for. Finally, if a player i deviates to a different feasible set Si′ , then for each e ∈ Si′ \ Si
+she only needs to contribute the marginal costs that arise due to her presence. In particular, for fixed
+costs, she can use all resources bought by others for free.
+      Hence, given a PNE (S, p) for the game with arbitrary sharing, we obtain a basic and separable
+protocol Ξ as follows. If in profile S ′ a resource e is allocated by the set Ne (S), then we assign
+ξe,i (S ′ ) = pi,e for every i ∈ Ne (S). For a profile S ′ , in which at least one other player i ∈ Ne (S ′ )\Ne (S)
+allocates e, we pick one of these players i, and she has to pay the full cost ξi,e (S ′ ) = ce (S ′ ). If players
+from a strict subset Ne (S ′ ) ⊂ Ne (S) allocate e in S ′ , we can use an arbitrary budget-balanced sharing
+
+
+
+
+                                                         4
+of ce (S ′ ). It is straightforward to verify that such a protocol is basic and separable, and the state S
+is a PNE.
+
+    This implies existence of separable protocols with optimal PNE and price of stability 1 for a variety
+of classes of games, including matroid games with uniform discrete-concave costs [35], uncapacitated
+facility location with fixed [14] and discrete-concave costs [38], connection games (single-source [2,
+37] and other classes [3, 4, 39]) with fixed costs, and more. However, the large majority of these
+results are inefficient, i.e., there is no polynomial-time algorithm that computes the required optimal
+equilibrium.
+    Alternatively, one may resort to approximate equilibria in games with arbitrary sharing that
+are efficiently computable. The most prominent technique works via reducing costs by an additive
+value ε to ensure polynomial running time (put forward for single-source connection games in [2]
+and used in much of the follow-up work [3, 4, 14, 37]). This approach does not translate to separable
+protocols, since a player must eventually contribute to all resources. This is impossible for the model
+we consider here.
+
+
+2     Separable Cost Sharing Protocols
+We are given a finite set N of players and a finite set E of resources. Each player i ∈ N is associated
+with a predefined family of subsets Si ⊆ 2E from which player i needs to pick at least one. The space
+of strategy profiles is denoted by S := ×i∈N Si . For S ∈ S we denote by Ne (S) = {i ∈ N : e ∈ Si }
+the set of players that allocate resource e. Every resource e ∈ E has a fixed cost ce ≥ 0, e ∈ E that is
+assumed to be shareable by the players. In addition to the shareable costs, there are player-specific
+constant costs di,e ≥P      0, i ∈ N, e ∈ E that are not shareable. If player i chooses subset Si , then the
+player-specific costsP e∈Si di,e must           Pbe paid   P completely by player i. The total cost of a profile S is
+defined as C(S) = e∈∪i∈N Si ce + i∈N e∈Si di,e .
+    A cost sharing protocol Ξ assigns cost share functions ξi,e : S → R≥0 for all i ∈ N and e ∈ E
+and thus induces theP       strategic game (N, S, ξ). For a player i, her total private cost of strategy Si in
+profile S is ξi (S) := e∈Si (ξi,e (S) + di,e ). We assume that every player picks a strategy in order to
+minimize her private cost. A prominent solution concept in non-cooperative game theory are pure
+Nash equilibria. Using standard notation in game theory, for a strategy profile S ∈ S we denote
+by (Si′ , S−i ) := (S1 , . . . , Si−1 , Si′ , Si+1 , . . . , Sn ) ∈ S the profile that arises if only player i deviates to
+strategy Si′ ∈ Si . A profile is a pure Nash equilibrium (PNE) if for all i ∈ N it holds ξi (S) ≤ ξi (Si′ , S−i )
+for all Si′ ∈ Si .
+    In order to be practically relevant, cost sharing protocols need to satisfy several desiderata. In
+this regard, separable cost sharing protocols are defined as follows [17].
+
+Definition 2 (Cost Sharing Protocols and Enforceability). A cost sharing protocol Ξ is
+
+    1. stable if it induces only games that admit at least one pure Nash equilibrium.
+
+    2. budget balanced, if for all e ∈ E with Ne (S) 6= ∅
+                                     X
+                              ce =        ξi,e (S) and ξi,e (S) = 0 for all i 6∈ Ne (S).
+                                      i∈Ne (S)
+
+
+    3. separable if it is stable, budget-balanced and induces only games for which in any two profiles
+       S, S ′ ∈ S for every resource e ∈ E,
+
+                               Ne (S) = Ne (S ′ ) ⇒ ξi,e (S) = ξi,e (S ′ ) for all i ∈ Ne (S).
+
+
+
+
+                                                            5
+    4. polynomial time computable, if the cost sharing functions ξ can be computed in polynomial
+       time in the encoding length of the cost sharing game.
+
+We say that a strategy profile S is enforceable, if there is a separable protocol inducing S as a pure
+Nash equilibrium.
+
+    Separability means that for any two profiles S, S ′ the cost shares on e are the same if the set of
+players using e remains unchanged. Still, separable protocols can assign cost share functions that
+are specifically tailored to a given congestion model, for example based on an optimal profile. In
+this paper, we are additionally interested in polynomial-time computable protocols that we introduce
+here.
+
+
+3     Matroid Games
+In this section, we consider matroid games. As usual in matroid theory, we will write Bi instead of Si ,
+and B instead of S, when considering
+                                   S matroid games. The tupel M = (N, E, B, (ce )e∈E , (di,e )e∈E,i∈N )
+is called a matroid game if E = i∈N Ei , and each set system Bi ⊆ 2Ei forms the base set of some
+matroid Mi = (Ei , Bi ). While seemingly abstract, the class includes several prominent application
+domains, such as UFL games. In a UFL game, the resources are facilities (e.g. common transport
+hubs) and the players incur delay di,e in addition to their cost shares for opening used facilities.
+Every player i chooses exactly one resource, that is |Bi | = 1 for all Bi ∈ Bi and i ∈ N and hence Bi
+corresponds to a uniform matroid of rank one. Recall that every base B of a matroid Mi = (Ei , Bi )
+has the same cardinality which we denote with rki (the rank of Mi ).
+    In the following, instead of fixed costs on the resource, we allow for general subadditive cost
+functions ce : 2N → R+ , e ∈ E. ce is called subadditive, if it satisfies (1) ce (S) ≤ ce (T ) for all
+S ⊆ T ⊆ N , and (2) ce (S + {i}) ≤ ce (S) + ce ({i}) for all S ⊂ N, i ∈ N . Note that subadditive
+functions include fixed costs and discrete concave costs as a special case including the possibility of
+weighted demands as in weighted congestion games.
+    Let us denote the cost of the cheapest alternative of player i to resource e for profile B ∈ B
+by ∆ei (B) := min f ∈E       (cf (Bi + f − e, B−i ) + di,f ). Here we use the intuitive notation ce (B) :=
+                   Bi +f −e∈Bi
+ce (Ne (B)). We recapitulate a characterization of enforceable strategy profiles obtained in [36].1
+
+Lemma 3. A collection of bases B = (B1 , . . . , Bn ) is enforceable by a separable protocol if and only
+if the following two properties are satisfied. Note that (D1) implies that each summand ∆ei (B) − di,e
+in (D2) is nonnegative.
+
+                                    di,e ≤ ∆ei (B) for all i ∈ N, e ∈ Bi                                    (D1)
+                                            X
+                                 ce (B) ≤          (∆ei (B) − di,e ) for all e ∈ E.                         (D2)
+                                          i∈Ne (B)
+
+
+
+Remark 4. The characterization was used in [36] to prove that an optimal collection of bases is
+enforceable. This implies a PoS of 1 for a separable cost sharing protocol that relies on the optimal
+profile. As such, the protocol is not efficiently computable (unless P = N P ).
+
+    In the following, we devise a black-box reduction in Algorithm 1. It takes as input an arbitrary
+collection of bases B and transforms them in polynomial time into an enforceable set of bases B ′ of
+lower cost C(B ′ ) ≤ C(B). We define for each i ∈ N, e ∈ E a virtual cost value πie = ce ({i})+ di,e , and
+
+    1
+      The original characterization in [36] was proven for weighted players and load-dependent non-decreasing cost
+functions but the proof also works for subadditive cost functions.
+
+
+
+
+                                                         6
+  Algorithm 1: Transforming any profile B into an enforceable profile B ′
+   Input: Congestion model (N, B, c, d) and profile B ∈ B
+   Output: Enforceable profile B ′ with C(B ′ ) ≤ C(B).
+ 1 Set B ′ ← B
+ 2 while there is e ∈ E that satisfies at least one of the following conditions:
+
+             di,e > ∆¯ e (B ′ ) for some i ∈ Ne (B ′ )      (1) or
+                       i
+                                      ¯ e (B ′ ) − di,e
+                             X
+                   ′
+                                                        
+              ce (B ) >              ∆  i                   (2) do
+                          i∈Ne (B ′ )
+ 3      if (1) holds true for some i ∈ Ne (B ′ ) then
+ 4          Let fi ∈ arg min πif
+                            f ∈E
+                       Bi′ +f −e∈Bi
+ 5          Update Bi′ ← Bi′ + fi − e
+ 6      else if (2) holds true then
+ 7         while (2) holds true on e do
+ 8                                           ¯ e (B ′ )
+               Pick i ∈ Ne (B ′ ) with πei > ∆ i
+ 9             Let fi ∈ arg min πif
+                                f ∈E
+                           Bi′ +f −e∈Bi
+10              Update Bi′ ← Bi′ + fi − e
+
+
+
+                                                      ¯ e (B) = min
+for each B ∈ B, i ∈ N, e ∈ E a virtual deviation cost ∆ i                       f ∈E    πif . The algorithm now
+                                                                            Bi +f −e∈Bi
+iteratively checks whether (D1) and (D2) from Lemma 3 hold true (in fact it checks this condition for
+smaller values on the right hand side given by the virtual values), and if not, exchanges one element
+of some player. We show that the algorithm terminates with an enforceable profile after polynomially
+many steps.
+
+Theorem 5. Let B be a strategy profile for a matroid congestion model with subadditive costs. There
+is an enforceable strategy B ′ with C(B ′ ) ≤ C(B) that can be computed in at most n·m·rk(B) iterations
+of the while-loop in Algorithm 1, where rk(B) = maxi∈N rki .
+
+Proof. First, observe that if (D1) and (D2) from Lemma 3 hold true for smaller values 0 ≤ ∆           ¯ e (B) ≤
+                                                                                                          i
+∆ei (B), i ∈ N, e ∈ E, then the profile B is also enforceable. Hence, if the algorithm terminates, the
+resulting strategy profile B ′ will be enforceable.
+     To show
+          P that the algorithm ′ is well-defined, we only′ need        Pto check ¯Line  8. By subadditivity
+                                                                                    e  ′
+we get i∈Ne (B ′ ) ce ({i}) ≥ ce (B ). Thus, whenever ce (B ) > i∈Ne (B ′ ) ∆i (B ) − di,e , there is an
+i ∈ Ne (B ′ ) with ce ({i}) + di,e > ∆  ¯ e (B ′ ).
+                                          i
+     It is left to bound the running time. For this we consider player i and the matroid bases Bi . We
+interpret a basis Bi ∈ Bi as distributing exactly rki unit sized packets over the resources in E. This
+way, we can interpret the algorithm as iteratively moving packets away from those resources e ∈ E
+for which either (1) or (2) holds true. We give each packet a unique ID ik , k = 1, . . . , rki . For Bi ∈ Bi ,
+let eik denote the resource on which packet ik is located. We now analyze the two types of packet
+movements during the execution of the algorithm. For a packet movement executed in Line 5 of
+Algorithm 1, we have di,e > ∆     ¯ e (B ′ ), thus, when packet ik located on e = ei is moved to fi , it holds
+                                      i                                             k
+        eik
+that πi = πie ≥ di,e > ∆    ¯ e (B ′ ) = π fi . For packet movements executed in Line 10, then by the choice
+                              i             i
+                                                                                    ei
+of player i ∈ Ne (B ′ ) (see Line 8) for the corresponding packet ik it holds πi k = πie > ∆    ¯ e (B ′ ) = π fi .
+                                                                                                  i           i
+In both cases we obtain πie > πifi . Hence, every movement of a single packet ik is in strictly decreasing
+
+
+
+                                                            7
+order of virtual value of the resource. Note that the virtual cost value πie does not depend on the
+profile B. Thus, there are at most m different virtual cost values that a packet ik of player i can
+experience, and thus packet ik can move at most m −P    1 times. The following is an upper bound on
+the total number of packet movements for all players i∈N rki ·(m − 1) ≤ n · m · rk(B).
+    It is left to argue that the final output B ′ has lower cost. We prove this inductively by the
+different types of packet movements. Consider first a packet movement of type (1). Let B and B ′ be
+the profiles before and after packet ik has been moved from e to fi , respectively. We obtain
+
+                 C(B ′ ) − C(B) = (cfi (B ′ ) − cfi (B) + di,fi ) − (ce (B) − ce (B ′ ) + di,e )
+                                       ≤ cfi ({i}) + di,fi − (ce (B) − ce (B ′ ) + di,e )
+                                       =∆¯ ei (B) − di,e + (ce (B ′ ) − ce (B))
+                                        ¯ e (B) − di,e
+                                       ≤∆                       <       0.
+                                          i
+
+The first inequality follows from subadditivity, the second inequality from monotonicity of costs ce .
+The last strict inequality follows from assumption (1).
+    Now consider packet movements of type (2). We treat all movements occurring in one run of
+the while loop in Line 7. Let B denote the profile before and B ′ after all these movements. Let
+Te (B) ⊆ Ne (B) denote
+                    S the set of those players whose packet ik on e is moved to fi during the while
+loop. Let Fe (B) = i∈Te (B) {fi } and for i ∈ Te (B) define Tfi (B) = {j ∈ Te (B) | fj = fi }. We derive
+some useful observations. Before entering the while loop, it holds
+                  X                                                    X                     
+                         ¯ ei (B) − di,e =               ¯ ei (B) − di,e +         ¯ ei (B) − di,e . (3)
+                                              X
+      ce (B) >           ∆                               ∆                        ∆
+               i∈Ne (B)                              i∈Ne (B)\Te (B)                                   i∈Te (B)
+
+Moreover, after exiting the while loop it holds
+                                                                                      
+                                                                         ¯ e (B) − di,e .
+                                              X
+                               ce (B ′ ) ≤                              ∆    i                                                          (4)
+                                                     i∈Ne (B)\Te (B)
+
+Thus, combining (3) and (4) we get
+                                                               X                 
+                                     ce (B) − ce (B ′ ) >         ∆¯ ei (B) − di,e .                                                    (5)
+                                                             i∈Te (B)
+
+    Putting everything together, we obtain
+                         X                            X                             X      
+     C(B ′ ) − C(B) =          cfi (B ′ ) − cfi (B) +   di,fi − ce (B) − ce (B ′ ) +
+                                                   
+                                                                                       di,e
+                          fi ∈Fe (B)                                i∈Te (B)                                         i∈Te (B)
+                            X           X                        X                                                X                
+                     ≤                           cfi ({j}) +              di,fi − ce (B) − ce (B ′ ) +                       di,e
+                          fi ∈Fe (B) j∈Tfi (B)                 i∈Te (B)                                           i∈Te (B)
+                                                                                                  
+                                     ¯ e (B) − ce (B) − ce (B ′ ) +
+                            X                                                     X
+                     =               ∆ i                                                    di,e       <     0,
+                          i∈Te (B)                                               i∈Te (B)
+
+where the first inequality follows from subadditivity and the last inequality follows from (5).
+
+
+4    Connection Games without Delays
+In this section, we study connection games in an undirected graph G = (V, E) with a common
+source vertex s ∈ V . Every player i wants to connect a player-specific terminal node ti ∈ V to s.
+Consequently, every strategy Pi of player i is an (s, ti )-path in G. We denote the set of paths for
+player i by Pi and the set of profiles by P.
+
+
+
+                                                                8
+    Note that when each edge cost contains a player-specific delay component di,e , we can take any
+multi-source multi-terminal connection game and introduce a new auxiliary source vertex s. Then
+connect s to each si with an auxiliary edge ei , which has cost di,ei = 0 and dj,ei = M , for some
+prohibitively large constant M . Now in any equilibrium and any optimal state of the resulting
+game, player i will choose an (s, ti )-path which begins with edge ei . Moreover, ei does not generate
+additional cost for player i. As such, the optimal solutions, the Nash equilibria, and their total
+costs correspond exactly to the ones of the original multi-source multi-terminal game. Hence, in
+games with non-shareable player-specific delays, the assumption of a common source is without loss
+of generality and existing lower bounds on the price of stability apply [17, 34].
+    In this section, we instead focus on connection games with fixed shareable costs ce ≥ 0 and no
+player-specific delays di,e = 0, for all players i and all edges e ∈ E. For the general multi-terminal
+multi-source case with such costs, it is straightforward to observe that the greedy algorithm analyzed
+by Gupta and Kumar [32] can be turned into a separable protocol via the Prim-Sharing idea [17].
+This implies that we can obtain separable cost sharing protocols with a constant price of stability in
+polynomial time.
+
+Proposition 6. For every connection game in undirected graphs with fixed costs, there is an enforce-
+able profile that can be computed in polynomial time and yields a separable cost sharing protocol with
+constant price of stability.
+
+    For single-source games with fixed costs, existing results for cost sharing games with arbitrary
+sharing imply that an optimal profile is always enforceable [2, 17]. We here provide a significantly
+stronger result for polynomial-time computation of cheap enforceable profiles.
+
+Theorem 7. Let P be a strategy profile for a single-source connection game with fixed costs. There
+is an enforceable strategy P ′ with C(P ′ ) ≤ C(P ) that can be computed by Algorithm 2 in polynomial
+time.
+
+    It is straightforward that for fixed costs we can transform each profile P into a cheaper tree
+profile P̂ , in which the union of player paths constitute a tree T . Over the course of the algorithm,
+we adjust this tree and construct a cost sharing for it in a bottom-up fashion. The approach has
+similarities to an approach for obtaining approximate equilibria for single-source cost sharing games
+with arbitrary sharing [2]. However, our algorithm exploits crucial properties of separable protocols,
+thereby providing an exact Nash equilibrium and polynomial running time.
+    When designing a separable protocol based on a state P̂ , we can always assume that when a
+player i deviates unilaterally to one or more edges e ∈ G \ P̂i , she needs to pay all of ce . As such,
+player i always picks a collection of shortest paths with respect to ce between pairs of nodes on her
+current path P̂i . All these paths in G are concisely represented in the algorithm as “auxiliary edges”.
+The algorithm initially sets up an auxiliary graph Ĝ given by T and the set of auxiliary edges based
+on P̂ . It adjusts the tree T by removing edges of T and adding auxiliary edges in a structured fashion.
+    We first show in the following lemma that this adjustment procedure improves the total cost
+of the tree, and that the final tree T̂ is enforceable in Ĝ. In the corresponding cost sharing, every
+auxiliary edge contained in T̂ is completely paid for by a single player that uses it. In the subsequent
+proof of the theorem, we only need to show that for the auxiliary edges in T̂ , the edge costs of
+the corresponding shortest paths in G can be assigned to the players such that we obtain a Nash
+equilibrium in G. The proof shows that the profile P ′ evolving in this way is enforceable in G and
+only cheaper than P .
+
+Lemma 8. Algorithm 2 computes a cost sharing of a feasible tree T̂ in the graph Ĝ. The total cost
+C(T̂ ) ≤ C(T ), every auxiliary edge in T̂ is paid for by a single player, and the corresponding profile
+P̂ is enforceable in Ĝ.
+
+
+
+
+                                                   9
+ Algorithm 2: Transforming any profile P into an enforceable profile P ′
+   Input: Connection game (N, G, (t1 , . . . , tn ), s, c) and profile P ∈ P
+   Output: Enforceable profile P ′ with C(P ′ ) ≤ C(P ).
+                                                          S
+ 1 Transform P into a tree profile P̂ and let T ←          i P̂i
+ 2 ĉe (i) ← 0, for all e ∈ T, i ∈ N
+ 3 Insert T into empty graph G′ , root T in s, number vertices of T in BFS order from s
+ 4 foreach i ∈ N and each vk , vk ′ ∈ P̂i with k > k ′ do
+ 5       Add to Ĝ an auxiliary edge e = (vk , vk′ )
+ 6       P (vk , vk′ ) ← shortest path P
+                                       in G from vk to vk′
+ 7       For all j ∈ N , set ĉe (j) ← f ∈P (vk ,v ′ ) cf
+                                                   k
+
+ 8 Label every e ∈ T as “open”
+ 9 foreach open e ∈ T in bottom-up order do
+10     ĉe (i) ← ce , for all i ∈ Ne (P̂ )
+11     Pd (i) ← Pshortest (s, ti )-path
+                                     P in Ĝ for edge costs ĉe (i)
+12     ∆ei ← e′ ∈Pd (i) ĉe′ (i) − e′ ∈P̂i ,e′ 6=e ĉe′ (i)
+       if ce ≤ i∈Ne (P̂ ) ∆ei then
+                 P
+13
+
+             For all i ∈ Ne (P̂ ), assign ĉe (i) ∈ [0, ∆ei ] such that i∈Ne (P̂ ) ĉe (i) = ce
+                                                                       P
+14
+
+15           Label e as “closed”
+16     else
+17        D ← set of highest deviation vertices
+18        PT (e, v) ← path between higher node of e and v in T
+19        Remove all paths PT (e, v) from T and Ĝ
+20        foreach v ∈ D do
+21            Pick one auxiliary edge e′ ∈ Pd (i), for some i ∈ Ne (P̂ ), such that e′ = (v, u) with u
+                a node above e in T , and add e′ to T
+22            P̂i ← Pd (i)
+23            foreach player j 6= i with tj below v in T do
+24                P̂j ← (P̂j from tj to v) ∪ (Pd (i) from v to s)
+25                ĉe′ (j) ← 0
+26             Label e′ as “closed”
+
+27 For every i ∈ N , compute Pi′ by replacing in P̂i every auxiliary edge e = (u, v) by the
+     corresponding shortest path P (u, v) in G
+
+
+Proof. After building Ĝ, the algorithm considers T rooted in the source s. Initially, all edges of T
+are assumed to have zero cost for all players. All edges of T are labelled “open”. Our proof works
+by induction. We assume that players are happy with their strategies P̂i if all open edges of T have
+cost 0, all open edges outside T have cost ĉe for every player, and the closed edges e ∈ T are shared
+as determined by ĉe .
+     The algorithm proceeds in a bottom-up fashion. In an iteration, it restores the cost of an open
+edge e to its original value. It then considers how much each player i ∈ Ne (P̂ ) is willing to contribute
+to e. The maximum contribution ∆ei is given by the difference in the cheapest costs to buy an (s, ti )-
+path for i when (1) e has cost 0 and (2) e has cost ce . By induction, for case (1) we can assume that
+i is happy with P̂i when e has cost 0. In case (2), suppose i deviates from (parts of) his current path
+P̂i and buys auxiliary edges.
+
+
+
+
+                                                         10
+    Since by induction i is happy with P̂i when e has cost 0, there is no incentive to deviate from
+P̂i between two vertices of P̂i below e. Moreover, clearly, there is no incentive to deviate from P̂i
+between two vertices above e (since edges of T above e are assumed to have zero cost). Hence, if in
+case (2) the path Pd (i) includes e, then Pd (i) = P̂i , so ∆ei = ce . Otherwise, player i finds a path that
+avoids e. By the observations so far, Pd (i) can be assumed to follow P̂i from ti up to a vertex v, then
+picks a single auxiliary edge (v, u) to node u above e, and then follows P̂i to s. We call the vertex v
+the deviation vertex of Pd (i).
+    Based on Pd (i), the algorithm computes a maximum contribution ∆ei for each player i ∈ Ne (P̂ ),
+which i is willing to pay for edge e currently under consideration. If in total these contributions
+suffice to pay for e, then we determine an arbitrary cost sharing of ce such that each player i ∈ Ne
+pays at most ∆ei . Thereby, every player i ∈ Ne (P̂ ) remains happy with his path P̂i , and the inductive
+assumptions used above remain true. We can label e as closed and proceed to work on the next open
+edge in the tree T .
+    Otherwise, if the contributions ∆ei do not suffice to pay for ce , then for every i ∈ Ne (P̂ ) the path
+Pd (i) avoids e and contains a deviation vertex. The algorithm needs to drop e and change the strategy
+of every such player. It considers the “highest” subset D of deviation vertices, i.e., the unique subset
+such that D contains exactly one deviation vertex above each terminal ti . The algorithm removes
+all edges from T that lie below and including e and above any v ∈ D. For each v ∈ D, it then adds
+one auxiliary edge from the corresponding Pd (i) to T . As observed above, these edges connect v to
+some node u above e, and thereby yield a new feasible tree T in Ĝ.
+    Since Pd (i) is a best response for player i, we assign i to pay for the cost of the auxiliary edge.
+After this update, i is clearly happy with P̂i . Moreover, every other player j ∈ Ne (P̂ ) that now uses
+the auxiliary edge paid by player i is happy with his new strategy P̂j . The auxiliary edge has cost
+zero for player j, and the path from ti to the deviation vertex v has not changed. By induction j
+was happy with this path after we finished paying for the last edge below v. Thus, we can label all
+auxiliary edges added to T as closed and proceed to work on the next open edge in the tree T .
+    By induction, this proves that the algorithm computes a cost sharing that induces a separable
+protocol with the final tree T ′ being a Nash equilibrium in Ĝ. Moreover, if we change the tree
+during the iteration for edge e, it is straightforward to verify that the total cost of the tree strictly
+decreases.
+
+Proof of Theorem 7. The previous lemma shows that the algorithm computes a cost sharing of a
+tree T̂ in Ĝ, such that every player is happy with the path P̂i and every auxiliary edge in T̂ is paid
+for completely by a single player. We now transform P̂ into P ′ by replacing each auxiliary edge
+e = (u, v) ∈ P̂i by the corresponding shortest path P (u, v) in G. We denote by Ei the set of edges
+introduced in the shortest paths for auxiliary edges in P̂i . For the total cost of the resulting profile we
+have that C(P ′ ) ≤ C(P̂ ) ≤ C(P ), since the sets Ei can overlap with each other or the non-auxiliary
+edges of T̂ .
+     We show that P ′ is enforceable by transforming the cost sharing constructed in function ĉ into
+separable cost sharing functions as follows. Initially, set ξi,e (P ′ ) = 0 for all e ∈ E and i ∈ N . Then,
+for each non-auxiliary edge e ∈ T̂ we assign ξi,e (P ′ ) = ĉe (i) if e ∈ P̂i and ξi,e (P ′ ) = 0 otherwise.
+Finally, number players arbitrarilyP from 1 to n and proceed in that order. For player i, consider the
+edges in Ei . For every e ∈ Ei , if j<i ξj,e (P ′ ) = 0, then set ξi,e (P ′ ) = ce .
+     This yields a budget-balanced assignment for state P ′ . As usual, if a player i deviates in P ′ from
+Pi to Pi′′ , we can assume player i is assigned to pay the full cost ce for every edge e ∈ Pi′′ \ Pi′ . To
+  ′
+
+show that there is no profitable deviation from P ′ , we first consider a thought experiment, where
+every edge in Ei comes as a separate edge bought by player i. Then, clearly P ′ is enforceable – the
+cost of Pi′ with ξ is exactly the same as the cost of P̂ with ĉ in Ĝ. Moreover, any deviation Pi′′ can
+be interpreted as an (s, ti )-path in Ĝ by replacing all subpaths consisting of non-auxiliary edges in
+P ′′ by the corresponding auxiliary edge of Ĝ. As such, the cost of Pi′′ is exactly the same as the cost
+
+
+
+                                                    11
+of the corresponding deviation in Ĝ. Now, there is not a separate copy for every edge in Ei . The
+set Ei can overlap with other sets Ej and/or non-auxiliary edges. Then player i might not need to
+pay the full cost on some e ∈ Ei . Note, however, every edge for which player i pays less than ce is
+present in Pi′ as well. Hence, Pi′′ cannot improve over Pi′ due to this property.
+
+    The result continues to hold for various generalizations. For example, we can immediately apply
+the arguments in directed graphs, where every player i seeks to establish a directed path between
+ti and s. Moreover, the proof can also be applied readily for a group-connection game, where each
+player wants to establish a directed path to s from at least one node of a set Vi ⊂ V . For this game,
+we simply add a separate super-terminal ti for every player i and draw a directed edge of cost 0 from
+ti to every node in Vi .
+
+Corollary 9. Let P be a strategy profile for a single-source group-connection game in directed graphs
+with fixed costs. There is an enforceable profile P ′ with C(P ′ ) ≤ C(P ) that can be computed by
+Algorithm 2 in polynomial time.
+
+
+5    Connection Games and Graph Structure
+In this section, we consider connection games played in undirected graphs G = (V, E) with player-
+specific source-terminal pairs. Each player i ∈ N has a source-terminal-pair (si , ti ). Note that we
+can assume w.l.o.g. that (G, (s1 , t1 ), . . . , (sn , tn )) is irredundant, meaning that each edge and each
+vertex of G is contained in at least one (si , ti )-path for some player i ∈ N (nodes and edges which
+are not used by any player can easily be recognized (and then deleted) by Algorithm Irredundant
+at the end of the section; adapted from Algorithm 1 in [18]).
+Harks et al. [34] characterized enforceability for the special case with di,e = 0 for all i ∈ N, e ∈ E via
+an LP. We can directly adapt this characterization as follows:
+                                  X
+      LP(P ) max                           ξi,e
+                                     i∈N,e∈Pi
+                                       X
+              s.t.:                              ξi,e ≤ ce                         ∀e ∈ E with Ne (P ) 6= ∅
+                                     i∈Ne (P )
+                           X                                X
+                                     (ξi,e + di,e ) ≤               (ce + di,e )          ∀Pi′ ∈ Pi ∀i ∈ N    (NE)
+                         e∈Pi \Pi′                      e∈Pi′ \Pi
+
+                                                 ξi,e ≥ 0                                  ∀e ∈ Pi ∀i ∈ N
+
+Theorem 10. The strategy profile P = (P1 , . . . , Pn ) is enforceable if and only if there is an optimal
+solution (ξi,e )i∈N,e∈Pi for LP(P ) with
+                                 X
+                                       ξi,e = ce ∀e ∈ E with Ne (P ) 6= ∅.                          (BB)
+                                 i∈Ne (P )
+
+    Given an optimal solution (ξi,e )i∈N,e∈Pi for LP(P ) with the property (BB), the profile P becomes
+a PNE in the game induced by ξ, which assigns for each i ∈ N and e ∈ E and each strategy profile
+P ′ = (P1′ , . . . , Pn′ ) the following cost shares (these cost shares resemble those introduced in [52]):
+                                    
+                                    
+                                    
+                                     ξi,e , if i ∈ Se (P ′ ) = Se (P ),
+                                    c , if i ∈ (S (P ′ ) \ S (P )) and i = min(S (P ′ ) \ S (P )),
+                                    
+                                       e               e         e                  e       e
+                      ξi,e (P ′ ) =                       ′                           ′
+                                    
+                                    
+                                     ce , if i ∈ Se (P ) ( Se (P ) and i = min Se (P ),
+                                    
+                                    0,      else.
+
+
+
+                                                              12
+   We now introduce a subclass of generalized series-parallel graphs for which we design a polynomial
+time black-box reduction that computes, for a given strategy profile P , an enforceable strategy profile
+with smaller cost.
+
+Definition 11 (n-series-parallel graph). An irredundant graph (G, (s1 , t1 ), . . . , (sn , tn )) is n-series-
+parallel if, for all i ∈ N , the subgraph Gi (induced by Pi ) is created by a sequence of series and/or
+parallel operations starting from the edge si − ti . For an edge e = u − v, a series operation replaces
+it by a new vertex w and two edges u − w, w − v; A parallel operation adds to e = u − v a parallel
+edge e′ = u − v.
+
+    The following theorem summarizes our results for n-series-parallel graphs.
+
+Theorem 12. If (G, (s1 , t1 ), . . . , (sn , tn )) is n-series-parallel, the following holds:
+
+ (1) Given an arbitrary strategy profile P , an enforceable strategy profile P ′ with cost C(P ′ ) ≤ C(P ),
+     and corresponding cost share functions ξ, can be computed in polynomial time.
+
+ (2) For all cost functions c, d, every optimal strategy profile of (G, (s1 , t1 ), . . . , (sn , tn ), c, d) is en-
+     forceable.
+
+ (3) For all edge costs c, an optimal Steiner forest of (G, (s1 , t1 ), . . . , (sn , tn ), c) can be computed in
+     polynomial time.
+
+    To prove Theorem 12, we need to introduce some notation. Let (ξi,e )i∈N,e∈Pi be an optimal
+solution for LP(P ). For i ∈ N and P    f ∈ Pi , we consider allPpaths Pi′ ∈ Pi with f ∈       / Pi′ , Pi ∪ Pi′
+                                ′
+contains a unique cycle C(Pi ) and        e∈Pi \Pi′ (ξi,e + di,e ) = e∈Pi′ \Pi (ce + di,e ). Among all these
+                                                                 ′
+paths, choose one for which the number of edges in C(Pi ) ∩ Pi is minimal. The corresponding path
+Ai,f := C(Pi′ ) ∩ Pi′ is called a smallest tight alternative of player i for f . If we say that player i
+substitutes f by using Ai,f , we mean that the current path Pi of player i is changed by using Ai,f
+instead of the subpath C(Pi′ ) ∩ Pi (which contains f ). Figure 1 illustrates the described concepts.
+    Note that Ai,f is also smallest in the sense that every other (tight) alternative for f substitutes
+a superset of the edges substituted by Ai,f .
+    We are now able to prove Theorem 12.
+
+Proof of Theorem 12. We first describe how to compute, given an arbitrary strategy profile P =
+(P1 , . . . , Pn ), an enforceable strategy profile with cost at most C(P ).
+     Assume that P is not enforceable (otherwise there is nothing to do). Let (ξi,e )i∈N,e∈Pi be an
+optimal solution for LP(P ). In the following, we denote the variables (ξi,e )i∈N,e∈Pi as cost shares,
+although they do not correspond to a budget-balanced cost sharing protocol (since           PP is not enforce-
+able). There is at least one edge f which is not completely paid, i.e. for which i∈Nf (P ) ξi,f < cf
+holds. The optimality of the cost shares (ξi,e )i∈N,e∈Pi for LP(P ) implies that each player i ∈ Nf (P ),
+i.e. each user of f , has an alternative path Pi′ with f ∈  / Pi′ , for which equality holds in the correspond-
+ing LP(P )-inequality (otherwise increasing ξi,f by a small amount, while all other cost shares remain
+unchanged, would yield a feasible LP-solution with higher objective function value). Using the no-
+tation introduced above, each user i of f has a smallest tight alternative Ai,f for f . Furthermore,
+if Pi contains more than one edge which is not completely paid, there is a combination of smallest
+tight alternatives so that all edges which are not completely paid are substituted (see Figure 2, where
+f, g, h are not completely paid and we substitute all these edges by combining Ai,g and Ai,h ).
+     We now consider the strategy profile P ′ = (P1′ , . . . , Pn′ ) which results from P if all players with
+unpaid edges in their paths substitute all these edges by a combination of smallest tight alternatives.
+
+
+
+
+                                                        13
+                 si                                                                        f                       ti
+                  (a) Example for Pi (thick) and all alternative paths with tight inequality in LP(P ).
+
+
+
+                 si                                                                        f                       ti
+                  (b) Dashed path Pi′ with f ∈
+                                             / Pi′ , but no unique cycle with Pi .
+
+
+
+                 si                                                                        f                       ti
+                  (c) Dashed path Pi′ with f ∈
+                                             / Pi′ , unique cycle C(Pi′ ) with Pi , but not smallest for f .
+
+
+                                                                                           Ai,f
+                 si                                                                        f                       ti
+                  (d) Substituting f by using smallest tight alternative Ai,f .
+
+
+                            Figure 1: Illustration of the introduced concepts.
+
+
+
+                      si        g                                                        f                h   ti
+
+                      Figure 2: Illustration of combining smallest tight alternatives.
+
+Furthermore we define cost shares (again not necessarily budget-balanced) for P ′ as follows: For each
+player i and each edge e ∈ Pi′ :
+                                               (
+                                                ξi,e , for e ∈ Pi′ ∩ Pi ,
+                                 ξi,e (P ′ ) =
+                                                ce , for e ∈ Pi′ \ Pi .
+
+Note that the private cost of player i under P P    equals the private cost of i under P ′ since the players
+use tight alternatives. Furthermore note that i∈Ne (P ′ ) ξi,e (P ′ ) > ce is possible (for example if there
+are two players which did not
+                           P use an edge ′e with ce > 0 in their paths under P , but        use it in P ′ and
+                                                                                         ′
+therefore both pay ce ). If i∈Ne (P ′ ) ξi,e (P ) ≥ ce holds for all edges e with Ne (P ) 6= ∅, we found a
+strategy profile with the desired properties: P ′ is cheaper than P since
+                                         X             XX
+                          C(P ) =                 ce +         di,e
+                                        e∈E:Ne (P )6=∅         i∈N e∈Pi
+                                        XX
+                                    >               (ξi,e + di,e )
+                                        i∈N e∈Pi
+                                        XX
+                                                     ξi,e (P ′ ) + di,e
+                                                                          
+                                    =
+                                        i∈N e∈Pi′
+                                              X             X                          XX
+                                    =                                  ξi,e (P ′ ) +               di,e
+                                        e∈E:Ne (P ′ )6=∅ i∈Ne (P ′ )                   i∈N e∈Pi′
+                                              X                   XX
+                                    ≥                      ce +               di,e = C(P ′ ).
+                                        e∈E:Ne (P ′ )6=∅          i∈N e∈Pi′
+
+
+
+
+                                                             14
+The strict inequality holds since P is not enforceable, the following equality because the private costs
+remain unchanged, and the last inequality because of our assumption above. Furthermore, P ′ is
+enforceable since the cost shares (ξi,e (P ′ ))i∈N,e∈Pi′ induce a feasible solution of LP(P ′ ) with (BB) if
+we decrease the cost shares for overpaid edges arbitrarily until P   we reach budget-balance.
+    Thus assume that there is at least one edge f for which i∈Nf (P ′ ) ξi,f (P ′ ) < cf holds. First
+note, for each player i ∈ Nf (P ′ ), that f ∈ Pi has to hold, since all edges in Pi′ \ Pi are completely
+paid (player i pays ce for e ∈ Pi′ \ Pi ). As we will show below, all i ∈ Nf (P ′ ) have a smallest tight
+alternative Ai,f for f . We can therefore again update the strategy profile (resulting in P ′′ ) by letting
+all players deviate from all nonpaid edges using a combination of smallest tight alternatives. Figure 3
+illustrates this second phase of deviation, where the edges r and s are now not completely paid. Note
+that Ai,r is not unique in this example, and to use Ai,s , we need to deviate from Ai,h (which player
+i uses in Pi′ ).
+
+
+
+
+           si                                          r             s                      h   ti
+
+
+
+
+           si                                          r             s                      h   ti
+
+
+                          Figure 3: Illustration for the second phase of deviation.
+
+   The cost shares are again adapted, that means for each player i and each edge e ∈ Pi′′ :
+                                              (
+                                               ξi,e , for e ∈ Pi′′ ∩ Pi ,
+                               ξi,e (P ′′ ) =
+                                               ce , for e ∈ Pi′′ \ Pi .
+
+It is clear that the private costs of the players again remain unchanged and therefore, if all edges are
+now completely paid, the cost of P ′′ is smaller than the cost of P and P ′′ is enforceable.
+     We now show that the tight alternatives used in the second phase of deviation exist. Assume, by
+contradiction, that there is a player j, an edge f ∈ Pj′ which is not completely paid according to P ′ ,
+and player j has no tight alternative for f . Now recall that, whenever an edge f is not completely
+paid in P ′ , all users i ∈ Nf (P ′ ) already used f in P and therefore ξi,f (P ′ ) = ξi,f holds for all
+i ∈ Nf (P ′ ) ⊆ Nf (P ). Furthermore f was completely paid according to the cost shares of P since we
+substituted all unpaid edges in the first phase of deviation from P to P ′ . We get
+                    X                 X                     X                  X
+                          ξi,f +               ξi,f = cf >       ξi,f (P ′ ) =      ξi,f ,
+                i∈Nf (P ′ )      i∈Nf (P )\Nf (P ′ )            i∈Nf (P ′ )   i∈Nf (P ′ )
+
+
+thus there has to be at least one player k which used f in Pk , but not in Pk′ , and with ξk,f > 0.
+Let Ak,g be the smallest tight alternative that player k used (to substitute the edge g which was
+not completely paid in P ), and also substituted f . The situation is illustrated in Figure 4. We
+now show that the LP(P )-solution cannot be optimal. Since player j has no tight alternative for
+f , increasing ξj,f by some suitably small amount, and decreasing ξk,f by the same amount, yields
+a feasible LP(P )-solution. But now player k has no tight alternative for g anymore, since all tight
+alternatives for g also substitute f . Therefore we can increase ξk,g by some small amount, leading to
+a feasible LP(P )-solution with higher objective function value, contradiction. Thus we showed that
+the tight alternatives used in the second phase of deviation exist.
+
+
+
+                                                           15
+                     sk                    g                     f                             tk
+
+                                   sj                                                          tj
+                     (a) Illustration of the paths Pj and Pk (given by the thick edges).
+
+
+                                                    Ak,g
+                     sk                    g                     f                             tk
+
+                                   sj                                                          tj
+                     (b) Situation after the first phase of deviation (player k used Ak,g ).
+
+                   Figure 4: Illustration for the proof that tight alternatives exist.
+
+
+     As already mentioned above, if all edges in P ′′ are completely paid, P ′′ is enforceable and cheaper
+than P and we are finished. Thus we again assume that there is at least one edge which is not
+completely paid. Analogously as for P ′ we can show that, for each such edge f and each player
+i ∈ Nf (P ′′ ), f ∈ Pi has to hold. Furthermore all users of a nonpaid edge have a tight alternative
+for this edge (the proof that this holds is a little bit more complicated as above, we possibly need
+to involve three players now): Assume that a player i does not have a tight alternative for an edge
+f ∈ Pi which is not completely paid according to P ′′ , but was completely paid before (i.e. according
+to P ′ and also according to P ). Thus there has to be a player j ∈ Nf (P ) with ξj,f > 0 who deviated
+from f by using Aj,g in some phase before. If player j did this in the first phase of deviation, the edge
+g was not completely paid according to P and we can change the LP(P )-solution as described above
+to get a contradiction. If the deviation happened in the second phase, the edge g was completely
+paid according to P . Thus there has to be a third player k (but k = i possible) with ξk,g > 0 which
+used some Ak,h in the first phase of deviation that also substituted g. We are now able to change
+the cost shares of P to get a contradiction: First, player i increases ξi,f , while player j decreases ξj,f .
+Now player j increases ξj,g , while player k decreases ξk,g . Finally player k increases ξk,h . By suitably
+small changes, we get a feasible solution for LP(P ) with higher objective function value than the
+original optimal cost shares; contradiction. Therefore, in a third phase of deviation, all players with
+nonpaid edges deviate from all those edges by a combination of smallest tight alternatives.
+     If we proceed in this manner, we finally have to reach a strategy profile for which all edges
+are completely paid (and thus it is enforceable and cheaper than the profile P ): In each phase of
+deviation, at least one edge is substituted by all players which use this edge in P . Furthermore,
+players never return to substituted edges. Therefore, after at most |P | phases of deviation, we reach
+a strategy profile with the desired property (where |P | denotes the number of edges in the union of
+the paths P1 , . . . , Pn ). The existence of the needed tight alternatives in the kth phase of deviation
+can be shown as follows: Assume that P (k) is the current strategy profile, f an edge which is not
+completely paid according to P (k) , and there is a player i which uses an edge f , but has no tight
+alternative for it. Then there has to be a player j with ξj,f > 0 who deviated from f in some phase
+ℓ ≤ k − 1 by using Aj,g , where g was not completely paid in the corresponding strategy profile P (ℓ) .
+If ℓ = 1 holds, we can decrease ξj,f and increase ξi,f , ξj,g ; contradiction. For ℓ ≥ 2, the edge g
+was completely paid in P and therefore, there has to be a player p with ξp,g > 0 which substituted
+g in some phase ≤ ℓ − 1 by using Ap,h , and so on. This yields a sequence of players and edges
+(i, f ), (j, g), (p, h), . . . , (q, s), where the edge s was not completely paid according to P . We can now
+change the cost shares along this sequence (as described above for the third phase of deviation) to
+
+
+
+
+                                                         16
+get a contradiction.
+    Algorithm n-SePa summarizes the described procedure for computing an enforceable strategy
+profile P ′ with cost C(P ′ ) ≤ C(P ) and corresponding cost share functions ξ. To complete the proof of
+the first statement of Theorem 12, it remains to show that P ′ and ξ can be computed in polynomial
+time, i.e. Algorithm n-SePa has polynomial running time. As a first step, we show how to compute
+an optimal solution for LP(P ) in polynomial time. To this end we show that, for every player i, we
+do not need to consider all paths Pi′ ∈ Pi in (NE) of LP(P ), which can be exponentially many paths,
+but only a set of alternatives Ai of polynomial cardinality. Recall that the graph Gi (induced by Pi )
+essentially looks like displayed in Figure 5, and we can w.l.o.g. assume that Pi is given by the thick
+edges.
+
+
+
+
+           si                                                                               ti
+
+
+                   Figure 5: Structure of Gi , where Pi is given by the thick edges.
+
+     An arbitrary (si , ti )-path Pi′ consists of subpaths of Pi together with some of the “arcs”. We call
+these arcs alternatives (according to Pi ), and formally, an alternative is a path A which connects
+two nodes of Pi , but is edge-disjoint with Pi . The subpath of Pi with the same endnodes as A is
+denoted by PiA , and we say that this subpath is substituted by A (cf. Figure 6 for illustration). Note
+that there can be different alternatives which substitute the same subpath of Pi (in Figure 6, this
+holds for example for the two arcs on the left which both substitute the second and third edge of
+Pi ). Whenever this is the case, we choose such an alternative with smallest sum of edge costs plus
+player i’s delays, and denote this alternative A as a cheapest alternative for PiA . Let Ai be the set
+of all cheapest alternatives according to Pi . It is clear that
+                                X                      X
+                                      (ξi,e + di,e ) ≤      (ce + di,e ) ∀Pi′ ∈ Pi
+                           e∈Pi \Pi′                  e∈Pi′ \Pi
+
+holds if and only if           X                          X
+                                       (ξi,e + di,e ) ≤         (ce + di,e )   ∀A ∈ Ai
+                              e∈PiA                       e∈A
+
+holds. Since the paths in Ai are edge-disjoint, |Ai | is bounded by |E|. Algorithm Alternatives(i)
+computes Ai in polynomial time. Thus, we can solve LP(P ) in polynomial time.
+
+                                                                                    A
+
+
+           si                                                                               ti
+
+
+                 Figure 6: Alternative A (dashed); substituted subpath PiA (thick).
+
+    To complete the proof that Algorithm n-SePa has polynomial running time, it remains to show
+that the combination of smallest tight alternatives in Line 7 of Algorithm n-SePa can be found in
+polynomial time (recall that there will be at most |P | ≤ |E| calls of the repeat-loop; and all other
+steps are obviously polynomial). Since |Ai | ≤ |E| holds for all i ∈ N , we can find, for each edge f
+which is not completely paid and each user i of f , a smallest tight alternative Ai,f in polynomial time.
+If player i uses more than one edge which is not completely paid, a combination of the corresponding
+smallest tight alternatives can also easily be found; thus step 7 is polynomial.
+
+
+
+                                                           17
+    Overall we showed that the first statement of Theorem 12 holds. The second statement, i.e. that
+every optimal strategy profile of (G, (s1 , t1 ), . . . , (sn , tn ), c, d) is enforceable, follows very easily from
+the proof of statement (1). Note that, if P is not enforceable, Algorithm n-SePa computes a strategy
+profile with strictly smaller cost. Since this would lead to a contradiction if P is an optimal, but not
+enforceable strategy profile, every optimal strategy profile has to be enforceable.
+    We finally want to show the last statement of Theorem 12, i.e. that an optimal Steiner forest can
+be computed in polynomial time (for di,e = 0 for all i ∈ N, e ∈ E). To this end we want to use the
+result of Bateni et al. [7] that the Steiner forest problem can be solved in polynomial time on graphs
+with treewidth at most 2. Thus it is sufficient to show that G has treewidth at most 2, or, since
+generalized series-parallel graphs have treewidth at most 2 (what can easily be seen by induction on
+the number of operations), that G is generalized series-parallel (note that we can assume w.l.o.g. that
+G is connected, otherwise we can obviously treat each connected component separately). Recall that
+generalized series-parallel graphs are created by a sequence of series, parallel, and/or add operations
+starting from a single edge, where an add-operation adds a new vertex w and connects it to a given
+vertex v by the edge w − v. We show that G can be created like this. It is clear that this holds for
+each Gi since they are series-parallel; but since the Gi s are (in general) neither equal nor disjoint, it
+is not completely obvious that this also holds for their union G.
+    We now show, starting with the subgraph G1 which is generalized series-parallel, that we can
+consecutively choose one player and add the vertices and edges of her paths which are not already
+contained in the subgraph constructed so far by add, series, and parallel operations. Since this again
+yields a generalized series-parallel graph, we finally conclude that G is generalized series-parallel.
+    Let G′ 6= G be the generalized series-parallel subgraph constructed so far. Choose a player i so
+that Gi is not node-disjoint with G′ (exists since G is connected). Let Pi be an (si , ti )-path which is
+not node-disjoint with G′ and subdivide Pi into the following three subpaths Pi1 , Pi2 , Pi3 (where some
+of the subpaths may consist of only one node): Pi1 starts in si and ends in the first node u which is
+contained in G′ ; Pi2 starts in u and ends in the last node v which is in G′′ , and Pi3 starts in v and
+ends in ti . Note that Gi consists of Pi together with all alternatives of player i (according to Pi ).
+The following points show that Gi \ G′ can be added to G′ by series, parallel and add operations:
+   1. Pi1 (Pi3 ) can obviously be added by an add operation at u (v) and series operations.
+   2. Pi2 is completely contained in G′′ . Thus Pi2 does not need to be added.
+   3. Any alternatives where both endnodes are in Pi1 or Pi3 are internal node-disjoint with G′′ and
+      can therefore be added by parallel and series operations during the addition of Pi1 and Pi3 .
+   4. Alternatives with both endnodes in Pi2 are already contained in G′′ .
+   5. There are no alternatives with endnodes in different subpaths.
+Note that 2.-5. holds since otherwise there would be a new (sj , tj )-path for a player j already added;
+contradiction.
+   This completes the proof of statement (3). Hence, Theorem 12 is shown.
+
+Remark 13. The first two results of Theorem 12 can be generalized to nonnegative, nondecreas-
+ing and discrete-concave shareable edge cost functions. However, we do not know whether or not
+polynomial running time can be guaranteed.
+    We now demonstrate that the assumption of n-sepa graphs is in some sense well justified.
+Theorem 14. For n ≥ 3 players, there is a generalized series-parallel graph with fixed edge costs and
+no player-specific delays, so that the unique optimal Steiner forest is not enforceable. Therefore, a
+black-box reduction as for n-series-parallel graphs is impossible for generalized series-parallel graphs
+(even without player-specific delays).
+
+
+
+                                                        18
+Proof. To prove Theorem 14, consider Figure 7. The displayed graph G is generalized series-parallel
+since it can be created from a K2 by a sequence of series- and parallel-operations (as executed in
+Figure 8). But the unique optimal Steiner forest OPT of (G, (s1 , t1 ), (s2 , t2 ), (s3 , t3 ), c), given by the
+solid edges, is not enforceable. To see this, note that the cost of OPT is C(OPT) = 346. Furthermore,
+we can upper-bound the sum of cost shares that the players will pay for using their paths in OPT
+by 100 + 69 + 170 = 339 < C(OPT), thus showing that OPT is not enforceable: Player 1 will pay
+at most 100, because she can use the edge s1 − t1 with cost 100. Player 3 could use the edge s3 − t3
+with cost 69, thus she will pay at most 69. It remains to analyze the cost shares of Player 2. Instead
+of using the subpath from s2 to s1 of her path in OPT, Player 2 could use the edge s2 − s1 with
+cost 84. Furthermore, she could use the edge t3 − t2 with cost 86 instead of her subpath from t3 to
+t2 . Since the mentioned subpaths cover the complete path of Player 2 in OPT, she will pay at most
+84 + 86 = 170.
+For n ≥ 4, we obviously get an instance with the properties stated in Theorem 14 by choosing an
+arbitrary node v of G and setting si = ti = v for all i ∈ {4, . . . , n}.
+                                              s1         s3
+                                                   60
+                                        84    100       57    69   82
+                                s2                 t1              86
+                                                              t3        t2
+                                        71    38        38
+
+
+Figure 7: Graph G with three source-terminal pairs (s1 , t1 ), (s2 , t2 ), (s3 , t3 ), fixed edge costs c given
+on the edges, and no player-specific delays d.
+
+
+
+
+                       Figure 8: Verification that G is generalized series-parallel.
+
+ Algorithm 3: Irredundant
+   Data: Undirected graph G, source-terminal pairs (s1 , t1 ), . . . , (sn , tn )
+   Result: Maximum irredundant subgraph G′
+ 1 C ← set of cut vertices of G;
+ 2 for each i ∈ {1, . . . , n} do
+ 3    Gi ← G;
+ 4    for each c ∈ C do
+ 5        Remove from Gi all vertices in the components of G − c containing neither si nor ti (if
+           any)
+ 6 G′ ← G;
+ 7 Delete from G′ all nodes and edges which are not contained in any Gi .
+
+
+
+
+                                                         19
+ Algorithm 4: n-SePa
+   Data: Connection Game (N, G, (s1 , t1 ), . . . , (sn , tn ), c, d) with n-series-parallel graph
+              (G, (s1 , t1 ), . . . , (sn , tn )); strategy profile P = (P1 , . . . , Pn )
+   Result: Enforceable strategy profile P ′ with cost C(P ′ ) ≤ C(P ); cost share functions ξ so
+                that P ′ is PNE
+ 1 Solve LP(P ); let (ξi,e )i∈N,e∈Pi be the computed optimal solution;
+ 2 P′ ← P;
+ 3 ξi,e (P ′ ) ← ξi,e for all i ∈ N , e ∈ Pi′ ;
+ 4 if (BB) does not hold then
+ 5       Let S be the set of edges which are not completely paid according to P ′ ;
+ 6       repeat
+ 7            All players with edges in S deviate from all unpaid edges by using a combination of
+               smallest tight alternatives;
+ 8            Update P ′ accordingly;
+ 9            Update the cost shares (for each player i and each edge e ∈ Pi′ ):
+                                                      (
+                                              ′           ξi,e , for e ∈ Pi′ ∩ Pi ,
+                                        ξi,e (P ) =
+                                                          ce , for e ∈ Pi′ \ Pi .
+
+           Update S (set of edges which are not completely paid according to P ′ );
+10    until S = ∅;
+11    If there are overpaid edges, decrease the corresponding cost shares arbitrarily until these
+       edges are exactly paid;
+12 output P ′ and ξ (induced by (ξi,e (P ′ ))i∈N,e∈P ′ );
+                                                    i
+
+
+ Algorithm 5: Alternatives(i)
+   Data: Connection Game (N, G, (s1 , t1 ), . . . , (sn , tn ), c, d) with n-series-parallel graph
+           (G, (s1 , t1 ), . . . , (sn , tn )); player i ∈ N ; path Pi ∈ Pi
+   Result: Set of cheapest alternatives Ai according to Pi
+ 1 Define c̃e := ce + di,e for all e ∈ Gi ;
+ 2 Delete all edges of Pi ;
+ 3 repeat
+ 4    Let u be the first node of Pi which is not yet deleted;
+ 5    repeat
+ 6        Starting in u, execute a (partial) BFS in Gi , stop if a new node of Pi is reached;
+ 7        if a new node v of Pi is reached then
+ 8             Compute a shortest u − v-path Ai (shortest according to c̃);
+ 9             Insert Ai in Ai ;
+10             Delete all nodes (different from u, v) and edges of Ai from Gi ;
+11             Mark v as visited;
+12        else
+13             Delete all nodes (∈         / Pi ) and edges of the connected component of u;
+14             Delete u;
+15             Remove all marks.
+16    until u has been deleted;
+17 until all nodes of Pi have been deleted;
+
+
+
+
+                                                      20
+References
+ [1] N. Andelman, M. Feldman, and Y. Mansour. Strong price of anarchy. Games Econom. Behav.,
+     65(2):289–317, 2009.
+
+ [2] E. Anshelevich, A. Dasgupta, É. Tardos, and T. Wexler. Near-optimal network design with
+     selfish agents. Theory of Computing, 4(1):77–109, 2008.
+
+ [3] E. Anshelevich and B. Caskurlu. Exact and approximate equilibria for optimal group network
+     formation. Theor. Comput. Sci., 412(39):5298–5314, 2011.
+
+ [4] E. Anshelevich and B. Caskurlu. Price of stability in survivable network design. Theory Comput.
+     Syst., 49(1):98–138, 2011.
+
+ [5] E. Anshelevich, A. Dasgupta, J. Kleinberg, T. Roughgarden, É. Tardos, and T. Wexler. The
+     price of stability for network design with fair cost allocation. SIAM J. Comput., 38(4):1602–1623,
+     2008.
+
+ [6] G. Avni and T. Tamir. Cost-sharing scheduling games on restricted unrelated machines. Theor.
+     Comput. Sci., 646:26–39, 2016.
+
+ [7] M. Bateni, M. Hajiaghayi, and D. Marx. Approximation schemes for steiner forest on planar
+     graphs and graphs of bounded treewidth. JACM, 58(5):21:1–21:37, 2011.
+
+ [8] V. Biló, A. Fanelli, M. Flammini, and L. Moscardelli. When ignorance helps: Graphical multicast
+     cost sharing games. Theoretical Computer Science, 411(3):660 – 671, 2010.
+
+ [9] V. Bilò, M. Flammini, and L. Moscardelli. The price of stability for undirected broadcast network
+     design with fair cost allocation is constant. In Proc. 54th Symp. Foundations of Computer Science
+     (FOCS), pages 638–647, 2013.
+
+[10] C. Bird. On cost allocation for a spanning tree: A game theoretic approach. Networks, 6:335–350,
+     1976.
+
+[11] J. Byrka and K. Aardal. An optimal bifactor approximation algorithm for the metric uncapaci-
+     tated facility location problem. SIAM Journal on Computing, 39(6):2212–2231, 2010.
+
+[12] J. Byrka, F. Grandoni, T. Rothvoß, and L. Sanità. Steiner tree approximation via iterative
+     randomized rounding. J. ACM, 60(1):6:1–6:33, 2013.
+
+[13] I. Caragiannis, V. Gkatzelis, and C. Vinci. Coordination mechanisms, cost-sharing, and ap-
+     proximation algorithms for scheduling. In N. R. Devanur and P. Lu, editors, Web and Internet
+     Economics, pages 74–87, 2017.
+
+[14] J. Cardinal and M. Hoefer. Non-cooperative facility location and covering games. Theor. Com-
+     put. Sci., 411:1855–1876, March 2010.
+
+[15] M. Charikar, C. Chekuri, T.-Y. Cheung, Z. Dai, A. Goel, and S. Guha. Approximation algo-
+     rithms for directed Steiner problems. J. Algorithms, 33(1):192–200, 1999.
+
+[16] C. Chekuri and M. Pál. A recursive greedy algorithm for walks in directed graphs. In Proc. 46th
+     Symp. Foundations of Computer Science (FOCS), pages 245–253, 2005.
+
+[17] H.-L. Chen, T. Roughgarden, and G. Valiant. Designing network protocols for good equilibria.
+     SIAM J. Comput., 39(5):1799–1832, 2010.
+
+
+
+
+                                                  21
+[18] X. Chen, Z. Diao, and X. Hu. Network characterizations for excluding Braess’s paradox. Theory
+     Comput. Syst., 59(4):747–780, 2016.
+
+[19] G. Christodoulou, V. Gkatzelis, and A. Sgouritsa. Cost-sharing methods for scheduling games
+     under uncertainty. In Proc. 18th ACM Conf. Economics and Computation (EC), pages 441–458,
+     2017.
+
+[20] G. Christodoulou, S. Leonardi, and A. Sgouritsa. Designing cost-sharing methods for bayesian
+     games. In Proc. 9th Intl. Symp. Algorithmic Game Theory (SAGT), pages 327–339, 2016.
+
+[21] G. Christodoulou and A. Sgouritsa. Designing networks with good equilibria under uncertainty.
+     In Proc. 27th Symp. Discrete Algorithms (SODA), pages 72–89, 2016.
+
+[22] X. Deng, T. Ibaraki, and H. Nagamochi. Algorithmic aspects of the core of combinatorial
+     optimization games. Math. Oper. Res., 24(3):751–766, 1999.
+
+[23] Y. Disser, A. Feldmann, M. Klimm, and M. Mihalák. Improving the Hk -bound on the price
+     of stability in undirected shapley network design games. Theoret. Comput. Sci., 562:557–564,
+     2015.
+
+[24] M. Feldman and T. Tamir. Conflicting congestion effects in resource allocation games. Oper.
+     Res., 60(3):529–540, 2012.
+
+[25] A. Fiat, H. Kaplan, M. Levy, S. Olonetzky, and R. Shabo. On the price of stability for designing
+     undirected networks with fair cost allocations. In Proc. 33rd Intl. Coll. Automata, Languages
+     and Programming (ICALP), volume 1, pages 608–618, 2006.
+
+[26] N. Garg, G. Konjevod, and R. Ravi. A polylogarithmic approximation algorithm for the Group
+     Steiner tree problem. J. Algorithms, 37:66–84, 2000.
+
+[27] K. Georgiou and C. Swamy. Black-box reductions for cost-sharing mechanism design. In Proc.
+     23rd Symp. Discrete Algorithms (SODA), pages 896–913, 2012.
+
+[28] M. X. Goemans and M. Skutella. Cooperative facility location games. J. Algorithms, 50(2):194–
+     214, 2004.
+
+[29] D. Granot and G. Huberman. On minimum cost spanning tree games. Math. Prog., 21:1–18,
+     1981.
+
+[30] D. Granot and M. Maschler. Spanning network games. Int. J. Game Theory, 27:467–500, 1998.
+
+[31] S. Guha and S. Khuller. Greedy strikes back: Improved facility location algorithms. J. Algo-
+     rithms, 31:228–248, 1999.
+
+[32] A. Gupta and A. Kumar. Greedy algorithms for Steiner forest. In Proc. 47th Symp. Theory of
+     Computing (STOC), pages 871–878, 2015.
+
+[33] T. D. Hansen and O. Telelis. Improved bounds for facility location games with fair cost allocation.
+     In Proc. 3rd Intl. Conf. Combinatorial Optimization and Applications (COCOA), pages 174–185,
+     2009.
+
+[34] T. Harks, A. Huber, and M. Surek. A characterization of undirected graphs admitting optimal
+     cost shares. In N. R. Devanur and P. Lu, editors, Web and Internet Economics, pages 237–251,
+     Cham, 2017. Springer International Publishing.
+
+[35] T. Harks and B. Peis. Resource buying games. Algorithmica, 70(3):493–512, 2014.
+
+
+
+                                                  22
+[36] T. Harks and P. von Falkenhausen. Optimal cost sharing for capacitated facility location games.
+     European Journal of Operational Research, 239(1):187–198, 2014.
+
+[37] M. Hoefer. Non-cooperative tree creation. Algorithmica, 53:104–131, 2009.
+
+[38] M. Hoefer. Competitive cost sharing with economies of scale. Algorithmica, 60:743–765, 2011.
+
+[39] M. Hoefer. Strategic cooperation in cost sharing games. Internat. J. Game Theory, 42(1):29–53,
+     2013.
+
+[40] K. Jain and V. Vazirani. Applications of approximation algorithms to cooperative games. In
+     Proc. 33rd Symp. Theory of Computing (STOC), pages 364–372, 2001.
+
+[41] J. Könemann, S. Leonardi, G. Schäfer, and S. van Zwam. A group-strategyproof cost sharing
+     mechanism for the steiner forest game. SIAM J. Comput., 37(5):1319–1341, 2008.
+
+[42] E. Lee and K. Ligett. Improved bounds on the price of stability in network cost sharing games.
+     In Proc. 14th Conf. Electronic Commerce (EC), pages 607–620, 2013.
+
+[43] J. Li. An o(log(n)/log(log(n))) upper bound on the price of stability for undirected shapley
+     network design games. Inf. Process. Lett., 109(15):876–878, 2009.
+
+[44] S. Li. A 1.488 approximation algorithm for the uncapacitated facility location problem. Inf.
+     Comput., 222:45–58, 2013.
+
+[45] N. Megiddo. Cost allocation for Steiner trees. Networks, 8(1):1–6, 1978.
+
+[46] H. Moulin and S. Shenker. Strategyproof sharing of submodular costs: budget balance versus
+     efficiency. Econom. Theory, 18(3):511–533, 2001.
+
+[47] M. Pál and É. Tardos. Group strategyproof mechanisms via primal-dual algorithms. In FOCS,
+     pages 584–593, 2003.
+
+[48] G. Robins and A. Zelikovsky. Tighter bounds for graph Steiner tree approximation. SIAM J.
+     Disc. Math., 19(1):122–134, 2005.
+
+[49] R. Rosenthal. A class of games possessing pure-strategy Nash equilibria. Int. J. Game Theory,
+     2:65–67, 1973.
+
+[50] V. Syrgkanis. The complexity of equilibria in cost sharing games. In A. Saberi, editor, Proc. 6th
+     Internat. Workshop on Internet and Network Econom., LNCS, pages 366–377, 2010.
+
+[51] A. Tamir. On the core of network synthesis games. Math. Prog., 50:123–135, 1991.
+
+[52] P. von Falkenhausen and T. Harks. Optimal cost sharing for resource selection games. Math.
+     Oper. Res., 38(1):184–208, 2013.
+
+
+
+
+                                                 23
+

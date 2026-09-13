@@ -1,0 +1,1349 @@
+An Algorithmic Bridge Between Hamming and
+Levenshtein Distances
+Elazar Goldenberg !
+Academic College of Tel Aviv-Yafo, Israel
+
+Tomasz Kociumaka !
+Max Planck Institute for Informatics, Saarland Informatics Campus, Saarbrücken, Germany
+
+Robert Krauthgamer !
+Weizmann Institute of Science, Rehovot, Israel
+
+Barna Saha !
+University of California, San Diego, CA, USA
+
+      Abstract
+The edit distance between strings classically assigns unit cost to every character insertion, deletion,
+and substitution, whereas the Hamming distance only allows substitutions. In many real-life
+scenarios, insertions and deletions (abbreviated indels) appear frequently but significantly less so
+than substitutions. To model this, we consider substitutions being cheaper than indels, with cost a1
+for a parameter a ≥ 1. This basic variant, denoted EDa , bridges classical edit distance (a = 1) with
+Hamming distance (a → ∞), leading to interesting algorithmic challenges: Does the time complexity
+of computing EDa interpolate between that of Hamming distance (linear time) and edit distance
+(quadratic time)? What about approximating EDa ?
+      We first present a simple deterministic exact algorithm for EDa and further prove that it is near-
+optimal assuming the Orthogonal Vectors Conjecture. Our main result is a randomized algorithm
+computing a (1 + ϵ)-approximation of EDa (X, Y ), given strings X, Y of total length n and a bound
+k ≥ EDa (X, Y ). For simplicity, let us focus on k ≥ 1 and a constant ϵ > 0; then, our algorithm takes
+Õ( na + ak3 ) time. Unless a = Õ(1), in which case EDa resembles the standard edit distance, and for
+the most interesting regime of small enough k, this running time is sublinear in n.
+      We also consider a very natural version that asks to find a (kI , kS )-alignment, i.e., an alignment
+with at most kI indels and kS substitutions. In this setting, we give an exact algorithm and, more
+importantly, an Õ( nkkS
+                        I
+                          + kS kI3 )-time (1, 1 + ϵ)-bicriteria approximation algorithm. The latter solution
+is based on the techniques we develop for EDa for a = Θ( kkSI ), and its running time is again sublinear
+in n whenever kI ≪ kS and the overall distance is small enough.
+    These bounds are in stark contrast to unit-cost edit distance, where state-of-the-art algorithms
+are far from achieving (1 + ϵ)-approximation in sublinear time, even for a favorable choice of k.
+
+2012 ACM Subject Classification Theory of computation → Pattern matching; Theory of computa-
+tion → Streaming, sublinear and near linear time algorithms
+
+Keywords and phrases edit distance, Hamming distance, Longest Common Extension queries
+
+Digital Object Identifier 10.4230/LIPIcs.ITCS.2023.58
+
+Related Version Full Version: https://arxiv.org/abs/2211.12496
+
+Funding Tomasz Kociumaka: Work mostly carried out while at the University of California, Berkeley,
+partly supported by NSF 1652303, 1909046, and HDR TRIPODS 1934846 grants, and an Alfred P.
+Sloan Fellowship.
+Robert Krauthgamer: Work partially supported by ONR Award N00014-18-1-2364, the Israel Science
+Foundation grant #1086/18, and a Minerva Foundation grant, and by the Israeli Council for Higher
+Education (CHE) via the Weizmann Data Science Research Center.
+Barna Saha: Partly supported by NSF CCF grants 1652303 and 1909046, and an HDR TRIPODS
+Phase II grant 2217058.
+            © Elazar Goldenberg, Tomasz Kociumaka, Robert Krauthgamer, and Barna Saha;
+            licensed under Creative Commons License CC-BY 4.0
+14th Innovations in Theoretical Computer Science Conference (ITCS 2023).
+Editor: Yael Tauman Kalai; Article No. 58; pp. 58:1–58:23
+                   Leibniz International Proceedings in Informatics
+                   Schloss Dagstuhl – Leibniz-Zentrum für Informatik, Dagstuhl Publishing, Germany
+58:2   An Algorithmic Bridge Between Hamming and Levenshtein Distances
+
+
+        1     Introduction
+
+       Edit distance and Hamming distance are the two most fundamental measures of sequence
+       similarity. The (unit-cost) edit distance, also known as the Levenshtein distance, of two
+       strings X and Y is the minimum number of character insertions, deletions, and substitutions
+       required to convert one string to the other, whereas the Hamming distance allows only
+       substitutions (requiring |X| = |Y |). From an algorithmic perspective, these two measures
+       exhibit significantly different time complexity in terms of the input size n = |X| + |Y |. The
+       Hamming distance can be computed exactly in linear time O(n), and it admits a randomized
+       ϵn-additive approximation in time O(ϵ−1 ), which implies a (1 + ϵ)-approximation in sublinear
+       time when the distance is not too small. In contrast, assuming the Orthogonal Vectors
+       Conjecture [32], no O(n2−Ω(1) )-time algorithm can compute the edit distance exactly [5].
+       Recent developments in designing fast approximation algorithms [2, 4, 6, 9, 13, 19, 25]
+       culminated in an O(1)-approximation in near-linear time [3], but the existence of a truly
+       subquadratic-time 3-approximation still remains open. Furthermore, despite many efforts [7,
+       10, 11, 17, 18, 24], the best approximation ratio achievable in sublinear-time ranges from
+       polylogarithmic to polynomial in n (depending on how large the true edit distance is).
+          The contrasting complexity landscape between edit and Hamming distance clearly indi-
+       cates that substitutions are easier to handle than insertions and deletions (abbreviated indels).
+       Many real-world applications, for instance in computational biology, compare sequences based
+       on edit distance, but its value is often dominated by the number of substitutions, as indicated
+       by recent studies [15, 22, 29, 30, 33]. Is it possible to design significantly faster algorithms for
+       these scenarios with much more substitutions than indels? Such a bridge between Hamming
+       and edit distances could also provide an explanation for why many heuristics for string
+       comparison are fast on real-life examples. (For another applied perspective, see [28].)
+           This motivates our study of a basic variant of the edit distance, denoted EDa , where a
+       substitution is significantly cheaper than an insertion or a deletion, and its cost is a1 for a
+       parameter a ≥ 1. This simple variant bridges unit-cost edit distance (a = 1) and Hamming
+       distance (a ≥ |X| = |Y |), raising basic algorithmic questions: Does the time complexity
+       of computing EDa interpolate between Hamming distance (linear time) and edit distance
+       (quadratic time)? How efficiently can one compute a (1 + ϵ)-approximation of EDa ? What
+       speed-up is feasible as the parameter a grows? We present the first series of results to answer
+       these questions. As an illustrative example, if an intended application expects about k
+       indels and k 2 substitutions between the two strings, then one should set a = k and use the
+       (1 + ϵ)-approximation algorithm that we devise, which runs in sublinear time Õ( nk + poly(k))
+       for this parameter setting. In contrast, the state-of-the-art sublinear-time algorithm for
+       unit-cost edit distance [10] only provides an O(polylog k)-factor approximation of the total
+       number of edits, so it will likely produce an alignment with ω(k 2 ) indels, which blatantly
+       violates the structure of alignments arising in the considered application.
+            One can achieve a stricter control on the number of indels and substitutions by imposing
+       two independent bounds kI and kS on these quantities. Our techniques can be easily adapted
+       to the underlying problem, which we call the (kI , kS )-alignment problem; in particular, we
+       obtain a sublinear-time (1, 1 + ϵ)-bicriteria approximation of the combined cost (kI , kS ).
+       For (kI , kS ) = (k, k 2 ) as in the example above, the running time of our algorithm is still
+       Õ( nk + poly(k)), albeit the poly(k) term is slightly larger.
+          The weighted edit distance problem and the complementary highest-score alignment
+       problem are widely used in applications and discussed in multiple textbooks; see e.g. [1, 20, 23].
+       The simplest version involves two costs (for indels and substitutions, respectively) and, up
+E. Goldenberg, T. Kociumaka, R. Krauthgamer, and B. Saha                                              58:3
+
+
+to scaling, is equivalent to EDa . Theoretical analysis usually focuses on the fundamental
+unit-cost setting, but many results extend to the setting of constant costs, e.g., they admit
+the same conditional lower bound [12] (and these problems are clearly equivalent from the
+perspective of logarithmic approximation). We initiate a deeper investigation of how the
+costs of edit operations affect the complexity of computing the edit distance (exactly and
+approximately); going beyond the regime of a = O(1) reveals the gamut between Levenshtein
+distance (a = 1) and Hamming distance (a = n, k < 1), providing a holistic perspective on
+these two fundamental metrics.
+
+1.1    Our Contribution
+We provide multiple results for both the EDa and (kI , kS )-alignment problems. Even though
+these are basic problems that seamlessly bridge the gap between Hamming and edit distances,
+surprisingly little is known about them. Throughout, we assume that the algorithms are
+given O(1)-time random access to characters of X, Y and know the lengths |X|, |Y |.
+    Our main results are approximation algorithms, but let us start with exact algorithms
+for the two problems. We first observe that a simple adaptation of the approach of Landau
+and Vishkin [26, 27] computes EDa (X, Y ) in time O(n + k min(n, ka)), where k ≥ EDa (X, Y ).
+In the full version, we then use similar techniques to derive an algorithm for the (kI , kS )-
+alignment problem. For convenience, we state these results for decision-only problems; it is
+straightforward to accompany every YES answer with a corresponding alignment.
+
+▶ Proposition 1.1. Given two strings X, Y ∈ Σ∗ of total length n, a cost parameter a ∈ Z+ ,
+and a threshold k ∈ R+ , one can compute EDa (X, Y ) or report that EDa (X, Y ) > k in
+deterministic time O(n + k min(n, ka)).
+
+
+▶ Proposition 1.2. Given two strings X, Y ∈ Σ∗ of total length n and two integer thresholds
+kS , kI > 0, one can decide whether there is a (kI , kS )-alignment or not (report YES or NO)
+in deterministic time O(n + kS kI2 ).
+
+   The existing n2−Ω(1) lower bounds [5, 12] do not shed light as to whether these running
+times are optimal. Interestingly, we strengthen the result of [12] significantly to show that the
+bound of Proposition 1.1 is indeed tight for the entire range of parameters a, k ≥ 1, assuming
+the Orthogonal Vectors Conjecture [32]. Proving such a lower bound for the bicriteria version
+remains open.
+
+Approximation Algorithm for EDa . Our main results are (1 + ϵ)-approximation algorithms
+for the EDa and (kI , kS )-alignment problems. Let us first formally state the gap versions
+(also known as the promise versions) of these problems.
+
+▶ Problem 1.3 (Approximate Bounded EDa ). Given two strings X, Y ∈ Σ∗ of total length n,
+a cost parameter a ∈ Z+ , a threshold k ∈ R+ , and an accuracy parameter ϵ ∈ (0, 1), report
+YES if EDa (X, Y ) ≤ k, NO if EDa (X, Y ) > (1 + ϵ)k, and an arbitrary answer otherwise.
+
+▶ Problem 1.4 (Bicriteria Approximation). Given two strings X, Y ∈ Σ∗ of total length n,
+two thresholds kI , kS > 0, and two approximation factors α, β ≥ 1, return YES if there
+is a (kI , kS )-alignment, NO if there is no (αkI , βkS )-alignment, and an arbitrary answer
+otherwise.
+
+
+
+
+                                                                                                    ITCS 2023
+58:4   An Algorithmic Bridge Between Hamming and Levenshtein Distances
+
+
+          Our aim is to solve the above problems using algorithms whose running time is truly
+       sublinear for suitable parameter values. This is in stark contrast to unit-cost edit distance,
+       where state-of-the-art algorithms are far from achieving (1 + ϵ)-approximation in sublinear
+       time, even for a favorable choice of parameters.1
+
+       ▶ Theorem 1.5. One can solve Problem 1.3 correctly with high probability within time:
+       1. Õ( ϵ2nak ) if k < 1;
+                                        n
+       2. Õ( ϵn3 a + ak 3 ) if 1 ≤ k < ϵa ; and
+                            n
+       3. O(1) if k ≥ ϵa .
+           Cases 1 and 3 are boundary cases; in the former, there are only substitutions (Hamming
+       distance), whereas, in the latter, |X| and |Y | must differ significantly when EDa (X, Y ) > k,
+       which results in a trivial (1 + ϵ)-factor approximation. Our main technical contribution is
+       Case 2, where we achieve sublinear running time for large enough a and small enough k.2
+       In the aforementioned applications [15, 22, 29, 30, 33], the indels are few in number and
+       must be estimated with high accuracy; in this case, a should be set proportionally to the
+       substitution-to-indel ratio, so that our (1 + ϵ)-approximation computes, in sublinear time, a
+       highly accurate estimate of both the indels and the substitutions.
+           It is straightforward to solve Problem 1.4 with α = β = 2 + ϵ, by simply applying
+       Theorem 1.5 with a = kkSI and threshold k = 2kI . However, as shown in the full version, the
+       techniques we developed for Theorem 1.5 allow for a much stronger guarantee of α = 1 and
+       β = 1 + ϵ.
+
+       ▶ Theorem 1.6. One can solve Problem 1.4 with α = 1 and β = 1 + ϵ (for any given
+       parameter ϵ ∈ (0, 1)) correctly with high probability in Õ( ϵnk
+                                                                     3k
+                                                                       I
+                                                                        S
+                                                                          + kS kI3 ) time.
+          Again, the running time is sublinear whenever kI ≪ kS and the overall distance is small.
+
+       1.2     Notation
+       A string X ∈ Σ∗ is a finite sequence of characters from an alphabet Σ. The length of X is
+       denoted by |X| and, for i ∈ [0 .. |X|),3 the ith character of X is denoted by X[i]. A string Y
+       is a substring of X if Y = X[i]X[i + 1] · · · X[j − 1] for some 0 ≤ i ≤ j ≤ |X|; this occurrence
+       of Y is denoted by X[i .. j) or X[i .. j − 1] and called a fragment of X. According to this
+       convention, the empty string has occurrences X[i .. i) for i ∈ [0 .. |X|]. We use HD to denote
+       the Hamming distance between two strings and ED to denote the standard edit distance.
+           A key notion in our work is that of Longest Common Extension (LCE) queries, defined
+       as follows for indices x ∈ [0 .. |X|] and y ∈ [0 .. |Y |] in strings X, Y ∈ Σ∗ :4
+
+           LCE(x, y) = max{ℓ : X[x .. x + ℓ) = Y [y .. y + ℓ)}.
+
+       After O(|X| + |Y |)-time preprocessing, LCE queries can be answered in O(1) time [16, 27].
+       This notion is often generalized to find the maximum length for which the corresponding
+       substrings still have a small Hamming distance; formally,
+
+           LCEd (x, y) = max{ℓ : HD(X[x .. x + ℓ), Y [y .. y + ℓ)) ≤ d}.
+
+
+       1
+         The smallest approximation ratio known to improve upon the running time O(n + k2 ) of the exact and
+         conditionally optimal algorithm [27] stands at 3 + o(1) [19]. The approximation ratio currently achievable
+         in sublinear time is polylogarithmic in k (if k < n1/4−Ω(1) ) [10] or polynomial in k (otherwise) [17].
+       2
+         For small a, e.g., a = 1, using our exact algorithm would improve upon the bound in Case 2 and, in
+         particular, reduce the dependency on k from cubic to quadratic.
+       3
+         For i, j∈Z, denote [i .. j] = {k ∈ Z : i ≤ k ≤ j}, [i .. j) = {k ∈ Z : i ≤ k < j}, (i .. j] = {k ∈ Z : i < k ≤ j}.
+       4
+         Here and throughout, we implicitly assume the range ℓ ∈ [0 .. min(|X| − x, |Y | − y)] needed to guarantee
+         that X[x .. x + ℓ) and Y [y .. y + ℓ) are well-defined.
+E. Goldenberg, T. Kociumaka, R. Krauthgamer, and B. Saha                                                   58:5
+
+
+We further define LCEd,ϵ (x, y) as an arbitrary value between LCEd (x, y) and LCE(1+ϵ)d (x, y);
+intuitively, this represents LCEd (x, y) up to a (1 + ϵ)-approximation of the value of d.
+
+
+1.3    Technical Overview
+Exact Algorithm for EDa . The algorithm behind Proposition 1.1 is rather straightforward,
+but it serves as a foundation for subsequent results. The naive way of computing EDa (X, Y )
+is to construct a dynamic-programming (DP) table T [x, y] = EDa (X[0 .. x), Y [0 .. y)). Consid-
+ering only entries with |x − y| ≤ k (others clearly exceed k) easily yields an O(n + nk)-time
+algorithm. If ak ≤ n, we achieve a better running time of O(n + ak 2 ) by generalizing the
+Landau–Vishkin algorithm [26, 27] to allow a > 1. As explained next, this involves answering
+O(ak) LCE queries for each of (2k + 1) diagonals (which consist of entries T [x, y] with fixed
+y − x). The table T is monotone along the diagonals, and thus one can construct “waves”
+of entries with a common value v.       This structure is conveniently described as another
+table that, for every possible cost v ∈ 0, a1 , . . . , k − a1 , k and every possible shift (diagonal)
+s ∈ [−k .. k], contains an entry Dv [s] defined as the furthest row x in T with T [x, x + s] ≤ v,
+or equivalently, the maximum index x such that EDa (X[0 .. x), Y [0 .. x + s)) ≤ v. To compute
+Dv [s], the algorithm uses three previously computed entries (for costs v ′ < v) and then
+performs a single LCE query. The running time of this algorithm is dominated by the
+construction and usage of a data structure answering LCE queries; see Section 2 for details.
+
+
+A Naive Sampling Algorithm. A natural way to speed up the previous algorithm at the
+expense of accuracy is to use sampling. As a first attempt, let the algorithm sample positions
+in X at some rate r ∈ (0, 1) and compare each sampled X[i] with Y [i+s] for every s ∈ [−k .. k].
+The algorithm then reports the minimum-cost alignment of the samples (i.e., each sampled
+X[i] is associated with exactly one shift s and is matched to Y [i + s]), where shift changes
+cost 1 per unit (i.e., changing s to s′ costs |s − s′ |) and mismatches cost ar     1
+                                                                                      each. At best,
+                                1
+we may hope to set r = Θ( ka ), the minimum needed for an optimal alignment with Θ(ka)
+substitutions and no indels.
+    This approach faces two serious obstacles. First, the query complexity is asymmetric:
+the algorithm queries, in expectation, O(nr) positions in X and O(knr) positions in Y . The
+query complexity into Y must be improved, ideally to O(nr) as well. Second, the hope for
+                        1
+sampling rate r = Θ( ka   ) is not realistic, because, in the case of a = 1 (i.e., the standard edit
+distance), this would distinguish between ED(X, Y ) ≤ k and ED(X, Y ) > (1 + ϵ)k using Õ( nk )
+samples, which is far beyond the reach of current techniques for edit distance estimation.
+    To overcome the first obstacle, we utilize approximate periodicity in our subroutine
+for answering approximate LCE queries, described later in this overview. To tackle the
+second obstacle, we make sure that every observed edit is charged against approximately 1r
+                                                                             1
+unobserved mismatches (substitutions), for a judicious choice of r = Õ( ϵa     ), as explained next.
+
+
+Our (1+ϵ)-Approximation Algorithm for EDa . Let us modify our exact algorithm as follows.
+Instead of considering all possible values of v, we enumerate only over v ∈ {0, ϵ, 2ϵ, . . . , k},
+where ϵ ≥ a1 (otherwise, the exact algorithm already meets the requirements of Theorem 1.5).
+More precisely, for each diagonal s, we seek a value D̃v [s] that approximates Dv [s] up to a
+(1 + ϵ)-factor slack in v. In other words, D̃v [s] is between Dv [s] and Dv(1+ϵ) [s];
+
+
+
+
+                                                                                                         ITCS 2023
+58:6   An Algorithmic Bridge Between Hamming and Levenshtein Distances
+
+
+            Suppose that we have already computed D̃v′ [s] for all v ′ < v. Then, we can compute
+       D̃v [s] using a single LCEϵa,ϵ query. Intuitively, this works well because these queries (1 + ϵ)-
+       approximate the number of substitutions in the optimal alignment, except for up to ϵa
+       additional substitutions (of total cost ϵ) per indel (of cost 1) in the optimal alignment; see
+       Section 3 for details. Thus, the main engine of our algorithm is the following new tool:5
+
+       ▶ Problem 1.7 (Approximate LCE queries). Given strings X, Y of total length n, a threshold
+       d ∈ Z+ , a parameter ϵ ∈ R+ , and a width w ∈ Z+ , build a data structure that efficiently
+       computes LCEd,ϵ (x, y) for any x ∈ [0 .. |X|] and y ∈ [0 .. |Y |] such that |x − y| ≤ w.
+
+       Answering LCEd,ϵ Queries.             The following theorem captures our key technical innovation.
+
+       ▶ Theorem 1.8. After Õ( ϵn2 d )-time randomized preprocessing (successful w.h.p.), the queries
+       of Problem 1.7 can be answered deterministically (with no further randomness) in Õ(dw) time.
+
+            Previous work on edit distance [8, 10, 18, 19, 24] developed data structures for approximate
+       LCE queries in a weaker version allowing any value between LCE0 (x, y) and LCEd (x, y). As
+       discussed in subsequent paragraphs, these results rely on identifying perfectly periodic
+       string fragments, whereas, in our case, periodicity is approximate and holds up to O(dw)
+       mismatches.
+            In this overview, we focus on a simplified problem that already necessitates the main
+       novel ideas behind Theorem 1.8. Namely, we consider the task of distinguishing, for any
+       given s ∈ [0 .. w) = [0 .. |Y | − |X|], whether HD(X, Y [s .. s + |X|)) is ≤ d or > 1.1d. To see that
+       this is a special case of Problem 1.7, observe that an LCEd,0.1 (0, s) query must return |X| if
+       HD(X, Y [s .. s + |X|)) ≤ d and a value strictly smaller than |X| if HD(X, Y [s .. s + |X|)) > 1.1d.
+            In this setting, our goal is to answer queries in Õ(dw) time after Õ( nd )-time preprocessing.
+       In particular, we want to answer all the w possible queries while probing Õ( nd + dw2 )
+       characters in total. For comparison, let us consider as a baseline the guarantees achieved
+       using simple techniques. A very naive approach would be to answer each query independently
+       by sampling characters of X with rate Õ( d1 ) and comparing each sampled character X[x]
+       with the aligned character Y [x + s]; this solution probes Õ( nw   d ) characters in total. Another
+       idea, employed in [8], could be to sample the characters of X and Y with the same rate
+       Õ( √1d ) and, for each s ∈ [0 .. w), compare X[x] with Y [x + s] whenever both characters have
+       been sampled simultaneously, which happens with probability Õ( d1 ); this solution probes
+       Õ( √nd ) characters in total. Overall, we conclude that the simple techniques result in an
+       effective sampling rate much larger than d1 , while our goal is to achieve the optimal rate
+       Õ( d1 ) (necessary already to answer a single query) at the price of a moderate additive cost.
+            The first step of our solution is to eliminate shifts s ∈ [0 .. w) with very large distance
+       HD(X, Y [s .. s + |X|)). For this, we use the naive approach to distinguish between Hamming
+                                                         n
+       distances ≤ dw and > 2dw. This step costs Õ( dw    ) time per query, which is Õ( nd ) in total. If
+       our filtering leaves us with at most one candidate shift s̃ ∈ [0 .. w), the answer for this shift
+       is precomputed naively by sampling.
+            The interesting case is when at least two shifts s̃1 ̸= s̃2 remain. A key observation is
+       that the strings X and Y are then almost periodic with period p := |s̃1 − s̃2 |; formally,
+       X[x] = X[x − p] holds for all but O(dw) positions x ∈ [p .. |X|), and similarly for Y . In order
+       to streamline notation, in this overview, we show how to exploit this structure for p = 1.
+
+
+       5
+           To be precise, our algorithm makes O(ϵ−1 k2 ) queries of Problem 1.7 with d = Θ(ϵa) and w = k. A single
+           LCEϵa,ϵ (0, 0) query may already require accessing Ω( ϵn 3 a ) characters, so the best time we could hope for
+                         −1 2
+           is Õ( ϵn
+                   3a + ϵ  k ). If ϵ = Θ( a1 ), this cannot improve upon our exact algorithm of Proposition 1.1.
+E. Goldenberg, T. Kociumaka, R. Krauthgamer, and B. Saha                                                     58:7
+
+
+      In this case, most positions x in X have uniform contexts of any fixed length c, i.e.,
+X[x .. x + c) = Y [y .. y + c) = Ac holds for some A ∈ Σ and all y = x + s across s ∈ [0 .. w).
+Intuitively, our goal is to quickly process uniform regions and spend our additional budget of
+Õ(dw) time per query on the O(cdw) positions with non-uniform contexts (each periodicity
+violation affects O(c) contexts). Intuitively, uniform regions are much easier to handle due to
+the following observation: If we sample two strings U, V ∈ Σm with an appropriate rate r =
+Õ( d2 ), and this sampling reveals only As, then HD(U, V ) ≤ HD(U, Am ) + HD(V, Am ) ≤ d2 + d2 ≤ d
+holds with high probability. This argument does not require any synchronization between
+samples, so we can reuse the same sample for all shifts.
+      The remaining challenge is that a rate-Õ( d1 ) sample cannot perfectly identify uniform
+and non-uniform regions. Thus, we need to design a sampling mechanism that provides an
+unbiased estimate of HD(X, Y [s .. s + |Y |)) yet allows skipping regions that look uniform from
+the perspective of a rate-Õ( d1 ) sampling. For this, we use two random subsets SX ⊆ [0 .. |X|)
+and SY ⊆ [0 .. |Y |), where each index is picked independently with rate r = Õ( d1 ). Every
+mismatch X[x] ̸= Y [y] is given two chances for detection: when x ∈ SX or y ∈ SY . In order
+to avoid double counting, the mismatch at position x ∈ SX will be counted if and only if X[x]
+has fewer occurrences than Y [y] within the contexts X[x .. x + c) and Y [y .. y + c) of length
+c = Õ( 1r ). In this case, with high probability, the sampling reveals a character other than
+X[x] within the contexts, and thus the algorithm classifies x as non-uniform. For positions
+x ∈ SX classified as non-uniform, our query algorithm explicitly compares X[x] to Y [y]
+(for y = s + x) and, upon detecting a mismatch, reads the entire contexts X[x .. x + c) and
+Y [y .. y + c) to verify whether indeed X[x] is less frequent than Y [y] within these contexts.
+We can afford both steps because the expected number of positions x ∈ SX with non-uniform
+contexts is O(rcdw) = Õ(dw) and the expected number of detected mismatches X[x] ̸= Y [y]
+is O(rd).
+      For a complete proof of Theorem 1.8, without the simplifying assumptions, see Section 4.
+The techniques employed to eliminate these assumptions build upon [24], where the simplified
+problem involves deciding, for every s ∈ [0 .. w), whether HD(X, Y [s .. s + |X|)) is 0 or > d.
+Unlike in our setting, that auxiliary problem allows eliminating a shift s upon discovery of a
+single mismatch X[x] ̸= Y [x + s]. This leads to a relatively straightforward Õ( nd + w)-time
+solution [10, 24], which we sketch next to facilitate easy comparison with our new method.
+First, exact pattern matching is used to filter out shifts s such that X[0 .. 2w) ̸= Y [s .. s + 2w)
+If at most one shift s̃ remains, then a naive Õ( nd )-time solution can be used to estimate
+HD(X, Y [s̃ .. s̃ + |X|)). On the other hand, if there are at least two shifts s̃1 ̸= s̃2 left, then
+p := |s̃1 −s̃2 | is a period of X[0 .. 2w). A naive rate-Õ( d1 ) sampling is used to check whether this
+period extends to the entire X and the relevant portion of Y . If this procedure does not identify
+any violation of the period, then all the remaining shifts satisfy HD(X, Y [s .. s + |X|)) ≤ d
+with high probability. Otherwise, another call to exact pattern matching (for substrings near
+the period violation) eliminates all but at most one of the remaining shifts.
+
+
+Algorithms for the (kI , kS )-Alignment Problem. Our algorithms computing EDa (exactly
+or approximately) can be easily adapted to solve the (kI , kS )-alignment problem. The
+only modification required is to add another dimension to the D and D̃ tables so that the
+algorithm separately keeps track of the number of indels and substitutions (as opposed to
+their total weight). In particular, DvI ,vS [s] is the maximum index x such that X[0 .. x)
+and Y [0 .. x + s) admit a (vI , vS )-alignment, and D̃vI ,vS [s] approximates DvI ,vS [s] up to a
+small slack in the value vS . The exact algorithm uses O(kS kI ) LCE queries for each of the
+2kI + 1 main diagonals, whereas the approximation algorithm asks O( kSdkI ) LCEd,ϵ queries
+per diagonal for a carefully chosen parameter d = Θ( ϵk   kI ); see the full version for details.
+                                                            S
+
+
+
+
+                                                                                                           ITCS 2023
+58:8   An Algorithmic Bridge Between Hamming and Levenshtein Distances
+
+
+       Tight Lower Bound for Exact Computation of EDa . Our lower bound essentially proves
+       that the O(n + k · min(n, ak)) running time in Proposition 1.1 is, up to subpolynomial factors,
+       point-wise optimal as a function of (n, a, k). We formalize this delicate statement as follows:
+       ▶ Theorem 1.9. Consider sequences (an )∞                     ∞
+                                                     n=1 and (kn )n=1 with entries an , kn ∈ [1 .. n]
+       computable in poly(n) time. Unless the Orthogonal Vectors Conjecture fails, there is no
+       algorithm that, for some fixed ϵ > 0, every n ∈ Z+ , and all strings X, Y with |X| + |Y | ≤ n,
+       in O((n + kn · min(n, an kn ))1−ϵ ) time computes EDan (X, Y ) or reports that EDan (X, Y ) > kn .
+           We prove our conditional lower bound in two steps. First, we show that, for any a ∈ [1 .. n],
+       Ω(n2−ϵ ) time is necessary to compute EDa (X, Y ) with |X| + |Y | ≤ n. We then build upon
+       this construction to prove a lower bound on computing EDa (X, Y ) under a guarantee that
+       EDa (X, Y ) ≤ k for a given k = o(n). In the first step, we follow the approach of Bringmann
+       and Künnemann [12], who proved the desired lower bound for a = O(1). Unfortunately,
+       when translated to larger a, their arguments only exclude O(n2−ϵ a−6 )-time algorithms. The
+       tool we adapt from [12] is a generic reduction from the Orthogonal Vectors problem to the
+       problem of computing an abstract string similarity measure. This framework is formulated
+       in terms of an alignment gadget that needs to be supplied for the measure in question.
+       Unlike [12], instead of working directly with EDa (X, Y ), we consider an asymmetric measure
+       D+ (X, Y ) := EDa ($|Y | · X · $|Y | , Y ) − |XY |, where $ is a character not present in Y . Even for
+       a = O(1), this trick greatly simplifies the proof in [12] at the cost of increasing the alphabet
+       size from 2 to 9. As a result, for each parameter a, every instance of the Orthogonal Vectors
+       problem produces a pair of strings (X, Y ) and a threshold k such that EDa (X, Y ) ≤ k if
+       and only if the instance is a YES instance. However, since EDa (X, Y ) = Θ(|X| + |Y |) for
+       instances obtained through D+ (·, ·), this construction alone provides no information on how
+       the running time depends on k. For this, we express an instance of the Orthogonal Vectors
+       problem as an OR-composition of smaller instances, and, for each of them, we construct
+       a pair of strings (Xi , Yi ) such that the original instance is a YES-instance if and only if
+       mini EDa (Xi , Yi ) ≤ kmin . An appropriate gadget combines the pairs (Xi , Yi ) into a single
+       pair (X, Y ) with mini EDa (Xi , Yi ) ≤ kmin if and only if EDa (X, Y ) ≤ k for some k = Θ( na ),
+       yielding an Ω((nk)1−ϵ )-time lower bound for this case. The lower bound of Ω((ak 2 )1−ϵ ) for
+       k = O( na ) follows because the problem in question does not get easier as we increase n while
+       preserving a and k; see Section 5 for details.
+
+        2     Computing EDa Exactly
+       ▶ Proposition 1.1. Given two strings X, Y ∈ Σ∗ of total length n, a cost parameter a ∈ Z+ ,
+       and a threshold k ∈ R+ , one can compute EDa (X, Y ) or report that EDa (X, Y ) > k in
+       deterministic time O(n + k min(n, ka)).
+            Define a DP table T with T [x, y] = EDa (X[0 .. x), Y [0 .. y)) for x ∈ [0 .. |X|] and y ∈
+       [0 .. |Y |]. Then, T [0, 0] = 0 and the other entries can be computed according to the following
+       formula (each argument of min is included only if the corresponding condition holds):
+                                                                                        
+                             T [x − 1, y] + 1
+                                                                      if x > 0          
+                                                                                         
+            T [x, y] := min T [x, y − 1] + 1                           if y > 0            .
+                                                                                        
+                                                  1
+                               T [x − 1, y − 1] + a · 1X[x−1]̸=Y [y−1] if x > 0 and y > 0
+                                                                                        
+
+           One algorithm runs in time O(n + nk) and follows [31]. It computes all entries T [x, y] that
+       satisfy T [x, y] ≤ k; this is correct because T [x, y] only depends on entries T [x′ , y ′ ] ≤ T [x, y].
+       As T [x, y] ≥ |x − y|, this algorithm considers O(n + nk) entries, each computed in O(1) time.
+E. Goldenberg, T. Kociumaka, R. Krauthgamer, and B. Saha                                                          58:9
+
+
+    Another algorithm runs in time O(n + ak 2 ) and follows [27], as explained in Section 1.3.
+It is implemented as Algorithm 1, where all values Dv [s] are implicitly initialized to −∞.
+
+     Algorithm 1 Exact algorithm for EDa .
+ 1 foreach v ∈ {0, a1 , a2 , . . . , a1 ⌊ak⌋} do
+ 2    foreach s ∈ [−⌊v⌋ .. ⌊v⌋] do
+ 3       D′v [s] ← min(|X|, |Y | − s, max(Dv−1 [s − 1], Dv− a1 [s] + 1, Dv−1 [s + 1] + 1));
+ 4       if s = 0 then D′v [s] ← max(D′v [s], 0);
+ 5       Dv [s] ← D′v [s] + LCE(D′v [s], D′v [s] + s);
+ 6    if Dv [|Y | − |X|] = |X| then return v;
+ 7 return “> k”;
+
+
+
+    The correctness of Algorithm 1 follows from Lemma 2.1 and the running time is propor-
+tional to the number of LCE queries, which is O(ak 2 ), plus the O(n) construction time of an
+LCE data structure [16, 27].
+
+▶ Lemma 2.1. For every v ∈ {0, a1 , . . . , a1 ⌊ak⌋}, x ∈ [0 .. |X|], and y ∈ [0 .. |Y |], we have
+T [x, y] ≤ v if and only if Dv [y − x] ≥ x.
+
+Proof. Let us first prove, by induction on v, that Dv [y − x] ≥ x if T [x, y] ≤ v. Fix an optimal
+EDa -alignment between X[0 .. x) and Y [0 .. y) and consider the longest suffixes X[x′ .. x) =
+Y [y ′ .. y) aligned without any edit. We shall prove that D′v [y − x] = D′v [y ′ − x′ ] ≥ x′ by
+considering four cases:
+    If x′ = y ′ = 0, then D′v [y ′ − x′ ] = D′v [0] ≥ 0.
+    If X[x′ − 1] is deleted, then v ≥ T [x′ , y ′ ] = T [x′ − 1, y ′ ] + 1, and the inductive assumption
+    yields D′v [y ′ − x′ ] ≥ Dv−1 [y ′ − x′ + 1] + 1 ≥ x′ .
+    If Y [y ′ − 1] is inserted, then v ≥ T [x′ , y ′ ] = T [x′ , y ′ − 1] + 1, and the inductive assumption
+    yields D′v [y ′ − x′ ] ≥ Dv−1 [y ′ − x′ − 1] ≥ x′ .
+    Otherwise, X[x′ − 1] is substituted for Y [y ′ − 1]; then, v ≥ T [x′ , y ′ ] = T [x′ − 1, y ′ − 1] + a1 ,
+    and the inductive assumption yields D′v [y ′ − x′ ] ≥ Dv− a1 [y ′ − x′ ] + 1 ≥ x′ .
+Now, Dv [y − x] ≥ x follows from D′v [y ′ − x′ ] ≥ x′ due to LCE(x′ , y ′ ) ≥ x − x′ .
+    The converse implication is also proved by induction on v. We consider four cases
+depending on x′ := D′v [y − x] and y ′ := x′ + (y − x):
+    If x′ ≤ Dv−1 [y ′ −x′ +1]+1, then, by the inductive assumption, T [x′ , y ′ ] ≤ T [x′ −1, y ′ ]+1 ≤
+    (v − 1) + 1.
+    If x′ ≤ Dv−1 [y ′ − x′ − 1], then, by the inductive assumption, T [x′ , y ′ ] ≤ T [x′ , y ′ − 1] + 1 ≤
+    (v − 1) + 1.
+    If x′ ≤ Dv− a1 [y ′ −x′ ]+1, then, by the inductive assumption, T [x′ , y ′ ] ≤ T [x′ −1, y ′ −1]+ a1 ≤
+    (v − a1 ) + a1 .
+    In the remaining case, we have x′ = y ′ = 0, and thus T [x′ , y ′ ] = 0 ≤ v.
+In all cases, T [x′ , y ′ ] ≤ v implies T [x, y] ≤ v because LCE(x′ , y ′ ) ≥ x − x′ .                    ◀
+
+ 3      Approximating EDa
+In this section, we present our solution for Problem 1.3. Recall that the input consists of
+strings X, Y , a cost parameter a ∈ Z+ , a threshold k ∈ R+ , and an accuracy parameter
+ϵ ∈ (0, 1), and the task is to distinguish between EDa (X, Y ) ≤ k and EDa (X, Y ) > (1 + ϵ)k.
+
+
+
+
+                                                                                                                ITCS 2023
+58:10   An Algorithmic Bridge Between Hamming and Levenshtein Distances
+
+
+        Our procedure mimics the behavior of Algorithm 1 with a coarser granularity of the costs.
+        It is implemented as Algorithm 2, where we assume that all values D̃v [s] are implicitly
+        initialized to −∞ and that ϵa ∈ Z+ (we will fall back to Algorithm 1 whenever ϵa < 1).
+
+             Algorithm 2 Approximation Algorithm.
+         1 foreach v ∈ {0, ϵ, 2ϵ, . . . , ϵ⌈ϵ−1 k⌉} do
+         2    foreach s ∈ [−⌊v⌋ .. ⌊v⌋] do
+         3        D̃′v [s] ← min(|X|, |Y | − s, max(D̃v−1 [s − 1], D̃v−ϵ [s], D̃v−1 [s + 1] + 1));
+         4        if s = 0 then D̃′v [s] ← max(D̃′v [s], 0);
+         5        D̃v [s] ← D̃′v [s] + LCEϵa,ϵ (D̃′v [s], D̃′v [s] + s);
+         6    if D̃v [|Y | − |X|] = |X| then return YES;
+         7 return NO
+
+
+
+           The following lemma, justifying the correctness of Algorithm 2, is proved below through
+        an appropriate adaptation of the arguments behind Lemma 2.1.
+
+        ▶ Lemma 3.1. For every v ∈ {0, ϵ, 2ϵ, . . . , ϵ⌈ϵ−1 k⌉}, x ∈ [0 .. |X|], and y ∈ [0 .. |Y |], if
+        T [x, y] ≤ v, then D̃v [y − x] ≥ x, and if D̃v [y − x] ≥ x, then T [x, y] ≤ v(1 + ϵ + ϵ2 ) + ϵ + ϵ2 .
+
+        Proof. We start by proving the first implication inductively on v. Let us fix an optimum EDa -
+        alignment of X[0 .. x) and Y [0 .. y) and consider the longest suffixes X[x′ .. x) and Y [y ′ .. y)
+        aligned with at most ϵa substitutions and no indels. We shall prove that D̃′v [y − x] =
+        D̃′v [y ′ − x′ ] ≥ x′ by considering four cases:
+              If x′ = y ′ = 0, then D̃′v [y ′ − x′ ] = D̃′v [0] ≥ 0.
+              If X[x′ − 1] is deleted, then v ≥ T [x′ , y ′ ] = T [x′ − 1, y ′ ] + 1, and the inductive assumption
+             yields D̃′v [y ′ − x′ ] ≥ D̃v−1 [y ′ − x′ + 1] + 1 ≥ x′ .
+              If Y [y ′ − 1] is inserted, then v ≥ T [x, y] = T [x′ , y ′ − 1] + 1, and the inductive assumption
+             yields D̃′v [y ′ − x′ ] ≥ D̃v−1 [y ′ − x′ − 1] ≥ x′ .
+              Otherwise, there are exactly ϵa substitutions between X[x′ .. x) and Y [y ′ .. y) (recall
+              that ϵa ∈ Z). Thus, v ≥ T [x, y] = T [x′ , y ′ ] + ϵ, and the inductive assumption yields
+              D̃′v [y ′ − x′ ] ≥ D̃v−ϵ [y ′ − x′ ] ≥ x′ .
+        Now, D̃v [y − x] ≥ x follows from D̃′v [y ′ − x′ ] ≥ x′ due to LCEϵa (x′ , y ′ ) ≥ x − x′ .
+              The second implication is also proved by induction on v. We consider four cases depending
+        on x′ := D̃′v [y − x] and y ′ := x′ + (y − x):
+              If x′ ≤ D̃v−1 [y ′ −x′ +1]+1, then, by the inductive assumption, T [x′ , y ′ ] ≤ T [x′ −1, y ′ ]+1 ≤
+             (v − 1)(1 + ϵ + ϵ2 ) + ϵ + ϵ2 + 1 = v(1 + ϵ + ϵ2 ).
+              If x′ ≤ D̃v−1 [y ′ − x′ − 1], then, by the inductive assumption, T [x′ , y ′ ] ≤ T [x′ , y ′ − 1] + 1 ≤
+             (v − 1)(1 + ϵ + ϵ2 ) + ϵ + ϵ2 + 1 = v(1 + ϵ + ϵ2 ).
+              If x′ ≤ D̃v−ϵ [y ′ − x′ ], then, by the inductive assumption, T [x′ , y ′ ] ≤ (v − ϵ)(1 + ϵ + ϵ2 ) +
+              ϵ + ϵ2 < v(1 + ϵ + ϵ2 ).
+              In the remaining case, we have x′ = y ′ = 0. Trivially, T [x′ , y ′ ] = 0 ≤ v(1 + ϵ + ϵ2 ).
+        In all cases, T [x′ , y ′ ] ≤ v(1 + ϵ + ϵ2 ) implies T [x, y] ≤ v(1 + ϵ + ϵ2 ) + ϵ + ϵ2 because
+        LCE(1+ϵ)ϵa (x′ , y ′ ) ≥ x − x′ .                                                                           ◀
+
+        ▶ Corollary 3.2. Algorithm 2 returns
+          YES if EDa (X, Y ) ≤ k, and
+          NO if EDa (X, Y ) > k(1 + ϵ + ϵ2 ) + 2ϵ + 2ϵ2 + ϵ3 .
+        Moreover, it can be implemented in Õ( ϵn3 a + ak 3 ) time if k ≥ 1.
+E. Goldenberg, T. Kociumaka, R. Krauthgamer, and B. Saha                                                     58:11
+
+
+Proof. If EDa (X, Y ) ≤ k, we apply Lemma 3.1 for v = ϵ⌈ϵ−1 k⌉, x = |X|, and y = |Y |.
+We conclude that D̃v [|X| − |Y |] ≥ |X|, which means that the algorithm returns YES. On
+the other hand, if the algorithm returns YES, then D̃v [|X| − |Y |] ≥ |Y | holds for some
+v ∈ {0, ϵ, 2ϵ, . . . , ϵ⌈ϵ−1 k⌉}, which satisfies v < k + ϵ. In this case, Lemma 3.1 implies that
+
+  ED(X, Y ) ≤ v(1 + ϵ + ϵ2 ) + ϵ + ϵ2 < (k + ϵ)(1 + ϵ + ϵ2 ) + ϵ + ϵ2 = k(1 + ϵ + ϵ2 ) + 2ϵ + 2ϵ2 + ϵ3 .
+
+   As for the running time, we observe that the number of LCEϵa,ϵ (x, y) queries asked is
+O((1 + k)(1 + ϵ−1 k)) and that each of them satisfies |x − y| ≤ k. Consequently, the claimed
+running time follows from Theorem 1.8.                                                    ◀
+
+▶ Theorem 1.5. One can solve Problem 1.3 correctly with high probability within time:
+1. Õ( ϵ2nak ) if k < 1;
+                                 n
+2. Õ( ϵn3 a + ak 3 ) if 1 ≤ k < ϵa ; and
+                     n
+3. O(1) if k ≥ ϵa .
+
+Proof. First, consider k < 1. If |X| =     ̸ |Y |, then we can safely return NO due to EDa (X, Y ) ≥
+ |X| − |Y | . Otherwise, we output YES if HD(X, Y ) ≤ ak (which implies EDa (X, Y ) ≤ k) and
+NO if HD(X, Y ) > (1 + ϵ)ak (which implies EDa (X, Y ) ≥ min(1, (1 + ϵ)k)). Previous work for
+Hamming distance (e.g., [21]) lets us distinguish these two possibilities in Õ( ϵ2nak ) time.
+                                n
+    Next, consider 1 ≤ k < ϵa     . If ϵ < a7 , we use the algorithm of Proposition 1.1, which either
+computes EDa (X, Y ) or reports that EDa (X, Y ) > k. This is clearly sufficient to distinguish
+between EDa (X, Y ) ≤ k and EDa (X, Y ) > (1 + ϵ)k for any ϵ ≥ 0. The running time is
+                  n
+O(n + ak 2 ) = O( ϵa + ak 2 ) = Õ( ϵn3 a + ak 3 ). The most interesting case is when ϵ ≥ a7 . We then
+run Algorithm 2 with the accuracy parameter decreased to ϵ̄ := a1 ⌊ ϵa           7 ⌋; in particular, this
+guarantees ϵ̄a ∈ Z+ . By Corollary 3.2, the algorithm returns YES if EDa (X, Y ) ≤ k, and, due
+to (1 + ϵ)k ≥ (1 + 7ϵ̄)k ≥ (1 + ϵ̄ + ϵ̄2 )k + 2ϵ̄ + 2ϵ̄2 + ϵ̄3 , it returns NO if EDa (X, Y ) > (1 + ϵ)k.
+The running time is Õ( ϵ̄n3 a + ak 3 ) = Õ( ϵn3 a + ak 3 ) due to ϵ̄ ≥ 14
+                                                                          ϵ
+                                                                            .
+                              n
+    Finally, consider k ≥ ϵa . We return YES if |X| − |Y | ≤ k and NO otherwise. This is
+correct due to |X| − |Y | ≤ EDa (X, Y ) ≤ |X| − |Y | + a1 min(|X|, |Y |) ≤ |X| − |Y | + ϵk. ◀
+
+
+ 4      Answering LCEd,ϵ Queries
+In this section, we explain how to implement LCEd,ϵ queries. We focus on the decision version
+of these queries, asking to distinguish whether HD(X[x .. x+ℓ), Y [y .. y+ℓ)) is ≤ d or > (1+ϵ)d.
+A naive way of performing such a test would be to count mismatches X[x + s] ̸= Y [y + s] at
+positions s ∈ S, where each s ∈ [0 .. ℓ) is sampled into S independently with an appropriate
+rate r. The resulting estimator, H := |{s ∈ S : X[x + s] ̸= Y [y + s]}|, follows the binomial
+distribution Bin(h, r), where h = HD(X[x .. x + ℓ), Y [y .. y + ℓ)). Thus, we can compare H
+against (1 + 3ϵ )rd to distinguish between h ≤ d and h ≥ (1 + ϵ)d: By the Chernoff bound, if
+h ≤ d, then
+                                 1 2
+     Pr[H ≥ (1 + 3ϵ )rd] ≤ exp(− 27 ϵ rd),
+
+whereas if h ≥ (1 + ϵ)d, then
+                                                              1 2
+     Pr[H < (1 + 3ϵ )rd] ≤ Pr[H < (1 − 3ϵ )(1 + ϵ)rd] ≤ exp(− 18 ϵ rd).
+
+In particular, if r = Θ(ϵ−2 d−1 log n), then w.h.p. the query algorithm is correct and costs
+Õ(1 + rℓ) = Õ(1 + ϵ−2 d−1 ℓ) time.
+    The same approach can be used in the setting resembling that of Theorem 1.8, where
+queries need to be answered deterministically after randomized preprocessing.
+
+
+
+                                                                                                            ITCS 2023
+58:12   An Algorithmic Bridge Between Hamming and Levenshtein Distances
+
+
+        ▶ Fact 4.1. There exists a data structure that, after randomized preprocessing of strings
+        X, Y ∈ Σ∗ and a rate r ∈ (0, 1), given positions x ∈ [0 .. |X|], y ∈ [0 .. |Y |] and a length ℓ ∈
+        [0 .. min(|X| − x, |Y | − y)], outputs a value distributed as Bin(HD(X[x .. x + ℓ), Y [y .. y + ℓ)), r).
+        Moreover, the answers are independent for queries with disjoint intervals [x .. x + ℓ). With
+        high probability, the preprocessing time is Õ(1 + r(|X| + |Y |)) and the query time is Õ(1 + rℓ).
+        Proof. At preprocessing time, we draw SX ⊆ [0 .. |X|) with each position sampled indepen-
+        dently with rate r. At query time, the algorithm counts x′ ∈ SX ∩ [x .. x + ℓ) such that
+        X[x′ ] ̸= Y [y − x + x′ ]. It is easy to see that each mismatch X[x + s] ̸= Y [y + s], with
+        s ∈ [0 .. ℓ), is included with rate r, and these events are independent across the mismatches.
+        Moreover, the sets SX ∩ [x .. x + ℓ) across distinct ranges [x .. x + ℓ) are independent, so the
+        resulting estimators are independent as well.                                                 ◀
+
+            Our aim, however, is a query time that does not grow with ℓ. As shown in Sections 4.1
+        and 4.2, Õ(dw) query time can be achieved after preprocessing X[x .. x+ℓ) in Õ(w+rℓ)-time.6
+        While preprocessing each fragment X[x .. x + ℓ) is too costly, it suffices to focus on fragments
+        such that [x .. x + ℓ) is a dyadic interval (where log ℓ and xℓ are both integers); this is because,
+        for any intermediate value m ∈ [0 .. ℓ), the problem of estimating HD(X[x .. x + ℓ), Y [y .. y + ℓ))
+        naturally reduces to the problems of estimating both HD(X[x .. x + m), Y [y .. y + m)) and
+        HD(X[x + m .. x + ℓ), Y [y + m .. y + ℓ)). Estimators following binomial distribution are
+        particularly convenient within such a reduction: if B ∼ Bin(h, r) and B ′ ∼ Bin(h′ , r) are
+        independent, then B + B ′ ∼ Bin(h + h′ , r). Unfortunately, our techniques do not allow
+        estimating HD(X[x .. x + ℓ), Y [y .. y + ℓ)) when this value is much larger than d. Thus, we
+        formalize the outcome of our subroutines as capped binomial variables define below.
+        ▶ Definition 4.2. An integer-valued random variable B is a d-capped binomial variable with
+        parameters h and r, denoted B ∈ Bind (h, r), if it satisfies the following conditions:
+           If h ≤ d, then B ∼ Bin(h, r), i.e., Pr[B ≥ x] = Pr[Bin(h, r) ≥ x] for all x ∈ Z.
+           Otherwise, B stochastically dominates Bin(h, r), i.e., Pr[B ≥ x] ≥ Pr[Bin(h, r) ≥ x] for
+           all x ∈ Z.
+           Moreover, to allow a small deviation from the desired distribution (e.g., in the unlikely
+        event the number of sampled positions is much larger than expected), for δ ∈ [0, 1], we write
+        B ∈ Bind,δ (h, r), if B is at total variation distance at most δ from a variable B ′ ∈ Bind (h, r).
+        The capped binomial variables can be composed just like their uncapped counterparts.
+        ▶ Observation 4.3. If B ∈ Bind,δ (h, r) and B ′ ∈ Bind,δ′ (h′ , r) are independent, then
+        B + B ′ ∈ Bind,δ+δ′ (h + h′ , r).
+            As indicated above, the main building block of our solution to Problem 1.7 is a component
+        for estimating HD(X[x .. x + ℓ), Y [y .. y + ℓ)) for fixed x, ℓ and varying y ∈ [x − w .. x + w]. This
+        task can be formalized as a problem of estimating text-to-pattern Hamming distances [14],
+        that is, the distances between a pattern X and length-|X| fragments of a text Y .
+        ▶ Problem 4.4. Preprocess strings X, Y ∈ Σ∗ , real numbers δ ∈ (0, |X|      1
+                                                                                      ) and r ∈ (0, 1), and
+        an integer d ≥ r−1 into a data structure that, given a shift s ∈ [0 .. |Y | − |X|], outputs a value
+        distributed as Bind,δ (HD(X, Y [s .. s + |X|)), r).
+           In Section 4.1, we study Problem 4.4 in an important special case when X, Y are almost
+        periodic. The general solution to Problem 4.4 is then presented in Section 4.2, and we derive
+        Theorem 1.8 in Section 4.3.
+
+        6
+            Recall the assumption in Problem 1.7 that |x − y| ≤ w holds for all queries.
+E. Goldenberg, T. Kociumaka, R. Krauthgamer, and B. Saha                                                 58:13
+
+
+4.1     Text-to-Pattern Hamming Distances for Almost Periodic Strings
+In this section, we consider the case when X and Y are almost periodic. Formally, this
+means that the data structure is additionally given (at construction time) integers p and m
+such that HD(X[0 .. |X| − p), X[p .. |X|)) + HD(Y [0 .. |Y | − p), Y [p .. |Y |)) ≤ m.
+     The presentation of our data structure comes in four parts. We start with an overview,
+where we introduce some notation and provide intuition. This is followed by Algorithm 3,
+which gives a precise mathematical definition of the values reported by our data struc-
+ture. Then, in Lemma 4.5, we formalize the intuition and prove that the outputs of
+Algorithm 3 satisfy the requirements of Problem 4.4, that is, their distributions follow
+Bind,δ (HD(X, Y [s .. s + |X|)), r). Finally, in Lemma 4.6, we provide an efficient implementa-
+tion of Algorithm 3 and the complexity analysis of the resulting procedure.
+     The randomness in our data structure comes from two sets SX ⊆ [0 .. |X|) and SY ⊆
+[0 .. |Y |) with each element sampled independently with probability r. At a first glance,
+it may seem that SX would be sufficient because |{x ∈ SX : X[x] ̸= Y [s + x]}| satisfies
+the requirements of Problem 4.4 (as proved in Fact 4.1). However, these values cannot be
+computed efficiently. To see this, suppose that X and Y consist only of the character A, except
+for a single position y where Y [y] = B. In this case, we would need to return 1 if and only if
+y − s ∈ SX ; this requires Ω(|Y |) preprocessing time (to discover y) or Ω(|SX |) query time
+(to check if y = s + x for some x ∈ SX ). Thus, our strategy is more involved: we partition
+the set of mismatches {(x, y) : X[x] ̸= Y [y]} into two disjoint classes, MX and MY , and we
+return |{(x, y) ∈ MX : x ∈ SX and y − x = s}| + |{(x, y) ∈ MY : y ∈ SY and y − x = s}|. In
+other words, depending on its class, a mismatch in X[x] ̸= Y [y] is counted either if x ∈ SX
+or if y ∈ SY . Our classification is determined by comparing the frequency of characters X[x]
+and Y [y] in proximity to the two underlying positions. Intuitively, this is helpful because a
+rare character is unlikely to be discovered unless it happens to be sampled. Formally, for
+each position x ∈ [0 .. |X|), we define its context Cx = {x, x + p, x + 2p, . . . , x + (c − 1)p},
+where c = Õ(r−1 ) is sufficiently large, and the context Cy of y ∈ [0 .. |Y |) is defined similarly.
+Then, we count the occurrences of X[x] and Y [y] as X[x′ ] for x′ ∈ Cx and as Y [y ′ ] for
+y ′ ∈ Cy , denoting the resulting numbers by mx and my , respectively (see Lines 11 and 12 of
+Algorithm 3). We place the mismatch in MX if mx ≤ my and in MY otherwise.
+
+
+     Algorithm 3 Answering queries of Problem 4.4 in the almost periodic case.
+ 1 H ← 0;
+ 2 foreach x ∈ [0 .. |X|) do
+ 3    y ← s + x;
+ 4    if x ∈
+           / SX and y ∈   / SY then continue;
+ 5    c ← ⌈r−1 ln δ −2 ⌉;
+ 6    Cx ← {x, x + p, . . . , x + (c − 1)p};
+ 7    Cy ← {y, y + p, . . . , y + (c − 1)p};
+ 8    if Cx ⊆ [0 .. |X|) and |{X[x′ ] : x′ ∈ Cx ∩ SX } ∪ {Y [y ′ ] : y ′ ∈ Cy ∩ SY }| = 1 then
+ 9        continue;
+10    if X[x] = Y [y] then continue;
+11    mx ← |{x′ ∈ Cx ∩ [0 .. |X|) : X[x′ ] = X[x]}| + |{y ′ ∈ Cy ∩ [0 .. |Y |) : Y [y ′ ] = X[x]}|;
+12    my ← |{x′ ∈ Cx ∩ [0 .. |X|) : X[x′ ] = Y [y]}| + |{y ′ ∈ Cy ∩ [0 .. |Y |) : Y [y ′ ] = Y [y]}|;
+13    if (x ∈ SX and mx ≤ my ) or (y ∈ SY and my < mx ) then H ← H + 1;
+14 return H;
+
+
+
+
+                                                                                                        ITCS 2023
+58:14   An Algorithmic Bridge Between Hamming and Levenshtein Distances
+
+
+            The benefit of this approach is that, if x ∈ MX , then the contexts Cx and Cy (of total
+        size 2c) contain at least c occurrences of characters other than X[x]. In particular, at a small
+        loss of total variation distance, we may assume that the samples SX and SY have revealed
+        such a character distinct from X[x], and thus we need to read Y [y] only conditioned on that
+        event. At the same time, if X and Y are almost periodic and the sought Hamming distance
+        is small, then the contexts Cx and Cy are typically uniform (meaning that all the 2c positions
+        are occurrences of the same symbol). Hence, we can afford to investigate each location with
+        non-uniform contexts and, in case a mismatch X[x] ̸= Y [y] is detected, to explicitly compute
+        mx and my in order to verify whether this mismatch indeed belongs to MX or MY .
+        ▶ Lemma 4.5 (Correctness). Given s ∈ [0 .. |Y | − |X|], Algorithm 3 outputs a random variable
+        H at total variation distance at most δ from Bin(h, r), where h = HD(X, Y [s .. s + |X|)).
+        Proof. We shall first prove that a modification of Algorithm 3 with Lines 8 and 9 removed
+        outputs H ∼ Bin(h, r). Let P ⊆ [0 .. |X|) be the set of positions for which H was incremented
+        in Line 13. We claim that P is a subset of M := {x ∈ [0 .. |X|) : X[x] ̸= Y [s + x]} with each
+        position sampled independently with rate r. Due to Line 10, we have P ⊆ M . For fixed
+        positions x ∈ M and y = s + x, let us consider the (deterministic) values mx and my as
+        defined in Lines 11 and 12. Observe that, for every x ∈ M , we have x ∈ P if and only if
+        (x ∈ SX and mx ≤ my ) or (y ∈ SY and mx > my ). Moreover, these are probability-r events
+        independent across x ∈ M . Thus, in the modified version of the algorithm, we indeed have
+        H ∼ Bin(h, r).
+            Next, we shall prove that, for every x ∈ P , the probability of losing x due to Line 8 does
+        not exceed δ 2 . By the union bound, the total variation distance between H and Bin(h, r)
+        is then at most δ 2 |X| ≤ δ. Consider a multiset A := {X[x′ ] : x′ ∈ Cx ∩ [0 .. |X|)} ∪ {Y [y ′ ] :
+        y ′ ∈ Cy ∩ [0 .. |Y |)}. The filtering of Line 8 applies only if |A| = 2c and all the sampled
+        characters in A match. If mx ≤ my and x ∈ SX , then X[x] is sampled yet none of the at
+        least c elements of A distinct from X[x] is sampled. Similarly, if my < mx and y ∈ SY ,
+        then Y [y] is sampled yet none of the at least c elements of A distinct from Y [y] is sampled.
+        In either case, the probability of losing x ∈ P is bounded by (1 − r)c ≤ exp(−rc) ≤ δ 2 , as
+        claimed.                                                                                       ◀
+
+        ▶ Lemma 4.6 (Efficient implementation). Algorithm 3 can be implemented so that, after
+        Õ(|SX | + |SY |)-time preprocessing, the query time is Õ((m + p + h + r−1 ) log2 δ −1 ) with
+        probability 1 − O(δ), where h = HD(X, Y [s .. s + |X|)).
+        Proof. While preprocessing X, we construct a data structure that, given a position x ∈
+        [0 .. |X|) and a character a ∈ Σ, in Õ(1) time computes the smallest position x′ ∈ SX ∩[x .. |X|)
+        such that X[x′ ] ̸= a and x′ ≡ x (mod p) (if any such x′ exists). This preprocessing costs
+        Õ(|SX |) time (recall that all our model assumes oracle access to characters of the input
+        strings). The string Y is preprocessed in the same way in Õ(|SY |) time.
+             In the main loop of Line 2, we process x ∈ [0 .. |X|) grouped by the remainder x mod p,
+        starting from x ∈ [0 .. p) and y = s + x. For each group, instead of increasing x and y by p
+        each time, we utilize the precomputed data structure to perform larger jumps. Specifically, if
+        an iteration terminates due to Line 4, we proceed directly to the subsequent state (x′ , y ′ )
+        such that x′ ∈ SX or y ′ ∈ SY (if any). Moreover, while executing Line 8, we compute
+        a = X[x] (if x ∈ SX ) or a = Y [y] (otherwise) and determine the nearest sampled position
+        x′ ∈ [x .. |X|) ∩ SX with X[x′ ] ̸= a and x′ ≡ x (mod p) and the nearest sampled position
+        y ′ ∈ [y .. |Y |) ∩ SY with Y [y ′ ] ̸= a and y ′ ≡ y (mod p). Then, the condition of Line 8 is
+        satisfied if and only if (c − 1)p < min(|X| − x, x′ − x, y ′ − y). In that case, we can increase x
+        and y by p · ⌈ p1 min(|X| − x, x′ − x, y ′ − y) − (c − 1)⌉; the number of such increases can be
+        bounded by O(p + m) in total across all the remainders modulo p.
+E. Goldenberg, T. Kociumaka, R. Krauthgamer, and B. Saha                                                   58:15
+
+
+     It remains to count positions reaching Lines 10 and 11. The condition Cx ⊆ [0 .. |X|) is
+not satisfied for at most pc positions x. The condition |{X[x′ ] : x′ ∈ Cx ∩ [0 .. |X|)} ∪ {Y [y ′ ] :
+y ′ ∈ Cy ∩ [0 .. |Y |)}| = 1 is not satisfied for at most (m + h)c positions x. Hence, at most
+(m + h + p)c positions may proceed to Line 10. However, due to the filtering of Line 4,
+the actual number of positions reaching Line 10 can be bounded by Bin((m + h + p)c, 2r),
+which is O((m + h + p) log δ −1 ) with probability at least 1 − δ. Hence, Lines 3–10 can be
+implemented in Õ((m + h + p) log δ −1 ) time with probability at least 1 − δ.
+     Furthermore, X[x] = Y [y] is not satisfied for at most h positions, and, for these positions,
+computing mx and my takes O(c) time. Due to the filtering of Line 4, the actual number of
+positions reaching Line 11 is at most Bin(h, 2r), which is O( hr + log δ −1 ) with probability
+at least 1 − δ. Hence, Lines 11–13 cost O(h log δ −1 + r−1 log2 δ −1 ) time with probability at
+least 1 − δ. Overall, the running time of any query is Õ((m + p + h + r−1 ) log2 δ −1 ) with
+probability at least 1 − O(δ).                                                                    ◀
+
+
+4.2    Text-to-Pattern Hamming Distances for Arbitrary Strings
+In this section, we design an efficient solution to Problem 4.4 (in the general case):
+
+▶ Proposition 4.7. Given an instance of Problem 4.4 with w := |Y | − |X| + 1 and |X|r ≥ dw,
+after Õ(|X|r log δ −1 )-time randomized preprocessing, one can deterministically (with no
+further randomness) answer the queries of Problem 4.4 in Õ(dw log2 δ −1 ) time.
+
+Proof. In the preprocessing, for each shift s ∈ [0 .. w), we distinguish, correctly with probabil-
+ity at least 1− wδ , the case of HD(X, Y [s .. s+|X|)) ≤ dw from the case of HD(X, Y [s .. s+|X|)) >
+                                                                            −1
+2dw. This is implemented by sampling positions in X at rate Θ( log(wδ      dw
+                                                                                )
+                                                                                  ) and comparing the
+sampled characters of X against the aligned characters of Y . By the union bound, the tests
+return correct values (for all s ∈ [0 .. w)) with probability at least 1 − δ. The running time of
+                                          −1
+this preprocessing step is O(w · log(wδ
+                                      dw
+                                             )
+                                               · (|X| + |Y |)) = Õ(|X|r log δ −1 ) with probability at
+least 1 − δ (if this step takes too much time, we terminate the underlying computation and
+declare a preprocessing failure, which effectively means that |X| is returned for all queries).
+    If the test reports a small value HD(X, Y [s̃ .. s̃ + |X|)) for just one shift s̃ ∈ [0 .. w), then
+we memorize this shift and compute a value distributed as Bin(HD(X, Y [s̃ .. s̃ + |X|)), r) by
+sampling the characters X[x] and Y [x + s̃] at rate r. This costs O(|X|r log δ −1 ) time with
+probability at least 1 − δ (otherwise, we declare a preprocessing failure). At query time, we
+report the computed value for s̃. For each of the remaining shifts s ̸= s̃, we are guaranteed
+that (with probability at least 1 − δ) HD(X, Y [s .. s + |X|)) > dw ≥ d, and thus we can return
+|X| as a value distributed according to Bind,δ (HD(X, Y [s .. s + |X|)), r).
+    The interesting case is when we detect (at least) two shifts s̃1 ̸= s̃2 satisfying HD(X, Y [s ..
+s + |X|)) ≤ 2dw. We then conclude that X and Y are approximately periodic with period
+p := |s̃1 − s̃2 |. Formally, this means that HD(X[0 .. |X| − p), X[p .. |X|)) + HD(Y [0 .. |Y | − p),
+Y [p .. |Y |)) ≤ 8dw + w = O(dw) holds with probability at least 1 − δ. In this case, at
+preprocessing time, we draw sets SX ⊆ [0 .. |X|), SY ⊆ [0 .. |Y |) with each element sampled
+independently with probability r. This costs O(|X|r log δ −1 ) time with probability at least
+1 − δ (otherwise, we declare a preprocessing failure). We apply the query procedure of
+Algorithm 3, described in Section 4.1, imposing a hard limit Õ(dw log2 δ −1 ) on the query
+time. If the query algorithm exceeds the limit, we return a naive upper bound H = |X|. If
+h ≤ d, the probability of exceeding the limit is O(δ) (this incorporates both X, Y violating
+the periodicity assumption and Algorithm 3 taking a long time due to an unlucky choice of
+SX , SY ). Hence, imposing the limit increases the total variation distance of H and Bin(h, r)
+
+
+
+                                                                                                          ITCS 2023
+58:16   An Algorithmic Bridge Between Hamming and Levenshtein Distances
+
+
+        by O(δ). Otherwise (if h > d), setting H := |X| in some states of the probability space
+        may only increase H in these states, and thus the resulting random variable stochastically
+        dominates the original one. In particular, H is at total variation distance at most δ from
+        a variable stochastically dominating Bin(h, r). Combining these two cases, we conclude
+        that, if we shrink δ by an appropriate constant factor, the resulting value H satisfies the
+        requirements of Problem 4.4                                                              ◀
+
+
+        4.3     Proof of Theorem 1.8
+        In this section, we derive Theorem 1.8 from Proposition 4.7.
+
+        ▶ Theorem 1.8. After Õ( ϵn2 d )-time randomized preprocessing (successful w.h.p.), the queries
+        of Problem 1.7 can be answered deterministically (with no further randomness) in Õ(dw) time.
+
+        Proof. Our solution uses an auxiliary parameter r ∈ [ d1 , 1] to be chosen later. At preprocess-
+        ing, we build the data structure of Fact 4.1 and, for each dyadic range [x .. x + ℓ) ⊆ [0 .. |X|)
+        of length ℓ ≥ dw  r , the component of Proposition 4.7 for X[x .. x + ℓ) and Y [x − w .. x + w + ℓ)
+        (with the latter fragment trimmed to fit within Y if necessary) and δ = n−c−1 for a sufficiently
+        large constant c. While doing so, we make sure that all these components use independent
+        randomness. The construction algorithm takes Õ(ℓr) time for each such dyadic range, which
+        sums up to Õ(nr) time across all considered ranges.
+             As a result, for x ∈ [0 .. |X|], y ∈ [0 .. |Y |], and ℓ ∈ [1 .. min(|X| − x, |Y | − y)], if [x .. x + ℓ)
+        is a dyadic range and |y − x| ≤ w, then we can in Õ(dw) time compute a value H ∈
+        Bind,n−c−1 (h, r), where h = HD(X[x .. x + ℓ), Y [y .. y + ℓ)). For ℓ < dw         r , this follows from
+        Fact 4.1, whereas for ℓ ≥ dw   r , this is a consequence    of Proposition  4.7. For   an arbitrary range
+        [x .. x + ℓ), a value H ∈ Bind,n−c (h, r) can be derived by decomposing [x .. x + ℓ) into O(log n)
+        dyadic ranges and combining the results of the individual queries using Observation 4.3.
+             With an appropriate r, we can then use H to distinguish HD(X[x .. x + ℓ), Y [y .. y + ℓ]) ≤ d
+        and HD(X[x .. x + ℓ), Y [y .. y + ℓ]) ≥ (1 + ϵ)d. To see this, first suppose that H ∈ Bind (h, r). If
+        h ≤ d, then Pr[H ≥ (1 + 3ϵ )rd] ≤ exp(− 27       1 2
+                                                           ϵ rd) holds by the multiplicative Chernoff bound.
+        Moreover, if h ≥ (1 + ϵ)d, then Pr[H < (1 + 3ϵ )rd] ≤ Pr[H < (1 − 3ϵ )(1 + ϵ)rd] ≤ exp(− 18          1 2
+                                                                                                                ϵ rd)
+                                                                                                     ϵ
+        holds by the multiplicative Chernoff bound. Hence, by testing whether H < (1 + 3 )rd, we can
+                                                                                                            1 2
+        distinguish between h ≤ d and h ≥ (1 + ϵ)d with failure probability at most exp(− 27                   ϵ rd).
+                           −2 −1                                                              −c
+        Setting r = Θ(ϵ d log n), the failure probability can be bounded by n .
+             Since we are only guaranteed that H ∈ Bind,n−c (h, r), the failure probability increases to
+           −c
+        2n . Nevertheless, this yields a data structure that can distinguish in Õ(dw) time between
+        HD(X[x .. x + ℓ), Y [y .. y + ℓ]) ≤ d and HD(X[x .. x + ℓ), Y [y .. y + ℓ]) ≥ (1 + ϵ)d correctly with
+        high probability. Since our query algorithm is deterministic, this means that, with high
+        probability, the randomized construction algorithm yields a data structure that produces
+        correct answers for all O(n3 ) possible queries. With binary search over ℓ, we derive a data
+        structure answering LCEd,(1+ϵ)d (x, y) queries correctly w.h.p. and in Õ(dw) time.                        ◀
+
+
+         5      Lower Bound for Computing EDa Exactly
+
+        The lower bounds provided in this section are conditioned on the Orthogonal Vectors
+        Conjecture [32], which we state below.
+E. Goldenberg, T. Kociumaka, R. Krauthgamer, and B. Saha                                                    58:17
+
+
+▶ Conjecture 5.1 (Orthogonal Vectors Conjecture [32]). In the OV problem, the input is a
+              d
+set V ⊆ {0, 1} of n vectors, and the goal is to decide if there exist u, v ∈ V with ⟨u, v⟩ = 0.7
+    The Orthogonal Vectors Conjecture asserts that, for every constant ϵ > 0, there exists a
+constant c ≥ 1 such that OV cannot be solved in O(n2−ϵ )-time on instances with d = c log n.
+
+5.1    Unbounded Distance
+Here, we use the setting of [12] to prove that the following auxiliary similarity measures are
+hard to compute exactly. This immediately yields analogous hardness for EDa .
+
+▶ Definition 5.2. For strings X, Y ∈ Σ∗ and an integer a ∈ Z+ , let Da (X, Y ) := EDa (X, Y ) +
+|Y | − |X|. Moreover, let Da+ (X, Y ) := Da ($|Y | · X · $|Y | , Y ), where $ ∈
+                                                                              / Σ.
+
+     Intuitively, for an edit-distance alignment between strings X and Y , the measure Da
+charges a character Y [y] with cost 0 if it is matched, cost a1 if it is substituted, and cost 2
+if it is inserted; deletions in X are free. The measure Da+ is justified by the following fact,
+where alph(Z) ⊆ Σ denotes the set of letters occurring in Z ∈ Σ∗ .
+
+▶ Fact 5.3. Let X, Y, L, R ∈ Σ∗ . If |L|, |R| ≥ |Y | and alph(Y ) ∩ alph(LR) = ∅, then
+Da+ (X, Y ) = Da (LXR, Y ).
+
+Proof. Due to alph(Y ) ∩ alph(LR) = ∅, we may assume without loss of generality that
+L = $|L| and R = $|R| . Any edit-distance alignment between LXR and Y deletes at
+least |L| − |Y | characters of L and at least |R| − |Y | characters of R, so Da (LXR, Y ) ≥
+Da ($|Y | · X · $|Y | , Y ). On the other hand, we have EDa (LXR, Y ) ≤ EDa (LXR, $|Y | · X · $|Y | ) +
+EDa ($|Y | ·X ·$|Y | , Y ) = |L|−|Y |+|R|−|Y |+EDa ($|Y | ·X ·$|Y | , Y ) by the triangle inequality, so
+Da (LXR) = EDa (LXR, Y )+|Y |−|LXR| ≤ EDa ($|Y | ·X ·$|Y | , Y )+|LR|−2|Y |+|Y |−|LXR| =
+EDa ($|Y | · X · $|Y | , Y ) + |Y | − (|X| + 2|Y |) = Da+ (X, Y ).                                    ◀
+
+   Bringmann and Künnemann [12] developed a generic scheme of reducing the Orthogonal
+Vectors problem to the problem of computing a given string similarity measure.8 This
+framework requires identifying types in the input space (which is Σ∗ here) and proving that
+the similarity measure admits an alignment gadget and coordinate values.
+   In our construction, the types are of the form [0 .. σ)n for n, σ ∈ Z+ (we assume Σ ⊆ Z≥0 ).
+
+▶ Lemma 5.4. The similarity measure Da+ admits coordinate values. That is, there exist
+strings 0X , 1X (of some type tX ) and 0Y , 1Y (of some type tY ) such that Da+ (1X , 1Y ) >
+Da+ (0X , 0Y ) = Da+ (0X , 1Y ) = Da+ (1X , 0Y ).
+
+Proof. We set 0X = 01, 1X = 00 (of type [0 .. 2)2 ), and 0Y = 0, 1Y = 1 (of type [0 .. 2)1 ). It is
+easy to check that a1 = Da+ (1X , 1Y ) > Da+ (0X , 0Y ) = Da+ (0X , 1Y ) = Da+ (1X , 0Y ) = 0. ◀
+
+An alignment gadget is a pair of functions GAX and GAY parameterized by integers n ≥ m
+and types tX , tY . The function GAX , given n strings X1 , . . . , Xn of type tX , produces a
+string X of some fixed type (that only depends on n, m, tX , tY ), whereas the function GAY ,
+given m strings Y1 , . . . , Ym of type tY , produces a string Y of some (other) fixed type. Both
+functions must admit O((n + m)(ℓX + ℓY ))-time algorithms, where ℓX is the common length
+of strings in tX and ℓY is the common length of strings in tY . The main requirement relates
+
+
+7
+                Pd
+  Here, ⟨u, v⟩ =      u · vi denotes the scalar product of u and v.
+                  i=1 i
+8
+  The authors wish to thank Marvin Künnemann for clarifying a few points about this framework.
+
+
+
+
+                                                                                                           ITCS 2023
+58:18   An Algorithmic Bridge Between Hamming and Levenshtein Distances
+
+
+        the value Da+ (X, Y ) to the values Da+ (Xi , Yj ) for i ∈ [1 .. n] and j ∈ [1 .. m]. Specifically,
+        there must be a fixed value C (depending only on n, m, tX , tY ) that satisfies the following
+        conditions:
+                                                                   Pm
+        1. Each δ ∈ [0 .. n − m] satisfies Da+ (X, Y ) ≤ C + j=1 Da+ (Xj+δ , Yj ).
+        2. There is a set A = {(i1 , j1 ), . . . , (ik , jk )} ⊆ [1 .. n] × [1 .. m] such that i1 < · · · < ik ,
+           j1 < · · · < jk , and Da+ (X, Y ) ≥ C + (i,j)∈A Da+ (Xi , Yj ) + (m − |A|) maxi,j Da+ (Xi , Yj ).
+                                                      P
+
+
+        ▶ Construction 5.5. Let n ≥ m be positive integers and tX = [0 .. σX )ℓX , tY = [0 .. σY )ℓY be
+        input types. Denote A = σY , B = σY + 1, and ℓ = ℓY . We set GAX and GAY so that
+                                            n
+                                            K
+                                                    A2ℓ · Xi · Aℓ · Bℓ , and
+                                                                      
+           GAX (X1 , . . . , Xn ) := X :=
+                                            i=1
+                                                    m
+                                                    K
+             GAY (Y1 , . . . , Ym ) := Y := Bnℓ ·         Aℓ · Yj · Bℓ · Bnℓ ,
+                                                                      
+                                                    j=1
+
+                J
+        where       and · denote concatenation.
+
+        It is easy to check that both functions can be implemented in O((n + m)(ℓX + ℓY )) time
+        and the output types are [0 .. max(σX , σY + 2))n(ℓX +4ℓY ) and Y ∈ [0 .. σY + 2)(2n+3m)ℓY ,
+        respectively. In the next two lemmas, we prove that Construction 5.5 satisfies the two
+        aforementioned conditions with C = a1 (n + m)ℓ.
+                                                                                Pm
+        ▶ Lemma 5.6. Each δ ∈ [0 .. n − m] satisfies Da+ (X, Y ) ≤ a1 (n + m)ℓ + j=1 Da+ (Xj+δ , Yj ).
+
+        Proof. Let us construct an edit distance alignment between $|Y | · X · $|Y | and Y so that the
+        total cost charged to characters of Y does not exceed the claimed upper bound.
+           The prefix B(n−δ)ℓ is matched against the prefix $(n−δ)ℓ (at cost a1 (n − δ)ℓ).
+           The subsequent δ blocks Bℓ are matched against the Bℓ blocks within the phrases A2ℓ ·
+           Xi · Aℓ · Bℓ for i ∈ [0 .. δ) (at cost 0).
+           Each phrase Aℓ · Yj · Bℓ with j ∈ [1 .. m] is matched against the phrase A2ℓ · Xj+δ · Aℓ · Bℓ
+           so that:
+               The leading block Aℓ is matched against the leading block Aℓ (at cost 0).
+               The string Yj is matched against Aℓ Xj+δ Aℓ (at cost Da+ (Xj+δ , Yj ) by Fact 5.3).
+               The trailing block Bℓ is matched against the trailing block Bℓ (at cost 0).
+           The subsequent n − m − δ blocks Bℓ are matched against the Bℓ blocks within the phrases
+           A2ℓ · Xi · Aℓ · Bℓ for i ∈ (m + δ .. n] (at cost 0).
+           The suffix B(m+δ)ℓ is matched against the suffix $(m+δ)ℓ (at cost a1 (m + δ)ℓ).            ◀
+
+
+        ▶ Lemma 5.7. There exists a set A = {(i1 , j1 ), . . . , (ik , jk )} ⊆ [1 .. n] × [1 .. m] such that
+                                                                             Pm
+        i1 < · · · < ik , j1 < · · · < jk , and Da+ (X, Y ) ≥ a1 (n + m)ℓ + (i,j)∈A Da+ (Xi , Yj ) + (m −
+        |A|) maxi,j Da (Xi , Yj ).
+
+
+        Proof. Let us fix an optimal alignment between $|Y | · X · $|Y | and Y . We construct a set
+        A ⊆ [1 .. n] × [1 .. m] consisting of pairs (i, j) jointly satisfying the following conditions:
+            At least one character of Yj is aligned against a character of Xi .
+            No character of Yj is aligned against any character of Xi′ for any i′ ̸= i.
+            No character of Xi is aligned against any character of Yj ′ for any j ′ < j.
+        It is easy to see that A forms a non-crossing matching, i.e., ordering its elements by the first
+        coordinate is equivalent to ordering them by the second coordinate.
+E. Goldenberg, T. Kociumaka, R. Krauthgamer, and B. Saha                                                  58:19
+
+
+    Let us analyze the contribution of each letter of Y to Da+ (X, Y ) with respect to any fixed
+optimal alignment between $|Y | · X · $|Y | and Y . Let cB denote the number of Bs in X that
+are not matched with any B in Y . Since the number of Bs in X and Y is nℓ and (2n + m)ℓ,
+respectively, the contribution of Bs in Y to the total cost is at least a1 ((n + m)ℓ + cB ).
+    If (i, j) ∈ A, then Yj is aligned against a subsequence of X obtained by deleting Xi′ for
+all i′ ̸= i and (possibly) some further characters (recall that all deletions in X are free). In
+this case, the contribution of Yj is at least Da+ (Xi , Yj ) by Fact 5.3.
+    If no character of Yj is aligned against any character of any Xi , then all characters of Yj
+are deleted or substituted, meaning that the contribution of Yj is at least a1 ℓ. If characters
+of Yj are aligned against characters of Xi and Xi′ for two distinct i < i′ , then all Bs between
+Xi and Xi′ contribute to cB ; this contribution is at least ℓ, and it cannot be charged to
+any Yj ′ with j ′ ̸= j. Finally, if characters of both Yj ′ and Yj (with j ′ < j) are aligned to
+characters of the same Xi , then the block Aℓ preceding Yj contributes at least a1 ℓ. Overall,
+we conclude that the total cost is at least a1 ℓ for each j ∈ [1 .. m] with no (i, j) ∈ A (this
+contribution is either directly charged to Aℓ Yj or via cB ). Hence, the total cost Da+ (X, Y )
+is at least a1 (n + 2m − |A|)ℓ + (i,j)∈A Da+ (Xi , Yj ). Due to Da+ (Xi , Yj ) ≤ a1 |Yj | = a1 ℓ, this
+                                   P
+
+yields the claimed lower bound.                                                                     ◀
+
+    Consequently, the framework of [12] yields the following result. (An inspection of [12]
+reveals that the strings are produced from the coordinate values composed by recursive
+application of the alignment gadget. The tree of this recursion is of height 3, so the output
+strings are over an alphabet of size 8.)
+
+▶ Corollary 5.8. There is an O(nd)-time algorithm that, given two sets U, V ⊆ {0, 1}d of n
+vectors each and an integer a ∈ Z+ , constructs strings X, Y ∈ [0 .. 8)∗ and a threshold k such
+that Da+ (X, Y ) ≤ k if and only if ⟨u, v⟩ = 0 for some u ∈ U and v ∈ V . Moreover, |X|, |Y |,
+and k depend only on n, d, and a.
+
+
+5.2    Bounded Distance
+Our next goal is to derive a counterpart of Corollary 5.8 with k ≪ |X| + |Y | and EDa instead
+of Da+ . The following construction is at the heart of our reduction.
+
+▶ Construction 5.9. Let n, ℓX , ℓY be positive integers and let ℓ = ℓX + ℓY . For a sequence
+of n pairs (Xi , Yi ) ∈ ΣℓX × ΣℓY , we define strings
+                   n
+                   K                                                   n
+                                                                       K
+          ℓY               ℓ       ℓ   ℓY
+   X=A         ·         (B · Xj · C · A )      and       Y = Y1 ·           (Bℓ · DℓX · Cℓ · Yj ).
+                   j=1                                                 j=2
+
+
+
+▶ Lemma 5.10. If a ≥ n, then the strings X, Y of Construction 5.9 satisfy
+                                  n
+   Da (X, Y ) = (n−1)ℓ
+                  a    + min Da+ (Xi , Yi ).
+                                 i=1
+
+
+Proof. First, we prove an upper bound on Da (X, Y ). Let us fix i ∈ [1 .. n]. We define an
+edit distance alignment between
+         i−1
+         K                                                          n
+                                                                    K
+   X=          (AℓY · Bℓ · Xj · Cℓ ) · AℓY · Bℓ · Xi · Cℓ · AℓY ·           (Bℓ · Xj · Cℓ · AℓY )
+         j=1                                                        j=i+1
+
+
+
+
+                                                                                                         ITCS 2023
+58:20   An Algorithmic Bridge Between Hamming and Levenshtein Distances
+
+
+        and
+                  i−1
+                  K                                    n
+                                                       K
+            Y =         (Yj · Bℓ · DℓX · Cℓ ) · Yi ·           (Bℓ · DℓX · Cℓ · Yj )
+                  j=1                                  j=i+1
+
+
+        so that the total cost charged to characters of Y does not exceed (n−1)ℓ   a   + Da+ (Xi , Yi ).
+            For j ∈ [1 .. i), the phrase Yj · B · D · C is aligned with the phrase A · Bℓ · Xj · Cℓ using
+                                               ℓ   ℓX   ℓ                             ℓY
+
+            substitutions only (at cost a1 (ℓX + ℓY )).
+            The block Yi is aligned against AℓY · B ℓ · Xi · Cℓ · AℓY (at cost Da+ (Xi , Yi ) by Fact 5.3).
+            For j ∈ (i .. n], the phrase (Bℓ · DℓX · Cℓ · Yj ) is aligned with the phrase Bℓ · Xj · Cℓ · AℓY
+            using substitutions only (at cost a1 (ℓX + ℓY )).
+             It remains to prove the lower bound on Da (X, Y ). Let us fix an arbitrary alignment of
+        X and Y ; we shall prove that its cost is at least as large as the claimed lower bound on
+        Da (X, Y ). First, suppose that, for some i ̸= j, a character of Xi is aligned against a character
+        of Yj . Note that Xi = X[(3i − 2)ℓ + ℓY .. (3i − 1)ℓ) and Yj = Y [(3j − 3)ℓ .. (3j − 3)ℓ + ℓY ).
+        If i < j, then aligning a character of Xi against a character of Yj requires deleting at least
+        (3j − 3)ℓ − (3i − 1)ℓ = (3j − 3i − 2)ℓ ≥ ℓ characters in the prefix Y [0 .. (3j − 3)ℓ). Similarly,
+        if i > j, then aligning a character of Xi against a character of Yj requires deleting at least
+        (|Y |−((3j −3)ℓ+ℓY ))−((|X|−(3i−2)ℓ+ℓY )) = (3(n−j)ℓ−(3n−3i+2)ℓ) = (3i−3j −2)ℓ ≥ ℓ
+        characters in the suffix of Y [(3j − 3)ℓ + ℓY .. |Y |). In either case, the alignment cost is at
+                          (n−1)ℓ
+        least ℓ ≥ nℓ a ≥    a    + a1 ℓY ≥ (n−1)ℓ
+                                              a   + minni=1 Da+ (Xi , Yi ).
+             Thus, we may assume that no character of Yj is aligned against a character of Xi for
+        i≠ j. In this case, we bound from below the total cost charged to characters of Y . Note
+        that the symbols D in Y contribute at least n−1      a ℓX (because there are no Ds in X). If, for
+        some i ∈ [1 .. n], no character of Yi is aligned against a character of Xi , then Yi is charged
+        at least a1 ℓY . Otherwise, Yi is charged at least Da+ (Xi , Yi ) by Fact 5.3. However, if i < j
+        are subsequent indices such that a character of Yi is aligned against a character of Xi and
+        a character of Yj is aligned against a character Xj then, among the 2ℓ(j − i) characters B
+        and C between Yi and Yj , at most LCS((Bℓ Cℓ )j−i , (Cℓ Bℓ )j−i ) = ℓ(2(j − i) − 1) are matched,
+        incurring a cost of at least a1 ℓ > a1 ℓY for the mismatched characters. Overall, Ds contribute
+        at least n−1a ℓX , the smallest i such that a character of Xi is aligned against a character of Yi
+        (if there is any) contributes at least Da+ (Xi , Yi ), each of the remaining i ∈ [1 .. n] contributes
+        at least a1 ℓY (either directly or via Bs and Cs), for a total of (n−1)ℓ
+                                                                             a   + minni=1 Da+ (Xi , Yi ). ◀
+
+           These properties let us use Construction 5.9 to generalize Corollary 5.8 and finally prove
+        Theorem 1.9.
+
+        ▶ Proposition 5.11. There is an O(nmd)-time algorithm that, given two sets U, V ⊆ {0, 1}d
+        of n vectors each and integers a ∈ Z+ , m ∈ [1 .. n], constructs strings X, Y ∈ [0 .. 12)∗ and a
+        threshold K = O(max( m     1
+                               a , m )nd) such that EDa (X, Y ) ≤ K if and only if ⟨u, v⟩ = 0 for some
+        u ∈ U and v ∈ V .
+                                                                                                         n
+        Proof. We cover U and V with subsets U1 , . . . , Um ⊆ U and V1 , . . . , Vm ⊆ V of size ⌈ m       ⌉.
+        For any i, j ∈ [1 .. m], we construct an instance (Xi,j , Yi,j , ki,j ) using Corollary 5.8 for
+        Ui , Vj ⊆ {0, 1}d . Note that |Xi,j | = ℓX , |Yi,j | = ℓY , and ki,j depend only on n, m, and d. We
+        then apply Construction 5.9 to the collection of m2 pairs (Xi,j , Yi,j ), resulting in strings X
+                                                                                            n
+        and Y . The running time of this construction is O(m2 (ℓX + ℓY )) = O(m2 · ⌈ m        ⌉d) = O(mnd).
+                                  2
+                                m −1
+        Moreover, we set k = a (ℓX + ℓY ) + ki,j (recall that ki,j is the same for all i, j ∈ [1 .. m]);
+                                    2
+        this value satisfies k ≤ ma (ℓX + ℓY ) = O(a−1 mnd). If ⟨u, v⟩ = 0 for some u ∈ U and v ∈ V ,
+E. Goldenberg, T. Kociumaka, R. Krauthgamer, and B. Saha                                                  58:21
+
+
+then Corollary 5.8 implies that Da+ (Xi,j , Yi,j ) ≤ ki,j for i, j ∈ [1 .. m] such that u ∈ Ui and
+v ∈ Vj . Consequently, Da (X, Y ) ≤ k by Lemma 5.10. Symmetrically, if Da (X, Y ) ≤ k, then,
+by Lemma 5.10, Da+ (Xi,j , Yi,j ) ≤ ki,j holds for some i, j ∈ [1 .. m] and, by Corollary 5.8,
+⟨u, v⟩ = 0 for some u ∈ Ui ⊆ U and v ∈ Vj ⊆ V . The threshold k for Da (X, Y ) translates to
+a threshold K = k + |X| − |Y | = k + O(ℓ) = O(max(a−1 mnd, nd/m)) for EDa .                      ◀
+
+▶ Theorem 1.9. Consider sequences (an )∞                     ∞
+                                              n=1 and (kn )n=1 with entries an , kn ∈ [1 .. n]
+computable in poly(n) time. Unless the Orthogonal Vectors Conjecture fails, there is no
+algorithm that, for some fixed ϵ > 0, every n ∈ Z+ , and all strings X, Y with |X| + |Y | ≤ n,
+in O((n + kn · min(n, an kn ))1−ϵ ) time computes EDan (X, Y ) or reports that EDan (X, Y ) > kn .
+
+Proof. For each n ∈ Z+ , let tn = min(n, an kn )kn . Note that Ω(n) time is already needed
+to check whether X = Y . Thus, the claim holds trivially if there are infinitely many pairs
+(an , kn ) with t1−ϵ
+                 n    < n. Consequently, we may assume without loss of generality that t1−ϵ  n   ≥n
+for each n (any finite prefix of the sequence (an , kn ) is irrelevant).
+                                                                                   ′
+     Let us choose a constant c′ so that (an , kn ) can be constructed in O(nc ) time, a constant
+c of Conjecture 5.1 for ϵ/(2c′ ), and a constant C so that Proposition 5.11 guarantees
+|X| + |Y | ≤ Cnmd and K ≤ C(max(m/a, 1/m)nd).
+     Given an instance V ⊆ {0, 1}d of the Orthogonal Vectors problem with d = c log |V |,
+                         ′
+we set n := ⌈|V |1/c ⌉ and compute the values an , kn , and tn in O(nc ) = O(|V |) time.
+                         √
+Next, we set N := ⌊ tn /(Cd)⌋ and cover V with v := ⌈ N1 |V |⌉ subsets V1 , . . . , Vv of size N .
+For any i, j ∈ [1 .. v], we construct  p an instance (Xi,j , Yi,j , Ki,j ) using Proposition 5.11 for
+Vi , Vj ⊆ {0, 1}d , an , and mn := ⌊ min(n/kn ,p      an )⌋.                   p
+     Note that |Xi,j | + |Yi,j | ≤ Cmn N d ≤            min(n/kn , an )tn ≤      n/kn · nkn ≤ n and
+                                                                    √
+Ki,j ≤ C · max(mn /an ,p      1/mn )N d ≤ max(mn /an , 1/mn ) tn . If an kn ≤ n, then Ki,j ≤
+        √           √
+max(pan /an , 1/ pan ) · an kn2 = kn . If an kn ≥ n, on the other hand, then Ki,j ≤
+                                √
+max( n/kn /an , kn /n) · nkn ≤ max(n/an , kn ) ≤ kn . Thus, we can test EDa (Xi,j , Yi,j ) ≤
+Ki,j using an instance (Xi,j , Yi,j , an , kn ) of the problem in question. By our hypothesis, this
+costs O(n + t1−ϵ             1−ϵ
+                 n ) = O(tn ) time (including construction of Proposition 5.11). Summing
+                                                                                             2 −ϵ
+up over i, j ∈ [1 .. v], the running time is O(v 2 t1−ϵ                2    2  1−ϵ        2
+                                                        n ) = O(|V | /N · tn ) = O(d |V | tn ) =
+      2    2 −ϵ            2  2−ϵ/c′             2−ϵ/(2c′ )
+O(d |V | n ) = O(d |V |              ) = O(|V |             ). Overall, including the construction of
+                                                                                                  ′
+(an , kn ) in O(|V |) time, the total time complexity of solving the OV instance is O(|V |2−ϵ/(2c ) ),
+contradicting Conjecture 5.1.                                                                       ◀
+
+
+      References
+ 1    Srinivas Aluru, editor. Handbook of Computational Molecular Biology. Chapman and Hall/CRC,
+      December 2005. doi:10.1201/9781420036275.
+ 2    Alexandr Andoni, Robert Krauthgamer, and Krzysztof Onak. Polylogarithmic approximation
+      for edit distance and the asymmetric query complexity. In 51st Annual IEEE Symposium on
+      Foundations of Computer Science, FOCS 2010, pages 377–386. IEEE, 2010. doi:10.1109/
+      FOCS.2010.43.
+ 3    Alexandr Andoni and Negev Shekel Nosatzki. Edit distance in near-linear time: it’s a constant
+      factor. In 61st Annual IEEE Symposium on Foundations of Computer Science, FOCS 2020.
+      IEEE, 2020. doi:10.1109/FOCS46700.2020.00096.
+ 4    Alexandr Andoni and Krzysztof Onak. Approximating edit distance in near-linear time. SIAM
+      Journal on Computing, 41(6):1635–1648, 2012. doi:10.1137/090767182.
+ 5    Arturs Backurs and Piotr Indyk. Edit distance cannot be computed in strongly subquadratic
+      time (unless SETH is false). SIAM Journal on Computing, 47(3):1087–1097, 2018. doi:
+      10.1137/15M1053128.
+
+
+
+
+                                                                                                         ITCS 2023
+58:22   An Algorithmic Bridge Between Hamming and Levenshtein Distances
+
+
+         6   Ziv Bar-Yossef, T. S. Jayram, Robert Krauthgamer, and Ravi Kumar. Approximating edit
+             distance efficiently. In 45th Annual IEEE Symposium on Foundations of Computer Science,
+             FOCS 2004, pages 550–559. IEEE, 2004. doi:10.1109/FOCS.2004.14.
+         7   Tugkan Batu, Funda Ergün, Joe Kilian, Avner Magen, Sofya Raskhodnikova, Ronitt Rubinfeld,
+             and Rahul Sami. A sublinear algorithm for weakly approximating edit distance. In 35th
+             Annual ACM SIGACT Symposium on Theory of Computing, STOC 2003, pages 316–324.
+             ACM, 2003. doi:10.1145/780542.780590.
+         8   Joshua Brakensiek, Moses Charikar, and Aviad Rubinstein. A simple sublinear algorithm for
+             gap edit distance, 2020. arXiv:2007.14368.
+         9   Joshua Brakensiek and Aviad Rubinstein. Constant-factor approximation of near-linear
+             edit distance in near-linear time. In 52nd Annual ACM SIGACT Symposium on Theory of
+             Computing, STOC 2020, pages 685–698. ACM, 2020. doi:10.1145/3357713.3384282.
+        10   Karl Bringmann, Alejandro Cassis, Nick Fischer, and Vasileios Nakos. Almost-optimal
+             sublinear-time edit distance in the low distance regime. In 54th Annual ACM SIGACT
+             Symposium on Theory of Computing, STOC 2022, pages 1102–1115. ACM, 2022. doi:
+             10.1145/3519935.3519990.
+        11   Karl Bringmann, Alejandro Cassis, Nick Fischer, and Vasileios Nakos. Improved sublinear-
+             time edit distance for preprocessed strings. In 49th International Colloquium on Automata,
+             Languages, and Programming, ICALP 2022, volume 229 of LIPIcs, pages 32:1–32:20. Schloss
+             Dagstuhl–Leibniz-Zentrum für Informatik, 2022. doi:10.4230/LIPIcs.ICALP.2022.32.
+        12   Karl Bringmann and Marvin Künnemann. Quadratic conditional lower bounds for string
+             problems and dynamic time warping. In 56th Annual IEEE Symposium on Foundations of
+             Computer Science, FOCS 2015, pages 79–97. IEEE, 2015. doi:10.1109/focs.2015.15.
+        13   Diptarka Chakraborty, Debarati Das, Elazar Goldenberg, Michal Koucký, and Michael E.
+             Saks. Approximating edit distance within constant factor in truly sub-quadratic time. Journal
+             of the ACM, 67(6):36:1–36:22, 2020. doi:10.1145/3422823.
+        14   Timothy M. Chan, Shay Golan, Tomasz Kociumaka, Tsvi Kopelowitz, and Ely Porat. Approxi-
+             mating text-to-pattern Hamming distances. In 52nd Annual ACM SIGACT Symposium on The-
+             ory of Computing, STOC 2020, pages 643–656. ACM, 2020. doi:10.1145/3357713.3384266.
+        15   Jian-Qun Chen, Ying Wu, Haiwang Yang, Joy Bergelson, Martin Kreitman, and Dacheng
+             Tian. Variation in the ratio of nucleotide substitution and indel rates across genomes in
+             mammals and bacteria. Molecular Biology and Evolution, 26(7):1523–1531, 2009. doi:
+             10.1093/molbev/msp063.
+        16   Martin Farach-Colton, Paolo Ferragina, and S. Muthukrishnan. On the sorting-complexity
+             of suffix tree construction. Journal of the ACM, 47(6):987–1011, 2000. doi:10.1145/355541.
+             355547.
+        17   Elazar Goldenberg, Tomasz Kociumaka, Robert Krauthgamer, and Barna Saha. Gap edit
+             distance via non-adaptive queries: Simple and optimal. In 63rd Annual IEEE Symposium on
+             Foundations of Computer Science, FOCS 2022, pages 674–685. IEEE, 2022. doi:10.1109/
+             FOCS54457.2022.00070.
+        18   Elazar Goldenberg, Robert Krauthgamer, and Barna Saha. Sublinear algorithms for gap edit
+             distance. In 60th Annual IEEE Symposium on Foundations of Computer Science, FOCS 2019,
+             pages 1101–1120. IEEE, 2019. doi:10.1109/FOCS.2019.00070.
+        19   Elazar Goldenberg, Aviad Rubinstein, and Barna Saha. Does preprocessing help in fast
+             sequence comparisons? In 52nd Annual ACM SIGACT Symposium on Theory of Computing,
+             STOC 2020, pages 657–670. ACM, 2020. doi:10.1145/3357713.3384300.
+        20   Dan Gusfield. Algorithms on Strings, Trees, and Sequences: Computer Science and Computa-
+             tional Biology. Cambridge University Press, 1997. doi:10.1017/cbo9780511574931.
+        21   Sariel Har-Peled, Piotr Indyk, and Rajeev Motwani. Approximate nearest neighbor: Towards
+             removing the curse of dimensionality. Theory of Computing, 8(1):321–350, 2012. doi:10.4086/
+             toc.2012.v008a014.
+E. Goldenberg, T. Kociumaka, R. Krauthgamer, and B. Saha                                                 58:23
+
+
+22   John A. Hawkins, Stephen K. Jones, Ilya J. Finkelstein, and William H. Press. Indel-correcting
+     DNA barcodes for high-throughput sequencing. Proceedings of the National Academy of
+     Sciences, 115(27):E6217–E6226, 2018. doi:10.1073/pnas.1802640115.
+23   Dan Jurafsky and James H. Martin. Speech and language processing: an introduction to
+     natural language processing, computational linguistics, and speech recognition, 2nd Edition.
+     Prentice Hall series in artificial intelligence. Prentice Hall, Pearson Education International,
+     2009. URL: https://www.worldcat.org/oclc/315913020.
+24   Tomasz Kociumaka and Barna Saha. Sublinear-time algorithms for computing & embedding
+     gap edit distance. In 61st Annual IEEE Symposium on Foundations of Computer Science,
+     FOCS 2020, pages 1168–1179. IEEE, 2020. doi:10.1109/focs46700.2020.00112.
+25   Michal Koucký and Michael E. Saks. Constant factor approximations to edit distance on far
+     input pairs in nearly linear time. In 52nd Annual ACM SIGACT Symposium on Theory of
+     Computing, STOC 2020, pages 699–712. ACM, 2020. doi:10.1145/3357713.3384307.
+26   Gad M. Landau, Eugene W. Myers, and Jeanette P. Schmidt. Incremental string comparison.
+     SIAM Journal on Computing, 27(2):557–582, 1998. doi:10.1137/S0097539794264810.
+27   Gad M. Landau and Uzi Vishkin. Fast string matching with k differences. Journal of Computer
+     and System Sciences, 37(1):63–78, 1988. doi:10.1016/0022-0000(88)90045-1.
+28   Paul Medvedev. Theoretical analysis of edit distance algorithms: an applied perspective, 2022.
+     doi:10.48550/arXiv.2204.09535.
+29   Julienne M. Mullaney, Ryan E. Mills, W. Stephen Pittard, and Scott E. Devine. Small insertions
+     and deletions (INDELs) in human genomes. Human Molecular Genetics, 19(R2):R131–R136,
+     2010. doi:10.1093/hmg/ddq400.
+30   Kerstin Neininger, Tobias Marschall, and Volkhard Helms. SNP and indel frequencies at
+     transcription start sites and at canonical and alternative translation initiation sites in the
+     human genome. PLOS ONE, 14(4):1–21, 2019. doi:10.1371/journal.pone.0214816.
+31   Esko Ukkonen. Algorithms for approximate string matching. Information and Control,
+     64:100–118, 1985. doi:10.1016/S0019-9958(85)80046-2.
+32   Ryan Williams. A new algorithm for optimal 2-constraint satisfaction and its implications.
+     Theoretical Computer Science, 348(2-3):357–365, 2005. doi:10.1016/j.tcs.2005.09.023.
+33   Zhaolei Zhang and Mark Gerstein. Patterns of nucleotide substitution, insertion and deletion
+     in the human genome inferred from pseudogenes. Nucleic Acids Research, 31(18):5338–5348,
+     2003. doi:10.1093/nar/gkg745.
+
+
+
+
+                                                                                                        ITCS 2023
+

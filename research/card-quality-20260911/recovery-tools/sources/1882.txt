@@ -1,0 +1,1265 @@
+Uniformity Testing When You Have the Source
+Code
+Clément L. Canonne #
+The University of Sydney, Australia
+
+Robin Kothari #
+Google Quantum AI, Santa Barbara, CA, USA
+
+Ryan O’Donnell #
+Carnegie Mellon University, Pittsburgh, PA, USA
+
+      Abstract
+We study quantum algorithms for verifying properties of the output probability distribution of a
+classical or quantum circuit, given access to the source code that generates the distribution. We
+consider the basic task of uniformity testing, which is to decide if the output distribution is uniform
+on [d] or ε-far from uniform in total variation distance. More generally, we consider identity testing,
+which is the task of deciding if the output distribution equals a known hypothesis distribution, or is
+ε-far from it. For both problems, the previous best known upper bound was O(min{d1/3 /ε2 , d1/2 /ε}).
+Here we improve the upper bound to O(min{d1/3 /ε4/3 , d1/2 /ε}), which we conjecture is optimal.
+
+2012 ACM Subject Classification Theory of computation → Design and analysis of algorithms;
+Theory of computation → Quantum computation theory
+
+Keywords and phrases distribution testing, uniformity testing, quantum algorithms
+
+Digital Object Identifier 10.4230/LIPIcs.TQC.2025.7
+
+Related Version Full Version: https://arxiv.org/abs/2411.04972
+
+Funding Clément L. Canonne: Supported by an ARC DECRA (DE230101329).
+Ryan O’Donnell: Supported by ARO grant W911NF2110001 and by a gift from Google Quantum AI.
+
+
+ 1     Introduction
+
+For 30 years we have known that quantum computers can solve certain problems significantly
+faster than any known classical algorithm. Traditionally, most of the research in this area has
+focused on decision problems (like SAT) or function problems (like Factoring), where for each
+possible input there is a unique “correct” output. However, we have also found that quantum
+computers can yield speedups for the task of sampling from certain probability distributions.
+Prominent examples include boson sampling [1] and random circuit sampling [8]. Sampling
+tasks have seemed more natural for NISQ-era quantum computation, and indeed many of the
+first candidate experimental demonstrations of quantum advantage have been for sampling
+problems [6].
+    One of the downsides of sampling problems is the challenge of verifying the output of an
+algorithm, whether classical or quantum, that claims to sample from a certain distribution.
+As a simple example, consider a classical or quantum algorithm that implements a supposed
+hash function with output alphabet [d] := {1, . . . , d}. The algorithm designer claims that the
+output distribution of this hash function is uniform on [d]. If p denotes the actual output
+distribution of the algorithm, and ud denotes the uniform distribution on [d], then we would
+like to test whether p = ud , and reject the claim if p is in fact ε-far from ud in total variation
+distance, meaning 12 ∥p − ud ∥1 > ε. (We will also consider other distance measures in this
+work, since the complexity of the testing task is sensitive to this choice.)
+             © Clément L. Canonne, Robin Kothari, and Ryan O’Donnell;
+             licensed under Creative Commons License CC-BY 4.0
+20th Conference on the Theory of Quantum Computation, Communication and Cryptography (TQC 2025).
+Editor: Bill Fefferman; Article No. 7; pp. 7:1–7:20
+                    Leibniz International Proceedings in Informatics
+                    Schloss Dagstuhl – Leibniz-Zentrum für Informatik, Dagstuhl Publishing, Germany
+7:2   Uniformity Testing When You Have the Source Code
+
+
+          This verification task is called “uniformity testing” (in total variation distance) and its
+      complexity is well studied in the classical literature. If we only have access to samples from
+      p, but are not allowed to inspect the algorithm that produces these samples, it is known
+      that Θ(d1/2 /ε2 ) samples are necessary and sufficient to solve this problem; there are various
+      classical algorithms that achieve this bound (starting with that of [28]; see, e.g., [11] for a
+      detailed survey and discussion), and it is also not possible to do better with a quantum
+      algorithm. But what if – as in the examples above – we do have access to the algorithm that
+      produces p? Can we improve on this complexity if we have access to the “source code” of
+      the algorithm?
+
+      Having the source code
+      To clarify, the “source code” for a classical randomized sampling algorithm means a random-
+      ized circuit (with no input) whose output is one draw from p. More generally, the “source
+      code” for a quantum sampling algorithm means a unitary quantum circuit (with all input
+      qubits fixed to |0⟩) which gives one draw from p when some of its output bits are measured in
+      the standard basis and the rest are discarded.1 The simplest way to use the code C for p is
+      to run it, obtaining one sample. If C has size S, then getting one sample this way has cost S.
+      Another way to use the code C is to deterministically compute all its output probabilities;
+      this gives one perfect information about p, but has cost bound 2S . But quantum computing
+      has suggested a third way to use the code: “running it in reverse”. For example, Grover’s
+      original algorithm [18] can be seen as distinguishing two possibilities for p on [2], namely
+      p1 = 0 or p1 = 1/N , while using only O(N 1/2 ) forwards/backwards executions of C. The
+      total cost here is O(N 1/2 ) · S, the same as the cost for O(N 1/2 ) samples.
+          We suggest that the utility of “having the source code” for distribution testing problems
+      remains notably underexplored. Indeed, there is significant room for improvment in the
+      bounds for even the most canonical of all such problems: uniformity testing. Our main
+      theorem is the following:
+      ▶ Theorem 1. There is a computationally √  efficient quantum algorithm for uniformity testing
+      with the following guarantees: given ε ≥ 1/ d, the algorithm makes O(d1/3 /ε4/3 ) uses of “the
+      code” for an unknown distribution p over [d], and distinguishes with probability at least .99
+      between
+
+           (1) p = ud ,       and       (2) dTV (p, ud ) > ε.                                                (1)
+
+      The main idea behind this theorem is to combine very careful classical probabilistic analysis
+      with a black-box use of Quantum Mean Estimation (QME) [19, 9, 21, 25, 20, 22]; see Section 2
+      for further discussion. Table 1 below compares our result to prior work on the problem.
+      Table 1 has two columns because it seems that different algorithms are necessary depending
+      on how d and ε relate. (Interestingly, this is not the case in the classical no-source-code
+      model.) Thus combining our new result with that of [24], the best known upper bound
+      becomes O(min{d1/3 /ε4/3 , d1/2 /ε}). We remark that although [24]’s algorithm/analysis is
+      already simple, we give an alternative simple algorithm and analysis achieving O(d1/2 /ε) in
+      Section A, employing the classical analysis + QME approach used in the proof of our main
+      theorem.
+
+      1
+          This is sometimes termed the “purified quantum query access model”, and is the most natural and
+          general model. The “quantum string oracle”, referenced later in Table 1, refers to a situation in which
+          one assumes a very specific type of source code for p (thus making algorithmic tasks easier). See
+          Section 3 for details and [7] for a thorough discussion.
+C. L. Canonne, R. Kothari, and R. O’Donnell                                                                  7:3
+
+
+Lower bounds?
+As for lower bounds (holding even in the quantum string oracle model): complexity Ω(1/ε)
+is necessary even in the case of constant d = 2, following from work of [26]; and, [12] showed
+a lower bound of Ω(d1/3 ) even in the case of constant ε, by reduction from the collision
+problem [2]. For reasons discussed in Section 2, we make the (somewhat bold) conjecture
+that our new upper bound is in fact tight for all d and ε:
+
+▶ Conjecture 2. Any algorithm that distinguishes p = ud from dTV (p, ud ) > ε with success
+probability at least .99 requires Ω(min{d1/3 /ε4/3 , d1/2 /ε}) uses of the code for p. (Moreover,
+we conjecture this lower bound in the stronger quantum string oracle model.)
+
+
+Identity testing
+Several prior works in this area have also studied the following natural generalization of
+uniformity testing: testing identity of the unknown distribution p to a known hypothesis
+distribution q. An example application of this might be when q is a Porter–Thomas-type
+distribution arising as the ideal output of a random quantum circuit. Luckily, fairly recent
+work has given a completely generic reduction from any fixed identity testing problem to the
+uniformity testing problem; see [16], or [11, Section 2.2.3]. We can therefore immediately
+extend our new theorem to the general identity-testing setting:
+
+▶ Corollary 3. There is a computationally efficient quantum algorithm for identity testing
+to a reference distribution q over [d] with the following guarantees: The algorithm makes
+O(min(d1/3 /ε4/3 , d1/2 /ε)) uses of “the code” for an unknown distribution p over [d], and
+distinguishes with probability at least .99 between
+
+    (1) p = q,       and       (2) dTV (p, q) > ε.                                                  (2)
+
+   (For completeness, we verify in Section C that the blackbox reduction does indeed carry
+through in our setting, preserving access to “the code”.)
+
+
+More fine-grained results
+In proving our main theorem, we will in fact prove a strictly stronger version, one which is
+more fine-grained in two ways:
+(1) Tolerance: Not only does our test accept with high probability when p = ud , it also
+    accepts with high probability when p is sufficiently close to ud .
+
+
+    Table 1 “Sample” complexity for uniformity testing with respect to total variation distance.
+
+  Reference          Large ε regime                Small ε regime                Access model
+   [28, 4]             Θ(d1/2 /ε2 )                                          Classical, no source code
+    [10]          O(d ) for ε = Θ(1)∗
+                      1/3
+                                                                              Quantum string oracle
+    [12]               O(d1/3 /ε2 )                                           Quantum string oracle
+    [15]                                 O(d1/2 /ε) · log(d/ε)3 log log(d/ε)        Source code
+    [24]                                               O(d1/2 /ε)                   Source code
+ This work       O(d1/3 /ε4/3 ) for ε ≥ √1d                                         Source code
+*The work states a bound of O(d1/3 /ε4/3 ), but adds that ε must be constant.
+
+
+
+
+                                                                                                          TQC 2025
+7:4   Uniformity Testing When You Have the Source Code
+
+
+      (2) Stricter distance measure. Not only does our test reject with high probability when
+          dTV (p, ud ) > ε, it also rejects with high probability when dH (p, ud ) > ε. (This is
+          stronger, since dTV (p, q) ≤ dH (p, q) always.)
+         To elaborate, recall the below chain of inequalities, which also includes KL- and χ2 -
+      divergence. (We review probability distance measures in Section 3.)
+                     2
+           dTV (p, q) ≤ d2H (p, q) ≤ KL(p || q) ≤ χ2 (p || q).                                    (3)
+
+      The strictly stronger version of Theorem 1 that we prove is:
+      ▶ Theorem 4. There is a computationally efficient quantum algorithm for uniformity testing
+      with the following guarantees: For 1/d ≤ θ ≤ 1, the algorithm makes O(d1/3 /θ2/3 ) uses
+      of “the code” for an unknown distribution p over [d], and distinguishes with probability at
+      least .99 between
+
+           (1) χ2 (p || ud ) ≤ .99θ and ∥p∥∞ ≤ 100/d,        and     (2) d2H (p, ud ) > θ.        (4)
+
+      We remark that most prior works on uniformity testing [10, 12, 15, 24] also had some
+      additional such fine-grained aspects, beyond what is stated in Table 1.
+
+      Additional results
+      Speaking of χ2 -divergence, we mention two additional results we prove at the end of our
+      work. These results additionally inform our Conjecture 2.
+          First, as mentioned earlier, in Section A we give an alternative proof of the O(d1/2 /ε)
+      upper bound of [24], and – like in that work – our result is tolerant with respect to χ2 -
+      divergence. That is, we prove the strictly stronger result that for θ ≤ 1/d, one can use
+      the code O(d1/2 /θ1/2 ) times to distinguish χ2 (p || ud ) ≤ cθ from χ2 (p || ud ) > θ (for some
+      constant c > 0).
+          Second, recall that χ2 (p || ud ) can be as large as d. For example, χ2 (uS || ud ) = dr − 1
+      for any set S ⊆ [d] of size r. Thus it makes sense to consider the uniformity testing problem
+      even with respect to a χ2 -divergence threshold θ that exceeds 1. In Section B we show (albeit
+      only in the quantum string oracle model) that for θ ≥ 1, one can use the code O(d1/3 /θ1/3 )
+      times to distinguish χ2 (p || ud ) ≤ cθ from χ2 (p || ud ) > θ, and this is optimal.
+
+       2      Technical overview of our proof
+      Our main algorithm is concerned with achieving the best possible ε-dependence for uniformity
+      testing while maintaining a d-dependence of d1/3 ; in this way, it is best compared with
+      the older works of [10, 12], the latter of which achieves complexity O(d1/3 /ε2 ), as well as
+      the classical (no-source-code) algorithm achieving complexity O(d1/2 /ε2 ). In fact, all four
+      algorithms here are almost the same (except in terms of the number of samples they use).
+      Let us describe our viewpoint on this common methodology.
+      We consider the algorithm as being divided into two Phases, and we may as well assume
+      each Phase uses n samples. Phase 1 will have two properties:
+          It will make n black-box draws from p (i.e., the source code is not used in Phase 1).
+          Using these draws, Phase 1 will end by constructing a certain “random variable” – in the
+          technical sense of a function Y : [d] → R.
+          The mean of this random variable Y , vis-a-vis the unknown distribution p, will ideally
+                                                 2                                  Pd
+          be close to χ2 (p || u) = d · ∥p − ud ∥2 . That is, ideally µ := Ep [Y ] = j=1 pj Y (j) ≈
+          χ2 (p || ud ).
+C. L. Canonne, R. Kothari, and R. O’Donnell                                                                     7:5
+
+
+Phase 2 then performs a mean estimation algorithm on Y (vis-a-vis p) to get an estimate of µ
+and therefore of χ2 (p || ud ). Ideally, the resulting overall algorithm is not just a uniformity
+tester, but a χ2 -divergence-from-uniformity estimator. This could then be weakened to a
+                                                                   2
+TV-distance uniformity tester using the inequality dTV (p, ud ) ≤ χ2 (p || ud ).
+    The mean estimation algorithm used in Phase 2 differs depending on whether one has
+the source code or not. In the classical (no source code) model, one simply uses the
+naive mean estimation algorithm based on n more black-box samples; by Chebyshev’s
+inequality, this will (with q high probability) give an estimate of µ to within ±O(σ/n1/2 ),
+                                Pd                2
+where σ := stddevp [Y ] =         j=1 (Y (j) − µ) . In the case of a quantum tester with the
+source code access, we can use a Quantum Mean Estimation (QME) routine; in particular,
+the one from [22] will (with high probability) yield an estimate of µ to within ±O(σ/n).2
+    A subtle aspect of this overall plan is that the mean µ and standard deviation σ of Y
+are themselves random variables (in the usual sense), where the randomness comes from
+Phase 1. Thus it is natural to analyze EPhase 1 [µ] and EPhase 1 [σ]. Of course, these depend
+on the definition of Y , which we now reveal: Y (j) = nd Xj − 1, where Xj denotes the number
+of times j ∈ [d] was drawn in Phase 1. The point of this definition of Y is that a short
+calculation implies
+
+     EPhase 1 [µ] = χ2 (p || ud );                                                                    (5)
+
+that is, the random variable µ is an unbiased estimator for our quantity of interest, the
+χ2 -divergence of p from ud . This is excellent, because although the algorithm does not see µ
+at the end of Phase 1, it will likely get a good estimate of it at the end of Phase 2. . . so long
+as (the random variable) σ is small.
+    We therefore finally have two sources of uncertainty about our final error (in estimating
+χ2 (p || ud )):
+1. Although EPhase 1 [µ] = χ2 (p || ud ), the random variable µ may have fluctuated around
+    its expectation at the end of Phase 1. One way to control this would be to bound
+    VarPhase 1 [µ] (and then use Chebyshev).
+2. The Phase 2 mean estimation incurs an error proportional to σ. One way to control this
+    would be to bound EPhase 1 [σ 2 ] (and then use Markov to get a high-probability bound
+    on σ 2 , and hence σ).
+The quantities controlling the error here, VarPhase 1 [µ] and EPhase 1 [σ 2 ], are explicitly calcul-
+able symmetric polynomials in p1 , . . . , pd of degree at most 4, depending on n. In principle,
+                                                                      2
+then, one can relate these quantities to χ2 (p || ud ) = d · ∥p − ud ∥2 itself, and derive a bound
+on how big n must be to (with high probability) get a good estimate of χ2 (p || ud ).
+    In the classical (no source code) case, this methodology is a way to obtain the O(d1/2 /ε2 )
+sample complexity, adding to the number of existing classical sample-optimal algorithms
+for the task. (This method in particular has some potential useful applications; e.g., one
+could consider decoupling the number of samples used in Phases 1 and 2 to, e.g., obtain
+tradeoffs for memory-limited settings). On one hand, with this method one can give a very
+compressed proof of the O(d1/2 /ε2 ) that, factoring out routine calculations, fits in half a
+
+
+2
+    This QME routine was not available at the time of [10, 12] which had to make do with Quantum
+    Approximate Counting [9] – essentially, QME for Bernoulli random variables. But this is not the source
+    of our improvement; one can obtain our main theorem with only a (polylog d)-factor loss using just
+    Quantum Approximate Counting.
+
+
+
+
+                                                                                                             TQC 2025
+7:6   Uniformity Testing When You Have the Source Code
+
+
+      page (see, e.g., [27, Sec. 10]). On the other hand, one has to execute the calculations and
+      estimations with great care, lest one would obtain a suboptimal result (there is a reason it
+      took 8 years3 to get the optimal quadratic dependence on ε [17, 28]).
+          In the case when source code is available, so that one can use the QME algorithm, how
+      well does this methodology fare? On one hand, QME gives a quadratic improvement over
+      naive classical mean estimation, meaning one can try to use signficantly fewer samples in
+      Phase 2. But when one balances out the sample complexity between the two Phases, it
+      implies one is using fewer samples in Phase 1, and hence one gets worse concentration of µ
+      around its mean in Phase 1. So the calcuations become more delicate.
+
+
+      2.1      Heuristic calculations
+      Instead of diving into complex calculations, let’s look at some heuristics. First, let’s consider
+      how the algorithm proceeds in the case when p really is the uniform distribution ud . In this
+      case, as long as we’re in a scenario where n ≪ d1/2 , we will likely get all distinct elements
+      in Phase 1, meaning that Xj will be 1 for exactly n values of j and Xj will be 0 otherwise.
+      Then Y (j) will be nd − 1 for n values of j and will be −1 otherwise. This indeed means
+                       Pd
+      µ = Ep [Y ] = d1 j=1 Y (j) = 0 = ∥p − ud ∥2 with certainty in Phase 1. This is very good; we
+      get no error out of Phase 1. However QME in Phase 2 will not perfectlyqreturn   the value µ = 0;
+                                                                               1
+                                                                                 Pd
+      rather, it will return something in the range ±O(σ/n), where σ = d j=1 (Y (j) − 0)2 =
+      q
+         d          1/2
+         n −1 ∼ d       /n1/2 . Thus the value returned by QME may well be around d1/2 /n3/2 ,
+      which from the algorithm’s point of view is consistent with χ2 (p || ud ) ≈ d1/2 /n3/2 . Thus
+                                                                      2
+      the algorithm will only become confident that dTV (p, ud ) ⪅ d1/2 /n3/2 , and hence it can
+      only confidently accept in the case p = ud provided d1/2 /n3/2 ⪅ ε2 ; i.e., n ⪆ d1/3 /ε4/3 . We
+      thereby see that with this algorithm, a uniformity testing upper bound of O(d1/3 /ε4/3 ) is
+      the best we can hope for. If one also believes that this algorithm might be optimal (and it
+      has been the method of choice for essentially all previously known results), then this could
+      possibly be taken as evidence for our Conjecture 2.
+          At this point, one might try to prove that complexity O(d1/3 /ε4/3 ) is achievable; so far
+      we have only argued that with this many samples, the algorithm will correctly accept when
+      p = ud (with high probability). Again, before jumping into calculations, one might try
+      to guess the “hardest” kind of ε-far distributions one might face, and try to work out the
+      calculations for these cases. The hardest distributions in the classical case (i.e., the ones that
+      lead to the matching Ω(d1/2 /ε2 ) lower bound) are very natural: they are the p’s in which half
+      of the elements j ∈ [d] have pj = 1+2εd   and half have pj = 1−2εd . Assuming this is the “worst
+                                                                       2
+      case”, one can calculate what VarPhase 1 [µ] and EPhase 1 [σ ] will be, and the calculations
+      turn out just as desired. That is, with n = O(d1/3 /ε4/3 ), these two error quantities can be
+      shown to be suffciently small so that the overall algorthm will correctly become confident
+                                        2                    2
+      that χ2 (p || ud ) = d · ∥p − ud ∥2 ≤ 4d · dTV (p, ud ) significantly exceeds ε2 , and hence the
+      algorithm can correctly reject.
+          Everything therefore looks good, but there is a fly in the ointment. Even though this
+      particular p with its values of 1±2εd   seems like the “hardest” distribution to face, one still
+      has to reason about all possible p’s with dTV (p, ud ). And when one does the calculations
+      of Var[µ] and E[σ 2 ] as prescribed by the standard methodology, the plan ends up failing.
+
+
+      3
+          Technically, it took more than 8 years, as the proof of [28] was later shown to have a flaw: so the tight
+          dependence had to wait until [4]. See [11, Section 2.3] for a discussion.
+C. L. Canonne, R. Kothari, and R. O’Donnell                                                                     7:7
+
+
+Specifically one gets too much error for p’s that have somewhat “heavy” elements, meaning
+pj ’s with pj ≫ 1/d. The prior works [10, 12] cope with this failure by taking more samples;
+i.e., setting n = O(d1/3 /εc ) for c > 4/3 (specifically, [12] achieves c = 2). But our goal is to
+show that this is unnecessary – that the algorithm itself works, even though the standard
+and natural way of analyzing it fails.
+     In short, the reason the standard analysis of the algorithm fails is due to “rare events” that
+are caused by heavy elements in p. These j’s with pj ≫ 1/d may well still have pj ≪ 1/n
+(for our desired n = O(d1/3 /ε4/3 )), and thus be drawn only rarely in Phase 1. The major
+difficulty is that when they are drawn, they generate a very large contribution to σ 2 , causing
+EPhase 1 [σ 2 ] to be “misleadingly large”. That is, when there are heavy elements, σ 2 may have
+the property of typically being much smaller than its expectation. Thus controlling the QME
+error using the expected value of σ 2 is a bad strategy.
+     Perhaps the key insight in our analysis is to show: In those rare Phase 1 outcomes when
+σ 2 is unusually large, µ is also unusually large compared to its expectation. The latter
+event is helpful, because if µ ends up much bigger than its expectation, we can tolerate a
+correspondingly worse error-bar from QME. In short, we show that the rare bad outcomes
+for σ 2 coincide with the rare good outcomes for µ.
+     In order to make this idea work out quantitatively, we (seem to) need to weaken our
+ambitions and get something a bit worse than a χ2 -divergence-from-uniform estimation
+algorithm, in two ways. (This is fine, as our main goal is just a non-tolerant uniformity tester
+with respect to TV.) First, rather than insisting that we accept with high probability when
+χ2 (p || ud ) ≤ .99θ and reject with high probability when χ2 (p || ud ) > θ, we need to only
+require rejection when d2H (p, ud ) > θ. The reason is that the rare large values of σ 2 that we
+face are only comparable with the larger value d2H (p, ud ), and not with χ2 (p || ud ).4
+     As for the second weakening we need to make: We explicitly add to our tester a check
+that the value of maxj {Xj } arising after Phase 1 is not too large. Roughly speaking, this
+extra test ensures that there are no very heavy elements. (Of course, this is satisfied when
+p = ud , so we don’t mind adding this test.) The reason we need to add this check is so
+                                                Pd
+that we can bound the quadratic expression j=1 Xj2 (which enters into the value of σ 2 ) by
+                Pd
+maxj {Xj } · j=1 Xj ; in turn, once maxj {Xj } is checked to be small, this expression can be
+                                    Pd
+bounded by the linear quantity j=1 Xj , which can be related to µ. It is by relating σ 2 to
+µ in this way that we are able to show the correlation between rare events – that when σ 2 is
+big, µ is also big.
+     To conclude, we apologize to the reader for writing a “technical overview” whose length
+is nearly comparable to that of the actual proof itself. While we tried to make our argument
+as streamlined and concise as possible, we felt that it was worth conveying the ideas and
+detours which led us there, and which, while now hidden, motivated the final proof.
+
+    3    Preliminaries
+3.1      Probability distances
+Throughout, log and ln the binary and natural logarithms, respectively. We identify a
+probability distribution p over [d] = {1, 2, . . . , d} with its probability mass function (pmf), or,
+
+
+4
+    We remark that this χ2 -versus-Hellinger-squared dichotomy is quite reminsicent of the one that occurs
+    in classical works on identity testing, such as [4].
+
+
+
+
+                                                                                                             TQC 2025
+7:8   Uniformity Testing When You Have the Source Code
+
+                                                                  Pd
+      equivalently, a vector p ∈ Rd such that pi ≥ 0 for all i and i=1 pi = 1. For a subset S ⊆ [d],
+                                  P
+      we accordingly let p(S) = i∈S pi . The total variation distance between two distributions
+      p, q over [d] is defined as
+                                               1
+         dTV (p, q) = sup {p(S) − q(S)} =        ∥p − q∥1 ∈ [0, 1],                                (6)
+                         S⊆[d]                 2
+
+      where the last equality is from Scheffé’s lemma. By Cauchy–Schwarz, this gives us the
+      relation
+                                    √
+          1                           d
+            ∥p − q∥2 ≤ dTV (p, q) ≤     ∥p − q∥2 .                                       (7)
+          2                          2
+      We will in this paper also consider other notions of distance between probability distributions:
+      the squared Hellinger distance, defined as
+                        d
+                        X  √    √ 2      √   √ 2
+         d2H (p, q) =     ( pi − qi ) = ∥ p − q∥2 ∈ [0, 2].                                        (8)
+                        i=1
+
+      (Some texts normalize this by a factor of 12 ; we do not do so, as it makes our statements
+      cleaner.) The chi-squared divergence is then defined as
+                        d                 d
+                                                  !
+           2
+                       X   (pi − qi )2   X    p2i
+          χ (p || q) =                 =            − 1,                                     (9)
+                       i=1
+                               qi        i=1 i
+                                              q
+
+      while the Kullback–Leibler divergence (least relevant to us, but quite common in the literature),
+      in nats, is defined as
+                         d
+                         X              qi
+         KL(p || q) =           qi ln      .                                                      (10)
+                          i=1
+                                        pi
+
+      As mentioned in Equation (3), we have the following well known [14] chain of inequalities:
+
+                    2
+         dTV (p, q) ≤ d2H (p, q) ≤ KL(p || q) ≤ χ2 (p || q).                                      (11)
+
+      Moreover, for the special case of the uniform distribution ud over [d], we have
+                                           2
+         χ2 (p || ud ) = d · ∥p − ud ∥2 .                                                         (12)
+
+      3.2    Distribution access models
+      For a probability distribution p on [d], we say a unitary Up is a synthesizer for p if for some
+      k
+                    X√
+         Up |0k ⟩ =       pi |i⟩ |ψi ⟩ ,                                                          (13)
+                    i∈[d]
+
+      where the |ψi ⟩’s are normalized states often called “garbage states”. Note that any classical
+      randomized circuit using S gates that samples from p can be converted to a synthesizer
+      Up in a purely black-box way with gate complexity O(S). (See [22] for details and a more
+      thorough discussion of synthesizers.)
+          In this paper, we say an algorithm makes t uses of “the code for p” to mean that we use
+      (as a black box) the unitaries Up , Up† , and controlled-Up a total of t times in the algorithm.
+C. L. Canonne, R. Kothari, and R. O’Donnell                                                          7:9
+
+
+Each of these unitaries is easy to construct given an explicit gate decomposition of Up with
+the same gate complexity up to constant factors.
+    The quantum string oracle, which is used in many prior works, is a specific type of source
+code for p. Here we have standard quantum oracle access to an m-bit string x ∈ [d]m for
+some m. For any symbol i ∈ [d], the probability pi is defined as the frequency with which
+                                        1
+that symbol appears in x, i.e., pi = m    |{j : xj = i}|. Note that calling this oracle on the
+uniform superposition over m gives us a synthesizer for p. When a randomized sampler for
+p is converted to a synthesizer, we get a quantum string oracle, but quantum string oracles
+are not as general as arbitrary synthesizers. For example, all probabilities described by a
+                                                      1
+quantum string oracle will be integer multiples of m    , whereas an arbitrary synthesizer has
+no such constraint.
+
+3.3     Quantum Mean Estimation
+When we use QME, we will have the source code for some distribution p on [d], and we will
+also have explicitly constructed some (rational-valued) random variable Y : [d] → Q (say,
+simply as a table). From this, one can easily generate code that outputs a sample from Y
+(i.e., outputs Y (j) for j ∼ [d]), using the code for p just one time. We will then use the
+following QME result from [22]:
+▶ Theorem 5. There is a computationally efficient quantum algorithm with the following
+guarantee: Given the source code for a random variable Y , as well as parameters n and
+δ, the algorithm uses the code O(n log(1/δ)) times and outputs an estimate µ
+                                                                           b such that
+    µ − µ| > σ/n] ≤ δ, where µ = E[Y ] and σ = stddev[Y ].
+Pr[|b
+
+ 4      Algorithm in the Large Distance Regime
+In this section, we establish Theorem 1, our main technical contribution. We do this by
+proving the strictly stronger Theorem 4, which we restate more formally:
+▶ Theorem 6. For any constant B > 0, there exists a computationally efficient quantum
+algorithm (Algorithm 1) with the following guarantees: on input d1 ≤ θ ≤ 1, it makes
+O(d1/3 /θ2/3 ) uses (where the hidden constant depends on B) of “the code” for an unknown
+probability distribution p over [d], and satisfies
+1. If χ2 (p || ud ) ≤ .99θ and ∥p∥∞ ≤ B/d, then the algorithm will accept with probability at
+    least .99.
+2. If d2H (p, ud ) ≥ θ, then the algorithm will reject with probability at least .99.
+
+Proof. Let us start by recording the following inequalities that we will frequently use:
+
+     n = ⌈cd1/3 /θ2/3 ⌉, θ ≥ 1/d   =⇒    c/θ ≤ n ≤ cd.                                     (14)
+
+We begin with a simple lemma regarding the check on Section 4:
+▶ Lemma 7. If ∥p∥∞ ≤ B/d, then Section 4 will reject with probability at most .001.
+Conversely, if ∥p∥∞ > 2L/n, then Section 4 will reject with probability at least .999.
+
+Proof. Let X j ∼ Bin(n, pj ) denote the number of times j is drawn. The second (“conversely”)
+part of of the proposition follows from a standard Chernoff bound. As for the first part,
+suppose ∥p∥∞ ≤ B/d. Now on one hand, if n ≤ d.99 /B, so that L = 100, we have
+                            
+                              n
+   Pr[Bin(n, pj ) ≥ 100] ≤        p100 ≤ ((en/100)pj )100 ≤ (e/(100d.01 ))100 ≤ .001/d, (15)
+                             100 j
+
+
+
+                                                                                                  TQC 2025
+7:10   Uniformity Testing When You Have the Source Code
+
+
+          Algorithm 1 for the large distance regime.
+       Require: Parameter d1 ≤ θ ≤ 1, constant B ≥ 1.
+        1: Let c = c(B) and let C = C(c) be sufficiently large, and let L be defined as
+                   (
+                     100      if n ≤ d.99 /B,
+              L :=
+                     Bc ln d if n > d.99 /B.
+
+        2: Set n := ⌈cd1/3 /θ 2/3 ⌉.
+                                                                   1{Jt =j} be the number of times j ∈ [d] is
+                                                            Pn
+        3: Make n draws J 1 , . . . , J n , and let X j =    t=1
+           seen.
+        4: if X j ≥ L for any j then reject
+                                                                              d
+        5: Do QME with Cn “samples” on the random variable Y defined by Y j = n Xj − 1,
+           obtaining µ b.
+              b ≤ .995θ then accept
+        6: if µ
+        7: else reject
+
+
+
+       and thus X j < 100 for all j except with probability at most .001, as desired. Otherwise,
+       L = Bc ln d, and since E[X j ] ≤ Bn/d ≤ Bc, the desired result follows from a standard
+       Chernoff and union bound (provided c is large enough).                                 ◀
+
+       From this, we conclude:
+          In Case (1), Line 4 rejects with probability at most .001.
+          In Case (2), we may assume ∥p∥∞ ≤ 2L/n and ∥X∥∞ ≤ L, else Line 4 rejects with
+          probability ≥ .999. Call this observation (♢).
+                                                                    1+ε
+           Now to begin the QME analysis, write pj = d j , where εj ∈ [−1, d − 1], and let
+             Pd
+       µ = j=1 pj Y j , the mean of Y (from QME’s point of view). Writing η := d2H (p, ud ), our
+       first goal will be to show:
+
+          In Case (1),        µ ≤ .991θ                except with probability at most .001;             (16)
+          In Case (2),        µ ≥ .997η                except with probability at most .002.             (17)
+                                                                          Pd
+       Starting with Equation (16), a short calculation (using             j=1 εj = 0) shows
+                                                  d
+                n                               1 X
+          µ = avg{εJ t }      =⇒       E[µ] =        ε2 = χ2 (p || ud )        =⇒    E[µ] ≤ .99θ in Case (1).
+               t=1                              d j=1 j
+                                                                                                         (18)
+
+       Also in Case (1) we get from Equation (18) that
+                                                           n
+                        1               1              B X 2      B                .99Bθ   Bθ2
+          Var[µ] =        Varj∼p [εj ] ≤ Ej∼p [ε2j ] ≤        εj = χ2 (p || ud ) ≤       ≤     ,         (19)
+                        n               n              nd j=1     n                  n      c
+
+       the last inequality using Equation (14). Combining the preceding two inequalities and using
+       Chebyshev, we indeed conclude Equation (16) (provided c = c(B) is sufficiently large).
+          Towards Equation (17), let b ≥ 2 be a certain universal constant to be chosen later, and
+       say that j ∈ [d] is light if pj ≤ b/d (i.e., εj ≤ b − 1), heavy otherwise. We will write
+                    n                                   n
+          µ1 = avg{εJ t : J t heavy} ≥ 0,        µ2 = avg{εJ t : J t light}         (so µ = µ1 + µ2 ),   (20)
+                 t=1                                   t=1
+C. L. Canonne, R. Kothari, and R. O’Donnell                                                                             7:11
+
+
+and also observe
+                          d                        d
+                   1      X p                    1X                     1 X      1 X 2
+η = d2H (p, ud ) =              (   1 + εj −1) ≤2
+                                                     min{|εj |, ε2j } ≤     εj +     εj =: η1 +η2 . (21)
+                      d                          d                      d        d
+                          j=1                       j=1                    heavy j        light j
+
+
+ Let us now make some estimates. First:
+             X         1 X
+   pheavy :=      pj =        (1 + εj ) ≥ η1 .                                                                (22)
+                       d
+                   j heavy            j heavy
+
+
+Also, similar to our Case (1) estimates we have
+                                                                         d
+                  1 X 2                                                  X
+   E[µ2 ] =          (εj + εj ) = η2 − η1            (where we used            εj = 0),                       (23)
+                  d                                                      j=1
+                    light j
+
+and
+
+      Var[µ2 ]
+          1                          1                          b X 2
+      =     Varj∼p [1j light · εj ] ≤ Ej∼p [1j light · ε2j ] ≤      εj
+          n                          n                         nd
+                                                               j light
+
+       b    b     b
+      = η2 ≤ θη2 ≤ η2 η (in Case (2)).                                                                        (24)
+       n    c     c
+We will now establish Equation (17); in fact, we we even will show the following very slightly
+stronger fact:
+
+   In Case (2),               µ ≥ .997(η1 + η2 ) ≥ .997η    except with probability at most .002. (25)
+
+We divide into two subcases:
+
+                                                             1
+Case (2a): η1 ≤ .001η2 . In this case we have η2 ≥ 1.001        (η1 + η2 ), and E[µ2 ] ≥ .999η2
+from Equation (23). Since Equation (24) implies Var[µ2 ] ≤ 1.001 cb η22 , Chebyshev’s inequality
+tells us that µ2 ≥ .998η2 except with probability at most .001 (provided c is large enough).
+                      .998
+But then µ ≥ µ2 ≥ 1.001    (η1 + η2 ), confirming Equation (25).
+
+                                                     .001
+Case (2b): η1 > .001η2 . In this case we have η1 ≥ 1.001  (η1 + η2 ) ≥ .0009(η1 + η2 ). We
+now use that heavy j have εj ≥ b − 1 to observe that
+
+          n                                                                                         Bin(n, pheavy )
+µ1 = avg{εJ t : J t heavy} ≥ (b−1)·(fraction of J t ’s that are heavy) = (b−1)·
+          t=1                                                                                            n
+                                                                                                              (26)
+
+(in distribution). We see that E[µ1 ] ≥ (b − 1)pheavy , and moreover concentration of Binomials
+and Equation (22) imply that
+
+                1                1
+   µ1 ≥           (b − 1)pheavy ≥ (b − 1)η1 except with probability at most .001,                             (27)
+                2                2
+provided that pheavy n is a sufficiently large constant. But we can indeed ensure this by taking
+c sufficient large: by Equation (22), being in Case (2b), and Equation (14), it holds that
+
+   pheavy n ≥ η1 n ≥ .0009(η1 + η2 )n ≥ .0009ηn ≥ .0009θn ≥ .0009c.                                           (28)
+
+
+
+                                                                                                                      TQC 2025
+7:12   Uniformity Testing When You Have the Source Code
+
+
+       At the same time, Equation (23) certainly implies E[µ2 ] ≥ −η1 , and Equation (24) implies
+       Var[µ2 ] ≤ cb η2 (η1 + η2 ) ≤ 1000·1001b
+                                         c      η12 (using Case (2b)). Thus Chebyshev implies
+
+          µ2 ≥ −1.1η1 except with probability at most .001,                                                                               (29)
+
+       provided c is large enough. Combining Equations (27) and (29) yields
+
+       µ = µ1 +µ2 ≥ ( b−1                b−1
+                       2 −1.1)η1 ≥ .0009( 2 −1.1)(η1 +η2 ) except with probability at most .002,
+                                                                                                                                          (30)
+
+       which verifies Equation (25) provided b is a large enough constant.
+
+          We have now verified the properties of µ claimed in Equations (16) and (25). Next we
+       analyze the random variable σ 2 that represents the variance of Y (from QME’s point of
+       view). Our goal will be to show:
+
+          In Case (1),        σ 2 /(Cn)2 ≤ 10−6 · θ2                             except with probability at most .001,                    (31)
+                                   2           2           −6        2
+          In Case (2),        σ /(Cn) ≤ 10                      ·µ               except with probability at most .001.                    (32)
+
+       Together with Equations (16) and (25), these facts are sufficient to complete the proof of the
+       theorem, by the QME guarantee of Theorem 5.
+          We have:
+                 d
+                 X                                     d
+                                                       X                                                d
+                                                                                                        X
+            2
+          σ :=         pj Y 2j − µ2 = (d/n)2                    pj X 2j − (µ + 1)2 ≤ (d/n)2                   pj X 2j = σ 2S + σ 2S c , (33)
+                 j=1                                   j=1                                              j=1
+
+                                                       2      c
+       where we’ve defined σ 2S := (d/n)               2
+                                                         P
+                                              j∈S pj X j and S = [d] \ S. We will be making two
+       different choices for S later, but we will always assume
+                                              X
+           S ⊇ {j : j light}, which implies        εj ≤ 0                                   (34)
+                                                                j∈S
+
+                                         Pd
+       (the implication because j=1 εj = 0 and S c contains only j’s with εj ≥ b − 1 ≥ 0). Now
+       since E[X 2j ] = npj (1 − pj ) + (npj )2 ≤ npj + (npj )2 , we have
+              2        2
+                           X 2        2
+                                        X 3
+          E[σ S ] ≤ (d /n)         pj + d             pj                                                                                  (35)
+                             j∈S               j∈S
+                                       X                    X 2                             X                   X 2                X 3
+                 ≤ d/n + (2/n)               εj + (1/n)           εj + 1/d + (3/d)                 εj + (3/d)         εj + (1/d)         εj
+                                       j∈S                  j∈S                              j∈S                j∈S                j∈S
+                                                                                                                                          (36)
+                                                                         !
+                                        1X      1X 2                             1X 3
+                 ≤ (5cd/n) 1 +             εj +   εj                         +     εj                                                     (37)
+                                        d       d                                d
+                                             j∈S            j∈S                    j∈S
+
+
+        (where the last inequality used 1/d ≤ c/n ≤ (c − 1)d/n from Equation (14)). Using
+       Equation (34) to drop the term of Equation (37) that’s linear in the εj ’s, we thereby conclude
+                                                                                       3/2
+                                                         1 X                      1 X
+          E[σ 2S /(Cn)2 ] ≤ E[σ 2S /n2 ] ≤ (5cd/n3 )1 +     ε2j  + (d1/2 /n2 )     ε2j                                                (38)
+                                                         d                        d
+                                                                                   j∈S                                j∈S
+
+                                                                                          θ4/3 3/2
+                                                   ≤ (5θ2 /c2 )(1 + ηS ) +                      η ,                                       (39)
+                                                                                         c2 d1/6 S
+C. L. Canonne, R. Kothari, and R. O’Donnell                                                               7:13
+
+
+where ηS := d1 j∈S ε2j . In Case (1) we select S = [d], so ηS = χ2 (p || ud ) ≤ .99θ ≤ θ ≤ 1,
+              P
+
+and the above bound gives
+                                             θ17/6
+   Case (1) =⇒ E[σ 2 /(Cn)2 ] ≤ 10θ2 /c2 +          ≤ ·10−9 · θ2                  (40)
+                                            c2 d1/6
+(provided c is large enough). Now Equation (31) follows by Markov’s inequality.
+    In Case (2) we select S = {j : j light}, so ηS = η2 and we conclude (using obvious
+notation)
+                                                          θ4/3 3/2
+  Case (2) =⇒ E[σ 2light /(Cn)2 ] ≤ (5θ2 /c2 )(1 + η2 ) + 2 1/6 η2 ≤ .4 · 10−9 · (η1 + η2 )2 , (41)
+                                                         c d
+(provided c large enough), where we used θ ≤ η ≤ η1 + η2 and also θ ≤ 1. We now complete
+the bounding of σ 2 in Case (2) by two different strategies:
+
+Case (2.i): n > d.99 /B.        In this case, L = Bc ln d, and (♢) tells us ∥p∥∞ ≤ 2L/n, so we
+have
+             2Bc ln d    2B 2 c ln d
+   ∥p∥∞ ≤             ≤              .                                                          (42)
+                n          d.99
+Now returning to Equation (37), we get
+                         5cd        5cd      n 2  1 X
+  E[σ 2heavy /(Cn)2 ] ≤ 2 3 + 2 3 1 + εmax +    ε    ·  εj                                      (43)
+                        C n        C n       5cd max d
+                                                                       j heavy
+
+                             5θ2    5cd2         n       2
+                                                                    5θ2    14B 6 c2 ln2 d
+                        ≤         +        ∥p∥∞ +    · ∥p∥∞   η 1 ≤       +                η1 ,
+                            (Cc)2   C 2 n3        5c                (Cc)2     C 2 d1.96
+                                                                                             (44)
+where we used Equation (42) and n > d.99 /B. We can again bound the first expression in
+                     5θ 2       −6
+Equation (44) as (Cc)     2 ≤ 10   · (η1 + η2 )2 . As for the second expression, either η1 = 0 (there
+are no heavy j’s) or else η1 ≥ b−1    d (there is at least one heavy j). In either case, we have
+      d
+η1 ≤ b−1 η12 ≤ dη12 , so we can bound this second expression by
+
+    14B 6 c2 ln2 d 2
+                  η1 ≤ .4 · 10−9 · (η1 + η2 )2                                        (45)
+      C 2 d.96
+where we used C = C(c) sufficiently large (and we could have taken C = 1 were willing to
+assume d sufficiently large). Putting this bound together with Equation (41) we obtain:
+   Case (2.i) =⇒ E[σ/(Cn)2 ] ≤ .8 · 10−9 · (η1 + η2 )2 ≤ .997
+                                                          .8
+                                                              · 10−9 · µ2 ≤ ·10−9 · µ2 ,        (46)
+using Equation (25). Equation (32) now follows (in this Case (2.i)) by Markov’s inequality.
+
+Case (2.ii): n ≤ d.99 /B.       In this case we use a different strategy. Recall from Equation (33)
+that
+                  d
+                  X                             d
+                                                X
+   σ 2 ≤ (d/n)2         pj X 2j ≤ (d/n)2 ∥X∥∞         pj X j = (d/n)∥X∥∞ (1 + µ).               (47)
+                  j=1                           j=1
+
+By (♢) we may assume ∥X∥∞ ≤ L = 100, the equality because we are in Case (2.ii). Thus
+                                                      100θ2   100θ2
+   σ 2 /(Cn)2 ≤ σ 2 /n2 ≤ 100(d/n3 )(1 + µ) ≤               +       µ ≤ 10−6 · µ2 .             (48)
+                                                        c3      c3
+                                                    1
+(provided c large enough), where we used θ ≤ η ≤ .997 µ (from Equation (25)) and also θ ≤ 1.
+This verifies Equation (32) in Case (2.ii), completing the proof.                        ◀
+
+
+
+
+                                                                                                        TQC 2025
+7:14   Uniformity Testing When You Have the Source Code
+
+
+            References
+        1   Scott Aaronson and Alex Arkhipov. The computational complexity of linear optics. Theory of
+            Computing, 9(4):143–252, 2013. doi:10.4086/toc.2013.v009a004.
+        2   Scott Aaronson and Yaoyun Shi. Quantum lower bounds for the collision and the element
+            distinctness problems. J. ACM, 51(4):595–605, July 2004. doi:10.1145/1008731.1008735.
+        3   Jayadev Acharya, Clément L. Canonne, Yanjun Han, Ziteng Sun, and Himanshu Tyagi.
+            Domain compression and its application to randomness-optimal distributed goodness-of-fit. In
+            Proceedings of Thirty Third Conference on Learning Theory, volume 125 of Proceedings of
+            Machine Learning Research, pages 3–40. PMLR, July 2020. URL: http://proceedings.mlr.
+            press/v125/acharya20a.html.
+        4   Jayadev Acharya, Constantinos Daskalakis, and Gautam C. Kamath. Optimal Testing for
+            Properties of Distributions. In Advances in Neural Information Processing Systems 28, pages
+            3577–3598. Curran Associates, Inc., 2015.
+        5   Andris Ambainis. Quantum walk algorithm for element distinctness. SIAM Journal on
+            Computing, 37(1):210–239, 2007. doi:10.1137/S0097539705447311.
+        6   Frank Arute, Kunal Arya, Ryan Babbush, Dave Bacon, Joseph C. Bardin, Rami Barends,
+            Rupak Biswas, Sergio Boixo, Fernando G. S. L. Brandao, David A. Buell, Brian Burkett,
+            Yu Chen, Zijun Chen, Ben Chiaro, Roberto Collins, William Courtney, Andrew Dunsworth,
+            Edward Farhi, Brooks Foxen, Austin Fowler, Craig Gidney, Marissa Giustina, Rob Graff,
+            Keith Guerin, Steve Habegger, Matthew P. Harrigan, Michael J. Hartmann, Alan Ho, Markus
+            Hoffmann, Trent Huang, Travis S. Humble, Sergei V. Isakov, Evan Jeffrey, Zhang Jiang,
+            Dvir Kafri, Kostyantyn Kechedzhi, Julian Kelly, Paul V. Klimov, Sergey Knysh, Alexander
+            Korotkov, Fedor Kostritsa, David Landhuis, Mike Lindmark, Erik Lucero, Dmitry Lyakh,
+            Salvatore Mandrà, Jarrod R. McClean, Matthew McEwen, Anthony Megrant, Xiao Mi,
+            Kristel Michielsen, Masoud Mohseni, Josh Mutus, Ofer Naaman, Matthew Neeley, Charles
+            Neill, Murphy Yuezhen Niu, Eric Ostby, Andre Petukhov, John C. Platt, Chris Quintana,
+            Eleanor G. Rieffel, Pedram Roushan, Nicholas C. Rubin, Daniel Sank, Kevin J. Satzinger,
+            Vadim Smelyanskiy, Kevin J. Sung, Matthew D. Trevithick, Amit Vainsencher, Benjamin
+            Villalonga, Theodore White, Z. Jamie Yao, Ping Yeh, Adam Zalcman, Hartmut Neven, and
+            John M. Martinis. Quantum supremacy using a programmable superconducting processor.
+            Nature, 574(7779):505–510, October 2019. doi:10.1038/s41586-019-1666-5.
+        7   Aleksandrs Belovs. Quantum algorithms for classical probability distributions. In Proceedings
+            of the 27th Annual European Symposium on Algorithms (ESA), pages 50–59. Schloss Dagstuhl
+            – Leibniz-Zentrum für Informatik, 2019. doi:10.1007/978-3-030-19955-5_5.
+        8   Sergio Boixo, Sergei V. Isakov, Vadim N. Smelyanskiy, Ryan Babbush, Nan Ding, Zhang
+            Jiang, Michael J. Bremner, John M. Martinis, and Hartmut Neven. Characterizing quantum
+            supremacy in near-term devices. Nature Physics, 14(6):595–600, April 2018. doi:10.1038/
+            s41567-018-0124-x.
+        9   Gilles Brassard, Peter Høyer, and Alain Tapp. Quantum counting. In Proceedings of the 25th
+            Annual International Colloquium on Automata, Languages, and Programming (ICALP), pages
+            820–831. Springer–Verlag, 1998. doi:10.1007/bfb0055105.
+       10   Sergey Bravyi, Aram Harrow, and Avinatan Hassidim. Quantum algorithms for testing
+            properties of distributions. Transactions on Information Theory, 57(6):3971–3981, 2011.
+            doi:10.1109/TIT.2011.2134250.
+       11   Clément L. Canonne. Topics and techniques in distribution testing: A biased but representative
+            sample. Foundations and Trends® in Communications and Information Theory, 19(6):1032–
+            1198, 2022. doi:10.1561/0100000114.
+       12   Sourav Chakraborty, Eldar Fischer, Arie Matsliah, and Ronald de Wolf. New Results on
+            Quantum Property Testing. In 30th International Conference on Foundations of Software
+            Technology and Theoretical Computer Science (FSTTCS 2010), volume 8 of Leibniz Interna-
+            tional Proceedings in Informatics (LIPIcs), pages 145–156, Dagstuhl, Germany, 2010. Schloss
+            Dagstuhl – Leibniz-Zentrum für Informatik. doi:10.4230/LIPIcs.FSTTCS.2010.145.
+C. L. Canonne, R. Kothari, and R. O’Donnell                                                            7:15
+
+
+13   Ilias Diakonikolas and Daniel M. Kane. A new approach for testing properties of discrete
+     distributions. In 57th Annual IEEE Symposium on Foundations of Computer Science, FOCS
+     2016. IEEE Computer Society, 2016.
+14   Alison Gibbs and Francis Su. On choosing and bounding probability metrics. International
+     Statistical Rreview, 70(3):419–435, 2002.
+15   András Gilyén and Tongyang Li. Distributional Property Testing in a Quantum World. In 11th
+     Innovations in Theoretical Computer Science Conference (ITCS 2020), volume 151 of Leibniz
+     International Proceedings in Informatics (LIPIcs), pages 25:1–25:19, Dagstuhl, Germany, 2020.
+     Schloss Dagstuhl – Leibniz-Zentrum für Informatik. doi:10.4230/LIPIcs.ITCS.2020.25.
+16   Oded Goldreich. The uniform distribution is complete with respect to testing identity to a
+     fixed distribution. Electronic Colloquium on Computational Complexity (ECCC), 23:15, 2016.
+     URL: http://eccc.hpi-web.de/report/2016/015.
+17   Oded Goldreich and Dana Ron. On testing expansion in bounded-degree graphs. Technical
+     Report TR00-020, Electronic Colloquium on Computational Complexity (ECCC), 2000.
+18   Lov Grover. A fast quantum mechanical algorithm for database search. In Proceedings of the
+     28th Annual ACM Symposium on the Theory of Computing (STOC), pages 212–219. ACM,
+     New York, 1996. doi:10.1145/237814.237866.
+19   Lov Grover. A framework for fast quantum mechanical algorithms. In Proceedings of the 30th
+     Annual ACM Symposium on the Theory of Computing (STOC), pages 53–62. ACM, New York,
+     1998. doi:10.1145/276698.276712.
+20   Yassine Hamoudi. Quantum Algorithms for the Monte Carlo Method. PhD thesis, Université
+     de Paris, 2021.
+21   Stefan Heinrich. Quantum summation with an application to integration. Journal of Complexity,
+     18(1):1–50, 2002. doi:10.1006/jcom.2001.0629.
+22   Robin Kothari and Ryan O’Donnell. Mean estimation when you have the source code; or,
+     quantum Monte Carlo methods, pages 1186–1215. Society for Industrial and Applied Mathem-
+     atics, January 2023. doi:10.1137/1.9781611977554.ch44.
+23   Samuel Kutin. Quantum lower bound for the collision problem with small range. Theory of
+     Computing, 1(2):29–36, 2005. doi:10.4086/toc.2005.v001a002.
+24   Jingquan Luo, Qisheng Wang, and Lvzhou Li. Succinct quantum testers for closeness and
+     k-wise uniformity of probability distributions. IEEE Trans. Inf. Theory, 70(7):5092–5103,
+     2024.
+25   Ashley Montanaro. Quantum speedup of Monte Carlo methods. Proceedings of the Royal
+     Society A, 471(2181):20150301, 20, 2015. doi:10.1098/rspa.2015.0301.
+26   Ashwin Nayak and Felix Wu. The quantum query complexity of approximating the median and
+     related statistics. In Proceedings of the Thirty-First Annual ACM Symposium on Theory of
+     Computing, STOC ’99, pages 384–393, New York, NY, USA, 1999. Association for Computing
+     Machinery. doi:10.1145/301250.301349.
+27   Ryan O’Donnell and John Wright. Learning and testing quantum states via probabilistic
+     combinatorics and representation theory. In Current developments in mathematics 2021, pages
+     43–94. International Press, Somerville, MA, 2023.
+28   Liam Paninski. A coincidence-based test for uniformity given very sparsely sampled discrete
+     data. IEEE Transactions on Information Theory, 54(10):4750–4755, 2008. doi:10.1109/TIT.
+     2008.928987.
+
+
+ A     Algorithm in the Small Distance Regime
+In this appendix, we provide an alternative (and arguably simpler) proof of the main result
+of [24]:
+
+▶ Theorem 8. There is a computationally efficient quantum algorithm (Algorithm 2) for
+uniformity testing with the following guarantees: it takes O(d1/2 /ε) “samples” from an
+
+
+
+                                                                                                     TQC 2025
+7:16   Uniformity Testing When You Have the Source Code
+
+
+       unknown probability distribution p over [d], and distinguishes with probability at least 2/3
+                                    ε2
+       between (1) χ2 (p || ud ) ≤ 144 , and (2) χ2 (p || ud ) > ε2 .
+
+       This in turn will follow from the more general result on tolerant ℓ2 closeness testing, where
+       one is given access to the source code for two unknown probability distributions p, q over [d],
+       and one seeks to distinguish ∥p − q∥2 ≤ c · τ from ∥p − q∥2 ≥ τ .
+
+       ▶ Theorem 9. There is a computationally efficient quantum algorithm (Algorithm 2) for
+       closeness testing with the following guarantees: it takes O(1/τ ) “samples” from two unknown
+       probability distributions p, q over [d], and distinguishes with probability at least 2/3 between
+                         τ
+       (1) ∥p − q∥2 ≤ 12   , and (2) ∥p − q∥2 > τ .
+                                                                                    √
+       Theorem 8 can then be obtained as a direct corollary by setting τ = ε/ d, recalling that
+       when q is the uniform distribution ud , ℓ2 distance and χ2 divergence are equivalent:
+                            d                        d
+                       2
+                            X                     1 X (pi − 1/d)2  1
+            ∥p − ud ∥2 =          (pi − 1/d)2 =                   = χ2 (p || ud )
+                            i=1
+                                                  d i=1   1/d      d
+
+       We emphasize that the result of Theorem 9 itself is not new, as a quantum algorithm achieving
+       the same sample complexity (in the same access model) was recently obtained by [24].5
+       However, our algorithm differs significantly from the one in [24], and we believe it to be of
+       independent interest for several reasons:
+           it is conceptually very simple: (classically) hash the domain down to two elements, and
+           use QME to estimate the bias of the resulting Bernoulli;
+           it neatly separates the quantum and classical aspects of the task, only using QME (as a
+           blackbox) in a single step of the algorithm;
+           in contrast to the algorithm of [24], it decouples the use of the source code from p and
+           q, allowing one to run our algorithm when the accesses to the two distributions are on
+           different machines, locations, or even will be granted at different points in time (i.e., one
+           can run part of the algorithm using the source code for p, and, one continent and a year
+           apart, run the remaining part on the now-available source code for q without needing p
+           anymore).
+       The idea behind Theorem 9 is relatively simple: previous work (in the classical setting)
+       showed that hashing the domain from d to a much smaller d′ ≪ d could yield sample-optimal
+       testing algorithms in some settings, e.g., when testing under privacy bandwidth, or memory
+       constraints.
+                  p Indeed, while this “domain compression” reduces the total variation distance by a
+       factor Θ( d′ /d), this shrinkage is, in these settings, balanced by the reduction in domain size.
+       The key insight in our algorithm is then to (1) use this hashing with respect to ℓ2 distance,
+       not total variation distance, and show that one can in this case get a two-sided guarantee in
+       the distance (low-distortion embedding) instead of a one-sided one; and (2) compress the
+       domain all the way to d′ = 2, so that one can then invoke the QME algorithm to simply
+       estimate the bias of a coin to an additive ±τ , a task for which a quantum quadratic speedup
+       is well known.
+
+       Proof of Theorem 9. As mentioned above, a key building block of our algorithm is the
+       following “binary hashing lemma,” a simple case of the domain compression primitive of [3]:
+
+
+       5
+           Technically, [24]’s result can be seen as slightly stronger, in that it allows to test ∥p − q∥2 ≤ (1 − γ)τ
+           vs. ∥p − q∥2 ud > τ , for arbitrarily small constant γ > 0.
+C. L. Canonne, R. Kothari, and R. O’Donnell                                                              7:17
+
+
+▶ Lemma 10 (Random Binary Hashing (Lemma 2.9 and Remark 2.4 of [11]). Let p, q ∈ ∆(d).
+Then, for every α ∈ [0, 1/2],
+                                                    1
+      Pr[ |p(S) − q(S)| ≥ α∥p − q∥2 ] ≥                (1 − 4α2 )2 ,
+      S                                             12
+where S ⊆ [d] is a uniformly random subset of [d].
+Given our goal of tolerant testing, we also require a converse to Lemma 10, stated and proven
+below:
+▶ Lemma 11. Let p, q ∈ ∆(d). Then, for every β ∈ [1/2, ∞),
+                                                     1
+      Pr[ |p(S) − q(S)| ≥ β∥p − q∥2 ] ≤                  ,
+      S                                             4β 2
+where S ⊆ [d] is a uniformly random subset of [d].
+
+Proof. As in the proof of Lemma 10, we write δ := p − q ∈ Rd and p(S) − q(S) = 12 Z, where
+     Pd
+Z := i=1 δi ξi for ξ1 , . . . , ξd i.i.d. Rademacher. We will use the following fact established in
+the proof of this lemma, which we reproduce for completeness:
+                 X                           d
+                                             X               2
+      E Z2 =                                       δi2 = ∥δ∥2 .
+        
+                         δi δj E[ξi ξj ] =                                                     (49)
+               1≤i,j≤d                       i=1
+
+By Markov’s inequality, we then have
+                                                               1
+      Pr[ |p(S) − q(S)| > β∥p − q∥2 ] = Pr Z 2 > 4β 2 E Z 2 ≤
+                                                       
+      S                                 S                     4β 2
+concluding the proof.                                                                            ◀
+
+While the above two lemmas allow us to obtain a slightly more general result than in √
+                                                                                     the
+theorem statement by keeping α, β as free parameters, for concreteness, set α := 1/(2 2)
+and β = 4. This implies the following:
+   If ∥p − q∥2 ≥ τ , then
+                              
+                    |S|    τ        1
+       Pr p(S) −        ≥√       ≥
+       S             d       8     48
+                    τ
+      If ∥p − q∥2 ≤ 12 , then
+                                 
+                      |S|     τ        1
+          Pr p(S) −        ≥√       ≤    .
+          S            d        9     64
+where S ⊆ [d] is a uniformly random subset of [d]. This allows us to distinguish between the
+two cases with only O(1) repetitions:
+
+      Algorithm 2 QME+Binary Hashing Tester.
+                        1                    1/48+1/64
+                                                                                ▷ δ ≤ 13 48
+                                                                                         1     1
+                                                                                                 
+ 1: Set T = O(1), δ := 600 , τ :=                2     .                                    − 64   .
+ 2: for t = 1 to T do
+ 3:    Pick a u.a.r. subset St ⊆ [d] (independently of previous iterations)
+                                                         τ
+ 4:    Estimate p(St ), q(St ) by p̂t , q̂t to within ± 100 with error probability δ.     ▷ QME
+                          ε
+ 5:    if |p̂t − q̂t | ≤ √8d then bt ← 0
+ 6:    else bt ← 1          PT
+    return accept if T1 t=1 bt ≤ τ                           ▷ Estimate of the probability accept
+
+
+
+
+                                                                                                       TQC 2025
+7:18   Uniformity Testing When You Have the Source Code
+
+
+           A standard analysis shows that, for T a sufficiently large constant, with probability at
+                                 PT
+       least 2/3 the estimate T1 t=1 bt will be within an additive δ + 1000 1
+                                                                                of the corresponding
+       value (either 1/48 or 1/64), in which case the output is correct. The total number of samples
+       required is T times the sample of the Quantum Mean Estimation call on Line 4, which
+       is O(1/τ ): the complexity of getting a O(τ )-additive estimate of the mean of a Bernoulli
+       random variable with high (constant) probability. This concludes the proof.                 ◀
+
+        B      Algorithm in the Giant Distance Regime
+       In this appendix, we show that, in the (stronger) quantum string oracle model, one can
+       perform tolerant uniformity testing with respect to χ2 divergence in the “very large parameter
+       regime,” that is, to distinguish χ2 (p || ud ) ≤ cθ from χ2 (p || ud ) > θ for θ ≥ 1:
+
+       ▶ Theorem 12. There is a computationally efficient quantum algorithm for uniformity
+       testing with the following guarantees: For θ ≥ 1, the algorithm makes O(d1/3 /θ1/3 ) calls to
+       the quantum string oracle for an unknown distribution p over [d], and distinguishes with
+       probability at least .99 between
+           (1) χ2 (p || ud ) ≤ c · θ,   and   (2) χ2 (p || ud ) > θ ,                           (50)
+
+       where c > 0 is an absolute constant. Moreover, this query complexity is optimal.
+
+       Note that, as discussed in the introduction, this result does not imply anything in terms of
+       total variation distance, as the latter is always at most 1; however, we believe this result
+       to be of interest for at least two reasons: (1) it is in itself a reasonable (and often useful)
+       testing question, when total variation distance is not the most relevant distance measure,
+       and implies, for instance, testing χ2 (p || ud ) ≤ c · θ from KL(p || ud ) > θ; and (2) one can
+       show that this complexity is tight, by a reduction to the θ-to-1 collision problem, which
+       provides additional evidence for Conjecture 2.
+
+       Proof. The main ingredient of the proof is the following lemma, which guarantees that
+       taking N = Θ(d/θ) from the unknown distribution p is enough to obtain (with high constant
+       probability) a multiset of elements with, in one case, no collisions, and in the other at least
+       one collision:
+       ▶ Lemma 13. For θ ≥ 1, there exists a constant c ∈ (0, 1) such that taking N i.i.d. samples
+       from an unknown p over [d] results in a multiset S satisfying the following with probability
+       at least .99:
+           If χ2 (p || ud ) ≤ c · θ, then all elements in S are distinct;
+           If χ2 (p || ud ) ≥ θ, then at least two elements in S are identical;
+       as long as 1601 · dθ ≤ N ≤ 10c   1
+                                          · dθ . (In particular, taking c := 16010
+                                                                               1
+                                                                                   suffices to ensure such a
+       choice of N is possible.)
+       Before proving this lemma, we describe how it implies our stated complexity upper bound.
+       Lemma 13 guarantees that we can reduce  p our testing problem to that of deciding if, given
+       oracle access to a string of size N = Θ( d/θ), whether all the elements in it are distinct.
+       This problem is solved by Ambainis’ element distinctness quantum-walk algorithm [5] using
+       O(N 2/3 ) = O(d1/3 /θ1/3 ) quantum queries.
+
+       Proof of Lemma 13. Suppose we take N i.i.d. samples X1 , . . . , XN from p, and count the
+       number Z of collisions among them:
+
+                        1{Xi =Xj }
+                 X
+          Z :=
+                1≤i<j≤N
+C. L. Canonne, R. Kothari, and R. O’Donnell                                                                 7:19
+
+                                     Pd
+Letting δ := p − ud and powt (x) := i=1 xti for all integer t ≥ 0 and vector x ∈ Rd (so that
+δi = pi − 1/d for all i), we have, pow1 (δ) = 0, and
+
+                          2   1 2
+   pow2 (δ) = ∥p − ud ∥2 =      χ (p || ud )
+                              d
+                                                        2
+Now, it is not hard to verify that E[Z] = N2 ∥p∥2 = N2 (pow2 (δ) + 1/d), and
+                                                             
+
+                                          
+                N         2
+                            
+                                    2
+                                           N           3       4
+                                                                  
+   Var[Z] =          ∥p∥2 1 − ∥p∥2 + 6             ∥p∥3 − ∥p∥2
+                 2                           3
+                                                     
+                            N               3
+           ≤ E[Z] + 6           pow3 (δ) + pow2 (δ)                                               (51)
+                            3               d
+                                   p           √
+From this, we get, setting τ := θ/d ≥ 1/ d:
+                                                                             1            N
+                                                                                              
+   If χ2 (p || ud ) ≤ c · θ, then pow2 (δ) ≤ c2 · τ 2 , and as long as N ≤ 10cτ we have   2       (c2 ·
+   τ 2 + 1/d) ≤ 1/100, so that by Markov’s inequality
+                                                1
+       Pr[ Z ≥ 1 ] ≤ Pr[ Z ≥ 100E[Z] ] ≤
+                                               100
+   If χ2 (p || ud ) ≥ θ, then pow2 (δ) ≥ τ 2 , and by Chebyshev’s inequality and Equation (51)
+
+                                                      1    4 pow3 (δ) + d3 pow2 (δ)
+       Pr[ Z = 0 ] ≤ Pr[ |Z − E[Z]| ≥ E[Z] ] ≤           +  ·
+                                                     E[Z] N   (pow2 (δ) + 1/d)2
+                        2         4 pow2 (δ)3/2 + d3 pow2 (δ)
+                  ≤             +    ·
+                   N (N − 1)τ 2   N        pow2 (δ)2
+                     3      4      12
+                  ≤ 2 2+        +
+                   N τ     Nτ     N dτ 2
+                     3      4     12                                                         √
+                  ≤ 2 2+        +                                                     (τ ≥ 1/ d)
+                   N τ     Nτ     N
+                     3     16
+                  ≤ 2 2+
+                   N τ     Nτ
+                     1
+   which is at most 100 for N ≥ 1601
+                                 τ .
+
+This proves the lemma.                                                                              ◀
+
+This concludes the proof of the upper bound part of Theorem 12. To conclude, it only
+remains to show that this is, indeed, optimal. For this, we need a lower bound of [23], which
+generalized a lower bound of Aaronson and Shi [2]:
+▶ Theorem 14 ([23]). Let d > 0 and r ≥ 2 be integers such that r|d, and let f : [d] → [d] be
+a function to which we have quantum oracle access. Then deciding if f is 1-to-1 or r-to-1,
+promised that one of these holds, requires Ω((d/r)1/3 ) quantum queries.
+When we view this function as a quantum string oracle for a probability distribution, the
+function being 1-to-1 corresponds to the uniform distribution on [d]. In the other case, the
+distribution is uniform on a subset of size [d/r], for any r ≥ θ + 1 dividing d. An easy
+calculation shows that the second distribution is at χ2 divergence
+                    X  p2            r2 d
+                          i
+    χ2 (p || ud ) =          − 1 = d · 2 · − 1 = r − 1 ≥ θ,                             (52)
+                        1/d            d r
+                  i∈[d]
+
+from uniform, which completes the proof.                                                            ◀
+
+
+
+                                                                                                          TQC 2025
+7:20   Uniformity Testing When You Have the Source Code
+
+
+           C       Reduction from Identity to Uniformity Testing
+       As mentioned in the introduction, there is a known reduction from identity to uniformity
+       testing, due to Goldreich [16] and inspired by [13]: which, in a blackbox way, converts an
+       instance of uniformity testing (in total variation distance) with reference distribution q over
+       [d] and distance parameter ε to an instance of uniformity testing over [4d] and distance
+       parameter ε/4. (Here, we follow the exposition and parameter setting of [11, Section 2.2.3].)
+           To be able to use it in our setting, all we need to check is that this blackbox reduction
+       Φq preserves access to “the code”: that is, given the code Cp for a probability distribution
+       p over [d], that we can efficiently have access to the code Cp′ for the resulting distribution
+       p′ = Φq (p) over [4d]. To do so, note that Φq is the composition of 3 successive mappings,
+
+               Φq = Φ(1)  (2)  (3)
+                     q ◦ Φq ◦ Φq
+
+                    (3)                 (2)                           (2)
+       where Φq : [d] → [d], Φq : [d] → [d + 1], and , Φq : [d + 1] → [4d]. So it suffices to show
+       that each of these 3 mappings does preserve access to the code generating a sample from the
+       resulting distribution.
+                        (3)
+          The first, Φq , is the easier, as it consists only in mixing its input with the uniform
+          distribution:
+                              1    1
+                  Φ(3)
+                   q (p) =      p + ud
+                              2    2
+               for which a circuit can be easily obtained, given a circuit for p.
+                             (2)
+               The second, Φq , “rounds down” the probability of each of the d elements of the domain,
+               and sends the remaining probability mass to a (d + 1)-th new element:
+                              ( ⌊4dq ⌋
+                                  4dqi · pi ,          i ∈ [d]
+                                     i
+                    (2)
+                   Φq (p)i =         Pd ⌊4dqi ⌋
+                                 1 − i=1 4dqi · pi , i = d + 1
+
+               This corresponds to adding to the circuit Cp for p a “postprocessing circuit” which, if
+               the output of Cp is i, outputs i with probability ⌊4dqi⌋
+                                                                  4dqi (and d + 1 otherwise).
+                            (1)
+               The third, Φq , assumes that the reference distribution q is “grained” (namely, all its
+               probabilities are positive multiples of 1/(4d)), which will be the case after the first two
+               mappings6 fully known). Having partitioned [4d] in sets S1 , . . . , Sd where
+
+                  |Si | = 4d · qi ≥ 1
+                     (1)
+               and Φq is given by
+                              d
+                                pi
+                                            1{j∈Si } ,
+                              X
+                  Φ(3)
+                   q (p)i =                              i ∈ [4d] .
+                              j=1
+                                    |Si |
+
+           This corresponds to adding to the circuit Cp for p a “postprocessing circuit” which, if
+           the output of Cp is i, outputs an element of Si uniformly at random. (Importantly,
+           S1 , . . . , Sd are uniquely determined by q, and do not depend on p or Cp at all.)
+       To summarize, each of these three mappings can be implemented to provide, given a circuit
+       Cp for p, a circuit Cp′ for the output p′ , so that altogether the reduction can be implemented
+       in a way which preserves access to “the code.”
+
+       6
+           Specifically, when chaining the three mappings, the reference distribution called q here is actually
+            (2)    (3)
+           Φq ◦ Φq (q).
+

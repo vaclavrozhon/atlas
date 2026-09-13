@@ -1,0 +1,1045 @@
+Distributed Query Monitoring through Convex
+Analysis: Towards Composable Safe Zones
+Minos Garofalakis1 and Vasilis Samoladas2
+
+1    Technical University of Crete, Chania, Greece
+     minos@softnet.tuc.gr
+2    Technical University of Crete, Chania, Greece
+     vsam@softnet.tuc.gr
+
+
+
+      Abstract
+Continuous tracking of complex data analytics queries over high-speed distributed streams is
+becoming increasingly important. Query tracking can be reduced to continuous monitoring of a
+condition over the global stream. Communication-efficient monitoring relies on locally processing
+stream data at the sites where it is generated, by deriving site-local conditions which collectively
+guarantee the global condition. Recently proposed geometric techniques offer a generic approach
+for splitting an arbitrary global condition into local geometric monitoring constraints (known
+as “Safe Zones”); still, their application to various problem domains has so far been based on
+heuristics and lacking a principled, compositional methodology. In this paper, we present the
+first known formal results on the difficult problem of effective Safe Zone (SZ) design for complex
+query monitoring over distributed streams. Exploiting tools from convex analysis, our approach
+relies on an algebraic representation of SZs which allows us to: (1) Formally define the notion
+of a “good” SZ for distributed monitoring problems; and, most importantly, (2) Tackle and
+solve the important problem of systematically composing SZs for monitored conditions expressed
+as Boolean formulas over simpler conditions (for which SZs are known); furthermore, we prove
+that, under broad assumptions, the composed SZ is good if the component SZs are good. Our
+results are, therefore, a first step towards a principled compositional solution to SZ design for
+distributed query monitoring. Finally, we discuss a number of important applications for our SZ
+design algorithms, also demonstrating how earlier geometric techniques can be seen as special
+cases of our framework.
+
+1998 ACM Subject Classification H.2.m [Database Management] Miscellaneous, C.2.4 [Compu-
+ter-Communication Networks] Distributed Systems
+
+Keywords and phrases Distributed Data Streams, Geometric Method
+
+Digital Object Identifier 10.4230/LIPIcs.ICDT.2017.14
+
+
+ 1      Introduction
+As we are moving from network-centric computing into the era of Internet of Things, large-
+scale event monitoring applications become ever more important. Such applications rely
+on continuous monitoring queries over the union of local, high-speed data streams. The
+scale of these applications, as well as power or bandwidth limitations, often impose critical
+communication contraints that prohibit the centralization of streaming data. Instead, the
+applications must rely on novel algorithmic paradigms for processing local streams of data in
+situ (i.e., locally at the sites where the data is observed). This obviously raises the problem
+of effectively decomposing the global monitoring query into “safe” local queries that can be
+tracked independently at each site while guaranteeing correctness for the global monitoring
+            © Minos Garofalakis and Vasilis Samoladas;
+            licensed under Creative Commons License CC-BY
+20th International Conference on Database Theory (ICDT 2017).
+Editors: Michael Benedikt and Giorgio Orsi; Article No. 14; pp. 14:1–14:18
+                   Leibniz International Proceedings in Informatics
+                   Schloss Dagstuhl – Leibniz-Zentrum für Informatik, Dagstuhl Publishing, Germany
+14:2   Distributed Query Monitoring through Convex Analysis
+
+
+       operation. Such a decomposition enables truly distributed, push-based monitoring, where
+       sites track their local queries and communicate (e.g., with a “coordinator” site) only when
+       some local query constraints are violated. Still, the problem of effectively decomposing
+       a complex (e.g., non-linear) query over the global distributed stream into such safe local
+       constraints can be far from straightforward.
+
+       Problem Setup and the Geometric Method. In an abstract setting, our system architecture
+       comprises a collection of k physically-distributed sites, where each site p ∈ {1, . . . , k} observes
+       updates to the state of its local stream which is represented as a dynamic, high-dimensional
+       vector X (p) ∈ Rm . (Note that this is the standard model for general data streams used in the
+       streaming algorithms literature, e.g., [26, 12].) The state of the global, distributed stream X
+       is a convex combination of the local states; that is, X = p ap X (p) , with ap ≥ 0, p ap = 1.
+                                                                   P                              P
+
+       Arbitrary linear combinations, e.g., summation of local frequency distribution vectors, can
+       be captured by simply multiplying the local vectors by constant factors. In applications,
+       these states often comprise of one or more frequency distributions of streams, or (linear)
+       sketches thereof.
+           Let F (X) denote a global query function, e.g., the norm or entropy of a dynamic global
+       distribution, or the inner-product (i.e., equi-join size) of two underlying distributed streams
+       X1 , X2 (note that in this case, X = X1 ⊕ X2 , the concatenation of X1 , X2 ). A natural
+       global monitoring condition is a threshold query F (X) < T (or, > T ), where T is some
+       constant. Threshold queries can naturally express more complex monitoring tasks, including
+       approximate function monitoring [13].
+           A general approach to tracking threshold queries over distributed streams was pioneered
+       by Sharfman et al.’s Geometric Method [32, 21]. For arbitrary F (), it is generally impossible
+       to relate the locally-observed values of F (X (p) ) to the global value F (X); thus, their key
+       idea is to employ geometric arguments to monitor the domain (rather than the range) of the
+       monitored function F (). More formally, given the threshold query F (X) < T , define the
+       set A , {x ∈ Rm |F (x) < T } ⊆ Rm as the query’s admissible region. Clearly, the condition
+       F (X) < T is equivalent to the condition X ∈ A, and this geometric condition in Rm is the
+       one being monitored — action needs to be taken only when X leaves A.
+           A key concept in geometric monitoring is that of a Safe Zone (SZ), which is defined
+       as a convex subset of the admissible region; that is, a SZ is a convex set Z such that
+       Z ⊆ A [21]. Let X (p) (t0 ) be the state of site p at some initial synchronization time t0 , and
+       let X 0 = p ap X (p) (t0 ) = X(t0 ). As updates arrive at any site p, the site maintains its
+                  P
+
+       local drift vector u(p) (t) = X (p) (t) − X (p) (t0 ) + X 0 . It is trivial to show that, at any time t,
+       the convex combination of the local drift vectors is exactly the state of the global stream at
+       time t; that is, p ap u(p) (t) = X(t) [32]. Thus, as long as at every site p, we have u(p) ∈ Z,
+                        P
+
+       by convexity of Z we also have X ∈ Z and, therefore, X ∈ A.
+
+       The Safe Zone Design Problem. The Geometric Method has been extended and success-
+       fully applied to various monitoring problems in a number of recent papers [5, 15, 13, 20,
+       23, 27, 29]. A survey of this body of work reveals that a crucial, and non-trivial aspect of
+       the technique is the issue of Safe Zone Design: Given a particular admissible region A, and
+       the initial global state X(t0 ) ∈ A, define a “good” (convex) safe zone Z ⊆ A. As a simple
+       example depicted in Fig. 1, if A is defined by constraint kXk ≥ T , a good SZ Z can be
+       defined by the constraint X · X(t0 ) ≥ T kX(t0 )k.
+           For complex queries, safe zone design is often analytically challenging, and general
+       methodologies are quite helpful. Simple solutions can be obtained using the original “covering
+       spheres” method of Sharfman et al. [32], but the quality of the safe zones and the performance
+M. Garofalakis and V. Samoladas                                                                               14:3
+
+
+
+
+                                                             X(t0 )
+
+
+                                                O
+
+
+
+
+    Figure 1 The admissible region (hatched) for kXk ≥ T and a good safe zone (grayed).
+
+
+obtained can be far from satisfactory. A more recent work [23] introduces the “convex
+decomposition” method, which addresses some of the problems of “covering spheres” and
+provides effective solutions for several problems, but the method is lacking a systematic
+foundation.
+    The aforementioned methods, although valuable, suffer from two important drawbacks.
+First, they do not provide any systematic guidance for designing safe zones of provable
+quality, making the evaluation of a SZ design a purely experimental task. Second, and more
+important, they do not provide for composable designs. To clarify our (envisioned) concept
+of a composable SZ, we draw an analogy to the well-known chain rule for the differential
+operator: D f (g(x)) = Df (g(x))Dg(x). Ideally, we would wish for a “safe zone” transform,
+that, similar to D, would provide safe zones for complex queries by combining safe zones for
+simpler queries.
+
+
+Our Results. In this paper, we present the first compositional method for SZ design, where
+the composed safe zones inherit quality features from their components. We apply our
+method to the important problem of inner-product queries (tracking the inner product of
+two vectors), both exactly and approximately, via AMS sketches.
+    We formally define the notion of a good SZ Z ⊆ A, for an admissible region A and a
+reference point E ∈ A (E is usually the initial system state X(t0 )). A good SZ has two
+“largeness” properties; the maximum distance property states that the distance of E ∈ Z from
+the boundary of Z is equal to the distance of E from the boundary of A. The maximality
+property states that there does not exist a proper superset of Z which is also a safe zone for
+A. (Note that the SZ defined above for kXk ≥ T clearly satisfies both properties.)
+    Our compositional method is primarily applicable to query functions with separable sub-
+components. The global state vector X is taken to be the concatenation of n (not necessarily
+equidimensional) subvectors: X = X 1 ⊕ X 2 ⊕ · · · ⊕ X n . For given safe zones on query func-
+tions fi (X i ), we study the design of safe zones for a query function F (f1 (X 1 ), . . . , fn (X n )).
+Our compositional approach relies on expressing the constraint on F as a conjunction of
+separable disjunctions. In particular, we present design methods for two important cases of
+aggregate functions F :
+Boolean Functions: Here, fi are boolean-valued functions, F : {0, 1}n → {0, 1} is a boolean
+    function, and we monitor the condition “F is true”. Given good safe zones for subproblems
+    fi (X i ), our method can compose a good safe zone for the overall condition.
+    An important application for this type of query is threshold monitoring for the median
+    (or, other order statistics); a query of the form median{g1 (X 1 ), . . . , gn (X n )} ≤ T is
+    equivalent to the case where each fi (X i ) equals the boolean value of condition gi (X i ) ≤ T ,
+    and F is the majority function. Such order statistics queries arise often in monitoring
+    robust estimators, distributed voting schemes, and so on.
+
+
+                                                                                                            ICDT 2017
+14:4   Distributed Query Monitoring through Convex Analysis
+
+
+       Separable Sums: Here, fi are real-valued functions and F is summation; that is, we are
+            interested in the condition f1 (X 1 ) + · · · + fn (X n ) ≤ T . It is easy to show (e.g., by
+            negating the above condition) that the above condition can be written equivalently as a
+            conjunction of separable disjunctions:
+                                             n
+                                             _
+               ∀(τ1 , . . . , τn ) ∈ ΣnT :         fj (X j ) ≤ τj ,                                             (1)
+                                             j=1
+
+            where ΣnT = {(τ1 , . . . , τn ) ∈ Rn | τ1 + · · · + τn = T }.
+            For this more complicated problem, our method’s scope is more limited; it can compose
+            a safe zone with the maximum distance property, provided maximum-distance safe zones
+            for queries of the form fi (X i ) ≤ τ are known, but maximality is harder to obtain in
+            general.
+
+       A Motivating Example. The problem of estimating the inner product of two vectors is
+       of fundamental importance for distributed stream processing. This problem abstracts the
+       situation where the vectors capture the (dynamic) frequency distribution of values in two
+       distinct data streams, and we wish to monitor the degree of correlation in the two streams.
+       (Note that this is also equivalent to tracking the size of the equi-join of the two streams [1].)
+           The global state comprises of a pair of vectors (X 1 , X 2 ), whose inner product, X 1 · X 2 ,
+       we wish to track. Often, the dimension of the raw streaming vectors can be too large for exact
+       tracking to be realistic, since we can only afford to maintain a synopsis/summary of the
+       streaming data. This problem has been addressed via the use of AGMS sketch synopses [2, 1].
+       Succinctly, the AGMS sketch of the frequency vector X i , i = 1, 2 is a sequence of d l-
+       dimensional vectors X̂ i = (x̂i,1 , . . . , x̂i,d ), with x̂i,j ∈ Rl . Then, as shown by Alon et al. √   [1],
+       the inner product X 1 · X 2 can be approximated, with an accuracy of  = kX̂ 1 kkX̂ 2 k/ l,
+       with probability at least 1 − O(1/2d ), by F (X̂ 1 , X̂ 2 ) = median{ x̂1,1 · x̂2,1 , . . . , x̂1,d · x̂2,d }.
+           In a distributed stream setting, the problem has been addressed in [8, 13]. Both of the
+       above papers rely on a safe zone approach, but these safe zones have not been proven to
+       be either maximum-distance, or maximal. None of these, or any other known techniques,
+       provide guarantees on communication cost. Using our techniques, we design good safe zones
+       for both exact and approximate tracking (via AGMS sketches) of the inner product. For
+       exact tracking, the inner product query can be rewritten as a separable sum and the designed
+       safe zone is good (maximum-distance and maximal). Furthermore, the designed safe zone is
+       composed into a design of a good safe zone for approximate tracking (which is just tracking
+       the median of d inner products).
+
+        2      Safe Zone Design
+       In this section, we introduce some basic notation and definitions, and give the initial
+       mathematical formulation of safe zone representation and composition. Throughout the
+       paper, we use the notation of vector calculus; boldface letters stand for vectors. All vector
+       spaces in this paper are Euclidean. We use the letter V to denote a vector space Rd , equipped
+       with the standard inner product. Vector inner product is written as xy and self-product is
+       written as squaring, therefore x2 = kxk2 . We also use x ⊕ y to denote the so-called direct
+       sum of two vectors, that is, the vector resulting from the concatenation of x and y.
+          In addition, given a Boolean predicate φ : V → {0, 1}, we write {φ} = {X ∈ V | φ(X)}.
+          We will need some simple topological concepts. Assume some vector space V = Rd .
+       Let Ball(c, ρ) denote the open ball centered at c with radius ρ, i.e., Ball(c, ρ) = {x ∈
+M. Garofalakis and V. Samoladas                                                                         14:5
+
+
+V | kx − ck < ρ}. Given a set of points A ⊆ V and x ∈ A, we say that x is interior to A
+(denoted x ∈ int A) iff there exists some  > 0, so that Ball(x, ) ⊆ A. A point x ∈ V is
+exterior to A (denoted x ∈ ext A) iff it is interior to the complement of A, A = V − A. A
+point x ∈ V which is neither exterior nor interior to A is a boundary point for A (denoted
+x ∈ bd A). Set A is open iff it only contains interior points; that is, A = int A. Dually, set
+A is closed iff its complement A is open; in this case, A = int A ∪ bd A.
+    For completeness, we also state a few basic facts about convex sets. A set Z ⊆ V is
+convex iff ∀x, y ∈ Z, ∀t ∈ [0, 1], (1 − t)x + ty ∈ Z. Alternatively, Z is convex iff it is closed
+under convex combinations of its elements. An important property of convex sets is that the
+intersection of any collection of convex sets is convex.
+    A (closed) halfspace h is a supporting halfspace of convex set Z, iff (a) h ⊇ Z, and (b) the
+boundaries of h and Z intersect in at least one point p. We say that h supports Z at p. At
+every boundary point p ∈ bd Z, there is at least one halfspace h supporting Z at p. Where
+there is exactly one, p is called smooth and h is called tangent. A well-known theorem states
+that any convex set Z is the intersection of its supporting halfspaces. In this paper, we shall
+employ a stronger, but much less known theorem:
+
+I Theorem 1 (Rockafellar [28], Thm. 18.8). A closed convex set Z ⊆ V is the intersection
+of the closed halfspaces tangent to it.
+
+    A function f : V → R is convex iff, for every x, y ∈ V and λ ∈ [0, 1], it is f (λx+(1−λ)y) ≤
+λf (x) + (1 − λ)f (y). A function f is concave iff −f is convex. We will be interested primarily
+in concave functions. A function f is both concave and convex, iff it is affine, that is,
+f (x) = wx + a, for some w ∈ V and a ∈ R.
+
+
+2.1    Safe Zone Specification
+Consider a monitored query on V , which corresponds to an admissible region A ⊆ V . The
+problem of determining a good safe zone Z requires additional information; some reference
+must be made by the user, as to the preferred locus of the safe zone, among mutually
+exclusive alternatives. Motivated by previous work, we adopt the concept of a reference point
+E ∈ int A, which our safe zone must include.
+    Therefore, the safe zone design problem can be stated as follows: given admissible region
+A ⊆ V and reference point E ∈ int A, select a safe zone Z ⊆ A such that Z is convex and
+E ∈ int Z. Towards a compositional approach, we assume that our admissible region A is
+expressible as a set-algebraic combination (involving intersection and union) of subsets of V .
+    Now, consider a family of sets Ai ⊆ V , i ∈ I, where A = ∩i∈I Ai , with E ∈ int Ai for all
+i ∈ I, and let Zi ⊆ Ai be safe zones. Towards a compositional approach, it is natural to
+consider Z = ∩i∈I Zi as a candidate safe zone for admissible region A = ∩i∈I Ai . Indeed, Z
+is convex and contains E.
+    Similarly, if A = ∪i∈I Ai , with E ∈ int Ai for some i ∈ I (note that E need not belong to
+all Ai ), it is natural to consider ∪i∈I Zi as a candidate safe zone for A. Unfortunately, this
+is not valid, as ∪i Zi is not convex in general. Therefore, we need to restrict to a convex
+subset Z ⊆ ∪i∈I Zi , that contains E; moreover, Z should inherit good qualities of zones Zi .
+To overcome the difficulties of handling unions, our method focuses on the special case of
+decomposition into a separable union. In this case, V = Rd is the product space V1 × · · · × Vn
+of a collection Vi = Rdi , i = 1, . . . , n of vector spaces (with
+                                                                   P
+                                                                     di = d), and each x ∈ V is the
+direct sum of xi ∈ Vi , where each xi is the projection of x on Vi . For Ai ⊆ Vi , the separable
+        Wn                                                    Wn
+union i=1 Ai is simply the set {x1 ⊕ · · · ⊕ xn ∈ V | i=1 xi ∈ Ai }. Equivalently, for n = 2,
+
+
+
+                                                                                                      ICDT 2017
+14:6   Distributed Query Monitoring through Convex Analysis
+
+                                                                  Vn
+       A1 ∨ A2 = (A1 × V2 ) ∪ (V1 × A2 ). Separable intersection i=1 Ai , defined similarly, is just
+       the Cartesian product A1 × · · · × An .
+                                                               Wn
+           Given safe zones Zi ⊆ Ai ⊆ Vi , the separable union i=1 Zi is not a convex set. However,
+       it will be shown subsequently that properly selected subsets of the separable union do inherit
+       the good qualities of the safe zones Zi .
+
+
+       2.2    Safe Zone Representation and Composition
+       In our method, a convex set is represented as the level set of a concave function.
+
+       I Definition 2 (Level set). Let f : V → R be any function. The level set L(f ) of f is the set
+       L(f ) = {x ∈ V | f (x) ≥ 0} = {f (x) ≥ 0}.
+
+       When f is concave, L(f ) is convex. We wish to avoid the degenerate cases where L(f )
+       is empty, or the whole space, or has empty interior. This is equivalent to the following
+       requirement:
+
+       I Definition 3 (Safe Zone function). A safe zone function is a concave function f : V → R,
+       which attains both a positive and a negative value over V .
+
+       Safe zone functions are positive in the interior of L(f ), negative on the exterior and vanish
+       on the boundary. An important property of L(f ) is monotonicity with respect to pointwise
+       dominance. Given functions f, g : V → R, f is dominated by g (denoted by f ≤ g) iff
+       ∀x ∈ V, f (x) ≤ g(x). Clearly, f ≤ g directly implies L(f ) ⊆ L(g).
+           We are interested in the compositions of safe zones for intersections and unions of safe zones.
+       We introduce two operations that construct the composite safe zone function from component
+       safe zone functions. The first operation, used to capture the intersection of safe zones, is
+       the pointwise-infimum of a (possibly infinite) family of safe zone functions. Given family
+                                                                                             T
+       of safe zone functions ζi : V → R, i ∈ I, let ζ(x) = inf i∈I ζi (x). Then, L(ζ) = i∈I L(ζi ).
+       The second operation is weighted sum with non-negative weights, sometimes called conical
+       combination. It is used to construct a convex subset of the union of a finite family of safe
+       zones.
+
+       I Theorem 4. For safe zone functions ζi : V → R, i = 1, . . . , n, and reals ai ≥ 0, not all
+       zero, let
+                   n
+                   X
+          ζ(X) =          ai ζi (X).                                                                  (2)
+                    i=1
+
+                                       Tn                     Sn
+       Then, L(ζ) is convex and         i=1 L(ζi ) ⊆ L(ζ) ⊆    i=1 L(ζi ).
+
+                    Tn                                                       Sn
+       Proof. It is i=1 L(ζi ) ⊆ L(inf i ai ζi (X)) and L(supi ai ζi (X)) ⊆ i=1 L(ζi ) (with equality
+       holding when all ai > 0). Since n inf i ai ζi (X) ≤ ζ(X) ≤ n supi ai ζi (X), the theorem follows
+       directly from these formulas and monotonicity of L.                                           J
+
+
+       The above theorem specializes to separable union straightforwardly. If ζi : Vi → R are
+                                                       Pn
+       safe zone functions, then ζ(x1 ⊕ · · · ⊕ xn ) =  i=1 ai ζi (xi ) is a safe zone function and
+                            Wn
+       ×ni=1 L(ζi ) ⊆ L(ζ) ⊆ i=1 L(ζi ).
+M. Garofalakis and V. Samoladas                                                                             14:7
+
+
+2.3     Functional Analysis For Safe Zone Functions
+Having defined the two fundamental operations on safe zone functions, in the following
+sections we proceed to study the conditions under which these operations maintain the
+qualities of composed safe zones. We end this section with some foundational facts from
+convex analysis.
+    All safe zone functions over V are continuous and differentiable almost everywhere in V
+                                                                                ∂ζ            ∂ζ
+(that is, everywhere, except for a set of measure 0). The gradient ∇ζ(x) = ( ∂x   1
+                                                                                    , . . . , ∂x d
+                                                                                                   ) is
+the multi-dimensional analog of the derivative. At any point x, where ζ is differentiable, this
+derivative is a vector vx , pointing to the direction of maximum increase of ζ, and its norm
+kvx k is proportional to the rate of change.
+    Let a safe zone function ζ be differentiable at point x0 . The affine function h(x) =
+∇ζ(x0 )(x − x0 ) + ζ(x0 ) is called the tangent of ζ at x0 . By virtue of concavity, ζ ≤ h.
+    In general, every safe zone function ζ is the pointwise infimum of some (non-unique)
+family H of affine functions. This is denoted by ζ = inf H. In particular, ζ is the pointwise
+infimum of all its tangents.
+    Given a collection ζi , i ∈ I, of safe zone functions, and corresponding families of affine
+functions Hi , such that ζi = inf Hi , the following two properties are very important in the
+rest of this paper:
+                                      S
+1. For arbitrary I, inf i∈I ζi = inf( i∈I Hi ), and
+                                              P                 P                  P
+2. For I finite, and ai ≥ 0, not all 0, it is i∈I ai ζi = inf( i∈I ai Hi ), where i∈I ai Hi is
+                                 P
+    the set of affine functions { i∈I ai hi | hi ∈ Hi , i ∈ I}.
+
+
+ 3     Maximum Distance
+Given an admissible region A ⊆ V and reference point E ∈ int A, several safe zones containing
+E can be constructed. Given two such safe zones, Z and Z 0 , one can argue that one is
+“better” than the other, by assuming isotropy; that is, all directions around the reference
+point are equally desirable. This assumption correlates with a monitoring situation where
+each coordinate of the state vector behaves (or is assumed to behave) as an IID random
+walk. Under this assumption, we have the following criterion:
+
+I Criterion 5. Safe zone Z is “better” than safe zone Z 0 if dist(E, Z) ≥ dist(E, Z 0 ).
+
+    With respect to criterion 5, any safe zone containing a ball that touches the admissible
+region’s boundary is best possible.
+
+I Definition 6 (Maximum distance). Let A be an admissible region and E ∈ int A. A safe
+zone Z ⊆ A has maximum distance in A with respect to E, iff dist(E, Z) = dist(E, A).
+
+3.1     Preservation Of Maximum Distance Under Composition
+The intersection operation always preserves the maximum distance of its operands. Given
+                                                                                       T
+safe zones Zi ⊆ Ai , and E ∈ int Ai , for each i, if all Zi are maximum distance, then i∈I Zi
+is also maximum distance. As a matter of fact, if D = dist(E, A) = inf i∈I dist(E, Ai ), it is
+sufficient and necessary to have dist(E, Zi ) ≥ D. Consequently, the pointwise-inf operation
+on any family of safe zone functions preserves the maximum distance property of its operands.
+    The situation with separable union is much more involved. It is not sufficient for the safe
+zones of the operands to be maximum distance; the actual safe zone functions that describe
+these safe zones must carry sufficient distance information, so that some conical combination
+
+
+
+                                                                                                          ICDT 2017
+14:8   Distributed Query Monitoring through Convex Analysis
+
+
+
+
+                                                                          λ=2
+
+                                                                 (1, 1)
+
+
+
+
+                                                                          λ=1
+
+
+
+
+            Figure 2 Example of the safe zone of union {x1 ≥ 0} ∨ {x2 ≥ 0}, derived by with suboptimal
+       functions. The safe zone for λ = 1, whose boundary is the solid black line, is good for reference point
+       (1, 1). The safe zone for λ = 2, whose boundary is the dashed blue line, is neither maximum-distance
+       nor maximal.
+
+
+       can yield a maximum-distance subset of the union. This is best illustrated by example. With
+       reference to Fig. 2, consider the case in R2 , where Z1 = L(f (x1 )) and Z2 = L(f (x2 )), with
+                   (
+                    x/λ if x ≥ 0
+           f (x) =                                                                                 (3)
+                    λx     if x < 0
+
+       where λ ≥ 1 (so that f is concave). Note that, independently of the value of λ, Zi = {xi ≥ 0}.
+       The union Z1 ∨Z2 is not convex, but maximal convex subsets are all halfspaces whose boundary
+       supports the positive quadrant (Z1 × Z2 ). Yet, none of the sets L(a1 f (x1 ) + a2 f (x2 )) have
+       maximum distance for any reference point in Z1 × Z2 , unless λ = 1. In fact, as λ grows, safe
+       zones L(a1 f (x1 ) + a2 f (x2 )) shrink towards Z1 ∩ Z2 , which is their lower bound.
+           The intuitive reason of the failure in this example is that, the shape of the region generated
+       by Eq. (2) depends crucially on the values of f outside of L(f ).
+           To ameliorate this situation, we introduce a class of safe zone functions which contain
+       sufficient distance information.
+
+       I Definition 7 (Affine Distance Function (ADF)). An affine function h : V → R with
+       h(x) = wx + a is an ADF iff k∇hk = kwk = 1.
+
+       Every closed halfspace of V is equal to L(h) for a unique ADF h. For each x ∈ V , h(x) is
+       the signed distance of x from the boundary of L(h), non-negative if x ∈ L(h) and negative if
+       x 6∈ L(h).
+
+       I Definition 8 (Eikonal function). A safe zone function ζ is eikonal iff it is the pointwise-
+       infimum of a collection of ADFs.
+
+           A useful alternative characterization of eikonal functions is the following:
+
+       I Theorem 9 (Eikonal characterization). Let ζ : V → R be concave, and almost everywhere
+       differentiable. Then, ζ is eikonal, if and only if, k∇ζk = 1 at every point where it is
+       differentiable.
+
+       (Due to space constraints, this and other ommitted proofs will appear in the full version of
+       the paper.)
+          The equation k∇ζk = 1 is known as the (Euclidean) eikonal differential equation. As a
+       consequence of this equation, it can be shown, using the mean-value theorem of analysis,
+       that every eikonal function ζ is non-expansive: |ζ(x) − ζ(y)| ≤ kx − yk.
+M. Garofalakis and V. Samoladas                                                                     14:9
+
+
+Signed Distance Functions. One important member in the family of eikonal functions is
+the Signed Distance Function (SDF) of a convex set Z.
+            (
+              dist(x, Z)   if x ∈ Z,
+   δZ (x) =                                                                      (4)
+              − dist(x, Z) if x ∈ Z.
+
+The SDF of a convex set is concave. Also, since L(δZ ) = Z, the SDF is positive in the
+interior of Z, negative on the exterior, and vanishes on the boundary; therefore, it is a safe
+zone function. Naturally, every ADF h is the SDF of L(h). However, this is not the case for
+every eikonal function ζ.
+    Let Z = L(ζ) and let δZ be the SDF of L(Z). Then, δZ ≤ ζ. In fact, for every x ∈ L(f ),
+ζ(x) = δZ (x). But, ζ may strictly dominate δZ outside L(ζ).
+    The family of eikonal functions is well-behaved under our composition operators. The
+pointwise-infimum of any family of eikonal functions is also eikonal. For the case of separable
+union, we have the following:
+
+I Theorem 10. Let ζi : Vi → R be eikonal functions, ai ≥ 0, and ζ(x1 ⊕ · · · ⊕ xn ) =
+Pn                                        Pn    2
+  i=1 ai ζi (xi ). Then, ζ is eikonal iff  i=1 ai = 1.
+                                                       Pk          2   Pk
+Proof. Since ∇ζi ∈ Vi are orthogonal, k∇ζk2 =           i=1 ai ∇ζi    =       2
+                                                                         i=1 ai k∇ζi k
+                                                                                       2
+                                                                                         =
+Pk     2
+  i=1 ai .                                                                               J
+
+                                     pP ζ of eikonal functions can always be scaled to an
+Thus, any separable conical combination
+                                             2
+eikonal function, by dividing it by       i ai , which of course does not affect the described
+safe zone L(ζ).
+                                                                                       Wn
+     We now turn our attention to separable union. Let admissible region A = i=1 Ai
+and let E = E1 ⊕ · · · ⊕ E n be the reference point. Consider eikonal functions ζi such that
+                          Wn
+L(ζi ) ⊆ Ai , and let Z = i=1 L(ζi ). What is the radius D of the largest ball centered at
+E, that can be attained by a conical combination of ζi ? Clearly, D ≤ dZ = dist(E, Z). In
+general, it is dZ ≤ dA = dist(E, A). The following theorem specifies the conditions under
+which maximum distance can be achieved.
+                            Wn
+I Theorem 11. Let A = i=1 Ai , where Ai ⊆ Vi , and E = E1 ⊕ · · · ⊕ E n ∈ int A. Let
+                                                                       Wn
+ζi : Vi → R be eikonal functions, such that L(ζi ) ⊆ Ai , and let Z =P i=1 L(ζi ). Then:
+                                                                        n
+                                      P                                     ai ζ(E i )
+1. For any conical combination ζ =       ai ζi , it is dist(E, L(ζ)) = pi=1
+                                                                         Pn 2 = D.
+                                                                                  ai
+                                                                            i=1
+
+2. It is D ≤ dist(E, Z) = dZ , with equality holding iff, for some λ > 0,
+            (
+              λζi (E i ) if ζi (E i ) > 0,
+       ai =
+              0          otherwise,
+
+3. It is dZ ≤ dA = dist(E, A), with equality holding iff, for every i such that E i ∈ int Ai ,
+   L(ζi ) has maximum distance in Ai w.r.t. E i .
+
+ 4     Maximality
+During distributed monitoring using a safe zone Z ⊆ A, condition X ∈ Z may be violated,
+while X ∈ A. We call such local violations, false violations. Typically, the performance of
+distributed monitoring depends crucially on minimizing false violations. Therefore,
+
+I Criterion 12. Safe zone Z is “better” that safe zone Z 0 if Z ⊇ Z 0
+
+
+
+                                                                                                  ICDT 2017
+14:10   Distributed Query Monitoring through Convex Analysis
+
+
+        This criterion is a rather obviously desirable; providing a larger safe zone will tend, other
+        things being equal, to reduce false violation.
+            With respect to criterion 12, the best possible for a safe zone is to be a ⊆-wise maximal
+        convex subset of the admissible region A.
+
+        I Definition 13 (Maximality). Let A be the admissible region. A safe zone Z is maximal
+        in A (with respect to set containment), if and only if, no convex subset of A is a proper
+        superset of Z.
+
+           We now develop a convenient characterization of maximality.
+
+        I Definition 14 (Flats of an affine family). Given a family H of affine functions on V , let
+        ΦH : H → 2V be
+
+           ΦH (h) = {p ∈ V | h(p) = 0 and ∀h0 ∈ H, h0 6= h =⇒ h0 (p) > 0}                          (5)
+
+        Set ΦH (h) is the flat of h in H.
+
+        Fix some affine family H and let ζ = inf H and Z = L(ζ). Let h ∈ H be an affine function
+        with non-empty flat Φ(h). Each p ∈ Φ(h) is a boundary point of Z, since ζ(p) = 0. Also,
+        p is smooth, since ζ is differentiable at p (with ∇ζ(p) = ∇h). Therefore, h is a tangent
+        halfspace to Z.
+            Some examples of flats; a ball has a flat for each point on its boundary. A planar triangle
+        has three flats, each corresponding to a side minus the corners (which are not smooth). A
+        cylinder in 3-d has two 2-d flats, its top and bottom (minus the edges) and infinite 1-d flats
+        which are segments from top to bottom (minus the endpoints). Finally, the positive quadrant
+        in R2 has two flats, the rays (0, +∞) × {0} and {0} × (0, +∞).
+
+        I Definition 15 (Non-redundant affine family). A family H of affine functions is non-redundant
+        iff, for every h ∈ H, ΦH (h) 6= ∅.
+
+        According to the above, a non-redundant affine family H contains only tangent halfspaces
+        (represented as affine functions) of Z = L(inf H). However, not all tangents of Z need be
+        contained in H. As an example, consider the planar unit disk Z = {x21 + x22 ≤ 1}; although
+        there is a tangent at every point of the unit circle, only a countable family of tangent
+        halfspaces (say, those whose slope is rational) is enough to define it!
+
+        I Definition 16 (Witness). For admissible region A ⊆ V and an affine family H, so that
+        L(inf H) ⊆ A, a point p ∈ bd A is a witness iff, for some h ∈ H, p ∈ ΦH (h).
+
+        I Theorem 17 (Witnessed maximality criterion). For admissible region A ⊆ V and affine
+        family H, so that Z = L(inf H) ⊆ A, if every flat of H contains a witness, then Z is maximal
+        in A.
+
+            Witnessed maximality is sufficient for maximality, but not necessary. As an example,
+        consider the 2-d case where Z = {y ≤ 0} and A = {y ≤ 1/|x| ∨ x = 0}. Then, Z is maximal
+        in A, but there is no witness to the unique tangent halfspace that is the whole of Z.
+            The witnessed maximality criterion is handy, because it relates maximality of a set Z to
+        a requirement on each flat of a description of Z. It is possible, but cumbersome, to extend
+        the concept of a witness, so that a sufficient and necessary condition for maximality can be
+        obtained. Because of space constraints, this extension will be presented in the full paper.
+M. Garofalakis and V. Samoladas                                                                         14:11
+
+
+4.1    Preservation Of Maximality Under Composition
+In contrast to maximum distance, intersection does not preserve maximality in general.
+This is quite well-known; in fact, loss of maximality under intersection is the reason for
+the unsatisfactory behavior of previous safe zone design approaches, such as the Covering
+Spheres method.
+    Fortunately, under suitable conditions to be explored below, separable union does preserve
+maximality; given maximal safe zones L(ζi ) ⊆ Ai , it is possible to select a maximal convex
+           W                                   W
+subset of L(ζi ) which is also maximal in Ai . However, as in the case for maximum
+distance, the safe zone functions ζi must a special requirement, non-redundancy.
+
+I Definition 18 (Non-redundant safe zone function). A safe zone function ζ is non-redundant
+iff ζ is the pointwise infimum of a non-redundant affine family; else it is redundant.
+
+    Intuitively, a non-redundant safe zone function ζ for Z = L(ζ) is one which is (pointwise)
+maximal, among all safe zone functions g with L(g) = Z; that is, if L(f ) = L(g) and f < g
+(that is, f ≤ g and at some x0 , f (x0 ) < g(x0 )), then f is redundant.
+    An important observation pertains to eikonal non-redundant functions. Given any convex
+set Z, the family F of eikonal functions f with L(f ) = Z is known to contain a ≤-wise
+least element, the SDF of Z. It can be shown that it also contains a unique ≤-wise greatest
+element ηZ , which is the (unique) non-redundant function in F. Importantly, when Z is
+smooth (all points of its boundary are smooth), then ηZ = δZ .
+    We now proceed to the main result of this section, which determines maximality of
+safe zones for an admissible region composed as an intersection of unions. To describe the
+intersection of unions, we use an antichain on [n] = {1, . . . , n}, i.e., a non-empty collection
+C of subsets of [n], such that no element of C is a subset of another. A single separable
+union is specified C = {[n]}. A (separable) intersection on the other hand is specified as
+C = {1}, . . . , {n} .
+
+I Theorem 19. Let ζi : Vi → R, i = 1, . . . , n be non-redundant safe zone functions, and C
+                                        P
+an antichain on [n]. Let ζ = inf Γ∈C i∈Γ ai (Γ)ζi , where ai (Γ) > 0. Then,
+1. ζ is non-redundant, and
+2. if, for Ai ⊆ Vi , each L(ζi ) is witnessed maximal in Ai , then L(ζ) is witnessed maximal in
+         T     W
+   A = Γ∈C i∈Γ Ai .
+
+
+ 5     Safe Zones For Boolean Functions
+We now apply our method to the class of (separable) boolean query functions. Let
+F : {0, 1}n → {0, 1} be any boolean function and let fi : Vi → {0, 1} be predicates
+on Vi respectively. We are interested in a safe zone for admissible region A = {X ∈
+V | F (f1 (X 1 ), . . . , fn (X n ))}, containing the reference point E = E 1 ⊕ · · · ⊕ E n , with
+E ∈ int A.
+    We assume that F is given to us as a conjunction of clauses, where each clause is a
+disjunction of literals bi , bi , for i = 1, . . . , n. A clause Γ can be represented as a subset of
+{1, . . . , n} × {+, −}, where pair (j, s) ∈ Γ means that the clause contains bj if s = +, or bj if
+s = −.
+                  (+)                         (−)              (+)
+    Letting, Ai        = {fi (X i )} and Ai          = Vi − Ai , the admissible region A can be
+                          T      W         (s)
+decomposed as A = Γ∈F (i,s)∈Γ Ai . By the observations for maximum distance, we are
+allowed to reduce F to a (stronger) boolean function F̃ . In particular, for each i = 1, . . . , n,
+                                                                                   (−)
+we eliminate at least one of the literals bi , bi from all clauses: if E i 6∈ int Ai , we eliminate
+
+
+
+                                                                                                       ICDT 2017
+14:12   Distributed Query Monitoring through Convex Analysis
+
+
+                                           (+)
+        literal bi , and if E i 6∈ int Ai we eliminate bi . This justified is because, by Thm. 11, a
+        maximum-distance safe zone for each clause would eliminate the corresponding components.
+        Once F̃ is obtained, it can be further reduced by expressing it as a conjunction of its prime
+        implicates, so that no clause is weaker than another. This last step is needed in order to
+        apply Thm. 19.
+            Then, given safe zone functions ζi for the remaining admissible regions on Vi , the safe
+        zone function
+                                         P
+                                          (i,s)∈Γ ζi (E i )ζi (X i )
+            ζ(X 1 ⊕ . . . ⊕ X n ) = inf qP                                                         (6)
+                                    Γ∈F̃                  2
+                                                (i,s)∈Γ ζi (E i )
+
+
+        defines a safe zone for A. Furthermore, if, for all i, ζi are eikonal and L(ζi ) are maximum
+        distance, then L(ζ) is maximum distance and ζ is eikonal. With respect to maximality, by
+        virtue of Thm. 19, if all ζi are non-redundant, and L(ζi ) are (witnessed) maximal in Ai , then
+        L(ζ) is also (witnessed) maximal in A.
+
+        5.1     Monitoring Quantiles
+        Consider the query function Qk (g1 (X 1 ), . . . , gn (X n )), where Qk : Rn → R returns the k-th
+        least value among its arguments. These queries arise in monitoring robust statistics of
+        (functions of) the state, such as the median or the inter-quartile range.
+            Condition Qk () ≤ T can be written as a boolean function Fk (f1 (X 1 ), . . . , fn (X n )), where
+        fi (X i ) is the boolean value of “gi (X i ) ≤ T ” and Fk is true iff k or more of its inputs are
+        true. With respect to Fk , the safe zone design of this section yields a safe zone function ζ,
+        given safe zone functions ζi for each constraint gi (X i ) ≤ T .
+            A practical point is related to the computational cost of checking membership in L(ζ),
+        which, if done straightforwardly, requires time O(2n ). For counting queries, it is possible
+        to test condition ζ(X) ≥ 0 in time O(n). To see this, note that the set of clauses of
+        Fk (b1 , . . . , bn ) is the set of all n − k + 1-subsets of {b1 , . . . , bn } (since, if every n − k + 1-subset
+        of literals contains a true literal, there are at most n − k false literals overall, and therefore
+        at least k true literals). Therefore, to check ζ(X) ≥ 0, it is sufficient to compute the sum S
+        of the least n − k + 1 elements of {ζi (E i )ζi (X i ) | i = 1, . . . , n}, as it is ζ(X) ≥ 0 iff S ≥ 0.
+
+         6      Safe Zones For Separable Sums
+                                                                        Pn
+        Separable sum queries refer to conditions of the form i=1 fi (X i ) ≤ T , where fi are arbitrary
+        real functions. As shown in Eq. 1, this condition can be written as a universal quantification
+        (which relates to conjunction) of a family of finite disjunctions. Therefore, at least in principle,
+        our composition operators can be used to derive a safe zone formula. In this section, we
+        demonstrate that this approach can go well beyond the principle, into an analytic method of
+        safe zone design.
+            The approach is straightforward; as shown in Eq. 1, the separable sum threshold condition
+                                     Wn
+        is rewritten as ∀τ ∈ ΣnT , i=1 fi (X i ) ≤ τi . Let the reference point be E = E 1 ⊕ · · · ⊕ E n .
+        The booleanized condition decomposes as the intersection of a family Aτ ⊆ V , for τ ∈ ΣnT ,
+        of admissible regions, each corresponding to a disjunctive clause. In order to write a safe
+        zone function for each clause, we need to have a parametrized family of safe zone functions
+        for conditions fi (X i ) ≤ τi . Let ζi (X i ; τi ), i = 1, . . . , n denote such a parameterized family.
+                                                                                Pn
+        Then, a safe zone for Aτ can be given by function ζτ (X) = i=1 ai (τ )ζi (X i ; τi ), for suitably
+        selected ai (τ ). Finally, the overall safe zone function is ζ(X) = inf τ ∈ΣnT ζτ (X).
+M. Garofalakis and V. Samoladas                                                                               14:13
+
+                                                                        Pn
+   As a first example, we solve a trivial problem; the linear constraint i=1 wi xi = wx ≤ T .
+                                    n
+Booleanization gives ∀τ ∈ ΣnT : i=1 wi xi ≤ τi . Each constraint wi xi ≤ τi has a good safe
+                                  W
+
+zone described by the eikonal and non-redundant affine function ζi (xi ; τi ) = (τi − wi xi )/|wi |.
+Therefore, we have an overall expression of
+                                    n
+                                    X               τi − wi xi
+    ζ(x) = infn ζτ (x) = infn             ai (τ )              .
+            τ ∈ΣT           τ ∈ΣT
+                                    i=1
+                                                       |wi |
+
+Although any choice for ai (τ ) will yield a legal safe zone, to obtain a good solution, we need
+to select ai (τ ) more carefully. But, notice that if we select ai (τ ) = |wi |/kwk, we obtain
+            −wx
+ζτ (x) = Tkwk    , which is independent of τ . Therefore, the inf operator becomes redundant.
+It is easy to see that the solution obtained is best possible; it is less clear whether there is a
+systematic strategy for selecting ai (τ ), for more complex problems. Below we introduce two
+such systematic strategies.
+
+
+6.1     Dominating Index
+It turns out that the previous example exhibits a dominating index. Assume that every
+ζi (xi ; τi ) is eikonal and maximum distance. Define function
+            v
+            u n
+            uX                       2
+    ∆(τ ) = t   max ζi (E i ; τi ), 0 = dist(E, Aτ )
+                i=1
+
+
+where the second equality is a consequence of Thm. 11. Assume that ∆ minimizes at a unique
+index τ ∗ , where, naturally, ∆(τ ∗ ) is dist(E, A). We can select ai (τ ∗ ) as per Thm. 11, that
+is, ai (τ ∗ ) = ζi (E i ; τi∗ )/∆(τ ∗ ), and obtain ζτ ∗ . Now, if it so happens that L(ζτ ∗ ) ⊆ A, then,
+we say that τ ∗ is a dominating index: we can select ζ = ζτ ∗ , eliminating the inf operation.
+The overall safe zone L(ζ) is obviously maximum distance. Also, if L(ζτ ∗ ) is maximal in
+Aτ ∗ , L(ζ) (i.e., L(ζτ ∗ )) is maximal in A ⊆ Aτ .
+
+
+6.2     Alignment
+Independently of the existence of a dominating index, alignment is a simple strategy for
+                                                          Pn
+selecting weights ai (τ ), when the query F (X) = i=1 fi (X i ) is differentiable.
+     Fix some clause τ . Assume that each ζi (X i ; τ ) is witnessed maximal; for simplicity,
+assume that it is also eikonal. Now, consider a point X̆ = X̆ 1 ⊕ · · · ⊕ X̆ n , such that, for every
+i, fi (X̆ i ) = τi and ζi (X̆ i ; τi ) = 0. That is, each X̆ i is a maximality witness for ζi (X i ; τi ).
+By smoothness of fi , its gradient g i = ∇fi (X̆i ) will be parallel to the gradient ∇ζi (X̆ i ; τi )
+at this witness point. Then, we can choose ai (τ ) so as to align (make parallel) the gradients
+                                                                              Pn
+of F and ζτ at X̆, which is achieved by ai (τ ) = kg i k. Note also that i=1 g 2i = k∇F (X̆)k2 ,
+thus, a choice of ai = kg i k/k∇F (X̆)k yields normalized weights.
+     This justifies the suitability of the choice ai = |wi |/kwk for every clause τ in the previous
+example. Also, with respect to the previous section, it is easy to see that at the minimizer
+τ ∗ of ∆(τ ), since X̆ is a nearest neighbor of E on the boundary of A, by smoothness of F ,
+kg i k will be proportional to ζi (E i ; τi∗ ).
+     Like dominating index, this method is limited to query functions that exhibit symmetry;
+if there are several witness points X̆, each giving a different value for ai , then it is not clear
+what is the best choice.
+
+
+
+                                                                                                             ICDT 2017
+14:14   Distributed Query Monitoring through Convex Analysis
+
+
+                                          y                                     y
+
+                                      (u∗ , v ∗ )
+
+                                                                                            (kξk, kψk)
+                                              (kξk, kψk) x                                          x
+
+
+
+
+             Figure 3 Safe zones (grayed) for x2 − y 2 ≥ T , when T ≤ 0 (left) and T > 0 (right). The
+        admissible regions are hatched. On the left, the safe zone is a single cone u∗ x − v ∗ |y| ≥ T , where
+        (u∗ , v ∗ ) is the dominating index. On the right, the safe zone is defined by the intersection of all
+        cones ux − v|y| ≥ T (three such cones are shown).
+
+
+        6.3    Safe Zones For Inner Product
+        We turn to the non-trivial problem of designing a good safe zone for the inner product of two
+        vectors. Previous solutions [14, 23, 22] strove for the same qualities, but were suboptimal in
+        terms of maximum distance [23] or maximality [14, 22].
+             The problem is defined by condition XY ≥ t. Instead of decomposing this problem
+        on a per-dimension
+                        √      basis, we apply √ the polarization identity, by the change of variables
+        x = (X + Y )/ 2, and y = (X − Y )/ 2. It is easy to see that x2 − y 2 = 2XY and that the
+        change of variables is a rotation, that is, it preserves all distances. Therefore, we focus on the
+        (slightly more general) problem of monitoring x2 − y 2 ≥ T , with x ∈ Rn and y ∈ Rm . We
+        shall design a safe zone for this problem, for reference point E = ξ ⊕ ψ, where ξ 2 − ψ 2 > T .
+             First note that, when ξ is 0 (which implies that T < 0), the constraint kyk ≤ −T defines
+        a good (maximum-distance and maximal) safe zone for the original problem. Therefore, we
+        assume kξk 6= 0 and we denote ξ̂ = ξ/kξk.
+             We treat this problem as a separable sum of two functions, f1 (x) = x2 and f2 (y) = −y 2 ,
+        of which f1 is convex and f2 is concave (thus, −f 2 is convex). The condition f1 + f2 ≥ T
+        can be booleanized as
+
+            ∀u, v ≥ 0 : u2 − v 2 = T :          x2 ≥ u2 ∨ y 2 ≤ v 2 ,
+
+        where we have applied a convenient change of variables to the index tuple (τ1 , τ2 ) = (u2 , −v 2 ).
+            The problem x2 ≥ u2 is solved optimally by the affine eikonal function ζ1 (x; u) = xξ̂ − u.
+        Similarly, the problem y 2 ≤ v 2 is solved optimally by the eikonal, non-redundant solution
+        ζ2 (y; v) = v − kyk. Putting everything together, we obtain formula
+
+         ζ(x ⊕ y) =      inf       ζu,v (x ⊕ y)      where    ζu,v (x ⊕ y) = α(u, v)(xξ̂−u)+β(u, v)(v−kyk).
+                      u2 −v 2 =T
+
+            By alignment, we select (unnormalized) α(u, v) = u and β(u, v) = v, and get
+
+            ζu,v (x ⊕ y) = uxξ̂ − vkyk − T.
+
+        which is tangent to the boundary of the admissible region at every point uξ̂ ⊕ v ŷ, where
+        kŷk = 1.
+            Instead of continuing the treatment of the problem directly, we will examine the case
+        n = m = 1; that is, the equivalent planar problem with reference point e = (kξk, kψk). This
+M. Garofalakis and V. Samoladas                                                                        14:15
+
+
+problem (and its solution) is depicted in Fig. 3. In fact, treating the 2-d problem is equivalent
+to treating the problem in any dimension, by the change of variables x = xξ̂ and y = kyk.
+
+Case T ≤ 0. When T ≤ 0, the problem admits a dominating index, (u∗ , v ∗ ), which is found
+   by minimizing ∆(u, v) over the index set.
+Case T > 0. In this case there ispno dominating index. The safe zone is the right lobe of the
+   hyperbola, that is Z = {x ≥ y 2 + T }. This set is smooth everywhere on its boundary,
+   therefore its SDF δZ (x, y) is non-redundant.
+     Overall, we have the following:
+I Theorem 20. Given constraint x2 − y 2 ≥ T and reference point ξ ⊕ ψ in any dimension,
+a good safe zone is given by ζ(x ⊕ y) = ζ2 (xξ̂, kyk), where ζ2 is the safe zone for the planar
+constraint x2 − y 2 ≥ T with reference point   √ (kξk, kψk). More precisely,
+1. if T ≤ 0, ζ2 (x, y) = (u∗ x − v ∗ |y| − T )/ u∗2 + v ∗2p, and
+2. if T > 0, ζ2 (x, y) is the SDF of convex set {x ≥ y 2 + T }.
+Both ζ and ζ2 are eikonal and non-redundant, and define maximum-distance and witnessed
+maximal safe zones.
+
+Computation cost for monitoring the inner product. Computing the safe zone function
+for l-dimensional vectors, takes time O(l), in order to compute xξ̂ and kyk. Then, computing
+the actual value can be done in time O(1). When the vectors between successive computations
+of the safe zone function change in only O(1) coordinates (which is quite standard in stream
+monitoring, when a stream update changes O(1) locations of the state vector), it is possible
+simply update cached previous values of xξ̂ and kyk and reduce the cost to O(1).
+
+Safe zones for AGMS sketches. As discussed, monitoring the inner product of two streams
+by AGMS sketches, involves monitoring√ the median of d inner products, of dimension
+                                                                             d
+                                                                                      l each.
+The result’s accuracy is within O(1/ l), with probability at least 1 − O(1/2 ). For practical
+purposes, d will be of the order of 10, but l of the order of 1000.
+    Combining our safe zones for inner product with the safe zone for the median, we obtain
+the first provably good safe zone for AGMS sketches. The computational cost of testing
+membership in the safe zone is important, as it is likely to be performed for every stream
+update. Using the FastAGMS sketch of [10], each stream update changes only 1 counter in
+each of the d vectors of a sketch. Therefore, the change to each monitored inner product can
+be computed in O(1) time. The median’s safe zone requires O(d) time for testing membership.
+In conclusion, our safe zones can be used for membership testing with only O(d) cost per
+update.
+
+ 7      Related Work
+The problem of tracking distributed streams through in situ constraints has attracted
+significant attention in recent years. Still, most existing work has focused on purpose-
+built solutions for specific query classes; these include, for instance, the simpler cases of
+thresholding linear functions [19, 18, 24]. top-k monitoring [4, 25], ratio threshold queries [16],
+and tracking polynomials of simple scalar variables [30]. All these techniques typically rely
+on some form of locally-installed “adaptive filters” – that is, bounds around the value of
+distributed variables that can grow or shrink over time (e.g., based on variability), while
+guaranteeing a global bound on the overall uncertainty. Similar local filtering ideas are also
+employed by Huang et al. [17] to monitor the eigenvalues of a network traffic matrix through
+
+
+
+                                                                                                      ICDT 2017
+14:16   Distributed Query Monitoring through Convex Analysis
+
+
+        perturbation analysis, and by Wolf et al. [33] to threshold the norm of the average vector in
+        a distributed system. Cormode and Garofalakis [7, 8] introduce the use of sketch synopses [9]
+        for effectively summarizing local data streams, and propose sketch-based schemes for the
+        communication-efficient, approximate monitoring of join aggregates over distributed streams.
+        Finally, Cormode et al. [11] give a theoretical study of the distributed function monitoring
+        problem focusing, in particular, on providing communication lower bounds for the case of
+        various Lp -norm functions, assuming a “cash-register” (i.e., insert only) streaming model.
+        Lower bounds for distributed norm monitoring are also given by Arackaparambil et al. [3],
+        who demonstrate that, for general “turnstile” streams (i.e., allowing both inserts and deletes),
+        the worst-case communication lower bounds are linear in the size of the stream. 1
+             The Geometric Method of Sharfman et al. [31, 32] introduced the first generic approach for
+        efficiently thresholding a general function/query over distributed data. Their solution relies on
+        a function-agnostic, geometric “covering spheres” technique for breaking the global condition
+        into safe local constraints. Extensions of the basic method as well as the more general notion of
+        convex Safe Zones (SZs) are discussed in a later paper [21], and a broad range of applications
+        have been explored, including distributed outlier detection [6], prediction-based distributed
+        stream monitoring [15], sketch-based monitoring of norms and range aggregates [13], and
+        distributed skyline tracking [27].
+             As demonstrated in our recent work [23], the safe zones (implicitly) defined by the
+        “covering spheres” method are often far from optimal, and geometric convexity arguments
+        (based on decomposing the problem into convex pieces) can give provably better results in
+        certain important cases. Still, the methodology and results in [23] are heuristic, refer to
+        specific classes of monitoring functions, and do not offer any hard quality guarantees for
+        the resulting safe zones; furthermore, they do not consider the important problem of safe
+        zone composition. Instead, our work is based on a novel functional representation of safe
+        zones which allows us to effectively deal with general Boolean safe zone composition with
+        provable quality guarantees. Our Boolean formalism is, in fact, much more powerful, and can
+        easily express the methodology of [23] as a special case. The very recent work of Lazerson et
+        al. [22] proposes another broad method based on defining “convex bounds” for the monitored
+        function F () using functional approximation techniques (assuming F () is differentiable).
+        However, no optimality properties are formally shown for the resulting SZs, and the problem
+        of effective SZ composition is not addressed. The worst-case communication complexity of
+        geometric techniques for distributed monitoring has not been studied, but empirical studies
+        demonstrate significant communication gains in real problems and query workloads.
+
+
+            8    Conclusions
+        In this paper, we have presented the first formal framework for the compositional design
+        of convex Safe Zones (SZs), for problems with separable constraints. To this end, we have
+        introduced a functional safe zone representation that conserves, under Boolean composition,
+        the quality guarantees of their component constraints. We have also applied our new
+        framework to general function monitoring scenarios of practical interest.
+            Important problems remain open for future research, mainly relating the quality of safe
+        zones to actual guarantees on the communication cost of monitoring, and extending our
+        compositional approach beyond boolean, to other types of composite queries.
+
+
+        1
+             The problem of communication lower bounds for general functions under the cash-register model
+            remains open.
+M. Garofalakis and V. Samoladas                                                                   14:17
+
+
+     References
+ 1   Noga Alon, Phillip B. Gibbons, Yossi Matias, and Mario Szegedy. “Tracking Join and
+     Self-Join Sizes in Limited Storage”. In Proc. of the 18th ACM Symposium on Principles of
+     Database Systems, Philadeplphia, Pennsylvania, May 1999.
+ 2   Noga Alon, Yossi Matias, and Mario Szegedy. “The Space Complexity of Approximating
+     the Frequency Moments”. In Proc. of the 28th Annual ACM Symposium on the Theory of
+     Computing, pages 20–29, Philadelphia, Pennsylvania, May 1996.
+ 3   Chrisil Arackaparambil, Joshua Brody, and Amit Chakrabarti. Functional monitoring
+     without monotonicity. In ICALP (1), 2009. doi:10.1007/978-3-642-02927-1_10.
+ 4   B. Babcock and C. Olston. Distributed top-k monitoring. In SIGMOD’03: Proceedings of
+     the 2003 ACM SIGMOD international conference on Management of data, New York, NY,
+     USA, 2003. ACM. doi:10.1145/872757.872764.
+ 5   Sabbas Burdakis and Antonios Deligiannakis. “Detecting Outliers in Sensor Networks Using
+     the Geometric Approach”. In Proc. of the 28th Intl. Conference on Data Engineering, April
+     2012.
+ 6   Sabbas Burdakis and Antonios Deligiannakis. Detecting outliers in sensor networks using
+     the geometric approach. In ICDE, 2012. doi:10.1109/ICDE.2012.85.
+ 7   Graham Cormode and Minos Garofalakis. “Sketching Streams Through the Net: Distrib-
+     uted Approximate Query Tracking”. In Proc. of the 31st Intl. Conference on Very Large
+     Data Bases, Trondheim, Norway, September 2005.
+ 8   Graham Cormode and Minos Garofalakis. “Approximate Continuous Querying over Dis-
+     tributed Streams”. ACM Transactions on Database Systems, 33(2), June 2008.
+ 9   Graham Cormode, Minos Garofalakis, Peter J. Haas, and Chris Jermaine. “Synopses for
+     Massive Data: Samples, Histograms, Wavelets, Sketches”. Foundations and Trends in
+     Databases, 4(1-3), 2012.
+10   Graham Cormode and Minos N. Garofalakis. Sketching streams through the net: Distrib-
+     uted approximate query tracking. In VLDB, 2005.
+11   Graham Cormode, S. Muthukrishnan, and Ke Yi. Algorithms for distributed functional
+     monitoring. In SODA, 2008. doi:10.1145/1347082.1347200.
+12   Minos Garofalakis, Johannes Gehrke, and Rajeev Rastogi. “Data-Stream Management –
+     Processing High-Speed Data Streams”. Springer-Verlag New York (Data-Centric Systems
+     and Applications Series), 2016.
+13   Minos Garofalakis, Daniel Keren, and Vasilis Samoladas. “Sketch-based Geometric Monit-
+     oring of Distributed Stream Queries”. In Proc. of the 39th Intl. Conference on Very Large
+     Data Bases, Trento, Italy, August 2013.
+14   Minos N. Garofalakis, Daniel Keren, and Vasilis Samoladas. Sketch-based geometric mon-
+     itoring of distributed stream queries. PVLDB, 2013.
+15   Nikos Giatrakos, Antonios Deligiannakis, Minos Garofalakis, Izchak Sharfman, and Assaf
+     Schuster. “Prediction-based Geometric Monitoring of Distributed Data Streams”. In Proc.
+     of the 2012 ACM SIGMOD Intl. Conference on Management of Data, Scottsdale, Arizona,
+     May 2012.
+16   Rajeev Gupta, Krithi Ramamritham, and Mukesh K. Mohania. “Ratio threshold queries
+     over distributed data sources”. In Proc. of the 39th Intl. Conference on Very Large Data
+     Bases, Trento, Italy, August 2013.
+17   Ling Huang, XuanLong Nguyen, Minos N. Garofalakis, Joseph M. Hellerstein, Michael I.
+     Jordan, Anthony D. Joseph, and Nina Taft. Communication-efficient online detection of
+     network-wide anomalies. In INFOCOM, 2007. doi:10.1109/INFCOM.2007.24.
+18   Srinivas R. Kashyap, Jeyashankher Ramamirtham, Rajeev Rastogi, and Pushpraj Shukla.
+     Efficient constraint monitoring using adaptive thresholds. In ICDE, pages 526–535, 2008.
+     doi:10.1109/ICDE.2008.4497461.
+
+
+
+
+                                                                                                 ICDT 2017
+14:18   Distributed Query Monitoring through Convex Analysis
+
+
+        19   Ram Keralapura, Graham Cormode, and Jeyashankher Ramamirtham. Communication-
+             efficient distributed monitoring of thresholded counts. In SIGMOD, 2006. doi:10.1145/
+             1142473.1142507.
+        20   Daniel Keren, Guy Sagy, Amir Abboud, David Ben-David, Assaf Schuster, Izchak Shar-
+             fman, and Antonios Deligiannakis. “Geometric Monitoring of Heterogeneous Streams”.
+             IEEE Transactions on Knowledge and Data Engineering, 26(8), August 2014.
+        21   Daniel Keren, Izchak Sharfman, Assaf Schuster, and Avishay Livne. Shape sensitive geomet-
+             ric monitoring. IEEE Trans. Knowl. Data Eng., 24(8), 2012. doi:10.1109/TKDE.2011.102.
+        22   Arnon Lazerson, Daniel Keren, and Assaf Schuster. Lightweight monitoring of distributed
+             streams. In Proc. of the 22Nd ACM SIGKDD International Conference on Knowledge
+             Discovery and Data Mining, KDD’16, pages 1685–1694, New York, NY, USA, 2016. ACM.
+             doi:10.1145/2939672.2939820.
+        23   Arnon Lazerson, Izchak Sharfman, Daniel Keren, Assaf Schuster, Minos Garofalakis, and
+             Vasilis Samoladas. “Monitoring Distributed Streams using Convex Decompositions”. In
+             Proc. of the 41st Intl. Conference on Very Large Data Bases, August 2015.
+        24   Shicong Meng, Ting Wang, and Ling Liu. Monitoring continuous state violation in data-
+             centers: Exploring the time dimension. In ICDE, pages 968–979, 2010. doi:10.1109/ICDE.
+             2010.5447923.
+        25   Sebastian Michel, Peter Triantafillou, and Gerhard Weikum. Klee: a framework for distrib-
+             uted top-k query algorithms. In VLDB’05. VLDB Endowment, 2005.
+        26   S. Muthukrishnan. “Data Streams: Algorithms and Applications”. Foundations and Trends
+             in Theoretical Computer Science, 1(2), 2005.
+        27   Odysseas Papapetrou and Minos Garofalakis. “Continuous Fragmented Skylines over Dis-
+             tributed Streams”. In Proc. of the 30th Intl. Conference on Data Engineering, Chicago,
+             Illinois, April 2014.
+        28   R. T. Rockafellar. Convex Analysis. Princeton University Press, 1970.
+        29   G. Sagy, D. Keren, I. Sharfman, and A. Schuster. “Distributed Threshold Querying of
+             General Functions by a Difference of Monotonic Representation”. In Proc. of the 36th Intl.
+             Conference on Very Large Data Bases, August 2010.
+        30   Shetal Shah and Krithi Ramamritham. Handling non-linear polynomial queries over dy-
+             namic data. In ICDE, 2008. doi:10.1109/ICDE.2008.4497513.
+        31   Izchak Sharfman, Assaf Schuster, and Daniel Keren. “A geometric approach to monitoring
+             threshold functions over distributed data streams”. In SIGMOD, 2006. doi:10.1145/
+             1142473.1142508.
+        32   Izchak Sharfman, Assaf Schuster, and Daniel Keren. “A geometric approach to monitoring
+             threshold functions over distributed data streams”. ACM Trans. Database Syst., 32(4),
+             2007. doi:10.1145/1292609.1292613.
+        33   Ran Wolff, Kanishka Bhaduri, and Hillol Kargupta. A generic local algorithm for mining
+             data streams in large distributed systems. IEEE Trans. on Knowl. and Data Eng., 21(4),
+             2009. doi:10.1109/TKDE.2008.169.
+

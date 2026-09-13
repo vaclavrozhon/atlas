@@ -1,0 +1,2171 @@
+               Electronic Colloquium on Computational Complexity, Report No. 174 (2021)
+
+
+
+
+           Sublinear quantum algorithms for
+           estimating von Neumann entropy
+      Tom Gur ∗           Min-Hsiu Hsieh †             Sathyawageeswar Subramanian ‡
+
+
+
+                                             Abstract
+    Entropy is a fundamental property of both classical and quantum systems, spanning
+    myriad theoretical and practical applications in physics and computer science. We study
+    the problem of obtaining estimates to within a multiplicative factor γ > 1 of the Shannon
+    entropy of probability distributions and the von Neumann entropy of mixed quantum
+    states. Our main results are:
+                1+η 
+       • an O e n 2γ 2 -query quantum algorithm that outputs a γ-multiplicative approxi-
+        mation of the Shannon entropy H(p) of a classical probability distribution p =
+        (p1 , . . . , pn );
+                  1 1+η 
+      • an O  e n 2 + 2γ 2 -query quantum algorithm that outputs a γ-multiplicative approxi-
+         mation of the von Neumann entropy S(ρ) of a density matrix ρ ∈ Cn×n .
+    In both cases, the input is assumed to have entropy bounded away from zero by a quantity
+    determined by the parameter η > 0, since, as we prove, no polynomial query algorithm can
+    multiplicatively approximate the  entropy of distributions with arbitrarily low entropy. In
+    addition, we provide Ω n1/3γ lower bounds on the query complexity of γ-multiplicative
+                                   2
+
+
+    estimation of Shannon and von Neumann entropies. We work with the quantum purified
+    query access model, which can handle both classical probability distributions and mixed
+    quantum states, and is the most general input model considered in the literature.
+
+
+
+
+∗
+  University of Warwick Email: tom.gur@warwick.ac.uk.
+†
+  Hon Hai (Foxconn) Quantum Computing Research Center. Email: min-hsiu.hsieh@foxconn.com.
+‡
+  University of Warwick. Email: sathya.subramanian@warwick.ac.uk.
+   T. Gur and S. Subramanian are supported by the UKRI Future Leaders Fellowship MR/S031545/1.
+
+
+
+
+                                                  1
+
+
+
+
+                                                                                                  ISSN 1433-8092
+Contents
+1. Introduction                                                                              3
+   1.1. Main results . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   4
+        1.1.1. Estimating Shannon entropy . . . . . . . . . . . . . . . . . . . . .          4
+        1.1.2. Estimating von Neumann entropy . . . . . . . . . . . . . . . . . .            5
+        1.1.3. Lower bounds . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      5
+        1.1.4. Additive approximation and gap problems . . . . . . . . . . . . . .           6
+   1.2. Related work . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     7
+
+2. Preliminaries and notation                                                              9
+   2.1. Multiplicative and additive estimates . . . . . . . . . . . . . . . . . . . . . 10
+   2.2. Input models . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 10
+   2.3. Algorithmic tools . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 12
+
+3. Estimating entropy to multiplicative precision using purified quantum queries 12
+   3.1. Estimating the entropy of the low weight elements . . . . . . . . . . . . . 14
+   3.2. Estimating the entropy Hp (B) of the heavy elements . . . . . . . . . . . . 17
+        3.2.1. Multiplicative approximation of entropy using power functions . . 18
+        3.2.2. Using QSVT to estimate power sums . . . . . . . . . . . . . . . . . 19
+   3.3. Combining the heavy and light estimates to form H̃ . . . . . . . . . . . . 23
+   3.4. Proving Theorems 1 and 2 . . . . . . . . . . . . . . . . . . . . . . . . . . . 25
+
+4. Lower bounds                                                                       25
+   4.1. Distributions with non-zero entropy . . . . . . . . . . . . . . . . . . . . . 26
+   4.2. General sub-logarithmic lower bounds . . . . . . . . . . . . . . . . . . . . 27
+   4.3. Polynomial lower bounds in the frequency vector and purified access models 28
+
+5. Conclusions and outlook                                                                   28
+
+A. Creating block encodings or projected unitary encodings from the purified
+   access oracle                                                                          33
+   A.1. Classical distributions . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 33
+   A.2. Arbitrary quantum density matrices . . . . . . . . . . . . . . . . . . . . . 33
+
+B. Implementing power functions of block encoded matrices                                    34
+
+C. Quantum phase estimation and singular value estimation                                    37
+
+D. Quantum amplitude estimation                                                              38
+
+
+
+
+                                              2
+1. Introduction
+Entropy as a scientific concept is central in the study of a vast variety of subjects, ranging
+from thermodynamics and information theory to networks and quantum entanglement.
+The notion of entropy mathematically measures the amount of disorder and uncertainty
+in a system composed of many parts. Indeed, the second law of thermodynamics can
+famously be encapsulated in the simple statement that the entropy of a closed system
+can never decrease.
+    In this work we focus on the most fundamental entropic functionals for both clas-
+sical and quantum objects. For classical systems, the Shannon entropy H(p) :=
+− i∈[n] pi log pi of a probability distribution p = (p1 , . . . , pn ) is a cornerstone of in-
+   P
+
+formation theory. Notably, the Shannon entropy is proportional to the rates at which
+input data can be transmitted over communication channels [Sha48].
+    For quantum systems, the von Neumann entropy S(ρ) := − Tr (ρ log ρ) [Neu27; Pet01]
+of a mixed state specified by its density matrix ρ ∈ Cn×n is pivotal to our understanding
+of key properties in quantum mechanics, such as the amount of entanglement contained
+in bipartite quantum systems. In terms of information theory, von Neumann entropy
+gives an asymptotic lower bound for the rate at which quantum data can be compressed
+in a noiseless fashion [Sch95].
+    The von Neumann entropy is a strict generalisation of the Shannon entropy and
+reduces to the latter when viewed in appropriately restricted settings. Other entropic
+functionals built on the von Neumann entropy are also widely used in characterising
+quantum systems. Moreover, they arise extensively in condensed matter and high energy
+physics [Laf16], and are often used as operational measures in quantum information-
+processing tasks [KRS09; HOW06]. They have also had immense theoretical implications
+in the theory of gravity and black holes [Bek73; Don16], and their study from a quantum
+information-theoretic viewpoint continues to be a rich source of new physical insights
+[AS18; AK20].
+    Since obtaining a perfect description of a system is typically impossible, estimating
+the entropy of an unknown probability distribution or quantum state using a bounded
+number of samples, queries, or measurements is a vital algorithmic task. This question
+received much attention in classical information theory, and in a series of works [BDK+ 02;
+WY16; JVH+ 15; VV11] spanning the last two decades, nearly tight bounds were shown
+on the sample complexity of classical algorithms for estimating Shannon entropy.
+    In this paper, we study quantum algorithms for the problem of obtaining multiplicative
+estimates of the Shannon entropy of classical probability distributions and the von
+Neumann entropy of mixed quantum states. For generality, we focus on algorithms in
+the quantum purified query access model, which can handle both classical probability
+distributions and mixed quantum states, and is the most general input model considered in
+the literature. Thus, our algorithms can be implemented in all the four major input models
+for quantum algorithms accessing probability distributions: quantum samples, quantum
+queries to frequency vectors and classically drawn samples, as well as purifications.
+
+
+
+                                              3
+     Approximation algorithms that estimate a quantity to within a multiplicative factor,
+i.e., estimating x > 0 by outputting x̃ ∈ [x/γ , γx] for some γ > 1, allow for much flexibility.
+On the one hand, via a correct choice of parameters they allow us to recover additive
+approximations, i.e., estimating x > 0 by outputting x̃ ∈ [x − , x + ] for a small precision
+parameter  ∈ (0, 1) (see Section 1.1.4). On the other hand, in natural settings of
+parameters, they also allow for a greater slack than additive approximation (for instance,
+in many applications we may only need to know the unknown quantity to within a
+factor of two, i.e., γ = 2). This slack allows us to obtain far more efficient algorithms
+than is possible with additive approximation; indeed, we attain sublinear complexity for
+entropy estimation as opposed to polynomial complexity (which is the best that can be
+achieved for additive estimates). In turn, these properties of multiplicative approximation
+algorithms make them often more involved and harder to construct.
+    In the classical setting, Batu et al. [BDK+ 02] considered the problem of estimating
+Shannon entropy to multiplicative precision, showing that O(ne (1+η)/γ 2 ) samples suffice to
+obtain an estimate within a factor γ, for classical distributions p with H(p) > γ/η. This
+                                                   2
+is almost matched by a lower bound of Ω(n(1−η)/γ ) later proven in [Val11].
+   We build on the aforementioned line of work by extending it to the setting of quantum
+query algorithms for both classical distributions and mixed quantum states. In particular,
+we are motivated by the following question:
+                 Is it possible to construct sublinear quantum algorithms
+                           for estimating von Neumann entropy?
+
+
+1.1. Main results
+This paper answers the foregoing question in the affirmative. We begin by presenting
+our construction of quantum query algorithms for estimating the Shannon entropy of
+a probability distribution to within a multiplicative factor γ > 1. Then, we proceed
+to estimating the von Neumann entropy of mixed quantum states. Finally, we show
+lower bounds on the quantum query complexity of the foregoing problems. The query
+complexity in our setting is the standard analogue to the classical sample complexity,
+and our results are in this sense information theoretic in nature.
+
+
+1.1.1. Estimating Shannon entropy
+We first consider quantum algorithms for classical distributions, accessed via quantum
+query oracles. We obtain a quadratic improvement in the information theoretic complexity
+over the best possible classical algorithm.
+Theorem 1. There is a quantum algorithm that outputs with high probability a γ-
+multiplicative approximation of the Shannon entropy H(p) of a classical probability
+distribution p on [n] accessed
+                             via a 2purified
+                                               quantum query oracle Up as in Eq. (2.10)
+using Up and its inverse O n
+                          e    (1+η)/2γ
+                                          times, provided H(p) > 3γ + 4/η.
+
+
+
+
+                                               4
+    We remark that there are four popular quantum input models that have been stud-
+ied for quantum algorithms accessing classical input probability distributions [BHH11;
+CFM+ 10; MW16; LW19; Bel19; GL20], namely: (i) quantum query oracle to a frequency
+vector, (ii) quantum query oracle to list of classically generated samples, (iii) quantum
+samples with preparation oracle, and (iv) purified quantum query access. (See formal
+definitions in Section 2.1.) We stress that Theorem 1 holds for all of the models above.
+    In more detail, Belovs [Bel19] initiated a comparative study of the aforementioned
+four models and showed that the purified access model (i.e., Model (iv)) is the most
+general in the sense that it can capture both classical distributions and density matrices,
+as well as be emulated by all the other models with a constant overhead. Furthermore,
+he proved that the quantum samples model (i.e., Model (iii)) is strictly stronger than
+the rest of the models, and conjectured that Models (i), (ii), and (iv) are equivalent for
+classical probability distributions. Our algorithms are constructed using purified query
+oracles, and hence by the above, the upper bounds we prove automatically apply to the
+rest of the models.
+
+
+1.1.2. Estimating von Neumann entropy
+Next, we proceed to look at quantum algorithms for mixed quantum states. As far as
+we are aware, this work is the first to investigate multiplicative approximations of the
+von Neumann entropy of density matrices. We prove the following theorem showing that
+such approximation is possible with query complexity that is sublinear in the dimension
+of the state.
+Theorem 2. There is a quantum algorithm that outputs a γ-multiplicative approximation
+of the von Neumann entropy S(ρ) of a density matrix ρ ∈ Cn×n accessed
+                                                                          via a purified
+                                                                                    
+                                                                     1/2+(1+η)/2γ 2
+quantum query oracle Uρ as in Eq. (2.9) using Uρ and its inverse O n
+                                                                 e                    times,
+provided S(ρ) > 3γ + /η.
+                     4
+
+    To the best of our knowledge, this is the first example of an algorithm for estimating
+von Neumann entropy with sublinear complexity. In contrast, we remark that standard
+(tomographic) methods for learning the state, obtaining an additive estimate, or even
+testing properties of its spectrum [OW15] typically require a number of samples or queries
+that scales linearly (for additive approximation) or even quadratically (for learning and
+testing) in the dimension n of the system. We provide a detailed comparison of our
+algorithms with related works in Section 1.2.
+
+
+1.1.3. Lower bounds
+We complement the foregoing upper bounds by proving lower bounds on the query
+complexity of quantum algorithms for multiplicative entropy estimation. For the general
+purified query access
+                       model
+                              (i.e., Model (iv)), in which we also show our upper bounds,
+                  1/3γ 2
+we show that Ω n           uses of the quantum query oracle are necessary to γ-approximate
+the entropy of an unknown classical distribution, even when we are promised that the
+
+
+
+                                             5
+input has entropy larger than log n/γ 2 . In fact, the aforementioned lower bound is proved
+via a reduction to a variant of the collision problem [AS04] in the frequency vector model
+(i.e., Model (i)), and so it also holds for this stronger model. See details in Section 4.3.
+   We also prove lower bounds in the quantum samples model (i.e., Model (iii)). This
+model is far stronger than the rest of the models, and in particular, it trivially admits
+O(1)-quantum-sample algorithms for problems such as uniformity testing, identity testing,
+and gap-support size testing, which are known to be hard in the other models. √ In the
+quantum samples model, we are able to prove a weak lower bound of Ω( log n) by
+a reduction to the promise problem of testing identity of two known distributions in
+Hellinger distance [Bel19]. To our knowledge, this constitutes the first non-trivial lower
+bound on the capability of this powerful input model. See details in Section 4.2.
+
+
+1.1.4. Additive approximation and gap problems
+Multiplicative approximation can generally also capture the notion of additive approxi-
+mation, and in particular for entropies we can recover -additive estimates by suitably
+choosing the multiplicative factor γ, while incurring only a small (logarithmic) overhead
+in the complexity. Multiplicative estimation has the added advantage of being closely
+related to the field of property testing, wherein we wish to test whether an input satisfies
+some global property (such as having high entropy) or is far from any possible input
+that has that property (say, in total variation distance). To illustrate the generality and
+utility of our results, we note the following immediate applications to additive estimation
+and testing.
+Estimating the entropy to additive precision: Since both Shannon and von Neu-
+mann entropies of n-dimensional distributions or quantum systems are bounded by log n,
+choosing γ = 1 + log n we see that a good γ-multiplicative approximation also yields
+a good -additive approximation (see Section 2.1 for more details). Furthermore, the
+complexity overhead can be bounded by noting that
+
+                                   1     1
+                                                       −2
+                                                 
+                                           
+                                       =   1+
+                                  2γ 2   2     log n
+                                         1   32
+                                       ≤ +         .                                     (1.1)
+                                         2 log2 n
+                                                                                    1
+                                                                                            
+Since the second term decays and is o(1), we recover query complexities of O n 2 +o(1)
+              
+and O n1+o(1) for estimating the Shannon entropy of a probability distribution or the
+von Neumann entropy of a density matrix to constant additive precision. This matches
+the results of [GL20], upto to polylogarithmic factors (or equivalently, no(1) factors).
+
+Testing whether the entropy is high or low: Suppose we wish to determine if
+a distribution on [n] has entropy (1) larger than a threshold H1 , or (2) smaller than
+a threshold H2 < H1 for some H1 , H2 ∈ (0, log n]. If we are able to γ-approximate
+
+
+
+                                               6
+                              q
+the entropy with γ = H H2 , notice that in the first case the algorithm must output a
+                         1
+                 √
+value √
+      larger than H1 H2 , whereas in the second case it must output a value smaller
+than H1 H2 , hence allowing us to distinguish the two cases. Thus, we can solve
+                                                                                this                                   H2
+testing problem with nearly subquadratic quantum query complexity O
+                                                                  e n 2H1 . To
+                                                                                  H2
+                                                                                              
+                                                                                      +o(1)
+compare, classical algorithms can solve this task with O n                         H1              samples and require
+      H2
+                  
+          −o(1)
+Ω n    H1             samples [Val11].
+
+
+1.2. Related work
+For easy reference, we collect in Tables 1 and 2 the best known results on estimating
+Shannon and von Neumann entropies in input models of relevance to our work.
+
+Type of estimate             Classical sample complexity                       Quantum query complexity
+
+                                          [JVH+ 15; WY16]                                 [GL20; LW19] & [BKT18]
+                                                                                            √ 
+                                                            2
+                                                                                                                e (√n)
+                                                                
+                                                       log n                                    n
+      -Additive                      Θ        log n + 2
+                                                 n
+                                                                                        O
+                                                                                        e
+                                                                                              1.5
+                                                                                                              & Ω
+                                 1+η                                                  1+η            
+                                                             1/γ 2 −o(1)                                  2
+ γ-Multiplicative             O n γ2
+                              e         &           Ω n                                O n 2γ 2 & Ω n1/3γ
+                                                                                       e
+
+                                   [BDK+ 02]        &       [Val11]                                (this work)
+
+
+
+
+Table 1: Classical and quantum sample and query complexities of estimating the Shannon
+         entropy of classical distributions over an alphabet of size n, and η > 0 controls
+         the amount by which the entropy of the input is bounded away from zero (see
+         Lemma 1 for details).
+
+
+                      Type of estimate             Input model                              Complexity
+                                                                                             2                       2
+ [AIS+ 19]               -Additive                  Copies of ρ                        O     n
+                                                                                              2
+                                                                                                      & Ω              n
+                                                                                                                        
+
+
+                                                 Purified quantum                                                
+ [GL20]                  -Additive                                                               O           n
+                                                       queries
+                                                                                                  e
+                                                                                                          1.5
+
+
+
+                                                 Purified quantum                                        2
+                                                                                                                            2
+                                                                                                                                  
+ This work             γ-Multiplicative                                        e n1/2+(1+η)/2γ
+                                                                               O                                  & Ω n1/3γ
+                                                       queries
+
+Table 2: Comparing works on estimating the von Neumann entropy of an n-dimensional
+         density matrix.
+
+
+
+
+                                                             7
+    We can group studies of entropy estimation into four categories: (1) classical and (2)
+quantum algorithms for estimating entropies of classical distributions; (3) classical and
+(4) quantum algorithms for estimating the entropies of quantum states.
+   We have already seen the most relevant works of the first kind in Section 1; it is
+worth remarking however that the estimation of entropies in a variety of classical input
+models and computational settings continues to be an active area of research.
+   We only note studies of the third category in passing: [HGK+ 10], for instance, discuss
+a quantum Monte Carlo method to measure the 2-Rényi entropy of a many-body system
+by evaluating the expectation value of a unitary swap operator.
+    At the intersection of categories (2) and (4), [AIS+ 19] study the sample complexity
+of estimating von Neumann and Renyi entropies of mixed states of quantum systems,
+in an input model where one gets access to m independent copies of an unknown n-
+dimensional density matrix ρ. They allow arbitrary quantum measurements and classical
+post-processing, and show that in general the number of quantum samples required scales
+as Θ(n2 ), which is asymptotically the same as the number of samples that would be
+required to learn the state completely via tomography. The experimental measurement
+of the entropy of certain kinds of quantum systems has also recently been studied, for
+example in [IMP+ 15].
+    Other oracular input models may be potentially stronger than simple samples with
+measurement. The purified quantum query access model that we study in this work,
+wherein data is accessed in the form of a quantum state, is one such model. This state
+may be the output of some other quantum subroutine, in which case that subroutine
+itself is the oracle. Such input models can capture the fact that we have access to the
+process generating the unknown state, which we may a priori expect to be useful in
+reducing the effort required in estimating its properties.
+    With regard to quantum algorithms for estimating the entropies of quantum states
+(which subsumes the case of classical probability distributions), [LW19] provide upper
+and lower bounds on the query complexity for the task of additive approximation
+of von Neumann and Renyi entropies in the quantum frequency vector input model
+(see Eq. (2.7)). [GL20] study another similar oracular model, known as the quantum
+purified query access model, which essentially provides a pure state, sampling from which
+reproduces the statistics of the original mixed state, or target classical distribution (see
+Eqs. (2.9) and (2.10)). [SH21] consider the estimation of Renyi entropies in the same
+purified query access model, to both additive and multiplicative precision. Their focus
+however is on how this task may be solved on restricted models of quantum computation
+(namely, DQC1), and they do not obtain optimal query complexities.
+    Finally, we remark that we use the approximation of the logarithm by power functions
+that is defined and studied in [ZLO+ 07], who show that the Shannon entropy can be
+estimated to any desired precision by interpolation using estimates of Rényi-α entropies
+for values of α ∈ (0, 2]. They study a streaming input model and use techniques that are
+otherwise very different from ours.
+
+
+
+
+                                             8
+2. Preliminaries and notation
+We assume the reader is familiar with the quantum computing framework and notation,
+such as Dirac’s bra-ket notation. We refer to standard texts such as [NC10; Wol19] for a
+detailed introduction to quantum computation. Here, we discuss concepts and notation
+of specific relevance to this paper.
+    For n ∈ N we denote by [n] the set {1, . . . , n}. All logarithms that we use throughout
+this paper are taken with base 2. For a probability distribution p = (p1 , . . . , pn ) on [n],
+we use the notation wp (A) := i∈A pi for the weight of a subset of labels A ⊆ [n].
+                              P
+
+   The Shannon entropy H of p is defined by [Sha48]
+
+                                  H(p) := −               pi log pi .                    (2.1)
+                                                  X
+
+                                                  i∈[n]
+
+We will let Hp (A) := −      i∈A pi log pi denote the entropy of the set of labels A ⊆ [n]
+                           P
+
+under the distribution p.
+   Quantum registers can also exist in probabilistic mixtures of states; the simpler
+superposition states are called pure states, and their probabilistic mixtures are known as
+mixed states. The most general description of an n-dimensional quantum state ρ is in
+terms of an n × n positive semi-definite matrix with complex entries, normalised to have
+unit trace. The von Neumann entropy of a quantum state represented by its density
+matrix ρ ∈ Cn×n is defined by [MDS+ 13]
+
+                                   S(ρ) := − Tr (ρ log ρ) .                              (2.2)
+
+For two distributions p and p̃ on [n], we define the Hellinger distance between them by
+
+                                                 1X √
+                                             s
+                             dH (p, p̃) :=           ( pi − p̃i )2 ,                     (2.3)
+                                                           p
+                                                 2 i
+
+and the total variation distance by
+                                                  1X
+                                dTV (p, p̃) :=        |pi − p̃i | .                      (2.4)
+                                                  2 i
+
+We use the standard complexity theoretic notation of O   e to hide polylogarithmic factors.
+Finally, all our algorithms succeed with constant probability which can be boosted by
+standard techniques, and we omit the resulting factors from the complexity and discussion
+for brevity.
+
+
+
+
+                                                  9
+2.1. Multiplicative and additive estimates
+A good estimate x̃ of some unknown quantity x > 0 to a multiplicative factor γ > 1
+satisfies
+                                  x
+                                    ≤ x̃ ≤ γx.                                (2.5)
+                                  γ
+Similarly, an estimate x̃ of an unknown quantity x to additive precision  > 0 must
+satisfy
+                                  x −  ≤ x̃ ≤ x + .                          (2.6)
+When we know an upper bound 0 < X < ∞ on x, we can obtain an -additive approxi-
+mation from a γ-multiplicative approximation by choosing γ = 1 + X , since
+                                            −1
+                                                             
+                                                                    
+            x−< 1−             x< 1+             x < x̃ < 1 +              x < x + .
+                    X                 X                        X
+
+In particular, we know that the entropy of any distribution over [n] is bounded above
+by log n, and so by choosing γ = 1 + log n we can always obtain good additive estimates
+using multiplicative estimation subroutines.
+
+
+2.2. Input models
+We now formally define the four input models touched upon in Section 1. We refer to
+[Bel19] for a more detailed discussion of these models and their relations to each other.
+  (i) Frequency vectors with quantum query access: A standard unitary quantum
+      query oracle U to a string v ∈ [n]m for some large m, where ∀ j ∈ [m], i ∈ [n], and
+
+                                  U |ii |0i = |ii |vi i
+                                               1
+                                         pi = |{j|vj = i}| .                             (2.7)
+                                              n
+
+ (ii) Quantum oracle that generates a sample from p: A standard unitary quan-
+      tum query oracle to a string v ∈ [n]m for some large m, where each vi is drawn
+      independently at random according to the distribution p.
+ (iii) Quantum samples for classical distributions: A unitary that prepares the
+       state
+                                            d−1
+                                                  √
+                                 Up |0i =             pi |ii := |pi ,                    (2.8)
+                                            X
+
+                                            i=0
+
+     such that measuring the state |pi in the computational basis reproduces the effect
+     of sampling from p.
+
+
+
+
+                                            10
+(iv) Purified quantum query access: A unitary Uρ on Cn ⊗ Cn which produces a
+     purification |ψρ i of the actual input state ρ in Cn×n
+                                           n
+                                             √
+                                Uρ |0i =          pi |ψi i |φi i := |ψρ i             (2.9)
+                                           X
+
+                                           i=1
+
+     such that the partial trace over the ancillary register Tr2 (|ψρ ihψρ |) = ρ. The
+     states {|ψi} and {|φi} are sets of orthonormal vectors on the system and ancillary
+     subspaces respectively. Classical probability distributions can be considered as
+     density matrices that are diagonal in the computational basis, so we consider a
+     unitary Up with a simplified action
+                                           n
+                                             √
+                                Up |0i =          pi |ψi i |ii := |ψp i .            (2.10)
+                                           X
+
+                                           i=1
+
+
+In all four cases, as is standard in the theory of quantum query complexity, we assume
+access to both the oracle and its conjugate U † .
+    The frequency vector model can emulate the purified access model for classical
+distributions, i.e., given a frequency vector oracle, we can construct a purified access
+oracle with a single query:
+                                           
+                                m                    m
+                              1 X                1 X
+                        U √         |ji |0i = √       |ji |vj i
+                               m j=1              m j=1
+                                                             X           
+                                                                    |ji
+                                                      n 
+                                                         j:vj =i
+                                                                          
+                                                 =
+                                                      X
+                                                         √                |ii
+                                                                          
+                                                        
+                                                      i=1
+                                                                m         
+
+                                                      n
+                                                        √
+                                                 =                                   (2.11)
+                                                      X
+                                                            pi |ψi i |ii ,
+                                                      i=1
+
+using the definition of the frequency vector and defining the normalised version of the
+state in parenthesis on the second line. A similar calculation shows model (ii) can also
+emulate model (iv).
+   The vanilla quantum samples model for access to classical distributions too can
+emulate the purified query access model: applying a single layer of log n two-qubit CNOT
+gates to |pi suffices to copy the computational basis states |ii into an ancillary register,
+reproducing the action in (2.10) for classical distributions.
+    It is also worth noting that analogous to model (iii), for the case of mixed quantum
+states we may have access to multiple independent copies of the unknown state ρ, which
+is the model studied in works including [AIS+ 19; OW15].
+
+
+
+
+                                                 11
+2.3. Algorithmic tools
+The main standard quantum algorithmic techniques that we use are the method of
+quantum singular value transformations (QSVT), quantum singular value estimation
+(QSVE), and quantum amplitude estimation (QAE). We give a brief and high level
+overview of these methods here.
+QSVT: The QSVT [GSL+ 19] is a powerful framework for describing and constructing
+quantum algorithms. At its heart lies the linear algebraic formulation of quantum
+algorithms, and the theory of quantum walks. Given a unitary U in a + s dimensions
+that in a certain way encodes a possibly rectangular matrix P with singular value
+decomposition i σi |vi ihwi |, the map QSVT(P,f) uses U as a black box and implements
+                 P
+
+a unitary quantum circuit that approximately encodes a matrix Pf with singular values
+f (σi ) transformed according to a polynomial f defined on the values σi . This framework
+has been found to be immensely general in scope, in that most known quantum algorithms
+can be recast in terms of a QSVT. We will use this technique explicitly for the estimating
+the contribution to the entropy from points with high probability mass, in Section 3.2.
+We discuss more details regarding the QSVT of relevance to our work in Appendix B.
+QSVE: The QSVE [KP20; CGJ19; GSL+ 19] is a generalisation of the popular and
+fundamental quantum phase estimation algorithm, generalising it to the task of coherently
+(i.e., in superposition) estimating the singular values of rectangular matrices. We use
+QSVE as a subroutine in Sections 3.1 and 3.2 for coherently distinguishing points with
+high probability mass from those with low probability mass. The subroutine QSVE(P,m)
+uses U as a black box and maps an input state i αi |vi i |0i to i αi |vi i |σ̃i i, where the
+                                                 P               P
+
+σ̃i approximate the singular values σi of P to m bits of precision. We give more details
+and a discussion on the relation between QPE and QSVE in Appendix C.
+QAE: Being a subroutine that grew out of Grover’s search algorithm and the associated
+amplitude amplification technique, QAE [BHM+ 02] estimates the amplitude a quantum
+state |ψi = U |0i puts on a particular flagged subspace, essentially by running QPE
+on a Grover iterate (or diffusion operator) constructed from the unitary U . The map
+QAE(flag, ) takes U as input and outputs an -additive estimate p̃ where |ψi =
+√           √
+  p |flagi + 1 − p |junki. We use this technique to estimate various quantities obtained
+after processing by QSVT and QSVE in both Algorithms 1 and 2. For convenience we
+recall the standard formal statement of how QAE works in Appendix D.
+
+
+3. Estimating entropy to multiplicative precision using purified
+   quantum queries
+In this section, we prove Theorems 1 and 2 by constructing our quantum algorithms for
+estimating Shannon and von Neumann entropies, and analysing their correctness and
+purified-quantum-query complexity. In fact, we prove the following, more general lemma,
+which can, with simple modifications, handle multiplicative approximation of any entropic
+functional f : D → R defined on vectors in D := Rn≥0 , and may be of more general
+
+
+
+                                            12
+interest in distributional property testing, as well as in the context of space-bounded
+computation and streaming input models.
+    To formally state the lemma, we shall need the following notion of projected unitary
+encodings (which we will loosely and interchangeably refer to as block encodings), as
+defined in [GSL+ 19].
+Definition 1. An (α, a, δ) projected unitary encoding of an operator A acting on s qubits
+is a unitary U acting on a + s qubits, such that
+
+                                     kA − αΠ† U Πk ≤ ,                                    (3.1)
+
+where the first register consists of ancillary qubits, Π := |0i⊗a ⊗ 1s is an isometry mapping
+(C2 )⊗s 7→ spanC {|0i⊗a } ⊗ (C2 )⊗s , and α,  ∈ (0, ∞).
+    We will prove the following lemma for projected unitary encodings. Subsequently,
+using the techniques of [GL20] to obtain projected unitary encodings from purified access
+oracles corresponding to classical distributions and density matrices respectively (see
+Appendix A), we will obtain Theorems 1 and 2 as immediate corollaries.
+Lemma 1. For any γ > 1 and 0 <  < 1, given an (α, a, δ) projected unitary encoding
+                                           √        √
+U of a matrix P with singular values p1 , . . . , pn where p = (p1 , . . . , pn ) defines a
+probability distribution, there is a quantum algorithm which outputs with high probability a
+(1 + 2)γ-multiplicative estimate H̃ of the entropy of H(p), for distributions with entropy
+at least 3γ + 1/2. This algorithm makes
+                                                         2
+                                                             !
+                                                αn1/2γ
+                                      m=O
+                                        e
+                                                  
+
+uses of U and U † , O(1) uses of controlled-U , and needs O(ma) additional one- and
+two-qubit gates.
+Remark 1. The statement of this result is in direct analogy with [BDK+ 02, Theorem 1].
+In particular, in order for the algorithm to be correct we need the entropy of the input to
+be bounded away from zero, since no algorithm using any of the input models discussed
+in Section 2.2 can output multiplicative estimates of arbitrary distributions, as we will
+                                                                                           γ
+see in Section 4.1. If we desire a multiplicative factor of γ, we can first choose γ 0 = (1+2) .
+                                                                          2
+                                                                               
+This leads to a small overhead in the complexity scaling as O n8/γ . Given η > 0 we
+can rephrase this as saying that by choosing
+                                            < η/8, the algorithm can deal with any
+                                                 1+η
+distribution with H(p) = Ω(1/η) using O
+                                      e n γ2             queries — that is, we can weaken the
+promise on the input and enlarge the class of distributions that the algorithm is correct
+on by paying a small appropriate price in the complexity.
+
+      √ 2. The  O in Lemma 1 hides factors that scale as (a) O(log n); (b) log /; and
+                                                                    2            n
+Remark             e
+(c) O   γ /log γ . It turns out that with a purified quantum query access oracle, we can
+          3
+
+
+always create an exact encoding U of the distribution or quantum state with δ = 0, and
+
+
+
+                                              13
+so we will avoid discussing the dependence of the complexity on δ to avoid clutter.
+
+    In particular, Lemma 1 captures both the case of Shannon entropy of classical
+probability distributions and von Neumann entropy density matrices, since the latter is
+definitionally the Shannon entropy of the eigenvalue spectrum of the density matrix (see
+Section 3.4 for more details). We devote the rest of this section to proving Lemma 1.
+   The theory behind our estimator is drawn from [BDK+ 02]. We show how the estimator
+used therein can be computed more efficiently on a quantum computer with purified
+query access to the input. Recall that the Shannon entropy is defined by Eq. (2.1)
+                                                          1
+                                  H(p) =         pi log
+                                           X
+                                                             .
+                                            i
+                                                          pi
+
+To estimate H(p), we first divide the domain into two sets, of ‘big’ and ‘small’ elements
+with respect to a choice of threshold β ∈ (0, 1):
+
+                              B := Bβ = {i ∈ [n] : pi ≥ β} ,
+
+and
+                                   S := Sβ = [n] \ Bβ .
+Then H(p) = Hp (B) + Hp (S), since the Shannon entropy is linear as a function of
+subsets of its domain. We will aim to make the threshold value β as large as possible,
+and in particular, we would like it to scale inverse sublinearly as a function of n.
+   We start by considering the lightweight elements first.
+
+
+3.1. Estimating the entropy of the low weight elements
+The set Sβ of light elements can contribute heavily to the entropy as evidenced for
+instance by the uniform distribution. However, the low probability mass of these elements
+can be hard to estimate. If the (unknown) weight of these elements is some wp (S),
+Lemma 4 of [BDK+ 02] gives us a way to handle Sβ .
+Lemma 2. wp (S) · log 1/β ≤ Hp (S) ≤ wp (S) · log n + 1e .
+
+Proof. The lower bound is attained by a distribution that has as many points as possible
+with extremal weight (equal to β or 0), e.g., by a distribution with β1 · wp (S) elements
+having probability mass β and the rest being zero.
+   The upper bound is given by the distribution that puts the weight wp (S) uniformly
+on all of its n points.
+
+    This enables us to simply estimate the total weight of the light elements, and use this
+to improve our approximation to H(p), as we shall see below in Section 3.3. For the
+                                                              2
+moment, we note that for the choice of threshold β = n−1/γ , Lemma 2 tightly bounds
+
+
+
+
+                                            14
+                                                                                    n
+the entropy of the lightweight elements as lying between their net weight times log
+                                                                                 γ2
+                                                                                      and
+the weight times log n (up to a small constant).
+    Furthermore, we can also see from the upper bound in Lemma 2 that unless the net
+weight of the light elements scales at least inverse logarithmically in n, the contribution
+of the light set Sβ to the entropy is bounded by a constant. In particular,
+
+                                      1                                     1
+                                                  
+                         wp (S) = o                      =⇒ Hp (S) =          + o(1).                        (3.2)
+                                    log n                                   e
+
+   Thus we may choose to estimate wp (S) to additive precision 1 = O (1/log2 n). Given
+an (α, a, δ)-projected unitary encoding of P , intuition suggests that we can perform
+Quantum Phase Estimation (QPE) with this encoding to single out the lightweight
+elements and then estimate their net amplitude by performing Quantum Amplitude
+Estimation (QAE, Appendix D). This indeed turns out to work.
+
+
+Algorithm 1 LightWeight(β) – Estimate wp (S) to additive precision 1 .
+ 1: m = log √1                         . Number of bits of precision for QSVE
+               β
+                                  X√
+ 2: input ← Up |0i |0m i =                pi |φi i |ii |0m i                           . Input state for QSVE
+                                  i∈[n]
+         QSVE(P, m)       X√
+ 3: . . . −−−−−−−−−−→               pi |φi i |ii |qi i                                        . qi = 0 ⇐⇒ pi < β
+                          i∈[n]
+                   X√                                    X√
+               =          pi |φi i |ii |0m iflag +             pi |φi i |ii |⊥iflag                 . h⊥ |0m i = 0
+                   i∈S                                   i∈B
+                                                                                                               
+ 4: Pick 1 = /log2 n and let                                              . =⇒ QAE cost = O log2 n
+
+    w̃p (S) = QAE(flag = |0m i , 1 )                                                  . |w̃p (S) − wp (S)| ≤ 1
+
+ 5: return w̃p (S)
+
+
+Using quantum singular value estimation to flag the light subspace: We would
+like to use QPE as a subroutine to separately flag the subspaces of heavy and light
+elements. In essence, we want to perform the map
+                         X√                                    X√
+                                   pi |φi i |ii ⊗ |0m i 7→             pi |φi i |ii |qi i ,                  (3.3)
+                         i∈[n]                                 i∈[n]
+
+        √
+where pi − qi ≤ 2−(m+1) =: , and m is the number of bits of precision. When given
+a unitary block encoding for the matrix P , this problem is termed Quantum Singular
+Value Estimation (QSVE) and is solved in [KP20; CGJ19; GSL+ 19]; the complexity of
+                               e (1/) where  is the precision to which we would like to
+their algorithm is essentially O
+
+
+
+                                                          15
+estimate the singular values. We defer the full discussion of the intuition and details
+behind doing this to Appendix C.
+    The accuracy of the QPE subroutine is normally defined in terms of the number of
+bits of precision. Thus, to obtain a clean split between heavy and light elements according
+to the chosen threshold
+                                           − 1      − log n
+                                    β = n γ2 = 2 γ2 ,
+                                         √
+recalling
+√          that P has singular values pi , it will be convenient for us to first round
+  β down to the nearest power of 2, and then scale down the approximation factor γ
+appropriately. To this end, we set
+                                              l           m
+                                                  log n
+                                          −                          −    1
+                                   β0 = 2          2γ 2
+                                                              =: n
+                               p
+                                                                         2γ 02   ,
+
+which suggests that we should choose a tighter approximation factor, given by
+                                                  s
+                                                          log n/2γ 2
+                                     0
+                                   γ =γ·                                  .
+                                                      dlog n/2γ 2 e
+
+Note that γ 0 ≤ γ, and so any good γ 0 -approximation is also a good γ-approximation.
+With this choice, we can run QSVE with the block encoding of P to m = log √1 0 bits of
+                                                                                β
+precision, implying an additive precision of  = 2−(m+1) , incurring a complexity of
+                             1          1
+                                                       
+                           O        =O √ 0
+                                       β
+                                                  1
+                                                                             1
+                                                                                     
+                                    =O n          2γ 02       =O n            2γ 2       ,   (3.4)
+
+where we have used that
+                                                   log n
+                            1 dlog n/2γ 2 e   1 2γ 2 + 1
+                               · log n
+                                            ≤    ·    log n
+                            γ2       2
+                                              γ2         2
+                                     2γ                              2γ
+                                                    1              2γ 2
+                                                                                     !
+                                                  ≤ 2          1+       ,
+                                                   γ              log n
+
+and n1/log n = O(1).
+Correctness: With these steps in hand, one can readily see that Algorithm 1 outputs
+an additive estimate of the net weight of all the elements whose probability mass lies
+below the threshold β, i.e.,
+                                |w̃p (S) − wp (S)| ≤ 1 .                       (3.5)
+
+
+
+
+                                                   16
+Complexity: With the reasoning of Eq. (3.2) and our choice of 1 = /log2 n, the query
+complexity of Algorithm 1 in terms of queries to the block encoding of P is given by
+
+                                      log2 n           1
+                                               !            
+                                 O                 ·O √          ,                     (3.6)
+                                                       β
+
+where the first term is the complexity of the amplitude estimation step (Appendix D).
+                         2
+For the choice β = n−1/γ , this becomes
+                                               2
+                                         n1/2γ log2 n
+                                                         !
+                                     O                .                                (3.7)
+                                               
+
+Intuitively, as previously noted in [GL20], the projected unitary encoding of the input
+gives us operational access to the square roots of the point probabilities. Hence, since
+     √
+pi < pi , quantum algorithms can in a sense ‘see’ lightweight elements more easily than
+classical algorithms.
+The normalisation α of the block encoding: So far we have not discussed how
+the normalisation factor α ≥ 1 and precision δ ∈ (0, 1) of the (α, a, δ) projected unitary
+encoding U of P affects the algorithm and its complexity. This is, fortunately, easy
+to do. First we note that the states the purified access oracles generate, both in
+                                                           √
+Eqs. (2.9) and (2.10), actually encodes the exact values of pi and require no additional
+normalisation factor. Thus the only step where α and δ enter the picture are in the QSVE
+step. Next, as we remarked previously, the constructions that we use will have δ = 0, so
+we ignore this precision, which even otherwise would only contribute logarithmic factors
+                                                                √
+to the complexity. Finally, since the singular values of P are pi and U encodes P/α,
+the normalisation factor effectively
+                                 √ means that in the QSVE step we must work harder
+and estimate them to precision β/α — this directly contributes exactly a factor of α
+to the overall complexity in Eq. (3.7) of Algorithm 1.
+    This can also be seen directly from the complexity of QSVE in [CGJ19, Theorem
+27], which scales as O(α/) for performing QSVE to precision  using an (α, a, δ) block
+encoding.
+
+
+3.2. Estimating the entropy Hp (B) of the heavy elements
+So far we have looked at the set Sβ of lightweight elements. We now turn to estimating
+the contribution to the entropy from the heavy elements, i.e., those with probability mass
+greater than the threshold value of β.
+    The first ingredient we use for this is a result from classical approximation theory that
+provides a multiplicative approximation of the logarithm by a combination of functions
+of the form x±a for small values of a > 0 [ZLO+ 07].
+
+
+
+
+                                               17
+3.2.1. Multiplicative approximation of entropy using power functions
+For any a ∈ (0, 1), consider the following functions
+
+                                                          f+ (x) − f− (x)
+                        f± (x) = x±a ,     f (x) = −                      .             (3.8)
+                                                                2a
+On a domain (β, 1] for some β > 0, we have the following series expansions for f± (x)
+
+                     x±a = e±a log x
+                                           (a log x)2 (a log x)3
+                         = 1 ± a log x +             ±           + ...,                 (3.9)
+                                               2!         3!
+from which we deduce that
+
+                                         (a log x)2 (a log x)4
+                                                                              !
+                   f (x) = − log x · 1 +           +           + ... .                 (3.10)
+                                             3!         5!
+
+Since log x < 0 on our interval of interest x ∈ (β, 1], it will be convenient to write
+− log x = log 1/x > 0. We see that f (x) is a one sided approximation for log x, in the
+sense that it is always at least log 1/x, and at most as large as log 1/x · g(a, x), where the
+multiplicative factor is
+
+                            (a log x)2 (a log x)4
+             g(a, x) = 1 +            +           + ...
+                                   3!        5!
+                                      (a log x)2 |a log x|3 (a log x)4
+                    ≤ 1 + |a log x| +           +          +           + ...
+                                          2!          3!        4!
+                    = e|a log x| .                                                     (3.11)
+
+Note that ∀x ∈ (β, 1], g(a, x) ≤ g(a, β). Thus if we would like f (x) to approximate log x
+to within a multiplicative factor γ > 1 in the sense of Eq. (2.5), it suffices to choose
+a ∈ (0, 1) such that
+
+                                  g(a, β) ≤ ea log /β ≤ γ ,
+                                                   1
+
+
+
+
+which translates to requiring that
+                                               log γ
+                                         a≤           .                                (3.12)
+                                              log 1/β
+
+Choosing such an a, we have a γ-multiplicative approximation of the logarithm for
+x ∈ (β, 1], i.e.,
+                      1
+                        · log 1/x ≤ log 1/x ≤ f (x) ≤ γ · log 1/x.          (3.13)
+                      γ
+It is worth remarking that this is actually stronger than a γ-multiplicative approximation,
+by virtue of being one-sided; the lower bound on the approximation is actually as strong as
+
+
+
+
+                                              18
+log 1/x, without the scaling by 1/γ . We will use this stronger inequality in our calculations
+below and freely replace it with the weaker version where required.
+   For i ∈ Bβ , if we replace the logarithm of pi with the function f , we get a multiplicative
+approximation of Hp (B). Indeed by Eq. (3.13), ∀pi ∈ (β, 1]
+
+                                           1                     1
+                                     log      ≤ f (pi ) ≤ γ · log .                               (3.14)
+                                           pi                    pi
+Multiplying by pi and summing over i ∈ Bβ , we have
+
+                                       1                                 1
+                              pi log          pi f (pi ) ≤ γ ·     pi log ,                       (3.15)
+                        X                  X                   X
+                                         ≤
+                        i∈B
+                                       pi i∈B                  i∈B
+                                                                         pi
+
+and so we have
+                                  Hp (B) ≤         pi f (pi ) ≤ γ · Hp (B) .                      (3.16)
+                                             X
+
+                                             i∈B
+
+We hence see that in fact for any B ⊆ [n],                 pi f (pi ) is a good γ-multiplicative approxi-
+                                                      X
+
+                                                     i∈B
+mation to Hp (B). Next, we look at how to estimate the sum over pi f (pi ) by using the
+quantum singular value transformations (QSVT) technique [GSL+ 19] of implementing
+functions of block encoded matrices on quantum computers (see also [CGJ19; SBJ19]).
+
+
+3.2.2. Using QSVT to estimate power sums
+Defining the following power sums with exponent a,
+
+                                    F± =              =          pi f± (pi ),                     (3.17)
+                                           X               X
+                                                 p1±a
+                                                  i
+                                           i∈B             i∈B
+
+we see that our estimator for Hp (B) in Eq. (3.16) takes the form
+
+                                                     F+ − F−
+                                            F =−             .                                    (3.18)
+                                                        2a
+This suggests a strategy of estimating F± separately and combining them to obtain F .
+Ideally, we would have liked to prepare two states, which have squared amplitude equal
+to F± on a subspace flagged by |0i in the ancilla. One possible form such states might
+take is                  X√          √
+                              pi f± ( pi ) |ψi i |ii |0i + |junki |1i .
+                              i
+
+Since we cannot directly implement arbitrary power functions x±a , we use the standard
+technique of implementing the quantum singular value transformation corresponding to
+polynomial approximations f˜± (x) of f± (x) over the domain specified by B; recalling that
+                                                                       √
+we have a block encoding of P √whose singular value spectrum encodes pi , we only need
+to work with the domain x ∈ [ β, 1].
+
+
+
+
+                                                      19
+   We discuss the details behind constructing and implementing the polynomials f˜± (x)
+in Appendix B. Intuitively, polynomial approximations using Taylor series give an
+exponential convergence in the degree of the approximating polynomial for smooth
+functions, i.e., the degree of the approximating polynomial only needs to grow as log 1/.
+Since the query complexity of QSVT depends on the degree of the polynomial being
+implemented, this in √   conjunction with what we noted above about the domain of
+approximation being [ β, 1] leads us to expect the net query complexity of estimating
+                      √
+F± to grow as O (1/ β ). We will show below that this is indeed the case.
+
+Algorithm 2 HeavyEntropy(β) – Estimate Hp (B) to multiplicative factor γ > 1.
+                         X√
+ 1: input ← Up |0i |0i =    pi |φi i |ii |0i           . Input state for QSVT
+                            i∈[n]
+         QSVT(P, f˜± )     X√                √
+ 2: . . . −−−−−−−−−−−→               pi f˜± ( pi ) |φi i |ii |0i + |junki |1i            . QSVT - Appendix B
+                           i∈[n]
+                          X√               √
+                                   pi f˜± ( pi ) |φi i |ii |0i |0iflag + |junki |1iflag
+         QSVE(P, m)
+ 3: . . . −−−−−−−−−−→
+                          i∈B
+
+                                                                                         . flag = 0 ⇐⇒ pi ≥ β
+
+ 4: Pick 3 as in Eq. (3.26) and let
+
+                                                                                                                 
+    F̃± = QAE(flag = |0i , 3 )                                                    . =⇒ QAE cost = O         1
+                                                                                                             3
+                           √
+                    2F̃+ −2 γ F̃−
+ 5: return F̃ = −         2a
+
+                                                                                      √
+Some difficulties: In constructing polynomial√   approximations
+                                                       √        on our subdomain [ β, 1]
+of interest, we need to admit a small interval [ β/2, β] where we allow the polynomial
+to vary before falling to low values on the rest of the domain [−1, 1]. It is in accordance
+with
+   √ this intuition that we have the guarantees |f± (x)| ≤ 1 on [0, 1], and |f (x)| ≤  on
+[0, β/2) in Appendix B. If we naïvely try to use the simple state produced by applying
+the QSVT for f˜± as in step 2 of Algorithm 2 to estimate F± , we see that the amplitude
+of the part of the state flagged by zero is actually given by
+                   n
+                                  √                  √                                     √
+                         pi f˜±2 ( pi ) =   pi f˜±2 ( pi ) +                      pi f˜±2 ( pi )
+                   X                      X                              X
+
+                   i=1                     i∈Bβ                       i∈[β/2,β]
+                                                                    √
+                                           +               pi f˜±2 ( pi ).                             (3.19)
+                                                 X
+
+                                               i∈[0,β/2]
+
+In particular, the second term on the rhs above is undesirable and in addition not easy
+to control. While we can upper bound the error caused by this term, we cannot manage
+it well without increasing the degree of the polynomial and hence incurring overheads in
+the query complexity.
+
+
+
+
+                                                       20
+Our approach: It may in principle be possible to modify the approximating polynomial
+sufficiently with only polylogarithmic overheads in the degree, but we do not explore
+this route; instead we once again invoke QSVE as a tool to split the heavy and light
+weight subspaces. We may repeat the arguments of the previous section, with the slight
+modification of flagging the heavy elements with |0i in a single qubit ancilla, say√ by
+applying a unitary comparator circuit to check if the estimated singular value qi > β.
+Correctness: Thus, generating states of the form given in step 3 of Algorithm 2, we
+see that their amplitudes in the flagged subspace now exactly square to
+                                                           √
+                                    F̃± =         pi f˜±2 ( pi ),                    (3.20)
+                                            X
+
+                                            i∈B
+
+and taking into account the normalisation factors corresponding to f˜± , we define
+                                                    √
+                                            2F̃+ − 2 γ F̃−
+                                 F̃ = −                    ,                         (3.21)
+                                                  2a
+where in particular,
+                 √ by the guarantees on the polynomial approximations Appendix B we
+know that ∀x ∈ [ β, 1]
+                                           √ a
+                                             β −a
+                                f˜− (x) −       x   ≤ 2
+                                             2
+                                                 xa
+                                       f˜+ (x) −    ≤ 2 .                           (3.22)
+                                                  2
+Recalling that
+                                                log γ
+                                        a=             ,
+                                               log 1/β
+we see that the normalisation factor for f− is given by
+
+                                        log β· −2log γ       1
+                               β /2 = e                    =√ .
+                                a
+                                                   log β
+                                                              γ
+
+From these approximation guarantees we immediately see that
+
+                                    F± − F̃± ≤ n2
+                                               √
+                                                 γn2
+                                      F − F̃ ≤                                       (3.23)
+                                                  a
+
+Furthermore, the QAE steps for F̃± are performed to some precision 3 , yielding F̂±
+which satisfy
+                                  F̂± − F̃± ≤ 3 ,                            (3.24)
+
+
+
+
+                                               21
+and so we also have the analogous quantity F̂ such that
+                                               √
+                                             2 γ3
+                                   F̂ − F̃ ≤                                                     (3.25)
+                                                a
+As indicated by the above expressions for the error, let us then choose the precision of
+the polynomial approximation and QAE steps such that the errors above are of constant
+order, i.e.,
+                                             a         log γ
+                                     2 =    √ ·= √             ·
+                                           2n γ    2 γn log 1/β
+                                              a       log γ
+                                       3 = √ ·  = √          · .                              (3.26)
+                                            4 γ    4 γ log 1/β
+
+This ensures that F̂ is a good -additive approximation to F , since
+
+                                    F − F̂ ≤ F − F̃ + F̃ − F̂ ≤ .                               (3.27)
+
+Since this means F −  ≤ F̂ ≤ F + , recalling that F is a good γ-multiplicative
+approximation of Hp (B) as in Eq. (3.16), we arrive at the following multiplicative
+guarantee with some additive slack on our estimate F̂ ≡ H̃p (B)
+
+                                      Hp (B)
+                                             −  ≤ F̂ ≤ γHp (B) + .                             (3.28)
+                                        γ
+
+Complexity: The total query complexity of Algorithm 2 is the sum of the complexity
+of QSVT and QSVE corresponding to the polynomial approximations of f (x) = x±a ,
+multiplied by the complexity of QAE. The former two are respectively given by the
+                                             √
+degrees of f˜± from Appendix B and O(1/ β ), both of which scale as O(
+                                                                     e 1/β ), while the
+latter is the inverse of 3 . Thus, the net complexity is bounded by
+                                                n log n            log n
+                                                                     
+               1/2γ 2              1/2γ 2
+        O n                 +O n            log                ·O
+                                                 log γ            log γ
+                                                                                    2
+                                                                                n1/2γ log2 n
+                                                                                           !
+                                                                       =O
+                                                                        e                    .   (3.29)
+                                                                                    log γ
+
+The normalisation α of the block encoding: First, we essentially repeat the discus-
+sion at the end of Section 3.1, giving a factor of α in the complexity of the QSVE step in
+Algorithm 2.
+    In addition, we have to also account for the fact that the power functions are now
+implemented on the spectrum of P/α (for more details, see [GSL+ 19, Theorem 56]). This
+has two effects: firstly,
+                      √ the domain over which we construct the polynomial approximations
+f˜± should now be [ β/α, 1], which increases their degree by a factor of α. Secondly, we
+
+
+
+
+                                                           22
+obtain the power sums F+ and F− are divided and multiplied respectively by an extra
+αa factor, which means we need to choose 2 and 3 to be smaller by this factor.
+              log γ                                                                                     2
+   Since α = log 1/β , for polynomially scaling normalisations α = n and β = n
+                                                                    c          −1/γ we
+                                   2
+see that αa scales as γ cγ = O(1) for our purposes.
+   Hence since the complexities of the QSVT and QSVE steps add, we see once again
+that the net overhead in complexity is a factor of α.
+
+
+3.3. Combining the heavy and light estimates to form H̃
+Finally, we analyse the errors in and combine the estimates of Hp (B) and Hp (S) from
+Algorithms 1 and 2 to get an estimate of H(p). Thus far, we have estimated the entropy
+
+Algorithm 3 Approximating H(p) to multiplicative precision γ > 1
+                r
+                     log n/γ 2
+ 1: γ 0 ← γ ·       dlog n/γ 2 e
+                                                                       . Scale approximation factor down
+                02
+ 2: β ← n− /γ
+            1
+                                                . Choose threshold that splits heavy & light elements
+
+ 3: H̃p (B) ← HeavyEntropy(β)                                           . Hpγ(B) −  ≤ H̃p (B) ≤ γHp (B) + 
+
+ 4: w̃p (S) ← LightWeight(β)                                                         . |w̃p (S) − wp (S)| ≤ 1
+                             w̃p (S) log n
+ 5: return H̃p (B) +               γ0
+
+
+
+of the heavy elements to multiplicative precision, viz Eq. (3.28), and we have estimated
+the total weight of the lightweight elements to additive precision Eq. (3.5). The estimate
+that our algorithm outputs for H(p) := Hp ([n]) is the quantity H̃ defined by
+
+                                                              w̃p (S) log n
+                                             H̃ = H̃p (B) +                 .                          (3.30)
+                                                                    γ
+
+Upper bounding H̃: Using the upper bounds on F̂ and w̃p (S), we see that
+
+                                                              wp (S) + 1
+                                   H̃ ≤ γHp (B) +  +                     · log n.                     (3.31)
+                                                                   γ
+                                                                                           2
+The lower bound on Hp (S) in Lemma 2 along with the choice β = n−1/γ implies that
+
+                                               wp (S) log n
+                                                            ≤ γHp (S).                                 (3.32)
+                                                    γ
+
+
+
+
+                                                         23
+Recalling that 1 = /log2 n, we thus have
+
+                                H̃ ≤ γHp (B) + γHp (S) + 2
+                                    ≤ γH(p) + 2
+                                    ≤ (1 + 2) γH(p),                               (3.33)
+
+where on the last line we assume that H(p) ≥ γ1 , i.e., that the entropy of the input
+distribution is bounded away from zero, with a small increase in the approximation
+factor. This is a reasonable assumption to make, since no algorithm can output a good
+γ-multiplicative approximation of all distributions (see Section 4.1 for more details).
+Lower bounding H̃: This time using the lower bounds on F̂ and w̃p (S), we see that
+
+                                               wp (S) − 1
+                          H̃ ≥ Hp (B) −  +                · log n.                 (3.34)
+                                                    γ
+
+The upper bound on Hp (S) in Lemma 2 implies that
+
+                                 wp (S) log n   Hp (S) − 1e
+                                              ≥             .                       (3.35)
+                                      γ             γ
+Thus we have that
+                                             Hp (S)         1
+                            H̃ ≥ Hp (B) +           − 2 −
+                                               γ           eγ
+                                  H(p)           1
+                                ≥       − 2 −
+                                    γ            γ
+                                    H(p)
+                                ≥            ,                                      (3.36)
+                                  (1 + 2) γ
+
+where to go from the second to the third line we assume that H(p) ≥ 3γ + 1/2 ≥ γ1 , i.e.,
+as before, that the entropy of the input distribution is bounded away from zero, with a
+small increase in the approximation factor.
+  This shows that Algorithm 3 outputs a (1 + 2)γ-multiplicative approximation of
+H(p) and thus establishes its correctness.
+Complexity: Finally, the query complexity of Algorithm 3 is the sum of the complexities
+of steps (3) and (4). From the complexities Eqs. (3.7) and (3.29) of Algorithms 1 and 2
+respectively, we have a net query complexity that scales as
+                      2                       2                        2
+                αn1/2γ log2 n            αn1/2γ log2 n            αn1/2γ log2 n
+                                !                        !                    !
+            O                       +O
+                                     e                       =O
+                                                              e                 ,   (3.37)
+                                            log γ                   log γ
+
+which completes our proof of Lemma 1.
+
+
+
+
+                                             24
+3.4. Proving Theorems 1 and 2
+For classical probability distributions accessed via a purified quantum query oracle Up
+as in Eq. (2.10), we can construct projected unitary encodings of the kind required
+in Lemma 1 with α = 1 (see Appendix A). This immediately furnishes a proof of
+Theorem 1.
+    Similarly, for an arbitrary n-dimensional quantum density matrix accessed via a
+purified quantum query oracle Uρ as in Eq. (2.9), we can construct a projected unitary
+                     √
+encoding with α = n (see Appendix A). Since S(ρ) is equal to the Shannon entropy
+of the spectrum of ρ, we can plug this encoding into Lemma 1 to obtain a proof of
+Theorem 2.
+    The key difference between the case of classical distributions and quantum mixed states
+is that for the former, we know that the purified access oracle produces a superposition
+over computational basis states in the second register, and we can use this knowledge to
+our advantage. On the other hand, for the latter case we do not a priori know the basis
+in which the quantum state is diagonal, which reflects in the fact that we do not know
+the states |ψi i and |φi i appearing in Eq. (2.9) beforehand.
+
+
+4. Lower bounds
+Batu et al. [BDK+ 02] proved that even if we restrict to distributions with entropy
+H(p) ≥ log n/γ 2 , any algorithm that estimates H(p) within a multiplicative γ > 1 requires
+       2         √
+Ω(n1/2γ ) = O( n) samples. By arguing about the fingerprints of samples √        drawn from
+the unknown distribution, for small approximation factors γ ∈ (1, 2) they were able
+                                             2
+to show a stronger lower bound of Ω(n2/(5γ −2) ) samples, which is o(n2/3 ), even when the
+                                                      5 log n
+input is known to be a distribution with H(p) ≥ 10γ       2 −4 . This was later improved by
+                         2
+Valiant [Val11] to Ω(n1/γ −o(1) ), which showed the original upper bound of Batu et al. to
+be essentially tight.
+    The intuition behind proving lower bounds is to notice that estimating the entropy
+to a suitable multiplicative factor can suffice to distinguish between a given pair of
+distributions p and p̃. Recall that any γ-approximation algorithm must output an
+estimate H̃ such that
+                                 H(p)
+                                       ≤ H̃(p) ≤ γH(p)
+                                  γ
+                                 H(p̃)
+                                       ≤ H̃(p̃) ≤ γH(p̃).                             (4.1)
+                                  γ
+
+If the ratio of entropies is larger than γ 2 , then we have that
+
+                                                  H(p)
+                             H̃(p̃) ≤ γH(p̃) ≤         ≤ H̃(p),                       (4.2)
+                                                   γ
+
+
+
+
+                                             25
+and so γ-estimating H will allow us to distinguish p and p̃.
+    In this section we prove lower bounds similar to those of [BDK+ 02] but for the case
+of quantum algorithms that output a γ-multiplicative estimate of the Shannon entropy
+of a classical distribution. We prove our bounds for the quantum frequency vector model.
+Recalling that this model is capable of emulating both the purified access model and
+the model that quantumly queries a classical list of samples, these lower bounds carry
+over to both these models as well. The technique we use for this is a reduction from the
+collision problem to multiplicatively approximating entropy.
+    We also prove what is perhaps the first non-trivial lower bound for the vanilla quantum
+samples model by showing a reduction from the promise problem of distinguishing two
+classical distributions in Hellinger distance to γ-multiplicative approximation of entropy.
+
+
+4.1. Distributions with non-zero entropy
+We first show that no algorithm working with input models (i)-(iv) that makes only
+polynomially many queries can estimate the Shannon entropy of all distributions over [n]
+to multiplicative precision. Consider p = (1 − , n−1
+                                                                
+                                                      , . . . , n−1 ) and p̃ = (1, 0, . . . , 0). The
+Hellinger distance between p and p̃ is given by
+
+                                              1X √
+                                               s
+                                dH (p, p̃) =       ( pi − p̃i )2
+                                                         p
+                                              2 i
+                                            q     √
+                                           = 1 − 1 − .                                        (4.3)
+
+The binomial theorem tells us that for || ≤ 1 and β ∈ R,
+                                         ∞
+                                           (β)(β − 1) . . . (β − k)
+                       (1 − )β = 1 +                                 (−)k .                  (4.4)
+                                         X
+
+                                         k=1
+                                                        k!
+
+Therefore 1 −  < (1 − )1/2 < 1 − /2, and we have
+
+                                     √
+                                                            r
+                                                                
+                                          ≥ dH (p, p̃) ≥         ,                            (4.5)
+                                                                2
+                     √
+i.e., dH (p, p̃) = Θ( ).
+    We also have H(p̃) = 0 and
+
+                      H(p) = −(1 − ) log(1 − ) −  log  +  log(n − 1)
+                            = Ω( log n),                                                      (4.6)
+
+since h() := −(1 − ) log(1 − ) −  log  ∈ [0, log 2] is the binary entropy. Thus any
+algorithm that outputs an approximation for H to a multiplicative factor γ must output
+exactly 0 on input p̃ and at least γ log n on input p.
+
+
+
+
+                                                   26
+   From [Bel19], we know that distinguishing p and p̃ has query complexity
+
+                                                 1
+                                                        
+                                           Θ            ,
+                                             dH (p, p̃)
+                                                                                                   √
+in any of the four input models (i)-(iv). In particular, any algorithm requires Ω (1/ )
+queries to distinguish p from p̃. Picking  = n−k , for ∀k > 0, shows that no nk -
+query algorithm can distinguish p and p̃, whence no such algorithm can output a good
+multiplicative approximation of the entropy for arbitrary input distributions.
+
+
+4.2. General sub-logarithmic lower bounds
+Leaning on the lower bound in [Bel19] for the promise problem of distinguishing two
+probability distributions, we also get a weak lower bound on the query complexity of
+entropy estimation for any input model, and in particular, for the vanilla quantum
+samples model.
+   Consider the distributions p = (1 − , n−1
+                                                        
+                                              , . . . , n−1 ) and p̃ = (1 − , , 0, . . . , 0) with
+
+                                      H(p) = Ω ( log n)
+                                      H(p̃) = h() ≤ log 2,                                      (4.7)
+
+so that the ratio of entropies is
+
+                            H(p)       log(n − 1)
+                                  ≥1+              = Ω( log n).                                 (4.8)
+                            H(p̃)         log 2
+
+The Hellinger distance between these two distributions is given by
+                                    v
+                                    u1                        n
+                                                        √ 2 X
+                                    u r
+                                                                 
+                                                              
+                       dH (p, p̃) = t                  −  +
+                                          2        n−1       i=3
+                                                                 n−1
+                                      s 
+                                                     1
+                                                          
+                                  =        1− √
+                                                    n−1
+                                      √
+                                  ≤       ,                                                     (4.9)
+                                                                        √
+so that the inverse of the Hellinger distance is of order Ω(1/ ). If we now make the
+choice
+                                            γ2
+                                       =        ,                             (4.10)
+                                           log n
+Belovs’ query lower bound for distinguishing p and p̃ translates into a
+                                         √
+                                           log n
+                                                 !
+                                     Ω                                                         (4.11)
+                                            γ
+
+lower bound for γ-estimating H(p).
+
+
+
+                                                    27
+4.3. Polynomial lower bounds in the frequency vector and purified access
+     models
+                                                                            2
+For γ > 1, consider the domain [N ] of size N = n · n1/γ , and consider the uniform
+distribution p on [N ], and a family of uniform distributions on subsets S ⊂ [N ] of size
+           2
+|S| = n1/γ .
+   For any such distribution p̃, an input vector of length N in the frequency vector input
+model represents an r-to-1 function f : [N ] → S, where r = N/|S| = n. On the other
+hand for inputs of this length p corresponds to a 1-to-1 function since each label in [N ]
+must occur exactly once in the input string.
+   Note then that the ratio of Shannon entropies is
+
+                                   H(p)
+                                         = γ2 + 1 > γ2,                               (4.12)
+                                   H(p̃)
+
+so that estimating H to multiplicative precision γ will enable us to distinguish the two
+distributions, and by extension, the two corresponding functions in the frequency vector
+input model. [AS04]show that distinguishing a 1-to-1 function from an r-to-1 functions
+requires Ω (N/r)1/3 queries to the input function oracle, where N is the size of the
+domain of the functions. This for us translates to a lower bound of
+                                           1/3 !
+                                       N
+                                                                  
+                                                                2
+                               Ω                    = Ω n /3γ
+                                                           1
+                                                                        .
+                                       r
+
+    Recalling from Section 2.2 that any algorithm in the purified query access model
+implies an algorithm with the same complexity in the frequency vector model, and the
+fact that classical distributions are automatically examples of density matrices that
+are diagonal in the computational basis, we see that this lower bound applies to the
+estimation of both Shannon and von Neumann entropies, and to Models (i), (ii), and
+(iv).
+
+
+5. Conclusions and outlook
+In this paper, we initiated the investigation of quantum algorithms of sublinear query
+complexity for the task of γ-multiplicative approximation of both Shannon and von
+Neumann entropies. Our algorithm for probability distributions achieves a quadratic
+quantum speedup over classical algorithms, whilst our algorithm for mixed states indicates
+that it may be possible to estimate other global properties of quantum states with sublinear
+query complexity in their dimension.
+   Our results throw some light on the interesting question of the relation between the
+four input models discussed in Section 2.2, which was first raised by [Bel19]. In particular,
+the sub-logarithmic lower bound we obtain for the quantum samples model shows that
+there are problems that cannot be solved in this model with complexity independent
+
+
+
+                                               28
+of the dimension, where to our knowledge no such non-trivial problems were previously
+known for this model. It still remains open whether or not in the quantum samples
+model (which is strictly stronger than the general purified access models that we study),
+stronger speedups are possible for entropy estimation and similar tasks.
+    An immediate question left open by our work is to tighten the lower bounds we obtain,
+both for Shannon and von Neumann entropies. For the latter, the quantum polynomial
+method [BKT18] applied to the frequency vector model might yield better bounds. On
+the other hand, the strong intuition that quantum algorithms typically achieve quadratic
+speedups indicates that the upper bounds we obtain are tight up to polylogarithmic
+factors. A potential way to improve on these polylogarithmic factors may be to refine
+the approximation of log x by constructing functions such as x2a + xa − x−a − x−2a ,
+reminiscent of symmetric Laurent series.
+    Our methods can also be extended to other information quantities such as Renyi and
+Tsallis entropies, and Kullback-Leibler and other divergence measures. Tight bounds on
+the complexity of multiplicative approximation of these quantities for both probability
+distributions and mixed states appear within reach, and we hope to report results in this
+direction in future work.
+    We close by remarking that this line of work has close and interesting connections
+to distributional property testing, a rich and active field in classical complexity theory,
+offering exciting avenues for investigation in quantum complexity theory.
+
+
+Acknowledgements
+We thank Tugkan Batu and Clément Canonne for insightful discussions.
+
+
+References
+[AR20]      Scott Aaronson and Patrick Rall. “Quantum approximate counting, simpli-
+            fied”, pages 24–32. Society for Industrial and Applied Mathematics, 2020
+            (page 38).
+[AS04]      Scott Aaronson and Yaoyun Shi. “Quantum lower bounds for the collision
+            and the element distinctness problems”. J. ACM, 51(4):595–605, July 2004
+            (pages 6, 28).
+[AIS+ 19]   Jayadev Acharya, Ibrahim Issa, Nirmal V. Shende, and Aaron B. Wagner.
+            “Measuring Quantum Entropy”. IEEE International Symposium on Informa-
+            tion Theory - Proceedings, 2019-July:3012–3016, 2019. arXiv: 1711.00814
+            (pages 7, 8, 11).
+[AK20]      Koji Azuma and Go Kato. Second law of black hole thermodynamics, 2020.
+            eprint: arXiv:2001.02897 (page 3).
+[AS18]      Koji Azuma and Sathyawageeswar Subramanian. Do black holes store nega-
+            tive entropy?, 2018. eprint: arXiv:1807.06753 (page 3).
+
+
+
+
+                                            29
+[BDK+ 02] Tuǧkan Batu, Sanjoy Dasgupta, Ravi Kumar, and Ronitt Rubinfeld. “The
+          complexity of approximating the entropy”. Proceedings of the Annual IEEE
+          Conference on Computational Complexity:17, 2002 (pages 3, 4, 7, 13, 14, 25,
+          26).
+[Bek73]   Jacob D. Bekenstein. “Black holes and entropy”. Physical Review D, 7(8):2333–
+          2346, 1973 (page 3).
+[Bel19]   Aleksandrs Belovs. “Quantum algorithms for classical probability distribu-
+          tions”. Leibniz International Proceedings in Informatics, LIPIcs, 144:1–14,
+          2019. arXiv: 1904.02192 (pages 5, 6, 10, 27, 28).
+[BHM+ 02] Gilles Brassard, Peter Hoyer, Michele Mosca, and Alain Tapp. “Quantum
+          amplitude amplification and estimation”. Quantum Computation and In-
+          formation, Contemporary Mathematics, 305:53–74, 2002. arXiv: 0005055
+          [quant-ph] (pages 12, 38).
+[BHH11]   Sergey Bravyi, Aram W. Harrow, and Avinatan Hassidim. “Quantum al-
+          gorithms for testing properties of distributions”. IEEE Transactions on
+          Information Theory, 57(6):3971–3981, 2011. arXiv: arXiv:0907.3920v1
+          (page 5).
+[BKT18]   Mark Bun, Robin Kothari, and Justin Thaler. “The polynomial method
+          strikes back: Tight quantum query bounds via dual polynomials”. Proceedings
+          of the Annual ACM Symposium on Theory of Computing, (Focs):722–734,
+          2018. arXiv: 1710.09079 (pages 7, 29).
+[CGJ19]   Shantanav Chakraborty, András Gilyén, and Stacey Jeffery. “The power
+          of block-encoded matrix powers: Improved regression techniques via faster
+          Hamiltonian simulation”. Leibniz International Proceedings in Informatics,
+          LIPIcs, 132, 2019. arXiv: 1804.01973 (pages 12, 15, 17, 19, 35, 38).
+[CFM+ 10] Sourav Chakraborty, Eldar Fischer, Arie Matsliah, and Ronald de Wolf.
+          “New Results on Quantum Property Testing”. Kamal Lodaya and Meena
+          Mahajan, editors, IARCS Annual Conference on Foundations of Software
+          Technology and Theoretical Computer Science (FSTTCS 2010), volume 8 of
+          Leibniz International Proceedings in Informatics (LIPIcs), pages 145–156,
+          Dagstuhl, Germany. Schloss Dagstuhl–Leibniz-Zentrum fuer Informatik,
+          2010 (page 5).
+[Don16]   Xi Dong. “The gravity dual of rényi entropy”. Nature Communications, 7(1),
+          2016 (page 3).
+[GL20]    András Gilyén and Tongyang Li. “Distributional property testing in a
+          quantum world”. Leibniz International Proceedings in Informatics, LIPIcs,
+          151:1–18, February 2020. arXiv: 1902.00814 (pages 5–8, 13, 17, 33).
+[GSL+ 19] András Gilyén, Yuan Su, Guang Hao Low, and Nathan Wiebe. “Quantum
+          singular value transformation and beyond: exponential improvements for
+          quantum matrix arithmetics”. Proceedings of the 51st Annual ACM SIGACT
+          Symposium on Theory of Computing, STOC 2019, pages 193–204, Phoenix,
+          AZ, USA, 2019. eprint: 1806.01838 (pages 12, 13, 15, 19, 22, 33, 35, 37, 38).
+
+
+
+
+                                         30
+[HGK+ 10] Matthew B. Hastings, Iván González, Ann B. Kallin, and Roger G. Melko.
+          “Measuring renyi entanglement entropy in quantum Monte Carlo simula-
+          tions”. Physical Review Letters, 104(15):157201, 2010 (page 8).
+[HOW06] Michał Horodecki, Jonathan Oppenheim, and Andreas Winter. “Quantum
+          state merging and negative information”. Communications in Mathematical
+          Physics, 269(1):107–136, October 2006 (page 3).
+[IMP+ 15] Rajibul Islam, Ruichao Ma, Philipp M. Preiss, M. Eric Tai, Alexander Lukin,
+          Matthew Rispoli, and Markus Greiner. “Measuring entanglement entropy in
+          a quantum many-body system”. Nature, 528(7580):77–83, 2015 (page 8).
+[JVH 15] Jiantao Jiao, Kartik Venkat, Yanjun Han, and Tsachy Weissman. “Minimax
+     +
+
+          estimation of functionals of discrete distributions”. IEEE Transactions on
+          Information Theory, 61(5):2835–2885, 2015 (pages 3, 7).
+[KP20]    Iordanis Kerenidis and Anupam Prakash. “Quantum gradient descent for
+          linear systems and least squares”. Physical Review A, 101(2):1–26, 2020.
+          arXiv: 1704.04992 (pages 12, 15, 38).
+[KRS09]   Robert Konig, Renato Renner, and Christian Schaffner. “The operational
+          meaning of min- and max-entropy”. IEEE Transactions on Information
+          Theory, 55(9):4337–4347, 2009 (page 3).
+[Laf16]   Nicolas Laflorencie. “Quantum entanglement in condensed matter systems”.
+          Physics Reports, 646:1–59, 2016 (page 3).
+[LW19]    Tongyang Li and Xiaodi Wu. “Quantum Query Complexity of Entropy
+          Estimation”. IEEE Transactions on Information Theory, 65(5):2899–2921,
+          2019 (pages 5, 7, 8).
+[LC17]    Guang Hao Low and Isaac L. Chuang. “Optimal Hamiltonian Simulation
+          by Quantum Signal Processing”. Physical Review Letters, 118(1):010501,
+          January 2017. arXiv: 1610.06546 (page 38).
+[MW16]    Ashley Montanaro and Ronald de Wolf. “A survey of quantum property
+          testing”. Theory of Computing, 2016(Graduate Surveys 7):1–81, 2016. arXiv:
+          1310.2035 (page 5).
+[MDS+ 13] Martin Müller-Lennert, Frédéric Dupuis, Oleg Szehr, Serge Fehr, and Marco
+          Tomamichel. “On quantum rényi entropies: a new generalization and some
+          properties”. Journal of Mathematical Physics, 54(12):122203, December 2013
+          (page 9).
+[Neu27]   J. von Neumann. “Thermodynamik quantenmechanischer gesamtheiten”.
+          ger. Nachrichten von der Gesellschaft der Wissenschaften zu Göttingen,
+          Mathematisch Physikalische Klasse, 1927:273–291, 1927 (page 3).
+[NC10]    Michael A. Nielsen and Isaac L. Chuang. Quantum Computation and Quan-
+          tum Information. Cambridge University Press, Cambridge, 2010 (page 9).
+[OW15]    Ryan O’Donnell and John Wright. “Quantum spectrum testing”. Proceedings
+          of the Forty-Seventh Annual ACM Symposium on Theory of Computing,
+          STOC ’15, pages 529–538, Portland, Oregon, USA. Association for Comput-
+          ing Machinery, 2015 (pages 5, 11).
+[Pet01]   D. Petz. “Entropy, von neumann and the von neumann entropy”, 2001.
+          eprint: arXiv:math-ph/0102013 (page 3).
+
+
+
+                                         31
+[Sch95]     Benjamin Schumacher. “Quantum coding”. Phys. Rev. A, 51:2738–2747, 4,
+            1995 (page 3).
+[Sha48]     C. E. Shannon. “A mathematical theory of communication”. The Bell System
+            Technical Journal, 27(3):379–423, 1948 (pages 3, 9).
+[SBJ19]     Sathyawageeswar Subramanian, Stephen Brierley, and Richard Jozsa. “Im-
+            plementing smooth functions of a hermitian matrix on a quantum computer”.
+            Journal of Physics Communications, 3(6):065002, 2019 (page 19).
+[SH21]      Sathyawageeswar Subramanian and Min-Hsiu Hsieh. “Quantum algorithm
+            for estimating renyi entropies of quantum states”. Phys. Rev. A, 104:022428,
+            2, August 2021 (page 8).
+[SUR+ 20]   Yohichi Suzuki, Shumpei Uno, Rudy Raymond, Tomoki Tanaka, Tamiya
+            Onodera, and Naoki Yamamoto. “Amplitude estimation without phase
+            estimation”. Quantum Information Processing, 19(2), 2020 (page 38).
+[VV11]      G. Valiant and P. Valiant. “The power of linear estimators”. 2011 IEEE 52nd
+            Annual Symposium on Foundations of Computer Science, pages 403–412,
+            2011 (page 3).
+[Val11]     Paul Valiant. “Testing symmetric properties of distributions”. SIAM Journal
+            on Computing, 40(6):1927–1968, 2011 (pages 4, 7, 25).
+[Wol19]     Ronald de Wolf. Quantum computing: lecture notes. 2019 (page 9).
+[WY16]      Yihong Wu and Pengkun Yang. “Minimax rates of entropy estimation
+            on large alphabets via best polynomial approximation”. IEEE Trans. Inf.
+            Theor., 62(6):3702–3720, June 2016 (pages 3, 7).
+[ZLO+ 07]   Haiquan (Chuck) Zhao, Ashwin Lall, Mitsunori Ogihara, Oliver Spatscheck,
+            Jia Wang, and Jun Xu. “A data streaming algorithm for estimating en-
+            tropies of od flows”. Proceedings of the 7th ACM SIGCOMM Conference on
+            Internet Measurement, IMC ’07, pages 279–290, San Diego, California, USA.
+            Association for Computing Machinery, 2007 (pages 8, 17).
+
+
+
+
+                                          32
+A. Creating block encodings or projected unitary encodings
+   from the purified access oracle
+We give an overview of the methods used by [GL20] to obtain projected unitary encodings
+from purified access oracles in this appendix. Recall that following [GSL+ 19, Definition
+43], we defined an (α, a, ) projected unitary encoding of an operator A acting on s qubits
+is a unitary U acting on a + s qubits, such that
+
+                                       kA − αΠ† U Π̃k ≤ ,                                  (A.1)
+
+where the first register consists of ancillary qubits, Π and Π̃ represent projections,
+i.e. Π := |0i⊗a ⊗ 1s is an isometry mapping (C2 )⊗s 7→ spanC {|0i⊗a } ⊗ (C2 )⊗s , and
+α,  ∈ (0, ∞). Below, we recall how to obtain such block encodings from purified access
+oracles to classical probability distributions and mixed states.
+
+
+A.1. Classical distributions
+In the case of a classical input distribution, the purified access oracle in Eq. (2.10) can
+                                                                                     √
+be turned into a block encoding for a matrix with singular values equal to the pj as
+follows.
+   We choose Π :=            1 ⊗ |iihi| ⊗ |iihi|, and Π̃ := |0ih0| ⊗ |0ih0| ⊗ 1, where each of the
+                     X
+
+                     i∈[n]
+three registers is of dimension n. With W = U ⊗ 1, we have that
+                                               X√
+                                P = ΠU Π̃ =               pi |φi iiih00i| .                 (A.2)
+                                               i∈[n]
+
+The right hand side above represents the singular value decomposition (SVD) of a matrix
+                             √
+P with singular values σi = pi , left singular vectors |φi iii and right singular vectors
+|00ii, i.e.
+                                                      √
+                                        P |00ii =         pi |φi iii
+                                                      √
+                                      P † |φi iii =       pi |00ii .
+
+Hence we see that U furnishes a (1, dlog ne, 0) block encoding of P .
+
+
+A.2. Arbitrary quantum density matrices
+Classical probability distributions correspond to the special case when ρ is diagonal in
+the computational basis. For arbitrary density matrices, it is a little bit harder to create
+                                                                                    √
+a projected unitary encoding that has the square roots of the eigenvalues of ρ, pi , as
+                                                                                          q
+                                                                                              pi
+the singular values. Instead, [GL20] give a construction which has singular values            n.
+   Since we do not know the eigenbasis of ρ beforehand, we define the projection operators
+Π = 1 ⊗ |0ih0| ⊗ |0ih0| and Π̃ = |0ih0| ⊗ |0ih0| ⊗ 1. As before, the third register contains
+
+
+
+                                                 33
+the ancilla, and the first two contain states of the system. We also need a unitary map W
+that prepares the maximally entangled state on the two copies of the system register:
+                                                       n
+                                                   1 X
+                                      |0i |0i 7−→ √       |ji |ji .
+                                                    n j=1
+
+With these operators and the purified access oracle Uρ of Eq. (2.9), we can define the
+unitary
+                             U 0 = 1 ⊗ Uρ† (W ⊗ 1) ,
+                                          
+
+
+which gives rise to the following projected unitary encoding
+                                       n
+                                   1 X       E
+                        ΠU 0 Π̃ = √       φ0j h0| ⊗ |0ih0| ⊗ |0ihψj | ,
+                                    n j=1
+           E
+where { φ0j } is a Schmidt basis for the first half of the bipartite maximally entangled
+state of dimension n.
+    This encoding has a leading normalisation factor of √1n , which directly contributes a
+          √
+factor of n to the complexity of entropy estimation for quantum density matrices.
+
+
+B. Implementing power functions of block encoded matrices
+Polynomial functions of a matrix are defined through its singular value decomposition.
+An n × n matrix P has n real singular values σj , with a singular value decomposition
+in terms of its left and right singular vectors |vj i and |wj i. An even or odd polynomial
+function f of such a matrix is then defined as having the same singular vectors, but with
+the eigenvalues f (σj ), as follows
+                            n
+                    P =           λj |vj i hwj | ;
+                            X
+
+                            j=1
+
+                                  j=1 f (σj ) |wj i hwj |     when f (x) = f (−x)
+                              n
+                            (P
+                 f (P ) =                                                              (B.1)
+                                  j=1 f (σj ) |vj i hwj |     when f (x) = −f (−x)
+                             Pn
+
+
+   The key trick in using QAE to estimate a functional ϕ(p) := i f (pi ) of an input
+                                                                                   P
+
+vector p (in our case, a probability mass function) is to use the input purified access
+unitary that performs the map
+                                                            n
+                                    E      E                  √
+                            U 0d        0d = |ψp i =
+                                                            X
+                                                                  pi |φi i |ψi i
+                                                            i=1
+
+
+
+
+                                                     34
+where d = dlog ne, to construct a new unitary circuit which on a chosen, easy to prepare
+initial state performs a map of the type
+                                        n q
+                 W |ψρ i |0iflag =            f (pi ) |φi i |ψi i |0iflag + |...i |1iflag ,
+                                        X
+
+                                        i=1
+
+so that value of the target functional ϕ is encoded in the amplitude of the part of the
+output state marked by the |0i subspace of the flag register.
+   A projected unitary encoding U of a matrix P can be used to implement such
+smooth functions of the input matrix via polynomial approximations, with the following
+theorem.
+Theorem 3 (Theorem 56, [GSL+ 19]). Given an (α, a, ) block encoding U of a Hermitian
+matrix P , for any degree p m polynomial f (x) that satisfies ∀ x ∈ [−1, 1], |f (x)| < 1/2,
+there exists a (1, a + 2, 4m /α + δ) block encoding Uf of f (P/α). We can construct Up
+using m applications of U and U † , a single application of controlled-U , and O((a + 1)m)
+additional 1- and 2-qubit gates. A description of the circuit of Uf can be calculated in
+O(poly(m, log 1/δ)) time on a classical computer.
+   Using Theorem 3, we can implement -approximate block encodings of power functions
+P c on the part of the singular value spectrum of P that is contained in [δ, 1] for δ > 0 by
+using polynomial approximations. The lower cutoff δ is necessary because power functions
+for non-integer exponents c ∈ R are not differentiable at x = 0. On the other hand,
+monomials for c = 1, 2, . . . can be implemented exactly on the entire domain [0, 1].
+    We first note the following way [CGJ19; GSL+ 19] of obtaining polynomial approxi-
+mations of any desired degree for positive and negative power functions over a domain
+[x0 − r − δ, x0 + r + δ] of radius r ∈ (0, 2] centred around a point x0 ∈ [−1, 1], with some
+wiggle room for the polynomial to vary, specified by the parameter δ ∈ (0, r].
+Positive Power functions: Consider f (x) = xc for c > 0. The Taylor series expansion
+of f around x0 = 1
+
+                                   f (1 + x) = (1 + x)c
+                                                        ∞
+                                                                 !
+                                                                c k
+                                               =1+                                            (B.2)
+                                                        X
+                                                                  x
+                                                        k=1
+                                                                k
+
+converges ∀x ∈ [−1, 1], where
+
+                                        c(c − 1)(c − 2) . . . (c − k + 1)
+                               !
+                           c
+                                   :=                                     .
+                           k                          k!
+
+
+
+
+                                                   35
+Notice that we have
+                           ∞                                           ∞
+                                        !                                            !
+                                    c                                            c
+                      1+                    (1 − δ + δ)k = 1 +
+                           X                                           X
+
+                           k=1
+                                    k                                  k=1
+                                                                                 k
+                                                                        ∞
+                                                                                 !
+                                                                               c
+                                                            =1−                  (−1)k
+                                                                       X
+
+                                                                       k=1
+                                                                               k
+                                                                        ∞
+                                                                                 !
+                                                                               c
+                                                            =2−                  (−1)k
+                                                                       X
+
+                                                                       k=0
+                                                                               k
+                                                            = 2 − f (1 − 1)
+                                                            = 2.
+                                                                √          √
+Specific to our purpose, this means we can choose x0 = 1, r = 1− β/2, δ = β/2, and the
+normalisation factor B = 2 for implementing positive power functions
+                                                                 √     of block encodings
+                                  √         √
+of P with singular values p = ( p1 , . . . , pn ) on the domain [ β, 1] corresponding to
+the heavy elements i ∈ Bβ with probability masses pi ≥ β.
+Negative Power functions: Consider f (x) = x−c for c > 0. The Taylor series
+expansion of f around x0 = 1
+
+                                    f (1 + x) = (1 + x)−c
+                                                           ∞
+                                                                       !
+                                                                  −c k
+                                                 =1+                                         (B.3)
+                                                           X
+                                                                     x
+                                                           k=1
+                                                                  k
+
+converges ∀x ∈ [−1, 1], where
+
+                                    −c(−c − 1)(−c − 2) . . . (−c − k + 1)
+                           !
+                        −c
+                               :=                                         .
+                        k                          k!
+
+With δ 0 := 2 max(1,c)
+                δ
+                       notice that we have
+
+                        ∞                                        ∞
+                                     !                                       !
+                                 −c                                        −c
+                   1+                       (r + δ 0 )k = 1 +                 (−r − δ 0 )k
+                        X                                        X
+
+                        k=1
+                                 k                               k=1
+                                                                           k
+                                                      = (1 − r − δ 0 )−c
+                                                      = (δ − δ 0 )−c
+                                                                  δ 0 −c
+                                                      = δ −c (1 −    )
+                                                                  δ
+                                                                        1
+                                                      = δ −c (1 −             )−c
+                                                                  2 max(1, c)
+                                                      = 2δ −c .
+                                                                       c
+If we choose to normalise the original
+                                  √ function
+                                           √ to 2 x , the above calculation shows
+                                                δ −c
+
+that we can choose x0 = 1, r = 1 − β/2, δ = β/2, and the normalisation factor B = 1
+
+
+
+                                                      36
+                                                  √
+for implementing negative power functions over [ β, 1]. Since the case of negative power
+functions is more illustrative than positive ones, we state this formally below. A similar
+statement holds for the positive case.
+Lemma 3 (Corollary 67, [GSL+ 19]). Given a (α, a, 0) unitary block encoding U of a
+matrix with singular value decomposition P = i σi |vihw|, and an even polynomial fc (x)
+                                             P
+
+on [−1, 1] that approximates the negative power function x−c for c > 0 such that
+
+                         δ c −c
+              fc (x) −      x     ≤                                              ∀x ∈ [δ, 1]
+                         2
+                         |fc (x)| ≤ 1                                            ∀x ∈ [−1, 1]
+                                           max(1, c)     1
+                                                                
+                    m = deg f = O                    log   ,
+                                              δ          
+
+we can implement a (2/δc , a + 2, ) block encoding Uf of the matrix polynomial fc (P ) =
+   i fc (σi ) |wihw| using m applications of U and U , a single application of controlled-
+P                                                   †
+
+U , and O(ma) additional one- and two-qubit gates. Furthermore, a description of the
+quantum circuit Uf can be computed classically in time O(poly(m, log 1/)).
+
+
+C. Quantum phase estimation and singular value estimation
+We would like to use Quantum Phase Estimation as a subroutine to separately flag
+the subspaces of heavy and light elements. In essence we want to perform the map in
+Eq. (3.3), i.e.      X√                           X√
+                          pi |φi i |ii ⊗ |0m i 7→    pi |φi i |ii |qi i ,     (C.1)
+                          i∈[n]                              i∈[n]
+        √
+where       pi − qi ≤ 2−(m+1) =: , and m is the number of bits of precision.
+    Recall that we have a block encoding U of a matrix P that represents our input
+distribution, where P has the singular value decomposition
+                                                      X√
+                                  P = Π̃U Π =                pi |φi iiih00i| .                  (C.2)
+                                                  i∈[n]
+
+
+    Functions of P defined by even or odd polynomials f or f˜ respectively acting on the
+singular values then have the form
+                                                         √
+                                  f (P ) :=           f ( pi ) |00iih00i|
+                                              X
+
+                                              i∈[n]
+                                                         √
+                                  f (P ) :=           f ( pi ) |φi iiih00i| .                   (C.3)
+                                              X
+
+                                              i∈[n]
+
+
+    In principle, we can simply use the standard textbook version of the quantum phase
+estimation algorithm (QPE) which requires controlled-U operators and the quantum
+
+
+
+                                                       37
+fourier transform (QFT) in order to estimate the phases θj ∈ [0, 1) of the eigenvalues
+λj = e2πiθj of U . We consider e2πiP t as the input unitary, which can be implemented
+using the block encoding of P via Hamiltonian simulation, with query complexity to U
+and U † bounded by
+                                             log 1/
+                                                      
+                                  O t+
+                                           log log 1/
+                                                                   √
+where  is a precision parameter defined by ∀j ∈ [n], e2πi pj − λj ≤  [LC17; GSL+ 19].
+                                                  √     √
+                                  √
+This condition translates to θj − pj ≤ π1 arcsin 2 ≤ . This error is benign as far as
+we are concerned: we can choose it to be of order 1/n or even 1/n2 while incurring only a
+additive logarithmic overhead in the complexity. Indeed, we shall choose it to be inverse
+polynomial in n, so that the subsequent step that uses QPE to estimate θj still behaves
+as we expect it to — it will produce an estimate of zero whenever θj2 ≤ β ⇐⇒ pj < β.
+    While the above explanation is the high level intuition, in practice things can be a
+bit more delicate, and we use technique of quantum singular value estimation (QSVE).
+Since P is not Hermitian, we consider a symmetrised version of it defined by P̂ =
+|0ih1| ⊗ P + |1ih0| ⊗ P † , which has eigenvectors |0i ⊗ |φi iii + |1i ⊗ |00ii and eigenvalues
+√
+  pi . The problem then is to perform the map in Eq. (3.3) using the block encoding of P̂ ,
+which in turn can easily be constructed using the block encoding of P . This matches the
+problem addressed in [KP20; CGJ19; GSL+ 19], and the complexity is essentially O        e (1/)
+where  is the precision to which we would like to estimate the singular values.
+   We can then choose m = log       1/β , and the query complexity of the QSVE subroutine
+                                  p
+
+becomes
+                                         1        1
+                                                        
+                                    O         =O √             .
+                                                  β
+
+
+D. Quantum amplitude estimation
+Quantum amplitude estimation (QAE) is a technique wherein quantum phase estimation
+(QPE) is used to estimate the amplitude of a certain basis state (more generally, of any
+state about which we can perform a reflection operation) in a superposition produced by
+applying a unitary operation U to a given input state. The QPE algorithm is applied to
+estimate the eigenvalues of the Grover iterate constructed from the input unitary. We
+also note that the most modern methods of QAE do not rely on QPE or the quantum
+fourier transform in an essential way [SUR+ 20; AR20].
+Theorem 4 ([BHM+ 02], Theorem 12). Given a unitary U with the action
+                                              √
+                                U |0i |0i =       p |0i |φi + |⊥i ,
+
+
+
+
+                                              38
+where |φi is a normalised state on the system register, and (|0ih0| ⊗ 1) |⊥i = 0, the
+quantum amplitude estimation algorithm outputs p̃ ∈ [0, 1] satisfying
+
+                                         2π p(1 − p)  π2
+                                          p
+                              |p − p̃| ≤             + 2,
+                                            M         M
+with a success probability at least 8/π 2 , making M uses of U and U † .
+   To get an approximation
+                        √p̃ that is
+                                   correct
+                                          √ to a constant
+                                                          additive precision  ∈ (0, 1/2),
+                         2 p                  p
+we can choose M = d2π  + √ e = Θ  + √ , and hence with a complexity of
+                                1                  1
+
+Θ(1/) we can estimate p to additive precision .
+
+
+
+
+                                            39
+
+
+
+
+                                                                      ECCC                          ISSN 1433-8092
+
+                                                                      https://eccc.weizmann.ac.il
+

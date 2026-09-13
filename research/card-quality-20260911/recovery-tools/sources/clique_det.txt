@@ -1,0 +1,1596 @@
+                                         Deterministic Near-Optimal Distributed Listing of Cliques
+
+                                         KEREN CENSOR-HILLEL, Technion, Israel
+                                         DEAN LEITERSDORF, Technion, Israel
+                                         DAVID VULAKH, Massachusetts Institute of Technology, USA
+                                         The importance of classifying connections in large graphs has been the motivation for a rich line of work on distributed subgraph
+arXiv:2205.09245v1 [cs.DC] 18 May 2022
+
+
+
+
+                                         ﬁnding that has led to exciting recent breakthroughs. A crucial aspect that remained open was whether deterministic algorithms can
+                                         be as eﬃcient as their randomized counterparts, where the latter are known to be tight up to polylogarithmic factors.
+                                            We give deterministic distributed algorithms for listing cliques of size 𝑝 in 𝑛1−2/𝑝+𝑜 (1) rounds in the Congest model. For triangles,
+                                         our 𝑛1/3+𝑜 (1) round complexity improves upon the previous state of the art of 𝑛2/3+𝑜 (1) rounds [Chang and Saranurak, FOCS 2020].
+                                         For cliques of size 𝑝 ≥ 4, ours are the ﬁrst non-trivial deterministic distributed algorithms. Given known lower bounds, for all values
+                                         𝑝 ≥ 3 our algorithms are tight up to a 𝑛𝑜 (1) subpolynomial factor, which comes from the deterministic routing procedure we use.
+
+
+
+                                         1 INTRODUCTION
+                                         Subgraph listing is a crucial component of graph algorithms in many computation settings, as it characterizes the con-
+                                         nections in a graph. In distributed computing, further motivation for ﬁnding small subgraphs is that some algorithms
+                                         run faster on networks without certain subgraphs: [PS13, HRSS17] show fast algorithms for coloring and ﬁnding large
+                                         cuts, respectively, in triangle-free graphs, and [CHFG+ 20] quickly computes exact girth in graphs without small cycles.
+                                            In this paper, we focus on clique listing in the Congest model of distributed computing, in which 𝑛 vertices in a
+                                         synchronous network are required to ﬁnd all cliques in the network graph by exchanging messages of 𝑂 (log 𝑛) bits.
+                                            A major open question about the Congest model is whether randomization is necessary for this problem. A recent
+                                         groundbreaking line of work [IL17, CPZ19, CS19, EFF+ 21, CHLL20, CHCLL21] culminated in clique-listing algorithms
+                                         whose complexities are within polylogarithmic factors of the lower bounds presented by [PRS21, IL17, FGKO18]. While
+                                         these are all randomized algorithms, powerful recent work by Chang and Saranurak [CS20] showed the ﬁrst non-trivial
+                                         deterministic algorithm for the case of triangle listing. Still, it exceeds the lower bound by a polynomial number of
+                                         rounds, leaving the following major question open (see also Open Problem 2.2 in a recent survey [CH21]):
+
+                                              What is the complexity of deterministic clique listing in the Congest model, and is there a separation between
+                                              randomized and deterministic algorithms?
+
+
+                                            We present an algorithm answering this question for all 𝑝-cliques (denoted 𝐾𝑝 ). Our algorithm ﬁnishes in 𝑛 1−2/𝑝+𝑜 (1)
+                                         rounds, within 𝑛𝑜 (1) rounds of the Ω̃(𝑛 1−2/𝑝 ) lower bound of [PRS21, IL17, FGKO18], and for listing cliques larger than
+                                         triangles is the ﬁrst non-trivial deterministic algorithm. This complexity matches the optimal randomized results of
+                                         [CPSZ21, CHCLL21], up to the additional 𝑛𝑜 (1) factor. The additional 𝑛𝑜 (1) factor is due to the deterministic expander
+                                         routing scheme of [CS20], and might be improved upon given future progress in routing.
+
+                                            Theorem 1. Given a constant 𝑝 ≥ 3 and a graph 𝐺 = (𝑉 , 𝐸) with 𝑛 = |𝑉 | vertices, there exists a deterministic Congest
+                                         algorithm that completes in 𝑛 1−2/𝑝+𝑜 (1) rounds and lists all instances of 𝐾𝑝 in 𝐺.
+
+                                         Authors’ addresses: Keren Censor-Hillel, ckeren@cs.technion.ac.il, Technion, Israel; Dean Leitersdorf, dean.leitersdorf@gmail.com, Technion, Israel;
+                                         David Vulakh, dvulakh@mit.edu, Massachusetts Institute of Technology, USA.
+                                                                                                                                                                                           1
+2                                                                          Keren Censor-Hillel, Dean Leitersdorf, and David Vulakh
+
+
+    Our key technical contribution which enables showing Theorem 1 is a simulation in Congest of a class of algorithms
+we call partial-pass streaming algorithms. We use these to eﬃciently simulate deterministic load balancing tools from
+the stronger Congested Cliqe model (where every two vertices can exchange 𝑂 (log 𝑛)-bit messages per round). It is
+possible that our approach of extracting a partial-pass streaming algorithm and simulating it could be useful elsewhere.
+
+1.1    Background and Challenges
+The groundbreaking triangle listing result of Chang, Pettie, Saranurak, and Zhang [CPSZ21]1 consists of a distributed
+expander decomposition, in which the graph is broken up into well-connected (high conductance / low mixing time)
+clusters, and Congested Cliqe-inspired algorithms that run eﬃciently in each cluster using the expander routing
+of [GKS17, GL18]. The remaining 𝜖-fraction of inter-cluster edges are handled recursively. This general framework has
+become the foundation for further work in this area [EFF+ 21, CHLL20, CHCLL21, CS20, CHFG+ 20, ILM20, CHFL+ 22].
+    Speciﬁcally, after running the expander decomposition, the 𝐾3 listing algorithm of [CPSZ21] runs a randomized
+version of the triangle listing Congested Cliqe algorithm of Dolev, Lenzen, and Peled [DLP12]. For the case of
+𝑝 ≥ 4, signiﬁcant new challenges arise as cliques of size 4 and larger can have their edges spread out over two or
+more clusters in the decomposition. This implies that some edges need to be learned by a cluster although neither of
+their endpoints is in the cluster, and thus the number of edges that a cluster has to process is much larger. The listing
+algorithms of Eden, Fiat, Fischer, Kuhn, and Oshman [EFF+ 21], Censor-Hillel, Le Gall, and Leitersdorf [CHLL20], and
+Censor-Hillel, Chang, Le Gall, and Leitersdorf [CHCLL21] use various techniques for resolving the above.
+
+    Usage of randomization in previous approaches. Together, [CPSZ21, CHCLL21] show optimal randomized al-
+gorithms for listing cliques of any size in Congest. On a conceptual level, randomization is used in three components
+of the algorithms. The ﬁrst two are the expander decomposition and the expander routing. The third component that
+uses randomization is the load balancing for the listing operation inside the clusters, upon which we now elaborate.
+    The load balancing task is as follows. Each cluster knows some set of edges (distributed across the cluster vertices) —
+only the cluster’s own edges for 𝐾3 , and for 𝐾𝑝 ≥4 perhaps also edges from other clusters. The goal is for the vertices to
+redistribute these edges, such that any instance of 𝐾𝑝 composed of these edges is known to at least one vertex in the
+cluster. This must happen without any vertex slowing down the network by sending or receiving too much information.
+The standard approach is to construct a random partition of the vertex set 𝑉 = 𝑉1 ∪ 𝑉2 ∪ · · · ∪ 𝑉𝑥 , for 𝑥 = 𝑂 (𝑛 1/𝑝 ),
+so that the number of edges between two parts 𝑉𝑖 , 𝑉 𝑗 is, with high probability, roughly |𝐸|/𝑥 2 . Then, each vertex 𝑣 is
+assigned some parts 𝑉𝑖 and 𝑣 learns all edges between these parts. By assigning a number of parts proportional to the
+degree of 𝑣, the near-optimal round complexity is obtained.
+
+    Challenges in removing randomization. Chang and Saranurak [CS20] show deterministic expander decomposi-
+tion and routing procedures. However, deterministically solving the above load balancing task is diﬃcult to do inside
+the clusters, implying a polynomial overhead to their triangle listing round complexity.
+    The challenge of ﬁnding an eﬃcient deterministic algorithm for the load balancing task arises not only in Con-
+gest, but also in Congested Cliqe. Speciﬁcally, it is unknown how to eﬃciently ﬁnd in a deterministic manner
+a well-balanced partition of the graph such that the number of edges between every two parts is roughly the same.
+In Congested Cliqe, [CHLT20] bypassed this challenge for triangles, and [CHFG+ 20] were able to do so for any
+subgraph (with at most log 𝑛 vertices). The approach of the latter is that instead of using one partition, they design a
+
+1 Notice that [CPSZ21] is a journal publication combining the two conference papers [CPZ19, CS19].
+Deterministic Near-Optimal Distributed Listing of Cliques                                                                 3
+
+
+polynomial number of partitions and diﬀerent vertices choose to work with diﬀerent combinations of partitions. The
+diﬀerent partitions are related to each other using a structure called partition trees.
+  A reasonable approach for deterministic load balancing in Congest for clique listing is to construct the above
+partition trees inside the clusters. However, the above algorithm for constructing these trees cannot directly be adapted
+to Congest in an eﬃcient manner. The reason for this is that the algorithm has low round complexity, yet high message
+complexity: although it ﬁnishes in 𝑂 (1) rounds in the Congested Cliqe model, it involves sending Θ(𝑛 2 ) messages.
+This high message complexity is very prohibitive for the Congest model, as the bandwidth available, i.e. the number
+of communication edges in the graph or in a cluster, might be dramatically smaller than Θ(𝑛 2 ), as we now elaborate.
+   When dealing with 𝐾3 , our target round complexity is 𝑂˜ (𝑛 1/3 ), as the known lower bound stated above is Ω̃(𝑛 1/3 ).
+This implies a very hard restriction on the bandwidth available within the clusters. Concretely, it can be shown that
+some low-degree vertices in the clusters can only receive 𝑂 (𝑛 2/3 ) messages in total throughout the entire algorithm.
+Therefore, for clusters with Ω(𝑛 2/3 ) vertices, some vertices might not even know basic information about the other
+cluster vertices, such as how much data each holds, and so performing any sort of load balancing is clearly tricky.
+  When dealing with 𝐾𝑝 ≥4 , our target round complexity inherently increases, as the lower bound is Ω(𝑛 1−2/𝑝 ), which
+is at least Ω(𝑛 1/2 ) for 𝑝 ≥ 4. While this eases the pressure on the bandwidth, we are met with a new challenge:
+constructing partition trees on data from multiple clusters. As described above, a clique of size ≥ 4 can have edges
+which lie in multiple clusters, and so as in [CHCLL21], we need to make some edges from outside a cluster known to the
+vertices of the cluster. To capture this, we must substantially generalize the deﬁnition of partition trees to distinguish
+between edges in the cluster and those whose information is brought into it.
+
+
+1.2   Our Approach
+We introduce a new class of algorithms which we call partial-pass streaming algorithms, and show that these require
+very few messages to simulate in clusters in Congest. Then, we show that there exists a partial-pass streaming algo-
+rithm which constructs a generalized partition tree. Finally, we plug this construction into the deterministic expander
+decomposition and routing of [CS20] in order to get listing algorithms for all 𝐾𝑝 .
+
+
+  Partial-pass streaming algorithms. Partial-pass streaming algorithms are similar to standard streaming algo-
+rithms (see, for example, [MP80, AMS99] or the survey [Mut05]), as they maintain a small state, sequentially process
+an input stream, and cannot return to previous parts of the input. However, a key distinctive part of partial-pass stream-
+ing algorithms is that they strive to make less than one pass over the input stream by skipping some of it. In this setting,
+a stream is composed by tokens reﬂecting two levels of granularity: a large number of auxiliary tokens, each with some
+ﬁne-grained data, and a small number of main tokens with very coarse-grained data summarizing the auxiliary tokens.
+Each main token summarizes the chunk of auxiliary tokens that appears after it and before the next main token in the
+stream. Partial-pass streaming algorithms are able to access all the main tokens in a given stream, while reading only
+a limited amount of auxiliary tokens. As such, the total number of stream tokens accessed by a partial-pass streaming
+algorithm is signiﬁcantly smaller than the total stream length.
+  As intuition for this deﬁnition and why it ﬁts well with a Congest simulation, recall that in Congest the input is
+dispersed across vertices. The raw data each vertex gets can be seen as auxiliary tokens, and each vertex can locally
+compute a summary of its data, creating a main token. When an algorithm runs, it might suﬃce to sometimes only
+read the main token produced by a vertex, while at other occasions the internal auxiliary tokens are needed.
+4                                                                 Keren Censor-Hillel, Dean Leitersdorf, and David Vulakh
+
+
+    Simulating partial-pass streaming algorithms in Congest. For simplicity, suppose each vertex has a single
+main token which summarizes possibly many auxiliary tokens which it holds. Assume also that the vertices are ordered
+in the way their tokens appear in the stream, i.e., vertex with identiﬁer 1 has the ﬁrst main token. The algorithm which
+we run on the stream has a small polylog(𝑛)-bit state. Consider two extreme approaches.
+    Approach 1: State Passing. Vertex 1 starts simulating the algorithm and locally executes it on its tokens. Then, it
+passes the state of the algorithm to vertex 2 and so forth. While only Θ̃(𝑛) messages are used, this takes Θ̃(𝑛) rounds.
+    Approach 2: Leader with Queries. An arbitrary vertex 𝑣 is denoted leader and learns all 𝑛 main tokens. Then, 𝑣 locally
+simulates the algorithm. When auxiliary tokens of a certain main token are needed, 𝑣 sends the state of the algorithm
+to the vertex 𝑢 which sent 𝑣 that speciﬁc main token. Vertex 𝑢 simulates the algorithm on its local auxiliary tokens and
+sends the state back to 𝑣. As main tokens summarize the auxiliary tokens and partial-pass streaming algorithms are
+able to skip the vast majority of auxiliary tokens, 𝑣 sends the state to other vertices only few times during the entire
+execution. However, we are burdened by the fact that 𝑣 initially learns all 𝑛 main tokens by itself.
+    Our approach. We opt for a combination of both approaches. Denote some set of vertices 𝐴 of sublinear polynomial
+size, ordered 𝐴 = {𝑎 1, . . . , 𝑎 |𝐴 | }. The vertices in 𝐴 collectively learn all main tokens — 𝑎 1 learns the ﬁrst 𝑛/|𝐴| main
+tokens tokens, followed by 𝑎 2 which learns the next 𝑛/|𝐴|, and so forth. Vertex 𝑎 1 starts executing the algorithm on its
+local data. Whenever it hits a main token for which the corresponding auxiliary tokens are needed, it sends the state
+of the algorithm back to whichever vertex sent it the relevant main token. That vertex simulates the algorithm, and
+returns the state back to 𝑎 1 . After 𝑎 1 processes the main tokens it knows, it forwards the state of the algorithm to 𝑎 2 ,
+and so forth, until 𝑎 |𝐴 | completes the run of the algorithm. This approach both passes the state few times and each
+vertex learns few main tokens, thus having both low round and low message complexities.
+
+
+    Constructing generalized partition trees by a partial-pass streaming algorithm. We design a partial-pass
+streaming algorithm which constructs the generalized partition trees we require, so that we can then invoke our
+simulation of it in Congest. For clarity, the following is a simpliﬁcation of the full algorithm which we show. At a very
+high level, a common operation in constructing partition trees is that there is a globally known vertex set 𝑊 , and we
+strive to partition the graph vertices 𝑉 into sets 𝑉1, . . . , 𝑉𝑥 , for some 𝑥, such that for each 𝑖, 𝑗 ∈ [𝑥], the number of edges
+in 𝐸 (𝑉𝑖 ,𝑊 ) is roughly the same as that in 𝐸 (𝑉 𝑗 ,𝑊 ). We work within clusters and each cluster needs to process also
+information that is brought from outside it. Concretely, denoting 𝑉𝐶 as the set of vertices in a cluster 𝐶, each 𝑣 ∈ 𝑉𝐶
+might also hold some edges incident to vertices outside 𝐶, a set which we for now denotes as 𝐹 (𝑣) ⊆ 𝑉 \ 𝑉𝐶 .
+    The partial-pass streaming algorithm works as follows. For each 𝑣 ∈ 𝑉𝐶 , deﬁne |𝐹 (𝑣)| + 1 auxiliary tokens as the
+value |𝐸 ({𝑣 },𝑊 )| and values |𝐸 ({𝑢},𝑊 )| for each 𝑢 ∈ 𝐹 (𝑣). Also deﬁne a main token for 𝑣 as the sum of these auxiliary
+tokens. The input stream is the concatenation of the tokens deﬁned for each 𝑣 ∈ 𝑉𝐶 . The algorithm maintains an
+incomplete part 𝑉 𝑗 in the partition to which we currently add vertices. When reaching the main token of vertex 𝑣 ∈ 𝑉𝐶 ,
+we attempt to add all of 𝐹 (𝑣) ∪ {𝑣 } to 𝑉 𝑗 . By observing the main token of 𝑣, we know how many edges will be added to
+𝐸 (𝑉 𝑗 ,𝑊 ) if we do so. If this value is acceptable, the algorithm proceeds. Otherwise, we request all the auxiliary tokens
+of 𝑣, and add the vertices one by one until 𝑉 𝑗 grows too large, at which point we close 𝑉 𝑗 and start ﬁlling part 𝑉 𝑗+1 .
+
+
+    Roadmap. We provide required background in Section 2, and in Section 3 introduce and eﬃciently simulate partial-
+pass streaming algorithms in high-conductance clusters in Congest. In Section 4, we construct partition trees using
+partial-pass streaming algorithms. Sections 5 and 6 wrap these into 𝐾3 and 𝐾 ≥4 listing algorithms, respectively.
+Deterministic Near-Optimal Distributed Listing of Cliques                                                                         5
+
+
+1.3   Further Related Work
+Triangle ﬁnding. In Congested Cliqe, the seminal work of [DLP12] presents an 𝑂 (𝑛 1/3 /log 𝑛)-round, deterministic
+algorithm for 𝐾3 listing, and shows faster algorithms for detection and counting for certain graph families. Matching
+lower bounds for listing are shown in [PRS21, IL17]. For sparse graphs, [DLP12, PRS21, CHLT20] show faster algo-
+rithms, some of which are tight due to [PRS21]. The state-of-the-art for triangle detection and counting in Congested
+Cliqe is 𝑂 (𝑛 0.158 ) rounds, based on fast matrix multiplication [CHKK+ 16]. It is considered hard to show lower bounds
+for this, due to the reduction to circuit complexity of [DKO14]. the broadcast version of Congested Cliqe.
+   In Congest, the ﬁrst breakthrough for triangle ﬁnding is due to [IL17], who showed the ﬁrst non-trivial algorithms
+for listing and detection, in 𝑂˜ (𝑛 3/4 ) and 𝑂˜ (𝑛 2/3 ) rounds w.h.p, respectively. Subsequently, [CPSZ21] showed a break-
+through by listing in the optimal complexity of 𝑂˜ (𝑛 1/3 ) rounds, w.h.p., using an expander decomposition together with
+the routing techniques of [GKS17, GL18]. [HPZZ21] show an algorithm which takes 𝑂 (Δ/log𝑛 + log log Δ) rounds,
+where Δ is the maximal degree in the graph. following: Subsequently, [CPZ19] showed a breakthrough by listing in
+𝑂˜ (𝑛 1/2 ) rounds, w.h.p., using an expander decomposition, which was later improved to get the optimal, yet random-
+ized, 𝑂˜ (𝑛 1/3 )-round algorithm of [CS19]. The ﬁrst non-trivial deterministic triangle ﬁnding algorithm was given by
+[CS20], taking 𝑂 (𝑛 0.58 ) rounds for detection and 𝑛 2/3+𝑜 (1) rounds for listing. On the lower bound side, it is only known
+that more than one round is needed for detection in Congest [ACHKL20, FGKO18]. Proving any polynomial lower
+bound is considered diﬃcult [EFF+ 21].
+   Finding larger cliques. In Congested Cliqe, [DLP12] provide an 𝑂 (𝑛 1−2/𝑝 /log 𝑛)-round deterministic algorithm
+for 𝐾𝑝 listing. Further, their algorithm lists all subgraphs with 𝑝 vertices within this complexity. This is optimal for
+cliques due to the lower bound of [FGKO18]. A randomized sparsity aware algorithm was shown for 𝐾𝑝 listing, for
+𝑝 ≥ 4, in [CHLL20], and a deterministic construction using partition trees was later given by [CHFG+ 20]; these results
+are tight, for graphs of all sparsities, due to [PRS21, IL17, FGKO18].
+   In Congest, the expander decompositions of [CPZ19, CS19] were ﬁrst used by [EFF+ 21] to show 𝐾4 and 𝐾5 listing
+in 𝑛 5/6+𝑜 (1) and 𝑛 73/75+𝑜 (1) rounds w.h.p., respectively. Later, [CHLL20] showed the ﬁrst sub-linear result for all 𝑝 ≥ 4,
+which was followed by the 𝑂˜ (𝑛 1−2/𝑝 )-round algorithm of [CHCLL21] — this is optimal due to the lower bound of
+[FGKO18]. For 𝑝 = 4, it turns out that the optimal Θ̃(𝑛 1/2 )-round result for listing 𝐾4 is also the best possible for
+detecting 𝐾4 , due to the lower bound by [CK20].
+   Finding other subgraphs and additional related results. Small cycles received much attention with many al-
+gorithms and hardness results, shown in Congested Cliqe by [CHKK+ 16, CHLT20, CHFG+ 20], and in Congest by
+[DKO14, KR18, CHFG+ 20, FGKO18, EFF+ 21]. For all 𝑝 ≥ 3, a gap between 𝐾𝑝 detection and listing is shown in quantum
+variants of Congest and Congested Cliqe in [ILM20, CHFL+ 22]. Finding trees was investigated in [DKO14, KR18],
+and more general subgraphs in [GO18, FGKO18, EFF+ 21]. Distributed subgraph testing, in which we need to determine
+if a graph is either free of a subgraph or many edges need to be removed from it to reach this state, was studied in
+[BPS11, CHFSV18, EFF+ 17, FO19, FRST16].
+
+
+
+2 PRELIMINARIES
+Notations. Given a graph 𝐺 = (𝑉 , 𝐸), and a set 𝐸 ′ ⊆ 𝐸, denote by 𝐺 [𝐸 ′ ] the graph induced by 𝐸 ′ on 𝐺. For a vertex
+𝑣 ∈ 𝑉 and a subgraph 𝐺 ′ = (𝑉 ′, 𝐸 ′ ) of 𝐺, denote by deg𝐺 ′ (𝑣) the degree of 𝑣 in 𝐺 ′ , deg𝐺 ′ = |{𝑢 ∈ 𝑉 ′ : (𝑣, 𝑢) ∈ 𝐸 ′ }|. For
+a subset of vertices 𝑉 ′ ⊆ 𝑉 and a vertex 𝑣 ∈ 𝑉 , denote by deg𝑉 ′ the degree of 𝑣 into 𝑉 , deg𝑉 ′ = |{𝑢 ∈ 𝑉 ′ : (𝑣, 𝑢) ∈ 𝐸}|.
+6                                                                  Keren Censor-Hillel, Dean Leitersdorf, and David Vulakh
+
+
+    Decompositions into clusters with high conductance (low mixing time) underpin Congest listing algorithms. Here,
+we restate the required background about them.
+                                                                                                                Í
+Deﬁnition 2 (Conductance). Given a graph 𝐺 = (𝑉 , 𝐸) and a subset 𝑆 ⊆ 𝑉 , deﬁne Vol(𝑆) =                            𝑣 ∈𝑆 deg(𝑣) and
+𝜕(𝑆) = 𝐸 (𝑆, 𝑉 \ 𝑆). Then, the conductance of a cut 𝑆 ⊆ 𝑉 is Φ(𝑆) = |𝜕(𝑆)|/min{Vol(𝑆), Vol(𝑉 \ 𝑆) } and the conductance
+of 𝐺 is the minimum conductance over all nontrivial cuts 𝑆, Φ(𝐺) = min𝑆 ⊆𝑉 :𝑆≠∅∧𝑆≠𝑉 Φ(𝑆).
+
+    A related value is mixing time, denoted 𝜏 (𝐺), which is roughly the number of steps a random walk takes to reach
+the stationary distribution — a precise deﬁnition is not required for our purposes. As demonstrated by [JS89, Corollary
+                                                     log 𝑛
+2.3], 𝜏 (𝐺) and Φ(𝐺) are related by 𝜏 (𝐺) ≤ Θ( Φ(𝐺) 2 ). As 𝜏 (𝐺) is always at least the graph diameter, this shows the
+following.
+
+    Theorem 3. The diameter of a graph with conductance 𝜙 is 𝑂 (𝜙 −2 log 𝑛).
+
+Deﬁnition 4 (𝜙-Cluster, Expander Decomposition). A subgraph 𝐶 = (𝑉𝐶 , 𝐸𝐶 ) of a given graph 𝐺 = (𝑉 , 𝐸) is called a
+𝜙-Cluster in 𝐺 if Φ(𝐶) ≥ 𝜙. An (𝜖, 𝜙)-expander decomposition of a graph 𝐺 is a partition of 𝐸 = 𝐸 1 ∪ 𝐸 2 ∪ · · · ∪ 𝐸𝑥 ∪ 𝐸 r
+for some 𝑥, such that the subgraphs 𝐺 [𝐸 1 ] , . . . , 𝐺 [𝐸𝑥 ] are vertex-disjoint 𝜙-clusters in 𝐺, and |𝐸 r | ≤ 𝜖 |𝐸|.
+
+    The following are the two main deterministic tools that we need from [CS20].
+
+   Theorem 5 (Congest Expander Decomposition [CS20, Theorem           √ 1.1]). Let 0 < 𝜖 < 1 be a parameter. An (𝜖, 𝜙)-
+expander decomposition of a graph 𝐺 = (𝑉√, 𝐸) with 𝜙 = poly(𝜖) · 2−𝑂 ( log 𝑛 log log 𝑛) can be computed by a deterministic
+algorithm in Congest in poly(𝜖 −1 ) · 2𝑂 ( log 𝑛 log log 𝑛) rounds.
+
+    Theorem 6 (Congest Routing [CS20, Theorem 1.2]). Let 𝐺 = (𝑉 , 𝐸) be a graph with conductance 𝜙, where each
+vertex 𝑣 ∈ 𝑉 is a source and destination of 𝑂 (𝐿) · deg(𝑣) messages. Then there is a deterministic algorithm in the Congest
+                                                                          2/3
+that routes all messages to their destination in 𝐿 · poly(𝜙 −1 ) · 2𝑂 (log      𝑛 log1/3 log 𝑛) rounds.
+
+
+    In order to achieve suﬃcient bandwidth within clusters, we need both good conductance and good guarantees about
+the degrees of vertices in the cluster. The following deﬁnition reﬁnes 𝜙-clusters with the needed constraints. Figure 1
+illustrates the diﬀerent designations for vertices in such clusters.
+
+Deﬁnition 7 ((𝜙, 𝛿)-Communication Cluster). A (𝜙, 𝛿)-communication cluster is a 𝜙-cluster 𝐶 = (𝑉𝐶 , 𝐸𝐶 ) in a graph
+𝐺 = (𝑉 , 𝐸), together with a given subset 𝑉𝐶− ⊆ 𝑉𝐶 such that for each 𝑣 ∈ 𝑉𝐶− it holds that deg𝐶 (𝑣) ≥ 𝛿, and 𝑣 knows the
+subset 𝑉𝐶− and the values 𝛿, 𝑛 = |𝑉 |, 𝐾 = |𝑉𝐶 |, 𝑘 = |𝑉𝐶− |. The communication degree of a vertex 𝑣 ∈ 𝑉𝐶− is the number of
+edges in 𝐸𝐶 that are adjacent to 𝑣, deg𝐶 (𝑣) = |{𝑢 ∈ 𝑉𝐶 : (𝑣, 𝑢) ∈ 𝐸𝐶 }|. Denote by 𝜇 the average communication degree
+                                    Í
+of vertices in 𝑉𝐶− , that is, 𝜇 = 𝑘1 𝑣 ∈𝑉 − deg𝐶 (𝑣), and denote by 𝑉𝐶∗ the set of vertices in 𝑉𝐶− with at least half-average
+                                         𝐶
+communication degree, that is, 𝑉𝐶∗ = {𝑣 ∈ 𝑉𝐶− : deg𝐶 (𝑣) ≥ 12 𝜇}.
+
+    In Sections 5 and 6, we use the decomposition that is produced by Theorem 5 as the foundation of our recursive
+listing algorithm. We produce a (𝜙, 𝛿)-communication cluster 𝐶𝑖 from each edge set 𝐸𝑖 returned by the decomposition,
+then use the routing scheme of Theorem 6 to run algorithms for listing the cliques that intersect each cluster. To show
+that this plan works, it is necessary to show that 𝜙 and 𝛿 are suﬃciently high and that the number of edges we can
+eliminate in each step of the recursion is at least a constant fraction of the total. The ﬁrst fact depends on the details of
+how we choose 𝐶𝑖 , which diﬀer for diﬀerent sizes of cliques are and are discussed in Sections 5 and 6. Here, we show
+a strategy for selecting a set of edges for which we attempt to list all cliques containing at least one edge in that set
+and state a lemma of [CS20] that shows that a constant fraction of the total edges can be eliminated in this way.
+Deterministic Near-Optimal Distributed Listing of Cliques                                                                            7
+
+
+
+
+                                                                    Fig. 1. A schematic of the notations for the types of vertices and
+                                                                    edges used in this paper. The rings partition the sets 𝑉𝐶∗ ⊆ 𝑉𝐶− ⊆
+                                                                    𝑉𝐶 ⊆ 𝑉 , so black vertices are members of 𝑉𝐶∗ , grey ones of 𝑉𝐶− ,
+                                                                    hatched ones of 𝑉𝐶 , and white ones of 𝑉 . The bold edges are
+                                                                    edges in 𝐸 (𝑉𝐶− , 𝑉𝐶− ); these are the edges for which we endeavor
+                                                                    to list cliques. Solid edges are edges used for communication,
+                                                                    𝐸 (𝑉𝐶− , 𝑉𝐶 ). Solid edges that cross the second ring and dashed
+                                                                    edges are the elements of 𝐸¯ ⊆ 𝐸 (𝑉𝐶− , 𝑉 \ 𝑉𝐶− ). Dotted edges are
+                                                                    elements of 𝐸 ′ ⊆ 𝐸 (𝑉 \ 𝑉𝐶− , 𝑉 \ 𝑉𝐶− ).
+
+
+
+
+  Recall that Theorem 5 partitions the set of edges of the graph 𝐸 into 𝐸 = 𝐸 1 ∪ 𝐸 2 ∪ · · · 𝐸𝑥 ∪ 𝐸 r , where |𝐸 r | ≤ 𝜖 |𝐸|.
+Consider the subgraph induced on 𝐺 by each edge set 𝐸𝑖 , 𝐺 [𝐸𝑖 ] = (𝑉𝑖 , 𝐸𝑖 ). For each 𝐸𝑖 , we select a set of vertices 𝑉𝐶◦
+                                                                                                                                     𝑖
+and seek to use the cluster derived from 𝐸𝑖 to list cliques containing an edge in 𝐸 (𝑉𝐶◦ , 𝑉𝐶◦ ). Let 𝑉𝐶◦ be the set of vertices
+                                                                                              𝑖    𝑖         𝑖
+in 𝑉𝑖 that have the majority of their edges in 𝐸𝑖 , that is, 𝑉𝐶◦ = {𝑣 ∈ 𝑉𝑖 : deg𝐸𝑖 (𝑣) ≥ deg𝐸\𝐸𝑖 (𝑣)}. Also denote by 𝐸𝑖− the
+                                                                𝑖
+set of edges in 𝐸𝑖 that are between two vertices in 𝑉𝐶◦ , that is, 𝐸𝑖− = {𝑒 = (𝑢, 𝑣) ∈ 𝐸𝑖 : {𝑢, 𝑣 } ⊆ 𝑉𝐶◦ }. If we know that
+                                                           𝑖                                                     𝑖
+the number of remaining edges not contained in some 𝐸𝑖 is suﬃciently small, we can recursively repeat the algorithm
+on the graph induced by the set of remaining edges and obtain a logarithmic recursion depth. The following lemma
+states the property we need; as a corollary, the total number of edges in 𝐸 that are not in some 𝐸𝑖− is at most 3𝜖 |𝐸|.
+                                                   Ð                −
+  Lemma 8 ([CS20, Lemma 6.1]). It holds that |         1≤𝑖 ≤𝑥 𝐸𝑖 \ 𝐸𝑖 | ≤ 2𝜖 |𝐸|.
+
+
+3 SIMULATING PARTIAL-PASS STREAMING ALGORITHMS IN CONGEST
+A partial-pass streaming algorithm for parameters 𝐿, 𝑁 in, 𝑁 out, 𝐵 aux, 𝐵 write is a procedure that satisﬁes the following.
+There is an input stream 𝑆, which is a sequence of 𝑁 in main tokens, 𝑆 = h𝜏1, 𝜏2, . . . , 𝜏𝑁in i. Each main token 𝜏𝑖 has an
+associated sequence of ℓ𝑖 auxiliary tokens, 𝛼𝑖 = h𝛼𝑖,1, 𝛼𝑖,2, . . . , 𝛼𝑖,ℓ𝑖 i The algorithm produces a write-only output stream
+𝑅 = h𝜌 1, 𝜌 2, . . . , 𝜌 𝑁out i, by invoking operations that are either READ, GET-AUX, or WRITE, as follows. The operation READ
+reads the next token from the input stream 𝑆; the operation GET-AUX adds the auxiliary tokens associated with the last-
+read main token to the beginning of 𝑆, so that if the previous READ operation returned 𝜏𝑖 , the next ℓ𝑖 READ operations
+will return the sequence 𝛼𝑖 ; and the operation WRITE writes a token to the end of the output stream 𝑅. The algorithm
+may perform at most 𝐵 aux total GET-AUX operations. Additionally, the algorithm may perform at most 𝐵 write WRITE
+operations between two (not necessarily consecutive) READ operations that read consecutive main tokens 𝜏𝑖 , 𝜏𝑖+1 . All
+main, auxiliary, and output tokens are at most 𝐿 bits long. Apart from the write-only output stream 𝑅 for which 𝑁 out
+may be large, the rest of the space used by the algorithm must be polynomial in 𝐿.
+  The motivation for the restriction that a partial-pass streaming algorithm may access auxiliary tokens for at most
+𝐵 aux main tokens is that the algorithms we wish to simulate use the main tokens as “summaries” of their corresponding
+                                                                                                          Í
+sequences of auxiliary tokens. These algorithms operate on extremely long sequences of input; that is, 1≤𝑖 ≤𝑁in ℓ𝑖 is
+huge. We cannot aﬀord to move all of the auxiliary tokens around the cluster during a simulation in Congest; however,
+most of the time, these algorithms can obtain all necessary information about the input from some summarizing
+function that aggregates the information in many auxiliary tokens into just one main token. When the algorithm
+ﬁnds that it in fact needs more granular information, it inspects each of the auxiliary tokens that correspond to the
+summarizing main token. However, inspecting a sequence of auxiliary tokens remains an expensive component of the
+8                                                                    Keren Censor-Hillel, Dean Leitersdorf, and David Vulakh
+
+
+simulation process, which is why we need to have a good bound 𝐵 aux on the number of times an algorithm may need
+to access a stream of auxiliary tokens in order to guarantee a suitable round complexity.
+
+3.1    The Simulation
+We eﬃciently simulate partial-pass streaming algorithms when their input is distributed to the vertices of a commu-
+nication cluster in a suitable manner. Speciﬁcally, we require that each vertex holds a small, contiguous part of the
+input stream. We also require that the vertices hold these parts in order of their number, i.e., the lowest-numbered
+vertex holds some preﬁx of the input stream, the next-lowest-numbered vertex holds some preﬁx of the rest of the
+stream, etc. The reason for this requirement is that we simulate the partial-pass streaming algorithm by moving the
+state of the algorithm from one vertex to another in the order that they hold the input. As the degree of vertices in the
+communication cluster can be low, we may not have enough bandwidth to distribute information about which part
+of the input is held by which vertex; therefore, we need the input to be given in this predetermined manner. In our
+applications, it is not diﬃcult to arrange the input so that this condition holds.
+
+Deﬁnition 9 (Streaming Input Cluster). A streaming input cluster for a parameter 𝑇max is a (𝜙, 𝛿)-communication
+cluster 𝐶 = (𝑉𝐶 , 𝐸𝐶 ) in 𝐺 = (𝑉 , 𝐸) for some values 𝜙 ∈ 𝑂 (polylog 𝑛) and 𝛿, together with a set of streaming algorithms
+A1, . . . , A𝜁 with parameters 𝐿, 𝑁 in , 𝑁 out, 𝐵 aux, 𝐵 write known to all 𝑣 ∈ 𝑉𝐶− . The token lengths satisfy 𝐿 = 𝑂 (polylog 𝑛).
+    𝐶 receives the input to the algorithms distributed among its vertices so that each vertex 𝑣 ∈ 𝑉𝐶− holds a contiguous
+interval 𝜎 𝑗,𝑣 of at most 𝑇max main tokens from the input stream 𝑆 𝑗 to algorithm A 𝑗 , and the vertices 𝑉𝐶− are numbered
+in order of the input intervals they hold; that is, concatenating the intervals of main tokens (𝜎 𝑗,𝑣1 , . . . , 𝜎 𝑗,𝑣𝑘 ) produces
+exactly 𝑆 𝑗 for all algorithms A 𝑗 . We call this condition input contiguity. Additionally, for each main token 𝜏𝑖 from stream
+𝑆 𝑗 held by a vertex 𝑣, 𝑣 also holds the associated auxiliary tokens 𝛼𝑖,1, 𝛼𝑖,2, . . . , 𝛼𝑖,ℓ𝑖 .
+
+    We introduce a deﬁnition that is useful for some components of our algorithms. Several procedures presented in
+this paper involve delegating the responsibility of collecting information from some set of vertices 𝑉 ′ , so that each
+vertex in a set V is responsible for a relatively small number of vertices 𝑢 ∈ 𝑉 ′ . We often additionally require that the
+vertices 𝑢 ∈ 𝑉 ′ for which some 𝑣 ∈ V is responsible be contiguously numbered. We formalize this notion here.
+
+Deﬁnition 10 ((𝛽, 𝑉 ′ )-Vertex Chain). Given a graph 𝐺 = (𝑉 , 𝐸) and some contiguously-numbered
+                                                                                  l    m        set of vertices
+                                                                                           ′
+𝑉 ′ ⊆ 𝑉 , a (𝛽,𝑉 ′ )-vertex chain for some integer parameter 𝛽 is an ordered set of 𝑦 = |𝑉𝛽 | vertices V ⊆ 𝑉 , where
+the elements of V are denoted V [1], . . . , V [𝑦]. In addition, each 𝑢 ∈ 𝑉 ′ is assigned to some 𝑣 ∈ V according to a
+                                                                                                  −1 (𝑣) and they are
+many-to-one function 𝑓 V (𝑢), which satisﬁes (i) for all 𝑣 ∈ V, there are at most 𝛽 vertices in 𝑓 V
+contiguously numbered and known to 𝑣, and (ii) each 𝑢 ∈ 𝑉 ′ knows 𝑓 V (𝑢).
+
+    We now state and prove the conditions for eﬃcient simulation of partial-pass streaming algorithms in Congest.
+
+   Theorem 11. Given a streaming input cluster 𝐶 = (𝑉𝐶 , 𝐸𝐶 ) with 𝑘 = |𝑉𝐶− |, for any integer parameter 1 ≤ 𝜆 ≤
+                                                                                                    
+𝑘 , all A , . . . , A can be simulated in parallel in Congest in 𝑇max (𝜁 + 𝑘 ) + (𝐵              𝜁
+𝜁        1           𝜁                                            𝛿        𝜆        aux + 1)(𝜆 + 𝛿 )   · 𝑛𝑜 (1) rounds. After
+the simulation, each token in the output streams 𝑅1 , . . . , 𝑅𝜁 is known to some vertex 𝑣 ∈ 𝑉𝐶− , and each 𝑣 ∈ 𝑉𝐶− knows
+𝑂 (min{𝑁 out, 𝐵 write𝑇max 𝑘𝜆 }) output tokens if 𝐵 aux = 0 and 𝑂 (min{𝜁 𝑁 out, 𝐵 write𝑇max 𝑘𝜆 }) output tokens otherwise.
+
+    Proof. The high-level idea of the proof is to simulate each of the algorithms A1 , . . . , A𝜁 over several cluster vertices
+by using the fact that the state (which, by deﬁnition, has size polynomial in 𝐿 = 𝑂 (polylog 𝑛)) of each algorithm A 𝑗
+can be sent from one vertex in 𝑉𝐶− to another in 𝑛𝑜 (1) rounds, using Theorem 6.
+Deterministic Near-Optimal Distributed Listing of Cliques                                                                         9
+
+
+   The simulation that processes the stream 𝑆 𝑗 of algorithm A 𝑗 is coordinated by a ( 𝑘𝜆 , 𝑉𝐶− )-vertex chain X𝑗 (Deﬁni-
+tion 10) that contains 𝜆 vertices; we call these chains simulator chains, and we make sure that they are disjoint. The
+simulator chain X𝑗 collects all main tokens for algorithm A 𝑗 so that, except for the at most 𝐵 aux occasions when the
+algorithm invokes GET-AUX, A 𝑗 can be simulated entirely by X𝑗 .
+   The protocol proceeds in several phases, as follows.
+
+   Phase 0: Assigning simulator chains in 0 rounds. All vertices in 𝑉𝐶− locally assign vertices to simulator chains
+X𝑗 for each algorithm A 𝑗 in an identical and predetermined manner. Each vertex is assigned to some position in a
+simulator chain at most once and the simulator chains are disjoint. This is possible because the parameter 𝛽 of each
+chain is 𝛽 = 𝑘𝜆 and therefore contains 𝜆 vertices, and 𝜆 satisﬁes 𝜆𝜁 ≤ 𝑘.
+
+   Phase 1: Sending stream information in 𝑻max    𝒌
+                                           𝜹 (𝜻 + 𝝀 ) · 𝒏
+                                                          𝒐 (1) rounds. For each algorithm A , each simulator
+                                                                                            𝑗
+vertex 𝑣 = X𝑗 [𝑖] receives the main tokens 𝜏 from 𝑆 𝑗 held by all 𝑢 ∈ 𝑓 X−1 (𝑣). Since the number of main tokens in 𝜎 𝑗,𝑢
+                                                                               𝑗
+is at most 𝑇max , each vertex sends at most 𝜁𝑇max tokens during this phase, and each simulator vertex receives at most
+𝑘𝑇
+𝜆 max tokens. Since each token has length 𝐿 = 𝑂 (polylog(𝑛)), by Theorem 6 all of the main tokens 𝜏 can be sent and
+received in 𝑇max    𝑘
+             𝛿 (𝜁 + 𝜆 ) · 𝑛
+                            𝑜 (1) rounds.
+
+   At the end of this phase, each main token 𝜏 in the stream 𝑆 𝑗 is known by some 𝑣 ∈ X𝑗 . Additionally, because of
+the input contiguity property of Deﬁnition 9, the stream 𝑆 𝑗 can be partitioned into 𝜆 contiguous intervals 𝑠 𝑗,1 , . . . , 𝑠 𝑗,𝜆 ,
+            Ð
+where 𝑠 𝑗,𝑖 = 𝑢 ∈𝑓 −1 ( X𝑗 [𝑖 ]) 𝜎 𝑗,𝑢 , so that each X𝑗 [𝑖] knows the main tokens 𝜏 in 𝑠 𝑗,𝑖 . Because the indices of the endpoints
+                   X𝑗
+of the intervals 𝜎 𝑗,𝑢 may not be known, it is possible that the indices of the endpoints of 𝑠 𝑗,𝑖 also are not known even
+to X𝑗 [𝑖] — however, X𝑗 [𝑖] knows all 𝜏 ∈ 𝑠 𝑗,𝑖 , knows that this set of tokens is guaranteed to be contiguous, and knows
+the identities of the other members of X𝑗 .
+                                                                   𝜻
+   Phase 2: Simulating the algorithms in (𝑩 aux + 1) (𝝀 + 𝜹 ) · 𝒏 𝒐 (1) rounds. The simulator chain X𝑗 can now begin
+simulating A 𝑗 . Initially, all 𝑣 = X𝑗 [𝑖] for 𝑖 > 1 begin in an inactive state, in which they wait to be activated by the
+previous vertex X𝑗 [𝑖 − 1]. The vertices X𝑗 [1] are activated as soon as Phase 1 ﬁnishes and locally construct the starting
+state of the algorithm A 𝑗 . Upon activation, the simulator vertex X𝑗 [𝑖] behaves as follows.
+    • If the next operation of A 𝑗 is to perform READ on a main token 𝜏𝑙 , X𝑗 [𝑖] simulates A 𝑗 using the value of 𝜏𝑙 if it
+       is known (i.e., if 𝜏𝑙 ∈ 𝑠 𝑗,𝑖 ). If the value is not known, X𝑗 [𝑖] sends the state of A 𝑗 to the next simulator vertex
+       X𝑗 [𝑖 + 1] and activates it.
+    • If the next operation of A 𝑗 is to perform GET-AUX on the auxiliary tokens associated with 𝜏𝑙 , X𝑗 [𝑖] simulates
+       A 𝑗 by sending the state of A 𝑗 to the vertex 𝑣 that initially held 𝜏𝑙 from 𝑆 𝑗 . The vertex 𝑣 simulates A 𝑗 until READ
+       is performed on the next main token 𝜏𝑙 +1 , which it can do since it holds all needed auxiliary tokens. Then, 𝑣
+       returns the updated state of A 𝑗 to X𝑗 [𝑖]. The vertex 𝑣 does not return any output tokens emitted by the simulated
+       algorithm; instead, it stores these locally.
+    • If the next operation of A 𝑗 is a WRITE on token 𝜌𝑙 , vertex X𝑗 [𝑖] simulates A 𝑗 by storing 𝜌𝑙 locally.
+   During the simulation, most of the congestion occurs around vertices that receive many requests to simulate
+                                                                                                    𝜁 𝐵aux  𝑜 (1) rounds.
+GET-AUX. The total number of GET-AUX operations is 𝑂 (𝜁 𝐵 aux), thus we hope to handle them all in     𝛿 ·𝑛
+                 −
+However, a 𝑣 ∈ 𝑉𝐶 can receive up to 𝜁 𝐵 aux such requests, thus if 𝑣 dispatches the responses in an arbitrary order, the
+                   𝜁𝐵
+request could take 𝛿aux · 𝑛𝑜 (1) rounds to answer. This is because a vertex saturated with such requests may simulate
+all 𝑂 (𝜁 𝐵 aux ) of a large fraction of GET-AUX operations of other algorithms before processing even the ﬁrst GET-AUX
+of some algorithm A 𝑗 . As A 𝑗 cannot continue and issue additional GET-AUX queries until it receives the ﬁrst response,
+10                                                                       Keren Censor-Hillel, Dean Leitersdorf, and David Vulakh
+
+
+A 𝑗 may encounter such delays during a large fraction of its 𝐵 aux requests to simulate GET-AUX operations and expend
+     𝜁 𝐵2                                                                                           𝜁
+𝜔 ( 𝛿aux ) rounds waiting for those requests. This would increase the (𝐵 aux + 1)(𝜆 + 𝛿 ) ·𝑛𝑜 (1) term of the complexity by
+a factor of 𝐵 aux . Thus we sequence the simulation of GET-AUX operations such that the ﬁrst GET-AUX of every algorithm
+is complete before vertices begin the second GET-AUX of some algorithms, ensuring delays cannot not accumulate.
+                                                                            𝜁
+     More precisely, we split Phase 2 into 𝐵 aux + 1 steps of (𝜆 + 𝛿 ) · 𝑛𝑜 (1) rounds each. Within each step, the simulation
+of each algorithm proceeds until the next time GET-AUX is performed on some sequence of auxiliary tokens 𝛼𝑖 (or until
+the end of the algorithm, if there are no more invocations of GET-AUX), then pauses until the beginning of the next
+step. During step 𝑡 for 1 ≤ 𝑡 ≤ 𝐵 aux , the following actions are performed:
+
+     (1) Any vertex that received a request to simulate A 𝑗 invoking GET-AUX on 𝛼𝑖 performs the simulation until READ
+            is invoked on the next main token 𝜏𝑖+1 , then sends the updated state of A 𝑗 to the appropriate vertex in X𝑗 .
+     (2) Upon receiving the response, each chain X𝑗 continues simulating A 𝑗 until the next time GET-AUX is invoked on
+            a sequence of auxiliary tokens 𝛼𝑖 ′ . Then X𝑗 sends the current state of A 𝑗 to the vertex that holds 𝛼𝑖 ′ .
+
+     In each step and for each algorithm, 𝑣 ∈ 𝑉𝐶− responds to and receives at most one request to process a sequence
+                                                                  𝜁
+of auxiliary tokens, thus the these can be delivered in 𝛿 · 𝑛𝑜 (1) rounds. Additionally, the time required to simulate A 𝑗
+before it reads the next auxiliary token is 𝜆 · 𝑛𝑜 (1) , as the only communication required is propagation of the state of
+                                                                                                               𝜁
+A 𝑗 through the at most 𝜆 vertices in X𝑗 . Phase 2 overall therefore ﬁnishes in (𝐵 aux + 1)(𝜆 + 𝛿 ) · 𝑛𝑜 (1) rounds.
+     To prove that the distribution of output tokens satisﬁes the guarantees of the theorem, consider the 𝑂 (𝑁 out ) output
+tokens of A 𝑗 . Each 𝑣 = X𝑗 [𝑖] knows 𝑂 (𝐵 write ) tokens for each 𝜏 ∈ 𝑠 𝑗,𝑖 , of which there are 𝑂 (𝑇max |𝑓 X−1 (𝑖)|) = 𝑂 (𝑇max 𝑘𝜆 )
+                                                                                                                        𝑗
+total. Also, if 𝐵 aux ≠ 0, any vertex that processed auxiliary tokens holds 𝑂 (𝐵 write ) tokens for each of the 𝑂 (𝑇max𝜁 )
+sequences of auxiliary tokens processed. In both cases, a vertex knows at most all 𝑂 (𝑁 out ) output tokens for a given
+A 𝑗 . So the number of output tokens held by any vertex is 𝑂 (min{𝑁 out, 𝐵 write𝑇max 𝑘𝜆 }) if 𝐵 aux = 0. Otherwise, the
+number of output tokens known by any vertex is 𝑂 (min{𝜁 𝑁 out, 𝐵 write𝑇max ( 𝑘𝜆 + 𝜁 )}), which, since 𝜁 is bounded by 𝑘𝜆 ,
+is 𝑂 (min{𝜁 𝑁 out, 𝐵 write𝑇max 𝑘𝜆 }).                                                                                                  
+
+
+4 PARTITION TREES
+We describe two classes of partition trees. Due to the low bandwidth of Congest and the need to incorporate informa-
+tion from vertices outside high-conductance expanders, our partition trees require stronger balancing properties than
+those initially presented in [CHFG+ 20] for Congested Cliqe. We demonstrate that, within a suitable communication
+cluster, the partition tree needed to list all instances of 𝐾𝑝 , for 𝑝 ≥ 3, can be constructed in 𝑛 1−2/𝑝+𝑜 (1) rounds.
+
+Deﬁnition 12 ([CHFG+ 20], 𝑝-partition tree). Let 𝐺 = (𝑉 , 𝐸) be a graph with 𝑛 = |𝑉 |, 𝑚 = |𝐸|, and let 𝑝 ≤ log 𝑛. A
+𝑝-partition tree 𝑇 = 𝑇𝐺,𝑝 is a tree of 𝑝 layers (depth 𝑝 − 1), where each non-leaf node has at most 𝑥 = 𝑛 1/𝑝 children.
+Each tree node is associated with a partition of 𝑉 consisting of at most 𝑥 parts.
+     The partition associated with the root of 𝑇 is denoted 𝑈 ∅ . Given a node with partition 𝑈 (ℓ1,...,ℓ𝑖−1 ) , the partition
+associated with its 𝑗th child, for 0 ≤ 𝑗 ≤ 𝑥 − 1, is 𝑈 (ℓ1,...,ℓ𝑖−1 ,𝑗) .
+     The parts of each 𝑈 (ℓ1,...,ℓ𝑖 ) are denoted 𝑈 (ℓ1,...,ℓ𝑖 ),𝑗 , for 0 ≤ 𝑗 ≤ 𝑥 − 1. For each 0 ≤ 𝑗 ≤ 𝑥 − 1, also denote
+parent(𝑈 (ℓ1,...,ℓ𝑖−1,ℓ𝑖 ),𝑗 ) = 𝑈 (ℓ1,...,ℓ𝑖−1 ),ℓ𝑖 and recursively deﬁne the set of ancestor parts for 𝑆 = (ℓ1, . . . , ℓ𝑖−1, ℓ𝑖 )
+                                                      
+                                                      
+                                                       anc(parent(𝑈𝑆,𝑖 )) ∪ {𝑈𝑆,𝑖 } 𝑆 ≠ ∅
+                                                      
+                                         anc(𝑈𝑆,𝑖 ) =
+                                                      
+                                                       {𝑈 ∅,𝑖 }                     𝑆=∅
+                                                      
+Deterministic Near-Optimal Distributed Listing of Cliques                                                                            11
+
+
+   The following distributes the work of detecting all instances of a subgraph 𝐻 by assigning the task of learning all
+edges between parts in anc(𝑈𝑆,𝑖 ) for each leaf part 𝑈𝑆,𝑖 to some vertex. The idea of the proof is to consider an instance
+𝐻 ′ of 𝐻 in 𝐺 with vertices 𝑣 0 , 𝑣 1 , . . . , 𝑣 𝑝−1 and trace a path from the root of a 𝑝-partition tree 𝑇 to the leaf layer, choosing
+ﬁrst the part that contains 𝑣 0 , then the part that contains 𝑣 1 , etc. As each vertex is in a distinct part, each edge of 𝐻 ′
+must be be present between some pair of distinct parts. We refer the reader to the proof of [CHFG+ 20, Theorem 11].
+
+   Theorem 13. For any instance 𝐻 ′ of a 𝑝-vertex subgraph 𝐻 in 𝐺 = (𝑉 , 𝐸) and any 𝑝-partition tree 𝑇 of 𝐺, there exists
+                                                                           Ð              Ð
+a leaf part 𝑈𝑆,𝑖 in 𝑇 for which all edges of 𝐻 ′ are contained in the union 𝑈 ∈anc (𝑈𝑆,𝑖 ) 𝑊 ∈anc (𝑈𝑆,𝑖 ):𝑊 ≠𝑈 𝐸 (𝑈 ,𝑊 ).
+
+4.1    Partition Trees for 𝑲3 Listing
+Theorem 13 shows that the leaves of a 𝑝-partition tree can be used to distribute the work required for subgraph listing.
+In [CHFG+ 20], 𝑝-partition trees are further constrained to ensure that the number of edges from each part 𝑈𝑆,𝑗 to its
+ancestors anc(𝑈𝑠,𝑗 ) is balanced to within some small, additive error term of at most 𝑛. However, in Congest, we are
+forced to reduce the permissible error to 𝑛 2/3 . Following is our deﬁnition of partition tress with the stronger constraints.
+
+Deﬁnition 14 (𝐻 -partition Tree). Let 𝐺 ′ = (𝑉 ′, 𝐸 ′ ) be a subgraph of 𝐺 = (𝑉 , 𝐸) with 𝑛 = |𝑉 |, 𝑘 = |𝑉 ′ |, 𝑚 = |𝐸 ′ |, and
+                                                                 
+let 𝐻 = (𝑉𝐻 , 𝐸𝐻 ) be a graph with 𝑝 = |𝑉𝐻 | ≤ log 𝑛 vertices 𝑧 0, . . . , 𝑧 𝑝−1 , and denote 𝑑𝑖 = |{{𝑧𝑖 , 𝑧𝑡 } ∈ 𝐸𝐻 | 𝑡 < 𝑖}|
+for each 0 ≤ 𝑖 ≤ 𝑝 − 1, 𝑥 = 𝑘 1/𝑝 and 𝑚˜ = max {𝑚, 𝑘𝑥 }. An 𝐻 -partition tree 𝑇 = 𝑇𝐺 ′,𝐻 is a 𝑝-partition tree with the
+following additional constraints, for some constants 𝑐 1, 𝑐 2, 𝑐 3 :
+   (1) DEG: For every part 𝑈𝑆,𝑗 , it holds that |𝐸 (𝑈𝑆,𝑗 , 𝑉 ′ )| ≤ 𝑐 1𝑚/𝑥.
+                                                                       ˜
+   (2) UP_DEG: For every part 𝑈𝑆,𝑗 , and for all of its ancestor parts 𝑊 ∈ anc(𝑈𝑆,𝑗 ),
+       Í
+                                                    ˜ 2 + 𝑐 3 𝑝𝑘/𝑥.
+         𝑊 ∈anc(𝑈𝑆,𝑗 )\{𝑈𝑆,𝑗 } 𝐸 (𝑈𝑆,𝑗 ,𝑊 ) ≤ 𝑐 2𝑑𝑖 𝑚/𝑥
+   (3) SIZE: For every part 𝑈𝑆,𝑗 , it holds that |𝑈𝑆,𝑗 | ≤ 𝑐 3𝑘/𝑥.
+
+   We show that the simulation techniques of Section 3 can eﬃciently construct the more strongly constrained 𝑝-
+partition tree for 𝐾3 listing in Congest. We describe the properties of a cluster that allow us to construct a 𝐾3 -partition
+tree on it and formally state the guarantees of the 𝐾3 -partition-tree construction. We use (𝜙, 𝛿)-communication clusters
+(Deﬁnition 7) with suitable values of 𝜙 and 𝛿. As before, for 𝐶 and its corresponding 𝑉𝐶− , we denote 𝑛 = |𝑉 |, 𝑘 = |𝑉𝐶− |,
+𝐾 = |𝑉𝐶 |. We also let 𝜇 be the average communication degree of vertices in 𝑉𝐶− and 𝑉𝐶∗ be the set of 𝑣 ∈ 𝑉𝐶− with at
+least half of the average communication degree.
+
+Deﬁnition 15 (𝐾3 -Compatible Cluster). A 𝐾3 -compatible cluster is a (𝜙, 𝛿)-communication cluster 𝐶 = (𝑉𝐶 , 𝐸𝐶 ) in
+𝐺 = (𝑉 , 𝐸) for 𝜙 = 𝑂 (polylog 𝑛) and 𝛿 = 𝐾 1/3 .
+
+   Theorem 16. Given a 𝐾3 -compatible cluster 𝐶 = (𝑉𝐶 , 𝐸𝐶 ), there exists a deterministic Congest algorithm on 𝐶 that,
+in 𝑘 1/3 · 𝑛𝑜 (1) rounds, constructs a 𝐾3 -partition tree 𝑇 of 𝐶 [𝑉𝐶− ], such that:
+      • The root and ﬁrst layer of 𝑇 are known to all vertices 𝑉𝐶− .
+      • Each vertex 𝑣 ∈ 𝑉𝐶∗ knows 𝑂 ( 𝜇1 deg𝐶 (𝑣)) parts of the leaf layer of 𝑇 .
+      • Each part of the leaf layer is known to some vertex 𝑣 ∈ 𝑉𝐶∗ .
+
+   We begin by proving that there is a partial-pass streaming algorithm for constructing one layer of an 𝐻 -partition
+tree. This will then allow us to apply the algorithm of Theorem 11 for simulating partial-pass streaming algorithms to
+eﬃciently construct one layer of a 𝐾3 -partition tree of 𝐶 [𝑉𝐶− ].
+12                                                                            Keren Censor-Hillel, Dean Leitersdorf, and David Vulakh
+
+
+     Lemma 17. There exist constants 𝑐 1, 𝑐 2, 𝑐 3 such that given a graph 𝐺 = (𝑉 , 𝐸) with |𝑉 | = 𝑛, subgraphs 𝐺 ′ = (𝑉 ′, 𝐸 ′ )
+and 𝐻 = (𝑉𝐻 , 𝐸𝐻 ) with |𝑉 ′ | = 𝐾 and |𝑉𝐻 | = 𝑝 < log 𝑛, 0 ≤ 𝑖 < 𝑝 levels of an 𝐻 -partition tree 𝑇𝐺 ′,𝐻 for 𝑐 1, 𝑐 2 , 𝑐 3 , and a
+part 𝑈 in the 𝑖-th level of 𝑇 , there exists a partial-pass streaming algorithm with parameters 𝐿 = 𝑂 (polylog 𝑛), 𝑁 in = 𝑂˜ (𝑛),
+𝑁 out = 𝑂 (𝑛 1/𝑝 ), 𝐵 aux = 0, 𝐵 write = 𝑁 out that reads a stream 𝑆 and produces a stream 𝑅, where:
+      • The elements of 𝑅 are the endpoints of intervals of vertex numbers that deﬁne a valid child partition of 𝑈 in some
+         𝐻 -partition tree for 𝑐 1, 𝑐 2, 𝑐 3 .
+      • Stream 𝑆 contains |𝐸 (𝑣, 𝑈 ′ )| for each part 𝑈 ′ ∈ anc(𝑈 ) for each 𝑣 ∈ 𝑉 ′ in order of increasing vertex number.
+
+     Proof. We process vertices one at a time, maintaining counters for each of the balancing constraints DEG, UP_DEG,
+and SIZE in the 𝐻 -partition tree deﬁnition. We greedily add vertices to the current part until it is no longer possible
+to do so without causing a counter to exceed its maximum value, at which point we start a new part.
+     We show that this counter-based algorithm is a partial-pass streaming algorithm with the desired parameters. Upon
+initialization, the algorithm records in its state that the ﬁrst interval begins with vertex 1. The algorithm then maintains
+one counter for each of the 3 constraints DEG, UP_DEG, and SIZE in Deﬁnition 14 on the size and number of edges in
+an 𝐻 -partition tree part. Each vertex is represented in the input stream 𝑆 by a constant number of tokens that give its
+number, its total degree, and its degree into each part in anc(𝑈 ); when the algorithm processes a vertex, it reads these
+tokens and adds them to the corresponding counters. If upon processing vertex 𝑖 any counter exceeds the maximum
+value, the algorithm outputs that vertex 𝑖 − 1 is the last vertex of the previous interval and stores in its state that
+vertex 𝑖 is the ﬁrst vertex of the next one; the algorithm then resets the values of all counters to zero and adds the
+corresponding values received from vertex 𝑖.
+     The entire state of the algorithm is maintained by 𝑂˜ (1) counters, each of which requires 𝑂 (log 𝑛) bits, so 𝐿 =
+𝑂 (polylog 𝑛). The algorithm only uses the 𝑂 (𝑁 ) main tokens in the stream, so it never performs GET-AUX; therefore,
+𝐵 aux = 0. The total number of WRITE operations performed by the algorithm is 𝑁 out , so the number of WRITE operations
+between any two READ operations is bounded by 𝐵 write = 𝑁 out as well. The number of input tokens is linear in the size
+of the graph, so 𝑁 in = 𝑂 (𝑛). The number of output tokens is linear in the number of child parts of a given part, so that
+by Deﬁnition 14 we have 𝑁 out = 𝑂 (𝑛 1/𝑝 ).
+     We now show that there exist constants 𝑐 1, 𝑐 2, 𝑐 3 for which this algorithm is guaranteed to produce a valid partition
+in an 𝐻 -partition tree, namely, that each part of the partition satisﬁes the constraints DEG, UP_DEG, and SIZE, and that
+the number of parts in this partition is at most 𝑥 = 𝑘 1/𝑝 . Since the counters guarantee that each of the properties of an
+individual part are satisﬁed, all that remains is to show that the number of parts in any partition is at most 𝑥 = 𝑘 1/𝑝 .
+First, in any partition, each vertex can be responsible for the overﬂow of any counter at most once, and in particular
+it is always possible to start a new partition without exceeding the maximum value of any counter. For any 𝑐 1 ≥ 1
+and for all 𝑣, it holds that 𝑐 1𝑚/𝑥
+                                ˜ ≥ 𝑐 1 (𝑘𝑥)/𝑥 ≥ 𝑘 ≥ deg𝑉 ′ 𝑣. Additionally, since we enforce that each part 𝑈𝑆,𝑖 of each
+partition satisﬁes 𝑈𝑆,𝑖 ≤ 𝑐 3𝑘/𝑥, we have that
+                                         Õ
+                                                                  |𝐸 (𝑣,𝑊 )| ≤ 𝑐 3 |𝑆 |𝑘/𝑥 ≤ 𝑐 3 𝑝𝑘/𝑥.
+                                                 𝑊 ∈anc (𝑈𝑆,𝑖 )
+
+We can bound the number of parts in each partition by bounding the number of times these counters exceed their
+maximum values. A part that ends due to counter DEG has at least 𝑐 1𝑚/𝑥
+                                                                    ˜ − 𝑘 ≥ (𝑐 1 − 1)𝑚/𝑥
+                                                                                     ˜ ≥ (𝑐 1 − 1)𝑚/𝑥 edges out
+of 2𝑚 total, so that there are at most 2𝑥/(𝑐 1 − 1) such parts. Likewise, a part that ends due to counter UP_DEG has, for
+                                                                ˜ 2 edges into them, out of at most 𝑐 1𝑚|𝑆
+the given set of parts in the ancestors of 𝑈 , at least 𝑐 2 |𝑆 |𝑚/𝑥                                    ˜ |/𝑥 total, so there
+are at most 𝑐 1 𝑥/𝑐 2 such parts. Finally, the number of times that counter SIZE starts a new part is at most 𝑥/𝑐 3 . The
+Deterministic Near-Optimal Distributed Listing of Cliques                                                                              13
+
+
+maximum number of parts in any partition is therefore 2𝑥/(𝑐 1 − 1) + 𝑐 1𝑥/𝑥 2 + 𝑥/𝑐 3 + 1, which for 𝑐 1 = 9, 𝑐 2 = 36, 𝑐 3 = 4
+is at most 𝑥.                                                                                                                           
+
+   We can now use the algorithm for the simulation of partial-pass streaming algorithms described in Section 3 to build
+a single layer of a 𝐾3 -partition tree in 𝑘 1/3 · 𝑛𝑜 (1) rounds. We state this formally in the following.
+
+   Lemma 18. There exist constants 𝑐 1 , 𝑐 2, 𝑐 3 such that, given a (𝜙, 𝛿)-communication cluster 𝐶 = (𝑉𝐶 , 𝐸𝐶 ) in graph
+𝐺 = (𝑉 , 𝐸) for 𝜙 = 𝑂 (polylog 𝑛) and 𝛿 = 𝐾 1/3 , where each 𝑣 ∈ 𝑉𝐶− knows the ﬁrst 0 ≤ 𝑖 < 3 layers of some 𝐾3 -partition
+tree 𝑇𝐶,𝐾3 with constants 𝑐 1 , 𝑐 2, 𝑐 3 in Congest, there exists a deterministic Congest algorithm that ﬁnishes in 𝑘 1/3 · 𝑛𝑜 (1)
+rounds and constructs a next layer for the tree 𝑇𝐶,𝐾3 so that each endpoint of a part of the next layer is known to some
+vertex 𝑣 ∈ 𝑉𝐶− and each 𝑣 ∈ 𝑉𝐶− knows 𝑂 (𝑘 1/3 ) endpoints of parts.
+
+   Proof. We invoke Theorem 11 on the streaming algorithm implied by Lemma 17. We execute several instances of
+this partial-pass streaming algorithm in parallel, one for each part of the lowest completed level of the 𝐾3 -partition
+tree 𝑇 . Since each vertex 𝑣 ∈ 𝑉𝐶− knows all prior layers of the tree 𝑇𝐶,𝐾3 and its own edges, it holds the 𝑂 (1) tokens that
+describe it for each of the 𝑂 (𝑘 2/3 ) parts in layer 0 ≤ 𝑖 < 3. Applying Theorem 11 with parameters 𝑇max = 𝑂 (1), 𝜆 = 𝑘 1/3
+                                                                                                  2/3
+gives that all 𝑂 (𝑘 2/3 ) algorithms ﬁnish in parallel in ( 𝐾 11/3 (𝑘 2/3 + 𝑘 𝑘1/3 ) + (𝑘 1/3 + 𝐾𝑘 1/3 )) · 𝑛𝑜 (1) = 𝑘 1/3 · 𝑛𝑜 (1) rounds
+as desired. Together, the output streams of all of the executed algorithms contain all parts in the next layer of 𝑇 . Since
+𝐵 aux = 0, each 𝑣 ∈ 𝑉𝐶− knows 𝑂 (𝑁 out ) = 𝑂 (𝑘 1/3 ) output tokens.                                                                    
+
+   Load balancing the output. The distribution of the output tokens of the partial-pass streaming algorithm as sim-
+ulated with Theorem 11 is very loosely constrained, so we show load balancing tools in order to redistribute it. After
+applying Lemma 18 to construct a new layer of a 𝐾3 -partition tree, each part of the new layer is known only to one ver-
+tex, and the only guarantee about how many parts each vertex knows is that it is 𝑂 (𝑘 1/3 ). In order to apply Lemma 18
+again to construct the next layer, and in order to satisfy the guarantees of Theorem 16, we wish to distribute the root
+and middle layers of the 𝐾3 -partition tree so that they are known by all vertices in 𝑉𝐶− . We show how to do this in
+Lemma 19. Likewise, in order to satisfy the guarantees of Theorem 16, we wish to distribute the parts of the leaf layer
+so that each 𝑣 ∈ 𝑉𝐶∗ knows 𝑂 ( 𝜇1 deg𝐶 (𝑣)) parts. We accomplish this in Lemma 20.
+
+   Lemma 19. Given a (𝜙, 𝛿)-communication cluster 𝐶 = (𝑉𝐶 , 𝐸𝐶 ) in graph 𝐺 = (𝑉 , 𝐸) for 𝜙 = 𝑂 (polylog 𝑛), 𝛿 = 𝐾 1/3 ,
+𝐾 = |𝑉𝐶 |, and 𝑘 = |𝑉𝐶− |, and 𝑂 (𝑘 2/3 ) numbered messages that must be learned by all 𝑣 ∈ 𝑉𝐶− , where initially each message
+is known by a unique 𝑣 ∈ 𝑉𝐶− and each 𝑣 ∈ 𝑉𝐶− knows 𝑂 (𝑘 1/3 ) messages, there is a deterministic Congest algorithm that
+ﬁnishes in 𝑘 1/3 · 𝑛𝑜 (1) rounds and distributes all 𝑂 (𝑘 2/3 ) messages to all vertices in 𝑉𝐶− .
+
+   Proof. We begin by deterministically assigning a (𝑘 2/3, 𝑉𝐶− )-vertex chain A 𝑗 for each message 𝑚 𝑗 in a way that
+each vertex 𝑣 ∈ 𝑉𝐶− can compute locally. We call these chains ampliﬁer chains. All of the elements A 𝑗 [𝑖] of the ampliﬁer
+chains are in 𝑉𝐶− , and each 𝑣 ∈ 𝑉𝐶− is in 𝑂 (1) chains. This is possible because the number of elements in each ampliﬁer
+chain is 𝑂 (|𝑉𝐶− |/𝑘 2/3 ) = 𝑂 (𝑘 1/3 ) and there are 𝑂 (𝑘 2/3 ) such chains.
+   The messages are distributed in two phases, each of which ﬁnishes in 𝑘 1/3 · 𝑛𝑜 (1) rounds:
+
+   (1) Each vertex 𝑢 ∈ 𝑉𝐶− , for each message 𝑚 𝑗 initially held by 𝑢, sends 𝑚 𝑗 to all 𝑣 ∈ A 𝑗 .
+                                                                         −1 (𝑣), where 𝑓 −1 (𝑣) is the set of 𝑢 ∈ 𝑉 − assigned
+   (2) For each message 𝑚 𝑗 , each vertex 𝑣 ∈ A 𝑗 sends 𝑚 𝑗 to all 𝑢 ∈ 𝑓 A
+                                                                                  𝑗     A          𝑗               𝐶
+       to 𝑣 in the vertex chain.
+14                                                              Keren Censor-Hillel, Dean Leitersdorf, and David Vulakh
+
+
+     In Phase 1, each vertex initially holds 𝑂 (𝑘 1/3 ) messages and sends each message to each of the 𝑂 (𝑘 1/3 ) vertices
+in A 𝑗 . Each vertex receives 1 message for each of the 𝑂 (1) ampliﬁer chains of which it is a part. Phase 1 therefore
+ﬁnishes in 𝑘 1/3 · 𝑛𝑜 (1) rounds.
+     In Phase 2, each vertex sends the message 𝑚 𝑗 to 𝑂 (𝑘 2/3 ) vertices for each of the 𝑂 (1) ampliﬁer chains A 𝑗 of which
+it is a part. Each vertex receives all 𝑂 (𝑘 2/3 ) messages 𝑚 𝑗 . Phase 2 therefore ﬁnishes in 𝑘 1/3 · 𝑛𝑜 (1) rounds as well. 
+
+     In the following lemma, we show that a 𝐾3 -compatible cluster can distribute 𝑂 (𝑘) messages so that each 𝑣 ∈ 𝑉𝐶∗
+knows 𝑂 ( 𝜇1 deg𝐶 (𝑣)) messages. We present a partial-pass streaming algorithm that has as its input a list of the degrees
+of vertices 𝑣 ∈ 𝑉𝐶− . For each 𝑣 ∈ 𝑉𝐶− , the algorithm outputs an interval of messages that 𝑣 is responsible for learning. We
+simulate the algorithm by Theorem 11 and redistribute the intervals so that each 𝑣 knows the numbers of the messages
+it is responsible for learning. For each such message, 𝑣 can ask the vertex 𝑢 that holds that message for the contents of
+the message.
+
+     Lemma 20. Given a (𝜙, 𝛿)-communication cluster 𝐶 = (𝑉𝐶 , 𝐸𝐶 ) in graph 𝐺 = (𝑉 , 𝐸) for 𝜙 = 𝑂 (polylog 𝑛), 𝛿 = 𝐾 1/3 ,
+𝐾 = |𝑉𝐶 |, 𝑘 = |𝑉𝐶− |, and 𝑂 (𝑘) numbered messages distributed so that each message is initially known by exactly one
+𝑣 ∈ 𝑉𝐶− and each 𝑣 ∈ 𝑉𝐶− initially knows 𝑂 (𝑘 1/3 ) messages, there is a deterministic Congest algorithm that ﬁnishes in
+𝑘 1/3 · 𝑛𝑜 (1) and redistributes the messages so that each 𝑣 ∈ 𝑉𝐶∗ knows 𝑂 ( 𝜇1 deg𝐶 (𝑣)) messages.
+
+     Proof. By Theorem 3, the diameter of 𝐶 is 𝑂 (polylog𝑛), thus 𝑉𝐶− can compute the total communication degree 𝑚 =
+|𝐸 (𝑉𝐶−, 𝑉𝐶 )|, the average communication degree 𝜇, and the total number of messages 𝑀 and distribute the quantities
+𝑚, 𝜇, and 𝑀 so that they are known by all 𝑉 − in 𝑂˜ (1) rounds.
+                                               𝐶
+     Let 𝑐 = ⌈𝑀/𝑘⌉. Since 𝑀 = 𝑂 (𝑘), it holds that 𝑐 = 𝑂 (1). We begin by deterministically assigning at most 𝑐 messages
+to each 𝑣 ∈ 𝑉𝐶− in a way that can be locally computed by all vertices. In particular, message 𝑚 𝑗 is assigned to the vertex
+with number ⌈𝑗/𝑐⌉. Then each vertex sends each message 𝑚 𝑗 it originally holds to vertex ⌈𝑗/𝑐⌉. Each vertex sends
+𝑂 (𝑘 1/3 ) messages and receives 𝑂 (1) messages, so this process requires 𝑛𝑜 (1) rounds.
+     We present a simple partial-pass streaming algorithm (see Algorithm 1) that, given an input stream 𝑆 containing the
+degrees of all 𝑣 ∈ 𝑉𝐶− , produces an output stream 𝑅, where each token contains the endpoints of a range of messages
+to be delivered to 𝑣. All messages are assigned to some 𝑣 ∈ 𝑉𝐶∗ in this way and each 𝑣 ∈ 𝑉𝐶∗ receives 𝑂 ( 𝜇1 deg𝐶 (𝑣))
+messages. Each input token is a tuple (𝑣, deg𝐶 (𝑣)) and each output token is a tuple (𝑣, 𝐼 ), where 𝐼 is ∅ or some [𝑎, 𝑏].
+
+Algorithm 1 Balance messages by communication degree
+ 1: leaf ← 0
+ 2: for 𝜏𝑖 ∈ 𝑆 do
+ 3:    READ 𝜏𝑖 = (𝑣𝑖 , deg𝐶 (𝑣𝑖 ))
+ 4:    if deg𝐶 (𝑣𝑖 ) < 𝜇/2 then
+ 5:        WRITE (𝑣, ∅)
+ 6:    else
+ 7:        𝑙 ← 2⌈𝑀 deg𝐶 (𝑣𝑖 )/𝑚⌉
+ 8:        WRITE (𝑣, [leaf + 1, leaf + 𝑙])
+ 9:        leaf ← leaf + 𝑙
+10:    end if
+11: end for
+
+
+     The algorithm allocates at most 2⌈𝑀 deg𝐶 (𝑣)/𝑚⌉ messages to each 𝑣 ∈ 𝑉𝐶∗ . Since 𝑀 = 𝑂 (𝑘) and 𝑚 = 𝐸 (𝑉𝐶− , 𝑉𝐶 ), it
+holds that 𝑀/𝑚 = 𝑂 (1/𝜇), so that the number of messages delegated to each 𝑣 ∈ 𝑉𝐶∗ is 𝑂 ( 𝜇1 deg𝐶 (𝑣)). All messages
+Deterministic Near-Optimal Distributed Listing of Cliques                                                                                       15
+
+
+are allocated in this way, as
+                                                             Õ
+                                                                     2 deg𝐶 (𝑣) ≥ 𝑘𝜇.
+                                                            𝑣 ∈𝑉𝐶∗
+Since 𝑚 = 𝑘𝜇, multiplying both sides by 𝑀 and rearranging gives
+                                             Õ deg (𝑣) · 𝑀
+                                                      𝐶
+                                                  2             ≥ 𝑀.
+                                                ∗       𝑚
+                                                          𝑣 ∈𝑉𝐶
+
+The total communication degree of 𝑉𝐶∗ is at least half 𝑘𝜇 as 𝐸 (𝑉𝐶∗ , 𝑉𝐶 ) ≥ 𝐸 (𝑉𝐶− \ 𝑉𝐶∗ , 𝑉𝐶 ). We can show this by con-
+tradiction. Let 𝑉𝐶< = 𝑉𝐶− \ 𝑉𝐶∗ be the set of low degree vertices and suppose instead that 𝐸 (𝑉𝐶∗, 𝑉𝐶 ) < 𝐸 (𝑉𝐶< , 𝑉𝐶 ).
+Then
+                                                                                         Õ 1
+           |𝐸 (𝑉𝐶− , 𝑉𝐶 )| = |𝐸 (𝑉𝐶∗ , 𝑉𝐶 )| + |𝐸 (𝑉𝐶< , 𝑉𝐶 )| < 2|𝐸 (𝑉𝐶< , 𝑉𝐶 )| < 2                𝜇 = |𝑉𝐶< |𝜇 ≤ |𝑉𝐶− |𝜇 = |𝐸 (𝑉𝐶− , 𝑉𝐶 )|,
+                                                                                                 2
+                                                                                        𝑣 ∈𝑉𝐶<
+
+which is a contradiction. So we must have 𝐸 (𝑉𝐶∗, 𝑉𝐶 ) ≥ 𝐸 (𝑉𝐶< , 𝑉𝐶 ), from which 𝐸 (𝑉𝐶∗ , 𝑉𝐶 ) ≥ 12 𝑘𝜇 as desired.
+   We simulate the partial-pass streaming algorithm presented by invoking Theorem 11. First, note that the token
+length is 𝐿 = 𝑂 (log 𝑛), as each token contains 𝑂 (1) numbers, each of which is 𝑂 (𝑛). Additionally, the state of the
+algorithm consists of the numbers 𝑙 and leaf and one input token, and so is polylogarithmic in 𝐿. Since the input and
+output streams both contain one token for each 𝑣 ∈ 𝑉𝐶− , we get that 𝑁 in, 𝑁 out = 𝑂 (𝑘). Each vertex initially holds its
+own input token, so 𝑇max = 1. The algorithm never performs an GET-AUX operation, so 𝐵 aux = 0. Finally, 𝐵 write = 1,
+because the algorithm outputs exactly one token between READ operations. Thus, using 𝜆 = 𝑘 1/3 , the simulation
+ﬁnishes in ( 𝐾 11/3 (1 + 𝑘 𝑘1/3 ) + (𝑘 1/3 + 𝐾11/3 )) ·𝑛𝑜 (1) = 𝑘 1/3 ·𝑛𝑜 (1) rounds. At the end of the simulation, each 𝑣 ∈ 𝑉𝐶− knows
+𝑂 (𝐵 write𝑇max 𝑘𝜆 ) = 𝑂 (𝑘 2/3 ) output tokens.
+   We can now redistribute the messages. First, each 𝑣 ∈ 𝑉𝐶− sends each of the output tokens it holds to the vertex
+whose assignment is contained in the token. Each vertex sends 𝑂 (𝑘 2/3 ) messages and receives 𝑂 (1) messages, and as
+𝛿 = 𝐾 1/3 ≥ 𝑘 1/3 , this can be done in 𝑘 1/3 · 𝑛𝑜 (1) rounds. Next, each 𝑣 ∈ 𝑉𝐶− , upon receiving the endpoints of its interval
+[𝑎, 𝑏] of message numbers, for each 𝑗 ∈ [𝑎, 𝑏] sends a request to vertex ⌈𝑗/𝑐⌉ to obtain message 𝑚 𝑗 . In this step, each
+𝑣 ∈ 𝑉 − sends 𝑂˜ ( 1 deg𝐶 (𝑣)) messages and receives 𝑂 (1) messages, so this can be done in 𝑛𝑜 (1) rounds. The entire
+       𝐶              𝜇
+process takes 𝑘 1/3 · 𝑛𝑜 (1) rounds, as desired.                                                                                                
+
+   We are now ready to prove Theorem 16.
+
+   Proof of Theorem 16. Apply Lemma 18 to build the root partition of a 𝐾3 -partition tree 𝑇 and Lemma 19 to make
+it known to all 𝑉𝐶− in 𝑘 1/3 · 𝑛𝑜 (1) rounds. Then, again invoke Lemmas 18 and 19 to build and distribute the middle layer
+of 𝑇 in 𝑘 1/3 · 𝑛𝑜 (1) rounds. Finally, Lemma 18 builds the leaf layer of 𝑇 in 𝑘 1/3 · 𝑛𝑜 (1) rounds and Lemma 20 distributes
+it according to the guarantees of Theorem 16.                                                                                                   
+
+4.2    Partition Trees for 𝑲𝒑 Listing, 𝒑 > 3
+For 𝑝 > 3, we are less constrained by the per-round bandwidth of the cluster, as our target listing time is higher. Thus,
+we can adopt an error term of 𝑛 on the edge-balancing upper bounds. However, because in 𝐾𝑝 -listing algorithms for
+𝑝 > 3, a cluster 𝐶 can be responsible for listing cliques that have some vertices in 𝑉 \ 𝑉𝐶 , we must adapt the partition
+trees to simultaneously balance the distribution of three types of edges: edges that lie entirely inside 𝐶; edges that lie
+entirely outside 𝐶; and edges that cross the boundary of 𝐶 (with one vertex in 𝐶 and the other outside). Deﬁnition 21
+16                                                                    Keren Censor-Hillel, Dean Leitersdorf, and David Vulakh
+
+
+describes these three edge sets, and Deﬁnition 22 describes a new class of partition tree with these more complex
+balancing properties.
+
+Deﬁnition 21 (Split Graph). A split graph is a graph 𝐺 = (𝑉 , 𝐸), together with disjoint sets 𝑉1 , 𝑉2 , 𝐸 1 , 𝐸 2 , 𝐸 12 such
+that 𝑉 = 𝑉1 ∪ 𝑉2 , 𝐸 = 𝐸 1 ∪ 𝐸 2 ∪ 𝐸 12 , 𝐸 1 ⊆ 𝑉1 × 𝑉1 , 𝐸 2 ⊆ 𝑉2 × 𝑉2 , and 𝐸 12 ⊆ 𝑉1 × 𝑉2 . Denote 𝑛 = |𝑉 |, 𝑘 = |𝑉1 |, 𝑚 1 = |𝐸 1 |,
+𝑚 2 = |𝐸 2 |, and 𝑚 12 = |𝐸 12 |.
+
+     We construct a partition tree over a split graph, where each vertex is a partition of either 𝑉1 or 𝑉2 . The constraints
+DEG_2to2, UP_DEG_2to2, DEG_1to1, and UP_DEG_1to1 in the deﬁnition below directly correspond to the constraints
+DEG and UP_DEG from Deﬁnition 14 with respect to vertices from the same set as a given partition, while the constraints
+DEG_2to1 and UP_DEG_1to2 provide additional balancing for partitions of diﬀerent vertex sets.
+
+Deﬁnition 22 ((𝑝 ′, 𝑝)-Split 𝐾𝑝 -Tree). Let 𝐺 be a split graph, and let 1 < 𝑎 ≤ 𝑏 < 𝑛 and 1 ≤ 𝑝 ′ ≤ 𝑝 ≤ log 𝑛 be some
+integer parameters. Deﬁne 𝑚˜ 1 = max{𝑚 1, 𝑘𝑎}, 𝑚˜ 2 = max{𝑚 2, 𝑛𝑏}, and 𝑚˜ 12 = max{𝑚 12, 𝑛𝑎}.
+     A (𝑝 ′, 𝑝)-split partition tree 𝑇 is a tree of 𝑝 layers (depth 𝑝 − 1), where each non-leaf node in the ﬁrst 𝑝 −𝑝 ′ layers has
+at most 𝑏 children and is associated with a partition of 𝑉2 into at most 𝑏 parts, and each non-leaf node in the bottom
+𝑝 ′ layers has at most 𝑎 children and is associated with a partition of 𝑉1 into at most 𝑎 parts. The partitions 𝑈𝑆 , the part
+parent(𝑈𝑆,𝑗 ) and set of parts anc(𝑈𝑆,𝑗 ) are deﬁned inductively as in Deﬁnition 12.
+     A (𝑝 ′, 𝑝)-split 𝐾𝑝 -partition tree is a (𝑝 ′, 𝑝)-split partition tree that satisﬁes the following additional constraints for
+𝜋 = 𝑝 − 𝑝 ′ and some positive constants 𝑐 1, 𝑐 2 .
+
+     (1) DEG_2to2: For every part 𝑈𝑆,𝑗 , |𝑆 | < 𝜋, it holds that |𝐸 (𝑈𝑆,𝑗 , 𝑉2 )| ≤ 𝑐 1𝑚 2 /𝑏 + 𝑛.
+     (2) UP_DEG_2to2: For every part 𝑈𝑆,𝑗 , |𝑆 | < 𝜋, and for all of its ancestor parts 𝑈𝑆 ′,𝑗 ′ ∈ anc(𝑈𝑆,𝑗 ), it holds that
+         Í
+                                                                           ˜ 2 /𝑏 2 + 𝑛.
+           𝑈𝑆 ′ ,𝑗 ′ ∈anc (𝑈𝑆,𝑗 )\{𝑈𝑆,𝑗 } |𝐸 (𝑈𝑆,𝑗 , 𝑈𝑆 ′,𝑗 ′ )| ≤ 𝑐 2 |𝑆 |𝑚
+     (3) DEG_2to1: For every part 𝑈𝑆,𝑗 , |𝑆 | < 𝜋, it holds that |𝐸 (𝑈𝑆 𝑗 , 𝑉1 )| ≤ 𝑐 1𝑚 12 /𝑏 + 𝑛.
+     (4) DEG_1to1: For every part 𝑈𝑆,𝑗 , |𝑆 | ≥ 𝜋, it holds that |𝐸 (𝑈𝑆,𝑗 , 𝑉1 )| ≤ 𝑐 1𝑚 1 /𝑎 + 𝑘.
+     (5) UP_DEG_1to1: For every part 𝑈𝑆,𝑗 , |𝑆 | ≥ 𝜋, and for all of its ancestor parts 𝑈𝑆 ′,𝑗 ′ ∈ anc(𝑈𝑆,𝑗 ), |𝑆 ′ | ≥ 𝜋, it holds
+             Í
+         that 𝑈𝑆 ′,𝑗 ′ ∈anc(𝑈𝑆,𝑗 )\{𝑈𝑆,𝑗 }:|𝑆 ′ | ≥𝜋 |𝐸 (𝑈𝑆,𝑗 , 𝑈𝑆 ′,𝑗 ′ )| ≤ 𝑐 2 (|𝑆 | − 𝜋)𝑚˜ 1 /𝑎 2 + 𝑘.
+     (6) UP_DEG_1to2: For every part 𝑈𝑆,𝑗 , |𝑆 | ≥ 𝜋, and for all of its ancestor parts 𝑈𝑆 ′,𝑗 ′ ∈ anc(𝑈𝑆,𝑗 ), |𝑆 ′ | < 𝜋, it holds
+             Í
+         that 𝑈𝑆 ′,𝑗 ′ ∈anc(𝑈𝑆,𝑗 ):|𝑆 ′ |<𝜋 |𝐸 (𝑈𝑆,𝑗 , 𝑈𝑆 ′,𝑗 ′ )| ≤ 𝑐 2 𝜋𝑚˜ 12 /(𝑎𝑏) + 𝑛.
+
+     The following is an analogue of Theorem 13 for (𝑝, 𝑝 ′)-split partition trees, and shows that such trees can be used
+to load balance the listing of all instances of a subgraph 𝐻 in a split graph 𝐺 with 𝑝 ′ ≥ 2 vertices in 𝑉1 . Consider an
+instance 𝐻 ′ of 𝐻 in 𝐺 with vertices 𝑣 0 , 𝑣 1 , . . . , 𝑣 𝑝−1 , where the ﬁrst 𝑝 − 𝑝 ′ vertices are in 𝑉2 and the remaining 𝑝 ′ are in
+𝑉1 , and trace a path from the root of a (𝑝, 𝑝 ′)-split partition tree 𝑇 to the leaf layer, choosing ﬁrst the part that contains
+𝑣 0 , then the part that contains 𝑣 1 , etc. Since each vertex will be in a distinct part, each edge of 𝐻 ′ must be be present
+between some pair of distinct parts. As each vertex is in a distinct part, each edge of 𝐻 ′ must be be present between
+some pair of distinct parts.
+
+     Theorem 23. For any instance 𝐾𝑝′ of a 𝐾𝑝 in a split graph 𝐺, where 𝐾𝑝′ has at least 𝑝 ′ ≥ 2 vertices in 𝑉1 , and any
+(𝑝, 𝑝 ′)-split partition tree 𝑇 of 𝐺, there exists a leaf part 𝑈𝑆,𝑖 in 𝑇 for which all edges of 𝐾𝑝′ are contained in
+                                                   Ø              Ø
+                                                                              𝐸 (𝑈 ,𝑊 ).
+                                              𝑈 ∈anc (𝑈𝑆,𝑖 ) 𝑊 ∈anc (𝑈𝑆,𝑖 ):𝑊 ≠𝑈
+Deterministic Near-Optimal Distributed Listing of Cliques                                                                      17
+
+
+   To list within a cluster, we deﬁne a concept that generalizes that of a 𝐾3 -compatible cluster. However, a cluster 𝐶
+can be responsible for listing cliques that do not lie entirely inside 𝐶, and so must receive some input about edges
+not incident to vertices in 𝐶. Therefore, in addition to the constraint in the deﬁnition of a 𝐾3 -compatible cluster that
+all elements of 𝑉𝐶− have communication degree at least 𝑛 1−2/𝑝 , Deﬁnition 24 details the necessary input and gives
+some constraints about its distribution. These constraints are easy to satisfy, but do not easily permit us to construct
+the desired (𝑝, 𝑝 ′)-split 𝐾𝑝 -partition tree. Thus, Deﬁnition 25 gives stricter constraints on the distribution of input
+within the cluster. We show that a cluster can rearrange the input given in Deﬁnition 24 to satisfy the conditions of
+Deﬁnition 25, and then construct a (𝑝, 𝑝 ′)-split 𝐾𝑝 -partition tree using Theorem 11.
+
+Deﬁnition 24 (𝐾𝑝 -Compatible Cluster). A 𝐾𝑝 -compatible cluster for 𝑝 > 3 is a (𝜙, 𝛿)-communication cluster 𝐶 =
+(𝑉𝐶 , 𝐸𝐶 ) in 𝐺 = (𝑉 , 𝐸) for 𝜙 = 𝑂 (polylog 𝑛) and 𝛿 = 𝑛 1−2/𝑝 . The cluster holds two sets of directed edges 𝐸¯ ⊆
+𝐸 (𝑉 \ 𝑉𝐶− , 𝑉𝐶− ) and 𝐸 ′ ⊆ 𝐸 (𝑉 \ 𝑉𝐶− , 𝑉 \ 𝑉𝐶− ). Deﬁne the input degree deg𝐶∗ (𝑣) of 𝑣 ∈ 𝑉 to be the number of edges in
+𝐸¯ ∪ 𝐸 ′ with tail 𝑣, deg∗ (𝑣) = |{𝑢 ∈ 𝑉 : (𝑣, 𝑢) ∈ 𝐸¯ ∪ 𝐸 ′ }|. 𝐸¯ and 𝐸 ′ are distributed to 𝑉 − as follows:
+                        𝐶                                                                 𝐶
+                       −                  ˜                           ¯
+    • Any vertex 𝑣 ∈ 𝑉𝐶 is incident to 𝑂 (deg𝐶 (𝑣)) edges from 𝐸 and knows all such edges (𝑢, 𝑣).
+                                                                                                   ′ 
+    • Each vertex 𝑢 ∈ 𝑉𝐶− receives 𝑂˜ (𝑛 1−2/𝑝 · deg𝐶 (𝑢)) edges from 𝐸 ′ . Additionally, 𝜇 ∈ Ω |𝐸𝑛 | .
+    • For each 𝑢 ∈ 𝑉 that is the tail of at least one 𝑒 ∈ 𝐸¯ ∪ 𝐸 ′ , exactly one 𝑣 ∈ 𝑉𝐶− holds deg𝐶∗ (𝑢).
+
+Deﬁnition 25 (𝐾𝑝 -Input Cluster). A 𝐾𝑝 -input cluster 𝐶 is a 𝐾𝑝 -compatible cluster in which 𝐸¯ and 𝐸 ′ are distributed
+to 𝑉𝐶− in the following manner. There is a (𝛽, 𝑉 )-vertex chain E = 𝑉𝐶− with 𝛽 = 𝑛, whose elements E [1], . . . , E [𝑘] are
+numbered in increasing order. Each 𝑣 = E [𝑖], for each 𝑢 ∈ 𝑓 −1 (𝑣) knows all edges 𝑒 ∈ 𝐸 ′ ∪ 𝐸¯ with their tail at 𝑢, and
+                                                                  E
+there are 𝑂˜ (𝑛 1−2/𝑝 · deg𝐶 (𝑣)) such edges.
+
+   We now state the main result of this section, that we can construct a (𝑝, 𝑝 ′)-split 𝐾𝑝 -partition tree.
+
+   Theorem 26. Given a 𝐾𝑝 -compatible cluster 𝐶 = (𝑉𝐶 , 𝐸𝐶 ) and constants 𝑝, 𝑝 ′, 𝑝 ′ ≤ 𝑝, 𝑝 > 3, there is a deterministic
+Congest algorithm on 𝐶 that, in 𝑛 1−2/𝑝+𝑜 (1) rounds, constructs a (𝑝 ′, 𝑝)-split 𝐾𝑝 -partition tree𝑇 for 𝑉1 = 𝑉𝐶− , 𝑉2 = 𝑉 \𝑉𝐶− ,
+𝐸 1 = 𝐸 (𝑉 − , 𝑉 − ), 𝐸 2 = 𝐸 ′ , and 𝐸 12 = 𝐸¯ for 𝑎, 𝑏 = 𝑂˜ (𝑘 1/𝑝 ) so that all parts in 𝑇 are known to all 𝑉 − .
+         𝐶    𝐶                                                                                        𝐶
+
+   We split the proof into two parts. In Theorem 28, we show that a 𝐾𝑝 -input cluster can construct the desired partition
+using Theorem 11. In Theorem 31, we show that a 𝐾𝑝 -compatible cluster can reorganize itself into an 𝐾𝑝 -input cluster.
+   First, we provide the following broadcasting routine, used in [CHCLL21].
+
+   Lemma 27. Given a 𝐾𝑝 -compatible cluster 𝐶 = (𝑉𝐶 , 𝐸𝐶 ) and a set 𝑀 of 𝑂 (𝑛) messages such that each message 𝑚𝑖 is
+initially known by exactly one 𝑣 ∈ 𝑉𝐶− , there exists a deterministic Congest algorithm that ﬁnishes in 𝑛 1/2+𝑜 (1) rounds
+and makes all messages 𝑚𝑖 ∈ 𝑀 known to all 𝑣 ∈ 𝑉𝐶− .
+
+   Proof. Let 𝑣ˆ be the lowest-numbered vertex in 𝑉𝐶− . Each 𝑣 ∈ 𝑉𝐶− sends each message 𝑚𝑖 that it initially holds to 𝑣.
+                                                                                                                      ˆ
+Since each 𝑣 ∈ 𝑉𝐶− sends and receives 𝑂 (𝑛) messages, this can be done in 𝑛 1/2+𝑜 (1) rounds.
+   Now 𝑣ˆ knows the sequence 𝑀 of all 𝑂 (𝑛) messages. We can make 𝑀 known to all 𝑣 ∈ 𝑉𝐶− in 𝑛 1/2+𝑜 (1) rounds by
+performing 𝑂 (log 𝑘) steps in which each 𝑣 ∈ 𝑉𝐶− that knows 𝑀 sends 𝑀 to a unique vertex 𝑢 ∈ 𝑉𝐶− that does not know
+𝑀. In each step, a vertex sends and receives 𝑂 (𝑛) messages, which can be done in 𝑛 1/2+𝑜 (1) rounds. Also, after each
+round, the number of 𝑣 ∈ 𝑉𝐶− that know 𝑀 doubles, so that all 𝑣 ∈ 𝑉𝐶− know 𝑀 after 𝑂 (log 𝑛) rounds.                           
+
+   Theorem 28. Given a 𝐾𝑝 -input cluster 𝐶 = (𝑉𝐶 , 𝐸𝐶 ) and constants 𝑝, 𝑝 ′ , 𝑝 ′ ≤ 𝑝, 𝑝 > 3, there is a deterministic
+Congest algorithm on 𝐶 that, in 𝑛 1/2+𝑜 (1) rounds, constructs a (𝑝 ′, 𝑝)-split 𝐾𝑝 -partition tree 𝑇 for 𝑉1 = 𝑉𝐶− , 𝑉2 = 𝑉 \𝑉𝐶− ,
+𝐸 1 = 𝐸 (𝑉 − , 𝑉 − ), 𝐸 2 = 𝐸 ′ , and 𝐸 12 = 𝐸¯ for 𝑎, 𝑏 = 𝑂˜ (𝑘 1/𝑝 ) so that all parts in 𝑇 are known to all of 𝑉 − .
+         𝐶    𝐶                                                                                            𝐶
+18                                                                      Keren Censor-Hillel, Dean Leitersdorf, and David Vulakh
+
+
+     As for 𝑝 = 3, we show a partial-pass streaming algorithm constructing a layer of a (𝑝, 𝑝 ′)-split 𝐾𝑝 partition tree.
+The algorithm makes use of auxiliary tokens, as for 𝑝 > 3 we can have 𝑣 ∈ 𝑉𝐶− that are responsible for edges in
+𝐸¯ ∪ 𝐸 ′ that emanate from a large number of 𝑢 ∈ 𝑉 \ 𝑉 − . To obtain a good runtime with Theorem 11, we need a low
+                                                                  𝐶
+𝑇max , i.e., vertices hold few main tokens. If we create a main token for each 𝑢 ∈ 𝑉 , we might have some 𝑣 ∈ 𝑉𝐶−
+that are responsible for a large number of 𝑢 ∈ 𝑉 holding too many main tokens. Therefore, we instead aggregate the
+information about all 𝑢 ∈ 𝑉 for which 𝑣 ∈ 𝑉𝐶− is responsible into a single main token and encode the information
+about individual 𝑢 in auxiliary tokens.
+
+     Lemma 29. There exist constants 𝑐 1 , 𝑐 2 such that, given a split graph 𝐺, some 2 ≤ 𝑝 ′ < 𝑝, 0 ≤ 𝑖 < 𝑝 levels of a (𝑝, 𝑝 ′)-
+split 𝐾𝑝 -partition tree 𝑇𝐺 ′,𝐾𝑝 for 𝑐 1, 𝑐 2 , and a part 𝑈𝑆,𝑗 in the 𝑖-th level of 𝑇 , 𝑖 = |𝑆 |, there exists a partial-pass streaming
+algorithm with parameters 𝐿 = 𝑂 (polylog𝑛), 𝑁 in = 𝑂˜ (𝑛), 𝑁 out = 𝑂 (𝑛 1/𝑝 ), 𝐵 aux = 𝑂 (𝑛 1/𝑝 ), 𝐵 write = 𝑁 out that reads a
+stream 𝑆 and produces a stream 𝑅, where:
+      • The elements of 𝑅 are the endpoints of intervals of vertex numbers that deﬁne a valid child partition of 𝑈𝑆,𝑗 in some
+         (𝑝, 𝑝 ′)-split 𝐾𝑝 -partition tree for 𝑐 1, 𝑐 2 .
+      • Let 𝑊 = 𝑉2 if 𝑖 + 1 < 𝜋 and 𝑊 = 𝑉1 otherwise. Let 𝜎 be an arbitrary partition of 𝑊 into 𝑘 = |𝑉1 | contiguously-
+         numbered intervals 𝜎1 , . . . , 𝜎𝑘 . The input stream 𝑆 contains 𝑘 tokens 𝜏𝑙 , 1 ≤ 𝑙 ≤ 𝑘, where the token 𝜏𝑙 encodes
+         Í                    Í                       Í              ′             ′
+           𝑣 ∈𝜎𝑙 |𝐸 (𝑣, 𝑉1 )|, 𝑣 ∈𝜎𝑙 |𝐸 (𝑣, 𝑉2 )|, and 𝑣 ∈𝜎𝑙 |𝐸 (𝑣, 𝑈 )| for each 𝑈 ∈ anc(𝑈𝑆,𝑗 ). The tokens 𝛼𝑙,1 , . . . , 𝛼𝑙, |𝜎𝑙 | contain
+         |𝐸 (𝑣, 𝑈 ′)|, |𝐸 (𝑣, 𝑉1 )|, and |𝐸 (𝑣, 𝑉2 )| for each 𝑣 ∈ 𝜎𝑙 in order of increasing vertex number.
+
+     Proof. We employ a counter-based algorithm (see Algorithm 2), using counters for the three constraints DEG_2to2,
+UP_DEG_2to2, and DEG_2to1 if 𝑖 + 1 < 𝜋 and DEG_1to1, UP_DEG_1to1, UP_DEG_1to2 otherwise.
+     We show that this partial-pass streaming algorithm satisﬁes Lemma 29. Each token contains 𝑂 (log 𝑛) numbers, each
+polynomial in 𝑛, so 𝐿 = 𝑂 (polylog𝑛). Because the partition 𝜎 has 𝑂 (𝑛) parts, and there is one main token for each,
+𝑁 in = 𝑂 (𝑛). Each output token represents a part of a partition in a (𝑝, 𝑝 ′)-split 𝐾𝑝 -partition tree, so by Deﬁnition 22,
+𝑁 out = 𝑂 (𝑛 1/𝑝 ). The algorithm only performs GET-AUX when a new part is formed, which is also bounded by the
+number of parts 𝐵 aux ≤ 𝑁 out = 𝑂 (𝑛 1/𝑝 ). Finally, because the total number of WRITE operations performed by the
+algorithm is 𝑁 out , the number of WRITE operations between any two READ operations is also bounded by 𝐵 write = 𝑁 out .
+     This constructs a valid child partition of 𝑈𝑆,𝑗 . A vertex can always join a new part on its own without causing any
+counter to exceed its maximum value, due to the ‘+𝑘’ terms in the bounds of DEG_1to1, UP_DEG_1to1 and the ‘+𝑛’
+terms in those of DEG_2to2, UP_DEG_2to2, DEG_2to1, UP_DEG_1to2. Starting a new part each overﬂow guarantees
+properties 1–6 of Deﬁnition 22. It remains is to bound the number of times a counter can exceed its maximum value:
+     (1) A part closed due to counter DEG_2to2 has at least 𝑐 1𝑚 2 /𝑏 edges into 𝑉2 , of which there are at most 2𝑚 2 total
+         (counting each endpoint twice). There can be at most 2𝑏/𝑐 1 such parts.
+     (2) A part closed due to counter UP_DEG_2to2 has at least 𝑐 2𝑖𝑚˜ 2 /𝑏 2 edges to its ancestor parts; due to constraint 1,
+         the total count of such edges is at most 𝑖 (𝑐 1𝑚 2 /𝑏 + 𝑛) ≤ 𝑖 (𝑐 1 + 1)𝑚˜ 2 /𝑏, implying at most (𝑐 1 + 1)𝑏/𝑐 2 such parts.
+     (3) A part closed due to counter DEG_2to1 has at least 𝑐 1𝑚 12 /𝑏 edges into 𝑉1 , of which there are at most 2𝑚 12 total
+         (counting each endpoint twice). There can be at most 2𝑏/𝑐 1 such parts.
+     (4) A part closed due to counter DEG_1to1 has at least 𝑐 1𝑚 1 /𝑎 edges into 𝑉1 , of which there are at most 2𝑚 1 total
+         (counting each endpoint twice). There can be at most 2𝑎/𝑐 1 such parts.
+     (5) A part closed due to counter UP_DEG_1to1 has at least 𝑐 2 (𝑖 − 𝜋)𝑚˜ 1 /𝑎 2 edges into its ancestor parts at depth at
+         least 𝜋, of which there are at most (𝑖 − 𝜋)(𝑐 1𝑚 1 /𝑎 + 𝑘) ≤ (𝑖 − 𝜋)(𝑐 1 + 1)𝑚˜ 1 /𝑎. There can therefore be at most
+         (𝑐 1 + 1)𝑎/𝑐 2 such parts.
+Deterministic Near-Optimal Distributed Listing of Cliques                                                                            19
+
+Algorithm 2 Construct one layer of a (𝑝, 𝑝 ′)-split 𝐾𝑝 -partition tree
+  1: 𝑙 ← 0
+  2: Set each counter to 0
+  3: for 𝜏𝑙 ∈ 𝑆 do
+  4:    READ 𝜏𝑙
+  5:    Extract sums from 𝜏𝑙
+  6:    Add each sum to the appropriate counter
+  7:    if any counter exceeds its maximum value then
+  8:        Restore previous states of counters by subtracting the sums from 𝜏𝑙
+  9:        GET-AUX 𝛼𝑙
+ 10:        for 𝛼𝑙,𝑚 ∈ 𝛼𝑙 do
+ 11:            READ 𝛼𝑙,𝑚
+ 12:            𝑟 ← the vertex number of 𝛼𝑙,𝑚
+ 13:            Extract sums from 𝛼𝑙,𝑚
+ 14:            Add each sum to the appropriate counter
+ 15:            if any counter exceeds its maximum value then
+ 16:                WRITE [𝑙, 𝑟 − 1]
+ 17:                Reset all counters to 0
+ 18:                Add each sum to the appropriate counter
+ 19:                𝑙 ←𝑟
+ 20:            end if
+ 21:        end for
+ 22:    end if
+ 23: end for
+ 24: WRITE [𝑟, max𝑊 ]
+
+
+
+       (6) A part closed due to counter UP_DEG_1to2 has at least 𝑐 2 𝜋𝑚˜ 12 /(𝑎𝑏) edges to its ancestor parts at depth less
+            than 𝜋, of which there are at most 𝑝 ′ (𝑐 1𝑚 12 /𝑏 + 𝑛) ≤ 𝑝 ′ (𝑐 1 + 1)𝑚˜ 12 /𝑏. Thus, there are at most (𝑐 1 + 1)𝑎/𝑐 2 such
+            parts.
+Therefore, if there exist constants 𝑐 1, 𝑐 2 such that 2𝑎/𝑐 1 +(𝑐 1 +1)𝑎/𝑐 2 +(𝑐 1 +1)𝑎/𝑐 2 < 𝑎 and 2𝑏/𝑐 1 +(𝑐 1 +1)𝑏/𝑐 2 +2𝑏/𝑐 1 < 𝑏,
+the counter-based process is guaranteed to produce a valid partition. Indeed, 𝑐 1 = 8, 𝑐 2 = 36 satisfy this property.                
+
+   Theorem 11 can simulate the algorithm described in Lemma 29 in 𝑛 1/2+𝑜 (1) rounds, as such.
+
+   Lemma 30. There exist constants 𝑐 1 , 𝑐 2 such that, given a 𝐾𝑝 -input cluster 𝐶 = (𝑉𝐶 , 𝐸𝐶 ) in graph 𝐺 = (𝑉 , 𝐸) for
+𝜙 ∈ 𝑂 (polylog 𝑛) and 𝛿 = 𝑛 1/𝑝 , where each 𝑣 ∈ 𝑉𝐶− knows the ﬁrst 0 ≤ 𝑖 < 𝑝 layers of a (𝑝, 𝑝 ′)-split 𝐾𝑝 -partition tree
+                                                                            ¯ 𝑎, 𝑏 = 𝑂˜ (𝑘 1/𝑝 ), and some 2 ≤ 𝑝 ′ ≤ 𝑝 with constants
+𝑇𝐺,𝐾 for 𝑉1 = 𝑉 − , 𝑉2 = 𝑉 \ 𝑉 − , 𝐸 1 = 𝐸 (𝑉 − , 𝑉 − ), 𝐸 2 = 𝐸 ′ , 𝐸 12 = 𝐸,
+        𝑝             𝐶              𝐶            𝐶    𝐶
+𝑐 1, 𝑐 2 , there exists a deterministic Congest algorithm that ﬁnishes in 𝑛 1−2/𝑝+𝑜 (1) rounds and constructs a next layer for
+the tree 𝑇𝐺,𝐾𝑝 so that all parts in the next layer are known to all 𝑣 ∈ 𝑉𝐶− .
+
+   Proof. We invoke Theorem 11 on the streaming algorithm implied by Lemma 29. We execute several instances of
+this partial-pass streaming algorithm in parallel, one for each part of the lowest completed level of the (𝑝, 𝑝 ′)-split 𝐾𝑝 -
+partition tree 𝑇𝐺,𝐾𝑝 . If 𝑖 + 1 ≥ 𝜋, 𝑊 = 𝑉1 = 𝑉𝐶− and we can let each part 𝜎𝑖 of the partition 𝜎 correspond to E [𝑖], so that
+each token 𝜏𝑖 is associated with a single auxiliary token 𝛼𝑖,1 that holds the given information about one vertex. Since
+each vertex 𝑣 ∈ 𝑉𝐶− knows all prior layers of the tree 𝑇𝐺,𝐾𝑝 and its own edges, it holds the 𝑂 (1) tokens that describe it
+for each of the 𝑂 (𝑛 1−1/𝑝 ) parts in layer 0 ≤ 𝑖 < 𝑝. If instead 𝑖 + 1 < 𝜋, 𝑊 = 𝑉2 = 𝑉 \ 𝑉1 and we let 𝜎𝑖 be the interval of
+20                                                                 Keren Censor-Hillel, Dean Leitersdorf, and David Vulakh
+
+
+vertices corresponding to 𝑓 E−1 (E [𝑖]). Since each 𝑣 ∈ 𝑉𝐶− knows all the past layers of the (𝑝, 𝑝 ′ )-split 𝐾𝑝 -partition tree
+and is only responsible for producing tokens that describe the vertices for which it knows 𝐸 (𝑢, 𝑉 ) ∩ (𝐸¯ ∪ 𝐸 ′ ), we again
+ﬁnd that it has all the necessary information to produce these tokens locally.
+     Applying Theorem 11 with parameters 𝑇max ∈ 𝑂 (1), 𝜆 = 1 gives that all 𝑂 (𝑛 1−1/𝑝 ) algorithms ﬁnish in parallel in
+    1 (𝑘 1−1/𝑝 + 𝑘) + (𝑛 1/𝑝 + 1)(1 + 𝑛    1−1/𝑝
+( 𝑛1−2/𝑝                              𝑛 1−2/𝑝
+                                              )) · 𝑛𝑜 (1) = 𝑛 2/𝑝+𝑜 (1) = 𝑛 1/2+𝑜 (1) rounds as desired. Together, the output
+streams of all of the executed algorithms contain all 𝑂 (𝑛) parts in the next layer of 𝑇 . We can distribute these parts so
+that they are known to all 𝑣 ∈ 𝑉𝐶− by applying Lemma 27.                                                                         
+
+     We are now ready to prove Theorem 28.
+
+     Proof of Theorem 28. We apply Lemma 30 𝑝 times, for a total round complexity of 𝑛 1/2+𝑜 (1) 𝑝 = 𝑛 1/2+𝑜 (1) . Note
+that, because Lemma 30 guarantees that all parts of the new layer of 𝑇 are known to all 𝑣 ∈ 𝑉𝐶− , no additional work is
+required to satisfy the preconditions of Lemma 30 between layers.                                                                
+
+     Showing the following theorem concludes the proof of Theorem 26.
+
+     Theorem 31. Given a 𝐾𝑝 -compatible cluster 𝐶 = (𝑉𝐶 , 𝐸𝐶 ), there exists a deterministic Congest algorithm such that,
+after 𝑛 1−2/𝑝+𝑜 (1) rounds, the input 𝐸 ′ is held in a manner satisfying Deﬁnition 25.
+
+  Proof. Using Lemma 27, make deg𝐶∗ (𝑢) for all 𝑢 ∈ 𝑉 known to all 𝑉𝐶− within 𝑛 1/2+𝑜 (1) rounds. Now, all 𝑉𝐶− locally
+ﬁnd a vertex chain E satisfying Deﬁnition 25. For each (𝑢, 𝑤) ∈ 𝐸¯ ∪ 𝐸 ′ held by a 𝑣 ∈ 𝑉 − , 𝑣 sends (𝑢, 𝑤) to 𝑓 E (𝑢). As
+                                                                                                 𝐶
+each vertex sends and receives 𝑛 1−2/𝑝 messages, this takes 𝑛 1−2/𝑝+𝑜 (1) rounds.                                                
+
+5 DETERMINISTIC TRIANGLE LISTING IN 𝒏1/3+𝒐 (1) ROUNDS
+We are now ready to use 𝐾3 -partition trees to optimally list triangles in Congest.
+
+     Theorem 32 (Triangle Listing in Congest). Given a graph 𝐺 = (𝑉 , 𝐸) with 𝑛 = |𝑉 | vertices, there exists a deter-
+ministic Congest algorithm that completes in 𝑛 1/3+𝑜 (1) rounds and lists all triangles in 𝐺.
+
+     We split the proof of Theorem 32. Lemma 33 reduces the problem from general graphs to listing triangles in a
+suitable communication cluster. This reduction is described in [CS20], and we provide a very brief summary here.
+Lemma 34 shows that triangle listing can be performed optimally in suitable communication clusters, which we prove
+by applying the 𝐾3 -partition-tree construction algorithm of Theorem 16 to achieve optimal load balancing.
+
+   Lemma 33. Given a graph 𝐺 = (𝑉 , 𝐸), suppose for some function 𝑓 there exists a deterministic Congest algorithm that
+allows any 𝐾3 -compatible cluster on 𝐺 to list in 𝑂˜ (𝑓 (𝑛)) rounds all instances 𝐻 ′ of 𝐾3 such that all three vertices in 𝐻 ′ lie
+in 𝐶. Then there is a deterministic Congest algorithm on 𝐺 that runs in 𝑂˜ (𝑓 (𝑛)) rounds and outputs all triangles in 𝐺.
+
+  The high-level idea of the reduction as presented in [CS20] is to run the deterministic expander decomposition of
+Theorem 5 on 𝐺 to obtain a number of clusters 𝐶𝑖 , list all triangles in each cluster in 𝑂˜ (𝑓 (𝑛)) rounds, and then recurse
+on 𝐸 r . Since 𝐸 r is bounded by a constant fraction of 𝑛, the recursion depth is logarithmic in 𝑛; therefore, the overall
+runtime is 𝑂˜ ((𝑓 (𝑛) log 𝑛) = 𝑂˜ (𝑓 (𝑛)).
+     More speciﬁcally, after obtaining sets 𝐸𝑖− and 𝑉𝐶◦ from the partition 𝐸 = 𝐸 1 ∪ 𝐸 2 ∪ · · · ∪ 𝐸𝑥 ∪ 𝐸 r produced by
+                                                          𝑖
+Theorem 5 as described in Section 2, [CS20] construct a set of edges 𝐸𝑖+ for each 𝐸𝑖 . They then prove that
+      • All 𝐺 [𝐸𝑖+ ] have high conductance and, in our notation, are therefore 𝐾3 -compatible clusters.
+Deterministic Near-Optimal Distributed Listing of Cliques                                                                                               21
+
+                                                           Ð
+     • For any edge 𝑒 ∈ 𝐸 (𝑉𝐶◦ , 𝑉𝐶◦ ), any triangle in 𝐺 [ 1≤𝑖 ≤𝑥 𝐸𝑖 ] that contains 𝑒 is contained in 𝐺 [𝐸𝑖+ ].
+                              𝑖     𝑖
+     • Each edge 𝑒 ∈ 𝐸 is in at most two subgraphs 𝐺 [𝐸𝑖+ ], so that all subgraphs can use Theorem 6 to route messages
+        internally with only a constant overhead factor.
+   We can list all triangles in 𝐺 [𝐸𝑖+ ] by taking the 𝐾3 -compatible cluster 𝐶𝑖 = 𝐺 [𝐸𝑖+ ], letting 𝑉𝐶− be the set of all
+                                                                                                                                   𝑖
+𝑣 ∈ 𝑉𝐶𝑖 with deg𝐶𝑖 (𝑣) ≥ |𝑉𝐶𝑖 | 1/3 . Applying the presupposed algorithm for listing on clusters outputs all triangles in
+   Ð                                                                 Ð
+𝐺 [ 1≤𝑖 ≤𝑥 𝐸𝑖 ] in 𝑂˜ (𝑓 (𝑛)) rounds. By Lemma 8, recursing on 𝐺 [𝐸 \ 1≤𝑖 ≤𝑥 𝐸𝑖 ] produces a logarithmic recursion depth,
+as desired.
+
+   Lemma 34. Given a graph 𝐺 = (𝑉 , 𝐸) and a 𝐾3 -compatible cluster 𝐶 = (𝑉𝐶 , 𝐸𝐶 ), there is a deterministic Congest
+algorithm on 𝐶 that ﬁnishes in 𝑘 1/3 · 𝑛𝑜 (1) rounds and lists all triangles in 𝐶.
+
+   Proof. We divide the proof into two cases: triangles containing a vertex in 𝑉𝐶L = 𝑉𝐶 \ 𝑉𝐶− , and triangles with all
+three vertices in 𝑉𝐶− .
+
+   Low-degree vertices. We can list all 𝐾3 that contain low-degree vertices using an exhaustive search procedure.
+Lemma 35 gives the guarantees of this process.
+
+   Lemma 35 ([CHFL+ 22, Claim 19]). Given a graph 𝐺 = (𝑉 , 𝐸), and some value 𝛼, every vertex 𝑣 with deg(𝑣) ≤ 𝛼 can
+deterministically learn its induced 2-hop neighborhood in 𝑂 (𝛼) rounds of Congest.
+
+   We apply Lemma 35 to 𝑣 ∈ 𝑉𝐶L with 𝛼 = 𝐾 1/3 to list all triangles that contain a vertex in 𝑉𝐶L in 𝑂 (𝐾 1/3 ) rounds.
+
+   High-degree vertices. We were tasked with listing all triangles in 𝐶. We have now listed all triangles in 𝐶 involving
+at least one vertex in 𝑉𝐶L , and are thus left with listing all triangles in 𝐶 for which all their vertices have degree at least
+𝐾 1/3 . To do so, we construct a 𝐾3 -partition tree over 𝐶 [𝑉𝐶− ].
+   As 𝐶 is a 𝐾3 -compatible cluster, we can use Theorem 16 in order to construct a 𝐾3 -partition tree 𝑇 over 𝐶 [𝑉𝐶− ]. By
+Theorem 16, 𝑇 is constructed such that its root and middle layers are known to all of 𝑉𝐶− , and its leaf layer is dispersed
+across 𝑉𝐶∗ = {𝑣 ∈ 𝑉𝐶− : deg𝐶 (𝑣) ≥ 21 𝜇} such that every 𝑣 ∈ 𝑉𝐶∗ knows 𝑂 ( 𝜇1 deg𝐶 (𝑣)) parts of this layer.
+   By Theorem 13, if each 𝑣 ∈ 𝑉𝐶∗ learns all the edges that cross some parts in anc(𝑈𝑆,𝑖 ) for each part 𝑈𝑆,𝑖 known
+by 𝑣, then the vertices 𝑉𝐶∗ will be able to list all triangles in 𝐶 [𝑉𝐶− ]. By Deﬁnition 14, the number of such edges is
+𝑂 (𝑘 1/3 𝜇 + 𝑘 2/3 ), which, since 𝜇 ≥ 𝐾 1/3 ≥ 𝑘 1/3 , the number of such edges is 𝑂 (𝑘 1/3 𝜇). Each vertex 𝑣 ∈ 𝑉𝐶∗ is assigned
+𝑂 ( 𝜇1 deg𝐶 (𝑣)) parts, so it must learn 𝑂 (𝑘 1/3 deg𝐶 (𝑣)) edges in total.2 Each vertex 𝑣 ∈ 𝑉𝐶∗ uses the following process
+to learn the required edges for each leaf part 𝑈𝑆,𝑖 it is assigned in parallel.
+   (1) For each 𝑈 ∈ anc(𝑈𝑆,𝑖 ), for each 𝑢 ∈ 𝑈 , 𝑣 sends the vertex numbers that deﬁne the endpoints of the intervals
+        anc(𝑈𝑆,𝑖 ) \ 𝑈 to 𝑢.
+   (2) Each 𝑢 ∈ 𝑉𝐶− that receives an interval 𝑈 from a 𝑣 ∈ 𝑉𝐶∗ replies by sending all of the edges 𝐸 (𝑢, 𝑈 ) to 𝑣.
+   During Step 1, each vertex 𝑣 ∈ 𝑉𝐶∗ sends 𝑂 (1) messages to each of the vertices in the 𝑂 (1) partitions 𝑈 ∈ anc(𝑈𝑆,𝑖 )
+for each of the 𝑂 ( 𝜇1 deg𝐶 (𝑣)) leaf parts 𝑈𝑆,𝑖 it is assigned. By Deﬁnition 14, each part 𝑈 has 𝑂 (𝑘 2/3 ) vertices, so that
+the total number of messages sent by each 𝑣 ∈ 𝑉𝐶∗ is 𝑂 ( 𝜇1 𝑘 2/3 deg𝐶 (𝑣)) = 𝑂 (𝑘 1/3 deg𝐶 (𝑣)). Also, during Step 1, each
+vertex 𝑢 ∈ 𝑉𝐶− receives 𝑂 (1) messages for each leaf part of which it is a member, 𝑂 (𝑘 1/3 ) messages for each middle
+layer part of which it is a member, and 𝑂 (𝑘 2/3 ) messages for each root partition part of which it is a member. Since it
+2 Since we only use vertices 𝑣 with deg (𝑣) ≥ 1 𝜇 , the rounding error from the divisions incurs at most a factor of two and does not aﬀect the asymptotics
+                                       𝐶      2
+of the number of edges each vertex must learn.
+22                                                                     Keren Censor-Hillel, Dean Leitersdorf, and David Vulakh
+
+
+is a member of 𝑂 (𝑘 2/3 ), 𝑂 (𝑘 1/3 ), and 𝑂 (1) of each type of part, respectively, the total number of messages received by
+each 𝑣 ∈ 𝑉𝐶− is 𝑂 (𝑘 2/3 ). Therefore, Step 1 completes in 𝑘 1/3 · 𝑛𝑜 (1) rounds.
+     During Step 2, we have already established that each 𝑣 ∈ 𝑉𝐶∗ receives 𝑂 (𝑘 1/3 deg𝐶 (𝑣)) responses. We now show that
+each vertex 𝑢 ∈ 𝑉𝐶− sends each of its edges to some 𝑣 ∈ 𝑉𝐶∗ at most 𝑂 (𝑘 1/3 ) times. Consider an edge (𝑢, 𝑤). We proceed
+by casework on the level of the part 𝑈 for which 𝑢 ∈ 𝑈 and count the number of parts 𝑊 ≠ 𝑈 for which 𝑤 ∈ 𝑊 and
+𝑈 ∈ anc(𝑊 ) or 𝑊 ∈ anc(𝑈 ).
+     (1) There is only one part 𝑈 in the root partition 𝑈 ∅ that contains 𝑢; call this part 𝑈 0 . Vertex 𝑤 is in exactly one
+           child part 𝑊 of 𝑈 0 , and 𝑊 has 𝑂 (𝑘 1/3 ) children. For each of the 𝑂 (𝑘 1/3 ) child parts of 𝑈 0 , 𝑤 is in exactly one of
+           their children. 𝑈 0 contributes 𝑂 (𝑘 1/3 ) occasions to send the edge (𝑢, 𝑤).
+     (2) There are 𝑂 (𝑘 1/3 ) ﬁrst-layer parts 𝑈 that contain 𝑢. Each such part has exactly one child that contains 𝑤, and
+           at most one is descended from the unique root-partition part 𝑊0 that contains 𝑤. The ﬁrst layer contributes
+           𝑂 (𝑘 1/3 ) occasions to send the edge (𝑢, 𝑤).
+     (3) There are 𝑂 (𝑘 2/3 ) leaf-layer parts that contain 𝑢. Each of the 𝑂 (𝑘 1/3 ) ﬁrst-layer parts that contain 𝑤 are an
+           ancestor of one such part, and 𝑊0 is an ancestor of 𝑂 (𝑘 1/3 ) such parts. The leaf layer contributes 𝑂 (𝑘 1/3 )
+           occasions to send the edge (𝑢, 𝑤).
+Therefore, Step 2 also completes in 𝑘 1/3 · 𝑛𝑜 (1) rounds.                                                                               
+
+     We are now ready to prove Theorem 32.
+
+     Proof of Theorem 32. By Lemma 34, there exists a Congest algorithm that lists all triangles in a 𝐾3 -compatible
+cluster 𝐶 in 𝑘 1/3 · 𝑛𝑜 (1) = 𝑛 1/3+𝑜 (1) rounds. Therefore, by Lemma 33, there is a deterministic Congest algorithm that
+lists all triangles in 𝐺 in 𝑛 1/3+𝑜 (1) rounds, as desired.                                                                              
+
+6 DETERMINISTIC 𝑲𝒑 LISTING IN 𝒏1−2/𝒑+𝒐 (1) ROUNDS
+We now set out to use (𝑝, 𝑝 ′)-split 𝐾𝑝 -partition trees to optimally list cliques of size greater than 3.
+
+     Theorem 36 (𝐾𝑝 Listing in Congest, 𝑝 > 3). Given a graph 𝐺 = (𝑉 , 𝐸) with 𝑛 = |𝑉 | vertices and a constant 𝑝 > 3,
+there is a deterministic Congest algorithm that, in 𝑛 1−2/𝑝+𝑜 (1) rounds, lists all 𝐾𝑝 in 𝐺.
+
+     As in the case of triangles, we decompose the proof into two parts following the high-level organization
+of [CHCLL21]: a reduction from general graphs to 𝐾𝑝 -compatible clusters, and listing in clusters. However, the
+guarantees of the deterministic expander decomposition of [CS20] diﬀer than those of the randomized one, which is
+why we cannot take the previous outline as is. Our most signiﬁcant contribution in this part is using our deterministic
+partition trees construction to enable eﬃcient listing within clusters. We begin by proving the following lemma,
+which shows this.
+
+     Lemma 37. Given a graph 𝐺 = (𝑉 , 𝐸) and a 𝐾𝑝 -compatible cluster 𝐶 = (𝑉𝐶 , 𝐸𝐶 ), there is a deterministic Congest
+algorithm on 𝐶 that ﬁnishes in 𝑛 1−2/𝑝+𝑜 (1) rounds and lists all 𝑝-cliques 𝐻 ′ = {𝑣 1, . . . , 𝑣 𝑝 } in 𝐺 such that there exists some
+2 ≤ 𝑝 ′ ≤ 𝑝 for which the vertices of 𝐻 ′ can be partitioned into 𝑉𝑝 ′ = {𝑣 1, . . . , 𝑣 𝑝 ′ } ⊆ 𝑉𝐶− and 𝑉𝑝\𝑝 ′ = {𝑣 𝑝 ′+1, . . . , 𝑣 𝑝 } ⊆
+       𝐶                             𝐶   𝐶
+                                                             ¯ and 𝑉𝑝\𝑝 ′ × 𝑉𝑝\𝑝 ′ ⊆ 𝐸 ′ .
+𝑉 \ 𝑉 − so that 𝑉𝑝 ′ × 𝑉𝑝 ′ ⊆ 𝐸 (𝑉 −, 𝑉 − ), 𝑉𝑝 ′ × 𝑉𝑝\𝑝 ′ ⊆ 𝐸,
+
+  Proof. Fix some 2 ≤ 𝑝 ′ ≤ 𝑝 and list all 𝐾𝑝 in 𝐺 [𝐸 (𝑉𝐶− , 𝑉𝐶− ) ∪ 𝐸¯ ∪ 𝐸 ′ ] with exactly 𝑝 ′ vertices in 𝑉𝐶− in 𝑛 1−2/𝑝+𝑜 (1)
+rounds. As 𝑝 = 𝑂 (log 𝑛), repeating this process for all 2 ≤ 𝑝 ′ ≤ 𝑝 gives the desired algorithm.
+Deterministic Near-Optimal Distributed Listing of Cliques                                                                           23
+
+
+   We begin by invoking Theorem 26 to construct a (𝑝, 𝑝 ′)-split 𝐾𝑝 -partition tree 𝑇𝑝 ′ for values 𝑎 = 𝑏 = ⌈𝑘 1/𝑝 ⌉. Since
+𝑘 ≥ 1, we known that ⌈𝑘 1/𝑝 ⌉ ≤ 2𝑘 1/𝑝 , so that 𝑎, 𝑏 = 𝑂 (𝑘 1/𝑝 ) and the (𝑝, 𝑝 ′)-split 𝐾𝑝 partition tree can be constructed
+in 𝑂˜ (𝑛 1−2/𝑝+𝑜 (1) ) rounds. After this, all vertices 𝑣 ∈ 𝑉 − know all parts of partition tree 𝑇𝑝 ′ . Since 𝑎, 𝑏 ≤ 2𝑘 1/𝑝 , the
+                                                               𝐶
+                                            ′   ′
+number of leaf parts is at most 𝑎𝑝 𝑏 𝑝−𝑝 ≤ 2𝑝 𝑘. For constant 𝑝, we therefore have 𝑂 (𝑘) leaf parts. Let each 𝑣 ∈ 𝑉𝐶−
+forget all but 𝑂 (1) parts of the leaf layer so that each part is known by exactly on 𝑣 ∈ 𝑉𝐶− ; the vertices can locally
+compute which parts to remember in a predetermined fashion. Now, we apply Lemma 20 to redistribute the parts of
+the leaf layer so that each 𝑣 ∈ 𝑉𝐶∗ knows 𝑂 ( 𝜇1 deg𝐶 (𝑣)) parts in 𝑘 1/3+𝑜 (1) rounds.
+   The rest of the algorithm proceeds as in [CHCLL21], using the assigned (𝑝, 𝑝 ′ )-split 𝐾𝑝 -partition tree leaves in the
+place of a randomized partition. Before performing the ﬁnal listing step, we again redistribute the edges 𝐸 ′ so that
+                                        ′
+each vertex 𝑣 ∈ 𝑉𝐶∗ holds 𝑂 ( |𝐸 |
+                              𝑘𝜇 deg𝐶 (𝑣)) = 𝑂 (𝑛
+                                                  1−2/𝑝 deg (𝑐)) edges. Each vertex 𝑣 ∈ 𝑉 − can send in 𝑛 1/2+𝑜 (1)
+                                                           𝐶                             𝐶
+rounds to all other vertices in 𝑉𝐶− how many edges from 𝐸 ′ it currently holds. This information is suﬃcient for all
+vertices to deterministically compute which vertices they should send edges to, and, since each 𝑣 ∈ 𝑉𝐶− initially holds
+𝑂˜ (𝑛 1−2/𝑝 · deg (𝑣)) edges from 𝐸 ′ , the redistribution can ﬁnish in 𝑛 1−2/𝑝+𝑜 (1) rounds.
+                𝐶
+   Finally, each vertex 𝑣 ∈ 𝑉𝐶− sends each of the edges 𝑒 it knows to each vertex 𝑢 ∈ 𝑉𝐶∗ that is assigned a leaf
+part 𝑈𝑆,𝑖 for which 𝑒 crosses two ancestors of 𝑈𝑆,𝑖 . Constraints UP_DEG_2to2, UP_DEG_1to1, and UP_DEG_1to2 of
+Deﬁnition 22 guarantee that each 𝑢 receives 𝑂˜ (𝐸 (𝑉 − , 𝑉 − )/𝑎 2 + 𝑘) edges from 𝐸 (𝑉 −, 𝑉 − ), 𝑂˜ (|𝐸|/(𝑎𝑏)
+                                                          𝐶    𝐶                               𝐶
+                                                                                                       ¯
+                                                                                                       𝐶       + 𝑛) edges from
+¯ and 𝑂˜ (|𝐸 ′ |/𝑏 2 + 𝑛) edges from 𝐸 ′ . Since |𝐸|
+𝐸,                                                ¯ = 𝑂 (|𝐸 (𝑉 −, 𝑉 − )|) and |𝐸 ′ | = 𝑂 (𝑛𝜇), we have that the total number
+                                                                𝐶 𝐶
+                            ˜
+of edges learned by 𝑢 is 𝑂 (𝑛   1−2/𝑝 𝜇 + 𝑛). Since 𝜇 ≥ 𝑛 1/2 , this number is 𝑂˜ (𝑛 1−2/𝑝 𝜇), and therefore each 𝑢 ∈ 𝑉 ∗ can   𝐶
+receive the edges for all of the 𝑂 ( 𝜇1 deg𝐶 (𝑢)) parts it holds in 𝑛 1−2/𝑝+𝑜 (1) rounds. Since the total number of edges sent
+over the graph is 𝑂˜ (𝑘𝜇𝑛 1−2/𝑝 ) and each edge is sent an equal number of times, it holds that each edge in 𝐸 (𝑉 − , 𝑉 − ),  𝐶     𝐶
+¯ 𝐸 ′ is sent 𝑂˜ (𝑛 1−2/𝑝 ), 𝑂˜ (𝑛 1−2/𝑝 ), and 𝑂˜ ( 𝑘𝜇′ 𝑛 1−2/𝑝 ) times, respectively. Since each 𝑣 ∈ 𝑉 − holds 𝑂 (deg (𝑣)) edges
+𝐸,                                                   |𝐸 |                                               𝐶              𝐶
+                                |𝐸′ |
+in 𝐸 (𝑉𝐶−, 𝑉𝐶− ) and 𝐸¯ and 𝑂˜ ( 𝑘𝜇 𝑛 1−2/𝑝 ) edges in 𝐸 ′ , each 𝑣 ∈ 𝑉𝐶− can send all of the necessary edges in 𝑛 1−2/𝑝+𝑜 (1)
+rounds.                                                                                                                                 
+
+   We now state the two main lemmas that permit us to use Lemma 37 to prove Theorem 36. They separate the task
+of reducing general clique listing to clique listing on clusters for 𝑝 > 4 and 𝑝 = 4, respectively.
+
+   Lemma 38. Given a graph 𝐺 = (𝑉 , 𝐸), if there exists a deterministic Congest algorithm that allows any 𝐾𝑝 -compatible
+cluster on 𝐺 for 𝑝 > 4 to list in 𝑛 1−2/𝑝+𝑜 (1) rounds all instances 𝐻 ′ of 𝐾𝑝 in 𝐺 [𝐸 (𝑉 − , 𝑉 − ) ∪ 𝐸¯ ∪ 𝐸 ′ ] such that at least one
+                                                                                           𝐶       𝐶
+edge of 𝐻 ′ lies in 𝐶, then there is a deterministic Congest algorithm on 𝐺 that runs in 𝑛 1−2/𝑝+𝑜 (1) rounds and outputs
+all instances of 𝐾𝑝 in 𝐺.
+
+   Lemma 39. Given a graph 𝐺 = (𝑉 , 𝐸), if there exists a deterministic Congest algorithm that allows any 𝐾4 -compatible
+cluster on 𝐺 to list in 𝑛 1/2+𝑜 (1) rounds all instances 𝐻 ′ of 𝐾4 in 𝐺 [𝐸 (𝑉 − , 𝑉 − ) ∪ 𝐸¯ ∪ 𝐸 ′ ] such that at least one edge in 𝐻 ′
+                                                                              𝐶    𝐶
+lies in 𝐶, then there is a deterministic Congest algorithm on 𝐺 that runs in 𝑛 1/2+𝑜 (1) rounds and outputs all instances of
+𝐾4 in 𝐺.
+
+   We prove the lemmas in Sections 6.1 and 6.2, respectively. Using these lemmas, we can prove Theorem 36.
+
+   Proof of Theorem 36. By Lemma 37, there exists a deterministic algorithm on 𝐾𝑝 -compatible clusters that satisﬁes
+the preconditions of Lemmas 38 and 39. Therefore, for 𝑝 > 4 and for 𝑝 = 4, there exists a deterministic Congest
+algorithm on 𝐺 that ﬁnishes in 𝑛 1−2/𝑝+𝑜 (1) rounds and lists all 𝐾𝑝 in 𝐺.                                                              
+24                                                                  Keren Censor-Hillel, Dean Leitersdorf, and David Vulakh
+
+
+6.1     𝑲𝒑 Listing for 𝒑 > 4
+We prove Lemma 38 by employing the listing algorithm of Lemma 37. The overall structure is to split 𝐺 into high-
+conductance clusters and prove that the conditions of a 𝐾𝑝 -compatible cluster are met for a majority of clusters. Re-
+maining clusters are deferred for later, and we recurse on the graph they induce, which has at most half the edges of
+𝐺.
+  We begin by invoking the deterministic√ expander decomposition stated in Theorem 5 on 𝐺, for some constant 𝜖 that
+we will ﬁx later and 𝜙 = poly(𝜖) · 2−𝑂 ( log 𝑛 log log 𝑛) . The decomposition takes 𝑛𝑜 (1) rounds and produces a partition
+of the edges 𝐸 = 𝐸 1 ∪ 𝐸 2 ∪ · · · ∪ 𝐸𝑥 ∪ 𝐸 r , where 𝐺 [𝐸 1 ] , . . . , 𝐺 [𝐸𝑥 ] are vertex-disjoint, have conductance at least 𝜙, and
+|𝐸 r | ≤ 𝜖 |𝐸|. We construct 𝑉𝐶◦ and 𝐸𝑖− as presented in Section 2. We also denote 𝐸𝑖+ = 𝐸𝑖 ∪ 𝐸 (𝑉𝐶◦ , 𝑉𝐶◦ ). The following
+                                𝑖                                                                            𝑖    𝑖
+shows that 𝐺 [𝐸𝑖+ ] have suﬃciently high conductance to be communication clusters.
+
+     Lemma 40. For all 1 ≤ 𝑖 ≤ 𝑥, Φ(𝐺 [𝐸𝑖+ ]) ≥ 21 𝜙.
+
+     Proof. We recall that conductance of a graph 𝐺 = (𝐸, 𝑉 ) is deﬁned as the minimum value of
+                                                              |𝜕𝑆 |
+                                                     min{Vol(𝑆), Vol(𝑉 \ 𝑆)}
+                                        Í                                                                                +
+over all 𝑆 ∉ {∅, 𝑉 }, where Vol(𝑆) =         𝑣 ∈𝑆 deg(𝑣) and 𝜕𝑆 = 𝐸 (𝑆, 𝑉 \ 𝑆). First, we observe that 𝐺 [𝐸𝑖 ] and 𝐺 [𝐸𝑖 ] have the
+same set of vertices 𝑉𝑖 and recall that Φ(𝐺 [𝐸𝑖 ]) ≥ 𝜙. Since no edges are removed from 𝐺 [𝐸𝑖 ] to form 𝐺 [𝐸𝑖+ ], we have
+that |𝜕𝑆 | in 𝐺 [𝐸𝑖+ ] is at least |𝜕𝑆 | in 𝐺 [𝐸𝑖 ] for all cuts 𝑆 of 𝑉𝑖 . Also, deg(𝑣) is greater in 𝐺 [𝐸𝑖+ ] than in 𝐺 [𝐸𝑖 ] only if
+𝑣 ∈ 𝑉𝐶◦ , from which we have that deg(𝑣) in 𝐺 [𝐸𝑖+ ] is at most double deg(𝑣) in 𝐺 [𝐸𝑖 ]. Therefore, the value of Vol(𝑆) in
+        𝑖
+𝐺 [𝐸𝑖+ ] is at most double the value of Vol(𝑆) in 𝐺 [𝐸𝑖 ] for all cuts 𝑆 of 𝑉𝑖 , from which it follows that Φ(𝐺 [𝐸𝑖+ ]) ≥ 12 𝜙. 
+
+     We now deﬁne for each 𝐸𝑖+ a cluster 𝐶𝑖 = (𝑉𝐶𝑖 , 𝐸𝐶𝑖 ) for which 𝐸𝐶𝑖 = 𝐸𝑖+ and 𝐶𝑖 is the subgraph induced by 𝐸𝐶𝑖 ,
+𝐶𝑖 = 𝐺 [𝐸𝐶𝑖 ]. For some constant 𝛽 > 1 that we ﬁx later, we let 𝑉𝐶− ⊆ 𝑉𝐶◦ be the set of vertices 𝑣 ∈ 𝑉𝐶◦ satisfying
+                                                                             𝑖       𝑖                                    𝑖
+deg𝐶 (𝑣) > 𝛽𝑛 1−2/𝑝 . Note that the sets of vertices 𝑉𝐶𝑖 and edges 𝐸𝐶𝑖 are pairwise disjoint over 𝐶𝑖 .
+     We employ Lemma 8, which bounds the number of edges outside the union of all 𝐸 (𝑉𝐶◦ , 𝑉𝐶◦ ) to 3𝜖 |𝐸|, when we
+                                                                                                         𝑖   𝑖
+later choose the value of 𝜖. This allows us to focus on listing cliques that have at least one edge in 𝐸 (𝑉𝐶◦ , 𝑉𝐶◦ ) for some
+                                                                                                                      𝑖   𝑖
+𝐶, since the total number of remaining edges is small enough for the recursion to have logarithmic depth. In what
+follows, we focus on individual clusters and for convenience drop the subscript 𝑖 from properties of the cluster 𝐶 = 𝐶𝑖 .
+We demonstrate how to list most instances of 𝐾𝑝 that have at least two vertices in some 𝑉𝐶◦ .
+     We list all cliques that have a vertex 𝑣 ∈ 𝑉𝐶◦ \ 𝑉𝐶− in 𝑂 (𝑛 1−2/𝑝 ) rounds using exhaustive search.
+
+     Lemma 41. Listing all instances of 𝐾𝑝 containing 𝑣 ∈ 𝑉𝐶◦ \𝑉𝐶− can be done in 𝑂 (𝑛 1−2/𝑝 ) rounds by an exhaustive search
+procedure. This can be done in parallel for all such vertices 𝑣.
+
+     Proof. Since deg(𝑣) ≤ 2 deg𝐶 (𝑣) for all 𝑣 ∈ 𝑉𝐶− , we have that the minimum degree of 𝑣 ∈ 𝑉𝐶◦ \ 𝑉𝐶− over all 𝐶 is at
+most 2𝛽𝑛 1−2/𝑝 . We can therefore apply Lemma 35 with 𝛼 ∈ 𝑂 (𝑛 1−2/𝑝 ) to all instances of 𝐾𝑝 intersecting 𝑉𝐶◦ \ 𝑉𝐶− in
+𝑂 (𝑛 1−2/𝑝 ) rounds.                                                                                                                
+
+     Lemma 41 leaves us only with the task of listing cliques that have edges in 𝐸 (𝑉𝐶− , 𝑉𝐶− ). Note that in any cluster 𝐶
+with |𝑉𝐶 | < 𝛽𝑛 1−2/𝑝 , all 𝑣 ∈ 𝑉𝐶◦ satisfy deg𝐶 (𝑣) < 𝛽𝑛 1−2/𝑝 , from which deg 𝑣 < 2𝛽𝑛 1−2/𝑝 . Therefore, 𝑉𝐶− is empty
+for such small clusters and they are eliminated by Lemma 41. We therefore are only left with clusters 𝐶 satisfying
+|𝑉𝐶 | ≥ 𝛽𝑛 1−2/𝑝 .
+Deterministic Near-Optimal Distributed Listing of Cliques                                                                   25
+
+
+   Consider vertices 𝑉 \ 𝑉𝐶− (including, importantly, 𝑉𝐶 \ 𝑉𝐶− ), and denote
+
+                                   𝑆𝐶∗ = {𝑢 ∉ 𝑉𝐶− : 1 ≤ deg𝐶 (𝑢) < deg𝑉 \𝑉 − (𝑢)/𝑛 1−2/𝑝 }
+                                                                                  𝐶
+
+   Note that 𝑢 ∈ 𝑆𝐶∗ have deg(𝑢) > 𝑛 1−2/𝑝 and deg𝑉 − (𝑢) < 𝑛 2/𝑝 , so that |𝐸 (𝑉𝐶− , 𝑆𝐶∗ ) < 𝑛 1+2/𝑝 |. We call a vertex in
+                                                      𝐶
+𝑉𝐶− bad if it has more than 𝑛 1−2/𝑝 neighbors in 𝑆𝐶∗ and denote these vertices 𝑆𝐶 = {𝑣 ∈ 𝑉𝐶− : deg𝑆 ∗ (𝑣) > 𝑛 1−2/𝑝 }.
+                                                                                                           𝐶
+These pose diﬃculties for learning information about edges outside the cluster, so we show that the number of edges
+between them is small and can be deferred to later recursive iterations.
+                                          Í
+   Lemma 42. For constant 𝛽 > 1 and 𝑝 ≥ 5, 𝐶:|𝑉𝐶 |>𝛽𝑛1+2/𝑝 |𝑆𝐶 | 2 ≤ (4/𝛽)|𝐸|
+
+   Proof. The total number of edges |𝐸| is at least the number of edges that touch vertices in 𝑆𝐶∗ . We ﬁnd a lower
+bound for this by counting edges that are incident to vertices in 𝑆𝐶∗ but not 𝑉𝐶− . We sum deg𝑉 \𝑉 − (𝑢) over all 𝑢 ∈ 𝑆𝐶∗
+                                                                                                             𝐶
+and divide by 2, due to possible overcounting:
+                                   Õ                           Õ
+                           2|𝐸| ≥      deg𝑉 \𝑉 − (𝑢) > 𝑛 1−2/𝑝   deg𝐶 (𝑢)
+                                                     𝐶
+                                    𝑢 ∈𝑆𝐶∗                            𝑢 ∈𝑆𝐶∗
+                                             Õ
+                                 ≥ 𝑛 1−2/𝑝           deg𝑆 ∗ (𝑣) > 𝑛 1−2/𝑝 · 𝑛 1−2/𝑝 · |𝑆𝐶 | = 𝑛 2−4𝑝 |𝑆𝐶 |
+                                                          𝐶
+                                             𝑣 ∈𝑆𝐶
+
+from which |𝑆𝐶 | < 2|𝐸|/𝑛 2−4/𝑝 . Since |𝐸| ≤ 𝑛 2 , this gives |𝑆𝐶 | < 2𝑛 4/𝑝 , from which |𝑆𝐶 | 2 < 2𝑛 4/𝑝 · 2|𝐸|/𝑛 2−4/𝑝 =
+4|𝐸|/𝑛 2−8/𝑝 . As there are at most 𝑛 2/𝑝 /𝛽 clusters of size |𝑉𝐶 | ≥ 𝛽𝑛 1−2/𝑝 , we have that the total number of edges in 𝑆𝐶
+over all such 𝐶 is at most (𝑛 2/𝑝 /𝛽) · (4|𝐸|/𝑛 2−8/𝑝 ) = (4/𝛽)|𝐸|𝑛 2−10/𝑝 , which, for 𝑝 ≥ 5, is at most (4/𝛽)|𝐸|.          
+
+   We now focus on listing cliques with an edge in 𝐸 (𝑉𝐶− , 𝑉𝐶− ) \ 𝐸 (𝑆𝐶 , 𝑆𝐶 ) for some 𝐶 in 𝑛 1−2/𝑝+𝑜 (1) rounds, using
+Lemma 37. We show how to deliver the necessary input edges 𝐸 ′ ⊆ 𝐸 (𝑉 \ 𝑉𝐶− , 𝑉 \ 𝑉𝐶− ). Recall that 𝐾𝑝 -compatible
+clusters operate on directed edges; each time a vertex from outside the cluster sends an edge into 𝐶, it sends both
+directed copies of that edge. This at most doubles the number of edges received by 𝐶.
+
+   Lemma 43. For all 𝑣 ∈ 𝑆𝐶∗ adjacent to a 𝑢 ∈ 𝑉𝐶− \ 𝑆𝐶 , and for all 𝑣 ∈ (𝑉 \ 𝑉𝐶− ) \ 𝑆𝐶∗ , all of the edges of 𝑣 into 𝑉𝐶− can
+be made known to some 𝑢 ∈ 𝑉𝐶− so that all 𝑢 ∈ 𝑉𝐶− hold 𝑂 (𝑛 1−2/𝑝 · deg𝐶 (𝑢)) such edges. This can be done in 𝑂 (𝑛 1−2/𝑝 )
+rounds and in parallel for all 𝑣 and 𝐶.
+
+   Proof. We observe that, for 𝑣 ∈ 𝑉𝐶− \ 𝑆𝐶 , we have deg𝑆 ∗ (𝑣) ≤ 𝑛 1−2/𝑝 , so that 𝑣 can learn all edges 𝐸 (𝑁 (𝑣) ∩
+                                                                       𝐶
+𝑆𝐶∗ , 𝑁 (𝑣) ∩ 𝑆𝐶∗ ) in 𝑂 (𝑛 1−2/𝑝 ) rounds again similarly to the exhaustive-search approach of Lemma 35.
+   Also, for each 𝑢 ∈ (𝑉 \𝑉𝐶− ) \ 𝑆𝐶∗ , we have deg𝐶 (𝑢) ≥ deg𝑉 \𝑉 − (𝑢)/𝑛 1−2/𝑝 , so 𝑢 can make each of its edges known to
+                                                                           𝐶
+some vertex 𝑣 ∈ 𝑉𝐶− by partitioning its neighborhood into disjoint sets of at most 𝑛 1−2/𝑝 edges and sending each such
+set to a diﬀerent 𝑣 ∈ 𝑉𝐶− . This takes 𝑂 (𝑛 1−2/𝑝 ) rounds and can be done in parallel for all such 𝑢 and 𝐶.
+   During this process, each 𝑢 ∈ 𝑉 − learns 𝑂˜ (𝑛 1−2/𝑝 ) edges in 𝐸 ′ along each of its edges, so that the total number of
+                                     𝐶
+such edges known to any vertex 𝑢 is 𝑂˜ (𝑛 1−2/𝑝 · deg(𝑢)) = 𝑂˜ (𝑛 1−2/𝑝 · deg𝐶 (𝑢)).                                         
+
+   After the process of Lemma 43, for all 𝑣 ∈ 𝑉𝐶− \ 𝑆𝐶 , each edge between its neighbors is known to some vertex in 𝑉𝐶− .
+We now wish to use the listing algorithm of Lemma 37 to list all instances of 𝐾𝑝 with an edge in 𝐸 (𝑉𝐶− \ 𝑆𝐶 , 𝑉𝐶− ). We
+prove that most edges are in a cluster that satisﬁes the conditions of a 𝐾𝑝 -compatible cluster, so the remaining clusters
+can be deferred to later rounds.
+26                                                                  Keren Censor-Hillel, Dean Leitersdorf, and David Vulakh
+
+
+     Let 𝛾 > 1 be a constant that we ﬁx later. If |𝐸 (𝑉𝐶− , 𝑉𝐶 )|/|𝑉𝐶− | ≤ |𝐸 ′ |/(𝛾𝑛), then we say that 𝐶 is an overloaded cluster.
+Let 𝐸 hi be the set of all edges in overloaded clusters (i.e., it is the union of all 𝐸𝐶 over all overloaded 𝐶). The following
+lemma shows that 𝐸 hi can be deferred to subsequent rounds.
+
+     Lemma 44. |𝐸 hi | ≤ 2|𝐸|/𝛾
+
+     Proof. Let 𝜇 ′ denote the average degree of the graph. Since |𝐸 hi | ≤ |𝐸|, by considering all overloaded clusters, we
+consider vertices with average communication degree inside their cluster |𝐸 (𝑉𝐶− , 𝑉𝐶 )|/|𝑉𝐶− | bounded above by 𝜇 ′ /𝛾,
+and therefore the number of edges within such clusters is at most 𝜇 ′𝑛/𝛾. Since the total number of edges in the graph
+is 𝜇 ′𝑛/2, this gives that |𝐸 hi | ≤ 2|𝐸|/𝛾 as desired.                                                                          
+
+     The last piece of input needed for the clusters 𝐶 to be 𝐾𝑝 -compatible clusters is that for each 𝑢 ∈ 𝑉 , a unique
+𝑣 ∈ 𝑉𝐶− holds deg𝐶∗ (𝑢), the number of edges sent into 𝐶 by 𝑢. The general idea is to serially iterate the clusters and
+have each 𝑣 ∈ 𝑉 tell each of its neighbors whether it sent the edge between them to each cluster 𝐶. As we only consider
+suﬃciently large clusters, the number of such clusters is small.
+
+  Lemma 45. There exists a deterministic Congest algorithm on 𝐺 that guarantees, in 𝑂 (𝑛 1−2/𝑝 ) rounds, for all clusters
+𝐶 with |𝑉𝐶 | > 𝛽𝑛 1−2/𝑝 , for each 𝑢 ∈ 𝑉 that is a tail of at least one 𝑒 ∈ 𝐸¯ ∪ 𝐸 ′ sent into 𝐶, exactly one 𝑣 ∈ 𝑉 − holds
+                                                                                                                          𝐶
+deg𝐶∗ (𝑢).
+
+     Proof. We begin by ensuring that each cluster 𝐶 with |𝑉𝐶 | > 𝛽𝑛 1−2/𝑝 has a unique identiﬁer that can be encoded
+in 𝑂 (1) messages and is known to all vertices in that cluster. Due to Theorem 3, we can construct a spanning tree of
+𝐶 in 𝑂˜ (1) rounds and use it to compute and distribute the minimum id of a vertex in 𝑉𝐶− ; call this id the representative
+𝑟𝐶 of 𝐶.
+   Now, each 𝑣 ∈ 𝑉 sends over each edge 𝑒 incident to 𝑣, 𝑒 = (𝑣, 𝑢), the representative 𝑟𝐶 of each cluster 𝐶 to which it
+sent that edge. If 𝑣 ∈ 𝑉 − for some 𝐶 and knows an edge (𝑣, 𝑢) ∈ 𝐸,
+                          𝐶
+                                                                 ¯ it also sends 𝑟𝐶 to 𝑢. Since we only consider 𝐶 with
+|𝑉𝐶 | > 𝛽𝑛 1−2/𝑝 , there are fewer than 𝑛 2/𝑝 ≤ 𝑛 1/2 such clusters, so that all such representatives can be sent in 𝑂 (𝑛 1/2 )
+rounds. Now each 𝑣 ∈ 𝑉 knows for a given 𝑟𝐶 and a given 𝑒 = (𝑣, 𝑢) whether 𝑒 was sent to 𝐶 as part of 𝐸¯ ∪ 𝐸 ′ : in
+particular, 𝑒 was sent to 𝐶 iﬀ 𝑣 itself sent 𝑒 to 𝐶, or if 𝑢 sent 𝑒 to 𝐶 and then transmitted 𝑟𝐶 to 𝑣 over 𝑒. Therefore, each
+𝑣 ∈ 𝑉𝐶− can compute deg𝐶∗ (𝑣).
+     To guarantee that each 𝐶 receives only one copy of deg𝐶∗ (𝑣), 𝑣 decides which vertex 𝑢 ∈ 𝑉 will send deg𝐶∗ (𝑣) to 𝑣.
+Let 𝑉𝑠𝑒𝑛𝑑 be the set of vertices 𝑢 ∈ 𝑁 (𝑣) ∪ {𝑣 } that sent an edge 𝑒 incident to 𝑣 to 𝐶, and let 𝑤 be the vertex in 𝑉𝑠𝑒𝑛𝑑
+with minimum id. Then if 𝑤 = 𝑣, 𝑣 has sent one of its edges to some 𝑢 ∈ 𝑉𝐶− already and can send deg𝐶∗ (𝑣) to that same
+𝑢. Otherwise, 𝑣 sends deg𝐶∗ (𝑢) to 𝑤 and 𝑤 sends deg𝐶∗ (𝑣) to the same 𝑢 ∈ 𝑉𝐶− to which it sent the edge (𝑤, 𝑣).
+     Each 𝑣 sends and receives at most two messages for each edge it sent to some 𝐶, thus this takes 𝑂 (𝑛 1−2/𝑝 ) rounds
+by Lemma 43.                                                                                                                     
+
+     We now combine all the above, as well as choose values for 𝜖, 𝛽, and 𝛾, to prove Lemma 38.
+
+     Proof of Lemma 38. After running the expander decomposition of Theorem 5, invoke Lemmas 8 and 41 to 44,
+which guarantee that, if we list all instances of 𝐾𝑝 with an edge in 𝐸 (𝑉𝐶−, 𝑉𝐶− \ 𝑆𝐶 ) for all not overloaded 𝐶 satisfying
+|𝑉𝐶 | > 𝛽𝑛 1−2/𝑝 in 𝑛 1−2/𝑝+𝑜 (1) rounds, we arrive at a recursive algorithm that lists all 𝐾𝑝 , in 𝑛 1−2/𝑝+𝑜 (1) rounds per
+invocation, and removes at least (1 − 3𝜖 − 4/𝛽 − 2/𝛾)|𝐸| edges from 𝐺 per each invocation.
+     We show that clusters 𝐶 of size |𝑉𝐶 | > 𝛽𝑛 1−2/𝑝 that are not overloaded satisfy the conditions of a 𝐾𝑝 -compatible
+cluster, so we can list all all 𝐾𝑝 cliques with an edge in 𝐸 (𝑉𝐶− , 𝑉𝐶− \ 𝑆𝐶 ) for such 𝐶 in 𝑛 1−2/𝑝+𝑜 (1) rounds. Since the
+Deterministic Near-Optimal Distributed Listing of Cliques                                                                        27
+
+
+clusters 𝐶 are edge-disjoint and the sparsity-aware listing algorithm only uses the edges 𝐸𝐶 for communication, we
+can do so in parallel for all 𝐶. We let 𝐸¯ = 𝐸 (𝑉 − , 𝑉 \ 𝑉 − ) and 𝐸 ′ be the set of edges sent as input in Lemma 43. By
+                                                    𝐶         𝐶
+the deﬁnition of 𝑉𝐶− , all 𝑣 ∈ 𝑉𝐶− satisfy deg𝐶 (𝑣) ≥ 21 deg(𝑣) and deg𝐶 (𝑣) > 𝛽𝑛 1−2/𝑝 , thus we have that 𝐸¯ satisﬁes
+               ¯ ∈ 𝑂 (deg (𝑣)) and the minimum degree is at least 𝛽𝑛 1−2/𝑝 ≥ 𝐾 1−2/𝑝 . By Lemma 43, each 𝑣 ∈ 𝑉 − learns
+|𝐸 (𝑉 −, 𝑉 ) ∩ 𝐸|
+      𝐶                   𝐶                                                                                               𝐶
+𝑂 (𝑛 1−2/𝑝 ) edges in 𝐸 ′ . Also, exactly one 𝑣 ∈ 𝑉𝐶− learns deg𝐶∗ (𝑢) for each required 𝑢 ∈ 𝑉 by Lemma 45. Finally, since 𝐶
+is not overloaded, the condition 𝜇 ∈ Ω(|𝐸 ′ |/𝑛) holds.
+   The depth of the recursion is logarithmic in 𝑛, as letting 𝜖 = 1/18, 𝛽 = 24, and 𝛾 = 12 gives that each iteration of the
+algorithm eliminates at least half of the edges from 𝐺.                                                                           
+
+
+6.2       𝑲𝒑 Listing for 𝒑 = 4
+The listing algorithm for 𝑝 > 4 in Section 6.1 cannot be applied for 𝑝 = 4 as the bound in Lemma 42 requires 𝑝 ≥ 5. As
+a result, we can no longer defer all edges between bad vertices to future rounds and must instead list cliques containing
+these edges.
+   We begin as in Section 6.1 by ﬁxing constants 𝛽 > 1 and 𝜖 and producing communication clusters from an expander
+decomposition of 𝐺. We deﬁne 𝑉𝐶◦ and 𝐸𝑖− as in Section 2 and let 𝐸𝑖+ = 𝐸𝑖 ∪ 𝐸 (𝑉𝐶◦ , 𝑉𝐶◦ ). We again let 𝐶𝑖 = 𝐺 [𝐸𝑖+ ], so
+                                      𝑖                                                     𝑖   𝑖
+that there is some set of clusters C such that 𝐶 ∈ C is a cluster with vertices 𝑉𝐶 , edges 𝐸𝐶 , and subsets of vertices 𝑉𝐶◦
+and 𝑉𝐶− satisfying deg𝐶 (𝑣) ≥ deg𝐺 (𝑣) for all 𝑣 ∈ 𝑉𝐶◦ and deg𝐶 (𝑣) ≥ 𝛽𝑛 1/2 for all 𝑣 ∈ 𝑉𝐶− . We later ﬁx 𝜖 and 𝛽 so that
+we can focus on listing only those cliques with an edge in 𝐸 (𝑉𝐶◦ , 𝑉𝐶◦ ) for some 𝐶.
+                                                                                                         Ð           ◦ ◦
+   We now cover the entire graph 𝐺 with expanders in the following manner. Let 𝐸𝑟𝑒𝑚 = 𝐸 \                   𝐶 ∈C 𝐸 (𝑉𝐶 , 𝑉𝐶 ) be the
+set of edges in 𝐺 that are not within the sets of edges whose cliques we seek to list. Recursively perform the expander
+decomposition on the graph induced by 𝐸𝑟𝑒𝑚 , and let the set of all clusters in all expander decompositions created
+in this way be C∗ . We now show that we can use the expander rounding algorithm of Theorem 6 in parallel over all
+clusters 𝐶 ∈ C∗ with only a logarithmic factor in overhead.
+
+   Lemma 46. If 𝜖 ≤ 1/4, then each edge 𝑒 ∈ 𝐸 is in 𝐸𝐶 for at most 𝑂 (log 𝑛) clusters 𝐶 ∈ C∗ , and each vertex 𝑣 ∈ 𝑉 is in
+𝑉𝐶− for at most 𝑂 (log 𝑛) clusters 𝐶 ∈ C∗ .
+
+   Proof. By Lemma 8, if 𝜖 ≤ 1/4, |𝐸𝑟𝑒𝑚 | < 21 |𝐸|. Thus, the depth of the recursive application of expander decompo-
+sition to 𝐺 is logarithmic, and there are 𝑂 (log 𝑛) distinct decompositions. In each decomposition, each edge is in at
+most one set 𝐸𝐶 and each vertex is in at most one set 𝑉𝐶− , completing the proof.                                                 
+
+
+   As in the 𝑝 > 4 case, we use exhaustive search via Lemma 41 to list all cliques that contain a vertex with degree
+at most 2𝛽𝑛 1/2 . In every 𝐶 ∈ C∗ , if |𝑉𝐶 | < 𝛽𝑛 1/2 , then the exhaustive search lists all cliques containing some 𝑣 ∈ 𝑉𝐶◦ ,
+therefore, from now on we only consider 𝐶 satisfying |𝑉𝐶 | > 𝛽𝑛 1/2 . Since by Lemma 46 the depth of the recursive
+decomposition is logarithmic, and each iteration of the decomposition can produce at most 𝑛 1/2 /𝛽 clusters of size
+|𝑉 − | > 𝛽𝑛 1/2 , the total number of such clusters is 𝑂˜ (𝑛 1/2 ).
+  𝐶
+   Then, note that all 𝐾4 that lie entirely in some cluster 𝐶 ∈ C can be listed in 𝑛 1/2+𝑜 (1) rounds by applying the
+assumed listing algorithm for 𝐾4 -compatible clusters to 𝐶 with 𝐸 ′ = 𝐸¯ = ∅.
+   We now seek to list remaining 𝐾4 with vertices {𝑣 1, 𝑣 2 , 𝑣 3 , 𝑣 4 } where {𝑣 1, 𝑣 2 } ∈ 𝐸 (𝑉𝐶− , 𝑉𝐶− ) for some 𝐶 ∈ C, and
+{𝑣 3, 𝑣 4 } ∈ 𝐸 (𝑉𝐶−∗ , 𝑉𝐶−∗ ) for some 𝐶 ∗ ∈ C∗ \ {𝐶 }. For each 𝐾4 across some pair (𝐶, 𝐶 ∗ ) ∈ C × C∗ , we ensure either 𝐶 or 𝐶 ∗
+learns all of the edges in that 𝐾4 so that it can be listed using the assumed listing algorithm for 𝐾4 -compatible clusters.
+28                                                                           Keren Censor-Hillel, Dean Leitersdorf, and David Vulakh
+
+
+For two distinct clusters 𝐶 and 𝐶 ∗ , we deﬁne
+                                                                                             √
+                                           𝑆𝐶∗ ∗ →𝐶 = {𝑢 ∈ 𝑉𝐶−∗ : 1 ≤ deg𝐶 (𝑢) < deg𝑉 −∗ (𝑢)/ 𝑛}
+                                                                                            𝐶
+                                                                                  √
+                                                𝑆𝐶→𝐶 ∗ = {𝑢 ∈ 𝑉𝐶− : deg𝑆 ∗ ∗ (𝑢) > 𝑛}
+                                                                        𝐶 →𝐶
+
+which are analogs of 𝑆𝐶∗ and 𝑆𝐶 from Section 6.1. The algorithm runs in three parts, listing all 𝐾4 such that (1): 𝑣 3 or
+𝑣 4 is in 𝑉𝐶−∗ \ 𝑆𝐶∗ ∗ →𝐶 , (2): 𝑣 1 or 𝑣 2 is in 𝑉𝐶− \ 𝑆𝐶→𝐶 ∗ and 𝑣 3 , 𝑣 4 ∈ 𝑆𝐶∗ ∗ →𝐶 , or (3) 𝑣 1 , 𝑣 2 ∈ 𝑆𝐶→𝐶 ∗ and 𝑣 3, 𝑣 4 ∈ 𝑆𝐶∗ ∗ →𝐶 .
+
+     Part 1. For each 𝐶 ∗ ∈ C∗ and 𝐶 ∈ C\𝐶 ∗, each vertex 𝑢 ∈ 𝑉𝐶−∗ \𝑆𝐶∗ ∗ →𝐶 that has deg𝑉 − (𝑢) > 0 sends its neighborhood
+                                                                                                          𝐶
+𝑁𝑉 −∗ (𝑢) to 𝐶. This takes 𝑛 1/2+𝑜 (1) rounds by the deﬁnition of 𝑆𝐶∗ ∗ →𝐶 and Lemma 46. Each 𝐶 ∈ C then proceeds similarly
+     𝐶
+to the case of 𝑝 > 4. Denote by 𝐸 ′ ⊆ 𝐸 (𝑉 \ 𝑉𝐶− , 𝑉 \ 𝑉𝐶− ) the edges not incident to 𝑉𝐶− that are distributed among 𝑉𝐶−
+after the step above. 𝐶 computes |𝐸 ′ | and |𝐸 (𝑉𝐶− , 𝑉𝐶 )|/|𝑉𝐶− | in polylog(𝑛) rounds. We use the deﬁnition that 𝐶 is an
+overloaded cluster if |𝐸 (𝑉𝐶−, 𝑉𝐶 )|/|𝑉𝐶− | ≤ |𝐸 ′ |/(𝛾𝑛) and defer all such 𝐶 to future iterations. By Lemma 44, the number
+of edges in all such clusters is at most 2|𝐸|/𝛾. For 𝐶 that are not overloaded, 𝐸¯ = 𝐸 (𝑉 − , 𝑉 \ 𝑉 − ). Below, in Lemma 47,
+                                                                                                          𝐶           𝐶
+we show it is possible for each 𝐶 ∈ C∗ to learn deg𝐶∗ (𝑢) for all relevant 𝑢, at which point 𝐶 satisﬁes the deﬁnition of a
+𝐾4 -compatible cluster and can list all 𝐾4 in 𝐺 [𝐸 (𝑉 −, 𝑉 − ) ∪ 𝐸¯ ∪ 𝐸 ′ ] with an edge in 𝐸 (𝑉 − , 𝑉 − ) in 𝑛 1/2+𝑜 (1) rounds.
+                                                              𝐶    𝐶                                          𝐶   𝐶
+
+    Part 2. For each 𝐶 ∈ C and 𝐶 ∗ ∈ C∗ \ {𝐶 }, each vertex 𝑢 ∈ 𝑉𝐶− \ 𝑆𝐶→𝐶 ∗ learns all edges in 𝑁𝑆 ∗ ∗ (𝑢)2 from
+                                                                                                    𝐶 →𝐶
+𝐶 ∗ . This takes 𝑛 1/2+𝑜 (1) rounds by the deﬁnition of 𝑆𝐶→𝐶 ∗ and Lemma 46. 𝐶 then takes 𝐸¯ = 𝐸 (𝑉 − , 𝑉 \ 𝑉 − ) and             𝐶       𝐶
+𝐸 ′ ⊆ 𝐸 (𝑉 \ 𝑉𝐶− , 𝑉 \ 𝑉𝐶− ) the edges not incident to 𝑉𝐶− now distributed among 𝑉𝐶− . Lemma 47 shows that it is possible
+for each 𝐶 ∈ C∗ to learn deg𝐶∗ (𝑢) for all relevant 𝑢, at which point 𝐶 satisﬁes the deﬁnition of a 𝐾4 -compatible cluster
+and can list all 𝐾4 in 𝐺 [𝐸 (𝑉 −, 𝑉 − ) ∪ 𝐸¯ ∪ 𝐸 ′ ] with an edge in 𝐸 (𝑉 −, 𝑉 − ) in 𝑛 1/2+𝑜 (1) rounds.
+                                  𝐶    𝐶                                         𝐶    𝐶
+
+     Part 3. We now wish to list cliques {𝑣 1, 𝑣 2 , 𝑣 3, 𝑣 4 } for which 𝑣 1 , 𝑣 2 ∈ 𝑆𝐶→𝐶 ∗ and 𝑣 3 , 𝑣 4 ∈ 𝑆𝐶∗ ∗ →𝐶 for some 𝐶 ∈ C
+and 𝐶 ∗ ∈ C∗ \ {𝐶 } as follows. Each vertex 𝑢 ∈ 𝑆𝐶→𝐶 ∗ sends the set of edges {{𝑢, 𝑣 } : 𝑣 ∈ 𝑁𝑆𝐶→𝐶 ∗ (𝑢)} to 𝐶 ∗ by
+dividing it into deg𝑆 ∗ ∗        (𝑢) subsets of approximately equal size and sending each subset to one of its neighbors
+                          𝐶 →𝐶
+in 𝑆𝐶∗ ∗ →𝐶 . By the deﬁnition of 𝑆𝐶→𝐶 ∗ and Lemma 46, this takes 𝑛 1/2+𝑜 (1) rounds. Each cluster 𝐶 ∗ ∈ C then takes
+     Ð
+𝐸¯ = 𝐶 ∈C\{𝐶 ∗ } 𝐸 (𝑆𝐶→𝐶 ∗ , 𝑆 ∗ ∗ ) and 𝐸 ′ ⊆ 𝐸 (𝑉 \𝑉 −∗ , 𝑉 \𝑉 −∗ ) the edges not incident to vertices in 𝑉 −∗ now distributed
+                                  𝐶 →𝐶                         𝐶         𝐶                                                    𝐶
+amongst the vertices in 𝐶 ∗ . Lemma 47 shows that it is possible for each 𝐶 ∗ ∈ C∗ to learn deg𝐶∗ (𝑢) for all relevant 𝑢, at
+which point 𝐶 ∗ satisﬁes the deﬁnition of a 𝐾4 -compatible cluster and can list all 𝐾4 in 𝐺 [𝐸 (𝑉 −∗ , 𝑉 −∗ ) ∪ 𝐸¯ ∪ 𝐸 ′ ] with an
+                                                                                                                   𝐶      𝐶
+edge in 𝐸 (𝑉𝐶−∗ , 𝑉𝐶−∗ ) in 𝑛 1/2+𝑜 (1) rounds.
+     We now prove that the clusters tasked with listing in Parts 1–3 above are in fact 𝐾4 -compatible clusters. The ﬁrst
+lemma shows that each 𝐶 ∈ C∗ can learn the necessary values of deg𝐶∗ (𝑢) for the edge sets it receives. This is the
+analogue of Lemma 45 from the algorithm for 𝑝 > 4.
+
+  Lemma 47. There exists a deterministic Congest algorithm on 𝐺 that, in 𝑛 1/2+𝑜 (1) rounds, guarantees for all clusters
+𝐶 ∈ C∗ with |𝑉𝐶 | > 𝛽𝑛 1/2 , and each 𝑢 ∈ 𝑉 that is a tail of at least one 𝑒 ∈ 𝐸¯ ∪ 𝐸 ′ sent into 𝐶 in any of Parts 1, 2, or 3, that
+exactly one 𝑣 ∈ 𝑉𝐶− holds deg𝐶∗ (𝑢).
+
+     Proof. We roughly follow Lemma 45, with the new complication being that clusters C∗ are no longer vertex-disjoint,
+thus the minimum id of a vertex in 𝑉𝐶− is no longer a unique identiﬁer of 𝐶. Instead, we let the representative 𝑟𝐶 of 𝐶 be
+the pair (𝑣, 𝑖), where 𝑣 is the lowest-numbered vertex in 𝑉𝐶− and 𝑖 is the iteration number of the recursive partitioning
+process at which 𝐶 was created. As within each invocation of the expander decomposition the clusters produced are
+Deterministic Near-Optimal Distributed Listing of Cliques                                                                  29
+
+
+vertex-disjoint, 𝑟𝐶 now uniquely identiﬁes 𝐶. The number of clusters with 𝑉𝐶− ≠ ∅ is still 𝑂˜ (𝑛 1/2 ), thus we can use the
+algorithm of Lemma 45.                                                                                                      
+
+   The next lemmas show 𝐸¯ and 𝐸 ′ are sent to 𝐶 while satisfying the 𝐾4 -compatible cluster conditions.
+
+   Lemma 48. For each 𝐶 ∗ ∈ C∗ , each 𝑣 ∈ 𝑉𝐶−∗ is incident to 𝑂 (deg𝐶 ∗ (𝑣)) edges from 𝐸.
+                                                                                        ¯
+                                                                                                                     √
+  Proof. For each 𝑣 ∈ 𝑉𝐶−∗ and a cluster 𝐶 ∈ C \ {𝐶 ∗ } such that 𝑣 ∈ 𝑆𝐶∗ ∗ →𝐶 , we have that deg𝐶 (𝑣) < deg𝑉 −∗ (𝑣)/ 𝑛.
+                                                                                                             𝐶
+The total number of edges 𝐸¯ incident to 𝑣 ∈ 𝑉𝐶−∗ is at most
+                     Õ                                √
+                                 deg𝑆𝐶→𝐶 ∗ (𝑣) ≤ 𝑂 ( 𝑛) · max{deg𝑆𝐶→𝐶 ∗ (𝑣) : 𝐶 ∈ C \ {𝐶 ∗ }, 𝑣 ∈ 𝑆𝐶∗ ∗ →𝐶 }
+                𝐶 ∈C\{𝐶 ∗ },𝑣 ∈𝑆𝐶∗ ∗ →𝐶
+
+                                                ≤ 𝑂 (deg𝐶 ∗ (𝑣))
+                                                  √
+For the ﬁrst inequality, we observe that |C| ∈ 𝑂 ( 𝑛), since we have already eliminated by brute force all of the clusters
+𝐶 ∈ C with size |𝑉𝐶 | < 2𝛽𝑛 1/2 . The second follows from the deﬁnition of 𝑆𝐶∗ ∗ →𝐶 .                                       
+                                                           √
+   Lemma 49. For each 𝐶 ∗ ∈ C∗ , each 𝑣 ∈ 𝑉𝐶−∗ receives 𝑂 ( 𝑛 · deg𝐶 ∗ (𝑣)) edges at the ﬁrst step of part 3.
+                                                                                                           √   √
+   Proof. 𝑣 ∈ 𝑉𝐶−∗ receives messages from 𝑢 ∈ 𝑆𝐶→𝐶 ∗ only if 𝑣 ∈ 𝑆𝐶∗ ∗ →𝐶 . Thus, 𝑣 receives |𝑁𝑆𝐶→𝐶 ∗ (𝑢)|/ 𝑛 ≤ 𝑛
+edges in 𝐸𝐶 from 𝑢 ∈ 𝑉𝐶− , so the total number of edges received is at most
+         √          Õ                           √  √                                                            
+          𝑛·                     deg𝑆𝐶→𝐶 ∗ (𝑣) ≤ 𝑛 · 𝑂 ( 𝑛) · max{deg𝑆𝐶→𝐶 ∗ (𝑣) : 𝐶 ∈ C \ {𝐶 ∗ }, 𝑣 ∈ 𝑆𝐶∗ ∗ →𝐶 }
+               𝐶 ∈C\{𝐶 ∗ },𝑣 ∈𝑆𝐶∗ ∗ →𝐶
+                                                          √
+                                                     ≤ 𝑂 ( 𝑛 · deg𝐶 ∗ (𝑣))
+
+again using the property |C| ∈ 𝑂˜ (𝑛 1/2 ) and the deﬁnition of 𝑆𝐶∗ ∗ →𝐶 .                                                  
+
+   Finally, we show that the total size of |𝐸 ′ | is not too large.
+
+   Lemma 50. For each 𝐶 ∗ ∈ C∗ , the average degree of 𝐶 ∗ is at least max𝐶 {|𝑆𝐶→𝐶 ∗ |}, implying |𝐸 (𝑉𝐶−∗ , 𝑉𝐶 ∗ )|/|𝑉𝐶−∗ | =
+Ω(|𝐸 ′ |/𝑛).
+                                                                                             √
+  Proof. From the deﬁnition of 𝑆𝐶→𝐶 ∗ , each vertex 𝑣 ∈ 𝑆𝐶→𝐶 ∗ is incident to at most 𝑛 edges from 𝐸 (𝑉𝐶− , 𝑆𝐶∗ ∗ →𝐶 ).
+                                               √
+By the deﬁnition of 𝑆𝐶∗ ∗ →𝐶 , we can associate 𝑛 edges in 𝐸 (𝑆𝐶∗ ∗ →𝐶 , 𝑉𝐶 ∗ ) for each edge in 𝑣 ∈ 𝑆𝐶→𝐶 ∗ . Therefore, the
+number of edges in 𝐸 (𝑆𝐶∗ ∗ →𝐶 , 𝑉 ) is at least
+                                                   √ √
+                                                    𝑛 · 𝑛 · |𝑆𝐶→𝐶 ∗ | = 𝑛 · |𝑆𝐶→𝐶 ∗ |
+
+As this is true for all 𝐶 ∈ C \ {𝐶 ∗ }, the average degree in 𝐶 ∗ is at least max𝐶 {|𝑆𝐶→𝐶 ∗ |}.                             
+
+   We can now complete the proof of optimal clique listing.
+
+   Proof of Lemma 39. By Lemmas 47, 48, 49, and 50, the clusters tasked with listing instances of 𝐾4 in Parts 1–3 of
+the algorithm above satisfy the conditions of 𝐾4 -compatible clusters so that all 𝐾4 containing an edge in 𝐸 (𝑉𝐶◦, 𝑉𝐶◦ ) for
+a non-overloaded cluster 𝐶 ∈ C can be listed in 𝑛 1/2+𝑜 (1) rounds. Letting 𝜖 = 1/12 and 𝛾 = 4, we have by Lemmas 8
+and 44 that at most |𝐸|/2 edges are deferred to later rounds, so that the depth of recursion is logarithmic. Therefore,
+the overall runtime is 𝑛 1/2+𝑜 (1) .                                                                                        
+30                                                                             Keren Censor-Hillel, Dean Leitersdorf, and David Vulakh
+
+
+     Acknowledgements: This project was partially supported by the European Union’s Horizon 2020 Research and Innovation
+Programme under grant agreement no. 755839.
+
+
+REFERENCES
+[ACHKL20] Amir Abboud, Keren Censor-Hillel, Seri Khoury, and Christoph Lenzen. Fooling views: a new lower bound technique for distributed
+               computations under congestion. Distributed Computing, 33(6):545–559, April 2020.
+    [AMS99] Noga Alon, Yossi Matias, and Mario Szegedy. The space complexity of approximating the frequency moments. Journal of Computer and
+               System Sciences, 58(1):137–147, 1999.
+      [BPS11] Zvika Brakerski and Boaz Patt-Shamir. Distributed discovery of large near-cliques. Distributed Computing, 24(2):79–89, April 2011.
+       [CH21] Keren Censor-Hillel. Distributed Subgraph Finding: Progress and Challenges. In Nikhil Bansal, Emanuela Merelli, and James Worrell, edi-
+               tors, 48th International Colloquium on Automata, Languages, and Programming (ICALP 2021), volume 198 of Leibniz International Proceedings
+               in Informatics (LIPIcs), pages 3:1–3:14, Dagstuhl, Germany, 2021. Schloss Dagstuhl – Leibniz-Zentrum für Informatik.
+[CHCLL21] Keren Censor-Hillel, Yi-Jun Chang, François Le Gall, and Dean Leitersdorf. Tight distributed listing of cliques. In Dániel Marx, editor,
+               Proceedings of the Thirty-Second Annual ACM-SIAM Symposium on Discrete Algorithms (SODA ’21), pages 2878 – 2891, Philadelphia, PA, 2021.
+               Society for Industrial and Applied Mathematics. 32nd Annual ACM-SIAM Symposium on Discrete Algorithms (SODA 2021); Conference
+               Location: Online; Conference Date: January 10-13, 2021.
+[CHFG+ 20] Keren Censor-Hillel, Orr Fischer, Tzlil Gonen, François Le Gall, Dean Leitersdorf, and Rotem Oshman. Fast Distributed Algorithms for
+               Girth, Cycles and Small Subgraphs. In Hagit Attiya, editor, 34th International Symposium on Distributed Computing (DISC 2020), volume 179
+               of Leibniz International Proceedings in Informatics (LIPIcs), pages 33:1–33:17, Dagstuhl, Germany, 2020. Schloss Dagstuhl–Leibniz-Zentrum
+               für Informatik.
+ [CHFL+ 22] Keren Censor-Hillel, Orr Fischer, François Le Gall, Dean Leitersdorf, and Rotem Oshman. Quantum distributed algorithms for detection of
+               cliques. ITCS, 2022.
+ [CHFSV18] Keren Censor-Hillel, Eldar Fischer, Gregory Schwartzman, and Yadu Vasudev. Fast distributed algorithms for testing graph properties.
+               Distributed Computing, 32(1):41–57, January 2018.
+[CHKK+ 16] Keren Censor-Hillel, Petteri Kaski, Janne H. Korhonen, Christoph Lenzen, Ami Paz, and Jukka Suomela. Algebraic methods in the congested
+               clique. Distributed Computing, 32(6):461–478, March 2016.
+  [CHLL20] Keren Censor-Hillel, François Le Gall, and Dean Leitersdorf. On distributed listing of cliques. In Proceedings of the 39th Symposium on
+               Principles of Distributed Computing, PODC ’20, page 474–482, New York, NY, USA, 2020. Association for Computing Machinery.
+  [CHLT20] Keren Censor-Hillel, Dean Leitersdorf, and Elia Turner. Sparse matrix multiplication and triangle listing in the congested clique model.
+               Theoretical Computer Science, 809:45–60, 2020.
+       [CK20] Artur Czumaj and Christian Konrad. Detecting cliques in congest networks. Distrib. Comput., 33(6):533–543, dec 2020.
+   [CPSZ21] Yi-Jun Chang, Seth Pettie, Thatchaphol Saranurak, and Hengjie Zhang. Near-optimal distributed triangle enumeration via expander de-
+               compositions. J. ACM, 68(3), may 2021.
+     [CPZ19] Yi-Jun Chang, Seth Pettie, and Hengjie Zhang. Distributed triangle detection via expander decomposition. In Proceedings of the 2019 Annual
+               ACM-SIAM Symposium on Discrete Algorithms (SODA), pages 821–840. Society for Industrial and Applied Mathematics, 2019.
+        [CS19] Yi-Jun Chang and Thatchaphol Saranurak. Improved distributed expander decomposition and nearly optimal triangle enumeration. In
+               Proceedings of the 2019 ACM Symposium on Principles of Distributed Computing, PODC ’19, page 66–73, New York, NY, USA, 2019. Association
+               for Computing Machinery.
+        [CS20] Yi-Jun Chang and Thatchaphol Saranurak. Deterministic distributed expander decomposition and routing with applications in distributed
+               derandomization. In 2020 IEEE 61st Annual Symposium on Foundations of Computer Science (FOCS), pages 377–388, Los Alamitos, CA, USA,
+               nov 2020. IEEE Computer Society.
+    [DKO14] Andrew Drucker, Fabian Kuhn, and Rotem Oshman. On the power of the congested clique model. In Proceedings of the 2014 ACM symposium
+               on Principles of distributed computing - PODC '14. ACM Press, 2014.
+     [DLP12] Danny Dolev, Christoph Lenzen, and Shir Peled. "tri, tri again": Finding triangles and small subgraphs in a distributed setting. In Proceedings
+               of the 26th International Conference on Distributed Computing, DISC’12, page 195–209, Berlin, Heidelberg, 2012. Springer-Verlag.
+    [EFF+ 17] Guy Even, Orr Fischer, Pierre Fraigniaud, Tzlil Gonen, Reut Levi, Moti Medina, Pedro Montealegre, Dennis Olivetti, Rotem Oshman, Ivan
+               Rapaport, and Ioan Todinca. Three Notes on Distributed Property Testing. In Andréa W. Richa, editor, 31st International Symposium
+               on Distributed Computing (DISC 2017), volume 91 of Leibniz International Proceedings in Informatics (LIPIcs), pages 15:1–15:30, Dagstuhl,
+               Germany, 2017. Schloss Dagstuhl–Leibniz-Zentrum fuer Informatik.
+    [EFF+ 21] Talya Eden, Nimrod Fiat, Orr Fischer, Fabian Kuhn, and Rotem Oshman. Sublinear-time distributed algorithms for detecting small cliques
+               and even cycles. Distributed Computing, November 2021.
+  [FGKO18] Orr Fischer, Tzlil Gonen, Fabian Kuhn, and Rotem Oshman. Possibilities and impossibilities for distributed subgraph detection. In Proceed-
+               ings of the 30th on Symposium on Parallelism in Algorithms and Architectures, SPAA ’18, page 153–162, New York, NY, USA, 2018. Association
+               for Computing Machinery.
+Deterministic Near-Optimal Distributed Listing of Cliques                                                                                                 31
+
+
+      [FO19] Pierre Fraigniaud and Dennis Olivetti. Distributed detection of cycles. ACM Trans. Parallel Comput., 6(3), October 2019.
+  [FRST16] Pierre Fraigniaud, Ivan Rapaport, Ville Salo, and Ioan Todinca. Distributed testing of excluded subgraphs. In Cyril Gavoille and David
+               Ilcinkas, editors, Distributed Computing, pages 342–356, Berlin, Heidelberg, 2016. Springer Berlin Heidelberg.
+   [GKS17] Mohsen Ghaﬀari, Fabian Kuhn, and Hsin-Hao Su. Distributed MST and routing in almost mixing time. In Elad Michael Schiller and
+               Alexander A. Schwarzmann, editors, Proceedings of the ACM Symposium on Principles of Distributed Computing, PODC 2017, Washington,
+               DC, USA, July 25-27, 2017, pages 131–140. ACM, 2017.
+      [GL18] Mohsen Ghaﬀari and Jason Li. New distributed algorithms in almost mixing time via transformations from parallel algorithms. In Ulrich
+               Schmid and Josef Widder, editors, 32nd International Symposium on Distributed Computing, DISC 2018, New Orleans, LA, USA, October 15-19,
+               2018, volume 121 of LIPIcs, pages 31:1–31:16. Schloss Dagstuhl - Leibniz-Zentrum für Informatik, 2018.
+     [GO18] Tzlil Gonen and Rotem Oshman. Lower Bounds for Subgraph Detection in the CONGEST Model. In James Aspnes, Alysson Bessani, Pascal
+               Felber, and João Leitão, editors, 21st International Conference on Principles of Distributed Systems (OPODIS 2017), volume 95 of Leibniz Inter-
+               national Proceedings in Informatics (LIPIcs), pages 6:1–6:16, Dagstuhl, Germany, 2018. Schloss Dagstuhl–Leibniz-Zentrum fuer Informatik.
+ [HPZZ21] Dawei Huang, Seth Pettie, Yixiang Zhang, and Zhijun Zhang. The communication complexity of set intersection and multiple equality
+               testing. SIAM J. Comput., 50(2):674–717, 2021.
+  [HRSS17] Juho Hirvonen, Joel Rybicki, Stefan Schmid, and Jukka Suomela. Large cuts with local algorithms on triangle-free graphs. The Electronic
+               Journal of Combinatorics, 24(4), October 2017.
+        [IL17] Taisuke Izumi and François Le Gall. Triangle ﬁnding and listing in congest networks. In Proceedings of the ACM Symposium on Principles
+               of Distributed Computing, PODC ’17, page 381–389, New York, NY, USA, 2017. Association for Computing Machinery.
+   [ILM20] Taisuke Izumi, François Le Gall, and Frédéric Magniez. Quantum distributed algorithm for triangle ﬁnding in the congest model. STACS,
+               2020.
+       [JS89] Mark Jerrum and Alistair Sinclair. Approximating the permanent. SIAM Journal on Computing, 18(6):1149–1178, 1989.
+     [KR18] Janne H. Korhonen and Joel Rybicki. Deterministic Subgraph Detection in Broadcast CONGEST. In James Aspnes, Alysson Bessani, Pascal
+               Felber, and João Leitão, editors, 21st International Conference on Principles of Distributed Systems (OPODIS 2017), volume 95 of Leibniz Inter-
+               national Proceedings in Informatics (LIPIcs), pages 4:1–4:16, Dagstuhl, Germany, 2018. Schloss Dagstuhl–Leibniz-Zentrum fuer Informatik.
+     [MP80] J. Ian Munro and Mike Paterson. Selection and sorting with limited storage. Theor. Comput. Sci., 12:315–323, 1980.
+   [Mut05] S. Muthukrishnan. Data streams: Algorithms and applications. Found. Trends Theor. Comput. Sci., 1(2), 2005.
+    [PRS21] Gopal Pandurangan, Peter Robinson, and Michele Scquizzato. On the distributed complexity of large-scale graph computations. ACM
+               Trans. Parallel Comput., 8(2):7:1–7:28, 2021.
+       [PS13] Seth Pettie and Hsin-Hao Su. Fast distributed coloring algorithms for triangle-free graphs. In Fedor V. Fomin, Rūsin, š Freivalds, Marta
+               Kwiatkowska, and David Peleg, editors, Automata, Languages, and Programming, pages 681–693, Berlin, Heidelberg, 2013. Springer Berlin
+               Heidelberg.
+

@@ -1,0 +1,1772 @@
+                                                                   APMF < APSP?
+                                                          Gomory-Hu Tree for Unweighted Graphs
+                                                               in Almost-Quadratic Time
+                                                       Amir Abboud∗1 , Robert Krauthgamer†1 , and Ohad Trabelsi‡1
+                                                                          1
+                                                                              Weizmann Institute of Science
+arXiv:2106.02981v1 [cs.DS] 5 Jun 2021
+
+
+
+
+                                                                                       Abstract
+                                                We design an n2+o(1) -time algorithm that constructs a cut-equivalent (Gomory-Hu) tree of
+                                            a simple graph on n nodes. This bound is almost-optimal in terms of n, and it improves on the
+                                            recent Õ(n2.5 ) bound by the authors (STOC 2021), which was the first to break the cubic barrier.
+                                            Consequently, the All-Pairs Maximum-Flow (APMF) problem has time complexity n2+o(1) , and
+                                            for the first time in history, this problem can be solved faster than All-Pairs Shortest Paths
+                                            (APSP). We further observe that an almost-linear time algorithm (in terms of the number of
+                                            edges m) is not possible without first obtaining a subcubic algorithm for multigraphs.
+                                                Finally, we derandomize our algorithm, obtaining the first subcubic deterministic algorithm
+                                            for Gomory-Hu Tree in simple graphs, showing that randomness is not necessary for beating the
+                                                                                                                  2
+                                            n − 1 times max-flow bound from 1961. The upper bound is Õ(n2 3 ) and it would improve to
+                                              2+o(1)
+                                            n        if there is a deterministic single-pair maximum-flow algorithm that is almost-linear. The
+                                            key novelty is in using a “dynamic pivot” technique instead of the randomized pivot selection
+                                            that was central in recent works.
+
+
+
+
+                                        ∗
+                                          amir.abboud@weizmann.ac.il
+                                        †
+                                          robert.krauthgamer@weizmann.ac.il
+                                        ‡
+                                          ohad.trabelsi@weizmann.ac.il
+1     Introduction
+Connectivities (minimum-cut or maximum-flow) and distances (or shortest path) are perhaps the
+two most fundamental measures in graphs. Their computational complexity is a central object
+of study in algorithms and discrete optimization, and both have been extensively investigated in
+almost any setting of interest. Researchers often ponder the question: at a high-level, which of the
+two is harder?
+     The focus of this paper is on simple graphs (undirected, unweighted, no parallel edges or self-
+loops), denoting the input graph by G and its number of nodes by n = |V (G)|. For a single-pair
+s, t ∈ V (G) both measures can be computed in Õ(n2 ) time, albeit using very different algorithms.
+For shortest path, Dijkstra’s algorithm [Dij59] from 1956 is sufficient, while either continuous op-
+timization [vdBLL+ 21] or randomized contractions [KL15] are needed for maximum-flow. For the
+more demanding task of computing these measures for all-pairs in a given graph, the complexities
+appear to differ. Seidel’s algorithm [Sei95] solves all-pairs shortest paths in time nω+o(1) , where
+ω ≤ 2.37286 is the fast matrix multiplication exponent [AW21]; whether faster algorithms are possi-
+ble is one of the most well-known open questions in Algorithms. The key breakthrough for all-pairs
+maximum-flow came in 1961 with the fundamental discovery of Gomory and Hu [GH61] that any
+graph can be turned into a tree while preserving the minimum cuts for all pairs. Once the tree is
+obtained, all pairwise connectivities can be extracted in Õ(n2 ) time.
+
+Theorem 1.1 (Gomory and Hu [GH61]). Every undirected graph G (even with edge weights) has
+an edge-weighted tree T on the same set of vertices V (G) such that:
+
+    • for all pairs s, t ∈ V (G) the minimum (s, t)-cut in T is also a minimum (s, t)-cut in G, and
+      their values are the same.
+
+Such a tree is called a cut-equivalent tree, aka Gomory-Hu Tree. Moreover, the tree can be con-
+structed in the time of n − 1 invocations to a Max-Flow algorithm.1
+
+    Such a strong structural result is not possible for shortest paths (e.g., because any compression
+to Õ(n) bits must incur large error [TZ05, AB17]). Still, up until now, it has not lead to an
+algorithm solving the all-pairs maximum-flow problem (denoted All-Pairs Max-Flow) faster than all-
+pairs shortest path (All-Pairs Shortest-Paths). The original algorithm of Gomory and Hu for getting
+such a tree has time complexity Ω(n3 ), and only very recently a subcubic Õ(n2.5 )-time algorithm
+was found [AKT21]. The immediate open question is whether the bound can be pushed all the way
+down to n2 , or perhaps the tools of fine-grained complexity could come in the way and establish a
+conditional lower bound.
+
+Open Question 1.2. Can one construct a Gomory-Hu Tree of a simple graph G and solve all-pairs
+maximum-flow in Õ(n2 )-time?
+
+    Positive answers were obtained recently [AKT20a, LP21], but only for (1 + ε)-approximate cuts.
+On the negative side, the Strong Exponential Time Hypothesis (SETH) gives an n3−o(1) lower bound
+for the harder setting of directed graphs [KT18] (see also [AGI+ 19] for a higher lower bound), but
+probably not for undirected graphs [AKT20b]. Recent work has identified a class of problems that
+are conjectured to have n2.5 complexity [LPW20] (including all-pairs shortest paths in directed
+graphs [CWX21]); could our problem be one of them?
+    1
+      The notation Max-Flow refers to the maximum (s, t)-flow problem, which clearly has the same value as minimum
+(s, t)-cut. In fact, we often need algorithms that find an optimal cut (not only its value), which is clearly different
+(and usually harder) than Global-Min-Cut.
+
+
+                                                          1
+Main Result For unweighted simple graphs, our main result resolves (up to no(1) factors) the
+complexity of all-pairs maximum-flow and of the Gomory-Hu Tree problem in dense graphs, where
+Ω(n2 ) is a lower bound due to the input size (and for the former problem also output size).
+
+Theorem 1.3. There is a randomized algorithm, with success probability 1 − 1/ poly(n), that con-
+structs a Gomory-Hu Tree of a simple graph G and solves All-Pairs Max-Flow in time n2+o(1) .
+
+    We find this result surprising for multiple reasons. First, it shows that all n2 answers can be
+computed in the same time, up to lower-order factors, as it takes to compute a single-pair maximum-
+flow. Second, for the first time in history, the time complexity of All-Pairs Max-Flow goes below that
+of All-Pairs Shortest-Paths. This might be counter-intuitive because of the apparent unruliness of
+flows compared to paths, e.g., the n2+o(1) -time single-source algorithm was much more difficult to
+obtain. Perhaps the only indication for the plausibility of this outcome was given in our previous
+paper, where it was shown that truly subcubic time is possible for All-Pairs Max-Flow by only
+using combinatorial methods, whereas it is conjectured to be impossible for All-Pairs Shortest-Paths
+[AKT21]. Third, the algorithm not only solves All-Pairs Max-Flow but also produces a Gomory-
+Hu Tree that, among other things, is a space-optimal data structure for answering minimum cut
+invocations in Õ(1) time. While the Gomory-Hu algorithm reduces the problem to n − 1 Max-Flow
+computations, our new algorithm can be viewed as a reduction to only Õ(1) computations on graphs
+with n2+o(1) edges (but possibly more than n nodes).2
+
+Gomory-Hu Tree in Õ(m) Time? Looking ahead, after achieving the optimal exponent for the
+number of nodes n, the next outstanding question is a bound in terms of the number of edges m =
+|E(G)|: Is there an almost-linear time algorithm? Such a bound is known for planar graphs [BSW15],
+surface-embedded graphs [BENW16], and bounded-treewidth graphs [ACZ98, AKT20a]. It is also
+known in simple graphs if the algorithm is allowed to make nondeterministic guesses [AKT20b].
+
+Open Question 1.4. Can one construct a Gomory-Hu Tree of a simple graph G in m1+o(1) -time?
+
+   One issue when studying this question is that even single-pair Max-Flow is not known to be in
+almost-linear time when m = O(n1.5−ε ). If our goal is to understand the complexity of constructing
+a Gomory-Hu Tree, it is natural (and common) to assume the following plausible hypothesis.
+
+Hypothesis 1.5. Single-Pair Max-Flow on m-edge weighted graphs can be solved in time m1+o(1) .
+
+    This hypothesis does resolve Open Question 1.4 positively, even for general (weighted) graphs, if
+we are only interested in a (1 + ε)-approximate Gomory-Hu Tree [LP21], but not in the exact case.
+In the regime of sparse simple graphs, m = O(n), even under this hypothesis, the fastest algorithm
+                                                                                 √
+for Gomory-Hu Tree [AKT20b] has complexity Õ(n1.5 ), leaving a gap of about n. For general m,
+the state of the art would be (min(n2 , m1.5 ))1+o(1) , due to Theorem 1.3 and [AKT20b].
+    Our next observation is a reduction showing that improving the n1.5 -bound for simple graphs
+requires a breakthrough subcubic algorithm for Gomory-Hu Tree in more general settings. However,
+the recent advances in algorithms for Gomory-Hu Tree have been insufficient for breaking the cubic
+barrier even in unweighted non-simple graphs (multigraphs), which seem to be the main step towards
+weighted graphs; indeed, the known bound is Õ(mn) [BHKP07, KL15], which is Õ(n3 ) in the worst-
+case.
+   2
+     However, viewing it this way is not sufficient for getting an almost-quadratic algorithm because the current Max-
+Flow algorithms are not linear-time for all edge densities. Our algorithm actually uses a subroutine due to [BHKP07]
+that cannot be reduced to Max-Flow computations.
+
+
+
+                                                          2
+Hypothesis 1.6. No algorithm can construct a Gomory-Hu Tree of an unweighted multigraph with
+n nodes and O(n2 ) possibly parallel edges in time O(n3−ε ) for a fixed ε > 0.
+
+Theorem 1.7. Assuming Hypothesis 1.6, no algorithm can construct a Gomory-Hu Tree of a simple
+graph on n nodes and m = O(n) edges in time n1.5−ε for a fixed ε > 0.
+
+Derandomization Taking a step back, we ask whether the developments in recent years [BHKP07,
+AKT20b, AKT20a, AKT21] can give faster deterministic algorithms for Gomory-Hu Tree. In
+fact, no deterministic algorithm (in any density regime) faster than Gomory-Hu’s deterministic
+n · M F (n, m) = Ω(nm) algorithm is known. In fact, to our knowledge, the best upper bound in
+                    2
+terms of n is O(n3 3 ) using Goldberg and Rao’s deterministic Max-Flow algorithm [GR98]. The main
+difficulty is due to the fact that all these new algorithms solve the single-source minimum-cut prob-
+lem in some clever way, and then use a randomized pivot technique, in which a uniformly random
+source serves as a pivot in a recursive process of logarithmic depth. The algorithm in Theorem 1.3
+(and in [AKT21]) uses randomization also in other steps, such as expander decompositions and
+randomized hitting sets, but these can already be derandomized with existing methods.
+     A central contribution of our work is a new dynamic pivot technique that can (sometimes)
+derandomize the randomized-pivot technique at no extra cost.The main result in this context is the
+first subcubic algorithm for Gomory-Hu Tree.
+
+Theorem 1.8. There is a deterministic algorithm that constructs a Gomory-Hu Tree of a simple
+                                                  2
+graph and solves All-Pairs Max-Flow in time Õ(n2 3 ). The time bound improves to n2+o(1) assuming
+that single-pair Max-Flow can be computed in deterministic time m1+o(1) in m-edge weighted graphs.
+
+1.1   Prior Work
+The literature on cut-equivalent (Gomory-Hu) trees is quite vast. They have found many important
+applications in several fields (see [AKT21, Section 1.4]), and have been generalized in several ways.
+For example, they can be adapted to support other cut requirements such as multiway cuts or
+cuts between groups of nodes [Has88, Has90, Has91, Har01, EH05, CKK16]. The possibility of
+such magical representations of the minimum s, t-cuts in a graph have also been investigated in
+the harder settings of vertex connectivity and directed graphs (see [Ben95, HL07, PY21] and the
+references therein).
+
+Previous Algorithms for Gomory-Hu Tree Over the years, the time complexity of construct-
+ing a Gomory-Hu Tree has decreased several times due to improvements in Max-Flow algorithms,
+but there have also been conceptually new algorithms. Gusfield [Gus90] presented a modification of
+the Gomory–Hu algorithm in which all the n − 1 calls to Max-Flow are made on the original graph G
+(instead of on contracted graphs). Bhalgat, Hariharan, Kavitha, and Panigrahi [BHKP07] designed
+an Õ(mn)-time algorithm utilizing a tree packing approach [Gab95, Edm70] that has also been used
+in other algorithms for cut-equivalent trees [CH03, HKP07, AKT20b, AKT21]. In particular, they
+designed an O(mk)-time algorithm for constructing a k-partial Gomory-Hu Tree, which preserves
+the minimum cuts if their size is up to k (see [Pan16] and the full version [BCH+ 08]). A simple high-
+                                                              √
+degree/low-degree strategy is helpful in sparse graphs: only m nodes can have degree (and there-
+                          √           √                     √
+fore outgoing flow) above m, thus a m-partial tree plus m Max-Flow queries are sufficient, which
+takes O(m3/2 ) time if Max-Flow is solved in linear time. Using the current Max-Flow algorithms,
+this strategy results in the time bound Õ(min {m3/2 n1/6 , max {mn3/4 , m3/2 }}) [AKT20b]. Com-
+bined with [AKT21], the state of the art before this work was Õ(min {m3/2 n1/6 , mn3/4 , n3/2 m1/2 })
+
+
+                                                  3
+and now it is min(n2+o(1) , Õ(m3/2 n1/6 ), Õ(mn3/4 )). Additionally, two recent algorithms accelerate
+the Gomory–Hu algorithm by making multiple steps at once to achieve Õ(m) time, one requires
+nondeterminism [AKT20b] and the other requires a (currently non-existent) fast minimum-cut data
+structure [AKT20a].
+    In weighted graphs, the bound for Gomory-Hu Tree is still n times Max-Flow and therefore
+cubic using the very recent Õ(m + n1.5 ) algorithm for Max-Flow [vdBLL+ 21]. If the graph is
+sparse enough, one can use the recent Õ(m3/2−1/328 ) time algorithm [GLP21]. If additionally
+the largest weight U is small, a series of algorithms exist [Mąd16, LS19, LS20] that run in time
+Õ(min{m10/7 U 1/7 , m11/8 U 1/4 , m4/3 U 1/3 }) and might give a better time bound. The main open
+question left by this work is whether the ideas behind the drastic speed ups for unweighted graphs
+will lead to faster algorithms for weighted graphs as well.
+    Practice-oriented algorithms and experimental studies of some algorithms for Gomory-Hu Tree
+can be found in [AIS+ 16, GT01]. See the Encyclopedia of Algorithms entry [Pan16] for a further
+discussion on Gomory-Hu Tree algorithms.
+
+Approximations The challenge of designing approximation algorithms for Gomory-Hu Tree has
+received considerable attention lately [AKT20a, LP21]. In what may be the final answer, Li and
+Panigrahy [LP21] show that an m1+o(1) time algorithm constructing a (1 + ε)-approximate Gomory-
+Hu Tree, even for weighted graphs, would follow from Hypothesis 1.5. Notably, the key tool in their
+result is a simple yet powerful Isolating-Cuts procedure introduced in order to get a deterministic
+algorithm for the global minimum cut problem [LP20] and is also crucial in our exact algorithms
+for Gomory-Hu Tree in unweighted graphs [AKT21] (and this work). Interestingly, the expanders-
+based techniques that are also crucial in our exact algorithms were not needed for their (1 + ε)-
+approximation.
+
+Expander Decompositions A key ingredient of our Gomory-Hu Tree algorithms (in this paper
+and in [AKT21]) is an expander-decomposition of the graph [KVV04, OV11, OSV12, ST13, SW19,
+CGL+ 20, GRST21]. Such decompositions have led to several breakthroughs in algorithms for basic
+problems in the past decade, e.g. [ST14, KLOS14, NSWN17]. Even more recently, expander
+decompositions and conductance based arguments have been used to break longstanding bounds for
+other problems related to minimum cuts such as: deterministic algorithms for global minimum cut
+[KT19, Sar20, LP20, Li21] and vertex connectivity [Gab06, NSY19, FNY+ 20].
+    The added difficulty of the Gomory-Hu Tree problem compared to the global minimum cut
+problem comes from the low degree nodes. When we are searching for a minimum s, t-cut of value
+w there could be many nodes with degree < w that must be assigned to the correct side of the cut.
+But in the global minimum cut problem this cannot happen: if the global minimum cut has value
+w then all nodes in the graph must have degree ≥ w. These low-degree nodes create difficulties for
+the expansion-based arguments because, intuitively, they do not contribute as much as expected to
+the volume (for a more detailed explanation see [AKT21, Section 1.3, Complication 5]).
+
+1.2   Technical Overview
+In this section we distill and highlight the novel technical ideas of this work, instead of providing
+an overview of the actual algorithms. The overview below is a considerable over-simplification, be-
+cause the algorithms in both the work we improve upon [AKT21] and (to a lesser extent) this paper
+combine intricately many ingredients, and they cannot be truly explained without many prelimi-
+naries that may only be known to experts. Nevertheless, the standard/advanced terminology and
+
+
+
+                                                  4
+algorithms mentioned below without explanation can all be found in the Preliminaries (Sections 2
+and 5.1).
+     The plan is to first motivate and explain the three new ideas that are the key to the new results.
+We hope that they can be appreciated on their own even if it is not possible to see exactly how they
+fit into the actual algorithm. Afterwards, we will discuss some of the complications that arise when
+using these ideas inside the algorithm.
+
+1.2.1    The Simplest Hard Tree: Breaking the n2.5 Barrier using Expander-Decomposition
+         with Demands
+The simplest hard case for constructing a Gomory-Hu Tree appears to be the following.3 Given a
+graph G distinguish between the case where its only Gomory-Hu Tree is a star from the case where
+it is a c` -cr tree; i.e. two stars connected by an edge between the two centers c` and cr . In the first
+case, the graph has the property that the minimum u, v-cut for all nodes u, v ∈ V is one of the two
+trivial cuts {u} or {v}, and in the second case there is a single non-trivial minimum cut (C` , Cr ),
+the cut between c` and cr , while almost all others are trivial. This is a hard case even if we are
+given the node cr in advance; it is helpful to think of it as the pivot or source from which we want
+to compute single-source cuts. The difficulty is in finding c` (if it exists at all). To make it more
+concrete (and still hard) suppose that both stars have Ω(n) nodes and the minimum c` , cr -cut has
+value w = Θ(n) which in turn implies that both c` , cr must have degree Ω(n). See Figure 1.
+
+
+
+
+                                                  𝑐𝑙     𝑤      𝑐𝑟
+
+
+                                                   <𝑤        𝑤<
+
+
+
+
+                                       𝑪𝒍                                 𝑪𝒓
+
+Figure 1: The cut-equivalent tree T of a hard case, where cr is given and the goal is to identify c` ,
+the only node with a non-trivial minimum cut to cr . The weight of the cut (C` , Cr ) is λcl ,cr = w,
+illustrated by the dashed edge at the center; edges of weight > w are thick, and edges of weight
+< w are thin. The minimum cut between any pair of leaves u, v is trivial unless u is incident to a
+bold edge on the left and v is incident to a bold edge on the right.
+
+     It is instructive to observe that random sampling does not help, even if the cut we are searching
+for (the minimum c` , cr -cut) is balanced. Even if we sample a node ` from c` ’s star and a node r from
+cr ’s star (or cr itself), their minimum `, r-cut will not reveal the cut we are searching for; it could
+even be simply {`} or {r}.4 It seems that Ω(n) calls to a Max-Flow algorithm are required with this
+strategy. In fact, random sampling is one of the ways that help one see that c` -cr is the “hardest
+tree”: if the tree had a long path it would have been possible to shorten it with a randomized hitting
+   3
+     It had appeared to be hard both for breaking the n2.5 bound in simple graphs and, until today, for breaking the
+n3 bound in multigraphs and weighted graphs. This is discussed in Section 3 in [AKT21].
+   4
+     This is a big difference from related problems that ask for the global connectivity of a graph. There, finding a
+node from each side is the end of the story.
+
+
+
+                                                         5
+set. Another method, the powerful Isolating-Cuts procedure [LP20], lets one resolve trees with
+many small subtrees, but it too fails against the c` -cr tree where there is only one large subtree (see
+[AKT21, Section 3] for more details). One important observation, that is the first step towards a
+solution is that c` is the highest degree node among the nodes in the left star C` ;5 but the right star
+could have many nodes with higher or lower degree than it.
+    Perhaps the main idea in the subcubic algorithm of [AKT21] was to use an expander decom-
+position of G in order to locate the node c` using fewer or cheaper calls to a Max-Flow algorithm.
+                                                                                                √
+The graph is decomposed into φ-expanders H1 , . . . , Hh with expansion parameter φ = 1/ n and
+the number of outer-edges (that leave an expander) is Õ(|E|φ) = Õ(n1.5 ). Since the cut we are
+                                                                  √
+searching for has only O(n) edges, no expander can contain Ω( n) nodes from each side of this cut,
+as that would violate the φ-expansion requirement, as it would induce inside the expander a cut
+                   O(n)
+of conductance Ω(    √
+                       n)
+                          < φ (see Section 2.4 for relevant definitions). Now, a key observation that
+                                                                         √
+crucially relies on the fact that G is a simple graph, is that only Õ( n) nodes of high degree, say
+at least n/10, can be in small expanders Hi , i.e., of size at most n/100; this is because such a high
+degree node in a small expander must have at least n/10 − n/100 ≥ Ω(n) incident outer-edge, and
+there can only be Õ(n1.5 ) outer-edges in the decomposition. On the other hand, there can only be
+O(1) large (i.e., not small) expanders since there are only n nodes in the graph. Consequently, it
+is enough to search for c` inside the O(1) large expanders, using the clever methods that follow,
+                      √
+or among those Õ( n) high-degree nodes using direct calls to a Max-Flow algorithm. To search in
+large expanders two methods are used: one is useful when there are few nodes from the left star
+in the expander, and one is useful when there are few nodes from the right star. (Recall that no
+                            √
+expander can contain Ω( n) nodes from each star.)
+    In brief, the first procedure uses the fact that the expander contains c` plus only few nodes from
+C` in order to find a set of nodes S that isolates c` , in the sense that C` ∩ S = {c` }, and then uses
+the Isolating-Cuts procedure. And the second procedure, which will be elaborated on in the
+next subsection, uses the fact that c` is the highest degree node in C` to conclude that it must be
+                √                                                      √
+among the O( n) highest-degree nodes in an expander that has < n nodes from Cr . The upshot
+           √
+is that Õ( n) calls to a Max-Flow algorithm are enough to resolve any expander, and since this is
+only done for the O(1) large expanders, the n2.5 bound follows.
+                             √
+    How can we beat this n barrier? It is natural to make the expansion parameter φ larger, e.g.
+                              √
+1/ logO(1) n rather than 1/ n, so that each expander is guaranteed to have fewer nodes from one
+                                          √
+of the sides, e.g., logO(1) n rather than n, and then it can be handled more efficiently. The issue
+is that the upper bound on the number of outer-edges Õ(φ|E|) becomes worse and we end up with
+Ω(n/ logO(1) n) high-degree nodes in small expanders that must be checked. On the other hand,
+making φ smaller, e.g. 1/n, makes the time of handling an expander correspond to Ω(n) Max-Flow
+              √
+calls. Thus, n seems like a natural sweet-spot.
+    The new observation is that even though φ = 1/ logO(1) n may not allow us to directly find c`
+(since it may be among the Ω(n/ logO(1) n) high-degree nodes in small expanders), it does efficiently
+reduce the set of candidate for being c` from Ω(n) to about n/ logO(1) n. If this candidate elimination
+can be repeated, we will quickly, after Õ(1) times, reach a set of only Õ(1) candidates that can be
+checked directly. To make this repetition possible and to avoid pointlessly eliminating the same set of
+candidates each time, we utilize a more powerful expander-decomposition with vertex demands, that
+lets us set to 0 the demand of nodes we have already handled. These demands control much better
+how the vertices of a single expander are split between the two stars, because we can count only
+nodes that have non-zero demand and are not yet handled. A similar strategy was used by Li and
+   5
+    Suppose for contradiction that one of the leaves v ∈ C` has higher degree than c` . Then {c` } is a better cut than
+{v} the minimum cut in the tree, violating the requirements of a Gomory-Hu Tree.
+
+
+
+                                                          6
+Panigrahy [LP20] for their deterministic global min-cut algorithm (in weighted graphs), a related
+but very different problem. The two algorithms share a certain high-level strategy, even though
+almost all the details are different. These two striking applications of expander-decomposition with
+vertex demands indicate that we are likely to see additional applications of this powerful technology.
+
+1.2.2    From One Hard Cut to Single-Source Cuts using New Structural Results
+After resolving the hard case of the previous section, where there was only one “candidate” c` with
+a difficult-to-find cut, we move on to the more general setting. Suppose we are given a source (or
+pivot) node p, such as cr in the previous example, and want to compute the minimum cut to all
+other nodes v ∈ V . For concreteness and simplicity, assume that we are only interested in cuts of
+value between w and 2w, where w = Θ(n). It might seem that the strategy of the previous section
+simply works because c` could have been any high-degree node: we take all nodes of degree ≥ w to
+be candidates and the Õ(1) calls to Max-Flow are magically supposed to find the minimum p, v-cut
+for all of them.
+     Alas, from a closer look we see that the fact that c` is the highest degree node in its cut C` is
+crucially used in the second of the two methods described above, and this will not be the case for
+all high-degree nodes; from now on we will call this second method Procedure Lefty because it
+handles expanders with few nodes from the right side. The strategy taken in this paper and also (in
+a much less efficient way) in [AKT21] is to talk about estimates instead of degrees. The estimate
+c0 (v) of a node v is initially the degree of v, and it is reduced whenever a p, v-cut of smaller value is
+found. Eventually, when a node is “done” the estimate becomes equal to the value of the minimum
+p, v-cut (that is always upper bounded by the degree of v). In Procedure Lefty in [AKT21], instead
+of taking the O(φ−1 ) highest degree nodes from an expander, we actually take the highest estimate
+nodes. This lets us compute correct cuts not only for nodes that have the highest degree among
+their cut-members, but also those whose current estimate is highest. If this (the entire algorithm)
+is repeated enough times, letting the estimates improve after each repetition, it is guaranteed that
+all the minimum cuts will be found.6
+     But how many times should the algorithm be repeated? In [AKT21] it is argued that Õ(1)
+                                                                              √
+repetitions are sufficient because the algorithm has the budget to make n additional invocations
+each time Procedure Lefty is called and because the depth of the Gomory-Hu Tree can be upper
+              √                                           √
+bounded by n by taking a random hitting set of n nodes. Unfortunately, both of these things
+                                                                        √
+are not possible if we want n2+o(1) time. First, we cannot spend n additional invocations and
+second, the depth reduction itself already has Ω(n2.5 ) running time.
+     The approach taken in this paper is different, much more efficient, and exploits the fact that
+the graph is simple in a deeper way. We do not repeat the algorithm at all, but we augment
+Procedure Lefty so that it does not stop handling an expander until the node with highest estimate
+in the expander is done. The number of calls to Max-Flow can no longer be upper bounded by
+O(φ−1 ) = Õ(1) and, in principle, some expanders might incur a much larger number of calls. But
+we can provide an upper bound on the total number of calls using the fact that each additional call
+was a result of a previously undone node becoming done, meaning that a new minimum cut was
+found. In fact, the new cut is also not “easy” in the sense that it contains at least two high-degree
+nodes; this important point will not be discussed in this overview (except briefly in Section 1.2.4
+Item 4). Then, using a new bound on a certain notion of depth of a Gomory-Hu Tree of a simple
+graph, we can upper bound the number of such cuts by O(n/w) which is a negligible overhead for
+our algorithm. This bound is proved in Section 3 using combinatorial arguments of the following
+   6
+    To get intuition, observe that if a node v is the only node in its cut Cv that is not done, then it must have a
+higher estimate than all other nodes in Cv . The same cannot be said about the degree.
+
+
+                                                        7
+flavor: Suppose there is a set of k minimum cuts of value between w and 2w that nested (each cut is
+a subset of the previous one). If most of them have “private sets” of Ω(w) nodes that do not belong
+to the other cuts, then k = O(n/w), as desired. Otherwise, there is a sequence of 10 cuts with only
+o(w) private nodes each; now, because the graph is simple and each of these cuts must contain a
+node of degree ≥ w, we get that each of these cuts has (1 − o(1))w edges leaving the entire set of
+10 cuts. But then there are (10 − o(1))w edges leaving the largest of these cuts, contradicting the
+fact that its value is ≤ 2w. This structural result follows from basic combinatorics, but when used
+properly (e.g., one has to bypass complications with easy cuts), it can lead to significant algorithmic
+savings.
+
+1.2.3    Derandomization using a Dynamic Pivot
+Until now, we have described how to find the minimum cuts from a single pivot p to all other
+nodes v ∈ V . Let use remark that essentially all techniques needed for our n2+o(1) time single-
+source minimum cuts algorithm can be derandomized with standard tools.7 To fully construct a
+Gomory-Hu Tree, this algorithm is used recursively in a manner that is similar to the Gomory-Hu
+algorithm. There is an intermediate tree T that starts from a single super-node containing all of
+V , and gets refined throughout the recursion until eventually each node is in its own super-node.
+A refinement of the tree T is performed by dividing a super-node into smaller super-nodes, based
+on information about some minimum cuts. The Gomory-Hu algorithm divides the super-node into
+two each time, while our algorithm (since it has all the minimum cuts from a single pivot) may
+divide it into many super-nodes at once.8 For purposes of efficiency, we want to make the recursion
+depth logarithmic. This is guaranteed if the cuts from the pivot happen to divide the graph in a
+balanced way; but unfortunately, it could be the case that the minimum cut from the pivot p to
+all other nodes is ({p}, V \ {p}) and we have learned very little. A popular way to circumvent this
+issue ([BHKP07, AKT20a, AKT21]), used also in our randomized algorithm, is to pick the pivot at
+random and argue that with high probability, many of the cuts will be balanced. But it is not clear
+how a deterministic algorithm can avoid depth Ω(n) due to a sequence of bad pivots.
+    One approach is to use the new structural results to argue that, in a simple graph, if we always
+pick nodes of degree ≥ w as pivots, the number of calls to the single-source algorithm will be
+O(n/w). This would be an improvement over Ω(n) calls, but it will not lead to an n2+o(1) bound
+(even if Max-Flow can be solved in linear time).
+    The approach we take is both more powerful and conceptually simpler. We modify the single-
+source algorithm so that it is guaranteed to return balanced cuts: if this is not possible because the
+pivot is bad, then the single-source algorithm may change the pivot into a better one. A good pivot
+is always guaranteed to exist, e.g. the centroid p∗ of the Gomory-Hu Tree has the property that for
+all v ∈ V , the minimum p∗ , v-cut has ≤ n/2 nodes in the side of v.
+    In more detail, we start from the highest degree node as the pivot p and proceed with the
+single-source algorithm as usual. Whenever a cut Cq for node q ∈ V is obtained, either via a call
+to Max-Flow or via the Isolating-Cuts procedure (Lemma 2.10), we check to see if the cut is
+good in the sense that the side of q has ≤ n/2 nodes. (We work with so-called latest cuts, see
+Section 5.1.1, so that if a good cut exists, it will be found.) If the cut is not good, the algorithm
+runs a pivot-change protocol that makes q the new pivot. In this protocol, the estimates and cuts
+of all nodes v ∈ V are updated; fortunately, due to a triangle-inequality-like property of cuts,9 it
+   7
+     The only exception is the k-partial tree that is only needed as long as the upper bound for Max-Flow is not
+almost-linear. For the purposes of this overview, it is not needed.
+   8
+     This is a crucial point, as discussed in our previous papers [AKT20b, AKT20a]
+   9
+     It is well-known that min(λx,y , λy,z ) ≤ λx,z for all nodes x, y, z, where λu,v denotes the minimum u, v-cut value.
+
+
+
+                                                           8
+can all be done in O(1) time per node v ∈ V , which is negligible compared to the time for solving
+the Max-Flow leading to that pivot-change. And that is it; the algorithm can proceed as if q was
+the pivot all along.
+
+1.2.4   Further Complications
+Finally, let us mention the complications that arise when turning the above ideas into a full algorithm
+for constructing a Gomory-Hu Tree. Happily, some of the complications in our previous work
+[AKT21] were alleviated due to the recent discovery of a Max-Flow algorithm that runs in near-
+linear time when m = Ω(n1.5 ) [vdBLL+ 21].
+
+  1. The first reason that our actual algorithms are more complicated than what has been described
+     is that the single-source algorithm must work with auxiliary graphs of the iput graph G, and
+     thees are obtained by contracting certain nodes (as in the Gomory-Hu framework). While
+     the input graph is simple, the auxiliary graphs could have parallel edges, and so the same
+     arguments cannot be applied in a black-box manner. Still, we apply them by going back and
+     forth (in both the algorithm and analysis) between the nodes of the auxiliary graph and of
+     the input graph. While this does not introduce substantial technical difficulties, the notation
+     is heavier and it takes some time to get used to.
+  2. When searching for cuts of value w = o(n) the number of calls to a Max-Flow algorithm is
+     higher. Typically, our algorithms make Õ(n/w) calls to a Max-Flow algorithm. Fortunately, as
+     w gets smaller, each call becomes cheaper because it can be applied on a Nagamochi-Ibaraki
+     sparsifier [NI92] of the graph that only has O(nw) edges and preserves all cuts of value ≤ w.
+     So if we had an almost-linear time Max-Flow algorithm, all the calls together would overall
+     take (nw)1+o(1) · n/w = n2+o(1) time. But using the current Max-Flow algorithms each call
+                                                     √
+     takes Õ(nw +n1.5 ), which is larger when w = o( n), making the overall time super-quadratic.
+                                                                                √
+     To circumvent this issue, we start with a preliminary step that computes a n-partial tree of
+     the graph [BHKP07] in Õ(n2 ) (randomized) time, and afterwards all cuts we are interested in
+                    √
+     will have w > n.
+  3. In our randomized algorithm, where we use the standard randomized pivot selection to go from
+     a single-source algorithm to a full tree, it is convenient to assume that all minimum cuts are
+     unique. Otherwise the Max-Flow algorithm might adversarially return bad (unbalanced) cuts
+     with respect to whatever pivot we choose. This can be achieved by adding a small perturbation
+     to each edge, which guarantees that ties are broken in some consistent manner and does not
+     ruin the arguments that need the graph to be unweighted because we can still analyze the
+     underlying simple graph. There are other ways to circumvent this issue; for example, by
+     dropping the randomized pivot strategy altogether and using our dynamic pivot technique
+     instead. Still, we have chosen to present this method because it may be the easiest to follow
+     for readers who are familiar with prior work.
+  4. Finally, there is a step in our single-source algorithm that might seem unnecessary at first.
+     We invoke the Isolating-Cuts procedure to compute all easy cuts (recall these contain only
+     one node of degree ≥ w). We call them easy because they are indeed easy to compute using
+     a single call to Max-Flow and without any expansion-based arguments. The need for this step
+     is in order to bound the number of new cuts obtained in Procedure Lefty later on in the
+     algorithm using our new structural results. This result can only bound the number of cuts
+     that are not easy. Therefore, omitting this step might make Procedure Lefty prohibitively
+     expensive.
+
+                                                  9
+2     Preliminaries
+2.1    Gomory-Hu’s Algorithm and Partial Trees
+First, we give some general definitions that are often used by algorithms for Gomory-Hu trees.
+
+Partition Trees. A partition tree T of a graph G = (V, E) is a tree whose nodes 1, . . . , l are
+super-nodes, which means that each node i is associated with a subset Vi ⊆ V ; and these super-
+nodes form a disjoint partition V = V1 t · · · t Vl . We will assume that the edges of a partition
+tree are weighted in the natural way: each edge in T represents a vertex bipartition in G and we
+can define its weight to be the value of this cut in G. An auxiliary graph Gi is constructed from
+G by merging nodes that lie in the same connected component of T \ {i}. These merged nodes
+(representing multiple nodes in G) will be called contracted node. For example, if the partition
+tree is a path on super-nodes 1, . . . , l, then Gi is obtained from G by merging V1 ∪ · · · ∪ Vi−1 into
+one contracted node and Vi+1 ∪ · · · ∪ Vl into another contracted node. We will use the notations
+n0i := |Vi |, m0i := |E(Gi )|, and ni := |V (Gi )|. Note that n0i ≤ ni since V (Gi ) contains Vi as well as
+some other contracted nodes, with n0i = ni only if the tree T has a single super-node. The following
+is a brief description of the classical Gomory-Hu algorithm [GH61] (see Figure 2).
+
+The Gomory-Hu algorithm. This algorithm constructs a cut-equivalent tree T in iterations.
+Initially, T is a single node associated with V (the node set of G), and the execution maintains
+the invariant that T is a partition tree of V . At each iteration, the algorithm picks arbitrarily two
+graph nodes s, t that lie in the same tree super-node i, i.e., s, t ∈ Vi . The algorithm then constructs
+from G the auxiliary graph Gi and invokes a Max-Flow algorithm to compute in this Gi a minimum
+st-cut, denoted C 0 . The submodularity of cuts ensures that this cut is also a minimum st-cut in the
+original graph G, and it clearly induces a disjoint partition Vi = S t T with s ∈ S and t ∈ T . The
+algorithm then modifies T by splitting super-node i into two super-nodes, one associated with S
+and one with T , that are connected by an edge whose weight is the value of the cut C 0 , and further
+connecting each neighbor of i in T to either S or T (viewed as super-nodes), depending on its side
+in the minimum st-cut C 0 (more precisely, neighbor j is connected to the side containing Vj ).
+
+
+
+            𝑉𝑖                                          𝑆
+
+                     𝑠                                      𝑠
+                                      Minimum-Cut
+                 𝑡                    between 𝑠 and 𝑡           𝑡
+                                                                     𝑇
+
+
+
+
+Figure 2: An illustration of the construction of T . Left: T right before the partition of the super-
+node Vi . Middle: after the partitioning of Vi . Right: T as it unfolds after the Gomory-Hu algorithm
+finishes.
+
+    The algorithm performs these iterations until all super-nodes are singletons, which happens after
+
+                                                                10
+n − 1 iteration. Then, T is a weighted tree with effectively the same node set as G. It can be shown
+[GH61] that for every s, t ∈ V , the minimum st-cut in T , viewed as a bipartition of V , is also a
+minimum st-cut in G, and of the same cut value. We stress that this property holds regardless of
+the choice made at each step of two nodes s 6= t ∈ Vi .
+    A GH-Equivalent Partition Tree is a partition tree that can be obtained by a truncated execution
+of the Gomory-Hu algorithm, in the sense that there is a sequence of choices for the pairs s 6= t ∈ Vi
+that can lead to such a tree. A basic property of partition trees and auxiliary graphs is the following.
+
+Lemma 2.1 ([GH61]). Let T be a GH-Equivalent Partition Tree of a graph G = (V, E) and let G0
+be an auxiliary graph on original nodes V 0 ⊆ V . For all u, v ∈ V 0 it holds that Max-FlowG (u, v) =
+Max-FlowG0 (u, v).
+
+   The following simple lemma describes the flexibility in designing cut-equivalent tree algorithms
+based on the Gomory-Hu framework.
+
+Lemma 2.2. Given a GH-Equivalent Partition Tree T 0 of an input graph G, and a cut-equivalent
+tree Ti of the auxiliary graph Gi for each super-node Vi in T 0 , one can construct a full cut-equivalent
+tree T of G in linear time.
+
+Proof. In a preprocessing step, for every super node Vi in T 0 and every contracted node q ∈ V (Gi ) \
+Vi , save a pointer to the super node Vj ⊆ q that is adjacent to Vi in T 0 . Now, for every super-node
+Vi , identify each contracted node q ∈ V (Gi ) \ Vi with the super-node it contains that is adjacent to
+Vi in T 0 , and connect the nodes of Vi to the super-nodes they are adjacent to (if any). Finally, if a
+node u ∈ Vi is connected to a super-node Vj , and a node v ∈ Vj is connected to Vi , remove these
+connections and connect u to v directly, and call the result T . Observe that T must be a tree.
+     To see why T is a correct cut-equivalent tree of G, observe that there exists a simulated Gomory-
+Hu execution that results in T . Given the GH-Equivalent Partition Tree T 0 , pick pairs of nodes from
+Vi and cuts according to Ti . This is guaranteed to produce a tree T̃i whose projection on Vi is
+identical to Ti , while the subtrees adjacent to Vi in T̃ are connected to the same nodes of Vi as their
+contracted counterparts in Ti . Applying this simulated execution to all super-nodes concludes the
+proof.
+
+   A simple corollary is the following natural lemma that we will use.
+
+Lemma 2.3. Let G be a graph and suppose that S1 , . . . , Sk are non-crossing minimum cuts between
+a single source p and k targets. Then there exists a Gomory-Hu Tree of G in which all of these k
+cuts are minimum cuts.
+
+Proof. To construct such a tree, execute the Gomory-Hu algorithm where in the first k steps choose
+the pairs p, vi and suppose that Si is the cut returned by the invocation. Then continue the
+execution arbitrarily. Since these k cuts will be contracted in the later stages, the final tree will
+preserve them.
+
+2.1.1   k-Partial Trees
+A k-partial tree, formally defined below, can also be thought of as taking a cut-equivalent tree of G
+and contracting all edges of weight greater than k. Such a tree can obviously be constructed using
+the Gomory-Hu algorithm, but as stated below (in Lemma 2.5), faster algorithms were designed
+in [HKP07, BHKP07], see also [Pan16, Theorem 3]. It is known that such a tree is a GH-Equivalent
+Partition Tree, see [AKT20b, Lemma 2.3].
+
+
+                                                   11
+Definition 2.4 (k-Partial Tree [HKP07]). A k-partial tree of a graph G = (V, E) is a partition tree
+of G with the following property: For every two nodes x, y ∈ V whose minimum x, y-cut value in G
+is at most k, nodes x and y lie in different super-nodes x ∈ X and y ∈ Y , such that the minimum
+X, Y -cut in the tree defines a bipartition of V which is a minimum x, y-cut in G and the two cuts
+have the same value.
+Lemma 2.5 ([BHKP07]). There is an algorithm that given an undirected graph having n nodes, m
+edges, and unit edge-capacities together with an integer k ∈ [n], constructs a k-partial tree in time
+min{Õ(nk 2 ), Õ(mk)}.
+
+2.2   Edge Perturbation
+The following proposition shows that by adding small capacities to the edges, we can assume that
+G has one cut-equivalent tree T ∗ (see also [BENW16, Preliminaries] and [AKT20a]).
+Proposition 2.6. One can add random values in {1/n10 , . . . , n7 /n10 } to the edge-capacities in G,
+such that with probability 1 − 1/poly(n), the resulting graph G̃ has a single cut-equivalent tree T ∗
+with n − 1 distinct edge weights, and moreover the same T ∗ (with edge weights rounded back) is a
+valid cut-equivalent tree also for G.
+    Throughout this paper, when we say that G̃ is a perturbed version of G with unique minimum
+cuts we mean that G̃ was obtain from G as in Proposition 2.6. The truth is that sometimes, with
+low probability, the perturbed version G̃ may not have unique minimum cuts; but this event will
+be ignored throughout our analysis and, if it occurs, the algorithm is assumed to fail.
+
+2.3   Nagamochi-Ibaraki Sparsification
+We use the sparsification method by Nagamochi and Ibaraki [NI92]. They showed that for any
+graph G it is possible to find a subgraph H with at most w(n − 1) edges, such that H contains all
+edges crossing cuts of value w or less. It follows that if a cut has value at most w − 1 in G then
+it has the same value in H, and if a cut has value at least w in G then it also has value at least
+w in H. Their algorithm [NI92] performs this sparsification in time O(m) on unweighted graphs,
+independently of w, and it works for multigraphs that have m parallel edges.
+    We will need the following simple lemma, showing that sparsification and edge-perturbation can
+be combined in a convenient way.
+Lemma 2.7 (The Nagamochi-Ibaraki sparsifier of a perturbed graph). Given an unweighted multi-
+graph graph G on n nodes and m (possibly parallel) edges, an integer w ≥ 1, and a perturbed version
+G̃ of G with unique minimum cuts, one can compute in O(m) time a perturbed sparsifier Gw on
+O(nw) edges such that:
+   • any cut of weight < w in G̃ has exactly the same weight in Gw , and
+   • any cut of weight ≥ w in G̃ still has weight ≥ w in Gw .
+Proof. Let ε(e) ∈ {1/n10 , . . . , n7 /n10 } be the added perturbation of each edge e ∈ E(G) that was
+added in order to produce G̃, and note that ε(e) < 1. To produce the perturbed sparsifier Gw
+start by computing a Nagamochi-Ibaraki sparsifier H of the unweighted G, and then for each edge
+e ∈ E(G) ∩ E(H) that remains in H, add ε(e) to its weight.
+    Let S be a cut of weight < w in G̃. Since the edge perturbations are < 1 it follows that S
+has weight < w in G as well, and therefore all of its edges are preserved in the Nagamochi-Ibaraki
+sparsifier H. It follows that the weight of S in Gw is exactly as it is in G̃.
+
+                                                 12
+    On the other hand, let S be a cut of weight ≥ w in G̃. Again, since the perturbations are so small,
+the weight of this cut in G must have also been ≥ w, and by the properties of the Nagamochi-Ibaraki
+sparsifier, also in H and in Gw .
+
+   Consequently, if we restrict our attention to the cuts of weight < w, the sparsifier still has unique
+minimum cuts.
+
+2.4   Expander Decomposition
+We mostly follow notations and definition from [SW19]. Let GP    = (V, E) be an undirected graph with
+edge capacities. Define the volume of C ⊆ V as volG (C) := v∈C cdegG (v), where the subscripts
+referring to the graph are omitted if clear from the context. The conductance of a cut S in G is
+                    δ(S)
+ΦG (S) := min(volG (S),vol G (V \S))
+                                     . The expansion of a graph G is ΦG := minS⊂V ΦG (S). If G is a
+singleton then ΦG := 1 by convention. Let G[S] be the subgraph induced by S ⊂ V , and let G{S}
+denote the induced subgraph G[S] but with an added self-loop e = (v, v) for each edge e0 = (v, u)
+where v ∈ S, u ∈/ S (where each self-loop contributes 1 to the degree of a node), so that every node
+in S has the same degree as its degree in G. Observe that for all S ⊂ V , ΦG[S] ≥ ΦG{S} , because the
+self-loops increase the volumes but not the values of cuts. We say that a graph G is a φ-expander
+if ΦG ≥ φ, and we call a partition V = V1 t · · · t Vh a φ-expander-decomposition if mini ΦG[Vi ] ≥ φ.
+
+Theorem 2.8 (Theorem 1.2 in [SW19]). Given a graph G = (V, E) of m edges and a parameter φ,
+one can compute with high probability a partition V = V1 t · · · t Vh such that mini ΦG[Vi ] ≥ φ and
+P                    3
+  i δ(Vi ) = O(φm log m). In fact, the algorithm has a stronger guarantee that mini ΦG{Vi } ≥ φ.
+The running time of the algorithm is O(m log4 m/φ).
+
+  We will need the following strengthening of Theorem 2.8, where the input contains vertex de-
+mands (to be used instead of vertex degrees). Given in addition a demand vector d ∈ RV≥0 , the
+                                                                                  δ(S)
+graph G = (V, E) is a (φ, d)-expander if for all subsets S ⊆ V , ΦdG (S) := min(d(S),d(V \S)) ≥ φ. The
+following theorem statement is taken from [LP20], but its proof is actually a variation of a result
+from [CGL+ 20], and gives a deterministic algorithm. We are not aware of a faster algorithm, not
+even a randomized one based for instance on [SW19].
+
+Theorem 2.9 (Theorem III.8 in [LP20]). Fix ε > 0 and any parameter φ > 0. Given an edge-
+weighted, undirected graph G = (V, E, w) and a demand vector d ∈ R≥0 V , there is a deterministic
+
+algorithm running in time O(m1+ε ) that computes a partition V = V1 t · · · t Vh such that
+
+  1. For each i ∈ [h], define a demand vector di ∈ RV≥0     i
+                                                               given by di (v) = d(v) + w(E(v, V \ Vi ))
+     for all v ∈ Vi . Then, the graph G[Vi ] is a (φ, di )-expander.
+                                                                        P
+  2. The total weight of inter-cluster edges is w(E(V1 , . . . , Vh )) = i w(E(Vi , V \ Vi )) ≤ B · φd(V )
+                          4
+     for B = (log n)O(1/ε ) .
+
+2.5   The Isolating Cuts Procedure
+A key tool that will be used in both our deterministic and randomized algorithms is a simple yet
+powerful procedure that can compute many minimum cuts all at once with Õ(1) calls to a Max-Flow
+algorithm. More specifically, if a subset of the nodes C ⊆ V is given, the procedure returns the
+minimum isolating cut for each node v ∈ C; meaning the minimum cut that separates v from all
+other nodes in C \ {v}. This is very useful when we can pick a set C that contains only one node
+from each minimum p, v-cut Cv for many nodes v; then, all of these cuts are guaranteed to be found.
+
+                                                   13
+    This lemma was introduced by Li and Panigrahy [LP20] for their deterministic global minimum
+cut, and was later rediscovered in [AKT21] (using a different proof and a slightly different statement
+where there is a pivot) and used in a Gomory-Hu Tree algorithm. Independently, Li and Panighrahy
+[LP21] also used it for (an approximate) Gomory-Hu Tree.
+
+Lemma 2.10 (The Isolating-Cuts Procedure ([LP20]. See also [AKT21])). Given an undirected
+graph G = (V, E, c) on n nodes and m edges, a pivot node p ∈ V , and a set of connected vertices
+C ⊆ V , let (Cv , V \ Cv ) where v ∈ Cv , p ∈ V \ Cv be the latest minimum (p, v)-cut for each v ∈ C.
+One can compute deterministically in time O(M F (n, m, c(E)) · log n) |C| disjoint sets {Cv0 ⊂ V }v∈C
+such that
+                               ∀v ∈ C, if Cv ∩ C = {v} then Cv0 = Cv .
+
+
+3         New Structural Results for the Gomory-Hu Tree of Simple Graphs
+The main result of this section is a new structural result giving a non-trivial bound on a certain
+notion of depth of any Gomory-Hu Tree of a simple graph G. In fact, the bound is on the depth of
+a certain subtree of the cut-membership tree defined next.
+    Let T be any Gomory-Hu Tree of a graph G. A cut-membership tree Tp∗ with respect to node
+p ∈ V (G) [AKT20a, Section 3] (see Figure 3 for illustration) is a coarsening of T where all nodes
+B ⊆ V whose minimum cut to p is the same are merged into one bag. In more detail, define a
+function ` : V (T ) \ {p} → E(T ), where `(u) is the lightest edge in the path between u and p in T ,
+and `(p) = ∅; to make the function well-defined we break ties by taking the lowest (furthest from p)
+minimal edge on the path. Let Tp∗ (G) (or simply Tp∗ when G is clear from the context) be the graph
+constructed from T by merging nodes whose image under ` is the same. Observe that nodes that
+are merged together, namely, `−1 (e) for e ∈ E(T ), are connected in T , and therefore the resulting
+Tp∗ is a tree. We shall refer to nodes of Tp∗ as bags. For example, p is not merged with any other
+node, and thus forms its own bag. Just like a graph has many Gomory-Hu Trees, it also has many
+cut-membership trees with respect to any node p.
+    The size of a bag is defined to be the number of nodes (from G) that it contains. Define the
+value of a bag to be the value of the minimum cut corresponding to it. Define Tp∗,≥w (G), called
+the w-large cut-membership tree of G, to be the subset of Tp∗ (G) containing only bags of value ≥ w
+(see Figure 4).
+    Notice that all nodes in the bags of Tp∗,≥w (G) have degree ≥ w. A bag of Tp∗,≥w (G) is called
+easy if the subtree under it contains only one node of degree ≥ w.10 It follows that all easy bags
+are leaves in Tp∗,≥w (G), but not all leaves are easy.
+
+Theorem 3.1. If Tp∗,≥w (G) is an arbitrary w-large cut-membership tree of a simple graph G on
+n nodes, then the number of bags in Tp∗,≥w (G) that are not easy is ≤ c · n/w for a fixed constant
+c ≤ 105 .
+
+Proof. Let Tp∗,≥w (G) be any w-large cut-membership tree of G, and define T to be the tree Tp∗,≥w (G)
+after the removal of its easy bags. Our goal is to bound the number of bags in T by O(n/w). We
+begin by bounding its number of leaves, then continue to bound the number of internal bags (which
+is not straightforward since there could be many degree 2 bags).
+Claim 3.2. The number of leaves in T is ≤ 2n/w.
+    10
+         Throughout, the subtree under a bag includes the bag itself.
+
+
+
+
+                                                             14
+                                                 𝑒2                   𝑝
+                                                               7             13   𝑒1
+
+
+                                        ℓ−1 𝑒2
+                                                      9                           8
+                                                                                                 ℓ−1 𝑒1
+                                                               𝑒3                     𝑎
+                                        1                                             10        12
+                                             6
+                                                                    ℓ−1 𝑒3        𝑏              𝑐
+                               1                 15                                        11
+                                                          16
+                                                                                           𝑑
+
+                       2   3       14                 5
+
+
+
+
+Figure 3: An illustration showing a Gomory-Hu tree T with solid blue lines and the corresponding
+cut-membership tree Tp∗ (G) with dashed gray lines. For example, e1 = `(a) = `(b) = `(c) = `(d)
+and therefore {a, b, c, d} ∈ V (Tp∗ ) is a bag of size 4.
+
+
+Proof. Let B1 , . . . , Bx be the bags that are leaves in T . Fix a node v ∈ Bi and recall that the
+subtree of Tp∗ (G) under Bi , when viewed as a subset of V , corresponds to a minimum v, p-cut in G.
+Call the latter set Ci ⊆ V . It holds that the sets C1 , . . . , Cx are disjoint.
+    The claim follows from the key observation that, since G is simple, it must be that |Ci | ≥ w/2
+for all i ∈ [x], which implies that x ≤ 2n/w. To see why this observation is true, assume for
+contradiction that |Ci | < w/2 for some i ∈ [x]. Since Bi is not an easy bag, the cut Ci must contain
+at least two nodes of degree ≥ w, call them u, v. The node u has ≥ w adjacent edges, but since G
+is simple, only |Ci | − 1 < w/2 − 1 of them could go into Ci , and ≥ w/2 + 1 of them must go to
+V \ Ci . This implies that Ci \ {u} is a p, v-cut with fewer edges than Ci , a contradiction.
+
+    Let A ⊂ V (T ) be the set of bags in T whose degree (in T ) is 2. By Claim 3.2 and the basic
+combinatorial fact that in every tree, the number of nodes of degree > 2 is at most the number of
+leaves, we obtain that |V (T ) \ A| ≤ 2n/w. Thus, it remains to bound |A|.
+    Consider a bag B ∈ A. Let B 0 be the bag below it in T , and let PB ⊆ V be the set of all nodes
+in the subtree under B in Tp∗ (G) except for those in the subtree under B 0 . These nodes will be
+called the private nodes of B since they do not appear in bags below B in T . For example, suppose
+that B ∈ A has four children in Tp∗,≥w (G) called B1 , B2 , B3 , B4 , out of which three are leaves
+                 / T and only one is internal B 0 = B4 ∈ T , as well as two additional children B5 , B6 that
+B1 , . . . , B 3 ∈
+are in Tp (G) but not in Tp∗,≥w (G); in this case, the set PB contains all nodes in B1 , B2 , B3 , B5 , B6
+             ∗
+
+and their subtrees in Tp∗ (G), as well as the nodes in the bag B itself. Let AL ⊆ A be the set of
+bags of degree 2 with a large private set AL = {B ∈ A | |PB | > w/100}.
+    Since for any two bags B1 , B2 ∈ A we have that PB1 ∩ PB2 = ∅ it follows that |AL | ≤ 100n/w.
+The following key claim shows that T 0 cannot have a long path of degree 2 bags without large
+private sets.
+
+
+                                                               15
+                                       𝑝
+                                                              𝑃𝐵
+                                                     𝐵
+
+                                                                             𝑃𝐵 ′
+                                                                   𝐵′ = 𝐵4
+                                  𝐵1       𝐵2   𝐵3   𝐵5       𝐵6
+
+
+
+
+            T𝑝∗           ∪        ∪
+            ⊆
+
+
+
+
+            T𝑝∗,≥𝑤        ∪
+            ⊆
+
+
+
+
+            T
+
+
+
+
+Figure 4: An illustration of a cut-membership tree Tp∗ , its subtree Tp∗,≥w the w-large cut-membership
+tree, and its subtree T that is obtained by deleting all easy bags. Small blue circles represent nodes
+of degree ≥ w, while small grey dots represent nodes of degree < w
+
+
+Claim 3.3. There is no path of length ≥ 10 in T containing only bags from A \ AL .
+
+Proof. Assume for contradiction that such a path exists, and denote its bags by B1 , . . . , B10 ∈ A\AL ,
+ordered by going away from p. The nodes of G can be partitioned into three sets V = U t X t D,
+where U contains all nodes that do not appear in bags in the subtree under B1 , the set X =
+PB1 ∪ · · · ∪ PB10 of nodes that are private to bags in this path, and D contains all the remaining
+nodes, that is nodes that appear in the subtree under B10 but not private to B10 . Since none of
+these 10 bags is in AL we have that |X| ≤ 10 · w/100 = w/10.
+    For each i ∈ [10], let λi be the value of the bag Bi and fix a node vi ∈ Bi . By construction,
+λ1 ≥ · · · ≥ λ10 ≥ w. We know that deg(vi ) ≥ λi ≥ w; but since |X| ≤ Pw/10 and G is simple,     vi must
+                                                                          10                P9
+have > λi −w/10 edges to nodes in U ∪D. Overall, there must be >          i=1 λi −w >         i=1 λi edges
+from the nodes in X to the nodes in U ∪ D. Now there are two cases: either |E(X, D)| ≥ λ8 + λ9 ≥
+2λ10 , which contradicts the fact that |E(V \ D, D)| ≤ λ10 ; or |E(X, U )| > λ1 + · · · + λ7 ≥ λ1 + w,
+which contradicts the fact that |E(V \ U, U )| ≤ λ1 . As both cases lead to a contradiction, Claim 3.3
+follows.
+
+    Let Y be the set of bags in T that are either leaves, or have degree > 2, or have degree 2 but
+are in AL . By the above and Claim 3.2, |Y| ≤ 2 · 2n/w + |AL | ≤ 104n/w. To conclude the proof,
+we define a mapping f : V (T ) \ Y → Y from bags that are yet to be counted to bags that have
+already been counted. For a bag B ∈ A \ AL , let f (B) be the first bag in Y that is below B in T .
+By Claim 3.3, there can only be ≤ 10 bags in the pre-image of any bag in Y.
+
+
+                                                         16
+    To conclude the proof, we charge the remaining bags V (T ) \ Y to the bags that we have already
+counted. More precisely, we charge each bag B ∈ V (T ) \ Y = A \ AL to the first bag in Y that
+is below B in T . By Claim 3.3, at most 10 bags are charged to the same bag in Y, and therefore
+|A \ AL | ≤ 10|Y|. We conclude that |V (T )| = |A \ AL | + |Y| ≤ 11 · 104 · n/w, which completes the
+proof of Theorem 3.1.
+
+
+4     Gomory-Hu Tree in Near-Quadratic Time
+Theorem 1.3. There is a randomized algorithm, with success probability 1 − 1/ poly(n), that con-
+structs a Gomory-Hu Tree of a simple graph G and solves All-Pairs Max-Flow in time n2+o(1) .
+
+    Recall from Section 2.1 that an auxiliary graph G0 is obtained from a graph G = (V, E) and
+from a GH-Equivalent Partition Tree T by keeping the nodes V 0 ⊆ V from one super-node of T and
+contracting certain subsets of the other nodes as prescribed by T , introducing other nodes V (G0 )\V 0
+into G0 . The connectivity of any pair of original graph nodes u, v ∈ V 0 in G and G0 is the same
+(Lemma 2.1). To simplify the exposition, we will use the following definition of connectivity of an
+auxiliary graph; note that the requirement is only for the original graph nodes V 0 and not for the
+other nodes in G0 .
+
+Definition 4.1 (Connectivity of an Auxiliary Graph). We say that an auxiliary graph G0 has
+connectivity k if for every pair of original graph nodes u, v ∈ V 0 , the minimum (u, v)-cut in G0 (and
+thus also in G) has value at least k.
+
+4.1    Single-Source in Near-Quadratic Time
+Theorem 4.2. Given a simple graph G = (V, E) on N = |V | nodes with a designated pivot p ∈ V ,
+an√ auxiliary graph G0 on the graph nodes V 0 ⊆ V (G) with n = |V (G0 )|, m = |E(G0 )| and connectivity
+≥ N , and a perturbed version G̃ of G0 with unique minimum cuts, one can compute the minimum
+(p, v)-cut in G̃ for all nodes v ∈ V 0 in total time m1+o(1) + N n1+o(1) .
+
+   In the rest of this section we prove Theorem 4.2. Denote the value of the minimum u, v-cut in G̃
+by λu,v := Max-FlowG̃ (u, v), and fix a sufficiently large constant γ ≥ 1 (it will determine the overall
+success probability).
+
+The Algorithm First, initialize an estimate c0 (v) := degG̃ (v) for all v ∈ V 0 along with a witness
+                                          √
+cut Cv = {v}. Now for each j = blog N c, . . . , dlog N e, let w := 2j and execute the following
+process. We shall refer to this process as stage w, and it will compute correct estimates c0 (v) = λp,v
+(and witness cuts) for all v ∈ V 0 such that w ≤ λp,v < 2w.
+
+Stage w:
+
+    1. Compute a Nagamochi-Ibaraki sparsifier Gw (by Lemma 2.7) for the perturbed auxiliary graph
+       G̃, so that this Gw has O(nw) edges, all cuts of value < 2w are preserved, and all cuts of
+       larger value still have value ≥ 2w.
+    2. Construct the set V≥w
+                          0  := {v ∈ V 0 | degG (v) ≥ w} and call the Isolating-Cuts procedure
+       (see Lemma 2.10) on Gw , p, V≥w
+                                    0  to get a p, v-cut for all v ∈ V≥w
+                                                                      0  and update the estimates
+
+
+
+
+                                                  17
+        c0 (v) and Cv if the new cut has smaller value (and if its value is not ≥ 2w). This step computes
+        correctly all cuts that contain only one node from V≥w  0 ; such cuts will be called easy below.11
+
+     3. Initialize a set C = {v ∈ V 0 | c0 (v) > w}; its nodes will be called candidates.
+     4. While |C| > log n do:
+
+           • Compute an expander decomposition (H1 , . . . , H` ) of G0 (see Theorem 2.9) with param-
+                                                          1/2
+             eters ε := (log n)−1/9 = o(1) and φ := 2− log n = n−o(1) , and demand function
+                                                     (
+                                                       w, if v ∈ C
+                                             d(v) :=                                             (4.1)
+                                                       0, otherwise.
+
+           • Define the size of an expander H, denoted sizeG (H), to be the total number of nodes
+             from G that appear in (the possibly contracted nodes) of V (H) ⊆ V (G0 ).12
+           • For each expander Hi with sizeG (Hi ) ≥ w/2 do:
+             (a) Execute Procedure Righty (in Algorithm 1).
+             (b) Execute Procedure Lefty (in Algorithm 2).
+             (c) Remove all nodes in Hi from C.
+
+     5. Now that |C| ≤ log n, compute new cuts and estimates for all v ∈ C using Max-Flow invoca-
+        tions in Gw .
+
+
+  Algorithm 1: Procedure Righty
+ 1 repeat 2eγφ−1 ln N times
+ 2       S≥w ← randomly include each v ∈ V (Hi ) ∩ C independently with probability φ
+ 3       call the Isolating-Cuts procedure (Lemma 2.10) on Gw , p, S≥w to get a p, v-cut Sv0
+          and a corresponding value δ(Sv0 ) for all v ∈ S≥w
+ 4       foreach v ∈ S≥w such that δ(Sv0 ) < min {c0 (v), 2w} do
+ 5           c0 (v) ← δ(Sv0 )
+ 6           set Sv0 as the witness cut for v
+
+
+
+
+Running-Time Analysis We first bound the number of repetitions in Step 4, and then bound
+the time requried for each repetition.
+Claim 4.3. Every repetition of Step 4 reduces |C| by at least factor 2. Consequently, this step is
+repeated at most O(log n) times (at a single stage w).
+Proof. Let C be the set at the beginning of a repetition and let C 0 be the set at its end. The
+                                                                                               4
+total demand d(V ) is exactly |C| · w, and therefore by Theorem 2.9 we have that B = (log n)1/ε =
+                   4/9
+2(log log n)(log n) ≤ O(φ−1 / log n) and the number of outer-edges is bounded by
+                       X
+                          |E(Hi , V \ Hi )| ≤ O(d(V ) · B · φ) = O(|C|w/ log n).
+                           i
+  11
+     Alas, if the true minimum cut is not easy, a returned cut containing one node from S may be incorrect, and the
+algorithm will not know it.
+  12
+     For example, if H contains two nodes from V 0 ⊆ V (G) and two contracted nodes from V (G0 ) \ V 0 each of which
+obtained from ten nodes from G, then sizeG (H) = 22.
+
+
+                                                        18
+ Algorithm 2: Procedure Lefty
+ 1 Initialize a heap containing the nodes of Hi ∩ C keyed by their estimate c0 (v)
+ 2 repeat α = 3φ−1 times
+ 3      v ∗ ← node with maximum key c0 (v) extracted from the heap
+ 4      invoke Max-Flow to obtain the minimum p, v ∗ -cut in Gw , call it S ∗ and its value λp,v∗
+ 5      if c0 (v ∗ ) > λp,v∗ then
+ 6          α++ // increment the number of repetitions
+ 7      foreach v ∈ S ∗ such that c0 (v) > λp,v∗ do
+ 8         c0 (v) ← λp,v∗
+ 9         set S ∗ as the witness cut for v
+10      C ← C \ {v ∗ }
+
+
+
+The set C 0 contains all nodes in C that appear in small expanders Hi with size(Hi ) < w/2 (because
+nodes from the other expanders are removed from C). Recall that the size of an expander is measured
+in G even though the decomposition is of G0 . Any node v ∈ C must have degG (v) + 1 ≥ degG̃ (v) ≥
+c0 (v) ≥ w, and since G is a simple graph, only size(Hi ) ≤ w/2 of these edges can go to nodes in Hi .
+Therefore, each node in C 0 contributes ≥ (w − 1) − w/2 outer-edges to the expander-decomposition.
+Thus, |C 0 | · (w/2 − 1) = O(|C|w/ log n) and |C 0 | < |C|/2.
+      The O(log n) bounds on the number of repetitions follows immediately because initially |C| ≤
+|V 0 | ≤ |V (G0 )| = n.
+
+Claim 4.4. Each repetition in Step 4 takes time O(m1+ε ) = m1+o(1) plus the time for O(φ−1 N/w) =
+N/w · no(1) Max-Flow invocations in a graph with n nodes and O(nw) edges.
+
+Proof. By Theorem 2.9, the expander-decomposition takes time O(m1+ε ). The number of large
+expanders, i.e., with size(Hi ) ≥ w/2, is bounded by O(N/w) since the number of nodes in G is N
+and each large expander contains a disjoint set of at least w of them.
+
+     • In Step 4a, for each of the O(N/w) large expanders, there are O(log4 n ln N ) calls to the
+       Isolating-Cuts procedure with the graph Gw that has O(nw) edges, each of which results
+       in O(log n) Max-Flow invocations to a graph with O(nw) edges.
+
+     • The number of Max-Flow invocations in Step 4b is α = 3φ−1 for each large expander, plus
+       additional invocations across all the expanders. Let S1 , . . . , Sk be the cuts that caused an
+       increase in α, across all the expanders, listed in the order they were found. That is, each cut
+       Si was obtained from a Max-Flow invocation for some node vi (these were called S ∗ and v ∗ at
+       the time), and before the invocation the estimate c0 (vi ) was strictly larger than the cut value
+       that was found δ(Si ) = λp,vi .
+       It follows that all these k cuts are different. Indeed, Suppose that Si = Sj for i < j. Since
+       the estimate of all nodes in Si were updated when Si was found, later, when Sj was found,
+       c0 (vj ) was already equal to δ(Si ) and thus Sj = Si could not have improved vj ’s estimate, a
+       contradiction.
+       Moreover, and for a similar reason, all of these k cuts are not easy. Recall that a minimum
+       p, v-cut Sv is called easy if Sv contains only one node of degree ≥ w. A cut that is easy would
+       have been found by Step 2, and thus could not have improved the estimate of any node.
+
+
+
+                                                   19
+      By Claim 4.5 below (proved using structural Theorem 3.1), the number k of different cuts with
+      these properties is bounded by k ≤ O(N/w). Thus, the total number of Max-Flow invocations
+      in Step 4b (Procedure Righty) is O(N/w) · 3φ−1 + k = O(φ−1 N/w), and each of them is made
+      in the graph Gw that has O(nw) edges.
+
+     Finally, the time it takes to check and update the estimates for all nodes v ∈ S in a cut S that
+is found, is always upper bounded by the time for the Max-Flow invocation itself.
+
+    Combining the above two claims we establish that the running time of stage w of the algorithm is
+bounded by O(m1+ε log n) ≤ m1+o(1) plus the time for O(φ−1 N/w · log n) ≤ N/w · no(1) invocations
+to a Max-Flow algorithm on n nodes and O(nw) edges. Since every stage has w ≥ Ω(n1/2 ), employing
+the recent Õ(m + n1.5 )-time Max-Flow algorithm [vdBLL+ 21], would solve each of these Max-Flow
+invocations in time Õ(nw + n1.5 ) ≤ Õ(nw), which adds up over the entire stage to Õ(φ−1 N/w ·
+log n · nw) = Õ(N n · φ−1 log n) ≤ N n1+o(1) . The running time of all steps other than 4 is dominated
+by O(log N ) Max-Flow invocations in Gw , which itself is negligible compared to the above. We
+have O(log N ) stages, and their overall time bound is O(log N ) · Õ(m1+ε log n + N n · φ−1 log n) ≤
+Õ(m1+ε + N nφ−1 ).
+    To conclude the running time analysis, it remains to prove Claim 4.5 that was used to bound the
+number of additional invocations. Recall that a minimum (p, v)-cut Sv is called easy if Sv contains
+≤ 1 nodes of degree ≥ w.
+Claim 4.5. Let G be a simple graph on N nodes, let G0 be an auxiliary graph of G with respect to
+V 0 ⊂ V (G) that includes a pivot p, and suppose G̃ is a perturbed version of G0 with unique minimum
+cuts. Then the number of different minimum (p, v)-cuts, over all v ∈ V 0 , that have value ≥ w and
+are not easy, is at most O(N/w).
+Proof. Suppose that there is a set of k > 105 · N/w minimum (p, vi )-cuts in G̃ (and therefore also
+in G) C1 , . . . , Ck for nodes v1 , . . . , vk ∈ V 0 . Moreover, suppose that these cuts C1 , . . . , Ck are all
+distinct, have value ≥ w and are not easy. Since G̃ has unique minimum cuts, we know that all
+these k cuts are non-crossing. Therefore, by Lemma 2.3, there exists a Gomory-Hu Tree T of
+G that preserves all of these k cuts. Let Tp∗ (G) be the cut-membership tree with respect to p
+that corresponds to T and let Tp∗,≥w (G) be the corresponding w-large cut membership tree. It
+follows that all of our k cuts must be preserved in Tp∗,≥w (G) and, since they are different, they
+must correspond to different bags. Moreover, since the cuts are not easy, the bags they correspond
+to cannot be easy. It follows that Tp∗,≥w (G) contains k > 105 · N/w bags that are not easy, a
+contradiction to the structural Theorem 3.1.
+
+Correctness We say that a node v is done if c0 (v) = λp,v , and our goal is to show that at the
+conclusion of the algorithm all nodes are done. The argument is by induction on the stages. The
+follow main claim shows the inductive step.
+                                              √
+Claim 4.6. Let w = 2j for some j ∈ {blog N c, . . . , dlog N e} and consider the corresponding stage.
+Suppose that all nodes v ∈ V 0 with λp,v < w are done at the beginning of the stage. Then, with
+probability at least 1 − 1/N 2γ , all nodes with λp,v < 2w are done at the end of the stage.
+Proof. Let v ∈ V 0 be a node with λp,v < 2w that is not done at the beginning of the stage. It may
+be the case that v’s cut is easy and v becomes done in Step 2. If not, it must be that v ∈ C when
+C get initialized because c0 (v) > λp,v ≥ w.
+    There are two scenarios. Either v is removed from C in one of the repetitions of Step 4 or
+it remains in C until Step 5. The latter is an easy case because a direct Max-Flow invocation is
+
+                                                       20
+guaranteed to make v done. (This is despite the fact that invocations are performed in Gw rather
+than G0 because Gw preserves all cuts of value < 2w in G̃.) So suppose that v was removed from C
+due to being in a large expander Hi during one of the repetitions of Step 4.
+   Let (Sv , V \ Sv ), v ∈ Sv , p ∈ V \ Sv be the minimum p, v-cut in G̃ (and therefore also in
+Gw ). Let (L, R) be the projection of this cut unto the expander Hi , such that L = Hi ∩ Sv and
+R = Hi ∩ (V \ Sv ).
+   By Theorem 2.9, Hi is a (φ, di )-expander for a demand vector di ≥ d (entrywise). Since
+|EG0 (L, R)| ≤ |EG (Sv , V \ Sv )| < 2w we can conclude that
+                                                              |EG0 (L,R)|
+                    min(d(L), d(R)) ≤ min(di (L), di (R)) ≤        φ      ≤ 2wφ−1 .
+
+By the definition of demand vector d, we get that min(|L ∩ C|, |R ∩ C|) ≤ φ−1 , where C is the
+set of candidates at the beginning of the repetition of Step 4 (and v ∈ C). This means that we
+cannot have too many candidates in both sides, and formally at least one of the following two cases
+(possibly both) must hold.
+
+   • Case |L ∩ C| ≤ 2φ−1 . Then we claim that at least one of the sets S that are chosen during
+     the iterations of Step 4a will be isolating for v, meaning that S ∩ Sv = {v}. Once an isolating
+     set S is chosen, the call to the Isolating-Cuts procedure with p, S, Gw is guaranteed to find
+     the minimum p, v-cut and v will be done. To see this, let us compute the probability that S
+     is isolating for v in one of the 2eγφ−1 ln N iterations. Since v ∈ Hi ∩ C the probability that
+     it gets chosen to S is exactly φ. The only other nodes from Sv that can get chosen to S are
+     those in L ∩ C, because we only choose nodes from Hi ∩ C = (L ∪ R) ∩ C and the nodes in R
+     are not in Sv . Thus, the probability that v is chosen but not any of the other nodes in Sv is
+     at least φ · (1 − φ)|L∩C| ≥ φ · e−1 . Now, taking into account all the iterations, the probability
+                                                                            −1
+     that at least once an isolating set is chosen is ≥ 1 − (1 − φe−1 )2eγφ ln N ≥ 1 − 1/N 2γ .
+
+   • Case |R ∩ C| ≤ 2φ−1 . Then when we process Hi in Step 4b we are guaranteed to make v
+     done. Suppose for contradiction that the step terminates while v is still not done. First,
+     notice that at least 3φ−1 invocations for different nodes in Hi ∩ C are made during the step,
+     while there are only ≤ φ−1 nodes in R ∩ C; therefore, there is at least one (in fact, at least
+     φ−1 ) nodes v ∗ ∈ L ∩ C that are invoked. Let u be the last such node; this means that, when
+     u was chosen, it (1) must have had the largest estimate c0 (u) amongst all nodes in Hi ∩ C,
+     in particular, c0 (u) ≥ c0 (v); and (2) (since no more invocations were performed afterwards) it
+     must have already been done before the invocation was performed, i.e. c0 (u) = λp,u . Thus,
+     c0 (v) ≤ c0 (u) = λp,u . By our assumption that v is not done, we have a third inequality:
+     c0 (v) > λp,v . Combining it all together, we see that λp,v < λp,u but this is a contradiction to
+     the fact that u ∈ L ⊆ Sv : the cut (Sv , V \ Sv ) has value λp,v < λp,u yet it separates u from p,
+     an impossibility by the definition of λp,u .
+
+   This completes the proof the claim.
+                                                                                      √
+   Finally, for the base case, it remains to argue that for the first stage, where w = N , all nodes
+v ∈ V 0 with λp,v < w are done at the beginning of the stage. This√holds trivially because, by our
+assumption that the connectivity of the auxiliary graph G0 is < N , there cannot be any node
+v ∈ V 0 with λp,v < w.
+
+
+
+
+                                                 21
+4.2    From Single-Source to All-Pairs via Randomized Pivot
+Overview The algorithm of the previous section computes the minimum cuts from a single pivot
+p to all other nodes v ∈ V . In this section, this algorithm is used recursively in order to construct
+a full tree in a manner that is similar to the Gomory-Hu algorithm (see Section 2.1). Initially all
+nodes are in one super-node of an intermediate tree, and each time we refine the tree by partitioning
+the super-node into smaller super-nodes with the help of minimum cuts. The Gomory-Hu algorithm
+partitions the super-node into two, while our algorithm (since it has all the minimum cuts from a
+single pivot) may divide it into many super-nodes at once.13 For purposes of efficiency, we want
+to make the recursion depth logarithmic. This is guaranteed if the cuts from the pivot happen to
+divide the graph in a balanced way; but unfortunately, it could be the case that the minimum cut
+from the pivot p to all other nodes does not partition the graph well, e.g. it is ({p}, V \ {p}). A
+popular way to circumvent this issue ([BHKP07, AKT20a, AKT21]), that we also use in this section,
+is by picking the pivot at random and arguing that many of the cuts will be balanced, with high
+probability. To facilitate such arguments, it is helpful to have unique minimum cuts in the graph;
+otherwise, a Max-Flow invocation is free to always give us the most unbalanced cut with respect to
+the pivot we pick. For this purpose, the algorithm of this section works with perturbed edge weights
+that make all minimum cuts unique.
+
+The Algorithm The input is a simple graph G on N nodes.
+                                                    √
+  1. Compute a partial k-tree Tk for G with k = N (see Section 2.1.1). This is the initial
+     GH-Equivalent Partition Tree T that will get refined throughout the algorithm until it is a
+     Gomory-Hu Tree of G. Note that from this point onwards, all auxiliary graphs will have
+     connectivity ≥ k.
+
+   2. For each super-node Vi of Tk , do the following operations that refine T .
+
+       (a) If |Vi | = 1, stop processing the super-node. Otherwise, continue:
+       (b) Compute an auxiliary graph Gi for Vi using the current GH-Equivalent Partition Tree T
+           (see Section 2.1), and then compute a perturbed version G̃i for Gi (as in Proposition 2.6)
+           such that the minimum p, v-cuts for all v ∈ Vi are unique.
+       (c) Pick a pivot p ∈ Vi uniformly at random, and run the algorithm of Theorem 4.2 on the
+           graph G, the auxiliary graph Gi , its perturbation G̃i , and the pivot p, to get the (unique)
+           minimum p, v-cuts Sv in G̃i for all v ∈ Vi ,
+       (d) Check how many nodes v have “good” cuts. A cut Sv is called good if the side of v (not
+           p) has |Sv ∩ Vi | ≤ |Vi |/2 graph nodes. The pivot p is called good if all but ≤ 3|Vi |/4
+           graph nodes in Vi have good cuts.
+       (e) If the pivot p is not good, go back to Step 2c. (If there is a sequence of 2γ log N bad
+           pivots in a row, abort and return failure.) Otherwise, continue:
+        (f) Refine T based on the cuts as follows. Assign each node u ∈ Vi to the largest good cut
+            Sv that separates it from p, i.e. u ∈ Sv .14 Let S1 , . . . , Sr be the (good) cuts that have
+            at least one node u ∈ Vi assigned to them.15 Refine Vi by taking a Gomory-Hu step
+  13
+     This is a crucial point, as discussed in our previous papers [AKT20b, AKT20a]
+  14
+     By largest we mean the cut with largest number of nodes |Sv |, not largest weight. This may not be a minimum
+cut for u but it is a minimum p, v-cut for some v ∈ Vi and therefore it can be used for refining T .
+  15
+     Note that these cuts are non-crossing since they are minimum cuts in G̃ that has unique minimum cuts.
+
+
+
+                                                       22
+           using each of these r cuts. This results in r + 1 smaller super-nodes: one super-node Vi,j
+           for each cut Sj plus a remainder super-node Vi,0 that contains p and all other ≤ 3|Vi |/4
+           nodes in Vi whose cuts were not good (and therefore they were not assigned to any of
+           the r cuts).
+       (g) Recurse on each of the smaller super-nodes Vi,j for j ∈ {0, . . . , r} by going to Step 2a.
+
+    3. When all super-nodes have been fully processed and contain only one node, the GH-Equivalent
+       Partition Tree T is a complete Gomory-Hu tree.
+
+Correctness Assuming that we do not reach a bad event in which we either abort in Step 2e
+or a perturbed graph does not have unique minimum cuts, the correctness of the algorithm is
+straightforward. It follows from the fact that whenever a super-node is partitioned into smaller
+super-nodes it is based on correct minimum cuts, and therefore the process could have been simulated
+by a Gomory-Hu algorithm that chose certain pairs and that received certain minimum cuts as
+invocation answers. This is formalized in Lemma 2.2, plus the observation that the partial k-tree
+Tk is a GH-Equivalent Partition Tree (see Section 2.1.1). The probability of the bad event can be
+upper bounded by 1/ poly(N ) by Proposition 2.6 and Claim 4.7 below, plus a union bound on the
+O(N ) recursive calls.
+
+Claim 4.7. The probability that there is a sequence of 2γ log N bad pivots is ≤ 1/N γ .
+
+Proof. We use Corollary 2.5 from [AKT20a], given here for completeness.
+Corollary 4.8. Let F = (VF , EF ) be a graph where each pair of nodes u, v ∈ VF is associated
+with a cut (Suv , Svu = VF \ Suv ) where u ∈ Suv , v ∈ Svu (possibly more than one pair of nodes are
+associated with each cut), and let VF0 ⊆ VF . Then there exist |VF0 |/2 nodes p0 in VF0 such that at
+least |VF0 |/4 of the other nodes w ∈ VF0 \{p0 } satisfy |Sp0 w ∩ VF0 | > |Swp0 ∩ VF0 |.
+     Assign F := Gi , VF0 = Vi , and the cuts are the unique minimum cuts in the perturbed graph
+G̃i . It follows that there exist |Vi |/2 good pivots p0 ∈ Vi , meaning that at least |Vi |/4 of the other
+nodes q ∈ Vi \ {p0 } satisfy that Sq , their minimum p, q-cut in G̃, is good. Thus, the probability to
+not pick good pivots in all 2γ log N iterations is at most (1/2)2γ log N ≤ 1/N 2γ , as required.
+
+
+Running Time Analysis The algorithm is recursive. The depth of the recursion is O(log N )
+because each super-node on n0 graph nodes gets refined into smaller super-nodes containing at most
+3n0 /4 graph nodes, starting from n0 = N and until n0 = 1. The time for each recursive call is
+dominated by the logarithmic number of calls to Theorem 4.2 and is therefore Õ(m + N n) where n
+and m are the numbers of nodes and edges in the auxiliary graph that corresponds to the call. To
+analyze the total time of the recursion, will use the fact that the total number of edges across all
+auxiliary graphs at a single depth is O(M ) (see Lemma 3.7 in [AKT20a]), and the total number of
+nodes there is Õ(N ) (seeP
+                          Lemma 4.1 in [AKT21]). Thus, Summing over all the calls for one depth
+of the recursion gives Õ( i m + N n) ≤ Õ(M + N 2 ) ≤ Õ(N 2 ), and summing over all log N levels
+of the recursion concludes the total running time of Õ(N 2 ).
+
+
+5     Derandomization via Dynamic Pivot
+In this section we derandomize the algorithm of Section 4. The key tool is the dynamic pivot
+technique that will be presented in Section 5.2 where we prove the following two theorems. Our
+
+                                                   23
+deterministic results for the single-source problem is the following; it is analogous to Theorem 4.2
+in Section 4.
+Theorem 5.1. Given a simple graph G = (V, E) on N nodes and an auxiliary graph G0 of G
+on the graph nodes V 0 ⊆ V with n := |V (G0 )|, m = |E(G0 )|, one can find a certain pivot node
+p ∈ V 0 and compute minimum p, v-cuts Sv in G for all terminals v ∈ V 0 where v ∈ Sv , p ∈ Sv
+and |Sv ∩ V 0 | ≤ |V 0 |/2, in (m + N n5/3 )1+o(1) deterministic time. Suppose that single-pair Max-
+Flow in m-edge weighted graphs can be solved deterministically in m1+o(1) time, then the time bound
+improves to (m + N n)1+o(1) .
+    Once we have this theorem, constructing the tree and proving Theorem 1.8 from the introduc-
+tion is easy. This is described in Section 5.3. Before going into the proof we begin with some
+preliminaries.
+
+5.1     Preliminaries for the Deterministic Algorithms
+5.1.1    Latest Cuts
+Introduced by Gabow [Gab91], a latest minimum (s, t)-cut with respect to s (or a minimal minimum
+(s, t)-cut, in some literature) is a minimum (s, t)-cut (Ss , St = V \ Ss ) such that no strict subset of
+St is a minimum (s, t)-cut. The latest minimum cut (with respect to a node) is unique, and can be
+found in the same running time of any algorithm that outputs the maximum network flow between
+the pair, by finding all nodes that can reach t in the residual graph. In particular, the deterministic
+Goldberg-Rao algorithm for Max-Flow also finds the latest minimum cut.
+     We will use the following basic lemma about latest cuts that follows from the submodularity of
+cuts. Recall that a family of cuts is a laminar family if they are non-crossing: no pair S, S 0 have
+both S \ S 0 6= ∅ and S 0 \ S 6= ∅.
+Lemma 5.2. Let p ∈ V be any node. The set of all minimum p, v-cuts with respect to p for all
+v ∈ V is a laminar family.
+
+5.1.2    Deterministic Hitting Sets via Splitters
+In order to derandomize the hitting-sets we pick for the Isolating-Cuts procedure, we employ
+splitters (see [NSS95]). A splitter is a well-known combinatorial object previously applied in the
+areas pseudorandomness and derandomization (see, e.g. Section 5.6.1 in [CFK+ 15]).
+Lemma 5.3 (See Lemma III.4 from [LP20]). Given a universe-size parameter n and a size pa-
+rameter k one can deterministically construct a family of s = poly(k, log n) subsets U1 , . . . , Us ⊆ [n]
+such that for any subset T ⊆ [n] of size |T | ≤ k and a number j ∈ T it holds that Ui ∩ T = {j} for
+some i ∈ [s], in time Õ(ns).
+   The proof of Lemma III.4 from [LP20] actually proves the stronger Lemma 5.3.
+
+5.2     Single-Source Algorithm using a Dynamic Pivot
+The Algorithm Initially, set the pivot p to be the node in V 0 with largest degree (in G), and
+initialize an estimate c0 (v) := degG̃ (v) for all v ∈ V 0 along with a witness cut Cv = {v}. There
+are O(log N ) stages in the algorithm: the wth stage is guaranteed to compute correct estimates
+c0 (v) = λp,v for all v ∈ V 0 such that w ≤ λp,v < 2w, where p is the pivot at the end of that stage.
+Moreover, every estimate c0 (v) is witnessed by a good p, v-cut Sv , v ∈ Sv with |Sv ∩ V 0 | ≤ |V 0 |/2
+and δ(Sv ) = c0 (v).
+
+                                                   24
+ 1. For each w = 2j with j ∈ {1c, . . . , dlog N e} do the following.
+
+     (a) Compute a Nagamochi-Ibaraki sparsifier Gw of G0 with O(nw) edges and such that all
+         cuts of value < 2w are preserved, and all larger cuts still have value ≥ 2w.
+     (b) Construct the set V≥w 0  := {v ∈ V 0 | degG (v) ≥ w} of degree ≥ w nodes, and call the
+         Isolating-Cuts procedure (Lemma 2.10) on Gw , p, V≥w           0   to get a (p, v)-cut Sv for all
+         v ∈ V≥w such that the sets {Sv }v∈S are disjoint. If there is a node q ∈ V≥w
+                0                                                                              0    such that
+         |Sq ∩ V | > |V |/2, invoke a Max-Flow algorithm to find the latest minimum p, q-cut with
+                  0     0
+
+         respect to p,16 and denote it by Sq .17 If it is still the case that |Sq ∩ V 0 | > |V 0 |/2, perform
+         the pivot-change protocol (described below) making q the pivot instead of p. Finally, for
+         each v ∈ V≥w
+                    0 update the estimate c0 (v) and the witness C if the new cut S has smaller
+                                                                          v                    v
+         value.
+      (c) Initialize the set C = {v ∈ V 0 | c0 (v) > w}.
+     (d) While |C| > log n do:
+             • Compute an expander decomposition (H1 , . . . , H` ) of G0 (see Theorem 2.9) with
+                                                          1/2
+               parameters ε := (log n)−1/9 and φ := 2− log n , and demand function:
+                                                   (
+                                                     w, if v ∈ C
+                                            d(v) =                                          (5.1)
+                                                     0, otherwise.
+
+             • Define the size of an expander H, denoted sizeG (H), to be the total number of nodes
+               from G that appear in (the possibly contracted nodes) of V (H) ⊆ V (G0 ).
+             • For each expander Hi such that size(Hi ) ≥ w/2 do:
+                 i. (This corresponds to Procedure Righty in Section 4.1.) Use splitters (Lemma 5.3)
+                    with universe-size parameter u = |Hi ∩ C| and size parameter ` = 2φ−1 to obtain
+                    a family of sets U1 , . . . , Us ⊆ [u].18 For each j ∈ [s] use Uj to do the following:
+                    Construct a set S≥w ⊆ V 0 by adding the xth node in (a lexicographic order-
+                    ing of) Hi ∩ C to S≥w if and only if x ∈ Uj , and call the Isolating-Cuts
+                    procedure (Lemma 2.10) on Gw , p, S≥w to get a (p, v)-cut Sv for all v ∈ S≥w
+                    such that the sets {Sv }v∈S≥w are disjoint. If there is a node q ∈ S≥w such
+                    that |Sq ∩ V 0 | > |V 0 |/2, invoke a Max-Flow algorithm to find the latest mini-
+                    mum p, q-cut with respect to p and denote it by Sq . If it is still the case that
+                    |Sq ∩ V 0 | > |V 0 |/2, perform the pivot-change protocol making q the pivot instead
+                    of p. Finally, for each v ∈ S≥w update the estimate c0 (v) and the witness Cv if
+                    the new cut Sv has smaller value.
+                ii. (This corresponds to Procedure Lefty in Section 4.1.) Store the nodes in Hi ∩C
+                    in a data structure (e.g. a heap) that allows to extract the node with largest c0 (v),
+                    and to decrease c0 (v) for any node. Perform the following operation α = 3φ−1
+                    times:
+                   A. Extract v ∗ the node in Hi ∩ C with largest c0 (v). Invoke a Max-Flow algo-
+                       rithm to obtain the latest minimum p, v ∗ -cut in Gw with respect to p, call it
+                       S ∗ , v ∗ ∈ S ∗ and its value λp,v∗ . If c0 (v ∗ ) > λp,v∗ , the number of repetitions to
+                       Step 1(d)iiA is increased by one, namely α++. If |S ∗ ∩ V 0 | > |V 0 |/2, perform
+16
+   That is, the minimum p, q-cut in which the side of q is as small as possible.
+17
+   The previous Sq can be discarded.
+18
+   In the notation of Lemma 5.3, u is n and ` is k.
+
+
+                                                        25
+                          the pivot-change protocol making v ∗ the pivot instead of p. For each v ∈ S ∗
+                          such that c0 (v) > λp,v∗ do c0 (v) ← λp,v∗ and set S ∗ as the witness cut for v.
+                          Remove v ∗ from C.
+                   iii. Remove all nodes in Hi from C.
+          (e) Once |C| ≤ log n, compute the latest minimum p, v-cut Sv for all v ∈ C by directly
+              invoking a Max-Flow algorithm in Gw , and update the estimates accordingly. If any of
+              the invocations for a node q ∈ C results in a cut Sq with |Sq ∩ V 0 | > |V 0 |/2 then the
+              algorithm calls the pivot-change protocol making q the pivot instead of p.
+
+The pivot-change protocol A pivot change from p to q takes place when the algorithm finds out
+that the latest minimum p, q-cut Sp,q , p ∈ Sp,q with respect to p is not good, i.e. |Sp,q ∩ V 0 | < |V 0 |/2.
+Since it is latest, it implies that the side of p in all minimum p, q-cuts will contain less than 1/2 of
+the nodes of V 0 . Recall that λp,q = δ(Sp,q ). To change the pivot from p to q the algorithm performs
+the following operations.
+
+       • Let Sq,p , p ∈ Sq,p be the latest minimum p, q-cut with respect to q.19
+       • Go over all nodes v ∈ V 0 and if c0 (v) > λp,q set c0 (v) := λp,q with the witness cut being Sq,p .
+
+   The running time for the pivot change protocol is the time of a Max-Flow algorithm plus O(n)
+because we spend O(1) time for each node v ∈ V 0 .
+   The key claim is the following, showing that the algorithm can be resumed after a pivot-change
+protocol and it will be as if q was the pivot all along: any node that already had a correct good cut
+with respect to the old pivot p will also have a correct good cut with respect to the new pivot q.
+Claim 5.4. Suppose that, before the pivot-change protocol, the estimate of node v ∈ V 0 was correct,
+i.e. c0 (v) = λp,v , and its witness cut was good, i.e. Sv , v ∈ Sv and |Sv ∩ V 0 | ≤ |V 0 |/2, then after the
+pivot-change protocol it holds that c0 (v) = λq,v and its witness cut Sv0 , v ∈ Sv0 has |Sv0 ∩ V 0 | ≤ |V 0 |/2.
+Moreover, if the witness cut before the change was latest with respect to p then the cut after the
+change is also latest with respect to q.
+Proof. Let v be such a node and let S1 , v ∈ S1 be its witness cut before the protocol. That is, S1 is
+a minimum p, v-cut with δ(S1 ) = λp,v and |S1 ∩ V 0 | ≤ |V 0 |/2. Let S2 be Sq,p , p ∈ Sq,p the cut that
+is used as an alternative in the pivot-change protocol. That is, S2 is the latest minimum p, q-cut
+with respect to q with δ(S2 ) = λp,q .
+    Our goal is to show that one of S1 or S2 is a minimum q, v-cut and that it is the one with smaller
+value. (And then also to show that if S1 was latest with respect to p then the one with smaller
+value is also latest with respect to q.) There are two cases:
+
+       • If v ∈ S2 then both S1 , S2 are q, v-cuts and both contain ≤ 1/2 of the nodes of V 0 ; the algorithm
+         will assign the one with smaller value and our goal is to show that it is optimal. Suppose for
+         contradiction that the minimum q, v-cut S 0 , v ∈ S 0 has smaller value than min(δ(S1 ), δ(S2 )).
+         The node p is either in S 0 or outside it, both cases are impossible. If p ∈ S 0 then S 0 is a
+         p, q-cut with value smaller than δ(S2 ), and if p ∈    / S 0 then S 0 is a p, v-cut with value smaller
+         than δ(S1 ). In the same way, suppose for contradiction that the latest minimum q, v-cut S 00
+         with respect to q has fewer nodes than the cut we have chosen. If p ∈ S 00 then it is a violation
+         to the fact that S2 is latest, and if p ∈/ S 00 then it is also a violation because S 00 is a minimum
+         p, v-cut with fewer nodes than S1 .
+  19
+   In other words, among the minimum p, q-cuts, Sp,q was the cut maximizing the side of p and Sp,q is the cut that
+minimizes it. Note that |Sq,p ∩ V 0 | ≤ |Sp,q ∩ V 0 | < |V 0 |/2.
+
+
+                                                       26
+   • If v ∈  / S2 then it must be that δ(S1 ) ≤ δ(S2 ), in which case the algorithm will assign S1 .
+     First, observe that S1 is indeed a q, v-cut; otherwise, if q ∈ S1 , it would be a violation to the
+     condition of a pivot-change because S1 would be a minimum p, q-cut with |S1 ∩ V 0 | ≤ |V 0 |/2.
+     Second, to show the optimality of S1 , suppose for contradiction that the minimum q, v-cut
+     S 0 , v ∈ S 0 has δ(S 0 ) < δ(S1 ) ≤ δ(S2 ). It follows that p ∈ S 0 or else S 0 is a p, v-cut with value
+     smaller than δ(S1 ). But then S 0 is a p, q-cut with value smaller than δ(S2 ), a contradiction.
+     Similarly, suppose for contradiction that the latest minimum q, v-cut S 00 has fewer nodes than
+     S1 . Again, p ∈ S 00 or else it violates the fact that S1 is the latest minimum p, v-cut with respect
+     to p, but then S 00 contains a node that S1 does not contain (the node p) despite having the
+     same value, a contradiction to it being latest.
+
+
+
+Running Time Analysis The running time analysis is identical to that of Section 4.1 with the
+following minor changes.
+
+   • The deterministic algorithm may invoke the pivot-change protocol after making a call to the
+     Isolating-Cuts procedure or after invoking a Max-Flow algorithm. This does not increase
+     the total running time because the running time of the protocol is on the order of the time
+     for a single Max-Flow invocation.
+
+   • In the proof of Claim 4.4, the number of additional invocations made in Step 4b is upper
+     bounded by Õ(N/w) by showing that each such invocation on node vi can be associated with
+     a cut Si and then bounding the number of such cuts using Claim 4.5. The latter claim used
+     the fact that these cuts were computed in a perturbed graph in order to conclude that they
+     are non-crossing. In the deterministic algorithm, this use of the perturbation is replaced by
+     working with latest cuts (this is only important in Step 1(d)ii). Indeed, all of the cuts Si
+     that are associated with additional invocations are latest cuts with respect to a pivot p and
+     this allows us to conclude that they are non-crossing (by Lemma 5.2) and the same proof
+     goes through. However, a potential issue is that these cuts might be latest with respect to
+     different pivots due to the pivot changes. To resolve this issue, Claim 5.4 proves that after the
+     pivot-change (from p to q) any cut that was latest with respect to p is also latest with respect
+     to q.
+
+   • The use of splitters (Lemma 5.3) instead of a randomized hitting set only incurs additional
+     no(1) factors.
+
+   • Finally, the most consequential change is due to the difference in complexity between the
+     current deterministic and randomized Max-Flow algorithms. In stage w the number of edges
+     in Gw is m = O(nw) and the time for the Õ(N/w) invocations is Õ(N/w·nw·n2/3 ) = Õ(N n5/3 )
+     using the Õ(|E| · |V |2/3 ) bound of Goldberg and Rao [GR98] and it is N/w · (nw)1+o(1) =
+     N n1+o(1) assuming an almost-linear time Max-Flow algorithm.
+
+Correctness The same correctness proof as in Section 4.1 works here as well, due to the fact
+that the pivot-change protocol makes it as if the new pivot was the pivot from the start (as is
+formally proven in Claim 5.4). The only minor difference is in the proof of Claim 4.6 where instead
+of arguing that the randomized process in Step 4a succeeds in finding an isolating set (for any given
+node v) with high probability, we use Lemma 5.3 that guarantees the success of Step 1(d)i with a
+deterministic construction.
+
+
+                                                     27
+5.3    From single-source to all-pairs
+After we have the algorithm of Theorem 5.1, constructing a Gomory-Hu Tree becomes easy.
+
+Theorem 1.8 (Restated). There is a deterministic algorithm that constructs a Gomory-Hu Tree
+                                                              2
+of a simple graph and solves All-Pairs Max-Flow in time Õ(n2 3 ). The time bound improves to
+n2+o(1) assuming that single-pair Max-Flow can be computed in deterministic time m1+o(1) in m-
+edge weighted graphs.
+
+The Algorithm The input is a simple graph G on N nodes.
+
+    1. Start from an intermediate tree T containing one super-node V , and do the following (recur-
+       sive) operations to refine it.
+
+       (a) If |Vi | = 1, stop processing the super-node. Otherwise, continue:
+       (b) Compute an auxiliary graph Gi for Vi using the current GH-Equivalent Partition Tree T
+           (see Section 2.1).
+        (c) Run the algorithm of Theorem 5.1 on the graph G and the auxiliary graph Gi , to get a
+            pivot p ∈ Vi and minimum p, v-cuts Sv for all v ∈ Vi , all of which are good in the sense
+            that |Sv ∩ Vi | ≤ |Vi |/2.
+       (d) Refine T based on the cuts as follows. Assign each node u ∈ Vi to the largest cut Sv
+           that separates it from p, i.e. u ∈ Sv , breaking ties in an arbitrary but consistent manner.
+           Let S1 , . . . , Sr be the cuts that have at least one node u ∈ Vi assigned to them. Observe
+           that all nodes in Vi \ {p} are contained in exactly one of these cuts. Refine Vi by taking
+           a Gomory-Hu step using each of these r cuts. This results in r + 1 smaller super-nodes:
+           one super-node Vi,j for each cut Sj plus a remainder super-node Vi,0 only containing p.
+        (e) Recurse on each of the smaller super-nodes Vi,j for j ∈ {0, . . . , r} by going to Step 1a.
+
+    2. When all super-nodes have been fully processed and contain only one node, the GH-Equivalent
+       Partition Tree T is a complete Gomory-Hu tree.
+
+Correctness The correctness follows directly from the correctness of the Gomory-Hu framework
+(Section 2.1) and the correctness of the single-source algorithm that we use (Theorem 5.1).
+
+Running Time The analysis of the recursion is very similar to that of Section 4.2. The depth
+is logarithmic due to “goodness” of the cuts returned by the dynamic pivot technique. The total
+number of nodes in all auxiliary graphs of each level is O(N ), which makes the total running time of
+the level N 2+o(1) if a near-linear time Max-Flow algorithm is assumed or N 8/3+o(1) unconditionally
+(using Theorem 5.1).
+
+
+6     A Barrier of Ω(n1.5 )
+Theorem 1.7. Assuming Hypothesis 1.6, there is an n1.5−o(1) lower bound for computing a Gomory-
+Hu tree of a simple graph on n nodes and O(n) edges.
+
+Proof. Assume for contradiction that there is an n1.5−ε+o(1) time algorithm for computing a Gomory-
+                                                                                          0
+Hu tree of a simple graph on n nodes and O(n) edges. We will show that it implies an n3−ε +o(1) time
+
+
+                                                   28
+algorithm for unweighted multigraphs, refuting Hypothesis 1.5. Let G = (V, E) be an unweighted
+multigraph with |E| = O(|V |2 ). Subdivide each edge (u, v) ∈ E by placing exactly one new node
+luv along the edge, and denote the new graph G0 = (V 0 , E 0 ). Observe that the resulting graph is
+simple, and has |V 0 | ≤ O(|V |2 ) nodes, and |E 0 | ≤ O(|V 0 |) edges. Using the assumed algorithm on
+                                                                                                0
+G0 , we get a cut-equivalent tree T 0 for G0 in a total running time of |V 0 |1.5−ε+o(1) ≤ n3−ε +o(1) for
+some ε0 = 2ε > 0.
+     Next, using T 0 we construct a cut equivalent tree T for G, as follows. Recall that Gusfield’s
+algorithm [Gus90] can construct a cut-equivalent tree by calling n − 1 times to a Max-Flow routine
+on the input graph. Apply Gusfield algorithm on G, such that whenever a pair s, t is invoked, find
+the the partition of V 0 according to T 0 , and output its projection on V (that is, output the partition
+ignoring the added nodes in V 0 \ V ).
+     Observe that a minimum-cut in G0 between every two nodes u, v ∈ V 0 that have copies in V
+projected onto V is a minimum u, v-cut in G, and vice-versa. First, a minimum u, v-cut in G0 has
+either (u, luv ) or (v, luv ) (but not both) in the cut: if both are in the cut, then by moving luv to
+the other side we can decrease the cost of the cut by 2, a contradiction. As a result, the cost of the
+minimum u, v-cut in G0 is precisely the same as the cost of the projection in G. Second, trivially, a
+minimum cut in G has a cut in G0 that partitions original nodes the same way and is of the same
+cost, as required.
+
+
+
+7    Conclusion
+The main result of this paper is an n2+o(1) time algorithm for constructing the Gomory-Hu Tree of
+an unweighted graph, leading to an almost-optimal algorithm for All-Pairs Max-Flow in unweighted
+graphs. Even assuming an almost-linear time Max-Flow algorithm (as in Hypothesis 1.5) the previ-
+ously known algorithms [AKT21] could not go below n2.5 . The improvement is achieved by utilizing
+a stronger primitive than previous work: an expander decomposition with vertex demands. Fitting
+this tool into the Gomory-Hu framework involves several technical challenges, and a new structural
+understanding of the Gomory-Hu Tree of a simple graph. To reach the n2+o(1) bound, the algorithm
+exploits the simplicity of the graph in a second way compared to the n2.5 algorithm, and therefore it
+may be even harder to adapt for weighted graphs. The main open question in the field has become
+even more outstanding.
+
+Open Question 1. Can the Gomory-Hu Tree of a weighted graph be constructed in subcubic time?
+
+    The first step towards this question would be to achieve a subcubic algorithm for unweighted
+multigraphs on O(n2 ) edges; i.e. to refute Hypothesis 1.6. Interestingly, due to Theorem 1.7, this
+is required before an m1+o(1) algorithm can be achieved in simple graphs.
+    We also introduce a new derandomization technique that replaces the randomized pivot selection
+of recent works with a dynamic pivot. It gives hope that whatever bounds are achieved with
+randomized algorithms, in the context of Gomory-Hu Tree algorithms, can also be derandomized.
+    Finally, an interesting take-away message from this paper is that All-Pairs Max-Flow suddenly
+appears to be an easier problem than All-Pairs Shortest-Paths. At least in unweighted graphs, and
+at least with current algorithms, its upper bound is n2+o(1) compared with the nω+o(1) for All-Pairs
+Shortest-Paths. The relative easiness is not only theoretical: the methods used by our All-Pairs Max-
+Flow algorithm are much less infamous than the fast matrix multiplication that goes into the All-Pairs
+Shortest-Paths algorithm. However, formally proving a separation between the two is difficult, as it
+requires proving an Ω(n2+ε ) lower bound for matrix multiplication, and may not even be possible
+
+
+                                                   29
+because ω is often conjectured to be 2. Perhaps the more promising direction is by resolving Open
+Question 1 with an O(n3−ε ) time algorithm for All-Pairs Max-Flow in weighted graphs. This would
+establish a separation, assuming the popular conjecture that All-Pairs Shortest-Paths in weighted
+graphs requires n3−o(1) time [VW10], making Open Question 1 even more consequential.
+
+
+Acknowledgements We are grateful to Thatchaphol Saranurak for helpful clarifications regard-
+ing the literature on randomized versus deterministic expander decompositions.
+
+
+References
+[AB17]      A. Abboud and G. Bodwin. The 4/3 additive spanner exponent is tight. Journal of the ACM
+            (JACM), 64(4):1–20, 2017.
+[ACZ98]     S. R. Arikati, S. Chaudhuri, and C. D. Zaroliagis. All-pairs min-cut in sparse networks. J.
+            Algorithms, 29(1):82–110, 1998.
+[AGI+ 19]   A. Abboud, L. Georgiadis, G. F. Italiano, R. Krauthgamer, N. Parotsidis, O. Trabelsi, P. Uz-
+            nanski, and D. Wolleb-Graf. Faster Algorithms for All-Pairs Bounded Min-Cuts. In 46th
+            International Colloquium on Automata, Languages, and Programming (ICALP 2019), volume
+            132, pages 7:1–7:15, 2019. doi:10.4230/LIPIcs.ICALP.2019.7.
+[AIS+ 16]   T. Akiba, Y. Iwata, Y. Sameshima, N. Mizuno, and Y. Yano. Cut tree construction from
+            massive graphs. In 2016 IEEE 16th International Conference on Data Mining (ICDM), pages
+            775–780. IEEE, 2016.
+[AKT20a]    A. Abboud, R. Krauthgamer, and O. Trabelsi. Cut-equivalent trees are optimal for min-cut
+            queries. 61st IEEE Annual Symposium on Foundations of Computer Science, FOCS 2020,
+            pages 105–118, 2020. doi:10.1109/FOCS46700.2020.00019.
+[AKT20b]    A. Abboud, R. Krauthgamer, and O. Trabelsi. New algorithms and lower bounds for all-
+            pairs max-flow in undirected graphs. In Proceedings of the Thirty-First Annual ACM-SIAM
+            Symposium on Discrete Algorithms, SODA ’20, page 48–61, USA, 2020. doi:10.1137/1.
+            9781611975994.4.
+[AKT21]     A. Abboud, R. Krauthgamer, and O. Trabelsi. Subcubic algorithms for gomory-hu tree in
+            unweighted graphs. In STOC, 2021. To Appear.
+[AW21]      J. Alman and V. V. Williams. A refined laser method and faster matrix multiplication. In
+            D. Marx, editor, Proceedings of the 2021 ACM-SIAM Symposium on Discrete Algorithms,
+            SODA 2021, pages 522–539, 2021. doi:10.1137/1.9781611976465.32.
+[BCH+ 08]   A. Bhalgat, R. Cole, R. Hariharan, T. Kavitha, and D. Panigrahi. Efficient algorithms for
+            Steiner edge connectivity computationand Gomory-Hu tree construction for unweighted graphs.
+            Unpublished full version of [BHKP07], 2008. Available from: http://hariharan-ramesh.com/
+            papers/gohu.pdf.
+[Ben95]     A. A. Benczúr. Counterexamples for directed and node capacitated cut-trees. SIAM J. Comput.,
+            24(3):505–510, 1995. doi:10.1137/S0097539792236730.
+[BENW16]    G. Borradaile, D. Eppstein, A. Nayyeri, and C. Wulff-Nilsen. All-pairs minimum cuts in near-
+            linear time for surface-embedded graphs. In 32nd International Symposium on Computational
+            Geometry, volume 51 of SoCG ’16, pages 22:1–22:16. Schloss Dagstuhl–Leibniz-Zentrum fuer
+            Informatik, 2016. doi:10.4230/LIPIcs.SoCG.2016.22.
+[BHKP07]    A. Bhalgat, R. Hariharan, T. Kavitha, and D. Panigrahi. An O(mn) Gomory-Hu tree con-
+            struction algorithm for unweighted graphs. In 39th Annual ACM Symposium on Theory of
+            Computing, STOC’07, pages 605–614. ACM, 2007. doi:10.1145/1250790.1250879.
+
+
+                                                  30
+[BSW15]     G. Borradaile, P. Sankowski, and C. Wulff-Nilsen. Min st-cut oracle for planar graphs with
+            near-linear preprocessing time. ACM Trans. Algorithms, 11(3), 2015. doi:10.1145/2684068.
+[CFK+ 15]   M. Cygan, F. V. Fomin, L. Kowalik, D. Lokshtanov, D. Marx, M. Pilipczuk, M. Pilipczuk, and
+            S. Saurabh. Parameterized Algorithms. Springer, 2015. doi:10.1007/978-3-319-21275-3.
+[CGL+ 20]   J. Chuzhoy, Y. Gao, J. Li, D. Nanongkai, R. Peng, and T. Saranurak. A deterministic algorithm
+            for balanced cut with applications to dynamic connectivity, flows, and beyond. In IEEE 61st
+            Annual Symposium on Foundations of Computer Science (FOCS), pages 1158–1167, 2020. doi:
+            10.1109/FOCS46700.2020.00111.
+[CH03]      R. Cole and R. Hariharan. A fast algorithm for computing steiner edge connectivity. In
+            Proceedings of the Thirty-fifth Annual ACM Symposium on Theory of Computing, STOC ’03,
+            pages 167–176. ACM, 2003. doi:10.1145/780542.780568.
+[CKK16]     R. Chitnis, L. Kamma, and R. Krauthgamer. Tight bounds for gomory-hu-like cut counting.
+            In P. Heggernes, editor, Graph-Theoretic Concepts in Computer Science - 42nd International
+            Workshop, WG 2016, volume 9941 of Lecture Notes in Computer Science, pages 133–144, 2016.
+            doi:10.1007/978-3-662-53536-3\_12.
+[CWX21]     T. M. Chan, V. V. Williams, and Y. Xu. Algorithms, reductions and equivalences for small
+            weight variants of all-pairs shortest paths. CoRR, abs/2102.06181, 2021. Available from: https:
+            //arxiv.org/abs/2102.06181, arXiv:2102.06181.
+[Dij59]     E. W. Dijkstra. A note on two problems in connexion with graphs. Numer. Math., 1(1):269–271,
+            December 1959. doi:10.1007/BF01386390.
+[Edm70]     J. Edmonds. Submodular functions, matroids, and certain polyhedra. Combinatorial structures
+            and their applications, pages 69–87, 1970.
+[EH05]      O. Einstein and R. Hassin. The number of solutions sufficient for solving a family of problems.
+            Mathematics of Operations Research, 30(4):880–896, 2005.
+[FNY+ 20]   S. Forster, D. Nanongkai, L. Yang, T. Saranurak, and S. Yingchareonthawornchai. Com-
+            puting and testing small connectivity in near-linear time and queries via fast local cut al-
+            gorithms. In S. Chawla, editor, Proceedings of the 2020 ACM-SIAM Symposium on Dis-
+            crete Algorithms, SODA 2020, Salt Lake City, UT, USA, January 5-8, 2020, pages 2046–
+            2065. SIAM, 2020. Available from: https://doi.org/10.1137/1.9781611975994.126, doi:
+            10.1137/1.9781611975994.126.
+[Gab91]     H. N. Gabow. Applications of a poset representation to edge connectivity and graph rigidity.
+            In 32nd Annual Symposium on Foundations of Computer Science, pages 812–821, 1991. doi:
+            10.1109/SFCS.1991.185453.
+[Gab95]     H. N. Gabow. A matroid approach to finding edge connectivity and packing arborescences.
+            Journal of Computer and System Sciences, 50(2):259–273, 1995.
+[Gab06]     H. N. Gabow. Using expander graphs to find vertex connectivity. Journal of the ACM (JACM),
+            53(5):800–844, 2006.
+[GH61]      R. E. Gomory and T. C. Hu. Multi-terminal network flows. Journal of the Society for Industrial
+            and Applied Mathematics, 9:551–570, 1961. Available from: http://www.jstor.org/stable/
+            2098881.
+[GLP21]     Y. Gao, Y. P. Liu, and R. Peng. Fully dynamic electrical flows: Sparse maxflow faster than
+            goldberg-rao. CoRR, 2021. Available from: http://arxiv.org/abs/2101.07233.
+[GR98]      A. V. Goldberg and S. Rao. Beyond the flow decomposition barrier. J. ACM, 45(5):783–797,
+            1998. doi:10.1145/290179.290181.
+[GRST21]    G. Goranci, H. Räcke, T. Saranurak, and Z. Tan. The expander hierarchy and its applications
+            to dynamic graph algorithms. In Proceedings of the 2021 ACM-SIAM Symposium on Discrete
+            Algorithms (SODA), pages 2212–2228. SIAM, 2021.
+
+
+                                                   31
+[GT01]     A. V. Goldberg and K. Tsioutsiouliklis. Cut tree algorithms: an experimental study. Journal
+           of Algorithms, 38(1):51–83, 2001.
+[Gus90]    D. Gusfield. Very simple methods for all pairs network flow analysis. SIAM Journal on Com-
+           puting, 19(1):143–155, 1990.
+[Har01]    D. Hartvigsen. Compact representations of cuts. SIAM Journal on Discrete Mathematics,
+           14(1):49–66, 2001.
+[Has88]    R. Hassin. Solution bases of multiterminal cut problems. Mathematics of operations research,
+           13(4):535–542, 1988.
+[Has90]    R. Hassin. An algorithm for computing maximum solution bases. Operations research letters,
+           9(5):315–318, 1990.
+[Has91]    R. Hassin. Multiterminal xcut problems. Annals of Operations Research, 33(3):215–225, 1991.
+[HKP07]    R. Hariharan, T. Kavitha, and D. Panigrahi. Efficient algorithms for computing all low s−t edge
+           connectivities and related problems. In Proceedings of the 18th Annual ACM-SIAM Symposium
+           on Discrete Algorithms, pages 127–136. SIAM, 2007. Available from: http://dl.acm.org/
+           citation.cfm?id=1283383.1283398.
+[HL07]     R. Hassin and A. Levin. Flow trees for vertex-capacitated networks. Discrete Appl. Math.,
+           155(4):572–578, 2007. doi:10.1016/j.dam.2006.08.012.
+[KL15]     D. R. Karger and M. S. Levine. Fast augmenting paths by random sampling from residual
+           graphs. SIAM J. Comput., 44(2):320–339, 2015. doi:10.1137/070705994.
+[KLOS14]   J. A. Kelner, Y. T. Lee, L. Orecchia, and A. Sidford. An almost-linear-time algorithm for ap-
+           proximate max flow in undirected graphs, and its multicommodity generalizations. In Proceed-
+           ings of the twenty-fifth annual ACM-SIAM symposium on Discrete algorithms, pages 217–226.
+           SIAM, 2014.
+[KT18]     R. Krauthgamer and O. Trabelsi. Conditional lower bounds for all-pairs max-flow. ACM Trans.
+           Algorithms, 14(4):42:1–42:15, 2018. doi:10.1145/3212510.
+[KT19]     K. Kawarabayashi and M. Thorup. Deterministic edge connectivity in near-linear time. J.
+           ACM, 66(1):4:1–4:50, 2019. doi:10.1145/3274663.
+[KVV04]    R. Kannan, S. Vempala, and A. Vetta. On clusterings: Good, bad and spectral. Journal of the
+           ACM (JACM), 51(3):497–515, 2004.
+[Li21]     J. Li. Deterministic mincut in almost-linear time. In STOC, 2021. To Appear.
+[LP20]     J. Li and D. Panigrahi.  Deterministic min-cut in poly-logarithmic max-flows. Ac-
+           cepted to FOCS’20, 2020.   Available from: http://www.cs.cmu.edu/~jmli/papers/
+           deterministic-mincut-in-polylogarithmic-conf.pdf.
+[LP21]     J. Li and D. Panigrahi. Approximate gomory–hu tree is faster than n − 1 max-flows. In STOC,
+           2021. To Appear.
+[LPW20]    A. Lincoln, A. Polak, and V. V. Williams. Monochromatic triangles, intermediate matrix
+           products, and convolutions. In 11th Innovations in Theoretical Computer Science Conference,
+           ITCS 2020, volume 151 of LIPIcs, pages 53:1–53:18. Schloss Dagstuhl - Leibniz-Zentrum für
+           Informatik, 2020. doi:10.4230/LIPIcs.ITCS.2020.53.
+[LS19]     Y. P. Liu and A. Sidford. Faster energy maximization for faster maximum flow. CoRR, 2019.
+           Available from: http://arxiv.org/abs/1910.14276.
+[LS20]     Y. P. Liu and A. Sidford. Unit capacity maxflow in almost m4/3 time. CoRR, abs/2003.08929,
+           2020. Available from: https://arxiv.org/abs/2003.08929, arXiv:2003.08929.
+[Mąd16]    A. Mądry. Computing maximum flow with augmenting electrical flows. In Proceedings of the
+           57th IEEE Annual Symposium on Foundations of Computer Science, FOCS ’16, pages 593–602.
+           IEEE Computer Society, 2016. doi:10.1109/FOCS.2016.70.
+
+
+                                                  32
+[NI92]      H. Nagamochi and T. Ibaraki. Linear time algorithms for finding k-edge connected and k-node
+            connected spanning subgraphs. Algorithmica, 7:583–596, 1992. doi:10.1007/BF01758778.
+[NSS95]     M. Naor, L. J. Schulman, and A. Srinivasan. Splitters and near-optimal derandomization. In
+            36th Annual Symposium on Foundations of Computer Science, pages 182–191. IEEE Computer
+            Society, 1995. doi:10.1109/SFCS.1995.492475.
+[NSWN17]    D. Nanongkai, T. Saranurak, and C. Wulff-Nilsen. Dynamic minimum spanning forest with
+            subpolynomial worst-case update time. In 2017 IEEE 58th Annual Symposium on Foundations
+            of Computer Science (FOCS), pages 950–961. IEEE, 2017.
+[NSY19]     D. Nanongkai, T. Saranurak, and S. Yingchareonthawornchai. Breaking quadratic time for
+            small vertex connectivity and an approximation scheme. In M. Charikar and E. Cohen, editors,
+            Proceedings of the 51st Annual ACM SIGACT Symposium on Theory of Computing, STOC
+            2019, Phoenix, AZ, USA, June 23-26, 2019, pages 241–252. ACM, 2019. Available from:
+            https://doi.org/10.1145/3313276.3316394, doi:10.1145/3313276.3316394.
+[OSV12]     L. Orecchia, S. Sachdeva, and N. K. Vishnoi. Approximating the exponential, the lanczos
+            method and an o (m)-time spectral algorithm for balanced separator. In Proceedings of the
+            forty-fourth annual ACM symposium on Theory of computing, pages 1141–1160, 2012.
+[OV11]      L. Orecchia and N. K. Vishnoi. Towards an sdp-based approach to spectral methods: A
+            nearly-linear-time algorithm for graph partitioning and decomposition. In Proceedings of the
+            twenty-second annual ACM-SIAM symposium on Discrete Algorithms, pages 532–545. SIAM,
+            2011.
+[Pan16]     D. Panigrahi. Gomory-Hu trees. In M.-Y. Kao, editor, Encyclopedia of Algorithms, pages
+            858–861. Springer New York, 2016. doi:10.1007/978-1-4939-2864-4_168.
+[PY21]      S. Pettie and L. Yin. The structure of minimum vertex cuts. CoRR, abs/2102.06805, 2021.
+            Available from: https://arxiv.org/abs/2102.06805, arXiv:2102.06805.
+[Sar20]     T. Saranurak. A simple deterministic algorithm for edge connectivity.         arXiv preprint
+            arXiv:2008.08575, 2020.
+[Sei95]     R. Seidel. On the all-pairs-shortest-path problem in unweighted undirected graphs. Journal of
+            computer and system sciences, 51(3):400–403, 1995.
+[ST13]      D. A. Spielman and S.-H. Teng. A local clustering algorithm for massive graphs and its ap-
+            plication to nearly linear time graph partitioning. SIAM Journal on computing, 42(1):1–26,
+            2013.
+[ST14]      D. A. Spielman and S.-H. Teng. Nearly linear time algorithms for preconditioning and solv-
+            ing symmetric, diagonally dominant linear systems. SIAM Journal on Matrix Analysis and
+            Applications, 35(3):835–885, 2014.
+[SW19]      T. Saranurak and D. Wang. Expander decomposition and pruning: Faster, stronger, and
+            simpler. In T. M. Chan, editor, Proceedings of the Thirtieth Annual ACM-SIAM Symposium
+            on Discrete Algorithms, SODA 2019, pages 2616–2635, 2019. doi:10.1137/1.9781611975482.
+            162.
+[TZ05]      M. Thorup and U. Zwick. Approximate distance oracles. Journal of the ACM (JACM), 52(1):1–
+            24, 2005.
+[vdBLL+ 21] J. van den Brand, Y. T. Lee, Y. P. Liu, T. Saranurak, A. Sidford, Z. Song, and D. Wang.
+            Minimum cost flows, MDPs, and `1 -regression in nearly linear time for dense instances. In
+            STOC, 2021. To Appear.
+[VW10]      V. Vassilevska-Williams and R. R. Williams. Subcubic equivalences between path, matrix and
+            triangle problems. In 51st IEEE Annual Symposium on Foundations of Computer Science,
+            FOCS’10, pages 645–654. IEEE Computer Society, 2010. doi:10.1109/FOCS.2010.67.
+
+
+                                                  33
+

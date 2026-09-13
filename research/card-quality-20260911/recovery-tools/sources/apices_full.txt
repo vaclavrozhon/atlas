@@ -1,0 +1,1816 @@
+                                        k-apices of minor-closed graph classes. II. Parameterized algorithms1
+
+                                                         Ignasi Sau2           Giannos Stamoulis3               Dimitrios M. Thilikos2
+arXiv:2004.12692v2 [cs.DS] 2 Mar 2021
+
+
+
+
+                                                                                             Abstract
+                                               Let G be a minor-closed graph class. We say that a graph G is a k-apex of G if G contains a set
+                                               S of at most k vertices such that G \ S belongs to G. We denote by Ak (G) the set of all graphs
+                                               that are k-apices of G. In the first paper of this series we obtained upper bounds on the size
+                                               of the graphs in the minor-obstruction set of Ak (G), i.e., the minor-minimal set of graphs not
+                                               belonging to Ak (G). In this article we provide an algorithm that, given a graph G on n vertices,
+                                               runs in time 2poly(k) · n3 and either returns a set S certifying that G ∈ Ak (G), or reports that
+                                               G∈ / Ak (G). Here poly is a polynomial function whose degree depends on the maximum size of
+                                               a minor-obstruction of G. In the special case where G excludes some apex graph as a minor, we
+                                               give an alternative algorithm running in 2poly(k) · n2 -time.
+
+                                               Keywords: graph minors; parameterized algorithms; graph modification problems; irrelevant
+                                               vertex technique; Flat Wall Theorem.
+
+
+
+
+                                           1
+                                              A conference version of this paper appeared in the Proceedings of the 47th International Colloquium on Automata,
+                                        Languages and Programming (ICALP), volume 168 of LIPICs, pages 95:1–95:20, 2020.
+                                            2
+                                              LIRMM, Université de Montpellier, CNRS, Montpellier, France. Supported by the ANR projects DEMOGRAPH
+                                        (ANR-16-CE40-0028), ESIGMA (ANR-17-CE23-0010), ELIT (ANR-20-CE48-0008), the French-German Collabora-
+                                        tion ANR/DFG Project UTMA (ANR-20-CE92-0027), and the French Ministry of Europe and Foreign Affairs, via
+                                        the Franco-Norwegian project PHC AURORA. Emails: ignasi.sau@lirmm.fr, sedthilk@thilikos.info.
+                                            3
+                                              LIRMM, Université de Montpellier, Montpellier, France. Email: gstamoulis@lirmm.fr.
+
+
+                                                                                                  1
+Contents
+1 Introduction                                                                                        3
+
+2 Definitions and preliminary results                                                                  6
+  2.1 Restating the problem . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      6
+  2.2 Preliminaries . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    6
+
+3 Flat walls                                                                                          8
+  3.1 Walls and subwalls . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 8
+  3.2 Paintings and renditions . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 10
+  3.3 Flatness pairs . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 11
+  3.4 Homogeneous walls . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 13
+
+4 Auxiliary algorithmic and combinatorial results                                                  16
+  4.1 Finding an irrelevant vertex . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 16
+  4.2 Combinatorial results for branching . . . . . . . . . . . . . . . . . . . . . . . . . . . . 18
+
+5 The general algorithm                                                                             19
+  5.1 Iterative compression . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 20
+  5.2 The algorithm . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 20
+
+6 The apex-minor free case                                                                            22
+  6.1 Finding an apex graph as a minor . . . . . . . . . . . . . . . . . . . . . . . . . . . .        22
+  6.2 Quickly finding a wall . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    24
+  6.3 The algorithm . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   26
+  6.4 Correctness of the algorithm . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    28
+
+7 Algorithms for variants of Vertex Deletion to G                                                 29
+  7.1 The general framework . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 29
+  7.2 Variants of Vertex Deletion to G . . . . . . . . . . . . . . . . . . . . . . . . . . . 29
+
+8 Discussion and concluding remarks                                                                   31
+
+
+
+
+                                                   2
+1       Introduction
+Graph modification problems are fundamental in algorithmic graph theory. Typically, such a
+problem is determined by a graph class G and some prespecified set M of local modifications, such
+as vertex/edge removal or edge addition/contraction or combinations of them, and the question
+is, given a graph G and an integer k, whether it is possible to transform G to a graph in G by
+applying k modification operations from M. A plethora of graph problems can be formulated
+for different instantiations of G and M. Applications span diverse topics such as computational
+biology, computer vision, machine learning, networking, and sociology [25]. As reported by Roded
+Sharan in [53], already in 1979 Garey and Johnson mentioned 18 different types of modification
+problems [26, Section A1.2]. For more on graph modification problems, see [10, 25] as well as the
+running survey in [14]. In this paper we focus our attention on the vertex deletion operation. We
+say that a graph G is a k-apex of a graph class G if there is a set S ⊆ V (G) of size at most k such
+that the removal of S from G results in a graph in G. In other words, we consider the following
+meta-problem.
+
+           Vertex Deletion to G
+           Input: A graph G and a non-negative integer k.
+           Objective: Find, if it exists, a set S ⊆ V (G), certifying that G is k-apex of G.
+
+To illustrate the expressive power of Vertex Deletion to G, if G is the class of edgeless (resp.
+acyclic, planar, bipartite, (proper) interval, chordal) graphs, we obtain the Vertex Cover (resp.
+Feedback Vertex Set, Vertex Planarization, Odd Cycle Transversal, (proper) In-
+terval Vertex Deletion, Chordal Vertex Deletion) problem.
+    By the classical result of Lewis and Yannakakis [40], Vertex Deletion to G is NP-hard for
+every non-trivial graph class G. To circumvent its intractability, we study it from the parameterized
+complexity point of view and we parameterize it by the number k of vertex deletions. In this setting,
+the most desirable behavior is the existence of an algorithm running in time f (k) · nO(1) , where f is
+a computable function depending only on k. Such an algorithm is called fixed-parameter tractable,
+or FPT-algorithm for short, and a parameterized problem admitting an FPT-algorithm is said
+to belong to the parameterized complexity class FPT. Also, the function f is called parametric
+dependence of the corresponding FPT-algorithm, and the challenge is to design FPT-algorithms
+with small parametric dependencies [15, 18, 21, 43].
+    Unfortunately, we cannot hope for the existence of FPT-algorithms for every graph class G.
+Indeed, the problem is W-hard1 for some classes G that are closed under induced subgraphs [41] or,
+even worse, NP-hard, for k = 0, for every class G whose recognition problem is NP-hard, such as
+some classes closed under subgraphs or induced subgraphs (for instance 3-colorable graphs), edge
+contractions [12], or induced minors [19].
+    On the positive side, a very relevant subset of classes of graphs does allow for FPT-algorithms.
+These are classes G that are closed under minors2 , or minor-closed. To see this, we define Ak (G) as
+the class of the k-apices of G, i.e., the yes-instances of Vertex Deletion to G, and observe that
+    1
+    Implying that an FPT-algorithm would result in an unexpected complexity collapse; see [18].
+    2
+    A graph H is a minor of a graph G if it can be obtained from a subgraph of G by contracting edges, see Subsec-
+tion 2.2 for the formal definitions.
+
+
+                                                        3
+if G is minor-closed then the same holds for Ak (G) for every k ≥ 0. This, in turn, implies that for
+every k, Ak (G) can be characterized by a set Fk of minor-minimal graphs that are not in Ak (G);
+we call these graphs the obstructions of Ak (G) and we know that they are finite because of the
+Robertson and Seymour’s theorem [47]. In other words, we know that the size of the obstruction
+set of Ak (G) is bounded by some function of k. Then one can decide whether a graph G belongs to
+Ak (G) by checking whether G excludes all members of the obstruction set of Ak (G), and this can
+be checked by using the FPT-algorithm in [46] (see also [20]).
+    As the Robertson and Seymour’s theorem [47] does not construct Fk , the aforementioned argu-
+ment is not constructive, i.e., it is not able to construct the claimed FPT-algorithm. An important
+step towards the constructibility of such an FPT-algorithm was done by Adler et al. [2], who proved
+that Fk is effectively computable. In the first paper of this series [52] we give an explicit upper
+bound on the size of the graphs in Fk , namely we prove that every graph in Fk has size bounded
+by an exponential tower of height four of a polynomial function in k, whose degree depends on the
+size of the minor-obstructions of G. The focus of the current paper is on the parametric dependence
+of FPT-algorithms to solve the Vertex Deletion to G problem, i.e., for recognizing the class
+Ak (G).
+    The task of specifying (or even optimizing) this parametric dependence for different instantia-
+tions of G occupied a considerable part of research in parameterized algorithms. The most general
+result in this direction states that, for every t, there is some contant c such that if the graphs in
+G have treewidth at most t, then Vertex Deletion to G admits an FPT-algorithm that runs
+in time ck · nO(1) [23, 35]. Reducing the constant c in this running time has attracted research on
+particular problems such as Vertex Cover [13] (with c = 1.2738), Feedback Vertex Set [37]
+(with c = 3.619), Apex-Pseudoforest [11] (with c = 3), Pathwidth 1 Vertex Deletion
+(with c = 4.65) [16], or Pumpkin Vertex Deletion [30]. The first step towards a parameterized
+algorithm for Vertex Deletion to G for cases where G has unbounded treewidth was done in [42]
+and later in [31] for the Vertex Planarization problem, and the best parameterized dependence
+for this problem is 2O(k·log k) · n, achieved by Jansen et al. [29]. These results were later extended by
+Kociumaka and Marcin Pilipczuk [38], who proved that if Gg is the class of graphs of Euler genus
+                                                                 2
+at most g, then Vertex Deletion to Gg admits a 2Og (k ·log k) · nO(1) -time3 algorithm.
+
+Our results. In this paper we give an explicit FPT-algorithm for Vertex Deletion to G for
+every fixed minor-closed graph class G. In particular, our main results are the following.
+Theorem 1. If G is a minor-closed graph class, then Vertex Deletion to G admits an algorithm
+running in time 2poly(k) · n3 , for some polynomial poly whose degree depends on G.
+       We say that a graph H is an apex graph if it is a 1-apex of the class of planar graphs.
+Theorem 2. If G is a minor-closed graph class excluding some apex graph, then Vertex Deletion
+to G admits an algorithm running in time 2poly(k) · n2 , for some polynomial poly whose degree
+depends on G.
+   In Section 7 we explain how the algorithms of Theorem 1 and Theorem 2 can be modified in
+order to apply to a series of variants of Vertex Deletion to G.
+   3
+    Given a tuple t = (x1 , . . . , x` ) ∈ N` and two functions χ, ψ : N → N, we write χ(n) = Ot (ψ(n)) in order to denote
+that there exists a computable function φ : N` → N such that χ(n) = O(φ(t) · ψ(n)).
+
+
+                                                            4
+Our techniques. We provide here just a very succinct enumeration of the techniques that we use
+in order to achieve Theorem 1 and Theorem 2; a more detailed description with the corresponding
+definitions is provided, along with the algorithms, in the next sections.
+     Our starting point to prove Theorem 1 is to use the standard iterative compression technique
+of Reed et al. [45] (Lemma 21). This allows us to assume that we have at hand a slightly too
+large set S ⊆ V (G) such that G \ S ∈ G. We run the algorithm of Proposition 10 from [51] that
+(since G \ S ∈ G) either concludes that the treewidth of G is polynomially bounded by k, or finds a
+large flat wall W together with an apex set A. In the first case, we use the main algorithmic result
+of Baste et al. [5] (Proposition 4) to solve the problem parameterized by treewidth, achieving the
+claimed running time. Proposition 10 is an improved version of the original “Flat Wall Theorem”
+of Robertson and Seymour [46], whose proof is based on the recent results of Kawarabayashi et
+al. [33], which we state using the framework that we recently introduced in [51]. This framework is
+presented in Section 3 and provides the formal definitions of a series of combinatorial concepts such
+as paintings and renditions (Subsection 3.2), flatness pairs and tilts (Subsection 3.3), as well as a
+notion of wall homogeneity (Subsection 3.4) alternative to the one given in [46]. All these concepts
+are extensively used in our proofs, as well as in those in the first article of this series [52].
+     Once we have the large flat wall W and the apex set A, we see how many vertices of S ∪ A have
+enough neighbors in the “interior” of W . Two possible scenarios may occur. If the “interior” of W
+has enough neighbors in the set S ∪ A, we apply a combinatorial result of [52] (Proposition 18),
+based on the notion of canonical partition of a wall, that guarantees that every possible solution
+should intersect S ∪ A, and we can branch on it.
+     On the other hand, if the interior of W has few neighbors in S ∪ A, we find in W a packing
+of an appropriate number of pairwise disjoint large enough subwalls (Proposition 19) and we find
+a subwall whose interior has few (a function not depending on k) neighbors in S ∪ A. We then
+argue that we can define from it a flat wall in which we can apply the irrelevant vertex technique
+of Robertson and Seymour [46] (Corollary 17). We stress that this flat subwall is not precisely a
+subwall of W but a tiny “tilt” of a subwall of W, a concept introduced in [51] that is necessary
+for our proofs. In order to apply the irrelevant vertex technique, the main combinatorial tool is
+Proposition 15, which as been proved in [52] and that is an enhancement of a result of Baste et
+al. [5], as we discuss in Subsection 4.1.
+    In order to achieve the improved running time claimed in Theorem 2, we do not use iterative
+compression. Instead, we directly invoke Lemma 26, which is a variation of [51, Lemma 11] and
+whose proof uses [1, 3, 32, 44], that either reports that we have a no-instance, or concludes that the
+treewidth of G is polynomially bounded by k, or finds a large wall W in G. If the treewidth is small,
+we proceed as above. If a large wall is found, we apply Proposition 10 and we now distinguish two
+cases. If a large flat wall is found, we find an irrelevant vertex using again Lemma 16. Otherwise,
+inspired by an idea of Marx and Schlotter [42], we exploit the fact that G excludes an apex graph,
+and we use flow techniques to either find a vertex that should belong to the solution, or to conclude
+that we are dealing with a no-instance.
+
+Organization of the paper. In Section 2 we give some basic definitions and preliminary results.
+In Section 3 we introduce flat walls along with all the concepts and results around the Flat Wall
+Theorem, using the framework of [51]. In Section 4 we present several algorithmic and combinatorial
+
+
+                                                  5
+results that will be used in the algorithms, when finding an irrelevant vertex or when applying the
+branching step. In Section 5 and Section 6 we present the main algorithms claimed in Theorem 1
+and Theorem 2, respectively. In Section 7 we explain how to modify our algorithms so to deal with
+a series of variants of the Vertex Deletion to G problem. We conclude in Section 8 with some
+directions for further research.
+
+
+2     Definitions and preliminary results
+Our first step is to restate the problem in a more convenient way. We next give some basic definitions
+and preliminary results.
+
+2.1   Restating the problem
+Let F be a finite non-empty collection of non-empty graphs. We use F ≤m G to denote that some
+graph in F is a minor of G.
+    Given a graph class G, its minor obstruction set is defined as the set of all minor-minimal
+graphs that are not in G, and is denoted by obs(G). Given a finite non-empty collection of non-
+empty graphs F, we denote by exc(F) as the set containing every graph G that excludes all graphs
+in F as minors.
+    Let G be a minor-closed graph class and F be its obstruction set. Clearly, Vertex Deletion
+to G is the same problem as asking, given a graph G and some k ∈ N, for a vertex set S of at most
+k vertices such that G \ S ∈ exc(F). Following the terminology of [5–8, 23, 24, 35, 36], we call this
+problem F-M-Deletion.
+
+Some conventions. In what follows we always denote by F the set obs(G) of the instantiation
+of Vertex Deletion to G that we consider. Notice that, given a graph G and an integer k,
+(G, k) is a yes-instance of F-M-Deletion if and only if G ∈ Ak (exc(F)). Given a graph G, we
+define its apex number to be the smallest integer a for which G is an a-apex of the class of planar
+graphs. Also, we define the detail of G, denoted by detail(G), to be the maximum among |E(G)|
+and |V (G)|. We define three constants depending on F that will be used throughout the paper
+whenever we consider such a collection F. We define aF as the minimum apex number of a graph
+in F, we set sF = max{|V (H)| | H ∈ F}, and we set `F = max{detail(H)| | H ∈ F}. Unless stated
+otherwise, we denote by n and m the number of vertices and edges, respectively, of the graph
+under consideration. We can always assume that G has OsF (k · n) edges, otherwise we can directly
+conclude that (G, k) is a no-instance (for this, use the fact that graphs excluding some graph as a
+minor are sparse [39, 55]).
+
+2.2   Preliminaries
+Sets and integers. We denote by N the set of non-negative integers. Given two integers p and
+q, the set [p, q] contains every integer r such that p ≤ r ≤ q. For an integer p ≥ 1, we set [p] = [1, p]
+and N≥p = N \ [0, p − 1]. Given a non-negative integer x, we denote by odd(x) the minimum odd
+number that is not smaller than x. For a set S, we denote by 2S the set of all subsets of S and,
+given an integer r ∈ [|S|], we denote by Sr the set of all subsets of S of size r and by ≤r  S
+                                                                                                 the set
+                                              
+
+
+
+                                                   6
+of all subsets of S of size at most r. If S is a collection of objects where the operation ∪ is defined,
+then we denote S = X∈S X.
+                 S       S
+
+
+Basic concepts on graphs. All graphs considered in this paper are undirected, finite, and
+without loops or multiple edges. We use standard graph-theoretic notation and we refer the reader
+to [17] for any undefined terminology. Let G be a graph. We say that a pair (L, R) ∈ 2V (G) × 2V (G)
+is a separation of G if L ∪ R = V (G) and there is no edge in G between L \ R and R \ L. Given a
+vertex v ∈ V (G), we denote by NG (v) the set of vertices of G that are adjacent to v in G. A vertex
+v ∈ V (G) is isolated if NG (v) = ∅. For S ⊆ V (G), we set G[S] = (S, E ∩ S2 ) and use the shortcut
+                                                                               
+
+G \ S to denote G[V (G) \ S]. Given a vertex v ∈ V (G) of degree two with neighbors u and w, we
+define the dissolution of v to be the operation of deleting v and, if u and w are not adjacent, adding
+the edge {u, w}. Given two graphs H, G, we say that H is a dissolution of G if H can be obtained
+from G after dissolving vertices of G. Given an edge e = {u, v} ∈ E(G), we define the subdivision
+of e to be the operation of deleting e, adding a new vertex w and making it adjacent to u and v.
+Given two graphs H and G, we say that H is a subdivision of G if H can be obtained from G after
+subdividing edges of G.
+
+Treewidth. A tree decomposition of a graph G is a pair (T, χ) where T is a tree and χ : V (T ) →
+2V (G) such that
+
+  •       t∈V (T ) χ(t) = V (G),
+      S
+
+
+  • for every edge e of G there is a t ∈ V (T ) such that χ(t) contains both endpoints of e, and
+
+  • for every v ∈ V (G), the subgraph of T induced by {t ∈ V (T ) | v ∈ χ(t)} is connected.
+
+The width of (T, χ) is equal to max |χ(t)| − 1 t ∈ V (T ) and the treewidth of G, denoted by
+                                       
+
+tw(G), is the minimum width over all tree decompositions of G.
+    To compute a tree decomposition of a graph of bounded treewidth, in the proof of Lemma 26 in
+Section 6 we will use the single-exponential 5-approximation algorithm for treewidth of Bodlaender
+et al. [9, Theorem VI].
+
+Proposition 3. There is an algorithm that, given an graph G and an integer k, outputs either
+a report that tw(G) > k, or a tree decomposition of G of width at most 5k + 4. Moreover, this
+algorithm runs in 2O(k) · n-time.
+
+Contractions and minors. The contraction of an edge e = {u, v} of a simple graph G results in
+a simple graph G0 obtained from G \ {u, v} by adding a new vertex uv adjacent to all the vertices
+in the set NG (u) ∪ NG (v) \ {u, v}. A graph G0 is a minor of a graph G, denoted by G0 ≤m G, if G0
+can be obtained from G by a sequence of vertex removals, edge removals, and edge contractions. If
+only edge contractions are allowed, we say that G0 is a contraction of G. Given two graphs H and
+G, if H is a minor of G then for every vertex v ∈ V (H) there is a set of vertices in G that are the
+endpoints of the edges of G contracted towards creating v. We call this set model of v in G. Recall
+that, given a finite collection of graphs F and a graph G, we use notation F ≤m G to denote that
+some graph in F is a minor of G.
+
+
+                                                   7
+  We present here the main result of Baste et al. [5], which we will use in order to solve F-M-
+Deletion on instances of treewidth bounded by an appropriate function of k.
+
+Proposition 4. Let F be a finite collection of graphs. There exists an algorithm that, given a triple
+(G, tw, k) where G is a graph of treewidth at most tw and k is a non-negative integer, it outputs, if
+it exists, a vertex set S of G of size at most k such that G \ S ∈ exc(F). Moreover, this algorithm
+runs in 2OsF (tw·log tw) · n-time.
+
+
+3     Flat walls
+In this section we deal with flat walls, using the framework of [51]. More precisely, in Subsec-
+tion 3.1, we introduce walls and several notions concerning them. In Subsection 3.2, we provide the
+definitions of a rendition and a painting. Using the above notions, in Subsection 3.3, we define flat
+walls and provide some results about them, including the Flat Wall Theorem (namely, the version
+proved by Kawarabayashi et al. [33]) and its algorithmic version restated in the “more accurate”
+framework of [51]. Finally, in Subsection 3.4, we present the notion of homogeneity and an algo-
+rithm from [51] that allows us to detect a homogenous flat wall “inside” a given flat wall of “big
+enough” height. We note that the definitions of this section can also be found in [51, 52].
+
+3.1    Walls and subwalls
+We start with some basic definitions about walls.
+
+Walls. Let k, r ∈ N. The (k × r)-grid is the graph whose vertex set is [k] × [r] and two vertices
+(i, j) and (i0 , j 0 ) are adjacent if and only if |i − i0 | + |j − j 0 | = 1. An elementary r-wall, for some
+odd integer r ≥ 3, is the graph obtained from a (2r × r)-grid with vertices (x, y) ∈ [2r] × [r], after
+the removal of the “vertical” edges {(x, y), (x, y + 1)} for odd x + y, and then the removal of all
+vertices of degree one. Notice that, as r ≥ 3, an elementary r-wall is a planar graph that has a
+unique (up to topological isomorphism) embedding in the plane R2 such that all its finite faces
+are incident to exactly six edges. The perimeter of an elementary r-wall is the cycle bounding
+its infinite face, while the cycles bounding its finite faces are called bricks. Also, the vertices in
+the perimeter of an elementary r-wall that have degree two are called pegs, while the vertices
+(1, 1), (2, r), (2r − 1, 1), (2r, r) are called corners (notice that the corners are also pegs).
+     An r-wall is any graph W obtained from an elementary r-wall W̄ after subdividing edges (see
+Figure 1). A graph W is a wall if it is an r-wall for some odd r ≥ 3 and we refer to r as the height
+of W. Given a graph G, a wall of G is a subgraph of G that is a wall. We insist that, for every
+r-wall, the number r is always odd.
+     We call the vertices of degree three of a wall W 3-branch vertices. A cycle of W is a brick (resp.
+the perimeter) of W if its 3-branch vertices are the vertices of a brick (resp. the perimeter) of W̄ .
+We denote by C(W ) the set of all cycles of W. We use D(W ) in order to denote the perimeter of
+the wall W. A brick of W is internal if it is disjoint from D(W ).
+
+Subwalls. Given an elementary r-wall W̄ , some odd i ∈ {1, 3, . . . , 2r − 1}, and i0 = (i + 1)/2,
+the i0 -th vertical path of W̄ is the one whose vertices, in order of appearance, are (i, 1), (i, 2), (i +
+
+                                                     8
+Figure 1: An 11-wall and its five layers, depicted in alternating orange and green. The central
+vertices of the wall are depicted in red.
+
+
+1, 2), (i + 1, 3), (i, 3), (i, 4), (i + 1, 4), (i + 1, 5), (i, 5), . . . , (i, r − 2), (i, r − 1), (i + 1, r − 1), (i + 1, r).
+Also, given some j ∈ [2, r − 1] the j-th horizontal path of W̄ is the one whose vertices, in order of
+appearance, are (1, j), (2, j), . . . , (2r, j).
+    A vertical (resp. horizontal) path of an r-wall W is one that is a subdivision of a vertical (resp.
+horizontal) path of W̄ . Notice that the perimeter of an r-wall W is uniquely defined regardless of
+the choice of the elementary r-wall W̄ . A subwall of W is any subgraph W 0 of W that is an r0 -wall,
+with r0 ≤ r, and such the vertical (resp. horizontal) paths of W 0 are subpaths of the vertical (resp.
+horizontal) paths of W.
+
+Layers. The layers of an r-wall W are recursively defined as follows. The first layer of W is
+its perimeter. For i = 2, . . . , (r − 1)/2, the i-th layer of W is the (i − 1)-th layer of the subwall
+W 0 obtained from W after removing from W its perimeter and removing recursively all occurring
+vertices of degree one. We refer to the (r − 1)/2-th layer as the inner layer of W. The central
+vertices of an r-wall are its two branch vertices that do not belong to any of its layers. See Figure 1
+for an illustration of the notions defined above.
+
+Central walls. Given an r-wall W and an odd q ∈ N≥3 where q ≤ r, we define the central q-
+subwall of W, denoted by W (q) , to be the q-wall obtained from W after removing its first (r − q)/2
+layers and all occurring vertices of degree one.
+
+Tilts. The interior of a wall W is the graph obtained from W if we remove from it all edges of
+D(W ) and all vertices of D(W ) that have degree two in W. Given two walls W and W̃ of a graph
+G, we say that W̃ is a tilt of W if W̃ and W have identical interiors.
+    The following result is derived from [1]. We will use it in the improved algorithm of Theorem 2
+in Section 6, in order to find a wall in a graph of bounded treewidth, given a tree decomposition of
+it.
+
+
+
+                                                              9
+Proposition 5. There is an algorithm that, given a graph G on m edges, a graph H on h edges
+without isolated vertices, and a tree decomposition of G of width at most k, it outputs, if it exists,
+a minor of G isomorphic to H. Moreover, this algorithm runs in 2O(k log k) · hO(k) · 2O(h) · m-time.
+
+3.2   Paintings and renditions
+In this subsection we present the notions of renditions and paintings, originating in the work of
+Robertson and Seymour [46]. The definitions presented here were introduced by Kawarabayashi et
+al. [33] (see also [5, 51]).
+
+Paintings. A closed (resp. open) disk is a set homeomorphic to the set {(x, y) ∈ R2 | x2 + y 2 ≤ 1}
+(resp. {(x, y) ∈ R2 | x2 + y 2 < 1}). Let ∆ be a closed disk. Given a subset X of ∆, we denote its
+closure by X̄ and its boundary by bd(X). A ∆-painting is a pair Γ = (U, N ) where
+
+  • N is a finite set of points of ∆,
+
+  • N ⊆ U ⊆ ∆, and
+
+  • U \ N has finitely many arcwise-connected components, called cells, where, for every cell c,
+
+        ◦ the closure c̄ of c is a closed disk and
+        ◦ |c̃| ≤ 3, where c̃ := bd(c) ∩ N.
+
+We use the notation U (Γ) := U, N (Γ) := N and denote the set of cells of Γ by C(Γ). For convenience,
+we may assume that each cell of Γ is an open disk of ∆.
+   Notice that, given a ∆-painting Γ, the pair (N (Γ), {c̃ | c ∈ C(Γ)}) is a hypergraph whose hy-
+peredges have cardinality at most three and Γ can be seen as a plane embedding of this hypergraph
+in ∆.
+
+Renditions. Let G be a graph and let Ω be a cyclic permutation of a subset of V (G) that we
+denote by V (Ω). By an Ω-rendition of G we mean a triple (Γ, σ, π), where
+
+ (a) Γ is a ∆-painting for some closed disk ∆,
+
+ (b) π : N (Γ) → V (G) is an injection, and
+
+ (c) σ assigns to each cell c ∈ C(Γ) a subgraph σ(c) of G, such that
+
+      (1) G =
+                S
+                 c∈C(Γ) σ(c),
+      (2) for distinct c, c0 ∈ C(Γ), σ(c) and σ(c0 ) are edge-disjoint,
+      (3) for every cell c ∈ C(Γ), π(c̃) ⊆ V (σ(c)),
+      (4) for every cell c ∈ C(Γ), V (σ(c)) ∩       c0 ∈C(Γ)\{c} V (σ(c )) ⊆ π(c̃), and
+                                                                       0
+                                                S
+
+      (5) π(N (Γ) ∩ bd(∆)) = V (Ω), such that the points in N (Γ) ∩ bd(∆) appear in bd(∆) in the
+          same ordering as their images, via π, in Ω.
+
+
+
+
+                                                     10
+3.3    Flatness pairs
+In this subsection we define the notion of a flat wall. The definitions given in this subsection
+are originating in [51]. We refer the reader to that paper for a more detailed exposition of these
+definitions and the reasons for which we introduced them. We use the more accurate framework
+of [51] concerning flat walls, instead of that of [33], in order to be able to use tools that are developed
+in [51] and [52] and will be useful in future applications as well.
+
+Flat walls. Let G be a graph and let W be an r-wall of G, for some odd integer r ≥ 3. We say
+that a pair (P, C) ⊆ D(W ) × D(W ) is a choice of pegs and corners for W if W is the subdivision
+of an elementary r-wall W̄ where P and C are the pegs and the corners of W̄ , respectively (clearly,
+C ⊆ P ). To get more intuition, notice that a wall W can occur in several ways from the elementary
+wall W̄ , depending on the way the vertices in the perimeter of W̄ are subdivided. Each of them
+gives a different selection (P, C) of pegs and corners of W.
+    We say that W is a flat r-wall of G if there is a separation (X, Y ) of G and a choice (P, C) of
+pegs and corners for W such that:
+
+   • V (W ) ⊆ Y,
+
+   • P ⊆ X ∩ Y ⊆ V (D(W )), and
+
+   • if Ω is the cyclic ordering of the vertices X ∩ Y as they appear in D(W ), then there exists an
+     Ω-rendition (Γ, σ, π) of G[Y ].
+
+We say that W is a flat wall of G if it is a flat r-wall for some odd integer r ≥ 3.
+
+Flatness pairs. Given the above, we say that the choice of the 7-tuple R = (X, Y, P, C, Γ, σ, π)
+certifies that W is a flat wall of G. We call the pair (W, R) a flatness pair of G and define the
+height of the pair (W, R) to be the height of W. We use the term cell of R in order to refer to the
+cells of Γ.
+    We call the graph G[Y ] the R-compass of W in G, denoted by compassR (W ). We can assume
+that compassR (W ) is connected, updating R by removing from Y the vertices of all the connected
+components of compassR (W ) except of the one that contains W and including them in X (Γ, σ, π
+can also be easily modified according to the removal of the aforementioned vertices from Y ). We
+define the flaps of the wall W in R as flapsR (W ) := {σ(c) | c ∈ C(Γ)}. Given a flap F ∈ flapsR (W ),
+we define its base as ∂F := V (F ) ∩ π(N (Γ)). A cell c of R is untidy if π(c̃) contains a vertex x of W
+such that two of the edges of W that are incident to x are edges of σ(c). Notice that if c is untidy
+then |c̃| = 3. A cell c of R is tidy if it is not untidy.
+
+Cell classification. Given a cycle C of compassR (W ), we say that C is R-normal if it is not
+a subgraph of a flap F ∈ flapsR (W ). Given an R-normal cycle C of compassR (W ), we call a cell
+c of R C-perimetric if σ(c) contains some edge of C. Notice that if c is C-perimetric, then π(c̃)
+contains two points p, q ∈ N (Γ) such that π(p) and π(q) are vertices of C where one, say Pcin , of the
+two (π(p), π(q))-subpaths of C is a subgraph of σ(c) and the other, denoted by Pcout , (π(p), π(q))-
+subpath contains at most one internal vertex of σ(c), which should be the (unique) vertex z in
+
+
+                                                    11
+∂σ(c) \ {π(p), π(q)}. We pick a (p, q)-arc Ac in ĉ := c ∪ c̃ such that π −1 (z) ∈ Ac if and only if Pcin
+contains the vertex z as an internal vertex.
+    We consider the circle KC = {Ac | c is a C-perimetric cell of R} and we denote by ∆C the
+                                   S
+
+closed disk bounded by KC that is contained in ∆. A cell c of R is called C-internal if c ⊆ ∆C
+and is called C-external if ∆C ∩ c = ∅. Notice that the cells of R are partitioned into C-internal,
+C-perimetric, and C-external cells.
+    Let c be a tidy C-perimetric cell of R where |c̃| = 3. Notice that c\Ac has two arcwise-connected
+components and one of them is an open disk Dc that is a subset of ∆C . If the closure Dc of Dc
+contains only two points of c̃ then we call the cell c C-marginal.
+
+Influence. For every R-normal cycle C of compassR (W ) we define the set
+
+                    influenceR (C) = {σ(c) | c is a cell of R that is not C-external}.
+
+    A wall W 0 of compassR (W ) is R-normal if D(W 0 ) is R-normal. Notice that every wall of W (and
+hence every subwall of W ) is an R-normal wall of compassR (W ). We denote by SR (W ) the set of all
+R-normal walls of compassR (W ). Given a wall W 0 ∈ SR (W ) and a cell c of R, we say that c is W 0 -
+perimetric/internal/external/marginal if c is D(W 0 )-perimetric/internal/external/marginal, respec-
+tively. We also use KW 0 , ∆W 0 , influenceR (W 0 ) as shortcuts for KD(W 0 ) , ∆D(W 0 ) , influenceR (D(W 0 )),
+respectively.
+
+Regular flatness pairs. We call a flatness pair (W, R) of a graph G regular if none of its cells
+is W -external, W -marginal, or untidy.
+
+Tilts of flatness pairs. Let (W, R) and (W̃ 0 , R̃0 ) be two flatness pairs of a graph G and let
+W 0 ∈ SR (W ). We assume that R = (X, Y, P, C, Γ, σ, π) and R̃0 = (X 0 , Y 0 , P 0 , C 0 , Γ0 , σ 0 , π 0 ). We say
+that (W̃ 0 , R̃0 ) is a W 0 -tilt of (W, R) if
+
+   • R̃0 does not have W̃ 0 -external cells,
+
+   • W̃ 0 is a tilt of W 0 ,
+
+   • the set of W̃ 0 -internal cells of R̃0 is the same as the set of W 0 -internal cells of R and their
+     images via σ 0 and σ are also the same,
+
+   • compassR̃0 (W̃ 0 ) is a subgraph of        influenceR (W 0 ), and
+                                            S
+
+
+   • if c is a cell in C(Γ0 ) \ C(Γ), then |c̃| ≤ 2.
+
+    The next observation follows from the third item above and the fact that the cells corresponding
+to flaps containing a central vertex of W 0 are all internal (recall that the height of a wall is always
+at least three).
+Observation 6. Let (W, R) be a flatness pair of a graph G and W 0 ∈ SR (W ). For every W 0 -tilt
+(W̃ 0 , R̃0 ) of (W, R), the central vertices of W 0 belong to the vertex set of compassR̃0 (W̃ 0 ).
+
+
+
+
+                                                        12
+    Also, given a regular flatness pair (W, R) of a graph G and a W 0 ∈ SR (W ), for every W 0 -tilt
+(W̃ 0 , R̃0 ) of (W, R), by definition none of its cells is W̃ 0 -external, W̃ 0 -marginal, or untidy – thus,
+(W̃ 0 , R̃0 ) is regular. Therefore, regularity of a flatness pair is a property that its tilts “inherit”.
+Observation 7. If (W, R) is a regular flatness pair, then for every W 0 ∈ SR (W ), every W 0 -tilt of
+(W, R) is also regular.
+    We next present one of the main results of [51].
+
+Proposition 8. There exists an algorithm that, given a graph G, a flatness pair (W, R) of G, and
+a wall W 0 ∈ SR (W ), outputs a W 0 -tilt of (W, R) in O(n + m)-time.
+
+    We present here the Flat Wall Theorem and, in particular, the version proved by Kawarabayashi
+et al. [33, Theorem 1.5]. This result will be used in the proof of correctness of the algorithm of
+Theorem 2.
+
+Proposition 9. There are two functions f1 : N → N and f2 : N → N, where the images of f1 are
+odd numbers, such that if r is an odd integer in N≥3 , t ∈ N≥1 , G is a graph that does not contain
+Kt as a minor, and W is an f1 (t) · r-wall of G, then there is a set A ⊆ V (G) where |A| ≤ f2 (t)
+and a flatness pair (W̃ 0 , R̃0 ) of G \ A of height r. Moreover f1 (t) = O(t26 ) and f2 (t) = O(t24 ).
+
+    We conclude this subsection with the following result from [51] that allows us to find a regular
+flatness pair in a minor-free graph of “big enough” treewidth.
+
+Proposition 10. There is a function f3 : N → N and an algorithm that receives as input a graph
+                                                                    2
+G, an odd integer r ≥ 3, and a t ∈ N≥1 , and outputs, in time 2Ot (r ) · n, one of the following:
+
+   • a report that Kt is a minor of G,
+
+   • a tree decomposition of G of width at most f3 (t) · r, or
+
+   • a set A ⊆ V (G) with |A| ≤ f2 (t) and a regular flatness pair (W, R) of G \ A of height r. (Here
+     f2 (t) is the function of Proposition 9.)
+                         2
+Moreover, f3 (t) = 2O(t log t) .
+
+    We note that the result of [51] also returns a tree decomposition of the flatness pair. However,
+this additional output is not needed in the algorithms of this paper.
+
+3.4    Homogeneous walls
+We first present some definitions on boundaried graphs and folios that will be used to define the
+notion of homogeneous walls. Following this, we present some results concerning homogeneous
+walls that are key ingredients in the application of the irrelevant vertex technique in our proofs.
+
+
+
+
+                                                     13
+Boundaried graphs. Let t ∈ N. A t-boundaried graph is a triple G = (G, B, ρ) where G is
+a graph, B ⊆ V (G), |B| = t, and ρ : B → [t] is a bijection. We say that G1 = (G1 , B1 , ρ1 )
+and G2 = (G2 , B2 , ρ2 ) are isomorphic if there is an isomorphism from G1 to G2 that extends
+the bijection ρ−1
+               2 ◦ ρ1 . The triple (G, B, ρ) is a boundaried graph if it is a t-boundaried graph for
+some t ∈ N. As in [46] (see also [5]), we define the detail of a boundaried graph G = (G, B, ρ) as
+detail(G) := max{|E(G)|, |V (G) \ B|}. We denote by B (t) the set of all (pairwise non-isomorphic)
+                                (t)
+t-boundaried graphs and by B` the set of all (pairwise non-isomorphic) t-boundaried graphs with
+detail at most `. We also set B = t∈N B (t) .
+                                    S
+
+    We define the treewidth of a boundaried graph G = (G, B, ρ), denoted by tw(G), as the minimum
+width of a tree decomposition (T, χ) of G for which there is some u ∈ V (T ) such that B ⊆ χ(u).
+Notice that the treewidth of a t-boundaried graph is always lower-bounded by t − 1.
+
+Folios. We say that (M, T ) is a tm-pair if M is a graph, T ⊆ V (M ), and all vertices in V (M ) \ T
+have degree two. We denote by diss(M, T ) the graph obtained from M by dissolving all vertices
+in V (M ) \ T. A tm-pair of a graph G is a tm-pair (M, T ) where M is a subgraph of G. We
+call the vertices in T branch vertices of (M, T ). We need to deal with topological minors for the
+notion of homogeneity defined below, on which the statement of [5, Theorem 5.2] relies. If M =
+(M, B, ρ) ∈ B and T ⊆ V (M ) with B ⊆ T, we call (M, T ) a btm-pair and we define diss(M, T ) =
+(diss(M, T ), B, ρ). Note that we do not permit dissolution of boundary vertices, as we consider all
+of them to be branch vertices. If G = (G, B, ρ) is a boundaried graph and (M, T ) is a tm-pair of
+G where B ⊆ T, then we say that (M, T ), where M = (M, B, ρ), is a btm-pair of G = (G, B, ρ).
+Let G1 , G2 be two boundaried graphs. We say that G1 is a topological minor of G2 , denoted by
+G1 tm G2 , if G2 has a btm-pair (M, T ) such that diss(M, T ) is isomorphic to G1 . Given a G ∈ B
+and a positive integer `, we define the `-folio of G as
+
+                   `-folio(G) = {G0 ∈ B | G0 tm G and G0 has detail at most `}.
+
+   The number of distinct `-folios of t-boundaried graphs is upper-bounded in the following result,
+proved first in [6] and used also in [5].
+
+Proposition 11. There exists a function f4 : N2 → N such that for every t, ` ∈ N, |{`-folio(G) |
+     (t)                                       O((t+`)·log(t+`))
+G ∈ B` }| ≤ f4 (t, `). Moreover, f4 (t, `) = 22                  .
+
+Augmented flaps. Let G be a graph, A be a subset of V (G) of size a, and (W, R) be a flatness
+pair of G \ A. For each flap F ∈ flapsR (W ) we consider a labeling `F : ∂F → {1, 2, 3} such that
+the set of labels assigned by `F to ∂F is one of {1}, {1, 2}, {1, 2, 3}. Also, let ã ∈ [a]. For every set
+Ã ∈ Aã , we consider a bijection ρÃ : Ã → [ã]. The labelings in L = {`F | F ∈ flapsR (W )} and the
+        
+
+labelings in {ρÃ | Ã ∈ Aã } will be useful for defining a set of boundaried graphs that we will call
+                            
+
+augmented flaps. We first need some more definitions.
+    Given a flap F ∈ flapsR (W ), we define an ordering Ω(F ) = (x1 , . . . , xq ), with q ≤ 3, of the
+vertices of ∂F so that
+
+   • (x1 , . . . , xq ) is a counter-clockwise cyclic ordering of the vertices of ∂F as they appear in the
+     corresponding cell of C(Γ). Notice that this cyclic ordering is significant only when |∂F | = 3,
+
+
+                                                   14
+      in the sense that (x1 , x2 , x3 ) remains invariant under shifting, i.e., (x1 , x2 , x3 ) is the same as
+      (x2 , x3 , x1 ) but not under inversion, i.e., (x1 , x2 , x3 ) is not the same as (x3 , x2 , x1 ), and
+
+   • for i ∈ [q], `F (xi ) = i.
+
+Notice that the second condition is necessary for completing the definition of the ordering Ω(F ),
+and this is the reason why we set up the labelings in L.
+
+   For each set Ã ∈ Aã and each F ∈ flapsR (W ) with tF := |∂F |, we fix ρF : ∂F → [ã + 1, ã + tF ]
+                          
+
+such that (ρ−1                   −1
+            F (ã + 1), . . . , ρF (ã + tF )) = Ω(F ). Also, we define the boundaried graph
+
+                                         FÃ := (G[Ã ∪ F ], Ã ∪ ∂F, ρÃ ∪ ρF )
+
+and we denote by F Ã the underlying graph of FÃ . We call FÃ an Ã-augmented flap of the flatness
+pair (W, R) of G \ A in G.
+
+Palettes and homogeneity. For each R-normal cycle C of compassR (W ) and each set Ã ⊆ A,
+we define (Ã, `)-palette(C) = {`-folio(FÃ ) | F ∈ influenceR (C)}. Given a set Ã ⊆ A, we say that
+the flatness pair (W, R) of G \ A is `-homogeneous with respect to Ã if every internal brick of W
+has the same (Ã, `)-palette (seen as a cycle of compassR (W )). Also, given a collection S ⊆ 2A , we
+say that the flatness pair (W, R) of G \ A is `-homogeneous with respect to S if it is `-homogeneous
+with respect to every Ã ∈ S.
+    The following observation is a consequence of the fact that, given a wall W and a subwall W 0
+of W, every internal brick of a tilt W 00 of W 0 is also an internal brick of W.
+Observation 12. Let ` ∈ N, G be a graph, A ⊆ V (G), S ⊆ 2A , and (W, R) be a flatness pair of
+G \ A. If (W, R) is `-homogeneous with respect to S, then for every subwall W 0 of W, every W 0 -tilt
+of (W, R) is also `-homogeneous with respect to S.
+
+    Let a, ã, ` ∈ N, where ã ≤ a. Also, let G be a graph, A be a subset of V (G) of size at most
+a, and (W, R) be a flatness pair of G \ A. For every flap F ∈ flapsR (W ), we define the function
+   (A,ã,`)   A
+            : ≤ã                                                              A
+                  → {`-folio(G) | G ∈ i∈[ã+3] B (i) } that maps each set Ã ∈ ≤ã to the set `-folio(FÃ ).
+                                     S
+varF
+                                                                                         A
+   We also use the following result that follows from Proposition 11 and the fact that | ≤ã | =
+                                                                                                           
+
+O(|A| ) (see also [52]).
+     ã
+
+
+Lemma 13. There exists a function f5 : N3 → N such that if a, ã, ` ∈ N, where ã ≤ a, G is a
+graph, A is a subset of V (G) of size at most a, and (W, R) is a flatness pair of G \ A, then
+                                           (A,ã,`)
+                                    |{varF            | F ∈ flapsR (W )}| ≤ f5 (a, ã, `).
+                              ã   O((ã+`)·log(ã+`))
+Moreover, f5 (a, ã, `) = 2a ·2                          .
+                                                                               (A,ã,`)
+    Lemma 13 allows us to define an injective function σ : {varF            | F ∈ flapsR (W )} → [f5 (a, ã, `)]
+                                     (A,ã,`)
+that maps each function in {varF              | F ∈ flapsR (W )} to an integer in [f5 (a, ã, `)]. Using σ, we
+define a function ζA,ã,` : flapsR (W ) → [f5 (a, ã, `)], that maps each flap F ∈ flapsR (W ) to the integer
+      (A,ã,`)
+σ(varF         ). In [51], given a w ∈ N, the notion of homogeneity is defined with respect to a flap-
+coloring ζ of (W, R) with w colors, that is a function from flapsR (W ) to [w]. This function gives rise
+
+                                                                15
+to the ζ-palette of each R-normal cycle of compassR (W ) which, in turn, is used to define the notion
+of a ζ-homogeneous flatness pair. Hence, using the terminology of [51], ζA,ã,` is a flap-coloring of
+(W, R) with f5 (a, ã, `) colors, that “colors” each flap F ∈ flapsR (W ) by mapping it to the integer
+      (A,ã,`)
+σ(varF                                                             A
+               ), and the notion of `-homogeneity with respect to ≤ã defined here can be alternatively
+interpreted as ζA,ã,` -homogeneity. The following result, which is the application of a result of Sau
+et al. [51, Lemma 13] for the flap-coloring ζA,ã,` , provides an algorithm that, given a flatness pair
+of “big enough” height, outputs a homogeneous flatness pair.
+Proposition 14. There is a function f6 : N4 → N, whose images are odd integers, and an algorithm
+that receives as input an odd integer r ≥ 3, ã, a, ` ∈ N, where ã ≤ a, a graph G, a set A ⊆ V (G) of
+size at most a, and a flatness pair (W, R) of G \ A of height f6 (r, a, z, `), and outputs a flatness pair
+(W̆ , R̆) of G \ A of height r that is `-homogeneous with respect to ≤ã  A
+                                                                               and is a W 0 -tilt of (W, R)
+for some subwall W 0 of W. Moreover, f6 (r, a, ã, `) = O(rf5 (a,ã,`) ) and the algorithm runs in time
+2O(f5 (a,ã,`)·r log r) · (n + m).
+
+The price of homogeneity. As Proposition 14 indicates, finding a homogeneous flat wall inside
+a flat wall has a price, corresponding to the function f6 (r, a, ã, `) of the required height of the given
+flat wall. The “polynomial gap” between the height of the given flatness pair (W, R) of G \ A and
+the homogenous flat wall that is returned is determined by the function f5 of Observation 12, that
+bounds the number of different folios that can be rooted through the augmented flaps of (W, R),
+for each possible augmentation of each flap with a subset of A of size at most ã. In this paper,
+we will use Proposition 14 in order to compute a flat wall that is homogeneous with respect to
+2A , that is, for ã = a. We set ca,` = f5 (a, a, `) and we point out that, in general, it follows that
+         O((a+`)·log(a+`))
+ca,` = 22                  . However, by using the notion of representatives instead of folios as in [5], we
+can obtain a smaller bound of ca,` = 2O((a+`)·log(a+`)) . We call caF ,`F the palette-variety of F.
+
+
+4     Auxiliary algorithmic and combinatorial results
+In this section we provide some algorithmic and combinatorial results that will support the main
+algorithms of this paper. In Subsection 4.1 we provide an algorithm that finds an irrelevant ver-
+tex inside a “large enough” homogeneous flat wall, while, in Subsection 4.2, we define canonical
+partitions of walls and we present some combinatorial results that allow our algorithms to branch.
+
+4.1    Finding an irrelevant vertex
+The irrelevant vertex technique was introduced in [46] for providing an FPT-algorithm for the
+Disjoint Paths problem. Moreover, this technique has appeared to be quite versatile and is now
+a standard tool of parameterized algorithm design (see e.g., [15, 54]). The applicability of this
+technique for F-M-Deletion is materialized in this section by the algorithm of Lemma 16.
+    For the proof of Lemma 16 we need the next combinatorial result, Proposition 15, whose proof
+is presented in [52]. Proposition 15 intuitively states that, given a graph G and a homogeneous
+flatness pair (W, R) of G of “big enough” height, it holds that for every W (q) -tilt (Ŵ , R̂) of (W, R),
+compassR̂ (Ŵ ) can be “safely” removed from the input graph G, in the sense that (G, k) and (G \
+V (compassR̂ (Ŵ )), k) are equivalent instances of F-M-Deletion. In [52] we insisted on a proof of
+
+                                                    16
+Proposition 15 that requires homogeneity with respect to 2A (that is, with respect to every possible
+subset of A) in order to find an irrelevant wall, no matter the choice of the hitting set. This is an
+enhancement of the result of [5, Theorem 5.2], which allows to reroute minors outside a part of the
+wall that is homogeneous with respect to a particular apex set. When aiming to detect a wall that
+is irrelevant for F-M-Deletion, we do not know a priori which is the hitting set, and therefore
+we need to ask, firstly, for a wall that is irrelevant for every choice of a hitting set S and, secondly,
+for homogeneity that captures all possible remaining (after the deletion of S) apex sets of the flat
+wall in order to apply [5, Theorem 5.2] for such an apex set. For these reasons, this enhancement
+of [5, Theorem 5.2] is essential for our case.
+     The running time of the next result depends on the function ful coming from the Unique Linkage
+Theorem from [34] (see also [48, 49]). Recall that `F = max{detail(H) | H ∈ F}.
+
+Proposition 15. There exist two functions f7 : N4 → N and f8 : N2 → N, where the images
+of f7 are odd numbers, such that for every a, k ∈ N, every odd q ∈ N≥3 , and every graph G, if
+A is a subset of V (G) of size at most a and (W, R) is a regular flatness pair of G \ A of height
+at least f7 (a, `F , q, k) that is f8 (a, `F )-homogeneous with respect to 2A , then for every W (q) -tilt
+(Ŵ , R̂) of (W, R), it holds that (G, k) and (G \ V (compassR̂ (Ŵ )), k) are equivalent instances of
+F-M-Deletion. Moreover, f7 (a, `F , q, k) = O(k · (ful (16a + 12`F ))3 + q), where ful is the function
+of the Unique Linkage Theorem, and f8 (a, `F ) = a + `F + 3.
+
+    By applying Proposition 8 on top of Proposition 15, in order to find a tilt that is guaranteed to
+be irrelevant by Proposition 15, we directly get the following algorithm, which outputs a flatness
+pair (Ŵ , R̂) of an input graph G such that (G, k) and (G \ V (compassR̂ (Ŵ )), k) are equivalent
+instances of F-M-Deletion. In fact, in the rest of the paper, we use a slightly weaker version of
+Lemma 16, referred as Corollary 17, that outputs just an irrelevant vertex. Here, we prove this
+more general result for future use.
+
+Lemma 16. There exists an algorithm with the following specifications:
+Find-Irrelevant-Wall(k, q, a, G, A, W, R)
+Input: Three integers k, q, a ∈ N, with odd q ≥ 3, a graph G, a set A ⊆ V (G) of size at most a, and
+a regular flatness pair (W, R) of G \ A of height at least f7 (a, `F , q, k) that is f8 (a, `F )-homogeneous
+with respect to 2A .
+Output: A flatness pair (Ŵ , R̂) of G \ A that is a W (q) -tilt of (W, R) and such that (G, k) and
+(G \ V (compassR̂ (Ŵ )), k) are equivalent instances of F-M-Deletion.
+Moreover, this algorithm runs in O(n + m)-time.
+
+   Notice that Lemma 16 together with Observation 6 imply Corollary 17 if we set q = 3 and
+output a central vertex of the obtained 3-wall.
+
+Corollary 17. There exists an algorithm with the following specifications:
+Find-Irrelevant-Vertex(k, a, G, A, W, R)
+Input: Two integers k, a ∈ N, a graph G, a set A ⊆ V (G) of size at most a, and a regular flatness
+pair (W, R) of G \ A of height at least f7 (a, `F , 3, k) that is f8 (a, `F )-homogeneous with respect to
+2A .
+
+
+                                                    17
+Output: A vertex v ∈ V (G) such that (G, k) and (G \ v, k) are equivalent instances of F-M-
+Deletion.
+Moreover, this algorithm runs in O(n + m)-time.
+
+4.2    Combinatorial results for branching
+In this subsection, we present the notion of a canonical partition and provide two combinatorial
+results that will justify a branching step of our algorithm and, if such a step cannot be applied,
+the existence of a wall that will allow the application of the irrelevant vertex technique. Canonical
+partitions were introduced in [52].
+
+Canonical partitions. Let r ≥ 3 be an odd integer. Let W be an r-wall and let P1 , . . . , Pr (resp.
+L1 , . . . , Lr ) be its vertical (resp. horizontal) paths. For every even (resp. odd) i ∈ [2, r − 1] and
+every j ∈ [2, r − 1], we define A(i,j) to be the subpath of Pi that starts from a vertex of Pi ∩ Lj
+and finishes at a neighbor of a vertex in Lj+1 (resp. Lj−1 ), such that Pi ∩ Lj ⊆ A(i,j) and A(i,j)
+does not intersect Lj+1 (resp. Lj−1 ). Similarly, for every i, j ∈ [2, r − 1], we define B (i,j) to be the
+subpath of Lj that starts from a vertex of Pi ∩ Lj and finishes at a neighbor of a vertex in Pi−1 ,
+such that Pi ∩ Lj ⊆ A(i,j) and A(i,j) does not intersect Pi−1 .
+
+
+
+
+        Figure 2: A 5-wall and its canonical partition Q. The orange bag is the external bag Qext .
+
+    For every i, j ∈ [2, r − 1], we denote by Q(i,j) the graph A(i,j) ∪ B (i,j) and Qext to be the graph
+W \ i,j∈[2,r−1] Qi,j . Now consider the collection Q = {Qext } ∪ {Qi,j | i, j ∈ [2, r − 1]} and observe
+     S
+
+that the graphs in Q are connected subgraphs of W and their vertex sets form a partition of V (W ).
+We call Q the canonical partition of W. Also, we call every Qi,j , i, j ∈ [2, r − 1] an internal bag of
+Q, while we refer to Qext as the external bag of Q. See Figure 2 for an illustration of the notions
+defined above. For every i ∈ [(r − 1)/2], we say that a set Q ∈ Q is an i-internal bag of Q if V (Q)
+does not contain any vertex of the first i layers of W. Notice that the 1-internal bags of Q are the
+internal bags of Q.
+    Let (W, R) be a flatness pair of a graph G. Consider the canonical partition Q of W. We enhance
+the graphs of Q so to include in them all the vertices of G by applying the following procedure. We
+set Q̃ := Q and, as long as there is a vertex x ∈ V (compassR (W )) \ V ( Q̃) that is adjacent to a
+                                                                               S
+
+vertex of a graph Q ∈ Q̃, update Q̃ := Q̃ \ {Q} ∪ {Q̃}, where Q̃ = compassR (W )[{x} ∪ V (Q)]. Since
+compassR (W ) is a connected graph, in this way we define a partition of the vertices of compassR (W )
+into subsets inducing connected graphs. We call the Q̃ ∈ Q̃ that contains Qext as a subgraph the
+external bag of Q̃, and we denote it by Q̃ext , while we call internal bags of Q̃ all graphs in Q̃\{Q̃ext }.
+Moreover, we enhance Q̃ by adding all vertices of G \ V (compassR (W ) in its external bag, i.e., by
+
+
+                                                    18
+updating Q̃ext := G[V (Q̃ext ) ∪ V (G \ V (compassR (W ))]. We call such a partition Q̃ a (W, R)-
+canonical partition of G. Notice that a (W, R)-canonical partition of G is not unique, since the sets
+in Q can be “expanded” arbitrarily when introducing vertex x.
+    Let (W, R) be a flatness pair of a graph G of height r, for some r ≥ 3 and Q̃ be a (W, R)-
+canonical partition of G. For every i ∈ [(r − 1)/2], we say that a set Q ∈ Q̃ is an i-internal bag of
+Q̃ if it contains an i-internal bag of Q as a subgraph.
+    Next we identify a combinatorial structure that guarantees the existence of a set of q = OsF (k)
+vertices that intersects every solution S of F-M-Deletion with input (G, k). This will permit
+branching on q simpler instances of the form (G0 , k − 1). Recall that aF is the minimum apex
+number of a graph in F. The following result is proved in [52].
+Proposition 18. There exist three functions f9 , f10 , f11 : N3 → N, such that if F is a finite set of
+graphs, G is a graph, k ∈ N, A is a subset of V (G), (W, R) is a flatness pair of G \ A of height at
+least f9 (aF , sF , k), Q̃ is a (W, R)-canonical partition of G\A, A0 is a subset of vertices of A that are
+adjacent, in G, to vertices of at least f10 (aF , sF , k) f11 (aF , sF , k)-internal bags of Q̃, and |A0 | ≥ aF ,
+then for every set S ⊆ V (G) of size at most k such that G \ S ∈ exc(F) it holds that S ∩ A0 6= ∅.
+Moreover, f9 (a, s, k) = O(2a ·s5/2 ·k 5/2 ), f10 (a, s, k) = O(2a ·s3 ·k 3 ), and f11 (a, s, k) = O((a2 +k)·s),
+where a = aF and s = sF .
+    The next result is also proved in [52] and intuitively states that, given a flatness pair (W, R) of
+“big enough” height and a (W, R)-canonical partition Q̃ of G, we can find a “packing” of subwalls of
+W that are inside some central part of W and that the vertex set of every internal bag of Q̃ intersects
+the vertices of the flaps in the influence of at most one of these walls. We will use this result in
+the case where the set A0 of Proposition 18 is “small”, i.e., there are only “few” vertices in A that
+have “big enough” degree with respect to the central part of the canonical partition, and therefore
+Proposition 18 cannot justify branching. Following the latter condition and Proposition 19, we will
+be able to find a flatness pair with “few” apices so as to build irrelevant vertex arguments inside
+its compass.
+Proposition 19. There exists a function f12 : N3 → N such that if p, z ∈ N≥1 , x ∈ N≥3 is an
+odd integer, G is a graph, (W, R) is a flatness pair of G of height at least f12 (z, x, p), and Q̃ is a
+(W, R)-canonical partition of G, then there is a collection W = {W1 , . . . , Wz } of x-subwalls of W
+such that
+    • for every i ∈ [z],       influenceR (Wi ) is a subgraph of       {Q | Q is a p-internal bag of Q̃} and
+                           S                                       S
+
+  • for every i, j ∈ [z], with i 6= j, there is no internal bag of Q̃ that contains vertices of both
+     V ( influenceR (Wi )) and V ( influenceR (Wj )).
+        S                          S
+                            √
+Moreover, f12 (z, x, p) = O( z · x + p).
+
+
+5     The general algorithm
+In this section we present the general algorithm for F-M-Deletion. The existence of this algorithm
+proves Theorem 1. In Subsection 5.1, we explain how to employ the iterative compression technique
+so as to ask for an algorithm for a new, more convenient to solve, problem and, in Subsection 5.2,
+we develop an algorithm for this new problem.
+
+                                                       19
+5.1    Iterative compression
+In order to prove Theorem 1, we apply the iterative compression technique (introduced in [45]; see
+also [15]) and we give a 2poly(k) · n2 -time algorithm for the following problem.
+
+      F-M-Deletion-Compression
+      Input: A graph G, a k ∈ N, and a set S of size k + 1 such that G \ S ∈ exc(F).
+      Objective: Find, if exists, a set S 0 ⊆ V (G) of size at most k such that G\S 0 ∈ exc(F).
+
+    In other words, given an input (G, k, S) of F-M-Deletion-Compression, we have at hand a
+graph G and a “slightly larger than k” hitting set S, and we aim to find a hitting set of size at most
+k, that is a certificate that (G, k) is a yes-instance of F-M-Deletion. Given this set S, we can
+directly assume that G \ S does not contain a big clique as a minor and therefore we can deal with
+this minor-free graph, and thus, due to Proposition 10, we can obtain either a tree decomposition
+of G of “small” width (and solve the problem using the dynamic programming algorithm of [5]),
+or a flat wall on top of which we build our branching and irrelevant vertex technique arguments.
+In this way, we manage to avoid the “big clique” possible output of Proposition 10. However, this
+swifting from F-M-Deletion to F-M-Deletion-Compression comes together with an extra
+linear factor in the running time of the algorithm, as observed in the following (see [15]).
+Observation 20. If there is an algorithm solving F-M-Deletion-Compression in f (k) · nc -time,
+then there exists an algorithm solving F-M-Deletion in O(f (k) · nc+1 )-time.
+   In Subsection 5.2 we prove that F-M-Deletion-Compression can be solved in 2poly(k) ·n2 -time
+(Lemma 21). This along with Observation 20 yield Theorem 1.
+
+5.2    The algorithm
+In this subsection we present the algorithm solving F-M-Deletion-Compression.
+                                          O((a+`)·log(a+`))
+    We set c̃a,` := f4 (a, f8 (a, `)) = 22                  , where f4 is the number of different folios given in
+Proposition 11 and f8 is the function given in Proposition 15, in order to find an irrelevant vertex.
+
+Lemma 21. Let F be a finite collection of graphs. There is an algorithm solving F-M-Deletion-
+                      2·(c+2) )
+Compression in 2Os (k           · n2 -time, where a = aF , s = sF , ` = `F , and c = c̃a,` .
+
+Proof. For simplicity, in this proof, we use c instead of c̃aF ,`F , s instead of sF , ` instead of `F , a
+instead of aF , and recall that ` = O(s2 ) and a ≤ s. Also, we set
+
+      z = f7 (a − 1, `, 3, k),      d = f8 (a, `),              b = f6 (z, a, a, d) = OsF (k c ),
+      m = f9 (a, s, k),             x = f10 (a, s, k),          l = (f2 (s) + k + 1) · x,
+      p = f11 (a, s, k),            h = f12 (l + 1, b, p),     and r = odd(max{m, h}) = Os (k c+2 ).
+
+We present the algorithm Solve-Compression, whose input is a quadruple (G, k 0 , k, S) where G
+is a graph, k 0 and k are non-negative integers with k 0 ≤ k, and S is a subset of V (G) such that
+|S| = k and G \ S ∈ exc(F). The algorithm returns, if it exists, a solution for F-M-Deletion on
+(G, k 0 ). Certainly, we may assume that k 0 < k, otherwise S is already a solution and we are done.
+The steps of the algorithm are the following:
+
+                                                         20
+Step 1. Run the algorithm of Proposition 10 with input (G \ S, r, s). Since G \ S ∈ exc(F) and
+                                                    2           2·(c+2) )
+F ≤m Ks , the algorithm outputs, in time 2Os (r ) · n = 2Os (k            · n, either a tree decomposition of
+G \ S of width at most at most f3 (s) · r, or a set A ⊆ V (G) with |A| ≤ f2 (s) and a regular flatness
+pair (W, R) of G \ A of height r. In the first case, we solve F-M-Deletion-Compression in time
+                          c+2
+2Os (r log r) · n = 2Os (k log k) · n using the algorithm of Proposition 4. In what follows we examine
+the second case, where the algorithm of Proposition 10 outputs a set A ⊆ V (G) with |A| ≤ f2 (s)
+and a regular flatness pair (W, R) of G \ A of height r.
+    We consider a (W, R)-canonical partition Q̃ of G \ (S ∪ A). We compute, in O(n)-time, the set
+
+        A? = {v ∈ S ∪ A | v is adjacent, in G, to vertices of at least x p-internal bags of Q̃}
+
+and we proceed to the second step.
+
+Step 2. The algorithm examines two cases depending on the size of the A? . In the first case, the
+branching case, the outcome is a set of vertices, the set S ∪ A, that should intersect every possible
+solution. In the second case, the irrelevant vertex case, the outcome is an irrelevant vertex.
+
+[Branching case].        It holds that |A? | ≥ a. In this case the algorithm recursively calls
+Solve-Compression with input (G \ x, k 0 − 1, |S \ x|, S \ x) for every x ∈ A? , and if one of these
+new instances is a yes-instance, certified by a set S̄, then returns S̄ ∪ {x}, otherwise it returns that
+(G, k 0 ) is a no-instance.
+    Proposition 18 implies that the above branching step of the algorithm is correct.
+
+[Irrelevant vertex case]. It holds that |A? | < a. We consider a family W = {W1 , . . . , Wl+1 } of
+l + 1 b-subwalls of W such that for every i ∈ [l + 1], influenceR (Wi ) is a subgraph of {Q |
+                                                                  S                                    S
+
+Q is a p-internal bag of Q̃} and for every i, j ∈ [l + 1], where i 6= j, there is no internal bag Q ∈ Q̃
+that contains vertices of both V ( influenceR (Wi )) and V ( influenceR (Wj )). The existence of W
+                                         S                          S
+
+follows from the fact that r ≥ h = f12 (l + 1, b, p) and Proposition 19.
+     Notice that the vertices in (S ∪A)\A? are adjacent, in G, to vertices of at most x·|(S ∪A)\A? | ≤
+x · (f2 (s) + k + 1) = l p-internal bags of Q̃. Hence, taking into account the aforementioned properties
+of the walls W1 , . . . , Wl+1 , there exists an i ∈ [l + 1] such that no vertex in (S ∪ A) \ A? is adjacent
+to vertices of V ( influenceR (Wi )). In other words, if there exists a vertex v ∈ V ( influenceR (Wi ))
+                    S                                                                       S
+
+that is adjacent, in G, to a vertex u ∈ S ∪ A, then u ∈ A? . The fact that |A? | < a implies that, for
+this i, there are less than a vertices in S ∪ A that are adjacent to vertices of V ( influenceR (Wi )).
+                                                                                           S
+
+     Since Wi is a b-subwall of W and (W, R) is a flatness pair of G \ (S ∪ A), we apply the algorithm
+of Proposition 8, and obtain, in linear time, a flatness pair (W̃i , R̃i ) of G \ (S ∪ A) that is a Wi -
+tilt of (W, R). Notice that since (W̃i , R̃i ) is a Wi -tilt of (W, R), compassR̃i (W̃i ) is a subgraph of
+  influenceR (W̄i ) and, due to Observation 7, (W̃i , R̃i ) is regular. This implies that, if Ai is the set
+S
+
+of vertices from S ∪ A that are adjacent to vertices of compassR̃i (W̃i ) in G, then Ai ⊆ A? and
+therefore |Ai | < a. Notice that, by adding the vertices of (S ∪ A) \ Ai to G \ (S ∪ A), we obtain a
+flatness pair (W̃i , R̃0i ) of G \ Ai such that compassR̃i (W̃i ) = compassR̃0 (W̃i ). Applying the algorithm
+                                                                               i
+of Proposition 14 for (b, a, a, d, G, Ai , W̃i , R̃0i ), we obtain a flatness pair (W̆i , R̆i ) of G \ Ai of height
+z that is d-homogeneous with respect to 2Ai and is a W̃i0 -tilt of (W̃i , R̃i ) for some subwall W̃i0 of
+W̃i . Due to Observation 7, (W̆i , R̆i ) is also regular. This algorithm runs in 2Os (k log k) · n-time.
+
+                                                        21
+    We now apply Find-Irrelevant-Vertex of Corollary 17 for (k, a, G, Ai , W̆i , R̆i ) and obtain a
+vertex v such that (G, k) and (G \ v, k) are equivalent instances of F-M-Deletion. According to
+Corollary 17, this vertex can be detected in linear time, and the algorithm correctly calls recursively
+Solve-Compression with input (G \ v, k 0 , k, S). This completes the irrelevant vertex case.
+   Recall that |S ∪ A| ≤ k + 1 + f2 (s) = Os (k). Therefore, if T (n, k 0 , k) is the running time of the
+above algorithm, then
+                                       2·(c+2) )
+             T (n, k 0 , k) ≤ 2Os (k               · n + max{T (n − 1, k 0 , k), Os (k) · T (n, k − 1, k)}
+                                                                      2·(c+2)
+that, given that k 0 ≤ k, implies that T (n, k 0 , k) = 2Os (k ) · n2 .
+
+   Notice now that the output of Solve-Compression on (G, k, k + 1, S) gives a solution for F-
+M-Deletion-Compression on this instance.
+
+
+6     The apex-minor free case
+In this section we present an improved algorithm solving F-M-Deletion in the case where aF = 1.
+The existence of this algorithm proves Theorem 2. In Subsection 6.1, we show that a graph that
+contains a flat wall that is “highly connected” to a vertex in its apex set, also contains any apex
+graph as a minor. In Subsection 6.2, we provide an algorithm that will allow us to detect a wall
+inside a graph G in linear time. In Subsection 6.3, we provide the improved algorithm that solves
+F-M-Deletion in the case where aF = 1 and, in Subsection 6.4, we prove its correctness.
+
+6.1   Finding an apex graph as a minor
+Grids. Let k ∈ N≥2 . We use the term k-grid to refer to the (k × k)-grid. We say that a graph is
+a partially triangulated r-grid if it can be obtained from an r-grid after adding edges in such a way
+that the remaining graph remains planar.
+     Let k, r ∈ N≥2 . A vertex of a (k × r)-grid is called internal if it has degree four, and otherwise
+it is called external. We define the perimeter of a (k × r)-grid to be the unique cycle of the grid of
+length at least three that does not contain internal vertices.
+
+
+
+
+                                Figure 3: A 9-grid and its central 5-grid.
+
+    Let r ∈ N≥2 and H be an r-grid. Given an i ∈ d 2r e, we define the i-th layer of H recursively as
+follows. The first layer of H is its perimeter, while, if i ≥ 2, the i-th layer of H is the (i − 1)-th
+layer of the grid created if we remove from H its perimeter. Given two odd integers r, q ∈ N≥3 such
+
+
+                                                              22
+that q ≤ r and an r-grid H, we define the central q-grid of H to be the graph obtained from H if
+we remove from H its r−q 2 first layers. See Figure 3 for an illustration of the notions defined above.
+Given a partially triangulated r-grid H, we call central q-grid of H the subgraph of H induced by
+the vertices of the central q-grid of the underlying grid of H.
+    Given a graph G and a vertex v ∈ V (G), we say that a graph H is a v-fixed contraction of G
+if H can be obtained from G after contracting edges that are not incident with v. A graph H is a
+v-apex partially triangulated r-grid if it can be obtained from a partially triangulated r-grid Γ after
+adding a new vertex v and some edges between v and vertices in V (Γ). Α complete v-apex partially
+triangulated r-grid is a graph obtained from a v-apex partially triangulated r-grid by adding every
+edge between v and the vertices of the grid.
+    The following result is a special case of [51, Lemma 29].
+
+Proposition 22. There exist three functions f13 , f14 , and f15 : N → N, such that if r ∈ N, H is a
+v-apex partially triangulated h-grid, where v ∈ V (H) and h ≥ f13 (r) + 2 · f15 (r), and vertex v has at
+least f14 (r) neighbors in the central f13 (r)-grid of H \ {v}, then H contains as a v-fixed contraction
+a complete v-apex partially triangulated r-grid. Moreover, f13 (r) = O(r5 ), f14 (r) = O(r6 ), and
+f15 (r) = O(r2 ).
+
+   The following easy observation intuitively states that every planar graph H is a minor of a big
+enough grid, where the relationship between the size of the grid and |V (H)| is linear (see e.g., [50]).
+
+Proposition 23. There is a function f16 : N → N such that every planar graph on n vertices is a
+minor of the f16 (n)-grid. Moreover, f16 (n) = O(n).
+
+   In the proof of Theorem 2, we will need the following result.
+
+Lemma 24. There exist three functions f17 , f18 , f19 : N → N, such that if F is a finite set of graphs
+containing an apex graph, G is a graph, A is a subset of V (G), (W, R) is a flatness pair of G \ A of
+height at least f17 (sF ), Q̃ is a (W, R)-canonical partition of G \ A, and there is a vertex in A that
+is adjacent, in G, to at least f18 (sF ) f19 (sF )-internal bags of Q̃, then F ≤m G.
+
+Proof. Let f13 , f14 , and f15 be the functions of Proposition 22 and f16 be the function of Propo-
+sition 23. We set r = f16 (sF − 1), f17 (sF ) = f13 (r) + 2 · f15 (r) + 2, f18 (sF ) = f14 (r), and
+f19 (sF ) = f15 (r). Let G be a graph, A ⊆ V (G), (W, R) be a flatness pair of G \ A of height h, where
+h ≥ f17 (sF ), Q̃ be a (W, R)-canonical partition of G \ A, and v be a vertex in A that is adjacent,
+in G, to at least f18 (sF ) f19 (sF )-internal bags of Q̃.
+     We contract every bag in Q̃ to a vertex. Observe that this results in a planar graph (since
+(W, R) is a flatness pair) that is a partially triangulated (h − 2)-grid Γ̄ (whose vertices correspond
+to the internal bags of Q̃) together with an extra vertex uext (which corresponds to the external
+bag of Q̃) that is adjacent to all the vertices in the perimeter of Γ̄. We contract an edge between
+uext and a vertex in the perimeter of Γ̄ and we denote by Γ the obtained partially triangulated
+(h − 2)-grid. We set Γ+v to be the graph obtained from Γ by adding the vertex v and the edges
+{v, u}, if u is a vertex of Γ that corresponds to a bag Q ∈ Q̃ that contains a vertex adjacent, in G,
+to v. Notice that Γ+v is a v-apex partially triangulated (h − 2)-grid that is a minor of G. Moreover,
+observe that since v is adjacent, in G, to vertices of an f19 (sF )-internal bag of Q̃, then, since
+f19 (sF ) = f15 (r) and h − 2 ≥ f13 (r) + 2 · f15 (r), vertex v is also adjacent to a vertex in the central
+
+                                                    23
+f19 (sF )-grid of Γ = Γ+v \ {v}. Thus, v has at least f18 (sF ) neighbors in the central f19 (sF )-grid of
+Γ. By Proposition 22, Γ+v contains as a v-fixed contraction a complete v-apex r-grid and therefore,
+since r = f16 (sF − 1), by Proposition 23 every apex graph on at most sF vertices is a minor of G.
+Thus, F ≤m G, and the lemma follows.
+
+6.2   Quickly finding a wall
+In this subsection we prove Lemma 26 that intuitively states that there is an algorithm that, given
+a graph G and two non-negative integers r and k, outputs either that (G, k) is a no-instance of
+F-M-Deletion, or a report that the treewidth of G is polynomially bounded by r and k, or
+an r-wall of G. Before stating Lemma 26, we present the following result of Kawarabayashi and
+Kobayashi [32], which provides a linear relation between the treewidth and the height of a largest
+wall in a minor-free graph.
+
+Proposition 25. There is a function f20 : N → N such that, for every t, r ∈ N and every graph G
+that does not contain Kt as a minor, if tw(G) ≥ f20 (t) · r, then G contains an r-wall as a subgraph.
+                                            2
+In particular, one may choose f20 (t) = 2O(t ·log t) .
+
+   Lemma 26 is a variation of [51, Lemma 11] that we prove in this subsection. The version
+presented here will be useful for the design of the algorithm of Theorem 2. Recall that sF =
+max{|V (H)| | H ∈ F}.
+
+Lemma 26. There exists an algorithm with the following specifications:
+
+Find-Wall(G, r, k)
+Input: A graph G, an odd r ∈ N≥3 , and a k ∈ N.
+Output: One of the following:
+
+   • Either a report that G has treewidth at most f20 (sF ) · r + k, or
+
+   • an r-wall W of G, or
+
+   • a report that (G, k) is a no-instance of F-M-Deletion.
+                                          2
+Moreover, this algorithm runs in 2OsF (r +(k+r)·log(k+r)) · n-time.
+
+    The algorithm of Lemma 26 is a recursive one. Namely, given an instance of this algorithm, we
+compute a smaller-sized instance and recurse. This is achieved by using the following result that
+is derived from [44]. For a detailed analysis of the results of [44], see [3].
+
+Proposition 27. There exists an algorithm with the following specifications:
+Input: A graph G and a t ∈ N such that |V (G)| ≥ 12t3 .
+Output: A graph G? such that |V (G? )| ≤ (1 − 16t
+                                               1
+                                                 2 ) · |V (G)| and:
+
+
+   • Either G? is a subgraph of G such that tw(G) = tw(G? ), or
+
+   • G? is obtained from G after contracting the edges of a matching in G.
+
+Moreover, this algorithm runs in 2O(t) · n-time.
+
+                                                   24
+   We now have all the ingredients to prove Lemma 26.
+
+Proof of Lemma 26. We set c := f20 (sF ) · r + k. We now describe a recursive algorithm as follows.
+      We first argue for the base case, namely when |V (G)| < 12c3 . To check whether tw(G) ≤ c, we
+use the algorithm of Arnborg et al. [4], which runs in time O(|V (G)|c+2 ) = 2OsF ((r+k)·log(r+k)) , and
+if this is the case, we report the same and stop. If not, we aim to find an r-wall of G or conclude
+that we are dealing with a no-instance. We first consider an arbitrary ordering (v1 , . . . , v|V (G)| )
+of the vertices of G. For each i ∈ [|V (G)|], we set Gi to be the graph induced by the vertices
+v1 , . . . , vi . We iteratively run the algorithm of Proposition 3 on Gi and c for increasing values of
+i. This algorithm runs in 2O(c) · |V (G)| = 2OsF (r+k) -time. Let j ∈ [|V (G)|] be the smallest integer
+such that the above algorithm outputs a report that tw(Gj ) > c and notice that there exists a tree
+decomposition (Tj , χj ) of Gj (obtained by the one of Gj−1 by adding the vertex vj to all the bags)
+of width at most 5c + 5. Thus, we can call the algorithm of Proposition 4 with input (Gj , 5c + 5, k)
+(which runs in 2OsF (c·log c) · |V (Gj )| = 2OsF ((r+k)·log(r+k)) -time) in order to find, if it exists, a set
+Sj ⊆ V (Gj ) such that |Sj | ≤ k and F m Gj \ Sj . We distinguish two cases.
+
+   • If such a set Sj does not exist, then we can safely report that (G, k) is a no-instance.
+
+   • If such a set Sj exists, then we call the algorithm of Proposition 5 for Gj \ Sj (and the
+     decomposition of Gj \ Sj obtained from (Tj , χj ) by removing the vertices of Sj from the
+     all the bags in order to check whether it contains an elementary r-wall W as a minor. This
+                                               2                                                          2
+     algorithm runs in 2O(c·log c) ·rO(c) ·2O(r ) ·|V (Gj \Sj )| = 2OsF ((r+k)·log(r+k)) ·rOsF (r+k) ·2O(r ) =
+            2
+     2OsF (r +(r+k)·log(r+k)) -time, since |E(W )| = O(r2 ). Since Gj \ Sj does not contain KsF as a
+     minor and tw(Gj \ Sj ) ≥ c − k = f20 (sF ) · r and because of Proposition 25, this algorithm
+     will output an elementary r-wall W of Gj \ Sj . We also return W as a wall of G.
+
+Therefore, in the case where |V (G)| < 12c3 , we obtain one of the three possible outputs in time
+       2
+2OsF (r +(r+k) log(r+k)) .
+    If |V (G)| ≥ 12c3 , then we call the algorithm of Proposition 27 with input (G, c), which outputs
+a graph G? such that |V (G? )| ≤ (1 − 16c  1
+                                             2 ) · |V (G)| and
+
+
+   • either G? is a subgraph of G such that tw(G) = tw(G? ), or
+
+   • G? is obtained from G after contracting the edges of a matching in G.
+
+   In both cases, we recursively call the algorithm on G? and we distinguish the following two
+cases.
+Case 1: G? is a subgraph of G such that tw(G) = tw(G? ).
+
+ (a) If the recursive call on G? reports that tw(G? ) ≤ c, then we return that tw(G) ≤ c.
+
+ (b) If the recursive call on G? outputs an r-wall W of G? , then we return W as a wall of G.
+
+ (c) If (G? , k) is a no-instance, then we report that (G, k) is also a no-instance.
+
+Case 2: G? is obtained from G after contacting the edges of a matching in G.
+
+                                                     25
+ (a) If the recursive call on G? reports that tw(G? ) ≤ c, then we do the following. We first
+     notice that the fact that tw(G? ) ≤ c implies that tw(G) ≤ 2c, since we can obtain a tree
+     decomposition (T , χ) of G from a tree decomposition (T ? , χ? ) of G? , by replacing, in every
+     t ∈ T ? , every occurrence of a vertex of G? that is a result of an edge contraction by its
+     endpoints in G. Thus, we can call the algorithm of Proposition 4 with input (G, 2c, k) (which
+     runs in 2OsF (c log c) · n-time) in order to find, if it exists, a set S such that |S| ≤ k and
+     F m G \ S. We distinguish again two cases.
+
+         • If such a set S does not exist, then the algorithm reports that (G, k) is a no-instance.
+         • If such a set S exists, then we apply the algorithm of Proposition 3 with input (G \ S, 2c)
+           (which runs in 2O(c) · n-time) and we get a tree decomposition of G \ S of width at
+           most 10c + 4. Using this decomposition, we call the algorithm of Proposition 5 for
+           G \ S in order to check whether it contains an elementary r-wall W as a minor. This
+                                                       2                                                 2
+           algorithm runs in 2O(c·log c) · rO(c) · 2O(r ) · n = 2OsF ((r+k)·log(r+k)) · rOsF (r+k) · 2O(r ) · n =
+                  2
+           2OsF (r +(r+k)·log(r+k)) · n-time, since |E(G \ S)| = O(n) and |E(W )| = O(r2 ). If this
+           algorithm outputs an elementary r-wall W of G \ S, then we output W. Otherwise,we
+           can safely report, because of Proposition 25, that tw(G) ≤ f20 (sF ) · r + k = c.
+
+ (b) If the recursive call on G? outputs an r-wall W ? of G? , then by uncontracting the edges of
+     M in W ? we can return an r-wall of G.
+ (c) If (G? , k) is a no-instance, then we report that (G, k) is also a no-instance.
+It is easy to see that the running time of the above algorithm is
+                                         1
+                                                           
+                                                                  2
+                   T (n, k, r) ≤ T (1 −      ) · n, k, r + 2OsF (r +(r+k) log(r+k)) · n,
+                                        12c2
+                                           2
+which implies that T (n, k, r) = 2OsF (r +(r+k) log(r+k)) · n, as claimed.
+
+6.3   The algorithm
+In this subsection we prove that, in the case where aF = 1, there is an algorithm that solves F-
+                              2(c+2) )
+M-Deletion in time 2OsF (k             · n2 , where c = ca,`F and a = f2 (sF ). Note that the existence of
+such an algorithm implies Theorem 2.
+    Let G be graph and let W be a wall of G. The drop, denoted by DW 0 , of a subwall W 0 of W
+is defined as follows. If contract in G the perimeter of W to a single vertex v, DW 0 is the unique
+2-connected component of the resulting graph that contains the interior of W 0 . We call the vertex v
+the pole of the drop DW 0 .
+    Our algorithm avoids iterative compression in a similar fashion as done by Marx and Schlotter
+in [42] for the Vertex Planarization problem. The algorithm has three main steps. We first
+set a = f2 (sF ) and we define d = f8 (a, `F ),
+β = f7 (0, `F , 3, k),   λ = f18 (sF ) · (a + 1),                    q = f19 (sF ),
+η = f12 (λ + 1, β, q), z = odd(max{f17 (sF ), η}),                  w = f6 (z, a, 0, d),
+ b = 3 + f3 (sF ) · w,    l = f10 (1, sF , k) · (k + a),             p = f11 (1, sF , k),
+h = f12 (l + 1, b, p),   r = odd(max{f9 (1, sF , k), h}), and R = odd(f1 (sF ) · r + k) = OsF (k c+2 ).
+
+                                                       26
+                                                                                              2(c+2)
+Step 1. Run the algorithm of Lemma 26 with input (G, R, k) and, in 2OsF (k            )
+                                                                                        · n-time, ei-
+ther report a no-answer, or conclude that tw(G) ≤ f20 (sF ) · R + k and solve F-M-Deletion in
+       c+2
+2OsF (k ·log k) · n-time using the algorithm of Proposition 4, or obtain an R-wall W̃ of G. In the
+                                2         c
+third case, consider all the Rb = 2OsF (k log k) b-subwalls of W̃ and for each one of them, say W,
+construct its drop DW , and run the algorithm of Proposition 10 with input (DW \ {vW }, w, sF ),
+                                                      c
+where vW is the pole of DW . This takes time 2OsF (k ) · n. If for some of these drops the result is
+a set A ⊆ V (DW \ {vW }) with |A| ≤ a and a regular flatness pair (W 0 , R0 ) of (DW \ {vW }) \ A of
+height w, then proceed to Step 2, otherwise proceed to Step 3.
+
+Step 2. We apply the algorithm of Proposition 14 with input (z, a, 0, d, DW \ {vW }, A, W 0 , R0 ),
+which outputs a flatness pair (W̆ , R̆) of (DW \ {vW }) \ A of height z that is d-homogeneous
+                A
+with respect to ≤0  = {∅} and is a W ∗ -tilt of (W 0 , R0 ) for some subwall W ∗ of W 0 . This takes
+2OsF (k log k) · n-time. By Observation 7, (W̆ , R̆) is regular. Let A? := A ∪ {vW } and keep in mind
+                                                                                             2
+that (DW \ {vW }) \ A = DW \ A? . Consider all the β-subwalls of W̆ , which are at most βz many,
+and for each of them, say Ŵ , check in linear time whether there is an edge, in DW , between A? and
+V ( influenceR̆ (Ŵ )). If this is the case for every such a subwall, then proceed to Step 3. If not, let
+   S
+
+Ŵ be a β-subwall of W̆ such that no vertex of A? is adjacent to V ( influenceR̆ (Ŵ )). By applying
+                                                                              S
+
+Proposition 8 for the flatness pair (W̆ , R̆) of DW \ A? and the subwall Ŵ of W̆ , we obtain in
+linear time a Ŵ -tilt (W 00 , R00 ) of (W̆ , R̆). Keep in mind that (W 00 , R00 ) is a flatness pair of DW \ A?
+which is also regular and d-homogeneous with respect to {∅}, due to Observation 7 and Observa-
+tion 12, respectively. Also, notice that, since (W 00 , R00 ) is a Ŵ -tilt of (W 0 , R0 ), compassR00 (W 00 ) is
+a subgraph of influenceR0 (Ŵ ) and therefore no vertex of A? is adjacent, in DW , to a vertex of
+                S
+
+compassR00 (W 00 ). The latter implies that we can obtain a 7-tuple R̃00 from R00 by adding all vertices
+of G \ V (compassR00 (W 00 )) such that compassR̃00 (W 00 ) = compassR00 (W 00 ) and (W 00 , R̃00 ) is a flatness
+pair of G. We apply Find-Irrelevant-Vertex of Corollary 17 with input (k, 0, G, ∅, W 00 , R̃00 ) and
+obtain, in linear time, an irrelevant vertex v such that (G, k) and (G \ v, k) are equivalent instances
+of F-M-Deletion. Then the algorithm runs recursively on the equivalent instance (G \ v, k).
+Notice that Step 2 can be seen as the irrelevant vertex case of our algorithm.
+
+                                                                            2           c
+Step 3. Consider all the r-subwalls of W̃ , which are at most Rr = 2OsF (k log k) many, and for
+each of them, compute its canonical partition Q. Then, for each p-internal bag Q of Q, add a
+new vertex vQ and make it adjacent to all vertices in Q, then add a new vertex xall and make it
+adjacent to all xQ ’s, and in the resulting graph, for every vertex y of G that is not in the union of
+the internal bags of Q, check, in time O(k · |E(G)|) = OsF (k · n) (using standard flow techniques),
+whether there are f10 (1, sF , k) internally vertex-disjoint paths from xall to y. If this is indeed the
+case for some y, then y should belong to every solution of F-M-Deletion for the instance (G, k),
+and the algorithm runs recursively on the equivalent instance (G \ y, k − 1). If no such a vertex y
+exists, then report that (G, k) is a no-instance of F-M-Deletion.
+Note that Step 3 can be seen as a trivial branching case where the only choice is vertex y.
+                                                                                          c
+    Notice that the third step of the algorithm, when applied takes time 2OsF (k log k) · n2 . However,
+it cannot be applied more than k times during the course of the algorithm. As the first step runs
+                2(c+2) log k)
+in time 2OsF (k               · n, and the second step runs in time 2OsF (k log k) · n, they may be applied
+
+                                                       27
+at most n times, and the claimed time complexity follows.
+
+
+
+6.4    Correctness of the algorithm
+In this subsection we prove the correctness of the algorithm presented in Subsection 6.3.
+    Recall that a = f2 (sF ), d = f8 (a, `F ),
+
+β = f7 (0, `F , 3, k),   λ = f18 (sF ) · (a + 1),                    q = f19 (sF ),
+ η = f12 (λ + 1, β, q), z = odd(max{f17 (sF ), η}),                 w = f6 (z, a, 0, d),
+ b = 3 + f3 (sF ) · w,    l = f10 (1, sF , k) · (k + a),             p = f11 (1, sF , k),
+h = f12 (l + 1, b, p),    r = odd(max{f9 (1, sF , k), h}), and R = odd(f1 (sF ) · r + k) = OsF (k c+2 ).
+
+     Let (G, k) be a yes-instance and let S be a solution, i.e., a subset of V (G) of size at most k
+such that G \ S ∈ exc(F) and let W̃ be an R-wall of G. Then, since R ≥ f1 (sF ) · r + k, there
+is an (f1 (sF ) · r)-subwall of W̃ , say W ? , that does not contain vertices of S. The wall W ? is an
+(f1 (sF ) · r)-wall of G \ S, and therefore by Proposition 9 there is a set A ⊆ V (G \ S), with |A| ≤ a,
+and a flatness pair (W, R) of G \ (S ∪ A) of height r.
+     Let Q̃ be a (W, R)-canonical partition of G \ (S ∪ A). For each p-internal bag Q of Q̃, add a new
+vertex vQ and make it adjacent to all vertices in Q, then add a new vertex xall and make it adjacent
+to all vQ ’s. In the resulting graph, if there are f10 (1, sF , k) internally vertex-disjoint paths from
+xall to a vertex v ∈ S ∪ A, then this is checked in Step 3 (since connectivity of the internal bags
+implies that every such a path can be rerouted in order to intersect the wall) and the algorithm
+correctly (due to Proposition 18) runs recursively on the equivalent instance (G \ v, k − 1). If this
+is not the case, then for each vertex v of S ∪ A there are less than f10 (1, sF , k) p-internal bags of Q̃
+that contain vertices adjacent to v. This means that the p-internal bags of Q̃ that contain vertices
+adjacent to some vertex of S ∪ A are at most f10 (1, sF , k) · (k + a) = l.
+     We consider a family W = {W1 , . . . , Wl+1 } of l + 1 b-subwalls of W such that for every i ∈
+[z], influenceR (Wi ) is a subgraph of {Q | Q is a p-internal bag of Q̃} and for every i, j ∈ [z],
+     S                                        S
+
+with i 6= j, there is no internal bag of Q̃ that contains vertices of both V ( influenceR (Wi )) and
+                                                                                       S
+
+V ( influenceR (Wj )). The existence of W follows from the fact that r ≥ h = f12 (l + 1, b, p) and
+   S
+
+Proposition 19.
+     The fact that the p-internal bags of Q̃ that contain vertices adjacent to some vertex of S ∪ A
+are at most l implies that there exists an i ∈ [l + 1] such that no vertex of V ( influenceR̂ (Wi )) is
+                                                                                           S
+                                                                                           −
+adjacent, in G, to a vertex in S ∪ A. Thus, if DWi is the drop of Wi , and DW                i
+                                                                                                := DWi \ {vWi },
+                                             −                                                      −
+where vWi is the pole of DWi , then DW         i
+                                                 ≤m G \ (S ∪ A). This, in turn,  implies    that   DW i
+                                                                                                        ∈ exc(F)
+                    −                                                                                −
+and therefore DWi does not contain KsF as a minor. Additionally, we notice that DWi contains
+the central (b − 2)-subwall W̄i of Wi as a subgraph and since W̄i has height b − 2 = f3 (sF ) · w + 1,
+                       −
+it holds that tw(DW      i
+                           ) > f3 (sF ) · w. Therefore, by applying the algorithm of Proposition 10 with
+            −
+input (DWi , w, sF ), we must find a set A ⊆ V (DWi \ {vWi }) with |A| ≤ a and a regular flatness
+                      −
+pair (W 0 , R0 ) of DW  i
+                           \ A of height w. This should be detected in Step 1.
+                                                                              −
+     We apply the algorithm of Proposition 14 with input (z, a, 0, d, DW        i
+                                                                                  , A, W 0 , R0 ), which outputs
+                                  −
+a flatness pair (W̆ , R̆) of DWi \ A of height z that is d-homogeneous with respect to ≤0               A
+                                                                                                           = {∅}
+and is a W -tilt of (W , R ) for some subwall W of W . We set A := A ∪ {vWi } and keep in mind
+              ∗             0  0                        ∗     0           ?
+
+
+
+                                                       28
+                      −
+that DWi \ A? = DW      i
+                          \ A. Let Q̃0 be a (W̆ , R̆)-canonical partition of DWi \ A? . Since DWi is a
+              −            −
+subgraph of DW  i
+                   and DW    i
+                               ∈ exc(F), we observe that DWi ∈ exc(F). Hence, as a consequence of
+Lemma 24, every vertex in A? has neighbors in less than f18 (sF ) q-internal bags of Q00 . Therefore,
+since λ = f18 (sF ) · (a + 1) ≥ f18 (sF ) · |A? | and ρ ≥ η = f12 (λ + 1, β, q), it follows, due to
+Proposition 19, that there is a β-subwall W̄ of W 0 such that no vertex of V ( influenceR0 (W̄ )) is
+                                                                                   S
+
+adjacent, in DWi , to a vertex in A? . Therefore, this β-subwall W̄ of W 0 should be detected in Step 2.
+
+
+7     Algorithms for variants of Vertex Deletion to G
+We now present how our approach can be modified so to obtain FPT-algorithms for several variants
+of the Vertex Deletion to G problem.
+
+7.1   The general framework
+Notice that both algorithms in Section 5 and Section 6 are based on one of the following three
+scenarios for Vertex Deletion to G with input (G, k).
+
+      [Bounded treewidth case] A tree decomposition of G of width k O(1) , or
+
+      [Branching case] a set B with |B| = O(k) such that (G, k) is a yes-instance if and only if, for
+      some x ∈ B, (G \ x, k − 1) is a yes-instance, or
+
+      [Irrelevant vertex case] a vertex x such that (G, k) is a yes-instance if and only if (G \ x, k) is
+      a yes-instance,
+
+For each of the variants of Vertex Deletion to G that we consider, the algorithm recursively
+runs on an equivalent instance with one vertex less (irrelevant vertex case), or branches on O(k)
+equivalent instances where both k and the size of the graph are one less (branching case). The
+eventual outcome is to reduce the problem to the bounded treewidth case, producing a tree de-
+composition of G of width k O(1) (bounded treewidth case). In each variant of the problem, the
+bounded treewidth case can be treated by a suitable modification of the dynamic programming
+algorithm of [6], taking into account the main combinatorial result in [5]. For each variant that we
+treat, the algorithm of Section 5 assumes that we have at hand a solution of Vertex Deletion
+to G of size k, which can be found by the algorithm in Theorem 1.
+    We next present the problem variants and explain how to adapt the branching case and the
+irrelevant vertex case for each of them.
+
+7.2   Variants of Vertex Deletion to G
+A common part of the inputs of all problems below is the pair (G, k), where G is a graph and k is
+a non-negative integer, i.e., an input of Vertex Deletion to G.
+
+
+
+
+                                                   29
+Annotated. In the annotated version of Vertex Deletion to G, the input is a triple (G, k, R),
+where R ⊆ V (G), and the problem asks for a solution S with S ⊆ R.
+
+     [Branching case]: we branch on (G \ x, k − 1, R \ x) for all the annotated vertices of B, i.e.,
+     for every x ∈ B ∩ R. If there is no such a vertex, we report that (G, k, R) is a no-instance.
+
+     [Irrelevant vertex case]: we recurse on (G \ x, k, R \ x), as every irrelevant vertex for the
+     original problem is also an irrelevant vertex for its annotated variant.
+
+Modulo. In the modulo version of Vertex Deletion to G, the input is a quadruple (G, k, q, p)
+where q, p are integers, p is a prime, and q < p. The question is whether there is a solution S of
+size at most k where |S| ≡ q (mod p).
+
+     [Branching case]: we branch on (G \ x, k − 1, q − 1 (mod p), p) for every x ∈ B.
+
+     [Irrelevant vertex case]: it is the same, as every irrelevant vertex for the original problem is
+     also an irrelevant vertex for this variant.
+
+Weighted. In the weighted version of Vertex Deletion to G, the input is a triple (G, k, w)
+where w : V (G) → R is a weight function assigning positive real weights to the vertices o G. The
+problem asks for a solution S with v∈S w(v) ≤ k.
+                                  P
+
+
+     [Branching case]: we branch on (G \ x, k − w(x), w \ {(x, w(x))}), for every x ∈ B.
+
+     [Irrelevant vertex case]: it is the same, as every irrelevant vertex for the original problem is
+     also an irrelevant vertex for its weighted variant.
+
+For the above problem, if ε = min{w(x) | x ∈ V (G)}, then the parametric dependence of the
+derived algorithm is 2poly(k/ε) , as the size of the solution S is at most k/ε.
+
+Counting. In the counting version of Vertex Deletion to G with input (G, k), the output is
+the number #G (G, k) of all solutions of Vertex Deletion to G of size (at most) k. We treat the
+case where we count solutions of size exactly k as the “≤ k”-case can be easily reduced to it.
+
+     [Branching case]: return    x∈B #G (G \ x, k − 1).
+                                P
+
+
+     [Irrelevant vertex case]: return #G (G \ x, k − 1) + #(G \ x, k).
+
+   The above creates T (n, k) subproblems on bounded treewidth graphs, where
+
+              T (n, k) = max{O(k) · T (n − 1, k − 1), T (n − 1, k − 1) + T (n − 1, k)}.
+                                                             O(1)
+This makes a total of 2O(k) · n problems, each solvable in 2k · n-time by the counting version of
+the dynamic programming algorithm of [6], taking into account the analysis of [5].
+
+
+
+
+                                                 30
+Colored. In the colored version of Vertex Deletion to G, the input is a triple (G, k, χ)
+where χ : V (G) → [k] is a function assigning colors from [k] to the vertices of G. The problem
+asks for a solution S to Vertex Deletion to G that carries all k colors, i.e., for each i ∈ [k],
+|S ∩ χ−1 (i)| = 1. (Notice that the requested solution must have size exactly k.) To deal with this
+problem, we deal with its annotated version where we permit χ : V (G) → {0, 1, . . . , k}, i.e., the
+vertices in R := i∈[k] χ−1 (i) are annotated, while the vertices in χ−1 (0) cannot participate in a
+                  S
+
+solution (we call these vertices black vertices).
+
+          [Branching case]: we branch on (G \ x, k − 1, χ|x ), for every x ∈ B ∩ R, where
+
+                      χ|x = {(v, χ(v)) | v ∈ V (G) \ χ−1 (χ(x))} ∪ {(v, 0) | v ∈ χ−1 (χ(x)) \ {x}}.
+
+          The new coloring χ|x turns black all vertices carrying the color of x. If B ∩ R = ∅, i.e., all
+          vertices in B are black, then we have a no-instance.
+
+          [Irrelevant vertex case]: Before we apply the irrelevant vertex case, we check whether there is
+          some i ∈ [k] with |χ−1 (i)| ≤ 1, i.e., there is a color in [k] that appears once or is not used at
+          all. If |χ−1 (i)| = 0, then we return that we have a no-instance. If χ−1 (i) = {x}, then x should
+          belong to every possible solution and, in this case, we recurse on (G \ x, k − 1, χ \ {(x, χ(x))}).
+          If now each color is used at least twice, we recurse on (G \ x, k, χ \ {(x, χ(x))}), i.e., apply
+          the irrelevant vertex case.
+
+
+8        Discussion and concluding remarks
+Apices of topological minors. Very recently, Fomin et al. [24] gave an FPT-algorithm running
+in time Os,k (n4 ) for the following problem: for a fixed finite family of graphs F, each on at most s
+vertices, decide whether an n-vertex input graph G is a k-apex of the class of graphs that exclude
+the graphs in F as topological minors 4 . For every graph H, there is a finite set H of graphs such
+that a graph G contains H as a minor if and only if G contains a graph in H as a topological
+minor. Based on this observation, the result of Fomin et al. [24] implies that for every minor-closed
+graph class G, Vertex Deletion to G admits an O(h(k, s) · n4 )-time FPT-algorithm, where s
+is the maximum size of an obstruction of G. Notice that this implication is a solid improvement
+on Vertex Deletion to G with respect to the result of [2], where only the computability of h
+is proved. However, as mentioned in [24], even for fixed values of s, the dependence of h on k is
+humongous. Therefore, Theorem 1 can be seen as orthogonal to the result of [24]. An interesting
+question is whether the ideas of this paper can be useful towards improving the the parametric
+dependence of the algorithm of [24].
+
+Limitations of the irrelevant vertex technique. An intriguing open question is whether
+                                                c
+Vertex Deletion to G admits a 2OsF (k ) · nO(1) -time algorithm for some universal constant c
+that does not depend on the class G. Clearly, this is not the case of the algorithms of Theorem 1 and
+                                   2(c+2) )                 2(c+2) )
+Theorem 2, running in time 2OsF (k          · n3 and 2Os (k          · n2 , respectively, where c is the palette-
+variety of the minor-obstruction set F of G which, from the corresponding proofs, is estimated to
+    4
+        The definition is as minors, except that only edges incident with at least a degree-two vertex can be contracted.
+
+
+                                                             31
+         O(s2 ·log s)        O(s24 ·log s)
+be c = 22          and c = 22          , respectively (recall that s is the maximum size of a minor-
+obstruction of G). We tend to believe that this dependence is unavoidable if we want to use the
+irrelevant vertex technique, as it reflects the price of homogeneity, mentioned in Subsection 3.4.
+Having homogeneous walls is critical for the application of this technique (see Lemma 16) when
+G is more general than surface-embeddable graphs (in the bounded genus case, all subwalls are
+already homogeneous). Is there a way to prove that this behavior is unavoidable subject to some
+complexity assumption? An interesting result of this flavor, concerning the existence of polynomial
+kernels for Vertex Deletion to G, was given by Giannopoulou et al. [27] who proved that, even
+for minor-closed families G that exclude a planar graph, the dependence on G of the degree of the
+polynomial kernel, which exists because of [23], is unavoidable subject to reasonable complexity
+assumptions.
+
+Kernelization. As mentioned above, Giannopoulou et al. [27] provided a polynomial kernel for
+Vertex Deletion to G in the case where G excludes a planar graph. To the best of our knowledge,
+the existence of a polynomial kernel is open for every family G whose obstructions are all non-planar.
+In particular, no polynomial kernel is known even for the Vertex Planarization problem.
+
+Other modification operations. Another direction is to consider graph modification to a
+minor-closed graph class for different modification operations. Our approach becomes just sim-
+pler in the case where the modification operation is edge removal or edge contraction. In these
+two cases, we immediately get rid of the branching part of our algorithms and only the irrelevant
+vertex part needs to be applied. Another challenge is to combine all aforementioned modifications.
+This is more complicated (and tedious) but not more complex. What is really more complex is to
+consider as well edge additions. We leave it as an open research challenge (a first step was done for
+the case of planar graphs [22]).
+
+Lower bounds. Concerning lower bounds for Vertex Deletion to G under the Exponential
+Time Hypothesis [28], we are not aware of any lower bound stronger than 2o(k) ·nO(1) for any minor-
+closed class G. This lower bound already applies when F = {K2 }, i.e., for the Vertex Cover
+problem [8, 28].
+
+
+Acknowledgements. We wish to thank the anonymous reviewers of the conference version of this
+paper for their comments and remarks that improved the presentation of this manuscript. More-
+over, we wish to thank Dániel Marx for his valuable remarks and advises regarding the variants of the
+problem discussed in Section 7.
+
+
+References
+ [1] Isolde Adler, Frederic Dorn, Fedor V. Fomin, Ignasi Sau, and Dimitrios M. Thilikos. Faster
+     parameterized algorithms for minor containment. Theoretical Computer Science, 412(50):7018–
+     7028, 2011. doi:10.1016/j.tcs.2011.09.015. 5, 9
+
+
+
+                                                 32
+ [2] Isolde Adler, Martin Grohe, and Stephan Kreutzer. Computing excluded minors. In Proc.
+     of the 19th Annual ACM-SIAM Symposium on Discrete Algorithms (SODA), pages 641–650,
+     2008. doi:10.5555/1347082.1347153. 4, 31
+
+ [3] Ernst Althaus and Sarah Ziegler. Optimal Tree Decompositions Revisited: A Simpler Linear-
+     Time FPT Algorithm. CoRR, abs/1912.09144, 2019. arXiv:1912.09144. 5, 24
+
+ [4] Stefan Arnborg, Derek G. Corneil, and Andrzej Proskurowski. Complexity of finding em-
+     beddings in a k-tree. SIAM Journal on Algebraic Discrete Methods, 8(2):277–284, 1987.
+     doi:10.1137/0608024. 25
+
+ [5] Julien Baste, Ignasi Sau, and Dimitrios M. Thilikos. A complexity dichotomy for hitting
+     connected minors on bounded treewidth graphs: the chair and the banner draw the boundary.
+     In Proc. of the 31st Annual ACM-SIAM Symposium on Discrete Algorithms (SODA), pages
+     951–970, 2020. doi:10.1137/1.9781611975994.57. 5, 6, 8, 10, 14, 16, 17, 20, 29, 30
+
+ [6] Julien Baste, Ignasi Sau, and Dimitrios M. Thilikos. Hitting minors on bounded treewidth
+     graphs. I. General upper bounds. SIAM Journal on Discrete Mathematics, 34(3):1623–1648,
+     2020. doi:10.1137/19M1287146. 6, 14, 29, 30
+
+ [7] Julien Baste, Ignasi Sau, and Dimitrios M. Thilikos. Hitting minors on bounded treewidth
+     graphs. II. Single-exponential algorithms. Theoretical Computer Science, 814:135–152, 2020.
+     doi:10.1016/j.tcs.2020.01.026. 6
+
+ [8] Julien Baste, Ignasi Sau, and Dimitrios M. Thilikos. Hitting minors on bounded treewidth
+     graphs. III. Lower bounds. Journal of Computer and System Sciences, 109:56–77, 2020. doi:
+     10.1016/j.jcss.2019.11.002. 6, 32
+
+ [9] Hans L. Bodlaender, Pål Grønås Drange, Markus S. Dregi, Fedor V. Fomin, Daniel Lokshtanov,
+     and Michal Pilipczuk. A ck n 5-approximation algorithm for treewidth. SIAM Journal on
+     Computing, 45(2):317–378, 2016. doi:10.1137/130947374. 7
+
+[10] Hans L. Bodlaender, Pinar Heggernes, and Daniel Lokshtanov. Graph modification problems
+     (dagstuhl seminar 14071). Dagstuhl Reports, 4(2):38–59, 2014. doi:10.4230/DagRep.4.2.38.
+     3
+
+[11] Hans L. Bodlaender, Hirotaka Ono, and Yota Otachi. A faster parameterized algorithm for
+     pseudoforest deletion. Discrete Applied Mathematics, 236:42–56, 2018. doi:10.1016/j.dam.
+     2017.10.018. 4
+
+[12] Andries E. Brouwer and Henk Jan Veldman. Contractibility and NP-completeness. Journal
+     of Graph Theory, 11(1):71–79, 1987. doi:10.1002/jgt.3190110111. 3
+
+[13] Jianer Chen, Iyad A. Kanj, and Ge Xia. Improved upper bounds for vertex cover. Theoretical
+     Computer Science, 411(40-42):3736–3756, 2010. doi:10.1016/j.tcs.2010.06.026. 4
+
+[14] Christophe Crespelle, Pål Grønås Drange, Fedor V. Fomin, and Petr A. Golovach. A survey
+     of parameterized algorithms and the complexity of edge modification. CoRR, abs/2001.06867,
+     2013. arXiv:2001.06867. 3
+
+                                              33
+[15] Marek Cygan, Fedor V. Fomin, Lukasz Kowalik, Daniel Lokshtanov, Dániel Marx, Marcin
+     Pilipczuk, Michal Pilipczuk, and Saket Saurabh. Parameterized Algorithms. Springer, 2015.
+     doi:10.1007/978-3-319-21275-3. 3, 16, 20
+
+[16] Marek Cygan, Marcin Pilipczuk, Michal Pilipczuk, and Jakub Onufry Wojtaszczyk. An im-
+     proved FPT algorithm and a quadratic kernel for pathwidth one vertex deletion. Algorithmica,
+     64(1):170–188, 2012. doi:10.1007/s00453-011-9578-2. 4
+
+[17] Reinhard Diestel. Graph Theory, volume 173. Springer-Verlag, 5th edition, 2017. doi:10.
+     1007/978-3-662-53622-3. 7
+
+[18] Rodney G. Downey and Michael R. Fellows. Fundamentals of Parameterized Complexity. Texts
+     in Computer Science. Springer, 2013. doi:10.1007/978-1-4471-5559-1. 3
+
+[19] Michael R. Fellows, Jan Kratochvíl, Matthias Middendorf, and Frank Pfeiffer. The complexity
+     of induced minors and related problems. Algorithmica, 13(3):266–282, 1995. doi:10.1007/
+     BF01190507. 3
+
+[20] Michael R. Fellows and Michael A. Langston. Nonconstructive tools for proving polynomial-
+     time decidability. Journal of the ACM, 35(3):727–739, 1988. doi:10.1145/44483.44491. 4
+
+[21] Jörg Flum and Martin Grohe. Parameterized Complexity Theory. Texts in Theoretical Com-
+     puter Science. An EATCS Series. Springer, 2006. doi:10.1007/3-540-29953-X. 3
+
+[22] Fedor V. Fomin, Petr A. Golovach, and Dimitrios M. Thilikos. Modification to planarity
+     is fixed parameter tractable. In Proc. of the 36th International Symposium on Theoretical
+     Aspects of Computer Science (STACS), volume 126 of LIPIcs, pages 28:1–28:17, 2019. doi:
+     10.4230/LIPIcs.STACS.2019.28. 32
+
+[23] Fedor V. Fomin, Daniel Lokshtanov, Neeldhara Misra, and Saket Saurabh. Planar F-Deletion:
+     Approximation, Kernelization and Optimal FPT Algorithms. In Proc. of the 53rd Annual
+     IEEE Symposium on Foundations of Computer Science (FOCS), pages 470–479, 2012. doi:
+     10.1109/FOCS.2012.62. 4, 6, 32
+
+[24] Fedor V. Fomin, Daniel Lokshtanov, Fahad Panolan, Saket Saurabh, and Meirav Zehavi.
+     Hitting topological minors is FPT. In Proc. of the 52nd Annual ACM Symposium on Theory
+     of Computing (STOC), pages 1317–1326, 2020. doi:10.1145/3357713.3384318. 6, 31
+
+[25] Fedor V. Fomin, Saket Saurabh, and Neeldhara Misra. Graph modification problems: A
+     modern perspective. In Proc. of the 9th International Workshop on Frontiers in Algorithmics
+     (FAW), volume 9130 of LNCS, pages 3–6. Springer, 2015. doi:10.1007/978-3-319-19647-3\
+     _1. 3
+
+[26] Michael R. Garey and David S. Johnson. Computers and Intractability: A Guide to the
+     Theory of NP-Completeness. W. H. Freeman, 1979. URL: https://dl.acm.org/doi/10.
+     5555/574848. 3
+
+
+
+
+                                               34
+[27] Archontia C. Giannopoulou, Bart M. P. Jansen, Daniel Lokshtanov, and Saket Saurabh. Uni-
+     form kernelization complexity of hitting forbidden minors. ACM Transactions on Algorithms,
+     13(3):35:1–35:35, 2017. doi:10.1145/3029051. 32
+
+[28] Russell Impagliazzo, Ramamohan Paturi, and Francis Zane. Which problems have strongly
+     exponential complexity? Journal of Computer and System Sciences, 63(4):512–530, 2001.
+     doi:10.1006/jcss.2001.1774. 32
+
+[29] Bart M. P. Jansen, Daniel Lokshtanov, and Saket Saurabh. A near-optimal planarization algo-
+     rithm. In Proc. of the 25th Annual ACM-SIAM Symposium on Discrete Algorithms (SODA),
+     pages 1802–1811. SIAM, 2014. doi:10.1137/1.9781611973402.130. 4
+
+[30] Gwenaël Joret, Christophe Paul, Ignasi Sau, Saket Saurabh, and Stéphan Thomassé. Hitting
+     and harvesting pumpkins. SIAM Journal on Discrete Mathematics, 28(3):1363–1390, 2014.
+     doi:10.1137/120883736. 4
+
+[31] Ken-ichi Kawarabayashi. Planarity allowing few error vertices in linear time. In Proc. of the
+     50th Annual IEEE Symposium on Foundations of Computer Science (FOCS), pages 639–648,
+     2009. doi:10.1109/FOCS.2009.45. 4
+
+[32] Ken-ichi Kawarabayashi and Yusuke Kobayashi. Linear min-max relation between the
+     treewidth of an H -minor-free graph and its largest grid minor. Journal of Combinatorial
+     Theory, Series B, 141:165–180, 2020. doi:10.1016/j.jctb.2019.07.007. 5, 24
+
+[33] Ken-ichi Kawarabayashi, Robin Thomas, and Paul Wollan. A new proof of the flat wall
+     theorem. Journal of Combinatorial Theory, Series B, 129:204–238, 2018. doi:10.1016/j.
+     jctb.2017.09.006. 5, 8, 10, 11, 13
+
+[34] Ken-ichi Kawarabayashi and Paul Wollan. A Shorter Proof of the Graph Minor Algorithm:
+     The Unique Linkage Theorem. In Proc. of the 42nd ACM Symposium on Theory of Computing
+     (STOC), pages 687–694, 2010. doi:10.1145/1806689.1806784. 17
+
+[35] Eun Jung Kim, Alexander Langer, Christophe Paul, Felix Reidl, Peter Rossmanith, Ignasi
+     Sau, and Somnath Sikdar. Linear kernels and single-exponential algorithms via protrusion
+     decompositions. ACM Transactions on Algorithms, 12(2):21:1–21:41, 2016. doi:10.1145/
+     2797140. 4, 6
+
+[36] Eun Jung Kim, Maria J. Serna, and Dimitrios M. Thilikos. Data-compression for parametrized
+     counting problems on sparse graphs. In Proc. of the 29th International Symposium on Al-
+     gorithms and Computation (ISAAC), volume 123 of LIPIcs, pages 20:1–20:13, 2018. doi:
+     10.4230/LIPIcs.ISAAC.2018.20. 6
+
+[37] Tomasz Kociumaka and Marcin Pilipczuk. Faster deterministic feedback vertex set. Informa-
+     tion Processing Letters, 114(10):556–560, 2014. doi:10.1016/j.ipl.2014.05.001. 4
+
+[38] Tomasz Kociumaka and Marcin Pilipczuk. Deleting Vertices to Graphs of Bounded Genus.
+     Algorithmica, 81(9):3655–3691, 2019. doi:10.1007/s00453-019-00592-7. 4
+
+
+                                               35
+[39] Alexandr V. Kostochka. Lower bound of the Hadwiger number of graphs by their average
+     degree. Combinatorica, 4:307–316, 1984. doi:10.1007/BF02579141. 6
+
+[40] John M. Lewis and Mihalis Yannakakis. The node-deletion problem for hereditary properties
+     is NP-complete. Journal of Computer and System Sciences, 20(2):219–230, 1980. doi:10.
+     1016/0022-0000(80)90060-4. 3
+
+[41] Daniel Lokshtanov. Wheel-Free Deletion Is W[2]-Hard. In Proc. of the 3rd International
+     Workshop on Parameterized and Exact Computation (IWPEC), volume 5018 of LNCS, pages
+     141–147, 2008. doi:10.1007/978-3-540-79723-4\_14. 3
+
+[42] Dániel Marx and Ildikó Schlotter. Obtaining a planar graph by vertex deletion. Algorithmica,
+     62(3-4):807–822, 2012. doi:10.1007/s00453-010-9484-z. 4, 5, 26
+
+[43] Rolf Niedermeier. Invitation to fixed parameter algorithms, volume 31. Oxford University
+     Press, 2006. doi:10.1093/ACPROF:OSO/9780198566076.001.0001. 3
+
+[44] Ljubomir Perkovic and Bruce A. Reed. An improved algorithm for finding tree decompositions
+     of small width. International Journal of Foundations of Computer Science, 11(3):365–371,
+     2000. doi:10.1142/S0129054100000247. 5, 24
+
+[45] Bruce Reed, Kaleigh Smith, and Adrian Vetta. Finding odd cycle transversals. Operations
+     Research Letters, 32(4):299–301, 2004. doi:10.1016/j.orl.2003.10.009. 5, 20
+
+[46] Neil Robertson and Paul D. Seymour. Graph Minors. XIII. The Disjoint Paths Problem.
+     Journal of Combinatorial Theory, Series B, 63(1):65–110, 1995. doi:10.1006/jctb.1995.
+     1006. 4, 5, 10, 14, 16
+
+[47] Neil Robertson and Paul D. Seymour. Graph Minors. XX. Wagner’s conjecture. Journal of
+     Combinatorial Theory, Series B, 92(2):325–357, 2004. doi:10.1016/j.jctb.2004.08.001. 4
+
+[48] Neil Robertson and Paul D. Seymour. Graph Minors. XXI. Graphs with unique linkages.
+     Journal of Combinatorial Theory, Series B, 99(3):583–616, 2009. doi:10.1016/j.jctb.2008.
+     08.003. 17
+
+[49] Neil Robertson and Paul D. Seymour. Graph Minors. XXII. Irrelevant vertices in linkage
+     problems. Journal of Combinatorial Theory, Series B, 102(2):530–563, 2012. doi:10.1016/
+     j.jctb.2007.12.007. 17
+
+[50] Neil Robertson, Paul D. Seymour, and Robin Thomas. Quickly excluding a planar graph.
+     Journal of Combinatorial Theory, Series B, 62(2):323–348, 1994. doi:10.1006/jctb.1994.
+     1073. 23
+
+[51] Ignasi Sau, Giannos Stamoulis, and Dimitrios M. Thilikos. A more accurate view of the Flat
+     Wall Theorem. Manuscript submitted for publication, 2021. arXiv:2102.06463. 5, 8, 10, 11,
+     13, 15, 16, 23, 24
+
+
+
+
+                                               36
+[52] Ignasi Sau, Giannos Stamoulis, and Dimitrios M. Thilikos. k-apices of minor-closed graph
+     classes. I. Bounding the obstructions. Manuscript submitted for publication, 2021. arXiv:
+     2103.00882. 4, 5, 8, 11, 15, 16, 18, 19
+
+[53] Roded Sharan. Graph Modification Problems and their Applications to Genomic Research.
+     PhD thesis, Sackler Faculty of Exact Sciences, School of Computer Science, 2002. URL:
+     http://www.cs.tau.ac.il/thesis/thesis/Roded-Sharan-phd.pdf. 3
+
+[54] Dimitrios M. Thilikos. Graph minors and parameterized algorithm design. In The Multivariate
+     Algorithmic Revolution and Beyond - Essays Dedicated to Michael R. Fellows on the Occasion
+     of His 60th Birthday, volume 7370 of LNCS, pages 228–256. Springer, 2012. doi:10.1007/
+     978-3-642-30891-8\_13. 16
+
+[55] Andrew Thomason. The extremal function for complete minors. Journal of Combinatorial
+     Theory, Series B, 81(2):318–338, 2001. doi:10.1006/jctb.2000.2013. 6
+
+
+
+
+                                              37
+

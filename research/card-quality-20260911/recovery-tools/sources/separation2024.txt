@@ -1,0 +1,2955 @@
+                                                  Online Convex Optimization with a Separation Oracle
+
+                                                                                       Zakaria Mhammedi
+                                                                                         mhammedi@google.com
+
+
+
+                                                                                               Abstract
+                                                 In this paper, we introduce a new projection-free algorithm for Online Convex Optimization (OCO)
+arXiv:2410.02476v2 [cs.LG] 7 Oct 2024
+
+
+
+
+                                              with a state-of-the-art regret guarantee among separation-based algorithms. Existing projection-free
+                                                                                                                                                        3/4
+                                              methods based on the classical Frank-Wolfe algorithm achieve a suboptimal regret       √ bound of O(T ),
+                                              while more recent separation-based approaches guarantee a regret bound of O(κ T ), where κ denotes
+                                              the asphericity of the feasible set, defined as the ratio of the radii of the containing and contained balls.
+                                              However, for ill-conditioned sets, κ can be arbitrarily
+                                                                                              √           large, potentially leading to poor performance.
+                                              Our algorithm achieves a regret bound of O(  ̃ dT + κd), while requiring only O(1)
+                                                                                                                √
+                                                                                                                                  ̃    calls to a separation
+                                              oracle per round. Crucially, the main term in the bound, O( dT ), is independent of κ, addressing√the
+                                                                                                             ̃
+                                              limitations of previous methods. Additionally, as a by-product of our analysis, we recover the O(κ T )
+                                              regret bound of existing OCO algorithms with a more straightforward analysis and improve the regret
+                                              bound for projection-free online exp-concave optimization. Finally,      √ for constrained stochastic convex
+                                              optimization, we achieve a state-of-the-art convergence rate of O(σ/̃      T + κd/T ), where σ represents the
+                                              noise in the stochastic gradients, while requiring only O(1)
+                                                                                                        ̃     calls to a separation oracle per iteration.
+
+
+                                        Contents
+                                        1 Introduction                                                                                                          2
+
+                                        2 Preliminaries                                                                                                         4
+                                          2.1 Setup and Notation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .        4
+                                          2.2 Gauge Distance and Projection . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .           5
+
+                                        3 Barrier-Regularized Online Newton Steps over a Ball                                                                   6
+                                          3.1 Barrier-ONS: Algorithm Description . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .            7
+                                          3.2 Regret Guarantee . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .        8
+                                          3.3 Link to Online Exp-Concave Optimization . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .               8
+
+                                        4 Projection-Free OCO via Exp-Concave Optimization                                                                      9
+                                          4.1 Overview of Reduction . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .         9
+                                          4.2 Guarantees of Reduction . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .        10
+                                          4.3 Computational Cost and Additional Results . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .            12
+
+                                        5 Application to Offline and Stochastic Optimization                                                                   12
+                                          5.1 Convergence Rate in Stochastic Convex Optimization . . . . . . . . . . . . . . . . . . . . . . . .               13
+                                          5.2 Computational Cost of Finding a Near-Optimal Point . . . . . . . . . . . . . . . . . . . . . . . .               13
+
+                                        6 Conclusion and Future Work                                                                                           13
+
+                                        Appendix                                                                                                               16
+
+                                        A Organization of the Appendix                                                                                         16
+
+                                        B Full Version of Barrier-ONS                                                                                          16
+
+
+
+                                                                                                    1
+C Self-Concordant Functions                                                                                      16
+
+D ONS Analysis: Proof of Theorem 3.1                                                                             17
+  D.1 Taylor Expansion of Inverse Hessians . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   18
+  D.2 Number of Taylor Expansion Points (Proof of Lemma 3.1) . . . . . . . . . . . . . . . . . . . . .           19
+  D.3 Structural Results for Barrier-ONS and FTRL . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      20
+  D.4 Regret of FTRL (Proof of Lemma 3.2) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    28
+  D.5 Regret of Barrier-ONS (Proof of Theorem 3.1) . . . . . . . . . . . . . . . . . . . . . . . . . . . .       29
+
+E OCO Analysis: Proof of Theorem 4.1                                                                             30
+  E.1 OCO Reduction with Gauge Projections (Proof of Lemma 4.1) . . . . . . . . . . . . . . . . . .              30
+  E.2 OCO Regret Bound Pre-Tuning of Parameters (Proof of Proposition 4.1) . . . . . . . . . . . .               31
+  E.3 Main OCO Regret Bound (Proof of Theorem 4.1) . . . . . . . . . . . . . . . . . . . . . . . . . .           32
+
+F Stochastic Convex Optimization (Proof of Theorem 5.1)                                                          34
+
+G Computing the Gauge Distance (Proof of Lemma 2.2)                                                              36
+
+
+1      Introduction
+Convex optimization is a foundational tool in computer science and machine learning, underpinning many
+modern techniques in these fields. Although classical algorithms like interior-point and cutting-plane methods
+are effective (Grötschel et al., 2012; Bubeck, 2015; Lee et al., 2018; Lee and Sidford, 2019), they become
+computationally prohibitive as problem sizes and dimensions grow. Given the high-dimensional nature of
+many contemporary problems, there is a growing demand for alternative algorithms that preserve strong
+theoretical guarantees while being computationally efficient enough to tackle large-scale optimization tasks.
+Online Gradient Descent (OGD) (Zinkevich, 2003) is a popular first-order optimization method that trades a
+higher number of iterations for lower memory usage and per-step computational cost, making it widely used
+in practice. However, in constrained convex optimization, OGD requires a Euclidean projection onto the
+feasible set at every step in the worst-case, which can be computationally expensive, especially for complex
+feasible sets. This drawback often offsets the benefits of first-order methods. To address this, projection-free
+optimization methods have been developed (Hazan, 2008; Jaggi, 2013; Lacoste-Julien and Jaggi, 2015; Garber
+and Hazan, 2016), with the most well-known being the Frank-Wolfe algorithm (Frank et al., 1956), which
+replaces costly Euclidean projections with more efficient linear optimization over the feasible set. More
+recently, another class of projection-free algorithms has emerged that uses membership or separation oracles
+instead of linear optimization (Mhammedi, 2022; Garber and Kretzu, 2022; Lu et al., 2023; Grimmer, 2024),
+providing greater flexibility and efficiency in handling constraints.
+Most modern projection-free algorithms are designed for Online Convex Optimization (OCO) (Hazan, 2016), a
+framework that generalizes classical offline convex optimization. In OCO, at each round t, the algorithm selects
+a vector wt from the feasible set K ⊂ Rd and incurs a loss ft (wt ), where ft is a convex function that may be
+adversarially chosen. The objective is to ensure that the regret RegT ∶= supw∈K ∑Tt=1 (ft (wt ) − ft (w)) grows
+sublinearly in T . Existing projection-free algorithms, such as those in (Hazan and Kale, 2012; Mhammedi,
+2022; Garber and Kretzu, 2022), achieve sublinear regret while requiring only O(1)   ̃     calls per round to a
+linear optimization or separation oracle. Sublinear regret in OCO translates into guarantees for offline and
+stochastic convex optimization via standard online-to-batch conversion techniques (Cesa-Bianchi and Lugosi,
+2006; Shalev-Shwartz et al., 2011; Cutkosky, 2019), where smaller regret√yields better convergence rates.
+While (projected) OGD achieves an optimal, dimension-free regret of O( T ),1 there remains a significant
+gap between this bound and the regret bounds of state-of-the-art projection-free algorithms (Hazan and Kale,
+2012; Mhammedi, 2022; Garber and Kretzu, 2022; Lu et al., 2023). In this paper, we aim to close that gap.
+The current state-of-the-art regret bound for linear optimization-based algorithms (e.g., Frank-Wolfe-style
+algorithms) is O(T 3/4 ) (Hazan and Kale, 2012). Since this result was first established, no improvements have
+    1 See, e.g., (Abernethy et al., 2008) for a lower bound.
+
+
+
+
+                                                               2
+Table 1: Comparison of projection-free regret bounds for OCO (see Section 2.1) and Stochastic Convex
+Optimization (SCO) (see Section 5). Here, κ ∶= R/r represents the asphericity of the feasible set K, where r
+and R are such that B(r) ⊆ K ⊆ B(R). For ill-conditioned sets, κ can be arbitrarily large. Unlike    √ existing
+regret bounds, our new bound places κ in a lower-order term, rather than having it multiply T . In SCO,
+σ 2 represents the variance of the stochastic gradients. In the offline setting (i.e., σ = 0), our method achieves
+the fast rate of O( κd
+                    T
+                       ).
+                                 Regret bound     Convergence rate                             Number of oracle
+              Papers                                                        Oracle type
+                                   in OCO             in SCO                                    calls per round
+     (Hazan and Kale, 2012)        O(T 3/4 )                1
+                                                      O ( T 1/3 )        Linear optimization          1
+       (Mhammedi, 2022)               √
+                                   O(κ T )            O ( √κT )              Separation           O(1)-O(1)
+                                                                                                       ̃
+    (Garber and Kretzu, 2022)
+                                    √                     √
+                                                              d
+           This paper            O(
+                                 ̃ dT + κd)        O
+                                                   ̃ (σ
+                                                              T
+                                                                + κd
+                                                                  T
+                                                                     )       Separation             O(1)
+                                                                                                    ̃
+
+
+
+been made without introducing additional structural assumptions on the objective function or feasible set. It
+remains an open question whether this is the best achievable regret bound for online algorithms that make
+only a constant number of calls to a linear optimization oracle per round. More recently, Mhammedi (2022);
+Garber and Kretzu (2022) introduced a new class of projection-free algorithms  √     that use separation oracles
+instead of linear optimization oracles, guaranteeing a regret bound of O(κ T ), where κ ∶= Rr represents the
+asphericity
+          √ of the set K, defined as the ratio between the radii of the containing and contained balls. Achieving
+this O(κ T ) regret bound, which provides optimal dependence on the number of rounds T , was somewhat
+surprising given the difficulty of improving the O(T 3/4 ) bound for linear optimization-based algorithms.
+However, the asphericity factor κ can be arbitrarily large for ill-conditioned feasible sets, which poses a
+challenge. While previous work has shown that for many sets of interest, κ is O(dα ) with α < 1 (Mhammedi,
+2022), and any convex set can be pre-processed (e.g., put in isotropic position) to ensure κ ≤ d (Flaxman
+et al., 2005), this
+               √ results in a potentially high pre-processing computational cost and a worst-case regret
+bound of O(d T ). In this paper, we show that the dependence on κ and the dimension d in the regret
+bounds for separation-based algorithms can be further improved.
+
+Contributions. In this paper, we introduce a separation-based projection-free algorithm for OCO that
+improves upon the √  state-of-the-art guarantees for such algorithms. Specifically, our method achieves a
+regret bound of O(̃ dT + κd) while making only O(1)
+                                   √
+                                                    ̃     calls to a separation oracle per round. Crucially,
+the main term of this bound, O( dT ), is independent of the
+                                ̃
+                                                             √ asphericity κ. As discussed earlier, existing
+separation-based algorithms can incur regret as large as O(d
+                                                         ̃
+                                                         √      T ) in the worst case, even after preprocessing
+the feasible set. Our bound improves this by a factor of d, without any need for preprocessing.
+As a by-product of our analysis, we provide an improved regret bound for projection-free online exp-concave√
+optimization, which we required in an intermediate step of our analysis. Additionally, we recover the O(κ T )
+regret bound for OCO with a simplified analysis.
+                                                                     √                                  √
+By applying a standard online-to-batch conversion, our new O(      ̃ dT ) regret translates to a O(  ̃ d/T )
+convergence rate in offline and stochastic optimization settings. Additionally, by leveraging our intermediate
+results on projection-free√exp-concave optimization (which are of independent interest), we achieve a faster
+convergence rate of O(σ
+                      ̃      d/T + κd/T ). Notably, this rate simplifies to O(κd/T
+                                                                            ̃        ) when σ = 0 (i.e., in the
+offline setting). Our results are summarized in Table 1.
+
+Related works. Our approach builds on the projection-free reduction method introduced by Mhammedi
+(2022), which transforms any OCO problem over a feasible set K into an OCO problem over a ball B(R)
+containing K (i.e., K ⊆ B(R)), where Euclidean projections can be computed at a cost of O(d). This method
+is closely related to the earlier ‘constrained-to-unconstrained’ reduction by Cutkosky and Orabona (2018),
+but instead of relying on potentially expensive Euclidean projections onto K, it uses Gauge projections, which
+can be performed efficiently with a logarithmic number of calls to a separation oracle for the feasible set. The
+reduction in Mhammedi (2022) has also been successfully applied outside the OCO setting, providing global
+
+
+
+                                                          3
+non-asymptotic superlinear rates for a quasi-Newton method (Jiang et al., 2023; Jiang and Mokhtari, 2024),
+and for the design of extension functions in bandit convex optimization (Fokkema et al., 2024).
+Our approach integrates the projection-free reduction from (Mhammedi, 2022) with the efficient exp-concave
+optimization algorithm introduced by Mhammedi and Gatmiry (2023). The latter is an Online Newton
+Step (ONS) method that implicitly tracks specific Follow-The-Regularized-Leader (FTRL) iterates, where the
+associated regularizer is the log-barrier for a Euclidean ball. By exploiting the unique structure of the
+log-barrier for the Euclidean ball, Mhammedi and Gatmiry (2023) show that the generalized projections,2
+typically required by the classical ONS algorithm (Hazan et al., 2007) and often computationally expensive
+even for a ball (Koren, 2013), can be completely bypassed. Additionally, they prove that the algorithm
+requires only O(1)
+               ̃     calls to a separation oracle per round, along with O(1)
+                                                                        ̃     matrix-vector multiplications.
+While our primary focus is on OCO, we incorporate several of the techniques in Mhammedi and Gatmiry
+(2023) and, somewhat unexpectedly, achieve state-of-the-art guarantees in OCO by taking a detour through
+online exp-concave optimization.
+
+Outline. In Section 2, we describe the OCO setup and introduce the necessary notation and definitions. In
+Section 3, we present Barrier-ONS, an efficient projection-free algorithm for exp-concave optimization over a
+ball, which forms a key component of our final method for OCO. In Section 4, we present our results for
+OCO and show how we reduce the problem to online exp-concave optimization over a ball. In Section 5, we
+extend these results to the stochastic and offline convex optimization settings, achieving a state-of-the-art
+convergence rate for projection-free stochastic convex optimization. We conclude with a discussion of our
+results and future work in Section 6.
+
+
+2      Preliminaries
+In Section 2, we formally introduce the OCO setup and the notation used. In Section 2.2, we present key
+convex analysis notations and preliminary results that are used throughout the paper.
+
+2.1      Setup and Notation
+Throughout, let K denote a closed convex subset of the Euclidean space Rd . We consider the standard
+OCO setup over K, where an algorithm produces iterates within K over multiple rounds. At the start of
+each round t ≥ 1, the algorithm outputs wt and incurs a loss ft (wt ), where ft ∶ K → R is a convex function,
+potentially chosen adversarially based on the history and wt . As is typical in OCO literature, we assume
+that the algorithm observes only a subgradient gt ∈ ∂ft (wt ), rather than the full function. The algorithm’s
+performance is evaluated in terms of regret after T ≥ 1 rounds:
+                                                     T                 T
+                                           RegT ∶= ∑ ft (wt ) − inf ∑ ft (w).
+                                                    t=1           w∈K t=1
+
+
+By the convexity of (ft ), RegT is bounded from above by the linearized regret: ∑Tt=1 ⟨gt , wt ⟩−inf w∈K ∑Tt=1 ⟨gt , w⟩.
+Therefore, to bound RegT , it is sufficient to bound the linearized regret.
+Our goal in this paper is to design an efficient OCO algorithm that achieves sublinear regret while requiring
+only a logarithmic number of calls per round to a separation oracle for the feasible set K, rather than relying
+on Euclidean projections.
+Definition 2.1 (Separation oracle). A Separation oracle SepC for a set C is an oracle that given w ∈ Rd
+returns a pair (b, v) ∈ {0, 1} × B(1) (where B(1) denotes the unit Euclidean ball in Rd ), such that
+     • b = 0 and v = 0, if w ∈ C; and otherwise,
+     • b = 1 and ⟨v, w⟩ > ⟨v, u⟩, for all u ∈ K.
+We denote by Csep (C) the computational cost of one call to this oracle.
+    2 Also known as Mahalanobis projection; see e.g. Mhammedi et al. (2019).
+
+
+
+
+                                                              4
+We consider the OCO problem described above and additionally assume that the functions (ft ) are G-Lipschitz,
+for some G > 0, and that K is “sandwiched” between two Euclidean balls with radii r and R. To formalize
+these assumptions, let ∥ ⋅ ∥ denote the Euclidean norm, and B(γ) ⊂ Rd represent the Euclidean ball of radius
+γ > 0.
+Assumption 2.1. The set K ⊆ Rd is a closed and convex and there are some r, R > 0 such that
+
+                                              B(r) ⊆ K ⊆ B(R).
+
+Assumption 2.2. There is some G > 0, such that for all t ≥ 1, the function ft ∶ K → R is convex and for all
+w ∈ K and gt ∈ ∂ft (w), we have ∥gt ∥ ≤ G.
+
+Additional notation. We denote by K○ ∶= {x ∈ Rd ∶ ⟨x, y⟩ ≤ 1, ∀y ∈ K} the polar set of K (Hiriart-Urruty
+and Lemaréchal, 2004). We denote by int K the interior of a set K. Given a function f ∶ C → R on a compact
+set C, we let arg minx∈C f (x) denote the subset of points in C that minimize the function f . We use O(⋅)
+                                                                                                      ̃ to
+denote a bound up to factors polylogarithmic in parameters appearing in the expression.
+
+2.2    Gauge Distance and Projection
+We now introduce some convex analysis concepts and preliminary results that will be used throughout the
+paper, beginning with the notion of a Gauge function (a.k.a. Minkowski functional (Hiriart-Urruty and
+Lemaréchal, 2004)). In this section, let C ⊆ Rd represent a closed convex set.
+Definition 2.2. The Gauge function γC ∶ Rd → R of the set C is defined as
+
+                                       γC (u) ∶= inf{λ ∈ R≥0 ∣ u ∈ λC}.
+
+The Gauge function γC can be viewed as a “pseudo” norm induced by the convex set C; it becomes a true
+norm when C is centrally symmetric (i.e., C = −C). With the Gauge function defined, we can introduce the
+Gauge distance (Mhammedi, 2022), a key concept in the approach of this paper.
+Definition 2.3 (Gauge distance). The Gauge distance function SC corresponding to the set C is defined as
+
+                                     ∀u ∈ Rd ,   SC (u) ∶= inf γC (u − x).
+                                                          x∈C
+
+
+This naturally leads to the concept of the Gauge projection (Mhammedi, 2022).
+Definition 2.4. The Gauge projection operator Πgau
+                                               C   induced by C is the set-valued mapping defined as:
+
+                                  ∀u ∈ Rd ,   Πgau
+                                               C (u) ∶= arg min γC (u − x).
+                                                           x∈C
+
+
+Our projection-free OCO approach in this paper leverages Gauge projections instead of standard Euclidean
+projections. As we will soon demonstrate, Gauge projections can be performed efficiently using a separation
+oracle. To understand this, we first need the following result from (Mhammedi, 2022), which allows us to
+express both the Gauge distance and its subgradients in terms of the Gauge function γC .
+Lemma 2.1. Suppose that the set C satisfies 0 ∈ int C. Then, for any w ∈ Rd , we have
+                                                      w
+                                                          , if w ∈/ C;
+                                    Πgau
+                                       C (w) = {
+                                                 γC (w)
+                                                 w,         otherwise.
+and the Gauge distance function satisfies:
+                                                          ∂γC (w) = arg maxx∈C ○ ⟨x, w⟩, if w ∉ C;
+        SC (w) = max(0, γC (w) − 1); and ∂SC (w) = {                                                     (1)
+                                                          {0},                           otherwise.
+
+
+
+
+                                                      5
+Algorithm 1 GaugeDist(w; C, ε, r): Approximate value and subgradient of the Gauge distance function.
+    require: Separation oracle SepC for C, input vector w ∈ Rd , and parameters ε, r > 0.
+    returns S ≈ SC (w) and s ≈ ∂SC (w), where SC (u) ∶= inf x∈C γC (u − x) is the Gauge distance function.
+ 1: Set (b, v) ← SepC (w).                                                      // b = 1 if w ∈ C and 0, otherwise.
+ 2: if b = 1 then                                                   // This corresponds to the case where w ∈ C.
+ 3:     Set (S, s) ← (0, 0).
+ 4:     return (S, s).
+ 5: Set α ← 0, β ← 1, and µ ← (α + β)/2.
+                     r2 ε
+ 6: while β − α > 2∥w∥2 do
+ 7:     Set (b, v) ← SepC (µw).                                                // b = 1 if µw ∈ C and 0, otherwise.
+ 8:     Set α ← µ if b = 1; and β ← µ otherwise.
+ 9:     Set µ ← (α + β)/2.
+10: Set S ← α−1 − 1 and s ← β⋅v ⊺ w .
+                                 v
+
+11: return (S, s).
+
+
+
+The key implication of Lemma 2.1 is that, to compute the Gauge distance and its subgradients—both of
+which are needed for our OCO algorithm—it is sufficient to compute or approximate the Gauge function γC
+and its subgradients. This is accomplished through Algorithm 1, whose guarantee we now present (with the
+proof provided in Appendix G).
+Lemma 2.2. Let ε, r > 0 and w ∈ Rd be given, and suppose that B(r) ⊆ C. Consider a call to Algorithm 1
+with input (C, w, ε, r). Then, the output (S, s) of Algorithm 1 satisfies
+
+         ∥s∥ ≤ 1/r,       SC (w) ≤ S ≤ SC (w) + ε,         and       ∀u ∈ Rd ,   SC (u) ≥ SC (w) + (u − w)⊺ s − ε.         (2)
+                                                                 2
+Furthermore, Algorithm 1 makes at most 1 + log2 ( 4∥w∥
+                                                   r2 ε
+                                                        ) calls to the separation oracle SepC in Definition 2.1.
+
+
+3     Barrier-Regularized Online Newton Steps over a Ball
+In this section, we present Barrier-ONS (Algorithm 2), a key component of our projection-free OCO approach
+detailed in the next section. Barrier-ONS generates online Newton iterates that implicitly track specific
+Follow-The-Regularized-Leader (FTRL) iterates, where the associated regularizer is the log-barrier for a
+Euclidean ball.
+
+Algorithm 2 Barrier-ONS: Barrier-regularized ONS over a Euclidean ball. Pseudocode of Algorithm 4.
+    inputs: Number of rounds T ≥ 1, and parameters η, ν, c > 0.
+ 1: Set z1 ← 0, u1 ← 0, and m ← c ⋅ logc (dT ), with c a sufficiently large universal constant.
+ 2: for t = 1, . . . , T do
+ 3:    Play ut and observe g̃t .
+                                                                 −1
+                                  4νu u⊺
+ 4:    Set Σt ← ( R2 −∥z
+                     2νI
+                         t∥
+                                     t t          t
+                           2 + (R2 −∥u ∥2 )2 + η ∑s=1 g
+                                      t
+                                                         ̃s⊺ ) .// Can be computed in O(d2 ) most rounds—see Algorithm 4
+                                                      ̃s g
+ 5:    Set γt ← R2 −∥z
+                    2ν
+                       t∥
+                          2 − R2 −∥u ∥2 .
+                                  2ν
+                                     t
+
+ 6:    Set Ht ← ∑m+1
+                  k=1 γt   Σt .
+                       k−1 k
+                                                                                      // Taylor approximation of ∇−2 Φt+1 (ut )
+ 7:    Set ut+1 ← ut − Ht ∇Φt+1 (ut ).                                                            // Approximate Newton step.
+       /* Check if the Taylor approximation point needs to be updated */
+ 8:    if ∣∥ut+1 ∥2 − ∥zt ∥2 ∣ ≤ c ⋅ (R2 − ∥zt ∥2 ) then
+ 9:        Set zt+1 ← zt .
+10:    else
+11:        Set zt+1 ← ut+1 .
+
+Barrier-ONS was originally proposed by Mhammedi and Gatmiry (2023) in the context of online and stochastic
+exp-concave optimization as a more computationally efficient alternative to the classical Online Newton Step
+
+
+                                                             6
+(ONS) algorithm (Hazan et al., 2007). Unlike ONS, Barrier-ONS eliminates the need for generalized projections
+onto the feasible set, which can be computationally expensive, even for a Euclidean ball. This is achieved
+by generating iterates that remain close (in Euclidean distance) to the FTRL iterates, which stay within the
+interior of the feasible set due to the log-barrier. In this paper, we adopt Barrier-ONS from (Mhammedi and
+Gatmiry, 2023) with only minor modifications, while improving its analysis and guarantees for the online
+exp-concave optimization setting.
+We now provide a brief description of Barrier-ONS (Algorithm 2); for further details, the reader may refer to
+(Mhammedi and Gatmiry, 2023). Algorithm 2 offers a simplified version of Algorithm 4, written for ease of
+understanding. While Algorithm 2 is technically equivalent to Algorithm 4, it abstracts away the details of
+how certain steps can be implemented efficiently. Algorithm 4, on the other hand, makes these efficiency
+considerations explicit. In the following discussion, we will focus on Algorithm 2.
+
+3.1     Barrier-ONS: Algorithm Description
+To describe Barrier-ONS (Algorithm 2), we first need to introduce a series of objective functions (Φt ). Given
+parameters η, ν, R > 0 and the history of observed loss vectors (̃ gs )s<t before round t ≥ 1, the objective
+function Φt is defined as:
+
+                                  η t−1                       t−1
+               Φt (x) ∶= Ψ(x) +     ∑ ⟨̃gs , x − us ⟩ 2 + x ⊺ ∑ g ̃s ,   where Ψ(x) ∶= −ν log(R2 − ∥x∥2 ).    (3)
+                                  2 s=1                       s=1
+
+Note that Ψ/ν is the standard log-barrier for B(R). The iterates (ut ) of Barrier-ONS are approximate online
+Newton iterates with respect to the objective functions (Φt ) in the sense that for all t ≥ 1,
+
+                                ut+1 ≈ ut − ∇−2 Φt+1 (ut )∇Φt+1 (ut ),        for all t ∈ [T ].               (4)
+
+The iterate ut+1 in Barrier-ONS is only an approximation of the right-hand side of (4) because Barrier-ONS
+does not compute the inverse Hessian ∇−2 Φt+1 (ut ) exactly at each iteration. Instead, it approximates the
+inverse Hessian using a Taylor expansion around a neighboring point (see Line 7 of Algorithm 2).
+The motivation behind this approach is that computing the Taylor expansion is significantly cheaper than
+calculating the exact inverse Hessian. Instead of performing expansions around a fixed point, the algorithm
+updates the current expansion point zt whenever the next iterate ut+1 drifts too far from zt ; see Line 8-Line
+11. A full inverse Hessian is computed only when the Taylor expansion point is updated. A key insight from
+(Mhammedi and Gatmiry, 2023) is that the iterates   √ of Barrier-ONS are stable enough to ensure that the
+Taylor expansion point needs to be updated only O( T ) times over T rounds, as the next lemma states (the
+proof can be found in Appendix D.2).
+Lemma 3.1 (Stability). Let η, ν, G,  ̃ R > 0, T ≥ 1, and c ∈ (0, 1) be given. Consider a call to Algorithm 2 with
+input parameters (T, η, ν, c), and let (zt ) be the Taylor expansion points in Algorithm 4. Further, suppose that
+    • g      ̃ for all t ∈ [T ];
+      ̃t ∈ B(G),
+    • 10GR         ̃ ; and
+        ̃ ≤ ν ≤ 10dGRT
+
+    • η ≤ 5GR
+           ̃ .
+           1
+
+                                                √
+Then, it holds that ∑Tt=1
+                        −1
+                           I{zt+1 ≠ zt } ≤ 52
+                                            c
+                                                           d
+                                                 T ⋅ (1 + νη log(1 + Td )).
+
+Computational cost. From a computational perspective, this result is highly promising because it implies
+that, as long as η and ν are chosen such that ην ≥ d, a full Hessian inverse is only required in a O(T̃ −1/2 )
+fraction of the rounds. For the remaining rounds, the computational cost per round is O(d √
+                                                                                          ̃  2
+                                                                                               ) due to matrix-
+vector multiplications. As a result, the total computational cost after T rounds is O(d
+                                                                                    ̃ 2 T + dω T ). Therefore,
+the average per-round computational cost of Barrier-ONS is O(d ̃ 2 ), assuming ην ≥ d and T ≥ d3
+   3 Here, we are assuming a matrix multiplication exponent ω satisfying w ≤ 5/2.
+
+
+
+
+                                                                7
+Feasibility of the iterates. As we show in the analysis, the fact that (ut ) are approximate online Newton
+iterates (in the sense of (4)) ensures that (ut ) remain within B(R); it is known (see e.g. Abernethy et al.
+(2012)) that the exact online Newton iterates with respect to (Φt ) are guaranteed to stay within int B(R)
+due to the self-concordance properties of the regularizer Ψ in the definition of the objectives (Φt ).
+
+3.2    Regret Guarantee
+The fact that (ut ) satisfy (4) essentially means that it suffices to bound the regret of the Newton iterates.
+This is advantageous because the (exact) Newton iterates are known to be close to the FTRL iterates (wt )
+with respect to (Φt ):
+                                                 wt ∈ arg min Φt (w).                                                (5)
+                                                         w∈Rd
+
+Due to the curvature of the log-barrier Ψ in the definition of Φt in (3), a standard FTRL analysis leads to the
+following regret bound for the iterates (wt ) (the proof is in Appendix D.4).
+Lemma 3.2 (Regret of FTRL). Let η, ν ∈ (0, 1), R > 0, and G        ̃ > 0 be such that η ≤ 1 and ν ≥ 10GR.
+                                                                                            5GR
+                                                                                             ̃
+                                                                                                             ̃
+Further, let (̃
+              gt ) ⊂ Rd be a sequence of vectors such that ∥̃      ̃ for all t ≥ 1. Then, the FTRL iterates (wt )
+                                                            gt ∥ ≤ G,
+in (5) satisfy, for all w ∈ int B(R),
+                       T                 T
+                                            η                            3d log(1 + T /d)
+                                 ̃t ⟩ ≤ ∑ ⟨wt − w, g
+                      ∑ ⟨wt − w, g                 ̃t ⟩2 + Ψ(w) − Ψ(0) +                  .
+                      t=1               t=1 2                                   η
+
+So far, we have outlined that the Barrier-ONS iterates are approximate Newton iterates, which in turn
+approximate the FTRL iterates. Using these insights, along with the regret bound for FTRL in Lemma 3.2, we
+can derive the following regret bound for Barrier-ONS (the proof is in Appendix D.5).
+Theorem 3.1 (Regret of Barrier-ONS). Let c ∈ (0, 1), T ∈ N, and G      ̃ > 0 be given and consider a call to
+Algorithm 2 with input parameters (T, η, ν, c) such that η ≤ 5GR
+                                                              1
+                                                              ̃  and 10GR
+                                                                        ̃ ≤ ν ≤ 10dT GR.̃    If the loss vectors
+ gt ) in Algorithm 2 satisfy (̃
+(̃                                     ̃ then the iterates (ut ) of Algorithm 2 satisfy (ut ) ⊂ B(R) and
+                              gt ) ⊂ B(G),
+                            T
+                                             η                   ̃ − ν log(1 − ∥w∥2 ) + 18d log(1 + T /d) .
+                                                                                   2
+        ∀w ∈ int B(R),     ∑ (⟨ut − w, g               ̃t ⟩2 ) ≤ GR
+                                       ̃t ⟩ − ⟨ut − w, g                        R
+                                                                                                                     (6)
+                           t=1               2                                                 5η
+Further, there is an implementation of Algorithm 2, which we display in Algorithm 4, with a total computational
+cost bounded by
+                                                                 √
+                                       ̃ (d2 T log (dT ) + c−1 dω d T ) .
+                                       O             c                  νη
+
+
+3.3    Link to Online Exp-Concave Optimization
+The bound in Theorem 3.1 immediately implies logarithmic regret for online exp-concave optimization. In
+this setting, (̃
+               gt ) are the subgradients of exp-concave functions (ℓt ), where a function ℓ ∶ C → Rd over a convex
+set C is α-exp-concave if the mapping x ↦ e−αℓ(x) is concave over C. It is well known (see e.g., Hazan et al.
+(2007)) that for a G-Lipschitz,
+                      ̃           α-exp-concave function ℓ, and as long as C ⊆ B(R), we have the following for
+all η ≤ 2 min ( 4RG̃ , α):
+        1         1
+
+
+                                                                                η
+                       ∀u, w ∈ C, ∀̃
+                                   g ∈ ∂ℓ(u),      ℓ(u) − ℓ(w) ≤ ⟨u − w, g
+                                                                         ̃⟩ −               ̃⟩2 .
+                                                                                  ⋅ ⟨u − w, g
+                                                                                2
+This implies that for α-exp-concave losses (ℓt ), the corresponding regret ∑Tt=1 (ℓt (ut ) − ℓt (w)) can be bounded
+by the left-hand side of (6), and thus Theorem 3.1 implies that Barrier-ONS achieves logarithmic regret in
+this case. Additionally, the term ∑Tt=1 (⟨ut − w, g                   ̃t ⟩2 ) on the left-hand side of (6) can itself be
+                                                   ̃t ⟩ − η2 ⟨ut − w, g
+interpreted as the regret corresponding to the losses
+                                                              η
+                                         ℓt ∶ x ↦ ⟨x, g
+                                                      ̃t ⟩ + ⟨ut − x, g  ̃t ⟩2 ,                                      (7)
+                                                              2
+which are exp-concave for a certain range of η’s.
+
+
+                                                           8
+Regret improvement over prior work. Compared to (6), the regret bound in (Mhammedi and Gatmiry,
+2023) includes additional terms like O(
+                                     ̃ G/η)
+                                        ̃    and O(G
+                                                   ̃2 ), with the removal of the latter left as an open problem.
+As discussed in the next section, in the context of projection-free OCO, G    ̃ is set to κG, where κ ∶= R/r,
+with r and R defined in Assumption 2.1, and G is the Lipschitz constant of the losses (see Assumption 2.2).
+Consequently, having κ multiply 1/η (as in the√bound from (Mhammedi and Gatmiry, 2023)) would hinder
+effective tuning of η to achieve our desired O(
+                                             ̃ dT ) regret bound for OCO. The improved regret bound for
+Barrier-ONS in Theorem 3.1 resolves this issue, as we will see in the next section.
+
+Algorithm 3 OCO reduction with Gauge projections.
+       require: Number of rounds T , and an OCO algorithm A over Rd .
+ 1: Set ε = 1/T and u1 = 0.
+ 2: Initialize A, and set u1 to A’s first output.
+ 3: for t = 1, . . . , T do
+ 4:    Set (St , st ) ← GaugeDist(ut ; K, ε, r).                                          // St ≈ SK (ut ) and st ≈ ∂SK (ut ).
+ 5:    Play wt = 1+S    ut
+                        t
+                           .                               // wt represents an approximate Gauge projection of ut onto K.
+ 6:       Observe subgradient gt ∈ ∂ft (wt ).
+ 7:       Set g
+              ̃t = gt − I{⟨gt , ut ⟩ < 0} ⋅ ⟨gt , wt ⟩ ⋅ st .
+ 8:       Send g̃t to A as the tth loss vector.
+ 9:       Set ut+1 ∈ Rd to A’s (t + 1)th output given the history (us , g
+                                                                        ̃s )s≤t .
+
+
+
+4       Projection-Free OCO via Exp-Concave Optimization
+In this section, we demonstrate how, through Algorithm 3, we can effectively reduce an OCO problem over K
+to an online exp-concave problem over a Euclidean ball that contains the feasible set K, allowing us to apply
+Barrier-ONS from Section 3. Crucially, this reduction only requires Gauge projections (Definition 2.4), which
+are inexpensive to approximate using a separation oracle; see Section 2.2. We now provide an overview of our
+reduction and will elaborate on some of the steps in the sequel.
+
+4.1       Overview of Reduction
+Our reduction works as follows:
+      1. We have a base algorithm B (in this case Algorithm 3) that outputs feasible points (wt ) ⊆ K and
+         observes subgradients (gt ⊆ ∂ft (wt ));
+      2. The outputs (wt ) of B are the Gauge projections of the iterates (ut ) from a subroutine A; we instantiate
+         A as Barrier-ONS over B(R) ⊇ K in the sequel;
+      3. Using (wt ) and (gt ), the base algorithm B constructs surrogate subgradients (̃
+                                                                                        gt ), which are fed to A
+         as loss vectors;
+      4. The goal is to construct (̃
+                                   gt ) such that ∥̃
+                                                   gt ∥ ≤ 2Gκ, where κ ∶= Rr (with r, R > 0 as defined in
+         Assumption 2.1), and
+                             T                                    T
+                                              η                                    η
+              ∀w ∈ K,                                       2
+                            ∑ (⟨wt − w, gt ⟩ − ⟨wt − w, gt ⟩ ) ≤ ∑ (⟨ut − w, g               ̃t ⟩2 ) + O(GR);
+                                                                             ̃t ⟩ − ⟨ut − w, g                            (8)
+                            t=1               2                  t=1               2
+
+
+      5. The sum on the right-hand side of (8) is the regret of subroutine A with respect to the exp-concave
+         losses (ℓt ) defined in (7). By setting A to Barrier-ONS, and combining (8) with the regret bound of
+         Barrier-ONS in Theorem 3.1 and the fact that (̃  gt ) ⊆ B(2κG), we essentially obtain
+                                      T
+                                                          η T                d        T
+                         ∀w ∈ K,      ∑ ⟨wt − w, gt ⟩ ≤
+                                                                           2
+                                                            ∑ ⟨wt − w, gt ⟩ + log (1 + ) + O(GR);                         (9)
+                                     t=1                  2 t=1              η        d
+
+
+
+                                                              9
+                                  √                                √
+   6. Tuning η ∝ min ( κGR
+                        1     1
+                           , GR       d
+                                      T
+                                        ) gives the desired O(
+                                                            ̃          dT + κd) regret bound.
+
+The key challenge in this reduction is to select surrogate subgradients (̃  gt ) that satisfy (8) (i.e., Item 4),
+while considering that (wt ) are approximate Gauge projections of (ut ) (see Item 2). Here, we adopt a similar
+choice of surrogate subgradients as in (Mhammedi, 2022).
+
+Choice of surrogate subgradients. At round t ≥ 1, given ut , wt , and gt , Algorithm 3 sets the surrogate
+subgradient as g
+               ̃t ≈ gt⋆ , where
+                                   gt⋆ ∈ gt − I{⟨gt , ut ⟩ < 0} ⋅ ⟨gt , wt ⟩ ⋅ ∂SK (ut ),                      (10)
+and SK (u) ∶= minx∈K γK (u − x) is the Gauge distance function. Algorithm 3 computes an approximate
+subgradient st of SK at ut using the GaugeDist subroutine. By Lemma 2.2, we have that SK (w) ≥
+SK (ut ) + ⟨w − ut , st ⟩ − ε for all w ∈ Rd (ε is set to 1/T in Algorithm 3), which essentially shows that st is an
+approximate subgradient of SK at ut . This, in turn, implies that g      ̃t ≈ gt⋆ by Line 7 of Algorithm 3 and (10).
+Moreover, as noted in Lemma 2.2, computing g         ̃t is computationally inexpensive, requiring only O(1)
+                                                                                                       ̃    calls to
+the separation oracle.
+
+Approximate Gauge projections. To ensure feasible iterates, Algorithm 3 sets (wt ) as approximate
+Gauge projections of the outputs (ut ) from A onto K; that is, wt ≈ wt⋆ , where wt⋆ ∈ arg minx∈K γK (ut − x)
+for all t ≥ 1. By Lemma 2.1, the exact Gauge projection points (wt⋆ ) satisfy
+                                                       ut
+                                            wt⋆ =              ,                                        (11)
+                                                  1 + SK (ut )
+since SK (ut ) = max(0, γK (ut ) − 1); see (1). In Algorithm 3, we approximate γK (ut ) using the GaugeDist
+subroutine (Algorithm 1). By Lemma 2.2, we have that St in Algorithm 3 satisfies SK (ut ) ≤ St ≤ SK (ut ) + ε.
+Thus, by Line 5 of Algorithm 3 and (11), we indeed have that wt ≈ wt⋆ and wt ∈ K for all t ≥ 1 (the details
+are in the proof of Lemma 4.1 in Appendix E.1). As noted in Lemma 2.2, a call to GaugeDist requires only
+O(1)
+̃     calls to the separation oracle SepK . Therefore, Algorithm 3 ensures feasibility with only a logarithmic
+number of oracle calls.
+
+4.2    Guarantees of Reduction
+The specific choice of surrogate subgradients in (10) ensures that ⟨gt , wt⋆ − w⟩ ≤ ⟨gt⋆ , ut − w⟩ for all w ∈ K;
+this follows from the analysis in (Mhammedi, 2022). Taking into account the approximation errors wt ≈ wt⋆
+and g̃t ≈ gt⋆ , we obtain the following result (the proof is in Appendix E.1).
+Lemma 4.1 (Key reduction result). Let T ≥ 1 be given, and suppose that Assumption 2.1 and Assumption 2.2
+hold. Further, let (wt ), (ut ), (gt ), and (̃
+                                             gt ) be as in Algorithm 3 with input T . If the iterates (ut ) of the
+subroutine A satisfy (ut ) ⊂ B(R), then we have ∥̃    gt ∥ ≤ 2κ ⋅ G, where κ ∶= Rr , and for all t ∈ [T ]:
+                                                                                             2GR
+                       wt ∈ K       and       ∀w ∈ K,      ⟨gt , wt − w⟩ ≤ ⟨̃
+                                                                            gt , ut − w⟩ +       .             (12)
+                                                                                              T
+
+By summing (12) over t = 1, . . . , T , we get that
+                                             T                    T
+                                ∀w ∈ K,     ∑ ⟨gt , wt − w⟩ ≤ ∑ ⟨̃
+                                                                 gt , ut − w⟩ + 2GR.                           (13)
+                                            t=1                  t=1
+
+                                                                                                      √
+Remark 4.1 (Recovering existing regret bounds). At this point, we can already recover the O(κ T ) regret
+bound of existing separation-based projection-free algorithms (Mhammedi, 2022; Garber and Kretzu, 2022).
+The right-hand side of (13) represents the regret of the subroutine A (with respect to the losses (w ↦ ⟨̃gt , w⟩)).
+If we instantiate A as projected gradient descent over the ball B(R) (where Euclidean projections cost O(d))  √
+and use the fact that ∥̃ gt ∥ ≤ 2κG for all t ≥ 1 (by√Lemma 4.1), we obtain ∑Tt=1 ⟨̃     gt , ut − w⟩ ≤ O(κ T ).
+Combining this with (13) results in an overall O(κ T ) regret bound for Algorithm 2, which importantly
+makes only O(1)
+            ̃     calls to a separation oracle per round. Note that Barrier-ONS was not needed for this part.
+
+
+                                                            10
+Returning to our reduction, we note that the inequality in (13) is similar but does not exactly match the
+inequality we seek in Item 4, as the terms η2 ∑Tt=1 ⟨gt , wt − w⟩2 and η2 ∑Tt=1 ⟨̃
+                                                                                 gt , ut − w⟩2 are missing from (13).
+However, we can still derive the inequality in Item 4, starting from Lemma 4.1. The full details are in the
+proof of Proposition 4.1 in Appendix E.2, but here we provide a sketch.
+Suppose that (ut ) ⊂ B(R) (which holds if A is set to Barrier-ONS by Theorem 3.1). Since the function x ↦
+x − ηx2 /2 is non-decreasing for x ≤ 1/2, by choosing η ≤ 10κGR
+                                                             1
+                                                                , setting x to ⟨gt , wt − w⟩ and ⟨̃
+                                                                                                  gt , ut − w⟩ + 2GR
+                                                                                                                  T
+                                                                                                                     ,
+and applying Lemma 4.1, we get that for any t ∈ [T ] and w ∈ K:
+
+                    η                                 2GR η                        2ηGT                 2ηG2 R2
+     ⟨gt , wt − w⟩ − ⟨gt , wt − w⟩2 ≤ ⟨̃
+                                       gt , ut − w⟩ +         − ⟨̃ gt , ut − w⟩2 −       gt , ut − w⟩ −
+                                                                                        ⟨̃                      ,
+                    2                                   T       2                    T                    T2
+                                                      η                     3GR
+                                       gt , ut − w⟩ − ⟨̃
+                                    ≤ ⟨̃                 gt , ut − w⟩2 +        ,                                 (14)
+                                                      2                      T
+where the last inequality follows by the facts that for all t ∈ [T ] and w ∈ K:
+   • ∣⟨̃                gt ∥ ⋅ ∥ut − w∥ by Cauchy Schwarz;
+       gt , ut − w⟩∣ ≤ ∥̃
+   • ∥̃
+      gt ∥ ≤ 2κG by Lemma 4.1;
+   • ∥ut − w∥ ≤ 2R, since ut , w ∈ B(R); and
+   • η ≤ 10κGR
+            1
+               .
+Summing (14) over t = 1, . . . , T yields (8). As noted in Item 5, the sum on the right-hand side of (7) represents
+the regret of the subroutine A with respect to the exp-concave losses (ℓt ∶ x ↦ ⟨̃                 gt , ut − x⟩2 ). Thus,
+                                                                                     gt , x⟩ + η2 ⟨̃
+by setting A to Barrier-ONS and using the regret bound of Barrier-ONS in Theorem 3.1, we recover the regret
+bound in (9). We now state this result (the proof can be found in Appendix E.2).
+Proposition 4.1. Let c ∈ (0, 1) and T ≥ 1 be given. Suppose that Assumption 2.1 and Assumption 2.2
+hold. Consider a call to Algorithm 3 with input T and where the subroutine A is an instance of Barrier-ONS
+(Algorithm 2) with input parameters (T, η, ν, c) satisfying η ≤ 10κRG
+                                                                   1
+                                                                      , and 20κGR ≤ ν ≤ 20dκGR, where κ is
+as in Lemma 4.1. Then, the sequences (wt ) and (gt ) in Algorithm 3 satisfy:
+                            T                                                                                T
+                                                η T              2                  ∥w∥2    4d log(1 + d )
+          ∀w ∈ int K,      ∑ ⟨gt , wt − w⟩ ≤      ∑ ⟨gt , wt − w⟩ + 5κGR − ν log(1 − R2 ) +                .
+                           t=1                  2 t=1                                             η
+
+                   √
+To get our main O(
+                ̃ dT ) regret bound for Algorithm 3, we instantiate Proposition 4.1 with the parameters:
+                                   √                                           √
+                                                 2d log(1+ Td )
+             c = 12 ,         1
+                         η = GR          1
+                                ⋅ min ( 10κ ,          T
+                                                                ),   and ν = GR ⋅ max (20κd,       dT
+                                                                                                log(1+ Td )
+                                                                                                            ),      (15)
+
+where κ is as in Lemma 4.1.
+Theorem 4.1 (Main guarantee). Let T ≥ 1 be given, and suppose that Assumption 2.1 and Assumption 2.2
+hold. Consider a call to Algorithm 3 with input T and where the subroutine A is an instance of Barrier-ONS
+(Algorithm 2) with input parameters (T, η, ν, c) as in (15). Then, (wt ) and (gt ) in Algorithm 3 satisfy:
+                                   T                         √
+                        ∀w ∈ K,   ∑ ⟨gt , wt − w⟩ ≤ 5GR       2dT log(1 + Td ) + 66GRκd log(1 + Td ).
+                                  t=1
+
+Furthermore, the computation cost of the instance of Algorithm 3 under consideration is bounded by
+                                                                  √
+                                    Õ (Csep (K) ⋅ T + d2 ⋅ T + dω T ) ,                                            (16)
+
+where Csep (K) is the cost of one call to a separation oracle for the set K.
+The full proof of Theorem 4.1 is deferred to Appendix E.3. Here, we sketch why the computational cost of
+the instance of Algorithm 3 in Theorem 4.1 is bounded by (16).
+
+
+                                                                11
+Proof sketch of (16). By Theorem√3.1, the computational cost of the Barrier-ONS subroutine within
+Algorithm 3 is bounded by Õ (d2 T + dω dT ). Given the choice of η and ν in (15), we have ην ≥ d, implying
+                                         νη
+that the computational cost of the Barrier-ONS subroutine is bounded by
+                                                        √
+                                            ̃ (d2 T + dω T ) .
+                                            O
+
+In addition to the cost of the Barrier-ONS subroutine, Algorithm 3 incurs O(d + CGaugeDist (K)) per round,
+where CGaugeDist (K) represents the cost of calling the GaugeDist subroutine to approximate the gauge distance
+SK and its subgradient. By Lemma 2.2, we have
+                                          CGaugeDist (K) ≤ O(1)
+                                                           ̃    ⋅ Csep (K).
+This implies the desired computational cost in (16).
+
+
+4.3     Computational Cost and Additional Results
+If we take the matrix exponent ω to be ω ≤ 5/2, the average per-round computational cost of our approach
+is bounded by O(C̃ sep (K) + d2 ) as long as T ≥ d. In contrast, existing separation-based projection-free
+algorithms, such as those in (Mhammedi, 2022; Garber and Kretzu, 2022; Lu et al., 2023),    √ have a per-round
+computational cost bounded by O(C  ̃ sep (K) + d) but guarantee a regret bound of O(κ T ). However, as
+discussed in the introduction, κ can be arbitrarily large for ill-conditioned sets. As shown in (Flaxman et al.,
+2005), one can apply an affine transformation to K (e.g., to put it in isotropic position) to ensure that κ
+is at most d. Doing so, however, incurs an additional O(d2 ) computational cost per round, as it requires
+multiplying the incoming subgradients by the matrix corresponding to the affine transformation at each
+round. This adjustment brings the overall computational cost in line with the cost of Algorithm 3 in (16).
+Thus, one can think of the O(d2 ) cost of our approach as the “price” for adapting to the ill-conditioning
+                                                                                               √
+of the set without needing to compute an affine transformation, while still ensuring a O(   ̃ dT ) regret
+bound—improving
+              √     on the worst-case
+                            √         regret bounds √
+                                                    of previous separation-based projection-free algorithms
+by a factor of d (because κ T can be as large as d T even after pre-processing). Finally, we note that the
+̃ 2 ) in our final algorithm cost comes from matrix-vector multiplications, which are easily parallelizable.
+O(d
+
+Best-of-both-worlds bound. Using standard aggregation techniques,   √ √ such as Hedge (Freund and Schapire,
+1997), we can achieve a “best-of-both-worlds” regret bound of O((κ∧
+                                                              ̃      d)⋅ T ), which is particularly beneficial
+when κ is small.
+
+Adaptive regret bounds. We note that, since Lemma 4.1 allows us to bound the instantaneous regret of
+Algorithm 3 by the instantaneous regret of the subroutine A (see also (8)), any special guarantees that A
+possesses readily transfer to Algorithm 3. For example, if A has an adaptive guarantee (Hazan and Seshadhri,
+2009), Algorithm 3 will inherit that guarantee as well.
+
+
+5     Application to Offline and Stochastic Optimization
+In this section, we leverage the results from the previous sections to achieve a state-of-the-art convergence
+rate for projection-free stochastic convex optimization. We begin by presenting our results for stochastic
+convex optimization, then specialize them to the offline convex optimization setting for finding a near-optimal
+point. To proceed, we now state our assumption for the stochastic optimization setting.
+Assumption 5.1. There is a function f ∶ K → R and parameters σ ≥ 0 and G > 0 such that the loss vector gt
+that the algorithm receives at round t ≥ 1 is of the form gt = ḡt + ξt , where
+    • For all t ≥ 1, ḡt ∈ ∂f (wt ), where wt is the output of the algorithm at round t;
+    • (ξt ) ⊂ Rd are i.i.d. noise vectors such that E[ξt ] = 0 and E[∥ξt ∥2 ] ≤ σ 2 , for all t ≥ 1; and
+    • For all t ≥ 1, ∥ḡt ∥ ≤ G.
+
+
+                                                          12
+5.1    Convergence Rate in Stochastic Convex Optimization
+Under Assumption 5.1, we now state our main guarantee for the stochastic convex optimization setting. As in
+the OCO setting, we use Algorithm 3 with the subroutine A set as Barrier-ONS. Here, we set the parameters
+of Barrier-ONS as
+                                            √                                              √
+                                              2d log(1+ Td )
+          c = 12 , η = R1 ⋅ min ( 10Gκ
+                                    1
+                                       , σ1         T
+                                                             ) , and ν = R ⋅ max (20Gκd, σ      dT
+                                                                                             log(1+ T )
+                                                                                                        ), (17)
+                                                                                               d
+
+
+where κ ∶= R/r and r, R > 0 are as in Assumption 2.1.
+Theorem 5.1. Let T > 0 be given. Suppose that Assumption 2.1 and Assumption 5.1 (with σ, G ≥ 0) hold
+and consider a call to Algorithm 3 with input T , where the subroutine A is an instance of Barrier-ONS
+(Algorithm 2) with input parameters (T, η, ν, c) as in (17). Then, we have
+                                                   ¿
+                                                   Á d log(1 + T ) 74GRκd log(1 + T )
+                                                   Á
+                                                   À
+                    E[f (w
+                         ̂T )] − inf f (w) ≤ 16Rσ              d
+                                                                  +               d
+                                                                                      ,            (18)
+                                w∈K                         T              T
+where w
+      ̂T ∶= T1 ∑Tt=1 wt and (wt ) are the iterates of Algorithm 3. The computational cost is bounded by (16).
+The proof of the theorem, which follows from an application of Proposition 4.1, is in Appendix F. Extending
+the result in Theorem 5.1 to a high-probability guarantee is possible using martingale concentration bounds.
+
+5.2    Computational Cost of Finding a Near-Optimal Point
+We now consider the computational cost for finding a near-optimal point in offline convex optimization; that
+is, when σ = 0. In this case, from (18), if we set
+                                                           GRκd
+                                                 T =c⋅          ,
+                                                            ε
+with c = polylog(d, 1/ε) sufficiently large, we get that
+                                             f (w
+                                                ̂T ) − inf f (w) ≤ ε,
+                                                      w∈K
+
+where w ̂T ∶= T1 ∑Tt=1 wt and (wt ) are the iterates of Algorithm 3. Thus, w
+                                                                           ̂T represents an ε-optimal point
+for the objective function f . Now, by Theorem 5.1, the computational cost of the instance of Algorithm 3
+in Theorem 5.1 is bounded by (16). Instantiating (16) with the choice of T = c ⋅ GRκdε
+                                                                                        , which implies that
+             √
+d2 T ≫ Ω(dω T ) (as long as ω ≤ 5/2), the cost of finding an ε-optimal point in offline convex optimization
+using our approach is bounded by
+                                              κd
+                                                 ⋅ (Csep (K) + d2 ),
+                                               ε
+where we recall that the cost O(d2 ) is coming from matrix-vector multiplications, which is parallelizable.
+
+
+6     Conclusion and Future Work
+                                                                                           √
+We presented a new separation-based algorithm for OCO that achieves a regret bound of O(̃ dT + κd) while
+making only O(1)
+             ̃     calls
+                     √ to a separation oracle per round. Existing separation-based algorithms guarantee a
+regret bound of O(κ T ). The asphericity factor κ can be arbitrarily large for ill-conditioned feasible sets
+and can reach as high as d, even after applying
+                                            √ the best affine transformation to the feasible set. In this√
+case, the main term in our regret bound, O(
+                                         ̃ dT ), improves over state-of-the-art bounds by a factor of d
+without requiring any preconditioning.
+While we have successfully eliminated some unwanted factors from existing bounds, an open question remains:
+is there a projection-free algorithm
+                            √         (whether separation or linear optimization-based) that can achieve the
+optimal, dimension-free O( T ) regret while making
+                                               √      only O(1)
+                                                           ̃     oracle calls per round? A less ambitious but
+still important goal would be to achieve our O( dT ) regret bound without the need for matrix multiplications
+                                             ̃
+or storing a matrix (as required by Barrier-ONS), which incurs a memory cost of d2 .
+
+
+                                                       13
+References
+Jacob Abernethy, Peter L Bartlett, Alexander Rakhlin, and Ambuj Tewari. Optimal strategies and minimax
+  lower bounds for online convex games. In Proceedings of the 21st annual conference on learning theory,
+  pages 414–424, 2008.
+Jacob D Abernethy, Elad Hazan, and Alexander Rakhlin. Interior-point methods for full-information and
+  bandit online learning. IEEE Transactions on Information Theory, 58(7):4164–4175, 2012.
+Sébastien Bubeck. Convex optimization: Algorithms and complexity. Foundations and Trends® in Machine
+  Learning, 8(3-4):231–357, 2015.
+Nicolo Cesa-Bianchi and Gábor Lugosi. Prediction, learning, and games. Cambridge university press, 2006.
+Ashok Cutkosky. Anytime online-to-batch, optimism and acceleration. In International Conference on
+ Machine Learning, pages 1446–1454. PMLR, 2019.
+Ashok Cutkosky and Francesco Orabona. Black-Box Reductions for Parameter-free Online Learning in
+  Banach Spaces. Conference on Learning Theory, 2018.
+Abraham D Flaxman, Adam Tauman Kalai, and H Brendan McMahan. Online convex optimization in the
+ bandit setting: gradient descent without a gradient. In Proceedings of the sixteenth annual ACM-SIAM
+ symposium on Discrete algorithms, pages 385–394, 2005.
+Hidde Fokkema, Dirk van der Hoeven, Tor Lattimore, and Jack J Mayo. Online newton method for bandit
+  convex optimisation. arXiv preprint arXiv:2406.06506, 2024.
+Marguerite Frank, Philip Wolfe, et al. An algorithm for quadratic programming. Naval research logistics
+ quarterly, 3(1-2):95–110, 1956.
+Yoav Freund and Robert E Schapire. A decision-theoretic generalization of on-line learning and an application
+  to boosting. Journal of computer and system sciences, 55(1):119–139, 1997.
+Dan Garber and Elad Hazan. A linearly convergent variant of the conditional gradient algorithm under
+ strong convexity, with applications to online and stochastic optimization. SIAM Journal on Optimization,
+ 26(3):1493–1528, 2016.
+Dan Garber and Ben Kretzu. New projection-free algorithms for online convex optimization with adaptive
+ regret guarantees. In Conference on Learning Theory, pages 2326–2359. PMLR, 2022.
+Benjamin Grimmer. Radial duality part i: foundations. Mathematical Programming, 205(1):33–68, 2024.
+Martin Grötschel, László Lovász, and Alexander Schrijver. Geometric algorithms and combinatorial optimiza-
+ tion, volume 2. Springer Science & Business Media, 2012.
+Elad Hazan. Sparse approximate solutions to semidefinite programs. In Latin American symposium on
+  theoretical informatics, pages 306–316. Springer, 2008.
+Elad Hazan. Introduction to online convex optimization. Foundations and Trends® in Optimization, 2(3-4):
+  157–325, 2016.
+Elad Hazan and Satyen Kale. Projection-free online learning. In Proceedings of the 29th International
+  Coference on International Conference on Machine Learning, pages 1843–1850, 2012.
+Elad Hazan and Comandur Seshadhri. Efficient learning algorithms for changing environments. In Proceedings
+  of the 26th annual international conference on machine learning, pages 393–400, 2009.
+Elad Hazan, Amit Agarwal, and Satyen Kale. Logarithmic regret algorithms for online convex optimization.
+  Machine Learning, 69(2-3):169–192, 2007.
+Jean-Baptiste Hiriart-Urruty and Claude Lemaréchal. Fundamentals of convex analysis. Springer Science &
+  Business Media, 2004.
+
+
+                                                     14
+Martin Jaggi. Revisiting frank-wolfe: Projection-free sparse convex optimization. In International Conference
+ on Machine Learning, pages 427–435. PMLR, 2013.
+Ruichen Jiang and Aryan Mokhtari. Accelerated quasi-newton proximal extragradient: Faster rate for smooth
+  convex optimization. Advances in Neural Information Processing Systems, 36, 2024.
+
+Ruichen Jiang, Qiujiang Jin, and Aryan Mokhtari. Online learning guided curvature approximation: A
+ quasi-newton method with global non-asymptotic superlinear convergence. In The Thirty Sixth Annual
+ Conference on Learning Theory, pages 1962–1992. PMLR, 2023.
+Tomer Koren. Open problem: Fast stochastic exp-concave optimization. In Conference on Learning Theory,
+  pages 1073–1075. PMLR, 2013.
+
+Simon Lacoste-Julien and Martin Jaggi. On the global linear convergence of frank-wolfe optimization variants.
+  Advances in neural information processing systems, 28, 2015.
+Yin Tat Lee and Aaron Sidford. Solving linear programs with sqrt(rank) linear system solves. arXiv preprint
+  arXiv:1910.08033, 2019.
+
+Yin Tat Lee, Aaron Sidford, and Santosh S Vempala. Efficient convex optimization with membership oracles.
+  In Conference On Learning Theory, pages 1292–1294. PMLR, 2018.
+Zhou Lu, Nataly Brukhim, Paula Gradu, and Elad Hazan. Projection-free adaptive regret with membership
+  oracles. In International Conference on Algorithmic Learning Theory, pages 1055–1073. PMLR, 2023.
+Zakaria Mhammedi. Efficient projection-free online convex optimization with membership oracle. In Conference
+  on Learning Theory, pages 5314–5390. PMLR, 2022.
+Zakaria Mhammedi and Khashayar Gatmiry. Quasi-newton steps for efficient online exp-concave optimization.
+  In The Thirty Sixth Annual Conference on Learning Theory, pages 4473–4503. PMLR, 2023.
+Zakaria Mhammedi and Alexander Rakhlin. Damped online newton step for portfolio selection. In Conference
+  on Learning Theory, 2-5 July 2022, London, UK, volume 178 of Proceedings of Machine Learning Research,
+  pages 5561–5595. PMLR, 2022.
+Zakaria Mhammedi, Wouter M Koolen, and Tim Van Erven. Lipschitz adaptivity with multiple learning
+  rates in online learning. In Conference on Learning Theory, pages 2490–2511. PMLR, 2019.
+Marco Molinaro. Curvature of feasible sets in offline and online optimization. arXiv preprint arXiv:2002.03213,
+ 2020.
+Arkadi S Nemirovski and Michael J Todd. Interior-point methods for optimization. Acta Numerica, 17:
+ 191–234, 2008.
+Yurii Nesterov et al. Lectures on convex optimization, volume 137. Springer, 2018.
+
+Shai Shalev-Shwartz et al. Online learning and online convex optimization. Foundations and trends in
+  Machine Learning, 4(2):107–194, 2011.
+Martin Zinkevich. Online convex programming and generalized infinitesimal gradient ascent. In International
+ Conference on Machine Learning, pages 928–936, 2003.
+
+
+
+
+                                                      15
+A       Organization of the Appendix
+This appendix is organized as follows:
+      • In Appendix B, we present the full version of the Barrier-ONS algorithm.
+      • Appendix C provides background on self-concordant functions, highlighting key properties used in our
+        analysis.
+      • In Appendix D, we present the proof for the regret guarantee of Barrier-ONS in Theorem 3.1.
+      • In Appendix D, we present the proof of our main OCO result in Theorem 4.1.
+      • In Appendix F, we provide the proof of Theorem 5.1 for the convergence rate of our algorithm in the
+        stochastic convex optimization setting.
+      • Finally, Appendix G includes the proof of Lemma 2.1 on the approximate computation of the Gauge
+        distance and its subgradients.
+
+
+B       Full Version of Barrier-ONS
+Algorithm 4 Efficient implementation of Barrier-ONS (Algorithm 2). The current algorithm is technically
+equivalent to Algorithm 2 in that both algorithms produce the same outputs.
+    input Parameters η, ν, c > 0.
+ 1: Set z1 ← 0, u1 ← 0, V0 ← 0, Σ′0 ← 2ν I, S0 ← 0, G0 ← 0, and m = c logc (dT ), with c a sufficiently large
+                                               1
+
+    universal constant.
+ 2: for t = 1, . . . , T do
+ 3:    Play ut and observe gt ∈ ∂ℓt (ut ).
+ 4:    Set Gt ← Gt−1 + gt , St ← St−1 + gt gt⊺ ut , and Vt ← Vt−1 + gt gt⊺ .
+ 5:    Set ∇t ← 1−∥u    2νut
+                           t∥
+                              2 + ηVt ut − ηSt + Gt .                                          // ∇t = ∇Φt+1 (ut )
+                              ηΣ′   g g ⊺ Σ′                       4νΣ′ u u⊺ Σ′
+ 6:      Set Σ′t ← Σ′t−1 − 1+ηg
+                             t−1 t t t−1
+                                ⊺ ′
+                                 Σ gt
+                                         and Σt ← Σ′t − (R2 −∥ut ∥2t )2t+4νu
+                                                                          t t
+                                                                             ⊺ ′
+                                                                              Σ ut
+                                                                                   .
+                                    t   t−1                                   t   t
+         /* Computing the Taylor expansion */
+ 7:      Set δt ← Σt ∇t and δ̃t ← Σt δt .
+ 8:      for k = 1, . . . , m do
+ 9:         Set δ̃t ← ( R2 −∥z2ν
+                                 t∥
+                                   2 − R2 −∥u ∥2 ) Σt δ̃t .
+                                           2ν
+                                              t
+
+10:          Set δt ← δt + δ̃t .
+         /* Perform approximate Newton step */
+11:      Set ut+1 ← ut − δt .                                                             // ut+1 ≈ ut − ∇−2 Φt+1 (ut )∇Φt+1 (ut ).
+         /* Check if the Taylor expansion point needs to be updated */
+12:      if ∣∥ut+1 ∥2 − ∥zt ∥2 ∣ ≤ c ⋅ (R2 − ∥zt ∥2 ) then
+13:          Set zt+1 ← zt .
+14:      else
+15:          Set zt+1 ← ut+1 .
+                                                −1                                                                                  −1
+                                                                                                                          u⊺
+16:           Set Σ′t = ( R2 −∥u
+                              2νI
+                                t+1 ∥
+                                      2 + ηVt ) .                                                                  4νu
+                                                                                      // Σ′t ← (∇2 Φt+1 (ut+1 ) − (R2 −∥u
+                                                                                                                       t+1  t+1
+                                                                                                                         t+1 ∥ )
+                                                                                                                              2 2   )
+
+
+
+
+C       Self-Concordant Functions
+In this section, we introduce the concept of self-concordant functions and outline several key properties that
+play an important role in our proofs (the results presented in this section are taken from (Mhammedi and
+Gatmiry, 2023)). We begin by defining a self-concordant function. For the rest of this section, let C represent
+a convex, compact set with a non-empty interior, denoted by int C. For a function that is twice differentiable
+[or thrice differentiable], we denote its Hessian as ∇2 f (u) [and its third derivative tensor as ∇3 f (u)] at u.
+
+
+
+                                                              16
+Definition C.1. A convex function f ∶ int C → R is called self-concordant with constant Mf ≥ 0, if f is C 3
+and satisfies
+    • f (xk ) → +∞ for xk → x ∈ ∂C; and
+    • For all x ∈ int C and u ∈ Rd :
+
+                                            ∣∇3 f (x)[u, u, u]∣ ≤ 2Mf ∥u∥3∇2 f (x) .
+
+By definition, if f is self-concordant with a constant Mf ≥ 0, it remains self-concordant for any constant
+M ≥ Mf . For a self-concordant function f and a point x ∈ dom f , the quantity λ(x, f ) ∶= ∥∇f (x)∥∇−2 f (x) ,
+referred to as the Newton decrement, plays a key role in our proofs. The following two lemmas summarize
+properties of the Newton decrement and the Hessians of self-concordant functions, which will be utilized
+frequently in the proofs of Barrier-ONS (see, for example, Nemirovski and Todd (2008); Nesterov et al. (2018)).
+
+
+Lemma C.1. Let f ∶ int C → R be a self-concordant function with constant Mf ≥ 1. Further, let x ∈ int C and
+xf ∈ arg minx∈C f (x). Then,
+    • Whenever λ(x, f ) < 1/Mf , we have
+
+                            ∥x − xf ∥∇2 f (xf ) ∨ ∥x − xf ∥∇2 f (x) ≤ λ(x, f )/(1 − Mf λ(x, f ));
+
+    • For any M ≥ Mf , the Newton step x+ ∶= x − ∇−2 f (x)∇f (x) satisfies x+ ∈ int C and
+
+                                         λ(x+ , f ) ≤ M λ(x, f )2 /(1 − M λ(x, f ))2 .
+
+Lemma C.2. Consider a self-concordant function f ∶ int, C → R with constant Mf and a point x ∈ int, C. For
+any y such that r ∶= ∥y − x∥∇2 f (x) < 1/Mf , the following holds:
+
+                              (1 − Mf r)2 ∇2 f (y) ⪯ ∇2 f (x) ⪯ (1 − Mf r)−2 ∇2 f (y).
+
+The following result from (Nesterov et al., 2018, Theorem 5.1.5) will be helpful in showing that the iterates of
+our algorithms consistently remain within the feasible set.
+Lemma C.3. Let f ∶ int C → R be a self-concordant function with constant Mf ≥ 1 and x ∈ int C. Then,
+Ex ∶= {w ∈ Rd ∶ ∥w − x∥∇2 f (x) < 1/Mf } ⊆ int C. Furthermore, for all w ∈ Ex , we have
+
+                                                               ∥w − x∥∇2 f (x)
+                                       ∥w − x∥∇2 f (w) ≤                          .
+                                                           1 − Mf ∥w − x∥∇2 f (x)
+
+Finally, we also need the following result due to Mhammedi and Rakhlin (2022).
+Lemma C.4. Let f ∶ int C → R be a self-concordant function with constant Mf > 0. Then, for any x, y ∈ int C
+such that r ∶= ∥x − y∥∇2 f (x) < 1/Mf , we have
+
+                                                                   1
+                             ∥∇f (x) − ∇f (y)∥2∇−2 f (x) ≤                ∥y − x∥2∇2 f (x) .
+                                                              (1 − Mf r)2
+
+D      ONS Analysis: Proof of Theorem 3.1
+This appendix provides a proof of Theorem 3.1. Each subsection provides results and proofs of intermediate
+results outlined in Section 3.
+
+
+
+
+                                                            17
+D.1     Taylor Expansion of Inverse Hessians
+In this section, we prove that the Taylor expansions used in Algorithm 2 indeed approximate the inverse
+Hessians (∇−2 Φt+1 (ut )). This result we state next is a slight modification of a result in Mhammedi and
+Gatmiry (2023).
+Lemma D.1. Let η, ν > 0, c ∈ (0, 1), and T ≥ 1 be given. Further, let (T, γt ) and (Σt ) be as in Algorithm 2
+with parameters (η, ν, c). Then, for t ∈ [T ] such that ut ∈ int B(R) and for any m ≥ 1, we have
+                                                             m+1
+                                                                                   R 2 cm
+                                        ∥∇−2 Φt+1 (ut ) − ∑ γtk−1 Σkt ∥ ≤                     .
+                                                             k=1                 2ν ⋅ (1 − c)
+
+                                            2      2
+Proof. Fix m ≥ 1 and let αt ∶= ∥uRt2∥−∥u   2 . We have
+                                      −∥zt ∥
+                                        t∥
+
+
+                                                   R2 − ∥zt ∥2         R2 − ∥zt ∥2
+                                            αt =               − 1 = −             γt ,
+                                                   R2 − ∥ut ∥2            2ν
+
+where we recall that γt = R2 −∥z
+                              2ν
+                                 t∥
+                                    2 − R2 −∥u ∥2 . Note that Σt in Algorithm 2 satisfies
+                                            2ν
+                                               t
+
+
+                                                                          t−1
+                                              2νI          4νut u⊺t
+                                    Σ−1
+                                     t =               +              + η ∑g     ̃s⊺ ,
+                                                                              ̃s g                                 (19)
+                                          R2 − ∥zt ∥2 (R2 − ∥ut ∥2 )2     s=1
+                                                            2νI           2νI
+                                        = ∇2 Φt+1 (ut ) − 2        2
+                                                                     + 2           ,
+                                                         R − ∥ut ∥    R − ∥zt ∥2
+                                                                   2νI          R2 − ∥zt ∥2
+                                        = ∇2 Φt+1 (ut ) −                  ⋅(               − 1) ,
+                                                             R2 − ∥zt ∥2        R2 − ∥ut ∥2
+                                                              2ναt I
+                                        = ∇2 Φt+1 (ut ) −               .
+                                                             R − ∥zt ∥2
+                                                              2
+
+
+Therefore, if we let Ut ∶= (R2 − ∥zt ∥2 )Ht−1 /(2ν), we have
+                                                                                −1
+                                                         2ναt I
+                                   ∇−2 Φt+1 (ut ) = (              + Ht−1 )          ,
+                                                        R − ∥zt ∥2
+                                                         2
+
+                                                                                                  −1
+                                                       R2 − ∥zt ∥2         R2 − ∥zt ∥2 −1
+                                                   =               (αt I +            Ht )             ,
+                                                          2ν                  2ν
+                                                     R2 − ∥zt ∥2
+                                                   =             (αt I + Ut )−1 ,
+                                                        2ν
+                                                     R2 − ∥zt ∥2 −1
+                                                   =             Ut (I + αt Ut−1 )−1 .                             (20)
+                                                        2ν
+Now, by (19), we have Ut ⪰ I and so ∥Ut−1 ∥ ≤ 1. Using this and that ∣αt ∣ ≤ c < 1 (this is an invariant of
+Algorithm 2—see Line 8 of Algorithm 2), we have
+                                       ∞                                                 m
+                                                                                                            cm
+                (1 + αt Ut−1 )−1 = ∑ (−αt )k Ut−k ,         and     ∥(1 + αt Ut )−1 − ∑ (−αt )k Ut−k ∥ ≤       .
+                                      k=0                                                k=0               1−c
+
+Therefore, by (20) and the fact that ∥Ut−1 ∥ ≤ 1 we have
+
+                                                1 − ∥zt ∥2 m+1     k−1 −k  (R2 − ∥zt ∥2 ) ⋅ cm
+                           ∥∇−2 Φt+1 (ut ) −               ∑ (−αt ) Ut ∥ ≤                     .
+                                                   2dη     k=1               2ν ⋅ (1 − c)
+                       2       2
+Now, the fact that R −∥z
+                       2dη
+                          t∥
+                             ∑k=1 (−αt )k−1 Ut−k = ∑k=1 γtk−1 Σkt completes the proof.
+                              m+1                   m+1
+
+The key to the computational efficiency of our approach lies in the fact that we only need to compute the full
+inverse of a matrix in a small fraction of the rounds, as demonstrated by the following lemma. The proof of
+this lemma leverages the stability of the Newton iterates, which is ensured by the non-linear terms in (Φt ).
+
+
+                                                                   18
+D.2     Number of Taylor Expansion Points (Proof of Lemma 3.1)
+For the proof of Lemma 3.1, we need the following elementary result.
+Lemma D.2. Let ν > 0 and R > 0 be given and define Ψ(x) ∶= −ν log(R2 − ∥x∥2 ). For any u, w ∈ B(R), we
+have
+                                          1                   (∥w∥2 − ∥u∥2 )2
+                                            ∥w − u∥2∇2 Ψ(w) ≥                 .
+                                          ν                    (R2 − ∥w∥2 )2
+
+Proof. Fix u, w ∈ B(R). We have
+
+                1                                I          2ww⊺
+                  ∥w − u∥2∇2 Ψ(w) = (w − u)⊺ ( 2     2
+                                                       +              ) (w − u),
+               2ν                             R − ∥w∥    (R − ∥w∥2 )2
+                                                           2
+
+                                   ∥w∥2 + ∥u∥2 − 2w⊺ u − 2∥w∥2 w⊺ u + ∥w∥4 + 2(w⊺ u)2 − ∥w∥2 ∥u∥2
+                                 =                                                                ,
+                                                           (R2 − ∥w∥2 )2
+                                   2(∥w∥2 − w⊺ u)(R2 − w⊺ u) ∥u∥2 − ∥w∥2
+                                 =                           + 2            ,
+                                         (R2 − ∥w∥2 )2          R − ∥w∥2
+                                   2(∥w∥2 − w⊺ u)(R2 − ∥w∥2 ) 2(∥w∥2 − w⊺ u)2 ∥u∥2 − ∥w∥2
+                                 =                            +                 + 2            .
+                                         (R2 − ∥w∥2 )2            (R2 − ∥w∥2 )2     R − ∥w∥2
+
+Now using that −wu = 2−1 (∥w − u∥2 − ∥w∥2 − ∥u∥2 ), we get that
+
+                   1                   ∥w − u∥2 + ∥w∥2 − ∥u∥2 2(∥w∥2 − w⊺ u)2 ∥u∥2 − ∥w∥2
+                     ∥w − u∥2∇2 Ψ(w) =                        +                  + 2       ,
+                  2ν                         R2 − ∥w∥2            (R2 − ∥w∥2 )2   R − ∥w∥2
+                                        ∥w − u∥2    (∥w − u∥2 + ∥w∥2 − ∥u∥2 )2
+                                     = 2        2
+                                                  +                            .                                   (21)
+                                       R − ∥w∥           2(R2 − ∥w∥2 )2
+
+Now, consider the function
+                                                    X       (X + ∥w∥2 − ∥u∥2 )2
+                                       f ∶X →             +                     .
+                                                R2 − ∥w∥2     2(R2 − ∥w∥2 )2
+Note that sgn(f ′ (X)) = sgn(X − ∥u∥2 + 1). Thus, since ∥u∥2 ≤ 1, the function f is non-decreasing over R≥0 ,
+and so f (∥w − u∥2 ) ≥ f (0). Using this with (21), we get
+
+                                          1                   (∥w∥2 − ∥u∥2 )2
+                                            ∥w − u∥2∇2 Ψ(w) ≥                 .
+                                          ν                    (R2 − ∥w∥2 )2
+
+
+
+
+Proof of Lemma 3.1. Let i1 , . . . , in be the rounds t where zt ≠ zt−1 , and note that by Line 8 of Algorithm 2,
+we have
+
+                               ∣∥zik+1 ∥2 − ∥zik ∥2 ∣ > c ⋅ (R2 − ∥zik ∥2 ),   ∀k ∈ [n − 1].                       (22)
+
+Further, let
+
+                                       ∥ut+1 ∥2 − ∥ut ∥2                  ∥ut ∥2 − ∥ut+1 ∥2
+                               αt ∶=                     ,   and µt ∶=                      .
+                                        R2 − ∥ut+1 ∥2                       R2 − ∥ut ∥2
+
+Fix k ∈ [n − 1]. Suppose that (∑it=i
+                                  k+1 −1
+                                     k
+                                         αt ) ∨ (∑it=i
+                                                    k+1 −1
+                                                       k
+                                                           µt ) ≤ 1/2 and let mk ∶= ik+1 − ik . In this case, by (22) we
+
+
+
+
+                                                             19
+have that
+                                      R2 − ∥zik ∥2            R2 − ∥zik+1 ∥2
+                  log(1 + c) ≤ (log                  ) ∨ (log                ),
+                                      R2 − ∥zik+1 ∥2          R2 − ∥zik ∥2
+                               ⎛ ik+1 −1       ⎞ ⎛ ik+1 −1       ⎞
+                              ≤ log ∏ (1 + αt ) ∨ log ∏ (1 + µt ) ,
+                               ⎝    t=ik       ⎠ ⎝    t=ik       ⎠
+                                  ⎛ik+1 −1         ⎞ ⎛ik+1 −1       ⎞
+                              =      ∑ log(1 + αt ) ∨ ∑ log(1 + µt ) ,
+                                  ⎝ t=ik           ⎠ ⎝ t=ik         ⎠
+                                                            mk                       mk
+                                   ⎛    1 ik+1 −1 ⎞                   ⎛    1 ik+1 −1 ⎞
+                              ≤ log 1 +     ∑ αt                 ∨ log 1 +     ∑ µt       ,   (Jensen)
+                                   ⎝    mk t=ik   ⎠                   ⎝    mk t=ik   ⎠
+                                   ⎛     ik+1 −1 ⎞  ⎛     ik+1 −1 ⎞
+                              ≤ log 1 + 2 ∑ αt ∨ log 1 + 2 ∑ µt ,
+                                   ⎝      t=ik   ⎠  ⎝      t=ik   ⎠
+
+where the last inequality follows by the facts that (∑it=i
+                                                        k+1 −1
+                                                           k
+                                                               αt ) ∨ (∑it=i
+                                                                          k+1 −1
+                                                                             k
+                                                                                 µt ) ≤ 1/2 and (1 + x)r ≤ 1 + 1−(r−1)x
+                                                                                                                  rx
+                                                                                                                        ,
+for all x ∈ (−1, r−1 ] and r ≥ 1. Now, using that log(1 + x) ≤ x for x ≥ 0 and log(1 + x) ≥ x/2, for x ∈ (0, 1), we
+                  1
+
+get that
+
+                       c                ⎛ ik+1 −1 ⎞ ⎛ ik+1 −1 ⎞
+                         ≤ log(1 + c) ≤ 2 ∑ αt ∨ 2 ∑ µt ,                                                           (23)
+                       2                ⎝ t=ik      ⎠ ⎝ t=ik       ⎠
+                                           ¿                    ¿
+                                          ⎛Á      ik+1 −1   ⎞ ⎛Á      ik+1 −1   ⎞
+                                           Àmk ∑ α2 ⎟ ∨ ⎜Á
+                                      ≤ 2 ⎜Á                    Àmk ∑ µ2 ⎟ ,             (Jensen)
+                                                          t                   t
+                                          ⎝        t=ik     ⎠ ⎝        t=ik     ⎠
+                                         ¿
+                                         Á      ik+1 −1       ik+1 −1
+                                         Àmk ∑ α2 + mk ∑ µ2 .
+                                      ≤ 2Á                   t               t                                      (24)
+                                                     t=ik             t=ik
+
+
+So far, we have assumed that (∑it=i
+                                 k+1 −1
+                                    k
+                                        αt )∨(∑it=i
+                                                 k+1 −1
+                                                    k
+                                                        µt ) ≤ 1/2. If this does not hold, then we have (∑it=i
+                                                                                                            k+1 −1
+                                                                                                               k
+                                                                                                                   αt )∨
+   ik+1 −1
+(∑t=ik µt ) ≥ 1/2. This implies (23) from which (24) follows. Now, (24) implies
+
+                                             ik+1 −1        ik+1 −1
+                                                  2      2               c2
+                                               ∑ αt + ∑ µt ≥                 .
+                                              t=ik           t=ik       16mk
+
+Thus, by summing over k = 1, . . . , n − 1, and using Lemma D.2 and Lemma D.7 (in particular (33)), we get
+
+                   1 132 d log(1 + T /d) T 2               n
+                                                               c2    n
+                                                                             c2          c2 n 2
+                     +                  ≥ ∑ (αt + µ2t ) ≥ ∑        =∑                  ≥        ,
+                   2          νη          t=1             k=1 16mk  k=1 16(ik+1 − ik )   16T
+
+where the last inequality follows by the fact that x ↦ 1/x is convex and Jensen’s inequality. By taking the
+square-root on both sides and rearranging, we get that
+                                             ¿
+                                          52 Á
+                                             ÀT ⋅ (1 + d log(1 + T /d) ).
+                                      n≤ Á
+                                           c                 νη
+
+
+
+
+D.3     Structural Results for Barrier-ONS and FTRL
+Most of the structural results we present in this section are small modifications of existing results in
+(Mhammedi and Gatmiry, 2023).
+
+
+                                                                 20
+                                                                                            √
+Lemma D.3. For any t ≥ 1, the functions Ψ and Φt in (3) are self-concordant with constant 1/ ν.
+Proof. Fix t ≥ 1. First, we note that x ↦ Ψ(x)/ν = − log(R2 − ∥x∥2 ) is self-concordant with constant 1 (see
+                                                                                                           √
+e.g. (Nesterov et al., 2018, Exampled 5.1.1)). Thus, Ψ is a self-concordant function with constant 1/ ν;
+this follows by the fact that if a √function f is self-concordant with constant Mf , then αf , for α > 0, it is
+self-concordant with constant 1/ α (see e.g. (Nesterov et al., 2018, Corollary 5.1.3)). On the other hand,
+since Φt (x) is equal to Ψ(x) plus a quadratic in x, then Φt is self-concordant with the same constant as Ψ
+(see e.g. (Nesterov et al., 2018, Corollary 5.1.2)).
+
+
+Lemma D.4. Let η, ν ∈ (0, 1), R > 0, and G    ̃ > 0 be such that ν ≥ 10GR
+                                                                        ̃ and η ≤ 1 . Further, let (̃
+                                                                                    5GR
+                                                                                     ̃                   gt ) ⊂ R d
+be a sequence of vectors such that ∥̃      ̃ for all t ≥ 1. Then, for any sequence (yt ) ⊂ int B(R), the potential
+                                    gt ∥ ≤ G,
+functions (Φt ) in (3) satisfy
+                                                                                ̃2 R 2
+                                                                                G
+                                          ∀t ≥ 1,         gt ∥2∇−2 Φt (yt ) ≤
+                                                         ∥̃                            ,                               (25)
+                                                                                 2ν
+and
+                                                 T
+                                                                           d log(1 + T /d)
+                                   ∀T ≥ 1,                 2
+                                                    gt ∥∇−2 Φt (yt ) ≤
+                                                 ∑ ∥̃                                      .                           (26)
+                                                 t=1                              η
+
+Proof. Fix the sequence (yt ). First, note that the Hessian of Ψ in (3) satisfies
+                                                               2ν            4νyt yt⊺
+                               ∀t ≥ 1,    ∇2 Ψ(yt ) =                  I +                 I.                          (27)
+                                                           R2 − ∥yt ∥2     (R2 − ∥yt ∥2 )2
+Therefore, we have
+                                                                                           −1
+                                   ∀t ≥ 1,      ∥̃                   ̃t⊺ (∇2 Ψ(yt ))
+                                                 gt ∥2∇−2 Φt (yt ) ≤ g                          g
+                                                                                                ̃t ,
+                                                                                           −1
+                                                                   ≤g̃t⊺ (∇2 Ψ(yt ))            g
+                                                                                                ̃t ,
+                                                                     R2 G ̃2
+                                                                   ≤         ,
+                                                                        2ν
+where in the last step we used (27) and (̃        ̃ This shows (25).
+                                         gt ) ⊂ B(G).
+
+                             ̃ , ν ≥ 10GR, and (̃
+We now show (26). Since η ≤ 5GR
+                             1         ̃                 ̃ we have
+                                                gt ) ⊂ B(G),
+
+                                                         G̃     ν           ν
+                                ∀t ≥ 1,      η̃  ̃t⊺ ⪯
+                                              gt g          I⪯     I⪯                 I.
+                                                         5R    5R2    5(R2 − ∥yt ∥2 )
+Combining this with (27) implies that
+                                                                       1 2
+                                             ∀t ≥ 1,      η̃  ̃t⊺ ⪯
+                                                           gt g          ∇ Ψ(yt ).                                     (28)
+                                                                      10
+Note that (27) also implies that
+                                                            ν     1
+                                              ∀t ≥ 1,          I ⪯ ∇2 Ψ(yt ).                                          (29)
+                                                            R2    2
+Therefore, we have
+                                                                           t−1             −1
+                     ∀t ≥ 1,    gt ∥2∇−2 Φt (yt ) = g
+                               ∥̃                   ̃t⊺ (∇2 Ψ(yt ) + η ∑ g  ̃s⊺ )
+                                                                         ̃s g                   g
+                                                                                                ̃t ,
+                                                                          s=1
+                                                                      t                        −1
+                                                      1
+                                                 ̃t⊺ ( ∇2 Ψ(yt ) + η ∑ g
+                                                ≤g                          ̃s⊺ )
+                                                                         ̃s g                       g
+                                                                                                    ̃t ,   (by (28))
+                                                      2              s=1
+                                                                   t               −1
+                                                          ν
+                                                 ̃t⊺ (
+                                                ≤g          2
+                                                              I +η∑g     ̃s⊺ )
+                                                                      ̃s g              g
+                                                                                        ̃t ,     (by (29))
+                                                          R       s=1
+                                                     1 ⊺ −1
+                                                ≤     g
+                                                      ̃ Q g ̃t .                                                       (30)
+                                                     η t t
+
+
+                                                                21
+where Qt ∶= Rν2 η I + ∑ts=1 g  ̃s⊺ . Thus, by (30) and (Hazan et al., 2007, Lemma 11), we have
+                            ̃s g
+
+                                       1 T ⊺ −1
+       ∀t ∈ [T ],    gt ∥2∇−2 Φt (yt ) ≤
+                    ∥̃                   ∑g ̃ Q g ̃t ,
+                                       η t=1 t t
+                                       1     det QT
+                                      ≤ log         ,
+                                       η     det Q0
+                                                               T
+                                           1
+                                      =      log det (I + Q−1
+                                                           0 ∑g      ̃t⊺ ) ,
+                                                                  ̃t g
+                                           η                  t=1
+                                                             T
+                                           d     Tr (Q0 ∑t=1 g
+                                                        −1
+                                                             ̃t g
+                                                                ̃t )  ⊺
+                                      ≤      log                     ,         (Jensen’s inequality)
+                                           η            d
+                                                          2 ̃2
+                                        d log(1 + ηT R   G
+                                                           )
+                                      ≤               νd
+                                                             ,      (using the expression of Q0 and (̃
+                                                                                                     gt ) ⊂ B(G))
+                                                                                                              ̃
+                                                 η
+                                        d log(1 + Td )
+                                      ≤                ,
+                                              η
+
+where in the last step uses that ν ≥ GR
+                                     ̃ and η ≤ 1 . This completes the proof.
+                                              GR
+                                               ̃
+
+
+Lemma D.5. Let η, R, G,   ̃ ν > 0, and T ≥ 1 be given, and suppose that ν ≤ 10dGRT̃      and that ut ∈ B(R) and
+g      ̃ for all t ∈ [T ]. Then, for any t ∈ [T ], the FTRL iterate wt in (5) satisfies:
+̃t ∈ B(G)
+                                                 νR
+                                                          ≤ 20dG
+                                                               ̃ ⋅ (1 + 2η GR)T.
+                                                                           ̃
+                                              R2 − ∥wt ∥2
+
+Proof. Fix t ∈ [T ]. Since Ψ(x) is a self-concordant barrier, we have wt ∈ int B(R). Thus, by the first-order
+optimality condition involving wt , we have
+                                                    t−1                     t−1
+                                         2νwt
+                                       2        2
+                                                  +η∑g     ̃s⊺ (wt − us ) + ∑ g
+                                                        ̃s g                    ̃s = 0.
+                                      R − ∥wt ∥     s=1                     s=1
+
+Thus, using that ws , us ∈ B(R) and g      ̃ for all s ∈ [t − 1], we get
+                                    ̃s ∈ B(G)
+                                                2ν∥wt ∥
+                                                          ≤G
+                                                           ̃ ⋅ (1 + 2η GR)
+                                                                       ̃ ⋅ T.                                       (31)
+                                               R − ∥wt ∥2
+                                                2
+
+
+If ∥wt ∥ ≤ R/2, then we are done since in this case R2 −∥w
+                                                        1
+                                                          t∥
+                                                             2 ≤ 3R2 ≤ R2 , and so
+                                                                  4    2
+
+
+                                     νR              2ν (a)
+                                                 ≤       ≤ 20dG
+                                                              ̃ ⋅ T ≤ 20dG
+                                                                         ̃ ⋅ (1 + 2η GR)
+                                                                                     ̃ ⋅ T,
+                                R2 − ∥wt ∥2          R
+
+where (a) follows from the assumption that ν ≤ 10dGRT
+                                                  ̃ . Now, suppose that ∥wt ∥ > R/2. Plugging this into
+(31) directly implies that
+                                                   νR
+                                                            ≤G
+                                                             ̃ ⋅ (1 + 2η GR)T,
+                                                                         ̃
+                                                R2 − ∥wt ∥2
+which completes the proof.
+
+
+Lemma D.6. Let η, R, G,    ̃ B, ν > 0, and T ≥ 1 be given, and suppose that ν ≤ 10dGRT ̃      and that ut ∈
+B(R) and g  ̃t ∈ B(G) for all t ∈ [T ]. Further, for t ∈ [T ], let wt be the FTRL iterate in (5); that is,
+                    ̃
+wt ∈ arg minw∈B(R) Φt (w). Then, for any t ∈ [T ] and z ∈ int B(R) such that ∥z − wt ∥2∇2 Ψ(z) ≤ νB 2 , where
+Ψ(z) ∶= −ν ⋅ log(R2 − ∥z∥2 ), we have
+
+                                                         ∥∇Φt (z)∥ ≤ CT ,
+
+
+                                                                 22
+where CT ∶= dG
+             ̃ ⋅ (41 + 40B) ⋅ (1 + 2η GR)T
+                                      ̃    . Furthermore,
+
+                                              ∇2 Φt (z) ⪯ (η G
+                                                             ̃2 T + CT /R + 2ν −1 C 2 ) ⋅ I.
+                                                                                   T
+
+
+Proof. Fix t ∈ [T ] and z ∈ int B(R) such that ∥z − wt ∥2∇2 Ψ(z) ≤ νB 2 . By Lemma D.2, we have
+
+                                                                      2                          2
+                                                    ∥z∥2 − ∥wt ∥2       R2 − ∥wt ∥2
+                                          B2 ≥ (                  ) = (             − 1) .
+                                                     R2 − ∥z∥2          R2 − ∥z∥2
+
+This implies that
+
+                                     2ν            2ν ⋅ (1 + B)
+                                               ≤                ≤ 40dR−1 G(1
+                                                                         ̃ + B)(1 + 2η GR)
+                                                                                       ̃ ⋅ T,                        (32)
+                                  R2 − ∥z∥2        R2 − ∥wt ∥2
+
+where the last inequality follows by Lemma D.5. Therefore, by the expression of ∇Φt (z) and the triangle
+inequality, we have
+                                                                     t−1                      t−1
+                                                      2νz                      ⊺
+                                  ∥∇Φt (z)∥ ≤ ∥              ∥ + ∥η  ∑   g
+                                                                         ̃ s g
+                                                                             ̃ s (z − u s ) + ∑g  ̃s ∥ ,
+                                                   R2 − ∥z∥2         s=1                      s=1
+                                                     2νR
+                                                ≤ 2         +G ̃ ⋅ (1 + 2η GR)T,
+                                                                             ̃
+                                                  R − ∥z∥2
+                                                ≤ CT , (CT as in the lemma statement)
+
+where in the last inequality we used (32). On the other hand, we have
+                                                                                           t−1
+                                                            2νI            4νzz ⊺
+                                      ∇2 Φt (z) =                 +                   +η∑g  ̃s⊺ ,
+                                                                                         ̃s g
+                                                      R2 − ∥z∥2       (R2 − ∥z∥2 )2        s=1
+                                                         ̃2 T + CT /R + 2ν −1 C 2 ) ⋅ I.
+                                                    ⪯ (η G                     T
+
+
+where the last inequality follows from (32) and the facts that z ∈ B(R) and g      ̃ for all s ∈ [t − 1].
+                                                                            ̃s ∈ B(G),
+
+
+Lemma D.7 (Master lemma). Let η, ν, c ∈ (0, 1), T ∈ N, and G ̃ > 0 be given. Further, let (ut ) be the iterates
+of Algorithm 2 with parameters (T, η, ν, c) and suppose that
+   • g      ̃ for all t ∈ [T ];
+     ̃t ∈ B(G),
+   • 10GR         ̃ ; and
+       ̃ ≤ ν ≤ 10dGRT
+
+   • η ≤ 5GR
+          ̃ .
+          1
+
+
+Then, we have (ut ) ⊂ int B(R) and
+                              √                                 √                                         ̃2 R 2
+                               ν                                  ν                                      2G
+             ∀t ∈ [T ],          (∥ut − wt ∥∇2 Φt (ut ) − 2ξ) ≤     (λ(ut , Φt ) − ξ) ≤ λ(ut−1 , Φt )2 ≤         ,
+                              4                                  2                                         ν
+             √
+where ξ ∶=       GR
+                       and λ(⋅, ⋅) is the Newton decrement (see Appendix C). Further, we have
+                  ̃
+                 30T
+
+                                          T                       √
+                                                                 3 ν 6d log(1 + T /d)
+                                       ∑ ∥ut − wt ∥∇2 Φt (ut ) ≤     +      √         .
+                                       t=1                        32       η ν
+and
+                        T                               T
+                                                                                      ν 132 d log(1 + T /d)
+                                      2                         2
+                        ∑ ∥ut − ut−1 ∥∇2 Ψ(ut ) + ∑ ∥ut − ut−1 ∥∇2 Ψ(ut−1 ) ≤           +                   .        (33)
+                        t=1                            t=1                            2          η
+
+
+
+
+                                                                      23
+Proof of Lemma D.7. Define
+                                                                     m+1                                k−1
+                                                                                  2ν           2ν
+         ̃t+1 ∶= ut − ∇−2 Φt+1 (ut )∇Φt+1 (ut ),
+         u                                             and ∇
+                                                           ̃ t ∶= ∑ (
+                                                                                2        2
+                                                                                           − 2         )       Σkt ∇t ,
+                                                                         k=1   R − ∥zt ∥    R − ∥ut ∥2
+
+and note that ut+1 = ut − ∇
+                          ̃ t from Line 7 of Algorithm 2. We will show by induction that for all s ≥ 1,
+
+                                                      us ∈ int B(R),
+and
+                 √                                  √                                         ̃2 R 2
+                   ν                                  ν                                      2G
+                     (∥us − ws ∥∇2 Φs (us ) − 2ξ) ≤     (λ(us , Φs ) − ξ) ≤ λ(us−1 , Φs )2 ≤         ,                    (34)
+                  4                                  2                                         ν
+          √
+where ξ = 30TGR
+                 and u0 = 0 by convention. The base case follows trivially since ∇Φ1 (u0 ) = ∇Φ1 (u1 ) = 0 and
+             ̃
+
+u1 = w1 . Suppose that (34) holds for s = t. We will show that it holds for s = t + 1. By the expression of Φt+1
+in (3), we have ∇Φt+1 (ut ) = g
+                              ̃t + ∇Φt (ut ), and so by the fact that (a + b)2 ≤ 2a2 + 2b2 , we get
+
+                λ(ut , Φt+1 )2 = ∥∇Φt+1 (ut )∥2∇−2 Φt+1 (ut ) ,
+                               ≤ 2∥∇Φt (ut )∥2∇−2 Φt (ut ) + 2∥̃
+                                                               gt ∥2∇−2 Φt (ut ) , (∇2 Φt+1 (⋅) ⪰ ∇2 Φt (⋅))
+                               = 2λ(ut , Φt )2 + 2∥̃
+                                                   gt ∥2∇−2 Φt (ut ) ,                                                    (35)
+                                        G̃4 R 4 ̃2 R 2
+                                                G             ̃2 R 2
+                                                              G
+                               ≤ 2 ⋅ (16 3 + 8ξ 3/2 + ξ 2 ) +        ,                                                    (36)
+                                            ν   ν               ν
+                                 2G̃2 R 2
+                               ≤          ,                                                                               (37)
+                                     ν
+where in (36) we used the induction hypothesis in (34) for s = t and the bound on ∥̃  gt ∥2∇−2 Φt (ut ) from
+                                                          √
+                                                                                           ̃2 2
+Lemma D.4; and (37) uses that 10GR                and ξ = 30T
+                                                            GR
+                                                                (which implies that ξ 2 ≤ G3νR ).
+                                ̃ ≤ ν ≤ 10dGRT
+                                            ̃                ̃
+
+
+By taking the square-root in (37), we get that
+                                                                   √
+                                                                     2GR
+                                                                      ̃
+                                                 λ(ut , Φt+1 ) ≤    √ .                                                   (38)
+                                                                      ν
+
+Using this with Lemma
+                √     C.1 and the facts that u
+                                             ̃t+1 is the standard Newton step and Φt+1 is self-concordant
+with constant 1/ ν, we get that
+
+                                                        ν −1/2 ⋅ λ(ut , Φt+1 )2
+                                 λ(̃
+                                   ut+1 , Φt+1 ) ≤                                ,
+                                                      (1 − ν −1/2 λ(ut , Φt+1 ))2
+                                                    ν −1/2 ⋅ λ(ut , Φt+1 )2
+                                                  ≤        √                ,      (by (37))
+                                                     (1 − 2ν −1 GR) ̃ 2
+                                                     2
+                                                  ≤ √ ⋅ λ(ut , Φt+1 )2 ,                                                  (39)
+                                                       ν
+
+where the last inequality follows by the fact that ν ≥ 10GR.
+                                                         ̃ Using (39) together with (39) and (38) implies
+                                                                           √
+                                                         ̃2 R 2
+                                                        4G         2 √̃      ν
+                                    λ(̃
+                                      ut+1 , Φt+1 ) ≤           ≤  √  GR ≤     ,                                          (40)
+                                                         ν 3/2    3 6       9
+
+where we used the fact that ν ≥ 10GR ̃ again. Using this with Lemma C.1 and the facts that wt+1 is the
+                                                              √
+minimizer of Φt+1 and Φt+1 is self-concordant with constant 1/ ν (see Lemma D.3), we have
+
+                                     ut+1 − wt+1 ∥∇2 Φt+1 (̃
+                                    ∥̃                     ut+1 ) ≤ 2λ(̃
+                                                                       ut+1 , Φt+1 ).
+
+
+
+                                                              24
+Combining this with (40) implies that
+                                                                                        4ν
+                                                   ut+1 − wt+1 ∥2∇2 Φt+1 (̃
+                                                  ∥̃                      ut+1 ) ≤
+                                                                                        81
+Thus, Lemma D.6 instantiated with B = 2/9 implies that
+
+                                       ∇2 Φt+1 (̃           ̃2 T + CT /R + 2ν −1 C 2 ) ⋅ I,
+                                                ut+1 ) ⪯ (η G                     T                                                   (41)
+where
+                                                     CT ∶= 51dG
+                                                              ̃ ⋅ (1 + 2η GR)T.
+                                                                          ̃                                                           (42)
+
+On the other hand, since ∇t = ∇Φt+1 (zt ) we have,
+                             X
+                             X                                    m+1                                              k−1         X
+                                                                                                                               X
+                             X
+                             X
+                             X  −2                                              2ν                      2ν               k
+                                                                                                                               X
+                                                                                                                               X
+                                                                                                                               X
+             ut+1 − ut+1 ∥ = X
+            ∥̃               X
+                             X∇    Φ t+1 (u t )∇Φ    t+1 (u t ) −  ∑    (     2           2
+                                                                                              −      2          2
+                                                                                                                  )    Σ t ∇ t X
+                                                                                                                               X
+                                                                                                                               X ,
+                             X
+                             X
+                             X                                     k=1      R   − ∥z  t ∥         R    − ∥u t ∥                X
+                                                                                                                               X
+                                                                                                                               X
+                             X                                                                                                 X
+                             X
+                             X                       m+1                                               k−1                     X
+                                                                                                                               X
+                             X
+                             X
+                             X⎛ −2                                2ν                   2ν                    k⎞
+                                                                                                                               X
+                                                                                                                               X
+                                                                                                                               X
+                           =XX
+                             X  ∇   Φ  t+1 (u  t ) −  ∑   (     2          2
+                                                                              −    2               2
+                                                                                                     )     Σ t    ∇Φ t+1 (u t X
+                                                                                                                             ) X
+                                                                                                                               X  ,
+                             X
+                             X
+                             X⎝                       k=1    R    − ∥z  t ∥     R    −   ∥u    t ∥             ⎠               X
+                                                                                                                               X
+                                                                                                                               X
+                             X                                                                                                 X
+                             X
+                             X                     m+1                                               k−1    X
+                                                                                                            X
+                             X
+                             X                                   2ν                  2ν                     X
+                                                                                                            X
+                           ≤XX
+                             X
+                             X∇−2 Φt+1 (ut ) − ∑ ( 2                     2
+                                                                            − 2                 2
+                                                                                                  ) Σkt X   X
+                                                                                                            X
+                                                                                                            X  ⋅ ∥∇Φt+1 (ut )∥.       (43)
+                             X
+                             X
+                             X                      k=1   R     − ∥z t ∥       R   −  ∥u    t ∥             X
+                                                                                                            X
+                                                                                                            X
+                             X                                                                              X
+                                                                                                                                 √
+                                                                                                                    ̃2   2
+Now, by the induction hypothesis (i.e., (34)), we have ∥ut − wt ∥∇2 Φt (ut ) ≤ 8ν −1/2 ξ + 8G   R
+                                                                                            ν 3/2
+                                                                                                  ≤ 2 9 ν , where the
+                                           √
+last inequality uses that ν ≥ 10GR
+                                ̃ and ξ = GR      . Thus, by Lemma D.6 instantiated with B = 2/9, we have
+                                               ̃
+                                              30T
+
+                                                           ∥∇Φt (ut )∥ ≤ CT ,
+
+where CT is as in (42). Therefore, by the triangle inequality and g      ̃ (by assumption), we have
+                                                                  ̃t ∈ B(G)
+
+                                           ∥∇Φt+1 (ut )∥ = ∥∇Φt (ut ) + g
+                                                                        ̃t ∥ ≤ CT + G.
+                                                                                    ̃                                                 (44)
+
+On the other hand, by the fact that ut ∈ int B(R) (by the induction hypothesis), Lemma D.1 implies that
+                       X
+                       X                                                  k−1    X
+                                                                                 X
+                       X
+                       X
+                       X  −2
+                                           m+1
+                                                   2ν           2ν               X
+                                                                                kX
+                                                                                 X     R 2 cm
+                       X
+                       X
+                       X∇    Φ t+1 (ut ) − ∑   ( 2       2
+                                                           −  2       2
+                                                                        )     Σ  X
+                                                                                tX
+                                                                                 X ≤              .
+                                           k=1 R − ∥zt ∥     R − ∥ut ∥               2ν ⋅ (1 − c)
+                       X
+                       X
+                       X                                                         X
+                                                                                 X
+                                                                                 X
+                       X                                                         X
+Plugging this and (44) into (43) implies that
+
+                                                                      R2 cm ⋅ (CT + G)̃
+                                                 ut+1 − ut+1 ∥ ≤
+                                                ∥̃                                      .                                             (45)
+                                                                         2ν ⋅ (1 − c)
+
+Combining (45) with (41) implies that
+                                                                                      √
+                                                             R2 cm ⋅ (CT + G)
+                                                                           ̃ ⋅             ̃2 T + CT /R + 2ν −1 C 2
+                                                                                          ηG                     T
+                   ut+1 − ut+1 ∥∇2 Φt+1 (̃
+                  ∥̃                              ˜
+                                         ut+1 ) ≤ ξ ∶=                                                                       .        (46)
+                                                                                     2ν ⋅ (1 − c)
+
+We now show that this implies that ut+1 ∈ B(R). First, by (38) and the fact that ν ≥ 10GR,
+                                                                                        ̃ we have
+                                                                   √       √      √
+                                                                     2GR
+                                                                      ̃      GR
+                                                                             ̃      ν
+                       ∥̃ut+1 − ut ∥∇2 Φt+1 (ut ) = λ(ut , Φt+1 ) ≤ √    ≤      <     .            (47)
+                                                                      ν       5    7
+                                                                                         √
+Combining this with Lemma C.3 and the facts that Φt+1 is self-concordant with constant 1/ ν (Lemma D.3)
+and ut ∈ int B(R) (induction hypothesis), we get that
+
+                                                            u
+                                                            ̃t+1 ∈ int B(R).
+
+
+                                                                     25
+Now, by our choice of m in Algorithm 2 (i.e., m = c ⋅ logc (dT ) with c a sufficiently large constant) and the
+facts that ν ≥ 10GR
+                 ̃ and η ≤ 1 , we have
+                           5GR
+                            ̃
+                                        √
+                                                                   √
+                                  ˜   1     GR
+                                            ̃    ξ                   GR
+                                                                                                          (48)
+                                                                      ̃
+                                 ξ<            = , (since ξ = 30T        )
+                                      5 30T 5
+                                      √
+                                        ν
+                                    ≤     ,                                                               (49)
+                                      86
+and so (46) implies that
+                                                                            √
+                                           ut+1 − ut+1 ∥∇2 Φt+1 (̃
+                                          ∥̃                     ut+1 ) <       ν/4.                                 (50)
+We now use this to bound the Newton√ decrement λ(ut+1 , Φt+1 ). By Lemma C.3, (50), and the fact that Φt+1
+is self-concordant with constant 1/ ν (Lemma D.3), we have
+                     ut+1 − ut+1 ∥∇2 Φt+1 (ut+1 ) ≤ 2∥̃
+                    ∥̃                                ut+1 − ut+1 ∥∇2 Φt+1 (̃         ˜ (by (46))
+                                                                            ut+1 ) ≤ 2ξ,                             (51)
+                                                                                     √
+                                                                                   < ν/2. (by (49))                  (52)
+Using this and the triangle inequality, we get
+     λ(ut+1 , Φt+1 )
+     = ∥∇Φt (ut+1 )∥∇−2 Φt+1 (ut+1 )
+             ut+1 )∥∇−2 Φt+1 (ut+1 ) + ∥∇Φt+1 (ut+1 ) − ∇Φt+1 (̃
+     ≤ ∥∇Φt (̃                                                 ut+1 )∥∇−2 Φt+1 (ut+1 ) ,     (triangle inequality)
+     ≤ ∥∇Φt (̃                            ut+1 − ut+1 ∥∇2 Φt+1 (ut+1 ) , (by (52) and Lemma C.4)
+              ut+1 )∥∇−2 Φt+1 (ut+1 ) + 2∥̃
+                √ −1
+             ˜ ν) ∥∇Φt (̃
+     ≤ (1 − 2ξ/                 ut+1 )∥∇−2 Φt+1 (̃          ut+1 − ut+1 ∥∇2 Φt+1 (ut+1 ) , (by (51) and Lemma C.2)
+                                                 ut+1 ) + 2∥̃
+                √ −1
+             ˜ ν) ∥∇Φt (̃
+     ≤ (1 − 2ξ/                 ut+1 )∥∇−2 Φt+1 (̃         ˜ (by (51))
+                                                 ut+1 ) + 4ξ,
+                                               √
+         ut+1 , Φt+1 ) + 4ξ˜ ⋅ λ(̃
+     ≤ λ(̃                       ut+1 , Φt+1 )/ ν + 4ξ,  ˜ ((49) and 1 ≤ 1 + 2x, ∀x ≤ 1 )
+                                                                       1−x                   2
+     ≤ λ(̃                ˜
+         ut+1 , Φt+1 ) + 5ξ,                                                                                         (53)
+where the last inequality follows by (40). By combining (53) with (39) and (37), we get that
+                                                                 2
+                                        λ(ut+1 , Φt+1 ) ≤ 5ξ˜ + √ λ(ut , Φt+1 )2 ,
+                                                                  ν
+                                                                4G2 R2
+                                                                 ̃
+                                                        ≤ 5ξ˜ + 3/2 ,
+                                                                 ν
+and so by (48) and the fact that ν ≥ 10GR
+                                       ̃ implies that
+                                                                                                 √
+                                               2                                                  ν
+                        λ(ut+1 , Φt+1 ) ≤ ξ + √ λ(ut , Φt+1 )2      and λ(ut+1 , Φt+1 ) ≤           .                (54)
+                                                ν                                                4
+                                                                                                         √
+Now, by Lemma C.1 and the facts that wt+1 is the minimizer of Φt+1 and λ(ut+1 , Φt+1 ) ≤ 2ν (by (54)), we
+have ∥ut+1 − wt+1 ∥∇2 Φt+1 (ut ) ≤ 2λ(ut+1 , Φt+1 ). Combining this with the inequality on the left-hand side of
+(54), implies (34) for s = t + 1, which concludes the induction.
+We now use (34) together with (35) to bound the sums
+               T                               T                                       T
+         S ∶= ∑ ∥ut − wt ∥∇2 Φt (ut ) , S ′ ∶= ∑ ∥ut − ut−1 ∥2∇2 Ψ(ut ) , and S ′′ ∶= ∑ ∥ut − ut−1 ∥2∇2 Ψ(ut−1 ) .
+              t=1                             t=1                                      t=1
+
+
+Bounding S. We first bound the sum ∑Tt=1 λ(ut , Φt )i , for i = 1, 2. By (35) and the fact that λ(ut+1 , Φt+1 ) ≤
+√2 λ(ut , Φt+1 )2 + ξ (see (54)), we have
+  ν
+
+                                                  4                4
+                               λ(ut+1 , Φt+1 ) ≤ √ λ(ut , Φt )2 + √ ∥̃gt ∥2∇−2 Φt (ut ) + ξ.                         (55)
+                                                   ν                ν
+
+
+                                                            26
+Summing (55), for t = 1, . . . , T , rearranging, and using that λ(uT +1 , ΦT +1 ) ≥ 0, we get
+                  T
+                                   4           2     4           2   4 T
+                 ∑ (λ(ut , Φt ) − √ λ(ut , Φt ) ) ≤ √ λ(u1 , Φ1 ) + √ ∑ ∥̃  gt ∥2∇−2 Φt (ut ) + T ξ.
+                 t=2                ν                 ν               ν t=1
+
+Using (34) (the induction hypothesis), we have for all t ∈ [T ]:
+
+                                        4                 ̃2 R 2
+                                                        16G       4ξ   1
+                                   0 ≤ √ λ(ut , Φt ) ≤       2
+                                                                 +√ ≤ ,                                                (56)
+                                          ν                ν       ν 4
+                                                                     √
+where the last inequality follows by the fact that ν ≥ 10GR
+                                                          ̃ and ξ = GR     . Therefore, we have
+                                                                        ̃
+                                                                       30T
+
+
+                                 3 T                              4 T
+                                   ∑ λ(ut , Φt ) ≤ λ(u1 , Φ1 ) + √ ∑ ∥̃    gt ∥2∇−2 Φt (ut ) ,
+                                 4 t=1                             ν t=1
+                                                   √
+                                                     ν     4 T
+                                                 ≤     + √ ∑ ∥̃    gt ∥2∇−2 Φt (ut ) ,
+                                                    16      ν t=1
+                                                   √
+                                                     ν 4d log(1 + T /d)
+                                                 ≤     +         √           ,                                         (57)
+                                                    16          η ν
+
+where the last inequality follows by Lemma D.4 and the range assumption on η. Now, by  √ Lemma C.1, (56),
+and the facts that wt is the minimizer of Φt and Φt is self-concordant with constant 1/ ν, we have:
+
+                                            ∥ut − wt ∥∇2 Φt (ut ) ≤ 2λ(ut , Φt ).
+
+Combining this with (57) implies that
+                                     T                                √
+                                                                     3 ν 6d log(1 + T /d)
+                                S = ∑ ∥ut − wt ∥∇2 Φt (ut ) ≤            +      √         .
+                                    t=1                               32       η ν
+
+Bounding
+√          S ′ and S ′′ . We now bound S ′ and S ′′ . By Lemma C.2 and the facts that ∥ut+1 − u
+                                                                                              ̃t+1 ∥∇2 Ψ(ut+1√
+                                                                                                             ) ≤
+  ν/2 (which follows from (52) since ∇2 Ψ(⋅) ⪯ ∇2 Φt+1 (⋅)) and Ψ is self-concordant with constant 1/ ν
+(Lemma D.3), we have
+
+       ∥ut+1 − ut ∥∇2 Ψ(ut+1 ) ≤ 2∥ut+1 − ut ∥∇2 Ψ(̃ut+1 ) ,
+                               ≤ 2∥ut+1 − u           ut+1 ) + 2∥̃
+                                           ̃t+1 ∥∇2 Ψ(̃          ut+1 − ut ∥∇2 Ψ(̃
+                                                                                 ut+1 ) , (triangle inequality)
+                               ≤ 2ξ˜ + 2∥̃
+                                         ut+1 − ut ∥∇2 Φ (̃
+                                                          t+1u ) (by (52) and ∇ Φt+1 (̃
+                                                                 t+1
+                                                                                    2
+                                                                                           ut+1 ) ⪰ ∇2 Ψ(̃
+                                                                                                         ut+1 )),
+                                                                              √
+and so using Lemma
+                √ C.3 and the facts that ∥̃
+                                          ut+1 − ut ∥∇2 Φt+1 (ut ) ≤              ν/2 (by (47)) and Φt+1 is self-concordant
+with constant 1/ ν, we have
+
+       ∥ut+1 − ut ∥∇2 Ψ(ut+1 ) ≤ 2ξ˜ + 4∥̃
+                                         ut+1 − ut ∥∇2 Φt+1 (ut ) ,
+                                   ˜
+                               ≤ 2ξ + 4λ(ut , Φt+1 ), (by (47))                                                        (58)
+                                   √
+                                 3 ν
+                               ≤       ,
+                                   5
+                                                                                                     √
+where the last inequality follows by (49) and (47). Thus, since Ψ is self-concordant with constant 1/ ν,
+Lemma C.3 implies that
+                                                           5
+                                    ∥ut+1 − ut ∥∇2 Ψ(ut ) ≤ ∥ut+1 − ut ∥∇2 Ψ(ut+1 ) .                                  (59)
+                                                           2
+
+
+
+
+                                                                27
+From this, it suffices to bound the sum S ′ ∶= ∑Tt=1 ∥ut − ut−1 ∥2∇2 Ψ(ut ) . Using (58) and the fact that (a + b)2 ≤
+5a2 + (5/4)b2 , for all a, b ∈ R, we have
+      T                                         T
+     ∑ ∥ut+1 − ut ∥∇2 Ψ(ut+1 ) ≤ 20T ξ˜ + 20 ∑ λ(ut , Φt+1 ) ,
+                   2                   2                    2
+     t=1                                       t=1
+                                                T                        T
+                                ≤ 20T ξ˜2 + 40 ∑ λ(ut , Φt )2 + 40 ∑ ∥̃
+                                                                      gt ∥2∇−2 Φt (ut ) ,       (by (35))
+                                               t=1                       t=1
+                                                T
+                                                                 40d log(1 + T /d)
+                                ≤ 20T ξ˜2 + 40 ∑ λ(ut , Φt )2 +                    , (by Lemma D.4)
+                                               t=1                       η
+                                              √
+                                            5 ν T                  40d log(1 + T /d)                  √
+                                       ˜2
+                                ≤ 20T ξ +          ∑ λ(ut , Φt ) +                   , (λ(ut , Φt ) ≤ 16ν by (56)),
+                                              2 t=1                        η
+                                             ν     16d log(1 + T /d)    40d log(1 + T /d)
+                                ≤ 20T ξ˜2 +     +                    +                    , (by (57))
+                                            12            3η                    η
+                                  ν 46d log(1 + T /d)
+                                ≤ +                       ,
+                                  8             η
+
+where the last inequality follows by the bound on ξ˜ in (49). Combining this with (59) implies (33).
+
+
+D.4        Regret of FTRL (Proof of Lemma 3.2)
+Proof. Fix w ∈ int B(R). For any t ≥ 1, define ϕt (x) ∶= x⊺ g      gt , x − ut ⟩2 /2 and ϕ0 (x) ∶= Ψ(x), and note
+                                                            ̃t + η⟨̃
+that Φt (x) = ∑s=0 ϕs (x) and ut ∈ arg minx∈B(R) ∑s=0 ϕs (x). By (Cesa-Bianchi and Lugosi, 2006, Lemma 3.1),
+               t−1                                t−1
+
+we have
+                                                  T                T
+                                                 ∑ ϕt (ut+1 ) ≤ ∑ ϕt (w),
+                                                 t=0               t=0
+
+which implies that
+                               T
+                                                                               η T
+                               ∑ ⟨ut+1 − w, g
+                                            ̃t ⟩ ≤ ϕ0 (w) − ϕ0 (u1 ) +                      ̃t ⟩2 ,
+                                                                                 ∑ ⟨ut − w, g
+                               t=1                                             2 t=1
+                                                                             η T
+                                                    ≤ Ψ(w) − Ψ(0) +                       ̃t ⟩2 ,
+                                                                               ∑ ⟨ut − w, g                             (60)
+                                                                             2 t=1
+
+where the last inequality follows by the fact that u1 = 0 ∈ arg minx∈B(R) − log(R2 − ∥x∥2 ). Now, it suffices to
+bound the sum ∑Tt=1 ⟨ut − ut+1 , g
+                                 ̃t ⟩. By Taylor’s theorem, the exists yt in the segment [ut , ut+1 ] such that
+                                                                            1
+                   Φt+1 (ut ) − Φt+1 (ut+1 ) ≥ ∇Φt+1 (ut+1 )⊺ (ut − ut+1 ) + ∥ut − ut+1 ∥2∇2 Φt+1 (yt ) ,
+                                                                            2
+                                               1            2
+                                             ≥ ∥ut − ut+1 ∥∇2 Φt+1 (yt ) ,                                              (61)
+                                               2
+where the last inequality uses the fact that ut+1 ∈ arg minx∈B(R) Φt+1 (x) is in the interior of B(R) by
+self-concordance of Φt+1 . On the other hand, using the convexity of Φt+1 and the fact that ∇Φt+1 (ut ) =
+∇ϕt+1 (ut ) + ∇Φt (ut ) = ∇ϕt+1 (ut ) (by optimality of ut ), we get that
+
+              Φt+1 (ut ) − Φt+1 (ut+1 ) ≤ ⟨ut − ut+1 , ∇ϕt+1 (ut )⟩,
+                                        = ⟨ut − ut+1 , g
+                                                       ̃t ⟩(1 + η⟨̃
+                                                                  gt , ut − ut+1 ⟩),
+                                        ≤ ∥ut − ut+1 ∥∇2 Φt+1 (yt ) ⋅ ∥̃
+                                                                       gt ∥∇−2 Φt+1 (yt ) ⋅ (1 + η⟨̃
+                                                                                                   gt , ut − ut+1 ⟩),
+                                          3
+                                        ≤ ∥ut − ut+1 ∥∇2 Φt+1 (yt ) ⋅ ∥̃ gt ∥∇−2 Φt+1 (yt ) ,
+                                          2
+
+
+                                                              28
+where the last inequality follows by the fact that η ≤ 5GR
+                                                        ̃ , (̃
+                                                        1             ̃ and (ut ) ⊂ B(R). Combining this
+                                                             gt ) ⊂ B(G),
+and (61), we get
+                                         ∥ut − ut+1 ∥∇2 Φt+1 (yt ) ≤ 3∥̃
+                                                                       gt ∥∇−2 Φt+1 (yt ) .
+Using this and Hölder’s inequality leads to
+                      gt , ut − ut+1 ⟩ ≤ ∥̃
+                     ⟨̃                                                                    gt ∥2∇−2 Φt+1 (yt ) .
+                                          gt ∥∇−2 Φt+1 (yt ) ∥ut − ut+1 ∥∇2 Φt+1 (yt ) ≤ 3∥̃
+Thus, by summing this inequality for t = 1, . . . , T , we get that
+                              T                          T
+                                                                 2                3d log(d + T /d)
+                                 gt , ut − ut+1 ⟩ ≤ 3 ∑ ∥̃
+                              ∑ ⟨̃                       gt ∥∇−2 Φt+1 (yt ) ≤                      ,
+                              t=1                       t=1                              η
+where the last inequality follows by Lemma D.4 and ∇2 Φt+1 ⪰ ∇2 Φt , for all t ≥ 1. Combining this with (60),
+we get the desired bound.
+
+
+D.5     Regret of Barrier-ONS (Proof of Theorem 3.1)
+Proof. First, the fact that (ut ) ⊂ int B(R) follows from Lemma D.7.
+We now show (6). Fix w ∈ int B(R) and let (wt ) be the FTRL iterates in (5). We have
+        T
+                         η
+       ∑ (⟨ut − w, g               ̃t ⟩2 )
+                   ̃t ⟩ − ⟨ut − w, g
+       t=1               2
+           T                                                         T
+                            η
+        = ∑ (⟨wt − w, g
+                      ̃t ⟩ − (⟨wt − w, g                 ̃t ⟩)2 ) + ∑ ⟨ut − wt , g
+                                       ̃t ⟩ + ⟨ut − wt , g                       ̃t ⟩,
+          t=1               2                                       t=1
+           T                                     T
+                            η                                                             η T
+        = ∑ (⟨wt − w, g               ̃t ⟩2 ) + ∑ (1 − η⟨wt − w, g
+                      ̃t ⟩ − ⟨wt − w, g                          ̃t ⟩) ⋅ ⟨ut − wt , g                   ̃t ⟩2 ,
+                                                                                    ̃t ⟩ − ∑ ⟨ut − wt , g
+          t=1               2                   t=1                                       2 t=1
+           T                                     T
+                            η
+        ≤ ∑ (⟨wt − w, g               ̃t ⟩2 ) + ∑ (1 − η⟨wt − w, g
+                      ̃t ⟩ − ⟨wt − w, g                          ̃t ⟩) ⋅ ⟨ut − wt , g
+                                                                                    ̃t ⟩,
+          t=1               2                   t=1
+           T
+                            η                  7 T
+        ≤ ∑ (⟨wt − w, g               ̃t ⟩2 ) + ∑ ∥ut − wt ∥∇2 Φt (ut ) ∥̃
+                      ̃t ⟩ − ⟨wt − w, g                                  gt ∥∇−2 Φt (ut ) ,                        (62)
+          t=1               2                  5 t=1
+
+where the last step follows by Hölder’s inequality, and the facts that (̃        ̃ (wt ) ⊂ B(R), and η ≤ 1
+                                                                        gt ) ⊂ B(G),                    5GR
+                                                                                                         ̃
+(which implies that η∣⟨wt − w, g
+                               ̃t ⟩∣ ≤ 2/5, for all t ∈ [T ]).
+
+Now, by Lemma D.4, we have ∥̃                 GR
+                                                   for all t ∈ [T ], and by Lemma D.7, we have
+                                                        ̃
+                            gt ∥∇2 Φt (ut ) ≤ √ 2ν
+
+                                     T                         √
+                                                              3 ν 6d log(1 + T /d)
+                                    ∑ ∥ut − wt ∥∇2 Φt (ut ) ≤     +      √         .
+                                    t=1                        32       η ν
+Therefore, we have
+                         T
+                                                                       3GR
+                                                                         ̃   6GRd
+                                                                              ̃ log(1 + T /d)
+                         ∑ ∥ut − wt ∥∇2 Φt (ut ) ∥̃
+                                                  gt ∥∇−2 Φt (ut ) ≤     √ +        √           ,
+                        t=1                                            32 2           2ην
+                                                                       3GR
+                                                                         ̃   3d log(1 + T /d)
+                                                                      ≤ √ +                   ,                    (63)
+                                                                       32 2         7η
+where the last inequality follows by ν ≥ 10GR.
+                                           ̃ On the other hand, by Lemma 3.2, we have
+                     T
+                                      η                                     3d log(1 + T /d)
+                                ̃t ⟩ − ⟨wt − w, g
+                    ∑ (⟨wt − w, g               ̃t ⟩2 ) ≤ Ψ(w) − Ψ(0) +                      ,
+                    t=1               2                                             η
+                                                                         2     3d log(1 + T /d)
+                                                        = −ν log(1 − ∥w∥
+                                                                      R2
+                                                                           )+                   .                  (64)
+                                                                                      η
+
+
+                                                                 29
+Plugging (63) and (64) into (62), we get
+                T
+                                 η                   21GR
+                                                        ̃                 2    18d log(1 + T /d)
+                           ̃t ⟩ − ⟨ut − w, g
+               ∑ (⟨ut − w, g               ̃t ⟩2 ) ≤    √ − ν log(1 − ∥w∥
+                                                                       R2
+                                                                            )+                   .
+               t=1               2                   160 2                            5η
+
+Combining this with 16021√2 ≤ 1 implies (6).
+
+Computational cost. Now, we analyze the computational complexity of Algorithm 4, which is equivalent
+to Algorithm 2 in that both algorithms produce the same outputs. The most computationally expensive
+step in Algorithm 4 occurs in Line 16, where a full matrix inverse is required√ when zt ≠ zt−1 . However, by
+Lemma 3.1, the matrix inverse only needs to be computed at most O(c        −1    d
+                                                                                νη
+                                                                                   T log(1 + T /d)) times over T
+rounds. In the rounds where zt = zt−1 , Algorithm 4 performs at most O(m) matrix-vector multiplications
+(see Line 7-Line 11), which results in a cost of O(md2 ). Therefore, the total computational complexity of
+Algorithm 4 follows from the fact that m = c ⋅ logc (dT ), where c is a universal constant.
+
+
+
+E     OCO Analysis: Proof of Theorem 4.1
+This appendix provides the proof of Theorem 4.1. We begin in Appendix E.1 by proving the main reduction
+result in Lemma 4.1, which bounds the instantaneous regret of Algorithm 3 by that of its subroutine A.
+In Appendix E.2, we prove the regret bound for Algorithm 3 when A is set as the Barrier-ONS, prior to
+parameter tuning (Proposition 4.1). Finally, in Appendix E.3, we present the complete proof of Theorem 4.1.
+
+E.1     OCO Reduction with Gauge Projections (Proof of Lemma 4.1)
+Proof. Fix t ∈ [T ], and let St , st , ut , g
+                                            ̃t , and wt be as in Algorithm 3. We first show that wt ∈ K. By
+definition of wt , we have wt = 1+S
+                                 ut
+                                    t
+                                      . Therefore,  by the homogeneity of the Gauge function (see Lemma G.1),
+we have
+                            γK (ut )
+                γK (wt ) =           ,
+                             1 + St
+                            1 + SK (ut )
+                          ≤              ,     (since SK (ut ) = max(0, γK (ut ) − 1) by Lemma 2.1)
+                               1 + St
+                          ≤ 1,                                                                                        (65)
+
+where the last inequality follows from SK (ut ) ≤ St by Lemma 2.2. Eq. (65) implies that wt ∈ K by definition
+of the Gauge function (see Definition 2.2).
+We now prove the inequality in (12). For this, define the surrogate loss function ℓt :
+
+                         ∀w ∈ Rd ,      ℓt (w) ∶= ⟨gt , w⟩ − I{⟨gt , ut ⟩ < 0} ⋅ ⟨gt , wt ⟩ ⋅ SK (w).
+
+Since the pair (St , st ) is the output of GaugeDist(K, ut , ε, r) with ε = 1/T , we have by Lemma 2.2:
+                                                                                           1
+                                  ∀u ∈ Rd ,      SK (u) ≥ SK (ut ) + (u − ut )⊺ st −         .                        (66)
+                                                                                           T
+Now, since wt = ut /(1 + St ) (see Algorithm 3) and St ≥ SK (ut ) ≥ 0 (by Lemma 2.2), we have that
+−I{⟨gt , ut ⟩ < 0} ⋅ ⟨gt , wt ⟩ ≥ 0. And so, using (66) and the definition of ℓt , we get
+                                                                                                               1
+        ∀u ∈ Rd ,   ℓt (ut ) − ℓt (u) ≤ ⟨gt − I{⟨gt , ut ⟩ < 0} ⋅ ⟨gt , wt ⟩ ⋅ st , ut − u⟩ + ∣⟨gt , wt ⟩∣ ⋅     ,
+                                                                                                               T
+                                                                         1
+                                         gt , ut − u⟩ + ∣⟨gt , wt ⟩∣ ⋅
+                                      = ⟨̃                                 ,   (by definition of g
+                                                                                                 ̃t in Algorithm 3)
+                                                                         T
+                                                          GR
+                                         gt , ut − u⟩ +
+                                      ≤ ⟨̃                   ,                                                        (67)
+                                                           T
+
+
+                                                               30
+where the last inequality uses that wt ∈ K ⊆ B(R) and ∥gt ∥ ≤ G.
+It remains to show that ⟨gt , wt − u⟩ ≤ ℓt (ut ) − ℓt (u), for all u ∈ K. First, note that for all u ∈ K, we have
+SK (u) = max(0, γK (u) − 1) = 0 (by Lemma 2.1 and the definition of the Gauge function), and so
+
+                                                     ℓt (u) = ⟨gt , u⟩,     ∀u ∈ K.                                        (68)
+
+We will now compare ⟨gt , wt ⟩ to ℓt (ut ) by considering cases. Suppose that St = 0. In this case, we have
+wt = ut and so ⟨gt , wt ⟩ = ⟨gt , ut ⟩ = ℓt (ut ). Now suppose that St > 0 and ⟨gt , ut ⟩ ≥ 0. In this case, since
+      ut
+wt = 1+S t
+           , we immediately have
+
+                                    ⟨gt , wt ⟩ ≤ ⟨gt , ut ⟩ = ℓt (ut ). [case where ⟨gt , ut ⟩ ≥ 0]                        (69)
+
+Now suppose that St > 0 and ⟨gt , ut ⟩ < 0. Again, using that wt = 1+S
+                                                                    ut
+                                                                       t
+                                                                         , we have
+
+                                                    1 + SK (ut )
+ ⟨gt , wt ⟩ + ⟨gt , wt ⟩ ⋅ SK (ut ) = ⟨gt , ut ⟩ ⋅                 ,
+                                                       1 + St
+                                                    1 + St − T1
+                                     ≤ ⟨gt , ut ⟩ ⋅               , (since ⟨gt , ut ⟩ < 0 and SK (ut ) ≥ St − T1 by Lemma 2.2)
+                                                      1 + St
+                                                                   1
+                                     ≤ ⟨gt , ut ⟩ + ∣⟨gt , ut ⟩∣ ⋅ ,
+                                                                   T
+                                                     GR
+                                     ≤ ⟨gt , ut ⟩ +       ,
+                                                      T
+where the last inequality follows from the fact that ut ∈ B(R) and ∥gt ∥ ≤ G. Rearranging this, we get
+                                  GR
+                   ⟨gt , wt ⟩ −      ≤ ⟨gt , ut ⟩ − ⟨gt , wt ⟩ ⋅ SK (ut ) = ℓt (ut ). [case where ⟨gt , ut ⟩ < 0]          (70)
+                                   T
+By combining (67), (68), (69), and (70), we obtain
+                                                            GR                                       GR
+                            ∀u ∈ K,       ⟨gt , wt − u⟩ −      ≤ ℓt (ut ) − ℓt (u) ≤ ⟨̃
+                                                                                      gt , ut − u⟩ +    ,
+                                                             T                                        T
+which shows the inequality in (12).
+
+Bounding the surrogate subgradients. It remains to bound ∥̃       gt ∥ in terms of ∥gt ∥. Using that g
+                                                                                                     ̃t =
+gt − I{⟨gt , ut ⟩ < 0} ⋅ ⟨gt , wt ⟩ ⋅ st and wt = 1+S
+                                                   ut
+                                                      t
+                                                        , we have
+
+                 gt ∥ = ∥gt − I{⟨gt , ut ⟩ < 0} ⋅ ⟨gt , wt ⟩ ⋅ st ∥,
+                ∥̃
+                                       ∥ut ∥
+                      ≤ ∥gt ∥ + ∥gt ∥ ⋅       ⋅ ∥st ∥, (by the triangle inequality and Cauchy Schwarz)
+                                      1 + St
+                                     ∥ut ∥
+                      ≤ ∥gt ∥ ⋅ (1 +       ) , (since St ≥ 0 and ∥st ∥ ≤ 1/r by Lemma 2.2)
+                                      r
+                      ≤ (1 + κ) ⋅ ∥gt ∥,
+
+where the last step follows by the assumption that ut ∈ B(R). This completes the proof.
+
+
+E.2      OCO Regret Bound Pre-Tuning of Parameters (Proof of Proposition 4.1)
+Proof. Fix w ∈ int K. By Lemma 4.1, the sequence of loss vectors (̃    gt ) that the Barrier-ONS subroutine
+receives satisfies (̃        ̃ with G
+                    gt ) ⊂ B(G)     ̃ = 2κG. Thus, by invoking the guarantee of Barrier-ONS in Theorem 3.1,
+we get (ut ) ⊂ B(R) and
+                       T                                                                                    T
+                                        η                                     2    4d log(1 + d )
+                      ∑ (⟨ut − w, g               ̃t ⟩2 ) ≤ GR
+                                  ̃t ⟩ − ⟨ut − w, g         ̃ − ν log(1 − ∥w∥2 ) +
+                                                                           R
+                                                                                                  ,                        (71)
+                      t=1               2                                                η
+
+
+                                                                       31
+where we used that 18/5 ≤ 4. We now prove that
+                  T                                    T
+                                   η                                    η
+                                                 2
+                 ∑ (⟨gt , wt − w⟩ − ⟨gt , wt − w⟩ ) ≤ ∑ (⟨̃               gt , ut − w⟩2 ) + 3GR,
+                                                          gt , ut − w⟩ − ⟨̃                                             (72)
+                 t=1               2                  t=1               2
+
+which together with (71) would complete the proof. Using that (ut ) ⊂ B(R), (̃
+                                                                             gt ) ⊂ B(2κG), and Assump-
+tion 2.1, we obtain
+
+                                       ∀t ∈ [T ], ∀u ∈ K,          gt , ut − u⟩∣ ≤ 4κRG.
+                                                                 ∣⟨̃                                                    (73)
+
+Combining this with the facts that:
+   • ⟨gt , wt − w⟩ ≤ ⟨̃
+                      gt , ut − w⟩ + 2GT
+                                      T
+                                         , for all t ∈ [T ] (by Lemma 4.1);
+   • x → x − η2 x2 in non-decreasing for all x ≤ η1 (we instantiate this with x = ⟨gt , wt − w⟩ and x =
+      gt , ut − w⟩ + 2GR
+     ⟨̃               T
+                         ); and
+   • η ≤ 10κGR
+            1
+               ;
+we get that for all t ∈ [T ]
+
+                     η                                 2GR η                        2ηGT                 2ηG2 R2
+      ⟨gt , wt − w⟩ − ⟨gt , wt − w⟩2 ≤ ⟨̃
+                                        gt , ut − w⟩ +         − ⟨̃ gt , ut − w⟩2 −       gt , ut − w⟩ −
+                                                                                         ⟨̃                      ,
+                     2                                   T       2                    T                    T2
+                                                       η                     3GR
+                                        gt , ut − w⟩ − ⟨̃
+                                     ≤ ⟨̃                 gt , ut − w⟩2 +        ,
+                                                       2                      T
+where the last step follows by (73) and η ≤ 10κGR
+                                               1
+                                                  . Summing this over t = 1, . . . , T , we obtain (72). Combining
+(72) with (71) we get the desired result.
+
+
+E.3     Main OCO Regret Bound (Proof of Theorem 4.1)
+Proof. Fix w ∈ K and let w
+                         ̃ ∶= w ⋅ (1 − 1/T ). Note that w
+                                                        ̃ ∈ int K. By Assumption 2.2 (boundness of (gt ))
+and Assumption 2.1 (boundness of K), we have that
+                                  T                          T                 T
+                                                                 1
+                                 ∑ ⟨gt , wt − w⟩ ≤ − ∑             ⟨gt , w⟩ + ∑ ⟨gt , wt − w⟩,
+                                                                                           ̃
+                                 t=1                         t=1 T            t=1
+                                                                  T
+                                                    ≤ GR + ∑ ⟨gt , wt − w⟩.
+                                                                        ̃                                               (74)
+                                                                 t=1
+
+Thus, it suffices bound the (linearized) regret relative to w.
+                                                            ̃ By instantiating the bound in Proposition 4.1
+with comparator w  ̃ ∈ int K, we get:
+                 T
+                                      η T                                    ̃ 2    4d log(1 + T /d)
+                 ∑ ⟨gt , wt − w⟩
+                              ̃ ≤                    ̃ 2 + 5κGR − ν log(1 − ∥w∥
+                                        ∑ ⟨gt , wt − w⟩                      R2
+                                                                                 )+                  ,
+                 t=1                  2 t=1                                                η
+                                      η T                                   4d log(1 + T /d)
+                                 ≤                   ̃ 2 + 5κGR + ν log T +
+                                        ∑ ⟨gt , wt − w⟩                                      ,                          (75)
+                                      2 t=1                                        η
+
+where in the last inequality, we used that
+                                                                                     2
+              ̃ ≤ ∥w∥ ⋅ (1 − T1 ) ≤ R ⋅ (1 − T1 )
+             ∥w∥                                        and      − log (1 − (1 − T1 ) ) = − log ( T2 − T12 ) ≤ log T.
+
+Now, using that (gt ) ⊂ B(G), (wt ) ⊂ B(R), and Assumption 2.1 (K ⊆ B(R)), we have ∣⟨gt , wt − w⟩∣
+                                                                                               ̃ ≤ 2GR,
+for all t ∈ [T ]. Combining this with (75), we get
+                           T                                                         4d log(1 + Td )
+                           ∑ ⟨gt , wt − w⟩
+                                                    2    2
+                                        ̃ ≤ 2ηG R T + 5κGR + ν log T +                               .                  (76)
+                          t=1                                                              η
+
+
+                                                                 32
+We now use (76) to show the desired result. First, note that the optimal tuning of η in (76) is given by
+                                               ¿
+                                               Á 2d log(1 + T )
+                                               Á
+                                               À             d
+                                          η⋆ =                  .
+                                                     T G2 R2
+We now consider cases.
+
+Case where η ⋆ ≤ 10κGR1
+                         . First, note that this implies that η = η ⋆ . Now, using that η ⋆ ≤ 10κGR
+                                                                                                 1
+                                                                                                       and the
+expression of η , we have that
+               ⋆
+
+                                                      ¿
+                                             √        Á         T
+                                           10 2 ⋅ κ ≤ Á
+                                                      À                  .
+                                                          d log(1 + Td )
+                       √
+This implies that ν ≤        2dT
+                         d log(1+ T )
+                                      (see definition of ν in (15)). Using this together with η = η ⋆ and (76)
+                                             d
+implies
+                                                                                            ¿
+                                   T                        √                                Á      2dT
+       (case η   ⋆        1
+                     ≤ 10κGR )     ∑ ⟨gt , wt − w⟩
+                                                ̃ ≤ 4GR         2dT log (1 + Td ) + 5κGR + GRÁ
+                                                                                             À                ⋅ log T,
+                                   t=1                                                           log(1 + Td )
+                                                            √
+                                                    ≤ 5GR       2dT log (1 + Td ) + 5κGR.                                (77)
+
+                    1
+Case where η ⋆ ≥ 10κGR . In this case, we have η = 10κGR
+                                                      1
+                                                         . Now, using that η ⋆ ≥ 10κGR
+                                                                                    1
+                                                                                       and the expression
+of η , we have that
+    ⋆
+
+                                                  ¿
+                                         √        Á       T
+                                       10 2 ⋅ κ ≥ Á
+                                                  À                .                                 (78)
+                                                    d log(1 + Td )
+
+This implies that ν ≤ 20GRκd (see definition of ν in (15)). Plugging this and η = 10κGR
+                                                                                     1
+                                                                                        into (76), we get
+                                         T
+                                                         T GR
+          (case η ⋆ ≥ 10κGR
+                         1
+                            )          ∑ ⟨gt , wt − w⟩
+                                                    ̃ ≤       + 5κGR + 20GRκd log T + 40dκGR log(1 + Td ),
+                                       t=1                5κ
+                                                         T GR
+                                                       ≤      + 65dκGR log(1 + Td ),
+                                                          5κ
+                                                             √
+                                                       ≤ 2GR 2dT log(1 + Td ) + 65GRκd log(1 + Td ),                     (79)
+where the last inequality follows by (78). Thus, combining (77) and (79), we get
+                         T                   √
+                                     ̃ ≤ 5GR 2dT log(1 + Td ) + 65GRκd log(1 + Td ).
+                        ∑ ⟨gt , wt − w⟩
+                             t=1
+
+Using this together with (74) implies the desired result.
+
+Computational cost. By Theorem 3.1 and the choice of√c = 1/2, the computational cost of the Barrier-ONS
+subroutine with Algorithm 3 is bounded by O ̃ (d2 T + dω dT ). Now, by the choice of η and ν in (15), we
+                                                          νη
+have ην ≥ d. This implies that the computation of the Barrier-ONS subroutine is bounded by
+                                                        √
+                                            ̃ (d2 T + dω T ) .
+                                            O
+
+Now, in addition to the computational cost of the Barrier-ONS subroutine, Algorithm 3 incurs O(d) +
+CGaugeDist (K) per round, where CGaugeDist (K) is the cost of one call to the GaugeDist subroutine (Algorithm 1)
+for approximating the gauge distance SK and its the subgradients. By Lemma 2.2, we have
+                                                 CGaugeDist (K) ≤ O(1)
+                                                                  ̃    ⋅ Csep (K).
+
+
+
+
+                                                                 33
+F     Stochastic Convex Optimization (Proof of Theorem 5.1)
+Proof. Let w⋆ ∈ arg minu∈K f (u). Further, let w
+                                               ̃⋆ ∶= w⋆ ⋅ (1 − T −1 ). Note that w
+                                                                                 ̃⋆ ∈ int K. By Assumption 5.1
+(boundness of (gt )), we have that
+                                  T                                T                  T
+                                                        ⋆             1
+                                  ∑ ⟨gt , wt − w ⟩ ≤ − ∑                ⟨gt , w⋆ ⟩ + ∑ ⟨gt , wt − w
+                                                                                                  ̃⋆ ⟩,
+                                  t=1                             t=1 T              t=1
+                                                                         T
+                                                                                ̃⋆ ⟩.
+                                                            ≤ GR + ∑ ⟨gt , wt − w                                                    (80)
+                                                                        t=1
+
+Now, using Jensen’s inequality, we get
+                                                      T
+                                                1
+                    ̂T )] − f (w⋆ ) ≤
+               E[f (w                             E [ ∑ f (wt ) − f (w⋆ )] ,
+                                                T    t=1
+                                                      T
+                                                1
+                                            ≤     E [ ∑ ⟨ḡt , wt − w⋆ ⟩] ,           (by convexity and ḡt ∈ ∂f (wt ))
+                                                T    t=1
+                                                      T
+                                                1
+                                            =     E [ ∑ ⟨gt , wt − w⋆ ⟩] . (E[ξt ] = 0 by Assumption 5.1)                            (81)
+                                                T    t=1
+
+Now, by instantiating the bound in Proposition 4.1 with comparator w
+                                                                   ̃ ∈ int K and parameters (η, ν, c) as in
+(17), we get:
+                     T                                                                                        T
+                                                 η T                                     d log(1 + d )
+                     ∑ ⟨gt , wt − w
+                                  ̃ ⟩≤  ⋆
+                                                                ̃⋆ ⟩2 + 5κGR + ν log T +
+                                                   ∑ ⟨gt , wt − w                                      ,                             (82)
+                     t=1                         2 t=1                                         η
+where in the last inequality, we used that
+                                                                                               2
+            ̃⋆ ∥ ≤ ∥w∥ ⋅ (1 − T1 ) ≤ R ⋅ (1 − T1 )
+           ∥w                                                 and        − log (1 − (1 − T1 ) ) = − log ( T2 − T12 ) ≤ log T.
+
+Now, by Assumption 5.1 (in particular, the fact that gt = ḡt +ξt ) together with the fact that (a+b)2 ≤ 2a2 +2b2
+and wt , w
+         ̃⋆ ∈ B(R), we have
+                                                   ̃⋆ ⟩2 ≤ 2⟨ḡt , wt − w
+                                        ⟨gt , wt − w                    ̃⋆ ⟩2 + 8R2 ∥ξt ∥2 .                                         (83)
+On the other hand, by definition of w
+                                    ̃⋆ and the facts that w, w1 , w2 , ⋅ ⋅ ⋅ ∈ B(R), we have for all t ∈ [T ]:
+                                                            GR
+                               ̃⋆ ⟩ ≥ ⟨ḡt , wt − w⋆ ⟩ −
+             2GR ≥ ⟨ḡt , wt − w                                ,
+                                                             T
+                                                              GR
+                                        ≥ f (wt ) − f (w⋆ ) −     ,               (by convexity of f and ḡt ∈ ∂f (wt ))
+                                                               T
+                                            GR
+                                        ≥−      ,                                                                                    (84)
+                                             T
+where the last inequality follows by the fact that wt ∈ K and that w⋆ is the minimizer of f within K. Note
+that (84) implies that for all t ∈ [T ],
+                                                                                            2GR
+                                            ∣⟨ḡt , wt − w⋆ ⟩∣ ≤ ⟨ḡt , wt − w⋆ ⟩ +             .                                    (85)
+                                                                                             T
+Picking up from (83), we get
+     T                       T                                    T
+                   ⋆ 2                            ⋆ 2         2               2
+    ∑ ⟨gt , wt − w ⟩ ≤ 2 ∑ ⟨ḡt , wt − w ⟩ + 8R ∑ ∥ξt ∥ ,
+    t=1                     t=1                                   t=1
+                                  T                                     T
+                         ≤ 4GR ∑ ∣⟨ḡt , wt − w⋆ ⟩∣ + 8R2 ∑ ∥ξt ∥2 ,                    (by the left-hand side inequality in (84))
+                                  t=1                                   t=1
+                                  T                                               T
+                         ≤ 4GR ∑ ⟨ḡt , wt − w⋆ ⟩ + 8G2 R2 + 8R2 ∑ ∥ξt ∥2 ,                    (by (85))
+                                  t=1                                             t=1
+
+
+
+                                                                         34
+Plugging this into (82) and rearranging, we get
+   T
+                       ⋆
+                                   T
+                                                 ⋆         2   2           2
+                                                                               T
+                                                                                      2                   d log(1 + Td )
+   ∑ ⟨gt , wt − w
+                ̃ ⟩ − 2GRη ∑ ⟨ḡt , wt − w ⟩ ≤ 4ηG R + 4ηR ∑ ∥ξt ∥ + 5κGR + ν log T +                                    .
+   t=1                             t=1                                         t=1                              η
+
+Taking the expectation on both sides and using that E[gt ] = ḡt and E[∥ξt ∥2 ] ≤ σ 2 , we get
+
+                                                 d log(1 + Td )       T                               T
+ 4ηR2 T σ 2 + 4ηG2 R2 + 5κGR + ν log T +                                           ̃⋆ ⟩] − 2GRη ⋅ E [ ∑ ⟨gt , wt − w⋆ ⟩] ,
+                                                                ≥ E [ ∑ ⟨gt , wt − w
+                                                       η             t=1                             t=1
+                                                                                          T
+                                                                   ≥ (1 − 2GRη) ⋅ E [ ∑ ⟨gt , wt − w⋆ ⟩] − GR,      (by (80))
+                                                                                          t=1
+                                                                       T
+                                                                   ≥             ̂T )] − f (w⋆ )),
+                                                                         ⋅ (E[f (w
+                                                                       2
+where the last inequality follows by the fact that η ≤ 4GR
+                                                        1
+                                                           and (81). Now, dividing by T2 on both sides and
+rearranging, we get
+                                                                                            T
+                                                        8ηG2 R2 12κGR 2ν log T 2d log(1 + d )
+                        ̂T )] − f (w⋆ ) ≤ 8ηR2 σ 2 +
+                   E[f (w                                        +        +       +           ,
+                                                            T          T     T           ηT
+                                                        2d log(1 + Td ) 14κGR 2ν log T
+                                           ≤ 8ηR2 σ 2 +                +     +         ,                                     (86)
+                                                              ηT          T      T
+
+where the last inequality follows by η ≤ 10κGR
+                                            1
+                                               . Note that the optimal tuning of η in (86) is given by
+                                                          ¿
+                                                          Á d log(1 + T )
+                                                          Á
+                                                          À             d
+                                                     η⋆ =                 .
+                                                               4R2 σ 2 T
+We now consider cases.
+
+Case where η ⋆ ≤ 10κGR1
+                         . First, note that this implies that η = η ⋆ . Now, using that η ⋆ ≤ 10κGR
+                                                                                                 1
+                                                                                                    and the
+expression of η , we have that
+               ⋆
+
+                                                 ¿
+                                                 Á        T
+                                         5Gκ ≤ σ Á
+                                                 À                 .
+                                                    d log(1 + Td )
+                              √
+This implies that ν ≤ 4σ              dT
+                                   log(1+ Td )
+                                               (see definition of ν in (17)).        Using this together with η = η ⋆ and (86)
+implies that
+                                                                       √             ¿
+                   ⋆        1                         ⋆           d 14κGR            Á       d
+         (case η       ≤ 10κGR )    E[f (w
+                                         ̂T )] − f (w ) ≤ 8Rσ ⋅     +          + 8Rσ Á
+                                                                                     À                ⋅ log T,
+                                                                  T       T            T log(1 + Td )
+                                                                 ¿
+                                                                 Á d log(1 + T ) 14κGR
+                                                                 Á
+                                                                 À
+                                                        ≤ 16Rσ ⋅             d
+                                                                                +        .                                   (87)
+                                                                         T           T
+
+                    1
+Case where η ⋆ ≥ 10κGR . In this case, we have η = 10κGR
+                                                      1
+                                                          . Now, using that η ⋆ ≥ 10κGR
+                                                                                     1
+                                                                                        and the expression
+of η , we have
+    ⋆
+
+                                                ¿
+                                                Á        T
+                                        5Gκ ≥ σ Á
+                                                À                 .                                   (88)
+                                                   d log(1 + Td )
+
+
+
+
+                                                               35
+This implies that ν ≤ 20GRκd (see definition of ν in (17)). Plugging this and η = 10κGR
+                                                                                     1
+                                                                                        into (86), we get
+                                                                         T
+                                                   4Rσ 2 20GRκd log(1 + d ) 14κGR 40GRκd log T
+      (case η ⋆ ≥ 10κGR
+                     1
+                        ) E[f (w
+                               ̂T )] − f (w⋆ ) ≤        +                    +       +         ,
+                                                    5κG            T             T          T
+                                                                         T
+                                                   4Rσ 2 74GRκd log(1 + d )
+                                                 ≤      +                   ,
+                                                    5κG            T
+                                                       ¿
+                                                       Á d log(1 + T ) 74GRκd log(1 + T )
+                                                       Á
+                                                       À
+                                                 ≤ 4Rσ             d
+                                                                      +               d
+                                                                                          ,      (89)
+                                                               T               T
+
+where the last inequality follows by (88). Thus, combining (87) and (89), we get
+                                                   ¿
+                                                   Á d log(1 + T ) 74GRκd log(1 + T )
+                                                   Á
+                                                   À           d                  d
+                     E[f (w ̂T )] − f (w⋆ ) ≤ 16Rσ                +                   .
+                                                           T              T
+This proves the desired convergence rate.
+
+Computational cost. By Theorem 3.1 and the choice of√c = 1/2, the computational cost of the Barrier-ONS
+subroutine with Algorithm 3 is bounded by O ̃ (d2 T + dω dT ). Now, by the choice of η and ν in (15), we
+                                                          νη
+have ην ≥ d. This implies that the computation of the Barrier-ONS subroutine is bounded by
+                                                        √
+                                            ̃ (d2 T + dω T ) .
+                                            O
+
+Now, in addition to the computational cost of the Barrier-ONS subroutine, Algorithm 3 incurs O(d) +
+CGaugeDist (K) per round, where CGaugeDist (K) is the cost of one call to the GaugeDist subroutine (Algorithm 1)
+for approximating the gauge distance SK and its the subgradients. By Lemma 2.2, we have
+
+                                          CGaugeDist (K) ≤ O(1)
+                                                           ̃    ⋅ Csep (K).
+
+This implies the desired computational cost.
+
+
+
+G      Computing the Gauge Distance (Proof of Lemma 2.2)
+For the proof of Lemma 2.2, we need the following properties of the Gauge function (see e.g. Molinaro (2020)
+for a proof).
+Lemma G.1. Let w ∈ Rd ∖ {0} and 0 < r ≤ R. Further, let C be a closed convex set such that B(r) ⊆ C ⊆ B(R).
+Then, the following properties hold:
+   a. γC (w) = σC ○ (w) = supx∈C ○ x⊺ w and (C ○ )○ = C.
+   b. σC (αw) = ασC (w) and ∂σC (αw) = ∂σC (w) = arg maxu∈C ⟨u, w⟩, for all α ≥ 0.
+   c. r∥w∥ ≤ σC (w) ≤ R∥w∥, ∥w∥/R ≤ γC (w) ≤ ∥w∥/r, and B(1/R) ⊆ C ○ ⊆ B(1/r).
+With this, we now prove Lemma 2.2.
+Proof of Lemma 2.2. Fix w ∈ Rd . We consider cases. If w ∈ C, then the ‘if’ condition in Line 2 of
+Algorithm 1 evaluates to ‘true’, and so the algorithm returns the pair (S, s) = (0, 0). Since w ∈ C, we have
+γC (w) ≤ 1, and so by Lemma 2.1, we have for all u ∈ Rd :
+
+                         SC (u) = max(0, γC (u) − 1) ≥ 0 = max(0, γC (w) − 1) = SC (w).
+
+This implies the desired result since 0 ∈ ∂SC (w) by Lemma 2.1.
+
+
+
+
+                                                           36
+Now, consider the case where w ∈/ C, and let α, β, µ, v, and s be as in Algorithm 1 when the algorithm
+returns. Then, by design, when Algorithm 1 returns, we have
+
+                                                                                 r2 ε
+                                   αw ∈ C,       βw ∈/ C,     and ∣β − α∣ ≤           .                          (90)
+                                                                                2∥w∥2
+
+Since γC (w) = inf{λ > 0 ∣ w ∈ λC}, we have that
+                                                    1           1
+                                                      ≤ γC (w) ≤ .                                               (91)
+                                                    β           α
+Now, since γC (w) ≤ ∥w∥/r (by Lemma G.1.c), the left-hand side inequality in (91) implies that
+                                                               r
+                                                       β≥         .                                              (92)
+                                                              ∥w∥
+                                                                                             2
+Note that ∥w∥ > 0 since w ∈/ C and B(r) ⊆ C. Using (92) and the fact that ∣β − α∣ ≤ 2∥w∥
+                                                                                     r ε
+                                                                                         2 (see (90)), we have
+
+
+
+                                          1     1
+                                            ≤    r2 ε
+                                                        ,
+                                          α β − 2∥w∥  2
+
+
+                                              1    r2 ε
+                                             ≤  + 2     , (see below)                                            (93)
+                                              β β ∥w∥2
+                                              1
+                                             ≤ + ε, (by (92))                                                    (94)
+                                              β
+                                                                                                                 2
+where (93) follows by (92) and the fact that 1−x
+                                              1
+                                                 ≤ 1 + 2x, for all x ≤ 12 ; we instantiate the latter with x = 2β∥w∥
+                                                                                                                 r ε
+                                                                                                                     2
+
+which satisfies x ≤ 1/2 since ∥w∥ ≥ r (because w ∈/ C and B(r) ⊆ C). Combining (94) with (91) and using that
+S = α−1 − 1 (see Algorithm 1), we get
+
+                                             γC (w) ≤ S + 1 ≤ γC (w) + ε.
+
+This together with the facts that SC (w) = max(0, γC (w) − 1) and γC (w) ≥ 1 (since w ∈/ C) implies that
+SC (w) ≤ S ≤ SC (w) + ε, as desired.
+
+Approximate subgradient. We now show that the second output s of Algorithm 1 is an approximate
+subgradient of the gauge distance function at w.
+Since v is the separating hyperplane returned by the call to SepC (µw), we have that
+
+                                                 ∀u ∈ C,     u⊺ v ≤ µw⊺ v.
+
+Thus, since the vector s returned by Algorithm 1 satisfies s = β⋅wv⊺ v and µ = α+β
+                                                                                2
+                                                                                   ≤ β, we have
+
+                                             ∀u ∈ C,        u⊺ s ≤ µw⊺ s ≤ 1.                                    (95)
+
+This implies that s ∈ C ○ (by definition of the polar set) and so by Lemma G.1.a, this implies that
+
+                                       ∀u ∈ Rd ,      s⊺ u ≤ sup x⊺ u = γC (u).                                  (96)
+                                                               x∈C ○
+
+On the other hand, combining (94) with (91), we get
+                                                                   1
+                                                 γC (w) − ε ≤        = s⊺ w,                                     (97)
+                                                                   β
+where the equality uses the expression of s. Combining (96) and (97) implies that
+
+                                   ∀u ∈ Rd ,      s⊺ (u − w) + γC (w) − ε ≤ γC (u).
+
+
+                                                              37
+Thus, subtracting 1 from both sides and using that SC (w) = γC (w) − 1 (since w ∈/ C), we get that
+
+                           ∀u ∈ Rd ,   s⊺ (u − w) + SC (w) − ε ≤ γC (u) − 1,
+                                                               ≤ max(0, γC (u) − 1),
+                                                               = SC (u).
+
+This shows the inequality on the right-hand side of (2). Now, as mentioned earlier, (95) implies that s ∈ C ○ .
+And since B(r) ⊆ C, we have C ○ ⊆ B(1/r) by Lemma G.1. Therefore, ∥s∥ ≤ 1/r.
+
+Number of oracle calls. The number of oracle calls is bounded by the number of iterations of the ‘while’
+                                                                                                          2
+loop in Line 6. Since Algorithm 1 implements a bisection, the number of iteration is at most log2 ( 4∥w∥
+                                                                                                     r2 ε
+                                                                                                            ).
+
+
+
+
+                                                      38
+

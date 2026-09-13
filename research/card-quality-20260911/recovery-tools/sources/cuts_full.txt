@@ -1,0 +1,900 @@
+                                            Quasipolynomial multicut-mimicking networks and kernels for
+                                                             multiway cut problems∗
+                                                                                        Magnus Wahlström†
+                                                                                            March 9, 2021
+
+
+                                                                                                Abstract
+arXiv:2002.08825v3 [cs.DS] 5 Mar 2021
+
+
+
+
+                                                  We show the existence of an exact mimicking network of kO(log k) edges for minimum multicuts
+                                              over a set of terminals in an undirected graph, where k is the total capacity of the terminals. Fur-
+                                              thermore, using the best available approximation algorithm for Small Set Expansion, we show
+                                                                                 3
+                                              that a mimicking network of kO(log k) edges can be computed in randomized polynomial time. As a
+                                              consequence, we show quasipolynomial kernels for several problems, including Edge Multiway Cut,
+                                              Group Feedback Edge Set for an arbitrary group, and Edge Multicut parameterized by the
+                                              solution size and the number of cut requests. The result combines the matroid-based irrelevant edge
+                                              approach used in the kernel for s-Multiway Cut with a recursive decomposition and sparsification
+                                              of the graph along sparse cuts. This is the first progress on the kernelization of Multiway Cut
+                                              problems since the kernel for s-Multiway Cut for constant value of s (Kratsch and Wahlström,
+                                              FOCS 2012).
+
+
+                                        1     Introduction
+                                        Graph separation questions are home to some of the most intriguing open questions in theoretical com-
+                                        puter science. In approximation algorithms, the well-known unique games conjecture (UGC) has been
+                                        central to the area for close to two decades, and is closely related to graph separation problems. Even
+                                        more directly, the small set expansion hypothesis, proposed by Raghavendra and Steurer [33], roughly
+                                        states that it is NP-hard to approximate the Small Set Expansion problem (SSE) up to a constant
+                                        factor, where SSE is the problem of finding a small-sized set in a graph with minimum expansion. (More
+                                        precise statements are given in Section 2.2.) For the general case, despite significant research, the best
+                                        polynomial-time result is an O(log n)-approximation due to Räcke [32], but stronger results are known
+                                                                                            √ the set is |S| ≤ s, then Bansal et al. [2] show an
+                                        for special cases. In particular, if the size bound on
+                                        algorithm with an approximation ratio of O(log n/ log s).
+                                            Another interesting notion from parameterized complexity is kernelization. Informally, a kernelization
+                                        algorithm is a procedure that takes an input of a parameterized, usually NP-hard problem and reduces
+                                        it to an equivalent instance of size bounded in the parameter, e.g., by discarding irrelevant parts of
+                                        the input or transforming some part of the input into a smaller object with equivalent behaviour. For
+                                        example, the seminal Nemhauser-Trotter theorem on the half-integrality of Vertex Cover [29] implies
+                                        that an instance of Vertex Cover can be reduced to have at most 2k vertices, where k is the bound
+                                        given on the solution size. On the flip side, Fortnow and Santhanam [11] and Bodlaender et al. [3] gave
+                                        a framework to exclude the existence of a kernel of any polynomial size, under a standard complexity-
+                                        theoretic conjecture. An extensive collection of upper and lower bounds for kernelization exists (see, e.g.,
+                                        the recent book of Fomin et al. [10]), but a handful of central “hard questions” remain unanswered. One
+                                        of the most notorious is Multiway Cut.
+                                            Let G = (V, E) be a graph and T ⊆ V a set of terminals in G. An (edge) multiway cut for T in G is
+                                        a set of edges X ⊆ E such that no two terminals are connected in G − X, and Multiway Cut is the
+                                           ∗ A preliminary version of this paper with weaker results was presented at ICALP 2020 [37]. Compared to that version, the
+
+                                        current manuscript has a much simpler correctness argument for the marking procedure, as well as adding the constructive
+                                        version of the result.
+                                           † Magnus.Wahlstrom@rhul.ac.uk; Department of Computer Science, Royal Holloway, University of London, UK.
+
+
+
+
+                                                                                                     1
+problem of finding a multiway cut of at most k edges, given a parameter k. The problem is FPT [26]
+and NP-hard for |T | ≥ 3 [7]. Using methods from matroid theory, Kratsch and Wahlström [19] were able
+to show that if |T | ≤ s, then Multiway Cut has a kernel with O(k s+1 ) vertices, hence the problem has
+a polynomial kernel for every constant s. However, if |T | is unbounded, the only known size bound for
+a kernel is 2O(k) , following from the FPT algorithm [26], and the question of whether Multiway Cut
+has a polynomial kernel in the general case is completely open.
+    We make progress on this question by showing that Multiway Cut and several related problems
+                                                           O(1)
+have quasipolynomial kernels, i.e., kernels of size k log       k
+                                                                  . Furthermore, the degree in the exponent
+depends on the best available approximation algorithm for Small Set Expansion. With the current
+                                                             3
+state of the art, we are able to show kernels of size k O(log k) ; and if the small set expansion problem has
+a constant-factor approximation, the result would be kernels of size k O(log k) .
+    The result goes via showing the existence of a kind of mimicking network for the problem; or more
+generally, a network of quasipolynomial size mimicking the behaviour of (G, T ) for all multicut instances
+over T . We review these notions next.
+
+1.1    Mimicking networks and multiway cut sparsifiers
+Although kernelization is most commonly described in terms of polynomial-time preprocessing as above,
+there is also a clear connection with succinct information representation. For example, consider a graph
+G = (V, E) with a set of k terminals T ⊆ V . The pair (G, T ) is referred to as a terminal network. A
+mimicking network for (G, T ) is a graph G′ = (V ′ , E ′ ) with T ⊆ V ′ such that for any sets A, B ⊆ T , the
+min-cut between A and B in G and G′ have the same value. A mimicking network of size bounded in
+k always exists, but the size of G′ can be significant. The best known general upper bound is double-
+exponential in k [13, 16], and there is an exponential lower bound [21]. Better bounds are known for
+special graph classes, but even for planar graphs the best possible general bound has 2Θ(k) vertices [21, 15]
+(see also recent improvements by Krauthgamer and Rika [20]).
+    A related notion is cut sparsifiers, which solve the same task up to some approximation factor q ≥
+1 [28, 23], typically q = ω(1) in the general case. We focus on mimicking networks; see Krauthgamer and
+Rika [20] for an overview of cut sparsifiers. However, we note that for general graphs, constant-factor cut
+sparsifiers are not known with any size bound smaller than the size guarantee for an exact mimicking
+network.
+    However, if we include the capacity of the set of terminals in the bound (and if edges have integer
+capacity), then significantly  stronger results are possible. Chuzhoy [4] showed that if the total capacity
+of T is capG (T ) = t∈T d(t) = k, then there exists an O(1)-approximate cut sparsifier of size O(k 3 ).
+                      P
+Kratsch and Wahlström [19] sharpened this to an exact mimicking network with O(k 3 ) edges, which
+furthermore can be computed in randomized polynomial time. This is particularly remarkable given
+that the network has to replicate the exact cut-value for exponentially many pairs (A, B). The network
+can be constructed via contractions in G.1 This built on an earlier result that used linear representations
+of matroids to encode the sizes of all (A, B)-min cuts into an object using Õ(k 3 ) bits of space [18],
+although this earlier version did not produce an explicit graph, i.e., not a mimicking network.
+    These results had significant consequences for kernelization. The succinct representation in [18] was
+used to produce a (randomized) polynomial kernel for the Odd Cycle Transversal problem, thereby
+solving a notorious open problem in parameterized complexity [18]; and the mimicking network of [19]
+brought further (randomized) polynomial kernels for a range of problems, in particular including Almost
+2-SAT, i.e., the problem of satisfying all but at most k clauses of a given 2-CNF formula.
+    Similar methods are relevant for the question of separating a set of terminals into more than two
+parts. Let (G, T ) be a terminal network, and let T = T1 ∪ . . . ∪ Ts be a partition of T . A multiway cut
+for T is a set of edges X ⊆ E(G) such that G − X contains no path between any pair of terminals t ∈ Ti
+and t′ ∈ Tj , i 6= j. Let us define a multicut-mimicking network for (G, T ) as a terminal network (G′ , T )
+where T ⊆ V (G′ ) and for every partition T = T1 ∪ . . . ∪ Ts of T , the size of a minimum multiway cut
+for T is identical in G and G′ . (The term multicut-mimicking, as opposed to multiway cut-mimicking, is
+justified; see Section 2.1.) The minimum size of a multicut-mimicking network, in terms of k = capG (T ),
+appears to lie at the core of the difficulty of the question of a polynomial kernelization of Multiway
+Cut. The kernel for s-Multiway Cut mentioned above builds on the computation of a mimicking
+  1 The results of [19] are phrased in terms of vertex cuts, but the above follows easily from [19].
+
+
+
+
+                                                             2
+network of size O(k s+1 ) for partitions of T into at most s parts [19]. The kernel for s-Multiway Cut
+then essentially follows from considering the partition T = {t1 } ∪. . . ∪{ts } of a set T of |T | = s terminals,
+along with known reduction rules bounding capG (T ). We are not aware of any non-trivial lower bounds
+on the size of a multicut-mimicking network in terms of k; it seems completely consistent with known
+bounds that every terminal network (G, T ) would have a multicut-mimicking network of size poly(k),
+even for partitions into an unbounded number of sets.
+     In this paper, we show that any terminal network (G, T ) with capG (T ) = k admits a multicut-
+mimicking network (G′ , T ) where |V (G′ )| = k O(log k) ; and furthermore, a network with |V (G′ )| =
+        O(1)
+k O(log      k)
+                can be computed in randomized polynomial time, using a sufficiently good approximation
+algorithm for a graph separation problem similar to Small Set Expansion (SSE). We also see a trade-
+off between the quality of the approximation algorithm and the size of (G′ , T ). Using the algorithm of
+                                                   3
+Bansal et al. [2], we achieve |V (G′ )| = k O(log k) ; and if the small set expansion hypothesis were false
+and SSE had a constant-factor approximation algorithm, then the bound |V (G′ )| = k O(log k) would be
+achievable in polynomial time. We leave open the questions of whether there always exists a multicut-
+mimicking network of size k O(1) , as well as the question of whether a network of size k O(log k) can be
+computed through means other than a constant-factor approximation for SSE.
+     As a side note, we note that a 2-approximate “multicut sparsifier” of size poly(k) can be computed
+efficiently using known methods. Specifically, we observe that the above-mentioned mimicking network
+of O(k 3 ) edges for standard terminal cuts in a terminal network (G, T ) with cap(T ) = k [19] implies a
+terminal network (G′ , T ) where cap(T ) = k, |E(G′ )| = O(k 3 ), and where for every partition T the costs
+of minimum multiway cuts for T in (G′ , T ) and (G, T ) differ by at most a factor of 2 (see Lemma 1).
+     Flow sparsifiers. Finally, similarly to cut sparsifiers, there is a notion of a flow sparsifier of a terminal
+network (G, T ). Here the goal is to approximately preserve the minimum congestion for any multicom-
+modity flow on (G, T ). Chuzhoy [4] showed flow sparsifiers with quality O(1) and with k O(log log k)
+vertices, where k is the total terminal capacity; for further results on achievable bounds for flow sparsi-
+fiers, see [1, 8]. However, the notion is incomparable to multicut-mimicking networks, because even an
+exact flow sparsifier would be subject to the corresponding multicommodity flow-multicut approximation
+gap, which is Θ(log k) in the worst case [12].
+     Further related work. The general approach of decomposing a graph along sparse cuts is well estab-
+lished; cf. Räcke [31] and follow-up work. For further applications of matroid tools to kernelization, see
+Hols and Kratsch [14], Kratsch [17], and Reidl and Wahlström [34].
+
+1.2    Our results
+We show the following.
+Theorem 1. Let A be an approximation algorithm for Small Set Expansion with an approximation
+ratio of α(n, k), where k is the number of edges cut in the optimal solution. Let (G, T ) be a terminal
+network with capG (T ) = k. Then there is a set Z ⊆ E(G) with |Z| = k O(α(n,k) log k) such that for
+every partition T = T1 ∪ . . . ∪ Ts of T , there is a minimum multiway cut X for T such that X ⊆ Z.
+Furthermore, Z can be computed in randomized polynomial time using calls to A.
+   Unfortunately, the best known ratio for SSE which can be stated purely in terms of k and n is
+α(n, k) = O(log n) [32], and plugging this into the above formula yields a vacuous result. However, by
+a more careful analysis we are able to show a better bound using the algorithm of Bansal et al. [2]. In
+summary, we get the following.
+Corollary 1. Let (G, T ) be a terminal network with capG (T ) = k. The following holds.
+   1. There is a multicut-mimicking network for (G, T ) with k O(log k) edges.
+                                                                  3
+   2. A multicut-mimicking network for (G, T ) with k O(log k) edges can be computed in randomized
+      polynomial time.
+   The latter implies several breakthrough results in kernelization, as follows. We refer to previous
+kernelization work [19] for the necessary definitions.
+Corollary 2. The following problems have randomized quasipolynomial kernels.
+
+
+                                                        3
+    1. Edge Multiway Cut parameterized by solution size.
+    2. Edge Multicut parameterized by the solution size and the number of cut requests.
+    3. Group Feedback Edge Set parameterized by solution size, for any group.
+    4. Subset Feedback Edge Set with undeletable edges, parameterized by solution size.
+
+
+2     Preliminaries
+A parameterized problem is a decision problem where inputs are given as pairs (X, k), where k is the
+parameter. A polynomial kernelization is a polynomial-time procedure that maps an instance (X, k) to
+an instance (X ′ , k ′ ) where (X, k) is positive if and only if (X ′ , k ′ ) is positive, and |X ′ |, k ′ ≤ g(k) for
+some function g(k) referred to as the size of the kernel. A problem has a polynomial kernel if it has a
+kernel where g(k) = k O(1) . We extend this to discuss quasipolynomial kernels, which is the case that
+            O(1)
+g(k) = k log     k
+                   . For more on parameterized complexity and kernelization, see [5, 10].
+    For a graph G = (V, E) and sets A, B ⊆ V , we let EG (A, B) = {uv ∈ E | u ∈ A, v ∈ B}. As
+shorthand for S ⊆ V we also write E(S) = E(S, S), ∂G (S) = EG (S, V \ S), and δG (S) = |∂G (S)|. The
+total capacity of a set of vertices S in a graph G is
+                                                          X
+                                             capG (S) :=     d(v).
+                                                             v∈S
+
+In all cases, we may omit the index G if understood from context.
+
+2.1     Multicut-mimicking networks
+Let G = (V, E) be a graph and T ⊆ V a set of terminals with cap(T ) = k. An edge multiway cut for T
+in G is a set of edges X ⊆ E such that no two vertices in T are connected in G − X. More generally, let
+T = {T1 , . . . , Tr } be a partition of T . Then an edge multiway cut for T in G is a set of edges X ⊆ E
+such that in G − X every connected component contains terminals from at most one part of T . Hence       a
+multiway cut for (G, T ) is equivalent to a multiway cut for (G, {{t} | t ∈ T }). Further, let R ⊆ T2 be a
+                                                                                                     
+
+set of pairs over T , referred to as cut requests. A multicut for R in G is a set of edges X ⊆ E such that
+every connected component in G− X contains at most one member of every pair {u, v} ∈ R. A minimum
+multicut for R in G is a multicut for R in G of minimum cardinality. Similarly, a minimum multiway
+cut for T in G is a multiway cut for T in G of minimum cardinality. For the rest of the paper, we let
+all cuts implicitly be edge cuts, unless otherwise specified, hence we generally refer simply to multiway
+cuts.
+    We define a multicut-mimicking network for T in G as a graph G′ = (V ′ , E ′ ) such that T ⊆ V ′ and
+such that for every set of cut requests R ⊆ T2 , the size of a minimum multicut for R is equal in G
+and in G′ . We observe that this is equivalent to preserving the sizes of minimum multiway cuts over all
+partitions of T .
+Proposition 1. A graph G′ with T ⊆ V (G′ ) is a multicut-mimicking network for T in G if and only if,
+for every partition T of T , the size of a minimum multiway cut for T is equal in G and in G′ .
+Proof. It is clear that the condition is necessary, since for any partition T of T we could form the set R
+of all pairs over T which lie in distinct parts of T , and a multicut for R is then necessarily a multiway
+                                                                                                          cut
+for T . To see that the condition is also sufficient, consider an arbitrary set of cut requests R ⊆ T2 and
+let X be a minimum multicut for (G, R). Let T be the partition of T in G − X according to connected
+components. Then X is a multiway cut for T , and any multiway cut for T is also a multicut for R.
+Hence the size of a minimum multicut for R is precisely the size of a minimum multiway cut for T .
+    As a slightly sharper notion, a multicut-covering set for (G, T ) is a set Z ⊆ E(G) such that for every
+set of cut requests R ⊆ T2 , there is a minimum multicut X for R in G such that X ⊆ Z. Note that a
+                           
+multicut-covering set Z is essentially equivalent to a multicut-mimicking network formed by contraction
+(contracting all edges of E(G) \ Z). Our main result in this paper is the existence of a multicut-covering
+set of size quasipolynomial in k = cap(T ) in any undirected graph G. Furthermore, such a set can be
+
+                                                         4
+computed in polynomial time, subject to the existence of certain approximation algorithms that we will
+make precise later in this section.
+    A multicut-covering set is a generalization of a cut-covering set, used in previous work [19]. Formally,
+a cut-covering set for (G, T ) is a set Z ⊆ E(G) such that for any partition T = A ∪ B there is an
+(A, B)-min cut X in G with X ⊆ Z. By previous work, if (G, T ) is a terminal network with cap(T ) = k,
+then a cut-covering set of O(k 3 ) edges can be computed in randomized polynomial time [19]. We observe
+that this gives us a 2-approximate multicut-covering set.
+Lemma 1. Let (G, T ) be a terminal network and let Z be a cut-covering set for edge cuts over T . Then
+Z is a 2-approximate multicut-covering set.
+Proof. Let T = T1 ∪ . . . ∪ Ts be a partition of T and let X be a minimum multiway cut for T . For i ∈ [s],
+let λi = λ(Ti , T \ Ti ) be the size of an isolating min-cut for Ti in G. Then Z contains a (Ti , T \ TP
+                                                                                                       i )-cut of
+                                                                                                           s
+cardinality λi for every i ∈ [s], and by taking their union we get a solution X ′ ⊆ Z with |X ′ | ≤  Ps i=1 λi .
+                                                                                                   1
+     It is known [35, Cor. 73.2e] that there exists a half-integral multiflow in G for T of value 2 i=1 λi ≥
+|X ′ |/2. Hence |X| ≥ |X ′ |/2, and X ′ is a 2-approximate multiway cut for T . By the argument of Prop. 1,
+X ′ is also a 2-approximate multicut-mimicking network for (G, T ).
+   Thus, in randomized polynomial time we can compute a 2-approximate multicut-covering set for a
+terminal network (G, T ) with O(cap(T )3 ) edges.
+
+2.2     Graph separation algorithms
+The central technical approximation assumption needed in this paper is the following. For a graph G
+with a set of terminals T , define the T -capacity of S in G as
+
+                                          capT (S) = capG (T ∩ S) + δG (S).
+
+Then we define the following notion.2
+Definition 1 (Quasipolynomial expansion tester). Let (G, T ) be a terminal network with capG (T ) = k.
+A quasipolynomial expansion tester (with approximation ratio α) is a (possibly randomized) algorithm
+that, given as input (G, T ) and an integer c ∈ N, with c = Ω(log k), does one of the following.
+   1. Either returns a set S ⊂ V such that N [S] 6= V (G) and capT (S) < |S|1/c ,
+   2. or guarantees that for every set S with 0 < |S| ≤ |V (G)|/2 and N [S] 6= V (G) we have capT (S) ≥
+      |S|1/c /α.
+More generally, we allow α : N → N to be a function depending on |S| in addition to n and k, in which
+case the guarantee in the second item is capT (S) ≥ |S|1/c /α(|S|). We say that (G, T ) is (α, c)-dense
+if case 2 above applies, i.e., for every set S with 0 < |S| ≤ |V (G)|/2 and N [S] 6= V (G) we have
+capT (S) ≥ |S|1/c /α(|S|).
+   We note that such algorithms follow from approximation algorithms for Small Set Expansion;
+indeed, the problem definitions are almost identical, except for the parameter c. Let G = (V, E) be a
+graph and S ⊆ V a set of vertices. The edge expansion of S is
+                                                                 δ(S)
+                                                      Φ(S) :=         .
+                                                                  |S|
+For a real number ρ ∈ (0, 1/2], one also defines the small set expansion
+
+                                              Φρ (G) :=       min         Φ(S).
+                                                          S⊆V,|S|≤ρn
+
+In particular, for a value s ∈ [n/2], Φs/n (G) denotes the worst (i.e., minimum) expansion among subsets
+of G of size at most s. Approximation algorithms for Small Set Expansion imply quasipolynomial
+expansion testers, as follows.
+   2 For the main results of the paper, it suffices to assume a specialised version that focuses on cuts that cut through the
+
+terminal set. The details were worked out in the preliminary version of this paper [37], under the name sublogarithmic
+terminal expansion tester. We use here a simplified definition that suffices for our results.
+
+
+                                                             5
+Lemma 2. Assume that Small Set Expansion has a bicriteria approximation algorithm that on input
+(G, ρ) returns a set S with |S| ≤ βρn and Φ(S) ≤ α(ρn) · Φρ , for some α, β ≥ 1 which may depend on
+n, k = Φρ ρn, and ρ. Also assume c = Ω(log k) and α ≤ O(log n). Then there is a quasipolynomial
+expansion tester with approximation function α′ (|S|) = Θ(α(|S|)β).
+Proof. Let α′ (s) = 2α(s)β. Assume that (G, T ) is not (α′ , c)-dense for some parameter c, and let S ⊂ V
+be a set witnessing this, i.e., 0 < |S| ≤ |V (G)|/2, N [S] 6= V (G), and capT (S) < |S|1/c /α′ (|S|). For
+shorthand write α′ = α′ (|S|). We argue that the set S \ T is also a legal return value for the algorithm.
+Note
+                       capT (S \ T ) = δ(S \ T ) ≤ δ(S) + capG (T ∩ S) = capT (S).
+We also have |S| > (α′ capT (S))c ≥ (α′ capT (S \ T )c . Now, recall that Minimum Bisection is FPT
+parameterized by the solution value (i.e., the number of edges cut by an optimal solution), with the
+fastest FPT algorithm running in time O∗ (2O(p log p) ) for parameter p [6]. Hence we can in polynomial
+time check for a bisection with p = O(log n/ log log n) edges, and by replacing a vertex with a suitably
+large clique we can also check for a set S ′ of cardinality s with δ(S ′ ) ≤ p. Hence in the remaining case
+we assume capT (S) ≥ δ(S) ≥ Ω(log n/ log log n). Furthermore, by assumption c = Ω(log k). Hence
+
+                            |S| ≥ (α′ capT (S))c ≥ (log n/ log log n)log k = k Ω(log log n) ,
+
+and the difference in size between |S| and |S \ T | ≥ |S| − k is negligible. Hence
+
+                                      δ(S \ T )     capT (S)
+                       Φ(S \ T ) =              ≤               < (1 + o(1))(1/α′ )|S|1/c−1 .
+                                       |S \ T |   (1 − o(1))|S|
+
+Now attach a large clique to every terminal in G, say of size β|S| + 1, forming a graph G′ , and call an
+approximation algorithm for Small Set Expansion with a parameter of ρ = |S|/|V (G′ )|. Assume that
+the algorithm returns a set S ′ ⊆ V (G′ ). Then |S ′ | ≤ β|S|, hence S ′ ∩ T = ∅ and capT (S ′ ) = δ(S ′ ).
+Furthermore Φ(S ′ ) ≤ α′′ Φ(S \ T ) where α′′ is the approximation guarantee of the algorithm on input
+(G′ , ρ). Here, the only relevant difference between α′′ and α lies in the difference between |V (G)| = n
+and |V (G′ | ≤ n + k(β|S| + 1) ≤ O(kβn). But since α by assumption depends on n as O(log n) or slower,
+this difference is a lower-order term. Then
+                                                             1 + o(1) ′                  1 + o(1) ′
+capT (S ′ ) = δ(S ′ ) = |S ′ |Φ(S ′ ) ≤ |S ′ |αΦ(S \ T ) <           |S | · |S|1/c−1 . =         (|S |/|S|)1−1/c |S ′ |1/c .
+                                                                2β                          2β
+
+Now, since |S ′ |/|S| ≤ β we get capT (S ′ ) < (1/2)(1 + o(1))|S ′ |1/c , and S ′ is a valid return value. By
+repeating the above for all target sizes |S| = ρ|V (G′ )| from 1 to |V (G)|, we can be sure to identify such
+a set S ′ if one exists.
+     The strongest general-case approximation is an O(log n)-approximation due to Räcke [32], which
+is pnot a useful bound for us; but the bicriteria
+                                              p algorithm of Bansal et al. [2] achieves a ratio of
+O( log n log(1/ρ)), giving α(|S|) = O(log n/ log |S|), which is√(just barely) strong enough to get
+some results. Stronger bounds, e.g., α = O(log k) or even α = O( log k), would give improved results
+(cf. Theorem 1).
+
+
+3     Multicut-covering sets
+We now present the main result of the paper, namely the existence of quasipolynomial multicut-mimicking
+networks for terminal networks (G, T ), and a method for computing them in randomized polynomial time
+using an appropriate quasipolynomial expansion tester.
+    At a high level, the process works through recursive decomposition of the graph G across very sparse
+cuts, treating each piece G[S] of the recursion as a new instance of multicut-covering set computation,
+where the edges of ∂(S) are considered as additional terminals. The process     repeatedly finds a single
+edge e ∈ E(G) with a guarantee that for every set of cut requests R ⊆ T2 there is a minimum multicut
+                                                                           
+X for R in G such that e ∈  / X. We may then contract the edge e and repeat the process. Thus the end
+product is a multicut-mimicking network, and the edges that survive until the end of the process form a
+multicut-covering set.
+
+                                                               6
+    In somewhat more detail, the process uses a variant of the representative sets approach, which was
+previously
+         used in the kernel for s-Multiway Cut [19]. Refer to an edge e as essential for R, for some
+R ⊆ T2 , if every minimum multicut for R in G contains e, and essential for (G, T ) if it is essential for
+R for some R ⊆ T2 . We use a representative sets approach to return a set of at most k c edges which
+                    
+
+is guaranteed to contain every essential edge, if (G, T ) is already (α, c)-dense, for an appropriate value
+c = Ω(α log k). On the other hand, if (G, T ) is not (α, c)-dense, then (by careful choice of parameters)
+we can identify a cut through G which is sufficiently sparse that we can reduce the size of one side of
+this cut via a recursive call. This gives a tradeoff between the size of the resulting multicut-covering set
+and the denseness-guarantee we may assume through the approximation algorithm. When α is constant
+(or, more precisely, independent of |S|) then this analysis gives a quite simple bound for an algorithm
+that computes a multicut-covering set of k c edges.
+    Unfortunately, the best bound on α independent of |S| is just α = O(log n), in which case the bound
+k c with c = Ω(log n) is vacuous. We therefore also perform a more careful analysis using the Small
+Set Expansion- approximation algorithm of Bansal et al. [2], and show that it allows us to compute a
+                                3
+multicut-covering set of k O(log k) edges in polynomial time.
+
+3.1    Recursive replacement
+We now present the recursive decomposition step in detail. Let (G, T ) be a terminal network with
+capG (T ) = k. For a set S ⊆ V , we define the graph
+
+                                       GS = G[NG [S]] − E(NG (S)),
+
+i.e., GS equals the graph G[S] with the edges of ∂(S) added back in. We also denote
+
+                                         T (S) = (T ∩ S) ∪ NG (S)
+
+as the terminals of S. Under these definitions, the T -capacity of S in G has two equivalent definitions
+as
+                          capT (S) = capGS (T (S)) = capG (T ∩ S) + δG (S).
+The recursive instance at S consists of the terminal network (GS , T (S)). This is the basis of our recursive
+replacement procedure. Indeed, we show the following. Note that we consider E(GS ) ⊆ E(G) in the
+following.
+Lemma 3. Let (GS , T (S)) be the recursive instance at S for some S ⊆ V (G). Let ZS be a multicut-
+covering set for (GS , T (S)) and let e ∈ E(GS ) \ ZS . Then e is not essential for (G, T ).
+Proof. By Prop. 1, it is sufficient to consider partitions T of T and minimum multiway cuts X for T .
+Let T be some partition of T , and let X be a minimum multiway cut for T in G. Let T ′ be the partition
+of T (S) induced by the connected components of G − X and XS = X ∩ E(GS ). Then XS is a multiway
+cut for T ′ in GS . Indeed, any path P in GS − XS between distinct parts of T ′ also exists in G − X. If
+T ′ consists of a single part, then we have XS = ∅, as otherwise either X contains an edge uv whose both
+endpoints lie in the same connected component of G − X, or G − X contains a connected component
+with no terminals, both of which contradict that X is of minimum cardinality. Otherwise, by assumption
+there is a minimum multiway cut XS′ for T ′ in GS such that e ∈ / X ′ . We claim that X ′ := (X \ XS ) ∪ XS′
+is a minimum multiway cut for T in G. Note that |X ′ | ≤ |X|, hence it remains to show that X ′ is a
+multiway cut. Assume for a contradiction that G − X ′ contains a path P connecting different parts of
+T , and consider the partition of P into subpaths induced by splitting at every vertex of T (S) that P
+intersects. Note that every such subpath is either contained in E(GS ) or disjoint from E(GS ), and by
+assumption at least one such subpath is contained in E(GS ), as otherwise P uses only edges also present
+in G − X. But every such subpath goes between two vertices of T (S) which lie in the same connected
+component of G − X by definition of T ′ . Thus every such subpath starts and ends in a single connected
+component of G − X, contradicting that P starts and ends in different components. Therefore X ′ is a
+minimum multiway cut for T in G. Since e ∈    / X ′ we are done.
+   Let us also briefly note the formal correctness of contracting a non-essential edge. Let G/e denote
+the result of contracting e in G.
+
+
+                                                     7
+Proposition 2. Let e ∈ E(G) be a non-essential edge. Then for every X ⊆ E(G) with e ∈           / X, and
+every partition T of T , X is a multiway cut for T in G if and only if it is a multiway cut for T in G/e.
+Furthermore, G/e is a multicut-mimicking network for (G, T ), and any multicut-covering set Z ⊆ E(G/e)
+for (G/e, T ) is also multicut-covering for (G, T ).
+Proof. The first part is clear, since the contraction of an edge in G − X does not change the structure
+of the connected components. Since e is non-essential, by assumption there exists such an optimal X
+with e ∈
+       / X for every partition T , hence (G/e, T ) is a multicut-mimicking network. It also follows that
+an optimal solution for G always exists in E(G/e), hence a solution-covering set for (G/e, T ) is also
+solution-covering for (G, T ).
+    The process now works as follows. Recall that (G, T ) is (α, c)-dense if capT (S) ≥ |S|1/c /α for every set
+S with S ∩T 6= ∅ and |S| ≤ |V |/2. The main technical result is a marking process that marks all essential
+edges for (G, T ) on the condition that (G, T ) is (α, c)-dense, and which marks at most k c edges in total.
+In such a case, we are clearly allowed to select and contract any unmarked edge of G. Now, assume that
+(G, T ) is not (α, c)-dense. Then by definition there exists a set S ⊂ V such that capT (S) < |S|1/c /α. If
+we can detect a set S such that capT (S) < |S|1/c , then we can recursively compute a multicut-covering
+set ZS for (GS , T (S)), consisting of at most capT (S)c < |S| edges. By the above, we may again select
+any single edge e ∈ E(GS ) \ ZS and contract e in G. In either case, we replace G by a strictly smaller
+graph until |E(G)| ≤ k c , at which point we are done.
+    The two ingredients in the above are thus the marking process for (α, c)-dense graphs, which we
+present next, and the ability to distinguish the two cases, which has been formalized in the notion of a
+quasipolynomial expansion tester.
+
+3.2     The dense case
+Let us now focus on the marking procedure. Let a terminal network (G, T ) with capG (T ) = k and
+an integer c be given. We show a process that marks essential edges, on the condition that (G, T ) is
+(α, c)-dense, where we initially assume that α is constant. That is, we prove the following result. The
+proof takes up the rest of the subsection.
+Lemma 4. Assume that (G, T ) is (α, c)-dense for some constant α. There is a function c = Θ(α log k)
+and a randomized polynomial-time procedure that returns a set of edges Z ⊆ E(G) such that |Z| ≤ k c
+and if (G, T ) is (α, c)-dense then every essential edge for (G, T ) is contained in Z.
+    In the preliminary version of this paper [37], we gave a multi-phase marking procedure for this purpose,
+with a relatively complex correctness proof. In this paper, we give a simplified proof, based around the
+following observation.
+Proposition 3. Let T be a partition of T and X a minimum multiway cut for T . Let V = V1 ∪ . . . ∪ Vs
+be the partition of V according to the connected components of G − X, ordered so that capT (V1 ) ≥ . . . ≥
+capT (Vs ). Then for any i ∈ [s], capT (Vi ) ≤ 3k/i.
+                                                                                           Ps
+Proof. Since every edge of X is incident with at most two components of G−X, we have P      i=1 δ(Vi ) ≤ 2k.
+The additional contribution to capT (Vi ) from terminals of T is precisely k in total. Hence i capT (Vi ) ≤
+                                                   Pi
+3k. On the other hand, if capT (Vi ) > 3k/i then j=1 capT (Vj ) > i · (3k/i) = 3k.
+    Since (G, T ) is by assumption (α, c)-dense, it follows that for i > 1 we have |Vi | ≤ (α3k/i)c . If
+|V (G)| > k c , and if c is large enough then it follows that almost all vertices of G are found in the first
+few components. We shall see that this suffices to allow for a simple marking procedure to capture all
+essential edges of (G, T ).
+
+3.2.1   Matroid constructions
+Before we show the marking procedure, we need some additional preliminaries. We refer to Oxley [30]
+for more background on matroids, and to Marx [27] for a more concise, technical presentation, includ-
+ing the presentation of the representative sets lemma. For further examples of kernelization usage of
+representative sets, see Kratsch and Wahlström [19].
+    A matroid is a pair M = (E, I) where I ⊆ 2E is the independent sets of M , subject to the following
+axioms.
+
+                                                      8
+   1. ∅ ∈ I;
+   2. if B ∈ I and A ⊆ B then A ∈ I; and
+   3. if A, B ∈ I with |B| > |A| then there exists an element x ∈ B \ A such that A + x ∈ I.
+A basis of M is a maximum independent set of M ; the rank of M is the size of a basis.
+    Let A be a matrix, and let E label the columns of A. The column matroid of A is the matroid
+M = (E, I) where S ∈ I for S ⊆ E if and only if the columns indexed by S are linearly independent. A
+matrix A represents a matroid M if M is isomorphic to the column matroid of A. We refer to A as a
+linear representation of M .
+    We need three classes of matroids to build from. First, for a set E, the uniform matroid over E of
+rank r is the matroid
+                                  U (E, r) := (E, {S ⊆ E | |S| ≤ r}).
+Uniform matroids are representable over any sufficiently large field.
+    The second class is a truncated graphic matroid. Given a graph G = (E, V ), the graphic matroid of
+G is the matroid M (G) = (E, I) where a set F ⊆ E is independent if and only if F is the edge set of a
+forest in G. Graphic matroids can be deterministically represented over all fields. The r-truncation of a
+matroid M = (E, I) for some r ∈ N is the matroid M ′ = (E, I ′ ) where S ∈ I ′ if and only if S ∈ I and
+|S| ≤ r. Given a linear representation of M , over some field F, a truncation of M can be computed in
+randomized polynomial time, possibly by moving to an extension field of F [27]. There are also methods
+for doing this deterministically [24], but the basic randomized form will suffice for us.
+    The final class is more involved. Let D = (V, A) be a directed graph and S ⊆ V a set of source
+vertices. A set T ⊆ V is linked to S in D if there are |T | pairwise vertex-disjoint paths starting in S and
+ending in T . Let U ⊆ V . Then
+                            M (D, S, U ) = (U, {T ⊆ U | T is linked to S in D})
+defines a matroid over U , referred to as a gammoid. Note that by Menger’s theorem, a set T is dependent
+in M if and only if there is an (S, T )-vertex cut in D of cardinality less than |T | (where the cut is allowed
+to overlap S and T ). Like uniform matroids, gammoids are representable over any sufficiently large field,
+and a representation can be computed in randomized polynomial time [30, 27]. We will work over a
+variant of gammoids we refer to as edge-cut gammoids, which are defined as gammoids, except in terms
+of edge cuts instead of vertex cuts. Informally, for a graph G = (V, E) and a set of source vertices
+S ⊆ V , the edge-cut gammoid of (G, S) is a matroid on a ground set of edges, where a set F of edges is
+independent if and only if it can be linked to S via pairwise edge-disjoint paths. However, we also need
+to introduce the “edge version” of sink-only copies of vertices, as used in previous work [19]. That is, we
+introduce a second set E ′ = {e′ | e ∈ E} containing copies of edges e ∈ E which can only be used as the
+endpoints of linkages, not as initial or intermediate edges.
+    More formally, for a graph G = (V, E) and a set of source vertices S ⊆ E we perform the following
+transformation.
+   1. Let L(G) be the line graph of G, i.e., the vertices of L(G) are V (L(G)) = {ze | e ∈ E(G)}, and
+      ze zf ∈ E(L(G)) if and only if e ∩ f 6= ∅. Let SD ⊆ V (L(G)) be the vertices of L(G) corresponding
+      to the edges E(S, V ) in G.
+   2. Convert L(G) to a directed graph DG by replacing every edge ze zf ∈ E(LG ) by a pair of directed
+      edges (ze , zf ), (zf , ze ) in E(DG ).
+   3. Finally, for every vertex ze ∈ V (DG ) introduce a new vertex ze′ , and create a directed edge (v, ze′ )
+      for every edge (v, ze ) in DG .
+Slightly abusing notation, we let E refer to the vertices ze in DG , and we let E ′ refer to the vertices ze′
+in DG . The edge-cut gammoid of (G, S) is the gammoid (DG , SD , E ∪ E ′ ). Let us observe the resulting
+notion of independence.
+Proposition 4. Let G = (V, E) and S ⊆ V be given. Let M = (E ∪ E ′ , I) be the edge-cut gammoid of
+(G, S). Let X ⊆ E ∪ E ′ be given, and let F = (X ∩ E) ∪ {e | e′ ∈ F ∩ E ′ }. Then X is independent in
+M if and only if there exists a set P of |X| paths linking X to S, where paths are pairwise edge-disjoint
+except that if {e, e′ } ⊆ X for some edge e, then two distinct paths in P end in e.
+
+                                                      9
+   We let U (E, p) denote the uniform matroid of rank p on ground set E(G), MG (p) the p-truncated
+graphic matroid of G, and M (T ) the edge-cut gammoid of (G, T ).
+   If M1 = (E1 , I1 ) and M2 = (E2 , I2 ) are two matroids with E1 ∩ E2 = ∅, then their disjoint union is
+the matroid
+                           M1 ⊎ M2 = (E1 ∪ E2 , {I1 ∪ I2 | I1 ∈ I1 , I2 ∈ I2 }).
+If M1 and M2 are represented by matrices A1 and A2 over the same field, then M1 ⊎ M2 is represented
+by the matrix                                        
+                                               A1 0
+                                         A=
+                                                0 A2
+We will define matroids M as the disjoint union over several copies of the base matroids M (T ), MG (p)
+and U (E, p) defined above. In such a case, we refer to the individual base matroids making up M as the
+layers of M .
+
+Representative sets. Our main technical tool is the representative sets lemma, due to Lovász [25]
+and Marx [27]. This result has been important in FPT algorithms [27, 9] and has been central to the
+previous kernelization algorithms for cut problems, including variants of Multiway Cut [19]. We also
+introduce some further notions.
+Definition 2. Let M = (E, I) be a matroid and X, Y ∈ I. We say that Y extends X in M if
+r(X ∪ Y ) = |X| + |Y |, or equivalently, if X ∩ Y = ∅ and X ∪ Y ∈ I. Furthermore, let c = O(1) be a
+constant and let Y ⊆ Ec . We say that a set Ŷ ⊆ Y represents Y in M if the following holds: For every
+X ∈ I for which there exists some Y ∈ Y such that Y extends X in M , then there exists some Y ′ ∈ Ŷ
+such that Y ′ extends X in M .
+   The representative sets lemma now says the following.
+Lemma 5 (representative sets lemma [25, 27]). Let M = (E, I) be a linear matroid represented by a
+matrix A of rank r + s, and let Y ⊆ Es be a collection of independent sets of M , where s = O(1). In
+time polynomial in the size of A and the size of Y, we can compute a set Ŷ ⊆ Y of size at most r+s
+                                                                                                   
+                                                                                                 s
+which represents Y in M .
+   We use the following product form of the representative sets lemma, with stronger specialized bounds.
+Assume that the rank of M is r = r1 + . . . + rc , where ri is the rank of layer i of M . Then Lemma 5 gives
+a bound on |Ŷ| as Θ((r1 + . . . + rc )c ), but the following bound is significantly better when the layers of
+M have different rank.
+Lemma 6 ([19, Lemma 3.4]). Let M = (E, I) be a linear matroid,       given as the disjoint union of c
+matroids Mi = (Ei , Ii ), where Mi has rank ri . Let Y ⊆ Ec be such that every set Y ∈ Y contains
+                                                           
+
+precisely one member in each layer Mi of  QcM . Then the representative set Ŷ ⊆ Y computed by the
+representative sets lemma will have |Ŷ| ≤ i=1 ri .
+
+3.2.2   The marking step
+For the marking process, fix an integer i0 (to be specified later). We define a matroid M as a function of
+i0 as the disjoint union of i0 − 1 copies of the edge-cut gammoid M (T ) on disjoint copies of the ground
+set, one copy of MG (k c−i0 ), and one copy of U (E, k). That is, M = M1 ⊎ · · · ⊎ Mi0 +1 , where M1 through
+Mi0 −1 are copies of M (T ) on disjoint copies of the ground set, Mi0 = MG (k c−i0 ), and Mi0 +1 = U (E, k).
+We refer to the first i0 − 1 layers in M as the gammoid layers and the last two as the graphic matroid
+layer and the uniform layer. Note that a linear representation of M over some common field F can be
+computed in randomized polynomial time, since every layer of M can be represented over any sufficiently
+large field.
+    For each edge e ∈ E, let t(e) be the set that contains a copy of ze′ in every gammoid layer, and a copy
+of e in the graphic matroid and uniform layers. Let
+                                            F = {t(e) | e ∈ E}.
+We compute a representative set F̂ ⊆ F in the matroid M , and let Z ⊆ E be the set of edges represented
+in F̂ . An edge e ∈ E is marked if e ∈ Z. We finish the description by observing the bound on the
+number of marked edges.
+
+                                                     10
+Lemma 7. The total number of marked edges is at most k c .
+Proof. Follows directly from the product form of the representative sets lemma.
+    Finally, we note the correctness condition for the marking. Consider a partition T of T and a
+corresponding minimum multiway cut X ⊆ E. Note that |X| ≤ k since E(T, V ) is a multiway cut for
+every partition, and say that X is covered if all edges essential for T are marked. We then have the
+following.
+Lemma 8. Let       SsV = V1 ∪ . . . ∪ Vs be the partition of G − X into connected components, where |V1 | ≥
+. . . ≥ |Vs |. If | i=i0 Vi | ≤ k c−i0 , then X is covered.
+Proof. Let e ∈ X be an edge which is essential for T . Let T = {T1 , . . . , Ts } where Ti = T ∩ Vi for i ∈ [s].
+Finally, define an independent set I in M as follows. In the i:th gammoid layer, i < i0 , I contains copies
+of vertices ze from the edges of ∂(Ti ) ∪ X. In the graphic matroid layer, I contains a spanning forest for
+components Vi0 through Vs . In the final layer, I contains the edges of X − e. We claim that t(f ) extends
+I if and only if f = e.
+    For the easier direction, we note that t(f ) cannot extend I if e 6= f . If f ∈ E(Vi ) for some i < i0 ,
+then f fails to extend I in layer i. If f ∈ E(Vi ) for i ≥ i0 , then f fails to extend I in the graphic matroid
+layer. Finally, if f ∈ X then f fails to extend I in the uniform matroid layer. Hence it remains to show
+that t(e) extends I.
+    For the gammoid layers, this works precisely as in [19]. As noted in [19] (Prop. 1), whether a sink-only
+copy v ′ extends a set U in a gammoid (D, S) depends on whether the original copy v is contained in the
+(S, U )-min cut closest to S. Here, including ∂(Ti ) in I in layer i effectively turns this condition into a
+cut between X and δ(T \ Ti ). Hence if e′ does not extend X ∪ ∂(Ti ), then there is a min-cut X2 between
+X and T \ Ti that is closer to T \ Ti than X, and e ∈    / X2 . This contradicts that e is essential for T .
+    For the last two layers, the statement is trivial. Hence t(f ) extends I if and only if f = e, as promised,
+and e ∈ Z.
+
+3.2.3   Correctness
+We finish this section by showing that a choice of c = Θ(α log k) suffices, when α is constant.
+Lemma 9. Set i0 = 4α. There is a value c = Θ(α log k) such that the following holds: If (G, T ) is
+(α, c)-dense, then Z contains all essential edges.
+Proof. Let T be a partition of T and let X be a minimum multiway cut for T . Let V = V1 ∪. . .∪Vs be the
+connected components of G − X sorted by decreasing value of capT (Vi ). By Prop. 3, capT (Vi ) ≤ 3k/i0
+for i ≥ i0 ; hence |Vi | ≤ (α3k/i0 )c = (3k/4)c by the denseness guarantee on (G, T ). Thus
+                                    s
+                                    X
+                                          |Vi | ≤ s · (3k/4)c ≤ k · k c · (3/4)c .
+                                   i=i0
+
+
+For c = log4/3 (k i0 +1 ) = Θ(α log k), this is upper-bounded by k c−i0 , hence X is covered by Lemma 8.
+Hence Z contains all essential edges.
+   In Theorem 2, we combine this with the decomposition described previously to show the existence of
+a multicut-covering set with k O(log k) edges.
+
+3.3     A constructive result
+Now, with some slightly more involved calculations and a higher degree in the exponent, we show that
+this can be achieved constructively. The marking process is the same as in the last section, but we need
+to be more careful with the constants.
+    For this section, let c = ⌊(log n)/(log k)⌋ − 1, to ensure that the number of edges marked is k c < n.
+We will treat this as c = (1 − o(1)) log n/ log k. We show that such a marking process is possible until
+                                                                      3
+we reach a bound of c = O(log3 k). Hence, we assume |V | = k Ω(log k) in the sequel.
+
+
+
+                                                          11
+    We use the Small pSet Expansion approximation algorithm of Bansal et al. [2], which has a ratio
+of α(|S|) = O(log n/ log |S|). By Lemma 2 we may then assume that for any non-empty set S ⊆ V ,
+|S| ≤ |V |/2, we have capT (S) ≥ |S|1/c /α(|S|).
+    By Lemma 8, we wish to find a threshold value i0 such that the total number of vertices in components
+Vi for i√≥ i0 is at most k c−i0 , where it suffices to show that |Vi | ≤ k c−i0 −1 for every i ≥ i0 . We set
+i0 = Θ( c log k) with a constant factor to be decided.
+    Let (G, T ) be (α, c)-dense with α and c as above. Let T be a partition of T and X a minimum
+multiway cut for T . We show that the marking process with parameters c and i0 cover all essential edges
+of X.
+Lemma 10. Let V = V1 ∪ . . . ∪ Vs be the partition corresponding to connected components of G − X,
+ordered in decreasing value of capT (Vi ). With the above parameters, |Vi | ≤ k c−i0 −1 for every i ≥ i0 .
+Proof. Assume for a contradiction that for some i ≥ i0 , |Vi | > k c−i0 −1 . By the SSE approximation we
+use, for some p = O(1) we then have
+                                                                         √
+                                        p log n                       pc log k
+                        α(|Vi |) ≤ p                   ≤ (1 + o(1)) √             ,
+                                    (c − i0 − 1) log k                 c − i0 − 1
+                                                                                                  √
+where we can absorb the 1 + o(1) factor into p. Furthermore fix the constant in i0 so that i0 = 6p c log k.
+By Prop. 3 we have capT (Vi ) ≤ 3k/i ≤ 3k/i0 , hence the denseness guarantee is
+                                                √            c         r               c
+                                              3pc log k                  1         c
+           |Vi | ≤ (3αk/i0 )c = k c ·     √       √              = kc ·    ·                  .
+                                        6p c log k c − i0 − 1            2   (c − i0 − 1)
+                                    √
+Since c = Ω(log3 k), we have i0 = Θ( c log k) = o(c). Hence c/(c−i0 −1) = 1+(i0 +1)/(c−i0 −1) = 1+o(1)
+and we claim                                             c
+                                            c    1 + o(1)
+                                   |Vi | ≤ k ·               ≤ k c−i0 −1 ,
+                                                    2
+                                                     1/2
+                                                           log3/2 k)
+contradicting our assumption. Indeed, k i0 = 2Θ(c                      ≤ 2c for some c = Ω(log3 k). Thus the
+contradiction is complete and |Vi | ≤ k c−i0 −1 .
+     Since there are at most k components, it follows that the number of vertices in total in components
+Vi , i ≥ i0 , is less than k c−i0 , as required. Hence we have the following.
+                                3
+Lemma 11. If |V (G)| ≥ k Ω(log k) and (G, T ) is (α, c)-dense as above, then there is a process that marks
+all essential edges of (G, T ) while leaving at least one edge unmarked.
+
+3.4    Completing the result
+We now put the pieces together to show the non-constructive and constructive bounds on the size of a
+multicut-covering set.
+Theorem 2 (Theorem 1 restated). Let A be a quasipolynomial expansion tester with ratio α(n, k). Let
+(G, T ) be a terminal network with capG (T ) = k. There is a multicut-covering set Z ⊆ E(G) with
+|Z| ≤ k O(α(n,k) log k) , which furthermore can be computed in randomized polynomial time using calls to
+A.
+Proof. Set c = Θ(α log k) as in Lemma 9. If |E(G)| ≤ k c then return Z = E(G). Otherwise, we compute
+a non-essential edge e as follows. Call A on (G, T, c). If A reports that (G, T ) is (α, c)-dense, then
+Lemma 4 applies. Compute a set Z containing all essential edges, with |Z| ≤ k c , guaranteeing that there
+is a non-essential edge e ∈ E(G) \ Z.
+    If A returns a set S ⊆ V (G), let kS = capT (S). Let (GS , T (S)) be the recursive instance at S, and
+note that |V (GS )| = |NG [S]| < |V | and |S| > kSc by definition of A. We may now proceed by induction
+on |V | and assume that we can compute a multicut-covering set ZS ⊆ E(GS ) of size |ZS | < kSc . To
+                                                                 / T (S) and dGS (v) ≤ 2, then delete v if v
+eliminate a corner case, if there is a vertex v ∈ V (GS ) with v ∈
+is a leaf, otherwise contract one edge incident with v. Note that since v ∈/ T (S) we have dG (v) = dGS (v)
+and v ∈ / T , hence these reduction rules are clearly correct. If this rule does not apply, there must be
+
+                                                    12
+some edge e ∈ E(GS ) \ ZS , and by construction e corresponds directly to an edge in G. Again, we have
+found a non-essential edge.
+   By Prop. 2 we may now contract e in G and repeat. This yields a graph G′ with |V (G′ )| < |V |, hence
+by induction we can create a multicut-covering set Z for G′ , which is also a multicut-covering set of G
+by Prop. 2. Hence we can compute a multicut-covering set Z with |Z| ≤ k c .
+    We observe the following consequences.
+Corollary 3. Let (G, T ) be a terminal network with capG (T ) = k. The following holds.
+   1. There is a multicut-mimicking network for (G, T ) with k O(log k) edges.
+                                                          3
+   2. A multicut-mimicking network with k O(log k) edges can be computed in randomized polynomial
+      time.
+Proof. The first is immediate using α(n, k) = 1. For the second, we need to use Lemma 11. We assume
+                     3
+that |E(G)| > k Ω(log k) as required by Lemma 11, or else we return (G, T ). As in Theorem 2 it suffices
+to locate a single non-essential edge. By Bansal p      et al. [2] and Lemma 2, there is a quasipolynomial
+expansion tester with a ratio α(|S|) = O(log n/ log |S|). Call this algorithm with (G, T, c) where
+c = (1 − o(1)) log n/ log k as in Section 3.3. If it finds a set S, recurse on S as in Theorem 2; otherwise
+Lemma 11 applies. In both cases we locate a non-essential edge. Eventually we reach the threshold
+                        3
+where |E(G)| = k O(log k) and use Z = E(G) as multicut-covering set. We then return the resulting
+terminal network (G, T ) as multicut-covering set.
+   Additionally, if better approximation ratios for Small Set Expansion exist, in particular ratios
+                                                   3
+α = O(log k) or better, then we can improve k O(log k) to a constructive bound of size k O(α log k) .
+
+3.5     Kernelization extensions and consequences
+As noted, we get the following consequences.
+Corollary 4. The following problems have randomized quasipolynomial kernels.
+   1. Edge Multiway Cut parameterized by solution size.
+   2. Edge Multicut parameterized by the solution size and the number of cut requests.
+   3. Group Feedback Edge Set parameterized by solution size, for any group.
+   4. Subset Feedback Edge Set with undeletable edges, parameterized by solution size.
+Proof. For Edge Multiway Cut, let (G, T, k) be an input. Known reduction rules can reduce the
+instance to so that capG (T ) ≤ 2k [19]. From this point, the kernel follows.
+      For Edge Multicut, let the input be (G, {(s1 , t1 ) . . . , (sr , tr )}, p) and let k = p + r. Create a set of
+2r vertices T = {s′1 , . . . , t′r } and p + 1 subdivided parallel edges between s′i and si , and between t′i and ti ,
+for each i ∈ [r]. Let G′ be the new graph. We claim that I = (G, {(s1 , t1 ), . . . , (sr , tr )}, p) is a positive
+instance if and only if I ′ = (G′ , {(s′1 , t′1 ), . . . , (s′r , t′r )}, p) is. Indeed, any multicut for I is a multicut for
+I ′ , and every multicut for I ′ containing at most p edges leaves all new terminals s′i , t′i connected to the
+old terminals si , ti and is hence a multicut for I. Furthermore capG′ (T ) = (p + 1)r = O(k 2 ). Now it
+suffices to compute a multicut-covering set Z for (G′ , T ) and contract all edges in E(G′ ) \ Z.
+      For Group Feedback Edge Set (GFES), we follow the approach of [19]. The input to GFES is
+a tuple (G, φ, k), where φ is a direction-dependent labelling of the edges of G from some multiplicative
+group Γ, such that for every uv ∈ E, φ(uv) = φ(vu)−1 (where the inverse is the group inverse). The
+goal is to remove k edges such that in the remaining graph, there is an assignment λ : V (G) → Γ such
+that for any uv ∈ E(G) we have λ(v) = λ(u) · φ(uv). We will not need any assumptions about how
+the group elements are represented, other than the ability to test whether a product                    Q of elements φ(e)
+equals the group identity 1Γ or not. Refer to a simple cycle C as unbalanced if e∈E(C) φ(e) 6= 1Γ ,
+with the product taken in order along C. We first note that GFES has an O(log k)-approximation.
+Indeed, GFES reduces easily to Group Feedback Vertex Set, which in turn is a special case of the
+meta-problem Biased Graph Cleaning [36]. Lee and Wahlström [22] showed that Biased Graph
+
+                                                              13
+Cleaning admits an O(log k)-approximation, using an oracle for testing whether cycles are unbalanced.
+Let X0 be an approximate solution with |X0 | = O(k log k). Let T = V (X0 ) be the endpoints of X0 . By
+assumption, G − X0 admits an assignment λ : V (G) → Γ as above, and such an assignment λ can be
+computed by starting with an arbitrary value from one vertex of each connected component. We now
+follow [19] in untangling the group labels, so that every edge except those in X0 receive the identity label
+by φ. As in [19], the solution to GFES now corresponds to a multiway cut for some unknown partition
+T of T , hence the multicut-mimicking network can be used for kernelization.
+     Subset Feedback Edge Set with undeletable edges, parameterized by solution size, is covered by
+the previous case, since it is a special case of GFES. Indeed, let S ⊆ E(G) be the special edges. We
+use labels φ from the group Z2S where every edge is labelled by φ by identity except the edges of S,
+which flip one bit of the group element each. It is now easy to see that a cycle is balanced if and only
+if it contains no edge from S. It is furthermore easy to see that we can implement undeletable edges by
+creating parallel (subdivided) copies of edges, using the same group labels.
+    Remark. In the preliminary version of this paper [37], we additionally claimed results for the 0-
+Extension problem, building on results of Reidl and Wahlström [34]. Unfortunately, the proof of
+this in [37] is incorrect, and we were unable to fix it. Concretely, using some terminology of [34], let
+I = ((G, T ), µ, τ ) be an instance of 0-Extension for a terminal network (G, T ) and a metric µ. Assume
+that I has an optimal solution λ with at most k crossing edges, and that G contains a sparse cut, i.e.,
+a set S ⊆ V (G) such that capT (S) < |S|1/c < k. Then the proof attempt in the conference version [37]
+implicitly assumes that λ requires only O(capT (S)) crossing edges inside G[S]. This does not appear to
+hold. Therefore we retract our previous claims in [37] regarding quasipolynomial metric sparsifiers. The
+results of Reidl and Wahlström [34] are not affected by this.
+
+
+4    Discussion
+We defined the notion of a multicut-mimicking network, and showed that every terminal network (G, T )
+                                                                                                        3
+with k = capG (T ) admits one of size k O(log k) , and that a multicut-mimicking network of size k O(log k)
+can be computed in randomized polynomial time. The mimicking network is constructed via contractions
+on G, i.e., it simply consists of a set of edges which form a multicut-covering set. As a consequence of
+such a result, a range of parameterized problems, starting from Edge Multiway Cut, have randomized
+quasipolynomial kernels.
+                                                                              3
+    A first question is how to bridge the gap between k O(log k) and k O(log k) . This may be partially
+possible, depending on the precise approximation guarantee available for Small Set Expansion; but a
+complete bridging via this approach would require a constant-factor approximation for SSE, which has
+been conjectured not to exist under the small set expansion hypothesis. A more difficult question is what
+the correct size of a multicut-mimicking network is in general, and whether one of polynomial size exists
+and can be efficiently computed. A positive solution would confirm the existence of a polynomial kernel
+for Edge Multiway Cut, which is one of the most significant open questions in kernelization.
+    We finally note two questions in different directions. First, all results in this paper relate only to
+edge deletion problems. Can an extension of the method be used to prove the existence or efficient
+computability of a quasipolynomial mimicking network for vertex deletion multicut behaviour? This
+may introduce significant additional difficulties, especially considering that approximation algorithms
+for sparse vertex cuts are less well-developed than algorithms for Small Set Expansion.
+    Second, the preliminary version of this paper [37] contained mistaken claims about existence of
+quasipolynomial kernels and “metric sparsifiers” for 0-Extension instances, subject to a bound on the
+number of crossing edges in a solution. Can such a result be established? On the other hand, can
+evidence be established against the existence of a polynomial-sized exact metric sparsifier, depending on
+a bound on the number of crossing edges k of a solution, or is even such a result plausible?
+
+
+References
+ [1] Alexandr Andoni, Anupam Gupta, and Robert Krauthgamer. Towards 1 + ε-approximate flow
+     sparsifiers. In SODA, pages 279–293. SIAM, 2014.
+
+
+
+                                                    14
+ [2] Nikhil Bansal, Uriel Feige, Robert Krauthgamer, Konstantin Makarychev, Viswanath Nagarajan,
+     Joseph Naor, and Roy Schwartz. Min-max graph partitioning and small set expansion. SIAM J.
+     Comput., 43(2):872–904, 2014.
+ [3] Hans L. Bodlaender, Rodney G. Downey, Michael R. Fellows, and Danny Hermelin. On problems
+     without polynomial kernels. J. Comput. Syst. Sci., 75(8):423–434, 2009.
+ [4] Julia Chuzhoy. On vertex sparsifiers with Steiner nodes. In STOC, pages 673–688. ACM, 2012.
+ [5] Marek Cygan, Fedor V. Fomin, Lukasz Kowalik, Daniel Lokshtanov, Dániel Marx, Marcin Pilipczuk,
+     Michal Pilipczuk, and Saket Saurabh. Parameterized Algorithms. Springer, 2015.
+ [6] Marek Cygan, Pawel Komosa, Daniel Lokshtanov, Michal Pilipczuk, Marcin Pilipczuk, Saket
+     Saurabh, and Magnus Wahlström. Randomized contractions meet lean decompositions. ACM
+     Trans. Algorithms, to appear. Preprint available at CoRR:abs/1810.06864.
+ [7] Elias Dahlhaus, David S. Johnson, Christos H. Papadimitriou, Paul D. Seymour, and Mihalis Yan-
+     nakakis. The complexity of multiterminal cuts. SIAM J. Comput., 23(4):864–894, 1994.
+ [8] Matthias Englert, Anupam Gupta, Robert Krauthgamer, Harald Räcke, Inbal Talgam-Cohen, and
+     Kunal Talwar. Vertex sparsifiers: New results from old techniques. SIAM J. Comput., 43(4):1239–
+     1262, 2014.
+ [9] Fedor V. Fomin, Daniel Lokshtanov, Fahad Panolan, and Saket Saurabh. Efficient computation of
+     representative families with applications in parameterized and exact algorithms. J. ACM, 63(4):29:1–
+     29:60, 2016. URL: http://doi.acm.org/10.1145/2886094, doi:10.1145/2886094.
+[10] Fedor V. Fomin, Daniel Lokshtanov, Saket Saurabh, and Meirav Zehavi. Kernelization: Theory of
+     Parameterized Preprocessing. Cambridge University Press, 2019. doi:10.1017/9781107415157.
+[11] Lance Fortnow and Rahul Santhanam. Infeasibility of instance compression and succinct PCPs for
+     NP. J. Comput. Syst. Sci., 77(1):91–106, 2011.
+[12] Naveen Garg, Vijay V. Vazirani, and Mihalis Yannakakis. Approximate max-flow min-
+     (multi)cut theorems and their applications. SIAM J. Comput., 25(2):235–251, 1996.
+     doi:10.1137/S0097539793243016.
+[13] Torben Hagerup, Jyrki Katajainen, Naomi Nishimura, and Prabhakar Ragde. Characterizing multi-
+     terminal flow networks and computing flows in networks of small treewidth. J. Comput. Syst. Sci.,
+     57(3):366–375, 1998.
+[14] Eva-Maria C. Hols and Stefan Kratsch. A randomized polynomial kernel for subset feedback vertex
+     set. Theory Comput. Syst., 62(1):63–92, 2018. doi:10.1007/s00224-017-9805-6.
+[15] Nikolai Karpov, Marcin Pilipczuk, and Anna Zych-Pawlewicz. An exponential lower bound for cut
+     sparsifiers in planar graphs. Algorithmica, 81(10):4029–4042, 2019.
+
+[16] Arindam Khan and Prasad Raghavendra. On mimicking networks representing minimum terminal
+     cuts. Inf. Process. Lett., 114(7):365–371, 2014.
+[17] Stefan Kratsch. A randomized polynomial kernelization for vertex cover with a smaller parameter.
+     SIAM J. Discrete Math., 32(3):1806–1839, 2018. doi:10.1137/16M1104585.
+[18] Stefan Kratsch and Magnus Wahlström. Compression via matroids: A randomized polynomial
+     kernel for odd cycle transversal. ACM Trans. Algorithms, 10(4):20:1–20:15, 2014.
+[19] Stefan Kratsch and Magnus Wahlström. Representative sets and irrelevant vertices: New tools for
+     kernelization. J. ACM, 67(3):16:1–16:50, 2020.
+[20] Robert Krauthgamer and Havana Inbal Rika. Refined vertex sparsifiers of planar graphs. SIAM J.
+     Discrete Math., 34(1):101–129, 2020.
+
+
+
+                                                   15
+[21] Robert Krauthgamer and Inbal Rika. Mimicking networks and succinct representations of terminal
+     cuts. In SODA, pages 1789–1799. SIAM, 2013.
+[22] Euiwoong Lee and Magnus Wahlström. LP-branching algorithms based on biased graphs. CoRR,
+     abs/1610.06060v2, 2020. Extended version of previous version (Wahlström, SODA 2017).
+[23] Frank Thomson Leighton and Ankur Moitra. Extensions and limits to vertex sparsification. In
+     STOC, pages 47–56. ACM, 2010.
+[24] Daniel Lokshtanov, Pranabendu Misra, Fahad Panolan, and Saket Saurabh. Deterministic trunca-
+     tion of linear matroids. ACM Trans. Algorithms, 14(2):14:1–14:20, 2018.
+[25] László Lovász. Flats in matroids and geometric graphs. In Proc. Sixth British Combinatorial Conf.,
+     Combinatorial Surveys, pages 45–86, 1977.
+[26] Dániel Marx. Parameterized graph separation problems. Theor. Comput. Sci., 351(3):394–406, 2006.
+[27] Dániel Marx. A parameterized view on matroid optimization problems. Theor. Comput. Sci.,
+     410(44):4471–4479, 2009.
+[28] Ankur Moitra. Approximation algorithms for multicommodity-type problems with guarantees inde-
+     pendent of the graph size. In FOCS, pages 3–12. IEEE Computer Society, 2009.
+[29] G. Nemhauser and L. Trotter. Vertex packing: structural properties and algorithms. Mathematical
+     Programming, 8:232–248, 1975. doi:10.1007/BF01580444.
+[30] James Oxley. Matroid Theory. Oxford University Press, 2011.
+[31] Harald Räcke. Minimizing congestion in general networks. In FOCS, pages 43–52. IEEE Computer
+     Society, 2002. doi:10.1109/SFCS.2002.1181881.
+[32] Harald Räcke. Optimal hierarchical decompositions for congestion minimization in networks. In
+     STOC, pages 255–264. ACM, 2008.
+[33] Prasad Raghavendra and David Steurer. Graph expansion and the unique games conjecture. In
+     STOC, pages 755–764. ACM, 2010.
+[34] Felix Reidl and Magnus Wahlström. Parameterized algorithms for zero extension and metric labelling
+     problems. In ICALP, volume 107 of LIPIcs, pages 94:1–94:14. Schloss Dagstuhl - Leibniz-Zentrum
+     für Informatik, 2018.
+[35] A. Schrijver. Combinatorial Optimization: Polyhedra and Efficiency. Algorithms and combinatorics.
+     Springer, 2003.
+[36] Magnus Wahlström. LP-branching algorithms based on biased graphs. In SODA, pages 1559–1570.
+     SIAM, 2017.
+[37] Magnus Wahlström. On quasipolynomial multicut-mimicking networks and kernelization of mul-
+     tiway cut problems. In ICALP, volume 168 of LIPIcs, pages 101:1–101:14. Schloss Dagstuhl -
+     Leibniz-Zentrum für Informatik, 2020.
+
+
+
+
+                                                   16
+

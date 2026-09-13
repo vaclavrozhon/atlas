@@ -1,0 +1,909 @@
+Relations Between Greedy and Bit-Optimal
+LZ77 Encodings
+Dmitry Kosolobov
+University of Helsinki, Helsinki, Finland
+dkosolobov@mail.ru
+
+      Abstract
+This paper investigates the size in bits of the LZ77 encoding, which is the most popular and
+efficient variant of the Lempel–Ziv encodings used in data compression. We prove that, for a
+wide natural class of variable-length encoders for LZ77 phrases, the size of the greedily construc-
+                                                                          n
+ted LZ77 encoding on constant alphabets is within a factor O( log log log log n ) of the optimal LZ77
+encoding, where n is the length of the processed string. We describe a series of examples showing
+that, surprisingly, this bound is tight, thus improving both the previously known upper and lower
+bounds. Further, we obtain a more detailed bound O(min{z, logloglogn z }), which uses the number
+z of phrases in the greedy LZ77 encoding as a parameter, and construct a series of examples
+showing that this bound is tight even for binary alphabet. We then investigate the problem on
+non-constant alphabets: we show that the known O(log n) bound is tight even for alphabets of
+logarithmic size, and provide tight bounds for some other important cases.
+
+2012 ACM Subject Classification Mathematics of computing → Coding theory
+
+Keywords and phrases Lempel–Ziv, LZ77 Encoding, Greedy LZ77, Bit Optimal LZ77
+
+Digital Object Identifier 10.4230/LIPIcs.STACS.2018.46
+
+
+ 1      Introduction
+The Lempel–Ziv encoding [23] (LZ77 for short) is one of the most popular and efficient
+compression techniques used in data compression, stringology, and algorithms in general.
+The LZ77 encoding lies at the heart of common compressors such as gzip, 7zip, pkzip, rar,
+etc. and serves as a basis for modern compressed text indexes on highly repetitive data (e.g.,
+see [12, 15, 18]).
+    Numerous papers on LZ77 have been published during the last 40 years. In these works,
+it was proved that LZ77 is superior compared to many other compression schemes both in
+practice and in theory. For instance, in [14, 24, 22] it was shown that LZ77 is asymptotically
+optimal with respect to different entropy-related measures; further, in [4] it was proved that
+many other reference based encoders (including LZ78 [24]) use polynomially (in the length
+of the uncompressed data) more space than LZ77 in the worst case and, in a sense, are
+never significantly better than LZ77. However, many problems related to LZ77 are still not
+completely solved. In this paper we investigate how good is the popular greedy LZ77 encoder
+in a class of practically motivated models with variable-length encoders for LZ77 phrases;
+to formulate the problem that we study more accurately, let us first discuss what is known
+about different LZ77 encoders.
+    LZ77 is a dictionary based compression scheme that replaces a string with phrases that
+are actually references to strings in a dictionary. Each phrase of an LZ77 encoding can be
+viewed as a triple hd, `, ci, where ` is the length of the phrase, d is the distance to a string
+of length `−1 from the dictionary such that this string is a prefix of the phrase, and c is
+the last letter of the phrase (the precise definition follows); we use the definition from [23]
+but all our results can be adapted for the version of LZ77 from [21], in which phrases are
+            © Dmitry Kosolobov;
+            licensed under Creative Commons License CC-BY
+35th Symposium on Theoretical Aspects of Computer Science (STACS 2018).
+Editors: Rolf Niedermeier and Brigitte Vallée; Article No. 46; pp. 46:1–46:14
+                   Leibniz International Proceedings in Informatics
+                   Schloss Dagstuhl – Leibniz-Zentrum für Informatik, Dagstuhl Publishing, Germany
+46:2   Relations Between Greedy and Bit-Optimal LZ77 Encodings
+
+
+       encoded by pairs hd, `i (throughout the paper, we provide the reader with separate remarks
+       in cases where such adaptation is not straightforward). The same string can have many
+       different LZ77 encodings. It is well known that the greedily constructed LZ77 encoding,
+       which builds the encoding from left to right making each phrase as long as possible during
+       this process, is optimal in the sense that it produces the minimal number of phrases among
+       all LZ77 encodings of this string (see [4, 20, 21]). The same optimality property holds for
+       the versions of LZ77 with “sliding window” [9], which is a restriction that is important for
+       practical applications.
+           However, in practice, compressors usually use variable-length encoders for phrases and,
+       in this case, it is not clear whether the greedy LZ77 encoder is optimal in the sense that
+       it outputs the minimal number of bits. The question of finding an optimal LZ77 encoding
+       for variable-length phrase encoders was raised in [19] and the first attempts to solve this
+       problem were given in [11]. The authors of [11] also conducted the first theoretical studies to
+       find how bad is the greedy LZ77 encoding compared to an optimal LZ77 encoding. Such
+       questions make sense only if we state formally which kinds of phrase encoders are used
+       in the LZ77 encoder. As in [11], we investigate encoders that encode each phrase hd, `, ci
+       using Θ(log d + log ` + log c) bits1 (see a more formal discussion below). This class of phrase
+       encoders includes a broad range of practically used encoders and, among others, Elias’s [10]
+       and Levenshtein’s [17] encoders, which produce asymptotically optimal universal codes for
+       the numbers d, `, c; we refer the reader to [11] for further discussions on the motivation.
+           In the described model, there are two ways how to optimize the size of the produced
+       LZ77 encoding. The first way is to minimize d in the triples hd, `, ci. This problem was
+       addressed already in [11] for the greedy LZ77 encoder, where one must find the rightmost
+       occurrence of the referenced part of each phrase; several improvements on this result of [11]
+       and related questions were given in [1, 2, 3, 8, 16]. The second way is to consider both
+       parameters ` and d, i.e., to build an optimal LZ77 encoding. There are very few works in this
+       direction (see [7] and [11]) and there is still a room for improvements in such results. Due to
+       the overall difficulty of the problem of finding an optimal LZ77 encoding, real compressors
+       usually construct an LZ77 encoding greedily. Thus, this raises the following question: how
+       bad can the produced greedy LZ77 encoding be compared to an optimal LZ77 encoding?
+           For a given string of length n, denote by LZgr and LZopt the sizes in bits of, respectively,
+       the greedily constructed and an optimal LZ77 encodings from the special class of encodings
+                                                                                                  LZgr
+       that we consider in this paper (see clarifications in Section 2). We investigate the ratio LZopt .
+       Upper bounds on this ratio are provided in terms of the parameters n, z, and σ, where z
+       is the number of phrases in the greedy LZ77 encoding of the considered string (it is well
+       known that any other LZ77 encoding contains at least z phrases; see [4, 20, 21]) and σ is
+       the alphabet size. We are also interested in upper bounds that use only the parameter
+                                         LZgr
+       n. In [11] it was proved that LZopt    = O(log n) and there is a series of examples on which
+       LZgr         log n
+       LZopt = Ω( log log n ). In this paper we improve these results and our bounds in many cases are
+       tight in the sense that there are series of examples on which these bound are attained; our
+       main contributions are summarized in Table 1.
+           First, we study the case of constant alphabets and completely solve it. Namely, in
+                                                                              LZgr
+       Theorem 7, we find the following detailed upper bound on the ratio LZopt    (note that this
+                                                                  LZ              n
+                                                             gr
+       bound is also applicable for arbitrary alphabets): LZopt = O(min{z, loglog
+                                                                               log z }). In the case of
+                                                                                            σ
+
+       constant alphabets this upper bound degenerates to O(min{z, logloglogn z }). In Theorem 10 we
+
+
+       1
+           Throughout the paper all logarithms have base 2 if it is not explicitly stated otherwise.
+D. Kosolobov                                                                                                    46:3
+
+
+     Table 1 Upper bounds on LZgr /LZopt ; tight bounds are denoted by Θ.
+
+                                        parameter n           parameters n, z, σ
+                                               log n
+                           σ = O(1)     Θ( log log log n
+                                                         )   Θ(min{z, logloglogn z })
+                                                                              n
+                         arbitrary σ       Θ(log n)          O(min{z, loglog
+                                                                          log z
+                                                                                    })
+                                                                                σ
+
+
+
+
+construct a series of examples on the binary alphabet showing that this simplified bound is
+tight, thus closing the problem for constant alphabets. Theorem 10 actually provides a more
+                                          n
+elaborate lower bound Ω(min{z, log loglogz+log σ }), which is applicable for arbitrary alphabets.
+                                           σ
+                                                                 gr     LZ    log n
+From these general results, we deduce in Corollary 8 that LZopt      = O( log log log n ) for constant
+alphabets, and this upper bound is tight.
+    Then, we consider the case of arbitrary alphabets. It is shown in Theorem 12 that the
+                                      LZgr
+upper bound O(log n) on the ratio LZopt    is tight even if the input alphabet has logarithmic
+size. Thus, we solve the problem in the general case and find that the tight upper bounds,
+expressed in terms of n, for constant and arbitrary alphabets differ by Θ(log log log n) factor.
+                                                                  
+    As a side note, for polylogarithmic alphabets and z ≥ 2log n , where  > 0 is an arbitrary
+constant, we obtain in Corollary 11 the upper bound O( logloglogn n ) and show that this bound is
+                                                                                                    
+tight for such alphabets and such z. Informally, the strings for which the condition z ≥ 2log n
+holds (which includes the case z ≥ nδ , where δ > 0 is an arbitrary constant) can be called
+“non-extremely compressible” strings. Thus, we, in a sense, solve the problem in the arguably
+most important case of “non-extremely compressible” strings drawn from polylogarithmic
+alphabets.
+    The paper is organized as follows. In the following Section 2 we introduce some basic
+notions used throughout the text and, in particular, formally define LZ77 parsings and
+encodings. Section 3 describes a detailed upper bound on the ratio of the sizes in bits of the
+greedy and optimal LZ77 encodings. In Section 4 it is shown that, on constant alphabets,
+this bound is tight. The material of these two sections provides a complete solution of
+the problem for constant alphabets, which turns out to be quite simple. We then consider
+arbitrary alphabets in Section 5 and find tight bounds for several important cases, including
+the general case of arbitrary alphabet and arbitrary z, for which, as it turns out, the known
+O(log n) bound is tight. Finally, we conclude with some remarks and open problems in
+Section 6.
+
+
+ 2      Preliminaries
+
+A string s over an alphabet Σ is a map {1, 2, . . . , n} → Σ, where n is referred to as the length
+of s, denoted by |s|. In this paper we assume that the alphabet is a set of non-negative integers
+that are less than or equal to n, which is a common and natural assumption in the problem
+under investigation. We write s[i] for the ith letter of s and s[i..j] for s[i]s[i+1] · · · s[j]. A
+string u is a substring of s if u = s[i..j] for some i and j; the pair (i, j) is not necessarily
+unique and we say that i specifies an occurrence of u in s starting at position i. A substring
+s[1..j] (resp., s[i..n]) is a prefix (resp. suffix) of s. We say that substrings s[i..j] and s[i0 ..j 0 ]
+overlap if j ≥ i0 and i ≤ j 0 . For any i, j, the set {k ∈ Z : i ≤ k ≤ j} (possibly empty) is
+denoted by [i..j].
+     An LZ77 parsing of a given string s is a parsing s = f1 f2 · · · fz such that all the strings
+f1 , . . . , fz (called phrases) are non-empty and, for any i ∈ [1..z], either fi is a letter, or
+|fi | > 1 and the string fi [1..|fi |−1] has an earlier occurrence starting at some position
+j ≤ |f1 f2 · · · fi−1 | (note that this occurrence can overlap fi ).
+
+
+                                                                                                            S TA C S 2 0 1 8
+46:4   Relations Between Greedy and Bit-Optimal LZ77 Encodings
+
+
+           The greedy LZ77 parsing is a special LZ77 parsing built by the greedy procedure that
+       constructs all phrases from left to right by choosing each phrase fi as the longest sub-
+       string starting at given position such that fi [1..|fi |−1] has an earlier occurrence in the
+       string (see [23]). For instance, the greedy LZ77 parsing of the string s = abababbbaba is
+       a.b.ababb.baba. The following lemma is straightforward.
+       I Lemma 1. All phrases in the greedy LZ77 parsing of a given string (except, possibly, for
+       the last phrase) are distinct.
+           It is also well-known that, for a given string, the greedy LZ77 parsing has the minimal
+       number of phrases among all LZ77 parsings (e.g., see [4, 20, 21]). This implies that, when
+       each phrase of the parsing is encoded by a fixed number of bits, the greedy LZ77 parsing
+       is optimal, i.e., it produces an encoding of the minimal size in bit. However, the greedy
+       LZ77 parsing does not necessarily produce an encoding of the minimal size when one uses a
+       variable-length encoder for phrases; the latter is usually the case in most common compressors.
+       Let us clarify what kinds of variable-length phrase encoders we are to consider in this paper.
+           A given LZ77 parsing f1 f2 · · · fz is encoded as follows. Each phrase fi is represented
+       by a triple hd, `, ci, where ` = |fi |, c = fi [|fi |], and d = |f1 f2 · · · fi−1 | − j for j that is the
+       position of an earlier occurrence of fi [1..|fi |−1] (assuming that d = 0 if |fi | = 1). We choose
+       three encoders ed , e` , ec , each of which maps non-negative integers to bit strings. We then
+       transform each triple hd, `, ci into the binary string ed (d)e` (`)ec (c) and concatenate all these
+       binary strings, thus producing an LZ77 encoding corresponding to the given LZ77 parsing.
+           In this paper we consider only encoders ed , e` , ec that map any positive integer x to a bit
+       string of length Θ(log(x + 1)). This family of encoders includes most widely used encoders
+       such as Elias’s [10] and Levenshtein’s [17] ones (see [11] for further motivation). We fix three
+       encoders ed , e` , ec satisfying the above property and, hereafter, assume that all considered
+       LZ77 encodings are obtained using these ed , e` , ec .
+           We say that an LZ77 encoding is optimal if it has the minimal size in bits. It is shown
+       below that, unlike the case of fixed-length phrase encoders, for the family of phrase encoders
+       under investigation, the LZ77 encoding generated by the greedy LZ77 parsing (which is
+       called the greedy LZ77 encoding) is not necessarily optimal. Among all possible greedy LZ77
+       encodings we always consider those that occupy the minimal number of bits; usually, such
+       encoding is obtained by the minimization of the numbers d in the triples hd, `, ci representing
+       the phrases of the greedy LZ77 parsing.
+       I Remark. Most common compressors actually use a different variant of the LZ77 parsing
+       (which was introduced in [21]), defining each phrase fi as either a letter or a string that has
+       an earlier occurrence (note that in the definition of LZ77 parsings only the prefix fi [1..|fi |−1]
+       of fi must have an earlier occurrence). We call this variant a nonclassical LZ77 parsing (as
+       it differs from the original parsing proposed in [23]). The greedy nonclassical LZ77 parsing is
+       defined by analogy with the greedy LZ77 parsing. In encoding corresponding to a nonclassical
+       LZ77 parsing each phrase is represented either by a pair hd, `i that is defined analogously to
+       the triples hd, `, ci, or by one letter. This variant of LZ77 is very similar to the one that we
+       investigate and, moreover, all our results can be adapted for this variant. In the sequel, we
+       provide separate remarks that explicitly show how to generalize our results to nonclassical
+       LZ77 parsings if it is not straightforward.
+
+        3     Upper Bound
+       Our proof of the upper bound on the ratio between the sizes of the greedy and optimal LZ77
+       encodings is as follows: first, we obtain an upper bound U on the size of the greedy LZ77
+D. Kosolobov                                                                                               46:5
+
+
+encoding, then we find a lower bound L on the size of any LZ77 encoding, and finally, we
+derive the estimation UL on the ratio. The details follow.
+    Let s be a string of length n. Recall that any letter of s is an integer from the range
+[0..n]. Based on the above mentioned properties of the phrase encoders ed , e` , ec , one can
+easily show that each phrase of any LZ77 encoding of s occupies O(log n) bits. Therefore,
+we obtain the following upper bound on the size of the greedy LZ77 encoding.
+
+I Lemma 2. Let LZgr be the size in bits of the greedy LZ77 encoding of a given string of
+length n. Then, we have LZgr = O(z log n), where z is the number of phrases in the encoding.
+
+    The lower bound on any LZ77 encoding is more complicated. Lemmas 3, 4, 5 below are
+well known but we, nevertheless, provide their proofs for the sake of completeness.
+                                                                        Pk
+I Lemma 3. For any positive integers t, t1 , . . . , tk such that i=1 ti ≥ t, we have
+Pk
+   i=1 log ti ≥ log(t − k + 1).
+                     Pk                  Qk
+Proof. Note that i=1 log ti = log i=1 ti . Since for any tj and tj 0 such that tj ≥ tj 0 , we
+                                                                           Qk
+have (tj + 1)(tj 0 − 1) = tj tj 0 − (tj − tj 0 + 1) < tj tj 0 , the product i=1 ti is minimized when
+t1 = t − k + 1 and t2 = t3 = · · · = tk = 1 (recall that every number ti must be a positive
+                                    Pk
+integer). Therefore, we obtain i=1 log ti ≥ log(t − k + 1).                                       J
+
+I Lemma 4. Any phrase of an LZ77 parsing of a string can overlap with at most two phrases
+of the greedy LZ77 parsing of the same string.
+
+Proof. Suppose, for the sake of contradiction, that a phrase f of an LZ77 parsing overlaps
+with at least three phrases of the greedy LZ77 parsing. Then, f [1..|f |−1] must contain a
+phrase f 0 of the greedy LZ77 parsing as a proper substring. But then the string f 0 occurs
+in an earlier occurrence of the string f [1..|f |−1] and, therefore, the greedy construction
+procedure could choose a longer phrase during the construction of the phrase f 0 , which is a
+contradiction.                                                                             J
+
+I Lemma 5. In the greedy LZ77 parsing of any string of length n over an alphabet of size
+                     √
+σ ≥ 2, at least z − 2 z phrases have length ≥ 12 logσ z, where z is the number of phrases.
+
+Proof. Denote by f1 f2 · · · fz the greedy LZ77 parsing of a given string of length n over an
+alphabet of size σ. By Lemma 1, all the phrases f1 , . . . , fz−1 are distinct. Therefore, for
+                     P`           `+1
+any ` > 0, at most i=0 σ i = σ σ−1−1 of these phrases have length at most `. Since for any
+                                   √
+                        `            zσ−1
+` < 12 logσ z, we have i=0 σ i < σ−1       , the number of phrases with length at least 12 logσ z
+                      P
+                                  √                                           √           √
+                                    zσ−1                                        zσ−1
+must be greater than (z − 1) − σ−1       . Thus, it remains to prove that 1 + σ−1    ≤ 2 z. It
+                                                 √
+                                                  zσ−1
+is easy to show that, for σ ≥ 2, the function     σ−1 decreases as σ grows. Hence, we deduce
+     √             √         √
+       zσ−1          z−1
+1 + σ−1     ≤ 1 + 2 2−1  = 2 z.                                                                   J
+
+I Lemma 6. Let LZopt be the size in bits of an optimal LZ77 encoding of a string of length
+n over an alphabet of size σ ≥ 2. Then, we have LZopt = Ω(log n + z log logσ z), where z is
+the number of phrases in the greedy LZ77 parsing of this string.
+
+Proof. Denote by f1 f2 · · · fz0 the LZ77 parsing corresponding to an optimal LZ77 encoding
+of the string under consideration. By the definition of the phrase encoders, we have LZopt ≥
+   Pz0
+Ω( i=1 log |fi |). It follows from Lemma 3 that LZopt ≥ Ω(log(n − z 0 )). Since, obviously,
+LZopt ≥ z 0 , the latter implies LZopt ≥ Ω(z 0 + log(n − z 0 )) ≥ Ω(log n).
+    Denote by f10 f20 · · · fz0 the greedy LZ77 parsing of the same string. Let S be the set
+of all phrases in this parsing with lengths at least 12 logσ z. By Lemma 5, we have |S| ≥
+
+
+
+                                                                                                       S TA C S 2 0 1 8
+46:6   Relations Between Greedy and Bit-Optimal LZ77 Encodings
+
+                √
+       z − 2 z = Θ(z). Consider a phrase f 0 ∈ S. Let fg , fg+1 , . . . , fh be all phrases in the parsing
+       f1 f2 · · · fz0 that overlap with the phrase f 0 . Since |fg fg+1 · · · fh | ≥ |f 0 |, Lemma 3 implies that
+       (h−g)+log |fg |+log |fg+1 |+· · ·+log |fh | ≥ (h−g)+log(|f 0 |−(h−g)) ≥ Ω(log |f 0 |). Thus, the
+       encodings of the phrases fg , fg+1 , . . . , fh all together occupy Ω(log |f 0 |) bits. By Lemma 4,
+       any phrase fi of the parsing f1 · · · fz0 overlaps with at most two phrases of the parsing
+       f10 · · · fz0 . Therefore, the encodings of all phrases f1 , . . . , fz0 occupy 12 Ω( f 0 ∈S log |f 0 |) ≥
+                                                                                                 P
+
+       Ω(|S| log logσ z) = Ω(z log logσ z) overall bits.                                                        J
+
+       I Theorem 7. Let z be the number of phrases in the greedy LZ77 parsing of a given
+       string of length n drawn from an alphabet of size σ. Denote by LZgr and LZopt the sizes in
+       bits of, respectively, the greedy and optimal LZ77 encodings of this string. Then, we have
+        LZgr                log n
+       LZopt = O(min{z, log log z }).
+                                 σ
+
+                                             LZgr           O(z log n)                    z log n
+       Proof. By Lemmas 2 and 6,             LZopt   ≤ Ω(log n+z log logσ z) = O( log n+z log logσ z ).    Since
+            z log n         z log n            z log n            log n
+       log n+z log logσ z ≤ log n = z and log n+z log logσ z ≤ log logσ z , the result follows.                J
+
+                                                     LZ         n
+                                                gr
+       I Corollary 8. For constant alphabet, LZopt = O( log log
+                                                            log log n ).
+
+                            LZ
+                         gr
+       Proof. We have LZopt = O(min{z, logloglogn z }) due to Theorem 7. The functions z 7→ z and
+       z 7→ logloglogn z , respectively, increase and decrease as z grows. Therefore, the maximum of
+       the function min{z, logloglogn z } is reached when z = logloglogn z . Solving this equation, we obtain
+                      n
+       z = Θ( log log
+                  log log n ), which proves the result.                                                        J
+
+       I Remark. To generalize the described results to nonclassical LZ77 parsings, one should use,
+       instead of Lemma 1, the following straightforward lemma.
+
+       I Lemma 9. Suppose that s = f1 f2 · · · fz is the greedy nonclassical LZ77 parsing of a given
+       string s; then, all the strings fi · fi+1 [1], for i ∈ [1..z−1], are distinct.
+
+            The rest can be easily reconstructed by analogy.
+
+        4      Lower Bound
+       We now construct a series of example showing that, for several important cases, the upper
+       bound given in Theorem 7 is tight. In particular, on constant alphabets, i.e., when σ = O(1),
+       Theorem 10 complements Theorem 7 showing that the bound O(min{z, logloglogn z }) is tight.
+                                 log n
+       Further, putting z = log log  log n and σ = 2 in Theorem 10, we show that the upper bound
+       given in Corollary 8 is tight.
+
+       I Theorem 10. For any given integers n > 1, σ ∈ [2..n], and z ∈ [σ.. logn n ], there is a string
+                                                                               σ
+       of length n over an alphabet of size σ such that the number of phrases in the greedy LZ77
+       parsing of this string is Θ(z) and the sizes LZgr and LZopt of, respectively, the greedy and
+                                                            LZgr                        n
+       optimal LZ77 encodings of this string are related as LZopt ≥ Ω(min{z, log loglogz+log σ }).
+                                                                                              σ
+
+
+       Proof. If σ ≥ n/4, then any LZ77 encoding of a string of length n containing σ distinct
+       letters obviously occupies Θ(σ log σ) = Θ(n log n) bits and, hence, the statement of the
+                                          LZgr
+       theorem, which degenerates to LZopt     ≥ Ω(1), trivially holds. Assume that σ < n/4.
+           We first consider the case σ ≥ 3 as it is simpler. Suppose that the alphabet is the set
+       [1..σ]. Denote b = 1 and τ = σ − 1 (b is a special letter-separator with small code and τ
+       is the size of the set [1..σ] \ {b} = [2..σ]). Let m be the minimal integer such that τ m ≥ z,
+D. Kosolobov                                                                                                       46:7
+
+
+i.e., m = dlogτ ze. Note that m = Θ(logσ z). In [5] it is shown that all τ m possible strings
+of length m over the alphabet [2..σ] can be arranged in a sequence s1 , s2 , . . . , sτ m (called
+a τ -ary Gray code [5, 13]) such that, for any i ∈ [2..τ m ], the strings si−1 and si differ in
+exactly one position. Moreover, we can choose such sequence so that sτ m = am , where a is
+an arbitrary letter from [2..σ].
+     Let k and ` be positive integers such that k < τ m and ` > m. Our example is the
+following string (the numbers k and ` will be adjusted below so that k = Θ(z) and ` ≥ 12 n):
+
+    s = s1 s2 · · · sk · a` · bs1 bs2 b · · · sk b.
+
+    Let us consider the greedy LZ77 parsing of s and the corresponding greedy LZ77 encoding.
+Since the letter b first occurs in the substring a` b, the greedy construction procedure builds
+the parsing of s1 bs2 b · · · sk b starting from the first position of this substring. Since k < τ m
+and sτ m = am , it follows from the definition of the sequence s1 , . . . , sk that, for any i ∈ [1..k],
+the longest prefix of the string si bsi+1 b · · · sk b that has an earlier occurrence in s is si and
+this earlier occurrence is a substring of the prefix s1 s2 · · · sk am of s. Therefore, the greedy
+algorithm decomposes the suffix s1 bs2 b · · · sk b into k phrases si b, for i ∈ [1..k]. It is easy to
+see that each of these phrases is encoded in Ω(log `) bits (this is the number of bits required
+to encode the distance between the phrase and its earlier occurrence). Hence, the size in bits
+of the greedy LZ77 encoding of s is LZgr ≥ Ω(k log `).
+    Now let us consider a better encoding of the same string s. For simplicity, we omit the
+description of the encoding of the prefix s1 s2 · · · sk as it is very similar to the encoding of the
+suffix s1 bs2 b · · · sk b discussed below. First, we parse the substring a` b into two phrases a and
+a`−1 b, which are encoded in O(log ` + log σ) bits (the referenced part a`−1 of a`−1 b is self-
+referential). Then, we encode the substring s1 b as in the greedy approach by one phrase taking
+O(log `) bits (recall that ` > m and b = 1 and, hence, the length |s1 b| = m + 1 and the letter b
+are encoded in O(log `) bits). Now we consecutively encode each substring si b, for i ∈ [2..k], as
+follows. Suppose that the strings si and si−1 differ at position j, i.e., si−1 [1..j−1] = si [1..j−1]
+and si−1 [j+1..m] = si [j+1..m]. We decompose si b into two phrases si [1..j] and si [j+1..m]b.
+Since the strings si [1..j−1] and si [j+1..m] both are substrings of the string si−1 and have
+length O(m), the encoding of the produced two phrases occupies O(log m + log σ) bits.
+Hence, the whole suffix s1 bs2 b · · · sk b can be encoded in O(k log m + k log σ) bits; the prefix
+s1 s2 · · · sk can be encoded similarly in O(k log m + k log σ) bits. Thus, we obtain an encoding
+of the string s that occupies O(log ` + k log m + k log σ) bits. Therefore, the size in bits of
+the optimal LZ77 encoding of s is LZopt = O(log ` + k log m + k log σ).
+    Recall that m = Θ(logσ z). Combining the estimations on LZgr and LZopt , we ob-
+        LZgr              Ω(k log `)                     k log `                           k log `
+tain LZopt    ≥ O(log `+k(log    m+log σ)) ≥ Ω( log `+k(log log z+log σ) ). Since log `+k(log log z+log σ) ≥
+                                                                     σ                             σ
+             k log `                                  1               log `                        LZgr
+2·max{log `,k(log logσ z+log σ)}          =           2 min{k, log logσ z+log σ },   we   obtain   LZopt   ≥
+                      `
+Ω(min{k, log loglogz+log   σ }).  Note that the number of phrases in the greedy LZ77 parsing
+                    σ
+of s is Θ(k) and |s| = ` + 1 + k(2m + 1). We put ` = n − k(2m + 1) − 1 so that |s| = n. Since
+z ∈ [2.. logn n ] and m = Θ(logσ z), we have k(2m + 1) ≤ O(n) if k = Θ(z). Then, it is straight-
+            σ
+forward that the parameter k can be chosen so that k = Θ(z) and ` = n − k(2m + 1) − 1 ≥ 12 n.
+                      LZgr                         n
+Hence, we derive LZopt       ≥ Ω(min{z, log loglogz+log σ }). (If not all letters of the alphabet [1..σ]
+                                                σ
+indeed occur in the constructed string, we append all unused letters to the end of s and
+reduce ` appropriately; as σ < n/4, we have ` ≥ 14 n in the end.)
+    Now assume that σ = 2. Let {0, 1} be the alphabet. Similarly to the above analysis, we
+fix a sequence s1 , . . . , s2m of all binary strings of length m = dlog ze such that, for i ∈ [2..2m ],
+si−1 and si differ in exactly one position, and we choose two parameters ` > 4m and k < 2m ,
+
+
+
+                                                                                                               S TA C S 2 0 1 8
+46:8   Relations Between Greedy and Bit-Optimal LZ77 Encodings
+
+
+       which will be adjusted later so that ` ≥ 12 n and k = Θ(z). It is well known that one can fix
+       the sequence s1 , . . . , s2m so that s2m = 0m . Our example is defined as follows:
+            s = s1 0m 1s2 0m 1 · · · sk 0m 10` 1s1 0m 1c1 s2 0m 1c2 · · · sk 0m 1ck ,
+       where ck = 1 and, for i ∈ [1..k−1], ci = 0 if si+1 [1] = 1, and ci = 1 otherwise.
+           Since, for any i ∈ [1..k], si 6= 0m (as si = 0m iff i = 2m , and k < 2m ) and ` > 4m, the
+       greedy LZ77 parser necessarily makes a phrase that is a suffix of the substring 0` 1 and, then,
+       parses the suffix s1 0m 1c1 s2 0m 1c2 · · · sk 0m 1ck from the first position. It is straightforward
+       that, for any i ∈ [1..k], the string 0m 1 has only one occurrence in the strings 1si 0m 1 and
+       1ci−1 si 0m 1 (for i > 1). Therefore, for any i ∈ [1..k], the string si 0m 1 has only one occurrence
+       in the prefix s1 0m 1s2 0m 1 · · · sk 0m 1 and the string si 0m 1ci has only one occurrence in the
+       whole string s. Then, the greedy parser parses the suffix s1 0m 1c1 s2 0m 1c2 · · · sk 0m 1ck into k
+       phrases si 0m 1ci , for i ∈ [1..k]. This parsing produces an encoding of size Ω(k log `) bits. At
+       the same time, there is an LZ77 encoding for s of size O(log ` + k log m) bits. The further
+       analysis is very similar to the analysis of the case σ ≥ 3: we put ` = n − k(4m + 3) − 1
+       so that |s| = n, and we adjust k so that k = Θ(z) and ` ≥ 21 n, which is possible because
+       m ≤ log z + 1 and z ≤ logn n . We omit the details as they are analogous.                         J
+
+       I Remark. The condition σ ≤ z ≤ logn n from Theorem 10 is justified by the following
+                                                σ
+       observations. First, it is obvious that any LZ77 parsing has at least σ phrases and, hence,
+                                                                          √
+       the inequality σ ≤ z holds. Secondly, by Lemma 5, at least z − 2 z phrases in the greedy
+       LZ77 parsing have length at least 12 logσ z, where z is the total number of phrases; hence,
+       we obtain z logσ z ≤ O(n) and, solving this inequality, z = O( logn n ), which justifies the
+                                                                           σ
+       condition z ≤ logn n .
+                              σ
+
+       I Remark. Let us sketch the way in which the constructions from the proof of Theorem 10
+       can be adapted to nonclassical LZ77 encodings. For the case σ ≥ 3, the corresponding string
+       is as follows (the notation is from the proof of Theorem 10):
+            s = bs1 bs2 · · · bsk b · a` · bs1 bbs2 bb · · · bbsk b.
+       The suffix bs1 bbs2 bb · · · bbsk b of this string is greedily parsed into the phrases bsi b, for i ∈ [1..k].
+       For the case σ = 2, the corresponding string is as follows:
+            s = 10s1 α10s2 α1 · · · 10sk α · 0` · 10s1 α0s2 α0 · · · 0sk α0,
+       where α = 0m+1 1. The suffix 10s1 α0s2 α0 · · · 0sk α0 of s is greedily parsed into the phrases
+       10s1 α and 0si α, for i ∈ [2..k]. We omit the detailed analysis as it is analogous to the analysis
+       in the proof of Theorem 10.
+
+        5       Arbitrary Alphabets
+       The following corollary shows that, in the case of “non-extremely compressible” string
+                  
+       (z ≥ 2log n ) over a polylogarithmic alphabet (σ ≤ logO(1) n), which is arguably the most
+       important case for practice, the upper and lower bounds from Theorems 7 and 10 degenerate
+                                                                  
+       to Θ( logloglogn n ) and, hence, are tight. (Note that 2log n = o(nδ ) for any fixed constants
+        ∈ (0, 1) and δ ∈ (0, 1).)
+       I Corollary 11. Let z be the number of phrases in the greedy LZ77 parsing of a given string
+                                                                                                  
+       of length n drawn from an alphabet of size σ. Suppose that σ ≤ logO(1) n and z ≥ 2log n , for
+       a fixed constant  ∈ (0, 1). Denote by LZgr and LZopt the sizes in bits of, respectively, the
+                                                                        LZgr
+       greedy and optimal LZ77 encodings of this string. Then, we have LZopt ≤ O( logloglogn n ) and this
+       upper bound is tight.
+D. Kosolobov                                                                                                          46:9
+
+
+Proof. The result follows from Theorems 7 and 10 since log log n ≥ log logσ z ≥
+      log n
+log O(log log n) = Θ(log log n).                                              J
+
+                                                   gr             LZ
+    Now let us consider bounds on the ratio LZopt     that are independent of the parameters z
+and σ.
+                                                                          LZgr
+    In [11] it was proved that O(log n) is an upper bound on the ratio LZopt   . It turns out that
+this bound is tight on sufficiently large non-constant alphabets. Precisely, a series of examples
+            LZgr
+on which LZopt   = Ω(log n) can be constructed on an alphabet of size O(log n). Therefore,
+                             n                                    LZ
+the upper bound O( log log                           gr
+                         log log n ) on the ratio LZopt , which, by Corollary 8, holds for constant
+alphabets and is tight, does not hold, in general, even for alphabets of logarithmic size. In
+examples showing this, we use the following well-known combinatorial structure.
+    A Steiner system S(t, k, n) is a set S of size n and a family of k-element subsets of S,
+called blocks, such that each subset of S of size t is contained in exactly one block. We are
+                                                            i−1   i
+particularly interested in the Steiner systems S(2, 22 , 22 ), which can be constructed for
+                                                                                            i−1
+any positive integers i (the structure is realized on a finite affine plane of order 22         and
+the blocks are lines in the plane; see [6]). It is well known that the number of blocks in the
+                       i−1      i       2i   2i−1 
+Steiner system S(2, 22 , 22 ) is 22 / 2 2 .
+
+I Theorem 12. For any integer n > 1, there is a string of length n over an alphabet of size
+O(log n) such that the sizes LZgr and LZopt of, respectively, the greedy and optimal LZ77
+                                        LZgr
+encodings of this string are related as LZopt ≥ Ω(log n).
+
+Proof. Let us first discuss a high-level idea of our construction. Consider the following
+string:
+
+    t · b1 cb01 · b2 cb02 · · · bk cb0k · cΘ(n) · td · b1 cb01 d · b2 cb02 d · · · bk cb0k d,
+                                                                                                         0
+where t = a1 a2 · · · aσ−2
+                         is a string consisting of σ−2 distinct letters, the sets {bi , bi } run
+                    σ−2
+through all k = 2 two-element subsets of the set {a1 , a2 , . . . , aσ−2 }, and c and d are two
+special letters with constant codes (say, 0 and 1) that do not occur in t. The greedy LZ77
+parser parses the suffix b1 cb01 d · b2 cb02 d · · · bk cb0k d into phrases bi cb0i d encoded by references to
+the substrings bi cb0i of the prefix t · b1 cb01 · b2 cb02 · · · bk cb0k . Each such reference takes Ω(log n)
+bits and, therefore, the greedy encoding occupies Ω( σ−2                2    log n) = Ω(σ 2 log n) bits.
+    Obviously, any LZ77 encoding spends Θ(log n) bits to encode the substring cΘ(n) . If we
+were able to encode the prefix and the suffix surrounding the substring cΘ(n) in O(σ 2 ) bits,
+                                              2
+                            LZgr                                  σ 2 log n
+then we would obtain LZopt        ≥ Ω( σσ2 +log  log n                                             2
+                                                     n ) = Ω( max{σ 2 ,log n} ) = Ω(min{log n, σ }), which is
+                        √
+Ω(log n) for σ = Ω( log n). Unfortunately, it seems that the best encoding that one can
+find for the suffix b1 cb01 d · b2 cb02 d · · · bk cb0k d parses each substring bi cb0i d into two phrases bi c
+and b0i c, encoding each of them by a reference to a letter in t = a1 a2 · · · aσ−2 , thus spending
+Θ( σ−22     log σ−2             2
+                 2 ) = Θ(σ log σ) bits for the whole suffix, which is larger than Θ(σ ) by
+                                                                                                           2
+
+the factor log σ. To address this issue, we construct a more sophisticated string equipped
+with additional “infrastructure” that helps to “deliver” cheaply letters from a “dictionary”
+substring (like t) to the places where these letters are used. Let us formalize this intuition.
+                                                                           x     √
+    Choose the minimal positive integer x such that 22 > log n. The alphabet for our
+                                                                                                             x
+example will consist of two special letters c and d with codes 0 and 1, and of the set A of 22
+                                                                                      x
+letters with codes larger than 1. Obviously, the alphabet size σ = 22 + 2 is at most log n + 2.
+                                                                               i
+    Let us assign to each subset S of A such that |S| = 22 , for some i ∈ [1..x], a Steiner
+                 i−1    i
+system S(2, 22 , 22 ) with the set of blocks denoted by BS . Denote by q a mapping that
+maps every such S to a string q(S) = aj1 daj2 d · · · aj|S| d, where aj1 , aj2 , . . . , aj|S| are all letters
+
+
+
+                                                                                                                  S TA C S 2 0 1 8
+46:10   Relations Between Greedy and Bit-Optimal LZ77 Encodings
+
+
+        from S in an arbitrarily chosen order. The basic building elements for our string are defined
+        recursively as follows.
+                          Q
+            r(S) = q(S) B∈BS r(B) if |S| > 2,
+            r(S) = bcb0 cbcb0 dd if S = {b, b0 } for distinct letters b, b0 .
+
+        Analogously, we define:
+
+            r0 (S) = q(S) B∈BS r(B) if |S| > 2,
+                           Q
+
+            r0 (S) = bcb0 cbcb0 dc if S = {b, b0 } for distinct letters b, b0 .
+
+        To break ties on the lowest levels of recursion where |S| = 2, we assume that b is the letter
+        from S with the smallest code.
+                                    LZgr
+             Our string on which LZopt   ≥ Ω(log n) is s = r0 (A)c` r(A), where ` is chosen so that ` = Θ(n)
+        (see the text below, where we discuss the lengths of r(S) and r0 (S)). Let us first show that
+        the greedy LZ77 encoding of this string has size Ω(σ 2 log n) bits.
+                                                                                         i
+             By the definition of Steiner systems, for any subset S ⊆ A of size 22 , each pair {b, b0 } of
+                                                                                     i−1
+        distinct letters from S is contained in exactly one block (of size 22 ) from BS . Then, it
+        is straightforward that any given pair {b, b0 } of distinct letters from A occurs exactly once
+        as a parameter of r on the lowest level of the recursion r(A). An analogous claim holds for
+        r0 (A). Hence, the string bcb0 cbcb0 d (we assume that the code of b is smaller than the code of
+        b0 ) occurs in s exactly twice: in the prefix r0 (A) and in the suffix r(A). Further, it is easy to
+        see that the string bcb0 occurs in s only as a substring of bcb0 cbcb0 d. By a straightforward
+        case analysis, one can show that this implies that the greedy LZ77 parsing of s has a phrase
+        f containing the substring bcb0 dd of r(A): f either is a phrase starting at one of the first
+        five positions of bcb0 cbcb0 dd (greedily “eating” the remaining part) or is a phrase containing
+        the prefix bcb0 cb of bcb0 cbcb0 dd (the part bcb0 c can be copied only from bcb0 cbcb0 dc in r0 (A)
+        and, thus, again f greedily “eats” the remaining part). The encoding of f copies the part
+        bcb0 d from the substring bcb0 d of r0 (A) by reference, thus spending Ω(log `) = Ω(log n) bits.
+        Since the two occurrences of bcb0 cbcb0 d in s are followed by distinct letters (c in r0 (A) and d
+        in r(A)), the string bcb0 dd must be a suffix of f . Hence, there is a one-to-one correspondence
+        between the pairs {b, b0 } of distinct letters from A and the phrases containing the substrings
+        bcb0 dd. Therefore, the greedy LZ77 encoding of s occupies Ω( |A|                       2
+                                                                                 2 log n) = Ω(σ log n) bits.
+             Now it remains to show that there is an LZ77 encoding of the string s that occupies
+                                                        LZgr     Ω(σ 2 log n)
+        O(σ 2 + log n) bits. This will imply that LZopt      ≥ O(σ                             2
+                                                                     2 +log n) ≥ Ω(min{log n, σ }), which is
+                                                 √
+        Ω(log n) since, by construction, σ > log n.
+             We decompose the substring c` of s = r0 (A)c` r(A) into two phrases c and c`−1 , encoding
+        these phrases in O(log n) bits. All other phrases in our parsing will have length either one
+        or two. For simplicity of the exposition, we consider only encoding of the suffix r(A); the
+        encoding for r0 (A) is analogous and occupies asymptotically the same space.
+             By definition, q(A) is a prefix of r(A). The string q(A) serves as a “dictionary” of letters
+        similar to the string t in the preliminary example. We encode each letter of q(A) as a phrase
+        of length one, thus spending O(σ log σ) bits. These are the only “heavy” phrases of length
+        one in our encoding of r(A): all other phrases of length one will be either c or d, the letters
+        with codes 0 and 1, which can be encoded in O(1) bits. All phrases of length two will have
+        the form either ac or ad, where a ∈ A; thus, the “heavy” part of the encoding of such phrases
+        of length two is an O(log δ)-bit encoding of the distance δ to an occurrence of a preceding
+        this phrase.
+                                                          Q
+             Let us consider a substring r(S) = q(S) B∈BS r(B) of r(A), where S ⊆ A is a set of
+                i
+        size 22 that occurs in the expansion of the recursion r(A). Suppose that i > 1. Then, each
+D. Kosolobov                                                                                                    46:11
+
+
+substring r(B), for B ∈ BS , has a prefix q(B) = a1 da2 d · · · a|B| d, where a1 , a2 , . . . , a|B| are
+members of B. We parse q(B) into phrases a1 d, a2 d, . . . , a|B| d, encoding each phrase ai d by
+a reference to the letter ai of the prefix q(S) of r(S). Suppose that i = 1. Then, each block
+B ∈ BS is just a pair {b, b0 } of distinct letters from S, and r(B) = bcb0 cbcb0 dd. We parse
+r(B) into phrases bc, b0 c, bc, b0 d, d, encoding each phrase of length two by a reference to a
+letter from the prefix q(S) of the string r(S).
+                                                                                   Q
+    Denote by E(i) the maximum size in bits of the encoding for the suffix B∈BS r(B) of
+                                                                  i
+some string r(S), among all subsets S ⊆ A such that |S| = 22 . Then, E(i) can be expressed
+                                                     2i  2i−1 
+by the following recursion (recall that |BS | = 22 / 2 2 ):
+              i             
+                22
+                    22i−1         i−1
+     E(i) ≤      2 /    2      (22 α log L(i) + E(i − 1)), for i > 1,
+     E(1) ≤ 42 (4α log L(1) + α),
+               
+
+                                                                                                          i
+where L(i) denotes the length of the string r(S) (obviously, L depends only on the size 22
+of S) and α is a positive constant that depends on the chosen phrase encoder. Consider the
+prefix q(B) of a substring r(B) of r(S), where B ∈ BS and |B| > 2. Each phrase ad from
+the parsing of q(B) is encoded in O(log δ) bits, where δ is the distance to the letter a from
+the prefix q(S) of r(S). Obviously, we have δ < L(i). Therefore, choosing an appropriate
+                                                                                   i−1
+constant α > 0, we can estimate the number of bits required to encode all 22           phrases from
+                           i−1
+                         2
+the parsing of q(B) as 2       α log L(i); hence, the expression for E(i) with i 6= 1. Analogously,
+the size in bits of the encoding for bcb0 cbcb0 dd can be estimated as 4α log L(1) + α; hence,
+the expression for E(1).
+    Thus, the whole encoding of the string s requires O(log n + σ log σ + E(x)) bits. It remains
+to show that E(x) ≤ O(σ 2 ). Before finding a closed form for E(i), let us consider L(i), which
+can be expressed by the following recursion:
+                       i                
+                  i       2      2i−1 
+     L(i) = 2 · 22 + 22 / 2 2              L(i − 1), for i > 0,
+     L(0) = 9.
+                                                                                     z    2z
+Here, L(0) = |bcb0 cbcb0 dd| = 9. Let us find a closed form for L(i). Note that 22 / 22            = 22z2−1
+                                                                                               
+
+for any integer z ≥ 0. Expanding the recursion for L(i), we obtain:
+                                     2i
+                      2i           (22 )
+     L(i) = 2 · 2 +                 2i−1
+                                            L(i − 1)
+                                   (2 2 )                             !
+                           2i                          2i−1
+         2i +1            (22 )             2i−1    (2 2 )
+     =2          +        2i−1
+                                      2·2          + 22i−2 L(i − 2)
+                     (2 2 )                         ( 2 )
+                              2i             2i
+         i      4·(2 )         (2 2 )
+     = 22 +1 + 22i−12−1 + 22i−2        L(i − 2)
+                              ( 2 )                             !
+                       2i             2i                   2i
+        2i +1     4·(22 )        4·(22 )              4·(22 )            2i 
+     =2       + 22i−1 −1 + 22i−2 −1 + · · · + 221 −1 + 9 · 22
+                 2i 
+         i
+                                                                      
+     = 22 +1 + 22       2 2
+                             4
+                           i−1
+                               −1
+                                   +   2 2
+                                             4
+                                           i−2
+                                               −1
+                                                  + · · · +    21
+                                                                 4
+                                                              2 −1
+                                                                   + 9   .
+                      i
+                     22
+                          
+The term 9 ·      appears because of the last level of the recursion L(i). Now it is easy
+                      2
+                          2i 
+to see that L(i) ≤ β · 22 for a constant β > 0. In particular, we obtain |r(A)| =
+                       2x                                x
+|r0 (A)| = L(x) ≤ β · 22 ≤ O(σ 2 ) (recall that σ = 22 + 2). Since, as it was noted
+                                               2
+above, σ ≤ log n + 2, we obtain L(x) ≤ O(log n). Hence, for large enough n, we have
+
+
+
+                                                                                                              S TA C S 2 0 1 8
+46:12   Relations Between Greedy and Bit-Optimal LZ77 Encodings
+
+
+        ` = n − |r(A)| − |r0 (A)| = n − 2L(x) = n − O(log2 n) ≥ 12 n, i.e., ` = Θ(n), as it was
+        announced above. Let us similarly estimate E(i). Denote γi = α log L(i) for brevity.
+
+                              2i
+                           (22 )                i−1
+             E(i) ≤        22
+                              i−1       (22           γi + E(i − 1))
+                       (      2     )
+                      i                         i
+                    22                       22
+                 2·( 2 )                    (        )
+             = 22i−1 −1 γi +                22
+                                               2
+                                              i−1            E(i − 1)
+                                        (      2         )                                   !
+                     2i                      22
+                                                i                  2i−1
+                 2·(22 )                    (2)                  (2 2 ) 2i−2
+             = 22i−1 −1 γi +                2i−1                   2i−2
+                                                                        (2   γi−1 + E(i − 2))
+                                        (2 2 )                   (2 2 )
+                      i                         2i                              2i
+                    22
+                 2·( 2 )                    (22 )             2i−2             (22 )
+             = 22i−1 −1 γi +                2i−2
+                                                             2
+                                                             2i−2
+                                                                     E(i − 2)
+                                                                     γi−1 +
+                                        (2 2 )            (2 2 )
+                      i                      2i                            i
+                    22                                                   22
+                2·( )                    2·(22 )      (2)
+             = 22i−12−1 γi + 22i−2 −1 γi−1 + 22i−2            E(i − 2)
+                                                     ( 2 )
+                    2i                2i                         2i
+                2·(22 )           2·(22 )                    2·(22 )        2i 
+             = 22i−1 −1 γi + 22i−2 −1 γi−1 + · · · + 221 −1 γ2 + 22 (4γ1 +α)
+                     2i 
+                                                                                  
+                                 γi          γi−1                   γ2
+             = 2 · 22       2 2 i−1
+                                    −1
+                                        + 2 2 i−2
+                                                  −1
+                                                     + · · · +    2 1
+                                                                 2 −1
+                                                                        + 2γ 1 + α
+                                                                                 2   .
+
+                          i
+                      22
+                              
+        The term       2(4γ1 + α) appear because of the last level of the recursion E(i). Note that
+                                      2i 
+                                                                                        2k
+                                                                               P∞
+        γi = α log L(i) ≤ α log(β · 22 ) = O(2i ). It is well known that          k=0 22k −1 = O(1).
+                                                 2i                                   2x 
+        Therefore, E(i) can be estimated as O( 22 ). Thus, we obtain E(x) ≤ O( 22 ), which is
+                            x
+        O(σ 2 ) since σ = 22 + 2.                                                                J
+
+
+        I Remark. For nonclassical LZ77 encodings, we can use exactly the same example as in the
+        proof of Theorem 12. In this case, the substrings q(B) = a1 da2 d · · · a|B| d and bcb0 cbcb0 dd
+        of each string r(S) are parsed into one-letter phrases: the phrases c and d are encoded in
+        O(1) bits using the codes of these letters, and the phrases a1 , a2 , . . . , a|B| , b, b0 are encoded
+        using references to letters of the prefix q(S) of r(S). The analysis of the size of thus obtained
+        encoding is analogous.
+
+
+         6     Concluding Remarks
+                                                     n                          log n
+        The upper and lower bounds O(min{z, loglog logσ z }) and Ω(min{z, log logσ z+log σ }), established
+        in Theorems 7 and 10, completely solve the problem for the case of constant alphabets and for
+        some cases of arbitrary alphabets. But the general case of arbitrary alphabets with bounds
+        expressed in terms of the parameters n, z, σ remains open (see Table 1 in the introduction).
+                                                                                          LZgr
+        Note that the examples constructed in the proof of Theorem 12 to show that LZopt        ≥ Ω(log n)
+        are extremely compressible strings with z = O(log2 n) and it is not clear whether the upper
+                LZgr
+        bound LZopt  ≤ O(log n) remains tight if we consider “non-extremely compressible” strings
+        (but not necessarily on polylogarithmic alphabets).
+            It is interesting to consider other encoders for LZ77. Many practical compressors utilize
+        a type of phrase encoders that is strikingly different from ours: such encoders use entropy
+        compression as a component. DEFLATE and LZMA are important examples of compression
+        schemes using such techniques. This is a major open problem to formalize these schemes and
+        to conduct a similar theoretical analysis of the efficiency of the popular greedy approach.
+D. Kosolobov                                                                                            46:13
+
+
+     References
+ 1   Amihood Amir, Gad M. Landau, and Esko Ukkonen. Online timestamped text indexing.
+     Inf. Process. Lett., 82(5):253–259, 2002. doi:10.1016/S0020-0190(01)00275-7.
+ 2   Djamal Belazzougui and Simon J. Puglisi. Range predecessor and lempel-ziv parsing. In
+     Robert Krauthgamer, editor, Proceedings of the Twenty-Seventh Annual ACM-SIAM Sym-
+     posium on Discrete Algorithms, SODA 2016, Arlington, VA, USA, January 10-12, 2016,
+     pages 2053–2071. SIAM, 2016. doi:10.1137/1.9781611974331.ch143.
+ 3   Philip Bille, Patrick Hagge Cording, Johannes Fischer, and Inge Li Gørtz. Lempel-ziv
+     compression in a sliding window. In Juha Kärkkäinen, Jakub Radoszewski, and Wojciech
+     Rytter, editors, 28th Annual Symposium on Combinatorial Pattern Matching, CPM 2017,
+     July 4-6, 2017, Warsaw, Poland, volume 78 of LIPIcs, pages 15:1–15:11. Schloss Dagstuhl
+     - Leibniz-Zentrum fuer Informatik, 2017. doi:10.4230/LIPIcs.CPM.2017.15.
+ 4   Moses Charikar, Eric Lehman, Ding Liu, Rina Panigrahy, Manoj Prabhakaran, Amit Sahai,
+     and Abhi Shelat. The smallest grammar problem. IEEE Trans. Information Theory,
+     51(7):2554–2576, 2005. doi:10.1109/TIT.2005.850116.
+ 5   Martin Cohn. Affine m-ary gray codes. Information and Control, 6(1):70–78, 1963. doi:
+     10.1016/S0019-9958(63)90119-0.
+ 6   C. J. Colbourn and J. H. Dinitz. Handbook of combinatorial designs. CRC press, 2006.
+ 7   Maxime Crochemore, Laura Giambruno, Alessio Langiu, Filippo Mignosi, and Antonio
+     Restivo. Dictionary-symbolwise flexible parsing. J. Discrete Algorithms, 14:74–90, 2012.
+     doi:10.1016/j.jda.2011.12.021.
+ 8   Maxime Crochemore, Alessio Langiu, and Filippo Mignosi. The rightmost equal-cost posi-
+     tion problem. In Ali Bilgin, Michael W. Marcellin, Joan Serra-Sagristà, and James A. Storer,
+     editors, 2013 Data Compression Conference, DCC 2013, Snowbird, UT, USA, March 20-22,
+     2013, pages 421–430. IEEE, 2013. doi:10.1109/DCC.2013.50.
+ 9   Maxime Crochemore, Alessio Langiu, and Filippo Mignosi. Note on the greedy parsing
+     optimality for dictionary-based text compression. Theor. Comput. Sci., 525:55–59, 2014.
+     doi:10.1016/j.tcs.2014.01.013.
+10   Peter Elias. Universal codeword sets and representations of the integers. IEEE Trans.
+     Information Theory, 21(2):194–203, 1975. doi:10.1109/TIT.1975.1055349.
+11   Paolo Ferragina, Igor Nitto, and Rossano Venturini. On the bit-complexity of lempel-ziv
+     compression. SIAM J. Comput., 42(4):1521–1541, 2013. doi:10.1137/120869511.
+12   Travis Gagie, Pawel Gawrychowski, Juha Kärkkäinen, Yakov Nekrich, and Simon J. Puglisi.
+     Lz77-based self-indexing with faster pattern matching. In Alberto Pardo and Alfredo Viola,
+     editors, LATIN 2014: Theoretical Informatics - 11th Latin American Symposium, Mon-
+     tevideo, Uruguay, March 31 - April 4, 2014. Proceedings, volume 8392 of Lecture Notes in
+     Computer Science, pages 731–742. Springer, 2014. doi:10.1007/978-3-642-54423-1_63.
+13   F. Gray. Pulse code communication, 1953. US Patent 2,632,058.
+14   S. R. Kosaraju and G. Manzini. Some entropic bounds for Lempel–Ziv algorithms. In DCC
+     1997, page 446. IEEE, 1997. doi:10.1109/DCC.1997.582106.
+15   Sebastian Kreft and Gonzalo Navarro. On compressing and indexing repetitive sequences.
+     Theor. Comput. Sci., 483:115–133, 2013. doi:10.1016/j.tcs.2012.02.006.
+16   N. Jesper Larsson. Most recent match queries in on-line suffix trees. In Alexander S. Kulikov,
+     Sergei O. Kuznetsov, and Pavel A. Pevzner, editors, Combinatorial Pattern Matching - 25th
+     Annual Symposium, CPM 2014, Moscow, Russia, June 16-18, 2014. Proceedings, volume
+     8486 of Lecture Notes in Computer Science, pages 252–261. Springer, 2014. doi:10.1007/
+     978-3-319-07566-2_26.
+17   V. I. Levenshtein. On the redundancy and delay of decodable coding of natural numbers.
+     Systems Theory Research, 20:149–155, 1968.
+
+
+
+
+                                                                                                      S TA C S 2 0 1 8
+46:14   Relations Between Greedy and Bit-Optimal LZ77 Encodings
+
+
+        18   Gonzalo Navarro and Veli Mäkinen. Compressed full-text indexes. ACM Comput. Surv.,
+             39(1):2, 2007. doi:10.1145/1216370.1216372.
+        19   N. Rajpoot and C. Sahinalp. Dictionary-based data compression. in Handbook of Lossless
+             Data Compression, pages 153–167, 2002.
+        20   Wojciech Rytter. Application of lempel-ziv factorization to the approximation of grammar-
+             based compression.     Theor. Comput. Sci., 302(1-3):211–222, 2003.         doi:10.1016/
+             S0304-3975(02)00777-6.
+        21   James A. Storer and Thomas G. Szymanski. Data compression via textural substitution.
+             J. ACM, 29(4):928–951, 1982. doi:10.1145/322344.322346.
+        22   A. D. Wyner and J. Ziv. The sliding-window Lempel–Ziv algorithm is asymptotically
+             optimal. Proceedings of the IEEE, 82(6):872–877, 1994. doi:10.1109/5.286191.
+        23   Jacob Ziv and Abraham Lempel. A universal algorithm for sequential data compression.
+             IEEE Trans. Information Theory, 23(3):337–343, 1977. doi:10.1109/TIT.1977.1055714.
+        24   Jacob Ziv and Abraham Lempel. Compression of individual sequences via variable-rate
+             coding. IEEE Trans. Information Theory, 24(5):530–536, 1978. doi:10.1109/TIT.1978.
+             1055934.
+

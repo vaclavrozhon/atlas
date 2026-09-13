@@ -1,0 +1,1451 @@
+                                                Potential Function-based Framework for Making the Gradients
+                                                         Small in Convex and Min-Max Optimization*
+                                                                Jelena Diakonikolas                                          Puqian Wang
+arXiv:2101.12101v1 [math.OC] 28 Jan 2021
+
+
+
+
+                                                          Department of Computer Sciences                                School of Mathematics
+                                                          University of Wisconsin-Madison                                 Shandong University
+                                                             jelena@cs.wisc.edu                                      e.puqian.wang@gmail.com
+
+
+                                                                                                           Abstract
+                                                      Making the gradients small is a fundamental optimization problem that has eluded unifying and simple conver-
+                                                  gence arguments in first-order optimization, so far primarily reserved for other convergence criteria, such as reducing
+                                                  the optimality gap. We introduce a novel potential function-based framework to study the convergence of standard
+                                                  methods for making the gradients small in smooth convex optimization and convex-concave min-max optimization.
+                                                  Our framework is intuitive and it provides a lens for viewing algorithms that make the gradients small as being driven
+                                                  by a trade-off between reducing either the gradient norm or a certain notion of an optimality gap. On the lower bounds
+                                                  side, we discuss tightness of the obtained convergence results for the convex setup and provide a new lower bound for
+                                                  minimizing norm of cocoercive operators that allows us to argue about optimality of methods in the min-max setup.
+
+
+                                           1 Introduction
+                                           One of the most basic facts in convex optimization is that a differentiable convex function attains its minimum at a
+                                           point where its gradient equals zero, provided such a point exists. Thus, it is tempting to conclude that there is no
+                                           difference between minimizing the function value or its gradient (in any suitable norm). This is only partially true, as
+                                           we are almost never guaranteed to find a point at which the function is minimized; instead, we opt for a more modest
+                                           goal of approximating such points. As it turns out, from an algorithmic point of view, there are major differences
+                                           between guarantees provided for the function value (or optimality gap) and norm of its gradient.
+                                               Much of the standard optimization literature on smooth (gradient-Lipschitz) convex first-order optimization has
+                                           been concerned with providing guarantees for the optimality gap. There is comparatively much less work on guaran-
+                                           tees for the norm of the gradient, most of it being initiated after the work of Nesterov [41], which argued that such
+                                           guarantees are natural and more informative than those based on the function value for certain linearly constrained
+                                           optimization problems that frequently arise in applications. Further, unlike the optimality gap, which would require
+                                           knowledge of the minimum function value to be usable as a stopping criterion, the norm of the gradient is readily
+                                           available to the algorithm as a stopping criterion, as standard first-order methods define their iterates based on the
+                                           gradient information. This insight is particularly useful for the design of parameter-free algorithms (i.e., algorithms
+                                           that do not require knowledge of function parameters such as smoothness, strong convexity, or sharpness/constants of
+                                           Łojasiewicz inequality; see, e.g., [5, 11, 36, 37]), and as such has been used to design parameter-free algorithms that
+                                           are near-optimal in terms of iteration complexity (i.e., optimal up to poly-logarithmic factors) [25, 35, 42].
+                                               As for L-smooth functions the norm of the gradient can be bounded above as a function of the optimality gap
+                                           f (x) − f (x∗ ), where x∗ ∈ argminx f (x), using
+                                                                                              1
+                                                                                                k∇f (x)k2 ≤ f (x) − f (x∗ ),                                                    (1.1)
+                                                                                             2L
+                                           it is not surprising that convergence rates can be established for gradient norm minimization. What is surprising,
+                                           however, is that those rates can be faster than what is implied by Eq. (1.1) and existing results for convergence in
+                                              * This research was partially supported by the NSF grant CCF-2007757 and by the Office of the Vice Chancellor for Research and Graduate
+                                           Education at the University of Wisconsin–Madison with funding from the Wisconsin Alumni Research Foundation. Part of this research was done
+                                           while PW was attending UW-Madison as part of the Visiting International Student Program (VISP).
+
+
+                                                                                                               1
+function value/optimality gap. In particular, methods that are optimal in terms of iteration complexity for minimizing
+the optimality gap are not necessarily optimal for gradient norm optimization, and vice-versa. More specifically, the
+fast gradient method (FGM) of Nesterov [44] is iteration complexity-optimal for minimizing the optimality gap, but it
+is suboptimal for minimizing the gradient norm [13, 27].
+    More generally, the existing literature has not yet shed light on what is the basic mechanism that drives algorithms
+for gradient norm minimization. The only known iteration complexity-optimal algorithm for minimizing norm of the
+gradient of a smooth convex function is due to Kim and Fessler [28].1 This algorithm was obtained by using the
+performance estimation framework of Drori and Teboulle [20], originally developed for understanding the worst-case
+performance of optimization algorithms. The algorithm [28] itself and its convergence analysis are inferred from
+numerical solutions to a semidefinite program (SDP). As such, the intuition behind what is driving the convergence
+analysis of the algorithm and how the improved convergence rate is obtained is lacking, which constitutes an impedi-
+ment to possibly generalizing this algorithm to other optimization settings.
+    Even less is known in the setting of smooth convex-concave min-max optimization, where (near-)optimal conver-
+gence results have been established only recently [15, 26, 33, 48] and the problem has been much less studied from
+the aspect of oracle lower bounds [15, 22, 46]. In particular, similar as in the case of convex optimization, classical
+methods for min-max optimization that are optimal for reducing the primal-dual gap, such as, e.g., the extragradi-
+ent method [29], mirror-prox [39], and dual extrapolation [40], are suboptimal in terms of iteration complexity for
+minimizing the gradient norm. Interestingly, however, the methods that turn out to be (near-)optimal were originally
+studied in the context of fixed point iterations [23, 30, 38].
+    In this paper, we introduce a novel potential function-based framework to study the convergence in gradient norm
+for smooth convex and convex-concave optimization problems. Our framework is intuitive, as it relies on establishing
+convergence of standard methods by interpreting it as a trade-off between reducing the gradient norm and reducing a
+notion of an optimality gap. The same view can be adopted in a unifying manner for methods such as standard gradient
+descent, Nesterov FGM [44], optimized method of Kim and Fessler [28], gradient descent-ascent (which is equivalent
+to Krasnosel’skiı-Mann iteration [30, 38]; see Section 3.1), and Halpern iteration [23]. We further complement these
+results with a discussion of optimality of the considered methods for convex optimization, and with a new lower bound
+for minimizing the norm of cocoercive operators (see Section 1.2 for a precise definition and relationship to min-max
+optimization), which allows us to discuss optimality of gradient descent-ascent and Halpern iteration as methods for
+minimizing the gradient norm in smooth convex-concave min-max optimization.
+
+1.1 Further Related Work
+Understanding the phenomenon of acceleration and providing a unifying theory of first-order optimization algorithms
+has been an important topic in optimization research, with a flurry of recent research activity in this area [1, 4, 6–8, 10,
+12, 17–19, 21, 24, 31, 32, 34, 49–51, 53, 55–57, 59]. However, the existing literature has almost exclusively focused on
+the optimality gap guarantees, with only a small subset of results seeking to provide guarantees for gradient norm and
+primarily addressing FGM-type algorithms with suboptimal rates [6, 17, 50].
+    Complementary to the literature discussed above, whose focus has been on deriving intuitive convergence analysis
+frameworks, another line of work has focused on using the SDP-based performance estimation framework of Drori and
+Teboulle [20] to investigate the worst-case performance of optimization algorithms [14, 26–28, 33, 54]. Most relevant
+to our work among these results are: [27], which investigated the worst-case performance of FGM-type methods in
+terms of gradient norm minimization, [28], which obtained the first (and so far, the only) iteration complexity-optimal
+algorithm for minimizing the gradient norm of smooth convex functions, and [33], which obtained a tight worst-
+case convergence bound for Halpern iteration. While the SDP-based approach used in this line of work is useful
+for understanding the worst-case performance of existing algorithms (and even obtaining new algorithms [28]), its
+downside is that, because the convergence arguments are computer-assisted (namely, they are inferred from numerical
+solutions to SDPs), they are generally not suitable for developing intuition about what is driving the methods and their
+analysis. Our work fills this gap by providing intuitive convergence proofs based on potential function arguments.
+
+1.2 Notation and Preliminaries
+Throughout the paper, we consider the Euclidean space (Rd , k·k), where k·k = h·, ·i is the Euclidean norm and h·, ·i
+                                                                             p
+
+denotes any inner product on Rd . We use {Ak }k≥0 and {Bk }≥0 to denote sequences of nondecreasing nonnegative
+  1 The optimality of the algorithm can be certified using the lower bound from [13].
+
+
+
+
+                                                                       2
+numbers, and define a0 = A0 , ak = Ak − Ak−1 for k ≥ 1, and, similarly, b0 = B0 , bk = Bk − Bk−1 for k ≥ 1.
+   We consider two main problem setups: (i) making the gradients small in convex optimization, and (ii) making the
+gradients small in min-max optimization.
+
+Convex optimization. In the first setup, we assume we are given first-order oracle access to a convex continuously
+differentiable function f : Rd → R. The first-order definition of convexity then applies, and we have:
+                                  (∀x, y ∈ Rd ) :      f (y) ≥ f (x) + h∇f (x), y − xi .
+We further assume that f is L-smooth, i.e., that its gradients are L-Lipschitz continuous:
+                                  (∀x, y ∈ Rd ) :      k∇f (x) − ∇f (y)k ≤ Lkx − yk.
+Recall that smoothness of f implies:
+                                                                                     L
+                          (∀x, y ∈ Rd ) :     f (y) ≤ f (x) + h∇f (x), y − xi +         ky − xk2 .                      (1.2)
+                                                                                     2
+    The goal of the first setup is to, given ǫ > 0, construct a point x such that k∇f (x)k ≤ ǫ in as few iterations (oracle
+queries to the gradient of f ) as possible. A useful fact that turns out to be crucial for the analysis in the convex case is
+the following (see, e.g., [58, Section 3.5]).
+Fact 1.1. A continuously differentiable function f : Rd → R is L-smooth and convex if and only if
+                                      1
+                   (∀x, y ∈ Rd ) :       k∇f (y) − ∇f (x)k2 ≤ f (y) − f (x) − h∇f (x), y − xi .                  (1.3)
+                                     2L
+    Observe that Fact 1.1 fully characterizes the class of smooth convex functions, and, as such, should be sufficient
+for analyzing any algorithm that addresses problems from this class. An immediate consequence of Fact 1.1 is that the
+gradient of a smooth convex function is cocoercive, i.e.,
+                                                                        1
+                                       h∇f (x) − ∇f (y), x − yi ≥         kx − yk2 .                                   (1.4)
+                                                                        L
+
+Min-max optimization. In the second setup, we are given oracle access to gradients of a function φ : Rd1 × Rd2 →
+R, where d1 + d2 = d. Function φ(x, y) is assumed to be convex-concave: convex in the first argument (x) when
+the second argument (y) is fixed and concave in the second argument (y) when the first argument (x) is fixed, for any
+values of x, y. Similar to the case of convex optimization, the goal in this case is, given ǫ > 0, to find a pair of points
+(x, y) ∈ Rd1 × Rd2 such that k∇φ(x, y)k ≤ ǫ in as few iterations (oracle queries to the gradient of φ) as possible.
+    We consider the problem of minimizing the norm of the gradient of φ as the problem of minimizing the norm of
+                       ∇x φ(x,y)
+                                    , where u = x
+                                                 
+the operator F (u) = −∇    y φ(x,y)
+                                                 y . When φ is convex-concave, F is monotone, i.e., it holds
+
+                                     (∀u, v ∈ Rd ) :     hF (u) − F (v), u − vi ≥ 0.                                   (1.5)
+We will assume throughout that F is L1 -cocoercive, i.e., that
+                                                                           1
+                           (∀u, v ∈ Rd ) :    hF (u) − F (v), u − vi ≥       kF (u) − F (v)k2 .                    (1.6)
+                                                                          L
+Cocoercivity of F implies that it is monotone and L-Lipschitz. The opposite does not hold in general, unless F is the
+gradient of a smooth convex function (as we saw in the case of convex optimization described earlier). Nevertheless,
+cocoercivity is sufficient to capture the main algorithmic ideas of smooth min-max optimization, and the extensions to
+general smooth min-max optimization are possible through the use of approximate resolvent operators (see, e.g., [15]).
+Further, it suffices to consider unconstrained problems, as extensions to constrained optimization problems are possible
+in a straightforward manner using a notion of operator mapping (see, e.g., [15], where a similar idea was used).
+    We assume here that there exists a point u∗ ∈ Rd such that F (u∗ ) = 0. Due to cocoercivity of F (Eq. (1.6)), this
+assumption implies that
+                                                                          1
+                                     (∀u ∈ Rd ) : hF (u), u − u∗ i ≥ kF (u)k2 .                                    (1.7)
+                                                                          L
+It will be useful to think of hF (u), u − u∗ i as a notion of “optimality gap” for min-max optimization problems, as,
+using convexity-concavity of φ, we have
+           (∀(x, y) ∈ Rd1 × Rd2 ) :      φ(x, y ∗ ) − φ(x∗ , y ∗ ) + φ(x∗ , y ∗ ) − φ(x∗ , y) ≤ hF (u), u − u∗ i .
+
+                                                              3
+2 Small Gradients in Convex Optimization
+In this section, we consider the problem of minimizing norm of the gradient of a smooth convex function. We show that
+all standard methods, including standard gradient descent, fast gradient method of Nesterov [44], and the optimized
+gradient method of Kim and Fessler [28], can be captured within an intuitive potential function-based framework,
+where the progress of a method is established through a trade-off between the norm of the gradient and the optimality
+gap. Further, the complete convergence analysis of each of the methods can be fully carried out using only the
+cocoercivity inequality from Eq. (1.3), which fully characterizes the class of smooth convex functions.
+
+2.1 Gradient Descent
+As a warmup, we start by considering L-smooth but possibly nonconvex objectives f. In this case, all that can be said
+about f is that its gradients are L-Lipschitz, which implies Eq. (1.2). Further, for any method that does not converge
+to local maxima (unless initialized at one), we cannot hope to bound the norm of the last gradient – all that we can
+hope for is the average or the minimum over all seen gradients. The simplest way to see this is by considering the one
+dimensional case: if the function is locally concave and the algorithm moves in the direction that reduces the function
+value, the absolute value of the function derivative must increase.
+    Thus, assuming that the function is bounded below by some f⋆ > −∞, it is natural to consider methods that in
+each iteration either reduce the function value or the norm of the gradient. Such methods ensure that, ∀k ≥ 0 :
+
+                                       ak k∇f (xk )k2 + f (xk+1 ) − f (xk ) ≤ 0,
+
+or, equivalently, that the following potential function
+                                                 k
+                                                 X
+                                          Ck =         ai k∇f (xi )k2 + f (xi+1 )                                 (2.1)
+                                                 i=0
+
+is non-increasing, where ai is some sequence of positive numbers. Equivalently, such methods ensure that ak k∇f (xk )k2 +
+f (xk+1 ) − f (xk ) ≤ 0, ∀k ≥ 0.
+    As the only assumption we are making about f is that it is L-smooth, the most we can do to bound f (xk+1 )−f (xk )
+is use Eq. (1.2). The tightest bound on f (xk+1 ) − f (xk ) that can be obtained from Eq. (1.2) is attained when xk+1 =
+                                                                                                         1
+xk − L1 ∇f (xk ) (i.e., for the standard gradient descent step) and is given by f (xk+1 ) − f (xk ) ≤ − 2L k∇f (xk )k2 , in
+                                                     1
+which case the largest ak we can choose is ak = 2L . As Ck is non-increasing, it follows that Ck ≤ C0 , and we recover
+the familiar convergence bound of gradient descent:
+                               k
+                          1 X                   2L(f (x0 ) − f (xk+1 ))   2L(f (x0 ) − f⋆ )
+                                  k∇f (xi )k2 ≤                         ≤                   .                     (2.2)
+                        k + 1 i=0                       k+1                    k+1
+
+    When considering the case of a convex objective function f, the first question to ask is how would convexity help
+to improve the bound from Eq. (2.2). The first observation to make is that Fact 1.1 fully characterizes the class of
+smooth convex functions, and, thus, Eq. (1.3) should be enough to carry out the analysis of any algorithm for smooth
+convex functions.
+    Given that the function is convex, in this case it seems reasonable to hope that we can obtain a bound on the
+gradient norm at the last iterate. Thus, we could consider a potential function of the form
+
+                                             Ck = Ak k∇f (xk )k2 + f (xk )
+
+and try enforcing the condition that Ck ≤ Ck−1 for Ak that grows as fast as possible with the iteration count k. This
+                                                                 ∗
+approach precisely gives the bound k∇f (xk )k2 ≤ 2L(f (x2k+1
+                                                         0 )−f (x ))
+                                                                     , which is tight (see, e.g., [28, Lemma 5.2]).
+
+Lemma 2.1 (Convergence of Gradient Descent). Let f : Rd → R be an L-smooth function that attains its minimum
+on Rd and let x∗ ∈ argminx∈Rd f (x). Let x0 ∈ Rd be an arbitrary initial point and assume that the sequence
+{xk }k≥0 evolves according to the standard gradient descent, i.e., xk+1 = xk − L1 ∇f (xk ), ∀k ≥ 0. Then
+
+                                                    k
+                                             Ck =     k∇f (xk )k2 + f (xk )
+                                                    L
+
+                                                              4
+is non-increasing with k, and we can conclude that, ∀k ≥ 0
+                                                          2L(f (x0 ) − f (x∗ ))
+                                         k∇f (xk )k2 ≤                          .
+                                                                2k + 1
+Proof. We start by showing that Ck+1 ≤ Ck , ∀k ≥ 0. By the definition of Ck ,
+                                    k+1                k
+                      Ck+1 − Ck ≤       k∇f (xk+1 )k2 − k∇f (xk )k2 + f (xk+1 ) − f (xk ).
+                                     L                 L
+                                                                                                       1
+Applying Fact 1.1 with x = xk+1 = xk − L1 ∇f (xk ) and y = xk , it follows that f (xk+1 )−f (xk ) ≤ − 2L k∇f (xk+1 )k2 −
+ 1           2
+2L k∇f (xk )k , and, thus
+
+                                            2k + 1                 2k + 1
+                             Ck+1 − Ck ≤           k∇f (xk+1 )k2 −        k∇f (xk )k2 .
+                                              2L                     2L
+To complete the proof that Ck+1 ≤ Ck , it remains to argue that k∇f (xk+1 )k ≤ k∇f (xk )k, ∀k ≥ 0. This is clearly
+true if k∇f (xk+1 )k = 0, so assume k∇f (xk+1 )k 6= 0. Applying Eq. (1.6) with x = xk+1 = xk − L1 ∇f (xk ),
+y = xk , and simplifying, it follows that:
+
+                        k∇f (xk+1 )k2 ≤ h∇f (xk+1 ), ∇f (xk )i ≤ k∇f (xk+1 )kk∇f (xk )k,
+
+where the last inequality is by Cauchy-Schwarz. To conclude that k∇f (xk+1 )k ≤ k∇f (xk )k, it remains to divide
+both sides of the last inequality by k∇f (xk+1 )k.
+   From the first part of the proof, it follows that Ck ≤ C0 , and, thus
+                       k
+                         k∇f (xk )k2 ≤ f (x0 ) − f (xk ) = f (x0 ) − f (x∗ ) + f (x∗ ) − f (xk ).
+                       L
+                                                  1
+It remains to observe that f (x∗ ) − f (xk ) ≤ − 2L k∇f (xk )k2 , which follows by applying Fact 1.1 with x = x∗ ,
+y = xk , and rearrange.
+
+2.2 Methods that are Faster than Gradient Descent
+The potential functions we have seen so far (for gradient descent) trade off the gradient norm (squared) with the
+function value. Equivalently, we can view them as trading off the gradient norm with the optimality gap f (xk )−f (x∗ ),
+as f (x∗ ) would cancel out in the analysis and the same argument would go through.
+    It is reasonable to ask whether we can obtain faster algorithms by using a different trade off, say, by considering
+                                                                                    Pk
+potential functions of the form Ck = Ak k∇f (xk )k2 +Bk (f (xk )−f (x∗ )) or Ck = i=0 ai k∇f (xi )k2 +Bk (f (xk )−
+f (x∗ )), where Bk is some positive function of the iteration count k.
+    Observe that for non-constant Bk , one way or another, we would need to account for x∗ , which is not known to the
+algorithm. However, there are at least two ways around this issue. The first one is to utilize Eq. (1.3) to bound below
+f (x∗ ). This approach does not lead to the optimal iteration complexity, but improves the overall bound compared to
+gradient descent and recovers a variant of Nesterov FGM. The second approach is to replace the optimality gap with a
+gap to some reference point. In particular, as we show below, optimized gradient method [28] can be viewed as using
+the final point of the algorithm xN as the reference (or anchor) point.
+
+2.2.1 Fast Gradient Method
+We start by considering a potential function that offers a different trade-off between the norm of the gradient and the
+optimality gap, defined by
+                                        k−1
+                                        X
+                                  Ck =       ai k∇f (xi )k2 + Bk (f (xk ) − f (x∗ )),                             (2.3)
+                                         i=0
+
+where ai > 0, ∀i ≥ 0 and the sequence of scalars Bk > 0, ∀k ≥ 0, is strictly increasing. We also define bk =
+Bk − Bk−1 > 0. By convention, the summation from i to j where j < i is taken to be zero. Observe that
+
+                                               C0 = B0 (f (x0 ) − f (x∗ )).                                        (2.4)
+
+                                                            5
+    While, in principle, one could also consider Ck = Ak k∇f (xk )k2 + Bk (f (xk ) − f (x∗ )) hoping to obtain a bound
+on the last gradient, it is not clear that such a bound is even possible for non-constant Bk (see Section 2.3).
+    We first show that there is a natural algorithm that ensures Ck+1 − Ck ≤ Ek , ∀k ≥ 0, where Ek contains only
+telescoping terms. As it turns out, this algorithm is precisely Nesterov FGM.
+Lemma 2.2. Given an arbitrary initial point x0 ∈ Rd , assume that for k ≥ 1, the sequence xk is updated as
+                                       Bk−1            1               bk
+                                xk =           xk−1 − ∇f (xk−1 ) +           vk ,                                 (2.5)
+                                         Bk             L                Bk
+                                                    b                                                       Bk−1
+where vk is defined recursively via vk = vk−1 − k−1 ∇f (xk−1 ) with v0 = x0 . If bk 2 ≤ Bk and ak−1 ≤        2L , then
+              L     ∗       2       ∗        2
+                                                L
+Ck − Ck−1 ≤ 2 kx − vk k − kx − vk+1 k , ∀k ≥ 1, where Ck is defined by Eq. (2.3).
+Proof. Given k ≥ 1, by definition of Ck , we have
+                     Ck − Ck−1 = ak−1 k∇f (xk−1 )k2 + Bk f (xk ) − Bk−1 f (xk−1 ) − bk f (x∗ ).                   (2.6)
+Since f (x∗ ) is not known to the algorithm and we are trying to bound Ck − Ck−1 above, it appears natural to use
+Eq. (1.3) to bound f (x∗ ) below. In particular, we have:
+                                                                            1
+                              f (x∗ ) ≥ f (xk ) + h∇f (xk ), x∗ − xk i +      k∇f (xk )k2 .                       (2.7)
+                                                                           2L
+On the other hand, the difference f (xk ) − f (xk−1 ) can be bounded above using, again, Eq. (1.3), as follows.
+                                                                                       
+                                                                           1
+                            f (xk ) − f (xk−1 ) ≤ ∇f (xk ), xk − xk−1 + ∇f (xk−1 )
+                                                                           L
+                                                                                                                  (2.8)
+                                                       1                1
+                                                  −      k∇f (xk )k2 −    k∇f (xk−1 )k2 .
+                                                      2L               2L
+Combining Eq. (2.7) and Eq. (2.8) with Eq. (2.6), we have:
+                             Bk                          Bk−1 
+           Ck − Ck−1 ≤ −        k∇f (xk )k2 + ak−1 −             k∇f (xk−1 )k2
+                             2L                           2L                                                    (2.9)
+                                                             1
+                         + Bk−1 ∇f (xk ), xk − xk−1 + ∇f (xk−1 ) + bk h∇f (xk ), xk − x∗ i .
+                                                            L
+Now, if bk were zero (constant Bk ), we could simply set xk = xk−1 − L1 ∇f (xk−1 ), and we would be recovering
+gradient descent and its analysis from the previous subsection. Of course, the goal here is to get a different trade off,
+where Bk is strictly increasing.
+   To get a useful bound on Ck −Ck−1 , we need to be able to bound or otherwise control the term bk h∇f (xk ), xk − x∗ i .
+Fortunately, such a term frequently appears in the mirror-descent-type analysis, and it can be bounded using standard
+arguments by defining
+                                               n                          L            o
+                              vk+1 = argmin bk h∇f (xk ), u − vk i + ku − vk k2
+                                        u∈Rd                              2
+                                             bk
+                                     = vk − ∇f (xk ).
+                                             L
+Then, we have:
+                 bk h∇f (xk ), xk − x∗ i = bk h∇f (xk ), xk − vk+1 i + L hvk − vk+1 , vk+1 − x∗ i
+                                                                     bk 2
+                                         = bk h∇f (xk ), xk − vk i +      k∇f (xk )k2
+                                                                      L
+                                               L               L                    L
+                                            + kx∗ − vk k2 − kx∗ − vk+1 k2 − kvk+1 − vk k2
+                                               2               2                    2
+                                                                     bk 2
+                                         = bk h∇f (xk ), xk − vk i +      k∇f (xk )k2
+                                                                     2L
+                                               L               L
+                                            + kx∗ − vk k2 − kx∗ − vk+1 k2 ,
+                                               2               2
+
+                                                           6
+where we have repeatedly used vk+1 = vk − bLk ∇f (xk ). Combining with Eq. (2.9), we have
+
+                                     b k 2 − Bk                     Bk−1 
+                   Ck − Ck−1 ≤                  k∇f (xk )k2 + ak−1 −        k∇f (xk−1 )k2
+                                          2L                          2L
+                                          L               L
+                                     + kx∗ − vk k2 − kx∗ − vk+1 k2
+                                         2               2                               
+                                                                        1          
+                                     + ∇f (xk ), Bk xk − Bk−1 xk−1 − ∇f (xk−1 ) − bk vk .
+                                                                        L
+                                                                                                                Bk−1
+To obtain Ck − Ck−1 ≤ L2 kx∗ − vk k2 − L2 kx∗ − vk+1 k2 , it remains to choose bk 2 ≤ Bk , ak−1 ≤                2L , and
+      B             1
+                                  bk
+xk = Bk−1
+        k
+            x k−1 − L ∇f (x k−1 ) + Bk vk .
+   We can now use Lemma 2.2 to argue about convergence of Nesterov FGM from Eq. (2.5). Interestingly, the result
+from Lemma 2.2 suffices to argue about both convergence in function value and in norm of the gradient. The resulting
+bounds are tight, up to a small absolute constant, due to numerical results from [27].
+Theorem 2.3 (Convergence of Fast Gradient Method). Suppose that the assumptions of Lemma 2.2 hold, where
+v0 = x0 . Then, ∀k ≥ 1:
+                                             2B0 (f (x0 ) − f (x∗ )) + Lkx0 − x∗ k2
+                         f (xk ) − f (x∗ ) ≤
+                                                               2Bk
+and
+                         k
+                        X   Bi                                         L
+                                k∇f (xi )k2 ≤ B0 (f (x0 ) − f (x∗ )) + kx0 − x∗ k2 .
+                        i=0
+                            2L                                          2
+
+In particular, if b0 = B0 , bk 2 = Bk for k ≥ 1, and ak = Bk
+                                                          2L , then
+
+                                                                     4Lkx0 − x∗ k2
+                                             f (xk ) − f (x∗ ) ≤
+                                                                     (k + 1)(k + 2)
+and                                              Pk                     2
+                                            2      i=0 Bi k∇f (xi )k               18L2 kx0 − x∗ k2
+                          min k∇f (xi )k ≤            Pk                    ≤                         .
+                         0≤i≤k
+                                                        i=0 Bi
+                                                                                (k + 1)(k + 2)(k + 3)
+Proof. Applying Lemma 2.2 and the definition of Ck , we have, ∀k ≥ 1:
+                                                  L ∗               L
+                                       Ck ≤ C0 +     kx − v0 k2 − kvk+1 − x∗ k2
+                                                   2                2
+                                                                    L
+                                          ≤ B0 (f (x0 ) − f (x∗ )) + kx∗ − x0 k2 .
+                                                                     2
+Equivalently:
+                 k−1
+                 X                                                                             L ∗
+                       ai k∇f (xi )k2 + Bk (f (xk ) − f (x∗ )) ≤ B0 (f (x0 ) − f (x∗ )) +        kx − x0 k2 .
+                 i=0
+                                                                                               2
+                                                      Pk−1                      2
+The first part of the theorem is now immediate, as          i=0 ai k∇f (xi )k       ≥ 0 and
+                                                            Bk
+                                 Bk (f (xk ) − f (x∗ )) ≥      k∇f (xk )k2 ≥ ak k∇f (xk )k2 .
+                                                            2L
+For the second part, we only need to bound the growth of Bk when bk 2 = (Bk − Bk−1 )2 = Bk . It is a standard
+result that this growth is quadratic and at least as fast the growth resulting from choosing bk = k+1  2 , ∀k. Thus,
+       Pk i+1        (k+1)(k+2)       Pk         (k+1)(k+2)(k+3)                                 L
+Bk ≥ i=0 2 =              4       and i=0 Bi ≥          12       . Using that f (x0 ) − f (x ) ≤ 2 kx0 − x∗ k2 , it now
+                                                                                            ∗
+
+follows from the first part of the theorem that
+
+                                                                     4Lkx0 − x∗ k2
+                                             f (xk ) − f (x∗ ) ≤
+                                                                     (k + 1)(k + 2)
+
+                                                                 7
+and                                              Pk                     2
+                                                    i=0 Bi k∇f (xi )k              18L2 kx0 − x∗ k2
+                          min k∇f (xi )k2 ≤            Pk                   ≤                         ,
+                         0≤i≤k
+                                                         i=0 Bi
+                                                                                (k + 1)(k + 2)(k + 3)
+as claimed.
+Remark 2.4. It may not be immediately clear why the bound from Theorem 2.3 improves upon the bound for gradient
+descent from Lemma 2.1, as in the former the gradient is bounded as a function of kx∗ − x0 k2 , while in the latter
+it is bounded as a function of f (x0 ) − f (x∗ ). Here, one should note that, using the standard convergence result
+                                                                                    ∗ 2
+for the optimality gap of gradient descent f (xk ) − f (x∗ ) = O Lkx0 −x        k
+                                                                                     k
+                                                                                         and combining it with the bound from
+                                                                           ∗
+                                              2            f (x⌈k/2⌉ )−f (x ))          L2 kx0 −x∗ k2 
+Lemma 2.1, we also have that k∇f (xk )k = O L(                      k             = O         k2        . Furthermore, this bound
+is known to be tight [27, Theorem 2], and it also applies to min0≤i≤k k∇f (xi )k2 , as gradient descent monotonically
+decreases the gradient. We also note that the improved bound for FGM from Theorem 2.3 can only be established
+for the minimum gradient norm up to iteration k; as shown numerically in [27], the bound for the gradient of the last
+                                                                                  2       ∗ 2
+iterate is no better than that of gradient descent, i.e., k∇f (xk )k2 = Ω L kx0k−x     2
+                                                                                           k
+                                                                                                .
+
+2.2.2 Optimized Method for the Gradients
+                                                                                                                  (x∗ )) 
+The only known method that achieves the optimal convergence bound of the form k∇f (xk )k2 = O L(f (x0k)−f      2
+
+is the optimized method for the gradients (OGM-G), due to Kim and Fessler [28]. This method was obtained using
+the performance estimation framework (PEP) of Drori and Teboulle [20], which relies on numerical solutions to
+semidefinite programs that model the worst case performance of methods on a given class of problems (such as,
+e.g., unconstrained problems with smooth convex objective functions considered here). While this is a very powerful
+approach that generally produces tight convergence analysis and worst case instances as a byproduct, as discussed
+before, the intuition behind the methods and their analysis obtained using PEP is not always clear.
+     In this section, we show that OGM-G naturally arises from a potential function that fits within the broader frame-
+work studied in this paper. In particular, as mentioned earlier in this section, we can view OGM-G as trading off
+the norm of the gradient for a gap w.r.t. an anchor point, which is the last point constructed by the algorithm. As a
+consequence of anchoring to the last point, the algorithm crucially requires fixing the number of iterations in advance
+to achieve the optimal convergence bound stated above.
+     The potential function used for analyzing OGM-G is defined by
+                                     1                  1                                  
+                           Ck = Ak       k∇f (xk )k2 +     k∇f (xK )k2 + f (xk ) − f (xK ) ,                      (2.10)
+                                      2L                2L
+where K is the total number of iterations for which OGM-G is invoked.
+    Unlike for other algorithms, we will not be able to argue that Ck − Ck−1 ≤ Ek for Ek that is either zero or only
+contains telescoping terms. Instead, we will settle for a more modest goal of arguing that, under the appropriate choice
+of algorithm steps and growth of the sequence Ak , we have CK ≤ C0 . Observe that, by the definition of Ck , if we can
+prove that AK /A0 = Ω(K 2 ), this condition immediately leads to the desired bound
+                                           L(f (x ) − f (x ))          L(f (x ) − f (x∗ )) 
+                                                    0        K                   0
+                        k∇f (xK )k2 = O                            =  O                         .
+                                                      K2                           K2
+   As before, we define ak = Ak − Ak−1 and assume it is strictly positive, for all k (i.e., Ak is strictly increasing).
+To bound CK , we start by bounding the change in the potential function Ck − Ck−1 , for k ≥ 1, in the following lemma.
+Observe that the lemma itself is algorithm-independent.
+Lemma 2.5. Let Ck be defined by Eq. (2.10), for all k ∈ {0, 1, . . . , K}. Define yk = xk − L1 ∇f (xk ) for k ≥ 0, and
+set y−1 = x0 . Then, ∀1 ≤ k ≤ K :
+
+                      Ck − Ck−1 ≤ Ak h∇f (xk ), xk − yk−1 i − Ak−1 h∇f (xk−1 ), xk−1 − yk−2 i
+                                  + h∇f (xk−1 ), Ak yk−1 − Ak−1 yk−2 − ak yK i .
+
+Proof. Let x, x̂ be any two vectors from Rd , and let y = x − L1 ∇f (x). Then, Eq. (1.3) can be equivalently written
+as:
+                                                               1               1
+                         f (x̂) − f (x) ≤ h∇f (x̂), x̂ − yi −    k∇f (x̂)k2 −    k∇f (x)k2 .                  (2.11)
+                                                              2L              2L
+
+                                                               8
+   From the definition of Ck in Eq. (2.10), we have
+                                     Ak                 Ak−1                    ak
+                      Ck − Ck−1 =       k∇f (xk )k2 −         k∇f (xk−1 )k2 +       k∇f (xK )k2
+                                     2L                  2L                     2L
+                                     + Ak (f (xk ) − f (xk−1 )) + ak (f (xk−1 ) − f (xK )).
+
+Applying Eq. (2.11) to f (xk ) − f (xk−1 ) and f (xk−1 ) − f (xK ), we further have
+
+                                     Ak
+                    Ck − Ck−1 ≤ −       k∇f (xk−1 )k2 + Ak h∇f (xk ), xk − yk−1 i
+                                      L
+                                  + ak h∇f (xk−1 ), xk−1 − yK i
+                                = Ak h∇f (xk ), xk − yk−1 i + Ak h∇f (xk−1 ), yk−1 − yK i
+                                  − Ak−1 h∇f (xk−1 ), xk−1 − yK i
+                                = Ak h∇f (xk ), xk − yk−1 i − Ak−1 h∇f (xk−1 ), xk−1 − yk−2 i
+                                   + h∇f (xk−1 ), Ak yk−1 , −Ak−1 yk−2 − ak yK i ,
+
+as claimed.
+    The following lemma provides the restrictions on the step sizes of the algorithm that are needed to ensure that
+CK ≤ C0 . Here, we assume that each point xk can be expressed as the sum of the initial point x0 and some linear
+combination of the gradients evaluated at points xi for 0 ≤ i ≤ k − 1. Note that most of the standard first-order
+algorithms can be expressed in this form.
+Lemma 2.6. Let Ck be defined by Eq. (2.10) for k ∈ {0, . . . , K} and assume that points xk can be expressed as
+            Pk−1
+xk = x0 − L1 i=0 βi,k ∇f (xi ), where βi,k are some real scalars. Define βk,k = 1, so that yk = xk − L1 ∇f (xk ) =
+       Pk
+x0 − L1 i=0 βi,k ∇f (xi ) and set y−1 = x0 . If the following two conditions are satisfied for all 0 ≤ j < k ≤ K − 1:
+
+                                                     ak+1   Ak+1
+                                           βk,K−1 +       ≤      ,                                                   (2.12)
+                                                     AK     ak+1
+                                                         aj+1                 ak+1 
+                    Ak+1 βj,k = Ak βj,k−1 + ak+1 βj,K−1 +        + aj+1 βk,K−1 +                                     (2.13)
+                                                           AK                    AK
+and if
+                                                                 K−1
+                                                           1 X
+                                       xK = yK−1 −             ak+1 ∇f (xk ),                                        (2.14)
+                                                          LAK
+                                                                 k=0
+
+then CK ≤ C0 . Further, the largest growth of AAK0 for which both of these conditions can be satisfied is O(K 2 ).
+Proof. Telescoping the inequality from Lemma 2.5, we have:
+
+                           CK − C0 ≤ AK h∇f (xK ), xK − yK−1 i
+                                             K−1
+                                             X
+                                         +         h∇f (xk ), Ak+1 yk − Ak yk−1 − ak+1 yK i .
+                                             k=0
+
+Observe that ∇f (xK ) only appears in the first term and as part of yK = xK − L1 ∇f (xK ). Thus, grouping the terms
+that multiply ∇f (xK ), we can equivalently write
+                                                                         K−1
+                                    *                                                     +
+                                                                       1 X
+                        CK − C0 ≤ ∇f (xK ), AK (xK − yK−1 ) +                ak+1 ∇f (xk )
+                                                                       L
+                                                                            k=0
+                                         K−1
+                                         X
+                                     +         h∇f (xk ), Ak+1 yk − Ak yk−1 − ak+1 xK i .
+                                         k=0
+
+
+
+
+                                                             9
+The choice of xK from Eq. (2.14) ensures that the first term on the right-hand side is zero (and this is how it was
+chosen). The rest of the terms can be expressed as a function of gradients up to the (K − 1)th one. To simplify the
+                                 PK−1
+notation, let us define gK−1 = L1 k=0 ak+1 ∇f (xk ). Then, we have
+                                 K−1
+                                 X                                                      
+                                                                                 gK−1 
+                     CK − C0 ≤          ∇f (xk ), Ak+1 yk − Ak yk−1 − ak+1 yK−1 −          .                         (2.15)
+                                                                                   AK
+                                  k=0
+
+Observe that, as yk = x0 − L1 ki=0 βi,k ∇f (xi ) by the lemma assumptions, the expression on the right-hand side can
+                              P
+be written as a linear combination of inner products between gradients, as follows.
+                                                   K−1 K−1
+                                                1 X X
+                                   CK − C0 ≤          Pj,k h∇f (xj ), ∇f (xk )i ,
+                                                L j=0
+                                                        k=j
+
+where, by Eq. (2.15), we have that, for all 0 ≤ j < k ≤ K − 1 :
+                                                      ak+1 
+               Pk,k = −Ak+1 βk,k + ak+1 βk,K−1 +             ,
+                                                        A
+                                                       K       aj+1                 ak+1 
+               Pj,k = −Ak+1 βj,k + Ak βj,k−1 + ak+1 βj,K−1 +           + aj+1 βk,K−1 +        .
+                                                                AK                     AK
+As, by assumption, βk,k = 1, conditions in Eqs. (2.12) and (2.13) are equivalent to Pk,k ≤ 0 and Pj,k = 0, for all
+0 ≤ j < k ≤ K − 1. By construction, these conditions are sufficient for guaranteeing Ck − C0 ≤ 0, completing the
+first part of the proof.
+                                                                             Pk
+     Observe that, given a sequence of positive numbers {ak }k≥0 and Ak = j=0 aj , all coefficients βj,k are uniquely
+determined by Eq. (2.13) (as βk,k = 1 by assumption, and the remaining coefficients can be computed by recursively
+applying Eq. (2.13)). Thus, the role of the condition from Eq. (2.12) is to limit the growth of the sequence {Ak }k≥0 .
+Starting with βk,k = 1, ∀k (which holds by assumption), it is possible to argue by induction that βj,k ≥ 0, ∀j, k (the
+proof is omitted for brevity). Thus the condition from Eq. (2.12) implies that aAk+1
+                                                                                  K
+                                                                                     ≤ A k+1
+                                                                                       ak+1 . Equivalently, ∀k ≤ K − 1:
+
+                                                      ak+1 2
+                                                             ≤ AK .                                                  (2.16)
+                                                      Ak+1
+
+For any fixed AK , Eq. (2.16) implies that A
+                                           A0 cannot grow faster than quadratically with k, for k ≤ K − 1. It remains
+                                             k
+
+
+to argue that the sequence does not make a big jump from AK−1 to AK . This follows by using again Eq. (2.12) for
+k = K − 1 and recalling that βK−1,K−1 = 1. We then have
+                                                         aK   AK
+                                                    1+      ≤    .
+                                                         AK   aK
+                                               √
+            aK                    aK
+Solving for A K
+                , it follows that A K
+                                      ≤ −1+2 5 < 0.62, and, thus, AAK−1
+                                                                     K      1
+                                                                        ≤ 1−0.62 < 3, completing the proof that
+AK      2
+A0 = O(K ).
+
+    That AAK0 = O(K 2 ) is not surprising – if it were not true, by the discussion from the beginning of this subsection,
+we would be able to obtain an algorithm that converges at rate faster than 1/K 2 , which is impossible, due to the
+existing lower bounds [13]. This result was rather included to highlight the role of the conditions from Eqs. (2.12) and
+(2.13) in Lemma 2.6: the first condition limits the growth of {Ak }k≥0 , whereas the second determines the step sizes
+βj,k in the algorithm, given the sequence {Ak }k≥0 .
+    What remains to be shown is that there is a choice of step sizes βj,k that guarantees AAK0 = Θ(K 2 ), and thus leads
+to an algorithm with the optimal convergence rate. This choice is obtained when the inequality from Eq. (2.12) is
+satisfied with equality. It is possible to argue that this choice is also the one that leads to the fastest growth of AAK0 ;
+however, this direction is not pursued here as it unnecessarily complicates the analysis. Further, when Eq. (2.12) is
+satisfied with equality, Eq. (2.13) can be further simplified, and it leads to the algorithm description that does not
+necessitate storing all of the gradients, but only a constant number of d-dimensional vectors. However, similar to the
+algorithm description in [28], the entire sequence {Ak }K  k=0 needs to be pre-computed and stored, which appears to be
+unavoidable. The algorithm and its convergence rate are summarized in the following theorem.
+
+                                                              10
+Theorem 2.7 (Convergence of Optimized Gradient Method). Let f : Rd → R be an L-smooth function and let
+x0 ∈ Rd be an arbitrary initial point. Let K ≥ 1. Consider the following algorithm. Let v = x0 − aA11L ∇f (x0 ),
+g0 = a1 ∇f (x0 ). For k = 1 to K − 1,
+                                                          1
+                                            yk−1 = xk−1 −   ∇f (xk−1 ),
+                                                          L
+                                         Ak          ak+1            1
+                                  xk =       yk−1 +         vk−1 −      gk−1 ,                                    (2.17)
+                                        Ak+1         Ak+1          ak+1
+                                         1 Ak+1
+                            vk = vk−1 −         ∇f (xk ), gk = gk−1 + ak+1 ∇f (xk ),
+                                        L ak+1
+where the sequence {Ak }K
+                        k=0 is recursively defined by the following
+                    (
+                      Ak = 1,                                                   if k = K,
+                                                                                                                  (2.18)
+                      Ak = Ak+1 1 + 21 Ak+1 − 12 Ak+1 (4 + Ak+1 ) ,
+                                                   p               
+                                                                                if 0 ≤ k ≤ K − 1,
+
+and ak+1 = Ak+1 − Ak , for 0 ≤ k ≤ K − 1.
+   If xK is defined by
+                                                                 1
+                                             xK = yK−1 −               gK−1 ,
+                                                                AK L
+then
+                                                         16L(f (x0) − f (x∗ ))
+                                        k∇f (xK )k2 ≤                          ,
+                                                              (K + 2)2
+where x∗ ∈ argminx∈Rd f (x).
+Proof. The proof strategy is as follows. We first argue that the algorithm from the theorem statement satisfies CK ≤ C0 ,
+where Ck is defined by Eq. (2.10). This is done by showing that we can apply Lemma 2.6. Then, by the definition of
+Ck , CK ≤ C0 is equivalent to
+                                                 A0                         1            
+                            k∇f (xK )k2 ≤ 2L          f (x0 ) − f (xK ) +      k∇f (x0 )k2 .
+                                                 AK                         2L
+                          1
+As f (xK ) ≥ f (x∗ ) and 2L k∇f (x0 )k2 ≤ f (x0 ) − f (x∗ ), what then remains to be argued is that AAK0 = O( K12 ).
+   To apply Lemma 2.6, observe first that the definition of xK from the theorem statement is the same as the definition
+                                                                           Pk−1
+of xK in Lemma 2.6. For k ≤ K − 1, let us define xk = x0 − L1 j=0 βj,k ∇f (xj ), βk,k = 1, and yk =
+       β
+xk − k,kL ∇f (xk ) as in Lemma 2.6 and show that when both conditions from Lemma 2.6 stated in Eqs. (2.12) and
+Eq. (2.13) are satisfied with equality, we recover the algorithm from the theorem statement, and thus the two sequences
+of points are equivalent, and so we can conclude that CK ≤ C0 .
+    When Eq. (2.12) holds with equality, we have that
+                                                          ak+1   Ak+1
+                                              βk,K−1 +         =      .                                           (2.19)
+                                                          AK     ak+1
+Plugging it into Eq. (2.13), we have
+                                                                  Aj+1        Ak+1
+                                 Ak+1 βj,k = Ak βj,k−1 + ak+1          + aj+1      .                              (2.20)
+                                                                  aj+1        ak+1
+Thus, it follows that
+                                                    k−1                    k−1
+                                               ak+1 X Aj+1            aj+1 X
+                 Ak+1 xk − Ak yk−1 = ak+1 x0 −             ∇f (xj ) −          aj+1 ∇f (xj )
+                                                L j=0 aj+1             L j=0
+                                                       Ak+1
+                                       = ak+1 vk−1 −        gk−1 ,
+                                                       ak+1
+which is the same as the definition of xk from Eq. (2.17).
+   It remains to show that the conditions from Lemma 2.6 imply the recursive definition of the sequence {Ak }k≥0
+and that AAK0 ≥ (K+2)
+                  4
+                      2 . This is established by Lemma A.1 in the appendix.
+
+
+
+
+                                                           11
+Remark 2.8. While OGM-G provides the optimal convergence guarantee for norm of the gradient, its convergence
+rate for the optimality gap is not known. Thus, it does not immediately imply a bound on norm of the gradient in terms
+                                                                                                     2  ∗      2
+of kx∗ − x0 k2 . However, as observed in [43], it is possible to obtain a bound of k∇f (xK )k2 = O L kxK−x4
+                                                                                                            0k
+                                                                                                                  from
+OGM-G, by running Nesterov FGM for ⌊K/2⌋ iterations, followed by ⌈K/2⌉ iterations of OGM-G.
+
+2.3 Discussion
+Gradient descent is perhaps the simplest method that can be used for minimizing the gradient norm. We also conjecture
+that it is, in a certain sense, optimal.
+                                                                                           Pk−1
+Conjecture 1. For any K > 0 and any method that constructs its iterates as xk = x0 − i=0          βi,k ∇f (xi ), where
+x0 ∈ Rd is the initial point, f is a convex function accessed via a gradient oracle, and coefficients βi,k ∈ R can
+depend on L > 0, i, k but are otherwise chosen independently of K or the input function f, there exists an L-smooth
+convex input function f and an absolute constant C > 0 such that
+                                                          L(f (x0 ) − f (x∗ ))
+                                         k∇f (xK )k2 ≥ C                       .
+                                                                   K
+   The basis for this conjecture is the numerical evidence from [27, 28], which seems to suggest that fixing the total
+                   K and choosing
+number of iterations
+                                 ∗
+                                    the coefficients βi,k as a function K is crucial to obtaining the optimal bound
+k∇f (xK )k2 = O L(f (x0K)−f  2
+                               (x ))
+                                      . We note that the lower bound from Conjecture 1 can be proved under a stricter
+condition on coefficients βi,k that essentially forces them to be constant (independent of i and k), using the techniques
+of Arjevani and Shamir [3]. However, such a lower bound is weak as it not only excludes the optimal algorithm
+from [28] (which is desired) but also all variants of Nesterov FGM considered in [27].
+
+
+3 Small Gradients in Min-Max Optimization
+In this section, we consider the problem of making the gradients small in convex-concave min-max optimization,
+under the assumption that the operator F corresponding to the gradient of the objective is cocoercive (see Section 1.2).
+Similarly as in the case of convex optimization, the potential functions we consider trade off a notion of an optimality
+gap with the norm of F. Further, the inequality corresponding to the cocoercivity assumption suffices to carry out the
+analysis of standard methods considered here; namely, the gradient descent-ascent method and Halpern iteration. We
+also show (in Section 3.3) that these two methods are the best we can hope for when considering broad classes of
+methods that capture most of the standard optimization methods.
+
+3.1 Krasnosel’skiı-Mann/Gradient Descent-Ascent
+Perhaps the simplest potential function that can be considered for min-max optimization is
+                                     Ck = Ak kF (uk )k2 + Bk hF (uk ), uk − u∗ i ,                                   (3.1)
+which can be seen as a counterpart to the potential function used for gradient descent in the previous section. The
+method that is suitable for the analysis with this potential function is also the counterpart of gradient descent for
+min-max optimization—gradient descent-ascent (GDA), stated as
+                                                uk+1 = uk − ηk F (uk ),
+where ηk ∈ (0, L2 ). This method is also equivalent to the well-known Krasnosel’skiı-Mann iteration for finding fixed
+                                                                                                      d        d
+points of nonexpansive (1-Lipschitz) operators. In particular, given a nonexpansive operator T : R → R , the
+Krasnosel’skiı-Mann iteration updates the iterates as
+                                           uk+1 = (1 − αk )uk + αk T (uk ),
+where αk ∈ (0, 1). It is a standard fact that F is L1 -cocoercive if and only if T (·) = · − L2 F (·) is nonexpansive (see,
+e.g., [9, Proposition 4.1]). Thus, if we apply the Krasnosel’skiı-Mann iteration to T (·) = · − L2 F (·), we have
+                                                                 2αk
+                                               uk+1 = uk −           F (uk ),
+                                                                  L
+
+                                                            12
+which is precisely GDA with ηk = 2α   L .
+                                       k
+
+
+    For simplicity, in the following we analyze GDA with the step size ηk = η = L1 , which is the optimal step size for
+this method. The analysis however extends to any step sizes ηk ∈ (0, L2 ) in a straightforward manner. The convergence
+result is summarized in the following lemma.
+Lemma 3.1 (Convergence of Gradient Descent-Ascent). Let F : Rd → Rd be a L1 -cocoercive operator, u0 ∈ Rd be
+an arbitrary initial point, and let uk+1 = uk − L1 F (uk ) for k ≥ 0. Then, ∀k ≥ 1 :
+                                                         Lku0 − u∗ k
+                                              kF (uk )k ≤ p          ,
+                                                           k/2 + 1
+where u∗ is such that F (u∗ ) = 0.
+Proof. The proof relies on showing that the potential function Ck satisfies Ck ≤ Ck−1 + Ek , where Ek only contains
+terms that telescope, for suitably chosen sequences of positive numbers {Ak }k≥0 and {Bk }k≥0 .
+    Let us start with bounding C0 . As u1 = u0 − L1 F (u0 ), we have
+                       C0 = A0 kF (u0 )k2 + B0 hF (u0 ), u0 − u∗ i
+                          = A0 kF (u0 )k2 + B0 L hu0 − u1 , u0 − u∗ i
+                                            B0 L
+                          = A0 kF (u0 )k2 +        ku0 − u∗ k2 − ku1 − u∗ k2 + ku0 − u1 k2
+                                                                                           
+                                              2
+                                  B0                 B0 L
+                                        kF (u0 )k2 +         ku0 − u∗ k2 − ku1 − u∗ k2 .
+                                                                                      
+                          = A0 +
+                                   2L                   2
+Eq. (1.7) implies kF (u0 )k2 ≤ L2 ku0 − u∗ k2 , and, thus, we have
+                                     A0 L2 + 2B0 L                  B0 L
+                                C0 =                 ku0 − u∗ k2 −        ku1 − u∗ k2 .                              (3.2)
+                                            2                          2
+   Now let us consider the change in the potential function Ck −Ck−1 . Note first that, by Eq. (1.7), hF (uk−1 ), uk−1 − u∗ i ≥
+1
+L kF (uk−1 )k2 . Thus:
+                Ck − Ck−1 = Ak kF (uk )k2 − Ak−1 kF (uk−1 )k2 + Bk hF (uk ), uk − u∗ i
+                             − Bk−1 hF (uk−1 ), uk−1 − u∗ i
+                                                     Bk−1 
+                           ≤ Ak kF (uk )k2 − Ak−1 +           kF (uk−1 )k2 + Bk hF (uk ), uk − u∗ i .
+                                                         L
+                                                                        1
+Using that F (uk ) = L(uk − uk+1 ), we have that hF (uk ), uk − u∗ i = 2L kF (uk )k2 + L2 kuk − u∗ k2 − L2 kuk+1 −
+u∗ k2 , which leads to
+                                           Bk                        Bk−1 
+                        Ck − Ck−1 ≤ Ak +         kF (uk )k2 − Ak−1 +           kF (uk−1 )k2
+                                            2L                            L
+                                        Bk L                Bk L
+                                     +       kuk − u∗ k2 −       kuk+1 − u∗ k2 .
+                                          2                   2
+On the other hand, by Eq. (1.6) and uk = uk−1 − L1 F (uk−1 ), we have that kF (uk )k2 ≤ hF (uk ), F (uk−1 )i ,
+and, consequently, kF (uk )k ≤ kF (uk−1 )k. Thus, for Ck − Ck−1 to contain only telescoping terms, it suffices that
+                        Bk−1
+Ak + B  2L − Ak−1 −
+          k
+                         L   ≤ 0 and that {Bk }k≥0 is non-increasing. In particular, taking Bk = 1 and Ak+1 =
+        1           k+1
+Ak + 2L = A0 + 2L for all k ≥ 0, we have
+                                              L                 L
+                                  Ck − Ck−1 ≤    kuk − u∗ k2 − kuk+1 − u∗ k2 .                                      (3.3)
+                                               2                2
+Telescoping Eq. (3.3) and combining with Eq. (3.2), we then get
+                       A0 L2 + 2L                  L                 A0 L2 + 2L
+                   Ck ≤            ku0 − u∗ k2 − kuk+1 − u∗ k2 ≤                ku0 − u∗ k2 .
+                            2                       2                     2
+Taking A0 = 0 and observing that, by Eq. (1.7), Ck ≥ Ak + BLk kF (uk )k2 = k+2          2
+                                                             
+                                                                            2L kF (uk )k , we finally get
+
+                                                            2L2 ku0 − u∗ k2
+                                            kF (uk )k2 ≤                    .
+                                                                 k+2
+It remains to take the square-root on both sides of the last inequality.
+
+                                                           13
+3.2 Halpern Iteration
+It seems reasonable now to ask whether it is possible to obtain faster rates than for GDA by considering a different
+potential function that trades off the gradient/operator norm for a notion of an optimality gap w.r.t. an anchor point,
+similar to how we obtained faster rates for convex optimization. It turns out that the answer is “yes,” using the initial
+point u0 as the anchor. The resulting potential function is
+                                      Ck = Ak kF (uk )k2 + Bk hF (uk ), uk − u0 i
+
+and it corresponds to the well-known Halpern iteration
+
+                                            uk+1 = λk+1 u0 + (1 − λk+1 )T (uk ),                                    (3.4)
+where, similarly as in the case of GDA, T (·) = · − L2 F (·) is a nonexpansive operator. We note that a similar potential
+function was used in [15] to analyze the convergence of Halpern iteration.
+    Here we show that the potential function Ck = Ak kF (uk )k2 + Bk hF (uk ), uk − u0 i in fact leads to the Halpern
+iteration as a natural algorithm that guarantees that Ck is non-increasing. The main convergence result is summarized
+in the following lemma, whose proof reveals how the chosen potential function leads to the Halpern iteration.
+Lemma 3.2 (Convergence of Halpern Iteration). Let F : Rd → Rd be a L1 -cocoercive operator, u0 ∈ Rd be an
+arbitrary initial point, and, for k ≥ 0, let
+                                              1        k      2       
+                                      uk+1 =     u0 +      uk − F (uk ) .
+                                             k+1      k+1      L
+Then, ∀k ≥ 1, we have
+                                                               Lku0 − u∗ k
+                                                 kF (uk )k ≤               ,
+                                                                 k+1
+where u∗ satisfies F (u∗ ) = 0.
+Proof. The claim trivially holds if kF (uk )k = 0, so assume throughout that kF (uk )k =
+                                                                                       6 0.
+   Consider bounding Ck − Ck−1 above by zero. To do so, we can only rely on cocoercivity of F from Eq. (1.6).
+Applying Eq. (1.6) with u = uk and v = uk−1 and rearranging the terms, we have
+                                                                               
+                            1           2                           2
+                              kF (uk )k ≤ F (uk ), uk − uk−1 + F (uk−1 )
+                            L                                       L
+                                                                                                        (3.5)
+                                                                          1
+                                             − hF (uk−1 ), uk − uk−1 i − kF (uk−1 )k2 .
+                                                                          L
+Combining Eq. (3.5) with the definition of Ck and grouping appropriate terms, we have
+                                                                                     
+                                                               2          
+                  Ck − Ck−1 ≤ F (uk ), Ak L uk − uk−1 + F (uk−1 ) + Bk (uk − u0 )
+                                                                L
+                                     − hF (uk−1 ), Ak L(uk − uk−1 ) + Bk−1 (uk−1 − u0 )i                            (3.6)
+                                       Ak + Ak−1
+                                     −              kF (uk−1 )k2 .
+                                            L
+For uk to be explicitly defined, it cannot depend on F (uk ). Thus, the only direct way to make the first line of the
+right-hand side of Eq. (3.6) non-positive is to set
+                                                   2          
+                               Ak L uk − uk−1 + F (uk−1 )) + Bk (uk − u0 ) = 0.                                 (3.7)
+                                                    L
+For the remaining terms, it suffices that
+
+              − hF (uk−1 ), Ak L(uk − uk−1 ) + Bk−1 (uk−1 − u0 )i − (Ak + Ak−1 )kF (uk−1 )k2 ≤ 0.                   (3.8)
+                                                                              Bk
+Rearranging Eq. (3.7) gives the Halpern algorithm from Eq. (3.4) with λk = Ak L+Bk
+                                                                                   , i.e.,
+
+                                        Bk             Ak L        2         
+                              uk =             u0 +           uk−1 − F (uk−1 ) .                                    (3.9)
+                                     Ak L + Bk      Ak L + Bk       L
+
+                                                               14
+The other condition (from Eq. (3.8)) effectively constrains the growth of Ak compared to Bk , which is expected, as
+otherwise we would be able to prove an arbitrarily fast convergence rate for Halpern iteration, which is impossible,
+due to existing lower bounds (see, e.g. [15]).
+   Combining Eq. (3.7) and Eq. (3.8), we have
+
+               − hF (uk−1 ), Ak Luk − Bk−1 u0 − (Ak L − Bk−1 )uk−1 i ≤ (Ak + Ak−1 )kF (uk−1 )k2 .
+
+Now, to be able to guarantee that the last inequality is satisfied and consistent with Eq. (3.9), it is required that
+                               Bk−1      Bk                           2Ak      Ak + Ak−1
+                                    =                   and                  ≤           .                              (3.10)
+                               Ak L   Ak L + Bk                    Ak L + Bk      Ak L
+
+In particular, when Bk = k + 1 and Ak = k(k+1)
+                                           L   , both conditions from Eq. (3.10) are satisfied with equality.
+                                   k(k+1)              Bk          1
+    Hence, for Bk = k + 1, Ak = L , and λk = Ak L+B         k
+                                                               = k+1 , we have that Ck ≤ C0 . By definition, and as
+A0 = 0, we have that C0 = 0. Thus, Ck ≤ 0, ∀k ≥ 1, and it follows that
+                                            Bk
+                              kF (uk )k2 ≤     hF (uk ), u0 − uk i
+                                            Ak
+                                            L
+                                               hF (uk ), u∗ − uk i + hF (uk ), u0 − u∗ i
+                                                                                         
+                                          =
+                                            k
+                                            L 1                                       
+                                          ≤    − kF (uk )k2 + kF (uk )kku0 − u∗ k ,
+                                            k     L
+where the last inequality is by Eq. (1.7) and Cauchy-Schwarz. To complete the proof, it remains to rearrange the last
+inequality and divide both sides by kF (uk )k.
+
+3.3 Lower Bounds for Cocoercive Operators
+In this section, we provide a lower bound that applies to the class of algorithms that construct their iterates as the sum
+of an initial point and a linear combination of the cocoercive operator F : Rd → Rd evaluated at any of the points
+seen up to the current iteration. In particular, given a L1 -cocoercive operator F : Rd → Rd , an algorithm’s iterate uk
+at iteration k can be expressed as
+                                                              k−1
+                                                              X
+                                                uk = u0 −         βi,k F (ui ),                                      (3.11)
+                                                              i=0
+
+where βi,k are real coefficients that can depend on L but are otherwise independent of F . To state the lower bound, we
+use FL,D to denote the class of problems with L1 -cocoercive operators F that satisfy ku∗ − u0 k ≤ D, where u0 ∈ Rd
+is an arbitrary initial point and u∗ is such that F (u∗ ) = 0. We assume w.l.o.g. that d is even.
+    To derive the lower bound, we use the framework developed in [2, 3]. To make use of this framework, which relies
+on the use of Chebyshev polynomials, it is necessary to construct hard instances corresponding to linear operators
+F (u) = Au + b, where A ∈ Rd×d and b ∈ Rd . We note that such an approach was also used in [22] for the
+class of monotone Lipschitz operators. However, here we aim to provide a lower bound for the more restricted
+class of cocoercive operators, which necessitates a separate construction. In particular, the monotone operator from
+the lower bound instance used in [22] is not cocoercive as it corresponds to a bilinear function; in fact, it satisfies
+hF (u) − F (v), u − vi = 0, ∀u, v ∈ Rd .
+    Before delving into the technical details of our lower bound, we first provide definitions and supporting claims
+from [2] that are needed for stating and proving it. A useful definition is that of 1-SCLI algorithms, which allows
+abstracting algorithms of the form from Eq. (3.11) through the lens of Chebyshev polynomials. Here, we adopt the
+terminology from [22], which somewhat blurs the lines between various definitions (of stationary, oblivious, p-SCLI)
+algorithm types from [2, 3], but provides perhaps the simplest way of stating the results.
+Definition 3.3 (1-SCLI Algorithms). An optimization algorithm A acting on the class of linear operators F : Rd → Rd
+of the form F (u) = Au + b, where A ∈ Rd×d , b ∈ Rd , is said to be 1-stationary canonical linear iterative (1-SCLI)
+over Rd if, given an initial point u0 ∈ Rd , there exist mappings C0 (A), N (A) : Rd×d → Rd×d such that for all k ≥ 1
+the iterates of A can be expressed as
+                                               uk = C0 (A)uk−1 + N (A)b.
+
+                                                              15
+    Observe here that Definition 3.3 imposes no restrictions on what kind of mappings C0 and N can be. In particular,
+they can be polynomials of an arbitrary degree. This is important because choosing polynomials of degree K would
+allow us to emulate arbitrary algorithms of the form from Eq. (3.11) run over K iterations, as F is assumed to be linear
+(this observation is typically used in the analysis of the classical conjugate gradient method; see, e.g., [45, Chapter 5]).
+On the other hand, restricting the degree of the polynomials would restrict the adaptivity of coefficients βi,k , as C0 , N
+remain fixed for all k. In this context, both GDA and Halpern iteration (when restricted to be run over a fixed number
+K of iterations) can be viewed as 1-SCLI algorithms, with the following crucial difference. For GDA with a fixed step
+size η, we have
+                                               uk = (I − ηA)uk−1 + ηb,
+i.e., C0 is of degree one and N is of degree zero. On the other hand, for Halpern iteration,
+                                                         2 
+                                uk = λk u0 + (1 − λk ) I − A uk−1 + (1 − λk )b.                                      (3.12)
+                                                          L
+By recursively applying Eq. (3.12) and rolling it down to zero, we get that uk can be expressed as uk = C0 (A)u0 +
+N (A)b using C0 that is a polynomial of degree k and N that is a polynomial of degree k − 1. In other words, we can
+view k iterations of Halpern’s algorithm as one iteration of a 1-SCLI algorithm, using polynomial maps C0 and N of
+suitably large degrees. This is crucial for understanding the statement of the lower bound, which will effectively tell
+us that GDA is iteration complexity-optimal among all algorithms of the form from Eq. (3.11) that choose steps sizes
+βi,k independently of k, while Halpern iteration is iteration complexity-optimal over all algorithms that are allowed to
+adapt βi,k ’s to k.
+     In the following, we further restrict our attention to operators F corresponding to full-rank matrices A. This is
+convenient because the optimal solution u∗ for which F (u∗ ) = 0 can be expressed in closed form as u∗ = −A−1 b.
+This allows us to relate the polynomials C0 and N under a minimal (and standard [2,3,22]) assumption that the 1-SCLI
+algorithms we consider are consistent (or convergent). We note here that the consistency condition is not necessary;
+it is rather the case that the proof relies on the relationship between C0 and N from Eq. (3.13), for which the natural
+consistency condition suffices.
+
+Definition 3.4 (Consistency). A 1-SCLI algorithm A is said to be consistent w.r.t. a full-rank matrix A if for any
+b ∈ Rd we have that uk converges to u∗ = −A−1 b. A 1-SCLI algorithm is said to be consistent if it is consistent
+w.r.t. any full-rank matrix A.
+   The relationship between C0 and N for consistent algorithms is characterized by the following lemma.
+Lemma 3.5 (Consistency of 1-SCLI Algorithms [2]). If a 1-SCLI algorithm is consistent w.r.t. A, then
+
+                                                 C0 (A) = I + N (A)A.                                                (3.13)
+
+   Finally, the following auxiliary lemma will be useful when proving our lower bound.
+Lemma 3.6 ( [22, Lemma 13]). Let L > 0, let p and k be arbitrary but fixed non-negative integers, and let r(y) be a
+polynomial with real-valued coefficients of degree at most p, such that r(0) = 1. Then:
+
+                                                                                        L
+                                   sup y|r(y)|k ≥          sup           y|r(y)|k >          .                       (3.14)
+                                  y∈(0,L]             y∈[L/(20p2 k),L]                40p2 k
+
+   We are now ready to state and prove our lower bound.
+Theorem 3.7. Let p, K be any two positive integer numbers, and let L, D > 0. Then, for any consistent 1-SCLI
+algorithm A acting on instances from FL,D , initialized at u0 = 0 and for which N (A) is a matrix polynomial of
+degree at most p − 1,
+                                                                LD
+                                          sup kF (uK )k ≥ √           .
+                                        F ∈FL,D               4p 5K
+Proof. Similar to [22], we start by showing that
+
+                                               uk = (C0 (A)k − I)A−1 b,                                              (3.15)
+
+
+                                                            16
+for all k ≥ 0. This claim follows by induction on k. The base case k = 0 is immediate. For the inductive step,
+suppose that Eq. (3.15) holds for some k − 1 ≥ 0. Then by the definition of 1-SCLI algorithms and the consistency of
+A (Definitions 3.3 and 3.4):
+
+                                uk = C0 (A)uk−1 + N (A)b
+                                   = C0 (A)(C0 (A)k−1 − I)A−1 b + (C0 (A) − I)A−1 b
+                                   = (C0 (A)k − I)A−1 b.
+
+Therefore, F (uk ) can be expressed as
+
+                                               F (uk ) = Auk + b = C0 (A)k b.                                       (3.16)
+                                                                                                               ηI αI 
+    Let us now specify the “hard instance.” Consider F (u) = Au + b, where A can be expressed as A = −αI ηI for
+some η, α ∈ R+ . (Observe that such an F can be obtained from the convex-concave objective φ(x, y) = 12 ηxT x −
+1   T         T        T      T
+2 ηy y + αx y + b1 x − b2 y, where x, y, b1 , b2 ∈ R
+                                                            d/2
+                                                                , b = [b1 T b2 T ]T .)
+    Let us now argue that for suitably chosen η, α, we have that F is L1 -cocoercive. Let u = [xT y T ]T , ū = [x̄T ȳ T ]T
+be an arbitrary pair of vectors from Rd , where x, y, x̄, ȳ ∈ Rd/2 . Then
+
+                                            hF (u) − F (ū), u − ūi = ηku − ūk2
+
+and
+                                           kF (u) − F (ū)k2 = (η 2 + α2 )ku − ūk2 .
+Hence, for η 2 + α2 ≤ Lη, we have hF (u) − F (ū), u − ūi ≥ L1 kF (u) − F (ū)k2 , i.e., F is L1 -cocoercive.
+   To complete the proof, it remains to show that
+                                                                  LD
+                                                  sup kF (uK )k ≥ √    .
+                                                F ∈FL,D          p 80K
+
+To do so, observe that by Eq. (3.16), u0 = 0, and u∗ = −A−1 b, we have
+
+                                          kF (uK )k2                                 kC0 (A)K bk2
+                                     sup    ∗       2
+                                                      ≥             sup                           ,
+                                  F ∈FL,D ku − u0 k                η∈[0,L],           kA−1 bk2
+                                                                    √       2
+                                                                α∈[0,    Lη−η ]
+
+          ηI αI                                                    ηI αI 
+where A = −αI ηI . Observe that the characteristic polynomial of A = −αI ηI is:
+
+                                             det(λI − A) = ((λ − η)2 + α2 )d/2 .
+
+Hence, A has eigenvalues: λ1 = η + αi, λ2 = η − αi. These conjugate eigenvalues have the same magnitude:
+  η 2 + α2 . Accordingly, A−1 has eigenvalues: λ′1 = λ11 , λ′2 = λ12 , which are also conjugate and equal in magni-
+p
+
+tude. On the other hand, since C0 (A) = I + N (A)A, and, by assumption, N (A) is a matrix polynomial of degree at
+most p − 1 for some p ∈ N with real coefficients, C0 (A) is a polynomial of A with C0 (0d×d ) = I. Therefore, it can
+be expressed as:
+                                    C0 (A) = I + r1 A + r2 A2 + · · · + rp Ap ,
+for some real-valued r1 , r2 , r3 , . . . , rp . We denote the polynomial on complex field with the same real-valued coeffi-
+cients as: c0 (y) = 1 + r1 y + r2 y 2 + · · · + rp y p . Then, by the spectral mapping theorem, the eigenvalues of C0 (A)
+are: c0 (λ1 ) and c0 (λ2 ), which are again conjugate and have equal norms. Therefore, we have:
+                                                       2                                              2
+                                           C0 (A)K b                               |c0 (λ1 )|2K kbk
+                            sup                            =       sup
+                           η∈[0,L]
+                            √               kA−1 bk2              η∈[0,L]
+                                                                   √
+                                                                                         1
+                                                                                       |λ1 |2 kbk
+                                                                                                  2
+
+                        α∈[0,   Lη−η 2 ]                       α∈[0,    Lη−η 2 ]
+
+                                                           =           sup         (η 2 + α2 )|c0 (η + αi)|2K .
+                                                                  η∈[0,L]
+                                                                       √
+                                                               α∈[0,    Lη−η 2 ]
+
+
+
+                                                                 17
+    To derive the stated lower bound by applying Lemma 3.6, we need to convert the above expression into a sim-
+ilar form: supy∈(0,L] y|r(y)|k . Here, we can observe the difference between the problem we are considering and
+the problem discussed in [22]. In [22], the eigenvalues are purely imaginary: νi and −νi. As a result, the above
+expression can be written as: supν∈(0,L] ν 2 |c0 (νi)|2K . By taking the real part of this term, we get a smaller value
+                                                   ′         ′
+supν∈(0,L] ν 2 |1 − r2 ν 2 + r4 ν 4 − · · · + (−1)p r2p′ ν 2p |2K , where p′ = ⌊p/2⌋. Thus, substituting ν 2 with y, we get
+the equation that fits the inequality from Lemma 3.6. However, the same strategy cannot be applied here since the real
+part of (η 2 + α2 )|c0 (η + αi)|2K is tangled up with α and η, hence making it impossible to get an equation of the form
+y|r(y)|k by simply taking its real part.
+    Nevertheless, since we have the extra freedom of choosing α, we can select α carefully to make the real part and
+imaginary part of |c0 (η + αi)|2K separable, while keeping the constant η 2 + α2 large enough. In particular, this can
+be achieved for:
+                                                       α2 = Lη − η 2 .
+                                                     p
+Observe that, as long as η ≤ L, we have α ∈ [0, Lη − η 2 ], as required in the bound above. It follows that:
+
+                             sup         (η 2 + α2 )|c0 (η + αi)|2K
+                            η∈[0,L]
+                             √
+                       α∈[0,   Lη−η 2 ]
+
+                                             ≥ sup Lη|c0 (η + αi)|2K
+                                                η∈[0,L]
+
+                                             = sup Lη|1 + r1 (η + αi) + · · · + rp (η + αi)p |2K .
+                                                η∈[0,L]
+
+
+Observe that the factor α in the real terms of (η + αi)j has only even order, therefore, Re(c0 (η + αi)) is a polynomial
+of η and α2 . Since α2 = Lη − η 2 , it is actually a polynomial of η exclusively with real-valued coefficients of degree
+at most p, which we denote as: c′0 (η) = 1 + r1′ η + r2′ η 2 + · · · + rp′ η p . Therefore, we get:
+
+                                sup Lη|c0 (η + αi)|2K ≥ sup Lη|Re(c0 (η + αi))|2K
+                               η∈[0,L]                         η∈(0,L]
+
+                                                            = sup Lη|c′0 (η)|2K .
+                                                               η∈(0,L]
+
+
+By Lemma 3.6 and kA−1 bk = D, we now have:
+
+                           kF (uK )k2            kF (uK )k2                ′      2K     L2
+                      sup    ∗       2
+                                       =   sup              ≥  sup    Lη|c 0 (η)|    ≥        ,
+                   F ∈FL,D ku − u0 k     F ∈FL,D     D2       η∈(0,L]                  80p2 K
+
+and the claimed lower bound follows after rearranging the last inequality.
+    The implications of Theorem 3.7 are as follows. Among all algorithms that update their iterates as in Eq. (3.11) and
+use constant (independent of the iteration count) step sizes βi,k , GDA is iteration complexity-optimal for minimizing
+the norm of a cocoercive operator. This means that other standard methods such as the extragradient/mirror-prox [29,
+39] method, dual extrapolation [40], or the method of Popov [47],   √ which fall into the same category, cannot attain
+a convergence rate for minimizing kF (·)k that is faster than 1/ k. Thus, choosing step sizes βi,k that depend on
+the iteration count is essential for achieving the faster 1/k rate of Halpern’s algorithm. Furthermore, this rate is
+unimprovable for any of the typical iterative methods that take the form from Eq. (3.11).
+
+
+4 Conclusion and Future Work
+We presented a general and unifying potential function-based framework for analyzing the convergence of first-order
+algorithms under the gradient norm criterion in the settings of convex and min-max optimization. The framework is
+intuitive in that it provides an interpretation of the mechanism driving the convergence as a trade-off between reducing
+the norm of the gradient and reducing some notion of an optimality gap.
+    Many interesting questions for future work remain. In particular, our framework is primarily applicable to Eu-
+clidean setups. Thus, it is an intriguing question whether it is possible to generalize it to other normed spaces. We note
+
+
+                                                              18
+that beyond the Euclidean setups, the only results with near-optimal convergence for ℓp -normed spaces in the setting
+of convex optimization are those for ℓ∞ (where an ℓ∞ variant of gradient descent is optimal) and the very recent
+results for p ∈ [1, 2] that are based on a regularization trick [16]. In a different direction, as conjectured in Section 2,
+it appears that fixing either the number of iterations or the accuracy of the problem in advance is crucial for achieving
+near optimal rates in the case of convex objectives, even in Euclidean setups. Proving such a lower bound would be
+very interesting, as it would likely require completely new mathematical techniques. Finally, very little is known about
+the convergence in gradient norm in convex-concave min-max optimization setups, both from the aspect of algorithms
+and the lower bounds. In particular, we are not aware of any lower bounds outside of the Euclidean setup considered
+here, while, similar as in the case of convex optimization, the only near-optimal algorithm is based on a regularization
+trick and applies only to p ∈ [1, 2] [52].
+
+
+References
+ [1] Z. Allen-Zhu and L. Orecchia. Linear coupling: An ultimate unification of gradient and mirror descent. In Proc.
+     ITCS’17, 2017.
+ [2] Y. Arjevani, S. Shalev-Shwartz, and O. Shamir. On lower and upper bounds in smooth and strongly convex
+     optimization. The Journal of Machine Learning Research, 17(1):4303–4353, 2016.
+ [3] Y. Arjevani and O. Shamir. On the iteration complexity of oblivious first-order optimization algorithms. In
+     Proc. ICML’16, pages 908–916, 2016.
+ [4] H. Attouch and F. Alvarez. The heavy ball with friction dynamical system for convex constrained minimization
+     problems. In Optimization, pages 25–35. Springer, 2000.
+ [5] H. Attouch, J. Bolte, and B. F. Svaiter. Convergence of descent methods for semi-algebraic and tame prob-
+     lems: proximal algorithms, forward–backward splitting, and regularized gauss–seidel methods. Mathematical
+     Programming, 137(1):91–129, 2013.
+ [6] H. Attouch, Z. Chbani, J. Fadili, and H. Riahi. First-order optimization algorithms via inertial systems with
+     Hessian driven damping. Mathematical Programming, pages 1–43, 2020.
+ [7] H. Attouch, Z. Chbani, and H. Riahi. Rate of convergence of the Nesterov accelerated gradient method in the
+     subcritical case α ≤ 3. ESAIM: Control, Optimisation and Calculus of Variations, 25:2, 2019.
+ [8] H. Attouch, X. Goudou, and P. Redont. The heavy ball with friction method, I. the continuous dynamical system:
+     global exploration of the local minima of a real-valued function by asymptotic analysis of a dissipative dynamical
+     system. Communications in Contemporary Mathematics, 2(1):1–34, 2000.
+ [9] H. H. Bauschke and P. L. Combettes. Convex analysis and monotone operator theory in Hilbert spaces, volume
+     408. Springer, 2011.
+[10] M. Betancourt, M. I. Jordan, and A. C. Wilson. On symplectic optimization. arXiv preprint arXiv:1802.03653,
+     2018.
+[11] J. Bolte, A. Daniilidis, O. Ley, and L. Mazet. Characterizations of łojasiewicz inequalities: subgradient flows,
+     talweg, convexity. Transactions of the American Mathematical Society, 362(6):3319–3363, 2010.
+[12] S. Bubeck, Y. T. Lee, and M. Singh. A geometric alternative to Nesterov’s accelerated gradient descent. arXiv
+     preprint, arXiv:1506.08187, 2015.
+[13] Y. Carmon, J. C. Duchi, O. Hinder, and A. Sidford. Lower bounds for finding stationary points i. Mathematical
+     Programming, pages 1–50, 2019.
+[14] E. De Klerk, F. Glineur, and A. B. Taylor. Worst-case convergence analysis of inexact gradient and newton meth-
+     ods through semidefinite programming performance estimation. SIAM Journal on Optimization, 30(3):2053–
+     2082, 2020.
+
+
+
+                                                            19
+[15] J. Diakonikolas. Halpern iteration for near-optimal and parameter-free monotone inclusion and strong solutions
+     to variational inequalities. In Proc. COLT’2020, 2020.
+[16] J. Diakonikolas and C. Guzmán. Complementary composite minimization, small gradients in general norms, and
+     applications to regression problems. arXiv preprint, arXiv:2101.11041, 2021.
+[17] J. Diakonikolas and M. I. Jordan. Generalized momentum-based methods: A Hamiltonian perspective. SIAM
+     Journal on Optimization, 2021. To appear.
+[18] J. Diakonikolas and L. Orecchia. Accelerated extra-gradient descent: A novel, accelerated first-order method. In
+     Proc. ITCS’18, 2018.
+[19] J. Diakonikolas and L. Orecchia. The approximate duality gap technique: A unified theory of first-order methods.
+     SIAM Journal on Optimization, 29(1):660–689, 2019.
+[20] Y. Drori and M. Teboulle. Performance of first-order methods for smooth convex minimization: a novel approach.
+     Mathematical Programming, 145(1-2):451–482, 2014.
+[21] D. Drusvyatskiy, M. Fazel, and S. Roy. An optimal first order method based on optimal quadratic averaging.
+     SIAM J. Optimiz., 28(1):251–271, 2018.
+[22] N. Golowich, S. Pattathil, C. Daskalakis, and A. Ozdaglar. Last iterate is slower than averaged iterate in smooth
+     convex-concave saddle point problems. In Proc. COLT’20, 2020.
+[23] B. Halpern. Fixed points of nonexpanding maps. Bulletin of the American Mathematical Society, 73(6):957–961,
+     1967.
+[24] B. Hu and L. Lessard. Control interpretations for first-order optimization methods. In Proc. IEEE ACC’17, 2017.
+[25] M. Ito and M. Fukuda. Nearly optimal first-order methods for convex optimization under gradient norm measure:
+     An adaptive regularization approach. arXiv preprint arXiv:1912.12004, 2019.
+[26] D. Kim. Accelerated proximal point method and forward method for monotone inclusions. arXiv preprint
+     arXiv:1905.05149, 2019.
+[27] D. Kim and J. A. Fessler. Generalizing the optimized gradient method for smooth convex minimization. SIAM
+     Journal on Optimization, 28(2):1920–1950, 2018.
+[28] D. Kim and J. A. Fessler. Optimizing the efficiency of first-order methods for decreasing the gradient of smooth
+     convex functions. Journal of Optimization Theory and Applications, pages 1–28, 2020.
+[29] G. Korpelevich. Extragradient method for finding saddle points and other problems. Matekon, 13(4):35–49,
+     1977.
+[30] M. Krasnosel’skiı. Two remarks on the method of successive approximations, uspehi mat. Nauk, 10:123–127,
+     1955.
+[31] W. Krichene, A. Bayen, and P. L. Bartlett. Accelerated mirror descent in continuous and discrete time. In Proc.
+     NIPS’15, 2015.
+[32] L. Lessard, B. Recht, and A. Packard. Analysis and design of optimization algorithms via integral quadratic
+     constraints. SIAM Journal on Optimization, 26(1):57–95, 2016.
+[33] F. Lieder. On the convergence rate of the halpern-iteration. Optimization Letters, pages 1–14, 2020.
+[34] H. Lin, J. Mairal, and Z. Harchaoui. A universal catalyst for first-order optimization. In Proc. NIPS’15, 2015.
+[35] Q. Lin and L. Xiao. An adaptive accelerated proximal gradient method and its homotopy continuation for sparse
+     optimization. In Proc. ICML’14, 2014.
+[36] S. Lojasiewicz. Une propriété topologique des sous-ensembles analytiques réels. Les équations aux dérivées
+     partielles, 117:87–89, 1963.
+
+                                                         20
+[37] S. Łojasiewicz. Ensembles semi-analytiques. IHES notes, 1965.
+[38] W. R. Mann. Mean value methods in iteration. Proceedings of the American Mathematical Society, 4(3):506–
+     510, 1953.
+[39] A. Nemirovski. Prox-method with rate of convergence O(1/t) for variational inequalities with Lipschitz contin-
+     uous monotone operators and smooth convex-concave saddle point problems. SIAM Journal on Optimization,
+     15(1):229–251, 2004.
+[40] Y. Nesterov. Dual extrapolation and its applications to solving variational inequalities and related problems.
+     Mathematical Programming, 109(2):319–344, 2007.
+[41] Y. Nesterov. How to make the gradients small. Optima. Mathematical Optimization Society Newsletter, (88):10–
+     11, 2012.
+[42] Y. Nesterov. Gradient methods for minimizing composite functions. Mathematical Programming, (140(1)):125–
+     161, 2013.
+[43] Y. Nesterov, A. Gasnikov, S. Guminov, and P. Dvurechensky. Primal–dual accelerated gradient methods with
+     small-dimensional relaxation oracle. Optimization Methods and Software, pages 1–38, 2020.
+[44] Y. E. Nesterov. A method for solving the convex programming problem with convergence rate O(1/k 2 ). Doklady
+     Akademii Nauk, 269(3):543–547, 1983.
+[45] J. Nocedal and S. Wright. Numerical optimization. Springer Science & Business Media, 2006.
+[46] Y. Ouyang and Y. Xu. Lower complexity bounds of first-order methods for convex-concave bilinear saddle-point
+     problems. Mathematical Programming, Aug 2019.
+[47] L. D. Popov. A modification of the Arrow-Hurwicz method for search of saddle points. Mathematical notes of
+     the Academy of Sciences of the USSR, 28(5):845–848, Nov 1980.
+[48] S. Sabach and S. Shtern. A first order method for solving convex bilevel optimization problems. SIAM Journal
+     on Optimization, 27(2):640–660, 2017.
+[49] D. Scieur, V. Roulet, F. Bach, and A. D’Aspremont. Integration methods and accelerated optimization algorithms.
+     In Proc. NIPS’17, 2017.
+[50] B. Shi, S. S. Du, M. I. Jordan, and W. J. Su. Understanding the acceleration phenomenon via high-resolution
+     differential equations. arXiv preprint, arXiv:1810.08907, 2018.
+[51] C. Song, Y. Jiang, and Y. Ma. Unified acceleration of high-order algorithms under general Hölder continuity.
+     SIAM Journal on Optimization, 2021. To appear.
+[52] C. Song, Z. Zhou, Y. Zhou, Y. Jiang, and Y. Ma. Optimistic dual extrapolation for coherent non-monotone
+     variational inequalities. Proc. NeurIPS’20, 2020.
+[53] W. Su, S. Boyd, and E. J. Candes. A differential equation for modeling Nesterov’s accelerated gradient method:
+     Theory and insights. J. Mach. Learn. Res., 17(153):1–43, 2016.
+[54] A. B. Taylor, J. M. Hendrickx, and F. Glineur. Exact worst-case performance of first-order methods for composite
+     convex optimization. SIAM Journal on Optimization, 27(3):1283–1313, 2017.
+[55] P. Tseng. On accelerated proximal gradient methods for convex-concave optimization, 2008.
+[56] A. Wibisono, A. C. Wilson, and M. I. Jordan. A variational perspective on accelerated methods in optimization.
+     In Proceedings of the National Academy of Sciences, 2016.
+[57] A. C. Wilson, B. Recht, and M. I. Jordan. A Lyapunov analysis of momentum methods in optimization. arXiv
+     preprint, arXiv:1611.02635, 2016.
+[58] C. Zalinescu. Convex analysis in general vector spaces. World scientific, 2002.
+[59] J. Zhang, A. Mokhtari, S. Sra, and A. Jadbabaie. Direct Runge-Kutta discretization achieves acceleration. In
+     Proc. NeurIPS’18, 2018.
+
+                                                         21
+A     Sequence Growth for the Optimized Gradient Method
+This section provides a technical lemma used in the proof of Theorem 2.7.
+Lemma A.1. Let {βi,k }i≤k , {ak }k≥0 , {Ak }k≥0 be the sequences of real numbers that for k ∈ {0, . . . , K} satisfy
+              Pk
+βk,k = 1, Ak = i=0 ai , and
+
+                                                       ak+1   Ak+1
+                                              βk,K−1 +      =       ,                                               (A.1)
+                                                       AK     ak+1
+                                                           aj+1                 ak+1 
+                      Ak+1 βj,k = Ak βj,k−1 + ak+1 βj,K−1 +        + aj+1 βk,K−1 +        .                         (A.2)
+                                                             AK                    AK
+Then the sequence {Ak }k≥0 can be chosen as
+                    (
+                      Ak = 1,                                                   if k = K;
+                                                                                                                    (A.3)
+                      Ak = Ak+1 1 + 21 Ak+1 − 21 Ak+1 (4 + Ak+1 ) ,
+                                               p                
+                                                                                if 0 ≤ k ≤ K − 1
+                  2
+and AAK0 ≥ (K+2)
+             4   .
+
+Proof. First, we show that the sequence {Ak }K k=0 with AK = 1 and that satisfies Eq. (A.1) and Eq. (A.2) has the
+following recursive relationship between two successive terms:
+                                                     1       1    Ak
+                                                         =      +                                                   (A.4)
+                                                  Ak−1       Ak   ak
+
+which is equivalent to:
+                                                    Ak−1 Ak   ak
+                                                            =    .                                                  (A.5)
+                                                      ak      Ak
+Solving for Ak−1 , this relationship leads to Eq. (A.3). We prove the recursive relationship by induction on k. First, for
+the base case k = K, setting k = K − 1 in Eq. (2.19), we have: βK−1,K−1 = A              aK
+                                                                                  aK − AK . Since we have set AK = 1
+                                                                                   K
+
+
+and βK−1,K−1 = 1, it follows that:
+
+                                       aK   AK − aK   AK−1   AK AK−1
+                                          =         =      =
+                                       AK     aK       aK      aK
+which coincides with Eq. (A.5).
+    Now assume that Eq. (A.4) (equivalently, Eq. (A.5)) holds for k = K, K − 1, . . . , n + 1, and consider k = n.
+Setting k = n, j = n − 1 in Eq. (2.20), we have:
+                                                                        An      An+1
+                                 An+1 βn−1,n = An βn−1,n−1 + an+1          + an
+                                                                        an      an+1
+Hence:
+                                                                   An      An+1
+                                      An+1 βn−1,n = An + an+1         + an                                          (A.6)
+                                                                   an      an+1
+It turns out that we can express An+1 βn−1,n using Ak for k ranging from n + 1 to K. Let k = ℓ, ℓ = n + 1, n +
+2, · · · , K − 1 and j = n − 1 in Eq. (2.20); then, we get:
+                                                                       An      Aℓ+1
+                                  Aℓ βn−1,l−1 = Aℓ+1 βn−1,ℓ − aℓ+1        − an      .
+                                                                       an      aℓ+1
+
+This is a recursive relation between Aℓ βn−1,ℓ−1 and Aℓ+1 βn−1,ℓ . Applying this relation recursively from ℓ = n + 1
+
+
+
+
+                                                           22
+to ℓ = K − 1, we get:
+                                                    An                           An+2        AK 
+               An+1 βn−1,n = AK βn−1,K−1 −             (an+2 + · · · + aK ) − an      + ···+
+                                                    an                           an+2        aK
+                                                 K−1                   K−1
+                                   An   an  An X                      X                    1     1 
+                              = AK    −     −        (Aℓ+1 − Aℓ ) − an                         −
+                                   an   AK    an                                            Aℓ   Aℓ+1
+                                                          ℓ=n+1                     ℓ=n+1
+                                    An       an An                    1      1 
+                              = AK      −     −     (AK − An+1 ) − an      −
+                                    an    AK     an                   An+1   AK
+                                An An+1    an
+                              =         −      .
+                                  an      An+1
+
+The second equation is valid due to our inductive hypothesis for k = n + 2, n + 3, . . . , K. To derive the last equation,
+we use that AK = 1, by the lemma assumption. Plugging the above equation into Eq. (A.6), we get:
+                                    An An+1      an + an+1      An+1    1 
+                                            = An           + an      +      .
+                                      an            an          an+1   An+1
+                                  1
+Using the assumption that A1n = An+1  +A  n+1
+                                         an+1 , we obtain Eq. (A.5) for k = n, completing the inductive argument.
+   The recursive relationship between Ak and Ak+1 from Eq. (2.18) be equivalently written as
+                                                               s
+                                       1    1         4                 4 
+                                          =     2+         +2 1+
+                                      Ak    4       Ak+1              Ak+1
+
+              1
+Denote Dn = AK−n for n ∈ {0, . . . , K}. Then
+                                                                  r
+                                              1                          1
+                                          Dn = + Dn−1 +            Dn−1 + .                                         (A.7)
+                                              2                          4
+We prove by induction that:
+                                                            (n + 2)2
+                                                     Dn ≥            .                                              (A.8)
+                                                               4
+                                2
+As D0 = A1K = 1, D0 = (0+2)
+                         4  holds by definition. Now suppose it also for some n = j, 0 ≤ j ≤ K − 1. Then:
+                                                 r
+                                       1               1
+                                 Dj+1 = + Dj + Dj +
+                                       2               4
+                                       1 1                   1p
+                                      ≥ + (j + 2 + 1 − 1)2 +   (j + 2)2
+                                       2 4                   2
+                                       1 1           1         1 1
+                                      = + (j + 3)2 − (j + 3) + + (j + 2)
+                                       2 4           2         4 2
+                                       1
+                                      > (j + 3)2
+                                       4
+                                    2
+Thus, DK = A10 = AAK0 ≥ (K+2)
+                          4   , as claimed.
+
+
+
+
+                                                            23
+

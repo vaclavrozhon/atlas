@@ -1,0 +1,2770 @@
+                                                Breaking the T 2/3 Barrier for Sequential Calibration
+
+                                                   Yuval Dagan                    Constantinos Daskalakis                Maxwell Fishelson
+                                                Tel Aviv University                  MIT & Archimedes AI                        MIT
+                                            ydagan@tauex.tau.ac.il                  costis@csail.mit.edu                  maxfish@mit.edu
+arXiv:2406.13668v3 [cs.LG] 15 Nov 2024
+
+
+
+
+                                                  Noah Golowich                 Robert Kleinberg                Princewill Okoroafor
+                                                         MIT                     Cornell University                 Cornell University
+                                                     nzg@mit.edu               rdk@cs.cornell.edu                  pco9@cornell.edu
+
+
+
+                                                                                          Abstract
+
+                                             A set of probabilistic forecasts is calibrated if each prediction of the forecaster closely approximates
+                                         the empirical distribution of outcomes on the subset of timesteps where that prediction was made. We
+                                         study the fundamental problem of online calibrated forecasting of binary sequences, which was initially
+                                         studied by [FV98]. They derived an algorithm with O(T 2/3 ) calibration error after T time steps, and
+                                         showed a lower bound of Ω(T 1/2 ). These bounds remained stagnant for two decades, until [QV21]
+                                         improved the lower bound to Ω(T 0.528 ) by introducing a combinatorial game called sign preservation
+                                         and showing that lower bounds for this game imply lower bounds for calibration.
+                                             In this paper, we give the first improvement to the O(T 2/3 ) upper bound on calibration error of
+                                         [FV98]. We do this by introducing a variant of [QV21]’s game that we call sign preservation with
+                                         reuse (SPR). We prove that the relationship between SPR and calibrated forecasting is bidirectional: not
+                                         only do lower bounds for SPR translate into lower bounds for calibration, but algorithms for SPR also
+                                         translate into new algorithms for calibrated forecasting. We then give an improved upper bound for the
+                                         SPR game, which implies, via our equivalence, a forecasting algorithm with calibration error O(T 2/3−ε )
+                                         for some ε > 0, improving [FV98]’s upper bound for the first time. Using similar ideas, we then prove a
+                                         slightly stronger lower bound than that of [QV21], namely Ω(T 0.54389 ). Our lower bound is obtained by
+                                         an oblivious adversary, marking the first ω(T 1/2 ) calibration lower bound for oblivious adversaries.
+1 Introduction
+
+The notion of calibration when forecasting an event is a fundamental concept in statistical theory with long-
+standing theoretical [FV98, Daw82, Oak85, ME67] and empirical [MW77, Bri50] foundations. A forecaster
+who repeatedly predicts probabilities for some event to occur (e.g., a weather forecaster predicting the prob-
+ability of rain each day) is said to be calibrated if their forecasts match up with the proportion of times the
+event actually occurs. Producing calibrated forecasts is a very natural desideratum: for instance, of the days
+when a weather forecaster predicts a “10% chance of rain”, we would hope that it rains on roughly 10% of
+them.
+Calibration has found a plethora of applications in modern machine learning. For instance, a recently pro-
+posed criterion for evaluating algorithmic fairness of classifiers is that the classifer’s predictions be cal-
+ibrated on all subgroups (e.g., by ethnicity). This idea is encapsulated by the concept of multicalibra-
+tion [HJKRR18], and there has been a flurry of recent work to obtain algorithms satisfying multicalibra-
+tion as well as related notions, such as omniprediction [KMR17, PRW+ 17, SCM20, JLP+ 20, GJRR24,
+ZME20]. From a more empirical perspective, there has been significant interest in evaluating the degree
+to which modern machine learning models generate calibrated predictions, such as for image classification
+[KL15, GPSW17, KLM19, MDR+ 21]. Additionally, producing calibrated prognoses has attracted much
+interest in the study of medicine [JOKOM12, CAT16], and calibration has found many other uses as well
+[ME67, KLST23, BGHN23]. We emphasize that calibration is a distinct notion from accuracy: it is possible
+for perfectly calibrated forecasts to be either perfectly accurate or highly inaccurate.1
+
+
+Sequential calibration. In this paper, we study the classical sequential calibration problem, which dates
+back to some of the earliest work on calibration [FV98, Daw82]. The problem can be described as the
+following game between two players, a forecaster and an adversary, which operates over some number
+T ∈ N of time steps. At each time step t ∈ [T ], the forecaster chooses a prediction pt ∈ [0, 1] and the
+adversary independently chooses an outcome yt ∈ {0, 1}, and each then observes the other player’s choice.
+The prediction pt should be interpreted as the probability the forecaster believes the outcome will be yt = 1.
+The forecaster’s goal is to minimize the overall calibration error of their predictions against a worst-case
+adversary, defined as follows:
+                                                 X
+                                   calerr(T ) :=      |mT (p) − p · nT (p)|,                               (1)
+                                                            p∈[0,1]
+
+where nT (p) is the total number of times the forecaster predicts p, and mT (p) is the number of those time
+steps for which the outcome was “1”.2
+Aside from being perhaps the simplest model with which to study calibration, the sequential calibration
+problem has found direct applications to several of the areas mentioned above: for instance, using a con-
+nection between the notion of swap omniprediction3 and multicalibration, [GJRR24] obtain lower bounds
+for online swap omniprediction algorithms by reducing to the vanilla sequential calibration problem. In
+particular, the lower bound of [QV21] implies (and our lower bound strengthens) lower bounds for online
+    1
+      For example, for some time horizon T , if it rains on the first T/2 days and then does not rain on the last T/2 days, then both of
+the following forecasters are perfectly calibrated: (a) predicting 100% chance of rain on the first T/2 days and 0% chance of rain
+on the last T/2 days, and (b) predicting 50% chance of rain on all days. However, the first forecaster is more accurate.
+    2
+      Note that the sum in Equation (1) is well-defined since the forecaster only predicts at most T distinct values in [0, 1].
+    3
+      Roughly speaking, a swap omnipredictor is a predictor which yields good predictions for every loss function in a given class,
+in a swap regret sense [GKR23].
+
+
+                                                                      1
+swap omniprediction, in a black-box manner. Despite the centrality of sequential calibration, the following
+fundamental question has gone unanswered after over two decades: what is the optimal bound that can be
+obtained on calerr(T ), as defined in Equation (1)?
+The best-known upper bound on calerr(T ) was established by [FV98] (see also [Har23]), who showed that
+there is an algorithm for the forecaster which guarantees expected calibration error of at most O(T 2/3 ),
+against any adversary. The best known lower bound was Ω(T 1/2 ) (which follows from a standard anticon-
+centration argument) until a recent result of [QV21], who improved this slightly to Ω(T .528 ). The lower
+bound of [QV21] was proved by introducing the sign-preservation game, which is a multi-round game
+between two players who repeatedly place and remove the signs (i.e., +, −) from a 1-dimensional grid (see
+Section 2.2). The sign-preservation game has the advantage of being combinatorial in nature, which allowed
+[QV21] to (a) show bounds on the possible outcomes attainable in the sign-preservation game, and (b) show
+how these bounds translate into lower bounds for the sequential calibration problem. In this paper, one of
+our focuses is on improving calibration error bounds in the opposite direction:
+Question 1.1. Is there a forecaster which guarantees expected calibration error O(T 2/3−ǫ ), for some constant
+ǫ > 0?
+
+
+Our contributions. The sign-preservation game was a useful technical tool in [QV21] for obtaining lower
+bounds on calibration error, but it was unclear how fundamental it is. Our first contribution shows that it
+is fundamental in the following sense: the possible outcomes attainable in (a slight variant of) the sign-
+preservation game exactly characterize the answer to Question 1.1. In more detail, we consider a variant of
+the sign-preservation game (see Section 2.2) in which a 1-dimensional grid consisting of n cells is given. At
+each of s rounds, one player chooses a cell j ∈ [n], and the other player decides whether to place a + or −
+in that cell. They may also remove any − signs to the left of j or + signs to the right of j. We let opt(n, s) be
+the maximum number of signs remaining at the end, assuming that the former player (who chooses j) tries
+to maximize this quantity and the latter player tries to minimize it. Theorem 1.2 tells us that the asymptotic
+behavior of opt(n, n) exactly characterizes the answer to Question 1.1.
+Theorem 1.2 (Equivalence). If there exists ε > 0 such that for all n ∈ N, opt(n, n) ≤ O(n1−ε ), then there
+                                                             2    ε
+exists a forecaster that guarantees calibration error of O(T 3 − 18 ). If instead opt(n, nα ) ≥ Ω(nβ ) for some
+constants α, β > 0 and all n ∈ N, then there exists an adversary that ensures calibration error of at least
+     β+1
+Ω̃(T α+2 ).
+
+Note that plugging in α = β = 1 to the second part of the above theorem would yield a lower bound on
+calibration error of Ω̃(T 2/3 ). As it turns out, such a statement for α = β = 1 does not hold: our main result
+shows that opt(n, n) ≤ O(n1−ǫ ) for some ǫ > 0, which answers Question 1.1 in the affirmative.
+Theorem 1.3 (Upper bound for calibration). There is ε > 0 so that for all n ∈ N, opt(n, n) ≤ O(n1−ε ). In
+                                                                        2    ε
+particular, there is a forecaster guaranteeing calibration error of O(T 3 − 18 ).
+
+The calibration adversary constructed in the proof of the lower bound part of Theorem 1.2, as well as the one
+of [QV21], is adaptive, in the sense that its choices of outcomes are allowed to depend on past predictions
+of the forecaster. A weaker notion of adversary which has been mentioned in early works on calibration
+[FV98] as well as having analogues in many other online learning settings [CBL06], is that of an oblivious
+adversary, whose outcomes cannot depend on the forecaster’s past predictions. Our final result gives the first
+oblivious adversary guaranteeing ω(T 1/2 ) expected calibration error, and in fact a bound which is stronger
+than the Ω(T .528 ) bound of [QV21]:
+
+                                                       2
+Theorem 1.4 (Oblivious calibration adversary). There exists an oblivious adversary for calibration which
+forces any forecaster to incur expected calibration error at least Ω(T 0.54389 ).
+
+The proof of Theorem 1.4 proceeds by proving a lower bound for the sign-preservation game via an oblivious
+strategy which satisfies some additional properties. Notice that the quantitative bound in Theorem 1.4 is
+stronger than the Ω(T 0.528 ) bound of [QV21] (which was only shown for an adaptive adversary).
+
+
+2 Preliminaries
+
+2.1 Online Prediction and the l1 -calibration error
+
+We formally introduce the sequential calibration setting, which consists of a game between a forecaster and
+Nature (the adversary). The forecaster first chooses a finite set P ⊂ [0, 1] from which to select predictions.
+At each timestep t ∈ [T ], the forecaster makes a prediction pt ∈ P and the adversary chooses an outcome
+yt ∈ {0, 1} without any knowledge of pt . In choosing pt , the forecaster may use knowledge of the adversary’s
+past choices of outcomes y1 , . . . , yt−1 . We consider two types of adversary:
+
+• An adaptive adversary may use the full history Ht = {(pi , yi )}t−1
+                                                                  i=1 of outcomes and predictions prior to
+  time step t, when choosing yt .
+
+• An oblivious adversary can not use the learner’s predictions p1 , . . . , pt−1 when choosing yt , and so the
+  distribution of yt can only depend on y1 , . . . , yt−1 . Thus, an oblivious adversary may be equivalently
+  represented as a joint distribution over tuples (y1 , . . . , yT ) ∈ {0, 1}T .
+
+The forecaster aims to minimize the ℓ1 -calibration error, denoted by calerr(T ), of their predictions over the
+                                                                      P
+T timesteps of the interaction. Formally, for t ∈ [T ], calerr(t) = p∈P |mt (p) − nt (p) · p|, where mt (p) =
+Pt                                                                                  Pt
+  i yt · I[pi = p] is the sum of outcomes when prediction p was made, and nt (p) = i I[pi = p] is the number
+of timesteps when prediction p was made. To track the calibration error over time, it is useful to define the
+quantity Et (p) = nt (p) · p − mt (p), the (signed) error associated with prediction p after t timesteps. Since
+this value can be positive or negative, denote Et+ (p) = max{Et (p), 0} and Et− (p) = max{−Et (p), 0} Then,
+calerr(t) can be equivalently written as calerr(t) = p∈P |Et (p)| = p∈P Et+ (p) + p∈P Et− (p).
+                                                     P               P             P
+
+
+2.2 Sign-Preservation Game with Reuse
+
+We present the following deterministic two-player sequential game, called Sign Preservation with Reuse
+(SPR), which generalizes the Sign-Preservation Game introduced by [QV21] by allowing the adversary to
+choose a cell multiple times as long as the cell is empty. An instance of SPR with parameters n, s ∈ N,
+denoted by SPRInstance(n, s), proceeds as follows. There are two players, Player-P (for “pointer”) and
+Player-L (for “labeler”). At the beginning of the game, there are n empty cells numbered 1, 2, . . . , n. The
+game consists of at most t rounds, and in each round:
+
+1. Player-P may terminate the game immediately.
+
+2. Otherwise, Player-P chooses (“points at”) an empty cell numbered j ∈ [n].
+
+
+
+                                                      3
+3. (Sign Removal) After knowing the value of j, Player-L may remove any minus (“−”) signs in cells to the
+   left of cell j or any plus (“+”) signs in cells to the right of cell j. (Player-L may remove signs from any
+   subset of the indicated cells, including possibly the empty set.)
+
+4. (Sign Placement) Player-L places a sign (either “+” or “−”) into cell j.
+
+Player-P’s goal is to maximize the number of preserved signs at the end of the game, while Player-L aims to
+minimize this number. Note that if we restrict Player-P to choose a cell at most once throughout the game
+and require Player-L to remove all signs that can be removed in each round, this game becomes the sign
+preservation game in [QV21]. We allow randomized strategies for Player-P and Player-L. Define opt(n, s) to
+be the maximum number of expected preserved signs in SPRInstance(n, s) (where the expectation is over
+the randomness in the players’ strategies), assuming both players play optimally.
+An adaptive strategy for Player-P (respectively, Player-L) in an instance SPRInstance(n, s) of SPR consists
+of a mapping, for each t′ ∈ [t], from the set of histories of past t′ − 1 moves of the players to the space of
+distributions over [n] (respectively, distributions over {+, −}). In contrast, an oblivious strategy for Player-P
+cannot use the past sign choices of Player-L. Formally, an oblivious strategy for Player-P is specified by a
+joint distribution over tuples (k1 , . . . , kt ) ∈ [n]t .4 We will only consider adaptive strategies for Player-L and
+therefore drop the term “adaptive” when describing Player-L’s strategies.
+
+
+3 Overview of Theorem 1.3: sign-preservation upper bound
+
+A key technical contribution of this work is a strategy A for Player-L in the SPR game with n cells and n
+time steps (i.e., SPRInstance(n, n)) which ensures that the number of pluses and minuses remaining at the
+end are each at most O(n1−ε ), thus establishing Theorem 1.3. Before diving into the technical details of the
+strategy (presented in full in Section 5), we provide here some intuition behind the algorithm and its proof.
+As a first attempt, we try to construct an algorithmic strategy An that takes the number of cells n as a
+parameter and ensures the following property. For any t ∈ N and sign σ ∈ {+1, −1}, let the number of signs
+of type σ remaining after t time steps be denoted by remainingSigns(An , t, σ). We aim to show that there
+are some positive constants α, β satisfying α + β < 1 so that for all n, t, it holds that
+
+                                               remainingSigns(An , t, σ) ≤ nα tβ .                                        (2)
+
+By choosing t = n, this will give the desired result.
+The key idea is to accomplish this task recursively. We want An to instantiate two copies of An/2 : one for
+the left half of cells (i.e., cells 1, 2, . . . , n/2) and one for the right half of the cells (i.e., cells n/2 + 1, . . . n).
+When Player-P chooses a cell in the left half of [n], An places the sign chosen by the left instance of An/2 ,
+and similarly for the right half. Assuming that, over the course of t rounds, Player-P chooses a cell in the left
+half τ times and in the right half t − τ times, we would have by induction that, for each sign σ ∈ {−1, +1},
+                                                                                       
+                                 remainingSigns(An , t, σ) ≤ (n/2)α τβ + (t − τ)β .                                       (3)
+
+To show how to use Equation (3), we consider a few cases.
+   4
+       For simplicity, we only consider oblivious strategies which do not terminate the game early.
+
+
+
+
+                                                                   4
+Case 1: imbalanced choices. Let us suppose first that there is an imbalance in the number of times that
+Player-P chooses each half. In particular, if either τ ≤ t/3 or τ ≥ 2t/3, then it is straightforward to see using
+concavity of the function τ 7→ τβ + (t − τ)β that for each σ ∈ {+, −},
+                                                                               
+                          remainingSigns(An , t, σ) ≤ (1/2)α (1/3)β + (2/3)β nα tβ .                          (4)
+                                                                     
+It is straightforward to choose α, β so that (1/2)α (1/3)β + (2/3)β ≤ 1 (e.g., α = β = 0.49), which thus
+completes the inductive step Equation (2).
+
+
+Case 2: balanced choices. Now suppose that Player-P does point roughly equally to both halves (t/3 ≤
+τ ≤ 2t/3). In the worst case, we have τ = t/2, in which case the inductive hypothesis Equation (3) gives
+
+                        remainingSigns(An , t, +1) ≤ 2(1/2)α (1/2)β nα tβ = 21−α−β nα tβ ,                      (5)
+
+which only gives the desired bound Equation (2) if α + β ≥ 1. Note that if we can improve upon Equation (5)
+by any constant factor (e.g., replace the right-hand side with 0.99 · 21−α−β nα tβ ), then the right-hand side of
+Equation (5) would be upper-bounded by nα tβ for some α + β < 1. Roughly speaking, doing so is our goal.
+To achieve this goal, we must take advantage of the fact that signs get deleted! We consider the following
+two sub-cases:
+
+
+Case 2a: halves remain roughly balanced throughout. Suppose that Player-P chooses a cell in the left
+half at some time step s1 when at least t/6 signs have been placed in the right half, and that Player-P chooses
+a cell in the right half at some time step s2 when at least t/6 signs have been placed in the left half. At time
+step s1 , all +’s in the right half are removed, and at time step s2 , all −’s in the left half are removed. This
+means that for each sign σ ∈ {+1, −1}, either Ω(t) signs of type σ that were placed will be removed, or else,
+for one of the two halves An , the bound in Equation (3) can be improved by a constant factor. In either case,
+we can improve Equation (5) by a constant factor, as desired.
+
+
+Case 2b: halves are very unbalanced at some point. Suppose the previous case does not occur: in
+particular, suppose that there is no time step when Player-P chooses a cell in the left half when at least t/6
+signs have already been placed in the right half. Let s be the last time step during which a sign was placed
+in the left half. Since we have assumed t/3 ≤ τ ≤ 2t/3, it follows that at time step s, at least t/3 cells have
+already been placed in the left half but fewer than t/6 cells have been placed in the right half. Notice that
+the placement of a sign in the right half at step s + 1 causes all minus signs in the left half to be deleted. The
+main dilemma is as follows: since no cells chosen by Player-P following step s are in the left half, we cannot
+ensure that, e.g., a constant fraction of plus signs in the right half are deleted (as we did in the previous case).
+The astute reader will notice that up until this point, we have not used in any way the particular choice of
+signs played by Player-L. (Indeed, as we have not yet described the base case n = 1 of the recursion, we
+have not yet fully specified the Player-L strategy.) To deal with the present case, we do need Player-L to
+choose which sign to place in a particular way: roughly speaking, our strategy is for Player-L to “bias”
+the signs following step s “towards” being minus signs. This bias will allow us to improve the inductive
+bound Equation (3) for the right half instance An/2 for σ = +1 by a constant factor. Moreover, the fact that
+the placement of a sign at step s + 1 causes at least t/3 minus signs in the left half to be deleted cancels
+out the additional bias towards minus signs in the right half. Altogether, we will be able to improve upon
+Equation (5) for each σ ∈ {+1, −1} by a constant factor, as desired.
+
+                                                         5
+How do we ensure this bias towards minus signs following step s? The main idea is to generalize the
+recursive algorithm An to take as input an additional bias parameter ρ ∈ R. Namely, for every n ∈ N rep-
+resenting the number of cells covered by the algorithm instance and bias parameter ρ, we actually construct
+an algorithmic strategy An,ρ . Instead of Equation (3), we will ensure that for number of rounds t and sign
+σ ∈ {−1, +1},
+
+                                           remainingSigns(An,ρ , t, σ) ≤ nα tβ 2ρσ .                                             (6)
+
+The algorithm An,ρ operates in the same manner to An as described above, with the following key difference:
+in Case 2b above, after the completion of step s (namely, the last time step during which a sign was placed in
+the left half),5 we re-initialize the instance of A corresponding to the right half with a smaller bias parameter.
+In particular, if the right half was originally initialized as An/2,ρ , then we re-initialize it as An/2,ρ−λ for some
+universal constant λ > 0. Moreover, for a “leaf instance” of A, namely one of the form A1,ρ (i.e., so that
+it controls a single cell), it will always return the sign sign(ρ), with ties broken arbitrarily if ρ = 0. In this
+manner, the re-initialization of An,ρ with smaller bias ρ − λ ultimately propagates down to the leaves, which
+will induce more signs placed following step s to be minus signs.
+Finally, we discuss one additional aspect of the algorithm which the above discussion overlooks: How does
+the procedure A know what the step s is, namely the last time step during which a sign was placed in the left
+half? In general, due to the adversarial nature of Player-P, it is impossible to guess which cells Player-P will
+choose in the future, and thus the quantity s cannot be determined. Our procedure for Player-L overcomes
+this by using a sort of doubling trick which repeatedly “guesses” values for s which increase geometrically.
+If a previous guess turns out to be incorrect, it re-initializes the An,ρ instance with a new “guess” which is
+larger by a constant factor. We refer the reader to Section 5 for details.
+
+
+4 Equivalence between Calibration and Sign Preservation
+
+In this section, we prove Theorem 1.2, showing an equivalence between the optimal calibration error and
+the sign-preservation (with reuse) game. This result is a direct corollary of Theorem 4.1, which shows that
+an o(n) upper bound on opt(n, n) translates into a o(T 2/3 ) upper bound for calibration, and of Theorem 4.2,
+which shows that an Ω(n) lower bound on opt(n, n) translates into a Ω(T 2/3 ) lower bound for calibration.
+The formal proof of Theorem 1.2 is presented in Appendix A.1. We present these two latter results in the
+below subsections.
+
+
+4.1 Upper Bounding ℓ1 -calibration error using Sign Preservation
+
+In this section, we show the existence of a forecaster that minimizes calibration error by following the
+strategy of Player-L in the sign preservation game. In particular, we show the following:
+
+Theorem 4.1. Suppose that f : R>0 → R>0 is a function and C0 > 0 is a constant so that for each α > 0,
+                                             f (α)
+opt(n, nα ) ≤ C0 · n f (α) . Let γ := maxα>0 α+1   . Then there is a forecaster (Algorithm 1) that guarantees at
+            3−2γ
+most O(T 5−4γ ) expected calibration error against any adaptive adversary.
+   5
+     In a symmetric case, we also need to consider the time step s′ which is the last time step during which a sign was placed in the
+right half. We omit the details in this overview.
+
+
+
+
+                                                                 6
+We first overview the best-known upper bound of O(T 2/3 ) [FV98, Har23] on calibration error, and give some
+intuition for how the SPR game comes into play. In particular, we follow the proof of [Har23], which uses
+the minimax theorem to show that we can assume at each time step t that the forecaster observes et ∈ [0, 1],
+the expected value of the binary outcome yt conditioned on the history Ht = (p1 , y1 ), . . . , (pt−1 , yt−1 ).6 The
+forecaster of [Har23] rounds et to the nearest multiple pt of T −1/3 and predicts pt . Overall, the calibration
+error may be bounded by the sum of (a) the “biases” from rounding each et (which amounts to error at
+most O(T −1/3 ) · T ≤ O(T 2/3 )), and (b) a “variance” term which results from variation in the predictions
+                       −1/3 , . . . , 1} (which, by a standard concavity argument, amounts to error of at most
+          √ in {0, T
+at each point
+T 1/3 · O( T 2/3 ) = O(T 2/3 )).
+
+“Covering up” past errors. While the analysis above is tight [QV21], a forecaster which observes et as
+above can attempt to decrease the number of distinct predictions they make below T 1/3 (which will decrease
+the variance error), without increasing the bias error. In particular, if the forecaster has incurred positive
+calibration error on some point p prior to time step t (i.e., Et (p) > 0), then if, at step t, et > p, it can predict
+pt = p, which will tend to decrease Et (p) in expectation. In this way, the forecaster can “cover up” past
+calibration errors. Of course, the forecaster can only do this if the value of et is greater than some p with
+positive calibration error (or less than some p with negative calibration error). Dividing up the interval [0, 1]
+into intervals, labeling each interval by the “typical” sign of calibration error for points p in that interval,
+and letting the values et correspond to the actions of Player-P, we arrive at a setting which closely resembles
+the SPR game. We will prove Theorem 4.1 by showing that a strategy for Player-L which certifies an upper
+bound on opt(n, s) in the SPR game allows us to construct a forecaster which can “cover up” the calibration
+error for many past predictions. Roughly speaking, this follows since signs that are removed in the SPR
+game correspond to predictions where we successfully cover up past calibration error.
+We proceed to describe how a forecaster can simulate a Player-L strategy in a way that the calibration error
+of the forecaster’s predictions can be bounded by the number of signs remaining in the SPR game. To do
+so, the forecaster must be able to deliberately bias their calibration error in a specific direction, akin to
+Player-L’s ability to assign either a + or − sign in a given cell.
+
+Biasing Calibration Error in a Specific Direction. To explain the intuition behind our approach, we con-
+sider an epoch-based adversarial framework inspired by the lower bound construction of Qiao and Valiant.
+Here, the time steps 1, 2, . . . , T are divided into m equally spaced epochs, for some m ∈ N. At the beginning
+of each epoch, the adversary announces that they will generate outcomes y by sampling from a Bernoulli
+                                                                                     T
+distribution with an expectation e, where e ∈ {0, 1/k, 2/k, . . . , 1}, for the next m time steps. Assume that
+       q
+ T        T
+mk >      m . Under these conditions, the forecaster can manipulate their calibration error by shifting predic-
+tions deliberately as follows: if the adversary announces a probability kj , the forecaster can predict either j+1
+                                                                                                                k
+or j−1
+    k   consistently for the entire  epoch   duration. By  the end of the epoch, this intentional bias contributes
+                                                                               q
+T     1                                                                  T        T
+m  ×  k to the calibration error  in a   location “near to”  j/k. Since mk  >    m , this bias term surpasses the
+                                  q
+                                     T
+variance term, which scales as m       .
+The forecaster also has the ability to eliminate calibration errors in accordance with the rules of the game.
+Specifically, in a new epoch, when the adversary announces a likelihood kj , the forecaster can first address
+errors from previous epochs by predicting the value with error that can be removed in expectation. This
+corresponds to the "sign removal" component of the game.
+   6
+       As such, this proof is non-constructive in nature; so will be our forecaster establishing Theorem 4.1.
+
+
+                                                                    7
+By combining these strategies—both introducing and eliminating calibration error—the forecaster effec-
+tively limits the expected total number of cells with error. In expectation, this count is bounded by the
+product of the number of preserved signs in the sign-preservation game and the bias term T/(mk).
+
+Adapting to the behavior of the adversary While the above approach seems effective, it contains a
+fundamental flaw. In the sign-preservation game with reuse, each epoch can place at most one sign in
+a given cell. This constraint implies that if, in a later epoch, the adversary announces a probability j/k
+that has already been announced previously—without the corresponding error having been removed—this
+would not constitute a valid move for Player-P. Consequently, it becomes ambiguous how the forecaster
+should proceed. If they continue predicting according to the currently placed sign, the adversary can accrue
+additional error without increasing the total count of signs.
+One potential solution is to start a new game and proceed as if playing with an empty cell. The forecaster
+could still predict the same probability values, but the new game structure provides a formal means of
+tracking the error magnitude, its location, and the potential for error reduction. However, initializing too
+many games is not desirable. This raises the question: how can we ensure the existence of at least one game
+with an empty cell, without needing to start numerous games? Moreover, we seek a strategy that does not
+rely on knowing m in advance.
+
+
+Setup for Algorithm 1. Accordingly, we propose a forecaster that runs O(log2 T ) different instances of
+the reuse sign-preservation game as Player-L and decides what probability values to predict based on the
+strategy of Player-L. Let h ∈ [log T ] be some parameter to be specified below. As above, we assume the fore-
+caster observes et ∈ [0, 1], the expected value of yt conditioned on the history Ht = (p1 , y1 ), . . . , (pt−1 , yt−1 ).
+Although they know et , it may not beh optimal ito predict et . Instead, the forecaster chooses pt to be one of the
+endpoints of an interval of the form 2mi+1 , m+1
+                                               2i+1
+                                                    containing et where i and the endpoint to be played are deter-
+mined by the states of the sign-preservation games being simulated. More precisely, for each discretization
+       1
+level 2i+1 for i ∈ [log T ], the forecaster simulates 2h instances of the game – two instances (“even” and “odd”)
+for every possible value of j ∈ [i + 1, i + h], which controls the number of rounds. Letting τ := log T , both
+instances for the values (i, j) have 2i cells and 2τ− j rounds; in particular, they
+                                                                                 h run SPR(2i
+                                                                                                 i , 2τ− j ). Each cell
+
+of the game instance SPR(2i , 2τ− j ) corresponds to an interval of the form 2mi+1 , m+1
+                                                                                       2i+1
+                                                                                             . The cells of the even
+instance correspond to intervals where m is even, and the cells of the odd instance correspond to intervals
+where m is odd.
+To summarize for each i ∈ [log T ], j ∈ [i + 1, i + h], and ℓ ∈ {0, 1}, we simulate an instance Gi, j,l of
+         i , 2τ− j ). Given an instance G                         i
+SPR(2
+h                i                        i, j,l and a cell c ∈ [2 ] of that instance, we uniquely associate the interval
+  2c+l 2c+l+1
+  2i+1
+       , 2i+1 to this cell and instance. To this end we introduce the following notation: For an instance Gi, j,l ,
+cell c ∈ [2i ] and sign s ∈ {+, −},
+                             h              i
+                                 2c+l 2c+l+1
+• interval(c, Gi, j,l ) :=       2i+1
+                                      , 2i+1 .
+                           max{0,2c+l−1}
+                          
+                                2i+1
+                                                 if s = +
+• prob(c, s, Gi, j,l ) :=                                  .
+                          
+                           min{2c+l+2,1}
+                          
+                                  i+1            if s = −
+                                    2
+
+                                                                                          h      i
+Similarly, given a pair of discretization and time values (i, j) and a value et ∈ 2mi+1 , m+1
+                                                                                            2i+1   (which should
+be interpreted as a probability), we uniquely associate these to an instance Gi, j,l and cell c ∈ [2i ] of that
+instance. In particular, for i ∈ [log T ], j ∈ [i + 1, i + h], and et ∈ [0, 1], we define
+
+                                                                8
+                                      i where G = Gi, j,l where l ∈ {0, 1} has the same parity as the unique value
+• cell(i, j, et ) returns ahtuple (c, G),
+                             m m+1
+  of m for which et ∈ 2i+1 , 2i+1 , and c = ⌊(m − l)/2⌋ + 1 is the cell in G corresponding to this interval.
+
+Since our forecaster simulates the reuse sign-preservation game (SPR), we define the simulateGame sub-
+routine to be the following procedure: it takes in a cell c of an instance Gi, j,l and simulates one round of
+that SPR game. The state of the game Gi, j,l is updated according to the rules of the game. That is, Player-P
+chooses cell c, all minus signs to the left of c and plus signs to the right of c are erased, and Player-L places
+a sign in cell c.
+Algorithm 1 first initializes a value bias(c, G) ← 0 for each instance G and cell c of G, which, roughly, is a
+proxy for the (signed) calibration error for values p ∈ interval(c, G). At each round t of the calibration game,
+Algorithm 1 performs the following steps: First, (Line 4), it attempts to find some instance G whose cell c
+corresponding to et has the property that there is some cell c̄ < c with highly negative bias or some cell c̄ > c
+with highly positive bias. If so, then we predict the probability value corresponding to such cell c̄ (per prob),
+which will tend to decrease this bias (which ultimately corresponds to decreasing the calibration error). If
+we cannot find any such c̄, then (in Line 12) then we use the simulateGame procedure to place a sign in an
+appropriate instance (namely, one of relatively low bias), and use the value of the sign to slightly bias our
+prediction with respect to the value of et (per prob). The idea behind this step is that the simulateGame
+procedure is giving us a way of purposefully biasing our prediction to make it easier to “cancel out” in future
+rounds.
+
+Algorithm 1 Calibration Algorithm for Theorem 4.1
+Require: A Player-P strategy for the game SPR(n, s) for all values of n, s; parameter h > 0.
+ 1: Initialize bias(c, G) to 0 for all instances G and cells c of that instance.
+ 2: for each round t ∈ [T ] do
+ 3:     Observe et ∈ [0, 1]
+ 4:     for i ∈ [log T ] do                                                    ⊲ perform "bias removal" if possible
+ 5:          for j ∈ [i + 1, i + h] do
+ 6:              Set c, G ← cell(i, j, et )
+ 7:              if ∃ c̄ < c with bias(c̄, G) < −1 or ∃ c̄ > c with bias(c̄, G) > 1 then
+ 8:                   Set s ← sign(bias(c̄, G))
+ 9:                   Predict pt := prob(c̄, s, G)                                     ⊲ predict to remove bias error
+10:                   bias(c̄, G) ← bias(c̄, G) + (et − pt )
+11:                   Terminate round t
+12:     for i ∈ [log T ] do                                     ⊲ perform "bias placement" if no "bias" to remove
+13:          for j ∈ [i + 1, i + h] do
+14:              Set c, G ← cell(i, j, et )
+15:              if |bias(c, G)| < 2 j−i then
+16:                   if cell c is empty then
+17:                       simulateGame(c, G)                 ⊲ places sign in cell c, performs sign removal in SPR
+18:                 Set s ←sign in cell c
+19:                 Predict pt := prob(c, s, G)                       ⊲ predict to obtain negative or positive bias
+20:                 bias(c, G) ← bias(c, G) + (et − pt )
+21:                 Terminate round t
+
+
+
+
+                                                         9
+Proof Overview for Theorem 4.1. For p ∈ [0, 1], let n p ≥ 0 denote the number of times the procedure
+in Algorithm 1 predicts the value p. The standard   minimax argument [Har23] establishes that we can upper
+                                            P     P                      √ 
+bound the expected calibration error by O p∈P t∈T I[pt = p](et − p) + n p . Here, the first term in the
+                                                                                                      √
+sum can be thought of as the expected bias error over rounds when p is predicted; the second term of n p
+is the expected error from variance of the realized outcomes.
+                                                          P     √
+• To bound the total expected error from the variance, p∈P n p , it suffices to bound |P|, the number of
+  distinct probability values that the algorithm plays. We do this in Lemma A.4. Precisely, we show that |P|
+                      log T −h
+  is bounded by O(2 2 ). And since the square root function is concave, the total variance error would be
+                                                                                               √
+  maximized when n p = T/|P| for all p ∈ P, leading to total variance error of at most T |P|.
+                                   P     P                                                P
+• In Lemma A.1, we show that p∈P t∈T I[pt = p](et − p) is upper bounded by c,G |bias(c, G)|. This is
+  done by showing that that whenever the former increases, the latter also increases by the same amount
+  and when the latter decreases, the former must decrease by the same amount. Also in Lemma A.1 we
+  show that |bias(c, G)| ≤ 1 if cell c does not contain a sign and |bias(c, Gi, j,l )| ≤ 2 j−i otherwise. Now, we
+  just have to bound the total number of signs placed in all the instances. To do this, we need to bound
+  the number of rounds of the sign preservation game that is played in each instance Gi, j,l . This is done
+  by showing in Lemma A.2 that there are 2 j timesteps between calls to simulateGame in instance Gi, j,l .
+  This is due to the fact that in order for a simulateGame call to happen in instance Gi, j,l , we need to build
+                                                                   ′
+  up the bias for cells in instances with j′ < j and this takes 2 j timesteps. This allows us to conclude in
+  Lemma A.5 that p∈P t∈T I[pt = p](et − p) ≤ c,G |bias(c, G)| ≤ O( i≤τ−h j≤i+h 2 j−i opt(2i , 2τ− j )).
+                    P          P                     P                     P           P
+
+• We then use Lemma A.5 to prove Theorem 4.1 by setting h appropriately to balance the total expected
+  bias error with the total expected variance error.
+
+
+4.2 Lower Bounding ℓ1 -calibration error using Sign Preservation
+
+In this section we show the existence of an (adaptive) adversary in the calibration game to lower bound the
+calibration error in terms of the performance of a given strategy of Player-P in the SPR game game. In
+particular, we show the following:
+
+Theorem 4.2. Suppose that there are constants C0 , α, β > 0 so that opt(n, nα ) ≥ C0 · nβ for all n ∈ N. Then,
+                                                                                                  β+1
+there exists an (adaptive) adversary that uses Algorithm 2 to force any forecaster to incur Ω̃(T α+2 ) expected
+calibration error.
+
+
+Setup for Algorithm 2. We propose an adversary that runs a single instance of the Sign-Preservation
+Game with Reuse. The adversary is equipped with a strategy of Player-P for this instance, which certifies
+opt(n, nα ) ≥ C0 · nβ . This adversary will simulate Player-L of an instance of SPR. It does so by dividing the
+timesteps t ∈ [T ] into at most nα epochs, each corresponding to a single round of the SPR game.
+Fix any timestep t0 ∈ [T ] which corresponds to the beginning of the epoch corresponding to some round r
+of the SPR game. For a fixed cell i ∈ [n], we define the following quantities:
+
+1. µ∗i = 13 + 2i−1
+               6n .
+                        h                  
+                            1   i−1 1     i              ∗
+2. Ii = [li , ri ] :=       3 + 3n , 3 + 3n . Note that µi is the midpoint of Ii .
+
+
+
+                                                                10
+3. Let Φt (i) denote the total “negative calibration error” in cells to the left of i and “positive calibration error”
+   in cells to the right of i:                   X                  X
+                                      Φt (i) =          Et− (p) +          Et+ (p).
+                                                   p∈P∩[0,li )        p∈P∩[ri ,1]
+
+      We will refer to the left summation above (i.e., over p ∈ P ∩ [0, li )) as Φ−t (i) and the right one (i.e., over
+      p ∈ [ri , 1]) as Φ+t (i).
+
+This adversary will simulate Player-L of an instance G of SPR(n, nα ) as follows. If the given Player-P
+                                                                                                        strat-
+egy selects cell i on round r, the adversary draws the outcomes (in the calibration game) from a Ber 3 + 2i−1
+                                                                                                      1
+                                                                                                           6n
+random variable until sign placement occurs. Sign placement is said to have occurred at a timestep t of round
+r starting at timestep t0 if one of the following holds:
+      P
+1.        p∈P∩Ii |E t−1 (p)| ≥ θ; i.e., there is ≥ θ error in the interval corresponding to cell i (Condition 1).
+
+2. Φt−1 (i) − Φt0 −1 (i) ≥ θ; i.e., the potential Φt (i) has grown by a sufficient amount (Condition 2).
+
+Depending on which condition for sign placement occurs, the adversary chooses Player-L’s sign in the SPR
+game as specified in Lines 13 and 15 of Algorithm 2.
+
+Algorithm 2 Calibration adversary for Theorem 4.2
+Require: Value of α, β                  q
+                          1
+     Set n = (T/ ln5 T ) α+2 , θ = 1440
+     1:                              1       T
+                                          nα ln T
+ 2: Initialize SPRInstance(n, n )   α
+
+ 3: Set t ← 1
+ 4: for epoch r ∈ [nα ] do
+ 5:     t0 ← t
+ 6:     If Player-P terminates the game in round r, then break
+ 7:     Let i ∈ [n] be the cell chosen by the Pointer in round r
+ 8:     while sign placement condition
+                                            is not satisfied do
+ 9:          Draw yt from Ber µ∗i
+10:          Observe forecaster’s prediction pt
+11:          t ←t+1
+12:     if sign placement Condition 1 is satisfied then
+                                          P            − (p) ≥ P              +
+13:          Set Player-L’s sign to + if p∈P∩Ii Et−1                p∈P∩Ii E t−1 (p) and − otherwise
+14:     else if sign placement Condition 2 is satisfied then
+15:          Set Player-L’s sign to + if Φ−t−1 (i) − Φ−t0 −1 (i) ≥ Φ+t−1 (i) − Φ+t0 −1 (i) and − otherwise
+
+
+To prove Theorem 4.2, we need to show that Algorithm 2 terminates in at most T time steps, and when it
+does, if m signs remains in the SPR game (so that m ≥ Ω(nβ ) in expectation), then calerr(T ) ≥ Ω(mθ) (which
+        β+1
+is Ω̃(T α+2 ) in expectation). The idea behind the latter statement is to show that the forecaster cannot decrease
+the overall calibration error by “covering up” too many past errors (as discussed in Section 4.1) if many signs
+remain. This holds since each sign in some cell i that is preserved at the end of the game corresponds to
+an interval Ii for which in all subsequent rounds, the adversary only plays on either the left or right of Ii
+(depending on the sign in cell i). As long as the sign of cell i corresponds with the sign of the calibration
+error for many points in cell i (which is ensured by the sign placement conditions in Lines 13 and 15), we
+can conclude that the forecaster cannot cover up such calibration errors. While a similar argument was used
+
+                                                                 11
+in [QV21], our approach differs in the use of sign placement Condition 2 above. Further details may be
+found in Appendix A.3.
+
+
+5 An upper bound for the sign-preservation game
+
+In this section we prove Theorem 1.3, giving a strategy for Player-L in the SPR game which certifies
+opt(n, n) ≤ n1−ε for some ε > 0 and thereby yields a forecasting algorithm with calibration error of
+O(T 2/3−ε/18 ), by Theorem 1.2.
+
+
+5.1 Analysis overview
+
+The strategy for Player-L in the sign preservation game is specified by two mutually recursive algorithms,
+A and B, defined in Algorithms 3 and 4, respectively. These algorithms constitute a tree-based strategy for
+Player-L, where the n game cells serve as the leaves of the tree. Each interior node executes a sub-algorithm
+of A and B determined by the algorithm instances at its parent. The strategy for Player-L used to prove
+Theorem 1.3 is the instance of A at the root of this tree, which we denote by A0 , and is initialized with
+l = 1, r = n, b = 0.
+
+Algorithm 3 Definition of A
+Require: Parameters l, r ∈ N, b ∈ Z. ([l, r] represents the interval of the game board corresponding to A,
+    and b represents a bias parameter controlling whether returned signs are biased towards +1 or −1.)
+ 1: function A.initialize(l, r, b)
+ 2:    recentB ← B.initialize(l, r, b, 1).
+ 3:    count ← 0.
+ 4: function A.label(s)                                                                         ⊲ s ∈ [l, r]
+ 5:    if l = r then
+ 6:         return sign(b)
+ 7:    else
+ 8:         count ← count + 1.
+ 9:         σ ← recentB.label(s).
+10:         if σ =⊥ then
+11:             recentB ← B.initialize(l, r, b, count)
+12:             count ← 1.
+13:             return recentB.label(s).
+14:         else
+15:             return σ.
+
+
+
+Overall structure of A, B. Each of A, B has an initialization routine (i.e., A.initialize(l, r, b),
+B.initialize(l, r, b, M)), and a labeling routine (i.e., A.label(s), B.label(s)). We say that an instance of A
+which is initialized via A.initialize(l, r, b) covers a total of n := r − l + 1 cells; namely, it covers the cells in
+[l, r]. We say that A is executed for t time steps if A.label(s) returns a sign σ ∈ {−1, 1} (i.e., not ⊥) for a total
+of t time steps through the entire execution of the game, and write executionSteps(A) := t. Finally, we call
+the parameter b the bias of A. Given an instance A and σ ∈ {−1, 1}, we let remainingSigns(A, σ) denote the
+
+
+                                                         12
+Algorithm 4 Definition of B
+Require: Parameters l, r ∈ N, b ∈ Z, M ∈ N. ([l, r] represents the sub-interval of the game board cor-
+    responding to this B instance, b represents the bias parameter, and M represents a “guess” as to the
+    number of steps B is played for, which is used to implement a doubling trick.)
+ 1: function B.initialize(l, r, b, M)
+ 2:     m ← ⌊(l + r)/2⌋.
+ 3:     A[0] ← A.initialize(l, m, b), A[1] ← A.initialize(m + 1, r, b).
+ 4:     prevHalf ← −1.
+ 5:     countHalf[0] ← 0, countHalf[1] ← 0.
+ 6:     phase ← 1.
+ 7: function B.label(s)
+ 8:         half ← 0 if s ≤ m else half ← 1.
+ 9:         countHalf[half] ← countHalf[half] + 1.
+10:         if phase = 1 then
+11:             if countHalf[half] = M and M ≤ countHalf[1 − half] ≤ 2M then
+12:                 phase ← 2
+13:             else if countHalf[half] = M and countHalf[1 − half] > 2M then
+14:                 phase ← 3
+15:         else if phase = 2 then
+16:             if half , prevHalf then
+17:                  return ⊥.
+18:             if countHalf[half] = 2 · countHalf[1 − half] + 1 then
+19:                  phase ← 3.
+20:         else if phase = 3 then
+21:             if countHalf[half] = ⌊countHalf[1 − half]/2⌋ + 1 then
+22:                  phase ← 4.
+23:                  if half = 0 then
+24:                       A[0] ← A.initialize(l, m, b + 1).
+25:                  else                                                                                                   ⊲ half = 1
+26:                       A[1] ← A.initialize(m + 1, r, b − 1).
+27:         else if phase = 4 then
+28:             if countHalf[half] > countHalf[1 − half] then
+29:                  return ⊥.
+30:         σ ← A[half].label(s).
+31:         prevHalf ← half.
+32:         return σ.
+
+
+number of signs of type σ which are: (a) placed in one of the covered cells of A during the time steps in
+which it is executed, and (b) remain (according to the rules of the SPR game) upon completion of A.7
+We use the same terminology for B: if an instance B is initialized via B.initialize(l, r, b, M), then we say it
+covers the n := r − l + 1 cells in the interval [l, r], has bias b, and is executed for t time steps if B.label(s)
+returns a sign σ ∈ {−1, 1} (i.e., not ⊥) for a total of t time steps, and write executionSteps(B) = t. The
+   7
+       Notice that our notation pertaining to remainingSigns is a bit different in this section than in the overview in Section 3.
+
+
+
+                                                                    13
+parameter M ∈ N should be interpreted as a sort of “guess” which scales with the number of steps that
+B.label(·) will be called: it is used to implement a sort of doubling trick (as outlined in Section 3). In
+particular, if B.label(·) is called many more than M times, typically it will return ⊥ at some point, which will
+cause B.initialize(·) to be called in Line 11 of Algorithm 3. Upon re-initialization, the new value of count
+(i.e., the parameter M) will be at least a constant factor larger than the old value.
+Finally, we let remainingSigns(B, σ) denote the number of signs of type σ which are placed in one of B’s
+covered cells during the time steps in which it is executed, and remain upon completion of B.
+Note that each instance of A contains multiple instances of B throughout its execution (namely, all values
+of A.recentB throughout its execution), each of which contains multiple instances of A throughout their
+execution (namely, the initial values of B.A[0], B.A[1], as well as the re-initialized value of A in Line 24 or
+Line 26 of Algorithm 4), and so on. We refer to all such instances of B (respectively, A) as the B-descendents
+(respectively, A-descendents) of the parent A instance. We refer to descendents of a parent B instance in a
+similar manner.
+
+
+Overview of the labeling routines. Suppose the SPR game is played for t ∈ N timesteps; at each step
+where Player-L is called upon to place a sign in some cell s ∈ [n], we place the sign returned by the
+root instance, namely A0 .label(s). This function returns the value of recentB.label(s), where recentB is
+some instance of B maintained by A0 . In turn, each instance of B initialized via B(l, r, b, M) (Algorithm 4)
+maintains two instances of A, denoted by A[0], A[1], which cover the cells in the left and right halves of
+[l, r], respectively. B.label(s) returns the sign returned by A[half].label(s), where half is 0 if s is in the left
+half of [l, r], and 1 otherwise. In this manner, we have the following recursive structure: in the course of
+the outermost call A0 .label(s), we call the label(s) procedure for all active A, B instances on the root-to-leaf
+path starting at the leaf node determined by s.
+
+
+Summary of A (Algorithm 3). On input (l, r, b), A.initialize initializes a B instance with parameters
+(l, r, b, 1) and maintains a counter for the number of timesteps of execution. When B returns ⊥ on a B.label
+call (which should be interpreted as B terminating), then A initializes a new B instance with parameters
+(l, r, b, c) where c is the current value of the counter. The procedure A.label(s) is very simple: if A is a
+leaf instance (i.e., l = r), then it returns the sign of its bias b. Otherwise, it returns recentB.label(s) (after
+re-initializing recentB, if applicable).
+
+
+Summary of B (Algorithm 4). On input (l, r, b, M), B.initialize intializes two A instances, denoted
+A[0], A[1], for each half of the interval [l, r] and maintains a counter for the number of times each of
+A[0], A[1] is executed (i.e the number of time steps Player-P chooses a cell in left half or right half). Over
+the course of multiple calls to B.label(·), B passes through the following 4 phases: it remains in Phase 1
+until both counters are at least M, and then it transitions to Phase 2 if the larger counter is not more than 2M
+and to Phase 3 otherwise. In Phase 2, it terminates (i.e., returns ⊥) if Player-P switches halves (i.e., starts
+playing in a half different from the one that ended Phase 1), and otherwise it transitions to Phase 3 once the
+counter for its current half is just more than two times that of the other. In Phase 3, it transitions to Phase 4
+when the current half is about half the other half, and upon doing so it initializes a new A instance for each
+half with different biases and runs each of them until the counter for the current half equals that of the other
+half before terminating. Note that for some B instances, B.label(·) will never return ⊥, as the SPR game
+ends after a finite number of time steps.
+
+
+                                                        14
+We will prove the following lemma by induction:
+
+Lemma 5.1. There are constants α, β, λ, C > 0 satisfying α + β < 1 so that the following holds. Suppose
+an instance of A has bias b ∈ Z, covers n cells, and t := executionSteps(A). Then for any σ ∈ {−1, 1},
+remainingSigns(A, σ) ≤ C · λ−b·σ nα tβ .
+
+In the analysis, we address local variables of instances A, B using the “.”           notation, as in:
+B.countHalf, B.phase, etc. Before proving Lemma 5.1, we first observe that Theorem 1.3 is an immediate
+consequence of it:
+
+Proof of Theorem 1.3. Fix a positive integer n representing the number of cells. Recall that the root instance
+of A, which we have denoted by A0 , is initialized with l = 1, r = n, b = 0. Then Lemma 5.1 gives that, over
+t = n time steps, remainingSigns(A0 , σ) ≤ C · nα+β = C · n1−ε , for ε = 1 − α − β > 0, where α, β, C
+are the constants in Lemma 5.1. Summing over σ ∈ {−1, 1} yields that A0 provides a strategy for Player-L
+certifying opt(n, n) ≤ 2Cn1−ε .                                                                              
+
+
+Ideas in the proof of Lemma 5.1. Before proceeding with a formal proof, we give some intuition behind
+the proof of Lemma 5.1. We prove the lemma via induction on the number n of cells covered by A, so
+we may fix some instance of A covering n cells and suppose that the lemma statement holds for all A
+instances covering fewer than n cells. Throughout the course of execution of A, the variable recentB will
+be re-initialized some number k of times, and we denote the corresponding instances of B by B1 , . . . , Bk .
+For i ∈ [k] we let ti := executionSteps(Bi ), so that executionSteps(A) = t = t1 + · · · + tk . It will be
+straightforward to show, using the definition of B, that ti is exponentially growing in i. Thus, roughly
+speaking, we “typically” have t ≈ tk and remainingSigns(A, σ) is dominated by remainingSigns(Bk , σ) for
+the last instance Bk . To simplify matters, we proceed under the “extreme” case that in fact tk = t (even
+though this will never be the case, making this assumption allows us to explain most of the intuition in the
+proof).
+We first consider the following “naive” argument, which does not suffice: suppose that Bk never enters phase
+4, meaning that Bk .A[0], Bk .A[1] are never re-initialized. Letting tk,h := executionSteps(Bk .A[h]), so that
+tk,0 + tk,1 = tk = t, then the inductive hypothesis yields that
+
+               remainingSigns(A, σ) =remainingSigns(Bk , σ)
+                                           =remainingSigns(Bk .A[0], σ) + remainingSigns(Bk .A[1])
+                                                                    β    β
+                                           ≤Cλ−bσ · (n/2)α · (tk,0 + tk,1 ) ≤ Cλ−bσ nα tβ · 21−α−β .                         (7)
+
+In order for the above argument to establish the inductive step, we need 21−α−β ≤ 1, i.e., α + β ≥ 1. Of course
+this is not useful, since in order to show opt(n, n) ≤ O(n1−ε ) in the proof of Theorem 1.3, we crucially used
+that α + β < 1.8
+Thus, to prove Lemma 5.1, we need to find a way to slightly decrease the term 21−α−β in Equation (7) (i.e.,
+by any constant factor less than 1). Roughly speaking, such a decrease occurs for one of the following
+reasons, depending on the state of Bk after the last round on which Bk .label(·) is called:
+   8
+   It turns out that, due to a corner case, we need the preceding argument anyways in the proof of Lemma 5.1; it is formalized in
+Lemma 5.5 below.
+
+
+
+
+                                                               15
+    • If Bk never enters phase 4 and tk,0 /tk,1 < (1/2, 2), then the final inequality in Equation (7) can be
+      improved to
+
+                                              β       β                           (1/3)β + (2/3)β
+                              Cλ−bσ (n/2)α (tk,0 + tk,1 ) ≤ Cλ−bσ nα tβ ·                         ,
+                                                                                        2α
+                                                  β       β
+      and we now note that we can have (1/3) 2+(2/3)
+                                              α      < 1 for some α + β < 1. (See Lemma 5.2.)
+
+    • Suppose Bk enters phase 4; without loss of generality we may assume that it re-initializes A[1] (in
+      Line 26). The placement of the sign in [m + 1, r] upon entering phase 4 deletes all −1s placed in
+      [l, m]. Using this fact, it is straightforward to improve the upper bound in Equation (7) for σ = −1
+      (Lemma 5.3).
+      As for σ = 1, here we use the fact that Bk .A[1] is re-initialized with bias b − 1. Thus, the re-initialized
+      instance of Bk .A[1] can be shown to have a smaller number of remaining +1s after its execution, by
+      a factor of roughly 1/λ (Lemma 5.3). We remark that this re-initialization with smaller bias slightly
+      increases the number of −1s remaining, but this does not cause an issue for the previous case (σ = −1)
+      since there will be enough deleted −1s upon entering phase 4 to make up for this increase.
+
+    • The above cases are not exhaustive; however, we can show that if neither occurs, then tk =
+      executionSteps(Bk ) ≤ 6M (Lemma 5.6). In this case, we must abandon our simplifying assumption
+      that t = tk . Indeed, we have here that either tk ≤ 6t/7, or else t ≤ 6. The latter case is straightforward
+      to handle (see Case 3 of the proof of Lemma 5.1). In the former case, we use that Bk−1 must have
+      returned ⊥ (as otherwise Bk would never have been initialized), and that, whenever Bk returns ⊥, it is
+      due to either placement of a sign in [l, m] which causes many +1s in [m + 1, r] to be deleted or a sign
+      in [m + 1, r] which causes many −1s in [l, m] to be deleted. We can use the deletion of these signs to
+      “make up” for the fact that we will not be able to beat the “naive” bound in Equation (7) for Bk .
+
+To summarize, in all cases we are able to beat the naive bound in Equation (7) by a constant factor, which
+allows us to choose some α, β satisfying α + β < 1.
+
+
+5.2 Lemmas for inductive proof
+
+We establish Lemma 5.1 using induction on the number n of cells covered by the instance of A. We choose
+
+                                            λ = 1.5,               C = 6 · λ3 ,                               (8)
+
+and will choose the parameters α, β below in the proof of Lemma 5.1 (see Section 5.3). In this section, we
+establish several lemmas used to prove the inductive step of Lemma 5.1. Thus, throughout this section, we
+fix some value of n and assume that Lemma 5.1 holds for all instances of A which cover fewer than n cells
+(we refer to this assumption as the “inductive hypothesis”).
+Moreover, throughout this section, we fix an instance B which is initialized via B.initialize(l, r, b, M). We let
+t := executionSteps(B) denote the number of time steps for which B is executed, and n = r − l + 1 denote
+the number of cells covered by B.
+Lemma 5.2. Suppose that, following the last round B.label returns a sign, it holds that BB.countHalf[1]
+                                                                                          .countHalf[0]
+                                                                                                        < (1/2, 2)
+and B.phase ∈ {1, 2, 3}. Then for each σ ∈ {−1, 1},
+                                                                             (1/3)β + (2/3)β
+                           remainingSigns(B, σ) ≤ Cλ−b·σ nα tβ ·                             .                (9)
+                                                                                   2α
+
+                                                              16
+Proof. For h ∈ {0, 1}, let th denote the value of B.countHalf[h] following the last round that B.label returns
+a sign, so that t0 + t1 = t. By assumption we have t0 /t1 < (1/2, 2), meaning that max{t0 , t1 } ≥ 2t/3. Using
+the inductive hypothesis of Lemma 5.1 applied to B.A[0], B.A[1] (which never change, as B ends in phase
+1,2, or 3), we may compute
+
+             remainingSigns(B, σ) ≤remainingSigns(B.A[0], σ) + remainingSigns(B.A[1], σ)
+                                                          β        β
+                                     ≤Cλ−bσ (n/2)α · (t0 + t1 )
+                                     ≤Cλ−bσ (n/2)α tβ · ((1/3)β + (2/3)β ),
+
+where the final inequality holds by Lemma C.1 with p = 1/2.                                                     
+
+Lemma 5.3. Suppose that, following the last round in which B.label returns a sign, it holds that B.phase = 4.
+Then for each σ ∈ {−1, 1}, and δ > 0,
+                                                                  (                      )
+                                               −b·σ      α β        1 + 4λ/3
+                  remainingSigns(B, σ) ≤ C · λ      (n/2) t · max             , F β,λ (δ)  ,             (10)
+                                                                       4β
+
+where Fβ,λ (δ) is defined in Equation (53). If moreover B returns ⊥, then in fact we have the following bound
+for each σ ∈ {−1, 1}:
+                                                    (                                                )
+                                  −bσ      α β        1 + 4λ/3        β         β       β          β
+    remainingSigns(B, σ) ≤ Cλ (n/2) t · max                    , (1/2) + (1/4) + (1/4) /λ, (3/4) .        (11)
+                                                         4β
+
+We note that for β sufficiently close to 1, the bound in Equation (11) is stronger than that in Equation (10).
+
+Proof of Lemma 5.3. Without loss of generality, let us suppose that half = 1 during the round τ when
+B sets phase ← 4, and t0 denote the value of B.countHalf[0] during round τ. Write t1 := ⌊t0 /2⌋; t1 is
+the value of B.countHalf[1] following round τ − 1, since by definition we must have B.countHalf[1] =
+⌊B.countHalf[0]/2⌋ + 1 when B sets phase ← 4. Note that, if ever half = 0 for some round τ′ > τ, B.label
+will return ⊥. Thus, on all rounds following τ when B.label returns a sign, we must have half = 1. Moreover,
+the number of such rounds is given by t2 := t − t1 − t0 and must satisfy t2 ≤ ⌈t0 /2⌉ (as after ⌈t0 /2⌉ rounds
+B.label will return ⊥).
+Let B.A[0], B.A[1] denote the initial values of the sub-algorithms A[0], A[1] (i.e., defined in B.initialize), and
+let B.A′ [1] be the sub-algorithm initialized in Line 26 when B enters phase 4.
+
+
+Bounding the number of minuses. Note that all −1’s placed by A[0] (which belong to cells in [l, m]) are
+deleted by the placement of the sign in round τ (which belongs to a cell in [m + 1, r]). Thus, the inductive
+hypothesis yields that
+
+           remainingSigns(B, −1) ≤remainingSigns(B.A[1], −1) + remainingSigns(B.A′ [1], −1)
+                                                  β                    β
+                                    ≤Cλb (n/2)α t1 + Cλb+1 (n/2)α t2
+                                                      β        β
+                                    =Cλb (n/2)α · (t1 + λt2 )
+                                                     1 + 4λ/3
+                                    ≤Cλb (n/2)α tβ ·          ,                                              (12)
+                                                        4β
+where the final inequality uses Lemma C.7.
+
+
+                                                          17
+Bounding the number of pluses. In a similar manner, we may bound the number of +1’s remaining from
+B as follows, using the inductive hypothesis:
+
+          remainingSigns(B, +1) ≤ remainingSigns(B.A[0], +1) + remainingSigns(B.A[1], +1)                  (13)
+                                                                    ′
+                                     + remainingSigns(B.A [1], +1)
+                                                  β                         β             β
+                                   ≤Cλ−b (n/2)α t0 + Cλ−b (n/2)α t1 + Cλ−b−1 (n/2)α t2
+                                                       β        β   β
+                                   =Cλ−b (n/2)α · (t0 + t1 + t2 /λ)                                        (14)
+                                        −b      α β
+                                   ≤Cλ (n/2) t · Fβ,λ (δ),                                                 (15)
+
+where the final inequality uses Lemma C.8.
+Note that Equations (12) and (15) establish Equation (10).
+
+
+Stronger bound if B returns ⊥. We proceed to establish Equation (11). Note that Equation (12) estab-
+lishes Equation (11) for σ = −1, so it remains only to consider σ = 1. Let τ′ denote the round when B
+returns ⊥. We consider the following cases:
+
+   • If half = 1 during round τ′ , then we must have t2 = t0 − t1 = ⌈t0 /2⌉ and so t = 2t0 . In this case, using
+     Equation (14), we see that
+                                                                        β
+                      remainingSigns(B, +1) ≤Cλ−b (n/2)α (t0 + ⌊t0 /2⌋β + ⌈t0 /2⌉β /λ)
+                                                                        β
+                                               ≤Cλ−b (n/2)α (t0 + (t0 /2)β + (t0 /2)β /λ)
+                                               ≤Cλ−b (n/2)α tβ · ((1/2)β + (1/4)β + (1/4)β /λ),            (16)
+
+      where the second inequality uses the fact that the function p 7→ pβ + (1 − p)β /λ is increasing for
+      p ∈ [0, 1/2].
+
+   • If half = 0 during round τ′ , then the sign placed in [l, m] on round τ′ removes all signs in [m + 1, r]
+     placed by B.A[1] and B.A′ [1]. Thus, we have
+
+                         remainingSigns(B, +1) ≤remainingSigns(B.A[0], +1)
+                                                      ≤Cλ−b (n/2)α t0β ≤ Cλ−b (n/2)α tβ (3/4)β ,           (17)
+
+      where the final inequality uses that t0 ≤ 3t/4 as a consequence of t1 = ⌊t0 /2⌋. (Note that we also use
+      here that t1 ≥ 1, which is a consequence of the fact that B has entered phase 3 and that M ≥ 1.)
+
+Maximizing over Equations (16) and (17) yields the desired conclusion in Equation (11).                       
+
+Lemma 5.4. Suppose that B returns ⊥. Then for each σ ∈ {−1, 1},
+                                                  n                                                 o
+  remainingSigns(B, σ) ≤ C · λ−b·σ (n/2)α tβ · max (3/4)β , (1/2)β + (1/4)β + (1/4)β /λ, (1 + λ)/4β        (18)
+
+Proof. We consider two cases involving the manner in which B returns ⊥:
+
+
+
+
+                                                           18
+Case 1: B returns ⊥ while in phase 2. Consider the round τ which is the final round that B.label returns
+a sign (i.e., not ⊥), and for h ∈ {0, 1}, let th denote the value of B.countHalf[h] following round τ. Since we
+must have B.phase = 2 following round τ, it holds that t0 /t1 ∈ [1/2, 2]. Noting the t = t0 + t1 in this case, it
+follows that max{t0 , t1 } ≤ 2t/3.
+By symmetry, it is without loss of generality to suppose that half = 0 during the round τ0 on which B sets
+phase ← 2. Since we have assumed that B returns ⊥ while in phase 2, it must be the case that at some round
+τ1 after setting phase ← 2, we have half = 1, at which point B returns ⊥. The placement of the sign at round
+τ0 removes all +1s in [m + 1, r] placed by B.A[1], and the placement of the sign at round τ1 removes all −1s
+in [l, m] placed by B.A[0]. Thus, for each σ ∈ {−1, 1}, all remaining signs of type σ lie either in [l, m] or
+[m + 1, r], meaning that we have
+
+          remainingSigns(B, 1) ≤ max{remainingSigns(B.A[0], σ), remainingSigns(B.A[1], σ)}
+                                  ≤Cλ−bσ (n/2)α max{t0 , t1 }β ≤ Cλ−bσ (n/2)α tβ · (2/3)β .
+
+
+Case 2: B returns ⊥ while in phase 4.           In this case, we simply apply the bound Equation (11) of
+Lemma 5.3.                                                                                            
+
+The below lemmas deal with the case that B does not satisfy the hypotheses of any of Lemmas 5.2 to 5.4.
+
+Lemma 5.5. Suppose that following the lat round in which B.label returns a sign, we have B.phase , 4.
+Then for each σ ∈ {−1, 1},
+
+                                remainingSigns(B, σ) ≤ Cλ−bσ nα tβ · 21−α−β .                               (19)
+
+Proof. Suppose that B is executed for a total of t times overall; for h ∈ {0, 1}, let th denote the value
+of B.countHalf following the final round B.label returns a sign, so that t0 + t1 = t. By assumption,
+B.A[0], B.A[1] are never re-initialized. Then by the inductive hypothesis (Lemma 5.1) applied to the two
+instances B.A[0], B.A[1], it holds that for each σ ∈ {−1, 1},
+                                                               β   β
+                   remainingSigns(B, σ) ≤ Cλ−bσ (n/2)α · (t0 + t1 ) ≤ Cλ−bσ nα tβ · 21−α−β ,
+
+where the inequality uses Lemma C.2.
+                                                                                                               
+
+Lemma 5.6. Suppose that following the last round in which B.label returns a sign, we have BB.countHalf[1]
+                                                                                            .countHalf[0]
+                                                                                                          ∈
+(1/2, 2) and B.phase , 4. Then executionSteps(B) ≤ 6M.
+
+Proof. Note that, if B.phase = 3 at the end of some round t0 , then it must be the case that BB.countHalf[1]
+                                                                                                .countHalf[0]
+                                                                                                              <
+(1/2, 2) at the end of round t0 . (Indeed, to enter phase 3, it must be the case that for some h ∈ {0, 1},
+B.countHalf[h] ≥ 2 · B.countHalf[1 − h], and as soon as this ceases to be the case, B enters phase 4.)
+Therefore, letting t0 denote the last round in which B.label returns a sign, it must be the case that B.phase ∈
+{1, 2} at the end of round t0 . Note that, throughout the entirety of phase 1, there is some h ∈ {0, 1} for
+which B.countHalf[h] ≤ M. Thus, if B is in phase 1 upon the end of round t0 , B is executed for at most
+M + 2M = 3M steps.
+If B is in phase 2 at the end of round t0 , then for some h ∈ {0, 1} we must have B.countHalf[h] ≤ 2M and
+B.countHalf[1 − h] ≤ 4M. Thus B is executed for at most 6M steps.                                       
+
+                                                       19
+5.3 Proof of Lemma 5.1
+
+Recall our definition of λ in Equation (8); we remark that throughout this section we will only need to use
+the fact that λ ∈ (1, 2) (i.e., any other value of λ in this interval suffices as well). We introduce the following
+quantities depending on β, δ ∈ (0, 1), corresponding to the quantities in Equations (9), (10), (18) and (19),
+respectively (we remark that Fβ,λ (δ) is defined in Equation (53)):
+
+                         D9 :=(1/3)β + (2/3)β                                                                 (20)
+                                     (                    )
+                                       1 + 4λ/3
+                        D10 := max              , Fβ,λ (δ)                                                    (21)
+                                          4β
+                                     n                                                 o
+                        D18 := max (3/4)β , (1/2)β + (1/4)β + (1/4)β /λ, (1 + 4λ/3)/4β                        (22)
+                        D19 :=21−β .                                                                          (23)
+
+We are now ready to prove the (inductive step) of Lemma 5.1.
+
+Proof of Lemma 5.1. We prove Lemma 5.1 by induction on the number n of cells covered by an A instance.
+In the base case n = 1, letting b denote the bias parameter of A, clearly we have remainingSigns(A, σ) ≤
+1(sign(b) , σ) ≤ Cnα tβ λ−bσ . Thus, in the remainder of this section, we consider any value of n ∈ N and
+suppose that the conclusion of Lemma 5.1 holds for all A instances which cover fewer than n cells.
+Now consider some instance A which covers n cells. Throughout the course of execution of an instance of
+A, the variable recentB will be initialized some number k ∈ N times. We denote these instances of B by
+B1 , . . . , Bk . Note that for each σ ∈ {−1, 1}, remainingSigns(A, σ) ≤ ki=1 remainingSigns(Bi , σ). For each
+                                                                         P
+ℓ ∈ [k], let tℓ denote the number of rounds that Bℓ is executed. It is straightforward from the definition of B
+that B only returns ⊥ if it has been executed at least 2M times; thus, ti+1 ≥ 2ti for each i ∈ [k − 1]. Since
+each of B1 , . . . , Bk−1 returns ⊥ (by definition of A), Lemma 5.4 gives that
+                                                                                               P        β
+           k−1                                                k−1                                 k−1
+                                                                                                  i=1 ti
+           X                                                  X
+                                                                      β
+                  remainingSigns(Bi , σ) ≤ Cλ−bσ (n/2)α D18          ti ≤ Cλ−bσ (n/2)α D18 ·                  (24)
+            i=1                                                i=1
+                                                                                                 2β − 1
+
+Note that the second inequality above uses Lemma C.5. Write pk := tk /t ∈ [0, 1]. We consider the following
+cases:
+
+
+Case 1: Either (1a) k = 1 and t1 ≥ 7 or (1b) pk > 6/7 and k ≥ 2.           We make the following observations:
+
+    • In case (1a), the parameter M passed to the initialization call B1 (l, r, b, M) is M = 1 (by definition of
+      A), meaning that executionSteps(B1 ) = t1 > 6 · M.
+
+    • In case (1b), we must have executionSteps(Bk ) = tk > 6 · (t − tk ). Note that t − tk is an upper bound
+      on the parameter M passed to the initialization call Bk .initialize(l, r, b, M).
+
+Thus, in both cases (1a) and (1b), by Lemma 5.6, it must be that following the last round in which Bk .label
+returns a sign, we have either BBkk .countHalf[1]
+                                    .countHalf[0]
+                                                  < (1/2, 2) or Bk .phase = 4. It follows, by Lemmas 5.2 and 5.3,
+that for σ ∈ {−1, 1},
+                                                                       β
+                           remainingSigns(Bk , σ) ≤ Cλ−bσ (n/2)α tk · max{D9 , D10 }.
+
+
+                                                        20
+Combining the above display with Equation (24) yields that
+                                                                      β                        
+                                       −bσ     α β  D18 · (1 − pk )     β                   
+           remainingSigns(A, σ) ≤ Cλ (n/2) t ·              β
+                                                                         + pk · max{D9 , D10 }             (25)
+                                                           2 −1
+
+Case 2: pk < 6/7.     In this case, Lemma 5.5 gives that for each σ ∈ {−1, 1},
+                                                                          β
+                               remainingSigns(Bk , σ) ≤ Cλ−bσ (n/2)α tk · D19 .
+
+Combining the above display with Equation (24) yields that
+                                                                           β             
+                                           −bσ      α β  D18 · (1 − pk )     β        
+                remainingSigns(A, σ) ≤ Cλ (n/2) t ·                          + pk · D 19    .              (26)
+                                                                2β − 1
+
+Case 3: k = 1 and t1 ≤ 6. Here we note that executionSteps(A) = t = t1 ≤ 6 and so
+remainingSigns(A, σ) = remainingSigns(Bk , σ) ≤ 6. The proof will be complete if we can show that
+6 ≤ Cnα tβ λ−bσ . Certainly this is the case if sign(b) , σ, for then λ−bσ ≥ 1 and so since C ≥ 6, we have
+6 ≤ C ≤ Cnα tβ λ−bσ .
+Let us now consider the sign σ = sign(b). Recall that we have in fact ensured C ≥ 6λ3 (see Equation (8)).
+Then if |b| ≤ 3, we have 6 ≤ Cλ−bσ ≤ Cnα tβ λ−bσ , as desired.
+It remains to consider the case that σb < 3. In this case, we claim that remainingSigns(B1 , σ) = 0, which
+will complete the proof. To see that this is the case, note that the sign σ will only be placed at some point
+during the execution of B1 if some descendent of B1 is initialized with bias −b. But for each instance B′ ,
+the sub-algorithms B′ .A[0], B′ .A[1] are initialized with a bias that differs from that of B′ by 1 only B′ enters
+phase 4, which in particular requires at at least 3M ≥ 3 signs be placed by B′ beforehand. Thus, in order for
+the bias b to eventually change signs, at least 3 levels of instances B′ must each place at least 3 signs, which
+of course requires at least 9 > 6 = t rounds of execution. This completes the proof for Case 3.
+
+
+Wrapping up. In Case 3, the inductive step of Lemma 5.1 is established; thus, it suffices to consider Cases
+1 and 2. Here, by Equations (25) and (26), we obtain that for σ ∈ {−1, 1},
+
+ remainingSigns(A, σ)                                                                                     (27)
+                                                                                                          
+                              D18 · (1 − p)β                                    D18 · (1 − p)β
+     −bσ α β C
+                                                                                                          
+                                                β                                                 β
+                                                                                                          
+  ≤ λ n t · α · max   max                   + p  · max{D   , D    },  max                     + p  · D      .
+                                                                                                          
+             2       p∈[0,1]
+                                2β − 1                   9     10    p∈[0,6/7]    2β − 1               19 
+                                                                                                           
+                                                                                                           
+
+Next, Lemma C.6 gives that, for our choice of λ in Equation (8), by choosing δ = 1/100, there is some
+choice of β ∈ (0, 1) so that, for some constant ε > 0, the right-hand side of the above expression is bounded
+above by C · λ−bσ nα tβ · 2−α · 21−β−ε . Choosing α = 1 − β − ε yields that 2−α · 21−β−ε = 1 so that the expression
+is bounded above by Cλ−bσ nα tβ , as desired. Moreover, since ε > 0, we have that α + β < 1, thus completing
+the proof of Lemma 5.1.                                                                                           
+
+
+6 An Oblivious Lower Bound
+
+In this section, we overview the proof of Theorem 1.4, which gives an oblivious strategy for the adversary in
+the calibration game. Our approach for this task proceeds by constructing an oblivious strategy for Player-P
+
+                                                        21
+in the sign preservation game which yields a lower bound on the expected number of signs remaining. We
+in fact construct such a strategy for Player-P which has the following two additional properties, formalized
+in Definition 6.1: (a) the lower bound on the number of signs remaining is “worst case” in the sense that at
+each time step i ∈ [s], conditioned on any history up to time step i, the sign placed at time step i will remain
+with at least some given probability; and (b) it never re-uses a cell (i.e., it abides by the rules of the original
+Sign-Preservation Game in [QV21]).
+
+Definition 6.1. Fix s, n ∈ N and ǫ ∈ (0, 1). An oblivious no-reuse strategy for Player-P in the sign-
+preservation game with n cells, s rounds, and worst-case preservation probability ǫ is a distribution P over
+[n] s , satisfying the following:
+
+1. For all i ∈ [s] and k1′ , . . . , ki′ ∈ [n] for which PrP (k1 = k1′ , . . . , ki = ki′ ) > 0, we have
+                                            h                                                               i
+                                 Pr          ∀ j, i < j ≤ s : k j > ki | k1 = k1′ , . . . , ki = ki′ , s ≥ i ≥ ǫ     (28)
+                            (k1 ,...,ks )∼P
+                                           h                                                               i
+                                 Pr         ∀ j, i < j ≤ s : k j < ki | k1 = k1′ , . . . , ki = ki′ , s ≥ i ≥ ǫ.     (29)
+                           (k1 ,...,ks )∼P
+
+
+2. With probability 1 over (k1 , . . . , ks ) ∼ P, k1 , . . . , ks are distinct.
+
+The distribution P over [n] s corresponds to an oblivious strategy for Player-P in the natural way: Player-P
+draws a sample (k1 , . . . , ks ) ∼ P and then plays ki ∈ [n] at each round i ∈ [s]. Note that Equations (28)
+and (29) ensure that, conditioned on the history (k1′ , . . . , ki′ ), no matter which sign Player-L chooses to place
+in cell ki′ at round i, it will remain with probability at least ǫ. Thus, the existence of a distribution P satisfying
+the conditions of Definition 6.1 ensures that opt(n, s) ≥ ǫ · s. Our lower bound for calibration, however, will
+not directly use this lower bound on opt(n, s); instead, we directly use the properties of Player-P’s strategy
+from Definition 6.1 to derive the following theorem:
+
+Theorem 6.1. Suppose there is a no-reuse strategy for Player-P in the sign-preservation game with n cells,
+s rounds, and worst-case preservation probability at least ǫ (Definition 6.1). Then for any T ∈ N there is an
+oblivious adversary for the calibration
+                                  √ problem
+                                             with T rounds which causes any forecaster to experience an
+                                         ǫT
+expected error of at least Ω min ǫ T s, n .
+
+The proof of Theorem 1.4 follows by constructing a strategy for Player-P satisfying Definition 6.1 for an
+appropriate choice of the parameters ǫ, s, T (see Lemma 7.1), and then applying Theorem 6.1. We remark
+that if s = nα and ǫ = nα−β (which corresponds to the setup of Theorem 4.2 in that existence of an ad-
+versary obtaining worst-case preservation probability of ǫ = nβ−α implies opt(n, nα ) ≥ nβ ), then the bound
+                                               β+1
+of Theorem 6.1 yields expected error of Ω(T α+2 ), matching the quantitative bound of Theorem 4.2 up to
+logarithmic factors. (We emphasize that neither theorem implies the other since both the assumptions and
+conclusion of Theorem 6.1 are qualitatively stronger.)
+The adversary used to prove Theorem 6.1 is shown in Algorithm 5. The T rounds are split into batches of
+size T/s each, indexed by [s]. The adversary draws a sequence (k1 , . . . , ks ) ∈ [n]s realizing the assumed
+lower bound for the sign-preservation game. At each iteration t belonging to batch i ∈ [s], the adversary
+                                                                                             ki
+chooses outcome Xt ∈ {0, 1} by setting Xt = 1 probability given by the value 14 + 2n            (denoted by qt ). In other
+words, at each round t in batch i ∈ [s], the conditional expectation of Xt given the realization of (k1 , . . . , ks )
+             ki
+is qt = 41 + 2n . We let the resulting joint distribution over (q1 , . . . , qT ) ∈ [0, 1]T be denoted by Q. Moreover,
+              3
+we let v := 16  , which satisfies that Var(Xt | qt ) ≥ v for all t.
+
+                                                                  22
+Algorithm 5 Calibration adversary for Theorem 6.1
+Require: Number of cells n, number of time steps s for sign preservation game, preservation probability ǫ,
+    number of rounds T for calibration. Distribution P ∈ ∆([n]s ) representing oblivious adversary for sign
+    preservation game.
+ 1: Draw (k1 , . . . , k s ) ∼ P.
+ 2: for batch i ∈ [s] do
+ 3:     for j ∈ [T/s] do
+ 4:         Set t ← (i − 1) · T/s + j to denote the current round.
+                                  ki
+ 5:         Choose qt := 14 + 2n     .
+ 6:         Draw Xt ∼ Ber(qt ), and play Xt as the outcome at round t.
+
+
+Consider any forecaster algorithm; denote its prediction at time t by pt ∈ [0, 1]. Note that pt may be ex-
+                                                                            P
+pressed as a randomized function of X1 , . . . , Xt−1 . Recall that Et (p) = i∈[t]: pt =p (p − Xt ) denotes the signed,
+unnormalized calibration error of the prediction p, up to time t. We wish to lower bound the expectation of
+                     P
+the calibration error p∈[0,1] |Et (p)|.
+For p ∈ [0, 1], define the random variable F(p) ∈ [T ] to be F(p) := max{t ∈ [T ] : sign(p − qt ) ,
+sign(p − qt−1 )}. If sign(p − qt ) are all equal, we take F(p) = 1 as a matter of convention.
+
+
+Proof overview for Theorem 6.1. To prove Theorem 6.1, we use a potential-based argument. Set ∆ :=
+         √
+min{1/n, s/T }, so that we aim to show a lower bound of Ω(ǫ∆T ) on calibration error. We define
+
+                                                                 ∆x2
+                    R̃bias (x, a) := a · x,       R̃var (x) :=       ,       R̃(x, a) := R̃bias (x, a) + R̃var (x).               (30)
+                                                                  2
+We define a potential function Ψt (p) associated to each point p ∈ [0, 1], which satisfies:9
+
+                                    Ψt (p) ≈ R̃(Et (p) · sign(p − qt ), Pr[F(p) ≤ t | q1:t ]).                                    (31)
+
+We emphasize that the actual definition of Ψt (p) (in Equation (38)) has a few additional components which
+are needed for technical reasons, hence the “≈” in Equation (31). Overall, we will show that the expected cal-
+                                    P
+ibration error is lower bounded by p∈[0,1] E[ΨT (p)] (in Lemma B.5). The bulk of the proof of Theorem 6.1
+consists in lower bounding this latter quantity by Ω(ǫ∆v · T ) ≥ Ω(ǫ∆T ). In turn, to do so, we will show that
+P
+  p Ψt (p) increases in expectation by Ω(ǫ∆v) from round t − 1 to t.
+
+Fix any t ∈ [T ]; we consider several cases involving the choice of qt . Roughly speaking, for each of the
+different cases, one term in in the definition of R̃(x, a) in Equation (30) will increase by a nontrivial amount
+and the other term will not decrease. Below we will argue that, for p = pt , Ψt (p) increases in expectation
+by Ω(ǫ∆v) from round t − 1 to t; similar reasoning shows that for all other p, Ψt (p) does not decrease in
+expectation.
+
+• Let us consider any round t, and first suppose that sign(p − qt ) = sign(p − qt−1 ):
+
+       – If sign(p − qt ) = sign(Et−1 (p)), then by definition of Et−1 (p), predicting pt = p, will increase
+         |Et−1 (p)| = Et−1 (p) · sign(p − qt−1 ) between rounds t − 1 and t, i.e., we will have Et (p) sign(p − qt ) ≥
+   9
+     Technically, Ψt (p) is a function of the history of play prior to round t, e.g., since it depends on q1:t ; we omit this dependence
+from our notation.
+
+
+                                                                  23
+          Et−1 (p) · sign(p − qt−1 ). Assuming for now that p is not too close to qt (quantitatively, |p − qt | ≥ ∆),
+          then the size of this increase will be at least ∆. Moreover, the fact that Player-P’s strategy satisfies
+          Equations (28) and (29) can be shown to guarantee that Pr[F ≤ t | q1:t ] ≥ ǫ, which implies that the
+          term Rbias increases by roughly Ω(ǫ · ∆). We can moreover control the change to the other term in R̃
+          (i.e., R̃var ), which allows us to establish the desired increase in the potential. The details of this part
+          of the argument may be found in Lemma B.3.
+       – If sign(p − qt ) , sign(Et−1 (p)), then predicting pt = p now decreases |Et−1 (p)| = −Et−1 (p) · sign(p −
+         qt ) between rounds t − 1 and t, which still implies that Et (p) sign(p − qt ) ≥ Et−1 (p) · sign(p − qt−1 ).
+         As in the previous bullet point, we may lower bound the size of this increase by Ω(ǫ · ∆), which
+         establishes Equation (39) in a similar fashion.
+
+• Suppose that sign(p − qt ) , sign(p − qt−1 ); in this event, we know that F(p) ≥ t, which can be rephased
+  as saying that the conditional probability Pr[F(p) ≤ t − 1 | q1:t ] = 0. Therefore, if this event sign(p −
+  qt ) , sign(p − qt−1 ) happens with too large probability (conditioned on q1:t−1 ), we see that Pr[F(p) ≤
+  t − 1 | q1:t−1 ] must be relatively small, which implies an an upper bound on R̃bias (Et−1 (p) · sign(p −
+  qt−1 ), Pr[F(p) ≤ t − 1 | q1:t−1 ]), and thus on Ψt−1 (p).10 The details of this part of the argument may be
+  found in Lemma B.4.
+
+• The first bullet point above assumes that |p − qt | ≥ ∆ (this is implicitly assumed in the second bullet point
+  too); under this assumption, we showed above that the R̃bias term in Ψt increases from round t − 1 to round
+  t. In the event that instead |p − qt | ≤ ∆, we can show that the R̃var term in Ψt increases from round t − 1 to
+  round t. This part of the argument uses the fact that R̃var (x, m) is quadratic function in x together with the
+  fact that Var[Xt | qt ] ≥ v and a standard anticoncentration argument involving the strong convexity of the
+  quadratic function; see Lemma B.3 for details.
+
+
+7 Oblivious lower bound for the Sign Preservation Game
+
+In Lemma 7.1 below, we give an oblivious strategy on Player-P which yields a lower bound on the expected
+number of signs remaining in the sign-preservation game (thus implying lower bounds on opt(n, s) for
+various values of n, s). In fact, we show a stronger lower bound, namely on the worst-case preservation
+probability, which is needed to apply Theorem 6.1 to obtain a corresponding oblivious strategy for the
+forecaster in the sequential calibration game.
+Lemma 7.1. For any d, k ∈ N with    d ≥ k, there exists  an oblivious strategy for Player-P in the game
+sign-preservation game with n = dk 2d−k cells and s = dk timesteps which satisfies the following: the worst-
+case preservation probability for this oblivious strategy (per Definition 6.1) is at least 2−k . In particular, the
+expected number of preserved signs is at least s · 2−k , i.e., opt(n, s) ≥ s · 2−k .
+
+Proof. First we describe the oblivious strategy of Player-P. Let us associate to each time step t ∈ [s] a unique
+string w(t) = (w(t)          (t)         d
+                1 , . . . , wd ) ∈ {0, 1} containing d − k ones ′ and k zeros. We consider the lexicographic order
+on the strings w(t) , so that for t < t′ we can write w(t) < w(t ) . Similarly, we associate to each i ∈ [n] a unique
+string q(i) ∈ {−1, 0, 1}d with exactly k zeros, again ordered lexicographically, so that i < j if and only if
+q(i) < q( j) .
+  10
+     The astute reader will notice that an upper bound on a = Pr[F(p) ≤ t−1 | q1:t−1 ] only implies an upper bound on R̃bias (x, a) = a·x
+if x ≥ 0, so the argument here is technically not quite correct. To fix it, in the formal proof we in fact modify R̃bias (x, a) to have a
+“kink” at the origin; see Equation (34).
+
+
+                                                                  24
+We define a distribution P over tuples (q(1) , . . . , q(s) ) ∈ [n] s , where each q(t) ∈ {−1, 0, 1}d (t ∈ [s]) is viewed
+as an element of [n] as described above. In particular, q(t) represents the play of Player-P at step t. To draw
+a sample from P:
+
+       • For each string u ∈ {0, 1}≤d ,11 draw a Rademacher random variable ξu ∼ Unif({−1, 1}), so that all the
+         ξu variables are i.i.d.
+
+       • Define q(t) by, for ℓ ∈ [d], q(t)   (t)
+                                       ℓ := wℓ ξw(t)                             , where w(t)          (t)          (t)
+                                                                                          [1:ℓ−1] := (w1 , . . . , wℓ−1 ). In words, q
+                                                                                                                                      (t) is
+                                                                       [1:ℓ−1]
+          obtained from w(t) by multiplying each entry with a Rademacher random variable that is indexed by
+          the previous string elements.
+
+Now we analyze the worst-case preservation probability of a sign (per Definition 6.1). Fix some sequence
+                                                                                                        ′
+q(1) , . . . , q(t) and let us first lower bound the probability (under P) that for all t′ > t, q(t ) > q(t) , conditioned
+on q(1) , . . . , q(t) . Denote by ℓ1 , . . . , ℓk ∈ [d] the k indices of 0 coordinates of w(t) . We argue that if ξw(t) =1
+                                                                                                                                              [1:ℓ j −1]
+                               ′
+for all j ∈ [k], then q(t ) > q(t) for all t′ > t. Indeed, fix t′ > t. Let ℓ ∈ [d] be the smallest index for which
+    ′                                                                                       ′
+wℓ(t ) , w(t)         (t′ ) > w(t) in the lexicographic ordering, we must have 1 = w(t ) > w(t) = 0. Thus we may
+          ℓ . Since w                                                                     ℓ        ℓ
+                                                             (t′ )
+choose j ∈ [k] so that ℓ = ℓ j . Note that w(t)  [1:ℓ−1] = w [1:ℓ−1] for all ℓ < ℓ j by definition  of ℓ j as the smallest
+                         ′                                                                                               ′                    ′
+index at which w(t ) , w(t) differ. Hence, for all ℓ < ℓ j , we have q(t)  (t)
+                                                                      ℓ = wℓ ξw(t)                                = wℓ(t ) ξw(t′ )       = qℓ(t ) , and so
+                                                                                                        [1:ℓ−1]                [1:ℓ−1]
+                                                                   ′
+by assumption that ξw(t)                   = 1, we have that q(t ) > q(t) as required.
+                              [1:ℓ j −1]
+
+
+It remains to estimate the probability that ξw(t)                          = 1 for all j ∈ [k], conditioned on q(1) , . . . , q(t) . Notice
+                                                             [1:ℓ j −1]
+
+that these k Rademacher random variables are independent of q(1) , . . . , q(t) (as q(i)
+                                                                                     ℓ j = 0 for each i ∈ [t] and
+j ∈ [k]), and since they are unbiased, the probability that they are all equal to 1 is 2−k . Hence, we proved that
+                                                                        ′
+conditioned on q(1) , . . . , q(t) , with probability at least 2−k , q(t ) > q(t) for all t′ > t. A symmetric argument
+                                                   ′
+shows that with probability at least 2−k , q(t ) < q(t) for all t′ > t. Consequently, the worst-case preservation
+probability is at least 2−k .                                                                                       
+
+
+Acknowledgements
+
+CD is supported by NSF Awards CCF-1901292, DMS-2022448, and DMS2134108, a Simons Investigator
+Award, and the Simons Collaboration on the Theory of Algorithmic Fairness. NG is supported by a Fannie &
+John Hertz Foundation Fellowship and an NSF Graduate Fellowship. PO is supported by a Linkedin-Cornell
+Fellowship Grant.
+
+
+References
+
+[BGHN23]            Jaroslaw Blasiok, Parikshit Gopalan, Lunjia Hu, and Preetum Nakkiran. When does optimiz-
+                    ing a proper loss yield calibration? In A. Oh, T. Naumann, A. Globerson, K. Saenko, M. Hardt,
+                    and S. Levine, editors, Advances in Neural Information Processing Systems, volume 36, pages
+                    72071–72095. Curran Associates, Inc., 2023. 1
+  11
+       Here {0, 1}≤d denotes the union of {0, 1}ℓ for all ℓ ≤ d.
+
+
+
+                                                                             25
+[Bri50]      Glenn W. Brier. Verification of forecasts expressed in terms of probability. Monthly Weather
+             Review, 78(1):1–3, 1950. 1
+
+[CAT16]      Cynthia S. Crowson, Elizabeth J. Atkinson, and Terry M. Therneau. Assessing calibration of
+             prognostic risk scores. Statistical Methods in Medical Research, 25(4):1692–1706, 2016. 1
+
+[CBL06]      Nicolo Cesa-Bianchi and Gabor Lugosi. Prediction, Learning, and Games. Cambridge Uni-
+             versity Press, USA, 2006. 2
+
+[Daw82]      A. P. Dawid. The well-calibrated bayesian. Journal of the American Statistical Association,
+             77(379):605–610, 1982. 1
+
+[FV98]       Dean P Foster and Rakesh V Vohra. Asymptotic calibration. Biometrika, 85(2):379–390,
+             1998. 1, 2, 7, 31
+
+[GJRR24]     Sumegha Garg, Christopher Jung, Omer Reingold, and Aaron Roth. Oracle efficient online
+             multicalibration and omniprediction. In Proceedings of the 2024 Annual ACM-SIAM Sympo-
+             sium on Discrete Algorithms (SODA), pages 2725–2792, 2024. 1
+
+[GKR23]      Parikshit Gopalan, Michael P. Kim, and Omer Reingold. Swap agnostic learning, or charac-
+             terizing omniprediction via multicalibration. In Thirty-seventh Conference on Neural Infor-
+             mation Processing Systems, 2023. 1
+
+[GPSW17]     Chuan Guo, Geoff Pleiss, Yu Sun, and Kilian Q. Weinberger. On calibration of modern neural
+             networks. In International Conference on Machine Learning (ICML), pages 1321–1330, 2017.
+             1
+
+[Har23]      Sergiu Hart. Calibrated forecasts: The minimax proof, 2023. 2, 7, 10, 30
+
+[HJKRR18] Ursula Hebert-Johnson, Michael Kim, Omer Reingold, and Guy Rothblum. Multicalibration:
+          Calibration for the (Computationally-identifiable) masses. In Jennifer Dy and Andreas Krause,
+          editors, Proceedings of the 35th International Conference on Machine Learning, volume 80
+          of Proceedings of Machine Learning Research, pages 1939–1948. PMLR, 10–15 Jul 2018. 1
+
+[JLP+ 20]    Christopher Jung, Changhwa Lee, Mallesh M. Pai, Aaron Roth, and Rakesh Vohra. Moment
+             multicalibration for uncertainty estimation. arXiv preprint arXiv:2008.08037, 2020. 1
+
+[JOKOM12] Xiaoqian Jiang, Melanie Osl, Jihoon Kim, and Lucila Ohno-Machado. Calibrating predictive
+          model estimates to support personalized medicine. Journal of the American Medical Infor-
+          matics Association, 19(2):263–274, Mar–Apr 2012. Epub 2011 Oct 7. PMID: 21984587;
+          PMCID: PMC3277613. 1
+
+[KL15]       Volodymyr Kuleshov and Percy S. Liang. Calibrated structured prediction. In Advances in
+             Neural Information Processing Systems (NIPS), pages 3474–3482, 2015. 1
+
+[KLM19]      Ananya Kumar, Percy S. Liang, and Tengyu Ma. Verified uncertainty calibration. In Advances
+             in Neural Information Processing Systems (NeurIPS), pages 3792–3803, 2019. 1
+
+[KLST23]     Bobby Kleinberg, Renato Paes Leme, Jon Schneider, and Yifeng Teng. U-calibration: Fore-
+             casting for an unknown agent. In Gergely Neu and Lorenzo Rosasco, editors, Proceedings of
+             Thirty Sixth Conference on Learning Theory, volume 195 of Proceedings of Machine Learning
+             Research, pages 5143–5145. PMLR, 12–15 Jul 2023. 1
+
+                                                  26
+[KMR17]       Jon Kleinberg, Sendhil Mullainathan, and Manish Raghavan. Inherent trade-offs in the fair
+              determination of risk scores. In Innovations in Theoretical Computer Science Conference
+              (ITCS), pages 43:1–43:23, 2017. 1
+
+[MDR+ 21]     Matthias Minderer, Josip Djolonga, Rob Romijnders, Frances Ann Hubis, Xiaohua Zhai, Neil
+              Houlsby, Dustin Tran, and Mario Lucic. Revisiting the calibration of modern neural networks.
+              In A. Beygelzimer, Y. Dauphin, P. Liang, and J. Wortman Vaughan, editors, Advances in
+              Neural Information Processing Systems, 2021. 1
+
+[ME67]        Allan H. Murphy and Edward S. Epstein. Verification of probabilistic predictions : A brief
+              review. Journal of Applied Meteorology (1962-1982), 6(5):748–755, 1967. 1
+
+[MW77]        Allan H. Murphy and Robert L. Winkler. Reliability of subjective probability forecasts of
+              precipitation and temperature. Journal of the Royal Statistical Society. Series C (Applied
+              Statistics), 26(1):41–47, 1977. 1
+
+[Oak85]       David Oakes. Self-calibrating priors do not exist. Journal of the American Statistical Associ-
+              ation, 80(390):339–339, 1985. 1
+
+[PRW+ 17]     Geoff Pleiss, Manish Raghavan, Felix Wu, Jon Kleinberg, and Kilian Q. Weinberger. On
+              fairness and calibration. In Advances in Neural Information Processing Systems (NIPS), pages
+              5680–5689, 2017. 1
+
+[QV21]        Mingda Qiao and Gregory Valiant. Stronger calibration lower bounds via sidestepping, 2021.
+              1, 2, 3, 4, 7, 12, 22, 31, 32, 33, 35, 36
+
+[SCM20]       Eliran Shabat, Lee Cohen, and Yishay Mansour. Sample complexity of uniform convergence
+              for multicalibration. arXiv preprint arXiv:2005.01757, 2020. 1
+
+[ZME20]       Shengjia Zhao, Tengyu Ma, and Stefano Ermon. Individual calibration with randomized fore-
+              casting. In International Conference on Machine Learning (ICML), pages 8366–8376, 2020.
+              1
+
+
+A     Proofs for Section 4
+
+A.1 Proof of Theorem 1.2
+
+Proof of Theorem 1.2. First, we show that if there exists ε > 0 such that for all n > 0, opt(n, n) ≤ O(n1−ε ),
+then the γ parameter in Theorem 4.1 is bounded by 1−ε      2−ε . That is, for any α > 0, there is a strategy for
+                                       1−ε
+                                     (
+Player-L that guarantees at most n 2−ε     )(α+1)
+                                                  preserved signs in a sign preservation with reuse game on n
+            α
+space and n time. This Player-L strategy will be the exact same one that provides the ε guarantee above.
+Observe that if α <1, then                                                 min{α,1−ε} preserved signs. It follows
+                           the Player-L strategy guarantees at most n
+                      1−ε
+that min{α, 1−ε} ≤ 2−ε     (α+1) for α < 1. If α > 1, then the Player-L strategy guarantees at nmin{(α−1)(1−ε),1} .
+This follows from the fact that we can batch Player-P’s plays into nα−1    batches of size n with at most n
+                                                                                                                1−ε
+                                                                       1−ε
+preserved signs in each batch. Similarly, min{(α − 1)(1 − ε), 1} ≤ 2−ε (α + 1). Thus, applying Theorem 4.1
+with γ = 1−ε
+          2−ε gives the desired result.
+The second statement follows immediately from Theorem 4.2.                                                       
+
+                                                        27
+A.2 Deferred Proofs for Section 4.1
+
+Lemma A.1. At the end of every round t ∈ [T ]:
+
+   • The following inequality holds:
+
+                                    X X                                  X
+                                                 I[ps = p](es − p) ≤           |biast (c, G)|.
+                                     p∈P s∈[t]                           c,G
+
+
+   • For any cell c of an instance Gi, j,l (for i + 1 ≤ j ≤ i + h)
+                                                 
+                                                 
+                                                 
+                                                 
+                                                 [−1, M]          if cell c contains a plus
+                                                 
+                             bias(c, Gi, j,l ) ∈ 
+                                                 
+                                                 [−M, 1]          if cell c contains a minus
+                                                 
+                                                 
+                                                 [−1, 1]
+                                                 
+                                                                   if cell c is empty
+
+      where M = 2 j−i + 1.
+
+Proof of Lemma A.1. Proof is by induction on t. Assume the statements hold for t = k. In round t = k + 1,
+one of “bias removal” (i.e., some if statement in Line 7 holds) or “bias placement” (i.e., some if statement
+                                                                                  P
+in Line 15 hold) occurs. If bias removal occurs, then we will show below that c,G |bias(c, G)| decreases
+                          P     P
+by |(ek+1 − pk+1 )|, and p∈P s∈[t] I[ps = p](es − p) decreases by the same amount. No signs are updated
+for any cells of the game instances. Thus, both statements hold in this case. To ensure that these quantities
+actually decrease, we need to make sure that ek+1 − pk+1 has opposite sign of bias(c̄, G), where (c̄, G) is
+the tuple which causes that if statement on Line 7 to evaluate to True. Supposing that c̄ < c and writing
+G = Gi, j,l , then we can check:
+
+                                                              2c̄ + 2 + l 2c + l
+                               pt = prob(c̄, s, Gi, j,l ) ≤              ≤ i+1 ≤ et ,
+                                                                  2i+1     2
+where we have used that c = cell(i, j, et ). Similarly, we see that pt ≥ et in the event that c̄ > c.
+                                                          P
+If bias placement occurs instead, then                      c,G |bias(c, G)|  increases by |(ek+1 − pk+1 )|.
+P      P
+  p∈P    s∈[t] I[p s = p](e s − p) increases by at most |(ek+1 − pk+1 )|. If no simulateGame call is made, then
+the second statement remains true by the inductive hypothesis, since no signs of the game are updated. If a
+simulateGame call is made, then signs get removed. Note that necessarily bias(c, Gi, j,l ) ∈ [−1, 1] for those
+signs, otherwise bias removal would have occurred instead. This completes the proof.
+                                                                                                             
+
+Our next objective is to bound the number of calls of the form simulateGame(c, G) for each instance G. For
+a fixed instance G, given a transcript of simulateGame calls, we construct a reduced transcript as follows:
+for any two consecutive calls to cells c and c′ respectively, we can delete the call to cell c if c′ > c and
+Player-L placed a minus sign or if c < c′ and Player-L placed a plus sign. This is because the call to c
+only reduces the number of signs preserved at the end of the game. Therefore we can wlog assume that
+consecutive simulateGame preserve the sign placed in the first call.
+
+Lemma A.2. For any cell c of an instance Gi, j,l , there are at least 2 j−1 timesteps between every call to
+simulateGame(c, Gi, j,l ) (in the reduced transcript).
+
+
+                                                              28
+Proof. Consider a cell c′ in instance Gi, j′ ,l where j′ < j and interval(c′ , Gi, j′ ,l ) = interval(c, Gi, j,l ). We
+first show that between any two consecutive calls to simulateGame(c, Gi, j,l ), the algorithm must also call
+simulateGame(c′ , Gi, j′ ,l ) for all such c′ . After the first call to simulateGame(c, Gi, j,l ), the next call to
+simulateGame in the same instance must be for a cell in a direction that preserves the sign in cell c (since
+we are considering the reduced transcript as discussed above). Since cell c must be empty for the second
+simulateGame(c, Gi, j,l ) call to happen, at some point later on there must be a move on the opposite side,
+which deletes the sign in cell c. In particular, we see that a cell to the left and right of cell c of the same
+instance must have been played. In turn, in order to play such a cell to the left or right of c in Gi, j,l on some
+round t, the if statement in Line 7 must evaluate to False for values j′ < j on round t: thus, letting c′ be the
+cell in Gi, j′ ,l so that interval(c′ , Gi, j′ ,l ) = interval(c, Gi, j,l ), we must have that bias(c′ , Gi, j′ ,l ) ∈ [−1, 1] during
+such a round.
+Thus, for the second simulateGame(c, Gi, j,l ) call to happen, the algorithm must also call
+simulateGame(c′ , Gi, j′ ,l ) for all such c′ a sufficiently large number of times so that |bias(c′ , Gi, j′ ,l )| increases
+             ′                               ′          ′
+from 1 to 2 j −i . This requires at least 2 j − 2i ≥ 2 j −1 timesteps for each j′ . Thus, the total time spent is lower
+                           ′
+bounded by 1 + j′ < j 2 j −1 ≥ 2 j−1 .
+                   P
+                                                                                                                          
+
+Corollary A.3 (of Lemma A.2). For any instance Gi, j,l , there are at most 2τ− j+1 calls to simulateGame for
+that instance. Therefore, the total number of preserved signs in the instance is at most opt(2i , 2τ− j+1 ).
+
+Proof. For a cell c of an instance Gi, j,l , it takes 2 j timesteps before the first simulateGame call for that cell.
+This is due to the fact that simulateGame calls must also happen at the lower levels j′ < j. Therefore, to-
+gether with Lemma A.2, we can conclude there are 2 j−1 timesteps between simulateGame calls in instance
+Gi, j,l . Thus, there are at most 2τ− j+1 calls since T = 2τ .                                                     
+                                                                  1
+Lemma A.4. For each i, the number of distinct intervals in the 2i+1 -discretization that get played by the
+                             i
+algorithm is at most O(min{2 , 2τ−h−i }). Consequently, the number of distinct probability values predicted
+by the algorithm is bounded by O(min{2i , 2τ−h−i }).
+
+                                                        1
+Proof. Let n be the number of intervals in the 2i+1        -discretization that get played by the algorithm. By design
+                                                      1
+of Algorithm 1, at least n/2 intervals in the 2i -discretization must have been played. In turn, in order to play
+an interval in the 21i -discretization we need that, at level i′ := i − 1, the corresponding cell c for instance
+                                                                              ′     ′
+Gi′ ,i′ +h,l (for some l ∈ {0, 1}) must satisfy |bias(c, Gi′ ,i′ +h,l )| ≥ 2(i +h)−i = 2h . Since bias(c, Gi′ ,i′ +h,l ) can grow
+                   ′                                ′
+by at most 2−i each time step, it takes 2h+i time steps for its bias to grow to 2h . Thus the total number of
+time steps during which the n/2 intervals in the 21i -discretization were increasing their biases (for instances
+                                               ′
+Gi′ ,i′ +h,l ) towards 2h is at least n2 · 2h+i ≤ T = 2τ . Using i′ = i − 1, we see that n ≤ O(2τ−h−i ).
+It is also immediate that n ≤ 2i+1 = O(2i ), thus completing the proof.                                                            
+
+Lemma A.5. The total expected calibration error is bounded by
+                                                                                  
+                                      X X                            3    h
+                                                                                   
+                               O        2 j−i opt(2i , 2τ− j ) + 2 4 τ− 4 
+                                              i≤τ−h j≤i+h
+
+Note that setting h = 3τ and assuming the trivial sign player for SPR, we can upper bound the expression by
+ 2τ
+2 3 which is T 2/3 .
+
+
+
+
+                                                                29
+Proof. For p ∈ [0, 1], let n p denote the number of times Algorithm 1 played p over the T time steps. It is
+straightforward (see [Har23]) that the calibration error can be upper bounded by:
+                                                                               
+                                      X X                        X √ 
+                                 O      I[pt = p] · (et − p) +     n p  .
+                                           p∈P t∈[T ]                                    p∈P
+
+We refer to the first term in the above sum as the “bias error” and the second term as the “variance error”.
+By Lemma A.4, we know the number of distinct probability values in the 21i -discretization predicted by
+Algorithm 1 is bounded by O(min{2i , 2τ−h−i }) for each i. Thus, the total number of distinct probability
+values predicted by the algorithm is bounded as follows:
+                                                 τ
+                                                 X                               τ−h 
+                                         |P| ≤          O(min{2i , 2τ−h−i }) ≤ O 2 2 .
+                                                 i=1
+
+                                                                                                         √          √               3 h
+                                                                                                                        |P| · T ≤ O 2 4 τ− 4 .
+                                                                                               P
+Hence, by concavity, the variance error may be bounded as follows:                                 p∈P       np ≤
+By Lemma A.1 and Corollary A.3, the total contribution of bias to calibration is at most 2 j−i opt(2i , 2τ− j+1 ) +
+min{2i , 2τ−h−i } for each (i, j) level. Note that opt(n, 2s) ≤ 2opt(n, s), so opt(2i , 2τ− j+1 ) ≤ 2 · opt(2i , 2τ− j ).
+Adding the preceding bound on the bias up across levels gives the desired bound on calibration error.                 
+
+We are now ready to prove Theorem 4.1.
+
+Proof of Theorem 4.1. Recall that we write τ = log T . In Lemma A.5, we showed that for a fixed parameter
+h, Algorithm 1 guarantees a total expected calibration error bound of
+                                                                                       
+                                         X X                              3    h
+                                                                                        
+                                  O        2 j−i opt(2i , 2τ− j+1 ) + 2 4 τ− 4 
+                                            i≤τ−h j≤i+h
+
+
+Define αi, j = τ−i j , and note that, by our assumption in Theorem 4.1, opt(2i , 2τ− j ) = opt(2i , 2iαi, j ) ≤ C0 ·
+2i· f (αi, j ) . Then 2 j−i opt(2i , 2τ− j ) ≤ C0 · 2τ−i(αi, j +1− f (αi, j )) . From the constraints of the summation j ≤ i + h, we
+see that i ≥ ατ−h    i, j +1
+                             . Thus, every term in the summation is upper bounded by
+                                                                   
+                                                           τ− ατ−h+1 (αi, j +1− f (αi, j ))
+                                                  C0 · 2         i, j
+
+
+
+which simplifies to                                   f (α ) 
+                                                   h+ α i,+1j (τ−h)
+                                            C0 · 2        i, j               ≤ C0 · 2h+γ(τ−h) .
+                                                                                    3   h
+                                                                                                                3−4γ 
+Thus, total calibration error is upper bounded by 2h+γ·(τ−h) + 2 4 τ− 4 . Setting h =                           5−4γ      · τ obtains the desired
+result.                                                                                                                                         
+
+
+A.3 Deferred proofs for Section 4.2
+
+Proof Overview. To prove Theorem 4.2, it suffices to show that with probability at least 1 − o(1),
+Algorithm 2 terminates in fewer than T timesteps and when it does, calerr(T ) ≥ mθ/4 ≥ Ω̃(T (β+1)/(α+2) )
+where m is the number of preserved signs in the sign preservation game.
+
+
+                                                                        30
+• To bound the number of timesteps that Algorithm 2 takes, we will use calibration error as a potential
+  function. In short epochs, i.e., epochs whose length is less than 2T/3nα , calibration error will increase
+  by no more than the fixed amount 4θ (see Corollary A.10).12 In longer epochs, calibration error will
+  decrease by an amount proportional to the length of the epoch (see Corollary A.11). Since we can bound
+  the cumulative increase of the calibration error over all epochs, we can also bound the total length of all
+  long epochs (see Lemma A.12).
+
+• We will show, inductively, that at the end of each epoch, if m is the current number of preserved signs
+  of the sign preservation game, then calerr(T ) ≥ mθ/4. This follows from sign placement Condition 1 or
+  Condition 2 above when the epoch ends. We additionally need to argue that the calibration error did not
+  decrease below the required amount. This will follow from Lemma A.9 and the fact that if a sign is not
+  removed by the choice of the current cell, then the error associated with the sign is in a direction that will
+  not be reduced in expectation during the epoch.
+
+To give the formal proof, we split the predictions of the forecaster into two groups, as follows. Let i ∈ [n] be
+the cell chosen by Player-P in epoch r. A prediction pt during epoch r is said to be truthful if pt lies in Ii .
+Otherwise the prediction is considered untruthful. Moreover, we remark that we may assume α ≤ 2 without
+                                                                      β+1
+loss of generality: since certainly β ≤ 1, whenever α > 2 we have α+2     ≤ 1/2, and a lower bound of Ω(T 1/2 )
+on calibration error is already known [FV98]. Since we ignore constant factors, we may also assume that
+T is larger than some constant T 0 (perhaps depending on α, β). In the following subsections, we separately
+analyze the truthful and untruthful predictions.
+
+
+A.3.1 Truthful predictions
+
+Lemma A.6 (restated version of Lemma 11 of [QV21]). For any fixed epoch j ∈ [nα ] which ends at some
+time step t0 ∈ [T ], the probability that the number of truthful predictions during epoch j is greater than
+T/2nα and p∈P∩Ii |Et0 (p)| < θ + 1 is at most T −2 = o(1/T ).
+           P
+
+
+Summary of proof in [QV21]. Suppose cell i ∈ [n] is played during epoch j. [QV21] decompose the
+set of truthful predictions during epoch j into 162 ln T blocks, each with at least m := T/(324nα ln T )
+predictions that fall into Ii . Then they show that conditioning on the bits and predictions before each
+                                P
+block, the probability that p∈P∩Ii |Et (p)| remains less than θ at all rounds t in the block is at most
+1 − 3−4 . Thus, after the 162 ln T blocks, the probability that p∈P∩Ii |Et (p)| remains less than θ is at most
+                                                                       P
+(1−3−4 )162 ln T ≤ e−2 ln T = T −2 , as claimed by the lemma. To show the constant probability guarantee within
+each block, they partition the probabilities into 4 sets P1 , . . . , P4 based on how far they are from µ∗i ± δ where
+           √
+δ = 1/(10 m). Finally they use the fact that the outcome of the m/4 timesteps that fall into one of these
+sets follows a binomial distribution Bin(m/4, µ∗i ) and apply an anti-concentration bound that follows from
+Berry-Esseen theorem to get the desired result. See [QV21] for further details.                                    
+  12
+       In fact, Corollary A.10 shows that this upper bound on the increase of calibration error holds for all epochs.
+
+
+
+
+                                                                   31
+A.3.2 Untruthful predictions
+
+For a fixed cell i, let Ψt (i) denote the total “negative calibration error” in cells to the right of i and “positive
+calibration error” in cells to the left of i. That is,
+                                                 X                 X
+                                      Ψt (i) =         Et+ (p) +         Et− (p).
+                                             p∈P∩[0,li )             p∈P∩[ri ,1]
+
+We will refer to the summation on the left as Ψ+t (i) and the one on the right as Ψ−t (i). Observe that for any i
+                                                                X
+                                 calerr(t) = Φt (i) + Ψt (i) +       |Et (p)|
+                                                                        p∈P∩Ii
+
+When the forecaster makes an untruthful prediction during an epoch during which Player-P is playing cell
+   ˆ := Φt (i) − Ψt (i) increases in expectation by at least 1/(6n).
+i, ∆(t)
+A key difference between our algorithm and the one proposed in [QV21] lies in the flexibility of epoch
+length. The latter sets a fixed epoch length and shows that if half the timesteps are spent making untruthful
+predictions, then the calibration error is either large initially or significantly enlarged by these untruthful
+predictions.
+In more detail, [QV21] argue using a concentration inequality that, since ∆ˆ t := Φt (i) − Ψt (i) increases in
+expectation by at least 1/6n for each untruthful predictions, after m untruthful predictions, ∆ˆ t would have
+increased by at least m/12n with high probability. This increment translates to either an increase in Φt (i) or
+a decrease in Ψt (i). Given that the calibration error is at least as large as either of these terms, then it was ei-
+ther already large or increased significantly. Their algorithm terminates afterwards. In contrast, Algorithm 2
+continues the sign preservation game to achieve even more calibration error. This complicates the analy-
+sis somewhat since in future rounds the adversary might erase error built from untruthful predictions. To
+overcome this challenge, we argue that as long as we place signs based on the direction of the error change
+resulting from the untruthful predictions (i.e., per Line 15 of Algorithm 2), if those signs are never removed
+in the sign preservation game, then the error from the untruthful predictions are not removed.
+
+Lemma A.7 (Parameters). For the parameters n, θ set in Line 1 of Algorithm 2, we have θ > Ω(ln2 (T ) · n)
+and θ < n1+αT·ln3 T .
+                                                           q                               √
+Proof. Note that nα+2 = lnT5 T , meaning that n =                   T
+                                                               ln5 (T )·nα
+                                                                           .   Since θ = Ω( T/(nα ln(T ))), we see that
+θ/n ≥ Ω(ln2 (T )).
+To see the second inequality, we compute
+                                               1     T          T
+                                      θn =       ·      3
+                                                           <           .
+                                             1440 n · ln T
+                                                   α         n · ln3 T
+                                                              α
+
+                                                                                                                     
+
+Lemma A.8 below is analogous to Lemma 10 of [QV21].
+
+Lemma A.8 (Epochs with lots of untruthful predictions). Fix an epoch in Algorithm 2 with m ≥ T/(6nα )
+untruthful predictions made during the epoch. Suppose cell i ∈ [n] is played by Player-P during this epoch.
+                                                             m
+The probability that Φt (i) − Ψt (i) increases by less than 12n during the epoch is at most o(1/T ).
+
+
+                                                           32
+Proof of Lemma A.8. This proof is similar to the proof of Lemma 10 in [QV21] but with different param-
+eters. Let ∆ˆ t = Φt (i) − Ψt (i). Whenever an untruthful prediction is made (i.e a probability outside Ii is
+predicted), ∆ˆ t is incremented by at least Ω(1/n) in expectation. To see this, suppose that the forecaster pre-
+dicts pt ≤ li at time step t. Then, the expected increment in ∆ˆ t (conditioned on the history prior to step t and
+pt ) is given by
+                          h             i
+                         E ∆ˆ t − ∆ˆ t−1 = E −Et (pt ) + Et−1 (pt )
+                                                                    
+                                                                                               
+                                          = E mt (pt ) − mt−1 (pt ) − pt · E nt (pt ) − nt−1 (pt )
+                                                                   1
+                                        = µ∗i − pt ≥ µ∗i − li =      .
+                                                                  6n
+
+Moreover, the increment ∆ˆ t − ∆ˆ t−1 is always bounded between −1 and 1. A similar computation shows that
+whenever a prediction pt ≥ ri is made, the increment ∆ˆ t − ∆ˆ t−1 is also bounded between −1 and 1 and has
+                                   1
+expectation pt − µ∗i ≥ ri − µ∗i = 6n .
+Let t0 , t1 denote the first and last time steps of the present epoch, respectively. Let t2 ∈ [t0 , t1 ] be the timestep
+when the forecaster makes the m-th prediction that falls outside Ii . We will prove that ∆ˆ t2 − ∆ˆ t0 −1 ≥ 12n       m
+
+with high probability. ∆ˆ t2 − ∆ˆ t0 −1 can be written as a sum of m hrandom variables X1i, X2 , . . . , Xm satisfying
+                                                                                                     1
+that for each j ∈ [m]: (1) X j ∈ [−1, 1] almost surely; (2) E X j |X1 , X2 , . . . , X j−1 ≥ 6n         . Then, by the
+Azuma-Hoeffding inequality (Theorem A.15), it holds that
+                                                   m           m               T 
+                             Pr ∆ˆ t2 − ∆ˆ t0 −1 ≤      ≤ exp −         ≤ exp   −Ω
+                                                   12n          288n2                n2+α
+                                                                   2
+                                                        ≤ exp(−Ω(ln (T ))) = o(1/T ),
+                                 T
+where the final inequality uses nα+2 = ln5 (T ) > ln2 (T ), by definition of n in Line 1 of Algorithm 2.                
+
+Lemma A.9 (Epochs with few untruthful predictions). Consider any epoch in Algorithm 2, and suppose
+that cell i ∈ [n] is played by Player-P during this epoch. The probability that Φt (i) − Ψt (i) decreases by more
+than θ/4 during the epoch is at most o(1/T ).
+
+Proof of Lemma A.9. The proof follows the same argument as to Lemma A.8, with the exception of the final
+step. Fixing an epoch which starts at timestep t0 and ends at timestep t1 , the distribution of (Φt1 (i) − Ψt1 (i)) −
+(Φt0 −1 (i) − Ψt0 −1 (i)) is the same as the distribution of the sum X1 + · · · + Xm , where X1 , . . . , Xm ∈ [−1, 1] are
+                                                      1
+random variables with E[X j | X1 , . . . , X j−1 ] ≥ 6n for each j ∈ [m]. Then Theorem A.15 gives that
+                                           
+                                m
+                                                       1  m θ 2            m θ2
+                                                                  !                !!
+                            X         θ  
+                       Pr  
+                                 X j < −  ≤ exp −
+                                              
+                                                        ·  +       ≤ exp −Ω 2 +                                     (32)
+                            j=1
+                                         4            2m 6n 4                n   m
+
+                                           ≤ exp(−Ω(ln2 T )) = o(1/T ),
+
+where the final inequality uses Lemma A.7 to conclude that θ2 /n2 ≥ Ω(ln4 T ).                                          
+
+Corollary A.10. For each epoch, the probability that calerr increases by more than 4θ during the epoch is
+at most o(1/T ).
+
+Proof of Corollary A.10. Consider any epoch and let i ∈ [n] be the cell played by Player-P during this epoch.
+                                                               P
+Then at each time step t, we have calerr(t) = Φt (i) + Ψt (i) + p∈P∩Ii |Et (p)| = 2Φt (i) + (Ψt (i) − Φt (i)) +
+
+
+                                                           33
+P
+    p∈P∩Ii |E t (p)|. By the sign-placement Conditions 1 and 2, the first term increases by at most 2θ and the
+last term increases by at most θ during the epoch. By Lemma A.9, the middle term increases by at most θ/4
+during the epoch with probability 1 − o(1/T ). Thus, with probability 1 − o(1/T ), calerr(t) increases by at
+most 134 · θ < 4θ during the epoch.                                                                       
+
+Corollary A.11. Fix an epoch j ∈ [nα ], let m be the number of untruthful predictions during epoch j, and
+                                                                            m
+suppose m ≥ T/(6nα ). The probability that calerr decreases by less than ( 12n − 2θ) during epoch j is at most
+o(1/T ).
+
+                                                                           m
+Proof. Lemma A.8 gives that Φt (i) − Ψt (i) increases by more than 12n        during epoch j with probability
+1 − o(1/T ). The first term, Φt (i), increases by at most θ during epoch j due to the sign placement stopping
+                                                         m
+Condition 2. Thus, Ψt (i) must decrease by at least 12n     − θ during epoch j. The sign placement Condition
+               P
+1 gives that p∈P∩Ii |Et (p)| can increase by at most θ during epoch j. Using that calerr(t) = Φt (i) + Ψt (i) +
+P                                                                                        m
+  p∈P∩Ii |E t (p)| for each timestep t, we see that calerr(t) must decrease by at least 12n − 2θ during epoch j
+with probability at least 1 − o(1/T ).                                                                        
+
+Lemma A.12. Algorithm 2 finishes all epochs with probability at least 1 − o(1).
+
+Proof. By Corollary A.10, the calibration error calerr increases by at most 4θ during each epoch with prob-
+ability at least 1 − o(1/T ). Given that the total number of epochs nα is less than T , the cumulative increase
+in calerr over all epochs is at most 4θ · nα with probability of 1 − o(1). (Formally, by “cumulative increase”
+we mean the sum of the increase in calibration error over all epochs in which it does not decrease.)
+Let us denote the number of time steps in epoch j as m j , which can be written as the sum of the number
+of truthful predictions during epoch j (which we denoted by A j ) and the number of untruthful predictions
+during epoch j (which we denote by B j). By Lemma A.6, A j ≤ T/2nα with probability at least 1 − o(1/T ).
+                                                                           P
+Here we use the fact that, for t1 denoting the last timestep of epoch j, if p∈P∩Ii |Et1 (p)| ≥ θ + 1, then epoch
+ j would in fact have ended prior to t1 since sign placement Condition 1 would have been satisfied prior to
+t1 . Consequently, with probability at least 1 − o(1), the sum of A j over all epochs j ∈ [nα ] does not exceed
+T/2.
+By Corollary A.11, if B j ≥ T/(6nα ), then calerr(t) decreases by at least B j /12n − 2θ during epoch j. Since
+calibration error is a nonnegative quantity and (as we showed above) its cumulative increase is at most 4θ ·nα
+with probability 1 − o(1), the following inequality holds with probability 1 − o(1):
+                                       nα
+                                       X  Bj                 T 
+                                                − θ · I B j ≥ α ≤ 4θ · nα .
+                                        j=1
+                                            12n              6n
+
+
+Since 72nT1+α − θ ≥ 144nT 1+α for sufficiently large T (Lemma A.7), the above inequality implies that the sum
+P Bj                 α                        α
+  j 2 · I(B j ≥ T/(6n )) is less than 4θ · n . In turn, since we have α ≤ 2,
+
+                              1                            1                                 p
+                    θnα ≤ p           · T 1/2 · nα/2 = p           · T 1/2 · T α/(α+2) ≤ o(T/ log T ),
+                              log T                        log T
+for for sufficiently large T we have 8θnα ≤ T/6. Thus, with probability 1 − o(1) and for sufficiently large T ,
+          Pα                 Pα
+we have nj=1 B j ≤ T/6 + nj=1 B j · I(B j ≥ T/(6nα )) ≤ T/2.
+                                                                                                       P
+Summarizing, we have shown that with probability at least 1−o(1), the total length of all epochs (i.e., j m j )
+is bounded above by T .                                                                                      
+
+                                                            34
+The following lemma is analogous to Lemma 12 of [QV21].
+Lemma A.13. The following statement holds with probability 1 − o(1). Fix a cell i ∈ [n] containing a sign
+placed at some time t0 (i.e., t0 is the last timestep of some epoch). For any timestep t > t0 , if the sign in cell
+i is still preserved at time t, the following holds: Φ+t (i − 1) − Φ+t0 (i − 1) ≥ −θ/4 if the sign is a minus, and
+Φ−t (i + 1) − Φ−t0 (i + 1) ≥ −θ/4 if the sign is a plus.
+
+Proof. Without loss of generality, assume the sign is a minus. Let P+ := {p ∈ [li , 1] : Et (p) > 0}. Then
+Φ+t (i − 1) = p∈P+ Et (p). For any timestep t > t0 that the sign remains preserved, then by the rules of
+                   P
+the sign preservation game, the cell played by the adversary must be bounded above by i − 1. Thus, the
+outcomes (per Line 9 of Algorithm 2) are Bernoulli random variables with expectation bounded above by
+      1                       1                1
+li − 6n . Note that li − 6n           ≤ p − 6n   for all p ∈ P+ . Thus, each prediction of any p ∈ P+ increases Φ+t (i − 1) by
+at least 1/6n in expectation. Let X1 , . . . , Xm ∈ [−1, 1] be random variables denoting these increases, so that
+                                     1
+E[X j | X1 , . . . , X j−1 ] ≥ 6n      . Then by applying the Azuma-Hoeffding inequality (Theorem A.15), we see that
+                                                      
+                                                                    1  m θ 2                 m θ2
+                                  X                                       !                     !!
+                            Pr  
+                                          X j ≤ −θ/4 ≤ exp −
+                                                         
+                                                                          +      ≤ exp −Ω 2 +
+                                     j∈[m]
+                                                                   2m 6n 4                     n    m
+
+                                               ≤ exp(−Ω(ln2 T )) = o(1/T 2 ),
+
+where the final inequality uses Lemma A.7 to conlclude that θ2 /n2 ≥ Ω(ln4 (T )). Taking a union bound over
+all possible values of t0 and t, we see that with probability 1 − o(1), for any choice of i, t0 , t as in the lemma
+statement, Φ+t (i − 1) − Φ+t0 (i − 1) ≥ −θ/4 with probability 1 − o(1).                                           
+
+Lemma A.14. The following statement holds with probability at least 1 − o(1). Fix any epoch r and suppose
+that it ends at time t. Moreover suppose that cell i ∈ [n] is played by Player-P during epoch r, and let
+           right
+nleft
+ r and nr          be the number of preserved plus signs at all locations to the left of i (inclusive) and minus
+signs to the right of i (inclusive), respecitvely, at the end of epoch r. Then Φ−t (i + 1) ≥ nleft r · (θ/4) and
+  +              right
+Φt (i − 1) ≥ nr · (θ/4)
+
+Proof. The proof follows by strong induction on r and Lemma A.12. The base case r = 0 is immediate.
+Now assume that the statement of the lemma holds for some epoch r. We’ll show that it holds at epoch
+r + 1. Let t ∈ [T ] denote the final timestep of epoch r + 1. Consider the cell i which is played by Player-P in
+Algorithm 2 during epoch r + 1. We consider two cases:
+
+                                                                                            P
+Case 1. Suppose epoch r + 1 ended due to sign placement Condition 1, i.e., p∈P∩Ii |Et (p)| ≥ θ. Without
+loss of generality, assume a minus sign was placed, which means that p∈P∩Ii Et+ (p) ≥ θ/2 (by Line 13
+                                                                                        P
+of Algorithm 2). (The case of a plus sign being placed is entirely symmetric.) Let j > i denote the first
+cell to the right of cell i that already has a sign by the beginning of epoch r + 1. (If there is no such
+ j, then nright = 0 and there is nothing to prove.) This sign was placed in cell j after an earlier epoch
+r′ < r + 1 that ended at some time tr′ prior to beginning of epoch r + 1. By the inductive hypothesis,
+                  right           right
+Φ+tr′ ( j − 1) ≥ nr′ · (θ/4) = (nr+1 − 1) · (θ/4). By Lemma A.13, since the sign in cell j is still preserved until
+the end of epoch r + 1, Φ+t ( j − 1) − Φ+tr′ ( j − 1) ≥ −θ/4. Finally, since
+                                                                                          X
+                        Φ+t (i − 1) ≥ (Φ+t ( j − 1) − Φ+tr′ ( j − 1)) + Φ+tr′ ( j − 1) +     Et+ (p),
+                                                                                      p∈P∩Ii
+
+                                right
+it follows that Φ+t (i − 1) ≥ nr+1 · (θ/4).
+
+                                                             35
+Case 2. Now suppose epoch r + 1 ended due to sign placement Condition 2: in particular, letting the first
+time step of epoch r + 1 be denoted t0 , we have Φt (i) − Φt0 −1 (i) ≥ θ. Again, without loss of generality, we
+may assume a minus sign is placed, i.e Φ+t (i) − Φ+t0 −1 (i) ≥ θ/2 (Line 15 of Algorithm 2). As in the first case,
+let j > i denote the first cell to the right of cell i that already has a sign by the beginning of epoch r + 1;
+suppose this cell was placed in an earlier epoch r′ < r + 1 that ended at some time tr′ < t0 . By the inductive
+                              right            right
+hypothesis, Φ+tr′ ( j − 1) ≥ nr′ · (θ/4) = (nr+1 − 1) · (θ/4). By Lemma A.13, since the sign in cell j is still
+preserved until the end of epoch r, Φ+t0 −1 (r) − Φ+tr′ ( j) ≥ −θ/4. Finally, since
+
+               Φ+t (i − 1) ≥ Φ+t (i) ≥(Φ+t (i) − Φ+t0 −1 (i)) + Φ+t0 −1 ( j − 1)
+                                        =(Φ+t (i) − Φ+t0 −1 (i)) + (Φ+t0 −1 ( j − 1) − Φ+tr′ ( j − 1)) + Φ+tr′ ( j − 1),
+
+                                right
+it follows that Φ+t (i − 1) ≥ nr+1 · (θ/4), as desired. We remark that the second inequality in the above display
+uses that i ≤ j − 1.                                                                                            
+
+Proof of Theorem 4.2. By Lemma A.14 applied at the final epoch, we may conclude that with probability at
+least 1−o(1), the calibration error is at least the θ/4 times half the number of preserved signs (in particular, at
+                      right
+any epoch r, either nr or nleftr must be at least half of the number of preserved signs). By our assumption on
+the strategy for Player-P, the expected number of signs remaining is at least Ω(nβ ) = Ω̃(nβ/(α+2) ). Recalling
+                                                                                               β+1
+that θ = Ω̃(T 1/2 n−α/2 ) = Ω̃(T 1/(α+2) ), we see that the expected calibration error is Ω̃(T α+2 ).            
+
+
+A.4 Concentration inequality
+
+We state the following corollary of the Azuma-Hoeffding inequality for submartingales, for convenience:
+
+Theorem A.15 (Azuma-Hoeffding inequality; Lemma 13 of [QV21]). Suppose that the random vari-
+ables X1 , . . . , Xm satisfy the following for each t ∈ [m]: (a) Xt ∈ [−1, 1] almost surely, and (b) E[Xt |
+X1 , . . . , Xt−1 ] ≥ µ. Then for any c < mµ, we have
+                                              m              
+                                                                        (mµ − c)2
+                                                                                  !
+                                              X            
+                                         Pr       Xt ≤ c ≤ exp −             .
+                                                 t=1
+                                                                          2m
+
+
+B Deferred proofs for Section 6
+
+B.1    Proof of Theorem 6.1
+
+The bulk of the proof of Theorem 6.1 is accomplished by the following lemma.
+
+Lemma B.1. Fix T ∈ N, ǫ, ν ∈ (0, 1), and ∆ ∈ (0, 1/4]. Suppose Q ∈ ∆([0, 1]T ) is a distribution satisfying
+the following properties:
+
+    • With probability 1 over (q1 , . . . , qT ) ∼ Q, for all t ∈ [T ] we have qt (1 − qt ) ≥ v.
+
+    • For all t ∈ [T ], all q′1:t ∈ [0, 1]t , and all p ∈ [0, 1],
+                                          h                                                    i
+                                  Pr       ∀s > t, sign(p − qs ) = sign(p − qt ) | q1:t = q′1:t ≥ ǫ.                       (33)
+                                q1:T ∼Q
+
+
+
+                                                                  36
+    • For all p ∈ [0, 1], |{t : |p − qt | ≤ ∆}| ≤ ∆−2 with probability 1 over q1:T ∼ Q.
+
+Then, any forecaster suffers expected calibration error of at least Ω(ǫ∆v · T ) against the adversarial sequence
+X1 , . . . , XT defined by sampling q1:T ∼ Q and drawing Xt ∼ Ber(qt ) independently for each t ∈ [T ].
+
+Using Lemma B.1, the proof of Theorem 6.1 is immediate.
+
+Proof of Theorem 6.1. Let P ∈ ∆([n] s ) be an oblivious strategy for Player-P satisfying the conditions of
+Definition 6.1. We claim that the distribution Q, defined as the distribution over (q1 , . . . , qT ) ∈ [0, 1]T
+specified in Algorithm 5, given P, satisfies the requirements of Lemma B.1 for appropriate choices of ǫ, v, ∆.
+Since qt ∈ [1/4, 3/4] for all t, certainly we have qt (1 − qt ) ≥ v := 3/16 for all t. Moreover, since k1 , . . . , ks
+are distinct almost surely for (k1 , . . . , ks ) ∼ P, at most T/s values among q1 , . . . , qT are equal to any fixed
+value in {1/4 + i/(2n) : i ∈ [n]}. Since the values 1/4 + i/(2n), i ∈ [n] are separated by 1/(2n), for
+            1
+               √
+∆ := min{ 4n  , s/T }, we have that |{t : |p − qt | ≤ ∆}| ≤ T/s ≤ ∆−2 with probability 1 over q1:T ∼ Q.
+Finally, the fact that the distribution P has worst-case preservation probability at least ǫ (Definition 6.1)
+implies that for all t and q′1:t ∈ [0, 1]t ,
+                     ( h                              i    h                             i)
+                                                   ′                                  ′
+                  min Pr ∀u > t, qu ≥ qt | q1:t = q1:t , Pr ∀u > t, qu ≤ qt | q1:t = q1:t ≥ ǫ,
+                         Q                                  Q
+
+which implies that Equation (33) holds: indeed, for any p ∈ [0, 1], if p < qt , then the event qu ≥ qt for all
+u > t implies that sign(p − qu ) = sign(p − qt ) = −1 for all u > t, and similarly, if p ≥ qt , then the event
+qu ≤ qt for all u > t implies that sign(p − qu ) = sign(p − qt ) = 1 for all u > t.
+                                                                            √
+Thus, Lemma B.1 gives expected calibration error of Ω(ǫT · min{1/n, s/T }), as desired.                     
+
+
+B.2    Setup for proof of Lemma B.1
+
+Fix T ∈ N, and consider any distribution Q ∈ ∆([0, 1]T ) as in Lemma B.1 together with ǫ, v ∈ (0, 1), ∆ ∈
+(0, 1/4]. Throughout this section and the following one, we consider the following oblivious adversary for
+the calibration problem: it first samples (q1 , . . . , qT ) ∼ Q, then draws Xt ∼ Ber(qt ) for t ∈ [T ], and plays the
+sequence X1 , . . . , XT . Recall that we denote the forecasters’ predictions by p1 , . . . , pT ∈ [0, 1] (formally, pt
+is a randomized function of X1 , . . . , Xt−1 ). We define the following quantities to aid in the analysis:
+
+• For t ∈ [T ] and p ∈ [0, 1], define the random variable nt (p) = |{i ≤ t : pi = p, |p − qi | ≤ ∆}| to denote the
+  number of time steps i prior to t the forecaster plays p when it is ∆-close to pi .
+
+• For p ∈ [0, 1], define the random variable F(p) ∈ [T ] to be F(p) := max{t ∈ [T ] : sign(p − qt ) ,
+  sign(p − qt−1 )}.
+
+
+Construction of the potential function. To lower bound the calibration error, we use a potential-function
+based argument. To construct our potential function, we define a function h : R → R by
+                                                2
+                                                ∆x
+                                                2
+                                                          |x| ≤ ∆1
+                                        h(x) = 
+                                               |x| − 1 |x| ≥ 1
+                                               
+                                                            2∆         ∆
+
+
+
+
+                                                          37
+and functions Rbias : R × R≥0 → R, Rvar : R × R≥0 → R by
+                                                                                           ǫ        ǫ
+                Rbias (x, a) := max{(a − ǫ/3) · x, ǫ x/3},            Rvar (x, m) :=         h(x) + m∆2 |x|.             (34)
+                                                                                          12       12
+and a function R : R3 → R by
+                                                                                                  ǫ        ǫ
+            R(x, a, m) = Rbias (x, a) + Rvar (x, m) = max{(a − ǫ/3) · x, ǫ x/3} +                   h(x) + m∆2 |x|.      (35)
+                                                                                                 12       12
+Note that, whenever a ≥ 2ǫ/3, we equivalently have
+                                                                               ǫ
+                                             Rbias (x, a) = max{x, 0} · a −      · |x|.                                  (36)
+                                                                               3
+
+Let the history up to time t be the tuple Ht := (p1:t , q1:t , X1:t−1 ). With a slight abuse of notation, we will
+sometimes write Ht ∼ Q to denote the process which draws q1:t ∼ Q, draws X1:t−1 from the appropriate
+Bernoulli distributions, and applies the forecaster’s algorithm to produce p1:t . Note that for any p ∈ [0, 1],
+the random variables Et−1 (p), nt−1 (p) are measurable with respect to Ht , and that Et (p), nt (p) are measurable
+with respect to (Ht , Xt ). Our potential functions Ψt (p; Ht ), Φt (p; Ht ) (for t ∈ [T ], p ∈ [0, 1]) are defined
+below:
+
+                          Φt (p; Ht ) = R(Et−1 (p) · sign(p − qt ), Pr[F(p) ≤ t | q1:t ], nt−1 (p))                      (37)
+
+
+                         Ψt (p; (Ht , Xt )) = R(Et (p) · sign(p − qt ), Pr[F(p) ≤ t | q1:t ], nt (p))                    (38)
+
+To simplify notation, we omit the dependence of Φt on Ht and of Ψt on (Ht , Xt ); that is, we will write
+Φt (p) = Φt (p; Ht ) and Ψt (p) = Ψt (p; (Ht , Xt )).
+                                                                                      P
+Overall, we will show that the expected calibration error is lower bounded by p∈[0,1] E[ΨT (p)] (in
+Lemma B.5); to lower bound this latter quantity, we will argue in two steps: namely, for each t, we have
+            X                   Lemma B.3    X                             Lemma B.4    X
+                    E[Ψt (p)]      ≥                  E[Φt (p)] + Ω(ǫ∆v)      ≥                  E[Ψt−1 (p)] + Ω(ǫ∆v).   (39)
+          p∈[0,1]                           p∈[0,1]                                    p∈[0,1]
+
+
+
+B.2.1 Proof of Lemma B.1
+
+Recall the definition of R(x, a, m) in Equation (35). First, we establish some basic properties of R in the
+below lemma; the proof is deferred to the end of the section.
+
+Lemma B.2. Let a ≥ ǫ and m ∈ [0, ∆12 ]. Let x ∈ R and let Y be a random variable such that E[Y] ≥ x. Then,
+
+                                       E[R(Y, a, m)] − R(x, a, m) ≥ ǫ(E[Y] − x)/6 .
+
+If further Y is supported on [−∆−1 , ∆−1 ], then,
+                                                                   ǫ(E[Y] − x) ǫ∆Var(Y)
+                                 E[R(Y, a, m)] − R(x, a, m) ≥                 +         .
+                                                                        6        24
+
+Recall the definitions of the potential functions Ψt (p), Φt (p) in Equations (37) and (38), respectively. Using
+Lemma B.2, we may now lower bound Ψt (p) in terms of Φt (p).
+
+                                                                 38
+Lemma B.3. Fix any t ∈ [T ] and p ∈ [0, 1]. Then with probability 1 over Ht ∼ Q, we have
+                                                                             ǫ∆v
+                                    E[Ψt (p) | Ht ] − Φt (p) ≥ 1[pt = p] ·       .
+                                                                              8
+
+Proof. Fix t, p as in the lemma statement and consider any choice of history Ht = (p1:t , q1:t , X1:t−1 ). From
+definition of R(x, a, m) (Equation (35)):
+
+                   Ψt (p) − Φt (p) = R(Et (p) sign(p − qt ), Pr[F(p) ≤ t | q1:t ], nt (p))
+                                         − R(Et−1 (p) sign(p − qt ), Pr[F(p) ≤ t | q1:t ], nt−1 (p))
+                                   = R(Et (p) sign(p − qt ), Pr[F(p) ≤ t | q1:t ], nt−1 (p))
+                                         − R(Et−1 (p) sign(p − qt ), Pr[F(p) ≤ t | q1:t ], nt−1 (p))
+                                          (nt (p) − nt−1 (p))ǫ∆2 |Et (p)|
+                                         +                                                                       (40)
+                                                        12
+                                   = R(Et (p) sign(p − qt ), Pr[F(p) ≤ t | q1:t ], nt−1 (p))
+                                         − R(Et−1 (p) sign(p − qt ), Pr[F(p) ≤ t | q1:t ], nt−1 (p))
+                                             1[pt = p, |p − qt | ≤ ∆]ǫ∆2 |Et (p)|
+                                         +                                        .                              (41)
+                                                            12
+We would like to take conditional expectation conditioned on Ht . Notice that
+
+                      (Et (p) − Et−1 (p)) · sign(p − qt ) = (p − Xt )1[pt = p] · sign(p − qt ) .
+
+Consequently,
+
+               E[Et (p) sign(p − qt ) | Ht ] =Et−1 (p) sign(p − qt ) + (p − qt )1[pt = p] sign(p − qt )
+                                             =Et−1 (p) sign(p − qt ) + |p − qt |1[pt = p]                        (42)
+
+and due to the assumption that qt (1 − qt ) ≥ v with probability 1,
+
+                      Var[Et (p) sign(p − qt ) | Ht ] = Var[Xt | Ht ]1[pt = p] ≥ v1[pt = p] .                    (43)
+
+We will apply Lemma B.2 to the random variable Y = Et (p) · sign(p − qt ) with distribution given by Q
+conditioned on q1:t , x set to Et−1 (p) · sign(p − qt ), a set to Pr[F(p) ≤ t | q1:t ], and m set to nt−1 (p). We have
+m ∈ [0, 1/∆2 ] by assumption in the statement of Lemma B.1, and moreover a ≥ ǫ almost surely over the
+                                                                                                               
+draw of Ht ∼ Q, since Equation (33) can be rephrased as stating that PrQ F(p) < {t + 1, . . . , T } | q1:t ≥ ǫ,
+almost surely over the draw of Ht . Finally, Equation (42) gives that E[Y] ≥ x. Therefore, we may now
+compute
+                               
+         E Ψt (p) − Φt (p) | Ht
+            ǫ(E[Et (p) sign(p − qt ) | Ht ] − Et−1 (p) sign(p − qt ))
+         ≥
+                                        6
+                 1[pt = p]1[|Et−1 (p)| ≤ ∆−1 − 1]Var[Et (p) sign(p − qt ) | Ht ]ǫ∆
+              +
+                                                   24
+                 1[pt = p, |p − qt | ≤ ∆]ǫ∆2 E[|Et (p)| | Ht ]
+              +
+                                       12
+                        ǫ|p − qt | 1[|Et−1 (p)| ≤ ∆−1 − 1]vǫ∆ 1[|p − qt | ≤ ∆]ǫ∆2 E[|Et (p)| | Ht ]
+                                                                                                    !
+         ≥ 1[pt = p]              +                                 +                                            (44)
+                            6                      24                              12
+
+
+                                                           39
+where the first inequality uses Lemma B.2 (in the manner described above) together with Equation (41) and
+the fact that if |Et−1 (p)| ≤ ∆−1 −1 then |Et (p)| ≤ ∆−1 , and the second inequality uses Equations (42) and (43).
+We will analyze the last two terms in the above expression. Notice that
+
+                 |Et (p)| ≥ 1[|Et (p)| ≥ ∆−1 − 2](∆−1 − 2) ≥ 1[|Et−1 (p)| ≥ ∆−1 − 1](∆−1 − 2) .
+
+Consequently,
+                               E[|Et (p)| | Ht ] ≥ 1[|Et−1 (p)| ≥ ∆−1 − 1](∆−1 − 2) .
+Hence,
+              1[|Et−1 (p)| ≤ ∆−1 − 1]vǫ∆ 1[|p − qt | ≤ ∆]ǫ∆2 E[|Et (p)| | Ht ]
+                                           +
+                           24                              12
+                 1[|Et−1 (p)| ≤ ∆−1 − 1]vǫ∆ 1[|p − qt | ≤ ∆]ǫ∆2 1[|Et−1 (p)| ≥ ∆−1 − 1](∆−1 − 2)
+              ≥                              +
+                              24                                      12
+                       vǫ∆ 1[|p − qt | ≤ ∆]ǫ∆2 (∆−1 − 2)
+                                                         !
+              ≥ min         ,
+                        24                12
+                                       vǫ∆ ǫ∆2 (∆−1 − 2)
+                                                         !
+              ≥ 1[|p − qt | ≤ ∆] min       ,
+                                        24       12
+                                                       !
+                                       vǫ∆ ǫ∆(1 − 2∆)
+              = 1[|p − qt | ≤ ∆] min       ,
+                                        24      12
+                 1[|p − qt | ≤ ∆]ǫ∆v
+              ≥                      ,
+                          24
+where the final inequality uses that ∆ ≤ 1/4 and v ≤ 1. Combining the above display with Equation (44),
+we derive that
+                                                                                     !
+                                                      ǫ|p − qt | 1[|p − qt | ≤ ∆]ǫ∆v
+               E[Ψt (p) − Φt (p) | Ht ] ≥ 1[pt = p]              +
+                                                           6             24
+                                                                                             !
+                                                      ǫ∆1[|p − qt | ≥ ∆] 1[|p − qt | ≤ ∆]ǫ∆v
+                                        ≥ 1[pt = p]                     +
+                                                                6                  24
+                                                    ǫ∆v
+                                        ≥ 1[pt = p]      ,
+                                                     24
+as desired.                                                                                                       
+
+Lemma B.4. Fix any 0 ≤ t ≤ T − 1 and p ∈ [0, 1]. Then with probability 1 over Ht ∼ Q, we have
+
+                                           E[Φt+1 (p) | Ht , Xt ] ≥ Ψt (p) .
+
+Proof. Fix t, p as in the lemma statement and consider any choice of history Ht+1 = (p1:t+1 , q1:t+1 , X1:t ). Re-
+call (from Equation (35)) that R(x, a, m) = Rbias (x, a) + Rvar (x, m), and note that Rvar (x, m) = Rvar (−x, m) for
+                                                                                                          
+all x, m. Moreover, by assumption (in the statement of Lemma B.1) we have that PrQ F(p) ≤ t | q1:t ≥ ǫ and
+                          
+PrQ F(p) ≤ t + 1 | q1:t+1 ≥ ǫ almost surely over the draw of q1:t+1 ∼ Q, which implies, using Equation (36)
+together with the fact that |Et (p) sign(p − qt+1 )| = |Et (p) sign(p − qt )|, that
+
+                   Φt+1 (p) − Ψt (p) = R(Et (p) sign(p − qt+1 ), Pr[F(p) ≤ t + 1 | q1:t+1 ], nt (p))
+                                          − R(Et (p) sign(p − qt ), Pr[F(p) ≤ t | q1:t ], nt (p))
+                                     = max{Et (p) sign(p − qt+1 ), 0} Pr[F(p) ≤ t + 1 | q1:t+1 ]
+                                          − max{Et (p) sign(p − qt ), 0} Pr[F(p) ≤ t | q1:t ] .                (45)
+
+
+                                                          40
+We claim that
+
+                            max{Et (p) sign(p − qt+1 ), 0} · Pr[F(p) ≤ t + 1 | q1:t+1 ]
+                             ≥ max{Et (p) sign(p − qt ), 0} · Pr[F(p) ≤ t | q1:t+1 ].                       (46)
+
+To establish Equation (46) we consider the following two cases depending on sign(p − qt ), sign(p − qt+1 ):
+
+
+Case 1: sign(p − qt ) = sign(p − qt+1 ).    In this case F(p) , t + 1 with probability 1 conditioned on q1:t+1 ,
+consequently
+
+                             max{Et (p) sign(p − qt+1 ), 0} Pr[F(p) ≤ t + 1 | q1:t+1 ]
+                                 = max{Et (p) sign(p − qt ), 0} Pr[F(p) ≤ t | q1:t+1 ]
+
+
+Case 2: sign(p − qt ) , sign(p − qt+1 ).   In this case, Pr[F(p) ≤ t | q1:t+1 ] = 0, consequently
+
+                          max{Et (p) sign(p − qt+1 ), 0} Pr[F(p) ≤ t + 1 | q1:t+1 ] ≥ 0
+                                  = max{Et (p) sign(p − qt ), 0} Pr[F(p) ≤ t | q1:t+1 ] .
+
+Hence Equation (46) is established, and we conclude, using Equations (45) and (46), that
+                                       
+          E Φt+1 (p) − Ψt (p) | Ht , Xt
+             h
+          ≥ E max{Et (p) sign(p − qt ), 0} Pr[F(p) ≤ t | q1:t+1 ]
+                                                                            i
+              − max{Et (p) sign(p − qt ), 0} Pr[F(p) ≤ t | q1:t ] | Ht , Xt
+                                                                                                  
+          = max{Et (p) sign(p − qt ), 0} · E Pr[F(p) ≤ t | q1:t+1 ] | Ht , Xt − Pr[F(p) ≤ t | q1:t ] = 0,
+
+where the final equality uses the tower law for conditional expectation, i.e.,
+                                                                                                  
+                Pr[F(p) ≤ t | q1:t ] = Pr[F(p) ≤ t | Ht , Xt ] = E Pr[F(p) ≤ t | q1:t+1 ] | Ht , Xt .
+
+                                                                                                              
+
+Using the above lemmas, we can lower bound the expected calibration error:
+
+Lemma B.5. For any p ∈ [0, 1], we have
+                                                             T           
+                                                    ǫ∆v X             
+                                      E[|ET (p)|] ≥     E  1[pt = p]
+                                                     10      t=1
+
+Proof. Taking expectation
+                        h     over Ht ∼i Q in Lemma B.3 gives that for each t ∈ [T ], p ∈ [0, 1], we have
+E[Ψt (p) − Φt (p)] ≥ E 1[pt = p] · ǫ∆v 8 . Similarly, taking expectation over (Ht , Xt ) ∼ Q in Lemma B.4 gives
+that for each t ∈ [T − 1], p ∈ [0, 1], we have E[Φt+1 (p) − Ψt (p)] ≥ 0. Combining these facts, summing over
+t ∈ [T ], and using the fact that Φ1 (p) = 0 for all p gives that
+                                  T                       T −1
+                                                                                               T           
+                                X                         X                           ǫ∆v X             
+      E[ΨT (p)] = E[Φ1 (p)] +        E[Ψt (p) − Φt (p)] +      E[Φt+1 (p) − Ψt (p)] ≥     E  1[pt = p] .
+                                 t=1                      t=1
+                                                                                       8       t=1
+
+
+
+                                                         41
+Note that since nt (p) ≤ ∆−2 by assumption in Lemma B.1,
+
+                                  ΨT (p) = R(ET (p) sign(p − qT ), Pr[F(p) ≤ T ], nt (p))
+                                           ≤ R(|ET (p)|, 1, ∆−2 )
+                                                                            ǫ            ǫ
+                                           ≤ |ET (p)| · max{1, ǫ/3} +         |ET (p)| + |ET (p)|
+                                                                           12           12
+                                               7|ET (p)|
+                                           ≤             .
+                                                  6
+Then,                                                                   T           
+                                                   6 E[Ψ(T )] 6ǫ∆v X             
+                                     E[|ET (p)|] ≥           ≥     E  1[pt = p] ,
+                                                       7       8·7      t=1
+
+which gives the desired result since 6/56 ≥ 1/10.                                                            
+
+Finally, Lemma B.1 follows as a direct consequence of Lemma B.5:
+
+Proof of Lemma B.1. We sum the lower bound of Lemma B.5 over all p ∈ [0, 1], noting that for each
+   P
+t, p∈[0,1] 1[pt = p] = 1 almost surely. This yields that the calibration error is lower bounded by
+P                            ǫ∆v
+  p∈[0,1] E[|E T (p)|] ≥ T · 10 , as desired.                                                    
+
+
+B.3       Proof of Theorem 1.4
+
+Proof of Theorem 1.4. We will use Theorem 6.1 together with Lemma 7.1 to establish the existence of an
+adversary with the required worst-case sign preservation probability. In particular, for some constant λ to be
+specified below, we consider the following parameters as a function of d ∈ N:13
+                                                 !              !
+                                               d d−k          d
+                               k = λd, n =         2 , s=        , ǫ = 2−k .
+                                               k              k
+
+Let h(p) := −p log(p) − (1 − p) log(1 − p) denote the binary entropy function (here log denotes the base-
+                                       d
+2 logarithm). For fixed λ, we have λd      = 2d·h(λ)+o(d) , and thus we can write: n = 2d·(h(λ)+1−λ)+o(d) , s =
+2d·h(λ)+o(d) , ǫ = 2−λd .
+By Lemma 7.1, there is an oblivious strategy for Player-P with n cells and s timesteps for which the worst-
+case preservation probability is at least ǫ. Thus, Theorem 6.1 gives that there is an oblivious adversary
+for the calibration problem (specified in Algorithm 5) for which the expected calibration error ET over any
+number T ∈ N of rounds is bounded as follows:
+                                                     ǫT    √ 
+                                         ET ≥ Ω min       , ǫ Ts .
+                                                        n
+We set T = n2 s, which yields
+
+                          log T = dh(λ) + 2d(h(λ) + 1 − λ) + o(d) = d(3h(λ) + 2 − 2λ) + o(d).
+  13
+       We omit floor/ceiling signs for simplicity, as they have essentially no impact on the proof.
+
+
+
+
+                                                                   42
+Thus, we may bound
+                                 log ET ≥ log T + log ǫ − log n − O(1)
+                                         ≥ log T − λd − d(h(λ) + 1 − λ) − o(d)
+                                         = log T − d(h(λ) + 1) − o(d)
+                                                                     !
+                                                         h(λ) + 1
+                                         = log T 1 −                   − o(d).
+                                                      3h(λ) + 2 − 2λ
+                                                                  h(λ)+1
+There is λ ∈ [0, 1] (in particular, λ ≈ 0.15229) for which 1 − 3h(λ)+2−2λ  > 0.543895. Thus, using this
+value of λ, we see that log ET ≥ log(T ) · (0.543895 − o(1)), meaning that ET ≥ T 0.543895−o(1) , i.e., ET ≥
+Ω(T 0.54389 ).                                                                                             
+
+
+B.4    Missing proofs
+
+Proof of Lemma B.2. Fix a, m as in the lemma statement; for simplicity, let us write R(x) = R(x, a, m). We
+claim that for real numbers y ≥ z, we have
+                                                              ǫ · (y − z)
+                                            R(y) − R(z) ≥                 .                                     (47)
+                                                                   6
+To prove the above inequality, we first note that R(x) is increasing in x: this follows from a ≥ ǫ and the fact
+                  ǫ             ǫ
+that for x ≤ 0, 12  · h′ (x) + 12       d
+                                  · m∆2 dx |x| ≥ −ǫ/6, where we have used m∆2 ≤ 1. Thus, to prove Equation (47),
+it suffices to consider the cases y ≥ z ≥ 0 and 0 ≥ y ≥ z. For the case y ≥ z ≥ 0, Equation (47) holds since
+x 7→ 4ǫ h(x) + 4ǫ m∆2 |x| is increasing for x ≥ 0 and since max{(a − ǫ/3) · x, ǫ x/3} = (a − ǫ/3) · x for x ≥ 0. For
+the case 0 ≥ y ≥ z, we note that for x ≤ 0, R′ (x) ≥ 3ǫ − ǫ/12 − m∆2 ǫ/12 ≥ ǫ/6, since |h′ (x)| ≤ 1 for all x.
+This establishes Equation (47).
+Applying Equation (47) with y = E[Y] and z = x, we conclude that
+                                                        ǫ(E Y − x)
+                                          R(E Y) − R(x) ≥          .
+                                                            6
+Further, since R is convex, by Jensen’s inequality, E[R(Y)] ≥ R(E Y) . Combining this fact with the above
+display proves the first part of the lemma.
+The second statement follows from the 1/12-strong convexity of R in [−∆−1 , ∆−1 ]: for any y, z ∈
+[−∆−1 , ∆−1 ],
+                                                               ǫ∆(z − y)2
+                               R(z) ≥ R(y) + ∂R(y) · (z − y) +            ,
+                                                                  24
+where ∂R(y) denotes the subgradient of R at y. Consequently, almost surely,
+                                                                       ǫ∆(Y − E Y)2
+                            R(Y) ≥ R(E(Y)) + ∂R(E Y) · (Y − E Y) +                  .
+                                                                            24
+Taking expectation over Y, we get
+                                                               ǫ∆Var(Y)
+                                        E R(Y) ≥ R(E(Y)) +              .
+                                                                  24
+Applying the first statement of the lemma, we obtain that
+                                                             ǫ(E Y − x)
+                                          R(E Y) − R(x) ≥               .
+                                                                 6
+Combining the last two inequalities, the result follows.                                                          
+
+                                                        43
+C     Deferred proofs for Section 5
+
+Lemma C.1. For any t, t1 , t0 ≥ 0 and p ∈ [0, 1] for which t = t0 + t1 , max{t0 , t1 } ≥ (1 − p)t, and β ∈ [0, 1],
+         β    β
+we have t0 + t1 ≤ (pβ + (1 − p)β ) · tβ .
+
+Proof. The lemma follows from the fact that the function mapping x ∈ [0, 1] to xβ + (1 − x)β is increasing
+for x ∈ (0, 1/2) and decreasing for x ∈ (1/2, 1).                                                        
+
+Lemma C.2. For any t, t1 , t0 ≥ 0 satisfying t = t0 + t1 and β ∈ [0, 1], we have t0β + t1β ≤ 21−β · tβ .
+
+Proof. Follows immediately from Lemma C.1 with p = 1/2.                                                         
+                                                                     A+C p         β
+Lemma C.3. For any A, B, C > 0 and β ∈ (0, 1), the function f (p) := (B+p)                             ⋆
+                                                                          β is increasing for p ∈ (0, p )
+                                        1/(1−β)
+and decreasing for p > p⋆ , where p⋆ := CB
+                                         A        .
+
+Proof. It is straightforward to check that f ′ (p) > 0 for p ∈ (0, p⋆ ) and f ′ (p) < 0 for p > p⋆ .            
+
+Lemma C.4. Given A, B > 0, the function f (p) := A · (1 − p)β + B · pβ satisfies
+
+                                      max f (p) = B · ((A/B)1/(1−β) + 1)1−β .
+                                     p∈[0,1]
+
+                                                                                1
+Proof. The function f (p) is concave for p ∈ [0, 1] with maximum at p⋆ := (A/B)1/(1−β) +1
+                                                                                          . The value of its
+maximum is therefore
+                  A · (A/B)β/(1−β) + B         (A/B)1/(1−β) + 1
+                                       = B ·                     = B · ((A/B)1/(1−β) + 1)1−β .
+                  ((A/B)1/(1−β) + 1)β        ((A/B)1/(1−β) + 1)β
+                                                                                                                
+
+Lemma C.5. For any β ∈ [0, 1] and sequence t1 , . . . , tk of real numbers satisfying ti+1 ≥ 2ti for each
+i ∈ [k − 1], we have
+                                                P           β
+                                       k              k
+                                                      i=1 ti
+                                      X
+                                           β
+                                          ti ≤ β                .
+                                      i=1
+                                                   2 −1
+
+Proof. We use induction on k, noting that the base case k = 1 is immediate since 2β − 1 ≤ 1. To establish
+the inductive step, fix ℓ > 1, and suppose that the conclusion of the lemma holds for k = ℓ − 1. Note that
+     Pℓ−1
+tℓ ≥ i=1  ti by virtue of the assumption that ti+1 ≥ 2ti for each i. Thus, we may compute
+                                                                         Pℓ β 
+                                                                           i=1 ti
+                                     P        β  P             β                Pk β
+                           ℓ            ℓ−1              ℓ
+                                        i=1 ti        i=1 ti          2        i=1 ti
+                         X
+                              β   β
+                             ti ≤tℓ + β          ≤              +           =         ,
+                         i=1
+                                       2 −1               2              2β − 1     2β − 1
+
+where the second inequality uses the fact that the function p 7→ pβ + (1 − p)β /(2β − 1) is decreasing for
+p ∈ [1/2, 1] (as it is concave for p ∈ [0, 1] with a global maximum p⋆ ∈ [0, 1/2]).                     
+
+In the below lemma, we bound a quantity involving the constants D9 , D10 , D18 , D19 defined in
+Equations (20) to (23). Note that these quantities depend on β, δ, though to keep notation clean we sup-
+press these dependencies.
+
+                                                        44
+Lemma C.6. Fix any value of λ ∈ (1, 2), and set δ := 1/100. Then there is β ∈ (0, 1) and ε > 0 so that
+                                                                                             
+                D18 · (1 − p)β    β
+                                                                   D18 · (1 − p)β    β
+                                                                                              
+                                                                                                ≤ 21−β−ε .
+                                                                                             
+   max   max                   + p  · max{D   , D    },  max                     + p  · D                 (48)
+                                                                                             
+        p∈[0,1]
+                   2β − 1                   9     10    p∈[0,6/7]    2β − 1               19 
+                                                                                              
+                                                                                              
+
+Proof. Fix λ ∈ (1, 2). Note that D9 , D10 , D18 , D19 are still functions of β ∈ (0, 1). For fixed λ, we have
+                              n                                                      o
+                          max (3/4)β , (1/2)β + (1/4)β + (1/4)β /λ, (1 + 4λ/3)/4β
+                      lim                                                              < 1.                 (49)
+                      β↑1                           2β − 1
+Thus, there are constants ν0 > 0 and ν1 < 1 (depending only on λ) so that for all β ≥ 1 − ν0 , we have
+D
+  18 ≤ ν .
+2β −1     1
+
+We bound each of the terms in the lemma statement in turn:
+
+
+Bounding the first term.            We observe
+                                (                                                        o)
+                         1 + 4λ/3              β              β   β
+                                                                              n
+                                                                                β 1−β β
+    max{D9 , D10 } ≤ max          , ((1 − δ)/3) + (2(1 − δ)/3) + δ , max (1 − p) 2 + p /λ .
+                            4β                                      p∈[δ/9,1]
+
+Note that
+                  (                            o)
+                1 + 4λ/3            n
+        lim max                       β 1−β β
+                         , max (1 − p) 2 + p /λ < 1 <= lim((1 − δ)/3)β + (2(1 − δ)/3)β + δβ .
+        β↑1        4β     p∈[δ/9,1]                    β↑1
+
+Thus, combining the above with Equation (49), we see that there is some η > 0 so that so that for all
+β > 1 − η, we have
+                                                                                      D18
+                      max{D9 , D10 } ≤ ((1 − δ)/3)β + (2(1 − δ)/3)β + δβ ,                  ≤ ν1 < 1.
+                                                                                     2β − 1
+Thus, for all β > 1 − η, we have
+
+                        D18 · (1 − p)β
+                max                    + pβ · max{D9 , D10 }
+                p∈[0,1]    2β − 1
+              ≤ max ν1 · (1 − p)β + (((1 − δ)/3)β + (2(1 − δ)/3)β + δβ ) · pβ
+                p∈[0,1]
+                                                                                              !1/(1−β)         1−β
+                            β                   β    β
+                                                                        ν1                                    
+              =(((1 − δ)/3) + (2(1 − δ)/3) + δ ) ·                                                    + 1
+                                                        ((1 − δ)/3)β + (2(1 − δ)/3)β + δβ
+                                                                   1−β
+              ≤(((1 − δ)/3)β + (2(1 − δ)/3)β + δβ ) · ν11/(1−β) + 1
+                                                     
+                                                                        ,                                              (50)
+
+where the equality uses Lemma C.4 with A = ν1 and B = ((1 − δ)/3)β + (2(1 − δ)/3)β + δβ . Recall our choice
+δ := 1/100. Thus, there is some η′ > 0 so that as long as β > 1 − η′
+
+                                       ((1 − δ)/3)β + (2(1 − δ)/3)β + δβ < 20.99(1−β) .                                (51)
+
+Indeed, Equation (51) holds because for δ = 1/100,
+                                                                         1/(1−β)
+                                    lim ((1 − δ)/3)β + (2(1 − δ)/3)β + δβ          < 20.99 .
+                                 β→1
+
+
+
+                                                              45
+                              ln(1/ν1 )
+Note that, as long as 1 − β ≤ ln(1000)  , we have
+                              1/(1−β)   1−β                 1/(1−β)
+                                                                       
+                              ν1       +1     ≤ exp (1 − β) · ν1         ≤ 20.001·(1−β) .                              (52)
+
+Using our choice δ = 1/100 and combining Equations (50) to (52) gives that for all β > 1 −
+min{η, η′ , ln(1/ν1 )/ ln(1000)},
+                                     D18 · (1 − p)β
+                                 max                + pβ · max{D9 , D10 } ≤20.991(1−β) .
+                             p∈[0,1]    2β − 1
+In particular, for any β > 1 − min{η, η′ , ln(1/ν1 )/ ln(1000)} there is some ε > 0 for which the left-hand side
+of the above expression is bounded above by 21−β−ε .
+
+
+Bounding the second term.              Let
+                                                                                          
+                  ⋆
+                                     n
+                                                  β   β   1−β
+                                                              o       
+                                                                                 1        
+                                                                                           
+                p := argmax p∈[0,6/7] ν1 · (1 − p) + p · 2      = min 6/7, 1/(1−β)        .
+                                                                                          
+                                                                                           
+                                                                           ν        /2 + 1 
+                                                                      
+                                                                      
+                                                                                               1
+
+We can choose η > 0 so that for all β > 1 − η, we have p⋆ = 6/7 and moreover
+
+                                                ν1 · (1 − p⋆ )β < (1 − (p⋆ )β ).
+
+Indeed, as β → 1, the left-hand side of the above expression approaches ν1 · (1 − p⋆ ) < 1 − p⋆ and the
+right-hand side approaches 1 − p⋆ .
+For β > 1 − min{ν0 , η} we have D18 /(2β − 1) ≤ ν1 < 1, meaning that
+                D18 · (1 − p)β
+       max                     + pβ · D19 ≤ max ν1 · (1 − p)β + pβ · 21−β
+      p∈[0,6/7]    2β − 1                  p∈[0,6/7]
+
+                                                 =ν1 · (1 − p⋆ )β + (p⋆ )β · 21−β
+                                                 ≤(1 − (p⋆ )β ) + (p⋆ )β · 21−β ≤ 21−β − (1 − (p⋆ )β ) · (21−β − 1).
+
+In particular, for any β ∈ (1 − min{ν0 , η}, 1), there is some ε > 0 so that the left-hand side of the above
+expression is bounded above by 21−β−ε .
+Summarizing, we have shown that for any value of β sufficiently close to 1 (but less than 1), there is some
+ε > 0 so that the inequality in Equation (48) holds.                                                      
+
+Lemma C.7. Let t0 , t1 , t2 be non-negative integers satisfying 1 ≤ t1 ≤ ⌊t0 /2⌋ and t2 ≤ ⌈t0 /2⌉. Write
+t = t0 + t1 + t2 , and let λ ∈ (1, 2) be given. Then for any β ∈ (0, 1),
+                                                                      1 + 4λ/3
+                                                  t1β + λt2β ≤ tβ ·            .
+                                                                         4β
+
+Proof. Let ω = 1 if t0 is odd else ω = 0. Write p2 := t2 /t0 , so that p2 ≤ 1/2 + ω/(2t0 ). Note also that
+t = t0 + t0 /2 − ω/2 + p2 t0 = t0 · (3/2 + p2 − ω/(2t0 )).
+                                                                                                
+                                       β     β
+                                                                         λ·(3/2−ω/(2t0 )) 1/(1−β)
+The function f (p) := (1/2−ω/(2t   0 )) +λ·p
+                                                                                         
+                           (3/2−ω/(2t0 )+p)β
+                                               is increasing for p ∈  0, (1/2−ω/(2t0 ))β
+                                                                                                    by Lemma C.3; in
+particular, it is increasing for p ∈ (0, 1). Hence
+                        β         β                                   β
+                       t1 + λt2           (1/2 − ω/(2t0 ))β + λp2
+                                      =                                   = f (p2 ) ≤ f (1/2 + ω/(2t0 )).
+                            tβ            (3/2 − ω/(2t0 ) + p2 )β
+
+                                                               46
+Then we have
+                                      β                β
+                                  t1 + λt2                   (1/2 − ω/(2t0 ))β + λ(1/2 + ω/(2t0 ))β
+                                                           ≤
+                                              tβ                               2β
+                                                             (1 − ω/t0 ) + λ(1 + ω/t0 )β
+                                                                        β
+                                                           =
+                                                                          4β
+                                                             1 + 4λ/3
+                                                           ≤          ,
+                                                                4β
+where the final inequality uses that either ω = 0, in which case the penultimate expression is bounded above
+by 1+λ
+    4β
+       , or else t0 ≥ 3, in which case (1 + ω/t0 )β ≤ (4/3)β < 4/3.                                        
+
+Lemma C.8. For any value δ ∈ (0, 1), the following holds. Let t0 , t1 , t2 be non-negative integers satisfying
+1 ≤ t1 = ⌊t0 /2⌋ and t2 ≤ ⌈t0 /2⌉. Write t = t0 + t1 + t2 , and let λ ∈ (1, 2) be given. Define
+                               (                                              n                   o)
+                                           β                  β     β                 β 1−β     β
+              Fβ,λ (δ) := max ((1 − δ)/3) + (2(1 − δ)/3) + δ , max (1 − p) 2 + p /λ .                     (53)
+                                                                                              p∈[δ/9,1]
+
+Then for any β ∈ (0, 1),
+                                                               β       β         β
+                                                               t0 + t1 + t2 /λ ≤ tβ · Fβ,λ (δ).
+
+Proof. Since t1 = ⌊t0 /2⌋ ≥ 1, we have t1 ≥ t0 /3. We consider two cases, depending on the value of t2 :
+
+                                                                                       t2
+Case 1: t2 ≥ δ · t1 . We have t2 ≥ δ · t1 ≥ δt0 /3 and t ≤ 3t0 /2 + t2 , meaning that t−t 2
+                                                                                            ≥ 2δ/9, and so
+                                                                β      β
+p2 := t2 /t ≥ δ/9. Lemma C.2 gives that t0 + t1 ≤ (t0 + t1 )β · 21−β = tβ (1 − p2 )β 21−β , and so we have
+                                  β            β           β                                     β
+                                  t0 + t1 + t2 /λ ≤tβ (1 − p2 )β 21−β + tβ p2 /λ
+                                                                 n               o
+                                                  ≤tβ · max (1 − p)β 21−β + pβ /λ .
+                                                                               p∈[δ/9,1]
+
+
+
+Case 2: t2 < δ · t1 . Write q2 := t2 /t1 , so that q2 < δ. Note that t1 ≤ (t0 + t1 )/3 ≤ t · (1 − q2 )/3. Thus, in this
+case, we may compute
+                             β        β            β               β       β         β
+                            t0 + t1 + t2 /λ ≤t0 + t1 + t2
+                                                                                                          β
+                                                           ≤((t0 + t1 )/3)β + (2(t0 + t1 )/3)β + t2
+                                                                                                              β
+                                                           ≤tβ · (((1 − q2 )/3)β + (2(1 − q2 )/3)β + q2 ),
+
+where the second inequality uses Lemma C.1. It is straightforward to see by differentiating that q2 7→
+(((1 − q2 )/3)β + (2(1 − q2 )/3)β + qβ2 ) is increasing for q2 ∈ [0, 1/3] for any β < 1, meaning that the above
+expression may be bounded above as follows:
+                              β           β        β
+                             t0 + t1 + t2 /λ ≤ tβ · (((1 − δ)/3)β + (2(1 − δ)/3)β + δβ ),
+
+as desired.
+                                                                                                                     
+
+
+
+                                                                                         47
+

@@ -1,0 +1,1201 @@
+Algebraic Dependencies and PSPACE Algorithms
+in Approximative Complexity
+Zeyu Guo1
+Department of Computer Science & Engineering, Indian Institute of Technology Kanpur
+zguo@cse.iitk.ac.in
+
+Nitin Saxena2
+Department of Computer Science & Engineering, Indian Institute of Technology Kanpur
+nitin@cse.iitk.ac.in
+
+Amit Sinhababu3
+Department of Computer Science & Engineering, Indian Institute of Technology Kanpur
+amitks@cse.iitk.ac.in
+
+
+      Abstract
+Testing whether a set f of polynomials has an algebraic dependence is a basic problem with several
+applications. The polynomials are given as algebraic circuits. Algebraic independence testing
+question is wide open over finite fields (Dvir, Gabizon, Wigderson, FOCS’07). Previously, the best
+complexity known was NP#P (Mittmann, Saxena, Scheiblechner, Trans.AMS’14). In this work
+we put the problem in AM ∩ coAM. In particular, dependence testing is unlikely to be NP-hard
+and joins the league of problems of “intermediate” complexity, eg. graph isomorphism & integer
+factoring. Our proof method is algebro-geometric– estimating the size of the image/preimage of
+the polynomial map f over the finite field. A gap in this size is utilized in the AM protocols.
+    Next, we study the open question of testing whether every annihilator of f has zero constant
+term (Kayal, CCC’09). We give a geometric characterization using Zariski closure of the image
+of f ; introducing a new problem called approximate polynomials satisfiability (APS). We show
+that APS is NP-hard and, using projective algebraic-geometry ideas, we put APS in PSPACE
+(prior best was EXPSPACE via Gröbner basis computation). As an unexpected application of
+this to approximative complexity theory we get– over any field, hitting-sets for VP can be verified
+in PSPACE. This solves an open problem posed in (Mulmuley, FOCS’12, J.AMS 2017); greatly
+mitigating the GCT Chasm (exponentially in terms of space complexity).
+
+2012 ACM Subject Classification Theory of computation → Algebraic complexity theory, The-
+ory of computation → Complexity classes, Mathematics of computing → Computations on poly-
+nomials, Mathematics of computing → Computations in finite fields
+
+Keywords and phrases algebraic dependence, Jacobian, Arthur-Merlin, approximate polynomial,
+satisfiability, hitting-set, border VP, finite field, PSPACE, EXPSPACE, GCT Chasm
+
+Digital Object Identifier 10.4230/LIPIcs.CCC.2018.10
+
+Acknowledgements We thank Anurag Pandey and Sumanta Ghosh for insightful discussions on
+the approximate polynomials satisfiability and the hitting-set construction problems.
+
+
+1
+  Z.G. is funded by DST and Research I Foundation of CSE, IITK.
+2
+  N.S. thanks the funding support from DST (DST/SJF/MSA-01/2013-14).
+3
+  A.S. thanks the travel fund support from Indian Association for Research in Computing Science and
+  ACM India.
+            © Zeyu Guo, Nitin Saxena, and Amit Sinhababu;
+            licensed under Creative Commons License CC-BY
+33rd Computational Complexity Conference (CCC 2018).
+Editor: Rocco A. Servedio; Article No. 10; pp. 10:1–10:21
+                   Leibniz International Proceedings in Informatics
+                   Schloss Dagstuhl – Leibniz-Zentrum für Informatik, Dagstuhl Publishing, Germany
+10:2   Algebraic dependencies
+
+
+        1      Introduction
+       Algebraic dependence is a generalization of linear dependence. Polynomials f1 , . . . , fm ∈
+       F[x1 , . . . , xn ] are called algebraically dependent over field F if there exists a nonzero polynomial
+       (called annihilator) A(y1 , . . . , ym ) ∈ F[y1 , . . . , ym ] such that A(f1 , . . . , fm ) = 0. If no A exists,
+       then the given polynomials are called algebraically independent over F. The transcendence
+       degree (trdeg) of a set of polynomials is the analog of rank in linear algebra. It is defined as
+       the maximal number of algebraically independent polynomials in the set. Both algebraic
+       dependence and linear dependence share combinatorial properties of the matroid structure
+       [15]. The algebraic matroid examples may not be linear (esp. over Fp ) [20].
+           The simplest examples of algebraically independent polynomials are x1 , . . . , xn ∈ F[x1 , . . .,
+       xn ]. As an example of algebraically dependent polynomials, we can take f1 = x, f2 = y and
+       f3 = x2 + y 2 . Then, y12 + y22 − y3 is an annihilator. The underlying field is crucial in this
+       concept. For example, polynomials x + y and xp + y p are algebraically dependent over Fp ,
+       but algebraically independent over Q.
+           Thus, the following computational question AD(F) is natural and it is the first problem
+       we consider in this paper: Given algebraic circuits f1 , . . . , fm ∈ F[x1 , . . . , xn ], test if they are
+       algebraically dependent. It can be solved in PSPACE using a classical result due to Perron
+       [35, 36, 11]. Perron proved that given a set of algebraically dependent polynomials, there
+       exists an annihilator whose degree is upper bounded by the product of the degrees of the
+       polynomials in the set. This exponential degree bound on the annihilator is tight [22].
+           Computing the annihilator may be quite hard, but it turns out that the decision version
+       is easy over zero (or large) characteristic using a classical result known as the Jacobian
+       criterion [21, 6]. The Jacobian efficiently reduces algebraic dependence testing of f1 , . . . , fm
+       over F to linear dependence testing of the differentials df1 , . . . , dfm over F(x1 , . . . , xn ), where
+                                           ∂fi           ∂fi
+       we view dfi as the vector ( ∂x        1
+                                               , . . . , ∂xn
+                                                             ). Placing dfi as the i-th row gives us the Jacobian
+       matrix J of f1 , . . . , fm . If the characteristic of the field is zero (or larger than the product
+       of the degrees deg(fi )) then the trdeg equals rank(J). It follows from [42] that, with high
+       probability, rank(J) is equal to the rank of J evaluated at a random point in Fn . This gives
+       a simple randomized polynomial time algorithm solving AD(F) for certain F.
+           For fields of positive characteristic, if the polynomials are algebraically dependent, then
+       their Jacobian matrix is not full rank. But the converse is not true. There are infinitely many
+       input instances (set of algebraically independent polynomials) for which Jacobian fails. The
+       failure can be characterized by the notion of ‘inseparable extension’ [34]. For example, xp , y p
+       are algebraically independent over Fp , yet their Jacobian determinant vanishes. Another
+       example is, {xp−1 y, xy p−1 } over Fp for prime p > 2. [31] gave a criterion, called Witt-
+       Jacobian, that works over fields of prime characteristic p; improving the complexity of
+       independence testing problem from PSPACE to NP#P . [34] gave another generalization of
+       Jacobian criterion that is efficient in special cases.
+           Given that an efficient algorithm to tackle prime characteristic is not in close sight, one
+       could speculate the problem to be NP-hard or even outside the polynomial hierarchy PH. In
+       this work we show that: For finite fields, AD(F) is in AM ∩ coAM (Theorem 1). This rules
+       out the possibility of NP-hardness, under standard complexity theory assumptions [4].
+
+       Constant term of the annihilators. We come to the second problem AnnAtZero that we
+       discuss in this paper: Testing if the constant term of every annihilator, of the set of algebraic
+       circuits f = {f1 , . . . , fm }, is zero. Note that the annihilators of f constitute an ideal of the
+       polynomial ring F[y1 , . . . , ym ]; this ideal is principal when trdeg of f is m − 1 [22, Lem.7]. In
+       this case, we can decide if the constant term of the minimal annihilator is zero in PSPACE,
+       as the unique annihilator (up to scaling) can be computed in PSPACE.
+Z. Guo, N. Saxena, and A. Sinhababu                                                                         10:3
+
+
+    If trdeg of f is less than m − 1, the ideal of the annihilators of f is no longer principal.
+Although the ideal is finitely generated, finding the generators of this ideal is computationally
+very hard. (Eg. using Gröbner basis techniques, we can do it in EXPSPACE [12, Sec.1.2.1].)
+In this case, can we decide if all the annihilators of f have constant term zero? We give two
+equivalent characterizations of AnnAtZero– one geometric and the other algebraic –using
+which we devise a PSPACE algorithm to solve it in all cases (Theorem 2).
+    Interestingly, there is an algebraic-complexity application of the above algorithm. We give
+a PSPACE-explicit construction of a hitting-set of the class VPFq (Theorem 3). VPFq consists
+of n-variate degree d = nO(1) polynomials, over the field Fq , that can be ‘infinitesimally
+approximated’ by size s = nO(1) algebraic circuits. This problem is interesting as natural
+questions like explicit construction of the normalization map (in Noether’s Normalization
+Lemma NNL) reduce to the construction of a hitting-set of VP [32]; which was previously
+known to be only in EXPSPACE [32, 33]. This was recently improved greatly, over the
+field C, by [16]. Their proof technique uses real analysis and does not apply to finite fields.
+We need to develop purely algebraic concepts to solve the finite field case (namely through
+AnnAtZero), which then apply to any field. Moreover, we solve the problem of verifying
+whether an arbitrary set of points (of small size) is a hitting-set for VP, which was not solved
+in [16] even over the field C.
+    To further motivate the concept of algebraic dependence, we list a few recent problems in
+computer science. The first problem is about constructing an explicit randomness extractor
+for sources which are polynomial maps over finite fields. Using Jacobian criterion, [13, 14]
+solved the problem for fields with large characteristic. The second application is in the
+famous polynomial identity testing (PIT) problem. To efficiently design hitting-sets, for
+some interesting models, [6, 2, 26] constructed a family of trdeg-preserving maps. For more
+background and applications of algebraic dependence testing, see [34]. The annihilator has
+been a key concept to prove the connection between hitting-sets and lower bounds [19], and
+in bootstrapping ‘weak’ hitting-sets [3].
+
+1.1    Our results
+In this paper, we give Arthur-Merlin protocols & algorithms, with proofs using basic tools
+from algebraic geometry. The first theorem we prove is about AD(Fq ).
+
+I Theorem 1. Algebraic dependence testing of circuits in Fq [x] is in AM ∩ coAM.
+
+    This result vastly improves the current best upper bound known for AD(Fq )– from being
+‘outside’ the polynomial hierarchy (namely NP#P [31]) to ‘lower’ than the second-level of
+polynomial hierarchy (namely AM ∩ coAM). This rules out the possibility of AD(Fq ) being
+NP-hard (unless polynomial hierarchy collapses to the second-level [4]). Recall that, for zero
+or large characteristic F, AD(F) is in coRP (Section 2). We conjecture such a result for
+AD(Fq ) too.
+    Our second result is about the problem AnnAtZero (i.e. testing whether all the annihilators
+of given f have constant term zero). A priori it is unclear why it should have complexity
+better than EXPSPACE (note: ideal membership is EXPSPACE-complete [30]). Firstly, we
+relate to a (new) version of polynomial system satisfiability, over the algebraic closure F:
+
+I Problem 1 (Approximate polynomials satisfiability (APS)). Given algebraic circuits f1 , . . . , fm
+∈ F[x1 , . . . , xn ], does there exist β ∈ F(ε)n such that for all i, fi (β) is in the ideal εF[ε]? If
+yes, then we say that f := {f1 , . . . , fm } is in APS.
+
+
+
+                                                                                                          CCC 2018
+10:4   Algebraic dependencies
+
+
+           It is easy to show: Function field F(ε) here can be equivalently replaced by Laurent
+       polynomials F[ε, ε−1 ], or, the field F((ε)) of formal Laurent series (use mod εF[ε]). A reason
+       why these objects appear in algebraic complexity can be found in [8, Sec.5.2] & [29, Sec.5].
+       They help algebrize the notion of ‘infinitesimal approximation’ (in real analysis think of
+       ε → 0 & 1/ε → ∞). A notable computational issue involved is that the degree bound of ε
+       required for β is exponential in the input size [29, Prop.3]; this may again be a “justification”
+       for APS requiring that much space.
+           Classically, the exact version of APS has been extremely well-studied– Does there exist
+             n
+       β ∈ F such that for all i, fi (β) = 0? This is what Hilbert’s Nullstellensatz (HN) characterizes
+       and yields an impressive PSPACE algorithm [24, 25]. Note that if system f has an exact
+       solution, then it is trivially in APS. But the converse is not true. For example, {x, xy − 1} is
+       in APS, but there is no exact solution in F. To see the former, assign x = ε and y = 1/ε.
+       Also, the instance {x, x + 1} is neither in APS nor has an exact solution. Finally, note that
+       if we restrict β to come from F[ε]n then APS becomes equivalent to exact satisfiability and
+       HN applies. This can be seen by going modulo εF[ε], as the quotient F[ε]/εF[ε] is F.
+           Coming back to AnnAtZero, we show that it is equivalent both to a geometric question
+       and to deciding APS. This gives us, with more work, the following surprising consequence.
+       I Theorem 2. APS is NP-hard and is in PSPACE.
+          We apply this to designing hitting-sets and solving NNL (refer [32] for the background).
+       I Theorem 3. There is a PSPACE algorithm that (given input n, s, r in unary & suitably
+       large Fq ) outputs a set, of points from Fnq of size poly(nsr, log q), that hits all n-variate
+       degree-r polynomials over Fq that can be infinitesimally approximated by size s circuits.
+
+       More applications? The exact polynomials satisfiability question HN (over F) is highly
+       expressive and, naturally, most computer science problems get expressed that way. We
+       claim that in a similar spirit, the APS question expresses those computer science problems
+       that involve ‘infinitesimal approximation’. Since finite fields do not seem to have a natural
+       topology allowing approximations, algebraic approximations over arbitrary fields is needed.
+       The latter has been useful in fast matrix multiplication algorithms.
+           One prominent example of algebraic approximation is the concept of border rank of tensor
+       polynomials (used in matrix multiplication algorithms and GCT, see [9, 27, 28]). Border
+       rank computation of a given tensor (over F) can easily be reduced to an APS instance and,
+       hence, now solved in PSPACE; this matches the complexity of tensor rank itself [40]. From
+       the point of view of Gröbner basis theory, APS is a problem that seems a priori much harder
+       than HN. Now that both of them have a PSPACE algorithm, one may wonder whether
+       it can be brought all the way down to NP or AM? (In fact, HNC is known to be in AM,
+       conditionally under GRH [24].)
+           Our methods in the proof of Theorem 2 imply an interesting “degree     p bound” related
+       to the (prime) ideal I of annihilators of polynomials f . Namely, I = I≤d , where I≤d
+       refers to the subideal generated by degree ≤ d polynomials of I, d is the Perron-like bound
+       (maxi∈[m] deg(fi ))k , and k := trdeg(f ). This is equivalent to the geometric fact, which we
+       prove, that the varieties defined by the two ideals I and I≤d are equal (Theorem 18). This
+       again is an exponential improvement over what one expects to get from the general Gröbner
+       basis methods; because, the generators of I may well have doubly-exponential degree.
+           The hitting-set result (Theorem 3) can be applied to compute, in PSPACE, the explicit
+       system of parameters (esop) of the invariant ring of the variety ∆[det, s], over Fq , with a
+       given group action [32, Thm.4.9]. Also, we can now construct, in PSPACE, polynomials in
+Z. Guo, N. Saxena, and A. Sinhababu                                                                                     10:5
+
+
+Fq [x1 , . . . , xn ] that cannot even be approximated by ‘small’ algebraic circuits. Such results
+were previously known only for characteristic zero fields, see [16, Thms.1.1-1.4]. Bringing
+this complexity down to P is the longstanding problem of blackbox PIT (& lower bounds),
+see [38, 43, 39]. Mulmuley [33] pointed out that small hitting-sets for VP can be designed in
+EXPSPACE which is a far worse complexity than that for VP. He called it the GCT Chasm.
+We bridge it somewhat, as the proof of Theorem 3 shows that small hitting-sets for VPF can
+be designed in PSPACE (like those for VP) for any field F.
+    In another application, the null-cone problem defined in [10] can be seen as a special case
+of APS and using our algorithm, it can be solved in PSPACE. Bürgisser et al. [10] gave an
+exponential time algorithm for the above problem (bringing it down from EXPSPACE).
+
+
+1.2      Proof ideas
+ Proof idea of Theorem 1. Suppose we are given algebraic circuits f := {f1 , . . . , fm }
+ computing in Fq [x1 , . . . , xn ]. For the AM and coAM protocols, we consider the following
+ system of equations over a ‘small’ extension Fq0 :
+     For b = (b1 , . . . , bm ) ∈ Fm q 0 , define the system of equations fi (x1 , . . . , xn ) = bi , for i ∈ [m].
+We denote the number of solutions of the above system in Fnq0 as Nb . Let f : Fnq0 → Fm                      q 0 be
+ the polynomial map a 7→ (f1 (a), . . . , fm (a)).
+     AM gap. [Theorem 9] We establish bounds for the number Nf (a) , where a is a random
+ point in Fnq0 . If f1 , . . . , fm are independent, we show that Nf (a) is relatively small. Whereas,
+ if the polynomials are algebraically dependent then Nf (a) is much more.
+     Assume f are algebraically independent. Wlog (see the full version of [34, Sec.2]) we can
+ assume that m = n and for all i ∈ [n], {xi , f1 , . . . , fn } are algebraically dependent. The first
+ step is to show that the zeroset defined by the system of equations, for random f (a), has
+ dimension ≤ 0 with high probability. This is proved using the Perron degree bound on the
+ annihilator of {xi , f1 , . . . , fn }. Next, one can apply an affine version of Bezout’s theorem to
+ upper bound Nf (a) . On the other hand, suppose f are algebraically dependent, say with
+ annihilator Q. Let Im(f ) := f (Fnq0 ) be the image of f . Since Q vanishes on Im(f ), we know
+ that Im(f ) is relatively small, whence we deduce that Nf (a) is large for ‘most’ a’s.
+     coAM gap. [Theorem 12] We pick a random point b = (b1 , . . . , bm ) ∈ Fm                q 0 and bound Nb ,
+which is the number of solutions of the system defined above. In the dependent case, we
+ show that Nb = 0 for ‘most’ b’s. But in the independent case, we show that Nb ≥ 1 for
+‘many’ (may be not ‘most’!) b’s. The ideas are based on those sketched above.
+     The two kinds of gaps shown above are based on the set f −1 (f (x)) resp. Im(f ). Note
+ that membership in either of these sets is testable in NP (the latter requires nondeterminism).
+ Based on this and the gaps between the respective cardinalities, we can invoke Lemma 4 and
+ devise the AM and coAM protocols for AD(Fq0 ), which also apply to AD(Fq ).
+     Remark– One advantage in our problem is that we could sample a random point in
+ the set Im(f ). In contrast, it is not clear how to sample a random point in the zeroset
+ Zer(f ) := {x ∈ Fnq0 | f (x) = 0}. Thus, we manage to side-step the NP-hardness associated
+with most zeroset properties. Eg. computing the dimension of Zer(f ) is NP-hard.
+
+
+Proof idea of Theorem 2. Let algebraic circuits f := {f1 , . . . , fm } in F[x1 , . . . , xn ] be given
+over a field F. We want to determine if the constant term of every annihilator for f is zero.
+                                     n     m
+Redefine the polynomial map f : F → F ; a 7→ (f1 (a), . . . , fm (a)). For a subset S of an
+affine (resp. projective) space, write S for its Zariski closure in that space, i.e. it is the
+smallest subset that contains S and equals the zeroset Zer(I) of some polynomial ideal I.
+
+
+
+                                                                                                                      CCC 2018
+10:6   Algebraic dependencies
+
+
+            APS vs AnnAtZero. [Theorem 15] Now, we interpret the problem AnnAtZero in a
+       geometric way through Lemma 13:
+            The constant term of every annihilator of f is zero iff the origin point 0 ∈ Im(f ).
+            This has a simple proof using the ideal-variety correspondence [17]. Note that the stronger
+       condition 0 ∈ Im(f ) is equivalent to the existence of a common solution to the equations
+       fi (x1 , . . . , xn ) = 0, i = 1, . . . , m. The latter problem (call it HN for Hilbert’s Nullstellensatz)
+       is known to be in AM if F = Q and GRH is assumed [24]. However, Im(f ) is not necessarily
+       Zariski closed; equivalently, it may be strictly smaller than Im(f ). So, we need new ideas to
+       test 0 ∈ Im(f ).
+            Next, we observe that although 0 ∈ Im(f ) is not equivalent to the existence of a solution
+                 n
+       x ∈ F to f (x) = 0, it is equivalent to the existence of an “approximate solution” x ∈ F(ε)n ,
+       which is an n-tuple of rational functions in a formal variable ε. The proof idea of this uses
+       a degree bound on ε due to [29]. We called this problem APS. As AnnAtZero problem is
+       already known to be NP-hard [22], APS is also NP-hard.
+            Upper bounding APS. We now know that: Solving APS for f is equivalent to solving
+       AnnAtZero for f . AnnAtZero was previously known to be in PSPACE in the special case
+       when the trdeg k of F(f )/F equals m or m − 1, but the general case remained open (best
+       being EXPSPACE).
+            In this work we prove that AnnAtZero is in PSPACE even when k < m − 1. Our simple
+       idea is to reduce the input to a smaller m = k + 1 instance, by choosing new polynomials
+       g1 , . . . , gk+1 that are random linear combinations of fi ’s. We show that with high probability,
+       replacing {f1 , . . . , fm } by {g1 , . . . , gk+1 } preserves YES/NO instances as well as the trdeg.
+       This gives a randomized poly-time reduction from the case k < m − 1 to k = m − 1 (Theorem
+       18). The latter has a standard PSPACE algorithm.
+            For notational convenience view F as the affine line A. Define V := Im(f ) ⊆ Am . Proving
+       that the above reduction (of m) does preserve YES/NO instances amounts to proving the
+       following geometric statement: If V does not contain the origin O ∈ Am , then with high
+       probability, the variety V 0 := π(V ) does not contain the origin O0 ∈ Ak+1 either, where
+       π : Am → Ak+1 is a random linear map.
+            As π is picked at random, the kernel W of π is a random linear subspace of Am . We
+       have O0 6∈ π(V ) whenever V ∩ W = ∅, but this is not sufficient for proving O0 6∈ π(V ),
+       since V may “get arbitrarily close to W ” in Am and meet W “at infinity”. Inspired by
+       this observation, we consider projective geometry instead of affine geometry, and prove
+       that O0 6∈ V 0 holds as long as the projective closure of V and that of W are disjoint. The
+       proof uses a construction of a projective subvariety– the join –to characterize π −1 (V 0 ), and
+       eventually rules out W ⊆ π −1 (V 0 ) (Lemma 19).
+            Moreover, we show that this holds with high probability if O 6∈ V : by (repeatedly) using
+       the fact that a generic (=random) hyperplane section reduces the dimension of a variety by
+       one.
+
+
+       Proof idea of Theorem 3. Define A := Fq and assume wlog q ≥ Ω(sr2 ) [1]. [19, Thm.4.4]
+       showed that a hitting-set, of size h := O(s2 n2 log q) in Fnq , exists for the class of degree-r
+       polynomials, in A[x1 , . . . , xn ], that can be infinitesimally approximated by size-s algebraic
+       circuits. So, we can search over all possible subsets of size h from Fnq and ‘most’ of them are
+       hitting-sets.
+           How do we certify that a candidate set H is a hitting-set? The idea is to use universal
+       circuits. A universal circuit has n essential variables x = {x1 , . . . , xn } and s0 := O(sr4 )
+       auxiliary variables y = {y1 , . . . , ys0 }. We can fix the auxiliary variables, from A(ε), in such
+Z. Guo, N. Saxena, and A. Sinhababu                                                                             10:7
+
+
+a way so that it can output any homogeneous circuit of size-s, approximating a degree-r
+polynomial in VPA . Given a universal circuit Ψ, certification of a hitting-set H is based on
+the following observation, that follows from the definitions:
+                                                                        0
+   Candidate set H =: {v1 , . . . , vh } is a hitting-set iff ∀y ∈ A(ε)s , Ψ(y, x) ∈
+                                                                                   / εA[ε][x] ⇒
+∃i ∈ [h], Ψ(y, vi ) ∈
+                    / εA[ε].
+                                                                                                         0
+   Equivalently: Candidate set H = {v1 , . . . , vh } is not a hitting-set iff             ∃y ∈ A(ε)s ,
+Ψ(y, x) ∈
+        / εA[ε][x] and ∀i ∈ [h], Ψ(y, vi ) ∈ εA[ε].
+    Note that this hitting-set certification is more challenging than the one against polynomials
+in VP; because the degree bounds for ε are exponentially high and moreover, we do not know
+how to frame the first ‘non-containment’ condition as an APS instance. To translate it to an
+APS instance, our key idea is the following.
+    Pick q ≥ Ω(s0 r2 ) so that a hitting-set exists, in Fnq , that works against polynomials
+approximated by the specializations of Ψ. Suppose Ψ(α, x) is not in εA[ε][x], for some
+           0
+α ∈ A(ε)s . This means that we can write it as −m≤i≤m0 εi gi (x) with g−m 6= 0 and
+                                                         P
+
+m ≥ 0. Clearly, εm · Ψ(α, x) infinitesimally approximates the nonzero polynomial g−m ∈ A[x].
+By the conditions on Ψ, we know that g−m is a homogeneous degree-r polynomial (and
+approximative complexity s0 ). Thus, by [42], there exists a β ∈ Fnq such that g−m (β) =: a
+is a nonzero element in A. We can normalize by this and consider a−1 εm · Ψ(y, x), which
+evaluates to 1 + εA[ε] at (α, β). Since this normalization factor only affects the auxiliary
+variables y, we get another equivalent criterion:
+                                                                              0
+    Candidate set H = {v1 , . . . , vh } is not a hitting-set iff ∃y ∈ A(ε)s and ∃x ∈ Fnq such
+that, Ψ(y, x) − 1 ∈ εA[ε] and ∀i ∈ [h], Ψ(y, vi ) ∈ εA[ε].
+    We reach closer to APS, but how do we implement ∃?x ∈ Fnq (it takes exponential space)?
+    The idea is to rewrite it, instead using the (r + 1)-th roots of unity Zr+1 ⊂ A, as:
+∃x ∈ A(ε)n , ∀i ∈ [n], xr+1i   − 1 ∈ εA[ε]. This gives us a criterion that is an instance of
+APS with n + h + 1 input polynomials (Theorem 22). By Theorem 2 it can be done in
+PSPACE; finishing the proof. Moreover, this PSPACE algorithm idea is independent of the
+field characteristic. (Eg. it can be seen as an alternative to [16] over the complex field.)
+
+ 2      Preliminaries
+Jacobian. Although this work would not need it, we define the classical Jacobian: For
+polynomials f = {f1 , · · · , fm } in F[x1 , · · · , xn ], Jacobian is the matrix Jx (f ) := (∂xj fi )m×n ,
+where ∂xj fi := ∂fi /∂xj .
+   Jacobian criterion [21, 6] states: For degree ≤ d and trdeg ≤ r polynomials f , if char(F) = 0
+or char(F) > dr , then trdeg(f ) = rankF(x) Jx (f ). This yields a randomized poly-time
+algorithm [42]. For other fields, Jacobian criterion fails due to inseparability and AD(F) is
+open.
+
+AM protocol. Arthur-Merlin class AM is a randomized version of the class NP (see [4]).
+Arthur-Merlin protocols, introduced by Babai [5], can be considered as a special type of
+interactive proof system in which the randomized poly-time verifier (Arthur) and the all-
+powerful prover (Merlin) have only constantly many rounds of exchange. AM contains
+interesting problems like determining if two graphs are non-isomorphic. AM ∩ coAM is
+the class of decision problems for which both YES and NO answers can be verified by an
+AM protocol. It can be thought of as the randomized version of NP ∩ coNP. See [23] for a
+few natural algebraic problems in AM ∩ coAM. If such a problem is NP-hard (even under
+random reductions) then polynomial hierarchy collapses to the second-level, i.e. PH= Σ2 .
+
+
+
+                                                                                                              CCC 2018
+10:8   Algebraic dependencies
+
+
+           In this work AM protocol will only be used to distinguish whether a set S is ‘small’ or
+       ‘large’. Formally, we refer to the Goldwasser-Sipser Set Lowerbound method:
+
+       I Lemma 4. [4, Chap.9] Let m ∈ N be given in binary. Suppose S is a set whose membership
+       can be tested in nondeterministic polynomial time and its size is promised to be either ≤ m
+                                                                             ?
+       or ≥ 2m. Then, the problem of deciding whether |S| ≥ 2m is in AM.
+
+        Geometry. Due to limited space we have moved the geometry preliminaries to Appendix
+       A. One can also refer to a standard text, eg. [17, 18]. Basically, we need terms about affine
+       (resp. projective) zerosets and the underlying Zariski topology. The latter gives a way to
+       ‘impose’ geometry even in very discrete situations, eg. finite fields in this work.
+
+
+        3       Algebraic dependence testing: Proof of Theorem 1
+       Given f1 , . . . , fm ∈ Fq [x1 , . . . , xn ], we want to decide if they are algebraically dependent. For
+       this problem AD(Fq ) we could assume, with some preprocessing, that m = n. For, m > n
+       means that its a YES instance. If m < n then we could apply a ‘random’ linear map on
+       the variables to reduce them to m, preserving the YES/NO instances. Also, the trdeg does
+       not change when we move to the algebraic closure Fq . The details can be found in [34,
+       Lem.2.7-2.9]. So, we assume the input instance to be f := {f1 , . . . , fn } with nonconstant
+       polynomials.
+           In the following, let D := i∈[n] deg(fi ) > 0 and D0 := maxi∈[n] deg(fi ) > 0. Let d ∈ N+
+                                              Q
+
+       and q 0 = q d . The value of d will be determined later. Let f : Fnq0 → Fnq0 be the polynomial
+       map a 7→ (f1 (a), . . . , fn (a)). For b = (b1 , . . . , bn ) ∈ Fnq0 , denote by Nb the size of the preimage
+       f −1 (b) = {x ∈ Fnq0 | f (x) = b}.
+           Define A := Fq and N b := #{x ∈ An | fi (x) = bi , for all i ∈ [n]} which might be ∞.
+       Let Q ∈ Fq [y1 , . . . , yn ] be a nonzero annihilator, of minimal degree, of f1 , . . . , fn . If it exists
+       then deg(Q) ≤ D by Perron’s bound.
+
+
+       3.1      AM protocol
+       First, we study the independent case.
+
+       I Lemma 5 (Dim=0 preimage). Suppose f are independent. Then N f (a) is finite for all but
+       at most (nDD0 /q 0 )-fraction of a ∈ Fnq0 .
+
+       Proof. For i ∈ [n], let Gi ∈ Fq [z, y1 , . . . , yn ] be the annihilator of {xi , f1 , . . . , fn }. We have
+       deg(Gi ) ≤ D by Perron’s bound. Consider a ∈ Fnq0 such that G0i (z) := Gi (z, f1 (a), . . . , fn (a))
+       ∈ Fq [z] is a nonzero polynomial for every i ∈ [n]. We claim that N f (a) is finite for such a.
+           To see this, note that for any b = (b1 , . . . , bn ) ∈ An satisfying the equations fi (b) = fi (a),
+       i ∈ [n], we have
+
+            0 = Gi (bi , f1 (b), . . . , fn (b)) = Gi (bi , f1 (a), . . . , fn (a)) = G0i (bi ),   ∀i ∈ [n] .
+
+       Hence, each bi is a root of G0i . It follows that N f (a) ≤ i∈[n] deg(G0i ) < ∞, as claimed.
+                                                                   Q
+
+            It remains to prove that the number of a ∈ Fnq0 satisfying G0i = 0, for some index i ∈ [n],
+                                                                     Pdi
+       is bounded by nDD0 q 0−1 · q 0n . Fix i ∈ [n]. Suppose Gi = j=0       Gi,j z j , where di := degz (Gi )
+       and Gi,j ∈ Fq [y1 , . . . , yn ], for 0 ≤ j ≤ di . The leading coefficient Gi,di is nonzero. As
+       f1 , . . . , fn are algebraically independent, the polynomial Gi,di (f1 , . . . , fn ) ∈ Fq [x1 , . . . , xn ] is
+Z. Guo, N. Saxena, and A. Sinhababu                                                                    10:9
+
+
+also nonzero. Its degree is ≤ D0 deg(Gi,di ) ≤ D0 deg(Gi ) ≤ DD0 . By [42], for all but at most
+(DD0 /q 0 )-fraction of a ∈ Fnq0 , we have Gi,di (f1 (a), . . . , fn (a)) 6= 0 which implies
+
+                                                di
+                                                X
+   G0i (z) = Gi (z, f1 (a), . . . , fn (a)) =         Gi,j (f1 (a), . . . , fn (a))z j 6= 0 .
+                                                j=0
+
+The claim now follows from the union bound.                                                     J
+
+  We need the following affine version of Bézout’s Theorem. Its proof can be found in [41,
+Thm.3.1].
+
+I Theorem 6 (Bézout’s). Let g1 , . . . , gn ∈ A[x1 , . . . , xn ]. Then the number of common zeros
+of g1 , . . . , gn in An is either infinite, or at most i∈[n] deg(gi ).
+                                                       Q
+
+   Combining Lemma 5 with Bézout’s Theorem, we obtain
+
+I Lemma 7 (Small preimage). Suppose f are independent. Then Nf (a) ≤ D for all but at
+most (nDD0 /q 0 )-fraction of a ∈ Fnq0 .
+
+   Next, we study the dependent case (with an annihilator Q).
+
+I Lemma 8 (Large preimage). Suppose f are dependent. Then for k > 0, we have Nf (a) > k
+for all but at most (kD/q 0 )-fraction of a ∈ Fnq0 .
+
+Proof. Let Im(f ) := f (Fnq0 ) be the image of the map. Note that Q vanishes on all the points
+in Im(f ). So, |Im(f )| ≤ Dq 0n−1 by [42].
+    Let B := {b ∈ Im(f ) : Nb ≤ k} be the “bad” images. We can estimate the bad domain
+points as,
+
+   #{a ∈ Fnq0 : Nf (a) ≤ k} = #{a ∈ Fnq0 : f (a) ∈ B} ≤ k|B| ≤ k|Im(f )| ≤ kDq 0n−1 .
+
+which proves the lemma.                                                                         J
+
+I Theorem 9 (AM). Testing algebraic dependence of f is in AM.
+
+Proof. Fix q 0 = q d > 4nDD0 + 4kD and k := 2D. Note that d will be polynomial in the
+input size. For an a ∈ Fnq0 , consider the set f −1 (f (a)) := {x ∈ Fnq0 | f (x) = f (a)}.
+    By Lemmas 7 & 8: When Arthur picks a randomly, with high probability, |f −1 (f (a))| =
+Nf (a) is more than 2D in the dependent case while ≤ D in the independent case. Note that
+                     Q
+an upper bound on i∈[n] deg(fi ) can be deduced from the size of the input circuits for fi ’s;
+thus, we know D. Moreover, containment in f −1 (f (a)) can be tested in P. Thus, by Lemma
+4, AD(Fq ) is in AM.                                                                       J
+
+3.2    coAM protocol
+We first study the independent case.
+
+I Lemma 10 (Large image). Suppose f are independent. Then Nb > 0 for at least (D−1 −
+nD0 q 0−1 )-fraction of b ∈ Fnq0 .
+
+Proof. Let S := {a ∈ Fnq0 : Nf (a) ≤ D}. Then |S| ≥ (1 − nDD0 q 0−1 ) · q 0n by Lemma 7.
+As every b ∈ f (S) has at most D preimages in S under f , we have |f (S)| ≥ |S|/D ≥
+(D−1 − nD0 q 0−1 ) · q 0n . This proves the lemma since Nb > 0 for all b ∈ f (S).     J
+
+   Next, we study the dependent case.
+
+
+
+                                                                                                     CCC 2018
+10:10   Algebraic dependencies
+
+
+        I Lemma 11 (Small image). Suppose f are dependent. Then Nb = 0 for all but at most
+        (D/q 0 )-fraction of b ∈ Fnq0 .
+
+        Proof. By definition: Nb > 0 iff b ∈ Im(f ) := f (Fnq0 ). It was shown in the proof of Lemma 8
+        that |Im(f )| ≤ Dq 0n−1 . The lemma follows.                                                J
+
+        I Theorem 12 (coAM). Testing algebraic dependence of f is in coAM.
+
+        Proof. Fix q 0 = q d > D(2D + nD0 ). Note that d will be polynomial in the input size. For
+        b ∈ Fnq0 , consider the set f −1 (b) := {x ∈ Fnq0 | f (x) = b} of size Nb .
+            Define S := Im(f ). Note that: b ∈ Fnq0 has Nb > 0 iff b ∈ S. Thus, by Lemma 10
+        (resp. Lemma 11), |S| ≥ (D−1 − nD0 q 0−1 )q 0n > 2Dq 0n−1 (resp. |S| ≤ Dq 0n−1 ) when f are
+                                                                             Q
+        independent (resp. dependent). Note that an upper bound on i∈[n] deg(fi ) can be deduced
+        from the size of the input circuits for fi ’s; thus, we know Dq 0n−1 . Moreover, containment in
+        S can be tested in NP. Thus, by Lemma 4, AD(Fq ) is in coAM.                                 J
+
+        Proof of Theorem 1. The statement immediately follows from Theorems 9 & 12.                      J
+
+
+         4     Approximate polynomials satisfiability: Proof of Theorem 2
+        Theorem 2 is proved in two parts. First, we show that APS is equivalent to AnnAtZero
+        problem; which means that it is NP-hard [22]. Next, we utilize the beautiful underlying
+        geometry to devise a PSPACE algorithm.
+
+        4.1    APS is equivalent to AnnAtZero
+        Let A be the algebraic closure of F. Note that for the given polynomials f := {f1 , . . . , fm } in
+        F[x], there is an annihilator over F with nonzero constant term iff there is an annihilator over
+        A with nonzero constant term. This is because if Q is an annihilator over A with nonzero
+        constant term, wlog 1, then by basic linear algebra, the linear system defined by the equation
+        Q(f ) = 0, in terms of the unknown coefficients of Q, would also have a solution in F. Thus,
+        there is an annihilator over F with constant term 1. This proves that it suffices to solve
+        AnnAtZero over the algebraically closed field A. This provides us with a better geometry.
+             Write f : An → Am for the polynomial map sending a point x = (x1 , . . . , xn ) ∈ An to
+        (f1 (x), . . . , fm (x)) ∈ Am . For a subset S of an affine or projective space, write S for its
+        Zariski closure in that space. We will use O to denote the origin 0 of an affine space.
+             The following lemma reinterprets APS in a geometric way.
+
+        I Lemma 13 (O in the closure). The constant term of every annihilator for f is zero iff
+        O ∈ Im(f ).
+
+        Proof. Note that: Q ∈ A[Y1 , . . . , Ym ] vanishes on Im(f ) iff Q(f ) vanishes on An , which
+        holds iff Q(f ) = 0, i.e., Q is an annihilator for f . So Im(f ) = V (I), where the ideal
+        I ⊆ A[Y1 , . . . , Ym ] consists of the annihilators for f . Also note that {O} = V (m), where m is
+        the maximal ideal hY1 , . . . , Ym i.
+            Let us study the condition O ∈ Im(f ). By the ideal-variety correspondence, {O} =
+        V (m) ⊆ Im(f ) = V (I) is equivalent to I ⊆ m, i.e., Q mod m = 0 for Q ∈ I. But Q mod m
+        is just the constant term of the annihilator Q. Hence, we have the equivalence.                  J
+
+           As an interesting corner case, the above lemma proves that whenever f are algebraically
+        independent, we have Am = Im(f ). Eg. f1 = X1 and f2 = X1 X2 − 1. Even in the dependent
+        cases, Im(f ) is not necessarily closed in the Zariski topology.
+Z. Guo, N. Saxena, and A. Sinhababu                                                                         10:11
+
+
+I Example 14. Let n = 2, m = 3. Consider f1 = f2 = X1 and f3 = X1 X2 − 1. The
+annihilators are multiples of (Y1 − Y2 ), which means by Lemma 13 that O ∈ Im(f ). But
+there is no solution to f1 = f2 = f3 = 0, i.e. O ∈
+                                                 / Im(f ).
+
+Approximation. Although O ∈ Im(f ) is not equivalent to the existence of a solution x ∈ An
+to fi = 0, i ∈ [m], it is equivalent to the existence of an “approximate solution” x ∈ A[ε, ε−1 ]n ,
+which is a tuple of Laurent polynomials in a formal variable ε. The formal statement is as
+follows. Wlog we assume f to be m nonconstant polynomials.
+I Theorem 15 (Approx. wrt ε). O ∈ Im(f ) iff there exists x = (x1 , . . . , xn ) ∈ A(ε)n such
+that fi (x) ∈ εA[ε], for all i ∈ [m]. Moreover, when such x exists, it may be chosen such that
+                                       0                  
+                                       XD                 
+                          0
+    xi ∈ ε−D A[ε] ∩ εD A[ε−1 ] =             cj εj : cj ∈ A , i ∈ [n],
+                                                          
+                                         j=−D
+
+                                           0
+             Q
+where D :=      i∈[m] deg(fi ) > 0 and D       := (maxi∈[m] deg(fi )) · D > 0.
+   The proof of Theorem 15 is almost the same as that in [29]. First, we recall a tool to
+reduce the domain from a variety to a curve, proven in [29].
+I Lemma 16. [29, Prop.1] Let V ⊆ An , W ⊆ Am be affine varieties, ϕ : V → W dominant,
+and t ∈ W \ ϕ(V ). Then there exists a curve C ⊆ An such that t ∈ ϕ(C) and deg(C) ≤
+deg(Γϕ ), where Γϕ denotes the graph of ϕ embedded in An × Am .
+    Next, [29] essentially shows that in the case of a curve one can approximate the preimage
+of f by using a single formal variable ε and working in A(ε).
+I Lemma 17. [29, Cor. of Prop.3] Let C ⊆ An be an affine curve. Let f : C → Am be
+a morphism sending x ∈ C to (f1 (x), . . . , fm (x)) ∈ Am , where f1 , . . . , fm ∈ A[X1 , . . . , Xn ].
+Let t = (t1 , . . . , tm ) ∈ f (C). Then there exists p1 , . . . , pn ∈ ε− deg(C) A[[ε]] such that
+fi (p1 , . . . , pn ) − ti ∈ εA[[ε]] , for all i ∈ [m].
+   Finally, we can use the above two lemmas to prove the connection of APS with O ∈ Im(f ),
+and hence with AnnAtZero (by Lemma 13).
+
+Proof of Theorem 15. First assume that an x, satisfying the conditions in Theorem 15,
+exists. Pick such an x. If f are algebraically independent then by Lemma 13 we have that
+Am = Im(f ) and we are done. So, assume that there is a nonzero annihilator Q for f . We
+have Q(f1 (x), . . . , fm (x)) = 0 ∈ εA[ε]. On the other hand, as fi (x) ∈ εA[ε], for all i ∈ [m];
+we deduce that Q(f1 (x), . . . , fm (x)) mod εA[ε] is Q(0), which is the constant term of Q. So
+it equals zero. By Lemma 13, we have O ∈ Im(f ) and again we are done.
+    Conversely, assume O ∈ Im(f ) and we will prove that x exists. If O ∈ Im(f ), then we
+can choose x ∈ An and we are done. So assume O ∈ Im(f ) \ Im(f ). Regard f as a dominant
+morphism from An to Im(f ). Its graph Γf is cut out in An × Am by Yi − fi (X1 , . . . , Xn ),
+                           Qm
+i ∈ [m]. So deg(Γf ) ≤ i=1 deg(fi ) = D by Bézout’s Theorem.
+    By Lemma 16, there exists a curve C ⊆ An such that O ∈ f (C) and deg(C) ≤ deg(Γf ) ≤
+D. Pick such a curve C. Apply Lemma 17 to C, f |C and O, and let p1 , . . . , pn ∈
+ε− deg(C) A[[ε]] ⊆ ε−D A[[ε]] be as given by the lemma. Then fi (p1 , . . . , pn ) ∈ εA[[ε]], for
+all i ∈ [m].
+    For i ∈ [n], let xi be the Laurent polynomial obtained from pi by truncating the terms of
+degree greater than D0 . When evaluating f1 , . . . , fm , at (p1 , . . . , pn ), such truncation does
+not affect the coefficient of εk for k ≤ 0 by the choice of D0 . So fi (x1 , . . . , xn ) ∈ εA[ε], for
+all i ∈ [m].                                                                                        J
+
+
+
+                                                                                                           CCC 2018
+10:12   Algebraic dependencies
+
+                                           Qm
+        Remark– The lower bound −D = − i=1 deg(fi ) for the least degree of xi in ε can be achieved
+        up to a factor of 1 + o(1). Consider the polynomials f1 = f2 = X1 , f3 = X1d−1 X2 − 1,
+                    d
+        and fi = Xi−2  − Xi−1 for i = 4, . . . , m, where m = n + 1. Then we are forced to choose
+                                    i−2
+        x1 ∈ εA[ε] and xi ∈ ε−(d−1)d · A[ε−1 ], for i = 2, . . . , n. So the least degree of xn in ε is at
+        most −(d − 1)dn−2 , while −D = −dn−1 .
+
+
+        4.2      Putting APS in PSPACE
+        Owing to the exponential upper bound on the precision (= degree wrt ε) shown in Theorem
+        15, one expects to solve APS in EXPSPACE only. Surprisingly, in this section, we give
+        a PSPACE algorithm. This we do by reducing the general AnnAtZero instance to a very
+        special instance, that is easy to solve.
+            Let A be the algebraic closure of the field F. Let f1 , . . . , fm ∈ F[X1 , . . . , Xn ] be given.
+        Denote by k the trdeg of F(f1 , . . . , fm )/F. Computing k can be done in PSPACE using
+        linear algebra [36, 11]. We assume k < m − 1, since the cases k = m − 1 and k = m are
+        again easy. In the case k = m, the input instances are always in APS since Im(f ) = Am .
+        And in the case k = m − 1, the ideal of the annihilators is a principal ideal, and hence has a
+                                                                                    Qm
+        unique generator (up to scaling). The degree of this generator is at most i=1 deg(fi ). Thus
+        checking whether it has a nonzero constant term can be solved in PSPACE by solving an
+        exponential sized linear system of equations using [11].
+            We reduce the number of polynomials from m to k + 1 as follows: Fix a finite subset
+        S ⊆ F, and choose ci,j ∈ S at random for i ∈ [k + 1] and j ∈ [m]. For this to work, we need
+                                                           Pm
+        a large enough S and F. For i ∈ [k + 1], let gi := j=1 ci,j fj .
+            Let δ := (k + 1)(maxi∈[m] deg(fi ))k /|S|. Our algorithm is immediate once we prove the
+        following claim.
+
+        I Theorem 18 (Random reduction). It holds, with probability ≥ (1 − δ), that
+        (1) the transcendence degree of F(g1 , . . . , gk+1 )/F equals k, and
+        (2) the constant term of every annihilator for g1 , . . . , gk+1 is zero iff the constant term of
+            every annihilator for f1 , . . . , fm is zero.
+
+             First, we reformulate the two items of Theorem 18 in a geometric way, and later we will
+        analyze the error probability.
+             For d ∈ N, denote by Ad (resp. Pd ) the d-dimensional affine space (resp. projective space)
+        over A := F. Let f : An → Am (resp. g : An → Ak+1 ) be the polynomial map sending x to
+        (f1 (x), . . . , fm (x)) (resp. (g1 (x), . . . , gk+1 (x))). Let O and O0 be the origin of Am and that
+        of Ak+1 respectively. Define the affine varieties V := Im(f ) ⊆ Am and V 0 := Im(g) ⊆ Ak+1 .
+        Then dim V = trdeg f = k.
+             Let π : Am → Ak+1 be the linear map sending (x1 , . . . , xm ) to (y1 , . . . , yk+1 ) where
+              Pm
+        yi = j=1 ci,j xj . Then g = π ◦ f and V 0 = π(V ).4 Now (1) of Theorem 18 is equivalent to
+        dim V 0 = k, and (2) is equivalent to O0 ∈ V 0 iff O ∈ V .
+
+                       f                         ⊆
+              An              V = Im(f )                 Am
+                       g             π|V                   π
+
+                                                 ⊆
+                              V 0 = Im(g)               Ak+1
+
+
+        4
+            To see V 0 ⊇ π(V ), note that π −1 (V 0 ) contains Im(f ) and is closed, and hence contains V = Im(f ).
+Z. Guo, N. Saxena, and A. Sinhababu                                                                        10:13
+
+
+We will give sufficient conditions of (1) and (2) in terms of incidence properties. Note that
+O ∈ V implies O0 ∈ V 0 , since π(O) = O0 . Now suppose O 6∈ V . Let W := π −1 (O0 ), which
+is a linear subspace of Am . Then O0 6∈ π(V ) iff V ∩ W = ∅. However, V ∩ W = ∅ does not
+imply O0 6∈ V 0 , as V may “get infinitesimally close to W ” without actually meeting W , so
+that O0 ∈ π(V ) = V 0 . See Example 23 in the appendix.
+    To overcome this problem, we consider projective geometry instead of affine geometry.
+Suppose Am have coordinates X1 , . . . , Xm and Pm have homogeneous coordinates X0 , . . . , Xm .
+Regard Am as a dense open subset of Pm via (x1 , . . . , xm ) 7→ (1, x1 , . . . , xm ). Then H :=
+Pm \ Am ∼  = Pm−1 is the hyperplane at infinity, defined by X0 = 0. Denote by Vc (resp. Wc )
+the projective closure of V (resp. W ) in Pm . Then V = Vc ∩ Am . Let WH := Wc ∩ H, which
+is a projective subspace of H.
+    For distinct points P, Q ∈ Pm , write P Q for the projective line passing through them.
+I Lemma 19 (Sufficient conditions). We have:
+(1) dim V 0 = k, if Vc ∩ WH = ∅, and
+(2) O0 6∈ V 0 , if Vc ∩ Wc = ∅.
+Proof. (1): Assume dim V 0 < k. Choose P ∈ π(V ). The dimension of π −1 (P ) ∩ V is at least
+dim V − dim V 0 ≥ 1 [17, Thm.11.12]. Denote by Y and Z the projective closure of π −1 (P )
+and that of π −1 (P )∩V in Pm respectively. Then Z ⊆ Y ∩Vc . As dim Z = dim π −1 (P )∩V ≥ 1
+and dim H = m − 1, we have Z ∩ H 6= ∅ [17, Prop.11.4].
+    As π is a linear map, π −1 (P ) = Y ∩ Am is a translate of π −1 (O0 ) = W = Wc ∩ Am . It is
+well known that two projective subspaces W1 , W2 6⊆ H have the same intersection with H iff
+W1 ∩ Am and W2 ∩ Am are translates of each other.5 So, Y ∩ H = Wc ∩ H = WH . Therefore,
+Vc ∩ WH = Vc ∩ Y ∩ H ⊇ Z ∩ H 6= ∅.
+    (2): Assume to the contrary that Vc ∩ Wc = ∅ but O0 ∈ V 0 . We will derive a contradiction.
+As WH ⊆ Wc , we have Vc ∩ WH = ∅ and hence dim V 0 = k by (1).
+    Denote by J(Vc , WH ) the join of Vc and WH , which is defined to be the union of the
+projective lines P Q, where P ∈ Vc and Q ∈ WH . It is known that J(Vc , WH ), as the join of
+two disjoint projective subvarieties, is again a projective subvariety of Pm [17, Example 6.17].
+Consider P ∈ Vc and Q ∈ WH . If P ∈ H, the line P Q lies in H and does not meet Am . Now
+suppose P ∈ Vc \ H = V . Then P Q meets OQ at the point Q. So P Q ∩ Am is a translate of
+OQ ∩ Am ⊆ Wc ∩ Am = W .
+    Conversely, let P ∈ V . Let WP denote the unique translate of W containing P . Let `P
+be an affine line contained in WP and passing through P (note that WP is the union of such
+lines). Then `P is a translate of an affine line ` ⊆ W . As `P and ` are translates of each
+other, their projective closures intersect H at the same point Q. We have Q ∈ ` ∩ H ⊆ WH .
+So `P = P Q ∩ Am ⊆ J(Vc , WH ) ∩ Am . We conclude that
+                          [
+    J(Vc , WH ) ∩ Am =        WP .                                                          (1)
+                           P ∈V
+
+We claim that J(Vc , WH ) ∩ Am = π −1 (V 0 ). As π is a linear map, Equation (1) implies
+J(Vc , WH ) ∩ Am ⊆ π −1 (V 0 ). We prove the other direction by comparing dimensions. It is
+known that for two disjoint projective subvarieties V1 and V2 , dim J(V1 , V2 ) = dim V1 +
+dim V2 + 1 [17, Prop.11.37-Ex.11.38]. Therefore,
+     dim J(Vc , WH ) = dim Vc + dim WH + 1 = dim V + dim W = k + dim W .
+
+                                                     Pm
+5
+    Indeed, Wi ∩ Am is defined by linear equations    j=1
+                                                            aj,t Xj + a0,t = 0 iff Wi ∩ H is defined by
+                                              Pm
+    homogeneous linear equations X0 = 0 and       a X = 0. So the constant terms a0,t do not matter.
+                                               j=1 j,t j
+
+
+
+
+                                                                                                          CCC 2018
+10:14   Algebraic dependencies
+
+
+        So, dim J(Vc , WH ) ∩ Am = k + dim W . On the other hand, we have π −1 (V 0 ) ∼  = V 0 × W.
+        So dim π (V ) = dim V + dim W = k + dim W . Now J(Vc , WH ) ∩ A and π (V 0 ) are
+                  −1   0            0                                           m        −1
+
+        (irreducible) affine varieties of the same dimension, and one is contained in the other. So
+        they must be equal. This proves the claim.
+            As O0 ∈ V 0 , we have W = π −1 (O0 ) ⊆ π −1 (V 0 ) = P ∈V WP . So WP = W for some
+                                                                S
+
+        P ∈ V , since W is a linear space. But then P ∈ V ∩ WP = V ∩ W ⊆ Vc ∩ Wc , contradicting
+        the assumption Vc ∩ Wc = ∅.                                                               J
+
+        I Remark. The converse of Lemma 19 (Condition 2) is false; see Example 24 in the appendix.
+
+        Error probability. It remains to bound the probability of failure of the conditions Vc ∩WH = ∅
+        and (in the case O 6∈ V ) Vc ∩ Wc = ∅ in Lemma 19. We need the following lemma.
+
+        I Lemma 20 (Cut by hyperplanes). Let V ⊆ Pm be a projective subvariety of dimension r and
+        degree d. Let r0 ≥ r + 1. Choose ci,j ∈ S at random, for i ∈ [r0 ] and 0 ≤ j ≤ m. Let W ⊆ Pm
+                                                              Pm
+        be the projective subspace cut out by the equations j=0 ci,j Xj = 0, i = 1, . . . , r0 , where
+        X0 , . . . , Xm are homogeneous coordinates of Pm . Then V ∩ W = ∅ holds with probability at
+        least 1 − (r + 1)d/|S|.
+                                                                        Pm
+        Proof. For i ∈ [r0 ], let Hi ⊆ Pm be the hyperplane defined by j=0 ci,j Xj = 0. By ignoring
+        Hi for i > r + 1, we may assume r0 = r + 1. Let V0 := V and Vi := Vi−1 ∩ Hi for i ∈ [r0 ].
+        It suffices to show that dim Vi = dim Vi−1 − 1 holds with probability at least 1 − d/|S|, for
+        each i ∈ [r0 ] (the dimension of the empty set is −1 by convention).
+            Fix i ∈ [r0 ] and ci0 ,j , for i0 ∈ [i − 1] and 0 ≤ j ≤ m. So Vi−1 is also fixed. Note
+        that Vi−1 6= ∅ since taking a hyperplane section reduces the dimension by at most one. If
+        dim Vi 6= dim Vi−1 −1, then dim Vi = dim Vi−1 , and Hi contains some irreducible component
+        of Vi−1 [17, Exercise 11.6]. Let Y be an irreducible component of Vi−1 , and fix a point
+        P ∈ Y . Then Y ⊆ Hi only if P ∈ Hi , which holds only if ci,0 , . . . , ci,m satisfy a nonzero
+        linear equation determined by P . This occurs with probability at most 1/|S| (eg. by fixing
+        all but one ci,j ). We also have deg(Vi−1 ) ≤ deg(V ) ≤ d, and hence the number of irreducible
+        components of Vi−1 is bounded by d. By the union bound, Hi contains an irreducible
+        component of Vi−1 with probability at most d/|S|.                                           J
+
+        Proof of Theorem 18. As mentioned above, Theorem 18 is equivalent to showing that, with
+        probability at least 1 − δ: (1) dim V 0 = k, and (2) O0 ∈ V 0 iff O ∈ V . Note that Wc is
+                                                   Pm
+        cut out in Pm by the linear equations j=1 ci,j Xj = 0, i = 1, . . . , k + 1. So WH is cut
+        out in H ∼
+                                                                                    Pm
+                       = Pm−1 (corresponding to X0 = 0) by the linear equations j=1 ci,j Xj = 0,
+        i = 1, . . . , k + 1. We also have deg(Vc ∩ H) ≤ deg(Vc ) ≤ (maxi∈[m] deg(fi ))k (see, e.g., [9,
+        Thm.8.48]).
+           Assume O ∈ V . Then O0 ∈ V 0 since π(O) = O0 . Applying Lemma 20 to each of
+        the irreducible components of Vc ∩ H and WH , as subvarieties of H ∼        = Pm−1 , we see
+        Vc ∩ WH = (Vc ∩ H) ∩ WH = ∅ holds with probability at least 1 − k deg(Vc ∩ H)/|S| ≥ 1 − δ.
+        So by Lemma 19, dim V 0 = k holds with probability at least 1 − δ.
+           Now assume O 6∈ V . Let πO,H : Vc → H be the projection of Vc from O to H, defined by
+        P 7→ OP ∩ H for P ∈ Vc . It is well defined since O 6∈ Vc . The image πO,H (Vc ) is a projective
+        subvariety of H [17, Thm.3.5]. If Vc ∩ Wc contains a point P , then πO,H (Vc ) ∩ WH contains
+        πO,H (P ). Conversely, if πO,H (Vc ) ∩ WH contains a point Q, then there exists P ∈ Vc such
+        that Q = πO,H (P ), and we have P ∈ OQ ⊆ Wc . We conclude that πO,H (Vc ) ∩ WH = ∅ iff
+        Vc ∩ Wc = ∅, which implies Vc ∩ WH = ∅.
+Z. Guo, N. Saxena, and A. Sinhababu                                                                      10:15
+
+
+   Note that dim πO,H (Vc ) = dim Vc = k, since πO,H (Vc ) = J({O}, Vc ) ∩ H. We also
+have deg(πO,H (Vc )) ≤ deg(Vc ) [17, Eg.18.16]. Applying Lemma 20 to πO,H (Vc ) and WH ,
+as subvarieties of H ∼= Pm−1 , we see πO,H (Vc ) ∩ WH = ∅ holds with probability at least
+1 − (k + 1) deg(πO,H (Vc ))/|S| ≥ 1 − δ.
+   By Lemma 19 and the previous paragraphs, it holds with probability at least 1 − δ that
+dim V 0 = k and O0 6∈ V 0 .                                                            J
+
+Proof of Theorem 2. AnnAtZero is known to be NP-hard [22]. The NP-hardness of APS
+follows from Lemma 13 and Theorem 15.
+    Given an instance f of APS, we can first find the trdeg k. Fix a subset S ⊂ A to be
+larger than 2(k + 1)(maxi∈[m] deg(fi ))k (which can be scanned using only polynomial-space).
+Consider the points ((ci,j | i ∈ [k + 1], j ∈ [m])) ∈ S (k+1)×m ; for each such point define
+              Pm
+g := {gi := j=1 ci,j fj | i ∈ [k + 1]}. Compute the trdeg of g, and if it is k then solve
+AnnAtZero for the instance g. Output NO iff some g failed the AnnAtZero test.
+    All these steps can be achieved in space polynomial in the input size, using the uniqueness
+of the annihilator for g [22, Lem.7], Perron’s degree bound [36] and linear algebra [11]. J
+
+
+ 5     Hitting-set for VP: Proof of Theorem 3
+Suppose p is a prime. Define A := Fp . We want to find hitting-sets for certain polynomials in
+A[x1 , . . . , xn ]. Fix a p-power q ≥ Ω(sr6 ), for the given parameters s, r. Assume that p - (r+1).
+Also, fix a model for the finite field Fq [1]. We now define the notion of ‘infinitesimally
+approximating’ a polynomial by a small circuit.
+
+Approximative closure of VP. [7] A family (fn |n) of polynomials from A[x] is in the class
+VPA if there are polynomials fn,i and a function t : N 7→ N such that gn has a poly(n)-size
+poly(n)-degree algebraic circuit, over the field A(ε), computing gn (x) = fn (x) + εfn,1 (x) +
+ε2 fn,2 (x) + . . . + εt(n) fn,t(n) (x). That is, gn ≡ fn mod εA[ε][x].
+    The smallest possible circuit size of gn is called the approximative complexity of fn ,
+namely size(fn ).
+    It may happen that gn is much easier than fn in terms of traditional circuit complexity.
+That possibility makes the definition interesting and opens up a long line of research.
+
+Hitting-set for VPA . Given functions s = s(n) and r = r(n), a finite subset H ⊂ An is
+called a hitting-set for degree-r polynomials of approximative complexity s, if for every such
+nonzero polynomial f : ∃v ∈ H, f (v) 6= 0.
+
+Explicitness. We are interested in computing such a hitting-set in poly(s, log r, log q)-time.
+   Before our work, the best result known was EXPSPACE [33, 32]. Heintz and Schnorr [19]
+proved that poly(s, log qr)-sized hitting-sets exist aplenty (for degree-r size-s polynomials).
+
+I Lemma 21. [19, Thm.4.4] There exists a hitting-set H ⊂ Fnq of size O(s2 n2 ) (assuming q ≥
+Ω(sr2 )) that hits all nonzero degree-r n-variate polynomials in A[x] that can be infinitesimally
+approximated by size-s algebraic circuits.
+
+   Note that for the hitting-set design problem it suffices to focus only on homogeneous
+polynomials. They are known to be computable by homogeneous circuits, where each gate
+computes a homogeneous polynomial (see [43]).
+
+
+
+                                                                                                        CCC 2018
+10:16   Algebraic dependencies
+
+
+        Universal circuit. It can simulate any circuit of size-s computing a degree-r homogeneous
+        polynomial in A(ε)[x1 , . . . , xn ]. We define the universal circuit Ψ(y, x) as a circuit in n
+        essential variables x and s0 := O(sr4 ) auxiliary variables y. The variables y are the ones
+        that one can specialize in A(ε), to compute a specific polynomial in A(ε)[x1 , . . . , xn ]. Every
+        specialization gives a homogeneous degree-r size-s0 polynomial. Moreover, the set of these
+        polynomials is closed under constant multiples (see [16, Thm.2.2]).
+            Note that by [19] there is a hitting-set, with m := O(s02 n2 ) points in Fnq (∵ q ≥ Ω(s0 r2 )),
+        for the set of polynomials P approximated by the specializations of Ψ(y, x). A universal
+        circuit construction can be found in [37, 43]. Using the above notation, we give a criterion
+        to decide whether a candidate set is a hitting-set.
+
+        I Theorem 22 (hs criterion). Set H =: {v1 , . . . , vm } ⊂ Fnq is not a hitting-set for the family
+                                                                                0
+        of polynomials P iff there is a satisfying assignment (α, β) ∈ A(ε)s × A(ε)n such that:
+        (1) ∀i ∈ [n], βi r+1 − 1 ∈ εA[ε], and
+        (2) Ψ(α, β) − 1 ∈ εA[ε], and
+        (3) ∀i ∈ [m], Ψ(α, vi ) ∈ εA[ε].
+        I Remark. The above criterion holds for algebraically closed fields A of any characteristic.
+        Thus, it reduces those hitting-set verification problems to APS as well.
+
+        Proof. First we show that: ∃x ∈ A(ε), xr+1 − 1 ∈ εA[ε] implies x ∈ A[[ε]] ∩ A(ε) (= rational
+        functions defined at ε = 0).
+            Recall the formal power series A[[ε]] and its group of units A[[ε]]∗ . Note that for any
+                                                                                                     −1
+        polynomial a = ( i0 ≤i≤d ai εi ) with ai0 6= 0, the inverse a−1 = ε−i0 · ( i0 ≤i≤d ai εi−i0 )
+                              P                                                        P
+                −i0         ∗                                                      −1         i
+                                                                                        P
+        is in ε     · A[[ε]] . This is just a consequence of the identity (1 − ε) = i≥0 ε . In other
+        words, any rational function a ∈ A(ε) can be written as an element in ε−i A[[ε]]∗ , for some
+        i ≥ 0. Thus, write x as ε−i · (b0 + b1 ε + · · · ) for i ≥ 0 and b0 ∈ A∗ . This gives
+
+           xr+1 − 1 = ε−i(r+1) (b0 + b1 ε + b2 ε2 + · · · )r+1 − 1 .
+
+        For this to be in εA[ε], clearly i has to be 0 (otherwise, ε−i(r+1) remains uncancelled);
+        implying that x ∈ A[[ε]].
+           Moreover, we deduce that br+10   − 1 = 0. Thus, condition (1) implies that b0 is one of
+        the (r + 1)-th roots of unity Zr+1 ⊂ A (recall that, since p - (r + 1), |Zr+1 | = r + 1). Thus,
+        x ∈ Zr+1 + εA[[ε]].
+                                                                                                       0
+             [⇒]: Suppose H is not a hitting-set for P. Then, there is a specialization α ∈ A(ε)s of
+        the universal circuit such that Ψ(α, x) computes a polynomial in A[ε][x] \ εA[ε][x], but still
+        ‘fools’ H, i.e.: ∀i ∈ [m], Ψ(α, vi ) ∈ εA[ε]. What remains to show is that conditions (1) and
+        (2) can be satisfied too.
+             Consider the polynomial g(x) := Ψ(α, x)|ε=0 . It is a nonzero polynomial, in A[x] of
+                                                             n
+        degree-r, that ‘fools’ H. By [42], there is a β ∈ Zr+1   such that a := g(β) is in A∗ . Clearly,
+          r+1
+        βi − 1 = 0, for all i. Consider ψ := a · Ψ(α, x). Note that ψ 0 (β) − 1 ∈ εA[ε], and
+                                                 0    −1
+
+        ψ 0 (vi ) ∈ εA[ε] for all i. Moreover, the normalized polynomial ψ 0 (x) can easily be obtained
+        from the universal circuit Ψ by changing one of the coordinates of α (eg. the incoming wires
+        of the root of the circuit). This means that the three conditions (1)-(3) can be simultaneously
+                                              0
+        satisfied by (some) (α0 , β) ∈ A(ε)s × Zr+1n
+                                                      .
+                                                                           0
+            [⇐]: Suppose the satisfying assignment is (α, β 0 ) ∈ A(ε)s × A(ε)n . As shown before,
+        condition (1) implies: βi0 ∈ Zr+1 + εA[[ε]] for all i ∈ [n]. Let us define βi := βi0 |ε=0 , for all
+        i ∈ [n]; they are in Zr+1 ⊂ A. By Condition (3): ∀i ∈ [m], Ψ(α, vi ) ∈ εA[ε].
+Z. Guo, N. Saxena, and A. Sinhababu                                                                       10:17
+
+
+   Previous calculations suggest that Ψ(α, x) is in ε−j A[[ε]][x], for some j ≥ 0. Expand the
+polynomial Ψ(α, x), wrt ε, as:
+
+     g−j (x)ε−j + · · · + ε−2 g−2 (x) + g−1 (x)ε−1 + g0 (x) + εg1 (x) + ε2 g2 (x) + . . . .
+
+Let us study Condition (2). If for each 0 ≤ ` ≤ j, polynomial g−` (x) is zero, then
+Ψ(α, β 0 )|ε=0 = 0 contradicting the condition. Thus, we can pick the largest 0 ≤ ` ≤ j such
+that the polynomial g−` (x) 6= 0.
+   Note that the normalized circuit ε` ·Ψ(α, x) equals g−` at ε = 0. This means that g−` ∈ P,
+and it is a nonzero polynomial fooling H. Thus, H cannot be a hitting-set for P and we are
+done.                                                                                      J
+
+Proof of Theorem 3. Given a prime p and parameters n, r, s in unary (wlog p - (r + 1)), fix
+a field Fq with q ≥ Ω(sr6 ). Fix the universal circuit Ψ(y, x) with n essential variables x and
+s0 := Ω(sr4 ) auxiliary variables y. Fix m := Ω(s02 n2 ).
+    For every subset H =: {v1 , . . . , vm } ⊂ Fnq solve the APS instance described by Conditions
+(1)-(3) in Theorem 22. These are (n+m+1) algebraic circuits of degree poly(srn, log p) and a
+similar bitsize. Using the algorithm from Theorem 2 it can be solved in poly(srn, log p)-space.
+    The number of subsets H is q nm . So, in poly(nm log q)-space we can go over all of them.
+If APS fails on one of them (say H) then we know that H is a hitting-set for P. Since Ψ is
+universal, for homogeneous degree-r size-s polynomials in A[x], we output H as the desired
+hitting-set.                                                                                   J
+
+I Remark. One advantage in our method compared to the one in [16] is that we can check
+whether any given set of points is a hitting-set for VPA . The method in [16] can not do
+this, as it only designed robust hitting sets. Another improvement over [16] is that in our
+case the bit-complexity of the coordinates in hitting-set points is O(log rs), whereas the
+bit-complexity of the hitting-set points in [16] is poly(n, s, r).
+
+ 6      Conclusion
+Our result on algebraic dependence testing in AM ∩ coAM gives further indication that a
+randomized polynomial time algorithm for the problem exists. Studying the following special
+case might be helpful to get an idea for designing better algorithms.
+   Given quadratic polynomials f1 , . . . , fn ∈ F2 [x1 , . . . , xn ], test if they are algebraically
+dependent in randomized polynomial time [34].
+   As indicated in this paper, approximate polynomials satisfiability, or equivalently testing
+zero-membership in the Zariski closure of the image, may have further applications to
+problems in computational algebraic geometry and algebraic complexity.
+   We know that HN is in AM over fields of characteristic zero, assuming GRH [24]. Can
+we solve AnnAtZero (or APS) in AM for fields of characteristic zero assuming GRH [22]?
+This would also imply a better hitting-set construction for VP.
+
+
+       References
+ 1     L. M. Adleman and H. W. Lenstra. Finding irreducible polynomials over finite fields. In
+       STOC, pages 350–355, 1986.
+ 2     M. Agrawal, C. Saha, R. Saptharishi, and N. Saxena. Jacobian hits circuits: Hitting-sets,
+       lower bounds for depth-D occur-k formulas & depth-3 transcendence degree-k circuits. In
+       Proceedings of the 44th ACM Symposium on Theory of Computing (STOC), pages 599–614,
+       2012. (In SICOMP special issue).
+
+
+
+
+                                                                                                         CCC 2018
+10:18   Algebraic dependencies
+
+
+         3   Manindra Agrawal, Sumanta Ghosh, and Nitin Saxena. Bootstrapping variables in algebraic
+             circuits, 2017. (To appear in 50th ACM Symposium on Theory of Computing (STOC),
+             2018). URL: https://www.cse.iitk.ac.in/users/nitin/research.html.
+         4   S. Arora and B. Barak. Computational Complexity – A Modern Approach. Cambridge
+             University Press, 2009.
+         5   László Babai. Trading group theory for randomness. In Proceedings of the seventeenth
+             annual ACM symposium on Theory of computing, pages 421–429. ACM, 1985.
+         6   M. Beecken, J. Mittmann, and N. Saxena. Algebraic Independence and Blackbox Identity
+             Testing. Inf. Comput., 222:2–19, 2013. (Conference version in ICALP 2011).
+         7   Karl Bringmann, Christian Ikenmeyer, and Jeroen Zuiddam. On algebraic branching pro-
+             grams of small width. In 32nd Computational Complexity Conference, CCC 2017, July 6-9,
+             2017, Riga, Latvia, pages 20:1–20:31, 2017.
+         8   Peter Bürgisser. The complexity of factors of multivariate polynomials. Foundations of
+             Computational Mathematics, 4(4):369–396, 2004. (Preliminary version in FOCS 2001).
+         9   Peter Bürgisser, Michael Clausen, and Amin Shokrollahi. Algebraic complexity theory,
+             volume 315. Springer Science & Business Media, 2013.
+        10   Peter Bürgisser, Ankit Garg, Rafael Mendes de Oliveira, Michael Walter, and Avi Wig-
+             derson. Alternating Minimization, Scaling Algorithms, and the Null-Cone Problem from
+             Invariant Theory. In Anna R. Karlin, editor, 9th Innovations in Theoretical Computer
+             Science Conference, ITCS 2018, January 11-14, 2018, Cambridge, MA, USA, volume 94
+             of LIPIcs, pages 24:1–24:20. Schloss Dagstuhl - Leibniz-Zentrum fuer Informatik, 2018.
+             doi:10.4230/LIPIcs.ITCS.2018.24.
+        11   Laszlo Csanky. Fast parallel matrix inversion algorithms. SIAM Journal on Computing,
+             5(4):618–623, 1976. (Conference version in FOCS 1975).
+        12   Harm Derksen and Gregor Kemper. Computational invariant theory. Springer, 2015.
+        13   Z. Dvir, A. Gabizon, and A. Wigderson. Extractors and rank extractors for polynomial
+             sources. Comput. Complex., 18(1):1–58, 2009. (Conference version in FOCS 2007).
+        14   Zeev Dvir. Extractors for varieties. In Proceedings of the 24th IEEE Conference on Com-
+             putational Complexity (CCC), pages 102–113, 2009.
+        15   Richard Ehrenborg and Gian-Carlo Rota. Apolarity and canonical forms for homogeneous
+             polynomials. European Journal of Combinatorics, 14(3):157–181, 1993.
+        16   Michael A. Forbes and Amir Shpilka. A PSPACE construction of a hitting set for the
+             closure of small algebraic circuits. Electronic Colloquium on Computational Complexity
+             (ECCC), 24:163, 2017. (To appear in 50th ACM Symposium on Theory of Computing
+             (STOC), 2018).
+        17   Joe Harris. Algebraic Geometry: A First Course. Springer, 1992.
+        18   Robin Hartshorne. Algebraic geometry, volume 52. Springer Science & Business Media,
+             2013.
+        19   Joos Heintz and Claus-Peter Schnorr. Testing polynomials which are easy to compute. In
+             Proceedings of the twelfth annual ACM symposium on Theory of computing, pages 262–272.
+             ACM, 1980.
+        20   Aubrey W Ingleton. Representation of matroids. Combinatorial mathematics and its ap-
+             plications, 23, 1971.
+        21   C. G. J. Jacobi. De determinantibus functionalibus. J. Reine Angew. Math., 22(4):319–359,
+             1841.
+        22   N. Kayal. The Complexity of the Annihilating Polynomial. In Proceedings of the 24th
+             Annual IEEE Conference on Computational Complexity (CCC), pages 184–193, 2009.
+        23   Neeraj Kayal and Nitin Saxena. Complexity of ring morphism problems. computational
+             complexity, 15(4):342–390, 2006.
+Z. Guo, N. Saxena, and A. Sinhababu                                                                    10:19
+
+
+24   Pascal Koiran. Hilbert’s Nullstellensatz is in the polynomial hierarchy. Journal of complex-
+     ity, 12(4):273–286, 1996.
+25   János Kollár. Sharp effective Nullstellensatz. Journal of the American Mathematical Society,
+     1(4):963–975, 1988.
+26   Mrinal Kumar and Shubhangi Saraf. Arithmetic circuits with locally low algebraic rank.
+     In 31st Conference on Computational Complexity, CCC 2016, May 29 to June 1, 2016,
+     Tokyo, Japan, pages 34:1–34:27, 2016.
+27   Joseph M Landsberg. Tensors: geometry and applications, volume 128. American Math-
+     ematical Society Providence, RI, 2012.
+28   François Le Gall. Powers of tensors and fast matrix multiplication. In Proceedings of the
+     39th international symposium on symbolic and algebraic computation, pages 296–303. ACM,
+     2014.
+29   Thomas Lehmkuhl and Thomas Lickteig. On the order of approximation in approximative
+     triadic decompositions of tensors. Theoretical Computer Science, 66(1):1–14, 1989.
+30   Ernst W Mayr and Albert R Meyer. The complexity of the word problems for commutative
+     semigroups and polynomial ideals. Advances in mathematics, 46(3):305–329, 1982.
+31   Johannes Mittmann, Nitin Saxena, and Peter Scheiblechner. Algebraic independence in
+     positive characteristic: A p-adic calculus. Transactions of the American Mathematical
+     Society, 366(7):3425–3450, 2014.
+32   Ketan Mulmuley. Geometric complexity theory V: Efficient algorithms for Noether normal-
+     ization. Journal of the American Mathematical Society, 30(1):225–309, 2017.
+33   Ketan D. Mulmuley. Geometric complexity theory V: Equivalence between blackbox deran-
+     domization of polynomial identity testing and derandomization of Noether’s normalization
+     lemma. In FOCS, pages 629–638, 2012.
+34   Anurag Pandey, Nitin Saxena, and Amit Sinhababu. Algebraic independence over positive
+     characteristic: New criterion and applications to locally low algebraic rank circuits. In 41st
+     International Symposium on Mathematical Foundations of Computer Science, MFCS 2016,
+     August 22-26, 2016 - Kraków, Poland, pages 74:1–74:15, 2016. (In print, Computational
+     Complexity, 2018).
+35   O. Perron. Algebra I (Die Grundlagen). W. de Gruyter, Berlin, 1927.
+36   Arkadiusz Płoski. Algebraic dependence of polynomials after o. perron and some applic-
+     ations. Computational Commutative and Non-Commutative Algebraic Geometry, pages
+     167–173, 2005.
+37   Ran Raz. Elusive functions and lower bounds for arithmetic circuits. In Proceedings of the
+     fortieth annual ACM symposium on Theory of computing, pages 711–720. ACM, 2008.
+38   Nitin Saxena. Progress on polynomial identity testing. Bulletin of the EATCS, 99:49–79,
+     2009.
+39   Nitin Saxena. Progress on polynomial identity testing - II. Electronic Colloquium on Com-
+     putational Complexity (ECCC), 20:186, 2013. URL: http://eccc.hpi-web.de/report/
+     2013/186.
+40   Marcus Schaefer and Daniel Štefankovič. The complexity of tensor rank. Theory of Com-
+     puting Systems, Aug 2017. doi:10.1007/s00224-017-9800-y.
+41   Joachim Schmid. On the affine Bezout inequality. manuscripta mathematica, 88(1):225–232,
+     1995.
+42   J.T. Schwartz. Fast probabilistic algorithms for verification of polynomial identities.
+     J. ACM, 27(4):701–717, 1980.
+43   Amir Shpilka and Amir Yehudayoff. Arithmetic circuits: A survey of recent results and
+     open questions. Foundations and Trends in Theoretical Computer Science, 5(3–4):207–388,
+     2010.
+
+
+
+
+                                                                                                      CCC 2018
+10:20   Algebraic dependencies
+
+
+         A      From Section 2: Algebraic-Geometry
+        Let A := F be the algebraic closure of a field F. For d ∈ N+ , write Ad for the d-dimensional
+        affine space over A. It is defined to be the set Ad , equipped with the Zariski topology, defined
+        as follows: A subset S of Ad is closed iff it is the set of common zeros of some subset of
+        polynomials in A[X1 , . . . , Xd ]. For other subsets S it makes sense to consider the closure S–
+        the smallest closed set containing S. Set S is dense in Ad if S = Ad . Complement of closed
+        sets are called open.
+            A closed set is called a hypersurface (resp. hyperplane) if it is definable by a single
+        polynomial (resp. single linear polynomial).
+            Define A× := A \ {0}. Write Pd for the d-dimensional projective space over A, defined
+        to be the quotient set (Ad+1 \ {(0, . . . , 0)})/ ∼. Where (x0 , . . . , xd ) ∼ (y0 , . . . , yd ) iff there
+        exists c ∈ A× such that yi = cxi for 0 ≤ i ≤ d. The set Pd is again equipped with the
+        Zariski topology, where a subset is closed iff it is the set of common zeros of some subset of
+        homogeneous polynomials in A[X0 , . . . , Xd ]. We use (d + 1)-tuples (x0 , . . . , xd ) to represent
+        points in Pd .
+            Closed subsets of Ad or Pd are also called algebraic sets or zerosets. An algebraic set is
+        irreducible if it cannot be written as the union of finitely many proper algebraic sets. An
+        irreducible algebraic subset of an affine (resp. projective) space is also called an affine variety
+        (resp. projective variety). (In some references, varieties are not required to be irreducible,
+        but in this work we always assume it.) An algebraic set V can be uniquely represented as
+        the union of finitely many varieties, and these varieties are called the irreducible components
+        of V .
+            Affine zerosets (resp. varieties) are in 1-1 correspondence with radical (resp. prime) ideals.
+        Irreducible decomposition of an affine variety mirrors the factoring of an ideal into primary
+        ideals. Finally, note that the affine points are in 1-1 correspondence with maximal ideals; it
+        is a simple reformulation of Hilbert’s Nullstellensatz.
+             The affine space Ad may be regarded as a subset of Pd via the map (x1 , . . . , xd ) 7→
+        (1, x1 , . . . , xd ). Then the subspace topology of Ad induced from the Zariski topology of Pd is
+        just the Zariski topology of Ad . The set Pd \ Ad is the projective subspace of Pd defined by
+        X0 = 0, called the hyperplane at infinity.
+             For an algebraic subset V of Ad ⊆ Pd , the smallest algebraic subset V 0 of Pd containing
+        V (i.e. the intersection of all algebraic subsets containing V ) is the projective closure of
+        V , and we have V 0 ∩ Ad = V . To see this, note that for P = (x1 , . . . , xd ) ∈ Ad \ V , there
+        exists a polynomial Q ∈ A[X1 , . . . , Xd ] of degree D ∈ N not vanishing on P (but vanishing
+        on V ). Then its homogenization Q0 ∈ A[X0 , . . . , Xd ], defined by replacing each monomial
+                Qd                  D−deg(M ) Qd
+        M = i=1 Xidi by X0                           di
+                                                                                                             / V 0.
+                                               i=1 Xi , does not vanish on (1, x1 , . . . , xd ). So, (1, x) ∈
+            For distinct points P = (x0 , . . . , xd ), Q = (y0 , . . . , yd ) ∈ Pd , write P Q for the projective
+        line passing through them, i.e., P Q consists of the points (ux0 + vy0 , . . . , uxd + vyd ), where
+        (u, v) ∈ A2 \ {(0, 0)}.
+            The dimension of a variety V is defined to be the largest integer m such that there exists
+        a chain of varieties ∅ ( V0 ( V1 ( · · · ( Vm = V . More generally, the dimension of an
+        algebraic set V , denoted by dim V , is the maximal dimension of its irreducible components.
+        Eg. we have dim Ad = dim Pd = d. The dimension of the empty set is −1 by convention.
+        One dimensional varieties are called curves.
+           The degree of a variety V in Ad (resp. Pd ) is the number of intersections of V with a
+        general affine subspace (resp. projective subspace) of dimension d − dim V . More generally,
+        we define the degree of an algebraic set V , denoted by deg(V ), to be the sum of the degrees
+Z. Guo, N. Saxena, and A. Sinhababu                                                                              10:21
+
+
+of its irreducible components. The degree of an algebraic subset of Ad coincides with the
+degree of its projective closure in Pd .
+    Suppose V ⊆ Ad is an algebraic set, defined by polynomials f1 , . . . , fk . Let (a1 , . . . , ad ) ∈
+  d
+A . Then the set {(x1 + a1 , . . . , xd + ad ) : (x1 , . . . , xd ) ∈ V } is called a translate of V . It is
+also an algebraic set, defined by fi (X1 − a1 , . . . , Xd − ad ), i = 1, . . . , k.
+     Let V ⊆ An , W ⊆ Am be affine varieties. A morphism from V to W is a function
+f : V → W that is a restriction of a polynomial map An → Am . A morphism f : V → W is
+called dominant if Im(f ) = W . The preimage of a closed subset under a morphism is closed
+(i.e. morphisms are continuous in the Zariski topology).
+     For a polynomial map f : An → Am and an affine variety V ⊆ An , W := f (V ) is also an
+affine variety (i.e., it is irreducible). To see this, assume to the contrary that W is the union
+of two proper closed subsets W1 and W2 . By the definition of closure, f (V ) is not contained
+in either W1 or W2 , i.e., it intersects both. Then f −1 (W1 ) ∩ V and f −1 (W2 ) ∩ V are two
+proper closed subsets of V , and their union is V . This contradicts the irreducibility of V .
+    The graph Γf of a morphism f is the set {(x, f (x)) : x ∈ V } ⊆ V × W ⊆ An × Am . Here
+V × W = {(x, y) : x ∈ V, y ∈ W } denotes the product of V and W , which is a subvariety
+of the (n + m)-dimensional affine space An × Am ∼             = An+m . Note the graph Γf is closed in
+A × A : Suppose f sends x ∈ V to (f1 (x), . . . , fm (x)) ∈ Am , where fi ∈ A[X1 , . . . , Xn ] for
+  n      m
+
+i ∈ [m]. And suppose V is defined by an ideal I ⊆ A[X1 , . . . , Xn ]. Then Γf is defined by the
+ideal of A[X1 , . . . , Xn , Y1 , . . . , Ym ] generated by I and the polynomials Yi − fi (X1 , . . . , Xn ),
+i = 1, . . . , m.
+
+ B      From Section 4
+I Example 23. Let m = 4, (f1 , f2 , f3 , f4 ) = (X1 , X2 , X1 X2 − 1, X1 + X2 ). Then k :=
+trdegf = 2. Let (g1 , g2 , g3 ) = (f1 , f3 , f1 + f2 − f4 ) = (X1 , X1 X2 − 1, 0). Suppose Am has
+coordinates Y1 , . . . , Y4 and Ak+1 has coordinates Z1 , . . . , Z3 .
+   Then V ⊆ Am is defined by Y1 Y2 − Y3 − 1 = 0 and Y1 + Y2 − Y4 = 0, and W is defined
+by Y1 = 0, Y3 = 0, and Y2 − Y4 = 0. So V ∩ W = ∅. But V 0 ⊆ Ak+1 is the plane Z3 = 0,
+which contains the origin.
+
+I Example 24. Consider Example 23 but choose f4 to be X1 + X2 + 1 instead of X1 + X2 .
+Now we have g3 = 1, V is defined by Y1 Y2 − Y3 − 1 = 0 and Y1 + Y2 − Y4 + 1 = 0, and V 0 is
+the plane Z3 = 1. So O0 6∈ V 0 .
+     On the other hand, suppose Pm has coordinates Y0 , . . . , Y4 . Then Vc ∩ H is defined by
+Y0 = Y1 Y2 = Y1 + Y2 − Y4 = 0, and WH is defined by Y0 = Y1 = Y2 − Y4 = Y3 = 0. So
+(0, 0, 1, 0, 1) ∈ Vc ∩ WH ⊆ Vc ∩ Wc .
+
+
+
+
+                                                                                                                CCC 2018
+

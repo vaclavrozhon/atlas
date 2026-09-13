@@ -1,0 +1,898 @@
+      Goldreich’s One-Way Function Candidate and
+            Myopic Backtracking Algorithms
+
+  James Cook1 ⋆ , Omid Etesami1 ⋆⋆ , Rachel Miller2 ⋆ ⋆ ⋆ , and Luca Trevisan1 †
+                       1
+                            Computer Science Division, U.C. Berkeley
+                           {jcook,etesami,luca}@cs.berkeley.edu
+                                   2
+                                     University of Virginia
+                                rachel.an.miller@gmail.com
+
+
+
+        Abstract. Goldreich (ECCC 2000) proposed a candidate one-way func-
+        tion construction which is parameterized by the choice of a small pred-
+        icate (over d = O(1) variables) and of a bipartite expanding graph of
+        right-degree d. The function is computed by labeling the n vertices on
+        the left with the bits of the input, labeling each of the n vertices on
+        the right with the value of the predicate applied to the neighbors, and
+        outputting the n-bit string of labels of the vertices on the right.
+        Inverting Goldreich’s one-way function is equivalent to finding solutions
+        to a certain constraint satisfaction problem (which easily reduces to SAT)
+        having a “planted solution,” and so the use of SAT solvers constitutes a
+        natural class of attacks.
+        We perform an experimental analysis using MiniSat, which is one of the
+        best publicly available algorithms for SAT. Our experiment shows that
+        the running time required to invert the function grows exponentially
+        with the length of the input, and that such an attack becomes infeasible
+        already with small input length (a few hundred bits).
+        Motivated by these encouraging experiments, we initiate a rigorous study
+        of the limitations of back-tracking based SAT solvers as attacks against
+        Goldreich’s function. Results by Alekhnovich, Hirsch and Itsykson imply
+        that Goldreich’s function is secure against “myopic” backtracking algo-
+        rithms (an interesting subclass) if the 3-ary parity predicate P (x1 , x2 , x3 ) =
+        x1 ⊕ x2 ⊕ x3 is used. One must, however, use non-linear predicates in the
+        construction, which otherwise succumbs to a trivial attack via Gaussian
+        elimination.
+        We generalized the work of Alekhnovich et al. to handle a more general
+        class of predicates, and we present a lower bound for the construction
+        that uses the predicate Pd (x1 , . . . , xd ) := x1 ⊕x2 ⊕· · ·⊕xd−2 ⊕(xd−1 ∧xd )
+        and a random graph.
+
+
+  ⋆
+    Work supported by the National Science Foundation under grant No. CCF-0729137
+    and by the National Sciences and Engineering Research Council of Canada under a
+    PGS award.
+ ⋆⋆
+    Work supported by the National Science Foundation under grant No. CCF-0729137.
+⋆⋆⋆
+    Work done at U.C. Berkeley, supported by an NSF SUPERB fellowship.
+  †
+    Work supported by the National Science Foundation under grant No. CCF-0729137
+    and by the BSF under grant 2002246.
+1    Introduction
+Goldreich [11] proposed in 2000 a candidate one-way function construction
+based on expanding graphs. His construction is parameterized by the choice of
+a bipartite graph with n vertices per side and right-degree d (where d is either
+a constant independent of n, or grows very moderately as O(log n)) and of a
+boolean predicate P : {0, 1}d → {0, 1}. To compute the function, on input
+x ∈ {0, 1}n we label the vertices on the left by the bits of x, and we label each
+vertex on the right by the value of P applied to the label of the neighbors. The
+output of the function is the sequence of n labels of the vertices on the right.
+
+Goldreich’s Function and Cryptography in N C0 . A function is com-
+putable in N C0 if every bit of the output depends only on a constant number of
+bits of the input. One can see any N C0 -computable function as a generalization
+of Goldreich’s function in which the graph is allowed to be arbitrary, subject to
+having bounded right-degree, and in which different predicates can be used for
+different bits of the output.
+    Cryan and Miltersen [7] first raised the question of whether cryptographic
+primitives (their work focused on pseudorandom generators) can be computed in
+N C0 . Mossel, Shpilka and Trevisan [13] construct, for arbitrarily large constant
+c, a function f : {0, 1}n → {0, 1}cn based on a bipartite graph of right-degree 5
+and the fixed predicate P (x1 , · · · , x5 ) := x1 ⊕ x2 ⊕ x3 ⊕ (x4 ∧ x5 ), and show that
+the function computes a small-bias generator. Such a construction may in fact
+be a pseudorandom generator, and hence a one-way function.3
+    Applebaum, Ishai and Kushilevtiz [4, 5] show that, under standard assump-
+tions, there are one-way functions and pseudorandom generators that can be
+computed in N C0 ; their one-way function is computable with right-degree 3.4
+In their construction, the graph encodes the computation of a log-space machine
+computing a one-way function that is used as a primitive.
+    In this paper, we are interested in the security of Goldreich’s original pro-
+posal, implemented using a random graph and a fixed predicate.
+
+Goldreich’s Function and DPLL Algorithms. Inverting Goldreich’s one-
+way function (and, indeed, inverting any one-way function that is computable
+in N C0 ) can be seen as the task of finding a solution to a constraint satisfaction
+problem with a planted solution. A plausible line of attack against such a con-
+struction is thus to employ a general-purpose SAT solver to solve the constraint
+satisfaction problem. We performed an experimental study using MiniSat, which
+is one of the best publicly available SAT solvers, and has solved instances with
+3
+  The graph used in this construction, however, is not a random graph or a strong
+  expander graph of right-degree 5, so this is not an instantiation of Goldreich’s pro-
+  posal.
+4
+  This is the best possible, because it is easy to show that no function based on a
+  bipartite graph of right-degree 2 can be one-way, by reducing the problem of finding
+  the inverse to a 2SAT instance.
+several thousand variables. Using a random graph of right-degree 5, and the
+predicate (x1 ⊕ x2 ⊕ x3 ⊕ (x4 ∧ x5 )), we observed an exponential increase of
+the running time as a function of the input length, and an attack with MiniSat
+appears infeasible already for moderate input lengths (a few hundred bits). See
+Appendix A.
+    Our goal in this paper is to provide a rigorous justification for these experi-
+mental results, and to show that “DPLL-style” algorithms based on backtracking
+(such as most general SAT solvers) cannot break Goldreich’s construction in sub-
+exponential time. We restrict ourselves to algorithms that instantiate variables
+one at a time, in an order chosen adaptively by a “scheduler” procedure, and
+then recurse on the instance obtained by by fixing the variable to zero and then
+to the instance obtained by fixing the variable to one, or viceversa (the scheduler
+decides which assignment to try first). The recursion stops if the current partial
+assignment contradicts one of the constraints in the instance, or if we find a
+satisfying assignment.
+    When such an algorithm runs on an unsatisfiable instance, then a transcript
+of the algorithm gives a “tree-like resolution proof” of unsatisfiability; a number
+of techniques are known to prove exponential lower bounds on the size of tree-
+like resolutions proofs of unsatisfiability, and so such proofs give lower bounds
+to the running time of any such algorithm, regardless of how the scheduler is
+designed.
+    When dealing with satisfiable instances, however, one cannot prove lower
+bounds without putting some restriction on the scheduler. (If unrestricted in
+complexity, the scheduler could compute a satisfying assignment, and then assign
+the variables accordingly, making the algorithm converge in a linear number of
+steps.)
+
+
+
+The Lower Bound of Alekhnovich et al. Alekhnovich, Hirsch and Itsyk-
+son [3] consider two such restrictions: they consider (i) “myopic” algorithms in
+which the scheduler chooses which variable to assign based on only a bounded
+number of variables and clauses of the current formula, and (ii) “drunken” algo-
+rithms in which the order of variables is chosen arbitrarily by the scheduler, but
+the choice of whether to assign first zero or one to the next chosen variable is
+made randomly with equal probability. The result of the second type is proven
+for carefully designed instances, and it remains an open question to prove a
+lower bound for drunken algorithms on a random satisfiable constraint satisfac-
+tion problem. Lower bounds of the first type are proven for random instances,
+and they are proved via a reduction to the problem of certifying unsatisfiability:
+Alekhnovich et al. show that a myopic algorithm, with high probability, after
+assigning a certain number of variables will be left with an instance that is unsat-
+isfiable, but for which there is no sub-exponential size tree-like resolution proof
+of unsatisfiability. Hence the algorithm will take an exponential amount of time
+before it realizes it has chosen a bad partial assignment.
+Our Results The result of Alekhnovich et al. applies to myopic algorithms
+for random instances of 3XOR with a planted solution, and provided a lower
+bound for myopic DPLL inversion algorithms for the instantiation of Goldreich’s
+proposal using the 3XOR predicate.
+    Unfortunately, the use of 3XOR as a predicate in Goldreich’s construction
+leads to a total break via Gaussian elimination, so our goal is to extend the result
+of Alekhnovich et al. to a setting in which we have either a random predicate or
+the predicate (x1 ⊕ · · · ⊕ xd−2 ⊕ (xd−1 ∧ xd )) which is inspired by the work of
+Mossell et al.
+    In order to extend the work of Alekhnovich et al. to the setting of Goldreich’s
+one way functions, we need to make the following changes:
+
+ – The proof in [3] uses the fact that all constraints have arity 3. It is not difficult
+   to adapt it to handle linear constraints of larger constant arity, by relying on
+   the strong expansion properties which are true of random constraint graphs.
+ – The proof in [3] uses the linearity of the constraints. We show that it is
+   sufficient for the predicate to be such that it remains nearly balanced even
+   after many variables have been fixed to arbitrary values. For example, a d-
+   ary parity remains perfectly balanced even after d − 1 variables are assigned
+   arbitrary variables. The predicate (x1 ⊕ · · · ⊕ xd−2 ⊕ (xd−1 ∧ xd )) remains
+   perfectly balanced even after d − 3 variables are assigned arbitrary variables,
+   and a random predicate remains ǫ-close to balanced after any d − O(log d/ǫ)
+   variables are fixed to arbitrary values. (Those parameters are sufficient for
+   our proof to go through.)
+ – The proof in [3] assumes that there is a unique solution, and this is not true
+   in our setting. We show that the proof carries over if one assumes that the
+   total number of pairs x, y such that f (x) = f (y) is at most 2(1+ǫ)n for small
+   ǫ. We are able to show that such a condition is satisfied by the predicate
+   (x1 ⊕ · · · ⊕ xd−2 ⊕ (xd−1 ∧ xd )) and by the choice of a highly-expanding
+   graph, with ǫ = 2−Ω(d) . We believe that the same result holds with high
+   probability if we choose a random d-ary predicate, but we have not been
+   able to prove it.
+
+      With such results, we are able to show an exponential lower bound for myopic
+algorithms in a construction that uses a random graph and the predicate (x1 ⊕
+· · · ⊕ xd−2 ⊕ (xd−1 ∧ xd )). If we consider the construction that uses a random
+graph and a random predicate, then we have a conditional exponential lower
+bound under the assumption that the resulting function is nearly injective.
+
+Goldreich’s Analysis Goldreich [11] considered the following algorithm for
+computing x given y = f (x). The algorithm proceeds in n steps, revealing the
+output bits one at a time. Let Ri be the set of inputs connected to the first i
+outputs. Then in the ith step, the algorithm computes the list Li of all strings
+in {0, 1}Ri which are consistent with the first i bits of y. Goldreich proves that
+if the graph satisfies an expansion condition, then for a random input x, the
+expected size of one of the sets Li is exponentially large.
+    Since Goldreich’s algorithm is forced to consider all consistent assignments
+to the bits in each set Ri , it takes no less time than a (myopic) backtracking
+algorithm that chooses the input bits in the same order, and possibly much more
+time. For this reason, our new lower bounds are more general.
+
+
+Open Questions We believe that there is motivation for further experimental
+and rigorous analysis of Goldreich’s construction.
+    The main limitation of the present work is the somewhat artificial setup
+of myopic algorithms, which fails to capture certain natural “global” heuristics
+used in SAT solvers. Since the algorithm is required to work only with partial
+information on the object given as an input, negative results for myopic algo-
+rithms are similar in spirit (but very different technically) to results on “space
+bounded cryptography.” It would be very interesting to have a lower bounds for
+drunken algorithms, which are restricted in a way that is more computational
+than information-theoretic. As a first step, it would be interesting to show that
+drunken algorithms take exponential time to find planted solutions in a random
+3XOR instance.
+    It would also be interesting to show that no “variation of Gaussian elim-
+ination” can invert Goldreich’s function when non-linear predicates are used.
+Unfortunately it is not clear how to even formalize such a statement.
+
+
+2     Preliminaries
+
+2.1    Goldreich’s Function
+
+Goldreich [11] constructs a function f : {0, 1}n → {0, 1}n parameterized by a
+d-ary predicate P and a bipartite graph G = (V, E) connecting n input nodes ui
+on the left to n output nodes vi on the right. The output nodes all have degree
+d. To compute the function, on input x ∈ {0, 1}n, we label the input nodes with
+the bits of x, and label each output node by the value of P applied to the labels
+of its neighbors. The output of the function is the sequence of n labels of the
+output nodes. For example, if the neighborhood of vi is {uj1 , uj2 , . . . , ujd }, then
+
+                           (f (x))i = P (xj1 , xj2 , . . . , xjd ).
+
+   We denote by A the n × n matrix adjacency matrix of G, whose columns
+correspond to input nodes and whose rows correspond to output nodes:
+                                       (
+                                           1 (uj , vi ) ∈ E
+                              Aij =                          .
+                                           0 (uj , vi ) 6∈ E
+
+    Goldreich suggests using a random predicate P , and a graph G with expan-
+sion properties.
+2.2   Myopic Backtracking Algorithms
+
+We consider the class of algorithms that might invert Goldreich’s function by
+backtracking.
+   First, we need a notion of a partial truth assignment.
+
+Definition 2.1 (partial assignment) Taken from [2]. A partial assignment is
+a function ρ : [n] → {0, 1, ∗}. Its set of fixed variables is Vars(ρ) = ρ−1 ({0, 1}).
+Its size is defined to be |ρ| = |Vars(ρ)|. Given f : {0, 1}n → {0, 1}n, the restric-
+tion of f by ρ, denoted f |ρ , is the function obtained by fixing the variables in
+Vars(ρ) and allowing the rest to vary.
+
+Definition 2.2 A backtracking algorithm for solving an equation f (x) = b for
+x is defined by two procedures N and T. N takes a partial assignment ρ and
+returns the index of a new variable N(ρ) ∈ [n] to assign, and T chooses a truth
+value T(ρ) ∈ {0, 1} for xN(ρ) . More precisely, the algorithm has the form:
+
+ – Initialize ρ to the empty truth assignment (∗, ∗, . . . , ∗).
+ – While not all variables in ρ are fixed,
+     • j ← N(ρ).
+     • Update ρ by assigning xj the truth value T(ρ).
+     • If there is row i such that f (ρ)i is determined by ρ but f (ρ)i 6= bi then
+       backtrack.
+
+   We study a special class of backtracking algorithms which we call myopic
+backtracking algorithms, after [1].
+
+Definition 2.3 A myopic backtracking algorithm for f (x) = b is a backtracking
+algorithm where procedures N and T are restricted in that they are not allowed to
+see all the output bits in vector b. More precisely, myopic backtracking algorithm
+of parameter K have the following properties:
+
+ – In the beginning of the algorithm, the algorithm does not have the value of
+   any of b.
+ – At each step of fixing a new variable, the algorithm is allowed to ask the value
+   of K output bits corresponding to K equations chosen by the algorithm.
+ – When we backtrack from a step we have already taken, we lose the value of
+   the output bits that were revealed to us at that step.
+
+Thus, in the middle of the algorithm, when the partial assignment is ρ, the algo-
+rithm sees the values of K|Vars(ρ)| output bits, and the outputs of procedures N
+and T are allowed to depend only on these K|Vars(ρ)| output bits. But notice
+that procedures N and T can use the structure of the function f ; they have
+restricted access to only b.
+    Notice that in the above definitions, there is no restriction on the computa-
+tional complexity of procedures N and T. Therefore without the myopic con-
+straint, there is no way to prevent T from guiding the algorithm immediately
+towards the correct solution.
+    The work in [3] gives a lower bound for myopic backtracking algorithms
+for SAT instances. They translate a system of linear equations Ax = b into a
+CNF formula. Similarly, for inverting Goldreich’s function f (x) = b for a fixed
+b ∈ {0, 1}n, we can define a d-CNF formula Φb (x) which is logically equivalent
+to the statement f (x) = b. The i-th bit of b translates to a set of at most 2d
+clauses that enforce the constraint P (xSi ) = bi . Then the problem of inverting
+f can be reduced to finding a solution to the SAT instance Φb . Notice that (my-
+opic) backtracking algorithms for solving Φb are similar to (myopic) backtracking
+algorithms for solving f (x) = b.
+    In [3] the authors consider a notion of myopic backtracking algorithms that
+is slightly more powerful, called myopic DPLL algorithms after [12, 8, 1], which
+might get more information about b using two new rules called Unit Clause Prop-
+agation and Pure Literal Elimination. It can be seen that when the equations of
+f (x) = b are linear, these two rules do not give an advantage to the backtracking
+algorithm. However, the same reduction from DPLL to ordinary backtracking
+does not apply to the more general case f (x) = b which we consider. Therefore,
+in this paper we restrict ourselves to backtracking algorithms.
+
+
+2.3   Random Predicates
+
+We follow Goldreich’s suggestion in choosing P : {0, 1}d → {0, 1} uniformly at
+random. Here we define two useful properties that most random predicates have.
+
+Definition 2.4 (robust predicate) P : {0, 1}d → {0, 1} is h-robust iff every
+restriction ρ such that f |ρ is constant satisfies d − |ρ| ≤ h [2, Definition 2.2].
+For example, the predicate that sums all its inputs modulo 2 is 0-robust.
+
+Definition 2.5 (balanced predicate) P : {0, 1}d → {0, 1} is (h, ǫ)-balanced
+if, after fixing all variables but h + 1 of them,
+
+                                              1
+                             | Pr[P (x) = 0] − | ≤ ǫ.
+                                              2
+
+    For example, predicates of the form Pd (x) = x1 ⊕ · · · ⊕ xd−2 ⊕ (xd−1 ∧ xd )
+are (2, 0)-balanced and (1, 14 )-balanced. The predicate that sums all its inputs is
+(0, 0)-balanced.
+
+Lemma 2.6 A random predicate on d variables is (Θ(log dǫ ), ǫ)-balanced with
+probability 1 − exp[−poly(d/ǫ)].
+
+(We omit the proof to save space.)
+
+Corollary 2.7 A random predicate on d variables is Θ(log d)-robust with prob-
+ability 1 − exp[−poly(d)].
+2.4   Expansion Properties
+
+Let G be a bipartite graph with n nodes on each side and right-degree d. Equiv-
+alently, let A be an n × n matrix with d ones and n − d zeros in each row.
+
+Definition 2.8 (Boundary and Neighborhood) Taken from [3, Definition
+2.1].
+Let I be a set of output nodes. Its boundary, denoted ∂I, is the set of all nodes
+j ∈ U such that there is exactly one edge from j to I. The neighborhood of I,
+Γ (I) ⊆ U is the set of all nodes connected to I.
+
+Definition 2.9 (Expansion) Taken from [3, Definition 2.1].
+G (or A) is an (r, d, c)-boundary expander if for all I ⊆ V, (|I| ≤ r ⇒ |∂I| ≥
+c|I|). G (or A) is an (r, d, c)-expander if ∀I ⊆ V, (|I| ≤ r ⇒ |Γ (I)| ≥ c|I|).
+
+Lemma 2.10 Analogous to [3, Lemma 2.1].
+Every (r, d, c)-expander is an (r, d, 2c − d)-boundary expander.
+
+    Throughout our paper, we will use c to denote neighborhood expansion, and
+c′ to denote boundary expansion, with c′ = 2c − d.
+
+
+2.5   Closure Operation
+
+We define the closure of a set of input nodes, or columns of A.
+
+Definition 2.11 (closure) Analogous to [3, Definition 3.2].
+For a set of columns J ⊆ [n], define the following relation on 2[n] :
+                                                    "          #
+                                       r              [
+     I ⊢J I1 ⇐⇒ I ∩ I1 = ∅ ∧ |I1 | ≤ ∧ ∂(I1 ) \          Ai ∪ J < c/2|I1 |.
+                                       2
+                                                     i∈I
+
+Define the closure of J, Cl(J), as follows. Let G0 = ∅. Having defined Gk ,
+choose a non-empty Ik such that Gk ⊢J Ik , set Gk+1 = Gk ∪ Ik , and remove
+equations Ik from matrix A. (Fix an ordering on 2[n] to ensure a deterministic
+choice of Ik .) When k is large enough that no non-empty Ik can be found, set
+Cl(J) = Gk .
+    We omit the proofs in this section, since similar facts are proved in Section
+3 of [3].
+
+Lemma 2.12 Analogous to [3, Lemma 3.5].
+If |J| < cr
+         4 , then |Cl(J)| < 2c
+                               −1
+                                  |J|.
+
+Lemma 2.13 Analogous to [3, Lemma 3.4].
+Assume that A is an arbitrary matrix and J is a set of its columns. Denote by
+Â the
+   S matrix that results from A by removing the rows in Cl(J) and the columns
+in i∈Cl(J) Ai . If Â is non-empty then it is an (r/2, d, c/2)-boundary expander.
+Definition 2.14 From [3, Definition 3.4].
+A substitution ρ is said to be locally consistent w.r.t. the function f (x) = b if and
+only if ρ can be extended to an assignment on X which satisfies the equations
+corresponding to Cl(Vars(ρ)):
+
+                           (f (x))Cl(Vars(ρ)) = bCl(Vars(ρ))
+
+Lemma 2.15 Analogous to [3, Lemma 3.6].
+Assume that f employs a (r, d, c)-boundary expander and a h-robust predicate
+with c > 2h. Let b ∈ {0, 1}n and ρ be a locally consistent partial assignment.
+Then for any set I ⊆ [n] with |I| ≤ r/2, ρ can be extended to an assignment x
+which satisfies the subsystem (f (x))I = bI .
+
+
+3    Myopic Algorithms use Exponential Time in the
+     Average Case
+
+Theorem 3.1 Assume A is an n × n (r, d, c)-boundary expander with left and
+right degree d and that P is an (h, ǫ)-balanced predicate. Let f be Goldreich’s
+function for A and P , and assume f is M -to-one-on-average, in the sense that
+the number of pairs (x, y) such that f (x) = f (y) is at most M 2n . Let A be any
+myopic backtracking algorithm. Choose x ∈ {0, 1}n uniformly at random and let
+b = f (x). Let F = ⌈2c−d−h⌉−1, and s = F/(F +d(d−1)). Then the probability
+that A solves f (x) = b in time 2O(r(c−h)) is at most
+                                                        r/2
+                                                1 + 2ǫ
+                             M 2−s⌊ 4dK ⌋
+                                     cr
+                                                                .                 (1)
+                                                1 − 2ǫ
+
+(We can relax the degree requirement to say that A has right degree dright , and
+                              cr
+the nodes in every set of s⌊ 4dK ⌋ input nodes have average degree at most dleft ,
+where in this case s = F/(F + dleft (dright − 1)).)
+
+Applications of Theorem 3.1:
+
+ 1. Use the predicate Pd (x) = x1 ⊕ · · · ⊕ xd−2 ⊕ (xd−1 ∧ xd ) and a random
+    graph of right-degree d. Then h = Θ(1), ǫ = 0, c = d/2 + Θ(d) and r =
+    Θ(n/d). This gives F = Θ(d) and s = Θ(1/d). In Section 4, we show that
+                                    −Ω(d)
+    with high probability M = 2n2         . Furthermore, the average degree of any
+               cr
+    set of s⌊ 4dK ⌋ input nodes is at most 3d with high probability. With these
+    parameters, Theorem 3.1 says that for constant K, the myopic algorithm
+    takes time 2Θ(n) with probability 1 − 2−Cn , where C depends on d and K.
+ 2. Use a random predicate P and a random graph of right-degree d. Then with
+    high probability, P is (h, ǫ) balanced, with h = Θ(log d) and ǫ = 1/poly(d).
+                                                   −C0
+    Conditioned on the assumption M = 2nO(d ) for C0 > 2, Theorem 3.1
+    says as before that for constant K, the myopic algorithm takes time 2Θ(n)
+    with probability 1 − 2−C1 n , where C1 depends on d and K.
+   The rest of this section is devoted to proving Theorem 3.1. First in Section 3.1
+we show how it is possible to assume that after a fixed number of steps, the
+partial truth assignment ρ made by the algorithm will be locally consistent.
+Then in Section 3.2 we show that the algorithm can only have selected one of
+many possible locally consistent partial truth assignments – and for any fixed
+b ∈ {0, 1}n, most of these partial assignments will be wrong. Thus, with high
+probability, the algorithm will have selected globally inconsistent values that
+lead to an unsatisfiable formula. We then show in Section 3.3 that any resolution
+proof showing that this new formula is unsatisfiable has size 2Ω(r(c−h)) , so the
+algorithm must take that many steps before correcting its mistake.
+
+3.1   Clever Myopic Algorithms
+Without loss of generality, we allow our algorithm to be a “clever” myopic algo-
+rithm in the sense that, as defined in [3], it satisfies these two properties.
+ 1. Let J be the set of indices of all variables xj that appear in equations whose
+    output bit bi has been revealed. Then the algorithm may also read all clauses
+    in Cl(J) for free and reveal the corresponding new variables.
+ 2. The algorithm never makes stupid guesses: whenever the equations corre-
+    sponding to the revealed output bits bi determine the value of a variable xj ,
+    the algorithm will never make the wrong assignment for xj .
+Property 2 can only reduce the number of backtracking steps taken. Property 1
+is justified by the following proposition.
+Proposition 3.2 Analogous to [3, Proposition 3.1].
+                   cr
+After the first ⌊ 4dK ⌋ steps a clever myopic algorithm reads at most r/2 bits of
+b.
+Proof. At each step, the algorithm makes K clause-queries, asking for dK vari-
+able entries. This sums to at most dK(cr/4dK) = cr/4 variables, which by
+Lemma 2.12 will result in at most r/2 bits of b.                            ⊓
+                                                                            ⊔
+Once we have assumed that our algorithm is clever, the following proposition
+shows that we can further assume the algorithm only makes locally consistent
+assignments in its first ⌊cr/4dK⌋ steps.
+Proposition 3.3 Analogous to [3, Proposition 3.2].
+                    cr
+During the first ⌊ 4dK ⌋ steps the current partial assignment made by a clever
+myopic algorithm is locally consistent, and so the algorithm will not backtrack.
+Proof. This statement follows by repeated application of Lemma 2.15. Note that
+clever myopic algorithms are required to select a locally consistent choice of vari-
+ables if one is available. The proof is accomplished through induction. Initially,
+the partial assignment is empty, and so is locally consistent. For each step t
+            cr
+(with t < 4dK   ) with a locally consistent partial assignment ρt , a clever myopic
+algorithm will extend this assignment to ρt+1 which is also locally consistent if
+possible. By Lemma 2.15 it can always do so as long as |Cl(Vars(ρt ))∪{xj }| ≤ r/2
+for the newly chosen xj .                                                         ⊓
+                                                                                  ⊔
+3.2   The Probability of a Correct Guess is Small
+Now choose b randomly from the set of attainable outputs of f (x); more formally,
+let x ∼ Unif({0, 1}n ) and b = f (x). Initially, the value of b should be hidden
+from the algorithm. Whenever the algorithm reveals a clause corresponding to
+the ith row of A, the ith -bit of b should be revealed to the algorithm. We consider
+                       cr
+the situation after ⌊ 4dK  ⌋ steps of the algorithm. By Proposition 3.3, the current
+partial assignment must be locally consistent, and no backtracking will have
+                                                                             cr
+occurred. Thus, at this point in time we observe the algorithm in the ⌊ 4dK     ⌋-th
+vertex v in the leftmost branch of its backtracking tree. By Proposition 3.2, the
+algorithm has revealed at most r/2 bits of b.
+    Define random variable Iv ⊆ [n] to be the set of output bits revealed after
+   cr
+⌊ 4dK ⌋ steps. Similarly define random variable ρv to be the the partial truth
+assignment given by the algorithm at that time. Define Rv = Vars(ρv ). Hence
+           cr
+|Rv | = ⌊ 4dK ⌋.
+Definition 3.4 Let I ⊆ [n], R ⊆ [n], ι ∈ {0, 1}I and ρ ∈ {0, 1}R . We say
+(I, R, ι, ρ) is a consistent state if
+
+                   Pr[Iv = I ∧ Rv = R ∧ bIv = ι ∧ ρv = ρ] > 0.
+
+Put another way, (I, R, ι, ρ) is a consistent state iff there exists some x ∈ {0, 1}n
+                   cr
+such that after ⌊ 4dK ⌋ steps, I is exactly the set of revealed bits, R is exactly the
+set of assigned variables, ρ is the values assigned those variables, and bI = ι.
+Our first attempt at a proof is to show that there are many choices for ρv that
+are locally consistent. Intuitively, if the number of those possible choices for ρ is
+large compared to M , we expect the algorithm to make the wrong choice with
+high probability. This line of reasoning would need a result of the following form.
+Lemma 3.5 Analogous to [3, Lemma 3.10].
+Assume that an n × n matrix A is an (r, d, c)-boundary expander and P is an
+(h, ǫ)-balanced predicate, and let f be Goldreich’s function corresponding to A
+and P . Let X̂ ⊆ [n] be a set of input variables with |X̂| < r. Choose x uniformly
+at random from {0, 1}n and let b = f (x). Let Y ⊆ [n] be a set of output variables,
+|Y | < r. For i ∈ Y let ℓi be the constraint (f (x))i = bi , and let L = {ℓi : i ∈ Y }.
+Denote by L the set of partial assignments who assign values to the variables in
+X̂ and can be extended to complete truth assignments that satisfy L.
+     Let s be defined as in Theorem 3.1. Then log |L| ≥ s|X̂|.
+In fact, our proof requires the following stronger lemma instead of Lemma 3.5,
+which states that conditioned on what the algorithm has seen, the minimum
+entropy of xRv is high.
+
+Lemma 3.6 Let x, X̂, L, and s be as in Lemma 3.5. Then for any x̂ ∈ {0, 1}|X̂| ,
+                                                                  |L|
+                                             −s|X̂|       1 + 2ǫ
+                      Pr[x|X̂| = x̂|L] ≤ 2                                .
+                                                          1 − 2ǫ
+We postpone the proof of Lemma 3.6 (and do not prove Lemma 3.5, since we do
+not use it). We are now prepared to complete the proof of the main theorem.
+Proof (Theorem 3.1). Our goal is to bound the probability of the following event:
+
+                                     E = {ρv ∈ (f −1 (b))Rv }.
+
+We first condition on the state of the algorithm, considering all consistent states
+in the sense of Definition 3.4:
+
+              Pr[E]
+                      X
+          =                          Pr[E|Iv = I ∧ Rv = R ∧ bIv = ι ∧ ρv = ρ]·
+              (I,R,ι,ρ) consistent
+
+                   Pr[Iv = I ∧ Rv = R ∧ bIv = ι ∧ ρv = ρ]
+          =E[Pr[E|Iv , Rv , bIv , ρv ]].
+
+Since the algorithm is deterministic and only observes the bits in bIv , the event
+[Iv = I ∧ Rv = R ∧ ρv = ρ] is implied by the event [bIv = ι] – put another way,
+if bits of b outside the set of observed bits Iv are changed, the behavior of the
+algorithm will not be affected, so the values of Iv , Rv and ρv will not change.
+This gives us:
+
+                          Pr[E]
+                        =E[Pr[E|bIv ]]
+                        =E[Pr[ρv ∈ (f −1 (b))Rv |bIv ]]
+                                                              
+                        ≤E    max |f −1 (b)| Pr[ρ∗v = xv |bIv ]
+                              ρ∗       Rv
+                               v ∈{0,1}
+
+                        ≤E[|f −1 (b)|] max ∗ Pr[ρ∗v = xv |bIv ]
+                                           Iv ,bIv ,ρv
+                                                 r/2
+                               −s        1 + 2ǫ
+                        ≤M 2                             .
+                                         1 − 2ǫ
+
+In the last step, we applied Lemma 3.6, replacing X̂ by Rv , L by Iv and x̂ by ρ.
+Note that |Iv | < r/2, so |L| < r/2 in the hypothesis of the lemma.
+    We have shown that it will be likely that ρv , though locally consistent, can
+not be extended to satisfy b, and an unsatisfiable instance will occur. In Section
+3.3, we explore the running time of backtracking algorithms on unsatisfiable
+cases to show if E does not occur, the algorithm will take time 2Ω(r(c−h)).
+
+Proof of Lemma 3.6
+Lemma 3.7 Fix any g ⊆ X̂. If each output in L has at most F = ⌈2c−d−h⌉−1
+of its d inputs in g, then ∀I ⊆ L, |∂I \ g| > h|I|.
+Proof. Consider any subset I ⊆ L. By Lemma 2.10, |∂I| ≥ (2c−d)|I|, so |∂I\g| ≥
+(2c − d − F )|I| > h|I|.
+Lemma 3.8 Fix any g ⊆ X̂. If ∀I ⊆ L, |∂I \ g| > h|I|, then any partial
+assignment ρ : g → {0, 1} can be extended to a complete assignment that satisfies
+L.
+
+Proof. We make our proof by contradiction; assume ρ cannot be extended to
+satisfy the equations in L. Let k be a minimal set of unsatisfiable equations.
+We assume our predicate is h-robust. ∀I ⊆ L, |∂I \ g| > h|I| implies that some
+equation in I must have at least h + 1 boundary elements outside of g. However,
+no equation in k should have more than h boundary variables; otherwise, those
+h + 1 boundary variables could be set to a value that satisfies that equation, and
+it should not be in the minimal set k.
+
+Lemma 3.9 Let s and F be as in Theorem 3.1. We can find g ⊆ X̂ with |g| ≥
+s|X̂|, such that no output has more than F inputs in g.
+
+Proof. Construct g using the following algorithm:
+
+ – g ← ∅.
+        (
+          F i ∈ X̂
+ – ni ←                .
+          0 i 6∈ X̂
+ – while ∃i, ni > 0,
+    • Invariant: If an output has F − a inputs in g, then for every input i
+      connected to it, ni ≤ a.
+    • g ← g ∪ {i}.
+    • ni ← ni − F .
+    • ∀j, if dist(i, j) = 2, then nj ← nj − 1.
+
+We start with F |X̂| counters, and remove on average F +dleft (dright −1) counters
+at every step. (Recall that output nodes have degree dright , and as long as |g| ≤
+    cr
+s⌊ 4dK ⌋, the average degree of g is at most dleft .) In the end,
+
+                                             F |X̂|
+                              |g| ≥                          .
+                                      F + dleft (dright − 1)
+                                                                                          ⊓
+                                                                                          ⊔
+
+Proof (Lemma 3.6). Choose g ⊆ X̂ with |g| ≥ s|X̂| as in Lemma 3.9. By
+Lemma 3.7, every subset of L has a row with at least h + 1 boundary vari-
+ables that are not in g. Therefore we can order the rows of L as ℓ1 , . . . , ℓ|L| such
+that setting Li = {ℓ1 , . . . , ℓi }, for all i we have |Γ (ℓi ) \ (Γ (Li−1 ) ∪ g)| ≥ h + 1.
+Then
+              Pr[x|g = g1 |Li+1 ] Pr[Li+1 |x|g = g1 ] Pr[x|g = g2 ]
+                                 =
+              Pr[x|g = g2 |Li+1 ] Pr[Li+1 |x|g = g2 ] Pr[x|g = g1 ]
+                                      Pr[Li |x|g = g1 ] Pr[ℓi+1 |Li , x|g = g1 ]
+                                  =
+                                      Pr[Li |x|g = g2 ] Pr[ℓi+1 |Li , x|g = g2 ]
+(Use the fact that the predicate is (h, ǫ)-balanced.)
+                                 1
+                                    2 +ǫ
+                                             Pr[Li |x|g = g1 ]
+                                           
+                              ≤ 1                              .
+                                    2 −  ǫ   Pr[Li |x|g = g2 ]
+
+Observe that
+                                  Pr[x|g = g1 |L0 ]
+                                                    = 1.
+                                  Pr[x|g = g2 |L0 ]
+      It follows that                                         |L|
+                             Pr[x|g = g1 |L]
+                                                 
+                                                     1 + 2ǫ
+                                             ≤                       .
+                             Pr[x|g = g2 |L]         1 − 2ǫ
+   Take g1 ∈ {0, 1}g that minimizes Pr[x|g = g1 |L]. There are 2|g| possible
+values for g1 , so Pr[x|g = g1 |L] ≤ 2−|g| ≤ 2−s|X̂| . For any x̂ ∈ {0, 1}X̂ ,
+
+        Pr[x|X̂ = x̂|L] ≤ Pr[x|g = x̂|g |L]
+                                                                         1      |L|
+                                          Pr[x|g = x̂|g |L]               2 +ǫ
+                        = Pr[x|g = g1 |L]                   ≤ 2−s|X̂|     1             .
+                                          Pr[x|g = g1 |L]                 2 −ǫ
+
+                                                                                            ⊓
+                                                                                            ⊔
+
+
+3.3     Backtracking Algorithms use Exponential Running Time on
+        Unsatisfiable Formulas
+
+In Section 3.2, we showed that with high probability a myopic backtracking
+algorithm will choose a partial assignment to x that cannot be extended to
+satisfy f (x) = b. We now prove that once this happens, the algorithm must run
+for exponential time:
+
+Theorem 3.10 Analogous to [3, Lemma 3.9].
+Let f be Goldreich’s function for predicate P and graph G, where G is an n ×
+n (r, d, c)-boundary expander with right-degree d and P is h-robust with h <
+c/2. Fix b ∈ {0, 1}n. Let ρ be a locally consistent partial assignment such that
+|V ars(ρ)| ≤ cr/4. If ρ cannot be extended to any input x satisfying f (x) = b,
+then every backtracking algorithm that makes the partial assignment ρ will run
+for time 2Ω(r(c−h)) .
+
+    We will make use of the following lemma from [6, Corollary 3.4]. The width
+of a resolution proof is the greatest width of any clause that occurs in it, and
+the width of a clause is the number of variables in it.
+
+Lemma 3.11 The size of any tree-like resolution refutation of a formula Ψ is
+at least 2w−wΨ , where w is the minimal width of a resolution refutation of Ψ ,
+and wΨ is the maximal width of a clause in Ψ .
+
+   Our setup and proof strategy are similar to those found in [2, Section 3]
+and [3]. [2] measures robustness in terms of ℓ, where ℓ = d − h.
+Proof (Theorem 3.10). Let I = Cl(ρ) and J = Γ (I). By Lemma 2.12 |I| ≤ r/2.
+By Lemma 2.15, ρ can be extended to another partial assignment ρ′ on variables
+xJ , such that ρ′ satisfies every equation in (f (x))I = bI . The restricted formula
+(f (x) = b)|ρ′ still encodes an unsatisfiable system f ′ (x) = b′ . The underlying
+graph G′ of f ′ is produced from G by removing every output node in I and every
+input node in J. By Lemma 2.13, G′ is an (r/2, d, c/2)-boundary expander.
+    We can express the equation f ′ (x) = b′ using a CNF formula Φ, by repre-
+senting each equation (f ′ (x))i = b′i by at most 2d clauses. The computation of
+a backtracking algorithm as it discovers that f ′ (x) = b′ is unsatisfiable can be
+translated to a tree-like resolution refutation of the formula Φ, such that the size
+of the refutation is the working time of the algorithm. Thus it is sufficient to
+show that every tree-like resolution refutation of Φ is large.
+    We say a set of equations (f ′ (x))I = b′I semantically implies a clause C iff
+every truth assignment satisfying (f (x))I = bI also satisfies C. Following [2,
+Section 3], we define the measure of C to be
+
+                             µ(C) =          min              |I|.
+                                      I:(f ′ (x))I =b′I |=C
+
+We omit the proofs of the following facts; similar facts are proved in [2].
+ 1. For any D ∈ Φ, µ(D) = 1.
+ 2. µ(∅) > r.
+ 3. µ is subadditive: if C2 is the resolution of C0 and C1 , then µ(C2 ) ≤ µ(C0 ) +
+    µ(C1 ).
+ 4. For any clause C, if r2 ≤ µ(C) ≤ r, then C has width at least (c/2−h)r
+                                                                         4   .
+1, 2 and 3 together imply that any resulation proof will result in a clause C
+whose width is between 2r and r. By 4, C has width at least (c/2−h)r
+                                                                  4    , so by
+                                            Ω(r(c−h))
+Lemma 3.11, the resolution proof has size 2           .                      ⊓
+                                                                             ⊔
+
+
+4    The Size of Pre-images of Goldreich’s Function
+In this section we prove that Goldreich’s function has pre-images sufficiently
+small for Theorem 3.1 to work.
+
+Theorem 4.1 For every degree d, let Pd (x1 , . . . , xd ) = x1 ⊕ · · · ⊕ xd−2 ⊕ (xd−1 ∧
+xd ). Choose a random graph for Goldreich’s function by connecting each output
+to d inputs chosen uniformly at random (with replacement). Then
+                                                                 −Ω(d)
+                     E[#(x, y) : f (x) = f (y)] = 2(1+2                  )n
+                                                                              ,
+
+where the expectation is over the choice of graph.
+
+Proof. For x, y ∈ {0, 1}n and i, j ∈ {0, 1}, let nij (x, y) be the number of indices k
+where xk = i and yk = j. We have n00 (x, y)+n01 (x, y)+n10 (x, y)+n11 (x, y) = n.
+   Since the input indices to the predicate are selected uniformly at random,
+the probability that a single output bit will be equal for inputs x and y is only
+                     def
+a function of αij = nij (x, y)/n. We call this function the probability of equality,
+PE(α00 , α01 , α10 , α11 ).
+    Then
+
+     E[#(x, y) : f (x) = f (y)]
+       X
+    =          Pr[f (x) = f (y)]
+        x,y∈{0,1}n
+                                                  
+                X                     n
+    =                                                Pr[f (x) = f (y)|nij ]
+     n00 +n01 +n10 +n11 =n
+                             n00 , n01 , n10 , n11
+                                                           
+                                              n
+    ≤n4         max                                           PE(α00 , α01 , α10 , α11 )n
+        α00 +α01 +α10 +α11 =1 nα00 , nα01 , nα10 , nα11
+
+    =           max            (2H(α00 ,α01 ,α10 ,α11 ) PE(α00 , α01 , α10 , α11 ))n(1+o(1))
+        α00 +α01 +α10 +α11 =1
+
+where H(αij ) is the base-2 entropy of the distribution defined by αij . Thus, it
+suffices to show that there is a constant ǫ > 0 such that for sufficiently large d,
+                           ∀αij H(αij ) + log2 PE(αij ) ≤ 1 + 2−ǫd.
+It can be shown that for the predicate Pd which we have defined,
+                                     1 + (α00 + α11 − α01 − α10 )d−2
+                      PE(αij ) ≤                                     .
+                                                    2
+Now, let p = α00 + α11 and q = α01 + α10 = 1 − p. Forcing α00 = α11 and
+α01 = α10 can only increase H(αij ), so without loss of generality, we assume
+α00 = α11 = p/2 and α01 = α10 = q/2, and prove
+                                                 1 + (p − q)d−2
+                                                               
+    ∀p ∈ [0, 1] : H(p/2, p/2, q/2, q/2) + log2                    ≤ 1 + 2−ǫd ,
+                                                        2
+or equivalently,
+               ∀q ∈ [0, 12 ] : H(q) + log2 (1 + (1 − 2q)d−2 ) ≤ 1 + 2−ǫd .
+
+We consider four cases for the value of q. (We will choose positive constants
+ǫ, ǫ1 , ǫ2 , ǫ3 suitably as we go along.)
+
+Case 1: q > ǫ1
+        H(q) + log2 (1 + (1 − 2q)d−2 ) ≤ 1 + (1 − 2ǫ1 )d−2 log2 e ≤ 1 + 2−ǫd ,
+for ǫ < − log2 (1 − 2ǫ1 ) and sufficiently large d.
+
+For the remaining three cases, q is small. Using the Taylor expansion of log2
+around 2, we get
+                                               (1 − 2q)d−2 − 1      e−2qd − 1
+           log2 (1 + (1 − 2q)d−2 ) ≤ 1 +                       ≤ 1+           .
+                                                    2 ln 2            2 ln 2
+Case 2: ǫ1 ≥ q > ǫ2 /d
+
+                                                             e−2ǫ2 − 1
+           H(q) + log2 (1 + (1 − 2q)d−2 ) ≤ H(ǫ1 ) + 1 +               ≤1
+                                                               2 ln 2
+                                                   −2ǫ2
+if we choose ǫ1 small enough that H(ǫ1 ) < 1−e
+                                            2 ln 2 .
+
+For the remaining two cases we fix ǫ2 , say ǫ2 = 12 . Now, qd ≤ 12 , and we have
+the approximation
+
+             e−2qd − 1                              qd
+H(q) + 1 +             ≤ (q log2 (1/q) + 2q) + 1 −        = q(log2 (1/q) − Θ(d)) + 1.
+               2 ln 2                              2 ln 2
+
+Case 3: ǫ2 /d ≥ q > 2−ǫ3 d
+
+For ǫ3 < ln12 and sufficiently large d: log2 (1/q) − Θ(d) < 0.
+
+
+Case 4: 2−ǫ3 d ≥ q
+
+For ǫ < ǫ3 and sufficiently large d: q log(1/q) ≤ ǫ3 d2−ǫ3 d ≤ 2−ǫd.
+   This completes our proof.                                                          ⊓
+                                                                                      ⊔
+
+
+A     MiniSat Experiment
+
+Inverting Goldreich’s function can be seen as the task of solving a constraint
+satisfaction problem with a planted solution. This suggests the use of a general-
+purpose SAT solver to solve the constraint satisfaction problem. We performed
+an experiment using MiniSat version 2.0 beta [10, 9], which is one of the best
+publicly available SAT solvers. We always use the degree-five predicate P5 (x) =
+x1 ⊕ x2 ⊕ x3 ⊕ (x4 ∧ x5 ). For each trial, we choose a new random graph of right-
+degree 5. MiniSat requires a boolean formula in conjuctive normal form as input,
+so we represent each constraint P (xj1 , xj2 , xj3 , xj4 , xj5 ) = vi by 16 clauses: one
+for each truth assignment to xj1 , · · · , xj5 that would violate the constraint.
+    We ran MiniSat on a Lenovo T61 laptop with 2GB of RAM and a 2.00GHz
+Intel T7300 Core Duo CPU. Fig. 1 plots the number of seconds taken to find
+a solution versus the input size n. The graph is plotted on a logarithmic scale.
+The time appears to grow exponentially in n.
+
+
+References
+ 1. Dimitris Achlioptas and Gregory B. Sorkin. Optimal myopic algorithms for random
+    3-SAT. In FOCS, pages 590–600, 2000.
+ 2. Michael Alekhnovich, Eli Ben-Sasson, Alexander A. Razborov, and Avi Wigderson.
+    Pseudorandom generators in propositional proof complexity. SIAM Journal on
+    Computing, 34(1):67–88, 2004.
+                      100000
+
+                       10000
+
+                        1000
+    time in seconds
+
+
+                        100
+
+                         10
+
+                          1
+
+                         0.1
+
+                        0.01
+
+                       0.001
+                               0   20   40   60   80    100   120   140   160   180
+                                                       n
+
+
+Fig. 1. Number of seconds taken by MiniSat to invert Goldreich’s function for different
+values of n. We use the degree-five predicate P5 (x) = x1 ⊕ x2 ⊕ x3 ⊕ (x4 ∧ x5 ) and a
+random bipartite graph of right-degree five.
+
+
+ 3. Michael Alekhnovich, Edward A. Hirsch, and Dmitry Itsykson. Exponential lower
+    bounds for the running time of DPLL algorithms on satisfiable formulas. J. Autom.
+    Reasoning, 35:51–72, 2005.
+ 4. Benny Applebaum, Yuval Ishai, and Eyal Kushilevitz. Cryptography in NC0.
+    SIAM J. on Computing, 36(4):845–888, 2006.
+ 5. Benny Applebaum, Yuval Ishai, and Eyal Kushilevitz. On pseudorandom genera-
+    tors with linear stretch in NC0. In APPROX-RANDOM, pages 260–271, 2006.
+ 6. Ben-Sasson and Wigderson. Short proofs are narrow–resolution made simple.
+    JACM: Journal of the ACM, 48, 2001.
+ 7. Mary Cryan and Peter B. Miltersen. On pseudorandom generators in NC0. In
+    Proceedings of MFCS’01, 2001.
+ 8. M. Davis, G. Logemann, and D. Loveland. A machine program for theorem-
+    proving. Communications of the ACM, 5:394–397, 1962.
+ 9. Niklas Eén and Armin Biere. Effective preprocessing in SAT through variable and
+    clause elimination. In Fahiem Bacchus and Toby Walsh, editors, SAT, volume 3569
+    of Lecture Notes in Computer Science, pages 61–75. Springer, 2005.
+10. Niklas Eén and Niklas Sörensson. An extensible SAT-solver. In Enrico Giunchiglia
+    and Armando Tacchella, editors, SAT, volume 2919 of Lecture Notes in Computer
+    Science, pages 502–518. Springer, 2003.
+11. Oded Goldreich. Candidate one-way functions based on expander graphs. Elec-
+    tronic Colloquium on Computational Complexity (ECCC), 7(90), 2000.
+12. M. Davis and H. Putnam. A computing procedure for quantification theory. Jour-
+    nal of the ACM, 7:201–215, 1960.
+13. Elchanan Mossel, Amir Shpilka, and Luca Trevisan. On ǫ-biased generators in
+    NC0 . Random Structures and Algorithms, 29(1):56–81, 2006.
+

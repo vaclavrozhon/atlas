@@ -1,0 +1,664 @@
+            Compact Routing Schemes with Improved Stretch
+
+                                                                       Shiri Chechik
+                                                          Microsoft Research Silicon Valley
+                                                              Mountain View CA, USA
+                                                             shiri.chechik@gmail.com
+
+
+
+ABSTRACT                                                                               upon receiving a message, to decide whether this message
+We consider the problem of compact routing in weighted                                 reached its final destination or to which of the node’s neigh-
+general undirected graphs, in which the goal is to construct                           bors this message should be sent next. In order to make
+local routing tables that allow information to be sent on                              such decisions, the node may use its own routing table and
+short paths in the network. In this paper the first im-                                the header of the message that contains the label of the final
+provement to the work of Thorup and Zwick [SPAA’01] is                                 destination and perhaps some additional information.
+presented. Specifically, we construct an improved routing                                 The stretch of a routing scheme is defined as the worst
+scheme    obtaining                                                                    case ratio between the length of the path obtained by the
+                for every k routing tables of size                                   routing scheme and the length of the shortest path between
+Õ n1/k log D , and stretch (4 − α)k − β for some absolute                             the source node and the destination node.
+constants α, β > 0, where D is the normalized diameter.                                   There are usually two key concerns in designing routing
+This provides a positive answer to a main open question in                             schemes. The first concern is to minimize the stretch of the
+this area as to the existence of a routing scheme with stretch                         routing scheme, and the second concern is to minimize the
+c · k for some constant c < 4.                                                         size of the routing tables. Much of the work on designing
+Categories and Subject Descriptors: F.2.2 Analysis of                                  routing schemes focuses on the tradeoff between these two
+Algorithms and Problem Complexity: Nonnumerical Algo-                                  concerns.
+rithms and Problems                                                                       An extreme case is when the designer is allowed to store
+                                                                                       linear size memory at the nodes. In this case it is possi-
+Keywords: compact routing, stretch factor, name indepen-
+                                                                                       ble to store a complete routing table at all nodes, i.e., for
+dent routing
+                                                                                       every node s and every destination t store the port of the
+                                                                                       neighbour of s on the shortest path from s to t. Using these
+1.    INTRODUCTION                                                                     routing tables it is possible to route messages on shortest
+   Routing is perhaps one of the most fundamental problems                             path, namely, having a stretch of 1. The clear drawback of
+in the area of distributed networking. The goal in this prob-                          this solution is that we need routing tables of size Ω(n). In
+lem is to construct a distributed mechanism that allows any                            a large network, having routing tables of size Ω(n) can be
+node in the network to send packages of data to any other                              too costly.
+node efficiently. As in all distributed algorithms, a routing                             In many cases it would be desirable to store much smaller
+scheme runs locally on every node of the network allowing                              routing tables at the price of larger stretch. We say that a
+it to forward arriving data while utilizing local information                          routing scheme is compact if the size of the routing tables is
+that is stored at the node itself. This local information is                           sub-linear in the number of nodes.
+commonly referred to as the routing table of the node.                                    Many papers deal with the tradeoff between the size of
+   Formally, a routing scheme is comprised of two phases,                              the routing tables and the stretch (e.g. [16, 5, 6, 15, 7,
+the preprocessing phase and the routing phase. In the first                            8, 13]). The first tradeoff was presented by Peleg and Upfal
+phase, the preprocessing phase, each node is assigned a rout-                          [16]. Their paper considered unweighted graph and achieved
+ing table and a small size label (poly-logarithmic in the size                         a bound on the total size of the routing tables. A tradeoff
+of the network) that are stored locally at the node. In the                            for weighted graphs with a guarentee on the maximum table
+second phase, the routing phase, the routing scheme allows                             size was later presented by Awerbuch et al. [5]. This paper
+any node to send information to any other node in a dis-                               presented a routing scheme that uses table size of Õ(n1/k )
+tributed manner. Specifically, the scheme allows every node,                           with stretch O(k2 9k ). A better tradeoff was later obtained
+                                                                                       by Awerbuch and Peleg [6]. Efficient schemes for specific
+Permission to make digital or hard copies of all or part of this work for              values of k were presented in [7, 8].
+personal or classroom use is granted without fee provided that copies are not             The best known tradeoff was achieved by Thorup and
+made or distributed for profit or commercial advantage and that copies bear            Zwick [17]. They showed a routing scheme that uses rout-
+this notice and the full citation on the first page. Copyrights for components         ing tables of size Õ(n1/k ), a stretch of 4k − 5 and labels
+of this work owned by others than ACM must be honored. Abstracting with                size of O(k log n). This routing scheme assumes that the
+credit is permitted. To copy otherwise, or republish, to post on servers or to
+redistribute to lists, requires prior specific permission and/or a fee. Request        port numbers can be assigned by the routing process. In
+permissions from permissions@acm.org.                                                  the case of fixed port model, namely, the port numbers are
+PODC’13, July 22–24, 2013, Montréal, Québec, Canada.                                   part of the input of the preprocessing phase, their labels size
+Copyright 2013 ACM 978-1-4503-2065-8/13/07 ...$15.00.
+
+
+
+
+                                                                                  33
+increases to O(k log2 n). In addition, they showed that if a            2.   PRELIMINARIES AND NOTATION
+handshaking is allowed, namely the source node and the tar-               Let us introduce some notations that will be used through-
+get node can communicate before the routing phase starts                out the text. For a graph G, denote by V (G) and E(G)
+and agree on an o(log2 n) bit header that is attached to the            respectively the sets of vertices and edges of G. Consider a
+header of all messages, then the stretch can be reduced to              rooted tree T and a node v ∈ V (T ). Denote by r(T ) the
+2k − 1. However, in many cases, it would be desirable to                root of the tree T . Let parent(v, T ) be the parent of v in
+avoid the use of handshaking, especially if the source wishes           the tree T or null in the case where v is the root of T . Let
+to send only a single message to the destination. In that               childs(v, T ) be the set of children of v in the tree T . Let
+case the overhead of establishing a handshake could be as               deg(v, T ) = |childs(v, T )|, namely, the number of children
+high as sending the original message. Thorup and Zwick’s                of v in the tree T . Let radius(T ) be the longest path from
+scheme [17] of stretch of 2k − 1 established using a hand-              r(T ) to some node in T .
+shake is essentially optimal assuming the girth conjecture of
+Erdős [9]. Erdős [9] conjectured that for every k > 1 there
+                                                                        3.   GENERAL FRAMEWORK
+are graphs with Ω(n1+1/k ) number of edges whose girth is
+at least 2k + 1. If the conjecture is true, namely, there ex-               An essential ingredient in our routing scheme is a pro-
+ists such a graph G, then any routing scheme of stretch less            cedure for routing on rooted subtrees of the graph. Given
+than 2k − 1 requires a total memory of at least Ω(n1+1/k ) on           a tree T , the procedure assigns every node v in T a label
+some subgraphs of G. Namely, relying on this conjecture it              L(v, T ) and a routing table A(v, T ). Using the label L(t, T )
+is impossible to achieve a routing scheme that uses O(n1/k )            of some node t and the routing tables A(v, T ), it is possible
+routing tables with less than 2k − 1 stretch with or without            to route to t from any node in T on their shortest (only)
+handshaking. For further lower bounds see [16, 10, 12, 18,              path in T . Thorup and Zwick presented a routing scheme
+14]. A main open problem in the area of compact routing                 on trees that uses (1 + o(1)) log n label size and these labels
+schemes is on the gap between the stretch 4k − 5 and 2k − 1             are the only information stored at the nodes. In the case
+in the case of no handshaking. In this paper, we give the               of fixed port model, namely, the port numbers are not al-
+first evidence that the asymptotically optimal stretch is less          lowed to be changed, their labels size increases to O(log2 n).
+than 4k (for the case of routing tables of size Õ(n1/k ) and no        A similar scheme was presented by Fraigniaud and Gavoille
+handshaking). This is the first improvement to the stretch-             [11].
+space tradeoff of routing scheme since the result of Thorup                 Our scheme is strongly based on Thorup-Zwick construc-
+and Zwick [SPAA’01].                                                    tion (with some new ideas). For completeness we now out-
+   A closely related variant is that of name independent rout-          line the compact routing scheme of Thorup and Zwick. For
+ing scheme. In this variant the addresses of the nodes are              a given positive integer k, construct the sets V = A0 ⊇ A1 ⊇
+fixed, namely, they are part of the input network and cannot            · · · ⊇ Ak−1 ⊇ Ak = ∅ as follows. Each Ai for 1 ≤ i ≤ k − 1
+be changed by the routing scheme. The problem of name in-               is obtained by sampling the nodes in Ai−1 independently at
+dependent routing was extensively studied. The first trade-             random with probability (n/ ln n)−1/k . The pivot pi (v) is
+off was presented by Awerbuch et al. [4]. They presented                defined to be the closest node to v in Ai (break ties arbi-
+a compact name independent routing scheme with stretch                  trarily).
+that is exponential in k. This was followed by a series of im-              The bunch B(v) of v is defined as follows. A node w ∈
+provements [6, 5, 3, 2, 1]. In [1], Abraham et al. presented            Ai \ Ai+1 is added to B(v) if dist(v, w) ≤ dist(v, Ai+1 ).
+                                                                        Namely,
+a name independent routing scheme that uses Õ(n1/k log D)
+with O(k) stretch, where D is the normalized diameter.                            k−1
+                                                                                  [
+   All of our sizes, unless mentioned otherwise, are measured            B(v) =         {w ∈ Ai \ Ai+1 | dist(v, w) < dist(v, Ai+1 )}.
+in the number of words, where a word is a storage unit large                      i=0
+enough to contain any distance or an ID of a node.                      Note that dist(v, Ak ) = ∞ and thus Ak−1 ⊆ B(v).
+Our contributions: We present the first improvement on                     For a node w ∈ Ai \ Ai+1 , the cluster C(w) is defined as
+the work of Thorup and Zwick [SPAA’01] by constructing                  follows C(w) = {v ∈ V | dist(w, v) ≤ dist(v, Ai+1 )}. Or in
+a compact routing scheme in weighted general undirected                 other words, the cluster of a node w is the set of nodes v
+graphs that uses tables of size Õ(n1/k ) and has stretch c · k         such that w ∈ B(v).
+for some absolute constant c < 4, thus, obtaining improved                 For every node w ∈ V , let T (w) be the shortest path
+results for every k ≥ 4. Specifically, for k = 4 we improve             tree rooted at w spanning C(w). For every node w ∈ V ,
+the 11 stretch of Thorup and Zwick to ≈ 10.52. In order to              invoke the routing scheme on trees on T (w) and store the
+obtain this improved result we prove several structural prop-           label L(v, T (w)) at the routing table AT Z (v) of v. The label
+erties on the Thorup and Zwick construction which might                 LT Z (v) of v is the concatenation of L(v, T (pi (v))) for 1 ≤
+be of independent interest.                                             i ≤ k − 1. This completes the construction of the routing
+Paper Organization: Section 2 contains preliminaries and                tables and the labels.
+notations. In Section 3 we present the general framework                   It was shown in [17] that for every node v, |B(v)| =
+used in the paper. In order to simplify presentation, we start
+                                                                        O(n1/k log n), namely there are st most O(n1/k log n) nodes
+by focusing on the case where k = 4 in Section 4. Section
+                                                                        w such that v ∈ C(w). We get that |AT Z (v)| = O(n1/k log3 n).
+5 contains the case of general k. For simplicity, we start
+                                                                        The size of the label LT Z (v) is O(k log2 n) (we have to use
+by describing the scheme for unweighted graphs and later
+                                                                        the fixed port model since the trees may overlap).
+(in Section B) describe the modifications needed in order to
+                                                                           The routing process is done as follows. Assume some node
+handle weighted graphs.
+                                                                        s wants to send a message to some node t given the label
+                                                                        LT Z (t). The node s finds the first index i such that pi (t) ∈
+                                                                        B(s), or in other words that s ∈ T (pi (t)) and then it routes
+
+
+
+                                                                   34
+the message to t on the tree T (pi (t)) using L(t, T (pi (t)))                 Lemma 4.1. Consider a tree T of depth d0 , a set of nodes
+(⊆ LT Z (t)).                                                               core(T ) ⊆ V (T ) such that r(T ) ∈ core(T ), |core(T )| ≥
+   Thorup and Zwick showed that the above scheme gives a                    d|V (T )|/n1/k e and |V (T )| ≤ n2/k . One can construct a
+stretch of 4k − 3. The proof of the stretch was based on the                search scheme with the following properties.
+following claim. Let i be the first index such that pi (t) ∈                (1) The scheme stores O(n1/k log2 n) information ST(v, T )
+B(s) and let d = dist(s, t). For every j ≤ i, dist(t, pj (t)) ≤             at every node v ∈ core(T ).
+2jd and dist(s, pj (s)) ≤ (2j − 1)d.                                        (2) Given a key key the algorithm can find L(key, T ) (or de-
+   Note that the algorithm routes the message from s to t on                cides that key ∈ / V (T )) in a distributed manner by traveling
+T (pi (t)) and that dist(s, pi (t)) + dist(t, pi (t)) ≤ dist(s, t) +        on a path from the root r(T ) of length at most radius(T ).
+dist(t, pi (t)) + dist(t, pi (t)) ≤ d + 4(k − 1)d = (4k − 3)d. We
+thus get a stretch of 4k − 3.
+                                                                            Proof: The proof is by construction. Let
+   Thorup and Zwick also showed that by using a slightly
+                                                                            K = {key(v) | v ∈ V (T )}. First, the algorithm distributes
+different sampling procedure it is possible to reduce the
+                                                                            the keys K such that every node in core(T ) stores O(n1/k )
+stretch to 4k − 5. The new sampling procedure guaran-
+                                                                            keys and their matching labels. The algorithm assigns each
+tees that |C(w)| ≤ O(n1/k ) for every w ∈ A0 \ A1 . The
+                                                                            node v ∈ core(T ) an interval I(v) = [n1 , n2 ], the node v
+algorithm stores the set C(w) and the labels L(v, T (w)) for
+                                                                            stores the labels of the keys in K in the range [n1 , n2 ]. This
+every v ∈ C(w) in the table AT Z (w). In the routing process,
+                                                                            is done as follows. Order the nodes at core(T ) by some
+the algorithm checks if s ∈ A0 \ A1 and t ∈ C(s), if so it
+                                                                            order. The algorithm stores at the first node in core(T ) the
+routes the message to t in T (s). If t ∈    / C(s) then by defini-
+tion dist(t, p1 (t)) ≤ dist(s, t), (rather than dist(t, p1 (t)) ≤           first n1/k keys and their matching labels (the keys with the
+2dist(s, t)). This saves up 2 to the total stretch, resulting               smallest IDs). The algorithm then assigns to the next node
+with a stretch of 4k − 5.                                                   in core(T ) the next n1/k keys and so on.
+   In our scheme we need the following stronger property.                      Recall that |V (T )| ≤ n2/k , we get that the algorithm as-
+For every w ∈ A`−1 \ A` : |C(w)| ≤ O(n`/k ) for ` ≤ r for                   signs keys to at most n1/k nodes in core(T ), let core(T
+                                                                                                                                  ˆ     ) be
+some integer r. We thus employ this sampling procedure for                  this set of nodes. Notice also that the algorithm cannot run
+every index i and slightly change the sampling probability                  out of nodes in core(T ) as |core(T )| ≥ d|V (T )|/n1/k e.
+used in [17].                                                                  Consider a node v ∈ core(T ), Let n1 be the smallest key
+   We construct the sets Ai as follows, A0 = V, Ak = ∅ and                  assigned to v and n2 be the largest key assigned to v, the
+for each 1 ≤ i ≤ k − 1, Ai = center(G, Ai−1 , n1−i/k /log n).               interval I(v, T ) of v is [n1 ,n2 ]. Note that all keys in the
+   Procedure center operates on a given graph G, set of                     interval I(v, T ) are assigned to v. The node v stores the
+nodes A0 and a size s. It operates as follows. Initially set                keys assigned to it and their matching labels. In addition,
+A ← ∅ and W ← A0 . While W 6= ∅ do the following.                                                                          ˆ
+                                                                            the root r(T ) stores the labels of the set core(T  ) and their
+Let B 0 = sample(W, s), namely, B 0 is obtained by sampling                 matching intervals.
+every node in W independently at random with probability                       This completes the construction of our search mechanism.
+s/|W |, or B 0 = W if |W | ≤ s. Set A ← A ∪ B 0 . Let                          We now turn to describe the search algorithm for a given
+CA (w) ← {v ∈ V | dist(w, v) < dist(A, v)}, for every w ∈                   key key. We assume that the search algorithms starts at the
+A0 . Set W ← {w ∈ A0 | |C(w)| > 4n/s} . See Procedure 1                     root r(T ). Namely, the algorithm first routes the message to
+for the formal code.                                                        the root and only then it invokes the search algorithm. The
+   The following lemma is crucial in our analysis. (The proof               root r(T ) checks which of the nodes in core(T ) stores the
+is deferred to the appendix.)                                               label L(key, T ), namely, the node z whose interval contains
+                                                                            key. The root r(T ) attaches to the header of the message
+  Lemma 3.1. For every node w ∈ Ai \ Ai+1 : |C(w)| =                        the label L(z, T ) and routes the message to the node z using
+O(n(i+1)/k ). In addition, for every node v ∈ V : |B(v)| =                  L(z, T ). The node z either stores the label L(key, T ) or
+O(n1/k log n).                                                              determines that key does not exist in T . One can see that
+                                                                            the path obtained by this search mechanism is of length at
+4.    WARM-UP: THE CASE K = 4                                               most radius(T ) (until reaching the node in T containing
+                                                                            L(key, T ) or deciding that key ∈   / V (T )). We thus get that
+   In this section we present our routing scheme for the case
+                                                                            property (2) is satisfied. In addition, it is not hard to verify
+k = 4.
+                                                                            that property (1) is satisfied by construction.
+   An important ingredient in our routing algorithm is a pro-
+cedure for name-independent routing on trees inspired from                  Constructing the labels and routing tables:
+[2]. We present a name-independent routing scheme for a                        We now turn to describe the construction of the labels
+given tree T that is schematically done a follows. For a                    and routing tables in our routing scheme.
+given tree T , distribute the labels L(v, T ) for every node                   The first step of our algorithm is to assign every node
+v ∈ V (T ) among a subset of the nodes and design a search                  v ∈ V a unique identifier key(v) in the range [1..n]. Next,
+mechanism such that given key(v) can find in a distributed                  construct Thorup-Zwick routing tables and labels. The label
+manner L(v, T ), where key(v) is a unique identifier of the                 L(v) is defined as follows. Add the key key(v) to the label
+node v in [1..n].                                                           L(v). Next, add to L(v) the label LT Z (v) assigned to v by
+   Let us start with describing our search mechanism. We                    the Thorup-Zwick construction. In addition, add to L(v)
+will later see how to use this mechanism in our routing                     the distances dist(v, Pi (v)) for every 1 ≤ i ≤ k − 1.
+scheme. The search mechanism presented here is designed                        It is not hard to verify that the asymptotic sizes of the
+specifically for the case of k = 4, in the case where k > 4                 labels L(v) and LT Z (v) are the same.
+we need to use a more complicated search tree as will be                       The routing table A(v) of the node v is constructed as
+described later on. We show the following lemma.                            follows. First, add to the routing table A(v) the routing ta-
+
+
+
+
+                                                                       35
+                 Algorithm center(G(V, E), A0 , s)
+                 A ← ∅; W ← A0
+                 while W 6= ∅; do:
+                 {
+                    A ← A ∪ sample(W, s)
+                    CA (w) ← {v ∈ V | dist(w, v) < dist(A, v)}, for every w ∈ A0 ;
+                    W ← {w ∈ A0 | |C(w)| > 4n/s}
+                 }
+                 return A;
+
+
+                               Figure 1: Choosing a set of centers with small size clusters.
+
+
+ble AT Z (v) assigned to v by the Thorup-Zwick construction.              Proof: Recall that there are two main parts in the routing
+In addition, we enhance the routing tables with additional                table A(v). The first part is the routing table AT Z (v) of
+information. We now describe the additional information                   Thorup-Zwick scheme and the second part is the information
+stored at the nodes.                                                      ST(v, T (w, d0 )) of the search mechanism for every w and d0
+   For every node w ∈ V , let T (w) be the shortest path tree             such that v ∈ core(w, d0 )∪{w}. It was shown in [17] that the
+rooted at w spanning C(w). For every node w ∈ A1 \ A2                     size of AT Z (v) is O(n1/k log3 n). We left with bounding the
+and every distance d0 = (1 + )j for 1 ≤ j ≤ log D(w), where              size of the second part. By Lemma 4.2 there are O(log2 n)
+D(w) = radius(T (w)), do the following.                                   sets core(w, d0 ) such that v ∈ core(w, d0 ). By Lemma 4.1
+   The core core(w, d0 ) is obtained by sampling every node               for each such set the size of ST(v, T (w, d0 )) is O(n1/k log2 n).
+v ∈ T (w) independently at random with probability                        The lemma follows.
+4 log n/n1/k . Let T (w, d0 ) be the tree T (w) trimmed at dis-
+tance d0 , i.e., the tree that is obtained by deleting all nodes          The routing phase: We now describe the routing phase
+from T (w) that are at distance greater than d0 from w. Let               for the case k = 4.
+C(w, d0 ) be set of nodes in T (w, d0 ), i.e., all nodes v in C(w)           For a node v let ∆j (v) = dist(v, pj+1 (v)) − dist(v, pj (v)).
+such that dist(v, w) ≤ d0 .                                               Let k0 be the minimal index such that pk0 −1 (t) ∈ B(s), or 1
+   For every node w ∈ V , and every distance d0 = (1 + )j                in case either t ∈ B(s) or s ∈ B(t).
+construct the search mechanism of Lemma 4.1 on T (w, d0 )                 Let M = max{∆j (s)/2, ∆j (t)/2 | 1 ≤ j ≤ k0 − 2} ∪
+and core(w, d0 ) ∪ {w}. Add to the routing tables A(v) the                {∆0 (s), ∆0 (t)} ∪
+information ST(v, T (w, d0 )) of the search mechanism for ev-             {dist(s, pj+1 (s)) − dist(t, pj (t)) | 1 ≤ j ≤ k0 − 2}. Note
+ery v ∈ core(w, d0 ) ∪ {w}.                                               that the information needed to calculate k0 and M can be
+   This completes the construction of our labels and routing              extracted during the routing process from the label L(t) and
+tables.                                                                   the routing table A(S).
+   Let us now analyze the size of the routing tables.                        The routing phase is done as follows.
+   By Chernoff bounds we show the following.                                 First check if s ∈ A0 \ A1 and s ∈ B(t), if so route the
+                                                                          message to t on T (s) using L(t, T (s)). Note that, this infor-
+  Lemma 4.2. With high probability the following two events               mation can be extracted from s’s routing table. If s ∈ B(t)
+occur. 1. For every node w ∈ A1 \ A2 : |core(w, d0 )| ≥                   then by definition t ∈ C(s) and recall that s ∈ A0 \ A1 stores
+d|C(w)|/n1/k e. 2. For every node v ∈ V , there are at                    the set C(s) and the labels L(x, T (s)) for every x ∈ C(s) (as
+most O(log2 n) nodes w and distances d0 = (1 + )j for                    part of the Thorup-Zwick routing AT Z (s)).
+1 ≤ j ≤ log D(w) such that v ∈ core(w, d0 ).                                 Otherwise, check if either p1 (t) ∈ B(s) or p2 (t) ∈ B(s). If
+                                                                          so route the message to t on T (pi (t)) where i ∈ {1, 2} is the
+Proof: The expected size µ1 of core(w, d0 ) is
+                                                                          minimal index such that pi (t) ∈ B(s)
+µ1 = (4 log n|V (T )|)/n1/k .                                                In all other cases, check if ∆1 (t) ≤ c · M (for some pa-
+   Recall that by Chernoff’s bound, we have for a bino-                   rameter 1 < c < 2 to be fixed later on). If so, invoke the
+mial random variable X such that E[X] = µ, P r[X <                        standard Thorup-Zwick routing algorithm. Otherwise do
+(1+δ)µ] ≤ exp(µδ 2 /2). We thus get that P r[|core(w, d0 )| ≤             the following. Let d0 = (1 + )i for some index i be the
+(log n|V (T )|)/n1/k ] ≤ exp(µ) < 1/n2 . The first part follows.          minimal distance such that d0 ≥ (1 + c) · M .
+   To see the second part, recall that a node v belongs to                   Check using the search mechanism if p1 (s) ∈ B(t). This
+O(n1/k log n) clusters. For each cluster, the algorithm con-              is done by routing the message from s to p1 (s) in T (p1 (s)).
+siders O(log n) distances d0 . The probability that a node v              Then search for the key key(t) in the tree T (p1 (s), d0 ), if
+belongs to core(w, d0 ) is 4 log n/n1/k . Thus the expected               the key exists in T (p1 (s), d0 ) then route the message to t
+number µ2 of nodes w and distances d0 such that                           and quit. Otherwise if the key(t) was not found, return the
+v ∈ core(w, d0 ) is O(log2 n). By applying Chernoff bound                 message to s and invoke the standard Thorup-Zwick routing
+we get that with high probability there are at most O(log2 n)             algorithm. This completes the description of the routing
+nodes w and distances d0 such that v ∈ core(w, d0 ).                      process.
+  We thus conclude the following.                                            We now turn to analyze the stretch of our routing scheme.
+                                                                             Let d = dist(s, t). By Thorup-Zwick analysis, either both
+  Lemma 4.3. For every node v the expected size of the                    ∆0 (s) ≤ d and ∆0 (t) ≤ d, or we can route the message on
+routing table A(v) is O(n1/k log4 n).
+
+
+
+
+                                                                     36
+the exact shortest path from s to t. To see this, note that                  Finally, consider the case where ∆1 (t) > c · M . Let d0 =
+if ∆0 (s) > d, then t ∈ B(s) and the message can be routed                 (1 + )i be the minimal distance such that d0 ≥ (1 + c) · M
+from s to t on T (t) using the label L(t, T (t)), where the                for some index i.
+label L(t, T (t)) can be extracted from t’s label. Similarly, if             The algorithm searches for key(t) in the tree T (p1 (s), d0 ).
+∆0 (t) > d, then s ∈ B(t) or in other words, t ∈ C(s) and the              Recall that dist(s, p1 (s)) ≤ M . Hence the algorithm tra-
+message can be routed from s to t in T (s) using L(t, T (s)).              verses a path of at most M until reaching p1 (s), it then finds
+The label L(t, T (s)) can be extracted from s’s routing table.             L(t, T (p1 (s), d0 )) or decides that t ∈
+                                                                                                                   / T (p1 (s), d0 ) by traveling
+So assume this is not the case, namely, k0 > 1. We now show                                                  0
+                                                                           on a path of length at most d . We now need to consider two
+that M is a lower bound on the distance from s to t.                       subcases. The first subcase is when t ∈ T (p1 (s), d0 ). In that
+                                                                           case the algorithm routes the message to t in T (p1 (s), d0 ).
+  Lemma 4.4. If k0 > 1 then dist(s, t) ≥ M .                               Note that the overall path in this case is at most M +d0 +d0 +
+                                                                           dist(p1 (s), t) ≤ 3dist(s, t) + 2(1 + )(1 + c) · M ≤ 9dist(s, t).
+Proof: By the definition of k0 and the assumption that k0 >
+                                                                             The last case is when t ∈       / T (p1 (s), d0 ). Note that this
+0, we have t ∈ / B(s) and s ∈  / B(t). By the definition of B(s)
+                                                                           could happen only if dist(s, t) ≥ cM .
+and B(t), we have
+                                                                             In this case the algorithm reaches the root p1 (t), tries
+dist(s, t) ≥ dist(s, p1 (s)) = ∆0 (s) and
+                                                                           to find key(t) in T (p1 (s), d0 ) fails, returns the message to
+dist(s, t) ≥ dist(t, p1 (t)) = ∆0 (t).
+                                                                           s and then invoke the standard Thorup-Zwick algorithm.
+   We now turn to show that
+                                                                           The total path traveled by the algorithm in this case is M +
+dist(s, t) ≥ max{∆j (s)/2, ∆j (t)/2 | 1 ≤ j ≤ k0 − 2}. Note
+                                                                           2d0 + M + 11M . Since dist(s, t) ≥ cM , we get that the
+that for every j such that pj (t) ∈ / B(s), we have
+                                                                           stretch is (2d0 + 13M )/dist(s, t) ≤ (2d0 + 13M )/(cM ) ≤
+dist(s, pj+1 (s)) ≤ d + dist(t, pj (t)). Hence
+                                                                           (2(1 + )(1 + c)M + 13M )/(cM ) == 15/c + 2 + 2(1/c + 1).
+dist(t, pj+1 (t)) ≤ d + dist(s, pj+1 (s)) ≤ 2d + dist(t, pj (t)).
+Hence, d = dist(s, t) ≥ (dist(t, pj+1 (t)) − dist(t, pj (t)))/2
+                                                                                               √
+= ∆j (t)/2. In addition, we have                                             By setting c = ( 145 − 5)/4 and taking  to be small
+dist(t, pj (t)) ≤ d + dist(s, pj (s)). Hence, dist(s, pj+1 (s)) ≤          enough, we get a stretch of roughly 10.52 instead of the
+d + dist(t, pj (t)) ≤                                                      stretch 11 obtained by Thorup-Zwick’s routing scheme.
+d + d + dist(s, pj (s)). We get that d = dist(s, t) ≥
+(dist(s, pj+1 (s)) − dist(s, pj (s)))/2 = ∆j (s)/2.
+   We are left to show that dist(s, t) ≥ max{pj+1 (s)−pj (t) |             5.    THE GENERAL CASE K > 4
+1 ≤ j ≤ k0 }. Consider 1 ≤ j ≤ k0 , notice that by the                        For simplicity, we present the construction for unweighted
+definition of k0 , pj (t) ∈
+                          / B(s). We get that dist(s, pj+1 (s)) ≤          graphs, we later (in Section B) explain the modifications
+dist(s, t)+dist(t, pj (t)). Hence, dist(s, t) ≥ pj+1 (s)−pj (t),           needed to handle weighted graphs.
+as required.                                                                  Let us start with a general overview of our routing scheme
+                                                                           for general k. As in the case of k = 4, we start by con-
+   Lemma 4.4 gives us a good starting point. We already                    structing Thorup-Zwick routing tables and labels. Each
+have a lower bound on dist(s, t). Notice that in the worst                 node stores the routing table and the label assigned to it
+case, where Thorup-Zwick analysis gives a stretch of 4k − 5                by the the Thorup-Zwick scheme. As in the case of k = 4,
+is when ∆j (s) and ∆j (t) are roughly 2M for any j > 0, and                we construct a name-independent routing mechanism on the
+M is slightly smaller than dist(s, t).                                     trees T (w), by storing additional information at the nodes
+   We now turn to bound the stretch of our routing process.
+                                                                           of T (w) , while keeping the tables size Õ(n1/k ).
+ Lemma 4.5. The stretch of our routing process is at most                     Roughly speaking, the routing phase is done as follows.
+max{7 + 2c, 9, 15/c + 2 + 2(1/c + 1)}.                                    The source node s checks if the target node t satisfies
+                                                                           dist(pr (t), t) ≤ c·r·M (for some parameters r and 1 < c < 2
+Proof: First, notice that in one of the following three cases              to be fixed later on). If so, the node s invokes the standard
+the stretch of the routing process is at most 7 (instead of                Thorup-Zwick routing algorithm. Otherwise an attempt is
+11) and we are done. 1. s ∈ A0 \ A1 and s ∈ B(t). 2.                       made to route the message to t on the tree T (pj (s)) for
+p1 (t) ∈ B(s). 3. p2 (t) ∈ B(s). In the above mentioned                    some j ≤ r. This is done by first searching for the label
+cases, by following Thorup-Zwick analysis, one can show                    L(t, T (pj (s))) using the search mechanism constructed for
+that the stretch of the routing process is at most 7.                      T (pj (s)). If t ∈ T (pj (s)) then the label L(t, T (pj (s))) is
+   So assume this is not the case. Recall that by Lemma 4.4,               found using the search algorithm and the message is then
+we have                                                                    routed to t using L(t, T (pj (s))), otherwise the message is
+d = dist(s, t) ≥ max{∆j (s)/2, ∆j (t)/2 | 1 ≤ j ≤ k0 − 2} ∪                bounced back to s and s invokes the standard Thorup-Zwick
+{∆0 (s), ∆0 (t)} ∪ {dist(s, pj+1 (s)) − dist(t, pj (t)) | 1 ≤ j ≤          routing algorithm.
+k0 − 2}.                                                                      Recall that in the Thorup-Zwick analysis we have
+   Consider first the case where ∆1 (t) ≤ c · M . Recall that in           dist(pr (t), t) ≤ (2 · r − 1) · M , thus if dist(pr (t), t) ≤ c · r · M
+this case the algorithm routes the message to t on T (p3 (t)).             for small enough c then following Thorup-Zwick analysis
+Thus the length of path obtained by the routing scheme in                  we get a better stretch. Otherwise, there must be an in-
+this case is dist(s, p3 (t)) + dist(t, p3 (t)). Notice that in this        dex j such that ∆j (t) > c · M and the algorithm tries to
+case we have dist(t, p2 (t)) ≤ ∆0 (t) + ∆1 (t) ≤ M + c · M =               route the message to t on T (pj (s)) using the search mecha-
+(1 + c)M ≤ (1 + c)dist(s, t). We thus get, dist(t, p3 (t)) ≤               nism. If t ∈ T (pj (s)) then the algorithm finds L(t, T (pj (s)))
+∆0 (t)+∆1 (t)+∆2 (t) ≤ (1+c)M +2M ≤ (3+c)dist(s, t). In                    and the message is routed to t on T (pj (s)). Otherwise, the
+addition, dist(s, p3 (t)) ≤ dist(s, t) + dist(s, p3 (t)) ≤ (4 +            algorithm invokes the standard Thorup-Zwick routing al-
+c)dist(s, t). We get that dist(s, p3 (t)) + dist(t, p3 (t)) ≤              gorithm. The detour for searching the label L(t, T (pj (s)))
+(7 + 2c)dist(s, t). Hence, the stretch in this case is 7 + 2c.             and returning back to s appears to be a waste in the case
+
+
+
+
+                                                                      37
+where t ∈/ T (pj (s)), however, we show that the only case that          2(ind(T ) − 1), where ind(T ) is the minimal index such that
+t ∈/ T (pj (s)) is when dist(s, t) ≥ c · M . In this particular          |V (T )| ≤ nind(T )/k .
+case we can actually show that the Thrup-Zwick algorithm
+gives a much better stretch. Hence, even combined with the               Constructing the labels and routing tables:
+path traveled by the search algorithm, overall we still get a              We now describe the construction of the labels and routing
+smaller stretch than in the general case of the Thrup-Zwick              tables of our routing scheme. First, construct Thorup-Zwick
+analysis.                                                                routing tables and labels.
+   The search mechanism we use in this section is slightly                 The label L(v) is defined as follows (similarly as in the
+different than the one we presented for the case of k = 4.               case where k = 4). Add the key key(v) to the label L(v).
+In the general case, we are given a tree T (w) such that                 Next, add to L(v) the label LT Z (v) assigned to v by the
+|T (w)| ≤ nr/k and radius(T (w)) ≤ rρ for some distance                  Thorup-Zwick construction. In addition, add to L(v) the
+ρ and the goal is to design a search mechanism that finds                distances dist(v, Pi (v)) for every 1 ≤ i ≤ k − 1.
+the label L(t, T (w)) by traveling on a short path, where by               The routing table A(v) of the node v is constructed as fol-
+a short path we mean O(radius(T )) length. The main dif-                 lows. First, add to the routing table A(v), the routing table
+ficulty with the previous search mechanism is that in the                AT Z (v) assigned to v by the Thorup-Zwick construction. In
+general case, the node s cannot store a complete map that                addition, we enhance the routing tables with the following
+indicates which node in T (w) contains the label of t (as                additional information.
+otherwise we will have to violate the constraint that ev-                  For every node w ∈ V and distance d0 = (1 + )j for
+ery node stores Õ(n1/k ) information). In fact, it is possible          1 ≤ j ≤ log n do the following. The core core(w, d0 ) is
+                                                                         obtained by sampling every node v ∈ T (w) independently
+to show that if |T (w)| > nr/k , then in the worst case the
+                                                                         at random with probability
+algorithm must visit at least r different nodes in order to
+                                                                         min(1, 4 log n/deg(parent(v, w))) when
+find L(t, T (w)). Naively, we could partition the set of nodes
+                                                                         deg(parent(v, w)) < n1/k and with probability 4 log n/n1/k
+V (T (w)) into n1/k sets and pick n1/k nodes helpers(w) in
+                                                                         otherwise.
+T (w) and assign each such node with one of these sets. We
+                                                                           For every node w ∈ V , and every distance d0 = (1 + )j
+could partition V (T (w)) into sets in such a way that each
+                                                                         construct the search mechanism of Lemma 5.1 on T (w, d0 )
+such set S corresponds to a continuous interval I. The node
+                                                                         and core(w, d0 ) ∪ {w}. Add to the routing tables A(v) the
+w would store a map between these intervals and the cor-
+                                                                         information ST(v, T (w, d0 )) of the search mechanism for ev-
+responding nodes helpers(w). The size of each such set is
+                                                                         ery v ∈ T (w, d0 ).
+|V (T (w))|/n1/k . We could continue this process partitioning
+                                                                           This completes the construction of our labels and routing
+these sets into smaller sets until we have sets of size O(n1/k )         tables.
+that a single node can store. Using this search mechanism,                 We now turn to analyze the size of the routing tables.
+it is possible to find the label L(t, T (w)) by vising r nodes in          By Chernoff bounds we show the following two lemmas.
+T (w). However, note that naively these r nodes could be far
+away from one other (distance 2radius(T (w))), so naively                   Lemma 5.2. With high probability for every node w ∈ V ,
+this process could yield a path of length O(r·radius(T (w))).            distance d0 and node v ∈ T (w, d0 ),
+We thus pick the nodes of core(T (w)) in a more careful                  |childs(v, w) ∩ core(w, d0 )| ≥ d|childs(v, w)|/n1/k e.
+way, in order to reduce the maximum length of the path                     Lemma 5.3. With high probability for every node v,
+traveled by the search process to O(radius(T (w))) rather                |A(v)| = Õ(n1/k ).
+than O(r · radius(T (w))). We pick the nodes core(T (w))
+in such a way that for every node v ∈ T (v), |core(T ) ∩                 Proof: Recall that |B(v)| ≤ O(n1/k log n), namely, there are
+childs(v, T )| ≥ log nd|childs(v, T )|/n1/k e. At every node             at most O(n1/k log n) nodes w such that v ∈ C(w). Consider
+v ∈ core(T (w)) our search mechanism stores                              such a node w and distance d0 = (1 + )j for some 1 ≤ j ≤
+O(min{deg(parent(v, T )), n1/k }) information. We later                  log n. Let p(v, w, d0 ) be the probability that v ∈ core(w, d0 ),
+show that we can pick core(T (w)) in a way that maintain                 where p(v, w, d0 ) is min(1, 4 log n/deg(parent(v, w))) if
+the requirement that every node stores at most Õ(n1/k ) in-             deg(parent(v, w)) < 1/n1/k and 4 log n/n1/k otherwise.
+formation in total.                                                      Recall that by Lemma 5.1 the size of ST(v, T (w, d0 )) is
+   More precisely, we show the following search scheme (the              O(s(v, T ) log2 n) if v ∈ core(T ) and O(log2 n) otherwise,
+proof is deferred to the appendix).                                      where s(v, T ) = min{deg(parent(v, T )), n1/k }.
+                                                                           We get that the expected size of ST(v, T (w, d0 )) is
+                                                                         O(log2 ns(v, T ) · p(v, w, d0 ) + log2 n) = O(log2 n).
+   Lemma 5.1. Consider a tree T of depth d0 , a set of nodes
+                                                                           There are O(n1/k log2 n) nodes w such that v ∈ C(w),
+core(T ) ⊆ V (T ) such that r(T ) ∈ core(T ), and that for
+                                                                         for each such w the algorithm considers log n different dis-
+every v ∈ T (v),
+                                                                         tances d0 . Hence, the expected size of A(v) is O(n1/k log4 n).
+|core(T ) ∩ childs(v, T )| ≥ d|childs(v, T )|/n1/k e. One can            By applying Chernoff bound we can show that with high
+construct a search mechanism with the following properties.              probability, the size of A(v) is roughly its expectation, i.e.,
+1. The search mechanism stores O(s(v, T ) log2 n) data size
+                                                                         O(n1/k log4 n).
+at every node v ∈ core(T ) and at most O(log2 n) data at
+the rest of the nodes of T , where                                       The routing phase: The routing phase is done as follows.
+s(v, T ) = min{deg(parent(v, T )), n1/k }. Let ST(v, T ) be                 Let k0 be the minimal index such that pk0 −1 (t) ∈ B(s), or
+the data stored at a node v ∈ V (T ).                                    1 in case either t ∈ B(s) or s ∈ B(t).
+2. Given a key key, the algorithm can find L(key, T ) (or                   Let M = max{∆j (s)/2, ∆j (t)/2 | 1 ≤ j ≤ k0 − 2} ∪
+decides that key ∈ / V (T )) from r(T ) in a distributed man-            {∆0 (s), ∆0 (t)} ∪ {dist(s, pj+1 (s)) − dist(t, pj (t)) | 1 ≤ j ≤
+ner, by traveling on a path of length at most 3radius(T ) +              k0 − 2}. Recall that by Lemma 4.4, we have dist(s, t) ≥ M .
+
+
+
+
+                                                                    38
+   We now present the routing process. The source node s                  graphs. In the case of bounded degree graphs, one can con-
+checks if there exists an index j ≤ r such that                           struct a more efficient search mechanism while maintaining
+dist(pj+1 (t), t) − dist(pj−1 (t), t) ≥ 2cM (for some integer             the required constraints on the tables size. By using these
+r < k and number 1 < c < 2 to be fixed later on). If no such              better search mechanism we can further decrease the stretch
+index exists, s invokes the standard Thorup-Zwick routing                 to roughly 3.58k (details deferred to the full version).
+algorithm, otherwise do the following.
+   Let d0 = (1 + )i be the minimal distance such that d0 ≥               6.   CONCLUSIONS
+2M + (j − 2)cM + (2c − 1)M for some index i .
+                                                                             In this paper we provide the first improvement to the work
+   The node s tries to find L(t, T (pj (s))) using the search
+                                                                          of Thorup and Zwick[SPAA’01], presenting a compact rout-
+mechanism constructed on T (pj (s), d0 ). If the algorithm
+                                                                          ing scheme for weighted      general   undirected graphs which
+finds L(t, T (pj (s))) then the message is routed to t using                                      
+                                                                                                    1/k
+                                                                                                        
+L(t, T (pj (s))). Otherwise, the message is bounced back to               uses tables of size Õ n         and has stretch c · k for some
+s and the standard Thorup-Zwick routing algorithm is in-                  absolute constant c < 4, for every k ≥ 4. We note that it
+voked.                                                                    is possible to obtain an improved guarantee for the stretch
+   This conclude the routing process.                                     by a more careful analysis of our routing scheme. However,
+   The following lemma bound the stretch of our routing                   it seems unlikely that our scheme might allow the stretch to
+scheme.                                                                   go as low as 2k since the algorithm must ”detour“ in order to
+                                                                          find the tŠs label in the tree T (pi (s)) for some i. The main
+  Lemma 5.4. The maximum stretch obtained by our rout-                    question that still remains unresolved is to prove or disprove
+ing process is at most max{4k − 1 − 4r − 2c + 2rc, (1 + )(6 +            the existence  of a compact
+                                                                                                        routing scheme that utilizes ta-
+6rc)/(2c − 1) + (4k − 4r + 2rc − 2c + 2)/(2c − 1) + 2(r −                 bles of size Õ n1/k and has stretch of 2k without the use
+1)/M ((2c − 1)), (1 + )6(1 + rc) + 2(r − 1)/M }.
+                                                                          of a handshake.
+We need to consider few cases.
+   The simplest case is when there is no index j ≤ r such that            Acknowledgement: I’m extremely grateful to Ittai Abra-
+dist(pr (t), t)−dist(pr−2 (t), t) ≥ 2cM . In this case the algo-          ham for very helpful discussions.
+rithm invokes the standard Thorup-Zwick algorithm. Note
+that in this case we have dist(t, pr (t)) ≤ M + (r − 1)cM ,               7.   REFERENCES
+                                                                           [1] I. Abraham, C. Gavoille, and D. Malkhi. Routing with
+whereas in Thorup-Zwick analysis they have dist(t, pr (t)) ≤                   improved communication-space trade-off. In Proc. 18th
+M + 2(r − 1)M . This saves 2(r − 1)(2 − c) in the final                        Annual Conference on Distributed Computing (DISC),
+stretch. So the total stretch is 4k − 5 − 2(r − 1)(2 − c) =                    305–319, 2004.
+4k − 1 − 4r − 2c + 2rc.                                                    [2] I. Abraham, C. Gavoille, D. Malkhi, N. Nisan, and
+   Consider now the case where there exists an index j ≤ r                     M. Thorup. Compact name-independent routing with
+such that dist(pr (t), t) − dist(pr−2 (t), t) ≥ 2cM . Let d0 =                 minimum stretch. In Proc. 16th Annual ACM Symposium
+(1 + )i for some index i be the minimal distance such that                    on Parallel Algorithms and Architecture (SPAA), 20Ű-24,
+                                                                               2004.
+d0 ≥ 2M + (j − 2)cM + (2c − 1)M .
+                                                                           [3] M. Arias, L. Cowen, K. Laing, R. Rajaraman, and O. Taka,
+   There are two subcases. The first subcase is when t ∈                       Compact routing with name independence. In Proc. 15th
+T (pj (s), d0 ) and the second when t ∈   / T (pj (s), d0 ). Con-              Annual ACM Symposium on Parallel Algorithms and
+sider the first subcase. In that case the algorithm routes                     Architectures (SPAA), 184Ű-192, 2003.
+the message to t in T (pj (s), d0 ). The node s tries to find              [4] B. Awerbuch, A. Bar-Noy, N. Linial, and D. Peleg.
+L(t, T (pj (s))) using the search mechanism constructed on                     Compact distributed data structures for adaptive routing.
+T (pj (s), d0 ). The algorithm traveled to pj (s) and from pj (s)              In Proc. 21st ACM Symp. on Theory of Computing
+it tried to find L(t, T (pj (s))) using the search mechanism.                  (STOC), 479Ű-489, 1989.
+By Lemma C.1 the path traveled by the search mechanism                     [5] B. Awerbuch, A. Bar-Noy, N. Linial, and D. Peleg.
+from pj (s) until finding L(t, T (pj (s))) or deciding that t ∈  /             Improved routing strategies with succinct tables. In J.
+                                                                               Algorithms, 11(3):307–341, 1990.
+T (pj (s)) is 3d0 + 2(j − 1). Note that the overall path in this
+                                                                           [6] B. Awerbuch and D. Peleg. Sparse partitions. In Proc. 31st
+case is at most 6d0 + 2(j − 1) ≤ (1 + )6(2M + (j − 2)cM +                     IEEE Symp. on Foundations of Computer Science
+(2c − 1)M ) + 2(j − 1). The stretch in this case is at most                    (FOCS), 503–513, 1990.
+(1 + )6(1 + jc) + 2(j − 1)/M .                                            [7] L.J. Cowen. Compact routing with minimum stretch. J.
+   Consider now the subcase where t ∈      / T (pj (s), d0 ). Note             Alg., 38:170–183, 2001.
+that this could happen only if dist(s, t) ≥ (2c − 1)M . The                [8] T. Eilam, C. Gavoille, and D. Peleg. Compact routing
+total path traveled by the algorithm in this case is 6d0 +2(j −                schemes with low stretch factor. In J. Algorithms,
+1)+(M +(j −1)cM +(k−j)2M ) ≤ (1+)6(2M +(j −2)cM +                             46:97–114, 2003.
+(2c − 1)M ) + 2(j − 1) + 2(M + (j − 1)cM + (k − j)2M ) ≤                   [9] P. Erdős. Extremal problems in graph theory. In Theory of
+(1 + )M (6 + 6jc) + M (4k − 4j + 2jc − 2c + 2) + 2(j − 1).                    graphs and its applications, pages 29Ű-36, 1964.
+                                                                          [10] P. Fraigniaud and C. Gavoille. Memory requirement for
+   We know however that in this case dist(s, t) ≥ (2c − 1)M .
+                                                                               universal routing schemes. In Proc. 14th ACM Symp. on
+Hence the stretch in this case is at most (1+)(6+6jc)/(2c−                    Principles of Distributed Computing (PODC), 223–230,
+1) + (4k − 4j + 2jc − 2c + 2)/(2c − 1) + 2(j − 1)/M ((2c − 1)).                1995.
+                                                                          [11] P. Fraigniaud and C. Gavoille. Routing in Trees. In 28th
+                                                                               Int’l Coll. on Automata, Languages and Programming
+  By minimizing over r and c, one can show that the stretch                    (ICALP), 757–772, 2001.
+obtained by Lemma 5.4 is less than 3.68 · k.                              [12] C. Gavoille and M. Gengler. Space-efficiency for routing
+Graphs of bounded degree: We note that it is possible                          schemes of stretch factor three. In J. Parallel Distrib.
+to further decrease the stretch in the case of bounded degree                  Comput., 61:679–687, 2001.
+
+
+
+
+                                                                     39
+[13] C. Gavoille and D. Peleg. Compact and localized                 partition the children of every node v into log D sets such
+     distributed data structures. In Distributed Computing,          that the edges leading from v to the nodes in the same set
+     16:111–120, 2003.                                               is roughly of the same weight (up to 1 +  factor), where
+[14] C. Gavoille and C. Sommer. Sparse spanners vs. compact          D is the diameter of the graph. Each such set is handled
+     routing. In Proc. 23th ACM Symp. on Parallel Algorithms
+     and Architectures (SPAA), 225–234, 2011.                        separately, where the keys assign to each set are consecu-
+[15] D. Peleg. Distributed computing: a locality-sensitive           tive, namely belong to one continuous interval. The node v
+     approach. In SIAM, 2000.                                        stores the intervals of these log D sets and thus in the search
+[16] D. Peleg and E. Upfal. A trade-off between space and            process, the node v knows in each interval out of the log D
+     efficiency for routing tables. In J. ACM, 36(3):510–530,        intervals to search for the key. This increases the length of
+     1989.                                                           the path obtained by the search algorithm by at most a fac-
+[17] M. Thorup and U. Zwick. Compact routing schemes. In             tor of 1 +  and the size of the routing tables by at most a
+     Proc. 13th ACM Symp. on Parallel Algorithms and                 factor of log D.
+     Architectures (SPAA), 1–10, 2001.
+[18] M. Thorup and U. Zwick. Approximate distance oracles. In
+     J. ACM, 52, 1–24, 2005.
+                                                                     C.    THE SEARCH MECHANISM
+                                                                        In this section we prove Lemma 5.1.
+                                                                        Our search mechanism is operated on given tree T , and
+APPENDIX                                                             set of core nodes core(T ) ⊆ V (T ). Every node v in V (T )
+A.    SOME PROOFS                                                    has a unique key key(v) in [1..n]. The set core(T ) satis-
+                                                                     fies the following property. For every v ∈ T (v), |core(T ) ∩
+                                                                     childs(v, T )| ≥ log nd|childs(v, T )|/n1/k e. In addition, the
+Proof of Lemma 3.1:                                                  root r(T ) of the tree belongs to core(T ).
+  The proof of Lemma 3.1 is strongly based on Lemma 3.2                 The goal is to design a search mechanism such that later
+and Theorem 3.1 from [17]. We state the lemmas here for              in the routing phase it would be possible to find the label
+completeness.                                                        L(v, T ) given key(v) from any node in T by traveling on
+  Let BA (v) = {w ∈ V | dist(w, v) < dist(A, v)} and                 a “short” path. Our search scheme stores at every node
+CA (w) = {v ∈ V | dist(w, v) < dist(A, v)}.                          v ∈ core(T ) at most O(s(v, T ) log n) data where s(v, T ) =
+  Lemma A.1. Let W ⊆ V , 1 ≤ s ≤ n and let A0 ←                      min{deg(parent(v, T )), n1/k } and at most O(log n) data at
+sample(W, s), namely A0 is obtained by sampling every node           the rest of the nodes.
+in W independently at random with probability s/|W |, or                Let ST(v, T ) for some node v ∈ V (T ) be the data stored
+A0 = W if |W | ≤ s. Then, for every v ∈ V , we have                  at the node v by our search mechanism. We then show that
+E[BA0 (v) ∩ W ] ≤ |W |/s.                                            using the data stored at the nodes of the tree, it is possible
+                                                                     to find the label of a given key (or decide that this key is not
+   Theorem A.2. The expected size of the set A returned by           in T (v)) from the root r(T ) of T in a distributed manner on
+algorithm center is at most 2s log n. In addition, for every         path of length at most 3radius(T ) + 2(ind(T ) − 1), where
+w ∈ A0 , CA (w) ≤ 4n/s.                                              ind(T ) is the minimal index such that |V (T )| ≤ nind(T )/k .
+                                                                        Let us now describe our search algorithm. Let K = {key(v) |
+  By Theorem A.2, we get that |Ai | = O(n1−i/k ) for 1 ≤             v ∈ V (T )}. First the algorithm distributes the keys K such
+i ≤ k − 1.                                                           that every node stores the matching labels of O(1) keys as
+  Consider a node w ∈ Ai \ Ai+1 . By Theorem A.2, C(w) =             follows. For a node v ∈ T , let T [v] be the subtree of v in T .
+CAi+1 (w) ≤ 4n/(n1−i+1/k /log n) = 4n/(n1−(i+1)/k /log n) =             The algorithm assigns each node v an interval I(v) =
+O(log n · n(i+1)/k ).                                                [n1 , n2 ], the subtree T [v] contains the labels of the keys in K
+  We are left to show that |B(v)| = O(n1/k log n) for every          in the range [n1 , n2 ]. The root of the tree r(T ) corresponds
+v ∈V.                                                                to the interval [1..n].
+  Let Â be the set A after the first iteration of procedure            Order the children z of r(T ) by |T [z]| in non-increasing
+center when invoked on the input (G, Ai−1 , n1−i/k /log n).          order. Let z1 , ..., z` be the children of r(T ) by that order.
+  Note that Â ⊆ Ai . In addition, notice that for every two         The algorithm stores at r(T ) the first key and its matching
+sets S1 and S2 such that S1 ⊆ S2 : BS2 (v) ⊆ BS1 (v). In             label (the key with the smallest ID). The algorithm then
+particular, BAi (v) ⊆ BÂ (v). We thus have by Lemma A.1,            assigns to z1 the next |T [z1 ]| keys and to z2 the next |T [z2 ]|
+E[B(v) ∩ Ai−1 ] = E[BAi (v) ∩ Ai−1 ] ≤ E[BÂ (v) ∩ Ai−1 ] ≤          keys and so on. Let n1i be the smallest key assigned to
+|Ai−1 |/(n1−i/k /log n) = O(n1/k log n).                             zi and n2i be the largest key assigned to zi , the interval
+                                                                     of zi is [n1i ,n2i ]. The algorithm continues with this process
+                                                                     recursively until all keys are assigned.
+B.   WEIGHTED GRAPHS                                                    For a node v ∈ V (T ), let I(v) be its corresponding inter-
+   Let us explain the modifications needed to handle weighted        val. Consider a consecutive set of children S = {zj1 ...zj2 }.
+graphs. The only place in the proof where we use the fact            Let I(zj1 ) = [nl1 , nh1 ] and I(zj2 ) = [nl2 , nh2 ]. Let I[S] =
+that the graph is unweighted is in the construction of the           [nl1 , nh2 ]. Note that all keys in [nl1 , nh2 ] are stored at one of
+search mechanism. Recall that in our search mechanism,               nodes in S.
+the set of intervals of the children of some node v ∈ V (T )            We now enhance the nodes with additional information
+is stored in one of the children helper(v) of v (in the case         that will enable them to find the right label of a given key
+where the degree is smaller than n1/k ). Notice that the             later in the routing process with the desired stretch.
+weight of the edge (v, helper(v)) may be large and thus                 Ideally we would like to store in each node the intervals of
+may increase our stretch by a lot. The high level idea is to         its children. If we could that, later in the routing process ev-
+
+
+
+
+                                                                40
+ery node in the tree knows exactly to which child to forward              This completes the construction of the search tree. Let us
+the message in order to find the desired key. This way the              now turn to the searching phase. In the searching phase, the
+key could be found from the root r(T ) by traveling over a              root r(T ) wants to find the label of some key or to discover
+path of at most radius(T ) length. However this could result            that this key does not exist in K. The algorithm checks if
+in storing too much information for some nodes. Therefore,              the label of the key is stored in r(T ). If not, the algorithm
+in order to store at the nodes the desired amount of infor-             seek the child w of r(T ) such that key ∈ I(w). The node
+mation, we use the children of the nodes to store some of               r(T ) checks if it contains a reference to interval that contain
+this information.                                                       key, if so travel to the relevant child.
+   Consider a node v ∈ V (T ). Let w1 , ..., w` be the set of             Otherwise (in the case where deg(r(T ), T ) > n1/k ), the
+children of v. Let core(v) = core(T ) ∩ childs(v, T ). Let              algorithm finds the child z of r(T ) such that key ∈ I(z)
+ˆ
+I(v)  be the set of intervals of v’s children together with the         using the method presented in [1]. This process continues
+port leading from v to the child containing the relevant inter-         recursively until finding the node u that contain L(key, T )
+val. If |childs(v, T )| ≤ n1/k then pick one node helper(v)             or decides that key ∈  / V (T ).
+                        ˆ
+in core(v) and store I(v)    at helper(v). The node v stores
+the port leading to helper(v).                                             Lemma C.1. The path traversed by the algorithm until
+                                                      ˆ                 finding L(t, T ) or deciding that t ∈
+                                                                                                            / V (T ) is 3radius(T ) +
+   If |childs(v, T )| > n1/k then we cannot store I(v)     at a
+                                                                        2(ind(T ) − 1).
+single node without violating the requirement that every
+node stores Õ(n1/k ) data.                                             Proof: Consider first the case where the degree of all nodes
+   Hence in this case we use techniques from [1]. It was                in T is O(n1 /k). In that case notice that in each step the
+shown in [1] that it is possible to store O(n1/k ) data at              algorithm travel to the to one child before traveling to the
+d|childs(v, T )|/n1/k e children of v (in our case in core(T ))         child z such that key ∈ I(z). Therefore the path traversed
+such that it is possible to find the right child z of v such            by the algorithm is at most 3radius(T1 ) (for every edge
+that key ∈ I(v) while traveling to at most j children of v              e = (u, v) the algorithm traveled to a child z of u, then
+and in addition, |T [z]| ≤ |T [v]|/n(j−1)/k . The general idea          traveled back to u and continues to v, hence for each edge
+is to partition the children wj of v into n1/k sets and pick            the algorithm traveled a path of 3). In the case where we
+n1/k children of v in core(T ) and assign each such child with          have larger degrees recall that we use the method of [1] and
+one of the sets. Each child continue partitioning its sets and          as mentioned above the total increase of the length traveled
+pick other helper children of v that would be responsible for           by the search algorithm is 2(ind(T ) − 1).
+these sets, this process continue until the sets are of size at
+most n1/k and then the node just store the relevant intervals
+and matching children of v. This process give preference to
+nodes with larger subtrees. This increases the total length
+traveled by the search mechanism by at most (ind(T ) − 1),
+since each time the algorithm traveled to j children (instead
+of 1 in the case where deg(v, T ) ≤ n1/k ) of v in order to find
+the child z such that key ∈ I(z), the size of subtree of z
+decreases by at least n(j−1)/k . Thus, our searching process
+might traveled to at most ind(T ) − 1 extra children and
+thus the total path traveled by the algorithm increases by
+2(ind(T ) − 1) (the factor of 2 comes from the fact that the
+algorithm needs to travel to the child and back). For more
+details about this process we deferred the reader to [1] or to
+the full version of this paper.
+
+
+
+
+                                                                   41
+

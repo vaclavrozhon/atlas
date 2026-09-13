@@ -1,0 +1,1105 @@
+                                         Equivalence of Hidden Markov Models with
+                                         Continuous Observations
+                                         Oscar Darwin
+                                         Department of Computer Science, Oxford University, United Kingdom
+                                         Stefan Kiefer
+                                         Department of Computer Science, Oxford University, United Kingdom
+
+                                                 Abstract
+                                         We consider Hidden Markov Models that emit sequences of observations that are drawn from
+                                         continuous distributions. For example, such a model may emit a sequence of numbers, each of which
+                                         is drawn from a uniform distribution, but the support of the uniform distribution depends on the
+                                         state of the Hidden Markov Model. Such models generalise the more common version where each
+                                         observation is drawn from a finite alphabet. We prove that one can determine in polynomial time
+arXiv:2009.12978v1 [cs.LO] 27 Sep 2020
+
+
+
+
+                                         whether two Hidden Markov Models with continuous observations are equivalent.
+
+                                         2012 ACM Subject Classification Theory of computation → Random walks and Markov chains;
+                                         Mathematics of computing → Stochastic processes; Theory of computation → Logic and verification
+
+                                         Keywords and phrases Markov chains, equivalence, probabilistic systems, verification
+
+                                         Digital Object Identifier 10.4230/LIPIcs.CVIT.2016.23
+
+
+                                             1    Introduction
+                                         A (discrete-time, finite-state) Hidden Markov Model (HMM) (often called labelled Markov
+                                         chain) has a finite set Q of states and for each state a probability distribution over its possible
+                                         successor states. For any two states q, q 0 , whenever the state changes from q to q 0 , the HMM
+                                         samples and then emits a random observation according to a probability distribution D(q, q 0 ).
+                                         For example, consider the following diagram visualising a HMM:
+                                                                                                 1
+                                                                                                 2 (a)
+
+                                                                    1 1       3         q1                 q2         2
+                                                                    2 ( 4 a + 4 b)                                    3 (b)
+
+                                                                                                 1
+                                                                                                 3 (a)
+
+
+                                         In state q1 , the successor state is q1 or q2 , with probability 12 each. Upon transitioning
+                                         from q1 to itself, observation a is drawn with probability 14 and observation b is drawn with
+                                         probability 34 ; upon transitioning from q1 to q2 , observation a is drawn surely.1
+                                             In this way, a HMM, together with an initial distribution on states, generates a random
+                                         infinite sequence of observations. In the example above, if the initial distribution is the Dirac
+                                         distribution on q1 , the probability that the observation sequence starts with a is 12 · 14 + 12
+                                         and the probability that the sequence starts with ab is 21 · 14 · 21 · 34 + 12 · 23 .
+                                             In the example above the observations are drawn from a finite observation alphabet
+                                         Σ = {a, b}. Indeed, in the literature HMMs most commonly have a finite observation alphabet.
+                                         In this paper we lift this restriction and consider continuous-observation HMMs, by which
+                                         we mean HMMs as described above, but with continuous observation set Σ. For example,
+
+
+                                         1
+                                             One may allow for observations also on the states and not only on the transitions. But such state
+                                             observations can be equivalently emitted upon leaving the state. Hence we can assume without loss of
+                                             generality that all observations are emitted on the transitions.
+                                                     © John Q. Public and Joan R. Public;
+                                                     licensed under Creative Commons License CC-BY
+                                         42nd Conference on Very Important Topics (CVIT 2016).
+                                         Editors: John Q. Open and Joan R. Access; Article No. 23; pp. 23:1–23:17
+                                                            Leibniz International Proceedings in Informatics
+                                                            Schloss Dagstuhl – Leibniz-Zentrum für Informatik, Dagstuhl Publishing, Germany
+23:2   Equivalence of Hidden Markov Models with Continuous Observations
+
+
+       instead of the distributions on {a, b} in the picture above (written there as ( 14 a + 34 b), (a), (b),
+       respectively), we may have distributions on the real numbers. For example in the following
+       diagram, where U [a, b) denotes the uniform distribution on [a, b) and Exp(λ) denotes the
+       exponential distribution with parameter λ:
+
+                                                     1
+                                                     2 U [−1, 0)
+
+                               1                q1                 q2       2
+                               2 Exp(2)                                     3 Exp(1)
+
+                                                      1
+                                                      3 U [0, 2)
+
+
+       HMMs, both with finite and infinite observation sets, are widely employed in fields such
+       as speech recognition (see [22] for a tutorial), gesture recognition [7], signal processing [11],
+       and climate modeling [1]. HMMs are heavily used in computational biology [14], more
+       specifically in DNA modeling [9] and biological sequence analysis [13], including protein
+       structure prediction [18] and gene finding [2]. In computer-aided verification, HMMs are the
+       most fundamental model for probabilistic systems; model-checking tools such as Prism [19]
+       and Storm [12] are based on analyzing HMMs efficiently.
+            One of the most fundamental questions about HMMs is whether two HMMs with
+       initial state distributions are (trace) equivalent, i.e., generate the same distribution on
+       infinite observation sequences. For finite observation alphabets this problem is very well
+       studied and can be solved in polynomial time using algorithms that are based on linear
+       algebra [23, 21, 24, 10]. Checking trace equivalence is used in the verification of obliviousness
+       and anonymity, properties that are hard to formalize in temporal logics, see, e.g., [3, 17, 5].
+            Although the generalisation to continuous observations (such as passed time, consumed
+       energy, sensor readings) is natural, there has been little work on the algorithmics of such
+       HMMs. One exception is continuous-time Markov chains (CTMCs) [4, 8] which are similar
+       to HMMs described above, but with two kinds of observations: on the one hand they emit
+       observations from a finite alphabet, but on the other hand they also emit the time spent in
+       each state. Typically, each state-to-state transition is labelled with a parameter λ; for each
+       transition its time of “firing” is drawn from an exponential distribution with parameter λ;
+       the transition with the smallest firing time “wins” and causes the corresponding change of
+       state. CTMCs have attractive properties: they are in a sense memoryless, and for many
+       analyses, including model checking, an equivalent discrete-time model can be calculated
+       using an efficient and numerically stable process called uniformization [15].
+            In [16] a stochastic model more general than ours was introduced, allowing not only
+       for uncountable sets of observations (called labels there), but also for infinite sets of states
+       and actions. The paper [16] focuses on bisimulation; trace equivalence is not considered. It
+       emphasizes nondeterminism, a feature we do not consider here.
+            To the best of the authors’ knowledge, this paper is the first to study equivalence of
+       HMMs with continuous observations. As continuous functions are part of the input, an
+       equivalence checking algorithm, if it exists (which is not a priori clear), needs to be symbolic,
+       i.e., needs to perform computations on functions. Our contributions are as follows:
+        1. We show in Section 3 that certain aspects of the linear-algebra based approach for checking
+            equivalence of finite-observation HMMs carry over to the continuous case naturally. In
+            particular, equivalence reduces to orthogonality in a certain vector space of state-indexed
+            real vectors, see Proposition 7.
+        2. However, we show in Section 4 that in the continuous case there can be additional linear
+            dependencies between the observation density functions (which is impossible in the finite
+O. Darwin and S. Kiefer                                                                                       23:3
+
+
+   case, where the different observations can be assumed linearly independent). This renders
+   a simple-minded reduction to the finite case incorrect. Therefore, an equivalence checking
+   algorithm needs to consider the interplay with the vector space from item 1.
+3. For the required computations on the observation density functions we introduce in
+   Section 5 linearly decomposable profile languages, which are languages (i.e., sets of finite
+   words) whose elements encode density functions on which basis computations can be
+   performed efficiently. In Section 5.1 we provide an extensive example of such a language,
+   encoding (linear combinations of) Gaussian, exponential, and piecewise polynomial density
+   functions. The proof that this language has the required properties is non-trivial itself
+   and requires alternant matrices and comparisons of the tails of various density functions.
+4. In Section 6 we finally show that HMMs whose observation densities are given in terms
+   of linearly decomposable profile languages can be checked for equivalence in polynomial
+   time, by a reduction to the finite-observation case. We also indicate, in Example 23, how
+   our result can be used to check for susceptibility of certain timing attacks.
+
+ 2     Preliminaries
+We write N for the set of positive integers, Q for the set of rationals and Q+ for the set
+of positive rationals. For d ∈ N and a finite set Q we use the notation |Q| for the number
+of elements in Q, [d] = {1, . . . , d} and [Q] = {1, . . . , |Q|}. Vectors µ ∈ RN are viewed as
+row vectors and we write 1 = (1, . . . , 1) ∈ RN . Superscript T denotes transpose; e.g., 1T
+is a column vector of ones. A matrix M ∈ RN ×N is stochastic if M is non-negative and
+PN
+   j=1 Mi,j = 1 for all i ∈ [N ]. For a domain Σ and subset E ⊆ Σ the characteristic function
+χE : Σ → {0, 1} is defined as χE (x) = 1 if x ∈ E and χE (x) = 0 otherwise.
+    Throughout this paper, we use Σ to denote a set of observations. We assume Σ is
+a topological space and (Σ, G, λ) is a measure space where all the open subsets of Σ are
+contained within G and have non-zero measure. Indeed R and the usual Lebesgue measure
+space on R satisfy these assumptions. The set Σn is the set of words over Σ of length n and
+      S∞
+Σ∗ = n=0 Σn .
+                                               N ×N
+R A matrix valued function Ψ : Σ → R[0, ∞)  canR be integrated element-wise. We write
+ E
+    Ψ dλ for the matrix with entries E Ψ dλ i,j = E Ψi,j dλ, where Ψi,j : Σ → [0, ∞) is
+                             
+defined by Ψi,j (x) = Ψ(x) i,j for all x ∈ Σ.
+    A function f : Σ → Rm is piecewise continuous if there is an open set C ⊆ Σ, called
+a set of continuity, such that f is continuous on C and for every point x ∈ Σ \ C there is
+some sequence of points xn ∈ C such that limn→∞ xn = x and limn→∞ f (xn ) = f (x). For a
+non-negative function f : Σ → [0, ∞) we use the notation supp f = {x ∈ Σ | f (x) > 0}.
+
+I Definition 1. A Hidden Markov Model (HMM) is a triple (Q, Σ, Ψ) where Q is a finite set
+of states, Σ is a set of observations,R and the observation density matrix Ψ : Σ → [0, ∞)|Q|×|Q|
+specifies the transitions such that Σ Ψ dλ is a stochastic matrix.
+
+I Example 2. The second HMM from the introduction is the triple ({q1 , q2 }, R, Ψ) with
+           1                                 1
+                                                                  
+             2 · 2 exp(−2x) · χ[0,∞) (x)      2 · 1 · χ[−1,0) (x)
+   Ψ(x) =           1 1                  2                          .                   J
+                    3 · 2 · χ[0,2) (x)   3 · exp(−x) · χ[0,∞) (x)
+
+We assume that Ψ is piecewise continuous and extend Ψ to the mapping Ψ : Σ∗ →
+[0, ∞)|Q|×|Q| with Ψ(x1 · · · xn ) = Ψ(x1 )×· · ·×Ψ(xn ) for x1 , . . . , xn ∈ Σ. If C is the set of con-
+tinuity for Ψ : Σ → [0, ∞)|Q|×|Q| , then for fixed n ∈ N the restriction Ψ : Σn → [0, ∞)|Q|×|Q|
+is piecewise continuous with set of continuity C n . We say that A ⊆ Σn is a cylinder set
+
+
+
+                                                                                                            CVIT 2016
+23:4   Equivalence of Hidden Markov Models with Continuous Observations
+
+
+       if A = A1 × · · · × An and Ai ∈ G for i ∈ [n]. For every n there is an induced measure
+       space (Σn , Gn , λn ) where Gn is the smallest σ-algebra containing all cylinder sets in Σn and
+                               Qn
+       λn (A1 × · · · × An ) = i=1 λ(Ai ) for any cylinder set A1 × · · · × An . Let A ⊆ Σn and write
+       AΣω for the set of infinite words over Σ where the first n observations fall in the set A.
+       Given a HMM (Q, Σ, Ψ) and initial distribution π on Q viewed as vector π ∈ R|Q| , there
+       is an induced probability space (Σω , G∗ , Pπ ) where Σω is the set of infinite words over Σ,
+       and G∗ is the smallest σ-algebra containing (for all n ∈ N) all sets AΣω where A          n
+                                                                                           R ⊆ Σ nis Ta
+       cylinder set and Pπ is the unique probability measure such that Pπ (AΣ ) = π A Ψ dλ 1
+                                                                                    ω
+
+       for any cylinder set A ⊆ Σn .
+
+       I Definition 3. For two distributions π1 and π2 and a HMM C = (Q, Σ, Ψ), we say that
+       π1 and π2 are equivalent, written π1 ≡C π2 , if Pπ1 (A) = Pπ2 (A) holds for all measurable
+       subsets A ⊆ Σω .
+
+       One could define equivalence of two pairs (C1 , π1 ) and (C2 , π2 ) where Ci = (Qi , Σ, Ψi ) are
+       HMMs and πi are initial distributions for i = 1, 2. We do not need that though, as we can
+       define, in a natural way, a single HMM over the disjoint union of Q1 and Q2 and consider
+       instead equivalence of π1 and π2 (where π1 , π2 are appropriately padded with zeros).
+           Given an observation density matrix Ψ, a functional decomposition consists of functions
+                                                                                   Pd
+       fk : Σ → [0, ∞)R and matrices Pk ∈ R|Q|×|Q| for k ∈ [d] such that Ψ(x) = k=1 fk (x)Pk for
+       all x ∈ Σ and Σ fk dλ = 1 for all k ∈ [d]. We sometimes abbreviate this decomposition as
+            Pd
+       Ψ = k=1 fk Pk and this notion has a central role in our paper.
+
+       I Example 4. The observation density matrix Ψ from Example 2 has a functional decom-
+       position
+                                      1                           1
+                                                                       
+                                             0                  0
+          Ψ(x) = 2 exp(−2x)χ[0,∞) (x) 2          + χ[−1,0) (x)       2   +
+                                        0    0                  0    0
+                                                                 
+                 1             0   0                          0   0
+                   χ[0,2) (x) 1        + exp(−x)χ[0,∞) (x)        2    .                 J
+                 2             3   0                          0   3
+
+                                                                                                       Pd
+       I Lemma 5. Let (Q, Σ, Ψ) be a HMM. If Ψ has functional decomposition Ψ =                          k=1 fk Pk
+           Pd
+       then k=1 Pk is stochastic.
+                                     R
+       Proof. By definition of a HMM, Σ Ψ dλ is stochastic, and we have
+          Z                d
+                         Z X                  d
+                                              X          Z             d
+                                                                       X
+                Ψ dλ =           fk Pk dλ =         Pk       fk dλ =         Pk .                                 J
+            Σ            Σ k=1                k=1        Σ             k=1
+                                              R               P                     P
+       When Σ is finite, it follows that       Σ
+                                                    Ψ dλ =      a∈Σ Ψ(a). Hence         a∈Σ Ψ(a) is stochastic.
+
+
+       Encoding For computational purposes we assume that rational numbers are represented
+       as ratios of integers in binary. The initial distribution of a HMM with state set Q is given
+       as a vector π ∈ Q|Q| . We also need to encode continuous functions, in particular, density
+       functions such as Gaussian, exponential or piecewise-polynomial functions. A profile is a
+       finite word (i.e., string) that describes a continuous function. It may consist of (an encoding
+       of) a function type and its parameters. For example, the profile (N , µ, σ) may denote a
+       Gaussian (also called normal) distribution with mean µ ∈ Q and standard deviation σ ∈ Q+ .
+       A profile may also consist of a description of a rational linear combination of such building
+       blocks. For any profile γ we write [[γ]] : Σ → [0, ∞) for the function it encodes. For example,
+O. Darwin and S. Kiefer                                                                                    23:5
+
+
+a profile γ = (N , µ, σ) with µ ∈ Q, σ ∈ Q+ may encode the function [[γ]] : R → [0, ∞) given
+as [[γ]](x) = σ√12π exp − (x−µ)
+                                 2
+
+                             2σ 2 . Without restricting ourselves to any particular encoding, we
+assume that Γ is a profile language, i.e., a finitely presented but usually infinite set of valid
+profiles. For any Γ0 ⊆ Γ we write [[Γ0 ]] = {[[γ]] | γ ∈ Γ0 }.
+     We use profiles to encode HMMs C = (Q, Σ, Ψ): we say that C is over Γ if the observation
+     R matrix Ψ is given as a matrix of pairs (pi,j , γi,j ) ∈ Q+ × Γ such that Ψi,j = pi,j [[γi,j ]]
+density
+and Σ [[γi,j ]] dλ = 1 hold for all i, j ∈ [Q]. In this way the pi,j form the transition probabilities
+between states and the γi,j encode the probability densities of the observations upon each
+transition.
+
+I Example 6. For a suitable profile language Γ, the HMM from Example 2 may be over Γ,
+with the observation density matrix given as
+    1
+                       ( 12 , (U, −1, 0))
+                                         
+     ( 2 , (Exp, 2))
+                                           .                                       J
+     ( 13 , (U, 0, 2))  ( 23 , (Exp, 1))
+
+The observation density matrix Ψ of a HMM (Q, Σ, Ψ) with finite Σ can be given as a list of
+                  |Q|×|Q|                        P
+matrices Ψ(a) ∈ Q+        for all a ∈ Σ such that a∈Σ Ψ(a) is a stochastic matrix.
+
+
+ 3     Equivalence as Orthogonality
+For finite-observation HMMs it is well known [23, 21, 24, 10] that two initial distributions
+given as vectors π1 , π2 ∈ R|Q| are equivalent if and only if π1 − π2 is orthogonal (written
+as ⊥) to a certain vector space. Indeed, this property holds more generally:
+
+I Proposition 7. Consider a HMM (Q, Σ, Ψ). For any π1 , π2 ∈ R|Q| we have
+
+     π1 ≡ π2 ⇐⇒ π1 − π2 ⊥ span {Ψ(w)1T | w ∈ Σ∗ }.
+
+   In the finite-observation case, Proposition 7 leads to an efficient algorithm for deciding
+equivalence: it suffices to compute a basis for V = span {Ψ(w)1T | w ∈ Σ∗ }. This can
+be done using a fixed-point algorithm that computes a sequence of (bases of) increasing
+subspaces of V: start with B = {1T }, and as long as there is a ∈ Σ and v ∈ B such that
+Ψ(a)v 6∈ span B, add Ψ(a)v to B. Since dim V ≤ |Q|, this algorithm terminates after at
+most |Q| iterations, and returns B such that span B = V. It is then easy to check whether
+π1 − π2 ⊥ V. It follows:
+
+I Proposition 8. Given a HMM (Q, Σ, Ψ) with finite Σ and initial distributions π1 , π2 ∈ Q|Q| ,
+it is decidable in polynomial time whether π1 ≡ π2 .
+
+This is not an effective algorithm when Σ is infinite.
+
+ 4     Labelling Reductions
+Our goal is to reduce in polynomial time the equivalence problem in continuous-observation
+HMMs to the equivalence problem in finite-observation HMMs. Since the latter is decidable
+in polynomial time by Proposition 8, a polynomial time algorithm for deciding equivalence
+in continuous-observation HMMs follows.
+    Towards this objective, consider a reduction where each continuous density function is
+given a label and these labels form the observation alphabet of a finite-observation HMM.
+For example consider the chain on the left in the diagram below. This disconnected HMM
+
+
+
+                                                                                                         CVIT 2016
+23:6   Equivalence of Hidden Markov Models with Continuous Observations
+
+
+       emits letters from two distinct normal distributions with profiles (N , 0, 1) and (N , 1, 2).
+       Assigning each distribution letters a, b respectively yields the HMM given on the right. Since
+       in the right chain states q1 and q2 are equivalent so too are the same labelled states in the
+       continuous chain.
+                                                  2                                                    2
+                                                  3 (N , 0, 1)                                         3 (a)
+        2              1                                                2    1
+        3 (N , 0, 1) + 3 (N , 1, 2)          q2                         3a + 3b                   q2
+
+
+                    q1      2                       1                      q1           2               1
+                            3 (N , 0, 1)            3 (N , 1, 2)                        3 (a)           3 (b)
+
+
+                                             q3                                                   q3
+
+                              1                                                           1
+                              3 (N , 1, 2)                                                3 (b)
+
+
+       More rigorously, if C = (Q, Σ, Ψ) is a HMM over Γ = {β1 , . . . , βK } and Ψ is encoded as a
+       matrix of coefficient-profile pairs (pi,j , γi,j ) ∈ Q+ × Γ then we call the labelling reduction the
+       HMM (Q, Σ̂, M̂ ) where Σ̂ = {a1 , . . . , aK } is an alphabet of fresh observations and
+                        (
+                         pi,j γi,j = βk
+          M̂i,j (ak ) =
+                         0     otherwise.
+                                                     PK
+       Since Ψ has functional decomposition Ψ = k=1 [[βk ]]M̂ (ak ), it follows by Lemma 5 that
+       PK
+         k=1 M̂ (ak ) is stochastic and the labelling reduction is a well defined HMM which may
+       be computed in polynomial time. As discussed in the previous example, equivalence in the
+       labelling reduction implies equivalence in the original chain:
+       I Proposition 9. Let C = (Q, Σ, Ψ) be a HMM with labelling reduction L = (Q, Σ̂, M̂ ).
+       Then for any initial distributions π1 and π2
+
+          π1 ≡L π2 =⇒ π1 ≡C π2 .
+
+       For the proof of Proposition 9 we use the following lemma which will be re-used in Section 6.
+       I Lemma 10. Let C1 = (Q, Σ1 , Ψ1 ) and C2 = (Q, Σ2 , Ψ2 ) be two HMMs with the same state
+       space Q. Suppose that span {Ψ1 (x) | x ∈ Σ1 } ⊆ span {Ψ2 (x) | x ∈ Σ2 }. Then, for any two
+       initial distributions π1 and π2 ,
+
+          π1 ≡C2 π2 =⇒ π1 ≡C1 π2 .
+                                                                           PK
+       Proof of Proposition 9. Ψ has a functional decomposition Ψ = k=1 [[βk ]]M̂ (ak ). Thus,
+       span {Ψ(x) | x ∈ Σ} ⊆ span {M̂ (ak ) | ak ∈ Σ̂} and the statement follows by Lemma 10. J
+
+       I Example 11. Consider the HMMs in the diagram below. The HMM on the left is a
+       continuous-observation chain where D and D0 are distributions on [0, 1] with probability
+       density functions 2xχ[0,1) (x) and 2(1 − x)χ[0,1) (x) respectively, and U [a, b) is the uniform
+       distribution on [a, b). The HMM on the right is the corresponding labelling reduction.
+           Since U [0, 1) = 12 D + 12 D0 , (the Dirac distributions on) states q1 and q4 are equivalent
+       but as the distributions U [0, 1), D, D0 are distinct, they get assigned different labels a, b, c,
+       respectively in the labelling reduction. The states q1 and q4 are therefore not equivalent in
+       the right chain.
+O. Darwin and S. Kiefer                                                                                                     23:7
+
+
+
+                                       1U [0, 2)                                            1(d)
+
+                       1          q2                                        1          q2
+                       2D                  1U [0, 1)                        2 (b)                  1(a)
+          q1           1 0                             q4          q1       1                             q4
+                       2D           1U [0, 2)                               2 (c)        1(d)
+
+                                  q3                                                   q3
+
+
+ 5       Linearly Decomposable Profile Languages
+Example 11 shows that the linear combination of two continuous distributions can “imitate”
+a single distribution. Therefore we consider the transition densities as part of a vector space
+of functions. In the usual way L1 (Σ, λ) is the quotient vector space where functions that
+differ only on a λ-null set are identified. In particular, when Σ ⊆ R and λ is the Lebesgue
+measure λLeb , the functions χ[a,b) and χ(a,b] are considered the same.
+     Let Γ be a profile language with [[Γ]] ⊆ L1 (Σ, λ). We say that Γ is linearly decomposable
+if for every finite set {γ1 , . . . , γn } = Γ0 ⊆ Γ one can compute in polynomial time profiles
+β1 , . . . , βm ∈ Γ0 such that {[[β1 ]], . . . , [[βm ]]} is a basis for span {[[γ1 ]], . . . , [[γn ]]} (hence m ≤ n),
+and further a set of coefficients bi,j ∈ Q for i ∈ [n], j ∈ [m] such that
+                 m
+                 X
+     [[γi ]] =         bi,j [[βj ]] for all i ∈ [n].
+                 j=1
+
+The following theorem is the main result of this paper:
+
+I Theorem 12. Given a HMM (Q, Σ, Ψ) over a linearly decomposable profile language,
+and initial distributions π1 , π2 ∈ Q|Q| , it is decidable in polynomial time (in the size of the
+encoding) whether π1 ≡ π2 .
+
+We prove Theorem 12 in Section 6. To make the notion of linearly decomposable profile
+languages more concrete, we give a concrete example in the following subsection.
+
+5.1       Example: Gaussian, Exponential, and Piecewise Polynomial
+          Functions
+We describe a profile language, ΓGEM , that can specify linear combinations of Gaussian,
+exponential, and piecewise polynomial density functions.
+     We call a function of the form x 7→ xk χI (x) where k ∈ N ∪ {0} and I ⊂ R is an interval
+an interval-domain monomial. To avoid clutter, we often denote interval-domain monomials
+only by xk χI . Recall that L1 (R, λLeb ) is a quotient space, so half open intervals I = [a, b) are
+sufficient. Any piecewise polynomial is a linear combination of interval-domain monomials.
+     Let M be a set of profiles encoding interval-domain monomials xk χ[a,b) in terms of
+k ∈ N ∪ {0} and a, b ∈ Q. Gaussian and exponential density functions can be fully described
+using their parameters, which we assume to be rational. We write G and E for corresponding
+sets of profiles, respectively. Finally, we fix a profile language ΓGEM ⊃ G ∪ E ∪ M obtained
+by closing G ∪ E ∪ M under linear combinations. That is, for any γ1 , . . . , γk ∈ ΓGEM and
+λ1 , . . . , λk ∈ Q, there exists a profile γ ∈ ΓGEM such that [[γ]] = λ1 [[γ1 ]] + · · · + λk [[γk ]]. This
+closure can be achieved using a specific constructor, say S, for linear combinations, so that
+γ = S(λ1 , γ1 , . . . , λk , γk ).
+
+
+
+                                                                                                                          CVIT 2016
+23:8   Equivalence of Hidden Markov Models with Continuous Observations
+
+
+       I Example 13. The HMM (Q, R, Ψ) from Example 11 is over ΓGEM : the observation density
+       matrix Ψ can be encoded as a matrix of coefficient-profile pairs
+
+             0 ( 12 , γ1 )   ( 12 , γ2 ) 0
+                                          
+            0 (1, γ3 )           0      0
+                                          
+            0 (1, γ3 )           0      0
+             0 (1, γ4 )           0      0
+
+       with γ1 , γ2 , γ3 , γ4 ∈ ΓGEM and [[γ1 ]] = 2xχ[0,1) and [[γ2 ]] = 2(1 − x)χ[0,1) and [[γ3 ]] = 12 χ[0,2)
+       and [[γ4 ]] = χ[0,1) .                                                                                 J
+
+       I Lemma 14. Let H be a set of disjoint half open intervals. Suppose that m1 , . . . , mI are
+       distinct interval-domain monomials such that supp mi ∈ H for all i ∈ [I]. In addition, let
+       g1 , . . . , gJ and e1 , . . . , eK be distinct Gaussian and exponential density functions, respectively.
+       Then, the set {m1 , . . . , mI , g1 , . . . , gJ , e1 , . . . , eK } is linearly independent.
+
+          For the proof of this lemma we need a result concerning alternant matrices. Consider
+       functions f1 , . . . , fn : Σ → R and let x1 , . . . , xn ∈ Σ. Then,
+
+                                           ···
+                                                          
+                 f1 (x1 )       f2 (x1 )          fn (x1 )
+                f1 (x2 )       f2 (x2 )   ···    fn (x2 ) 
+            M = .
+                                                          
+                                    ..     ..         .. 
+                ..                  .        .        . 
+                      f1 (xn ) f2 (xn ) . . .     fn (xn )
+
+       is called the alternant matrix for f1 , . . . , fn and input points x1 , . . . , xn .
+
+       I Lemma 15. Suppose f1 , . . . , fn ∈ L1 (Σ, λ). Then, the fi are linearly dependent if and
+       only if all alternant matrices for the fi are singular.
+
+       Sketch proof of Lemma 14. Under the assumption that a linear combination exists almost
+       surely equal to 0, by examining the limit at +∞ we show that the exponential and Gaussian
+       coefficients are zero. Then, by constructing an appropriate alternant matrix with full rank
+       we invoke Lemma 15 which means the remaining interval-domain monomials are linearly
+       independent and thus must also have zero coefficients.                                    J
+
+       I Proposition 16. The profile language ΓGEM is linearly decomposable.
+
+            Thus we obtain the following corollary of Theorem 12:
+
+       I Corollary 17. Given a HMM (Q, Σ, Ψ) over ΓGEM , and initial distributions π1 , π2 ∈ Q|Q| ,
+       it is decidable in polynomial time whether π1 ≡ π2 .
+
+        6      Proof of Theorem 12
+                                                      Pd
+       Suppose that Ψ has a functional decomposition k=1 fk Pk such that the set {f1 , . . . , fd } is
+                                    Pd
+       linearly independent. Then, k=1 fk Pk is called an independent functional decomposition.
+       The efficient computation of an independent functional decomposition is the key ingredient
+       for the proof of Theorem 12. We start with the following lemma.
+
+       I Lemma 18. Suppose Ψ : Σ → [0, ∞)|Q|×|Q| has an independent functional decomposition
+           Pd
+       Ψ = k=1 fk Pk . Then, span {Ψ(x) | x ∈ Σ} = span {Pk | k ∈ [d]}.
+O. Darwin and S. Kiefer                                                                                                         23:9
+
+                      Pd
+Proof. Since Ψ(x) = k=1 fk (x)Pk , we have span {Ψ(x) | x ∈ Σ} ⊆ span {Pk | k ∈ [d]}. For
+the reverse inclusion, since the fi are linearly independent, by Lemma 15 there exists an
+alternant matrix M with full rank for f1 , . . . , fd with input points x1 , . . . , xd . Hence, for
+each of the standard basis vectors ek ∈ {0, 1}d , k ∈ [d], there exists vk = (v1,k , . . . , vd,k ) ∈ Rd
+such that vk M = ek . Writing δj,k for the Kronecker delta function it follows that
+    d
+    X                     d
+                          X            d
+                                       X                    d
+                                                            X           d
+                                                                        X                       d
+                                                                                                X
+          vi,k Ψ(xi ) =         vi,k         fj (xi )Pj =         Pj          vi,k fj (xi ) =         Pj δj,k = Pk ,
+    i=1                   i=1          j=1                  j=1         i=1                     j=1
+
+which implies that span {Ψ(x) | x ∈ Σ} ⊇ span {Pk | k ∈ [d]}.                                                             J
+
+    The proof of the following proposition re-uses Lemma 10 from Section 4.
+
+I Proposition 19. Suppose that HMM C = (Q, Σ, Ψ) has independent functional decomposi-
+          Pd
+tion Ψ = k=1 fk Pk and each Pk is non-negative for all k ∈ [d]. Define a set Σ = {a1 , . . . , ad }
+of fresh observations and the observation density matrix M with M (ak ) = Pk for all k ∈ [d].
+Then F = (Q, Σ, M ) is a finite-observation HMM and for any initial distributions π1 , π2
+
+    π1 ≡C π2 ⇐⇒ π1 ≡F π2 .
+                                 Pd
+Proof. It follows by Lemma 5 that k=1 Pk is stochastic. Thus F defines a HMM. By
+Lemma 18, span {Ψ(x)1T | x ∈ Σ} = span {M (a)1T | a ∈ Σ} which combined with
+Lemma 10 gives the result.                                                     J
+
+I Example 20. We use the HMM C discussed in Examples 11 and 13 to illustrate the
+construction of Proposition 19. The basis {2xχ[0,1) , 2(1 − x)χ[0,1) , 12 χ[0,2) } leads to the
+independent functional decomposition
+                         1                                                  1                                   
+                  0       2     0 0                 0                   0      2   0           0           0   0   0
+                 0       0     0 0               0                   0      0   0 1
+                                                                                    + χ
+                                                                                              0           1   0   0.
+    Ψ = 2xχ[0,1)                   +2(1−x)χ[0,1) 
+                                                                                   0 2 [0,2) 0
+                                                                                              
+                 0       0     0 0               0                   0      0                           1   0   0
+                          1                                             1
+                  0       2     0 0                 0                   2      0   0                   0   0   0   0
+
+Therefore, Proposition 19 implies that two initial distributions π1 , π2 ∈ R|Q| are equivalent
+in C if and only if they are equivalent in the following HMM:
+
+                                                                 1(c)
+
+                                              1
+                                              2 (a)
+                                                            q2         1( 12 a + 21 b)
+
+                                q1            1              1(c)                        q4
+                                              2 (b)
+
+                                                            q3
+
+
+Here, states q1 and q4 are equivalent. Hence, they are also equivalent in C.                                              J
+
+   If an observation density matrix has an entry with pdf 2e−x − 2e−2x (which is encodable
+in ΓGEM due to its convex closure property), the independent functional decomposition
+generated by the algorithm described in the proof of Proposition 16 in the appendix has
+matrices which are not all non-negative. Therefore, Proposition 19 cannot be applied directly.
+                                                                 Pd
+However, given an independent functional decomposition Ψ = k=1 fk Pk and noting that
+
+
+
+                                                                                                                              CVIT 2016
+23:10   Equivalence of Hidden Markov Models with Continuous Observations
+
+        Pd
+          k=1 Pk is stochastic by Lemma 5, the following proposition shows that there is a small
+        θ > 0 such that P − θPk is non-negative for all k ∈ [d]. Furthermore, span {Pk | k ∈ [d]} =
+        span {P − θPk | k ∈ [d]}. These two facts lead us to construct a finite-observation HMM
+                                              1
+        using the scaled transition matrices d−θ (P − θPk ).
+        I Proposition 21. Let C = (Q, Σ, Ψ) be a HMM with independent functional decomposition
+            Pd                   Pd
+        Ψ = k=1 fk Pk . Let P = k=1 Pk and
+                   (                                      )
+                     1     min{(P )i,j | (P )i,j > 0}
+           θ = min     ,                                   .
+                     2 max{ Pk i,j | i, j ∈ [Q], k ∈ [d]}
+
+        Define an alphabet Σ̃ = {a1 , . . . , ad } of fresh observations and the HMM F = (Q, Σ̃, M ) with
+                   1
+        M (ak ) = d−θ (P − θPk ). Then, for any initial distributions µ1 , µ2
+             µ1 ≡F µ2 ⇐⇒ µ1 ≡C µ2 .
+                                                                  Pd
+        Proof. First we show that F is a well-defined HMM. Matrix k=1 M (ak ) is stochastic as
+            d                   d                       Pd
+           X               1 X                    dP − θ k=1 Pk
+               M (ak ) =          (P − θPk ) =                   = P,                       (1)
+                          d−θ                          d−θ
+             k=1                   k=1
+
+        and by Lemma 5, P is stochastic. In addition we must show that M (ak ) is non-negative
+        for each k ∈ [d]. Since θ ≤ 12 , it is enough
+                                                   R to show that P − θPk is non-negative for each
+        k ∈ [d]. Suppose that (P )i,j = 0. Then, Σ Ψi,j dλ = (P )i,j = 0, which implies that Ψi,j = 0
+                                                  Pd
+        since Ψ is piecewise continuous. Thus, k=1 fk (Pk )i,j = Ψi,j = 0. Since {fk }dk=1 is linearly
+        independent, it follows that (Pk )i,j = 0 for all k ∈ [d] and so (P − θPk )i,j = 0. Now suppose
+        that (P )i,j > 0. By the definition of θ, it follows that (θPk )i,j ≤ (P )i,j . Thus, F is a well
+        defined HMM.
+            Observe that span {P − θPk | k ∈ [d]} ⊆ span {Pk | k ∈ [d]}. The opposite inclusion
+        follows from the fact that, by Equation (1), we have P ∈ span {P − θPk | k = 1, . . . , d}.
+        Thus, by Lemma 18,
+        span {M (a) | a ∈ Σ̃} = span {P −θPk | k ∈ [d]} = span {Pk | k ∈ [d]} = span {Ψ(x) | x ∈ Σ} .
+        Hence, the proposition follows from Lemma 10.                                                       J
+
+             Now we can prove Theorem 12:
+
+        Proof of Theorem 12. Suppose the HMM C = (Q, Σ, Ψ) is over the linearly decomposable
+        profile language Γ. Let Γ0 = {γ1 , . . . , γn } be the set of profiles appearing in the description
+        of Ψ. From the description of Ψ as a matrix of coefficient-profile pairs, we can easily compute
+                                                            Pn
+        matrices P10 , . . . , Pn0 ∈ Q|Q|×|Q| such that Ψ = i=1 [[γi ]]Pi0 . Since Γ is linearly decomposable,
+        one can compute in polynomial time a subset {β1 , . . . , βd } ⊆ Γ0 such that [[{β1 , . . . , βd }]] is
+                                                                                          Pd
+        linearly independent and also a set of coefficients bi,k such that [[γi ]] = k=1 bi,k [[βk ]] for all
+        i ∈ [n]. Hence:
+                   n
+                   X              n X
+                                  X d                   d
+                                                        X         n
+                                                                  X
+             Ψ =     [[γi ]]Pi0 =     [[βk ]]bi,k Pi0 =   [[βk ]]   bi,k Pi0
+                   i=1             i=1 k=1                 k=1      i=1
+                     Pn
+        Setting Pk = i=1 bi,k Pi0 for all k ∈ [d], we thus obtain the independent functional decom-
+                      Pd
+        position Ψ = k=1 [[βk ]]Pk . Now it is straightforward to compute the finite-observation
+        HMM F from Proposition 21 in polynomial time, thus reducing the equivalence problem
+        in C to the equivalence problem in the finite-observation HMM F . By Proposition 8 the
+        theorem follows.                                                                         J
+O. Darwin and S. Kiefer                                                                                                    23:11
+
+
+I Example 22. We illustrate aspects of the proof of Theorem 12 using the HMM:
+                                                1 1
+                                                2 ( 2 χ[1,3) )
+
+                    1 1                  q1                      q2          1 1
+                    2 ( 2 χ[0,2) )                                           2 ( 2 (χ[0,1) + χ[3,4) ))
+
+                                                1 1
+                                                2 ( 2 χ[2,4) )
+
+
+Noting that 12 (χ[0,1) + χ[3,4) ) = 12 χ[0,2) − 12 χ[1,3) + 12 χ[2,4) and the set { 12 χ[0,2) , 12 χ[1,3) , 12 χ[2,4) }
+is linearly independent we obtain the independent functional decomposition
+                   1                             1
+                                                                           
+           1              0       1          0               1           0 0
+     Ψ = χ[0,2) 2 1 + χ[1,3)                        2    +     χ [2,4)          .
+           2         0 2          2          0 − 12          2           1
+                                                                         2
+                                                                           1
+                                                                           2
+                                               1 1
+According to Proposition 21, P =                2
+                                                1
+                                                    2
+                                                    1   . Further we compute θ = 12 and d − θ = 25 and
+                                                2   2
+
+
+
+             2 h 21        1
+                                 1 12
+                                                      1         1
+                                                                      
+                           2                  0 i
+     M (a) =       1       1   −              1        = 101
+                                                                     5
+                                                                     1
+             5     2       2     2 0          2            5       10
+                   1       1                   1          1        1
+                                                                 
+             2 h
+                   2       2
+                                 1 0           2
+                                                     i
+     M (b) =       1       1   −                       = 51       10
+             5     2       2     2 0          − 12        5
+                                                                   3
+                                                                  10
+             2 h 21        1
+                                                    1           1
+                                                                       
+                           2
+                                 1 0          0 i
+     M (c) =       1       1   −                       = 51          5   .
+             5     2       2     2 12         1
+                                              2           10       10
+                                                                     1
+
+
+It follows that any initial distributions π1 and π2 are equivalent in (Q, Σ, Ψ) if and only if
+they are equivalent in the following HMM:
+                                                    1 2       1     2
+                                                    2 ( 5 a + 5 b + 5 c)
+
+             1 1       2     2            q1                                 q2         1 1       3     1
+             2 ( 5 a + 5 b + 5 c)                                                       2 ( 5 a + 5 b + 5 c)
+
+                                                    1 2       2     1
+                                                    2 ( 5 a + 5 b + 5 c)
+
+
+For any initial distributions π1 , π2 ∈ Q2 this can be checked with Proposition 8. (In this
+example π1 ≡ π2 holds only if π1 = π2 .)                                                 J
+
+I Example 23. We also discuss an example, inspired from [6], where HMM non-equivalence
+means susceptibility to timing attacks, and HMM equivalence means immunity to such
+attacks. Consider a system that emits two kinds of observations, both visible to an attacker:
+a function to be executed (we arbitrarily assume a choice between two functions a and b,
+and impute a probability distribution between them) and the time it takes to execute that
+function. An attacker therefore sees a sequence `1 t1 `2 t2 . . ., where `i ∈ {a, b} and ti ∈ [0, ∞).
+In [6] the times t1 , t2 , . . . are all identical and depend only on the secret key held by the
+system, but we assume in the following that the ti are drawn from a probability distribution
+that depends on the function (a or b) and the key. We assume that with key i the execution
+times have uniform distributions U [mai − 12 , mai + 12 ) and U [mbi − 21 , mbi + 12 ). The situation
+can then be modelled with the HMM below.2
+
+
+2
+    In this case the observation set Σ = [0, ∞) ∪ {a, b} is a disjoint union of topological spaces and there is
+    a natural measure space induced from the Lebesgue measure space on [0, ∞) and a discrete measure on
+    {a, b}.
+
+
+
+
+                                                                                                                          CVIT 2016
+23:12   Equivalence of Hidden Markov Models with Continuous Observations
+
+
+                                         1                                 2
+                                         3a                                3b
+
+                        tai                               si                                tbi
+                               U [mai − 12 , mai + 12 )          U [mbi − 12 , mbi + 12 )
+
+        A timing leak occurs if the attacker can glean the key from the execution times. For example,
+        the attacker can distinguish between keys k1 and k2 if and only if states s1 and s2 are not
+        equivalent. One can check, using the algorithm we have developed in this section, that s1 and
+        s2 are equivalent if and only if ma1 = ma2 and mb1 = mb2 . Moreover, it follows from Section 5
+        that if instead of U [ma1 − 12 , ma1 + 12 ) and U [ma2 − 12 , ma2 + 12 ) we had two distributions with
+        density functions from [[ΓGEM ]] with the same mean and the same variance, states s1 , s2
+        would still be non-equivalent whenever the two distributions are not identical.
+            One may try to guard against this timing leak by “padding” the execution time, so that
+        the sum of the execution time and an added time is constant (and independent of the key).
+        After the execution of the function, an idling loop would be executed until the worst-case
+        (among all keys) execution time of the functions has been reached or exceeded. Let us call
+        this worst-case execution time w ∈ (0, ∞). This idling loop would take time u > 0 in each
+        iteration, so the total idling time is always an integer multiple of u. It is argued in [6] that
+        this guard is in general ineffective in that the attacker can still glean the execution time
+        modulo u. Therefore, it is suggested in [6] to add, in addition, a time that is uniformly
+        distributed on [0, u).
+            This remedy also works in our case with random execution times. Indeed, one can show
+        that for any independent random variables X, Y , where Y is distributed with U [0, u], we
+        have that (X + Y ) mod u is distributed with U [0, u). Therefore, by adding an independent
+        U [0, u) random time to the padding described above, the times observable by the attacker
+        now have a U [w + u, w + 2u) distribution, independent of the key.
+                                         1                                 2
+                                         3a                                3b
+
+                        tai                               si                                tbi
+                                U [w + u, w + 2u)                 U [w + u, w + 2u)
+
+        All states si are now equivalent, so the key does not leak.                                        J
+
+         7     Conclusions
+        We have shown that equivalence of continuous-observation HMMs is decidable in polynomial
+        time, by reduction to the finite-observation case. The crucial insight is that, rather than
+        integrating the density functions, one needs to consider them as elements of a vector space and
+        computationally establish linear (in)dependence of functions. Therefore, our polynomial-time
+        reduction performs symbolic computations on continuous density functions. As a suitable
+        framework for these computations we have introduced the notion of linearly decomposable
+        profile languages, and we have established ΓGEM as such a profile language.
+            In future work, it would be desirable to extend ΓGEM and/or develop other linear
+        decomposable profile languages, including over sets Σ of observations that are not real
+        numbers. The authors believe that the developed computational framework may be the
+        foundation for further algorithms on continuous-observation HMMs. For example, one may
+        want to compute the total-variation distance of two continuous-observation HMMs. Can
+        Markov chains with continuous emissions be model-checked efficiently?
+O. Darwin and S. Kiefer                                                                                  23:13
+
+
+     References
+ 1   P. Ailliot, C. Thompson, and P. Thomson. Space-time modelling of precipitation by using a
+     hidden Markov model and censored Gaussian distributions. Journal of the Royal Statistical
+     Society, 58(3):405–426, 2009.
+ 2   M. Alexandersson, S. Cawley, and L. Pachter. SLAM: Cross-species gene finding and alignment
+     with a generalized pair hidden Markov model. Genome Research, 13:469–502, 2003.
+ 3   M.S. Alvim, M.E. Andrés, C. Palamidessi, and P. van Rossum. Safe equivalences for security
+     properties. In Theoretical Computer Science, pages 55–70. Springer, 2010.
+ 4   C. Baier, B. Haverkort, H. Hermanns, and J.-P. Katoen. Model-checking algorithms for
+     continuous-time Markov chains. IEEE Transactions on Software Engineering, 29(6):524–541,
+     2003.
+ 5   M.S. Bauer, R. Chadha, and M. Viswanathan. Modular verification of protocol equivalence in
+     the presence of randomness. In Computer Security – ESORICS 2017, pages 187–205. Springer,
+     2017.
+ 6   B.A. Braun, S. Jana, and D. Boneh. Robust and efficient elimination of cache and timing side
+     channels, 2015. arXiv:1506.00189.
+ 7   F.-S. Chen, C.-M. Fu, and C.-L. Huang. Hand gesture recognition using a real-time tracking
+     method and hidden Markov models. Image and Vision Computing, 21(8):745–758, 2003.
+ 8   T. Chen, M. Diciolla, M.Z. Kwiatkowska, and A. Mereacre. Time-bounded verification of
+     CTMCs against real-time specifications. In Proceedings of Formal Modeling and Analysis of
+     Timed Systems (FORMATS), volume 6919 of LNCS, pages 26–42. Springer, 2011.
+ 9   G.A. Churchill. Stochastic models for heterogeneous DNA sequences. Bulletin of Mathematical
+     Biology, 51(1):79–94, 1989.
+10   C. Cortes, M. Mohri, and A. Rastogi. Lp distance and equivalence of probabilistic automata.
+     International Journal of Foundations of Computer Science, 18(04):761–779, 2007.
+11   M.S. Crouse, R.D. Nowak, and R.G. Baraniuk. Wavelet-based statistical signal processing
+     using hidden Markov models. IEEE Transactions on Signal Processing, 46(4):886–902, April
+     1998.
+12   C. Dehnert, S. Junges, J.-P. Katoen, and M. Volk. A Storm is coming: A modern probabilistic
+     model checker. In Proceedings of Computer Aided Verification (CAV), pages 592–600. Springer,
+     2017.
+13   R. Durbin. Biological Sequence Analysis: Probabilistic Models of Proteins and Nucleic Acids.
+     Cambridge University Press, 1998.
+14   S.R. Eddy. What is a hidden Markov model? Nature Biotechnology, 22(10):1315–1316, October
+     2004.
+15   W.K. Grassmann. Finding transient solutions in Markovian event systems through randomiza-
+     tion. In Numerical solution of Markov chains, pages 357–371, 1991.
+16   H. Hermanns, J. Krčál, and J. Křetínský. Probabilistic bisimulation: Naturally on distributions.
+     In CONCUR 2014 – Concurrency Theory, pages 249–265. Springer, 2014.
+17   S. Kiefer, A.S. Murawski, J. Ouaknine, B. Wachter, and J. Worrell. Language equivalence
+     for probabilistic automata. In Proceedings of the 23rd International Conference on Computer
+     Aided Verification (CAV), volume 6806 of LNCS, pages 526–540. Springer, 2011.
+18   A. Krogh, B. Larsson, G. von Heijne, and E.L.L. Sonnhammer. Predicting transmembrane
+     protein topology with a hidden Markov model: Application to complete genomes. Journal of
+     Molecular Biology, 305(3):567–580, 2001.
+19   M. Kwiatkowska, G. Norman, and D. Parker. PRISM 4.0: Verification of probabilistic real-time
+     systems. In Proceedings of Computer Aided Verification (CAV), volume 6806 of LNCS, pages
+     585–591. Springer, 2011.
+20   L.M. Milne-Thomson. The Calculus of Finite Differences. Macmillan and Company, 1933.
+21   A. Paz. Introduction to Probabilistic Automata (Computer Science and Applied Mathematics).
+     Academic Press, Inc., Orlando, FL, USA, 1971.
+
+
+
+
+                                                                                                        CVIT 2016
+23:14   Equivalence of Hidden Markov Models with Continuous Observations
+
+
+        22    L.R. Rabiner. A tutorial on hidden Markov models and selected applications in speech
+              recognition. Proceedings of the IEEE, 77(2):257–286, 1989.
+        23    M.P. Schützenberger. On the definition of a family of automata. Information and Control,
+              4(2):245–270, 1961.
+        24    W.-G. Tzeng. A polynomial-time algorithm for the equivalence of probabilistic automata.
+              SIAM J. Comput., 21(2):216–227, April 1992.
+
+
+         A      Missing Proofs
+
+        A.1     Proof of Proposition 7 and Lemma 10
+        I Proposition 7. Consider a HMM (Q, Σ, Ψ). For any π1 , π2 ∈ R|Q| we have
+
+             π1 ≡ π2 ⇐⇒ π1 − π2 ⊥ span {Ψ(w)1T | w ∈ Σ∗ }.
+
+           Unlike in finite probability spaces this fact requires additional assumptions about the
+        space. Therefore we first prove a Lemma that encapsulates these assumptions.
+
+        I Lemma 24. Let (Q, Σ, Ψ) be a HMM and let π1 , π2 be initial distributions. As discussed
+        in the preliminaries, (Σ, G, λ) is a measure space such that any open set E ∈ G has non-
+        null measure.   Fix n ∈ N. Then, (π1 − π2 )Ψ(w)1T = 0 for all w ∈ Σn if and only if
+        (π1 − π2 ) E Ψ dλn 1T = 0 for all E ∈ Gn .
+                  R
+
+        Proof. The forward implication is clear. For the converse, suppose v ∈ Σn is such that
+        (π1 − π2 )Ψ(v)1T > 0. Since Ψ is piecewise continuous when restricted to Σn , it has a set of
+        continuity C n as described in the preliminaries and there is a sequence of words vk ∈ C n
+        such that limk→∞ Ψ(vk ) = Ψ(v). As C n is an open set, there is a sequence of open balls
+        B(vk , k ) ⊆ C n with limk→∞ k = 0. Hence there is k ∈ N such that (π1 − π2 )Ψ(w)1T > 0
+        for all w ∈ B(vk , k ). By the property Rof (Σ, G, λ) stated in the proposition, we have
+        λ(B(vk , k )) > 0 and therefore (π1 − π2 ) B(vk ,k ) Ψ dλn 1T > 0. A symmetrical argument
+        can be applied in the case (π1 − π2 )Ψ(v)1T < 0.                                           J
+
+             We may now prove Proposition 7.
+
+        Proof of Proposition 7. We have:
+
+             π1 ≡ π2 ⇐⇒ Pπ1 (E) = Pπ2 (E)                                  ∀E ∈ G∗
+                                   Z
+                     ⇐⇒ (π1 − π2 )   Ψ dλn 1T = 0                          ∀E ∈ Gn , n ∈ N
+                                     E
+                     ⇐⇒ (π1 − π2 )Ψ(w)1T = 0                               ∀w ∈ Σn , n ∈ N
+                     ⇐⇒ (π1 − π2 ) ⊥ span {Ψ(w)1T | w ∈ Σ∗ } ,
+
+        where the third equivalence follows from Lemma 24 and is a result of Ψ being piecewise
+        continuous.                                                                         J
+
+             Now we prove Lemma 10.
+
+        I Lemma 10. Let C1 = (Q, Σ1 , Ψ1 ) and C2 = (Q, Σ2 , Ψ2 ) be two HMMs with the same state
+        space Q. Suppose that span {Ψ1 (x) | x ∈ Σ1 } ⊆ span {Ψ2 (x) | x ∈ Σ2 }. Then, for any two
+        initial distributions π1 and π2 ,
+
+             π1 ≡C2 π2 =⇒ π1 ≡C1 π2 .
+O. Darwin and S. Kiefer                                                                                                             23:15
+
+                                                                      PIn
+Proof. Let w = x1 · · · xN ∈ Σ∗1 . Then Ψ1 (xn ) =                       i=1 λi,n Ψ2 (yi,n ) for n ∈ [N ] and
+
+                   I1
+                  X                                      IN
+                                                          X                            
+    Ψ1 (w) =                 λi1 ,1 Ψ2 (yi1 ,1 ) . . .            λiN ,N Ψ2 (yiN ,N )
+                     i1 =1                                iN =1
+                   I1
+                   X            IN
+                                X
+              =           ···           λi1 ,1 . . . λiN ,N Ψ2 (yi1 ,1 ) . . . Ψ2 (yiN ,N ) ∈ span {Ψ2 (w) | w ∈ Σ∗2 }.
+                  i1 =1         iN =1
+
+Thus, span {Ψ1 (w) | w ∈ Σ∗1 } ⊆ span {Ψ2 (w) | w ∈ Σ∗2 }. Therefore, by Proposition 7,
+
+    π1 ≡C2 π2 ⇐⇒ π1 − π2 ⊥ span {Ψ2 (w)1T | w ∈ Σ∗2 }
+                   =⇒ π1 − π2 ⊥ span {Ψ1 (w)1T | w ∈ Σ∗1 }
+                   ⇐⇒ π1 ≡C1 π2 .                                                                                              J
+
+A.2      Proof of Proposition 16 and an illustrating example
+The main argument for Proposition 16 comes from two Lemmas which we state and prove
+first.
+
+I Lemma 15. Suppose f1 , . . . , fn ∈ L1 (Σ, λ). Then, the fi are linearly dependent if and
+only if all alternant matrices for the fi are singular.
+
+Proof. Suppose that the f1 , . . . , fn are linearly dependent. Then, there exist λ1 , . . . , λn ∈ R
+                                     Pn
+that are not all 0 such that i=1 λi fi (x) = 0 for all x ∈ Σ. The same dependence holds for
+the columns of any alternant matrix for the fi . This proves the forward implication.
+    Write Mf1 ,...,fn (x1 , . . . , xn ) for the alternant matrix generated by the functions f1 , . . . , fn
+and input points x1 , . . . , xn and let Gf1 ,...,fn : Σn → R be given by Gf1 ,...,fn (x1 , . . . , xn ) =
+det Mf1 ,...,fn (x1 , . . . , xn ).
+    For the converse implication, it suffices to show that Gf1 ,...,fn = 0 on Σn implies that
+{f1 , . . . , fn } is linearly dependent. We proceed by induction on the number n of functions.
+Suppose n = 1 with single function f . If for all x ∈ Σ, 0 = Gf (x) = f (x) then clearly f = 0
+and {0} is a linearly dependent set in any vector space.
+    Now suppose that for n ≥ 1 and arbitrary functions g1 , . . . , gn : Σ → R, Gg1 ,...,gn = 0
+implies that g1 , . . . , gn are linearly dependent. Let f1 , . . . , fn+1 : Σ → R and x1 , . . . , xn+1 . A
+Laplace expansion of Gf1 ,...,fn+1 (x1 , . . . , xn+1 ) along the first row of Mf1 ,...,fn+1 (x1 , . . . , xn+1 )
+gives
+
+    Gf1 ,...,fn+1 (x1 , . . . , xn+1 ) = f1 (x1 )Gf2 ,...,fn+1 (x2 , . . . , xn+1 )
+                                          + ···
+                                          + (−1)n fn+1 (x1 )Gf1 ,...,fn (x2 , . . . , xn+1 ).
+
+Suppose Gf1 ,...,fn+1 (x1 , . . . , xn+1 ) = 0 holds for all x1 , . . . , xn . We distinguish between two
+cases.
+   Either there exist x2 , . . . , xn+1 ∈ Σ such that the cofactors
+
+        Gf2 ,...,fn+1 (x2 , . . . , xn+1 ), Gf1 ,f3 ,...,fn+1 (x2 , . . . , xn+1 ), . . . , Gf1 ,...,fn (x2 , . . . , xn+1 )
+
+    are not all 0. This establishes a linear dependence in f1 , . . . , fn+1 .
+    Or all cofactors are 0 for all x2 , . . . , xn+1 . Then, in particular, Gf2 ,...,fn+1 (x2 , . . . , xn+1 ) =
+    0 for all x2 , . . . , xn+1 . By the induction hypothesis it follows that the functions f2 , . . . , fn+1
+    are linearly dependent. Hence, so are f1 , . . . , fn+1 .
+
+
+
+                                                                                                                                   CVIT 2016
+23:16   Equivalence of Hidden Markov Models with Continuous Observations
+
+
+        In either case it follows that f1 , . . . , fn+1 are linearly dependent.                                J
+
+        I Lemma 14. Let H be a set of disjoint half open intervals. Suppose that m1 , . . . , mI are
+        distinct interval-domain monomials such that supp mi ∈ H for all i ∈ [I]. In addition, let
+        g1 , . . . , gJ and e1 , . . . , eK be distinct Gaussian and exponential density functions, respectively.
+        Then, the set {m1 , . . . , mI , g1 , . . . , gJ , e1 , . . . , eK } is linearly independent.
+        Proof. Assume that there is a linear dependence
+            I
+            X                   J
+                                X                   K
+                                                    X
+                  ri mi (x) +         sj gj (x) +         tk ek (x) = 0 ∀x ∈ R.
+            i=1                 j=1                 k=1
+
+        By reordering if necessary, we may assume that the exponential functions e1 , . . . , eK have
+        strictly decreasing rates λ1 > · · · > λK . The function eK tends to 0 at the slowest rate out
+        of all other functions in the linear dependence and so
+                        I               J              K
+                  1 hX                 X               X          i
+             lim           ri mi (x) +     sj gj (x) +   tk ek (x) = tK ,
+            x→∞ eK (x)
+                       i=1             j=1                         k=1
+
+        which implies that tK = 0. Repeating this argument for decreasing k ∈ [K] it follows that
+        t1 = · · · = tK = 0 and therefore
+            I
+            X                   J
+                                X
+                  ri mi (x) +         sj gj (x) = 0 ∀x ∈ R.
+            i=1                 j=1
+
+        Suppose the Gaussian functions g1 , . . . , gJ have mean and standard deviation µ1 , . . . , µJ and
+        σ1 , . . . , σJ , respectively. By defining the ordering gi <lex gj if and only if σi < σj ∨ (σi =
+        σj ∧ µi < µj ) we may assume without loss of generality that g1 <lex · · · <lex gJ . It follows
+        that for 1 ≤ j < J the ratio
+
+                                                   ,
+             gj (x)      1        h (x − µ )2 i            1         h (x − µ )2 i
+                                             j                                    J
+                    =    √ exp −           2
+                                                          √ exp −               2
+             gJ (x)   σj 2π             2σ j           σJ 2π                 2σ J
+
+                      σJ     h 1  1    1  
+                                                 2
+                                                        µJ    µj         2
+                                                                           µJ       µ2j i
+                    =    exp          −        x   − 2       −       x +       −
+                      σj       2 σJ2    σj2              σJ2   σj2         σJ2      σj2
+                     → 0 as x → ∞ ,
+
+        as gj <lex gJ implies that the dominant polynomial coefficient in the exponent is always
+        negative. Any Gaussian density function tends to 0 slower than any interval-domain monomial
+        at +∞, so similarly to the exponential densities,
+                               I               J
+                         1 hX                 X            i
+            0 = lim               ri mi (x) +     sj gj (x) = sJ .
+                   x→∞ gJ (x)
+                              i=1             j=1
+
+        By repeating this argument for decreasing j ∈ [J], we obtain s1 = · · · = sJ = 0. It
+        remains to show the remaining interval-domain monomials are linearly independent. Since
+        H is finite, all interval-domain monomials on [a, b) have a maximum exponent R. The
+        intervals are disjoint so it suffices to consider a single interval [a, b) and show that the set of
+        monomials {xk χ[a,b) | k ∈ {0, . . . , R}} is linearly independent. Consider the alternant matrix
+        for 1χ[a,b) , xχ[a,b) , . . . , xR χ[a,b) and distinct input points x1 , . . . , xR+1 ∈ [a, b). This matrix
+        is a Vandermonde matrix and by [20, p.9] has full rank. Therefore, by Lemma 15 the set
+        {1χ[a,b) , xχ[a,b) , . . . , xR χ[a,b) } is linearly independent.                                        J
+O. Darwin and S. Kiefer                                                                                         23:17
+
+
+I Proposition 16. The profile language ΓGEM is linearly decomposable.
+
+Proof. Let Γ0 ⊆ ΓGEM be a finite set of profiles. Any profile in Γ0 encodes a linear
+combination of Gaussians, exponentials and interval-domain monomials. Collect in G0
+and E0 the profiles of Gaussians and exponentials, respectively, that appear in the description
+of at least one profile in Γ0 . By sorting the start and end points of the intervals (that appear
+in the interval-domain monomials) in Γ0 , we compute a finite set H of disjoint intervals
+such that every interval appearing in Γ0 is a union of intervals in H. Further, collect in N
+the set of degrees of monomials in Γ0 . Then we compute a set of profiles M0 such that
+[[M0 ]] = {xn χ[a,b) | n ∈ N, [a, b) ∈ H}. By Lemma 14, the set [[G0 ∪ E0 ∪ M0 ]] is linearly
+independent. We compute the (unique) coordinates of all functions in [[Γ0 ]] in terms of that
+basis.
+    With these coordinates at hand, we compute a subset B ⊆ Γ0 such that [[B]] is a basis
+of span [[Γ0 ]] as follows. Starting with the B = ∅, go through Γ0 one by one; whenever a
+profile γ ∈ Γ0 is such that [[B ∪ {γ}]] is linearly independent then add γ to B. The check
+for linear independence can be performed in terms of the computed coordinates of [[Γ0 ]] in
+the basis [[G0 ∪ E0 ∪ M0 ]]. For the final set B we have that [[B]] is a basis of span [[Γ0 ]]. The
+coefficients that express [[Γ0 ]] as a linear combination of [[B]] can be computed similarly. All
+computations referred to in this proof are polynomial-time.                                      J
+
+I Example 25. We illustrate the proof of Proposition 16 using the HMM discussed in
+Examples 11, 13 and 20. Recall the encoding of Ψ is given as the matrix
+
+
+          ( 12 , γ1 )   ( 21 , γ2 )
+                                         
+     0                                  0
+    0
+         (1, γ3 )           0          0
+    0    (1, γ3 )           0          0
+     0    (1, γ4 )           0          0
+
+with γ1 , γ2 , γ3 , γ4 ∈ ΓGEM and [[γ1 ]] = 2xχ[0,1) and [[γ2 ]] = 2(1 − x)χ[0,1) and [[γ3 ]] = 12 χ[0,2)
+and [[γ4 ]] = χ[0,1) . Clearly Γ0 = {γ1 , γ2 , γ3 , γ4 } ⊂ ΓGEM . By ordering the start and end
+points in [0, 2), [1, 2) we compute H = {[0, 1), [1, 2)}. The set of degrees is N = {0, 1}. We
+then compute the set M0 of profiles such that [[M0 ]] = {χ[0,1) , xχ[0,1) , χ[1,2) , xχ[1,2) } and
+express [[γ1 ]], . . . , [[γ4 ]] as vectors of coordinates with respect to the basis [[M0 ]]:
+
+    [[γ1 ]] = 2xχ[0,1)                = (0, 2, 0, 0)
+    [[γ2 ]] = 2(1 − x)χ[0,1) = (2, −2, 0, 0)
+              1                 1      1
+    [[γ3 ]] = χ[0,2)         = ( , 0, , 0)
+              2                 2      2
+    [[γ4 ]] = χ[0,1)         = (1, 0, 0, 0)
+
+We then compute a basis for this set of vectors: {(0, 2, 0, 0), (2, −2, 0, 0), ( 12 , 0, 21 , 0)}. This
+implies that with B = {γ1 , γ2 , γ3 }, the set [[B]] is a basis for span [[Γ0 ]]. Since (1, 0, 0, 0) =
+1                1                                                                  1           1
+2 (0, 2, 0, 0) + 2 (2, −2, 0, 0), we express [[γ4 ]] in terms of [[B]] by [[γ4 ]] = 2 [[γ1 ]] + 2 [[γ2 ]]. J
+
+
+
+
+                                                                                                               CVIT 2016
+

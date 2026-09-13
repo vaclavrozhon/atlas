@@ -1,0 +1,2463 @@
+                                        Synthesis from Weighted Specifications
+                                        with Partial Domains over Finite Words
+                                              Emmanuel Filiota                       Christof Lödingb                    Sarah Wintera
+                                                                         a
+                                                                             Université libre de Bruxelles, Belgium
+                                                                          b
+                                                                             RWTH Aachen University, Germany
+arXiv:2103.05550v1 [cs.FL] 9 Mar 2021
+
+
+
+
+                                                In this paper, we investigate the synthesis problem of terminating reactive
+                                              systems from quantitative speciﬁcations. Such systems are modeled as ﬁnite
+                                              transducers whose executions are represented as ﬁnite words in (Σi ×Σo)∗ , where
+                                              Σi, Σo are ﬁnite sets of input and output symbols, respectively. A weighted
+                                              speciﬁcation S assigns a rational value (or −∞) to words in (Σi × Σo)∗ , and
+                                              we consider three kinds of objectives for synthesis, namely threshold objectives
+                                              where the system’s executions are required to be above some given threshold,
+                                              best-value and approximate objectives where the system is required to perform
+                                              as best as it can by providing output symbols that yield the best value and ε-best
+                                              value respectively w.r.t. S. We establish a landscape of decidability results for
+                                              these three objectives and weighted speciﬁcations with partial domain over ﬁnite
+                                              words given by deterministic weighted automata equipped with sum, discounted-
+                                              sum and average measures. The resulting objectives are not regular in general
+                                              and we develop an inﬁnite game framework to solve the corresponding synthesis
+                                              problems, namely the class of (weighted) critical preﬁx games.
+
+
+                                        1. Introduction
+                                        Reactive synthesis. The goal of automatic synthesis is to automatically construct pro-
+                                        grams from speciﬁcations of correct pairs of input and output. The goal is to liberate the
+                                        developer from low-level implementation details, and to automatically generate programs
+                                        which are correct by construction. In the automata-based approach to synthesis [14, 20],
+                                        the programs to be synthesized are ﬁnite-state reactive programs, which react continuously
+                                        to stimuli received from an environment. Such systems are not assumed to terminate and
+                                        their executions are modeled as ω-words in (ΣiΣo)ω , alternating between input symbols in
+                                        Σi and output symbols in Σo. Speciﬁcations of such systems are then languages S ⊆ (ΣiΣo)ω
+                                        representing the set of acceptable executions. The synthesis problem asks to check whether
+                                        there exists a total synchronous1 function f : Σiω → Σoω such that for all input sequences
+                                        u = i0 i1 . . . , there exists an output sequence v = o0 o1 . . . such that f (u) = v and the convo-
+                                        lution u ⊗ v = i0 o0 i1 o1 . . . belongs to S. The function f is called a realizer of S. Automatic
+                                        synthesis of non-terminating reactive systems has ﬁrst been introduced by Church [19], and
+                                        a ﬁrst solution has been given by Büchi and Landweber [14] when the speciﬁcation S is
+                                        ω-regular. In this setting, when a realizer exists, there is always one which can be computed
+                                        by a ﬁnite-state sequential transducer, a ﬁnite-state automaton which alternates between
+                                        reading one input symbol and producing one output symbol. This result has sparked much
+                                         1 f : Σω → Σω                                                        +
+                                               i         o is synchronous if it is induced by a strategy s : Σi → Σo in the sense that f (i0 i1 . . . ) =
+                                           s(i0 )s(i0 i1 )s(i0 i1 i2 ) . . . for all i0 i1 · · · ∈ Σω
+
+
+
+
+                                        This is the full version of [28].                                                             March 10, 2021
+further work to make synthesis feasible in practice, see e.g., [33, 27, 7]. The synthesis prob-
+lem is classically modeled as an inﬁnite-duration game on a graph, played by two players,
+alternatively picking input and output symbols. One player, representing the system, must
+enforce an objective that corresponds to the speciﬁcation. Finite-memory winning strate-
+gies are in turn systems that realize the speciﬁcation. This game metaphor has triggered
+a lot of research on graph games [20, Chapter 27]. There has also been a recent eﬀort to
+increase the quality of the automatically generated systems by enhancing Boolean speci-
+ﬁcations with quantitative constraints, e.g., [5, 16, 12, 2]. This has also triggered a lot
+of research on quantitative extensions of inﬁnite-duration games, for example mean-payoﬀ,
+energy, and discounted-sum games, see, e.g., [24, 36, 22, 10, 11, 4, 30].
+
+Partial-domain specifications. In the classical formulation of the synthesis problem, it
+is required that a realizer f meets the speciﬁcation for all possible input sequences. In
+particular, if there is a single input sequence u such that u ⊗ v 6∈ S for all output sequences
+v, then S admits no realizer. In other words, when the domain of S is partial, then S
+is unrealizable. Formally, the domain of S is dom(S) = {u ∈ Σiω | ∃v : u ⊗ v ∈ S}. As
+noticed recently and independently in [1], asking that the realizer meets the speciﬁcation
+for all input sequences is often too strong and a more realistic setting is to make some
+assumptions on the environment’s behaviour, namely, that the environment plays an input
+sequence in the domain of the speciﬁcation. This problem is called good-enough synthesis
+in [1] and can be formulated as follows: given a speciﬁcation S, check whether there exists
+a partial synchronous function f : Σiω → Σω  o whose domain is dom(S), and such that for all
+input sequence u ∈ dom(S) = dom(f ), u ⊗ f (u) ∈ S. Decidability of the latter problem is
+entailed by decidability of the classical synthesis problem when the speciﬁcation formalism
+used to describe S is closed under expressing the assumption that the environment provides
+inputs in dom(S). It is the case for instance when S is ω-regular, because the speciﬁcation
+S ∪ dom(S) ⊗ Σω   o has total domain and is eﬀectively ω-regular. [1] investigates the more
+challenging setting of S being expressed by a multi-valued (in contrast to Boolean) LTL
+logic. More generally, there is a series of works on solving games under assumptions on the
+behaviour of the environment [18, 6, 32, 21, 13, 2].
+
+Our setting: Partial-domain weighted specifications. In this paper, motivated by the line
+of work on quantitative extensions of synthesis and the latter more realistic setting of partial-
+domain speciﬁcations, we investigate synthesis problems from partial-domain weighted speci-
+ﬁcations (hereafter just called weighted speciﬁcations). We conduct this investigation in the
+setting of terminating reactive systems, and accordingly our speciﬁcations are over ﬁnite
+words. Formally, a speciﬁcation is a mapping S : (Σi.Σo)∗ →          Q∪ {−∞}. The domain
+dom(S) of S is deﬁned as all the input sequences u ∈ Σ∗i such that S(u ⊗ v) ∈             Q   for
+some v ∈ Σo∗ . We consider three quantitative synthesis problems, which all consists in
+checking whether there exists a function f computable by a ﬁnite transducer such that
+dom(f ) = dom(S) and which satisﬁes respectively the following conditions:
+   • for all u ∈ dom(S) it holds that S(u ⊗ f (u)) ⊲ t for a given threshold t ∈         Q and
+     ⊲ ∈ {>, ≥}, called threshold synthesis, or
+   • S(u ⊗ f (u)) = bestValS (u), that is, the maximal value that can be achieved for the
+     input u, i.e., bestValS (u) = sup{S(u ⊗ v) | v ∈ Σ∗o }, called best-value synthesis, or
+   • bestValS (u) − S(u ⊗ f (u)) ⊳ r for a given threshold r ∈      Q and ⊳ ∈ {<, ≤}, called
+     approximate synthesis.
+   Following the game metaphor explained before, those quantitative synthesis problems
+can be formulated as two-player games in which Adam (environment) and Eve (system)
+alternatively pick symbols in Σi and Σo respectively. Additionally, Adam has the power to
+
+
+
+                                               2
+Table 1.: Complexity results for weighted speciﬁcations. Here, D stands for decidable, the
+          suﬃx -c for complete, λ for discount factor, and n for a natural number.
+                       Spec    Sum-automata       Avg-automata       Dsum-automata
+      Problem
+           strict threshold     NP ∩ coNP          NP ∩ coNP              NP
+      non-strict threshold      NP ∩ coNP          NP ∩ coNP          NP ∩ coNP
+                 best-value      Ptime [3]          Ptime [3]         NP ∩ coNP
+       strict approximate     EXPtime-c [26]           D           NEXPtime for λ = 1/n
+        non-strict approx.    EXPtime-c [26]           D            EXPtime for λ = 1/n
+
+
+
+stop the game. If it does not, then Eve wins the game. Otherwise, a ﬁnite play spells a
+word u ⊗ v. For the Boolean synthesis problem, Eve has won if either u 6∈ dom(S) where
+S is the speciﬁcation, or u ⊗ v ∈ S. Additionally, for the threshold synthesis problem,
+the value S(u ⊗ v) must be greater than the given threshold; for the best-value synthesis
+problem, it must be equal to bestValS (u) and for approximate synthesis it must be r-close
+to bestValS (u).
+
+Contributions. Our main contribution is a clear picture about decidability of threshold
+synthesis, best-value synthesis and approximate synthesis for weighted speciﬁcations over
+ﬁnite words deﬁned by deterministic weighted ﬁnite automata [23], equipped with either sum,
+average or discounted-sum measure. Such automata extend ﬁnite automata with integer
+weights on their transitions, computing a value through a payoﬀ function that combines
+those integers, with sum, average, or discounted-sum. The results (presented in Section 4)
+are summarized in Table 1. We also give an application of our results to the decidability
+of quantitative extensions of the Church synthesis problem over inﬁnite words, for some
+classes of weighted safety speciﬁcations, which intuitively require that all preﬁxes satisfy a
+quantitative requirement (being above a threshold, equal to the best-value, or close to it).
+   As we explain in the related works section, some of our results are obtained via reduc-
+tion to solving known quantitative games or to the notions of r-regret determinization for
+weighted automata. We develop new techniques to solve the strict threshold synthesis prob-
+lem for discounted-sum speciﬁcations in NP (Theorem 9), the best-value synthesis problem
+for discounted-sum speciﬁcations in NP ∩ coNP (Theorem 12) and approximate synthesis
+for average speciﬁcations (Theorem 13), which are to the best of our knowledge new results.
+   Moreover, as our main tool to obtain our synthesis results, we introduce in Section 3
+a new kind of (weighted) games called critical prefix games tailored to handle weighted
+speciﬁcations with partial domain of finite words. We believe these kind of games are
+interesting on their own and are described below in more detail.
+
+Critical prefix games. Following the classical game metaphor of synthesis, we design
+weighted games into which some of our synthesis problems can be directly encoded. Those
+games still have inﬁnite-duration, but account for the fact that speciﬁcations are on ﬁnite
+words and have partial domains. In particular, the quantitative constraints must be checked
+only for play preﬁxes that correspond to input words of the environment which are in the
+domain of the speciﬁcation. So, a critical preﬁx game is deﬁned as a two-player turn-based
+weighted game with some of the vertices being declared as critical. When the play enters
+a critical vertex, a quantitative requirement must be fulﬁlled, otherwise Eve loses. For in-
+stance, critical preﬁx threshold games require that the payoﬀ value when entering a critical
+vertex is at least or above a certain threshold. We show that these threshold games are
+all decidable for sum, average, and discounted-sum payoﬀs, see Theorems 3 and 4. For
+solving approximate average synthesis, we use a reduction to critical preﬁx energy games
+of imperfect information starting with ﬁxed initial credit (the energy level must be at least
+
+
+
+                                              3
+zero whenever the play is in a critical vertex). Without critical vertices (where the energy
+level must be at least zero all the time) these games are known to be decidable [22]. We
+show that adding critical vertices makes these games undecidable, in general, see Theorem 7.
+However, a large subclass of imperfect information critical preﬁx energy games, suﬃcient
+for our synthesis problems, is shown to be decidable, see Theorem 8.
+
+Domain-safe weighted specifications. Most of our quantitative synthesis problems reduce
+to two-player games. While we need games of diﬀerent natures, they all model the fact that
+Eve constructs a run of the (deterministic) automaton, given the input symbols provided by
+Adam so far. By choosing outputs, Eve must make sure that this run is accepting whenever
+the input word played by Adam so far is in the domain of S. Otherwise Adam can stop and
+Eve loses. While this condition can be encoded in the game by enriching the vertices with
+subsets of states (in which Eve could have been by choosing alternative output symbols),
+this would result in an exponential blow-up of the game. We instead show that the weighted
+automaton can be preprocessed in polynomial-time into a so called domain-safe automaton,
+in which there is no need to monitor the input domain when playing, see Theorem 2.
+
+Related works. Boolean synthesis problems for ﬁnite words have been considered in [35, 34]
+where the speciﬁcation is given as an LTL formula over ﬁnite traces. In the quantitative
+setting, it has also been considered in [25] for weighted speciﬁcations given by deterministic
+weighted automata. In these works however, it is the role of Eve to eventually stop the game.
+While this makes sense for reachability objectives and planning problems, this setting does
+not accurately model a synthesis scenario where the system has no control over the provided
+input sequence. Our setting is diﬀerent and needs new technical developments.
+   Threshold problems in quantitative inﬁnite-duration two-player games with discounted-
+and mean-payoﬀ measures are known to be solvable in NP ∩ coNP [4, 36]. Our threshold
+synthesis problems all directly reduce to critical preﬁx threshold games with corresponding
+payoﬀ functions. The latter games, for sum and average, are shown to reduce to mean-payoﬀ
+games, so our NP ∩ coNP upper-bound follows from [36]. For critical preﬁx discounted-sum
+games with a non-strict threshold, we show a polynomial time reduction to inﬁnite-duration
+discounted sum games and hence our result follows from [4]. Such a reduction fails for
+a strict threshold and we develop new techniques to solve critical preﬁx discounted-sum
+games with strict threshold, by ﬁrst showing that memoryless strategies suﬃce for Eve to
+win, and then by showing how to check in PTime whether a memoryless strategy is winning
+for Eve. The latter result actually shows how to test in PTime whether there exists, in
+a weighted graph, a path from a source to a target vertex of discounted-sum greater or
+equal to some given threshold. This result entails that the non-emptiness problem for non-
+deterministic discounted-sum max-automata2 is solvable in PTime (Theorem 6). To the
+best of our knowledge, up to now this problem is only known to be in PSpace for the
+subcase of functional discounted-sum automata [25, 9].
+   As we show, the best-value synthesis problems correspond to zero-regret determinization
+problems for non-deterministic weighted automata, i.e., deciding whether there is a non-
+determinism resolving strategy for Eve that guarantees the same value as the maximal
+value of an accepting run in the non-deterministic weighted automaton. Such a problem
+is in PTime for sum-automata [3] and the average case easily reduces to the sum-case.
+For discounted-sum, zero-regret determinization is known to be decidable in NP for dsum-
+automata over inﬁnite words [30]. We improve this bound to NP ∩ coNP for ﬁnite words.
+   Finally, approximate synthesis corresponds to a problem known as r-regret determiniza-
+tion of non-deterministic weighted automata. For sum-automata, it is known to be Ex-
+pTime-complete [26]. For average-automata, there is no immediate reduction to the sum
+ 2 i.e., checking whether there exists a word with value greater or equal to some threshold, where the value
+
+   is defined by taking the max over all accepting runs.
+
+
+
+
+                                                     4
+case, because the sum value computed by an r-regret determinizer can be arbitrarily far-
+away from the best sum, while its averaged value remains close to the best average. Instead,
+we show a reduction to the new class of partial observation critical preﬁx energy games.
+For dsum-automata over inﬁnite words, total domain and integral discount factor, r-regret
+determinization is known to be decidable [30]. Our setting does not directly reduce to this
+setting, but we use similar ideas.
+
+
+2. Preliminaries
+Languages and relations. Let             N
+                                      be the set of non-negative integers. Let Σ be a ﬁnite
+alphabet. We denote by Σ∗ , respectively Σω , the set of ﬁnite, respectively inﬁnite, words
+over Σ, and Σ+ the set of non-empty ﬁnite words over Σ. The empty word is denoted by ε.
+A language over Σ is a set of words over Σ. A (binary) relation R is a subset of Σi∗ × Σ∗o, i.e.,
+a set of pairs of words. Its domain is the set dom(R) = {u | ∃v : (u, v) ∈ R}. Given a pair of
+words, we refer to the ﬁrst (resp. second) component as input (resp. output) component, the
+alphabets Σi and Σo are referred to as input resp. output alphabet. We let Σio = Σi ∪ Σo.
+
+Automata. A nondeterministic finite state automaton (NFA) is a tuple A = (Q, qi , Σ, ∆, F ),
+where Q is a ﬁnite state set, qi ∈ Q is the initial state, Σ is a ﬁnite alphabet, ∆ ⊆ Q × Σ × Q
+is a transition relation, and F ⊆ Q is a set of ﬁnal states. A run of the automaton on a word
+w = a1 . . . an is a sequence ρ = τ1 . . . τn of transitions such that there exist q0 , . . . , qn ∈ Q
+such that τj = (qj−1 , aj , qj ) for all j. A run on ε is a single state. A run is accepting
+if it begins in the initial state and ends in a ﬁnal state. The language recognized by the
+automaton is deﬁned as L(A) = {w | there is an accepting run of A on w}. The automaton
+is deterministic (a DFA) if ∆ is given as a partial function δ : Q × Σ → Q.
+
+Transducers. A transducer is a tuple T = (Q, qi , Σi, Σo, δ, F ), where Q is a ﬁnite state
+set, qi ∈ Q is the initial state, Σi and Σo are ﬁnite alphabets, δ : Q × Σi → Σo × Q
+is a transition function, and F ⊆ Q is a set of ﬁnal states. A transition is also de-
+noted as a tuple for convenience. A run is either a non-empty sequence of transitions
+ρ = (q0 , u1 , v1 , q1 )(q1 , u2 , v2 , q2 ) . . . (qn−1 , un , vn , qn ) or a single state. The input (resp. out-
+put) of ρ is u = u1 . . . un (resp. v = v1 . . . vn ) if ρ ∈ ∆+ , both are ε if ρ ∈ Q. We denote by
+   u|v
+p −−→ q that there exists a run from p to q with input u and output v. A run is accepting
+if it starts in the initial and ends in a ﬁnal state. The partial function recognized by the
+transducer is fT : Σi∗ → Σ∗o deﬁned as fT (u) = v if there is an accepting run of the form
+  u|v
+p −−→ q.
+
+Weighted automata. Let n > 0. Given a ﬁnite sequence φ = j1 . . . jn of integers,
+and a discount factor λ ∈
+              Pn
+                                   Q
+                                 such that 0 < λ < 1, we deﬁne the following functions:
+                                    Sum(φ)                      Pn     i
+Sum(φ) =        i=1 ji , Avg(φ)  =     n      , Dsum(φ) =         i=1 λ ji if φ is non-empty and
+Sum(φ) = Avg(φ) = Dsum(φ) = 0 otherwise. Let V ∈ {Sum, Avg, Dsum}. A weighted
+V -automaton (WFA) is a tuple A = (Q, Σ, qi , ∆, F, γ), where (Q, Σ, qi , ∆, F ) is a classical
+deterministic ﬁnite state automaton, and γ : δ →                Z
+                                                             is a weight function. Its recognized
+language, etc., is deﬁned as for classical ﬁnite state automata. The value V (ρ) of a run
+ρ = τ1 . . . τn is deﬁned as V (γ(τ1 ) . . . γ(τn )) if ρ is accepting and −∞ otherwise. The
+value A(w) of a word w is given by the total function, called the function recognized by A,
+            Q
+A : Σ∗ → ∪ {−∞} deﬁned as w 7→ V (ρ), where ρ is the run of A on w, that is, the value
+of a word is the value of its accepting run, or −∞ if there exists none.
+
+Weighted specifications. A weighted specification is a total function S : (ΣiΣo)∗ → ∪                       Q
+{−∞} recognized by a WFA A. Note that by our deﬁnition, A is deterministic by default.
+
+
+
+                                                        5
+Given u = u1 . . . un ∈ Σi∗ and v = v1 . . . un ∈ Σo∗ , u⊗v denotes its convolution u1 v1 . . . un vn ∈
+(ΣiΣo)∗ . We usually write S(u ⊗ v) instead of S(u1 v1 . . . un vn ). The relation (or Boolean
+speciﬁcation) of S, denoted by R(S), is given by the set of pairs that are mapped to a
+rational number, i.e., R(S) = {(u, v) | S(u ⊗ v) > −∞}. We usually write u ⊗ v ∈ S instead
+of (u, v) ∈ R(S). The domain of S, denoted by dom(S), is deﬁned as {u ∈ Σ∗i | ∃v ∈
+Σ∗o : u ⊗ v ∈ S}. If a weighted speciﬁcation is given by some V -automaton, we refer to it as
+V -speciﬁcation.
+
+Quantitative synthesis problems. The (Boolean) synthesis problem asks, given a weighted
+speciﬁcation S, whether there exists a partial function f : Σ∗i → Σ∗o deﬁned by a transducer
+with dom(f ) = dom(S) such that u ⊗ f (u) ∈ S for all u ∈ dom(f ).
+  We deﬁne three quantitative synthesis problems that pose additional conditions, we only
+state the additions. The threshold synthesis problem additionally asks, given a threshold
+    Q
+ν ∈ , and ⊲ ∈ {>, ≥}, that S(u ⊗ f (u)) ⊲ ν for all u ∈ dom(f ). The best-value synthesis
+problem additionally asks that S(u⊗f (u)) = bestValS (u), where bestValS (u) = sup{S(u⊗v) |
+u ⊗ v ∈ S} for all u ∈ dom(f ). The approximate synthesis problem additionally asks, given
+                  Q
+a threshold ν ∈ , and ⊳ ∈ {<, ≤}, that bestValS (u) − S(u ⊗ f (u)) ⊳ ν for all u ∈ dom(f ).
+  In these settings, if such a function f exists, it is called S-realization, a transducer that
+deﬁnes f is called S-realizer, and is said to implement an S-realization. A transducer whose
+implemented function f only satisﬁes the Boolean condition is called Boolean S-realizer.
+Example 1. Let Σi = {a, b} and Σo = {c, d}, and consider the weighted speciﬁcation S
+deﬁned by the following automaton A.
+
+                                             c| − 2      b|0       d|12
+
+                                      d|2      a|0
+                                    d|2        b|0       d|4
+
+                                    a|0
+
+Clearly, S has a Boolean realizer (inﬁnitely many, in fact). First, we view A as a Sum-
+automaton. There exists a realizer that ensures a value of at least 6, for example, the
+transducer that always outputs d. There exists no best-value realizer. To see this, we look
+at the maximal values. We have bestVal(b) = 12, bestVal(ab) = 10, and bestVal(ai b) = 2i + 4
+for i > 1. The maximal value for ab is achieved with cd and the maximal value for aaab
+with dddd. So, the ﬁrst output symbol depends on the length of the input word, which is
+unknown to a transducer when producing the ﬁrst output symbol. However, there exists an
+approximate realizer for the non-strict threshold 4: the transducer that outputs c solely for
+the ﬁrst a. The diﬀerence to the maximal value is 0 for the inputs b and ab, and 4 for all
+other inputs. Secondly, we view A as an Avg-automaton. With the same argumentation as
+for Sum, it is easy to see that there exists no best-value realizer, there exists an approximate
+realizer for the non-strict threshold 32 : the transducer that outputs c solely for the ﬁrst a.
+                                                                             2
+The diﬀerence to the maximal value is 0 for the inputs b and ab, and i+1         for inputs of the
+       i
+form a b for i > 1. Note that the diﬀerence decreases with the input length unlike for Sum.
+
+Boolean synthesis and domain-safe automata. The quantitative synthesis problems that
+we have deﬁned, ask for Boolean realizers that additionally satisfy a quantitative condition.
+We start by showing that a weighted speciﬁcation A can be preprocessed in polynomial time
+such that dealing with the Boolean part becomes very simple. Basically, we remove all parts
+of A that cannot be used by a Boolean realizer. We call the result of this preprocessing
+
+
+
+
+                                                     6
+a domain-safe weighted specification, to be deﬁned formally below. In Section 4 we use
+domain-safe speciﬁcations.
+   Denote by dom(A) ⊆ Σi∗ the domain of the weighted speciﬁcation deﬁned by A. We can
+easily obtain an NFA (with ε-transitions) for dom(A) by removing the weights and turning
+all transitions that are labelled by an output letter into an ε-transition. We call the resulting
+NFA the domain automaton of A, and denote it by Adom . For a state q of A, we denote
+by L(Adom , q) the language of Adom accepted by runs starting in q. An output transition
+(q, a, q ′ ) of A is called domain-safe if L(Adom , q) = L(Adom , q ′ ), i.e., it does not restrict
+the language of input words that can be accepted by Adom . Otherwise, such a transition is
+called domain-unsafe. We call a weighted speciﬁcation A domain-safe if it is trim, i.e., all
+states are accessible and co-accessible, and all its output transitions are domain-safe.
+   A transducer that produces an input/output pair whose run in A uses a domain-unsafe
+transition of A cannot be a Boolean realizer of A because it cannot complete all inputs
+in the domain with an output in the relation R(A). We now show that we can compute
+in polynomial time for a given weighted speciﬁcation A a sub-automaton A′ of A that is
+domain-safe and has the same Boolean realizers as A. We would like to mention that there
+is a tight connection between domain-safe automata and the problem of “determinization
+by pruning” (DBP) as it is studied in [3]. The following result can also be derived from the
+proof of [3, Theorem 4.1]. Furthermore, the proof of Theorem 2 directly yields an alternative
+game-based proof of the “determinization by pruning” problem.
+Theorem 2. There is a polynomial time procedure that takes as input a weighted specification
+A, and either returns “no realizer” if A does not have Boolean realizers, or, otherwise, returns
+a sub-automaton A′ of A that is domain-safe, has the same domain as A, and has the same
+Boolean realizers as A.
+  A direct consequence of the above theorem is that the Boolean synthesis problem is
+decidable in polynomial time.
+
+
+3. Critical prefix games
+In this section we introduce the necessary deﬁnitions and notations regarding games. More-
+over, we introduce critical preﬁx games and establish our results for these kind of games.
+
+Games. A weighted game with imperfect information is an inﬁnite-duration two-player
+game played on a game arena G = (V, v0 , A, E, O, w), where V is a ﬁnite set of vertices,
+v0 ∈ V is the initial vertex, A is a ﬁnite set of actions, E ⊆ V × A × V is a labeled transition
+relation, O ⊆ 2V is a set of observations that partition V , and w : E →            Z    is a weight
+function. Without loss of generality, we assume that the arena has no dead ends, i.e., for
+all v ∈ V there exists a ∈ A and v ′ ∈ V such that (v, a, v ′ ) ∈ E. The unique observation
+containing a vertex v is denoted obs(v). A game with perfect information is such that
+O = {{v} | v ∈ V }. In that case we omit O from the tuple G.
+   Games are played in rounds in which Eve chooses an action a ∈ A, and Adam chooses
+an a-successor of the current vertex. The ﬁrst round starts in the initial vertex v0 . A play
+                                                                                           N
+π in G is an inﬁnite sequence v0 a0 v1 a1 . . . such that (vi , ai , vi+1 ) ∈ E for all i ∈ . The
+preﬁx of π up to vn is denoted π(n), its last element vn is denoted by last(π(n)). The set of
+all plays resp. preﬁxes of plays in G is denoted by Plays(G) resp. Prefs(G). The observation
+sequence of the play π is deﬁned as obs(π) = obs(v0 )a0 obs(v1 )a1 . . . and the ﬁnite observation
+sequence of the play preﬁx π(n) is obs(π(n)) = obs(v0 )a0 . . . obs(vn ). Naturally, obs extends
+to sets of (preﬁxes of) plays.
+   A game is deﬁned by an arena G and an objective Win ⊆ Plays(G) describing a set of
+good plays in G for Eve. A strategy for Eve in G is a mapping σ : Prefs(G) → A, it is
+called observation-based if for all play preﬁxes ρ, ρ′ ∈ Prefs(G), if obs(ρ) = obs(ρ′ ), then
+
+
+
+                                                 7
+σ(ρ) = σ(ρ′ ). Equivalently, an observation-based strategy is a mapping σ : obs(Prefs(G)) →
+A. We do not formally introduce strategies for Adam, intuitively, given a play preﬁx and
+an action a, a strategy of Adam selects an a-successor of its last vertex. Given a strategy
+σ, let Playsσ (G) denote the set of plays compatible with σ in G, and Prefsσ (G) denote the
+set of play preﬁxes of Playsσ (G). An Eve’s strategy σ in G is winning if Playsσ (G) ⊆ Win.
+   We now deﬁne
+              Pn     quantitative objectives. The energy level of P     the play preﬁx π(n) is
+                                                                           n
+EL(π(n)) = i=1 w((vi−1 , ai−1 , vi )), the sum value is Sum(π(n)) = i=1 w((vi−1 , ai−1 , vi )),
+                                    1
+the average value is Avg(π(n)) = n Sum(π(n)), and P
+P                                                     the discounted-sum value is Dsum(π(n)) =
+   n    i                                               ∞     i
+   i=1 λ  w((v   , a
+              i−1 i−1 i, v )), and we let Dsum(π) =     i=1 λ w((vi−1 , ai−1 , vi )) (we do not ex-
+plicitly mention the discount factor λ in this notation because it is always clear from the
+context).
+   The energy objective in G is parameterized by an initial credit c0 ∈       N     and is given by
+                                         N
+PosEnG (c0 ) = {π ∈ Plays(G) | ∀i ∈ : c0 + EL(π(i)) ≥ 0}. It requires that the energy
+level of a play never drops below zero when starting with initial energy level c0 . The
+fixed initial credit problem for imperfect information games asks whether there exists an
+observation-based winning strategy for Eve for the objective PosEnG (c0 ). The discounted-
+                                                               Q
+sum objective in G is parameterized by a threshold ν ∈ , and ⊲ ∈ {>, ≥}. It is given
+by DS⊲G (ν) = {π ∈ Plays(G) | Dsum(π) ⊲ ν} and requires that the discounted-sum value of a
+play is greater than resp. at least ν. The discounted-sum game problem asks whether there
+exists a winning strategy for Eve for the objective DS⊲G (ν).
+   A game with perfect information is a special case of an imperfect information game.
+Classically, instead of using the above model with full observation, a (weighted) perfect
+information game, simply called game, is deﬁned over an arena (V, V∃ , v0 , E, w), where the
+set of vertices V is partitioned into V∃ and V \ V∃ , the vertices belonging to Eve and Adam,
+respectively, v0 ∈ V is the initial vertex, E ⊆ V × V is a transition relation, and w : E →     Z
+is a weight function. In a play on such a game arena, Eve chooses a successor if the current
+vertex belongs to her, otherwise Adam chooses. For games with perfect information the two
+models are equivalent and we shall use both.
+
+Critical prefix games. A critical prefix game is a game, where the winning objective is
+parameterized by a set C ⊆ V of critical vertices, and a set of play preﬁxes W ⊆ Prefs(G). Its
+objective is deﬁned as CritC,W (G) = {π ∈ Plays(G) | ∀i last(π(i)) ∈ C → π(1) . . . π(i) ∈ W }.
+The idea of a critical preﬁx game is that the state of a play is only relevant whenever the
+play is in a critical vertex. For convenience, in the case of critical preﬁx games, we also refer
+to the set W as objective.
+   The threshold problem for critical prefix games asks whether there exists a winning strategy
+for Eve for the objective CritC,W (G), where W is of the form ThresVG⊲ (ν) = {ϕ ∈ Prefs(G) |
+                                                Q
+V (ϕ) ⊲ ν} parameterized by a threshold ν ∈ , ⊲ ∈ {>, ≥}, and V ∈ {Sum, Avg, Dsum}.
+   The initial credit problem for critical prefix imperfect information energy games asks
+whether there exists an observation-based winning strategy for Eve for the objective CritC,W (G),
+where W is of the form PrefPosEnG (c0 ) = {ϕ ∈ Prefs(G) | c0 + EL(ϕ) ≥ 0} parameterized
+                          N
+by an initial credit c0 ∈ .
+Theorem 3. The threshold problem for critical prefix games for V ∈ {Sum, Avg} and a
+strict or non-strict threshold is decidable in NP ∩ coNP. Moreover, positional strategies are
+sufficient for Eve to win such games.
+
+Proof sketch. For Sum and Avg and a strict or non-strict threshold, the critical preﬁx thresh-
+old games reduce to mean-payoﬀ games which are solvable in NP ∩ coNP [36]. Positional
+strategies suﬃce for mean-payoﬀ games, a winning strategy in the constructed mean-payoﬀ
+game directly yields a positional winning strategy in the critical preﬁx threshold game.
+
+
+
+
+                                                8
+Theorem 4. The threshold problem for critical prefix games for Dsum and a strict resp.
+non-strict threshold is decidable in NP resp. NP ∩ coNP. Moreover, positional strategies
+are sufficient for Eve to win such games.
+  To prove the above theorem, we ﬁrst show a result on weighted graphs which is interesting
+in itself.
+Lemma 5. Given a weighted graph G, a source vertex v0 ∈ V , a target set T ⊆ V and a
+                Q
+threshold ν ∈ , checking whether there exists a path π from v0 to some vertex v ∈ T such
+that Dsum(π) ≤ ν can be done in Ptime.
+   Lemma 5 can be used to show that the ≥ ν-non-emptiness problem for nondeterminis-
+tic discounted-sum automata3 can be checked in Ptime, a result which is, to the best of
+our knowledge, new. It was known to be in PSpace for unambiguous discounted-sum au-
+tomata [25, 9]. This problem asks for the existence of a word of value greater or equal than
+a given threshold ν. Since the value of a word is the maximal value amongst its accepting
+runs, it suﬃces to check for the existence of a run from the initial state to an accepting state
+of discounted-sum value ≥ ν. By inverting the weights, the latter is equivalent to checking
+whether there exists a run from the initial state to an accepting state of discounted-sum
+value ≤ −ν. By seeing the (inverted) discounted-sum automaton as a weighted graph, the
+latter property can be checked in Ptime by Lemma 5, thus proving the following theorem.
+Theorem 6. The ≥ ν non-emptiness problem is decidable in PTime for nondeterministic
+discounted-sum automata.
+  We now go back to the proof of Theorem 4.
+Proof sketch of Theorem 4. For Dsum, and a non-strict threshold, the problem can be di-
+rectly reduced to discounted-sum games which are solvable in NP ∩ coNP [4].
+  For Dsum, and a strict threshold, such a reduction fails. To solve the problem, we ﬁrst
+show that positional strategies are suﬃcient for Eve to win in a critical preﬁx threshold
+discounted-sum game (for strict and non-strict thresholds). The NP-algorithm guesses a
+positional strategy σ for Eve, and then veriﬁes in polynomial time whether σ is winning.
+Let G′ be the game restricted to Eve’s σ-edges, seen as a weighted graph. The strategy σ is
+not winning iﬀ Adam can form a path in G′ from the initial vertex to a critical vertex that
+has weight ≤ ν. This property can be checked in Ptime thanks to Lemma 5 (by taking as
+target set the set of critical vertices).
+  The following is shown by reduction from the halting problem for 2-counter machines.
+Theorem 7. The fixed initial credit problem for imperfect information critical prefix energy
+games is undecidable.
+  The above result contrasts the ﬁxed initial credit problem for imperfect information energy
+games which is decidable [22].
+Theorem 8. The fixed initial credit problem for imperfect information critical prefix energy
+games is decidable if from each vertex Adam has a strategy to reach a critical vertex against
+observation based strategies. Moreover, finite-memory strategies are sufficient for Eve to
+win.
+Proof sketch. This problem is reduced to the ﬁxed initial credit problem for imperfect infor-
+mation energy games which is decidable [22]. In classical energy games, Eve loses as soon as
+the energy goes below zero. The idea of the reduction is that if in the critical preﬁx energy
+ 3 In contrast to deterministic weighted automata, there might be serveral accepting runs on an input and
+
+   the value of the word is defined as the maximal value of its accepting runs [25, 29].
+
+
+
+
+                                                     9
+game the initial credit is c0 , then in the classical energy game we start the game with an
+additional buﬀer, i.e., with c0 + B, for some computable bound B. In the critical preﬁx
+energy game, if the energy level drops below −B Adam can force to visit a critical vertex
+such that the energy level can rise by at most B, ensuring that a critical vertex is visited
+with energy level below zero. Thus, the additional buﬀer B suﬃces in the classical energy
+game.
+
+
+4. Synthesis problems
+Here, we solve the quantitative synthesis problems deﬁned in Section 2. Recall that weighted
+speciﬁcations are given by weighted automata that alternate between reading one input and
+one output symbol. In other words, we prove the decidability results of Table 1. We then
+show consequences of these results to quantitative synthesis problems over inﬁnite words.
+
+Threshold synthesis problems. Since weighted speciﬁcations S are given by weighted au-
+tomata, the synthesis problem naturally reduces to a game played on the automaton. In
+order to solve threshold synthesis problems, in contrast to best-value and approximate syn-
+thesis problems, it is not necessary to compare the values of runs of the speciﬁcation au-
+tomaton that have the same input sequence. Hence, it is relatively straightforward to reduce
+threshold synthesis problems to critical preﬁx threshold games. An important point needs
+to be taken care of due to the fact the domain of S might be partial, and therefore lead
+Eve into the following bad situation (⋆): Eve must choose her outputs in such a way that
+she does not go in a state of the automaton which is non-accepting, while the input word
+played by Adam so far is in the domain of S. Otherwise, the pair of input and output word
+formed would not even be in S, something which is required by the deﬁnition of synthesis
+problems. So, Eve has to monitor the domain, which is easy if the domain is total, but
+more involved if it is partial. Thanks to Theorem 2, this can be done in polynomial time.
+More precisely, we ﬁrst run the algorithm of Theorem 2 which either returns that there is
+no Boolean realizer, or returns a domain-safe deterministic weighted automaton A′ which
+has the same Boolean realizers as S. By the very deﬁnition of domain-safe automata, the
+bad situation (⋆) described above cannot happen. Hence, Eve can freely play on A′ without
+taking care of the domain constraint. Only the quantitative constraint matters, and it has
+to be enforced whenever Eve is in an accepting state of A′ (this corresponds to the situation
+where Adam has chosen an input word in the domain of S). Hence, only accepting states
+of A′ matter for the quantitative constraint and these are declared as critical. To conclude,
+by projecting away the symbols of A′ and by declaring its accepting states to be critical,
+we obtain a critical preﬁx game. For the threshold synthesis problem, decidability follows
+directly from the decidability of the threshold problem for critical preﬁx games (Theorems 3
+and 4). For Sum- and Avg-speciﬁcations, this can be done in NP ∩ coNP. We leave open
+whether it is solvable in Ptime and show that this would also solve the long standing open
+problem of whether mean-payoﬀ games are solvable in Ptime.
+Theorem 9. The threshold synthesis problem for a V -specification with V ∈ {Sum, Avg}
+and a strict or non-strict threshold is decidable in NP ∩ coNP and PTIME-equivalent to
+mean-payoff games. The threshold synthesis problem for a Dsum-specification and a strict
+resp. non-strict threshold is decidable in NP resp. in NP ∩ coNP.
+
+Synthesis and regret determinization. Before we prove our results about best-value and
+approximate synthesis, we highlight the tight connection between the approximate synthesis
+problem and the so-called regret determinization problem for nondeterministic weighted
+
+
+
+
+                                             10
+automata4 . This problem has for instance been studied in [26] for Sum-automata and in [30]
+for Dsum-automata. We formalize this connection here. Given r ∈                    Q
+                                                                                 and ⊳ ∈ {<, ≤}, a
+nondeterministic WFA A = (Q, Σ, qi , ∆, F, γ) is called r⊳ -regret determinizable if there exists
+a ﬁnite set of memory states M and a deterministic WFA Ar = (Q × M, Σ, qir , ∆r , Fr , γr ),
+where qir = (qi , m) for some m ∈ M ,     Fr ⊆ F × M , (q, m), a, (q, m′ ) ∈ ∆r implies that
+(q, a, q ′ ) ∈ ∆, and γr (q, m), a, (q, m′ ) = γ((q, a, q ′ )) for all m, m′ ∈ M , such that L(A) =
+L(Ar ) and A(w) − Ar (w) ⊳ r for all w ∈ dom(L(A)). The regret determinization problem
+asks, given a nondeterministic weighted automaton A, a threshold r ∈ , and ⊳ ∈ {<, ≤}, Q
+whether A is r⊳ -regret determinizable.
+Lemma 10. The approx. synthesis problem for weighted specifications reduces in linear time
+to the regret determinization problem for nondet. weighted automata (with the same thresh-
+old). The converse is true (in linear time and with the same threshold) for Sum-automata.
+   Lemma 10 is independent from any payoﬀ function. Regarding the converse direction,
+when going from the regret determinization problem to the approximate synthesis problem,
+a transition (for an input symbol) must be translated into two transitions (adding an output
+symbol). This step can cause diﬃculties depending on the used payoﬀ function, e.g., Dsum.
+
+Best-value synthesis problems. Best-value synthesis is equivalent to zero-regret synthesis,
+which is, by Lemma 10, equivalent to zero-regret determinization of weighted automata.
+In [9], the authors showed that if a Sum-automaton is zero-regret determinizable, then
+no memory states are needed, i.e., a sub-automaton suﬃces. We give general suﬃcient
+conditions on weighted ﬁnite automata (which hold for Sum-, Avg- and Dsum-automata)
+under which the latter result can be generalized.
+           Z      Q
+     Let V : ∗ → be a payoﬀ function. A V -automaton deﬁning a V -speciﬁcation, where V
+is applied to runs as usual, is called ≤-stable if for all runs ρ, ρ′ , ρ′′ such that the end state
+of ρ is the beginning state of ρ′ and ρ′′ , w′ = u ⊗ v ′ , and w′′ = u ⊗ v ′′ for some u ∈ Σi∗ and
+v ′ , v ′′ ∈ Σ∗o, where w′ and w′′ are the words associated to ρ′ and ρ′′ , respectively, holds that
+if V (ρ′ ) ≤ V (ρ′′ ) then V (ρρ′ ) ≤ V (ρρ′′ ).
+Lemma 11. Given a weighted specification S by a ≤-stable weighted automaton A, if there
+exists a transducer that implements a best-value S-realization, then there exists a transducer
+that implements a best-value S-realization that is defined as a sub-automaton of A.
+  While the above lemma can be used to obtain our decidability results for best-value
+synthesis, we use other techniques to obtain the complexity results stated below.
+Theorem 12. The best-value synthesis problem is decidable in Ptime for Sum-specifications
+and Avg-specifications, and in NP∩coNP for Dsum-specifications.
+Proof sketch. For Sum, the problem reduces to the zero-regret determinization problem
+for Sum-automata, see Lemma 10, aka the determinization by pruning problem for Sum-
+automata, known to be decidable in Ptime in [3]. For Avg, it easily reduces to Sum by
+interpreting the Avg-speciﬁcation as a Sum-speciﬁcation. For Dsum, we show that the prob-
+lem reduces in Ptime to a critical preﬁx threshold game, for non-strict threshold, which is
+solvable in NP∩coNP by Theorem 4.
+  Alternatively, decidability for Dsum can be obtained by reduction to the zero-regret deter-
+minization problem for Dsum-automata over inﬁnite words which was shown to be decidable
+in NP in [30, Theorem 6]. However, our techniques allow us to get NP∩coNP.
+
+
+ 4 In contrast to deterministic weighted automata, there might be serveral accepting runs on an input and
+
+   the value of the word is defined as the maximal value of its accepting runs [25, 29].
+
+
+
+
+                                                    11
+Approximate synthesis problems. We now turn to the approximate synthesis problems
+and show its decidability for Sum and Avg. We leave the decidability status open for Dsum,
+but nevertheless show decidability for a large class, namely when the discount factor is of
+                     N
+the form n1 for n ∈ . Nondeterministic Dsum-automata in this class have been considered
+in [8] and shown to be determinizable.
+
+Theorem 13. The approximate synthesis problem is
+   • EXPtime-complete for Sum-specifications and strict or non-strict thresholds;
+   • decidable and EXPtime-hard for Avg-specifications and strict or non-strict thresholds;
+   • in NEXPtime (resp. EXPtime) for Dsum-specifications with a discount factor λ of
+                            N
+     the form n1 with n ∈ and strict (resp. non-strict) thresholds.
+Proof sketch. For Sum, we reduce the problem to r-regret determinization of Sum-automata,
+known to be EXPtime-complete, using the back-and-forth connection given by Lemma 10.
+   For an Avg-speciﬁcations S, it is worth noting that even though r-approximate synthe-
+sis reduces to r-approximate synthesis for Sum when r = 0, interpreting S as a Sum-
+speciﬁcation, this reduction is wrong for r > 0 in general. It is because in an Avg-
+speciﬁcation, Eve can deviate more and more from the best sum, while the average of
+this diﬀerence can stay low. We instead rely on a reduction to critical preﬁx energy games
+of imperfect information and ﬁxed initial credit (which falls into the decidable subclass of
+Theorem 8). Intuitively, in this game, Adam constructs a run ρ on a pair of words (u, v)
+and Eve constructs a run ρ′ on some (u, v ′ ). She only sees u and not ρ. The energy level
+of such a play is set to Sum(ρ′ ) + |uv| · r − Sum(ρ) and must be positive whenever Adam
+reaches an accepting state. ExpTime-hardness is perhaps the most technical result of the
+paper, and is a non-trivial adaptation of reduction from countdown games used to show
+ExpTime-hardness of the regret determinization of Sum-automata [26].
+   Finally, for Dsum, we use that by projecting away the output in the Dsum-automaton
+deﬁning the speciﬁcation, we obtain a nondeterministic weighted automaton which is deter-
+minizable by [8]. This allows us to reduce the problem to the threshold synthesis problem
+for Dsum, which is decidable by Theorem 9. To obtain the complexity results, we ﬁrst an-
+alyze the determinization procedure. It yields an automaton whose states are exponential
+in the number of states and polynomial in the weights of the nondeterministic one. Its
+weights are polynomial in the weights of the nondeterministic one. For a strict threshold,
+the claimed complexity bound follows directly from Theorem 9. For a non-strict threshold,
+we use that critical preﬁx threshold games are reduced in polynomial time to discounted-
+sum games. Using value iteration [36] to solve discounted-sum games yields the claimed
+complexity bound, because it runs in polynomial time in the size of the arena, logarithmic
+in the absolute maximal weight of the arena, and exponential in the representation of the
+discount factor, i.e., polynomial in the discount factor.
+
+Infinite words and Church synthesis. An ω-speciﬁcation is a subset S ⊆ (Σi.Σo)ω . The
+(Church) synthesis problem asks to decide whether there exists a strategy to pick a correct
+output sequence given longer and longer preﬁxes of an inﬁnite input sequence. Formally, an
+ω-speciﬁcation S is said to be realizable if there exists a function λ : Σi∗ → Σo such that for
+all i1 i2 · · · ∈ Σiω , it holds that i1 λ(i1 )i2 λ(i1 i2 )i3 λ(i1 i2 i3 ) · · · ∈ S.
+   Strategies of interest are those which can be represented by a ﬁnite-state machine, and in
+particular a Mealy machine, that is, roughly, a transducer running on ω-words and without
+acceptance condition. Formally, it is a tuple M = (P, p0 , δ) such that P is a ﬁnite set of
+states with initial state p0 , and δ : P × Σi → Σo × P is a (total) transition function. The
+function δ can be extended to δ ∗ : P × Σ+         i → Σo × P as usual. Then, M deﬁnes the strategy
+λM such that for all u ∈ Σi∗ , λM (u) = π1 (δ ∗ (p0 , u)), where π1 is the ﬁrst projection. It
+
+
+
+                                                12
+is well-known that when S is ω-regular (given e.g. as a parity automaton), it is decidable
+whether S is realizable [14]. Moreover, realizability implies realizability by a Mealy machine.
+
+Weighted safety specifications. In this paper, we go beyond ω-regular speciﬁcations, by
+considering safety ω-speciﬁcations induced by weighted speciﬁcations of ﬁnite words deﬁned
+                                                                    Q
+by deterministic weighted automata. Let W : (ΣiΣo)∗ → ∪ {−∞} be a weighted speciﬁ-
+cation. For a threshold t ∈
+                       ω
+                                 Qand ⊲ ∈ {>, ≥}, we deﬁne the ω-speciﬁcation Thres⊲t (W ) =
+{i1 o1 · · · ∈ (Σi.Σo) | ∀k ≥ 0, i1 . . . ik ∈ dom(W ) → W (i1 o1 . . . ik ok ) ⊲ t}. In words, an
+ω-word w is in Thres⊲t (W ) iﬀ for all ﬁnite preﬁxes u = i1 o1 . . . ik ok of w, either i1 . . . ik 6∈
+dom(W ) or W (u) ⊲ t. So, the quantitative condition is checked only for preﬁxes whose input
+belongs to dom(W ). The ω-speciﬁcation Thres⊲t (W ) is a safety speciﬁcation 5 . More gener-
+ally, any set S ⊆ (Σi.Σo)∗ induces a safety ω-speciﬁcation Safe(S) = {i1 o1 · · · ∈ (Σi.Σo)ω |
+∀k ≥ 0, i1 . . . ik ∈ dom(S) → i1 o1 . . . ik ok ∈ S}.
+   For example, we have the equality Thres⊲t (W ) = Safe({u ∈ (Σi.Σo)∗ | W (u) ⊲ t}). Like-
+wise, we deﬁne best-value and approximate safety ω-speciﬁcations. Formally, given a ﬁnite
+word i1 . . . ik ∈ Σi∗ and ⊳ ∈ {<, ≤}, we let BestVal(W ) = Approx≤ (W, 0) where for all
+    Q
+r ∈ ≥0 we have Approx⊳ (W, r) = Safe({u = i1 o1 . . . ik ok | bestValW (i1 . . . ik ) − W (u) ⊳ r}.
+Note that the three notions of safety ω-speciﬁcations we have deﬁned are not necessarily
+ω-regular, even if W is given by a deterministic weighted automaton. Nevertheless, an
+immediate consequence of the results we have obtained previously on ﬁnite words is that
+Theorem 14. The synthesis problem for an ω-specification O ⊆ (Σi.Σo)ω is decidable when
+O is given by a deterministic V -automaton defining a weighted V -specification of finite
+words W s.t. O ∈ {Thres>t (W ), Thres≥t (W ), BestVal(W ), Approx< (W, r), Approx≤ (W, r)}
+and V = Sum, V = Avg or V = Dsum with discount factor 1/n for n ∈ . Moreover, if O   N
+is realizable, it is realizable by a Mealy machine.
+
+
+5. Future work
+In this paper, weighted speciﬁcations are deﬁned by deterministic weighted automata. Non-
+deterministic, even unambiguous, weighted automata, are strictly more expressive than their
+deterministic variant in general, and in particular for Sum, Avg and Dsum. An interesting
+direction is to revisit our quantitative synthesis problems for speciﬁcations deﬁned by non-
+deterministic weighted automata. Using similar ideas as the undecidability of critical preﬁx
+energy games of imperfect information, it can be shown that threshold synthesis becomes un-
+decidable for unambiguous sum- and avg-speciﬁcations. The problem is open for best-value
+and approximate synthesis, and we plan to investigate it.
+   Two other directions seem interesting as future work, both in the setting of inﬁnite words.
+First, natural measures in this setting are discounted-sum and mean-payoﬀ. While the
+threshold synthesis problems directly reduce to known results and best-value/approximate
+synthesis for dsum has been studied in [30], nothing is known to the best of our knowledge
+about best-value/approximate synthesis for mean-payoﬀ. We expect the techniques to be
+diﬀerent because such a measure is preﬁx-independent, unlike our measures in the setting
+of ﬁnite words. As a second direction, we have seen how our results apply to synthesis on
+inﬁnite words through weighted safety conditions. An interesting direction is to consider
+such weighted requirements in conjunction with ω-regular conditions such as parity, in the
+line of [17] that combines energy and parity objectives in games.
+
+
+
+
+ 5 A language of ω-words S is a safety language if any ω-word w whose finite prefixes u are such that uv ∈ S
+                                                                                                        u
+   for some ω-word vu , belongs to S [15].
+
+
+
+
+                                                    13
+References
+ [1] Shaull Almagor and Orna Kupferman. Good-enough synthesis. In International Con-
+     ference on Computer Aided Verification, pages 541–563. Springer, 2020.
+ [2] Shaull Almagor, Orna Kupferman, Jan Oliver Ringert, and Yaron Velner. Quantitative
+     assume guarantee synthesis. In International Conference on Computer Aided Verifica-
+     tion, pages 353–374. Springer, 2017.
+ [3] Benjamin Aminof, Orna Kupferman, and Robby Lampert. Reasoning about online
+     algorithms with weighted automata. ACM Trans. Algorithms, 6(2):28:1–28:36, 2010.
+ [4] Daniel Andersson. An improved algorithm for discounted payoﬀ games. In ESSLLI
+     Student Session, pages 91–98, 2006.
+ [5] Roderick Bloem, Krishnendu Chatterjee, Thomas A Henzinger, and Barbara Jobst-
+     mann. Better quality in synthesis through quantitative objectives. In International
+     Conference on Computer Aided Verification, pages 140–156. Springer, 2009.
+ [6] Roderick Bloem, Rüdiger Ehlers, and Robert Könighofer. Cooperative reactive synthe-
+     sis. In Bernd Finkbeiner, Geguang Pu, and Lijun Zhang, editors, Automated Technology
+     for Verification and Analysis - 13th International Symposium, ATVA 2015, Shanghai,
+     China, October 12-15, 2015, Proceedings, volume 9364 of Lecture Notes in Computer
+     Science, pages 394–410. Springer, 2015.
+ [7] Roderick Bloem, Barbara Jobstmann, Nir Piterman, Amir Pnueli, and Yaniv Sa’ar.
+     Synthesis of reactive(1) designs. J. Comput. Syst. Sci., 78(3):911–938, 2012.
+ [8] Udi Boker and Thomas A. Henzinger. Exact and approximate determinization of
+     discounted-sum automata. Logical Methods in Computer Science, 10(1), 2014.
+ [9] Udi Boker, Thomas A. Henzinger, and Jan Otop. The target discounted-sum problem.
+     In 30th Annual ACM/IEEE Symposium on Logic in Computer Science, LICS 2015,
+     Kyoto, Japan, July 6-10, 2015, pages 750–761. IEEE Computer Society, 2015.
+[10] Patricia Bouyer, Uli Fahrenberg, Kim G Larsen, and Nicolas Markey. Timed automata
+     with observers under energy constraints. In Proceedings of the 13th ACM international
+     conference on Hybrid systems: computation and control, pages 61–70, 2010.
+[11] Tomáš Brázdil, Petr Jančar, and Antonín Kučera. Reachability games on extended vec-
+     tor addition systems with states. In International Colloquium on Automata, Languages,
+     and Programming, pages 478–489. Springer, 2010.
+[12] Romain Brenguier, Lorenzo Clemente, Paul Hunter, Guillermo A Pérez, Mickael Ran-
+     dour, Jean-François Raskin, Ocan Sankur, and Mathieu Sassolas. Non-zero sum games
+     for reactive synthesis. In Language and Automata Theory and Applications, pages 3–23.
+     Springer, 2016.
+[13] Romain Brenguier, Jean-François Raskin, and Ocan Sankur. Assume-admissible syn-
+     thesis. Acta Informatica, 54(1):41–83, 2017.
+[14] J Richard Büchi and Lawrence H Landweber. Solving sequential conditions ﬁnite-state
+     strategies. Trans. Ameri. Math. Soc., 138:295–311, 1969.
+[15] Edward Chang, Zohar Manna, and Amir Pnueli. The safety-progress classiﬁcation. In
+     Logic and Algebra of Specification, pages 143–202. Springer, 1993.
+
+
+
+
+                                           14
+[16] Krishnendu Chatterjee and Laurent Doyen. Energy parity games. Theoretical Computer
+     Science, 458, 2012.
+[17] Krishnendu Chatterjee and Laurent Doyen. Energy parity games. Theor. Comput. Sci.,
+     458:49–60, 2012.
+[18] Krishnendu Chatterjee and Thomas A. Henzinger. Assume-guarantee synthesis. In
+     Orna Grumberg and Michael Huth, editors, Tools and Algorithms for the Construction
+     and Analysis of Systems, 13th International Conference, TACAS 2007, Held as Part
+     of the Joint European Conferences on Theory and Practice of Software, ETAPS 2007
+     Braga, Portugal, March 24 - April 1, 2007, Proceedings, volume 4424 of Lecture Notes
+     in Computer Science, pages 261–275. Springer, 2007.
+
+[19] A Church. Applications of recursive arithmetic to the problem of circuit synthesis–
+     summaries of talks. Institute for Symbolic Logic, Cornell University, 1957.
+[20] Edmund M Clarke, Thomas A Henzinger, Helmut Veith, and Roderick Bloem. Handbook
+     of model checking, volume 10. Springer, 2018.
+[21] Rodica Condurache, Emmanuel Filiot, Raﬀaella Gentilini, and Jean-François Raskin.
+     The complexity of rational synthesis. In Ioannis Chatzigiannakis, Michael Mitzen-
+     macher, Yuval Rabani, and Davide Sangiorgi, editors, 43rd International Colloquium
+     on Automata, Languages, and Programming, ICALP 2016, July 11-15, 2016, Rome,
+     Italy, volume 55 of LIPIcs, pages 121:1–121:15. Schloss Dagstuhl - Leibniz-Zentrum für
+     Informatik, 2016.
+[22] Aldric Degorre, Laurent Doyen, Raﬀaella Gentilini, Jean-François Raskin, and Szymon
+     Toruńczyk. Energy and mean-payoﬀ games with imperfect information. In International
+     Workshop on Computer Science Logic, pages 260–274. Springer, 2010.
+[23] Manfred Droste, Werner Kuich, and Heiko Vogler. Handbook of weighted automata.
+     Springer Science & Business Media, 2009.
+[24] Andrzej Ehrenfeucht and Jan Mycielski. Positional strategies for mean payoﬀ games.
+     International Journal of Game Theory, 8(2):109–113, 1979.
+[25] Emmanuel Filiot, Raﬀaella Gentilini, and Jean-François Raskin. Quantitative lan-
+     guages deﬁned by functional automata. In CONCUR, volume 7454 of Lecture Notes in
+     Computer Science, pages 132–146. Springer, 2012.
+[26] Emmanuel Filiot, Ismaël Jecker, Nathan Lhote, Guillermo A. Pérez, and Jean-François
+     Raskin. On delay and regret determinization of max-plus automata. In LICS, pages
+     1–12. IEEE Computer Society, 2017.
+[27] Emmanuel Filiot, Naiyong Jin, and Jean-François Raskin. Antichains and compositional
+     algorithms for LTL synthesis. Formal Methods in System Design, 39(3):261–296, 2011.
+[28] Emmanuel Filiot, Christof Löding, and Sarah Winter. Synthesis from weighted spec-
+     iﬁcations with partial domains over ﬁnite words. In FSTTCS, volume 182 of LIPIcs,
+     pages 46:1–46:16. Schloss Dagstuhl - Leibniz-Zentrum für Informatik, 2020.
+[29] Axel Haddad and Benjamin Monmege. Why value iteration runs in pseudo-polynomial
+     time for discounted-payoﬀ games. Technical note, Université libre de Bruxelles, 2015.
+[30] Paul Hunter, Guillermo A. Pérez, and Jean-François Raskin. Minimizing regret in
+     discounted-sum games. In CSL, volume 62 of LIPIcs, pages 30:1–30:17. Schloss Dagstuhl
+     - Leibniz-Zentrum fuer Informatik, 2016.
+
+
+
+                                            15
+[31] Marcin Jurdziński, François Laroussinie, and Jeremy Sproston. Model checking proba-
+     bilistic timed automata with one or two clocks. In International Conference on Tools
+     and Algorithms for the Construction and Analysis of Systems, pages 170–184. Springer,
+     2007.
+[32] Orna Kupferman, Giuseppe Perelli, and Moshe Y. Vardi. Synthesis with rational envi-
+     ronments. Ann. Math. Artif. Intell., 78(1):3–20, 2016.
+[33] Orna Kupferman, Nir Piterman, and Moshe Y. Vardi. Safraless compositional synthesis.
+     In Computer Aided Verification, 18th International Conference, CAV 2006, volume
+     4144 of Lecture Notes in Computer Science, pages 31–44. Springer, 2006.
+[34] Jianwen Li, Kristin Y. Rozier, Geguang Pu, Yueling Zhang, and Moshe Y. Vardi. Sat-
+     based explicit ltlf satisﬁability checking. In The Thirty-Third AAAI Conference on
+     Artificial Intelligence, AAAI 2019, The Thirty-First Innovative Applications of Artifi-
+     cial Intelligence Conference, IAAI 2019, The Ninth AAAI Symposium on Educational
+     Advances in Artificial Intelligence, EAAI 2019, Honolulu, Hawaii, USA, January 27 -
+     February 1, 2019, pages 2946–2953. AAAI Press, 2019.
+[35] Shufang Zhu, Lucas M. Tabajara, Jianwen Li, Geguang Pu, and Moshe Y. Vardi. Sym-
+     bolic ltlf synthesis. In Carles Sierra, editor, Proceedings of the Twenty-Sixth Interna-
+     tional Joint Conference on Artificial Intelligence, IJCAI 2017, Melbourne, Australia,
+     August 19-25, 2017, pages 1362–1369. ijcai.org, 2017.
+[36] Uri Zwick and Mike Paterson. The complexity of mean payoﬀ games on graphs. Theo-
+     retical Computer Science, 158(1-2):343–359, 1996.
+
+
+A. Proofs of Section 2 (Domain-Safe automata)
+A.1. Proof of Lemma 15
+Intuitively, the following lemma implies that if the speciﬁcation A is domain-safe, then for
+an input u it suﬃces to follow some run in A in order to produce an output v such that
+(u, v) ∈ R(A).
+Lemma 15. If A is a domain-safe weighted specification, then each run of A on u ⊗ v with
+u ∈ dom(A) ends in a final state.
+Proof. Let (x, y) be a pair of input/output words of equal length, such that A has a run on
+x ⊗ y ending in some state q. By induction on |x| one can easily show that L(Adom , q) =
+x−1 dom(A) = {x′ | xx′ ∈ dom(A)}: For (x, y) = (ε, ε) the claim is obvious because
+L(Adom , q0 ) = dom(A). If (x, y) = (x′ a, y ′ b), let the run of A on x′ ⊗ y ′ end in q ′ . By
+induction, L(Adom , q ′ ) = (x′ )−1 dom(A). With q ′′ = δ(q ′ , a), we obtain L(Adom , q ′′ ) =
+a−1 L(Adom , q ′ ) = a−1 ((x′ )−1 dom(A)) = (x′ a)−1 dom(A). The last transition of the run on
+x′ a ⊗ y ′ b is (q ′′ , b, q). Since A is domain-safe, L(Adom , q) = L(Adom , q ′′ ) = (x′ a)−1 dom(A).
+This ﬁnishes the induction.
+   For x ∈ dom(A), we obtain ε ∈ x−1 dom(A) = L(Adom , q). Thus, q has to be a ﬁnal
+state.
+
+A.2. Proof of Theorem 2
+Theorem 2. There is a polynomial time procedure that takes as input a weighted specification
+A, and either returns “no realizer” if A does not have Boolean realizers, or, otherwise, returns
+a sub-automaton A′ of A that is domain-safe, has the same domain as A, and has the same
+Boolean realizers as A.
+
+
+
+                                                  16
+Proof. Consider the following game between Adam and Eve that tracks two runs of A
+(formalized below). The input word of the two runs is the same, and chosen by Adam.
+For the ﬁrst run, the output sequence is played by Eve, and for the second run, the output
+sequence is played by Adam, who makes in each round his choice after the choice of Eve.
+Adam wins if his run is accepting while Eve’s run is not accepting.
+   Since A alternatively reads input and output symbols, we assume that the set of states is
+partitioned into a set of input states Qi from which only input symbols are read, and set of
+output states Qo. Note that qi ∈ Qi.
+   Formally, the vertex set of Adam is (Qi × Qi) ∪ (Qi × Qo), and the vertex set of Eve is
+Qo × Qo. The initial vertex is (q0 , q0 ) ∈ Qi × Qi. A vertex (q, q ′ ) has the following outgoing
+edges:
+   • If (q, q ′ ) ∈ Qi × Qi, there are edges to (δ(q, a), δ(q ′ , a)) ∈ Qo × Qo for each a ∈ Σi
+     (Adam chooses next input letter).
+   • If (q, q ′ ) ∈ Qo × Qo, then there is an edge to (δ(q, a), q ′ ) ∈ Qi × Qo for each letter
+     a ∈ Σo (Eve chooses her next output letter).
+   • If (q, q ′ ) ∈ Qi × Qo, then there is an edge to (q, δ(q ′ , a)) ∈ Qi × Qi for each letter
+     a ∈ Σo (Adam chooses his next output letter).
+   We only consider vertices that are reachable from the initial vertex (q0 , q0 ) by these edges.
+   Adam wins if the play is in a vertex from (Q \ F ) × F (since F is a subset of Qi, this
+means that such a vertex is from Qi × Qi).
+   If (q0 , q0 ) is not in the winning region of Eve, then A has no Boolean realizers. To see this,
+take a transducer T . This transducer induces a strategy σ for Eve in which she always plays
+the next output as determined by the transducer (independent of the outputs chosen by
+Adam). Since (q0 , q0 ) is not in the winning region of the game, Adam has a strategy against
+σ to reach a conﬁguration (q, q ′ ) such that q ′ ∈ F and q ∈     / F . The unique play resulting
+from the two strategies corresponds to an input word u chosen by Adam, an output word v
+chosen by Eve (according to the transducer), and an output word v ′ chosen by Adam. The
+run on u ⊗ v ends in q ∈     / F , and the run on u ⊗ v ′ ends in q ′ ∈ F . Thus, u is in the domain
+of A but the transducer produces an output v such that (u, v) ∈          / R(A). Hence, T is not a
+Boolean realizer of A.
+   If (q0 , q0 ) is in the winning region of Eve, then obtain A′ as follows: Remove all states q
+from A such that (q, q) is not in the winning region of Eve. Among the remaining states,
+remove those transitions (p, a, q) from A such that (q, p) exists in the game and is not in the
+winning region of Eve. Finally, make the resulting automaton trim.
+   We ﬁrst show that all transitions (p, a, q) that are domain-unsafe in A are removed.
+In Adom , the transition (p, a, q) corresponds to an ε-transition (p, ε, q). This means that
+L(Adom , q) ⊆ L(Adom , p). Since (p, a, q) is domain-unsafe, there is a word u ∈ L(Adom , p) \
+L(Adom , q). Consider the vertex (q, p) in the game. If Adam plays the input sequence u
+from this vertex, Eve cannot reach an accepting state since u ∈        / L(Adom , q). But Adam can
+make his moves corresponding to an accepting run of L(Adom ) starting in p. Hence, (q, p) is
+not in the winning region of Eve, and the transition (p, a, q) is removed in the construction
+of A′ .
+   We now show that the states remaining in A′ have the same domain as in A. This implies
+that A′ has the same domain as A, and that A′ is domain-safe because any transition that
+is domain-unsafe in A′ would then also be domain-unsafe in A.
+   Let p be a state of A′ . Clearly, L(A′dom , p) ⊆ L(Adom , p) because A′ is a subautomaton of
+A. We show by induction of the length of input words u that u ∈ L(Adom , p) implies that
+u ∈ L(A′dom , p), implying that L(A′dom , p) = L(Adom , p). We distinguish the cases of p ∈ Qi
+and p ∈ Qo.
+
+
+
+
+                                                17
+   For u = ε and p ∈ Qi, the claim is clear because from input states p there are no ε-
+transitions, and p is ﬁnal in A iﬀ it is ﬁnal in A′ . Assume the inductive claim is true for
+words of length at most n ≥ 0 at input states, and consider the case p ∈ Qo. Since p is in
+A′ , (p, p) is in the winning region of Eve, and thus there must be an edge from (p, p) to some
+(q, p) that is also in the winning region of Eve. The move from (p, p) to (q, p) corresponds to
+some output transition (p, a, q). Since Adam can move from (q, p) to (q, q) by just imitating
+Eve’s last move, we obtain that also (q, q) is in the winning region of Eve. Hence, the
+transition (p, a, q) also exists in A′ . The state q is an input state and thus accepts the same
+input words of length at most n in Adom and A′dom by our assumption. We have seen earlier
+that all domain-unsafe transitions of A are removed in A′ . Thus, L(Adom , p) = L(Adom , q).
+Now let u be an input word of length at most n with u ∈ L(Adom , p). Then u ∈ L(Adom , q),
+and by assumption also u ∈ L(A′dom , q). In A′dom there is an ε-transition (p, ε, q), and thus
+u ∈ L(A′dom , p), as we wanted to show.
+   Now consider the inductive step for an input state p and for u = au′ ∈ L(Adom , p) of
+length n + 1. There is a unique transition (p, a, q) in Adom , and thus u′ ∈ L(Adom , q). Since
+p exists in A′ , the vertex (p, p) is in the winning region of Eve. Since Adam can move from
+(p, p) to (q, q), also (q, q) must be in the winning region of Eve. Hence, the transition (p, a, q)
+exists in A′ . By induction, u′ ∈ L(A′dom , q), and thus also u = au′ ∈ L(Adom , p).
+   It remains to show that A′ has the same Boolean realizers as A. Clearly, since R(A′ ) ⊆
+R(A) and the two relations have the same domain, every realizer of A′ is also a realizer of
+A. Let T be a Boolean realizer of A. Eve can use T as a winning strategy in the game by
+playing the output sequences generated by T . This ensures that for every input u ∈ dom(A)
+that is played by Adam, she answers with an output sequence v such that u ⊗ v is accepted
+by A. Hence, the run that she plays in the game ends in an accepting state of A for each
+such u ∈ dom(A). Since she never leaves her winning region, all transitions used by A in
+the run on u ⊗ v also exist in A′ . Thus u ⊗ v is also accepted by A′ , and therefore T is also
+a realizer of A′ .
+   Since the winning region of Eve can be computed in polynomial time (because safety
+games are solvable in polynomial time), we obtain a polynomial time procedure as claimed
+in the statement of the theorem.
+
+
+B. Proofs of Section 3 (Critical prefix games)
+B.1. Proof of Theorem 3
+Before we prove the result, we formally introduce mean-payoﬀ games.
+   The mean-payoff values of the play π are MP(π) = lim supn→∞ n1 Sum(π(n)) and MP(π) =
+lim inf n→∞ n1 Sum(π(n)). A mean-payoff objective in G is parameterized by a threshold
+      Q
+ν ∈ , and ⊲ ∈ {>, ≥}. They are given by MPsup⊲G (ν) = {π ∈ Plays(G) | MP(π) ⊲ ν}
+and MPinf ⊲G (ν) = {π ∈ Plays(G) | MP(π) ⊲ ν} and require that the mean-payoﬀ value of
+a play is at least resp. greater then ν. The mean-payoff game problem asks whether there
+exists a winning strategy for Eve for the objective MPsup⊲G (ν) or MPinf ⊲G (ν). Note that the
+objectives are equivalent for games with perfect information [24].
+Theorem 3. The threshold problem for critical prefix games for V ∈ {Sum, Avg} and a
+strict or non-strict threshold is decidable in NP ∩ coNP. Moreover, positional strategies are
+sufficient for Eve to win such games.
+Proof. First, we show that for Sum the threshold problems reduce to mean-payoﬀ games. We
+begin with the non-strict case. Let G be the arena of a critical preﬁx threshold game, let G′
+denote the arena that is obtained from G by removing all vertices from where Adam can not
+force a visit to a critical vertex against Eve’s strategies. It is a reachability game property,
+hence this step can be done in polynomial time. If the initial vertex is removed, then clearly
+
+
+
+                                                18
+Eve has a winning strategy by always avoiding a critical vertex. Otherwise, we keep only the
+connected component to which the initial vertex belongs. Since the original game arena is
+assumed to be deadlock-free, this results in a graph with no deadlocks, because a deadlock
+would imply that every previously possible transition leads to a vertex from where Eve can
+avoid critical vertices. Furthermore, from every critical vertex add an edge to the initial
+vertex with weight −ν, where ν denotes the threshold. We assume that all critical vertices
+belong to Adam, if not, for a critical vertex v that belongs to Eve we add a non-critical copy
+v ′ of this vertex that belongs to Eve, the original vertex v then belongs to Adam. From the
+original vertex v Adam can either go with weight zero to its copy v ′ or with weight −ν to
+the initial vertex. In her copy, Eve can make the moves that were previously possible from
+the original vertex v.
+    We prove that Eve has a winning strategy for the objective ThresSum≥  G   (ν) in the critical
+preﬁx threshold game if, and only if, she has a winning strategy for the objective MPsup≥   G′ (0)
+in the mean-payoﬀ game. Assume that Eve has a winning strategy σ in G. Consider that σ
+guarantees that critical vertices are avoided. Then G′ is empty. There is nothing to show.
+Consider that σ can not avoid seeing critical vertices, G′ is not empty and contains the
+initial vertex. We deﬁne a strategy σ ′ in G′ that behaves like σ if possible and arbitrary
+otherwise and show that it is winning. We explain that Playsσ (G′ ) ⊆ Playsσ (G). Assume
+that it is not the case, then in a play according to σ ′ Eve’s next move from some vertex v in
+G′ is not equal to Eve’s next move according to σ from v in G. This is only the case if the
+target chosen in G does not exist in G′ , but this means that from v Eve can avoid critical
+vertices, thus v is not in G′ which is a contradiction. Playing according to σ guarantees that
+every path from the initial vertex to a critical vertex has value ≥ ν. This means that every
+cycle that uses an edge from a critical vertex to the initial vertex has value ≥ 0. Thus, all
+plays according to σ ′ that inﬁnitely often see such edges have value ≥ 0. Consider plays
+according to σ ′ that only ﬁnitely often see such edges. We argue that these plays also have
+value ≥ 0. Pick such a play π, towards a contradiction, we assume that MP(π) < 0. Let i
+be the index of last time that an edge from a critical vertex to the initial vertex was used,
+and let π ′ such that π = π(i)π ′ . We have MP(π ′ ) < 0, meaning that we can pick some j
+such that Sum(π ′ (j)) is lower than some arbitrary negative value. The preﬁx π ′ (j) is a valid
+play preﬁx according to σ in G (we assume that moves from a critical vertex to its copy
+are removed). Since Sum(π ′ (j)) is suﬃciently low and from last(π ′ (j)) Adam can force the
+play into a critical vertex, the sum reached in the critical vertex is less than the threshold
+ν. This contradicts that σ is winning in G.
+    For the other direction, assume that σ ′ is a winning strategy for Eve in G′ , we can assume
+σ to be positional [24]. Remove from G′ all edges belonging to Eve that are not chosen by
+  ′
+
+σ ′ , let G′σ′ denote the result. Since σ ′ guarantees that the value of each play according to
+the strategy is ≥ 0, we know that G′σ′ does not contain a negative cycle. This implies that
+the sum of every path from the initial vertex to a critical vertex is ≥ ν. The strategy σ ′
+is easily translated into a positional strategy σ in G which is clearly winning. Regarding
+the strict case, given a play π, it is easy to see that Sum(π(i)) > x for some x implies that
+                                                          Z
+Sum(π(i)) ≥ x − 1, because the weights in G are from . Thus, deciding whether a winning
+strategy for the objective ThresSum>
+                                   G    (ν) exists is equivalent to deciding whether a winning
+strategy for the objective ThresSum≥
+                                   G    (ν  − 1) exists. Since mean-payoﬀ games can be solved
+in NP ∩ coNP [36] the complexity bound follows.
+    Secondly, we show that for Avg the threshold problems reduce to threshold problems for
+critical preﬁx games for Sum. Let G be the arena of a critical preﬁx threshold game, and let
+G′ be the arena obtained from G by subtracting ν from every weight. Given a play preﬁx
+ϕ, we have that Avg(ϕ) ⊲ ν ⇔ Sum(ϕ) − ν|ϕ| ⊲ 0. Thus, given a strategy σ for Eve, for all
+ϕ ∈ Prefsσ (G) = Prefsσ (G′ ) holds ϕ ∈ ThresAvg⊲
+                                                G   (ν) ⇔ ϕ ∈ ThresSum⊲
+                                                                     G′ (0).
+
+
+
+
+                                               19
+B.2. Proof of Theorem 4
+Theorem 4. The threshold problem for critical prefix games for Dsum and a strict resp.
+non-strict threshold is decidable in NP resp. NP ∩ coNP. Moreover, positional strategies
+are sufficient for Eve to win such games.
+  We split the proof of the above theorem into several theorems. First, Theorem 19 shows
+the decidability of discounted-sum critical preﬁx threshold games for a strict threshold.
+Secondly, Theorem 18 shows that positional strategies suﬃce for discounted-sum critical
+preﬁx threshold games (for strict and non-strict thresholds). Lastly, Theorem 19 shows the
+decidability of discounted-sum critical preﬁx threshold games for a strict threshold using
+Theorem 18.
+
+B.3. Proof of Theorem 4: Discounted-sum with a non-strict threshold
+Theorem 16. The threshold problem for critical prefix games for Dsum and a non-strict
+threshold is decidable in NP ∩ coNP.
+Proof. We show that for Dsum the non-strict threshold problem reduces to discounted-sum
+games. Let G be the arena of a critical preﬁx threshold game, we remove all vertices from
+where Adam can not force a visit to a critical vertex against all strategies of Eve. If the
+initial vertex was removed, Eve has a winning strategy in the critical preﬁx threshold game
+that avoids critical vertices. Let G′ denote the resulting game arena, to make the arena
+deadlock-free, we add a new sink vertex q⊥ that has a self-loop with weight zero. From each
+deadlock an edge with weight zero leads to q⊥ .
+   In the reduction we want to achieve that every time a critical vertex is entered, Adam
+can decide whether he wants to stop the game. This should be achieved by going to the
+sink vertex q⊥ with weight zero. However, in the original game, a critical vertex can belong
+to Eve, so for these vertices we have to give Adam the choice without introducing a copy
+vertex as intermediate vertex as done, e.g., in the proof of Theorem 3, to not change the
+discounted-sum value of corresponding plays by introducing longer paths.
+   Towards this, for each critical vertex v and edge e with source v that belongs to Eve, we
+add a vertex (v, e) that belongs to Adam which has two outgoing edges, one that has weight
+zero to the sink q⊥ , and one that has weight w(e) and the same target as e. For each critical
+vertex that belongs to Adam, we add an edge with weight zero to the sink q⊥ .
+   Let v be a critical vertex that belongs to Eve, and e be an edge with target v and source
+u. If u belongs to Adam, we add an edge with weight w(e) from u to q⊥ . If u belongs to
+Eve, for each edge e′ with source v, we add an edge with weight w(e) to (v, e′ ). Then, the
+original edge e is removed.
+   We show that Eve has a winning strategy in the critical preﬁx threshold game for the
+objective ThresDsum,≥
+                 G     (ν) if, and only if, she has a winning strategy in the discounted-sum
+game for the objective DS≥  G′ (ν).
+   Let σ ′ be a winning strategy for Eve in G′ , we transform σ ′ into a strategy σ for Eve in
+G. Moves that go from a vertex u to a vertex (v, e) are transformed into a move from u to
+v, in v the next edge that is chosen is e. It is easy to see that σ is a winning strategy for
+Eve in G.
+   For the other direction, let σ be a winning strategy for Eve in G, we transform σ into a
+strategy σ ′ in G′ . According to σ, if Eves moves from u to a critical vertex v that belongs
+to Eve and subsequently takes an edge e, then σ ′ deﬁnes a move from u to (v, e). We prove
+that σ ′ is winning in G′ . Assume the contrary, let α′ be a play according to σ ′ that Eve
+loses. We distinguish whether α′ contains a move to q⊥ .
+   First, assume that α′ contains such a move, let π ′ denote the play preﬁx such that α′ =
+π e⊥ , where e⊥ is the self-loop in q⊥ . The preﬁx π ′ is translated back into a play preﬁx
+  ′ ω
+
+π in G, π is play preﬁx according to σ. Since Dsum(α′ ) = Dsum(π ′ ) = Dsum(π), and
+
+
+
+                                             20
+Dsum(α) < ν, we directly obtain that σ is not a winning strategy for Eve in G′ , which is a
+contradiction.
+   Secondly, assume that α′ does not contain a move to the sink. The play α′ is translated
+back into a play α in G, α is a play according to σ. Let wmax denote the largest weight.
+Since Dsum(α′ ) = Dsum(α), and Dsum(α′ ) < ν, we can pick an i such that Dsum(α(i)) < ν
+                    i+n j
+and Dsum(α(i)) + Σj=i  λ wmax < ν, where n is the number of vertices in G. Now consider
+a play that begins with α(i) in G, and then Adam forces the play into a critical vertex in
+at most n steps. This play is a play according to σ but is not winning for Eve, which is a
+contradiction.
+   Since discounted-sum games can be solved in NP ∩ coNP [4] the complexity bound
+follows.
+  The following remark shows that the above reduction fails for strict thresholds.
+Remark 17. Consider the following critical preﬁx threshold game G with discounted-sum
+measure and discount factor λ = 12 and objective ThresDsum,>
+                                                        G    (1), all vertices belong to
+Adam, v0 is the initial and v1 is a critical vertex.
+
+                                            1             0
+                                                      3
+                                            v0            v1
+
+Eve wins this game. If Adam stays in v0 , the discounted-sum value converges to 1, if Adam
+proceeds to the critical vertex v1 , the value is (and stays) higher than 1, i.e., Eve has won;
+the critical vertex is either not seen or always with a value > 1.
+   Now, consider the obtained discounted-sum game G′ with objective DS>         G′ (1) as in the
+proof of Theorem 16. The value of the initial vertex c0 is 1 (Adam stays in v0 ), thus, our
+reduction would wrongly yield that Eve can not win the critical preﬁx game.
+   There seems to be no reduction to a discounted-sum game (using the same or another
+threshold) that correctly handles strategies of Adam which avoid critical vertices.
+   In the above correctness proof for the presented reduction regarding ≥-thresholds, we
+have shown that if the value of the initial vertex in the constructed discounted-sum game is
+≥ ν, then Eve has a winning strategy the critical preﬁx game. Alternatively, we could have
+shown that if the value is < ν, then Adam has a winning strategy in the critical preﬁx game.
+We argue intuitively why in these cases, the situation as shown in the example for strict
+thresholds, is not problematic. Assume the value is < ν and is achieved by Adam never
+visiting a critical vertex. This implies that Adam can stay long enough away from critical
+vertices to ensure that the desired threshold becomes unreachable. Since in the constructed
+discounted-sum game, Adam can force to see a critical vertex, there exists also a strategy
+of Adam that reaches a critical vertex with a value < ν.
+
+B.4. Proof of Theorem 4: Positional strategies for discounted-sum
+Theorem 18. If Eve has a winning strategy in a critical prefix games for Dsum and a strict
+or non-strict threshold, then she also has a positional winning strategy.
+Proof. Let σ be a winning strategy for Eve in the game. For each vertex v of Eve, we deﬁne
+a positional choice by comparing the σ-play preﬁxes that reach v. For each such σ-play
+preﬁx ending in v, we measure how “diﬃcult” it is for Eve to win with this given preﬁx of
+the play. Intuitively, the positional strategy σp picks a move that is chosen by σ in the most
+diﬃcult situations. We then show that this positional strategy σp is at least as good as σ.
+  We ﬁrst explain how to compare play preﬁxes. Consider a play preﬁx π ending in vertex v.
+Then σ ensures that for each continuation ππ2 of π that ends in a critical vertex, the threshold
+condition Dsum(ππ2 ) ⊲ ν is satisﬁed (for ⊲ ∈ {>, ≥}, depending on whether we consider a
+
+
+
+                                                 21
+strict or non-strict threshold). Using the equality Dsum(ππ2 ) = Dsum(π)+λ|π| Dsum(π2 ), we
+                                                                                            1
+can rewrite Dsum(ππ2 )⊲ν into a property that π2 must satisfy: Dsum(π2 )⊲(ν −Dsum(π)) λ|π|    .
+Therefore, the larger the value on the right-hand side of this second inequation is, the harder
+it is for a strategy of Eve to ensure the threshold condition. We call it the relative gap for
+π and ν. Since ν is ﬁxed, we just denote it by rg(π).
+                                                          1
+                                   rg(π) := (ν − Dsum(π)) |π| .
+                                                         λ
+Let us note two simple but important properties of this value, which are routine to check
+using the deﬁnition of rg(.):
+(A) Dsum(π) ⊲ ν iﬀ 0 ⊲ rg(π).
+    Proof of (A): Clearly, (rg(π) = 0 iﬀ Dsum(π) = ν), and (rg(π) < 0 iﬀ Dsum(π) > ν)
+
+(B) Let π ′ be a play preﬁx ending in v ′ , and assume there is an edge from v ′ to v with
+                                                                                          j
+     weight j. Let π be the play preﬁx π ′ extended by this edge, denoted by π ′ v ′ −
+                                                                                     → v. Then
+     rg(π) = λ1 rg(π ′ ) − j.
+                                                                   ′
+                                          1
+     Proof of (B): rg(π) = (ν−Dsum(π)) λ|π|  = (ν−(Dsum(π ′ )+λ|π | λj)) λ|π1′ |+1 = λ1 rg(π ′ )−j.
+We now explain how to deﬁne the positional strategy σp . Denote the σ-play preﬁxes ending
+in v by Prefs(σ, v). If v belongs to Eve, we deﬁne the move σp (v) of the positional strategy
+to be a move that satisﬁes
+
+           ∀π ∈ Prefs(σ, v)∃π ′ ∈ Prefs(σ, v) : rg(π ′ ) ≥ rg(π) and σ(π ′ ) = σp (v).(∗)
+
+Such a move always exists. Either, there is a “most diﬃcult” π ′ ∈ Prefs(σ, v) with rg(π ′ ) =
+sup{rg(π) | π ∈ Prefs(σ, v)}. Then we can choose σp (v) = σ(π ′ ), which satisﬁes (∗). Now
+consider the case that there is no such most diﬃcult π ′ ∈ Prefs(σ, v), and let x := sup{rg(π) |
+π ∈ Prefs(σ, v)}. Consider a sequence π1 , π2 , . . . of play preﬁxes from Prefs(σ, v) whose rg-
+values converge to x, that is, limi→∞ rg(πi ) = x. Since there are only ﬁnitely many moves
+from vertex v, there must be one move that is chosen by σ for inﬁnitely many of the πi . We
+choose such a move for σp (v), which then satisﬁes property (∗).
+   It remains to show that σp is a winning strategy. Let πp ∈ Prefs(σp , v) be a σp -play preﬁx
+ending in v. We show the following claim: there is a σ-play preﬁx π ∈ Prefs(σ, v) with
+rg(π) ≥ rg(πp ). When we have shown this claim, we can conclude that σp is a winning
+strategy as follows. If v is a critical vertex, then π satisﬁes the threshold condition. Using
+property (A) from above, we obtain that πp also satisﬁes the threshold condition.
+   To ﬁnish the proof, we show the claim by induction on the length of πp . For length 0 the
+claim is clear because then v has to be the starting vertex, and the empty play is also in
+Prefs(σ, v). Now assume that πp′ ∈ Prefs(σp , v ′ ) and πp ∈ Prefs(σp , v) is obtained from πp′
+by one move from v to v ′ with weight j. We now deﬁne a play preﬁx π ′ ∈ Prefs(σ, v ′ ) with
+                                          j
+rg(π ′ ) ≥ rg(πp′ ) such that π := π ′ v ′ −
+                                           → v ∈ Prefs(σ, v). With property (B) from above we
+then obtain
+                                    1              1
+                           rg(π) = rg(π ′ ) − j ≥ rg(πp′ ) − j = rg(πp )
+                                    λ              λ
+as in the claim.
+  For deﬁning π ′ , ﬁrst note that by induction, there is π̂ ∈ Prefs(σ, v ′ ) with rg(π̂) ≥ rg(πp′ ).
+  If v ′ is a vertex of Adam, we let π ′ := π̂ because extending π̂ by the edge from v ′ to v
+yields a play preﬁx from Prefs(σ, v).
+  If v ′ is a vertex of Eve, then by (∗) from the deﬁnition of σp , there is some π ′ ∈ Prefs(σ, v ′ )
+                                                                 j
+with rg(π ′ ) ≥ rg(π̂) and σ(π ′ ) = σp (v ′ ). Hence π := π ′ v ′ −
+                                                                   → v ∈ Prefs(σ, v).
+
+
+
+
+                                                  22
+B.5. Proof of Theorem 4: Discounted-sum with a strict threshold
+Theorem 19. The threshold problem for critical prefix games for Dsum and a strict threshold
+is decidable in NP.
+  To prove this theorem, we ﬁrst show a result on weighted graphs G = (V, E, γ : E →               Z)
+which is interesting in itself.
+Lemma 5. Given a weighted graph G, a source vertex v0 ∈ V , a target set T ⊆ V and a
+               Q
+threshold ν ∈ , checking whether there exists a path π from v0 to some vertex v ∈ T such
+that Dsum(π) ≤ ν can be done in Ptime.
+Proof. We remove from G all the vertices from which there is no path to a target vertex.
+Let G′ be the resulting subgraph of G. If G′ is empty, then we can return that there is no
+path π as in the statement of the lemma. Otherwise, we make use of the notion of relative
+gap from the proof of Theorem 18, which is deﬁned for a ﬁnite path π by
+                                                          1
+                                   rg(π) := (ν − Dsum(π)) |π| .
+                                                         λ
+In the proof of Theorem 18 we have already used the properties (A) and (B) below. We add
+two properties (C) and (D) about the relative gaps for the concatenation of paths. In all
+the statements below π, π1 , π2 , π3 are ﬁnite paths.
+(A) Dsum(π) > ν iﬀ 0 > rg(π).
+(B) Let π ′ be a path ending in v ′ , and assume there is an edge from v ′ to v with weight
+                                                                                j
+     j = γ(v ′ , v). Let π be π ′ extended by this edge, denoted by π ′ v ′ −
+                                                                            → v. Then rg(π) =
+     1      ′
+     λ rg(π   ) − j.
+(C) rg(π1 π2 ) = λ|π1 2 | (rg(π1 ) − Dsum(π2 )).
+    Proof of (C): rg(π1 π2 ) = (ν−Dsum(π1 π2 )) λ|π11 π2 | = (ν−Dsum(π1 )−λ|π1 | Dsum(π2 ))) λ|π11 π2 |
+    = λ|π12 | (rg(π1 ) − Dsum(π2 )).
+(D) if rg(π1 ) ≥ rg(π1 π2 ) and π2 is a loop, then rg(π1 π3 ) ≥ rg(π1 π2 π3 ).
+    Proof of (D): by (C), rg(π1 π3 ) = λ|π13 | (rg(π1 )−Dsum(π3 )) and rg(π1 π2 π3 ) = λ|π13 | (rg(π1 π2 )−
+    Dsum(π3 )). So, rg(π1 π3 ) − rg(π1 π2 π3 ) = λ|π13 | (rg(π1 ) − rg(π1 π2 )) ≥ 0.
+
+From (A) we obtain that there exists a path π from v0 to T such that Dsum(π) ≤ ν iﬀ there
+exists a path π from v0 to T such that rg(π) ≥ 0.
+   Our algorithm computes for each vertex v the maximal relative gap mrgi (v) of paths of
+lengths at most i ending at v (and starting at the initial vertex v0 ). For i = 0, we obtain
+that                                      (
+                                            ν     if v = v0
+                               mrg0 (v) =
+                                            −∞ otherwise
+where mrgi (v) = −∞ indicates that there is no path of length at most i to v. We use (B)
+to compute mrgi (v) from the mrgi−1 values by
+                                                                             
+                           1         ′       ′      ′        ′
+        mrgi (v) = max { mrgi−1 (v ) − γ(v , v) | (v , v) ∈ E } ∪ {mrgi−1 (v)} .
+                           λ
+
+Let n > 0 be the number of vertices of G′ . The algorithm computes the values mrgi (v) for
+all i ≤ n, which can be done in polynomial time, using the above formula. By deﬁnition of
+mrgi (v), we obtain that mrgi (v) ≤ mrgi+1 (v).
+   We claim that there is no path π from v0 to T such that Dsum(π) ≤ ν (⋆) iﬀ
+
+
+
+                                                 23
+ (i) mrgn (v) < 0 for all v ∈ T , and
+ (ii) mrgn−1 (v) = mrgn (v) for all vertices v of G′ .
+Clearly, if (i) does not hold, there is a path to a target vertex v that has relative gap ≥ 0,
+and hence (⋆) does not hold. So assume now that (i) is satisﬁed.
+   If (ii) is satisﬁed, then mrgj (v) = mrgn (v) for all j ≥ n because the values do not change
+anymore once a ﬁxpoint is reached. We can conclude that there is no path of any length to
+a target vertex with relative gap ≥ 0.
+   It remains to show that (⋆) does not hold if (ii) is not satisﬁed. So let v be such that
+mrgn−1 (v) < mrgn (v). Any shortest path π ending in v such that rg(π) = mrgn (v) has
+length n necessarily, otherwise we would have mrgn−1 (v) = mrgn (v). By the choice of n,
+there is a repetition of vertices vj = vk in π with j < k. So we can write π = π1 π2 π3 for a
+loop π2 , that is, π1 = v0 · · · vj and π2 = vj+1 · · · vk . Let u = vj .
+   We have rg(π1 ) < rg(π1 π2 ), otherwise by (D), we would obtain rg(π1 π3 ) ≥ rg(π1 π2 π3 ) =
+mrgn (v) which contradicts that π = π1 π2 π3 is a shortest path witnessing mrgn (v).
+   Now, deﬁne z := rg(π1 π2 ) − rg(π1 ) > 0. We show that pumping the loop π2 gives paths
+to u with arbitrarily large relative gaps. We prove that each additional loop increases the
+relative gap by at least z, and hence
+
+                                       rg(π1 π2ℓ ) ≥ ℓ · z + rg(π1 ).
+
+So we formally show that for ℓ ≥ 1:
+
+                                      rg(π1 π2ℓ ) − rg(π1 π2ℓ−1 ) ≥ z.
+
+For ℓ = 1 this is satisﬁed by deﬁnition of z. For ℓ > 1 we obtain with (C):
+
+ rg(π1 π2ℓ ) − rg(π1 π2ℓ−1 )   = λ|π12 | (rg(π1 π2ℓ−1 ) − Dsum(π2 )) − λ|π12 | (rg(π1 π2ℓ−2 ) − Dsum(π2 ))
+                               = λ|π12 | ((rg(π1 π2ℓ−1 ) − rg(π1 π2ℓ−2 ))
+     (by induction)            ≥ λ|π12 | z ≥ z.
+
+Now let π4 be a path from u to a target vertex. Then we can choose ℓ such that ℓ·z+rg(π1 ) ≥
+Dsum(π4 ) and obtain:
+                          1                                 1
+     rg(π1 π2ℓ π4 ) =          (rg(π1 π2ℓ ) − Dsum(π4 )) ≥ |π | (ℓ · z + rg(π1 ) − Dsum(π4 )) ≥ 0,
+                        λ|π4 |                            λ 4
+and therefore (⋆) does not hold, as we wanted to show.
+Proof of Theorem 19. By Theorem 18, Eve has a positional winning strategy if she has one
+at all. The NP-algorithm guesses a positional strategy σ for Eve, and then veriﬁes in
+polynomial time whether σ is winning. Let G′ be the game restricted to Eve’s σ-edges, seen
+as a weighted graph. The strategy σ is not winning iﬀ Adam can form a path in G′ from
+the initial vertex to a critical vertex that has weight ≤ ν. This property can be checked in
+Ptime thanks to Lemma 5 (by taking as target set the set of critical vertices).
+
+B.6. Proof of Theorem 7
+Theorem 7. The fixed initial credit problem for imperfect information critical prefix energy
+games is undecidable.
+Proof. We give a reduction that constructs from a given 2-counter machine M a game GM
+such that Eve has an observation-based winning strategy in GM iﬀ M does not halt. We
+assume that in M no decrement operation is applied to a counter with value 0 (before each
+decrement we can test if the counter is 0).
+
+
+
+                                                     24
+   The idea for the reduction is as follows. The initial credit is 0. The game uses four copies
+of the machine that cannot be distinguished by Eve. At the beginning, Adam picks one
+of these copies. The vertices in each copy correspond to the instruction numbers of the
+machine. Let c1 , c2 be the counters of the machine. We also use c1 , c2 to denote the values
+of the counters. In the four diﬀerent copies, the energy level is supposed to correspond to
+c1 , −c1 , c2 , and −c2 .
+   At vertices corresponding to increment or decrement operations, there is no choice for the
+players. There is a unique transition moving to the next instruction. The weight of this
+edge is chosen to track the desired energy level. For an increment on c1 , it is 1, −1, 0, 0 in
+the four copies, respectively. Similarly for the other increment and decrement instructions.
+   At vertices corresponding to an instruction of the form “IF(ci = 0) THEN GOTO m”, Eve
+can choose between two actions 0 and > 0, where 0 means that Eve claims the counter is 0,
+and > 0 means that Eve claims that the counter is not 0. In every copy, Adam can choose
+to execute the instruction corresponding to Eve’s claim. That is, if Eve claims 0, then go
+to vertex m, and if Eve claims > 0, then go to the next instruction (all these edges have
+weight 0).
+   Then we also add actions for Adam to ensure that Eve loses if she makes a wrong claim.
+If Eve claims 0, then in the copy for −ci , Adam can move to a critical vertex with an edge
+of weight 0. So if Eve’s claim was wrong and Adam has chosen the copy for −ci at the
+beginning, then she loses the game. If Eve claims > 0, then Adam can move to a critical
+vertex from the copy for ci with an edge of weight −1. Again, if Eve’s claim was wrong and
+Adam has chosen the copy for ci at the beginning, then she loses the game.
+   From this description, it should be clear that Eve can only win with an observation based
+strategy if she simulates the machine correctly (always makes correct claims on the counter
+values). Now, in all copies, we make the vertices corresponding to the STOP instruction of
+the machine critical, and add a self loop for Adam with negative weight on them. So if such
+a vertex is reached, Eve loses.
+   In summary, if the machine halts, Eve has no observation based winning strategy. If the
+machine does not halt, then Eve can go on with the correct simulation forever.
+
+B.7. Proof of Theorem 8
+Theorem 8. The fixed initial credit problem for imperfect information critical prefix energy
+games is decidable if from each vertex Adam has a strategy to reach a critical vertex against
+observation based strategies. Moreover, finite-memory strategies are sufficient for Eve to
+win.
+Proof. We show that the problem reduces to the ﬁxed initial credit problem for imperfect
+information games which is decidable [22].
+   Let G be the arena of a critical preﬁx energy game with imperfect information with set
+of vertices V . First note that by assumption, from each vertex of the game, Adam has a
+strategy to reach a critical vertex, and since it is a reachability objective, it is well-known
+that he can do so in at most |V | steps (against any strategy, and against observation based
+strategies in particular).
+   Let B = |V |wmax , where wmax is the maximal weight in G. We construct a critical preﬁx
+energy game with imperfect information. Let G′ denote it’s game arena obtained from G as
+follows. For each critical vertex v and action a, add a transition with label a to a new sink
+vertex vB with weight −B. Every outgoing transition from vB leads back to it with weight
+zero. The observation of vB is {vB }.
+   We show that Eve has an observation-based winning strategy in the critical preﬁx en-
+ergy game G with imperfect information with initial credit c0 if, and only if, Eve has an
+observation-based winning strategy in the energy game G′ with imperfect information with
+initial credit c0 + B.
+
+
+
+                                              25
+   Let σ be an observation-based strategy for Eve in G. The strategy σ naturally deﬁnes
+a strategy σ ′ in G′ , which consists of playing as σ as long as the play is not in the sink
+vB . Towards a contradiction, assume that σ is winning in G, but σ ′ is not winning in
+G′ . Then there exists a (ﬁnite) preﬁx π of a play in G′ compatible with σ ′ such that
+c0 + B + ELG′ (π) < 0. Note that last(π) is either some vertex v from G or the new sink vB .
+In the ﬁrst case, π is also a valid play preﬁx according to σ in G, and ELG′ (π) = ELG (π).
+Adam can force the play from v in at most |V | steps into a critical vertex, by assumption
+and since v 6= vB , which rises the energy level by at most B. Thus, there exists a ﬁnite
+play continuation α according to σ such that πα ∈ C and c0 + ELG (πα) < 0, because
+c0 + ELG (π) < −B. This contradicts that σ is winning in G. In the second case, let π ′
+be the shortest preﬁx of π such that π ′ does not contain the sink state, i.e., π = π ′ avB for
+some action a, and π ′ is compatible with σ in G. By deﬁnition of G′ , last(π ′ ) is critical, and
+since the loop on the sink has weight 0, we have ELG′ (π) = ELG′ (π ′ ) − B = ELG (π ′ ) − B.
+Therefore, c0 + ELG (π ′ ) = c0 + ELG′ (π) + B < 0, which contradicts that σ is winning in G.
+   For the other direction, let σ ′ be an observation based strategy for Eve in G′ . Consider the
+restriction σ of σ ′ to the play preﬁxes in G. It is an observation based strategy of G. Towards
+a contradiction, assume that σ ′ is winning in G′ , but σ is not winning in G. Then there
+exists a play preﬁx π in G compatible with σ such that last(π) ∈ C and c0 + ELG (π) < 0.
+The preﬁx π is also compatible with σ ′ in G′ . In G′ , from last(π), whatever action Eve
+picks, Adam can force the play to the sink, with weight −B. In particular, the preﬁx
+ρ = π.σ ′ (π).vB is compatible with σ ′ and satisﬁes ELG′ (ρ) = ELG′ (π) − B = ELG (π) − B.
+Therefore, c0 + B + ELG′ (ρ) = c0 + ELG (π) < 0, which contradicts that σ ′ is winning in G′ .
+   By [22], ﬁnite-memory strategies are suﬃcient for Eve to win energy games of imperfect
+information and ﬁxed initial credit. Our translation of winning strategies in G′ to winning
+strategies in G preserves ﬁnite-memoryness, entailing the second statement of the theorem.
+
+
+
+C. Proofs of Section 4 (Synthesis problems)
+C.1. Threshold synthesis
+C.1.1. Proof of Theorem 9
+Theorem 9. The threshold synthesis problem for a V -specification with V ∈ {Sum, Avg}
+and a strict or non-strict threshold is decidable in NP ∩ coNP and PTIME-equivalent to
+mean-payoff games. The threshold synthesis problem for a Dsum-specification and a strict
+resp. non-strict threshold is decidable in NP resp. in NP ∩ coNP.
+Proof. Let A be the V -automaton with V ∈ {Sum, Avg, Dsum} that deﬁnes the weighted
+speciﬁcation, ν be the threshold, and ⊲ ∈ {≥, >}. Let A′ be a domain safe variant of A
+which can be obtained in polynomial time, see Theorem 2. We interpret A′ as a weighted
+game arena, to make the arena deadlock free, we add a new sink state q⊥ that has a self-loop
+with weight zero and from each deadlock the sink state is entered with weight zero. Let the
+critical vertices correspond to the ﬁnal states of A′ .
+   It is easy to see that the threshold synthesis problem with the given parameters reduces
+to deciding whether Eve has a winning strategy in the critical preﬁx game played on A′ with
+objective ThresVA′⊲ (ν). The decidability and complexity results follow from Theorems 3, 16
+and 19.
+   It is left to show that the threshold synthesis problems for Sum and Avg are PTime-
+equivalent to mean-payoﬀ games. The direction from threshold synthesis to mean-payoﬀ
+games follows directly from the reduction to critical preﬁx games which are reduced to
+mean-payoﬀ games (see proof of Theorem 3).
+
+
+
+
+                                               26
+   For the other direction, consider a mean-payoﬀ game G and the non-strict threshold zero,
+i.e., the objective is MPsup≥   G (0). Wlog., we assume that moves of Adam and Eve alternate
+in G, this can be easily achieved by introducing extra vertices and edges with weight zero if
+necessary. Let m resp. n be the maximal out-degree of a vertex that belongs to Adam resp.
+Eve in G. We deﬁne Σi = {a1 , . . . , am , ⊥} and Σo = {b1 , . . . , bn }.
+   First, we reduce the problem to the synthesis problem for Sum and the non-strict threshold
+zero. We construct a weighted ﬁnite automaton A = (V ∪ {qi , q, q⊥ , qf }, Σio, qi , ∆, {qf }, γ)
+deﬁning a Sum-speciﬁcation S from G as follows. The arena of G is used as the transition
+graph of A, the labels of a transition is ai resp. bi if its source belongs to Adam resp. Eve
+in G and the transition corresponds to the ith outgoing edge, the weights are as in G. Such
+an edge always exists as G is deadlock-free.
+   Mean-payoﬀ games do not have a notion that corresponds to a domain, so we need to make
+sure that for the speciﬁcation that we construct realizability does not depend on the domain.
+To achieve this, in the automaton we add a transition (v, ai , v ′ ) with weight γ (v, a1 , v ′ )
+for all i ∈ {2, . . . , m} such that i ≥ outdeg(v) and v belongs to Adam in G.
+   From the new initial state qi there is a transition with label a1 and weight zero to the
+new state q, from q there is a transition with label b1 and weight N to vi , where N is the
+sum of all absolute values of weights that appear in G and vi is the initial vertex of G.
+   From every state that belongs to Adam in G, there is a transition with label ⊥ to the
+new state q⊥ with weight zero, and from q⊥ a transition with label b1 to the new (and only)
+ﬁnal state qf with weight zero.
+   We show that there exists an S-realizer that ensures a value ≥ 0 for each pair if, and only
+if, Eve has a winning strategy in the mean-payoﬀ game G for the objective MPsup≥         G (0).
+   Assume Adam has a winning strategy in G, then there exists also a positional one [24],
+say τ . Thus, all cycles seen in plays according to τ are negative. Towards a contradiction,
+assume that there exists a transducer that is an S-realizer that ensures a value of at least
+zero. Consider an input sequence that is long enough that corresponds to a play according
+to τ . Eventually, enough negative cycles have been seen to make the current value of the
+run according to A negative. Then, if the next input is ⊥, the transducer can not ensure a
+value of at least zero which is a contradiction.
+   Assume Eve has a winning strategy in G, then there exists also a positional one, say σ.
+Thus, all cycles seen in plays according to σ are non-negative. Let Tσ be transducer that
+produces output according to σ. Note that for inputs that do not directly correspond to
+plays in G according to σ, the transducer works as if the input has been a1 , then σ can be
+applied. We argue that Tσ is an S-realizer that ensures a value of at least zero. After the
+ﬁrst output symbol, the value of the current run according to A is N and the state is vi .
+For every continuation according to the outputs that Tσ produces holds that the ﬁnal state
+qf is reached with value at least zero. Assume otherwise, then there exists a path inside of
+V according to σ such that its sum is smaller than −N . Since the sum of all absolute values
+of weights in G is N , this implies that there has been a cycle according to σ with a negative
+value, which is a contradiction.
+   It is left to show the reduction for Sum with a strict threshold, and for Avg with a strict
+and a non-strict threshold.
+   Regarding Sum with a strict threshold, it is easy to see that the above mean-payoﬀ game
+with non-strict threshold zero can also be reduced to the same Sum-speciﬁcation S deﬁned
+by A and asking to ensure a value > −1 instead of ≥ 0, because the weights in A are
+integers.
+   Regarding Avg with a non-strict threshold, it suﬃces to interpret the weighted speciﬁcation
+deﬁned by A as an Avg-speciﬁcation and ask to ensure a value ≥ 0.
+   Regarding Avg and a strict threshold, we interpret the speciﬁcation deﬁned by A as an
+Avg-speciﬁcation and ask to ensure a value > −1     ℓ , where ℓ is chosen as follows. In case that
+Adam has a winning strategy in the mean-payoﬀ game, he has a positional winning strategy,
+
+
+
+
+                                               27
+and can enforce a negative cycle. To show that there is no realizer that ensures threshold
+> −1  ℓ , the number ℓ should reﬂect the number of input and output symbols that it takes
+(at most) to go to a negative cycle, take it a suﬃcient number of times in order to bring the
+sum of the current run suﬃciently into the negative, and end the computation.
+    Therefore, consider all simple cycles with a negative sum in G, and for each of these cycles
+c1 , . . . , ci compute ℓ1 , . . . , ℓi , where ℓj = |cj | · xj is the smallest multiple of the length of cj
+such that |xj · Sum(cj )| > 2N ; recall N is the sum of all absolute values of weights that
+appear in G. Let ℓmax be the maximal value of the ℓj s.
+    Then, let ℓ = ℓmax + |V | + 4. In the automaton, 2 computation steps are needed to reach
+vi , the initial vertex of the game, and 2 steps are needed to go from a vertex in V to the
+ﬁnal state qf . At most |V | computation steps are needed to arrive at a negative cycle. At
+most ℓmax computation steps (inside some cycle) are needed to bring the value of the run
+below zero, because the sum up to reaching the cycle is at most 2N . Thus, if Adam has a
+winning strategy, for any realizer, there exists a computation of length at most ℓ according
+to this realizer that arrives at qf with a negative sum. This negative sum is ≤ −1, thus the
+value of the run is ≤ −1                                             −1
+                              ℓ , i.e., the desired value of > ℓ can not be ensured.
+    If Eve has a winning strategy, we argued above that there is a realizer that ensures a sum
+of at least zero for each run according to this realizer, thus the average value is also at least
+zero, which makes it > −1         ℓ .
+
+
+C.2. Synthesis and regret determinization
+C.2.1. Proof of Lemma 10
+Lemma 10. The approx. synthesis problem for weighted specifications reduces in linear time
+to the regret determinization problem for nondet. weighted automata (with the same thresh-
+old). The converse is true (in linear time and with the same threshold) for Sum-automata.
+  The proof of the above lemma is split into the two lemmas below, Lemmas 20 and 21.
+Lemma 20. The approximate synthesis problem for weighted specifications reduces in linear
+time to the regret determinization problem for nondeterministic weighted automata (with the
+same threshold).
+Proof. We start with the direction from left to right. Let S be a weighted speciﬁcation
+deﬁned by a WFA A = (Q, Σio, qi , ∆, F, γ). We construct a nondeterministic WFA A′ from
+A as follows, we pick an output symbol, say b ∈ Σo, and replace every output label with b.
+The language of A′ is {a1 b . . . an b | a1 . . . an ∈ dom(S)}.
+                             Q
+   Given a threshold r ∈ , and ⊳ ∈ {<, ≤}, we show that there exists a transducer T that
+implements an r⊳ -approximate S-realization if, and only if, A′ is r⊳ -determinizable.
+   Let T be a transducer that implements an r⊳ -approximate S-realization. The state space
+QT of T and QT ×Σi serves as the set of memory states to construct an r⊳ -regret determinis-
+                                                 σ|σ′                                                 
+tic variant of A′ . If T has
+                           a transition s −−−→ t, then     A′r has transitions (p, s), σ, (q, (s, σ))
+and (q, (s, σ)), b, (q, t) if (p, σ, q) ∈ ∆ and (q, σ ′ , r) ∈ ∆. It is easy to see that A′r is an
+r⊳ -regret deterministic variant of A′ .
+   For the other direction, let A′r be an r⊳ -regret deterministic variant of A′ . We con-
+struct a transducer T from A′r with the following transitions. If A′r has a transitions
+                                                                                      σ|σ′
+ (p, m1 ), σ, (q, m2 ) and (q, m2 ), b, (r, m3 ) , then T has a transition (p, m1 ) −−−→ (r, m3 ),
+where σ ′ ∈ Σo is an output symbol such that (q, σ ′ , r) ∈ ∆. If there are more than one
+output symbols that lead from q to r, chose one that yields the maximal transition weight.
+It is easy to see that T implements an r⊳ -approximate S-realizer.
+  The converse of this result, for Sum-automata, is shown in Lemma 21 below.
+
+
+
+
+                                                    28
+Lemma 21. The regret determinization problem for nondeterministic Sum-automata reduces
+in linear time to the approximate synthesis problem for Sum-specifications (with the same
+threshold).
+Proof. Let A = (Q, Σ, qi , ∆, F, γ) be a nondeterministic Sum-automaton. We construct a
+(deterministic) Sum-automaton B = (Q′ , Σ′ , qi , ∆′ , F, γ ′ ) with Q′ = Q ∪ {qa | q ∈ Q, a ∈ Σ},
+Σ′ = Σi ∪ Σo, where Σi = Σ and Σo = {τ | τ ∈ ∆}, ∆′ = {(p, a, pa ) | p ∈ Q and a ∈
+Σi} ∪ {(pa , τ, q) | (p, a, q) = τ }, γ ′ (pa , τ, q) = γ(τ ) and γ ′ (p, a, pa ) = 0. Let S denote the
+Sum-speciﬁcation deﬁned by B.
+                           Q
+  Given a threshold r ∈ , and ⊳ ∈ {<, ≤}, it is easy to show that there exists a transducer
+T that implements an r⊳ -approximate S-realization if, and only if, A is r⊳ -determinizable.
+
+
+C.3. Best-value synthesis
+C.3.1. Proof of Lemma 11
+Lemma 11. Given a weighted specification S by a ≤-stable weighted automaton A, if there
+exists a transducer that implements a best-value S-realization, then there exists a transducer
+that implements a best-value S-realization that is defined as a sub-automaton of A.
+                Z      Q
+Proof. Let V : ∗ → be a payoﬀ function, and let A be a ≤-stable V -automaton deﬁning
+a speciﬁcation S. Let T be a trim transducer that implements a best-value S-realization.
+We build the transducer A × T and show that if A × T contains two states of the form
+(q, m1 ) and (q, m2 ) then it suﬃces to keep only one of them, e.g., (q, m1 ), and replace every
+target (q, m2 ) with (q, m1 ). Repeating this construction eventually leads to a transducer
+that is a sub-automaton of A.
+   We show the correctness of this construction. Let B denote the transducer A          × T , and
+consider two states (q, m1 ) and (q, m2 ). Let fB ((q, mi ), u) = Sq (u ⊗ B(q,mi ) (u)) , where Sq
+is the V -speciﬁcation deﬁned by Aq , that is, A with initial state q, and B(q,mi ) denotes the
+B with initial state (q, mi ) for i = 1, 2.
+   First, we prove that for all u ∈ dom(R(Aq )) holds that fB ((q, m1 ), u) = fB ((q, m2 ), u).
+Let (∗) denote this property.
+   Towards a contradiction, assume that there is a u such that fB ((q, m1 ), u) < fB ((q, m2 ), u),
+let ρ′ resp. ρ′′ denote the corresponding run of B(q,m1 ) resp. B(q,m2 ) with output v ′ resp.
+                                                                    x|y
+v ′′ . Pick a word x ⊗ y ∈ (ΣiΣo)∗ such that B : (q0 , m0 ) −−→ (q, m2 ), let ρ be the run of A
+on x ⊗ y, ρ ends in q. Since A is ≤-stable we obtain that V (ρρ′′ ) < V (ρρ′ ). We have that
+B(xu) = yv ′′ , S(xu ⊗ yv ′′ ) = V (ρρ′′ ), and S(xu ⊗ yv ′ ) = V (ρρ′ ), this contradicts that B
+implements a best-value S-realizer.
+    Secondly, we prove that we can safely remove (q, m2 ) from B. Let B ′ denote the transducer
+where (q, m2 ) is removed and the transitions pointing to (q, m2 ) now point to (q, m1 ). For
+this, we show that for all u ∈ dom(R(Aq )) it holds that fB ((q, m1 ), u) = fB′ ((q, m1 ), u),
+                                    ′
+where fB′ ((q, m1 ), u) = Sq (u ⊗ B(q,m   1)
+                                             (u)). Towards a contradiction, pick a shortest u ∈
+dom(R(Aq )) such that fB ((q, m1 ), u) > fB′ ((q, m1 ), u). Let ρ resp. ρ′ be the run on the
+unique u ⊗ v resp. u ⊗ v ′ of B resp. B ′ such that V (ρ) = fB ((q, m1 ), u) and V (ρ′ ) =
+fB′ ((q, m1 ), u). Since V (ρ) > V (ρ′ ), ρ must visit (q, m2 ), thus ρ has a factorization ρ1 ρ2
+such that the corresponding run of B is of the form
+                                             u1 |v1        u2 |v2
+                               B : (q, m1 ) −−−→ (q, m2 ) −−−→ (p, m),
+                                   |     {z     }|         {z       }
+                                        ρ1                  ρ2
+
+where u = u1 u2 , v = v1 v2 and (p, m) is a ﬁnal state of B, and ρ1 does not visit (q, m2 ). By
+
+
+
+
+                                                      29
+construction of B ′ , the run ρ′ is of the form ρ1 ρ′2 as follows:
+
+                                                u1 |v1          u2 |v ′
+                              B ′ : (q, m1 ) −−−→ (q, m1 ) −−−→2
+                                                                 (p′ , m′ ),
+                                    |     {z     }|          {z          }
+                                           ρ1                     ρ′2
+
+
+where v ′ = v1 v2′ , and (p′ , m′ ) is a ﬁnal state of B ′ . The property (∗) implies that fB ((q, m1 ), u2 ) =
+fB ((q, m2 ), u2 ) = V (ρ2 ). Since A is ≤-stable, it follows that V (ρ2 ) > V (ρ′2 ). Hence,
+fB ((q, m1 ), u2 ) > fB′ ((q, m1 ), u2 ), which contradicts the assumption that u is a shortest
+counter-example.
+  Finally, we show that B ′ is also a best-value S-realizer. Let u ∈ dom(S) and let fB (u)
+resp. fB′ (u) be equal to S(u ⊗ B(u)) resp. S(u ⊗ B ′(u)). We show that fB (u) = fB′ (u). Let ρ
+be the run of A on (u, B(u)), and ρ′ be the run of A on (u, B ′ (u)). If ρ does not visit (q, m2 )
+then ρ = ρ′ and the claim follows. If ρ visits (q, m2 ), then ρ and ρ′ can be decomposed as:
+
+                    u1 |v1        u2 |v2                                       u1 |v1     u2 |v ′
+   B : (q0 , m0 ) −−−→ (q, m2 ) −−−→ (p, m)               B ′ : (q0 , m0 ) −−−→ (q, m1 ) −−−→2
+                                                                                               (p′ , m′ ) .
+       |      {z      }|         {z       }                     |      {z      }|          {z          }
+               ρ1                  ρ2                                     ρ1                ρ′2
+
+
+   By (∗) we have fB ((q, m1 ), u2 ) = fB ((q, m2 ), u2 ) and by the second property we have
+shown, we have fB ((q, m1 ), u2 ) = fB′ ((q, m1 ), u2 ). In other words, we get V (ρ2 ) = V (ρ′2 ),
+from which we conclude that V (ρ1 ρ2 ) = V (ρ1 ρ′2 ) (because A is V -stable), i.e. fB (u) =
+fB′ (u). This concludes the proof, as B is a best-value S-realizer.
+  As a consequence of the latter lemma, the fact that V -speciﬁcations are ≤-stable and have
+decidable inclusion problem [25] for V ∈ {Sum, Avg, Dsum}, we obtain decidability of the
+best-value synthesis problem for those measures. While this technique is general to obtain
+decidability results, it does not yield optimal complexities, and in the following theorems,
+we use other techniques to obtain better bounds.
+
+C.3.2. Proof of Theorem 12 (continued)
+Theorem 12. The best-value synthesis problem is decidable in Ptime for Sum-specifications
+and Avg-specifications, and in NP∩coNP for Dsum-specifications.
+  It remains to prove Theorem 12 for Avg- and Dsum-speciﬁcations. This is done below in
+two separate theorems, Theorem 22 and Theorem 23.
+
+C.3.3. Proof of Theorem 12: Average
+Theorem 22. The best-value synthesis problem for an Avg-specification is decidable in Ptime.
+Proof. The problem reduces to the best-value synthesis problem for Sum-speciﬁcations.
+  Let A be a Avg-automaton deﬁning an Avg-speciﬁcation S, and let ASum be the same
+automaton but interpreted as a Sum-automaton deﬁning the Sum-speciﬁcation SSum . We
+have that R(S) = R(SSum ).
+  Let T be a such that dom(T ) = dom(S) and u ⊗ T (u) ∈ S for all u ∈ dom(S). It is easy
+to see that S(u ⊗ T (u)) = bestValS (u) if, and only if, SSum (u, T (u)) = bestValSSum (u) for all
+u ∈ dom(S), because bestValSSum (u) = bestValS (u)|uu|.
+
+C.3.4. Proof of Theorem 12: Discounted-sum
+Theorem 23. The best-value synthesis problem for a Dsum-specification is decidable in
+NP∩coNP.
+
+
+
+
+                                                         30
+Proof. Let A = (Q, Σ, q0 , ∆, F, γ) be a Dsum-automaton (with discount factor λ) deﬁning a
+weighted speciﬁcation S, for which we want to solve the best-value synthesis problem. We
+ﬁrst give a property that characterizes best-value realizers of S, and then use a game to
+check this property.
+  For a state q ∈ Q we write bestValq for the function bestValSq , where Sq is the weighted
+speciﬁcation deﬁned by A with initial state q. Let T be a transducer. Then T is a best-value
+realizer of S if, and only if, the following property is satisﬁed:
+ (∗) Assume an input u ∈ Σi∗ , T has produced some output v, such that A reaches state q
+     on u ⊗ v, and the corresponding transition sequence of A has discounted-sum x. Then
+     for each u′ ∈ Σ∗i such that uu′ ∈ dom(S):
+
+                                 x + λ2|u| bestValq (u′ ) = bestValS (uu′ ).
+
+We argue that (∗) indeed characterizes the best-value realizers of S. Clearly, always x +
+λ2|u| bestValq (u′ ) ≤ bestValS (uu′ ) because x + λ2|u| bestValq (u′ ) is a possible value for uu′ . So
+if (∗) is not satisﬁed, then there is a u′ such that uu′ ∈ dom(S), and x + λ2|u| bestValq (u′ ) <
+bestValS (uu′ ). But then T cannot produce the best value for input uu′ . If (∗) is satisﬁed,
+then for u ∈ dom(S), we obtain that T produces weight x = bestVal(u) by choosing u′ = ε.
+This ﬁnishes the argument that (∗) characterizes the best-value realizers of S.
+   We now show how to reduce the problem of checking (∗) to critical preﬁx Dsum non-strict
+threshold games in polynomial time, which yields the claimed complexity by Theorem 16.
+The idea for the game is the same as for the game used in the proof of Theorem 2 for the
+construction of domain-safe automata: Adam and Eve simultaneously build runs of A, both
+starting in the initial state. The weights are chosen such that they give the diﬀerence of
+the weights of the two runs (run of Eve − run of Adam). Eve’s goal is to ensure that the
+diﬀerence is ≥ 0 for inputs that are in the domain.
+   In the Boolean case (Theorem 2), the output transitions where chosen in two moves,
+ﬁrst by Eve, then by Adam. For Dsum this is problematic because for building the weight
+diﬀerence of the two runs, we have to ensure to use the right discount factors. Therefore,
+we modify the game a bit to take this into account as follows:
+   • In a ﬁrst part of the game, there is only one run. Adam chooses inputs, and Eve
+     chooses output transitions. The weights of these moves are 0. This corresponds to the
+     part where Adam’s run is the same as Eve’s run (and thus the diﬀerence is 0).
+   • Whenever Eve has chosen an output transition, Adam can either follow this output
+     transition and pick the next input, staying in the ﬁrst part of the game, or choose
+     a diﬀerent output, branching oﬀ another run and going to the second part of the
+     game (the idea is that Adam chooses this move the ﬁrst time Eve would reach a state
+     violating property (∗)).
+   • In the second part, the game traces two runs. Adam always chooses the input and
+     his next output at the same time. Then Eve chooses her output. The weights are the
+     diﬀerences between the transitions in the two runs. Since the move to the second part
+     of the game shifts the number of moves in the game by one w.r.t. the transitions in
+     the run, the weights have to be corrected, dividing them by λ.
+Since a best-value realizer of S is also a Boolean realizer of S, we also need to take care of
+the Boolean condition (the run of Eve is accepting if the run of Adam is accepting). This
+could be done by ﬁrst solving a safety condition on the game that we build. However, since
+we have already solved the Boolean case in Theorem 2, we can use those results.
+   We now turn to the formal deﬁnition of the game. Let As with transitions ∆s ⊆ ∆ be
+a domain-safe subautomaton of A according to Theorem 2. Let Qi, Qo be the partition
+of the state set of A into input and output states, and let ∆i = ∆ ∩ (Qi × Σi × Qo) and
+
+
+
+                                                  31
+∆o = ∆ ∩ (Qo × Σo × Qi) be the transitions starting from an input and output states,
+respectively. The transitions that Eve can use are the ones in ∆os = ∆o ∩ ∆s .
+   • The vertices of Adam are {q0 } ∪ ∆so ∪ (Qi × Qi).
+   • The vertices of Eve are Qo ∪ (Qo × Qo × Σo).
+   • The critical vertices are Q × F .
+   • The edges are
+        ◦ q0 → p with weight 0 for all (q0 , a, p) ∈ ∆i (Adam’s very ﬁrst input)
+        ◦ For p ∈ Qo:
+          p → (p, b, q) with weight 0 for all (p, b, q) ∈ ∆so (Eve’s output in the ﬁrst part of
+          the game)
+        ◦ For (p, b, q) ∈ ∆so:
+          (p, b, q) → p′ with weight 0 for all (q, a, p′ ) ∈ ∆i (Adam follows Eve’s output and
+          chooses the next input in the ﬁrst part of the game)
+        ◦ For (p, b, q) ∈ ∆so:
+                                                 ′ ′
+          (p, b, q) → (q, q ′ ) with weight γ(p,b ,q )−γ(p,b,q)
+                                                     λ          for each (p, b′ , q ′ ) ∈ ∆o (Adam
+          chooses a diﬀerent output than Eve, moving to the second part of the game; the
+          length of the game is now one more than the length of the runs, so the weights
+          are corrected by λ1 )
+        ◦ For (q, q ′ ) ∈ (Qi × Qi):
+                                                   ′    ′
+          (q, q ′ ) → (p, p′ , b′ ) with weight γ(q ,a,p )−γ(q,a,p)
+                                                          λ         for each a ∈ Σi, b′ ∈ Σo, and
+                        ′     ′
+          (q, a, p), (q , a, p ) ∈ ∆i (Adam chooses next input and his next output in the
+          second part of the game)
+        ◦ For (p, p′ , b′ ) ∈ Qo × Qo × Σo:
+                                                   ′ ′ ′
+          (p, p′ , b′ ) → (q, q ′ ) with weight γ(p ,b ,q λ)−γ(p,b,q) for each b ∈ Σo with (p, b, q) ∈ ∆os ,
+          and (p′ , b′ , q ′ ) ∈ ∆o (Eve chooses her next output in the second part of the game).
+     We claim that Eve has a winning strategy in this critical preﬁx Dsum game with
+     threshold ≥ 0 iﬀ there is a best-value realizer of S.
+     We view the ﬁrst part of the game as Adam playing the same outputs as Eve. With
+     this view, any play ending in a vertex of Adam corresponds to an input word u, two
+     output words v, v ′ of the same length as u, a run of As on u ⊗ v, and a run of A on
+     u ⊗ v ′ . The weight of such a play is the diﬀerence of the weights of these two runs,
+     which can easily be shown by induction on the length of the play.
+     If there is a best-value realizer of S, then it only uses transition of As (see Theorem 2).
+     Eve can play her moves according to this realizer, ensuring that her run produces the
+     best value for each input in the domain of S. Hence, the weight of plays ending in
+     Q × F is ≥ 0.
+     Now assume that Eve has a winning strategy σ in the game, which can be assumed to
+     be positional by Theorem 18.
+     On the ﬁrst part of the game, this strategy corresponds to a transducer Tσ . We show
+     that Tσ satisﬁes property (∗). Assume that Tσ violates (∗), and pick a shortest word u
+     for which (∗) is not satisﬁed. Let v be the output produced by Tσ , and x, q as in (∗).
+     If u = v = ε, then x = 0 and q = q0 , and thus the equation from (∗) is satisﬁed.
+     Hence, u = a1 · · · an and v = b1 · · · bn with n ≥ 1. Consider the corresponding play π
+     in the ﬁrst part of the game, which is of this form (where the ai are not part of the
+     game but are added for readability):
+                      1a                      2 a                   n    a
+              π = q0 −→ p1 → (p1 , b1 , q1 ) −→ p2 → · · · → qn−1 −−→ pn → (pn , bn , qn )
+
+
+
+                                                    32
+     with q = qn . Let u′ = an+1 · · · an+m be a witness that (∗) is violated, i.e., such that
+
+                                 x + λ2|u| bestValq (u′ ) < bestValS (uu′ ).
+
+     We can conclude that for all bn+1 · · · bn+m :
+
+                             A(a1 b1 · · · an+m bn+m ) < bestValS (uu′ ).(1)
+
+     Since u was chosen as shortest word, property (∗) is satisﬁed for w = a1 · · · an−1 , qn−1 ,
+     and the weight y = A(a1 b1 · · · an−1 bn−1 ), i.e.,
+
+                  y + λ2|w| bestValqn−1 (an u′ ) = bestValS (wan u′ ) = bestValS (uu′ ).
+
+     So there are b′n b′n+1 · · · b′n+m such that
+
+              A(a1 b1 · · · an−1 bn−1 an b′n an+1 b′n+1 · · · an+m b′n+m ) = bestValS (uu′ ).(2)
+
+     This means that Adam can continue the play π by ﬁrst playing b′n , taking the play into a
+     conﬁguration (qn , qn′ ) in the second part of the game, and then playing an+1 b′n+1 · · · an+m b′n+m ,
+     reaching a critical vertex. For all responses of Eve (corresponding to some outputs
+     bn+1 · · · bn+m ), the value reached at the end of the play is < 0 because of (1) and (2).
+
+
+
+C.4. Approximate synthesis
+Theorem 13. The approximate synthesis problem is
+   • EXPtime-complete for Sum-specifications and strict or non-strict thresholds;
+   • decidable and EXPtime-hard for Avg-specifications and strict or non-strict thresholds;
+   • in NEXPtime (resp. EXPtime) for Dsum-specifications with a discount factor λ of
+                             N
+     the form n1 with n ∈ and strict (resp. non-strict) thresholds.
+
+
+  We split the proof into several theorems. First, we prove the theorem for sum, see
+Theorem 24. Then, we prove the theorem for average, see Theorem 25 for decidability
+and Theorem 26 for hardness. Finally, we prove the theorem for discounted-sum, see
+Theorem 27.
+
+C.4.1. Proof of Theorem 13: Sum
+Theorem 24. The approximate synthesis problem for a Sum-specification and a strict or
+non-strict threshold is decidable. The problem is EXPtime-complete.
+Proof. The approximate synthesis problem for a Sum-speciﬁcation reduces to the regret
+determinization problem for nondeterministic Sum-automata, see Lemma 10. The latter
+problem was shown to be EXPtime-complete in [26], so we obtain EXPtime-membership.
+We obtain EXPtime-hardness by Lemma 21.
+
+C.4.2. Proof of Theorem 13: Average
+Theorem 25. The approximate synthesis problem for an Avg-specification and a strict or
+non-strict threshold is decidable.
+
+
+
+
+                                                    33
+Proof. Let A = (Q, Σ, qi , ∆, F, γ) be a complete Avg-automaton deﬁning an Avg-speciﬁcation
+S. We assume that S has a non-empty domain, otherwise we can directly conclude that
+the speciﬁcation is realizable. Since A alternatively reads input and output symbols, we
+assume that the set of states is partitioned into a set of input states Qi from which only
+input symbols are read, and set of output states Qo. Note that qi ∈ Qi.
+   Given a non-strict threshold r, the goal is to decide whether there exists a transducer T
+such that dom(T ) = dom(S) and S(u ⊗ T (u)) ≥ bestValS (u) − r for all u ∈ dom(S). The
+latter is equivalent to S(u ⊗ T (u))|uT (u)| − bestValS (u)|uT (u)| + |uT (u)|r ≥ 0. Let ρ be the
+unique run of A on u⊗v, let v ′ be such that S(u⊗v ′ ) = bestValS (u), and let ρ′ be the unique
+run of A on u ⊗ v ′ . We can express the above equation as Sum(ρ) − Sum(ρ′ ) + |ρ|r ≥ 0.
+With this formulation in mind, we are ready to present a decision method.
+   We reduce the problem to deciding whether Eve has an observation-based winning strategy
+in a critical preﬁx energy game with imperfect information with initial credit zero, in which
+for all states of the game, Adam has a strategy to enforce a visit to a critical state. Such
+games are decidable according to Theorem 8. Intuitively in the game, Adam constructs a
+run ρ of A but Eve only sees the input word u of ρ and not the output word nor its states,
+using imperfect information. Eve also constructs a run ρ′ of A on input u. The weights are
+deﬁned so as to maintain the invariant property that the energy level is Sum(ρ′ ) − Sum(ρ) +
+|ρ|r. Moreover, the construction makes sure that Adam has always a strategy to reach an
+accepting state, i.e., that the run ρ, if non-accepting, can be continued into an accepting
+run. To do so, Adam’s actions are restricted to those which maintain this invariant.
+   Let us now describe the construction formally. Consider Qtrim ⊆ Q the subset of states
+which are both reachable from the initial state and from which an accepting state can be
+reached. Let Qtrim
+                 i    = Qtrim ∩ Qi and Qotrim = Qtrim ∩ Qo. Note that qi ∈ Qitrim since we
+assume that dom(S) 6= ∅, and F ⊆ Qitrim , since accepted words end with an output symbol.
+   The game arena G has the set of vertices (Qi × Qtrim  i   ) ∪ (Qo × Qtrimo    × Σi) ∪ {q⊥ },
+and the set of available actions are Σo ∪ {choose}. The arena contains the following edges
+   • (p, q) to (δ(p, a), δ(q, a), a) with action choose and weight γ(δ(p, a)) − γ(δ(q, a)) + r for
+     all p, q ∈ Q and a ∈ Σi such that δ(q, a) ∈ Qotrim .       This edge indicates that Adam
+     chooses the input symbol a.
+   • (p, q, a) to (δ(p, b), δ(q, b′ )) with action b and weight γ(δ(p, b)) − γ(δ(q, b′ )) + r for all
+     p, q ∈ Q, a ∈ Σi and b, b′ ∈ Σo such that δ(q, b′ ) ∈ Qtrim i . This edge indicates that
+     Eve chooses the output symbol b and Adam chooses b′ instead.
+   • (p, q) to q⊥ with action choose and weight zero for all p ∈ Q \ F and q ∈ F  This
+     edge indicates that Adam has completed a valid input word, but Eve was not able to
+     produce a valid output word.
+   • q⊥ to q⊥ with action choose and weight −1            This is a sink state used to bring the
+     energy level below zero.
+   • (p, q) to (p, q) with action choose and weight 0.       This is to make the arena deadlock-
+     free.
+Note that the arena is deadlock free thanks to the loop on states (p, q) and for states of the
+form (p, q, a), there always exist b, b′ such that δ(p, b) is deﬁned (because A is complete) and
+δ(p, b′ ) ∈ Qitrim since q ∈ Qtrim
+                                 o and F ⊆ Qtrimi .
+   The observation of a vertex of the form (p, q) is p, of the form (p, q, a) is (p, a) and of q⊥
+is q⊥ . The set of critical vertices contains all vertices of the form (p, q) with q ∈ F and q⊥ .
+The initial vertex is (qi , qi ).
+   First, let us show that Adam, from any vertex of the game, has a strategy to reach a
+critical vertex, an assumption required to apply Theorem 8. Let consider a non-critical
+vertex of the form (p, q) or of the form (p, q, a) such that q 6∈ F . Since q ∈ Qtrim , Adam
+
+
+
+                                                34
+can, in the game, construct a run (correspond to the second components of the vertices) to
+an accepting state of A, leading in the game to a critical vertex.
+   Second, we show that Eve has an observation-based winning strategy in the constructed
+critical preﬁx energy game with imperfect information with initial credit zero, if, and only
+if, there exists a transducer T such that dom(T ) = dom(S) and for all u ∈ dom(S), S(u ⊗
+T (u)) ≥ bestValS (u) − r.
+   Assume that Eve has an observation-based winning strategy with initial credit zero.
+Let σ be a ﬁnite-memory observation-based winning strategy, as is guaranteed to exist by
+Theorem 8. The strategy can be translated into a transducer Tσ . Indeed, a ﬁnite-memory
+observation-based strategy is of type M × O → (choose ∪ Σo) × M , where M is a ﬁnite
+set of memory states and O is the set of observations of the game. Note that there, an
+observation O is either a pair (p, a), a single state p or q⊥ . Since σ is winning and q⊥ is
+losing, q⊥ is never reached. Initially, the transducer is in state (qi , m0 ) where m0 is the initial
+memory state of σ. The states of Tσ are pairs (p, m). Let a ∈ Σi be some input symbol and
+assume that Eve gets observation (p′ = δ(p, a), a). From this observation, we get the pair
+σ(m, (p′ , a)) = (b, m′ ) meaning that she plays b and the memory is updated to m′ . Then,
+she can only observes that she is in p′ ∈ Qi and her only possible action is choose. Let m′′
+such that σ(m′ , p′ ) = (choose, m′′ ). From state (p, m) and input a, Tσ outputs b and moves
+to state (δ(p′ , b), m′ ). The accepting states of Tσ are pairs (p, m) such that p ∈ F .
+   We show that Tσ implements an r-approximate S-realization. From the construction of the
+game graph it is clear that R(Tσ ) ⊆ R(S), since any accepting run of Tσ can be translated
+back to an accepting run of A. We prove that their domains are equivalent. Towards a
+contradiction assume otherwise. Then there exists some input word u = u1 . . . un ∈ dom(S)
+such that u ∈  / dom(Tσ ). We pick some v = v1 . . . vn such that u ⊗ v ∈ S. Consider the
+play π according to σ where Adam chooses the edges that correspond to input u and output
+v, eventually the play reaches the vertex (p, q) = (δ(u1 v1′ . . . un vn′ ), δ(u1 v1 . . . un vn )). Since
+u ⊗ v ∈ S we have q ∈ F and since u 6∈ dom(Tσ ), p ∈     / F , because by construction of Tσ , the
+projection of π on its ﬁrst component corresponds to a run of Tσ . Then, Adam can move
+to q⊥ and bring the energy level below zero. Since q⊥ is a critical vertex, Eve loses. This
+contradicts that σ is winning.
+   It is left to show that for all u ∈ dom(S) holds that S(u ⊗ Tσ (u)) ≥ bestValS (u) − r.
+Towards a contradiction assume S(u ⊗ Tσ (u)) < bestValS (u) − r. Let v be an output word
+such that u⊗v ∈ S and S(u⊗v) = bestValS (u). Let ρ and ρ′ be the unique runs of A on u⊗v
+and u ⊗ Tσ (u), respectively. Now, we consider the play π in G, where Eve plays according
+to σ and Adam makes his choices such that they correspond to the input word u and the
+run ρ. Eve does not observe ρ. Eve choices of actions spell the run ρ′ . By construction of
+the game graph, the play ends up in a critical vertex, say after i steps, because u ∈ dom(S).
+Furthermore, the energy level of the play preﬁx is EL(π(i)) = Sum(ρ′ ) − Sum(ρ) + r|ρ|. Since
+                          ′
+                            )
+S(u ⊗ Tσ (u)) = Sum(ρ |ρ|     and S(u ⊗ v) = Sum(ρ)
+                                               |ρ|  = bestValS (u), it follows from S(u ⊗ Tσ (u)) <
+                                  ′
+bestValS (u) − r that Sum(ρ ) + r|ρ| < Sum(ρ). Thus, EL(π(i)) < 0, which contradicts that
+σ is an observation-based winning strategy with initial credit zero.
+   For the other direction, assume that T is an S-realizer which non-strictly r-approximates
+S. The transducer T can be directly translated into an observation-based ﬁnite-state strat-
+egy σT for Eve as follows. Let M be the states of T with initial state m0 . The states of σT
+are M × {i, o}, with initial state (m0 , i). In state (m, i) and for an observation (p, a), σT
+picks action b such that there exists a transition (m, a, b, m′ ) in T , and the strategy moves
+to state m′ . From a state (m, o) and for an observation p, Eve can only pick action choose
+and the strategy moves to state (m, i).
+   We show that σT is winning with initial credit zero. Clearly, plays according to σT
+never reach the critical vertex q⊥ . We prove that in the energy level in every other critical
+vertex that is reached is not below zero. Consider some play π according to σT and assume
+last(π(i)) ∈ C for some i and assume π(i) describes some input word u. Eve has made choices
+
+
+
+                                                   35
+such that she picks the run ρ′ of A on the pair (u, T (u)). Let ρ denote the alternative run that
+Adam has picked which corresponds to some pair (u, v). We have that Sum(ρ)   |ρ|  ≤ bestValS (u).
+                                                                    ′
+                                                                 )
+Since T is an r-approximate S-realizer, we know that Sum(ρ |ρ′ |   + r ≥ bestValS (u). Thus,
+                  ′                                    ′
+EL(π(i)) = Sum(ρ ) − Sum(ρ) + r|ρ| ≥ 0, since |ρ| = |ρ |.
+  Given a strict threshold r, we show that the problem reduces to deciding if Eve has
+an observation based winning strategy in a slightly diﬀerent critical preﬁx energy game
+with imperfect information with initial credit zero. For all u, v holds that S(u ⊗ v) >
+bestValS (u) − r implies that S(u ⊗ v)|uv| ≥ bestValS (u)|uv| − r|uv| + 1 ⇔ S(u ⊗ v)|uv| −
+                                                                Z
+bestValS (u)|uv| + r|uv| − 1 ≥ 0, because A has weights in . Thus, it easy to see that it
+suﬃces to subtract one from the weights of the edges outgoing of the initial state.
+
+C.4.3. Proof of Theorem 13: Average (lower bound)
+Theorem 26. The approximate synthesis problem for an Avg-specification and a strict or
+non-strict threshold is EXPtime-hard.
+Proof. We provide a reduction from countdown games. A countdown game is a weighted
+                         N
+game with weights over \ {0} with perfect information in which the actions of a transition
+are equal to their weight. In this setting an action is called duration and the sum value of
+a play preﬁx is called counter value. The countdown objective is parameterized by a bound
+N ∈  N   and is given by CountG (N ) = {π ∈ Plays(G) | ∃i ∈     N   : Sum(π(i)) = N }. Deciding
+whether Eve has a winning strategy for the objective CountG (N ), where N and all durations
+are given in binary, is EXPtime-complete [31].
+   Note that Adam has clearly won a play if it is currently in a vertex s and the counter
+value is c < N such that for all τ = (s, d, s′ ) ∈ T holds that c + d > N . Let n = ⌊log2 N ⌋ + 2,
+         N
+let D ⊆ be the set of durations used in the counter game.
+   We ﬁrst consider the strict case. We design an Avg-automaton A deﬁning a weighted
+speciﬁcation S such that there exists a T that implements a strictly 1-approximate S-
+realization if, and only if, Eve has a winning strategy in the countdown game. Recall,
+strictly 1-approximate means that S(u ⊗ T (u)) > bestValS (u) − 1 for all u ∈ dom(S).
+   The idea behind the automaton is as follows, see Fig. 1 for an overview. The automaton
+has three parts, the initial part, the game part and the counter part.
+   The initial part is used to force a strictly 1-approximate S-realization to be in the game
+part, if there exists one. This is done as follows. Consider the input σ ∈ dom(S), σ is
+any input symbol. The possible output combinations are n and y, with S(σ ⊗ n) = 0
+and S(σ ⊗ y) = 1. Since the diﬀerence is one, the ﬁrst output must be y in a sequential
+transducer in order to be a strictly 1-approximate S-realizer.
+   The remainder of the automaton is split into two parts, one part – the game part – is used
+to simulate the moves of Eve and Adam in the counter game, the other part – the counter
+part – is used to represent the binary encoding of the current sum of durations. It suﬃces to
+use an n-bit counter, because if the nth bit is one, the counter represents a value of at least
+2n > N . If the counter has reached this value without seeing N , it is no longer possible to
+reach the counter value N required for Eve to win the game. In the counter part each bit is
+represented by its own gadget.
+   We give a brief overview of the weights in these parts and their functions. The game part
+is always reached with current value zero, the counter part with value one. The value of a
+run while in the game part remains zero, and while in the counter part remains one. In the
+end, given a transducer T , for a given input sequence u ∈ dom(S), we compare the run that
+was induced by the produced output sequence T (u) to all other runs that could be induced
+with the same input sequence u and diﬀerent output sequences v such that u ⊗ v ∈ S. For T
+to be a strictly 1-approximate S-realizer, we require that the diﬀerence between S(u ⊗ T (u))
+and S(u ⊗ v) is less than one for all v such that u ⊗ v ∈ S. The goal is that runs can exit the
+
+
+
+
+                                               36
+                                                                qin
+
+                                     qf in                           i|1                              qf in
+
+                                  |1                                            y|−1             |0
+                                                               n|1                             |4
+                                     q1,               qn                                qy        q0,
+                                                |−3                                                             |0
+                                                         i|1                            i|0                             i|0
+              |1                                                                                                                qˆ0
+                             |0                                                                           |0      q0
+                                     0|1                            n|1                                                        o|0
+                                                         2|1                            o|0                             ◮ |0
+                                                  1|1
+        o|1                  x0            x1           x2      ...        xn                        vin            q◮
+qˆ1                                                                                            i|0
+               q1
+  i|1                                                                                                            ◮ |0
+                             x0            x1           x2      ...        xn                   Game part
+                                  Counter part
+                                                                                                     input error |1
+          ◮ |0           ◮ |1           ◮ |1                 ◮ |1
+                                                                         i|1       counting error |1
+                    ◮ |1          ◮ |0          ◮ |0
+         qˆ1           qˆ1           qˆ1                 qˆ1               qˆ1
+
+Figure 1.: Overview of the automaton. The initial part is designed to force a strictly 1-
+           approximate realization to be in the game part (if it exists). The counter part
+           is always entered with average one, and all transitions in the counter part have
+           weight one. Each bit of the counter has its own gadget. The counter part is exited
+           with weight one when either the nth bit is ﬂipped to one, or a counting error
+           occurred, or after seeing the input ◮ where the counter bits do not correspond
+           to the bits of N , N is the counter value to be reached in the counter game. This
+           ﬁgure shows the example where N corresponds to the little-endian bit sequence
+           011. The counter part is exited with weight zero when either the end input  is
+           seen, or after seeing the input ◮ where the counter bits correspond to the bits of
+           N . These transitions are shown in blue. The game part is always entered with
+           average zero. All transitions in the game part have weight zero. The game part
+           is exited with weight zero when either the end input  is seen, or the output
+           ◮ is seen. The next input then has to be ◮. The output ◮ is intended to be
+           taken when the counter value is N . The game part is exited with weight one if
+           the input has an error, meaning input does not simulate the game play correctly.
+           This transition is shown in blue.
+
+
+counter part (triggered by the special output ◮ in the game part, explained in detail further
+below) with a value slightly less than one when the counter value represents N (the input
+sequence can continue after the exit). Also, if the counter represents a value less or equal
+to N and the input sequence ends, then the counter part is exited with a value slightly less
+than one. In Fig. 1 these transitions correspond to the transitions exiting the counter part
+which are shown in blue. Runs exit the counter part with value exactly one if either the nth
+bit has ﬂipped to one, which indicates that the value N has been surpassed, or if an error in
+
+
+
+                                                                    37
+updating the counter has been observed. Moreover, if exiting the counter part was triggered
+by the special output ◮ in the game part, then it should not be beneﬁcial if the counter
+value is not exactly N . Thus, in these cases the counter part is exited maintaining value
+one. The game part is always exited with value zero, unless the exit was caused by an error
+in the input sequence, then the value is above zero. The input errors are symbolized by the
+blue transition exiting the game part in Fig. 1. These properties ensure that the diﬀerence
+between compared runs in these two parts will always be less than one if, and only if, Eve
+has a winning strategy in the counter game that is copied by a transducer.
+   We are ready to go into more detail. First, we give the alphabet explicitly, the other
+components are given implicitly by describing the structure of the automaton.
+   The alphabet Σ is the union of the following sets: the set {0, . . . , n}, the number i is used
+as output to lead the run into the gadget for the ith bit of the counter; the set of vertices
+V , vertices are used as input to choose the successor of a transition; the set of durations D,
+durations are used as output to choose a duration; {bi | 0 ≤ i ≤ n} and {ci | 1 ≤ i ≤ n} are
+used as input, each bi is used to indicate that the ith bit is one, each ci is used to indicate
+that the ith carry bit in an addition is one; {y, n}, for yes and no, are used as output to
+indicate whether the next input should set a carry bit or not; {⋄}, ⋄ is used as input for
+carry bits that remain zero; ﬁnally, {◮, }, these two symbols are used as both input and
+output, ◮ to force the runs into special states and  to end input and output. Let Σi and
+Σo denote the subset that is used as input and output, respectively.
+   We use the symbol i resp. o to denote any input resp. output symbol that is not ◮ or
+. Furthermore, when depicting (parts of) the automaton, we allow to label transitions
+with two symbols, one input and one output symbol, e.g., (p, b1 o, q) is used a shorthand
+for (p, b1 , r) and (r, o, q) that uses an intermediate state which is not shown to make the
+depictions more readable.
+   The automaton has special states, q0 , qˆ0 , q0, , q1 , qˆ1 q1, , qf in , and q◮ , see Fig. 1. The
+state qf in is a deadlock and the only ﬁnal state of the automaton. From qi , reading one
+input (except ) and one output symbol leads back to qi via qˆi with sum i + i for i = 0, 1.
+From qi , reading  leads to qi, with weight i, and from qi, , reading  leads to qf in with
+weight i for i = 0, 1. The purpose of q◮ is explained further below in the paragraphs that
+describe the game part.
+   We describe the counter part. Each transition with source and target in this part has
+weight one. For each bit of the counter there is one gadget, see Fig. 2. The counter part
+is designed to update the counter based on the durations seen in the game part of the
+automaton, the addition of bits and carry bits is done in the order b0 c1 b1 . . . bn cn , see the
+description of the game part. The outputs play no role in the bit gadgets, the targets of
+transitions are determined by the input. We explain the gadget for the ith bit. The design
+is such that a run that is in state xi resp. xi indicates that the ith bit of the counter is
+currently zero resp. one. In xi , adding a bit or a carry bit (indicated by reading bi resp. ci )
+ﬂips the counter, so xi is reached. In xi , reading ci+1 leads to qˆ1 with weight one, because
+adding something to the ith bit of the counter while it is zero cannot set the i + 1th carry
+bit to one. In Fig. 1 this transition (among others) is symbolized by the transition with
+label counting error. Taking this transition ensures that the value of the run can not go
+below one anymore. In xi , adding a bit or a carry bit (indicated by reading bi resp. ci ) ﬂips
+the counter, however, ci+1 has to be read eventually, because this operation sets the i + 1th
+carry bit to one. In Fig. 2 the unnamed states represent states where the counter waists to
+see ci+1 , if as input some vertex v ∈ V is seen, we know the addition of a duration to the
+counter is ﬁnished, because input has chosen a successor vertex. Thus, the necessary carry
+bit was not seen and an error was detected, so seeing v ∈ V leads to qˆ1 . If the ﬁrst waiting
+state was reached with ci the input bi might be seen before ci+1 , that is why there is the
+second waiting state. Reading ci+1 directly from xi leads to q1 with weight one, because
+this would indicate that the i + 1th carry bit was set without adding something to the ith
+
+
+
+
+                                                  38
+bit of the counter which is an error.
+   Regarding the nth bit, from xn everything goes to qˆ1 with weight one, because this means
+the counter has surpassed the value N , see Fig. 1.
+   As mentioned above, in the game part, output can trigger to stop the game by the output
+symbol ◮, then input has to answer with ◮ as input; seeing the input ◮ in the counter
+gadgets triggers to exit the counter gadget, see Fig. 1. The intention is that exiting the
+counter gadget with ◮ should only be beneﬁcial, i.e., lead to a run with value less than one,
+if the counter value represents exactly N . This is achieved as follows, see also Fig. 1. Let
+y0 . . . yn−1 be the little-endian bit encoding of N . If yi is zero resp. one, then from xi resp.
+xi a transitions with ◮ leads to qˆ1 with weight zero for each i, ensuring that the value of
+the run will be less than one. For all other states (that expect input), reading ◮ leads to qˆ1
+with weight one.
+   In the bit gadgets, for all inputs that are not  and were not described together with
+some output symbol lead back to the same state, e.g., reading b2 o from xi (with i 6= 1) goes
+back to xi . From every state (that expects input), reading  leads to q1, with weight zero.
+This ensures that the value of the run is less than one, because it does not indicate a counter
+value that has surpassed N , nor an error in updating the counter.
+
+
+
+                                                         xi                       xn
+                        ci+1
+                                      ci+1 o
+
+
+                               v∈V             bi o                bi o, ci o      bn o, cn o
+       ...        qˆ1                                                       ...
+
+                         v∈V                              ci+1 o
+                                                                                       i
+                                       bi o, ci o        xi                       xn       qˆ1
+                    ci+1
+
+
+
+
+                    Figure 2.: Counter gadgets. One gadget for each bit.
+
+   We describe the game part. Each transition with source and target in this part has weight
+zero. The idea behind the weights in this part is that each run should have value zero, unless
+the input stops to faithfully simulate a play in the counter game, in which case it should
+have a value greater than zero.
+   From a state v ∈ V an output symbol must be read. It is possible to go to a state (v, d)
+with output d if there exists a transition of the form (v, d, v ′ ) ∈ T . Furthermore, the output
+◮ is possible leading to the state q◮ with weight zero, see Fig. 1. The intention is to use
+this output if the counter part of the automaton represents the value N . In q◮ the input
+◮ leads to q0 with weight zero, all other inputs (except ) lead to q0 with weight one, 
+leads to q0, with weight one. These transitions are not shown in Fig. 1, to not clutter the
+ﬁgure further, if inserted this would also be visualized by a blue transition labeled with input
+error. As explained before, the automaton is designed such that reading the input ◮ in the
+counter part leads to a value less than one if the counter value is indeed N .
+   From a state (v, d) the next symbols must ensure that the duration d is added to the
+counter, i.e., the sequence read from here in the game part must – when read in the counter
+part – update the automaton representation of the bit counter. We show how this is done
+for a concrete example, see Fig. 3. We assume that a 4-bit counter is used, that we are in a
+
+
+
+                                                    39
+state (s, 13) and that the possible successors of s with duration 13 in the counter game are
+s1 and s2 . The number 13 is 1011 in little-endian notation, so the next inputs that describe
+the duration are b0 , b2 and b3 . When adding 1011 to the 4-bit counter, some carry bits
+might become one. The outputs y(es) and n(o) are used to indicate which ones, the input
+ci indicates that the ith carry bit becomes one, the input ⋄ is used for the carry bits that
+remain zero. Whether the chosen carry bits are correct is checked in the counter part of the
+automaton. If it is incorrect, the run in the counter part will have value one and the run in
+this adder gadget will have value zero. Eventually, the next input symbol indicates which
+successor is picked.
+   From a state (v, d), the input  leads to q0, with weight zero. From every other state
+(that expects input), the input  leads to q0, with weight one (not pictured in Fig. 1 to save
+space). The target of a transition for any state (that expects input) and an input symbol
+for which we did not describe a transition leads to qˆ0 with weight one. These transition are
+symbolized by the transition labeled with input error in Fig. 1. The ﬁrst input possibility
+marks a valid point to stop simulating the game. The latter two input possibilities mark
+invalid points to stop simulating the game, so it is ensured that the value of run is not zero.
+
+                                    c2           y c1        y
+                                o                                 b0
+                                                                        (s, 13)
+
+                                        ⋄        n    ⋄      n
+             b2
+
+                                                                                  s1
+                  y        c3                         y     c4             s1
+                                    o       b3                      o
+
+                  n        ⋄                          n     ⋄              s2
+                                                                                  s2
+
+Figure 3.: Adder gadget. Example for the gadget corresponding to transitions (s, 13, s1 )
+           and (s, 13, s2 ) with n = 4. The duration 13 is 1011 in little-endian notation.
+
+   We are ready to prove the correctness of our construction. We make three observations.
+First, it is easy to see that we have constructed a deterministic automaton with weights, thus,
+it deﬁnes a weighted speciﬁcation S. Second, the domain of S is (Σi \ {})+, furthermore,
+the domain of both parts of the automaton are the same. Third, we have 0 ≤ S(u ⊗ v) ≤ 1
+for all u ⊗ v ∈ S.
+   We already established that a strictly 1-approximate S-realizer must lie in the game part
+of the automaton if it exists.
+   Assume that Eve has a winning strategy in the countdown game. Consider a transducer
+that behaves according to a winning strategy.
+   We distinguish between input sequences that faithfully simulate a play in the game, and
+those that do not.
+   In the latter case, the run in the game part has a strictly positive value, all values for
+alternative runs with same input sequence have a value of at most one (this property is also
+true for all other input sequences). So, the diﬀerence is less than one.
+   In the former case, the output indicates to stop counting after the counter has reached
+the value N by the output ◮, the run in the game part has value zero. We take a look at all
+other output sequences that can be combined with the same input sequence. First, consider
+all alternative output sequences such that the run also lies in the game part. All runs in the
+game part have a value strictly less than one, so the diﬀerence is less than one. Secondly,
+
+
+
+                                                 40
+consider all alternative output sequences such that the run lies in the counter part. The
+second output symbol ﬁxes in which bit gadget the run lies. Note that after a bit gadget has
+been entered, the outputs do not inﬂuence the runs anymore, they depend only on the input.
+Thus, no matter which gadget is entered, when the input ◮ is seen, the run is assigned a
+value less than one, because the bit value is the same as in N . So, the diﬀerence is less than
+one.
+   What is left for this direction, is to consider the input sequences that faithfully simulate
+the game, but stop before the counter has reached N . The run in the game part induced
+by the output sequence provided by the transducer has value zero. All alternative output
+sequences that induce runs in the counter part have value less than one, because no counting
+error occurs and the nth bit does not ﬂip to one. As argued before, all alternative output
+sequences that induce runs in the game part have a value less than one.
+   Assume that Eve has no winning strategy. We consider input sequences that faithfully
+simulate the game. Consider the outputs of any transducer that is an S-realizer. The
+resulting run in the game part has value exactly zero, because the inputs faithfully simulate
+the game.
+   We consider an input sequence such that the value of the counter eventually surpasses N
+if the simulation of the game is faithful.
+   If the provided output sequence is faithful, then the nth bit of the counter eventually ﬂips
+to one. Considering the run for an alternative output sequence that lies in the gadget of the
+nth bit of the counter yields a value of exactly one. The diﬀerence is one, the transducer is
+not strictly 1-approximate.
+   The other possibility is that the output provided by the transducer contain errors when
+updating the carry bits in order to maintain a counter value below N . Since such an error is
+detected in the corresponding counter bit, again there exists an alternative output sequence
+such that the corresponding run in the counter part witnesses the error and is assigned value
+exactly one. The diﬀerence between the run in the game part and the alternative is one,
+thus, the transducer is not strictly 1-approximate.
+   We turn to the case of a non-strict threshold. We can easily change the described spec-
+iﬁcation such that there exists a non-strict 1-approximate realizer if, and only if, Eve has
+a winning strategy in the counter game. For this we change the weight of two transitions.
+First, the weight of the transition that goes from qy to q0, is changed from 4 to 5, to
+ensure that a non-strict 1-approximate realizer has to still lie in the game part. Secondly,
+the weight of outgoing transitions from qn for some input that is not  is changed from 1 to
+2. This ensures that the runs in the counter part have a value of slightly above one unless
+something beneﬁcial for output happens, then the values will be decreased to exactly one.
+In the game part the values will be as before, i.e., zero, unless there is an input error, then
+the values will be slightly above zero. These changes ensure that the diﬀerence between the
+runs will always be exactly one if, and only if, Eve has a winning strategy in the counter
+game.
+
+C.4.4. Proof of Theorem 13: Discounted-sum
+Theorem 27. The approximate synthesis problem for a Dsum-specification with a discount
+                                 N
+factor λ of the form n1 with n ∈ and a strict threshold is decidable in NEXPtime and a
+non-strict threshold in EXPtime.
+Proof. We reduce the problems from the statement to threshold synthesis problems for
+Dsum-speciﬁcations.
+  In [8], it is shown that Dsum-automata with a discount factor λ of the form 1ℓ with ℓ ∈   N
+are determinizable with the same discount factor.
+  The idea is to (disregard the labels of output transitions which yields a nondeterministic
+speciﬁcation automaton and) construct the product automaton of the speciﬁcation automa-
+
+
+
+                                              41
+ton (without output labels) and a deterministic version of it. The weights of a transition in
+the product is the weight of the transition in the deterministic version subtracted from the
+weight of the transition in the speciﬁcation automaton (without output labels).
+  We show that there is a transducer that implements an approximate realization of the
+speciﬁcation (without output labels) for a threshold r if, and only if, there is a transducer
+that implements a realization of the speciﬁcation (without output labels) deﬁned by the
+product automaton that ensures a value of −r for each pair.
+  Let A = (QA , Σio, qiA , ∆A , FA , γA ) be a complete Dsum-automaton with a discount factor
+                           N
+λ of the form 1ℓ with ℓ ∈ deﬁning a Dsum-speciﬁcation S. Let B be the nondeterministic
+Dsum-automaton that is obtained from A by replacing all transition labels that are output
+symbols by the same arbitrary output symbol, let ofix denote this output symbol. Let
+D = (QD , Σio, qiD , ∆D , FD , γD ) be a trim version of B.
+  Formally, the Dsum-automaton C = (QC , Σio, qiC , ∆C , FC , γC ) is deﬁned as follows. The
+state set is QA × QD , the initial state is (qiA , qiD ), the ﬁnal state set is FA × FD , and ∆C
+contains the following transitions
+   • (p, q) to (p′ , q ′ ) if (p, σ, p′ ) ∈ ∆A and (q, σ, q ′ ) ∈ ∆D for all (p, q) ∈ QA    D
+                                                                                       i × Qi , the
+     weight of the transition is γA ((p, σ, p′ )) − γD ((q, σ, q ′ )),
+   • (p, q) to (p′ , q ′ ) if (p, σ, p′ ) ∈ ∆A and (q, ofix , q ′ ) ∈ ∆D for all (p, q) ∈ QA    D
+                                                                                           o × Qo , the
+                                                 ′                     ′
+     weight of the transition is γA ((p, σ, p )) − γD ((q, ofix , q )).
+   Given a threshold r ∈     Q and ⊳ ∈ {<, ≤}, it is easy to see that there is a transducer
+that implements a r⊳ -approximate S-realization if, and only if, there is a transducer that
+implements a SC -realization that ensures a value ⊲ − r for each pair, where SC is the Dsum-
+speciﬁcation deﬁned by C, and ⊲ => if ⊳ =< and ⊲ =≥ otherwise.
+   It is left to show the claimed complexity bounds. We assume that the weights are given
+in binary and the discount factor λ is given as a pair of binary numbers. Following the
+construction presented in [8], D is of size mn = 2n·log m , where n is the number of states of
+A and log m is a number in the size of the representation of its weights. Thus, the number
+of states of D is exponential in the number of states of A and polynomial in the weights of
+A. The weights in D are polynomial (the representation of the weights grows by one bit at
+most) in the weights of A. Hence, the size of the game arena is exponential in the number
+of states and polynomial in the weights of A, and its weights are polynomial in the weights
+of A.
+   For a strict threshold, Theorem 9 yields that solving critical preﬁx threshold games is
+in NP for discounted-sum. Since the constructed arena is of exponential size, the claimed
+complexity bound follows.
+   For a non-strict threshold, Theorem 9 yields that solving critical preﬁx threshold games in
+NP ∩ coNP for discounted-sum. To obtain our desired complexity bound, we make a more
+precise analysis. Threshold synthesis problems for discounted-sum are reduced in polynomial
+time to critical preﬁx discounted-sum threshold games which are reduced in polynomial time
+to discounted-sum games, see the proof of Theorem 16. Using the value iteration algorithm
+from [36] to solve discounted-sum games yields the claimed complexity bound, because it
+runs in polynomial time in the size of the arena, logarithmic in the absolute maximal weight
+of the arena, and exponential in the representation of the discount factor, i.e., polynomial
+in the discount factor. An analysis of the run time of the value iteration algorithm is given
+in [29].
+
+C.5. Infinite words and Church synthesis
+C.5.1. Some observation on the finite-memory requirement for synthesis problems
+In the deﬁnition of synthesis problems of Section 2, we ask for the realizability of the spec-
+iﬁcation by a (ﬁnite-state) transducer. This requirement can be relaxed to asking whether
+
+
+
+                                                 42
+the speciﬁcation is realizable by some sequential function f , i.e. a function of type Σi∗ → Σo
+prescribing which output symbol should be produced by Eve, depending on the sequence of
+input symbols Adam has provided so far. In other words, we could relax the requirement that
+f is computable by a (ﬁnite-state) transducer. First, we impose this requirement because
+we are interested in functions which can be ﬁnitely represented and computed. Second, we
+claim that realizability in the relaxed sense entails realizability by transducers. To see that,
+consider ﬁrst the threshold synthesis problems for all measures V ∈ {Sum, Avg, Dsum}. They
+are all solved by reduction to corresponding critical preﬁx games, with back-and-forth trans-
+lations from ﬁnite-memory strategies to transducers. For those games, it has been shown
+in Section 3 that ﬁnite-memory suﬃce for Eve to win. It entails our claim for threshold
+synthesis problems.
+   The claim also holds for (strict and non-strict) approximate synthesis (and therefore for
+best-value synthesis by taking non-strict threshold 0). Indeed, for Sum-speciﬁcation S, the
+approximate synthesis algorithm for S works by reduction to the regret determinization prob-
+lem for a nondeterministic Sum-automaton (Theorem 24). The algorithmic solution to the
+latter problem itself relies on solving a game whose ﬁnite-memory strategies can be back-
+translated into (ﬁnite-state) regret determinizers [26], which in turn are back-translated
+into transducers realizing S for the threshold synthesis problem as shown in Lemma 10.
+In [26], it is shown that ﬁnite-memory strategies are suﬃcient to win, entailing our claim
+for Sum-speciﬁcations. For Avg-speciﬁcations (Theorem 25), the approximate synthesis al-
+gorithms work by reduction to some critical preﬁx energy games of imperfect information
+with ﬁxed initial credit for which ﬁnite-memory are suﬃcient to win by Theorem 8. Like-
+wise for Dsum-speciﬁcations and discount factor 1/n, the approximate synthesis problems
+(Theorem 27) reduce to critical preﬁx threshold games for which ﬁnite-memory are known
+to suﬃce (Theorem 18).
+
+C.5.2. Proof of Theorem 14
+Theorem 14. The synthesis problem for an ω-specification O ⊆ (Σi.Σo)ω is decidable when
+O is given by a deterministic V -automaton defining a weighted V -specification of finite
+words W s.t. O ∈ {Thres>t (W ), Thres≥t (W ), BestVal(W ), Approx< (W, r), Approx≤ (W, r)}
+and V = Sum, V = Avg or V = Dsum with discount factor 1/n for n ∈ . Moreover, if O N
+is realizable, it is realizable by a Mealy machine.
+  These synthesis problems can be directly reduced to the corresponding synthesis problems
+on ﬁnite words. E.g., synthesis problem for Thres>t (W ) reduces to the strict threshold
+synthesis problem for W (on ﬁnite words). The main diﬀerence is that our quantitative
+synthesis problems on ﬁnite words require realizability by a transducer. This is however
+not a problem. Indeed, we could have relaxed this condition to asking for realizability by a
+possibly inﬁnite-state transducer or equivalently, a function of type Σ∗i → Σo. However, the
+algorithms we provide to solve quantitative synthesis problems over ﬁnite words guarantee
+that (ﬁnite-state) transducers are suﬃcient. So we do not need inﬁnite memory.
+Proof. We consider the case of threshold speciﬁcations. For best-value and approximate
+synthesis, the proof is the same. The proof is also parametric in V . Given a deterministic
+V -automaton deﬁning a weighted speciﬁcation W and a threshold t, we reduce the synthesis
+problem for Thres⊲t (W ) to the threshold synthesis problem (on ﬁnite words) for W , which
+is decidable by Theorem 9. Let us show the correctness of the reduction.
+   Assume that Thres⊲t (W ) is realizable by a (total) function λ : Σ∗i → Σo. We con-
+struct a function f : dom(W ) → Σ∗o and prove that it realizes W (over ﬁnite words for
+the threshold problem). To deﬁne f , let u = i1 . . . ik ∈ dom(W ). Then, let f (u) =
+λ(i1 )λ(i1 i2 ) . . . λ(i1 . . . ik ). By deﬁnition of Church synthesis, since λ realizes Thres⊲t (W ),
+for any inﬁnite continuation ik+1 · · · ∈ Σω         i , we have for all j ≥ 0, if i1 . . . ij ∈ dom(W ),
+
+
+
+
+                                                   43
+then W (i1 λ(i1 )i2 λ(i1 i2 ) . . . ij λ(i1 . . . ij )) ⊲ t. It is true in particular for j = k and therefore,
+u ⊗ f (u) ∈ W and W (u ⊗ f (u)) ⊲ t.
+   Conversely, assume that W is realizable (for threshold t) by a function f : dom(W ) →
+Σo∗ , which can be assumed to be computable by a transducer thanks to the observation
+of Appendix C.5.1. We construct a function λ : Σ∗i → Σo and prove that (i) it realizes
+Thres⊲t (W ) and (ii) it is computable by a Mealy machine. The function λ has to be deﬁned
+by all ﬁnite words over Σi. Let u = i1 . . . ik be such a word and let o0 ∈ Σo be some
+arbitrarily chosen output symbol. We consider two cases:
+   1. there exists v ∈ Σ∗i such that uv ∈ dom(W ). Then, we let λ(u) be the kth letter of
+      f (uv) (since f is computable by a transducer, this deﬁnition is independent from the
+      choice of v)
+   2. there is no such v. Then, we let λ(u) = o0 .
+   (i) Let us show that λ realizes Thres⊲t (W ). Let i1 i2 · · · ∈ Σωi be some input ω-word and for
+all j, let oj = λ(i1 . . . ij ). Assume that i1 . . . ik ∈ dom(W ). Then, by the choice of o1 , . . . , ok
+(in particular by taking v = ǫ in the deﬁnition of λ above), we have f (i1 . . . ik ) = o1 . . . ok )
+and since f realizes W , we get W (i1 o1 . . . ik ok ). It is true for all k, therefore i1 o1 i2 o2 · · · ∈
+Thres⊲t (W ).
+   (ii) Let T be a transducer computing f . We construct a Mealy machine for λ. Since T is
+deﬁned only over dom(W ), we have to extend its domain to any ﬁnite word. To do so, we
+just complete T whenever there is a missing transition towards a sink state which outputs
+o0 whenever it reads an input letter.
+   The reduction (and proof of its correctness) is exactly the same for best-value and ap-
+proximate synthesis. The only diﬀerence is the theorems we rely on to get decidability.
+For best-value and Sum, decidability is given by Theorem 12, for best-value and Avg, by
+Theorem 22, for best-value and Dsum, by Theorem 23. For the approximate synthesis and
+Sum it is given by Theorem 24, for Avg by Theorem 25, and for Dsum by Theorem 27.
+
+
+
+
+                                                     44
+

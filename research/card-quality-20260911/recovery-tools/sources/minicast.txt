@@ -1,0 +1,833 @@
+         MiniCast: Minimizing the Communication Complexity
+                        of Reliable Broadcast
+
+                                     Thomas Locher1 Victor Shoup2 ID
+                                                       1
+                                                    DFINITY
+                                           thomas.locher@dfinity.org
+
+                                                  2
+                                                   Offchain Labs
+                                                victor@shoup.net
+
+
+                                                      April 26, 2024
+
+
+
+      Abstract. We give a new protocol for reliable broadcast with improved communication complexity
+      for long messages. Namely, to reliably broadcast a message a message m over an asynchronous network
+      to a set of n parties, of which fewer than n/3 may be corrupt, our protocol achieves a communication
+      complexity of 1.5|m|n+O(κn2 log(n)), where κ is the output length of a collision-resistant hash function.
+      This result improves on the previously best known bound for long messages of 2|m|n + O(κn2 log(n)).
+
+
+1   Introduction
+
+Reliable broadcast is a fundamental problem in distributed computing that was first introduced
+by Bracha [Bra87]. In this problem, we have n parties P1 , . . . , Pn , at most t of which are corrupt,
+where t < n/3, connected by authenticated point-to-point channels (the bound t < n/3 is known
+to be optimal). The communication network is completely asynchronous (i.e., there is no bound on
+the time it takes to deliver messages) and the scheduling of message delivery is completely under
+the control of an adversary.
+    A reliable broadcast protocol allows a sender S to broadcast a single message m to P1 , . . . , Pn .
+Such a protocol should satisfy the following correctness property (informally stated):
+    All honest parties that output a message must output the same message. Moreover, if the
+    sender S is honest, that message is the one input by S.
+It should also satisfy the following completeness property (informally stated):
+    If any honest party outputs a message or an honest sender S inputs a message, then even-
+    tually all honest parties output a message.
+Here, “eventually” means if and when all protocol messages sent from honest parties to honest
+parties have been delivered.
+    In evaluating the efficiency of a reliable broadcast protocol, an important metric is communica-
+tion complexity, which is defined as the total number of bits transmitted by all honest parties over
+the network in the worst case. Bracha’s protocol has a communication complexity of O(|m|n2 ),
+where |m| is the length (in bits) of the message m to be broadcast—essentially, every party echoes
+m to every other party. For very long messages, this communication complexity can be impractical.
+    The first improvement to the communication complexity of reliable broadcast was made by
+Cachin and Tessaro [CT05], who gave a protocol with communication complexity O(|m|n +
+κn2 log(n)), where κ is the output length of a hash function. Note that the security of their protocol
+relies on the collision resistance of this hash function (unlike Bracha’s protocol, which makes no
+other assumptions beyond authenticated channels).
+    Subsequent work has primarily focused on improving the term O(κn2 log(n)) (for example, see
+[DXR21,DXR22]). However, for long messages (i.e., when |m| ≫ κn log(n)) the term O(|m|n),
+will dominate the communication complexity, and the more interesting problem in this case is to
+reduce the constant in this term. The approach of Cachin and Tessaro is based on an erasure code
+that encodes m as a vector of fragments, any n − 2t of which may be used to reconstruct m. For
+t ≈ n/3, each fragment will be of size ≈ 3|m|/n, and every party will echo one such fragment to all
+other parties, leading to a communication complexity of (at least) ≈ (3|m|/n) · n2 = 3|m|n for any
+protocol based on this approach.
+    The first work to improve the communication complexity for long messages is due to
+Locher [Loc24]. Instead of using an erasure code with a recovery threshold of n − 2t, Locher
+shows how to use a recovery threshold of n − t. Using this higher threshold presents a number
+of problems, which Locher shows how to overcome, resulting in a protocol whose communication
+complexity (for long messages) is ≈ 2|m|n. Locher proves a lower bound of ≈ 1.5|m|n on the
+communication complexity for a certain restricted class of protocols, but leaves as open questions:
+
+ (i) Can we prove a general lower bound of ≈ 1.5|m|n?
+(ii) Is there a protocol whose communication complexity is ≈ 1.5|m|n?
+
+   In this paper, we answer the second question affirmatively: we give a new protocol, called
+MiniCast, whose worst-case communication complexity is
+
+                                      1.5|m|n + O(κn2 log(n)).
+
+Protocol MiniCast enjoys several other properties:
+
+ – its round complexity in the “good case” (when the sender is honest) is 4;
+ – its communication is well balanced, meaning that each party transmits roughly the same amount
+   of data;
+ – its security only relies on a collision-resistant hash function.
+
+    The good-case round complexity of Protocol MiniCast, which is 4, is not as good as that
+of Bracha’s protocol, which is 3. To address this issue, we also give an “optimistic” variant of our
+protocol, called OptMiniCast. This protocol has a good-case round complexity of 3, and has a worst-
+case communication complexity of ≈ 2|m|n. However, unless the sender detectably misbehaves, the
+communication complexity is still ≈ 1.5|m|n. We discuss various strategies to mitigate against
+such misbehavior, so that in many practical settings, we can assume it is rare. We note that like
+Protocol OptMiniCast, Protocol Abit in [Loc24] also has a good-case round complexity of 3 and a
+worst-case communication complexity of ≈ 2|m|n.
+
+
+2   Preliminaries
+
+We assume n parties P1 , . . . , Pn , at most t of which are corrupt, where t < n/3. We assume parties
+are connected by authenticated point-to-point channels. The communication network is completely
+asynchronous, and we assume that message delivery is completely under the control of the adversary.
+
+                                                  2
+That is, although the adversary cannot modify the contents of messages sent between honest parties,
+he can decide if and when they are delivered.
+   As stated in Section 1, a reliable broadcast protocol allows a sender S to broadcast a single
+message m to P1 , . . . , Pn , and should satisfy a correctness and completeness property. We define
+these properties more precisely here.
+   The correctness property states that:
+
+  (i) any two honest parties that output a message must output the same message;
+ (ii) at the time any honest party outputs a message, if S is honest, then S must have previously
+      input the same message.
+
+    The completeness property states that:
+
+     at any point in time where all messages that have been sent by some honest party to another
+     honest party have been delivered, we have the following: if either
+     (i) some honest party has output a message, or
+    (ii) if S is honest and has input a message,
+     then all honest parties have output a message.
+
+   Of course, this definition of completeness is only meaningful for protocols with bounded message
+complexity—which will be the case for our protocols here.
+
+Incorporating cryptography. The correctness and completeness claims about our protocols will be
+based on cryptographic assumptions (namely, the collision resistance of a hash function). To incor-
+porate this into our model, we have to modify the above definitions of correctness and completeness.
+Specifically, each property is recast as a game played between an adversary and a challenger. The
+adversary encompasses the scheduling of message delivery as well as the behavior of the corrupt
+parties. If the sender is honest, the adversary also supplies the input to the sender. The challenger
+encompasses the behavior of the honest parties. For each game, we say the adversary wins the
+game if he can make the protocol execution violate the corresponding defining property. We say
+correctness (resp., completeness) holds if for every polynomial-time adversary wins the correctness
+(resp., completeness) game with at most negligible probability. Here, polynomial-time and negligible
+are defined in terms of an implicit security parameter.
+
+Static vs adaptive corruptions. The above definitions and all of our results are stated in the static
+corruption model, where the adversary chooses which parties are corrupt at the very beginning of
+the attack. We work in this model mainly for simplicity. In fact, all of our protocols remain secure
+in the adaptive corruption model, where the adversary may choose which parties to corrupt during
+the course of the protocol execution.
+
+Other notation. For a nonnegative integer k, we denote by [k] the set {1, . . . , k}.
+
+
+3    Data encoding logic
+
+Before presenting the detailed logic of the message flows of our protocol, we first present the basic
+logic of how data is encoded and how it flows through the protocol.
+
+                                                   3
+3.1   Erasure codes
+
+For integer parameters k ≥ d ≥ 1, a (k, d)-erasure code encodes a bit string m as a vector
+of k fragments, f1 , . . . , fk , in such a way that any d such fragments may be used to efficiently
+reconstruct m. Note that for variable-length m, the reconstruction algorithm also takes as input the
+length ℓ of m. The reconstruction algorithm may fail (for example, a formatting error)—if it fails
+it returns ⊥, while if it succeeds it returns a message that when re-encoded will yield k fragments
+that agree with the original subset of d fragments. We assume that all fragments have the same
+size, which is determined as a function of k, d, and ℓ.
+    Using a Reed-Solomon code, which is based on polynomial interpolation, we can realize a (k, d)-
+erasure code so that if |m| = ℓ, then each fragment has size ≈ ℓ/d. More precisely, using a Reed-
+Solomon code over binary finite fields, we can always construct a code such that fragments are of
+size at most max(⌈ℓ/d⌉, ⌈log2 (k)⌉)—the term ⌈log2 (k)⌉ comes from the fact that we need to work
+with a field of cardinality at least k. In what follows, we will use the more general upper bound of
+
+                                            ℓ/d + O(log(k))
+
+on fragment size, which serves as an upper bound for the above construction, as well as for other
+constructions and implementations (which may impose additional restrictions on the length of
+fragments, such as being a multiple of some specific constant).
+    Our reliable broadcast protocol uses two erasure codes.
+
+ – An (n, n − t)-erasure code.
+   This is used to encode the message m to be broadcast by our protocol as a vector of n fragments,
+   f1 , . . . , fn , any n − t of which may be used to efficiently reconstruct the message m. If |m| = ℓ,
+   then the size of each fragment fi , which is a function of ℓ, n, and t, is at most
+
+                                   ℓ                 3
+                                      + O(log(n)) ≤    ℓ + O(log(n)).
+                                  n−t               2n
+ – An (n, n − 2t)-erasure code.
+   This is used to encode a fragment fi as above as a vector of n “mini-fragments” ϕi1 , . . . , ϕin ,
+   any n − 2t of which may be used to reconstruct the fragment fi . If |m| = ℓ, then the size of each
+   mini-fragment ϕij , which is a function of ℓ, n, and t, is at most
+
+                                   ℓ                      9
+                                            + O(log(n)) ≤ 2 ℓ + O(log(n)).
+                            (n − t)(n − 2t)              2n
+
+3.2   Merkle trees
+
+Our reliable broadcast protocol will also make use of Merkle trees. Recall that a Merkle tree allows
+one party P to commit to a vector of values (v1 , . . . , vk ) using a collision-resistant hash function
+by building a (full) binary tree whose leaves are the hashes of v1 , . . . , vk , and where each internal
+node of the tree is the hash of its two children. The root r of the tree is the commitment. Party P
+may “open” the commitment at a position i ∈ [k] by revealing vi along with a “validation path”
+πi , which consists of the siblings of all nodes along the path in the tree from the hash of vi to the
+root r. We call πi a validation path for vi under r at position i. Such a validation path is
+checked by recomputing the nodes along the corresponding path in the tree, and verifying that the
+
+                                                   4
+recomputed root is equal to the given commitment r. The collision resistance of the hash function
+ensures that P cannot open the commitment to two different values at a given position.
+    We shall actually make use of a two-level Merkle tree structure. For a given message m, the top
+level Merkle tree will be rooted at r and have leaves r1 , . . . , rn , where each ri is itself the root of a
+Merkle tree whose leaves are the hashes of mini-fragments ϕi1 , . . . , ϕin of the fragment fi of m. We
+will therefore have validation paths πi for ri under r at position i, as well as validation paths πij
+for ϕij under ri at position j.
+    Each validation path πi and πij will have size O(κ log(n)), where κ is the output length of the
+hash function.
+
+3.3   Encoding and decoding functions
+Tags. For a given message length ℓ and Merkle tree root r, we define the tag τ := (ℓ, r).
+
+Certified fragments. For a tag τ = (ℓ, r), we shall call (fi , πi ) a certified fragment for τ at
+position i if
+ – fi has the correct length of a fragment for a message of length ℓ, and
+ – when we compute the mini-fragments ϕi1 , . . . , ϕin for fi and build the Merkle tree rooted at ri
+   whose leaves are the hashes of ϕi1 , . . . , ϕin , we find that πi is a correct validation path for ri
+   under r at position i.
+
+Certified mini-fragments. For a tag τ = (ℓ, r), we shall call (ϕij , πij , πi ) a certified mini-fragment
+for τ at position (i, j) if
+ – ϕij has the correct length of a mini-fragment for a message of length ℓ,
+ – πij is a validation path for ϕij under a root ri , and
+ – πi is a correct validation path for ri under r.
+    We define several functions that will be used in our protocol. All of these functions take n and
+t as implicit parameters.
+
+The Encode function. The first function, Encode, takes as as input a message m. It builds a two-level
+Merkle for m as above with root r (encoding m as a vector of fragments, encoding each fragment as
+a vector of mini-fragments, and then building a two-level Merkle tree whose leaves are the hashes
+of all of these mini-fragments). It returns
+                                                               
+                                           τ, {(fi , πi )}i∈[n] ,
+
+where τ is the tag (ℓ, r), ℓ is the length of m, and each (fi , πi ) is a certified fragment for τ at
+position i.
+
+The Decode function. The second function, Decode, takes as input
+                                                           
+                                    i, τ, {{(fj , πj )}j∈J ,
+
+where i ∈ [n], τ = (ℓ, r) is a tag, J is a subset of [n] of size n − t, and each (fj , πj ) is a certified
+fragment for τ at position j. It first reconstructs a message m′ from the fragments {fj }j∈J , using
+the size parameter ℓ. If m′ = ⊥, it returns ⊥. Otherwise, it encodes m′ as a vector of fragments,
+
+                                                     5
+encodes each fi′ as a vector of mini-fragments, and builds a two-level Merkle tree with root r′ from
+the mini-fragments. If r′ ̸= r, it returns ⊥. Otherwise, it returns
+
+                                        m′ , {(ϕ′ji , πji
+                                                       ′
+                                                          , πj′ )}j∈[n] ,
+                                                                       
+
+
+where each (ϕ′ji , πji
+                    ′ , π ′ ) is a certified mini-fragment for τ at position (j, i).
+                         j
+
+The Recover function. The third function, Recover, takes as input
+                                                                
+                                   i, τ, πi , {(ϕij , πij )}j∈J ,
+
+where i ∈ [n], τ = (ℓ, r) is a tag, J is a subset of [n] of size n − 2t, and each (ϕij , πij , πi ) is a
+certified mini-fragment for τ at position (i, j). It reconstructs and outputs the fragment fi from the
+mini-fragments {ϕij }j∈J using size parameter ℓ. (Note that the decoding procedure could output
+⊥, but in our application, this will not happen, except with negligible probability.)
+
+3.4   The basic data flow
+
+In our protocol, the sender will take a message m and compute
+                                                       
+                                   τ, {(fi , πi )}i∈[n] ← Encode(m)
+
+and send to each party Pi the tag τ along with the certified fragment (fi , πi ), and each such Pi will
+echo this tag and certified fragment to all parties. This will contribute at most
+                                         3                2
+                                         2 ℓ(n + 1) + O(κn log(n))                                  (1)
+
+to the communication complexity.
+    By obtaining a collection {(fj , πj )}j∈J of n − t certified fragments for the tag τ , party Pi can
+then compute                                                       
+                                    Decode i, τ, {(fj , πj )}j∈J .
+The logic in Decode of re-encoding the reconstructed output message m′ and comparing the new
+Merkle root r′ to the Merkle root r in the tag τ ensures correctness in case of a corrupt sender. Also,
+the logic in Decode will generate mini-fragments so that Pi can send one certified mini-fragment
+to each other party that needs one. This will ensure that in the case of a corrupt sender, any
+party that has not obtained its own fragment from the sender will eventually be able to reconstruct
+that fragment from these mini-fragments using the function Recover. More precisely, after Pi has
+reconstructed an output message from {(fj , πj )}j∈J , it will send to each other party Pj a certified
+mini-fragment for τ at position (j, i). This will contribute at most
+                                             9         2
+                                             2 ℓ + O(κn log(n))                                     (2)
+
+to the communication complexity. If Pj is able to collect n − 2t such certified mini-fragments from
+n − 2t distinct parties, then Pj can reconstruct its fragment fj .
+    Combining (1) and (2), the total communication complexity is at most
+                                        3                2
+                                        2 ℓ(n + 4) + O(κn log(n)).
+
+
+                                                      6
+4   The main protocol
+
+Our new reliable broadcast protocol, which we call ΠMiniCast , is presented in Fig. 1. We express the
+logic for the sender as a separate process, even though the sending party is also one of the receiving
+parties. For each receiving party, the main logic is presented as a loop, and in each loop iteration
+the party waits for one of several conditions to hold, triggering a reaction. These conditions are
+based on local state plus an implicit pool of received messages.
+    The details for data encoding are discussed in Section 3. At a high level, the protocol proceeds
+in rounds:
+
+1. In the disperse round, the sender disseminates certified fragments with corresponding tags for
+   its message.
+2. In the echo round, each party echoes the tag it received from the sender in the disperse round
+   to all other parties.
+3. In the vote round, each party waits for n − t messages from the echo round with tags that match
+   the tag it received in the first round; when this happens, each party sends a vote message that
+   contains its certified fragment and corresponding tag to all other parties.
+4. In the confirm round, each party waits for n − t messages from the vote round with matching
+   tags; when this happens, each party Pi decodes to obtain an output message and sends a confirm
+   message to each party Pj . This message contains the certified mini-fragment that Pj may need
+   to construct its own fragment.
+5. Upon collecting n − t messages from the confirm round, each party delivers the output message
+   decoded in the confirm round.
+
+    In addition, there is a “feedback loop”, whereby a party Pi that did not receive an appropriate
+certified fragment from the sender in the disperse round can still generate a message in the vote
+round: if Pi receives n − 2t appropriate messages from the confirm round, these messages contain
+sufficiently many mini-fragments so as to allow Pi to recover its own fragment and send it to all
+other parties in the vote round.
+    The rough, intuitive argument for completeness is this. Suppose some honest party delivers an
+output message.
+
+ – This party must have received n − t messages in the confirm round.
+ – Therefore, at least n − 2t will send out mini-fragments to any party that may need them.
+ – Therefore, every honest party will eventually send out a message in the vote round.
+ – Therefore, every honest party will eventually decode an output message and send out a message
+   in the confirm round.
+ – Therefore, every honest party will eventually deliver an output message.
+
+    In addition to allowing each party to recover its “missing fragment”, this “feedback loop” also
+plays a role similar to the “feedback loop” in Bracha’s original protocol (whereby a “ready” message
+is generated upon receiving either n − t “echo” messages or t + 1 “ready” messages).
+    We also note that by having each party wait to receive sufficiently many echo messages with
+the same tag before sending out a vote message, we ensure each party will only send a vote message
+that contains a certified fragment for the “right” tag. This is only needed when dealing with a
+corrupt sender who may send different tags to different parties in the disperse round.
+
+                                                  7
+ΠMiniCast
+
+   // Sender S with input m
+   (τ, {(πi , fi )}i∈[n] ) ← Encode(m)
+   for i ∈ [n] : send (disperse, τ, πi , fi ) to Pi
+
+   // Receiving party Pi
+   echoed ← voted ← confirmed ← delivered ← false,               acquired ← m∗ ← ⊥
+
+   repeat forever:
+       wait until either:
+            not echoed and for some τ, fi , πi : received (disperse, τ, fi , πi ) from S ⇒
+                 echoed ← true
+                 if (fi , πi ) is a certified fragment for τ at position i then
+                       acquired ← (τ, fi , πi )
+                       send (echo, τ ) to P1 , . . . , Pn
+
+             not voted and for some τ, fi , πi :
+               acquired = (τ, fi , πi ) and received (echo, τ ) from n − t distinct parties ⇒
+                 voted ← true
+                 send (vote, τ, fi , πi ) to P1 , . . . , Pn
+
+             not voted and for some τ , πi , J ⊆ [n] of size n − 2t, and {(ϕij , πij )}j∈J :
+               for all j ∈ J : received (confirm, τ, ϕij , πij , πi ) from Pj
+                               and (ϕij , πij , πi ) is a certified mini-fragment for τ at position (i, j) ⇒
+                 voted ← true                                 
+                 fi ← Recover(i, τ, πi , {(ϕij , πij ))}j∈J
+                 send (vote, τ, fi , πi ) to P1 , . . . , Pn
+
+             not confirmed and for some τ , J ⊆ [n] of size n − t, and {(fj , πj )}j∈J :
+               for all j ∈ J : received (vote, τ, fj , πj ) from Pj
+                               and (fj , πj ) is a certified fragment for τ at position j ⇒
+                  confirmed ← true
+                  if Decode(i, τ, {{(fj , πj )}j∈J ) returns (m′ , {(ϕ′ji , πji′
+                                                                                 , πj′ )}j∈[n] ) then
+                         ∗       ′
+                       m ←m
+                       for j ∈ [n]: send (confirm, τ, ϕ′ji , πji
+                                                               ′
+                                                                 , πj′ ) to Pj
+
+             not delivered and m∗ ̸= ⊥ and received (confirm, . . .) from n − t distinct parties ⇒
+                 delivered ← true
+                 output m∗
+
+
+
+                                 Fig. 1. The MiniCast reliable broadcast protocol
+
+
+
+
+                                                             8
+Theorem 4.1. Assuming collision resistance of the underlying hash functions, Protocol ΠMiniCast
+satisfies the correctness and completeness property (with overwhelming probability, for any
+polynomial-time adversary).
+
+Proof. We start with some terminology. We say:
+
+ – an honest party echoes τ if it sends a message (echo, τ );
+ – an honest party votes for τ if it sends a message (vote, τ, . . .);
+    • we say it votes by echo if it does so because it received n − t echo messages;
+    • we say it votes by confirmation if it does so because it received n − 2t confirm messages;
+ – an honest party confirms τ if it sends a message (confirm, τ, . . .).
+
+We can also extend these definitions to corrupt parties, saying that a corrupt party echoes, votes
+for, or confirms τ if any honest party receives a corresponding message from that corrupt party.
+    The following properties prove the theorem.
+
+P1: If an honest party confirms τ , then at least n − t parties previously echoed τ .
+   Proof. Consider the point in time where the first honest party confirms τ . Some honest party
+   must have voted for τ , and this must be a vote by echo (since no honest party previously
+   confirmed τ and n − 2t > t).
+P2: If an honest party votes for τ , then at least n − t parties previously echoed τ .
+   Proof. If this is a vote by echo, then the claim holds by definition. If this is a vote by confirmation,
+   then at least one of these confirmations must have come from an honest party (since n − 2t > t),
+   and the property follows from P1.
+P3: Any honest parties that vote or confirm a tag, must vote or confirm the same tag.
+   Proof. The property follows from P1 and P2 and the fact that each honest party echoes at most
+   one tag (quorum intersection argument).
+P4: If any honest party delivers an output message, then all honest parties eventually deliver the
+   same output message (with overwhelming probability, assuming collision resistance).
+   Proof. Consider the point in time where the first honest party delivers a message. It does so
+   because it received n − t confirm messages, of which n − 2t must be from honest parties. This
+   party must have also confirmed some tag τ , and by P3, all honest parties that confirm or vote
+   must confirm or vote for the same tag τ . Since all honest parties eventually receive at least
+   n − 2t confirm messages, all honest parties will eventually either vote for τ by echo or vote for
+   τ by confirmation.
+   By collision resistance, all honest parties that generate or receive a certified fragment or mini-
+   fragment for τ at the same location will generate or receive the same fragment or mini-fragment.
+   In particular, if one honest party collects n − t certified fragments for τ and then proceeds to
+   set m∗ to m′ and confirm τ , then any other honest party that collects n − t certified fragments
+   for τ will also confirm τ and set m∗ to m′ . In addition, if one honest party Pi collects n − 2t
+   certified mini-fragments for τ at positions (i, ·), then one of these mini-fragments must be from
+   an honest party Pj , and the mini-fragments received by Pi must decode to the same fragment
+   fi that Pj generated.
+   Therefore, all honest parties will eventually obtain the n − t vote messages they need to confirm
+   τ , and so will also eventually send and receive n − t confirm messages.
+
+                                                    9
+P5: If the sender is honest and initiates the protocol, then (i) all honest parties will eventually
+   output a message, (ii) honest parties output a message only after the sender has initiated the
+   protocol and that message is the sender’s input message m (with overwhelming probability,
+   assuming collision resistance).
+      Proof. Suppose the sender initiates the protocol and let τ be the tag generated by the sender.
+      By P1, any honest party that confirms must confirm τ and by P2, any honest that votes must
+      vote for τ . Since every honest party will eventually echo τ , every honest party will eventually
+      vote for τ . By collision resistance, all honest parties that generate or receive a certified fragment
+      or mini-fragment for τ at the same location will generate or receive the same fragment or mini-
+      fragment. When any honest party collects n−t certified fragments for τ , again by P1, the sender
+      must have already initiated the protocol, and these fragments must match those generated by
+      the sender. Therefore, this honest party will set m∗ to m and confirm τ . So eventually, all honest
+      parties will confirm τ and deliver the output message m.
+That completes the proof.                                                                                 ⊔
+                                                                                                          ⊓
+
+4.1     Message and communication complexity
+The message complexity of ΠMiniCast is obviously O(n2 ).
+   As sketched in Section 3, the communication complexity of ΠMiniCast is at most
+                                        3                2
+                                        2 ℓ(n + 4) + O(κn log(n)),                                      (3)
+
+where κ is the output length of the hash function. Here, ℓ represents a bound on the message length.
+When the sender S is honest, we can take ℓ to be the length of the message m that S is sending.
+When S is corrupt, we can take ℓ to be the value that is in the dispersed tag τ —honest parties
+will not transmit any data until the tag is agreed upon, and so this value is well defined, and the
+size of the fragments and mini-fragments transmitted by the honest parties will be consistent with
+a message of length ℓ (and if any honest party ultimately delivers a message, it will be of length ℓ).
+Any particular application may impose a bound on the message length and the honest parties can
+enforce this bound when they execute the protocol.
+    We also note that the communication is well balanced among all parties—each party transmits
+roughly the same amount of data, except for the sender, which transmits about twice as much (but
+see below in Section 4.1.2 on how to elimnate this asymmetry).
+
+4.1.1 Minor improvements to the communication complexity. The reader will note that
+the above stated communication complexity (3) does not quite match the bound reported in Sec-
+tion 1, namely
+                                   3           2
+                                   2 ℓn + O(κn log(n)).                                   (4)
+      This better bound can be easily achieved through the following simple optimizations:
+  (i) A message sent from a party to itself need not be transmitted over the network.
+ (ii) In the vote round, each party may omit the certified fragment from vote messages sent to the
+      sender.
+(iii) In the confirm round, each party may omit the certified mini-fragment from confirm messages
+      sent to the n − t parties from which a vote message was received.
+
+                                                     10
+With these optimizations:
+
+ – In the disperse round, the sender transmits n − 1 certified fragments.
+ – In the vote round, the sender transmits n − 1 certified fragments, while the n − 1 other parties
+   each transmit n − 2 certified fragments.
+ – In the confirm round, each party transmits at most t < 31 n mini-fragments.
+
+When applying these optimizations, n2 − n certified fragments and 13 n2 certified mini-fragments
+are transmitted altogether, from which the bound (4) follows.
+
+
+4.1.2 Better balanced communication. As we noted above, communication is well balanced
+among all parties—each party transmits roughly the same amount of data, except for the sender,
+which transmits about twice as much. Adapting a simple idea from [Sho23], we can achieve a better
+balance as follows. Instead of using an (n, n−t) erasure code for fragments, we use an (n−1, n−t−1)
+code. Here, the sender does not have its own fragment, but it still sends vote messages like any other
+party (sans fragments). Each party still gathers n − t vote messages, but only n − t − 1 of them may
+contain fragments. Similarly, instead of using an (n, n − 2t) erasure code for minifragments, we use
+an (n − 1, n − 2t − 1) code. Again, the sender does not have its own minifragment, but it still sends
+confirm messages (sans minifragments). Combined with the simple optimizations in Section 4.1.1,
+this leads to a protocol in which each party, including the sender, transmits at most
+                                         3
+                                         2 ℓ + O(κn log(n))                                       (5)
+
+bits across the network.
+
+
+4.2   Computational cost
+
+The computational cost is dominated by the following operations, which are performed at most
+once per party:
+
+ – encode the message into n fragments;
+ – encode all n fragments into n2 mini-fragments;
+ – decode n − t fragments to recover message;
+ – decode n − 2t mini-fragments to recover a single fragment;
+ – hash n2 mini-fragments.
+
+
+4.3   Storage costs
+
+As we have described the protocol, each party stores all protocol messages sent to it by any party.
+However, an obvious optimization that one would apply in any practical implementation is to
+notice that any honest party transmits at most one message of any given “type” (disperse, echo,
+vote, confirm). Therefore, each party need only store one message of each type that it receives from
+any one party. Thus, the number of messages that a party stores is O(n).
+    The total space occupied by these messages is at most O(ℓn + κn2 log(n)). Here, ℓ represents a
+bound on the message length. However, unlike in Section 4.1, we will simply have to take ℓ to be
+some application-dependent bound on message length, which may be enforced by honest parties.
+
+                                                 11
+4.4    A concrete example
+
+Suppose messages are of size 4MB, n = 100, and t = 33. Each fragment is about 60KB and each
+mini-fragment is about 1.8KB. Assuming 32-byte hash outputs, the size of the Merkle validation
+paths is about 0.25KB. In this case, the communication complexity increases by 0.25KB per certified
+fragment and 0.5KB per certified mini-fragment because the latter requires two validations paths.
+    Using the optimizations discussed in Section 4.1.1, the total communication complexity is
+roughly
+             (1002 − 100) · (60KB + 0.25KB) + 100 · 33 · (1.8KB + 0.5KB) ≈ 604MB,
+which is very close to the asymptotic estimate of 600MB corresponding to 32 ℓn. This estimate only
+counts the contribution to the communication complexity made by the certified fragments and
+mini-fragments. The communication complexity contributed by all other data may increase this
+bound by a few MB.
+   We also estimate the running time for various computations.
+   For the erasure coding, we used the reed-solomon-simd library3 , which is based on
+[LC12,LAHC16]. We benchmarked this implementation on a Macbook Pro with an Apple M1
+Max CPU. We found the following:
+
+ – time to encode message into 100 fragments: 1.4ms;
+ – time to encode all 100 fragments into 1002 mini-fragments: 3.9ms;
+ – time to decode 67 fragments to recover message: 6.5ms;
+ – time to decode 34 mini-fragments to recover a single fragment: 0.6ms.
+
+Based on these numbers, all encoding and decoding operations will take at most about 13ms.
+    As for hashing, using openssl speed sha256, we estimate the time to hash 1002 mini-fragments
+on the same Macbook Pro to be about 12ms.
+    So the total computation time is approximately 25ms. Note that this time could conceivably
+be reduced somewhat using multiple cores. Let us compare this computation time to time spent
+in communications. Each party will send about 6MB of data (but the sender will send twice this
+amount, but at different times in the protocol). Assuming a 1Gbps network speed, transmitting
+6MB of data will take about 48ms. In the “good case”, there will be 4 rounds of communication.
+The network latency per round obviously depends on geography and many other factors, but we
+can estimate a range of 10-100ms per round in a typical wide-area network configuration.
+    Let us compare these estimates to the time it takes for the sender to naively send a 4MB message
+to all 100 parties separately. Again using the 1Gbps network speed estimate, it will take the sender
+3.2 seconds just to transmit all of this data. In contrast, even using the upper range of 100ms
+communication latency per round, our protocol should take a total of less than 0.5 seconds. Of
+course, as an alternative, one may also consider using some sort of “gossip protocol” to disseminate
+the message more efficiently—but that will likely cost just as much or more in network latency as
+our protocol.
+    These estimates should at least convince the reader that erasure-code-based broadcast protocols
+in general, and our protocol in particular, are of more than just theoretical interest. From a practical
+perspective, perhaps the most important feature of erasure-code-based broadcast protocols is the
+fact that communication is typically well balanced among all parties.
+3
+    See https://github.com/AndersTrier/reed-solomon-simd.
+
+
+                                                  12
+5   An optimistic 3-round variant
+
+We now present an “optimistic” version of our protocol ΠMiniCast that has better round complexity
+(just 3 rounds in the “good case” where the sender is honest, instead of 4). The modification is
+simple: instead of broadcasting an echo message (containing just a tag) when receiving certified
+fragment from the sender, a vote message (containing the certified fragment and tag) is broadcast
+right away. This variation, which we call ΠOptMiniCast , is presented in Fig. 2. Even though much
+of the protocol is identical to the original, we present the protocol in its entirety, using color to
+highlight what is old and what is new.
+
+
+    ΠOptMiniCast
+
+       // Sender S with input m
+       (τ, {(πi , fi )}i∈[n] ) ← Encode(m)
+       for i ∈ [n] : send (disperse, τ, πi , fi ) to Pi
+
+       // Receiving party Pi
+       d-voted ← c-voted ← confirmed ← delivered ← false,                τ ∗ ← m∗ ← ⊥
+
+       repeat forever:
+           wait until either:
+                not (d-voted or c-voted) and for some τ, fi , πi : received (disperse, τ, fi , πi ) from S ⇒
+                     d-voted ← true
+                     if (fi , πi ) is a certified fragment for τ at position i then
+                           τ∗ ← τ
+                           send (vote, τ, fi , πi ) to P1 , . . . , Pn
+
+                   not c-voted and for some τ ̸= τ ∗ , πi , J ⊆ [n] of size n − 2t, and {(ϕij , πij )}j∈J :
+                     for all j ∈ J : received (confirm, τ, ϕij , πij , πi ) from Pj
+                                     and (ϕij , πij , πi ) is a certified mini-fragment for τ at position (i, j) ⇒
+                       c-voted ← true                               
+                       fi ← Recover(i, τ, πi , {(ϕij , πij ))}j∈J
+                       send (vote, τ, fi , πi ) to P1 , . . . , Pn
+
+                   not confirmed and for some τ , J ⊆ [n] of size n − t, and {(fj , πj )}j∈J :
+                     for all j ∈ J : received (vote, τ, fj , πj ) from Pj
+                                     and (fj , πj ) is a certified fragment for τ at position j ⇒
+                        confirmed ← true
+                        if Decode(i, τ, {{(fj , πj )}j∈J ) returns (m′ , {(ϕ′ji , πji′
+                                                                                       , πj′ )}j∈[n] ) then
+                               ∗       ′
+                             m ←m
+                             for j ∈ [n]: send (confirm, τ, ϕ′ji , πji
+                                                                     ′
+                                                                       , πj′ ) to Pj
+
+                   not delivered and m∗ ̸= ⊥ and received (confirm, . . .) from n − t distinct parties ⇒
+                       delivered ← true
+                       output m∗
+
+
+
+                        Fig. 2. An optimistic variant of the MiniCast reliable broadcast protocol
+
+
+
+   Note that a receiving party may vote twice if the sender is corrupt. Because of this, the worst-
+case communication complexity of ΠOptMiniCast is worse than that of ΠMiniCast . We shall discuss
+
+                                                                   13
+this issue below in Section 5, including mitigation strategies that in many settings will ensure that
+this “double voting” rarely, if ever, occurs.
+
+Theorem 5.1. Assuming collision resistance of the underlying hash functions, Proto-
+col ΠOptMiniCast satisfies the correctness and completeness property (with overwhelming probability,
+for any polynomial-time adversary).
+    In addition, if the sender is honest, then no honest party votes more than once; otherwise, the
+number of honest parties that vote twice is at most t.
+
+Proof. We use the same terminology introduced in the proof of Theorem 4.1 to say that a party
+votes for or confirms a tag τ . However, we now distinguish between a d-vote, where an honest party
+votes in response to a disperse message from the sender, an a c-vote, where it votes in response to
+n − 2t confirm messages. Note that an honest parties may vote twice, but it d-votes at most once
+and it c-votes at most once.
+    The following properties prove the theorem.
+P1: If an honest party confirms τ , then there is a set of at least n − t parties that previously voted
+   for τ such all of the honest parties in this set sent a d-vote for τ .
+   Proof. Consider the point in time where the first honest party confirms τ . That party must have
+   received n − t votes for τ . Moreover, among these votes, those coming from honest parties must
+   be d-votes (since no honest party previously confirmed τ and n − 2t > t).
+P2: Any honest parties that confirm a tag, must confirm the same tag.
+   Proof. The property follows from P1 and the fact that each honest party d-votes at most once
+   (quorum intersection argument).
+P3: If any honest party c-votes for a tag, some honest party must have confirmed that tag; in
+   particular, any honest parties that c-vote or confirm a tag, must c-vote or confirm the same tag.
+   Proof. In any c-vote, at least one of the confirmations must have come from an honest party
+   (since n − 2t > t). The rest follows from P2.
+P4: If any honest party delivers an output message, then all honest parties eventually deliver the
+   same output message (with overwhelming probability, assuming collision resistance).
+   Proof. Consider the point in time where the first honest party delivers a message. It does so
+   because it received n − t confirm messages, of which n − 2t must be from honest parties. This
+   party must have also confirmed some tag τ , and by P3, all honest parties that confirm or c-vote
+   must confirm or c-vote for the same tag τ . Thus, all honest parties will eventually c-vote for τ
+   unless they have already d-voted for τ . So in any case, all honest parties will eventually vote
+   for τ .
+   The rest of the argument proceeds essentially as in the proof of P4 in Theorem 4.1. In particular,
+   all honest parties will eventually obtain the n−t vote messages they need to confirm τ ; however,
+   we must argue that no honest party did not already receive n − t votes for a different tag. This
+   follows from P6 below—if it could also garner n − t votes for a different tag, at least n − 2t > t
+   of these votes must be from honest parties.
+P5: If the sender is honest and initiates the protocol, then (i) all honest parties will eventually
+   output a message, (ii) honest parties output a message only after the sender has initiated the
+   protocol and that message is the sender’s input message m (with overwhelming probability,
+   assuming collision resistance).
+
+                                                  14
+   Proof. Suppose the sender initiates the protocol and let τ be the tag generated by the sender.
+   Certainly, any party that d-votes must d-vote for τ . By P1 and P3, any honest party that
+   confirms or c-votes must confirm or c-vote for τ . Every honest party will eventually d-vote or
+   c-vote, and so will eventually d-vote or c-vote for τ .
+   The rest of the argument proceeds as in the proof of P5 in Theorem 4.1.
+P6: If the sender is honest, then no honest party votes more than once; otherwise, the number of
+   honest parties that vote twice is at most t.
+      Proof. Suppose the sender is honest and an honest party Pi votes twice, which means that it
+      must first d-vote and then c-vote. When it c-votes for a tag, by P3, some honest party must
+      have confirmed that tag, and so by P1, some honest parties must have d-voted for that tag.
+      But because the sender is honest, that tag must be the same as the tag for which Pi already
+      d-voted—and so Pi would not have c-voted, a contradiction.
+      Suppose the sender is corrupt and some set S of t + 1 honest parties vote twice. By P3, all
+      c-votes are for the same tag τ which must have been confirmed by some honest party. Each
+      party in S must first d-vote for some tag different from τ and then c-vote for τ . By P1, there
+      is a set T of n − t parties that voted for τ , and moreover, all of the honest parties in T d-voted
+      for τ . The sets S and T must overlap, and so one of the honest parties in S must have d-voted
+      for τ , a contradiction.
+
+That completes the proof.                                                                              ⊔
+                                                                                                       ⊓
+
+
+5.1     Message and communication complexity
+
+The message complexity of ΠOptMiniCast is still O(n2 ).
+    If the sender is honest, then by Theorem 5.1, no honest parties vote more than once, and it
+follows that the worst-case communication complexity of ΠOptMiniCast in this case is at most
+                                          3          2
+                                          2 ℓn + O(κn log(n)),
+
+where ℓ is the length of the message m that S is sending. Here, we are applying the same optimiza-
+tions discussed in Section 4.1.1.
+    If the sender is corrupt, then by Theorem 5.1, at most t < n/3 honest parties vote more than
+once, and so the total number of vote messages transmitted by honest parties is at most 34 n. It
+follows that the worst-case communication complexity of ΠOptMiniCast in this case is at most
+
+                                          2ℓn + O(κn2 log(n)).
+
+Here, ℓ represents a bound on the message length. Unlike in Section 4.1, honest parties may transmit
+fragments before a tag is agreed upon, and we will simply have to take ℓ to be some application-
+dependent bound on message length, which may be enforced by honest parties.
+    We note that the same “balancing technique” in Section 4.1.2 can be applied here as well.
+
+
+5.2     Computational cost
+
+The computational cost of ΠOptMiniCast is roughly the same as that of ΠMiniCast .
+
+                                                    15
+5.3    Storage costs
+In Section 4.3, we noted that in ΠMiniCast an honest party only transmits at most one message of a
+given “type”, and therefore, a party need only store one message of each type that it receives from
+any one party. In ΠOptMiniCast , however, an honest party may send two vote messages. Therefore,
+each party must store up to two vote messages that it receives from any one party. Thus, the number
+of messages that a party stores is still O(n).
+    The total space occupied by these messages is at most O(ℓn + κn2 log(n)), where ℓ is some
+application-dependent bound on message length, which may be enforced by honest parties.
+
+5.4    Dealing with corrupt senders
+As we have seen, the worst-case communication complexity of ΠOptMiniCast is at most
+                                        3          2
+                                        2 ℓn + O(κn log(n)),
+
+unless the sender is corrupt and makes some honest party vote twice.
+   We suggest two simple ways of dealing with this.
+
+5.4.1 Ignoring corrupt senders. In a long running system where many instances of the reliable
+broadcast protocol are executed over time, if a party P sends two vote messages in any one instance
+of the protocol, P can be sure that the sender S is corrupt. Therefore, P can simply ignore all
+messages received from S in any future executions of the protocol; in particular, P will never
+vote twice in any such future execution when S is the sender (while P may “c-vote” it will never
+“d-vote”). In many applications of reliable broadcast, although a party may be engaged in many
+reliable broadcast protocol instances simultaneously, it will be engaged in at most one instance with
+any given sender at any point in time. In such applications, over the lifetime of the system, there
+will be at most O(n2 ) “extra” votes in total that are ever sent by any honest parties (each honest
+party will send an “extra” vote at most once for each corrupt sender).
+
+5.4.2 Implicating corrupt senders. Suppose we modify ΠOptMiniCast , replacing each tag τ =
+(ℓ, r) throughout the protocol with τ = (ℓ, r, σ), where σ is a signature under the public key of
+the sender S on a message that says “S is dispersing (ℓ, r) in protocol instance id ”. Here, id is
+an identifier that identifies the particular instance of the protocol. Each party needs to verify the
+signature when it processes a disperse message, but need not verify the signature in processing other
+protocol messages.
+     If a party does vote twice in a given protocol instance, it will be able to form an “equivocation
+proof”, consisting of the two tags, and broadcast this equivocation proof to all parties (and even
+external parties). This equivocation proof provides irrefutable proof that S was corrupt. In response
+to this proof, various actions can be taken. At the very least, all parties can ignore all messages
+sent by S going forward. Additionally, S could be forcefully removed from the committee and/or
+punished in some way, financially or legally.
+
+6     Conclusion
+The proposed reliable broadcast protocols achieve a communication complexity of ≈ 1.5|m|n for
+long messages, resolving the open question whether a bound better than ≈ 2|m|n can be attained.
+
+                                                 16
+Since each party must receive at least |m| bits, it is evident that the communication complexity
+is close to optimal. A lower bound of 1.5|m|n has been shown for any 3-round protocol even if
+communication occurs in synchronous rounds and at most t < n/3 parties exhibit crash failures (see
+[Loc24]). Protocol ΠOptMiniCast achieves the same asymptotic bound (for sufficiently long messages)
+in 3 rounds even if communication is asynchronous and t parties can exhibit arbitrary corrupt
+behavior aside from equivocation. While tight bounds have not been shown, we conjecture that no
+better bound than 1.5|m|n can be achieved quite generally, i.e., protocol ΠMiniCast minimizes the
+communication complexity of reliable broadcast.
+
+References
+Bra87.  G. Bracha. Asynchronous Byzantine Agreement Protocols. Inf. Comput., 75(2):130–143, 1987.
+CT05.   C. Cachin and S. Tessaro. Asynchronous verifiable information dispersal. In P. Fraigniaud, editor, Dis-
+        tributed Computing, 19th International Conference, DISC 2005, Cracow, Poland, September 26-29, 2005,
+        Proceedings, volume 3724 of Lecture Notes in Computer Science, pages 503–504. Springer, 2005.
+DXR21. S. Das, Z. Xiang, and L. Ren. Asynchronous Data Dissemination and its Applications. In Y. Kim, J. Kim,
+        G. Vigna, and E. Shi, editors, CCS ’21: 2021 ACM SIGSAC Conference on Computer and Communications
+        Security, Virtual Event, Republic of Korea, November 15 - 19, 2021, pages 2705–2721. ACM, 2021. Also
+        available at https://eprint.iacr.org/2021/777.
+DXR22. S. Das, Z. Xiang, and L. Ren. Near-optimal Balanced Reliable Broadcast and Asynchronous Verifiable
+        Information Dispersal. Cryptology ePrint Archive, Report 2022/052, 2022. https://ia.cr/2022/052.
+LAHC16. S. Lin, T. Y. Al-Naffouri, Y. S. Han, and W. Chung. Novel Polynomial Basis With Fast Fourier Transform
+        and Its Application to Reed-Solomon Erasure Codes. IEEE Trans. Inf. Theory, 62(11):6284–6299, 2016.
+LC12.   S. Lin and W. Chung. An Efficient (n, k) Information Dispersal Algorithm for High Code Rate System
+        over Fermat Fields. IEEE Commun. Lett., 16(12):2036–2039, 2012.
+Loc24.  T. Locher.      Byzantine reliable broadcast with low communication and time complexity, 2024.
+        arXiv:2404.08070, http://arxiv.org/abs/2404.08070.
+Sho23.  V. Shoup. Sing a song of Simplex. Cryptology ePrint Archive, Paper 2023/1916, 2023. https://eprint.
+        iacr.org/2023/1916.
+
+
+
+
+                                                      17
+

@@ -1,0 +1,1115 @@
+Lifting Theorems for Equality
+Bruno Loff
+INESC-TEC and University of Porto, Porto, Portugal
+bruno.loff@gmail.com
+
+Sagnik Mukhopadhyay
+Computer Science Institute of Charles University, Prague, Czech Republic
+sagnik@kam.mff.cuni.cz
+
+
+      Abstract
+We show a deterministic simulation (or lifting) theorem for composed problems f ◦ Eqn where the
+inner function (the gadget) is Equality on n bits. When f is a total function on p bits, it is easy to
+show via a rank argument that the communication complexity of f ◦ Eqn is Ω(deg(f ) · n). However,
+there is a surprising counter-example of a partial function f on p bits, such that any completion f 0
+of f has deg(f 0 ) = Ω(p), and yet f ◦ Eqn has communication complexity O(n). Nonetheless, we are
+able to show that the communication complexity of f ◦ Eqn is at least D(f ) · n for a complexity
+measure D(f ) which is closely related to the AND-query complexity of f and is lower-bounded by
+the logarithm of the leaf complexity of f . As a corollary, we also obtain lifting theorems for the
+set-disjointness gadget, and a lifting theorem in the context of parity decision-trees, for the NOR
+gadget.
+    As an application, we prove a tight lower-bound for the deterministic communication complexity
+of the communication problem, where Alice and Bob are each given p-many n-bit strings, with the
+promise that either all of the strings are distinct, or all-but-one of the strings are distinct, and they
+wish to know which is the case. We show that the complexity of this problem is Θ(p · n).
+
+2012 ACM Subject Classification Theory of computation → Circuit complexity; Theory of compu-
+tation → Communication complexity; Theory of computation → Oracles and decision trees
+
+Keywords and phrases Communication complexity, Query complexity, Simulation theorem, Equality
+function
+
+Digital Object Identifier 10.4230/LIPIcs.STACS.2019.50
+
+Related Version https://eccc.weizmann.ac.il/report/2018/175/
+
+Funding Bruno Loff : The research leading to these results has received funding from the Founda-
+tion for Science and Technology (FCT), Portugal, grant number SFRH/BPD/116010/2016. This
+work is partially funded by the ERDF through the COMPETE 2020 Programme within pro-
+ject POCI-01-0145-FEDER-006961, and by National Funds through the FCT as part of project
+UID/EEA/50014/2013.
+Sagnik Mukhopadhyay: Most of the work is done while the author was a post-doctoral researcher at
+KTH Royal Institute of Technology, Stockholm. The author is now supported by European Research
+Council under the European Union’s Seventh Framework Programme (FP/2007-2013)/ERC Grant
+Agreement n. 616787.
+
+Acknowledgements We are thankful to Suhail Sherif, Mark Vinyals, and Susanna de Rezende for
+many helpful discussions, and Or Meir for pointing out an important bug in an earlier draft of the
+paper. We also thank the anonymous referees whose insights improved the paper by a substantial
+amount. We owe an extraordinary debt to Arkadev Chattopadhyay, an outstanding companion of
+many tea-break conversations on the subject of this paper.
+            © Bruno Loff and Sagnik Mukhopadhyay;
+            licensed under Creative Commons License CC-BY
+36th International Symposium on Theoretical Aspects of Computer Science (STACS 2019).
+Editors: Rolf Niedermeier and Christophe Paul; Article No. 50; pp. 50:1–50:19
+                   Leibniz International Proceedings in Informatics
+                   Schloss Dagstuhl – Leibniz-Zentrum für Informatik, Dagstuhl Publishing, Germany
+50:2   Lifting Theorems for Equality
+
+
+        1     Introduction
+
+       In the same paper of Karchmer and Wigderson [40], where the notion of formula depth
+       was shown to be equivalent to the communication complexity of their since-homonymous
+       games, was also the first proof separating monotone NC2 from monotone NC1 . Although not
+       formulated explicitly in this way, their separation of these two circuit classes can be nowadays
+       be presented as a two-part argument: (I) one first shows that the monotone Karchmer–
+       Wigderson game for connectivity on nΘ(1) -node graphs is equivalent to a composition problem
+       in communication complexity, namely Switchn ◦ Indn , the composition of the Switch relation
+       on n bits with the Indexing gadget on log n bits (given to Alice) and n bits (given to Bob);
+       and (II) one then shows lower-bounds for Switchn ◦ Indn by lifting an Ω(log n) adversarial
+       lower-bound against decision trees trying to solve the Switchn relation, into an Ω((log n)2 )
+       adversarial lower-bound against communication protocols for Switchn ◦ Indn . Formally, a
+       composed function f ◦g consisting of f on p-bits and g on n bits is defined on p·n bit long input
+       x = hx1 , · · · , xp i (where each xi is n bit long) as follows: (f ◦ g)(x) = f (g(x1 ), · · · , g(xp )).
+          Their seminal paper led to the following general approach for proving lower-bounds
+       against a given complexity measure. One first (I) finds a composed problem f ◦ g whose
+       communication complexity is upper-bounded by the given complexity measure, and (II) one
+       then proves a lower-bound for the communication complexity of f ◦ g by arguing that a
+       lower-bound for f in a simple model (such as decision trees) will lift to a lower-bound against
+       protocols for f ◦ g.
+          Complexity theory has profited greatly from this approach. It appears in the celebrated
+       Raz-McKenzie separation of the monotone NC hierarchy, [57] but also in the best known
+       lower-bounds on monotone formula depth and monotone span programs [59, 54]. Several
+       lower-bounds on the length of proofs in various proof systems were first established using this
+       approach [14, 54, 19], and it is the only known way of proving various separations between
+       complexity classes in communication complexity [27, 26, 25, 24, 23, 68]. It may even be
+       used for proving lower-bounds against data-structure schemes [13], and lower-bounds on the
+       extension complexity of linear programs [42, 46, 22].
+           Owing partly to this long list of discoveries, and partly to the Karchmer-Raz-Wigderson
+       approach [39] for proving lower-bounds against (non-monotone) NC1 [30, 17, 21, 15], the
+       lower-bounds community developed a specific interest in understanding the computational
+       complexity of composition, and devoted a large effort to understanding composition problems.
+       Under this heading we should include Sherstov’s pattern matrix method [61], and the
+       closely related block-composition method of Shi and Zhu [65], which were developed further
+       in [10, 47, 11, 63, 64, 55], and resulted in many different applications. The problem of
+       understanding the communication complexity of XOR functions [56, 66, 31] is another
+       example of a composition problem, and particularly pertinent to our case since Equality
+       is itself an XOR function, Eqn = NORn ◦ XOR2 . It is conjectured that the communication
+       complexity of a composition g ◦ XOR2 is approximately equal to the parity decision-tree
+       complexity of g, and in fact this has been shown to hold up to a polynomial if g is a total
+       function [31]. From this conjectured connection, it would follows that the communication
+       complexity of a composition with Equality, f ◦ Eqn , should equal the parity decision-tree
+       complexity of the composition with the NOR function, f ◦ NORn .
+           Work on the direct-sum and direct-product problems [35, 2, 29, 33, 16, 53, 34, 36, 1, 5, 6,
+       7, 4, 41, 32] is also a study of composition, where the outer function f in f ◦ g is the hardest
+       possible: the identity function; even this case remains unsolved in various settings.
+B. Loff and S. Mukhopadhyay                                                                                    50:3
+
+
+    The complexity of composition is a difficult problem – not just because, generally speaking,
+lower-bounds are hard to establish, but also because the composition of two hard problems
+is sometimes not as hard as one may expect: sometimes there is a “collapse” of hardness. A
+classic example is the case of direct sum in communication complexity: a near-perfect direct
+sum result holds in the non-deterministic case [49, 38], but fails to hold in the deterministic
+model [52, 18], and is still an open problem in the randomized model. The following recent
+example is also of great interest. In the case of deterministic decision-trees, the depth-
+complexity of f ◦ g is the product of the complexities of f and g; this both intuitive and easy
+to establish, and holds whether f is a total function, a partial function, or relation of any
+kind. But already if we look into randomized decision-trees, Gavinsky et al. [20] and Sanyal
+[60] show that the depth-complexity of the composition f ◦ g will be as high as the product of
+the complexity of f with the square-root of the complexity of g; and, surprisingly, [20] exhibit
+a relation f and a function g for which this bound is tight. This “collapse” of hardness when
+composing relations or partial functions seems to make such problems difficult to understand.
+As we will see, composition with Equality provides another instance of this phenomenon.
+
+1.1     A tea-break puzzle
+Alice and Bob, two renowned complexity theorists, get together during the conference’s
+tea break: Communication complexity is the most successful area in complexity theory –
+Alice says – at least the natural examples of functions are really well understood. Bob
+raises his eyebrows – do you mean total functions, like Equality, or partial functions, like
+Gap-Hamming-distance? – Both – replies Alice – Equality has been well understood since
+the invention of the field [70], and even Gap-Hamming-Distance is at this point understood
+for every gap – the constant gap case is a simple result [69], and even √1n fraction gap was
+eventually understood [9, 67, 62].
+    Ok – Bob replied, wryly – how about the “n, (n − 1)-Equality-Gap”? Suppose you are
+given p-many n-bit strings x1 , . . . , xp , and I am given y1 , . . . , yp , and we are promised that
+either all of the (xi , yi ) pairs are different or exactly one of the (xi , yi ) pairs is equal... show
+me that we need to communicate Ω(n · p) bits in order to know which is the case. . .
+    Alice thinks for a while – I know, we can do it via a rank argument. Your “n, (n − 1)-
+Equality-Gap” function is the composition F ◦ Eqn , where F is the partial function which is
+1 on the all 0 string and 0 on the strings of Hamming weight 1, and Eqn is Equality on n
+bits. The decision tree complexity of F is Ω(p) which can be seen by a simple adversarial
+argument, and by the connection between degree and decision tree complexity [8, 51], we
+can show that any completion F0 of F has degree Ω(p1/3 ). Also, Eqn has rank 2n , so the
+                                                              1/3
+rank of the communication matrix of F0 ◦ Eqn is 2Ω(p n) (see Lemma 6), and hence the
+communication complexity is Ω(p1/3 n). This is not tight, but it’s close to what you want.
+    Bob nods – Your argument holds true, but it only implies that any protocol for F0 ◦ Eqn
+needs Ω(n · p1/3 ) bits. However, even though a protocol for F ◦ Eqn does give you a completion
+of the partial communication matrix for F ◦ Eqn , this completion does not need to be in the
+composed form F0 ◦ Eqn where F0 is a completion of F. So you did not answer my question,
+not even if I disregard the polynomial loss. . .
+    At this point Alice does not know what to answer, and rightly so. We will see below
+an example of a p-bit partial function f , such that any completion of f must have degree
+Ω(p1/3 ), and yet the communication complexity of f ◦ Eqn is O(n), instead of Ω(n · p1/3 ),
+which is what one would expect from a rank-degree argument. The protocol that shows this
+will precisely take advantage of the fact that a completion of f ◦ g does not have to be of the
+form f 0 ◦ Eqn for some completion of f 0 of f . We will also show that such a counter-example
+does not exist if f is a partial function.
+
+
+                                                                                                           S TA C S 2 0 1 9
+50:4   Lifting Theorems for Equality
+
+
+            A solution to Bob’s tea-break puzzle appears as Corollary 18, in page 10. Using our
+       lifting theorem (Theorem 13, page 9) the desired tight lower-bound of Ω(n · p) is a 2-line
+       argument.
+            Interestingly, the counter-example provided below the problem of distinguishing the case
+       when all of the (xi , yi ) pairs are equal, from the case when all but one of the (xi , yi ) pairs are
+       equal, so it is strongly related to the example Alice and Bob were discussing above. However,
+       the communication complexity of the example is Ω(p · n), but the communication complexity
+       of the counter-example is only O(n).
+
+       1.2     Composition with Equality
+       In this work, we answer a question pertaining to the communication complexity of composition
+       of Boolean relations with the Equality gadget. Before stating the question and our main
+       results, we explain the context surrounding this question. We begin with some definitions.
+
+          Define the “Switch” relation: Switchp = {(z, i) ∈ {0, 1}p × {0, 1, . . . , p} | zi = 1, zi+1 = 0},
+          where we use z0 = 1 and zp+1 = 0, i.e., we are given p bits and wish to find a “switching
+          point”, a position i where a 1-bit flips into a 0-bit. If z = 0p we must output i = 0 and if
+          z = 1p we must output i = p.
+          Let Indn : [n] × {0, 1}n → {0, 1} denote the two-player Indexing function on n-bits, so
+          that Indn (x, y) = yx .
+          Then Switchp ◦ Indn denotes the composed Boolean relation:
+
+             Switchp ◦ Indn = {(x̄; ȳ; i) ∈ [n]p × ({0, 1}n )p × {0, 1, . . . , p} | (yi )xi = 1, (yi+1 )xi+1 = 0}.
+
+          Let Eqn : {0, 1}n × {0, 1}n → {0, 1} denote two-player Equality on n-bits, so that
+          Eqn (x, y) = 1 iff x = y.
+          Then Switchp ◦ Eqn denotes the composed Boolean relation:
+
+             Switchp ◦ Eqn = {(x̄; ȳ; i) ∈ ({0, 1}n )p × ({0, 1}n )p × {0, 1, . . . , p} | xi = yi , xi+1 6= yi+1 }.
+
+          Let F ⊆ A × B × C be a relation. The deterministic communication complexity of F ,
+          Dcc (F ), is the minimum communication cost of a protocol for solving the communication
+          problem where Alice is given a ∈ A, Bob is given b ∈ B, and they wish to find c such that
+          (a, b, c) ∈ F , whenever one such c exists (see [45], Chapter 5).
+          Let f ⊆ {0, 1}p × C be a relation. The deterministic query complexity of f , Ddt (f ), is the
+          minimum number of queries made by a deterministic decision-tree which, given query
+          access to z ∈ {0, 1}p , finds a c ∈ C such that (z, c) ∈ F , whenever one such c exists.
+       In STOC’88, Karchmer and Wigderson [40] presented a proof that connectivity is not in
+       monotone NC1 . At the heart of their result was an argument which may be reinterpreted as
+       a proof of the following theorem:
+       I Theorem 1 (Karchmer and Wigderson, [40]). Dcc (Switchp ◦ Indn ) = Ω((log n) · log p).
+       In Structures’91, the conference now known as CCC, Grigni and Sipser [28] provided an
+       alternative proof that connectivity is not in monotone NC1 . Their proof uses Eq in place of
+       Ind, and this allows for a simpler argument:
+       I Theorem 2 (Grigni and Sipser, [28]). Dcc (Switchp ◦ Eqn ) = Ω(n · log p).
+          It is not hard to see that Theorem 2 implies Theorem 1, by reducing Eqlog n to Indn .
+       Later, in FOCS’97, Raz and McKenzie [57] separated the entire monotone NC hierarchy. At
+       the heart of their proof was an argument for a vast generalization of Theorem 1:
+B. Loff and S. Mukhopadhyay                                                                                       50:5
+
+
+                                                                           p
+I Theorem 3 (Raz and McKenzie, [57]). For
+     20  cc                          dt
+                                           any Boolean relation f ⊆ {0, 1} × C, whenever
+n ≥ p , D (f ◦ Indn ) = Ω (log n) · D (f ) .
+
+    Theorem 3 was not stated with such generality in [57], but appeared in this form in a
+recent work of Göös, Pitasi and Watson [26]. Theorem 3 has been the basis of several papers
+[26, 12, 44].
+    Knowing the above history, one naturally comes to the question of whether one can prove
+a similar generalization for Grigni and Sipser’s Theorem 2, i.e., whether we can prove the
+conjecture:
+                                                                                         
+I Conjecture 4. For any Boolean relation f ⊆ {0, 1}p × C, Dcc (f ◦ Eqn ) = Ω n · Ddt (f ) .
+
+    Very general lifting theorems may be proven using rank arguments, and the current state
+of the art [59, 54] is a lifting of the Nullstellensatz degree of any CNF-relation1 f to the rank
+of f ◦ g, which works for a large class of gadgets g having a certain algebraic property2 . The
+equality gadget does possess the required property, however our lower-bound technique will
+work for any relation, and not just CNF-relations.
+    In the case when f is a total function, however, there is an ad-hoc degree-to-rank lifting
+theorem which works for the equality gadget, and which is in the same spirit as [59, 54]. It
+uses the following characterization:
+
+I Proposition 5 ([3]). If h is a Boolean function and F is the communication matrix of
+h ◦ XOR2 , then rank(F ) = khk0 .
+
+   Above, rank(F ) is the real rank of the communication matrix of F , and khk0 is the Fourier
+sparsity (the number of non-zero Fourier coefficients) of h. We can view f ◦ Eqn as an XOR2
+function, f ◦ NORn ◦ XOR2 . The following observation is easy to prove, but the proof is
+omitted due to space constraints (see the ECCC version [48] for the proof).
+
+I Lemma 6. For every f : {+1, −1}p → {+1, −1} with deg(f ) ≥ 1, and every g :
+{+1, −1}n → {+1, −1}, we have kf ◦ gk0 ≥ (kgk0 − 1)deg(f ) .
+
+Lemma 6 implies that kf ◦ NORn k0 = Ω(2deg(f )·n ), since kNORn k0 = 2n . By the rank-lower
+bound for communication complexity, we thus have Dcc (f ◦ Eq) ≥ Ω(deg(f ) · n). Now we can
+use the following connection between deg(f ) and Ddt (f ), which improves upon a theorem of
+Nisan and Smolensky theorem [8].
+
+I Proposition 7 ([51]). , deg(f ) = Ω(Ddt (f )1/3 ).
+
+    Combining the three above facts, we get that when f is a total Boolean function, then
+Dcc (f ◦Eqn ) = Ω(Ddt (f )1/3 ·n). This easy-to-prove result is similar to Conjecture 4, except for
+the 1/3 loss in the exponent, and works for all total functions. But surprisingly, when allow
+f to be a partial function, Conjecture 4 is false! The following counter-example was given to
+us by Arkadev Chattopadhyay, Suhail Sherif, and Mark Vinyals. Let f ⊆ {0, 1}p × {0, 1} be
+the relation
+
+    f = {(z, 1) | |z| = p or |z| < p − 1} ∪ {(z, 0) | |z| = p − 1 or |z| < p − 1},
+
+
+1
+  A CNF-relation fφ ⊆ {0, 1}n × [m] is defined for a given unsatisfiable CNF φ on n variables and m
+  clauses, by (x, i) ∈ fφ if x falsifies the i-th clause. Such relations appear prominently in the study of
+  monotone Karchmer–Wigderson games.
+2
+  These results are explained in Robert Robere’s excellent PhD thesis [58]. The mentioned algebraic
+  property appears in Section 5.1.
+
+
+
+
+                                                                                                              S TA C S 2 0 1 9
+50:6   Lifting Theorems for Equality
+
+
+       i.e., we are given a Boolean string z ∈ {0, 1}p , and wish to distinguish the case when z has
+       Hamming weight p from the case when z has Hamming weight p − 1. It is easy to show that
+       Ddt (f ) ≥ p: an adversary keeps answering 1 to all queries, and f (z) will remain unknown
+       until the very last query. This adversary also shows that Ddt (f 0 ) ≥ p for any “completion”
+       of f , i.e. any total function f 0 : {0, 1}p → {0, 1} which agrees with f on the inputs with
+       Hamming weight p or p − 1; and hence deg(f 0 ) = Ω(p1/4 ) for any such f 0 , by Proposition 7.
+       So one might mistakenly hope, like Alice did in Section 1.1, that a rank/degree argument
+       would serve to prove a lower-bound of Ω(p1/4 · n) for f ◦ Eqn .
+            However, a protocol for f ◦ Eqn (x1 , . . . , xp ; y1 , . . . , yp ) may proceed as follows. Think of
+       each of Alice and Bob’s inputs for f ◦ Eqn as a matrix with p rows and n columns. Then let
+       a ∈ {0, 1}n be the XOR of each column of Alice’s input, and b ∈ {0, 1}n be the XOR of each
+       column of Bob’s input. Then Alice sends a to Bob, and Bob replies whether a = b. Now, if
+       every xi equals the corresponding yi , then clearly a = b; and if every xi equals yi , except for
+       a single value of i ∈ [p], then there must exist a j ∈ [n] such that aj 6= bj . It then holds that
+       Dcc (f ◦ Eqn ) ≤ n + 1, and so Conjecture 4 is false. Remarkably, this seems to suggest that
+       rank/degree arguments will fail to hold.
+            This counter-example also shows that Eqlog n behaves differently from Indn , when used as
+       the inner function in a composition – indeed Theorem 3 implies that Dcc (f ◦ Indn ) ≥ p log n,
+       which is strictly higher when p = ω(1). The difference between Equality and Indexing may
+       be further explained with the help of a recent paper of Chattopadhyay, Koucký, and the
+       authors [12]. There it is shown that a theorem like Conjecture 4 will hold for any inner
+       function g, in place of Eqn , which admits certain hitting distributions 3 . As it turns out,
+       all gadgets for which we could prove a deterministic simulation theorem, namely, Indexing
+       [57], Inner-product and gap-Hamming [12], and several others [44], all admit such hitting
+       distributions. But it may be seen that although Equality has a 0-hitting distribution, it fails
+       to have any 1-hitting distribution.
+            The existence of such a counter-example was surprising to us, because in the case of the
+       Switch relation, the Karchmer–Wigderson theorem and Grigni–Sipser theorem behave the
+       same way (by lifting a decision-tree adversary for the Switch relation). The main purpose of
+       this work was to understand what is happening.
+
+
+       1.3      Almost Conjecture 4
+       We will be able to prove a simulation theorem for composition with Equality, but for a notion
+       different than decision-tree depth. In order to avoid long preliminaries for now, we postpone
+       the full list of our results until the end of Section 2. However, one of our results is sufficiently
+       close to what was already discussed, that it may be easily stated in the present section, and
+       may thus serve as motivation for the remainder.
+            For a given relation f ⊆ {0, 1}p × C, let Ldt (f ) denote the smallest number of leaves of any
+       deterministic decision-tree which, given query access to z ∈ {0, 1}p , finds a c ∈ C such that
+       (z, c) ∈ F , whenever such a c exists. Notice that Ddt (f ) ≥ log Ldt (f ), and so if Conjecture
+       4 were true, a consequence would be that Dcc (f ◦ Eqn ) = Ω n · log Ldt (f ) . The following
+       theorem, thus, may be considered a weak variant of Conjecture 4:
+
+
+       3
+           A (δ, h)-hitting rectangle-distribution (for δ ∈ (0, 1) and h ∈ N) is a distribution over rectangles such
+           that a random rectangle from this distribution will intersect any 2−h -large rectangle with probability
+           ≥ 1 − δ. By a Boolean function g having (δ, h)-hitting monochromatic rectangle-distributions, we mean
+           that there are two (δ, h)-hitting rectangle-distributions σ0 and σ1 , such that σc only samples rectangles
+           which are c-monochromatic with respect to g.
+B. Loff and S. Mukhopadhyay                                                                                          50:7
+
+
+I Theorem 8 (Lifting for log Ldt ). For any Boolean relation f ⊆ {0, 1}p × C, whenever
+n ≥ 100 · log p,
+
+                        log Ldt (f )
+                                    
+     cc
+   D (f ◦ Eqn ) = Ω n ·                .
+                           log p
+
+1.4      Organization
+In Section 2 we state the definitions required to understand the statements of our results,
+and then state all our results in full; in this section we give the first new concept required
+by our results, namely the notion of 0-query complexity. In Section 3, we introduce the
+combinatorial invariants required to prove our main result, including the notion of thickness,
+which comes from Raz and McKenzie [57, 26, 12], but also the notion of square, which is the
+second new concept required by our proofs. In Section 4 we prove a projection lemma – the
+crucial lemma required to prove the simulation theorem – which is then proven in Section 5.
+
+    2    Preliminaries, and precise statements of our results
+In this section we provide basic notations and precise statements of all our results.
+    We will assume the reader is familiar with various basic concepts pertaining to complexity
+of Boolean functions, namely: decision trees, query complexity, leaf complexity, protocol
+trees, communication complexity, combinatorial rectangles, and Fourier analysis of Boolean
+functions. See [45, 37] for reference.
+    We will be studying the decision-tree complexity of relations. A Boolean relation f is a
+subset of {0, 1}p × C where C is a finite set; associated with f is the search problem where we
+are given a string z ∈ {0, 1}p , and wish to find an element c ∈ C such that (z, c) ∈ C, if such
+an element exists.4 If to each z corresponds exactly one c, we call f a total Boolean function.
+    For a given Boolean relation, we let Ddt (f ), called the query complexity of f , be the
+minimum height of T , taken over deterministic decision-trees T which solve the search
+problem associated with f . We let Ldt (f ), called the leaf complexity of f , be the minimum
+number of leaves of T , again taken over deterministic decision-trees T which solve the search
+problem associated with f .
+    We will also be interested in the communication complexity of relations. A two-player
+relation F is a subset F ⊆ A × B × C where A, B, C are finite sets; associated with F is the
+communication problem where Alice is given a ∈ A, Bob is given b ∈ B, and they wish to find
+c ∈ C such that (a, b, c) ∈ F , if one such c exists. If g ⊆ A × B × {0, 1} is a two-player relation
+such that to each pair (a, b) ∈ A × B corresponds exactly one c ∈ {0, 1} with (a, b, c) ∈ g,
+we call g a gadget. The Equality and Indexing function defined in page 4 are examples of
+gadgets. A third example is the Set-disjointness function Disjn : {0, 1}n × {0, 1}n → {0, 1},
+where Disjn (x, y) = 0 iff xi = yi = 1 for some i ∈ [n].
+    For a given two-player relation F ⊆ A × B × C, we let Dcc (F ), called the communication
+complexity of F , be the height of the shortest deterministic protocol-tree for solving the
+communication problem associated with F .
+
+
+4
+    Although when considering functions the difference between a total function and a partial function (a
+    promise problem) is very important, this distinction is irrelevant when thinking more generally about
+    relations, at least in computational models which are guaranteed to produce an output. Indeed, a
+    partial Boolean relation f ⊆ {0, 1}n × C may be replaced by the total Boolean relation f 0 = f ∪ {(x, c) ∈
+    {0, 1}n × C | (x, c0 ) ∈
+                           / f for any c0 ∈ C}, meaning if the input is outside the promise we allow the
+    algorithm to output anything.
+
+
+
+
+                                                                                                                 S TA C S 2 0 1 9
+50:8   Lifting Theorems for Equality
+
+
+           The composition of a Boolean relation f ⊆ {0, 1}p × C with a gadget g : A × B → {0, 1}
+       is the two-player relation f ◦ g ⊆ Ap × B p × C, given by
+
+          f ◦ g = {(a1 , . . . , ap ; b1 , . . . , bp ; c) | (g(a1 , b1 ) . . . g(ap , bp ), c) ∈ f }.
+
+       The following definition is crucial to our result and, to our knowledge, has not been used
+       prior to this work:
+
+       I Definition 9. Given a deterministic decision-tree T over {0, 1}p , the 0-depth of T is the
+       maximum number of queries which are answered 0, in any root-to-leaf path of T . The 0-query
+       complexity of f , denoted Ddt
+                                   0 (f ), to be the smallest 0-depth of T , taken over deterministic
+       decision-trees T which solve the search problem associated with f .
+
+           It is unusual to make a query complexity notion depend on the specific outcome of the
+       queries, instead of just the number of queries. However, the above notion is closely related
+       to a notion analogous to parity decision-trees. Indeed, we may define AND decision-trees to
+       be like parity decision-trees, but where the algorithm is allowed the query an AND of the
+       input bits, instead of a parity of the input bits:
+
+       I Definition 10. An AND decision-tree over {0, 1}p is a rooted tree where each internal node
+       v is labeled by a set of variables Qv ⊆ [p] and each edge is labeled 0 or 1. As in the case of
+       deterministic decision-tree, the execution of T on an input z ∈ {0, 1}p traces a path in this
+                                                                                               V
+       tree: at each internal node v the execution is given the value of the conjunction q = i∈Qv zi ,
+       and follows the edge labeled q into one of v’s children. With each node v of the tree we may
+       associate the set Sv ⊆ {0, 1}p of those inputs whose execution follows the path down to the
+       node v; the set Sv is given by a system of conjunctive equations.
+            An AND decision-tree over {0, 1}p is said to solve the search problem associated with a
+       Boolean relation f ⊆ {0, 1}p × C if, for every leaf v, there exists a choice of c ∈ C such that
+       (z, c) ∈ f for every z ∈ Sv .
+            Then, the AND-query complexity of f , denoted Ddt AND (f ), is defined as the minimum depth
+       of T , taken over AND decision-trees T which solve the search problem associated with f .
+
+          We are then able to establish the following relationship:
+
+       I Lemma 11. Let f ⊆ {0, 1}p × C be any Boolean relation. Then
+
+                                          Ddt
+                                           AND (f )
+          Ddt          dt
+           AND (f ) ≥ D0 (f ) ≥
+                                        dlog(p + 1)e
+          Since these measures are within a log p factor of each other, it is possible to think of the
+       more natural Ddt                          dt
+                       AND (f ) as a proxy for D0 (f ). The proof is simple, but is omitted due to
+       space constraints (it appears in the full version of the paper [48]).
+           There is also a simple relation between 0-query complexity and leaf complexity. If a
+       decision-tree over p bits never makes more than d zero-queries, each root-to-leaf path may
+       be specified   by the positions of the 0-answers along that path, so there are fewer than
+         p
+                (d+1) log p
+        ≤d   ≤ 2             leaves. Hence it follows:
+
+       I Lemma 12. Let f ⊆ {0, 1}p × C be any Boolean relation. Then
+
+                        log Ldt (f )
+          Ddt
+           0 (f ) ≥                  − 1.
+                           log p
+                                                 p
+                                                    
+       If log Ldt (f ) = Ω(p), we have          ≤d      ≥ 2Ω(H2 (d/p)·p) , and so Ddt
+                                                                                   0 (f ) = Ω(p) also.
+B. Loff and S. Mukhopadhyay                                                                                        50:9
+
+
+Lifting theorems for Equality. Our main result is a simulation theorem which lifts 0-query
+complexity of a Boolean relation f ⊆ {0, 1}p × C to the communication complexity f ◦ Eqn :
+
+I Theorem 13 (Lifting for Ddt                 p
+                           0 ). Let f ⊆ {0, 1} × C be any Boolean relation. Then, whenever
+n ≥ 100 · log p,
+
+     Dcc (f ◦ Eqn ) = Ω n · Ddt
+                                   
+                             0 (f ) .
+
+
+    The proof of Theorem 13 uses the notion of thickness from Raz-McKenzie [57], and a
+new invariant, called a square, which is inspired by Grigni-Sipser [28]. These notions are
+presented in Section 3.
+    Our proof is similar in flavor to Or Meir’s lower-bound for the direct-sum of the universal
+relation [50], although for that problem a rank argument will work [43].5
+I Remark 14. It is not hard to verify that Ddt    0 (f ) = 1 when f is the counter-example to
+Conjecture 4, which we described in Section 1.2: a decision tree for f queries coordinates
+one at a time until it finds the first 0. Then it follows from Theorem 13 that the protocol for
+f ◦ Eqn appearing in page 5 is optimal, up to constant factors.
+Theorem 8 follows from Theorem 13 and Lemma 12. Theorem 13 and Lemma 11 give us the
+following:
+
+I Corollary 15 (Lifting for Ddt                    p
+                             AND ). Let f ⊆ {0, 1} × C be any Boolean relation. Then,
+                                                         Ddt
+                                                          AND (f )
+whenever n ≥ 100 · log p, Dcc (f ◦ Eqn ) = Ω n ·          log p      .
+
+Lifting theorems for Set-disjointness. By a simple reduction, we are also able to show the
+first lifting theorem known for set-disjointness. Indeed, we may reduce an instance of Eqn to
+an instance of Disj2n . Alice maps each of her bits xi into the pair of bits ai = (1 − xi )xi ,
+and Bob maps each of his bits yi into bi = yi (1 − yi ); it now holds that xi = yi iff ai and bi
+are disjoint, and hence Eqn (x, y) = Disj2n (a, b). As a corollary, we find:
+
+I Corollary 16 (Lifting for disjointness). Let f ⊆{0, 1}p × C be a Boolean relation and
+n ≥ 100 · log p. Then Dcc (f ◦ Disjn ) = Ω n · Ddt
+                                                0 (f ) .
+
+Naturally, Theorem 8 and Corollary 15 will hold for Set-disjointness.
+
+Lifting theorems for parity decision-trees. A composition with Equality, f ◦ Eqn , is a XOR
+function f ◦ NORn ◦ XOR2 . It is well known and easy to see that Dcc (F ◦ XOR2 ) ≤ Ddt  ⊕ (F )
+[31], where Ddt
+             ⊕ (F ) is the parity-query complexity of F . Hence a consequence of our lifting
+theorem for Equality in communication complexity is also a lifting theorem for the NOR
+function, with respect to parity decision-trees:
+
+I Corollary 17. For any Boolean
+                                relation f ⊆ {0, 1}p × C, whenever n ≥ 100 · log p,
+ dt                     dt
+D⊕ (f ◦ NORn ) = Ω n · D0 (f ) .
+
+It may be seen that Ddt                            dt
+                     0 (f ) cannot be replaced by D (f ), by the same counter-example f of
+page 5.
+
+
+5
+    Or Meir’s proof is similar to what one would obtain if one were to carry out our proof when f is the
+    identity function, so our technique can be seen as a generalization of Meir’s. Of course in our case
+    composition with identity would be just a larger equality, so the lower-bound follows trivially, whereas
+    in the case of the universal relation the result is not trivial.
+
+
+
+
+                                                                                                               S TA C S 2 0 1 9
+50:10   Lifting Theorems for Equality
+
+
+        A solution to the tea-break puzzle. A lifting theorem such as Theorem 13 is a powerful
+        tool for proving lower-bounds in communication complexity. The theorem is very general
+        and many such results may be proven, but let us here give an example of lower-bound for a
+        concrete problem in communication complexity.
+           Consider the Bob’s example F ◦ Eqn from the tea-break puzzle where Alice and Bob are
+        each given p-many n-bit strings, with the promise that either all strings are different, or
+        exactly one pair of strings is equal, and they wish to know which is the case.
+           We have F(z) = 1 when its input, z, has Hamming weight 0, and F(z) = 0 when z has
+        Hamming weight 1. This is a partial function, so we may not use Lemma 6 to prove a
+        lower-bound on it. However (this is the two-line proof): an adversary may answer 0 p − 1
+        times before fixing F(z); hence Ddt
+                                          0 (F) ≥ p − 1, and it follows immediately from Theorem 13:
+
+        I Corollary 18. Whenever n ≥ 100 · log p, Dcc (F ◦ Eqn ) = Ω(n · p).
+
+        To the best of our knowledge, there is currently no other way to establish this lower-bound.
+
+
+         3        Thickness and squares
+        Notation . If p is a natural number, we write [p] for the set {1, . . . , p}. For sets A and B,
+        we use A → B to denote the set of total functions from A to B. We write f : A → B to
+        mean f ∈ (A → B). We also use B A to denote the set of total functions from A to B, but
+        in this case we think of them as A-indexed sequences of elements from B, and if we first
+        write f ∈ B A , instead of f : A → B, we will later write fa instead of f (a). If f : A → B (or
+        f ∈ B A ) and A0 ⊆ A, then f A0 is the restriction of f to A0 . A disjoint union is denoted by
+        ∪·, i.e. A ∪· B denotes the union of two disjoint sets A and B.
+             We will look at sets A ⊆ ({0, 1}n )[p] , and we will often want to think of some set of
+        coordinates I ⊆ [p] as being alive, and the corresponding complement D = [p] \ I will be
+        the set of dead coordinates. We will be working with partial assignments of elements from
+        ({0, 1}n )[p] , which can be encoded as total functions from I to {0, 1}n . Hence the following
+        two definitions will be helpful.
+
+        I Definition 19 (Join). Let n ≥ 1 and p ≥ 2 be integers, ∅ 6= I ( [p] and D = [p] \ I.
+          If s0 ∈ ({0, 1}n )I and s00 : ({0, 1}n )D , then their join s0 × s00 ∈ ({0, 1}n )[p] is given by:
+                           (
+              0     00      s0i     if i ∈ I
+             (s × s )i =
+                             s00i   if i ∈ D.
+
+        This notation is extended to subsets of ({0, 1}n )I and ({0, 1}n )D in the natural way.
+           If i ∈ I ⊆ [p], s0 ∈ {0, 1}n and s00 ∈ ({0, 1}n )I\{i} , then their join at i is the sequence
+        s ×i s00 ∈ ({0, 1}n )I with (s0 ×i s00 )i = s0 , and ∀j ∈ I \ {i} (s0 ×i s00 )j = s00j .
+         0
+
+
+        I Definition 20. Let n ≥ 1 and p ≥ 2 be integers, I ⊆ [p], i ∈ I and S ⊆ ({0, 1}n )I .
+        We define the projections: Si = {si | s ∈ S} ⊆ {0, 1}n and S6=i = {s I\{i} | s ∈ S} ⊆
+        ({0, 1}n )I\{i} .
+            Likewise if ∅ 6= E ⊂ I, we define SE = {s E | s ∈ S} ⊆ ({0, 1}n )E and, for each s00 ∈
+        ({0, 1}n )I\E , the extensions of s00 in S is the set ExtS (s00 ) = {s0 ∈ ({0, 1}n )E | s0 × s00 ∈ S}.
+            For a subset U ⊆ {0, 1}n , the restriction of S to U at coordinate i is the set S i,U = {s ∈
+                                               i,U                i,U
+        S | s(i) ∈ U }. We will also write S6=   i for the set (S     )6=i (i.e. we first restrict the i-th
+                                                                           i,U
+        coordinate then project onto the remaining coordinates in I): S6=    i = {s I\{i} | s ∈ S, si ∈ U }.
+B. Loff and S. Mukhopadhyay                                                                                  50:11
+
+
+3.1     Thickness and its properties
+The notion of thickness was first used by Raz and McKenzie in [57], and is by now a
+well-known notion. But whereas previously the notion of thickness was only looked at with
+respect to all coordinates simultaneously, we will be interested in the notion of thickness
+with respect to a subset of coordinates. This difference is non-essential, and all the relevant
+properties are proven mutatis mutandis. Due to space constraints, the proofs are omitted
+(but appear in the full version of the paper [48]).
+
+I Definition 21 (Aux graph, average and min-degrees). Let n ≥ 1, p ≥ 2 be integers, I ⊆ [p],
+and S ⊆ ({0, 1}n )I . For each i ∈ I, the aux graph G(S, i) is the bipartite graph with left-side
+vertices Si , right-side vertices S6=i and edges corresponding to the set S, i.e., (s0 , s00 ) is an
+edge iff s0 ×i s00 ∈ S.
+    We define the average degree of G(S, i) to be the average right-degree: davg (S, i) = |S|S|  6=i |
+                                                                                                       ,
+                                                                                                  00
+and the min-degree of G(S, i), to be the minimum right-degree: dmin (S, i) = 00min |ExtS (s )|.
+                                                                                    s ∈S6=i
+
+I Definition 22 (Thickness and average thickness). Let n ≥ 1, p ≥ 2 be integers, ∅ 6= F ⊆
+I ⊆ [p], and S ⊆ ({0, 1}n )I . Then S is called τ -thick on F if dmin (S, i) ≥ τ · 2n for all i ∈ F .
+(By convention an empty set S is τ -thick.) Similarly, S is called ϕ-average-thick on F if
+davg (S, i) ≥ ϕ · 2n for all i ∈ F . For p = 1, set S is τ -thick if |S| ≥ τ · 2n .
+
+We will need the following two lemmas. The proofs are similar to the analogous lemmas in
+[26].
+
+I Lemma 23 (Average thickness implies thickness). Let n ≥ 1, p ≥ 2 be integers, ∅ 6= F ⊆
+I ⊆ [p], and S ⊆ ({0, 1}n )I . If S is ϕ-average-thick on F , then for every δ ∈ (0, 1) there is a
+subset S 0 ⊆ S which is pδ ϕ-thick on F and has |S 0 | ≥ (1 − δ) · |S|.
+
+A recent example by Kozachinskiy [44] shows that the p1 loss in Lemma 23 is needed. This
+loss is the core reason why we need the gadget to have size n = Ω(log p) in Theorem 13.
+
+I Lemma 24. Let n ≥ 1, p ≥ 2 be integers, i ∈ F ⊆ I ⊆ [p], and S ⊆ ({0, 1}n )I be τ -thick
+                                        i,U                                         i,U
+on F . Then for any set U ⊆ {0, 1}n , S6= i will also be τ -thick on F \ {i}, and S6=i will be
+empty iff U ∩ Si is empty.
+
+3.2     Squares
+We will be interested in rectangles R = A × B, where A, B both are subsets of ({0, 1}n )[p] ,
+and which have a certain “square-like” structure. Such a “square-like” rectangle appears in
+our proofs, and will always be a sub-rectangle of the rectangle induced by a protocol.
+   A “square-like” rectangle R = A × B, is one for which we have a set I ⊆ [p] of live
+coordinates, with a corresponding set D = [p] \ I of dead coordinates, and also a family
+S ⊆ ({0, 1}n )I , for which one can do the following:
+
+                For any s ∈ S, there exist α(s), β(s) ∈ ({0, 1}n )D , such that
+         A is exactly the set of all s × α(s) and B is exactly the set of all s × β(s),
+                and, furthermore, α(s)i 6= β(t)i for every s ∈ S, t ∈ S, i ∈ D.
+
+i.e., given any s in S, which is a way of filling the live coordinates, there are two ways of
+filling the dead coordinates, α(s) and β(s), such that the various s × α(s) will be Alice’s side
+of the rectangle, and the various s × β(s) will be Bob’s side of the rectangle; furthermore,
+α(s)i 6= β(t)i always holds. We will call such a configuration a square:
+
+
+
+                                                                                                           S TA C S 2 0 1 9
+50:12   Lifting Theorems for Equality
+
+
+        I Definition 25 (Square). A square is a tuple S = hn, p, R = A × B, I, S, α, βi where:
+          n ≥ 1, p ≥ 2 are integers;
+          R = A × B where A, B ⊆ ({0, 1}n )[p] ;
+          ∅ 6= I ⊆ [p] is a non-empty set of so-called live coordinates, and
+          D = [p] \ I is the corresponding set of dead coordinates;
+          S ⊆ ({0, 1}n )I ;
+          α : S → ({0, 1}n )D and β : S → ({0, 1}n )D are such that A = {s × α(s) | s ∈ S} and B =
+          {s × β(s) | s ∈ S};
+          for every s ∈ S, t ∈ S, i ∈ D, we have α(s)i 6= β(t)i .
+        I Definition 26. The density of square S = hn, p, R = A × B, I, S, α, βi is given by
+        Density(S) = 2|S|
+                      n|I| .
+
+
+        I Definition 27. We say a square S = hn, p, R = A × B, I, S, α, βi is τ -thick on F ⊆ I if S
+        is τ -thick on F , and is ϕ-average-thick on F if S is ϕ-average-thick on F .
+        One may justify the name square by the observation that a square S = hn, p, R = A ×
+        B, I, S, α, βi induces a bijection between A and B, where s × α(s) ∈ A corresponds to
+        s × β(s) ∈ B.
+
+         4      The projection lemma
+        The main technical lemma of our simulation theorem is a projection lemma, which allow us to
+                                                                                               6 β(t)i
+        constrain coordinates of a square while preserving thickness, in such a way that α(s)i =
+        always holds.
+        I Lemma 28. Let S = hn, p, R = A × B, I, S, α, βi be a square and τ, ϕ ∈ [0, 1] be real
+                                                           n
+        numbers. Suppose that p ≤ 12              1
+                                                    · 2τ ·2 . Suppose also that S is τ -thick, but not ϕ-average-thick,
+        on F ⊆ I.
+             Then, for any z ∈ {0, 1}F , there exists a non-empty set E = E(z) ⊆ F such that,
+        letting E0 = {i ∈ E | zi = 0}, we may construct a square S 0 = S 0 (z) = hn, p, R0 =
+        A0 × B 0 , I 0 , S 0 , α0 , β 0 i, where:
+           (i) A0 ⊆ A and B 0 ⊆ B;
+          (ii) I 0 = I \ E0 ;
+         (iii) Density(S 0 ) ≥ ( 2ϕ       1 |E0 |
+                                            )     · Density(S); and
+                  0     1
+         (iv) S is 2 ϕ-average-thick on F \ E.
+        Furthermore, the set E = E(z) ⊆ F is obtained by a query procedure on the string z, and is
+        exactly the set of positions queried by this procedure.
+        Proof. We will explain the projection procedure in three steps. The entire procedure is
+        achieved by running Procedure 1, 2 and 3 one after another (see below).
+           To begin with, S is not ϕ-average-thick on F , and so we are assured we will add at least
+        one coordinate to E. Every time we add an index i to E we have, immediately prior to this,
+                |S       |           n                                |SI\E0 |
+        that |SI\(EI\E∪{i})
+                       0
+                            | ≤ ϕ · 2 , and hence |SI\(E0 ∪{i}) | ≥ ϕ·2n . This means that if zi = 0 and we
+                    0
+        then add i to E0 , we will have |SI\E0 | grow by a factor of ϕ · 2n . By the end of this process,
+        SI\E0 must be ϕ-average-thick on F \ E (otherwise we would add another coordinate to E),
+        and furthermore |SI\E0 | ≥ (ϕ·2|S|   n )|E0 | , which is to say
+
+
+              |SI\E0 |       1     |S|
+               |I\E   |·n
+                          ≥ |E | · |I|·n .                                                                         (∗)
+             2      0      ϕ   0  2
+        This will later ensure our density increase.
+B. Loff and S. Mukhopadhyay                                                                                50:13
+
+
+
+  I Procedure 1. Choosing E.
+     We start by letting E = ∅.
+     As long as SI\E0 is not ϕ-average-thick on F \ E, there exists some i ∈ F \ E such
+    that
+             |SI\E0 |
+                            ≤ ϕ · 2n .
+          |SI\(E0 ∪{i}) |
+
+      We will then add i to E and query zi (to know if i ∈ E0 or not).
+
+
+
+  I Procedure 2. Choosing W = (Ui , Vi )i∈E0 , X and Y .
+     Independently for each i ∈ E0 , choose a partition {0, 1}n = Ui ∪· Vi , so that each
+    string x ∈ {0, 1}n is placed in Ui with probability 12 , and is placed in Vi otherwise.
+    Let us use W = (Ui , Vi )i∈E0 to denote all the partitions chosen in this step.
+     Now let us start by letting X = Y = S.
+                                                               i,Ui                   i,Vi
+     Then for each index i ∈ E0 in turn, we change X to X6=      i and change Y to Y6=i .
+
+
+    Now consider the Procedure 2. At the end of its execution, we have both X, Y ⊆ SI\E0 .
+Now we may ask how much of SI\E0 survived inside both X and Y . Let us first consider the
+difficult case when |E0 | ≥ 1. We make the following claim:
+
+B Claim 29. If |E0 | ≥ 1, then for some choice of the partitions (Ui , Vi )i∈E0 we will have
+|X ∩ Y | ≥ 12 · |SI\E0 |.
+
+Before proving this claim, let us see why it is enough to give us our new square S 0 . Let U ⊆
+({0, 1}n )E0 be the product of the various Ui sets, for i ∈ E0 , and likewise let V ⊆ ({0, 1}n )E0
+be the product of the various Vi sets, for i ∈ E0 . The square S 0 is chosen thus:
+
+
+  I Procedure 3. Choosing the square S 0 .
+     We set S 0 = X ∩ Y .
+     For each s0 ∈ S 0 , we choose a string u(s0 ) ∈ U ∩ ExtS (s0 ) ⊆ ({0, 1}n )E0 ; such a
+     u(s0 ) exists because of how X was constructed; letting s = s0 × u(s0 ) ∈ S, for each
+     i ∈ [p] \ I 0 = ([p] \ I) ∪ E0 , set
+                     (
+           0 0         u(s0 )i if i ∈ E0 ,
+         α (s )i =
+                       α(s)i if i ∈ [p] \ I.
+
+      We proceed symmetrically to choose β 0 (s0 ).
+      A0 and B 0 are simply the images of S 0 under α0 and β 0 .
+
+For any s ∈ S, t ∈ S and i ∈ ([p] \ I) ∪ E0 , we have α(s)i 6= β(t)i . This follows, on coordinates
+i ∈ E0 because Ui and Vi are disjoint, and on coordinates i ∈ [p] \ I because square S has
+the same property for α and β.
+    Properties (i) and (ii) are by construction. Property (iii) is a calculation using Claim 29
+and (∗):
+                                        1
+                      |S 0 |            2 · |SI\E0 |           1    1     |S|    1   1
+   Density(S 0 ) =    |I 0 |·n    ≥       |I\E   |·n
+                                                        ≥        · |E | · |I|·n = · |E | · Density(S).
+                     2         Claim 29 2      0
+                                                     Using (∗) 2 ϕ    0  2       2 ϕ 0
+
+
+
+                                                                                                         S TA C S 2 0 1 9
+50:14   Lifting Theorems for Equality
+
+
+        Now Property (iii) follows using the fact that |E0 | ≥ 1. Property (iv) follows by Claim 29,
+        because SI\E0 is ϕ-average-thick on F \ E, and S 0 is a subset of SI\E0 with |S 0 | ≥ 12 · |SI\E0 |.
+            In the simple case when |E0 | = 0, we have X = Y = S, and so we set S 0 to be exactly S.
+        Properties (i) and (ii) are easy to check, and Property (iii) is trivial, and property (iii) holds
+        even without the 1/2 factor loss, by our choice of E.
+                                                          n
+            Now to prove Claim 29. Let δ = 2−τ ·2 . Let us think of a matrix M where the rows
+        are indexed by the various possible s0 ∈ SI\E0 and the columns are indexed by the different
+        possible choices W = (Ui , Vi )i∈E0 . The entry M (s0 , W ) equals 1 if s0 ∈ X, where X is
+        obtained from S and (Ui )i∈E0 by Procedure 2. In other words, again denoting by U the
+        product of the various sets Ui , we have M (s0 , W ) = 1 iff U ∩ ExtS (s0 ) 6= ∅.
+            Now fix some s0 ∈ SI\E0 , and let us estimate the probability that M (s0 , W ) = 1, i.e.
+        that s0 ∈ X, over the randomized choice of W . At the beginning of Procedure 2, we
+        have X = S, and X is τ -thick on F . Then for each index i ∈ E0 ⊆ F in turn, we will
+                            i,Ui                                           0
+        change X to X6=       i . Before we do this for the first time, s will have at least one extension
+        s ∈ ExtX (s0 ) ⊆ ({0, 1}n )E0 ; at this point X is τ -thick on F , and so, taking any extension
+        s00 ∈ ExtX6=i (s0 ) ⊆ ({0, 1}n )E\{i} , there will be at least τ · 2n strings s000 ∈ {0, 1}n such that
+        (s0 × s00 ) ×i s000 ∈ S. Each of these strings s000 is placed in Ui with probability 1/2; hence the
+                                             i,Ui                  −τ ·2n
+        probability that (s0 × s00 ) ∈ X6=     i is at least 1 − 2        = 1 − δ, i.e., some extension s00 of
+        s0 survived with at least 1 − δ probability over the choice of this first Ui . By Lemma 24,
+                               i,Ui
+        changing X to X6=        i gives us a set which is again thick on F \ {i}. Hence we may apply the
+        same reasoning to the next index in E0 .
+            Changing X in this way |E0 | times, we conclude that, in the end, Pr[M (s0 , W ) = 1] =
+        Pr[s0 ∈ X] ≥ (1 − δ)|E0 | ≥ 1 − |E0 |δ, where the probability is with respect to the distribution
+        of W given by the above process. Now call a certain choice of W X-good if the W -column
+        of M has at least a 1 − 3|E0 |δ fraction of the rows s0 ∈ SI\E0 with M (s0 , W ) = 1. Then,
+        by a standard averaging argument, we must have Pr[W is X-good] > 1/2 (where again the
+        probability is with respect to the distribution of W ).
+            Arguing in the same way with respect to Y , we conclude that the probability that W is
+        Y -good will also be more than 12 . Hence there must exist a choice of W which is both X-good
+        and Y -good. For this choice of W we will have both |X|, |Y | ≥ (1 − 3|E0 |δ)|SI\E0 |, and given
+        that X, Y ⊆ SI\E0 , this implies that |X ∩ Y | ≥ (1 − 6|E0 |δ) · |SI\E0 | ≥ (1 − 6pδ) · |SI\E0 |.
+        This is at least 12 |SI\E0 | by our assumed bound on p. The claim is thus proven.                   J
+
+
+        I Lemma 30. Let S = hn, p, R = A × B, I, S, α, βi be a square which is τ -thick on F ⊆ I,
+        and let z ∈ {0, 1}p be such that zi = 1 for every i ∈ I \ F , and zi = 0 for every i ∈ [p] \ I.
+        Then there exists some (x, y) ∈ A × B with Eqp (x, y) = z.
+
+        Proof. This is proven very similarly to Lemma 28. Instead of using Procedure 1 to choose
+        E and E0 , we choose them directly based on z.
+            If there are no i0 ∈ I with zi0 = 0, then any s ∈ S will give Eqp (s × α(s), s × β(s)) = z.
+        Otherwise, let E = F \ {i0 }, so that E0 = {i ∈ I | i 6= i0 , zi = 0}. We may then use
+        Procedure 2 to construct sets X and Y such that X, Y ⊆ SI\E0 . Note now that Claim 29
+        will still hold, because it only requires that S be thick on F . We may then use Procedure 3
+        to construct S 0 , and Properties (i) and (ii) will hold as before. S 0 is a square on coordinates
+        I \ E0 = {i | zi = 1} ∪ {i0 }. By Lemma 24, we know that S 0 is τ -thick on {i0 } and thus
+        there are two strings s ∈ S 0 and t ∈ S 0 with si0 6= ti0 but si = ti for all i ∈ I 0 \ {i0 }. Then
+        x = s × α(s) and y = t × β(t) give us Eqp (x, y) = z.                                             J
+B. Loff and S. Mukhopadhyay                                                                              50:15
+
+
+ 5     Lifting 0-query complexity
+We now prove our main simulation theorem (Theorem 13). Suppose p ≤ 2n/100 , and let us
+fix τ = 2−n/10 and ϕ = 2−n/20 . Suppose we are given a C-bit communication protocol π for
+f ◦ Eqn . We will then construct a decision-tree τ for f . On input z ∈ {0, 1}p , τ will find a leaf
+v of the protocol-tree of π, such that the associated rectangle Rv has some (x, y) ∈ Rv with
+Eqp (x, y) = z. The label of such a leaf then equals f (Eqp (x, y)) = f (z, ). We now present an
+informal description of τ , and in Algorithm 1 below we provide pseudocode for τ . We will
+then show that the algorithm for τ is correct, i.e. that it is always able to find such a leaf
+v, and then show that the number of 0-queries that τ makes is O( C      n ), which completes the
+proof of Theorem 13.
+    Given an input z ∈ {0, 1}p , τ starts traversing a path from the root of the protocol tree
+of π. A variable v is maintained, indicating the node of the protocol tree of π which is
+the current-node during the ongoing simulation; associated with v is the rectangle Rv of
+inputs which cause the protocol to reach node v. The decision-tree τ , when traversing node
+v, maintains a rectangle R = A × B and a square S = hn, p, R = A × B, I = F ∪ O, S, α, βi,
+such that R is a sub-rectangle of Rv . The set F corresponds to coordinates of the input z
+that were not queried yet, and O is set of coordinates i which have been queried and found
+to have zi = 1. Throughout the execution of the algorithm, it is maintained as an invariant
+that the square S is τ -thick in the coordinates F . At the beginning, I = F = [p], O = ∅,
+and A = B = ({0, 1}n )[p] , so the invariant is trivially true.
+     In each iteration of the simulation, the algorithm checks whether S is ϕ-average-thick on
+F . If this fails to hold, the algorithm will use the projection lemma (Lemma 28) and change
+S to ensure this requirement, as follows. Using Procedure 1 of Lemma 28, it chooses the
+set E ⊆ F ; this requires querying zi for i ∈ E, and gives us the set E0 ⊆ E of coordinates
+where zi = 0, and the set E1 = E \ E0 of coordinates where zi = 1. The algorithm then
+uses Procedure 3 of Lemma 28 to construct a square S 0 . Lemma 28 guarantees that S 0
+is ϕ2 -average-thick on F \ E, and that Density(S 0 ) grows by a factor of (2ϕ)−|E0 | . If E0 is
+non-empty, i.e. if we have made some 0 queries, the density will grow significantly; otherwise
+the density will not change. The algorithm proceeds with S = S 0 , I = I \ E0 , O = O ∪ E1 ,
+and F = F \ E.
+     Now the algorithm is promised to have a square S which is at least 12 ϕ-average-thick. The
+algorithm then proceeds to a child vc of v which has at least 1/2 fraction of the density of S,
+as follows. Suppose Alice communicated in v, and for each c ∈ {0, 1}, let Rvc = Avc × Bvc
+be the rectangle which π associates with vc . We then fix a choice c ∈ {0, 1} such that
+|R ∩ Rvc | ≥ |R|/2. Now consider the set S 0 = {s ∈ S | s × α(s) ∈ Avc }. This set is still
+1                                                            1       0
+4 ϕ-average-thick. We may then apply Lemma 23, with δ = 2 , to S , which gives us a subset
+  00    0
+S ⊆ S which is τ -thick on F . The new square S is then given by restricting α and β to
+the set S 00 . By changing S in this way, we have preserved a 14 fraction of the density.
+   Eventually, when we reach a leaf node v of the protocol tree, we are left with a square S
+which is τ -thick on F . The algorithm outputs the labeling of Rv in π, and we will now argue
+that this must equal f (z).
+
+Correctness. Because π correctly solves f ◦ Eqn , then for each leaf v of π we have
+(x, y, π(v)) ∈ f for all (x, y) ∈ Rv ; the rectangle R obtained at the termination of Al-
+gorithm 1 is a sub-rectangle of Rv for a leaf of π, hence (x, y, π(v)) ∈ f for all (x, y) ∈ R. On
+the other hand, we have preserved a square S = hn, p, R = A × B, I, S, α, βi which is τ -thick
+on F ⊆ I, and such that zi = 1 for every i ∈ O = I \ F , and zi = 0 for every i ∈ [p] \ I. Then
+Corollary 30 tells us that some pair (x, y) ∈ R is such that Eqp (x, y) = z; hence (z, π(v)) ∈ f .
+
+
+                                                                                                       S TA C S 2 0 1 9
+50:16   Lifting Theorems for Equality
+
+
+
+        Algorithm 1 Decision-tree procedure τ .
+        Input: z ∈ {0, 1}p
+        Output: f (z)
+         1: Initialization: Set v to be the root of the protocol tree for π, I = F = [p], O = ∅, S =
+            hn, p, R, I, S, α, βi, where R = A × B, A = B = S = ({0, 1}n )[p] , and α, β are the empty
+            functions.
+         2: while v is not a leaf do
+         3:     if S is not ϕ-average-thick on F then
+         4:         Use Lemmas 28 and 23, to get E ⊆ F , E0 ⊆ E, and
+         5:             a square S 0 = hn, p, R0 , I \ E0 , S 0 , α0 , β 0 i, such that
+         6:            (1) S 0 is τ -thick on F \ E, and
+         7:            (2) Density(S 0 ) ≥ 41 ϕ|E
+                                                1
+                                                  0|
+                                                     Density(S).
+                                      0
+         8:         Update S = S , O = O ∪ (E \ E0 ),
+         9:             F = F \ E, I = I \ E0 .
+        10:     end if
+        11:                                                       . At this point S is at least 12 ϕ-average-thick on F .
+        12:     Choose c ∈ {0, 1} such that |R ∩ Rvc | ≥ 12 |R|.
+        13:     Using Lemma 23, choose S 0 = hn, p, R0 , I, S 0 , α0 , β 0 i, such that
+        14:       (1) R0 ⊆ R ∩ Rvc
+        15:       (2) Density(S 0 ) ≥ 41 Density(S).
+        16:       (3) S 0 is τ -thick on F .
+        17:     Update S = S 0 , and v = vc .
+        18: end while
+        19: Output π(v).
+
+
+
+        Number of queries. In each time when the simulation goes down the protocol tree of π,
+        Density(S) drops by a factor of at most 14 and hence, in total, by a factor of 4−C . For each
+        set E of queries that the algorithm makes in a round, the density of the current square
+        increases by a factor of (2ϕ)−|E0 | – this is Property (iii) of Lemma 28. So, if Q0 is the
+        total number of queries which the algorithm makes, and which are answered 0, then the
+        total gain in Density(S) is at least (2ϕ)−Q0 . Since the density can be at most 1, we have,
+                                           −2C
+        4−C · (2ϕ)−Q0 ≤ 1, and so Q0 ≤ log(2ϕ)   = n2C         C
+                                                      −1 = O n . This concludes the proof.         J
+                                                            20
+
+
+
+
+              References
+         1    Boaz Barak, Mark Braverman, Xi Chen, and Anup Rao. How to compress interactive
+              communication. SIAM Journal on Computing, 42(3):1327–1363, 2013.
+         2    Paul Beame, Toniann Pitassi, Nathan Segerlind, and Avi Wigderson. A direct sum theorem
+              for corruption and the multiparty NOF communication complexity of set disjointness. In
+              Proceedings of the 20th CCC, pages 52–66, 2005.
+         3    Anna Bernasconi and Bruno Codenotti. Spectral Analysis of Boolean Functions as a Graph
+              Eigenvalue Problem. IEEE Transactions on Computers, 48(3):345–351, 1999.
+         4    Mark Braverman and Anup Rao. Information Equals Amortized Communication. IEEE
+              Transactions on Information Theory, 60(10):6058–6069, 2014.
+         5    Mark Braverman, Anup Rao, Omri Weinstein, and Amir Yehudayoff. Direct Product via
+              Round-Preserving Compression. In Proceedings of the 40th ICALP, pages 232–243, 2013.
+         6    Mark Braverman, Anup Rao, Omri Weinstein, and Amir Yehudayoff. Direct Products in
+              Communication Complexity. In Proceedings of the 54th FOCS, pages 746–755, 2013.
+B. Loff and S. Mukhopadhyay                                                                         50:17
+
+
+ 7   Joshua Brody, Harry Buhrman, Michal Kouckỳ, Bruno Loff, Florian Speelman, and Nikolay
+     Vereshchagin. Towards a reverse Newman’s theorem in interactive information complexity. In
+     Proceedings of the 28th CCC, pages 24–33, 2013.
+ 8   Harry Buhrman and Ronald de Wolf. Complexity measures and decision tree complexity: a
+     survey. Theoretical Computer Science, 288(1):21–43, 2002.
+ 9   Amit Chakrabarti and Oded Regev. An Optimal Lower Bound on the Communication
+     Complexity of Gap-Hamming-Distance. SIAM Journal on Computing, 41(5):1299–1317, 2012.
+10   Arkadev Chattopadhyay. Discrepancy and the Power of Bottom Fan-in in Depth-three Circuits.
+     In Proceedings of the 48th FOCS, pages 449–458, 2007.
+11   Arkadev Chattopadhyay and Anil Ada. Multiparty Communication Complexity of Disjointness.
+     Technical Report TR08-002, ECCC, 2008.
+12   Arkadev Chattopadhyay, Michal Koucký, Bruno Loff, and Sagnik Mukhopadhyay. Simulation
+     Theorems via Pseudorandom Properties. CoRR, abs/1704.06807, 2017.
+13   Arkadev Chattopadhyay, Michal Kouckỳ, Bruno Loff, and Sagnik Mukhopadhyay. Simulation
+     beats richness: new data-structure lower bounds. In Proceedings of the 50th STOC, pages
+     1013–1020. ACM, 2018.
+14   Susanna F. de Rezende, Jakob Nordström, and Marc Vinyals. How Limited Interaction Hinders
+     Real Communication. In Proceedings of the 56th FOCS, 2016.
+15   Irit Dinur and Or Meir. Toward the KRW Composition Conjecture: Cubic Formula Lower
+     Bounds via Communication Complexity. Computational Complexity, 27(3):375–462, 2018.
+16   Andrew Drucker. Improved direct product theorems for randomized query complexity. Com-
+     putational Complexity, 21(2):197–244, 2012.
+17   Jeff Edmonds, Russell Impagliazzo, Steven Rudich, and Jirí Sgall. Communication complexity
+     towards lower bounds on circuit depth. Computational Complexity, 10(3):210–246, 2001.
+18   Tomás Feder, Eyal Kushilevitz, Moni Naor, and Noam Nisan. Amortized Communication
+     Complexity. SIAM Journal on Computing, 24(4):736–750, 1995.
+19   Ankit Garg, Mika Göös, Pritish Kamath, and Dmitry Sokolov. Monotone circuit lower bounds
+     from resolution. In Proceedings of the 50th STOC, pages 902–911, 2018.
+20   Dmitry Gavinsky, Troy Lee, and Miklos Santha. On the randomised query complexity of
+     composition. CoRR, abs/1801.02226, 2018.
+21   Dmitry Gavinsky, Or Meir, Omri Weinstein, and Avi Wigderson. Toward better formula
+     lower bounds: an information complexity approach to the KRW composition conjecture. In
+     Proceedings of the 46th STOC, pages 213–222, 2014.
+22   Mika Göös, Rahul Jain, and Thomas Watson. Extension complexity of independent set
+     polytopes. SIAM Journal on Computing, 47(1):241–269, 2018.
+23   Mika Göös, TS Jayram, Toniann Pitassi, and Thomas Watson. Randomized Communication
+     versus Partition Number. In Proceedings of the 44th ICALP, 2017.
+24   Mika Göös, Pritish Kamath, Toniann Pitassi, and Thomas Watson. Query-to-communication
+     Lifting for PNP . In Proceedings of the 32nd CCC, 2017.
+25   Mika Göös, Shachar Lovett, Raghu Meka, Thomas Watson, and David Zuckerman. Rectangles
+     are nonnegative juntas. In Proceedings of the 47th STOC, pages 257–266. ACM, 2015.
+26   Mika Göös, Toniann Pitassi, and Thomas Watson. Deterministic communication vs. partition
+     number. In Proceedings of the 56th FOCS, 2015.
+27   Mika Göös, Toniann Pitassi, and Thomas Watson. The landscape of communication complexity
+     classes. Computational Complexity, pages 1–60, 2015.
+28   Michelangelo Grigni and Michael Sipser. Monotone Separation of Logspace from NC. In
+     Proceedings of the 6th Annual Structure in Complexity Theory Conference, pages 294–298,
+     1991.
+29   Prahladh Harsha, Rahul Jain, David McAllester, and Jaikumar Radhakrishnan. The commu-
+     nication complexity of correlation. In Proceedings of the 22nd CCC, pages 10–23, 2007.
+30   Johan Håstad and Avi Wigderson. Composition of the Universal Relation. In Proceedings of
+     the DIMACS Workshop, pages 119–134, 1990.
+
+
+
+
+                                                                                                  S TA C S 2 0 1 9
+50:18   Lifting Theorems for Equality
+
+
+        31   Hamed Hatami, Kaave Hosseini, and Shachar Lovett. Structure of Protocols for XOR Functions.
+             SIAM Journal on Computing, 47(1):208–217, 2018.
+        32   Rahul Jain. New strong direct product results in communication complexity. Journal of the
+             ACM, 62(3):20, 2015.
+        33   Rahul Jain, Hartmut Klauck, and Ashwin Nayak. Direct product theorems for classical
+             communication complexity via subdistribution bounds. In Proceedings of the 40th STOC,
+             pages 599–608, 2008.
+        34   Rahul Jain, Attila Pereszlényi, and Penghui Yao. A direct product theorem for the two-party
+             bounded-round public-coin communication complexity. In Proceedings of the 53rd FOCS,
+             pages 167–176, 2012.
+        35   Rahul Jain, Jaikumar Radhakrishnan, and Pranab Sen. A direct sum theorem in communication
+             complexity via message compression. In Proceedings of the 20th ICALP, pages 300–315, 2003.
+        36   Rahul Jain and Penghui Yao. A strong direct product theorem in terms of the smooth rectangle
+             bound. CoRR, abs/1209.0263, 2012.
+        37   Stasys Jukna. Boolean Function Complexity - Advances and Frontiers. Springer, 2012.
+        38   Mauricio Karchmer, Eyal Kushilevitz, and Noam Nisan. Fractional Covers and Communication
+             Complexity. SIAM Journal on Discrete Mathematics, 8(1):76–92, 1995.
+        39   Mauricio Karchmer, Ran Raz, and Avi Wigderson. Super-Logarithmic Depth Lower Bounds
+             Via the Direct Sum in Communication Complexity. Computational Complexity, 5(3/4):191–204,
+             1995.
+        40   Mauricio Karchmer and Avi Wigderson. Monotone Circuits for Connectivity Require Super-
+             Logarithmic Depth. SIAM Journal on Discrete Mathematics, 3(2):255–265, 1990.
+        41   Iordanis Kerenidis, Sophie Laplante, Virginie Lerays, Jérémie Roland, and David Xiao. Lower
+             bounds on information complexity via zero-communication protocols and applications. SIAM
+             Journal on Computing, 44(5):1550–1572, 2015.
+        42   Pravesh K Kothari, Raghu Meka, and Prasad Raghavendra. Approximating rectangles by
+             juntas and weakly-exponential lower bounds for LP relaxations of CSPs. In Proceedings of the
+             49th STOC, pages 590–603. ACM, 2017.
+        43   Alexander Kozachinskiy. Comment on Meir’s paper The Direct Sum of Universal Rela-
+             tions. Available at the address https://eccc.weizmann.ac.il/report/2017/128/comment/
+             1/download/.
+        44   Alexander Kozachinskiy. From Expanders to Hitting Distributions and Simulation Theorems.
+             In Proceedings of the 43rd MFCS, pages 4:1–4:15, 2018.
+        45   Eyal Kushilevitz and Noam Nisan. Communication complexity. Cambridge University Press,
+             1997.
+        46   James Lee, Raghu Meka, and Thomas Vidick. (Less) heavy lifting: from conic junta degree
+             to non-negative rank. Presented in the workshop Hardness Escalation in Communication
+             Complexity and Query Complexity, FOCS 2017.
+        47   Troy Lee, Adi Shraibman, and Robert Spalek. A Direct Product Theorem for Discrepancy. In
+             Proceedings of the 23rd CCC, pages 71–80, 2008.
+        48   Bruno Loff and Sagnik Mukhopadhyay. Lifting Theorems for Equality. Electronic Colloquium
+             on Computational Complexity (ECCC), 25:175, 2018.
+        49   László Lovász. On the ratio of optimal integral and fractional covers. Discrete mathematics,
+             13(4):383–390, 1975.
+        50   Or Meir. The direct sum of universal relations. Information Processing Letters, 136:105–111,
+             2018.
+        51   Gatis Midrijanis. Exact quantum query complexity for total Boolean functions. CoRR,
+             abs/quant-ph/0403168, 2004.
+        52   Alon Orlitsky. Worst-case interactive communication. I. Two messages are almost optimal.
+             IEEE Transactions on Information Theory, 36(5):1111–1126, 1990.
+        53   Denis Pankratov. Direct sum questions in classical communication complexity. Master’s thesis,
+             University of Chicago, 2012.
+B. Loff and S. Mukhopadhyay                                                                         50:19
+
+
+54   Toniann Pitassi and Robert Robere. Lifting nullstellensatz to monotone span programs over
+     any field. In Proceedings of the 50th STOC, pages 1207–1219, 2018.
+55   Anup Rao and Amir Yehudayoff. Simplified Lower Bounds on the Multiparty Communication
+     Complexity of Disjointness. In Proceedings of the 30th CCC, pages 88–101, 2015.
+56   Ran Raz. Fourier analysis for probabilistic communication complexity. Computational
+     Complexity, 5(3-4):205–221, 1995.
+57   Ran Raz and Pierre McKenzie. Separation of the Monotone NC Hierarchy. Combinatorica,
+     19(3):403–435, 1999.
+58   Robert Robere. Unified Lower Bounds for Monotone Computation. PhD thesis, University of
+     Toronto, 2018.
+59   Robert Robere, Toniann Pitassi, Benjamin Rossman, and Stephen A Cook. Exponential lower
+     bounds for monotone span programs. In Proceedings of the 57th FOCS, pages 406–415, 2016.
+60   Swagato Sanyal. A Composition Theorem via Conflict Complexity. CoRR, abs/1801.03285,
+     2018. arXiv:1801.03285.
+61   Alexander A Sherstov. The pattern matrix method. SIAM Journal on Computing, 40(6):1969–
+     2000, 2011.
+62   Alexander A. Sherstov. The Communication Complexity of Gap Hamming Distance. Theory
+     of Computing, 8(1):197–208, 2012.
+63   Alexander A. Sherstov. The multiparty communication complexity of set disjointness. In
+     Proceedings of the 44th STOC, pages 525–548, 2012.
+64   Alexander A. Sherstov. Communication lower bounds using directional derivatives. In
+     Proceedings of the 45th STOC, pages 921–930, 2013.
+65   Yaoyun Shi and Yufan Zhu. Quantum communication complexity of block-composed functions.
+     Quantum Information & Computation, 9(5):444–460, 2009.
+66   Hing Yin Tsang, Chung Hoi Wong, Ning Xie, and Shengyu Zhang. Fourier Sparsity, Spectral
+     Norm, and the Log-Rank Conjecture. In Proceedings of the 54th FOCS, pages 658–667, 2013.
+67   Thomas Vidick. A concentration inequality for the overlap of a vector on a large set, with
+     application to the communication complexity of the Gap-Hamming-Distance problem. Chicago
+     Journal of Theoretical Computer Science, 2013, 2013.
+68   Thomas Watson. A ZPPNP Lifting Theorem. Unpublished preprint, 2017.
+69   David P. Woodruff. Efficient and private distance approximation in the communication and
+     streaming models. PhD thesis, Massachusetts Institute of Technology, 2007.
+70   Andrew Chi-Chih Yao. Some Complexity Questions Related to Distributive Computing
+     (Preliminary Report). In Proceedings of the 11h STOC, pages 209–213, 1979.
+
+
+
+
+                                                                                                  S TA C S 2 0 1 9
+

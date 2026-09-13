@@ -1,0 +1,968 @@
+Byzantine Reliable Broadcast with
+Low Communication and Time Complexity
+Thomas Locher #
+DFINITY, Zurich, Switzerland
+
+       Abstract
+Byzantine reliable broadcast is a fundamental problem in distributed computing, which has been
+studied extensively over the past decades. State-of-the-art algorithms are predominantly based on the
+approach to share encoded fragments of the broadcast message, yielding an asymptotically optimal
+communication complexity when the message size exceeds the network size, a condition frequently
+encountered in practice. However, algorithms following the standard coding approach incur an
+overhead factor of at least 3, which can already be a burden for bandwidth-constrained applications.
+Minimizing this overhead is an important objective with immediate benefits to protocols that use a
+reliable broadcast routine as a building block.
+    This paper introduces a novel mechanism to lower the communication and computational
+complexity. Two algorithms are presented that employ this mechanism to reliably broadcast
+messages in an asynchronous network where less than a third of all nodes are Byzantine. The first
+algorithm reduces the overhead factor to 2 and has a time complexity of 3 if the sender is honest,
+whereas the second algorithm attains an optimal time complexity of 2 with the same overhead factor
+in the absence of equivocation. Moreover, an optimization is proposed that reduces the overhead
+factor to 3/2 under normal operation in practice. Lastly, a lower bound is proved that an overhead
+factor lower than 3/2 cannot be achieved for a relevant class of reliable broadcast algorithms.
+
+2012 ACM Subject Classification Computer systems organization → Fault-tolerant network topolo-
+gies; Theory of computation → Distributed algorithms
+
+Keywords and phrases Asynchronous Networks, Reliable Broadcast, Communication Complexity
+
+Digital Object Identifier 10.4230/LIPIcs.OPODIS.2024.16
+
+Related Version Extended Version: https://arxiv.org/abs/2404.08070
+
+
+ 1      Introduction
+The goal of Byzantine reliable broadcast is to disseminate a message efficiently and reliably
+despite the presence of Byzantine nodes that may interfere with the protocol execution in
+arbitrary ways. A reliable broadcast routine is a powerful primitive with a broad range of
+applications including asynchronous atomic broadcast [15, 19, 18, 21, 27], distributed key
+generation [2, 12, 20], secure data replication [8], and secret sharing [26]. Moreover, Byzantine
+reliable broadcast plays a pivotal role in Byzantine fault-tolerant consensus protocols where
+message dissemination is treated separately from message ordering to improve throughput [10].
+    The first Byzantine reliable broadcast algorithm is due to Bracha [6]. While it is elegant
+in its simplicity, its main drawback is that the message m is broadcast by every node during
+the execution of the algorithm, i.e., O(|m|n2 ) bits are sent overall, where |m| denotes the
+size of m in bits and n is the number of nodes in the network. In the seminal paper by
+Cachin and Tessaro [9], this bound was improved to O(|m|n + κn2 log(n)) bits using erasure
+coding, where κ is the output size of a collision-resistant hash function. Since each node
+must receive the message in a successful broadcast, this result is asymptotically optimal if
+|m| ∈ Ω(κn log(n)). Subsequent work has primarily focused on getting closer to the lower
+bound of Ω(|m|n + n2 ) [1, 4, 11, 22, 23]. These pieces of work follow the blueprint laid out
+by Cachin and Tessaro and augment it with error-correction and cryptographic primitives to
+achieve better asymptotic bounds.
+             © Thomas Locher;
+             licensed under Creative Commons License CC-BY 4.0
+28th International Conference on Principles of Distributed Systems (OPODIS 2024).
+Editors: Silvia Bonomi, Letterio Galletta, Etienne Rivière, and Valerio Schiavoni; Article No. 16; pp. 16:1–16:17
+                    Leibniz International Proceedings in Informatics
+                    Schloss Dagstuhl – Leibniz-Zentrum für Informatik, Dagstuhl Publishing, Germany
+16:2   Byzantine Reliable Broadcast with Low Communication and Time Complexity
+
+
+                   6
+                            decode (n,t+1)
+                           decode (n,2t+1)
+                   5        encode (n,t+1)
+                           encode (n,2t+1)
+                   4
+       Time [ms]
+
+
+
+
+                   3
+
+                   2
+
+                   1
+
+                   0
+                       0      20             40   60     80         100       120        140        160
+                                                       Network size
+
+
+          Figure 1 Given an input of size 1 MiB, encoding and decoding times for erasure codes with
+       parameters (n, t + 1) and (n, 2t + 1) are shown for different network sizes. The circles and bars mark
+       the averages and the 5th and 95th percentiles, respectively, of the measured times over 1000 runs.
+
+
+            Curiously, there is little work on minimizing the constant in the O(|m|n) term, although
+       it likely dominates the actual bandwidth consumption in practice and is therefore crucial for
+       real-world applications. The design by Cachin and Tessaro is based on a (n, t + 1)-erasure
+       code, where t < n/3 is the largest number of nodes that may exhibit Byzantine behavior.
+       In this design, nodes broadcast encoded fragments of size |m|/(t + 1) ≈ 3|m|/n instead of
+       broadcasting m, sending at least 3|m|n bits altogether. An overhead factor of 3 – compared
+       to the ideal scenario where each node receives exactly |m| bits – may already prove too costly
+       for applications with strict bandwidth constraints. All schemes that follow this approach
+       naturally inherit the overhead inherent in this design.
+            In this paper, a mechanism is introduced that departs from this blueprint in order to
+       reduce the communication complexity, i.e., the number of bits that need to be exchanged
+       in the worst case, for large messages. The core idea is quite simple: a (n, 2t + 1)-erasure
+       code is used instead, reducing the fragment size to |m|/(2t + 1) ≈ 32 |m|/n. This modification
+       obviously reduces the cost of broadcasting fragments; however, correctness is no longer given
+       without additional changes because some nodes may receive 2t + 1 fragments whereas others
+       merely obtain t + 1 fragment, which is not enough to recover the message. This problem is
+       addressed by introducing the following step. If a node with 2t + 1 fragments manages to
+       reconstruct the message, it disseminates fragments again but only to the t nodes from which
+       no fragment was received. As we will see, this step is sufficient to ensure correctness while
+       keeping the communication complexity low.
+            As an added benefit, the transition from a (n, t + 1)-erasure code to a (n, 2t + 1)-erasure
+       code results in substantial performance improvements, both with respect to the encoding
+       and decoding of fragments. Figure 1 shows performance numbers when encoding/decoding
+       an input of size 1 MiB for various network sizes and the two different parameterizations. The
+       experiments were conducted on an Intel Core i7 CPU with 6 cores and 32 GB of memory using
+       an optimized library1 for Reed-Solomon codes [24]. The figure confirms the practicality of
+       erasure coding due to its efficiency, exhibiting encoding and decoding times in the millisecond
+       range, and scalability with respect to the network size. Moreover, the figure reveals that the
+
+
+       1
+            See https://github.com/AndersTrier/reed-solomon-simd.
+T. Locher                                                                                           16:3
+
+
+encoding (decoding) time is lower by a factor of 2.2–2.4 (1.8–2.0) for all network sizes when
+using an (n, 2t + 1)-erasure code. Another interesting property is that the variance is also
+significantly lower, leading to more predictable encoding and decoding times.
+    The paper is organized as follows. The model is formally introduced in §2. A concrete
+algorithm that makes use of the novel mechanism is presented in §3. Its communication
+complexity is 2|m|n plus a term independent of |m|. Given an honest (i.e., non-faulty)
+sender, each honest node obtains the message after 3 rounds of communication. A natural
+question is whether there is an algorithm with an overhead factor lower than 3 and that
+terminates in an optimal 2 rounds given an honest sender. In §4, this question is answered
+in the affirmative by presenting an algorithm with this property and the same overhead
+factor if the sender does not equivocate. Otherwise, the worst-case overhead factor is 52 with
+respect to the largest fragment size transmitted by honest nodes. While the first algorithm
+only requires collision-resistant hash functions, the second algorithm makes use of threshold
+signatures. Both algorithms further bound the number of bits that are stored at each node
+in the worst case to a small multiple of a predetermined maximum message size. Practical
+considerations with the goal of reducing the communication complexity further in real-world
+deployments and simplifying the implementation are discussed in §5. A key observation is
+that the overhead can be reduced to 32 during periods of synchrony and in the absence of
+failures. As shown in §6, a lower overhead factor than 32 cannot be guaranteed for a particular
+class of algorithms. Related work is summarized in §7 before the paper concludes in §8.
+
+
+ 2     Model
+The considered network comprises n = 3t + 1 nodes, where t denotes the maximum number
+of Byzantine nodes, which may deviate arbitrarily from any given protocol. The other
+2t + 1 nodes faithfully execute the given protocol and are called honest. Any two nodes can
+communicate directly over an authenticated channel by exchanging messages. Communication
+is assumed to be asynchronous in the sense that the delivery of messages, while guaranteed,
+may be delayed indefinitely. In this communication model, nodes cannot make any assumption
+about message delays, neither about the time required until sent message arrive at their
+destinations nor about the time that elapses until certain (expected) messages are received.
+    A node may send a message to a single node or to multiple nodes. When a node v sends
+a message to all nodes, we say that v broadcasts this message. A faulty node may fail to send
+messages as specified in the protocol. The goal of reliable broadcast is to ensure, under some
+conditions, that all honest nodes eventually deliver a certain message, i.e., mark it as the
+accepted outcome of the reliable broadcast. The required properties of a reliable broadcast
+protocol are stated formally in the following definition.
+
+▶ Definition 1 (Reliable broadcast). A reliable broadcast protocol is a distributed protocol
+to send a message m from a specific node called the sender to all nodes with the following
+properties.
+   Validity: If the sender is honest and broadcasts m, then every honest node eventually
+    delivers m.
+    Agreement: If two honest node deliver messages m and m′ , then m = m′ .
+    Integrity: Every honest node delivers at most one message m.
+   Totality: If an honest node delivers m, then all honest nodes eventually deliver m.
+
+   In general, nodes may engage in multiple reliable broadcasts in parallel. In this case,
+the integrity condition effectively requires that messages are attributable to a uniquely
+
+
+
+                                                                                                  OPODIS 2024
+16:4   Byzantine Reliable Broadcast with Low Communication and Time Complexity
+
+
+       identifiable execution context. In the following, we assume that every message implicitly
+       contains an identifier and that each node runs a separate instance of the protocol for each
+       identifier. The sender for a particular execution context is assumed to be globally known.
+           As mentioned above, the objective is to reliably broadcast some message m, where
+       the notation |m| is used to denote the size of the message in bits. Instead of sending m,
+       the algorithms introduced in §3 and §4 send fragments of m, which can be either chunks
+       of m itself or encoded data derived from m. Without loss of generality, we assume that
+       there is some upper bound ℓmax on the message size, which in turn limits the fragment
+       size. State-of-the-art algorithms use either erasure codes, which can handle missing data, or
+       error-correcting codes, which support the correction of erroneous data. The algorithms in this
+       paper exclusively use an (n, k)-erasure codes with optimal reception efficiency, i.e., exactly k
+       out of n symbols are sufficient to reconstruct a message of k symbols. Throughout this paper,
+       the parameters n and k correspond to the total number of nodes and the number of honest
+       nodes, i.e., k := 2t + 1. We assume that each node has access to the routine get_fragments
+       that takes a message m as input and returns a list of n fragments of size |m|       |m|
+                                                                                     k = 2t+1 < 2 n
+                                                                                                   3 |m|
+
+       each. Furthermore, the nodes use the routine recover_message to recover m given any
+       subset F of the n fragments of size |F | ≥ k = 2t + 1. This routine is assumed to always
+       return some message, which may simply be a bit string of zeroes in case of an error, e.g.,
+       when the input contains fragments of different sizes.
+           In addition to fragments, the nodes also send hashes, identifiers, and, in the case of the
+       algorithm presented in §4, also signatures and signature shares. The hashes are assumed to
+       be cryptographically strong in the sense that it is infeasible to find hash collisions (except
+       with negligible probability). Naturally, it is also assumed that it is computationally infeasible
+       to spoof signatures or signature shares. Since the cryptographic properties only hold for
+       hashes, signatures, and shares of a certain minimum size, we introduce a security parameter
+       κ and define that the size of all data types other than fragments is bounded by O(κ).
+           Reliable broadcast algorithms are evaluated against multiple complexity measures. For a
+       specific number n of nodes and message size ℓ, the communication complexity C(n, ℓ) of an
+       algorithm is the total number of bits sent by all honest nodes in the worst case assuming
+       fewer than n/3 Byzantine nodes. If the sender is Byzantine, we define that ℓ is the message
+       size corresponding to the largest fragment sent by an honest node. Given that at least nℓ
+       bits need to be transferred and we are concerned with the overhead for large messages, the
+       primary goal is to minimize L(n) := limℓ→∞ C(n,ℓ)  ℓn . Additionally, the time complexity of an
+       algorithm is of great practical importance, measuring the duration of an execution when
+       normalizing the maximum message delay to 1 time unit. According to Definition 1, an
+       execution with a Byzantine sender may never terminate. Therefore, we restrict our attention
+       to the case where the sender is honest. Due to the validity condition, this good-case time
+       complexity must be bounded. Note that both presented algorithms ensure that the number of
+       communication rounds is also bounded given a Byzantine sender. Lastly, the space complexity
+       is considered as well, which is defined as the number of bits that any honest node stores
+       during the execution of the algorithm in the worst case.
+
+
+        3     Algorithm
+
+       3.1    Description
+       Algorithm Abit makes use of the routines get_fragments and recover_message intro-
+       duced in §2 to generate fragments of a given message and recover the message given at
+       least 2t + 1 valid fragments, respectively. Furthermore, it requires routines for Merkle
+T. Locher                                                                                             16:5
+
+
+   Algorithm 1 Abit : Triggered actions at node vi . Initially, F = R = H = P = {}.
+  if reliable_broadcast(m) invoked and vi = sender then
+     (f1 , . . . , fn ) := get_fragments(m)
+     h := get_merkle_root(f1 , . . . , fn )
+     for vj ∈ V do
+       πj := get_merkle_proof((f1 , . . . , fn ), j)
+       send f ragment(h, j, fj , πj ) to vj
+
+  if received f ragment(h, j, fj , πj ) from vk and (j = i or j = k) then
+     if (|H(vk )| < 2 or h ∈ H(vk )) and valid_merkle_proof(h, fj , j, πj ) then
+        H(vk ) := H(vk ) ∪ {h}, R(h) := R(h) ∪ {vk }, F (h, vj ) := (fj , πj )
+        if i = j and first fragment from vk = sender then
+           broadcast proposal(h)
+
+  if received proposal(h) from vk then
+     if |H(vk )| < 2 or h ∈ H(vk ) then
+        H(vk ) := H(vk ) ∪ {h}, P (h) := P (h) ∪ {vk }
+
+
+
+tree operations, specifically, get_merkle_root yields the Merkle root hash for a given set
+of fragments, get_merkle_proof returns the Merkle proof for a specific fragment, and
+valid_merkle_proof indicates whether a given Merkle proof is valid.
+    Each node executing Abit locally maintains the data structures F , R, H, and P . Let F,
+Π, and H denote the set of all possible fragments, Merkle proofs, and hashes, respectively.
+The hash map F : H × V → F × Π stores the fragment fj ∈ F and Merkle proof πj ∈ Π
+of node vj for the message with the root hash h ∈ H. If (fj , πi ) is locally available, then
+F (h, vj ) = (fj , πj ), and F (h, vj ) = ⊥ otherwise. This hash map is used to collect fragments
+with the goal of eventually recovering the corresponding message. We further define that
+F (h) := ∪vj ∈V F (h, vj ) denotes the set of all collected (vj , πj ) pairs for hash h. The hash
+map R : H → 2V stores the nodes from which a fragment for root hash h has been obtained.
+This hash map is needed to determine which nodes may still be missing their fragments.
+Conversely, for any node v, the hash map H : V → 2H contains the set of hashes for which
+a proposal or fragment was received from node v. The purpose of this data structure is to
+bound both the communication and space complexity. Lastly, P : H → 2V indicates which
+nodes have proposed the delivery of the message associated with the Merkle root hash h.
+The collected proposals are used to ensure that only fragments with sufficient support are
+broadcast. All hash maps are initially empty. In addition to the hash maps, each node
+further uses the Boolean variable done, initially f alse, to capture the information whether
+the execution has terminated, either with or without the delivery of a message. In the
+latter case, the totality condition implies that no honest node will deliver a message for
+this execution. Moreover, let H := ∪v∈V H(v) and hmax := arg maxh∈H |P (h)|, breaking ties
+arbitrarily if there is no single hash for which the most proposals have been received.
+    We distinguish between “triggered actions”, which are executed when a function is invoked
+or a message is received, and “state-based actions”, which occur when some conditions hold
+for the local state. This separation facilitates the description and analysis of the algorithm’s
+properties. The triggered actions are formally stated in Algorithm 1 and discussed next.
+   Given a message m, a reliable broadcast is triggered by invoking the routine
+reliable_broadcast at node vi = sender, which performs the standard steps of gen-
+erating n fragments f1 , . . . , fn , computing the Merkle root hash h, and then transmitting the
+
+
+                                                                                                    OPODIS 2024
+16:6   Byzantine Reliable Broadcast with Low Communication and Time Complexity
+
+
+          Algorithm 2 Abit : State-based actions at node vi . Initially, F = R = P = {}, done = f alse. Let
+       hmax := arg maxh∈H |P (h)|.
+         if |P (hmax )| ≥ 2t + 1 and not broadcast (fi , πi ) := F (hmax , vi ) ̸= ⊥ before then
+            broadcast f ragment(hmax , fi , i, πi )
+
+         if (|F (hmax )| ≥ t + 1 and not broadcast proposal(hmax ) before then
+            broadcast proposal(hmax )
+
+         if |P (hmax )| ≥ 2t + 1 and |F (hmax )| ≥ 2t + 1 and not done then
+                                                                 
+            m := recover_message(F (hmax ))                      
+                                                                 
+            (f1 , . . . , fn ) := get_fragments(m)
+                                                                 
+                                                                 
+                                                                 
+                                                                 
+            h := get_merkle_root(f1 , . . . , fn )
+                                                                 
+                                                                 
+                                                                 
+                                                                 
+                                                                 
+            if h = hmax then                                     
+                                                                 
+                                                                 
+               for vj ∈ V \ R(hmax ) do                            Execute delivery
+                   πj := get_merkle_proof((f1 , . . . , fn ), j) 
+                                                                 
+                                                                 
+                                                                 
+                                                                 
+                   send f ragment(hmax , j, fj , πj ) to vj      
+                                                                 
+                                                                 
+                                                                 
+               deliver(m)
+                                                                 
+                                                                 
+                                                                 
+                                                                 
+            done := true
+                                                                 
+
+
+
+       fragment message f ragment(h, j, fj , πj ), which contains the corresponding Merkle proof πj ,
+       to vj for all j ∈ {1, . . . , n}. A node vi only accepts a received message f ragment(h, j, fj , πj )
+       from some node vk under the following conditions. First, the sender vk must have sent
+       the fragment of the recipient vi (i.e., j = i) or its own fragment (i.e., j = k). Second, the
+       sender has not sent messages for two Merkle root hashes other than h before (formally,
+       |H(vk )| < 2 or h ∈ H(vk )) and, lastly, the Merkle proof πj in the received message is valid. If
+       all conditions are met, the hash maps H and R are updated by adding h and vk , respectively,
+       and the fragment and Merkle proof are stored (F (h, vj ) := (fj , πj )). In the final step, if the
+       recipient received its fragment and it is the first fragment received from the dedicated sender,
+       then vi broadcasts proposal(h). Whenever a proposal of the form proposal(h) is received
+       from node vk , it is again only accepted if vk did not send messages associated with two other
+       hashes before, in which case h is added to H(vk ) and vk is added to P (vk ).
+           Algorithm 2 describes the state-based actions of algorithm Abit . An honest node vi
+       broadcasts its fragment fi , at most once, after collecting 2t+1 proposals for the corresponding
+       Merkle root hash h. By contrast, a node vi broadcasts a proposal for a specific root hash h
+       not only when it receives its fragment from the sender but also when at least t + 1 fragments
+       for the root hash h = hmax have been received and vi has not broadcast the proposal before.
+       Lastly, if a node vi receives at least 2t + 1 fragments and proposals for hmax , it recovers the
+       message m and, additionally, recomputes the fragments and the corresponding root hash. If
+       the computed hash matches hmax , node vi concludes that the fragments are valid and the
+       message m can be delivered. In this case, vi first recomputes the Merkle proof πj and sends
+       f ragment(hmax , j, fj , πj ) to each vj ∈ V \ R(hmax ) before calling deliver(m) to deliver
+       the message. Note that done is set to true after executing these steps even if h ̸= hmax
+       because it is computationally infeasible to find any 2t + 1 fragments such that equality holds.
+
+       3.2    Analysis
+       In this section, we prove the correctness of Abit as well as its communication, time, and
+       space complexity. A series of lemmas is used to simplify the proof structure. The first lemma
+       is concerned with the fragments that honest nodes broadcast, showing that the proposal
+       mechanism ensures that honest nodes only broadcast fragments for one specific root hash.
+T. Locher                                                                                              16:7
+
+
+▶ Lemma 2. If honest nodes broadcast fragments for root hashes h and h′ , then h = h′ .
+
+Proof. Without loss of generality, let h be the first hash for which 2t + 1 proposals are
+received at some node v. Thus, there are at least t + 1 honest nodes that received their
+fragments from the sender and then broadcast their first proposal for root hash h.
+    Let v ′ be the first node that broadcasts a fragment for a hash h′ ≠ h. Since it must hold
+that |P (h′ )| ≥ 2t + 1 at node v ′ , there must be at least t + 1 honest nodes that broadcast
+the proposal for root hash h′ . Consequently, there must be an honest node v ∗ that first
+proposed h and then h′ . However, v ∗ only sends a proposal for h′ if |F (h′ )| ≥ t + 1 according
+to Algorithm 2, which implies that an honest node must have sent a fragment for root hash
+h′ before, a contradiction to the assumption that v ′ is the first such node.                  ◀
+
+   Since algorithm Abit imposes restrictive rules for the acceptance of received messages, we
+must show that honest nodes always accept messages from other honest nodes regardless of
+the messages of Byzantine nodes.
+
+▶ Lemma 3. If an honest node v sends a proposal or fragment message to an honest node
+v ′ , then v ′ accepts and processes the received message.
+
+Proof. According to Algorithm 1, v ′ accepts messages associated with at most two different
+hashes for any sender v. After an initial proposal for some root hash h, v may send a second
+proposal for h′ if |F (h′ )| ≥ t + 1, i.e., there is at least one honest node that has broadcast a
+fragment for root hash h′ . Assume that v sends another proposal for a different root hash
+h′′ , which again implies that at least one honest node must have broadcast a fragment for
+this root hash, a contradiction to Lemma 2.
+     Regarding the transmission of fragments, Lemma 2 also implies that an honest node
+only sends fragments for one root hash. Assume that v sends fragments for a root hash h′′
+that differs from the hashes h and h′ for which it sends proposals. In this case, v must have
+received at least t + 1 fragments for root hash h or h′ . Hence it follows that an honest node
+broadcast a fragment for a root hash other than h′′ , again contradicting Lemma 2.              ◀
+
+    An important criterion for the totality property is that all honest eventually obtain
+sufficiently many fragments of a message m and proposals for the corresponding root hash if
+there is an honest node that delivers m. The last lemma states that this is indeed the case.
+
+▶ Lemma 4. If an honest node v delivers m with root hash h, all honest nodes will eventually
+store at least 2t + 1 proposals for h and 2t + 1 fragments of m.
+
+Proof. Assume that v delivers m with root hash h. Since |F (h)| ≥ 2t + 1, v received
+fragments of m from at least t + 1 honest nodes, i.e., every honest node eventually receives
+at least t + 1 fragments of m. As a result, every honest node broadcasts proposal(h) at some
+point and thus |P (h)| ≥ 2t + 1 eventually holds at all honest nodes.
+    Node v adds all nodes from which it received fragments for root hash h to the set R(h).
+For any node v ′ ∈ R(h) it holds that v ′ either sent its own fragment or v’s fragment. However,
+the latter case also implies that v ′ must have its own fragment. According to Algorithm 1, v
+sends fj to vj for all vj ∈ V \ R(h), guaranteeing that these nodes eventually receive and,
+due to Lemma 3, store their fragments as well. Thus, it eventually holds that |P (h)| ≥ 2t + 1
+and F (h) ̸= ⊥ at all honest nodes, causing them to broadcast their fragments. Consequently,
+every honest node will eventually receive at least 2t + 1 fragments of m.                    ◀
+
+   We are now in the position to prove the following main result.
+
+
+
+                                                                                                     OPODIS 2024
+16:8   Byzantine Reliable Broadcast with Low Communication and Time Complexity
+
+
+       ▶ Theorem 5. Algorithm Abit implements reliable broadcast in the asynchronous communi-
+       cation model with t < n/3 Byzantine nodes.
+       Proof. The four conditions of reliable broadcast are proved separately.
+       Validity. If the sender v of a message m with root hash h is honest, it sends the fragment
+       fj to vj for all vj ∈ V . Subsequently, every honest nodes broadcasts proposal(h). Since all
+       honest nodes eventually receive at least 2t + 1 proposals for hash h (and only for hash h),
+       they all broadcast their fragments. Thus, eventually |F (h)| ≥ 2t + 1 and |P (h)| ≥ 2t + 1
+       holds at all honest nodes, triggering the delivery of m.
+       Agreement. Assume for the sake of contradiction that honest nodes v and v ′ deliver distinct
+       messages m and m′ with root hashes h and h′ , respectively. Since |F (h)| ≥ 2t + 1 at v and
+       |F (h′ )| ≥ 2t + 1 at v ′ , there must be honest nodes that have broadcast fragments for h and
+       h′ , which contradicts Lemma 2.
+       Integrity. Lemma 2 implies that there can only be sufficiently many fragments for at most
+       one hash and hence at most one message can be delivered.
+       Totality. Let v be a node that delivers a message m with root hash h. Due to Lemma 4,
+       it holds eventually that |F (h)| ≥ 2t + 1 and |P (h′ )| ≥ 2t + 1 at all honest nodes. Since v
+       managed to verify the correctness of the fragments and the corresponding root hash, the
+       verification also succeeds at all other nodes. Thus, all honest nodes eventually deliver m. ◀
+
+          The following theorem states the communication complexity of algorithm Abit .
+       ▶ Theorem 6 (Communication complexity). It holds for algorithm Abit that L(n) = 2.
+       Proof. Let |f | := 32 |m|/n + O(κ log(n)) denote the size of the largest fragment message sent
+       by an honest node. If the sender is honest, |f | corresponds to the size of a fragment message
+       containing a valid fragment of message m. The sender may send fragment messages to all
+       other nodes for a total of at most (n − 1)|f | bits. Each honest node may broadcast one
+       fragment message containing its fragment and at most two proposals of size O(κ). After
+       reconstructing the message m, an honest node further sends a fragment message containing
+       fj to all vj ∈ V \ R(h), where |V \ R(h)| ≤ t < n/3. Not counting messages that nodes send
+       to themselves, the communication complexity C(n, |m|) is therefore upper bounded by
+
+          (n − 1)|f | + n · (n − 1 + t)|f | + O(κn2 ) < 2n|m| + O(κn2 log(n)),
+                                       1
+       and therefore L(n) = lim|m|→∞ n|m| C(n, |m|) = 2.                                             ◀
+
+           As stated in §2, we consider the good-case time complexity with an honest sender. The
+       following theorem states the time complexity of Abit for this case.
+       ▶ Theorem 7 (Time complexity). If the sender is honest, Abit has a time complexity of 3.
+       Proof. If the sender is honest, all honest nodes receive their fragments and send the proposal
+       for the corresponding root hash after at most 1 time unit. Thus, after at most 2 time units,
+       all honest nodes get at least 2t + 1 proposals and broadcast their fragments. After at most 3
+       time units, the honest nodes receive at least 2t + 1 fragments and deliver the message. ◀
+
+          If the sender is Byzantine, an honest node may still deliver m eventually. It is easy to see
+       that every honest node delivers m at most 3 time units later in this case.
+          As far as the space complexity is concerned, recall that ℓmax denotes the largest permissible
+       message size, which is a lower bound on the space complexity. Given this bound, the following
+       result shows that honest nodes require little additional storage space.
+T. Locher                                                                                                16:9
+
+
+     Algorithm 3 Asig : Triggered actions at node vi . Initially, F = R = H = S = {}, h∗ = σ ∗ = ⊥.
+  if reliable_broadcast(m) invoked and vi = sender then
+     Execute reliable_broadcast(m) of Algorithm 1
+
+  if received f ragment(h, j, fj , πj ) from vk and (j = i or j = k) then
+     if (|H(vk )| < 2 or h ∈ H(vk )) and valid_merkle_proof(h, fj , j, πj ) then
+        H(vk ) := H(vk ) ∪ {h}, R(h) := R(h) ∪ {vk }, F (h, vj ) := (fj , πj )
+        if i = j and first fragment from vk = sender then
+           σi := threshold_sign(h)
+           broadcast [proposal(h, σi ), f ragment(h, fi , i, πi )]
+
+  if received proposal(h, σ) from vk then
+     if valid_signature(h, σ) then
+        σ ∗ := σ, h∗ := h
+     else if ((|H(vk )| < 2 or h ∈ H(vk )) and valid_share(h, vk , σ) then
+        H(vk ) := H(vk ) ∪ {h}, S(h, vk ) := σ
+
+
+▶ Theorem 8 (Space complexity). Algorithm Abit has a space complexity of 2ℓmax + O(nκ).
+
+Proof. While honest nodes send fragments for at most one root hash, Byzantine nodes cannot
+send fragments for more than two hashes, resulting in a total of at most t · 2 + (2t + 1) · 1 < 43 n
+fragments of size 32 ℓmax /n each. Thus, the space required to store received fragments is
+upper bounded by 2ℓmax . The other data structures merely contain identifiers and hashes of
+size O(κ). Since they may contain entries for at most 2 hashes per node, it follows that the
+total size of these data structures is bounded by O(nκ).                                          ◀
+
+   Note that the space complexity can trivially be lowered to 32 ℓmax + O(nκ) by introducing
+the rule that received fragments for different hashes from the same node are rejected.
+
+
+ 4      Variant with Threshold Signatures
+
+4.1     Description
+    Algorithm Asig uses signed proposal messages of the form proposal(h, σ), where σ is
+either a signature share of h of a particular node or a signature of h derived from at least
+2t + 1 signature shares. Note that, in practice, it is a signature of h and the identifier in
+order to tie the signature to a particular execution. The algorithm still uses the hash maps
+F , H, and R. Signature shares are collected in the hash map S : H × V → S, where S
+denotes the set of all possible signature shares. We further define that S(h) := ∪v∈V S(h, v).
+In this section, hmax is defined as hmax := arg maxh∈H |S(h)|. In addition to done, each
+node further stores h∗ , the root hash of the message that will be delivered if set, and the
+corresponding signature σ ∗ (initially, h∗ = σ ∗ = ⊥).
+    The steps of algorithm Asig for triggered actions are shown in Algorithm 3. When
+reliable_broadcast is invoked, exactly the same steps as in Algorithm 1 are executed. A
+fragment message is handled the same way as in Abit apart from two differences: h is signed
+and both proposal(h, σi ) and f ragment(h, fi , i, πi ) are broadcast if it is the first (valid)
+fragment received from the sender. When receiving proposal(h, σ) from some node vk , the
+action depends on σ. If it is a valid signature, σ ∗ and h∗ are set to σ and h, respectively.
+
+
+
+                                                                                                       OPODIS 2024
+16:10   Byzantine Reliable Broadcast with Low Communication and Time Complexity
+
+
+           Algorithm 4 Asig : State-based actions at node vi . Initially, F = R = S = {}, h∗ = σ ∗ = ⊥, and
+        done = f alse. Let hmax := arg maxh∈H |S(h)|.
+          if |S(hmax )| ≥ 2t + 1 and h∗ = ⊥ then
+             σ ∗ := compute_signature(S(hmax ))
+             h∗ := hmax
+
+          if h∗ ̸= ⊥ and not broadcast (fi , πi ) := F (h∗ , i) ̸= ⊥ before then
+             broadcast f ragment(h∗ , fi , i, πi )
+
+          if h∗ ̸= ⊥ and |F (h∗ )| ≥ 2t + 1 and not done then
+             broadcast proposal(h∗ , σ ∗ )
+             Execute delivery as in Algorithm 2
+
+
+        Otherwise, if it is a valid signature share and H(vk ) does not contain two hashes different
+        from h, then h is added to H(vk ) and S(h, vk ) is set to σ.
+           The state-based actions are shown in Algorithm 4. If at least 2t + 1 signature shares
+        have been collected for some root hash hmax , then σ ∗ is set to the computed signature and
+        h∗ is set to hmax . Node vi broadcasts fi (including πi ) if h∗ is set, fi is locally available,
+        and it has not been broadcast before. Lastly, if h∗ ̸= ⊥ and |F (h∗ )| ≥ 2t + 1, vi broadcasts
+        proposal(h∗ , σ ∗ ) before executing the same delivery steps as in Algorithm 2.
+
+        4.2    Analysis
+        It is evident from the description of algorithm Asig that honest nodes must set h∗ to the
+        same hash as otherwise the integrity property may be violated. The following lemma states
+        that honest nodes indeed cannot set h∗ to different hashes.
+
+        ▶ Lemma 9. If honest nodes set h∗ , they set it to the same hash.
+
+        Proof. According to Algorithm 3, only the first message from the sender is threshold-signed,
+        i.e., every honest node provides a signature share for at most one hash. However, setting
+        h∗ to some hash h requires 2t + 1 signature shares of h. If we assume that there are two
+        different hashes for which 2t + 1 signature shares have been collected, there must be at least
+        one honest node that threshold-signed two different hashes, which contradicts the rule that
+        honest nodes only threshold-sign at most one hash.                                          ◀
+
+           A Byzantine sender may send fragments for different root hashes to the honest nodes,
+        causing wasteful transmissions of fragments. However, algorithm Asig ensures that the
+        number of transmissions is bounded as the next lemma shows.
+
+        ▶ Lemma 10. Every honest node sends fragments for at most two different root hashes.
+
+        Proof. An honest node vi broadcasts its fragment fi for some root hash h when receiving
+        fi from the sender. Apart from this transmission, according to Algorithm 3, vi only sends
+        fragments associated with h∗ . Since h∗ never changes once set, the claim follows.     ◀
+
+           Since algorithm Asig enforces similar restrictions for the acceptance of messages as
+        algorithm Abit , Lemma 3 holds for Asig as well.
+
+        ▶ Lemma 11. Lemma 3 (“If an honest node v sends a proposal or fragment message to an
+        honest node v ′ , then v ′ accepts and processes the received message.”) holds for Asig .
+T. Locher                                                                                            16:11
+
+
+Proof. Algorithm Asig and Abit share the property that messages for two different hashes are
+accepted from any node. According to Algorithm 3, an honest node broadcasts a signature
+and fragment message for the same hash h when receiving its fragment from the sender.
+Algorithm 4 states that any further transmission of a signature or fragment message must be
+for hash h∗ ̸= ⊥. Since h∗ never changes when set, the claim follows.                     ◀
+
+   The following variant of Lemma 4 holds for algorithm Asig .
+
+▶ Lemma 12. If an honest node delivers m with root hash h, all honest nodes will eventually
+store at least 2t + 1 fragments of m and set h∗ to h.
+
+Proof. The same argument as for algorithm Abit applies, which proves that every honest
+node gets its fragment eventually after an honest node v has delivered a message m for some
+hash h, which it accepts due to Lemma 11. Since v must have computed and broadcast a
+valid signature σ, it eventually holds at all honest nodes that h∗ = h (and σ ∗ = σ). According
+to Lemma 9, honest nodes all set h∗ to the same value. Consequently, every honest node will
+eventually broadcast its fragment and thus also receive at least 2t + 1 fragments of m. ◀
+
+   As in §3, the first main result is that Asig is a correct reliable broadcast algorithm.
+
+▶ Theorem 13. Algorithm Asig implements reliable broadcast in the asynchronous commu-
+nication model with t < n/3 Byzantine nodes.
+
+Proof. The four conditions of reliable broadcast are again proved separately.
+Validity. If the sender v of a message m with root hash h is honest, it sends fj to vj for all
+vj ∈ V . Every honest node vj broadcasts its fragment and signature share and, consequently,
+receives at least 2t + 1 signature shares and fragments eventually. It follows that every honest
+node eventually computes σ ∗ , sets h∗ := h, and proceeds to deliver m.
+Agreement. If two honest nodes v and v ′ deliver different messages m and m′ , they must
+have set h∗ to different hashes, a contradiction to Lemma 9.
+Integrity. Due to Lemma 9, every honest node delivers at most one message.
+Totality. If an honest node v delivers a message m with root hash h, it eventually holds at
+all honest nodes that h∗ = h and |F (h∗ )| ≥ 2t + 1 due to Lemma 12. Since v managed to
+verify the correctness of the fragments and the root hash, it holds that the verification must
+succeed at other nodes as well, which entails that every honest node delivers m.            ◀
+
+   Compared to Abit , the communication complexity of algorithm Asig is worse, which
+appears to be inevitable given that the nodes must broadcast fragments without delay
+to achieve an optimal time complexity. However, the following lemma states that even a
+Byzantine sender cannot induce many (wasteful) transmissions of fragments.
+
+▶ Lemma 14. At most t honest nodes send fragments for 2 different root hashes.
+
+Proof. Let S denote the set of honest nodes that send fragments for more than one root hash.
+Algorithm 3 dictates that honest nodes only send another fragment when h∗ ̸= ⊥. If there
+are t′ ≤ t Byzantine nodes in the execution, at least 2t + 1 − t′ honest nodes must receive their
+fragments for hash h∗ in order to obtain a signature σ ∗ for this hash. Since none of these
+nodes sends fragments for other root hashes, we get that |S| ≤ 3t+1−(2t+1−t′ )−t′ = t. ◀
+
+   As the following theorem shows, Asig achieves an overhead factor of 5/2 for |m| → ∞.
+
+▶ Theorem 15 (Communication complexity). It holds for algorithm Asig that L(n) = 52 .
+
+
+
+                                                                                                    OPODIS 2024
+16:12   Byzantine Reliable Broadcast with Low Communication and Time Complexity
+
+
+        Proof. The dissemination of fragments by the sender requires at most (n − 1)|f | bits, where
+        |f | again denotes the size of the largest fragment message sent by an honest node. Due to
+        Lemma 14, at most t honest nodes broadcast fragments twice, and the other honest nodes
+        broadcast at most one fragment. Additionally, each node sends O(κn) bits for the signed
+        proposal messages and fj to all vj ∈ V \ R(h), where |V \ R(h)| ≤ t < n/3 as before. Hence
+        it follows that C(n, |m|) is at most
+              (n − 1)|f | + (2t + 1)(n − 1)|f | + 2t(n − 1)|f | + t(n − 1)|f | + O(κn2 )
+                < (n − 1)|f | + 53 n(n − 1)|f | + O(κn2 ) < 52 n|m| + O(κn2 log(n)),
+        where the first inequality holds because (5t + 1) < 35 (3t + 1) = 53 n. Thus, L(n) = 25 .       ◀
+
+           It is worth noting that the communication complexity is only worse compared to Abit if
+        the sender deliberately transmits conflicting fragments, i.e., L(n) = 2 still holds otherwise.
+        The main advantage of Asig over Abit is its superior time complexity.
+
+        ▶ Theorem 16 (Time complexity). If the sender is honest, Asig has a time complexity of 2.
+
+        Proof. If the sender is honest, all honest nodes receive their fragments within 1 time unit
+        and broadcast their signature shares and fragments. After 2 time units, all honest nodes
+        must have received at least 2t + 1 signature shares and fragments for the same root hash.
+        Thus, all honest nodes compute the signature σ ∗ and set h∗ , triggering the delivery of m. ◀
+
+           If an honest node v delivers m despite a Byzantine sender, it is straightforward to show
+        that each honest node delivers m at most 2 time units later. While the time complexity of
+        Asig is lower, it has a slightly higher space complexity.
+
+        ▶ Theorem 17 (Space complexity). Algorithm Asig has a space complexity of 52 ℓmax + O(nκ).
+
+        Proof. According to Lemma 14, there are at most t honest nodes that send their fragments
+        for 2 root hashes, i.e., there are at least t + 1 honest nodes that only send their fragment
+        once. Thus, an honest node may store 2t · 2 + (t + 1) · 1 ≤ 35 n fragments of size 32 ℓmax /n for
+        a total of 52 ℓmax . Algorithm Asig also utilizes R, containing at most 2 node identifiers of size
+        O(κ) per node, and S, storing at most 2 signature shares of size O(κ) per node. Thus, the
+        space complexity of these data structures is upper bounded by O(nκ).                            ◀
+
+         5     Practical Considerations
+        In this section, optimizations that may be relevant for practical applications are discussed.
+
+        Partially synchronous communication. Byzantine behavior and unpredictable message
+        latencies are often exceptional situations in practice. While Asig and Abit are both tailored
+        to the asynchronous communication model, they can easily be adapted to the partially
+        synchronous model where periods of synchrony are assumed. Given an upper bound d on the
+        message delay that holds for some periods of time, both algorithms can be modified to improve
+        the communication complexity during these times in the absence of faults. Specifically, the
+        additional constraint can be introduced that at least δ time must have passed since the first
+        fragment was received before delivering m. The following theorem states the effect of this
+        modification on the communication complexity for an algorithm-specific δ.
+
+        ▶ Theorem 18. If communication is synchronous from the start of the execution for δ = 3d
+        (δ = 2d) time and there are no faults, then L(n) = 32 for the adapted version of Abit (Asig ).
+T. Locher                                                                                            16:13
+
+
+Proof. As there are no faults by assumption, Theorem 7 and Theorem 16 imply that all nodes
+receive n fragments after at most 3d (2d) time for Abit (Asig ). Thus, R(h) = V for the root
+hash h of m, which entails that the nodes do not disseminate any additional fragments before
+delivering, resulting in a communication complexity of (n − 1)|f | + n(n − 1)|f | + O(κn) <
+n2 |f | + O(κn) ≤ 23 |m|n + O(κn2 log(n)) and thus L(n) = 32 .                            ◀
+
+     Naturally, this modification does not improve any worst-case bounds because L(n) = 2
+still holds even for t crash failures but it may be beneficial in practice nonetheless.
+
+Simplified structure. The second optimization only concerns Asig . Instead of handling
+fragments and proposals separately, signature shares and signatures can be appended to
+the fragment message. As a result, nodes only send and process messages of a single type.
+Fragments and proposals are kept separate in algorithm Asig to retain as much similarity
+to Abit as possible in order to emphasize the key differences and simplify the presentation.
+This modification requires the addition of a simple rule: a node appends its signature share
+as long as h∗ = ⊥ and the signature σ ∗ otherwise. Note that σ ∗ ̸= ⊥ always holds when
+h∗ ̸= ⊥. Signature shares and signatures are still processed as shown in Algorithm 3.
+    According to Algorithm 4, the signature is broadcast before executing the message delivery.
+It is easy to see that this step can safely be omitted when adding the rule above.
+
+ 6     Lower Bound
+The preceding section showed that an overhead factor of 32 for large messages can be attained
+in practice under normal network conditions and in the absence of faults. In this section, we
+shed light on the question whether we can hope to further improve upon this bound. The
+question is answered in the negative, at least for a specific but relevant class of algorithms.
+    The lower bound holds in the synchronous communication model where all nodes perform
+some computation, send messages, and receive the sent messages within the same round of
+a bounded and known duration. Furthermore, the lower bounds holds in the crash failure
+model where a faulty node stops executing at any point during the execution but it never
+deviates from the correct protocol execution until it fails. In order to utilize the available
+bandwidth efficiently, it is beneficial to minimize the maximum bandwidth consumption
+over all nodes. If each node sends the same amount of data up to a constant factor, the
+algorithm is called balanced [4]. Any imbalance beyond a constant factor is usually due to
+the sender transmitting more data, typically in the first round. We focus on a broader class
+of “weakly balanced” algorithms where the sender can send arbitrarily sized messages to
+other nodes but at most o(|m|n) bits overall in the first round. Note that each node sends
+O(|m| + κn log(n)) bits in both Abit and Asig .
+    We further restrict our attention to reliable broadcast algorithms that, given an honest
+sender, guarantee that all honest nodes deliver m after at most 3 (synchronous) rounds. This
+class of algorithms is interesting because it covers Abit , Asig , as well as other algorithms in
+the literature including the algorithm by Cachin and Tessaro.
+    Formally, a (b, r)-reliable broadcast algorithm is defined as a reliable broadcast algorithm
+that sends messages of size at most b bits in the first round and delivers the message of an
+honest sender at all honest nodes within at most r rounds. Let bj denote the bits (of entropy)
+that the sender sends to vj in the first round according to the given algorithm in some
+                                                                           Pn
+execution without any failures. As mentioned before, we assume that j=1 bj ∈ o(|m|n). (1)
+Let bij further denote the bits that vi sends to vj in rounds 2, . . . , r in the same execution.
+Due to the validity condition and the fact that we consider algorithms with a good-case time
+
+
+
+                                                                                                    OPODIS 2024
+16:14   Byzantine Reliable Broadcast with Low Communication and Time Complexity
+
+
+        complexity of at most r, all honest nodes must receive m by the end of round r. Let Sj
+        denote the set {vi ∈ V | bij > 0}, i.e., the set of nodes that send some bits to vj . Moreover,
+        let R := {vj ∈ V | bj ≥ |m|} denote the set of nodes that receive at least |m| bits in round
+                  Pn                                                               Pn
+        1. Since j=1 bj ∈ o(|m|n), it must hold that |R| ∈ o(n). Let b̄j := |S1j | i=1 bij denote the
+        average number of bits sent to vj from the nodes in Sj in rounds 2, . . . , r.
+             In the following, we consider the case r = 3, which permits a simple strategy to derive a
+        lower bound because a node failing to receive expected messages in the second round can
+        only inform other nodes about the failure in the third round. Requiring a fourth round to
+        send the missing bits violates the requirement that all honest nodes deliver the message by
+        round 3 in case of a non-faulty sender. Therefore, the strategy is simply to mark those nodes
+        as faulty that send many bits in rounds 2 and 3. Given this strategy, it is easy to see that
+        |Sj | > t and b̄j > 0 must hold for any vj ∈ V \ R as otherwise vj may not receive m by the
+        end of round 3. The following lemma provides a lower bound on b̄j for the case |Sj | > t.
+
+        ▶ Lemma 19. For all j ∈ {1, . . . , n}, |Sj | > t, it must hold that b̄j ≥ (|m| − bj )/(|Sj | − t). (2)
+
+        Proof. Note that bj ≥ |m| implies that b̄j ≥ 0, which holds trivially. Thus, we consider the
+        case bj < |m|. Assume that b̄j < (|m| − bj )/(|Sj | − t) and that the t nodes in Sj that send
+        the largest number of bits are faulty and never send anything. Let Sj′ denote the remaining
+        nodes that send bits in rounds 2 and 3. In this case, node vj receives
+                     X
+             bj +             bij ≤ bj + (|Sj | − t)b̄j < bj + (|Sj | − t)(|m| − bj )/(|Sj | − t) = |m|
+                    vi ∈Sj′
+
+
+        bits by the end of round 3, which implies that vj does not receive the whole message.                               ◀
+
+            The following theorem states the main result that the overhead factor must be at least 32
+        for the considered class of algorithms as n tends to infinity.
+
+        ▶ Theorem 20. If communication is synchronous and there are t < n/3 faulty nodes, it
+        holds that L(n, t) ≥ 23 for every (o(|m|n), 3)-reliable broadcast algorithm as n → ∞.
+
+        Proof. The communication complexity is at least
+             n             n X
+                             n                   n
+             X             X                   X X                    X               (2)     X                |m| − bj
+                    bj +             bij ≥                  bij =              |Sj |b̄j ≥              |Sj |
+             j=1           j=1 i=1
+                                                                                                                |Sj | − t
+                                             vj ∈V \R i=1           vj ∈V \R                vj ∈V \R
+                     X         n                           n        X                          n
+             ≥                    (|m| − bj ) = (n − |R|)     |m| −                               bj
+                              n−t                         n−t                                 n−t
+                   vj ∈V \R                                                        vj ∈V \R
+             (1)                  n               n→∞     n         3
+             ≥ (n − |R|)             |m| − o(|m|n) = n         |m| = |m|n.                                                  ◀
+                                 n−t                   n − n/3      2
+
+
+         7         Related Work
+        As mentioned in §1, the first reliable broadcast algorithm, achieving a communication
+        complexity of O(|m|n2 ), was presented by Bracha [6]. An algorithm with a much improved
+        bound of O(|m|n + κn2 log(n)), making use of erasure codes, was published 18 years later by
+        Cachin and Tessaro [9], making use of collision-resistant hash functions of size κ. By contrast,
+        Bracha’s algorithm is error-free, i.e., it does not rely on any cryptographic assumptions.
+            Subsequently, error-free reliable broadcast algorithms with lower communication com-
+        plexity were proposed, guaranteeing bounds of O(n|m| + n4 log(n)) [23] and O(n|m| +
+        n3 log(n)) [22]. While the latter algorithm achieves a lower asymptotic communication
+T. Locher                                                                                            16:15
+
+
+complexity, it is not balanced in that a single node, the sender, must transmit more bits
+than the other nodes. A reliable broadcast algorithm is said to be balanced if all nodes
+send the same number of bits up to a constant factor [4]. Note that the algorithms pre-
+sented in §3 and §4 are both balanced. The best known bound for error-free algorithms
+is O(n|m| + n2 log(n)) [4]. Abraham and Asharov proposed a probabilistic algorithm with
+a similar bound of O(n|m| + n2 log(n3 /ε)), guaranteeing validity but the agreement and
+totality properties only hold with probability 1 − ε [1].
+    It has also been shown how to achieve a communication complexity of O(n|m| + κn2 )
+using only collision-resistant hash functions [11], improving upon the algorithm by Cachin
+and Tessaro. The downside of this algorithm is that it is not balanced and it has a higher
+computational cost. Algorithm Abit introduced in §3 falls into the category of reliable
+broadcast algorithms that rely on collision-resistant hash functions as well. There are reliable
+broadcast algorithms that require other cryptographic primitives. For example, an algorithm
+has been proposed that achieves a communication complexity of O(n|m| + κn2 ) but requires a
+trusted setup for a public key infrastructure and cryptographic accumulators [22]. This bound
+has been improved to O(n|m| + κn + n2 ) using threshold signatures [4]. The algorithm Asig
+defined in §4 uses threshold signatures to achieve an optimal (good-case) time complexity.
+   The best known upper bounds, with and without cryptographic assumptions, are almost
+asymptotically tight considering the lower bound of Ω(n|m| + n2 ) [14]. The algorithms in this
+paper improve the effective communication complexity for large messages by reducing the
+constant of the first term. Moreover, most error-free algorithms, excluding Bracha’s algorithm,
+and also the algorithms that use more cryptographic tooling than hash functions, have a
+higher time complexity than Abit and Asig , the latter having an optimal time complexity [3].
+    Byzantine reliable broadcast has further been studied in a variety of models that differ from
+the model used in most related work. There is a probabilistic algorithm based on stochastic
+samples that allows each property to be violated with a fixed and small probability [17]. An
+algorithm for a model with dynamic membership has also been proposed [16]. There is further
+work on consistent broadcast, a variant of reliable broadcast without the totality property,
+and its applications [7, 25]. Lastly, in an effort to minimize the actual latency and bandwidth
+consumption, simulations have been used to show the efficacy when combining Bracha’s
+algorithm with Dolev’s reliable communication protocol [13] to disseminate messages reliably
+in partially connected networks [5].
+
+
+
+ 8     Conclusion
+
+The mechanism introduced in this paper lowers the communication complexity of Byzantine
+reliable broadcast for large messages. The presented algorithms, which utilize this mechanism,
+further guarantee near-optimal and optimal bounds on the time complexity while also keeping
+the space complexity close to optimal. As mentioned in §1, numerous applications make use
+of reliable broadcast as a subroutine. Therefore, it may be worthwhile to revisit selected
+applications to determine if the presented techniques can be used to obtain stronger results.
+   A fundamental open question is whether a lower communication complexity for large
+messages, i.e., a lower overhead factor, can yet be attained, ideally without increasing the
+time complexity substantially. We conjecture that the lower bound of 3/2, which has been
+shown for a specific class of algorithms, holds more generally, i.e., with one or both of
+the imposed restrictions lifted. Deriving a tight bound for the overhead factor is another
+important avenue for future research.
+
+
+
+
+                                                                                                    OPODIS 2024
+16:16   Byzantine Reliable Broadcast with Low Communication and Time Complexity
+
+
+             References
+         1   Ittai Abraham and Gilad Asharov. Gradecast in Synchrony and Reliable Broadcast in
+             Asynchrony with Optimal Resilience, Efficiency, and Unconditional Security. In Proc. 43rd
+             ACM Symposium on Principles of Distributed Computing (PODC), pages 392–398, 2022.
+             doi:10.1145/3519270.3538451.
+         2   Ittai Abraham, Philipp Jovanovic, Mary Maller, Sarah Meiklejohn, Gilad Stern, and Alin
+             Tomescu. Reaching Consensus for Asynchronous Key Generation. In Proc. 42nd ACM
+             Symposium on Principles of Distributed Computing (PODC), pages 363–373, 2021.
+         3   Ittai Abraham, Kartik Nayak, Ling Ren, and Zhuolun Xiang. Good-case Latency of Byzantine
+             Broadcast: A Complete Categorization. In Proc. 42nd ACM Symposium on Principles of
+             Distributed Computing (PODC), pages 331–341, 2021. doi:10.1145/3465084.3467899.
+         4   Nicolas Alhaddad, Sourav Das, Sisi Duan, Ling Ren, Mayank Varia, Zhuolun Xiang, and
+             Haibin Zhang. Balanced Byzantine Reliable Broadcast with Near-Optimal Communication
+             and Improved Computation. In Proc. 43rd ACM Symposium on Principles of Distributed
+             Computing (PODC), pages 399–417, 2022. doi:10.1145/3519270.3538475.
+         5   Silvia Bonomi, Jérémie Decouchant, Giovanni Farina, Vincent Rahli, and Sébastien Tixeuil.
+             Practical Byzantine Reliable Broadcast on Partially Connected Networks. In Proc. 41st
+             International Conference on Distributed Computing Systems (ICDCS), pages 506–516, 2021.
+             doi:10.1109/ICDCS51616.2021.00055.
+         6   Gabriel Bracha. Asynchronous Byzantine Agreement Protocols. Information and Computation,
+             75(2):130–143, 1987. doi:10.1016/0890-5401(87)90054-X.
+         7   Christian Cachin, Klaus Kursawe, Frank Petzold, and Victor Shoup. Secure and Efficient
+             Asynchronous Broadcast Protocols. In Annual International Cryptology Conference, pages
+             524–541, 2001. doi:10.1007/3-540-44647-8_31.
+         8   Christian Cachin and Jonathan A Poritz. Secure Intrusion-tolerant Replication on the Internet.
+             In Proc. International Conference on Dependable Systems and Networks (DSN), pages 167–176,
+             2002. doi:10.1109/DSN.2002.1028897.
+         9   Christian Cachin and Stefano Tessaro. Asynchronous Verifiable Information Dispersal. In
+             Proc. 24th IEEE Symposium on Reliable Distributed Systems (SRDS), pages 191–201, 2005.
+             doi:10.1109/RELDIS.2005.9.
+        10   George Danezis, Lefteris Kokoris-Kogias, Alberto Sonnino, and Alexander Spiegelman. Narwhal
+             and Tusk: A DAG-based Mempool and Efficient BFT Consensus. In Proc. 17th European
+             Conference on Computer Systems (EuroSys), pages 34–50, 2022. doi:10.1145/3492321.
+             3519594.
+        11   Sourav Das, Zhuolun Xiang, and Ling Ren. Asynchronous Data Dissemination and its
+             Applications. In Proc. ACM SIGSAC Conference on Computer and Communications Security
+             (CCS), pages 2705–2721, 2021. doi:10.1145/3460120.3484808.
+        12   Sourav Das, Thomas Yurek, Zhuolun Xiang, Andrew Miller, Lefteris Kokoris-Kogias, and Ling
+             Ren. Practical Asynchronous Distributed Key Generation. In Proc. IEEE Symposium on
+             Security and Privacy (S&P), pages 2518–2534, 2022. doi:10.1109/SP46214.2022.9833584.
+        13   Danny Dolev. Unanimity in an Unknown and Unreliable Environment. In Proc. 22nd
+             Annual Symposium on Foundations of Computer Science (FOCS), pages 159–168, 1981.
+             doi:10.1109/SFCS.1981.53.
+        14   Danny Dolev and Rüdiger Reischuk. Bounds on Information Exchange for Byzantine Agreement.
+             Journal of the ACM (JACM), 32(1):191–204, 1985. doi:10.1145/2455.214112.
+        15   Sisi Duan, Michael K. Reiter, and Haibin Zhang. BEAT: Asynchronous BFT Made Practical.
+             In Proc. ACM SIGSAC Conference on Computer and Communications Security (CCS), pages
+             2028–2041, 2018. doi:10.1145/3243734.3243812.
+        16   Rachid Guerraoui, Jovan Komatovic, Petr Kuznetsov, Yvonne-Anne Pignolet, Dragos-Adrian
+             Seredinschi, and Andrei Tonkikh. Dynamic Byzantine Reliable Broadcast. In Proc. 24th
+             International Conference on Principles of Distributed Systems (OPODIS), pages 23:1–23:18,
+             2020. doi:10.4230/LIPICS.OPODIS.2020.23.
+T. Locher                                                                                          16:17
+
+
+17   Rachid Guerraoui, Petr Kuznetsov, Matteo Monti, Matej Pavlovic, Dragos-Adrian Seredinschi,
+     and Yann Vonlanthen. Scalable Byzantine Reliable Broadcast. In Proc. 33rd International
+     Symposium on Distributed Computing (DISC), 2019.
+18   Bingyong Guo, Zhenliang Lu, Qiang Tang, Jing Xu, and Zhenfeng Zhang. Dumbo: Faster
+     Asynchronous BFT Protocols. In Proc. ACM SIGSAC Conference on Computer and Commu-
+     nications Security (CCS), pages 803–818, 2020. doi:10.1145/3372297.3417262.
+19   Idit Keidar, Eleftherios Kokoris-Kogias, Oded Naor, and Alexander Spiegelman. All You Need
+     is DAG. In Proc. 42nd ACM Symposium on Principles of Distributed Computing (PODC),
+     pages 165–175, 2021. doi:10.1145/3465084.3467905.
+20   Eleftherios Kokoris Kogias, Dahlia Malkhi, and Alexander Spiegelman. Asynchronous Dis-
+     tributed Key Generation for Computationally-Secure Randomness, Consensus, and Threshold
+     Signatures. In Proc. ACM SIGSAC Conference on Computer and Communications Security
+     (CCS), pages 1751–1767, 2020. doi:10.1145/3372297.3423364.
+21   Andrew Miller, Yu Xia, Kyle Croman, Elaine Shi, and Dawn Song. The Honey Badger of BFT
+     Protocols. In Proc. ACM SIGSAC Conference on Computer and Communications Security
+     (CCS), pages 31–42, 2016. doi:10.1145/2976749.2978399.
+22   Kartik Nayak, Ling Ren, Elaine Shi, Nitin H Vaidya, and Zhuolun Xiang. Improved Extension
+     Protocols for Byzantine Broadcast and Agreement. In Proc. 34th International Symposium on
+     Distributed Computing (DISC), 2020.
+23   Arpita Patra. Error-free Multi-valued Broadcast and Byzantine Agreement with Optimal Com-
+     munication Complexity. In Proc. 15th International Conference On Principles Of Distributed
+     Systems (OPODIS), pages 34–49, 2011. doi:10.1007/978-3-642-25873-2_4.
+24   Irving S. Reed and Gustave Solomon. Polynomial Codes over Certain Finite Fields. Journal
+     of the Society for Industrial and Applied Mathematics, 8(2):300–304, 1960.
+25   Michael K. Reiter. Secure Agreement Protocols: Reliable and Atomic Group Multicast in
+     Rampart. In Proc. 2nd ACM Conference on Computer and Communications Security (CCS),
+     pages 68–80, 1994. doi:10.1145/191177.191194.
+26   Thomas Yurek, Licheng Luo, Jaiden Fairoze, Aniket Kate, and Andrew Miller. hbACSS:
+     How to Robustly Share Many Secrets. In Proc. 29th Annual Network and Distributed System
+     Security Symposium (NDSS), 2022.
+27   Haibin Zhang and Sisi Duan. PACE: Fully Parallelizable BFT from Reproposable Byzantine
+     Agreement. In Proc. ACM SIGSAC Conference on Computer and Communications Security
+     (CCS), pages 3151–3164, 2022. doi:10.1145/3548606.3559348.
+
+
+
+
+                                                                                                  OPODIS 2024
+

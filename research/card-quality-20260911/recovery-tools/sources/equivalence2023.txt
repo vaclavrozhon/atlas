@@ -1,0 +1,911 @@
+                                          A general framework for enumerating equivalence classes of
+                                                                  solutions∗
+                                                  Yishu Wang†, Arnaud Mary* , Marie-France Sagot‡, Blerina Sinaimeri§
+
+
+                                                                                            Abstract
+arXiv:2004.12143v4 [cs.DS] 14 May 2023
+
+
+
+
+                                                   When a problem has more than one solution, it is often important, depending on the
+                                               underlying context, to enumerate (i.e., to list) them all. Even when the enumeration can
+                                               be done in polynomial delay, that is, spending no more than polynomial time to go from
+                                               one solution to the next, this can be costly as the number of solutions themselves may be
+                                               huge, including sometimes exponential. Furthermore, depending on the application, many of
+                                               these solutions can be considered equivalent. The problem of an efficient enumeration of the
+                                               equivalence classes or of one representative per class (without generating all the solutions),
+                                               although identified as a need in many areas, has been addressed only for very few specific
+                                               cases. In this paper, we provide a general framework that solves this problem in polynomial
+                                               delay for a wide variety of contexts, including optimization ones that can be addressed by
+                                               dynamic programming algorithms, and for certain types of equivalence relations between
+                                               solutions.
+
+
+                                         1     Introduction
+                                         Enumerating the solutions of an optimization problem solved by a dynamic programming al-
+                                         gorithm (DP-algorithm) is a classical and well-known question. However, many enumeration
+                                         problems have a huge number of solutions in practice, which might be an issue. From a compu-
+                                         tational point of view, since the number of solutions is a lower bound on the time complexity
+                                         of any enumeration algorithm, it might make the algorithm impractical on real instances. Fur-
+                                         thermore, even if the number of solutions is reasonable enough to be enumerated, the purpose of
+                                         some applications is to give the output of the algorithm to a human specialist (this is necessary,
+                                         for example, when some of the constraints of the problem are subjective and cannot be modeled).
+                                             Indeed, one of the advantages of an enumeration algorithm compared to an optimization one
+                                         which in general outputs only one optimal solution, is to be able to understand the space of
+                                         solutions. While this is important in many cases, no human can understand an output composed
+                                         of billions of solutions.
+                                            ∗ This is a preprint version of the following published paper:           Wang, Y., Mary, A., Sagot, MF.
+                                         et al. A General Framework for Enumerating Equivalence Classes of Solutions. Algorithmica (2023).
+                                         https://doi.org/10.1007/s00453-023-01131-1
+                                            † Université de Lyon, Université Lyon 1, CNRS, Laboratoire de Biométrie et Biologie Evolutive UMR 5558,
+
+                                         F-69622 Villeurbanne, France. Inria Grenoble Rhône-Alpes, Villeurbanne, France. yishu.wang@univ-lyon1.fr.
+                                         arnaud.mary@univ-lyon1.fr
+                                            ‡ Inria Grenoble Rhône-Alpes, Villeurbanne, France. Université de Lyon, Université Lyon 1, CNRS, Laboratoire
+
+                                         de Biométrie et Biologie Evolutive UMR 5558, F-69622 Villeurbanne, France. marie-france.sagot@inria.fr
+                                            § Luiss University, Rome, Italy. Inria Grenoble Rhône-Alpes, Villeurbanne, France. Université de Lyon, Uni-
+
+                                         versité Lyon 1, CNRS, Laboratoire de Biométrie et Biologie Evolutive UMR 5558, F-69622 Villeurbanne, France.
+                                         bsinaimeri@luiss.it
+
+
+
+                                                                                                 1
+    The approach generally used to address this consists of enumerating all solutions, and then
+applying some type of clustering (grouping) algorithm to the set of optimal solutions. The final
+output presented to the user would then be some “representative description” of the clusters
+(groups) themselves. However, since the number of solutions is a lower bound for the total
+execution time of any enumeration algorithm, the first step of such a strategy becomes impossible
+when the number of solutions is too big. A natural question is then whether it would be possible to
+enumerate directly what we just called a “representative description” of the clusters of solutions.
+This could be for instance an element per cluster. Sometimes a cluster can also be seen as a set
+of characteristics that the solutions within the cluster share. In such a case, the representative
+description of a cluster could then be such a set of characteristics. A particularly convenient
+situation is however when the clusters correspond to equivalence classes of an equivalence relation
+over the set of solutions that we could establish a priori. The output could be in this case the
+quotient space of the equivalence relation.
+    Notice that the enumeration of equivalence classes of solutions is a combinatorial problem
+that could be solved exactly given a well-defined equivalence relation, and unlike data analysis
+methods such as incremental clustering, it does not require the definition of a similarity or
+dissimilarity measure between solutions which, depending on the mathematical nature of the
+solutions (numerical values, graphs, functions on graphs, etc.), can be difficult to define or costly
+to compute.
+    The problem this paper addresses is how to perform the task of enumerating equivalence
+classes of solutions with polynomial delay for a wide variety of problems (including optimization
+problems solved by dynamic programming algorithms), for certain types of equivalence relations
+between solutions.
+    The problem of enumerating equivalence classes, and particularly the generation of represen-
+tative solutions is a challenge in the context of enumeration algorithms. It has been identified as a
+need in different areas, such as Genome Rearrangements [10], Artificial Intelligence [1] or Pattern
+Matching [7, 26]. It was listed as an important open problem in a recent Dagstuhl workshop on
+“Algorithmic Enumeration: Output-sensitive, Input-Sensitive, Parameterized, Approximative”
+(see, e.g., Sections 4.2 and 4.10 in [15]). To the best of our knowledge, this challenge has been
+addressed only for some few specific problems in the literature (e.g., [2, 10, 24, 25]).
+    To enumerate equivalence classes, we go through an intermediate problem, namely the enu-
+meration of colored subtrees in acyclic decomposable AND/OR graphs (ad-AND/OR graph).
+The paper is organized as follows: Section 2 provides an algorithm to enumerate with polyno-
+mial delay colored subtrees in ad-AND/OR graphs; Section 3 details how this algorithm applies
+to the enumeration of equivalence classes in DP-problems. In that direction, we present some
+examples from well-known optimization problems in the literature. Finally, in Section 4 we
+conclude with some open problems.
+
+
+2     Enumeration of colored subtrees in an acyclic decom-
+      posable AND/OR graph
+2.1    AND/OR graphs and solution subtrees
+An AND/OR graph (see, for example [23, 27]) is a well-known structure in the field of Logic and
+Artificial Intelligence (AI) that represents problem solving and problem decomposition. In this
+paper, we consider a particular flavor of AND/OR graphs known as explicit AND/OR graphs for
+trees [12].
+    This is a directed acyclic graph (DAG) G which explicitly represents an AND/OR state space
+
+
+                                                 2
+for solving a certain problem by decomposing it into subproblems. The set of nodes (or states)
+S := V (G) contains OR and AND nodes (the OR nodes represent alternative ways for solving
+the problem while the AND nodes represent problem decomposition into subproblems, all of
+which need to be solved). There is a set of goal nodes Sg ⊆ S and a set of start nodes S0 ⊆ S
+representing respectively the terminal states and the initial states. The children (out-neighbors)
+of an OR node are AND nodes, and the children of an AND node are OR nodes or goal nodes.
+We say that a node is an OR+ node when it is either an OR node or a goal node. Furthermore,
+the AND/OR graphs that we consider must have the property of being decomposable (they can
+model a problem for which every decomposition yields disjoint subproblems that can be solved
+independently): for any AND node, the sets of nodes that are reachable from each one of its
+child nodes are pairwise disjoint. The example graph in Figure 1 is decomposable.
+
+
+
+
+Figure 1: An acyclic decomposable AND/OR graph with four start nodes. Squares are OR+
+nodes (OR nodes or goal nodes); crossed circles are AND nodes. One solution subtree of size 8
+is shown in bold.
+
+
+   Formally, in this paper, any graph that satisfies the properties in Definition 1 will be called
+an ad-AND/OR graph. Notice that this definition corresponds only to a particular case of the
+general AND/OR graphs in the AI literature; the latter may be neither acyclic nor decomposable.
+Definition 1 (ad-AND/OR graph). A directed graph G is an acyclic decomposable AND/OR
+graph, henceforth denoted by ad-AND/OR graph, if it satisfies the following:
+   • G is a DAG.
+   • G is bipartite: its node set V (G) can be partitioned into (A, O) so that all arcs of G are
+     between these two sets. Nodes in A are called AND nodes; nodes in O are called OR+
+     nodes.
+   • Every AND node has in-degree at least one and out-degree at least one. The set of nodes
+     with out-degree zero is then a subset of O and is called the set of goal nodes; the remaining
+     OR+ nodes are simply the OR nodes. The subset of OR nodes of in-degree zero is the set
+     of start nodes.
+   • G is decomposable: for any AND node, the sets of nodes that are reachable from each one
+     of its child nodes are pairwise disjoint.
+Definition 2 (solution subtree). A solution subtree T of an ad-AND/OR graph G is a subgraph
+of G which: (1) contains exactly one start node; (2) for any OR node in T it contains one of its
+child nodes in G, and for any AND node in T it contains all its children in G.
+
+
+                                                3
+    It is immediate to see that a solution subtree is indeed a subtree of G: it is a rooted tree, the
+root of which is a start node. If we would drop the requirement of G being decomposable, the
+object defined in Definition 2 would not be guaranteed to be a tree. One solution subtree of the
+example graph in Figure 1 is shown in bold.
+    The set of all solution subtrees of G is denoted by T(G). Given an ad-AND/OR graph G,
+counting the number of its solution subtrees and enumerating all solution subtrees can be solved
+by folklore approaches based on depth-first search (DFS).
+    Before going further, we recall that the motivation of this paper is concerned with solu-
+tions of dynamic programming problems. The correspondence between the solutions of DP-style
+recurrence equations and the solution subtrees of general AND/OR graphs has been formally
+proven in [16]. In the case where the underlying graph is acyclic, the recurrence equations can be
+solved efficiently by DP-algorithms. While we will now concentrate on the solution subtrees of
+an ad-AND/OR graph and on the equivalence classes of solution subtrees, we will demonstrate in
+Section 3 how to apply our algorithms to analyze equivalence classes of solutions of a very general
+class of problems solvable by DP. It is important to point out that solution subtrees of general
+AND/OR graphs are equivalent to various other well-known formalisms, e.g., acceptance trees of
+a nondeterministic tree automata, languages of regular tree grammars, complete subcircuits of
+tropical circuits. The reader who is more familiar with those may also find this paper interesting
+even outside of a dynamic programming context.
+
+2.2    Equivalence classes
+Let G be an ad-AND/OR graph. Let C be an ordered set of colors. We will consider equivalence
+relations on the set of solution subtrees of G which are based on a local comparison of the colors
+of the OR+ nodes. Intuitively, two OR+ nodes having the same color represent two alternative
+ways of solving the problem that can be considered equivalent.
+Definition 3 (e-coloring). An ad-AND/OR graph G is e-colored if its OR+ nodes are colored
+in such a way that for any AND node all its children have distinct colors.
+
+   Notations If s is a OR+ node of G, we denote by c(s) its color. If s is an AND node, we
+denote by C(s)
+           e    the tuple of colors of the children of s sorted in increasing order of the colors. If
+T1 ∈ T(G) is a solution subtree of G, we use the notation π(T1 ) for the result of contracting the
+AND nodes in T1 : for each OR node s of T , contract the only child node of s in T (i.e., remove
+the child and connect s to each one of its “grandchildren”).
+Definition 4 (equivalence class). A node-colored rooted tree T is an equivalence class of solution
+subtrees of an e-colored ad-AND/OR graph G (or shortly an equivalence class of G) if there exists
+a solution subtree T1 of G such that π(T1 ) is equal to T . Such a T1 is said to be a solution subtree
+belonging to the class T .
+
+   More notations We denote by C(G) the set of equivalence classes of G. The notation π
+can be seen as a function π : T(G) → C(G). We denote by π −1 (T ) := {T1 ∈ T(G) | π(T1 ) = T }
+the subset of solution subtrees of G belonging to the class T . The notations c(s) and C(s)
+                                                                                        e   are
+naturally extended to the case where s is a node in an equivalence class T . The root node of a
+rooted tree T is denoted by r(T ). The set of the children of a node s is denoted by Ch(s).
+   An example of an e-colored ad-AND/OR graph with five equivalence classes is given in
+Figure 2.
+
+
+
+
+                                                  4
+                                a
+                                                                         a                       a
+
+                                                                     x       y               x       y
+
+                                                                 a       b       c       c       b       c
+                   y     x      y       x       y
+                                                                 a                   a                   a
+
+                                                             x       y           x       y           x       y
+
+                                                         a       b           c       b           a       b       c
+                  c     b           a       b       c
+
+Figure 2: An e-colored ad-AND/OR graph and its five equivalence classes. The colors of the
+OR+ nodes are written inside the squares.
+
+
+
+2.3     Enumerating equivalence classes
+Given an e-colored ad-AND/OR graph G, we propose a polynomial delay algorithm to enumerate
+all equivalence classes of G. Given a total ordering c1 , . . . , cm of the colors of G, we define a total
+ordering ≺ over C(G), the set of equivalence classes of G. If T and T 0 have their roots colored
+differently, we say that T is smaller than T 0 , denoted by T ≺ T 0 , if the root color of T precedes
+the one of T 0 . If T and T 0 have the same root color, let (T1 , . . . , Tk ) (resp. (T10 , . . . , T`0 )) be the
+child subtrees of r(T ) (resp. r(T 0 )) sorted recursively with respect to ≺. We then say that T
+is smaller than T 0 if the tuple (T1 , . . . , Tk ) is lexicographically smaller than (T10 , . . . , T`0 ), i.e., if
+Ti ≺ Ti0 with i being the smallest index such that Ti 6= Ti0 . We also assume that ∅ is smaller
+than any tree, and therefore a single node tree colored with color c comes before any other tree
+whose root is colored with c in ≺.
+
+2.3.1    Definitions and notations
+Recall that given an AND-node x, C(x)        e       is the tuple of colors of the children of x sorted in
+increasing order. Given an OR-node o, we denote by T (o) the set of color tuples of its children,
+i.e., T (o) := {C(x)
+                 e        : x ∈ Ch(o)}. In other words, a color tuple (c1 , . . . , cj ) belongs to T (o) if o
+has an AND-child node whose children are colored with (c1 , . . . , cj ). If we consider an equivalence
+class T of C(G/{o}) rooted at o, the tuples of T (o) are precisely the possible colorings of the
+children of r(T ). Indeed, if the AND-child node x ∈ Ch(o) is chosen in a solution subtree, then
+C(x)
+ e     will be the colors of the children of o in that solution. Notice that several AND-children
+nodes of o may have the same color tuple.
+     We extend this definition to a set O of OR+ nodes with T (O) = o∈O T (o). In the same
+                                                                                     S
+way, t = (c1 , . . . , cj ) is a color tuple of T (O) if and only if there exists an equivalence class T
+of C(G/O) such that the children of r(T ) are colored with (c1 , . . . , cj ). Given a set O of OR+
+nodes, we denote by t1 , . . . , t|T (O)| the different color tuples of T (O) ordered lexicographically,
+and we denote by Ch` (O) the set of AND-nodes in Ch(O) whose color tuple is t` , i.e., Ch` (O) =
+{x ∈ Ch(O) : C(x) e        = t` }. The sets Ch1 (O), . . . , Ch|T (O)| (O) form a partition of Ch(O), each
+part corresponding to a color tuple ti ∈ T (O).
+     Finally, given a color tuple t` := (c1 , . . . , cj ) ∈ T (O), for each i ≤ j, by Definition 3, each node
+of Ch` (O) has exactly one child with color ci . We denote by Ci` the set of children of Ch` (O)
+
+
+                                                         5
+ Algorithm 1: Next solution
+ 1 Input: A set O of OR+ nodes having all the same color c and an equivalence class T of
+    G/O
+                                            0
+ 2 Output: The equivalence class T of G/O that follows T w.r.t the ≺ ordering.
+ 3 Function Next(T ,O):
+ 4    if T = ∅ and O contains terminal nodes then
+ 5        Return A tree with a single root node colored with c
+ 6    end
+ 7    r←0
+ 8    if T = ∅ or T is a single node tree then
+ 9        r ←r+1
+10        if r > |T (O)| then
+11             Return ⊥
+12        end
+13        Let (c1 , . . . , cj ) be the color tuple of tr ∈ T (O) and let T1 , . . . , Tj ← ∅
+14        O1 ← C1r
+15        `←1
+16    else
+17        Let r be such that tr ∈ T (O) is the root color tuple C(r(T   e      ))
+18        Let (T1 , . . . , Tj ) be the child subtrees of r(T ), the roots of which are colored
+            respectively with (c1 , . . . , cj ) := tr
+19        For all i ≤ j, let Oi ⊆ Cir be the set of nodes in Cir compatible with (T1 , . . . , Ti−1 )
+20        Let ` be the largest index i ≤ j such that Next(Ti ,Oi ) 6= ⊥ if such index exists.
+            Otherwise, T ← ∅ and go to line 8
+21    end
+22      T` ← Next(T` ,O` )
+23      for ` < i ≤ j do
+24         Let Oi ⊆ Cir be the set of nodes in Cir compatible with (T1 , . . . , Ti−1 )
+25         Ti ← Next(∅,Oi )
+26      end
+27      Return A tree with root color c and root child subtrees (T1 , . . . , Tj )
+
+
+colored with ci , i.e., Ci` = {o ∈ Ch(x) : x ∈ Ch` (O), c(o) = ci } (it is a set of “grandchildren” of
+O).
+    In the left panel of Figure 3, an example graph is shown where each node is labeled by an
+integer. The colors are, in increasing order, w, x, y, and z. For O = {1, 2}, the set T (O)
+contains the three tuples t1 = (w, y), t2 = (x, y), and t3 = (x, y, z). We have Ch1 (O) = {6},
+Ch2 (O) = {4, 5}, and Ch3 (O) = {3}. The sets Ci` are C11 = {12}, C21 = {11}, C12 = {9, 10},
+C22 = {8, 11}, C13 = {9}, C23 = {8}, and C23 = {7}.
+
+2.3.2    Algorithm description
+Notice that by definition of ≺, given a set of OR+ nodes O, all having the same color c, and a
+color tuple t` ∈ T (O), all equivalence classes T of G/O such that C(r(T
+                                                                    e      )) = t` are consecutive
+with respect to ≺.
+    The algorithm outputs the equivalence classes in ascending order with respect to ≺. Given
+an equivalence class T of G/O for a set of OR+ nodes O of color c, it will output the equivalence
+
+
+                                                   6
+                                                                               Admissible combinations:
+                       1       a                           2    a
+                                                                                       a             a
+
+              3                    4              5                 6              x       y     x        y
+
+                                                                                   a       c     b        d
+          7 z      8 y              9   x 10 x 11 y                     12 w
+                                                                               Non admissible combinations:
+                                                                                       a             a
+                  13               14        15            16
+                                                                                  x        y     x        y
+                           c            a             b             d
+                           17           18            19        20                a        d     b        c
+
+Figure 3: Left panel: An e-colored ad-AND/OR graph. Right panel: For O = {1, 2}, there are
+four combinations between C(G/C12 ) and C(G/C22 ); only two of them are admissible.
+
+
+class T 0 of G/O that succeeds T w.r.t. ≺ if it exists or output the symbol ⊥ if T is the last
+solution.
+    Assume that the children of r(T ) are colored with the root color tuple (c1 , . . . , cj ) =: tr ∈ T (O)
+and let (T1 , . . . , Tj ) be the child subtrees of T , the roots of which are colored with the tuple tr .
+Notice that for all i ≤ j, Ti is an equivalence class of G/Cir . The algorithm will output the next
+equivalence class T 0 such that C(r(T   e    0
+                                               )) = tr if there remains one (same color tuple at the root),
+                                                              0
+or it will output the first solution such that C(r(T    e       )) = tr+1 ∈ T (O) otherwise (the next color
+tuple at the root).
+    To find the next solution corresponding to the root color tuple tr , the algorithm will replace
+recursively Tj by its successor Tj0 w.r.t. ≺ if there exists one. We obtain the solution T 0 whose
+subtrees are (T1 , . . . , Tj−1 , Tj0 ) which is by definition the successor of T in ≺ whenever Tj0 is the
+successor of Tj . If Tj has no successor (that is, if it is the last one), we replace if possible Tj−1
+                       0
+by its successor Tj−1       and we replace Tj by the smallest admissible solution (i.e., the successor of
+∅). In general, we select at each step the greatest index ` such that T` has a successor w.r.t. ≺,
+we replace it by its successor T`0 and we take the smallest admissible solution for every ` < i ≤ j.
+    Without further care, the above described procedure would output solutions whose child
+subtrees (T1 , . . . , Tj ) of the root correspond to the elements of the Cartesian product of C(G/Cir ),
+i ≤ j. However, while it is true that if T is a solution, its child subtree Ti is an equivalence class of
+G/Cir for all i ≤ j, the converse is not true. Indeed, not all elements of C(G/C1r ) × · · · × C(G/Cjr )
+lead to an admissible solution (an example is given in the right panel of Figure 3). In order to
+find an admissible solution, we should guarantee that the choice of a given Ti is compatible with
+the previous choices (T1 , . . . , Ti−1 ). This is done by selecting the subset of OR+ nodes Oi ⊆ Cir
+that are compatible with (T1 , . . . , Ti−1 ) (see Definition 5 below). An admissible choice of Ti will
+then be any equivalence class of G/Oi . The two key properties are that the set Oi can be easily
+computed, and that it is never empty, i.e., there is always a choice for Ti that is compatible with
+the previous choices of (T1 , . . . , Ti−1 ) (there is at least one choice that corresponds to the current
+solution). Notice that if the latter were not true, the algorithm would not have a polynomial
+delay complexity since we may spend exponential time without reaching a final solution. With
+this property, we are guaranteed that we can always extend a partial tuple (T1 , . . . , Ti ) until we
+reach a complete tuple (T1 , . . . , Tj ) that will form a solution.
+
+
+
+                                                                        7
+Compatible nodes Given a set of OR+ nodes O all colored with the same color c and a tree
+T of C(G/O), we denote by r(π −1 (T )) := {r(S) : S ∈ π −1 (T )} the subset of OR+ nodes of O,
+each one of which is the root of a solution subtree of class T . The following definition formalizes
+the notion of compatible nodes mentioned previously.
+
+Definition 5. Let O be a set of OR+ nodes of color c, tr =: (c1 , . . . , cj ) ∈ T (O), and let
+T1 , . . . , Tk , with k < j, be respectively equivalence classes of C(G/Cir ) for all i ≤ k. We say that
+                   r
+a node o ∈ Ck+1         is compatible with (T1 , . . . , Tk ) if there exists an AND-node x ∈ Chr (O) such
+that o is a child of x and such that r(π −1 (Ti )) contains a child of x for all i ≤ k.
+
+2.3.3    Analysis
+Lemma 6. Let O be a set of OR+ nodes of color c, tr =: (c1 , . . . , cj ) ∈ T (O). Let T ∈ C(G/O),
+let T1 , . . . , Tk , k < j be its first k child subtrees with Ti ∈ C(G/Cir ) for all i ≤ k and let
+Ok+1 ⊆ Ck+1    r
+                     be the set of OR+ nodes compatible with (T1 , . . . , Tk ). Given Tk+1 ∈ C(G/Ck+1
+                                                                                                    r
+                                                                                                       ),
+                           0
+there exists a tree T ∈ C(G/O) whose first k + 1 child subtrees are (T1 , . . . , Tk , Tk+1 ) if and only
+if Tk+1 ∈ C(G/Ok+1 ).
+Proof. (⇒) Assume that there exists a tree T 0 ∈ C(G/O) whose first k + 1 child subtrees are
+(T1 , . . . , Tk , Tk+1 ), and let C be a solution subtree of G/O such that π(C) = T 0 . Let x be the
+AND-child node of the root of C. Notice that since we assumed that Ti ∈ Cir for all i ≤ k,
+C(x)
+ e      = tr , and so x ∈ Chr (O). Let (o1 , . . . , oj ) be the children of x. Since for all i ≤ k we have
+oi ∈ r(π −1 (Ti ), the node ok+1 is compatible with (T1 , . . . , Tk ). Thus Tk+1 ∈ C(G/Ok+1 ) since
+Tk+1 ∈ C(G/{ok+1 }), and ok+1 ∈ Ok+1 .
+    (⇐) Assume now that Tk+1 ∈ C(G/Ok+1 ). There exists ok+1 ∈ Ok+1 and a solution subtree
+Ck+1 of G/{ok+1 } rooted at ok+1 with π(Ck+1 ) = Tk+1 . Since ok+1 ∈ Ok+1 , there exists an
+AND-child node x of a node o in O such that C(x)        e    = tr , and oi ∈ r(π −1 (Ti )) for all i ≤ k where
+oi is the unique child of x of color ci . Therefore, for all i ≤ k, there exists a solution subtree Ci
+of G/{oi } such that π(Ci ) = Ti . Now consider any solution subtree C of G/O rooted at o, with
+o having x as AND-child node and with x having its first k + 1 child solution subtrees equal to
+(C1 , . . . , Ck+1 ). Then the first k + 1 child subtrees of π(C) will be (T1 , . . . , Tk , Tk+1 ).
+Proposition 7. Let T be an equivalence class of G/O for a set O of OR+ nodes of G, all colored
+with the same color c. Then, the function Next of Algorithm 1 is such that:
+   1. Next(∅, O) returns the smallest equivalence class of G/O w.r.t. ≺.
+   2. Next(T, O) returns the equivalence class of G/O that follows T w.r.t. ≺.
+
+   3. if T is the last equivalence class of G/O, Next(T, O) returns ⊥.
+Proof. Let us define the height of G/O, h(G/O) to be the maximum height of an equivalence
+class of G/O, i.e., the number of OR+ nodes in a longest path from O to a goal node minus 1.
+The proof will be done by induction on h(G/O).
+    Assume first that h(G/O) = 0, i.e., O contains only goal nodes. Then G/O has only one
+equivalence class T , which is the single node tree of color c. The call of Next(∅, O) will output it
+in Line 5 of the algorithm, and the call of Next(T, O) will return ⊥ in Line 11 since |T (O)| = 0.
+    Assume now that h(G/O) > 0.
+
+
+
+
+                                                      8
+    Proof of 7.1 If O contains goal nodes, then the smallest equivalence class of G/O with
+respect to ≺ is the single node tree colored with c and Next(∅, O) outputs it in Line 5. Otherwise,
+let T be the smallest equivalence class of G/O and let (T10 , . . . , Tj0 ) be the subtrees of T rooted at
+the children of r(T ). By definition of ≺, the roots of (T10 , . . . , Tj0 ) are colored with the minimum
+color tuple t1 := (c1 , . . . , cj ) of T (O) and by Lemma 6, for all i ≤ j Ti0 is the smallest equivalence
+class of G/Oi where Oi ⊆ Ci1 is the set of nodes of Ci1 compatible with (T10 , . . . , Ti−1     0
+                                                                                                  ). Thus,
+Next(∅, O) will return T in Line 27 since r will receive 1 in Line 9, T1 will receive Next(∅, C11 )
+in Line 22 which is equal to T10 by the induction hypothesis, and for all i ≤ j, Ti will receive
+Next(∅, Oi ) in Line 25 which is equal to Ti0 by the induction hypothesis.
+
+     Proof of 7.2 Let (T10 , . . . , Tj0 ) be the child subtrees of r(T ) and let tr := (c1 , . . . , cj ) be the
+color tuple of T (O) with which their roots are colored. Let T 0 be the equivalence class of G/O
+that follows T with respect to ≺. Notice that the children of r(T 0 ) are either colored with tr or
+with tr+1 if T is the largest equivalence class whose root children are colored with tr .
+     Assume first that the children of r(T 0 ) are colored with the color tuple tr . Let (T100 , . . . , Tj00 )
+be the child subtrees of r(T 0 ) and let Oi ⊆ Cir be the set of nodes of Cir compatible with
+(T10 , . . . , Ti−1
+                0
+                    ) for all i ≤ j. Let ` be the smallest index such that T`0 6= T`00 . We claim that `
+is also the largest index such that T`0 has a successor in C(G/O` ) with respect to ≺, and thus
+that it corresponds to the ` chosen by the algorithm in Line 20. Indeed, assume that there exist
+i < k ≤ j and F ∈ C(G/Ok ) such that Tk0 ≺ F . By Lemma 6, there exists an equivalence
+class of G/O whose first k child subtrees would be (T10 , . . . , Tk−1      0
+                                                                                 , F ). However, in this case such
+an equivalence class would be greater than T and smaller than T 0 with respect to ≺, and it
+would be in contradiction with the fact that T 0 immediately follows T in ≺. Now T` will receive
+Next(T`0 , O` ) in Line 22 which is by the induction hypothesis the tree of C(G/O` ) that follows
+T`0 . Since we assumed that ` is the smallest index such that T`0 6= T`00 , by definition of ≺ and by
+Lemma 6, T`00 is the equivalence class of G/O` that follows T`0 in ≺, and so T` will receive T`00 in
+Line 22. Since for all i ≤ ` Ti0 = Ti00 , and since (T1 , . . . , T`−1 ) are not modified by the algorithm,
+at the end of it, (T1 , . . . , T`−1 , T` ) will be equal to (T10 , . . . , T`−1
+                                                                              0
+                                                                                   , T`00 ) = (T100 , . . . , T`−1
+                                                                                                               00
+                                                                                                                   , T`00 ). It
+now remains to show that Ti will be equal to Ti00 for all ` < i ≤ j. Again, by Lemma 6, for all
+` < i ≤ j, Ti00 is the smallest tree of C(G/Oi0 ) where Oi0 is the set of nodes of Cir compatible
+with (T100 , . . . , Ti−1
+                       00
+                          ) since otherwise, another tree of C(G/O) greater than T and smaller than T 0
+could be built. Thus, in Line 25, Ti will receive Next(∅, Oi0 ) which is equal to Ti00 by the induction
+hypothesis, and T 0 will be returned in Line 27.
+     Assume now that the children of r(T 0 ) are colored with the color tuple tr+1 . In this case, T
+is the greatest tree of C(G/O) with respect to ≺ whose root children are colored with tr . Let
+Oi ⊆ Cir be the set of nodes of Cir compatible with (T10 , . . . , Ti−1        0
+                                                                                    ) for all i ≤ j. We claim that
+  0
+Ti is the greatest tree of C(G/Oi ) for all i ≤ j with respect to ≺. Indeed, assume otherwise
+that there exists Ti00 ∈ C(G/Oi ) with Ti0 ≺ Ti00 . Then by Lemma 6 C(G/O) would contain a tree
+whose root children would be colored with tr which would be larger than T with respect to ≺.
+By the induction hypotheses, Next(Ti0 , Oi ) will therefore return ⊥ for all i ≤ j. So T will receive
+∅ in Line 20 and the algorithm will jump to Line 8, and the next color tuple tr+1 will be selected
+in Line 9. Using now similar arguments to the ones used in the proof of 7.1, the smallest tree
+with respect to ≺ whose root children are colored with tr+1 will be returned.
+
+   Proof of 7.3 Assume now that T is the last equivalence class of G/O. Notice that in this
+case, the root children of T are colored with tr where r = |T (O)|. As previously, Ti0 is the
+greatest tree of C(G/Oi ) for all i ≤ j with respect to ≺ since otherwise a greater tree of C(G/O)
+would exist. By the induction hypothesis, Next(Ti0 , Oi ) would return ⊥ for all i ≤ j. Therefore
+
+
+
+                                                              9
+T will receive ∅ in Line 20 and the algorithm will return to Line 8. Since r = |T (O)|, r will
+receive r + 1 in Line 9 and ⊥ will be returned in Line 11.
+
+
+Theorem 8. Given an e-colored ad-AND/OR graph G, the set C(G) can be enumerated with
+delay O(n · s) where n is the number of nodes of G and s is the maximum size of a solution.
+Proof. To enumerate C(G), we first split the start nodes of G into sets S0 , . . . , Sk according
+to their colors. For each set Si , starting with T = ∅, we repeatedly assign Next(T, Si ) to T
+and output it until T = ⊥. By Proposition 7, this guarantees that we output every solution of
+C(G/Si ) exactly once. Since any solution of C(G) belongs to C(G/Si ) for a given i ≤ k, every
+solution of C(G) will be outputted exactly once.
+    For the complexity, notice that at most one recursive call is performed by the node of the
+next solution. More precisely, if Next(T, O)= T 0 , there will be exactly one recursive call per
+node in T 0 that is not in T , and thus at most s recursive calls will be performed.
+    In each recursive call, both the set T (O) and the partition {Cir }i≤j of grandchildren of O
+can be computed in O(n) time. It remains to show that the sets of compatible nodes Oi , i ≤ j,
+can be computed in O(n) time in total which will conclude the proof. To do this, we should
+be able to compute the sets r(π −1 (Ti )) for all i ≤ j. If Next(T, O)= T 0 , the easiest way is to
+return the set r(π −1 (T 0 )) together with T 0 when the call Next(T, O) returns. This could be done
+by observing that if T ∈ C(G/O) where O is a set of goal nodes all having the same color c,
+then r(π −1 (T )) = O, and if T has child subtrees T1 , . . . , Tj then r(π −1 (T )) is the set of nodes
+of O that has at least an AND-child x such that the children of x contain exactly one node in
+r(π −1 (Ti )) for each i ≤ j, which can be found in O(n) time. Thus only O(n) time is necessary
+at each recursive call to return r(π −1 (T 0 )) in addition to T 0 .
+
+2.4    Restricting the graph to an equivalence class
+After the enumeration of the equivalence classes, it might be interesting to go back to the solutions
+in each class, in particular, one might want to use the number of solutions as a measure for the
+“importance” or “significance” of an equivalence class. We present an algorithm that, given an
+e-colored ad-AND/OR graph G and an equivalence class T , constructs the subgraph GT of G
+restricted to T , that is, a subgraph of G of which the solution subtrees are exactly the ones of G
+                                                    −1
+belonging to the equivalence class T : T(GT ) = πG     (T ) := {T1 ∈ T(G) | π(T1 ) = T }. Once the
+         T
+graph G is obtained, the following questions can be answered (by applying the same method
+as for the unrestricted ad-AND/OR graph G): counting the number of, and enumerating the
+solution subtrees belonging to the class T .
+    Algorithm 2 relies on two recursive functions VisitOR and VisitAND, both taking as input a
+node in G and a node in T . The Require statements are used to specify the preconditions that
+the two parameters of the two Visit functions must verify; it can be checked by inspection that
+these conditions are always satisfied whenever the functions are called. The algorithm performs
+an operation called Mark on the nodes in G. All nodes are initially unmarked; the Mark operation
+changes the state of a node into marked.
+    Recall that π(T1 ) transforms a solution subtree T1 ∈ T(G) into an equivalence class T ∈ C(G)
+by contracting the AND nodes in T1 . For a fixed T1 , we extend this notation and write π(s) =
+π(s1 ) := v for every OR node s in T1 with its unique AND-child node s1 in T1 that are identified
+with the node v in T under the transformation.
+Lemma 9. Let T1 be a solution subtree of G belonging to the class T . For every node s of T1 ,
+there is a call to either VisitOR or to VisitAND of Algorithm 2 with parameters s and π(s),
+depending on whether s is an OR+ node or an AND node.
+
+
+                                                  10
+ Algorithm 2: Restricting the graph to an equivalence class
+   Data: an e-colored ad-AND/OR graph G, an equivalence class T
+   Result: the graph GT
+ 1 Function Main(G, T ):
+ 2   for each start node s0 of G such that c(s0 ) = c(r(T )) do
+ 3       VisitOR(s0 , r(T ))
+ 4   end
+ 5   return GT obtained from G by removing all unmarked nodes
+ 6 Function VisitOR(s, v):
+ 7   Require: c(s) = c(v)
+ 8   if s is a goal node and v is a leaf then
+ 9       Mark(s)
+10       return
+11   end
+12   for each child node si of s in G such that C(s
+                                                e i ) = C(v)
+                                                        e    do
+13       VisitAND (si , v)
+14   end
+15   if at least one child of s is marked then
+16       Mark(s)
+17   end
+18 Function VisitAND(s, v):
+19   Require: C(s)e    = C(v)
+                          e
+20   for each child node si of s do
+21       vi ← the unique child of v such that c(vi ) = c(si )
+22       VisitOR (si , vi )
+23   end
+24   if all children of s are marked then
+25       Mark(s)
+26   end
+
+
+Proof. By top-down induction. The start node of T1 is visited in Line 3 since it has the correct
+color. In the induction step we separate two cases. For an OR+ node s of T1 that is not a start
+node, suppose that the parent s1 of s in T1 is visited in a call VisitAND(s1 , π(s1 )). Then s is
+visited (Line 22), and the second parameter is π(s). In the other case, for an AND node s of
+T1 , suppose that the parent s1 of s in T1 is visited in a call VisitOR(s1 , π(s1 )). Since we have
+π(s) = π(s1 ) and C(π(s
+                   e    1 )) = C(s), the condition at Line 12 is satisfied and s is visited in a call
+                               e
+VisitAND(s, π(s)).
+    The correctness of Algorithm 2 is shown in Proposition 10. We omit the analysis of complexity
+as the algorithm clearly requires a running time that is linear in the size of the graph.
+Proposition 10. The set of solution subtrees of GT , the graph returned by Algorithm 2, is equal
+    −1
+to πG  (T ), i.e., the set of solution subtrees of G belonging to the equivalence class T .
+
+Proof. (First direction) We show that any solution subtree of GT is also a solution subtree of G,
+and that it belongs to the equivalence class T . For every marked OR node, at least one child is
+marked (Line 15); for every marked AND node, all its children are marked (Line 24). A solution
+
+
+                                                 11
+subtree of GT is thus a solution subtree of G. Let T1 be a solution subtree of GT , consider
+the recursion tree of the Visit function calls during which the nodes in T1 are marked. By the
+preconditions of the Visit functions (c(s) = c(v) and C(s)
+                                                       e   = C(v)),
+                                                              e      the tree π(T1 ) is equal to the
+tree formed by the colored nodes that are used as the second parameter v in this recursion tree.
+The latter is simply equal to T (we start with the root of T , then visit each child of the current
+node), so we have π(T1 ) = T . Therefore, every solution subtree of GT belongs to the class T .
+    (Second direction) Let T1 be a solution subtree of G such that π(T1 ) = T , we show that every
+node in T1 is marked by bottom-up induction. By Lemma 9, any goal node s in T1 is visited in a
+call VisitOR(s, π(s)) so s is marked (Line 9) because π(s) is necessarily a leaf. For the induction
+step we separate two cases. Let s be an OR node in T1 , and suppose that all nodes in T1 at
+a smaller height are marked. By the same lemma, s is visited. Then s is marked at Line 16,
+since exactly one child of s is in T1 and is thus marked. In the other case, let s be an AND
+node in T1 and suppose that all nodes in T1 at a smaller height are marked. By the lemma, s
+is visited. Then s is marked at Line 25 because all children of s are in T1 and are thus marked.
+This completes the proof.
+
+
+3     Application to dynamic programming
+3.1     A formalism for tree-sequential dynamic programming
+Since its introduction by Karp and Held [21], monotone sequential decision processes (mSDP)
+have been the classical model for problems solvable by dynamic programming (DP). This for-
+malism is based on finite-state automata. The solutions of DP-problems are thus equivalent to
+languages of regular expressions, or to paths in directed graphs. It is known that Bellman’s
+principle of optimality [5] also applies to problems for which the solutions are not sequential but
+tree-like [9]. Various generalizations have been proposed to characterize broader classes of prob-
+lems solvable by DP or DP-like techniques [11, 19]. In this paper, we consider a framework which
+is the immediate generalization of the mSDP model, i.e., generalizing finite automata (regular
+expressions, paths in DAGs) to finite tree automata (regular tree grammars, solution trees of
+general AND/OR graphs). Further generalizations exist (from trees to graphs of treewidth > 1);
+the collection of these methods is known as Non-serial dynamic programming [6].
+    In this model, a tree-sequential problem can be specified by a finite (bottom-up) tree au-
+tomaton A = (Q, Σ, δ, q0 , QF ), where Q is a finite set of states, Σ is a ranked alphabet, δ is a
+set of transition rules of the form (q1 , . . . , qn , a, q) where q1 , . . . , qn , q ∈ Q and a ∈ Σ, q0 ∈ Q is
+the initial state, QF ⊆ Q is a set of final states. The problem specification also includes a cost
+function. The set L(A) of trees accepted by the tree automaton A defines the set of feasible
+solutions. The minimization problem seeks to minimize the cost function over the set L(A) of
+feasible solutions.
+    We will consider the simple case of a positive additive cost function that always equals zero
+in the initial state. An additive cost function can be defined via an incremental cost function
+I : Q∗ ×Σ → R, where Q∗ consists of tuples of states in Q of the form (q1 , . . . , qn ). I(q1 , . . . , qn , a)
+can be viewed as the cost of attaching n child subtrees to a new root of symbol a. While it might
+seem restrictive to require an additive structure on the cost function, this simple case does cover
+many important problems admitting a DP-algorithm, for instance, Travelling Salesman [4, 18],
+Knapsack [22], or Levenshtein distance [34].
+    In this case, the answer of the minimization problem can be shown to be equal to minq∈QF D(q),
+
+
+
+
+                                                      12
+where D : Q → R≥0 is defined by the following recurrence equations:
+
+                D(q0 ) = 0 ,
+                                                                                                           (1)
+                                                                X
+                for q 6= q0 ,   D(q) =         min                     D(qi ) + I(q1 , . . . , qn , a) .
+                                         (q1 ,...,qn ,a,q)∈δ
+                                                               1≤i≤n
+
+A dynamic programming algorithm for the minimization problem corresponds to an algorithm
+that computes D; the function D is commonly called a dynamic programming table (a DP-tabled,
+also called a DP-array, or a DP-matrix). Needless to say, such an algorithm does not exist in
+general for given arbitrary tree automata and cost functions [20].
+    Using an algebraic approach, Gnesi and Montanari [16] have shown that solving the functional
+Equation (1) corresponds to finding the solution subtrees of a general AND/OR graph. An
+important special case in which DP-algorithms exist is when the underlying AND/OR graph is
+acyclic.
+    When a fixed tree is given as an input to the problem, the underlying AND/OR graph
+is acyclic and decomposable (that is, it is an ad-AND/OR graph). Such problems are hence
+naturally solvable by DP-algorithms. These algorithms are known in folklore under the name
+Dynamic programming on a tree. Many graph-theoretical problems (e.g., maximum matching,
+longest path) can be solved optimally on trees by DP-algorithms. Numerous real-world applica-
+tions also rely on DP-algorithms on trees; examples can be found, for instance, in Data Science
+[30], Computer Vision [14, 33], and Computational Biology [3, 13].
+
+Explicit construction of the ad-AND/OR graph for DP on a fixed tree Due to its
+usefulness for the examples that we will develop next, in the case of DP on a fixed tree, an explicit
+construction of the ad-AND/OR graph from Equation (1) is described below. The construction
+is done in two steps. In the first step, we build a graph in which every node retains an additional
+attribute, its value, and every OR+ node is labeled by a state q ∈ Q. In the second step, we
+prune the graph by removing nodes that do not yield optimal values.
+  1. For each (q0 , a, q) ∈ δ, create a goal node of value 0 labeled by q. Then, for each q 6= q0 in
+     post-order,
+        i. For each (q1 , . . . , qn , a, q) ∈ δ, create an AND node, connect it to the n OR+ nodes
+           labeled by q1 , . . . , qn . Its value is equal to the sum of the values of its children, plus
+           I(q1 , . . . , qn , a).
+        ii. Create a single OR node, connect it to every AND node created in the previous step.
+            Its label is q, and its value is the minimum of the values of its children.
+  2. For each q ∈ QF , remove the OR node labeled by q unless its value is equal to minq∈QF G(q).
+     For each OR node s, remove the arc to its AND-child node si if the value of si is not equal
+     to the value of s. Finally, remove recursively all AND nodes without incoming arcs.
+
+3.2     Examples
+3.2.1    Optimal tree coloring problem
+Description A prototypical problem that fits into the framework of DP on a tree is Optimal
+tree coloring, that is, finding an optimal node-coloring of the input tree. Many problems of
+practical interest reduce to Optimal tree coloring; three concrete examples are given later
+in this section.
+
+
+                                                        13
+    If T is the input (rooted, ordered) tree and C is the set of colors, such a problem seeks a
+coloring φ : V (T ) → C that minimizes the cost function. There can be many constraints on the
+coloring function: some nodes of T may be forced to have a certain color, the possible colors of a
+node may depend on the colors of its descendants. In our tree-sequential dynamic programming
+formalism, a tree automaton and a cost function are given as part of the input. The tree
+automaton defines the set L(A) of feasible coloring functions satisfying all those constraints. A
+state q can be interpreted as a colored subtree of T with a particular root color; the unique initial
+state is an empty coloring and transitions into a colored leaf of T ; a final state corresponds to a
+fully colored T with a particular root color. A commonly used form of cost functions considers the
+(possibly weighted) sum over the edges of the tree of the cost of putting two colorsPon each end of
+an edge, that is, an incremental cost function I of the form I(q1 , . . . , qn , a, p) = 1≤i≤n p(ai , a)
+where ai is the color of the root of the subtree in state qi and p : C 2 → R≥0 is a function that
+gives the cost of putting two colors at each end of an edge.
+
+Equivalence relations on the set of solutions A possible strategy to define equivalence
+classes on the solution space of the Optimal tree coloring problem is to consider some
+colors to be locally equivalent on a node. In practical applications (see the next section), the
+space of colors can be quite large. Even though the precise colors of each node are necessary
+for correctly computing the cost function, when the solutions are analyzed by a human expert,
+it can be desirable to omit the colors and just look at whether the color of a node belongs to
+some group of colors. Therefore, this kind of equivalence relations is natural in many situations.
+Our Definition 4 of equivalence classes of an e-colored ad-AND/OR graph deals exactly with
+equivalence relations of this type.
+    Let e be a function that maps a color c to its “color group” e(c). Two solutions of the
+Optimal tree coloring problem φ1 , φ2 : V (T ) → C are said to be equivalent if ∀u ∈ V (T ),
+e(φ1 (u)) = e(φ2 (u)). Let G be the ad-AND/OR graph associated with this instance. For each
+OR+ node s of G labeled with the state q, where q is interpreted as a colored subtree of T with
+a particular root color c, color the node s with e(c). Then G is e-colored and C(G) corresponds
+to the set of equivalence classes of the solutions of the instance. Notice that the constraint we
+had on the e-coloring of an ad-AND/OR graph is naturally satisfied by any meaningful function
+e because in a DP setting we only consider ordered trees: the i-th and j-th children of a node of
+T cannot be in the same color group unless i = j.
+
+Concrete examples of tree coloring problems
+
+    Example 1 The first example is related to the alignment of gene sequences on a phyloge-
+netic tree [31]. The input is a tree T , a set Σ of letters (DNA alphabet or protein alphabet),
+a function that labels each leaf node of T with a letter, and a distance function d : Σ2 → R≥0
+between two letters. The goal is to extend the leaf labeling to a full labeling φ : V (T ) → Σ such
+that the sum of the distances over the edges of T is minimized. Defining equivalence relations of
+the solutions based on a grouping of the letters is uncontrived in this problem: for the DNA or
+protein alphabet, the letters can be subdivided into structurally similar groups.
+
+   Example 2 The Frequency assignment problems are a family of problems that nat-
+urally arise in telecommunication networks, and that have been extensively studied in graph
+theory as a generalization of graph coloring known as the T-coloring problem [17, 29, 32]. In the
+variant called the list T-coloring, the input is a graph G representing the interference between
+radio stations, a set C of colors, a function S that gives for each vertex v ∈ V (G) a set S(v) ⊆ C
+
+
+                                                  14
+of colors (possible frequencies for a station), and a set T ⊆ C 2 of forbidden pairs of colors (in-
+terfering frequencies). The goal is to find a coloring φ : V (G) → C such that a ∀v ∈ V (G),
+φ(v) ∈ S(v), and ∀(u, v) ∈ E(G), (φ(u), φ(v)) 6∈ T . While this problem is hard in general, it can
+be solved by DP when the underlying graph is a tree. In this case, we can enumerate colorings of
+the input trees without any forbidden pair of colors on the edges. Defining equivalence relations
+by grouping some of the colors together (similar frequencies) can be a practical way of reducing
+the size of the output.
+
+    Example 3 The Tree Reconciliation problem is the main method for analyzing the
+co-evolution of two sets of species, the hosts and their parasites [28]. The input are two phy-
+logenetic trees H, P (of the hosts and of the parasites, respectively), together with a mapping
+φ0 : Leaves(P ) → Leaves(H) that reflects the present-day parasite infections. What needs to
+be enumerated are then all past associations, that is, all mappings of the non-leaf nodes of the
+parasite tree to the nodes of the host tree that optimize a function which overall represents
+the sum of the number of different possible “events” weighted by the inverse of their estimated
+probability. The number of optimal solutions is often huge and, by applying our Algorithm 1,
+the enumeration of biologically inspired equivalence classes have allowed a significant reduction
+(in some cases from 1042 to only 96 classes) of the size of the output while still preserving the
+important biological information (see [35]).
+
+3.2.2    Dynamic programming on tree decomposition of a graph
+Many graph problems can be solved in polynomial time with a dynamic programming algorithm
+when the input graph has bounded treewidth (see for example [8]). The underlying idea is
+that, given a tree decomposition of a graph, the dynamic programming algorithm traverses
+the nodes (bags) of the decomposition and consecutively solves the respective sub-problems. For
+vertex subset optimization problems, given a bag X, a dynamic programming algorithm generally
+computes for each Z ⊆ X the optimal solution of the sub-problem whose intersection with X
+is Z. In this context, we could define two solutions to be equivalent if they intersect each bag
+of the decomposition in an “equivalent” way. The equivalence relation on the solutions is then
+defined by an equivalence relation over the subsets of each bag, and two solutions S1 and S2 are
+equivalent if for all bags X of the decomposition, S1 ∩ X is equivalent to S2 ∩ X.
+    One of the simplest examples is to consider that all the nonempty subsets of vertices of a bag
+are equivalent. Thus, what we are interested in is whether a solution “hits” a bag (i.e., whether
+it has a nonempty intersection with the vertices in the bag). Consequently, two solutions would
+be considered equivalent if they hit the same bags.
+    We can also consider two subsets of a bag to be equivalent if they have the same size. In this
+case, two solutions would be equivalent if each bag contains the same number of vertices in the
+two solutions.
+    We believe that considering solutions in the way they are distributed along the tree decom-
+position of a graph could give a good overview of the diversity of the solution space.
+
+
+4       Conclusion and perspectives
+In this paper, we provide a general framework for the enumeration of equivalence classes of
+solutions in polynomial delay for a wide variety of contexts. This work opens a door to different
+research directions.
+    It would be interesting to ask whether we can efficiently enumerate groups of solutions that
+result from classical clustering procedures, or one representative per group. Moreover, in this
+
+
+                                                15
+paper we heavily rely on the decomposability property of the structure of the solution space.
+It remains open whether the problem of enumerating equivalence classes is hard without this
+restriction.
+
+
+References
+ [1] Steen A. Andersson, David Madigan, and Michael D. Perlman. A characterization of markov
+     equivalence classes for acyclic digraphs. Annals of Statistics, 25(2):505–541, 04 1997. doi:
+     10.7916/D8280JSB.
+ [2] Albert Angel and Nick Koudas. Efficient diversity-aware search. In Proceedings of the
+     2011 ACM SIGMOD International Conference on Management of Data, SIGMOD ’11, page
+     781–792, New York, NY, USA, 2011. Association for Computing Machinery. doi:10.1145/
+     1989323.1989405.
+ [3] Mukul S. Bansal, Eric J. Alm, and Manolis Kellis. Efficient algorithms for the reconciliation
+     problem with gene duplication, horizontal transfer and loss. Bioinformatics, 28(12):i283–
+     i291, 2012. doi:10.1093/bioinformatics/bts225.
+ [4] Richard Bellman. Dynamic programming treatment of the travelling salesman problem.
+     Journal of the ACM, 9(1):61–63, January 1962. doi:10.1145/321105.321111.
+ [5] Richard Bellman. Dynamic Programming. Dover Books on Computer Science. Dover Pub-
+     lications, 2013.
+ [6] Umberto Bertele and Francesco Brioschi. Nonserial Dynamic Programming. Academic
+     Press, Inc., USA, 1972.
+ [7] Anselm Blumer, Janet A. Blumer, David H. Haussler, Ross M. McConnell, and Andrzej
+     Ehrenfeucht. Complete inverted files for efficient text retrieval and analysis. Journal of the
+     ACM, 34(3):578–595, July 1987. doi:10.1145/28869.28873.
+ [8] Hans L. Bodlaender. Dynamic programming on graphs with bounded treewidth. In Timo
+     Lepistö and Arto Salomaa, editors, Automata, Languages and Programming, pages 105–118,
+     Berlin, Heidelberg, 1988. Springer Berlin Heidelberg. doi:10.1007/3-540-19488-6_110.
+ [9] Pierre E. Bonzon. Necessary and sufficient conditions for dynamic programming of combi-
+     natorial type. Journal of the ACM, 17:675–682, 1970. doi:10.1145/321607.321616.
+[10] Marı́lia D.V. Braga, Marie-France Sagot, Celine Scornavacca, and Eric Tannier. Exploring
+     the solution space of sorting by reversals, with experiments and an application to evolution.
+     IEEE/ACM transactions on computational biology and bioinformatics, 5 3:348–56, 2008.
+     doi:10.1109/TCBB.2008.16.
+[11] Joshua Buresh-Oppenheim, Sashka Davis, and Russell Impagliazzo. A stronger model
+     of dynamic programming algorithms. Algorithmica, 60:938–968, 08 2011. doi:10.1007/
+     s00453-009-9385-1.
+[12] Rina Dechter and Robert Mateescu. And/or search spaces for graphical models. Artificial
+     Intelligence, 171(2):73 – 106, 2007. doi:10.1016/j.artint.2006.11.003.
+[13] Beatrice Donati, Christian Baudet, Blerina Sinaimeri, Pierluigi Crescenzi, and Marie-France
+     Sagot. Eucalypt: efficient tree reconciliation enumerator. Algorithms for Molecular Biol-
+     ogy, 10(1):3, 2015. doi:10.1186/s13015-014-0031-3.
+
+
+                                                16
+[14] Pedro F. Felzenszwalb and Daniel P. Huttenlocher. Pictorial structures for object recog-
+     nition. International Journal of Computer Vision, 61(1):55–79, January 2005. doi:
+     10.1023/B:VISI.0000042934.15159.49.
+[15] Henning Fernau, Petr A. Golovach, and Marie-France Sagot. Algorithmic Enumera-
+     tion: Output-sensitive, Input-Sensitive, Parameterized, Approximative (Dagstuhl Seminar
+     18421). Dagstuhl Reports, 8(10):63–86, 2019. doi:10.4230/DagRep.8.10.63.
+[16] Stefania Gnesi, Ugo Montanari, and Alberto Martelli. Dynamic programming as graph
+     searching: An algebraic approach. Journal of the ACM, 28(4):737–751, October 1981. doi:
+     10.1145/322276.322285.
+
+[17] William K. Hale. Frequency assignment: Theory and applications. Proceedings of the IEEE,
+     68(12):1497–1514, 1980. doi:10.1109/PROC.1980.11899.
+[18] Michael Held and Richard M. Karp. A dynamic programming approach to sequencing
+     problems. Journal of the Society for Industrial and Applied Mathematics, 10(1):196–210,
+     1962. doi:10.1137/0110015.
+
+[19] Paul Helman. A common schema for dynamic programming and branch and bound algo-
+     rithms. Journal of the ACM, 36(1):97–128, January 1989. doi:10.1145/58562.59304.
+[20] Toshihide Ibaraki. Classes of discrete optimization problems and their decision prob-
+     lems. Journal of Computer and System Sciences, 8(1):84–116, 1974. doi:10.1016/
+     S0022-0000(74)80024-3.
+
+[21] Richard M. Karp and Michael Held. Finite-state processes and dynamic programming.
+     SIAM Journal on Applied Mathematics, 15(3):693–718, 1967. doi:10.1137/0115060.
+[22] Hans Kellerer, Ulrich Pferschy, and David Pisinger.   Basic Algorithmic Concepts,
+     pages 15–42. Springer Berlin Heidelberg, Berlin, Heidelberg, 2004. doi:10.1007/
+     978-3-540-24777-7_2.
+[23] Alberto Martelli and Ugo Montanari. Optimizing decision trees through heuristically guided
+     search. Communications of the ACM, 21(12):1025–1039, December 1978. doi:10.1145/
+     359657.359664.
+[24] Cristian Molinaro, Amy Sliva, and Vs S. Subrahmanian. Super-solutions: Succinctly rep-
+     resenting solutions in abductive annotated probabilistic temporal logic. ACM Transactions
+     on Computational Logic, 15(3), July 2014. doi:10.1145/2627354.
+[25] Katherine Morrison. An enumeration of the equivalence classes of self-dual matrix codes.
+     Advances in Mathematics of Communications, 9:415, 2015. doi:10.3934/amc.2015.9.415.
+
+[26] Kazuyuki Narisawa, Shunsuke Inenaga, Hideo Bannai, and Masayuki Takeda. Efficient
+     computation of substring equivalence classes with suffix arrays. In Bin Ma and Kaizhong
+     Zhang, editors, Combinatorial Pattern Matching, pages 340–351, Berlin, Heidelberg, 2007.
+     Springer Berlin Heidelberg. doi:10.1007/s00453-016-0178-z.
+[27] Nils J. Nilsson. Principles of Artificial Intelligence. Springer-Verlag Berlin Heidelberg,
+     Tioga, Palo Alto, CA, 1982.
+
+[28] Roderic D. M. Page. Tangled trees: phylogeny, cospeciation, and coevolution. The University
+     of Chicago Press, 2003.
+
+
+                                              17
+[29] Fred S. Roberts. T-colorings of graphs: recent results and open problems. Discrete Mathe-
+     matics, 93(2):229–245, 1991. doi:10.1016/0012-365X(91)90258-4.
+[30] Lior Rokach and Oded Z. Maimon. Data Mining with Decision Trees: Theory and Ap-
+     plications. Series in machine perception and artificial intelligence. World Scientific, 2008.
+     doi:10.1142/9097.
+
+[31] David Sankoff. Minimal mutation trees of sequences. SIAM Journal on Applied Mathematics,
+     28(1):35–42, 1975. doi:10.1137/0128004.
+[32] Barry A. Tesman. List t-colorings of graphs. Discrete Applied Mathematics, 45(3):277–289,
+     1993. doi:10.1016/0166-218X(93)90015-G.
+
+[33] Olga Veksler. Stereo correspondence by dynamic programming on a tree. In 2005 IEEE
+     Computer Society Conference on Computer Vision and Pattern Recognition (CVPR’05),
+     volume 2, pages 384–390, 2005. doi:10.1109/CVPR.2005.334.
+[34] Robert A. Wagner and Michael J. Fischer. The string-to-string correction problem. Journal
+     of the ACM, 21(1):168–173, January 1974. doi:10.1145/321796.321811.
+
+[35] Yishu Wang, Arnaud Mary, Marie-France Sagot, and Blerina Sinaimeri. Capybara:
+     equivalence class enumeration of cophylogeny event-based reconciliations. Bioinformatics,
+     36(14):4197–4199, 2020. doi:10.1093/bioinformatics/btaa498.
+
+
+
+
+                                               18
+

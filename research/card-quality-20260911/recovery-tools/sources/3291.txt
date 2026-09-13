@@ -1,0 +1,1269 @@
+Sparsification of Directed Graphs via Cut Balance
+Ruoxu Cen
+Duke University, Durham, NC, USA
+Yu Cheng
+University of Illinois at Chicago, IL, USA
+Debmalya Panigrahi
+Duke University, Durham, NC, USA
+Kevin Sun
+Duke University, Durham, NC, USA
+
+      Abstract
+In this paper, we consider the problem of designing cut sparsifiers and sketches for directed graphs.
+To bypass known lower bounds, we allow the sparsifier/sketch to depend on the balance of the
+input graph, which smoothly interpolates between undirected and directed graphs. We give nearly
+matching upper and lower bounds for both for-all (cf. Benczúr and Karger, STOC 1996) and for-each
+(Andoni et al., ITCS 2016) cut sparsifiers/sketches as a function of cut balance, defined the maximum
+ratio of the cut value in the two directions of a directed graph (Ene et al., STOC 2016). We also
+show an interesting application of digraph sparsification via cut balance by using it to give a very
+short proof of a celebrated maximum flow result of Karger and Levine (STOC 2002).
+2012 ACM Subject Classification Theory of computation → Sparsification and spanners
+Keywords and phrases Graph sparsification, directed graphs, cut sketches, space complexity
+Digital Object Identifier 10.4230/LIPIcs.ICALP.2021.45
+Category Track A: Algorithms, Complexity and Games
+Related Version Full Version: https://arxiv.org/abs/2006.01975
+Funding Debmalya Panigrahi and Kevin Sun: This work was supported in part by NSF grants
+CCF-1535972, CCF-1955703, and an NSF CAREER Award CCF-1750140.
+
+Acknowledgements Part of the work was done while Yu Cheng was visiting the Institute for
+Advanced Study.
+
+
+ 1      Introduction
+Graph sparsification, originally introduced by Benczúr and Karger as a means of obtaining
+faster maximum flow algorithms [8], has become a fundamental tool in graph algorithms. The
+goal of graph sparsification is to replace an arbitrary graph with a sparse graph (called the
+graph sparsifier) on the same set of n vertices but with only O(n·poly(log n, 1/ϵ)) edges, while
+approximately preserving the value of every cut up to a factor of 1 ± ϵ for any given ϵ > 0.
+Since their work, several graph sparsification techniques have been discovered (e.g., [17]), the
+idea has been extended to other models of computation such as data streaming (e.g., [1])
+and sketching (e.g., [6]), stronger notions such as spectral sparsification that preserves all
+quadratic forms have been proposed (e.g., [43]), and far-reaching generalizations such as
+the Kadison-Singer conjecture have been established [37]. On the applications front, graph
+sparsification has been heavily used to obtain a tradeoff between algorithmic accuracy and
+efficiency for a variety of “cut-based” problems such as maximum flows, minimum cuts,
+balanced separators, etc.
+    In spite of its widespread use, one restriction is that most sparsification techniques only
+apply to undirected graphs. There is a fundamental reason for this restriction – there are
+directed graphs that cannot be sparsified (see Fig. 1 for an example). Indeed, the lower
+            © Ruoxu Cen, Yu Cheng, Debmalya Panigrahi, and Kevin Sun;
+                                                                                                     EA
+
+
+
+
+            licensed under Creative Commons License CC-BY 4.0
+                                                                                                     TC S
+
+
+
+
+48th International Colloquium on Automata, Languages, and Programming (ICALP 2021).
+Editors: Nikhil Bansal, Emanuela Merelli, and James Worrell; Article No. 45; pp. 45:1–45:21
+                   Leibniz International Proceedings in Informatics
+                   Schloss Dagstuhl – Leibniz-Zentrum für Informatik, Dagstuhl Publishing, Germany
+45:2   Sparsification of Balanced Directed Graphs
+
+
+
+                                                  𝑢             𝑣
+
+                                              𝑆                                                                𝑆
+
+                                                                                       𝑢
+
+
+
+                                                                                                        𝑣
+
+           Figure 1 The graph is a complete bipartite graph where all edges go from the left vertices L to
+       the right vertices R. For any u ∈ L and v ∈ R, the only edge that leaves the set S = {u} ∪ (R \ {v})
+                                                                                            𝑆                      𝐴
+       is the edge (u, v). Consequently, if we want to preserve the value of all directed cuts in this graph,              𝑆
+       we have to (approximately) store the weight of every edge.               𝐴                                      𝑢
+                                                                                                        𝐵
+                                                                                                    𝑣
+       bound holds even for cut sketches, where one does not insist on a graph being output as the
+       sparsifier, but simply a succinct data structure from which the cut values of the original
+       graph can be (approximately) retrieved.
+           A qualitative distinction between directed and undirected graphs is in terms of the balance
+       of cuts, i.e., the ratio between incoming and outgoing edges in any given cut. An equivalent
+       view of an undirected graph is by bi-directing its edges, which results in a graph with perfect
+       balance, i.e., every cut has exactly the same number of incoming and outgoing edges.1 Cut
+       balance, therefore, smoothly interpolates between undirected and directed graphs, which
+       leads to the question: can we design cut sparsifiers/sketches for directed graphs that depend
+       on cut balance? We answer this question in the affirmative in this paper, and show that this
+       view of sparsification leads to interesting consequences.
+           We note that the use of cut balance to bridge between undirected and directed graphs
+       predates our work. Ene et al. [15] introduced the notion of parameterizing digraphs by their
+       cut balance (or simply balance) and defined it as the largest ratio between the value of a cut
+       in its two directions. Using this view, they extended two classic operations on undirected
+       graphs – oblivious routing and fast approximate maximum flows – to directed graphs with a
+       dependence on the balance. In this paper, we show that this phenomenon is exhibited by cut
+       sparsification as well.
+
+       1.1    Our Results
+       We consider the two canonical forms of cut sparsification considered in the literature. The first
+       is the classic version introduced by Benczúr and Karger [8], where all cuts must simultaneously
+       be approximately preserved whp;2 we call this for-all sparsification. The second, more relaxed,
+       notion is due to Andoni et al. [6], where any cut must be approximately preserved whp
+       instead of all cuts simultaneously; we call this for-each sparsification. For both these notions
+       of sparsification, previous results on undirected graphs can be extended to β-balanced graphs
+       by boosting sampling probabilities in undirected sparsification algorithms by a factor of β,
+       thereby losing an additional factor of β in the size of the sparsifier/sketch (see also Ikeda
+       and Tanigawa [20]). Is it possible to do better than losing a factor of β?
+
+
+       1
+         Note that all Eulerian digraphs, whether or not derived from undirected graphs, exhibit perfect cut
+         balance.
+       2
+         with high probability
+R. Cen, Y. Cheng, D. Panigrahi, and K. Sun                                                               45:3
+
+
+    Our first result sharpens this naïve bound in for-each sparsification, by constructing cut
+                                                  √
+sketches that improve the dependence on β to β. We also show that this dependence
+is tight by constructing a matching lower bound. This pair of results resolves the precise
+dependence of for-each sparsification in directed graphs on the balance of the graph.
+
+▶ Theorem 1 (Upper Bound). For any β-balanced graph with n vertices, m edges, and polyno-
+                                                 √
+mially-bounded edge weights, there is an O(m
+                                         e    + βn/ϵ)-time algorithm3 that constructs a
+                                       √
+(1 ± ϵ) for-each cut sketch of size O(
+                                    e βn/ϵ) bits.
+(Lower Bound) Fix any β ≥ 1, 0 < ϵ < 1, and n such that (β/ϵ)1/2 ≤ n/2. Any (1 ± ϵ)
+for-each cut sketching algorithm for β-balanced graphs with n vertices must output at least
+   √    √
+Ω( βn/ ϵ) bits in the worst case.
+
+    In for-all sparsification, we are not as lucky; we show that the linear dependence on
+β is tight in this case. (In fact, Ikeda and Tanigawa [20] had conjectured that better
+for-all sparsifiers can be constructed by sampling edges according to directed connectivity
+parameters; our lower bound construction refutes this conjecture and shows that such more
+aggressive sampling may not produce a sparsifier at all.)
+
+▶ Theorem 2. Fix any β ≥ 1, 0 < ϵ < 1, and n such that β/ϵ ≤ n/2. Any (1 ± ϵ) for-all
+cut sketching algorithm for n-node β-balanced graphs must output at least Ω(nβ/ϵ) bits.
+
+    But, we note that the upper bound only applies to digraphs where all cuts are β-balanced.
+In general, the balance parameter for different cuts in a digraph may be highly non-uniform:
+some cuts could be very balanced and some others very unbalanced. For such graphs, we
+show a more refined result: for any value β ≥ 1, we construct a sparsfier that approximately
+preserves all β-balanced cuts losing only an additional factor β in the size of the sparsifier.
+Note that this result holds for any value of β irrespective of the balance parameter of the
+graph; if β is the balance parameter, then it recovers the tight bound for β-balanced graphs.
+
+▶ Theorem 3. For any directed graph with n vertices, m edges, and non-negative edge
+weights, and any β ≥ 1, there is an O(m)-time
+                                    e         algorithm that returns a (weighted) subgraph
+            2
+with O(βn/ϵ ) edges and preserves the values of all β-balanced cuts up to a factor of 1 ± ϵ.
+     e
+
+   We remark that digraph sparsification using cut balance has interesting consequences.
+In particular, note that for residual graphs produced by s-t maximum flow algorithms in
+undirected graphs, we can precisely bound the balance parameter on all cuts separating the
+source and the sink. Using this observation, we give a very short proof of the celebrated
+maximum flow result of Karger and Levine [27] via the digraph sparsification results.
+
+1.2      Our Techniques
+First, we outline the main ideas in our for-each cut sketch. In previous results on for-each cut
+sketches of undirected graphs [6, 21], the main idea was to (recursively) partition the graph
+into “sparse” and “dense” parts, and then maintain the sparse parts exactly along with a
+sample of the dense parts. A directed subgraph, however, can simultaneously be too dense
+to preserve exactly but also not amenable to sampling (e.g., a complete bipartite digraph).
+Of course, the balance parameter helps bridge this gap, but the cut balance of a subgraph
+that the algorithm encounters during recursion can be much worse than that of the original
+
+
+3
+    This runtime bound assumes that the value of β is known. If not, then β can be computed using an
+                                    e 2 m) time.
+    algorithm of Ene et al. [15] in O(β
+
+
+
+
+                                                                                                       ICALP 2021
+45:4   Sparsification of Balanced Directed Graphs
+
+
+       graph. Indeed, individual subgraphs might not even be strongly connected (i.e., have balance
+       ∞), even if the original graph were Eulerian (i.e., has balance 1). This makes the (recursive)
+       local sketching techniques in previous works unusable for directed graphs.
+           Our main technical contribution is a new global cut sketch construction. We design a cut
+       sketch whose variance can be large on individual dense regions of the input digraph that are
+       well-connected in an undirected sense, but we crucially show that the cumulative variance
+       of our estimator across all these well-connected regions of the digraph is small. This helps
+       eliminate the need for local cut sketches in each dense subgraph, and simplifies the recovery
+       algorithm to the natural estimator that appropriately scales the number of sampled edges in
+       the queried cut. Moreover, to obtain the right dependence on β, we need to carefully analyze
+       the variance of our estimator. Our new variance analysis works for undirected graphs as
+       well, which tightens the analysis of [6] and consequently leads to undirected cut sketching
+       algorithms that do not require downsampling or low-accuracy for-all sparsifiers.
+           Next, we turn to for-all sparsification. Our first result is the lower bound on for-all
+       sparsifiers and cut sketches. For any β and n, we construct a family G of β-balanced graphs
+       on n vertices that satisfies two conflicting properties: G is a large family, yet for each graph
+       G ∈ G, the number of graphs in G that approximate all cuts of G is small. For any graph G
+       and cut S, let δG (S) denote the value of S and EG (S) denote the edges crossing S. Notice
+       that there are many possible graphs H such that δH (S) ≈ δG (S), because EH (S) and EG (S)
+       could differ in numerous ways. Thus, to ensure that the number of cut approximators is
+       small, we carefully design G such that for any G, H ∈ G and cut S, if δH (S) ≈ δG (S), then
+       EH (S) ≈ EG (S). We show that this can be done by considering a large family of bipartite
+       graphs that all contain a fixed (directed) matching. Consequently, any sketching algorithm
+       must produce a large number of different cut sketches for the graphs in G, which translates
+       to a lower bound on the size of the cut sketches using standard information theory.
+           Finally, we refine for-all sparsification in digraphs by showing that we can preserve all
+       balanced cuts, irrespective of the balance parameter of the entire graph G. More specifically,
+       at a cost of an additional factor of β in the size of the sparsifer, we can preserve all β-balanced
+       cuts, and provide an approximation for α-balanced cuts with α > β that degrades gracefully
+       as α gets larger. For this purpose, we adopt a (recursive) graph decomposition due to
+       Benczúr and Karger [8] that expresses a graph as a weighted sum of subgraphs, each of
+       which corresponds to a particular edge sampling rate. Now we can boost the (undirected)
+       sampling rate by a factor of β. If the balance of every subgraph in the decomposition is
+       also β, then the undirected analysis carries over to the directed case. However, in general,
+       each subgraph can be very unbalanced, so we cannot bound the estimation error in each
+       individual subgraph. Our main technical contribution is to show that even though we do not
+       preserve the cut values in individual subgraphs, we do so globally across all the subgraphs.
+
+       1.3    Related Work
+       Graph Sparsification. Graph sparsification was introduced by Benczúr and Karger [8]
+       (“for-all” cut sparsification), and has led to research in a number of directions: Fung et al. [17]
+       and Kapralov and Panigrahy [26] gave new algorithms for preserving cuts in a sparsifier;
+       Spielman and Teng [43] generalized to spectral sparsfiers that preserved all quadratic forms,
+       which led to further research both in reducing the size of the sparsifier [42, 7] and developing
+       faster algorithms (e.g., [34, 5, 35, 11, 33, 30, 32, 31]); faster algorithms for fundamental
+       graph problems such as maximum flow utilized sparsification results (e.g., [8, 40]); Ahn and
+       Guha [1] introduced sparsification in the streaming model, which has led to a large body
+       of work for both cut (e.g., [2, 3, 18]) and spectral sparsifiers (e.g., [25, 24, 23, 4]) in graph
+R. Cen, Y. Cheng, D. Panigrahi, and K. Sun                                                            45:5
+
+
+streams; both cut [29, 38] and spectral [41] sparsification have been studied in hypergraphs.
+For lower bounds, Andoni et al. [6] showed that any data structure that (1 ± ϵ)-approximately
+stores the sizes of all cuts in an undirected graph must use Ω(n/ϵ2 ) bits. Carlson et al. [10]
+improved this lower bound to Ω(n log n/ϵ2 ) bits, matching existing upper bounds.
+    Andoni et al. [6] first proposed the notion of “for-each” cut (and spectral) sketches, where
+the sparsifier preserves the value of any cut rather than all cuts simultaneously. They showed
+that for any undirected graph with n vertices, a (1 ± ϵ) for-each cut sketch of size O(n/ϵ)
+                                                                                          e
+exists and can be computed in polynomial time. Subsequently, Jambulapati and Sidford [21]
+gave the first nearly-linear time algorithm for constructing (1 ± ϵ) for-each graph sketches of
+size O(n/ϵ).
+      e       Their sketch not only approximates cut values, but also approximately preserves
+the quadratic form of any undirected Laplacian matrix (and its pseudoinverse). Chu et
+al. [11] showed how to construct a graph containing O(n    e 1+o(1) /ϵ) edges that satisfies the
+“for-each” requirement for spectral queries.
+
+Directed Graphs. Cohen et al. [14, 13] proposed a directed notion of spectral sparsifiers
+and used it to obtain nearly-linear time algorithms for solving directed Laplacian linear
+systems and computing various properties of directed random walks. However, their directed
+spectral sparsifiers only work for Eulerian graphs, i.e., for β = 1. Zhang et al. [44] proposed
+a notion of spectral sparsification that works for all directed graphs, but their definition does
+not preserve cut values. More generally, there have been attempts at bridging the divide
+between directed and undirected graphs for other problems. For instance, Lin [36] defined
+the imbalance of a graph as the sum of the absolute difference of in- and out-capacities
+at all vertices, and used it to generalize the max-flow algorithm of Karger and Levine [27]
+from undirected graphs to digraphs. Digraphs have also been parameterized by directed
+extensions of treewidth [22], and similar notions of DAG-width [9, 39] and Kelly-width [19],
+which led to FPT algorithms based on these parameters, much like for undirected bounded
+treewidth graphs. In spectral graph theory, directed analogs of Cheeger’s inequality have
+been defined [12], particularly in the context of analyzing the spectrum of digraphs. Closest
+to our work is that of Ene et al. [15] who proposed cut balance of digraphs that we use in
+this paper, although in the context of oblivious routing and max-flow algorithms.
+
+ 2     Preliminaries
+Basic Notations. Let G = (V, E, w) be a weighted directed graph with n = |V | vertices and
+m = |E| edges. Every edge e ∈ E has a given non-negative weight we ≥ 0. When working
+with unweighted graphs, (i.e., we = 1 for all e ∈ E), we will omit the edge weights we .
+   For two sets of vertices S ⊆ V and T ⊆ V , we use E(S, T ) = {(u, v) ∈ E : u ∈ S, v ∈ T }
+                                                                              P
+to denote the set of edges in E that go from S to T . We use w(S, T ) = e∈E(S,T ) we to
+denote the total weight of the edges from S to T . For a vertex u ∈ V and a set of vertices
+S ⊆ V , we write E(u, S) for E({u}, S), and we define E(S, u), w(u, S), and w(S, u) similarly.
+   We often write S as a shorthand for V \ S. Given a component Vi and a subset of its
+vertices Si ⊆ Vi , we can similarly define Si = Vi \ Si . For example, using this notation, we
+write w(S, S) for w(S, V \ S) and similarly w(Si , Si ) = w(Si , Vi \ Si ).
+   The conductance of an undirected graph G = (V, E, w) is defined as
+                         w(S, S)
+     ϕ(G) = min                           .                                                 (1)
+            ∅̸=S⊂V min w(S, V ), w(S, V )
+
+▶ Definition 4 (β-Balanced). A strongly connected digraph G = (V, E, w) is β-balanced if,
+for all ∅ ⊆ S ⊆ V , it holds that w(S, S) ≤ β · w(S, S).
+
+
+
+                                                                                                    ICALP 2021
+45:6   Sparsification of Balanced Directed Graphs
+
+
+       Directed Cut Sparsifiers and Cut Sketches. We consider two notions of sparsification.
+       The first is the classic “for-all” sparsifier that approximately preserves the values of all cuts.
+
+       ▶ Definition 5 (For-All Cut Sparsifier). Let G = (V, EG , wG ) and H = (V, EH , wH ) be two
+       weighted directed graphs. Fix 0 < ϵ < 1. We say H is a (1 ± ϵ) for-all cut sparsifier of G iff
+       the following holds for all S ⊆ V :
+            (1 − ϵ) · wG (S, V \ S) ≤ wH (S, V \ S) ≤ (1 + ϵ) · wG (S, V \ S).
+
+          Instead of a graph that preserves cut values, if we allow any data structure from which
+       the cut values can be (approximately) recovered, we call it a cut sketch.
+
+       ▶ Definition 6 (For-All Cut Sketch). Let G = (V, E, w) be a weighted directed graph. Fix
+       0 < ϵ < 1. A (deterministic) function g outputs a (1 ± ϵ) for-all cut sketch of G if there
+       exists a recovering function f such that, for all S ⊆ V :
+            (1 − ϵ) · w(S, V \ S) ≤ f (S, sk(G)) ≤ (1 + ϵ) · w(S, V \ S).
+
+          Next we consider a weaker notion of graph sparsification, where instead of approximating
+       the value of all cuts, we only require the value of any individual cut to be approximately
+       preserved with (high) constant probability.
+
+       ▶ Definition 7 (For-Each Cut Sketch). Let G = (V, E, w) be a weighted directed graph. Fix
+       0 < ϵ < 1. A function g outputs a for-each (1 ± ϵ)-cut sketch of G if there exists a recovering
+       function f such that, for each S ⊆ V , with probability at least 2/3,
+            (1 − ϵ) · w(S, V \ S) ≤ f (S, g(G)) ≤ (1 + ϵ) · w(S, V \ S).
+
+        3      For-All Sparsification: O(n
+                                       f   · β/ϵ2 ) Upper Bound
+       In this section, we extend the seminal work of Bencúr and Karger [8] to directed graphs
+       using cut balance. For undirected graphs, they showed that sampling every edge inversely
+       proportional to a quantity known as its strength (see Definition 11) preserves all cuts with
+       high probability. We show that, by boosting this sampling probability by a factor of β, this
+       procedure can preserve the value of β-balanced cuts in any directed graph.
+           We then show that this sampling theorem can be applied in a black-box manner to recover
+       the analysis of a celebrated maximum flow algorithm for undirected graphs given by Karger
+       and Levine [27]. At each step of the algorithm, they sample edges from the residual network
+       (which is directed) of an undirected graph. Using a customized version of the sparsification
+       result from Benczúr and Karger [8], they show that with high probability, the sample contains
+       an augmenting path. In contrast, our sampling procedure can be applied directly to the
+       residual network, which simplifies the analysis of the algorithm.
+           The following theorem is our main result of this section:
+
+       ▶ Theorem 8. Let G = (V, E) be a directed graph where each edge e has weight ue ≥ 0, and
+       let ϵ, β be parameters. There is an O(m)-time
+                                              e          algorithm that returns a weighted subgraph H
+       that satisfies the following with high probability: for every α-balanced cut U ,
+                   r        !                             r       !
+                      α+1                                    α+1
+              1−ϵ             · δG (U ) ≤ δH (U ) ≤ 1 + ϵ           · δG (U ).
+                      β+1                                    β+1
+
+       where δG (U ) and δH (U ) denote the cut value of U in G and H, respectively. Furthermore,
+       H contains O(βn log n/ϵ2 ) edges in expectation.
+R. Cen, Y. Cheng, D. Panigrahi, and K. Sun                                                           45:7
+
+
+   Note that for the special case where the graph G is β-balanced, Theorem 3 is implied by
+Theorem 8: all cut values are preserved. This is the main result of Ikeda and Tanigawa [20].
+
+▶ Corollary 9 (Ikeda and Tanigawa [20]). Consider the same setting as Theorem 8. If G is
+β-balanced, then with high probability, H approximates every cut of G up to a (1 ± ϵ) factor.
+
+    Before proving Theorem 8, we give an application of digraph sparsification to the maximum
+flow problem. In particular, we prove the correctness of the O(m    e   + nv)-time maximum
+flow algorithm given by Karger and Levine [27], where v is the value of the maximum flow.
+This algorithm is an adaptation of the classic augmenting paths algorithm of Ford and
+Fulkerson [16], but with the following crucial observation. Let f denote the current flow
+value in any iteration, and γ = (v − f )/v denote the fraction of remaining flow in the residual
+network. Karger and Levine [27] show that, by boosting the undirected sampling procedure
+of Benczúr and Karger [8] by a factor of 1/γ and applying it to the residual network, the
+resulting sample contains an augmenting path with high probability. This saves on running
+time since the search for an augmenting path can then be performed on the sampled graph
+instead of the entire residual network. (See the full paper for more details.)
+    In contrast, we show that we can directly apply digraph sparsification to the residual
+network, with β = 2/γ to obtain a short proof of the Karger-Levine theorem:
+
+▶ Theorem 10 (Karger and Levine [27]). Suppose we apply the algorithm in Theorem 8 to
+the residual network in a maximum flow computation, with ϵ = 0.1 and β = 2/γ, where
+γ = (v − f )/v is the fraction of flow remaining in the residual network. Then with high
+probability, there is an augmenting path in the sample.
+
+Proof. We claim that every s-t cut S in the residual graph is β-balanced, where β = 2/γ.
+Suppose S initially contains capacity c ≥ v, and currently, x units of flow are entering S.
+Since the flow value is (1 − γ)v, the amount of flow leaving S is x + (1 − γ)v. At the same
+time, the x units of flow entering S create a residual capacity of x leaving S. Thus, the total
+residual capacity leaving S is c − x − (1 − γ)v + x = c − (1 − γ)v. We can similarly show
+that the residual capacity entering S is c + x + (1 − γ)v − x = c + (1 − γ)v. Thus, in the
+                                              c+(1−γ)v
+residual graph, the balance of S is at most c−(1−γ)v    ≤ 2−γ
+                                                           γ ≤ γ.
+                                                                 2
+
+    Now by setting ϵ = 0.1 and β = 2/γ, Theorem 8 implies that the sparsifier H preserves
+all (2/γ)-balanced cuts up to a (1 ± 0.1) factor with high probability. Since every s-t cut is
+(2/γ)-balanced, this implies that there exists an augmenting path in H, as desired.          ◀
+
+   In the rest of this section, we prove Theorem 8. Before we give our algorithm, we state
+the definitions and results that we need from previous work.
+
+▶ Definition 11 (Strength and strong components). The strength of an edge e, denoted by
+ke , is the largest k such that there exists a k-edge-connected vertex-induced subgraph of G
+containing e. A k-strong component is the subgraph induced by edges with strength at least k.
+
+▶ Lemma 12 (Benczúr and Karger [8]). The strong components of an undirected graph form
+a laminar family, and a graph on n vertices has at most n − 1 nontrivial strong components.
+
+▶ Lemma 13 (Benczúr and Karger [8]). In any graph with edge weights ue and strengths ke ,
+we have e ue /ke ≤ n − 1. Furthermore, there exists an O(m log3 n)-time algorithm that
+         P
+                                                                      P
+returns, for every edge e, an estimate e                   ke ≤ ke and e ue /e
+                                       ke of ke satisfying e                 ke = O(n).
+
+
+
+
+                                                                                                   ICALP 2021
+45:8   Sparsification of Balanced Directed Graphs
+
+
+          We now describe our algorithm (Algorithm 1). The input is a directed graph where each
+       edge e has weight ue . We first compute approximate edge strengths eke as given in Lemma 13.
+                                                             ke , where β ≥ 1 is a chosen parameter.
+       Then we sample each edge e proportional to (β + 1)ue /e
+       We choose the weight of the sampled edges so that we get an unbiased estimator.
+
+            Algorithm 1 For-all sparsification for directed graphs.
+            Input  : An n-vertex directed graph G = (V, E, u) with edge weights ue , 0 < ϵ < 1,
+                     β ≥ 1, and a constant d > 2.
+          Output : A subgraph H that satisfies Theorem 8.
+        1 Use Lemma 13 to compute an estimated edge strength e   ke ≤ ke for every edge e ∈ E.
+                                    2
+        2 Let ρ = 3d(β + 1) log n/ϵ .
+        3 for each edge e ∈ E do
+        4    Sample e with probability pe = ρ · ue /e
+                                                    ke .
+        5    if e is sampled then add e to H with weight we = e  ke /ρ.
+        6   return H.
+
+
+           Now we analyze the output H of Algorithm 1. Without loss of generality, we assume
+       that the algorithm uses the actual edge strengths ke rather than the estimates e       ke . This is
+       because e ke ≤ ke and it does not hurt to oversample in importance sampling.
+           For each strong component Gi of G (see Definition 11), let Hi denote the corresponding
+       component in H. Because the way we choose sampling probabilities and edge weights in H,
+       we have E [Hi ] = Gi . Let αi = (ki − kp(i) )/ρ where p(i) is Gi ’s parent in the laminar family
+       formed by strong components (see Lemma 12). As shown by Benczúr and Karger [8], this
+                                                                                      P
+       results in a decomposition of G into its strong components, that is, G = i αi Gi .
+           For a component Gi and a cut U , let δGi (U ) be the total capacity of edges leaving U in
+                     un
+       Gi , and let δG i
+                         (U ) be the corresponding value for the undirected version of Gi . The following
+       lemma shows that for every strong component Gi , with high probability, δGi (U ) is preserved
+       in H up to a relative error for every cut U .
+
+       ▶ Lemma 14. Let H be the output of Algorithm 1. For each strong component Gi (defined
+                                                                               −d+2
+                                                                     q 1 − O(n
+       in Definition 11), the following holds with probability at least             ): for any cut U ,
+                                                                       un (U )/(δ (U )(β + 1)).
+       we have δHi (U ) − δGi (U ) ≤ ζ(U ) · δGi (U ) where ζ(U ) = ϵ δG i       Gi
+
+
+       Proof. For any cut U , let δp (U ) denote the sum of ue /ke over the (undirected) edges crossing
+       Uj in Gi . Order the r cuts intersecting Gi such that 1 = δp (U1 ) ≤ · · · ≤ δp (Ur ), and let
+                                                            
+          qj = Pr δHi (Uj ) − δGi (Uj ) > ζ(U ) · E δHi (Uj ) .
+
+       By a Chernoff bound, we have
+                                                        !                               !
+                         (ζ(U ))2 · δGi (Uj )                         ϵ2 · δG
+                                                                            un
+                                                                                (Uj )
+            qj ≤ 2 exp −                                    = 2 exp −         i
+                                                                                            ,         (2)
+                                  3                                     3(β + 1)
+
+       where the equality follows substituting the definition of ζ(U ). Let E(i, j) denote the set of
+       edges crossing Uj in Gi . Since each edge e in Gi has weight pe , we have
+
+             un
+                             X                 X        3d(β + 1)ue
+            δG   (Uj ) =              pe =                          · log n,
+               i
+                                                           ϵ2 ke
+                           e∈E(i,j)          e∈E(i,j)
+R. Cen, Y. Cheng, D. Panigrahi, and K. Sun                                                                        45:9
+
+
+Substituting this into Eq. (2) shows
+                                     
+                      X ue
+   qj ≤ 2 exp −d              · log n = 2n−d·δp (Uj ) .
+                            ke
+                     e∈E(i,j)
+
+
+Since δp (Uj ) ≥ 1, we have qj ≤ 2n−d , so
+    X
+         qj ≤ n2 · 2n−d = 2n−d+2 = O(n−d+2 ).                                                             (3)
+     j≤n2
+
+
+For j ≥ n2 , we express j as j = n2λ . The number of λ-minimum cuts is at most j (see, e.g.,
+                                                                              j
+Karger and Stein [28]) and δp (U1 ) = 1, so δp (Uj ) ≥ λ, so δp (Uj ) ≥ 2log
+                                                                           log n . This implies, for
+j ≥ n2 , qj ≤ 2n−(d log j)/(2 log n) = 2j −d/2 . Combining this with Eq. (3), we can conclude
+   X                           Z ∞
+                 −d+2
+        qj ≤ O(n       )+2          j −d/2 dj = O(n−d+2 ).                                        ◀
+     j≥1                        n2
+
+
+     Now we are ready to prove Theorem 8.
+                                                                                                 P
+Proof of Theorem 8. By Lemma 13, the expected number of edges in H is                              e pe    =
+O(βn log n/ϵ2 ), as claimed. Now consider an α-balanced cut U . We have
+                         X                              X
+   δH (U ) − δG (U ) =      αi δHi (U ) − αi δGi (U ) ≤   αi δHi (U ) − δGi (U ) .
+                           i                                        i
+
+Taking a union bound over all strong components, we know that with high probability,
+Lemma 14 holds for every strong component. Thus, the quantity above is at most
+   X                        X      q
+      αi ζ(U ) · δGi (U ) =          un (U )δ (U )/(β + 1)
+                              α i ϵ δGi      Gi
+      i                         i
+                                          sX
+                             ϵ                       un (U )
+                                                               X
+                         ≤√                      αi δG             αi δGi (U )         (Cauchy-Schwarz)
+                            β+1              i
+                                                       i
+                                                               i
+                                     ϵ
+                                          q
+                                            un (U )δ (U ).
+                                                                                  P
+                         =√                δG       G                            ( i αi δGi (U ) = δG (U ))
+                                    β+1
+                                      un
+We conclude the proof by noting that δG  (U ) ≤ (α + 1) · δG (U ), since U is α-balanced.                  ◀
+
+
+ 4         For-All Sparsification: Ω(n · β/ϵ) Lower Bound
+Our goal in this section to prove a lower bound whose dependence on β matches the linear
+upper bound given by Ikeda and Tanigawa [20] on the size of for-all cut sketches:
+
+▶ Theorem 15. Fix β ≥ 1 and 0 < ϵ < 1 where β/ϵ ≤ n/2. Any (1 ± ϵ) for-all cut sketching
+algorithm for n-node β-balanced graphs must output Ω(n · β/ϵ) bits in the worst case.
+
+   We prove a special case of our lower bound for β = Θ(n) and ϵ = Θ(1) (Lemma 16).
+The proof for this special case contains the main ideas of our lower-bound construction for
+general values of β and ϵ. We defer the proof of Theorem 15 to the full paper.
+
+▶ Lemma 16. Let β = 8n and let ϵ be a sufficiently small universal constant. Any (1 ± ϵ)
+for-all cut sketching algorithm for n-node β-balanced graphs must output Ω(βn) bits in the
+worst case.
+
+
+
+                                                                                                                ICALP 2021
+45:10   Sparsification of Balanced Directed Graphs
+
+
+            We give an overview of how we prove Lemma 16. We can w.l.o.g focus on deterministic cut
+        sketching algorithms, because running time is not a concern in Lemma 16, any randomized
+        sketching algorithm can be derandomized by enumerating all possible coin flips.
+            We will choose a set of graphs G such that the following conditions hold:
+            Every graph in G is β-balanced.
+            The size of G is large (Lemma 17).
+            There exists a ℓ with |G|/ℓ = 2Ω(βn) such that, for every graph G ∈ G, there are at most
+            ℓ graphs in G that can share a (1 ± ϵ)-cut sketch with G (Lemma 18).
+        This way, each cut sketch works for at most ℓ graphs in G, so any algorithm must produce
+        at least |G|/ℓ = 2Ω(βn) different cut sketches for all graphs in G, which implies that the
+        algorithm must output at least log2 (|G|/ℓ) = Ω(βn) bits.
+            Formally, consider the set of graphs G2n with 2n vertices defined as follows: every graph
+        G ∈ G2n is an unweighted bipartite graph with bipartitions L, R satisfying |L| = |R| = n.
+        Fix a perfect matching from L to R. The set G2n is defined to contain all graphs G such
+        that the edges from L to R is exactly this perfect matching (and the set of edges from R to
+        L are arbitrary). Let G2n,β ⊆ G2n be the subset of graphs in G2n that are β-balanced.
+            As described above, Lemma 17 gives a lower bound on the size of G2n,β .
+
+        ▶ Lemma 17. Let n0 be a sufficiently large universal constant. If n ≥ n0 and β = 8n, then
+                     2
+        |G2n,β | ≥ 2n /2 .
+
+            The next lemma upper bounds the maximum number of graphs in G that can share an
+        (1 ± ϵ)-cut sketch. Notice that if G and H have the same (1 ± ϵ)-cut sketch, then H must be
+        a (1 ± 3ϵ)-cut sparsifier of G.
+
+        ▶ Lemma 18. Let ϵ > 0 be a sufficiently small universal constant. For every G ∈ G2n , the
+                                                                                    2
+        number of graphs in G2n that are (1 ± 3ϵ)-cut sparsifiers of G is at most 2n /4 .
+
+             We now prove Lemma 16 and defer the proofs of Lemmas 17 and 18 to the full paper.
+
+        Proof of Lemma 16. We work with graphs with 2n vertices (rather than n vertices) to make
+        the presentation easier. This is equivalent because we aim to prove a lower bound of Ω(βn).
+            Fix any (1 ± ϵ) for-all cut sketching algorithm. Consider running this algorithm on all
+        graphs in G2n,β . Every graph in G2n,β is β-balanced, so the algorithm must map every
+        G ∈ G2n,β to a bit string (i.e., cut sketch), and graphs that are not (1 ± 3ϵ)-cut sparsifiers
+                                                                                                   2
+        of each other must be mapped to different strings. By Lemma 17, there are at least 2n /2
+                                                         n2 /4
+        graphs in G2n,β , and by Lemma 18, at most 2           graphs can be mapped to the same bit
+                                                                 n2 /2    2
+        string. Therefore, the algorithm must output at least 22n2 /4 = 2n /4 distinct bit strings. This
+                                                            2
+        implies that the algorithm must output at least n4 = 32
+                                                             1
+                                                                βn bits in the worst case.            ◀
+
+                                                     √
+         5      For-Each Cut Sketch: O(n
+                                     f   ·               β/ϵ) Upper Bound
+        In this section, we give an upper bound on the size of cut sketches in the for-each setting.
+
+        ▶ Theorem 19. Let G be an n-vertex β-balanced graph with edge weights in [1, poly(n)].
+        There exists a (1 ± ϵ) for-each cut sketch of size O(nβ 1/2 log3 n/ϵ) bits that approximates the
+        value w(S, V \ S) of every directed cut S ⊆ V with high probability.
+
+             We will prove a lower bound of Ω(n · (β/ϵ)1/2 ) bits in Section 6.
+R. Cen, Y. Cheng, D. Panigrahi, and K. Sun                                                           45:11
+
+
+Overview of Our Approach. Our approach is inspired by the cut sketching algorithm for
+undirected graphs by Andoni et al. [6]. We first partition the edges into ℓ = O(log n) disjoint
+sets (Ei )ℓi=1 based on their weights. Edges in Gi = (V, Ei , w) have roughly the same weight
+and we can essentially treat Gi as an unweighted graph. For each graph Gi , we ignore edge
+directions, and iteratively remove and store edges belonging to sparse cuts.
+    Note that Gi may not be balanced. Even when Gi is balanced, the dense components of
+Gi may not be balanced. Despite this, we show that we can estimate the dense components’
+contribution to the cut value via random sampling. This is because we can bound the
+variance within each component, and in the end, upper bound their sum (i.e., the overall
+variance) using the β-balance condition.
+    One of our main technical contributions is to derive a tighter upper bound on the variance
+of random sampling. If we trace our analysis back to the undirected case, we remove some
+redundant terms in the analysis of [6]. This tighter variance bound is critical, because we
+cannot obtain the right space dependence on β without it (see the full paper). In addition, our
+new analysis can be traced back to the undirected case, which will simplify the algorithm of [6].
+We can obtain a for-each sketching algorithms for undirected graphs without downsampling
+or low-accuracy for-all sparsifiers, and the output is a graph.
+
+5.1    Sketching and Recovery Algorithms
+Let G = (V, E, w) be an n-node β-balanced directed graph with edge weights we ∈ [1, poly(n)].
+It is worth noting that, when constructing the cut sketch, we do not know the cut query
+S ⊆ V . The cut query S is only given as input to the recovery algorithm.
+
+The Sketching Algorithm. We describe our overall cut sketching algorithm (Algorithm 2).
+We partition the edges into O(log n) weight classes. For each weight class, we iteratively
+store and remove all edges that belong to some λ-sparse cut (defined in Equation 4). When
+there are no λ-sparse cuts remain, we sample α incoming and outgoing edges at each vertex
+among the remaining edges. The values of λ and α will be specified later in our analysis.
+    For a directed graph G = (V, E, w), we say a cut (S, S) is λ-sparse if the following holds:
+                                            
+    |E(S, S)| + |E(S, S)| ≤ λ · min |S|, |S| .                                             (4)
+
+
+The Recovery Algorithm. Algorithm 3 is our recovery algorithm that queries the cut
+sketch sk(G) (i.e., the output of Algorithm 2). We first establish some notation. Recall
+that Algorithm 2 decomposes G into (Gi )ℓi=1 according to the edge weights. Let Vi = (Vij )j
+denote the set of dense components in Gi after we iteratively remove the sparse cuts in Gi .
+    Algorithm 3 approximates w(S, S) by adding the total contribution of the sparse-cut
+edges and the dense-component edges. Let JS denote the total weight of sparse-cut edges
+that go from S to S in all of the graphs Gi (which we store deterministically). Let IS be the
+estimator for the total weight of dense-component edges leaving S in all Gi as defined in
+Algorithm 3. Algorithm 3 returns IS + JS as the final answer.
+
+Correctness and Size Guarantees. We state the correctness of our recovery algorithm
+(Algorithm 3) in Lemma 20 and the output size of our sketching algorithm (Algorithm 2) in
+Lemma 21. Theorem 19 follows immediately from Lemmas 20 and 21; we prove the latter
+before proving the former.
+▶ Lemma 20 (Correctness of Algorithm 3). Let sk(G) be the output of Algorithm 2. Fix a
+cut query S ⊆ V . With probability at least 2/3, the value (IS + JS ) returned by Algorithm 3
+on input (S, sk(G)) satisfies (IS + JS ) − w(S, S) ≤ O(ϵ) · w(S, S).
+
+
+                                                                                                    ICALP 2021
+45:12   Sparsification of Balanced Directed Graphs
+
+
+
+             Algorithm 2 Compute a (1 ± O(ϵ)) for-each cut sketch.
+
+             Input  : An n-vertex β-balanced graph G = (V, E, w) with edge weights
+                      we ∈ [1, poly(n)], and 0 < ϵ < 1.
+                                                                              1/2
+           Output : A (1 ± O(ϵ)) for-each cut sketch sk(G) of size O(nβe          /ϵ).
+                          1/2
+         1 Set α = λ = β      /ϵ.
+         2 Partition the edges into ℓ = O(log n) weight classes E1 , . . . , Eℓ where
+            Ei = {e : we ∈ [2i−1 , 2i )}.
+         3 Each weight class Ei defines a (possibly unbalanced) graph Gi = (V, Ei , w).
+         4 for i = 1 to ℓ do
+         5    while there exists a λ-sparse cut (defined in Equation (4)) in Gi do
+         6        Remove all edges (in both directions) in this cut and store them in sk(Gi ).
+         7    In sk(Gi ), store the (dense) components {Vij }j of Gi .
+         8    For every Vij and every u ∈ Vij , store the number of (remaining) incoming and
+               outgoing edges at u in Gi , i.e., din                           out
+                                                  ij (u) = |Ei (Vij , u)| and dij (u) = |Ei (u, Vij )|.
+         9    At each vertex u ∈ V , sample with replacement α edges from the (remaining)
+               outgoing edges (u, v) and store them in sk(Gi ). Do the same for incoming edges.
+                             S
+        10 return sk(G) =      i sk(Gi ).
+
+
+
+
+             Algorithm 3 Query the cut value w(S, S) from sk(G).
+
+           Input : A cut query S ⊆ V and a cut sketch sk(G) (output of Algorithm 2).
+         1 for each sk(Gi ) in sk(G) do
+         2    for each dense component Vij in Gi do
+         3        Let Sij denote the smaller set of (Vij ∩ S) and (Vij ∩ S).
+         4        if Sij = Vij ∩ S then
+         5            Estimate the total weight of edges leaving Sij : For every u ∈ Sij , set
+                                                  α
+                                         dout
+                                          ij (u)
+                                                 X
+                            ISij (u) =               χij (u, q)wij (u, q)                           (5)
+                                            α    q=1
+
+
+                         where dout
+                                  ij (u) is the out-degree of u in Vij , χij (u, q) = 1 if the q-th
+                         sampled outgoing edge at u crosses S and χij (u, q) = 0 otherwise, and
+                         wij (u, q) is the weight of the q-th sampled edge.
+         6       else
+         7          Estimate the total weight of edges entering Sij = Vij ∩ S instead:
+         8          For every u ∈ Sij , set ISij (u) as in (5), using din                 out
+                                                                       ij (u) instead of dij (u), and
+                      χij (u, q) indicates if the q-th sampled incoming edge at u crosses S.
+                                                                    P
+         9       The estimated contribution from Vij is IVij = u∈Sij ISij (u).
+                                                               P
+        10    The estimated contribution from Gi is IGi = Vij ∈Gi IVij .
+                          P
+        11 Compute IS =      i IGi , the estimate of the cut value from all dense-component edges.
+        12 Compute JS , the total weight of λ-sparse cut edges that leaves S in all Gi ’s.
+        13 return IS + JS .
+R. Cen, Y. Cheng, D. Panigrahi, and K. Sun                                                           45:13
+
+
+▶ Lemma 21 (Output Size of Algorithm 2). The output sk(G) of Algorithm 2 has size
+                   1/2
+O(n(λ
+e     + α)) = O(nβ
+              e        /ϵ).
+
+Proof. Without loss of generality, we assume ϵ = Ω(1/n), otherwise we can store all edges
+exactly using O(n/ϵ)
+                e       bits. Algorithm 2 produces ℓ = O(log n) weight classes; each weight
+class defines a graph Gi . In every Gi :
+    First we iteratively store and remove edges in λ-sparse cuts. We can upper bound the
+    total number of edge removed using the following charging argument: When a λ-sparse
+    cut is removed, we charge the cut size evenly to the vertices on the smaller side of the cut.
+    Since the cut is λ-sparse, every vertex on the smaller side gets charged at most λ edges.
+    Each vertex can be charged at most O(log n) times because it can be in the smaller side
+    O(log n) times. Therefore, sk(G) stores at most O(λn log n) sparse edges, which takes
+    O(λn log2 n) bits.
+    On the remaining graph, the connected components are disjoint, so we can also store the
+    partition of vertices into these dense components in O(n log n) bits.
+    We can store the (remaining) in- and out-degree of every vertex in O(n log n) bits.
+    We sample O(α) edges at each vertex in V , which requires O(αn log n) bits.
+Thus, for every Gi we store O(λn log2 n + n log n + αn log n) = O(n(λ + α) log2 n) bits. Since
+α = λ = β 1/2 /ϵ, the size of sk(Gi ) is O(nβ 1/2 log2 n/ϵ). The size of sk(G) = i sk(Gi ) is
+                                                                                S
+
+
+   O(log n) · O(nβ 1/2 log2 n/ϵ) = O(nβ 1/2 log3 n/ϵ).                                        ◀
+
+   Now we prove Lemma 20 (the correctness of Algorithm 3). Note that it follows immediately
+from the following lemma and Chebyshev’s inequality.
+
+▶ Lemma 22. The estimator returned in Algorithm 3 is unbiased, i.e., E [IS ] + JS = w(S, S).
+Moreover, the variance of IS is Var [IS ] ≤ O(β/αλ)w(S, S)2 .
+
+Proof of Lemma 20. Algorithm 2 sets α = λ = β 1/2 ϵ−1 , so Lemma 22 implies Var [IS ] ≤
+O(ϵ2 ) · w(S, S)2 . By Chebyshev’s inequality, with probability at least 2/3,
+
+    (IS + JS ) − w(S, S) ≤ O(ϵ) · w(S, S).                                                    ◀
+
+   To prove Theorem 19, all that remains is to prove Lemma 22.
+
+Proof of Lemma 22. Recall that our estimator is
+        XX X
+   IS =           ISij (u),
+          Gi Vij u∈Sij
+
+where i sums over the graphs Gi defined according to the edge weights, j sums over the dense
+components in each Gi after all sparse cuts are removed, and u sums over the vertices of
+Sij . Without loss of generality, we can assume |Vij ∩ S| ≤ |Vij ∩ S| and hence Sij = Vij ∩ S.
+Otherwise, Algorithm 3 works with Vij ∩ S and queries for the incoming edges instead. Under
+this assumption, we always work with outgoing edges:
+                         α
+                dout
+                 ij (u)
+                        X
+   ISij (u) =               χij (u, q)wij (u, q).
+                   α    q=1
+
+
+   Every edge e ∈ E(S, S) belongs to exactly one Gi , and in that Gi it is either a sparse-cut
+edge, or a dense-component edge in exactly one Vij . Consequently, to prove IS + JS is
+unbiased, it suffices to prove that ISij (u) is unbiased. In the dense component Vij of Gi , the
+
+
+
+                                                                                                    ICALP 2021
+45:14   Sparsification of Balanced Directed Graphs
+
+
+                                                            Pdout
+                                                                ij (u)
+        total contribution of edges leaving u to w(S, S) is r=1        χ(u, r) · w(u, r), where r indexes
+        the edges leaving u, w(u, r) is the weight of the r-th edge leaving u, and χ(u, r) indicates if
+        this edge goes from S to S. Let e(u, r) denote the r-th edge leaving u and eij (u, q) denote
+        the q-th sampled edge leaving u within Vij . Summing over the α sampled edges, we have
+
+                                  α
+                     dout
+                        ij (u)
+                                 X                            
+           E ISij (u) =        ·     E χij (u, q) · wij (u, q)
+                          α      q=1
+
+                                    α ij       dout (u)
+                         dout
+                          ij (u)
+                                   X   X
+                       =         ·         Pr[eij (u, q) = e(u, r)] · χ(u, r) · w(u, r)
+                            α      q=1 r=1
+                           dout
+                            ij (u)
+                               X
+                       =                χ(u, r) · w(u, r),
+                               r=1
+
+
+
+        where the last equality holds because each sample has the same variance, and the q-th sample
+        is drawn uniformly among all outgoing edges at u, i.e., Pr[eij (u, q) = e(u, r)] = dout1(u) . The
+                                                                                               ij
+
+        expectation of ISij (u) is exactly the contribution of edges leaving u to w(S, S), so ISij (u) is
+        unbiased.
+           For the rest of the proof, we upper bound the variance of IS . We assume without loss of
+        generality that JS = 0, i.e., no sparse edges were ever stored and removed by Algorithm 2.
+        This is because we are trying to prove the statement
+
+                                                                
+                               β                              β
+           Var [IS ] ≤ O                w(S, S)2 = O                   · (E [IS ] + JS )2 ,
+                               αλ                             αλ
+
+
+        so setting JS = 0 only makes the right-hand side smaller and hence, the proof more difficult.
+            We introduce some notation: recall that (Vij )j is the set of dense components of Gi
+        and Sij = Vij ∩ S. We use Xij = |Ei (Sij , Sij )| to denote the number of edges from Sij to
+        Vij ∩ S in Gi , and Xij = |Ei (Sij , Sij )| the number of edges in the reverse direction. Let
+              P                 P
+        Xi = j Xij and Xi = j Xij , so that Xi is the total number of dense-component edges
+        that go from S to S in Gi .
+            Since there are no λ-sparse cuts (defined in (4)) at the end of Algorithm 2, we have
+        Xij + Xij > λ min(|Sij |, |Sij |). Since we assume |Sij | ≤ |Sij |, this condition implies the
+        following for every dense component Vij , λ Sij ≤ Xij + Xij .
+                                                                  
+            Fix any u ∈ Sij . We first upper bound Var ISij (u) and then work our way up the
+        definition of IS . Since χij (u, q) is a Bernoulli random variable with mean Ei (u, Sij ) /dout
+                                                                                                    ij (u),
+        its variance is
+
+
+                          Ei (u, Sij ) Ei (u, Sij )
+           Var χij (u, q) =             ·             .
+                             dout
+                               ij (u)     dout
+                                            ij (u)
+
+
+
+        Now from the definition of ISij (u), we have
+R. Cen, Y. Cheng, D. Panigrahi, and K. Sun                                                                     45:15
+
+
+
+
+                           α
+                dout
+                  ij (u)
+                        2 X
+                              Var χij (u, q) wij (u, q)2
+                                          
+   Var ISij (u) =     2
+                    α     q=1
+
+                          dout   2     Ei (u, Sij ) Ei (u, Sij )
+                           ij (u)
+                      ≤            ·α·             ·             · 22i          (we ≤ 2i for all e ∈ Ei )
+                             α 2        dout
+                                          ij (u)     d out (u)
+                                                       ij
+                   22i
+                      =Ei (u, Sij ) · Ei (u, Sij )
+                    α
+                   22i
+                ≤      Ei (u, Sij ) · Sij .                                        ( Ei (u, Sij ) ≤ |Sij |)
+                    α
+                               P
+In Algorithm 3, we set IVij = u∈Sij ISij (u), so
+
+            X              X 22i
+   Var IVij =   Var ISij (u) ≤       Sij · Ei (u, Sij )
+                                  α
+                  u∈Sij                       u∈Sij
+
+                                            22i
+                                          =     · Sij · Xij                       (Xij = Ei (Sij , Sij ) )
+                                             α
+                                            22i            
+                                          ≤       Xij + Xij Xij .           ((Sij , Sij ) is not λ-sparse)
+                                            αλ
+Summing across every dense component Vij in Gi , we get
+                  X               22i X           
+   Var [IGi ] =           Var IVij ≤        Xij + Xij Xij
+                      j
+                                     αλ j
+                                       22i                                P                    P
+                                   ≤         Xi + X i Xi .          (Xi =       j Xij and Xi =      j Xij )
+                                       αλ
+Finally, we sum across the weight classes indexed by i to obtain
+               X
+   Var [IS ] =   Var [IGi ]
+                  i
+               1 X  i 2            
+            ≤          2      Xi + X i Xi
+              αλ i
+                                                        
+               1  X          2  X           X
+            =            2i Xi +      2i X i ·     2i Xi 
+              αλ     i              i          i
+               4 h                               i
+            ≤      w(S, S)2 + w(S, S) · w(S, S)                             (we ≥ 2i−1 for all e ∈ Ei )
+              αλ
+               4 h                       i
+            ≤      w(S, S)2 + βw(S, S)2                                           (w(S, S) ≤ βw(S, S))
+              αλ 
+                   β
+            =O         w(S, S)2 .                                                                       ◀
+                 αλ
+
+5.2    For-Each Cut Sketch: Faster Algorithms
+We can speed up the algorithms in the previous section and prove the following theorem.
+
+▶ Theorem 23. Consider the same setting as in Theorem 19. That is, a (1 ± ϵ) for-each
+cut sketch of size O(β 1/2 n log5 n/ϵ) bits exists for any n-vertex β-balanced graph G. Now in
+addition, we can compute such a cut sketch in time O(m   e    + β 1/2 n/ϵ).
+
+
+
+                                                                                                              ICALP 2021
+45:16   Sparsification of Balanced Directed Graphs
+
+
+            For undirected graphs, Jambulapati and Sidford [21] showed how to construct for-each
+        cut sketches in nearly-linear time. Instead of trying to repeatedly find sparse cuts, they
+        showed how to sketch expander graphs (graphs with high conductance) and then decompose
+        the input graph using expander partitioning algorithms.
+            Intuitively, we should be able to speed up our algorithm using a similar approach, because
+        when we partition the graph by removing sparse cuts, we do not look at the direction of the
+        edges. However, the analysis in [21] does not apply to our setting because they focus on
+        sketching quadratic forms. The quadratic form of a directed Laplacian ignores edge directions
+        and hence does not preserve the directed cut values. On a more technical level, their analysis
+        relies heavily on the notion of conductance, which is not canonically defined for directed
+        graphs. In our setting, we cannot bound the variance of our estimator even if we have a
+        directed graph whose undirected version is an expander (see the full paper for more details).
+            Because our main focus in this paper is to derive cut sketches with optimal size (especially
+        with a tight dependence on β) rather than to obtain best runtime of computing such cut
+        sketches, we defer the proof of Theorem 23 to the full paper.
+                                                     q
+         6      For-Each Cut Sketch: Ω(n ·               β/ϵ) Lower Bound
+                                                                                            √
+        In this section, we prove that the size of for-each cut sketches must scale with β.
+                                                             1/2
+        ▶ Theorem 24. Fix β ≥ 1 and 0 < ϵ < 1 with β/ϵ            ≤ n2 . A (1 ± ϵ) for-each cut sketching
+        algorithm for n-node β-balanced graphs must output Ω(n · (β/ϵ)1/2 ) bits in the worst case.
+
+             To prove this, we will need the following folklore result from communication complexity:
+
+        ▶ Lemma 25. Given a bit string s ∈ {0, 1}N , if there is a data structure D that allows one
+        to recover each bit of s with marginal probability at least 2/3, then D must use Ω(N ) bits.
+
+           We first prove a special case of our lower bound for specific values of β = Θ(n2 ) and
+        ϵ = Θ(1) (Lemma 26). The proof for this special case is easier to explain and it contains the
+        key ingredients of our construction for the general lower bound.
+                                             1
+        ▶ Lemma 26. For β = n2 and ϵ = 10      , any (1 ± ϵ) for-each cut sketching algorithm for
+        n-node β-balanced graphs must output Ω(n · β 1/2 ) bits in the worst case.
+
+        Proof. At a high level, we will encode a bit string s of length Ω(n2 ) into an n-node β-
+        balanced graph, such that given a (1 ± ϵ) for-each cut sketch, we can recover each bit
+        of s with high constant probability. Then by Lemma 25, the cut sketch must have use
+        Ω(|s|) = Ω(n2 ) = Ω(nβ 1/2 ) bits.
+                                              2
+            Given a bit string s of length n4 , we construct a graph as follows. We start with an
+        n    n
+        2 × 2 complete bipartite digraph where edges go from left to right. We set the weight of the
+        i-th bipartite edge to si + 1 (so either 1 or 2). We add a unit-weight cycle that leaves each
+        side exactly once. See Fig. 2 for an example of our construction.
+            We first show that the graph is β-balanced for β = n2 . The graph is strongly connected
+        because it contains a cycle. Note that all edge weights are in [1, 2] and there are in total
+        n2         n2
+         4 + n ≤ 2 edges in the graph. Therefore, for every non-empty set S ⊂ V , the total weight
+        of edges leaving (or entering) S is at least 1 and at most n2 , so the graph is (n2 )-balanced.
+            It remains to show that we can recover each bit of s from a (1 ± ϵ) cut sketch. Let L
+        denote the left vertices and R the right vertices. Fix any coordinate of s and suppose it
+        corresponds to the edge (u, v) for some u ∈ L and v ∈ R. To recover this bit of s, we need
+        to decide whether w(u, v) is 1 or 2. Consider the cut value leaving S = {u} ∪ R \ {v}. The
+        cycle contributes a fixed amount to this cut (independent of the weights of the bipartite
+R. Cen, Y. Cheng, D. Panigrahi, and K. Sun                                                           45:17
+
+
+
+
+                                                             𝑆
+
+
+                                    𝑢
+
+
+
+                                                      𝑣
+
+
+    Figure 2 In this example, the cut value w(S, S) is 2 or 3, depending on the value of w(u, v).
+Thus, a (1 ± 0.1)-approximation to w(S, S) allows us to decode the bit in s corresponding to edge
+(u, v). (For readability we omit other bipartite edges from L to R.)
+
+
+edges), which is at most 3. More importantly, (u, v) is the only bipartite edge leaving S.
+           1
+Since ϵ = 10  and the sketch returns this cut value within a factor of (1 ± ϵ) with probability
+at least 2/3, we can recover w(u, v) with probability at least 2/3.                          ◀
+
+    Our lower bound construction for general values of β and ϵ builds on the one in the proof
+of Lemma 26. At a high level, instead of using a bipartite graph with two clusters, we will          1
+use multiple clusters where the size of each cluster depends on β and ϵ.
+                                   p
+Proof of Theorem 24. Let k = β/ϵ. We will encode a bit string s of length Ω(nk) into
+an n-node graph G such that (1) G is (3β)-balanced, and (2) we can recover each bit of s
+with high constant probability given a (1 ± c · ϵ) for-each cut sketch of G where c = 10−2 .
+By Lemma 25, the cut sketch must have at least Ω(nk) = Ω(n · (β/ϵ)1/2 ) bits.
+    Without loss of generality, we assume k is an integer and n is a multiple of k. We partition
+n vertices into t = n/k clusters of size k, which we denote by V1 , . . . , Vt . Since we assume
+n ≥ 2k, there are at least two clusters.
+    Let s be a bit string of length k 2 (t − 1) = Ω(nk). We partition s into (t − 1) blocks where
+each block has length k 2 . We encode the i-th block of s in a k × k complete bipartite digraph
+where edges go from Vi to Vi+1 . As in the proof of Lemma 26, a bipartite edge (u, v) for
+u ∈ Vi and v ∈ Vi+1 has weight si,(u,v) + 1 (so either 1 or 2). For every 1 ≤ i ≤ t − 1, we add
+a cycle between Vi and Vi+1 that leaves Vi and Vi+1 exactly once. Now, in contrast to the
+previous construction, these cycle edges have weight 1/ϵ.
+    We first show that G is (3β)-balanced. Fix any non-empty set S ⊂ V . Let Gi denote
+the subgraph between Vi and Vi+1 which contains k 2 bipartite edges and one cycle. Let
+wi (S, S) denote the total weight of edges leaving S in Gi . We will show that wi (S, S) and
+wi (S, S) are within a factor of 3β of each other. Because G is strongly connected and
+           Pt−1
+w(S, S) = i=1 wi (S, S), we can conclude that G is (3β)-balanced.
+    Without loss of generality, we assume both wi (S, S) and wi (S, S) are positive. The cut
+value wi (S, S) remains the same if we restrict Gi on vertices (Vi ∪ Vi+1 ) and consider the
+cut query S ∩ (Vi ∪ Vi+1 ). The cycle contributes equally in both directions, so without loss
+of generality, we can assume the cycle has minimum contribution, which is 1ϵ . (If the cycle
+
+
+
+                                                                                                    ICALP 2021
+45:18   Sparsification of Balanced Directed Graphs
+
+
+        contributes more, the cut is more balanced.) The total weight of the bipartite edges is at
+        most 2k 2 = 2β ϵ . Therefore, the ratio between the cut values in both directions is at most
+        (2β/ϵ)+(1/ϵ)
+              1/ϵ    = 2β + 1 ≤ 3β.
+             It remains to show that we can recover every bit of s from a cut sketch. Fix any bit of
+        s. Suppose this bit si,(u,v) corresponds to the edge (u, v) for some u ∈ Vi and v ∈ Vi+1 , we
+                                                                 St−1
+        query the cut value leaving S(u,v) = {u} ∪ Vi+1 \ {v} j=i+2 Vj . The only bipartite edge
+        leaving S(u,v) is the edge (u, v), which has weight either 1 or 2. There are at most 5 cycle
+        edges leaving S(u,v) (at most 1 from Gi−1 , 3 from Gi , and 1 from Gi+1 ), whose total weight
+        is fixed and at most 5ϵ . Therefore, if we can compute an (1 ± c · ϵ) approximation to the cut
+        value for c = 10−2 , we can recover the corresponding bit of s.                             ◀
+
+
+         7     Conclusion
+
+        In this paper, we considered the question of sparsifying directed graphs. We focused on graphs
+        that are β-balanced, where the ratio between the cut value in two directions is at most β. We
+        gave upper and lower bounds on the size of the cut sketch with almost tight dependence on
+        β, under both the standard “for-all” notion (i.e., simultaneously preserving the value of all
+        cuts) and the “for-each” notion (introduced by Andoni et. al [6]) of cut sparsification. More
+        specifically, we showed that under the “for-all” notion, the linear dependence on β obtained
+        by Ikeda and Tanigawa [20] is tight. For the “for-each” notion, we gave a data structure
+                                                          √
+        that preserves cut values whose size scales as β, thereby beating the “for-all” lower bound.
+                                                      √
+        We also showed that this dependence on β is tight. Our lower bounds hold not only for
+        sparsifiers (i.e., graph encodings), but also for arbitrary data structures.
+            An interesting direction for future work is to consider the spectral sparsification of directed
+        graphs. Cohen et al. [14, 13] (see also Chu et al. [11]) introduced a novel definition of directed
+        sparsification and leveraged it to solve directed Laplacian linear systems. However, their work
+        is not immediately relevant to ours because their directed spectral sparsifiers do not necessarily
+        preserve directed cut values. This motivates the following natural question: is there a notion
+        of spectral sparsification that generalizes cut sparsification in directed graphs? (Note that this
+        is indeed the case for undirected graphs, where spectral sparsifiers also preserve cut values.)
+                                                                                                  2
+        A natural candidate would be a sparse graph that preserves (u,v)∈E (xu − xv )+ for all
+                                                                           P
+
+        real vectors x, where y + = max(0, y). Note that if x ∈ {0, 1}|V | , then this sum represents
+        directed cut values, which is analogous to the correspondence between cut and spectral
+        sparsification in undirected graphs. It would be interesting to explore if preserving this sum
+        in directed graphs has interesting applications beyond preserving cuts, and if so, whether
+        there exist sparse graphs that preserve this sum approximately for balanced directed graphs.
+
+
+              References
+         1    Kook Jin Ahn and Sudipto Guha. Graph sparsification in the semi-streaming model. In
+              International Colloquium on Automata, Languages, and Programming, pages 328–338. Springer,
+              2009.
+         2   Kook Jin Ahn, Sudipto Guha, and Andrew McGregor. Analyzing graph structure via linear
+             measurements. In Proceedings of the Twenty-Third ACM-SIAM Symposium on Discrete
+             Algorithms, pages 459–467, 2012.
+         3    Kook Jin Ahn, Sudipto Guha, and Andrew McGregor. Graph sketches: sparsification, spanners,
+              and subgraphs. In Proceedings of the 31st ACM Symposium on Principles of Database Systems,
+              pages 5–14, 2012.
+R. Cen, Y. Cheng, D. Panigrahi, and K. Sun                                                              45:19
+
+
+ 4   Kook Jin Ahn, Sudipto Guha, and Andrew McGregor. Spectral sparsification in dynamic graph
+     streams. In Proceedings of the 16th International Workshop on Approximation Algorithms for
+     Combinatorial Optimization Problems and the 17th International Workshop on Randomization
+     and Computation, pages 1–10, 2013.
+ 5   Zeyuan Allen Zhu, Zhenyu Liao, and Lorenzo Orecchia. Spectral sparsification and regret
+     minimization beyond matrix multiplicative updates. In Proceedings of the 47th ACM Symposium
+     on Theory of Computing, pages 237–245, 2015.
+ 6   Alexandr Andoni, Jiecao Chen, Robert Krauthgamer, Bo Qin, David P Woodruff, and Qin
+     Zhang. On sketching quadratic forms. In Proceedings of the 2016 ACM Conference on
+     Innovations in Theoretical Computer Science, pages 311–319. ACM, 2016.
+ 7   Joshua Batson, Daniel A Spielman, and Nikhil Srivastava. Twice-Ramanujan sparsifiers. SIAM
+     Journal on Computing, 41(6):1704–1721, 2012.
+ 8   András A Benczúr and David R Karger. Randomized approximation schemes for cuts and
+     flows in capacitated graphs. SIAM Journal on Computing, 44(2):290–319, 2015.
+ 9   Dietmar Berwanger, Anuj Dawar, Paul Hunter, Stephan Kreutzer, and Jan Obdržálek. The
+     DAG-width of directed graphs. Journal of Combinatorial Theory, Series B, 102(4):900–923,
+     2012.
+10   Charles Carlson, Alexandra Kolla, Nikhil Srivastava, and Luca Trevisan. Optimal lower bounds
+     for sketching graph cuts. In Proceedings of the 30th ACM-SIAM Symposium on Discrete
+     Algorithms, pages 2565–2569, 2019.
+11   Timothy Chu, Yu Gao, Richard Peng, Sushant Sachdeva, Saurabh Sawlani, and Junxing
+     Wang. Graph sparsification, spectral sketches, and faster resistance computation, via short
+     cycle decompositions. In Proceedings of the 59th IEEE Annual Symposium on Foundations of
+     Computer Science, pages 361–372, 2018.
+12   Fan Chung. Laplacians and the cheeger inequality for directed graphs. Annals of Combinatorics,
+     9(1):1–19, 2005.
+13   Michael B. Cohen, Jonathan Kelner, Rasmus Kyng, John Peebles, Richard Peng, Anup B.
+     Rao, and Aaron Sidford. Solving directed Laplacian systems in nearly-linear time through
+     sparse LU factorizations. In Proceedings of the 59th IEEE Symposium on Foundations of
+     Computer Science, pages 898–909, 2018.
+14   Michael B. Cohen, Jonathan Kelner, John Peebles, Richard Peng, Anup B. Rao, Aaron
+     Sidford, and Adrian Vladu. Almost-linear-time algorithms for Markov chains and new spectral
+     primitives for directed graphs. In Proceedings of the 49th ACM Symposium on Theory of
+     Computing, pages 410–419, 2017.
+15   Alina Ene, Gary Miller, Jakub Pachocki, and Aaron Sidford. Routing under balance. In
+     Proceedings of the forty-eighth annual ACM symposium on Theory of Computing, pages 598–611.
+     ACM, 2016.
+16   Lester Randolph Ford and Delbert R Fulkerson. Maximal flow through a network. Canadian
+     journal of Mathematics, 8:399–404, 1956.
+17   Wai Shing Fung, Ramesh Hariharan, Nicholas JA Harvey, and Debmalya Panigrahi. A general
+     framework for graph sparsification. In Proceedings of the forty-third annual ACM symposium
+     on Theory of computing, pages 71–80. ACM, 2011.
+18   Ashish Goel, Michael Kapralov, and Sanjeev Khanna. Graph sparsification via refinement
+     sampling. CoRR, abs/1004.4915, 2010. arXiv:1004.4915.
+19   Paul Hunter and Stephan Kreutzer. Digraph measures: Kelly decompositions, games, and
+     orderings. Theoretical Computer Science, 399(3):206–219, 2008.
+20   Motoki Ikeda and Shin-ichi Tanigawa. Cut sparsifiers for balanced digraphs. In International
+     Workshop on Approximation and Online Algorithms, pages 277–294. Springer, 2018.
+21   Arun Jambulapati and Aaron Sidford. Efficient O(n/ϵ)
+                                                     e       spectral sketches for the Laplacian and
+     its pseudoinverse. In Proceedings of the 29th ACM-SIAM Symposium on Discrete Algorithms,
+     pages 2487–2503, 2018.
+
+
+
+
+                                                                                                       ICALP 2021
+45:20   Sparsification of Balanced Directed Graphs
+
+
+        22   Thor Johnson, Neil Robertson, Paul D Seymour, and Robin Thomas. Directed tree-width.
+             Journal of Combinatorial Theory, Series B, 82(1):138–154, 2001.
+        23   Michael Kapralov, Yin Tat Lee, Cameron Musco, Christopher Musco, and Aaron Sidford.
+             Single pass spectral sparsification in dynamic streams. SIAM J. Comput., 46(1):456–477, 2017.
+        24   Michael Kapralov, Aida Mousavifar, Cameron Musco, Christopher Musco, and Navid Nouri.
+             Faster spectral sparsification in dynamic streams. CoRR, abs/1903.12165, 2019. arXiv:
+             1903.12165.
+        25   Michael Kapralov, Navid Nouri, Aaron Sidford, and Jakab Tardos. Dynamic streaming spectral
+             sparsification in nearly linear time and space. CoRR, abs/1903.12150, 2019. arXiv:1903.12150.
+        26   Michael Kapralov and Rina Panigrahy. Spectral sparsification via random spanners. In
+             Innovations in Theoretical Computer Science 2012, Cambridge, MA, USA, January 8-10, 2012,
+             pages 393–398, 2012.
+        27   David R Karger and Matthew S Levine. Random sampling in residual graphs. In Proceedings
+             of the thiry-fourth annual ACM symposium on Theory of computing, pages 63–66. ACM, 2002.
+        28   David R Karger and Clifford Stein. A new approach to the minimum cut problem. Journal of
+             the ACM (JACM), 43(4):601–640, 1996.
+        29   Dmitry Kogan and Robert Krauthgamer. Sketching cuts in graphs and hypergraphs. In
+             Proceedings of the 2015 Conference on Innovations in Theoretical Computer Science, pages
+             367–376, 2015.
+        30   Ioannis Koutis, Alex Levin, and Richard Peng. Improved spectral sparsification and numerical
+             algorithms for SDD matrices. In 29th International Symposium on Theoretical Aspects of
+             Computer Science, pages 266–277, 2012.
+        31   Ioannis Koutis, Gary L. Miller, and Richard Peng. Approaching optimality for solving SDD
+             linear systems. In Proceedings of the 51th Annual IEEE Symposium on Foundations of
+             Computer Science, pages 235–244, 2010.
+        32   Ioannis Koutis, Gary L. Miller, and Richard Peng. A nearly-m log n time solver for SDD linear
+             systems. In Proceedings of the 52nd IEEE Symposium on Foundations of Computer Science,
+             pages 590–598, 2011.
+        33   Rasmus Kyng, Yin Tat Lee, Richard Peng, Sushant Sachdeva, and Daniel A. Spielman.
+             Sparsified Cholesky and multigrid solvers for connection laplacians. In Proceedings of the 48th
+             ACM Symposium on Theory of Computing, pages 842–850, 2016.
+        34   Yin Tat Lee and He Sun. Constructing linear-sized spectral sparsification in almost-linear
+             time. In Proceedings of the 56th IEEE Symposium on Foundations of Computer Science, pages
+             250–269, 2015.
+        35   Yin Tat Lee and He Sun. An SDP-based algorithm for linear-sized spectral sparsification. In
+             Proceedings of the 49th ACM Symposium on Theory of Computing, pages 678–687, 2017.
+        36   Henry Lin. Reducing directed max flow to undirected max flow. Unpublished Manuscript,
+             2009.
+        37   Adam W Marcus, Daniel A Spielman, and Nikhil Srivastava. Interlacing families II: Mixed
+             characteristic polynomials and the kadison—singer problem. Annals of Mathematics, pages
+             327–350, 2015.
+        38   Ilan Newman and Yuri Rabinovich. On multiplicative Lambda-approximations and some
+             geometric applications. SIAM J. Comput., 42(3):855–883, 2013.
+        39   Jan Obdržálek. DAG-width: connectivity measure for directed graphs. In Proceedings of the
+             seventeenth annual ACM-SIAM symposium on Discrete algorithm, pages 814–821, 2006.
+        40   Jonah Sherman. Nearly maximum flows in nearly linear time. In Proceedings of the 54th
+             Annual IEEE Symposium on Foundations of Computer Science, pages 263–269, 2013.
+        41   Tasuku Soma and Yuichi Yoshida. Spectral sparsification of hypergraphs. In Proceedings of
+             the 13th ACM-SIAM Symposium on Discrete Algorithms, pages 2570–2581, 2019.
+        42   Daniel A Spielman and Nikhil Srivastava. Graph sparsification by effective resistances. SIAM
+             Journal on Computing, 40(6):1913–1926, 2011.
+R. Cen, Y. Cheng, D. Panigrahi, and K. Sun                                                             45:21
+
+
+43   Daniel A. Spielman and Shang-Hua Teng. Spectral sparsification of graphs. SIAM Journal on
+     Computing, 40(4):981–1025, 2011.
+44   Ying Zhang, Zhiqiang Zhao, and Zhuo Feng. Towards scalable spectral sparsification of directed
+     graphs. In Proceedings of the 15th IEEE International Conference on Embedded Software and
+     Systems, pages 1–2, 2019.
+
+
+
+
+                                                                                                      ICALP 2021
+

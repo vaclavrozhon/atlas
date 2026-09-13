@@ -1,0 +1,1855 @@
+                                                                  On the Complexity of Branching Proofs
+                                                                              Daniel Dadush∗ 1 and Samarth Tiwari1
+                                                                       1
+                                                                           Centrum Wiskunde & Informatica, Amsterdam
+                                                                            {dadush,samarth.tiwari}@cwi.nl
+arXiv:2006.04124v1 [cs.CC] 7 Jun 2020
+
+
+
+
+                                                                                             June 9, 2020
+
+
+
+                                                                                                Abstract
+                                                     We consider the task of proving integer infeasibility of a bounded convex K in Rn using a general
+                                                branching proof system. In a general branching proof, one constructs a branching tree by adding an
+                                                integer disjunction ax ≤ b or ax ≥ b + 1, a ∈ Zn , b ∈ Z, at each node, such that the leaves of the tree
+                                                correspond to empty sets (i.e., K together with the inequalities picked up from the root to leaf is empty).
+                                                     Recently, Beame et al (ITCS 2018), asked whether the bit size of the coefficients in a branching
+                                                proof, which they named stabbing planes (SP) refutations, for the case of polytopes derived from SAT
+                                                formulas, can be assumed to be polynomial in n. We resolve this question in the affirmative, by showing
+                                                that any branching proof can be recompiled so that the normals of the disjunctions have coefficients of
+                                                                        2
+                                                size at most (nR)O(n ) , where R ∈ N is the radius of an ℓ1 ball containing K, while increasing the
+                                                number of nodes in the branching tree by at most a factor O(n). Our recompilation techniques works by
+                                                first replacing each disjunction using an iterated Diophantine approximation, introduced by Frank and
+                                                Tardos (Combinatorica 1986), and proceeds by “fixing up” the leaves of the tree using judiciously added
+                                                Chvátal-Gomory (CG) cuts.
+                                                     As our second contribution, we show that Tseitin formulas, an important class of infeasible SAT
+                                                instances, have quasi-polynomial sized cutting plane (CP) refutations. This disproves a conjecture that
+                                                Tseitin formulas are (exponentially) hard for CP. Our upper bound follows by recompiling the quasi-
+                                                polynomial sized SP refutations for Tseitin formulas due to Beame et al, which have a special enumer-
+                                                ative form, into a CP proof of at most twice the length using a serialization technique of Cook et al
+                                                (Discrete Appl. Math. 1987).
+                                                     As our final contribution, we give a simple family of polytopes in [0, 1]n requiring branching proofs
+                                                of length 2n /n.
+
+                                            Keywords. Branching Proofs, Cutting Planes, Diophantine Approximation, Integer Programming, Stab-
+                                        bing Planes, Tseitin Formulas.
+
+
+                                        1 Introduction
+                                        A principal challenge in SAT solving is finding short proofs of unsatisfiability of SAT formulas. This task
+                                        is particularly important in the automatic verification of computer programs, where incorrect runs of the
+                                        program or bugs (e.g., divide by zero) can be encoded as satisfying assignments to SAT formulas derived
+                                          ∗
+                                              Supported by ERC Starting Grant QIP–805241.
+
+
+                                                                                                    1
+from the program specification. In this case, the corresponding formula is an UNSAT instance if the corre-
+sponding program is correct, or at least devoid of certain types of bugs.
+     The study of how long or short such UNSAT proofs can be is the main focus of the field of proof
+complexity. Indeed, popular SAT algorithms, such as DPLL search, i.e. branching on variables combined
+with unit propagation, or Conflict Driven Clause Learning (CDCL), implicitly generate infeasibility proofs
+in standard proof systems such as Resolution or Cutting Planes. From the negative perspective, lower bounds
+on the length of UNSAT proofs in these systems automatically imply lower bounds on the running time of
+the corresponding SAT algorithms. On the positive side, understanding which UNSAT instances have short
+proofs can inspire the design of good heuristics and algorithms for trying to find such proofs automatically.
+     The analogous problem in the context of Integer Programming (IP) is that of showing that a linear
+system of inequalities has no integer solutions. This problem also encapsulates SAT: for a formula Φ(x) :=
+∧j∈[m] Cj (x), where Cj (x) = ∨i∈Lj xi ∨i∈L̄j x̄i , j ∈ [m], Φ is unsatisfiable if and only if the linear system
+                                     X             X
+                                            xi +           (1 − xi ) ≥ 1, j ∈ [m]                     (SAT-LP)
+                                     i∈Lj          i∈L̄j
+
+                                                            0 ≤ xi ≤ 1, i ∈ [n]
+
+   has no integer solutions (in this case {0, 1}). IP solvers such as CPLEX or Gurobi routinely produce
+such infeasibility proofs in the so-called proof of optimality phase of the solution process. More precisely,
+once a solver has found a candidate optimal solution x∗ to an integer linear program
+
+                                     min cx        subject to Ax ≤ b, x ∈ Zn                                (IP)
+
+optimality is proved by showing that the linear system
+
+                                                       cx < cx∗                                         (IP-LP)
+                                                      Ax ≤ b
+
+has no integer solutions. In practice, this is most often achieved by a mixture of Branch & Bound and
+Cutting Planes. We note that most applications are modeled using mixed integer linear programs (MIP),
+where a decision variable xi can be continuous (xi ∈ R), binary (xi ∈ {0, 1}) or general integer (xi ∈ Z),
+with binary and continuous variables being the most common.
+
+1.1 Branching Proofs
+For proving infeasibility of a SAT formula or an integer linear program, where we denote the continuous
+relaxation of the feasible region by K ⊆ Rn (e.g., (SAT-LP) or (IP-LP)), the most basic strategy is to build
+a search tree based on so-called variable branching. That is, we build a rooted binary tree T , where at
+each internal node v we choose a “promising” candidate integer variable xi and create two children vl , vr
+corresponding either side of the disjunction xi ≤ b (left child vl ) and xi ≥ b + 1 (right child vr ), for some
+b ∈ Z. The edge from the parent to its child is labeled with the corresponding inequality. If xi is binary,
+one always sets b = 0, corresponding to branching on xi = 0 or xi = 1. To each node is associated its
+continuous relaxation Kv , corresponding to K together with the inequalities on the edges of the unique path
+from the root to v in T . To be a valid proof of integer infeasibility, we require that the continuous relaxation
+Kv be empty at every leaf node v ∈ T . We then call the proof tree T as above a variable branching proof
+of integer infeasibility for K. We will consider the length of branching proof, interpreted as the “number of
+lines” of the proof, to be equal to the number of nodes in T , which we denote |T |.
+
+                                                              2
+     When applied to a SAT formula as in (SAT-LP), a variable branching tree T as above is in correspon-
+dence with a run of DPLL search, noting that LP infeasibility of a node is equivalent to unit propagation
+(i.e., iteratively propagating the values of variables appearing in single literal clauses) yielding a conflict1 .
+Similarly when applied to an integer program as in (IP-LP) for which the optimal value is known, the above
+is equivalent to standard Branch and Bound.
+
+    Branching on General Integer Disjunctions To obtain a more general proof strategy one may ex-
+amine a richer class of disjunctions. Instead of branching only on variables as above, one may also branch
+on a general integer disjunction ax ≤ b or ax ≥ b + 1, where a ∈ Zn and b ∈ Z, noting that any in-
+teger point x ∈ Zn must satisfy exactly one of these inequalities. One may then define branching proofs
+of infeasibility for K using general integer disjunctions exactly as above, which we call general branching
+proofs. We note that in principle, the continuous relaxation K can be arbitrary, i.e. it need not be a polytope.
+In this work, we will in fact consider the case where K is a compact convex set in Rn . Furthermore, it
+is easy to extend branching proofs to the case of mixed integer infeasibility, where we want to certify that
+K ∩ Zk × Rn−k = ∅, that is, where only the first k variables are restricted to be integer. In this setting,
+one need only restrict the disjunctions ax ≤ b or ≥ b to have support on the integer variables; precisely, we
+enforce a ∈ Zk × {0}n−k , b ∈ Z.
+    As formalized above, the attentive reader may have noticed that there is no mechanism to “certify” the
+emptiness of the leaf nodes of the tree. In many cases, such certificates can be appended to the leaves
+yielding a certified branching proof, however their exact form will differ depending on the representation
+of K (e.g., LP, SOCP or SDP). In the important case where the continuous relaxation is a polytope K =
+{x ∈ Rn : Cx ≤ d}, emptiness of a leaf node can indeed be certified efficiently using a so-called Farkas
+certificate of infeasibility. Let T be branching proof for K and let v ∈ T be a leaf node with Kv =
+{x ∈ Rn : Cx ≤ d, Av x ≤ bv }, where Av x ≤ bv represents all the inequalities induced by the branching
+decisions on the path from the root to v. Then, by Farkas’s lemma Kv = ∅ iff there exists multipliers
+λv := (λv,1 , λv,2 ) ≥ 0, known as a Farkas certificate, such that λv,1 C+λv,2 Av = 0 and λv,1 d+λv,2 b < 0.
+Therefore, for a polyhedral feasible region, we may certify the branching proof by labeling each leaf node
+v ∈ T with its Farkas certificate λv .
+    For a variable branching proof T , especially for {0, 1} IPs, the tree size |T | is arguably the most impor-
+tant measure of the complexity of the proof. However, for a general branching proof T , the tree size |T |
+ignores the “complexity” of the individual disjunctions. Note that we have not a priori set any restrictions on
+the size of the coefficients for the disjunctions ax ≤ b or ≥ b + 1 used in the nodes of the tree. To accurately
+capture this complexity, we will also measure the number of bits needed to write down the description of T ,
+which we denote by hT i. Here, hT i includes the bit-size of all the disjunctions ax ≤ b or ≥ b + 1 used in
+T . For a certified branching proof, as introduced above, we also include the bit-length of the infeasibility
+certificates at the leaves to hT i. Understanding how large the coefficients need to be to ensure near-optimal
+tree size will be one of the principal interests of this work.
+
+     Applications of General Branching While variable branching is the most prevalent in practice, due
+to its simplicity and ease of implementation, it is well-known that branching on general integer disjunctions
+can leadP to much smaller search trees. In practice, general branching is used when certain simple constraints
+such as ni=1 xi = 1, xi binary, are present in the model, which is part of the family of specially ordered
+    1
+      Note that if unit propagation finds a conflict at a node of the tree, the corresponding node LP (i.e. (SAT-LP) with some variables
+fixed to 0 or 1) is also infeasible. If unit propagation terminates without a conflict, then setting all non-propagated variables to 1/2
+yields a feasible LP solution since every surviving clause has at least 2 literals.
+
+
+                                                                   3
+                                                                  Pn/2            Pn/2
+set constraints [BT70]. In this context, one may branch on i=1 xi = 0 or i=1 xi = 1 to a get a more
+balanced search tree. A more recent idea of Fischetti and Lodi [FL03], known as local branching,    Pis to branch
+on disjunctions which control the Hamming distance to the best incumbent solution x∗ , e.g. i:x∗ =0 xi +
+P                                                                                                        i
+
+   i:x∗i =1 (1 − xi ) ≤ k or ≥ k + 1. This provides a very effective way of controlling the search neighborhood,
+and allows one to find improving solutions more quickly.
+     From the theoretical side, a seminal result is that of Lenstra [Len83], who gave a fixed dimension
+polynomial time algorithm for Integer Programming based on basis reduction and general branching. Re-
+lating to branching proofs, his result directly implies that every integer free compact convex set admits
+a general branching proof of length O(f (n)n ), where f (n), the so-called flatness constant, is the supre-
+mum of the lattice width over integer free compact convex set in dimension n. It is known that f (n) =
+Õ(n4/3 ) [Ban96, Rud00] and f (n) = Ω(n). We note that already in R2 , there are simple integer free
+polytopes, e.g., {x ∈ R2 : x1 − x2 = 1/2, 0 ≤ x1 ≤ k}, for k ∈ N, with arbitrarily long variable branching
+proofs. Inspired by Lenstra’s result, there has been a line of work on the use of basis reduction techniques
+to reformulate IPs so that they become “easy” for variable branching. This approach has been successfully
+theoretically analyzed for certain classes of knapsack problems as well as random IPs (see [PT10] for a
+survey) and experimentally analyzed on various classes of instances [AL04, KP09]. There has also been
+experimental work on how to come up with good general branching directions in practice using heuristic
+methods [OM01, MR09, KC11].
+
+1.2 Cutting Planes
+Another fundamental proof system, studied extensively within both the IP and SAT contexts are cutting
+planes (CP) proofs. The most fundamental class of cutting planes are so-called Chvátal-Gomory (CG) cuts,
+which are the principal class studied within SAT and one of the most important classes of cuts in IP [Gom58].
+     CG cuts for a set K ⊆ Rn are derived geometrically as follows. Assume that the inequality ax ≤ r,
+a ∈ Zn , r ∈ R, is valid for K, that is, x ∈ K ⇒ ax ≤ r. Then, the inequality ax ≤ ⌊r⌋ is valid for K ∩ Zn ,
+since x ∈ Zn implies that ax ∈ Z. Given a ∈ Zn , the strongest cut of this form one can derive for K is
+clearly ax ≤ ⌊supz∈K az⌋. We therefore denote this cut to be the CG cut of K induced by a, and we use
+the notation CG(K, a) := {x ∈ K : ax ≤ ⌊supz∈K az⌋} to denote applying the CG cut induced by a to K.
+We may extend this to an ordered list L = (a1 , . . . , ak ), letting CG(K, L) be the result of applying the CG
+cuts induced by a1 , . . . , ak to K one by one in this order (from left to right).
+     In terms of certifying such cuts, if K = {x ∈ Rn : Cx ≤ d}, C ∈ Qm×n , d ∈ Qm , is a polyhedron, then
+by Farkas’s lemma, every CG cut can be obtained as a conic combination of the constraints after rounding
+down the right hand side. That is, for each λ ≥ 0 such that λC ∈ Zn , we have the corresponding CG cut
+λCx ≤ ⌊λd⌋, and every CG cut for K can be derived in this way.
+     A cutting plane proof (CP) of integer infeasibility for K ⊆ Rn can now be described as a list L =
+(a1 , . . . , aN ), ai ∈ Zn , such that CG(K, L) = ∅. In this context, the number of CG cuts N denotes
+the length of the CP proof. When K = {x ∈ Rn : Cx ≤ d} is a polyhedron as above, to get a certified
+                                                                     m+1
+proof, we can augment L with multipliers λ1 ∈ Rm         + , λ2 ∈ R +    , . . . , λN +1 ∈ Rm+N
+                                                                                              +     (we still refer to
+the length of L as N in this case). Letting Li := (a1 , . . . , ai ), i ∈ [N ], the multipliers λi ∈ Rm+i−1    +      ,
+0 ≤ i ≤ N , certify the cut ai x ≤ ⌊sup{ai z : z ∈ CG(K, Li−1 )}⌋, in the manner described in the previous
+paragraph, using the original inequalities Cx ≤ d (the first m components of λi ) and the previous cuts
+aj x ≤ ⌊sup{aj z : z ∈ CG(K, Lj−1 )}⌋, j ∈ [i − 1]. Finally, λN +1 ∈ Rm+N       +      provides the Farkas certificate
+of infeasibility for CG(K, L), using the original system together with all the cuts.
+     As with branching proofs, it is important to be able to control the bit-size hLi of a CP proof and not
+
+
+                                                          4
+just its length (i.e., the number of cuts in the list L). Here hLi corresponds to the number of bits needed to
+describe ha1 , . . . , aN i, as well as hλ1 , . . . , λN +1 i for a certified proof. When K = {x ∈ Rn : Cx ≤ d} is a
+polyhedron as above, a fundamental theorem of Cook, Coullard and Turán [CCT87] is that any CP proof L
+of integer infeasibility for K can be recompiled into a certified CP proof L′ , such that N := |L| = |L′ | and
+hL′ i = poly(N, L), where L := hC, di is the number of bits needed to describe the linear system defining
+K. Thus, for CP proofs on polyhedra, one can, without loss of generality, assume that the bit-size of a CP
+proof is polynomially related to its length and the bit-size of the defining linear system.
+     In terms of general complexity upper bounds, another important theorem of [CCT87] is that every integer
+free rational polytope K ⊆ Rn admits a CP proof of infeasibility of length O(f (n)n ), where f (n) is the
+flatness constant. This bound was achieved by showing that a run of Lenstra’s algorithm can effectively be
+converted into a CP proof.
+     To relate CP and branching proofs, there is a simple disjunctive characterization of CG cuts. Namely,
+ax ≤ b, a ∈ Zn , b ∈ Z is a CG cut for K iff {x ∈ K : ax ≥ b + 1} = ∅. That is, if and only if the right
+side of the disjunction ax ≤ b or ≥ b + 1 is empty for K. From this observation, one can easily show
+that any CP proof of infeasibility can be converted into a branching proof of infeasibility with only an O(1)
+factor blowup in length (see [BFI+ 18] for a formal proof).
+
+1.3 Complexity of Branching Proofs
+Despite its long history of study within IP, general branching has only recently been studied from the SAT
+perspective. In [BFI+ 18], Beame et al rediscovered the concept of general branching proofs in the context of
+SAT, naming them stabbing planes (SP) refutations, and analyzed them from the proof complexity perspec-
+tive. To keep with this nomenclature, we use the term stabbing planes (SP) refutations to refer specifically to
+a certified branching proofs of infeasibility for SAT formulas. In terms of results, they showed that SP refu-
+tations can size- or depth-simulate CP proofs and showed that they are equivalent to Krajı́ček’s [Kra98] tree-
+like R(CP) refutations. They further gave lower bounds and impossibility results, showing an Ω(n/ log n)
+lower bound on the depth of SP refutations and showed that SP refutations cannot be balanced.
+     Lastly, they provided upper bounds on the length of SP refutations, showing that any Tseitin formula
+has a quasi-polynomial sized SP refutation. We recall that a Tseitin formula
+                                                                          P is indexed by a constant degree
+graph G = (V, E) and a set of parities lv ∈ {0, 1}, v ∈ V satisfying v∈V lv ≡ 1 mod 2. The variables
+x ∈P{0, 1}E index the corresponding subset of edges, where the assignment x is a satisfying assignment
+iff e∈E:v∈e xe ≡ lv mod 2, ∀v ∈ V . Note      P that such a formula is clearly unsatisfiable, since the sum of
+degrees of any (sub)graph is even whereas v∈V lv is odd by assumption. For such formulas, Beame et al
+gave a 2∆ (n∆)O(log n) length SP refutation, where ∆ denotes the maximum degree of G. A long standing
+conjecture [Bea04, BFI+ 18] is that Tseitin formulas are hard for cutting planes, and the above result was
+seen as evidence that SP refutations are strictly stronger than CP. We note that exponential lower bounds
+for CP were first proven by Pudlák [Pud97], who showed how to derive CP lower bounds from monotone
+circuit lower bounds. However, the corresponding monotone circuit problem for Tseitin formulas is easy,
+and hence cannot be used for proving strong lower bounds.
+     Beame et al [BFI+ 18] left open some very natural proof complexity theoretic questions about branching
+proofs, which highlighted fundamental gaps in our understanding of the proof system. Their first question
+relates to the relationship between bit-size hT i and length |T | of an SP proof. Precisely, they asked whether
+one can always assume that the bit size of an SP refutation is bounded by a polynomial in the dimension
+and the length of the proof. That is, can an SP refutation be “recompiled” so that it satisfies this requirement
+without increasing its length by much? As mentioned previously, the corresponding result for CP refutations
+was already shown by Cook et al [CCT87], though the techniques there do not seem to apply to SP. Their
+
+                                                         5
+second question was whether one could show a separation between CP and SP, which would follow if Tseitin
+formulas are (say, exponentially) hard for CP. Lastly, they asked whether one can prove super-polynomial
+lower bounds for SP.
+
+1.4 Our Contributions
+In this work, we give answers to many of the questions above. Firstly, we resolve Beame et al’s bit-size
+vs length question affirmatively. Secondly, we show that Tseitin formulas have quasi-polynomial size CP
+proofs, showing that they do not provide an exponential separation between CP and SP. Lastly, we give a
+very simple family of n-dimensional (mixed-)integer free polytopes for which any branching proof has size
+exponential in n. We describe these contributions in detail below.
+
+    Bit-size of Branching Proofs As our first main contribution, we resolve Beame et al’s bit-size vs
+length question, by proving the following more general result:
+
+Theorem 1.1. Let K ⊆ Rn be an integer free compact convex set satisfying K ⊆ RBn1 , where Bn1 is the ℓ1
+ball and R ∈ N. Let T be a branching proof of integer infeasibility for K. Then, there exists a branching
+proof T ′ for K, such that |T ′ | ≤ O(n|T |), and where every edge e of T ′ is labeled by an inequality a′e x ≤ b′e ,
+                                                            2
+a′e ∈ Zn , b′e ∈ Z, and max{ka′e k∞ , |b′e |} ≤ (10nR)(n+2) . Moreover, hT ′ i = O(n3 log2 (2nR)|T |).
+
+    The above theorem says that, at the cost of increasing the number of nodes in the branching tree by a
+                                                                                                2
+factor O(n), one can reduce the coefficients in the normals of the disjunctions to (10nR)(n+2) . In particular,
+since a′e , b′e are integral, they can be described with O(n3 log2 (2nR)) bits. We note that the final bound
+on hT ′ i ends up being better than O(n3 log2 (2nR)|T ′ |) = O(n4 log2 (2nR)|T |), due to the fact that the
+“extra” nodes we need in T ′ use smaller disjunctions that are describable using O(n2 log2 (2nR)) bits. In
+the context of SAT, the desired bound on the coefficients of SP proofs follows directly from the fact that any
+SAT polytope, as in (SAT-LP), is contained inside [0, 1]n ⊆ nBn1 .
+    As mentioned previously, one would generally want a branching proof to come with certificates of infea-
+sibility for the leaf nodes. For a rational polytope K, the following corollary bounds the cost of extending
+the branching proof produced by Theorem 1.1 to a certified branching proof. To be precise, the bit-size of
+the final certified proof can be made proportional to the size of the original tree, the bit-encoding length of
+the defining system for K and a polynomial in the dimension.
+
+Corollary 1.2. Let K = {x ∈ Rn : Cx ≤ d} be rational polytope with C ∈ Qm×n , d ∈ Qm having bit-size
+L := hC, di. Let T be a branching proof for K. Then there exists a certified branching proof T ′ for K such
+that |T ′ | ≤ O(n)|T | and hT ′ i = O(n6 L)|T |.
+
+    The bit-size L := hC, di of K in Corollary 1.2 shows up for two related reasons. Firstly, we need L
+to upper bound the ℓ1 circumradius R of K, which is in turn used to bound the bit-size of the disjunctions
+in Theorem 1.1. For a rational polytope K, R is in fact always upper bounded by 2O(L) . We stress that
+2O(L) more directly upper bounds the ℓ1 norm of the vertices of K, which in turns upper bounds the ℓ1
+circumradius of K only under the assumption that K is indeed bounded (i.e., that K is polytope and not just
+a polyhedron). However, it is well known that for a rational polyhedron K, K ∩ Zn = ∅ iff K ∩ 2O(L) Bn1 ∩
+Zn = ∅ (see Schrijver [Sch86] Chapter 17). Therefore, the boundedness assumption above is essentially
+without loss of generality. More precisely, one can simply add box constraints −2O(L) ≤ xi ≤ 2O(L) ,
+i ∈ [n], to the description of K, which increases the description length by O(n). The second reason for
+needing L is to bound the bit-complexity of the Farkas infeasibility certificates at the leaves of the modified
+
+
+                                                         6
+branching tree. By standard bounds, such a certificate has bit-size bounded by O(n) times the bit description
+length of a minimal infeasible subsystem (over the reals) at the corresponding leaf. By Helly’s theorem, a
+minimal infeasible subsystem has at most n+1 inequalities consisting of a subset of the inequalities defining
+K and the inequalities from branching, where each of these inequalities has bit-size at most O(n3 L) by
+Theorem 1.1.
+
+    Sketch of Theorem 1.1 We now give some intuition about the difficulties in proving Theorem 1.1,
+which is technically challenging, and sketch the high level proof ideas.
+    We first note that any disjunction ax ≤ b or ≥ b + 1, where a has very large coefficients, only cuts off a
+very thin slice of K. In particular, the width of the band b ≤ ax ≤ b+1 is exactly 1/kak2 . Thus, it is perhaps
+intuitive that any “optimal” proof should use wide disjunctions instead of thin ones, and hence should have
+reasonably small coefficients. Unfortunately, this intuition turns out to be false. Indeed, disjunction angles
+can be more important than their widths for obtaining proofs of optimal length.
+    The following simple 2 dimensional example shows that if one wishes to exactly preserve the length of
+a branching proof, then large coefficients are unavoidable even for sets of constant radius. Examine the line
+segment
+                               K = {(x1 , x2 ) : M x1 + x2 = 1/2, 0 ≤ x2 ≤ 2},
+for M ≥ 1. Clearly, branching on M x1 + x2 ≤ 0 or ≥ 1 certifies integer infeasibility in one step. Now let
+a ∈ Z2 be any branching direction that also certifies infeasibility in one step. Then, the width of K with
+respect to a must be less than one:
+                                 max ax − min ax = |2(a2 − a1 /M )| < 1.
+                                 x∈K        x∈K
+
+Now if a2 6= 0, then |a1 | ≥ M/2, so kak∞ ≥ M/2. If a2 = 0, then we should let a = (1, 0), since this
+choice yields the widest possible disjunctions under this restriction. Branching on a = (1, 0) cannot certify
+infeasibility in one step however, since x = (0, 1/2) ∈ K and ax = 0.
+      To recompile a proof T using only small coefficients, we must thus make do with a discrete set of dis-
+junction angles that may force us to increase the length of the proof. Given an arbitrary branching direction
+a, the standard tool for approximating the direction of a using small coefficients is so-called Diophantine
+approximation (see Lemma 2.7). Thus, the natural first attempt would be to take every disjunction ax ≤ b
+or ≥ b + 1 in T and replace it by its small coefficient Diophantine approximation a′ x ≤ b′ or ≥ b′ + 1 to get
+T ′ . As shown above, there are examples where any such small coefficient T ′ will no longer be valid, due to
+some of the leaf nodes becoming feasible.
+      Let v ∈ T be a leaf node with relaxation Kv = {x ∈ K : Ax ≤ b} = ∅ and corresponding approxima-
+tion v ′ ∈ T ′ with Kv′ = {x ∈ K : A′v x ≤ b′v } =   6 ∅. To transform T ′ to a valid proof, we must therefore
+                                  ′         ′
+add branching decisions to T below v to certify integer-freeness of Kv′ . From here, the main intuitive
+observation is that since Pv := Av x ≤ bv and Pv′ := A′v x ≤ b′v have almost the same inequalities, Pv′ ∩ K
+should be very close to infeasible.
+      By inspecting a Farkas-type certificate of infeasibility of K ∩ Pv (see subsection 2.4), for a good enough
+Diophantine approximation Pv′ to Pv , one can in fact pinpoint an inequality of Pv′ , say a′v,1 x ≤ b′v,1 , such
+that replacing b′v,1 by b′v,1 − 1 makes K ∩ Pv′ empty. This uses the boundedness of K, i.e., K ⊆ RBn1 ,
+and that the disjunctions induced by the rows of A′ are much wider than those induced by A. Note that
+the emptiness of a′v,1 x ≤ b′1,v − 1 corresponds to saying that a′v,1 x ≥ b′v,1 is a valid CG cut for K ∩ Pv′ .
+Furthermore, this CG cut has the effect of reducing dimension by one since now a′v,1 x = b′v,1 .
+      Given the above, it is natural to hope than one can simply repeat the above strategy recursively. Namely,
+at each step, we try to find a new CG cut induced by a row of A′ which reduces dimension of K ∩ Pv′ by
+
+                                                       7
+one. Unfortunately, the strategy as stated breaks down after one step. The main problem is that, after the
+first step, we have no “information” about av,1 x ≤ bv,1 restricted to a′v,1 x = b′v,1 . Slightly more precisely,
+we no longer have a proxy for av,1 x ≤ bv,1 in Pv′ that allows us to push this constraint “backwards” on the
+subspace a′v,1 x = b′v,1 . Since we must somehow compare Pv′ to Pv to deduce infeasibility, this flexibility
+turns out to be crucial for being able to show the existence of a dimension reducing CG cut.
+     To fix this problem, we rely on a more sophisticated iterated form of Diophantine approximation due to
+Frank and Tardos [FT87]. At a high level (with some simplification), for a disjunction ax ≤ b or ≥ b + 1,
+a ∈ Zn , b ∈ Z, we first construct a sequence of Diophantine approximations a1 , . . . , ak ∈ Zn , containing
+a in their span, which intuitively represents the highest to lower order bits of the direction of a. From here,
+we carefully choose a sequence b1 , . . . , bk ∈ Z indexing inequalities ai x ≤ bi , i ∈ [k], which allows us to
+get better and better approximations of ax ≤ b. Since we are, in reality, replacing the disjunction ax ≤ b
+or ≥ b + 1, we will in fact need a sequence that somehow approximates both sides of the disjunction at the
+same time. This will correspond to requiring that a “flipped” version of the sequence, namely ai x ≥ bi ,
+i ∈ [k − 1], and ak x ≥ bk + 1, gives improving approximations of ax ≥ b + 1. Restricting attention to just
+the ax ≤ b side, we will show the existence of improving “error levels” γ1 ≥ γ2 ≥ · · · ≥ γk = 0, such that
+kxk1 ≤ R, al x ≤ bl , ai x = bi , i ∈ [l − 1] ⇒ ax ≤ b + γl . Furthermore, we will ensure that branching on
+al x ≤ bl − 1, not only reduces the error bound αl , but in fact implies a far stronger inequality than ax ≤ b.
+Precisely, we will require kxk1 ≤ R, al x ≤ bl − 1, ai x = bi , i ∈ [l − 1] ⇒ ax ≤ b − nγl . Hence, once we
+have learned the equalities ai x = bi , i ∈ [l − 1], al becomes a suitable proxy for a which we can use to push
+the constraint ax ≤ b “backwards”. Note that if l = k, we have in fact fully learned ax ≤ b since αk = 0.
+If l < k and ax ≤ b is the “closest inequality to infeasibility” in the current relaxation, corresponding to
+the inequalities in Pv′ for some leaf v ′ together with the additional equalities as above, we will be able to
+guarantee that the CG cuts induced by al and −al yield the new equality al x = bl . Note that if we always
+manage to reduce dimension by at least 1, we will terminate with an infeasible node after adding at most n+1
+pairs of CG cuts. So far, we have discussed replacing a disjunction ax ≤ b or ≥ b + 1 by a sequence instead
+of a single disjunction, and the latter is what is actually  needed. For thisP  purpose, the new disjunction will
+have the form a′ x ≤ b′ or ≥ b′ + 1 where a′ = ki=1 M k−i ai and b′ = ki=1 M k−i bi for M chosen large
+                                                     P
+enough. This is chosen to ensure that kxk1 ≤ R, a′ x ≤ b′ , ai x = bi , i ∈ [l − 1] “almost implies” al x ≤ bl ,
+with a symmetric guarantee for the flipped sequence. The full list (a′ , b′ , k, a1 , b1 , γ1 , . . . , ak , bk , γk ) is what
+we call a valid substitution sequence of ax ≤ b (see definition (3.3)). The main difficulty in constructing
+and analyzing the disjunction a′ x ≤ b′ or ≥ b′ + 1, is that each side of the disjunction should induce a valid
+substitution sequence for the corresponding side of ax ≤ b or ≥ b + 1. That is, we need to work for “both
+sides” at once. As the remaining details are technical, we defer further discussion of the proof to Section 3
+of the paper.
+     As a point of comparison, we note that in contrast to Theorem 1.1 the recompilation result of [CCT87]
+does not give a length independent bound on the size of normals of the CG cuts it produces (e.g., depending
+only on the ℓ1 radius of K). An interesting question is whether one can give length independent bounds
+for CP proofs based only on the bit-complexity L of the starting system. Perhaps one avenue for such a
+reduction would be to first convert the CP proof to a branching proof and try to apply the techniques above.
+The main issue here is that the first reduction phase above, which approximates each disjunction in the tree
+with a small coefficient one, need not preserve the CP structure. Namely, after the replacement, it is not
+clear how to guarantee that every disjunction in the replacement tree has at least one “empty” side (note that
+this problem is compounded by the approximation errors going up the tree).
+
+
+
+
+                                                              8
+   Upper Bounds for Tseitin formulas As our second contribution, we show that Tseitin formulas have
+quasi-polynomial CP proofs, refuting the conjecture that these formulas are (exponentially) hard for CP.
+Theorem 1.3. Let G = (V, E) be an n-vertex graph, lv ∈ {0, 1}, for v ∈ V , be parities and Φ be the
+corresponding Tseitin formula. Then Φ has a CP refutation of length 2∆ (n∆)O(log n) , where ∆ is the
+maximum degree of G.
+      To prove the theorem our main observation is that the quasi-polynomial SP proof of Beame et al [BFI+ 18]
+is of a special type, which we dub an enumerative branching proof, that can be automatically converted to a
+CP proof of at most twice the length.
+      We define an enumerative branching proof for a compact convex set K to correspond, as before, to
+a tree T with root r and root relaxation Kr := K. At every node v ∈ T with Kv 6= ∅, we choose a
+branching direction av ∈ Zn \ {0} and immediately branch on all possible choices b ∈ Z that intersect the
+current relaxation Kv . Note that tree T need no longer be binary. Formally, we first label v with the bounds
+lv , uv ∈ R satisfying
+                                         {av x : x ∈ Kv } ⊆ [lv , uv ].
+From here, we create a child node vb , for every b ∈ Z such that lv ≤ b ≤ uv . The edge e = {v, vb } is now
+labeled with the equality av x = b and the updated relaxation becomes Kvb = {x ∈ Kv : av x = b}. From
+here, each leaf node v ∈ T can be of two different types. Either Kv = ∅, or if Kv 6= ∅, the interval [lv , uv ]
+is defined and does not contain integer points, i.e., ⌊uv ⌋ < lv . A tree T satisfying the above properties is a
+valid enumerative branching proof of integer infeasibility for K.
+    It is an easy exercise to check that any enumerative branching proof can be converted to a standard
+branching proof incurring only a constant factor blowup in the number of nodes. Theorem 1.3 follows
+directly from the observation that the Beame et al SP proof is enumerative together with the following
+simulation result.
+Theorem 1.4. Let K ⊆ Rn be a compact convex set. Let T be an enumerative branching proof of K. Then
+there exists L = (a1 , . . . , aN ) ∈ Zn such that CG(K, L) = ∅ and N ≤ 2|T | − 1.
+    While in the above generality the result is new, the main ideas (at least for rational polytopes) are implicit
+in Cook et al [CCT87]. In particular, their proof that any integer free rational polytope admits a CP proof
+of length at most O(f (n)n ) in effect treats Lenstra’s algorithm as an enumerative branching proof which
+they serialize to get a CP proof. Theorem 1.4 shows that their serialization technique is fully general and in
+fact can be applied to any enumerative branching proof. To get a certified CP proof of small bit-size from
+Theorem 1.4 for a rational polyhedron K, we note that it suffices to apply the recompilation technique of
+Cook et al [CCT87] to the output of Theorem 1.4. While there is some technical novelty in the generalization
+to arbitrary compact convex sets, we feel the main contribution of Theorem 1.4 is conceptual. As evidenced
+by Theorem 1.3, the formalization of enumerative branching proofs and their relationship to CP can be a
+useful tool for constructing CP proofs.
+    We now sketch the main ideas for serializing an enumerative branching proof T for K. We start from
+the root r ∈ T , with branching direction ar ∈ Zn and {ar x : x ∈ K} ⊆ [lr , ur ]. The idea is to iteratively
+“push” the hyperplane Hb = {x ∈ Rn : ar x = b}, with b initialized to ur , backwards through K, until K is
+empty (i.e., iteratively decreasing b until it goes below lr ). The first push is given by the CG cut induced by
+ar which pushes Hur to H⌊ur ⌋ . That is, b ← ⌊b⌋. Since b is now integral, we can no longer decrease b just
+using CG cuts induced by ar . At this point, we note that the subtree Trb of T rooted at the child rb is a valid
+branching proof for K ∩ Hb . We can thus apply the procedure recursively on K ∩ Hb and Trb to “chop off”
+K ∩ Hb . For this purpose, one crucially needs to be able to lift CG cuts applied to the face K ∩ Hb to CG
+
+                                                        9
+cuts one can apply to K that have the same effect on K ∩ Hb . Such a lifting lemma is classical for rational
+polyhedra [Chv73] and was established more recently for compact convex sets in [DDV14], a variant of
+which we use here. Applying the lifted CG cuts to K, we can thus guarantee that K ∩ Hb = ∅. This allows
+us to push once more with the cut induced by ar , pushing Hb to Hb−1 . The process now continues in a
+similar fashion until K is empty. We note that the enumerative structure is crucial here, as it allows one to
+keep the “action” on the boundary of K throughout the entire proof.
+
+   Lower Bounds for Branching Proofs As our final contribution, we give a simple family of n-dimensional
+(mixed-)integer free polytopes which require branching proofs of length exponential in n.
+
+Theorem 1.5. The integer-free SAT polytope
+                                           X      X
+                       Pn := {x ∈ [0, 1] :   xi +  (1 − xi ) ≥ 1, ∀S ⊆ [n]}
+                                             i∈S       i6∈S
+
+requires branching proofs of length 2n /n.
+
+    The above example is due to Cook et al [CCT87], which they used to give a 2n /n lower bound for CP.
+In the above theorem, we show that their lower bound technique extends to branching proofs. As it is very
+simple and short, we give the full proof below.
+
+Proof. The first observation is that Pn is “integer critical”,
+                                                         P namely, P removing any constraint from Pn makes
+the polytope integer feasible. In particular, removing i∈S xi + i6∈S (1 − xi ) ≥ 1, for any S ⊆ [n], makes
+the vector 1S̄ , the indicator of the complement of S, feasible.
+    Let T denote any branching proof for Pn . For any leaf node v of T , by Farkas’s lemma, the infeasibility
+of the continuous relaxation (Pn )v is certified by at most n + 1 constraints. Since Pn is non-empty, at most
+n of these constraints can come from the description of Pn . Letting N denote the number of leaves of T ,
+one can therefore certify the infeasibility of each leaf of T using at most nN original constraints from Pn .
+If nN < 2n , then T would certify the integer infeasibility of Pn with at least one constraint removed. By
+integer criticality of Pn , this is impossible. Therefore |T | ≥ N ≥ 2n /n, as needed.
+
+    One notable criticism of the above example is that it already has 2n constraints. Thus, the length of
+the proof is simply proportional to the initial representation. Interestingly, Pn has a very simple extended
+formulation in R2n requiring only O(n) constraints. A direct computation reveals that
+
+             Pn = {x ∈ [0, 1]n : k(x1 − 1/2, . . . , xn − 1/2)k1 ≤ n/2 − 1}
+                                                Xn
+                = {x ∈ [0, 1]n : ∃y ∈ [0, 1]n ,      yi ≤ n/2 − 1, ±(xi − 1/2) ≤ yi , i ∈ [n]}.
+                                                i=1
+
+    Combining the above with Theorem 1.5, we immediately get an exponential lower bound for proving
+the mixed-integer infeasibility of a compactly represented polytope. We note that in this setting, the lower
+bound is indeed exponential in the description length of P .
+
+Corollary 1.6. Let Qn = {(x, y) ∈ [0, 1]2n : ni=1 yi ≤ n/2 − 1, ±(xi − 1/2) ≤ yi , i ∈ [n]}. Then any
+                                                 P
+branching proof of mixed-integer infeasibility for Qn , proving Qn ∩ Zn × Rn = ∅, has length at least 2n /n.
+
+
+
+
+                                                      10
+     To see the above, recall that a mixed-integer branching proof for Qn only branches on integer disjunc-
+tions supported on the first n variables. Thus, it is entirely equivalent to a branching proof for the projection
+of Qn onto these variables, namely, to a branching proof for Pn .
+     As a final remark, we note that in the extended space, Qn does in fact have a very short proof of
+infeasibility using only n split cuts, which are perhaps the most important class of cutting planes in practice
+(in fact, the most generically effective cuts are the Gomory mixed-integer cuts (GMI), which are equivalent
+to split cuts for rational polyhedra [CL01]). Roughly speaking, a split cut here is any linear inequality that
+is valid for both sides ax ≤ b or ≥ b + 1, a ∈ Zn , b ∈ Z, of an integer disjunction. In particular, yi ≥ 1/2
+     Pn split cut for Qn , for i ∈ [n], since it is valid for xi ≤ 0 and xi ≥ 1. These n splits together imply
+is a valid
+that i=1 yi ≥ n/2, and thus adding them to Qn makes the system infeasible.
+
+1.5 Conclusions
+In this work, we have continued the proof complexity theoretic study of branching proofs started in [BFI+ 18],
+establishing analogues of the CP results in [CCT87] for branching proofs. In the process, we have clarified
+basic properties of the branching proof system, including how to control the size of coefficients, how to
+simulate important classes of branching proofs using CP, and how to construct elementary lower bound
+examples for them. We hope that these results will help motivate a further study of this important proof
+system.
+     In terms of open questions, there are many. A first question is whether size of the coefficients in The-
+                                             2
+orem 1.1 can be reduced from (nR)O(n ) to (nR)O(n) . The latter corresponds to an upper bound on the
+coefficients of an integer hyperplane passing through n integer points in [−R, R]n , and is also a natural
+                                                                                  2
+from the perspective    of Diophantine approximation. We note that the (nR)O(n ) dependency is due to the
+form a′ = ki=1 M k−i ai of the approximating disjunctions, where we need M = (nR)O(n) to ensure that
+              P
+the different levels present in a′ don’t “interfere” with each other. On the lower bound side, in the context
+of SAT, the example we use has exponentially many clauses. It would be much more interesting to find
+polynomial sized formulas with exponential sized branching proofs. In the context of integer programming,
+as mentioned previously, the best known algorithms for general integer programming require nO(n) time. A
+very interesting question is whether one can find an example of an integer free compact convex set K ⊆ Rn ,
+requiring branching proofs of size nΩ(n) . Such a lower bound would show that Lenstra-type algorithms
+for IP, which in fact yield enumerative branching proofs, cannot be substantially improved. We note that
+this still leaves open the possibility that so-called Kannan-type algorithms can do much better (see [Dad12]
+Chapter 7 for a reference). In terms of upper bounds, a natural question is whether one can leverage the sim-
+ulation of enumerative branching proofs by CP to give new upper bounds beyond Tseitin formulas. It was
+shown by Cook et al [CCT87] that for SAT, CP can be simulated by extended resolution. A natural question
+is whether stabbing planes can also be simulated by extended resolution. Lastly, as mentioned previously, it
+would be interesting to establish length independent bounds for the coefficients of the normals in CP proofs.
+
+1.6 Acknowledgments
+The first author would like to deeply thank Noah Fleming, Denis Pankratov, Toni Pitassi and Robert Robere
+for posing the bit-size vs length question for SP and for very stimulating conversations while the author was
+visiting the University of Toronto. The authors are also very grateful for the comments from the anonymous
+reviewers, which have greatly helped us improve the quality of the presentation.
+
+
+
+
+                                                       11
+1.7 Organization
+In Section 2, we collect basic notation, formalize the definition of branching proofs and cover the necessary
+tools from Diophantine approximation. In Section 3, we present our branching proof recompilation theorem,
+which ensures that the bit-size of branching proofs can be polynomially bounded. In Section 4, we show
+how to simulate enumerative branching proofs via CP, and apply this simulation to get a quasi-polynomial
+CP bound for Tseitin formulas.
+
+
+2 Preliminaries
+    Basic Notation The natural numbers are denoted by N, the reals and non-negative reals by R, R+
+respectively. For m ∈ N, we denote the set {1, . . . , m} by [m]. Vectors x ∈ Rn are denoted in bold and
+scalars by x ∈ R.P The standard basis vectors of Rn are denoted by ei , i ∈ [n]. Given two vectors Pnx, y ∈ R ,
+                                                                                                               n
+                      n
+we write xy := i=1 xi yi for their inner product. The ℓ1 and ℓ∞ norm of x are kxk1 = i=1 |xi | and
+kxk∞ = maxi∈[n] |xi | respectively. We denote the ℓ1 ball in Rn by Bn1 = {x ∈ Rn : kxk1 ≤ 1}. For a
+vector x = (x1 , . . . , xn ) ∈ Rn , we let ⌊x⌉ := (⌊x1 ⌉, . . . , ⌊xn ⌉) denote the vector whose coordinates are
+those of x rounded to the nearest integer.
+    Since we shall study convex bodies lying in the l1 ball of some radius R ∈ N, it is helpful to define
+the following shorthand notation: for a set of linear inequalities Ax ≤ b and a vector c, the expression
+Ax ≤ b ⇒R cx ≤ d stands for
+
+                     {x ∈ Rn : kxk1 ≤ R, Ax ≤ b} ⊆ {x ∈ Rn : kxk1 ≤ R, cx ≤ d}.
+
+Definition 2.1 (Halfspace, Hyperplane). For a ∈ Rn , b ∈ R, we define the halfspace Ha,b = {x ∈ Rn : ax ≤ b}
+                      = = {x ∈ Rn : ax = b}.
+and the hyperplane Ha,b
+
+Definition 2.2 (Support Function). Let K ⊆ Rn . The support function hK : Rn → R is defined as
+hK (a) := supx∈K ax. The support function is always convex and is continuous if K is non-empty and
+bounded. If K is non-empty and compact, the supremum in hK (a) is always attained. By convention, if
+K = ∅ we define hK (a) = −∞, ∀a ∈ Rn .
+    For K ⊆ Rn non-empty and compact and a ∈ Rn , we define the supporting hyperplane of K induced
+            = (a) := {x ∈ Rn : ax = h (a)}. We define the set of maximizers of a in K to be F (a) :=
+by a to be HK                         K                                                      K
+       =
+K ∩ HK (a).
+
+2.1 Bit-Sizes
+Definition 2.3 (Bit-size). The notation hxi is reserved for the number of bits required to express the object
+x, or the bit-size of x. We build up the precise definitions as follows:
+    For r ∈ Q, r = p/q, p ∈ Z, q ∈ Z, q > 0,P        hri := 1 + ⌈log2 (|p| + 1)⌉ + ⌈log2 (q + 1)⌉. Next, for
+        n with c = (c , c . . . c ), hci := n +        n                                         m×n , hAi :=
+c ∈ QP                   1  2      n                   i=1 hc1 i. Similarly for matrices A ∈ Q
+          m Pn
+mn + i=1 j=1 hAij i. hA, Bi is simply hAi + hBi when these terms are well-defined.
+    For a labeled rooted tree T with n nodes and m edges E[T ], and where edges e ∈ E[T ] have labels
+Le and nodes v have labels Lv P  , and if the labelsPbelong to a class for which the bit-size has already been
+defined, then hT i := n + m + e∈E[T ] hLe i + v∈T hLv i.
+
+
+
+
+                                                       12
+2.2 Branching Proofs
+Definition 2.4 (Branching Proof). A branching proof of integer infeasibility for a convex set K ⊆ Rn is
+represented by a rooted binary tree T with root r := rT . Each node v ∈ T is labeled with (av , bv ), av ∈
+Zn , bv ∈ Z and has two children nodes: the left child vl and right child vr . Since the inner product of two inte-
+ger vectors is an integer, the integer lattice Zn can be partitioned into {x ∈ Zn : av x ≤ bv }, {x ∈ Zn : av x ≥ bv + 1}.
+This partition is referred to as the branch or integer disjunction given by (av , bv ).
+     Every edge e ∈ E[T ] is labeled with an inequality ae x ≤ be . A left edge el = {v, vl } is labeled with
+av x ≤ bv , or that ae = av , be = bl . However, a right edge er = {v, vr } is labeled with av x ≥ bv + 1, so
+that ae = −av , be = −b1 − 1.
+     For each node v ∈ T , we define PT (v) to be the unique path from the root r of T to v. Also define for
+each v a polyhedron Pv = {x ∈ Rn : Av x ≤ bv } where the rows of Av are given by av,e , e ∈ E[PT (v)],
+and the coordinates of bv are bv,e , e ∈ E[PT (v)]. Let Kv := K ∩ Pv . Note that Kr = K.
+     For T to be a proof of integer infeasibility for K, we require that every leaf v ∈ T (v is a leaf if its has
+no children) satisfies Kv = ∅.
+     We denote the length of the branching proof by |T |, which is defined to be the number of nodes of T . The
+size of a branching proof hT i is simply its bit-size as a labeled rooted tree as given above in definition 2.3.
+Definition 2.5 (Certified Branching Proof). Suppose K = {x ∈ Rn : Cx ≤ d}, C ∈ Qr×n , d = Qr belongs
+to the class of rational polyhedra. A certified branching proof of integer infeasibility for K is a standard
+branching proof T of infeasibility of K, but where every leaf node v of T is also labeled with a Farkas
+certificate λv ∈ Qr+mv , λi ≥ 0, ∀i ∈ [r + mv ], where now Kv = {x ∈ Rn : Cx ≤ d, Av ≤ bv }, for
+Av ∈ Rmv ×n , bv ∈ Rmv , mv = |PT (v)|. Let λv = (λv,1 , λv,2 ), λv,1 ∈ Qr , λv,2 ∈ Qmv . The requirement
+that every Kv = ∅ for a leaf nodes v is certified by requiring λv,1 C + λv,2 Av = 0, λv,1 d + λv,2 bv < 0.
+    The bit-size of a certified branching proof is its bit-size when viewed as a labeled rooted tree.
+Definition 2.6 (Enumerative Branching Proof). For a compact convex set K, an enumerative branching
+proof consists of a tree T with root r and root relaxation Kr := K. Every node v ∈ T is labeled with
+(av , lv , uv ), where av ∈ Zn , lv , uv ∈ Q satisfying
+
+                                         {av x : x ∈ Kv } ⊆ [lv , uv ].
+
+There is a child of v denoted vb for every b ∈ Z, lv ≤ b ≤ uv , and the edge e = {v, vb } is labeled with the
+equality av x = b. The relaxation at Kvb becomes {x ∈ Kv : av x = b}.
+   T is a valid enumerative branching proof of infeasibility if every leaf node v ∈ T satisfies Kv = ∅ or
+Kv 6= ∅ but [lv , uv ] contains no integer points, i.e., ⌊uv ⌋ < lv .
+   hT i is again simply the bit-size of T as a labeled rooted tree.
+
+2.3 Simultaneous Diophantine Approximation
+The existence of a rational vector of small bit-size that well approximates an arbitrary real vector is of prime
+importance in this paper. For this purpose, we shall require standard tools from Diophantine approxima-
+tion (see [Sch80] for a reference). The following is a slightly adapted version of Dirichlet’s simultaneous
+approximation theorem, which will be convenient for our purposes. We provide a proof for completeness.
+Lemma 2.7. Let a ∈ Rn satisfy kak∞ = 1 and let N ≥ 1. Then, there exists a positive integer l ≤ N n
+such that a′ := ⌊la⌉ satisfies
+
+                                kla − a′ k∞ < 1/N       and    ka′ k∞ = l ≥ 1.
+
+                                                      13
+Proof. Let C = {Iz : z ∈ [N ]n } denote the collection of N n half-open cubes forming a partition of [0, 1)n ,
+where Iz = ×ni=1 [(zi −1)/N, zi /N ) for z ∈ [N ]n . For x = (x1 , . . . , xn ) ∈ Rn , let {x} = x−⌊x⌋ ∈ [0, 1)n
+denote the fractional part of x. Examine the sequence {0a}, {1a}, . . . , {N n a}. Since the sequence has
+length N n + 1 and each element of the sequence lands in one of the cubes in C, by the pigeonhole principle
+there must be distinct indices l1 , l2 , 0 ≤ l1 < l2 ≤ N n and z ∈ [N ]n such that {l1 a}, {l2 a} ∈ Iz . Since
+Iz −Iz = (−1/N, 1/N )n , we note that k{l1 a} − {l2 a}k∞ < 1/N . Let l = l2 −l1 and a′ = ⌊la⌉, observing
+1 ≤ l ≤ N n . For any i ∈ [n], we have
+
+      |lai − ⌊lai ⌉| = min |lai − k| ≤ |(l1 − l2 )ai − (⌊l1 ai ⌋ − ⌊l2 ai ⌋)| = |{l1 ai } − {l2 ai }| < 1/N.
+                       k∈Z
+
+In particular, kla − a′ k∞ = kla − ⌊la⌉k∞ < 1/N , as needed. We now show that ka′ k∞ = l. By assump-
+tion on a, there is a coordinate i ∈ [n] such that ai = 1 = kak∞ . Thus, a′i = ⌊lai ⌉ = l and ka′ k∞ ≥ l.
+For any j ∈ [n], also clearly have laj ∈ [−l, l] ⇒ a′j = ⌊laj ⌉ ∈ [−l, l] since l ∈ N. Thus, ka′ k∞ = l as
+needed.
+
+Remark 2.8. For a ∈ Rn , a′ ∈ Zn , 1 ≤ l ≤ N n as above, observe that ai = 0 ⇒ a′i = ⌊lai ⌉ = 0.
+Furthermore, ka′ k∞ = l ≤ N n .
+Definition 2.9 (Diophantine Approximation of Precision N ). For a vector a ∈ Rn \ {0} and N ≥ 1, we
+say that a′ is a precision N Diophantine approximation of a if a′ satisfies the conditions of Lemma 2.7 on
+inputs a/kak∞ and N .
+    In the following, we will set N = 10nR, where R is an integer upper bound on the ℓ1 radius of the
+convex set K ⊆ Rn whose branching proof we are modifying.
+
+2.4 Farkas Certificates for General Convex Sets
+A Farkas certificate λ ∈ Rm
+                          + certifies the infeasibility of the system Ax ≤ b, A ∈ R
+                                                                                          m×n , b ∈ Rm if
+ T         T
+λ A = 0, λ b = −1. It is possible to extend this definition to show a linear system is infeasible whenever
+x ∈ K for a compact convex set K.
+Definition 2.10 (Generalized Farkas Certificate). Let K ⊆ Rn be a compact convex set, and P := {x ∈ Rn : Ax ≤ b}, A ∈
+Rm×n , b ∈ Rm . λ ∈ Rm + is a generalized Farkas certificate of infeasibility for K ∩ P if
+
+                                            min λT (Ax − b) > 0.
+                                            x∈K
+
+Lemma 2.11. With the notation of definition 2.10, K ∩P = ∅ if and only if there exists a generalized Farkas
+certificate λ ∈ Rm
+                 + of its infeasibility. Furthermore, if one generalized Farkas certificate exists, then so does
+one with at most n + 1 non-zero coordinates.
+Proof. That a generalized Farkas certificate implies infeasibility is trivial.
+    Now let us suppose K ∩ P = ∅. K is compact and convex by assumption, and P is clearly closed and
+convex. Therefore, there exists a strictly separating hyperplane cx = d so that K and P lie on “opposite
+sides” of this hyperplane. More precisely, cx − d > 0 for x ∈ K, and cx − d < 0 for x ∈ P .
+    cx < d for every x ∈ P means the system Ax ≤ b, −cx ≤ −d is infeasible. Let (λ, γ) ≥ 0 be a
+(conventional) Farkas certificate of the infeasibility of this system: λT A = γc, λT b < γd. We now claim
+that λ ≥ 0 is a generalized Farkas certificate of infeasibility for K ∩ P . Firstly, if γ = 0, we have that
+minx∈K λT (Ax − b) = −λT b > 0. If γ > 0, then
+
+                               x ∈ K ⇒ γ(cx − d) > 0 ⇒ λT (Ax − b) > 0.
+
+                                                       14
+In particular, minx∈K λT (Ax − b) > 0, noting that the minimum is indeed achieved since K is compact.
+    By Caratheodory’s theorem, there exists a generalized Farkas certificate of at most n + 1 non-zero
+coordinates whenever a generalized Farkas certificate exists.
+
+
+     Although the correctness of a conventional Farkas certificate can be verified with simple matrix mul-
+tiplication, this is not the case for a generalized Farkas certificate. In particular, one must exactly solve
+the (convex) minimization problem in definition 2.10 to verify the certificate. This is why the notion of a
+certified branching proof is sensible only for specific classes of compact convex sets, such as polyhedra.
+     The following lemma will be crucial for enabling us to deduce infeasibility information for “nearby”
+polyhedra. The proof relies upon the existence of generalized Farkas certificates as defined above.
+
+Lemma 2.12. Let K ⊆ Rn be a compact convex set and let P = {x ∈ Rn : Ax ≤ b}, A ∈ Rm×n , b ∈ Rm ,
+be a polyhedron satisfying P ∩ K = ∅. For ε ∈ Rm , define Pε := {x ∈ Rn : Ax ≤ b + ε}. Then, for any
+ε ∈ Rm , either K ∩ Pε = ∅, or there exists j ∈ [m] such that εj > 0 and K ∩ Pε−(n+1)εj ej = ∅.
+
+Proof. We assume that K ∩ Pε 6= ∅, since otherwise there is nothing to prove.
+    Let λ ∈ Rm  + be a generalized Farkas certificate of infeasibility for K ∩ P with at most n + 1 non-zero
+coordinates as guaranteed by Lemma 2.11. Let j∗ = arg maxj∈[m] εj λj . We claim that εj∗ λj∗ > 0. Assume
+not, then εj λj ≤ 0 for all i ∈ [m]. In particular,
+
+                      min λT (Ax − b − ε) = min λT (Ax − b) − λT ε > −λT ε ≥ 0.                            (2.1)
+                      x∈K                       x∈K
+
+Thus, λ is a generalized Farkas certificate of infeasibility for K ∩ Pε . But this contradicts our assumption
+that K ∩ Pε 6= ∅. Therefore, we must have that εj∗ λj∗ > 0. In particular, since λ ≥ 0, we have that εj∗ > 0
+and λj∗ > 0.
+    We now show that λ is in fact a valid generalized Farkas certificate of infeasibility for K∩Pε−(n+1)εj∗ ej∗ .
+Let S = {j ∈ [m] : λj > 0}, and note that by assumption |S| ≤ n + 1. Using a similar calculation to (2.1),
+we see that
+
+  min λT (Ax − b − ε + (n + 1)εj∗ ej∗ ) > −λT ε + (n + 1)εj∗ λj∗
+  x∈K
+                                              X
+                                          =−      εj λj + (n + 1)εj∗ λj∗ ≥ (n + 1 − |S|)εj∗ λj∗ ≥ 0.
+                                                    j∈S
+
+Since λ is a valid certificate of infeasibility, we have that K ∩ Pε−(n+1)εj∗ ej∗ = ∅, as needed.
+
+2.5 Chvátal-Gomory Cuts
+Definition 2.13 (Chvátal-Gomory Cut). For a ∈ Zn , the CG cut of K induced by a is the halfspace
+   cg                                                            cg
+HK    (a) := Ha,⌊hK (a)⌋ . We define CG(K, a) := K ∩ HK             (a) to be the result of applying the CG cut
+induced by a to K.
+     This definition is extended to an ordered list L = (a1 , . . . , ak ) of integer vectors as CG(K, L) :=
+CG(CG(K, a1 ), (a2 , . . . , ak )). That is, we first apply the CG cut induced by a1 to K yielding CG(K, a1 ),
+then we apply the CG cut induced by a2 to CG(K, a1 ) yielding CG(K, (a1 , a2 )), and so forth. By conven-
+tion, CG(K, ∅) = K, that is, applying the empty list of CG cuts does nothing to K.
+
+
+
+                                                       15
+     The following lifting lemma, adapted from [DDV14], shows that CG cuts on a “rational face” F of K
+can be lifted to a CG cut of K having the same effect on the face. We note that lifting is also possible from
+“irrational faces” [DDV14], however this requires intersecting multiple CG cuts to achieve the desired effect.
+The corresponding lemma for rational polyhedra is classical [Chv73].
+     We include its proof for clarity and completeness. The proof follows the standard approach of adding a
+large integer multiple of the normal vector to F to the cut.
+Lemma 2.14 (Lifting CG cuts). Let K ⊆ Rn be a non-empty compact set. Let c ∈ Zn , F := FK (c) and
+assume that hK (c) ∈ Z. Then for any a ∈ Zn , there exists N ≥ 0 such that
+                            cg
+                           HK              =
+                               (a + ic) ∩ HK (c) = HFcg (a) ∩ HK
+                                                               =
+                                                                 (c), ∀i ≥ N.
+
+   For the proof, we will need the following technical lemma, which shows convergence properties of a
+sequence of maximizing faces.
+Lemma 2.15. Let K ⊆ Rn be a non-empty compact set. Let (ai )∞      n
+                                                            i=1 ∈ R be a convergent sequence with
+a∞ := limi→∞ ai and let Fi := FK (ai ), i ∈ N ∪ {∞}. Then, ∀ε > 0 there exists Nε ≥ 1 such that
+∀i ≥ Nε , Fi ⊆ F∞ + εBn1 .
+
+Proof. For the sake of contradiction, let us assume that there exists a sequence (xi )∞
+                                                                                      i=1 and an ε > 0 such
+                    / F∞ + εBn1 . Letting K ′ = closure(K \ (F∞ + εBn1 )), we see that K ′ ⊆ K is compact
+that xi ∈ Fi and xi ∈
+and that K ′ ∩ F∞ = ∅. Furthermore, xi ∈ Fi ⊆ K ′ , ∀i ∈ N. Therefore, by compactness of K ′ there exists a
+convergent subsequence (xsi )∞                                            ′
+                             i=1 with limit point y := limi→∞ xsi ∈ K . Note that by construction y ∈ K
+and y 6∈ F∞ . Since K is compact, its support function hK is continuous. By continuity of hK and the
+standard inner product, we conclude that
+
+                         v∞ y = lim vsi xsi = lim hK (vsi )      ( since xsi ∈ Fsi )
+                                  i→∞             i→∞
+                               = hK (v∞ ).
+
+But then y ∈ F∞ , a clear contradiction. The lemma thus follows.
+
+    We now give the proof of the lifting lemma.
+
+Proof of Lemma 2.14. Firstly, if c = 0 then F = K and the statement trivially holds for N = 0. Thus, we
+may assume that c 6= 0.
+   Let b = hF (a) and recall that HFcg (a) = {x ∈ Rn : ax ≤ ⌊b⌋}. For i ≥ 0, let bi := hK (a + N c) −
+ihK (c). From here, we see that
+                      cg             =
+                 x ∈ HK  (a + ic) ∩ HK (c) ⇔ (a + ic)x = ⌊hK (a + ic)x⌋, cx = hK (c)
+                                             ⇔ (a + ic)x ≤ ⌊bi + ihK (c)⌋, cx = hK (c)
+                                             ⇔ (a + ic)x ≤ ⌊bi ⌋ + ihK (c), cx = hK (c)
+                                                        (since ihK (c) ∈ Z)
+                                             ⇔ ax ≤ ⌊bi ⌋, cx = hK (c).
+
+Given the above, it suffices to show that there exists N ≥ 0 such that ⌊bi ⌋ = ⌊b⌋, ∀i ≥ N . Since F is the
+set of maximizers of c in K, note that
+
+                bi = hK (a + ic) − ihK (c) ≥ hF (a + ic) − ihK (c) = hF (a) = b, ∀i ≥ 0.
+
+                                                     16
+Letting ε1 = ⌊b + 1⌋− b > 0, note that ⌊b′ ⌋ = ⌊b⌋ for b′ ∈ [b, b+ ε1 ). Given this, it now suffices to show the
+existence of N ≥ 0 such that bi < b + ε1 , for i ≥ N . Let Fi := FK (a + ic), for i ∈ N . Since a/i + c → c
+as i → ∞ and K is compact, by Lemma 2.15 for ε2 > 0 there exists Nε2 ≥ 0 such that Fi ⊆ F + ε2 Bn1 , for
+i ≥ Nε2 . For i ≥ Nε2 , we may thus choose xi ∈ Fi and yi ∈ F satisfying kxi − yi k1 ≤ ε2 . From here, for
+i ≥ Nε2 we have that
+                   bi = hK (a + ic) − ihK (c) = (a + ic)xi − ihK (c)        ( since xi ∈ Fi )
+                     ≤ axi + ihK (c) − ihK (c) = a(xi − yi ) + ayi         ( since xi ∈ K)
+                     ≤ kx − yk1 kak∞ + hF (a) ≤ ε2 kak∞ + b           ( since yi ∈ F ) .
+Setting ε2 := ε1 /(2kak∞ ) and N := Nε2 yields the desired bound. The lemma thus follows.
+
+
+3 Bounding the coefficients of Branching Proofs
+In this section, we show how to transform any branching proof T for a compact convex set K ⊆ RBn1 into
+a branching proof T ′ having small coefficients with length |T ′ | = O(n|T |).
+    The construction of T ′ is a two step process. In the first step, we substitute each integer disjunction
+                                                                                     2
+given by (a, b) by an approximation (a′ , b′ ) with coefficients of size (nR)O(n ) . This bounds hT ′ i while
+keeping |T ′ | = |T |. We shall use the “iterated Diophantine approximation” technique introduced by Frank
+and Tardos [FT87] to construct a′ , b′ from a, b.
+    It is possible that the new inequalities are “stronger”; e.g., it is possible that for a′ x ≤ b′ ⇒R ax ≤ b
+and a′ x ≥ b′ + 1 ⇒R ax ≥ b + 1. However, one cannot always ensure this, and in general we will
+only be able to guarantee that a′ x ≤ b′ ⇒R ax ≤ b + ε and a′ x ≥ b′ + 1 ⇒R ax ≥ b + 1 − ε for
+some “small” ε > 0. As explained in the introduction, the combined error from all the substitutions may
+render the continuous relaxations at the leaves nonempty. In a second step, we “fix-up” these newly feasible
+leaf nodes by adding O(n) judiciously chosen CG cuts to arrive at infeasible sets, causing the O(n) factor
+increase in |T ′ |. These cuts will be derived from so-called valid substitution sequences (see Definition 3.3)
+of the original disjunctions in T , which we construct together with the replacement disjunctions a′ x ≤ b′ or
+≥ b′ + 1 described above.
+    From here until the end of subsection 3.1, we explain the first step, showing how to construct appropri-
+ate replacement disjunctions together with substitution sequences and how to compute the initial (partial)
+replacement tree T ′ from T . In subsection 3.2, we explain the second step, showing how to construct the
+requisite O(n)-size CP proof of infeasibility for each leaf node of T ′ . Finally, in subsection 3.3, we give the
+proof of Theorem 1.1 which combines both steps.
+    We begin with the following lemma, which collects the properties of Diophantine approximations we
+will need to construct the replacement disjunctions and substitution sequences.
+Lemma 3.1. For any vector a ∈ Rn \ {0}, b ∈ R, R, N ∈ N, let a′ be a Diophantine approximation of a of
+                          kak∞
+precision N , and let α = ka ′k
+                               ∞
+                                 . Then the following statements hold:
+                                              R                                               R
+  (i) ∀b′ ∈ R, a′ x ≤ b′ ⇒R ax ≤ α b′ + N         and symmetrically, a′ x ≥ b′ ⇒R ax ≥ α b′ − N
+                                                                                               
+                                                                                                  .
+            R
+  (ii) When N < 41 , α ≥ 2, we can uniquely set b′ ∈ Z according to exactly one of following cases:
+         • (non-R-dominating case): −Rkak∞ − 1 < b < Rkak∞ and ∃ unique b′ ∈ Z, |b′ | ≤ R ka′ k∞ ,
+                                                                 
+                                                      ′  R      ′  R
+                            such that (b, b + 1) ∩ α b −    ,α b +       6= ∅.
+                                                         N         N
+
+                                                       17
+           • (R-dominating case): ∃ unique b′ ∈ Z, −R ka′ k∞ ≤ b′ ≤ R ka′ k∞ − 1,
+                                                                              
+                                                          ′  R         ′       R
+                             such that (b, b + 1) ⊆ α b +         ,α b + 1 −         ,
+                                                             N                 N
+              or
+                                                b ≥ R kak∞ , b′ = R a′ ∞ ,
+              or
+                                           b + 1 ≤ −R kak∞ , b′ = −R a′ ∞ − 1.
+
+     Furthermore, in the R-dominating case we have that
+
+                               a′ x ≤ b′ ⇒R ax ≤ b and a′ x ≥ b′ + 1 ⇒R ax ≥ b + 1.
+
+Proof.      (i) By definition of a′ ,        ′                           ′
+                                        α − a ∞ < 1/N . We have for any b ∈ Z:
+                                        a
+
+
+                                           a           a               a                   R
+                   kxk1 ≤ R, a′ x ≤ b′ ⇒     x ≤ b′ + ( − a′ )x ≤ b′ +   − a′   kxk1 ≤ b′ + .
+                                           α           α               α      ∞            N
+         Summarizing, we have that
+                                                                             
+                                                  ′     ′              R′
+                                        kxk1 ≤ R, a x ≤ b ⇒ ax ≤ α b +            .
+                                                                       N
+
+         By a symmetric argument, we also have
+                                                                             
+                                                  ′     ′              R′
+                                        kxk1 ≤ R, a x ≥ b ⇒ ax ≥ α b −            .
+                                                                       N
+
+              R
+                 < 41 , the intervals of the form I(b′ ) := [α b′ − N  R            R
+                                                                           , α b′ + N
+                                                                                      ′
+ (ii) When N                                                                           ], b ∈ Z, are pairwise
+      disjoint. In fact, when α ≥ 2, they are more than unit distance apart. This implies that the interval
+      (b, b + 1) cannot intersect more than one of the intervals I(b′ ), b′ ∈ Z.
+         Let us now suppose −Rkak∞ −1 < b < Rkak∞ . We now show that only b′ ∈ [−R kak∞ , R kak∞ ]∩
+         Z need be considered in this case.
+         For b′ = −R ka′ k∞ , we have I(b′ ) = [Rα ka′ k∞ − N1 , Rα ka′ k∞ + N1 ]. The left end point
+                                                                                       
+
+         −R kak∞ − Rα                 ′
+                      N of I(−R ka k∞ ) lies to the left of b + 1 on the real line because
+
+                                                      Rα
+                                         −R kak∞ −       < −R kak∞ < b + 1.
+                                                      N
+         Similarly the right end point R kak∞ + Rα         ′
+                                                N of I(R ka k∞ ) lies to the right of b as
+
+                                                       Rα
+                                            R kak∞ +      > R kak∞ > b.
+                                                       N
+     Thus, either (b, b + 1) intersects some Ib′ for b′ ∈ [−R ka′ k∞ , R ka′ k∞ ] ∩ Z or it lies in between two
+     such consecutive intervals Ib′ , Ib′ +1 : these are the non-dominating and dominating cases respectively.
+
+
+                                                       18
+      In the dominating case for b ∈ (−R kak∞ − 1, R kak∞ ), the fact that
+                                                                         
+                                                     ′    R         ′      R
+                                 (b, b + 1) ⊆ α b +            ,α b + 1 −
+                                                         N                 N
+                           R
+      implies b ≥ α b′ + N
+                             
+                               . Applying part (i) we see that
+                                                                  
+                                     ′     ′                 ′   R
+                                   a x ≤ b ⇒R ax ≤ α b +              ⇒ ax ≤ b.
+                                                                 N
+                                               R
+      On the other side, b + 1 ≤ α b′ + 1 − N
+                                                 
+                                                   gives
+                                                                     
+                             ′       ′                     ′       R
+                            a x ≥ b + 1 ⇒R ax ≥ α b + 1 −               ⇒ ax ≥ b + 1.
+                                                                   N
+
+      Now let us consider the situation where b ≥ R kak∞ . Then ∀x ∈ RBn1 we have ax ≤ kak∞ kxk1 ≤
+      kak∞ R ≤ b. Since this inequality holds for every vector in RBn1 , we have that a′ x ≤ b′ ⇒R ax ≤ b
+      ∀b′ ∈ R and in particular for b′ = R ka′ k∞ . Furthermore, for b′ = R ka′ k∞ , a′ x ≥ b′ + 1 does not
+      hold for any x ∈ RBn1 and thus a′ x ≥ b′ + 1 ⇒R ax ≥ b + 1.
+      The symmetric reasoning applies to case b + 1 ≤ −R kak∞ . Setting b′ = −R kak∞ − 1, we firstly
+      have that ax ≥ b + 1 is a valid inequality for RBn1 and hence a′ x ≥ b′ + 1 ⇒R ax ≥ b + 1 trivially.
+      Secondly, the system a′ x ≤ b′ , kxk1 ≤ R is empty and hence a′ x ≤ b′ ⇒R ax ≤ b trivially as well.
+
+
+     In the sequel, we will say that (a′ , b′ ) R-dominates or R-non-dominates (a, b) when the corresponding
+case holds in Lemma 3.1. We will also drop label R- when R is clear from context.
+     Part (ii) of the lemma above will be used to choose the right hand sides b1 , . . . , bk given vectors
+a1 , . . . , ak that induce the pair of inequality sequences (we think of one as the “flipped” version of the
+other) a1 x ≤ b1 , . . . , ak x ≤ bk and a1 x ≥ b1 , . . . , ak−1 x ≥ bk−1 , ak x ≥ bk + 1 respectively used to
+approximate the left side ax ≤ b and right side ax ≥ b + 1 of an initial disjunction.
+     When applying the above lemma to an initial disjunction ax ≤ b or ≥ b + 1, the R-dominating case
+above is a scenario in which the naive replacement of the disjunction ax ≤ b or ≥ b + 1 → a′ x ≤ b′ or
+≥ b′ +1 by the “first pass” Diophantine approximation does the job. Indeed, if every branching decision in T
+was dominated by its first pass Diophantine approximation, then the naive replacements would be sufficient
+to obtain a branching proof with bounded coefficients.
+     Since domination does not always occur at the first level of approximation for an original disjunction
+ax ≤ b or ≥ b + 1, we will require the use of an substitution sequence a1 x ≤ b1 , . . . , a1 x ≤ bk as
+described previously. The exact properties needed from this sequence as well as the algorithm to compute it
+are provided in the next subsection. At a high level, we continue creating additional levels of approximation
+until the dominating case occurs. More precisely, for every level l ∈ [k], we will reduce the inequality
+ax ≤ b by subtracting non-negative combinations of the equalities ai x = bi , i ∈ [l − 1], to get a “remainder
+inequality” âl x ≤ b̂l . The remainder is then given together with its precision N Diophantine al as input to
+Lemma 3.1 to get the next level approximator al x ≤ bl . The final iteration k will correspond to the first
+time where the dominating case occurs (i.e., all previous iterations are non-dominating).
+Remark 3.2. Since we are interested in approximating not just an inequality but a disjunction, it will be
+crucial that (non-)domination is well-behaved with respect to both sides of the disjunction. For this purpose,
+
+
+                                                      19
+we will heavily make use of the following “flip-symmetry” in the definition of the R-domination and R-
+non-domination. Namely, if (a′ , b′ ) dominates (a, b), then (−a′ , −b′ − 1) dominates (−a, −b − 1), and
+if (a′ , b′ ) non-dominates (a, b) then (−a′ , −b′ ) non-dominates (−a, −b − 1). One can easily check that
+these symmetries follow directly from simple manipulations of the definitions. These symmetries are what
+will allow us to conclude that the substitution sequence a1 x ≤ b1 , . . . , ak x ≤ bk and its flipped version
+a1 x ≥ b1 , . . . , ak x ≥ bk + 1 will yield good approximations to ax ≤ b and ax ≥ b + 1 respectively.
+
+3.1 Step 1: Replacing Large Coefficient Branches by Small Coefficient Approximations
+Given a branching proof T of infeasibility for K ⊆ RB1n , where R ∈ N, we begin the construction of the
+replacement proof T ′ as follows:
+     We let T ′ be a tree with vertex set V ′ containing a vertex v ′ for each v ∈ V [T ], and an edge e′ = (v ′ , w′ )
+for each e = (v, w) ∈ E[T ]. For each internal node v ∈ V [T ] with children vl , vr , we compute through
+Algorithm 1 (see below) an approximation (av′ , bv′ ) of the disjunction (av , bv ) at v of precision R, N :=
+10nR, M := (10nR)n+2 . We label the left edge el = (v ′ , vl′ ) in T ′ by av′ x ≤ bv′ and the right edge (v ′ , vr′ )
+by av′ x ≤ −bv′ − 1 (equivalently, av′ x ≥ b′ + 1).
+     In this first phase of construction, note that T ′ retains the same tree structure as T . Furthermore, note
+that the output of Algorithm 1 must serve equally well to approximate av x ≤ bv and av x ≥ bv + 1 for
+v∈T.
+     The required properties of the replacements of the form ax ≤ b → a′ x ≤ b′ are collected in the def-
+inition of a valid substitution sequence defined below. A valid substitution sequence of (a, b) of precision
+R, N, M consists of, along with the approximations a′ , b′ , auxiliary information in the form of integers
+k, b1 , b2 . . . bk , integer vectors a1 , . . . ak and nonnegative reals γ1 , . . . γk . While this auxiliary information
+is not included in the labels of T ′ , it is computed by Algorithm 1 (and hence its existence is guaranteed).
+Furthermore, the existence of the valid substitution sequence is crucial for second part of the tree construc-
+tion (see subsection 3.2), where the inequalities from the substitution sequences are used to construct CP
+proofs of infeasibility for the (possibly non-empty) leaves of T ′ above.
+Definition 3.3 (Valid Substitution Sequence). We define a valid substitution sequence of an integer inequal-
+ity ax ≤ b, a ∈ Zn \ {0}, b ∈ Z of precision R, N, M ∈ N to be a list
+
+                                     (a′ , b′ , k, a1 , b1 , γ1 , . . . , ak , bk , γk := 0),
+
+where k ∈ [n + 1] and a′ , ai ∈ Zn , b′ , bi ∈ Z, γi ∈ R+ , for i ∈ [k], satisfying:
+
+   1. ka′ k∞ ≤ N n M n+1 , |b′ | ≤ RN n M n+1 and
+       kai k∞ ≤ 11nN n , |bi | ≤ R kai k∞ + 1, i ∈ [k].
+
+   2. For l ∈ [k − 1], we have
+
+                                   a′ x ≤ b′ , ai x = bi , ∀ i ∈ [l − 1] ⇒R al x < bl + 1.
+
+   3. For l ∈ [k], we have
+                                   a′ x ≤ b′ , ai x = bi , ∀ i ∈ [l − 1] ⇒R ax ≤ b + γl .
+
+   4. For l ∈ [k − 1], we have
+
+                                al x ≤ bl − 1, ai x = bi , ∀ i ∈ [l − 1] ⇒R ax ≤ b − nγl .
+
+                                                               20
+Remark 3.4. In light of property 3, the terms γi are measures of precision for our approximation of ax ≤
+b. If l1 < l2 , property 3 when applied to l2 assumes more statements than when applied l1 . Intuitively,
+this suggests that the implications should also be stronger (or at least not weaker). That is, one would
+expect γl2 ≥ γl1 . Indeed, this assumption can be made without loss of generality. More precisely, if
+(a′ , b′ , k, a1 , b1 , γ1 , . . . , ak , bk , γk := 0) is a valid substitution, then so is (a′ , b′ , k, a1 , b1 , γ̄1 , . . . , ak , bk , γ̄k ),
+where γ̄i := minj∈[i] γi .
+
+  Algorithm 1: LongToShort(a, b, R, N, M )
+                                                     R
+      Input: a ∈ Zn , b ∈ Z, R, N, M ∈ N such that N    < 14 .
+      Output: a′ ∈ Zn , b′ ∈ Z, k ∈ N, and ai ∈ Zn , bi ∈ Z, γi ∈ R+ , i ∈ [k], satisfying:
+         1. (a′ , b′ , k, a1 , b1 , γ1 , . . . , ak , bk , γk ) is a valid substitution sequence
+            of ax ≤ b of precision R, M, N .
+
+         2. (−a′ , −b′ − 1, k, −a1 , −b1 , γ1 , . . . , −ak−1 , −bk−1 , γk−1 , −ak , −bk − 1, γk ) is a
+            valid substitution sequence of −ax ≤ −b − 1 of precision R, M, N .
+
+  1 initialize â1 = a, b̂1 = b, j = 1;
+  2 while kâj k∞ > 10nN n do
+  3     Set aj as a Diophantine approximation of âj of precision N ;
+  4       Apply Lemma 3.1 part (ii) to âj , b̂j , aj , R, N to obtain bj ;
+  5       if (aj , bj ) dominates (âj , b̂j ) then
+               Set k = j, γk = 0, a′ = ki=1 M k−i ai and b′ = ki=1 M k−i bi ;
+                                                P                   P
+  6
+  7            return a′ , b′ , k, ai , bi , γi , i ∈ [k];
+                        kâ k              2α
+  8       Set αj = kajj k∞ , γj = 5nj ;
+                                ∞
+  9     Set âj+1 = âj − αj aj , b̂j+1 = b̂j − αj bj ;
+ 10     Increment j;
+                                           Pk−1                       Pk−1
+ 11 Set k = j, γk = 0, ak = a −               i=1 ⌊αi ⌉ai , b̃k = b −  i=1 ⌊αi ⌉bi ;
+              
+              b̃k
+                                           : −R kak k∞ − 1 < b̃k < R kak k∞
+ 12 Set bk =     −R kak k∞ − 1 : b̃k ≤ −R kak k∞ − 1                                 ;
+              
+                 R kak k∞                   : R kak k∞ ≤ b̃k
+              
+              Pk
+         ′                 k−i   ai and b = ki=1 M k−i bi ;
+                                            ′
+                                                P
+ 13 Set a =      i=1 M
+ 14 return a′ , b′ , k, ai , bi , γi , i ∈ [k];
+
+
+
+Lemma 3.5. Algorithm 1 with input a, b, R, N, M such that N = 10nR, M = (10nR)n+2 terminates
+within k ≤ n + 1 iterations and outputs valid substitution sequences of ax ≤ b and −ax ≤ −b − 1 of
+precision R, N, M .
+Proof. We begin by showing that the number of coordinates of âk+1 that are zero is strictly greater than
+that of âk . At iteration j, let p be such that |(âj )p | = kâj k∞ . As aj is the Diophantine approximation of
+                           â                   ka k                                                                   â
+âj , we know that |( αjj − aj )p | = |( kâjj k∞ âj )p − (aj )p | < 1/10nR. By assumption, ( kâj jk )p = ±1. Thus
+                                                      ∞                                                                     ∞
+ ka k                               ka k
+( kâjj k∞ âj )p ∈ Z, and so ( kâjj k∞ âj )p = (aj )p . As a result, (âj+1 )p = 0. As observed in remark 1.2, any
+         ∞                             ∞
+zero entry of âj is also zero for âj+1 .
+
+                                                                       21
+    By this reasoning, either Algorithm 1 terminates with k ≤ n, or ân+1 = 0. The while loop terminates
+as kân+1 k∞ ≤ 10nN n . This proves that Algorithm 1 terminates within n + 1 iterations.
+    We now show that Algorithm 1 outputs valid substitution sequences. For this purpose, we first prove
+below that (a′ , b′ , k, a1 , b1 , γ1 , . . . , ak , bk , γk ) satisfies properties 1-4 of a valid substitution sequence of
+ax ≤ b of precision R, M, N . After this, we will argue that the flipped version of this sequence yields a
+valid substitution of −ax ≤ −b − 1 using the symmetries the algorithm.
+
+   1. When Algorithm 1 returns from line (7), we have kai k∞ ≤ N n , i ∈ [k], since every ai is the result of
+      Diophantine approximation of precision N . Furthermore, since every bi , i ∈ [k], is then the output of
+      Lemma 3.1 part (ii), we also have |bi | ≤ R kai k∞ + 1 ≤ RN n + 1,i ∈ [k]. Therefore,
+
+                        k                              k                           n
+                        X                              X                           X               M n+1 − 1
+              a′ ∞ ≤          M k−i kai k∞ ≤ N n              M k−i ≤ N n                Mi = Nn             ≤ N n M n+1 .
+                                                                                                    M −1
+                        i=1                             i=1                        i=0
+
+
+       Similarly for b′ , using R, N ≥ 1 and M ≥ 3,
+                      k                                      k
+                ′
+                      X
+                                k−i                n
+                                                             X                               M n+1 − 1
+               b ≤          M         |bi | ≤ (RN + 1)             M k−i = (RN n + 1)                  ≤ RN n M n+1 .
+                                                                                              M −1
+                      i=1                                    i=1
+
+
+       When Algorithm 1 returns from line (14), kai k∞ ≤ N n for every i ∈ [k − 1] and kâk k ≤ 10N n . As
+       in the previous case, we also have |bi | ≤ R kai k∞ + 1, i ∈ [k]. Note that for i = k, this is enforced
+       on line (12) of the algorithm. Furthermore, bk is indeed an integer since R ∈ N and b̃k , kak k∞ ∈ Z
+       by construction. To bound kak k∞ , we first note that
+
+                                      k−1
+                                      X                                k−1
+                                                                       X
+              kak − âk k∞ =                (αi − ⌊αi ⌉)ai         ≤         k(αi − ⌊αi ⌉)ai k∞ ≤ (k − 1)N n ≤ nN n .
+                                      i=1                     ∞        i=1
+
+       Since kâk k∞ ≤ 10nN n , we get that
+
+                              kak k∞ ≤ kâk k∞ + kak − âk k∞ ≤ 10nN n + nN n = 11nN n .
+
+       To bound ka′ k∞ , by the triangle inequality
+                                k−1
+                                X                                Xn
+                    a′ ∞ ≤            M k−i kai k∞ + kakk ≤ N n (   M i + 11n)                                           (3.1)
+                                i=1                                          i=1
+                                       M n+1 − 1                    2M n+1
+                              = N n(             + 11n − 1) ≤ N n (        + 11n − 1) ≤ N n M n+1 ,
+                                        M −1                        M −1
+
+       where it can be easily be checked that the last inequality holds for M = (10nR)n+2 and R, n ≥ 1.
+       The bound on |b′ | is computed in a manner similar to (3.1):
+
+                              k
+                              X                                              2M n+1
+                    |b′ | ≤         M k−i (R kai k∞ + 1) ≤ RN n (                   + 11n − 1) ≤ RN n M n+1 .
+                                                                             M −1
+                              i=1
+
+
+
+
+                                                                   22
+2. Let l ∈ [k − 1]. When ai x = bi , ∀ i ∈ [l − 1], we have that
+                               k
+                               X                        k
+                                                        X                               k
+                                                                                        X                                k
+                                                                                                                         X
+            ′        ′                   k−i                       k−i                             l−i
+         ax≤b ⇔                      M         ai x ≤          M         bi ⇔ al x +           M         a i x ≤ bl +            M l−i bi .
+                               i=l                      i=l                            i=l+1                            i=l+1
+
+
+   By the proof of part 1, kai k∞ ≤ N n , bi ≤ R kai k∞ + 1, for i ∈ [k − 1]. Using these bounds, we get
+   that
+                k
+                X                              k
+                                               X                                       k
+                                                                                       X                             k
+                                                                                                                     X
+                         l−i                             l−i                                       l−i
+    al x+           M          a i ≤ bl +            M         bi ⇒ R a l x ≤ b l +            M         bi +R               M l−i ai       . (3.2)
+            i=l+1                            i=l+1                                     i=l+1                         i=l+1              ∞
+
+   The error in the last term is bounded by
+      k                              k                                                 k−l
+                                                                                                    !
+      X                              X                                                 X                     (2R + 1)N n    1
+                M l−i bi + R                 M l−i ai          ≤ (2R + 1)N n                 M −i        ≤               ≤     , (3.3)
+                                                                                                               M −1        10n
+     i=l+1                           i=l+1               ∞                             i=1
+
+   where the last inequality is easily checked for M = (10nR)n+2 = N n+2 and n, R ∈ N. Combin-
+   ing (3.2) and (3.3), we conclude that
+                                                                                                     1
+                                a′ x ≤ b′ , ai x = bi , i ∈ [l − 1] ⇒R al x ≤ bl +                      < bl + 1,                             (3.4)
+                                                                                                    10n
+   as needed.
+                                                        Pk−1 k−i                       Pk−1 k−i
+3. We first deal with the case l = k. We have ak + i=1        M ai = a′ and bk + i=1        M bi = b′ .
+   So if ai x = bi , ∀ i ∈ [k − 1], we have that a′ x ≤ b′ ⇔ ak x ≤ bk .
+                                                              Pk−1                       Pk−1
+   When Algorithm 1 returns from line (14), we have ak + i=1        ⌊αi ⌉ai = a and b̃k + i=1 ⌊αi ⌉bi = b
+   by construction. By the same argument as above, under the assumption ai x = bi , ∀ i ∈ [k − 1],
+   we have that ak x ≤ b̃k ⇔ ax ≤ b . It thus suffices to show that ak x ≤ bk ⇒R ak x ≤ b̃k ,
+   recalling that γk = 0. This proceeds in an analogous fashion to the analysis of the dominating case
+   in Lemma 3.1 part (ii). Firstly, by our choice of bk on line (12), if −R kak k∞ − 1 < b̃k < R kak k∞
+   then bk = b̃k , so this case is trivial. If b̃k ≥ R kak k∞ , then bk = R kak k and ak x ≤ b̃k is valid
+   inequality for RBn1 . Thus, the implication ak x ≤ bk ⇒R ak x ≤ b̃k is again trivial. Lastly, if
+   b̃k ≤ −R kak k∞ − 1, then bk = −R kak k∞ − 1 and the system ak x ≤ bk , kxk∞ ≤ R is empty. In
+   particular, ak x ≤ bk ⇒R ak x ≤ b̃k , as needed.
+   Next, when the Algorithm 1 returns from line (7), by the guarantees of the R-dominating case in
+   Lemma 3.1 part (ii), we have that
+
+                                                          ak x ≤ bk ⇒R âk x ≤ b̂k .
+
+   Similarly to the previous case, under the assumption ai x = bi , ∀ i ∈ [k − 1], we have that a′ x ≤ b′ ⇔
+   ak x ≤ bk and ax ≤ b ⇔ âk x ≤ b̂k . The desired implication, a′ x ≤ b′ , ai x = bi , ∀ i ∈ [k − 1] ⇒R
+   ax ≤ b, thus follows.
+   Now suppose l ∈ [k − 1]. From (3.4) in part 2, we have that
+                                                                                                              1
+                                      a′ x ≤ b′ , ai x = bi , i ∈ [l − 1] ⇒R al x ≤ bl +                         .
+                                                                                                             10n
+
+                                                                         23
+   By lemma 3.1 part (i) applied to âl+1 and al+1 ,
+                                                                         
+                                             1                      1   R
+                               a l x ≤ bl +     ⇒R âl x ≤ αl bl +    +     .                                   (3.5)
+                                            10n                    10n N
+
+   Since l ∈ [k − 1], al , bl non-dominates âl , b̂l and thus by Lemma 3.1 part (ii),
+                                                                       
+                                                           R             R
+                               (b̂l , b̂l + 1) ∩ αl bl −       , αl bl +      6= ∅.
+                                                          N              N
+
+   In particular, we get that
+                                           
+                              R             R         2R                   2
+                      αl bl +     = αl bl −     + αl ( ) ≤ b̂l + 1 + αl (     ).                                (3.6)
+                              N             N         N                   10n
+              kâl k∞            n
+   Using αl = ka l k∞
+                      ≥ 10nN
+                          N n = 10n combined with (3.6), we get that
+                                                                                                    
+                                 1    R                              3                          1   3
+                  αl       bl +     +         ≤ b̂l + 1 + αl                  ≤ b̂l + αl          +             (3.7)
+                                10n   n                             10n                        10n 10n
+                                                              2
+                                              = b̂l + αl (      ) = b̂l + γl ,
+                                                             5n
+   where the last equality follows by definition of γl . Finally, under the assumption that ai x = bi , ∀i ∈
+   [l − 1], observe that for any δ ∈ R, we have that
+
+                                            âl x ≤ b̂l + δ ⇔ ax ≤ b + δ.                                       (3.8)
+
+   The desired implication a′ x ≤ b′ , ai x = bi , ∀i ∈ [l − 1] ⇒R ax ≤ b + γl now follows directly from
+   the above combined with (3.4),(3.5) and (3.7).
+
+4. Repeating the argument from part 3 starting from (3.5) with al x ≤ bl − 1, we have that
+                                                                                     R
+                                      al x ≤ bl − 1 ⇒R âl x ≤ αl (bl − 1 +            ).                       (3.9)
+                                                                                     N
+   Using (3.7) in part 3, we see that
+                                      R                      2   1                    3
+                       αl (bl − 1 +     ) ≤ b̂l − αl + αl (    −   ) = b̂l − αl (1 −     ).                    (3.10)
+                                      N                     5n 10n                   10n
+                         2
+   Recalling γl := αl ( 5n ), observe that nγl = αl ( 25 ) ≤ αl (1 − 10n
+                                                                      3
+                                                                         ) since n ≥ 1. Combining together
+   with (3.9), (3.10) and (3.8) from part 3, we conclude that
+                                                                                            3
+                ax ≤ bl − 1, ai x = bi , ∀i ∈ [l − 1] ⇒R ax ≤ b − αl (1 −                      ) ≤ b − nγl ,
+                                                                                           10n
+   as needed.
+
+We conclude the proof by showing that
+
+            (−a′ , −b′ − 1, k, −a1 , −b1 , γ1 , . . . , −ak−1 , −bk−1 , γk−1 , −ak , −bk − 1, γk )
+
+                                                        24
+is a valid substitution sequence of −ax ≤ −b − 1 of precision R, M, N . We have already proved that
+Algorithm 1 correctly outputs a valid substitution sequence of ax ≤ b, so we are done if we show that
+(−a′ , −b′ − 1, k, −a1 , −b1 , γ1 , . . . , −ak−1 , −bk−1 , γk−1 , −ak , −bk − 1, γk ) could have been output by Al-
+gorithm 1 upon input −a, −b − 1.
+    If ai is a Diophantine approximation of âi , then −ai is a Diophantine approximation of −âi . Referring
+to Remark 3.2 as our next step: when j < k, (aj , bj ) non-dominates (âj , b̂j ), (−aj , −bj ) also non-dominates
+(−âj , −b̂j − 1). As a ratio of norms, the αj values are identical for both executions of Algorithm 1.
+    If Algorithm 1 with input a, b returned from line (7), then the algorithm with input −a, −b − 1 must
+also return from line (7). This is also a consequence of Remark 3.2: if (ak , bk ) dominates (âk , b̂k ), then
+(−ak , −bk − 1) dominates (−âk , −b̂k − 1) and the algorithm returns with the expected valid substitution
+sequence of −a, −b − 1.
+    If Algorithm 1 with input a, b returned from line (14), this means kâk k∞ ≤ 10nN n . Running Algo-
+rithm 1 with Pinput −a, −b − 1 would give −âk , also        obviously of small norm. Line 11 would consequently
+               k−1                                      Pk−1
+give −a − i=1 ⌊αi ⌉(−ai ) = −ak and −b − 1 − i=1 ⌊αi ⌉(−bi ) = −b̃k − 1. It now suffices to check that
+output of line (12) given −b̃k − 1 is −bk − 1, recalling that bk is the output of line (12) on input b̃k . This
+follows by direct inspection, noting that it is analogous to the “flip-symmetry” of Lemma 3.1 part (ii).
+
+    Replacing branches with large coefficients with their valid approximations reduces their bit-size, since
+the valid approximations have bit-size O(n3 log2 (2nR)). However, we are not yet done. We do not yet have
+a valid branching proof as the convex sets Kv′ associated to leaf nodes v ′ of T ′ are not necessarily empty.
+We deal with this in Step 2.
+
+3.2 Step 2: Adding Chvátal-Gomory (CG) Cuts to Trim the Leaves
+We now show how to add CG cuts at each leaf of the current replacement tree T ′ for T , whose construction is
+described in the previous subsection, to ensure that all the leaf nodes in the final tree have empty continuous
+relaxations. The final tree will simply simulate the effect of the CG cuts applied to the leaves of T ′ using
+additional branching decisions (see the proof of Theorem 1.1 in the next subsection).
+     Recall from the last subsection, that every leaf node v ∈ T has an associated leaf v ′ ∈ T ′ in the current
+replacement tree. The continuous relaxation for v ′ is Kv′ = Pv′ ∩ K (recall that unlike Kv := Pv ∩ K, Kv′
+need not be empty), where the inequalities defining Pv′ are derived from valid substitution sequences (as in
+Definition 3.3) of the original defining inequalities for Pv . Given this setup, our task is to add “low-weight”
+CG cuts to Pv′ ∩ K to derive the empty set.
+     The main result of this subsection is a general procedure for deriving such CG cuts for any polyhedron
+P ′ induced by valid substitution sequences of the defining inequalities of a polyhedron P , where P satisfies
+K ∩ P = ∅. The procedure will return a list of at most 2(n + 1) CG cuts, which is responsible for the O(n)
+factor blowup in the final tree size. Second, the normals of these CG cuts will all come from the substitution
+lists for the inequalities defining P , which ensures that they have low weight. The formal statement of this
+result is given below:
+Theorem 3.6. Let K ⊆ RBn1 , R ∈ N, be a compact convex set, and let P = {x ∈ Rn : Ax ≤ b}, A ∈
+Zm×n , b ∈ Zm , be a polyhedron satisfying P ∩ K = ∅. For each defining inequality ai x ≤ bi of P ,
+for i ∈ [m], let (a′i , b′i , ki , ai,1 , bi,1 , γi,1 , . . . , ai,ki , bi,ki , γi,ki ) be a valid substitution sequence of precision
+R, N := 10nR, M := (10nR)n+2 . Let P ′ = {x ∈ Rn : A′ x ≤ b′ } be the corresponding “substitution”
+polyhedron, where A′ ∈ Zm×n has rows a′1 , . . . , a′m and b′ ∈ Zm has rows b′1 , . . . , b′m .
+    Then, there exists an ordered list L := (aj1 ,p1 , −aj1 ,p1 , . . . , ajl ,pl , −ajl ,pl ) ⊆ Zn , where jr ∈ [m] and
+pr ∈ [kjr − 1], r ∈ [l], satisfying CG(K ∩ P ′ , L) = ∅ and |L| = 2l ≤ 2(n + 1).
+
+                                                                25
+Proof. To prove theorem 3.6, we give a procedure to construct such a list L in Algorithm 2. To prove the
+theorem, it thus suffices to prove the correctness of Algorithm 2.
+
+ Algorithm 2: Generate CG Cuts
+   Input: K, P := Ax ≤ b, P ′ := A′ x ≤ b′ , R, M, N ∈ N,
+           (a′i , b′i , ki , ai,1 , bi,1 , γi,1 , . . . , ai,ki , bi,ki , γi,ki ), for i ∈ [m], a valid substitution sequence of
+            ai x ≤ bi of precision R, M, N , as in theorem 3.6.
+   Output: An ordered list L := (aj1 ,p1 , −aj1 ,p1 , . . . , ajl ,pl , −ajl ,pl ) satisfying
+              CG(K ∩ P ′ , L) = ∅ and 0 ≤ l ≤ n + 1.
+ 1 initialize L = ∅, V = Rn , p(i) = 1, for i ∈ [m], and ε = (γ1,p(1) , . . . , γm,p(m) );
+ 2 Define Pε := {x ∈ Rn : Ax ≤ b + ε};
+ 3 while K ∩ Pε 6= ∅ and V 6= ∅ do
+ 4     Apply Lemma 2.12 to K, P, ε to obtain j∗ ∈ [m] satisfying εj∗ > 0 and K ∩ Pε−(n+1)εj∗ ej∗ = ∅;
+ 5     Append vectors aj∗ ,p(j∗ ) , −aj∗ ,p(j∗ ) to the list L;
+ 6     Update V ← V ∩ {x ∈ Rn : aj∗ ,p(j∗ ) x = bj∗ ,p(j∗ ) };
+ 7     for j from 1 to m do
+ 8          Increment p(j) to the largest integer p ∈ [kj ] satisfying
+             V ⊆ {x ∈ Rn : aj,i x = bj,i , 1 ≤ i < p};
+ 9          εj ← γj,p(j);
+
+10 return L;
+
+
+
+    To begin, we first give a high level description of the algorithm and explain the key invariants it maintains.
+The algorithm proceeds in iterations, associated with runs of the while loop on line 3. At each iteration, we
+append the pair of CG cuts induced by aj,p , −aj,p , j ∈ [m], p ∈ [kj − 1], from one of our substitution lists
+to the end L. These cuts are chosen so that after adding them to L, we can guarantee that CG(K ∩ P ′ , L)
+satisfies the equality aj,p x = bj,p .
+    We keep track of these learned equalities using the affine subspace V ⊆ Rn , which is initialized as
+V = Rn at the beginning of the algorithm. The principal invariant needed to prove correctness of the
+algorithm is as follows: at the beginning of an iteration l ≥ 1, L, V satisfy
+
+                            (i)    CG(K ∩ P ′ , L) ⊆ V           and      dim(V ) ≤ n − l + 1.
+
+The condition on the dimension of V above will be achieved by ensuring that the new equality we add is not
+already implied by V . Precisely, the dimension of V will decrease by at least one at every iteration where
+we pass the while loop check. Using (i), at the beginning of iteration l = n + 2 (i.e., after n + 1 iterations)
+we will have that dim(V ) ≤ −1 and hence CG(K ∩ P ′ , L) ⊆ V = ∅. In particular, the while loop check
+V 6= ∅ will fail and we will correctly terminate. Thus, assuming (i) holds, the algorithm always terminates
+after at most n + 1 iterations. Since we add only 2 CG cuts per iteration, the total number of cuts in the list
+L will be at most 2(n + 1) by the end the algorithm. To prove that (i) holds, we first introduce two other
+important invariants.
+     To keep track of the learned equalities in each substitution list, we keep a counter p(j) ∈ [kj ], for
+j ∈ [m]. For the second invariant, the algorithm maintains that at the beginning of each iteration we have
+that
+                           (ii) V = ∩j∈[m] ∩1≤i≤p(j)−1 {x ∈ Rn : aj,i x = bj,i },
+
+
+                                                               26
+and that each p(j) ∈ [kj ],j ∈ [m], is maximal subject to the above equality. That is, for each j ∈ [m], V
+satisfies all the equalities aj,i x = bj,i for i ∈ [p(j)−1], and, if p(j) < kj , V does not satisfy aj,p(j)x = bp(j) .
+The counters are initialized to p(1) = · · · = p(m) = 1 corresponding to V = Rn (i.e., we have not yet
+learned any equalities), which indeed yields a maximal choice. That the affine space V can expressed in the
+above form is a simple consequence of how we update it on line (6). Namely, we only update V when we
+add the equality aj∗ ,p(j∗ ) x = bj∗ ,p(j∗ ) to V on line (6). Note that since εj∗ > 0 on line (4), we must have
+p(j∗ ) < kj∗ , since otherwise εj∗ = γj∗ ,kj∗ = 0 (by definition of a valid substitution sequence). Thus, we
+only add an inequality aj,px = bj,p, j ∈ [m], to V if 1 ≤ p < kj and if V satisfies aj,i x = bj,i for all
+i ∈ [p − 1], as needed. Lastly, the required maximality is directly ensured by line (8). This proves that (ii) is
+indeed maintained. Note that under maximality, for each j ∈ [m] such that p(j) < kj , adding the equality
+aj,p(j)x = bp(j) to V must reduce the dimension of V by at least one (more precisely, adding this equality
+either makes V empty or reduces its dimension by exactly 1). We will use this in the proof of (i).
+     With this notation, we may state the final invariant, which will be a direct consequence of the first two
+and the definition of a valid substitution sequence. Letting ε := (γ1,p(i) , . . . , γm,p(m) ) denote the “error
+level” for each constraint of P (note that this equality is maintained on line (9)), at the beginning of each
+iteration we maintain
+                                             (iii) CG(K ∩ P ′ , L) ⊆ Pε ,
+where Pε := {x ∈ Rn : Ax ≤ b + ε}. Crucially, invariant (iii) justifies the first termination condition
+K ∩ Pε = ∅, since if this occurs CG(K ∩ P ′ , L) ⊆ K ∩ Pε = ∅. Note that for a constraint j ∈ [m], with
+p(j) = kj , the effective error level εj = γj,kj = 0 (by definition of valid substitution). That is, we have
+effectively “learned” the defining constraint aj x ≤ bj for P for any j ∈ [m] with p(j) = kj . Clearly, once
+all the constraints of P have been learned, we will have CG(K ∩ P ′ , L) ⊆ K ∩ P = ∅, where the last
+equality is by assumption.
+     We now show that (iii) is a consequence of (i) and (ii). Let L,V ,p and ε be the state at the beginning of
+some iteration l ≥ 1, and assume that (i) and (ii) hold. Then, for each j ∈ [m], we have that
+
+             CG(K ∩ P ′ , L) ⊆ K ∩ P ′ ∩ V         by (i) and CG(K ∩ P ′ , L) ⊆ K ∩ P ′
+                                                                                          
+                                                                                                         (3.11)
+                                ⊆ RBn1 ∩ {x ∈ Rn : a′j x ≤ b′j , aj,i x = bj,i , ∀ i ∈ [p(j) − 1]}
+                                          ( by (ii) and K ⊆ RBn1 )
+                                ⊆ {x ∈ Rn : aj x ≤ bj + γj,p(j)}       ( by Definition 3.3 part 3. ) .
+
+Since the above holds for all j ∈ [m], and εj = γj,p(j), for j ∈ [m], this proves invariant (iii).
+    Given the above, to prove correctness of algorithm it suffices to establish invariant (i). We now show
+that invariant (i) holds by induction on the iteration l ≥ 1. Let L,V ,p and ε denote the state at the beginning
+of some iteration l ≤ 1 for which (i) holds. Note that (i) trivially holds for the base case l = 1 since V = Rn .
+By the reasoning in the previous paragraphs, we also have that invariant (ii) and (iii) hold at the beginning
+of l. We must now show that (i) holds at the beginning of iteration l + 1 under these assumptions. Clearly,
+we may assume that we pass the while loop check K ∩ Pε 6= ∅ and V 6= ∅, since otherwise there is nothing
+to prove.
+    Let j∗ ∈ [m] be the index satisfying εj∗ > 0 and K ∩ Pε−(n+1)εj∗ ej∗ = ∅ as guaranteed by Lemma 2.12.
+This index indeed exists since we already checked that K ∩ Pε 6= ∅. As argued for (ii), we also know
+that p(j∗ ) < kj∗ , which will ensure we have access to the required inequalities from the valid substitution
+sequence of aj∗ x ≤ bj∗ . Letting PL′ := CG(K ∩ P ′ , L), to prove that (i) holds for l + 1, it now suffices to
+
+
+
+
+                                                         27
+show that
+
+                   (a) CG(PL′ , (aj∗ ,p(j∗ ) , −aj∗ ,p(j∗ ) )) ⊆ {x ∈ Rn : aj∗ ,p(j∗ ) x = bj∗ ,p(j∗ ) },
+                   (b) dim(V ∩ {x ∈ Rn : aj∗ ,p(j∗ ) x ≤ bj∗ ,p(j∗ ) }) ≤ dim(V ) − 1.
+
+As explained previously, (b) follows directly the maximality assumption in (ii) and p(j∗ ) < kj∗ . We may
+thus focus on (a). To begin, using (i) and (ii) and the same analysis as in (3.11), we see that
+
+                    PL′ ⊆ RBn1 ∩ {x ∈ Rn : a′j∗ x ≤ b′j∗ , aj∗ ,i x = bj∗ ,i , ∀i ∈ [p(j∗ ) − 1]}
+                        ⊆ {x ∈ Rn : aj∗ ,p(j∗ ) x < bj∗ ,p(j∗ ) + 1},
+
+where the last containment follows from Definition (3.3) part 2. In particular,
+
+                         sup aj∗ ,p(j∗ ) x < bj∗ ,p(j∗ ) + 1 ⇒ ⌊ sup aj∗ ,p(j∗ ) x⌋ ≤ bj∗ ,p(j∗ ) ,          (3.12)
+                        x∈PL′                                      x∈PL′
+
+since bj∗ ,p(j∗ ) ∈ Z. From (3.12), we conclude that
+
+                              CG(PL′ , aj∗ ,p(j∗ ) ) ⊆ {x ∈ Rn : aj∗ ,p(j∗ ) x ≤ bj∗ ,p(j∗ ) }.              (3.13)
+
+From here, again using (i) and (ii), we have that
+
+            PL′ ∩{x ∈ Rn : aj∗ ,p(j∗ ) x ≤ bj∗ ,p(j∗ ) − 1}
+                  ⊆ RBn1 ∩ {x ∈ Rn : aj∗ ,p(j∗ ) x ≤ bj,p(j∗) − 1, aj∗ ,i x = bj∗ ,i , ∀ i ∈ [p(j∗ ) − 1]}
+                  ⊆ {x ∈ Rn : aj∗ x ≤ bj∗ − nεj∗ },                                                          (3.14)
+
+where the last containment follows from Definition (3.3) part 4 and εj∗ = γj∗ ,p(j∗ ) . Noting that
+
+                             Pε ∩ {x ∈ Rn : aj∗ x ≤ bj∗ − nεj∗ } = Pε−(n+1)εj∗ ej∗ ,
+
+by the guarantees of Lemma 2.12, invariant (iii) and (3.14), we therefore have that
+
+                   PL′ ∩ {x ∈ Rn : aj∗ ,p(j∗ ) x ≤ bj∗ ,p(j∗ ) − 1} ⊆ K ∩ Pε−(n+1)εj∗ ej∗ = ∅.
+
+In particular, we must have that
+
+                    sup −aj∗ ,p(j∗ ) x < −bj∗ ,p(j∗ ) + 1 ⇒ ⌊ sup −aj∗ ,p(j∗ ) x⌋ ≤ −bj∗ ,p(j∗ ) ,           (3.15)
+                   x∈PL′                                           x∈PL′
+
+since −bj∗ ,p(j∗ ) ∈ Z. From (3.15), we conclude that
+
+                           CG(PL′ , −aj∗ ,p(j∗ ) ) ⊆ {x ∈ Rn : −aj∗ ,p(j∗ ) x ≤ −bj∗ ,p(j∗ ) }.              (3.16)
+
+Property (a) now follows directly by combining (3.13) and (3.16). This concludes the proof of invariant (i)
+and the proof of correctness of the algorithm.
+
+
+
+
+                                                             28
+3.3 Proof of Theorem 1.1
+Let N = 10nR, M = (10nR)n+2 . Given T , we construct T ′ a labeled binary tree with the same structure
+as that of T as described at the beginning of subsection 3.1. Recall that for each internal node v ∈ T
+with associated disjunction av x ≤ bv or ≥ bv + 1, we retrieve a pair of valid substitution sequences from
+LongToShort(av , bv , R, N, M ), yielding the precision R, N, M sequence (a′v , b′v , kv , av,1 , bv,1 , γv,1 , . . . ,
+av,k , bv,k , γv,k ) for av x ≤ bv and the corresponding flip (as in the output description of Algorithm 1) for
+−av x ≤ −bv − 1. For the corresponding node v ′ ∈ T ′ , we create two children vl′ , vr′ and label the left edge
+(v ′ , vl′ ) with a′v x ≤ b′v and the right edge (v ′ , vr′ ) with −a′v x ≤ −b′v − 1.
+       From the properties of a valid substitution sequence, we have that ka′v k∞ ≤ N n M n+1 and |b′v | ≤
+RN n M n+1 . The choice of N = 10nR, M = (10nR)n+2 gives
+                                                                   2                                        2
+         a′v ∞ ≤ (10nR)n (10nR)(n+2)(n+1) = (10nR)n +4n+2                      and     |b′v | ≤ R(10nR)n +4n+2 .
+                                                                       2
+Both of these quantities are upper bounded by (10nR)(n+2) . For x ∈ Zn , hxi ≤ n + n log2 (1 + kxk∞ ), so
+the bit-size of each inequality is O(n3 log2 (2nR)).
+    Consider an arbitrary leaf node v ′ ∈ T ′ with associated leaf node v ∈ T . Observe that by construction
+
+                                    Pv′ = {x ∈ Rn : a′e x ≤ b′e , e ∈ E[PT ′ (v ′ )]}
+
+satisfies the hypotheses of Theorem 3.6, so that there exists a list Lv′ of integer vectors such that CG(K ∩
+P ′ , Lv′ ) = ∅. More precisely, Lv′ = (aj1 ,p1 , −aj1 ,p1 , . . . , ajl ,pl , −ajl ,pl ), where l ≤ (n + 1) and ajr ,pr , jr ∈
+[mv ], pr ∈ [kj − 1], r ∈ [l], are taken from the valid substitution sequences of precision R, N, M of the
+inequalities in the system Av x ≤ bv , Av ∈ Qmv ×n , bv ∈ Rmv ×n , defining Pv . Note that by the properties
+of an R, M, N valid substitution sequence, kajr ,pr k∞ ≤ 11nN n , |bjr ,pr | ≤ R11nN n + 1, r ∈ [l], and
+hence via the same argument as above each (aj,r , bj,r ) can be described using O(n2 log2 (2nR)) bits.
+      We now explain how to extend T ′ to a valid branching proof. For each leaf node v ′ ∈ T ′ , we will build
+a branching proof of infeasibility for Kv′ of length O(n) which simulates the effect of the CG cuts in Lv′ .
+By appending these sub-branching proofs to T ′ below each leaf node v ′ , the extended T ′ clearly becomes a
+valid branching proof for K having length at most |T ′ | = O(n)|T | by construction.
+      The construction of the subtree at v ′ using Lv′ = (aj1 ,p1 , −aj1 ,p1 , . . . , ajl ,pl , −ajl ,pl ) (as above) pro-
+ceeds as follows. Starting from v ′ , we create two children vl′ , vr′ , and label the edge (v ′ , vl′ ) with the in-
+equality aj1 ,p1 x ≤ bj1 ,p1 and the edge (v ′ , vr′ ) with the inequality aj1 ,p1 x ≥ bj1 ,p1 + 1. Recall that by the
+definition of a CG cut, the continuous relaxation Kvr′ at the right child vr′ is now empty. The construction
+now proceeds inductively on vl′ using the sublist (−aj1 ,p1 , . . . , ajl ,pl , −ajl ,pl ). Note that for every cut in L′ ,
+we add a left and right child to the current left-most leaf of the partially constructed subtree, for which the
+continuous relaxation of the newly added right child is always empty. At the end of the construction, it is
+easy to see that the left-most leaf of the constructed subtree has CG(Kv′ , L′ ) as its continuous relaxation,
+which is empty by assumption. From here, we immediately get that the constructed subtree yields a valid
+branching proof of infeasibility for Kv′ , and that the number of nodes in the subtree distinct from v ′ is ex-
+actly 2|Lv′ | ≤ 4(n + 1). Furthermore, we may bound the bit-size of this subtree by O(n3 log2 (2nR)), since
+it has O(n) nodes and every edge is labeled with an inequality of bit-size O(n2 log2 (2nR)).
+      To bound the total bit-size hT ′ i of the final branching proof T ′ , we combine the bit-size bound from
+the subtrees above together with the total bit-size of all the replacement disjunctions of the form a′v x ≤
+b′v or ≥ b′v + 1 (as above) labeling the outgoing edges of nodes in T ′ associated with internal nodes of
+T . Given that each disjunction a′v ≤ b′v or ≥ b′v + 1 requires O(n3 log2 (2nR)) bits as explained above,
+their total bit-size is bounded by O(n3 log2 (2nR)|T |). Furthermore, the bit-size contribution from all the
+
+                                                             29
+subtrees in T ′ associated with leaf nodes of T is O(n3 log2 (2nR)|T |), since the number of these subtrees
+is bounded by |T | and each has bit-size O(n3 log2 (2nR)) as explained above. Thus, the total bit-size
+hT ′ i = O(n3 log2 (2nR)|T |) as needed.
+
+3.4 Proof of Corollary 1.2
+The primary tools for this proof will be the following well-known facts pertaining to the bit-size of linear
+programs: (see [Sch86] Chapter 10 for a thorough treatment):
+Lemma 3.7. Let A ∈ Qm×n , b ∈ Qm , c ∈ Qn .
+   1. For c ∈ Qn , if max{cx : Ax ≤ b} is finite, then it has size at most 4(hA, bi + hci).
+   2. If the system λA = 0, λ ≥ 0 and λb < 0 is feasible, then there exists a solution λ of with bit-size
+      hλi = O(nhAi).
+Remark 3.8. Part 2 of the above lemma in fact corresponds to a bound on the bit-size of a generator λ of the
+relevant extreme ray of the cone λA = 0, λ ≥ 0, where we note that a Farkas certificate of infeasibility for
+Ax ≤ b (if it exists) can always be chosen to be an extreme ray of this cone. This is also the reason why the
+bit-size bound does not in fact depend on hbi.
+
+Proof of Corollary 1.2. Since K = {x ∈ Rn : Cx ≤ d} is a polytope (i.e., bounded), we may invoke
+lemma 3.7 part 1 to conclude that
+
+                           max kxk1 =       max      max{yx : Cx ≤ d} ≤ 24(L+2n)
+                           x∈P           y∈{−1,1}n
+
+using that hyi ≤ 2n, for y ∈ {−1, 1}n , and that |a| ≤ 2hai ∀a ∈ Q. Therefore, K ⊆ RBn1 for
+R = 24L+8n . Theorem 1.1 applied with R = 24L+8n already gives us a T ′ with |T ′ | ≤ O(n|T |),
+where every inequality a′e x ≤ b′e , for e ∈ E[T ′ ], satisfies ha′e , b′e i ≤ O(n3 log2 (2nR))) = O(n3 L) and
+hT ′ i = O(n3 log2 (2nR))|T |) = O(n3 L|T |). However, T ′ is not yet a certified branching proof.
+     We are done if we can add to each leaf node v ′ ∈ T ′ a Farkas certificate λv′ of small size. Recall the
+continuous relaxation at v ′ in T ′ is Kv′ = {x ∈ Rn : Cx ≤ d, Av′ x ≤ bv′ }. By assumption, we know that
+Kv′ = ∅, and thus by Farkas’s Lemma there exists λv′ := (λv′ ,1 , λv′ ,2 ) ≥ 0 such that λv′ ,1 C + λv′ ,2 Av′ = 0
+and λv′ ,1 d + λv′ ,2 bv′ < 0. Thus, by lemma 3.7 part 2, there exists a solution λv′ whose bit-complexity
+is upper bounded by O(nhC, Av′ i). This quantity may be large since we have not controlled the number of
+rows Av′ . By Caratheodory’s theorem however, there exists a solution λv′ with at most n+1 non-zero entries.
+Therefore, we can restrict our attention to a subset of the rows of C and Av′ of cardinality at most n + 1.
+As argued above, by Theorem 1.1 each row of Av′ has bit-size at most O(n3 log2 (2nR)) = O(n3 L), and
+by assumption hCi ≤ L. Thus, by restricting to the appropriate sub-system, the bit-length of the non-zero
+entries of λv′ can be bounded by O(n((n + 1)n3 L + L)) = O(n5 L), as needed.
+     Since the number of nodes in |T ′ | = O(n|T |), the combined bit-size of the Farkas certificates above
+is at most O(n6 L|T |). This dominates the contribution of the disjunctions to the bit-size of T ′ , which by
+Theorem 1.1 is O(n3 L|T |). Thus, the certified version of has size hT ′ i = O(n6 L|T |), as needed.
+
+
+4 Simulating Enumerative Branching Proofs by Cutting Planes
+In this section, we prove that enumerative branching proofs can be simulated by CP, and give an application
+to Tseitin formulas (see subsection 4.1).
+
+                                                       30
+    To begin, we first extend the lifting lemma (Lemma 2.14) to a sequence of CG cuts. This will allow us
+to use induction on subtrees of an enumerative branching proof.
+
+Lemma 4.1 (Lifting Sequences of CG cuts). Let K ⊆ Rn be a non-empty compact set. Let c ∈ Zn ,
+F := FK (c) and assume that hK (c) ∈ Z. Let a1 , . . . , ak ∈ Zn . Then, there exists n1 , . . . , nk ≥ 0 such that
+                                                            =
+                   CG(K, (a1 + n1 c, . . . , ak + nk c)) ∩ HK (c) = CG(F, (a1 , . . . , ak )) .
+
+Proof. We prove the statement by induction on i. For i = 0, there are no CG cuts to apply and the statement
+becomes K ∩ HK = (c) = F , which follows by definition. For i ∈ [k], we assume the induction hypothesis
+
+                                                    =
+                                            Ki−1 ∩ HK (c) = Fi−1 ,                                            (4.1)
+
+where
+
+        Ki−1 := CG(K, (a1 + n1 c, . . . , ai−1 + ni−1 c))       and    Fi−1 := CG(F, (a1 , . . . , ai−1 )).
+
+We must prove the existence of ni ≥ 0 such that (4.1) holds for i. Firstly, if Fi−1 = ∅, then regardless of the
+choice of ni ≥ 0, both the sets Fi and Ki ∩ HK= (c) will be empty since they are both contained in F
+                                                                                                      i−1 = ∅.
+In particular, we may set ni = 0 and maintain the desired equality.
+    So assume Fi−1 6= ∅. From here, since ∅ =6 Fi−1 ⊆ F , where we recall that F is the set maximizers of
+c in K, and Fi−1 ⊆ Ki−1 ⊆ K, we have that
+
+                                hK (c) ≥ hKi−1 (c) ≥ hFi−1 (c) = hK (c) ∈ Z.
+                =
+In particular, HK            = (c). Therefore, by the induction hypothesis (4.1)
+                      (c) = HK
+                  i−1
+
+                                        =                   =
+                                Ki−1 ∩ HK i−1
+                                              (c) = Ki−1 ∩ HK (c) = Fi−1 ,
+
+that is to say, Fi−1 is the set of maximizers of c in Ki−1 . Furthermore, since Ki−1 is the intersection of K
+with closed halfspaces and K is compact, Ki−1 is also compact. Therefore, we may apply Lemma 2.14 to
+choose ni ≥ 0 satisfying
+                              cg
+                             HK i−1
+                                                   =
+                                    (ai + ni c) ∩ HK (c) = HFcgi−1 (ai ) ∩ HK
+                                                                            =
+                                                                              (c).                            (4.2)
+
+We use the above ni to define
+                                 cg
+                   Ki := Ki−1 ∩ HK i−1
+                                       (ai + ni c) = CG(K, (a1 + n1 c, . . . , ai + ni c)).
+
+Intersecting both sides of (4.2) with Ki−1 , we conclude that
+                      cg
+                     HK i−1
+                                                  =
+                            (ai + ni c) ∩ Ki−1 ∩ HK (c) = HFcgi−1 (ai ) ∩ Ki−1 ∩ HK
+                                                                                  =
+                                                                                    (c)
+                                                  =
+                                          ⇔ Ki ∩ HK (c) = HFcgi−1 (ai ) ∩ Fi−1
+                                                  =
+                                          ⇔ Ki ∩ HK (c) = Fi ,
+
+as needed. The lemma thus follows.
+
+   We are now ready to prove the main result of this section, which shows that enumerative branching
+proofs can be simulated by CP.
+
+                                                       31
+Proof of Theorem 1.4. Our procedure for converting enumerative branching proofs to CP proofs is given by
+Algorithm 3. The proof of correctness of the procedure will yield the theorem:
+Claim 4.2. Given an enumerative branching proof T of integer infeasibility for a compact convex set K ⊆
+Rn , Algorithm 3 correctly outputs a list L = (a1 , . . . , aN ) ∈ Zn satisfying CG(K, L) = ∅ and |L| := N ≤
+2|T | − 1.
+
+Proof.
+
+   Algorithm Outline We first describe the algorithm at a high level and then continue with a formal
+proof. The procedure traverses the tree T in order, visiting the children of each node from right to left.
+We explain the process starting from the root node r ∈ T . To begin, we examine its branching direction
+ar ∈ Zn and bounds lr ≤ ur satisfying
+
+                                         {ar x : x ∈ K} ⊆ [lr , ur ],
+
+recalling that r has a child rb for each b ∈ [lr , ur ] ∩ Z.
+     Starting at r, the procedure adds CG cuts to “chop off” the children of r moving from right to left. In
+particular, it alternates between adding the CG induced by ar to K, which will either make K empty or push
+the hyperplane Ha=r ,b , where b := hK (ar ), to the next child of r, and recursively adding CG cuts induced by
+the subtree Trb rooted at the child rb of r. The cuts computed on the subtree Trb will be used to chop off the
+face K ∩ Ha=r ,b from K, which will require lifting cuts from the face to K using Lemma 4.1. Once the face
+has been removed, we add the CG cut induced by ar to move to the next child. The process continues until
+all the children have been removed and K is empty.
+
+ Algorithm 3: EnumToCP(K, T )
+   Input: Compact convex set K ⊆ Rn , Enumerative branching proof T for K.
+   Output: List L of CG cuts satisfying CG(K, L) = ∅ and |L| ≤ 2|T | − 1.
+ 1 initialize L = ∅, r ← root of T ;
+ 2 if K = ∅ then
+ 3     return ∅;
+ 4 Retrieve branching direction ar ∈ Zn and bounds lr ≤ ur ;
+ 5 K ← CG(K, ar );
+ 6 L ← (ar );
+ 7 while lr ≤ hK (ar ) do
+ 8       b ← hK (ar );
+ 9       Trb ← subtree of T rooted at rb ;
+10       N ′ ← EnumToCP(FK (ar ), Trb );
+11       N ← Lift CG cuts in N ′ from FK (ar ) to K using Lemma 4.1;
+12       K ← CG(K, N );
+13       K ← CG(K, ar );
+14       Append N, ar to L;
+15 return L;
+
+
+
+
+                                                      32
+    Analysis We show correctness by induction on |T | ≥ 1. Let r ∈ T denote the root node with
+branching direction ar ∈ Zn and bounds lr ≤ ur .
+    We prove the base case |T | = 1. If K = ∅, then no CG cuts are needed and clearly 0 ≤ 2|T | − 1 = 1. If
+K 6= ∅, then letting r be the root node, we must have [lr , ur ] ∩ Z = ∅ ⇒ ⌊ur ⌋ < lr . Since hK (ar ) ∈ [lr , ur ],
+the initializing CG cut we add on line 5 induced by ar will make K empty. This follows since after the cut
+hK (ar ) ≤ ⌊ur ⌋ < lr . The algorithm thus correctly returns L = (ar ), where |L| = 1 = 2|T | − 1, as needed.
+    Now assume that |T | ≥ 2 and that the algorithm is correct for all smaller trees. If K = ∅ or we do not
+enter the while loop on line 7, the algorithm correctly returns by the above analysis. So we now assume that
+K 6= ∅ and that the algorithm performs at least one iteration of the while loop.
+    Let K0 denote the state of K at the beginning of the algorithm. Let Ki , bi , Li , for i ≥ 1, denote the state
+of K, b, L at the beginning of the ith iteration of the while loop on line 7 and let Ni , i ≥ 1, denote the state
+of N at the end of the ith iteration. Let T ≥ 1 denote the last iteration (that passes the check of the while
+loop). By the design of the algorithm, it is direct to check that Ki = CG(K0 , Li ), Li+1 = (Li , Ni , ar ) and
+that bi = hKi (ar ), ∀i ∈ [T ], where we define LT +1 to be the list of CG cuts returned by the algorithm,
+KT +1 := CG(K0 , LT +1 ) = ∅ and bT +1 := hKT +1 (ar ) = −∞. Note also that Ki 6= ∅, ∀i ∈ [T ], since
+otherwise we would have terminated earlier.
+    To begin, we claim that
+                                           bi ∈ [lr , ur ] ∩ Z, ∀i ∈ [T ].                                   (4.3)
+To see this, note first that for any compact convex set C either CG(C, ar ) = ∅ and hCG(C,ar ) (ar ) = −∞
+or CG(C, ar ) 6= ∅ and hCG(C,ar ) (ar ) = ⌊hC (ar )⌋ ∈ Z, where the latter claim follows from convexity and
+compactness of CG(C, ar ). Since we apply the CG cut induced by ar to K directly before the while loop
+and at the end of every iteration, we immediately get that bi = hKi (ar ) ∈ Z, i ∈ [T ]. Furthermore, since
+∅=6 Ki ⊆ K0 , ∀i ∈ [T ], and {ar x : x ∈ K0 } ⊆ [lr , ur ], we must also have bi ∈ [lr , ur ].
+    Given (4.3), for each i ∈ [T ], we see that rbi is indeed a child of r. Let Trbi , i ∈ [T ] denote the subtree
+of T rooted at rbi . We claim that
+
+                         bi+1 ≤ bi − 1, i ∈ [T ],    and      |Ni | ≤ 2|Trbi | − 1, i ∈ [T ].                 (4.4)
+
+To see this, first recall that Trbi is a branching proof for K0 ∩ Ha=r ,bi . In particular, since Ki ⊆ K0 , Trbi is
+also a valid branching proof for Ki ∩ Ha=r ,bi = FKi (ar ). By the induction hypothesis the call to EnumToCP
+(FKi (ar ), Trbi ) on line 10 therefore correctly returns a list Ni′ of CG cuts satisfying CG(FKi (ar ), Ni′ ) = ∅
+and |Ni′ | ≤ 2|Trbi | − 1. Furthermore, by Lemma 4.1, the lifting Ni of Ni′ to K computed on line 11
+satisfies |Ni | = |Ni′ | ≤ 2|Tri | − 1 and CG(Ki , Ni ) ∩ Ha=r ,bi = CG(FKi (ar ), Ni′ ) = ∅, as needed. Letting
+Ki′ = CG(Ki , Ni ), by compactness of Ki′ we therefore must have hKi′ (ar ) < bi . Recalling that Ki+1 =
+CG(Ki′ , ar ), we see that bi+1 = hKi+1 (ar ) ≤ ⌊hKi′ (ar )⌋ ≤ bi − 1, as needed.
+    From the above, we see that the procedure clearly terminates in finite time and returns a list LT +1
+satisfying CG(K0 , LT +1 ) = ∅. It remains to bound the size of |LT +1 |. Since we add 1 CG cut before the
+while loop, and at iteration i ∈ [T ], we add |Ni | + 1 CG cuts, the total number of cuts is
+                                  T
+                                  X                   T
+                                                      X
+                               1+   (|Ni | + 1) ≤ 1 +   2|Trbi | ≤ 2|T | − 1,
+                                   i=1                       i=1
+
+
+           P inequality follows since the sum is over subtrees rooted at distinct children of r, noting that
+where the last
+|T | = 1 + b∈[lr ,ur ]∩Z |Trb |. This completes the proof.
+
+
+
+                                                        33
+4.1 Upper Bounds for Tseitin Formulas
+Proof of Theorem 1.3. As explained in the introduction, given Theorem 1.4, it suffices to show that the
+Beame et al [BFI+ 18] SP refutation is in fact enumerative. We thus describe their refutation briefly to make
+clear that this is indeed the case.
+    We start with a Tseitin formula indexed   by a graph G = (V, E), of maximum degree ∆, together with
+                                                                                                   x ∈ {0, 1}E index
+                                         P
+parities lv ∈ {0, 1}, v ∈ V , satisfying v∈V lv ≡ 1 mod 2. We recall that the variables P
+the corresponding subset of edges where the assignment x is a satisfying assignment iff e∈E:v∈e xe ≡ lv
+mod 2, ∀v ∈ V .
+    The Beame et al refutation proceeds as follows. At the root node r, we first divide the vertex set
+V = V1r ∪ V2r arbitrarily into two parts of near-equal size. We then branch on the number of edges crossing
+the cut                                        X
+                     x(E[V1r , V2r ]) :=                    xv1 ,v2 ∈ {0, . . . , |E[V1r , V2r ]|}.
+                                       {v1 ,v2 }∈E,v1 ∈V1r ,v2 ∈V2r
+
+Let c be the child with x(E[V1r , V2r ]) = b, for b ∈ {0, . . . , |E[V1r , V2r ]|}. c chooses ic ∈ {1, 2} such that
+P
+   v∈Virc lv 6= b mod 2, corresponding the set of vertices still containing a contradiction. From here, again c
+partitions Virc = V1c ∪V2c into two near-equal pieces. We now branch twice: we first branch on the number of
+edges crossing the cut x(E[V1c , V2c ]), creating corresponding children, and at each such child, we branch on
+number of edges crossing the cut x(E[V1c , V \ V1c ]). From here, every child c′ , two levels down from c, can
+decide which set of vertices V1c or V2c still contains a contradiction. The process continues in a similar way
+until we find a contradicting set corresponding to a single vertex v. At this point, one constructs a complete
+branching tree on all possible values of the edges outgoing from v. This completes the description.
+     It is clear from the description, that every branching decision is enumerative. As shown in Beame et
+al, the above SP refutation has length 2∆ (n∆)O(log n) . Theorem 1.4 shows that one can convert it to a CP
+refutation of at most twice the length. This completes the proof.
+
+
+References
+[AL04]     Karen Aardal and Arjen K Lenstra. Hard equality constrained integer knapsacks. Mathematics
+           of operations research, 29(3):724–738, 2004.
+
+[Ban96]    W. Banaszczyk. Inequalities for convex bodies and polar reciprocal lattices in Rn II: Application
+           of K-convexity. Discrete and Computational Geometry, 16:305–311, 1996.
+
+[Bea04]    Paul Beame. Proof complexity. In Steven Rudich and Avi Wigderson, editors, Computational
+           Complexity Theory, volume 10 of IAS/Park City Mathematics Series, pages 199–246. American
+           Mathematical Society, 2004.
+
+[BFI+ 18] Paul Beame, Noah Fleming, Russell Impagliazzo, Antonina Kolokolova, Denis Pankratov, Toni-
+          ann Pitassi, and Robert Robere. Stabbing planes. In 9th Innovations in Theoretical Computer
+          Science, volume 94 of LIPIcs. Leibniz Int. Proc. Inform., pages Art. No. 10, 20. Schloss Dagstuhl.
+          Leibniz-Zent. Inform., Wadern, 2018.
+
+[BT70]     Evelyn Martin Lansdowne Beale and John A Tomlin. Special facilities in a general mathematical
+           programming system for non-convex problems using ordered sets of variables. OR, 69(447-
+           454):99, 1970.
+
+
+                                                            34
+[CCT87] W. Cook, C. R. Coullard, and Gy. Turán. On the complexity of cutting-plane proofs. Discrete
+        Appl. Math., 18(1):25–38, 1987.
+
+[Chv73]   Vasek Chvatal. Edmonds polytopes and a hierarchy of combinatorial problems. Discrete mathe-
+          matics, 4(4):305–337, 1973.
+
+[CL01]    Gérard Cornuéjols and Yanjun Li. Elementary closures for integer programs. Operations Re-
+          search Letters, 28(1):1–8, 2001.
+
+[Dad12]   Daniel Dadush. Integer Programming, Lattice Algorithms, and Deterministic Volume Estimation.
+          PhD thesis, Georgia Institute of Technology, 2012.
+
+[DDV14] Daniel Dadush, Santanu S Dey, and Juan Pablo Vielma. On the chvátal–gomory closure of a
+        compact convex set. Mathematical Programming, 145(1-2):327–348, 2014.
+
+[FL03]    Matteo Fischetti and Andrea Lodi. Local branching. Mathematical programming, 98(1-3):23–47,
+          2003.
+
+[FT87]    András Frank and Éva Tardos. An application of simultaneous Diophantine approximation in
+          combinatorial optimization. Combinatorica, 7(1):49–65, 1987.
+
+[Gom58] Ralph Gomory. An outline of an algorithm for solving integer programs. Bulletin of the American
+        Mathematical Society, 64(5):275–278, 1958.
+
+[KC11]    Miroslav Karamanov and Gérard Cornuéjols. Branching on general disjunctions. Mathematical
+          Programming, 128(1-2):403–436, 2011.
+
+[KP09]    Bala Krishnamoorthy and Gábor Pataki. Column basis reduction and decomposable knapsack
+          problems. Discrete Optimization, 6(3):242–270, 2009.
+
+[Kra98]   Jan Krajı́ček. Discretely ordered modules as a first-order extension of the cutting planes proof
+          system. The Journal of Symbolic Logic, 63(4):1582–1596, 1998.
+
+[Len83]   H. W. Lenstra, Jr. Integer programming with a fixed number of variables. Math. Oper. Res.,
+          8(4):538–548, 1983.
+
+[MR09]    Ashutosh Mahajan and Theodore K Ralphs. Experiments with branching using general disjunc-
+          tions. In Operations Research and Cyber-Infrastructure, pages 101–118. Springer, 2009.
+
+[OM01]    Jonathan H Owen and Sanjay Mehrotra. Experimental results on using general disjunctions in
+          branch-and-bound for general-integer linear programs. Computational optimization and applica-
+          tions, 20(2):159–170, 2001.
+
+[PT10]    Gábor Pataki and Mustafa Tural. Basis reduction methods. Wiley Encyclopedia of Operations
+          Research and Management Science, 2010.
+
+[Pud97]   Pavel Pudlák. Lower bounds for resolution and cutting plane proofs and monotone computations.
+          The Journal of Symbolic Logic, 62(3):981–998, 1997.
+
+[Rud00]   M. Rudelson. Distances between non-symmetric convex bodies and the M M ∗ -estimate. Positiv-
+          ity, 4(2):161–178, 2000.
+
+
+                                                   35
+[Sch80]   Wolfgang M. Schmidt. Diophantine approximation, volume 785 of Lecture Notes in Mathematics.
+          Springer, Berlin, 1980.
+
+[Sch86]   Alexander Schrijver. Theory of Linear and Integer Programming. John Wiley & Sons, Inc., USA,
+          1986.
+
+
+
+
+                                                 36
+

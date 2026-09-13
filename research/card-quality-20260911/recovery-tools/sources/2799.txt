@@ -1,0 +1,1123 @@
+Limitations of Local Quantum Algorithms on
+Random MAX-k-XOR and Beyond
+Chi-Ning Chou !
+School of Engineering and Applied Sciences, Harvard University, Cambridge, MA, USA
+Peter J. Love !
+Department of Physics and Astronomy, Tufts University, Medford, MA, USA
+Juspreet Singh Sandhu !
+School of Engineering and Applied Sciences, Harvard University, Cambridge, MA, USA
+Jonathan Shi !
+Department of Computing Sciences, Bocconi University, Milan, Italy
+
+      Abstract
+We introduce a notion of generic local algorithm, which strictly generalizes existing frameworks of
+local algorithms such as factors of i.i.d. by capturing local quantum algorithms such as the Quantum
+Approximate Optimization Algorithm (QAOA).
+    Motivated by a question of Farhi et al. [arXiv:1910.08187, 2019], we then show limitations of
+generic local algorithms including QAOA on random instances of constraint satisfaction problems
+(CSPs). Specifically, we show that any generic local algorithm whose assignment to a vertex depends
+only on a local neighborhood with o(n) other vertices (such as the QAOA at depth less than ε log(n))
+cannot arbitrarily-well approximate boolean CSPs if the problem satisfies a geometric property from
+statistical physics called the coupled overlap-gap property (OGP) [Chen et al., Annals of Probability,
+47(3), 2019]. We show that the random MAX-k-XOR problem has this property when k ≥ 4 is even
+by extending the corresponding result for diluted k-spin glasses.
+    Our concentration lemmas confirm a conjecture of Brandao et al. [arXiv:1812.04170, 2018]
+asserting that the landscape independence of QAOA extends to logarithmic depth – in other words,
+for every fixed choice of QAOA angle parameters, the algorithm at logarithmic depth performs
+almost equally well on almost all instances. One of these lemmas is a strengthening of McDiarmid’s
+inequality, applicable when the random variables have a highly biased distribution, and may be of
+independent interest.
+
+2012 ACM Subject Classification Theory of computation → Randomness, geometry and discrete
+structures; Mathematics of computing → Probabilistic algorithms; Mathematics of computing →
+Combinatorics; Theory of computation → Quantum complexity theory
+
+Keywords and phrases Quantum Algorithms, Spin Glasses, Hardness of Approximation, Local
+Algorithms, Concentration Inequalities, Overlap Gap Property
+
+Digital Object Identifier 10.4230/LIPIcs.ICALP.2022.41
+
+Category Track A: Algorithms, Complexity and Games
+
+Related Version Full Version: https://arxiv.org/abs/2108.06049 [11]
+
+Funding Chi-Ning Chou: Supported by NSF awards CCF 1565264 and CNS 1618026.
+Peter J. Love: Supported by NSF STAQ award PHY-1818914 and DARPA ONISQ program award
+HR001120C0068.
+Juspreet Singh Sandhu: Supported by NSF STAQ award PHY-1818914 and DARPA ONISQ program
+award HR001120C0068.
+Jonathan Shi: Supported by European Research Council (ERC) award No. 834861.
+
+Acknowledgements We thank Jonathan Wurtz for many insightful discussions about QAOA. We
+are grateful to Amartya Shankha Biswas for patiently explaining the factors of i.i.d. framework
+to us. We would also like to thank Antares Chen for many invigorating and profound discussions
+             © Chi-Ning Chou, Peter J. Love, Juspreet Singh Sandhu, and Jonathan Shi;
+                                                                                                       EA
+
+
+
+
+             licensed under Creative Commons License CC-BY 4.0
+                                                                                                       TC S
+
+
+
+
+49th International Colloquium on Automata, Languages, and Programming (ICALP 2022).
+Editors: Mikołaj Bojańczyk, Emanuela Merelli, and David P. Woodruff;
+Article No. 41; pp. 41:1–41:20
+                     Leibniz International Proceedings in Informatics
+                     Schloss Dagstuhl – Leibniz-Zentrum für Informatik, Dagstuhl Publishing, Germany
+41:2   Limitations of Local Quantum Algorithms on Random MAX-k-XOR and Beyond
+
+
+       which culminated as the open problem proposed in Problem 5.1. Lastly, we would like to thank
+       Boaz Barak for providing detailed and helpful feedback on a prior version of this manuscript, and
+       David Gamarnik for his explanations on the state of the art results in the research area.
+
+
+        1     Introduction
+
+       Recent developments [3, 26, 16] of noisy intermediate-scale quantum (NISQ) devices [40] have
+       brought us to the door of near-term quantum computation. As experimentalists can now
+       build programmable quantum simulators up to 256 qubits [16], this motivates an important
+       theoretical question: what computational advantage can such a NISQ device provide?
+           One of the constraints of NISQ devices is the inability to create high-fidelity global
+       entanglement. This motivates the study of the power of quantum algorithms that are local.
+       A leading candidate in this regime of quantum algorithms is the Quantum Approximate
+       Optimization Algorithm (QAOA) [19] at shallow depths. While there have been some recent
+       results [29, 5, 33] that formally examine the QAOA algorithm at depth p = 1 or 2, very few
+       results exist for super-constant depth QAOA [17, 18].
+           Given the imminent quest of demonstrating quantum computational advantage, it is
+       important to clarify for what optimization problems can near-term quantum algorithms (such
+       as local quantum algorithms) reliably be expected to demonstrate computational advantage.
+           We show that local quantum algorithms, a large natural class of NISQ algorithms, are
+       obstructed by a geometric property of the solution space known as the coupled Overlap-Gap
+       Property [10]. We conjecture that this property is satisfied by most CSPs (Conjecture 5.1).
+       Specific problems known to have this property include the diluted k-spin glass Hamiltonian
+       (equivalent to a max-cut problem on random k-hypergraphs) [10], independent set on random
+       graphs [17], planted clique [25], and many other problems that so far seem to elude efficient
+       algorithms and be algorithmically hard [22]. In this manuscript, we also demonstrate that
+       the random Max-k-XOR problem has this property (see subsection 2.4).
+           Our results lift the continuous coupled interpolation techniques of Chen et al. [10] to the
+       generic quantum-inclusive setting, with stronger and more general concentration of measure
+       statements about local quantum algorithms, extending the techniques of Farhi et al. [17].
+           Critical to our approach is a new definition of local algorithms we term generic local
+       algorithms (See subsection 2.1). Previous work relating statistical-physics-derived OGPs to
+       local algorithms leveraged the factors of i.i.d. framework for local algorithms, which fails to
+       contain local quantum algorithms, as we demonstrate in Proposition 2.3. Our definition of
+       generic local algorithms subsumes local quantum and classical algorithms (see Proposition 2.3
+       and Proposition 4.3) but still satisfies strong concentration properties (see Theorems 5.3
+       and 5.4 in the full version), allowing techniques for local classical algorithms [10] to apply to
+       the quantum case. Two of our core technical contributions involve showing that the random
+       MAX-k-XOR problem has a coupled Overlap Gap Property (see subsection 2.4) by extending
+       the techniques of Chen et al. [10] and deriving a strengthened version of McDiarmid’s
+       inequality for highly-biased random variables using a martingale argument (see Lemma 2.7).
+           The rest of the paper is organized as follows: In subsection 1.1 we introduce the relevant
+       spin glass literature, defining the notion of a diluted k-spin glass; in subsection 1.2 we
+       introduce the relevant prior work; in subsection 1.3 we state our main theorems (informally);
+       in subsection 1.4 we briefly explain the architecture of our proof and compare our techniques
+       with those of Chen et al. [10] and Farhi et al. [17]; in subsection 1.5 we introduce the necessary
+       mathematical preliminaries and notation, including the models of CSPs we work with and a
+       rigorous defintion of local classical algorithms; in section 2 we state our separation of different
+C.-N. Chou, P. J. Love, J. S. Sandhu, and J. Shi                                                         41:3
+
+
+families of local algorithms and our main concentration lemmas; in section 5 we conclude
+by summarizing our results and mentioning many natural open problems closely related to
+and/or motivated by our work. Complete proofs and technical details are delegated to the
+appendices.
+
+
+1.1    Diluted k-spin glasses, maximum cuts of sparse hypergraphs, and
+       Max-k-XOR
+Spin glass theory is a central theoretical framework in statistical physics. The Sherrington-
+Kirkpatrick model (SK model) [43] is one of the most well studied mathematical models in the
+theory and consists of two variables: spins {σi }i∈[n] and interactions {Ji,j }i,j∈[n] . A spin σi
+takes values in {±1} and the interaction Ji,j between two spins σi , σj is a real-valued variable
+that captures whether the physical system prefers the two spins to be the same (Ji,j > 0)
+or different (Ji,j < 0). The goal is to understand what spin configurations σ ∈ {−1, 1}n
+maximize the following quantity (a.k.a. Hamiltonian):
+            X
+   H(σ) =          Ji,j σi σj .
+             i,j
+
+
+The setting is easily generalized to higher order interactions, i.e., Ji1 ,...,ik acting on k spins,
+and this is known as the k-spin model. See [35] for a comprehensive survey.
+    There is a natural correspondence between spin glass theory and combinatorial
+optimization problems. In a combinatorial optimization problem (e.g., MAX-CUT), a
+variable corresponds to a spin and a constraint corresponds to an interaction. Through
+this correspondence, the maximization of the above Hamiltonian H(σ) serves as a proxy for
+maximizing the number of satisfied constraints in the combinatorial optimization problem.
+    A spin glass model additionally specifies a particular distribution on the interactions
+{Ji,j } for all i, j ∈ [n]. The quantity of interest is the asymptotic maximum value
+
+                   1
+   H ∗ := lim          max H(σ) ,
+           n→∞ n        σ
+
+(a.k.a. the ground state energy density), as well as spin configurations σ with H(σ) ≈ H ∗ .
+There are many well-studied spin glass models in physics and various mathematical insights
+about these have been discovered over the years [12, 14, 42, 37]. For example, for the
+SK model [43], Parisi [38] proposed the infamous Parisi Variational Principle to capture
+the exact value of H ∗ . This was later rigorously proved by Talagrand [44] and again by
+Panchenko [36] in greater generality. These successes give hope to design local algorithms
+that simulate the physical system and output a final configuration as an approximation to
+the corresponding combinatorial optimization problem.
+    While traditional spin glass models consider the underlying non-trivial interactions as
+either lying on a certain physically-realistic graph (e.g., the non-zero Ji,j form a 2D-grid)
+or being a mean field approximation (for example, where every Ji,j is non-trivial), the
+applications in combinatorial optimization often require the underlying constraint graphs to
+be sparse and arbitrary. We use two methods of bridging the gap between the two settings:
+    By studying the diluted k-spin glass model where one first samples a sparse hypergraph and
+    then assigns non-trivial interactions on top of its hyperedges. Intuitively, approximating
+    the H ∗ of the diluted k-spin glass corresponds to approximating the maximum cut over
+    random sparse hypergraphs. This correspondence is made more precise in Definition 1.5.
+
+
+
+
+                                                                                                       ICALP 2022
+41:4   Limitations of Local Quantum Algorithms on Random MAX-k-XOR and Beyond
+
+
+          Using the techniques of Gaussian interpolation [27] and Poisson interpolation [21, 10]
+          from statistical physics to relate the behavior of random dense spin glass models to
+          random sparse CSPs. More specifically, we relate the random Max-k-XOR problem to
+          mean-field p-spin glasses (Section 8 in the full version) by modifying the Guerra-Tonnineli
+          interpolation used in Chen et al. [10].
+
+
+          Table 1 A dictionary between spin glass models and combinatorial optimization problems.
+
+                      Spin glass models                       Combinatorial optimization problems
+                       Spins σ ∈ {−1, 1}n                         An assignment to boolean variables
+                Interactions {Ji1 ,...,ik }i1 ,...,ik ∈[n]           Constraints (i.e., hyperedges)
+                       Hamiltonian H(σ)                          Value of an assignment (i.e., valΨ (σ))
+                    Ground state energy H ∗                            Optimal value (i.e., valΨ )
+               Mean field model (e.g., SK model)             The underlying hypergraph not being a lattice
+                    Diluted spin glass model                   The underlying hypergraph being sparse
+
+
+
+       1.2     Prior Work
+       1.2.1      Constraint-satisfaction problems & hardness for classical
+                  algorithms
+       CSPs (described formally in Definition 1.4) are a natural class of combinatorial optimization
+       problems that have been studied extensively in theoretical computer science [7, 32]. Many
+       NP-Complete problems such as k-SAT, k-NAE-SAT, MAX-CUT and k-XOR, can be framed
+       as CSPs. Consequently, unless P = N P, finding optimal solutions to these problems is
+       infeasible. A natural question then is to understand how well can approximate answers to
+       instances of these problems be constructed by efficient algorithms. Under the now widely
+       believed Unique Games Conjecture [31], upper bounds on the approximability of CSPs are
+       known [30, 41]. These bounds, however, are only worst-case and do not necessarily explicitly
+       demonstrate a family of instances of a CSP that are hard to approximate. Additionally,
+       they remain conditional on a positive resolution to the Unique Games Conjecture, which is
+       still a difficult open problem in the field. In the average-case regime, the goal is to ask how
+       well a typical instance of a CSP can be approximated, where the instance is chosen from a
+       “natural” distribution over the set of instances. Perhaps surprisingly, great insight has been
+       drawn about the algorithmic hardness (or lack thereof) about random instances of many
+       CSPs based on work originating in the Statistical Physics community, particularly in Spin
+       Glass Theory [34, 21, 39]. This was so because the problem of finding spin configurations of
+       particles in many spin glass models that put a system in the ground state could naturally be
+       interpreted as a CSP. Various iterative algorithms were proposed to study the problem of
+       explicitly finding near-ground states of typical instances of various spin glass models [46, 9].
+       It was observed that these algorithms either consistently got better with the number of
+       iterations, or hit a threshold which they could not exceed. To understand this, the work
+       of Achlioptas et al. [1] studied the solution geometry of the k-SAT problem and found that
+       most good solutions were in well separated clusters. Additionally, most variables in a good
+       solution could only take a single value (i.e., they were “frozen”). This observation was
+       stated as an intuitive reason for the failure of local algorithms on random instances of k-SAT.
+       Gamarnik et al. [24] made this more formal and precise by showing that no classical local
+       algorithm (described formally as factors of i.i.d., see Definition 1.10) could approximate the
+C.-N. Chou, P. J. Love, J. S. Sandhu, and J. Shi                                                    41:5
+
+
+MAX-IND-SET problem arbitrarily well on sparse random graphs. Critical to their argument
+was the fact that all (not most) nearly-optimal solutions to the problem satisfied the Overlap
+Gap Property - they were in well separated clusters. In various works that followed up,
+many problems have been shown to have near-optimal solutions conform to this solution
+geometry and algorithmic hardness for various families of classical algorithms has been
+established [10, 23, 22].
+
+
+1.2.2    The Overlap Gap Property & QAOA
+A depth-p QAOA algorithm, abbreviated as QAOAp , applies a length-p sequence of unitaries
+to each hyperedge and outputs the measurement result of the final state. The goal of
+QAOA is to approximate the optimal solutions on average-case (i.e., random) instances. For
+example, the work of Farhi et al. [19] showed that QAOA1 achieved 0.6924-approximation
+for MAX-CUT on triangle-free 3-regular graphs while such an approximation ratio was not
+then known to be achievable by local classical algorithms.
+    Shortly after QAOAp (defined formally in Definition 2.2) was proposed as a way to solve
+hard optimization problems and possibly establish quantum computational advantage for
+MAX-CUT on 3-regular graphs [19], a local classical algorithm was designed that would
+outperform QAOAp on these graphs at depth 1 [29]. Consequently, because of a flurry of
+follow up results, QAOA has been shown to be outmatched by local classical algorithms up
+to depth 2 [33, 5] for the MAX-CUT problem on d-regular graphs with large girth. In fact,
+under the widely-believed conjecture in the Spin-Glass Theory community that the SK model
+does not satisfy the Overlap Gap Property [4], an AMP algorithm was recently proposed that
+outputs arbitrarily good cuts for large (but constant) degree random regular graphs [2]. To
+analyze the performance of QAOAp on a problem that possesses an OGP, Farhi et al. [17]
+was established that QAOAp with depth p ≤ ε log(n) could not output independent sets of
+size better than .854 times the optimal for sparse random graphs. This work suggested that
+the OGP may broadly prove to be an obstacle for QAOAp while it is local as much as it
+does for various classical algorithms. However, MAX-IND-SET is not a (maximum) CSP and,
+additionally, the prior work [17] does not give an analysis that generalizes to CSPs. Our work
+establishes this generalization (see Theorem 1.1) and also immediately positively resolves
+the “landscape independence” conjecture of QAOAε log(n) (see Theorem 1.3) proposed by
+Brandao et al. [8]. This immediately suggests that quantum advantage is unlikely to be
+found up to this depth for CSPs with an OGP, and we conjecture that almost all CSPs will
+have an OGP (see subsection 5.1).
+
+
+1.3     Our results
+Our main result establishes that any local quantum algorithm, including QAOAp with
+p ≤ ε log(n), is obstructed from arbitrarily approximating any CSP that satisfies a “coupled”
+Overlap Gap Property (described in subsubsection 1.5.3). The precise family of CSPs we
+will work over will be notated as (k, d)-CSP(f ), where k denotes the number of variables
+in a single clause, d denotes the average number of clauses any variable appears in, and f
+denotes the predicate applied to each clause. For a formal definition, refer to Definition 1.4.
+We state the informal version of our results, the formal versions of which may be found in
+Theorems 4.2 and 4.3 in the full version of this paper.
+
+
+
+
+                                                                                                  ICALP 2022
+41:6   Limitations of Local Quantum Algorithms on Random MAX-k-XOR and Beyond
+
+
+       ▶ Theorem 1.1 (Obstruction to QAOAp given coupled OGP, informal). Given a uniformly
+       random instance Ψ of a (k, d)-CSP(f ) that satisfies a coupled OGP, with high probability a
+       depth-p QAOAp circuit with
+
+                       log(n)
+          p≤                          −1
+               2 log(d(k − 1)/ ln(2))
+
+       cannot output a solution that is better than a (1 − ε0 )-approximation for some ε0 > 0.
+
+           In particular, this immediately implies an obstruction for approximating maximum cuts
+       of random sparse hypergraphs, as a coupled OGP is known to exist for that problem [10].
+       Furthermore, though the obstruction in Theorem 1.1 is stated for QAOAp , it will apply to
+       any generic local algorithm, and will, therefore, also apply to any local quantum algorithm.
+       This is stated more precisely in Theorem 2.8.
+
+       ▶ Theorem 1.2 (Obstruction to generic local algorithms on random Max-k-XOR, informal).
+       For every even k ≥ 4, there exists d0 ∈ N and the following holds. There exists ε0 > 0 such
+       that if QAOAp outputs a solution σ ∈ {−1, 1}n with H(σ) being (1 − ε0 )-close to the H ∗ of
+       a random Max-k-XOR instance of average degree d ≥ d0 with probability at least 0.99, then
+       p = Ω(log n).
+
+       This is stated formally in Corollary 4.4 in the full version, and answers a question of Farhi et
+       al. [20], where the authors ask if QAOAp would perform well on k-spin generalizations of the
+       SK model, citing Max-k-XOR in particular [10]. The above result is immediately implied by a
+       proof of a coupled Overlap-Gap Property for the Max-k-XOR problem, stated in Lemma 2.9
+       and proved in Section 8 in the full version.
+            To prove Theorem 1.1, two key lemmas about the concentration of output of local
+       quantum algorithms need to be proved (Theorems 5.3 and 5.4 in the full version). A corollary
+       to these two lemmas is that the quality of solution output by QAOAp (with p as stated
+       in Theorem 1.1) concentrates heavily around the expected value. More specifically, if we
+       let valΨ (σ) denote the number of clauses of Ψ satisfied by an assignment σ ∈ {±1}n to the
+       variables, then this value has small deviation on almost all instances.
+
+       ▶ Theorem 1.3 (Landscape-independence of QAOAε log(n) , informal). Given a random instance
+       Ψ of a (k, d)-CSP(f ) and a QAOAp circuit with depth p as stated in Theorem 1.1, the solution
+       σ output by QAOAp with value valΨ (σ) concentrates as,
+                                                  γ
+          Pr valΨ (σ) − E[valΨ (σ)] ≥ δn ≤ eO(n ) ,
+                                       
+
+
+       for every δ > 0 and some γ > 0, and the probability taken over both the input distribution
+       and internal randomness of the algorithm.
+
+           The theorem above immediately confirms a conjecture by Brandao et al. [8] about the
+       “landscape independence” of QAOAp upto depth ε log(n). The “landscape independence” of
+       QAOAp is a term which asserts that the algorithm performs almost equally well on almost
+       all instances.
+
+       1.4     Technical overview
+       1.4.1    Chen et al. [10] analysis
+       Chen et al. [10] establish a coupled overlap-gap property (OGP) for the maximum cut of
+       random hypergraphs. The property says that for two “coupled” random instances and any
+       nearly optimal solutions σ1 , σ2 ∈ {−1, 1}n of these, the solutions either have large or small
+C.-N. Chou, P. J. Love, J. S. Sandhu, and J. Shi                                                        41:7
+
+
+overlap on the assignment values to the variables, i.e., there exists an interval 0 < a < b < 1
+such that ⟨σ1 , σ2 ⟩/n ∈ / [a, b]. The coupled OGP holds over an interpolation of a pair of
+hypergraphs {(G1 (t), G2 (t))}t∈[0,1] with the following three properties: for every t ∈ [0, 1],
+denote σ1 (t) and σ2 (t) as the outputs of a factors i.i.d. algorithm on inputs G1 (t) and
+G2 (t) respectively. (i) when t = 0, (G1 (0), G2 (0)) are independent random hypergraphs and
+⟨σ1 (0), σ2 (0)⟩/n < a with high probability; (ii) when t = 1, G1 (1) = G2 (1) are the same
+random hypergraph and ⟨σ1 (1), σ2 (1)⟩/n = 1 with high probability; (iii) for each t ∈ [0, 1],
+the correlation ⟨σ1 (t), σ2 (t)⟩/n between the two solutions is highly concentrated (with respect
+to the randomness of G1 (t), G2 (t) and the algorithm) to a value R(t), and R(t) is a continuous
+function of t. By the intermediate value theorem, this contradicts the OGP if the solutions
+are nearly optimal and hence no such factors of i.i.d. algorithm can exist. Note that it is also
+important to assert that the hamming weight and the objective function values output by
+the algorithm also concentrate.
+
+
+1.4.2     Our analysis
+The key part of the proof in Chen et al. [10] that does not work for QAOAp is item (iii)
+of step 2. Specifically, local quantum algorithms are not factors of i.i.d. algorithms and
+hence their concentration analysis on the correlation between solutions to coupled instances
+does not apply. Intuitively, this is because local quantum circuits can induce entanglement
+between qubits in a local neighborhood which cannot be explained by a local hidden variable
+theory [6]. We overcome this issue by first generalizing the notion of factors of i.i.d. algorithms
+to what we call generic local algorithms (Definition 2.1).
+    To establish concentration of overlap for quantum local algorithms, the challenge lies
+in how to capture the local correlations of G1 (t) and G2 (t). We achieve this by defining a
+new notion of a random vector being locally independent (Definition 5.2 in the full version).
+This structure enables us to show concentration on a fixed instance over multiple runs of
+the generic local algorithm with respect to its internal randomness (Theorem 5.3 in the full
+version). Finally, to establish concentration between a pair of correlated instances (G1 (t) and
+G2 (t)), we strengthen McDiarmid’s inequality for biased distributions (Lemma 2.7) and this
+allows the concentration analysis of the correlation function R(t) to pull through (Theorem
+5.1 in the full version). We complete the analysis by showing that the hamming weight
+and objective function values output by a generic p-local algorithm also concentrate on any
+(k, d)-CSP(f ), obtained as corollaries to the main concentration lemmas (Corollaries 5.10
+and 5.13 in the full version).
+
+
+1.4.3     Comparison with Chen et al. [10] and Farhi et al. [17]
+We augment the techniques of Farhi et al. [17] to handle a coupled OGP over a continuous
+interpolation, as opposed to the coupled OGP in Farhi et al. [17] which is over a fixed discrete
+interpolation. The advantage of this is to enable the use of a broader family of coupled
+OGPs provable using statistical mechanics methods, whereas the coupled OGP of Farhi et
+al. [17] requires reasoning about explicit sequences of instances in a way that does not clearly
+generalize from their independent set analysis to the setting of CSPs.
+   Our statements additionally show stronger concentration than those of Chen et al. [10]
+which is necessary to demonstrate that polynomially many runs of the algorithm will (with
+high probability) not succeed. Lastly, we extend the coupled OGP from the setting of diluted
+k-spin glasses shown by Chen et al. [10] to the setting of random Max-k-XOR.
+
+
+                                                                                                      ICALP 2022
+41:8   Limitations of Local Quantum Algorithms on Random MAX-k-XOR and Beyond
+
+
+       1.5     Preliminaries & notation
+       1.5.1      Constraint-satisfaction problems & hypergraphs
+       Constraint satisfaction problems are a class of optimization problems where a set of constraints
+       on the underlying variables need to be satisfied in tandem. We restrict our attention to the
+       setting where the variables are boolean valued and the number of constraints are sparse.
+       Furthermore, every constraint involves k variables, where k is a constant independent of the
+       number of variables.
+
+       ▶ Definition 1.4 (Random (k, d)-CSP(f )). A (signed) random (k, d)-CSP(f ) instance with a
+       local constraint function f : {−1, 1}k → {0, 1} is constructed as follows:
+        1. Choose r ∼ Poisson(dn/k).
+        2. Sample r clauses of size k by choosing each clause Ci independently as a collection of k
+           variables uniformly at random from {x1 , . . . , xn }k , and, in the case of a signed random
+           CSP, random signs si,1 , . . . , si,k ∈ {±1}.
+       To each clause Ci there are k variables associated: {xi1 , . . . , xik }. A clause is satisfied
+       if there is some assignment to every xij ∈ {−1, 1}, such that, f (xi1 , . . . , xxk ) = 1 (or
+       f (si,1 xi1 , . . . , si,k xxk ) = 1 if signed). The value of an assignment σ ∈ {−1, 1}n is defined as
+       valΨ (σ) := #{Ci : f (σi1 , . . . , σik ) = 1} (or #{Ci : f (si,1 σi1 , . . . , si,k σik ) = 1} if signed). The
+       optimal value of Ψ is defined as val(Ψ) := maxσ valΨ (σ).
+
+       When unspecified, we will be referring to unsigned CSPs. In a diluted k-spin glass, the
+       underyling particles can be thought of as vertices of a hypergraph with dn   k hyperedges. Each
+       hyperedge is a tuple of k-vertices, and any interaction Ji1 ,...,ik over a tuple (i1 , . . . , ik ) is −1
+       if (i1 , . . . , ik ) is a hyperedge of G and 0 otherwise.
+
+       ▶ Definition 1.5 (Random k-uniform hypergraph). A random k-uniform hypergraph consists
+       of choosing a number of edges |E| ∼ Poisson( dn
+                                                     k ) and then choosing hyperedges e1 , . . . , e|E|
+       independently and uniformly at random from the set {1, . . . , n}k of all vertex k-tuples.
+
+       The underlying hamiltonian of a diluted k-spin glass then is,
+                         X
+            G
+          Hn,k,d (σ) = −   σe1 . . . σek ,                                                                        (1)
+                             e∈E
+
+       which on maximization corresponds to the MAX-CUT of a random k-uniform hypergraph.
+       Observe that a (k, d)-CSP(f ) can be encoded as a diluted k-spin glass by choosing the
+       variables to be the set of vertices, the clauses to be the hyperedges, and the hamiltonian to
+       be the same as in Equation 1 with the additional requirement that f acts on the variables in
+       every hyperedge.
+
+
+       1.5.2      Vanishing Local Neighborhoods of Sparse Random Hypergraphs
+       We state a bound on sufficiently local neighborhoods of random sparse k-uniform hypergraphs.
+       This bound is used in the obstruction result to precisely quantify the size of the neighborhood
+       p(n) up to which a p(n)-generic local algorithm does not “see the whole hypergraph” around
+       any vertex.
+C.-N. Chou, P. J. Love, J. S. Sandhu, and J. Shi                                                         41:9
+
+
+▶ Lemma 1.6 (Vanishing local neighborhoods of random sparse k-uniform hypergraphs). Let
+k ≥ 2 and d ≥ 2 and τ ∈ (0, 1). Then there exists a > 0 and 0 < A < 1, such that, for n
+large enough and p satisfying
+
+               (1 − τ ) log n
+   2p + 1 ≤                ,
+               log d(k−1)
+                      ln 2
+
+the following are true:
+                                          a                                                      a
+                                                                                       A
+     Pr      [max BG (vi , 2p) ≥ nA ] ≤ e−n ,   and       Pr      [max BG (vi , p) ≥ n 2 ] ≤ e−n 2 .
+  G∼Hn,d,k     i                                       G∼Hn,d,k     i
+
+Intuitively, the above lemma says that the local neighborhood of each vertex is vanishingly
+small with high probability. To prove Lemma 1.6, we utilize a modified version of the
+proof of Farhi et al. [17, Neighborhood Size Theorem] to handle the case of sparse random
+hypergraphs and we defer the complete proof to Appendix B in the full version.
+
+1.5.3     The Overlap Gap Property
+We say that a (k, d)-CSP(f ) (signed or unsigned) satisfies a coupled overlap-gap property
+(OGP) if, given two instances Ψ, Ψ′ constructed so that they share a random t-fraction of
+clauses with the remaining (1 − t)-fraction chosen independently, any two “good” solutions σ
+of Ψ and σ ′ of Ψ′ are either very similar of dissimilar.
+
+▶ Definition 1.7 (Coupled OGP, informal). A signed or unsigned (k, d)-CSP(f ) satisfies a
+coupled OGP if there exists ε0 > 0 and 0 < a < b < 1 such that the following hold for
+every t ∈ [0, 1]: Given two (k, d)-CSP(f ) instances Ψ, Ψ′ constructed so that they share a
+random t-fraction of their clauses and have the remaining (1 − t)-fraction of clauses chosen
+independently and uniformly at random, then for every 0 < ε < ε0 , the overlap between any
+(1 − ε)-optimal solution σ of Ψ and σ ′ of Ψ′ satisfies
+                     n
+                             !
+    1      ′    1 X        ′
+      ⟨σ, σ ⟩ =        σi σi ∈ / [a, b]
+    n           n i=1
+
+with high probability.
+
+   A formal definition of the interpolation procedure described in Definition 1.7 and a
+complete and formal statement of a coupled OGP are provided in section 3.
+
+1.5.4     Local classical algorithms
+A local classical algorithm takes as input a hypergraph G and a label set S, runs a stochastic
+process {X G (t)}t that associates to each vertex v a label XvG (t) ∈ S at time t, and outputs
+an assignment σv to each vertex v according to its final label. While there is a huge design
+space for local classical algorithms, a factors of i.i.d. algorithm of radius p has the following
+restrictions:
+1. The initial label for each vertex v is set to be one from an i.i.d. set of random variables
+    XvG (0).
+2. For each vertex v, the assignment σv is a random variable that only depends on the labels
+    from a p-neighborhood of v and is updated via a stochastic process.
+3. The assignment function (also known as the factor) for each vertex is the same.
+4. The label assignment of two vertices v, v ′ in hypergraphs G and G′ are equivalent if the
+    two vertices have isomorphic p-neighborhoods.
+
+
+                                                                                                       ICALP 2022
+41:10   Limitations of Local Quantum Algorithms on Random MAX-k-XOR and Beyond
+
+
+        As we shall see, in subsection 2.1, we relax the first three conditions to include a larger class
+        of local algorithms, which subsume local quantum algorithms. We now state the definition
+        of the p-neighborhood of a vertex in a hypergraph, which generalizes the p-neighborhood
+        of a graph by considering two vertices v and w to be adjacent if they belong to the same
+        hyperedge e.
+        ▶ Definition 1.8 (p-neighborhood and hypergraphs with radius p). Let G be a hypergraph,
+        v ∈ V (G), and p ∈ N. The p-neighborhood of v is defined as
+             BG (v, p) := {w ∈ V (G) | w can be reached in p steps from v} .
+        Let G be a hypergraph, v ∈ V (G), and p ∈ N. We say (G, v) has radius p if Bp (Gv ) = V (G).
+        Further, let k ∈ N, we define
+             Gp := {(G, v) | (G, v) has radius p and G is connected, finite, and k-uniform}
+        be the collections of hypergraphs with radius at most p.
+           To capture the fact that classical local algorithms assign the value of a vertex v by only
+        looking at a stochastic process of the p-neighborhood, we define a factor f as a measurable
+        function which gives a label σv ∈ {±1} to every vertex v ∈ V (G). We restrict to the case
+        where the label set S = [0, 1].
+        ▶ Definition 1.9 (Factor of radius p). Let p ∈ N. We define the collection of all [0, 1]-labelled
+        hypergraphs of radius at most p as
+                 n                                           o
+           Λp := (G, v, X) | (G, v) ∈ Gp and X ∈ [0, 1]V (G)
+
+            We say (G1 , v1 , X1 ), (G2 , v2 , X2 ) ∈ Λr are isomorphic if there exists a hypergraph
+        isomorphism ϕ : V (G1 ) → V (G2 ) such that (i) ϕ(v1 ) = ϕ(v2 ) and (ii) X1 = X2 ◦ ϕ.
+            Finally, we say f : Λp → {−1, 1} is a factor of radius p function if
+         1. f is measurable.
+         2. f (G1 , v1 , X1 ) = f (G2 , v2 , X2 ) for every isomorphic (G1 , v1 , X1 ), (G2 , v2 , X2 ) ∈ Λr .
+           Intuitively, the output distribution of a factors of i.i.d. algorithm with radius p on a
+        vertex v is determined by the p-neighborhood of v.
+        ▶ Definition 1.10 (Factors of i.i.d., [10, Section 2]). Let k, p ∈ N. A factors of i.i.d. algorithm
+        A with radius p is associated with a factor of radius p function f with the following property.
+        On input a k-uniform hyper graph G, the algorithm A samples a random labeling X =
+        {X(v)}v∈V (G) where X(v)’s are i.i.d. uniform random variables on [0, 1]. The output of A
+        is σ ∈ {−1, 1}V (G) where σv := f (Bp (G, v), v, {X(w)}|w∈Bp (G,v) ) for each v ∈ V (G).
+            Common local algorithms such as Glauber dynamics and Belief Propagation are examples
+        of factors of i.i.d. algorithms.
+
+         2      Main Technical Theorems
+        The main results include showing that QAOAp is a generic p-local algorithm, a concept
+        which subsumes factors of i.i.d. local algorithms and local quantum algorithms, and then
+        establishing that this more general class of algorithms also have strong concentration
+        properties. The concentration allows the original interpolation argument of Chen et al. [10]
+        stated in subsubsection 1.4.1 to continue to pose an obstruction to generic p-local algorithms
+        from outputting arbitrarily good solutions on almost all instances of a (k, d)-CSP(f ) that
+        has a coupled OGP.
+C.-N. Chou, P. J. Love, J. S. Sandhu, and J. Shi                                                       41:11
+
+
+2.1     Generic local algorithms
+Generic local algorithms, including local quantum algorithms, can be defined from an
+information-based perspective. Specifically, given a parameter p that characterizes the
+locality of the information an algorithm has about the input, we can assert that a generic
+p-local algorithm makes independent decisions on appropriately far-away vertices and that
+all decisions for a vertex are sufficiently local.
+
+▶ Definition 2.1 (Generic local algorithms, informal). Let p ∈ N and let S be a finite label set.
+We say an algorithm A (which takes a hypergraph G as an input) is generic p-local if the
+following hold:
+   (Local distribution determination). For every set of vertices L ⊂ V , the joint marginal
+   distribution of the labels (A(G)v )v∈L depends only on the union of the p-neighborhoods of
+   v ∈ L in G.
+    (Local independence). A(G)v is statistically independent of the joint distribution of
+    {A(G)v′ } for every v ′ that is farther than a distance of 2p from v.
+
+    The definition makes no assumptions about how the randomness of the algorithm is
+instantiated, what sort of function is used to decide the label locally, or whether it is the
+same for every vertex. A formal defintion is provided in section 4, along with a procedure
+to partially sample from the run of the algorithm on correlated instances. We now briefly
+introduce the QAOAp circuit.
+
+▶ Definition 2.2 (QAOAp algorithm, [19]). The QAOA circuit parametrized by angle vectors
+γ̂ = (γ1 , . . . , γp ) and β̂ = (β1 , . . . , βp ) looks as follows,
+
+                  p      Pn
+                    e−iβj k=1 Xk e−iγj Hc (G) .
+                  Y
+    Up (β̂, γ̂) =
+                 j=1
+
+
+In the circuit above, Xi is the Pauli-X matrix acting on the i-th qubit (with identity action
+everywhere else) and HC (G) is the hamiltonian that encodes the problem instance. For
+                    G
+us, HC (G) = Hn,k,d     where every k-spin interaction is replaced by a Pauli-Z interaction
+Ze1 ⊗ · · · ⊗ Zek . Typically, the initial state on which the circuit is applied is a symmetric
+                                  ⊗n         ⊗n
+product state, most notably |0⟩       or |+⟩ . The expected value that QAOA outputs after
+applying the circuit on some initial state |ψ0 ⟩ is,
+
+    ⟨ψ0 | U † Hc (G)U |ψ0 ⟩ .
+
+We will notate by QAOA(β̂, γ̂) a QAOA circuit of depth 2p with angle parameters β̂ and γ̂.
+In our regime, we will work with any collection of fixed angles (β̂, γ̂).
+    As stated below, generic p-local algorithms strictly generalize the factors of i.i.d. framework
+as well as QAOAp .
+
+▶ Proposition 2.3 (Generic local strictly generalizes factors of i.i.d.). There exists a generic
+p-local algorithm as defined in Definition 2.1 that is not a p-local factors of i.i.d. algorithm
+as defined in Definition 1.10.
+
+▶ Proposition 2.4 (QAOAp is generic p-local). For every p > 0 and fixed angle vectors β̂
+and γ̂, QAOAp (β̂, γ̂) is generic p-local under Definition 2.1.
+
+    The proofs for the two propositions above are provided in section 4.
+
+                                                                                                      ICALP 2022
+41:12   Limitations of Local Quantum Algorithms on Random MAX-k-XOR and Beyond
+
+
+        2.2       Concentration of outputs of local quantum algorithms
+        Having shown that generic p-local algorithms capture classical & quantum local algorithms,
+        we now first show that the outputs of these algorithms concentrate even when run on multiple
+        fixed correlated instances. Additionally, the outputs concentrate over the input distribution
+        from which the instances are drawn. The proof for the lemmas in this subsection are delegated
+        to Section 5 in the full version.
+
+        2.2.1            Concentration over internal randomness of the algorithm
+        We first show that the output of generic p-local algorithms on sufficiently “local” functions
+        of the underlying spins concentrates heavily, even when run on multiple correlated instances.
+        We state an informal version of the lemma. For a formal and detailed version, please refer to
+        Theorem 5.3 in the full version. “Spins” here refer to the assignment of a variable.
+        ▶ Lemma 2.5 (Concentration of local functions of spins, informal). Let z, m ∈ N and A < 1.
+        Let σ be the output of a generic p-local algorithm on a fixed hypergraph G. Let vj,i denote
+        the vertex corresponding to the i-th vertex (or variable) in the j-th hyperedge (or clause) with
+        j ∈ [m] and i ∈ [z]. Let r = (r1 , . . . , rm ) be a random vector of a correlated hypergraph G′
+        with a certain joint independence structure (Definition 5.2 in the full version). Now, consider
+                     P
+        a sum X = j∈[m] h(σvj,1 , . . . , σvj,z )rj , where |h| ≤ 1. Suppose that each vertex v occurs at
+        most C times among the different vj,i . Then, provided the p-neighborhood of every vertex in
+        G ∪ G′ has at most nA vertices:
+                                                 2     A
+            Pr[|X − E [X]| ≥ δn] ≤ e−Ω(δ m/(Czn )) .
+            σ,r            σ,r
+
+            The lemma above states that even when choosing two correlated instances G and G′ that
+        share, say t-fraction of their clauses, provided every vertex sees not too many vertices in the
+        local neighborhood of the combined input G ∪ G′ , the value of sufficiently local functions h
+        acting on the output of the algorithm concentrate. To get concentration of overlap between
+        two solutions σ of G and σ ′ of G′ , we choose h(σvj,1 , . . . , σvj,z ) = σvj , m = n and r = σ ′ . To
+        get concentration for valG (σ), we choose h = f for the underlying (k, d)-CSP(f ) and m = dn         k .
+        When working to obtain concentration on a single instance, it suffices to set G′ = G and r to
+        be the all 1s vector.
+
+        2.2.2            Concentration over instances
+        The prior lemma merely asserts that the output is concentrated for fixed correlated instances.
+        However, this still doesn’t imply that the output will be concentrated across random input
+        instances. To do so, we need concentration over the distribution from which the inputs are
+        sampled. This is accomplished by Theorem 5.4 in the full version, an informal version of
+        which is stated below.
+        ▶ Lemma 2.6 (Concentration of differences of coupled hypergraphs, informal). Let f be a
+        function of two hypergraphs over n vertices such that
+            |f (G1 , G2 ) − f (G′1 , G′2 )| ≤ r(n) ,
+        for some r whenever (G1 , G2 ) differs from (G′1 , G′2 ) by the addition and/or removal of a
+        single hyperedge e ∈ [n]k from one or both hypergraphs. Furthermore, assume that the largest
+                                                                    A
+        p-nieghborhood of G1 , G2 , G′1 , G′2 has no more than n 2 vertices for some A < 1. Then
+        ∃ a ∈ (0, 1), such that
+                                                                          −3kδ 2 n
+                                                                                             
+              Pr       f (G1 , G2 ) − E f (G1 , G2 ) ≥ δn r(n) ≤ 2 exp               + 2 exp −na/2 .
+            G1 ,G2 ∼                 G1 ,G2                            12(2−t)d+2kδ
+              Hn,k,d,t
+C.-N. Chou, P. J. Love, J. S. Sandhu, and J. Shi                                                                    41:13
+
+
+The notation G1 , G2 ∼ Hn,k,d,t indicates that G1 and G2 are t-correlated random hypergraphs.
+This means that t-fraction of their hyperedges are chosen i.i.d. from [n]k and these are common.
+The remaining (1 − t) fraction of edges are chosen independently for each. For a formal
+definition of the coupled distribution, refer to Definition 3.3. The above lemma relies on two
+critical facts:
+1. For p ≤ ε log(n) (for an appropriately chosen ε), the p-neighborhood of a random k-
+                                               A
+    uniform hypergraph has no more than n 2 vertices (Lemma 1.6).
+2. A strengthening of McDiarmid’s Inequality (Lemma 2.7) for biased distributions. This
+    strengthening is proved via a martinagle argument.
+
+2.2.3       Strengthened McDiarmid’s Inequality
+We end by stating the strengthened version of McDiarmid’s Inequality (Lemma 2.7) for
+biased distributions, which is a generic concentration statement that may be of independent
+interest. The inequality adds a Bernstein-like variance term to the tail-bound that controls
+the likelihood of deviation, where the variance term depends on a precise quantification of
+how unlikely certain very rare events are.
+
+▶ Lemma 2.7 (McDiarmid’s inequality for biased distributions). Suppose that X1 , . . . , Xn are
+sampled i.i.d. from a distribution D over a finite set X , such that D assigns probability 1 − p
+to a particular outcome χ0 ∈ X . Let f : X n → R satisfy a bounded-differences inequality, so
+that
+
+    |f (x1 , . . . , xi−1 , xi , xi+1 , . . . xn ) − f (x1 , . . . , xi−1 , x′i , xi+1 , . . . xn )| ≤ c
+
+for all x1 , . . . , xn , x′i ∈ X . Then
+
+                                                                                           −ε2
+                                                                                                          
+                                                         
+    Pr |f (X1 , . . . , Xn ) − E f (X1 , . . . , Xn )| ≥ ε ≤ 2 exp                                             .
+                                                                                   2np(2 − p)c2 + 2cε/3
+
+    The above inequality is robust in that if there are highly unlikely or likely (think p = on (1))
+events that cause large deviations, then these deviations can be absorbed into the Bernstein-
+like variance term in the tail bound term. This means that one can get strong concentration
+bounds even in the presence of a vanishingly small set of events that cause large deviations.
+This property ends up being critical when showing concentration of outputs of generic local
+algorithms over the input distribution.
+
+2.3      Obstruction of generic local algorithms by the Overlap Gap Property
+We state our main theorem (informally) that obstructs all generic p-local algorithms on
+random instances Ψ of a (k, d)-CSP(f ) that satisfies the coupled Overlap-Gap Property.
+
+▶ Theorem 2.8 (Obstruction to Generic p-Local Algorithms given coupled OGP, informal). Let f
+be a boolean predicate defined on k variables and p(n) be such that it satisfies the requirements
+of Lemma 2.5 and Lemma 2.6. Furthermore, assume that (k, d)-CSP(f ) satisfies the coupled
+Overlap Gap Property. Then, given an instance Ψ ∼ (k, d)-CSP(f ) and a generic p(n)-local
+algorithm A that outputs a solution σ on input Ψ, with high probability, the solution will be
+no more than (1 − ε0 )-optimal for some ε0 > 0.
+
+    The theorem above is stated in full precision and formality in Theorem 4.3 in the
+full version and proved formally in Section 6 of the full version. The theorem effectively
+obstructs any algorithm that makes assignments for variables by looking at o(n) sized
+
+
+
+                                                                                                                   ICALP 2022
+41:14   Limitations of Local Quantum Algorithms on Random MAX-k-XOR and Beyond
+
+
+        local neighborhoods irrespective of how these decisions are made and what concrete model
+        of randomness is used, provided the problem exhibits a coupled OGP. For instance, the
+        obstruction would hold even for quantum algorithms that assign labels based on the local
+        neighborhoods of qubits and start and end in a state that is moderately locally entangled
+        - By this, we mean a state that exhibits entanglement only between any qubit i and o(n)
+        qubits in its p(n)-sized local neighborhood.
+
+        2.4     Overlap Gap Property for MAX-k-XOR
+        In Section 8 in the full version, we establish that the random Max-k-XOR problem obeys a
+        coupled OGP, so that the obstruction implied by Theorem 2.8 holds for this problem.
+        ▶ Lemma 2.9 (Coupled OGP for random Max-k-XOR). The random Max-k-XOR problem
+        satisfies Definition 1.7.
+            This is proven by means of a Guerra-Tonelli interpolation [28, 10], where a dense mean-field
+        k-spin glass model is continuously transformed to the random Max-k-XOR model. Treated
+        as a physical system, the thermodynamic equilibrium at each point in the interpolation is
+        calculated at a low enough temperature so that the equilibrium states are approximately
+        optimal. The change in equilibrium energy over the course of the interpolation is then shown
+        to be small.
+            A coupled OGP is shown in this way by interpolating a pair of systems constrained so
+        that the overlap between the two states of the systems is bounded.
+
+         3      Coupled Interpolation & Overlap-Gap Properties
+        We now state the OGP formally as it holds for the diluted k-spin glass model in both
+        uncoupled and coupled form. To do so, we begin by introducing the notion of an overlap
+        between two spin-configurations σ1 and σ2 , which is equivalent to the number of spins that
+        are the same in both configurations subtracted by the number of different spins, normalized
+        by the number of particles in the system. Formally,
+        ▶ Definition 3.1 (Overlap between spin configuration vectors). Given any two vectors σ1 , σ2 ∈
+        {−1, 1}n , the overlap between them is defined as,
+                         1            1 X
+           R(σ1 , σ2 ) = ⟨σ1 , σ2 ⟩ =      (σ1 )i (σ2 )i .
+                         n            n
+                                             i∈[n]
+
+        We first state the OGP for diluted k-spin glasses about the overlap gaps in a single instance.
+        ▶ Theorem 3.2 (OGP for Diluted k-Spin Glasses, [10, Theorem 2]). For every even k ≥ 4,
+        there exists an interval 0 < a < b < 1 and parameters d0 > 0, 0 < η0 < P (k) and n0 > 1,
+        such that, for d ≥ d0 , n ≥ n0 and L = L(η0 , d), with probability at least 1 − Le−n/L over the
+        random hypergraph G ∼ Hn,d,k , whenever two spins σ1 , σ2 satisfy
+            H G (σi )
+                                           
+                                       η0
+                      ≥ M (k, d) 1 −          ,
+               n                      P (k)
+        then also, |R(σ1 , σ2 )| ∈
+                                 / (a, b).
+           A more general version of the OGP excludes, with high probability, a certain range of
+        overlaps between any two solutions of two different instances jointly drawn from a coupled
+        random process. We first introduce this process, and then state the coupled version of the
+        OGP as proven in Chen et al [10].
+C.-N. Chou, P. J. Love, J. S. Sandhu, and J. Shi                                                      41:15
+
+
+▶ Definition 3.3 (Coupled Interpolation, [10, Section 3.2]). The coupled interpolation Hd,k,n,t
+generates a coupled pair of hypergraphs (G1 , G2 ) ∼ Hd,k,n,t as follows:
+1. First, a random number is sampled from Poisson(tdn/k), and that number of random
+   k-hyperedges are uniformly drawn from the set [n]k and put into a set E.
+2. Then, two more random numbers are independently sampled from Poisson((1 − t)dn/k),
+   and those numbers of random k-hyperedges are independently drawn from [n]k to form
+   the sets E1 and E2 respectively.
+3. Lastly, the two hypergraphs are constructed as G1 = (V, E ∪ E1 ) and G2 = (V, E ∪ E2 ).
+
+▶ Theorem 3.4 (OGP for Coupled Diluted k-Spin Glasses, [10, Theorem 5]). For every even
+k ≥ 4, there exists an interval 0 < a < b < 1 and parameters d0 > 0, 0 < η0 < P (k)
+and n0 > 1, such that, for any t ∈ [0, 1], d ≥ d0 , n ≥ n0 and constant L = L(η0 , d), with
+probability at least 1 − Le−n/L over the hypergraph pair (G1 , G2 ) ∼ Hn,d,k,t , whenever two
+spins σ1 , σ2 satisfy
+
+    H Gi (σi )
+                                   
+                               η0
+               ≥ M (k, d) 1 −         ,
+       n                      P (k)
+
+then their overlap satisfies |R(σ1 , σ2 )| ∈
+                                           / [a, b].
+
+    We also provide a corresponding coupled OGP for random Max-k-XOR in Theorem 8.12
+in the full version.
+
+ 4     Locality and Shared Randomness
+
+4.1     Generic p-local algorithms
+We introduce a concept of “local random algorithm” which will allow for different runs of
+the same local algorithm to “share their randomness”, even when run on mostly-different
+instances. Later we will demonstrate that QAOA is a local algorithm under this definition.
+
+▶ Definition 4.1 (Generic local algorithms). We consider randomized algorithms on hypergraphs
+whose output A(G) ∈ S V assigns a label from some set S to each vertex in V . Such an
+algorithm is generic p-local if the following hold.
+    (Local distribution determination). For every set of vertices L ⊂ V , the joint marginal
+    distribution of its labels (A(G)v )v∈L is identical to the joint marginal distribution of
+   (A(G′ )v )v∈L whenever v∈L BG (v, p) ∼
+                            S                  S
+                                            =L v∈L BG′ (v, p), and,
+    (Local independence). A(G)v is statistically independent of the joint distribution of
+    A(G)v′ over all v ′ ̸∈ BG (v, 2p).
+
+     Consequently, it will be possible to sample A(G)v without even knowing what the
+hypergraph looks like beyond a distance of p away from v.
+     This definition is more general than the factors of i.i.d. concept used in probability theory
+[24, 10]. Our definition, for instance, encompasses local quantum circuits whereas factors of
+i.i.d. algorithms satisfy Bell’s inequalities and do not capture quantum mechanics.
+
+▶ Proposition 4.2 (Generic local strictly generalizes factors of i.i.d. (Restatement of
+Proposition 2.3)). There exists a generic 1-local algorithm as defined in section 4 that
+is not a 1-local factors of i.i.d. algorithm as defined in Definition 1.10.
+
+A proof of this proposition is provided in Appendix A in the full version, and consists of
+setting up a Bell’s inequality experiment within the framework of a generic 1-local algorithm.
+
+
+
+                                                                                                     ICALP 2022
+41:16   Limitations of Local Quantum Algorithms on Random MAX-k-XOR and Beyond
+
+
+        4.2    Locality properties of QAOA for hypergraphs
+        We show that any QAOA circuit of depth p with some fixed angle parameters (β̂, γ̂) is a
+        p-local algorithm. This allows us to describe a process to sample outputs of this circuit when
+        it is run on two different input hypergraphs.
+
+        ▶ Proposition 4.3. For every p > 0, angle vectors β̂ and γ̂, QAOAp (β̂, γ̂) is generic p-local
+        under Definition 4.1.
+
+        Proof. To see this, consider the structure of QAOA: we start with a product state |ψ0 ⟩ where
+        each qubit corresponds to a vertex in the hypergraph, apply the unitary transformation
+        U = Up (β̂, γ̂) to the state, and then measure each vertex v in the computational basis
+        with the Pauli-Z operator σz (v). Equally valid and equivalent is the Heisenberg picture
+        interpretation of this process, where we keep the product state |ψ0 ⟩ fixed but transform the
+        measurements according to the reversed unitary transformation U † , so that we end up taking
+        the measurements U † σz (v)U on the fixed initial state.
+            Because the σz (v) operators all commute with each other, their unitarily transformed
+        versions U † σz (v)U also mutually commute, and the measurements can be taken in any order
+        without any change in results. Let M (v) = U † σz (v)U and M (L) = {U † σz (u)U | u ∈ L}.
+            To show that QAOA satisfies the first property of generic p-local algorithms, we need to
+        show that the marginal distribution of its assignments to any set L′ ⊆ V of vertices depends
+        only on the union of the p-distance neighborhoods of L′ . To show this, since we are allowed
+        to take the measurements in any order, take the measurements in M (L′ ) before any other
+        measurement. Then since the action of the unitary U = Up (β̂, γ̂) on qubits in L′ does not
+        depend on any feature of the hypergraph outside of a radius of p around L′ , the operators
+        M (L′ ) are fully determined by the p-local neighborhoods of L′ , and since we take them
+        before every other measurement, the qubits are simply in their initial states when we make
+        these measurements, thus the distribution of outputs is fully determined.
+            The same type of reasoning shows that the assignment to each v ∈ V is statistically
+        independent of the assignments to any set of vertices outside of a 2p-distance neighborhood
+        of v. Take L′′ ⊂ V \ B(v, 2p). Then M (v) acts on a radius-p ball around v, and each
+        measurement in M (L′′ ) acts on a radius-p ball around a vertex in L′′ , and by taking
+        {M (v)} ∪ M (L′′ ) before any of the measurements in M ({B(v, 2p) \ {v}), we ensure that the
+        qubits being measured by M (v) are disjoint from and unentangled with those measured by
+        anything in M (L′′ ). Hence the measurement M (v) is independent of all measurements in
+        M (L′′ ). We conclude that QAOAp is a generic p-local algorithm.                           ◀
+
+        4.3    Shared randomness between runs of a generic local algorithm
+        We describe a process to sample the outputs of a generic local algorithm when run twice
+        on two different hypergraphs, so that the two runs of the algorithm can share randomness
+        when the hypergraphs have some hyperedges in common. This is not meant as a constructive
+        algorithm, but a statistical process with no guarantee of feasible implementation.
+            The idea is to start with two t-coupled hypergraphs, which for large enough n, are
+        likely to have some set of vertices L+ whose p-neighborhoods are identical between the two
+        hypergraphs. Since these vertices have identical p-neighborhoods, a generic p-local algorithm
+        behaves identically on the vertices in L+ . We pick a random t+ fraction of the elements
+        of L+ , and assign the same labels to those vertices in the two coupled instances. Then the
+        remaining labels on each hypergraph are assigned by generic p-local algorithms, conditioned
+        on the output being consistent with the already assigned labels.
+C.-N. Chou, P. J. Love, J. S. Sandhu, and J. Shi                                                   41:17
+
+
+   The formal definition may be found in the full version of this paper, where it is combined
+with the coupled OGP to demonstrate a contradiction if a generic local algorithm achieves a
+good approximation.
+
+
+ 5     Conclusion & Future Work
+
+The full version of this work conclusively establishes the coupled OGP as an obstruction
+to all local quantum algorithms on any (k, d)-CSP(f ). In doing this, the work hints at and
+leaves open many interesting questions for future work in areas that are at the intersection
+of Quantum inapproximability, Statistical Physics, Random Graph Theory, Combinatorial
+Optimization and Average-Case Complexity.
+
+
+5.1    Which CSPs have an OGP?
+While various sparse CSPs such as k-SAT, unsigned max-k-XOR and k-NAE-SAT have been
+shown to exhibit clustering in their solution spaces at different clause-to-variable ratios [1,
+15, 10], it is not known whether this property is pervasive to most CSPs or something that
+happens to a select few. Therefore, in order to understand the complexity landscape of CSPs
+on typical instances better, the following open question is interesting to investigate:
+
+▶ Conjecture 5.1 (Random Predicate CSPs and coupled OGP). Given a function f chosen
+uniformly at random from the set of functions Bk = {g | g : {±1}k → {0, 1}}, (k, d)-CSP(f )
+has a coupled-OGP for sufficiently large k and d with high probability (over the choice of f
+and instance Ψ ∼ (k, d)-CSP(f )).
+
+   Notice that the conjecture above is specifically interested in the solution geometry of a
+CSP in the unsatisfiable regime (large d). A positive resolution to the above conjecture will
+make the obstructions stated in Theorem 2.8 hold for almost all CSPs.
+Another question of interest is which properties about a predicate f can be identified which
+would conclusively imply that a random instance Ψ of a (k, d)-CSP(f ) will have an OGP.
+
+▶ Problem 5.1 (Properties of coupled-OGP predicates). Can we enumerate a set of necessary
+and sufficient conditions on f to be such that (k, d)-CSP(f ) satisfies a coupled-OGP for
+sufficiently large k and d?
+
+
+5.2    Beyond log-depth obstructions for QAOAp ?
+Work on obstructing QAOAp using an OGP heavily relies on the locality of the algorithm
+at shallow depths. It is interesting to investigate whether this obstruction can be extended
+beyond the ε log(n)-depth regime to make this a non-local obstruction. Recent work [23, 45]
+suggests that the OGP may actually result in stronger obstructions than just local ones, and
+it would be interesting to see if these techniques can be generalized to the setting of QAOAp
+to yield obstructions that are non-local.
+
+▶ Problem 5.2 (Poylogarithmic obstructions to QAOAp in the OGP regime). Given a QAOAp
+                                 c
+circuit with depth p ≤ ε (log(n)) for some c > 1, does there exist ε0 > 0, such that QAOAp
+is obstructed on a (k, d)-CSP(f ) with a coupled OGP from outputting solutions that are better
+than (1 - ε0 ) approximations to the optimal?
+
+
+
+                                                                                                  ICALP 2022
+41:18   Limitations of Local Quantum Algorithms on Random MAX-k-XOR and Beyond
+
+
+        5.3    A Quantum OGP and lifting “classical” obstructions
+        The idea of the OGP obstructing families of algorithms that are stable under small
+        perturbations to the input [23] motivates the idea of a quantized version of the OGP,
+        to apply to quantum CSPs. To define such a property over quantum states, however, there
+        would need to be a metric that is very similar to the classical hamming distance over F2
+        and has the property that it is invariant over permutations of the canonical basis, while still
+        quantifying entanglement in a desired way. One such possible metric is a quantum version
+        of the Wasserstein distance of first order that was proposed by De-Palma et al. [13]. In
+        particular, given a natural generalization of Definition 1.7 to a quantized setting using a
+        quantum version of the Wasserstein distance of first order, it is interesting to investigate if
+        a larger family of quantum circuits up to some depth p(n) can be obstructed by a family
+        of d-local hamiltonians {Hn }n≥n0 that possess a qOGP (quantized Overlap-Gap Property).
+        A result of this type could imply a way to generically “lift” classical obstructions for stable
+        classical algorithms to a corresponding family of quantum algorithms.
+
+        5.4    Message-Passing algorithm for MAX-CUT of all d-regular graphs?
+        Finding an efficient classical algorithm that can output cuts that are arbitrary approximations
+        of the optimal ones for d-regular graphs is a long-standing open problem in Random Graph
+        Theory and Theoretical Computer Science. Recently, this problem was nearly completely
+        solved by Alaoui et al. [2] as they constructed a Message-Passing algorithm for random
+        regular graphs of very large degree under the widely believed no-OGP assumption about the
+        SK model. However, the problem does not provide a complete solution as it needs the degree
+        d to be larger than O( 1ε ) in order to output a (1 − ε)-optimal cut. A natural question is
+        whether, under a no-OGP assumption, the result can be extended to output (1 − ε)-optimal
+        cuts for d-regular graphs for any d ≥ 3.
+        ▶ Conjecture 5.2 (AMP algorithm for Random d-Regular Graphs). There exists a poly(n, 1ε )
+        time algorithm A that outputs a (1 - ε)-approximate cut of a random d-regular graph G with
+        high probability under a “no-OGP” assumption for any d ≥ 3.
+            Note that the approach of Alaoui et al. [2] critically relies on the Guerra-Tonnineli
+        interpolation between the Gn,d model and the SK-model which will only work for d ≥ O 1ε .
+                                                                                                    
+
+        Consequently, a solution that works for all d ≥ 3 will require a fundamentally different
+        approach. A natural question that is motivated by the above conjecture is to then investigate
+        if there is any range of degree for which the MAX-CUT problem over d-regular graphs
+        possesses an OGP. Given the belief that the SK model does not exhibit an OGP, this would
+        only be an interesting question in the relatively low-degree regime.
+        ▶ Problem 5.3 (Random d-Regular Graphs don’t have an OGP). Does the MAX-CUT problem
+        on random d-regular graphs have an OGP for some d ≥ 3? If so, for what {d0 , d1 } ⊂ N does
+        the problem exhibit an OGP?
+            The study of QAOAp was initiated on MAX-CUT for d-regular graphs: positive answers
+        to the conjectures above would resolve the question of quantum advantage on the problem.
+
+              References
+         1    Dimitris Achlioptas and Federico Ricci-Tersenghi. On the solution-space geometry of random
+              constraint satisfaction problems. In Proceedings of the thirty-eighth annual ACM symposium
+              on Theory of computing, pages 130–139, 2006.
+         2    Ahmed El Alaoui, Andrea Montanari, and Mark Sellke. Local algorithms for maximum cut
+              and minimum bisection on locally treelike regular graphs of large degree. arXiv preprint, 2021.
+              arXiv:2111.06813.
+C.-N. Chou, P. J. Love, J. S. Sandhu, and J. Shi                                                       41:19
+
+
+ 3   Frank Arute, Kunal Arya, Ryan Babbush, Dave Bacon, et al. Hartree-Fock on a
+     superconducting qubit quantum computer. Science, 369(6507):1084–1089, 2020. URL:
+     https://www.science.org/doi/abs/10.1126/science.abb9811.
+ 4   Antonio Auffinger, Wei-Kuo Chen, and Qiang Zeng. The sk model is infinite step replica
+     symmetry breaking at zero temperature. Communications on Pure and Applied Mathematics,
+     73(5), 2020.
+ 5   Boaz Barak and Kunal Marwaha. Classical algorithms and quantum limitations for maximum
+     cut on high-girth graphs. arXiv preprint, 2021. arXiv:2106.05900.
+ 6   John S Bell. On the einstein-podolsky-rosen paradox. Physics Physique Fizika, 1(3):195, 1964.
+ 7   Sally C Brailsford, Chris N Potts, and Barbara M Smith. Constraint satisfaction problems:
+     Algorithms and applications. European journal of operational research, 119(3):557–581, 1999.
+ 8   Fernando Brandao, Michael Broughton, Edward Farhi, Sam Gutmann, and Hartmut Neven.
+     For fixed control parameters the quantum approximate optimization algorithm’s objective
+     function value concentrates for typical instances. arXiv preprint, 2018. arXiv:1812.04170.
+ 9   Alfredo Braunstein, Marc Mézard, and Riccardo Zecchina. Survey propagation: An algorithm
+     for satisfiability. Random Structures & Algorithms, 27(2):201–226, 2005.
+10   Wei-Kuo Chen, David Gamarnik, Dmitry Panchenko, et al. Suboptimality of local algorithms
+     for a class of max-cut problems. Annals of Probability, 47(3):1587–1618, 2019.
+11   Chi-Ning Chou, Peter J Love, Juspreet Singh Sandhu, and Jonathan Shi. Limitations
+     of local quantum algorithms on random max-k-xor and beyond. arXiv preprint v3, 2021.
+     arXiv:2108.06049.
+12   Francesco Concetti. The full replica symmetry breaking in the ising spin glass on random
+     regular graph. Journal of Statistical Physics, 173(5):1459–1483, 2018.
+13   Giacomo De Palma, Milad Marvian, Dario Trevisan, and Seth Lloyd. The quantum wasserstein
+     distance of order 1. IEEE Transactions on Information Theory, 67(10):6627–6643, 2021.
+14   Amir Dembo, Andrea Montanari, and Subhabrata Sen. Extremal cuts of sparse random graphs.
+     The Annals of Probability, 45(2):1190–1217, 2017.
+15   Jian Ding, Allan Sly, and Nike Sun. Satisfiability threshold for random regular nae-sat.
+     Communications in Mathematical Physics, 341(2):435–489, 2016.
+16   Sepehr Ebadi, Tout T Wang, Harry Levine, et al. Quantum phases of matter on a 256-atom
+     programmable quantum simulator. Nature, 595(7866):227–232, 2021.
+17   Edward Farhi, David Gamarnik, and Sam Gutmann. The quantum approximate optimization
+     algorithm needs to see the whole graph: A typical case. arXiv preprint, 2020. arXiv:
+     2004.09002.
+18   Edward Farhi, David Gamarnik, and Sam Gutmann. The quantum approximate optimization
+     algorithm needs to see the whole graph: Worst case examples. arXiv preprint, 2020. arXiv:
+     2005.08747.
+19   Edward Farhi, Jeffrey Goldstone, and Sam Gutmann. A quantum approximate optimization
+     algorithm. arXiv preprint, 2014. arXiv:1411.4028.
+20   Edward Farhi, Jeffrey Goldstone, Sam Gutmann, and Leo Zhou. The quantum approximate
+     optimization algorithm and the sherrington-kirkpatrick model at infinite size. arXiv preprint,
+     2019. arXiv:1910.08187.
+21   Silvio Franz and Michele Leone. Replica bounds for optimization problems and diluted spin
+     systems. Journal of Statistical Physics, 111(3):535–564, 2003.
+22   David Gamarnik and Aukosh Jagannath. The overlap gap property and approximate message
+     passing algorithms for p-spin models. The Annals of Probability, 49(1):180–205, 2021.
+23   David Gamarnik, Aukosh Jagannath, and Alexander S Wein. Low-degree hardness of random
+     optimization problems. In 2020 IEEE 61st Annual Symposium on Foundations of Computer
+     Science (FOCS), pages 131–140. IEEE Computer Society, 2020.
+24   David Gamarnik and Madhu Sudan. Limits of local algorithms over sparse random graphs.
+     In Proceedings of the 5th conference on Innovations in theoretical computer science, pages
+     369–376, 2014.
+
+
+
+
+                                                                                                      ICALP 2022
+41:20   Limitations of Local Quantum Algorithms on Random MAX-k-XOR and Beyond
+
+
+        25   David Gamarnik and Ilias Zadik. The landscape of the planted clique problem: Dense
+             subgraphs and the overlap gap property. arXiv preprint, 2019. arXiv:1904.07174.
+        26   Ming Gong, Shiyu Wang, Chen Zha, Ming-Cheng Chen, He-Liang Huang, Yulin Wu, Qingling
+             Zhu, Youwei Zhao, Shaowei Li, Shaojun Guo, et al. Quantum walks on a programmable
+             two-dimensional 62-qubit superconducting processor. Science, 372(6545):948–952, 2021.
+        27   Francesco Guerra and Fabio Lucio Toninelli. The thermodynamic limit in mean field spin
+             glass models. Communications in Mathematical Physics, 230(1):71–79, 2002.
+        28   Francesco Guerra and Fabio Lucio Toninelli. The high temperature region of the viana–bray
+             diluted spin glass model. Journal of statistical physics, 115(1):531–555, 2004.
+        29   Matthew B Hastings. Classical and quantum bounded depth approximation algorithms. arXiv
+             preprint, 2019. arXiv:1905.07047.
+        30   Subhash Khot, Guy Kindler, Elchanan Mossel, and Ryan O’Donnell. Optimal inapproximability
+             results for max-cut and other 2-variable csps? SIAM Journal on Computing, 37(1):319–357,
+             2007.
+        31   Subhash Khot and Nisheeth K Vishnoi. On the unique games conjecture. In FOCS, volume 5,
+             page 3. Citeseer, 2005.
+        32   Vipin Kumar. Algorithms for constraint-satisfaction problems: A survey. AI magazine,
+             13(1):32–32, 1992.
+        33   Kunal Marwaha. Local classical max-cut algorithm outperforms p = 2 qaoa on high-girth
+             regular graphs. Quantum, 5:437, 2021.
+        34   Marc Mézard and Giorgio Parisi. The bethe lattice spin glass revisited. The European Physical
+             Journal B-Condensed Matter and Complex Systems, 20(2):217–233, 2001.
+        35   Dmitry Panchenko. Introduction to the sk model. arXiv preprint, 2014. arXiv:1412.0170.
+        36   Dmitry Panchenko. The parisi formula for mixed p-spin models. The Annals of Probability,
+             42(3):946–958, 2014.
+        37   Dmitry Panchenko and Michel Talagrand. Bounds for diluted mean-fields spin glass models.
+             Probability Theory and Related Fields, 130(3):319–336, 2004.
+        38   Giorgio Parisi. A sequence of approximated solutions to the sk model for spin glasses. Journal
+             of Physics A: Mathematical and General, 13(4):L115, 1980.
+        39   Giorgio Parisi, Federico Ricci-Tersenghi, and Tommaso Rizzo. Diluted mean-field spin-glass
+             models at criticality. Journal of Statistical Mechanics: Theory and Experiment, 2014(4):P04013,
+             2014.
+        40   John Preskill. Quantum computing in the nisq era and beyond. Quantum, 2:79, 2018.
+        41   Prasad Raghavendra. Optimal algorithms and inapproximability results for every csp? In
+             Proceedings of the 40th annual ACM symposium on Theory of computing, pages 245–254, 2008.
+        42   Subhabrata Sen. Optimization on sparse random hypergraphs and spin glasses. Random
+             Structures & Algorithms, 53(3):504–536, 2018.
+        43   David Sherrington and Scott Kirkpatrick. Solvable model of a spin-glass. Physical review
+             letters, 35(26):1792, 1975.
+        44   Michel Talagrand. The parisi formula. Annals of mathematics, pages 221–263, 2006.
+        45   Alexander S Wein. Optimal low-degree hardness of maximum independent set. Mathematical
+             Statistics and Learning, 2022.
+        46   Jonathan Yedidia, William Freeman, Yair Weiss, et al. Understanding belief propagation and
+             its generalizations. Exploring artificial intelligence in the new millennium, 8:236–239, 2003.
+

@@ -1,0 +1,2230 @@
+Proceedings of Machine Learning Research vol 99:1–37, 2019              32nd Annual Conference on Learning Theory
+
+
+
+
+                     Communication and Memory Efficient Testing
+                             of Discrete Distributions
+
+Ilias Diakonikolas                                                                    diakonik@usc.edu
+University of Southern California
+Themis Gouleakis                                                          tgouleak@mpi-inf.mpg.de
+Max Planck Institute for Informatics
+Daniel M. Kane                                                                    dakane@cs.ucsd.edu
+University of California, San Diego
+Sankeerth Rao                                                             sankeerth1729@gmail.com
+University of California, San Diego
+
+
+Editors: Alina Beygelzimer and Daniel Hsu
+
+
+                                                        Abstract
+     We study distribution testing with communication and memory constraints in the following com-
+     putational models: (1) The one-pass streaming model where the goal is to minimize the sample
+     complexity of the protocol subject to a memory constraint, and (2) A distributed model where the
+     data samples reside at multiple machines and the goal is to minimize the communication cost of
+     the protocol. In both these models, we provide efficient algorithms for uniformity/identity testing
+     (goodness of fit) and closeness testing (two sample testing). Moreover, we show nearly-tight lower
+     bounds on (1) the sample complexity of any one-pass streaming tester for uniformity, subject to
+     the memory constraint, and (2) the communication cost of any uniformity testing protocol, in a
+     restricted “one-pass” model of communication.
+     Keywords: distribution testing, identity testing, closeness testing, communication complexity,
+     streaming
+
+
+1. Introduction
+1.1. Background
+Classical statistics theory focuses on characterizing the inherent sample complexity of inference
+tasks, typically formalized via minimax rates of convergence. Research in this field has primarily
+focused on understanding the sample complexity of inference in the centralized setting, where all
+the samples are available to a single machine that performs the computation. We now have a rich
+theory (see, e.g., Devroye and Györfi (1985); Devroye and Lugosi (2001); Tsybakov (2008) for a
+few books on the topic) that has led to characterizing the sample complexity of a wide range of
+statistical tasks in this regime.
+     In modern data analysis, one may have additional constraints on data collection and storage.
+Modern datasets are often too large to be stored on a single computer, and so it is natural to consider
+methods that either impose upper bounds on the available memory or involve multiple machines,
+each containing a small subset of the dataset. Typical examples include anomaly detection in var-
+ious settings (e.g., inference based on distributed sensor measurements, fraud detection based on
+
+
+c 2019 I. Diakonikolas, T. Gouleakis, D.M. Kane & S. Rao.
+         C OMMUNICATION AND M EMORY E FFICIENT T ESTING OF D ISCRETE D ISTRIBUTIONS
+
+
+
+
+different transactions of a customer, deciding whether a region of the sky is interesting based on
+astronomical data from multiple telescopes, etc.)
+    In this paper, we study distribution property testing Batu et al. (2000) in the following com-
+putational models: (1) The one-pass streaming model where the goal is to minimize the sample
+complexity of the protocol subject to a memory constraint, and (2) A distributed model where the
+data samples reside at multiple machines, and the goal is to minimize the communication cost of
+the protocol. In both these models, we provide efficient algorithms for uniformity/identity testing
+(goodness of fit) and closeness testing (two sample testing). Moreover, we show lower bounds (in
+some cases, nearly-tight) on (1) the sample complexity of any one-pass streaming tester, subject to
+the memory constraint and (2) the communication cost of any protocol performing the testing task
+(in a restricted “one-pass” model of communication, described below).
+Computational Models In the one-pass streaming model, the data samples are revealed online in
+a stream and the algorithm is allowed a single pass over the data. Moreover, there is an upper bound,
+which we will typically denote by m, on the number of bits the algorithm can store at any point of
+its execution. In our setting, the goal is to minimize the sample complexity of testing subject to the
+memory constraint.
+     Our distributed communication model uses a blackboard (broadcast) model of communication
+in the sense that each message sent by each machine (player) is visible to all machines. There is
+an arbitrarily large number of machines, each holding ` independent samples from the unknown
+distribution(s). Additionally, there is a referee (arbitrator) who holds no samples. In each round,
+the referee either returns an answer or asks a one-bit question to one of the players about their
+input and receives a response. The goal is for the referee to return the correct answer to our testing
+problem (with at least 2/3 probability) in as few rounds of communication as possible. Notice
+that this model only costs the communication needed to answer the referee’s questions and not the
+information encoded by the questions themselves or by which player the referee chooses to ask. This
+is natural in a broadcast communication model, as this information would be implicitly determined
+by the communication transcript up to this point.
+     Unfortunately, we do not know how to prove lower bounds in the above general model, and
+will instead work in the one-pass version of this model. In the one-pass version, the referee is not
+allowed to go back to querying a player after they have moved on. In particular, the referee cannot
+ask a question to player A, subsequently ask a question to player B 6= A, and then ask a question
+to player A again. Our communication lower bounds hold in this one-pass model. We note that our
+algorithms work in the one-pass model as well.
+
+1.2. Our Contributions
+We give algorithms and lower bounds for uniformity/identity testing1 and closeness testing in the
+presence of communication and memory constraints. More specifically, we obtain the following
+results:
+
+   1. A one-pass streaming algorithm for uniformity testing on [n] with memory upper bound of m
+      bits that has sample complexity O(n log(n)/(m4 )) for a broad range of parameters. More-
+ 1. The reduction of identity to uniformity in Goldreich (2016) immediately translates our upper bounds from uniformity
+    to identity.
+
+
+
+
+                                                          2
+        C OMMUNICATION AND M EMORY E FFICIENT T ESTING OF D ISCRETE D ISTRIBUTIONS
+
+
+
+
+      over, we show that this sample upper bound is tight for a fairly wide range of m, and tight up
+      to a log(n) factor when  is constant for all values of m.
+
+   2. A distributed
+          p           uniformity tester for ` samples per machine with communication complexity
+                                                                                         p
+      O( n log(n)/`/2 ). (Note that when ` = 1, this beats the trivial algorithm by a log(n)
+      factor.) We also give a matching lower bound when ` is not too big and  is not too small.
+      The former of these constraints on the lower bound is necessary. Indeed, we give a different
+      algorithm with communication O(n log(n)/(`2 4 )), which beats the previous bound when `
+      is sufficiently large.
+                                                                          p
+   3. A one-pass streaming algorithm for closeness testing that uses O(n log(n)/m/2 ) samples
+      for a wide range of values of m, and a distributed closeness tester with communication com-
+      plexity O(n2/3 log1/3 (n)/(`2/3 4/3 )). (Note that for ` = 1, this improves by a log2/3 (n)
+      factor over the naive algorithm.)
+
+Our results are summarized in Tables 1 and 2.
+                                       Sample Complexity Bounds with Memory Constraints
+     Property                          Upper
+                                          Bound                Lower Bound   1 Lower Bound 2
+                                           n log n                     n log n             n
+                                                                                               
+    Uniformity                          O m4                       Ω m4               Ω m 2
+                                                                              0.34    0.1
+     Conditions             n0.9  m  log(n)/2                     m = Ω̃( n8/3 + n4 )   Unconditional
+                                 p            √
+     Closeness              O(n log(n)/( m2 ))                                –                    –
+     Conditions       Θ̃(min(n, n2/3 /4/3 ))  m  log(n)                     –                    –
+
+                      Table 1: Summary of our Streaming Upper and Lower Bounds.
+
+
+                                                   Communication Complexity Bounds
+   Property            √UB 1                      UB 2          √LB 1               LB 2              LB 3
+                                                                                   √
+                           n log(n)/`              n log(n)          n log(n)/`          n/`
+  Uniformity      O           2               O     `2  4   Ω         2          Ω(    )       Ω( `2 2nlog n )
+                                                       √                                 1/3             1/3 
+                   8 n       −4
+  Conditions      log n  `  n0.9               `  2n        4/3 n0.3  `     ` = Õ n4/3    ` = Ω̃ n4/3
+                       2/3                
+                       n      log1/3 (n)
+  Closeness       O        `2/3 4/3
+                                                    -                -                 -                  -
+  Conditions      n4 / log(n)  `                  -                -                 -                  -
+
+                      Table 2: Summary of our Distributed Upper and Lower Bounds.
+
+
+
+1.3. Overview of our Approach
+In this section, we provide a detailed sketch of our algorithms and lower bounds.
+Uniformity Testing Algorithms We start by describing the main ideas underlying our efficient
+uniformity testing protocols. We note that in both the distributed and the streaming settings, our
+uniformity testers rely on a unified idea that we term bipartite collision testing. We remind the
+reader that testing uniformity based on the number of pairwise collisions is the oldest algorithm in
+distribution testing Goldreich and Ron (2000), which is now known to be sample-optimal in the
+
+
+                                                             3
+         C OMMUNICATION AND M EMORY E FFICIENT T ESTING OF D ISCRETE D ISTRIBUTIONS
+
+
+
+
+centralized setting Diakonikolas et al. (2016). (In fact, it turns out that all known efficient unifor-
+mity testers rely to some extent on counting pairwise collisions.) Recall that the collisions-based
+uniformity tester Goldreich and Ron (2000) takes N samples from the unknown distribution p on
+[n] and counts the total number of pairwise collisions among        them. If p is the uniform distribution,
+                                                         N
+                                                           
+the expected number of collisions will be (1/n) · 2 . On the other hand, if p is -far from the
+uniform distribution, the expected number of collisions will be at least (1/n) · N2 (1 + Θ(2 )).
+                                                                                            
+
+A now standard analysis — involving carefully bounding the variance of this estimator followed
+                                                                               √
+by an application of Chebyshev’s inequality — shows that for N = Ω( n/2 ) we can distinguish
+between the two cases with high constant probability.
+     Unfortunately, the standard collisions-based tester described above involves computing the total
+number of collisions among all pairs of samples, and it is unclear if it can be implemented with
+non-trivial communication or memory. 2 To improve on these naive bounds, we propose a modified
+uniformity tester (in the collocated/centralized setting) that we can implement in the memory and
+communication restricted settings we study. In particular, we consider a bipartite collision tester
+that works as follows: We draw two independent sets of samples S1 and S2 from the unknown
+distribution p and count the number of pairs of an element of S1 and an element of S2 that collide.
+Importantly, we will use this scheme in such a way so that the first set of samples S1 will be
+substantially smaller than the second set of samples S2 . Roughly speaking, our algorithm will store
+the set S1 exactly, while for each element of the set S2 , it will only need to know the number of
+collisions with elements of S1 . This last step will allow us to save on space or communication. An
+important technical condition that is required for our bipartite tester to succeed is that |S1 | · |S2 | 
+n/4 .
+     We now provide an overview of the analysis. As is standard, we need to show that the number
+of collisions is much larger in the non-uniform
+                                          P          case than in the uniform case. To achieve that, we
+consider for fixed S1 the sum p(S1 ) = s∈S1 ps . We note that the expected number of collisions is
+just p(S1 )·|S2 |, and by standard concentration bounds one can show that it will likely be close to this
+value. However, the average size of p(S1 ) is |S1 | · kpk22 , which is somewhat larger for non-uniform
+p than for p uniform. The detailed analysis is given in Section 3.1.
+     We note that our bipartite collision tester can be easily implemented in the memory and com-
+munication bounded settings. In the former setting (Section A.1), it leads to a uniformity tester
+with sample complexity O(n log n/(m4 )), where m is the bits of memory used. In the distributed
+setting√ (Section A.2), when each machine stores ` samples,
+                                                       p        it leads to a tester with sample complex-
+ity O( n` log n/ ) and communication cost O( (n log n)/`/2 ) bits. (It should be noted that
+                     2
+
+the above memory and communication upper bounds match our lower bounds in some regimes of
+parameters. We show that the tradeoff between sample complexity and memory/communication is
+inherent. See Theorem 23 and Corollary 31.)
+     It should be noted that when ` is sufficiently large, we can design a uniformity tester whose com-
+                                                                                                 √
+munication beats the above (Section A.3). This fact should not be surprising since if `  n/2 , a
+single machine could run a uniformity tester and simply return the answer. If ` is somewhat smaller
+than this value, we can still take advantage of the large number of samples per machine. The basic
+idea is for each player to communicate the number of pairwise collisions among their own samples.
+As there are O(`2 ) pairs of samples per machine, this will require roughly n/`2 machines before
+ 2. We note that the trivial protocol based on a total of N samples uses N · log n bits of memory and N · log n bits of
+    communication.
+
+
+
+                                                          4
+        C OMMUNICATION AND M EMORY E FFICIENT T ESTING OF D ISCRETE D ISTRIBUTIONS
+
+
+
+
+we start seeing any collisions, and this will give our approximate complexity for large , which can
+be seen to be better than our aforementioned bound, when ` is sufficiently large.
+Information-Theoretic Lower Bounds. We start by describing our memory lower bounds fol-
+lowed by our communication lower bounds.
+Memory Lower Bound. We define a family of distributions on [n] × [2], i.e., supported on 2n el-
+ements that will make uniformity testing difficult. In particular, we think of these distributions as
+consisting of n pairs of bins where the probability of landing in each pair is exactly 1/n. Equiv-
+alently, a distribution from this family can be thought of as having n (possibly biased) coins. The
+distribution picks a uniform random coin, flips it, and returns the pair of the coin and the result. If
+all coins are fair, we have the uniform distribution over [n] × [2]. On the other hand, if each coin
+is -biased in a randomly chosen direction, we have a distribution that is -far from uniform. We
+show that these two cases are hard to distinguish from each other without expending a substantial
+amount of our computational resources. Note that the standard sample complexity lower bounds for
+uniformity testing Paninski (2008) rely on essentially the same hard instances.
+     We consider running a testing algorithm on a distribution that is randomly either uniform or a
+random -biased distribution as described above. Let X be the bit that describes whether or not
+the distribution is uniform or not. We consider the shared information between X and the memory
+of our algorithm after seeing k samples. We will attempt to show that this increases by at most
+O(2 m/n) per step, where m is the upper bound on the memory, which implies that it will take
+ n/(m2 ) steps in order to reliably determine X. The idea of the proof is fairly simple: The
+choice of which of the n coins is flipped is uniform no matter what, and so this choice does not tell
+us anything about X. What might tell us something is the result of flipping this coin, but two things
+make this difficult for us. On the one hand, the coin is at most -biased, so knowing the result of
+the flip can only provide O(2 ) information about this bias. More critically, a biased coin is equally
+likely to be biased in either direction, so knowing the result by itself still tells us nothing unless we
+have some prior information about the direction of the possible bias. However, since our streaming
+algorithm can store only m bits of memory, on average it has at most O(m/n) bits of information
+about the bias of the (randomly chosen) coin of the next flip. This argument can be formalized to
+show that the next flip can only contribute O(m/n) bits to the shared information between X and
+our memory. See Section B.2.
+     It may seem that the above argument is tight. With m bits of information, one could know the
+biases (if they exist) of m of the coins, and then each flip will (with probability m/n) give us 2
+information to accept or reject our hypothesis that these biases are real. However, we would need
+to be extraordinarily lucky to have this information. The only way that we could know the biases
+of these m coins is if in our previous set of samples we had seen each of these coins m times. This
+will prove difficult for two reasons: First, unless the number of samples is quite large, we would
+not expect to see any coin show up in more than, say, 10 samples. This will limit the amount of
+information we could expect to know about the bias of any given coin to O(2 ). Additionally, we
+will have information about the biases of all of these particular m coins only if all of them have
+shown up in our set of samples. But if our total number of samples is substantially sub-linear, this
+will only happen with probability n−Ω(m) . On the other hand, since there are only 2m possible
+memory states, with high probability, we must be in one that occurs with probability only as small
+as 2−Ω(m) , so we should only hope to have this information about m/ log(n) coins (which we could
+get by, say, recording the coins and the results of the first m/ log(n) samples). To formalize this
+
+
+                                                   5
+        C OMMUNICATION AND M EMORY E FFICIENT T ESTING OF D ISCRETE D ISTRIBUTIONS
+
+
+
+
+intuition, we let r be the vector whose ith entry is the expected number of times we have seen the
+ith coin based on the transcript, and note that the information gained is proportional to krk22 . This
+can only be large if there is some unit vector w with w · r large. But this would in turn mean that,
+conditioned on our (reasonably high probability) transcript, the average of wC over our samples C
+is big. We show that this cannot happen with high probability by a Chernoff bound. The details are
+deferred to Section B.2.
+Communication Complexity Lower Bound. To make this argument work for our communication
+complexity setting (Section B.3), we will need to restrict the model, in particular requiring that the
+referee sees the players in sequence, never returning to one after it has moved onto the next. In
+order to get our lower bounds for many samples per player, we can proceed by immediate reduction
+to the streaming model. Our algorithm stores the transcript of the communication thus far. When
+the referee talks to a new player, we record the samples that this player has, and then we compress
+this down to the extended transcript involving the answers to the questions asked of this new player.
+Note that at any time the amount of memory used is at most O(|T | + s log(n)), where T is the final
+communication transcript.
+Closeness Testing Algorithms We now describe our algorithms for closeness testing (Section C).
+In the communication model, a reasonable approach would be to follow the methodology of Di-
+akonikolas and Kane (2016), by first using a few samples to flatten and then applying some collision-
+based tester similar to that used for our uniformity testers. We instead give an algorithm that turns
+out to be slightly more communication efficient. The essential idea is to pick a random subset W
+of the domain, and test whether or not p conditioned on W is close to q conditioned on W . If we
+take |W | to be about n/(s log(n)), we note that each machine can send either one bit (encoding that
+they have no samples in W ) or log(n) bits giving one such sample. The former outcome happens
+about log(n) times more often, and so in total we need to send about log(n) bits per element of S
+received. However, for constant , we should need only about |W |2/3 such samples to run a standard
+closeness tester.
+    There is one substantial issue with this plan however. We need it to be the case that Pr[W ] is
+approximately |W |/n and that dTV (p|W, q|W ) ≈ dTV (p, q). We note that both of these happen
+with high probability so long as none of p, q or p − q are dominated by a small number of bins. In
+particular, for  large, it would be sufficient to know that kpk22 , kqk22  1/(s log(n)). Although this
+might not be the case for the given p and q we can obtain it by flattening. The details of the analysis
+are given in Section C.2.
+    For the streaming algorithm for closeness (Section C.1), we take a somewhat different approach.
+We select a random hash function h : [n] → [m] and instead compare the distributions h(p) and
+h(q). It is not hard to show that if p = q then h(p) = h(q), and that if p and q are far in variation
+distance that h(p) and h(q) are likely somewhat far in variation distance. The algorithm can record
+the counts of the number of samples from each distribution in each bin in O(m log(n)) samples and
+these counts are enough to run standard closeness testing algorithms.
+
+1.4. Related work
+Distribution Testing. The field of distribution property testing Batu et al. (2000) has been exten-
+sively investigated in the past couple of decades, see, e.g., the surveys Rubinfeld (2012); Canonne
+(2015); Goldreich (2017). A large body of the literature has focused on characterizing the sample
+size needed to test properties of arbitrary discrete distributions in the centralized setting. This broad
+
+                                                   6
+        C OMMUNICATION AND M EMORY E FFICIENT T ESTING OF D ISCRETE D ISTRIBUTIONS
+
+
+
+
+inference task originates from the field of statistics and has been extensively studied in hypothesis
+testing Neyman and Pearson (1933); Lehmann and Romano (2005) with somewhat different formal-
+ism. The centralized regime is fairly well understood in a variety of settings: for many properties of
+interest there exist sample-efficient testers Paninski (2008); Chan et al. (2014); Valiant and Valiant
+(2014); Diakonikolas et al. (2015a); Acharya et al. (2015); Canonne et al. (2016); Diakonikolas and
+Kane (2016); Diakonikolas et al. (2016); Canonne et al. (2018); Goldreich (2017); Diakonikolas
+et al. (2017a); Batu and Canonne (2017); Diakonikolas et al. (2018); Canonne et al. (2017b). More
+recently, an emerging body of work has focused on leveraging a priori structure of the underlying
+distributions to obtain significantly improved sample complexities Batu et al. (2004); Daskalakis
+et al. (2013); Diakonikolas et al. (2015a,b); Canonne et al. (2017a); Daskalakis and Pan (2017);
+Daskalakis et al. (2018); Diakonikolas et al. (2017c).
+Distributed Statistical Inference. There has been substantial recent interest in distributed esti-
+mation with communication constraints. A series of works Zhang et al. (2013); Garg et al. (2014);
+Braverman et al. (2016); Jordan et al. (2016); Diakonikolas et al. (2017b); Han et al. (2018b,a) stud-
+ied distributed learning in both parametric and nonparametric settings obtaining (nearly-) matching
+upper and lower bounds. Other learning tasks has been studied as well in the distributed setting,
+including regression Zhu and Lafferty (2018) and PCA Kannan et al. (2014); Liang et al. (2014).
+     Classical work in information theory Cover (1969); Ahlswede and Csiszar (1986) studies simple
+hypothesis testing problems with communication constraints (as opposed to the composite testing
+problems studied in our work). Their results and techniques appear to be orthogonal to ours. Two
+recent works Acharya et al. (2018a,b) give algorithms and lower bounds for distribution testing
+in a distributed model where each machine holds a single sample and is allowed to communicate
+ log n bits of information. We note that this communication model is very different from ours:
+First, our focus is on the multiple samples per machine setting, where significant savings over the
+naive protocols is attainable. Moreover, we do not impose any restrictions on the amount of informa-
+tion communicated by any individual machine, and our goal is to minimize the total communication
+complexity of the protocol. Another recent work Andoni et al. (2018) studies distributed closeness
+testing in a two party setting where each party has access to samples from one of the two distri-
+butions. This model is different than ours for two reasons: First, we consider a large number of
+machines (parties). Second, we do not make the assumption that each machine holds samples from
+different distributions. Finally, recent work Fischer et al. (2018) studied uniformity testing in the
+standard LOCAL and CONGEST models when each machine holds a single sample. We note that
+their results and techniques seem incomparable to ours, and in particular have no implications on
+the communication complexity of uniformity testing in our broadcast model. In the aforementioned
+models, there is an underlying graph whose nodes are the machines (players). In each round, every
+player can send information to all its neighbors. The objective is to minimize the number of rounds
+of the protocol, as opposed to the number of bits communicated. In particular, for the special case
+that the underlying graph is a clique, their algorithm does not achieve non-trivial communication
+complexity.
+     The work of Chien et al. (2010) studied distribution testing with limited memory focusing on
+streaming algorithms in the framework of the canonical tester Valiant (2011). In particular, they
+show that for testing problems in this framework with sample   √ complexity f , there are streaming
+                                                       2    O( log(n))
+algorithms with memory m and sample complexity    √ f ·2                /m. We note that this is com-
+                                                O( log(n))
+petitive with our uniformity tester up to the 2             factor, but does substantially worse than
+
+
+                                                  7
+        C OMMUNICATION AND M EMORY E FFICIENT T ESTING OF D ISCRETE D ISTRIBUTIONS
+
+
+
+
+our closeness tester for small m. They also consider another class of streaming algorithms, when
+the number of samples is large enough to learn the distribution in question, and when the prob-
+lem of computing empirical distances has an efficient streaming algorithm. This does not compare
+favorably to our algorithms, which always use sub-learning sample complexity.
+
+1.5. Organization
+The structure of this paper is as follows: After some preliminaries in Section 2, in Section 3 we
+present our bipartite collision tester and its implications to memory efficient uniformity testing. Due
+to space limitations, our distributed uniformity testers (Section A), our memory and communication
+lower bounds (Section B), our upper bounds for closeness testing (Section C), and a set of open
+problems for future work (Section D) are deferred to an Appendix.
+
+2. Preliminaries
+In this section, we introduce the mathematical notation and background necessary to state and prove
+our results in the following sections.
+Notation We write [n] to denote the set {1, . . . , n}. P We consider discrete distributions over [n],
+which are functions p : [n] → [0, 1] such that ni=1 pi = 1. We use the notation pi to de-
+note the probability of element i in distribution p. The `1 (resp. `2 ) norm of a P     distribution is
+                                                                                           n
+identifiedqwith the `1 (resp. `2 ) norm of the corresponding vector, i.e., kpk1 =          i=1 |pi | and
+            Pn       2
+kpk2 =         i=1 pi . The `1 (resp. `2 ) distance between (pseudo-)distributions p and q is defined
+                                    the vector of their difference, i.e., kp − qk1 = ni=1 |pi − qi | and
+                                                                                    P
+as the the `1 p Pn `2 ) norm of
+              (resp.
+kp − qk2 =                       2
+                   i=1 (pi − qi ) .
+    For a random variable X, we denote by E[X] its expectation, Var[X] its variance, and Pr[E]
+will denote the probability of event E. Sometimes we will use the notation ED [·], PrD [·] to make
+the underlying distribution explicit.
+Distribution Testing Distribution property testing studies the following family of problems: given
+sample access to one or more unknown distributions, determine whether they satisfy some global
+property or are “far” from satisfying the property. In this work, we study the properties of identity
+testing (goodness of fit) and closeness testing (two-sample testing) between two distributions.
+
+Definition 1 (Identity Testing/Uniformity Testing) The identity testing problem is the following:
+Given samples from an unknown distribution p on [n], a known distribution q on [n], and a param-
+eter 0 <  < 1, we want to distinguish, with probability at least 2/3, between the cases that p = q
+versus kp − qk1 ≥ . The special case corresponding to q = Un , the uniform distribution on [n], is
+the problem of uniformity testing.
+
+Definition 2 (Closeness Testing) The closeness testing problem is the following: Given samples
+from two unknown distributions p, q on [n], and a parameter 0 <  < 1, we want to distinguish,
+with probability at least 2/3, between the cases that p = q versus kp − qk1 ≥ .
+
+
+
+
+                                                   8
+        C OMMUNICATION AND M EMORY E FFICIENT T ESTING OF D ISCRETE D ISTRIBUTIONS
+
+
+
+
+3. Communication and Memory Efficient Uniformity Testing
+In this section, we design our protocols for uniformity testing. In Section 3.1, we start with our
+bipartite uniformity tester. Its implications to streaming and communication upper bounds are given
+in the appendix.
+
+3.1. Testing Uniformity via Bipartite Collisions
+Our bipartite collision-based tester is described in pseudo-code below:
+    Algorithm B IPARTITE -C OLLISION -U NIFORMITY(p, n, )
+    Input: Sample access to distribution p over [n] and  > 0.
+    Output: “YES” if p = Un ; “NO” if kp − Un k1 ≥ .
+
+       1. Draw a multiset S1 of N1 i.i.d. samples from p.
+
+       2. For all j ∈ [n] compute aj = |{s ∈ S1 : s = j}|, i.e., the multiplicity of j ∈ [n] in S1 .
+
+       3. If maxj∈[n] aj > 10, return “NO”. Otherwise, continue with next step.
+
+       4. Draw a multiset S2 of N2 i.i.d. samples from p. For k ∈ [N2 ], let bk be the number of
+          times that the k-th sample in S2 appears in S1 .
+                            PN2              def N1   2
+       5. Let Z = (1/N2 )     k=1 bk and T   = n (1 + 50 ).
+
+       6. If Z ≥ T return “NO”; otherwise, return “YES”.
+
+
+   The main result of this section is the following theorem:
+
+Theorem 3 Suppose that N1 , N2 satisfy the following conditions: (i) Ω(−6 ) = N1 ≤ n9/10
+and N1 · N2 = Ω(n/4 ), where the implied constants in the Ω(·) are sufficiently large. Then
+the algorithm B IPARTITE -C OLLISION -U NIFORMITY distinguishes between the cases that p = Un
+versus kp − Un k1 ≥  with probability at least 2/3.
+
+   This section is devoted to the proof of Theorem 3. We start with the following definition:
+
+Definition 4 (Probability Mass of Multiset) Let p be a discrete distribution over [n] and S be a
+                                                                                                   def
+multiset
+Pn       of elements in [n]. We define the probability mass of the multiset S as follows: p(S) =
+  j=1 aj pj , where aj is the number of occurrences of j ∈ [n] in S.
+
+   It should be noted that we will use the above quantity for S being a multiset of i.i.d. samples
+from the distribution p. In this case, p(S) is a random variable satisfying the following:
+
+Claim 5 Let S be a multiset of m i.i.d. samples from the distribution p on [n]. Then, we have that
+(i) ES [p(S)] = m · kpk22 and (ii) VarS [p(S)] = m · (kpk33 − kpk42 ).
+
+                           def P
+Proof By definition, p(S) = nj=1 aj pj , where aj ∼ Binomial(m, pj ), j ∈ [n]. For the expected
+value, we can write: ES [p(S)] = nj=1 ES [aj ]pj = nj=1 (mpj )pj = m · nj=1 p2j = m           2
+                                 P                  P                     P
+                                                                                       P·mkpk2 .
+To calculate the variance, we note that p(S) can be equivalently expressed as p(S) =     i=1 ri ,
+
+
+                                                 9
+         C OMMUNICATION AND M EMORY E FFICIENT T ESTING OF D ISCRETE D ISTRIBUTIONS
+
+
+
+
+where for i ∈ [m] we have that ri = pj with probability pj , for j ∈ [n]. Note that the ri ’s
+are i.i.d. random
+                Pmvariables and that ES [ri ] = kpk22 , ES [ri2 ] = kpk33 . Therefore, we obtain that
+VarS [p(S)] = i=1 VarS [ri ] = m · (kpk33 − kpk42 ) . This completes the proof of Claim 5.
+
+    We now proceed to establish the completeness and soundness of our tester.
+Completeness Analysis We will show that if p = Un , then the tester outputs “YES” with proba-
+bility at least 2/3. We start by noting that it is very unlikely that the tester rejects in Step 3.
+                 def
+Claim 6 Let E = {S1 : maxj∈[n] aj ≤ 10}. For N1 ≤ n9/10 , we have that PrS1 [E] ≥ 19/20.
+
+Proof The probability that there exists some domain element in [n] that appears at least k times in
+                                                     Nk
+S1 , where |S1 | = N1 , is at most n · Nk1 n−k ≤ n · k!n1k . By our assumption that N1 ≤ n9/10 , for
+                                          
+
+k = 10 the above probability is at most 1/k!, which gives the claim.
+
+   We proceed to analyze the behavior of the random variable Z defining our test statistic in Step 5.
+Note that Z is the empirical estimate of p(S1 ) based on the multiset of samples S2 . Indeed, denoting
+    p )S2 the empirical probability of j ∈ [n] based on S2 , then we have that Z = (1/N2 ) ·
+by (b
+PN2 j       Pn
+  k=1 bk =                pj )S2 . We have the following simple claim:
+                j=1 aj · (b
+
+Claim 7 Let p be any distribution over [n]. Then we have that: (i) ES2 [Z] = p(S1 ) and (ii)
+                      Pn      2      2
+VarS2 [Z] = (1/N2 ) ·   j=1 aj pj − p (S1 ) .
+
+Proof Since Z = nj=1 aj · (b     pj )S2 and ES2 [(bpj )S2 ] = pj , we get that ES2 [Z] = nj=1 aj · pj =
+                     P                                                                    P
+
+p(S1 ). To calculate the variance, we use the equivalent definition of Z = (1/N2 ) · N
+                                                                                          P 2
+                                                                                             k=1 bk , where
+for each k ∈ [N2 ] the i.i.d. random variables b k  are defined   as follows: bk = a j with probability pj ,
+for j ∈ [n]. It follows that ES2 [bk ] = nj=1 aj pj = p(S1 ) and ES2 [b2k ] = nj=1 a2j pj . Therefore,
+                                          P                                       P
+
+we get that VarS2 [Z] = (1/N2 2 )·N2 ·VarS2 [b1 ] = (1/N2 )·( nj=1 a2j pj −p2 (S1 )). This completes
+                                                                    P
+the proof.
+
+We note that Claim 7 will be useful both in the completeness and the soundness cases.
+    To establish the correctness of the tester in the completeness case, it suffices to show that
+PrS1 ,S2 [Z > T ] ≤ 1/3. Since the event E occurs with high constant probability over S1 , by a
+union bound, it suffices to show that PrS1 ,S2 [Z > T | E] ≤ 1/10. An application of Chebyshev’s
+inequality yields that
+
+                   PrS1 ,S2 [|Z − ES1 ,S2 [Z | E]| > γ | E] ≤ VarS1 ,S2 [Z | E]/γ 2 .                   (1)
+
+Note that in the completeness case (p = Un ) we have that p(S1 ) = N1 /n deterministically over S1 .
+Therefore, by Claim 7 (i), we get that ES1 ,S2 [Z | E] = ES2 [Z] = p(S1 ) = N1 /n. Similarly, we
+obtain that
+
+                  VarS1 ,S2 [Z | E] = ES1 |E [VarS2 [Z|S1 ]] + VarS1 |E [ES2 [Z]]
+                                                     Xn
+                                    ≤ (1/N2 ) · max     a2j pj + 0
+                                                     S1 ∈E
+                                                             j=1
+                                      ≤ (10/N2 ) · p(S1 ) + 0 = 10N1 /(N2 · n) ,
+
+                                                    10
+        C OMMUNICATION AND M EMORY E FFICIENT T ESTING OF D ISCRETE D ISTRIBUTIONS
+
+
+
+
+where the second line uses Claim 7 (ii) and the fact that VarS1 |E [ES2 [Z]] = 0, and the third line
+                                                  def
+follows from the definition of E. By setting   γ = (2 /100)ES1 ,S2 [Z | E] = (2 /100)p(S1 ), the
+RHS of (1) is at most O n/(4 · N1 · N2 ) . Recalling our assumption that N1 · N2 = Ω(n/4 )
+                                             
+
+for a sufficiently large constant in the Ω(), we get that with probability at least 9/10 we have that
+Z < (1 + 2 /100)(N1 /n) < T . This proves the completeness of our tester.
+Soundness Analysis We will show that if kp−Un k1 ≥  for  satisfying N1 = Ω(1/6 ), where the
+constant in Ω() is sufficiently large, then the tester outputs “NO” with probability at least 2/3. The
+technical part of the soundness proof involves showing that ES2 [Z] = p(S1 ) will be significantly
+larger than its value of m/n in the completenesss case. Specifically, we show the following:
+
+                   def
+Lemma 8 Let F = {S1 : p(S1 ) ≥ (1 + 2 /40) · (N1 /n)}. If kp − Un k1 ≥  and N1 = Ω(1/6 ),
+then PrS1 [F] ≥ 9/10.
+
+Proof The proof proceeds by case analysis. First, we consider the case that the distribution p
+assigns sufficient probability on heavy elements. This case turns out to be fairly easy to handle. The
+complementary case that p has a small amount of mass on heavy elements requires a more elaborate
+                  def                               def
+argument. Let θ = 104 /(2 n) and let H = H(p) = {i ∈ [n] | pi ≥ θ} be the set of heavy bins.
+We consider the following cases:
+[Case I: p(H) = i∈H pi ≥ 2 /1000.] Let W = |S1 ∩ H|. Note that ES1 [W ] = N1 · p(H) ≥
+                    P
+N1 2 /1000. By a multiplicative Chernoff bound, for δ = 1/3, we get that
+                                                           2 2
+                    PrS1 W ≤ (1 − δ) · N1 2 /1000 ≤ e−N1  δ /200 < 1/10
+                                                 
+
+
+where we used the fact that N1 = ω(1/2 ). That is, with probability at least 9/10, the multiset S1
+will contain at least N1 2 /150 samples from the set H. If this happens, then we have that
+
+                  p(S1 ) > (N1 2 /1500) · θ > (6N1 )/n > (1 + 2 /40) · (N1 /n)
+
+which proves Case I.
+                                                      def
+[Case II: p(H) = i∈H pi ≤ 2 /100.] Let H = [n] \ H and S10 = S1 ∩ H, i.e., S10 contains the
+                      P
+samples in S1 that correspond to light elements of p. Clearly, we have that p(S1 ) ≥ p(S10 ). We will
+show that PrS1 [p(S10 ) ≥ (1 + 2 /40) · (N1 /n)] ≥ 9/10.
+    Since p(H) ≤ 2 /1000, with probability at least 1 − 2 /1000, a given sample in S1 will also be
+in S10 . So, if N10 = |S10 | we have that ES1 [N10 ] ≥ N1 (1 − 2 /1000). By Markov’s inequality applied
+to N1 − N10 , with probability at least 19/20 over S1 , we have that N10 ≥ N1 (1 − 2 /50). We will
+henceforth condition on this event.
+    To bound p(S10 ) from below, we consider the normalized distribution, p0 , over [n] obtained from
+p after removing its heavy elements. That is, for i ∈ H, p0i = pi /(1 − p(H)); and for i ∈ H,
+p0i = 0. Note that S10 consists of N10 elements drawn i.i.d. from p0 . By definition, we have that
+p(S10 ) = (1 − p(H))p0 (S10 ). We will bound p0 (S10 ) by applying Chebyshev’s inequality.
+    We start by noting that p0 is also far from being uniform:
+
+Claim 9 We have that kp0 − Un k1 ≥ /3.
+
+
+
+                                                  11
+         C OMMUNICATION AND M EMORY E FFICIENT T ESTING OF D ISCRETE D ISTRIBUTIONS
+
+
+
+
+Proof Since kp − Un k1 ≥ , we have that j∈[n]:pj >1/n |pj − 1/n| > /2. Since p(H) < 2 /100,
+                                          P
+
+it follows that j:1/n<pi <θ |pj − 1/n| > /2 − 2 /100 > /3. Noting that if 1/n < pj < θ, then
+               P
+
+|pj − 1/n| < |p0j − 1/n| gives the claim.
+
+By Chebyshev’s inequality, we can write:
+                        h                                 i
+                  PrS10 |p0 (S10 ) − ES10 [p0 (S10 )]| > γ ≤ VarS10 [p0 (S10 )]/γ 2 ,                           (2)
+                       def
+where we will set γ = (2 /20) · ES10 [p0 (S10 )]. By Claim 5, we have that ES10 [p0 (S10 )] = N10 · kp0 k22 ,
+and VarS10 [p0 (S10 )] = N10 · (kp0 k33 − kp0 k42 ). In the following claim, we bound the variance from
+above:
+                                                  2000N10 ·kp0 k22
+Claim 10 We have that VarS10 [p0 (S10 )] <            2 n
+                                                                   .
+Proof We have that VarS10 [p0 (S10 )] < N10 ·kp0 k33 ≤ N10 ·kp0 k∞ ·kp0 k22 . We will show that kp0 k∞ ≤ 2θ
+from which the claim follows. Indeed, note that the non-zero probability values of p0 are p0i =
+                      / H. Since pi ≤ θ and p(H) ≤ 2 /1000 < 1/2, we get the desired bound on
+pi /(1 − p(H)), for i ∈
+   0
+kp k∞ and the claim follows.
+
+The RHS of (2) can be bounded by O(VarS10 [p0 (S10 )]/(4 ES10 [p0 (S10 )]2 )) = O(1/(N10 · 6 )), where
+we used our bounds on the first two moments and the fact that kp0 k22 ≥ 1/n. Using the condition
+that N1 = Ω(1/6 ) and the fact that N10 ≥ N1 · (1 − O(2 )), the above probability is at most 1/20.
+    We now show that if |p0 (S10 ) − ES10 [p0 (S10 )]| ≤ γ the event F holds. By the definition of γ and
+the fact ES10 [p0 (S10 )] = N10 · kp0 k22 , this is equivalent to p0 (S10 ) > (1 − 2 /20) · N10 · kp0 k22 . Claim 9
+implies that kp0 k22 ≥ (1/n) · (1 + 2 /9), and therefore we get that
+        p0 (S10 ) > (1 − 2 /20) · (1 − 2 /50) · (N1 /n) · (1 + 2 /9) > (N1 /n) · (1 + 2 /35) ,
+where we used our lower bound on N10 . Finally, we have that
+p(S1 ) ≥ p(S10 ) = (1−p(H))p0 (S10 ) ≥ (1−2 /1000)·(N1 /n)·(1+2 /35) > (N1 /n)·(1+2 /40) ,
+and the proof of Lemma 8 is complete.
+
+    To establish correctness in the soundness case, it suffices to show that PrS1 ,S2 [Z ≤ T ] ≤ 1/3.
+To show this, we condition on any S1 such that the events E and F hold. Note that if E does not
+occur, then our tester correctly rejects. By Lemma 8 above, F holds with probability at least 9/10
+over S1 . Hence, by a union bound, it suffices to show that PrS1 ,S2 [Z ≤ T | E, F] ≤ 1/10.
+    An application of Chebyshev’s inequality for γ = (2 /100)ES1 ,S2 [Z | E, F] yields that
+                   PrS1 ,S2 [|Z − ES2 [Z]| > γ | E, F] ≤ VarS1 ,S2 [Z | E, F]/γ 2 .                (3)
+                                                                        P                     
+                                                                            n    2       2
+By Claim 7, we have that ES2 [Z] = p(S1 ) and VarS2 [Z] = (1/N2 ) ·         j=1 aj pj − p (S1 ) . The
+same argument as in the completeness case gives that VarS1 ,S2 [Z | E, F] < (10/N2 )·p(S1 ). By our
+choice of γ and our bound on the variance the right-hand side of (3) is at most O 1/(N2 4 p(S1 )) .
+                                                                                                    
+
+Recalling our assumption that N1 · N2 = Ω(n/4 ) and the fact that p(S1 ) ≥ N1 /n (by Lemma 8,
+since F occurs), it follows that this probability is at most 1/10. By Lemma 8 we have that p(S1 ) >
+(N1 /n) · (1 + 2 /40). Therefore, with probability at least 8/10 (by a union bound on the two error
+events), we have that Z > (N1 /n) · (1 + 2 /50). This establishes the soundness case and completes
+the proof of Theorem 3.
+
+                                                         12
+        C OMMUNICATION AND M EMORY E FFICIENT T ESTING OF D ISCRETE D ISTRIBUTIONS
+
+
+
+
+Acknowledgments
+I.D. is supported by NSF Award CCF-1652862 (CAREER) and a Sloan Research Fellowship. This
+research was performed while T.G. was a postdoctoral researcher at USC, supported by I.D.’s startup
+grant. D.K. is supported by NSF Award CCF-1553288 (CAREER) and a Sloan Research Fellow-
+ship. S.R. would like to thank Dheeraj P.V. for helpful discussions.
+
+References
+J. Acharya, C. Daskalakis, and G. Kamath. Optimal testing for properties of distributions. In
+   Advances in Neural Information Processing Systems (NIPS), pages 3591–3599, 2015.
+
+J. Acharya, C. L. Canonne, and H. Tyagi. Distributed simulation and distributed inference. CoRR,
+   abs/1804.06952, 2018a. URL http://arxiv.org/abs/1804.06952.
+
+J. Acharya, C. L. Canonne, and H. Tyagi. Inference under information constraints I: lower bounds
+   from chi-square contraction. CoRR, abs/1812.11476, 2018b. URL http://arxiv.org/
+   abs/1812.11476.
+
+R. Ahlswede and I. Csiszar. Hypothesis testing with communication constraints. IEEE Trans. Inf.
+  Theor., 32(4):533–542, September 1986.
+
+A. Andoni, T. Malkin, and N. S. Nosatzki. Two party distribution testing: Communication and
+  security. CoRR, abs/1811.04065, 2018. URL http://arxiv.org/abs/1811.04065.
+
+T. Batu and C. L. Canonne. Generalized uniformity testing. In 58th IEEE Annual Symposium on
+   Foundations of Computer Science, FOCS 2017, pages 880–889, 2017.
+
+T. Batu, L. Fortnow, R. Rubinfeld, W. D. Smith, and P. White. Testing that distributions are close. In
+   IEEE Symposium on Foundations of Computer Science, pages 259–269, 2000. URL citeseer.
+   ist.psu.edu/batu00testing.html.
+
+T. Batu, R. Kumar, and R. Rubinfeld. Sublinear algorithms for testing monotone and unimodal
+   distributions. In ACM Symposium on Theory of Computing, pages 381–390, 2004.
+
+M. Braverman, A. Garg, T. Ma, H. L. Nguyen, and D. P. Woodruff. Communication lower bounds
+ for statistical estimation problems via a distributed data processing inequality. In Proceedings of
+ the 48th Annual ACM Symposium on Theory of Computing, STOC 2016, pages 1011–1020, 2016.
+
+C. L. Canonne. A survey on distribution testing: Your data is big. but is it blue?         Electronic
+  Colloquium on Computational Complexity (ECCC), 22:63, 2015.
+
+C. L. Canonne, I. Diakonikolas, T. Gouleakis, and R. Rubinfeld. Testing shape restrictions of
+  discrete distributions. In 33rd Symposium on Theoretical Aspects of Computer Science, STACS
+  2016, pages 25:1–25:14, 2016.
+
+C. L. Canonne, I. Diakonikolas, D. M. Kane, and A. Stewart. Testing bayesian networks. In
+  Proceedings of the 30th Conference on Learning Theory, COLT 2017, pages 370–448, 2017a.
+
+
+
+                                                 13
+        C OMMUNICATION AND M EMORY E FFICIENT T ESTING OF D ISCRETE D ISTRIBUTIONS
+
+
+
+
+C. L. Canonne, I. Diakonikolas, D. M. Kane, and A. Stewart. Testing conditional independence
+  of discrete distributions. CoRR, abs/1711.11560, 2017b. URL http://arxiv.org/abs/
+  1711.11560. In STOC’18.
+
+C. L. Canonne, I. Diakonikolas, and A. Stewart. Testing for families of distributions via the fourier
+  transform. In Advances in Neural Information Processing Systems 31: Annual Conference on
+  Neural Information Processing Systems 2018, NeurIPS 2018, pages 10084–10095, 2018.
+
+S. Chan, I. Diakonikolas, P. Valiant, and G. Valiant. Optimal algorithms for testing closeness of
+   discrete distributions. In SODA, pages 1193–1203, 2014.
+
+S. Chien, K. Ligett, and A. McGregor. Space-efficient estimation of robust statistics and distribution
+   testing. In Innovations in Computer Science - ICS 2010, pages 251–265, 2010.
+
+T. M. Cover. Hypothesis testing with finite statistics. Ann. Math. Statist., 40(3):828–835, 06 1969.
+
+C. Daskalakis and Q. Pan. Square Hellinger subadditivity for Bayesian networks and its applications
+  to identity testing. In Proceedings of the 30th Conference on Learning Theory, COLT 2017, pages
+  697–703, 2017.
+
+C. Daskalakis, I. Diakonikolas, R. Servedio, G. Valiant, and P. Valiant. Testing k-modal distribu-
+  tions: Optimal algorithms via reductions. In SODA, pages 1833–1852, 2013.
+
+C. Daskalakis, N. Dikkala, and G. Kamath. Testing Ising models. In SODA, 2018.
+
+L. Devroye and L. Györfi. Nonparametric Density Estimation: The L1 View. John Wiley & Sons,
+  1985.
+
+L. Devroye and G. Lugosi. Combinatorial methods in density estimation. Springer Series in Statis-
+   tics, Springer, 2001.
+
+I. Diakonikolas and D. M. Kane. A new approach for testing properties of discrete distributions. In
+   FOCS, pages 685–694, 2016. Full version available at abs/1601.05557.
+
+I. Diakonikolas, D. M. Kane, and V. Nikishkin. Testing identity of structured distributions. In
+   Proceedings of the Twenty-Sixth Annual ACM-SIAM Symposium on Discrete Algorithms, SODA
+   2015, pages 1841–1854, 2015a.
+
+I. Diakonikolas, D. M. Kane, and V. Nikishkin. Optimal algorithms and lower bounds for test-
+   ing closeness of structured distributions. In IEEE 56th Annual Symposium on Foundations of
+   Computer Science, FOCS 2015, pages 1183–1202, 2015b.
+
+I. Diakonikolas, T. Gouleakis, J. Peebles, and E. Price. Collision-based testers are optimal for
+   uniformity and closeness. Electronic Colloquium on Computational Complexity (ECCC), 23:
+   178, 2016.
+
+I. Diakonikolas, T. Gouleakis, J. Peebles, and E. Price. Sample-optimal identity testing with high
+   probability. CoRR, abs/1708.02728, 2017a.
+
+
+
+
+                                                 14
+        C OMMUNICATION AND M EMORY E FFICIENT T ESTING OF D ISCRETE D ISTRIBUTIONS
+
+
+
+
+I. Diakonikolas, E. Grigorescu, J. Li, A. Natarajan, K. Onak, and L. Schmidt. Communication-
+   efficient distributed learning of discrete distributions. In Advances in Neural Information Pro-
+   cessing Systems 30: Annual Conference on Neural Information Processing Systems 2017, pages
+   6394–6404, 2017b.
+
+I. Diakonikolas, D. M. Kane, and V. Nikishkin. Near-optimal closeness testing of discrete histogram
+   distributions. In 44th International Colloquium on Automata, Languages, and Programming,
+   ICALP 2017, pages 8:1–8:15, 2017c.
+
+I. Diakonikolas, D. M. Kane, and A. Stewart. Sharp bounds for generalized uniformity testing. In
+   Advances in Neural Information Processing Systems 31: Annual Conference on Neural Informa-
+   tion Processing Systems 2018, NeurIPS 2018, pages 6204–6213, 2018.
+
+O. Fischer, U. Meir, and R. Oshman. Distributed uniformity testing. In Proceedings of the 2018
+  ACM Symposium on Principles of Distributed Computing, PODC ’18, pages 455–464, New York,
+  NY, USA, 2018. ACM.
+
+A. Garg, T. Ma, and H. Nguyen. On communication cost of distributed statistical estimation and
+  dimensionality. In Advances in Neural Information Processing Systems (NIPS), pages 2726–
+  2734, 2014.
+
+O. Goldreich. The uniform distribution is complete with respect to testing identity to a fixed distri-
+  bution. ECCC, 23, 2016.
+
+O. Goldreich. Introduction to Property Testing. Forthcoming, 2017.            URL http://www.
+  wisdom.weizmann.ac.il/˜oded/pt-intro.html.
+
+O. Goldreich and D. Ron. On testing expansion in bounded-degree graphs. Technical Report TR00-
+  020, Electronic Colloquium on Computational Complexity, 2000.
+
+Y. Han, P. Mukherjee, A. Özgür, and T. Weissman. Distributed statistical estimation of high-
+  dimensional and nonparametric distributions. In 2018 IEEE International Symposium on In-
+  formation Theory, ISIT 2018, pages 506–510, 2018a.
+
+Y. Han, A. Özgür, and T. Weissman. Geometric lower bounds for distributed parameter estimation
+   under communication constraints. In Conference On Learning Theory, COLT 2018, pages 3163–
+   3188, 2018b. URL http://proceedings.mlr.press/v75/han18a.html.
+
+M. I. Jordan, J. D. Lee, and Y. Yang. Communication-efficient distributed statistical learning. CoRR,
+ abs/1605.07689, 2016.
+
+R. Kannan, S. Vempala, and D. Woodruff. Principal component analysis and higher correlations for
+  distributed data. In Conference on Learning Theory, pages 1040–1057, 2014.
+
+E. L. Lehmann and J. P. Romano. Testing statistical hypotheses. Springer Texts in Statistics.
+  Springer, 2005.
+
+Y. Liang, M. F. Balcan, V. Kanchanapally, and D. Woodruff. Improved distributed principal compo-
+   nent analysis. In Advances in Neural Information Processing Systems (NIPS), pages 3113–3121,
+   2014.
+
+                                                 15
+        C OMMUNICATION AND M EMORY E FFICIENT T ESTING OF D ISCRETE D ISTRIBUTIONS
+
+
+
+
+J. Neyman and E. S. Pearson. On the problem of the most efficient tests of statistical hypothe-
+   ses. Philosophical Transactions of the Royal Society of London. Series A, Containing Papers
+   of a Mathematical or Physical Character, 231(694-706):289–337, 1933. doi: 10.1098/rsta.
+   1933.0009. URL http://rsta.royalsocietypublishing.org/content/231/
+   694-706/289.short.
+
+L. Paninski. A coincidence-based test for uniformity given very sparsely-sampled discrete data.
+  IEEE Transactions on Information Theory, 54:4750–4755, 2008.
+
+R. Rubinfeld. Taming big probability distributions. XRDS, 19(1):24–28, 2012.
+
+A. B. Tsybakov. Introduction to Nonparametric Estimation. Springer Publishing Company, Incor-
+  porated, 2008.
+
+G. Valiant and P. Valiant. An automatic inequality prover and instance optimal identity testing. In
+  FOCS, 2014.
+
+P. Valiant. Testing symmetric properties of distributions. SIAM J. Comput., 40(6):1927–1968, 2011.
+
+Y. Zhang, J. Duchi, M. Jordan, and M. J. Wainwright. Information-theoretic lower bounds for dis-
+   tributed statistical estimation with communication constraints. In Advances in Neural Information
+   Processing Systems (NIPS), pages 2328–2336, 2013.
+
+Y. Zhu and J. Lafferty. Distributed nonparametric regression under communication constraints.
+  In Proceedings of the 35th International Conference on Machine Learning, ICML 2018, pages
+  6004–6012, 2018.
+
+
+APPENDIX
+The structure of this Appendix is as follows: In Section A, we give our streaming and distributed
+uniformity testers. In Section B, we give our nearly matching information-theoretic memory and
+communication lower bounds. Section C gives our communication and memory efficient closeness
+testing algorithms. Finally, in Section D we conclude and provide a few open problems for future
+work.
+
+Appendix A. Streaming and Communication Efficient Uniformity Testing
+In this section, we give our streaming uniformity tester (Section A.1) and our communication effi-
+cient uniformity testers in the distributed setting. For the latter, we have two algorithms: Our first
+algorithm (Section A.2) is an instantiation of our bipartite collision tester and performs well when
+the number of samples per machine ` is not very large. For the complementary setting that ` is large,
+we design a different protocol (Section A.3), where each machine communicates its total number of
+internal collisions and the test statistic relies on their sum. (When the number of samples per player,
+` = Õ(n1/3 /4/3 ), we use the first tester. If there are more samples per player than that, we use the
+second tester.)
+
+
+
+
+                                                  16
+        C OMMUNICATION AND M EMORY E FFICIENT T ESTING OF D ISCRETE D ISTRIBUTIONS
+
+
+
+
+A.1. Memory Efficient Uniformity Testing
+In this section, we show how our bipartite collision tester can be used to obtain a memory efficient
+single pass streaming algorithm. Our memory efficient tester is described in pseudo-code below:
+    Algorithm S TREAMING -U NIFORMITY(p, n, m, )
+    Input: Sample access to distribution p over [n], memory bound m, and  > 0.
+    Output: “YES” if p = Un ; “NO” if kp − Un k1 ≥ .
+                                      def
+        1. Draw a multiset S1 of N1 = m/(2 log n) i.i.d. samples from p. Store S1 in memory.
+
+        2. For all j ∈ [n] compute aj = |{s ∈ S1 : s = j}|, i.e., the multiplicity of j ∈ [n] in S1 .
+
+        3. If maxj∈[n] aj > 10, return “NO”. Otherwise, continue with next step.
+                                      def
+        4. Draw a multiset S2 of N2 = Θ n log n/(m4 ) i.i.d. samples from p, for an appropri-
+                                                             
+
+           ately large constant in Θ(·). For k ∈ [N2 ], let bP k be the number of times that the k-th
+           sample in S2 appears in S1 . Store the partial sum k bk in a single pass.
+                             PN2              def N1   2
+        5. Let Z = (1/N2 )     k=1 bk and T   = n (1 + 50 ).
+
+        6. If Z ≥ T return “NO”; otherwise, return “YES”.
+
+
+    The following theorem is essentially a corollary of Theorem 3 and characterizes the performance
+of the above algorithm:
+
+Theorem 11 Suppose that m ≥ Ω(log n/6 ) and m ≤ Õ(n9/10 ). Algorithm S TREAMING -
+U NIFORMITY is a single pass streaming algorithm using at most m bits of memory, and distin-
+guishes between the cases that p = Un versus kp − Un k1 ≥  with probability at least 2/3.
+
+Proof The correctness of S TREAMING -U NIFORMITY as a uniformity testing algorithm follows
+from Theorem 3 and our choice of parameters. It is straightforward to check that the assumptions
+of the latter theorem are satisfied for our choice of N1 and N2 .
+    It is also easy to argue that the algorithm is implementable in the single pass streaming model
+with at most m bits of memory. Step 1 of the algorithm uses N1 log n ≤ m/2 bits of memory.
+We claim that Step 4 can be implemented in a single pass with at most log N2 + 4 bits of memory.
+Indeed, since no element of [n] appears in S1 P more than 10 times (since the algorithm
+                                                                                      PNdid not reject
+                                                   N2
+in Step 3), each bk is at most 10. Therefore, k=1 bk ≤ 10N2 , and thus the sum k=1 bk can be
+                                                                                         2
+
+stored with log N2 + 4 bits of memory. In summary, the total memory used by our algorithm is at
+most m/2 + log N2 + 4. By our assumption that m ≥ Ω(log n/6 ), it follows that N2 ≤ 2 n or
+log N2 < log n. Therefore, log N2  m which completes the proof of Theorem 11.
+
+
+A.2. Distributed Uniformity Testing for Small Number of Samples per Machine
+Let ` denote the total number of samples from p possessed by each machine. When ` = Õ(n1/3 /4/3 ),
+we use the following tester, which can be viewed as an instantiation of our bipartite collision tester.
+
+
+                                                  17
+        C OMMUNICATION AND M EMORY E FFICIENT T ESTING OF D ISCRETE D ISTRIBUTIONS
+
+
+
+
+    Algorithm I D ISTRIBUTED -B IPARTITE -U NIFORMITY(p, n, `, )
+    Input: Unbounded number of machines, each with ` i.i.d. samples from p and  > 0.
+    Output: “YES” if p = Un ; “NO” if kp − Un k1 ≥ .
+                                                 p           
+       1. The referee asks m1 = Θ (1/(2 `3/2 )) n/ log n machines to reveal all their samples.
+          Let S1 be the resulting multiset of samples from p.
+
+       2. For all j ∈ [n] the referee computes aj = |{s ∈ S1 : s = j}|, i.e., the multiplicity of
+          j ∈ [n] in S1 .
+
+       3. If maxj∈[n] aj > 10, the referee returns “NO”. Otherwise, we continue with next step.
+
+       4. The referee queries a new set of m2 = Θ( 4 `n2 m1 ) machines, indexed by k ∈ [m2 ], in
+          increasing order of k, to report the value bk = `i=1 ask corresponding to their sample set
+                                                            P
+                                                                     i
+          S2k = {ski }`i=1 . Note that bk is the number of collisions of S2k with S1 .
+                                       Pt                                       def m1 ·`
+       5. For t ∈ [m2 ], define Bt =    k=1 bk . Let Z = Bm2 /(` · m2 ) and T   = n (1 + 2 /50).
+
+       6. The referee computes Bt in increasing order of t ∈ [m2 ]. If for some t ∈ [m2 ], Bt ≥
+          ` · m2 · T , we terminate and returns “NO”. Otherwise, we have that Z < T and we return
+          “YES”.
+
+   The following theorem characterizes the performance of the above algorithm:
+
+Theorem 12 Suppose that Ω(1/6 ) ≤ m1 · ` ≤ O(n9/10 ). Algorithm D ISTRIBUTED        -B IPARTITE - 
+                                      2
+                                        √                                   
+                                                                                   2
+                                                                                      p
+U NIFORMITY draws a total of O (1/ ) n · ` · log n samples from p, uses O (1/ ) (n/`) · log n
+bits of communication, and distinguishes between the cases that p = Un versus kp − Un k1 ≥  with
+probability at least 2/3.
+
+Proof The correctness of D ISTRIBUTED -B IPARTITE -U NIFORMITY follows from Theorem 3 and
+our choice of parameters. It is straightforward to check that the assumptions of the latter theorem
+are satisfied for our choice of N1 = m1 · ` and N2 = m2 · `.
+    It is also clear that the sample complexity of our algorithm is
+                             p                      p                          p              
+(m1 +m2 )·` = O (1/2 ) n/(`3 log n) + (1/2 ) (n log n)/` ·` = O (1/2 ) n · ` · log n .
+
+We now proceed to bound the communication complexity. Note that Step 1 uses m1 · ` · log n bits
+of communication. We claim that Step 6 can be implemented with O(m2 ) bits of communication.
+To achieve this, we transmit each bk in unary by P
+                                                 sending bk many 1’s followed by a 0 and terminate
+the algorithm rejecting if the partial sum Bt = tk=1 bk , for some t ∈ [m2 ], exceeds the rescaled
+threshold `·m2 ·T . Since we use bk +1 bits to encode each bk , the number of bits of communication
+is bounded by maxt (Bt +t), which is at most `·m2 ·T +m2 . We now show that `·m2 ·T = O(m2 ),
+which proves the desired communication upper bound. Note that by our choice of m1 , m2 , we have
+that ` · m2 · T = O(1/4 ) and moreover m2 > m1 · ` = Ω(1/6 ). Therefore, ` · m2 · T ≤ m2 , as
+desired. This completes the proof of Theorem 12.
+
+
+
+                                                18
+          C OMMUNICATION AND M EMORY E FFICIENT T ESTING OF D ISCRETE D ISTRIBUTIONS
+
+
+
+
+A.3. Distributed Uniformity Testing for Large Number of Samples per Machine
+In this section, we give our alternate distributed uniformity tester with improved communication
+complexity when the number of samples per machine is large.
+    When the number of samples per machine ` satisfies ` = Ω̃(n1/3 /4/3 ), we will use the follow-
+ing algorithm:
+      Algorithm II D ISTRIBUTED -AGGREGATE -U NIFORMITY(p, n, `, )
+      Input: Each machine has ` samples from a distribution p over [n] and  > 0.
+      Output: “YES” if p = Un ; “NO” if kp − Un k1 ≥ .
+
+         1. The referee asks the first m = 12800·n
+                                               `2 4
+                                                      machines to reveal the number of collisions ck ,
+            k ∈ [m], each of them see in their ` samples.
+                                                                                ` 1+2 /2
+         2. Compute the statistic Z = (1/m) m
+                                              P                                  
+                                                  k=1 ck and the Threshold T = 2    n     .
+
+         3. If Z ≥ T return “NO”; otherwise, return “YES”.
+
+      The following theorem characterizes the performance of the above algorithm:
+
+Theorem 13 The algorithm D ISTRIBUTED -AGGREGATE -U NIFORMITY draws a total of O n/(`4 )
+                                                                                                               
+
+samples from p, uses O( n`log  n
+                           2 4 ) bits of communication, and distinguishes between the cases that
+p = Un versus kp − Un k1 ≥  with probability at least 2/3.
+
+    In this rest of this section, we prove Theorem 13.
+    First note that the sample complexity of our algorithm is m·` = O( `n4 ). Moreover, the commu-
+nication complexity of our tester is O( `2n4 log(`2 )) = O( n`log  n                         n
+                                                                2 4 ), since each of the Θ( `2 4 ) players
+
+sends the number of their internal collisions, which can be at most 2` .
+                                                                           
+
+    We will compute the mean and variance of the statistic Z and show that the uniform and non-
+uniform cases are well-separated. We have the following from Lemma 2.3 in Diakonikolas et al.
+(2016):
+                                      m                     
+                                   1 X                       `
+                           E[Z] =        E[ci ] = E[ci ] =      kpk22
+                                   m                         2
+                                           i=1
+
+and
+             t
+                           `2 4 h `
+                                   
+           1 X                                                                          i
+  Var[Z] = 2   Var[ci ] =             (kpk22 − kpk42 ) + `(` − 1)(` − 2)(kpk33 − kpk42 )
+          m               12800n 2
+                   i=1
+                                      `2 4  2
+                                             ` kpk22 + `3 (kpk33 − kpk42 ) .
+                                                                          
+                                 ≤
+                                     12800n
+    The following lemma, which is an adaptation of an analogous lemma in Diakonikolas et al.
+(2016)), will give us the minimum number of samples per player required for the tester to work
+given our choice of parameters:
+
+
+
+
+                                                    19
+        C OMMUNICATION AND M EMORY E FFICIENT T ESTING OF D ISCRETE D ISTRIBUTIONS
+
+
+
+
+Lemma 14 Let α satisfy kpk22 = 1+α
+                                n and σ be the standard deviation of Z. The number of samples
+required by D ISTRIBUTED -AGGREGATE -U NIFORMITY is at most
+                                       s
+                                             5σn
+                                   `≤                 ,
+                                          |α − 2 /2|
+
+in order to get error probability at most 1/4.
+
+Proof By Chebyshev’s inequality, we have that
+                                                                   
+                                                           `    2        1
+                  Pr [ |Z − E[Z]| ≥ kσ] = Pr           Z−    kpk2 ≥ kσ ≤ 2 ,
+                                                           2            k
+             p
+where σ , Var[Z].
+    We want Z to be closer to its expected value than the threshold is to that expected value because
+when this occurs, the tester outputs the right answer. Furthermore, to achieve our desired probability
+of error of at most 1/4, we want this to happen with probability at least 3/4. So, we want
+
+                                                     1 + 2 /2
+                                                                 
+                                       `         2                    `
+               kσ ≤ |E[Z] − T | =            kpk2 −              =       |α − 2 /2|/n .
+                                       2                 n            2
+
+For ` larger than some small constant and k = 2, the following slightly stronger condition for `
+suffices:
+                                               |α − 2 /2|
+                                      σ ≤ `2 ·              .
+                                                   5n
+So, it suffices to have                   s
+                                                 5σn
+                                       `≥                 .                                  (4)
+                                              |α − 2 /2|
+We might as well take the smallest number of samples per player ` for which the tester works, which
+implies the desired inequality.
+
+   To complete the proof, we need to show that given enough samples there is a clear separation
+between the completeness and soundness cases regarding the value of our statistic.
+   By Lemma 14, it suffices to bound from above the variance σ 2 . We proceed by case analysis
+based on whether the term `2 kpk22 or `3 (kpk33 − kpk42 ) contributes more to the variance.
+Case when `2 kpk22 is Larger We have the following lemma:
+
+Lemma 15 Let kpk22 = (1+α)/n. Consider the completeness case when α = 0 and the soundness
+case when α ≥ 2 . If `2 kpk22 contributes more to the variance, i.e., if
+
+                                    `2 kpk22 ≥ `3 (kpk33 − kpk42 ) ,
+
+then D ISTRIBUTED -AGGREGATE -U NIFORMITY has error probability at most 1/4 for any value of
+`.
+
+
+
+                                                  20
+        C OMMUNICATION AND M EMORY E FFICIENT T ESTING OF D ISCRETE D ISTRIBUTIONS
+
+
+
+                                                                  `     4 4    `        4 4
+Proof Suppose that `2 kpk22 ≥ `3 (kpk33 − kpk42 ). Then σ 2 ≤ 2 12800n kpk22 = 6400n (1 + α)/n.
+Substituting this into (4) gives:
+                                  s
+                                       5σn         `(1 + α)1/4
+                                                ≤               .
+                                    |α − 2 /2|
+                                                   p
+                                                  4 |α − 2 /2|
+                                                                                       1/4
+One can show the latter inequality, using calculus to maximize the ratio: `(1+α)
+                                                                           √     2
+                                                                                              by varying α.
+                                                                               4   |α− /2|
+One gets that α = 2 maximizes the expression for α ∈ {0} ∪ [2 , n − 1], since it is decreasing in
+the interval [2 , n − 1] and also α = 2 gives a slightly larger value than α = 0. Thus, we get that:
+                          s
+                                5σn           (1 + 2 )1/4      (1 + 2 )1/4
+                                        ≤ ` ·               ≤  `              ≤`
+                            |α − 2 /2|
+                                                 p
+                                                4 2 /2               2
+
+for any  < 1. Therefore, this completes the proof since the requirements of Lemma 14 are satisfied.
+
+
+
+Case when `3 (kpk33 − kpk42 ) is Larger In this case, we show the following:
+
+Lemma 16 Let kpk22 = (1+α)/n. Consider the completeness case when α = 0 and the soundness
+case when α ≥ 2 . If `3 (kpk33 − kpk42 ) contributes more to the variance, i.e., if
+
+                                    `3 (kpk33 − kpk42 ) ≥ `2 kpk22 ,
+                   √                                               √
+then for any ` ≤ 1632n in the completeness case and any ` ≤ 163α n in the soundness case, our tester
+D ISTRIBUTED -AGGREGATE -U NIFORMITY achieves error probability at most 1/4.
+                                                                   `  5 4
+Proof Suppose that `3 (kpk33 − kpk42 ) ≥ `2 kpk22 . Then σ 2 ≤ 2 12800n  (kpk33 − kpk42 ). Substituting
+this into (4) gives:
+                          s
+                                5σn          `5/4 n1/4 (kpk33 − kpk42 )1/4
+                      `≥                 ≥                                  ⇔
+                             |α − 2 /2|
+                                                      p
+                                                     4 |α − 2 /2|
+                                             256|α − 2 /2|2
+                                       `≤
+                                            4 n(kpk33 − kpk42 )
+    Let us parameterize p as pi = 1/n + ai for some vector a = (a1 , . . . , an ). Then we have
+kak22 = α/n.
+In the completeness case, the above sufficient condition always holds since the right hand side is
+infinite (i.e., kpk33 = kpk42 ). In the soundness case, we get the following sufficient condition:
+
+                                      256(α/2)2
+                             `≤                          (since 2 ≤ α) .
+                                  4 n(kpk33 − kpk42 )
+
+
+
+
+                                                  21
+        C OMMUNICATION AND M EMORY E FFICIENT T ESTING OF D ISCRETE D ISTRIBUTIONS
+
+
+
+
+We also have that:
+                                        " n               #
+                                    1    X                     1
+            kpk33 − kpk42 ≤ kpk33 − 2 =       (1/n + ai )3 − 2
+                                   n                          n
+                                          i=1
+                                      n           n         n
+                            "                                    #
+                              1     3 X        3X 2 X 3            1
+                          =     2
+                                  + 2    ai +       ai +      ai − 2
+                              n    n           n                   n
+                                           i=1              i=1            i=1
+                                    n              n           n
+                               3    X          3   X          X
+                           =            ai +           a2i +         a3i
+                               n2              n
+                                i=1          i=1               i=1
+                                n         n
+                             3  X        X
+                           =       a2i +      a3i
+                             n
+                               i=1       i=1
+                               3                3               3
+                           ≤     kak22 + kak33 ≤ kak22 + kak32 = (α/n) + (α/n)3/2 .
+                               n                n               n
+   We thus get:
+
+                               256(α/2)2                    256(α/2)2
+                                                ≥
+                           4 n(kpk33 − kpk42 )   α2 n( n3 (α/n) + (α/n)3/2 )
+                                                               64
+                                                ≥
+                                                  n( n3 (α/n) + (α/n)3/2 )
+                                                       64
+                                                ≥          3/2
+                                                  3α      α√
+                                                   n +       n
+                                                         64n
+                                                   ≥          √
+                                                     3α + α3/2 n
+                                                                √ 
+                                                           64n 64 n
+                                                   ≥ min      ,
+                                                           3α α3/2
+                                                       √
+                                                     64 n
+                                                   ≥       .
+                                                      3α
+                       √
+Therefore, any ` ≤ 643α n satisfies the conditions of Lemma 14. Combining the above, we can see
+that our tester works for any value of ` that is less than the sample complexity of the problem in the
+classical (non-distributed) model.
+
+   The correctness and error probability of the algorithm is established by Lemmas 15 and 16. This
+completes the proof of Theorem 13.
+
+Appendix B. Communication and Memory Lower Bounds for Uniformity Testing
+In this section, we prove our memory and communication lower bounds.
+
+B.1. Background from Information Theory
+For completeness, we start by presenting useful definitions from information theory. We will first
+define the entropy of a random variable as follows:
+
+
+                                                       22
+          C OMMUNICATION AND M EMORY E FFICIENT T ESTING OF D ISCRETE D ISTRIBUTIONS
+
+
+
+
+Definition 17 Let X be a discrete random variable supported on {x1 , . . . , xn } that has a proba-
+                Pn p = (p1 , . . . , pn ) such that pi = Pr[X = xi ]. Then we define the entropy of X
+bility mass function
+to be H(X) = i=1 pi log(1/pi ). For the special case of n = 2, which corresponds to a Bernoulli
+random variable with parameter p ∈ [0, 1], we define the binary entropy to be the following func-
+tion: H2 (p) = −p log p − (1 − p) log(1 − p).
+    The entropy is a measure of randomness for a random variable. In other words, it is the number
+of bits of information that we get on average by observing the outcome of the random variable.
+    In some cases, we would like to know how much excess information we get by observing the
+outcome of a random variable Y given that we know the outcome of another random variable X.
+This is usually called conditional entropy of Y given X, and is defined as follows:
+
+Definition 18 Let X, Y be a discrete random variables supported on the sets X and Y respectively.
+Also let p(x, y) be the joint probability mass function of X, Y such that p(x, y) = Pr[X = x, Y =
+y]. Then we define the conditional entropy of Y given X to be:
+                                                            X                      p(x, y)
+                 H(Y |X) = H(X, Y ) − H(X) = −                       p(x, y) log           .
+                                                                                    p(x)
+                                                          x∈X ,y∈Y
+
+   Furthermore, the amount of information that is shared between two random variables is called
+mutual information and defined as follows:
+Definition 19 Let X, Y be a discrete random variables. The mutual information between X and Y
+is:
+                I(X; Y ) = H(X) − H(X|Y ) = H(X) + H(Y ) − H(X, Y ) .
+Note that this quantity is symmetric, i.e. I(X; Y ) = I(Y ; X). We also define the conditional shared
+information as
+                              I(X; Y |Z) = H(X|Z) − H(X|Y, Z) .
+    The following well known lemma in information theory, intuitively implies that the mutual
+information between two random variables X and Y cannot be increased by transforming Y into
+a new variable Z either deterministically or by using randomness that is independent of X (i.e.,
+without using any additional knowledge for X).
+
+Lemma 20 (Data Processing Inequality) Let X, Y, Z be random variables, such that X ⊥ Z|Y .
+Then
+                                 I(X; Z) ≤ I(X; Y ) .
+
+   We also make use of another standard lemma known as the chain rule.
+Lemma 21 (Chain Rule) For variables X, Y and Z we have that
+
+                              I(X; Y, Z) = I(X; Z) + I(X; Y |Z) .
+
+   Finally, we use the following well known Taylor series for binary entropy:
+Fact 22
+                                                      ∞
+                                 1            1 X (2a)2l
+                          1−H2        +a =                  = O(a2 ).
+                                  2          2 ln 2 l(2l−1)
+                                                   l=1
+
+
+                                                 23
+         C OMMUNICATION AND M EMORY E FFICIENT T ESTING OF D ISCRETE D ISTRIBUTIONS
+
+
+
+
+B.2. Memory Lower Bounds for Uniformity Testing
+In this section, we prove our memory lower bounds as described by the following theorem:
+
+Theorem 23 Let A be an algorithm which tests if a distribution p is uniform versus -far from
+uniform with error probability 1/3, can access the samples in a single-pass streaming fashion using
+m bits of memory and k samples, then k · m = Ω( n2 ). Furthermore, if k < n9/10 and m ≥ k 2 /n0.9 ,
+then k · m = Ω( n log
+                   4
+                      n
+                        ).
+
+Remark 24 This result should hold (with worse constants) if the bounds on m and k are replaced
+by any of the form m ≥ k 2 /n1−c and k ≤ n1−c for any positive constant c.
+
+    In this rest of this section, we prove Theorem 23. To do so, we use the adversary method. Let
+X be a uniformly random bit. Based on X, the adversary chooses the distribution p on [2n] bins as
+follows:
+
+    • X = 0: Pick p = U2n .
+
+    • X = 1: Pair the bins as {1, 2}, {3, 4}, . . . , {2n−1, 2n}. Now on each pair {2i−1, 2i} pick a
+      random Yi ∈ {±1} to pick:
+                                                (
+                                                    ( 1+   1−
+                                                       2n , 2n ), Yi = 1
+                               (p2i−1 , p2i ) =       1− 1+
+                                                    ( 2n , 2n ), Yi = −1
+
+In either case, we can think of the output of p as being a pair (C, V ), where C is an element of [n]
+is chosen uniformly, and V ∈ {0, 1} is a fair coin if X = 0 and has bias  · YC if X = 1.
+    Let s1 , . . . , sk be the observed samples from p. Let Mt denote the bits stored in the memory
+after the algorithm sees the t-th sample st .
+    Since the algorithm learns X with probability 2/3 after viewing k samples, we know that
+I(X; Mk ) > Ω(1). On the other hand, Mt is computed from (Mt−1 , st ) without using any in-
+formation about X 3 . More formally, X ⊥ Mt |(Mt−1 , st ) and therefore we can use the data
+processing inequality (Lemma 20) to get:
+
+                     I(X; Mt ) ≤ I(X; Mt−1 , st ) = I(X; Mt−1 ) + I(X; st |Mt−1 ).
+
+Our basic technique will be to bound I(X; st |Mt−1 ). This will give us an upper bound on I(X; Mk )
+via telescoping.
+    The sample s corresponds to which pair of bins was picked and within that pair which one of
+two bins was picked, that is s = (C, V ). V is a random variable taking values in {0, 1}.
+    Since irrespective of X, C is uniform over the pairs of bins, we note that C is independent of
+X even when conditioned on the memory M .
+    Thus,
+                     I(X; st |Mt−1 ) = I(X; Ct Vt |Mt−1 ) = I(X; Vt |Mt−1 Ct ) .
+    Let αt−1 = Pr[X=1|Mt−1 Ct ] and thus Pr[X=0|Mt−1 Ct ] = 1−αt−1 .
+ 3. Note that we can use deterministic operations and possibly random bits, which however cannot be correlated with the
+    random variable X since st is by definition the only sample from the distribution that is drawn between the memory
+    states Mt−1 and Mt .
+
+
+                                                         24
+          C OMMUNICATION AND M EMORY E FFICIENT T ESTING OF D ISCRETE D ISTRIBUTIONS
+
+
+
+
+   We have that
+                               1
+Pr[Vt = 0|X = 0, Mt−1 , Ct ] =
+                               2
+                               1+E[YCt |Mt−1 ]
+Pr[Vt = 0|X = 1, Mt−1 , Ct ] =
+                                     2
+                                        1       1+E[YCt |Mt−1 ]  1 αt−1 E[YCt |Mt−1 ]
+       Pr[Vt = 0|Mt−1 , Ct ] = (1−αt−1 ) +αt−1                   = +                    .
+                                        2             2           2         2
+   We can calculate
+
+        I(X; Vt |Mt−1 Ct ) = H(Vt |Mt−1 Ct ) − H(Vt |Mt−1 Ct X)
+        = H2 (Pr[Vt = 0|Mt−1 , Ct ]) − {Pr[X=1|Mt−1 Ct ]H2 (Pr[Vt = 0|X = 1, Mt−1 , Ct ])
+         +Pr[X=0|Mt−1 Ct ]H2 (Pr[Vt = 0|X = 0, Mt−1 , Ct ])}
+              1 α E[Y |M ]                 1 E[Y |M ]                    1
+                   t−1      Ct t−1                     Ct    t−1
+        = H2 +                      − αt−1 H2 +                  − (1−αt−1 )H2
+               2           2                   2        2                       2
+               h        1 E[Y |M ] i h          1 α E[Y |M ] i
+                               Ct  t−1                     t−1    Ct  t−1
+        = αt−1 1 − H2 +                  − 1 − H2 +                         .
+                         2       2                   2           2
+   Thus, using Fact 22 we have,
+
+                     I(X; Vt |Mt−1 Ct ) = Θ(1)αt−1 (1−αt−1 )2 E[YCt |Mt−1 ]2
+                                       ≤ O(1)2 E[YCt |Mt−1 ]2 .
+
+   Since Ct is uniformly random, we have that
+                                                       n
+                                                1 X
+                         I(X; Vt |Mt−1 Ct ) =     · O(1)2 E[Yj |Mt−1 ]2 .                       (5)
+                                                n
+                                                   j=1
+
+ We begin by proving a relatively straightforward unconditional bound on this sum using the fact
+that Mt−1 has only m bits of information.
+Lemma 25
+                                    n
+                                    X
+                                          E[Yj |Mt−1 ]2 = O(m).
+                                    j=1
+
+Proof First we notice that since H(Mt−1 ) ≤ m that I(Y1 . . . Yn ; Mt−1 ) ≤ m, and thus that
+H(Y1 . . . Yn |Mt−1 ) = H(Y1 . . . Yn ) − I(Y1 . . . Yn ; Mt−1 ) ≥ n − m. On the other hand, we have
+that
+                        Xn
+                           H(Yi |Mt−1 ) ≥ H(Y1 . . . Yn |Mt−1 ) ≥ n − m.
+                         i=1
+Thus,
+                          n                        n
+                                                                          !
+                          X                        X
+                       m≥   [1 − H(Yi |Mt−1 )] = Θ   E[Yi |Mt−1 ]2            .
+                            i=1                            i=1
+
+where the equality comes from Fact 22 and the fact that if Pr[Yi = 1|Mt−1 ] = 21 + α, then
+E[Yi |Mt−1 ] = Pr[Yi = 1|Mt−1 ](+1) + Pr[Yi = −1|Mt−1 ](−1) = ( 12 + α) − ( 12 − α) = 2α.
+This completes our proof.
+
+                                                  25
+            C OMMUNICATION AND M EMORY E FFICIENT T ESTING OF D ISCRETE D ISTRIBUTIONS
+
+
+
+
+     Lemma 25 will be enough to prove our weaker lower bound. To get the stronger one we will
+need a more in depth analysis. In particular, we let rj = E[#{1 ≤ i ≤ t − 1 : Ci = j}|Mt−1 ].
+We first show that E[Yj |Mt−1 ] = O(rj ) (see Claim 26 below). This leaves us with the task of
+bounding krk2 . For this, we note that if w = r/krk2 , then r is only going to be large if, conditioned
+on Mt−1 , many of the Ci will lie on components where w is large. However the sum of wCi is a
+sum of independent random variables, so by an appropriate Chernoff bound, we can show that it is
+likely not too much larger than its mean. However, since Mt−1 only encodes m bits of information,
+it can only correspond to an event whose likelihood is exponentially small in m, and this will give
+us our bound on krk2 .
+     We will now show the following claim:
+
+Claim 26 |E[Yj |Mt−1 ]| = O( · rj ).
+
+Proof It suffices to show that
+
+                     |E[Yj |s1 , . . . , st−1 , X]| = O (#{1 ≤ i ≤ t − 1 : Ci = j}) ,
+
+as our final result will follow by averaging over the si and X conditioned on Mt−1 .
+    If X = 0, this is trivial since in this case the si convey no information about Yj so the expectation
+of Yj is 0.
+    If X = 1, it is not hard to see by Bayes’ Theorem that if n1 is the number of times when
+si = (j, 0) and n2 the number of times si = (j, 1), then the expectation of Yj conditioned on X and
+the si is
+                     (1 + )n1 (1 − )n2 − (1 − )n1 (1 + )n2
+                                                                    = O((n1 + n2 )).
+                     (1 + )n1 (1 − )n2 + (1 − )n1 (1 + )n2
+And our result follows.
+                                                                                          Pn
+     Since Ct is uniform independent of Mt−1 we have E[YCt |Mt−1 ]2 = O(2 n1                     2
+                                                                                             j=1 rj )   =
+     2 krk22
+O(      n).
+     Therefore, we get that:
+                                                    4 krk22
+                                   I(X; Vt |Mt−1 Ct ) ≤ O(1)                            (6)
+                                                       n
+Typical Memory States Consider a fixed algorithm A. Call a memory state M typical for time
+step t if
+
+     • Pr(Mt = M ) > e−m
+
+     • The corresponding vector r has krk∞ ≤ 30.
+
+We will need the first condition to ensure that Mt does not encode events that are too unlikely, and
+we will need the second to bound the maximum size of individual contributions for our Chernoff
+bound. Fortunately, both of these events happen with high probability as we see below:
+
+Claim 27 Assuming t ≤ n9/10 and m is bigger than a sufficiently large multiple of log(n), we
+have that Mt is typical for time t with probability at least 1 − 1/n.
+
+
+
+                                                    26
+        C OMMUNICATION AND M EMORY E FFICIENT T ESTING OF D ISCRETE D ISTRIBUTIONS
+
+
+
+
+Proof First, we deal with the probability that Mt violates the first condition, in particular that it is
+a transcript that shows up with probability at most e−m . For this, we note that there are at most 2m
+such transcripts, each occurring with probability at most e−m , and so the total probability that any
+of them occur is at most (2/e)m < 1/(2n).
+     Next, we deal with the probability that Mt violates the second condition. In particular, we
+bound the probability that there exists a j so that the expected number of Ci equal to j for 1 ≤ i ≤ t
+conditioned on Mt is at least 30. For this we, note that for any particular j, the expectation of
+max(0, #{1 ≤ i ≤ t : Ci = j} − 20) over sets of samples is at most n−2 . Therefore, the
+expectation over transcripts of max(0, rj − 20) is at most n−2 . Our result now follows by a Markov
+inequality and union bound over j.
+
+    We are now ready to prove an upper bound on N = krk22 in the following lemma:
+
+Lemma 28 For the fixed transcript A typical for time t, with m ≥ t2 /n0.9 , we have
+                                                 r        
+                                                       m
+                               N = krk2 = O                   .
+                                                     log n
+
+Proof Let w = r/N . Note that krk2 = r · w, and that kwk2 = 1.
+   Let X` = wC` 1 ≤ ` ≤ t. These are i.i.d random variables taking values in [0, 30
+                                                                                 N ] with mean
+            n
+E[X` ] = n1   wi ≤ √1n since kwk2 = 1.
+            P
+            i=1
+                     t
+                         wC` and note that µ = E[X] ≤ √tn .
+                     P
+    Define X :=
+                   `=1
+    We have that
+              t                                        Z∞
+             hX                    i   1
+     N =E            wC` |Mt = A =                          Pr[X > a, Mt =A]da
+                                   Pr(Mt =A)
+               `=1                                    a=0
+                           N/2
+                           Z                                            Z∞
+              1                                          1
+        =                       Pr[X > a, Mt =A]da +                          Pr[X > a, Mt =A]da
+          Pr[Mt =A]                                  Pr[Mt =A]
+                          a=0                                         a=N/2
+                           N/2
+                           Z                                    Z∞
+              1                                   1
+        ≤                       Pr[Mt =A]da +                         Pr[X > a]da
+          Pr[Mt =A]                           Pr[Mt =A]
+                          a=0                                 a=N/2
+                                   Z∞
+            N       1
+        =     +                          Pr[X > a]da .
+            2   Pr[Mt =A]
+                                 a=N/2
+
+Thus, we have
+                                                 Z∞
+                                        N
+                                          ≤ em         Pr[X > a]da .
+                                        2
+                                              a=N/2
+
+               qthe tail Pr[X > a]. We have Pr[X > a] = Pr[N x > N a]. We wouldqlike to
+Now let us bound
+                  m                                     t                              m
+show that N ≤ log  n . Thus, we can assume that N > 4 n0.49 else we already have N ≤ log n .
+
+
+                                                      27
+        C OMMUNICATION AND M EMORY E FFICIENT T ESTING OF D ISCRETE D ISTRIBUTIONS
+
+
+
+                                   t
+Hence, we can assume that a > 2 n0.49 in the above integral. We write a = (1 + δ)µ and apply
+                                          N
+the Chernoff bound on the random variable 30 · X (note that this is a sum of i.i.d random variables
+supported in [0, 1]) to get:
+                                                                   δN µ
+                       N   N                  e 30               1
+        Pr[X > a] = Pr[ X > (1 + δ)µ] <        (1+δ)N µ/30
+                                                           ≤ e− 40 N a log(1+δ) .
+                       30  30           (1 + δ)
+                          √
+We have 1 + δ = µa > N30tn > n1/200 . Thus, for a ≥ N2 we have
+
+                                       Pr(X > a) ≤ e−αN a log n ,
+
+for some constant α > 0. Substituting in the above integral gives:
+                  Z∞                             Z∞
+      N                                                                        1          2
+        ≤ em            Pr[X > a]da ≤ e     m
+                                                        e−αN a log n da =            em−αN log n/2 .
+      2                                                                     αN log n
+                a=N/2                         a=N/2
+
+Thus, we have for some constant α:
+
+                                      αN 2 log n        2
+                                                 ≤ em−αN log n/2 .
+                                          2
+                                                                                              2
+Since m ≥ 1, the equation θ ≤ em−θ can have a solution only when θ ≤ m. That is αN 2log n ≤ m,
+                                                  q            q
+                                                      m            m
+                                           p
+this gives us the required bound krk2 = N ≤ 2/α log     n = O(   log n ).
+
+
+Proof [Proof of Theorem 23] Using equation (5) and Lemma 25, we get that
+
+                                                                   2 m
+                                      I(X; Vt |Mt−1 Ct ) ≤ O(1)
+                                                                    n
+However, we know that:
+                                                 k−1
+                                                 X
+                        Ω(1) ≤ I(Mk ; X) =             I(Mt+1 ; X) − I(Mt ; X)
+                                                 t=0
+                                                 k−1
+                                                 X
+                                             =         I(Mt , St+1 ; X) − I(Mt ; X)
+                                                 t=0
+                                                 k−1
+                                                 X
+                                             =         I(St+1 ; X|Mt )
+                                                 t=0
+                                                 k−1
+                                                 X
+                                             =         I(Vt+1 ; X|Mt , Ct+1 )
+                                                 t=0
+                                                        k2 m
+                                             = O(1)           .
+                                                          n
+This implies that k · m = Ω( n2 ).
+
+                                                       28
+        C OMMUNICATION AND M EMORY E FFICIENT T ESTING OF D ISCRETE D ISTRIBUTIONS
+
+
+
+
+    Under our stronger assumptions, we can instead use Lemma 28 to similarly obtain:
+                                                   k−1
+                                                   X
+                           Ω(1) ≤ I(Mk ; X) =            I(Vt+1 ; X|Mt , Ct+1 )
+                                                   t=0
+                                                          k4 m
+                                                = O(1)            + O(k/n).
+                                                          n log n
+
+    The last line here comes from the fact that I(Vt+1 ; X|Mt , Ct+1 ) = O(4 m/n log(n)) for typical
+transcripts Mt and the fact that Mt is typical except with probability 1/n.
+    Thus, equivalently, we have k · m = Ω( n log4
+                                                   n
+                                                     ).
+
+
+
+B.3. Communication Lower Bounds for Uniformity Testing
+In this section, we will show a communication lower bound for distributed uniformity testing al-
+gorithms in our one-pass communication model, via a reduction to the streaming/limited memory
+setting. In particular, we show the following theorem:
+
+Theorem 29 Suppose that there exists a communication protocol with a transcript of length |T |
+bits, for the setting where each machine holds ` samples, that can distinguish between a uniform
+distribution and one that is -far from uniform in total variation distance. Then there exists a
+streaming algorithm that uses at most m = |T | + ` · log n bits of memory and has access to a stream
+of at most s = |T | · ` samples.
+
+Proof We will simulate the protocol by storing in memory the entire communication transcript
+up to any given point in the simulated protocol, while having some additional space in order to
+temporarily store the samples of a single player (machine) at a time.
+     In particular, we consider the stream of t · ` samples, where t is the number of players that par-
+ticipate, that is created by taking the ` samples of the first player to speak and iteratively appending
+the ` samples of the next player to speak until there are no more players. We also use the memory
+to remember the communication transcript so far at any given point and the samples of the player
+speaking in that round so that the algorithm is able to compute the bits that the players send.
+     Therefore, during any given round i of the communication protocol, the partial transcript Ti−1
+of the communication in the first i − 1 rounds is stored in memory along with the ` samples of the
+player that is about to speak in round i. Note that, since the referee is not going to ask any questions
+again to that particular player, the exact samples of that player are no longer useful to the algorithm
+after the current round ends. Therefore, those ` log n bits of additional memory can be reused while
+simulating the next round. However, the algorithm will use the bits transmitted by that player along
+with the current partial transcript Ti−1 , to create the new partial transcript Ti .
+     Observe that every player has to send at least 1 bit, since otherwise we can assume that they did
+not participate in the protocol. Therefore, we have that t ≤ |T | and consequently our stream will
+have at most s = |T | · ` samples.
+     Furthermore, the transcript that is created after the last player speaks is the one that contains the
+most information among the partial transcripts which are all optimally compressed. Thus, we have
+
+
+                                                   29
+        C OMMUNICATION AND M EMORY E FFICIENT T ESTING OF D ISCRETE D ISTRIBUTIONS
+
+
+
+
+that ∀i : |Ti | ≤ |T |, where T = Tt is the transcript of the entire communication. This means that no
+more than m = |T | + ` · log n bits of memory are needed at any given point of the execution.
+
+    Using the above theorem, we can prove the following two corollaries:
+
+Corollary 30 Let π be a distributed communication protocol, for the setting where each machine
+holds ` samples, which tests if a distribution p is uniform versus -far from uniform with error
+   √  1/3, and the referee asks questions to 
+probability                                           each player only once. Then, π must involve
+                                                                       
+       n/`                                                   n1/3
+Ω            bits of communication   for any `  =  O    4/3
+                                                         (log n)  1/3   . Furthermore, π must involve
+  √
+       n/` √
+                   
+                                                              4/3 n0.3 .
+                                                                       
+Ω     2     log n    bits of communication for any ` =  O   
+
+
+   √ Suppose,for the sake of contradiction, that there exists such a protocol that uses t =
+Proof
+       n/` √
+Θ     2
+             log n bits of communication with a sufficiently small implied constant. Then, us-
+ing theorem 29, we conclude that there also exists an streaming algorithm that uses a stream of size
+s ≤ t` samples and a memory of size m = Θ(t + ` log(n)) = Θ(t) bits. Furthermore, we have that
+
+                      s2 /(mn0.99 ) = Θ(t`2 /n0.99 )  (`3/2 /(n0.45 2 ))  1.
+
+Therefore, Theorem 23 applies and we must have ms = Ω(n log(n)/4 ), but ms = O(t2 `), which
+is a sufficiently small multiple of n log(n)/  4
+                                        1/3
+                                                 , that it yields a contradiction.
+                                      n
+     Note that for any ` = O 4/3 (log    n)1/3
+                                                 , it still holds that m = Θ(t + ` log(n)) = Θ(t). We
+will combine now Theorem 29 with     √the weaker
+                                                    version of Theorem 23, and assume that there exists
+                                       n/`
+such a protocol that uses t0 = Θ            bits of communication with a sufficiently small implied
+constant. In this case, we must have ms = Ω(n/2 ), but ms = O((t0 )2 `), which is a sufficiently
+small multiple of n/2 , that it yields a contradiction.
+
+
+   Furthermore, if we have a restricted number of samples, we can get better communication lower
+bounds:
+
+Corollary 31 Let π be a distributed communication protocol, for the setting where each machine
+holds ` samples with a total of t machines, which tests if a distribution p is uniform versus -far from
+uniformwith error probability  1/3, and the referee asks questions to each player only once. Then, if
+         √
+               √
+                      
+           n/`
+t=O       2
+                 log n and t` = O(n0.6 /4/3 ), π must involve Ω( n log(n)
+                                                                        4 t`
+                                                                              ) bits of communication.
+
+Proof Again we use Theorem 29. We now have a streaming algorithm using k = t` samples and
+m = |π| + ` log(n) memory. We claim that this is impossible even if |π| = p = Θ( n log(n)
+                                                                                      4 t`
+                                                                                            ) with
+the implied constant sufficiently small. In fact, this in case we have that m = O(p). We have
+that mn0.9 k = Θ(n1.9 log(n)/4 ) > k 3 , and so the strong version of Theorem 23 applies. This
+means that mk = Ω(n log(n)/4 ), when in reality it is too small a constant times this, yielding a
+contradiction.
+
+
+
+                                                  30
+        C OMMUNICATION AND M EMORY E FFICIENT T ESTING OF D ISCRETE D ISTRIBUTIONS
+
+
+
+                                                                √
+     A case of particular interest for the above is when t` = O( n/2 ) is the information-theoretically
+optimal number of samples. In this case (so long as ` = O(log(n))) our communication must be at
+         √
+least Ω( n log(n)/2 ), which is not much better than sending all of the samples directly.
+     Finally, the following corollary gives a communication complexity lower bound for all values
+of                          √ 
+         n1/3                     n
+Ω 4/3 (log n) 1/3   ≤ ` ≤  O    2
+                                      using the weaker version of Theorem 23.
+
+Corollary 32 Let π be a distributed communication protocol, for the setting where each machine
+holds ` samples, which tests if a distribution p is uniform versus -far from uniform with error
+probability 1/3, and the referee asks questions  to each      player
+                                                                           √ Then, π must involve
+                                                                      only once.
+                                                       n1/3
+Ω( `2 2 log n ) bits of communication for any Ω 4/3 (log n)1/3 ≤ ` ≤ O 2n .
+        n
+
+
+Proof
+        Suppose,
+                  for the sake of contradiction, that there exists such a protocol that uses t =
+         n
+Θ `2 2 log n bits of communication with a sufficiently small implied constant. Then, using Theo-
+rem 29, we conclude that there also exists an streaming algorithm that uses a stream of size s samples
+and a memory of size m bits, such that m · k = Θ(t`2 log n), since k = t` and m = Θ(` log n) for
+this range of values for `.
+     This means that mk = Ω(t`2 log n) = Ω( n2 ), when in reality it is too small a constant times
+this, yielding a contradiction due to Theorem 23.
+
+
+Appendix C. Communication and Memory Efficient Closeness Testing
+In this section, we design our protocols for closeness testing. We start with the setting of memory
+and then give our communication efficient protocols.
+
+C.1. Memory Efficient Closeness Testing
+In this section,
+                 we provide an algorithm for closeness testing in the streaming model that uses
+       n
+O    √
+       m2
+             samples and O(m log(n)) bits of memory where m is a parameter such that
+
+                                   min(n, n2/3 /4/3 )  m  1 .
+
+By reparametrizing, this implies
+                               an   algorithm with min(n log(n), n2/3 log(n)/4/3 )  m 
+                                  √       
+                                 n log(n)
+log(n) bits of memory and O       √ 2
+                                    m
+                                            samples. However, we are going to use the former
+parametrization assuming an upper bound of O(m) words of memory (each of length O(log n)
+bits), as it will be more convenient for us, so we will use that.
+    The performance of the algorithm is described in the following theorem:
+
+Theorem 33 Let p, q be two discrete distributions on [n]. Suppose that min(n, n2/3 /4/3 )  m 
+1. Then there exists a single pass streaming algorithm that uses at most m log n bits of memory and
+     n
+O( √m 2 ) samples from p and q, and distinguishes between the cases that p = q versus kp−qk1 ≥ 
+
+with probability at least 2/3.
+
+
+
+
+                                                  31
+        C OMMUNICATION AND M EMORY E FFICIENT T ESTING OF D ISCRETE D ISTRIBUTIONS
+
+
+
+
+    The algorithm is given in pseudo-code below:
+    Algorithm T EST-C LOSENESS -M EMORY(p, q, n, m, )
+    Input: Sample access to distributions p, q over [n], memory bound m, and  > 0.
+    Output: “YES” if p = q; “NO” if kp − qk1 ≥ .
+
+              O(m)
+        1. Draw      samples from p and q to flatten them to p0 , q 0 such that kp0 k2 , kq 0 k2 ≤
+           O √1m . Let [n0 ] be the new domain.
+
+        2. Apply a hash map h to p0 , q 0 . This hash map h : [n] → [m] approximately preserves
+           kp0 − q 0 k2 and kp0 k2 with constant probability.
+
+        3. Use a standard `2 tester to distinguish between h(p0 )=h(q 0 ) and kh(p0 )−h(q 0 )k2  √n .
+
+
+    This section is devoted to the proof of Theorem 33.
+Flatten p, and q Our algorithm begins by taking (and storing) m samples from each of p and q.
+We use these samples to produce the split distributions p0 and q 0 whereby the ith bin is split into ai
+equal sub-bins where ai is one more than the number of copies of i in this set of samples. We note
+the following important facts from Diakonikolas and Kane (2016):
+
+   • Given the list of samples, one can simulate a sample from p0 (resp. q 0 ) from a single sample
+     of p (resp. q) and some additional randomness.
+
+   • kp − qk1 = kp0 − q 0 k1 .
+                            √
+   • kp0 k2 , kq 0 k2 = O(1/ m) with at least 9/10 probability.
+
+Our analysis from here on out will be under the assumption that the last property holds.
+Hash p0 and q 0 Our next step is to pick a hash map h : [n0 ] → [m] (where n0 is the size of the
+domain of p0 and q 0 ) from a 4-wise independent family (note that for an appropriate family we can
+store h using O(m log(n)) bits). We claim that with at least 9/10 probability that kh(p0 )k2 , kh(q 0 )k2
+are not too big and that kh(p0 ) − h(q 0 )k2 ≈ kh(p) − h(q)k2 .
+    In particular, we have the following:
+
+Lemma 34
+                                                    1 0 0 2
+                     Eh [kh(p0 )−h(q 0 )k22 ] = 1−      kp −q k2
+                                                     m
+                       h                   i    1     1 h 0 0 4                   i
+                   Varh kh(p0 )−h(q 0 )k22 =        1−      kp −q k2 − kp0 −q 0 k44
+                                               m       m
+                                     0 2        1         1 0 2
+                            Eh [kh(p )k2 ] =      + 1−         kp k2
+                                               m           m
+                               h           i    1     1 h                   i
+                         Varh kh(p0 )k22 =          1−      kp0 k42 − kp0 k44
+                                               m       m
+
+
+
+
+                                                   32
+          C OMMUNICATION AND M EMORY E FFICIENT T ESTING OF D ISCRETE D ISTRIBUTIONS
+
+
+
+
+Proof
+                                    Xh X                                                 i2
+             kh(p0 )−h(q 0 )k22 =                       (p0j − qj0 )I{h(j) = i}
+                                    i∈[m]     j∈[n0 ]
+                                    X          X
+                                =                         (p0j1 − qj0 1 )(p0j2 − qj0 2 )I{h(j1 ) = h(j2 ) = i}
+                                    i∈[m] j1 ,j2 ∈[n0 ]
+                                       X
+                                =                   (p0j1 − qj0 1 )(p0j2 − qj0 2 )I{h(j1 ) = h(j2 )}
+                                    j1 ,j2 ∈[n0 ]
+                                                              X
+                                = kp0 − q 0 k22 +                          (p0j1 − qj0 1 )(p0j2 − qj0 2 )I{h(j1 ) = h(j2 )}
+                                                          j1 6=j2 ∈[n0 ]
+                                                          1        X
+        Eh [kh(p0 )−h(q 0 )k22 ] = kp0 − q 0 k22 +                             (p0j1 − qj0 1 )(p0j2 − qj0 2 )
+                                                          m
+                                                              j1 6=j2 ∈[n0 ]
+                                                          1 X h 0                               X                           i
+                                = kp0 − q 0 k22 +              (pj1 − qj0 1 )                                (p0j2 − qj0 2 )
+                                                          m  0j1 ∈[n ]                      j2 6=j1 ∈[n0 ]
+                                                  1 X 0                 1 0 0 2
+                                = kp0 − q 0 k22 −      (pj − qj0 )2 = 1−   kp −q k2
+                                                  m  0
+                                                                         m
+                                                              j∈[n ]
+
+
+                                             X               h                                                i
+        Varh [kh(p0 )−h(q 0 )k22 ] =                     Varh (p0j1 − qj0 1 )(p0j2 − qj0 2 )I{h(j1 ) = h(j2 )}
+                                        j1 6=j2 ∈[n0 ]
+                                             X                                                1    1
+                                    =                    (p0j1 − qj0 1 )2 (p0j2 − qj0 2 )2       1−
+                                                                                              m     m
+                                        j1 6=j2 ∈[n0 ]
+                                      1      1 X 0                        h X                               i
+                                    =     1−                (pj1 − qj0 1 )2                  (p0j2 − qj0 2 )2
+                                      m       m
+                                                  j1 ∈[n0 ]                   j2 6=j1 ∈[n0 ]
+                                      1      1   X
+                                                              0      0 2
+                                                                            h
+                                                                                  0     0 2         0         0 2
+                                                                                                                  i
+                                    =     1−                (pj1 − qj1 ) kp − q k2 − (pj1 − qj1 )
+                                      m       m
+                                                  j1 ∈[n0 ]
+                                      1     1 h 0 0 4                         i
+                                    =     1−      kp −q k2 − kp0 −q 0 k44
+                                      m      m
+The other two identities could be computed similarly.
+
+    Now using Chebyshev’s inequality we have the following statements hold true with 90% prob-
+ability.
+                                                     1
+                               kh(p0 ) − h(q 0 )k22 ≥ kp0 −q 0 k22
+                                                     2
+                                             0 2      1    3
+                                        kh(p )k2 ≤      + kp0 k22 = O(1/m).
+                                                     m 2
+    We now have to distinguish between a completeness case where p = q and thus h(p0 ) = h(q 0 )
+and a soundness case where kp0 − q 0 k1 = kp − qk1 ≥ , and therefore kh(p0 ) − h(q 0 )k2 
+kp0 − q 0 k2  √n .
+    We will also need the following lemma from Chan et al. (2014):
+
+                                                                 33
+        C OMMUNICATION AND M EMORY E FFICIENT T ESTING OF D ISCRETE D ISTRIBUTIONS
+
+
+
+
+Lemma 35 Let p, q be distributions such that max(kpk2 , kqk2 ) ≤ b, then there is an estimator that
+takes O( b2 ) samples from p, q and estimates kp−qk2 up to an error of .
+
+Proof [Proof of Theorem 33] Using the tester from Lemma 35 for 0 = √n and given that b =
+  √                                                                                       
+1/ m, we can distinguish between h(p0 ) = h(q 0 ) and kh(p0 ) − h(q 0 )k2  √n in O √m
+                                                                                      n
+                                                                                         2
+
+samples from h(p0 ) and h(q 0 ) (which can be simulated given samples from p and q). We note also
+that this tester only needs to know the number of samples from each of h(p0 ) and h(q 0 ) that landed in
+each bin, and can thus be simulated in a streaming algorithm with O(m log(n)) memory by keeping
+a running total of the number of samples from each bin.
+    This establishes the correctness of our algorithm.
+    As far as memory usage is concerned, the algorithm uses a total of O(m log(n)) bits of memory
+for each of its steps. In particular, these steps are: recording a set of samples for flattening, storing
+the seed of the hash function h, and storing the counts of the number of samples from h(p0 ), h(q 0 )
+from each bin. Thus, the total memory usage is O(m log(n)) bits.
+
+
+C.2. Communication Efficient Algorithm for Distributed Closeness Testing
+We use a somewhat different algorithm for the communication version of this problem. The basic
+idea is that while our memory algorithm compared h(p) to h(q) for some hash function h, our
+algorithm here will compare the conditional distribution (p|W ) to (q|W ), for some randomly chosen
+subset W of our domain. After applying some flattening, we can ensure that with high probability
+the difference between p and q on W approximates the difference of p and q on the whole domain.
+Since W is small, we will need fewer samples to test closeness on W . Of course, we cannot make
+W too small, as then we will need to query too many machines before even finding a sample from
+W . This is balanced our when |W | ≈ n/(` log(n)), so that one out of every log(n) machines should
+have a sample (which it communicates in log(n) bits), while the other log(n) machines need one
+sample each to tell us that they have no samples from W .
+
+Theorem 36 Suppose that ` = O(n4 / log(n)). Then there exists an algorithm that given dis-
+tributed sample access to two distributions p and q over [n] distinguishes with probability 2/3
+                                                        n2/3 log1/3 (n)
+                                                                
+between the cases p = q and kp − qk1 >  using O           `2/3 4/3
+                                                                          bits of communication.
+
+    The algorithm is given in pseudo-code below:
+
+
+
+
+                                                   34
+        C OMMUNICATION AND M EMORY E FFICIENT T ESTING OF D ISCRETE D ISTRIBUTIONS
+
+
+
+
+     Algorithm T EST-C LOSENESS -D ISTRIBUTED(p, q, n, )
+     Input: Each player has ` samples from each of p and q over [n],  > 0.
+     Output: “YES” if p = q; “NO” if kp − qk1 ≥ .
+
+        1. Let C be a sufficiently large constant. Abort the following algorithm if more than
+           C 2 (n log n)2/3
+               `2/3 4/3
+                            bits of communication are ever used.
+
+        2. Draw N = C`(log
+                        
+                           n)
+                              samples from p and q to flatten them to p0 and q 0 . Let [n0 ] be the new
+           domain.
+
+        3. The referee picks a random subset W of [n0 ] by selecting each element with probability
+                  1
+           r = ` log n and broadcasts this set W to all the machines.
+
+        4. The referee asks M = C log(n)|W |2/3 /4/3 machines first if they have any samples from
+           W , and if so for the list of these samples along with which distribution they are from.
+                                                                                                  √
+        5. Let m1 of the above samples be from p and m2 be from q. Unless |m1 − m2 | < C m1
+           and |m1 | > |W |C 2/3 /4/3 return “NO”.
+
+        6. Use the above samples to test /C 1/2 -closeness of two distributions on W and return the
+           result.
+
+    This section is devoted to the proof of Theorem 36.
+    Using the same analysis for flattening as in Diakonikolas and Kane (2016) (see also Section C.1)
+gives us that p0 , q 0 satisfy kp0 k2 , kq 0 k2 ≤ √1N and that kp0 − q 0 k1 = kp − qk1 with probability at
+least 99%. Note that p0|W , q|W 0 are non-normalized pseudo-distributions given by restrictions of p0 , q 0
+
+to W , and (p0 |W ) and (q 0 |W ) (the corresponding conditional distributions) are their normalized
+distributions.
+    We also note that
+                      X
+  E[kp0 − q 0 k22 ] =      |pi − qi |2 E[1/(ai + 1)]
+                     i
+                                                       !
+                         X                                             X
+                                       2
+                =O            |pi − qi | /(N (pi + qi ))   = O(1/N )       |pi − qi | = O(kp − qk1 /N ).
+                          i                                            i
+
+Therefore, kp0 − q 0 k22 = O(kp − qk1 /N ) with 99% probability. We assume this and the above
+bounds on kp0 k2 and kq 0 k2 throughout the rest.
+     Next, we analyze the sizes of W, p(W ), q(W ) and kp|W − q|W k1 . In particular, we note
+that since W selects each element independently with probability 1/(` log(n)), |W | has mean
+n0 /(` log(n)) with a similar variance, and so |W | = Θ(n/(` log(n))) with 99% probability (note
+that n0 = n + N = Θ(n)). The mean of p0 (W ) = 1/(` log(n)) and the variance is kp0 k22 r,
+therefore with 99% probability p0 (W ) = Θ(nr), and similarly for q 0 (W ). Finally, we have that
+kp0 |W − q|W k1 has mean kp0 − q 0 k1 r = kp − qk1 r and variance kp0 − q 0 k22 r = O(kp − qk1 r/N ).
+So by Chebyshev’s inequality, with 99% probability we have that if either p = q or kp − qk1 ≥ ,
+then kp0 |W − q 0 |W k1 = Θ(kp − qk1 r).
+     We next consider the completeness and soundness cases, ignoring the possibility of the early
+abort.
+
+                                                     35
+        C OMMUNICATION AND M EMORY E FFICIENT T ESTING OF D ISCRETE D ISTRIBUTIONS
+
+
+
+
+Completeness If p = q, then p0 (W ) = q 0 (W ) and (p|W ) = (q|W ). We note that m1 and
+m2 each have average values p0 (W )M ` = Θ(r`M ) = Θ(M/ log(n)) and variances less than
+                                                                                            √
+their means. This implies that with at least 99% probability it holds |m1 − m2 | < C m1 and
+|m1 | > |W |C 2/3 /4/3 . Additionally, since (p0 |W ) = (q 0 |W ), we will pass the closeness test for
+these distributions.
+Soundness If kp − qk1 > , we have that kp0 |W − q 0 |W k1 = Ω(r). We note that this implies that
+either |p0 (W ) − q 0 (W )| > r/C 1/3 or k(p0 |W ) − (q 0 |W )k1 > /C 1/2 . This is because
+
+     kp0 |W − q 0 |W k1 = k(p0 |W )p(W ) − (q 0 |W )q(W )k1
+                       ≤ k(p0 |W )p(W ) − (q 0 |W )p(W )k1 + k(q 0 |W )p(W ) − (q 0 |W )q(W )k1
+                       = p(W )k(p0 |W ) − (q 0 |W )k1 + |p0 (W ) − q 0 (W )| .
+
+First, consider what happens if |p0 (W )−q 0 (W )| > r/C 1/3 . We notice that m1 and m2 have means
+of M `p0 (W ) = Θ(M/ log(n)) and M `q 0 (W ) = Θ(M/ log(n)), respectively, with variances on
+the order of their means. Now if |p0 (W ) − q 0 (W )| > r/C 1/3 , the means of m1 and m2 will differ
+by Ω(M / log(n)C 1/3 ) = Ω(C 2/3 n2/3 /(`2/3 1/3 )), while the variance is O(Cn2/3 /(`2/3 4/3 )).
+Since the difference of the means is much bigger than both the square root of the mean of m1 and
+                                                                    √
+the square root of the variance, |m1 − m2 | will be bigger than C m1 with 99% probability.
+     On the other hand. if k(p0 |W ) − (q 0 |W )k1 > /C 1/2 , our closeness tester in the last step will
+fail.
+Communication Complexity Here we show that the communication complexity of the algo-
+rithm is within the desired bounds, and that we have enough samples to perform the test in the
+last step. Firstly, we note that the N samples in the first step requires only N log(n) communi-
+cation, which is well within our bounds. The other major step requires asking M machines. It
+takes only O(M ) communication for each machine to report whether or not they have a sample,
+and we have an average of M `(p0 (W ) + q 0 (W )) samples that take O(log(n)) bits each. This is
+at most O(M ` log(n)r) = O(C|W |2/3 /4/3 ) = O(Cn2/3 /(`2/3 log2/3 (n)4/3 )) samples, for an
+appropriate number of bits.
+    Finally, we note that for the last step since |W | = n/(` log(n))  −4 , our tester only requires
+O(|W |2/3 /4/3 ) samples, which are available. This completes the proof of Theorem 36.
+
+Appendix D. Conclusions and Future Directions
+This work gave algorithms and lower bounds, in some cases matching, for distribution testing with
+communication and memory constraints. Our work is a first step in these directions and suggests a
+host of interesting open problems. More concretely:
+Communication Lower Bounds without One-pass Assumption Our current techniques for prov-
+ing communication lower bounds seem to depend fairly strongly on the one-pass assumption. In
+particular, when bounding the information learned by the tth sample, it is critical for us to know that
+the information that we have from the current transcript is independent of that sample. Unfortu-
+nately, it is not clear how to get around that obstacle, and without it we have only the trivial lower
+              √
+bound of Ω( n/(2 `)).
+
+
+
+                                                   36
+        C OMMUNICATION AND M EMORY E FFICIENT T ESTING OF D ISCRETE D ISTRIBUTIONS
+
+
+
+
+Communication Lower Bounds for Closeness Testing We would like to show communication
+lower bounds for closeness testing that are not implied by our uniformity testing lower bounds and
+the general sample complexity lower bounds. Our current adversary method is not sufficient for this
+task, as the testers that we have can distinguish our adversarial distributions from uniform in a small
+number of samples. In order to prove good closeness lower bounds, amore complicated adversary is
+necessary, and it is unclear how to combine this adversary with our information-theoretic arguments.
+It would even be interesting to make progress in this question for the case of constant .
+Extending Ranges of Validity An immediate open question is to extend the range of validity
+of many of our bounds. Both our algorithms and lower bounds only work for constrained ranges
+of parameters in ways that do not allow us to adequately cover the whole space of parameters. It
+would be interesting to see if this dependence could be removed. Another interesting parameter
+range would be to see if there are any streaming algorithms at all with o(log(n)) memory.
+Multi-pass Streaming Models Another interesting open problem would be to consider multiple
+pass streaming models. For the reasons outlined above, it seems like our lower bounds would be
+difficult to generalize to even a two-pass streaming model. This leads to the interesting question
+of whether or not there are better algorithms in this model. At the very least, it is easy to see that
+the standard uniformity and closeness testers can be implemented with optimal sample complexity,
+O(log(n/)) memory, and n passes over the data. What can be done with an intermediate number
+of passes?
+Instance-Optimal/Adaptive Testing Valiant and Valiant (2014) showed that testing identity to
+distributions other than the uniform distribution can often be done with better sample complexity
+in the centralized setting. It would be interesting to see what sort of analogue of this result can
+be obtained in our models. An analogous question can be asked for the adaptive closeness tester
+of Diakonikolas and Kane (2016).
+
+
+
+
+                                                  37
+

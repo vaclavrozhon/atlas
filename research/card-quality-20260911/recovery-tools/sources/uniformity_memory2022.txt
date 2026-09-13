@@ -1,0 +1,1117 @@
+Proceedings of Machine Learning Research vol 178:1–18, 2022               35th Annual Conference on Learning Theory
+
+
+
+
+                 On The Memory Complexity of Uniformity Testing
+
+Tomer Berg                                                                    TOMERBERG @ MAIL . TAU . AC . IL
+School of Electrical Engineering, Tel Aviv University
+Or Ordentlich                                                      OR . ORDENTLICH @ MAIL . HUJI . AC . IL
+School of Computer Science and Engineering, Hebrew University of Jerusalem
+
+Ofer Shayevitz                                                                    OFERSHA @ ENG . TAU . AC . IL
+School of Electrical Engineering, Tel Aviv University
+
+
+Editors: Po-Ling Loh and Maxim Raginsky
+
+
+                                                        Abstract
+     In this paper we consider the problem of uniformity testing with limited memory. We observe
+     a sequence of independent identically distributed random variables drawn from a distribution p
+     over [n], which is either uniform or is ε-far from uniform under the total variation distance, and
+     our goal is to determine the correct hypothesis. At each time point we are allowed to update the
+     state of a finite-memory machine with S states, where each state of the machine is assigned one
+     of the hypotheses, and we are interested in obtaining an asymptotic probability of error at most
+     0 < δ < 1/2 uniformly under both hypotheses. The main contribution of this paper is deriving
+     upper and lower bounds on the number of states S needed in order to achieve a constant error
+     probability δ, as a function of n and ε, where our upper bound is O( n log ε
+                                                                                  n
+                                                                                    ) and our lower bound
+                1
+     is Ω(n + ε ). Prior works in the field have almost exclusively used collision counting for upper
+     bounds, and the Paninski mixture for lower bounds. Somewhat surprisingly, in the limited memory
+     with unlimited samples setup, the optimal solution does not involve counting collisions, and the
+     Paninski prior is not hard. Thus, different proof techniques are needed in order to attain our bounds.
+     Keywords: Memory complexity, uniformity testing
+
+
+1. Introduction
+During the past couple of decades, distribution testing has developed into a mature field. One of the
+most fundamental tasks in this field is the problem of uniformity testing. In this problem, the ob-
+jective is to design a sample-optimal algorithm that, given i.i.d samples from a discrete distribution
+p over [n] and some parameter ε > 0, can distinguish (with probability 0 < δ < 1/2) between the
+case where p is uniform and the case where p is ε-far from uniform in total variation. The common
+benchmark for characterizing the statistical hardness of uniformity testing is the minimax sample
+complexity, namely the number of independent samples from the distribution one needs to see in
+order to guarantee that the expected 0 − 1 loss is at most δ. However, as the amount of available
+data is constantly increasing, collecting enough samples for accurate estimation is becoming less of
+a problem, and it is the dedicated computational resources that constitute the main bottleneck on the
+performance that a testing algorithm can attain.
+    As a result, the topic of testing under computational constraints is currently drawing consider-
+able attention, and in particular, the problem of testing under memory constraints has been recently
+studied in various different setups, as we elaborate in Section 2. In order to single out the effects
+limited memory has on our algorithms, we let the number of samples we process be arbitrarily large.
+
+© 2022 T. Berg, O. Ordentlich & O. Shayevitz.
+                                  B ERG O RDENTLICH S HAYEVITZ
+
+
+
+
+Perhaps surprisingly, the bounded memory problem does not become trivial in the unbounded sam-
+ple regime. Moreover, the optimal solution to the problem without memory constraints does not
+translate to the memory constrained case, as we shall later see.
+    Let us formally define the problem of interest: X1 , X2 , . . . is a sequence of independent iden-
+tically distributed random variables drawn from a distribution p over [n], which is either uniform
+or is ε-far from uniform under the total variation distance. Let H0 denote the hypothesis p = u,
+and H1 the composite hypothesis p ∈ Θ, where Θ ≜ {q : dTV (q, u) > ε}, where u is the uni-
+form distribution over [n]. An S-state uniformity tester consists of two functions: f , and d, where
+f : [S] × [n] → [S] is a state transition (or memory update) function, and d : [S] → {H0 , H1 } is
+a decision function. Letting Mt denote the state of the memory at time t, this finite-state machine
+evolves according to the rule
+
+                                     M0 = sinit ,                                                 (1)
+                                     Mt = f (Mt−1 , Xt ) ∈ [S],                                   (2)
+
+for some predetermined initial state sinit ∈ [S]. If the machine is stopped at time t, it outputs the
+decision d(Mt ). Note that here the memory update function f is not allowed to depend on time.
+The restriction to time-invariant algorithms is operationally appealing, since storing the time index
+necessarily incurs a memory cost. Furthermore, since the number of samples is unbounded, simply
+storing the code generating a time-varying algorithm may require unbounded memory. We define
+the asymptotic expected 0 − 1 loss under each hypothesis (also known as the type-1 and type-2
+probabilities of error) as
+
+                                           t
+                                     1X                               iid
+                 Pe (f, d|H0 ) = lim    Pr(d(Mi ) = 1|X1 , X2 , . . . ∼ u),                       (3)
+                                 t→∞ t
+                                         i=1
+                                                t
+                                         1X                               iid
+                 Pe (f, d|H1 ) = sup lim    Pr(d(Mi ) = 0|X1 , X2 , . . . ∼ p).                   (4)
+                                 p∈Θ t→∞ t
+                                               i=1
+
+We are interested in the minimax memory complexity of the tester, S ∗ (n, ε), defined as the smallest
+integer s for which there exist (f, d) such that Pe (f, d|Hi ) ≤ δ, for any i ∈ {0, 1}. In previous
+works dealing with memory limited testing/estimation problems, the memory complexity was taken
+to be either the number of bits or the number of memory words needed to solve the problem, up to
+multiplicative constants. In those cases, a large gap between, for example, S = n and S = n2 states,
+would correspond only to a factor of 2 in the number of bits we need to store. These definitions of
+memory complexity are natural in the large memory regime. However, in this work, we consider
+the small memory regime, so the definition in terms of the number of states seems more appropriate
+to us. In such regime, one might not be able to increase the number of available memory bits even
+by a constant factor. In other words, we are interested in deriving additive constant bounds on the
+number of bits stored, rather than constant factor bounds.
+    The sample complexity of uniformity testing is well known, as a result of the works of Goldre-
+                                                       √
+ich and Ron (2000) and Paninski (2008), and is Θ( n/ε2 ). The lower bound is established using
+χ2 divergences, where the input is drawn from the Paninski mixture. The upper bound is based
+                                √
+on collision estimators, since n samples will result in 1 expected collision on average under the
+uniform distribution, and 1 + Ω(ε2 ) expected collisions on average under the alternative, and the
+
+                                                     2
+                    O N T HE M EMORY C OMPLEXITY OF U NIFORMITY T ESTING
+
+
+
+
+variances are small enough to distinguish between the hypotheses. Collision estimators have hence-
+forth become the default algorithmic tool whenever uniformity testers are involved, and most upper
+bounds in the field rely on some variant of the collision estimator. In a similar fashion, the Panin-
+ski prior has become a recurring ingredient in lower bounds for the problem, since it is difficult to
+identify with limited samples. As it turns out, when memory is the more stringent restriction, these
+approaches are lacking. This can be observed in a recent work of Diakonikolas et al. (2019) that
+is concerned with the sample complexity under memory constraints of uniformity testing, and in
+                                 2
+which the memory S >> n1/ε considered by the authors is substantially greater than what our
+results imply, even though the authors work with the more lenient streaming algorithms, that allow
+for time-varying functions. The increased required memory in Diakonikolas et al. (2019) mainly
+stems from the fact that the algorithm considered there is based on collision estimation, which is
+more wasteful in general. On the other hand, the sample complexity attained by that algorithm is
+much smaller than the number of samples the algorithm proposed here requires, but this reduced
+sample size comes at the price of increased memory (we discuss this in Section 4).
+    Our main results are twofold. The first is showing that reduction of the uniformity testing
+problem to sequential binary hypothesis testing results in a substantial saving in memory, with
+respect to collision estimation. The performance of a scheme based on this idea is analyzed, and
+gives rise to an upper bound on the memory complexity (Theorem 1). The second result consists of
+two lower bounds on the memory complexity. For the first lower bound, we use a member of the
+Paninski prior family to show that S ∗ (n, ε) = Ω(1/ε). However, even for the full Paninski mixture,
+we show that O(1/ε) states are sufficient for reliably testing against the uniform distribution, when
+the number of available samples is large. Consequently, we must choose a different approach for our
+Ω(n) lower bound. Through analysis of stationary distributions of Markov processes, we show that
+for any uniformity tester with insufficient memory there is some distribution q with dTV (q, u) > ε
+which induces the same stationary distribution on its memory states as the uniform distribution,
+hence is indistinguishable from it (Theorem 2). This is in contrast to the standard approach of
+finding a suitable prior on Θ under which the Bayesian problem is hard.
+
+Theorem 1
+                                                                  
+                                      ∗                  n log n
+                                    S (n, ε) = O                       .                          (5)
+                                                            ε
+
+It is worth noting that the algorithm achieving this upper bound is deterministic. Our lower bound
+holds for randomized algorithms.
+Theorem 2
+                                                         
+                                                        1
+                                     S ∗ (n, ε) = Ω n +     .                                     (6)
+                                                        ε
+We note that both bounds hold also for the hypothesis testing problem of the collision probability,
+                                                                                    2
+in which we test between collision probability that is either n1 or greater than 1+ε
+                                                                                  n .
+
+
+2. Related work
+The study of learning and estimation under memory constraints has been initiated in the late 1960s
+by Cover and Hellman (with a precursor by Robbins (1956)) and remained an active research area
+
+                                                 3
+                                  B ERG O RDENTLICH S HAYEVITZ
+
+
+
+
+for a decade or so. Most of the old work on learning with finite memory has been focused on the
+hypothesis testing problem. For the problem of deciding whether an i.i.d. sequence was drawn from
+Bern(p) or Bern(q), Cover et al. (1969) described a time-varying finite-state machine with only
+S = 4 states, whose error probability approaches zero with the sequence length. As time-varying
+procedures suffer from the shortcomings described earlier, Hellman and Cover (1970) addressed the
+same binary hypothesis testing problem within the class of time-invariant randomized procedures.
+They have found an exact characterization of the smallest attainable error probability for this prob-
+lem. In a recent paper, Berg et al. (2020) derived a lower bound on the error probability attained
+by any S-state deterministic procedure, showing that while the smallest attainable error probability
+decreases exponentially fast with S in both the randomized and the deterministic setups, the base of
+the exponent can be arbitrarily larger in the randomized case.
+    The work on the uniformity testing problem has been initiated by Goldreich and Ron (2000),
+who proposed a simple and natural uniformity tester that relies on the collision probability of the
+unknown distribution, which is the probability that two samples drawn according to p are equal,
+                                √
+and succeeds after drawing O( n/ϵ4 ) samples. In subsequent work, Paninski (2008) showed an
+                                          √
+information-theoretic lower bound of Ω( n/ϵ2 ) on the sample complexity and provided a matching
+upper bound that holds under some assumption on ε, which has been later shown to be unneces-
+sary Diakonikolas et al. (2014). It was recently shown in Goldreich (2016) that the more general
+problem of distribution testing can be reduced to uniformity testing with only a constant factor loss
+in sample complexity. In Acharya et al. (2019), the authors addressed the distributed variant of the
+problem: each player receives one sample from the distribution, about which they can only provide
+limited information to a central referee.
+    The space-complexity (which is the minimal memory in bits needed for the algorithm) of es-
+timating the empirical collision probability is well-studied for worst case data streams of a given
+length, dating back to the seminal work of Alon et al. (1999). In Crouch et al. (2016) the authors
+studied the trade-off between sample complexity and space complexity for the problem of estimat-
+ing the collision probability. The trade-off between sample complexity and space/communication
+complexity for the distribution testing problem has recently been addressed by Diakonikolas et al.
+(2019), who gave upper and lower bounds on the sample complexity under memory constraints.
+On a broader level, the problem of estimating statistics with bounded memory is receiving more
+and more attention in the machine learning literature lately, see, e.g., Chien et al. (2010); McGre-
+gor et al. (2012); Kontorovich (2012); Steinhardt and Duchi (2015); Steinhardt et al. (2016); Raz
+(2018); Dagan and Shamir (2018); Dagan et al. (2019); Sharan et al. (2019). Another closely related
+active line of work is that of estimating statistics under limited communication, e.g., Zhang et al.
+(2013); Garg et al. (2014); Braverman et al. (2016); Xu and Raginsky (2017); Jordan et al. (2018);
+Han et al. (2018a,b); Barnes et al. (2018); Acharya et al. (2018); Hadar et al. (2019); Hadar and
+Shayevitz (2019); Acharya et al. (2020).
+
+
+
+
+3. Preliminaries
+
+In this section, we introduce the mathematical notation and background necessary to state and prove
+our results in the following sections.
+
+                                                 4
+                      O N T HE M EMORY C OMPLEXITY OF U NIFORMITY T ESTING
+
+
+
+
+3.1. Notations
+We write [n] to denote the set {1, . . . , n}, and consider discrete distributions over [n]. We use the
+                                                                                              (i,j)
+notation pi to denote the probability of element i in distribution p, and the notation pi to denote
+                                                             (i,j)
+the probability of element i restricted to (i, j), that is, pi     = pi p+p
+                                                                          i
+                                                                            j
+                                                                              . The ℓk norm of a distribution
+                   n
+              p
+                            k
+               P
+is ||p||k = k      i=1 |pi | . The total variation distance Pbetween distributions p and q is defined as
+half their ℓ distance, i.e., dTV (p, q) = 12 ||p − q||1 = 12 ni=1 |pi − qi |. The collision
+            1
+                                                                                          Pn probability   of
+                                                                                      2
+a distribution p is defined as the squared ℓ2 norm of p, that is, Coll (p) = ||p||2 = i=1 pi .    2
+
+
+3.2. Equivalence to collision estimation
+As we mentioned, the problem of uniformity testing with limited samples and unlimited memory is
+equivalent to the collision testing problem, due to the following two reasons:
+                                               2
+   1. dTV (p, u) > ε implies Coll (p) > 1+ε
+                                         n , since, using the Cauchy-Schwarz inequality:
+                                                   n
+                                                   X
+                                      Coll (p) =         p2i
+                                                   i=1
+                                                  n 
+                                                          1 2
+                                                            
+                                               1 X
+                                              = +    pi −
+                                               n          n
+                                                             i=1
+                                                                   n
+                                                                                  !2
+                                               1  1                X          1
+                                              ≥ +                        pi −                              (7)
+                                               n n                            n
+                                                                   i=1
+                                           1 + dTV (p, u)2
+                                              =            ,                              (8)
+                                                 n
+                                                 √
+      and we can solve the latter problem with O( n/ε2 ) samples, hence we can also solve the
+      former with the same number of samples.
+
+   2. The lower bound on the sample complexity is proven for the Paninski prior, q Pan (z), whose
+      value at each coordinate i ∈ [n] is determined by the vector z ∈ {−1, 1}n/2 , and is given by
+                                                ( 1+εz
+                                                       i/2
+                                                           ,     i even
+                                    qiPan (z) = 1−εzn
+                                                       (i+1)/2
+                                                                                                 (9)
+                                                       n       , i odd.
+                                                                                       2
+      It is not difficult to see that dTV (u, q Pan ) = ε and Coll (q Pan (z)) = 1+ε
+                                                                                  n , for all z ∈ {−1, 1}
+                                                                                                          n/2 .
+
+      Now taking z1 , . . . zn/2 to be Rademacher random variables, we obtain a distribution on Θ,
+                                                                               √
+      for which the sample complexity in the Bayesian setting is Ω( n/ε2 ). This implies the same
+      lower bound for the composite hypothesis testing problem.
+
+4. Upper Bound
+Following the above equivalence, it seem only natural to try and obtain upper bounds by utilizing
+collision-based estimators in our bounded memory framework as well. Naively implementing  √ the2
+collision counting decision rule of Goldreich and Ron (2000); Paninski (2008) requires Ω(n n/ε )
+states. However, since the number of samples is unbounded, this algorithm is extremely wasteful.
+
+                                                         5
+                                     B ERG O RDENTLICH S HAYEVITZ
+
+
+
+
+As a warm-up, we first propose the following variation, which uses the unlimited number of sam-
+ples to save memory, by only counting consecutive  Pn collisions. Note that the probability that two
+                                                         2
+consecutive samples are equal under p is exactly i=1 pi = Coll (p). We define a collision machine
+to be a machine that, at each time point, outputs a 1 if the current sample is the same as the pre-
+ceding sample and 0 otherwise. This can be implemented using O(n) states, since we are storing
+an element of the domain (the preceding sample) to check for collisions, and results in a Bernoulli
+process with parameter p = n1 under the uniform distribution, or a Bernoulli process with param-
+              2
+eter p > 1+εn under the alternative (due to (8)). Thus, if we can successfully distinguish between
+two i.i.d Bernoulli processes with parameters that are roughly ε2 /n apart, our uniformity tester will
+separate the hypotheses successfully. To that end, we appeal to Berg et al. (2021), where we defined
+the following machine which, given X1 , X2 , . . . ∼ Bern(θ), can distinguish between the composite
+hypotheses θ < q and θ > p, for p > q. 1
+
+Definition 3 RUNS(N, p, q) is the machine with N ≥ 4 states depicted in Figure 1, designed to
+decide between the hypotheses H0 : {θ > p} vs. H1 : {θ < q}, for some 0 < q < p < 1. The
+machine is initialized at state s and evolves according to the sequence of input bits X1 , X2 , . . .. If
+the machine observes a run of N − s ones before observing a run of s − 1 zeros, it decides H0 ,
+otherwise it decides H1 . The initial state of the machine is s = f (N, p, q), where
+                                                                          
+                                                   log pq
+                      f (N, p, q) ≜ 2 +                             (N − 3) ,                              (10)
+                                        log p(1 − p) + log q(1 − q)
+
+is an integer between 2 and N − 1. We denote the (worst case) error probability of the machine by
+Pe RUNS(N,p,q) = max p01 , p10 , where
+
+                      p01 = sup            Pr                  (RUNS(N, p, q) decides H0 ) ,               (11)
+                            θ<q            i.i.d.
+                                   X1 ,X2 ... ∼ Bern(θ)
+
+                      p10 = sup            Pr                  (RUNS(N, p, q) decides H1 ) .               (12)
+                            θ>p X1 ,X2 ...i.i.d.
+                                            ∼ Bern(θ)
+
+
+
+
+                                                   1
+                                                           1
+                                                                       1       1         1
+                                                                                                 0/1
+                           1            ···                    s                   ···       N
+                     0/1
+                               0               0       0
+                                                                   0
+                                                                           0
+
+           Figure 1: RUNS(N, p, q) - Deterministic Binary Hypothesis Testing Machine
+
+
+    In the same paper, we have shown that with N = O(K) states, the machine RUNS(N, p, q) can
+decide whether θ > p or θ < q = p − 1/K with constant error probability δ < 1/2.
+
+ 1. Their machine was designed to solve the simple binary hypothesis test H0 : {θ = p} vs. H1 : {θ = q}, but the
+    difference between the two problems is not significant.
+
+
+                                                               6
+                     O N T HE M EMORY C OMPLEXITY OF U NIFORMITY T ESTING
+
+
+
+
+Lemma 4 ( Berg et al. (2021)) For any K2 ≤ p ≤ 1 − K1 , q = p − K1 and 0 < δ < 1/2, let
+                                         &                             '
+                                                             2
+                  N = N (δ, p, K) ≜ 3 + K · 6 log                        .                        (13)
+                                                   δ · p − K1 (1 − p)
+                                                               
+
+Then
+                                         Pe RUNS(N,p,q) < δ.                                      (14)
+We can thus separate the two hypotheses with O(n/ε2 ) states, so overall we need the product of the
+two parts, which is O(n2 /ε2 ) states, a memory size that is quadratic in n/ε. We note that in order to
+distinguish hypotheses that are 1/K apart, we must have Ω(K) states [ Hellman and Cover (1970),
+Theorem 3], therefore once the reduction to pairwise collisions has been done, using RUNS is essen-
+tially the best possible, up to constants. It is worth mentioning that the effective sample complexity
+of this machine (the expected number of samples needed for the algorithm to converge) is O(n/ε2 ),
+                                      √
+which is indeed greater then the O( n/ε2 ) sample complexity without memory constraints. This
+follows since n samples will result in 1 collision on average under the uniform distribution, and
+1 + Ω(ε2 ) collisions on average under the alternative. However, the memory used is substantially
+                   2
+smaller than n1/ε , the smallest considered by Diakonikolas et al. (2019). As it turns out, we can
+find good uniformity testers with even smaller memory. In the following, we describe a uniformity
+tester with a memory size that is only linear in n/ε, up to logarithmic factors.
+
+4.1. Proof of Theorem 1
+In a nutshell, our algorithm reduces uniformity testing (and collision estimation) to a sequence of
+binary tests. The intuition here is that if dTV (p, u) > ε then there must be some symbols (i, j) ∈
+[n] × [n] such that either Pr(X = i|X ∈ {i, j}) or Pr(X = j|X ∈ {i, j}) are sufficiently biased,
+where by sufficiently we mean with some bias Ω(ε). We could then clearly run binary tests over
+all n2 pairs of symbols, but it turns out we can reduce this significantly to just 2n tests. One way
+to do this is to test, for all i > 1, whether Pr(X = 1|X ∈ {1, i}) or Pr(X = i|X ∈ {1, i})
+are sufficiently biased. If p = u, none of these probabilities are sufficiently biased, whereas if
+dTV (p, u) > ε, at least one of them is (we prove this in the sequel). Of course, this machine can
+get stuck for an arbitrarily long time if Pr(X ∈ {1, i}) is extremely small (or even zero) for some
+i > 1, as it will be waiting for an arbitrarily low probability event. To circumvent this issue, we
+ensure that the algorithm terminates at some point by first checking that Pr(X = 1) is not too
+small. Specifically, we check that it is not much smaller than n−1 . The reason is since p can only
+be uniform, in which case all probabilities are n−1 , or ε-far from uniform. Thus, if Pr(X = 1) is
+much smaller than n−1 , we can confidently assert that p is not uniform. Otherwise, we continue to
+the previously mentioned testing of pairs.
+    Let us now describe the particular structure of the proposed machine. In our construction, the
+state space [S] is partitioned into K = 2n + 1 disjoint sets denoted by S1 , . . . , SK , which we
+will refer to as mini-chains. Each mini-chain performs a binary hypothesis test, and we move
+sequentially from one mini-chain to the next, until we become confident of our decision, in which
+case we enter an absorbing state. S1 is a RUNS(N, p, q) machine for testing whether the probability
+                                                                                 1        1
+of the symbol 1, namely p1 , is sufficiently large, and its parameters are q = 4n  , p = 2n , and
+                                                     &                         '
+                                   δ 1 1                              4 · 4n
+                       N1 = N       , ,         ≜ 3 + 6 · 4n log             1
+                                                                                                 (15)
+                                   2 2n 4n                         δ · 1 − 2n
+
+                                                  7
+                                      B ERG O RDENTLICH S HAYEVITZ
+
+
+
+
+states. If it decides in favor of q it outputs H1 and terminates, whereas if it decides in favor of
+p it continues to S2 . Mini-chains S2 to S2n test consecutively for the conditional distributions
+ (1,2) (1,2)        (1,n) (1,n)
+p1 , p2 up to p1 , pn between q = 12 + 2ε̃ and p = 21 + ε̃, for ε̃ = 8+4ε         ε
+                                                                                     . To that end, we use
+identical RUNS(N, p, q) machines which, when testing for the pair (1, i), change their state only
+upon observing symbols 1 or i. Let Pe ≜ δ/2   2n , and construct the machines to attain worst case error
+probability of at most Pe . Thus, the number of states needed is, for all 2 ≤ j ≤ 2n + 1,
+                                                                                     
+                                 1       ε̃             12                 4
+                  Nj = N Pe , + ε̃,            ≜3+          log                                       (16)
+                                 2      2                ε̃     Pe ·(1 + ε̃) (1/2 − ε̃)
+states. Here, if the machine decides in favor of q it moves to the next mini-chain, whereas if it
+decides in favor of p it outputs H1 and terminates. The construction of S2n+1 is similar, with the
+exception that if it decides in favor of q it outputs H0 and terminates. Thus, the machine only
+outputs H0 after all binary tests are completed, and none of the conditional probabilities are found
+to be too biased. The binary hypothesis testing machines are concatenated left to right, such that the
+2i-th machine, for i ∈ [n], is as depicted in Figure 2.
+
+                                                  i
+                                                          i
+                                                                      i       i         i exit right
+                    1, i
+                           1            ···                   s                   ···    N2i     ···
+
+                               1              1       1
+                                                                  1
+                                                                          1
+
+                                   Figure 2: Illustration of mini-chain S2i
+
+The structure of the (2i + 1)-th machine, for 1 ≤ i ≤ n − 1, is similar, except that the arrow labels
+                                           (1,i)             (1,i)
+1 and i are swapped, since we test for pi        instead of p1 . The only difference in the 2n + 1
+machine is the last state, which is an absorbing one. The total number of states is:
+           2n+1
+            X
+      S=          Nj = N1 + 2n · N2                                                                    (17)
+            j=1
+                                                  4 · 4n       24n               4 · 4n
+                     ≤ 4(2n + 1) + 24n · log             1
+                                                           +        · log                             (18)
+                                              δ 1 − 2n          ε̃         δ(1 + ε̃) (1/2 − ε̃)
+                                                 
+                                               1                   16n
+                     ≤ 4(2n + 1) + 24n 1 +           · log                                             (19)
+                                               ε̃          δ(1 + ε̃) (1/2 − ε̃)
+                            10 · 24n       40n
+                     ≤ 9n +          · log      .                                                      (20)
+                                ε           δ
+We now show that this is indeed an (S, δ) uniformity tester. Consider first the case p = u, which
+implies pi = 21 for all i. The probability of outputting H1 in S1 is upper bounded by 2δ . The
+probability of outputting H1 in any of the consecutive binary tests is the probability we make an
+error in at least one binary test, and is, at most
+
+                                                   δ/2 2n
+                                                     
+                                                                            δ
+                                     2n
+                       1 − (1 − Pe ) = 1 − 1 −            ≤ 1 − e−δ/2 ≤ .                    (21)
+                                                   2n                       2
+
+                                                              8
+                     O N T HE M EMORY C OMPLEXITY OF U NIFORMITY T ESTING
+
+
+
+
+Hence, by the union bound, the total error probability is at most δ. For the case p ∈ Θ, we show
+that if dTV (p, u) > ε, then the probability of outputting H0 is smaller than δ. To that end, it is
+                                                        (i,1) (i,1)
+sufficient to show that there is some i for which max{p1 , pi } > 12 + ε̃, since that would imply
+the probability that either S2i or S2i+1 output H1 is at least 1 − Pe , which in turn implies that the
+overall error probability of the algorithm is at most Pe = δ/2
+                                                             2n < δ. Thus, we prove the following
+lemma in the appendix.
+
+Lemma 5 If dTV (p, u) > ε, then there exist some i ∈ [n] such that
+
+                                             (i,1)      (i,1)        1
+                                     max{p1          , pi       }>     + ε̃.                        (22)
+                                                                     2
+While we leave the investigation of the optimal memory-sample complexity trade off to future work,
+it is worth mentioning that the effective sample complexity of the above algorithm is O n2 eO(1/ε) .
+                                                                                                      
+
+This follows since there are O(n) mini-chains that we traverse in sequence, each is activated every
+O(n) samples on average, and the mixing time of each one is eO(1/ε) . Thus, if ε is taken to be a
+constant and n is the dominating factor, we can loosely say that, with respect to the simpler collision
+tester proposed earlier, a quadratic saving in memory states is translated to a quadratic increase in
+the number of expected samples needed for testing.
+
+5. Lower Bound
+In this section we prove Theorem 2. We prove the Ω (1/ε) bound via reduction to simple binary
+hypothesis testing. The proof of the Ω(n) bound is separated to the ergodic and non-ergodic cases,
+corresponding to irreducible and reducible machines respectively: in the first part we prove the
+ergodic case using linear algebra tools, and in the second part we show that any good uniformity
+tester that induces a non-ergodic Markov chain can be reduced to a good uniformity tester that
+induces an ergodic Markov chain.
+
+5.1. Proof of the Ω (1/ε) bound
+In this proof, we use the fact that a good uniformity tester is also a good binary hypothesis tester
+for hypotheses that are ε apart. Assume we have an (S, δ) uniformity tester. We use this machine
+to construct a randomized binary hypothesis testing machine that decides          whether an independent
+identically distributed sequence of bits B1 , B2 , . . . is either Bern 21 distributed or Bern 1−ε
+                                                                                                  
+                                                                                                 2   dis-
+tributed as follows:
+              iid                        iid
+    1. Let Ui ∼ Unif n2 and let Bi ∼ Bern(θ), where θ is either 21 or 1−ε
+                         
+                                                                                 2 .
+
+   2. We generate the random variables Xi ∈ [n] by setting Xi = 2Ui − Bi . Note that if θ = 12 ,
+      then Xi ∼ u. On the other hand, if θ = 1−ε
+                                              2 , then
+
+                                          1
+                              Xi ∼ p =      · [1 − ε 1 + ε 1 − ε 1 + ε . . .],                      (23)
+                                          n
+      so that dTV (p, u) = ε (p in this case is one of the priors in the Paninski family of (9)).
+
+   3. Thus, our randomized machine can distinguish between Bern 12 and Bern 1−ε
+                                                                                         
+                                                                                        2 . Appealing
+      to Hellman and Cover (1970)[Theorem 3], it therefore must have S = Ω(1/ε) states.
+
+                                                        9
+                                   B ERG O RDENTLICH S HAYEVITZ
+
+
+
+
+5.2. Proof of the Ω(n) bound for ergodic machines
+As we mentioned earlier, the Paninski prior is not a good choice for lower bounds in the memory
+                                                                                                 (1,2)
+limited regime, for the following reason: Any distribution in the Paninski family has either p1        =
+1+ε      (1,2)    1+ε                                                                  1+ε             ε
+  2 or p2      = 2 . Thus, we can test these two options with two RUNS(N, p = 2 , q = p − 2 )
+machines with O(1/ε) states, hence the Paninski mixture cannot give us a lower bound that depends
+on the dimension n. The reason for this is that since the number of samples is unlimited, we can
+afford to wait for events that sharply distinguish between the hypotheses, and, in particular relevance
+to the above argument, to wait for appearances of the first two symbols alone. When one cares
+about sample complexity only, then this approach is obviously very wasteful since many samples
+are ignored. But when one is concerned with memory complexity only, then waiting for rare binary
+events turns out to be the right approach, since reducing the dimension of the testing problem is of
+most importance.
+    We first consider the case of ergodic machines, corresponding to irreducible Markov chains.
+The method of proof is the following: Any finite-state machine induces a Markov chain, that is
+characterized by some transition matrix P. Our method of proof is based on analysis of stationary
+distributions and properties of Markov chain transition matrices, specifically their null space. Firstly,
+                                                        √
+we show that for any finite-state machine with S = O( n) states, there must exist some distribution
+p over [n] with dTV (p, u) > ϵ that induces the same transition matrix as u. Secondly, we tighten
+this result by showing that when S = O(n) there is some distribution p over [n] with dTV (p, u) > ϵ
+that induces the same stationary distribution as u (but not necessarily the same transition matrix),
+thus p is indistinguishable from u when viewed through the state sequence of the machine.
+
+Lemma 6 Denote the transition matrix induced by a distribution p as P(p). Then for any finite-
+                         √
+state machine with S = O( n) there must exist some distribution p with dTV (p, u) > ϵ such that
+P(u) = P(p).
+                                                                                    2
+Proof Fix a finite state machine with S states, and define the matrix A ∈ [0, 1]S ×n whose rows are
+indexed by (i, j) ∈ [S] × [S]. The entry A(i,j),m specifies the probability of moving to state j from
+state i when the input is m ∈ [n]. Note that for deterministic machines the values of A can only be 0
+or 1, but our lemma in fact holds for the more general case of randomized machines. Let p(u) = Au,
+where u = [1/n . . . 1/n]T , be the vectorized form of the transition matrix induced on the machine
+by the uniform distribution, that is, p(u) is generated by stacking the columns of P(u) on top of
+each other. Now, if S 2 < n, the matrix A must have a nontrivial kernel of rank at least n − S 2 . Let
+V be the subspace spanned by ker(A) ∩ ker([1 . . . 1]). We have that dim(V ) ≥ n − 1 − S 2 ≜ k.
+Before we continue, we need the following lemma, due to David E. Speyer.2
+
+Lemma 7 Let V be a k-dimensional linear subspace of Rn . Define its p → q norm as
+
+                                                            ∥x∥q
+                                      ∥V ∥p→q = max              .                                  (24)
+                                                   x∈V \{0} ∥x∥p
+
+
+Then, for all q ≥ 1,
+                                                         √
+                                                         q
+                                           ∥V ∥∞→q ≥         k.                                     (25)
+ 2. https://math.stackexchange.com/questions/1850488
+
+
+                                                   10
+                     O N T HE M EMORY C OMPLEXITY OF U NIFORMITY T ESTING
+
+
+
+
+Proof Let Q be the hypercube [−1, 1]n . Then V ∩ Q is a bounded nonempty polytope, thus it must
+have a vertex. Denote that vertex as x = (x1 , . . . , xn ). Without loss of generality, we may assume
+that there is some integer 0 < r < n such that xi = 1 for all 1 ≤ i ≤ r and |xi | < 1 for all
+r + 1 ≤ i ≤ n. This is since Q is symmetric, thus we can always rearrange the coordinates of V
+without affecting its norms. We claim that r ≥ k. Assume towards contradiction that it is not the
+case. Then there must be some nonzero vector v ∈ V with vi = 0 for all 1 ≤ i ≤ r, such that for a
+small enough constant ε, both x + ϵv√and x − εv would be in V ∩ Q, contradicting that x is a vertex.
+                             √
+Thus ∥x∥∞ = 1 and ∥x∥q ≥ q r ≥ q k.
+
+    Proof of Lemma 6, continued: Lemma 7 implies that there must be a vector x ∈ V with ∥x∥∞ =
+1/n and ∥x∥1 ≥ k/n.             P x, weP
+                        P For this      can define q = u − x. Recalling that V is orthogonal
+to [1 . . . 1], we have  qi =      ui −   xi = 1, thus q is a valid probability distribution and
+dTV (u, q) = 21 ∥x∥1 ≥ k/2n. Since x ∈ ker(A), we have that the transition probability q induces
+on the machine is
+
+                              p(q) = Aq = A(u − x) = Au = p(u).                                  (26)
+
+Thus, for any finite state machine with S = ((1 − 2ε)n − 1)1/2 states, there exists a distribution q
+with dTV (u, q) ≥ ε such that P(u) = P(q).
+
+Proof of Theorem 2, irreducible case : Recall that the stationary row vector satisfies πu =
+                                                                       2
+πu P(u). This can be written as πu = M p(u) = M Au, where M ∈ [0, 1]S×S is of the form
+                                                        
+                                         πu 0 . . . 0
+                                        0 πu . . . 0 
+                                   M = .                                               (27)
+                                                        
+                                          .   ..  ..  .. 
+                                        .     .   .   . 
+                                          0 0 . . . πu
+
+Denote B = M A ∈ [0, 1]S×n . Similarly to Lemma 6, we have that if S < n, the matrix B must
+have a nontrivial kernel of rank at least n − S. Letting V1 be the subspace spanned by ker(B) ∩
+ker([1 . . . 1]), we have that dim(V1 ) ≥ n − 1 − S ≜ k. Appealing to Lemma 7, there is some
+valid probability distribution q = u − x with dTV (u, q) ≥ k/2n and x ∈ ker(B). We thus have
+that Bq = Bu = πu . But Bq = πu are simply the stationary equations for the chain under q, thus
+πq = πu . This implies that for any finite state machine with S = (1 − 2ε)n − 1 states, there exists
+a distribution q with dTV (u, q) ≥ ε such that πu = πq .
+
+
+5.3. Proof of the Ω(n) bound for non-ergodic machines
+We now prove the case of non-ergodic machines, corresponding to reducible Markov chains. Specif-
+ically, we show that any (S, δ) non-ergodic uniformity tester can be reduced to an (S, δ + γ) ergodic
+uniformity tester, where γ can be made arbitrarily small. We start by considering a simple non-
+ergodic machine with only two absorbing states.
+
+Lemma 8 Consider a Markov chain with initial state s and two absorbing states 0 and 1, such
+that the absorption probabilities are pj∞ = [Pr(s → 0|Hj ), Pr(s → 1|Hj )] under hypothesis Hj .
+Further let Thit be the maximal expected hitting time of state i under Hj , given that we absorb in i,
+
+                                                 11
+                                    B ERG O RDENTLICH S HAYEVITZ
+
+
+
+
+where the maximum is over all i, j ∈ {0, 1}. Let M > 0 be some positive constant. Then for any
+j ∈ {0, 1}, the ergodic chain that results by connecting each absorbing state to s with probability
+δ = M 1Thit has stationary probabilities π0j , π1j such that
+
+                                                1                   1
+                          |πij − pj∞ (i)| ≤        · max pj (i) ≤      .                               (28)
+                                              M + 1 i∈{0,1} ∞     M +1
+
+Proof Consider the ergodic Markov chain obtained by connecting each of the absorbing states 0
+and 1 to s with probability δ = M 1Thit . The transition rules of the transient states are left unchanged.
+Assume w.l.o.g that the correct hypothesis is H0 , and for simplicity let p∞ = p0∞ , πi = πi0 . Appeal-
+ing to Kac (1947) [Theorem 2 - Kac’s return time], the stationary distribution of state i ∈ {0, 1} is
+πi = E[τ1 i ] , where E[τi ] is the expected first return time to state i. The expected return time to state
+0 (under H0 ) can be upper bounded by the following argument: with probability 1 − δ we return in
+one step, otherwise we play the following game. We flip a Bern(1 − p∞ (0)) coin that determines
+whether we end in state 0 or not. If the coin value is 1, we travel the chain at most Thit time units on
+average and then another δ −1 time units on average ’stuck’ in state 1 before returning to state s and
+flipping the coin again. If the coin value is 0, we arrive at the desired state and terminate the game
+after at most Thit time units on average. This is since the limiting distribution p∞ (0) is simply the
+probability of arriving at state 0 before arriving at state 1.
+    Formally, let W denote the number of rounds in the above game, i.e., the number of times we
+return to s before hitting state 0. Thus Pr(W = m) = (1 − p∞ (0))m−1 p∞ (0), and furthermore,
+E[τ0 |W = m] ≤ Thit +m Thit +mδ −1 . We then have
+                                    ∞
+                                    X
+           E[τ0 ] = (1 − δ) + δ ·         Pr(W = m) E[τ0 |W = m]                                       (29)
+                                    m=0
+                                            ∞
+                                            X
+                                                (1 − p∞ (0))m Thit +m Thit +mδ −1
+                                                                                        
+                  = (1 − δ) + δ · p∞ (0)                                                               (30)
+                                           m=0
+                                                                       ∞
+                                                                                              !
+                                               Thit               X
+                  = (1 − δ) + δ · p∞ (0)             + Thit +δ −1    m(1 − p∞ (0))m                    (31)
+                                              p∞ (0)
+                                                                      m=0
+                                                1 − p∞ (0)
+                  = (1 − δ) + δ Thit + (δ Thit +1) ·                                                   (32)
+                                                  p∞ (0)
+                      δ Thit +1 − p∞ (0)   1 + δ Thit
+                  ≤1+                    =            .                                                (33)
+                             p∞ (0)          p∞ (0)
+
+Substituting δ = M 1Thit we have p∞ (0) − π0 ≤ p∞ (0) · M1+1 , which implies π1 − p∞ (1) ≤
+p∞ (0) · M1+1 . Applying the above argument to E[τ1 ] concludes the proof.
+
+Proof of Theorem 2, reducible case: Consider a Markov chain comprised of K recurrent classes
+R1 , . . . , RK , and a set T of transient states with initial state s. Assume w.l.o.g that s ∈ T , as
+otherwise the machine is in fact irreducible. Let Thit be the maximum of the sum of the expected
+hitting time of class Rk and the mixing time of the class under Hj , given that we absorb in Rk ,
+where the maximum is over all k ∈ [K], j ∈ {0, 1}. Motivated by the construction of Lemma 8 we
+connect all recurrent states (that is, all states not in T ) to s with probability δ = M 1Thit , and with
+probability 1 − δ leave their transition rules unchanged, thus generating an ergodic Markov chain.
+
+                                                    12
+                      O N T HE M EMORY C OMPLEXITY OF U NIFORMITY T ESTING
+
+
+
+
+Assume w.l.o.g that the correct hypothesis is H0 , and to simplify notations let Pe = Pe (f, d|H0 ) and
+Pr(s → Rk ) = Pr(s → Rk |H0 ) for all k ∈ [K]. For each k, consider a chain with |T | + 2 states,
+obtained from the original chain by merging the states in Rk and {Rj }j̸=k into two respectively
+absorbing states. By applying Lemma 8, the stationary probability of the class Rk for all k ∈ [K],
+has
+                                                                       1
+                                  |π(Rk ) − Pr(s → Rk )| ≤                ,                           (34)
+                                                                     M +1
+
+where π(Rk ) is the stationary probability of the class Rk . We now bound the stationary probability
+                                                                             πi
+of state i ∈ Rk given class Rk , for all k ∈ [K]. To that end, let π̃i = π(R    k)
+                                                                                   for i ∈ Rk , and let πi∞
+be the limiting distribution of state i in the original chain, given that we absorb in Rk . We show the
+following lemma, whose proof is relegated to the appendix.
+
+Lemma 9 For any k ∈ [K] and i ∈ Rk ,
+                                                                           
+                                                 |Rk |               1
+                                     π̃i ≥ πi∞ −          1+                    .                     (35)
+                                                    M              π(Rk )
+
+Let Pr(C) = K
+              P
+                k=1 Pr(s → Rk ) Pr(C|Rk ) be the asymptotic probability of success in the original
+chain, and let Pr(C erg ) be the asymptotic probability of success in the new ergodic chain. Then
+
+                                     K
+                                     X
+                      Pr(C erg ) ≥         π(Rk ) Pr(C erg |Rk )                                      (36)
+                                     k=1
+                                     K                                      K
+                                     X                                      X           1
+                                ≥          Pr(s → Rk ) Pr(C erg |Rk ) −                               (37)
+                                                                                      M +1
+                                     k=1                                        k=1
+                                          K
+                                            |Rk |2
+                                                             
+                                          X              1         K
+                                ≥ Pr(C) −           1+          −                                     (38)
+                                             M         π(Rk )     M +1
+                                                k=1
+                                                S 2 (1 + 1/π(Rk )) + K
+                                ≥ Pr(C) −                                       ,                     (39)
+                                                             M
+where (37) follows from (34), (38) follows from Pr(C erg |Rk ) = i:d(i)=H0 π̃i and by substituting
+                                                                  P
+
+Lemma 9, and (39) follows from K              2     2
+                                   P
+                                     k=1 |Rk | ≤ S . We conclude by recalling that Theorem 2 for
+the irreducible case implies that any irreducible machine with probability of error smaller than 1/2
+must have Ω(n) states, therefore, by choosing M to be sufficiently large, the bound
+
+                                                   S 2 (1 + 1/π(Rk )) + K
+                                 Pe erg ≤ Pe +                                                        (40)
+                                                              M
+implies that so should any reducible machine.
+
+
+
+Acknowledgments
+This work was supported by the ISF under Grants 1641/21 and 1495/18.
+
+                                                        13
+                                 B ERG O RDENTLICH S HAYEVITZ
+
+
+
+
+References
+Jayadev Acharya, Clément L Canonne, and Himanshu Tyagi. Distributed simulation and distributed
+  inference. arXiv preprint arXiv:1804.06952, 2018.
+
+Jayadev Acharya, Clément L Canonne, and Himanshu Tyagi. Inference under information con-
+  straints: Lower bounds from chi-square contraction. In Conference on Learning Theory, pages
+  3–17. PMLR, 2019.
+
+Jayadev Acharya, Clément L Canonne, and Himanshu Tyagi. Inference under information con-
+  straints ii: Communication constraints and shared randomness. IEEE Transactions on Informa-
+  tion Theory, 66(12):7856–7877, 2020.
+
+Noga Alon, Yossi Matias, and Mario Szegedy. The space complexity of approximating the fre-
+  quency moments. Journal of Computer and system sciences, 58(1):137–147, 1999.
+
+Leighton Pate Barnes, Yanjun Han, and Ayfer Özgür. A geometric characterization of Fisher in-
+  formation from quantized samples with applications to distributed statistical estimation. In 2018
+  56th Annual Allerton Conference on Communication, Control, and Computing (Allerton), pages
+  16–23. IEEE, 2018.
+
+Tomer Berg, Or Ordentlich, and Ofer Shayevitz. Binary hypothesis testing with deterministic finite-
+  memory decision rules. In 2020 IEEE International Symposium on Information Theory (ISIT),
+  pages 1259–1264. IEEE, 2020.
+
+Tomer Berg, Or Ordentlich, and Ofer Shayevitz. Deterministic finite-memory bias estimation. In
+  Conference on Learning Theory, pages 566–585. PMLR, 2021.
+
+Mark Braverman, Ankit Garg, Tengyu Ma, Huy L Nguyen, and David P Woodruff. Communication
+ lower bounds for statistical estimation problems via a distributed data processing inequality. In
+ Proceedings of the forty-eighth annual ACM symposium on Theory of Computing, pages 1011–
+ 1020. ACM, 2016.
+
+Steve Chien, Katrina Ligett, and Andrew McGregor. Space-efficient estimation of robust statistics
+  and distribution testing. In ICS, pages 251–265. Citeseer, 2010.
+
+Thomas M Cover et al. Hypothesis testing with finite statistics. The Annals of Mathematical
+  Statistics, 40(3):828–835, 1969.
+
+Michael Crouch, Andrew McGregor, Gregory Valiant, and David P Woodruff. Stochastic streams:
+ Sample complexity vs. space complexity. In 24th Annual European Symposium on Algorithms
+ (ESA 2016). Schloss Dagstuhl-Leibniz-Zentrum fuer Informatik, 2016.
+
+Yuval Dagan and Ohad Shamir. Detecting correlations with little memory and communication. In
+  Conference On Learning Theory, pages 1145–1198, 2018.
+
+Yuval Dagan, Gil Kur, and Ohad Shamir. Space lower bounds for linear prediction in the streaming
+  model. In Conference on Learning Theory, pages 929–954, 2019.
+
+                                                14
+                    O N T HE M EMORY C OMPLEXITY OF U NIFORMITY T ESTING
+
+
+
+
+Ilias Diakonikolas, Daniel M Kane, and Vladimir Nikishkin. Testing identity of structured distribu-
+   tions. In Proceedings of the twenty-sixth annual ACM-SIAM symposium on Discrete algorithms,
+   pages 1841–1854. SIAM, 2014.
+Ilias Diakonikolas, Themis Gouleakis, Daniel M Kane, and Sankeerth Rao. Communication and
+   memory efficient testing of discrete distributions. In Conference on Learning Theory, pages
+   1070–1106. PMLR, 2019.
+Ankit Garg, Tengyu Ma, and Huy L Nguyen. On communication cost of distributed statistical
+  estimation and dimensionality. arXiv preprint arXiv:1405.1665, 2014.
+Oded Goldreich. The uniform distribution is complete with respect to testing identity to a fixed
+  distribution. In Electronic Colloquium on Computational Complexity (ECCC), volume 23, page 1,
+  2016.
+Oded Goldreich and Dana Ron. On testing expansion in bounded-degree graphs. In Electronic
+  Colloquium on Computational Complexity (ECCC), volume 20, 2000.
+Uri Hadar and Ofer Shayevitz. Distributed estimation of gaussian correlations. IEEE Transactions
+  on Information Theory, 65(9):5323–5338, 2019.
+Uri Hadar, Jingbo Liu, Yury Polyanskiy, and Ofer Shayevitz. Communication complexity of esti-
+  mating correlations. In Proceedings of the 51st Annual ACM SIGACT Symposium on Theory of
+  Computing, pages 792–803, 2019.
+Yanjun Han, Ayfer Özgür, and Tsachy Weissman. Geometric lower bounds for distributed parameter
+  estimation under communication constraints. In Conference On Learning Theory, pages 3163–
+  3188. PMLR, 2018a.
+Yanjun Han, Ayfer Ozgur, and Tsachy Weissman. Geometric lower bounds for distributed parameter
+  estimation under communication constraints. Proceedings of Machine Learning Research, 75,
+  2018b.
+Martin E Hellman and Thomas M Cover. Learning with finite memory. The Annals of Mathematical
+ Statistics, pages 765–782, 1970.
+Michael I Jordan, Jason D Lee, and Yun Yang. Communication-efficient distributed statistical in-
+ ference. Journal of the American Statistical Association, 2018.
+Mark Kac. On the notion of recurrence in discrete stochastic processes. Bulletin of the American
+ Mathematical Society, 53(10):1002–1010, 1947.
+Leonid Aryeh Kontorovich. Statistical estimation with bounded memory. Statistics and Computing,
+  22(5):1155–1164, 2012.
+David A Levin and Yuval Peres. Markov chains and mixing times, volume 107. American Mathe-
+  matical Soc., 2017.
+Andrew McGregor, A Pavan, Srikanta Tirthapura, and David Woodruff. Space-efficient estimation
+  of statistics over sub-sampled streams. In Proceedings of the 31st ACM SIGMOD-SIGACT-SIGAI
+  symposium on Principles of Database Systems, pages 273–282, 2012.
+
+                                                15
+                                            B ERG O RDENTLICH S HAYEVITZ
+
+
+
+
+Liam Paninski. A coincidence-based test for uniformity given very sparsely sampled discrete data.
+  IEEE Transactions on Information Theory, 54(10):4750–4755, 2008.
+
+Ran Raz. Fast learning requires good memory: A time-space lower bound for parity learning.
+  Journal of the ACM (JACM), 66(1):3, 2018.
+
+Herbert Robbins. A sequential decision problem with a finite memory. Proceedings of the National
+  Academy of Sciences of the United States of America, 42(12):920, 1956.
+
+Vatsal Sharan, Aaron Sidford, and Gregory Valiant. Memory-sample tradeoffs for linear regression
+  with small error. In Symposium on Theory of Computing (STOC), 2019.
+
+Jacob Steinhardt and John Duchi. Minimax rates for memory-bounded sparse linear regression. In
+  Conference on Learning Theory, pages 1564–1587, 2015.
+
+Jacob Steinhardt, Gregory Valiant, and Stefan Wager. Memory, communication, and statistical
+  queries. In Conference on Learning Theory, pages 1490–1516, 2016.
+
+A. Xu and M. Raginsky. Information-theoretic lower bounds on Bayes risk in decentralized estima-
+  tion. IEEE Transactions on Information Theory, 63(3):1580–1600, March 2017.
+
+Yuchen Zhang, John Duchi, Michael I Jordan, and Martin J Wainwright. Information-theoretic
+  lower bounds for distributed statistical estimation with communication constraints. In Advances
+  in Neural Information Processing Systems, pages 2328–2336, 2013.
+
+
+Appendix A. Proof of Lemma 5
+Proof Assume toward contradiction that, for all i,
+                                        (i,1)  1              1 + 2ε̃
+                                       p1       ≤+ ε̃ =⇒ p1 ≤         · pi ,                    (41)
+                                               2              1 − 2ε̃
+                                        (i,1)  1              1 + 2ε̃
+                                       pi     ≤ + ε̃ =⇒ pi ≤          · p1 .                    (42)
+                                               2              1 − 2ε̃
+(41) and (42) imply that
+                                                    n
+                                                    X                  1 + 2ε̃
+                                             1=           pi ≤ np1 ·           ,                (43)
+                                                                       1 − 2ε̃
+                                                    i=1
+                                                     n
+                                                    X                  1 − 2ε̃
+                                             1=           pi ≥ np1 ·           .                (44)
+                                                                       1 + 2ε̃
+                                                    i=1
+
+Thus we have
+                                            1 − 2ε̃ 1       1 + 2ε̃ 1
+                                                   · ≤ p1 ≤        · ,                          (45)
+                                            1 + 2ε̃ n       1 − 2ε̃ n
+and, as a result, for all i > 1,
+                                                2                             2
+                                       1 − 2ε̃         1               1 + 2ε̃            1
+                                                      · ≤ pi ≤                        ·     .   (46)
+                                       1 + 2ε̃         n               1 − 2ε̃            n
+
+                                                             16
+                        O N T HE M EMORY C OMPLEXITY OF U NIFORMITY T ESTING
+
+
+
+
+Finally, we have
+                             n                                                             
+                             X           1                         8ε̃       8ε̃                       8ε̃
+              dTV (p, u) =          pi −   ≤ max                           ,                    =              ,   (47)
+                                         n                      (1 − 2ε̃) (1 + 2ε̃)2
+                                                                         2                          (1 − 2ε̃)2
+                              i=1
+
+                          ε
+and by substituting ε̃ = 8+4ε we arrive at dTV (p, u) ≤ ε, a contradiction. Thus, there must be some
+                    (i,1)       (i,1)
+i for which either p1       or pi       are greater than 21 + ε̃.
+
+
+Appendix B. Proof of Lemma 9
+Proof Assume w.l.o.g that Rk = [m]. Let πi be the stationary distribution of state i in the ergodic
+chain, and for all i ∈ Rk , let πi∞ be the limiting distribution of state i in the original chain, given
+that we absorb in Rk . Furthermore, let pij be the transition probability from state i to state j in the
+original chain. The stationary equations for πj∞ and πj , for any j ∈ Rk , are
+                                               X
+                                     πj∞ =             πi∞ pij ,                                                   (48)
+                                               i∈Rk
+                                               X                           X
+                                        πj =           πi pij (1 − δ) +          πi pij .                          (49)
+                                               i∈Rk                        i∈T
+
+Thus we have
+                                    X                                1 X
+                            π̃j =          π̃i pij (1 − δ) +                  πi pij                               (50)
+                                                                   π(Rk )
+                                    i∈Rk                                  i∈T
+                                    X                    1         X              X
+                               =           π̃i pij +                  πi pij − δ     π̃i pij .                     (51)
+                                                       π(Rk )
+                                    i∈Rk                      i∈T                  i∈Rk
+                                                       |                  {z                    }
+                                                                          ej
+
+Denote π̃ = [π̃1 , . . . , π̃m ], π ∞ = [π1∞ , . . . , πm
+                                                        ∞ ], e = [e , . . . , e ]. Further Let P denote the
+                                                                   1           m
+transition matrix of the original chain restricted to Rk , and define d ≜ π̃ − π ∞ . Note that since
+both π ∞ and π̃ are valid probability distributions over [m], we have that d ⊥ 1. Writing the above
+equations in matrix form, we have
+
+                                                   d = d P +e,                                                     (52)
+                                                   d(I − P) = e.                                                   (53)
+
+Let λmin (I −P) be the minimal eigenvalue λ ̸= 0 of I −P, and λmax (P) be the maximal eigenvalue
+λ ̸= 1 of P. Thus,
+
+                              ∥e∥2 = ∥d(I − P)∥2 ≥ ∥d∥2 · λmin (I − P)                                             (54)
+                                                                = ∥d∥2 (1 − λmax (P)),                             (55)
+
+where (54) follows since for any matrix A operating on vector space V , its minimal eigenvalue has
+λmin = min ∥Av∥  2
+             ∥v∥2 , and (55) follows since the eigenvalues of I − P are 1 − λi (P) (recall that all the
+        v∈V
+
+
+                                                              17
+                                   B ERG O RDENTLICH S HAYEVITZ
+
+
+
+
+eigenvalues of a Markov transition matrix has |λi | ≤ 1). The reason we dispense with λ = 0, which
+is indeed an eigenvalue of I − P with eigenvector 1, is that d ⊥ 1, hence the largest contraction it
+can undergo is by λmin (I − P). On the other hand,
+                                                                     
+                                                                 1
+                            ∥e∥2 ≤ m · ∥e∥∞ ≤ m · δ 1 +                 ,                      (56)
+                                                               π(Rk )
+
+where the first inequality is a standard norm inequality, and the second is a result of the following
+lemma, which we introduce without the (simple) proof:
+
+Lemma 10 Let {Xn } be a stationary process over some alphabet S. Then for any disjoint partition
+C ∪ C ′ = S, it holds that
+
+                       Pr(Xn ∈ C, Xn+1 ∈ C ′ ) = Pr(Xn ∈ C ′ , Xn+1 ∈ C).                       (57)
+
+                                               K
+Appealing to the lemma with C = T , C ′ =
+                                               S
+                                                     Rk , we have
+                                               k=1
+
+                  K X X
+                  X                         K X X
+                                            X                         K X
+                                                                      X
+                                 πi pij =                  πi pij =              πi · δ ≤ δ,    (58)
+                  k=1 j∈Rk i∈T              k=1 i∈Rk j∈T              k=1 i∈Rk
+
+since the only transition from any i ∈ Rk to T is transition to s with probability δ. Thus we have,
+for any j ∈ [K],
+                                          1 X             X
+                              |ej | ≤          πi pij + δ   π̃i pij                             (59)
+                                        π(Rk )
+                                                i∈T             i∈Rk
+                                                 K
+                                        1 X X X
+                                    ≤           πi pij + δ                                      (60)
+                                      π(Rk )
+                                                k=1 j∈Rk i∈T
+                                          δ
+                                    ≤          + δ,                                             (61)
+                                        π(Rk )
+
+and (56) is established. Combining (55) and (56), and recalling that ∥d∥2 ≥ ∥d∥∞ , we conclude
+                                                                 
+                                          m·δ                 1
+                            ∥d∥∞ ≤                    1+                                     (62)
+                                      1 − λmax (P)         π(Rk )
+                                                                    
+                                              k                 1
+                                   ≤ m · δ(Tmix  + 1) 1 +                                    (63)
+                                                             π(Rk )
+                                                      
+                                      m            1
+                                   ≤       1+            ,                                   (64)
+                                      M         π(Rk )
+        k is the mixing time of the Markov chain with transition matrix P, (63) follows from Levin
+where Tmix
+and Peres (2017)[Theorem 12.5], and (64) follows from substituting δ = M 1Thit .
+
+
+
+
+                                                      18
+

@@ -1,0 +1,671 @@
+                         Never Go Full Batch
+                 (in Stochastic Convex Optimization)
+
+
+                     Idan Amir                                    Yair Carmon
+                  Department of EE                            Blavatnik School of CS
+                 Tel Aviv University                           Tel Aviv University
+             idanamir@mail.tau.ac.il                       ycarmon@tauex.tau.ac.il
+
+                     Tomer Koren                                       Roi Livni
+           Blavatnik School of CS, Tel Aviv U                     Department of EE
+                  and Google Research                             Tel Aviv University
+              tkoren@tauex.tau.ac.il                          rlivni@tauex.tau.ac.il
+
+
+
+                                              Abstract
+
+         We study the generalization performance of full-batch optimization algorithms
+         for stochastic convex optimization: these are first-order methods that only access
+         the exact gradient of the empirical risk (rather than gradients with respect to
+         individual data points), that include a wide range of algorithms such as gradient
+         descent, mirror descent, and their regularized and/or accelerated variants. We
+         provide a new separation result showing that, while algorithms such as stochastic
+         gradient descent can generalize and optimize the population risk to within ε after
+         𝑂 (1/ε2 ) iterations, full-batch methods either need at least Ω (1/ε4 ) iterations or
+         exhibit a dimension-dependent sample complexity.
+
+
+1   Introduction
+Stochastic Convex Optimization (SCO) is a fundamental problem that received considerable attention
+from the machine learning community in recent years [28, 15, 4, 11, 2]. In this problem, we assume
+a learner that is provided with a finite sample of convex functions drawn i.i.d. from an unknown
+distribution. The learner’s goal is to minimize the expected function. Owing to its simplicity, it
+serves as an almost ideal theoretical model for studying generalization properties of optimization
+algorithms ubiquitous in practice, particularly first-order methods which utilize only first derivatives
+of the loss rather than higher-order ones.
+One prominent approach for SCO—and learning more broadly—is to consider the empirical risk
+(the average objective over the sample) and apply a first-order optimization algorithm to minimize it.
+The problem of learning is then decoupled into controlling the optimization error over the empirical
+risk (training error) and bounding the difference between the empirical error and the expected error
+(generalization error).
+In convex optimization, the convergence of different first-order methods has been researched exten-
+sively for many years (e.g., [26, 25, 5]), and we currently have a very good understanding of this
+setting in terms of upper as well lower bounds on worst-case complexity. However, in SCO where
+the generalization error must also be taken into account, our understanding is still lacking. In fact,
+this is one of the few theoretical learning models where the optimization method affects not only the
+optimization error but also the generalization error (distinctively from models such as PAC learning
+and generalized linear models). In particular, it has been shown [28, 15] that some minima of the
+empirical risk may obtain large generalization error, while other minima have a vanishingly small
+
+35th Conference on Neural Information Processing Systems (NeurIPS 2021).
+generalization error. To put differently, learning in SCO is not only a question of minimizing the
+empirical risk, but also a question of how one minimizes it. However, the results of [28, 15] leave
+open the question of whether concrete optimization also have different generalization properties.
+Towards better understanding, Amir et al. [2] recently studied the generalization properties of full-
+batch gradient descent (GD), where each step is taken with respect to the gradient of the empirical
+risk. For GD (and a regularized variant thereof), they gave a lower bound on the generalization
+error as a function of iteration number, which is strictly larger than the well-known optimal rate
+obtained by stochastic gradient descent (SGD), where each step is taken with respect to the gradient
+at a sampled example. Notably, the lower bound of [2] precisely matches the dimension-independent
+stability-based upper bound recently shown for full-batch GD by Bassily et al. [4]. The separation
+between full-batch GD and SGD is the first evidence that not only abstract Empirical Risk Minimizers
+may fail to generalize in SCO, but in fact also basic methods such as GD could be prone to such
+overfitting. A natural question is, then, whether overfitting is inherent to full-batch algorithms, that
+minimize the objective only through access to the exact empirical risk, or whether this suboptimality
+can be remedied by adding regularization, noise, smoothing, or any other mechanism for improving
+the generalization of GD.
+In this work we present and analyze a model of full-batch optimization algorithms for SCO. Namely,
+we focus on algorithms that access the empirical risk only via a first-order oracle that computes
+the exact (full-batch) gradient of the empirical loss, rather than directly accessing gradients with
+respect to individual samples. Our main result provides a negative answer to the question above by
+significantly generalizing and extending the result of Amir et al. [2]: we show that any optimization
+method that uses full-batch gradients needs at least Ω (1/ε4 ) iterations to minimize the expected loss
+to within ε error. This is in contrast with the empirical loss, which can be minimized with only
+𝑂 (1/ε2 ) steps.
+Comparing SGD and GD in √       terms of the sample size 𝑛, we see that SGD converges to an optimal
+generalization error of 𝑂 (1/ 𝑛) after 𝑂 (𝑛) √ iterations, whereas a full-batch method must perform
+Ω (𝑛2 ) iterations to achieve the same 𝑂 (1/ 𝑛) test error. We emphasize that we account here for the
+oracle complexity, which coincides with the iteration complexity in the case of gradient methods. In
+terms of individual gradients calculations, while SGD uses at most 𝑂 (𝑛) gradient calculations (one
+sample per iteration), a full-batch method will perform Ω (𝑛3 ) calculations (𝑛 samples per iteration).
+The above result is applicable to a wide family of full-batch learning algorithms: regularized GD
+(with any data-independent regularization function), noisy GD, GD with line-search or adaptive step
+sizes, GD with momentum, proximal methods, coordinate methods, and many more. Taken together
+with upper bound of Bassily et al. [4], we obtain a sharp rate of Θ (1/ε4 ) for the generalization-
+complexity of full-batch methods. Surprisingly, this rate is achieved by standard GD (with an
+unusual step-size choice of η = Θ ( ε3 )), and it cannot be improved by adding regularization of any
+sort, nor by adding noise or any other form of implicit/explicit bias.
+
+
+
+1.1   Related work
+
+This work extends and generalizes the results of Amir et al. [2] who proved generalization lower
+bounds for GD (and a specific instance of regularized GD). Our work shows that in fact any full-batch
+method will suffer from similar lower bounds. Our construction builds upon the one used in [2],
+which in turn builds upon previous constructions [4, 28]. However, our arguments and proofs here are
+more challenging, as we need to reason about a general family of algorithms, and not about a specific
+algorithm whose trajectory can be analyzed directly. Our developments also build on ideas from the
+literature on oracle complexity lower bounds in optimization [25, 26, 30, 8, 12, 9]. In particular,
+we first prove our result in the simplified setting of algorithms constrained to the span of observed
+gradients [25, 26] and subsequently lift it to general algorithms using a random high-dimensional
+embedding technique proposed by Woodworth and Srebro [30] and later refined in [8, 12]. However,
+while these works lower bound what we call the empirical risk, we lower bound the generalization
+error. This requires us to develop a somewhat different argument for how the span of the gradients
+evolve during the optimization: in prior work, the algorithm learns the component of the solution
+coordinate by coordinate, whereas in our work the true (generalizing) solution is present in the
+observed gradients from the first query, but spurious sampling artifacts drown it out.
+
+
+                                                   2
+Empirical studies (outside of the scope of SCO) support the claim that generalization capabilities
+degrade with the increase of the batch size. Specifically, Zhu et al. [33] indicates that SGD out-
+performs GD in terms of generalization. The works of Keskar et al. [22] and Hoffer et al. [20]
+exhibit a similar phenomenon in which small-batch SGD generalizes better than large-batch SGD
+with the same iteration budget. We provide the first theoretical evidence for this phenomenon for
+convex losses. Several theoretical studies explore the convergence of stochastic methods that use
+mini-batches [10, 23, 31]. Note that this setting differs from ours, as they assume access to mini-
+batches sampled without replacement whereas full-batch means we reuse the same (full) batch with
+each gradient step.
+There has also been recent progress in improving the generalization capabilities of GD. Wu et al.
+[32] interprets mini-batch SGD as a noisy version of GD. They propose a modified algorithm
+with noise injected to the full-batch gradients. Geiping et al. [16] propose a GD-based training
+scheme that achieves CIFAR-10 generalization performance comparable to standard SGD training.
+Interestingly, both proposed algorithms require access to sample-points and are therefore not “full-
+batch” by our definition: The scheme [32] requires sample-point data for computing the noise, while
+the GD variant [16] uses mini-batch statistics to compute a regularization term (as well as batch
+normalization). Our work shows that (in SCO) this is unavoidable: namely, no data-independent
+noise or full-batch regularization can be used to improve generalization at a reasonable computational
+budget.
+Several other works study the generalization performance of GD [29, 17, 21, 24]. The work of
+Soudry et al. [29], for example, examines GD on unregularized logistic regression problems. They
+show that, in the limit, GD converges to a well-generalizing solution by arguing about the bias of
+the algorithm. Interestingly, both our and their results require slow-training, beyond what is required
+for empirical error optimization. Another work that highlights the slow convergence of GD is that
+of Bassily et al. [4]. They were the first to address uniform stability of (non-smooth) GD and SGD,
+and provided tight bounds. Stability entails generalization, hence our results lead to stability lower
+bounds for any full-batch method. Consequently, we extend the lower bounds for GD in the work of
+Bassily et al. [4] to a wider class. It might be thought that the instability argument of Bassily et al. [4]
+can be used to obtain similar generalization lower bounds—however, we note that their techniques
+also prove instability of SGD (which does generalize). Hence, instability does not immediately
+imply, in this setting, lack of generalization.
+Finally, we note that under smoothness and strong convexity, it is well known that improved rates
+can be obtained. Specifically, using the stability bound
+                                                   √      of Bousquet and Elisseeff [6] one can show
+that we can achieve generalization error of 𝑂 (1/ 𝑛) after 𝑂 (𝑛) iterations if the population risk is
+𝑂 (1)-strongly convex. The arguments
+                                 √      of Hardt et al. [19] imply generalization bound to instances
+where every sample risk is 𝑂 ( 𝑛) smooth. Our result implies that, even though these special
+families of functions enjoy appealing learning rates, in general it is impossible to obtain better rates
+by strong-convexifying or smoothing problem instances via first-order full-batch oracle queries.
+
+2   Problem Setup and Main Results
+We study the standard setting of stochastic convex optimization. In this setting, a learning problem
+is specified by a fixed domain W ⊆ ℝ 𝑑 in 𝑑-dimensional Euclidean space, and a loss function
+ 𝑓 : W × Z → ℝ, which is both convex and 𝐿-Lipschitz with respect to its first argument (that
+is, for any 𝑧 ∈ Z the function 𝑓 (𝑤; 𝑧) is 𝐿-Lipschitz and convex with respect to 𝑤). In particular,
+throughout the paper, our construction consists of 1-Lipschitz functions and we will focus on a fixed
+domain W defined to be the unit Euclidean ball in ℝ 𝑑 , namely W = {𝑤 : k𝑤k 2 ≤ 1}.
+We also assume that there exists an unknown distribution 𝐷 over parameters 𝑧 and the goal of the
+learner is to optimize the true risk (or true loss, or population risk) defined as follows:
+                                          𝐹 (𝑤) B 𝔼 [ 𝑓 (𝑤; 𝑧)],                                        (1)
+                                                   𝑧∼𝐷
+
+We assume that a sample 𝑆 = {𝑧 1 , . . . , 𝑧 𝑛 } is drawn from the distribution 𝐷, and the learner has to
+output 𝑤 𝑆 ∈ W (the exact access the learner has to the sample, and how 𝑤 𝑆 may depend on 𝑆 is
+discussed below). We require the solution to be ε-optimal in expectation for some parameter ε > 0,
+i.e.,
+                                 𝔼 [𝐹 (𝑤 𝑆 )] − min          𝐹 (𝑤★) ≤ ε.
+                                  𝑆∼𝐷 𝑛              𝑤 ∈W
+                                                        ★
+
+
+
+
+                                                     3
+As discussed, the standard setting assumes that the learner has direct access to the i.i.d. sample, as
+well as to the gradients of the loss function (i.e., a first-order oracle). In this work, though, we focus
+on a specific family full-batch methods. Hence, the optimization process is described as follows:
+First, an i.i.d. sample 𝑆 = (𝑧 1 , . . . , 𝑧 𝑛 ) is drawn from 𝐷. Then, the learner is provided with access
+only to the empirical risk via a full-batch first-order oracle which we define next.
+
+Full-batch first-order oracle. Consider a fixed sample 𝑆 = (𝑧1 , . . . , 𝑧 𝑛 ) of size 𝑛, drawn i.i.d. from
+𝐷. The empirical risk over the sample 𝑆 is
+                                                 𝑛
+                                              1X
+                                    𝐹𝑆 (𝑤) =       𝑓 (𝑤; 𝑧𝑖 ).
+                                              𝑛
+                                                     𝑖=1
+Then, a full-batch first-order oracle is a procedure that, given input 𝑤 ∈ W, outputs
+                                     O(𝑤) := (∇𝐹𝑆 (𝑤); 𝐹𝑆 (𝑤)).
+where ∇𝐹𝑆 (𝑤) is an empirical risk sub-gradient of the form
+                                                    𝑛
+                                                 1X
+                                     ∇𝐹𝑆 (𝑤) =         ∇ 𝑓 (𝑤; 𝑧 𝑖 ),                                   (2)
+                                                 𝑛
+                                                     𝑖=1
+and each sub-gradient ∇ 𝑓 (𝑤, 𝑧𝑖 ) is computed by the oracle as a function of 𝑤 and 𝑧 𝑖 (that is,
+independently of 𝑧 𝑗 for 𝑗 ≠ 𝑖).
+We emphasize that the sample is fixed throughout the optimization, so that the oracle computes the
+gradient of the same empirical risk function at every call, hence the name full-batch. Note that the
+subgradient with respect to a single data point, i.e., ∇ 𝑓 (𝑤; 𝑧 𝑖 ), is not accessible through this oracle,
+which only returns the average gradient over the sample 𝑆.
+Notice that our definition above is slightly narrower than a general sub-gradient oracle for the
+empirical risk due to the requirement that the sub-gradients ∇ 𝑓 (𝑤, 𝑧𝑖 ) are chosen independently of
+𝑧 𝑗 for 𝑗 ≠ 𝑖 – since we provide here with a lower bound, this restriction strengthens our result. We
+make this restriction to avoid some degenerate constructions (that in fact can even be used to fail
+SGD if the gradient at 𝑧 𝑖 may depend on the whole sample), which are of no practical implications.
+
+Full-batch first-order algorithm. A full-batch (first-order) method is naturally defined as any
+algorithm that has access to the optimization objective—namely the empirical risk 𝐹𝑆 —only via the
+full-batch first order oracle. In particular, if 𝑤 𝑡 is the 𝑡’th query of the algorithm to the full-batch
+oracle then 𝑤 𝑡 has to be of the form
+                                    𝑤 𝑡 = 𝑄 𝑡 (O(𝑤 0 ), . . . , O(𝑤 𝑡−1 )),                           (3)
+where 𝑄 𝑡 : (ℝ 𝑑+1 ) 𝑡 → W is a fixed (possibly randomized) mapping. At the end of the process
+the algorithm outputs 𝑤 𝑆 . We study the algorithm’s oracle complexity, which is the number of
+iterations 𝑇 the algorithm performs before halting. Therefore, we assume without loss of generality
+that 𝑤 𝑆 = 𝑤𝑇 , i.e., the algorithm’s output is its 𝑇’th query.
+
+2.1   Main result
+
+In this section we establish our main result, which provides a generalization lower-bound for full-batch
+first order algorithms. The complete proof is provided in the full version of the paper [1].
+Theorem 2.1. Let ε > 0 and 𝑛, 𝑇 ∈ ℕ; there exists 𝑑 = poly(2𝑛 , 𝑇, 1/ε) such that the following
+holds. For any full-batch first-order algorithm with oracle complexity at most 𝑇, there exists a
+1-Lipschitz convex function 𝑓 (𝑤; 𝑧) in W, the unit-ball in ℝ 𝑑 , and a distribution 𝐷 over Z such that,
+for some universal constant 𝑐 > 0:
+                                                                            √
+                                               𝐹 (𝑤★) + ε + Ω min 1 − 𝑐ε2 𝑇, 0 .
+                                                                                  
+                       𝔼 [𝐹 (𝑤 𝑆 )] ≥ min                                                            (4)
+                     𝑆∼𝐷 𝑛             𝑤 ∈W
+                                         ★
+
+
+An immediate consequence of Theorem 2.1 is that in order to obtain less than ε true risk we need at
+least 𝑇 = Ω (1/ε4 ) iterations.
+For simplicity, we state and prove the lower bound in Theorem 2.1 for the class of first-order full-
+batch algorithms defined above. However, our constructions readily generalize to local full-batch
+oracles that provide a complete description of 𝐹𝑆 in an arbitrarily small neighborhood of the query
+point [25, 18]. Such oracles subsume second-order oracles, and consequently our generalization
+lower bounds hold also for second-order full-batch algorithms.
+
+
+                                                     4
+2.2   Discussion
+
+Theorem 2.1 suggests that full-batch first-order algorithms are inferior to other types of first-order
+algorithms that operate with access to individual examples, such as SGD. Importantly, this sepa-
+ration is achieved not in terms of the optimization performance but in terms of the generalization
+performance. In light of this result, we next discuss and revisit the role of the optimization algorithm
+in the context of SCO. In particular, we wish to discuss the implications to what are perhaps the
+two most prominent full-batch optimization methods, GD and regularzied-GD, and in turn compare
+them.
+
+Gradient descent. Perhaps the simplest example of a full-batch method is (projected) GD: GD is
+an iterative algorithm that at each iteration performs an update step
+                                      𝑤 𝑡 = ΠW [𝑤 𝑡−1 − η∇𝐹𝑆 (𝑤 𝑡 )],
+where W is a P convex set on which we project the iterated step. The output of GD is normally taken
+to be 𝑤 𝑆 = 𝑇1 𝑤 𝑡 (or a randomly chosen 𝑤 𝑡 ). Notice, that each step requires one call to a full batch
+oracle, and a single projection operation. The convergence analysis of GD to the optimal solution of
+the empirical
+          √ risk has been widely studied. Specifically, if 𝑛 is the sample-size,√it is known that with
+η = 𝑂 (1/ 𝑛) and 𝑇 = 𝑂 (𝑛), GD converges to a minimizer of 𝐹𝑆 that is 𝑂 (1/ 𝑛)-sub optimal. For
+the exact variant of GD depicted above, the generalization performance was analyzed√       in the work
+of Amir et al. [2] that showed that with 𝑇 = 𝑂 (𝑛) steps, GD will suffer Ω (1/ 4 𝑛) generalization
+error. Theorem 2.1 extends the above result to any variant of GD (dynamic learning-rate, noisy GD,
+normalized GD, etc.).
+
+Regularized gradient descent. We would also like to discuss the implication of Theorem 2.1 with
+respect to regularized variants of GD that operate on the regularized empirical risk
+                                         𝐹ˆ (𝑤) = λ𝑟 (𝑤) + 𝐹𝑆 (𝑤).
+The main motivation of introducing the regularization term 𝑟 is to avoid overfitting, and a popular
+choice for 𝑟 is the Euclidean norm 𝑟 (𝑤) = k𝑤k 22 . This choice leads to the following update rule for
+GD:
+                           𝑤 𝑡+1 = ΠW [(1 − η 𝑡 ) · (2λ𝑤 𝑡 ) − η 𝑡 ∇𝐹𝑆 (𝑤 𝑡 )] ,
+Again, this update can be implemented using a single first-order full-batch oracle call that computes
+the quantity ∇𝐹𝑆 (𝑤 𝑡 ). More generally, for any data-independent 𝑟, GD on 𝐹ˆ is a full-batch algorithm1.
+                                                                                                    √
+When 𝑟 is the Euclidean norm, the minimizer√      of 𝐹ˆ is known to enjoy (with choice λ = 𝑂 (1/ 𝑛)),
+an optimal generalization error of 𝑂 (1/ 𝑛) [6, 28]. This demonstrates the power of regularization
+and how it can provably induce generalization. Nevertheless, Theorem 2.1 still applies to√any
+optimization method over 𝐹. ˆ Since optimization of 𝐹ˆ (the regularized empirical risk) to 𝑂 (1/ 𝑛)-
+precision can be done via a full-batch method, and with less than 𝑂 (𝑛) calls, we observe that there
+are methods that minimize the regularized-empirical risk but, due to Theorem 2.1 do not reach the
+optimal generalization error.
+
+The role of regularization. Finally, in light of Theorem 2.1 let us compare the different variants
+of GD and regularized GD that do generalize well, in order to sharpen our understanding of the role
+of regularization in generalization. The conclusion of Theorem 2.1 is that any full-batch method that
+generalizes well performs at least 𝑂 (𝑛2 ) steps. For regularized GD, with `2 regularization, 𝑂 (𝑛2 )
+are indeed sufficient. In particular, with 𝑂 (𝑛2 ) iterations we can find a solution√ that has 𝑂 (1/𝑛)
+empirical error. Any such solution would enjoy a generalization error of 𝑂 (1/ √     𝑛) [28]. For GD,
+Bassily et al. [4] showed that 𝑂 (𝑛2 ) iterations would also suffice to achieve 𝑂 (1/ 𝑛) error. This is
+achieved by tuning the learning rate to η = 𝑂 (1/𝑛3/2 ). Notice that this improvement does not require
+any type of added regularization.
+
+                        √ and regularized GD with optimal parameters require Θ (𝑛 ) iterations to
+To summarize, both GD                                                                  2
+attain the optimal 𝑂 (1/ 𝑛) generalization error. Overall then, explicitly adding regularization is not
+necessary nor does it improve the convergence rate. One might be tempted to believe that tuning
+the learning rate in GD induces implicitly some sort of regularization. For example, one might
+    1Note that we are not concerned with the computational cost of computing ∇𝑟 (𝑤 𝑡 ) since it does not factor
+into oracle complexity.
+
+
+                                                      5
+imagine that GD can be biased towards minimal norm solution, which might explain redundancy
+of regularizing by this norm. However, this turns out also to be false: Dauber et al. [11] showed
+how GD (with any reasonable choice of learning rate) can diverge from the minimal norm solution.
+In fact, for any regularization term 𝑟, one can find examples where GD does not converge to the
+regularized solution. Thus, even though GD and regularized-GD are comparable algorithms in terms
+of generalization and oracle complexity, they are distinct in terms of the solutions they select.
+
+3     Technical Overview
+In this section we give an overview of our construction and approach towards proving Theorem 2.1.
+For the sake of exposition, we will describe here a slightly simpler construction which proves the
+main result only for algorithms that remain in the span of the gradients. In more detail, let us examine
+the family of iterative algorithms of the form
+                        𝑤 𝑡 ∈ span{∇𝐹𝑆 (𝑤 0 ), ∇𝐹𝑆 (𝑤 1 ), . . . , ∇𝐹𝑆 (𝑤 𝑡−1 )} ∩ W,                (5)
+where W is the unit ball and ∇𝐹𝑆 (𝑤 𝑡 ) is full-batch oracle response to query 𝑤 𝑡 as defined in (2)
+above. Well-studied algorithms such as GD and GD with standard `2 norm regularization fall into
+this category of algorithms.
+To extend the lower bound to algorithms not restricted to the gradient span we refine the simpler
+construction and apply well-established techniques of random embedding in high-dimensional space.
+We discuss these modifications briefly in the end of this section and provide the full details in Section 4
+and the full version of the paper [1].
+
+3.1   A simpler construction
+
+Let us fix 𝑛, 𝑑 ≥ 1 and parameters 𝑧 = ( α, ε, γ) ∈ {0, 1} 𝑑 × ℝ × ℝ2 = Z, such that α ∈ {0, 1} 𝑑 ,
+ε > 0 and γ1 , γ2 > 0. Define the hard instance 𝑓 (6) : ℝ 𝑑+2 × Z → ℝ as follows:
+                      𝑓 (6) (𝑤; ( α, ε, γ)) = 𝑔γ (𝑤; α) + γ1 𝑣 α · 𝑤 + ε𝑤 · 𝑒 𝑑+2 + 𝑟 (𝑤),    (6)
+where 𝑔γ , 𝑣 α and 𝑟 are
+
+                                                                                    𝑎 ≥ −γ2 ;
+                                                                        
+                                              2 (𝑤(𝑖)) with ℎ (𝑎) B 0
+                         qP
+       • 𝑔γ (𝑤; α) B          𝑖 ∈ [𝑑 ] α (𝑖)ℎ γ                 γ
+                                                                          𝑎 + γ2 𝑎 < −γ2 ,
+       • 𝑟 (𝑤) B max{0, max𝑖 ∈ [𝑑+1] {𝑤(𝑖)}},
+                       1
+                   − 2𝑛 if α (𝑖) = 0;
+                  
+                  
+       • 𝑣 α (𝑖) B +1
+                  
+                         if α (𝑖) = 1;
+                  
+                  0
+                        if 𝑖 ∈ {𝑑 + 1, 𝑑 + 2},
+
+and 𝑒 𝑑+2 is the (𝑑 + 2)’th standard basis vector. The distribution we will consider is uniform over α.
+That is, we draw α ∈ {0, 1} 𝑑 uniformly at random and pick the function 𝑓 (6) (𝑤; ( α, ε, γ)).
+The parameters γ1 and γ2 of the construction should be thought of as arbitrarily small. In particular,
+the term γ1 𝑣 α · 𝑤 in Eq. (6) should be thought of as negligible, and the first term, 𝑔γ , is roughly
+                                            sX
+                                𝑔γ (𝑤; α) ≈      α (𝑖) (max{−𝑤(𝑖), 0}) 2 .
+                                                 𝑖 ∈𝑑
+
+Another useful property of the construction is the population risk 𝐹 (𝑤) = 𝔼𝑧∼𝐷 𝑓 (6) (𝑤; 𝑧) is min-
+imized at 𝑤★ ≈ −𝑒 𝑑+2 , with expected loss 𝐹 (𝑤★) ≈ −ε. However, as we will see, the choice
+of the perturbation vector 𝑣 α and the term 𝑟 (𝑤) hinder the learner from observing this coordinate
+and; the first Ω ( ε−4 ) queries are constrained to a linear subspace where all the points have a high
+generalization error due to the expectation of the first term 𝑔γ .
+
+3.2   Analysis
+
+We next state the main lemmas we use,  P with proofs deferred to the full version of the paper [1].
+Given a sample 𝑆, let us denote 𝑣¯ = 𝑛1 α ∈𝑆 𝑣 α , and
+                             span1 {𝑢 1 , 𝑢 2 , . . .} B span{𝑢 1 , 𝑢 2 , . . .} ∩ W.
+
+
+                                                        6
+Additionally, given a fixed sample we write
+                                     I(𝑆) = {𝑖 : α (𝑖) = 0 ∀α ∈ 𝑆} ∪ {𝑑 + 1}
+for the set of coordinates 𝑖 ∈ [𝑑] such that α (𝑖) = 0 for every α in the sample 𝑆, plus the coordinate
+𝑑 + 1.
+                           1        2γ
+Lemma 3.1. Let γ1 ≤ 2𝑇       , γ2 = ε 1 , and suppose that the sample 𝑆 satisfies |I(𝑆)| > 𝑇. Then there
+exists a first-order full-batch oracle such that for any algorithm that adheres to
+                           𝑤 𝑡 ∈ span1 ∇𝐹𝑆 (𝑤 0 ), ∇𝐹𝑆 (𝑤 1 ), . . . , ∇𝐹𝑆 (𝑤 𝑡−1 ) ,
+                                        
+                                                                                                     (7)
+with respect to 𝑓 (𝑤; ( α, ε, γ)) defined in Eq. (6), we have
+                                          n                  o
+                             𝑤 𝑡 ∈ span1 γ1 𝑣¯ + ε𝑒 𝑑+2 + 𝑒 𝑖 for all 𝑡 ∈ [𝑇],
+                                          𝑖 ∈I𝑡 (𝑆)
+
+where I𝑡 (𝑆) is the set of the 𝑡 + 1 largest coordinates in I(𝑆).
+We next observe that in any span of the form {γ1 𝑣¯ + ε𝑒 𝑑+2 + 𝑒 𝑖 }𝑖 ∈I𝑇 (𝑆) such that |I𝑇 (𝑆)| ≤ 𝑇, we
+cannot find a solution with better risk than 0. On the other hand, note that for 𝑤¯ = −𝑒 𝑑+2 , we have
+that
+                                                ¯ ( α, ε, γ)) = −ε.
+                                        𝑓 (6) ( 𝑤;
+In other words, our lower bound stems from the following result:
+                                                              √                           √
+Lemma 3.2. For sufficiently small γ1 ≤ 2𝑛εγ2 , γ2 ≤ ε/ 4𝑇, and any vector k 𝑣¯ k ≤ 𝑑, any output
+                                            𝑤 𝑆 ∈ span1 {γ1 𝑣¯ + ε𝑒 𝑑+2 + 𝑒 𝑖 },
+                                                      𝑖 ∈I𝑇 (𝑆)
+
+satisfies
+                     1
+                         sX                                            n       √    o 1
+                                    ℎ2γ (𝑤 𝑆 (𝑖)) + ε𝑤 𝑆 (𝑒 𝑑+2 ) ≥ min 1 − 2ε2 𝑇, 0 − ε.                             (8)
+                     2                                                                2
+                         𝑖 ∈ [𝑑 ]
+
+
+Lower bound proof sketch for span-restricted algorithms of the form (5). First, observe that the
+probability of an arbitrary index 𝑖 to satisfy α (𝑖) = 0 for all α ∈ 𝑆 is (1/2) 𝑛 . Therefore, |I(𝑆)| −1, the
+number of indexes that hold this from the possible 𝑑, is distributed as a binomial with 𝑑 experiments
+and success probability 𝑝 = 2−𝑛 . Using elementary probability arguments one can show that for
+sufficiently large 𝑑 we have |I(𝑆)| > 𝑇 with high probability; see Claim B.2 in the appendix. This
+implies that the conditions of Lemmas 3.1 and 3.2 hold w.h.p. To conclude, we relate the LHS of
+Eq. (8) to the expected risk
+      𝐹 (𝑤) = 𝔼 [ 𝑓 (6) (𝑤; ( α, ε, γ))] = 𝔼 [𝑔γ (𝑤; α)] + γ1 · 𝔼 [𝑣 α ] · 𝑤 + ε𝑤 · 𝑒 𝑑+2 + 𝑟 (𝑤).
+               α∼𝐷                                    α∼𝐷                              α∼𝐷
+
+As 𝑔γ (𝑤; α) is convex w.r.t. α (since α (𝑖) =                         α2 (𝑖))      we can apply Jensen’s inequality with
+𝔼α∼𝐷 [α (𝑖)] = 21 to obtain:
+                                                                        sX
+                                                                   1
+                                       𝔼 [𝑔γ (𝑤 𝑆 ; α)] ≥                           ℎ2γ (𝑤 𝑆 (𝑖)).
+                                     α∼𝐷                           2
+                                                                         𝑖 ∈ [𝑑 ]
+                                                                                                                      √
+Applying the Cauchy-Schwarz inequality to the second term while also using the facts that k𝑣 α k ≤                        𝑑
+and that 𝑤 𝑆 is in the unit ball, we get:
+                                                                       √
+                          γ1 𝔼 [𝑣 α ] · 𝑤 ≥ −γ1 𝔼 [k𝑣 α k · k𝑤k] ≥ −γ1 𝑑.
+                                    α∼𝐷                           α∼𝐷
+
+For sufficiently small γ1 this term is negligible, and since 𝑟 (𝑤) ≥ 0 we get that the expected risk is
+approximately the LHS term in Eq. (8). Lastly, recalling that 𝐹 (−𝑒 𝑑+2 ) = −ε we get that
+                                                1         n        √    o
+                         𝐹 (𝑤 𝑆 ) − min 𝐹 (𝑤) ≥ ε + min 1 − 2ε2 𝑇, 0 w.h.p.
+                                    𝑤 ∈W        2
+The same lower bound (up to a constant) also holds in expectation by the the law of total expectation.
+                                                                                             1
+Our distribution is supported on 5-Lipschitz convex functions, so that re-parametrizing 10     ε → ε as
+well as 𝑓 (6) yields the claimed lower bound (4) for the case of span-restricted algorithms.         
+
+
+                                                                   7
+3.3   Handling general full-batch algorithms
+
+The above construction establishes an Ω (1/ε4 ) oracle complexity lower bound on any algorithm
+whose iterates lie in the span of the previous gradients. While this covers a large class of algorithms,
+techniques like preconditioning [13], coordinate methods [27] and randomized smoothing [14] do
+not satisfy this assumption. In fact, a trivial algorithm that always outputs −𝑒 𝑑+2 will solve the hard
+instance (6) in a single iteration.
+To address general algorithms, we employ a well-established technique in optimization lower bounds
+[30, 8, 12] wherein we embed a hard instance 𝑓 (𝑤; 𝑧) for span-constrained algorithms in a ran-       0
+dom high-dimensional space. More concretely, we draw a random orthogonal matrix 𝑈 ∈ ℝ 𝑑 ×𝑑
+   >                                 0                                                >
+(𝑈 𝑈 = 𝐼 𝑑×𝑑 ) and consider the 𝑑 > 𝑑-dimensional    P instance 𝑓𝑈 (𝑤; 𝑧) = 𝑓 (𝑈 𝑤; 𝑧) along with its
+corresponding empirical objective 𝐹𝑆,𝑈 (𝑤) = 𝑛1 𝑖 ∈ [𝑛] 𝑓𝑈 (𝑤; 𝑧𝑖 ). Roughly speaking, we show that
+for a general algorithm operating with the appropriate subgradient oracle for 𝐹𝑆,𝑈 the iterate 𝑤 𝑡 is
+approximately in the span of {∇𝐹𝑆,𝑈 (𝑤 0 ), . . . , ∇𝐹𝑆,𝑈 (𝑤 𝑡−1 )} in the sense that the component of 𝑤 𝑡
+outside that span is nearly orthogonal to the columns of 𝑈. Consequently, the response of the oracle
+to the query 𝑤 𝑡 at iteration 𝑡 is, with high probability, identical to the information it would return if
+queried with the projection of 𝑤 𝑡 to the span of the previously observed gradients. This reduces, in
+a sense, the problem back to the span-restricted setting described above.
+For the embedding technique to work, we must robustify the hard instance construction so
+that small perturbations around points in the span of previous gradients do not “leak” addi-
+tional information about the embedding 𝑈. To do that we make a fairly standard modifica-
+tion to the component 𝑟 (𝑤) in (6) (known as Nemirovski’s function [12, 7]), replacing it with
+max{0, max𝑖 ∈ [𝑑 ] {𝑤(𝑖) + 𝑖 γ0 }, 𝑤(𝑑 + 1) + γ00 }, where γ0, γ00 are small offset coefficients that go to
+zero as the embedding dimension 𝑑 0 tends to infinity. We provide the full construction and the proof
+of Theorem 2.1 in Section 4 and the full version of the paper [1].
+
+
+4     The Full Construction
+
+As explained above, the key difference between the simplified construction 𝑓 (6) and the full construc-
+tion with which we prove Theorem 2.1 is that we modify the Nemirvoski function term 𝑟 (𝑤) in order
+to make it robust to queries that are nearly within a certain linear subspace. In particular, we bias
+the different terms in the maximization defining 𝑟 (𝑤) so as to control the index of the coordinate
+attaining the maximum. For ease of reference, we now provide a self-contained definition of our full
+construction with the modified Nemirovski function.
+Fix 𝑛, 𝑑 ≥ 1 and parameters 𝑧 = ( α, ε, γ) ∈ {0, 1} 𝑑 × ℝ × ℝ3 = Z are such that α ∈ {0, 1} 𝑑 , ε > 0
+and γ1 , γ2 , γ3 > 0. Define the hard instance 𝑓 (9) : ℝ 𝑑+2 × Z → ℝ as follows:
+                      𝑓 (9) (𝑤; ( α, ε, γ)) = 𝑔γ (𝑤; α) + γ1 𝑣 α · 𝑤 + ε𝑤 · 𝑒 𝑑+2 + 𝑟 (𝑤),              (9)
+where 𝑔γ , 𝑣 α and 𝑟 are
+
+                                                                                     𝑎 ≥ −γ2 ;
+                                                                                  
+                        qP                                                   0
+       • 𝑔γ (𝑤; α) :=       𝑖 ∈ [𝑑 ]   α (𝑖)ℎ2 (𝑤(𝑖))
+                                             γ             with       ℎγ (𝑎) :=
+                                                                             𝑎 + γ2 𝑎 < −γ2 ,
+                                                                              γ1 γ3
+                                                                              𝑖 · 4𝑑𝑛 if 𝑖 ∈ [𝑑];
+       • 𝑟 (𝑤) := max{0, max𝑖 ∈ [𝑑+1] {𝑤(𝑖) + σ𝑖 }}               with σ𝑖 :=
+                                                                               2γ3     if 𝑖 = 𝑑 + 1.
+                        1
+                    − 2𝑛
+                   
+                            if α (𝑖) = 0;
+       • 𝑣 α (𝑖) := +1
+                   
+                             if α (𝑖) = 1;
+                   
+                   0
+                            if 𝑖 ∈ {𝑑 + 1, 𝑑 + 2},
+
+and 𝑒 𝑖 is the 𝑖’th standard basis vector in ℝ 𝑑+2 . We consider a distribution 𝐷 over α that is
+distributed uniformly over {0, 1} 𝑑 ; that is, we draw α ∈ {0, 1} 𝑑 uniformly at random and pick the
+function 𝑓 (9) (𝑤; ( α, ε, γ)). The rest of the parameters are set throughout the proof as follows:
+                                                 εγ2              ε               ε
+                                        γ1 =           , γ2 =    √ , γ3 =    .                         (10)
+                                                  4             𝑇 𝑑       16
+
+                                                            8
+                                                                                                 √
+With this choice of distribution 𝐷 as well our choice of parameters we obtain, since k𝑣 α k ≤        𝑑 and
+by our choice of γ1 (as well as Jensen’s inequality and 𝑟 (·) ≥ 0):
+
+                                                                                    ε
+                                                    s
+                                              1 X 2
+              𝐹 (𝑤) = 𝔼 𝑓 (9) (𝑤; ( α, ε, γ)) ≥              ℎγ (𝑤(𝑖)) + ε𝑤(𝑑 + 2) − .
+                            
+                                                                                                      (11)
+                       α∼𝐷                        2                                 4
+                                                           𝑖 ∈ [𝑑 ]
+
+Notice that we also have that for a choice 𝑤★ = −𝑒 𝑑+2 , since 𝑟 (𝑤★) = 2γ3 :
+                                                           ε          7ε
+                                          𝐹 (𝑤★) = −ε +        =−                                     (12)
+                                                           8          8
+
+Our development makes frequent use of the following notation from Section 3:
+                                                                                            1X
+  I(𝑆) = {𝑖 : α (𝑖) = 0 ∀α ∈ 𝑆} ∪ {𝑑 + 1}, I𝑡 (𝑆) = 𝑡 largest elements in I(𝑆), and 𝑣¯ =       𝑣α .
+                                                                                            𝑛
+                                                                                              α ∈𝑆
+
+
+We begin with the following lemma, which is a robust version of Lemma 3.1 in Section 3. The proof
+is provided in the full version of the paper [1].
+Lemma 4.1. Suppose that 𝑤 0 = 0. Consider 𝑓 (9) (𝑤; ( α, ε, γ)) with parameters as in Eq. (10).
+Suppose 𝑆 is a sample such that |I(𝑆)| > 𝑡 + 1. Assume that 𝑤 is such that
+
+                                                 𝑤 = 𝑤 𝑡 + 𝑞,
+
+where
+                                    n               o                  nγ γ γ o
+                                                                         2   1 3
+                    𝑤 𝑡 ∈ span1 γ1 𝑣¯ + ε𝑒 𝑑+2 + 𝑒 𝑖 , and k𝑞k ∞ ≤ min     ,     .                    (13)
+                          𝑖 ∈I𝑡 (𝑆)                                     3 16𝑑𝑛
+
+Then,
+                                        ∇𝐹𝑆 (𝑤) = γ1 𝑣¯ + ε𝑒 𝑑+2 + 𝑒 𝑖 ,
+for some 𝑖 ∈ I𝑡+1 (𝑆), where I𝑡 (𝑆) is the set of the 𝑡 + 1 largest coordinates in I(𝑆).
+
+The following corollary states that the gradient oracle’s answers are resilient to small perturbation
+of the query (as long as they are in vicinity of the “right" subspace): the proof is provided in the full
+version of the paper [1]:
+Corollary 4.2. Assume that 𝑤 is such that
+
+                                                 𝑤 = 𝑤 𝑡 + 𝑞,
+
+where
+                                 n               o              1     nγ γ γ o
+                                                                        2   1 3
+                 𝑤 𝑡 ∈ span1 γ1 𝑣¯ + ε𝑒 𝑑+2 + 𝑒 𝑖 , and k𝑞k ∞ ≤ √ min     ,     .                     (14)
+                       𝑖 ∈I𝑡 (𝑆)                               4 𝑑     3 16𝑑𝑛
+
+Then,
+                         ∇𝐹𝑆 (𝑤) = ∇𝐹𝑆 ( Π𝑡+1 (𝑤)),         𝐹𝑆 (𝑤) = 𝐹𝑆 ( Π𝑡+1 (𝑤)),
+where Π𝑡 is a projection onto span𝑖 ∈I𝑡 (𝑆) {γ1 𝑣¯ + ε𝑒 𝑑+2 + 𝑒 𝑖 }.
+
+
+Acknowledgements and Disclosure of Funding
+
+This work has received support from the Israeli Science Foundation (ISF) grant no. 2549/19 and
+grant no. 2188/20, from the Len Blavatnik and the Blavatnik Family foundation, from the Yandex
+Initiative in Machine Learning, and from an unrestricted gift from Google. Any opinions, findings,
+and conclusions or recommendations expressed in this work are those of the author(s) and do not
+necessarily reflect the views of Google.
+
+
+                                                       9
+References
+ [1] I. Amir, Y. Carmon, T. Koren, and R. Livni. Never go full batch (in stochastic convex
+     optimization). CoRR, abs/2107.00469, 2021.
+ [2] I. Amir, T. Koren, and R. Livni. SGD generalizes better than GD (and regularization doesn’t
+     help). In Conference on Learning Theory, 2021.
+ [3] K. Ball et al. An elementary introduction to modern convex geometry. Flavors of Geometry,
+     31:1–58, 1997.
+ [4] R. Bassily, V. Feldman, C. Guzmán, and K. Talwar. Stability of stochastic gradient descent on
+     nonsmooth convex losses. In Advances in Neural Information Processing Systems, 2020.
+ [5] L. Bottou, F. E. Curtis, and J. Nocedal. Optimization methods for large-scale machine learning.
+     SIAM Review, 60(2):223–311, 2018.
+ [6] O. Bousquet and A. Elisseeff. Stability and generalization. Journal of Machine Learning
+     Research, 2:499–526, 2002.
+ [7] S. Bubeck, Q. Jiang, Y. T. Lee, Y. Li, A. Sidford, et al. Complexity of highly parallel non-smooth
+     convex optimization. Advances in Neural Information Processing Systems, 2019.
+ [8] Y. Carmon, J. C. Duchi, O. Hinder, and A. Sidford. Lower bounds for finding stationary points
+     I. Mathematical Programming, pages 1–50, 2019.
+ [9] Y. Carmon, A. Jambulapati, Q. Jiang, Y. Jin, Y. T. Lee, A. Sidford, and K. Tian. Acceleration
+     with a ball optimization oracle. In Advances in Neural Information Processing Systems, 2020.
+[10] A. Cotter, O. Shamir, N. Srebro, and K. Sridharan. Better mini-batch algorithms via accelerated
+     gradient methods. In Advances in Neural Information Processing Systems, 2011.
+[11] A. Dauber, M. Feder, T. Koren, and R. Livni. Can implicit bias explain generalization?
+     stochastic convex optimization as a case study. In Advances in Neural Information Processing
+     Systems, 2020.
+[12] J. Diakonikolas and C. Guzmán. Lower bounds for parallel and randomized convex optimization.
+     In Conference on Learning Theory, 2019.
+[13] J. Duchi, E. Hazan, and Y. Singer. Adaptive subgradient methods for online learning and
+     stochastic optimization. Journal of Machine Learning Research, 12(7), 2011.
+[14] J. C. Duchi, P. L. Bartlett, and M. J. Wainwright. Randomized smoothing for stochastic
+     optimization. SIAM Journal on Optimization, 22(2):674–701, 2012.
+[15] V. Feldman. Generalization of ERM in stochastic convex optimization: The dimension strikes
+     back. In Advances in Neural Information Processing Systems, 2016.
+[16] J. Geiping, M. Goldblum, P. E. Pope, M. Moeller, and T. Goldstein. Stochastic training is not
+     necessary for generalization. arXiv:2109.14119, 2021.
+[17] S. Gunasekar, J. D. Lee, N. Srebro, and D. Soudry. Implicit bias of gradient descent on linear
+     convolutional networks. Advances in Neural Information Processing Systems, 2018.
+[18] C. Guzmán and A. Nemirovski. On lower complexity bounds for large-scale smooth convex
+     optimization. Journal of Complexity, 31(1):1–14, 2015.
+[19] M. Hardt, B. Recht, and Y. Singer. Train faster, generalize better: Stability of stochastic gradient
+     descent. In International Conference on Machine Learning, 2016.
+[20] E. Hoffer, I. Hubara, and D. Soudry. Train longer, generalize better: closing the generalization
+     gap in large batch training of neural networks. In I. Guyon, U. von Luxburg, S. Bengio,
+     H. M. Wallach, R. Fergus, S. V. N. Vishwanathan, and R. Garnett, editors, Advances in Neural
+     Information Processing Systems, 2017.
+
+
+                                                   10
+[21] Z. Ji and M. Telgarsky. The implicit bias of gradient descent on nonseparable data. In Conference
+     on Learning Theory, 2019.
+[22] N. S. Keskar, D. Mudigere, J. Nocedal, M. Smelyanskiy, and P. T. P. Tang. On large-batch
+     training for deep learning: Generalization gap and sharp minima. In International Conference
+     on Learning Representations, 2017.
+[23] M. Li, T. Zhang, Y. Chen, and A. J. Smola. Efficient mini-batch training for stochastic
+     optimization. In S. A. Macskassy, C. Perlich, J. Leskovec, W. Wang, and R. Ghani, editors,
+     International Conference on Knowledge Discovery and Data Mining, 2014.
+[24] Y. Li, E. X. Fang, H. Xu, and T. Zhao. Implicit bias of gradient descent based adversarial
+     training on separable data. In International Conference on Learning Representations, 2019.
+[25] A. S. Nemirovski and D. B. Yudin. Problem complexity and method efficiency in optimization.
+     1983.
+[26] Y. Nesterov. Introductory lectures on convex optimization: A basic course, volume 87. Springer,
+     2003.
+[27] Y. Nesterov. Efficiency of coordinate descent methods on huge-scale optimization problems.
+     SIAM Journal on Optimization, 22(2):341–362, 2012.
+[28] S. Shalev-Shwartz, O. Shamir, N. Srebro, and K. Sridharan. Stochastic convex optimization.
+     In Conference on Learning Theory, 2009.
+[29] D. Soudry, E. Hoffer, M. S. Nacson, S. Gunasekar, and N. Srebro. The implicit bias of gradient
+     descent on separable data. The Journal of Machine Learning Research, 19(1):2822–2878,
+     2018.
+[30] B. Woodworth and N. Srebro. Tight complexity bounds for optimizing composite objectives.
+     In Advances in Neural Information Processing Systems, 2016.
+[31] B. Woodworth, J. Wang, A. Smith, B. McMahan, and N. Srebro. Graph oracle models, lower
+     bounds, and gaps for parallel stochastic optimization. In Advances in Neural Information
+     Processing Systems, 2018.
+[32] J. Wu, W. Hu, H. Xiong, J. Huan, V. Braverman, and Z. Zhu. On the noisy gradient descent
+     that generalizes as sgd. In International Conference on Machine Learning, 2020.
+[33] Z. Zhu, J. Wu, B. Yu, L. Wu, and J. Ma. The anisotropic noise in stochastic gradient descent:
+     Its behavior of escaping from sharp minima and regularization effects. In K. Chaudhuri and
+     R. Salakhutdinov, editors, International Conference on Machine Learning, 2019.
+
+
+
+
+                                                 11
+

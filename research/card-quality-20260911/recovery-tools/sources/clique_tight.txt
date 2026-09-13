@@ -1,0 +1,1086 @@
+                                                            Tight Distributed Listing of Cliques
+                                         Keren Censor-Hillel          Yi-Jun Chang             François Le Gall           Dean Leitersdorf
+                                               Technion                  ETH Zürich            Nagoya University               Technion
+arXiv:2011.07405v1 [cs.DC] 14 Nov 2020
+
+
+
+
+                                                                                      Abstract
+                                             Much progress has recently been made in understanding the complexity landscape of sub-
+                                         graph finding problems in the CONGEST model of distributed computing. However, so far, very
+                                         few tight bounds are known in this area. For triangle (i.e., 3-clique) listing, an optimal Õ(n1/3 )-
+                                         round distributed algorithm has been constructed by Chang et al. [SODA 2019, PODC 2019].
+                                         Recent works of Eden et al. [DISC 2019] and of Censor-Hillel et al. [PODC 2020] have shown
+                                         sublinear algorithms for Kp -listing, for each p ≥ 4, but still leaving a significant gap between
+                                         the upper bounds and the known lower bounds of the problem.
+                                             In this paper, we completely close this gap. We show that for each p ≥ 4, there is an
+                                         Õ(n1−2/p )-round distributed algorithm that lists all p-cliques Kp in the communication network.
+                                         Our algorithm is optimal up to a polylogarithmic factor, due to the Ω̃(n1−2/p )-round lower bound
+                                         of Fischer et al. [SPAA 2018], which holds even in the CONGESTED CLIQUE model. Together
+                                         with the triangle-listing algorithm by Chang et al. [SODA 2019, PODC 2019], our result thus
+                                         shows that the round complexity of Kp -listing, for all p, is the same in both the CONGEST and
+                                         CONGESTED CLIQUE models, at Θ̃(n1−2/p ) rounds.
+                                             For p = 4, our result additionally matches the Ω̃(n1/2 ) lower bound for K4 -detection by
+                                         Czumaj and Konrad [DISC 2018], implying that the round complexities for detection and listing
+                                         of K4 are equivalent in the CONGEST model.
+1     Introduction
+Subgraph detection and listing are fundamental graph problems that have been extensively studied
+in various computational models [2, 3, 11, 17, 23, 25]. In this paper, we focus on the CONGEST
+model of distributed computing, where the communication network is identical to the n-node input
+graph G = (V, E). In this model, each node v ∈ V represents a computing device, and each edge
+e ∈ E represents a communication link. Each node v ∈ V has an O(log n)-bit unique identifier
+ID(v). The communication proceeds in synchronous rounds. In each round, each node v can send
+an O(log n)-bit message along each edge e incident to v.
+    Given a fixed graph H, the H-detection problem requires that at least one node in the network
+detects a copy of H if the underlying network G contains H as a subgraph, and the H-listing
+problem requires that each subgraph H of G is detected by some node in the network.
+
+1.1   Prior Work on Distributed Clique Listing
+The Kp -listing problem, for all p, can be solved trivially in Õ(∆) rounds by having each node v
+broadcast the list {ID(u) | u ∈ N (v)} to all its neighbors N (v), where ∆ < n is the maximum
+degree of the graph. The first breakthrough in this area is by Izumi and Le Gall [19], who showed
+that K3 -detection and listing can be solved in Õ(n2/3 ) rounds and Õ(n3/4 ) rounds, respectively.
+     Later, Chang et al. [6] and Chang and Saranurak [7] brought the round complexity down to
+Õ(n1/3 ), matching the Ω̃(n1/3 ) lower bound [19, 24] by a polylogarithmic factor. The main idea
+underlying the approach of [6, 7] is expander decompositions. An expander decomposition removes
+-fraction of the edges so that the remaining connected components have conductance at least φ.
+It was shown in [6, 7] that an expander decomposition with parameters  = 1/ polylog(n) and
+φ = 1/ polylog(n) can be constructed in O(n0.001 ) rounds.
+     Once an expander decomposition is constructed, we can apply expander routing [14, 15] to each
+high-conductance cluster C in the expander decomposition. Specifically, after O(n0.001 ) rounds
+of pre-processing, within poly(φ−1 , log n) rounds we can let each v ∈ C communicate with any
+arbitrary degC (v) nodes in C, not just the local neighbors of v [7], where degC (v) is the number of
+neighbors of v in C.
+     Using expander routing, Kp -listing can be solved in Õ(n1−2/p ) rounds on graphs with conduc-
+tance φ = 1/ polylog(n) [6]. Based on this result, the K3 -listing algorithm of [14, 15] works as
+follows. Construct an expander decomposition to partition the nodes into high-conductance clus-
+ters. For each cluster C, use expander routing to list all K3 involving at least one edge in C, in
+parallel, in Õ(n1/3 ) rounds. Then recurse on the subgraph induced by the remaining inter-cluster
+edges.
+     Things become complicated when p ≥ 4, as Kp can involve edges in more than one cluster in
+this case. The first sublinear Kp -listing algorithms for p = 4 and p = 5 were given by Eden et
+al. [10]. To deal with the cross-cluster clique instances, they classify the nodes outside a cluster C
+into heavy nodes and light nodes based on the number of neighbors in C. Each heavy node v has
+sufficiently many neighbors in C so that v has enough bandwidth to send its entire list of neighbors
+to C efficiently. For each light node v, it only needs to send its list of neighbors restricting to
+those in C, and this can be done efficiently since a light node only has a small number of neighbors
+in C. Choosing the threshold of the classification properly, this information gathering can be done
+in sublinear rounds. After this step, each cluster C contains all the edges that can potentially form
+a clique Kp with existing edges in C. Finally, they apply the expander routing to each cluster C
+to solve the Kp -listing problem. Using this approach, they showed that K4 and K5 can be listed in
+Õ(n5/6 ) and Õ(n21/22 ) rounds, respectively.
+
+
+                                                  1
+    Recently, Censor-Hillel et al. [4] showed that Kp -listing can be solved in sublinear rounds for
+all p. One major shortcoming of the approach of [10] is that the number of edges sent to a cluster C
+can be significantly larger than the number of edges in C. As the total bandwidth in expander
+routing depends on the number of edges in C, this makes the listing algorithm inefficient. To
+overcome this issue, Censor-Hillel et al. [4] proposed the following arboricity decreasing framework,
+which is based on a variant of the expander decomposition considered in [6] that allows an additional
+small arboricity part Es .
+    The expander decomposition of [6] partitions the edge set E into three parts Em , Es , and Er .
+The set Em represents the edges inside a high-conductance cluster. The set Es induces a subgraph
+of arboricity at most nδ , where 0 < δ < 1 is a given parameter. The set Er is the remaining edges,
+and it satisfies |Er | < |E|/6. In this decomposition, each cluster C of Em not only has conductance
+1/ polylog(n) but also each node v in C has Ω(nδ ) neighbors in C. Such a decomposition can be
+constructed in Õ(n1−δ ) rounds [6].
+    The idea of [4] is to first recurse on Er . After Er is empty, recurse on Es with a slightly smaller
+parameter δ, and so the arboricity of the graph is gradually decreasing during the process. This
+approach ensures that during the process, the minimum degree in a cluster under consideration is
+within a small factor to the overall arboricity of the graph. They showed that Kp -listing can be
+solved in Õ(n2/3 ) rounds for p = 4 and Õ(np/(p+2) ) rounds for p ≥ 5.
+    This still leaves a significant gap between the upper bounds of [4] and the Ω̃(n1−2/p )-round lower
+bound of Fischer et al. [13].
+
+1.2   New Result
+In this paper, we prove the following theorem, which completely closes this gap.
+
+Theorem 1.1. For each p ≥ 4, the Kp -listing problem can be solved in Õ(n1−2/p ) rounds with high
+probability in the CONGEST model.
+
+    More precisely, our result matches the Ω̃(n1−2/p ) lower bound for Kp -listing of Fischer et al. [13]
+up to a polylogarithmic factor, and it also matches the Ω̃(n1/2 ) lower bound for Kp -detection of
+Czumaj and Konrad [8] for the case of p = 4.
+    Prior to this work, there were only two known non-trivial tight bounds in the area of distributed
+subgraph listing: Θ̃(n1/3 ) for triangles K3 [7] and Θ̃(n) for 4-cycles C4 [10].
+    The CONGESTED CLIQUE model is a variant of CONGEST that allows all-to-all communica-
+tion in each round. The lower bound of [13] also holds in the CONGESTED CLIQUE model, and
+so our result shows that the round complexity of Kp -listing is the same in both CONGEST and
+CONGESTED CLIQUE up to a polylogarithmic factor, and this implies that allowing distant nodes
+to communicate directly does not allow us to list cliques much faster. This statement is not true
+for many other subgraphs. For C4 , detection and listing can be solved in O(1) and Õ(n1/2 ) rounds
+in CONGESTED CLIQUE, respectively [5], but these problems have much higher lower bounds in
+CONGEST: Ω̃(n1/2 ) for detection [9, 22] and Ω̃(n) for listing [10].
+
+1.3   Technical Overview
+As discussed earlier, there are two main challenges in dealing with cross-cluster cliques for the case
+of p ≥ 4. The first challenge is that each cluster C needs to efficiently list all Kp with at least one
+edge inside C. The main difficulty here is that the number of relevant edges outside of C that can
+form a Kp with existing edges in C can be much higher than the number of edges in C. In other
+words, the problem size for subgraph listing can be much higher than the number of edges that can
+
+
+                                                   2
+be used in communication. The second challenge is that each cluster C needs to efficiently gather
+all the needed information from outside of C into C. Specifically, we need to let C learn each edge
+outside of C that can potentially form a Kp instance with edges in C.
+
+Optimal sparsity-aware listing. Our main technical ingredient to deal with the above first
+challenge is an optimal sparsity-aware listing algorithm (Theorem 3.2 in Section 3) We show that
+the task of listing all instances of Kp with at least one edge in C can still be solved optimally in
+Õ(n1−2/p ) rounds, as long as the average degree in C = (VC , EC ) satisfies some mild requirements.
+This result works even in the case the number of edges outside of C is much higher than the number
+of edges in C. For comparison, the previous attempts in coping with this challenge mostly only
+focus on limiting the number of edges outside of C to consider [4, 10].
+    Before explaining our algorithm, let us review the Kp -listing algorithm on a high-conductance
+graph G = (V, E) in [6]. Partition the node set V into n1/p parts, so that the number of p-tuples
+of parts is n. Associate each node v ∈ V with O(deg(v) · |V |/|E|) p-tuples, and each node v is
+responsible for listing all Kp corresponding to the p-tuples assigned to v. A simple calculation
+shows that if the partition is done randomly, then each node needs to gather deg(v) · O(n1−2/p )
+edges in expectation to fulfill its clique listing task. A more complicated calculation shows that the
+actual number of edges is concentrated around its expectation, and so we can use the expander
+routing algorithm of [14, 15] to solve the Kp -listing problem in Õ(n1−2/p ) rounds. Note that this
+algorithm does not give us the optimal round complexity in our setting, as the number of edges
+under consideration for Kp -listing can be much higher than the number of edges that can be used
+in communication.
+    The new idea in this paper is to exploit the varying sparsity of different edge sets. Instead of
+partitioning the nodes into n1/p parts with roughly equal size, we allow different parameters for
+the number of parts for VC and V \ VC in the random partition. We show that if the average
+degree |EC |/|VC | of C is sufficiently high, and if each node v ∈ VC has 1/ polylog(n) fraction of its
+neighbors in C, then we can still achieve the optimal round complexity Õ(n1−2/p ).
+    For this to work, we need to show good bounds on the number of edges that we can have between
+any two parts in the random partition. To this end, we prove a partition lemma (Lemma 3.1 in
+Section 3), which generalizes [6, Lemma 4.2] to multiple edge sets.
+
+Efficient transmission of edges across clusters. For the above second challenge, in this paper
+we adapt an approach similar to the classification of nodes into heavy ones and light ones in [10].
+Considering a cluster C, we want to gather all the edges that can potentially form a Kp with edges
+in C. Define S ∗ as the set of nodes v ∈ V \ VC such that degV \VC (v) = Ω(n1−2/p · degC (v)), i.e.,
+the number of neighbors of v outside C is at least Ω(n1−2/p ) times the number of neighbors of v
+inside C. We call the nodes in S ∗ the light nodes. Observe that each heavy node v ∈ (V \ VC ) \ S ∗
+can send all its incident edges to C in O(n1−2/p ) rounds, due to its high number of neighbors in C.
+    We focus on the light nodes in the subsequent discussion. Define S as the subset of VC such
+that v ∈ S if v has Ω(n1−2/p ) neighbors in S ∗ . Note that each v ∈ VC \ S can learn all the relevant
+edges incident to the light nodes that can potentially form a Kp with v. Therefore, the only bad
+edges that we cannot deal with are the edges contained in S. We will show that it is possible to
+assume that each cluster has at least Ω(n1−2/p ) nodes, and so there are at most O(n2/p ) clusters. A
+calculation reveals that whenever p ≥ 5, the set of bad edges over all clusters constitute at most a
+constant fraction of E. By deferring dealing with these bad edges to subsequent iterations, we are
+done listing all instances of Kp after O(log n) iterations. Section 4 contains the above proof, thus
+we obtain Theorem 1.1 for p ≥ 5.
+
+
+                                                  3
+    A different strategy is needed to deal with K4 , as in this case we cannot obtain a good bound
+on the number of bad edges. We construct an expander decomposition recursively on the subgraph
+induced by the inter-cluster edges to cover all edges by high-conductance clusters. Now we only
+need to consider K4 = {v1 , v2 , v3 , v4 } instances crossing a cluster C at the top-level expander
+decomposition and some other other cluster C ∗ in the sense that {v1 , v2 } ∈ EC and {v3 , v4 } ∈ EC ∗ .
+We go over all possible pairs of C and C ∗ in parallel to let C learn the edges in C ∗ that can potentially
+form a K4 with edges in C, by applying our above approach, replacing V \ VC by VC ∗ \ VC .
+    The advantage of this new strategy is that it allows us to deal with the bad edges as follows. It
+is possible to show that the bad edges in C can be sent to C ∗ efficiently. Moreover, the subgraph
+induced by the bad edges is sufficiently sparse that we can apply our sparsity-aware listing algorithm
+to C ∗ to list all the cross-cluster K4 associated with the bad edges in Õ(n1−2/p ) rounds. Section 5
+contains the above proof, thus we obtain Theorem 1.1 for p = 4.
+
+1.4    Additional Related Work
+While our work solves Kp -listing for all p ≥ 4 in optimal round complexity due to the lower bound
+of Fischer et al. [13], for the Kp -detection problem, the only lower bound known is due to Czumaj
+and Konrad [8], who showed that Ω̃(n1/2 ) rounds are needed for Kp detection for all 4 ≤ p ≤ n1/2
+and that Ω̃(n/p) rounds are needed for Kp detection for all p ≥ n1/2 .
+     For cycles, Drucker et al. [9] showed that for fixed p ≥ 4, Cp -detection requires Ω(ex(n, Cp )/n))
+rounds, where ex(n, H) is the Turán number that counts the maximum number of edges that an
+n-node graph can have without containing a subgraph isomorphic to H. Therefore, we have a
+lower bound of Ω̃(n) for detecting Cp when p is odd, and we have a lower bound of Ω̃(n1/2 ) for
+the case p = 4. Korhonen and Rybicki [22] extended this result to make the Ω̃(n1/2 ) lower bound
+apply for all even p. They also showed that Cp -detection can be solved in Õ(n) rounds for any
+constant p, implying that for constant odd values p the complexity for Cp -detection is Θ̃(n). For
+even-length cycles, Fischer et al. [13] showed that C2p -detection can be solved in O(n1−1/(p(p−1)) )
+                                                                     2
+rounds. Eden et al. [10] later improved this result to Õ(n1−2/(p −p+2) ) rounds for odd p ≥ 3, and
+                    2
+at most Õ(n1−2/(p −2p+4) ) rounds for even p ≥ 4. Using expander decompositions, Eden et al. [10]
+demonstrated a barrier to proving lower bounds for even-length cycle detection. There is a constant
+δ ∈ (0, 1/2) such that any Ω(n(1/2)+δ ) lower bound on C2p -detection would imply a new circuit
+lower bound.
+     Subgraph detection beyond cliques and cycles were also considered in the literature [12,13,16,22].
+Fischer et al. [13] constructed a family of graphs Hp with p nodes such that Hp -listing requires
+Ω(n2−1/p /p) rounds. Later, Eden et al. [10] showed that for any p-node graph H, the H-detection
+problem can be solved in n2−Ω(1/p) rounds, almost matching the lower bound of Fischer et al. [13].
+     Variants of subgraph finding problems requiring subgraphs to be reported by its constituent
+nodes were considered in [1, 13, 18, 19]. This additional requirement changes the nature of the
+problem drastically. For example, the local triangle listing problem, which requires each K3 to
+be reported by one of its three constituent nodes, requires Ω̃(n) rounds [19], while the standard
+triangle listing problem has round complexity Θ̃(n1/3 ). For the simpler problem that asks each
+node to decide whether it belongs to a triangle, any one-round deterministic algorithm requires
+messages of size Ω(∆ log n) [1], matching the trivial upper bound. For the randomized setting,
+there is an Ω(∆) lower bound [13] for the same problem. From the upper bound side, Huang et
+al. [18] showed that the local triangle listing problem can be solved in O(∆/ log n+log log ∆) rounds
+with high probability, matching the Ω(∆/ log n) lower bound of Izumi and Le Gall [19] whenever
+∆ > log n log log log n.
+     Quantum algorithms for distributed triangle detection have been proposed recently by Izumi
+
+
+                                                    4
+et al. [20], where they showed that triangle detection can be solved in Õ(n1/4 ) rounds in the quantum
+version of CONGEST. This gives another example of a quantum algorithm beating the best known
+classical algorithms in distributed computing, as the current best known upper bound for distributed
+triangle detection in the classical setting is Õ(n1/3 ) [7].
+
+
+2    Preliminaries
+We denote the set of neighbors of v by N (v). For a node v and a set of nodes S, we denote by
+degS (v) the number of neighbors that v has in S. Given a graph G = (V, E) and two subsets
+S, S 0 ⊆ V , let E(S, S 0 ) ⊆ E denote the set of edges with one extremity in S and the other extremity
+in S 0 .
+    The conductance
+                  P of a cut (S, V \ S) is defined as Φ(S) = |∂(S)|/ min{vol(S), vol(V \ S)},
+where vol(U ) = v∈U deg(v), and ∂(S) = E(S, V \ S) is the set of edges between S and V \ S. The
+conductance of a graph G = (V, E), denoted by Φ(G), is defined as the minimum of the conductance
+of each cut in the graph, that is, Φ(G) = minS⊆V Φ(S). A lazy random walk of a graph G = (V, E)
+is a random walk on V such that in each step, with probability 1/2 it stays at the same node, and
+with probability 1/2 it moves to a neighbor of the node, chosen uniformly at random. We have the
+following relation [21] between the mixing time τmix (G) and conductance Φ(G):
+                                                                    
+                                        1                        log n
+                                  Θ            ≤ τmix (G) ≤ Θ            .
+                                      Φ(G)                      Φ2 (G)
+Let S be a node set. We write G[S] to denote the subgraph induced by S, and we write G{S} to
+denote the graph resulting from adding degV (v) − degS (v) self loops to each node v in G[S], where
+each self loop of v contributes 1 in the calculation of deg(v). Note that we always have
+                                        Φ(G{S}) ≤ Φ(G[S]).
+   An (, φ)-expander decomposition of a graph G = (V, E) is a partition of the node set V =
+V1 ∪ V2 ∪ · · · ∪ Vk satisfying the following conditions.
+    • For each cluster Vi , we have Φ(G{Vi }) ≥ φ.
+    • The number of inter-cluster edges is at most |E|.
+Theorem 2.1 (Expander decomposition [7]). An (, φ)-expander decomposition with  = 1/ polylog(n)
+and φ = 1/ polylog(n) can be constructed in O(n0.001 ) rounds with high probability.
+    Note that we have the conductance guarantee not only for G[C] but also for G{C}, for each
+cluster C = (VC , EC ) in the expander decomposition. In particular, each v ∈ VC with |VC | > 1
+must have at least an 1/ polylog(n) fraction of its neighbors in C, since otherwise G{C} cannot
+have mixing time polylog(n).
+Theorem 2.2 (Expander routing [7, 14]). Suppose τmix (G) = polylog(n). There is an O(n0.001 )-
+round algorithm that pre-processes the graph such that for any subsequent routing task where each
+node v is a source and a destination of at most L · deg(v) messages of O(log n) bits, all messages
+can be delivered in L · polylog(n) rounds with high probability.
+    To summarize, combining Theorem 2.1 and Theorem 2.2, in O(n0.001 ) rounds we can partition
+the node set V into clusters with small mixing time polylog(n) and so the above routing task can
+be solved efficiently. Furthermore, for a node v ∈ VC for any cluster C = (VC , EC ) with |VC | > 1, it
+holds that degC (v) ≥ deg(v)/ polylog(n). Note that for the trivial case of |VC | = 1, we have EC = ∅,
+and so there is no Kp with edges in C. Therefore, in subsequent discussion, we only consider the
+clusters with more than one node.
+
+                                                  5
+3       Optimal Sparsity Aware Listing Algorithm
+We present an algorithm which can be executed in a subgraph with good mixing time in order
+to optimally list all copies of Kp , for a given p ≥ 4, with at least one edge in the subgraph, and
+potentially other edges outside of it. In order to show this algorithm, we begin by presenting a
+partitioning lemma, and then proceed to showing a theorem which performs sparsity aware listing.
+
+3.1      Input Partitioning
+We can modify the argument of [6, Lemma 4.2] in order to get the following statement.
+Lemma 3.1. Let G = (V, E) be a graph of maximum degree ∆ where V = V1 ∪ V2 for two disjoints
+sets V1 , V2 and E = E1 ∪ E2 ∪ E12 for three sets E1 ⊆ V1 × V1 , E2 ⊆ V2 × V2 and E12 ⊆ V1 × V2 .
+Let m1 , m2 and m12 be upper bounds on the size of E1 , E2 and E12 , respectively. Let a, b and n̄ be
+three positive integers, with a ≤ b, satisfying the following conditions:
+ (a) m1 ≥ 20a|V1 | log n̄ and m1 ≥ 400a2 log2 n̄;
+    (b) m2 ≥ 20b|V2 | log n̄ and m2 ≥ 400b2 log2 n̄;
+    (c) m12 ≥ 20a|V1 | log n̄, m12 ≥ 20a|V2 | log n̄ and m12 ≥ 400a2 log2 n̄.
+     Assume that we create a partition V11 , . . . , V1a of V1 as follows: each node v ∈ V1 chooses uni-
+formly at random a value j ∈ {1, . . . , a} and joins the set V1j . Similarly we create a partition
+V21 , . . . , V2b of V2 as follows: each node v ∈ V2 chooses uniformly at random a value j ∈ {1, . . . , b}
+                                                                2
+and joins the set V2j . Then with probability at least 1 − 30b n̄log
+                                                                  5
+                                                                     n̄
+                                                                        the following three statements hold:
+
+ (1) |E(V1i , V1j )| ≤ 24(m1 /a2 ) for all (i, j) ∈ [a] × [a];
+
+ (2) |E(V2i , V2j )| ≤ 24(m2 /b2 ) for all (i, j) ∈ [b] × [b];
+
+ (3) |E(V1i , V2j )| ≤ 8(m12 /a2 ) for all (i, j) ∈ [a] × [b].1
+Proof. For any (i, j) ∈ [a] × [a], Statement (1) holds with probability at least 1 − (10 log n̄)/n̄5
+from [6, Lemmas 4.2 and 4.3]. Similarly, for any (i, j) ∈ [b]×[b], Statement (2) holds with probability
+at least 1 − (10 log n̄)/n̄5 as well. Let us show below that for any (i, j) ∈ [a] × [b], Statement (3)
+holds with probability at least 1 − (10 log n̄)/n̄5 . Using the union bound then concludes the proof.
+    Let us fix (i, j) ∈ [a] × [b]. For each edge e ∈ E12 let xe denote the random variable that
+has value 1 if e ∈ E(V1i , V2j ) and value 0 otherwise. Let us write X = |E(V1i , V2j )|. Observe that
+X = e∈E12 xe and E[X] = |Eab12 | . By Markov’s inequality we have
+      P
+
+                                                                           E[X c ]       a2c E[X c ]
+               Pr[X ≥ 8(m12 /a2 )] = Pr[X c ≥ (8(m12 /a2 ))c ] ≤                       =
+                                                                        (8(m12 /a2 ))c    8c mc12
+for any value c > 0. We choose the value c = b20 log n̄c.
+    Now let us write
+                                         
+                                               c X  c            c X
+                                                                   c
+                                X     c     X            1     X        1
+                  E[X c ] = E       xe  =            fk` k ` ≤     fk` k+` ,
+                                                          a b           a
+                                      e∈E12             k=0 `=0              k=0 `=0
+
+    It is actually possible to obtain the stronger upper bound |E(V1i , V2j )| = O(m12 /(ab)) by imposing the stronger
+    1
+
+conditions m12 ≥ 20b|V1 | log n̄ and m12 ≥ 400ab log2 n̄. The present statement, which is slightly easier to prove,
+nevertheless suffices for our purpose.
+
+
+                                                          6
+where fk` denotes the number of c-tuples of edges from E12 that have k distinct points in V1 and `
+distinct points in V2 .
+    We associate to each c-tuple of edges (e1 , . . . , ec ) ∈ E12
+                                                                c a vector ~
+                                                                           v ∈ {(0, 0), (0, 1), (1, 0), (1, 1)}c
+as follows: for each s ∈ {1, . . . , c}, we set
+
+                                                    if es ∈ (V1i \ Us ) × (V2j \ Ws ),
+                                    
+                                     (0, 0)
+                                                    if es ∈ (V1i \ Us ) × Ws ,
+                                    
+                                      (0, 1)
+                                    
+                              ~vs =
+                                     (1, 0)
+                                                   if es ∈ Us × (V2j \ Ws ),
+                                                    if es ∈ Us × Ws ,
+                                    
+                                      (1, 1)
+
+where Us ⊆ V1i denotes the set of nodes from V1i that are the endpoint of at least one edge in
+{e1 , . . . , es−1 }, and Ws ⊆ V2j denotes the set of nodes from V2j that are the endpoint of at least one
+edge in {e1 , . . . , es−1 }. We say that the vector ~v is of type (d00 , d01 , d10 , d11 ) if it contains d00 times
+the coordinate (0, 0), d01 times the coordinate (0, 1), d10 times the coordinate (1, 0), and d11 times
+the coordinate (1, 1), for positive integers d00 , d01 , d10 and d11 such that d00 + d01 + d10 + d11 = c.
+     A given vector ~v is associated to more that one c-tuple in E12           c . A crucial observation is that
+
+there are at most
+                                          md1200 (c|V1 |)d01 (c|V2 |)d10 c2d11
+                               c that are associated to a given vector ~
+c-tuples (e1 , . . . , ec ) ∈ E12                                      v of type (d00 , d01 , d10 , d11 ). Indeed,
+when enumerating all the c-tuples that are associated to this ~v , for each coordinate (0, 0) we can
+choose any edge that has not already been chosen, for each coordinate (0, 1) we have at most |V1 |
+choices for the first endpoint and c choices for the second endpoint, for each coordinate (1, 0) we
+have at most c choices for the first endpoint and |V2 | choices for the second endpoint, and for
+each coordinate (1, 1) we have at most c choices for the first endpoint and c choices for the second
+endpoint.
+    We now use this characterization to give an upper bound on fk` . Let us write xmin = max{0, c −
+k − `} and xmax = min{c − k, c − `}. Observe that the c-tuples of edges that contribute to fk` are
+those such the corresponding vector is of type (k + ` + x − c, c − ` − x, c − k − x, x) for some value
+x ∈ [xmin , xmax ]. The argument of the previous paragraph enables us to give the following upper
+bound:
+                                         xX
+                                          max
+
+                           fk` ≤                c2x (c|V1 |)c−`−x (c|V2 |)c−k−x mk+`+x−c
+                                                                                 12
+                                     x=xmin
+                                                          xX
+                                                           max     2 2 x
+                                         k+`−2c                    a c
+                                 ≤ a              mc12                     ,
+                                                         x=xmin
+                                                                   m12
+
+where we used the inequalities m12 ≥ 20a|V1 | log n̄ and m12 ≥ 20a|V2 | log n̄ from Condition (c),
+which implies c|V1 | ≤ m12 /a and c|V2 | ≤ m12 /a from our choice of c, to obtain the upper bound.
+                       2 c2
+Now, observing that am12    ≤ 1 from Condition (c), we get
+
+                                   fk` ≤ ak+`−2c mc12 (xmax − xmin + 1)
+                                           ≤ (c + 1)ak+`−2c mc12 .
+
+    We thus obtain
+                                        c X
+                                          c
+                                     c
+                                        X          mc12           mc12
+                                E[X ] ≤     (c + 1) 2c  ≤ (c + 1)3 2c  .
+                                                   a              a
+                                            k=0 `=0
+
+
+
+                                                             7
+                                    VC                                           V \ VC
+                                                            E                          v3
+                                v1
+                    EC                                                                          E
+                               v2                                                      v4
+                                                           E
+
+
+                 Figure 1: Illustration for Theorem 3.2 with p = 4 (K4 -listing) and p0 = 2.
+
+
+       We conclude that
+                                                         a2c E[X c ]   (c + 1)3   10 log n̄
+                             Pr[X ≥ 8(m12 /a2 )] ≤             c     ≤          <           ,
+                                                          8c m12          8c         n̄5
+
+as claimed.
+
+3.2       Sparsity Aware Listing
+We show the following sparsity-aware Kp listing algorithm for clusters in G with low mixing time,
+see Figure 1 for an illustration regarding K4 . Due to [4, Remark 2.6]2 throughout the paper we
+assume that p = O(log n), and so we can hide factors of p under the Õ(·) notation.
+
+Theorem 3.2. Let C = (VC , EC ) be any subgraph of G = (V, E) with mixing time polylog(n). Let
+Ē ⊆ E(VC , V \ VC ) be any set of edges so that any node u ∈ VC is incident to Õ(degC (u)) edges
+from Ē.
+    Let E 0 ⊆ E(V \ VC , V \ VC ) be a set of edges given as input to C in the following way: the edges
+are distributed among the nodes of C so that each node u ∈ VC receives Õ(n1−2/p · degC (u)) edges
+from E 0 . If the conditions                  0 
+                                  |EC |        |E |     |EC |
+                                        =Ω           ,        = Ω(n1/2 )                            (1)
+                                  |VC |         n       |VC |
+hold, then the graph C can list in Õ(n1−2/p ) rounds, with high probability, by using only the edges
+EC for communication, all the p-cliques {v1 , . . . , vp } such that there exists some p0 ≥ 2, where
+
+       • Vp0 = {v1 , v2 , . . . , vp0 } ⊆ VC , and Vp\p0 = {vp0 +1 , . . . vp } ⊆ V \ VC ,
+
+       • Vp0 × Vp0 ⊆ EC , Vp0 × Vp\p0 ⊆ Ē, and Vp\p0 × Vp\p0 ⊆ E 0 .
+
+   2
+    The remark states that since the lower bound for Kp=ω(log n) listing is Ω̃(n), the case of p = ω(log n) can be
+solved optimally (up to polylogarithmic factors) by a trivial algorithm.
+
+
+
+
+                                                               8
+Remark. Theorem 3.2 still works with the same proof if the lower bound requirements on the
+average degree |EC |/|VC | of C only hold when we restrict ourselves to the nodes in VC that have
+incident edges in Ē. Intuitively, this is because that having a lot of irrelevant low-degree nodes in
+C does not reduce the capability for C to list subgraphs, as they can be simply ignored for the case
+2 ≤ p0 ≤ p − 1. For the special case of p0 = p, we can simply apply the subgraph listing algorithm
+of [6, Theorem 5] with the routing algorithm of Theorem 2.2 to C. In Õ(n1−2/p ) rounds all instances
+of Kp in C can be listed.
+
+Proof. In what follows, we assume that |E 0 | ≥ |EC | and k = |VC | ≥ n1−2/p . In the case that the
+former does not hold, we can always add |EC | dummy edges to E 0 without breaking any of the
+other conditions of the statement. In the case that the latter does not hold, observe that each
+node v ∈ VC has at most Õ(|VC |) = Õ(k) = Õ(n1−2/p ) neighbors N (v) in the subgraph induced by
+EC ∪ Ē. Therefore, v can list all required copies of Kp involving v in Õ(n1−2/p ) rounds by learning
+all edges in N (v) × N (v) as follows: v sends the list N (v) to all its neighbors N (v), and then each
+u ∈ N (v) sends N (u) ∩ N (v) to v.
+    We now describe the algorithm. We note that whenever we communicate between the nodes in
+C in this algorithm, we utilize Theorem 2.2.
+
+Initialization. We fix the value of p0 ∈ [p] \ {1}, and perform the following algorithm which lists
+all copies of Kp with exactly p0 nodes in VC , p − p0 nodes in V \ VC , and edges from the respective
+edge sets, EC , E 0 , and Ē. Thus, in order to list all copies of Kp which satisfy the conditions of the
+theorem, we repeat this sequentially for all possible values of p0 . By showing that for a specific p0
+we can solve the problem in Õ(n1−2/p ) rounds, we achieve the required statement of the theorem.
+    Denote by k = |VC |, m = |EC |, n = |V |, m0 = |E 0 |. Denote the average degree in C rounded
+down to the nearest power of 2 by δ = 2blog(2m/k)c . By the assumption that every node u ∈ VC
+is incident to at most Õ(degC (u)) edges from Ē, we get that |Ē| = Õ(|EC |) = Õ(m). Clearly,
+since the mixing time of C is polylog(n), the diameter of C is polylog(n) and thus it is possible
+to trivially compute the values k, m, m0 , and δ, and to ensure that every node in VC knows them.
+Further, from the definition of the CONGEST model, we assume that all nodes know the value of
+n, and so all nodes in VC know all the values defined here.
+    We borrow the definition of vertex classes from [6]. Every node v in C computes kv = degC (v)/δ.
+A node v is in vertex class 0 if kv < 1/2, and otherwise is in vertex class i if kv ∈ [2i−2 , 2i−1 ). As
+shown in [6, Lemma 4.1], it is possible in Õ(1) rounds to reassign the IDs of all the nodes in C such
+that the set of IDs is [|C|] and the value kv can be computed from ID(v).
+    Throughout the algorithm, we desire to only use nodes in C which have degree in C at least
+half of the average,    that is, nodes of P
+                                          class 1 and above, and soPwe denote these nodes by C 0 ⊆ C.
+Notice that v∈C 0 degC (v) ≥ (1/2) · v∈C degC (v), and that v∈C 0 2kv ≥ k. We now employ the
+              P
+nodes C 0 to take responsibility for all the other nodes C \ C 0 . That is, each node v ∈ C 0 , of class i,
+is assigned some 2i+1 nodes Hv ⊆ C \ C 0 , such that each node in C \ C 0 is assigned to exactly one
+node of C 0 . Notice that due to the definition of vertex classes, there exists a way to allocate the
+nodes of C \ C 0 to the nodes of C 0 while obeying these demands. Further, since every node knows
+the class of every other node, the nodes can locally compute these allocations.
+    Now, node v ∈ C 0 learns all the edges of EC , Ē incident to any node in Hv , and also all the
+edges in E 0 held by any node in Hv . Notice that, due to the constraints of this theorem, each node
+u ∈ C holds at most Õ(n1−2/p · degC (u)) such edges, and thus each node wishes to send and receive
+at most Õ(n1−2/p · degC (u)) messages when every v ∈ C 0 attempts to learn all the data held in
+the nodes Hv . As such, this step can be completed in Õ(n1−2/p ) rounds. Further, from now on,
+whenever we write that a node v ∈ C \ C 0 attempts to send or receive a message, its corresponding
+
+
+                                                    9
+node in C 0 will be the one that actually sends or receives the message. Notice that it is possible to
+do this while only increasing the round complexity of any algorithm by at most a poly-logarithmic
+factor, as each node v ∈ C 0 now has at most Õ(degC (v)) extra messages to send or receive per
+round.
+
+Partitioning the graph. We create two partitions V and K, where V is a partition of V \ VC
+into b = √(k · m0 /m)1/p roughly equally-sized parts, V = {V1 , . . . , Vb }, and K is a partition of VC
+into a = kb1−p/2 roughly equally-sized parts, K = {K1 , . . . , Ka }.3 To do so, every node u ∈ VC
+chooses uniformly at random which part in K to join, and sends the index of this part across all its
+incident edges in EC , i.e., to all its neighbors in C. In order to create V, we perform the following
+procedure. Let v ∈ C 0 be some node chosen in an arbitrary, hardcoded way from C 0 . Notice that
+due to the conditions of this theorem, it must be that ∀u ∈ C 0 , degC (u) = Ω(n1/2 ). Node v chooses
+uniformly at random a permutation π on the nodes V \ VC . Then, within Õ(n1/2 ) rounds, node v
+tells another, arbitrary node u ∈ C 0 the value of π. We then repeat at most Õ(1) iterations, where,
+in each iteration, each of the nodes in C 0 which knows the value of π tells this to some other node
+which does not know it, in a total of Õ(n1/2 ) rounds per iteration. Now, all the nodes of C 0 can
+locally compute V using π. Notice that since, as stated above, from here on the nodes of C 0 simulate
+all the messages of nodes of C \ C 0 , we can implicitly assume that all of C know V, regardless of
+whether a node is in C 0 or not.
+    We now utilize Lemma 3.1 to claim that between any pair of parts in {V1 , . . . , Vb , K1 , . . . , Ka },
+there are Õ(n1−2/p · δ) edges. We invoke Lemma 3.1 with
+
+                         m1 = max{m, 20ak · log n, 400a2 · log2 n},
+                         m2 = max{m0 , 20bn · log n, 400b2 · log2 n},
+                        m12 = max{|Ē|, 20ak · log n, 20an · log n, 400a2 · log2 n},
+                           n̄ = n.
+
+We can see that all the conditions of the lemma hold, and thus we get that, with high probability,
+for every i, j ∈ [a], i0 , j 0 ∈ [b], |E(Ki , Kj )| ≤ 24 · m1 /a2 , |E(Ki , Vj 0 )| ≤ 8 · m12 /a2 , |E(Vi0 , Vj 0 )| ≤
+24 · m2 /b2 . Thus, the number of edges between any pair of parts in {V1 , . . . , Vb , K1 , . . . , Ka } is at
+most O(m1 /a2 + m12 /a2 + m2 /b2 ). Observe that the following hold
+
+                                 O(m1 /a2 ) = Õ(m/a2 + k/a + 1)
+                                 O(m2 /b2 ) = Õ(m0 /b2 + n/b + 1)
+                                O(m12 /a2 ) = Õ(m/a2 + k/a + n/a + 1) = Õ(m/a2 + n/a + 1)
+          O(m1 /a2 + m12 /a2 + m2 /b2 ) = Õ(m/a2 + m0 /b2 + n/a + n/b + 1).
+                                     √                 √
+   Primarily, notice that a ≤ b since kb1−p/2 ≤ b ⇐⇒ k ≤ bp/2 = km0 /m ⇐⇒ m0 ≥ m. Also,
+                                                                    p
+
+observe that m/a2 = m/(k · b2−p ) = bp · m/(k · b2 ) = (m0 · k/m) · m/(k · b2 ) = m0 /b2 . Thus, in
+combination with the above, the following is true
+
+                           O(m1 /a2 + m12 /a2 + m2 /b2 ) = Õ(m0 /b2 + n/a + 1).
+   3
+    We assume that a, b are integers, and otherwise round. Notice that as long as 1 < a, 1 < b, this rounding can
+only incur an addition of a constant factor to the final round complexity. Nonetheless, we do need to show that
+1 < a, 1 < b. Notice that 1 < a if and only if k > n1−2/p , which holds, as stated at the start of the proof, and that
+1 < b holds due to the constraint that |E 0 | > |EC | and that k > 1.
+
+
+
+                                                         10
+   Thus, we desire to show that Õ(m0 /b2 + n/a + 1) = Õ(n1−2/p · δ). Notice that due to the
+constraint that δ = Θ(m/k) = Ω(m0 /n), we can see that the following holds
+
+                             Õ(m0 /b2 ) = Õ(m0 (m0 · k/m)−2/p )
+                                        = Õ((m0 )1−2/p · (m/k)2/p )
+                                        = Õ((m0 /n)1−2/p · n1−2/p · (m/k)2/p )
+                                        = Õ((m/k) · n1−2/p )
+                                        = Õ(δ · n1−2/p ).
+
+    Due to the fact that p ≥ 4 and δ = Ω(n1/2 ), we obtain that
+
+                                     Õ(n/a) = Õ(n) = Õ(δ · n1−2/p ).
+
+    Thus, we know that, with high probability, the number of edges between any two parts in
+{V1 , . . . , Vb , K1 , . . . , Ka } is Õ(n1−2/p · δ).
+
+Reshuffling the input. Before we perform the final listing step, we need to reshuffle the edges
+of E 0 across the nodes of C. In the following part (Performing the Listing), every edge of E 0 is
+broadcast to many nodes in the graph, and, due to symmetry, every edge is broadcast to the same
+number of nodes. We thus need to reshuffle these edges across C such that nodes with higher
+degree hold more edges. Specifically,    we desire for each node v ∈ C 0 to hold O(m0 · kv /k) edges,
+and since, as seen before, v∈C 0 2kv ≥ k, this covers all the edges in E 0 . Using the fact that the
+                             P
+class of a node v ∈ C 0 , the value blog kv c − 2, can be computed locally by all the nodes, implying
+that a 2-approximation to the degree of every node is known to every other node, the nodes can
+locally know how many edges each node needs to receive. In a similar manner, the nodes construct
+additional vertex classes in order to know 2-approximations to the number of edges in E 0 which are
+held by a node. This information allows the nodes to compute how many edges each needs to send.
+Combined, these parts suffice for every node to know which node it needs to send edges to. Since
+each node v ∈ C 0 originally holds at most Õ(n1−2/p · degC (v)) edges of E 0 , it is possible to perform
+the reshuffling within Õ(n1−2/p ) rounds.
+
+Performing the listing. We are now arriving at the final stage of the algorithm, where nodes
+in C are assigned various parts in {V1 , . . . , Vb , K1 , . . . , Ka } and are required to learn all the copies
+of Kp between those parts. Primarily, notice that since we know that a ≤ b, the total number
+of ways to choose p0 parts from {K1 , . . . , Ka } and p −Pp0 parts from {V1 , . . . , Vb } is bounded by
+   0     0
+ap · bp−p ≤ a2 · bp−2 = k. Further, as done in [6], since v∈C 0 2kv ≥ k, it is possible to assign, in a
+hardcoded, globally known manner the k choices of p parts to the nodes C 0 such that each v ∈ C 0
+receives between 2kv and 4kv sets of p parts, as all the nodes can compute a 2-approximation of kv
+for any v ∈ C 0 . Finally, each node v ∈ C 0 desires to learn the edges between all the parts which it is
+assigned, and thus receive at most Õ(n1−2/p · δ · kv ) = Õ(n1−2/p · degC (v)) messages. Likewise, we
+desire that every node send at most such many messages. To achieve that, notice primarily that all
+the nodes in C know, given an edge in the graph, which nodes in C 0 need to receive it as part of the
+listing. Further, notice that within every edge set EC , E 0 , Ē, every edge is required to be sent to
+exactly the same number of nodes in C 0 . Thus, since the total amount of information which needs
+to be sent over the entire graph C is Õ(m · n1−2/p ) edges (since this bounds the number of messages
+received), each edge in EC , Ē, and E 0 is sent to at most Õ(n1−2/p ), Õ(n1−2/p ), and Õ(n1−2/p ·m/m0 )
+nodes, respectively. Due to the fact that each node v ∈ C originally has Õ(degC (v))) edges incident
+
+                                                      11
+to it in EC and Ē, this implies that sending the first two types of edges incurs Õ(n1−2/p · degC (v))
+messages from v. Further, due to the reshuffling step, all of E 0 is stored in the nodes C 0 , where
+v ∈ C 0 stores O(m0 · kv /k) edges, and thus sending each to Õ(n1−2/p · m/m0 ) nodes, incurs a total of
+Õ((m0 · kv /k) · n1−2/p · m/m0 ) = Õ(n1−2/p · kv · (m/k)) = Õ(n1−2/p · degC (v)) messages sent from v.
+    As the total number of messages sent and received by node v ∈ C 0 is at most Õ(n1−2/p ·degC (v)),
+we conclude that the round complexity of this final stage of the algorithm is Õ(n1−2/p ) as well.
+
+
+4     Optimal Kp -listing Algorithm for p > 4
+We show here how to list all instances of Kp , for p > 4.
+    We start with a simple procedure, in which each node of small degree lists all cliques that it is
+a part of by an exhaustive search approach. Formally, each node v with deg(v) ≤ 2n1/2 sends its
+neighborhood N (v) to all of its neighbors in N (v). Each neighbor sends an ack about each neighbor,
+and so v learns about all edges in N (v) × N (v), thereby v lists all Kp instances involving it. Thus
+we remove from the graph the node v and all edges touching v. This clearly takes at most O(n1/2 )
+rounds, according to the degree condition for v.
+    This procedure does not give us any promise on the degrees given by the remaining edges because
+by removing edges we could now have additional low-degree nodes. However, the property that this
+guarantees is that this handles many nodes in case the average degree in the graph was initially not
+too large. Denote by µ the average degree of the graph.
+
+Claim 4.1. Listing all instances of Kp involving v such that deg(v) ≤ 2n1/2 can be done within
+O(n1/2 ) rounds by an exhaustive search procedure. This can be done in parallel for all such nodes v.
+Further, if µ < n1/2 , then this removes at least half of the nodes from the graph.
+
+Proof. The fact that we can list all such instances within O(n1/2 ) rounds is straightforward by
+exhaustive search.
+   Assume the case in which µ < n1/2 . If the number of nodes with degree at most 2n1/2 is less than
+n/2, then the average degree µ is more than (2n1/2 · n/2)/n, which contradicts the assumption.
+
+    After the above procedure, the algorithm proceeds as follows.                 We run the
+(1/ polylog(n), 1/ polylog(n))-expander decomposition of [7], as stated in Theorem 2.1. Denote
+by Em the edges within clusters and by Er the remaining edges. Recall that we have the following
+properties:
+
+    1. |Er | ≤ |E|/ polylog(n).
+
+    2. The mixing time within each cluster C is O(polylog(n)).
+
+    3. For a node v ∈ VC for any cluster C = (VC , EC ), it holds that degC (v) ≥ deg(v)/ polylog(n).
+
+   We now consider two cases, depending on the size |VC | of a cluster.
+   Let β > 1 be some constant threshold which we will fix later. Suppose |VC | < βn1−2/p , and
+consider a node v ∈ VC . In this case we again follow an exhaustive search approach for v: The
+node v learns all of N (v) × N (v) by sending N (v) to all nodes in N (v) and receiving an ack from
+each recipient about each neighbor. This implies that all instances of Kp involving v are listed by v.
+
+Claim 4.2. Let β > 1 be some constant and let C be a cluster such that |VC | < βn1−2/p and
+consider a node v ∈ VC . Then, listing all instances of Kp involving v can be done within Õ(n1−2/p )
+rounds. This can be done in parallel for all such clusters C and nodes v.
+
+
+                                                   12
+Proof. By Property 3 above, we have that deg(v) ≤ degC (v) · polylog(n). Hence, |N (v)| ≤ |VC | ·
+polylog(n) and the bound on |VC | implies that |N (v)| ≤ Õ(n1−2/p ). Thus, sending N (v) to all nodes
+in N (v) completes in Õ(n1−2/p ) rounds. Receiving the acks takes another Õ(n1−2/p ) (although up
+to a single round this can be done concurrently with the sending). Finally, notice that for each
+such v the communication only takes place with v itself, and so this can be done in parallel for all
+such C and v.
+
+   In particular, Claim 4.2 leaves us only with sufficiently large clusters. Hence, from now on we
+suppose |VC | ≥ βn1−2/p .
+   Consider the nodes in V \ VC , and denote
+
+                        SC∗ = {u 6∈ VC | 1 ≤ degC (u) < degV \VC (u)/n1−2/p }.
+
+Note that every u ∈ SC∗ has a lower bound of n1−2/p on its degree. Also, for every u ∈ SC∗ it holds
+that degC (u) ≤ n2/p , and thus the total number of edges between nodes in C and nodes in SC∗ is at
+most n1+2/p . We say that a node v ∈ VC is a bad node if it has more than n1−2/p neighbors in SC∗ .
+These nodes are denoted by SC = {v ∈ VC | degSC∗ (v) > n1−2/p }.
+
+Claim 4.3. It holds that C such that |VC |≥βn1−2/p |SC |2 ≤ (4/β)|E|, where β > 1 is a constant.
+                           P
+
+Proof. Clearly, the total number of edges |E| is at least the number of edges that touch nodes in
+SC∗ . We bound this from below, and we do so by only counting edges that touch nodes in SC∗ but
+do not touch nodes in VC , by summing degV \VC (u) over all u ∈ SC∗ and dividing by two, due to
+possible double counting. This gives that
+                           X                      X
+                  2|E| ≥      degV \C (u) > n1−2p      degC (u)
+                             ∗
+                          u∈SC                             ∗
+                                                        u∈SC
+                                  X
+                        ≥ n1−2p          degSC∗ (v) > n1−2p · n1−2p · |SC | = n2−4p |SC |.
+                                  v∈SC
+
+
+This implies that |SC | ≤ 2|E|/n2−4/p . Also, since |E| ≤ n2 , this implies that |SC | ≤ 2n4/p . Thus,
+the total number of edges within SC is at most |SC | · |SC | ≤ 2n4/p · 2|E|/n2−4/p = 4|E|/n2−8/p .
+Since there are at most n2/p /β clusters of size |VC | ≥ βn1−2/p , we have that the total number of
+edges within SC over all such clusters is at most (n2/p /β) · (4|E|/n2−8/p ) ≤ (4/β)|E|/n2−10/p . For
+every p ≥ 5, this is at most (4/β)|E|.
+
+    We now show that within Õ(n1−2/p ) rounds we can list all instances of Kp which have an edge
+in (VC × VC ) \ (SC × SC ) for some of the clusters C. Along with the edges in Er and the edges in
+SC × SC , there will still be some additional clusters for which we will need to defer their edges to
+following iterations.
+     First, notice that for any v ∈ VC \ SC we have degSC∗ (v) ≤ n1−2/p , and thus v can learn about
+all edges in (N (v) ∩ SC∗ ) × (N (v) ∩ SC∗ ) by an exhaustive search of sending N (v) ∩ SC∗ to all nodes
+in N (v) ∩ SC∗ and receiving an ack from each recipient about each neighbor. Similarly to how it is
+done in Claim 4.2, we can do this in parallel for all such C and v, and it completes within O(n1−2/p )
+rounds.
+     Second, notice that for every u 6∈ VC for which u 6∈ SC∗ , it holds that degC (u) ≥
+degV \C (u)/n1−2/p . Thus, u can make each of its edges be known to some node in VC by batching
+its edges into non-overlapping chunks of at most n1−2/p edges, and sending each chunk to a different
+neighbor of u in C. This completes in within n1−2/p rounds, in parallel for all such C and u.
+
+                                                      13
+    We now have that for each v ∈ VC \ SC , all edges between its neighbors are known to some
+nodes in VC . It remains to show how each cluster lists the instances of Kp that are contained in the
+set of edges known to it.
+    Our goal is now to utilize our sparsity-aware listing algorithm given in Theorem 3.2, for which we
+need some good lower bounds on the average degree of the cluster. To this end, we simply defer all
+clusters whose average degree is too small to the next iteration. Formally, as in Theorem 3.2, denote
+by E 0 ⊆ E(V \ VC , V \ VC ) the edges that do not touch the nodes of C that are now distributed
+among the nodes of C. The cluster C computes |E 0 | and |EC /VC | within polylog(n) rounds, by
+Theorem 2.2.
+    Let γ, γ 0 > 1 be two additional constants which we will fix later. If |EC |/|VC | ≤ |E 0 |/γn or if
+|EC |/|VC | < n1/2 /γ 0 , then we say that C is a low-average cluster. Let Elow be the set of all edges
+in low-average clusters (i.e., Elow is the union of EC for all low-average clusters C). All edges in
+Elow are deferred to the next iteration, and we claim that this defers only another small constant
+fraction of the edges, if the average degree in the graph is sufficiently large.
+
+Claim 4.4. If µ ≥ n1/2 , then |Elow | ≤ (1/γ + 1/γ 0 )|E|.
+
+Proof. Recall that µ denotes the average degree in the graph. Since |E 0 | ≤ |E|, by considering all
+clusters C that satisfy |EC |/|VC | < |E 0 |/γn, we consider nodes with average degree inside their
+cluster bounded from above by µ/γ, therefore the number of edges within all such clusters is at
+most µn/2γ edges. However, by Property 1 of the decomposition, we know that the number of
+edges within the clusters (inside Em ) is at least |E|/2, which is at least µn/4. Therefore, the total
+number of edges in all clusters for which |EC |/|VC | < |E 0 |/γn is at most µn/2γ = (2/γ)µn/4 ≤
+(2/γ)|E|/2 = (1/γ)|E|.
+    Similarly, if µ ≥ n1/2 , by considering all low-average clusters C for which |EC |/|VC | < n1/2 /γ 0 ,
+we consider nodes with average degree inside the cluster bounded from above by µ/γ 0 , therefore the
+total number of edges in all such clusters is at most µn/2γ 0 .
+    Therefore, the total number of edges in all clusters for which |EC |/|VC | < n1/2 /γ 0 is at most
+µn/2γ 0 = (2/γ 0 )µn/4 ≤ (2/γ 0 )|E|/2 = (1/γ 0 )|E|.
+    To summarize, we obtain that |Elow | ≤ (1/γ)|E| + (1/γ 0 )|E| = (1/γ + 1/γ 0 )|E|, as claimed.
+
+    We show that the conditions of the theorem hold for any cluster C = (VC , EC ) with |VC | ≥
+βn1−2/p which is not a low-average cluster.
+    First, by Property 2 above, we have that the mixing time of C is O(polylog(n)). Furthermore,
+by Property 3, we have that for every u ∈ VC it holds that deg(u) is at most Õ(degC (u)), which
+implies that degĒ (u) is also bounded by Õ(degC (u)), where Ē is a subset of E(VC , V \ VC ). In
+addition, if we consider the set of edges E 0 ⊆ E(V \VC , V \VC ) that are distributed among the nodes
+of C, then indeed each node u ∈ VC holds no more than O(n1−2/p · degC (u)) of those edges. The
+reason is that each edge of E 0 that reaches u, reaches it through one of its edges in E(VC , V \ VC ).
+There are at most Õ(degC (u)) edges in the latter, and only O(n1−2/p ) rounds, which implies the
+required bound on the amount of information that they convey to u.
+    Finally, we note that the bounds required by Equation 1 hold for C which is not a low-average
+cluster, by definition.
+    Since all required conditions hold, we now execute the algorithm provided by Theorem 3.2 on
+each cluster C with |VC | ≥ βn1−2/p which is not a low-average cluster. We then remove all edges
+(VC ×SVC ) \ (SC × SC ) in each such cluster C and continue to the next iteration with all edges in
+Er ∪ C such that |VC |≥βn1−2/p (SC × SC ) ∪ Elow .
+    By Property 1 above, Claim 4.3, and Claim 4.4, there are no more than (1/ polylog(n) + 4/β +
+1/γ + 1/γ 0 )|E| remaining edges if the average degree µ of the graph is at least µ ≥ n1/2 . Choosing
+
+                                                   14
+β = 32, γ = 8, and γ 0 = 8, gives that there are at most 4(1/8)|E| = |E|/2 remaining edges.
+    In case the average degree µ of the graph is bounded by µ < n1/2 , the initial exhaustive search
+procedure for nodes of degree at most 2n1/2 removes at least half of the nodes by Claim 4.1.
+    This implies that we complete within a logarithmic number of iteration, which proves that within
+Õ(n1−2/p ) rounds we list all instances of Kp , for p > 4.
+
+
+5     Optimal K4 -listing Algorithm
+We follow the same high-level framework of the algorithm for listing Kp for p > 4. That is, we
+                                                                                      √
+deal with all nodes v with deg(v) ≤ 2n1/2 by an exhaustive search approach in O( n) rounds and
+remove them from the graph. Then we compute an expander decomposition using Theorem 2.1.
+Recall that if the average degree µ at the beginning is at most n1/2 , then at least half of the nodes
+will be removed by Claim 4.1.
+    After that, we apply Claim 4.2 to deal with all clusters C with |VC | < βn1−2/p = βn1/2 in Õ(n1/2 )
+rounds, and then the nodes in these clusters and their incident edges are removed. Denote C the set
+of remaining clusters. Note that each C ∈ C has |VC | ≥ βn1/2 , and so the number of these clusters
+is |C| = O(n1/2 ).
+    What makes the case p = 4 different from the case p > 4 is that Claim 4.3 does not hold when
+p = 4. To deal with this issue, we will consider a different approach to listing cross-cluster K4 .
+We cover all edges in the graph by clusters with small mixing time by recursively computing an
+expander decomposition of the subgraph induced by the inter-cluster edges for O(log n) iterations.
+Denote C∗ as the union of C and the set of clusters in these expander decompositions. The following
+claim allows us to process clusters in C∗ in parallel with small overhead.
+
+Claim 5.1. Each node v belongs to at most O(log n) distinct clusters in C∗ .
+
+Proof. This follows from the fact that the clusters in C∗ are from O(log n) distinct expander de-
+compositions, and in each expander decomposition the clusters are node-disjoint.
+
+    For all K4 that completely reside in some cluster C ∈ C, we can list all of them by applying
+                                                                                  √
+Theorem 3.2 with Ē = ∅, E 0 = ∅ and p = 4 to C. This costs Õ(n1−2/p ) = Õ( n) rounds.
+    Now, for each remaining K4 = {v1 , v2 , v3 , v4 } with at least one edge {v1 , v2 } ∈ EC in a cluster
+C ∈ C, we must have {v3 , v4 } ∈ EC ∗ for some cluster C ∗ ∈ C∗ \ {C}. Our strategy for listing those
+cross-cluster K4 is to go over all pairs of clusters C ∈ C and C ∗ ∈ C∗ \ {C} and to transmit edges
+between C and C ∗ in such a way that each K4 crossing C and C ∗ is learned by one of C and C ∗ so
+that Theorem 3.2 can be applied to list them. For any distinct clusters C and C ∗ , define the sets
+                                                                          √
+                         SC∗ ∗ →C = {u ∈ VC ∗ | 1 ≤ degC (u) < degC ∗ (u)/ n},
+                                                                √
+                         SC→C ∗ = {u ∈ VC | degS ∗ ∗ (u) > n},
+                                                   C →C
+
+
+which are analogous to the two sets SC∗ and SC defined in Section 4.
+   Our algorithm consists of three parts.
+
+First part. The first part of the algorithm is as follows.
+
+    1. Each cluster C ∗ ∈ C∗ does as follows. For each C ∈ C \ {C ∗ }, each node u ∈ VC ∗ \ SC∗ ∗ →C
+                                                                                   √
+       such that degC (u) ≥ 1 sends the set NC ∗ (u) to C, which can be done in Õ( n) rounds, due
+                                               √
+       to the inequality degC (u) ≥ degC ∗ (u)/ n and Claim 5.1.
+
+
+
+                                                   15
+   2. Each cluster C ∈ C then does as follows. Similar to the case of p > 4, denote by E 0 ⊆
+      E(V \ VC , V \ VC ) the edges that do not touch the nodes of C that are now distributed among
+      the nodes of C due to Step 1. The cluster C computes |E 0 | and |EC /VC | within polylog(n)
+      rounds, by Theorem 2.2. Recall that C is a low-average cluster if |EC |/|VC | ≤ |E 0 |/γn or if
+      |EC |/|VC | < n1/2 /γ 0 . All the edges EC in each low-average cluster C are deferred to the next
+      iteration. By Claim 4.4, this defers only a small constant fraction of the edges, if the average
+      degree at the beginning satisfies µ ≥ n1/2 . Now suppose C is not low-average w.r.t. E 0 . Let
+      Ē = E(VC , V \ VC ), and then the cluster C uses Theorem 3.2 to list all K4 in the subgraph
+                                                                                          √
+      induced by E 0 ∪ EC ∪ Ē that have at least one edge in EC , and this takes Õ( n) rounds.
+      Note that since C is not low-average, all the required conditions in Theorem 3.2 are met.
+    This first part enables each cluster C ∈ C that is not low-average w.r.t. E 0 to list all 4-cliques
+{v1 , v2 , v3 , v4 } such that v3 ∈ VC ∗ \ SC∗ ∗ →C or v4 ∈ VC ∗ \ SC∗ ∗ →C holds for some C ∗ ∈ C∗ \ {C}.
+
+Second part. The second part of the algorithm is as follows.
+   1. Each cluster C ∈ C does as follows. For each C ∗ ∈ C∗ \ {C}, each node u ∈ VC \ SC→C∗
+                                                                                                      √
+      learns all edges in NSC∗ ∗ →C (u) × NSC∗ ∗ →C (u) from the cluster C ∗ . This can be done in Õ( n)
+      rounds due to the definition of SC→C ∗ and Claim 5.1.
+
+   2. Each cluster C ∈ C then does as follows. Similar to the first part, let Ē = E(VC , V \ VC ),
+      and denote by E 0 ⊆ E(V \ VC , V \ VC ) the edges that do not touch the nodes of C that are
+      now distributed among the nodes of C due to Step 1. In case C is not low-average w.r.t. E 0 ,
+      it uses Theorem 3.2 to list all K4 in the subgraph induced by E 0 ∪ EC ∪ Ē that has at least
+                                         √
+      one edge in EC , and this takes Õ( n) rounds.
+    This second part enables each cluster C ∈ C that is not low-average w.r.t. E 0 to list all the
+cliques {v1 , v2 , v3 , v4 } such that the following conditions hold for some C ∗ ∈ C∗ \ {C}:
+   • v1 ∈ VC \ SC→C ∗ or v2 ∈ VC \ SC→C ∗ ,
+
+   • v3 , v4 ∈ SC∗ ∗ →C .
+
+Third part. The remaining task is listing cliques {v1 , v2 , v3 , v4 } such that v1 , v2 ∈ SC→C ∗ and
+v3 , v4 ∈ SC∗ ∗ →C hold for some clusters C ∈ C and C ∗ ∈ C∗ \ {C}. The third part of the algorithm
+performs this task as follows.
+
+   1. Each cluster C ∈ C does as follows. For each C ∗ ∈ C∗ \ {C}, each node u ∈ SC→C ∗ sends the
+      set of edges {{u, v} | v ∈ NSC→C ∗ (u)} to C ∗ by dividing this set into degS ∗ ∗ (u) subsets of
+                                                                                   C →C
+      roughly the same size and sending each subset to one of its neighbors in SC∗ ∗ →C . This can be
+                          √
+      implemented in Õ( n) rounds, by the definition of SC→C ∗ and Claim 5.1.
+
+   2. Each cluster C ∗ ∈ C∗ does as follows. Denote by E 0 ⊆ E(V \ VC , V \ VC ) the edges that do
+      not touch
+              Sthe nodes of C that are
+                              ∗            now distributed among the nodes of C ∗ due to Step 1, and
+      let Ē = C∈C\{C ∗ } E(SC→C ∗ , SC ∗ →C ). The cluster C ∗ uses Theorem 3.2 to list all K4 in the
+                                      ∗
+                                                                                                  √
+      subgraph induced by E 0 ∪ EC ∗ ∪ Ē that has at least one edge in EC ∗ , and this takes Õ( n)
+      rounds.
+
+   The following claims show that all conditions of Theorem 3.2 are satisfied.
+Claim 5.2. For each C ∗ ∈ C∗ , each node v ∈ C ∗ is incident to O(degC ∗ (v)) edges from Ē.
+
+                                                   16
+Proof. For each node v ∈ VC ∗ and any cluster C ∈ C \ {C ∗ } such that v ∈ SC∗ ∗ →C , we have
+                      √
+degC (u) < degC ∗ (u)/ n. The number of edges from Ē incident to any v ∈ VC ∗ is thus at most
+                    X                          √
+                             degSC→C ∗ (v) ≤ O( n) ·       max ∗      {degSC→C ∗ (v)}
+                           ∗
+                                                          C∈C\{C ∗ }, v∈SC ∗ →C
+            C∈C\{C ∗ }, v∈SC ∗ →C
+
+                                              ≤ O(degC ∗ (v)),
+                                                              √
+where the first inequality follows from the fact that |C| = O( n), and the second inequality follows
+from the definition of SC∗ ∗ →C .
+                                                              √
+Claim 5.3. For each C ∗ ∈ C∗ , each node v ∈ C ∗ receives O( n · degC ∗ (v)) edges at Step 1.
+
+Proof. At Step 1, each node v ∈ VC ∗ receives a message from some u ∈ SC→C ∗ only if v ∈ SC∗ ∗ →C .
+                                                 √   √
+More precisely, v receives at most |NSC→C ∗ (u)|/ n ≤ n edges in EC from this node u ∈ VC . Thus
+the total number of edges received by v is at most
+                                                                                           !
+     √            X                          √       √
+       n·                     degSC→C ∗ (v) ≤ n · O( n) ·        max ∗     {degSC→C ∗ (v)}
+                         ∗
+                                                                 C∈C\{C ∗ }, v∈SC ∗ →C
+          C∈C\{C ∗ }, v∈SC ∗ →C
+                                                √
+                                            ≤ O( n · degC ∗ (v)),
+                                         √
+where we use again the fact that |C| = O( n) and the definition of SC∗ ∗ →C .
+
+Claim 5.4. For each C ∗ ∈ C∗ , the average degree of C ∗ is at least maxC {|SC→C ∗ |}, and thus
+|EC ∗ |/|VC ∗ | = Ω(|E 0 |/n).
+                                                                          √
+Proof. By the definition of SC→C ∗ , each node v ∈ SC→C ∗ has at least n incident edges crossing
+                                                                  √
+VC and SC∗ ∗ →C . By the definition of SC∗ ∗ →C , we can associate n edges in EC ∗ incident to SC∗ ∗ →C
+for each edge crossing VC and SC∗ ∗ →C . Therefore, the number of edges in EC ∗ incident to SC∗ ∗ →C is
+at least                          √ √
+                                    n · n · |SC→C ∗ | = n · |SC→C ∗ |.
+Since this is true for all clusters C ∈ C \ {C ∗ }, we conclude that the average degree in C ∗ is at least
+maxC {|SC→C ∗ |}.
+                                                                     √
+    To apply Theorem 3.2, we still need to have |EC ∗ |/|VC ∗ | = Ω( n). Unfortunately, we are unable
+to guarantee this inequality. However, if we restrict ourselves to the nodes in VC ∗ that have incident
+                                                              √
+edges in Ē, we can show that their average degree is Ω( n), which is also enough for us to use
+Theorem 3.2 (see the remark just after the statement of Theorem 3.2). Here is the precise statement
+that we need.
+                                                                                                     √
+Claim 5.5. For each C ∗ ∈ C∗ , each node v ∈ C ∗ with incident edges in Ē has degC ∗ (v) = Ω( n).
+
+Proof. By the definition of Ē, we have v ∈ SC∗ ∗ →C for some C ∈ C \ {C ∗ }. By the definition of
+                               √              √
+SC∗ ∗ →C , we have degC ∗ (v) > n · degC (v) ≥ n, as required.
+
+Summary. The algorithm guarantees that as long as C ∈ C is not a low-average cluster w.r.t. E 0
+in Part 1 and Part 2, then all K4 with at least one edge in C are listed by some node.
+    By Claim 4.4 and the fact that the number of inter-cluster edges in an expander decomposition
+is at most |E|/ polylog(n), there are no more than (1/ polylog(n) + 1/γ + 1/γ 0 )|E| remaining edges
+if the average degree µ of the graph is at least µ ≥ n1/2 at the beginning. Choosing γ = 8, and
+
+                                                   17
+γ 0 = 8, gives that there are at most 3(1/8)|E| < |E|/2 remaining edges. In case the average degree µ
+of the graph is bounded by µ < n1/2 , the initial exhaustive search procedure for nodes of degree at
+most 2n1/2 removes at least half of the nodes by Claim 4.1. This implies that we complete within
+a logarithmic number of iterations, which proves that within Õ(n1/2 ) rounds we list all instances
+of K4 .
+
+
+Acknowledgements
+The authors would like to thank Yuval Efron and Miel Sharf for helpful discussions, and Orr Fischer
+for elaborating upon [10].
+    This project was partially supported by the European Union’s Horizon 2020 Research and Inno-
+vation Programme under grant agreement no. 755839. YC was supported by Dr. Max Rössler, by
+the Walter Haefner Foundation, and by the ETH Zürich Foundation. FLG was supported by JSPS
+KAKENHI grants Nos. JP16H01705, JP19H04066, JP20H00579, JP20H04139 and by the MEXT
+Quantum Leap Flagship Program (MEXT Q-LEAP) grant No. JPMXS0120319794.
+
+
+References
+ [1] Amir Abboud, Keren Censor-Hillel, Seri Khoury, and Christoph Lenzen. Fooling views:
+     A new lower bound technique for distributed computations under congestion. Distributed
+     Computing, 33:545–559, 2020. URL: https://doi.org/10.1007/s00446-020-00373-4, doi:
+     10.1007/s00446-020-00373-4.
+
+ [2] Noga Alon, Tali Kaufman, Michael Krivelevich, and Dana Ron. Testing triangle-freeness in
+     general graphs. SIAM Journal on Discrete Mathematics, 22(2):786–819, 2008. doi:10.1137/
+     07067917X.
+
+ [3] Luca Becchetti, Paolo Boldi, Carlos Castillo, and Aristides Gionis. Efficient semi-streaming
+     algorithms for local triangle counting in massive graphs. In Proceedings of the 14th ACM
+     SIGKDD International Conference on Knowledge Discovery and Data Mining (KDD 2008),
+     pages 16–24, 2008. doi:10.1145/1839490.1839494.
+
+ [4] Keren Censor-Hillel, François Le Gall, and Dean Leitersdorf. On distributed listing of cliques.
+     In Proceedings of the ACM Symposium on Principles of Distributed Computing (PODC 2020),
+     2020. doi:10.1145/3382734.3405742.
+
+ [5] Keren Censor-Hillel, Petteri Kaski, Janne H. Korhonen, Christoph Lenzen, Ami Paz, and
+     Jukka Suomela. Algebraic methods in the congested clique. Distributed Computing,
+     32(6):461–478, 2019. URL: https://doi.org/10.1007/s00446-016-0270-2, doi:10.1007/
+     s00446-016-0270-2.
+
+ [6] Yi-Jun Chang, Seth Pettie, and Hengjie Zhang. Distributed triangle detection via expander de-
+     composition. In Proceedings of the 30th Annual ACM-SIAM Symposium on Discrete Algorithms
+     (SODA 2019), pages 821–840, 2019. doi:10.5555/3310435.3310486.
+
+ [7] Yi-Jun Chang and Thatchaphol Saranurak. Improved distributed expander decomposition and
+     nearly optimal triangle enumeration. In Proceedings of the ACM Symposium on Principles of
+     Distributed Computing (PODC 2019), pages 66–73, 2019. URL: https://doi.org/10.1145/
+     3293611.3331618, doi:10.1145/3293611.3331618.
+
+
+                                                 18
+ [8] Artur Czumaj and Christian Konrad. Detecting cliques in CONGEST networks. In Proceedings
+     of the 32nd International Symposium on Distributed Computing (DISC 2018), pages 16:1–16:15,
+     2018. URL: https://doi.org/10.4230/LIPIcs.DISC.2018.16, doi:10.4230/LIPIcs.DISC.
+     2018.16.
+ [9] Andrew Drucker, Fabian Kuhn, and Rotem Oshman. On the power of the congested clique
+     model. In Proceedings of the ACM Symposium on Principles of Distributed Computing (PODC
+     2014), pages 367–376, 2014. URL: https://doi.org/10.1145/2611462.2611493, doi:10.
+     1145/2611462.2611493.
+[10] Talya Eden, Nimrod Fiat, Orr Fischer, Fabian Kuhn, and Rotem Oshman. Sublinear-time dis-
+     tributed algorithms for detecting small cliques and even cycles. In Proceedings of the 33rd In-
+     ternational Symposium on Distributed Computing (DISC 2019), pages 15:1–15:16, 2019. URL:
+     https://doi.org/10.4230/LIPIcs.DISC.2019.15, doi:10.4230/LIPIcs.DISC.2019.15.
+[11] Talya Eden, Amit Levi, Dana Ron, and C. Seshadhri. Approximately counting triangles in sub-
+     linear time. SIAM Journal on Computing, 46(5):1603–1646, 2017. doi:10.1137/15M1054389.
+[12] Guy Even, Orr Fischer, Pierre Fraigniaud, Tzlil Gonen, Reut Levi, Moti Medina, Pedro Mon-
+     tealegre, Dennis Olivetti, Rotem Oshman, Ivan Rapaport, and Ioan Todinca. Three notes on
+     distributed property testing. In Proceedings of the 31st International Symposium on Distributed
+     Computing (DISC 2017), pages 15:1–15:30, 2017. URL: https://doi.org/10.4230/LIPIcs.
+     DISC.2017.15, doi:10.4230/LIPIcs.DISC.2017.15.
+[13] Orr Fischer, Tzlil Gonen, Fabian Kuhn, and Rotem Oshman. Possibilities and impossibilities
+     for distributed subgraph detection. In Proceedings of the 30th Symposium on Parallelism in
+     Algorithms and Architectures (SPAA 2018), pages 153–162, 2018. URL: https://doi.org/
+     10.1145/3210377.3210401, doi:10.1145/3210377.3210401.
+[14] Mohsen Ghaffari, Fabian Kuhn, and Hsin-Hao Su. Distributed MST and routing in almost
+     mixing time. In Proceedings of the ACM Symposium on Principles of Distributed Comput-
+     ing (PODC 2017), pages 131–140, 2017. URL: https://doi.org/10.1145/3087801.3087827,
+     doi:10.1145/3087801.3087827.
+[15] Mohsen Ghaffari and Jason Li. New distributed algorithms in almost mixing time via trans-
+     formations from parallel algorithms. In Proceedings of the 32nd International Symposium on
+     Distributed Computing (DISC 2018), pages 31:1–31:16, 2018. URL: https://doi.org/10.
+     4230/LIPIcs.DISC.2018.31, doi:10.4230/LIPIcs.DISC.2018.31.
+[16] Tzlil Gonen and Rotem Oshman. Lower bounds for subgraph detection in the CONGEST
+     model. In Proceedings of the 21st International Conference on Principles of Distributed Systems
+     (OPODIS 2017), pages 6:1–6:16, 2017. URL: https://doi.org/10.4230/LIPIcs.OPODIS.
+     2017.6, doi:10.4230/LIPIcs.OPODIS.2017.6.
+[17] Xiaocheng Hu, Miao Qiao, and Yufei Tao. I/O-efficient join dependency testing, Loomis–
+     Whitney join, and triangle enumeration. Journal of Computer and System Sciences, 82(8):1300–
+     1315, 2016. doi:10.1016/j.jcss.2016.05.005.
+[18] Dawei Huang, Seth Pettie, Yixiang Zhang, and Zhijun Zhang. The communication complex-
+     ity of set intersection and multiple equality testing. In Proceedings of the Fourteenth An-
+     nual ACM-SIAM Symposium on Discrete Algorithms, pages 1715–1732, 2020. doi:10.1137/
+     1.9781611975994.105.
+
+                                                19
+[19] Taisuke Izumi and François Le Gall. Triangle finding and listing in CONGEST networks. In Pro-
+     ceedings of the ACM Symposium on Principles of Distributed Computing (PODC 2017), pages
+     381–389, 2017. URL: https://doi.org/10.1145/3087801.3087811, doi:10.1145/3087801.
+     3087811.
+
+[20] Taisuke Izumi, François Le Gall, and Frédéric Magniez. Quantum distributed algorithm for
+     triangle finding in the CONGEST model. In Proceedings of the 37th International Symposium
+     on Theoretical Aspects of Computer Science (STACS 2020), pages 23:1–23:13, 2020. URL:
+     https://doi.org/10.4230/LIPIcs.STACS.2019.49, doi:10.4230/LIPIcs.STACS.2019.49.
+
+[21] Mark Jerrum and Alistair Sinclair. Approximating the permanent. SIAM Journal on Comput-
+     ing, 18(6):1149–1178, 1989. doi:10.1137/0218077.
+
+[22] Janne H. Korhonen and Joel Rybicki. Deterministic subgraph detection in broadcast CON-
+     GEST. In Proceedings of the 21st International Conference on Principles of Distributed Systems
+     (OPODIS 2017), pages 4:1–4:16, 2017. URL: https://doi.org/10.4230/LIPIcs.OPODIS.
+     2017.4, doi:10.4230/LIPIcs.OPODIS.2017.4.
+
+[23] François Le Gall. Improved quantum algorithm for triangle finding via combinatorial argu-
+     ments. In Proceedings of the 55th Annual IEEE Symposium on Foundations of Computer
+     Science (FOCS 2014), pages 216–225, 2014. doi:10.1109/FOCS.2014.31.
+
+[24] Gopal Pandurangan, Peter Robinson, and Michele Scquizzato. On the distributed complexity
+     of large-scale graph computations. In Proceedings of the 30th on Symposium on Parallelism
+     in Algorithms and Architectures (SPAA 2018), pages 405–414, 2018. doi:10.1145/3210377.
+     3210409.
+
+[25] Julian Shun and Kanat Tangwongsan. Multicore triangle computations without tuning. In
+     Proceedings of the 31st IEEE International Conference on Data Engineering (ICAD 2015),
+     pages 149–160, 2015. doi:10.1109/ICDE.2015.7113280.
+
+
+
+
+                                                20
+

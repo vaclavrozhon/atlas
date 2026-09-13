@@ -1,0 +1,2500 @@
+                                          Dynamic Approximate Shortest Paths and Beyond: Subquadratic
+                                                         and Worst-Case Update Time
+                                                                       Jan van den Brand and Danupon Nanongkai
+arXiv:1909.10850v2 [cs.DS] 16 Oct 2019
+
+
+
+
+                                                                       KTH Royal Institute of Technology, Sweden
+
+
+                                                                                              Abstract
+                                                    Consider the following distance query for an n-node graph G undergoing edge insertions and
+                                                deletions: given two sets of nodes I and J, return the distances between every pair of nodes in
+                                                I × J. This query is rather general and captures several versions of the dynamic shortest paths
+                                                problem. In this paper, we develop an efficient (1 + ǫ)-approximation algorithm for this query
+                                                using fast matrix multiplication. Our algorithm leads to answers for some open problems for
+                                                Single-Source and All-Pairs Shortest Paths (SSSP and APSP), as well as for Diameter, Radius,
+                                                and Eccentricities. Below are some highlights. Note that all our algorithms guarantee worst-
+                                                case update time and are randomized (Monte Carlo), but do not need the oblivious adversary
+                                                assumption.
+                                                    Subquadratic update time for SSSP, Diameter, Centralities, ect.: When we want to maintain
+                                                distances from a single node explicitly (without queries), a fundamental question is to beat triv-
+                                                ially calling Dijkstra’s static algorithm after each update, taking Θ(n2 ) update time on dense
+                                                graphs. A better time complexity was not known even with amortization. It was known to be
+                                                improbable for exact algorithms and for combinatorial any-approximation algorithms to poly-
+                                                nomially beat the Ω(n2 ) bound (under some conjectures) [Roditty, Zwick, ESA’04; Abboud, V.
+                                                Williams, FOCS’14].1 Our algorithm with I = {s} and J = V (G) implies a (1+ǫ)-approximation
+                                                algorithm for this, guaranteeing Õ(n1.823 /ǫ2 ) worst-case update time for directed graphs with
+                                                positive real weights in [1, W ].2 With ideas from [Roditty, V. Williams, STOC’13], we also ob-
+                                                tain the first subquadratic worst-case update time for (5/3 + ǫ)-approximating the eccentricities
+                                                and (1.5 + ǫ)-approximating the diameter and radius for unweighted graphs (with small additive
+                                                errors). We also obtain the first subquadratic worst-case update time for (1 + ǫ)-approximating
+                                                the closeness centralities for undirected unweighted graphs.
+                                                    Worst-case update time for APSP: When we want to maintain distances between all-pairs
+                                                of nodes explicitly, the Õ(n2 ) amortized update time by Demetrescu and Italiano [STOC’03]
+                                                already matches the trivial Ω(n2 ) lower bound. A fundamental question is whether it can be
+                                                made worst-case. The state-of-the-art algorithm takes Õ(n2+2/3 ) worst-case update time to
+                                                maintain the distances exactly [Abraham, Chechik, Krinninger, SODA’17; Thorup STOC’05].
+                                                When it comes to (1 + ǫ) approximation, this bound is still higher than calling the Õ(nω /ǫ)-time
+                                                static algorithm of Zwick [FOCS’98], where ω ≈ 2.373. Our algorithm with I = J = V (G)
+                                                implies nearly tight bounds for this, namely Õ(n2 /ǫ1+ω ) for undirected unweighted graphs and
+                                                Õ(n2.045 /ǫ2 ) for directed graphs with positive real weights. Besides this, we also obtain the first
+                                                dynamic APSP algorithm with subquadratic update time and sublinear query time.
+
+                                            1
+                                              The conditional lower bounds of [Roditty, Zwick, ESA’04; Abboud, V. Williams, FOCS’14] hold for algorithms
+                                         with O(n3−δ ) preprocessing time for some constant δ > 0. Our preprocessing time is also in this form. “Combinatorial
+                                         algorithms” is a vague term referring to algorithms that do not use fast matrix multiplication.
+                                            2
+                                              Notations: Throughout, n and m denote the number of nodes and edges respectively. Our focus is on dense
+                                         graphs with m = Θ(n2 ) edges. Let V (G) denote the set of nodes in a graph G. Unless specified otherwise, “weighted
+                                         graphs” refer to graphs with positive real edge weights. The Õ notation hides poly log n, poly log(1/ǫ) (for (1 + ǫ)-
+                                         approximation algorithms), and during the introduction a single log W factor.
+
+
+                                                                                                   i
+Contents
+1 Introduction                                                                                         1
+  1.1 Consequences . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     2
+
+2 Technical Overview                                                                                   6
+  2.1 Basic Tools . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    7
+  2.2 Proof Sketch of Lemma 2.4 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .        8
+
+3 Preliminaries                                                                                       11
+
+4 Algebraic Dynamic Short Hop Distances                                                        12
+  4.1 Exact and Approximate Distances for Integer Weights . . . . . . . . . . . . . . . . . 12
+  4.2 Approximate Distances for Real Weights . . . . . . . . . . . . . . . . . . . . . . . . . 16
+
+5 Results for All-Pairs-Distances                                                         17
+  5.1 Weighted Approximate Distances (Proof of Theorem 5.1) . . . . . . . . . . . . . . . 19
+  5.2 Unweighted Undirected Approximate Distances (Proof of Theorem 5.2) . . . . . . . 21
+
+6 Results for Diameter, Radius and Eccentricities                                             22
+  6.1 Unweighted Approximate Diameter (Proof of Theorems 6.1 and 6.4) . . . . . . . . . 23
+  6.2 Unweighted 1.5 Approximate Diameter . . . . . . . . . . . . . . . . . . . . . . . . . . 25
+
+7 Open Problems                                                                                       28
+
+A Worst-Case Standard Technique                                                                       34
+
+B Reduction from Distances to Polynomial Matrix Inverse                                               34
+
+C Bounding ω(·, ·, ·)                                                                                 35
+
+D Hitting-Set Arguments                                                                               36
+
+E Approximate Diameter, Radius and Eccentricities                                                     36
+
+F Dynamic Exact Diameter                                                                              39
+
+G Dynamic Closeness-Centrality                                                                        41
+
+
+
+
+                                                   ii
+1        Introduction
+Dynamic graph algorithms generally concern maintaining properties of a graph under a sequence
+of updates, typically in the form of an edge insertion, deletion or weight update. Among basic
+primitives extensively studied are various distance information; e.g., the all-pairs shortest paths
+(APSP), the single-source shortest paths (SSSP), and the st-shortest path (st-SP) concern the
+distances between all-pairs of nodes, from a single node to every node, and between a pair of nodes,
+respectively.3 These problems have been studied in settings where distances can be queried (e.g.
+[HK95, HKN16, Ber09, RZ12, San04, San05b]) or are explicitly maintained (e.g. [DI04, Tho05,
+ACK17]). In this paper, we study the problem that captures many aforementioned problems as
+special cases. In this problem, one can query the distances between any two sets of nodes I and J,
+as follows.
+
+Problem 1.1 (Dynamic batch-query distances). An algorithm for this problem supports the fol-
+lowing operations.
+
+        • Preprocess(G): Process an input n-node graph G with positive real edge weights from [1, W ].
+
+        • Update((u, v), w): Update the weight of edge (u, v) to w ∈ [1, W ] ∪ {∞}.4
+
+        • Query(I, J): Given sets of nodes I and J, return the distance from i to j, denoted by
+          dist(i, j), for each (i, j) ∈ I × J.
+
+    For example, the explicit dynamic SSSP where we maintain the distances from a pre-specified
+node s to every node after changing the weight of an edge is a special case of the above problem
+where we fix I = {s} and J = V (G) (where V (G) is the set of all nodes in G), and the query is
+made after every update.
+    Sometimes, we call the query in Problem 1.1 the batch query to distinguish it from a typical
+query of the distance between two nodes. We refer to the case where W = 1 as the unweighted case
+(setting an edge weight to 1 and ∞ corresponds to inserting and deleting an edge). To keep things
+short, we use weighted graphs to refer to graphs with positive real edge weights in [1, W ] (like in
+Problem 1.1) throughout.
+    The performance of algorithms for Problem 1.1 is measured by preprocessing time, update time
+and query time. The update time can be categorized into two types: A more desirable one is the
+worst-case update time which holds for every single update. This is to contrast with an amortized
+update time which holds “on average”.5 Our focus is on the worst-case update time and dense
+graphs with m = Θ(n2 ) edges.
+    In this paper, we present a fast (1 + ǫ)-approximation algorithm for Problem 1.1. By (1 + ǫ)-
+approximation, we mean that it answers Query(I, J) with d′ (i, j) ∈ [dist(i, j), (1 + ǫ) dist(i, j)] for
+every (i, j) ∈ I × J. We state our algorithm’s performance below for completeness but recommend
+the reader to skip on the first read. It might also be helpful to focus the bounds below for unweighted
+undirected graphs, where ω = 2, ε = 0.01, and s ≤ 1/4. In this case, the update and query time
+complexities in Theorem 1.2 become Õ(n2−s ) and Õ(|I||J|+|I|n2s +|J|n2s ), which can be traded-off
+using the parameter s.
+    3
+      Note that some works also considered returning the shortest paths, not just the distances, and a node update
+where all edges incident to the same nodes are updated together. This paper does not consider this.
+    4
+      Setting edge weight to ∞ is equivalent to deleting an edge.
+    5
+      More precisely, for any t, an algorithm is said to have an amortized update time of t if, for any k, the total time
+it spends to process the first k updates is at most kt.
+
+
+
+
+                                                           1
+Theorem 1.2 (Main General Result). For any 0 < s < 1, there exists a randomized (Monte Carlo)
+(1 + ǫ)-approximation algorithm for Problem 1.1 whose preprocessing time, worst-case update time,
+and query time on directed weighted graphs (respectively undirected unweighted graphs) are
+       • Preprocessing: Õ(nω+s /ε) (respectively Õ(nω+s )),
+
+       • Update: Õ(n1.5286+s /ε + nω(1,1,1−s)−1+2s /ε2 + nω(1,1−s,1−s) /ε2 )
+         (respectively Õ(n1.5286+s + nω(1,1,µ+s)−µ /ε + nω(1,µ+s,1−s) /ε2 + n(1−s)ω /εω+1 ), and
+
+       • Query: Õ(nω(δ1 ,1−s,δ2 ) /ε2 ) (respectively Õ(nω(δ1 ,s+µ,δ2 ) /ε)), for |I| = nδ1 and |J| = nδ2 ).
+    The Õ notation hides poly log(n) and poly log(1/ǫ). To simplify our discussions, we hide the
+log W term in this section; we emphasize that our algorithms have only a single log W factor in their
+complexities. Here ω is the matrix multiplication exponent, i.e. multiplying two n × n matrices
+requires O(nω ) time (the current best bound is ω ≤ 2.3729 [Gal14, Wil12]) and ω(a, b, c) is the
+exponent for multiplying an na × nb matrix with an nb × nc matrix. For bounds on ω(a, b, c) see
+Appendix C. The claimed algorithm, as well as other algorithms that follow, guarantee worst-case
+update and query times and are randomized in that they return the results within the guaranteed
+approximation ratio with high probability6 . Note that unlike typical randomized dynamic algo-
+rithms, our algorithms do not need the oblivious adversary assumption; i.e. an edge update can
+depend on the algorithms’ prior outputs.
+
+1.1       Consequences
+Our result leads to improved algorithms for several variants of dynamic distance maintenance. This
+includes maintaining the diameter, the radius, and the eccentricities. It answers some key questions
+in the studies of dynamic shortest paths. Below are some of these questions (more explanations
+will follow).
+Question 1.3 (Beating static algorithms). Can we beat trivially calling static algorithms after
+every update? In particular, can we (i) explicitly maintain the SSSP in subquadratic update time
+(even with amortization), and (ii) explicitly and (1 + ǫ)-approximately maintain the APSP faster
+than Õ(nω ) worst-case update time?
+Question 1.4 (De-amortization). Can we achieve a worst-case update time comparable to the
+best known amortized update time? In particular, can we explicitly, and perhaps approximately,
+maintain the APSP in Õ(n2 ) worst-case update time?
+
+SSSP Beating static algorithms (Question 1.3) is the first step in tackling any dynamic problems.
+It has been achieved for a great number of problems, but unfortunately not for a basic problem
+like SSSP where we want to explicitly maintain distances between a pre-specified node t and all
+other nodes: There was no exact or (1 + ǫ)-approximation algorithm that beats calling Dijkstra’s
+O(m+n log n)-time static algorithm after every update, causing Θ(n2 ) update time on dense graphs.
+This is in contrast to the partially-dynamic setting, where a (1 + ǫ)-approximation algorithm with
+Õ(n) amortized update time was known essentially since 1981 [ES81] (see, e.g. [HKN18, HKN14a,
+HKN14b, HKN13, BC16, Ber17, BR11] for some recent improvements).7 The question for the
+fully-dynamic setting was raised in, e.g., [DI04].
+   6
+     With high probability (w.h.p.) means with probability at least 1 − 1/nc for any constant c > 1.
+   7
+     Recall that the partially-dynamic setting is when edge weighs can be only increased or only decreased. [ES81]
+originally presented an exact algorithm with O(n) amortized update time for unweighted undirected graphs. It was
+observed later than this can be easily extended to Õ(n) amortized update time for weighted directed graphs.
+
+
+                                                          2
+    It was known that polynomially beating this bound is improbable for exact algorithms: there is
+no exact dynamic SSSP algorithm with O(n3−δ ) preprocessing time and O(n2−δ ) amortized update
+time for any constant δ > 0, assuming the so-called APSP conjecture [RZ11, AW14].8 A natural
+question is whether this can be achieved with a (1+ǫ)-approximation algorithm. Theorem 1.2 shows
+that this is the case: it implies Õ(n1.863 ) worst-case update time for SSSP (after the Õ(n2.708 )-time
+preprocessing) for directed weighted graphs. This is simply because, for |I| = 1, |J| = n, and
+an appropriate choice of s, the preprocessing time, update time, and query time in Theorem 1.2
+become Õ(n2.708 ), Õ(n1.863 ), Õ(n1.666 ), respectively for directed weighted graphs. For unweighted
+directed graphs, the bounds become O(n2.621 ), Õ(n1.823 ), and Õ(n1.45 ), implying slightly lower time
+complexities. By adjusting a small part of the proof of Theorem 1.2, we get slightly better bounds:
+
+Theorem 1.5. SSSP in subquadratic update time; Details in Theorem 5.8): There is a (1 + ǫ)-
+approximation algorithm for maintaining SSSP explicitly for directed weighted graphs in Õ(n1.823 /ε2 )
+worst-case update time after the Õ(n2.621 )-time preprocessing.
+
+    In the best future scenario, when ω = 2, the update time in Theorem 1.5 would become
+Õ(n1.75 /ε2 ). Prior to our work, the only method to beat the Θ(n2 ) update time was to run a static
+algorithm (e.g. Dijkstra’s) on top of a dynamic sparse spanner, giving approximation factors of
+three or more on undirected graphs. For example, Bernstein, Forster, and Henzinger [BFH19] can
+maintain a (2k − 1)-spanner of Õ(n1+1/k ) edges in O(1)k log3 (n) worst-case update time, for any
+constant k ≥ 1 and for undirected graphs. This allows us to 3-approximate SSSP on undirected
+graphs in Õ(n1.5 ) worst-case update time. Since spanners work only for undirected graphs and
+cause the distances to increase by a multiplicative factor of at least three, its use is fundamentally
+limited to such graphs and approximation guarantee. Our algorithm avoids spanners completely
+and works for directed graphs with much lower approximation ratio.
+
+APSP The algorithm with Õ(n2.75 ) worst-case update time of Thorup [Tho05] was among the
+first that addressed the issue of worst-case update time (Question 1.4). Despite much recent effort
+and progress on this issue9 , the only improvement over Thorup’s bound was the Õ(n2+2/3 ) worst-
+case update time by Abraham, Chechik, and Krinninger [ACK17]. This bound holds for directed
+weighted graphs and can be improved to Õ(n2.5 ) on directed unweighted graphs. (Update: Recently,
+after our publication, Wulff-Nilsen and Probst analyzed worst-case APSP in the deterministic and
+Las Vegas setting [WNP19].)
+     In fact, the above results are all for maintaining distances exactly. When it comes to maintaining
+(1 + ǫ)-approximate distances, they are not better than trivially running a static algorithm after
+every update. On dense directed weighted graphs, this takes Õ(nω /ǫ) worst-case update time due to
+Zwick’s algorithm [Zwi02]. (Again, ω ≈ 2.3729.) In other words, there was no (1+ǫ)-approximation
+algorithm that beats static algorithms (Question 1.3). Theorem 1.2 implies algorithms that do not
+only break the static Õ(nω /ǫ) bound, but are also nearly tight:
+
+Theorem 1.6 (APSP in almost-quadratic worst-case update time; Details in Theorem 5.7). There
+is a (1 + ǫ)-approximation algorithm for maintaining all-pairs-distances explicitly in (i) Õ(n2 /εω+1 )
+worst-case update time after the Õ(n2.53 )-time preprocessing for undirected unweighted graphs, and
+(ii) Õ(n2.045 /ε2 ), worst-case update time after the O(n2.873 )-time preprocessing for directed weighted
+graphs.
+  8
+    The result of [RZ11, AW14] does not rule out an exact algorithm with higher preprocessing time and O(n2−δ )
+update time. Finding such algorithm remains a major open problem.
+  9
+    See, e.g., [ACK17, Tho05, NSW17, NS17, Wul17, BHN17, KKM13, BFH19, CS18, KKPS14, ACC+ 18, BK16].
+
+
+
+                                                      3
+    This is simply because for I = J = V (G) and an appropriate choice of s, the preprocessing
+time, worst-case update time, and query times in Theorem 1.2 become O(n2.53 ), Õ(n2 ), and Õ(2)
+for undirected unweighted graphs, and O(n2.873 ), Õ(n2.045 ) and Õ(n2.045 ) for directed weighted
+graphs. Prior to our algorithms, the only way to beat Zwick’s static algorithm was via dynamic
+spanners; e.g., the aforementioned algorithm of Bernstein et al. [BFH19] implies a 5-approximation
+algorithm with Õ(n2+1/3 ) worst-case update time and an O(1/ǫ)-approximation algorithm with
+Õ(n2+ǫ ) worst-case update time. As mentioned earlier, this approach is fundamentally limited to
+undirected graphs and rather large approximation ratios.
+    Note that while previous algorithms [Tho05, ACK17] can also return the shortest path con-
+necting two nodes in time proportional to the length of the path, our algorithms only maintain the
+distances. Also, previous algorithms can handle a more general update where the weights of all
+edges incident to the same node are updated at once. Our algorithms only handle the standard
+edge updates. Due to the so-called “Johnson transformation”[Joh77, CLRS09], previous algorithms
+can also handle negative edge weights when there are no negative cycles. Since this transformation
+applies only for exact distance computation, it does not apply to our algorithms.
+    For a version of APSP where we can make a query for a distance between two nodes, Theo-
+rem 1.2 implies a (1 + ǫ)-approximation algorithm with subquadratic update and sublinear query
+time complexities (both are in the worst case).
+
+Theorem 1.7 (APSP in subquadratic update and sublinear query time; Details in Theorem 5.1).
+There is a (1 + ǫ)-approximation algorithm for maintaining APSP with Õ(n1.863 /ε2 ) worst-case up-
+date time and Õ(n0.666 /ε2 ) worst-case query time after the Õ(n2.708 )-time preprocessing for directed
+weighted graphs, and (ii) Õ(n1.823 /εω+1 ) worst-case update time and Õ(n0.45 /εω+1 ) worst-case query
+time after the O(n2.621 )-time preprocessing for undirected unweighted graphs.
+
+    The only previously known algorithm with subquadratic update and query time complexities
+(but not with a sublinear query time) was by Sankowski [San05b]. It outputs exact distances for
+directed unweighted graphs. Our algorithm works on weighted graphs with much lower query time,
+but only returns approximate distances.
+
+Diameter, Radius, and Eccentricities The eccentricities (the eccentricity of a node v is the
+largest distance from v to any another node), the diameter (the maximum over all eccentricities)
+and the radius (the minimum over all eccentricities) can be easily maintained in Õ(n2 ) amortized
+update time using Demetrescu and Italiano’s dynamic APSP algorithm [DI04]. An important
+challenge here is to break the Õ(n2 ) bound. This captures a fundamental question of whether we
+really need APSP to maintain less informative measurements like the diameter. It was known
+that algorithms with n2−δ amortized update time might not exist for (1.5 − ǫ)-approximating the
+diameter, (1.5 − ǫ)-approximating the radius, and (5/3 − ǫ)-approximating the eccentricities for any
+constants δ, ǫ > 0 (assuming either the Strong Exponential Time Hypothesis (SETH) or a version of
+the Hitting Set Hypothesis) [AHR+ 18].10 In other words, likely we cannot break the O(n2 ) bound
+with such approximation guarantees.
+    In this paper, we show that with slightly higher approximation guarantees we can break the
+O(n2 ) bound: by essentially simulating the static algorithm of Roditty and V. Williams [RW13]
+(with some small adjustments), using the algorithm in Theorem 1.2 to compute distances when
+  10
+     [AHR+ 18] also ruled out algorithms with m1−δ update time that is (2 − ǫ)-approximation on undirected un-
+weighted graphs (under SETH), and finite approximation on directed unweighted graphs (under the k-Cycle Hypoth-
+esis), strengthening [HKNS15].
+
+
+
+
+                                                      4
+needed, we obtain algorithms with a subquadratic worst-case update time that nearly (1.5 + ǫ)-
+approximate the diameter and radius, and nearly (5/3 + ǫ)-approximate the eccentricities for dy-
+namic graphs. By “nearly”, we mean that there are some additive errors smaller than one. The
+results, when we slightly adjust the proof of Theorem 1.2 to get some slight improvements, are as
+follows.11
+
+Theorem 1.8 (Approximating Diameter, Radius, and Eccentricities; Details in Theorem 6.1). We
+write diam(G), radius(G) for the diameter and radius of graph G respectively, and let ecc(v, G) be
+the eccentricity of node v in G. There exist algorithms that can maintain the following values with
+the following time complexities for a dynamic graph G.
+                                              
+   1. D̃ ∈ 32 − ε diam(G) − 1/3, (1 + ε) diam(G) in Õ(n1.779 /ε1+ω ) worst-case update time after
+      the O(n2.624 )-time preprocessing,
+
+   2. R̃ ∈ [radius(G)/(1 + ε), (1.5 + ε) radius(G) + 2/3] in Õ(n1.779 /ε1+ω ) worst-case update time
+      after the O(n2.624 )-time preprocessing, and
+                                                
+   3. ecc(v)
+      f      ∈ 35 − ε ecc(v, G) − 4/7, ecc(v, G) for all nodes v in Õ(n1.823 /ε1+ω ) worst-case up-
+      date time after the O(n2.621 )-time preprocessing.
+
+The algorithm for Diameter works for directed unweighted graphs, while the others work for undi-
+rected unweighted graphs.
+
+    Prior to our algorithms, one can guarantee similar approximation ratios by running the static
+algorithms after each update (e.g. the nearly 1.5-approximation Õ(m3/2 )-time algorithms of [RW13,
+CLR+ 14] for Diameter and Radius, and the nearly (5/3)-approximation Õ(m3/2 )-time algorithms
+of [RW13, CLR+ 14] for Eccentricities). (See, e.g., [ACIM99, RW13, CLR+ 14, CGR16, BRS+ 18]
+for results in the static setting.) Obviously, even a static linear-time algorithm cannot break the
+Õ(n2 ) bound for dense graphs. The only prior method to break the Õ(n2 ) bound was to run static
+algorithms that are subquadratic-time on sparse graphs on top of a dynamic sparse spanner; e.g., the
+aforementioned spanner algorithm of Bernstein et al. [BFH19] allows us to nearly-7.5-approximate
+the diameter on directed unweighted graphs in Õ(n1+1/2+1/3 ) worst-case update time (using the
+                                √
+static 1.5-approximation Õ(m n)-time algorithm of [RW13] for Diameter). As mentioned earlier,
+this method is limited to large approximation ratio and undirected graphs.
+    Recently, Ancona et al. presented partially-dynamic algorithms with approximation guarantees
+                                                                                               √
+similar to us, e.g. a nearly-(1.5 + ǫ)-approximation decremental algorithm with m1+o(1/ǫ) n/ǫ2
+expected total update time for unweighted undirected graphs [AHR+ 18, Cor. 1.1]. (A slower
+algorithm was presented in [CG18].) Both Ancona et al.’s and our algorithms essentially simulate
+the algorithms of Roditty and V, Williams [RW13] (with small adjustments to the algorithms and
+analyses). The main difference is that our algorithms rely on our new result in Theorem 1.2, while
+Ancona et al.’s algorithms rely on the recent developments on partially-dynamic shortest paths
+(e.g. [HKN18, HKN16]).
+    In addition to the above, we can also maintain the diameter exactly for directed unweighted
+graphs (or with small positive integer weights bounded by W ). It is the first that improves trivially
+running the static exact algorithms by Shoshan and Zwick[SZ99] or Cygan, Gabow and Sankowski
+  11
+     Without the adjustment, our algorithms guarantee the following: nearly (1.5 + ǫ) approximation factor and
+O(n1.863 /εω+1 ) time for Diameter, nearly (1.5 + ǫ) approximation factor and O(n1.823 /εω+1 ) time for Radius, and
+nearly (5/3 + ǫ) approximation factor and O(n1.823 /εω+1 ) time for Eccentricities. Note that the adjustment does not
+improve the update time for Eccentricities.
+
+
+
+                                                         5
+[CGS15]. These algorithms take Õ(W nω ) ≈ Õ(W n2.3729 ) worst-case update time, and ours im-
+proves this to Õ(W n2.3452 ). The algorithm can be found in Appendix F.
+    Further, we give the first subquadratic dynamic algorithm for (1+ε)-approximating all-closeness-
+centralities with O(n1.823 /εω+1 ) update time in Appendix G. The closeness centrality of a node
+v is the inverse of the average distance from v. The technique can be used to obtain a static
+(1 + ε)-approximate algorithm with Õ(mn2/3 /ε2 ) time algorithm, which improves upon the Õ(m ·
+diam(G)2 /ε2 ) algorithm from [EW04] for large diameter graphs.
+
+Techniques At the heart of our result is a combination of the standard hitting argument and
+an algorithm that exploits fast matrix multiplication to quickly answer queries about approximate
+bounded-hop distances between two sets of nodes. An exact counterpart of this algorithm was
+already known due to Sankowski [San05b], but the query time of Sankowski’s algorithm is too slow
+for our purpose. Our approximation algorithm’s query time is faster, but its update time is slower.
+Interestingly, we run Sankowski’s algorithm in parallel with our algorithm, since our algorithm
+needs some information from it during the updates. Our algorithm needs to make a small number
+of queries to Sankowski’s algorithm, thus does not suffer from its slow query time. We explain this
+more in Section 2.
+    We note that our algorithms heavily rely on fast matrix multiplication algorithms. This is
+known to be necessary even for st-Reachability and (1 + ǫ)-approximating st-distance on undi-
+rected unweighted graphs [AW14].12 It is an intriguing question, however, whether fast matrix
+multiplication is necessary for other problems (see Section 7). Also note that fast matrix multipli-
+cation has been used in many previous shortest paths data-structures (e.g. [San04, San05b, DI05,
+Wil11, GW12, WY13, vdBNS19, vdBS19]).
+
+
+2         Technical Overview
+In this section we outline how to obtain Theorem 1.2. For simplicity we will only consider the
+case of directed, unweighted graphs. The algorithm outlined here can easily be extended to small
+integer weights, which then allows an extension to real weights via weight rounding – a technique
+previously used in [Ber16, Mad10, RT85, Zwi02, Nan14].
+    We will outline the proof of the following Theorem. It is equivalent to Theorem 1.2, except that
+it only supports unweighted graphs.
+
+Theorem 2.1 (Theorem 1.2 restricted to directed, unweighted graphs). For any 0 < s < 1,
+there exists a randomized (Monte Carlo) (1 + ǫ)-approximation algorithm for Problem 1.1 whose
+preprocessing time, worst-case update time, and query time on directed unweighted graphs are
+
+         • Preprocessing: Õ(nω+s ),
+
+         • Update:
+           Õ(n1.5286+s + nω(1,1,1−s)−1+2s /ε + nω(1,1−s,1−s) /ε), and
+
+         • Query: Õ(nω(δ1 ,1−s,δ2 ) ), for |I| = nδ1 and |J| = nδ2 ).
+   The outline of this section is as follows: We first give the high-level idea of how to reduce The-
+orem 2.1 to the algebraic problem of maintaining the inverse of some polynomial matrix modulo
+X h for some h > 0. This reduction is outlined in the first subsection 2.1 and uses common tech-
+niques used in many other algorithms (i.e. weight rounding, hitting sets, and inverse of polynomial
+    12
+         Triangle detection can be reduced to (6/5 − ε)-approximate st-distance and (3/2 − ε)-approximate SSSP.
+
+
+                                                            6
+matrices). Readers familiar with dynamic algebraic algorithms for maintaining graph distances
+can skip ahead to the next subsection 2.2. In section 2.2 we highlight the difference and new
+techniques that allow us to maintain approximate distances quickly, whereas previous algebraic
+data-structures could only maintain exact distances. We also give a high-level description of our
+new data-structure and explain how we are able to break the long-standing Ω(n2 )-bottleneck for
+problems such as single-source distances.
+
+2.1     Basic Tools
+In this subsection we outline how to reduce Theorem 2.1 to some algebraic problem. For that we
+first reduce the problem to maintaining only h-hops distances for some h > 0, and then reduce
+the problem further to the algebraic problem of maintaining the inverse of some polynomial matrix
+modulo X h .
+
+Restriction to short hops In order to create an algorithm as stated in Theorem 2.1, it is enough
+to construct an algorithm that only maintains h-hops distances. Specifically, it is enough to prove
+the following Lemma.
+
+Lemma 2.2 (Proven as Theorem 4.2 in Section 4). Let G be an unweighted graph with n nodes.
+Then for any 0 ≤ µ, 0 ≤ s ≤ 1 and ε > 0 there exists a dynamic algorithm that maintains
+(1+ ε)-approximate ns -hops all-pairs-distances of G. Each edge update requires Õ(nω(1,s+µ,1)−µ /ε+
+n1.5286+s ) time. For any I, J ⊂ V , we can query the approximate distances for the pairs I × J in
+Õ(nω(δ1 ,µ+s,δ2 ) /ε) time, where δ1 , δ2 are such that |I| = nδ1 , |J| = nδ2 .
+
+    We now outline why Lemma 2.2 is enough to obtain Theorem 2.1. The formal proof is given in
+Section 5. A common technique for graph algorithms is a so-called “hitting-sets”. More accurately,
+for some h ∈ N, a uniformly at random chosen set H ⊂ V of size Õ(n/h) has w.h.p. the property
+that every shortest path with at least h hops can be decomposed into segments s → h1 → ... →
+hk → t, where each hi ∈ H and each segment uses at most h hops. This technique goes back to
+Ullman and Yannakakis [UY91].
+    Let D̂ be an h-hop distance matrix, and denote for any I, J ⊂ V with D̂I,J the submatrix
+corresponding to the pairs (u, v) ∈ I × J. Then the length of shortest paths, using more than h
+                                                       |H|
+hops, can be computed via the (min, +)-product D̂V,H D̂H,H D̂H,V . Using techniques from [Zwi02],
+                                                                  |H|
+we can compute a (1 + ε)-approximation of D̂V,H D̂H,H for h = ns in Õ(nω(1,1−s,1−s) /ε) time during
+each update (this is the third term in the update time in Theorem 2.1).
+                                                                                        |H|
+    Whenever we must answer a query for the pairs I × J, we then compute (D̂V,H D̂H,H )I,H D̂H,J
+in Õ(nω(δ1 ,1−s,δ2 ) ) time and return the element-wise minimum with D̂I,J . Thus for µ := 1 − 2s
+Lemma 2.2 implies Theorem 2.1.
+
+From Graphs to Polynomial Matrices The task of maintaining h-hop distances can be re-
+duced to maintaining the inverse of a polynomial matrix M ∈ (F[X]/hX h+1 i)n×n (i.e. a matrix
+whose entries are polynomials modulo X h+1 ). In general the inverse of M might not exist, because
+F[X]/hX h+1 i is a ring, not a field. However, for the special caseP
+                                                                   that M is of the form M = I−A·X,
+where I is the identity matrix, the inverse is given by M −1 = hi=0 Ai · X i .13 A similar technique
+was previously used by Sankowski in [San05b], where Sankowski used the adjoint of a polynomial
+ 13
+                                                         Ph                                     Ph                    Ph+1
+      This is because X h+1 = 0 in F[X]/hX h+1 i, so (    i=0 A
+                                                                  i
+                                                                      · X i ) · (I − A · X) =    i=0 A
+                                                                                                         i
+                                                                                                             · Xi −    i=1 A
+                                                                                                                               i
+                                                                                                                                   · X i = I.
+
+
+
+
+                                                              7
+ Reference        Element update                         Batch query               Remark
+ [San05b]         Õ(nω(1,µ,1)+s−µ + n1.5286+s )         Õ(nω(δ1 ,µ,δ2 )+s )      Maintains (M −1 )[k] for k ∈ [ns ].
+ Lemma 2.4        Õ(|S|nω(1,s+µ,1)−µ + n1.5286+s )      Õ(|S|nω(δ1 ,µ+s,δ2 ) )   Maintains (M −1 )[k] for k ∈ S ⊂ [ns ].
+
+Figure 1: Comparison of data-structures for maintaining (M −1 )[k] for k ∈ S ⊂ [ns ]. The data-
+structure of [San05b] supports only the special case S = [ns ].
+
+
+matrix, instead of the inverse. For the reduction of Lemma 2.3 below, we need the following nota-
+tion: For a polynomial matrix M ∈ (F[X]/hX    h i)n×n we define M [k] to be the coefficients of X k , so
+                                      P
+M [k] ∈ Fn×n for any k < h and M = h−1         [k] k
+                                         k=0 M X .
+
+Lemma 2.3 (Proven in Appendix B). Let G be a directed graph with positive integer edge weights
+(cu,v )(u,v)∈E and let h be some positive integer. We define A(G) ∈ (F[X]/hX h i)n×n , such that
+Au,v = au,v X cu,v for each edge (u, v), Av,v = av,v X for every v ∈ V , and Au,v = 0 otherwise. Here
+each au,v is an independent and uniformly at random chosen element from F. 14
+    Then, the matrix M = I − A(G) is invertible and with probability at least 1 − hn2 /|F| the
+                                                                                 [d]
+following property holds: For every u, v ∈ V and 0 ≤ d < h the entry (M −1 )u,v 6= 0 if and only if
+dist(u, v) ≤ d.
+
+    Assume we have a data-structure that allows us to maintain (M −1 )[k] for k ∈ S = {⌊(1 + ε)i ⌋ |
+                                                              −1 [k]
+0 ≤ i ≤ ⌈log(1+ε) ns ⌉}. Then the smallest k ∈ S with (Ms,t      ) 6= 0 is a (1 + ε)-approximation of
+dist(s, t) according to Lemma 2.3. Thus Lemma 2.2 can be obtained by creating a data-structure
+that maintains (M −1 )[k] for k ∈ S.
+    For the field F we will use Zp for a prime of bit-length Θ(log(hn)), then the result is correct with
+high probability. The variable h will typically be polynomial in n, so each arithmetic operation in
+Zp can be performed in Õ(1) time. In summary, we can obtain an algorithm as stated in Lemma 2.2
+by proving the following lemma:
+
+Lemma 2.4. Let 0 ≤ µ, 0 ≤ s, h := ns+1 and M = (I − A · X) ∈ (F[X]/hX h i)n×n be a polynomial
+matrix modulo X h . Let S ⊂ {1, ..., h} be any set.
+     Then there exists a dynamic algorithm that supports element updates to A, that requires O(ns+ω )
+field operations for the pre-processing and Õ(|S|nω(1,s+µ,1)−µ +n1.5286+s ) operations per update. The
+                                                                                          [d]
+algorithm supports queries to (M −1 )I,J for any I, J ⊂ [n], where it returns (M −1 )I,J for all d ∈ S
+in Õ(|S|nω(δ1 ,µ+s,δ2 ) ) operations. Here δ1 , δ2 are such that |I| = nδ1 , |J| = nδ2 .
+
+2.2     Proof Sketch of Lemma 2.4
+As outlined near the end of the previous subsection, we can obtain Lemma 2.2 by proving Lemma 2.4
+via some chain of reductions.
+    Before we will prove this result, we first want to compare it to other dynamic algebraic algo-
+rithms by explaining how our algorithm manages to break a long-standing bottleneck of dynamic
+algebraic distance algorithms. The main differences of Lemma 2.4 compared to previous dynamic al-
+gebraic algorithms for distances (e.g. [San05b, vdBNS19]) is that our algorithm maintains (M −1 )[k]
+for k ∈ S for any set S ⊂ [ns ], whereas previous algebraic algorithms for distances maintain (M −1 )[k]
+for all k = 1, 2, ..., ns , i.e. they were restricted to the special case S = [ns ].
+    This difference allows us to circumvent a long-standing Ω(n2 ) bottleneck for algebraic algorithms
+that maintain single-source distances. Remember from the previous subsection, that these algebraic
+ 14
+      Note that for cu,v ≥ d we have Au,v = 0, as if the edge would not exist.
+
+
+                                                          8
+data-structures are used to maintain the ns -hop distances of some Õ(n1−s )-sized hitting set H to
+all other nodes V . Following the reduction of Lemma 2.3, this means maintaining the submatrix
+   −1
+MH,V  , which unfortunately means that just the output-size is already Ω(n2 ): We have a |H|×|V | =
+Ω(n1−s ) × n sized submatrix, where each entry is a polynomial with ns coefficients, i.e. a total
+                                                                                               −1
+of Ω(n2 ) field elements. However, our algorithm does not maintain all coefficients of MH,V        ; we
+                                                                                     s
+just maintain the coefficients of monomials of degree k ∈ S. So for |S| ≪ n , the output size
+is smaller than Ω(ns ). For example, when maintaining (1 + ε)-approximate distances we have
+|S| = O(ε−1 log n) as outlined at the end of the previous subsection 2.1. Previous dynamic algebraic
+algorithms could not break this Ω(n2 ) bottleneck as they were restricted to the special case S = [ns ].
+    When comparing Lemma 2.4 with [San05b] specifically (see Figure 1), then our algorithm
+manages to replace the ns factor by having it as an argument to ω(·, ·, ·), i.e. the term nω(1,µ,1)+s−µ
+in the update time of [San05b] changes to |S|nω(1,s+µ,1)−µ ). This allows us to greatly exploit fast
+matrix multiplication. Consider for example the case ω = 2, then |S|nω(1,s+µ,1)−µ = |S|n2−µ , but
+nω(1,µ,1)+s−µ = n2−µ+s . So when the set S ⊂ [ns ] has |S| ≪ ns , then our algorithm is a lot faster.
+
+Proof idea of Lemma 2.4 In order to complete our proof sketch of Theorem 2.1, we are left
+with proving Lemma 2.4. The algorithm is based on the following modified variant of the Sherman-
+Morrison-Woodbury identity [SM50, Woo50]:
+
+Lemma 2.5 (Paraphrased, Formal statement in Lemma 4.6). Let M be an invertible n × n matrix
+and let M(t) be the matrix M after changing any t entries, such that M(t) is invertible.
+   Then there exists n-dimensional vectors u(1) , ..., u(t) , v(1) , ..., v(t) that are given by rescaled rows
+and columns of M −1 , such that
+                                                          t
+                                                          X
+                                         −1
+                                        M(t) = M −1 −                   ⊤
+                                                                  u(i) v(i) .
+                                                          i=1
+
+   Assume we know M −1 because we computed it during the pre-processing, then one can create a
+dynamic algorithm by simply adding one new pair u(t+1) , v(t+1) for every update. This new pair can
+be computed quickly, as they are just a row/column of the already P  computed M −1 . For answering
+             −1
+queries to M(t) , one must simply compute some entries of the sum ti=1 u(i) v(i) ⊤ and subtract them
+
+from the corresponding entries of M −1 . From time to time, when the sum grows too large and the
+                                                                −1
+queries too slow, the data-structure will reset by computing M(t)   explicitly, i.e. we set M ← M(t) .
+                                          µ
+(This is where the trade-off parameter n for update and query time comes from.)
+   Performing the queries and reset operation naively results in the data-structure of [San05b] as
+presented in Figure 1. We now outline how we are able to speed-up both of these operations.
+                                        P
+Query operation Consider the sum ti=1 u(i) v(i)  ⊤ , then we can write it as a matrix product U V ⊤
+
+of (n × t)-matrices U, V , where the ith columns are u(i) and v(i) respectively. For answering the
+                              −1          −1
+query of some submatrix (M(t)    )I,J = MI,J − (U V ⊤ )I,J , we must multiply the rows I of U with
+the columns J of V ⊤ . Note however, that we only need to compute the coefficients of degree k for
+                    [k]
+k ∈ S, i.e. (U V ⊤ )I,J instead of (U V ⊤ )I,J . This allows for some speed-up via the following lemma:
+                                                          a   b                 c   b
+Lemma 2.6. Let 0 ≤ a, b, c, d and let U ∈ F[X]n ×n , V ∈ F[X]n ×n be polynomial matrices of
+degree at most nd . Then we can compute for any k the kth coefficient (U V ⊤ )[k] in Õ(nω(a,b+d,c) )
+field operations.
+
+
+
+                                                      9
+                             Pd                                                                        
+                                    [i] [k−i]⊤ = U [0] | U [1] | ... | U [k] V [k] | V [k−1] | ... | V [0] ⊤ .
+Proof. We have (U V ⊤ )[k] =  i=0 U V
+This product can be computed in Õ(nω(a,b+d,c) ) field operations.
+
+                                     −1             [k]
+                                                  −1 [k]                         [k]
+   This way we are able to compute (M(t) )I,J = (MI,J ) − (U V ⊤ )I,J for all k ∈ S ⊂ [ns ]
+in Õ(|S|nω(δ1 ,s+µ,δ2 ) ) operations, when |I| = nδ1 , |J| = nδ2 , t ≤ nµ . This is exactly the query
+complexity of Lemma 2.4.
+
+Reset operation After the data-structure received nµ updates, the matrices U, V are too large
+to answer the queries quickly enough. Thus we “reset” the algorithm by assigning M ← M(t) and
+computing M −1 explicitly.
+    Note that for answering queries to
+                                      −1 [k]
+                                    (M(t) ) = (M −1 )[k] − (U V ⊤ )[k]
+
+for k ∈ S, we do not need to know the entire M −1 . It is enough to know only (M −1 )[k] for all k ∈ S.
+Thus we can speed-up the reset by computing only those coefficients. The number of operations
+required for that is just Õ(|S|nω(1,µ+s,1) ), as this is equivalent to answering a query for I = J = [n].
+Since this reset happens only after every nµ updates, this yields the Õ(|S|nω(1,µ+s,1)−µ ) term in the
+update time of Lemma 2.4.
+     This idea of the improved reset operations leads to the following problem: If we do not know all
+coefficients of M −1 , then we can not obtain the new vectors u(t+1) , v(t+1) . Previously we said that
+those vectors can be trivially obtained by just reading rows/columns of M −1 . As we do not have
+all coefficients of M −1 , we then do not have all coefficients of u(t+1) , v(t+1) or U, V either. Thus we
+can not use Lemma 2.6 to answer queries anymore.
+     The solution to this problem is to run Sankowski’s algorithm in parallel. This algorithm was
+used in [San05b] to maintain exact distances, so in graph algorithms context, this means we are
+running the exact distance algorithm from [San05b] inside our approximate distance algorithm. At
+first, this might be a bit counter-intuitive, as one might wonder how an approximate algorithm can
+be fast, if it needs to run an exact algorithm anyway. We explain in the next paragraph, why for
+many problems (APSP, SSSP, diameter etc.) our approximate algorithm is faster than Sankowski’s
+exact one, even though we run it internally.
+
+Running exact and approximate algorithms in parallel By running both an exact and an
+approximate algorithm in parallel, we are able to exploit their benefits to fix the other algorithm’s
+disadvantages.
+    Dynamic algorithms often allow for a trade-off between update and query time, which is some-
+thing we exploit in our dynamic approximate distance algorithm, by running the two algorithms in
+parallel:
+
+   • Sankowski’s algorithm from [San05b] is exact, with improved update time at the cost of a
+     slower query (i.e. large choice of µ in Figure 1), but it only needs to answer very few queries
+     (one row/column per update) to obtain u(t+1) , v(t+1) .
+
+   • The other algorithm is approximate, with improved query time (so we can answer large
+     hitting set queries), at the cost of a slower update. However, because of the approximation,
+     this “slower” update time is still quite fast.
+
+
+
+                                                     10
+By combining the two algorithms, they are able to compensate each other’s disadvantages: As
+outlined before, our approximate algorithm can not run on its own, so we run Sankowski’s exact
+algorithm in parallel. However, if one were to run only Sankowski’s algorithm, then it would be
+very slow for maintaining the distances of the hitting-set to all other nodes (i.e. O(n2 /h) entries of
+the inverse, when maintaining h-hop distances). 15 By running it internally inside our approximate
+algorithm, the exact algorithm only needs to compute a single row and column of the inverse, so
+only O(n) entries per update as opposed to O(n2 /h).
+
+
+3        Preliminaries
+Complexity Measures Most of our algorithms work over any field F and their complexity is
+measured in the number of arithmetic operations performed over F, i.e. the arithmetic complexity.
+This does not necessarily equal the time complexity of the algorithm as one arithmetic operation
+could require more than O(1) time, e.g. very large rational numbers could require many bits for
+their representation. This is why our algebraic lemmas and theorems will always state “in O(·)
+operations” instead of “in O(·) time”. Further, Õ(·) hides polylog n and polylog ε factors, so unlike
+the introduction, the formal proofs will no longer hide any log W factor.
+    For the graph applications however, when having an n node graph, we will typically use the field
+Zp for some prime p of order nc for some c. This means each field element requires only O(c log n)
+bits to be represented and all field operations can be performed in Õ(c) time in the standard model.
+For our final results this c will be constant, i.e. all arithmetic operations can be performed in Õ(1).
+
+Notation: Identity and Submatrices The identity matrix is denoted by I. Let I, J ⊂ [n] :=
+{1, ..., n} and A be an n × n matrix, then the term AI,J denotes the submatrix of A consisting of
+the rows with index in I and columns with index in J. For some i ∈ [n] we may also just use the
+index i instead of the set {i}. For example the term A[n],i refers to the ith column of A.
+
+Matrix Multiplication We denote with O(nω ) the arithmetic complexity of multiplying two
+n × n matrices. Currently the best bound is ω < 2.3729 [Gal14, Wil12].
+   For rectangular matrices we denote the complexity of multiplying an na × nb matrix with an
+nb × nc matrix with O(nω(a,b,c) ) for any 0 ≤ a, b, c. Note that ω(·, ·, ·) is a symmetric function, so
+we can reorder the arguments. Also by splitting a matrix product into several smaller products, we
+have O(nω(a,b,c+d) ) = O(nω(a,b,c)+d ). The current best bounds for ω(1, 1, c) can be found in [GU18].
+To see how to bound general ω(a, b, c), see Appendix C.
+
+Polynomials modulo X d All our algebraic results use polynomials modulo X d for some positive
+integer d. The ring of such polynomials is denoted by F[X]/hX d i. Given two polynomials p, q ∈
+F[X]/hX d i, we can add and subtract the two polynomials in O(d) operations in F. We can multiply
+the two polynomials in O(d log d) using fast-fourier-transformations. If q is of the form c − X · h, c ∈
+                                                             P                     Qlog d             2k
+F \{0}, h ∈ F[X]/hX d i, then q is invertible with q −1 = c−1 d−1        k
+                                                               k=0 (Xh/c) = c
+                                                                                −1
+                                                                                     k=0 (1+ (Xh/c)
+so the inverse can be computed in O(d(ln d)2 ) operations. Since we typically hide polylog factors
+in the Õ(·) notation, all arithmetic operations with polynomials from F[X]/hX d i can be performed
+in Õ(d) operations in F.
+    15
+     One can apply Lemma 2.6 to turn Sankowski’s algorithm into an approximate algorithm and thus improving
+the query time a bit, but this approach will not result in an algorithm as fast as our approximate one, because the
+time required to reset Sankowski’s algorithm is a lot larger than ours.
+
+
+
+                                                        11
+ Polynomial Matrices We will work with polynomial matrices and vectors M ∈ (F[X]/hX d i)n×n ,
+~v ∈ (F[X]/hX d i)n , so matrices and vectors whose entries are polynomials modulo X d . Products
+ of such matrices/vectors can be performed as usual, but since each arithmetic operations of two
+ entries requires Õ(d) field operations, the complexity increases by a factor of Õ(d). For example
+ two n × n matrices can be multiplied in Õ(dnω ) field operations.
+     Note that not every matrix M ∈ (F[X]/hX d i)n×n has an inverse, (even if det(M ) 6= 0) as
+ F[X]/hX d i is a ring. However, we will only invert matrices of the form M = I − X · A, where
+                                                                     P                Qlog d      2k
+ A ∈ (F[X]/hX d i)n×n . The inverse of these matrices is given via d−1        k k
+                                                                        i=0 X A =       k=0 (I + A ),
+ which can be computed in Õ(dnω ).
+     For a polynomial
+                  P     matrix M ∈ (F[X]/hX d i)n×n we define M [k] to be the matrix of coefficients
+                     d−1
+ of X k . So M = i=0 M [k] X k and M [k] ∈ Fn×n .
+
+(1 + ε)-approximate h-hop distance matrix Given an n-node graph G we call an n × n matrix
+D a (1 + ε)-approximate h-hop distance matrix, if
+
+    • distG (u, v) ≤ Du,v ≤ (1 + ε) distG (u, v), if the shortest uv-path uses at most h hops.
+
+    • distG (u, v) ≤ Du,v for all other pairs u, v ∈ V .
+
+
+4     Algebraic Dynamic Short Hop Distances
+In this section we prove the main tool used for our new results. This new tool allows us to maintain
+approximate bounded hop distances in a dynamic graph. We will later extend this algorithm to
+work on paths of any hop length in Section 5.
+    The main result in this section will be the following theorem:
+
+Theorem 4.1 (ns -hop distances, approximate, positive real weights). Let G be a graph with n
+nodes and real edge weights from [1, W ]. Then for any 0 ≤ µ, s ≤ 1 and ε > 0 there exists a Monte
+Carlo dynamic algorithm that maintains (1 + ε)-approximate ns -hops all-pairs-distances of G.
+    The preprocessing time is Õ((ns+ω /ε) log W ). Each edge update requires Õ((nω(1,s+µ,1)−µ /ε2 +
+n1.5286+s /ε) log W ) time.
+    For any I, J ⊂ V , we can query the approximate distances for the pairs I×J in Õ(nω(δ1 ,µ+s,δ2 ) /ε2 log W )
+time, where δ1 , δ2 are such that |I| = nδ1 , |J| = nδ2 .
+
+    The proof will be split into two parts: First, we will prove an equivalent result for graphs with
+integer edge weights in Section 4.1. Then we will extend the result to work on graphs with real
+edge weights in Section 4.2.
+
+4.1    Exact and Approximate Distances for Integer Weights
+We first start with the case of integer weights, we we will later extend the algorithm to real weights.
+The integer version of Theorem 4.1 can be formulated as follows:
+
+Theorem 4.2. Let G be a graph with n nodes and positive integer edge weights. Then for any
+0 ≤ s, µ, there exists a Monte Carlo dynamic algorithm that maintains (1 + ε)-approximate all-
+pairs-distances of G upto ns .
+    The preprocessing time is Õ(ns+ω ). Each edge update requires Õ(s2 nω(1,s+µ,1)−µ /ε + sn1.5286+s )
+time.
+
+
+
+                                                    12
+    For any I, J ⊂ V , we can query the approximate distances upto ns for the pairs I × J in
+Õ(s2 nω(δ1 ,µ+s,δ2 ) /ε) time, where δ1 , δ2 are such that |I| = nδ1 , |J| = nδ2 . For pairs P ⊂ I × J with
+distance larger than ns , the returned distance is ∞.
+   The high-level idea of the algorithm for Theorem 4.2 was already given in Section 2.
+   As previously stated, Theorem 4.2 is the result of maintaining the inverse of a polynomial matrix
+and using the reduction of Lemma 2.3. As such, our first task is to create a new algorithm for
+maintaining the inverse of a polynomial matrix.
+                                                                              s
+Lemma 4.3. Let 0 ≤ µ, s and M = (I − A · X) ∈ (F[X]/hX n i)n×n be a polynomial matrix
+            s
+modulo X n . Let S ⊂ [ns ] be any set and let u(d, n) be a bound on update and query time of
+Lemma 4.4 for an n × n polynomial matrix modulo X d . Then there exists a dynamic algorithm that
+performs Õ(ns+ω ) operations during the pre-processing and Õ(|S|nω(1,s+µ,1)−µ +u(ns , n)) operations
+per element update to A.
+                                                [d]
+    The algorithm supports queries to (M −1 )I,J for any I, J ⊂ [n] and d ∈ S in Õ(nω(δ1 ,µ+s,δ2 ) )
+operations, where δ1 , δ2 are such that |I| = nδ1 , |J| = nδ2 .
+   As already stated in Lemma 4.3 and Section 2, we build our algorithm upon the following result
+by Sankowski [San05b]:
+Lemma 4.4 ([San05b, Theorem 3]). 16
+                                                   s                                       s
+   Let 0 ≤ ν, s and M = (I − A · X) ∈ (F[X]/hX n i)n×n be a polynomial matrix modulo X n .
+   Then there exists a dynamic algorithm that supports element updates to A in Õ(ns+ω(1,1,ν)−ν +
+n1+s+ν ) operations and both row and column queries to M −1 in Õ(n1+s+ν ) operations.
+   The pre-processing requires Õ(ns+ω ) operations.
+   For current ω the update and query time are O(n1.5286+s ) for ν ≈ 0.5285.
+                                                                                   −1
+    The algorithm of Lemma 4.4 could be modified to support batch queries to MI,J     with |I| = nδ1 ,
+|J| = nδ2 in Õ(ns+ω(δ1 ,ν,δ2 ), which is the result we stated in Section 2 Figure 1, when choosing
+ν = min(µ, 0.5285).
+    The high level idea of Lemma 4.3 is to express the changes to the matrix M as rank-1 updates
+of the form M + uv ⊤ . For such updates the new inverse of (M + uv ⊤ )−1 is given via the Sherman-
+Morrison identity.
+Lemma 4.5 (Sherman-Morrison). Let M be an n × n matrix and u, v be n-dimensional vectors,
+then
+                (M + uv ⊤ )−1 = M −1 − M −1 u(1 + v ⊤ M −1 u)−1 v ⊤ M −1 .
+    A dynamic algorithm receives several updates in online sequence. For this purpose one could
+use the Sherman-Morrison-Woodbury identity, however, given the online nature of the updates (i.e.
+the updates are given one-by-one) the following incremental variant of Sherman-Morrison is more
+useful:
+Lemma 4.6. Let M be an n × n matrix and u(1) , ..., u(k) , v(1) , ..., v(k) be n-dimensional vectors.
+                  P
+Define M(t) := M + ti=1 u(i) v(i)
+                              ⊤ for t = 0, ..., k, so M                           ⊤
+                                                       (t) = M(t−1) + u(t) v(t) . Further define
+          −1               ⊤ := (1 + v ⊤ û )−1 v ⊤ M −1
+û(t) := M(t−1) u(t) and v̂(t)        (t) (t)    (t) (t−1) for t = 1, ..., k.
+  16
+     [San05b, Theorem 3] maintains the adjoint modulo X n+1 , but as stated in the proof of [San05b, Theorem 6]
+                                             s
+the algorithm can also be used modulo X n in which case the complexity is as stated in Lemma 4.4. In [San05b]
+Sankowski considered maintaining the adjoint for the case, where the input matrix M has degree 1, but the algorithm
+can also be used to maintain the inverse for matrices of any degree bounded by ns , as proven in [vdBNS19, Appendix
+C1, C2].
+
+
+                                                        13
+   Then for all for t = 0, ..., k
+                                                             t
+                                                             X
+                                           −1
+                                          M(t) = M −1 −                    ⊤
+                                                                   û(i) v̂(i) .
+                                                             i=1
+
+Proof. Via Lemma 4.5 we know
+                      −1                    ⊤ −1
+                     M(t) = (M(t−1) + u(t) v(t) )
+                              −1       −1               ⊤    −1
+                           = M(t−1) − M(t−1) u(t) (1 + v(t) M(t−1) u(t) )−1 v(t)
+                                                                             ⊤    −1
+                                                                                 M(t−1)
+                              −1                  ⊤                   −1
+                           = M(t−1) − û(t) (1 + v(t) û(t) )−1 v(t)
+                                                                 ⊤
+                                                                     M(t−1)
+                              −1              ⊤
+                           = M(t−1) − û(t) v̂(t)
+
+                 −1                 Pt                          −1
+so by induction M(t) = M −1 −                    ⊤
+                                     i=1 û(i) v̂(i) , because M(0) = M
+                                                                        −1 .
+
+
+   We now have all tools available to prove Lemma 4.3.
+
+Proof of Lemma 4.3. We will first give the high-level idea: Let M be the input matrix during the
+pre-processing and M(k) be the matrix after k updates. We will express the element updates to M
+via rank-1 updates, so for every update we receive a pair of vectors u, v, i.e. adding p ∈ F[X] to
+entry (i, j) of M(k) is the same as adding the outer-product uv ⊤ for u = f · ei , v = g · ej and some
+                    s
+f, g ∈ F[X]/hX n i with f · g = p.
+     This means after k updates, we are tasked with maintaining the inverse of M(k) = M +
+Pk            ⊤
+   i=1 u(i) v(i) , where u(i) , v(i) is the pair of vectors that specify the ith update, and each vector
+u(i) , v(i) has only one non-zero entry.
+     Thanks to Lemma 4.6 we know
+                                      k
+                                      X                                  k
+                                                                         X
+                                                     ⊤ −1
+                              (M +             u(i) v(i) ) = M −1 −                        ⊤
+                                                                                   û(i) v̂(i) .
+                                         i=1                              i=1
+
+      The high-level idea is to compute the vectors û(i) , v̂(i) after every update. These vectors are
+useful for the following reason: Let Û , V̂ be the k × n matrices, where the ith column is û(i) and
+                         P
+v̂(i) respectively. Then ki=1 û(i) v̂(i)
+                                      ⊤ = Û V̂ ⊤ and thus
+
+
+                                    k
+                                    X
+                                                ⊤ −1 [d]
+                           ((M +          u(i) v(i) ) ) = (M −1 )[d] − (Û V̂ ⊤ )[d] .
+                                    i=1
+
+So by applying Lemma 2.6 to the product Û V̂ ⊤ , we can easily answer the queries.
+   To make sure the matrices Û , V̂ do not become too large, we will reset the algorithm after nµ
+updates.
+
+Pre-processing We initialize Lemma 4.4 for matrix M and we compute (M −1 )[k] for every k ∈ S.
+This is done by computing M −1 in Õ(ns+ω ) operations.
+
+Update Assume we handle the kth update, i.e. we receive the pair u(k) , v(k) and have M(k) =
+     ⊤ . The update routine consists of the following steps:
+u(k)v(k)
+                       −1                            ⊤ û )−1 v ⊤ M −1
+  1. Compute û(k) := M(k−1) u(k) and v̂(k) := (1 + v(k) (k)   (k) (t−1) as defined in Lemma 4.6.
+
+
+                                                        14
+  2. Let Û , V̂ be the n × k matrices, where the ith columns is û(i) , v̂(i) respectively.
+
+  3. Update the algorithm of Lemma 4.4.
+
+   Note that the data-structure of Lemma 4.4 is always updated at the end in step 3. Thus at
+                                                                       −1
+the start of the kth update, we can query rows and columns of M(k−1)        via the data-structure of
+Lemma 4.4.
+                                       −1
+   This allows us to compute û(k) := M(k−1) u(k) in Õ(n1+s + u(ns , n)) = Õ(u(ns , n)) operations as
+                                                                 −1                               −1
+follows: The vector u(k) has only one non-zero element, so M(k−1)     u(k) is just one column of M(k−1)
+scaled by the non-zero entry of u(k) . The column can be queried via Lemma 4.4 in O(u(ns , n))
+operations, and multiplying each of the n entries of that column by the non-zero entry of u(k) needs
+Õ(ns ) operations. Thus a total of Õ(n1+s + u(ns , n)) operations is required, which can be bounded
+by Õ(u(ns , n)).
+                             ⊤ û )−1 v ⊤ M −1
+    Likewise, v̂(k) := (1 + v(k)                                                  s
+                                 (k)    (k) (t−1) can be computed in Õ(u(n , n)) operations: The
+                                             ⊤ M −1
+vector v(k) has just one non-zero entry, so v(k)                           −1
+                                                 (t−1) is just one row of M(t−1) , scaled by the non-
+                                                              −1
+zero entry of v(k) . This can be computed in the same way as M(k−1) u(k) , except that, instead of a
+                                −1
+columns, we now query a row of M(t−1) in O(u(ns , n)) operations via Lemma 4.4. The polynomial
+      ⊤ û )−1 can be computed in Õ(n1+s ) as we have an inner product of two n dimensional
+(1 + v(k) (k)
+vectors of degree ns , and inverting the resulting degree d polynomial needs only Õ(ns ) operations.
+                              ⊤ û )−1 exists, because we can assume, without loss of generality, that
+Note that the inverse (1 + v(k)     (k)
+                                                     s
+v(k) is of the form X · v for some v ∈ (F[X]/hX n i)n , so v(k) has no constant terms. This is because,
+by assumption of Lemma 4.3, element updates to M = I − X · A are actually element updates to
+A, which is multiplied with X. Hence (1 + v(k)    ⊤ û ) = 1 + X · p(X), for some polynomial p(X), and
+                                                      (k)
+it is thus invertible (see preliminaries about inverting polynomials).
+     For step 2, note that û(i) , v̂(i) for i < k were already computed during the previous updates.
+So for each update, the matrices Û , V̂ change by just adding one column, given by û(k) and v̂(k)
+respectively. This means step 2 requires only O(n1+s ) operations.
+     In summary, an update requires Õ(u(ns , n)) operations, because the Õ(n1+s ) term is subsumed.
+
+                                                               Pk         ⊤ −1 [d]
+Query     When we want to compute the submatrix ((M +          (i=1 u(i) v(i) ) )I,J for some d ∈ S and
+                                                ⊤ ))[d] and subtract it from (M −1 )[d] . The latter is
+I, J ⊂ [n], then we need to compute (ÛI,[k] V̂[k],J                                   I,J
+known because of the pre-processing and the former can be computed in Õ(nω(δ1 ,s+µ,δ2 ) ) operations
+via Lemma 2.6, where δ1 , δ2 are such that |I| = nδ1 , |J| = nδ2 .
+                                                                                       P
+Reset     After upto nµ updates, we reset the algorithm. For this we must compute ((M + ki=1 u(i) v(i)
+                                                                                                   ⊤ ))−1 )[d]
+                                              Pk        ⊤.
+for all d ∈ S. Afterward we set M ← M + i=1 u(i) v(i)
+                          Pk        ⊤ )−1 )[d] can be computed the same way as in the query phase
+    The matrices ((M + i=1 u(i) v(i)
+for I = J = [n] in Õ(|S|nω(1,s+µ,1) ) operations. This leads to an amortized update complexity of
+Õ(|S|nω(1,s+µ,1)−µ +u(ns , n)) operations per update. This can be made worst-case via the standard-
+technique of running two copies of this algorithm in parallel and spreading out the reset computation
+over several updates. While one copy of the algorithm is performing the reset, the other copy is
+able to answer the queries. For a formal proof of this standard-technique see Appendix A.
+
+
+
+
+                                                   15
+   Now that Lemma 4.4 is proven, we can finally apply the reduction from Lemma 2.3 to obtain
+data-structures for distance problems.
+Corollary 4.7. Let 0 ≤ µ, s and let G be an n-node graph with positive integer weights. Let S ⊂ [ns ]
+be any subset. Let u(d, n) be a bound on update and query time of Lemma 4.4 for an n × n matrix
+modulo X d . Then there exists a Monte Carlo dynamic algorithm with Õ(sns+ω ) pre-processing and
+Õ(|S|snω(1,s+µ,1)−µ + su(ns , n)) worst-case update time for each edge update.
+    For any I, J ⊂ V and k ∈ S, we can query for the pairs I × J the boolean matrix, which
+answers for all s ∈ I, t ∈ J, if the distance from s to t is at most k. Each such query requires
+Õ(snω(δ1 ,µ+s,δ2 ) ) time, where δ1 , δ2 are such that |I| = nδ1 , |J| = nδ2 .
+Proof. Let G be the given graph and A(G) be the matrix as defined in Lemma 2.3, then for
+                                     [k]
+M := I − A(G) we have that (M −1 )u,v 6= 0 if and only if dist(u, v) ≥ k. Thus we simply maintain
+   −1
+M via Lemma 4.4, where each edge update to G corresponds to an element update to A(G).
+    The extra factor s in the complexity of Corollary 4.7 compared to Lemma 4.4 comes from the
+fact that we now measure the time instead of arithmetic operations. For Lemma 2.3 to hold with
+high probability, we must use F = Zp where the prime p has bit-length Θ(s log n), so one arithmetic
+operation requires Õ(s) time in the standard model.
+
+
+   Corollary 4.7 works for some arbitrary set S ⊂ [ns ]. To prove Theorem 4.2, we are only left
+with specifying the correct set S for Corollary 4.7.
+Proof of Theorem 4.2. Theorem 4.2 is directly implied by Corollary 4.7 by letting S = {⌊(1 + ε)k ⌋ |
+0 ≤ k ≤ ⌈log(1+ε) ns ⌉}.
+    We simply run Corollary 4.7 and whenever we ask for the distances of some pairs I ×J ⊂ V ×V ,
+we query for every k ∈ S, if the distance is at most k. This way we obtain (1 + ε)-approximate
+distances, of distance upto ns .
+    The complexity of Theorem 4.2 is the same as Corollary 4.7. We have |S| = O(s/ε log n), so
+the update time is Õ(s2 nω(1,s+µ,1)−µ /ε + su(ns , n)) and the query time is Õ(s2 nω(δ1 ,µ+s,δ2 ) /ε).
+
+
+4.2   Approximate Distances for Real Weights
+In the previous subsection we handled the case of graphs with positive integer edge weights. We
+now extend the results to the case of real edge weights. The technique is based on the integer
+rounding trick used in [Zwi02, Lemma 8.1, Theorem 8.2].
+Theorem 4.8. Let 0 < ε, 0 ≤ δ. Given a dynamic algorithm that maintains (1 + δ)-approximate
+distances upto 3h/ε on graphs with integer weights, then there exists a dynamic algorithm for
+(1 + δ)(1 + ε)-approximate h-hop distances on graphs with real weights from [1, W ]. The update,
+query and pre-processing complexity all increase by a factor of O(log(W n)).
+   Before proving Theorem 4.8, we observe that it immediately implies Theorem 4.1.
+Proof of Theorem 4.1. We can use Theorem 4.2 to maintain (1 + ε)-approximate distances upto
+3ns /ε. Via Theorem 4.8 we then obtain (1 + ε)2 -approximate ns -hop distances for real weighted
+graphs. By choosing a slightly smaller approximation factor, we can also obtain (1+ε)-approximate
+ns -hop distances.
+    Compared to Theorem 4.2 the complexities increase by a factor of O(ε−1 log ε−1 log(nW )).
+Here the factor O(ε−1 log ε−1 ) comes from maintaining the distance upto O(ns /ε) and the factor
+O(log(nW )) comes from Theorem 4.8.
+
+                                                  16
+Lemma 4.9. Let G = (V, E) be a graph with n nodes and real edge weights from [1, W ]. For any
+0 < A, B define G′ = (V, E ′ ) to be the graph with E ′ = {(u, v) ∈ E | cu,v ≤ B} and integer edge
+weights c′u,v = ⌈Acu,v /B⌉.
+   Then for any path from s to t in G of length distG (s, t) ≤ B let h be the number of hops. We
+have distG (s, t) ≤ (B/A) distG′ (s, t) ≤ distG (s, t) + (B/A)h.
+Proof. Since distG (s, t) ≤ B, all edges used by the path in G also exist in G′ . Because of the
+rounding, we have distG (s, t) ≤ (B/A) distG′ (s, t) and each used edge can cause an error of at most
+B/A, so (B/A) distG′ (s, t) ≤ distG (s, t) + (B/A)h.
+
+Lemma 4.10. Let 0 ≤ s, ε > 0 and let G = (V, E) be a graph with n nodes and real edge-
+weights from [1, W ]. Define ⌈log2 nW ⌉ graphs Gi as in Lemma 4.9 for Bi = 2i , A = 2ns 1/ε for
+i = 1, ..., ⌈log 2 nW ⌉.
+    Then for any pair s, t ∈ V we have distG (s, t) ≤ mini (Bi /A) distGi (s, t) and if the shortest
+st-path uses at most ns hops, then we also have
+                              min(Bi /A) distGi (s, t) ≤ (1 + ε) distG (s, t).
+                               i
+
+Proof. The first inequality
+                                   distG (s, t) ≤ min(Bi /A) distGi (s, t)
+                                                   i
+follows directly from Lemma 4.9. The second inequality follows from the following observation:
+Let i be such that 2i−1 ≤ distG (s, t) ≤ 2i and let h be the number of hops for the shortest
+st-path. Then this path in G also exists in Gi and (Bi /A) distGi (s, t) ≤ distG (s, t) + (Bi /A)h ≤
+distG (s, t)+ε distG (s, t)n−s h. So if the number of hops h is at most ns , then we obtain the promised
+(1 + ε)-approximation.
+
+
+Proof of Theorem 4.8. Consider the graphs Gi for i = 1, ..., ⌈log nW ⌉ from Lemma 4.10. The
+largest ns -hop distance in any Gi is bounded by ns A = 3ns /ε. So when the dynamic algorithm for
+integer weights can maintain the distance upto 3ns /ε, then it can maintain ns -hop distances for all
+graphs Gi for i = 1, ..., ⌈log nW ⌉.
+    Thus we let the given algorithm run on all Gi and for any distance query, we return mini (Bi /A) distGi (s, t)
+as in Lemma 4.10. This yields (1 + ε)(1 + δ)-approximate ns -hop distances, because the distances
+in each Gi are only maintained (1 + δ)-approximately.
+
+Non-oblivious adversaries Note that all the graph algorithm of Section 4 work against non-
+oblivious adversaries, i.e. updates are allowed to depend on the query results. The only random
+choices are the random field elements for the non-zero entries of the matrix in Corollary 4.7. The
+correct return values of Corollary 4.7 are uniquely determined by the input graph and the query-
+input (I, J, k). The actual values, returned by Corollary 4.7 , are correct with high probability,
+so with high probability the returned values for any query do not leak any information about the
+random choices.
+
+
+5    Results for All-Pairs-Distances
+In this section we will prove the result of Theorem 1.2, as presented in the introduction. The result
+is split into two theorems, one for directed, weighted graphs and one for undirected graphs with
+small integer weights.
+    For directed, weighted graphs we will prove the following:
+
+                                                       17
+Theorem 5.1 (Approximate APSP, Real weights, Directed, Queries). Let G be a directed graph
+with n nodes and real weights from [1, W ]. Then for any 0 ≤ s ≤ 1 and ε > 0 there exists a
+Monte Carlo dynamic algorithm that maintains (1 + ε)-approximate all-pairs-distances of G in
+Õ((n1.5286+s /ε + nω(1,1,1−s)+1−2s /ε2 + nω(1−s,1−s,1) /ε2 ) log W ) update time. We can query for any
+I, J ⊂ V the distances of the pairs I × J in Õ(nω(δ1 ,1−s,δ2 ) /ε2 log W ) time, where δ1 , δ2 are such
+that |I| = nδ1 , |J| = nδ2 . The pre-processing requires Õ(ns+ω /ε log W ) time.
+    For current ω and s ≈ 0.334, µ ≈ 0.316 the update time is Õ(n1.863 /ε2 log W ), with query time
+for a single pair is Õ(n0.666 /ε2 log W ). The pre-processing time is Õ(n2.708 log W ).
+
+   For undirected graphs we will show the following result:
+
+Theorem 5.2 (Approximate APSP, Unweighted (or with W ), Undirected, Queries). Let G be a
+directed graph with n nodes and integer weights from {1, ..., W } where W = nℓ . Then for any 0 ≤
+s ≤ 1 and ε > 0 there exists a Monte Carlo dynamic algorithm that maintains (1 + ε)-approximate
+all-pairs-distances of G in Õ(nω(1,1,s+µ+ℓ)+µ /ε + u(ns+ℓ , n) + nω(1−s,s+µ+ℓ,1)/ε2 + n(1−s)ω /ε1+ω ))
+update time. We can query for any I, J ⊂ V the distances of the pairs I × J in Õ(nω(δ1 ,s+µ+ℓ,δ2 ) /ε)
+time, where δ1 , δ2 are such that |I| = nδ1 , |J| = nδ2 . The pre-processing requires Õ(W ns+ω /ε) time.
+    For current ω the pre-processing and update time for an unweighted graph are Õ(n2.621 /ε) and
+Õ(n1.823 /ε3.373 ) respectively with s ≈ 0.248 and µ ≈ 0.202. The query time for a single pair is
+O(n0.45 /ε).
+
+    The high-level idea of all our algorithms is to maintain distances for short hop paths using
+Theorem 4.1 (and Theorem 4.2 for integer edge weights), and use hitting set arguments to compute
+distances for large hop paths.
+    Hitting set arguments, as introduced in [UY91], allow us to decompose paths with many hops
+into segments with fewer hops, specifically the following lemma will be an important tool:
+
+Lemma 5.3. Let G be a graph with n nodes and let H ⊂ V be a random subset of size c nd ln n.
+    With probability at least 1−n2−c we have that: For every s, t ∈ V , where the shortest st-path uses
+at least d hops, this shortest st-path can be decomposed into segments s → h1 → h2 → ... → hk → t,
+where hi ∈ H for every i = 1, ..., k and each segment uses at most d hops.
+
+    This lemma implies, that to compute some shortest st-path with many hops, we only need to
+know the distances of paths with few hops between the pairs ({s} ∪ H) × (H ∪ {t}). The idea
+of these hitting-set arguments goes back to [UY91]. The proof for Lemma 5.3 can be found in
+Appendix D.
+    The other important ingredient for this section are the following two results by [Zwi02], which
+allows us to compute approximate (min, +)-products and approximate distances.
+
+Lemma 5.4 ([Zwi02, Theorem 8.2]). Let G be a directed graph with n nodes and real edge weights
+in [1, W ], then we can compute all-pairs-distances of G in Õ(nω /ε log W ) time.
+    Or in other words, we can compute for any n × n matrix D with entries in [1, W ], a (1 + ε)-
+approximation of the nth power of D using the (min, +)-product.
+
+   The original result [Zwi02, Theorem 8.1] for the approximate (min, +)-products is stated for
+square matrices, but it can also be used for rectangular matrices:
+
+Lemma 5.5 ([Zwi02, Theorem 8.1]). Let A be an na × nb and B be an nb × nc matrix, each with
+real entries from [1, W ], then we can compute a (1 + ε)-approximate (min, +)-product A ⋆ B in
+Õ(nω(a,b,c) /ε log W ) time.
+
+
+                                                   18
+5.1   Weighted Approximate Distances (Proof of Theorem 5.1)
+We will start with the results for weighted all-pairs-distances. The following lemma allows us to
+extend the short hop distances of Theorem 4.1 to large hop distances.
+
+Lemma 5.6. Let G be a directed graph with n nodes and real weights from [1, W ]. Assume we are
+already given an (1 + δ)-approximate h-hop distance matrix D. Let H ⊂ V be a random subset of
+size c(n/h) ln n. Define
+                                                          (⋆|H|)
+                                     D̂ := DV,H ⋆ DH,H ⋆ DH,V ,                                     (1)
+
+where ⋆ is a (min, +)-product and (⋆|H|) is the |H|th power using (min, +)-products.
+   Then for any u, v ∈ V we have distG (u, v) ≤ D̂u,v . Further, with probability at least 1−n2−c , we
+have for any u, v ∈ V , where the shortest uv-path has at least h hops, that D̂u,v ≤ (1+δ) distG (u, v).
+Consequently, we can obtain approximate all-pairs-distances for any number of hops, by taking the
+entry-wise minimum of D and D̂.
+
+Proof. According to Lemma 5.3 we have that (w.h.p) every shortest path using at least h hops can
+be decomposed into segments s → h1 → h2 → ... → t where each hi ∈ H and each segment uses at
+most ns hops. Thus we obtain the distances of all pairs (u, v) where the shortest uv-path uses at
+least h hops, by computing the (min, +)-product
+                                                       (⋆|V |)
+                                          DV,H ⋆ DH,H ⋆ DH,V
+
+                                                                                                  (⋆|V |)
+where (⋆|V |) refers to the |V |th power using the (min, +)-product. Note that the power DH,H
+                     (⋆|H|)
+can be reduced to DH,H , because the matrix DH,H can be considered an edge weight matrix of a
+                                     (⋆|V |)
+matrix on node set H and then DH,H is the all-pairs-distance matrix. Since every shortest path
+in that graph can use at most |H| hops, the |H|th power is enough.
+
+                                                                                      (⋆|H|)
+    Note, for constant c and h = ns (so |H| = Õ(n1−s )) we can compute DH,H approximately
+via Lemma 5.4 in Õ(n(1−s)ω /ε log W ) time. The remaining products of (1) can be computed
+approximately in Õ(nω(1,1−s,1) /ε log W ) time via Lemma 5.5.
+
+Proof of Theorem 5.1. We maintain the (1+ ε)-approximate ns -hop distances via Theorem 4.1. We
+want to compute (1) of Lemma 5.6, but split the computation of the (min, +)-product into two
+parts. After every update we sample a random set of nodes H ⊂ V of size Õ(n1−s ) as in Lemma 5.6,
+and query the distances for the pairs H × V and V × H. Let DH,V , DV,H be the obtained distance
+                                                                                          (⋆|H|)
+matrices, then we compute a (1 + ε)-approximation of the (min, +)-product DV,H ⋆ DH,H via
+Lemma 5.5. The update time is thus
+
+                         Õ( nω(1,s+µ,1)−µ /ε2 + u(ns /ε, n)) log W
+                             |                 {z                  }
+                                               Theorem 4.1
+                               ω(1,µ+s,1−s)
+                          +n                   /ε log W + nω(1−s,1−s,1) /ε log W ).
+                                                2
+                           |             {z            } |         {z           }
+                                 query DV,H ,DH,V                        (⋆|H|)
+                                                                 compute DH,H ⋆DH,V
+
+
+
+
+                                                       19
+Queries When there is some query for the distances of the pairs I × J, then we compute D̂ :=
+          (⋆|H|)                    (⋆|H|)                             (⋆|H|)
+DI,H ⋆ DH,H ⋆ DH,J = (DV,H ⋆ DH,H )I,H ⋆ DH,J , where DV,H ⋆ DH,H was already computed
+during the last update. Each entry yields the distance of the pair (u, v) ∈ I × J, if the shortest
+uv-path uses at least ns nodes (see Lemma 5.6). Thus we also query the ns -hop distances for the
+pairs I ×J via Theorem 4.1 and return for each pair (u, v) ∈ I ×J the minimum of the two distances
+D̂u,v and Du,v . The query time is thus
+
+                          Õ(nω(δ1 ,s+µ,δ2) /ε2 log W + nω(δ1 ,1−s,δ2 ) /ε log W ),
+                             |          {z           } |           {z           }
+                                    query DI,J                  compute D̂
+
+
+where δ1 , δ2 are such that nδ1 = |I| and nδ2 = |J|.
+   Technically this maintains a (1 + ε)2 approximation, but we can simply choose a slightly smaller
+approximation for Theorem 4.1 and Lemma 5.5 to obtain a (1 + ε) approximation. Further, for
+1 − s = µ + s we obtain the update/query complexties as stated in Theorem 5.1.
+   Note that Theorem 4.1 works against non-oblivious adversaries, so Theorem 5.1 works against
+non-oblivious adversaries as well, because we sample a new random hitting-set H after every update.
+
+
+   We can maintain all-pairs-distances explicitly, by querying all distance after every single update.
+Thus we obtain the following result:
+
+Theorem 5.7 (Approximate APSP, Real weights, Directed, Almost-n2 ). Let G be a directed graph
+with n nodes and real weights from [1, W ]. Then for any ε > 0 there exists a Monte Carlo dynamic
+algorithm that maintains (1 + ε)-approximate all-pairs-distances of G in Õ(nω(1,1,0.5) /ε2 log W )
+update time. The pre-processing requires Õ(n1/2+ω /ε log W ) time.
+    For current ω the update time is Õ(n2.045 /ε2 log W )[GU18].
+
+Proof. Theorem 5.7 is implied by Theorem 5.1, by performing a query to I = J = V after every
+update. In that case the update and query time are balanced for µ = 0, s = 0.5, which yields
+Õ(nω(1,0.5,1) /ε2 log W ) = Õ(n2.044183 /ε2 log W ) update time.
+
+    To obtain an algorithm for dynamic single-source distances, we could just use Theorem 5.1 to
+query the distances from the source-node. However, the update time can be slightly improved as
+follows:
+
+Theorem 5.8 (Approximate SSSP, Real weights, Directed). Let G be a directed graph with n nodes
+and real weights from [1, W ]. Then for any 0 ≤ s, µ ≤ 1 and ε > 0 there exists a Monte Carlo
+dynamic algorithm that maintains (1 + ε)-approximate all-pairs-distances of G in Õ((n1.5286+s +
+nω(1,1,s+µ)−µ + nω(1−s,µ+s,1) )/ε2 log W ) update time. The pre-processing requires Õ(ns+ω /ε log W )
+time.
+   For current ω and s ≈ 0.248, µ ≈ 0.202 the update time is Õ(n1.823 /ε2 log W ).
+
+Proof of Theorem 5.8. Let v ∈ V be the source node for which we want to maintain single source
+distances. We maintain distances upto ns hops via Theorem 4.1.
+    After every update we sample a hitting-set H as in Lemma 5.6. We query the approximate
+h-hop distances DH∪{v},V via Theorem 4.1 and construct a graph GH with node set V and edges
+between every (u, w) ∈ (H ∪ {v}) × V with cost Du,w .
+    Via Lemma 5.3 we know that w.h.p. the single-source distances rooted at v in GH are the
+same as in G, so we can compute them in O(|V ||H|) = Õ(n2−s ) time using Dijkstra. The time for
+
+
+                                                     20
+constructing GH and running Dijkstra is subsumed by querying DH∪{v},V , so the update time for
+the single-source algorithm is Õ((nω(1,s+µ,1)−µ /ε2 + u(ns /ε, n) + nω(1−s,s+µ,1) /ε2 ) log W ).
+    As Theorem 4.1 works against non-oblivious adversaries, and we sample a new hitting-set H
+after every update, Theorem 5.8 works against non-oblivious adversaries as well.
+
+5.2   Unweighted Undirected Approximate Distances (Proof of Theorem 5.2)
+For undirected graphs we exploit the idea from [RZ12]. The high-level idea is as follows: We have a
+hitting set H and want to compute the st-distance, while assuming the shortest path uses at least
+ns hops. The path can be split into segments s → h1 → ... → hk → t but to find this path, we would
+usually need to figure out which element of H is h1 . In the case of unweighted, undirected graphs,
+this can be solved approximately by choosing any x, y ∈ H with distance dist(s, x), dist(y, t) ≤
+ns /2ε. Then we know dist(x, y) ≤ dist(s, t) + ns ε, because we can find a xy-path via the segments
+x → s → t → y, and also have dist(s, t) ≤ dist(x, y) + ns ε, because we can fine a st-path via
+the segments s → x → y → t. Thus we have (1 − ε) dist(x, y) ≤ dist(s, t) ≤ (1 + ε) dist(x, y) for
+unweighted undirected graphs where the shortest st-path uses at least ns hops.
+Lemma 5.9. Let G be an undirected graph with n nodes and integer edge weights in {1, 2, ..., W }.
+Let H ⊂ V be a random subset of size 2cn/(hε) ln h for some constant c > 0. Assume we are given
+(1+ ε)-approximate distances DH×V , where all pairs u, v with distG (u, v) > W h are allowed to have
+Du,v > (1 + ε)W h.
+    Then we can construct a distance oracle D̂ in Õ((n/h)ω /ε1+ω ) time, such that each query
+D̂(u, v) for any u, v ∈ V requires only O(1) time, and with probability at least n2−c :
+   • distG (u, v) ≤ D̂u,v
+   • D̂u,v ≤ (1 + ε)3 distG (u, v) if distG (u, v) ≥ W h.
+Proof. According to Lemma 5.3, with probability at least n2−c , every shortest path using at least
+0.25hε hops can be decomposed into segments s → h1 → h2 → ... → t where each hi ∈ H and each
+segment uses at most 0.25hε hops
+    Further, any h-hop path can have cost at most W h, thus the given (1 + ε)-approximate dis-
+tances upto W h are also (1 + ε)-approximate h-hop distances. This means can compute (1 + ε)2 -
+                                                                                                  (⋆|H|)
+approximate distances for the pairs H ×H at extra cost Õ((n/h)ω /εω+1 ) by computing ∆ := DH,H .
+    Next, we assign each node v ∈ V some node xv ∈ H with Dv,xv ≤ 0.25W hε. This requires only
+O(|H|n) = O(n2 /(hε)) time for all v ∈ V together. (We will later explain what happens to nodes,
+where no such xv ∈ H exists.)
+    Note that this also implies dist(u, xu ), dist(v, xv ) ≤ 0.25W hε and since the graph is undirected,
+this leads to
+                        dist(xu , xv ) ≤ dist(xu , u) + dist(u, v) + dist(v, xv )
+                                        ≤ dist(u, v) + 0.5W hε,
+                             dist(u, v) ≤ dist(u, xu ) + dist(xu , xv ) + dist(xv , v)
+                                        ≤ dist(xu , xv ) + 0.5W hε.
+Thus for any pair u, v with dist(u, v) ≥ W h we have:
+                            dist(u, v) ≤ ∆xu ,xv + 0.5W hε ≤ dist(u, v)(1 + ε)3 .
+   If some node u ∈ V has no xu ∈ H, then there also is no v ∈ V with W h ≤ dist(u, v) < ∞, as
+otherwise there should be some h ∈ H with dist(u, h) ≤ W hε along the path from u to v. Thus
+
+                                                      21
+for some distance query for a pair u, v, we either return ∆xu ,xv + 0.5W hε or ∞ if there is no xu or
+xv .
+
+Proof of Theorem 5.2. Let 0 ≤ s ≤ 1 be some parameter. We maintain the (1 + ε)-approximate
+distances D upto W ns via Theorem 4.2. After every update we also construct the distance oracle
+D̂ from Lemma 5.9 for a new random hitting-set H of size Õ(n1−s /ε). To construct this oracle, we
+need to query the distances DH,V for the pairs V × H, so for W = nℓ the update time becomes
+Õ(nω(1,1,s+µ+ℓ)+µ /ε + u(ns+ℓ , n) + nω(1−s,s+µ+ℓ,1) /ε2 + n(1−s)ω /ε1+ω ),
+    When answering some query for all pairs in some set I ×J, we compute DI,J and take the entry-
+wise minimum with D̂I,J . This way we obtain (1 + ε)3 approximate distances in Õ(nω(δ1 ,s+µ+ℓ,δ2 ) )
+time. By choosing a slightly smaller approximation factor in Theorem 4.2 and lemma 5.9 this can
+be made (1 + ε)-approximate.
+    Note that Theorem 4.2 works against non-oblivious adversaries, so Theorem 5.2 works against
+non-oblivious adversaries as well, because we sample a new random hitting-set H after every update.
+
+
+Theorem 5.10 (Approx APSP, Unweighted (or with W ), Undirected, n2 ). Let G be an undi-
+rected graph with n nodes and integer weights from {1, ..., W }. Then for any 0 < ε there exists
+a Monte Carlo dynamic algorithm that maintains (1 + ε)-approximate all-pairs-distances of G in
+Õ(W n1.844 /ε + n2 /ε1+ε ) update time. The pre-processing requires Õ(W n2.53 /ε) time.
+
+Proof. Theorem 5.10 follows from Theorem 5.2 by querying all distances for I = J = V after every
+update. For µ = 0 and maximum edge weight W = nℓ the update time is
+
+                                   Õ(nω(1,1,s+ℓ) /ε + n(1−s)ω /ε1+ω ).
+
+   By setting s = 1−2/ω ≈ 0.157 we have n(1−s)ω = n2 . For small W = O(n0.156 ), the update time
+can be bounded by Õ(n2 /ε1+ω ), because ω(1, 1, s + ℓ) = 2. For W = Ω(n0.156 ) the nω(1,1,0.157+ℓ) /ε
+term can be bounded by Õ(nω(1,1,0.157+ℓ) /ε) = Õ(n2+ℓ−0.156 /ε) = Õ(W n1.844 /ε). Thus for any W ,
+we have update time Õ(W n1.844 /ε + n2 /ε1+ε ).
+   The pre-processing requires O(W nω+s ) = O(W n2.53 ) time.
+
+
+6    Results for Diameter, Radius and Eccentricities
+In this section we will prove several results for dynamic diameter. The main result is the following
+nearly (1.5 + ε)-approximate algorithm for diameter and radius.
+
+Theorem 6.1 (Nearly (1.5 + ǫ)-Approx Diameter/Radius, Unweighted (only), Directed, Sub-n2 ).
+Let G be an unweighted directed graph with n nodes. Then for any 0 ≤ s, µ ≤ 1 and ε > 0 there
+exists a Monte Carlo dynamic algorithm that maintains a nearly (1.5 + ε)-approximation D̃ of the
+diameter of G, such that
+                               
+                           2
+                             − ε diam(G) − 1/3 ≤ D̃ ≤ (1 + ε) diam(G).
+                           3
+
+The update time of the algorithm can be bounded by
+
+                        Õ((nω(1,1,s+µ)−µ + nω(0.5,s+µ,1) )/ε
+                           + n1.5286+s + nω(1−s,µ+s,1−s) /ε2 + n(1−s)ω /ε1+ω ).
+
+
+                                                   22
+The pre-processing requires Õ(ns+ω /ε) time. If the graph is undirected, then we can also maintain
+a nearly (1.5 + ε)-approximate radius R̃, such that
+
+                         radius(G)/(1 + ε) ≤ R̃ ≤ (1.5 + ε) radius(G) + 2/3,
+
+For current ω and µ ≈ 0.4s ≈ 0.25 the update time is O(n1.779 /ε1+ω ).
+
+    We will prove this result in Section 6.2. There we will also present results for dynamic eccen-
+tricities. Before proving Theorem 6.1 in Section 6.2, we will prove some results for large diameter
+graphs in Section 6.1, which can also be used to maintain a (1 + ε)-approximation.
+    Many of the results we prove and use in this section hold only for strongly connected graphs,
+which is why we require the following lemma:
+
+Lemma 6.2 ([vdBNS19, Corollary C.17],[San04, Theorem 3]). For every µ > 0 there exists a
+Monte Carlo dynamic algorithm that can detect if a graph is strongly connected. The update time
+per edge update is O(nω(1,1,µ)−µ + n1+µ ) = O(n1.5286 ) and the pre-processing requires O(nω ) time.17
+
+   By running this dynamic algorithm in parallel, we can detect if the graph is no longer strongly
+connected, in which case our dynamic diameter result will simply return ∞.
+
+6.1    Unweighted Approximate Diameter (Proof of Theorems 6.1 and 6.4)
+The high-level idea for unweighted, (1 + ε)-approximate diameters is very simple: For diameter less
+than ns , we can find the diameter by computing all-pairs-distances via Theorem 4.2. If the diameter
+is larger than ns , then for a random hitting set the longest shortest path can be decomposed into
+segments s → h1 → ... → hk → t, where hi ∈ H are hitting-set nodes and each segment has
+length at most ns ε. Thus we can find an approximate diameter by looking only for the longest
+path between the nodes H.
+
+Lemma 6.3. Let G be an n-node graph with integer edge weights from {1, 2, ..., W }.
+   Let H = {h1 , h2 , ...} ⊂ V be a random subset of size c2n/(dε2 ) ln n. Define GH to be the graph
+on node set H and edge set {(u, v) | distG (u, v) ≤ W d} with cost cu,v = distG (u, v).
+   Then with probability at least 1 − n2−c we have:
+
+                            diam(G) ≤ diam(GH ) + W dε
+                                      ≤ (1 + ε) diam(G) if diam(G) ≥ W d.
+
+If the graph is undirected, we additionally also have
+
+                          radius(G) ≤ radius(GH ) + 0.5W dε
+                                     ≤ (1 + ε) radius(G) if radius(G) ≥ W d
+
+    We will prove Lemma 6.3 later in this section. For now we use it to show how to maintain a
+(1 + ε)-approximation of the diameter.
+
+Theorem 6.4 (Approximate Diameter, Unweighted (or with W ), Directed, n2 ). Let G be a directed
+graph with n nodes and integer weights from {1, ..., W } and let ℓ be such that W = nℓ . Then for any
+ε > 0 there exists a Monte Carlo dynamic algorithm that maintains (1 + ε)-approximate diameter
+of G in Õ(W n1.844 /ε + n2 /ε1+ω ) update time. The pre-processing requires Õ(W n2.53 /ε) time.
+  17
+    Note that the update complexity is subsumed by Lemma 4.4. All algorithms in Section 4 use Lemma 4.4, so
+running Lemma 6.2 in parallel does not further affect their complexity.
+
+
+                                                    23
+Proof. Let 0 ≤ s ≤ 1 be some parameter. We maintain the (1 + ε)-approximate ns -hops distances
+via Theorem 4.2 (by maintaining the distances upto W ns = ns+ℓ for nℓ = W ). After every update
+we query all distances via I = J = V . Thus every update requires Õ(nω(1,1,s+ℓ) /ε) time per update
+by choosing µ = 0.
+    We also obtain a pair P ⊂ V × V of pairs with distance greater than W ns (i.e. all pairs where
+the returned distance is ∞). If this set is empty, then we can get the diameter by looking at the
+longest distance we computed. If the set is non-empty, then we know the diameter must be larger
+than W ns .
+    We also run Lemma 6.2 in parallel to check if the graph is strongly connected. If it is not
+strongly connected, then we return ∞ as diameter. Otherwise, if the graph is strongly connected,
+then we can use Lemma 6.3 to compute an approximation of the diameter. For this we sample a
+random set H ⊂ V of size Õ(n1−s /ε) and construct the graph GH as in Lemma 6.3 in Õ(n2−2s /ε2 )
+time.
+    We can compute the approximate diameter of GH by computing (1 + ε)-approximate all-pairs-
+distances in Õ(n(1−s)ω /ε1+ω ) time using Lemma 5.3. (Note that we only have approximate distances
+of G when constructing GH , so technically we obtain a (1 + ε)3 -approximation of diam(G), but we
+can just choose ε to be small enough.)
+    The update time is thus Õ(nω(1,1,s+ℓ) /ε+n(1−s)ω /ε1+ω ), which can be bounded by Õ(W n1.844 /ε+
+n /εω+1 ). (For details, see the proof of Theorem 5.10, where the same term was bounded.)
+  2
+
+    Note that the algorithm works against non-oblivious adversaries, because (w.h.p.) the result
+from Theorem 4.2 does not leak any information about the random choices and we can sample a
+new hitting set in Lemma 6.3 for every update.
+
+   We are left with proving Lemma 6.3.
+
+Proof of Lemma 6.3. The main idea is to decompose paths in G via Lemma 5.3 and then map them
+to paths in GH and bound their length.
+    Let H be the random set of size c2n/(dε2 ), then with probability at least 1−n2−c , every shortest
+path (using at least d hops) can be decomposed into segments s → h1 → h2 → ... → hk → t where
+each hi ∈ H and the segments have at most εd/2 hops.
+    Thus for u, v ∈ H we have distG (s, t) = distGH (u, v) and for every s, t ∈ V with distG (s, t) ≥
+W d, there exist u, v ∈ H such that distGH (u, v) ≤ distG (s, t) ≤ distG (u, v) + W dε = distGH (u, v) +
+W dε.
+
+Approximating the Diameter Let s, t ∈ V be the pairs such that distG (s, t) = diam(G) and
+the shortest st-path uses at least d hops, and let sH , tH ∈ H be the first and last node from H
+along the shortest st-path. Then distG (sH , tH ) ≤ distG (s, t) ≤ distG (sH , tH ) + W dε and
+
+                           diam(G) ≤ distG (sH , tH ) + W dε
+                                     = distGH (sH , tH ) + W dε ≤ diam(GH ),
+                         diam(GH ) = max distGH (u, v) = max distG (u, v)
+                                       u,v∈H                 u,v∈H
+
+                                     ≤ max distG (u, v) = diam(G).
+                                       u,v∈V
+
+So if diam(G) ≥ W d, then diam(GH ) + W dε is a (1 + ε)-approximation of diam(G).
+
+
+
+
+                                                  24
+Approximating the Radius For the radius we can use the same arguments as for the diameter:
+
+                      radius(G) = min max distG (s, t) ≤ min max distG (s, t)
+                                    s∈V t∈V                s∈H t∈V
+                                 ≤ min max distG (s, t) + 0.5W dε
+                                   s∈H t∈H
+                                 = min max distGH (s, t) + 0.5W dε
+                                   s∈H t∈H
+                                 = radius(GH ) + 0.5W dε
+
+If the graph is undirected we can also get a bound from the other direction as follows: Let s ∈ V be
+the node such that radius(G) = maxv∈V distG (s, v) and assume radius(G) ≥ W d, then w.h.p. there
+is a sH ∈ H with distG (sh , s) ≤ 0.5W dε and thus maxv∈V distG (sH , v) ≤ maxv∈V distG (s, v) +
+0.5W dε. This leads to the following bound:
+
+                           radius(GH ) = min max distGH (s, t)
+                                          s∈H t∈H
+                                        = min max distG (s, t)
+                                          s∈H t∈H
+                                        ≤ min max distG (s, t)
+                                          s∈H t∈V
+                                        ≤ min max distG (s, t) + 0.5W dε
+                                          s∈V t∈V
+                                        = radius(G) + 0.5W dε
+
+Thus for undirected graphs with radius(G) ≥ W d we have radius(G) ≤ radius(GH ) + 0.5W dε ≤
+radius(G) + W dε ≤ (1 + ε) radius(G), so radius(GH ) + 0.5W dε is a (1 + ε)-approximation of the
+radius.
+
+6.2   Unweighted 1.5 Approximate Diameter
+The following result is from [RW13, Lemma 4], where Roditty and V. Williams present a static
+                                                                                              √
+algorithm to compute a nearly 1.5-approximation of the diameter in unweighted graphs in Õ(m n)
+                                                                    √
+time. The high level idea is to compute BFS trees originating at Õ( n) uniformly at random chosen
+nodes S ⊂ V , then find the node w furthest away from the nodes S and compute another BFS tree
+                                  √
+for this distant node v and its n nearest neighbors. The largest computed distance of all BFS
+trees then yields a nearly 1.5-approximation of the diameter.
+    We simply simulate their algorithm by querying the single-source (and single-sink) distances
+via Theorem 4.2 instead of performing the breadth-first-searches.
+    The original proof of [RW13, Lemma 4] assumes exact distances (i.e. the distances obtained by
+running BFS), but the result also holds when we are given (1 + ε)-approximate distances instead,
+in which case we obtain a nearly (1.5 + ε)-approximate diameter. The proof of the following
+Theorem 6.5 is in Appendix E, because it is identical to [RW13, Lemma 4], except that we need to
+slightly adapt some inequalities to verify that the algorithm does indeed work when using (1 + ε)-
+approximate distances.
+
+Theorem 6.5 (Based on [RW13, Lemma 4]). Let G be a directed unweighted graph with diameter
+D = 3h + z, where h ≥ 0 and z ∈ {0, 1, 2}. Let 0 < ε ≤ 1 and let D̃ be the approximate diameter
+returned by Algorithm 6.6.
+     Then we have w.h.p. min{(2 − 3ε)h + z, 2h + 1} ≤ D̃ ≤ (1 + ε)D, which can also be written as
+( 32 − ε)D − 31 ≤ D̃ ≤ (1 + ε)D.
+
+
+                                                 25
+Algorithm 6.6. Assume we are given a (1 + ε)-approximate distance matrix d. ˜ This matrix does
+not need to be given explicitly, it is enough if we can query rows/columns, so d˜ could be some
+distance oracle.18
+                                                       √
+   1. Let S ⊂ V be a random set of vertices of size Θ̃( n).
+                                                                     ˜ u) for all s ∈ S, u ∈ V .
+   2. Query (1 + ε)-approximate distances from/to the nodes in S, so d(s,
+
+   3. Let w ∈ V be the node with largest (approximate) distance to S, i.e. for all u ∈ V we have
+             ˜ s) ≥ mins∈S d(u,
+      mins∈S d(w,            ˜ s).
+
+                                                  ˜ w) and d(w,
+   4. Query the distance from/to w, i.e. we query d(u,      ˜ u) for every u ∈ V .
+                                 √             ˜ u) ≤ d(w,
+                                                       ˜ v) for all u ∈ W and v ∈ V \ W .
+   5. Let W ⊂ V be a set of size n such that d(w,
+                                                       √
+      Ties are broken by node index. (The set W are the n approximately closest nodes to w.)
+                               ˜ v), d(v,
+   6. D̃ := maxv∈V,u∈S∪W ∪{w} {d(u,  ˜ u)}, i.e. the largest of all so far computed distances.
+
+Proof of Theorem 6.1. Let 0 ≤ s be some parameter. We run Theorem 4.2, which allows us to
+query (1 + ε)-approximate distances upto ns , and we also run Lemma 6.2 in parallel to check, if
+the graph is strongly connected.
+   If it is not strongly connected, then we know the diameter is ∞. Otherwise we proceed by
+running Theorem 6.5 as described in the next paragraph.
+
+Case 1, Simulating [RW13] We use the approximate distances of Theorem 4.2 to run The-
+                                                                                               √
+orem 6.5 (Algorithm 6.6). Note that Theorem 6.5 performs the following queries: (i) Õ( n)
+                                                                   √
+sources/sinks (set S) (ii) one source/sink (node w) (iii) n sources/sinks (set W ). The time
+required for all queries (i), (ii), (iii) together is Õ(nω(0.5,µ+s,1) ).
+    Note that Theorem 4.2 only maintains distances upto ns . If some distance of a queried pair is
+larger than ns , then we can detect that, but we do not receive the actual distance. In such a case
+we know that the diameter must be larger than ns , so we abort Algorithm 6.6 and instead compute
+the diameter differently.
+
+Case 2, diam(G) ≥ ns If Algorithm 6.6 fails, because some computed distance is larger than ns ,
+then we also know that diam(G) ≥ ns . This means we can now use Lemma 6.3 instead. Let H
+be the random set of nodes that Lemma 6.3 uses, then querying the distances of the pairs H × H
+requires Õ(nω(1−s,µ+s,1−s) /ε2 ) time, as |H| = Õ(n1−s /ε).
+    Hence the total time for running Lemmas 6.3 and 5.4 to approximate the diameter becomes
+Õ(nω(1−s,µ+s,1−s) /ε2 + n(1−s)ω /ε1+ω ) time.
+
+Update time The update time complexity for approximating the diameter is:
+
+                                     Õ( nω(1,s+µ,1)−µ /ε + u(ns , n) + nω(0.5,µ+s,1) /ε)
+                                         |           {z             } |        {z       }
+                                                    Theorem 4.2                    Algorithm 6.6
+
+                                      + nω(1−s,µ+s,1−s) /ε2 + n(1−s)ω /ε1+ω )
+                                        |       {z        }   |    {z     }
+                                               pairs H×H              Lemmas 6.3 and 5.4
+  18
+     The result of the queries must be fixed, i.e. it is not allowed to depend on the order in which we query the
+results. More formally, we require that for every k1 , k2 and u1 , v1 , ..., uk1 , vk1 , u′1 , v1′ , ..., u′k2 , vk′ 2 , s, t ∈ V , the two
+          ˜ 1 , v1 ), ..., d(u
+sequences d(u              ˜ k , vk ), d(s,
+                                       ˜ t) and d(u
+                                                ˜ ′1 , v1′ ), ..., d(u
+                                                                   ˜ ′k , vk′ ), d(s,
+                                                                                 ˜ t) both return the same result for d(s,          ˜ t).
+                               1   1                                   2     2
+
+
+
+
+                                                                   26
+Radius The algorithm works almost identically, if we want to maintain the diameter. If during
+                                                                    ˜ v)}, then R̃ is a nearly
+the last step of Algorithm 6.6 we set R̃ := minv∈S∪W ∪{w} maxu∈V {d(u,
+(1.5 + ε)-approximation of the radius (see Lemma E.2).
+    We again have to consider the two cases radius(G) > ns and radius(G) ≤ ns .
+   • By running Lemma 6.2, we can detect if radius(G) = ∞, because then the graph is not
+     connected. If the graph is connected, we proceed to the next case:
+
+   • Let r be the node with the property radius(G) = maxv∈V dist(r, v), then for any u, v ∈ V we
+     have dist(u, v) ≤ dist(u, r) + dist(r, v) ≤ 2 radius(G). Hence it is enough to run Theorem 4.2
+     for distances upto 2ns and compute R̃ via the adaption to Algorithm 6.6 (Lemma E.2). If
+     during some distance query to Theorem 4.2 we realize that the distance is larger than 2ns ,
+     then we know the radius is larger than ns . We then cancel Algorithm 6.6 and go to the next
+     case.
+
+   • ns ≤ radius(G) < ∞: This case is identical to the case where the diameter is more than ns .
+     We simply use Lemmas 6.3 and 5.4 to obtain an approximation of the radius.
+    Note that Theorem 4.2 works against non-oblivious adversaries, so Theorem 6.1 works against
+non-oblivious adversaries as well, because we sample a new random hitting-set S in Algorithm 6.6
+after every update.
+
+    We can also maintain nearly (5/3 + ε)-approximate eccentricities, by dynamically maintaining
+(1 + ε)-approximate distances and simulating a variant of the static algorithm for approximating
+eccentricities of [CLR+ 14]. The static algorithm would usually perform BFS searches, but instead
+we query the distances via our dynamic algorithm.
+Theorem 6.7. Let G be an unweighted, undirected n-node graph. Then for any 0 < ε, 0 ≤ µ ≤ 1,
+0 ≤ s < 0.5, there exists a Monte Carlo dynamic algorithm that maintains nearly (3/5 + ε)-
+approximate eccentricities ecc(·),
+                            ˜      such that for every v:
+                                     
+                                3
+                                   − ε ecc(v) − 4/7 ≤ ecc(v)
+                                                         ˜   ≤ ecc(v)
+                                5
+The update time is
+
+                              Õ(nω(1,s+µ,1)−µ /ε + u(ns , n))/ε
+                                 + nω(1,µ+s,1−s) /ε2 + n(1−s)·ω /εω+1 ),
+
+and the pre-processing requires Õ(nω+s ) time (both complexities are the same as in Theorem 5.2).
+For current ω the pre-processing and update time are Õ(n2.621 ) and Õ(n1.823 /ε3.373 ) respectively
+with s ≈ 0.248 and µ ≈ 0.202.
+Proof. We simulate a variant of the static algorithm for approximating eccentricities of [CLR+ 14]
+                                                                             √
+as defined in Lemma E.3. For that we need to query the distances of Õ( n) source nodes to
+every other node. As the graph is undirected this can be done using the dynamic algorithm of
+Theorem 5.2. The query time for this many sources is Õ(nω(0.5,s+µ,1) ), which together with the
+update time of Theorem 5.2 results in our dynamic eccentricities algorithm having the update time
+
+                        Õ(nω(1,s+µ,1)−µ /ε + u(ns , n))/ε
+                         +nω(1,µ+s,1−s) /ε2 + n(1−s)·ω /εω+1 + nω(0.5,s+µ,1) ).
+
+
+                                                  27
+Note that u(ns , n)) > n1.5+s , even if ω = 2, hence we can only obtain a subquadratic algorithm
+for s < 0.5. With this observation the nω(0.5,s+µ,1) term is subsumed by nω(1,µ+s,1−s) /ε2 . So the
+update time of Theorem 6.7 is the same as Theorem 5.2.
+    Note that Theorem 5.2 works against non-oblivious adversaries, so Theorem 6.7 works against
+non-oblivious adversaries as well, because we sample a new random hitting-set S in Lemma E.3
+after every update.
+
+
+7        Open Problems
+An obvious open problem is to improve our bounds and proving matching conditional lower bounds.
+Improving our bounds with amortization should already be interesting (except for APSP). Another
+intriguing question is whether fast matrix multiplication is really needed to get the bounds we
+achieve here. Note that a conditional lower bound of Abboud and V. Williams [AW14] suggests
+that this is the case for SSSP on directed graphs19 . We are not aware of similar lower bounds for
+other problems.
+    Whether the bounds similar to ours hold without the ǫ term remains open (e.g. exact SSSP and
+APSP). A subquadratic update time for exact unweighted SSSP and exact weighted st-shortest
+paths will be very interesting. A subquadratic update time for exact weighted SSSP will be sur-
+prising, since such bound has already been ruled out for algorithms with n3−ǫ proprocessing time
+[AW14]. Of course, showing O(n2 ) worst-case update time for maintaining APSP exactly remains
+a major open problem.
+    Finally, note that our algorithms can only maintain distances but cannot report the correspond-
+ing paths. Supporting such operation is interesting, especially doing for APSP in the same time
+complexity as Demetrescu and Italiano’s algorithm [DI04].
+
+
+Acknowledgment
+The authors would like to thank André Nusser for detecting some errors in the previous version.
+   This project has received funding from the European Research Council (ERC) under the Euro-
+pean Unions Horizon 2020 research and innovation programme under grant agreement No 715672.
+Danupon Nanongkai was also partially supported by the Swedish Research Council (Reg. No.
+2015-04659).
+
+
+References
+[ACC+ 18] Moab Arar, Shiri Chechik, Sarel Cohen, Cliff Stein, and David Wajc. Dynamic match-
+          ing: Reducing integral algorithms to approximately-maximal fractional algorithms. In
+          ICALP, volume 107 of LIPIcs, pages 7:1–7:16. Schloss Dagstuhl - Leibniz-Zentrum fuer
+          Informatik, 2018. (cit. on p. 3)
+
+[ACIM99] Donald Aingworth, Chandra Chekuri, Piotr Indyk, and Rajeev Motwani. Fast estima-
+         tion of diameter and shortest paths (without matrix multiplication). SIAM J. Comput.,
+         28(4):1167–1181, 1999. announced at SODA’96. (cit. on p. 5)
+    19
+    In particular, under the Boolean Matrix Multiplication (BMM) conjecture, there is no “combinatorial” algorithm
+with n3−ǫ preprocessing time and n2−ǫ update time even for st-Reachability (maintaining the reachability between
+two nodes)
+
+
+
+
+                                                       28
+[ACK17]    Ittai Abraham, Shiri Chechik, and Sebastian Krinninger. Fully dynamic all-pairs short-
+           est paths with worst-case update-time revisited. In SODA, pages 440–452. SIAM, 2017.
+           (cit. on p. 1, 3, 4)
+
+[AHR+ 18] Bertie Ancona, Monika Henzinger, Liam Roditty, Virginia Vassilevska Williams, and
+          Nicole Wein. Algorithms and hardness for diameter in dynamic graphs. CoRR,
+          abs/1811.12527, 2018. (cit. on p. 4, 5)
+
+[AW14]     Amir Abboud and Virginia Vassilevska Williams. Popular conjectures imply strong
+           lower bounds for dynamic problems. In FOCS, pages 434–443. IEEE Computer Society,
+           2014. (cit. on p. 3, 6, 28)
+
+[BC16]     Aaron Bernstein and Shiri Chechik. Deterministic decremental single source shortest
+           paths: beyond the o(mn) bound. In STOC, pages 389–397. ACM, 2016. (cit. on p. 2)
+
+[Ber09]    Aaron Bernstein. Fully dynamic (2 + epsilon) approximate all-pairs shortest paths with
+           fast query and close to linear update time. In FOCS, pages 693–702. IEEE Computer
+           Society, 2009. (cit. on p. 1)
+
+[Ber16]    Aaron Bernstein. Maintaining shortest paths under deletions in weighted directed
+           graphs. SIAM J. Comput., 45(2):548–574, 2016. announced at STOC’13. (cit. on
+           p. 6)
+
+[Ber17]    Aaron Bernstein. Deterministic partially dynamic single source shortest paths in
+           weighted graphs. In ICALP, volume 80 of LIPIcs, pages 44:1–44:14. Schloss Dagstuhl
+           - Leibniz-Zentrum fuer Informatik, 2017. (cit. on p. 2)
+
+[BFH19]    Aaron Bernstein, Sebastian Forster, and Monika Henzinger. A deamortization approach
+           for dynamic spanner and dynamic maximal matching. In SODA, pages 1899–1918.
+           SIAM, 2019. (cit. on p. 3, 4, 5)
+
+[BHN17]    Sayan Bhattacharya, Monika Henzinger, and Danupon Nanongkai. Fully dynamic ap-
+           proximate maximum matching and minimum vertex cover in O (log3 n) worst case
+           update time. In SODA, pages 470–489. SIAM, 2017. (cit. on p. 3)
+
+[BK16]     Greg Bodwin and Sebastian Krinninger. Fully dynamic spanners with worst-case update
+           time. In ESA, volume 57 of LIPIcs, pages 17:1–17:18. Schloss Dagstuhl - Leibniz-
+           Zentrum fuer Informatik, 2016. (cit. on p. 3)
+
+[BR11]     Aaron Bernstein and Liam Roditty. Improved dynamic algorithms for maintaining
+           approximate shortest paths under deletions. In SODA, pages 1355–1365. SIAM, 2011.
+           (cit. on p. 2)
+
+[BRS+ 18] Arturs Backurs, Liam Roditty, Gilad Segal, Virginia Vassilevska Williams, and Nicole
+          Wein. Towards tight approximation bounds for graph diameter and eccentricities. In
+          STOC, pages 267–280. ACM, 2018. (cit. on p. 5)
+
+[CG18]     Keerti Choudhary and Omer Gold. Diameter spanner, eccentricity spanner, and ap-
+           proximating extremal graph distances: Static, dynamic, and fault tolerant. CoRR,
+           abs/1812.01602, 2018. (cit. on p. 5)
+
+
+
+
+                                               29
+[CGR16]    Massimo Cairo, Roberto Grossi, and Romeo Rizzi. New bounds for approximating
+           extremal distances in undirected graphs. In SODA, pages 363–376. SIAM, 2016. (cit.
+           on p. 5)
+
+[CGS15]    Marek Cygan, Harold N. Gabow, and Piotr Sankowski. Algorithmic applications of
+           baur-strassen’s theorem: Shortest cycles, diameter, and matchings. J. ACM, 62(4):28:1–
+           28:30, 2015. Announced at FOCS’12. (cit. on p. 6, 34)
+
+[CLR+ 14] Shiri Chechik, Daniel H. Larkin, Liam Roditty, Grant Schoenebeck, Robert Endre
+          Tarjan, and Virginia Vassilevska Williams. Better approximation algorithms for the
+          graph diameter. In SODA, pages 1041–1052. SIAM, 2014. (cit. on p. 5, 27, 36, 38)
+
+[CLRS09] Thomas H. Cormen, Charles E. Leiserson, Ronald L. Rivest, and Clifford Stein. Intro-
+         duction to Algorithms, 3rd Edition. MIT Press, 2009. (cit. on p. 4)
+
+[CS18]     Moses Charikar and Shay Solomon. Fully dynamic almost-maximal matching: Breaking
+           the polynomial worst-case time barrier. In ICALP, volume 107 of LIPIcs, pages 33:1–
+           33:14. Schloss Dagstuhl - Leibniz-Zentrum fuer Informatik, 2018. (cit. on p. 3)
+
+[DI04]     Camil Demetrescu and Giuseppe F. Italiano. A new approach to dynamic all pairs
+           shortest paths. J. ACM, 51(6):968–992, 2004. Announced at STOC’03. (cit. on p. 1,
+           2, 4, 28)
+
+[DI05]     Camil Demetrescu and Giuseppe F. Italiano. Trade-offs for fully dynamic transitive
+           closure on dags: breaking through the o(n2 barrier. J. ACM, 52(2):147–156, 2005.
+           announced at FOCS’00. (cit. on p. 6)
+
+[ES81]     Shimon Even and Yossi Shiloach. An on-line edge-deletion problem. J. ACM, 28(1):1–4,
+           1981. (cit. on p. 2)
+
+[EW04]     David Eppstein and Joseph Wang. Fast approximation of centrality. J. Graph Algo-
+           rithms Appl., 8:39–45, 2004. announced at SODA’01. (cit. on p. 6, 41, 42)
+
+[Gal14]    François Le Gall. Powers of tensors and fast matrix multiplication. In ISSAC, pages
+           296–303. ACM, 2014. (cit. on p. 2, 11)
+
+[GU18]     Francois Le Gall and Florent Urrutia. Improved rectangular matrix multiplication using
+           powers of the coppersmith-winograd tensor. In SODA, pages 1029–1046. SIAM, 2018.
+           (cit. on p. 11, 20, 35)
+
+[GW12]     Fabrizio Grandoni and Virginia Vassilevska Williams. Improved distance sensitivity
+           oracles via fast single-source replacement paths. In FOCS, pages 748–757. IEEE Com-
+           puter Society, 2012. (cit. on p. 6)
+
+[HK95]     Monika Rauch Henzinger and Valerie King. Fully dynamic biconnectivity and transitive
+           closure. In FOCS, pages 664–672. IEEE Computer Society, 1995. (cit. on p. 1)
+
+[HKN13]    Monika Henzinger, Sebastian Krinninger, and Danupon Nanongkai. Sublinear-time
+           maintenance of breadth-first spanning tree in partially dynamic networks. In ICALP
+           (2), volume 7966 of Lecture Notes in Computer Science, pages 607–619. Springer, 2013.
+           (cit. on p. 2)
+
+
+
+                                               30
+[HKN14a] Monika Henzinger, Sebastian Krinninger, and Danupon Nanongkai. Sublinear-time
+         decremental algorithms for single-source reachability and shortest paths on directed
+         graphs. In STOC, pages 674–683. ACM, 2014. (cit. on p. 2)
+[HKN14b] Monika Henzinger, Sebastian Krinninger, and Danupon Nanongkai. A subquadratic-
+         time algorithm for decremental single-source shortest paths. In SODA, pages 1053–1072.
+         SIAM, 2014. (cit. on p. 2)
+[HKN16]    Monika Henzinger, Sebastian Krinninger, and Danupon Nanongkai. Dynamic approxi-
+           mate all-pairs shortest paths: Breaking the O(mn) barrier and derandomization. SIAM
+           J. Comput., 45(3):947–1006, 2016. Announced at FOCS’13. (cit. on p. 1, 5)
+[HKN18]    Monika Henzinger, Sebastian Krinninger, and Danupon Nanongkai. Decremental single-
+           source shortest paths on undirected graphs in near-linear total update time. J. ACM,
+           65(6):36:1–36:40, 2018. Announced at FOCS’14 and ICALP’15. (cit. on p. 2, 5)
+[HKNS15] Monika Henzinger, Sebastian Krinninger, Danupon Nanongkai, and Thatchaphol Sara-
+         nurak. Unifying and strengthening hardness for dynamic problems via the online
+         matrix-vector multiplication conjecture. In STOC, pages 21–30. ACM, 2015. (cit.
+         on p. 4)
+[Joh77]    Donald B. Johnson. Efficient algorithms for shortest paths in sparse networks. J. ACM,
+           24(1):1–13, 1977. (cit. on p. 4)
+[KKM13]    Bruce M. Kapron, Valerie King, and Ben Mountjoy. Dynamic graph connectivity in
+           polylogarithmic worst case time. In SODA, pages 1131–1142. SIAM, 2013. (cit. on p.
+           3)
+[KKPS14] Tsvi Kopelowitz, Robert Krauthgamer, Ely Porat, and Shay Solomon. Orienting fully
+         dynamic graphs with worst-case time bounds. In ICALP (2), volume 8573 of Lecture
+         Notes in Computer Science, pages 532–543. Springer, 2014. (cit. on p. 3)
+[Kou08]    Ioannis Koutis. Faster algebraic algorithms for path and packing problems. In ICALP
+           (1), volume 5125 of Lecture Notes in Computer Science, pages 575–586. Springer, 2008.
+           (cit. on p. 35)
+[Mad10]    Aleksander Madry. Faster approximation schemes for fractional multicommodity flow
+           problems via dynamic graph algorithms. In STOC, pages 121–130. ACM, 2010. (cit.
+           on p. 6)
+[Nan14]    Danupon Nanongkai. Distributed approximation algorithms for weighted shortest
+           paths. In STOC, pages 565–573. ACM, 2014. (cit. on p. 6)
+[NS17]     Danupon Nanongkai and Thatchaphol Saranurak. Dynamic spanning forest with worst-
+           case update time: adaptive, las vegas, and o(n1/2 - ǫ )-time. In STOC, pages 1122–1129.
+           ACM, 2017. (cit. on p. 3)
+[NSW17]    Danupon Nanongkai, Thatchaphol Saranurak, and Christian Wulff-Nilsen. Dynamic
+           minimum spanning forest with subpolynomial worst-case update time. In FOCS, pages
+           950–961. IEEE Computer Society, 2017. (cit. on p. 3)
+[RT85]     Prabhakar Raghavan and Clark D. Thompson. Provably good routing in graphs: Reg-
+           ular arrays. In STOC, pages 79–87. ACM, 1985. (cit. on p. 6)
+
+                                               31
+[RW13]     Liam Roditty and Virginia Vassilevska Williams. Fast approximation algorithms for
+           the diameter and radius of sparse graphs. In STOC, pages 515–524. ACM, 2013. (cit.
+           on p. 4, 5, 25, 26, 36)
+
+[RZ11]     Liam Roditty and Uri Zwick. On dynamic shortest paths problems. Algorithmica,
+           61(2):389–401, 2011. announced at ESA’04. (cit. on p. 3)
+
+[RZ12]     Liam Roditty and Uri Zwick. Dynamic approximate all-pairs shortest paths in undi-
+           rected graphs. SIAM J. Comput., 41(3):670–683, 2012. Announced at FOCS’04. (cit.
+           on p. 1, 21)
+
+[San04]    Piotr Sankowski. Dynamic transitive closure via dynamic matrix inverse (extended
+           abstract). In FOCS, pages 509–517. IEEE Computer Society, 2004. (cit. on p. 1, 6, 23)
+
+[San05a]   Piotr Sankowski. Shortest paths in matrix multiplication time. In ESA, volume 3669
+           of Lecture Notes in Computer Science, pages 770–778. Springer, 2005. (cit. on p. 34)
+
+[San05b]   Piotr Sankowski. Subquadratic algorithm for dynamic shortest distances. In COCOON,
+           volume 3595 of Lecture Notes in Computer Science, pages 461–470. Springer, 2005. (cit.
+           on p. 1, 4, 6, 7, 8, 9, 10, 13, 34)
+
+[Sch80]    Jacob T. Schwartz. Fast probabilistic algorithms for verification of polynomial identi-
+           ties. J. ACM, 27(4):701–717, 1980. (cit. on p. 35)
+
+[SM50]     Jack Sherman and Winifred J Morrison. Adjustment of an inverse matrix corresponding
+           to a change in one element of a given matrix. The Annals of Mathematical Statistics,
+           21(1):124–127, 1950. (cit. on p. 9)
+
+[SZ99]     Avi Shoshan and Uri Zwick. All pairs shortest paths in undirected graphs with integer
+           weights. In FOCS, pages 605–615. IEEE Computer Society, 1999. (cit. on p. 5)
+
+[Tho05]    Mikkel Thorup. Worst-case update times for fully-dynamic all-pairs shortest paths. In
+           STOC, pages 112–119. ACM, 2005. (cit. on p. 1, 3, 4)
+
+[UY91]     Jeffrey D. Ullman and Mihalis Yannakakis. High-probability parallel transitive-closure
+           algorithms. SIAM J. Comput., 20(1):100–125, 1991. Announced at SPAA’90. (cit. on
+           p. 7, 18)
+
+[vdBNS19] Jan van den Brand, Danupon Nanongkai, and Thatchaphol Saranurak. Dynamic matrix
+          inverse: Improved algorithms and matching conditional lower bounds. FOCS, 2019. (cit.
+          on p. 6, 8, 13, 23, 34)
+
+[vdBS19]   Jan van den Brand and Thatchaphol Saranurak. Sensitive distance and reachability
+           oracles for large batch updates. FOCS, 2019. (cit. on p. 6, 34)
+
+[Wil09]    Ryan Williams. Finding paths of length k in o* (2k ) time. Inf. Process. Lett., 109(6):315–
+           318, 2009. (cit. on p. 35)
+
+[Wil11]    Virginia Vassilevska Williams. Faster replacement paths. In SODA, pages 1337–1346.
+           SIAM, 2011. (cit. on p. 6)
+
+[Wil12]    Virginia Vassilevska Williams. Multiplying matrices faster than coppersmith-winograd.
+           In STOC, pages 887–898. ACM, 2012. (cit. on p. 2, 11)
+
+                                                 32
+[WNP19]   Christian Wulff-Nilsen and Maximilian Probst. Fully-dynamic all-pairs shortest paths:
+          Improved worst-case time and space bounds. Manuscript, 2019. Accepted to SODA’20.
+          (cit. on p. 3)
+
+[Woo50]   Max A Woodbury. Inverting modified matrices. Memorandum report, 42(106):336,
+          1950. (cit. on p. 9)
+
+[Wul17]   Christian Wulff-Nilsen. Fully-dynamic minimum spanning forest with improved worst-
+          case update time. In STOC, pages 1130–1143. ACM, 2017. (cit. on p. 3)
+
+[WY13]    Oren Weimann and Raphael Yuster. Replacement paths and distance sensitivity oracles
+          via fast matrix multiplication. ACM Trans. Algorithms, 9(2):14:1–14:13, 2013. (cit. on
+          p. 6)
+
+[Zip79]   Richard Zippel. Probabilistic algorithms for sparse polynomials. In EUROSAM, vol-
+          ume 72 of Lecture Notes in Computer Science, pages 216–226. Springer, 1979. (cit. on
+          p. 35)
+
+[ZLS15]   Wei Zhou, George Labahn, and Arne Storjohann. A deterministic algorithm for invert-
+          ing a polynomial matrix. J. Complexity, 31(2):162–173, 2015. (cit. on p. 40)
+
+[Zwi02]   Uri Zwick. All pairs shortest paths using bridging sets and rectangular matrix multi-
+          plication. J. ACM, 49(3):289–317, 2002. Announced at FOCS’98. (cit. on p. 3, 6, 7,
+          16, 18)
+
+
+
+
+                                              33
+A       Worst-Case Standard Technique
+Theorem A.1. Let A be a dynamic algorithm with reset time O(r), update time O(u(t)) and query
+time O(q(t)), where t is the number of past updates, since the last reset or initialization.
+   For every µ ∈ N there is an algorithm W with worst-case update complexity O(u(µ) + r/µ) and
+query complexity O(q(µ)).
+   If we were interested in amortized complexity, Theorem A.1 would be trivial by simply reset
+the algorithm after every µ updates.
+
+Proof of Theorem A.1. For simplicity assume µ is a multiple of 4. We maintain two copies of A in
+parallel, where each copy will have the following life-cycle:
+
+    1. For the next µ/4 updates, the copy performs its reset operation. This means for every of the
+       next µ/4 updates the algorithm will perform O(r)/(µ/4)) = O(r/µ) operations of the reset
+       routine.
+
+    2. The reset routine was started µ/4 updates in the past, so the last µ/4 updates were not yet
+       applied to the copy. To fix this we will always perform two queued updates for each of the
+       next µ/4 updates. This means we have 2 · O(u(µ/2)) = O(u(µ)) cost per update and after
+       µ/4 updates the copy has caught up with all queued updates.
+
+    3. For the next µ/2 rounds the copy can perform updates normally in O(q(µ)) time and is able
+       to answer queries in O(q(µ)) time.
+
+    4. The copy now has received a total of µ updates and needs to reset again, so jump back to
+       step 1.
+
+    Note that during this cycle, each copy is alternating between being unavailable (resetting +
+catching up) and being available (performing current updates/answering current queries) for a
+sequence of µ/2 rounds each. Thus we simply need two copies of the algorithm that are phase
+shifted, then one copy is always available for the queries.
+    Both copies are initialized at the same time, and the phase-shift can easily be obtained by
+simply resetting the first copy directly after the initialization. So copy 1 starts with phase 1 while
+copy 2 starts with phase 3.
+
+
+
+B      Reduction from Distances to Polynomial Matrix Inverse
+Obtaining the distances in graphs via computing the inverse (or adjoint) of a polynomial matrix is
+a commonly used technique [San05b, San05a, CGS15, vdBNS19, vdBS19]. Usually the reduction
+yields the exact distances. Here we prove a variant of that reduction that allows us to obtain upper
+bounds on the distance, which can then be used to obtain approximate distances.
+    We first repeat the reduction Lemma 2.3 as given in Section 2.
+Lemma B.1. Let G be a directed graph with positive integer edge weights (cu,v )(u,v)∈E and let d
+be some positive integer. We define A(G) ∈ (F[X]/hX h i)n×n , such that A(G)u,v = au,v X cu,v for
+each edge (u, v), A(G)v,v = av,v X for every v ∈ V , and Au,v = 0 otherwise. Here each au,v is an
+independent and uniformly at random chosen element from F. 20
+ 20
+      Note that for cu,v ≥ d we have Au,v = 0, as if the edge would not exist.
+
+
+                                                          34
+   Then the matrix M = I−A(G) is invertible and with probability at least 1−dn2 /|F | the following
+property holds:
+                                                     [d]
+   For every u, v ∈ V and 0 ≤ d < h the entry (M −1 )u,v 6= 0 if and only if dist(u, v) ≤ d.
+
+Proof. For now assume A(G)v,v = 0, which is a slightly simpler case. Let Ws,t        k be the set of walks
+
+from s to t in G using exactlyPk steps, and given a walk w = (vQ    0 , v1 , ..., vk ) define cw to be the
+distance of the walk, so cw := i=1 cvi−1 ,vi . Further define aw := ki=1 avi−1 ,vi , then
+                                k
+
+
+                                        X            k
+                                                     Y                                 X
+                    A(G)ks,t =                              avi−1 ,vi X cvi−1 ,vi =            aw X cw .
+                                                    k i=1
+                                 (v0 ,v1 ,...,vk )∈Ws,t                                  k
+                                                                                      w∈Ws,t
+
+                                     P
+     Thus the coefficient of X d of h−1           i
+                                       i=0 (A(G) )s,t is the sum of all aw , where w are st-walks of
+distance d, using less than h steps. This coefficient can be considered a polynomial P in (au,v )(u,v)∈E
+of degree at most h. This polynomial p is the zero-polynomial, if and only if no such st-walk exists.
+We can now apply the Schwartz-Zippel Lemma [Sch80, Zip79]: When evaluating the polynomial P
+of degree at most h, where the input (au,v )u,v∈E are independent and uniformly at random chosen
+elements from F, then with probability at most h/|F| the polynomial evaluates to zero, even though
+it is not the zero-polynomial.
+     Thus via union bound, with probability at least 1 − hn2 /|F|, we have that for every s, t ∈ V
+                                      [d]   P             i [d]
+and 0 ≤ d < h the entry (I − A(G))s,t = h−1    i=0 (A(G) )s,t is non-zero, if and only if there exists a
+walk from u to v of distance exactly d.
+     Now note that having extra entries A(G)v,v = av,v X is equivalent to adding self-loops of cost
+1 to every node. By adding these self-loops there always exists an st-walk of distance d for any
+d ≥ dist(s, t).
+
+
+   Note that our reduction uses walks, i.e. nodes and edges are allowed to be used more than
+once. In [Kou08, Wil09] a similar reduction was used to obtain simple paths of length k (where
+nodes/edges are used only once per path). There the matrix A(G) ∈ F[(Xv )v∈V ] was multivariate
+and A(G)u,v = Xu for every edge (u, v). The matrix A(G)k can then be used to find k-paths.
+
+
+C     Bounding ω(·, ·, ·)
+We can use the upper bounds from [GU18] for ω(1, 1, k) to get upper bounds on any ω(a, b, c) via
+the following routine. Without loss of generality assume a ≥ b ≥ c, otherwise rename/reorder the
+variables.
+ 1: if a = b = c then
+ 2:    return a · ω
+ 3: end if
+ 4: if a = b then
+ 5:    return a · ω(1, 1, c/a)
+ 6: end if
+ 7: if b = c then
+ 8:    return b · ω(1, 1, a/b) (Note that [GU18] also proved bounds for ω(1, 1, k) where k > 1.)
+ 9: end if
+10: return min{(a − b) + b · ω(1, 1, c/b), (b − c) + c · ω(1, 1, a/c)}
+
+
+
+
+                                                            35
+   Using this bound on ω(a, b, c), one can use an optimization program to balance the terms of
+the complexities of our algorithms.21 For instance for the complexity O(n1+ν + nω(1,1,ν)−ν ) of
+Lemma 4.4 for s = 0, we have to compute min0≤ε≤1 max{1 + ν, ω(1, 1, ν) − ν} in order to get the
+smallest possible update complexity.
+
+
+D      Hitting-Set Arguments
+Lemma D.1. Let G be a graph with n nodes and let H ⊂ V be a uniformly chosen random subset
+of size c nd ln n.
+    Then for any path P = (v1 , ..., vl ) with l ≥ d there exists 1 ≤ i ≤ d such that vi ∈ H with
+probability at least 1 − n−c .
+
+Proof. The probability of there being no 1 ≤ i ≤ d with vi ∈ H is at most (1−|H|/n)d ≤ e−|H|d/n =
+1 − n−c .
+
+Proof of Lemma 5.3. From Lemma D.1 via union bound over all pairs (u, v) ∈ V 2 , we obtain the
+following statement:
+    With probability at least 1 − n2−c , we have that for every shortest path P = (v1 , ..., vl ) with
+l ≥ d there exists 1 ≤ i ≤ d such that vi ∈ H.
+    Since every segment of a shortest path is itself a shortest path, we also have that, given a shortest
+path P = (s, ..., t) with l ≥ d, the path be decomposed into segments s → h1 → h2 → ... → hk → t,
+where hi ∈ H for every i = 1, ..., k and each segment uses at most d hops.
+
+
+Non-oblivious adversaries All algorithms that build on top of the results of Section 4, use
+hitting-set arguments. The answer of queries (e.g. the quality of the approximation) could leak
+information about which nodes were sampled as hitting-sets. However, we can simply sample a new
+hitting set after every edge update. This way adversaries can not break the algorithm by choosing
+their updates according to the output of queries.
+
+
+E      Approximate Diameter, Radius and Eccentricities
+In this section we prove that we can use the static diameter algorithm from [RW13] even if the given
+distances are only (1+ ε)-approximate. The proof for diameter is identical to [RW13], we just verify
+that it does not break when given approximate distances. We also verify that our modification to
+the eccentricities algorithm from [CLR+ 14] works with approximate distances.
+    For a subset U ⊂ V we write dist(v, U ) := minu∈U dist(v, u) and we call this the distance of
+node v to set S.
+
+Lemma E.1. Let d(u, ˜ v) be (1 + ε)-approximate distances between any u an v. We write N (v) for
+               √                ˜ u) ≤ d(v,
+                                         ˜ w) for all u ∈ N (v), w ∈ V \ N (v). We will break ties
+the set of size n, such that d(v,
+by choosing nodes with smallest index first.
+                                                            √              √
+    If choose set S ⊂ V uniformly at random with size c n log n = Õ( n) for some constant c,
+then with probability at least n1−c we have N (v) ∩ S 6= ∅ for all v ∈ V .
+  21
+     An online version for bounds on ω(a, b, c) is available at https://people.kth.se/~ janvdb/matrix.html.
+The   optimization    program   we   used      was    implemented    in   python   and    is  available  at
+https://people.kth.se/~ janvdb/shortestpaths_complexity.zip.
+
+
+
+
+                                                    36
+Proof. Fix some node v ∈ V , then the probability of not a single node        of S hitting N (v) is
+                                                                        √ c√n log n
+(1 − |N (v)|/n)(1 − |N (v)|/(n − 1))...(1 − |N (v)|/(n − |S|)) ≤ (1 − 1/ n)         ≤ n−c
+    Via union bound the probability that there exists at least one v ∈ V such that N (v) ∩ S = ∅ is
+at most n1−c . Hence with probability at least 1 − n1−c we have that for all v ∈ V S ∩ N (v) 6= ∅.
+
+
+                                                                        ˜ u) for all u, v ∈ V and
+    Note that in Lemma E.1 we are first given the approximate distances d(v,
+                                                                                            ˜ u)
+thus (implicitly) the sets N (v), and then afterward we sample the set S independently of d(v,
+and N (v).
+    In Algorithm 6.6 the order is flipped: We first sample S and then compute/query d(w,˜ u) for
+every u ∈ V and construct W = N (w).
+    We can still use Lemma E.1 to prove the correctness of Algorithm 6.6, because the sets N (v)
+are already fixed before sampling S, when satisfying the requirement of footnote 18.
+
+Proof of Theorem 6.5. Let D = 3h + z be the diameter of G where z ∈ {0, 1, 2}. The claim of
+Theorem 6.5 is that the output D̃ of Algorithm 6.6 satisfies min{(2−3ε)h+z, 2h+z} ≤ D̃ ≤ (1+ε)D.
+   Let a, b ∈ V be such that dist(a, b) = D. First notice that the algorithm always returns the
+approximate depth of some shortest paths tree and hence D̃ ≤ (1 + ε)D.
+   Consider the cases dist(w, S) ≤ h and dist(w, S) > h:
+
+Case dist(w, S) ≤ h(1 + ε): If dist(w, S) ≤ h(1 + ε) then dist(a, S) ≤ d(s,      ˜ S) ≤≤ d(w,  ˜ S) ≤
+                            2
+(1 + ε) dist(w, S) ≤ (1 + ε) h.
+    As 3h + z = dist(a, b) ≤ mins∈S dist(a, s) + dist(s, b) ≤ dist(a, S) + D̃ ≤ (1 + ε)2 h + D̃, we have
+D̃ ≥ (3 − (1 + ε)2 )h + z ≥ (2 − 3ε)h + z. The last inequality only holds when assuming ε ≤ 1.
+
+Case dist(w, S) > h(1 + ε): We will first argue that maxv∈W d(w,      ˜ v) > h(1 + ε): Assume
+           ˜
+maxv∈W d(w, v) ≤ h(1 + ε). W.h.p. there is at least one s ∈ S ∩ W , because of Lemma E.1
+and W = N (w), so h(1 + ε) < dist(w, S) ≤ d(w, ˜ S) ≤ d(w,
+                                                         ˜ s) ≤ maxv∈W d(w, ˜ v) ≤ h(1 + ε), which
+is a contradiction. Thus maxv∈W d(w, ˜ v) > h(1 + ε).
+    This implies that all nodes v of distance at most h from w must be included in the set W ,
+                                  ˜ v) ≤ h(1 + ε) and because W are the (approximately) closest
+because dist(w, v) ≤ h implies d(w,
+neighbors of w. This also implies that there exists w′ ∈ W on the shortest path from w to b, such
+that dist(w, w′ ) = h.
+    Note that we can also assume ecc(w) < 2h + z, because otherwise we already obtain D̃ ≥
+2h + z via the maximum distance from w. It follows that dist(w, b) < 2h + z, which means
+dist(w′ , b) = dist(w, b) − dist(w, w′ ) < 2h + z − h = h + z. Since dist(a, b) = 3h + z this implies
+                          ˜ w′ ) ≤ D̃.
+2h + 1 ≤ dist(a, w′ ) ≤ d(a,
+
+Lemma E.2. Consider Algorithm 6.6 when run on an undirected graph, but instead of the maximum
+depth, we return the minimum depth: mins∈S∪W ∪{w} maxv∈V d(s, ˜ v).
+   Let R̃ be the returned value and R be the radius of the graph, then w.h.p.
+
+                                 R ≤ R̃ ≤ ((1.5 + ε)R + 2/3)(1 + ε)
+
+Proof. We have R̃ ≥ R, because
+                                                ˜ v) ≤ max d(s,
+               R = min max dist(u, v) ≤ min max d(u,       ˜ v) for all s ∈ V.
+                    u∈V v∈V                u∈V v,∈V           v∈V
+
+
+So we are left with proving R̃ ≤ (1.5R + 2/3)(1 + ε).
+
+                                                  37
+    Let x be the node such that R = ecc(x), and for any v ∈ S ∪ W ∪ {w} let tv ∈ V be such that
+dist(v, tv ) = ecc(v). Note that for any v ∈ S ∪ W ∪ {w} we have that
+               ˜ u)/(1+ε) ≤ ecc(v) ≤ dist(v, x)+dist(x, vt ) ≤ dist(v, x)+ecc(x) = dist(v, x)+R,
+R̃/(1+ε) ≤ max d(v,
+             u∈V
+
+so whenever some v ∈ S∪W ∪{w} has the property dist(v, x) ≤ 0.5R+2/3, then R̃ ≤ (1.5R+c)(1+ε)
+and we are done. Thus we can assume dist(x, S) > 0.5R + 2/3 and by definition of w we have
+˜ S) ≥ d(x,
+d(w,       ˜ S) ≥ dist(x, S) > 0.5R + 2/3.
+    Since (w.h.p.) S ∩ W 6= ∅, we have some node s ∈ W with d(w, ˜ s) > 0.5R + 2/3. Thus u ∈ V
+      ˜
+with d(w, u) ≤ 0.5R + c must be in W as well by definition of W . This then also implies that nodes
+u ∈ V with dist(w, u) ≤ (0.5R + 2/3)/(1 + ε) must be in W .
+    Hence we can choose some w′ ∈ W on the shortest wx-path with dist(w, w′ ) = ⌊(0.5R+2/3)/(1+
+ε)⌋. We now know
+     R = ecc(x) > dist(w, x) = dist(w, w′ ) + dist(w′ , x) = ⌊(0.5R + 2/3)/(1 + ε)⌋ + dist(w′ , x),
+so
+dist(w′ , x) < R − ⌊(0.5R + 2/3)/(1 + ε)⌋) ≤ R − 0.5R/(1 + ε) + (1 − 2/3/(1 + ε)) ≤ (0.5 + ε)R + 2/3)
+Here the last inequality uses ε ≤ 1. As w′ ∈ W , we have
+                 ′
+      R̃ ≤ ecc(w
+            ˜      ) ≤ ecc(w′ )(1 + ε) ≤ (dist(w′ , x) + ecc(x))(1 + ε) = ((1.5 + ε)R + 2/3)(1 + ε).
+
+
+    The following approximate eccentricities algorithm is based on [CLR+ 14]. The algorithm in
+[CLR+ 14] yields a true 3/5-approximation, but needs to iterate over all edges. As we are interested
+in subquadratic results, we verify here that skipping this iteration over all edges does not break the
+algorithm, however, we do incur an additive error.
+Lemma E.3. Consider Algorithm 6.6 when run on an undirected graph, but instead of the maximum
+depth, we return the following ecc:
+                                ˜
+          ecc(s)
+           ˜            ˜ v)
+                 := max d(s,                                                 for s ∈ S ∪ W ∪ {w}
+                      v∈V
+          ecc(v)
+           ˜     :=     max            ˜ v), ecc(s)
+                                   max{d(s,   ˜       ˜ v)}
+                                                    − d(s,                     for all other v ∈ V
+                      s∈S∪W ∪{w}
+
+     Then w.h.p. for all v ∈ V we have
+                                3 − 6ε
+                                       ecc(v) − 4/7 ≤ ecc(v)
+                                                         ˜     ≤ ecc(v)
+                                  5
+Proof. We start by proving ecc(v) ≤ ecc(v):
+                                          ˜       Let ts be the node such that dist(s, ts ) = ecc(s),
+then ecc(s) = dist(s, ts ) ≤ dist(s, v) + dist(v, ts ) ≤ dist(s, v) + ecc(v). Thus we have ecc(v) ≥
+ecc(s) − dist(s, v). For our approximation this means:
+                   ecc(s)
+                    ˜       ˜ v) ≤ (1 + ε)ecc(s) − dist(s, v) ≤ ecc(v) + εecc(s)
+                          − d(s,
+                                     ≤ ecc(v) + ε(dist(s, v) + ecc(v)) ≤ (1 + 2ε)ecc(v)
+     Thus we obtain the following upper bound for ecc(v):
+                                                   ˜
+                    ecc(v)
+                     ˜     =       max          ˜ v), ecc(s)
+                                            max{d(s,   ˜       ˜ v)}
+                                                             − d(s,
+                               s∈S∪W ∪{w}
+
+                            ≤ (1 + 2ε)      max       max{dist(s, v), ecc(s) − dist(s, v)}
+                                         s∈S∪W ∪{w}
+
+                            ≤ (1 + 2ε)ecc(v)
+
+                                                       38
+Lower Bound       For the lower bound on ecc(v),
+                                          ˜      note that for any s ∈ S ∪ W ∪ {w} we have
+
+                  ecc(v)
+                   ˜     ≥ ecc(s)
+                            ˜       ˜ v) ≥ ecc(s) − (1 + ε) dist(s, v)
+                                  − d(s,
+                         ≥ ecc(v) − (2 + ε) dist(s, v) ≥ ecc(v) − 2(1 + ε) dist(s, v).
+
+So in order to obtain ecc(v)
+                       ˜     ≥ (3−ε)/5ecc(v)−4/7, we want to prove that there is a s ∈ S ∪W ∪{w}
+for which dist(s, v) ≈ 1/5ecc(v).
+       ˜ v) ≥ 3/5ecc(v) − 4/7, then we are done, so assume d(w,
+    If d(w,                                                        ˜ v) > 3/5ecc(v) − 4/7. Let t be
+the node such that dist(v, t) = ecc(v), then if dist(s, t) ≤ 2/5ecc(v) + 4/7 for some s ∈ S ∪ W ∪ {w},
+we would have dist(v, s) ≥ 3/5 − 4/7 and we would be done, so assume dist(t, S) > 2/5ecc(v) + 4/7.
+                    ˜ S) ≥ d(t,
+    Thus we have d(w,          ˜ S) ≥ dist(t, S) > 2/5ecc(v) + 4/7. Note that W ∩ S 6= ∅, so all
+                     ˜
+nodes u ∈ V with d(w, u) ≤ 2/5ecc(v) + 4/7 must also be in the set W . This also means that all
+nodes u ∈ V with dist(w, u) ≤ (2/5ecc(v) + 4/7)/(1 + ε) must be in W .
+    Let w′ be the node in W along the shortest vw-path with dist(w′ , w) = ⌊(2/5ecc(v) + 4/7)/(1 +
+ε)⌋. Then we have
+
+                    3/5ecc(v) − 4/7 > dist(w, v) = dist(w, w′ ) + dist(w′ , v)
+                                     = ⌊(2/5ecc(v) + 4/7)/(1 + ε)⌋ + dist(w′ , v).
+
+This allows us to bound dist(w′ , v) as follows:
+
+               dist(w′ , v) < 3/5ecc(v) − 4/7 − ⌊(2/5ecc(v) + 4/7)/(1 + ε)⌋
+                                                                                 
+                                                                            4   1
+                            ≤ 3/5ecc(v) − 4/7 − (2/5ecc(v))/(1 + ε) + 1 − ·
+                                                                            7 1+ε
+                                                                               
+                                                                        4     1
+                            = 3/5ecc(v) + 3/7 − (2/5ecc(v))/(1 + ε) −     ·
+                                                                        7 1+ε
+
+
+So we now have some w′ ∈ W which satisfies:
+
+        ecc(v)
+         ˜     ≥ ecc(w) − 2(1 + ε) dist(w′ , v)
+                                                                                      
+                                     3                  2
+               ≥ ecc(w) − 2(1 + ε)     ecc(v) + 3/7 −     ecc(v) /(1 + ε) + (4/7)/(1 + ε)
+                                     5                  5
+                                                   
+                                      6
+               ≥ ecc(w) + (1 + ε) − ecc(v) − 6/7 + 4/5ecc(v) + 8/7
+                                      5
+                 3 − 6ε
+               ≥        ecc(v) − (1 + ε)(6/7) + 8/7
+                    5
+                 3 − 6ε
+               ≥        ecc(v) − 4/7
+                    5
+For the last inequality we assume ε ≤ 1.
+
+
+
+F    Dynamic Exact Diameter
+Here we will prove the following result for maintaining the diameter exactly.
+
+
+
+                                                   39
+Theorem F.1 (Exact Diameter, Directed, non-trivial (≫ n2 )). Let G be a directed graph with n
+nodes and integer weights from {1, 2, ..., W }. Then for any 0 ≤ s, µ ≤ 1 there exists a Monte Carlo
+dynamic algorithm that maintains the exact diameter of G in Õ(W ns+ω(1,1,µ)−µ + W nω(1,µ+s,1) +
+n3−s ) update time. The pre-processing requires Õ(W n3 ) time.
+   The update time is O(n2.3452 ) for current ω and µ ≈ 0.3097, s ≈ 0.6548. 22
+    Similar to our other results, the idea is to maintain large and small diameter separately. We
+start with the case of small diameters.
+Theorem F.2 (ns -length distances, exact, positive integer weights). Let G be a graph with n nodes
+and positive integer edge weights from {1, ..., W }. Then for any 0 ≤ s, µ ≤ 1 there exists a dynamic
+algorithm that maintains the diameter of G. If the diameter is at most ns , then the diameter is
+returned after each edge update, otherwise the dynamic algorithm returns a set the pairs P ⊂ V × V
+with dist(u, v) > ns for (u, v) ∈ P .
+    The update time is Õ(ns+ω(1,1,µ)−µ +nω(1,µ+s,1) ) and the pre-processing is Õ(min{W nω+s , W n3 }).
+Proof. We run a modification of Corollary 4.7. We first explain how to obtain the diameter, then
+we explain how to modify the algorithm to obtain a faster update complexity.
+
+Maintaining the diameter We choose S = {1, 2, ..., ns }, so for any 1 ≤ k ≤ ns we can query
+for all pairs, if the distance is at most k in Õ(snω(1,µ+s,1) ) time. After every edge update, we query
+this information for k = ns . If every pair has distance at most ns , then the diameter is smaller. In
+that case, we simply binary search for it. If the diameter is larger than ns , then we also obtain the
+pairs, for which the distance is larger than ns .
+
+Improving the update time Usually the reset of Corollary 4.7 would cost Õ(s|S|nω(1,1,s+µ) ) =
+Õ(nω(1,1,s+µ)+s ) time. This is because we compute the coefficients of X d for d ∈ S in Lemma 4.3 in
+Õ(nω(1,1,s+µ) ) operations each. This can be reduced to Õ(nω(1,1,µ)+s ) in total for all d ∈ S together,
+by just computing the entire inverse (M + U V ⊤ )−1 = Û V̂ ⊤ at once.
+    By choosing ν = µ in Lemma 4.4 the update time for Corollary 4.7 becomes Õ(ns+ω(1,1,µ)−µ +
+n1+µ+s . 23 As we perform some queries after every update, the update time for Theorem F.2 is
+Õ(sns+ω(1,1,µ)−µ + snω(1,µ+s,1) ).
+
+Pre-processing If s is large, then the pre-processing of Lemma 4.4 and Lemma 4.3 become
+slower than O(W n3 ). The pre-processing of both algorithms consists of computing the inverse of a
+polynomial matrix. One can compute the inverse of a polynomial matrix of degree W in Õ(W n3 )
+operations [ZLS15], which can be faster than O(nω+s ) for large enough s. (This is not useful for
+speeding up Lemma 4.3 in general, as the matrix M could have degree upto ns ≫ W . We can only
+use it here, because we assume the edge weights are bounded by W .)
+
+
+Theorem F.3. Let G be a directed graph with n nodes and non-negative edge weights and let
+P ⊂ V × V be a set of pairs u, v, such that their shortest path uses at least d hops.
+   Then for any such d we can compute with high probability distG (u, v) for every pair (u, v) ∈ P
+in O(n3 /d) time.
+  22
+     This means for current values of ω, this is the first non-trivial exact dynamic diameter algorithm. However, if fast-
+matrix-multiplication is further improved, this algorithm will be subsumed by the trivial option of just re-computing
+the diameter after each update.
+  23
+     Another way to obtain this algorithm would be to apply Lemma 2.6 to Sankowski’s algorithm Lemma 4.4 via
+some white-box reduction. This is why the update time here is identical to Lemma 4.4.
+
+
+                                                           40
+Proof. We first Sample Õ(n/d) random nodes and call this set H ⊂ V . Via Lemma 5.3 we know
+that (w.h.p) every shortest path, using at least d hops, must visit at least one node from H.
+    We now compute the shortest-path-trees for every node in H (in both directions). So when D is
+the distance matrix of G, then we now know DH,V and DV,H . Further, we have Du,v = Du,H ⋆ DH,v
+w.h.p for every pair (u, v) ∈ P , because their paths use at least d hops.
+    The total time for all shortest-path-trees and the (min, +)-product Du,H ⋆ DH,v is at most
+O(n3 /d) time.
+
+Proof of Theorem F.1. We maintain the diameter (when bounded by W ns ) via Theorem F.2.
+    If the diameter is larger than W ns, then we obtain a set of pairs P ⊂ V × V whose distance is
+greater than W ns , so the shortest paths connecting these pairs use at least ns hops. We now use
+Theorem F.3 to compute the distances between these pairs in Õ(n3−s ) time. The longest of these
+distances is the diameter of the graph.
+    The update time of the algorithm is thus Õ(W ns+ω(1,1,µ)−µ + W nω(1,µ+s,1) + n3−s ).
+    Note that the algorithm works against non-oblivious adversary, because the output is a single
+number which is correct with high probability.
+
+
+G     Dynamic Closeness-Centrality
+The closeness-centrality c(s) of a node s is defined to be
+                                                     X
+                                    c(s) := (n − 1)/    dist(v, s),
+                                                       v∈V
+
+which is just the inverse of the average distances to s.
+
+Theorem G.1. Let G be an undirected, unweighted graph with n nodes. Then there exists a Monte
+Carlo dynamic algorithm with O(n1.823 /εω+1 ) update time, that maintains (1 + ε)-approximate
+closeness-centrality for all nodes. The pre-processing time is O(n2.621 ).
+    (For current ω, the pre-processing and update time is the same as in Theorem 5.2)
+
+    The high-level idea of Theorem G.1 is as follows: Intuitively it should be possible to approximate
+this average by sampling
+                  Pk       k nodes v1 , ..., vk , computing single-source distances for these nodes, and
+lastly computing i=1 dist(vi , s)n/(k(n − 1)), because the expectation matches 1/c(s).
+    The approximate distances for these k sources can be dynamically maintained using our dynamic
+distance query algorithm Theorem 5.2.
+    We will prove that this works, if we choose k = Θ̃(n2/3 /ε2 ) samples, in which case we obtain
+a (1 + ε) approximation of the average with high probability. The inverse of that value is then
+also a (1 + ε) approximation of the closeness-centrality. This is an improvement over [EW04] for
+large diameter graphs, as the algorithm in [EW04] required k = Ω(∆2 /ε2 ) samples, where ∆ is the
+diameter. Using our result, one can obtain a static combinatorial Õ(mn2/3 /ε2 ) time algorithm by
+running BFS from the k sources. This would be faster than [EW04] once diam(G) > n1/3 .
+
+Lemma G.2. Let G be an unweighted n-node graph, k = Θ(n2/3 /ε2 ) and v1 , ..., vk be a uniformly
+chosen sample of k nodes.        Pk
+P Then for any s ∈ V the term i=1 dist(vi , s)n/(k(n − 1)) is a (1 + ε)-approximation of 1/c(s) =
+  v∈V dist(v, s)/(n − 1) with high probability (assuming 1/c(s) is finite).
+
+Proof of Theorem G.1. We run the dynamic algorithm of Theorem 5.2. After  Pkevery update we sim-
+                   2/3 2
+ply sample k = Θ̃(n /ε ) random nodes v1 , ..., vk as in Lemma G.2. Then ( i=1 dist(vi , s)n/(k(n−
+
+                                                  41
+1)))−1 will be a (1 + ε)-approximation, if c(s) is non-zero. The case that c(s) is zero (i.e. there
+exists a pair u, v ∈ V with dist(u, v) = ∞) can be handled by running Lemma 6.2 in parallel. If
+we detect via Lemma 6.2 that the graph is not connected, then we simply return 0 as the closeness
+centrality.
+    When querying the distances for Õ(n2/3 /ε2 ) × n pairs via Theorem 5.2 (for the same parameter
+s and µ), then the query time is Õ(nω(2/3,s+µ,1) /ε2 ) = Õ(nω(2/3,0.45,1) /ε2 ) = Õ(n1.76 /ε3 ), which is
+subsumed by the update time.
+
+    An important tool for proof Lemma G.2 is the Hoeffding-inequality:
+
+Lemma G.3 (Hoeffdings-inequality). Let X1 , ..., XN be independent random variables bounded by
+the interval [a, b], then
+                           "   N
+                                        "N   #     #                    
+                             1X          X                       2N t2
+                         P       Xi − E    Xi ≥ t ≤ 2 exp −
+                             n                                  (b − a)2
+                                i=1           i=1
+
+    Unfortunately, just applying Hoeffdings-inequality to the sampled distances is not enough. If
+for some source node s we sample a few nodes v1 , ..., vk and compute dist(s, vi ) for i = 1, ..., k,
+then dist(s, vi ) are random variables in the interval [1, diam(G)]. This causes the additive error to
+become quite large for large diameter graphs (hence the ε · diam(G) error bound in [EW04]).
+    We are able to fix this issue by splitting the analysis into two cases: long and short paths.
+The idea is as follows: Let d be some parameter and u ∈ V be a node with d ≤ dist(s, u) ≤ 2d.
+Then there exist at least d/2 many nodes v ∈ V (half of the nodes along the path from s to u)
+with d/2 ≤ dist(s, v) ≤ d. So for large enough d and k, we have that w.h.p there are at least
+Ω(dk/n) many sampled nodes vi with d/2 ≤ dist(s, vi ) ≤ d. Note that for these random variables
+the interval [d/2, d] has length d/2, which is proportional to the number of samples Ω(dk/n). This
+allows us to give better bounds on the error probability. However, this approach only works if d is
+large enough, so we also need to handle the case of small paths separately.
+
+Proof of Lemma G.2. Fix some node s ∈ V . Let k≤d be the number of sampled nodes vi with
+dist(vi , s) ≤ d and k>d be the number of nodes with dist(vi , s) ≥ d. Likewise let n≤d and n>d be
+the number of nodes v ∈ V with dist(vi , s) ≤ d or dist(vi , s) > d respectively.
+    Then we can write
+          k
+                                 P                                      P
+        X                     k≤d i:dist(vi ,s)<d dist(vi , s)/k≤d + k>d i:dist(vi ,s)≥d dist(vi , s)/k>d
+             dist(vi , s)/k =
+                                                                   k
+       i=1
+                                                               P
+    We will search for lower bounds on k whichP imply that i:dist(vi ,s)<d dist(vi , s)/kP ≤d has an addi-
+tive error of at most εk/(c(s)k≤d
+                               P  ) compared to   v:dist(v,s)<d dist(v, s)/n ≤d , and that   i:dist(vi ,s)≥d dist(vi , s)/k>d
+is a (1 + ε) approximation of v:dist(v,s)≥d dist(v, s)/n>d .
+                                          P
+    When these conditions are met, then ki=1 dist(vi , s)/k is a (1+2ε) approximation of the average
+distance.
+                                                                                    p
+Long distances Let dmax := maxv∈V dist(v, s) and j := ⌈log dmax /d⌉ and b = j dmax /d, which
+means we have j ≤ log n, dbj = dmax and 2 ≤ b ≤ 4. Further let kl be the number of sampled
+nodes vi such that dbl ≤ dist(vi , s) < dbl+1 and likewise let nl be the number of nodes v ∈ V with
+dbl ≤ dist(v, s) < dbl+1 .
+
+
+
+                                                      42
+   We can split the sum of distances as follows:
+       X                             j−1
+                                     X             X                                 j−1
+                                                                                     X                   X
+                    dist(vi , s) =                                  dist(vi , s) =         kl                              dist(vi , s)/kl
+  i:dist(vi ,s)>d                    l=0 i:dbl <dist(vi ,s)≤dbl+1                    l=0        i:dbl <dist(vi ,s)≤dbl+1
+
+Note that in the graph there exist at least dbl+1 −dbl ≥ d2l many nodes with dbl < dist(vi , s) ≤ dbl+1
+for l < j. Thus when sampling k nodes, we expect kl ≥ (k/n)d2l . Also via Chernoff-bound we
+know for k = Ω̃(n/(d2l )ε−1 ) that we have kl = Ω((k/n)d2
+                                                      P
+                                                                l ) with high probability.
+
+    Let ξ be a bound on the additive error of i:dbl <dist(vi ,s)≤dbl+1 dist(vi , s)/kl compared to the
+                 P
+expectation µ = v:dbl <dist(v,s)≤dbl+1 dist(v, s)/nl . Then we want this bound to be ξ = dbl ε, because
+with this additive
+             P error bound we obtain a (1+ε) multiplicative error. IfP         this holds for all l, then this
+implies that i:dist(vi ,s)>d dist(vi , s)/k>d is a (1 + ε) approximation of v:dist(v,s)>d dist(vi , s)/n>d .
+    The probability of having a larger additive error can be bounded by Hoeffdings-inequality:
+                                                               
+      1                 X
+   P                                   dist(vi , s) − µ > ξ  ≤ 2 exp(−2kl ξ 2 /(d2l )2 ) = exp −Ω̃(k/(nd2l )ξ 2 )
+      kl
+             i:dbl <dist(vi ,s)≤dbl+1
+
+                                                                     = exp −Ω̃(dbl kε2 /n) = exp −Ω̃(dkε2 /n)
+   So to bound the probability by some n−c for constant c, it suffices to choose k = Ω̃(n/dε−2 ).
+
+Short distances For short distances, we want the distance threshold d to be at least the median
+distance to s. We will write med(s) for the median distance from s, i.e. the median of dist(s, v)
+for v ∈ V . For now assume d = h · med(s) for some h ≥ 1. This meansPthat k≤d ≥ 0.5k with high
+probability for k = Ω(log n). We want to bound the additive error of i:dist(vi ,s)<d dist(vi , s)/k≤d
+                   P                                                εk
+compared to µ = v:dist(v,s)<d dist(vi , s)/n≤d to be at most ξ = c(s)k ≤d
+                                                                          .
+    Note that 1/c(s) ≥ µ ≥ 0.5n≤d · med(s), so d ≤ 2hµ ≤ 2h/c(s). The probability that we have a
+larger additive error can thus be bounded by
+                                                     2       2 !
+                                                 εk         2h                          
+           exp(−2k≤d ξ 2 /d2 ) ≤ exp −2k≤d              /             ≤ exp(−Ω kε2 /h2 )
+                                              c(s)k≤d      c(s)
+
+So for d = h · med(s), h ≥ 1 and k = Ω̃(h2 /ε2 ), the error does not become too large with high
+probability.
+
+Balancing k We now know that k must satisfy k = Ω̃(n/dε−2 ), and k = Ω̃(h2 /ε2 ), where
+d = h · med(s) and h ≥ 1. We claim that choosing k = Θ̃(n2/3 ε−2 ) is enough to satisfy all these
+conditions:
+   • If the median med(s) is less than n1/3 , then we choose d = n1/3 so k = Θ̃(n2/3 ε−2 ) satisfies
+     all required condition.
+   • If the median med(s) is more than n1/3 , then we can choose h to be some constant. This
+     results in d = Ω(n1/3 ) and thus the conditions k = Ω̃(n/dε−1 ) and k = Ω(h2 /ε2 ) are both
+     satisfied when choosing k = Θ̃(n2/3 ε−2 ).
+     Via union bound Lemma G.2 holds for all nodes s ∈ V , if the constant hidden in k = Θ̃(n2/3 ε−2 )
+is large enough.
+
+
+
+                                                                    43
+

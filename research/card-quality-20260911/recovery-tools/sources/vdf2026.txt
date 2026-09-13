@@ -1,0 +1,1567 @@
+             Impossibility of VDFs in the ROM:
+                   The Complete Picture
+
+Hamza Abusalah1 , Karen Azari2 , Chethan Kamath3 , Erkan Tairi4⋆ , and
+                      Maximilian von Consbruch5
+                               1
+                                 IMDEA Software Institute
+                               hamza.abusalah@imdea.org
+        2
+            University of Vienna, Faculty of Computer Science, Vienna, Austria
+                               karen.azari@univie.ac.at
+                                       3
+                                          IIT Bombay
+                                   ckamath@cse.iitb.ac.in
+                          4
+                              University of California, Berkeley
+                               erkan.tairi@berkeley.edu
+5
+    University of Vienna, UniVie Doctoral School Computer Science DoCS, Faculty of
+                          Computer Science, Vienna, Austria
+                              mvconsbruch@mailbox.org
+
+
+
+        Abstract. We study whether Verifiable Delay Functions (VDFs) can
+        be constructed in the (plain) Random Oracle Model (ROM) without any
+        computational assumptions. A first partial answer to this question is due
+        to Mahmoody, Smith, and Wu [ICALP 2020] where they rule out perfectly
+        unique VDFs in the ROM. Building on this result, Guan, Riazanov, and
+        Yuan [CRYPTO 2025] prove that VDFs with computational uniqueness
+        and public-coin setup are impossible in the ROM. These works leave
+        open the possibility of constructing computationally unique VDFs with
+        private-coin setup in the ROM. We resolve this problem and additionally
+        rule out computationally-unique VDFs with computationally expensive
+        private-coin setup in the ROM.
+
+
+1     Introduction
+A Verifiable Delay Function (VDF) [BBBF18] is a function that takes a long
+sequential time to compute, but whose output can be verified quickly. This prop-
+erty allows translating out (sequential) computational steps into wall-clock time
+in the physical world. As a result, VDFs have been shown useful in a variety
+of applications such as randomness beacons [LW15, BBBF18, EFKP20a, Sta20],
+computational time-stamping [LSS20], resource-efficient blockchains [CP19], and
+proofs of replication [ABBK16].
+    VDF constructions abound [BBBF18, Pie19, Wes19, DMPS19, DGMV20,
+EFKP20b, EFKP20a, LV20, BHR+ 21, JMRR21, HHK+ 22, BCH+ 22, CSRT22,
+⋆
+    Work done while the author was at ENS Paris.
+HHKK23, LM23, CLM23, OKC+ 25]. Since these constructions either rely on
+advanced cryptographic primitives like randomized encodings, SNARGs, and
+FHE or require structured algebraic settings like groups of unknown order, they
+end up relying on structured hardness assumptions. Therefore, a fundamental
+question this impressive body of work leaves open is whether VDFs can be black-
+box constructed from one-way functions or even collision-resistant hashing.
+    A series of results [DGMV20, MSW20, GRY25] partially answer this question
+in the negative by proving various restricted variants of VDFs to be impossible
+to construct in the (Parallel) Random Oracle Model (ROM) [BR93, AS15]. In
+the (Parallel) ROM, algorithms have access to a random oracle that they query
+in parallel in a series of rounds. Thus, the running time of an algorithm is the
+number of rounds of queries it makes.
+Defining VDFs in the ROM. Let λ be a security parameter and f : {0, 1}∗ →
+{0, 1}λ a random oracle. A VDF (in the ROM) is a tuple of oracle-aided (possibly
+randomized) algorithms ΠVDF := (Setupf , Evalf , Verifyf ) such that Setupf , on
+input a security parameter λ and a time parameter T , probabilistically outputs
+public parameters pp; Evalf , on input pp and input x, deterministically outputs
+an output y and probabilistically outputs a proof π; and Verifyf , on input pp and
+an input-output-proof triple (x, y, π), deterministically outputs a bit indicating
+acceptance or rejection. ΠVDF must satisfy efficiency, completeness, sequentiality,
+and uniqueness:
+ – Efficiency requires that Setupf (λ, T ) makes at most qs ∈ poly(T, λ) queries
+   to f , Evalf (pp, x) makes at most qe ∈ poly(T, λ) queries to f in T rounds,
+   and Verifyf (pp, x, y, π) makes at most qv ∈ poly(log(T ), λ).
+ – Completeness requires that every honest function evaluation results in an ac-
+   cepting verification, i.e., Verifyf (pp, x, y, π) = 1 for every pp ← Setupf (λ, T )
+   and (y, π) ← Evalf (pp, x).
+ – Sequentiality with gap ϵ ∈ [0, 1) requires that, except with negligible proba-
+   bility, no two-stage adversary (A0 , A1 ) where A0 , on input pp ← Setupf (λ, T ),
+   makes poly(T, λ) queries to f and outputs a state st, and A1 , on input st and
+   a random domain input x, makes poly(T, λ) queries to f in T ϵ rounds and
+   outputs y where (y, π) ← Evalf (pp, x).
+ – Computational (non-adaptive) uniqueness (a.k.a. soundness) requires that,
+   except with negligible probability, no adversary that, on input pp ← Setupf (λ, T )
+   and a random domain input x, makes poly(T, λ) queries to f and finds (y ′ , π ′ )
+   such that Verifyf (pp, x, y ′ , π ′ ) = 1 and y ′ ̸= y where (y, π) ← Evalf (pp, x).
+   Uniqueness is perfect if there exists no such triplet (x, y ′ , π ′ ).
+Related work and open problems. Both [DGMV20, MSW20] rule out tight
+VDFs in the ROM. Informally, a VDF is tight if it can be evaluated in time T but
+not less than T − T δ for any constant δ < 1. Even without the (non-standard)
+tightness requirement, [MSW20] proves that perfectly-unique VDFs cannot be
+constructed in the ROM. Recently, this result was extended to rule out even
+VDFs with computational uniqueness in the ROM [GRY25].
+    However, there are a few caveats to these negative results. On the one
+hand, [MSW20] and [GRY25] rule out non-tight VDFs with “efficient” setup,
+
+                                        2
+i.e., when Setup runs in time at most poly(log(T ), λ), and leave open the pos-
+sibility of constructing standard VDFs in the ROM when setup is “expensive”,
+i.e., when Setup runs in time poly(T, λ). On the other hand, while [MSW20] al-
+lows for efficient private-coin setup, [GRY25] only considers public-coin setup,
+i.e., when pp also contains the random coins used by Setup. Furthermore, in
+a second result in [MSW20], tight VDFs with expensive private-coin setup are
+ruled out by ruling out the weaker object of tight Proofs of Sequential Work
+(PoSW) [MMV13, MSW20] with expensive private-coin setup in the ROM. A
+PoSW can be seen as a VDF without the uniqueness guarantee. Interestingly, the
+techniques of [MSW20] that rule out tight PoSWs/VDFs with expensive setup
+don’t seem to readily extend to standard/non-tight VDFs and the authors left
+this as an open problem [MSW20, Section 4.1].
+     Therefore, these negative results [DGMV20, MSW20, GRY25] leave open the
+possibility of constructing standard/non-tight VDFs in the ROM (without any
+computation assumptions) with computational uniqueness and expensive private-
+coin setup. We remark that this is the most general case, and hence, it is
+conceivable that it is easier to construct VDFs in this relaxed setting where
+setup is expensive and uniqueness is only computational.
+
+1.1    Our Results
+We resolve this open problem and show that no (even non-tight) VDFs exist
+in the plain ROM (i.e., without additional computational assumptions), even
+when considering expensive private-coin setup. We summarize the comparison
+between our results and prior works on standard VDFs in Table 1.
+
+                         Expensive             Efficient          Expensive
+                        Public-Coin          Private-Coin        Private-Coin
+                           Setup                Setup               Setup
+       Perfect            [MSW20],             [MSW20]              this work
+      Uniqueness           [GRY25]
+ Computational             [GRY25]             this work            this work
+  Uniqueness
+
+  Table 1. Comparison between prior works on (non-tight) VDFs and our results.
+
+
+    Concretely, consider a VDF in the ROM, i.e., all algorithms have access to
+a random oracle f (see Definition 1 for a formal description). Assume that the
+Setup, Eval and Verify algorithms make at most qs , qe and qv queries to f , respec-
+tively, where qe ∈ poly(T, λ), qv ∈ poly(log(T ), λ), and qs ∈ poly(log(T ), λ) for
+efficient setup or qs ∈ poly(T, λ) for expensive setup. Our results are informally
+stated below, and we refer to Corollary 1 for the formal statement.
+Theorem 1 (Informal). Let ΠVDF be any VDF (with private-coin setup) in
+the ROM, then at least one of the following holds:
+
+
+                                         3
+ – There exists an adversary As that breaks sequentiality of ΠVDF by making
+   O(qs qe qv ) queries in the preprocessing phase and O(qv ) rounds of queries in
+   the online phase.
+ – There exists an adversary Au that breaks computational uniqueness of ΠVDF
+   by making at most O(qs qe qv ) queries.
+
+    In order to prove Theorem 1, we first rederive in Section 4 the results
+of [GRY25], which were based on techniques from the field of query complex-
+ity (concretely, from decision tree algorithms), using the techniques developed
+in prior ROM separations [MMV11, MSW20, DGMV20]. We regard this re-
+formulation of the techniques from [GRY25] as an additional contribution, as
+it renders the results of [GRY25] more accessible to the broader cryptographic
+community. Furthermore, this reformulation allows us to reconcile the techniques
+developed in both [MSW20] and [GRY25], and in turn extend them to the setting
+of standard/non-tight VDFs (with expensive private-coin setup) in Section 5.
+
+
+1.2   Additional Related Work
+
+The area of timed cryptography started with Time-Lock Puzzles (TLPs) [RSW96],
+which are similar to VDFs in the sense that they also provide strong sequen-
+tiality guarantees. Mahmoody et al. [MMV11] showed an impossibility result for
+TLPs in the ROM. The techniques developed in that work turned out to be
+useful also for the impossibility results on VDFs [MSW20].
+    A timed primitive strongly related to VDFs is Proofs of Sequential Work
+(PoSWs) [MMV13], which are proofs of work with sequentiality guarantees. The
+main difference between PoSWs and VDFs is that PoSWs do not provide any
+uniqueness guarantees. Not accounting for VDFs, all PoSW constructions are in
+the plain ROM [MMV13, CP18, AKK+ 19, DLM19, AFGK22, AC23, Abu25].
+    Delay functions [GS98, LW15, ARS24] are similar to VDFs as they provide
+sequentiality guarantees, however, unlike VDFs they lack verifiability.
+    Lastly, Rotem et al. [RSS20] showed that generic-group VDFs (and generic-
+group delay functions) cannot be constructed in cyclic groups of known order.
+
+
+1.3   Organisation
+
+We start with an overview of our techniques in Section 2. Since our work builds
+on [MSW20, GRY25], we warm up by discussing their results and techniques in
+a unified language in Section 4. In Section 5, we present our main result. Finally,
+the relevant definitions and notation are provided in Section 3.
+
+
+2     Technical Overview
+
+Since our work builds on [MSW20, GRY25], we warm up by discussing their re-
+sults for public-coin setups and the underlying techniques in Sections 2.1 and 2.2.
+In Section 2.3, we describe some existing approaches that partially deal with
+
+
+                                        4
+private-coin setups. Finally, in Section 2.4, we explain how we overcome these
+limitations to rule out VDFs with expensive private-coin setups. For simplicity,
+we focus in this technical overview on VDFs with perfect completeness – but
+the argument easily generalises to VDFs with a completeness error. We refer the
+reader to Sections 4 and 5 for the formal details. Let us first fix some notation
+and conventions pertaining to the ROM and VDFs.
+
+ – We work in the parallel random-oracle model (PROM) [BR93, AS15], where
+   every algorithm has access to a random oracle f , which it can query in
+   parallel. By “queries”, we refer to the total number of queries an algorithm
+   makes to f . We will distinguish this complexity measure from “time”, which
+   we will use to refer to the total number of rounds in which f is invoked by
+   an algorithm, potentially involving several oracle calls in parallel per round.
+   We refer to lazy sampling of a random oracle in the standard sense. We refer
+   to Section 3.2 for formal definitions.
+ – For a VDF Π, we use qs , qe and qv , respectively, to denote the maximum
+   number of queries made to f by the setup, evaluation and verification algo-
+   rithms. If T and λ are the time and security parameters, respectively, then by
+   definition qe ∈ poly(T, λ) and qv ∈ poly(log(T ), λ). We say that the setup is
+   “efficient” if qs ∈ poly(log(T ), λ), and “expensive” if qs ∈ poly(T, λ). Finally,
+   we say the setup is “private-coin” if the random coins used to sample the
+   public parameters are secret; otherwise, we say the setup is “public-coin”.
+   We refer to Section 3.3 for formal definitions.
+
+2.1     Breaking Perfectly-Unique VDFs with Public-Coin Setup
+
+Our starting point is the work of Mahmoody, Smith and Wu [MSW20], who con-
+struct a sequentiality breaker for any ROM-based VDF Π := (Setup, Eval, Verify)
+that is perfectly-unique and has a public-coin setup. Their sequentiality breaker,
+denoted AMSW , follows the blueprint in [IR89, Rud88, MMV11] and is described
+on a high level below6 – we refer to Algorithm 2 for a formal description. The
+parameter ton determines AMSW ’s online running time and is set, for reasons we
+explain in the analysis below, to 6qv .
+
+    Sequentiality Breaker AMSW
+
+     1. Preprocess. On input public parameters pp := Setupf (λ, T ; rS ), where
+        rS denotes the public random coins used for setup, initialise a partial
+        function p1 with the query-response pairs involved in computing pp.
+     2. Learn online. On input a challenge x, sample i ← {1, . . . , ton}, and for
+        each round j ∈ {1, . . . , i}:
+
+
+6
+    Our presentation differs slightly from [MSW20], in which AMSW carries out the
+    “Learn online” step (Step 2) for ton rounds, after which it outputs the majority
+    element in {y1′ , . . . , yt′on }. Looking ahead, our variant results in a simpler analysis.
+
+
+                                               5
+      (a) Lazily sample a “simulated” oracle gj that extends the partial func-
+          tion pj and then compute (yj′ , πj′ ) ← Evalgj (pp, x), where we say “gj
+          extends pj ” if gj (m) = pj (m) holds for all queries m in pj ’s domain
+          Dom(pj ).
+      (b) Let Q∗ := {m1 , . . . , mℓ } denote the set of new queries made to
+          gj during computation of (yj′ , πj′ ), where a query m is deemed to
+          be “new” if m ̸∈ Dom(pj ). Query f on Q∗ in parallel to obtain a
+          response (a1 , . . . , aℓ ).
+      (c) Update knowledge of f by constructing a new partial function
+                                     (
+                                       pj (m) if m ∈ Dom(pj )
+                   pj+1 (m) :=
+                                       al     if m = ml for some ml ∈ Q∗
+
+   3. Output yi′ .
+
+    Following the argument in [MSW20], let us analyse why AMSW ’s output yi′
+(Step 3) constitutes a valid break of Π’s sequentiality. Let (y, π) ← Evalf (pp, x),
+and let QV denote the set of queries made while computing Verifyf (pp, x, y, π).
+We say that AMSW “learns” in a round j if Q∗ contains at least one query from
+QV , i.e., Q∗ ∩ QV ̸= ∅. Since |QV | ≤ qv and f is the given oracle subsequently
+queried on Q∗ (Step 2b), there can be at most qv rounds in which AMSW learns.
+Now we argue that AMSW breaks sequentiality in any round in which it does not
+learn! Assuming round i is one of the rounds in which AMSW does not learn, it
+is possible to exploit perfect uniqueness to argue that yi′ = y: if, for the sake of
+contradiction, yi′ ̸= y, then it can be shown that relative to the “hybrid” oracle
+                                     (
+                                       gi (m) if m ∈ Q∗
+                           hs (m) :=                                             (1)
+                                       f (m)   otherwise,
+
+Π’s uniqueness is violated. To be specific, for (yi , πi ) ← Evalhs (pp, x) both
+
+                                 yi = yi′ ̸= y   and                               (2)
+
+                              Verifyhs (pp, x, y, π) = 1                           (3)
+hold, and therefore (y, π) is a valid break of uniqueness relative to hs . This con-
+tradicts Π’s perfect uniqueness. To see why Equation (2) holds, note that hs
+and the simulated oracle gi are consistent when it comes to evaluation of (pp, x):
+by definition, hs agrees with gi on Dom(pi ) ∪ Q∗ , which contains all queries used
+to evaluate (pp, x) relative to gi . As (yi , πi ) is output by Evalhs (pp, x), Equa-
+tion (2) follows since the function output yi′ of Evalgi on public parameters pp
+and input x is computed deterministically. To see why Equation (3) holds, note
+that hs and f are consistent when it comes to verifying (pp, x, y, π): conditioned
+on AMSW not learning in round i, Q∗ does not contain any query from QV and
+thus Verifyf (pp, x, y, π) = 1 implies Verifyhs (pp, x, y, π) = 1. To complete the ar-
+gument, we need to set the parameter ton appropriately. Specifically, we need to
+
+
+                                          6
+set ton to be sufficiently larger than qv , so that a random round i ← {1, . . . , ton}
+(Step 2) is likely to be one in which AMSW does not learn. For instance, for
+ton = 6qv , it can be shown that AMSW does not learn in a random round i with
+probability at least 1/3 (see Theorem 2).
+    Finally, let us see why AMSW constitutes a valid sequentiality breaker. Note
+that the preprocessing step requires qs queries. Moreover, for the parameters
+discussed above, the online learning phase (Step 2) requires at most ton = 6qv
+time. It follows that AMSW is a valid breaker since qv ∈ poly(log(T ), λ) and
+qe ∈ poly(T, λ). We refer the reader to Section 4.1 for more details.
+
+2.2     Breaking Computationally-Unique VDFs with Public-Coin
+        Setup
+When Π’s uniqueness requirement is relaxed from perfect to computational, the
+reasoning we used above to claim that uniqueness is violated relative to hs is no
+longer valid. To be specific, Verifyhs (pp, x, y, π) = 1 no longer guarantees that
+yi′ = y, as π could have been a bad proof relative to hs ,7 where by “bad proof” we
+mean a proof that leads to Verify accepting a wrong output. Although such bad
+proofs don’t exist in case Π is perfectly unique, they do exist in case Π is only
+computationally unique. In fact, the computational uniqueness requirement for a
+VDF states that it is hard to find such bad proofs relative to f (see Definition 1).
+At this point, Guan, Riazanov and Yuan [GRY25] first observe that in case
+Equations (2) and (3) do hold but yi′ ̸= y, AMSW breaks Π’s uniqueness, albeit
+relative to a wrong oracle. In more detail, relative to hs we have (y, π) and
+(yi′ , πi′ ) such that yi′ ̸= y and Verifyhs (pp, x, y, π) = 1. Then, [GRY25] make a
+second crucial observation: the original world (f, hs ), with f and hs defined as
+above, is distributed identically to a “flipped” world (hu , f ), where hu is a hybrid
+oracle that is closely related to hs (to be explained soon). Whenever yi′ ̸= y, it
+is therefore possible to argue that AMSW breaks uniqueness relative to f in the
+flipped world with the same probability that it breaks uniqueness relative to
+hs in the original world. Keeping this fact in mind, the uniqueness breaker by
+[GRY25], denoted AGRY , is implemented as follows: for i ← {1, . . . , ton}, AGRY
+works exactly like AMSW till round i. But then in round i, it flips the role of
+simulated oracle gi and given oracle f , and uses f itself as the simulated oracle.
+A more detailed description is given below – we refer to Algorithm 3 for the
+formal description. Like we did for AMSW , the parameter ton can be set to 6qv .
+
+    Uniqueness Breaker AGRY
+
+     1. Preprocess. On input public parameters pp := Setupf (λ, T ; rS ), where
+        rS denotes the public random coins used for setup, initialise a partial
+        function p1 with the query-response pairs involved in computing pp.
+
+7
+    Note that π is guaranteed to be a “good proof” relative to f since it is honestly
+    generated relative to f and Π is perfectly correct. However, this guarantee does not
+    necessarily hold relative to hs since π is not honestly generated relative to hs .
+
+
+                                            7
+    2. Learn online. Sample i ← {1, . . . , ton}. For each round j ∈ [i − 1], carry
+       out Step 2a to Step 2c as in AMSW .
+    3. Construct hybrid oracle. For round i:
+       (a) Compute (yi′ , πi′ ) = (y, π) ← Evalf (pp, x), and let Q∗ denote the
+           new queries made to f during this computation.
+       (b) Lazily sample a simulated oracle gi that extends pi .
+       (c) Construct the hybrid oracle hu as
+                                 (
+                                   gi (m) if m = ml for some ml ∈ Q∗
+                    hu (m) :=                                                   (4)
+                                   f (m)    otherwise.
+
+    4. Output (yi′′ , πi′′ ), where (yi′′ , πi′′ ) ← Evalhu (pp, x).
+
+    Let us analyse why AGRY ’s output (yi′′ , πi′′ ) (Step 4) constitutes a valid break
+of uniqueness. Assuming y ̸= yi′′ , we need to argue that Verifyf (pp, x, yi′′ , πi′′ ) = 1.
+Since the original world and the flipped world can be shown to be identically
+distributed, we can apply the same line of argument we used for AMSW to claim
+that AGRY also likely does not learn in its round i if we set ton large enough,
+say ton = 6qv (see Theorem 3). To be precise, we can claim that the set Q∗
+(Step 3a) contains no query made while computing Verifyf (pp, x, yi′′ , πi′′ ). As a
+result, the oracles f and hu are consistent when it comes to queries made by
+Verifyf (pp, x, yi′′ , πi′′ ) and Verifyhu (pp, x, yi′′ , πi′′ ), which implies Verifyf (pp, x, yi′′ , πi′′ ) =
+1. Translating this informal argument into a formal proof requires careful han-
+dling of the random coins used by the adversaries and the challenger in the
+respective security games – we refer to Section 4.2 for the details.
+    Finally, note that AGRY is a valid uniqueness breaker since it is query-efficient:
+the preprocessing step requires qs queries and the learning stage requires at most
+6qv qe queries, the total number of queries is at most qs +6qv qe , which is poly(T, λ).
+
+2.3    Handling Private-Coin Setups: Challenges and Existing
+       Approaches
+Recall how we used the notion of query learning to argue consistency of hybrid
+oracles in AMSW (Equation (1)) and AGRY (Equation (4)). The main challenge
+in handling a private-coin setup (efficient or expensive) is that we need to take
+into account queries not only in QV but also in QS , the set of queries involved in
+computing Setupf (λ, T ; rS ). We were able to avoid this issue when the setup was
+public-coin since the coins rS it uses are available, and can be used to initialise the
+partial function p1 to match f at QS (Step 1 in AMSW and Step 1 in AGRY ). This,
+in turn, guaranteed consistency of hybrid oracles with QS throughout AMSW ’s
+and AGRY ’s execution. However, for private-coin setups, rS is unavailable and we
+cannot proceed as above. We can also not afford to ignore QS as it may result in
+hybrid oracles that are inconsistent on QS : for example, if round j is such that
+AMSW learns a query m ∈ QS , then a hybrid oracle hs constructed as described
+in Equation (1) is likely to be inconsistent on QS (and thus pp). In this case, we
+won’t be able to invoke perfect uniqueness (and correctness) of Π.
+
+                                                   8
+   Two approaches to partially deal with this issue are presented in [MSW20].
+The first approach works when the setup additionally is efficient. The second
+approach can handle expensive setups provided Π is also tight. We briefly discuss
+these two approaches and explain why they don’t seem to readily extend to
+standard (i.e., non-tight) VDFs with expensive setup. In fact, [MSW20] leaves
+the impossibility of non-tight VDFs with expensive private-coin setup as an
+unresolved question; see Section 4.1 of [MSW20].
+Exploiting setup efficiency. Recall from AMSW ’s description that we set ton =
+6qv to ensure that a random round i is likely to be one in which AMSW does not
+learn a query from QV , and thus, hs is consistent with f on QV . To ensure
+consistency of hs also with f on QS in round i, we require AMSW to not learn
+any query from QV ∪ QS in round i. By the same counting argument we used
+for AMSW , there can be at most qs rounds in which queries from QS can be
+learnt. Taken together, it suffices to therefore, say, set ton = 6(qs + qv ). Since
+we assume efficient setup, qs ∈ poly(log(T ), λ) and thus the online phase runs
+for 6(qv + qs ) ∈ poly(log(T ), λ) time, which is still within a valid sequentiality
+breaker’s budget. However, for an expensive setup, where qs ∈ poly(T, λ), the
+sequentiality breaker is clearly invalid, i.e., runs in time greater than T .
+Exploiting tightness. Recall that in a tight VDF, sequentiality holds even
+against adversaries
+                √       whose online time complexity is close to the evaluation time
+T , say T − T for concreteness. In the second approach, [MSW20] exploits
+tightness to rule out ROM-based tight VDFs with even expensive private-coin
+setup.8 Keeping the goals of Section 2.4 in mind, we present their adversary in
+two steps. First we present an online adversary A′MSW that breaks tight VDFs
+with efficient private-coin setup. Then we describe a preprocessing algorithm
+PMSW , which lifts A′MSW to break tight VDFs with expensive private-coin setup.
+Towards that end, we discuss how tightness is essential to the overall strategy,
+and why it does not seem to easily extend to standard (i.e., non-tight) VDFs.
+      The attack relies on the insight that Verify in a tight VDF Π is “insensitive”
+to small changes to Eval. Thus, to break uniqueness, A′MSW can simply output
+(y ′ , π ′ ) ← Evalf (pp, x), while locally simulating a small fraction of rounds of
+queries to f . An informal description follows.
+
+    Uniqueness Breaker A′MSW
+                                                          √
+     1. Sample a random set S ⊆ {1, . . . , T } of size T
+     2. On input (pp, x), run Eval on input (pp, x) with its i-th round oracle
+        queries (m1 , . . . , mℓ ) replied to as follows:
+
+
+8
+    To be precise, [MSW20] rules out ROM-based tight PoSWs with expensive private-
+    coin setup. Since a PoSW is simply a VDF without the uniqueness guarantee, their
+    result also rules out tight VDFs with expensive private-coin setup. What we present
+    is essentially their two-stage adversarial strategy for breaking sequentiality of tight
+    PoSWs, suitably adapted for breaking uniqueness of tight VDFs (borrowing ideas
+    from [DGMV20]).
+
+
+                                             9
+         – If i ∈ S then return (r1 , . . . , rℓ ), where r1 , . . . , rℓ ← {0, 1}λ
+         – Else return (f (m1 ), . . . , f (mℓ )).
+   3. Output (y ′ , π ′ ), which is Eval’s output in Step 2.
+                                                                           √
+Let (y, π) ← Evalf (pp, x). Since A′MSW runs in time T − T , y ′ ̸= y holds
+with high probability due to Π’s sequentiality. Furthermore, as we explain next,
+Verifyf (pp, x, y ′ , π ′ ) = 1 holds with high probability, resulting in A′MSW breaking
+Π’s uniqueness. By “locally simulated” oracle, we refer to the oracle f ′ that
+results from local simulation of Eval queries (Step 2). As long as none of the
+queries in QS ∪ QV end up simulated, if Verify accepts (y ′ , π ′ ) relative to f ′ then
+Verify accepts (y ′ , π ′ ) relative to f too. It remains to bound the probability that
+a query in QS ∪ QV√ is simulated. This can be shown using a union bound to be
+at most (qs + qv )/ T and thus Verify accepts (y ′ , π ′ ) with probability at least
+                                         (qs + qv )
+                                    1−      √       .                               (5)
+                                              T
+                    √
+Since qs + qv ≪ T , the value of Equation (5) is close to 1 for VDFs with
+efficient setup.
+     For expensive setups, the bound obtained in Equation (5) is meaningless
+and to resolve this issue, [MSW20] resorts to preprocessing. Deem a setup query
+“heavy” if it is likely to be queried again during evaluation. The goal of prepro-
+cessing is to learn the heavy setup queries, and [MSW20] proposes repeatedly
+running Eval on random inputs, say for tpre := 6qs times, to collect such heavy
+queries. Their preprocessing algorithm is described below (suitably adapted for
+VDFs).
+  Preprocessing Algorithm PMSW
+
+   1. Initialise. Set partial function ppre to be empty.
+   2. Learn. On input pp, for each j ∈ {1, . . . , tpre }:
+      (a) Sample random VDF input xj and run (yj , πj ) ← Evalf (pp, xj ).
+      (b) Let Q∗ := {m1 , . . . , mℓ } denote the new queries made by Eval to f
+          during this computation, where “new” is now with respect to ppre .
+      (c) For each m ∈ Q∗ , set ppre (m) := f (m).
+   3. Output ppre .
+
+In [MSW20], it is shown that most heavy setup queries will likely have been
+collected in ppre , and it thus suffices to carry out the online phase as in A′MSW ,
+except with all queries in ppre responded to honestly. They then show that the
+online phase, which involves a single invocation of Eval, is unlikely to involve a
+new setup query. While PMSW requires qs√       qe queries, the online phase has the
+same time complexity as A′MSW , i.e., T − T . It is thus possible to argue like
+before that if sequentiality holds then (y ′ , π ′ ) breaks Π’s uniqueness.
+    Note however the idea underlying A′MSW , i.e., locally simulate a fraction of
+Eval queries, limits it to tight VDFs: if the adversary is allowed only, say, T /2
+time, then around T /2 rounds need to be locally simulated. This would once
+again render the union bound meaningless.
+
+
+                                          10
+2.4   Handling Expensive Private-Coin Setups Using Preprocessing
+
+We overcome the barriers explained in Section 2.3 using preprocessing. In partic-
+ular, we use preprocessing to extend the [GRY25] result to expensive private-coin
+setups without having to rely on tightness. Our preprocessing algorithm, denoted
+P, is conceptually different from PMSW and its design and analysis are our main
+technical contribution. In the remainder of this section, we explain why PMSW
+falls short of serving our purpose, and how P resolves these shortcomings.
+     Recall from the analysis of AMSW and AGRY that we want to ensure AMSW
+does not learn any query from QV ∪ QS in most online rounds. This allowed us
+to construct the consistent hybrid oracles, which aided breaking sequentiality
+or uniqueness. The goal of preprocessing is to generate a partial function ppre
+such that the aforementioned guarantee is still likely to hold when AMSW (and
+thus AGRY ) is executed in the online learning stage with the first-round partial
+function p1 initialised to ppre . That is, most of the ton online rounds must be
+such that AMSW (and thus AGRY ) does not learn any query from QV ∪ QS .
+     To this end, let us first analyse the straw man proposal where we replace
+the preprocessing step in AMSW (Step 1) and AGRY (Step 1) with PMSW from
+Section 2.3. The intention, as was for A′MSW , is to learn the heavy setup queries.
+Recall however that A′MSW involved a single call to Eval, and it sufficed to avoid
+queries from QS in this particular call. However, the online learning phase of
+AMSW can involve ton invocations of Eval, relative to different simulated (but
+not independent) random oracles g1 , . . . , gton , and we need AMSW to not learn
+queries from QS for most of these rounds. When tpre = 6qs , we are unable to rule
+out AMSW making new setup queries in many rounds – in fact we believe this
+does not generally hold. PMSW could potentially compensate for the ton = 6qv
+invocations of Eval by running its own learning phase (Step 2) for longer, say
+tpre = 6qs qv . However, we were unable to analyse this strategy, or ascertain
+whether or not the guarantee even holds.
+     Our way around this issue is to use a different strategy for preprocessing, one
+which we are actually able to analyse. Our strategy implemented by P relies on
+the following crucial observation: it is not necessary to learn the heavy queries
+in QS that Eval is likely to make, but only those heavy queries that AMSW (re-
+spectively, AGRY ) is likely to make in the online learning stage. This is sufficient
+to ensure that most rounds in the online learning phase are where AMSW (re-
+spectively AGRY ) does not learn queries from QS . Thus P repeatedly runs AMSW
+instead of Eval with the intention of learning the heavy queries that AMSW itself
+is likely to make. An informal description of P follows – a formal description can
+be found in Algorithm 4. For our analysis, we set tpre = 6qs and ton = 6qv .
+
+
+  Preprocessing Algorithm P
+   1. Initialise. Set partial function ppre to be empty. Sample i ← {1, . . . , tpre }.
+   2. Learn online. For each j ∈ {1, . . . , i}:
+
+
+
+
+                                          11
+       (a) Sample random VDF input xpre , and run online learning phase of
+           AMSW (Step 2) with p1 := ppre , parameter ton and challenge xpre to
+           obtain ypre .
+       (b) Let Q∗ denote the new queries made by AMSW to f during this
+           computation, where “new” is again with respect to ppre .
+       (c) For each m ∈ Q∗ , set ppre (m) := f (m).
+    3. Output ppre .
+
+Note that, since AMSW makes at most 6qe qv queries, the number of queries made
+by P is at most 36qs qe qv . Now when we run AMSW in the online learning stage
+with p1 := ppre generated by P, it is possible to show that in most rounds
+AMSW does not learn any query from QV ∪ QS . The formal analysis largely
+follows the “two-world” argument we used for AGRY , but extra attention needs
+to be paid due to preprocessing. We show that the probability of AMSW breaking
+sequentiality in the original world is roughly the same as the probability of AGRY
+breaking uniqueness in the flipped world. We state and prove this in Lemma 3.
+We refer to Section 5 for the details.
+
+
+3     Preliminaries
+
+3.1   Notation
+
+Sets. For n ∈ N, let [n] := {1, . . . , n}, and let λ ∈ N be the security parameter.
+For a set X, we write x ← X to denote that x is sampled from X uniformly at
+random.
+Algorithms. For a probabilistic algorithm A, we write y ← A(x), or sometimes
+also A(x) → y, to denote that A run on input x with uniformly random coins
+outputs y. If we need to make the random coins explicit, we write A(x; r) to
+denote that algorithm A is run on input x with random coins r.
+                                                                     ∗
+Functions. We define the set of partial functions Pλ := {p : {0, 1} 99K {0, 1}λ :
+                  ∗
+Dom(p) ⊆ {0, 1} }, i.e., the set of functions p which are only defined on a subset
+                  ∗
+Dom(p) ⊆ {0, 1} . For a function set Fλ = {f : {0, 1}∗ → {0, 1}λ } and a partial
+function p ∈ Pλ , we let Fλ |p denote the subset of Fλ that agrees with p, i.e.,
+Fλ |p = {f ∈ Fλ : f (x) = p(x) ∀ x ∈ Dom(p)} .
+    We denote the set of polynomial functions f : Nn → N (n ∈ N) by poly. A
+function f : N → N is negligible if its absolute value is smaller than the inverse
+of any polynomial (i.e., if ∀c∃k0 ∀λ ≥ k0 : |f (λ)| < 1/λc ). We denote the class of
+negligible functions by negl, and hence, we write f ∈ negl or f (λ) ∈ negl(λ) if f
+is a negligible function.
+
+
+3.2   The Parallel Random Oracle Model (PROM)
+
+The random oracle is defined to be the uniform distribution over the set Fλ of all
+functions f : {0, 1}∗ → {0, 1}λ . In this work, random oracles will be simulated
+lazily, i.e., whenever a new query x is made to f , f (x) is set to a uniformly
+
+
+                                        12
+random string y ← {0, 1}λ . We write f ← Fλ for this process. In the proofs later
+we want to associate oracles with partially defined functions, i.e. they initially
+correspond to a completely undefined partial function and with every query the
+associated partial function gets updated.
+   An f -oracle-aided algorithm Af , on input an initial state/input, runs in
+rounds: in the i-th round it (a) makes a tuple of parallel queries Qi to f and
+receives f (Qi ) := (f (x))x∈Qi , and (b) runs an arbitrary computation on its cur-
+rent state and f (Qi ), and passes the result as a state to the next round. For
+                                               Pk
+a k-round algorithm Af we refer to q :=          i=1 |Qi | as the (total) number of
+queries. If Af is a deterministic algorithm, then Q(Af ) denotes the set of queries
+A makes to f . We define the time complexity of Af as the number of rounds it
+takes Af to terminate.
+
+
+3.3   Verifiable Delay Functions
+
+A verifiable delay function (VDF) [BBBF18] is a function that requires many se-
+quential steps to evaluate, yet the output (together with a proof) can be publicly
+verified much more efficiently. We define VDFs with respect to any oracle dis-
+tribution Oλ . VDFs in the ROM are obtained as a special case when Oλ := Fλ
+where Fλ is defined in Section 3.2.
+
+Definition 1 (Verifiable Delay Functions). An oracle-aided Verifiable De-
+lay Function (VDF) is a triple of oracle-aided (potentially randomized) uniform
+algorithms Π := (Setup, Eval, Verify), such that for any λ ∈ N and oracle distri-
+bution Oλ the following hold:
+
+ – Setup(λ, T ) → pp: On input a security parameter λ and time parameter T ,
+   it outputs the public parameters pp. The public parameters determine an
+   efficiently samplable finite set of inputs X, a set of outputs Y , and a set
+   of proofs P . We say that Π has a public-coin setup if pp also contains the
+   random coins used by Setup. Otherwise, we say that Π has a private-coin
+   setup.
+ – Eval(pp, x) → (y, π): On input pp and a value x, it outputs y ∈ Y and a
+   (possibly empty) proof π ∈ P . The first output y is determined only by x and
+   pp, i.e., y is independent of the randomness of Eval.
+ – Verify(pp, x, y, π) ∈ {0, 1}: This is a deterministic algorithm that on input
+   pp, values x, y, and a proof π, outputs a bit indicating whether it accepts or
+   rejects.
+
+   We require Π to satisfy efficiency, completeness, sequentiality and uniqueness
+as defined below.
+
+ – Efficiency. Π is efficient if the following hold for every O ∈ Oλ :
+    • SetupO makes at most qs ∈ poly(T, λ) queries to O,
+    • EvalO makes at most qe ∈ poly(T, λ) queries to O in at most T rounds.
+    • VerifyO makes at most qv ∈ poly(log(T ), λ) queries to O.
+
+
+                                        13
+ – α-Completeness. Π is complete with error α if for any λ, T ∈ N, every
+   O ∈ Oλ , any pp ← SetupO (λ, T ), and any x ∈ X
+            h                                                i
+        Pr VerifyO (pp, x, y, π) = 1 : (y, π) ← EvalO (pp, x) ≥ 1 − α(λ).
+
+   We say Π satisfies perfect completeness if α = 0.
+ – Sequentiality. Π satisfies sequentiality with ϵ ∈ [0, 1) gap if for every λ, T ∈
+   N and every two-stage oracle-aided adversary A = (A0 , A1 ) such that A makes
+   in total poly(T, λ) oracle queries and A1 makes its queries in T ϵ rounds, it
+   holds that
+                                              O ← Oλ
+                                                       
+                                  pp ← SetupO (λ, T ) 
+                                          st ← AO
+                                                       
+                                                 0 (pp) 
+                      ′                                
+                  Pr y = y :
+                                                         ∈ negl(λ).
+                                              x←X     
+                                        ′      O
+                                      y ← A (st, x) 
+                                               1
+                                 (y, π) ← EvalO (pp, x)
+
+ – (Non-adaptive) Computational Uniqueness. Π satisfies computational
+   uniqueness if for any λ, T ∈ N and oracle-aided adversary A that makes
+   q ∈ poly(T, λ) oracle queries, it holds that
+
+                                                            O ← Oλ
+                                                                     
+       
+        ′                                       pp ← SetupO (λ, T ) 
+                       O         ′   ′
+                                                                      
+       y ̸= y ∧ Verify (pp, x, y , π ) = 1 :
+    Pr                                                      x←X      ∈ negl(λ).
+                                                   ′  ′     O
+                                               (y , π ) ← A (pp, x) 
+                                               (y, π) ← EvalO (pp, x)
+                                                                                (6)
+
+    We say that Π satisfies perfect uniqueness if q is unbounded and Equa-
+    tion (6) holds with probability 0.
+
+Remark 1. Some VDF definitions [BBBF18, Pie19, Wes19] use the word sound-
+ness to describe uniqueness. The two terms describe the same thing and we use
+uniqueness following [MSW20, GRY25]. We note that previous works [BBBF18,
+MSW20, DGMV20] defined uniqueness adaptively, i.e., instead of sampling x
+uniformly at random and giving x to the adversary A as input, they allow A
+to choose x itself. This adaptive uniqueness is stronger than our non-adaptive
+uniqueness, but since our focus in this work is on impossibility results, working
+with non-adaptive uniqueness implies stronger results (analogous to [GRY25]).
+
+
+4   Warmup: Impossibility for Public-Coin Setup
+In this section, we set up the stage for our main results which we present in
+Section 5. To do so, we first unify the language [MSW20] and [GRY25] use
+to describe their adversaries. To accommodate this unification, we provide a
+
+
+                                        14
+Algorithm 1 The preprocessing algorithm Ppub for public-coin setup.
+    Input Public parameters pp
+                                             ∗           λ
+    Output A partial function ppre : {0, 1} 99K {0, 1}
+ 1: Initialize ppre as the empty partial function with Dom(ppre ) = ∅
+ 2: Run Setupf (λ, T ; rS ) with the random coins rS contained in pp (cf. Definition
+    1)
+ 3: Set ppre (m) = f (m) for each query m ∈ Q(Setupf (λ, T ; rS ))
+ 4: Return ppre
+
+
+
+different analysis to the results of [GRY25]. We crucially rely on this new analysis
+in Section 5 to extend the results of [GRY25] to VDFs with private-coin and
+expensive setups.
+    In Section 4.1 we present the simplest case of perfectly unique VDFs with
+public-coin setup, as considered by [MSW20], and in Section 4.2, we consider
+the case of computationally unique VDFs with public-coin setup, as handled by
+[GRY25].
+    Let Π := (Setup, Eval, Verify) be a VDF in the ROM. At the heart of the
+results of both Section 4.1 and Section 4.2 is the sequentiality breaker (Ppub , As )
+where Ppub and As are formally depicted in Algorithms 1 and 2, respectively. This
+breaker is based on the sequentiality breaker of [MSW20], with the difference
+that in As we select the output from a uniformly random iteration instead of
+using majority-based output selection. This turns out to simplify the analysis.
+    The online phase of the adversary Afs with oracle access f , takes as input
+public parameters pp, x ∈ X, and a partial function ppre computed by the
+preprocessing algorithm Pf . The preprocessing algorithm for the public-coin
+                                                                                  f
+setup case we consider in this section is simple: on input pp, the algorithm Ppub
+simply runs the setup algorithm with the public random coins contained in pp,
+and stores the queries made to f during this process in the partial function ppre .
+    For our results regarding VDFs in the private-coin setup in Section 5, As is
+the same but we employ a more sophisticated preprocessing phase.
+    In Figure 1 we formally describe an execution of the sequentiality game with
+the sequentiality breaker (P, As ), where P is the preprocessing algorithm.
+
+4.1     Perfectly Unique VDFs
+In this section, we consider the case of perfectly unique VDFs Π with public-coin
+setup. For simplicity, we first assume that Π is also perfectly correct.
+    Preprocessing as per Algorithm 1 ensures that for all queries m made in
+Setupf (λ, T ; rS ) we have gj (m) = f (m) for all j ∈ [i]. The argument for the
+sequentiality breaker of both [GRY25] and [MSW20], depicted in Algorithm 2,
+now works as follows.
+9
+    The algorithm Ppub used in this section is actually deterministic, so it would ignore
+    random coins rP . However, in Section 5 we will use a randomized preprocessing
+    algorithm Ppub .
+
+
+                                           15
+Algorithm 2 The sequentiality breaker Afs , essentially [MSW20, Algorithm 1].
+    Input: Public parameters pp, an element x ∈ X, and a partial function ppre
+    Hard-Coded: Running time parameter ton
+    Output: An element y ∈ Y
+ 1: Set p1 := ppre
+ 2: Sample i ← {1, . . . , ton} uniformly at random
+ 3: for j = 1, . . . , i do
+ 4:   Lazily sample gj ← Fλ |pj
+ 5:   Sample random coins rj and run (yj′ , πj′ ) ← Evalgj (pp, x; rj )
+ 6:   Initialize pj+1 as the partial function with pj+1 (m) = pj (m) for m ∈
+    Dom(pj )
+ 7:   Set pj+1 (m) = f (m) in parallel for every m ∈ Q(Evalgj (pp, x; rj )) \
+    Dom(pj )
+ 8: end for
+ 9: Return yi′
+
+
+   1. The challenger samples a random function f ← Fλ .
+   2. The challenger samples random coins rS and runs pp :=
+      Setupf (λ, T ; rS ).
+   3. The adversary samples random coins9 rP and runs ppre := Pf (pp; rP ).
+   4. The challenger samples an input x ← X uniformly at random.
+   5. The adversary runs yi′ ← Afs (pp, x, ppre ).
+   6. The challenger samples random coins rE and runs (y, π) :=
+      Evalf (pp, x; rE ).
+   7. The adversary succeeds if and only if yi′ = y.
+
+
+
+
+Fig. 1. The execution of the sequentiality game of Definition 1 with adversary (P, As ).
+
+
+     Consider the case that in the i-th iteration of Algorithm 2, i.e., the last
+iteration, no new query is made to gi that is also made in Q(Verifyf (pp, x, y, π)),
+i.e., we have
+           (Q(Evalgi (pp, x; ri )) \ Dom(pi )) ∩ Q(Verifyf (pp, x, y, π)) = ∅.       (7)
+We will sketch the proof of how Afs breaks sequentiality whenever Equation (7)
+holds. To do so, we construct a hybrid oracle hs as
+                    (
+                      gi (m) if m ∈ Q(Evalgi (pp, x; ri )) \ Dom(pi )
+           hs (m) =                                                        (8)
+                      f (m) otherwise.
+
+By construction and perfect completeness, we now have
+            (yi′ , πi′ ) = Evalhs (pp, x; ri )   and   Verifyhs (pp, x, y, π) = 1.   (9)
+
+
+                                                 16
+Hence, perfect uniqueness implies yi′ = y. Thereby, Afs breaks sequentiality when-
+ever Equation (7) holds.
+    It remains to show that Equation (7) holds often. Recall that the oracles
+gj get updated in each iteration and every query is made to f at most once.
+Furthermore, the number i of iterations of the for-loop is sampled uniformly
+at random from [ton]. Since there are qv queries made in Q(Verifyf (pp, x, y, π)),
+there can be at most qv iterations where a query in Q(Verifyf (pp, x, y, π)) is made
+to f , hence, we obtain that i hits an iteration where Equation (7) is not satisfied
+with probability at most qv /ton, which results in a success probability for Afs of
+at least 1 − qv /ton.
+    In the case that Π satisfies only α-completeness, Equation (9) only holds
+with probability 1 − α, which causes a loss of α in the adversary’s advantage.
+We obtain the following result, which is, given that the exact construction of
+the sequentiality breaker differs slightly, essentially [MSW20, Theorem 3.1 and
+Section 4].
+
+Theorem 2 (Corollary of [MSW20, Theorem 3.1 and Section 4]). Let
+Π be a VDF in the ROM with public-coin setup satisfying perfect uniqueness and
+α-completeness, having running time parameters qs , qe and qv , as in Definition 1.
+Let Ppub and As be the algorithms constructed in Algorithms 1 and 2, where the
+parameter ton can be chosen as any positive natural number.
+   Now, independently of the choice of f ∈ Fλ , the pair (Ppub , As ) wins the
+sequentiality game with probability at least 1 − qv /ton − α. Here, Ppub makes at
+most qs queries to f , and As makes at most qe · ton queries to f , in at most ton
+rounds.
+
+
+4.2   Computationally Unique VDFs
+
+Next we consider the case of computationally unique VDFs Π with public-
+coin setup. For simplicity, we first assume that Π satisfies perfect completeness.
+The argument of breaking sequentiality for perfectly unique VDFs fails when
+considering VDFs that are only computationally unique. This is so as it might
+happen that yi′ ̸= y while Equation (7) holds. However, the authors of [GRY25]
+observe that it is possible to break uniqueness with the same probability as this
+bad event is happening, i.e., they construct an adversary that breaks uniqueness
+with the same probability as the event
+
+  (Q(Evalgi (pp, x; ri )) \ Dom(pi )) ∩ Q(Verifyf (pp, x, y, π)) = ∅ ∧ yi′ ̸= y    (10)
+
+occurs for Afs . As Verifyf (pp, x, y, π) makes only qv queries, the first line of Equa-
+tion (10) holds with probability at least 1−qv /ton (as seen in Section 4.1), hence,
+the probability that Equation (10) holds is, up to an additive error of at most
+qv /ton, equal to the probability that the sequentiality breaker fails.
+    The uniqueness breaker of [GRY25] is (Ppub , Au ) where Ppub and Au are de-
+picted in Algorithms 1 and 3, respectively. Syntactically, the uniqueness breaker
+doesn’t have a preprocessing phase, hence, the tuple (Ppub , Au ) is a (two-stage)
+
+
+                                          17
+Algorithm 3 The uniqueness breaker Afu , essentially [GRY25, Algorithm 5].
+    Input: Public parameters pp, an element x ∈ X, and a partial function ppre
+    Hard-Coded: Running time parameter ton
+    Output: An output-proof pair (y, π) ∈ Y × P
+ 1: Set p1 := ppre
+ 2: Sample i ← {1, . . . , ton}.
+ 3: for j = 1, . . . , i − 1 do
+ 4:    Lazily sample gj ← Fλ |pj
+ 5:    Sample random coins rj and run (yj′ , πj′ ) := Evalgj (pp, x; rj )
+ 6:    Initialize pj+1 as the partial function with pj+1 (m) = pj (m) for m ∈
+    Dom(pj )
+ 7:    Set pj+1 (m) = f (m) in parallel for every m ∈ Q(Evalgj (pp, x; rj )) \
+    Dom(pj )
+ 8: end for
+ 9: Sample random coins ri and set (y, π̃) := Evalf (pp, x; ri )
+10: Define a function hu as follows. For m ∈ (Q(Evalf (pp, x; ri )) \ Dom(pi )),
+    sample the value of hu (m) uniformly at random; otherwise, set hu (m) =
+    f (m)
+11: Sample random coins rE and run (yi′′ , πi′′ ) := Evalhu (pp, x; rE )
+12: Return (yi′′ , πi′′ )
+
+
+
+uniqueness adversary. The first stage Ppub is the same as the sequetiality breaker
+preprocessing. The second stage As executes the exact same first i − 1 itera-
+tions of the sequentiality breaker of Algorithm 2, but then, in the last iteration,
+interchanges the roles of f and gi , and constructs a function hu such that run-
+ning the evaluation algorithm with oracle access to hu breaks uniqueness, i.e.,
+(yi′′ , πi′′ ) = Evalhu (pp, x; rE ) using random coins rE is used as the tuple to break
+uniqueness.
+      Before sketching the proof of breaking uniqueness, let’s recall the execution
+of the uniqueness game with the uniqueness breaker (P, Au ) in Figure 2.
+      The first step towards showing that (Ppub , Au ) indeed breaks uniqueness is to
+observe that if Equation (10) holds for Afs , then we have, by perfect correctness,
+
+            Verifyhs (pp, x, y, π) = Verifyf (pp, x, y, π) = 1   ∧    yi′ ̸= y.       (11)
+
+Here, hs is the hybrid oracle from Equation (8), (y, π) = Evalf (pp, x; rE ) and
+(yi′ , πi′ ) = Evalhs (pp, x; ri ). In other words, in case of perfect correctness, we
+obtain a break of uniqueness of the VDF (namely, the tuple (y, π)) although
+only for the wrong oracle hs , not f . This in particular means, that for any f we
+                                              f
+can find an oracle hs such that when (Ppub       , Afs ) fails to break sequentiality, then
+the original evaluation algorithm Evalf succeeds in breaking uniqueness for hs .
+      However, this is not sufficient for our final statement, for which we need to
+show that for a uniformly random f we have a non-negligible probability that
+either the sequentiality or the uniqueness breaker succeeds. (Note that the oracle
+
+
+                                            18
+   1. The challenger samples a random function f ← Fλ .
+   2. The challenger samples random coins rS and runs pp :=
+      Setupf (λ, T ; rS ).
+   3. The challenger samples an input x ← X uniformly at random.
+   4. The adversary samples random coins rP and runs ppre := Pf (pp; rP ).
+   5. The adversary runs (yi′′ , πi′′ ) ← Afu (pp, x, ppre ).
+   6. The adversary succeeds if and only if Verifyf (pp, x, yi′′ , πi′′ ) = 1 and
+      yi′′ ̸= y where y is the correct output, i.e., y is computed as (y, π) ←
+      Evalf (pp, x).
+
+
+
+
+Fig. 2. The execution of the uniqueness game of Definition 1 with adversary (P, Au ).
+
+
+
+hs is not uniform and independent of As ’s random coins, but was made up by Afs
+itself!) To prove our final statement, it suffices to prove that the pair (yi′′ , πi′′ ),
+                 f
+output by (Ppub    , Afu ), when viewed as a random variable, breaks uniqueness with
+respect to the oracle f with the same probability as (y, π), produced by Evalf ,
+breaks uniqueness with respect to hs as implicitly sampled by Afs . We prove this
+formally in Section 5.1 and only give a high-level overview below.
+    The proof utilized an auxiliary oracle f ′ that we define in terms of the lazily
+sampled f and gi . Before defining f ′ , we need to make certain aspect of the
+sequentiality breaker/game more precise. At the beginning of the i-th itera-
+tion, all of the values of f that are determined are stored in the partial func-
+tion pi . Now, for As , we call Evalgi (pp, x; ri ) where gi is a function satisfying
+gi (m) = pi (m) = f (m) for m ∈ Dom(pi ). During this call, queries at new values
+                         ∗
+m1 , . . . , mℓ ∈ {0, 1} \ Dom(pi ) might come up. Whenever such a query is made,
+                                                   λ
+we sample a new random value γi,j ← {0, 1} such that at the end of the i-th
+iteration we have that
+
+                       gi (mj ) = γi,j   for each j ∈ {1, . . . , ℓ}.
+
+Later in the i-th iteration of As , the values of f are determined. We then have
+
+                       f (mj ) = ϕi,j    for each j ∈ {1, . . . , ℓ},
+
+                              λ
+where ϕi,1 , . . . , ϕi,ℓ ∈ {0, 1} are all sampled uniformly at random.
+   With these assignments for f and gi , let’s consider the uniqueness breaker/game,
+but with respect to a different oracle f ′ , rather than f , where f ′ is defined by a
+function f ′ : {0, 1}∗ 99K {0, 1}λ where
+                                  (
+                        ′             f (m)        if m ∈ Dom(pi )
+                       f (m) :=
+                                      γi,j         if m = mj .
+
+                                              19
+Note that in this case, we have
+                                                            ′
+                            {m1 , . . . , mℓ } = Q(Evalf (pp, x; ri )).
+
+If then, as in the last few lines of Algorithm 3, the function hu is sampled as
+                                  (
+                                    ϕi,j      if m = mj
+                        hu (m) =
+                                    f ′ (m)   otherwise,
+
+then by inspection we have (f, hs ) = (hu , f ′ ). That is, what was f in the original
+case is now hu , and what was hs is now f ′ .
+      We now observe that if the pair (f, hs ) makes Equation (11) occur in the
+sequentiality game, then in the uniqueness game (and assuming all other random
+coins, in particular ri , rE , are the same in the two experiments), with respect to
+f ′ , we have:
+         ′                               ′
+ Verifyf (pp, x, yi′′ , πi′′ ) = Verifyf (pp, x, y ′′ , π ′′ ) = 1   ∧   yi′′ = y ̸= yi′ = y ′′ , (12)
+                                              ′
+where we denoted (y ′′ , π ′′ ) := Evalf (pp, x; ri ). Stated differently, Equation (12)
+shows that the pair (yi′′ , πi′′ ) breaks uniqueness with respect to the oracle f ′ . It
+remains to show that Equation (12) holds. This follows from observing that
+
+      hu = f       ⇒     (yi′′ , πi′′ ) := Evalhu (pp, x; rE ) = Evalf (pp, x; rE ) =: (y, π)
+                                                                     ′
+     hs = f ′      ⇒     (yi′ , πi′ ) := Evalhs (pp, x; ri ) = Evalf (pp, x; ri )
+
+and that yi′ = y ′′ , which holds since by definition of VDFs, the first output of
+      ′
+Evalf is deterministically computed, and hence does not depend on ri resp. rE .
+    The crucial point now is that it is equally likely that the pair (f, hs ) gets
+sampled in the sequentiality game, as it is that the pair (f ′ , hu ) gets sampled
+in the uniqueness game: (f, hs ) occurs if the challenger samples values ϕi,j and
+As samples values γi,j , whereas (f ′ , hu ) occurs if Au samples values ϕi,j and the
+challenger samples values γi,j , where both γi,j and ϕi,j are independently and
+uniformly distributed over {0, 1}λ . In other words, the pairs of random variables
+(f, hs ) and (hu , f ′ ) are equally distributed. Furthermore, if Equation (10) occurs
+for As for (f, hs ) then Au breaks uniqueness for (hu , f ′ ). Hence, this implies
+that Afu breaks uniqueness with at least the same probability as Equation (10)
+happens in the sequentiality game. It is important to stress that Au does not
+break uniqueness in case Equation (10) holds, but rather it breaks uniqueness
+with (at least) the same probability as that of Equation (10) holding. In other
+words, the probability of Au winning the uniqueness game is, up to an additive
+factor qv /ton, the same as that of As failing in the sequentiality game.
+    If Π only satisfies α-completeness, Equation (11) only holds with probability
+1 − α. This causes a loss of α in the success rate of the uniqueness breaker.
+We obtain the following result, which is essentially the statement of [GRY25,
+Theorem 5.1]. Their constructions of the adversaries differ slightly, resulting in
+slightly different bounds.
+
+                                                  20
+Theorem 3 (Essentially [GRY25, Theorem 5.1]). Let Π be a VDF in the
+ROM with public-coin setup and α-completeness, having running time param-
+eters qs , qe and qv , as in Definition 1. Let Ppub , As and Au be the algorithms
+constructed in Algorithms 1 to 3, where the parameter ton can be chosen as any
+positive natural number.
+    If (Ppub , As ) breaks sequentiality of Π with probability εs ,10 then (Ppub , Au )
+breaks uniqueness of Π with probability at least 1−εs −qv /ton −α. In other words,
+Π either fails to satisfy sequentiality or computational uniqueness. Furthermore,
+the complexity of these algorithms is as follows.
+
+ – As runs in at most ton rounds and makes at most qe queries in each round.
+ – Au makes at most qe · (ton + 1) queries in total.
+ – Ppub makes at most qs queries.
+
+
+5    Our Results: Impossibility for Private-Coin Setup
+
+In this section, we extend the known impossibility result for computationally
+unique VDFs with public-coin setup to setup algorithms that are both private-
+coin and expensive. The general outline of the argument follows that of Sec-
+tion 4.2: we construct a sequentiality breaker and a uniqueness breaker such that
+either the sequentiality or the uniqueness breaker succeeds with a non-negligible
+probability.
+    However, unlike the result and analysis of Section 4, the setup algorithm is
+private-coin, i.e., neither the sequentiality nor the uniqueness breaker gets to
+see the random coins used by the setup algorithm to sample the VDF’s public
+parameters. The challenge of extending the impossibility result of VDFs with
+public-coin to private-coin setup is to learn, by some way or another, most of
+the queries made by the private-coin setup. We discuss this matter in more
+detail after we discuss the preprocessing algorithm and its effect on the success
+probability of our adversaries.
+    Formally, assume towards contradiction that (Setup, Eval, Verify) is a VDF
+in the ROM. We construct a sequentiality breaker (Ppriv , As ) and a uniqueness
+breaker11 (Ppriv , Au ) such that at least one of them succeeds with a non-negligible
+probability. The algorithms As , Au , and Ppriv are formally depicted in Algorithms
+2, 3, and 4, respectively.
+    As alluded to before, the challenge of extending the impossibility of VDFs
+with public-coin setup from Section 4 to those with private-coin setup, regardless
+of whether the setup is expensive or not, comes from the need to not only con-
+sider the overlap of the set of new queries made of the sequentiality/uniqueness
+10
+   Here, probabilities are always taken over the choice of f ← Fλ , the randomness used
+   in the generation of the public parameters pp, the random choice of the input x and
+   all of the randomness used during the execution of the adversaries.
+11
+   Syntactically, the uniqueness breaker in the uniqueness game (cf. Definition 1) is a
+   single-stage adversary with no assigned meaning to preprocessing. We view (Ppriv , Au )
+   as the uniqueness adversary that first runs Ppriv and then Au (using output of Ppriv ).
+
+
+                                           21
+breaking algorithms with the set of verification queries, but also to consider
+the overlap of such queries with the (unknown) set of setup queries. This in
+particular requires a more sophisticated preprocessing algorithm than the one
+considered in Section 4. We formally describe preprocessing in Ppriv , Algorithm
+4, and discuss it later after Theorem 4.
+    Looking ahead, the success probability of our uniqueness breaker will depend
+on two events: the event that the sequentiality breaker fails and a specific event
+E that may or may not happen during the execution of the sequentiality breaker.
+    We define the event E as the conjunction of two events E1 and E2 , where
+E1 considers the overlap of new queries made during the i-th iteration of the
+sequentiality breaker with the queries made by the verification algorithm and
+E2 considers such overlap with the queries made by the private-coin setup. E is
+formally given in Definition 2.
+Definition 2 (Event E). Interpreting the variables in the execution of the se-
+quentiality game in Figure 1 with the adversary A = (Ppriv , As ) (cf. Algorithms 2
+and 4) as random variables, let E := E1 ∧E2 where events E1 and E2 are defined
+as follows.
+ – E1 is the event that
+               (Q(Evalgi (pp, x; ri )) \ Dom(pi )) ∩ Q(Verifyf (pp, x, y, π)) = ∅.
+ – E2 is the event that
+                (Q(Evalgi (pp, x; ri )) \ Dom(pi )) ∩ Q(Setupf (λ, T ; rS )) = ∅.
+    Note that if the sequentiality breaker (Ppriv , As ) fails, i.e., it outputs yi′ ̸= y,
+but the event E happens, then (Ppriv , As ) breaks uniqueness w.r.t. (the wrong)
+oracle hs defined in Equation (8) in Section 4.12 Using an argument about the
+distributions occurring in the executions of the sequentiality and uniqueness
+games with the adversaries (Ppriv , As ) and (Ppriv , Au ), respectively, we can bound
+the success probability of (Ppriv , Au ) in terms of the probabilities that yi′ = y (i.e.
+(Ppriv , As ) wins) and event E occurs. We formalize this in the following theorem
+and refer to Section 5.1 for its proof.
+Theorem 4. Let Π := (Setup, Eval, Verify) be an α-complete VDF in the ROM,
+As , Au and Ppriv be as in Algorithms 2, 3, and 4, respectively, and fix preprocess-
+ing and running time parameters tpre and ton, respectively. If εs is the probabil-
+ity that the tuple (Ppriv , As ) breaks sequentiality of Π, then the tuple (Ppriv , Au )
+breaks uniqueness of Π with probability Pr[E] − εs − α, where E is defined in
+Definition 2.
+    We now show how to bound Pr[E], resulting in the impossibility result for
+VDFs in the ROM given as Corollary 1. As E = E1 ∧ E2 , we have Pr[E] ≥ 1
+− Pr[E1 ] − Pr[E2 ]. Now we can bound Pr[E1 ] by a simple counting argument
+(see the case of perfect uniqueness above), i.e. Pr[E1 ] ≤ qv /ton.
+12
+     Note that in the case of public-coin setup (as considered in Section 4), E2 is always
+     true. This is why we only considered event E1 in that case.
+
+
+                                             22
+Lemma 1 (Event E1 ). With event E1 as in Definition 2, ton as in Theorem
+4 and qv as in Definition 1, we have
+
+                                  Pr[E1 ] ≤ qv /ton .
+
+Proof. (of Lemma 1) This follows the same line of arguments as we have seen in
+Section 4.1. Recall that the oracles gj simulated by Afs are consistent with the
+partial functions pj , which get updated in each iteration. During this process,
+every query is made to f at most once. Furthermore, the number i of iterations
+is sampled uniformly at random from [ton]. Since there are qv queries made in
+Verifyf (pp, x, y, π), there can be at most qv of the ton iterations in which such
+a query is made. Hence, we obtain that the new queries made in round i hit a
+query in Q(Verifyf (pp, x, y, π)) with probability at most qv /ton.
+
+    Now, how do we bound Pr[E2 ]? Here the preprocessing algorithm Ppriv de-
+picted in Algorithm 4 comes into play. Informally, Ppriv simulates a number of
+executions of As on random inputs. The purpose of this simulation is to find
+most queries made by Setupf (λ, T ; rS ), with secret random coins rS , that are
+relevant for the execution of our adversaries. The more simulated executions of
+As that Ppriv makes, the higher the chance it finds all such relevant queries, and
+hence the lower the chance that E2 holds.
+    To make this precise, we first define an event D, which implies E2 and cap-
+tures the event of Ppriv finding all queries made by setup that are relevant to our
+adversaries.
+
+Definition 3 (Event D). Interpreting the variables in the execution of the se-
+quentiality game in Figure 1 with the adversary A = (Ppriv , As ) (cf. Algorithms 2
+and 4) as random variables, let D be the event that during the i-th execution of As
+in Line 4 of Algorithm 4, no new query to f at a value m ∈ Q(Setupf (λ, T ; rS ))
+is made.
+    Note that D implies E2 , as any new query made by Evalgi (pp, x; ri ), as part
+of As , is later also made to f . We can bound Pr[D] with an argument very similar
+to the one used to bound Pr[E1 ] in Lemma 1.
+
+Lemma 2 (Event D). With event D as in Definition 3, tpre , ton as in Theorem
+4 and qs as in Definition 1, we have
+
+                                  Pr[D] ≤ qs /tpre .
+                                      f
+Proof. Consider an execution of Ppriv    (pp, tpre , ton) with i set to tpre in Line 2.
+No query is made to f twice, as each query made to f is immediately stored in
+ppre . Thereby, each m ∈ Q(Setupf (λ, T ; rS )) can occur in at most one of the i
+iterations. In particular, in at most qs of the tpre iterations of Line 4 of Algorithm
+4 a new query to f at a value m ∈ Q(Setupf (λ, T ; rS )) is made. Thereby, since
+i ← [tpre ] is sampled uniformly at random, the probability of D occurring is at
+most qs /tpre . The claim follows.
+
+
+                                          23
+                                         f
+Algorithm 4 The preprocessing algorithm Ppriv for private-coin setup.
+    Input Public parameters pp
+    Hard-Coded: Running time parameters tpre , ton
+                                                ∗           λ
+    Output A partial function ppre : {0, 1} 99K {0, 1}
+ 1: Initialize ppre as the empty partial function with Dom(ppre ) = ∅
+ 2: Sample i ← {1, . . . , tpre }
+ 3: for j = 1, . . . , i do
+ 4:    Run Afs (pp, xpre , ppre ) from Algorithm 2 for a uniformly random xpre ← X
+ 5:   Set ppre (m) = f (m) for each query m ∈     / Dom(ppre ) made by Afs to f
+ 6: end for
+ 7: Return ppre
+
+
+
+Corollary 1 (VDFs cannot exist in the ROM). Let Π, As , Au , Ppriv ,
+tpre , ton be as in Theorem 4, and qs , qv as in Definition 1. If (Ppriv , As ) breaks
+sequentiality of Π with probability13 εs , then (Ppriv , Au ) breaks uniqueness of Π
+with probability at least 1 − εs − qv /ton − qs /tpre − α. That is, Π either fails
+to satisfy sequentiality or computational uniqueness. Furthermore, complexity of
+these algorithms is as follows.
+ – As runs in at most ton rounds and makes at most qe queries in each round.
+ – Au makes at most qe (ton + 1) queries in total.
+ – Ppriv runs in at most tpre · ton rounds and makes at most qe queries in each
+   round.
+For example, we can fix tpre = 6qs , ton = 6qv . (Recall that by Definition 1,
+qe ∈ poly(T, λ), qv ∈ poly(log(T ), λ) and setup is allowed to be expensive, i.e.,
+qs ∈ poly(T, λ), otherwise it is efficient, i.e., qs ∈ poly(log(T ), λ).) It follows that
+at least one of the following holds:
+ – (Ppriv , As ) breaks sequentiality with probability at least 1/3 − α/2. Note that
+   if setup is efficient, i.e., qs ∈ poly(log(T ), λ), then so is the preprocessing,
+   i.e., Ppriv runs in poly(log(T ), λ) rounds with a total of poly(T, λ) queries.
+   Regardless of the (in)efficiency of setup, the online adversary is efficient,
+   i.e., As runs in poly(log(T ), λ) rounds with a total of poly(T, λ) queries.
+   qs ∈ poly(log(T ), λ), then so is (tpre ) · ton.
+ – (Ppriv , Au ) breaks uniqueness with probability at least 1/3 − α/2. Note that in
+   general, (Ppriv , Au ) runs in a total of poly(T, λ) rounds and queries.
+Proof. (of Corollary 1) As E = E1 ∧ E2 , we have Pr[E] ≥ 1 − Pr[E1 ] − Pr[E2 ].
+Given that event D implies E2 , Lemmas 1 and 2 imply Pr[E] ≥ 1 − qv /ton −
+qs /tpre . Theorem 4 implies that (Ppriv , Au ) breaks uniqueness with probability
+                   Pr[E] − εs − α ≥ 1 − εs − qv /ton − qs /tpre − α.
+13
+     The probability is taken over the choice of f ← F, the randomness used in the
+     generation of the public paramters pp, the random choice of the input x and all of
+     the randomness used while running the adversaries.
+
+
+                                           24
+Plugging in tpre = 6qs , ton = 6qv leads to the final claim.
+
+
+5.1   The Success Rate of the Computational Uniqueness Breaker
+
+The aim of this section is to prove Theorem 4. More precisely, we prove that,
+denoting the success rate of the uniqueness breaker (Ppriv , Au )—as depicted in
+Algorithms 3 and 4—by εu , and the success rate of the sequentiality breaker
+(Ppriv , As )—as depicted in Algorithms 3 and 4—by εs , the bound
+
+                               εs + εu ≥ 1 − Pr[E] − α
+
+holds. Here, E is the event defined in Definition 2, and α is the completeness
+parameter. To this aim, analogous to event E for the sequentiality game (Def-
+inition 2), we introduce the event E ′ = E1′ ∧ E2′ for the uniqueness game. The
+events E1′ and E2′ are very similar to E1 and E2 from Definition 2, the parts
+where they differ from their respective counterparts are color-coded below.
+
+Definition 4 (Event E ′ ). Interpreting the variables in the execution of the se-
+quentiality game in Figure 2 with the adversary A = (Ppriv , Au ) (cf. Algorithms 3
+and 4) as random variables, let E ′ := E1′ ∧E2′ where events E1′ and E2′ are defined
+as follows.
+
+ – E1′ is the event that
+                                           
+            Q(Evalf (pp, x; ri )) \ Dom(pi ) ∩ Q(Verifyhu (pp, x, yi′′ , πi′′ )) = ∅.
+
+
+ – E2′ is the event that
+                                              
+               Q(Evalf (pp, x; ri ) \ Dom(pi )) ∩ Q(Setupf (λ, T ; rS )) = ∅.
+
+Lemma 3. Let Π := (Setup, Eval, Verify) be an α-complete VDF in the ROM,
+Au and Ppriv be as in Algorithms 3 and 4, respectively, and fix preprocessing and
+running time parameters tpre and ton, respectively. Then the tuple (Ppriv , Au )
+breaks uniqueness of Π with probability Pr[(yi′′ ̸= y) ∧ E ′ ] − α, where E ′ is
+defined in Definition 4.
+
+Proof of Lemma 3. We first show that
+                   h                                      i
+                Pr Verifyf (pp, x, yi′′ , πi′′ ) = 1 | E ′ ≥ 1 − α.                     (13)
+
+To this end, note that f and hu only differ at values m ∈ (Q(Evalf (pp, x; ri )) \
+Dom(pi )). If E ′ occurs, then in particular E2′ occurs, implying that for every
+m ∈ Q(Setupf (λ, T ; rS )), we have hu (m) = f (m). Hence,
+
+                     pp := Setupf (λ, T ; rS ) = Setuphu (λ, T ; rS ).
+
+
+                                            25
+Since (yi′′ , πi′′ ) := Evalhu (pp, x; rE ) and Π satisfies α-completeness, we find that
+                           h                                       i
+                        Pr Verifyhu (pp, x, yi′′ , πi′′ ) = 1 | E2′ ≥ 1 − α.
+
+Now, if Verifyhu (pp, x, yi′′ , πi′′ ) = 1 and E1′ occurs, then for all queries m made
+by Verifyhu (pp, x, yi′′ , πi′′ ), we have hu (m) = f (m), and we therefore obtain
+Verifyf (pp, x, yi′′ , πi′′ ) = 1. This implies Equation (13). If additionally y ̸= yi′′
+holds, then (Ppriv , Au ) breaks uniqueness of Π, and the claim follows.
+    For the proof of Theorem 4, it remains to prove the inequality
+
+                             Pr[(yi′′ ̸= y) ∧ E ′ ] ≥ Pr[E] − εs .                          (14)
+
+    We do so by proving the equality
+
+                         Pr[(yi′′ ̸= y) ∧ E ′ ] = Pr[(yi′ ̸= y) ∧ E],                       (15)
+
+which gives
+
+   Pr[(yi′′ ̸= y) ∧ E ′ ] = Pr[(yi′ ̸= y) ∧ E] = Pr[E] − Pr[(yi′ = y) ∧ E]
+                                                    ≥ Pr[E] − Pr[yi′ = y] = Pr[E] − εs .
+
+    We prove Equation (15) by carefully analyzing the randomness used during
+the execution of both the sequentiality game with (Ppriv , As ) and the compu-
+tational uniqueness game with (Ppriv , Au ). We analyze the random coins that
+determine whether event yi′ = y and event E, resp. yi′′ ̸= y and E ′ occur.
+    To this end, we define the notion of random tapes. For us, a random tape is
+a triple t = (t1 , t2 , t3 ), where
+ 1. t1 ∈ {1, . . . , ton} determines the value of i.
+ 2. t2 = (rS , rP , rx , r1 , . . . , ri , rE ) denotes the random coins sampled during an
+    execution of the sequentiality game with the adversary (Ppriv , As ) (see Fig-
+    ure 1), or the uniqueness game with the adversary (Ppriv , Au ) (see Figure 2).
+    That means, rS is used to run Setup, rP to run Ppriv , rx to sample x ← X.
+    Randomness rj for j ∈ [i] and rE is used, depending on whether the sequen-
+    tiality or the uniqueness game is considered, for the i runs of Eval by As
+    and the run of Eval by the challenger, or for the (i + 1) respective Eval calls
+    within Au .
+ 3. t3 determines the values of the random functions f and (gj )1≤j≤i , both of
+    which we interpret as lazily determined. We formally accomplish this by
+    writing t3 = (Φ, Γ ), where Φ = (ϕS , ϕP , ϕ1 , . . . , ϕi , ϕE ) and Γ = (γ1 , . . . , γi ),
+    where furthermore ϕS := (ϕS,1 , . . . , ϕS,qs ) ∈ {0, 1}λ×qs denotes the tape used
+    to sample the random values of f at the values queried by Setupf (λ, T ; rS ).
+                                                                     ∗
+    Here, when f is queried at a first value m1 ∈ {0, 1} , we have f (m1 ) = ϕS,1 ,
+    etc. Similarly, ϕP denotes the tape used to sample the random images of
+                                                          f
+    values queried during the execution of Ppriv             (pp; rP ), and γj and ϕj denote,
+                                           λ×qe
+    for 1 ≤ j ≤ i, elements in {0, 1}             , determining the random image values
+
+
+                                               26
+      of gj and f on input values queried in round j, in each of the algorithms.
+                                                     λ×q
+      Moreover, γi and ϕi denote elements in {0, 1} e , determining the random
+      image values of gi and f on input values queried in the i-th round of As , and
+      of hu and f in the i-th round of Au .14 Finally, ϕE ∈ {0, 1}λ×qe denotes the
+      image values of f for the sequentiality game, resp. for hu for the uniqueness
+      game, on new queries coming up in the respective executions of Eval with
+      random coins rE , which is done by the challenger in case of the sequentiality
+      game, and by Au in case of the uniqueness game.
+
+     We denote the set of all possible tapes by Tapes. This is a finite set, and
+it is naturally equipped with a (uniform) probability measure. Any tape t =
+(t1 , t2 , t3 ) ∈ Tapes provides enough random coins to run all of the sequentiality
+game, and enough random coins to completely run Au in the uniqueness game
+and decide whether events yi′ = y and E, or yi′′ = y and E ′ , occur, respectively.
+We write t =⇒ (yi′ ̸= y) ∧ E if (yi′ ̸= y) ∧ E occurs when the sequentiality
+game uses the randomness specified in t. Similarly, we write t =⇒ (yi′′ ̸=
+y) ∧ E ′ if (yi′′ ̸= y) ∧ E ′ occurs when the computational uniqueness game uses
+the randomness specified in t.
+     Given a tape t = (t1 , t2 , t3 ), we denote by t′ the tape (t′1 , t′2 , t′3 ) where
+t1 = t1 , t′2 = t2 and t′3 is constructed as follows. Recall that we write t3 =
+ ′
+
+(Φ, Γ ) for Φ = (ϕS , ϕP , ϕ1 , . . . , ϕi , ϕE ) and Γ = (γ1 , . . . , γi ). Now, we define
+t′3 as the tape obtained by swapping ϕi and γi , i.e., t′3 = (Φ′ , Γ ′ ) where Φ′ =
+(ϕS , ϕP , ϕ1 , . . . , ϕi−1 , γi , ϕE ) and Γ ′ = (γ, . . . , γi−1 , ϕi ). Clearly, we have Pr[{t}] =
+Pr[{t′ }] for tape t ∈ Tapes.
+
+Lemma 4. For any t ∈ Tapes,
+
+                 (t =⇒ (yi′ ̸= y) ∧ E) ⇐⇒ (t′ =⇒ (yi′′ ̸= y) ∧ E ′ ) .
+
+In particular, we have Pr[(yi′ ̸= y) ∧ E] = Pr[(yi′′ ̸= y) ∧ E ′ ].
+
+Proof. We denote by git the function gi as determined by t. We use the same
+notation for other random variables, if the passage from t to t′ makes a difference.
+    If we use tape t to run the sequentiality game, then the event E2 reads
+         t                                  t
+Q(Evalgi (pp, x; ri ) \ Dom(pi )) ∩ Q(Setupf (λ, T ; rS )) = ∅. This means that none
+                                                            t
+of the f t -images of the new queries made to git by Evalgi (pp, x; ri ) was set already
+in the setup phase, hence, in particular, at the beginning of the i-th iteration, f t
+                                                                        ′
+is not yet determined on those queries. Now, if we denote by f t the function f
+as determined when using t′ to run the computational uniqueness game, hence
+                         ′                                     t
+                      f t (m) = git (m) for m ∈ Q(Evalgi (pp, x; ri )).                        (16)
+14
+     Note that the set of queries made in round i depends on γi in the sequentiality game,
+     whereas it depends on ϕi in the soundness game. This will be crucial in the proof of
+     Lemma 4.
+
+
+                                                27
+                                        t                                                 t′
+This in particular implies Q(Evalgi (pp, x; ri )) \ Dom(pi ) = Q(Evalf (pp, x; ri )) \
+Dom(pi ), which immediately implies that t′ makes E2′ occur. The reverse direc-
+tion can be shown exactly the same way, hence we obtain
+
+                              (t =⇒ E2 ) ⇐⇒ (t′ =⇒ E2′ ) .
+
+   Again we use t to run the sequentiality game and t′ to run the computational
+uniqueness game, and now assume t =⇒ ((yi′ ̸= y) ∧ E). In particular, we
+have t =⇒ E2 , and by Equation 16 the same sequence of queries is made in
+     t                             t′
+Evalgi (pp, x; ri ) and in Evalf (pp, x; ri ). Hence, exactly the same random coins
+                                                                               ′
+that are used to sample f t in the sequentiality game are used to sample htu in
+the computational uniqueness game, and vice versa. More concretely, we have
+         ′                 ′                      t
+f t = htu and git (m) = f t (m) for m ∈ Q(Evalgi (pp, x; ri )). This implies
+                               t                     t′                           ′        ′
+          (y t , π t ) = Evalf (pp, x; rE ) = Evalh (pp, x; rE ) = (y ′′t , π ′′t ),
+                               t                    t′                    ′           ′
+         (yi′t , πi′t ) = Evalgi (pp, x; ri ) = Evalf (pp, x; ri ) = (y t , π̃ t ), and
+                          t                               t′         ′        ′
+                 Verifyf (pp, x, y t , π t ) = Verifyh (pp, x, y ′′t , π ′′t ).
+
+Here, equality between algorithms not only means that their outputs are equal,
+but also that they pass the exact same states during execution, and in particular
+make the same queries to their respective oracles. As t =⇒ ((yi′ ̸= y) ∧ E), these
+equalities immediately imply t′ =⇒ ((yi′′ ̸= y) ∧ E ′ ). The opposite implication
+can be proven similarly.
+
+   This concludes the proof of Theorem 4.
+
+
+Acknowledgments
+Hamza Abusalah is supported by the PICOCRYPT project that has received
+funding from the European Research Council (ERC) under the European Unions
+Horizon 2020 research and innovation programme (Grant agreement No. 101001283),
+partially supported by ESPADA (PID2022-142290OB-I00) and CEX2024-001471-
+M funded by MCIN/AEI/10.13039/501100011033/. Erkan Tairi is supported in
+part by the France 2030 ANR-22-PECY-003 SecureCompute Project, by the
+Austrian Science Fund (FWF) Project J4879-N, by the Bakar Funds and Peder
+Sather Funds.
+
+
+
+
+                                              28
+References
+
+ABBK16. Frederik Armknecht, Ludovic Barman, Jens-Matthias Bohli, and Ghas-
+         san O. Karame. Mirror: Enabling proofs of data replication and retriev-
+         ability in the cloud. In Thorsten Holz and Stefan Savage, editors, USENIX
+         Security 2016, pages 1051–1068. USENIX Association, August 2016.
+Abu25.   Hamza Abusalah. On graphs of incremental proofs of sequential work. In
+         Tibor Jager and Jiaxin Pan, editors, PKC 2025, Part V, volume 15678 of
+         LNCS, pages 203–233. Springer, Cham, May 2025.
+AC23.    Hamza Abusalah and Valerio Cini. An incremental PoSW for general
+         weight distributions. In Carmit Hazay and Martijn Stam, editors, EURO-
+         CRYPT 2023, Part II, volume 14005 of LNCS, pages 282–311. Springer,
+         Cham, April 2023.
+AFGK22. Hamza Abusalah, Georg Fuchsbauer, Peter Gazi, and Karen Klein.
+         SNACKs: Leveraging proofs of sequential work for blockchain light clients.
+         In Shweta Agrawal and Dongdai Lin, editors, ASIACRYPT 2022, Part I,
+         volume 13791 of LNCS, pages 806–836. Springer, Cham, December 2022.
+AKK+ 19. Hamza Abusalah, Chethan Kamath, Karen Klein, Krzysztof Pietrzak, and
+         Michael Walter. Reversible proofs of sequential work. In Yuval Ishai and
+         Vincent Rijmen, editors, EUROCRYPT 2019, Part II, volume 11477 of
+         LNCS, pages 277–291. Springer, Cham, May 2019.
+ARS24.   Damiano Abram, Lawrence Roy, and Mark Simkin. Time-based cryptog-
+         raphy from weaker assumptions: Randomness beacons, delay functions and
+         more. Cryptology ePrint Archive, Report 2024/769, 2024.
+AS15.    Joël Alwen and Vladimir Serbinenko. High parallel complexity graphs
+         and memory-hard functions. In Rocco A. Servedio and Ronitt Rubinfeld,
+         editors, 47th ACM STOC, pages 595–603. ACM Press, June 2015.
+BBBF18. Dan Boneh, Joseph Bonneau, Benedikt Bünz, and Ben Fisch. Verifiable
+         delay functions. In Hovav Shacham and Alexandra Boldyreva, editors,
+         CRYPTO 2018, Part I, volume 10991 of LNCS, pages 757–788. Springer,
+         Cham, August 2018.
+BCH+ 22. Nir Bitansky, Arka Rai Choudhuri, Justin Holmgren, Chethan Kamath,
+         Alex Lombardi, Omer Paneth, and Ron D. Rothblum. PPAD is as hard as
+         LWE and iterated squaring. In Eike Kiltz and Vinod Vaikuntanathan, edi-
+         tors, TCC 2022, Part II, volume 13748 of LNCS, pages 593–622. Springer,
+         Cham, November 2022.
+BHR+ 21. Alexander R. Block, Justin Holmgren, Alon Rosen, Ron D. Rothblum,
+         and Pratik Soni. Time- and space-efficient arguments from groups of un-
+         known order. In Tal Malkin and Chris Peikert, editors, CRYPTO 2021,
+         Part IV, volume 12828 of LNCS, pages 123–152, Virtual Event, August
+         2021. Springer, Cham.
+BR93.    Mihir Bellare and Phillip Rogaway. Random oracles are practical: A
+         paradigm for designing efficient protocols. In Dorothy E. Denning, Ray-
+         mond Pyle, Ravi Ganesan, Ravi S. Sandhu, and Victoria Ashby, editors,
+         ACM CCS 93, pages 62–73. ACM Press, November 1993.
+CLM23.   Valerio Cini, Russell W. F. Lai, and Giulio Malavolta. Lattice-based suc-
+         cinct arguments from vanishing polynomials - (extended abstract). In He-
+         lena Handschuh and Anna Lysyanskaya, editors, CRYPTO 2023, Part II,
+         volume 14082 of LNCS, pages 72–105. Springer, Cham, August 2023.
+
+
+                                        29
+CP18.    Bram Cohen and Krzysztof Pietrzak.            Simple proofs of sequential
+         work. In Jesper Buus Nielsen and Vincent Rijmen, editors, EURO-
+         CRYPT 2018, Part II, volume 10821 of LNCS, pages 451–467. Springer,
+         Cham, April / May 2018.
+CP19.    Bram Cohen and Krzysztof Pietrzak. The chia network blockchain, 2019.
+         Last accessed on August 28, 2025 at https://www.chia.net/wp-content/
+         uploads/2022/07/ChiaGreenPaper.pdf.
+CSRT22. Jorge Chávez-Saab, Francisco Rodrı́guez-Henrı́quez, and Mehdi Tibouchi.
+         Verifiable isogeny walks: Towards an isogeny-based postquantum VDF. In
+         Riham AlTawy and Andreas Hülsing, editors, SAC 2021, volume 13203 of
+         LNCS, pages 441–460. Springer, Cham, September / October 2022.
+DGMV20. Nico Döttling, Sanjam Garg, Giulio Malavolta, and Prashant Nalini Va-
+         sudevan. Tight verifiable delay functions. In Clemente Galdi and Vladimir
+         Kolesnikov, editors, SCN 20, volume 12238 of LNCS, pages 65–84. Springer,
+         Cham, September 2020.
+DLM19.   Nico Döttling, Russell W. F. Lai, and Giulio Malavolta. Incremental proofs
+         of sequential work. In Yuval Ishai and Vincent Rijmen, editors, EURO-
+         CRYPT 2019, Part II, volume 11477 of LNCS, pages 292–323. Springer,
+         Cham, May 2019.
+DMPS19. Luca De Feo, Simon Masson, Christophe Petit, and Antonio Sanso. Verifi-
+         able delay functions from supersingular isogenies and pairings. In Steven D.
+         Galbraith and Shiho Moriai, editors, ASIACRYPT 2019, Part I, volume
+         11921 of LNCS, pages 248–277. Springer, Cham, December 2019.
+EFKP20a. Naomi Ephraim, Cody Freitag, Ilan Komargodski, and Rafael Pass. Con-
+         tinuous verifiable delay functions. In Anne Canteaut and Yuval Ishai, edi-
+         tors, EUROCRYPT 2020, Part III, volume 12107 of LNCS, pages 125–154.
+         Springer, Cham, May 2020.
+EFKP20b. Naomi Ephraim, Cody Freitag, Ilan Komargodski, and Rafael Pass.
+         SPARKs: Succinct parallelizable arguments of knowledge. In Anne Can-
+         teaut and Yuval Ishai, editors, EUROCRYPT 2020, Part I, volume 12105
+         of LNCS, pages 707–737. Springer, Cham, May 2020.
+GRY25.   Ziyi Guan, Artur Riazanov, and Weiqiang Yuan. Breaking verifiable delay
+         functions in the random oracle model. In Yael Tauman Kalai and Seny F.
+         Kamara, editors, CRYPTO 2025, Part VII, volume 16006 of LNCS, pages
+         161–191. Springer, Cham, August 2025.
+GS98.    David M. Goldschlag and Stuart G. Stubblebine. Publicly verifiable lotter-
+         ies: Applications of delaying functions. In Rafael Hirschfeld, editor, FC’98,
+         volume 1465 of LNCS, pages 214–226. Springer, Berlin, Heidelberg, Febru-
+         ary 1998.
+HHK+ 22. Charlotte Hoffmann, Pavel Hubácek, Chethan Kamath, Karen Klein, and
+         Krzysztof Pietrzak. Practical statistically-sound proofs of exponentia-
+         tion in any group. In Yevgeniy Dodis and Thomas Shrimpton, editors,
+         CRYPTO 2022, Part II, volume 13508 of LNCS, pages 370–399. Springer,
+         Cham, August 2022.
+HHKK23. Charlotte Hoffmann, Pavel Hubácek, Chethan Kamath, and Tomás Krnák.
+         (Verifiable) delay functions from lucas sequences. In Guy N. Rothblum and
+         Hoeteck Wee, editors, TCC 2023, Part IV, volume 14372 of LNCS, pages
+         336–362. Springer, Cham, November / December 2023.
+IR89.    Russell Impagliazzo and Steven Rudich. Limits on the provable conse-
+         quences of one-way permutations. In 21st ACM STOC, pages 44–61. ACM
+         Press, May 1989.
+
+
+                                         30
+JMRR21.    Samuel Jaques, Hart Montgomery, Razvan Rosie, and Arnab Roy. Time-
+           release cryptography from minimal circuit assumptions. In Avishek Ad-
+           hikari, Ralf Küsters, and Bart Preneel, editors, INDOCRYPT 2021, volume
+           13143 of LNCS, pages 584–606. Springer, Cham, December 2021.
+LM23.      Russell W. F. Lai and Giulio Malavolta. Lattice-based timed cryptogra-
+           phy. In Helena Handschuh and Anna Lysyanskaya, editors, CRYPTO 2023,
+           Part V, volume 14085 of LNCS, pages 782–804. Springer, Cham, August
+           2023.
+LSS20.     Esteban Landerreche, Marc Stevens, and Christian Schaffner. Non-
+           interactive cryptographic timestamping based on verifiable delay functions.
+           In Joseph Bonneau and Nadia Heninger, editors, FC 2020, volume 12059
+           of LNCS, pages 541–558. Springer, Cham, February 2020.
+LV20.      Alex Lombardi and Vinod Vaikuntanathan. Fiat-shamir for repeated squar-
+           ing with applications to PPAD-hardness and VDFs. In Daniele Micciancio
+           and Thomas Ristenpart, editors, CRYPTO 2020, Part III, volume 12172
+           of LNCS, pages 632–651. Springer, Cham, August 2020.
+LW15.      Arjen K. Lenstra and Benjamin Wesolowski. A random zoo: sloth, unicorn,
+           and trx. Cryptology ePrint Archive, Report 2015/366, 2015.
+MMV11.     Mohammad Mahmoody, Tal Moran, and Salil P. Vadhan. Time-lock
+           puzzles in the random oracle model.            In Phillip Rogaway, editor,
+           CRYPTO 2011, volume 6841 of LNCS, pages 39–50. Springer, Berlin, Hei-
+           delberg, August 2011.
+MMV13.     Mohammad Mahmoody, Tal Moran, and Salil P. Vadhan. Publicly verifi-
+           able proofs of sequential work. In Robert D. Kleinberg, editor, ITCS 2013,
+           pages 373–388. ACM, January 2013.
+MSW20.     Mohammad Mahmoody, Caleb Smith, and David J. Wu. Can verifiable
+           delay functions be based on random oracles? In Artur Czumaj, Anuj Dawar,
+           and Emanuela Merelli, editors, ICALP 2020, volume 168 of LIPIcs, pages
+           83:1–83:17. Schloss Dagstuhl, July 2020.
+OKC+ 25.   Michal Osadnik, Darya Kaviani, Valerio Cini, Russell W. F. Lai, and
+           Giulio Malavolta. Papercraft: Lattice-based verifiable delay function im-
+           plemented. In Marina Blanton, William Enck, and Cristina Nita-Rotaru,
+           editors, 2025 IEEE Symposium on Security and Privacy, pages 1603–1621.
+           IEEE Computer Society Press, May 2025.
+Pie19.     Krzysztof Pietrzak. Simple verifiable delay functions. In Avrim Blum,
+           editor, ITCS 2019, volume 124, pages 60:1–60:15. LIPIcs, January 2019.
+RSS20.     Lior Rotem, Gil Segev, and Ido Shahaf. Generic-group delay functions re-
+           quire hidden-order groups. In Anne Canteaut and Yuval Ishai, editors,
+           EUROCRYPT 2020, Part III, volume 12107 of LNCS, pages 155–180.
+           Springer, Cham, May 2020.
+RSW96.     R. L. Rivest, A. Shamir, and D. A. Wagner. Time-lock puzzles and timed-
+           release crypto. Technical report, USA, 1996.
+Rud88.     Steven Rudich. Limits on the provable consequences of one-way functions.
+           Technical report, USA, 1988.
+Sta20.     StarkWare. Veedo, 2020. Last accessed on August 28, 2025 at https:
+           //medium.com/starkware/presenting-veedo-e4bbff77c7ae.
+Wes19.     Benjamin Wesolowski. Efficient verifiable delay functions. In Yuval Ishai
+           and Vincent Rijmen, editors, EUROCRYPT 2019, Part III, volume 11478
+           of LNCS, pages 379–407. Springer, Cham, May 2019.
+
+
+
+                                         31
+

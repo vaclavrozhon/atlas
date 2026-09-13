@@ -1,0 +1,1377 @@
+Computing Generalized Convolutions
+Faster Than Brute Force
+Barış Can Esmer #
+CISPA Helmholtz Center for Information Security, Saarbrücken, Germany
+
+Ariel Kulik #
+CISPA Helmholtz Center for Information Security, Saarbrücken, Germany
+
+Dániel Marx #
+CISPA Helmholtz Center for Information Security, Saarbrücken, Germany
+
+Philipp Schepper #
+CISPA Helmholtz Center for Information Security, Saarbrücken, Germany
+
+Karol Węgrzycki #
+Saarland University, Saarbrücken, Germany
+Max Planck Institute for Informatics, Saarbrücken, Germany
+
+      Abstract
+In this paper, we consider a general notion of convolution. Let D be a finite domain and let Dn
+be the set of n-length vectors (tuples) of D. Let f : D × D → D be a function and let ⊕f be a
+coordinate-wise application of f . The f -Convolution of two functions g, h : Dn → {−M, . . . , M } is
+                          X
+    (g ⊛f h)(v) :=                     g(vg ) · h(vh )
+                        vg ,vh ∈D n
+                     s.t. v=vg ⊕f vh
+
+
+for every v ∈ Dn . This problem generalizes many fundamental convolutions such as Subset
+Convolution, XOR Product, Covering Product or Packing Product, etc. For arbitrary function f and
+                                                                                       2n
+domain D we can compute f -Convolution via brute-force enumeration in O(|D|      e        · polylog(M ))
+time.
+     Our main result is an improvement over this naive algorithm. We show that f -Convolution
+can be computed exactly in O((c  e · |D|2 )n · polylog(M )) for constant c := 5/6 when D has even
+cardinality. Our main observation is that a cyclic partition of a function f : D × D → D can be used
+to speed up the computation of f -Convolution, and we show that an appropriate cyclic partition
+exists for every f .
+     Furthermore, we demonstrate that a single entry of the f -Convolution can be computed more
+efficiently. In this variant, we are given two functions g, h : Dn → {−M, . . . , M } alongside with a
+vector v ∈ Dn and the task of the f -Query problem is to compute integer (g ⊛f h)(v). This is
+a generalization of the well-known Orthogonal Vectors problem. We show that f -Query can be
+                      ωn
+computed in O(|D|
+               e      2  · polylog(M )) time, where ω ∈ [2, 2.373) is the exponent of currently fastest
+matrix multiplication algorithm.
+2012 ACM Subject Classification Theory of computation → Parameterized complexity and exact
+algorithms; Theory of computation → Algorithm design techniques
+Keywords and phrases Generalized Convolution, Fast Fourier Transform, Fast Subset Convolution
+Digital Object Identifier 10.4230/LIPIcs.IPEC.2022.12
+Related Version Full Version: https://arxiv.org/abs/2209.01623 [22]
+Funding Research supported by the European Research Council (ERC) consolidator grant No. 725978
+SYSTEMATICGRAPH and the project TIPEA (grant No. 850979).
+
+Acknowledgements We would like to thank Karl Bringmann and Jesper Nederlof for useful discus-
+sions. Barış Can Esmer and Philipp Schepper are part of Saarbrücken Graduate School of Computer
+Science, Germany.
+            © Barış Can Esmer, Ariel Kulik, Dániel Marx, Philipp Schepper, and Karol Węgrzycki;
+            licensed under Creative Commons License CC-BY 4.0
+17th International Symposium on Parameterized and Exact Computation (IPEC 2022).
+Editors: Holger Dell and Jesper Nederlof; Article No. 12; pp. 12:1–12:22
+                   Leibniz International Proceedings in Informatics
+                   Schloss Dagstuhl – Leibniz-Zentrum für Informatik, Dagstuhl Publishing, Germany
+12:2   Computing Generalized Convolutions Faster Than Brute Force
+
+
+           1      Introduction
+       Convolutions occur naturally in many algorithmic applications, especially in the exact and
+       parameterized algorithms. The most prominent example is a subset convolution procedure [23,
+                                    e n ·polylog(M )) time algorithm for subset convolution dates back
+       37], for which an efficient O(2
+       to Yates [40] but in the context of exact algorithms it was first used by Björklund et al. [6].1
+       Researchers considered a plethora of other variants of convolutions, such as: Cover Product,
+       XOR Product, Packing Product, Generalized Subset Convolution, or Discriminantal Subset
+       Convolution [6, 8, 7, 10, 35, 21, 11]. These subroutines are crucial ingredients in the design of
+       efficient algorithms for many exact and parameterized algorithms such as Hamiltonian Cycle,
+       Feedback Vertex Set, Steiner Tree, Connected Vertex Cover, Chromatic Number, Max k-Cut
+       or Bin Packing [20, 10, 41, 28, 5, 39]. These convolutions are especially useful for dynamic
+       programming algorithms on tree decompositions and occur naturally during join operations
+       (e.g., [35, 20, 34]). Usually, in the process of algorithm design, the researcher needs to design
+       a different type of convolution from scratch to solve each of these problems. Often this is a
+       highly technical and laborious task. Ideally, we would like to have a single tool that can be
+       used as a blackbox in all of these cases. This motivates the following ambitious goal in this
+       paper:
+
+           Goal: Unify convolution procedures under one general umbrella.
+
+
+       Towards this goal, we consider the problem of computing f -Generalized Convolution (f -
+       Convolution) introduced by van Rooij [34]. Let D be a finite domain and let Dn be the
+       n length vectors (tuples) of D. Let f : D × D → D be an arbitrary function and let ⊕f
+       be a coordinate-wise application of the function f .2 For two functions g, h : Dn → Z the
+       f -Convolution, denoted by (g ⊛f h) : Dn → Z, is defined for all v ∈ Dn as
+                                     X
+               (g ⊛f h)(v) :=                     g(vg ) · h(vh ).
+                                   vg ,vh ∈D n
+                                s.t. v=vg ⊕f vh
+
+
+       Here we consider a standard Z(+, ·) ring. Through the paper we assume that M is the
+       absolute value of the maximum integer given on the input.
+           In the f -Convolution problem the functions g, h : Dn → {−M, . . . , M } are given as
+       an input and the output is the function (g ⊛f h). Note, that the input and output of
+       the f -Convolution problem consist of 3 · |D|n integers. Hence it is conceivable that
+                                                     n
+       f -Convolution could be solved in O(|D|  e       · polylog(M )). Such a result for arbitrary f
+       would be a real breakthrough in how we design parameterized algorithms. So far, however,
+       researchers have focused on characterizing functions f for which f -Convolution can be
+                        n
+       solved in O(|D|
+                   e      · polylog(M )) time. In [34] van Rooij considered specific instances of this
+       setting, where for some constant r ∈ N the function f is defined as either (i) standard addition:
+       f (x, y) := x+y, or (ii) addition with a maximum: f (x, y) := min(x+y, r −1), or (iii) addition
+       modulo r, or (iv) maximum: f (x, y) := max(x, y). Van Rooij [34] showed that for these
+                                                                     n
+       special cases the f -Convolution can be solved in O(|D|  e      · polylog(M )) time. His results
+       allow the function f to differ between coordinates. A recent result regarding generalized
+
+
+       1
+         We use O(·)
+                  e notation to hide polylogarithmic factors. We assume that M is the maximum absolute
+         value of the integers on the input.
+       2
+         We provide a formal definition of ⊕f in Section 2.
+B. C. Esmer, A. Kulik, D. Marx, P. Schepper, and K. Węgrzycki                                            12:3
+
+
+Discrete Fourier Transform [32] can be used in conjunction with Yates algorithm [40] to
+                                     ω·n/2
+compute f -Convolution in O(|D|e           ·polylog(M )) time when f is a finite-group operation
+and ω is the exponent of the currently fastest matrix-multiplication algorithms.3 To the best
+of our knowledge these are the most general settings where convolution has been considered
+so far.
+    Nevertheless, for an arbitrary function f , to the best of our knowledge the state-of-the-art
+for f -Convolution is a straightforward quadratic time enumeration.
+
+                                          2n
+    Question 1:        Is the naive O(|D|
+                                    e        · polylog(M )) algorithm for f -Convolution
+    optimal?
+
+Similar questions were studied from the point of view of the Fine-Grained Complexity. In
+that setting the focus is on convolutions with sparse representations, where the input size is
+only the size of the support of the functions g and h. It is conjectured that even subquadratic
+algorithms are highly unlikely for these representations [19, 25]. However, these lower bounds
+do not answer Question 1, because they are highly dependent on the sparsity of the input.
+
+1.1      Our Results
+We provide a positive answer to Question 1 and show an exponential improvement (in n)
+                  2n
+over a naive O(|D|
+             e       · polylog(M )) algorithm for every function f .
+
+▶ Theorem 1.1 (Generalized Convolution). Let D be a finite set and f : D × D →
+D. There is an algorithm    for f -Convolution with the following running time
+e 5 · |D|2 n · polylog(M ) when |D| is even, or O
+                                                e 5 · |D|2 + 1 · |D| n · polylog(M )
+                          
+O   6                                             6          6
+when |D| is odd.
+
+Observe that the running time obtained by Theorem 1.1 improves upon the brute-force
+for every |D| ≥ 2. Our technique works in a more general setting when g : Ln → Z and
+h : Rn → Z and f : L × R → T for arbitrary domains L, R and T (see Section 2 for the exact
+running time dependence).
+
+Our Technique: Cyclic Partition. Now, we briefly sketch the idea behind the proof of
+Theorem 1.1. We say that a function is k-cyclic if it can be represented as an addition modulo
+k (after relabeling the entries of the domain and image). These functions are somehow simple,
+because as observed in [34, 33] f -Convolution can be computed in O(k             e n · polylog(M ))
+time if f is k-cyclic. In a nutshell, our idea is to partition the function f : D × D → D into
+cyclic functions and compute the convolution on these parts independently.
+    More formally, a cyclic minor of the function f : D × D → D is a (combinatorial) rectangle
+A × B with A, B ⊆ D and a number k ∈ N such that f restricted to A, B is a k-cyclic
+function. The cost of the cyclic minor (A, B, k) is cost(A, B) := k. A cyclic partition is
+a set {(A1 , B1 , k1 ), . . . , (Am , Bm , km )} of cyclic minors such that for every (a, b) ∈ D × D
+there exists a unique i ∈ [m] with (a, b) ∈ Ai × Bi . The cost of the cyclic partition
+                                                              Pm
+P = {(A1 , B1 , k1 ), . . . , (Am , Bm , km )} is cost(P) := i=1 ki . See Figure 1.1 for an example
+of a cyclic partition.
+    Our first technical contribution is an algorithm to compute f -Convolution when the
+cost of a cyclic partition is small.
+
+
+3
+    This observation was brought to our attention by Jesper Nederlof [27].
+
+
+
+
+                                                                                                       IPEC 2022
+12:4   Computing Generalized Convolutions Faster Than Brute Force
+
+
+
+
+           Figure 1.1 Left figure illustrates exemplar function f : D × D → D over domain D := {a, b, c, d}.
+       We highlighted a cyclic partition with red, blue, yellow and blue colors. Each color represents a
+       different minor of f . On the right figure we demonstrate that the red-highlighted minor can be
+       represented as addition modulo 3 (after relabeling a 7→ 0, b 7→ 1 and c 7→ 2). Hence the red minor
+       has cost 3. The reader can further verify that green and blue minors have cost 2 and yellow minor
+       has cost 1, hence the cost of that particular partition is 3 + 2 + 2 + 1 = 8.
+
+
+       ▶ Lemma 1.2 (Algorithm for f -Convolution). Let D be an arbitrary finite set, f : D × D →
+       D and let P be the cyclic partition of f . Then there exists an algorithm which given
+       g, h : Dn → Z computes (g ⊛f h) in O((cost(P)
+                                          e         n
+                                                      + |D|n ) · polylog(M )) time.
+       The idea behind the proof of Lemma 1.2 is as follows. Based on the partition P, for any
+       pair of vectors u, w ∈ Dn , we can define a type p ∈ [m]n such that (ui , wi ) ∈ Api × Bpi for
+       every i ∈ [n]. Our main idea is to go over each type p and compute the sum in the definition
+       of f -Convolution only for pairs (vg , vh ) that have type p. In order to do this, first we
+       select the vectors vg and vh that are compatible with this type p. For instance, consider the
+       example in Figure 1.1. Whenever pi refers to, say, the red-colored minor, then we consider vg
+       only if its i-th coordinate is in {b, c, d} and consider vh only if its i-th coordinate is in {b, d}.
+       After computing all these vectors vg and vh , we can transform them according to the cyclic
+       minor at each coordinate. Continuing our example, as the red-colored minor is 3-cyclic, we
+       can represent the i-th coordinate of vg and vh as {0, 1, 2} and then the problem reduces to
+       addition modulo 3 at that coordinate. Therefore, using the algorithm of van Rooij [34] for
+       cyclic convolution we can handle all pairs of type p in O(( e Qn kp ) · polylog(M )) time. As
+                                                                         i=1    i
+       we go over all mn types p the sum of mn terms is
+                      n
+                            !      m
+                                          !n
+             X       Y            X
+                        k pi =         ki    = cost(P)n .
+          p∈[m]n   i=1            i=1
+
+                                                        n
+           Hence, the overall running time is O(cost(P)
+                                              e           ·polylog(M )). This running time evaluation
+       ignores the generation of the vectors given as input for the cyclic convolution algorithm. The
+       efficient computation of these vectors is nontrivial and requires further techniques that we
+       explain in Section 3.
+           It remains to provide the low-cost cyclic partition of an arbitrary function f .
+       ▶ Lemma 1.3. For any finite set D and any function f : D × D → D there is a cyclic
+       partition P of f such that cost(P) ≤ 56 |D|2 when |D| is even, or cost(P) ≤ 56 |D|2 + 16 |D|
+       when |D| is odd.
+       For the sake of presentation let us assume that |D| is even. In order to show Lemma 1.3,
+       we partition D into pairs A1 , . . . , Ak where k := |D|/2 and consider the restrictions of f to
+       Aj × D one by one. This allows us to encode f on Aj × D as a directed graph G with |D|
+B. C. Esmer, A. Kulik, D. Marx, P. Schepper, and K. Węgrzycki                                          12:5
+
+
+edges and |D| vertices. We observe that for certain classes of subgraphs (i.e., paths, out-stars,
+in-stars, and cycles) there is a corresponding cyclic minor. Our goal is to partition this graph
+G into such subgraphs in a way that the total cost of the resulting cyclic partition is small.
+Following this argument, the proof of Lemma 1.3 becomes a graph theoretic analysis. The
+proof of Lemma 1.3 is included in Section 4. Our method applies for more general functions
+f : L × R → T , where domains L, R, T can be different and have arbitrary cardinality. We
+note that a weaker variant of Lemma 1.3 in which the guarantee is cost(Pf ) ≤ 87 |D|2 is easier
+to attain.
+
+Efficient Algorithm for Convolution Query. Our next contribution is an efficient algorithm
+to query a single value of f -Convolution. In the f -Query problem, the input is g, h : Dn →
+Z and a single vector v ∈ Dn . The task is to compute a value (g ⊛f h)(v). Observe that this
+task generalizes4 the fundamental problem of Orthogonal Vectors. We show that computing
+f -Query is much faster than computing the full output of f -Convolution.
+
+▶ Theorem 1.4 (Convolution Query). For any finite set D and function f : D × D → D there
+          ω·n/2
+is a O(|D|
+     e          · polylog(M )) time algorithm for the f -Query problem.
+      e ω ·polylog(M )) is the time needed to multiply two n×n integer matrices with values
+Here O(n
+in {−M, . . . , M } and currently ω ∈ [2, 2.373) [2]. Note, that under the assumption that two
+matrices can be multiplied in the linear in the input time (i.e., ω = 2) then Theorem 1.4
+                                    n
+runs in the nearly-optimal O(|D|
+                              e       · polylog(M )) time. Theorem 1.4 is significantly faster
+than Theorem 1.1 even when we plug-in the naive algorithm for matrix multiplication (i.e.,
+ω = 3). The proof of Theorem 1.4 is inspired by an interpretation of the f -Query problem
+as counting length-4 cycles in a graph.
+
+1.2      Related Work
+Arguably, the problem of computing the Discrete Fourier Transform (DFT) is the prime
+example of convolution-type problems in computer science. Cooley and Tukey [18] proposed
+the fast algorithm to compute DFT. Later, Beth [4] and Clausen [17] initiated the study
+of generalized DFTs whose goal has been to obtain a fast algorithm for DFT where the
+underlying group is arbitrary. After a long line of works (see [31] for the survey), the currently
+best algorithm for generalized DFT concerning group G runs in O(|G|ω/2+ϵ ) operations for
+every ϵ > 0 [32].
+    A similar technique to ours was introduced by Björklund et al. [9]. The paper gave a
+characterization of lattices that admit a fast zeta transform and a fast Möbius transform.
+Their paper used the notion of covering pairs, which is similar to cyclic partitions used in
+this paper but with a completely different goal.
+    From the lower-bounds perspective to the best of our knowledge only a naive Ω(|D|n )
+lower bound is known for f -Convolution (as this is the output size). We note that known
+lower bounds for different convolution-type problems, such as (min, +)-convolution [19, 25],
+(min, max)-convolution [13], min-witness convolution [26], convolution-3SUM [14] or even
+skew-convolution [12] cannot be easily adapted to f -Convolution as the hardness of these
+problems comes primarily from the ring operations.
+    The Orthogonal Vector problem is related to the f -Query problem. In the Orthogonal
+Vector problem we are given two sets of n vectors A, B ⊆ {0, 1}d and the task is to decide
+if there is a pair a ∈ A, b ∈ B such that a · b = 0. In [38] it was shown that no n2−ϵ · 2o(d)
+
+
+4
+    It is a special case with D = {0, 1}, v = 0n and f (x, y) = x · y
+
+
+
+                                                                                                     IPEC 2022
+12:6   Computing Generalized Convolutions Faster Than Brute Force
+
+
+       algorithm for Orthogonal Vectors is possible for any ϵ > 0 assuming SETH [36]. The currently
+       best algorithm for Orthogonal Vectors run in n2−1/O(log(d)/ log(n)) time [1, 15], O(n · 2cd ) for
+       some constant c < 0.5 [30], or O(|↓A| + |↓B|) [7] (where |↓F | is the total number of vectors
+       whose support is a subset of the support of input vectors).
+
+
+       1.3      Organization
+       In Section 2 we provide the formal definitions of the problems alongside the general statements
+       of our results. In Section 3 we give an algorithm for f -Convolution that uses a given cyclic
+       partition. In Section 4 we show that for every function f : D × D → D there exists a cyclic
+       partition of low cost. In Section 5 we conclude the paper and discuss future work.
+           In Appendix A we give an algorithm for f -Query and prove Theorem 1.4. In Appendix C
+       and Appendix B we include the missing proofs.
+
+
+        2       Preliminaries
+       Throughout the paper, we use Iverson bracket notation, where for the logic expression P ,
+       the value of JP K is 1 when P is true and 0 otherwise. For n ∈ N we use [n] to denote
+       {1, . . . , n}. Through the paper we denote vectors in bold, for example, q ∈ Zk denotes a
+       k-dimensional vector of integers. We use subscripts to denote the entries of the vectors, e.g.,
+       q := (q1 , . . . , qk ).
+           Let L, R and T be arbitrary sets and let f : L × R → T be an arbitrary function. We
+       extend the definition of such an arbitrary function f to vectors as follows. For two vectors
+       u ∈ Ln and w ∈ Rn we define
+
+            u ⊕f w := (f (u1 , w1 ), . . . , f (un , wn )).
+
+          In this paper, we consider the f -Convolution problem with a more general domain
+       and image. We define it formally as follows:
+
+       ▶ Definition 2.1 (f -Convolution). Let L, R and T be arbitrary sets and let f : L × R → T be
+       an arbitrary function. The f -Convolution of two functions g : Ln → Z and h : Rn → Z,
+       where n ∈ N, is the function (g ⊛f h) : T n → Z defined by
+                                   X
+            (g ⊛f h)(v) :=                  Jv = u ⊕f wK · g(u) · h(w)
+                              u∈Ln , w∈Rn
+
+
+       for every v ∈ T n .
+
+          As before the operations are taken in the standard Z(+, ·) ring and M is the maximum
+       absolute value of the integers given on the input.
+          Now, we formally define the input and output to the f -Convolution problem.
+
+       ▶ Definition 2.2 (f -Convolution Problem (f -Convolution)). Let L, R and T be
+       arbitrary finite sets and let f : L × R → T be an arbitrary function. The f -Convolution
+       Problem is the following.
+       Input: Two functions g : Rn → {−M, . . . , M } and h : Ln → {−M, . . . , M }.
+       Task: Compute g ⊛f h.
+
+            Our main result stated in the most general form is the following.
+B. C. Esmer, A. Kulik, D. Marx, P. Schepper, and K. Węgrzycki                                               12:7
+
+
+▶ Theorem 2.3. Let f : L × R → T such that L, R and T are finite. There is an algorithm
+                                    e n · polylog(M )) time, where
+for the f -Convolution problem with O(c
+           (
+               |L| 4·|R|+|T |
+                2 ·    3                if |L| is even
+    c :=       |L|−1 4·|R|+|T |
+                 2  ·     3     + |R|   otherwise.
+
+    Theorem 1.1 is a corollary of Theorem 2.3 by setting L = R = T = D.
+    The proof of Theorem 2.3 utilizes the notion of cyclic partition. For any k ∈ N, let
+Zk = {0, 1, . . . , k − 1}. We say a function f : A × B → C is k-cyclic if, up to a relabeling
+of the sets A, B and C, it is an addition modulo k. Formally, f : A × B → C is k-cyclic if
+there are σA : A → Zk , σB : B → Zk , and σC : Zk → C such that
+
+    ∀a ∈ A, b ∈ B :        f (a, b) = σC (σA (a) + σB (b)   mod k) .
+
+We refer to the functions σA , σB and σC as the relabeling functions of f .
+    The restriction of f : L × R → T to A ⊆ L and B ⊆ R is the function g : A × B → T
+defined by g(a, b) = f (a, b) for all a ∈ A and b ∈ B. We say (A, B, k) is a cyclic minor of
+f : L × R → T if the restriction of f to A and B is a k-cyclic function.
+    A cyclic partition of f : L×R → T is a set of minors P = {(A1 , B1 , k1 ), . . . , (Am , Bm , km )}
+such that (Ai , Bi , ki ) is a cyclic minor of f and for every (a, b) ∈ L × R there is a unique
+                                                                                              Pm
+1 ≤ i ≤ m such that (a, b) ∈ Ai × Bi . The cost of the cyclic partition is cost(P) = i=1 ki .
+    Theorem 2.3 follows from the following lemmas.
+
+▶ Lemma 3.1 (Algorithm for Generalized Convolution). Let L, R and T be finite sets. Also,
+let f : L × R → T be a function and let P be a cyclic partition of f . Then there is an
+            n
+O((cost(P)
+ e            + |L|n + |R|n + |T |n ) · polylog(M )) time algorithm for f -Convolution.
+
+▶ Lemma 4.1. Let f : L × R → T where L, R and T are finite sets. Then there is a
+cyclic partition P of f such that cost(P) ≤ |L|
+                                             2 ·
+                                                 4·|R|+|T |
+                                                     3      when |L| is even, and cost(P) ≤
+       |L|−1 4·|R|+|T |
+|R| + 2 ·        3      when |L| is odd.
+
+   The proof of Lemma 3.1 is included in Section 3 and proof of Lemma 4.1 is included in
+Section 4. The proof of Lemma 3.1 uses an algorithm for Cyclic Convolution.
+
+▶ Definition 2.4 (Cyclic Convolution). The Cyclic Convolution problem is the
+following.
+Input: Vector r ∈ Nk and functions g, h : Z → {−M, . . . , M } where Z = Zr1 × . . . × Zrk .
+Task: Compute the function g ⊙ h : Z → Z defined by
+                            k
+                                                       !
+                     X     Y
+       (g ⊙ h)(v) =           Jui + wi = vi mod ri K · g(u) · h(w).
+                         u,w∈Z    i=1
+
+
+VanQRooij  [33] showed       that Cyclic Convolution can be solved in
+        k
+Oe
+        i=1 ri · polylog(M )   time. However, his algorithm relies on finding an ap-
+propriate large prime p. In order to circumvent the discussion on how such a prime can be
+found efficiently and deterministically, we can use multiple smaller primes and the Chinese
+Reminder Theorem. We include the details in Appendix B.
+                                                                                
+▶ Theorem 2.5 (Cyclic Convolution). There is an O      e (Qk ri ) · polylog(M ) algorithm
+                                                              i=1
+for the Cyclic Convolution problem.
+
+
+
+                                                                                                          IPEC 2022
+12:8   Computing Generalized Convolutions Faster Than Brute Force
+
+
+        3       Generalized Convolution
+       In this section we prove Lemma 3.1.
+
+       ▶ Lemma 3.1 (Algorithm for Generalized Convolution). Let L, R and T be finite sets. Also,
+       let f : L × R → T be a function and let P be a cyclic partition of f . Then there is an
+                   n
+       O((cost(P)
+        e            + |L|n + |R|n + |T |n ) · polylog(M )) time algorithm for f -Convolution.
+
+           Throughout the section we fix L, R and T , and f : L × R → T to be as in the statement
+       of Lemma 3.1. Additionally, fix a cyclic partition P = {(A1 , B1 , k1 ), . . . , (Am , Bm , km )}.
+       Furthermore, let σA,i , σB,i and σC,i be the relabeling functions of the cyclic minor (Ai , Bi , ki )
+       for every i ∈ [m]. We assume the labeling functions are also fixed throughout this section.
+           In order to describe our algorithm for Lemma 3.1, we first need to establish several
+       technical definitions.
+
+       ▶ Definition 3.2 (Type). The type of two vectors u ∈ Ln and w ∈ Rn is the unique vector
+       p ∈ [m]n for which ui ∈ Api and wi ∈ Bpi for all i ∈ [n].
+
+       Observe that the type of two vectors is well defined as P is a cyclic partition. For any type
+       p ∈ {1, . . . , m}n we define
+
+            Lp := Ap1 × · · · × Apn ,          Rp := Bp1 × · · · × Bpn ,         Zp := Zkp1 × · · · × Zkpn
+
+       to be vector domains restricted to type p. For any type p we introduce relabeling functions
+       on its restricted domains. The relabeling functions of p are the functions σpL : Lp → Zp ,
+       σpR : Rp → Zp , and σpT : Zp → T n defined as follows:
+
+            σpL (v) := σA,p1 (v1 ), . . . , σA,pn (vn )
+                                                        
+                                                                                 ∀v ∈ Lp ,
+            σpR (v) := σB,p1 (v1 ), . . . , σB,pn (vn )
+                                                        
+                                                                                 ∀v ∈ Rp ,
+            σpT (q) := σC,p1 (q1 ), . . . , σC,pn (qn )
+                                                        
+                                                                                 ∀q ∈ Zp .
+
+       Our algorithm heavily depends on constructing the following projections.
+
+       ▶ Definition 3.3 (Projection of a Function). The projection of a function g : Ln → Z with
+       respect to the type p ∈ [m]n , is the function gp : Zp → Z defined as
+                        X
+            gp (q) :=          JσpL (u) = qK · g(u)                        for every q ∈ Zp .
+                        u∈Lp
+
+
+       Similarly, the projection hp : Zp → Z of a function h : Rn → Z with respect to the type
+       p ∈ [m]n is defined as
+                     X
+          hp (q) :=      JσpR (w) = qK · h(w)                 for every q ∈ Zp .
+                        w∈Rp
+
+
+       The projections are useful due to the following connection with g ⊛f h.
+
+       ▶ Lemma 3.4. Let g : Ln → Z and h : Rn → Z, then for every v ∈ T n it holds that:
+                         X X
+          (g ⊛f h) (v) =         JσpT (q) = vK · (gp ⊙ hp ) (q),
+                                p∈[m]n q∈Zp
+
+
+       where gp ⊙ hp is the cyclic convolution of gp and hp .
+B. C. Esmer, A. Kulik, D. Marx, P. Schepper, and K. Węgrzycki                                                12:9
+
+
+We give the proof of Lemma 3.4 in Section 3.1. It should be noted that the naive computation
+of the projection functions of g and h with respect to all types p is significantly slower than
+the running time stated in Lemma 3.1. To adhere to the stated running time we use a
+dynamic programming procedure for the computations, as stated in the following lemma.
+▶ Lemma 3.5. There exists an algorithm which given a function g : Ln → {−M, . . . , M }
+returns the set of its projections, {gp | p ∈ [m]n }, in time O
+                                                              e ((cost(P)n + |L|n ) · polylog(M )).
+
+▶ Remark 3.6. Analogously, we can also construct every projection of a function h : Rn →
+                    e ((cost(P)n + |R|n ) · polylog(M )) time.
+{−M, . . . , M } in O
+The proof of Lemma 3.5 in given in Appendix C.
+    Our algorithm for f -Convolution (see Algorithm 1 for the pseudocode) is a direct
+implication of Lemma 3.4 and Lemma 3.5. First, the algorithm computes the projections
+of g and h with respect to every type p. Subsequently, the cyclic convolution of gp and
+hp is computed efficiently as described in Theorem 2.5. Finally, the values of (g ⊛f h) are
+reconstructed by the formula in Lemma 3.4.
+
+     Algorithm 1 Cyclic Partition Algorithm for the f -Convolution problem.
+   Setting : Finite sets L, R and T , f : L × R → T and a cyclic partition P of f , of
+              size m.
+   Input: g : Ln → {−M, . . . , M }, h : Rn → {−M, . . . , M }
+                                                                n
+ 1 Construct the projections of g and h w.r.t p, for all p ∈ [m]          ▷ Lemma 3.5
+                      n
+ 2 For every p ∈ [m] compute cp = gp ⊙ hp          ▷ Cyclic convolutions (Definition 2.4)
+                n
+ 3 Define r : T → Z by
+
+                     X                X
+         r(v) =                                      cp (q)   for all v ∈ T n .
+                  p∈[m]n       q∈Zp s.t. σpT (q)=v
+
+
+ 4   return r
+
+
+Proof of Lemma 3.1. Observe that Algorithm 1 returns r : T n → Z such that for every
+v ∈ T n it holds that
+            X         X          X X
+   r(v) =               cp (q) =          JσpT (q) = vK · (gp ⊙ hp ) (q) = (g ⊛f h) (v),
+            p∈[m]n        q∈Zp                p∈[m]n q∈Zp
+                     s.t. σpT (q)=v
+
+where the last equality is by Lemma 3.4. Thus, the algorithm returns (g ⊛f h) as required.
+It therefore remains to bound the running time of the algorithm.
+                                                                       n
+    By Lemma 3.5, Line 1 of Algorithm 1 runs in time O((cost(P)
+                                                             e           + |L|n + |R|n ) ·
+                                                        n
+polylog(M )). By Theorem 2.5, for any type p ∈ [m] the computation of gp ⊙ hp in
+Line                 e Qn kp ) · polylog(M )). Thus the overall running time of Line 2 is
+     2 runs in time O((
+   P                       i=1   i   
+               Qn
+Oe (
+        p∈[m]n     k
+                  i=1p ) · polylog(M
+                           i
+                                     ) .
+    Finally, observe that the construction of r in Line 3 can be implemented by initializing
+r to be zeros and iteratively adding the value of cp (q) to r(σpT (q)) for every p ∈ [m]n and
+q∈                                                  e |n · polylog(M )) for the initialization and
+                                      time is thus O(|T
+   ZP
+      p . The required running 
+                                                 P         Qn                         
+Oe (
+        p∈[m]n |Z p |) · polylog(M  )   =  O
+                                           e (
+                                                   p∈[m] n  i=1 k p i
+                                                                      ) · polylog(M )   for the addition
+operations. Thus, the overall running time of Line 3 is
+                                                 
+                      X Y    n
+    e |T |n +
+    O                          kpi  · polylog(M ) .
+                     p∈[m]n i=1
+
+
+                                                                                                           IPEC 2022
+12:10   Computing Generalized Convolutions Faster Than Brute Force
+
+                                    P   Qn          Pm       n           n
+        Combining the above, with p∈[m]n i=1 kpi = ( i=1 ki ) = (cost(P)) means that the
+        running time of Algorithm 1 is
+           e ((|T |n + |R|n + |L|n + cost(P)n ) · polylog(M ))
+           O
+
+           This concludes the proof of Lemma 3.1.                                                                ◀
+
+        3.1     Properties of Projections
+        In this section we provide the proof for Lemma 3.4. The proof of Lemma 3.4 uses the
+        following definitions of coordinate-wise addition with respect to a type p.
+        ▶ Definition 3.7 (Coordinate-wise Addition Modulo for Type). For any p ∈ [m]n we define a
+        coordinate-wise addition modulo as
+                                                                    
+            q +p r := (q1 + r1 mod kp1 ), . . . , (qn + rn mod kpn )     for every q, r ∈ Zp .
+
+        Proof of Lemma 3.4. By Definition 2.1 it holds that:
+                           X
+           (g ⊛f h) (v) =       Jv = u ⊕f wK · g(u) · h(w).                                                    (3.1)
+                                u∈Ln ,w∈Rn
+
+        Recall that the type of every two vectors (u, w) ∈ Ln × Rn is unique and [m]n contains all
+        possible types and hence, we can rewrite (3.1) as
+                           X        X
+           (g ⊛f h)(v) =                   g(u) · h(w) · Jv = u ⊕f wK                        (3.2)
+                                p∈[m]n u∈Lp ,w∈Rp
+
+        By the properties of the relabeling functions, we get
+                           X        X
+                                           g(u) · h(w) · Jv = σpT σpL (u) +p σpR (w) K
+                                                                                    
+                       =
+                                p∈[m]n u∈Lp ,w∈Rp
+                                 X       X         X
+                            =                             g(u) · h(w) · Jv = σpT (q)K · Jq = σpL (u) +p σpR (w)K
+                                p∈[m]n q∈Zp u∈Lp ,w∈Rp
+                                 X           X             X
+                            =                                        g(u) · h(w) · Jq = σpL (u) +p σpR (w)K.
+                                p∈[m]n       q∈Zp       u∈Lp ,w∈Rp
+                                         s.t. σpT (q)=v
+
+
+        Observe that we can partition Lp (respectively Rp ) by considering the inverse images of
+        r ∈ Zp under σpL (respectively σpR ), i.e. Lp = r∈Zp {u ∈ Lp | σpL (u) = r}. Hence, for every
+                                                       U
+
+        p ∈ [m]n and q ∈ Zp it holds that
+                 X
+                         g(u) · h(w) · Jq = σpL (u) +p σpR (w)K
+               u∈Lp ,v∈Rp
+                X            X
+           =                          g(u) · h(w) · Jq = r +p sK · Jr = σpL (u)K · Js = σpR (w)K
+               r,s∈Zp u∈Lp ,w∈Rp
+                                                                                                  
+                X                            X                               X
+           =            Jq = r +p sK            Jr = σpL (u)K · g(u) ·         Js = σpR (w)K · h(w)
+               r,s∈Zp                     u∈Lp                             w∈Rp
+                X
+           =            Jq = r +p sK · gp (r) · hp (s)
+               r,s∈Zp
+
+           = (gp ⊙ hp )(q).                                                                                    (3.3)
+B. C. Esmer, A. Kulik, D. Marx, P. Schepper, and K. Węgrzycki                                                  12:11
+
+
+     By plugging (3.3) into (3.2) we get
+                       X           X                           X     X
+     (g ⊛f h) (v) =                         (gp ⊙ hp )(q) =                 JσpT (q) = vK · (gp ⊙ hp ) (q),
+                      p∈[m]n       q∈Zp                       p∈[m]n q∈Zp
+                               s.t. σpT (q)=v
+
+
+as required.                                                                                              ◀
+
+
+ 4      Existence of Low-Cost Cyclic Partition
+In this section we prove Lemma 4.1.
+
+▶ Lemma 4.1. Let f : L × R → T where L, R and T are finite sets. Then there is a
+cyclic partition P of f such that cost(P) ≤ |L|
+                                             2 ·
+                                                 4·|R|+|T |
+                                                     3      when |L| is even, and cost(P) ≤
+       |L|−1 4·|R|+|T |
+|R| + 2 ·        3      when |L| is odd.
+
+    We first consider the special case when |L| = 2. Later we reduce the general case to this
+scenario and use the result as a black-box.
+    As a warm-up we construct a cyclic partition of cost at most 78 |D|2 assuming that
+                                                                                  (i) (i)
+L = R = T = D and that |D| is even. For this, we first partition D into pairs d1 , d2 where
+                                                                   (i) (i)
+i ∈ [|D|/2] and show for each such pair that f restricted to {d1 , d2 } and D has a cyclic
+partition of cost at most 74 |D|. The union of these cyclic partitions forms a cyclic partition
+of f with cost at most |D|     7
+                         2 · 4 |D|.
+    To construct the cyclic partition for a fixed i ∈ [|D|/2], we find a maximal number r
+                              (j) (j)                     (i) (j)
+of pairwise disjoint pairs e1 , e2 ∈ D such that |{f (da , eb ) | a, b = 1, 2}| ≤ 3 for each
+j ∈ [r], i.e. for each j at least one of the four values repeats. With this assumption, f
+                 (i) (i)           (j) (j)
+restricted to {d1 , d2 } and {e1 , e2 } is either a cyclic minor of cost at most 3 or can be
+decomposed into 3 trivial cyclic minors of the total cost at most 3. We claim that r ≥ |D|/4.
+Indeed, assume that there are fewer than |D|/4 such pairs, i.e. r < |D|/4. Let D denote the
+                                                              (i)
+|D| − 2 · r > |D|/2 remaining values in D. As the set {f (da , d) | d ∈ D, a = 1, 2} can only
+                                                       (r+1) (r+1)
+contain at most |D| values, we can find another pair e1     , e2     with the above constraints.
+                                (i) (i)
+Note that f restricted to {d1 , d2 } and D can be decomposed into at most 2|D| trivial
+                                                           (i) (i)
+minors. Hence, the cyclic partition for f restricted to {d1 , d2 } and D has cost at most
+
+                          |D|     |D|  7
+     3r + 2 · |D| ≤ 3 ·       +2·     ≤ |D|.
+                           4       2   4
+
+4.1     Special Case
+In this section, we prove the following lemma that is a special case of Lemma 4.1.
+
+▶ Lemma 4.2. If f : L × R → T with |L| = 2, then there is a cyclic partition P of f such
+that cost(P) ≤ (4|R| + |T |)/3.
+
+   To construct the cyclic partition we proceed as follows. First we define, for a function f ,
+the representation graph Gf . Next we show that if this graph has a special structure, which
+we later call nice, then we can easily find a cyclic partition for the function f . Afterwards we
+decompose (the edges of) an arbitrary representation graph Gf into nice structures and then
+combine the cyclic partitions coming from these parts to a cyclic partition for the original
+function f .
+
+
+
+                                                                                                              IPEC 2022
+12:12   Computing Generalized Convolutions Faster Than Brute Force
+
+
+
+
+                                r1   r2    r3   r4   r5   r6    r7   r8   r9   r10    r11   r12
+                           ℓ0   a    b     c    a    e    f     g    h     i    j      k     l
+                           ℓ1   b    c     a    d    d    d     d    d    d     k      l    m
+
+            Figure 4.1 Example of the construction of a representation graph from the function f to obtain
+        a cyclic partition. We put an edge between vertices u and v if there is an ri with u = f (ℓ0 , ri )
+        and v = f (ℓ1 , ri ). We highlight the partition of the graph into cycle (red), in-star (blue) and path
+        (green). The cost of this cyclic partition is 3 + 7 + 4 = 14.
+
+
+        ▶ Definition 4.3. Let f : L × R → T be a such that |L| = 2 with L = {ℓ0 , ℓ1 }.
+            We define a function λf : R → T ×T with λf : r 7→ (f (ℓ0 , r), f (ℓ1 , r)) as the edge mapping
+        of f .
+            We define a directed graph Gf (which might have loops) with vertex set V (Gf ) := T and
+        edge set E(Gf ) := {λf (r) | r ∈ R}. We say that Gf is the representation graph of f .
+            We say that a representation graph Gf is nice if it is a cycle, a path (potentially with
+        only one edge), an in-star, or an out-star.5
+            Let E ′ ⊆ E(Gf ) be a subset of edges inducing the subgraph G′ of Gf . With T ′ := V (G′ )
+        and R′ := {r ∈ R | λf (r) ∈ E ′ }, we define f ′ : L × R′ → T ′ as the restriction of f such that
+        the representation graph of f ′ is G′ . Formally, f ′ (ℓ, r) = f (ℓ, r) for all ℓ ∈ L and r ∈ R′ .
+        We say that f ′ is the function represented by G′ or E ′ , respectively.
+
+           A decomposition of a directed graph G is a set C of edge-disjoint subgraphs of G, such
+        that each edge belongs to exactly one set in C. For ease of notation, we identify the set of
+        edges E ′ with the induced graph G′ . For a graph G, the line graph L(G) is a graph where
+        the set of edges E(G) is the vertex set of L(G) and e1 , e2 ∈ V (L(G)) are adjacent in L(G) if
+        edges e1 , e2 share an endpoint in graph G.
+           The following observation follows directly from the previous definition.
+
+        ▶ Observation 4.4. Let G1 , . . . , Gp be decomposition of the graph Gf into p subgraphs, let fi
+                                                                                              S
+        be the function represented by Gi , and let Pi be a cyclic partition of fi . Then P = i∈[p] Pi
+                                                        P
+        is a cyclic partition of f with cost cost(P) = i∈[p] cost(Pi ).
+
+
+        Cyclic Partitions Given Nice Representation Graphs. As a next step, we show that
+        functions admit cyclic partitions if the representation graph is nice. Afterwards we show
+        how to decompose (the representation) graphs into nice (representation) graphs. Finally, we
+        combine these results to obtain a cyclic partition for the original function f . See Figure 4.1
+        for an example.
+
+        ▶ Lemma 4.5. Let f : L × R → T be a function such that Gf is nice. Then f has a cyclic
+        partition of cost at most |T |.
+
+        5
+            A star graph where either all edges are directed to the central vertex or all edges are directed away
+            from it, respectively.
+B. C. Esmer, A. Kulik, D. Marx, P. Schepper, and K. Węgrzycki                                                      12:13
+
+
+Proof. By definition, a nice graph is either a path, a cycle or an in-star or out-star. We
+handle each case separately in the following. Let L = {ℓ0 , ℓ1 }.
+Gf is a cycle. We first define the relabeling functions of f to show that f is |T |-cyclic.
+   For the elements in L, let σL : L → Z2 with σL (ℓi ) = i. To define σR and σT , fix an
+   arbitrary t0 ∈ T . Let t1 , . . . , t|T | be the elements in T with t|T | = t0 such that, for all
+   i ∈ Z|T | , there is some ri ∈ R with λf (ri ) = (ti , ti+1 ).6 Note that these ri exist since Gf
+   is a cycle. Using this notation, we define σT : Z|T | → T with σT (i) = ti , for all i ∈ Z|T | .
+   For the elements in R we define σR : R → Z|R| with σR (r) = i whenever λf (r) = (ti , ti+1 )
+   for some i.
+   It is easy to check that f can be seen as addition modulo |T |. Indeed, let j ∈ {0, 1} and
+   r ∈ R with λf (r) = (ti , ti+1 ). Then we get
+     σT (σL (ℓj )+σR (r)     mod |T |) = σT (j+i       mod |T |) = tj+i   mod |T | = f (ℓj , ri ) = f (ℓj , r).
+
+  Thus, f is |T |-cyclic and {(L, R, |T |)} is a cyclic partition of f .
+Gf is a path. Similarly to the previous case, f can be represented as addition modulo |T |.
+  As the proof is essentially identical to the cyclic case, we omit the details here.
+Gf is a star. We only consider the out-star as the in-star follows symmetrically by swapping
+  the roles of ℓ0 and ℓ1 . We define the following cyclic partition P as
+         P := {({ℓ0 }, R, 1)} ∪ {({ℓ1 }, {r}, 1) | r ∈ R}.
+     Note that every (ℓ, r) ∈ L × R appears in exactly one minor of P. Hence, P is indeed
+     a cyclic partition. Next, we observe that each minor contains exactly one element of T .
+     Thus, no addition is needed and hence f is 1-cyclic for each minor of P. Thus the cost of
+     each minor of P is 1.
+     By the structure of Gf , the cost of cyclic partition P is |R| + 1 = |T |.             ◀
+
+Decomposition into Nice Graphs. We first decompose the graph into cycles and acyclic
+components. The later parts are then decomposed further using the next two results.
+▷ Claim 4.6. Every directed graph G can be decomposed into cycles and acyclic graphs.
+Proof. We remove an arbitrary cycle from the graph and add it as a new component to the
+decomposition. We repeat this procedure until the graph is acyclic.                  ◁
+
+   Next, we decompose the acyclic graph further. First, we decompose it into pairs of edges
+that share at least one endpoint.
+▷ Claim 4.7. Every directed graph G = (V, E) whose undirected version is connected can
+be decomposed into ⌊|E|/2⌋ pairs of edges which share (at least) one endpoint and, if and
+only if |E| is odd, one additional single edge.
+Proof. If the graph has an odd number of edges, then we find one edge e, such that the
+removal of e does not disconnect the graph (except for maybe one isolated vertex). Next,
+we include this edge into the decomposition and apply the procedure for the case when the
+number of edges is even.
+   Chartrand et al. [16, Theorem 1] showed that if a graph G has an even number of edges,
+then there is a perfect matching in the line graph L(G) of G. This perfect matching directly
+gives us a partition of the edges of G into ⌊|E|/2⌋ pairs which share at least one endpoint.
+                                                                                          ◁
+
+6
+    Note that there might be multiple r ∈ R with λf (r) = (ti , ti+1 ).
+
+
+
+
+                                                                                                                  IPEC 2022
+12:14   Computing Generalized Convolutions Faster Than Brute Force
+
+
+           Next, we present a different way to decompose the graph into nice structures.
+        ▷ Claim 4.8. Every directed acyclic graph G = (V, E) can be decomposed into at most
+        |V | − 1 out-stars.
+        Proof. The sets of out-going edges from each vertex form a partition of all edges of the graph
+        G. Moreover, each such non-empty set of edges describes an out-star. As in every directed
+        acyclic graph, there is at least one sink vertex, there are at most |V | − 1 such out-stars. ◁
+
+        Combining the Results.            Finally, we are ready to combine the above results and prove
+        Lemma 4.2.
+
+        Proof of Lemma 4.2. We first use Claim 4.6 to decompose Gf into c cycles C1 , . . . , Cc and
+        d connected, acyclic graphs G1 , . . . , Gd .
+           For each Ci , Lemma 4.5 gives us a cyclic partition Pi′ for the associated function with
+        cost at most |E(Ci )| = |V (Ci )|. For the remaining components, we use the following claim.
+        ▷ Claim 4.9. For each Gi , there is a cyclic partition Pi for the function represented by Gi
+        with the cost at most
+                          4|E(Gi )| + |V (Gi )|
+           cost(Pi ) ≤                          .                                                      (4.1)
+                                    3
+        Proof. Fix some i ∈ [d] in the following. We show the claim by considering two cases. For
+        ease of notation, let Ei = E(Gi ) and Vi = V (Gi ).
+             In the case when 2|Vi | ≥ |Ei | + 3, we decompose the graph Gi via Claim 4.7. This
+        decomposes Gi into ⌊|Ei |/2⌋ pairs of edges that share an endpoint (plus an extra edge when
+        |Ei | is odd). Observe that a pair of edges that share an endpoint is either a directed path,
+        an in-star, or an out-star. Hence, by Lemma 4.5 each pair contributes a cost of 3 to the
+        cyclic partition. Therefore, by Observation 4.4, the function represented by Gi has a cyclic
+        partition with a cost at most 3|Ei |/2 if |Ei | is even and with cost at most 3(|Ei | − 1)/2 + 2 if
+        |Ei | is odd. As the latter bound is the larger one, it can be easily checked that the claimed
+        bound for the cyclic partition follows.
+             It remains to analyze case 2|Vi | < |Ei | + 3. Here, we use Claim 4.8 to decompose the
+        graph Gi into out-stars. By Observation 4.4 and as there is at least one sink vertex, there is
+        a cyclic partition of the function represented by Gi with cost at most |Ei | + |Vi | − 1. By the
+        assumption that 2|Vi | ≤ |Ei | + 3, the cost of the cyclic partition is bounded by (4|Ei | + |Vi |)/3
+        which settles (4.1).                                                                               ◁
+
+           With the notation from the claim and by Observation 4.4, we define the cyclic partition
+        P for f as
+                 [        [
+           P :=     Pi′ ∪    Pi .
+                 i∈[c]           i∈[d]
+
+            Because the Gi s are connected components of Gf after the removal of C1 . . . Cc , they are
+                                         P
+        vertex-disjoint and it holds that i∈[d] |V (Gi )| ≤ |V (Gf )|. Moreover, by Lemma 4.5 the cost
+        of each cycle Ci is |E(Ci )|. Hence, we get
+                         X                X 4|E(Gi )| + |V (Gi )|       4|E(Gf )| + |V (Gf )|
+           cost(P) ≤         |E(Ci )| +                             ≤                         .
+                                                       3                          3
+                         i∈[c]            i∈[d]
+
+        Because |E(Gf )| ≤ |R| and |V (Gf )| = |T | the cost of this cyclic partition is bounded which
+        finishes the proof.                                                                         ◀
+B. C. Esmer, A. Kulik, D. Marx, P. Schepper, and K. Węgrzycki                                         12:15
+
+
+4.2     General Case
+Now we have everything ready to prove the main result of this section.
+
+Proof of Lemma 4.1. We first handle the case when |L| is even. We partition L into
+λ = |L|/2 sets L1 , . . . , Lλ consisting of exactly two elements. We use Lemma 4.2 to find a
+                                                                                        S
+cyclic partition Pi for each fi : Li ×R → T . By definition of the cyclic partition, P = i∈[λ] Pi
+is a cyclic partition for f , hence it remains to analyze the cost of P.
+    Observe that for each Gi we have that |Vi | ≤ |T | and |Ei | ≤ |R|. By the definition of the
+cost of the cyclic partition, we immediately get that
+                 λ
+                 X                       4 · |R| + |T |
+     cost(P) ≤         cost(Pi ) ≤ λ ·                  .
+                 i=1
+                                               3
+
+If |L| is odd, then we remove one element ℓ from L and let L0 = {ℓ}. There is a trivial cyclic
+partition P0 for f0 : L0 × R → T of cost at most |R|. Then we use the above procedure to
+find a cyclic partition P ′ for the restriction of f to L \ {ℓ} and R. Hence, setting P = P0 ∪ P ′
+gives a cyclic partition for f with cost
+                                                                     
+                                                 |L|     4 · |R| + |T |
+    cost(P) ≤ cost(P0 ) + cost(P ′ ) ≤ |R| +                              .                    ◀
+                                                  2            3
+▶ Remark 4.10. If |L| and |R| are both even, one can easily achieve the following cost
+                                          
+         L 4 · |R| + |T | R 4 · |L| + |T |
+   min     ·             , ·
+         2        3       2        3
+by swapping the role of L and R and considering the function f ′ : R × L → T with f ′ (r, ℓ) =
+f (ℓ, r) for all ℓ ∈ L and r ∈ R.
+
+ 5      Conclusion and Future Work
+In this paper, we studied the f -Convolution problem and demonstrated that the naive
+brute-force algorithm can be improved for every f : D × D → D. We achieve that by
+introducing a cyclic partition of a function and showing that there always exists a cyclic
+                                                  2 n
+partition of bounded cost. We give an O((c|D|
+                                          e         ) ·polylog(M )) time algorithm that computes
+f -Convolution for c := 5/6 when |D| is even.
+    The cyclic partition is a very general tool and potentially it can be used to achieve greater
+improvements for certain functions f . For example, in multiple applications (e.g., [20, 34,
+24, 29]) the function f has a cyclic partition with a single cyclic minor. Nevertheless, in our
+proof we only use cyclic minors where one dimension is at most 2. We suspect that better
+results can be obtained by considering larger minors.
+    We leave several open problems. Our algorithm offers an exponential (in n) improvement
+                                                                                          (2−ϵ)n
+over a naive algorithm for domains D of constant size. Can we hope for an O(|D|      e           ·
+polylog(M )) time algorithm for f -Convolution for some ϵ > 0? We are not aware of any
+                                                n
+lower bounds, so in principle even an O(|D|e       · polylog(M )) time algorithm is plausible.
+                                                                                               n
+    Ideally, we would expect that the f -Convolution problem can be solved in O((|L|    e        +
+   n        n
+|R| + |T | ) · polylog(M )) for any function f : L × R → T . In Figure 5.1 we include three
+examples of functions that are especially difficult for our methods.
+                                  ω·n/2
+    Finally, we gave an O(|D|
+                            e           · polylog(M )) time algorithm for f -Query problem.
+For ω = 2 this algorithm runs in almost linear-time, however for the current bound ω <
+                                             1.19n
+2.373 our algorithm runs in time O(|D|  e            · polylog(M )). Can f -Query be solved in
+       n
+O(|D|
+ e       · polylog(M )) time without assuming ω = 2?
+
+
+
+
+                                                                                                     IPEC 2022
+12:16   Computing Generalized Convolutions Faster Than Brute Force
+
+
+
+
+           Figure 5.1 Here are three concrete examples of functions f for which we expect that the running
+                                            e n · polylog(M )), O(3
+        times for f -Convolution should be O(3                   e n · polylog(M )) and O(4
+                                                                                        e n · polylog(M )).
+        However, the best cyclic partitions for this functions have costs 4, 4 and 5 (the partitions are
+        highlighted appropriately). This implies that the best running time, which may be attained using
+                           e n · polylog(M )), O(4
+        our techniques are O(4                  e n · polylog(M )) and O(5
+                                                                         e n · polylog(M )).
+
+
+             References
+         1   Amir Abboud, Richard Ryan Williams, and Huacheng Yu. More Applications of the Polynomial
+             Method to Algorithm Design. In Piotr Indyk, editor, Proceedings of the Twenty-Sixth Annual
+             ACM-SIAM Symposium on Discrete Algorithms, SODA 2015, San Diego, CA, USA, January
+             4-6, 2015, pages 218–230. SIAM, 2015. doi:10.1137/1.9781611973730.17.
+         2   Josh Alman and Virginia Vassilevska Williams. A Refined Laser Method and Faster Matrix
+             Multiplication. In Dániel Marx, editor, Proceedings of the 2021 ACM-SIAM Symposium on
+             Discrete Algorithms, SODA 2021, Virtual Conference, January 10–13, 2021, pages 522–539.
+             SIAM, 2021. doi:10.1137/1.9781611976465.32.
+         3   Michael A. Bennett, Greg Martin, Kevin O’Bryant, and Andrew Rechnitzer. Explicit bounds
+             for primes in arithmetic progressions. Illinois J. Math., 62(1-4):427–532, 2018. doi:10.1215/
+             ijm/1552442669.
+         4   Thomas Beth. Verfahren der schnellen Fourier-Transformation: die allgemeine diskrete
+             Fourier-Transformation–ihre algebraische Beschreibung, Komplexität und Implementierung,
+             volume 61. Teubner, 1984.
+         5   Andreas Björklund and Thore Husfeldt. The Parity of Directed Hamiltonian Cycles. In
+             54th Annual IEEE Symposium on Foundations of Computer Science, FOCS 2013, 26-29
+             October, 2013, Berkeley, CA, USA, pages 727–735. IEEE Computer Society, 2013. doi:
+             10.1109/FOCS.2013.83.
+         6   Andreas Björklund, Thore Husfeldt, Petteri Kaski, and Mikko Koivisto. Fourier Meets Möbius:
+             Fast Subset Convolution. In David S. Johnson and Uriel Feige, editors, Proceedings of the
+             39th Annual ACM Symposium on Theory of Computing, San Diego, California, USA, June
+             11-13, 2007, pages 67–74. ACM, 2007. doi:10.1145/1250790.1250801.
+         7   Andreas Björklund, Thore Husfeldt, Petteri Kaski, and Mikko Koivisto. Counting Paths
+             and Packings in Halves. In Amos Fiat and Peter Sanders, editors, Algorithms – ESA 2009,
+             17th Annual European Symposium, Copenhagen, Denmark, September 7-9, 2009. Proceedings,
+             volume 5757 of Lecture Notes in Computer Science, pages 578–586. Springer, 2009. doi:
+             10.1007/978-3-642-04128-0_52.
+         8   Andreas Björklund, Thore Husfeldt, Petteri Kaski, and Mikko Koivisto. Covering and packing
+             in linear space. Inf. Process. Lett., 111(21-22):1033–1036, 2011. doi:10.1016/j.ipl.2011.08.
+             002.
+         9   Andreas Björklund, Thore Husfeldt, Petteri Kaski, Mikko Koivisto, Jesper Nederlof, and
+             Pekka Parviainen. Fast Zeta Transforms for Lattices with Few Irreducibles. ACM Trans.
+             Algorithms, 12(1):4:1–4:19, 2016. doi:10.1145/2629429.
+        10   Andreas Björklund, Thore Husfeldt, and Mikko Koivisto. Set Partitioning via Inclusion-
+             Exclusion. SIAM J. Comput., 39(2):546–563, 2009. doi:10.1137/070683933.
+B. C. Esmer, A. Kulik, D. Marx, P. Schepper, and K. Węgrzycki                                         12:17
+
+
+11   Cornelius Brand. Discriminantal subset convolution: Refining exterior-algebraic methods
+     for parameterized algorithms. Journal of Computer and System Sciences, 129:62–71, 2022.
+     doi:10.1016/j.jcss.2022.05.004.
+12   Karl Bringmann, Nick Fischer, Danny Hermelin, Dvir Shabtay, and Philip Wellnitz. Faster
+     Minimization of Tardy Processing Time on a Single Machine. Algorithmica, 84(5):1341–1356,
+     2022. doi:10.1007/s00453-022-00928-w.
+13   Karl Bringmann, Marvin Künnemann, and Karol Węgrzycki. Approximating APSP without
+     scaling: equivalence of approximate min-plus and exact min-max. In Proceedings of the 51st
+     Annual ACM SIGACT Symposium on Theory of Computing, pages 943–954, 2019.
+14   Timothy M. Chan and Qizheng He. Reducing 3SUM to Convolution-3SUM. In Martin
+     Farach-Colton and Inge Li Gørtz, editors, 3rd Symposium on Simplicity in Algorithms, SOSA
+     2020, Salt Lake City, UT, USA, January 6-7, 2020, pages 1–7. SIAM, 2020. doi:10.1137/1.
+     9781611976014.1.
+15   Timothy M. Chan and R. Ryan Williams. Deterministic APSP, Orthogonal Vectors, and
+     More: Quickly Derandomizing Razborov-Smolensky. ACM Trans. Algorithms, 17(1):2:1–2:14,
+     2021. doi:10.1145/3402926.
+16   Gary Chartrand, Albert D Polimeni, and M James Stewart. The existence of 1-factors in line
+     graphs, squares, and total graphs. In Indagationes Mathematicae (Proceedings), volume 76,
+     pages 228–232. Elsevier, 1973.
+17   Michael Clausen. Fast generalized Fourier transforms. Theoretical Computer Science, 67(1):55–
+     63, 1989.
+18   James W Cooley and John W Tukey. An algorithm for the machine calculation of complex
+     Fourier series. Mathematics of computation, 19(90):297–301, 1965.
+19   Marek Cygan, Marcin Mucha, Karol Węgrzycki, and Michal Włodarczyk. On Problems
+     Equivalent to (min, +)-Convolution. ACM Trans. Algorithms, 15(1):14:1–14:25, 2019. doi:
+     10.1145/3293465.
+20   Marek Cygan, Jesper Nederlof, Marcin Pilipczuk, Michał Pilipczuk, Johan M. M. van Rooij,
+     and Jakub Onufry Wojtaszczyk. Solving Connectivity Problems Parameterized by Treewidth
+     in Single Exponential Time. ACM Trans. Algorithms, 18(2):17:1–17:31, 2022. doi:10.1145/
+     3506707.
+21   Marek Cygan and Marcin Pilipczuk. Exact and approximate bandwidth. Theor. Comput. Sci.,
+     411(40-42):3701–3713, 2010. doi:10.1016/j.tcs.2010.06.018.
+22   Barış Can Esmer, Ariel Kulik, Dániel Marx, Philipp Schepper, and Karol Węgrzycki. Com-
+     puting Generalized Convolutions Faster Than Brute Force, 2022. doi:10.48550/ARXIV.2209.
+     01623.
+23   Philip Hall. A contribution to the theory of groups of prime-power order. Proceedings of the
+     London Mathematical Society, 2(1):29–95, 1934.
+24   Falko Hegerfeld and Stefan Kratsch. Solving Connectivity Problems Parameterized by
+     Treedepth in Single-Exponential Time and Polynomial Space. In Christophe Paul and
+     Markus Bläser, editors, 37th International Symposium on Theoretical Aspects of Com-
+     puter Science, STACS 2020, March 10-13, 2020, Montpellier, France, volume 154 of
+     LIPIcs, pages 29:1–29:16. Schloss Dagstuhl – Leibniz-Zentrum für Informatik, 2020. doi:
+     10.4230/LIPIcs.STACS.2020.29.
+25   Marvin Künnemann, Ramamohan Paturi, and Stefan Schneider. On the Fine-Grained
+     Complexity of One-Dimensional Dynamic Programming. In Ioannis Chatzigiannakis, Pi-
+     otr Indyk, Fabian Kuhn, and Anca Muscholl, editors, 44th International Colloquium on
+     Automata, Languages, and Programming, ICALP 2017, July 10-14, 2017, Warsaw, Poland,
+     volume 80 of LIPIcs, pages 21:1–21:15. Schloss Dagstuhl – Leibniz-Zentrum für Informatik,
+     2017. doi:10.4230/LIPIcs.ICALP.2017.21.
+26   Andrea Lincoln, Adam Polak, and Virginia Vassilevska Williams. Monochromatic Triangles,
+     Intermediate Matrix Products, and Convolutions. In Thomas Vidick, editor, 11th Innovations
+     in Theoretical Computer Science Conference, ITCS 2020, January 12-14, 2020, Seattle,
+     Washington, USA, volume 151 of LIPIcs, pages 53:1–53:18. Schloss Dagstuhl – Leibniz-Zentrum
+     für Informatik, 2020. doi:10.4230/LIPIcs.ITCS.2020.53.
+
+
+                                                                                                     IPEC 2022
+12:18   Computing Generalized Convolutions Faster Than Brute Force
+
+
+        27   Jesper Nederlof. personal communication, 2022.
+        28   Jesper Nederlof, Jakub Pawlewicz, Céline M. F. Swennenhuis, and Karol Węgrzycki. A Faster
+             Exponential Time Algorithm for Bin Packing With a Constant Number of Bins via Additive
+             Combinatorics. In Dániel Marx, editor, Proceedings of the 2021 ACM-SIAM Symposium on
+             Discrete Algorithms, SODA 2021, Virtual Conference, January 10–13, 2021, pages 1682–1701.
+             SIAM, 2021. doi:10.1137/1.9781611976465.102.
+        29   Jesper Nederlof, Michał Pilipczuk, Céline M. F. Swennenhuis, and Karol Węgrzycki. Hamilto-
+             nian Cycle Parameterized by Treedepth in Single Exponential Time and Polynomial Space.
+             In Isolde Adler and Haiko Müller, editors, Graph-Theoretic Concepts in Computer Science
+             – 46th International Workshop, WG 2020, Leeds, UK, June 24-26, 2020, Revised Selected
+             Papers, volume 12301 of Lecture Notes in Computer Science, pages 27–39. Springer, 2020.
+             doi:10.1007/978-3-030-60440-0_3.
+        30   Jesper Nederlof and Karol Węgrzycki. Improving Schroeppel and Shamir’s Algorithm for
+             Subset Sum via Orthogonal Vectors. In Samir Khuller and Virginia Vassilevska Williams,
+             editors, STOC ’21: 53rd Annual ACM SIGACT Symposium on Theory of Computing, Virtual
+             Event, Italy, June 21-25, 2021, pages 1670–1683. ACM, 2021. doi:10.1145/3406325.3451024.
+        31   Daniel N Rockmore. Recent progress and applications in group FFTs. In Computational
+             noncommutative algebra and applications, pages 227–254. Springer, 2004.
+        32   Chris Umans. Fast Generalized DFTs for all Finite Groups. In David Zuckerman, editor,
+             60th IEEE Annual Symposium on Foundations of Computer Science, FOCS 2019, Baltimore,
+             Maryland, USA, November 9-12, 2019, pages 793–805. IEEE Computer Society, 2019. doi:
+             10.1109/FOCS.2019.00052.
+        33   Johan M. M. van Rooij. Fast Algorithms for Join Operations on Tree Decompositions. In
+             Fedor V. Fomin, Stefan Kratsch, and Erik Jan van Leeuwen, editors, Treewidth, Kernels,
+             and Algorithms – Essays Dedicated to Hans L. Bodlaender on the Occasion of His 60th
+             Birthday, volume 12160 of Lecture Notes in Computer Science, pages 262–297. Springer, 2020.
+             doi:10.1007/978-3-030-42071-0_18.
+        34   Johan M. M. van Rooij. A Generic Convolution Algorithm for Join Operations on Tree
+             Decompositions. In Rahul Santhanam and Daniil Musatov, editors, Computer Science –
+             Theory and Applications – 16th International Computer Science Symposium in Russia, CSR
+             2021, Sochi, Russia, June 28 – July 2, 2021, Proceedings, volume 12730 of Lecture Notes in
+             Computer Science, pages 435–459. Springer, 2021. doi:10.1007/978-3-030-79416-3_27.
+        35   Johan M. M. van Rooij, Hans L. Bodlaender, and Peter Rossmanith. Dynamic Programming
+             on Tree Decompositions Using Generalised Fast Subset Convolution. In Amos Fiat and Peter
+             Sanders, editors, Algorithms – ESA 2009, 17th Annual European Symposium, Copenhagen,
+             Denmark, September 7-9, 2009. Proceedings, volume 5757 of Lecture Notes in Computer
+             Science, pages 566–577. Springer, 2009. doi:10.1007/978-3-642-04128-0_51.
+        36   Virginia Vassilevska-Williams. On Some Fine-Grained Questions in Algorithms and Complexity.
+             In Proceedings of the International Congress of Mathematicians (ICM 2018), pages 3447–34,
+             2018.
+        37   Louis Weisner. Abstract theory of inversion of finite series. Transactions of the American
+             Mathematical Society, 38(3):474–484, 1935.
+        38   Ryan Williams. A new algorithm for optimal 2-constraint satisfaction and its implications.
+             Theor. Comput. Sci., 348(2-3):357–365, 2005. doi:10.1016/j.tcs.2005.09.023.
+        39   Michał Włodarczyk. Clifford Algebras Meet Tree Decompositions. Algorithmica, 81(2):497–518,
+             2019. doi:10.1007/s00453-018-0489-3.
+        40   Frank Yates. The design and analysis of factorial experiments. Technical Communication No.
+             35., 1937.
+        41   Or Zamir. Breaking the 2n Barrier for 5-Coloring and 6-Coloring. In Nikhil Bansal, Emanuela
+             Merelli, and James Worrell, editors, 48th International Colloquium on Automata, Languages,
+             and Programming, ICALP 2021, July 12-16, 2021, Glasgow, Scotland (Virtual Conference),
+             volume 198 of LIPIcs, pages 113:1–113:20. Schloss Dagstuhl – Leibniz-Zentrum für Informatik,
+             2021. doi:10.4230/LIPIcs.ICALP.2021.113.
+B. C. Esmer, A. Kulik, D. Marx, P. Schepper, and K. Węgrzycki                                                        12:19
+
+
+ A       Querying a Generalized Convolution
+
+In this section, we prove Theorem 1.4. The main idea is to represent the f -Query problem
+as a matrix multiplication problem, inspired by a graph interpretation of f -Query.
+     Let D be an arbitrary set and f : D × D → D. We assume D and f are fixed throughout
+this section. Let g, h : Dn → {−M, . . . , M } and v ∈ Dn be a f -Query instance. We use a∥b
+to denote the concatenation of a ∈ Dm and b ∈ Dk . That is (a1 , . . . , am )∥(b1 , . . . , bk ) =
+(a1 , . . . , am , b1 , . . . , bk ). If we assume that n is even, then, for a vector v ∈ Dn , let
+v(high) , v(low) ∈ Dn/2 be the unique vectors such that v(high) ∥v(low) = v. Indeed, to achieve
+this assumption let n be odd, fix an arbitrary d ∈ D, and define ge, e           h : Dn+1 → {−M, . . . , M }
+as ge(u1 , . . . un+1 ) = Jun+1 = dK · g(u1 , . . . un ) and h(u1 , . . . un+1 ) = Jun+1 = dK · h(u1 , . . . un )
+                                                             e
+for all u ∈ Dn+1 . It can be easily verified that (g ⊛f h)(v) = (e              g ⊛f e
+                                                                                     h)(v∥(f (d, d))). Thus,
+we can solve the f -Query instance ge, h and v∥(f (d, d)) and obtain the correct result.
+                                                 e
+     We first provide the intuition behind the algorithm and then formally show the existence.
+
+
+Intuition. We define a directed multigraph G where the vertices are partitioned into four
+layers L(high) , L(low) , R(low) , and R(high) . Each of these sets consists of |D|n/2 vertices
+representing every vector in Dn/2 . For ease of notation, we use the vectors to denote the
+associated vertices; furthermore, the intuition assumes g and h are non-negative. The
+multigraph G contains the following edges:
+    g(w∥x) parallel edges from w ∈ Dn/2 in L(high) to x ∈ Dn/2 in L(low) .
+    One edge from x ∈ Dn/2 in L(low) to y ∈ Dn/2 in R(low) if and only if x ⊕f y = v (low) .
+    h(z∥y) parallel edges from y ∈ Dn/2 in R(low) to z ∈ Dn/2 in R(high) .
+    One edge from z ∈ Dn/2 in R(high) to w ∈ Dn/2 in L(high) if and only if w ⊕f z = v (high) .
+In the formal proof, we denote the adjacency matrix between L(high) and L(low) by W ,
+between L(low) and R(low) by X, between R(low) and R(high) by Y , and between R(high) and
+L(high) by Z. See Figure A.1 for an example of this construction.
+    Let w, x, y, z ∈ Dn/2 be vertices in L(high) , L(low) , R(low) , and R(high) . It can be observed
+that if (w∥x) ⊕f (y∥z) ̸= v, then G does not contain any cycle of the form w → x →
+y → z → w as one of the edges (x, y) or (z, w) is not present in the graph. Conversely, if
+(w∥x) ⊕f (y∥z) = v, then one can verify that there are g(w∥x) · h(z∥y) cycles of the form
+w → x → y → z → w. We therefore expect that (g ⊛f h)(v) is the number of cycles in G
+that start at some w ∈ Dn/2 in L(high) , have length four, and end at the same vertex w in
+L(high) again.
+
+
+Formal Proof. We use the notation MatZ (Dn/2 × Dn/2 ) to refer to a |D|n/2 × |D|n/2 matrix
+of integers where we use the values in Dn/2 as indices. The transition matrices of g, h and v
+are the matrices W, X, Y, Z ∈ MatZ (Dn/2 × Dn/2 ) defined by
+
+     Ww,x := g(w∥x)                                                ∀w, x ∈ Dn/2
+     Xx,y := Jx ⊕f y = v(low) K                                    ∀x, y ∈ Dn/2
+      Yy,z := h(z∥y)                                               ∀y, z ∈ Dn/2
+     Zz,w := Jw ⊕f z = v(high) K                                   ∀z, w ∈ Dn/2
+                                                                                                    Pm
+Recall that the trace tr(A) of a matrix A ∈ MatZ (m × m) is defined as tr(A) :=                        i=1 Ai,i .
+The next lemma formalizes the correctness of this construction.
+
+
+
+
+                                                                                                                    IPEC 2022
+12:20   Computing Generalized Convolutions Faster Than Brute Force
+
+
+
+
+            Figure A.1 Construction of the directed multigraph G. Each vertex in a layer corresponds to the
+        vector in Dn/2 . We highlighted 4 vectors w, x, y, z ∈ Dn/2 each in a different layer. Note that the
+        number of 4 cycles that go through all four w, x, y, z is equal to g(w∥x) · h(z∥y). The total number
+        of directed 4-cycles in this graph corresponds to the value (g ⊛f h)(v) and tr(W · X · Y · Z).
+
+
+
+        ▶ Lemma A.1. Let n ∈ N be an even number, g, h : Dn → Z and v ∈ Dn . Also, let
+        W, X, Y, Z ∈ MatZ (Dn/2 × Dn/2 ) be the transition matrices of g, h and v. Then,
+
+
+           (g ⊛f h)(v) = tr(W · X · Y · Z).
+
+
+        Proof. For any w, y ∈ Dn/2 it holds that,
+
+                                 X                          X
+           (W · X)w,y =                  Ww,x · Xx,y =               Jx ⊕f y = v(low) K · g(w∥x).                   (A.1)
+                               x∈D n/2                    x∈D n/2
+
+
+
+        Similarly, for any y, w ∈ Dn/2 it holds that,
+
+                                X                        X
+           (Y · Z)y,w =                 Yy,z · Zz,w =             Jw ⊕f z = v(high) K · h(z∥y).                     (A.2)
+                              z∈D n/2                   z∈D n/2
+
+
+
+        Therefore, for any w ∈ Dn/2 ,
+
+                                           X
+           (W · X · Y · Z)w,w =                    (W · X)w,y · (Y · Z)y,w
+                                         y∈D n/2
+                                                                                                                
+                 X            X                                                 X
+            =                      Jx ⊕f y = v(low) K · g(w∥x)                        Jw ⊕f z = v(high) K · h(z∥y)
+                y∈D n/2   x∈D n/2                                              z∈D n/2
+                   X
+                                            (low)                     (high)
+            =                 Jx ⊕f y = v           K · Jw ⊕f z = v            K · g(w∥x) · h(z∥y)
+                x,y,z∈D n/2
+                   X
+            =                 J(w∥x) ⊕f (z∥y) = v(high) ∥v(low) K · g(w∥x) · h(z∥y),
+                x,y,z∈D n/2
+B. C. Esmer, A. Kulik, D. Marx, P. Schepper, and K. Węgrzycki                                                  12:21
+
+
+where the second equality follows by (A.1) and (A.2). Thus,
+                         X
+   tr(W · X · Y · Z) =         (W · X · Y · Z)w,w
+                               w∈D n/2
+                       X           X
+                 =                         J(w∥x) ⊕f (z∥y) = vK · g(w∥x) · h(z∥y)
+                     w∈D n/2 x,y,z∈D n/2
+                      X
+                 =             Ju ⊕f t = vK · g(u) · h(t)
+                     u,t∈D n
+
+                 = (g ⊛f h)(v).                                                                         ◀
+
+     Now we have everything ready to give the algorithm for f -Query.
+
+Proof of Theorem 1.4. The algorithm for solving f -Query works in two steps:
+1. Compute the transition matrices W , X, Y , and Z of g, h and v as described above.
+2. Compute and return tr(W · X · Y · Z).
+By Lemma A.1 this algorithm returns (g ⊛f h)(v). Computing the transition matrices in
+                      n
+Step 1 requires O(|D|
+                e       ·polylog(M )) time. Observe the maximal absolute values of an entry in
+the transition matrices is M . The computation of W · X · Y · Z in Step 2 requires three matrix
+multiplications of |D|n/2 × |D|n/2 matrices, which can be done in O((|D|
+                                                                     e       n/2 ω
+                                                                                ) · polylog(M ))
+                                                                  ω·n/2
+time. Thus, the overall running time of the algorithm is O(|D|
+                                                           e            · polylog(M )).      ◀
+
+ B      Proof of Theorem 2.5
+In this section we prove Theorem 2.5. We let M be the absolute value of largest integer on
+                                                               Qn
+the output of functions g : Ln → Z and h : Rn → Z. We let K := i=1 ri . We crucially rely
+on the following result by van Rooij [33].
+
+▶ Theorem B.1 ([33, Lemma 3]). Let p denote a prime such that in the field Fp , the ri -th
+root of unity exists for each i ∈ [n]. For two given functions g, h : Zr1 × · · · × Zrn → Z,
+we can compute their cyclic convolution modulo p (that is, return a function ϕ such that
+ϕ(q) = (g ⊙ h)(v) mod p for every q ∈ Zr1 × · · · × Zrn ) in time O(K log(Kp)) (assuming a
+ri -th primitive root of unity ωi in the field Fp is given for all i ∈ [n]).
+
+   The basic idea behind the proof is to compute g ⊙ h modulo pi for a sufficiently large
+number of distinct small primes pi . If i pi > 2n , then the values of g ⊙ h can be uniquely
+                                       Q
+
+recovered using the Chinese Remainder Theorem.
+
+▶ Theorem B.2 (Chinese Remainder Theorem). Let m1 , . . . , mℓ denote a sequence of integers
+                                         Q
+that are pairwise coprime and define M := i∈[ℓ] mi . Also let 0 ≤ ai < mi for all i ∈ [ℓ].
+Then there is a unique number 0 ≤ s < M such that
+
+     s ≡ ai   (mod mi )
+
+for all i ∈ [ℓ]. Moreover, there is an algorithm that, given m1 , . . . , mℓ and a1 , . . . , aℓ , computes
+the number s in time O((log M )2 ).
+
+    Let m := ⌈log(3·|L|n ·|R|n ·M 2 )⌉ . We compute the list of the first m primes p1 < · · · < pm
+such that pi ≡ 1 (mod K) for all i ∈ [m]. By the Prime Number Theorem for Arithmetic
+Progressions (see, e.g., [3]) we get that pm = O(φ(K) · m · log m) where φ denotes Euler’s
+totient function. In particular, pm = O(K · m · log m) because φ(K) ≤ K. Since prime testing
+can be done in polynomial time, we can find the sequence p1 , . . . , pm in time O(K ·m·(log m)c )
+for some constant c.
+
+
+                                                                                                              IPEC 2022
+12:22   Computing Generalized Convolutions Faster Than Brute Force
+
+
+             Next, for every i ∈ [m] and j ∈ [n], we compute a rj -th root of unity in Fpi as follows.
+        First observe that such a root of unity exists since rj divides pi − 1. For every i ∈ [m] we
+        first find the prime factors qi,1 , . . . , qi,ℓi of pi − 1 by iterating over every number in Zpi and
+        checking if it is both prime and divides pi − 1. This can be done in time O(pi · polylog pi ).
+        Next, we simply iterate over all elements x ∈ Fpi and test whether a given element x is a
+        rj -th root of unity in time (log pi )O(1) . So overall, computing all roots of unity for every pi
+        (i ∈ [m]) can be done in time
+            m                       n
+                                                              !
+          X                        X                     O(1)                      O(1)                  O(1)
+                     O(pi · polylog pi ) +              pi · (log pi )             = m · n · pm · (log pm )           = K · (n + m + log K)           .
+            i=1                                   j=1
+
+                Now, for every i ∈ [m] and q ∈ Zr1 × · · · × Zrn , we compute
+                (g ⊙ h)(q)(i) := (g ⊙ h)(q)                  (mod pi )
+        using Theorem B.1 in time O(m · K · log(K · pm )) = K · (m + log K)O(1) .
+           Finally, we can recover (g ⊙ h)(q) for every q by the Chinese Remainder Theorem in
+        time O(K · m2 ). Note that i∈[m] pi > 2m ≥ M which implies that all numbers are indeed
+                                    Q
+
+        uniquely recovered. In total, this achieves the desired running time.                ◀
+
+            C        Proof of Lemma 3.5
+        The idea is to use adynamic programming algorithm loosely inspired by Yates algorithm [40].
+            Define X (ℓ) = (p, q) p ∈ [m]ℓ , q ∈ Zp1 × · · · × Zpℓ for every ℓ ∈ {0, . . . , n}. We use
+        X to define a dynamic programming table DP(ℓ) : X (ℓ) × Ln−ℓ → Z for every ℓ ∈ {0, . . . n}
+          (ℓ)
+
+        by:
+                                                                 ℓ
+                                                                               !
+              (ℓ)
+                                                        X       Y
+                DP    [(p1 , . . . , pℓ ), (q1 , . . . , qℓ )][tℓ+1 , . . . , tn ] :=                    Jσpi (ti ) = qi K   · g(t1 , . . . , tn ).
+                                                                                        t1 ∈Ap     i=1
+                                                                                           ... 1
+                                                                                        tℓ ∈Ap
+                                                                                              ℓ
+
+                                       (0)        (1)               (n)
+            The tables DP , DP , . . . , DP                     are computed consecutively where the computa-
+        tion of DP(ℓ) relies on the values of DP(ℓ−1) for any ℓ ∈ [n]. Observe that gp (q) =
+        DP(n) [(p1 , . . . , pn ), (q1 , . . . , qn )][ε] for every p and q, which means that computing DP(n) is
+        equivalent to computing the projection functions gp of g for every type p.7
+            It holds that DP(0) [ε, ε][t] = g(t). Hence, DP(0) can be trivially computed in |L|n time.
+        We use the following straightforward recurrence to compute DP(ℓ) :
+            DP(ℓ) [(p1 , . . . , pℓ ), (q1 , . . . , qℓ )][tℓ+1 , . . . , tn ] =
+                                        Jσpℓ (tℓ ) = qℓ K · DP(ℓ−1) [(p1 , . . . , pℓ−1 ), (q1 , . . . , qℓ−1 )][tℓ , . . . , tn ]. (C.1)
+                                 X
+
+                                 tℓ ∈Apℓ
+
+
+         A dynamic programming algorithm which computes DP(n) can be easily derived from (C.1)
+        and the formula for DP(0) . The total number of states in the dynamic programming table
+        DP(ℓ) is
+                                      
+               X                                                     ℓ
+                    kp1 · . . . · kpℓ  · |L|n−ℓ = (k1 + · · · + km ) · |L|n−ℓ = cost(P)ℓ · |L|n−ℓ .
+                                     
+           
+                  p∈[m]ℓ
+
+        This is bounded by cost(P)n + |L|n for every ℓ ∈ [n]. To transition between states we spend
+        polynomial time per entry because we assume that |L| = O(1). Hence, we can compute gp
+                                  n
+        for every p in O((cost(P)
+                       e            + |L|n ) · polylog(M )) time.                                ◀
+
+        7
+            We use ε to denote the vector of length 0.
+

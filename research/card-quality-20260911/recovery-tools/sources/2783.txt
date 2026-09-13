@@ -1,0 +1,1021 @@
+Space-Stretch Tradeoff in Routing Revisited
+Anatoliy Zinovyev # Ñ
+Boston University, MA, USA
+
+      Abstract
+We present several new proofs of lower bounds for the space-stretch tradeoff in labeled network
+routing.
+    First, we give a new proof of an important result of Cyril Gavoille and Marc Gengler that any
+routing scheme with stretch < 3 must use Ω(n) bits of space at some node on some network with
+n vertices, even if port numbers can be changed. Compared to the original proof, our proof is
+significantly shorter and, we believe, conceptually and technically simpler. A small extension of the
+proof can show that, in fact, any constant fraction of the n nodes must use Ω(n) bits of space on
+some graph.
+    Our main contribution is a new result that if port
+                                                     numbers are chosen adversarially, then stretch
+                                              1
+< 2k + 1 implies some node must use Ω n k log n bits of space on some graph, assuming a girth
+conjecture by Erdős.
+    We conclude by showing that all known methods of proving a space lower bound in the labeled
+setting, in fact, require the girth conjecture.
+
+2012 ACM Subject Classification Theory of computation → Distributed algorithms; Theory of
+computation → Data structures design and analysis; Mathematics of computing → Discrete mathe-
+matics
+
+Keywords and phrases Compact routing, labeled network routing, lower bounds
+
+Digital Object Identifier 10.4230/LIPIcs.DISC.2022.37
+
+
+
+ 1      Introduction
+
+Network routing is an important subject in the field of distributed algorithms. Given a
+network of nodes (routers) connected arbitrarily, the goal is to be able to transmit information
+between any two nodes in the network. A network data packet must usually traverse multiple
+routers in order to reach its destination, and these intermediate routers must be able to make
+a decision as to where to forward the packet next based only on the packet and some local
+information. This local information is usually referred to as a routing table or, more precisely,
+a routing program, and one of the goals is to bound its size. This is particularly important in
+practice since the memory inside a router must be fast and is therefore expensive. Another
+goal one might pursue is the quality of the routes chosen by the routers. The route quality is
+commonly characterized by the stretch factor defined as the ratio between the length of the
+route and the shortest distance between the two nodes. In practice, it corresponds to latency
+in a network that does not experience congestion.
+    In this paper we consider the problem of labeled routing: what is the best possible tradeoff
+between routing program sizes and the stretch factor given that we are allowed to assign
+arbitrary (but not long) labels to nodes which the sender must include in the routing header?
+Although this model is of little practical interest since one doesn’t want to reconfigure the
+labels each time the network changes, labeled routing schemes often serve as an ingredient in
+name-independent routing: first a label is retrieved from a distributed dictionary after which
+a labeled routing scheme is used [12, 5, 4, 1]. Additionally, the lower bounds for the labeled
+routing setting imply the same lower bounds for the name-independent setting, where node
+labels are chosen adversarially.
+            © Anatoliy Zinovyev;
+            licensed under Creative Commons License CC-BY 4.0
+36th International Symposium on Distributed Computing (DISC 2022).
+Editor: Christian Scheideler; Article No. 37; pp. 37:1–37:16
+                   Leibniz International Proceedings in Informatics
+                   Schloss Dagstuhl – Leibniz-Zentrum für Informatik, Dagstuhl Publishing, Germany
+37:2   Space-Stretch Tradeoff in Routing Revisited
+
+
+       1.1    Some general notation
+       For a natural number n, define [n] = {1, 2, ..., n}. For any vertex v, denote N (v) to be the
+       set of neighbors of v. Define deg(v) = N (v) , the degree of v.
+
+       1.2    Model
+       We deal with undirected connected graphs G with n nodes (routers). Let G = (V, E) where
+       V = [n]. Each x ∈ V possesses a unique label (name) lx ∈ {0, 1}∗ , as well as a routing
+       program Rx . The goal of a (distributed) routing algorithm is to route data from any node x
+       to any node y given only the destination’s label ly . Routers are allowed to attach an arbitrary
+       header to messages and modify the header at each hop. Each router x has network ports
+       numbered {1, 2, ..., deg(x)} to which edges are attached. This port-edge relation is a bijection:
+       each edge is assigned exactly one port and each port is assigned exactly one edge. For x ∈ V
+       and 1 ≤ t ≤ deg(x) define τx (t) = y where y is the node such that {x, y} is the edge assigned
+       to port t at node x. So, τx : [deg(x)] → N (x) is a bijection. The routing program Rx at
+       node x accepts the header of the incoming message and the incoming port number as input
+       and outputs the new header and the outgoing port number: if Rx (h, q) = (h′ , p), a message
+       with header h that comes in through port q leaves the router with header h′ through port p.
+           Formally, a routing scheme for G with node labels L = (l1 , l2 , ..., ln ) and port functions
+       T = (τ1 , τ2 , ..., τn ) is a collection of programs R = (R1 , R2 , ..., Rn ) such that for all x, y ∈ V
+       there exists a finite walk x = v0 , v1 , ..., vt = y in G, a sequence h0 , h1 , ..., ht of headers, and
+       two sequences q0 , ..., qt and p1 , ..., pt+1 of port numbers such that:
+           for all 0 ≤ i < t:
+              Rvi (hi , qi ) = (hi+1 , pi+1 )
+              τvi (pi+1 ) = vi+1
+              τvi+1 (qi+1 ) = vi
+           h0 = ly
+           q0 = 0
+           Rvt (ht , qt ) = (ϵ, 0)
+
+           This model can take different variations depending on whether the node labels and
+       the port assignment are adversarially chosen or not. In the most adversarial setting, both
+       assignments are given as part of the input and the goal is to construct a correct routing
+       scheme. In the least adversarial setting, only the graph G is given, and the goal is to generate
+       a routing scheme along with node labels and a port assignment. Models where only one
+       assignment is adversarial can also be considered. Generally, minimizing the size of routing
+       programs, node labels and headers is desirable. In this paper, we work with two models: one
+       has non-adversarial port assignment, and the other has adversarial port assignment. Both,
+       however, are models for labeled routing; i.e., node labels are non-adversarial.
+           Finally, we formally define routing stretch. We say a routing scheme has stretch s if for
+       all x, y, dR (x, y) ≤ s · dG (x, y) where dR (x, y) is the length of the path from x to y taken by
+       the routing scheme, and dG (x, y) is the distance between x and y in G.
+
+       1.3    Known results
+       Many routing schemes have been proposed in the literature. The state of the art for labeled
+       routing includes [17] by Thorup and Zwick who for every integer k ≥ 1 describe a scheme
+                      1
+       that uses Õ n k bits of space at every node and has stretch 4k − 5, [8] by Chechik who
+                                   1
+       shows a scheme using Õ n k log D bits of space at every node and having stretch c · k for
+A. Zinovyev                                                                                                            37:3
+
+
+some c < 4 for sufficiently large integer k, and [15] by Roditty and Tov who show a routing
+                     1
+scheme using Õ 1ϵ n k log D bits of space at each node and having stretch 4k − 7 + ϵ for every
+integer k ≥ 1; D is defined to be the normalized network diameter.
+    Surprisingly, there are also name-independent routing schemes with similar  characteristics.
+                                                                        √ 
+An optimal stretch-3 name-independent routing scheme that stores Õ n bits at each node
+                                                                                             1
+is known [4]. Additionally, [3] constructs a routing scheme with O(k) stretch that uses Õ n k
+bits of space at each node.
+     Lower bounds for routing schemes also exist and are the focus of this paper. The first
+such lower bound appeared in the work of Peleg and Upfal [14] who showed that for any
+s ≥ 1, any stretch-s  routing scheme with adversarial  port assignment on n nodes must use a
+                  1                     1 
+              1+ s+2
+total of Ω n            and thus Ω n
+                      bits,             s+2   bits at some node. Gavoille and Perennes [11]
+prove that Ω n2 log n total bits is needed for shortest path routing, even when port numbers
+can be chosen by the designer; however, node labels are assumed to be [n]. Buhrman et
+al. [7] explore upper and lower bounds under various routing models. In the standard
+                                                                                      model,
+                                                                              2
+that we consider here, they prove that shortest path routing requires Ω n bits of total
+state, even when ports can be chosen by the designer, and labels can be arbitrary (short) bit
+strings. Gavoille and Gengler [10] achieve the same lower bound under the same model,     but
+                                                                                      1
+for any stretch s < 3. Finally, Thorup and Zwick [17] claim a lower bound of Ω n1+ k total
+bits of space for stretch s < 2k + 1 when the port assignment is adversarial, but their proof
+idea does not seem to work in the standard model. We discuss their claim and proof idea
+in the next subsection, and present a proof which works under the standard model, with a
+log n factor improvement. Table 1 demonstrates known results for labeled routing. Note that
+a lower bound that works for the non-adversarial port assignment implies the same lower
+bound for the adversarial port assignment.
+
+
+   Table 1 Known lower bounds for labeled routing.
+
+(a) Non-adversarial (+ adversarial) ports.
+ Work                           Stretch   Total memory (bits)   Local memory (bits)            Notes
+                                                    
+ Gavoille and Perennes [11]     < 5/3     Ω n2 log n            Ω(n log n) on Ω(n) nodes       Node labels are [n]
+                                                
+ Buhrman et al. [7]             1         Ω n2                  Ω(n) on Ω(n) nodes
+                                                
+ Gavoille and Gengler [10]      <3        Ω n2                  Ω(n)
+                                              2
+                                                
+ This paper                     <3        Ω n                   Ω(n) on cn nodes, ∀0 < c < 1
+
+(b) Adversarial ports.
+
+ Work                         Stretch     Total memory (bits)   Local memory (bits)   Notes
+                                                    1                   1
+                                          Ω n1+ s+2
+                                                                           
+ Peleg and Upfal [14]         s≥1                               Ω n s+2
+                                                1                  1   
+ Thorup and Zwick [17]        < 2k + 1    Ω n1+ k               Ω nk                  Works in a different model
+                                                1
+                                             1+ k
+                                                                   1           
+ This paper                   < 2k + 1    Ω n       log n       Ω n log n
+                                                                    k
+
+
+
+
+    All known lower bound proofs for stretch s > 1 (Peleg and Upfal [14], Thorup and
+Zwick [17], our proof in section 3) rely on dense graphs of large girth. In an unweighted graph
+where all cycles have length > s + 1, routing with stretch s between neighbor vertices x and
+y must involve the edge {x, y}. Thus, x must “know” its neighbor y, and this is what proofs
+rely on. Currently, however, the existence of dense graphs of large girth is an open question.
+It is worth noting that Abraham et al. [2] overcome   this conjecture in the name-independent
+                                                  1
+model and unconditionally show a Ω (n log n) k -bit local memory requirement if weighted
+networks are allowed.
+
+
+
+                                                                                                                     DISC 2022
+37:4   Space-Stretch Tradeoff in Routing Revisited
+
+
+       1.4     Our contribution
+       1.4.1     Lower bounds with non-adversarial port numbers
+       Our first contribution is a simpler proof of the result of Gavoille and Gengler ([10], with
+       the full proof in their research report [9]) that shows that any routing scheme with stretch
+       < 3 must use a total of Ω n2 bits of routing state, and thus Ω(n) bits at some node, on
+       some network with n nodes, even if nodes and port numbers are allowed to be renamed. Our
+       proof, presented in section 2, is three times shorter and, we believe, significantly simpler.
+       This is due to a simpler class of graphs considered, easier reasoning and calculations.
+           With a bit of additional effort, we are also able to show that, in fact, any constant fraction
+       of the n nodes must use Ω(n) bits of space on some graph. Previously, similar results were
+       obtained in [11] and [7] for shortest path routing.           
+           [11] proves a total memory requirement of Ω n2 log n bits     with local memory requirement
+       of Ω(n log n) bits on Ω(n) nodes. We note that Ω n2 log n -bit total memory requirement
+       implies Ω(n log n) bits on Ω(n) nodes using the following informal generic argument. Suppose
+       the total memory requirement is c0 n2 log n bits, the shortest path routing table can be
+       described in c1 n log n bits at each node, and there are x nodes that store > c2 n log n bits.
+       Then x · c1 n log n + (n − x) · c2 n log n ≥ c0 n2 log n which implies x ≥ cc01 −c                   c0
+                                                                                       −c2 n. Setting c2 = 2
+                                                                                         2
+
+                                                                                            2
+       achieves the result. The same reasoning        can be used to show that the Ω n total memory
+       proved implies Ω(n) bits at Ω logn n nodes, but this is the best possible generic argument.
+                                                
+
+       Indeed, you could have O logn n nodes storing O(n log n) bits and all other nodes storing 0
+                                           
+
+       bits. To show that more nodes must store Ω(n) bits, one needs a deeper argument.
+           [7] proves a local memory requirement of Ω(n) bits on Ω(n) nodes which can easily be
+       extended to any constant fraction of all nodes. It uses a Kolmogorov random graph and
+       assuming too many nodes have small routing programs reaches a contradiction.
+           It also seems that Gavoille and Gengler’s proof [10] can be extended to show a local
+       memory requirement of Ω(n) bits on any constant fraction of all nodes. We provide an
+       extension in the context of our proof for completeness.
+
+       1.4.2     Lower bounds with adversarial port numbers
+       Our second contribution is a proof of a claim by Thorup and Zwick that if ports are assigned
+       adversarially, for any  integer k ≥ 1, any labeled routing scheme with stretch < 2k + 1 requires
+                          1                           1
+       a total of Ω n1+ k bits of space, and so Ω n k bits of space at some node, in the worst case,
+       assuming a well-known conjecture by Erdős regarding the existence of dense graphs with
+       large girth. This claim deserves special discussion.
+           In [17], Thorup and Zwick make this claim, deferring the full proof to the full version of
+       the paper which never appeared. It was stated, however, that the result should follow easily
+       from their other paper [16] about compact distance oracles. A compact distance oracle is a
+       small data structure for a graph that for any vertices u and v is able to return an approximate
+       distance (up to some constant factor) between them. Their lower bound for distance oracles
+       is now a standard incompressibility argument, perhaps first introduced by Matoušek [13],
+       and it goes as follows. Take a graph with m edges and girth 2k + 2 and consider all 2m
+       subgraphs. For any two subgraphs, there must be an edge {u, v} in one that is absent in the
+       other. If the distance oracle satisfies stretch < 2k + 1, then it must return distance [1, 2k + 1)
+       for u, v in the first graph, and distance ≥ 2k + 1 in the second graph. Thus, each subgraph
+       must have a distinct distance oracle data structure, one of them of size m bits. So, it appears
+       that the lower bound proof for routing that Thorup and Zwick had in mind is assuming the
+       existence of a routing scheme with stretch < 2k + 1 of total size < m bits, and constructing
+A. Zinovyev                                                                                               37:5
+
+
+distance oracle data structures: given a graph with a compact routing scheme, construct
+a program that for any vertices u, v traces the route from u to v returned by the routing
+scheme and reports the length of the route. Clearly, if a routing scheme can be encoded with
+< m bits, then < 2m routing schemes are needed to satisfy all graphs, and < 2m distance
+oracle programs are needed, a contradiction. The problem with this argument is that one
+cannot trace the route from u to v given the routing scheme alone. Each routing program
+returns the port toward the next node, but we do not know what the next node is, and
+encoding the port assignment takes at least m bits which would break the proof.
+    Obviously, however, this argument works in the model where the port must equal to the
+node label it leads to, or if the ports are log n bit strings chosen adversarially, but this is less
+natural than providing the router with a port in 1, ..., |N (v)| , and is perhaps more suited
+for wireless networks. Given that this lower bound was mentioned in the context of the
+standard model in so many works ([12, 2, 5, 4, 1, 8]), we set out to close this gap and prove
+the result in the standard, more natural, model. Instead of considering many graphs of large
+girth, we fix one such dense graph, consider all possible port assignments, and show that a
+single routing scheme cannot satisfy many of them; thus many routing schemes are needed.
+                          stronger: assuming Erdős’ conjecture, stretch < 2k + 1 requires
+Our bound is also slightly
+                   1
+a total of Ω n1+ k log n bits of space. This implies that the stretch-3 routing scheme of
+                                              √
+Thorup and Zwick [17] has optimal up to log n factor per-node space requirement.
+    To the best of our knowledge, the best previous lower bound for stretch s ≥ 3 routing
+with adversarial ports in the standard    model is given by Peleg and Upfal who showed a total
+                                   1 
+memory requirement of Ω n1+ s+2 [14]. Their proof is based on a probabilistic algorithm
+for constructing dense graphs with large girth. In contrast, our proof decouples the existence
+of such graphs and the lower bound argument, which lets us use the best known results
+regarding the existence of such graphs. In particular, the graph construction in [14] can be
+used in conjunction with the proof in this paper to obtain the lower bound result in [14], but
+better graph constructions are available.
+
+1.4.3     Known techiques require girth conjecture
+Finally, in section 4 we show that all known methods for proving a space lower bound, that
+is, finding the number of distinct routing schemes necessary, actually require the existence of
+dense graphs with large girth.
+
+
+ 2      Lower bounds with non-adversarial port numbers
+                                                                           
+We are interested in the complexity of a routing scheme defined by max |Rv | : v ∈ V – the
+size of the largest routing algorithm.
+    The idea of the lower bound, as in [10], is to consider a family of graphs of girth 4 (where
+                                                  2
+all cycles have length ≥ 4) and show that 2Ω(n ) configurations of routing programs R are
+needed to satisfy all graphs in the family with stretch < 3. From this it follows that at least
+one routing program must have size Ω(n) bits, as shown by the following lemma.
+                                                                  n
+▶ Lemma 1. Let n be a positive integer, and let S ⊆ {0, 1}∗ be a collection of n-tuples
+of binary strings with |S| > 0. Then some string must have length ≥ logn|S| − 1.
+
+Proof. Suppose all strings have length < logn|S| − 1. Then all strings have length ≤ L =
+ log |S|                         n         n      log |S| n
+                             L+1
+     n −1 . But then |S| ≤ 2     −1 < 2L+1 ≤ 2 n                 = |S| which is a contradiction.
+                                                                                              ◀
+
+
+
+                                                                                                        DISC 2022
+37:6   Space-Stretch Tradeoff in Routing Revisited
+
+
+       ▶ Theorem 2. There exists a function f (n) ∈ Ω(n) such that if node labels have size ≤ f (n)
+       bits, then there exists an unweighted graph with n nodes for which any routing scheme with
+       stretch < 3 contains a routing program of size Ω(n) bits.
+
+
+       Proof. Let n = 2q + 2 (the case where n is odd is analogous), V = A ∪ B where A =
+       {a0 , a1 , ..., aq } and B = {b0 , b1 , ..., bq }. Define G to be the set of all bipartite unweighted
+       graphs with parts A and B in which a0 has an edge to all vertices in B and b0 has an edge
+       to every vertex in A. The purpose of nodes a0 and b0 is to keep all graphs in G connected.
+                                                                                    2
+       Bipartiteness implies that all graphs in G have girth 4 and |G| = 2q .
+           We will now bound the number of graphs in G that a single routing scheme can support.
+       This will give a lower bound on the number of different routing schemes for G.
+           Fix any routing scheme R and node labels L. For             any node v ∈ A \ {a0 }, consider the
+       map X : B → [deg(v)] defined by X(u) = Rv (lu , 0) 2 , i.e., the port number at v through
+       which a message originating from v to u is sent. Note that if {v, u} ∈ E then the port X(u)
+       at v should lead to u; otherwise, the path taken will have length ≥ 3 violating the stretch
+       requirement. We will now use this constraint to limit the number of different graphs in G
+       that can be supported by R and L assuming the port assignments T can be varied.
+           Define M = max{X(u) : u ∈ B}. First, observe that deg(v) ≥ M because if deg(v) < M ,
+       then routing to u with X(u) = M will fail. Also observe that for each 1 ≤ i ≤ deg(v),
+       routing to the node behind port i will necessarily send the message directly to that node:
+       X(τv (i)) = i. Otherwise, routing to that node will traverse a different node and violate the
+       stretch requirement. Hence, M = deg(v) and X(u) partitions all nodes in B based on the
+       outgoing port number, each partition being non-empty.
+                                                                                        
+           For all 1 ≤ i ≤ M , define si to be the size of i’s partition: si = u ∈ B : X(u) = i .
+                             PM
+       We know that i=1 si = |B| = q + 1 and that τv (i) has si possible values. Therefore, the
+                                                 QM
+       neighbors of v can take at most i=1 si possible values, or in other words, N (v) is one of
+                   QM
+       at most i=1 si possible configurations. It is known that the geometric average of a set of
+                                                                                          QM             M
+       non-negative numbers cannot exceed their arithmetic average. Hence, i=1 si ≤ q+1               M     .
+       Differentiating the logarithm with respect to M , we find that the value is maximized when
+                                 QM             q+1
+       M = q+1   e and thus        i=1 si ≤ e
+                                                  e . Hence, the routing scheme R with labels L satisfies
+                      q+1
+                          ·q
+       at most e       e     graphs in G. I.e., if for a graph G, routing scheme R, labels L, and port
+       assignment T we define the predicate Sat(G, R, L, T ) to be true if and only if (R, L, T )
+       satisfy G with routing stretch < 3, then
+
+                                                           q+1
+                                                       ≤ e e ·q .
+           
+               G ∈ G : ∃T , Sat(G, R, L, T )
+
+       Since the labels have size at most f (n) bits, the number of possible configurations of labels
+       L is at most (2f (n)+1 − 1)n < 2(f (n)+1)n . Hence, the number of graphs in G that R can
+       satisfy is
+
+                                                                     q+1
+                                                           < e e ·q · 2(f (n)+1)n .
+           
+               G ∈ G : ∃(T , L), Sat(G, R, L, T )
+
+          Therefore, the number of routing schemes necessary to satisfy each graph in G is larger
+       than
+                                                   2
+                    |G|                       2q
+            q+1                   =    q+1                       .
+           e e ·q · 2(f (n)+1)n       e e ·q · 2(f (n)+1)n
+A. Zinovyev                                                                                        37:7
+
+
+   Since
+                      2
+                 2q            log e
+                                 = q2 −
+                                                         
+   log   q+1                         q(q + 1) − f (n) + 1 n =
+       e  e ·q   · 2(f (n)+1)n   e
+   n    2 log e  n                    
+       −1 −        n     − 1 − f (n) + 1 n =
+     2          2e     2
+    1 log e                      log e 1 
+               n2 − f (n) + 1 n +              n + 1 ∈ Ω(n2 )
+                             
+       −                                  −
+     4   4e                           2e    2
+for an appropriate f (n), one of the graphs in G requires Ω(n) bits of state at some node by
+lemma 1.                                                                                  ◀
+
+    A small modification of this argument lets us prove a slightly stronger statement, that
+any constant fraction of n nodes must have Ω(n) bits of state on some graph. Using the same
+family of graphs G, simple counting manipulations, and the bound on the number of possible
+neighbor sets of a given node from above, we count the number of possible graphs possessing
+a routing scheme with too many small routing programs. We find that this number is less
+than |G| implying that at least one graph must not have too many small routing programs.
+
+▶ Theorem 3. For any 0 < c < 1 there exist functions f (n), g(n) ∈ Ω(n) (f depends on c)
+such that if node labels have size ≤ f (n) bits, then there exists an unweighted graph with n
+nodes for which any routing scheme with stretch < 3 contains ≥ cn routing programs of size
+≥ g(n) bits.
+
+                                               n
+Proof. Let 0 < c < 1, f (n) = 1−c
+                                                                   1−c     
+                                 40 n, g(n) = 8 , and define k =     2 n − 1 . We consider the
+same set of graphs G as in the previous theorem.
+    Fix node labels L and let A′ ⊆ A \ {a0 } such that |A′ | = k. Now suppose for all v ∈ A′ ,
+|Rv | < g(n), v’s routing program is smaller than g(n) bits. Then there are less than 2g(n)+1
+different routing programs for each node in A′ . By the argument in the previous theorem,
+                                 q+1
+each node in A′ can have < e e · 2g(n)+1 distinct sets of neighbors. Trivially, all other
+nodes in A can have at most 2q distinct sets of neighbors. Therefore, the number of possible
+graphs is
+     n                                                            o
+       G ∈ G : ∃(T , R), ∀v ∈ A′ , |Rv | < g(n) ∧ Sat(G, R, L, T ) <
+                                               
+
+       q+1         k     q−k
+      e e · 2g(n)+1 · 2q       .
+
+   Therefore, if A′ can be arbitrary, the number of possible graphs is
+    n                                                                    o
+     G ∈ G : ∃(T , R), Sat(G, R, L, T ) ∧ v ∈ A \ {a0 } : |Rv | < g(n) ≥ k =
+    n                                                                o
+     G ∈ G : ∃(T , R, A′ ), ∀v ∈ A′ , |Rv | < g(n) ∧ Sat(G, R, L, T ) <
+                                                  
+
+      q+1         k      q−k q
+    e e · 2g(n)+1 · 2q         ·2
+
+(assuming ∃A′ means A′ is taken from A \ {a0 } such that |A′ | = k).
+    If, in addition, the node labels can be varied, the number of possible graphs is
+     n                                                                        o
+       G ∈ G : ∃(T , R, L), Sat(G, R, L, T ) ∧ v ∈ A \ {a0 } : |Rv | < g(n) ≥ k <
+       q+1          k     q−k q (f (n)+1)n
+     e e · 2g(n)+1 · 2q         ·2 ·2          .
+
+
+
+
+                                                                                                 DISC 2022
+37:8   Space-Stretch Tradeoff in Routing Revisited
+
+
+                               2
+          This is less than 2q /2 since
+               q+1             k                        
+          log e e · 2g(n)+1 · (2q )q−k · 2q · 2(f (n)+1)n =
+            q + 1                    
+          k         · log e + g(n) + 1 + q(q − k) + q + (f (n) + 1)n =
+                e
+                  log e                     
+          −k q −          (q + 1) − g(n) − 1 + q 2 + q + nf (n) + n =
+                       e
+            j1 − c         k n       log e     n     nn         1−c
+          −        n−1          −1−         n− −1 +            −1 +          n2 + n <
+                2             2        2e       8        2 2            40
+            1 − c          n      nn          1−c
+          −         n−2          −2 +          −1 +        n2 + n =
+                2             10         2 2           40
+          1 1 − c                    n      2
+              −          n2 + O(n) <        − 1 − 1 = q 2 − 1.
+            4     40                     2
+          By symmetry, the number of possible graphs with a routing scheme having many small
+       programs in B \ {b0 }
+           n                                                                          o   2
+             G ∈ G : ∃(T , R, L), Sat(G, R, L, T ) ∧ v ∈ B \ {b0 } : |Rv | < g(n) ≥ k < 2q /2.
+                                                     
+
+                                         2
+          Hence, there are less than 2q graphs which have a routing scheme with at least k small
+       programs in A \ {a0 } or B \ {b0 }:
+           n
+             G ∈ G : ∃(T , R, L), Sat(G, R, L, T )∧
+                                                                                       o     2
+           |{v ∈ A \ {a0 } : |Rv | < g(n)}| ≥ k ∨ |{v ∈ B \ {b0 } : |Rv | < g(n)}| ≥ k    < 2q .
+
+           So at least one graph G must have < k small routing programs in both parts of the graph
+       (excluding special vertices a0 and b0 ):
+            ∀(T , R, L), Sat(G, R, L, T ) →
+                                                
+               v ∈ A \ {a0 } : |Rv | < g(n) < k ∧ v ∈ B \ {b0 } : |Rv | < g(n)   < k.
+            It follows that the number of large programs must exceed n − 2 − 2k ≥ cn.             ◀
+
+          We note that it’s not true that all nodes must store Ω(n) bits of information. One can
+       choose a node v and include in the label for each node u v’s port toward u. This adds
+       O(log n) bits to each node label and v can have constant size state.
+
+        3      Lower bounds with adversarial port numbers
+       3.1     Stretch < 3
+       We will now prove an obvious fact which we haven’t seen elsewhere: if the port assignment
+       T are adversarially chosen and node labels are not, then some node must have Ω(n log n)
+       bits of state. Note the additional log n factor compared to the previous theorems. This
+       implies that the trivial shortest paths routing scheme has optimal space up to a constant.
+       Our main theorem in this section is strictly more general; however, this smaller result serves
+       as a warmup and also lets us prove an Ω(n log n) bit space lower bound for any constant
+       fraction of nodes, similar to theorem 3.
+       ▶ Theorem 4. There exists a function f (n) ∈ Ω(n log n) such that if node labels have size
+       ≤ f (n) bits, then there exists an unweighted graph with n nodes for which any routing scheme
+       with adversarial port assignment and stretch < 3 contains a routing program of size Ω(n log n)
+       bits.
+A. Zinovyev                                                                                           37:9
+
+
+Proof. Let n = 2q (for odd n the proof is similar) and define f (n) = log(q!)
+                                                                          2    ∈ Ω(n log n).
+We consider only one graph G = Kq,q , a full bipartite graph with parts of size q, and vary
+the port assignments T . Let T̃ be the set of all possible port assignments for G. Then
+|T̃ | = (q!)n .
+      Because the stretch must be less than 3, routing from a node u in one part of G to a
+node v in the other part must traverse the edge {u, v}. Thus if we fix the node labels L,
+every port assignment T requires a distinct routing scheme R. Then if node labels L are
+varied, same routing scheme R can support at most 2(f (n)+1)n port assignments:
+
+                                       ≤ 2(f (n)+1)n .
+      
+       T ∈ T̃ : ∃L, Sat(G, R, L, T )
+
+Then there must be at least
+        |T̃ |             (q!)n
+                  =    log(q!)
+    2(f (n)+1)n       ( 2 +1)n
+                      2
+distinct routing schemes to support all possible port assignments.
+    Since
+           (q!)n                   log(q!)    
+    log log(q!)     = n log(q!) −           + 1 n ∈ Ω(n2 log n),
+       2( 2 +1)n                       2
+
+some routing program must have size Ω(n log n) bits.                                          ◀
+
+   Using the techniques in the proof of theorem 3, one can prove this space lower bound for
+any constant fraction of nodes.
+
+▶ Theorem 5. For any 0 < c < 1 there exist functions f (n), g(n) ∈ Ω(n log n) (f depends
+on c) such that if node labels have size ≤ f (n) bits, then there exists an unweighted graph
+with n nodes for which any routing scheme with adversarial port assignment and stretch < 3
+contains ≥ cn routing programs of size ≥ g(n) bits.
+
+3.2     Stretch < 2k + 1
+We would like to show for any integer k ≥ 1 that when port assignment is adversarial, the
+                                                                                    1      
+worst case per-node space complexity of a routing scheme of stretch < 2k + 1 is Ω n k log n .
+We are able to show this only assuming a well-known girth conjecture by Erdős.
+
+▶ Definition 6. We say that an unweighted undirected graph G has girth s if and only if all
+cycles in G have length ≥ s.
+
+▶ Definition 7. For any integers s, n ≥ 1, define Ms (n) to be the largest m such that there
+exists a graph with n vertices, m edges and girth s.
+                                                         1
+    It is known that any graph with n nodes and n1+ k edges must have       a cycle of length at
+                                     1                                 1
+most 2k. So, M2k+2 (n) ∈ O n1+ k . However, M2k+2 (n) ∈ Ω n1+ k has only been proven
+for k = 1, 2, 3, 5; for other k it remains an open question. Also, M2k+1 (n) ∈ Θ M2k+2 (n)
+since any graph with n vertices, m edges and girth 2k + 1 must contain a bipartite subgraph
+with ≥ m  2 edges (which necessarily has girth 2k + 2). For an overview of the best known
+lower bounds for Ms (n), refer to [16]. We note that most constructions of large graphs with
+some fixed girth rely on finite fields, and the number of vertices n is thus required to be some
+polynomial of a prime or a prime power. To prove a lower bound for all sufficiently large n,
+and thus justify the use of Ω, one can employ Bertrand’s postulate which states that for all
+
+
+
+                                                                                                    DISC 2022
+37:10   Space-Stretch Tradeoff in Routing Revisited
+
+
+        natural numbers i, pi+1 < 2pi , where pi is the i-th prime number. Justification of Ω easily
+        follows from here: given an integer n, we construct a dense large girth graph with pi vertices
+        where n2 < pi ≤ n, and add missing n − pi vertices along with n − pi edges keeping the final
+        graph connected.
+                                                           1
+            Having a graph G with n vertices and Ω n1+ k edges lets us show that there must be
+                     1+ 1
+        at least 2Ω(n k log n) routing schemes to satisfy all possible node labels T for G. Hence, at
+                                        1
+        least some node must use Ω n k log n bits of space in the worst case. Weaker lower bounds
+        for M2k+2 (n) give corresponding weaker results.
+
+        ▶ Theorem 8. Let k ≥ 1 be an integer constant. If port numbers are adversarially chosen,
+        m
+         n is sufficiently large, there exists a graph with n vertices, m edges and girth 2k + 2, and all
+        node labels have size ≤ L = 16k  1
+                                            · log m   m
+                                                  n · n − 1, then there also exists a port assignment T
+        for G such that any routing scheme for (G, T ) of stretch < 2k + 1 requires 32k     1
+                                                                                              · log m   m
+                                                                                                    n · n
+        bits of space at some node.
+
+        Proof. Let G = (V, E) be a graph with n vertices, m edges and girth 2k + 2, where V = [n].
+        For any pair of neighbors {x, y} ∈ E, the route from x to y chosen by a routing scheme of
+        stretch < 2k + 1 must be of length ≤ 2k. Therefore, during routing from x to y, x must send
+        the packet to y, most likely as the last step; otherwise, there would be a cycle in G of length
+        ≤ 2k + 1 which violates the girth requirement. This doesn’t, however, mean that routing
+        from x to y must take the shortest path. x might send the message to some other neighbor z
+        which returns the message to x (with a modified header) which now sends the message to y.
+        In general, if you trace the message from x to y, the visited nodes and traversed edges form
+        an arbitrary tree (see figure 1).
+
+                                                                    2
+
+
+
+
+                                                                            3
+
+
+
+
+                                       1                                    4
+
+
+
+
+                                             6                          5
+                            x
+
+
+
+
+                                                 7
+
+
+
+
+                                                          y
+
+
+
+           Figure 1 Routing with stretch < 2k + 1 in a graph with girth 2k + 2.
+
+            We consider only a single graph G and all possible port assignments T for G. Define
+                                                                                       Qn
+        mi = deg(i). Then the number of all possible port assignments for G is i=1 mi !. As
+        in theorem 2, we will argue that any routing scheme cannot satisfy many distinct port
+        assignments.
+            Fix the node labels L (as the proof of theorem 2 shows, they do not have much of an
+        effect) and a routing scheme R. Here is the main idea of the proof. Take any pair of neighbors
+        {x, y} ∈ E. Then the port p = Rx (y, 0)2 through which x will send the message toward y is
+A. Zinovyev                                                                                           37:11
+
+
+determined. The neighbor behind port p can be arbitrary, but if we fix it, say z, and we fix
+z’s port to x, then the next hop is determined and the next out port through which z will
+forward the message will also be determined. We can keep tracing the packet through the
+network fixing the ports along the way. Eventually, however, node x must send the packet to
+node y, and this is where we can “extract” a port assignment from the routing programs.
+Hence, the routing scheme must “store” approximately every 4k-th port assignment.
+    To formalize this argument, we describe a program that, given node labels L, a routing
+scheme R, port assignment on vertices with small degrees S = x ∈ V : mx < m        n , and a
+bit string, can recover the port assignment T on all vertices. The program will iteratively
+pick neighbor vertices x and y such that the port at x toward y is undefined, and try to
+simulate the routing as in the example above reading the number of hops until the edge
+{x, y} is traversed and unknown port assignments along the path from the bit string. We
+will then argue that this bit string does not need to be long, which intuitively implies that
+the routing scheme R must contain much information.
+    The program will work with a list of partial functions, one for each vertex, signifying
+which ports have already been fixed. Denote the set of all possible such lists by P, and define
+P⃗ ∈ P if and only if P⃗ = (P1 , P2 , ..., Pn ) where each Pi ⊆ [mi ] × N (i) such that for each
+p ∈ [mi ] there is at most one j such that (p, j) ∈ Pi and for each j there is at most one p
+such that (p, j) ∈ Pi .
+    We now formally describe the program which has access to L = {li }i∈[n] , R = {Ri }i∈[n]
+and P⃗ such that ∀i ∈ S, |P⃗i | = mi and ∀i ∈ V \ S, |P⃗i | = 0, and reads bits from the input bit
+string.
+   while ∃x ∈ [n], |P⃗x | < mx do
+      X ← {i ∈ [n] : |P⃗i | < mi }
+     M ← max{mi : i ∈ X}
+     x ← min{i ∈ X : mi = M }
+     y ← min{i ∈ N (x) : (P⃗x )−1 (i) is undefined}
+     r ← read ⌈log(2k − 1)⌉-bit number                             ▷ read the number of hops
+     h ← ly
+     pin ← 0
+     for r times do
+         pout ← Rx (h, pin )2
+         h ← Rx (h, pin )1
+         if P⃗x (pout ) is undefined then
+             i ← read ⌈log mx ⌉-bit number ▷ read the “ID” of the neighbor behind port pout
+             P⃗x ← P⃗x ∪ {(pout , N (x)(i))}           ▷ update the known port assignments
+         end if
+         z ← P⃗x (pout )                                                  ▷ next visited node
+         if (P⃗z )−1 (x) is undefined then
+             p ← read ⌈log mz ⌉-bit number      ▷ read the port we are entering through at z
+             P⃗z ← P⃗z ∪ {(p, x)}
+         end if
+         pin ← (P⃗z )−1 (x)
+         x←z
+     end for
+     pout ← Rx (h, pin )2
+     P⃗x ← P⃗x ∪ (pout , y)                            ▷ learn this port assignment “for free”
+  end while
+  return P⃗
+
+
+                                                                                                     DISC 2022
+37:12   Space-Stretch Tradeoff in Routing Revisited
+
+
+           We will now bound the length of the bit string needed for this program to run correctly.
+        The following outer loop invariant is claimed: if b is the number of bits read so far, then
+                 X                            1          
+           b≤         P⃗i · ⌈log(2k)⌉ + 1 −       ⌈log mi ⌉ .
+                                              4k
+                i∈V \S
+
+            It is correct before the loop starts since b = 0. Assume it is correct after some number of
+        iterations, and let b′ be the number of bits read and P⃗ ′ be the updated port assignment at
+        the end of the iteration. We need to prove that
+                   X                              1          
+            b′ ≤         P⃗i′ · ⌈log(2k)⌉ + 1 −       ⌈log mi ⌉ .
+                                                  4k
+                i∈V \S
+
+             Let t be the number of individual port assignments discovered through reading from the
+        bit string, and let z1 , ..., zt be the nodes that own those ports. Notice that t ≤ 4k − 2 since
+        after 4k − 2 traversed ports, the next port must lead from x directly to y and we do not read
+        it from the bit string. Also notice that the degrees of the nodes z1 , ..., zt do not exceed that
+        of x, the source node. This is because the algorithm picks x with the largest degree among
+        those that have free ports. Then
+              X                                1          
+                    P⃗i′ · ⌈log(2k)⌉ + 1 −         ⌈log mi ⌉ =
+                                               4k
+           i∈V \S
+                                                              t 
+            X                              1           X                        1           
+                  P⃗i · ⌈log(2k)⌉ + 1 −        ⌈log mi ⌉ +        ⌈log(2k)⌉ + 1 −     ⌈log mzi ⌉ +
+                                           4k                i=1
+                                                                                  4k
+           i∈V \S
+                              1           
+             ⌈log(2k)⌉ + 1 −       ⌈log mx ⌉ ≥
+                              4k
+                                         t
+                                  1  X                         
+           b + ⌈log(2k)⌉ + 1 −             ⌈log mzi ⌉ + ⌈log mx ⌉ =
+                                 4k i=1
+                              t                               t
+                             X                             1 X                        
+           b + ⌈log(2k)⌉ +       ⌈log mzi ⌉ + ⌈log mx ⌉ −        ⌈log mzi ⌉ + ⌈log mx ⌉ [≥]
+                             i=1
+                                                          4k i=1
+                                                                            Pt
+        Since in this iteration of the outer loop we read ⌈log(2k − 1)⌉ +        i=1 ⌈log mzi ⌉ bits,
+
+                                      t
+                                1 X                         
+           [≥]b′ + ⌈log mx ⌉ −         ⌈log mzi ⌉ + ⌈log mx ⌉ ≥
+                               4k i=1
+                             1
+           b′ + ⌈log mx ⌉ −     (4k − 2)⌈log mx ⌉ + ⌈log mx ⌉ ≥ b′ .
+                                                             
+                            4k
+           Hence, the loop invariant holds and the algorithm reads at most a total of B bits where
+                    X                           1             X          1                     
+           B=            mi ⌈log(2k)⌉ + (1 −      )⌈log mi ⌉ ≤   mi (1 −    ) log mi + log k + 3 .
+                                               4k                        4k
+                i∈V \S                                        i∈V \S
+
+
+            Since node
+                    n labels   have size ≤ L = 16k   1
+                                                        · log m    m
+                                                              n · n − 1, the number of all possible L is
+                                       1       m
+          L+1              (L+1)n         ·log   ·m
+         2      −1 ≤ 2            = 2 16k      n    . Then, defining Sat(G, R, L, T ) true if and only if
+        R is a correct routing scheme with stretch < 2k + 1 for graph G with labels L and port
+        assignment T ,
+                                                                   1       m
+                                                                                  Y
+                                                                2 16k ·log n ·m ·   mi ! · 2B .
+             
+               T : ∃L, Sat(G, R, L, T ) ≤
+                                                                           i∈S
+A. Zinovyev                                                                                     37:13
+
+
+    Therefore, the number of routing schemes necessary to satisfy all port assignments is at
+least
+                 Qn
+                   i=1 mi !
+       1
+          ·log m
+                 ·m
+                     Q              .
+    2 16k      n    · i∈S mi ! · 2B
+   We now calculate the logarithm of this expression.
+                Qn                           Q
+                  i=1 mi !                      i∈V \S mi !
+   log 1 ·log m ·m Q                 = log 1 ·log m ·m       =
+      2 16k   n    · i∈S mi ! · 2B        2 16k     n   · 2B
+    X                1          m
+         log mi ! −        · log   · m − B[≥]
+                     16k         n
+   i∈V \S
+
+   Using Stirling’s approximation,
+       X                          1        m
+   [≥]      (mi log mi − cmi ) −     · log   ·m−B =
+                                 16k       n
+         i∈V \S
+    X                        1        m         X              1                    
+            (mi log mi − cmi ) −· log   ·m−           mi 1 −        log mi + log k + 3 =
+                            16k       n                        4k
+   i∈V \S                                      i∈V \S
+    X                         1                         1        m
+          mi log mi − c − 1 −      log mi − log k − 3 −       · log    ·m=
+                              4k                          16k        n
+   i∈V \S
+    X              1                          1        m
+            mi       log mi − c − log k − 3 −     · log   · m[≥]
+                  4k                          16k       n
+   i∈V \S
+
+   If i ∈ V \ S, then mi ≥ m
+                           n . Thus,
+          X             1     m                   1        m
+   [≥]            mi      log   − c − log k − 3 −     · log   · m[≥]
+                       4k     n                   16k       n
+         i∈V \S
+
+   Assuming m
+            n is sufficiently large,
+          X        1        m    1        m
+   [≥]               mi log   −     · log   ·m=
+                  8k        n   16k       n
+         i∈V \S
+    1         m X                1          m
+       · log    ·        mi −        · log      ·m=
+   8k         n                 16k         n
+                  i∈V \S
+    1         m          X              1         m
+       · log    · 2m −         mi −           · log     ·m≥
+   8k         n                         16k          n
+                          i∈S
+    1         m              m         1         m
+       · log    · 2m − n ·         −        · log      ·m≥
+   8k         n                n       16k          n
+    1         m          1         m
+       · log    ·m−         · log      ·m=
+   8k         n         16k        n
+     1         m
+         · log    · m.
+   16k         n
+                                                                       1
+   By lemma 1, there is a port assignment on which some node must use 16k · log m   m
+                                                                                n · n −1 ≥
+ 1        m m
+32k · log n · n bits of space.                                                           ◀
+                                                                         1
+▶ Corollary 9. Let k ≥ 1 be an integer constant. If M2k+2 (n) ∈ Ω(n1+ k ) and node labels
+                 1
+have size ≤ Ω(n k log n), then for any n there is a graph G on n nodes and a port assignment
+                                                                                      1
+T for G such that any routing scheme for (G, T ) of stretch < 2k + 1 requires Ω(n k log n)
+bits of space at some node.
+
+
+
+                                                                                               DISC 2022
+37:14   Space-Stretch Tradeoff in Routing Revisited
+
+
+         4      Known techniques require girth conjecture
+        All known proofs of lower bounds for space complexity of non-shortest path routing schemes
+        in the labeled setting, such as the ones in [14], [10] or this paper, consist of proving that
+        a large number of routing schemes are necessary to satisfy all possible graphs and port
+        assignments (if adversarially chosen). Then it follows that some graph and port assignment
+        requires a large number of bits stored at some node.
+            We note that proving that a large number of routing schemes is necessary must require
+        existence of graphs with large girth and many edges. Therefore, if one wishes to not use
+        a girth conjecture, some other technique, such as the one in [2] for the name-independent
+        setting, is needed.
+            We utilize spanners with low stretch and large girth.
+
+        ▶ Definition 10. Let G be a graph with n vertices. We call a subgraph S of G a t-spanner if
+        and only if for any two vertices u, v connected in G, dS (u, v) ≤ t · dG (u, v) (distance in S is
+        stretched at most t times compared to the distance in G).
+
+             The following lemma is proved in [6], but we provide the proof for completeness.
+
+        ▶ Lemma 11. Let G be a graph with n vertices. There exists a t-spanner S of G with girth
+        t + 2.
+
+        Proof. We construct a spanner S similarly to Kruskal’s minimum spanning tree algorithm.
+        Go through all edges in G, and for each edge {u, v}, add it to S if and only if there isn’t a
+        path between u and v in S of length ≤ t.
+            Clearly, at the end of the algorithm, for any edge {u, v} in G, dS (u, v) ≤ t. Therefore, S
+        is a t-spanner.
+            We only need to show that S has girth t + 2. Suppose during the algorithm we add an
+        edge and create a cycle of length l ≤ t + 1. Then there was already a path between the
+        endpoints of length l − 1 ≤ t, and we shouldn’t add an edge.                                  ◀
+
+        ▶ Theorem 12. Suppose n ≥ 2 and s ≥ 2 are integers, and N routing schemes are necessary
+        to satisfy all graphs with n vertices and all port assignments with stretch < s. Then
+                        N                                          log N
+        Ms+1 (n) ≥ 4log
+                      log n − 1; i.e., there exists a graph with ≥ 4 log n − 1 edges and girth s + 1.
+
+                                           N                                                 log N
+        Proof. Suppose Ms+1 (n) < 4log   log n − 1; i.e., all graphs with girth s + 1 have < 4 log n − 1
+        edges. We want to show that then less than N routing schemes are sufficient to satisfy all
+        graphs and port assignments.
+            Given a graph G and a port assignment T , we simply encode in each node’s routing
+        program its ID, an (s − 1)-spanner S of G with girth s + 1 which exists by lemma 11, and
+        the port assignment T . All this information allows for stretch s − 1 routing.
+            It is easy to see that there are at most (n2 )m graphs with n vertices and m edges. Also,
+        for each such graph there are at most (n2 )m port assignments. Therefore, the number of
+        such routing schemes is at most
+             Ms+1 (n)                             Ms+1 (n)                      Ms+1 (n)+1
+               X
+                            2 i         2 i
+                                                    X
+                                                                 4 i       n4                 −1          Ms+1 (n)+1
+                                                                                                   < n4
+                                                                
+                        n         · n         =              n         =                                                .
+               i=0                                  i=0
+                                                                                  n4 − 1
+                         Ms+1 (n)+1                                   
+                                                                        N
+                                        = 4 Ms+1 (n) + 1 log n < 4 4log
+                                                        
+           Since log n4                                              log n log n = log N, less than N
+        routing schemes can satisfy all graphs with n vertices and all port assignments with stretch
+        < s. This is a contradiction.                                                               ◀
+A. Zinovyev                                                                                            37:15
+
+
+                                                                 1+ 1
+▶ Corollary 13. Let k ≥ 1 be an integer constant. If 2Ω(n k log n) routing schemes are
+necessary to satisfy all graphs with n vertices and all port assignments with stretch < 2k + 1,
+                      1
+then M2k+2 ∈ Ω n1+ k .
+
+
+     References
+ 1   Ittai Abraham, Cyril Gavoille, and Dahlia Malkhi. Routing with improved communication-
+     space trade-off. In Rachid Guerraoui, editor, Distributed Computing, pages 305–319, Berlin,
+     Heidelberg, 2004. Springer Berlin Heidelberg. doi:10.1007/978-3-540-30186-8_22.
+ 2   Ittai Abraham, Cyril Gavoille, and Dahlia Malkhi. On space-stretch trade-offs: Lower bounds.
+     In Proceedings of the Eighteenth Annual ACM Symposium on Parallelism in Algorithms and
+     Architectures, SPAA ’06, pages 207–216, New York, NY, USA, 2006. Association for Computing
+     Machinery. doi:10.1145/1148109.1148143.
+ 3   Ittai Abraham, Cyril Gavoille, and Dahlia Malkhi. On space-stretch trade-offs: Upper bounds.
+     In Proceedings of the Eighteenth Annual ACM Symposium on Parallelism in Algorithms and
+     Architectures, SPAA ’06, pages 217–224, New York, NY, USA, 2006. Association for Computing
+     Machinery. doi:10.1145/1148109.1148144.
+ 4   Ittai Abraham, Cyril Gavoille, Dahlia Malkhi, Noam Nisan, and Mikkel Thorup. Compact
+     name-independent routing with minimum stretch. ACM Trans. Algorithms, 4(3), July 2008.
+     doi:10.1145/1367064.1367077.
+ 5   Ittai Abraham and Dahlia Malkhi. Name independent routing for growth bounded networks.
+     In Proceedings of the Seventeenth Annual ACM Symposium on Parallelism in Algorithms and
+     Architectures, SPAA ’05, pages 49–55, New York, NY, USA, 2005. Association for Computing
+     Machinery. doi:10.1145/1073970.1073978.
+ 6   Ingo Althöfer, Gautam Das, David Dobkin, Deborah Joseph, and José Soares. On sparse
+     spanners of weighted graphs. Discrete Comput. Geom., 9(1):81–100, December 1993. doi:
+     10.1007/BF02189308.
+ 7   Harry Buhrman, Jaap-Henk Hoepman, and Paul Vitányi. Optimal routing tables. In Pro-
+     ceedings of the Fifteenth Annual ACM Symposium on Principles of Distributed Computing,
+     PODC ’96, pages 134–142, New York, NY, USA, 1996. Association for Computing Machinery.
+     doi:10.1145/248052.248076.
+ 8   Shiri Chechik. Compact routing schemes with improved stretch. In Proceedings of the 2013
+     ACM Symposium on Principles of Distributed Computing, PODC ’13, pages 33–41, New York,
+     NY, USA, 2013. Association for Computing Machinery. doi:10.1145/2484239.2484268.
+ 9   Cyril Gavoille and Marc Gengler. Space-efficiency for routing schemes of stretch factor
+     three. Technical report, Laboratoire Bordelais de Recherche en Informatique, Université
+     Bordeaux, 1997. URL: https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.
+     13.5857&rep=rep1&type=pdf.
+10   Cyril Gavoille and Marc Gengler. Space-efficiency for routing schemes of stretch factor three.
+     Journal of Parallel and Distributed Computing, 61(5):679–687, 2001. doi:10.1006/jpdc.2000.
+     1705.
+11   Cyril Gavoille and Stéphane Pérennès. Memory requirement for routing in distributed networks.
+     In Proceedings of the Fifteenth Annual ACM Symposium on Principles of Distributed Computing,
+     PODC ’96, pages 125–133, New York, NY, USA, 1996. Association for Computing Machinery.
+     doi:10.1145/248052.248075.
+12   Goran Konjevod, Andréa W. Richa, and Donglin Xia. Scale-free compact routing schemes
+     in networks of low doubling dimension. ACM Trans. Algorithms, 12(3), June 2016. doi:
+     10.1145/2876055.
+13   J. Matousek. On the distortion required for embedding finite metric spaces into normed spaces.
+     Israel Journal of Mathematics, 93:333–344, 1996. doi:10.1007/BF02761110.
+14   David Peleg and Eli Upfal. A trade-off between space and efficiency for routing tables. J.
+     ACM, 36(3):510–530, July 1989. doi:10.1145/65950.65953.
+
+
+
+
+                                                                                                      DISC 2022
+37:16   Space-Stretch Tradeoff in Routing Revisited
+
+
+        15   Liam Roditty and Roei Tov. New Routing Techniques and Their Applications, pages 23–32.
+             Association for Computing Machinery, New York, NY, USA, 2015. doi:10.1145/2767386.
+             2767409.
+        16   Mikkel Thorup and Uri Zwick. Approximate distance oracles. In Jeffrey Scott Vitter, Paul G.
+             Spirakis, and Mihalis Yannakakis, editors, Proceedings on 33rd Annual ACM Symposium on
+             Theory of Computing, July 6-8, 2001, Heraklion, Crete, Greece, pages 183–192. ACM, 2001.
+             doi:10.1145/380752.380798.
+        17   Mikkel Thorup and Uri Zwick. Compact routing schemes. In Arnold L. Rosenberg, editor,
+             Proceedings of the Thirteenth Annual ACM Symposium on Parallel Algorithms and Architec-
+             tures, SPAA 2001, Heraklion, Crete Island, Greece, July 4-6, 2001, pages 1–10. ACM, 2001.
+             doi:10.1145/378580.378581.
+

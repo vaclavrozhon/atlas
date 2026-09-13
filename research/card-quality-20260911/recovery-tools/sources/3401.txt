@@ -1,0 +1,912 @@
+Synthesis from Weighted Specifications with
+Partial Domains over Finite Words
+Emmanuel Filiot
+Université libre de Bruxelles, Belgium
+efiliot@ulb.ac.be
+Christof Löding
+RWTH Aachen University, Germany
+loeding@cs.rwth-aachen.de
+Sarah Winter
+Université libre de Bruxelles, Belgium
+swinter@ulb.ac.be
+
+        Abstract
+In this paper, we investigate the synthesis problem of terminating reactive systems from quantitative
+specifications. Such systems are modeled as finite transducers whose executions are represented as
+finite words in (Σi × Σo )∗ , where Σi , Σo are finite sets of input and output symbols, respectively. A
+weighted specification S assigns a rational value (or −∞) to words in (Σi × Σo )∗ , and we consider
+three kinds of objectives for synthesis, namely threshold objectives where the system’s executions
+are required to be above some given threshold, best-value and approximate objectives where the
+system is required to perform as best as it can by providing output symbols that yield the best
+value and ε-best value respectively w.r.t. S. We establish a landscape of decidability results for
+these three objectives and weighted specifications with partial domain over finite words given by
+deterministic weighted automata equipped with sum, discounted-sum and average measures. The
+resulting objectives are not regular in general and we develop an infinite game framework to solve
+the corresponding synthesis problems, namely the class of (weighted) critical prefix games.
+
+2012 ACM Subject Classification Theory of computation → Logic and verification; Theory of
+computation → Transducers; Theory of computation → Quantitative automata
+
+Keywords and phrases synthesis, weighted games, weighted automata on finite words
+
+Digital Object Identifier 10.4230/LIPIcs.FSTTCS.2020.46
+
+Funding Emmanuel Filiot: This work is partially supported by the MIS project F451019F (F.R.S.-
+FNRS). Emmanuel Filiot is a research associate at F.R.S.-FNRS.
+
+
+    1    Introduction
+Reactive synthesis. The goal of automatic synthesis is to automatically construct programs
+from specifications of correct pairs of input and output. The goal is to liberate the developer
+from low-level implementation details, and to automatically generate programs which are
+correct by construction. In the automata-based approach to synthesis [14, 20], the programs to
+be synthesized are finite-state reactive programs, which react continuously to stimuli received
+from an environment. Such systems are not assumed to terminate and their executions are
+modeled as ω-words in (Σi Σo )ω , alternating between input symbols in Σi and output symbols
+in Σo . Specifications of such systems are then languages S ⊆ (Σi Σo )ω representing the set
+of acceptable executions. The synthesis problem asks to check whether there exists a total
+synchronous1 function f : Σω        ω
+                             i → Σo such that for all input sequences u = i0 i1 . . . , there exists
+
+
+                                                                    +
+1
+    f : Σω         ω
+          i → Σo is synchronous if it is induced by a strategy s : Σi → Σo in the sense that f (i0 i1 . . . ) =
+    s(i0 )s(i0 i1 )s(i0 i1 i2 ) . . . for all i0 i1 · · · ∈ Σω
+             © Emmanuel Filiot, Christof Löding, and Sarah Winter;
+             licensed under Creative Commons License CC-BY
+40th IARCS Annual Conference on Foundations of Software Technology and Theoretical Computer Science
+(FSTTCS 2020).
+Editors: Nitin Saxena and Sunil Simon; Article No. 46; pp. 46:1–46:16
+                    Leibniz International Proceedings in Informatics
+                    Schloss Dagstuhl – Leibniz-Zentrum für Informatik, Dagstuhl Publishing, Germany
+46:2   Synthesis from Weighted Specifications with Partial Domains over Finite Words
+
+
+       an output sequence v = o0 o1 . . . such that f (u) = v and the convolution u ⊗ v = i0 o0 i1 o1 . . .
+       belongs to S. The function f is called a realizer of S. Automatic synthesis of non-terminating
+       reactive systems has first been introduced by Church [19], and a first solution has been given
+       by Büchi and Landweber [14] when the specification S is ω-regular. In this setting, when
+       a realizer exists, there is always one which can be computed by a finite-state sequential
+       transducer, a finite-state automaton which alternates between reading one input symbol and
+       producing one output symbol. This result has sparked much further work to make synthesis
+       feasible in practice, see e.g., [31, 27, 7]. The synthesis problem is classically modeled as
+       an infinite-duration game on a graph, played by two players, alternatively picking input
+       and output symbols. One player, representing the system, must enforce an objective that
+       corresponds to the specification. Finite-memory winning strategies are in turn systems
+       that realize the specification. This game metaphor has triggered a lot of research on graph
+       games [20, Chapter 27]. There has also been a recent effort to increase the quality of
+       the automatically generated systems by enhancing Boolean specifications with quantitative
+       constraints, e.g., [5, 16, 12, 2]. This has also triggered a lot of research on quantitative
+       extensions of infinite-duration games, for example mean-payoff, energy, and discounted-sum
+       games, see, e.g., [24, 34, 22, 10, 11, 4, 29].
+
+
+       Partial-domain specifications. In the classical formulation of the synthesis problem, it
+       is required that a realizer f meets the specification for all possible input sequences. In
+       particular, if there is a single input sequence u such that u ⊗ v 6∈ S for all output sequences
+       v, then S admits no realizer. In other words, when the domain of S is partial, then S
+       is unrealizable. Formally, the domain of S is dom(S) = {u ∈ Σω        i | ∃v : u ⊗ v ∈ S}. As
+       noticed recently and independently in [1], asking that the realizer meets the specification
+       for all input sequences is often too strong and a more realistic setting is to make some
+       assumptions on the environment’s behaviour, namely, that the environment plays an input
+       sequence in the domain of the specification. This problem is called good-enough synthesis
+       in [1] and can be formulated as follows: given a specification S, check whether there exists a
+       partial synchronous function f : Σω         ω
+                                             i → Σo whose domain is dom(S), and such that for all
+       input sequence u ∈ dom(S) = dom(f ), u ⊗ f (u) ∈ S. Decidability of the latter problem is
+       entailed by decidability of the classical synthesis problem when the specification formalism
+       used to describe S is closed under expressing the assumption that the environment provides
+       inputs in dom(S). It is the case for instance when S is ω-regular, because the specification
+       S ∪ dom(S) ⊗ Σω   o has total domain and is effectively ω-regular. [1] investigates the more
+       challenging setting of S being expressed by a multi-valued (in contrast to Boolean) LTL
+       logic. More generally, there is a series of works on solving games under assumptions on the
+       behaviour of the environment [18, 6, 30, 21, 13, 2].
+
+
+       Our setting: Partial-domain weighted specifications. In this paper, motivated by the
+       line of work on quantitative extensions of synthesis and the latter more realistic setting of
+       partial-domain specifications, we investigate synthesis problems from partial-domain weighted
+       specifications (hereafter just called weighted specifications). We conduct this investigation in
+       the setting of terminating reactive systems, and accordingly our specifications are over finite
+                                                                        Q
+       words. Formally, a specification is a mapping S : (Σi .Σo )∗ → ∪{−∞}. The domain dom(S)
+       of S is defined as all the input sequences u ∈ Σ∗i such that S(u ⊗ v) ∈       Q
+                                                                                     for some v ∈ Σ∗o .
+       We consider three quantitative synthesis problems, which all consists in checking whether
+       there exists a function f computable by a finite transducer such that dom(f ) = dom(S) and
+       which satisfies respectively the following conditions:
+E. Filiot, C. Löding, and S. Winter                                                                       46:3
+
+
+     Table 1 Complexity results for weighted specifications. Here, D stands for decidable, the suffix
+-c for complete, λ for discount factor, and n for a natural number.
+
+                          Spec
+         Problem                 Sum-automata       Avg-automata        Dsum-automata
+              strict threshold    NP ∩ coNP          NP ∩ coNP               NP
+         non-strict threshold     NP ∩ coNP          NP ∩ coNP           NP ∩ coNP
+                    best-value     Ptime [3]          Ptime [3]          NP ∩ coNP
+          strict approximate     EXPtime-c [26]          D           NEXPtime for λ = 1/n
+           non-strict approx.    EXPtime-c [26]          D            EXPtime for λ = 1/n
+
+
+
+    for all u ∈ dom(S) it holds that S(u ⊗ f (u)) . t for a given threshold t ∈   Q and . ∈ {>, ≥},
+    called threshold synthesis, or
+    S(u ⊗ f (u)) = bestValS (u), that is, the maximal value that can be achieved for the input
+    u, i.e., bestValS (u) = sup{S(u ⊗ v) | v ∈ Σ∗o }, called best-value synthesis, or
+   bestValS (u) − S(u ⊗ f (u)) / r for a given threshold r ∈          Q and / ∈ {<, ≤}, called
+   approximate synthesis.
+
+    Following the game metaphor explained before, those quantitative synthesis problems
+can be formulated as two-player games in which Adam (environment) and Eve (system)
+alternatively pick symbols in Σi and Σo respectively. Additionally, Adam has the power to
+stop the game. If it does not, then Eve wins the game. Otherwise, a finite play spells a word
+u ⊗ v. For the Boolean synthesis problem, Eve has won if either u 6∈ dom(S) where S is
+the specification, or u ⊗ v ∈ S. Additionally, for the threshold synthesis problem, the value
+S(u ⊗ v) must be greater than the given threshold; for the best-value synthesis problem, it
+must be equal to bestValS (u) and for approximate synthesis it must be r-close to bestValS (u).
+
+
+Contributions. Our main contribution is a clear picture about decidability of threshold
+synthesis, best-value synthesis and approximate synthesis for weighted specifications over
+finite words defined by deterministic weighted finite automata [23], equipped with either sum,
+average or discounted-sum measure. Such automata extend finite automata with integer
+weights on their transitions, computing a value through a payoff function that combines
+those integers, with sum, average, or discounted-sum. The results (presented in Section 4)
+are summarized in Table 1. We also give an application of our results to the decidability
+of quantitative extensions of the Church synthesis problem over infinite words, for some
+classes of weighted safety specifications, which intuitively require that all prefixes satisfy a
+quantitative requirement (being above a threshold, equal to the best-value, or close to it).
+    As we explain in the related works section, some of our results are obtained via reduction
+to solving known quantitative games or to the notions of r-regret determinization for weighted
+automata. We develop new techniques to solve the strict threshold synthesis problem for
+discounted-sum specifications in NP (Theorem 9), the best-value synthesis problem for
+discounted-sum specifications in NP ∩ coNP (Theorem 12) and approximate synthesis for
+average specifications (Theorem 13), which are to the best of our knowledge new results.
+    Moreover, as our main tool to obtain our synthesis results, we introduce in Section 3 a new
+kind of (weighted) games called critical prefix games tailored to handle weighted specifications
+with partial domain of finite words. We believe these kind of games are interesting on their
+own and are described below in more detail.
+
+
+
+                                                                                                        FSTTCS 2020
+46:4   Synthesis from Weighted Specifications with Partial Domains over Finite Words
+
+
+       Critical prefix games. Following the classical game metaphor of synthesis, we design
+       weighted games into which some of our synthesis problems can be directly encoded. Those
+       games still have infinite-duration, but account for the fact that specifications are on finite
+       words and have partial domains. In particular, the quantitative constraints must be checked
+       only for play prefixes that correspond to input words of the environment which are in the
+       domain of the specification. So, a critical prefix game is defined as a two-player turn-based
+       weighted game with some of the vertices being declared as critical. When the play enters a
+       critical vertex, a quantitative requirement must be fulfilled, otherwise Eve loses. For instance,
+       critical prefix threshold games require that the payoff value when entering a critical vertex is
+       at least or above a certain threshold. We show that these threshold games are all decidable
+       for sum, average, and discounted-sum payoffs, see Theorems 3 and 4. For solving approximate
+       average synthesis, we use a reduction to critical prefix energy games of imperfect information
+       starting with fixed initial credit (the energy level must be at least zero whenever the play is
+       in a critical vertex). Without critical vertices (where the energy level must be at least zero all
+       the time) these games are known to be decidable [22]. We show that adding critical vertices
+       makes these games undecidable, in general, see Theorem 7. However, a large subclass of
+       imperfect information critical prefix energy games, sufficient for our synthesis problems, is
+       shown to be decidable, see Theorem 8.
+
+
+       Domain-safe weighted specifications. Most of our quantitative synthesis problems reduce
+       to two-player games. While we need games of different natures, they all model the fact that
+       Eve constructs a run of the (deterministic) automaton, given the input symbols provided by
+       Adam so far. By choosing outputs, Eve must make sure that this run is accepting whenever
+       the input word played by Adam so far is in the domain of S. Otherwise Adam can stop and
+       Eve loses. While this condition can be encoded in the game by enriching the vertices with
+       subsets of states (in which Eve could have been by choosing alternative output symbols),
+       this would result in an exponential blow-up of the game. We instead show that the weighted
+       automaton can be preprocessed in polynomial-time into a so called domain-safe automaton,
+       in which there is no need to monitor the input domain when playing, see Theorem 2.
+
+
+       Related works. Boolean synthesis problems for finite words have been considered in [33, 32]
+       where the specification is given as an LTL formula over finite traces. In the quantitative
+       setting, it has also been considered in [25] for weighted specifications given by deterministic
+       weighted automata. In these works however, it is the role of Eve to eventually stop the game.
+       While this makes sense for reachability objectives and planning problems, this setting does
+       not accurately model a synthesis scenario where the system has no control over the provided
+       input sequence. Our setting is different and needs new technical developments.
+           Threshold problems in quantitative infinite-duration two-player games with discounted-
+       and mean-payoff measures are known to be solvable in NP ∩ coNP [4, 34]. Our threshold
+       synthesis problems all directly reduce to critical prefix threshold games with corresponding
+       payoff functions. The latter games, for sum and average, are shown to reduce to mean-payoff
+       games, so our NP ∩ coNP upper-bound follows from [34]. For critical prefix discounted-sum
+       games with a non-strict threshold, we show a polynomial time reduction to infinite-duration
+       discounted sum games and hence our result follows from [4]. Such a reduction fails for
+       a strict threshold and we develop new techniques to solve critical prefix discounted-sum
+       games with strict threshold, by first showing that memoryless strategies suffice for Eve
+       to win, and then by showing how to check in PTime whether a memoryless strategy is
+       winning for Eve. The latter result actually shows how to test in PTime whether there exists,
+E. Filiot, C. Löding, and S. Winter                                                                                      46:5
+
+
+in a weighted graph, a path from a source to a target vertex of discounted-sum greater
+or equal to some given threshold. This result entails that the non-emptiness problem for
+non-deterministic discounted-sum max-automata2 is solvable in PTime (Theorem 6). To
+the best of our knowledge, up to now this problem is only known to be in PSpace for the
+subcase of functional discounted-sum automata [25, 9].
+    As we show, the best-value synthesis problems correspond to zero-regret determinization
+problems for non-deterministic weighted automata, i.e., deciding whether there is a non-
+determinism resolving strategy for Eve that guarantees the same value as the maximal value of
+an accepting run in the non-deterministic weighted automaton. Such a problem is in PTime
+for sum-automata [3] and the average case easily reduces to the sum-case. For discounted-sum,
+zero-regret determinization is known to be decidable in NP for dsum-automata over infinite
+words [29]. We improve this bound to NP ∩ coNP for finite words.
+    Finally, approximate synthesis corresponds to a problem known as r-regret determinization
+of non-deterministic weighted automata. For sum-automata, it is known to be ExpTime-
+complete [26]. For average-automata, there is no immediate reduction to the sum case,
+because the sum value computed by an r-regret determinizer can be arbitrarily faraway
+from the best sum, while its averaged value remains close to the best average. Instead,
+we show a reduction to the new class of partial observation critical prefix energy games.
+For dsum-automata over infinite words, total domain and integral discount factor, r-regret
+determinization is known to be decidable [29]. Our setting does not directly reduce to this
+setting, but we use similar ideas.
+
+    2    Preliminaries
+Languages and relations. Let              N
+                                       be the set of non-negative integers. Let Σ be a finite
+alphabet. We denote by Σ∗ , respectively Σω , the set of finite, respectively infinite, words
+over Σ, and Σ+ the set of non-empty finite words over Σ. The empty word is denoted by ε.
+A language over Σ is a set of words over Σ. A (binary) relation R is a subset of Σ∗i × Σ∗o , i.e.,
+a set of pairs of words. Its domain is the set dom(R) = {u | ∃v : (u, v) ∈ R}. Given a pair of
+words, we refer to the first (resp. second) component as input (resp. output) component, the
+alphabets Σi and Σo are referred to as input resp. output alphabet. We let Σio = Σi ∪ Σo .
+
+Automata. A nondeterministic finite state automaton (NFA) is a tuple A = (Q, qi , Σ, ∆, F ),
+where Q is a finite state set, qi ∈ Q is the initial state, Σ is a finite alphabet, ∆ ⊆ Q × Σ × Q
+is a transition relation, and F ⊆ Q is a set of final states. A run of the automaton on a word
+w = a1 . . . an is a sequence ρ = τ1 . . . τn of transitions such that there exist q0 , . . . , qn ∈ Q
+such that τj = (qj−1 , aj , qj ) for all j. A run on ε is a single state. A run is accepting
+if it begins in the initial state and ends in a final state. The language recognized by the
+automaton is defined as L(A) = {w | there is an accepting run of A on w}. The automaton
+is deterministic (a DFA) if ∆ is given as a partial function δ : Q × Σ → Q.
+
+Transducers. A transducer is a tuple T = (Q, qi , Σi , Σo , δ, F ), where Q is a finite state
+set, qi ∈ Q is the initial state, Σi and Σo are finite alphabets, δ : Q × Σi → Σo × Q
+is a transition function, and F ⊆ Q is a set of final states. A transition is also denoted
+as a tuple for convenience. A run is either a non-empty sequence of transitions ρ =
+(q0 , u1 , v1 , q1 )(q1 , u2 , v2 , q2 ) . . . (qn−1 , un , vn , qn ) or a single state. The input (resp. output) of
+
+
+2
+    i.e., checking whether there exists a word with value greater or equal to some threshold, where the value
+    is defined by taking the max over all accepting runs.
+
+
+
+                                                                                                                       FSTTCS 2020
+46:6   Synthesis from Weighted Specifications with Partial Domains over Finite Words
+
+
+                                                                                                        u|v
+       ρ is u = u1 . . . un (resp. v = v1 . . . vn ) if ρ ∈ ∆+ , both are ε if ρ ∈ Q. We denote by p −−→ q
+       that there exists a run from p to q with input u and output v. A run is accepting if it starts
+       in the initial and ends in a final state. The partial function recognized by the transducer is
+                                                                                              u|v
+       fT : Σ∗i → Σ∗o defined as fT (u) = v if there is an accepting run of the form p −−→ q.
+
+       Weighted automata. Let n > 0. Given a finite sequence φ = j1 . . . jn of integers,
+       and a discount factor λ ∈
+                     Pn
+                                       Q      such that 0 < λ < 1, we define the following functions:
+                                                 Sum(φ)              Pn      i
+       Sum(φ) =        i=1 j i ,   Avg(φ)    =     n    , Dsum(φ) =     i=1 λ ji if φ is non-empty and
+       Sum(φ) = Avg(φ) = Dsum(φ) = 0 otherwise. Let V ∈ {Sum, Avg, Dsum}. A weighted
+       V -automaton (WFA) is a tuple A = (Q, Σ, qi , ∆, F, γ), where (Q, Σ, qi , ∆, F ) is a classical de-
+                                                            Z
+       terministic finite state automaton, and γ : δ → is a weight function. Its recognized language,
+       etc., is defined as for classical finite state automata. The value V (ρ) of a run ρ = τ1 . . . τn is
+       defined as V (γ(τ1 ) . . . γ(τn )) if ρ is accepting and −∞ otherwise. The value A(w) of a word
+       w is given by the total function, called the function recognized by A, A : Σ∗ → ∪ {−∞}       Q
+       defined as w 7→ V (ρ), where ρ is the run of A on w, that is, the value of a word is the value
+       of its accepting run, or −∞ if there exists none.
+
+       Weighted specifications. A weighted specification is a total function S : (Σi Σo )∗ → ∪           Q
+       {−∞} recognized by a WFA A. Note that by our definition, A is deterministic by default.
+       Given u = u1 . . . un ∈ Σ∗i and v = v1 . . . un ∈ Σ∗o , u⊗v denotes its convolution u1 v1 . . . un vn ∈
+       (Σi Σo )∗ . We usually write S(u ⊗ v) instead of S(u1 v1 . . . un vn ). The relation (or Boolean
+       specification) of S, denoted by R(S), is given by the set of pairs that are mapped to a rational
+       number, i.e., R(S) = {(u, v) | S(u ⊗ v) > −∞}. We usually write u ⊗ v ∈ S instead of (u, v) ∈
+       R(S). The domain of S, denoted by dom(S), is defined as {u ∈ Σ∗i | ∃v ∈ Σ∗o : u ⊗ v ∈ S}. If
+       a weighted specification is given by some V -automaton, we refer to it as V -specification.
+
+       Quantitative synthesis problems. The (Boolean) synthesis problem asks, given a weighted
+       specification S, whether there exists a partial function f : Σ∗i → Σ∗o defined by a transducer
+       with dom(f ) = dom(S) such that u ⊗ f (u) ∈ S for all u ∈ dom(f ).
+           We define three quantitative synthesis problems that pose additional conditions, we only
+       state the additions. The threshold synthesis problem additionally asks, given a threshold
+            Q
+       ν ∈ , and . ∈ {>, ≥}, that S(u ⊗ f (u)) . ν for all u ∈ dom(f ). The best-value synthesis
+       problem additionally asks that S(u⊗f (u)) = bestValS (u), where bestValS (u) = sup{S(u⊗v) |
+       u ⊗ v ∈ S} for all u ∈ dom(f ). The approximate synthesis problem additionally asks, given a
+                       Q
+       threshold ν ∈ , and / ∈ {<, ≤}, that bestValS (u) − S(u ⊗ f (u)) / ν for all u ∈ dom(f ).
+           In these settings, if such a function f exists, it is called S-realization, a transducer that
+       defines f is called S-realizer, and is said to implement an S-realization. A transducer whose
+       implemented function f only satisfies the Boolean condition is called Boolean S-realizer.
+
+       I Example 1. Let Σi = {a, b} and Σo = {c, d}, and consider the weighted specification S
+       defined by the following automaton A.
+
+                                                    c| − 2      b|0      d|12
+
+                                             d|2      a|0
+                                           d|2        b|0       d|4
+
+                                           a|0
+E. Filiot, C. Löding, and S. Winter                                                                         46:7
+
+
+Clearly, S has a Boolean realizer (infinitely many, in fact). First, we view A as a Sum-
+automaton. There exists a realizer that ensures a value of at least 6, for example, the
+transducer that always outputs d. There exists no best-value realizer. To see this, we look at
+the maximal values. We have bestVal(b) = 12, bestVal(ab) = 10, and bestVal(ai b) = 2i + 4
+for i > 1. The maximal value for ab is achieved with cd and the maximal value for aaab
+with dddd. So, the first output symbol depends on the length of the input word, which is
+unknown to a transducer when producing the first output symbol. However, there exists an
+approximate realizer for the non-strict threshold 4: the transducer that outputs c solely for
+the first a. The difference to the maximal value is 0 for the inputs b and ab, and 4 for all
+other inputs. Secondly, we view A as an Avg-automaton. With the same argumentation as
+for Sum, it is easy to see that there exists no best-value realizer, there exists an approximate
+realizer for the non-strict threshold 23 : the transducer that outputs c solely for the first a.
+                                                                             2
+The difference to the maximal value is 0 for the inputs b and ab, and i+1        for inputs of the
+       i
+form a b for i > 1. Note that the difference decreases with the input length unlike for Sum.
+
+
+Boolean synthesis and domain-safe automata. The quantitative synthesis problems that
+we have defined, ask for Boolean realizers that additionally satisfy a quantitative condition.
+We start by showing that a weighted specification A can be preprocessed in polynomial time
+such that dealing with the Boolean part becomes very simple. Basically, we remove all parts
+of A that cannot be used by a Boolean realizer. We call the result of this preprocessing
+a domain-safe weighted specification, to be defined formally below. In Section 4 we use
+domain-safe specifications.
+     Denote by dom(A) ⊆ Σ∗i the domain of the weighted specification defined by A. We can
+easily obtain an NFA (with ε-transitions) for dom(A) by removing the weights and turning
+all transitions that are labelled by an output letter into an ε-transition. We call the resulting
+NFA the domain automaton of A, and denote it by Adom . For a state q of A, we denote
+by L(Adom , q) the language of Adom accepted by runs starting in q. An output transition
+(q, a, q 0 ) of A is called domain-safe if L(Adom , q) = L(Adom , q 0 ), i.e., it does not restrict the
+language of input words that can be accepted by Adom . Otherwise, such a transition is called
+domain-unsafe. We call a weighted specification A domain-safe if it is trim, i.e., all states
+are accessible and co-accessible, and all its output transitions are domain-safe.
+     A transducer that produces an input/output pair whose run in A uses a domain-unsafe
+transition of A cannot be a Boolean realizer of A because it cannot complete all inputs
+in the domain with an output in the relation R(A). We now show that we can compute
+in polynomial time for a given weighted specification A a sub-automaton A0 of A that is
+domain-safe and has the same Boolean realizers as A. We would like to mention that there
+is a tight connection between domain-safe automata and the problem of “determinization
+by pruning” (DBP) as it is studied in [3]. The following result can also be derived from the
+proof of [3, Theorem 4.1]. Furthermore, the proof of Theorem 2 directly yields an alternative
+game-based proof of the “determinization by pruning” problem.
+
+I Theorem 2. There is a polynomial time procedure that takes as input a weighted specification
+A, and either returns “no realizer” if A does not have Boolean realizers, or, otherwise, returns
+a sub-automaton A0 of A that is domain-safe, has the same domain as A, and has the same
+Boolean realizers as A.
+
+   A direct consequence of the above theorem is that the Boolean synthesis problem is
+decidable in polynomial time.
+
+
+
+                                                                                                          FSTTCS 2020
+46:8   Synthesis from Weighted Specifications with Partial Domains over Finite Words
+
+
+        3     Critical prefix games
+
+       In this section we introduce the necessary definitions and notations regarding games. Moreover,
+       we introduce critical prefix games and establish our results for these kind of games.
+
+
+       Games. A weighted game with imperfect information is an infinite-duration two-player
+       game played on a game arena G = (V, v0 , A, E, O, w), where V is a finite set of vertices,
+       v0 ∈ V is the initial vertex, A is a finite set of actions, E ⊆ V × A × V is a labeled transition
+                                                                                     Z
+       relation, O ⊆ 2V is a set of observations that partition V , and w : E → is a weight function.
+       Without loss of generality, we assume that the arena has no dead ends, i.e., for all v ∈ V
+       there exists a ∈ A and v 0 ∈ V such that (v, a, v 0 ) ∈ E. The unique observation containing a
+       vertex v is denoted obs(v). A game with perfect information is such that O = {{v} | v ∈ V }.
+       In that case we omit O from the tuple G.
+           Games are played in rounds in which Eve chooses an action a ∈ A, and Adam chooses an
+       a-successor of the current vertex. The first round starts in the initial vertex v0 . A play π in
+                                                                                             N
+       G is an infinite sequence v0 a0 v1 a1 . . . such that (vi , ai , vi+1 ) ∈ E for all i ∈ . The prefix
+       of π up to vn is denoted π(n), its last element vn is denoted by last(π(n)). The set of all
+       plays resp. prefixes of plays in G is denoted by Plays(G) resp. Prefs(G). The observation
+       sequence of the play π is defined as obs(π) = obs(v0 )a0 obs(v1 )a1 . . . and the finite observation
+       sequence of the play prefix π(n) is obs(π(n)) = obs(v0 )a0 . . . obs(vn ). Naturally, obs extends
+       to sets of (prefixes of) plays.
+           A game is defined by an arena G and an objective Win ⊆ Plays(G) describing a set of
+       good plays in G for Eve. A strategy for Eve in G is a mapping σ : Prefs(G) → A, it is called
+       observation-based if for all play prefixes ρ, ρ0 ∈ Prefs(G), if obs(ρ) = obs(ρ0 ), then σ(ρ) = σ(ρ0 ).
+       Equivalently, an observation-based strategy is a mapping σ : obs(Prefs(G)) → A. We do not
+       formally introduce strategies for Adam, intuitively, given a play prefix and an action a, a
+       strategy of Adam selects an a-successor of its last vertex. Given a strategy σ, let Playsσ (G)
+       denote the set of plays compatible with σ in G, and Prefsσ (G) denote the set of play prefixes
+       of Playsσ (G). An Eve’s strategy σ in G is winning if Playsσ (G) ⊆ Win.
+           We now define quantitative objectives. The energy level of the play prefix π(n) is
+                    Pn                                                              Pn
+       EL(π(n)) = i=1 w((vi−1 , ai−1 , vi )), the sum value is Sum(π(n)) = i=1 w((vi−1 , ai−1 , vi )),
+       the average value is Avg(π(n)) = n1 Sum(π(n)), and the discounted-sum value is Dsum(π(n)) =
+       Pn      i
+                                                                   P∞ i
+          i=1 λ w((vi−1 , ai−1 , vi )), and we let Dsum(π) =           i=1 λ w((vi−1 , ai−1 , vi )) (we do not
+       explicitly mention the discount factor λ in this notation because it is always clear from the
+       context).
+           The energy objective in G is parameterized by an initial credit c0 ∈          N     and is given by
+                                                 N
+       PosEnG (c0 ) = {π ∈ Plays(G) | ∀i ∈ : c0 + EL(π(i)) ≥ 0}. It requires that the energy
+       level of a play never drops below zero when starting with initial energy level c0 . The
+       fixed initial credit problem for imperfect information games asks whether there exists an
+       observation-based winning strategy for Eve for the objective PosEnG (c0 ). The discounted-sum
+                                                                    Q
+       objective in G is parameterized by a threshold ν ∈ , and . ∈ {>, ≥}. It is given by
+       DS.G (ν) = {π ∈ Plays(G) | Dsum(π) . ν} and requires that the discounted-sum value of a play
+       is greater than resp. at least ν. The discounted-sum game problem asks whether there exists
+       a winning strategy for Eve for the objective DS.G (ν).
+           A game with perfect information is a special case of an imperfect information game.
+       Classically, instead of using the above model with full observation, a (weighted) perfect
+       information game, simply called game, is defined over an arena (V, V∃ , v0 , E, w), where the
+       set of vertices V is partitioned into V∃ and V \ V∃ , the vertices belonging to Eve and Adam,
+E. Filiot, C. Löding, and S. Winter                                                                            46:9
+
+
+respectively, v0 ∈ V is the initial vertex, E ⊆ V × V is a transition relation, and w : E →             Z
+is a weight function. In a play on such a game arena, Eve chooses a successor if the current
+vertex belongs to her, otherwise Adam chooses. For games with perfect information the two
+models are equivalent and we shall use both.
+
+Critical prefix games. A critical prefix game is a game, where the winning objective is
+parameterized by a set C ⊆ V of critical vertices, and a set of play prefixes W ⊆ Prefs(G). Its
+objective is defined as CritC,W (G) = {π ∈ Plays(G) | ∀i last(π(i)) ∈ C → π(1) . . . π(i) ∈ W }.
+The idea of a critical prefix game is that the state of a play is only relevant whenever the
+play is in a critical vertex. For convenience, in the case of critical prefix games, we also refer
+to the set W as objective.
+    The threshold problem for critical prefix games asks whether there exists a winning strategy
+for Eve for the objective CritC,W (G), where W is of the form ThresVG. (ν) = {ϕ ∈ Prefs(G) |
+                                                    Q
+V (ϕ) . ν} parameterized by a threshold ν ∈ , . ∈ {>, ≥}, and V ∈ {Sum, Avg, Dsum}.
+    The initial credit problem for critical prefix imperfect information energy games asks
+whether there exists an observation-based winning strategy for Eve for the objective
+CritC,W (G), where W is of the form PrefPosEnG (c0 ) = {ϕ ∈ Prefs(G) | c0 + EL(ϕ) ≥ 0}
+parameterized by an initial credit c0 ∈ .     N
+I Theorem 3. The threshold problem for critical prefix games for V ∈ {Sum, Avg} and a
+strict or non-strict threshold is decidable in NP ∩ coNP. Moreover, positional strategies are
+sufficient for Eve to win such games.
+
+Proof sketch. For Sum and Avg and a strict or non-strict threshold, the critical prefix
+threshold games reduce to mean-payoff games which are solvable in NP ∩ coNP [34].
+Positional strategies suffice for mean-payoff games, a winning strategy in the constructed
+mean-payoff game directly yields a positional winning strategy in the critical prefix threshold
+game.                                                                                        J
+
+I Theorem 4. The threshold problem for critical prefix games for Dsum and a strict resp.
+non-strict threshold is decidable in NP resp. NP ∩ coNP. Moreover, positional strategies
+are sufficient for Eve to win such games.
+
+    To prove the above theorem, we first show a result on weighted graphs which is interesting
+in itself.
+
+I Lemma 5. Given a weighted graph G, a source vertex v0 ∈ V , a target set T ⊆ V and a
+                 Q
+threshold ν ∈ , checking whether there exists a path π from v0 to some vertex v ∈ T such
+that Dsum(π) ≤ ν can be done in Ptime.
+
+    Lemma 5 can be used to show that the ≥ ν-non-emptiness problem for nondeterministic
+discounted-sum automata3 can be checked in Ptime, a result which is, to the best of
+our knowledge, new. It was known to be in PSpace for unambiguous discounted-sum
+automata [25, 9]. This problem asks for the existence of a word of value greater or equal than
+a given threshold ν. Since the value of a word is the maximal value amongst its accepting
+runs, it suffices to check for the existence of a run from the initial state to an accepting state
+of discounted-sum value ≥ ν. By inverting the weights, the latter is equivalent to checking
+
+
+3
+    In contrast to deterministic weighted automata, there might be serveral accepting runs on an input and
+    the value of the word is defined as the maximal value of its accepting runs [25, 28].
+
+
+
+
+                                                                                                             FSTTCS 2020
+46:10   Synthesis from Weighted Specifications with Partial Domains over Finite Words
+
+
+        whether there exists a run from the initial state to an accepting state of discounted-sum
+        value ≤ −ν. By seeing the (inverted) discounted-sum automaton as a weighted graph, the
+        latter property can be checked in Ptime by Lemma 5, thus proving the following theorem.
+
+        I Theorem 6. The ≥ ν non-emptiness problem is decidable in PTime for nondeterministic
+        discounted-sum automata.
+
+             We now go back to the proof of Theorem 4.
+
+
+        Proof sketch of Theorem 4. For Dsum, and a non-strict threshold, the problem can be
+        directly reduced to discounted-sum games which are solvable in NP ∩ coNP [4].
+            For Dsum, and a strict threshold, such a reduction fails. To solve the problem, we first
+        show that positional strategies are sufficient for Eve to win in a critical prefix threshold
+        discounted-sum game (for strict and non-strict thresholds). The NP-algorithm guesses a
+        positional strategy σ for Eve, and then verifies in polynomial time whether σ is winning. Let
+        G0 be the game restricted to Eve’s σ-edges, seen as a weighted graph. The strategy σ is not
+        winning iff Adam can form a path in G0 from the initial vertex to a critical vertex that has
+        weight ≤ ν. This property can be checked in Ptime thanks to Lemma 5 (by taking as target
+        set the set of critical vertices).                                                         J
+
+
+             The following is shown by reduction from the halting problem for 2-counter machines.
+
+        I Theorem 7. The fixed initial credit problem for imperfect information critical prefix energy
+        games is undecidable.
+
+           The above result contrasts the fixed initial credit problem for imperfect information
+        energy games which is decidable [22].
+
+        I Theorem 8. The fixed initial credit problem for imperfect information critical prefix energy
+        games is decidable if from each vertex Adam has a strategy to reach a critical vertex against
+        observation based strategies. Moreover, finite-memory strategies are sufficient for Eve to win.
+
+        Proof sketch. This problem is reduced to the fixed initial credit problem for imperfect
+        information energy games which is decidable [22]. In classical energy games, Eve loses as
+        soon as the energy goes below zero. The idea of the reduction is that if in the critical prefix
+        energy game the initial credit is c0 , then in the classical energy game we start the game with
+        an additional buffer, i.e., with c0 + B, for some computable bound B. In the critical prefix
+        energy game, if the energy level drops below −B Adam can force to visit a critical vertex
+        such that the energy level can rise by at most B, ensuring that a critical vertex is visited
+        with energy level below zero. Thus, the additional buffer B suffices in the classical energy
+        game.                                                                                        J
+
+
+         4      Synthesis problems
+
+        Here, we solve the quantitative synthesis problems defined in Section 2. Recall that weighted
+        specifications are given by weighted automata that alternate between reading one input and
+        one output symbol. In other words, we prove the decidability results of Table 1. We then
+        show consequences of these results to quantitative synthesis problems over infinite words.
+E. Filiot, C. Löding, and S. Winter                                                                           46:11
+
+
+Threshold synthesis problems. Since weighted specifications S are given by weighted
+automata, the synthesis problem naturally reduces to a game played on the automaton.
+In order to solve threshold synthesis problems, in contrast to best-value and approximate
+synthesis problems, it is not necessary to compare the values of runs of the specification
+automaton that have the same input sequence. Hence, it is relatively straightforward to
+reduce threshold synthesis problems to critical prefix threshold games. An important point
+needs to be taken care of due to the fact the domain of S might be partial, and therefore lead
+Eve into the following bad situation (?): Eve must choose her outputs in such a way that
+she does not go in a state of the automaton which is non-accepting, while the input word
+played by Adam so far is in the domain of S. Otherwise, the pair of input and output word
+formed would not even be in S, something which is required by the definition of synthesis
+problems. So, Eve has to monitor the domain, which is easy if the domain is total, but
+more involved if it is partial. Thanks to Theorem 2, this can be done in polynomial time.
+More precisely, we first run the algorithm of Theorem 2 which either returns that there is
+no Boolean realizer, or returns a domain-safe deterministic weighted automaton A0 which
+has the same Boolean realizers as S. By the very definition of domain-safe automata, the
+bad situation (?) described above cannot happen. Hence, Eve can freely play on A0 without
+taking care of the domain constraint. Only the quantitative constraint matters, and it has to
+be enforced whenever Eve is in an accepting state of A0 (this corresponds to the situation
+where Adam has chosen an input word in the domain of S). Hence, only accepting states
+of A0 matter for the quantitative constraint and these are declared as critical. To conclude,
+by projecting away the symbols of A0 and by declaring its accepting states to be critical,
+we obtain a critical prefix game. For the threshold synthesis problem, decidability follows
+directly from the decidability of the threshold problem for critical prefix games (Theorems 3
+and 4). For Sum- and Avg-specifications, this can be done in NP ∩ coNP. We leave open
+whether it is solvable in Ptime and show that this would also solve the long standing open
+problem of whether mean-payoff games are solvable in Ptime.
+
+I Theorem 9. The threshold synthesis problem for a V -specification with V ∈ {Sum, Avg}
+and a strict or non-strict threshold is decidable in NP ∩ coNP and PTIME-equivalent to
+mean-payoff games. The threshold synthesis problem for a Dsum-specification and a strict
+resp. non-strict threshold is decidable in NP resp. in NP ∩ coNP.
+
+
+Synthesis and regret determinization. Before we prove our results about best-value and
+approximate synthesis, we highlight the tight connection between the approximate synthesis
+problem and the so-called regret determinization problem for nondeterministic weighted
+automata4 . This problem has for instance been studied in [26] for Sum-automata and in [29]
+for Dsum-automata. We formalize this connection here. Given r ∈                  Q
+                                                                               and / ∈ {<, ≤}, a
+nondeterministic WFA A = (Q, Σ, qi , ∆, F, γ) is called r/ -regret determinizable if there exists
+a finite set of memory states M and a deterministic WFA Ar = (Q × M, Σ,            qir , ∆r , Fr , γr ),
+where qir = (qi , m) for some m ∈ M , Fr ⊆ F × M , (q, m), a, (q, m0 ) ∈ ∆r implies
+                                                                                 
+
+that (q, a, q 0 ) ∈ ∆, and γr (q, m), a, (q, m0 ) = γ((q, a, q 0 )) for all m, m0 ∈ M , such that
+L(A) = L(Ar ) and A(w) − Ar (w) / r for all w ∈ dom(L(A)). The regret determinization
+problem asks, given a nondeterministic weighted automaton A, a threshold r ∈ , and               Q
+/ ∈ {<, ≤}, whether A is r/ -regret determinizable.
+
+
+4
+    In contrast to deterministic weighted automata, there might be serveral accepting runs on an input and
+    the value of the word is defined as the maximal value of its accepting runs [25, 28].
+
+
+
+
+                                                                                                             FSTTCS 2020
+46:12   Synthesis from Weighted Specifications with Partial Domains over Finite Words
+
+
+        I Lemma 10. The approx. synthesis problem for weighted specifications reduces in linear time
+        to the regret determinization problem for nondet. weighted automata (with the same threshold).
+        The converse is true (in linear time and with the same threshold) for Sum-automata.
+            Lemma 10 is independent from any payoff function. Regarding the converse direction,
+        when going from the regret determinization problem to the approximate synthesis problem,
+        a transition (for an input symbol) must be translated into two transitions (adding an output
+        symbol). This step can cause difficulties depending on the used payoff function, e.g., Dsum.
+
+        Best-value synthesis problems. Best-value synthesis is equivalent to zero-regret synthesis,
+        which is, by Lemma 10, equivalent to zero-regret determinization of weighted automata.
+        In [9], the authors showed that if a Sum-automaton is zero-regret determinizable, then no
+        memory states are needed, i.e., a sub-automaton suffices. We give general sufficient conditions
+        on weighted finite automata (which hold for Sum-, Avg- and Dsum-automata) under which
+        the latter result can be generalized.
+                    Z      Q
+               Let V : ∗ → be a payoff function. A V -automaton defining a V -specification, where
+        V is applied to runs as usual, is called ≤-stable if for all runs ρ, ρ0 , ρ00 such that the end state
+        of ρ is the beginning state of ρ0 and ρ00 , w0 = u ⊗ v 0 , and w00 = u ⊗ v 00 for some u ∈ Σ∗i and
+        v 0 , v 00 ∈ Σ∗o , where w0 and w00 are the words associated to ρ0 and ρ00 , respectively, holds that
+        if V (ρ0 ) ≤ V (ρ00 ) then V (ρρ0 ) ≤ V (ρρ00 ).
+        I Lemma 11. Given a weighted specification S by a ≤-stable weighted automaton A, if there
+        exists a transducer that implements a best-value S-realization, then there exists a transducer
+        that implements a best-value S-realization that is defined as a sub-automaton of A.
+           While the above lemma can be used to obtain our decidability results for best-value
+        synthesis, we use other techniques to obtain the complexity results stated below.
+        I Theorem 12. The best-value synthesis problem is decidable in Ptime for Sum-specifications
+        and Avg-specifications, and in NP∩coNP for Dsum-specifications.
+        Proof sketch. For Sum, the problem reduces to the zero-regret determinization problem for
+        Sum-automata, see Lemma 10, aka the determinization by pruning problem for Sum-automata,
+        known to be decidable in Ptime in [3]. For Avg, it easily reduces to Sum by interpreting
+        the Avg-specification as a Sum-specification. For Dsum, we show that the problem reduces
+        in Ptime to a critical prefix threshold game, for non-strict threshold, which is solvable in
+        NP∩coNP by Theorem 4.                                                                     J
+
+           Alternatively, decidability for Dsum can be obtained by reduction to the zero-regret
+        determinization problem for Dsum-automata over infinite words which was shown to be
+        decidable in NP in [29, Theorem 6]. However, our techniques allow us to get NP∩coNP.
+
+        Approximate synthesis problems. We now turn to the approximate synthesis problems
+        and show its decidability for Sum and Avg. We leave the decidability status open for Dsum,
+        but nevertheless show decidability for a large class, namely when the discount factor is of
+                               N
+        the form n1 for n ∈ . Nondeterministic Dsum-automata in this class have been considered
+        in [8] and shown to be determinizable.
+        I Theorem 13. The approximate synthesis problem is
+           EXPtime-complete for Sum-specifications and strict or non-strict thresholds;
+           decidable and EXPtime-hard for Avg-specifications and strict or non-strict thresholds;
+           in NEXPtime (resp. EXPtime) for Dsum-specifications with a discount factor λ of the
+                               N
+           form n1 with n ∈ and strict (resp. non-strict) thresholds.
+E. Filiot, C. Löding, and S. Winter                                                                         46:13
+
+
+Proof sketch. For Sum, we reduce the problem to r-regret determinization of Sum-automata,
+known to be EXPtime-complete, using the back-and-forth connection given by Lemma 10.
+     For an Avg-specifications S, it is worth noting that even though r-approximate synthesis
+reduces to r-approximate synthesis for Sum when r = 0, interpreting S as a Sum-specification,
+this reduction is wrong for r > 0 in general. It is because in an Avg-specification, Eve can
+deviate more and more from the best sum, while the average of this difference can stay
+low. We instead rely on a reduction to critical prefix energy games of imperfect information
+and fixed initial credit (which falls into the decidable subclass of Theorem 8). Intuitively,
+in this game, Adam constructs a run ρ on a pair of words (u, v) and Eve constructs a run
+ρ0 on some (u, v 0 ). She only sees u and not ρ. The energy level of such a play is set to
+Sum(ρ0 ) + |uv| · r − Sum(ρ) and must be positive whenever Adam reaches an accepting state.
+ExpTime-hardness is perhaps the most technical result of the paper, and is a non-trivial
+adaptation of reduction from countdown games used to show ExpTime-hardness of the
+regret determinization of Sum-automata [26].
+     Finally, for Dsum, we use that by projecting away the output in the Dsum-automaton
+defining the specification, we obtain a nondeterministic weighted automaton which is deter-
+minizable by [8]. This allows us to reduce the problem to the threshold synthesis problem for
+Dsum, which is decidable by Theorem 9. To obtain the complexity results, we first analyze
+the determinization procedure. It yields an automaton whose states are exponential in the
+number of states and polynomial in the weights of the nondeterministic one. Its weights are
+polynomial in the weights of the nondeterministic one. For a strict threshold, the claimed
+complexity bound follows directly from Theorem 9. For a non-strict threshold, we use that
+critical prefix threshold games are reduced in polynomial time to discounted-sum games.
+Using value iteration [34] to solve discounted-sum games yields the claimed complexity bound,
+because it runs in polynomial time in the size of the arena, logarithmic in the absolute
+maximal weight of the arena, and exponential in the representation of the discount factor,
+i.e., polynomial in the discount factor.                                                   J
+
+
+Infinite words and Church synthesis. An ω-specification is a subset S ⊆ (Σi .Σo )ω . The
+(Church) synthesis problem asks to decide whether there exists a strategy to pick a correct
+output sequence given longer and longer prefixes of an infinite input sequence. Formally, an
+ω-specification S is said to be realizable if there exists a function λ : Σ∗i → Σo such that for
+all i1 i2 · · · ∈ Σω
+                   i , it holds that i1 λ(i1 )i2 λ(i1 i2 )i3 λ(i1 i2 i3 ) · · · ∈ S.
+    Strategies of interest are those which can be represented by a finite-state machine, and in
+particular a Mealy machine, that is, roughly, a transducer running on ω-words and without
+acceptance condition. Formally, it is a tuple M = (P, p0 , δ) such that P is a finite set of
+states with initial state p0 , and δ : P × Σi → Σo × P is a (total) transition function. The
+function δ can be extended to δ ∗ : P × Σ+        i → Σo × P as usual. Then, M defines the strategy
+λM such that for all u ∈ Σ∗i , λM (u) = π1 (δ ∗ (p0 , u)), where π1 is the first projection. It
+is well-known that when S is ω-regular (given e.g. as a parity automaton), it is decidable
+whether S is realizable [14]. Moreover, realizability implies realizability by a Mealy machine.
+
+
+Weighted safety specifications. In this paper, we go beyond ω-regular specifications, by
+considering safety ω-specifications induced by weighted specifications of finite words defined by
+                                                            Q
+deterministic weighted automata. Let W : (Σi Σo )∗ → ∪ {−∞} be a weighted specification.
+                     Q
+For a threshold t ∈ and . ∈ {>, ≥}, we define the ω-specification Thres.t (W ) = {i1 o1 · · · ∈
+(Σi .Σo )ω | ∀k ≥ 0, i1 . . . ik ∈ dom(W ) → W (i1 o1 . . . ik ok ) . t}. In words, an ω-word w is
+in Thres.t (W ) iff for all finite prefixes u = i1 o1 . . . ik ok of w, either i1 . . . ik 6∈ dom(W ) or
+
+
+
+                                                                                                           FSTTCS 2020
+46:14   Synthesis from Weighted Specifications with Partial Domains over Finite Words
+
+
+        W (u) . t. So, the quantitative condition is checked only for prefixes whose input belongs
+        to dom(W ). The ω-specification Thres.t (W ) is a safety specification 5 . More generally, any
+        set S ⊆ (Σi .Σo )∗ induces a safety ω-specification Safe(S) = {i1 o1 · · · ∈ (Σi .Σo )ω | ∀k ≥
+        0, i1 . . . ik ∈ dom(S) → i1 o1 . . . ik ok ∈ S}.
+             For example, we have the equality Thres.t (W ) = Safe({u ∈ (Σi .Σo )∗ | W (u) . t}).
+        Likewise, we define best-value and approximate safety ω-specifications. Formally, given a
+        finite word i1 . . . ik ∈ Σ∗i and / ∈ {<, ≤}, we let BestVal(W ) = Approx≤ (W, 0) where for all
+                Q
+        r ∈ ≥0 we have Approx/ (W, r) = Safe({u = i1 o1 . . . ik ok | bestValW (i1 . . . ik ) − W (u) / r}.
+        Note that the three notions of safety ω-specifications we have defined are not necessarily
+        ω-regular, even if W is given by a deterministic weighted automaton. Nevertheless, an
+        immediate consequence of the results we have obtained previously on finite words is that
+
+        I Theorem 14. The synthesis problem for an ω-specification O ⊆ (Σi .Σo )ω is decidable
+        when O is given by a deterministic V -automaton defining a weighted V -specification of finite
+        words W s.t. O ∈ {Thres>t (W ), Thres≥t (W ), BestVal(W ), Approx< (W, r), Approx≤ (W, r)}
+                                                                                       N
+        and V = Sum, V = Avg or V = Dsum with discount factor 1/n for n ∈ . Moreover, if O is
+        realizable, it is realizable by a Mealy machine.
+
+
+            5       Future work
+        In this paper, weighted specifications are defined by deterministic weighted automata.
+        Nondeterministic, even unambiguous, weighted automata, are strictly more expressive than
+        their deterministic variant in general, and in particular for Sum, Avg and Dsum. An
+        interesting direction is to revisit our quantitative synthesis problems for specifications defined
+        by nondeterministic weighted automata. Using similar ideas as the undecidability of critical
+        prefix energy games of imperfect information, it can be shown that threshold synthesis
+        becomes undecidable for unambiguous sum- and avg-specifications. The problem is open for
+        best-value and approximate synthesis, and we plan to investigate it.
+            Two other directions seem interesting as future work, both in the setting of infinite words.
+        First, natural measures in this setting are discounted-sum and mean-payoff. While the
+        threshold synthesis problems directly reduce to known results and best-value/approximate
+        synthesis for dsum has been studied in [29], nothing is known to the best of our knowledge
+        about best-value/approximate synthesis for mean-payoff. We expect the techniques to be
+        different because such a measure is prefix-independent, unlike our measures in the setting
+        of finite words. As a second direction, we have seen how our results apply to synthesis on
+        infinite words through weighted safety conditions. An interesting direction is to consider
+        such weighted requirements in conjunction with ω-regular conditions such as parity, in the
+        line of [17] that combines energy and parity objectives in games.
+
+
+                References
+            1   Shaull Almagor and Orna Kupferman. Good-enough synthesis. In International Conference
+                on Computer Aided Verification, pages 541–563. Springer, 2020.
+            2   Shaull Almagor, Orna Kupferman, Jan Oliver Ringert, and Yaron Velner. Quantitative assume
+                guarantee synthesis. In International Conference on Computer Aided Verification, pages
+                353–374. Springer, 2017.
+
+
+        5
+            A language of ω-words S is a safety language if any ω-word w whose finite prefixes u are such that
+            uvu ∈ S for some ω-word vu , belongs to S [15].
+E. Filiot, C. Löding, and S. Winter                                                                  46:15
+
+
+ 3   Benjamin Aminof, Orna Kupferman, and Robby Lampert. Reasoning about online algorithms
+     with weighted automata. ACM Trans. Algorithms, 6(2):28:1–28:36, 2010.
+ 4   Daniel Andersson. An improved algorithm for discounted payoff games. In ESSLLI Student
+     Session, pages 91–98, 2006.
+ 5   Roderick Bloem, Krishnendu Chatterjee, Thomas A Henzinger, and Barbara Jobstmann.
+     Better quality in synthesis through quantitative objectives. In International Conference on
+     Computer Aided Verification, pages 140–156. Springer, 2009.
+ 6   Roderick Bloem, Rüdiger Ehlers, and Robert Könighofer. Cooperative reactive synthesis.
+     In Bernd Finkbeiner, Geguang Pu, and Lijun Zhang, editors, Automated Technology for
+     Verification and Analysis - 13th International Symposium, ATVA 2015, Shanghai, China,
+     October 12-15, 2015, Proceedings, volume 9364 of Lecture Notes in Computer Science, pages
+     394–410. Springer, 2015.
+ 7   Roderick Bloem, Barbara Jobstmann, Nir Piterman, Amir Pnueli, and Yaniv Sa’ar. Synthesis
+     of reactive(1) designs. J. Comput. Syst. Sci., 78(3):911–938, 2012. doi:10.1016/j.jcss.2011.
+     08.007.
+ 8   Udi Boker and Thomas A. Henzinger. Exact and approximate determinization of discounted-
+     sum automata. Logical Methods in Computer Science, 10(1), 2014.
+ 9   Udi Boker, Thomas A. Henzinger, and Jan Otop. The target discounted-sum problem. In 30th
+     Annual ACM/IEEE Symposium on Logic in Computer Science, LICS 2015, Kyoto, Japan,
+     July 6-10, 2015, pages 750–761. IEEE Computer Society, 2015. doi:10.1109/LICS.2015.74.
+10   Patricia Bouyer, Uli Fahrenberg, Kim G Larsen, and Nicolas Markey. Timed automata with
+     observers under energy constraints. In Proceedings of the 13th ACM international conference
+     on Hybrid systems: computation and control, pages 61–70, 2010.
+11   Tomáš Brázdil, Petr Jančar, and Antonín Kučera. Reachability games on extended vector
+     addition systems with states. In International Colloquium on Automata, Languages, and
+     Programming, pages 478–489. Springer, 2010.
+12   Romain Brenguier, Lorenzo Clemente, Paul Hunter, Guillermo A Pérez, Mickael Randour,
+     Jean-François Raskin, Ocan Sankur, and Mathieu Sassolas. Non-zero sum games for reactive
+     synthesis. In Language and Automata Theory and Applications, pages 3–23. Springer, 2016.
+13   Romain Brenguier, Jean-François Raskin, and Ocan Sankur. Assume-admissible synthesis.
+     Acta Informatica, 54(1):41–83, 2017. doi:10.1007/s00236-016-0273-2.
+14   J Richard Büchi and Lawrence H Landweber. Solving sequential conditions finite-state
+     strategies. Trans. Ameri. Math. Soc., 138:295–311, 1969.
+15   Edward Chang, Zohar Manna, and Amir Pnueli. The safety-progress classification. In Logic
+     and Algebra of Specification, pages 143–202. Springer, 1993.
+16   Krishnendu Chatterjee and Laurent Doyen. Energy parity games. Theoretical Computer
+     Science, 458, 2012.
+17   Krishnendu Chatterjee and Laurent Doyen. Energy parity games. Theor. Comput. Sci.,
+     458:49–60, 2012. doi:10.1016/j.tcs.2012.07.038.
+18   Krishnendu Chatterjee and Thomas A. Henzinger. Assume-guarantee synthesis. In Orna
+     Grumberg and Michael Huth, editors, Tools and Algorithms for the Construction and Analysis
+     of Systems, 13th International Conference, TACAS 2007, Held as Part of the Joint European
+     Conferences on Theory and Practice of Software, ETAPS 2007 Braga, Portugal, March 24 -
+     April 1, 2007, Proceedings, volume 4424 of Lecture Notes in Computer Science, pages 261–275.
+     Springer, 2007.
+19   A Church. Applications of recursive arithmetic to the problem of circuit synthesis–summaries
+     of talks. Institute for Symbolic Logic, Cornell University, 1957.
+20   Edmund M Clarke, Thomas A Henzinger, Helmut Veith, and Roderick Bloem. Handbook of
+     model checking, volume 10. Springer, 2018.
+21   Rodica Condurache, Emmanuel Filiot, Raffaella Gentilini, and Jean-François Raskin. The
+     complexity of rational synthesis. In Ioannis Chatzigiannakis, Michael Mitzenmacher, Yuval
+     Rabani, and Davide Sangiorgi, editors, 43rd International Colloquium on Automata, Languages,
+
+
+
+
+                                                                                                    FSTTCS 2020
+46:16   Synthesis from Weighted Specifications with Partial Domains over Finite Words
+
+
+             and Programming, ICALP 2016, July 11-15, 2016, Rome, Italy, volume 55 of LIPIcs, pages
+             121:1–121:15. Schloss Dagstuhl - Leibniz-Zentrum für Informatik, 2016.
+        22   Aldric Degorre, Laurent Doyen, Raffaella Gentilini, Jean-François Raskin, and Szymon
+             Toruńczyk. Energy and mean-payoff games with imperfect information. In International
+             Workshop on Computer Science Logic, pages 260–274. Springer, 2010.
+        23   Manfred Droste, Werner Kuich, and Heiko Vogler. Handbook of weighted automata. Springer
+             Science & Business Media, 2009.
+        24   Andrzej Ehrenfeucht and Jan Mycielski. Positional strategies for mean payoff games. Interna-
+             tional Journal of Game Theory, 8(2):109–113, 1979.
+        25   Emmanuel Filiot, Raffaella Gentilini, and Jean-François Raskin. Quantitative languages
+             defined by functional automata. In CONCUR, volume 7454 of Lecture Notes in Computer
+             Science, pages 132–146. Springer, 2012.
+        26   Emmanuel Filiot, Ismaël Jecker, Nathan Lhote, Guillermo A. Pérez, and Jean-François Raskin.
+             On delay and regret determinization of max-plus automata. In LICS, pages 1–12. IEEE
+             Computer Society, 2017.
+        27   Emmanuel Filiot, Naiyong Jin, and Jean-François Raskin. Antichains and compositional
+             algorithms for LTL synthesis. Formal Methods in System Design, 39(3):261–296, 2011.
+        28   Axel Haddad and Benjamin Monmege. Why value iteration runs in pseudo-polynomial time
+             for discounted-payoff games. Technical note, Université libre de Bruxelles, 2015.
+        29   Paul Hunter, Guillermo A. Pérez, and Jean-François Raskin. Minimizing regret in discounted-
+             sum games. In CSL, volume 62 of LIPIcs, pages 30:1–30:17. Schloss Dagstuhl - Leibniz-Zentrum
+             fuer Informatik, 2016.
+        30   Orna Kupferman, Giuseppe Perelli, and Moshe Y. Vardi. Synthesis with rational environments.
+             Ann. Math. Artif. Intell., 78(1):3–20, 2016.
+        31   Orna Kupferman, Nir Piterman, and Moshe Y. Vardi. Safraless compositional synthesis.
+             In Computer Aided Verification, 18th International Conference, CAV 2006, volume 4144 of
+             Lecture Notes in Computer Science, pages 31–44. Springer, 2006.
+        32   Jianwen Li, Kristin Y. Rozier, Geguang Pu, Yueling Zhang, and Moshe Y. Vardi. Sat-
+             based explicit ltlf satisfiability checking. In The Thirty-Third AAAI Conference on Artificial
+             Intelligence, AAAI 2019, The Thirty-First Innovative Applications of Artificial Intelligence
+             Conference, IAAI 2019, The Ninth AAAI Symposium on Educational Advances in Artificial
+             Intelligence, EAAI 2019, Honolulu, Hawaii, USA, January 27 - February 1, 2019, pages
+             2946–2953. AAAI Press, 2019.
+        33   Shufang Zhu, Lucas M. Tabajara, Jianwen Li, Geguang Pu, and Moshe Y. Vardi. Symbolic
+             ltlf synthesis. In Carles Sierra, editor, Proceedings of the Twenty-Sixth International Joint
+             Conference on Artificial Intelligence, IJCAI 2017, Melbourne, Australia, August 19-25, 2017,
+             pages 1362–1369. ijcai.org, 2017.
+        34   Uri Zwick and Mike Paterson. The complexity of mean payoff games on graphs. Theoretical
+             Computer Science, 158(1-2):343–359, 1996.
+

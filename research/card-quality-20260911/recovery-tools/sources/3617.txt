@@ -1,0 +1,992 @@
+Approximate Counting of k-Paths: Deterministic
+and in Polynomial Space
+Andreas Björklund
+Lund University, Lund, Sweden
+andreas.bjorklund@cs.lth.se
+
+Daniel Lokshtanov
+University of California, Bergen, Santa Barbara, USA
+daniello@ucsb.edu
+
+Saket Saurabh
+The Institute of Mathematical Sciences, HBNI, Chennai, India
+saket@imsc.res.in
+
+Meirav Zehavi
+Ben-Gurion University, Beersheba, Israel
+meiravze@bgu.ac.il
+
+      Abstract
+A few years ago, Alon et al. [ISMB 2008] gave a simple randomized O((2e)k m−2 )-time exponential-
+space algorithm to approximately compute the number of paths on k vertices in a graph G up to
+a multiplicative error of 1 ± . Shortly afterwards, Alon and Gutner [IWPEC 2009, TALG 2010]
+                                                                              3
+gave a deterministic exponential-space algorithm with running time (2e)k+O(log k) m log n whenever
+−1 = kO(1) . Recently, Brand et al. [STOC 2018] provided a speed-up at the cost of reintroducing
+randomization. Specifically, they gave a randomized O(4k m−2 )-time exponential-space algorithm.
+In this article, we revisit the algorithm by Alon and Gutner. We modify the foundation of their
+work, and with a novel twist, obtain the following results.
+                                        √     2      2 −1
+    We present a deterministic 4k+O( k(log k+log  )) m log n-time polynomial-space algorithm. This
+    matches the running time of the best known deterministic polynomial-space algorithm for deciding
+    whether a given graph G has a path on k vertices.
+                                                                     −1
+    Additionally, we present a randomized 4k+O(log k(log k+log  )) m log n-time polynomial-space al-
+    gorithm. While Brand et al. make non-trivial use of exterior algebra, our algorithm is very
+    simple; we only make elementary use of the probabilistic method.
+Thus, the algorithm by Brand et al. runs in time 4k+o(k) m whenever −1 = 2o(k) , while our
+                                                                                                       1
+deterministic and randomized algorithms run in time 4k+o(k) m log n whenever −1 = 2o(k 4 ) and
+       o( k )
+−1 = 2 log k , respectively. Prior to our work, no 2O(k) nO(1) -time polynomial-space algorithm was
+known. Additionally, our approach is embeddable in the classic framework of divide-and-color, hence
+it immediately extends to approximate counting of graphs of bounded treewidth; in comparison,
+Brand et al. note that their approach is limited to graphs of bounded pathwidth.
+
+2012 ACM Subject Classification Theory of computation → Fixed parameter tractability
+
+Keywords and phrases parameterized complexity, approximate counting, k-Path
+
+Digital Object Identifier 10.4230/LIPIcs.ICALP.2019.24
+
+Category Track A: Algorithms, Complexity and Games
+
+Funding Saket Saurabh: This work is supported by the European Research Council (ERC) via grant
+LOPPRE, reference 819416.
+Meirav Zehavi: This work is supported by the Israel Science Foundation individual research grant
+no. 1176/18.
+             © Andreas Björklund, Daniel Lokshtanov, Saket Saurabh, and Meirav Zehavi;
+                                                                                                           EA
+
+
+
+
+             licensed under Creative Commons License CC-BY
+                                                                                                           TC S
+
+
+
+
+46th International Colloquium on Automata, Languages, and Programming (ICALP 2019).
+Editors: Christel Baier, Ioannis Chatzigiannakis, Paola Flocchini, and Stefano Leonardi;
+Article No. 24; pp. 24:1–24:15
+                     Leibniz International Proceedings in Informatics
+                     Schloss Dagstuhl – Leibniz-Zentrum für Informatik, Dagstuhl Publishing, Germany
+24:2   Approximate Counting of k-Paths
+
+
+           1    Introduction
+       The objective of the #k-Path problem is to compute the number of k-paths – that is, (simple)
+       paths on k vertices – in a given graph G. Unfortunately, this problem is #W[1]-hard [19],
+       which means that it is unlikely to be solvable in time f (k)nO(1) for any computable function
+       f of k. Nevertheless, this problem is long known to admit an FPT-approximation scheme
+       (FPT-AS), that is, an f (k, −1 )nO(1) -time algorithm that approximately computes the number
+       of k-paths in a given graph G up to a multiplicative error of 1 ± . More than 15 years ago,
+       Arvind and Raman [6] utilized the classic method of color coding [5] to design a randomized
+       exponential-space FPT-AS for #k-Path with running time k O(k) nO(1) whenever −1 ≤ k O(k) .
+       A few years afterwards, the development and use of applications in computational biology to
+       detect and analyze network motifs have already become common practice [34, 37, 36, 18, 24].
+       Roughly speaking, a network motif is a small pattern whose number of occurrences in a
+       given network is substantially larger than its number of occurrences in a random network.
+       Due to their tight relation to network motifs, #k-Path and other cases of the #Subgraph
+       Isomorphism problem became highly relevant to the study of gene transcription networks,
+       protein-protein interaction (PPI) networks, neural networks and social networks [31]. In light
+       of these developments, Alon et al. [2] revisited the method of color coding to attain a running
+       time whose dependency on k is single-exponential rather than slightly super-exponential.
+       Specifically, they designed a simple randomized O((2e)k m−2 )-time exponential-space FPT-
+       AS for #k-Path, which they employed to analyze PPI networks of unicellular organisms. In
+       particular, their algorithm has running time 2O(k) m whenever −1 ≤ 2O(k) .
+           The first deterministic FPT-AS for #k-Path was found in 2007 by Alon and Gutner [4];
+       this algorithm has an exponential space complexity and running time 2O(k log log k) m log n
+       whenever −1 = 2o(log k) . Shortly afterwards, Alon and Gutner [3] improved upon their previ-
+       ous work, and designed a deterministic exponential-space FPT-AS for #k-Path with running
+                         3
+       time (2e)k+O(log k) m log n whenever −1 = k O(1) . For close to a decade, this algorithm has
+       remained the state-of-the-art. In contrast, during this decade, the k-Path problem (the
+       decision version of #k-Path) has seen several improvements that were considered to be
+       breakthroughs at their time [14, 26, 8, 10, 21]. In 2016, Koutis and Williams [27] conjectured
+       that #k-Path admits an FPT-AS with running time 2k nO(1) . Recently, at the cost of
+       reintroducing randomization, Brand et al. [13] provided a speed-up towards the resolution of
+       this conjecture. Specifically, they gave an algebraic randomized O(4k m−2 )-time exponential-
+       space algorithm. In the context of Parameterized Complexity in general, and the k-Path
+       problem in particular, the power of randomization is an issue of wide interest [1]. Specifically
+       for the k-Path problem, an algebraic randomized 2k nO(1) -time algorithm has been found
+       already a decade ago [38], and since then, the existence of a deterministic algorithm that
+       exhibits the same time complexity has been repeatedly posed as a major open problem in
+       the field. Both Koutis and Williams conjectured this question to have an affirmative answer
+       in several venues [38, 28, 27]. Clearly, this question is simpler than the one of the design of a
+       deterministic FPT-AS for #k-Path with running time 2k nO(1) .
+           In this article, we modify the foundation of the work of Alon and Gutner [4, 3], and with
+       a novel twist, obtain the following results (see Theorem 21 and Corollary 10).
+                                                                  −1
+           First, we present a randomized 4k+O(log k(log k+log  )) m log n-time polynomial-space al-
+           gorithm. While Brand et al. [13] make non-trivial use of exterior algebra, our randomized
+           algorithm is very simple: we only make elementary use of the probabilistic method.1
+
+
+       1
+           Of course, simplicity is a subjective matter, which may depend on the background of the reader.
+A. Björklund, D. Lokshtanov, S. Saurabh, and M. Zehavi                                                           24:3
+
+                                                           √      2      2   −1
+     Additionally, we present a deterministic 4k+O( k(log k+log  )) m log n-time polynomial-
+     space algorithm. In particular, without compromising time complexity, we attain both the
+     properties of having a polynomial space complexity and being deterministic simultaneously.
+     In fact, even though we deal with #k-Path, the running time of our algorithm matches
+     the best known running time of a deterministic polynomial-space algorithm for k-Path
+     (the decision version of #k-Path) [14].
+Thus, the algorithm by Brand et al. [13] runs in time 4k+o(k) m whenever −1 = 2o(k) ,
+while our deterministic and randomized algorithms run in time 4k+o(k) m log n whenever
+             1                    k
+−1 = 2o(k 4 ) and −1 = 2o( log k ) , respectively.
+    Prior to our work, no ck nO(1) -time polynomial-space (even randomized) algorithm for
+#k-Path was known for any constant c. The design of polynomial-space parameterized
+algorithms is an active research area in Parameterized Complexity. Even (sometimes) at a
+notable compromise of time complexity, the property of having polynomial space complexity
+is sought (see, e.g., [20, 30, 29, 7, 23]). Indeed, algorithms with high space complexity are
+in practice more constrained because the amount of memory is not easily scaled beyond
+hardware constraints whereas time complexity can be alleviated by allowing for more time
+for the algorithm to finish. Furthermore, algorithms with low space complexity are typically
+easier to parallelize and more cache-friendly.
+   Additionally, our approach is embeddable in the classic framework of divide-and-color,
+hence it immediately extends to approximate counting of graphs of bounded treewidth;in
+comparison, Brand et al. [13] note that their approach is limited to graphs of bounded
+pathwidth. Similarly, we can approximately count various other objects such as q-dimensional
+p-matchings, q-set p-packings, graph motifs, and more:
+                                                                              √     2      2 1
+I Theorem 1. The following problems admit deterministic 4k+O( k(log k+log  )) nO(1) -time
+                          2
+(resp. randomized 4k+O(log k) ( 1 )O(log k) nO(1) -time) FPT-ASs with polynomial space com-
+plexity: (i) #Subgraph Isomorphism for k-vertex subgraphs of treewidth O(1); (ii) #q-
+Dimensional p-Matching with k = (q − 1)p; (iii) #q-Set p-Packing with k = qp; (iv)
+#Graph Motif and #Module Motif with k = 2p where p is the motif size; (v) #p-
+Internal Out-Branching with k = 2p; (vi) #Partial Cover for k-element solutions.2
+
+    Towards the design of our algorithms, our first conceptual contribution is the introduction
+of the notion of an approximate parsimonious splitter. While a randomized construction of
+such an object is simple, we do not know how (or whether it is even possible) to compute it
+deterministically within the size and time bounds that we require. We believe that this gap
+in knowledge of derandomization is the main reason why, for close to a decade, no progress
+has been made upon the result by Alon and Gutner [4, 3]. Here, our second conceptual
+contribution comes into play. We show that for recursive procedures, a weaker object that
+can only split so called nice sets suffices, since the recursion itself can keep track on the
+“niceness” of sets. We believe that both the concept of approximate parsimonious splitters
+as well as our approach of how to weaken a randomized object (to efficiently compute it
+deterministically) at the cost of simple bookkeeping might find further applications in the
+future. Our ideas and methods are discussed in more detail in Section 3.
+
+
+2
+    For problems (i) and (iv), the basis 4 is replaced by the basis 4.001 (or, more precisely, 4 + δ for any
+    fixed constant δ > 0).
+
+
+
+
+                                                                                                               ICALP 2019
+24:4   Approximate Counting of k-Paths
+
+
+            Table 1 State-of-the-art of #k-Path and k-Path.
+
+             Ref.           Time          Counting   Deterministic     Poly. Space       Extension
+                          k+o(k)   O(1)
+            [14]        4       n           No             Yes             Yes        Treewidth O(1)
+            [40]         2.597k nO(1)       No             Yes             No         Treewidth O(1)
+            [38]           2k nO(1)         No             No              Yes        Treewidth O(1)
+            [10]         1.657k nO(1)       No             No              Yes         No Extension
+             [3]       (2e)k+o(k) nO(1)     Yes            Yes             No         Treewidth O(1)
+            [13]           4k nO(1)         Yes            No              No         Pathwidth O(1)
+                          k+o(k) O(1)
+         This Paper     4       n           Yes            Yes             Yes        Treewidth O(1)
+
+
+
+       Related Work. The algorithms by Alon et al. [2] and Alon and Gutner [4, 3], just like our
+       algorithms, extend to approximate counting of graphs of bounded treewidth. (This remark
+       is also made by Alon and Gutner [4, 3].) In what follows, we briefly review works related to
+       exact counting and decision from the viewpoint of Parameterized Complexity. Since these
+       topics are not the focus of our work, the survey is illustrative rather than comprehensive.
+           The problem of counting the number of subgraphs of a graph G that are isomorphic to a
+       graph H – that is, #Subgraph Isomorphism with Pattern H – admits a dichotomy: If
+       the vertex cover number of H is bounded, then it is FPT [39], and otherwise it is #W[1]-
+       hard [16]. The #W[1]-hardness of #k-Path, originally shown by Flum and Grohe [19],
+       follows from this dichotomy. By using the “meet in the middle” approach, the #k-Path
+       problem and, more generally, #Subgraph Isomorphism with Pattern H where H has
+                                                                      k
+       bounded pathwidth and k vertices, was shown to admit an n 2 +O(1) -time algorithm [9]. Later,
+       Björklund et al. [12] showed that k2 is not a barrier (which was considered to be the case
+       at that time) by designing an n0.455k+O(1) -time algorithm. Recently, a breakthrough that
+       resulted in substantially faster running times took place: Curticapean et al. [15] showed that
+       #Subgraph Isomorphism with Pattern H is solvable in time `O(`) n0.174` where ` is the
+       number of edges in H; in particular, this algorithm solves #k-Path in time k O(k) n0.174k .
+           The k-Path problem (on both directed and undirected graphs) is among the most
+       extensively studied parameterized problems [17, 22]. After a long sequence of works in
+       the past three decades, the current best known parameterized algorithms for k-Path have
+       running times 1.657k nO(1) (randomized, polynomial space, undirected only) [10, 8] (extended
+       in [11]), 2k nO(1) (randomized, polynomial space) [38], 2.597k nO(1) (deterministic, exponential
+       space) [40, 21, 35], and 4k+o(k) nO(1) (deterministic, polynomial space) [14]. The 1.657k nO(1) -
+       time algorithm of Björklund et al. [10, 8] crucially relies on the symmetric structure of
+       undirected k-paths. However, all other algorithms above directly extend to the detection
+       of subgraphs of bounded treewidth. In particular, if the running time of the algorithm is
+       ck nO(1) , then the running time of the extension is ck nt+O(1) where t is the treewidth of the
+       sought graph. To ensure that the constant c remains the same when dealing with the two
+       deterministic algorithms (of [40, 21, 35] and [14]), the “division into small trees” trick by
+       Fomin et al. [21] can be used; for the randomized algorithm (of [38]), no trick is required.
+
+
+        2      Preliminaries
+       For the sake of readability, we ignore ceiling and floor signs. Given a graph G, we let V (G)
+       and E(G) denote the vertex set and edge set of G, respectively. For a positive integer k, a
+       k-path in G is a (simple) path on k vertices in G; in case G is directed, the path is directed
+       as well. We let n = |V (G)| and m = |E(G)|. For a subset U ⊆ V (G), G[U ] denotes the
+       subgraph of U induced by G, and G − U = G[V (G) \ U ].
+A. Björklund, D. Lokshtanov, S. Saurabh, and M. Zehavi                                                                    24:5
+
+
+   For a function f : A → B and subsets A0 ⊆ A and B 0 ⊆ B, define f (A0 ) = {f (a) : a ∈ A0 }
+and f −1 (B 0 ) = {a ∈ A : f (a) ∈ B 0 }. For two functions f : A → B and g : B → C, the
+notation g ◦ f : A → C refers to function composition. For two tuples X = (x1 , x2 , . . . , xp )
+and Y = (y1 , y2 , . . . , yq ), denote their concatenation by X Y = (x1 , x2 , . . . , xp , y1 , y2 , . . . , yq ).
+By standard Chernoff bounds, we have the following bounds.
+
+I Proposition 2 ([32]). Let X1 , . . . , Xn be independent random variables, each assigned a
+                        Pn
+value in {0, 1}. Let X = i=1 Xi , and let µ = E[X] denote the expected value of X. Then, for
+                                                                   δ2 µ                                        δ2 µ
+any 0 ≤ δ ≤ 1, it holds that (i) Pr(X ≤ (1 − δ)µ) ≤ e− 2 and (ii) Pr(X ≥ (1 + δ)µ) ≤ e− 3 .
+
+Universal Families. For any k ∈ N, a k-set is a set of size k. Given a universe U , denote
+ U
+   
+ k = {S ⊆ U : |S| = k}. Given a family F over U and two subsets A, B ⊆ U , denote
+F[A, B] = {F ∈ F : A ⊆ F, B ∩ F = ∅}. Next, we present the definition of a universal family.
+
+I Definition 3 (Universal Family [33, 21]). Let n, p, q ∈ N. A family F of sets over a universe
+U of size n is an (n, p, q)-universal family if for each pair of disjoint sets A ∈ Up and
+                                                                                         
+
+B ∈ Uq , there is a set F ∈ F that contains A and is disjoint from B, that is, F[A, B] 6= ∅.
+       
+
+   In the classic setting by Naor et al. [33], p = q. However, as shown by Fomin et al. [21],
+cases where p 6= q are also of interest. Specifically, the following well-known proposition
+asserts that small representative families can be computed efficiently.
+
+I Proposition 4 ([33, 21]). Let n, p, q ∈ N, and k = p + q. Let U be a universe of size n.
+Then, an (n, p, q)-universal family F of sets over U of size O( kp log n) can be computed
+with success probability 1 − 1/n in time O( kp n log n). Additionally, an (n, p, q)-universal
+                                              
+
+family F of sets over U of size kp 2o(k) log n can be computed (deterministically) in time
+                                   
+ k o(k)
+  
+ p 2    n log n. Both computations can enumerate the sets in F with polynomial delay.
+
+   Observe that the constructions above are essentially optimal since any (n, p, q)-universal
+family must be of size at least kp . We later extend Definition 3 to be approximately
+                                  
+
+parsimonious, and show how to compute approximate parsimonious universal families.
+
+ 3      Overview of Our Ideas and Methods
+In this section, we discuss our main ideas and methods. Additionally, we present a simplified
+version of one of our applications in detail.
+
+3.1     Approx. Parsimonious Universal Family: Randomized Construction
+For any pair of disjoint sets A ∈ Up and B ∈ Uq , Definition 3 guarantees that F[A, B] 6= ∅.
+                                                  
+
+However, the number of sets in F[A, B] can be arbitrary. In our applications, the number of
+sets in F[A, B] will be tightly linked to the number of solutions whose “first half” is in A
+and whose “second half” is in B; thus, to avoid over-counting some solutions, we need all
+families F[·, ·] to be roughly of the same size. For this purpose, let us first extend Definition
+3 to be approximately parsimonious.
+
+I Definition 5 (δ-Parsimonious Universal Family). Let n, p, q ∈ N and 0 < δ < 1. Denote
+k = p + q. A family F of sets over a universe U of size n is a δ-parsimonious (n, p, q)-
+universal
+        family if there exists T = T (n, p, q, δ) > 0 such that for each pair of disjoint sets
+A ∈ Up and B ∈ Uq , it holds that (1 − δ) · T ≤ |F[A, B]| ≤ (1 + δ) · T .
+                    
+
+
+
+
+                                                                                                                        ICALP 2019
+24:6   Approximate Counting of k-Paths
+
+
+          We call the value T above a correction factor, and suppose it to be given along with
+       the family F. Our randomized computation of a δ-parsimonious (n, p, q)-universal family is
+       based on the probabilistic method, inspired by [33, 21]. Specifically, we prove the following.
+
+       I Theorem 6. Let n, p, q ∈ N and 0 < δ < 1, and denote k = p + q. Let U be a
+              ofk size n. A δ-parsimonious
+       universe                                 (n, p, q)-universal family F of sets over U of size
+                k                 1 3
+       t=O            · k log n · 2 , can be computed with success probability at least 1 − 1/n100k in
+               pp q q            δ
+       time O(t · n). In particular, the sets in F can be enumerated with delay O(n).
+
+          We note that the choice of 100 is arbitrary; it can be replaced by the choice of any fixed
+       constant c. Crucially, we gain the extra property of being δ-parsimonious while essentially
+       having the same time complexity and upper bound on the size of the output as in the
+       non-parsimonious construction.
+
+
+       3.2      Warm Up Application: Simple Randomized FPT-AS for #k-Path
+       Before we delve into more technical and less intuitive definitions related to our deterministic
+       construction, we find it important to understand the relation between Definition 5 and
+       #k-Path. For this purpose, we present a simple randomized polynomial-space FPT-AS for
+       #k-Path. The dependency of the time complexity on n is made almost linear in Section
+       3.3). While the improved algorithm is still short and simple, it is somewhat less intuitive and
+       hence presented separately later. For the sake of illustration, suppose that G is undirected.
+
+
+       Algorithm. Let b        = ln(1 + ) and 0 = b/(k − 1). Our algorithm is a recursive algorithm,
+       denoted by A. Each call to A is of the form A(G0 , k 0 ) where G0 is an induced subgraph of G
+       and k 0 ∈ {1, . . . , k}. For all u, v ∈ V (G0 ), the call A(G0 , k 0 ) should output an integer au,v
+       that approximates the number of k 0 -paths with endpoints u and v in G0 . The initial call to
+       the algorithm is with G0 = G and k 0 = k, and the final output is ( u,v∈V (G) au,v )/2.
+                                                                                    P
+
+            We turn to describe a call A(G0 , k 0 ). In the basis, where k 0 = 1, we return av,v = 1 for
+       all v ∈ V (G0 ), and au,v = 0 for all u, v ∈ V (G0 ) (with u 6= v).
+            Now, suppose that k 0 ≥ 2. By Theorem 6, for an 0 -parsimonious (n, k 0 /2, k 0 /2)-universal
+       family F of sets over V (G), we can enumerate the sets F ∈ F with delay O(n). For each
+       set F ∈ F, we proceed as follows. We first perform two recursive calls: (i) we call A with
+       (G0 [F ], k 0 /2); (ii) we call A with (G0 − F, k 0 /2). For any u, v ∈ F ∩ V (G0 ), let bFu,v denote
+                                                                                       0          F
+       the number returned by the first call. Similarly, for any u, v ∈ V (G ) \ F , let cu,v denote
+                                                                                              0
+       the number     Xreturned by the second call. Then, for all u ∈ F and v ∈ V (G ) \ F , define
+        F                      F      F
+       au,v =                 bu,p · cq,v .
+                 {p,q}∈E(G0 )
+                 s.t. p∈F,q ∈F
+                            /
+
+           Let T be the correction factor of F. After all sets F ∈ F were enumerated, for all
+                                                                   1  X
+       u, v ∈ V (G0 ), we output au,v calculated as follows: au,v = ·      aF
+                                                                            u,v . Note that we
+                                                                   T  F ∈F
+                                                                                  s.t. u∈F,v ∈F
+                                                                                             /
+
+       do not store all the values aF
+                                    u,v simultaneously, but we merely store one such value at a time
+       and delete it immediately after aF u,v /T is added. This completes the description of A.
+
+
+
+
+                                               k
+       3
+           Note that as p + q = k, the value pkp qq is upper bounded by 2k rather than being of the magnitude of kk .
+A. Björklund, D. Lokshtanov, S. Saurabh, and M. Zehavi                                                                   24:7
+
+
+Analysis.     The main part of the analysis is done in the proof of the following lemma.
+
+I Lemma 7. For some fixed constant η > 0, any call A(G0 , k 0 ) has polynomial space
+                                      0  0  log k0             0                  0
+complexity and running time η log k 4k k 0         (log n)log k mn2 ( 10 2 )log k . Additionally, if all
+constructions of approximate universal families were successful, then for all u, v ∈ V (G0 ), the
+                                                          0                               0
+number au,v returned by A(G0 , k 0 ) satisfies (1 − 0 )k −1 xu,v ≤ au,v ≤ (1 + 0 )k −1 xu,v where
+xu,v is the number of k 0 -paths with endpoints u and v in G0 .
+
+Proof. Let k 0 = k/2d . We choose η = 10 max{λ, τ }, where λ and τ are fixed constants
+defined later. The proof is by backwards induction of d. In the basis (k 0 = 1), the claim
+is trivial. Now, let d ≤ log2 k − 1, and suppose that the claim holds for d + 1. Clearly,
+A(G0 , k 0 ) has a polynomial space complexity. By Theorem 6, for a fixed constant λ > 0 (that
+is independent of η),
+                               k0
+                          k0                                 1           k0           1
+    |F| ≤ λ ·            k0 /2 0    k0 /2
+                                            · k 0 log n ·     0
+                                                                             0
+                                                                2 = λ · 2 · k log n · 0 2 .
+                (k 0 /2)      (k /2)                                                
+                                                                                                                0 0
+Moreover, by the inductive hypothesis,               for a fixed constant τ > 0, the running time of A(G       ,k )
+                                                            0
+                                   
+                                                k 0   k 0 k         k 0              k 0       1     k 0
+is upper bounded by |F| · 2 · η log 2 4 2 ( )log 2 (log n)log 2 mn2 ( 0 2 )log 2 + τ mn2 . Note
+                                                          2                                   
+that τ is independent of η. By choosing η = 10 max{λ, τ }, this means that the running time
+of A(G0 , k 0 ) is upper bounded by
+                                     0
+                                                                                                  
+                      log k2 k2 k log k2                                 2 1 log k2
+                            0    0            0                 0                      0
+                                                          log k2                                 2
+        |F| · 2 · η            4 ( )            (log n)            mn ( 0 2 )            + τ mn
+                                  2                                                                              
+         η k0 0            1             log k0 −1 k0 0 log k −1
+                                                                 0
+                                                                                log k0 −1    2 1 log k0 −1  η    2
+    ≤       2 k log n 0 2 · 2 · η                    2 k                (log n)           mn ( 0 2 )       + mn
+        10                                                                                                10
+                                                    2 1 log k0
+                            0
+          log k0 k0 0 log k           log k0
+    ≤ η          4 k          (log n)        mn ( 0 2 )            .
+                                                      
+This completes the proof of the first item of the claim.
+   Towards the proof of the second item of the claim, suppose that all constructions of
+approximate universal families were successful, and consider some u, v ∈ V (G0 ). Let xG                  b
+                                                                                                         p,q
+                          0
+denote the number of k /2-paths with endpoints p and q in G.                   b By the inductive hypothesis,
+we have that
+                                                                                            
+             1        X                  1         X                  X
+    au,v = ·                   aF
+                                u,v =       ·                                    bF       F 
+                                                                                  u,p · cq,v 
+                                                               
+             T                          T
+                                                               
+                      F ∈F                         F ∈F          {p,q}∈E(G0 )
+                 s.t. u∈F,v ∈F
+                            /                 s.t. u∈F,v ∈F
+                                                         /       s.t. p∈F,q ∈F
+                                                                             /
+                                                                                                   
+             1        X               X                    k 0
+                                                                   G0 [F ]             k 0
+                                                                                              G0 −F 
+          ≤ ·                                   (1 + 0 ) 2 −1 xu,p        · (1 + 0 ) 2 −1 xq,v
+                               
+             T
+                                                                                                   
+                      F ∈F        {p,q}∈E(G0 )
+                 s.t. u∈F,v ∈F
+                            /    s.t. p∈F,q ∈F
+                                            /                                          
+             1              0          X                 X
+                                                                      G0 [F ]    G0 −F 
+          = · (1 + 0 )k −2 ·                                       xu,p      · xq,v
+                                                 
+             T
+                                                                                       
+                                      F ∈F           {p,q}∈E(G0 )
+                                      s.t. u∈F,v ∈F
+                                                 /          s.t. p∈F,q ∈F
+                                                                       /
+
+
+Let Pu,v denote the set of k 0 -paths in G0 with endpoints u and v. In addition, for any subset
+F ⊆ V (G0 ), let Pu,v [F ] denote the set of paths P ∈ Pu,v where the k 0 /2 vertices on P closest
+to u (including u) belong to F and the other k 0 /2 vertices on P do not belong to F . Thus,
+                           P
+                 0 k0 −2          |Pu,v [F ]|
+   au,v ≤ (1 +  )       · F ∈F               .
+                                  T
+
+
+
+                                                                                                                       ICALP 2019
+24:8   Approximate Counting of k-Paths
+
+
+       Since F is an 0 -parsimonious (n, k 0 /2, k 0 /2)-universal family, for any path P ∈ Pu,v it holds
+       that the number of sets F ∈ F such that P ∈ Pu,v [F ] is upper bounded by (1 + 0 )T . Thus,
+
+                               0         (1 + 0 )T |Pu,v |             0
+           au,v ≤ (1 + 0 )k −2 ·                           = (1 + 0 )k −1 xu,v .
+                                                 T
+                                                           0
+       Symmetrically, we derive that (1 − 0 )k −1 xu,v ≤ au,v . This completes the proof.                        J
+
+           We now conclude the following theorem.
+
+       I Theorem 8. There is a randomized (4k+o(k) mn2 + mn2+o(1) )( 1 )O(log k) -time polynomial-
+       space algorithm that, given a graph G, a positive integer k and an accuracy value 0 <  < 1,
+       outputs a number y that (with high probability, say, at least 9/10) satisfies (1 − )x ≤ y ≤
+       (1 + )x where x is the number of k-paths in G. In particular, if 1 = 2o(k/ log k) , then the
+       running time is 4k+o(k) mn2 + mn2+o(1) .
+
+       Proof. By Lemma 7 with G0 = G and k 0 = k, we know that the total running time of A(G, k)
+                              2
+       is bounded by 4k+O(log k) (log n)log k mn2 ( 10 )log k and uses polynomial space. Additionally, if
+       all constructions of approximate universal families were successful, then for all u, v ∈ V (G),
+       the number au,v computed by A(G, k) satisfies (1 − 0 )k−1 xu,v ≤ au,v ≤ (1 + 0 )k−1 xu,v where
+       xu,v is the number of k-paths with endpoints u and v in G.
+                        √                                                                  √
+            If log n ≤ 2 k , then (log n)log k ≤ 2o(k) . Otherwise, when log n > 2 k , it holds that k <
+           2                                     2                    2
+       log log n. It follows that 4k+O(log k) (log n)log k ≤ 4log log n+O(log log log n) (log n)2 log log log n ≤
+             log2 log n                                                         P∞                   n
+       nO( log n ) ≤ no(1) . In addition, by Taylor series ln(1 + x) = n=1 (−1)n+1 xn , it follows
+                                                                                                   2
+       that /2 ≤  − 2 /2 ≤ ln(1 + ) = b          ≤ , which means that ( 10 )log k = 2O(log k) ( 1 )O(log k) .
+                   k+O(log2 k)
+       Thus, 4                 (log n)log k   2 1 log k
+                                            mn ( 0 )    = (4k+o(k) mn2 + mn2+o(1) )( 1 )O(log k) .
+            We now claim that with high probability, all constructions of approximate universal
+       families were successful. By Theorem 6, the probability that a single construction is successful
+       is at least 1 − 1/n100k . Thus, the probability that all constructions are successful is at least
+       (1 − 1/n100k )µ where µ is the number of constructions. Clearly, the number of constructions
+       is upper bounded by the running time of A. In turn, we can assume w.l.o.g. that the upper
+       bound proven on this running time is, in itself, upper bounded by nk , since otherwise the
+       problem can be solved exactly by brute force within it. Thus, µ ≤ nk . From this, we know
+                                                                                                          k
+       that the probability that all constructions are successful is at least (1 − 1/n100k )n . As n
+       grows larger, this value approaches 1. In particular, the success probability can be assumed
+       to be at least 9/10 (otherwise n is a fixed constant), which proves our claim.
+            Thus, we know that for all u, v ∈ V (G), it holds that (1 − 0 )k−1 xu,v ≤ au,v ≤ (1 +
+        0 k−1
+       )       xu,v . Substituting 0 by b  , we have that for all u, v ∈ V (G), it holds that (1 − b   )xuv ≤
+                
+       (1 − k−1
+                b   )k−1 x ≤ a ≤ (1 + b )k−1 x ≤ eb x . Since (1 − ) ≤ (1 − b
+                       u,v         u,v           k−1           u,v       u,v                ) and eb = (1 + ),
+       we have that for all u, v ∈ V (G), it holds that (1 − )xu,v ≤ au,v ≤ (1 + )xu,v . Thus,
+                                                                       
+                     X                               X
+           y=                au,v /2 ≤                      (1 + )xu,v  /2
+                  u,v∈V (G)                        u,v∈V (G)
+                                              
+                               X
+             = (1 + )                   xu,v  /2 = (1 + )x.
+                             u,v∈V (G)
+
+
+       Symmetrically, we obtain that (1 − )x ≤ y. This completes the proof.                                      J
+A. Björklund, D. Lokshtanov, S. Saurabh, and M. Zehavi                                                       24:9
+
+
+3.3     Improved Randomized FPT-AS for #k-Path
+As our improved randomized FPT-AS is less intuitive, we first discuss the intuition behind it.
+Here, in addition to G0 and k 0 , every call to the recursive algorithm A is given an assignment
+α0 : V (G) \ V (G0 ) → N0 of a non-negative integer to each vertex outside G0 . Roughly
+speaking, for each vertex v ∈ V (G) \ V (G0 ), the value α0 (v) is an approximation of the
+number of b  k-paths that end at v and are completely contained in G − U for a certain integer
+k ∈ {1, 2, . . . , k − k 0 } and a subset U ⊆ V (G) that contains V (G0 ). In particular, given that
+b
+now the goal of each call is to output such an assignment for G − (U \ V (G0 ) (a precise
+definition of the goal of a call is given in the formal description of the algorithm), we do not
+need to consider every pair of vertices u, v ∈ V (G0 ) and compute a value au,v ; instead, we
+only compute one value per vertex. Additionally, recall that in the previous algorithm in
+order to compute au,v , we considered every edge {p, q} ∈ E(G0 ) while computing aF          u,v and
+                                                       0
+hence divided our task into the computation of k /2-paths between u and p in one recursive
+call and k 0 /2-paths between q and u in the other. Here, we do not store the two endpoints of
+paths, but their “middle”. More precisely, the flow of information differs: to compute the
+assignment we need to output in the current call, we perform one recursive call to which the
+assignment α0 is given as input; this call will return an assignment that “handles” the first
+k + k 0 /2 vertices on the paths being counted, and be sent as input to the second recursive
+b
+call to handle the next k 0 /2 vertices.
+
+
+Algorithm. Let b       = ln(1 + ) and 0 = b
+                                             /(k − 1). We add a new vertex s to G and connect
+it to all vertices in G. Thus, rather than counting the number of k-paths in the former graph
+G, we can count the number of (k + 1)-paths with s as an endpoint in the new graph G. In
+what follows, we focus on this goal.
+    Our algorithm is a recursive algorithm, denoted by A. Each call to A is of the form
+A(G0 , k 0 , α0 ) where G0 is an induced subgraph of G, k 0 ∈ {1, . . . , k}, and α0 : V (G) \ V (G0 ) →
+N0 . The call A(G0 , k 0 , α0 ) should output an assignment α : V (G0 ) → N0 with the following
+property: For each vertex v ∈ V (G0 ), it holds that α(v) approximates the following number:
+             X
+                              α0 (p) · xq,v ,
+          {p,q}∈E(G)
+          / (G0 ),q∈V (G0 )
+    s.t. p∈V
+
+
+
+where xq,v is the number of k 0 -paths in G0 between q and v.
+    The initial call to the algorithm is with G0 = G − {s}, k 0 = k, and α0 (s) = 1. The final
+          P
+output is v∈V (G)\{s} α(v).
+    We turn to describe a call A(G0 , k 0 , α0 ). In the basis, where k 0 = 1, we return an
+assignment α : V (G0 ) → N0 defined as follows: For each vertex v ∈ V (G0 ), define
+                    X
+   α(v) =                         α0 (u).
+                    / (G0 )
+                   u∈V
+              s.t. {u,v}∈E(G)
+
+
+
+    Now, suppose that k 0 ≥ 2. By Theorem 6, for an 0 -parsimonious (n, k 0 /2, k 0 /2)-universal
+family F of sets over V (G), we can enumerate the sets F ∈ F with delay O(n). For each
+set F ∈ F, we proceed as follows. We first recursively call A with (G0 [F ], k 0 /2, α0 ) where
+α0 is extended to assign 0 to every vertex in V (G0 ) \ F . Let α bF be the output of this call,
+and extend it to assign 0 to every vertex in V (G) \ V (G0 ). Then, we recursively call A with
+(G0 − F, k 0 /2, α
+                 bF ). Let αF be the output of this recursive call.
+
+
+
+                                                                                                           ICALP 2019
+24:10   Approximate Counting of k-Paths
+
+
+            Let T be the correction factor of F. After all sets F ∈ F were enumerated, the output
+        α : V (G0 ) → N0 is computed as follows. For all v ∈ V (G0 ), we calculate
+                                  
+                       X
+            α(v) =          αF (v) /T .
+                                  
+                         F ∈F
+                       s.t. v ∈F
+                              /
+
+
+        Note that we do not store all the assignments αF simultaneously, but we merely store one
+        such assignment at a time and delete it immediately after αF (v)/T , for every v ∈ V (G0 ), is
+        added. This completes the description of A.
+
+        Correctness. The proof of correctness of our algorithm roughly follows the same lines as
+        the proof of correctness of Theorem 8. Due to space constraints, we omit the details, and
+        conclude this section with the statement of our result.
+        I Theorem 9. There is a randomized (4k+o(k) m + mno(1) )( 1 )O(log k) -time polynomial-space
+        algorithm that, given a graph G, a positive integer k and an accuracy value 0 <  < 1, outputs a
+        number y that (with high probability) satisfies (1 − )x ≤ y/2 ≤ (1 + )x where x is the number
+        of k-paths in G. In particular, if 1 = 2o(k/ log k) , then the running time is 4k+o(k) mno(1) .
+           Additionally, we can obtain the following corollary. (This corollary does not follow directly
+        from Theorem 9, but requires a simple preliminary step to shrink the universe; due to space
+        constraints, the details are omitted.)
+                                                                 2
+        I Corollary 10. There is a randomized 4k+O(log k) m log n( 1 )O(log k) -time polynomial-space
+        algorithm that, given a graph G, a positive integer k and an accuracy value 0 <  < 1,‘outputs a
+        number y that (with high probability) satisfies (1 − )x ≤ y/2 ≤ (1 + )x where x is the number
+        of k-paths in G. In particular, if 1 = 2o(k/ log k) , then the running time is 4k+o(k) m log n.
+
+        3.4     Approx. Parsimonious Universal Family: Deterministic Construction
+        We do not know how to deterministically construct small δ-parsimonious universal families.
+        Indeed, the best construction that we are aware of is the one based on bipartite Paley graphs
+        (see Theorem 11.9 in the book by Jukna [25] and the historical notes behind the result).
+        This construction leads to families of size 4k+o(k) for p = q = k2 , whereas we would like size
+        2k+o(k) . Instead, we provide an efficient deterministic computation of a small δ-parsimonious
+        universal family that is suitable for handling so called “nice pairs”. The crucial point is
+        that with respect to our applications, this relaxed construction suffices. In this section, we
+        present the definition of this relaxation, its construction and main property. Due to space
+        constraints, the proofs of the two lemmas and the theorem stated in this section are omitted.
+            To simplify the following definitions, we introduce the following notation. To see the
+        intuition behind this notation in the context of applications, throughout this section h can be
+        thought of as a function that reduces the size of the universe from n to z, f can be thought
+        of as a function that splits the reduced universe into t parts, and p can be thought of as a
+        function that tells us that each part has k/t “useful” elements (e.g., vertices of paths to be
+        counted in a certain recursive call) among which either pi or (k/t) − pi were “exhausted”.
+        I Definition 11. Let n, p, q, t, z ∈ N, and k = p+q. Let U be a universe of size n. A function
+                                                             Pt
+        p : {1, 2, . . . , t} → {0, 1, . . . , k/t} such that i=1 pi = p, is called (p, q, t)-compatible. When
+        p is clear from context, for each i ∈ {1, 2, . . . , t}, denote pi = p(i) and qi = (k/t) − pi .
+            A triple (h, f, p) is called (n, p, q, t, z)-compatible if h : U → {1, 2, . . . , z}, f : {1, 2, . . . ,
+        z} → {1, 2, . . . , t}, and p is (p, q, t)-compatible. (The universe U will be clear from context.)
+A. Björklund, D. Lokshtanov, S. Saurabh, and M. Zehavi                                                    24:11
+
+
+     We begin by defining what is a nice pair.
+
+I Definition 12 (Nice Pair). Let n, p, q, t, z ∈ N. Let U be a universe of size n. Let (h, f, p)
+be (n, p, q, t, z)-compatible. A pair (A, B) is nice (with respect to (h, f, p)) if A ∈ Up and
+B ∈ Uq are disjoint sets, and the following conditions hold.
+        
+
+ 1. The function h is injective when restricted to A ∪ B.
+ 2. For each i ∈ {1, 2, . . . , t}, it holds that |{u ∈ A : f (h(u)) = i}| = pi and |{u ∈ B :
+    f (h(u)) = i}| = (k/t) − pi .
+
+   Towards the definition of a δ-parsimonious universal family for nice pairs, we first present
+a weaker definition of this notion where we have a triple (h, f, p) at hand.
+
+I Definition 13 (Specific δ-Parsimonious Universal Family for Nice Pairs). Let n, p, q, t, z ∈ N.
+Let U be a universe of size n. Let (h, f, p) be (n, p, q, t, z)-compatible. Let 0 < δ < 1.
+A family F of sets over {1, . . . , z} is a δ-parsimonious (h, f, p)-universal family (for nice
+pairs) if there exists T = T (h, f, p, δ) > 0 such that for every nice pair (A, B), it holds that
+(1 − δ) · T ≤ |F[h(A), h(B)]| ≤ (1 + δ) · T .
+
+   Before we show how to extend Definition 13 to the notion useful for applications, we
+argue that small δ-parsimonious (h, f, p)-universal families can be computed “efficiently”.
+
+I Lemma 14. Let p, q, t, z ∈ N, and denote k = p + q and s = k/t. Let (h, f, p) be
+(n, p, q, t, z)-compatible. Let 0< δ < 1. A δ-parsimonious
+                                                              (h, f, p)-universal family F of sets
+                                   k              O(1) 2t
+                                                            can be computed in time ` · z s+1 sO(1) t.
+                                     
+over {1, . . . , z} of size ` = O p · (k · log z · δ )
+In particular, the sets in F can be enumerated with delay z s+1 sO(1) t.
+
+   Towards the definition of our general construction, we need to present the definitions of a
+balanced splitter and a balanced hash family. Constructions of such a splitter and a family
+were given by Alon and Gutner [4, 3].
+
+I Definition 15 (Definition 2.2 [4]). Suppose that 1 ≤ ` ≤ k ≤ n and 0 <  <          1, and let H be
+a family of functions from {1, . . . , n} to {1, . . . , `}. For a set S ∈ {1,...,n}
+                                                                               k      , let splitH (S)
+denote the number of functions h ∈ H that split H into equal size parts, that is, |h−1 (i) ∩ S| =
+k/`. Then, H is an -balanced      (n, k, `)-splitter if there exists T = T (n, k, `, ) > 0 such that
+for every set S ∈ {1,...,n}
+                            
+                      k       , we have  (1 − )T ≤ splitH (S) ≤ (1 − )T .
+
+I Definition 16 (Definition 2.1 [4]). Suppose that 1 ≤ k ≤ ` ≤ n and 0 <  < 1. A family
+H of functions from {1, . . . , n} to {1, . . . , `} is an (, k)-balanced family of   hash functions
+                                                                            {1,...,n}
+if there exists T = T (n, k, `, ) > 0 such that for every set S ∈              k      , the number of
+functions in H that are injective when restricted to S is between (1 − )T and (1 + )T .
+
+     We are now ready to define our general derandomization tool.
+
+I Definition 17 ((General) δ-Parsimonious Universal√Family for Nice
+                                                    2                    √ Pairs). Let n, p, q ∈ N
+and 0 < δ < 1, and denote k = p + q, z = 2k , t = k, s = k/t = k, and  = δ/3. Let U
+be a universe of size n. A δ-parsimonious (n, p, q)-universal tuple (for nice pairs) is a tuple
+(H, S, {F h,f,p }|h∈H,f ∈S,p )4 that satisfies the following conditions.
+    H is an (, k)-balanced family of hash functions from {1, . . . , n} to {1, . . . , z} (with
+    correction factor TH ).
+    S is an -balanced (z, k, t)-splitter (with correction factor TS ).
+    For every hash function h ∈ H, splitter f ∈ S and (p, q, t)-compatible function p, it holds
+    that F h,f,p is a δ-parsimonious (h, f, p)-universal family (with correction factor Tp ).
+
+
+4
+    The enumeration is over every (p, q, t)-compatible p.
+
+                                                                                                         ICALP 2019
+24:12   Approximate Counting of k-Paths
+
+
+            By enumerating the quadruples of (H, S, {F h,f,p }|h∈H,f ∈S,p ), we refer to the enumeration
+        of every quadruple (h, f, p, F ) such that h ∈ H, f ∈ S and F ∈ F h,f,p . We remark that
+        below, for the sake of brevity, when we write k, z, t, s, , TH , TS and Tp , we refer to the
+        notations given in Definition 17. Let us now state our construction.
+
+        I Theorem 18. Let n, p, q ∈ N and 0 < δ < 1. Denote k = p + q. Let U be a universe of size
+        n. A δ-parsimonious (n, p, q)-universal tuple (H, S, {F h,f,p }|h∈H,f ∈S,p ) with ` quadruples
+                                    O(1)                                                            O(1)
+        can be computed in time k δO(1)n log n
+                                                + ` · ∆. In particular, after preprocessing time k δO(1)
+                                                                                                     n log n
+                                                                                                             ,
+                                    h,f,p
+        the quadruples of (H, S, {F       }|h∈H,f ∈S,p ) can be enumerated with delay ∆. Here,
+                             √
+                    
+                     k             2        2 1
+             ` =        · 2O( k(log k+log δ )) · log n, and
+                     p√
+                                  1
+             ∆ = 2O( k(log k+log δ )) .
+
+           In order to state the property of a δ-parsimonious (n, p, q)-universal tuple that makes it
+        useful for applications, we need one last definition.
+
+        I Definition 19. Let n, p, q ∈ N and 0 < δ < 1. Let U be a universe of size n. Furthermore,
+        let (H, S, {F h,f,p}|h∈H,f ∈S,p ) be a δ-parsimonious (n, p, q)-universal tuple. Finally, let A ∈
+          U               U
+          p and B ∈ q be disjoint sets. We say that the pair (A, B) fits a quadruple (h, f, p, F )
+        of (H, S, {F h,f,p }|h∈H,f ∈S,p ) if (A, B) is nice with respect to (h, f, p), and h(A) ⊆ F and
+        f ∩ h(B) = ∅.
+
+            Finally, we state the promised property.
+
+        I Lemma 20. Let n, p, q ∈ N and 0 < δ < 1. Let U be a universe of size n. Furthermore,
+        let (H, S, {F h,f,p }|h∈H,f ∈S,p ) be a δ-parsimonious (n, p, q)-universal tuple. Then, there exist
+        T = T (n, p, q, δ) > 0 and for every   p that is (p, q, t)-compatible, Tp = Tp (n, p, q, δ) > 0, such
+        that for any A ∈ Up and B ∈ Uq that are disjoint, the following conditions hold.
+         1. The number of triples (h, f, p) with respect to whom (A, B) is nice, where h ∈ H, f ∈ S
+            and p is (p, q, t)-compatible, is between (1 − δ)T and (1 + δ)T .
+         2. For any triple (h, f, p) with respect to whom (A, B) is nice, where h ∈ H, f ∈ S and p
+            is (p, q, t)-compatible, the number of quadruples (h, f, p, F ) of (H, S, {F h,f,p }|h∈H,f ∈S,p )
+            that fit (A, B) is between (1 − δ)Tp and (1 + δ)Tp .
+
+        3.5    Deterministic FPT-AS for #k-Path
+        Our deterministic FPT-AS builds upon the scheme of our second randomized FPT-AS, but it
+        is more technical. Due to space constraints, the full details of the description of the algorithm
+        and its proof of correctness is omitted. Here, we only discuss the main idea that underlies
+        the design of this algorithm. Like our previous algorithm, this algorithm (denoted by A) is
+        recursive. However, in addition to G0 , k 0 and α0 , every call to A is also given two tuples R
+        and W. The number of elements in R and W equals the depth d of the current recursive
+        call in the recursion tree.
+            Roughly speaking, every element in R is a quadruple (hi , fi , pi , σi ) where (i) the
+        triple (hi , fi , pi ) corresponds to the interpretation preceding Definition 11, and (ii) σi ∈
+        {left, right} indicates whether we should count paths that consist of pi (j) (in case
+        σi = left) or si − pi (j) (in case σi = right) vertices of the j-th part of the reduced
+        universe split by fi . Thus, we “keep track” of all triples considered along the current re-
+        cursion branch. The reason why we have to store this information is to ensure that, in the
+        current recursive call, we only count paths P whose vertex set has the following property:
+A. Björklund, D. Lokshtanov, S. Saurabh, and M. Zehavi                                                            24:13
+
+
+when we will return to the i-th recursive call, the partition (A, B) of V (P ) where A consists
+             k vertices of P (for a certain b
+of the first b                                    k ∈ {1, 2, . . . , k} that depends on the location of
+this i-th call in the recursion tree) is nice with respect to (hi , fi , pi ), see Definition 12. This
+simple (though perhaps slightly tedious) bookkeeping sidesteps the fact that Lemma 20 only
+suits nice pairs.
+    The tuple W is meant to keep track of how many vertices the paths that we currently
+count have used “so far” from the j-th part of the universe split by fi for every choice of
+i and j. For this purpose, W is defined to have the form (w1 , w2 , . . . , wd ) such that for
+each i ∈ {1, 2, . . . , d}, the following condition holds: For each j ∈ {1,   p 2, . . . , ti }, if σi = left
+then wi (j) ≤ pi (j), and otherwise wi (j) ≤ si − pi (j). Here, si = (k/2i ) is the number of
+vertices the paths that we currently count should use (in total) from each part split by fi .
+    Accordingly, the objective of a call A(G0 , k 0 , α0 , R, W) is to output an assignment
+α : V (G0 ) → N0 with the      Xfollowing property:         For each vertex v ∈ V (G0 ), it holds that
+                                          0         G0 ,k0 ,R,W                             G0 ,k0 ,R,W
+α(v) approximates                        α (p) · |Pq,v          |. Roughly speaking, Pq,v               is the
+                               {p,q}∈E(G)
+                               / (G0 ),q∈V (G0 )
+                         s.t. p∈V
+
+collection of all k -paths in G0 with endpoints q and v that “comply” with the constraints
+                     0
+
+imposed by R and W. (Due to space constraints, the formal definition is omitted.)
+    We conclude this section with the formal statement of our main result.
+                                                       √      2      2 1
+I Theorem 21. There is a deterministic 4k+O( k(log k+log  )) m log n-time polynomial-space
+algorithm that, given a graph G, a positive integer k and an accuracy value 0 <  < 1, outputs
+a number y that satisfies (1 − )x ≤ y/2 ≤ (1 + )x where x is the number of k-paths in G.
+                                 1
+In particular, if 1 = 2o(k 4 ) , then the running time is 4k+o(k) m log n.
+
+     Due to space constraints, the discussion on extensions and other applications is omitted.
+
+
+       References
+ 1    Randomization in Parameterized Complexity. www.dagstuhl.de/de/programm/kalender/
+      semhp/?semnr=17041.
+ 2    Noga Alon, Phuong Dao, Iman Hajirasouliha, Fereydoun Hormozdiari, and Süleyman Cenk
+      Sahinalp. Biomolecular network motif counting and discovery by color coding. In Proceedings
+      16th International Conference on Intelligent Systems for Molecular Biology (ISMB), Toronto,
+      Canada, July 19-23, 2008, pages 241–249, 2008. doi:10.1093/bioinformatics/btn163.
+ 3    Noga Alon and Shai Gutner. Balanced Hashing, Color Coding and Approximate Count-
+      ing. In Parameterized and Exact Computation, 4th International Workshop, IWPEC 2009,
+      Copenhagen, Denmark, September 10-11, 2009, Revised Selected Papers, pages 1–16, 2009.
+      doi:10.1007/978-3-642-11269-0_1.
+ 4    Noga Alon and Shai Gutner. Balanced families of perfect hash functions and their applications.
+      ACM Trans. Algorithms, 6(3):54:1–54:12, 2010. doi:10.1145/1798596.1798607.
+ 5    Noga Alon, Raphael Yuster, and Uri Zwick. Color-Coding. J. ACM, 42(4):844–856, 1995.
+      doi:10.1145/210332.210337.
+ 6    Vikraman Arvind and Venkatesh Raman. Approximation Algorithms for Some Parameterized
+      Counting Problems. In Algorithms and Computation, 13th International Symposium, ISAAC
+      2002 Vancouver, BC, Canada, November 21-23, 2002, Proceedings, pages 453–464, 2002.
+      doi:10.1007/3-540-36136-7_40.
+ 7    André Berger, László Kozma, Matthias Mnich, and Roland Vincze. A time- and space-optimal
+      algorithm for the many-visits TSP. In Proceedings of the Thirtieth Annual ACM-SIAM
+      Symposium on Discrete Algorithms, SODA 2019, San Diego, California, USA, January 6-9,
+      2019, pages 1770–1782, 2019. doi:10.1137/1.9781611975482.106.
+
+
+
+
+                                                                                                                 ICALP 2019
+24:14   Approximate Counting of k-Paths
+
+
+         8   Andreas Björklund. Determinant Sums for Undirected Hamiltonicity. SIAM J. Comput.,
+             43(1):280–299, 2014. doi:10.1137/110839229.
+         9   Andreas Björklund, Thore Husfeldt, Petteri Kaski, and Mikko Koivisto. Counting Paths
+             and Packings in Halves. In Algorithms - ESA 2009, 17th Annual European Symposium,
+             Copenhagen, Denmark, September 7-9, 2009. Proceedings, pages 578–586, 2009. doi:10.1007/
+             978-3-642-04128-0_52.
+        10   Andreas Björklund, Thore Husfeldt, Petteri Kaski, and Mikko Koivisto. Narrow sieves for
+             parameterized paths and packings. J. Comput. Syst. Sci., 87:119–139, 2017. doi:10.1016/j.
+             jcss.2017.03.003.
+        11   Andreas Björklund, Vikram Kamat, Lukasz Kowalik, and Meirav Zehavi. Spotting Trees with
+             Few Leaves. SIAM J. Discrete Math., 31(2):687–713, 2017. doi:10.1137/15M1048975.
+        12   Andreas Björklund, Petteri Kaski, and Lukasz Kowalik. Counting Thin Subgraphs via
+             Packings Faster than Meet-in-the-Middle Time. ACM Trans. Algorithms, 13(4):48:1–48:26,
+             2017. doi:10.1145/3125500.
+        13   Cornelius Brand, Holger Dell, and Thore Husfeldt. Extensor-coding. In Proceedings of the
+             50th Annual ACM SIGACT Symposium on Theory of Computing, STOC 2018, Los Angeles,
+             CA, USA, June 25-29, 2018, pages 151–164, 2018. doi:10.1145/3188745.3188902.
+        14   J. Chen, J. Kneis, S. Lu, D. Mölle, S. Richter, P. Rossmanith, S. Sze, and F. Zhang. Randomized
+             Divide-and-Conquer: Improved Path, Matching, and Packing Algorithms. SIAM Journal on
+             Computing, 38(6):2526–2547, 2009.
+        15   Radu Curticapean, Holger Dell, and Dániel Marx. Homomorphisms Are a Good Basis for
+             Counting Small Subgraphs. In Proceedings of the 49th Annual ACM SIGACT Symposium
+             on Theory of Computing, STOC 2017, pages 210–223, New York, NY, USA, 2017. ACM.
+             doi:10.1145/3055399.3055502.
+        16   Radu Curticapean and Dániel Marx. Complexity of Counting Subgraphs: Only the Bounded-
+             ness of the Vertex-Cover Number Counts. In 55th IEEE Annual Symposium on Foundations of
+             Computer Science, FOCS 2014, Philadelphia, PA, USA, October 18-21, 2014, pages 130–139,
+             2014. doi:10.1109/FOCS.2014.22.
+        17   Marek Cygan, Fedor V. Fomin, Lukasz Kowalik, Daniel Lokshtanov, Dániel Marx, Marcin
+             Pilipczuk, Michal Pilipczuk, and Saket Saurabh. Parameterized Algorithms. Springer, 2015.
+             doi:10.1007/978-3-319-21275-3.
+        18   Banu Dost, Tomer Shlomi, Nitin Gupta, Eytan Ruppin, Vineet Bafna, and Roded Sharan.
+             QNet: A Tool for Querying Protein Interaction Networks. Journal of Computational Biology,
+             15(7):913–925, 2008. doi:10.1089/cmb.2007.0172.
+        19   Jörg Flum and Martin Grohe. The Parameterized Complexity of Counting Problems. SIAM
+             J. Comput., 33(4):892–922, 2004.
+        20   Fedor V. Fomin, Petteri Kaski, Daniel Lokshtanov, Fahad Panolan, and Saket Saurabh.
+             Parameterized Single-Exponential Time Polynomial Space Algorithm for Steiner Tree. In
+             Automata, Languages, and Programming - 42nd International Colloquium, ICALP 2015,
+             Kyoto, Japan, July 6-10, 2015, Proceedings, Part I, pages 494–505, 2015. doi:10.1007/
+             978-3-662-47672-7_40.
+        21   Fedor V. Fomin, Daniel Lokshtanov, Fahad Panolan, and Saket Saurabh. Efficient Computation
+             of Representative Families with Applications in Parameterized and Exact Algorithms. J. ACM,
+             63(4):29:1–29:60, 2016. doi:10.1145/2886094.
+        22   Fedor V. Fomin, Daniel Lokshtanov, Saket Saurabh, and Meirav Zehavi. Kernelization: Theory
+             of Parameterized Preprocessing. Cambridge University Press, 2018.
+        23   Gregory Z. Gutin, Felix Reidl, Magnus Wahlström, and Meirav Zehavi. Designing deterministic
+             polynomial-space algorithms by color-coding multivariate polynomials. J. Comput. Syst. Sci.,
+             95:69–85, 2018. doi:10.1016/j.jcss.2018.01.004.
+        24   Falk Hüffner, Sebastian Wernicke, and Thomas Zichner. Algorithm Engineering for Color-
+             Coding with Applications to Signaling Pathway Detection. Algorithmica, 52(2):114–132, 2008.
+             doi:10.1007/s00453-007-9008-7.
+A. Björklund, D. Lokshtanov, S. Saurabh, and M. Zehavi                                                  24:15
+
+
+25   Stasys Jukna. Extremal Combinatorics: With Applications in Computer Science. Springer
+     Publishing Company, Incorporated, 1st edition, 2010.
+26   Ioannis Koutis. Faster Algebraic Algorithms for Path and Packing Problems. In Automata,
+     Languages and Programming, 35th International Colloquium, ICALP 2008, Reykjavik, Iceland,
+     July 7-11, 2008, Proceedings, Part I: Tack A: Algorithms, Automata, Complexity, and Games,
+     pages 575–586, 2008. doi:10.1007/978-3-540-70575-8_47.
+27   Ioannis Koutis and Ryan Williams. Algebraic fingerprints for faster algorithms. Commun.
+     ACM, 59(1):98–105, 2016. doi:10.1145/2742544.
+28   Ioannis Koutis and Ryan Williams. LIMITS and applications of group algebras for parameter-
+     ized problems. ACM Trans. Algorithms, 12(3):31:1–31:18, 2016. doi:10.1145/2885499.
+29   Daniel Lokshtanov, Matthias Mnich, and Saket Saurabh. Planar k-Path in Subexponential
+     Time and Polynomial Space. In Graph-Theoretic Concepts in Computer Science - 37th
+     International Workshop, WG 2011, Teplá Monastery, Czech Republic, June 21-24, 2011.
+     Revised Papers, pages 262–270, 2011. doi:10.1007/978-3-642-25870-1_24.
+30   Daniel Lokshtanov and Jesper Nederlof. Saving space by algebraization. In Proceedings of
+     the 42nd ACM Symposium on Theory of Computing, STOC 2010, Cambridge, Massachusetts,
+     USA, 5-8 June 2010, pages 321–330, 2010. doi:10.1145/1806689.1806735.
+31   R. Milo, S. Shen-Orr, S. Itzkovitz, N. Kashtan, D. Chklovskii, and U. Alon. Network
+     Motifs: Simple Building Blocks of Complex Networks. Science, 298(5594):824–827, 2002.
+     doi:10.1126/science.298.5594.824.
+32   Michael Mitzenmacher and Eli Upfal. Probability and computing - randomized algorithms and
+     probabilistic analysis. Cambridge University Press, 2005.
+33   Moni Naor, Leonard J. Schulman, and Aravind Srinivasan. Splitters and Near-Optimal
+     Derandomization. In 36th Annual Symposium on Foundations of Computer Science, Milwaukee,
+     Wisconsin, 23-25 October 1995, pages 182–191, 1995. doi:10.1109/SFCS.1995.492475.
+34   Jacob Scott, Trey Ideker, Richard M. Karp, and Roded Sharan. Efficient Algorithms for
+     Detecting Signaling Pathways in Protein Interaction Networks. Journal of Computational
+     Biology, 13(2):133–144, 2006. doi:10.1089/cmb.2006.13.133.
+35   Hadas Shachnai and Meirav Zehavi. Representative families: A unified tradeoff-based approach.
+     J. Comput. Syst. Sci., 82(3):488–502, 2016. doi:10.1016/j.jcss.2015.11.008.
+36   Roded Sharan and Trey Ideker. Modeling cellular machinery through biological network
+     comparison. Nat. Biotechnol. 24, 427-433. Nature biotechnology, 24:427–33, May 2006.
+37   Tomer Shlomi, Daniel Segal, Eytan Ruppin, and Roded Sharan. QPath: a method for
+     querying pathways in a protein-protein interaction network. BMC Bioinformatics, 7:199, 2006.
+     doi:10.1186/1471-2105-7-199.
+38   Ryan Williams. Finding paths of length k in O* (2k ) time. Inf. Process. Lett., 109(6):315–318,
+     2009. doi:10.1016/j.ipl.2008.11.004.
+39   Virginia Vassilevska Williams and Ryan Williams. Finding, Minimizing, and Counting
+     Weighted Subgraphs. SIAM J. Comput., 42(3):831–854, 2013. doi:10.1137/09076619X.
+40   Meirav Zehavi. Mixing Color Coding-Related Techniques. In Algorithms - ESA 2015 - 23rd
+     Annual European Symposium, Patras, Greece, September 14-16, 2015, Proceedings, pages
+     1037–1049, 2015. doi:10.1007/978-3-662-48350-3_86.
+
+
+
+
+                                                                                                       ICALP 2019
+
